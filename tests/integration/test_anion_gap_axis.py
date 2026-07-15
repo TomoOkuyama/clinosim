@@ -49,12 +49,8 @@ def test_negative_anion_gap_amplifies_hyperchloremia() -> None:
     # A metabolic-acidosis state with a real HCO3 deficit (ph_status < 0).
     base = dict(renal_function=1.0, ph_status=-0.4)
 
-    s_neutral = apply_disease_onset(
-        PhysiologicalState(**base), "x", {"x": {"anion_gap_status": 0.0}}
-    )
-    s_non_ag = apply_disease_onset(
-        PhysiologicalState(**base), "x", {"x": {"anion_gap_status": -0.6}}
-    )
+    s_neutral = apply_disease_onset(PhysiologicalState(**base), "x", {"x": {"anion_gap_status": 0.0}})
+    s_non_ag = apply_disease_onset(PhysiologicalState(**base), "x", {"x": {"anion_gap_status": -0.6}})
 
     cl_neutral = derive_lab_values(s_neutral, sex="M", age=40)["Cl"]
     cl_non_ag = derive_lab_values(s_non_ag, sex="M", age=40)["Cl"]

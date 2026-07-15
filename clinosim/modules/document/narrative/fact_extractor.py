@@ -23,22 +23,16 @@ def extract_patient_facts(patient_dict: dict[str, Any]) -> list[FactTag]:
     for cc in profile.get("chronic_conditions", []) or []:
         code = cc.get("code") if isinstance(cc, dict) else str(cc)
         if code:
-            facts.append(
-                FactTag(key=f"chronic.{code}", value="present", source="profile.chronic_conditions")
-            )
+            facts.append(FactTag(key=f"chronic.{code}", value="present", source="profile.chronic_conditions"))
     return facts
 
 
 def extract_encounter_facts(encounter_dict: dict[str, Any]) -> list[FactTag]:
     facts: list[FactTag] = []
     if dx := encounter_dict.get("admission_diagnosis_code"):
-        facts.append(
-            FactTag(key="diagnosis.admission_icd", value=str(dx), source="structural.encounter")
-        )
+        facts.append(FactTag(key="diagnosis.admission_icd", value=str(dx), source="structural.encounter"))
     if dx := encounter_dict.get("discharge_diagnosis_code"):
-        facts.append(
-            FactTag(key="diagnosis.discharge_icd", value=str(dx), source="structural.encounter")
-        )
+        facts.append(FactTag(key="diagnosis.discharge_icd", value=str(dx), source="structural.encounter"))
     return facts
 
 

@@ -19,15 +19,11 @@ from clinosim.types.staff import StaffMember, StaffRoster
 
 
 def test_supported_adl_categories_contains_required():
-    assert SUPPORTED_ADL_CATEGORIES == frozenset(
-        {"eating", "bathing", "dressing", "toileting", "mobility"}
-    )
+    assert SUPPORTED_ADL_CATEGORIES == frozenset({"eating", "bathing", "dressing", "toileting", "mobility"})
 
 
 def test_supported_risk_assessments_contains_required():
-    assert SUPPORTED_RISK_ASSESSMENTS == frozenset(
-        {"fall_risk", "pressure_ulcer_risk", "aspiration_risk"}
-    )
+    assert SUPPORTED_RISK_ASSESSMENTS == frozenset({"fall_risk", "pressure_ulcer_risk", "aspiration_risk"})
 
 
 def test_inpatient_encounter_types():
@@ -78,9 +74,7 @@ def test_nursing_assessment_disease_entries_have_required_fields():
     for disease_id, entry in disease_focus.items():
         assert "focus" in entry, f"disease {disease_id!r} missing 'focus'"
         assert "interventions_ja" in entry, f"disease {disease_id!r} missing 'interventions_ja'"
-        assert isinstance(entry["interventions_ja"], list), (
-            f"disease {disease_id!r}: interventions_ja must be a list"
-        )
+        assert isinstance(entry["interventions_ja"], list), f"disease {disease_id!r}: interventions_ja must be a list"
 
 
 def test_nursing_assessment_required_diseases_present():
@@ -106,15 +100,9 @@ def test_nursing_assessment_required_diseases_present():
 def _make_roster_with_nurses() -> StaffRoster:
     return StaffRoster(
         members=[
-            StaffMember(
-                staff_id="NS-001", name="Nurse A", role="nurse", department="internal_medicine"
-            ),
-            StaffMember(
-                staff_id="NS-002", name="Nurse B", role="nurse", department="internal_medicine"
-            ),
-            StaffMember(
-                staff_id="MD-001", name="Doctor A", role="physician", department="internal_medicine"
-            ),
+            StaffMember(staff_id="NS-001", name="Nurse A", role="nurse", department="internal_medicine"),
+            StaffMember(staff_id="NS-002", name="Nurse B", role="nurse", department="internal_medicine"),
+            StaffMember(staff_id="MD-001", name="Doctor A", role="physician", department="internal_medicine"),
         ]
     )
 

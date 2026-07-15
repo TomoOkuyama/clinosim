@@ -29,8 +29,11 @@ def rng():
 @pytest.fixture
 def profile():
     return PatientPhysiologicalProfile(
-        immune_reactivity=0.55, renal_reserve=0.70, cardiac_reserve=0.72,
-        hepatic_reserve=0.80, treatment_sensitivity=1.05,
+        immune_reactivity=0.55,
+        renal_reserve=0.70,
+        cardiac_reserve=0.72,
+        hepatic_reserve=0.80,
+        treatment_sensitivity=1.05,
     )
 
 
@@ -49,8 +52,9 @@ class TestPneumoniaPipeline:
     def test_crp_trajectory_follows_archetype(self, profile, conditions, rng):
         """CRP should rise initially, then decline for smooth_recovery."""
         state = initialize_state(profile, conditions)
-        state = apply_disease_onset(state, "moderate",
-                                     {"moderate": {"inflammation_level": 0.50, "volume_status": -0.20}})
+        state = apply_disease_onset(
+            state, "moderate", {"moderate": {"inflammation_level": 0.50, "volume_status": -0.20}}
+        )
 
         crp_values = []
         for day in range(14):
@@ -70,8 +74,7 @@ class TestPneumoniaPipeline:
     def test_treatment_resistant_triggers_escalation(self, profile, conditions, rng):
         """Treatment-resistant archetype should still have high inflammation at Day 3."""
         state = initialize_state(profile, conditions)
-        state = apply_disease_onset(state, "moderate",
-                                     {"moderate": {"inflammation_level": 0.50}})
+        state = apply_disease_onset(state, "moderate", {"moderate": {"inflammation_level": 0.50}})
 
         for day in range(4):
             directive = get_daily_directive("treatment_resistant", day, profile)
@@ -104,9 +107,9 @@ class TestPneumoniaPipeline:
     def test_sudden_deterioration_produces_shock(self, profile, conditions):
         """Sudden deterioration should produce shock (low perfusion, high lactate)."""
         state = initialize_state(profile, conditions)
-        state = apply_disease_onset(state, "severe",
-                                     {"severe": {"inflammation_level": 0.75,
-                                                  "perfusion_status": -0.20}})
+        state = apply_disease_onset(
+            state, "severe", {"severe": {"inflammation_level": 0.75, "perfusion_status": -0.20}}
+        )
 
         for day in range(3):
             directive = get_daily_directive("sudden_deterioration", day, profile)
@@ -125,17 +128,14 @@ class TestHeartFailurePipeline:
 
     def test_hf_initial_state_has_volume_overload(self, profile, conditions):
         state = initialize_state(profile, conditions)
-        state = apply_disease_onset(state, "moderate",
-                                     {"moderate": {"cardiac_function": -0.25,
-                                                    "volume_status": 0.50}})
+        state = apply_disease_onset(state, "moderate", {"moderate": {"cardiac_function": -0.25, "volume_status": 0.50}})
         assert state.volume_status > 0.3, "HF should have volume overload"
         labs = derive_lab_values(state, sex="M", age=78)
         assert labs["BNP"] > 200, "BNP should be elevated in HF"
 
     def test_hf_recovery_reduces_volume(self, profile, conditions):
         state = initialize_state(profile, conditions)
-        state = apply_disease_onset(state, "moderate",
-                                     {"moderate": {"cardiac_function": -0.25, "volume_status": 0.50}})
+        state = apply_disease_onset(state, "moderate", {"moderate": {"cardiac_function": -0.25, "volume_status": 0.50}})
         initial_vol = state.volume_status
 
         # Simulate diuretic response (smooth_recovery: volume decreases)
@@ -154,10 +154,9 @@ class TestHipFracturePipeline:
 
     def test_hip_fracture_causes_anemia(self, profile, conditions):
         state = initialize_state(profile, conditions)
-        state = apply_disease_onset(state, "moderate",
-                                     {"moderate": {"inflammation_level": 0.20,
-                                                    "anemia_level": 0.10,
-                                                    "volume_status": -0.15}})
+        state = apply_disease_onset(
+            state, "moderate", {"moderate": {"inflammation_level": 0.20, "anemia_level": 0.10, "volume_status": -0.15}}
+        )
         labs = derive_lab_values(state, sex="F", age=82)
         # anemia_level=0.10 → Hb = 13 * (1 - 0.10*0.7) = 13 * 0.93 = 12.09
         assert labs["Hb"] < 13, "Hb should be decreased from normal (~13 for F)"
@@ -165,8 +164,7 @@ class TestHipFracturePipeline:
     def test_all_lab_values_plausible(self, profile, conditions, rng):
         """No lab value should be out of physiologically possible range."""
         state = initialize_state(profile, conditions)
-        state = apply_disease_onset(state, "moderate",
-                                     {"moderate": {"inflammation_level": 0.20, "anemia_level": 0.10}})
+        state = apply_disease_onset(state, "moderate", {"moderate": {"inflammation_level": 0.20, "anemia_level": 0.10}})
 
         for day in range(30):
             directive = get_daily_directive("smooth_recovery", day, profile)

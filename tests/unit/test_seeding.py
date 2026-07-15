@@ -65,9 +65,7 @@ class TestPanelSpecimenSeed:
         # itself is derived deterministically from the master seed by the
         # simulator, so this is a complete determinism gate for the
         # panel-children pass.
-        assert (
-            panel_specimen_seed("ORD-POP-000001-D01-L00-CBC") == 1509557560
-        )
+        assert panel_specimen_seed("ORD-POP-000001-D01-L00-CBC") == 1509557560
 
     def test_deterministic_and_in_range(self):
         a = panel_specimen_seed("ORD-POP-000001-D01-L00-CBC")
@@ -92,9 +90,7 @@ class TestPanelSpecimenSeed:
         for ms in (0, 1, 42, 7919):
             for offset in (_IMM_SEED_OFFSET, _NURSING_SEED_OFFSET, _MICRO_SEED_OFFSET):
                 for key in ("POP-000001", "ENC-1", "ORD-POP-000001-D01-L00-CBC"):
-                    assert (
-                        panel_specimen_seed(key) != derive_sub_seed(ms, offset, key)
-                    )
+                    assert panel_specimen_seed(key) != derive_sub_seed(ms, offset, key)
 
 
 def test_phase_seed_offsets_unique():

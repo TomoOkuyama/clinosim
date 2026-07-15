@@ -21,10 +21,23 @@ def test_explicit_p_500_yields_us_and_jp_same_scale(tmp_path: object) -> None:
     jp = tmp_path / "jp500"
     for country, out in [("US", us), ("JP", jp)]:
         r = subprocess.run(
-            [sys.executable, "-m", "clinosim.simulator.cli", "generate",
-             "-p", "500", "--country", country, "-o", str(out),
-             "--format", "cif"],
-            capture_output=True, text=True, timeout=900,
+            [
+                sys.executable,
+                "-m",
+                "clinosim.simulator.cli",
+                "generate",
+                "-p",
+                "500",
+                "--country",
+                country,
+                "-o",
+                str(out),
+                "--format",
+                "cif",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=900,
         )
         assert r.returncode == 0, r.stderr
         assert "population=500" in r.stdout

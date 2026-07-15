@@ -73,14 +73,10 @@ def _validate_hai_lab_lift_config(data: dict) -> None:
         raise ValueError("hai_lab_lift.yaml empty — silent no-op risk")
     ramp = data.get("ramp_peak_days")
     if not isinstance(ramp, (int, float)) or float(ramp) <= 0:
-        raise ValueError(
-            f"hai_lab_lift.yaml: ramp_peak_days {ramp!r} must be > 0"
-        )
+        raise ValueError(f"hai_lab_lift.yaml: ramp_peak_days {ramp!r} must be > 0")
     lift_table = data.get("hai_lift") or {}
     if not lift_table:
-        raise ValueError(
-            "hai_lab_lift.yaml: hai_lift bucket empty — silent no-op risk"
-        )
+        raise ValueError("hai_lab_lift.yaml: hai_lift bucket empty — silent no-op risk")
     valid_types = set(HAI_TYPES)
     for hai_type, value in lift_table.items():
         if hai_type not in valid_types:
@@ -89,15 +85,10 @@ def _validate_hai_lab_lift_config(data: dict) -> None:
                 f"must use HAI_TYPES {HAI_TYPES} (case-sensitive)"
             )
         if not isinstance(value, (int, float)) or not (0.0 <= float(value) <= 1.0):
-            raise ValueError(
-                f"hai_lab_lift.yaml: {hai_type!r} lift value {value!r} "
-                f"not in [0, 1]"
-            )
+            raise ValueError(f"hai_lab_lift.yaml: {hai_type!r} lift value {value!r} not in [0, 1]")
     missing = valid_types - set(lift_table.keys())
     if missing:
-        raise ValueError(
-            f"hai_lab_lift.yaml missing HAI_TYPES: {sorted(missing)!r}"
-        )
+        raise ValueError(f"hai_lab_lift.yaml missing HAI_TYPES: {sorted(missing)!r}")
 
 
 @lru_cache(maxsize=1)
@@ -128,7 +119,10 @@ def _circadian_wbc(hour: int) -> float:
 
 
 def _hai_lift_delta(
-    state: Any, lab_name: str, effective_lift: float, draw_hour: int,
+    state: Any,
+    lab_name: str,
+    effective_lift: float,
+    draw_hour: int,
 ) -> float:
     """Closed-form WBC + CRP delta for the HAI inflammation lift.
 
@@ -144,7 +138,7 @@ def _hai_lift_delta(
         return 0.0
     if lab_name == "CRP":
         # CRP = 0.3 + 400 * effective_infl ** 3  (hour-independent)
-        return 400.0 * (eff_infl ** 3 - infl ** 3)
+        return 400.0 * (eff_infl**3 - infl**3)
     if lab_name == "WBC":
         circ = _circadian_wbc(draw_hour)
         return (_wbc_pre_circadian(eff_infl) - _wbc_pre_circadian(infl)) * circ
@@ -166,9 +160,7 @@ def _best_effective_lift(
         days_since = (obs_date - onset_dt).days
         if days_since < 0:
             continue
-        ramp = (
-            min(1.0, days_since / ramp_peak_days) if ramp_peak_days > 0 else 1.0
-        )
+        ramp = min(1.0, days_since / ramp_peak_days) if ramp_peak_days > 0 else 1.0
         eff = lift_value * ramp
         if eff > best:
             best = eff
@@ -231,9 +223,7 @@ def apply_hai_lab_lift(
     # draw hour (the hour ``derive_lab_values`` was originally called
     # with), not the later result_datetime.hour.
     result_to_order = {
-        id(o.result): o
-        for o in (getattr(record, "orders", None) or [])
-        if getattr(o, "result", None) is not None
+        id(o.result): o for o in (getattr(record, "orders", None) or []) if getattr(o, "result", None) is not None
     }
 
     modified = 0
@@ -250,7 +240,9 @@ def apply_hai_lab_lift(
         obs_date = res_dt.date()
 
         effective_lift = _best_effective_lift(
-            matching, obs_date, ramp_peak_days,
+            matching,
+            obs_date,
+            ramp_peak_days,
         )
         if effective_lift <= 0.0:
             continue
@@ -265,7 +257,8 @@ def apply_hai_lab_lift(
 
         order = result_to_order.get(id(obs))
         if order is not None and isinstance(
-            getattr(order, "ordered_datetime", None), datetime,
+            getattr(order, "ordered_datetime", None),
+            datetime,
         ):
             draw_hour = order.ordered_datetime.hour
         else:

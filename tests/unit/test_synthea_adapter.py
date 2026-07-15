@@ -47,18 +47,24 @@ def test_bundle_dir_to_ndjson_layout_fans_by_resource_type(tmp_path: Path) -> No
     ResourceType with the expected row counts."""
     in_dir = tmp_path / "synthea"
     in_dir.mkdir()
-    _write_bundle(in_dir / "patient_a.json", [
-        {"resourceType": "Patient", "id": "pa"},
-        {"resourceType": "Encounter", "id": "ea1"},
-        {"resourceType": "Encounter", "id": "ea2"},
-        {"resourceType": "Observation", "id": "oa1"},
-    ])
-    _write_bundle(in_dir / "patient_b.json", [
-        {"resourceType": "Patient", "id": "pb"},
-        {"resourceType": "Encounter", "id": "eb1"},
-        {"resourceType": "Observation", "id": "ob1"},
-        {"resourceType": "Observation", "id": "ob2"},
-    ])
+    _write_bundle(
+        in_dir / "patient_a.json",
+        [
+            {"resourceType": "Patient", "id": "pa"},
+            {"resourceType": "Encounter", "id": "ea1"},
+            {"resourceType": "Encounter", "id": "ea2"},
+            {"resourceType": "Observation", "id": "oa1"},
+        ],
+    )
+    _write_bundle(
+        in_dir / "patient_b.json",
+        [
+            {"resourceType": "Patient", "id": "pb"},
+            {"resourceType": "Encounter", "id": "eb1"},
+            {"resourceType": "Observation", "id": "ob1"},
+            {"resourceType": "Observation", "id": "ob2"},
+        ],
+    )
     out = tmp_path / "normalized"
     counts = bundle_dir_to_ndjson_layout(in_dir, out)
 
@@ -79,21 +85,26 @@ def test_conversion_is_deterministic(tmp_path: Path) -> None:
     NDJSON — critical for eval reproducibility across Synthea + clinosim."""
     in_dir = tmp_path / "synthea"
     in_dir.mkdir()
-    _write_bundle(in_dir / "p0.json", [
-        {"resourceType": "Patient", "id": "p0"},
-        {"resourceType": "Encounter", "id": "e0"},
-    ])
-    _write_bundle(in_dir / "p1.json", [
-        {"resourceType": "Patient", "id": "p1"},
-        {"resourceType": "Observation", "id": "obs-1"},
-    ])
+    _write_bundle(
+        in_dir / "p0.json",
+        [
+            {"resourceType": "Patient", "id": "p0"},
+            {"resourceType": "Encounter", "id": "e0"},
+        ],
+    )
+    _write_bundle(
+        in_dir / "p1.json",
+        [
+            {"resourceType": "Patient", "id": "p1"},
+            {"resourceType": "Observation", "id": "obs-1"},
+        ],
+    )
     a = tmp_path / "run-a"
     b = tmp_path / "run-b"
     bundle_dir_to_ndjson_layout(in_dir, a)
     bundle_dir_to_ndjson_layout(in_dir, b)
     for rt in ("Patient", "Encounter", "Observation"):
-        assert (a / "fhir_r4" / f"{rt}.ndjson").read_bytes() \
-               == (b / "fhir_r4" / f"{rt}.ndjson").read_bytes()
+        assert (a / "fhir_r4" / f"{rt}.ndjson").read_bytes() == (b / "fhir_r4" / f"{rt}.ndjson").read_bytes()
 
 
 @pytest.mark.unit
@@ -108,9 +119,12 @@ def test_non_bundle_json_is_ignored(tmp_path: Path) -> None:
     in_dir = tmp_path / "synthea"
     in_dir.mkdir()
     (in_dir / "settings.json").write_text('{"generator":"synthea","version":"3.0"}')
-    _write_bundle(in_dir / "patient.json", [
-        {"resourceType": "Patient", "id": "px"},
-    ])
+    _write_bundle(
+        in_dir / "patient.json",
+        [
+            {"resourceType": "Patient", "id": "px"},
+        ],
+    )
     counts = bundle_dir_to_ndjson_layout(in_dir, tmp_path / "out")
     assert counts == {"Patient": 1}
 
@@ -120,17 +134,23 @@ def test_output_ndjson_feeds_eval_engine(tmp_path: Path) -> None:
     """The normalized output must be consumable by EvalEngine end-to-end."""
     in_dir = tmp_path / "synthea"
     in_dir.mkdir()
-    _write_bundle(in_dir / "b.json", [
-        {"resourceType": "Patient", "id": "px",
-         "identifier": [{"value": "x"}],
-         "address": [{"country": "US"}]},
-        {"resourceType": "Encounter", "id": "ex", "status": "finished",
-         "period": {"start": "2026-01-01", "end": "2026-01-05"}},
-    ])
+    _write_bundle(
+        in_dir / "b.json",
+        [
+            {"resourceType": "Patient", "id": "px", "identifier": [{"value": "x"}], "address": [{"country": "US"}]},
+            {
+                "resourceType": "Encounter",
+                "id": "ex",
+                "status": "finished",
+                "period": {"start": "2026-01-01", "end": "2026-01-05"},
+            },
+        ],
+    )
     out = tmp_path / "normalized"
     bundle_dir_to_ndjson_layout(in_dir, out)
 
     from clinosim.eval.engine import EvalEngine
+
     report = EvalEngine(cohort_dir=out).run()
     # Structural + clinical + locale.
     assert len(report.axes) == 3

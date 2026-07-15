@@ -25,35 +25,79 @@ from clinosim.types.encounter import OrderType
 
 PROCEDURE_KEYWORDS: tuple[str, ...] = (
     # Devices — worn / inserted / attached
-    "cervical collar", "splint", "cast", "sling", "brace",
-    "compression device", "sequential compression", "graduated compression",
-    "ipc device", "compression stocking",
-    "foley", "catheter placement", "catheter insertion",
-    "endotracheal", "chest tube", "drain",
-    "iv line", "ecg lead", "ekg lead", "tourniquet",
+    "cervical collar",
+    "splint",
+    "cast",
+    "sling",
+    "brace",
+    "compression device",
+    "sequential compression",
+    "graduated compression",
+    "ipc device",
+    "compression stocking",
+    "foley",
+    "catheter placement",
+    "catheter insertion",
+    "endotracheal",
+    "chest tube",
+    "drain",
+    "iv line",
+    "ecg lead",
+    "ekg lead",
+    "tourniquet",
     # Ventilation / oxygen delivery devices
-    "nppv", "cpap", "bipap", "non-invasive ventilation", "positive pressure",
-    "mechanical ventilation", "intubation",
-    "oxygen therapy", "oxygen supplementation", "nasal cannula",
+    "nppv",
+    "cpap",
+    "bipap",
+    "non-invasive ventilation",
+    "positive pressure",
+    "mechanical ventilation",
+    "intubation",
+    "oxygen therapy",
+    "oxygen supplementation",
+    "nasal cannula",
     # Wound / skin manipulation
-    "dressing", "bandage", "wound care", "wound clean",
+    "dressing",
+    "bandage",
+    "wound care",
+    "wound clean",
     # Note: "wound assessment" intentionally NOT here — it's an observation /
     # documentation activity, classified as THERAPY via the "assessment" kw.
-    "wound irrigation", "wound protection", "wound closure",
-    "suture", "staple", "tissue adhesive", "wrap", "adhesive (",
-    "packing", "cauterization",
+    "wound irrigation",
+    "wound protection",
+    "wound closure",
+    "suture",
+    "staple",
+    "tissue adhesive",
+    "wrap",
+    "adhesive (",
+    "packing",
+    "cauterization",
     # Musculoskeletal manipulation
-    "closed reduction", "reduction", "traction", "immobili",
+    "closed reduction",
+    "reduction",
+    "traction",
+    "immobili",
     # Interventional procedures
-    "endoscopy", "biopsy", "polypectomy", "hemodialysis", "dialysis",
-    "foreign body removal", "rust ring removal", "vertebroplasty",
+    "endoscopy",
+    "biopsy",
+    "polypectomy",
+    "hemodialysis",
+    "dialysis",
+    "foreign body removal",
+    "rust ring removal",
+    "vertebroplasty",
     "procedural sedation",
     # CY6-14 (Chain-6): CRRT — continuous renal replacement therapy is a
     # procedure regardless of how it's spelled. Both the canonical acronym
     # and the expanded form register here.
-    "crrt", "continuous renal replacement",
+    "crrt",
+    "continuous renal replacement",
     # Physical modalities (topical devices)
-    "ice pack", "heat pack", "heat application", "cold application",
+    "ice pack",
+    "heat pack",
+    "heat application",
+    "cold application",
     # Nebulizer as a bare setup (nebulized DRUG matches "nebulized" NOT "nebulizer")
     "nebulizer",
     # Irrigation (physical intervention)
@@ -69,57 +113,119 @@ PROCEDURE_KEYWORDS: tuple[str, ...] = (
 # Added in the C6-C7 residual sweep (2026-07-11) to stop plan text from
 # emitting as MedicationRequest / MedicationAdministration.
 PROTOCOL_TEXT_KEYWORDS: tuple[str, ...] = (
-    "parkland formula", "parkland式",
-    "therapeutic_anticoagulation", "therapeutic anticoagulation",
+    "parkland formula",
+    "parkland式",
+    "therapeutic_anticoagulation",
+    "therapeutic anticoagulation",
     "治療的抗凝固療法",
-    "抗凝固療法 (置換", "anticoagulation (substitution",
-    "replaces prophylactic", "置換 予防投与",
+    "抗凝固療法 (置換",
+    "anticoagulation (substitution",
+    "replaces prophylactic",
+    "置換 予防投与",
 )
 
 
 THERAPY_KEYWORDS: tuple[str, ...] = (
     # Observation / monitoring (non-invasive care plan)
-    "monitoring", "observation", "surveillance",
+    "monitoring",
+    "observation",
+    "surveillance",
     # Consultation / assessment / screening
-    "consult", "consultation",
-    "assessment", "screening", "evaluation",
+    "consult",
+    "consultation",
+    "assessment",
+    "screening",
+    "evaluation",
     # Education / counseling
-    "education", "counseling", "counselling", "interview",
-    "reassurance", "instruction",
+    "education",
+    "counseling",
+    "counselling",
+    "interview",
+    "reassurance",
+    "instruction",
     # Rehab / exercise
-    "exercise", "training", "gait", "range of motion",
-    "modalities", "modality",
+    "exercise",
+    "training",
+    "gait",
+    "range of motion",
+    "modalities",
+    "modality",
     "spirometry",
     # Rest / positioning / oral care
-    "dark room rest", "bed rest", "rest",
-    "oral fluids", "hydration encouraged", "fluid restriction",
+    "dark room rest",
+    "bed rest",
+    "rest",
+    "oral fluids",
+    "hydration encouraged",
+    "fluid restriction",
     "elevation",
     # Medication review is not itself a medication order
-    "medication review", "review and adjustment",
+    "medication review",
+    "review and adjustment",
     # CY6-15 / CY6-16 (Chain-6): resuscitation formulas / therapeutic
     # protocols are care-plan instructions, not specific drug orders. The
     # underlying fluid (LR / NS) is placed as a separate ADM-M order.
-    "parkland formula", "parkland式",
-    "治療的抗凝固療法", "therapeutic anticoagulation",
-    "抗凝固療法 (置換", "anticoagulation (substitution",
+    "parkland formula",
+    "parkland式",
+    "治療的抗凝固療法",
+    "therapeutic anticoagulation",
+    "抗凝固療法 (置換",
+    "anticoagulation (substitution",
 )
 
-MEDICATION_TYPE_HINTS: frozenset[str] = frozenset({
-    "IV_fluid", "iv_fluid", "K_replacement", "antibiotic", "antipyretic",
-    "DVT_prophylaxis", "PPI", "lactulose", "bronchodilator", "steroid",
-    "iv_insulin", "IV_insulin", "anticoagulant", "vasopressor", "antiemetic",
-    "analgesic", "pain_management", "rate_control", "anti_inflammatory",
-    "thrombolytic", "diuretic",
-})
+MEDICATION_TYPE_HINTS: frozenset[str] = frozenset(
+    {
+        "IV_fluid",
+        "iv_fluid",
+        "K_replacement",
+        "antibiotic",
+        "antipyretic",
+        "DVT_prophylaxis",
+        "PPI",
+        "lactulose",
+        "bronchodilator",
+        "steroid",
+        "iv_insulin",
+        "IV_insulin",
+        "anticoagulant",
+        "vasopressor",
+        "antiemetic",
+        "analgesic",
+        "pain_management",
+        "rate_control",
+        "anti_inflammatory",
+        "thrombolytic",
+        "diuretic",
+    }
+)
 
-CARE_PLAN_TYPE_HINTS: frozenset[str] = frozenset({
-    "NPO", "fall_precautions", "BP_management", "neuro_checks", "bed_rest",
-    "leg_elevation", "compression_stocking", "fluid_restriction",
-    "sodium_restriction", "diet", "daily_weight", "monitoring",
-    "continuous_telemetry", "HOB_elevation", "large_bore_IV", "glucose_check",
-    "O2", "fluid_balance", "IV_fluid_restriction", "head_elevation",
-    "spinal_precautions", "isolation", "wound_care",
-})
+CARE_PLAN_TYPE_HINTS: frozenset[str] = frozenset(
+    {
+        "NPO",
+        "fall_precautions",
+        "BP_management",
+        "neuro_checks",
+        "bed_rest",
+        "leg_elevation",
+        "compression_stocking",
+        "fluid_restriction",
+        "sodium_restriction",
+        "diet",
+        "daily_weight",
+        "monitoring",
+        "continuous_telemetry",
+        "HOB_elevation",
+        "large_bore_IV",
+        "glucose_check",
+        "O2",
+        "fluid_balance",
+        "IV_fluid_restriction",
+        "head_elevation",
+        "spinal_precautions",
+        "isolation",
+        "wound_care",
+    }
+)
 
 
 def _matches_keyword(text_lower: str, keywords: tuple[str, ...]) -> bool:

@@ -10,6 +10,7 @@ it deserves its own file.
 Data source: ctx.record.care_level (set by clinosim/modules/care_level/
 enricher during post-records pass for JP patients only).
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -39,9 +40,11 @@ def _build_care_level(ctx: BundleContext) -> list[dict]:
         "resourceType": "Observation",
         "id": f"carelevel-{ctx.patient_id}",
         # Session 46 chain #2: JP Core Observation_Common profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
-        ]}} if is_jp(ctx.country) else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
+            if is_jp(ctx.country)
+            else {}
+        ),
         "status": "final",
         "category": _social_category(ctx.country),
         "code": {"text": text},

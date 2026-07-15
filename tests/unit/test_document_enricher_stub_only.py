@@ -24,9 +24,7 @@ def test_enricher_produces_stub_with_narrative_none():
     from clinosim.types.patient import PatientProfile
 
     rec = CIFPatientRecord(
-        patient=PatientProfile(
-            patient_id="POP-000001", age=65, sex="M", date_of_birth=date(1961, 1, 1)
-        ),
+        patient=PatientProfile(patient_id="POP-000001", age=65, sex="M", date_of_birth=date(1961, 1, 1)),
         encounters=[
             Encounter(
                 encounter_id="ENC-1",

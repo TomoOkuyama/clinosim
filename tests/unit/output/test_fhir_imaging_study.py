@@ -31,25 +31,42 @@ def _make_ctx(studies, country="us", hospital_config=None):
 
 def _sample_study():
     from datetime import datetime
+
     return ImagingStudyRecord(
         study_id=f"{IMAGING_STUDY_ID_PREFIX}enc1-1",  # session 51 prefix production 準拠
         study_instance_uid="2.25.42",
-        encounter_id="enc1", patient_id="pt1", order_id="ord1",
+        encounter_id="enc1",
+        patient_id="pt1",
+        order_id="ord1",
         status="available",
         started_datetime=datetime(2026, 6, 30, 10, 0),
-        modality_code="CR", body_site_snomed="51185008",
+        modality_code="CR",
+        body_site_snomed="51185008",
         series=[
-            ImagingSeries(series_uid="2.25.43", series_number=1, modality_code="CR",
-                          body_site_snomed="51185008",
-                          description="PA view", instance_count=1),
-            ImagingSeries(series_uid="2.25.44", series_number=2, modality_code="CR",
-                          body_site_snomed="51185008",
-                          description="Lateral view", instance_count=1),
+            ImagingSeries(
+                series_uid="2.25.43",
+                series_number=1,
+                modality_code="CR",
+                body_site_snomed="51185008",
+                description="PA view",
+                instance_count=1,
+            ),
+            ImagingSeries(
+                series_uid="2.25.44",
+                series_number=2,
+                modality_code="CR",
+                body_site_snomed="51185008",
+                description="Lateral view",
+                instance_count=1,
+            ),
         ],
         endpoint_id="endpoint-2.25.42",
-        report=RadiologyReport(report_id="imgrpt-enc1-1", status="final",  # session 51: hack -- imgst→imgrpt
-                               findings_text="Lungs clear.",
-                               impression_text="No acute findings."),
+        report=RadiologyReport(
+            report_id="imgrpt-enc1-1",
+            status="final",  # session 51: hack -- imgst→imgrpt
+            findings_text="Lungs clear.",
+            impression_text="No acute findings.",
+        ),
     )
 
 
@@ -75,16 +92,14 @@ def test_basedon_and_endpoint_refs():
     r = _bb_imaging_studies(ctx)[0]
     assert r["basedOn"] == [{"reference": "ServiceRequest/sr-ord1"}]
     assert r["endpoint"] == [{"reference": "Endpoint/endpoint-2.25.42"}]
-    assert r["endpoint"][0]["reference"].removeprefix("Endpoint/").startswith(
-        ENDPOINT_ID_PREFIX
-    )
+    assert r["endpoint"][0]["reference"].removeprefix("Endpoint/").startswith(ENDPOINT_ID_PREFIX)
 
 
 def test_number_of_series_and_instances():
     ctx = _make_ctx([_sample_study()])
     r = _bb_imaging_studies(ctx)[0]
     assert r["numberOfSeries"] == 2
-    assert r["numberOfInstances"] == 2   # 1 + 1
+    assert r["numberOfInstances"] == 2  # 1 + 1
 
 
 def test_series_emit_full_payload():
@@ -112,15 +127,25 @@ def test_jp_locale_resolves_modality_and_body_site_ja():
 def test_emits_imaging_study_from_dict_path():
     """Production CIF is json.load() -> dict; verify _o() dict-access path."""
     study_dict = {
-        "study_id": f"{IMAGING_STUDY_ID_PREFIX}enc1-1", "study_instance_uid": "2.25.42",  # session 51
-        "encounter_id": "enc1", "patient_id": "pt1", "order_id": "ord1",
-        "status": "available", "started_datetime": "2026-06-30T10:00:00",
-        "modality_code": "CR", "body_site_snomed": "51185008",
-        "series": [{
-            "series_uid": "2.25.43", "series_number": 1,
-            "modality_code": "CR", "body_site_snomed": "51185008",
-            "description": "PA view", "instance_count": 1,
-        }],
+        "study_id": f"{IMAGING_STUDY_ID_PREFIX}enc1-1",
+        "study_instance_uid": "2.25.42",  # session 51
+        "encounter_id": "enc1",
+        "patient_id": "pt1",
+        "order_id": "ord1",
+        "status": "available",
+        "started_datetime": "2026-06-30T10:00:00",
+        "modality_code": "CR",
+        "body_site_snomed": "51185008",
+        "series": [
+            {
+                "series_uid": "2.25.43",
+                "series_number": 1,
+                "modality_code": "CR",
+                "body_site_snomed": "51185008",
+                "description": "PA view",
+                "instance_count": 1,
+            }
+        ],
         "endpoint_id": "endpoint-2.25.42",
     }
     ctx = _make_ctx([study_dict])

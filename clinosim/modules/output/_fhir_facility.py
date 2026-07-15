@@ -31,7 +31,8 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     # separate facility bundle).
     _jp_org_profile = (
         {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"]}}
-        if is_jp(country) else {}
+        if is_jp(country)
+        else {}
     )
     hosp_name = "総合病院" if is_jp(country) else "Community Hospital"
     root_org = {
@@ -39,13 +40,17 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         "id": "hospital-main",
         **_jp_org_profile,
         "active": True,
-        "type": [{
-            "coding": [{
-                "system": get_system_uri("hl7-organization-type"),
-                "code": "prov",
-                "display": _localize_display("Healthcare Provider", country, _ORG_TYPE_DISPLAY_JA),
-            }],
-        }],
+        "type": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-organization-type"),
+                        "code": "prov",
+                        "display": _localize_display("Healthcare Provider", country, _ORG_TYPE_DISPLAY_JA),
+                    }
+                ],
+            }
+        ],
         "name": hosp_name,
         "alias": [f"{beds}-bed hospital"] if beds else [],
     }
@@ -58,24 +63,32 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     main_loc = {
         "resourceType": "Location",
         "id": "loc-hospital-main",
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
-        ]}} if is_jp(country) else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
+            if is_jp(country)
+            else {}
+        ),
         "status": "active",
         "name": hosp_name,
-        "type": [{
-            "coding": [{
-                "system": get_system_uri("hl7-v3-rolecode"),
-                "code": "HOSP",
-                "display": "Hospital",
-            }],
-        }],
+        "type": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-v3-rolecode"),
+                        "code": "HOSP",
+                        "display": "Hospital",
+                    }
+                ],
+            }
+        ],
         "physicalType": {
-            "coding": [{
-                "system": get_system_uri("hl7-location-physical-type"),
-                "code": "bu",
-                "display": "Building" if not is_jp(country) else "建物",
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-location-physical-type"),
+                    "code": "bu",
+                    "display": "Building" if not is_jp(country) else "建物",
+                }
+            ],
         },
         "managingOrganization": {"reference": "Organization/hospital-main"},
     }
@@ -91,14 +104,13 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         "id": "dev-infusion-pump",
         "status": "active",
         "type": {
-            "coding": [{
-                "system": get_system_uri("snomed-ct"),
-                "code": "433296005",
-                "display": (
-                    "輸液ポンプ" if is_jp(country)
-                    else "Infusion pump for intravenous fluids"
-                ),
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("snomed-ct"),
+                    "code": "433296005",
+                    "display": ("輸液ポンプ" if is_jp(country) else "Infusion pump for intravenous fluids"),
+                }
+            ],
             "text": "汎用輸液ポンプ" if is_jp(country) else "Generic infusion pump",
         },
         "owner": {"reference": "Organization/hospital-main"},
@@ -113,13 +125,17 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "id": f"dept-{dept.replace('_', '-')}",
             **_jp_org_profile,
             "active": True,
-            "type": [{
-                "coding": [{
-                    "system": get_system_uri("hl7-organization-type"),
-                    "code": "dept",
-                    "display": _localize_display("Hospital Department", country, _ORG_TYPE_DISPLAY_JA),
-                }],
-            }],
+            "type": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-organization-type"),
+                            "code": "dept",
+                            "display": _localize_display("Hospital Department", country, _ORG_TYPE_DISPLAY_JA),
+                        }
+                    ],
+                }
+            ],
             "name": display,
             "partOf": {"reference": "Organization/hospital-main"},
         }
@@ -132,27 +148,35 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "resourceType": "Location",
             "id": f"loc-dept-{dept.replace('_', '-')}",
             # Session 46 chain #2: JP Core Location profile.
-            **({"meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
-            ]}} if is_jp(country) else {}),
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
+                if is_jp(country)
+                else {}
+            ),
             "status": "active",
             "name": display,
             # C4-14 (session 43 cycle 4): Location.type per FHIR spec
             # (HL7 v3-RoleCode _ServiceDeliveryLocationRoleType). Departments
             # are outpatient service delivery locations.
-            "type": [{
-                "coding": [{
-                    "system": get_system_uri("hl7-v3-rolecode"),
-                    "code": "OUTPHARM" if dept == "pharmacy" else "OF",
-                    "display": "Outpatient pharmacy" if dept == "pharmacy" else "Outpatient facility",
-                }],
-            }],
+            "type": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-v3-rolecode"),
+                            "code": "OUTPHARM" if dept == "pharmacy" else "OF",
+                            "display": "Outpatient pharmacy" if dept == "pharmacy" else "Outpatient facility",
+                        }
+                    ],
+                }
+            ],
             "physicalType": {
-                "coding": [{
-                    "system": get_system_uri("hl7-location-physical-type"),
-                    "code": "area",
-                    "display": "Area" if not is_jp(country) else "エリア",
-                }],
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-location-physical-type"),
+                        "code": "area",
+                        "display": "Area" if not is_jp(country) else "エリア",
+                    }
+                ],
             },
             "managingOrganization": {"reference": f"Organization/dept-{dept.replace('_', '-')}"},
         }
@@ -191,24 +215,34 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "resourceType": "Location",
                 "id": f"loc-ward-{ward}",
                 # Session 46 chain #2: JP Core Location profile.
-                **({"meta": {"profile": [
-                    "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
-                ]}} if is_jp(country) else {}),
+                **(
+                    {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
+                    if is_jp(country)
+                    else {}
+                ),
                 "status": "active",
-                "name": (f"{ward}病棟" if is_jp(country) else f"Ward {ward}") if ward not in ("ER", "OPD") else _localize_display(phys_display, country, _LOCATION_NAME_JA),
-                "type": [{
-                    "coding": [{
-                        "system": get_system_uri("hl7-v3-rolecode"),
-                        "code": _type_code,
-                        "display": _type_disp,
-                    }],
-                }],
+                "name": (f"{ward}病棟" if is_jp(country) else f"Ward {ward}")
+                if ward not in ("ER", "OPD")
+                else _localize_display(phys_display, country, _LOCATION_NAME_JA),  # noqa: E501
+                "type": [
+                    {
+                        "coding": [
+                            {
+                                "system": get_system_uri("hl7-v3-rolecode"),
+                                "code": _type_code,
+                                "display": _type_disp,
+                            }
+                        ],
+                    }
+                ],
                 "physicalType": {
-                    "coding": [{
-                        "system": get_system_uri("hl7-location-physical-type"),
-                        "code": phys_type,
-                        "display": phys_display,
-                    }],
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-location-physical-type"),
+                            "code": phys_type,
+                            "display": phys_display,
+                        }
+                    ],
                 },
                 "managingOrganization": {"reference": org_ref},
             }
@@ -223,25 +257,33 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         "resourceType": "Location",
                         "id": f"loc-bed-{bed_id}",
                         # Session 46 chain #2: JP Core Location profile.
-                        **({"meta": {"profile": [
-                            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
-                        ]}} if is_jp(country) else {}),
+                        **(
+                            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
+                            if is_jp(country)
+                            else {}
+                        ),
                         "status": "active",
                         "name": f"{bed_id}号室" if is_jp(country) else f"Bed {bed_id}",
                         # C4-14 (session 43 cycle 4): Location.type per HL7 v3-RoleCode.
-                        "type": [{
-                            "coding": [{
-                                "system": get_system_uri("hl7-v3-rolecode"),
-                                "code": "HU",
-                                "display": "Hospital unit",
-                            }],
-                        }],
+                        "type": [
+                            {
+                                "coding": [
+                                    {
+                                        "system": get_system_uri("hl7-v3-rolecode"),
+                                        "code": "HU",
+                                        "display": "Hospital unit",
+                                    }
+                                ],
+                            }
+                        ],
                         "physicalType": {
-                            "coding": [{
-                                "system": get_system_uri("hl7-location-physical-type"),
-                                "code": "bd",
-                                "display": "Bed",
-                            }],
+                            "coding": [
+                                {
+                                    "system": get_system_uri("hl7-location-physical-type"),
+                                    "code": "bd",
+                                    "display": "Bed",
+                                }
+                            ],
                         },
                         "partOf": {"reference": f"Location/loc-ward-{ward}"},
                         "managingOrganization": {"reference": org_ref},
@@ -253,34 +295,40 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     if n_or > 0:
         # Associate OR with general_surgery department if available, else root
         or_org_ref = (
-            "Organization/dept-general-surgery"
-            if "general_surgery" in available
-            else "Organization/hospital-main"
+            "Organization/dept-general-surgery" if "general_surgery" in available else "Organization/hospital-main"
         )
         for i in range(1, n_or + 1):
             or_loc = {
                 "resourceType": "Location",
                 "id": f"loc-or-{i}",
                 # Session 46 chain #2: JP Core Location profile.
-                **({"meta": {"profile": [
-                    "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
-                ]}} if is_jp(country) else {}),
+                **(
+                    {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
+                    if is_jp(country)
+                    else {}
+                ),
                 "status": "active",
                 "name": (f"手術室 {i}" if is_jp(country) else f"Operating Room {i}"),
                 "physicalType": {
-                    "coding": [{
-                        "system": get_system_uri("hl7-location-physical-type"),
-                        "code": "ro",
-                        "display": "Room",
-                    }],
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-location-physical-type"),
+                            "code": "ro",
+                            "display": "Room",
+                        }
+                    ],
                 },
-                "type": [{
-                    "coding": [{
-                        "system": get_system_uri("hl7-v3-rolecode"),
-                        "code": "OR",
-                        "display": _localize_display("Operating Room", country, _LOCATION_TYPE_DISPLAY_JA),
-                    }],
-                }],
+                "type": [
+                    {
+                        "coding": [
+                            {
+                                "system": get_system_uri("hl7-v3-rolecode"),
+                                "code": "OR",
+                                "display": _localize_display("Operating Room", country, _LOCATION_TYPE_DISPLAY_JA),
+                            }
+                        ],
+                    }
+                ],
                 "managingOrganization": {"reference": or_org_ref},
             }
             entries.append(_entry(or_loc))

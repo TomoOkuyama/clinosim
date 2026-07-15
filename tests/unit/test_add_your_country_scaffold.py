@@ -1,4 +1,5 @@
 """session 48 P2-14: add-your-country scaffold + guide の存在と gate をテスト."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -42,14 +43,14 @@ def test_scaffold_readme_warns_non_runnable():
     readme = TEMPLATE_DIR / "README.md"
     assert readme.exists()
     text = readme.read_text()
-    assert "non-runnable" in text.lower() or "not runnable" in text.lower() \
-        or "schema-only" in text.lower()
+    assert "non-runnable" in text.lower() or "not runnable" in text.lower() or "schema-only" in text.lower()
 
 
 @pytest.mark.unit
 def test_country_dir_rejects_underscore_prefix():
     """`_template` を country として使うと ValueError で fail する。"""
     from clinosim.locale.loader import _country_dir
+
     with pytest.raises(ValueError, match="scaffold"):
         _country_dir("_TEMPLATE")
 
@@ -57,6 +58,7 @@ def test_country_dir_rejects_underscore_prefix():
 @pytest.mark.unit
 def test_country_dir_still_accepts_registered_countries():
     from clinosim.locale.loader import _country_dir
+
     # 既存 country は変わらず動く
     assert _country_dir("JP").name == "jp"
     assert _country_dir("US").name == "us"
@@ -66,5 +68,6 @@ def test_country_dir_still_accepts_registered_countries():
 def test_country_dir_falls_back_to_lowercase_for_new_countries():
     """`_COUNTRY_DIR_MAP` 未登録の 2 文字 code は lower-case 展開される。"""
     from clinosim.locale.loader import _country_dir
+
     p = _country_dir("DE")
     assert p.name == "de"

@@ -9,6 +9,7 @@ def _make_ctx(country: str, opt_in: bool, records: list) -> object:
     """SimulatorConfig + EnricherContext を最小構成で組み立てる。"""
     from clinosim.simulator.enrichers import EnricherContext
     from clinosim.types.config import SimulatorConfig
+
     cfg = SimulatorConfig(country=country, modules={"health_checkup": opt_in})
     return EnricherContext(config=cfg, master_seed=42, records=records)
 
@@ -17,6 +18,7 @@ def _make_record(patient_id: str, age: int):
     """テスト用 CIFPatientRecord を最小構成で作る。"""
     from clinosim.types.output import CIFPatientRecord
     from clinosim.types.patient import PatientProfile
+
     return CIFPatientRecord(
         patient=PatientProfile(patient_id=patient_id, age=age, sex="M"),
     )
@@ -26,6 +28,7 @@ def _make_record(patient_id: str, age: int):
 def test_health_checkup_disabled_by_default():
     """opt-in flag False では何も追加されない。"""
     from clinosim.modules.health_checkup.engine import enrich_health_checkup
+
     record = _make_record("POP-000001", 45)
     ctx = _make_ctx("JP", opt_in=False, records=[record])
     # opt-in gate 突破前に呼ぶと enricher 自体は run するが、
@@ -49,6 +52,7 @@ def test_health_checkup_skips_below_age_threshold():
         HEALTH_CHECKUP_MIN_AGE,
         enrich_health_checkup,
     )
+
     assert HEALTH_CHECKUP_MIN_AGE == 40
     young = _make_record("POP-YOUNG-001", age=30)
     ctx = _make_ctx("JP", opt_in=True, records=[young])
@@ -62,6 +66,7 @@ def test_health_checkup_skips_below_age_threshold():
 def test_health_checkup_subset_rate_approximately_30pct():
     """N=1000 で hash-based サブセットに入る割合が 30% ±5% 以内。"""
     from clinosim.modules.health_checkup.engine import _patient_selected
+
     fires = sum(1 for i in range(1000) if _patient_selected(f"POP-{i:06d}"))
     rate = fires / 1000
     assert 0.25 <= rate <= 0.35, f"subset rate {rate} outside [0.25, 0.35]"
@@ -80,6 +85,7 @@ def test_health_checkup_creates_new_record_for_selected_adult():
         enrich_health_checkup,
     )
     from clinosim.types.encounter import EncounterType
+
     # サブセットに入る patient_id を探す(決定的 hash)
     selected_id = None
     for i in range(100):
@@ -127,6 +133,7 @@ def test_health_checkup_deterministic_across_runs():
         _patient_selected,
         enrich_health_checkup,
     )
+
     selected_id = None
     for i in range(100):
         pid = f"POP-{i:06d}"

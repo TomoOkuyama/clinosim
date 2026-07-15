@@ -86,11 +86,12 @@ class TestHbA1cSupport:
         assert "HbA1c" in PHYSIOLOGIC_LIMITS
 
     def test_hba1c_flag(self):
-        assert determine_flag("HbA1c", 8.0) == "H"      # diabetic, above normal range
-        assert determine_flag("HbA1c", 5.2) is None     # normal
+        assert determine_flag("HbA1c", 8.0) == "H"  # diabetic, above normal range
+        assert determine_flag("HbA1c", 5.2) is None  # normal
 
     def test_baseline_lab_normals_exported(self):
         from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
+
         assert BASELINE_LAB_NORMALS["Ca"] == 9.2
         assert BASELINE_LAB_NORMALS["TSH"] == 2.5
-        assert "HbA1c" not in BASELINE_LAB_NORMALS    # HbA1c is physiology-modeled now
+        assert "HbA1c" not in BASELINE_LAB_NORMALS  # HbA1c is physiology-modeled now

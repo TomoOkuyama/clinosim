@@ -25,9 +25,7 @@ from clinosim.modules.disease.protocol import load_disease_protocol
 
 pytestmark = pytest.mark.unit
 
-_YAML_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "..", "clinosim", "modules", "disease", "reference_data"
-)
+_YAML_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "clinosim", "modules", "disease", "reference_data")
 _DISEASE_FILES = sorted(glob.glob(os.path.join(_YAML_DIR, "*.yaml")))
 _DISEASE_IDS = [os.path.basename(f)[:-5] for f in _DISEASE_FILES]
 
@@ -61,6 +59,5 @@ def test_no_top_level_diagnostic_difficulty(disease_id):
     A top-level key is silently dropped and blocks extra='forbid'."""
     raw = _raw(disease_id)
     assert "diagnostic_difficulty" not in raw, (
-        f"{disease_id}: move diagnostic_difficulty under the diagnostic: block "
-        f"(top-level is silently dropped)"
+        f"{disease_id}: move diagnostic_difficulty under the diagnostic: block (top-level is silently dropped)"
     )

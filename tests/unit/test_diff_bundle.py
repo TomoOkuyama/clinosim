@@ -1,4 +1,5 @@
 """F3: canonical hash + 3 状態分類 test。"""
+
 from __future__ import annotations
 
 import json
@@ -28,10 +29,8 @@ def test_canonical_hash_stable_across_key_order():
 
 def test_canonical_hash_ignores_meta_last_updated():
     """meta.lastUpdated が違っても同 hash(cursor 依存 field を除外)。"""
-    r1 = {"resourceType": "Patient", "id": "p1",
-          "meta": {"lastUpdated": "2026-05-31T00:00:00+09:00"}}
-    r2 = {"resourceType": "Patient", "id": "p1",
-          "meta": {"lastUpdated": "2026-06-01T00:00:00+09:00"}}
+    r1 = {"resourceType": "Patient", "id": "p1", "meta": {"lastUpdated": "2026-05-31T00:00:00+09:00"}}
+    r2 = {"resourceType": "Patient", "id": "p1", "meta": {"lastUpdated": "2026-06-01T00:00:00+09:00"}}
     assert canonical_hash(r1) == canonical_hash(r2)
 
 
@@ -98,8 +97,8 @@ def test_classify_resources_mixed():
     }
     new = {
         "p1": {"resourceType": "Patient", "id": "p1", "name": [{"family": "A"}]},  # unchanged
-        "e1": {"resourceType": "Encounter", "id": "e1", "status": "finished"},     # updated
-        "p2": {"resourceType": "Patient", "id": "p2", "name": [{"family": "B"}]}, # new
+        "e1": {"resourceType": "Encounter", "id": "e1", "status": "finished"},  # updated
+        "p2": {"resourceType": "Patient", "id": "p2", "name": [{"family": "B"}]},  # new
     }
     new_only, updated, unchanged = classify_resources(old, new)
     assert len(new_only) == 1 and new_only[0]["id"] == "p2"
@@ -123,10 +122,13 @@ def test_load_ndjson_by_id():
     """Single NDJSON file を {id: resource} dict に読み込み。"""
     with tempfile.TemporaryDirectory() as tmp:
         p = Path(tmp) / "Patient.ndjson"
-        _write_ndjson(p, [
-            {"resourceType": "Patient", "id": "p1"},
-            {"resourceType": "Patient", "id": "p2"},
-        ])
+        _write_ndjson(
+            p,
+            [
+                {"resourceType": "Patient", "id": "p1"},
+                {"resourceType": "Patient", "id": "p2"},
+            ],
+        )
         result = load_ndjson_by_id(p)
         assert set(result.keys()) == {"p1", "p2"}
 
@@ -139,9 +141,12 @@ def test_build_diff_bundle_all_new():
         new_dir = Path(tmp) / "new"
         old_dir.mkdir()
         new_dir.mkdir()
-        _write_ndjson(new_dir / "Patient.ndjson", [
-            {"resourceType": "Patient", "id": "p1"},
-        ])
+        _write_ndjson(
+            new_dir / "Patient.ndjson",
+            [
+                {"resourceType": "Patient", "id": "p1"},
+            ],
+        )
 
         bundle = build_diff_bundle(
             old_dir,
@@ -165,12 +170,18 @@ def test_build_diff_bundle_updated():
         new_dir = Path(tmp) / "new"
         old_dir.mkdir()
         new_dir.mkdir()
-        _write_ndjson(old_dir / "Encounter.ndjson", [
-            {"resourceType": "Encounter", "id": "e1", "status": "in-progress"},
-        ])
-        _write_ndjson(new_dir / "Encounter.ndjson", [
-            {"resourceType": "Encounter", "id": "e1", "status": "finished"},
-        ])
+        _write_ndjson(
+            old_dir / "Encounter.ndjson",
+            [
+                {"resourceType": "Encounter", "id": "e1", "status": "in-progress"},
+            ],
+        )
+        _write_ndjson(
+            new_dir / "Encounter.ndjson",
+            [
+                {"resourceType": "Encounter", "id": "e1", "status": "finished"},
+            ],
+        )
 
         bundle = build_diff_bundle(
             old_dir,
@@ -214,16 +225,20 @@ def test_build_diff_bundle_mixed_types():
         new_dir = Path(tmp) / "new"
         old_dir.mkdir()
         new_dir.mkdir()
-        _write_ndjson(old_dir / "Patient.ndjson", [
-            {"resourceType": "Patient", "id": "p1"}
-        ])
-        _write_ndjson(new_dir / "Patient.ndjson", [
-            {"resourceType": "Patient", "id": "p1"},
-            {"resourceType": "Patient", "id": "p2"},  # new
-        ])
-        _write_ndjson(new_dir / "Encounter.ndjson", [
-            {"resourceType": "Encounter", "id": "e1", "status": "finished"},  # new
-        ])
+        _write_ndjson(old_dir / "Patient.ndjson", [{"resourceType": "Patient", "id": "p1"}])
+        _write_ndjson(
+            new_dir / "Patient.ndjson",
+            [
+                {"resourceType": "Patient", "id": "p1"},
+                {"resourceType": "Patient", "id": "p2"},  # new
+            ],
+        )
+        _write_ndjson(
+            new_dir / "Encounter.ndjson",
+            [
+                {"resourceType": "Encounter", "id": "e1", "status": "finished"},  # new
+            ],
+        )
 
         bundle = build_diff_bundle(
             old_dir,
@@ -244,9 +259,7 @@ def test_format_summary_basic():
         new_dir = Path(tmp) / "new"
         old_dir.mkdir()
         new_dir.mkdir()
-        _write_ndjson(new_dir / "Patient.ndjson", [
-            {"resourceType": "Patient", "id": "p1"}
-        ])
+        _write_ndjson(new_dir / "Patient.ndjson", [{"resourceType": "Patient", "id": "p1"}])
         bundle = build_diff_bundle(
             old_dir,
             new_dir,
@@ -280,14 +293,26 @@ def test_cli_diff_smoke(tmp_path):
     summary_path = tmp_path / "summary.txt"
 
     result = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "diff",
-         "--old", str(old_dir),
-         "--new", str(new_dir),
-         "--output-bundle", str(bundle_path),
-         "--output-summary", str(summary_path),
-         "--old-cursor", "2026-05-31",
-         "--new-cursor", "2026-06-01"],
-        capture_output=True, text=True,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "diff",
+            "--old",
+            str(old_dir),
+            "--new",
+            str(new_dir),
+            "--output-bundle",
+            str(bundle_path),
+            "--output-summary",
+            str(summary_path),
+            "--old-cursor",
+            "2026-05-31",
+            "--new-cursor",
+            "2026-06-01",
+        ],
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 0, f"stderr: {result.stderr}"
     bundle = json.loads(bundle_path.read_text())

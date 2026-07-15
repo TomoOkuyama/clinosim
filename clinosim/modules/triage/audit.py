@@ -80,9 +80,7 @@ def _build_triage_severity_proof() -> dict[str, Any]:
 
     severe_l1 = level_counts["severe"].get("1", 0)
     mild_l5 = level_counts["mild"].get("5", 0)
-    moderate_has_no_l1_or_l5 = (
-        level_counts["moderate"].get("1", 0) == 0 and level_counts["moderate"].get("5", 0) == 0
-    )
+    moderate_has_no_l1_or_l5 = level_counts["moderate"].get("1", 0) == 0 and level_counts["moderate"].get("5", 0) == 0
 
     # Sanity cross-check that this proof's assumption about the YAML shape
     # still holds — if triage_protocols.yaml ever gains a "1"/"5" entry for

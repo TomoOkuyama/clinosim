@@ -11,29 +11,52 @@ from clinosim.modules.output.cif_reader import CIFReader
 def _make_two_layer_cif(tmp_path: Path) -> Path:
     structural = tmp_path / "structural" / "patients"
     structural.mkdir(parents=True)
-    (structural / "ENC-1.json").write_text(json.dumps({
-        "patient": {"patient_id": "POP-1"},
-        "encounters": [{"encounter_id": "ENC-1"}],
-        "documents": [
-            {"document_id": "doc-1", "task_type": "admission_hp",
-             "loinc_code": "34117-2", "format_type": "composition",
-             "narrative": None},
-            {"document_id": "doc-2", "task_type": "progress_note",
-             "loinc_code": "11506-3", "format_type": "composition",
-             "narrative": None},
-        ],
-    }, ensure_ascii=False))
+    (structural / "ENC-1.json").write_text(
+        json.dumps(
+            {
+                "patient": {"patient_id": "POP-1"},
+                "encounters": [{"encounter_id": "ENC-1"}],
+                "documents": [
+                    {
+                        "document_id": "doc-1",
+                        "task_type": "admission_hp",
+                        "loinc_code": "34117-2",
+                        "format_type": "composition",
+                        "narrative": None,
+                    },
+                    {
+                        "document_id": "doc-2",
+                        "task_type": "progress_note",
+                        "loinc_code": "11506-3",
+                        "format_type": "composition",
+                        "narrative": None,
+                    },
+                ],
+            },
+            ensure_ascii=False,
+        )
+    )
 
     narr_dir = tmp_path / "narratives" / "template" / "documents" / "ENC-1"
     narr_dir.mkdir(parents=True)
-    (narr_dir / "admission_hp.json").write_text(json.dumps({
-        "document_id": "doc-1",
-        "encounter_id": "ENC-1",
-        "narrative": {"text": "", "sections": {"hpi": "65yo M ..."},
-                      "structured": {}, "generator": "template",
-                      "generator_metadata": {}, "generated_at": "",
-                      "facts_used": []},
-    }, ensure_ascii=False))
+    (narr_dir / "admission_hp.json").write_text(
+        json.dumps(
+            {
+                "document_id": "doc-1",
+                "encounter_id": "ENC-1",
+                "narrative": {
+                    "text": "",
+                    "sections": {"hpi": "65yo M ..."},
+                    "structured": {},
+                    "generator": "template",
+                    "generator_metadata": {},
+                    "generated_at": "",
+                    "facts_used": [],
+                },
+            },
+            ensure_ascii=False,
+        )
+    )
     (tmp_path / "narratives" / "current_version.txt").write_text("template")
     return tmp_path
 
@@ -71,11 +94,15 @@ def test_reader_no_narrative_dir_leaves_stubs(tmp_path):
     """
     structural = tmp_path / "structural" / "patients"
     structural.mkdir(parents=True)
-    (structural / "ENC-1.json").write_text(json.dumps({
-        "patient": {"patient_id": "POP-1"},
-        "encounters": [{"encounter_id": "ENC-1"}],
-        "documents": [{"document_id": "doc-1", "narrative": None}],
-    }))
+    (structural / "ENC-1.json").write_text(
+        json.dumps(
+            {
+                "patient": {"patient_id": "POP-1"},
+                "encounters": [{"encounter_id": "ENC-1"}],
+                "documents": [{"document_id": "doc-1", "narrative": None}],
+            }
+        )
+    )
     # narratives/template/documents/ exists so CIFReader init doesn't raise;
     # the per-encounter subdir ENC-1/ does NOT exist, so merge is a no-op.
     (tmp_path / "narratives" / "template" / "documents").mkdir(parents=True)
@@ -123,10 +150,14 @@ def test_reader_current_no_pointer_no_template_warns_but_reads(tmp_path, caplog)
 
     structural = tmp_path / "structural" / "patients"
     structural.mkdir(parents=True)
-    (structural / "ENC-1.json").write_text(json.dumps({
-        "encounters": [{"encounter_id": "ENC-1"}],
-        "documents": [{"document_id": "doc-1", "narrative": None}],
-    }))
+    (structural / "ENC-1.json").write_text(
+        json.dumps(
+            {
+                "encounters": [{"encounter_id": "ENC-1"}],
+                "documents": [{"document_id": "doc-1", "narrative": None}],
+            }
+        )
+    )
     with caplog.at_level(logging.WARNING):
         r = CIFReader(str(tmp_path))
     assert any("structural-only" in rec.message for rec in caplog.records)
@@ -140,15 +171,18 @@ def test_reader_orphan_narrative_file_warns_and_drops(tmp_path, caplog):
     _make_two_layer_cif(tmp_path)
     # Add orphan narrative
     narr_dir = tmp_path / "narratives" / "template" / "documents" / "ENC-1"
-    (narr_dir / "orphan.json").write_text(json.dumps({
-        "document_id": "doc-missing",
-        "encounter_id": "ENC-1",
-        "narrative": {"text": "orphan"},
-    }))
+    (narr_dir / "orphan.json").write_text(
+        json.dumps(
+            {
+                "document_id": "doc-missing",
+                "encounter_id": "ENC-1",
+                "narrative": {"text": "orphan"},
+            }
+        )
+    )
     r = CIFReader(str(tmp_path))
     list(r.iter_patients())
-    assert any("orphan" in rec.message.lower() or "doc-missing" in rec.message
-               for rec in caplog.records)
+    assert any("orphan" in rec.message.lower() or "doc-missing" in rec.message for rec in caplog.records)
 
 
 @pytest.mark.unit

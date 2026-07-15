@@ -78,8 +78,8 @@ class Encounter:
     discharge_disposition: str = ""  # "home" | "hosp" | "other-hcf" | "exp" | "snf"
     priority: str = ""  # "EM" (emergency) | "UR" (urgent) | "R" (routine)
     # Tier 1 #3 α-min-2 additions
-    primary_nurse_id: str = ""              # nursing_enricher が set(inpatient のみ)
-    triage_data: TriageData | None = None   # triage_enricher が set(ED のみ)
+    primary_nurse_id: str = ""  # nursing_enricher が set(inpatient のみ)
+    triage_data: TriageData | None = None  # triage_enricher が set(ED のみ)
     # AD-65 Bug C fix: severity sampled in emergency.py ("mild"/"moderate"/"severe"),
     # consumed by triage_enricher.pick_triage_level(). Previously sampled but never
     # stored on Encounter -> triage_enricher always defaulted to "moderate" -> no
@@ -191,8 +191,8 @@ class Order:
     panel_key: str = ""
     # PR2(Tier 1 #2 imaging chain)— imaging-only fields. LAB / MED / 他 OrderType
     # では default ("" / [])のまま、FHIR 出力に影響しない(no-op safe)。
-    imaging_modality: str = ""              # DCM code(CR/CT/MR/US/NM/...)
-    imaging_body_site_code: str = ""        # SNOMED body structure
+    imaging_modality: str = ""  # DCM code(CR/CT/MR/US/NM/...)
+    imaging_body_site_code: str = ""  # SNOMED body structure
     imaging_views: list[str] = field(default_factory=list)
     imaging_spec_meta: dict[str, Any] = field(default_factory=dict)  # abnormal_rate_by_severity etc. (Task 4)
 
@@ -210,17 +210,18 @@ class VitalSignRecord:
     consciousness_level: str = "A"  # AVPU: A=Alert, V=Voice, P=Pain, U=Unresponsive (NEWS2)
     on_supplemental_oxygen: bool = False
     oxygen_flow_rate_lpm: float | None = None  # liters per minute, if on O2
-    oxygen_delivery_device: str = ""  # "nasal_cannula" | "simple_mask" | "venturi" | "non-rebreather" | "HFNC" | "BiPAP" | "ventilator"
+    oxygen_delivery_device: str = ""  # "nasal_cannula" | "simple_mask" | "venturi" | "non-rebreather" | "HFNC" | "BiPAP" | "ventilator"  # noqa: E501
     nursing_note: str = ""  # brief nursing assessment
     measured_by: str = ""  # nurse staff_id
     data_source: str = "manual"  # "manual" | "device_auto"
     news2_score: int | None = None  # NEWS2 aggregate (0-20), derived from this vital set
-    gcs_score: int | None = None    # Glasgow Coma Scale total (3-15)
+    gcs_score: int | None = None  # Glasgow Coma Scale total (3-15)
 
 
 @dataclass
 class ADLAssessment:
     """Activities of Daily Living assessment (Barthel Index, scored 0-100)."""
+
     date: date = field(default_factory=lambda: _UNSET_DATE)
     barthel_score: int = 100  # 0=totally dependent, 100=fully independent
     feeding: int = 10  # 0/5/10
@@ -238,21 +239,23 @@ class ADLAssessment:
 @dataclass
 class NursingRiskAssessment:
     """Daily nursing risk assessment: Braden (pressure ulcer) + Morse (fall) scales."""
+
     date: date = field(default_factory=lambda: _UNSET_DATE)
-    braden_total: int = 23          # 6-23; lower = higher pressure-ulcer risk
-    braden_sensory: int = 4         # 1-4
-    braden_moisture: int = 4        # 1-4
-    braden_activity: int = 4        # 1-4
-    braden_mobility: int = 4        # 1-4
-    braden_nutrition: int = 4       # 1-4
-    braden_friction: int = 3        # 1-3
-    morse_total: int = 0            # 0-125
-    fall_risk_level: str = "low"    # "low" | "moderate" | "high"
+    braden_total: int = 23  # 6-23; lower = higher pressure-ulcer risk
+    braden_sensory: int = 4  # 1-4
+    braden_moisture: int = 4  # 1-4
+    braden_activity: int = 4  # 1-4
+    braden_mobility: int = 4  # 1-4
+    braden_nutrition: int = 4  # 1-4
+    braden_friction: int = 3  # 1-3
+    morse_total: int = 0  # 0-125
+    fall_risk_level: str = "low"  # "low" | "moderate" | "high"
 
 
 @dataclass
 class IntakeOutputRecord:
     """Daily fluid balance record (nursing documentation)."""
+
     date: date = field(default_factory=lambda: _UNSET_DATE)
     intake_iv_ml: int = 0  # IV fluid
     intake_oral_ml: int = 0  # oral intake
@@ -273,6 +276,7 @@ class ImmunizationRecord:
     Immunization.lotNumber and .performer[].actor can be populated from real
     CIF data instead of a builder-side stub.
     """
+
     vaccine_cvx: str = ""
     occurrence_date: date = field(default_factory=lambda: _UNSET_DATE)
     status: str = "completed"

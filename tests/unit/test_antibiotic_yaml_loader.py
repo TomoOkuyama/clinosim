@@ -1,4 +1,5 @@
 """Unit tests for hai_empirical.yaml loader + import-time validation."""
+
 import pytest
 
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
@@ -52,8 +53,7 @@ def test_load_hai_empirical_all_drug_keys_canonical():
     for hai_type, cfg in data.items():
         for drug in cfg["drugs"]:
             assert drug["drug_key"] in ANTIBIOTIC_DRUGS, (
-                f"{hai_type}: {drug['drug_key']!r} not in canonical "
-                f"ANTIBIOTIC_DRUGS {ANTIBIOTIC_DRUGS}"
+                f"{hai_type}: {drug['drug_key']!r} not in canonical ANTIBIOTIC_DRUGS {ANTIBIOTIC_DRUGS}"
             )
 
 
@@ -71,6 +71,7 @@ def test_unknown_hai_key_raises_value_error(tmp_path, monkeypatch):
         "    drugs: [{drug_key: Ceftriaxone, dose: 1g, route: IV, frequency: q24h}]\n"
     )
     from clinosim.modules.antibiotic import engine
+
     engine.load_hai_empirical.cache_clear()
     monkeypatch.setattr(engine, "_HAI_EMPIRICAL_YAML", bad_yaml)
     with pytest.raises(ValueError, match="unknown hai_type"):
@@ -102,6 +103,7 @@ def test_unknown_drug_key_raises_value_error(tmp_path, monkeypatch):
         "    drugs: [{drug_key: vancomycin, dose: 1g, route: IV, frequency: q12h}]\n"
     )
     from clinosim.modules.antibiotic import engine
+
     engine.load_hai_empirical.cache_clear()
     monkeypatch.setattr(engine, "_HAI_EMPIRICAL_YAML", bad_yaml)
     with pytest.raises(ValueError, match="unknown drug_key"):
@@ -123,6 +125,7 @@ def test_missing_hai_type_raises_value_error(tmp_path, monkeypatch):
         "    drugs: [{drug_key: vancomycin, dose: 1g, route: IV, frequency: q12h}]\n"
     )
     from clinosim.modules.antibiotic import engine
+
     engine.load_hai_empirical.cache_clear()
     monkeypatch.setattr(engine, "_HAI_EMPIRICAL_YAML", bad_yaml)
     with pytest.raises(ValueError, match="missing HAI_TYPES"):

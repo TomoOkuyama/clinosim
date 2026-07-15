@@ -40,12 +40,14 @@ def _ctx(lang: str, system: str, code: str):
         vitals=[],
         lab_results=[],
         medications=[],
-        diagnoses=[{
-            "admission_diagnosis_code": code,
-            "admission_diagnosis_system": system,
-            "discharge_diagnosis_code": code,
-            "discharge_diagnosis_system": system,
-        }],
+        diagnoses=[
+            {
+                "admission_diagnosis_code": code,
+                "admission_diagnosis_system": system,
+                "discharge_diagnosis_code": code,
+                "discharge_diagnosis_system": system,
+            }
+        ],
         procedures=[],
         allergies=[],
         document_type=DocumentType.DISCHARGE_SUMMARY,

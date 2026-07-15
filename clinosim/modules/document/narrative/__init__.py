@@ -23,6 +23,7 @@ Public API:
 - NarrativeCache — layer-1 in-memory cache for LLM-generated sections
 - apply_replacement_strategy — section replacement dispatch
 """
+
 from clinosim.modules.document.narrative.cache import NarrativeCache
 from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
 from clinosim.modules.document.narrative.replacement_strategy import apply_replacement_strategy

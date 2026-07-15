@@ -1,5 +1,6 @@
 """Unit tests for clinosim.audit.types — Severity, AuditFinding, AxisResult,
 AuditResult, Cohort lazy NDJSON reader."""
+
 from __future__ import annotations
 
 import json
@@ -38,7 +39,8 @@ def test_axis_result_status_pass_when_info_only():
 @pytest.mark.unit
 def test_axis_result_status_warn():
     r = AxisResult(
-        axis="silent_no_op", module="hai",
+        axis="silent_no_op",
+        module="hai",
         findings=[AuditFinding(Severity.WARN, "rare-event cohort")],
     )
     assert r.status == "WARN"
@@ -47,7 +49,8 @@ def test_axis_result_status_warn():
 @pytest.mark.unit
 def test_axis_result_status_fail_dominates():
     r = AxisResult(
-        axis="silent_no_op", module="hai",
+        axis="silent_no_op",
+        module="hai",
         findings=[
             AuditFinding(Severity.WARN, "rare"),
             AuditFinding(Severity.FAIL, "constants drift"),
@@ -61,9 +64,11 @@ def test_audit_result_overall_status():
     res = AuditResult(cohort_dir=Path("/tmp/x"), modules=["hai"], axes=["a", "b"])
     res.add("a", "hai", AxisResult(axis="a", module="hai", info={"n": 1}))
     res.add(
-        "b", "hai",
+        "b",
+        "hai",
         AxisResult(
-            axis="b", module="hai",
+            axis="b",
+            module="hai",
             findings=[AuditFinding(Severity.FAIL, "x")],
         ),
     )
@@ -74,14 +79,10 @@ def test_audit_result_overall_status():
 def test_cohort_countries_and_ndjson(tmp_path: Path):
     us = tmp_path / "us" / "fhir_r4"
     us.mkdir(parents=True)
-    (us / "Patient.ndjson").write_text(
-        json.dumps({"resourceType": "Patient", "id": "p1"}) + "\n"
-    )
+    (us / "Patient.ndjson").write_text(json.dumps({"resourceType": "Patient", "id": "p1"}) + "\n")
     jp = tmp_path / "jp" / "fhir_r4"
     jp.mkdir(parents=True)
-    (jp / "Patient.ndjson").write_text(
-        json.dumps({"resourceType": "Patient", "id": "p2"}) + "\n"
-    )
+    (jp / "Patient.ndjson").write_text(json.dumps({"resourceType": "Patient", "id": "p2"}) + "\n")
 
     coh = Cohort.open(tmp_path)
     assert coh.countries() == ["jp", "us"]

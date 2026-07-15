@@ -1,4 +1,5 @@
 """Unit tests for clinosim.audit.axes.silent_no_op."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -21,8 +22,10 @@ def _proof_factory_pass():
         return 1
 
     return {
-        "record": SimpleNamespace(), "encounter": SimpleNamespace(),
-        "state_history": [], "admission_time": None,
+        "record": SimpleNamespace(),
+        "encounter": SimpleNamespace(),
+        "state_history": [],
+        "admission_time": None,
         "apply_fn": apply_fn,
         "expected": [(wbc_obs, 11760.0, 2520.0)],
     }
@@ -35,8 +38,10 @@ def _proof_factory_silent_no_op():
         return 0  # silently no-op
 
     return {
-        "record": SimpleNamespace(), "encounter": SimpleNamespace(),
-        "state_history": [], "admission_time": None,
+        "record": SimpleNamespace(),
+        "encounter": SimpleNamespace(),
+        "state_history": [],
+        "admission_time": None,
         "apply_fn": apply_fn,
         "expected": [(wbc_obs, 11760.0, 2520.0)],
     }
@@ -56,7 +61,8 @@ def test_silent_no_op_pass_with_proof(tmp_path: Path):
 @pytest.mark.unit
 def test_silent_no_op_fail_when_proof_delta_mismatch(tmp_path: Path):
     spec = ModuleAuditSpec(
-        name="hai", lift_firing_proof=_proof_factory_silent_no_op,
+        name="hai",
+        lift_firing_proof=_proof_factory_silent_no_op,
     )
     result = silent_no_op.run(spec, Cohort.open(tmp_path))
     assert result.status == "FAIL"

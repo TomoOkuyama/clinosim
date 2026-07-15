@@ -18,7 +18,9 @@ pytestmark = pytest.mark.unit
 def test_avpu_coding_display_localized_for_jp():
     entries = _build_vital_observations(
         {"consciousness_level": "U", "timestamp": "2026-01-01T08:00:00"},
-        patient_id="p1", index=0, country="JP",
+        patient_id="p1",
+        index=0,
+        country="JP",
     )
     loc_obs = next(e["resource"] for e in entries if e["resource"]["id"].endswith("-loc"))
     coding_display = loc_obs["valueCodeableConcept"]["coding"][0]["display"]
@@ -30,7 +32,9 @@ def test_avpu_coding_display_localized_for_jp():
 def test_avpu_coding_display_stays_english_for_us():
     entries = _build_vital_observations(
         {"consciousness_level": "U", "timestamp": "2026-01-01T08:00:00"},
-        patient_id="p1", index=0, country="US",
+        patient_id="p1",
+        index=0,
+        country="US",
     )
     loc_obs = next(e["resource"] for e in entries if e["resource"]["id"].endswith("-loc"))
     coding_display = loc_obs["valueCodeableConcept"]["coding"][0]["display"]

@@ -18,10 +18,7 @@ def render_markdown(report: EvalReport) -> str:
     lines.append("")
     lines.append(f"- **Cohort**: `{report.cohort_dir}`")
     lines.append(f"- **Generated at**: {report.generated_at}")
-    lines.append(
-        f"- **Overall score**: **{report.overall_score:.1f} / 100** "
-        f"({report.overall_status})"
-    )
+    lines.append(f"- **Overall score**: **{report.overall_score:.1f} / 100** ({report.overall_status})")
     lines.append("")
 
     lines.append("## Resource counts")
@@ -43,18 +40,13 @@ def render_markdown(report: EvalReport) -> str:
 
 def _render_axis(axis: EvalAxisResult) -> list[str]:
     lines: list[str] = []
-    lines.append(
-        f"## Axis: {axis.axis} ({axis.country or '(flat)'}) — "
-        f"**{axis.score:.1f} / 100** ({axis.status})"
-    )
+    lines.append(f"## Axis: {axis.axis} ({axis.country or '(flat)'}) — **{axis.score:.1f} / 100** ({axis.status})")
     lines.append("")
     lines.append("| Check | Outcome | Severity | Message |")
     lines.append("|---|---|---|---|")
     for c in axis.checks:
         icon = _outcome_icon(c.outcome)
-        lines.append(
-            f"| `{c.name}` | {icon} {c.outcome.value} | {c.severity.value} | {_escape_md(c.message)} |"
-        )
+        lines.append(f"| `{c.name}` | {icon} {c.outcome.value} | {c.severity.value} | {_escape_md(c.message)} |")
     return lines
 
 

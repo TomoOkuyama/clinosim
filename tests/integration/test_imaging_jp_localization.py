@@ -60,8 +60,7 @@ def test_jp_imaging_study_series_modality_in_ja() -> None:
             for series in study.get("series", []):
                 mod_display = series.get("modality", {}).get("display", "")
                 assert _has_jp_chars(mod_display), (
-                    f"ImagingStudy/{study['id']} series modality display not Japanese: "
-                    f"{mod_display!r}"
+                    f"ImagingStudy/{study['id']} series modality display not Japanese: {mod_display!r}"
                 )
 
 
@@ -78,9 +77,7 @@ def test_jp_radiology_dr_conclusion_in_ja() -> None:
         for dr in rad_drs:
             conclusion = dr.get("conclusion", "")
             assert conclusion, f"DiagnosticReport/{dr['id']} missing conclusion"
-            assert _has_jp_chars(conclusion), (
-                f"DiagnosticReport/{dr['id']} conclusion not Japanese: {conclusion!r}"
-            )
+            assert _has_jp_chars(conclusion), f"DiagnosticReport/{dr['id']} conclusion not Japanese: {conclusion!r}"
 
 
 @pytest.mark.integration
@@ -96,9 +93,7 @@ def test_jp_radiology_dr_text_div_in_ja() -> None:
         for dr in rad_drs:
             div = dr.get("text", {}).get("div", "")
             assert div, f"DiagnosticReport/{dr['id']} missing text.div"
-            assert _has_jp_chars(div), (
-                f"DiagnosticReport/{dr['id']} text.div not Japanese: {div[:150]!r}"
-            )
+            assert _has_jp_chars(div), f"DiagnosticReport/{dr['id']} text.div not Japanese: {div[:150]!r}"
 
 
 @pytest.mark.integration
@@ -109,12 +104,9 @@ def test_jp_imaging_sr_category_snomed_display_in_ja() -> None:
         run_generate("JP", 200, 42, out)
         srs = load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))
         imaging_srs = [
-            s for s in srs
-            if any(
-                c.get("code") == "363679005"
-                for entry in s.get("category", [])
-                for c in entry.get("coding", [])
-            )
+            s
+            for s in srs
+            if any(c.get("code") == "363679005" for entry in s.get("category", []) for c in entry.get("coding", []))
         ]
         if not imaging_srs:
             pytest.skip("No imaging SRs (363679005) emitted for JP cohort n=200")
@@ -128,11 +120,7 @@ def test_jp_imaging_sr_category_snomed_display_in_ja() -> None:
                 ),
                 None,
             )
-            assert snomed is not None, (
-                f"SR/{sr['id']} SNOMED 363679005 not found in category"
-            )
+            assert snomed is not None, f"SR/{sr['id']} SNOMED 363679005 not found in category"
             display = snomed.get("display", "")
-            assert _has_jp_chars(display), (
-                f"SR/{sr['id']} SNOMED 363679005 display not Japanese: {display!r}"
-            )
+            assert _has_jp_chars(display), f"SR/{sr['id']} SNOMED 363679005 display not Japanese: {display!r}"
             break  # one sample is sufficient to verify localization

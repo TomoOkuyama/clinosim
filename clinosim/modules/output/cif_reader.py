@@ -99,9 +99,7 @@ class CIFReader:
             else:
                 narrative_version = _DEFAULT_NARRATIVE_VERSION_FALLBACK
         self.narrative_version = narrative_version
-        self.narrative_docs_dir = os.path.join(
-            cif_dir, "narratives", narrative_version, "documents"
-        )
+        self.narrative_docs_dir = os.path.join(cif_dir, "narratives", narrative_version, "documents")
         self._narrative_available = os.path.isdir(self.narrative_docs_dir)
 
         if not self._narrative_available:
@@ -124,9 +122,7 @@ class CIFReader:
     def iter_patients(self) -> Iterator[dict[str, Any]]:
         """Yield each patient record dict, merging narrative content in-place."""
         if not os.path.isdir(self.structural_dir):
-            raise FileNotFoundError(
-                f"CIF structural directory not found: {self.structural_dir}"
-            )
+            raise FileNotFoundError(f"CIF structural directory not found: {self.structural_dir}")
         for filename in sorted(os.listdir(self.structural_dir)):
             if not filename.endswith(".json"):
                 continue
@@ -144,9 +140,7 @@ class CIFReader:
         enc_dir = os.path.join(self.narrative_docs_dir, enc_id)
         if not os.path.isdir(enc_dir):
             return
-        stub_by_id = {
-            d.get("document_id", ""): d for d in (record.get("documents") or [])
-        }
+        stub_by_id = {d.get("document_id", ""): d for d in (record.get("documents") or [])}
         for fn in sorted(os.listdir(enc_dir)):
             if not fn.endswith(".json"):
                 continue
@@ -158,7 +152,9 @@ class CIFReader:
                 logger.warning(
                     "CIFReader: orphan narrative file %s (document_id=%s) in "
                     "encounter %s has no matching structural stub — dropped",
-                    fn, doc_id, enc_id,
+                    fn,
+                    doc_id,
+                    enc_id,
                 )
                 continue
             stub["narrative"] = narr_file.get("narrative")

@@ -1,4 +1,5 @@
 """Unit tests for Vancomycin RxNorm + YJ code registration."""
+
 import pytest
 
 from clinosim.codes import lookup

@@ -45,13 +45,13 @@ def _map_order_status_to_fhir(status: str) -> str:
     # the comment + explicit listing surface the silent-no-op risk loud at
     # code review time (adversarial-1 I-C2).
     mapping = {
-        "placed": "active",       # order placed but not yet acted on
-        "accepted": "active",     # default operational state
+        "placed": "active",  # order placed but not yet acted on
+        "accepted": "active",  # default operational state
         "in_progress": "active",  # in progress
-        "resulted": "active",     # not normally used for MedicationRequest (lab path)
-        "reviewed": "active",     # not normally used for MedicationRequest (lab path)
+        "resulted": "active",  # not normally used for MedicationRequest (lab path)
+        "reviewed": "active",  # not normally used for MedicationRequest (lab path)
         "cancelled": "cancelled",
-        "stopped": "stopped",     # PR3b-3: narrowed / de-escalated empirical
+        "stopped": "stopped",  # PR3b-3: narrowed / de-escalated empirical
     }
     return mapping.get(status, "active")
 
@@ -79,10 +79,19 @@ def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
     # RM-2 (session 42): expanded to match clinosim's actual CIF phrasing
     # ("Home medication (continue)" → chronic-refill / "Outpatient follow-up"
     # → chronic follow-up).
-    if any(k in ci for k in (
-        "follow-up", "follow up", "chronic", "refill", "maintenance",
-        "home medication", "continue", "outpatient follow",
-    )):
+    if any(
+        k in ci
+        for k in (
+            "follow-up",
+            "follow up",
+            "chronic",
+            "refill",
+            "maintenance",
+            "home medication",
+            "continue",
+            "outpatient follow",
+        )
+    ):
         return "instance-order"
     # CO-7 (session 42 cycle 3): outpatient encounter type → instance-order.
     if encounter_type == "outpatient":
@@ -91,8 +100,11 @@ def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
 
 
 def _build_medication_request(
-    order: dict, patient_id: str, country: str,
-    encounter_id: str = "", primary_dx_code: str = "",
+    order: dict,
+    patient_id: str,
+    country: str,
+    encounter_id: str = "",
+    primary_dx_code: str = "",
     encounter_type: str = "",
     rp_number: str = "1",
     order_in_rp: str = "1",
@@ -179,11 +191,13 @@ def _build_medication_request(
 
     med_concept: dict[str, Any] = {"text": drug_name}
     if code_value:
-        med_concept["coding"] = [{
-            "system": code_system,
-            "code": code_value,
-            "display": display,
-        }]
+        med_concept["coding"] = [
+            {
+                "system": code_system,
+                "code": code_value,
+                "display": display,
+            }
+        ]
 
     # ID: order_id は session 52 fix 0 で encounter-scoped 化された
     # (grep で "ORD-{encounter_id}-..." pattern に統一済)ので、そのまま
@@ -209,8 +223,7 @@ def _build_medication_request(
     # post-discharge.
     status_val = _map_order_status_to_fhir(order.get("status", ""))
     _ci_lower = str(order.get("clinical_intent", "") or "").lower()
-    _episodic_kw = ("supportive:", "ed treatment:", "day ", "dvt_prophylaxis",
-                    "antibiotic", "escalation")
+    _episodic_kw = ("supportive:", "ed treatment:", "day ", "dvt_prophylaxis", "antibiotic", "escalation")
     _is_home_med = "home medication" in _ci_lower
     _is_episodic = (not _is_home_med) and any(kw in _ci_lower for kw in _episodic_kw)
     if status_val == "active" and (
@@ -223,24 +236,32 @@ def _build_medication_request(
         "resourceType": "MedicationRequest",
         "id": resource_id,
         # Session 46 chain #2: JP Core MedicationRequest profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"
-        ]}} if country_code == "JP" else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]}}
+            if country_code == "JP"
+            else {}
+        ),
         # session 49 clinosim_feedback P1-4: JP_MedicationRequest.identifier
         # slice `rpNumber`(処方内 Rp グループ番号)+ `orderInRp`(Rp 内医薬品
         # 順序)の 2 slice を JP output で emit。system URL は JP Core 1.2.0
         # の StructureDefinition から取得(mhlw/IdSystem/Medication-RPGroupNumber
         # + MedicationAdministrationIndex)。
-        **({"identifier": [
+        **(
             {
-                "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
-                "value": rp_number,
-            },
-            {
-                "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
-                "value": order_in_rp,
-            },
-        ]} if country_code == "JP" else {}),
+                "identifier": [
+                    {
+                        "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
+                        "value": rp_number,
+                    },
+                    {
+                        "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
+                        "value": order_in_rp,
+                    },
+                ]
+            }
+            if country_code == "JP"
+            else {}
+        ),
         "status": status_val,
         "intent": intent_val,
         "medicationCodeableConcept": med_concept,
@@ -273,13 +294,17 @@ def _build_medication_request(
         # since intent already indicated an order was authored (not a plan).
         _cat_code, _cat_display = "inpatient", "Inpatient"
     if _cat_code:
-        resource["category"] = [{
-            "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-category",
-                "code": _cat_code,
-                "display": _cat_display,
-            }],
-        }]
+        resource["category"] = [
+            {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-category",
+                        "code": _cat_code,
+                        "display": _cat_display,
+                    }
+                ],
+            }
+        ]
 
     # Encounter reference
     enc_ref = order.get("encounter_id", "") or encounter_id
@@ -299,14 +324,15 @@ def _build_medication_request(
     # 急性期治療は acute、その他は継続困難なため無指定にせず acute default。
     # HL7 CodeSystem: http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy
     _course_code = "continuous" if (_is_home_med or _cat_code == "community") else "acute"
-    _course_display = ("Continuous long-term therapy" if _course_code == "continuous"
-                       else "Short course (acute) therapy")
+    _course_display = "Continuous long-term therapy" if _course_code == "continuous" else "Short course (acute) therapy"
     resource["courseOfTherapyType"] = {
-        "coding": [{
-            "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy",
-            "code": _course_code,
-            "display": _course_display,
-        }],
+        "coding": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy",
+                "code": _course_code,
+                "display": _course_display,
+            }
+        ],
     }
 
     # CY7-08 (Chain-7): MR.priority — derive from Order.urgency (routine /
@@ -340,9 +366,11 @@ def _build_medication_request(
     reason = order.get("reason_condition", "") or primary_dx_code
     if reason:
         cond_ref = f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary"
-        resource["reasonReference"] = [{
-            "reference": f"Condition/{cond_ref}",
-        }]
+        resource["reasonReference"] = [
+            {
+                "reference": f"Condition/{cond_ref}",
+            }
+        ]
 
     # C4-15 (session 43 cycle 4): dispenseRequest for outpatient / discharge
     # scripts. FHIR R4 MedicationRequest.dispenseRequest is 0..1; JP Core
@@ -379,8 +407,12 @@ def _build_medication_request(
 
 
 def _build_medication_admin(
-    mar: dict, patient_id: str, index: int, country: str = "US",
-    encounter_id: str = "", primary_dx_code: str = "",
+    mar: dict,
+    patient_id: str,
+    index: int,
+    country: str = "US",
+    encounter_id: str = "",
+    primary_dx_code: str = "",
     rp_number: str = "1",
     order_in_rp: str = "1",
 ) -> dict:
@@ -445,21 +477,29 @@ def _build_medication_admin(
         "resourceType": "MedicationAdministration",
         "id": f"mar-{encounter_id or patient_id}-{index:05d}",
         # Session 46 chain #2: JP Core MedicationAdministration profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"
-        ]}} if country_code == "JP" else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"]}}
+            if country_code == "JP"
+            else {}
+        ),
         # session 49 clinosim_feedback P1-4: JP_MedicationAdministration.
         # identifier slice `rpNumber` + `orderInRp`(parent MR と同 URL / 同 値)。
-        **({"identifier": [
+        **(
             {
-                "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
-                "value": rp_number,
-            },
-            {
-                "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
-                "value": order_in_rp,
-            },
-        ]} if country_code == "JP" else {}),
+                "identifier": [
+                    {
+                        "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
+                        "value": rp_number,
+                    },
+                    {
+                        "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
+                        "value": order_in_rp,
+                    },
+                ]
+            }
+            if country_code == "JP"
+            else {}
+        ),
         "status": _map_mar_status(mar.get("status", "completed")),
         "medicationCodeableConcept": med_concept,
         "subject": {"reference": f"Patient/{patient_id}"},
@@ -470,11 +510,13 @@ def _build_medication_admin(
     # nurse-administered inpatient dosing (encounter_id-scoped), so default
     # to "inpatient".
     resource["category"] = {
-        "coding": [{
-            "system": "http://terminology.hl7.org/CodeSystem/medication-admin-category",
-            "code": "inpatient",
-            "display": "Inpatient",
-        }],
+        "coding": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/medication-admin-category",
+                "code": "inpatient",
+                "display": "Inpatient",
+            }
+        ],
     }
 
     # Encounter context
@@ -533,22 +575,26 @@ def _build_medication_admin(
     # Reason reference (link to primary diagnosis)
     if primary_dx_code:
         cond_ref = f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary"
-        resource["reasonReference"] = [{
-            "reference": f"Condition/{cond_ref}",
-        }]
+        resource["reasonReference"] = [
+            {
+                "reference": f"Condition/{cond_ref}",
+            }
+        ]
         # CY8-19 fix (session 48 cycle 8): MAR.reasonCode — primary diagnosis
         # ICD code を CodeableConcept で並置(reasonReference との duplication は
         # FHIR R4 で recommended:code と reference は互いに補完)。
         # US = icd-10-cm、JP = icd-10。
-        _icd_system = get_system_uri(
-            "icd-10-cm" if country_code == "US" else "icd-10"
-        )
-        resource["reasonCode"] = [{
-            "coding": [{
-                "system": _icd_system,
-                "code": primary_dx_code,
-            }],
-        }]
+        _icd_system = get_system_uri("icd-10-cm" if country_code == "US" else "icd-10")
+        resource["reasonCode"] = [
+            {
+                "coding": [
+                    {
+                        "system": _icd_system,
+                        "code": primary_dx_code,
+                    }
+                ],
+            }
+        ]
 
     # CY8-20 fix (session 48 cycle 8): MAR.device — 持続点滴 (continuous
     # infusion / drip) のとき infusion pump Device を参照。route=IV かつ
@@ -556,16 +602,13 @@ def _build_medication_admin(
     # Device resource 自体は既存 hospital-main の generic infusion pump を
     # 参照(実 EHR 実装と同様、pump を patient に固有発行しない運用)。
     _dose_text_up = (mar.get("dose") or "").upper()
-    _is_infusion = (
-        route == "IV" and (
-            "CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up
-            or "/H" in _dose_text_up
-        )
-    )
+    _is_infusion = route == "IV" and ("CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up or "/H" in _dose_text_up)
     if _is_infusion:
-        resource["device"] = [{
-            "reference": "Device/dev-infusion-pump",
-            "display": "汎用輸液ポンプ" if country_code == "JP" else "Generic infusion pump",
-        }]
+        resource["device"] = [
+            {
+                "reference": "Device/dev-infusion-pump",
+                "display": "汎用輸液ポンプ" if country_code == "JP" else "Generic infusion pump",
+            }
+        ]
 
     return resource

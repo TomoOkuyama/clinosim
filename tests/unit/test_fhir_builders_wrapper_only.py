@@ -45,10 +45,14 @@ def _make_ctx(docs: list[dict], country: str = "us") -> BundleContext:
 @pytest.mark.unit
 def test_composition_builder_reads_narrative_sections():
     doc = {
-        "document_id": "doc-1", "task_type": "admission_hp",
-        "loinc_code": "34117-2", "format_type": "composition",
-        "encounter_id": "ENC-1", "patient_id": "P-1",
-        "author_practitioner_id": "DR-1", "authored_datetime": "2026-01-01T00:00:00",
+        "document_id": "doc-1",
+        "task_type": "admission_hp",
+        "loinc_code": "34117-2",
+        "format_type": "composition",
+        "encounter_id": "ENC-1",
+        "patient_id": "P-1",
+        "author_practitioner_id": "DR-1",
+        "authored_datetime": "2026-01-01T00:00:00",
         "language": "en",
     }
     sections = {"hpi": "text", "assessment_and_plan": "plan"}
@@ -65,14 +69,24 @@ def test_composition_builder_reads_narrative_sections():
 def test_bb_compositions_merges_narrative_from_doc_dict():
     """End-to-end through _bb_compositions: reads doc['narrative']['sections']."""
     doc = {
-        "document_id": "doc-1", "task_type": "admission_hp",
-        "loinc_code": "34117-2", "format_type": "composition",
-        "encounter_id": "ENC-1", "patient_id": "P-1",
-        "author_practitioner_id": "DR-1", "authored_datetime": "2026-01-01T00:00:00",
+        "document_id": "doc-1",
+        "task_type": "admission_hp",
+        "loinc_code": "34117-2",
+        "format_type": "composition",
+        "encounter_id": "ENC-1",
+        "patient_id": "P-1",
+        "author_practitioner_id": "DR-1",
+        "authored_datetime": "2026-01-01T00:00:00",
         "language": "en",
-        "narrative": {"text": "", "sections": {"hpi": "65yo M ..."},
-                      "structured": {}, "generator": "template",
-                      "generator_metadata": {}, "generated_at": "", "facts_used": []},
+        "narrative": {
+            "text": "",
+            "sections": {"hpi": "65yo M ..."},
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "",
+            "facts_used": [],
+        },
     }
     ctx = _make_ctx([doc])
     resources = _bb_compositions(ctx)
@@ -83,9 +97,12 @@ def test_bb_compositions_merges_narrative_from_doc_dict():
 @pytest.mark.unit
 def test_bb_compositions_skips_stub_with_no_narrative(caplog):
     doc = {
-        "document_id": "doc-1", "task_type": "admission_hp",
-        "loinc_code": "34117-2", "format_type": "composition",
-        "encounter_id": "ENC-1", "patient_id": "P-1",
+        "document_id": "doc-1",
+        "task_type": "admission_hp",
+        "loinc_code": "34117-2",
+        "format_type": "composition",
+        "encounter_id": "ENC-1",
+        "patient_id": "P-1",
         "narrative": None,
     }
     ctx = _make_ctx([doc])
@@ -100,15 +117,25 @@ def test_bb_compositions_skips_stub_with_no_narrative(caplog):
 @pytest.mark.unit
 def test_docref_builder_reads_narrative_text():
     doc = {
-        "document_id": "doc-1", "task_type": "nursing_shift_note",
-        "loinc_code": "34746-8", "format_type": "free_text",
-        "encounter_id": "ENC-1", "patient_id": "P-1",
-        "author_practitioner_id": "DR-1", "authored_datetime": "2026-01-01T00:00:00",
+        "document_id": "doc-1",
+        "task_type": "nursing_shift_note",
+        "loinc_code": "34746-8",
+        "format_type": "free_text",
+        "encounter_id": "ENC-1",
+        "patient_id": "P-1",
+        "author_practitioner_id": "DR-1",
+        "authored_datetime": "2026-01-01T00:00:00",
         "language": "en",
     }
-    narrative = {"text": "nurse note content", "sections": {}, "structured": {},
-                 "generator": "template", "generator_metadata": {},
-                 "generated_at": "", "facts_used": []}
+    narrative = {
+        "text": "nurse note content",
+        "sections": {},
+        "structured": {},
+        "generator": "template",
+        "generator_metadata": {},
+        "generated_at": "",
+        "facts_used": [],
+    }
     resource = _build_dref_from_clinical_doc(doc, narrative, "P-1", "us")
 
     assert resource is not None
@@ -121,14 +148,24 @@ def test_docref_builder_reads_narrative_text():
 @pytest.mark.unit
 def test_bb_document_references_merges_narrative_from_doc_dict():
     doc = {
-        "document_id": "doc-1", "task_type": "nursing_shift_note",
-        "loinc_code": "34746-8", "format_type": "free_text",
-        "encounter_id": "ENC-1", "patient_id": "P-1",
-        "author_practitioner_id": "DR-1", "authored_datetime": "2026-01-01T00:00:00",
+        "document_id": "doc-1",
+        "task_type": "nursing_shift_note",
+        "loinc_code": "34746-8",
+        "format_type": "free_text",
+        "encounter_id": "ENC-1",
+        "patient_id": "P-1",
+        "author_practitioner_id": "DR-1",
+        "authored_datetime": "2026-01-01T00:00:00",
         "language": "en",
-        "narrative": {"text": "nurse note content", "sections": {}, "structured": {},
-                      "generator": "template", "generator_metadata": {},
-                      "generated_at": "", "facts_used": []},
+        "narrative": {
+            "text": "nurse note content",
+            "sections": {},
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "",
+            "facts_used": [],
+        },
     }
     ctx = _make_ctx([doc])
     resources = _bb_document_references(ctx)
@@ -140,9 +177,12 @@ def test_bb_document_references_merges_narrative_from_doc_dict():
 @pytest.mark.unit
 def test_bb_document_references_skips_stub_with_no_narrative(caplog):
     doc = {
-        "document_id": "doc-1", "task_type": "nursing_shift_note",
-        "loinc_code": "34746-8", "format_type": "free_text",
-        "encounter_id": "ENC-1", "patient_id": "P-1",
+        "document_id": "doc-1",
+        "task_type": "nursing_shift_note",
+        "loinc_code": "34746-8",
+        "format_type": "free_text",
+        "encounter_id": "ENC-1",
+        "patient_id": "P-1",
         "narrative": None,
     }
     ctx = _make_ctx([doc])

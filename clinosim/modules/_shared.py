@@ -5,6 +5,7 @@ that would otherwise be duplicated. Add new cross-module helpers here when
 DRY violations appear (and only then — premature centralization is worse than
 local duplication).
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -70,26 +71,28 @@ def strip_protocol_prefix(name: str) -> tuple[str, str]:
     return name, ""
 
 
-_ID_ALLOWED_XLATE = str.maketrans({
-    "_": "-",
-    " ": "-",
-    "/": "-",
-    "\\": "-",
-    ",": "",
-    "(": "",
-    ")": "",
-    "[": "",
-    "]": "",
-    ":": "-",
-    ";": "",
-    "'": "",
-    '"': "",
-    "&": "and",
-    "+": "-",
-    "*": "",
-    "?": "",
-    "!": "",
-})
+_ID_ALLOWED_XLATE = str.maketrans(
+    {
+        "_": "-",
+        " ": "-",
+        "/": "-",
+        "\\": "-",
+        ",": "",
+        "(": "",
+        ")": "",
+        "[": "",
+        "]": "",
+        ":": "-",
+        ";": "",
+        "'": "",
+        '"': "",
+        "&": "and",
+        "+": "-",
+        "*": "",
+        "?": "",
+        "!": "",
+    }
+)
 
 
 def sanitize_id_token(token: str, max_len: int = 40) -> str:
@@ -232,19 +235,13 @@ def normalize_probabilities(
     """
     arr = np.asarray(probs, dtype=float)
     if len(arr) == 0:
-        raise ValueError(
-            "normalize_probabilities: empty weight vector; cannot normalize"
-        )
+        raise ValueError("normalize_probabilities: empty weight vector; cannot normalize")
     if (arr < 0).any():
-        raise ValueError(
-            f"normalize_probabilities: negative weight in {list(arr)}"
-        )
+        raise ValueError(f"normalize_probabilities: negative weight in {list(arr)}")
     total = float(arr.sum())
     if total <= 0:
         if fallback == "uniform":
             n = max(len(arr), 1)
             return np.ones(n) / n
-        raise ValueError(
-            f"normalize_probabilities: non-positive sum in {list(arr)}"
-        )
+        raise ValueError(f"normalize_probabilities: non-positive sum in {list(arr)}")
     return arr / total

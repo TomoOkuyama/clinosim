@@ -1,4 +1,5 @@
 """Unit tests for clinosim.modules.device.engine (PR-A)."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -23,7 +24,9 @@ pytestmark = pytest.mark.unit
 def test_load_devices_config_returns_three_devices():
     cfg = load_devices_config()
     assert set(cfg["devices"].keys()) == {
-        "cvc", "indwelling_catheter", "mechanical_ventilator",
+        "cvc",
+        "indwelling_catheter",
+        "mechanical_ventilator",
     }
 
 
@@ -53,7 +56,9 @@ def test_indications_met_empty_criteria_is_false():
 def test_evaluate_indications_severity_moderate_only():
     state = PhysiologicalState()
     indications = _evaluate_indications(
-        state, severity_moderate_plus=True, altered_consciousness=False,
+        state,
+        severity_moderate_plus=True,
+        altered_consciousness=False,
     )
     assert indications == {"severity_moderate_plus"}
 
@@ -61,7 +66,9 @@ def test_evaluate_indications_severity_moderate_only():
 def test_evaluate_indications_mild_severity_no_token():
     state = PhysiologicalState()
     indications = _evaluate_indications(
-        state, severity_moderate_plus=False, altered_consciousness=False,
+        state,
+        severity_moderate_plus=False,
+        altered_consciousness=False,
     )
     assert indications == set()
 
@@ -69,7 +76,9 @@ def test_evaluate_indications_mild_severity_no_token():
 def test_evaluate_indications_altered_consciousness():
     state = PhysiologicalState()
     indications = _evaluate_indications(
-        state, severity_moderate_plus=False, altered_consciousness=True,
+        state,
+        severity_moderate_plus=False,
+        altered_consciousness=True,
     )
     assert indications == {"altered_consciousness"}
 
@@ -77,7 +86,9 @@ def test_evaluate_indications_altered_consciousness():
 def test_evaluate_indications_hypoxia_proxy_perfusion_low():
     state = PhysiologicalState(perfusion_status=0.3)
     indications = _evaluate_indications(
-        state, severity_moderate_plus=False, altered_consciousness=False,
+        state,
+        severity_moderate_plus=False,
+        altered_consciousness=False,
     )
     assert "hypoxia" in indications
 
@@ -85,7 +96,9 @@ def test_evaluate_indications_hypoxia_proxy_perfusion_low():
 def test_evaluate_indications_high_respiratory_demand():
     state = PhysiologicalState(respiratory_fraction=0.8)
     indications = _evaluate_indications(
-        state, severity_moderate_plus=False, altered_consciousness=False,
+        state,
+        severity_moderate_plus=False,
+        altered_consciousness=False,
     )
     assert "high_respiratory_demand" in indications
 
@@ -102,7 +115,7 @@ def test_place_devices_for_encounter_no_icu_returns_empty():
 
 def test_place_devices_for_encounter_non_inpatient_returns_empty():
     rec = CIFPatientRecord()
-    rec.icu_transferred = True   # ICU flagged but encounter is outpatient
+    rec.icu_transferred = True  # ICU flagged but encounter is outpatient
     enc = Encounter(encounter_id="enc1", encounter_type=EncounterType.OUTPATIENT)
     rng = np.random.default_rng(42)
     cfg = load_devices_config()
@@ -133,9 +146,7 @@ def test_place_devices_for_encounter_icu_inpatient_emits_cvc_and_catheter():
 def test_place_devices_for_encounter_includes_ventilator_when_respiratory():
     rec = CIFPatientRecord()
     rec.icu_transferred = True
-    rec.physiological_states = [
-        PhysiologicalState(respiratory_fraction=0.8)
-    ]
+    rec.physiological_states = [PhysiologicalState(respiratory_fraction=0.8)]
     enc = Encounter(
         encounter_id="enc1",
         encounter_type=EncounterType.INPATIENT,

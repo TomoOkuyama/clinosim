@@ -3,6 +3,7 @@
 Pin file の shape / bash script の syntax / workflow yml の shape を静的に検証。
 実 validator は環境依存なため、CI ではこのユニット層のみが常時走る。
 """
+
 from __future__ import annotations
 
 import re
@@ -83,11 +84,10 @@ def test_validate_sh_bash_syntax_ok():
         pytest.skip("bash not on PATH")
     result = subprocess.run(
         ["bash", "-n", str(VALIDATE_SH)],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
-    assert result.returncode == 0, (
-        f"bash -n failed:\n{result.stdout}\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"bash -n failed:\n{result.stdout}\n{result.stderr}"
 
 
 @pytest.mark.unit
@@ -97,17 +97,17 @@ def test_pin_bootstrap_sh_bash_syntax_ok():
         pytest.skip("bash not on PATH")
     result = subprocess.run(
         ["bash", "-n", str(PIN_SH)],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
-    assert result.returncode == 0, (
-        f"bash -n failed:\n{result.stdout}\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"bash -n failed:\n{result.stdout}\n{result.stderr}"
 
 
 @pytest.mark.unit
 def test_pin_bootstrap_sh_executable():
     """pin_jp_validator.sh は実行可能ビットが立っている。"""
     import os
+
     assert os.access(PIN_SH, os.X_OK), f"not executable: {PIN_SH}"
 
 
@@ -119,10 +119,8 @@ def test_workflow_yml_loads_and_has_pin_steps():
     assert doc["name"] == "JP FHIR validate"
     steps = doc["jobs"]["jp-validate"]["steps"]
     step_names = [s.get("name", "") for s in steps]
-    assert any("Load validator pins" in n for n in step_names), \
-        f"pin load step missing: {step_names}"
-    assert any("Verify validator SHA256" in n for n in step_names), \
-        f"SHA256 verify step missing: {step_names}"
+    assert any("Load validator pins" in n for n in step_names), f"pin load step missing: {step_names}"
+    assert any("Verify validator SHA256" in n for n in step_names), f"SHA256 verify step missing: {step_names}"
 
 
 @pytest.mark.unit

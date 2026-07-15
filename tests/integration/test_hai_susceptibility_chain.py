@@ -97,8 +97,7 @@ def test_force_hai_event_populates_susceptibilities(
     assert hai_cultures, f"no HAI culture for {hai_type} in rec.microbiology"
     micro = hai_cultures[0]
     assert micro.organism_snomed == organism_snomed, (
-        f"culture organism_snomed mismatch: expected {organism_snomed!r}, "
-        f"got {micro.organism_snomed!r}"
+        f"culture organism_snomed mismatch: expected {organism_snomed!r}, got {micro.organism_snomed!r}"
     )
     assert len(micro.susceptibilities) == expected_abx_count, (
         f"expected {expected_abx_count} susceptibilities for "
@@ -134,6 +133,4 @@ def test_community_culture_has_no_hai_event_id_backref() -> None:
     community = [m for r in ds.patients for m in r.microbiology if not r.extensions.get("hai")]
     assert len(community) > 0, "no community cultures generated"
     for m in community:
-        assert m.hai_event_id == "", (
-            f"community culture has unexpected hai_event_id {m.hai_event_id!r}"
-        )
+        assert m.hai_event_id == "", f"community culture has unexpected hai_event_id {m.hai_event_id!r}"

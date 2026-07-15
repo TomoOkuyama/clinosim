@@ -1,4 +1,5 @@
 """Unit tests for HAI antibiogram-driven S/I/R susceptibility sampling (Task 5)."""
+
 import numpy as np
 import pytest
 
@@ -62,8 +63,11 @@ def test_vancomycin_always_s_for_saureus(antibiogram):
         ev = _make_event(HAI_TYPES[0], "3092008")
         rng = np.random.default_rng(seed)
         _append_hai_culture(rec, ev, _spec_cfg(), "2024-01-15", antibiogram, rng)
-        vanc = [r for r in rec["microbiology"][0].susceptibilities
-                if r.antibiotic_loinc == ANTIBIOTIC_LOINC_LOOKUP["vancomycin"]]
+        vanc = [
+            r
+            for r in rec["microbiology"][0].susceptibilities
+            if r.antibiotic_loinc == ANTIBIOTIC_LOINC_LOOKUP["vancomycin"]
+        ]
         assert len(vanc) == 1
         assert vanc[0].interpretation == "S"
 
@@ -88,8 +92,11 @@ def test_empirical_s_distribution_for_clabsi_ecoli(antibiogram):
         ev = _make_event(HAI_TYPES[0], "112283007")
         rng = np.random.default_rng(seed)
         _append_hai_culture(rec, ev, _spec_cfg(), "2024-01-15", antibiogram, rng)
-        ctx = [r for r in rec["microbiology"][0].susceptibilities
-               if r.antibiotic_loinc == ANTIBIOTIC_LOINC_LOOKUP["ceftriaxone"]]
+        ctx = [
+            r
+            for r in rec["microbiology"][0].susceptibilities
+            if r.antibiotic_loinc == ANTIBIOTIC_LOINC_LOOKUP["ceftriaxone"]
+        ]
         assert len(ctx) == 1
         if ctx[0].interpretation == "S":
             s_count += 1

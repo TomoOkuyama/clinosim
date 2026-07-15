@@ -29,9 +29,9 @@ class TestPopulationTypeLocation:
     def test_dataclass_fields_intact(self):
         from datetime import date
 
-        p = PersonRecord(person_id="P1", household_id="H1", age=70, sex="M",
-                          date_of_birth=date(1955, 1, 1))
+        p = PersonRecord(person_id="P1", household_id="H1", age=70, sex="M", date_of_birth=date(1955, 1, 1))
         assert p.blood_type == "A"  # default preserved
         assert p.hospitalization_history == []
-        assert LifeEvent(person_id="P1", event_type="ed_visit",
-                         timestamp=date(2025, 1, 1)).encounter_type == "inpatient"
+        assert (
+            LifeEvent(person_id="P1", event_type="ed_visit", timestamp=date(2025, 1, 1)).encounter_type == "inpatient"
+        )

@@ -3,6 +3,7 @@
 The local LLMProvider Protocol is deleted — the strategy takes an LLMService
 and calls complete_prompt (AD-11). Tests use MockProvider-backed LLMService.
 """
+
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -44,7 +45,8 @@ def _make_spec(
 
 def _make_template_output(sections: dict[str, str] | None = None) -> NarrativeOutput:
     return NarrativeOutput(
-        sections=sections or {
+        sections=sections
+        or {
             "hpi": "Template HPI text",
             "assessment_and_plan": "Template A&P text",
         },
@@ -91,7 +93,10 @@ def _mock_llm(provider: MockProvider | None = None) -> LLMService:
 
 def _apply(template_output, ctx, spec, llm, **kwargs):
     return apply_replacement_strategy(
-        template_output, ctx, spec, llm,
+        template_output,
+        ctx,
+        spec,
+        llm,
         task_type=LLMTaskType.ADMISSION_HP,
         language=ctx.target_lang,
         **kwargs,
@@ -139,9 +144,7 @@ def test_template_seed_strategy_passes_template_as_seed_to_llm() -> None:
         stage2_strategy="template_seed",
         llm_enabled_sections=("hpi",),
     )
-    template_output = _make_template_output(
-        {"hpi": "Template HPI text", "assessment_and_plan": "A&P"}
-    )
+    template_output = _make_template_output({"hpi": "Template HPI text", "assessment_and_plan": "A&P"})
     ctx = _make_ctx()
     provider = MockProvider()
 
@@ -157,10 +160,12 @@ def test_template_seed_strategy_only_replaces_llm_enabled_sections() -> None:
         stage2_strategy="template_seed",
         llm_enabled_sections=("hpi",),
     )
-    template_output = _make_template_output({
-        "hpi": "Template HPI text",
-        "assessment_and_plan": "Template A&P text",
-    })
+    template_output = _make_template_output(
+        {
+            "hpi": "Template HPI text",
+            "assessment_and_plan": "Template A&P text",
+        }
+    )
     ctx = _make_ctx()
     provider = MockProvider()
 
@@ -240,6 +245,7 @@ def test_template_seed_with_empty_llm_enabled_sections_returns_template_unchange
 def test_template_seed_strategy_uses_cache_on_hit() -> None:
     """NarrativeCache hit: LLM not called on second request with same key."""
     from clinosim.modules.document.narrative.cache import NarrativeCache
+
     cache = NarrativeCache()
 
     spec = _make_spec(
@@ -252,13 +258,11 @@ def test_template_seed_strategy_uses_cache_on_hit() -> None:
     llm = _mock_llm(provider)
 
     # First call — cache miss → LLM invoked
-    _apply(template_output, ctx, spec, llm,
-           cache_get=cache.get, cache_put=cache.put)
+    _apply(template_output, ctx, spec, llm, cache_get=cache.get, cache_put=cache.put)
     assert provider.call_count == 1
 
     # Second call — same context → cache hit → LLM NOT invoked again
-    _apply(template_output, ctx, spec, llm,
-           cache_get=cache.get, cache_put=cache.put)
+    _apply(template_output, ctx, spec, llm, cache_get=cache.get, cache_put=cache.put)
     assert provider.call_count == 1  # still 1, not 2
 
 
@@ -272,6 +276,7 @@ def test_template_seed_different_patients_different_seeds_no_cache_collision() -
     narrative contamination).
     """
     from clinosim.modules.document.narrative.cache import NarrativeCache
+
     cache = NarrativeCache()
 
     spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
@@ -286,11 +291,19 @@ def test_template_seed_different_patients_different_seeds_no_cache_collision() -
 
     out_a = _apply(
         _make_template_output({"hpi": "HPI for patient A, 55M, pneumonia"}),
-        ctx_a, spec, llm, cache_get=cache.get, cache_put=cache.put,
+        ctx_a,
+        spec,
+        llm,
+        cache_get=cache.get,
+        cache_put=cache.put,
     )
     out_b = _apply(
         _make_template_output({"hpi": "HPI for patient B, 82F, heart failure"}),
-        ctx_b, spec, llm, cache_get=cache.get, cache_put=cache.put,
+        ctx_b,
+        spec,
+        llm,
+        cache_get=cache.get,
+        cache_put=cache.put,
     )
 
     assert provider.call_count == 2, "second patient must NOT hit the first's cache entry"
@@ -303,6 +316,7 @@ def test_template_seed_identical_seed_and_bucket_reuses_cache() -> None:
     one cache entry (cross-patient reuse preserved) — 1 provider call total.
     """
     from clinosim.modules.document.narrative.cache import NarrativeCache
+
     cache = NarrativeCache()
 
     spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
@@ -315,10 +329,8 @@ def test_template_seed_identical_seed_and_bucket_reuses_cache() -> None:
     ctx_b.patient = {"age": 57, "sex": "M"}  # same 50s-M bucket
 
     shared = {"hpi": "Identical template seed text"}
-    _apply(_make_template_output(dict(shared)), ctx_a, spec, llm,
-           cache_get=cache.get, cache_put=cache.put)
-    _apply(_make_template_output(dict(shared)), ctx_b, spec, llm,
-           cache_get=cache.get, cache_put=cache.put)
+    _apply(_make_template_output(dict(shared)), ctx_a, spec, llm, cache_get=cache.get, cache_put=cache.put)
+    _apply(_make_template_output(dict(shared)), ctx_b, spec, llm, cache_get=cache.get, cache_put=cache.put)
 
     assert provider.call_count == 1  # cache hit: identical seed + bucket
 

@@ -52,8 +52,7 @@ class TestSelectArchetype:
         # a hardcoded rule to the disease YAML archetype_modifiers block. Exercise the
         # same clinical intent through the new YAML-driven path.
         mods = [
-            {"condition": "immune_reactivity < 0.3",
-             "effect": {"treatment_resistant": 0.10, "smooth_recovery": -0.10}}
+            {"condition": "immune_reactivity < 0.3", "effect": {"treatment_resistant": 0.10, "smooth_recovery": -0.10}}
         ]
         low = PatientPhysiologicalProfile(immune_reactivity=0.2)
         counts: dict[str, int] = {}
@@ -152,13 +151,15 @@ class TestComplications:
             age = 80
             physiological_profile = PatientPhysiologicalProfile(delirium_susceptibility=0.5)
 
-        complications = [{
-            "name": "aki",
-            "probability_per_day": 0.99,  # almost certain for testing
-            "onset_day_range": [1, 5],
-            "risk_factors": [{"condition": "renal_function < 0.5", "multiplier": 2.0}],
-            "state_impact": {"renal_function": -0.15},
-        }]
+        complications = [
+            {
+                "name": "aki",
+                "probability_per_day": 0.99,  # almost certain for testing
+                "onset_day_range": [1, 5],
+                "risk_factors": [{"condition": "renal_function < 0.5", "multiplier": 2.0}],
+                "state_impact": {"renal_function": -0.15},
+            }
+        ]
 
         triggered = evaluate_complications(3, MockState(), MockPatient(), complications, set(), rng)
         assert len(triggered) == 1
@@ -173,11 +174,13 @@ class TestComplications:
         class MockPatient:
             age = 50
 
-        complications = [{
-            "name": "late_comp",
-            "probability_per_day": 1.0,
-            "onset_day_range": [10, 20],
-        }]
+        complications = [
+            {
+                "name": "late_comp",
+                "probability_per_day": 1.0,
+                "onset_day_range": [10, 20],
+            }
+        ]
 
         # Day 3: outside window
         triggered = evaluate_complications(3, MockState(), MockPatient(), complications, set(), rng)
@@ -196,17 +199,25 @@ class TestComplications:
         class MockPatient:
             age = 50
 
-        complications = [{
-            "name": "severe_only_comp",
-            "probability_per_day": 0.5,
-            "onset_day_range": [1, 5],
-            "risk_factors": [{"condition": "severity_severe", "multiplier": 2.0}],
-        }]
+        complications = [
+            {
+                "name": "severe_only_comp",
+                "probability_per_day": 0.5,
+                "onset_day_range": [1, 5],
+                "risk_factors": [{"condition": "severity_severe", "multiplier": 2.0}],
+            }
+        ]
 
         # 0.5 * 2.0 = 1.0 -> rng.random() (always < 1.0) guarantees a fire,
         # independent of the specific draw, when severity="severe".
         triggered = evaluate_complications(
-            3, MockState(), MockPatient(), complications, set(), rng, severity="severe",
+            3,
+            MockState(),
+            MockPatient(),
+            complications,
+            set(),
+            rng,
+            severity="severe",
         )
         assert len(triggered) == 1
 
@@ -219,17 +230,25 @@ class TestComplications:
         class MockPatient:
             age = 50
 
-        complications = [{
-            "name": "severe_only_comp",
-            "probability_per_day": 0.0,
-            "onset_day_range": [1, 5],
-            "risk_factors": [{"condition": "severity_severe", "multiplier": 2.0}],
-        }]
+        complications = [
+            {
+                "name": "severe_only_comp",
+                "probability_per_day": 0.0,
+                "onset_day_range": [1, 5],
+                "risk_factors": [{"condition": "severity_severe", "multiplier": 2.0}],
+            }
+        ]
 
         # Base probability is 0.0; the multiplier must NOT apply when
         # severity != "severe", so prob stays 0.0 and never fires.
         triggered = evaluate_complications(
-            3, MockState(), MockPatient(), complications, set(), rng, severity="moderate",
+            3,
+            MockState(),
+            MockPatient(),
+            complications,
+            set(),
+            rng,
+            severity="moderate",
         )
         assert len(triggered) == 0
 

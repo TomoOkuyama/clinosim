@@ -13,20 +13,15 @@ identifier:rpNumber + orderInRp slice の URI も pin テストで守る。
 URI 出典:iris4h-ai/jp_core/package/StructureDefinition-jp-*.json の
 `fixedUri`(spec 直接引用、推測ではない)。
 """
+
 from __future__ import annotations
 
 import pytest
 
 # JP Core 1.2.0 実 spec で固定されている system URI
-JP_OBSERVATION_CATEGORY_SYSTEM = (
-    "http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS"
-)
-JP_MEDICATION_RP_GROUP_SYSTEM = (
-    "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber"
-)
-JP_MEDICATION_ADMIN_INDEX_SYSTEM = (
-    "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex"
-)
+JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS"
+JP_MEDICATION_RP_GROUP_SYSTEM = "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber"
+JP_MEDICATION_ADMIN_INDEX_SYSTEM = "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex"
 
 
 def test_observation_category_first_uri_pinned_to_spec():
@@ -36,6 +31,7 @@ def test_observation_category_first_uri_pinned_to_spec():
     from clinosim.modules.output.fhir_r4_adapter import (
         _JP_OBSERVATION_CATEGORY_SYSTEM,
     )
+
     assert _JP_OBSERVATION_CATEGORY_SYSTEM == JP_OBSERVATION_CATEGORY_SYSTEM
 
 
@@ -44,15 +40,20 @@ def test_inject_jp_observation_category_first_uses_spec_uri():
     from clinosim.modules.output.fhir_r4_adapter import (
         _inject_jp_observation_category_first,
     )
+
     resource = {
         "resourceType": "Observation",
-        "category": [{
-            "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
-                "code": "laboratory",
-                "display": "Laboratory",
-            }],
-        }],
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                        "code": "laboratory",
+                        "display": "Laboratory",
+                    }
+                ],
+            }
+        ],
     }
     _inject_jp_observation_category_first(resource)
     # First slice は JP CodeSystem
@@ -69,14 +70,19 @@ def test_inject_jp_observation_category_first_idempotent():
     from clinosim.modules.output.fhir_r4_adapter import (
         _inject_jp_observation_category_first,
     )
+
     resource = {
         "resourceType": "Observation",
-        "category": [{
-            "coding": [{
-                "system": JP_OBSERVATION_CATEGORY_SYSTEM,
-                "code": "laboratory",
-            }],
-        }],
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": JP_OBSERVATION_CATEGORY_SYSTEM,
+                        "code": "laboratory",
+                    }
+                ],
+            }
+        ],
     }
     original = [c["coding"][0]["system"] for c in resource["category"]]
     _inject_jp_observation_category_first(resource)
@@ -89,28 +95,41 @@ def test_inject_jp_observation_category_skips_non_observation():
     from clinosim.modules.output.fhir_r4_adapter import (
         _inject_jp_observation_category_first,
     )
+
     resource = {"resourceType": "Encounter", "category": [{"coding": []}]}
     _inject_jp_observation_category_first(resource)
     assert resource == {"resourceType": "Encounter", "category": [{"coding": []}]}
 
 
-@pytest.mark.parametrize("hl7_code", [
-    "laboratory", "vital-signs", "imaging", "procedure", "social-history",
-])
+@pytest.mark.parametrize(
+    "hl7_code",
+    [
+        "laboratory",
+        "vital-signs",
+        "imaging",
+        "procedure",
+        "social-history",
+    ],
+)
 def test_inject_jp_observation_category_preserves_hl7_codes(hl7_code):
     """HL7 code はそのまま JP slice の code として再利用される
     (JP_SimpleObservationCategory_CS は HL7 と code 語彙が概ね一致)。"""
     from clinosim.modules.output.fhir_r4_adapter import (
         _inject_jp_observation_category_first,
     )
+
     resource = {
         "resourceType": "Observation",
-        "category": [{
-            "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
-                "code": hl7_code,
-            }],
-        }],
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                        "code": hl7_code,
+                    }
+                ],
+            }
+        ],
     }
     _inject_jp_observation_category_first(resource)
     assert resource["category"][0]["coding"][0]["code"] == hl7_code
@@ -121,14 +140,20 @@ def test_medication_request_jp_identifier_slice_uris_pinned():
     from clinosim.modules.output._fhir_medications import _build_medication_request
 
     order = {
-        "order_id": "ORD-1", "display_name": "Test drug",
+        "order_id": "ORD-1",
+        "display_name": "Test drug",
         "order_type": "medication",
         "ordered_datetime": "2026-06-01T09:00:00",
         "clinical_intent": "test",
     }
     resource = _build_medication_request(
-        order, patient_id="pt1", country="JP", encounter_id="enc1",
-        primary_dx_code="", rp_number="7", order_in_rp="3",
+        order,
+        patient_id="pt1",
+        country="JP",
+        encounter_id="enc1",
+        primary_dx_code="",
+        rp_number="7",
+        order_in_rp="3",
     )
     ids = resource.get("identifier", [])
     systems = {i["system"]: i["value"] for i in ids}
@@ -141,13 +166,17 @@ def test_medication_request_us_no_jp_identifier_slice():
     from clinosim.modules.output._fhir_medications import _build_medication_request
 
     order = {
-        "order_id": "ORD-1", "display_name": "Test drug",
+        "order_id": "ORD-1",
+        "display_name": "Test drug",
         "order_type": "medication",
         "ordered_datetime": "2026-06-01T09:00:00",
         "clinical_intent": "test",
     }
     resource = _build_medication_request(
-        order, patient_id="pt1", country="US", encounter_id="enc1",
+        order,
+        patient_id="pt1",
+        country="US",
+        encounter_id="enc1",
         primary_dx_code="",
     )
     # identifier field は US では絶対に emit されない or JP URI を含まない
@@ -162,14 +191,20 @@ def test_build_order_in_rp_map_per_encounter_numbering():
     from clinosim.modules.output.fhir_r4_adapter import _build_order_in_rp_map
 
     orders = [
-        {"order_id": "O1", "order_type": "medication", "display_name": "A",
-         "encounter_id": "enc-x"},
-        {"order_id": "O2", "order_type": "medication", "display_name": "B",
-         "encounter_id": "enc-x"},
-        {"order_id": "O3", "order_type": "medication", "display_name": "C",
-         "encounter_id": "enc-y"},  # different encounter
-        {"order_id": "OL1", "order_type": "lab", "display_name": "Lab",
-         "encounter_id": "enc-x"},  # not medication → skip
+        {"order_id": "O1", "order_type": "medication", "display_name": "A", "encounter_id": "enc-x"},
+        {"order_id": "O2", "order_type": "medication", "display_name": "B", "encounter_id": "enc-x"},
+        {
+            "order_id": "O3",
+            "order_type": "medication",
+            "display_name": "C",
+            "encounter_id": "enc-y",
+        },  # different encounter
+        {
+            "order_id": "OL1",
+            "order_type": "lab",
+            "display_name": "Lab",
+            "encounter_id": "enc-x",
+        },  # not medication → skip
     ]
     result = _build_order_in_rp_map(orders)
     assert result == {"O1": 1, "O2": 2, "O3": 1}
@@ -180,9 +215,7 @@ def test_build_order_in_rp_map_deterministic_across_calls():
     from clinosim.modules.output.fhir_r4_adapter import _build_order_in_rp_map
 
     orders = [
-        {"order_id": f"O{i}", "order_type": "medication",
-         "display_name": "d", "encounter_id": "e1"}
-        for i in range(5)
+        {"order_id": f"O{i}", "order_type": "medication", "display_name": "d", "encounter_id": "e1"} for i in range(5)
     ]
     a = _build_order_in_rp_map(orders)
     b = _build_order_in_rp_map(orders)

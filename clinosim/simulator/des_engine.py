@@ -33,6 +33,7 @@ class SimEvent:
     event_type: str = field(default="", compare=False)  # see EVENT_TYPES
     data: dict = field(default_factory=dict, compare=False)
 
+
 # Event types:
 # "admission"         - patient arrives at hospital
 # "lab_order"         - lab test ordered
@@ -137,10 +138,12 @@ class DESEngine:
 
             # Progress
             if self.events_processed % 1000 == 0:
-                print(f"  DES: {self.events_processed} events, "
-                      f"{n_active} active patients, "
-                      f"time={self.current_time.strftime('%Y-%m-%d %H:%M')}",
-                      flush=True)
+                print(
+                    f"  DES: {self.events_processed} events, "
+                    f"{n_active} active patients, "
+                    f"time={self.current_time.strftime('%Y-%m-%d %H:%M')}",
+                    flush=True,
+                )
 
     def _process_event(self, event: SimEvent) -> list[SimEvent]:
         """Process a single event. Returns follow-up events."""
@@ -186,25 +189,29 @@ class DESEngine:
         follow_up: list[SimEvent] = []
         initial_labs = event.data.get("initial_labs", [])
         for i, lab in enumerate(initial_labs):
-            follow_up.append(SimEvent(
-                time=event.time + timedelta(minutes=float(self.rng.normal(10, 5))),
-                priority=1,
-                patient_id=pid,
-                event_type="lab_order",
-                data={"test": lab, "urgency": "stat"},
-            ))
+            follow_up.append(
+                SimEvent(
+                    time=event.time + timedelta(minutes=float(self.rng.normal(10, 5))),
+                    priority=1,
+                    patient_id=pid,
+                    event_type="lab_order",
+                    data={"test": lab, "urgency": "stat"},
+                )
+            )
 
         # Schedule first daily assessment (next morning 08:00)
         next_morning = event.time.replace(hour=8, minute=0, second=0)
         if event.time.hour >= 8:
             next_morning += timedelta(days=1)
-        follow_up.append(SimEvent(
-            time=next_morning,
-            priority=5,
-            patient_id=pid,
-            event_type="daily_assessment",
-            data={"day": 1},
-        ))
+        follow_up.append(
+            SimEvent(
+                time=next_morning,
+                priority=5,
+                patient_id=pid,
+                event_type="daily_assessment",
+                data={"day": 1},
+            )
+        )
 
         return follow_up
 
@@ -216,13 +223,15 @@ class DESEngine:
 
         self.hospital.add_to_queue("lab", self.ops)
 
-        return [SimEvent(
-            time=event.time + timedelta(minutes=delay),
-            priority=2,
-            patient_id=event.patient_id,
-            event_type="lab_result",
-            data={"test": event.data.get("test", ""), "ordered_at": event.time},
-        )]
+        return [
+            SimEvent(
+                time=event.time + timedelta(minutes=delay),
+                priority=2,
+                patient_id=event.patient_id,
+                event_type="lab_result",
+                data={"test": event.data.get("test", ""), "ordered_at": event.time},
+            )
+        ]
 
     def _handle_lab_result(self, event: SimEvent) -> list[SimEvent]:
         """Lab result available. Release resource."""
@@ -248,13 +257,15 @@ class DESEngine:
 
         self.hospital.add_to_queue(resource, self.ops)
 
-        return [SimEvent(
-            time=event.time + timedelta(minutes=delay),
-            priority=2,
-            patient_id=event.patient_id,
-            event_type="imaging_result",
-            data={"test": test, "ordered_at": event.time},
-        )]
+        return [
+            SimEvent(
+                time=event.time + timedelta(minutes=delay),
+                priority=2,
+                patient_id=event.patient_id,
+                event_type="imaging_result",
+                data={"test": test, "ordered_at": event.time},
+            )
+        ]
 
     def _handle_daily_assessment(self, event: SimEvent) -> list[SimEvent]:
         """Morning rounds. Evaluate state, order labs, check discharge."""
@@ -269,22 +280,26 @@ class DESEngine:
         # Daily lab orders
         daily_labs = event.data.get("daily_labs", ["CRP", "WBC", "Creatinine"])
         for lab in daily_labs:
-            follow_up.append(SimEvent(
-                time=event.time + timedelta(minutes=float(self.rng.normal(5, 3))),
-                priority=3,
-                patient_id=pid,
-                event_type="lab_order",
-                data={"test": lab, "urgency": "routine"},
-            ))
+            follow_up.append(
+                SimEvent(
+                    time=event.time + timedelta(minutes=float(self.rng.normal(5, 3))),
+                    priority=3,
+                    patient_id=pid,
+                    event_type="lab_order",
+                    data={"test": lab, "urgency": "routine"},
+                )
+            )
 
         # Schedule next daily assessment (tomorrow 08:00)
-        follow_up.append(SimEvent(
-            time=event.time + timedelta(days=1),
-            priority=5,
-            patient_id=pid,
-            event_type="daily_assessment",
-            data={"day": ctx.day + 1, "daily_labs": daily_labs},
-        ))
+        follow_up.append(
+            SimEvent(
+                time=event.time + timedelta(days=1),
+                priority=5,
+                patient_id=pid,
+                event_type="daily_assessment",
+                data={"day": ctx.day + 1, "daily_labs": daily_labs},
+            )
+        )
 
         return follow_up
 

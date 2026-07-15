@@ -1,4 +1,5 @@
 """End-to-end: engine + reporter on a minimal synthetic cohort."""
+
 from __future__ import annotations
 
 import importlib
@@ -31,26 +32,40 @@ def _write(path: Path, country: str, file: str, rows: list[dict]):
 @pytest.mark.integration
 def test_end_to_end_minimal_cohort_full_report(tmp_path: Path):
     # A tiny US cohort: 2 inpatient encounters with WBC + CRP, no HAI
-    _write(tmp_path, "us", "Encounter.ndjson", [
-        {"resourceType": "Encounter", "id": "E1", "class": {"code": "IMP"}},
-        {"resourceType": "Encounter", "id": "E2", "class": {"code": "IMP"}},
-    ])
-    _write(tmp_path, "us", "Observation.ndjson", [
-        {
-            "resourceType": "Observation", "id": "o-1",
-            "code": {"coding": [{"code": "6690-2", "display": "WBC"}]},
-            "encounter": {"reference": "Encounter/E1"},
-            "valueQuantity": {"value": 12000},
-            "referenceRange": [{}], "interpretation": [{}],
-        },
-        {
-            "resourceType": "Observation", "id": "o-2",
-            "code": {"coding": [{"code": "1988-5", "display": "CRP"}]},
-            "encounter": {"reference": "Encounter/E1"},
-            "valueQuantity": {"value": 25},
-            "referenceRange": [{}], "interpretation": [{}],
-        },
-    ])
+    _write(
+        tmp_path,
+        "us",
+        "Encounter.ndjson",
+        [
+            {"resourceType": "Encounter", "id": "E1", "class": {"code": "IMP"}},
+            {"resourceType": "Encounter", "id": "E2", "class": {"code": "IMP"}},
+        ],
+    )
+    _write(
+        tmp_path,
+        "us",
+        "Observation.ndjson",
+        [
+            {
+                "resourceType": "Observation",
+                "id": "o-1",
+                "code": {"coding": [{"code": "6690-2", "display": "WBC"}]},
+                "encounter": {"reference": "Encounter/E1"},
+                "valueQuantity": {"value": 12000},
+                "referenceRange": [{}],
+                "interpretation": [{}],
+            },
+            {
+                "resourceType": "Observation",
+                "id": "o-2",
+                "code": {"coding": [{"code": "1988-5", "display": "CRP"}]},
+                "encounter": {"reference": "Encounter/E1"},
+                "valueQuantity": {"value": 25},
+                "referenceRange": [{}],
+                "interpretation": [{}],
+            },
+        ],
+    )
 
     engine = AuditEngine(cohort_dir=tmp_path)
     result = engine.run()

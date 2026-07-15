@@ -72,7 +72,10 @@ def _run_stage1_and_stage2(tmp: str, country: str) -> dict[str, dict]:
     )
     enc.primary_nurse_id = "NS-3shift"
     patient = PatientProfile(
-        patient_id="POP-3shift", age=70, sex="F", date_of_birth=date(1956, 1, 1),
+        patient_id="POP-3shift",
+        age=70,
+        sex="F",
+        date_of_birth=date(1956, 1, 1),
     )
     record = CIFPatientRecord(patient=patient, encounters=[enc])
 
@@ -106,10 +109,7 @@ def _run_stage1_and_stage2(tmp: str, country: str) -> dict[str, dict]:
 
     narratives: dict[str, dict] = {}
     for stub in shift_stubs:
-        path = (
-            Path(tmp) / "narratives" / "template" / "documents"
-            / enc.encounter_id / f"{stub.document_id}.json"
-        )
+        path = Path(tmp) / "narratives" / "template" / "documents" / enc.encounter_id / f"{stub.document_id}.json"
         assert path.is_file(), f"Stage 2 did not write narrative for {stub.document_id}"
         narratives[stub.document_id] = json.loads(path.read_text())
     return narratives
@@ -124,9 +124,7 @@ def test_stage2_renders_distinct_ja_shift_labels() -> None:
         joined = "\n".join(texts)
         for label in ("深夜", "日勤", "準夜"):
             assert label in joined, f"JP shift label {label} missing from narratives"
-        assert len(set(texts)) >= 3, (
-            "The 3 same-day JP shift notes must be pairwise distinct (shift label)"
-        )
+        assert len(set(texts)) >= 3, "The 3 same-day JP shift notes must be pairwise distinct (shift label)"
 
 
 @pytest.mark.integration
@@ -138,9 +136,5 @@ def test_stage2_renders_distinct_en_shift_labels() -> None:
         joined = "\n".join(texts)
         for label in ("night", "day", "evening"):
             assert label in joined.lower(), f"EN shift label {label!r} missing"
-        assert len(set(texts)) >= 3, (
-            "The 3 same-day EN shift notes must be pairwise distinct (shift label)"
-        )
-        assert not any("぀" <= c <= "ヿ" or "一" <= c <= "鿿" for c in joined), (
-            "US shift notes must be 100% English"
-        )
+        assert len(set(texts)) >= 3, "The 3 same-day EN shift notes must be pairwise distinct (shift label)"
+        assert not any("぀" <= c <= "ヿ" or "一" <= c <= "鿿" for c in joined), "US shift notes must be 100% English"

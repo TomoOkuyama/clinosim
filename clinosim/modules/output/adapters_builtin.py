@@ -22,7 +22,9 @@ class CsvAdapter:
         # dropped, causing the CSV output to always merge from the "current"
         # pointer even when a specific version was requested).
         convert_cif_to_csv(
-            cif_dir, out_dir, country=ctx.country,
+            cif_dir,
+            out_dir,
+            country=ctx.country,
             narrative_version=ctx.narrative_version,
         )
 
@@ -35,9 +37,7 @@ class FhirR4Adapter:
     def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -> None:
         from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
 
-        convert_cif_to_fhir(
-            cif_dir, out_dir, country=ctx.country, narrative_version=ctx.narrative_version
-        )
+        convert_cif_to_fhir(cif_dir, out_dir, country=ctx.country, narrative_version=ctx.narrative_version)
 
 
 register_output_adapter(CsvAdapter())

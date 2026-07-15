@@ -15,6 +15,7 @@ opt-in is the explicit CLI choice ``narrate --provider bedrock|ollama|mock``
    template output, ``generator=template_fallback``, WARN. Never crashes,
    never returns empty text.
 """
+
 from __future__ import annotations
 
 import logging
@@ -85,10 +86,7 @@ class LLMNarrativeGenerator:
 
     def _record_fallback(self, reason: str) -> None:
         self.fallback_docs += 1
-        if (
-            len(self.fallback_reasons) < self._MAX_FALLBACK_REASONS
-            and reason not in self.fallback_reasons
-        ):
+        if len(self.fallback_reasons) < self._MAX_FALLBACK_REASONS and reason not in self.fallback_reasons:
             self.fallback_reasons.append(reason)
 
     def generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
@@ -98,9 +96,7 @@ class LLMNarrativeGenerator:
 
         # "llm" only when the spec actually routes sections to the LLM —
         # template_only / empty llm_enabled_sections stay "template".
-        llm_eligible = (
-            spec.stage2_strategy == "template_seed" and bool(spec.llm_enabled_sections)
-        )
+        llm_eligible = spec.stage2_strategy == "template_seed" and bool(spec.llm_enabled_sections)
         if llm_eligible:
             self.eligible_docs += 1
 
@@ -137,8 +133,7 @@ class LLMNarrativeGenerator:
         except Exception as exc:
             # Path 3: strategy failed → template fallback + WARN
             logger.warning(
-                "LLM narrative generation failed (%s: %s); falling back to "
-                "template output (doc_type=%s, lang=%s)",
+                "LLM narrative generation failed (%s: %s); falling back to template output (doc_type=%s, lang=%s)",
                 type(exc).__name__,
                 exc,
                 ctx.document_type,

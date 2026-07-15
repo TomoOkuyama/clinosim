@@ -330,8 +330,7 @@ def test_ed_note_seven_sections():
     r = _bb_compositions(ctx)[0]
     assert "section" in r
     titles = {s["title"] for s in r["section"]}
-    expected = {"chief_complaint", "hpi", "triage_details", "physical_exam",
-                "ed_workup", "assessment", "disposition"}
+    expected = {"chief_complaint", "hpi", "triage_details", "physical_exam", "ed_workup", "assessment", "disposition"}
     assert expected == titles
 
 
@@ -342,9 +341,7 @@ def test_jp_locale_ed_note_display():
     ctx = _make_ctx([doc], country="jp")
     r = _bb_compositions(ctx)[0]
     display = r["type"]["coding"][0]["display"]
-    assert display == "救急科記録", (
-        f"Expected '救急科記録', got '{display}' — check loinc.yaml 34878-9 ja field"
-    )
+    assert display == "救急科記録", f"Expected '救急科記録', got '{display}' — check loinc.yaml 34878-9 ja field"
 
 
 # ── Multi-type and cross-type verification ────────────────────────────────────

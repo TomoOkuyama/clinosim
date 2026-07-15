@@ -1,4 +1,5 @@
 """Unit tests for enrich_antibiotic (Phase 3b-1)."""
+
 from datetime import datetime
 from types import SimpleNamespace
 
@@ -99,8 +100,7 @@ def test_enrich_antibiotic_missing_extensions_no_crash():
         microbiology=[],
         extensions={},
     )
-    cfg = SimpleNamespace(country="US", snapshot_date=None,
-                          time_range=("2026-01-01", "2026-12-31"))
+    cfg = SimpleNamespace(country="US", snapshot_date=None, time_range=("2026-01-01", "2026-12-31"))
     ctx = SimpleNamespace(config=cfg, master_seed=42, records=[rec])
     enrich_antibiotic(ctx)
     assert rec.orders == []
@@ -139,6 +139,7 @@ def test_enrich_antibiotic_skips_future_onset_hai_ad32():
 def test_resolve_snapshot_handles_empty_time_range():
     """PR-93 adversarial review fix: empty time_range tuple must NOT raise."""
     from clinosim.modules.antibiotic.enricher import _resolve_snapshot
+
     cfg_empty_tuple = SimpleNamespace(snapshot_date=None, time_range=())
     cfg_none = SimpleNamespace(snapshot_date=None, time_range=None)
     cfg_missing = SimpleNamespace(snapshot_date=None)
@@ -153,14 +154,26 @@ def test_resolve_snapshot_handles_empty_time_range():
 def test_enrich_antibiotic_present_and_future_hai_mixed():
     """Present-onset HAI emits orders; future-onset HAI in same record is skipped."""
     present_ev = HAIEvent(
-        hai_id="present", encounter_id="enc-1", hai_type="cauti",
-        source_device_id="d1", icd10_code="", snomed_code="",
-        onset_date="2026-01-10", organism_snomed="", culture_specimen_id="",
+        hai_id="present",
+        encounter_id="enc-1",
+        hai_type="cauti",
+        source_device_id="d1",
+        icd10_code="",
+        snomed_code="",
+        onset_date="2026-01-10",
+        organism_snomed="",
+        culture_specimen_id="",
     )
     future_ev = HAIEvent(
-        hai_id="future", encounter_id="enc-1", hai_type="vap",
-        source_device_id="d2", icd10_code="", snomed_code="",
-        onset_date="2027-06-01", organism_snomed="", culture_specimen_id="",
+        hai_id="future",
+        encounter_id="enc-1",
+        hai_type="vap",
+        source_device_id="d2",
+        icd10_code="",
+        snomed_code="",
+        onset_date="2027-06-01",
+        organism_snomed="",
+        culture_specimen_id="",
     )
     ctx, rec = _make_ctx([present_ev, future_ev])
     enrich_antibiotic(ctx)

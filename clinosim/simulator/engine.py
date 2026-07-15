@@ -67,6 +67,7 @@ _HEALTH_SCREENING_VISIT_REASON = {
 # Main entry point
 # ============================================================
 
+
 def run_beta(
     config: SimulatorConfig | None = None,
     hospital_config_path: str | None = None,
@@ -103,8 +104,10 @@ def run_beta(
 
     # Hospital operational state (YAML-configurable per hospital)
     from clinosim.modules.facility.hospital_state import HospitalState, load_hospital_operations
+
     if hospital_config_path:
         import yaml
+
         with open(Path(hospital_config_path)) as f:
             hospital_ops = yaml.safe_load(f) or {}
     else:
@@ -154,9 +157,14 @@ def run_beta(
     # numbering (AD-54). Each enricher uses its own sub-seed; the main random stream
     # (and golden files) is untouched (AD-16).
     register_builtin_enrichers()
-    run_stage(POST_POPULATION, EnricherContext(
-        config=config, master_seed=config.random_seed, population=population,
-    ))
+    run_stage(
+        POST_POPULATION,
+        EnricherContext(
+            config=config,
+            master_seed=config.random_seed,
+            population=population,
+        ),
+    )
 
     # Run life events
     start_y, start_m = int(config.time_range[0][:4]), int(config.time_range[0][5:7])
@@ -185,9 +193,7 @@ def run_beta(
     while (y, m) <= (end_y, end_m):
         month_key = f"{y:04d}-{m:02d}"
         month_rng = derive_phase_rng(master_seed, PHASE_LIFE_EVENT, month_key)
-        all_events.extend(
-            generate_monthly_events(population, y, m, month_rng, country=config.country)
-        )
+        all_events.extend(generate_monthly_events(population, y, m, month_rng, country=config.country))
         m += 1
         if m > 12:
             m, y = 1, y + 1
@@ -195,7 +201,8 @@ def run_beta(
     # Filter out events after snapshot date
     if snapshot_dt:
         all_events = [
-            e for e in all_events
+            e
+            for e in all_events
             if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
         ]
 
@@ -308,9 +315,12 @@ def run_beta(
     n_hosp = len(hospital_events)
     for idx, event in enumerate(hospital_events):
         if (idx + 1) % 50 == 0 or idx == n_hosp - 1:
-            print(f"  Simulating inpatient {idx+1}/{n_hosp} "
-                  f"(concurrent={concurrent_patients}, "
-                  f"bed_occ={hospital_state.bed_occupancy:.0%})...", flush=True)
+            print(
+                f"  Simulating inpatient {idx + 1}/{n_hosp} "
+                f"(concurrent={concurrent_patients}, "
+                f"bed_occ={hospital_state.bed_occupancy:.0%})...",
+                flush=True,
+            )
 
         # Advance hospital time — discharge patients who have left
         event_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day, 12, 0)
@@ -347,8 +357,13 @@ def run_beta(
                 record = prev_admission_cache[cache_key]
             else:
                 record = _simulate_unknown_condition(
-                    patient, event, event_rng, healthcare, roster,
-                    hospital_ops=hospital_ops, config=config,
+                    patient,
+                    event,
+                    event_rng,
+                    healthcare,
+                    roster,
+                    hospital_ops=hospital_ops,
+                    config=config,
                 )
             if record:
                 patient_records.append(record)
@@ -364,14 +379,24 @@ def run_beta(
         secondary_protocol = None
         if event.condition_type == "mixed":
             secondary_protocol = _select_secondary_disease(
-                patient, disease_id, protocols, event_rng,
+                patient,
+                disease_id,
+                protocols,
+                event_rng,
             )
 
         if cache_key in prev_admission_cache:
             record = prev_admission_cache[cache_key]
         else:
             record = _simulate_patient(
-                patient, event, disease_id, protocol, healthcare, roster, config, event_rng,
+                patient,
+                event,
+                disease_id,
+                protocol,
+                healthcare,
+                roster,
+                config,
+                event_rng,
                 secondary_protocol=secondary_protocol,
                 is_readmission=event.is_readmission,
                 prior_encounter_id=event.prior_encounter_id,
@@ -388,8 +413,7 @@ def run_beta(
         if record.deceased:
             person.is_alive = False
 
-    print(f"  Inpatient done: {len(patient_records)} records "
-          f"(peak concurrent: {concurrent_patients})", flush=True)
+    print(f"  Inpatient done: {len(patient_records)} records (peak concurrent: {concurrent_patients})", flush=True)
 
     # === Readmission evaluation (post-loop pass) ===
     country_key = _country_to_yaml_key(config.country)
@@ -401,8 +425,7 @@ def run_beta(
         if not person or not person.is_alive:
             continue
         disease_id = (
-            record.condition_event.ground_truth_diseases[0]
-            if record.condition_event.ground_truth_diseases else None
+            record.condition_event.ground_truth_diseases[0] if record.condition_event.ground_truth_diseases else None
         )
         if not disease_id:
             continue
@@ -412,7 +435,12 @@ def run_beta(
         re_key = f"{record.patient.patient_id}|{record.encounters[0].encounter_id}"
         re_rng = derive_phase_rng(master_seed, PHASE_READMISSION, re_key)
         re_event = _evaluate_readmission(
-            record, person, disease_id, protocol, country_key, re_rng,
+            record,
+            person,
+            disease_id,
+            protocol,
+            country_key,
+            re_rng,
         )
         if re_event:
             readmission_events.append(re_event)
@@ -420,7 +448,8 @@ def run_beta(
     # Filter out readmissions past snapshot date
     if snapshot_dt:
         readmission_events = [
-            e for e in readmission_events
+            e
+            for e in readmission_events
             if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
         ]
 
@@ -437,8 +466,14 @@ def run_beta(
         re_sim_key = f"{re_event.person_id}|{re_event.timestamp.isoformat()}|readmission"
         re_sim_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, re_sim_key)
         record = _simulate_patient(
-            patient, re_event, re_event.disease_id, protocol,
-            healthcare, roster, config, re_sim_rng,
+            patient,
+            re_event,
+            re_event.disease_id,
+            protocol,
+            healthcare,
+            roster,
+            config,
+            re_sim_rng,
             is_readmission=True,
             prior_encounter_id=re_event.prior_encounter_id,
             readmission_number=re_event.readmission_number,
@@ -454,13 +489,14 @@ def run_beta(
 
     # === Outpatient encounters (healthcare calendar for ALL population) ===
     from clinosim.locale.loader import load_chronic_followup
+
     followup_data = load_chronic_followup()
 
     # Post-discharge follow-up for inpatient records
     inpatient_records = [
-        r for r in patient_records
-        if not r.deceased and r.encounters
-        and r.encounters[0].encounter_type == EncounterType.INPATIENT
+        r
+        for r in patient_records
+        if not r.deceased and r.encounters and r.encounters[0].encounter_type == EncounterType.INPATIENT
     ]
     post_dc_spec = followup_data.get("_post_discharge", {})
     post_dc_days = post_dc_spec.get("first_visit_days", 14)
@@ -473,8 +509,9 @@ def run_beta(
         enc = record.encounters[0]
         if not enc.discharge_datetime:
             continue
-        disease_id = (record.condition_event.ground_truth_diseases[0]
-                      if record.condition_event.ground_truth_diseases else "")
+        disease_id = (
+            record.condition_event.ground_truth_diseases[0] if record.condition_event.ground_truth_diseases else ""
+        )
         disease_fu = followup_data.get("_post_discharge_by_disease", {}).get(disease_id, {})
         merged_spec = dict(post_dc_spec)
         if disease_fu.get("labs"):
@@ -486,9 +523,15 @@ def run_beta(
         opd_key = f"{pid}|post_discharge|{followup_date.isoformat()}"
         opd_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, opd_key)
         opd_record = _simulate_outpatient_visit(
-            _activate_cached(person), "post_discharge", followup_date, roster, opd_rng,
-            followup_spec=merged_spec, post_discharge_disease=disease_id,
-            country=config.country, config=config,
+            _activate_cached(person),
+            "post_discharge",
+            followup_date,
+            roster,
+            opd_rng,
+            followup_spec=merged_spec,
+            post_discharge_disease=disease_id,
+            country=config.country,
+            config=config,
         )
         patient_records.append(opd_record)
 
@@ -497,13 +540,12 @@ def run_beta(
     # Healthcare calendar: chronic visits + screening for ALL population
     calendar_key = f"{config.country}|{start_y:04d}|calendar"
     calendar_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, calendar_key)
-    calendar_events = generate_healthcare_calendar(
-        population, start_y, config.country, calendar_rng
-    )
+    calendar_events = generate_healthcare_calendar(population, start_y, config.country, calendar_rng)
     # Filter out events past snapshot date
     if snapshot_dt:
         calendar_events = [
-            e for e in calendar_events
+            e
+            for e in calendar_events
             if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
         ]
     print(f"  Healthcare calendar: {len(calendar_events)} events for population", flush=True)
@@ -526,14 +568,12 @@ def run_beta(
         # with byte-identical (patient, time, complaint) — a true encounter_id
         # collision (confirmed empirically at p=500: two same-day screenings hashed
         # to one id, silently aliasing two distinct encounters).
-        ev_key = (
-            f"{event.person_id}|{event.timestamp.isoformat()}"
-            f"|{event.event_type}|{event.disease_id}"
-        )
+        ev_key = f"{event.person_id}|{event.timestamp.isoformat()}|{event.event_type}|{event.disease_id}"
         ev_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, ev_key)
 
-        visit_time = datetime(event.timestamp.year, event.timestamp.month,
-                              event.timestamp.day, 10, int(ev_rng.integers(0, 45)))
+        visit_time = datetime(
+            event.timestamp.year, event.timestamp.month, event.timestamp.day, 10, int(ev_rng.integers(0, 45))
+        )
 
         if event.event_type == "chronic_visit":
             spec = followup_data.get(event.disease_id, {})
@@ -548,9 +588,15 @@ def run_beta(
             merged_spec = dict(spec)
             merged_spec["labs"] = visit_labs
             opd_record = _simulate_outpatient_visit(
-                patient, "chronic_followup", visit_time, roster, ev_rng,
-                chronic_code=event.disease_id, followup_spec=merged_spec,
-                country=config.country, config=config,
+                patient,
+                "chronic_followup",
+                visit_time,
+                roster,
+                ev_rng,
+                chronic_code=event.disease_id,
+                followup_spec=merged_spec,
+                country=config.country,
+                config=config,
             )
         elif event.event_type == "health_screening":
             # F1 (session 49): visit_reason must vary by disease_id — see the
@@ -561,15 +607,20 @@ def run_beta(
             # collision) could produce two indistinguishable encounters for a
             # single patient's mammography + annual checkup landing on the
             # same date.
-            screening_reason = _HEALTH_SCREENING_VISIT_REASON.get(
-                event.disease_id, "Annual health screening"
-            )
+            screening_reason = _HEALTH_SCREENING_VISIT_REASON.get(event.disease_id, "Annual health screening")
             opd_record = _simulate_outpatient_visit(
-                patient, "health_screening", visit_time, roster, ev_rng,
+                patient,
+                "health_screening",
+                visit_time,
+                roster,
+                ev_rng,
                 chronic_code=event.disease_id or "annual_health_screening",
-                followup_spec={"labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT"],
-                               "visit_reason": screening_reason},
-                country=config.country, config=config,
+                followup_spec={
+                    "labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT"],
+                    "visit_reason": screening_reason,
+                },
+                country=config.country,
+                config=config,
             )
         else:
             continue
@@ -581,10 +632,10 @@ def run_beta(
 
     # === ED visits (not admitted — auto-discovered from encounter YAMLs) ===
     from clinosim.modules.encounter.protocol import load_all_encounter_conditions
+
     all_enc_conditions = load_all_encounter_conditions()
     ed_conditions = [
-        (name, spec) for name, spec in all_enc_conditions.items()
-        if spec.get("encounter_type") == "emergency"
+        (name, spec) for name, spec in all_enc_conditions.items() if spec.get("encounter_type") == "emergency"
     ]
     ed_demo = demo.get("ed_visit_not_admitted", {})
     ed_rate = ed_demo.get("rate_per_admitted", 3.0)
@@ -640,7 +691,13 @@ def run_beta(
                 continue
 
             ed_record = _simulate_ed_visit(
-                patient, cond, ed_time, roster, slot_rng, country=config.country, config=config,
+                patient,
+                cond,
+                ed_time,
+                roster,
+                slot_rng,
+                country=config.country,
+                config=config,
             )
             patient_records.append(ed_record)
         print(f"  ED visits (not admitted): {n_ed} generated", flush=True)
@@ -649,11 +706,16 @@ def run_beta(
     # (e.g. billing, devices, care-coordination write to CIFPatientRecord.extensions).
     # RM-3 (session 42): pass roster so immunization enricher can populate
     # ImmunizationRecord.administered_by from the nurse pool.
-    run_stage(POST_RECORDS, EnricherContext(
-        config=config, master_seed=config.random_seed,
-        population=population, records=patient_records,
-        roster=roster,
-    ))
+    run_stage(
+        POST_RECORDS,
+        EnricherContext(
+            config=config,
+            master_seed=config.random_seed,
+            population=population,
+            records=patient_records,
+            roster=roster,
+        ),
+    )
 
     metadata = CIFMetadata(
         clinosim_version="0.1.0",
@@ -664,9 +726,12 @@ def run_beta(
         total_patients_generated=len(patient_records),
         llm_mode=config.llm.judgment.mode,
     )
-    return CIFDataset(metadata=metadata, patients=patient_records,
-                      hospital_roster=list(roster.members),
-                      hospital_config=hospital_ops or {})
+    return CIFDataset(
+        metadata=metadata,
+        patients=patient_records,
+        hospital_roster=list(roster.members),
+        hospital_config=hospital_ops or {},
+    )
 
 
 def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) -> CIFDataset:
@@ -685,9 +750,7 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
     # (not from the run_forced scenario argument). Without this injection,
     # force_hai_event is silently ignored.
     if scenario.force_hai_event is not None and scenario not in config.forced_scenarios:
-        config = config.model_copy(
-            update={"forced_scenarios": [*config.forced_scenarios, scenario]}
-        )
+        config = config.model_copy(update={"forced_scenarios": [*config.forced_scenarios, scenario]})
 
     rng = np.random.default_rng(config.random_seed)
     healthcare = load_healthcare_config(config.country)
@@ -717,13 +780,13 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
 
         # Create a minimal PersonRecord for activation
         person = PersonRecord(
-            person_id=f"FORCED-{i+1:04d}",
-            household_id=f"HH-FORCED-{i+1:04d}",
+            person_id=f"FORCED-{i + 1:04d}",
+            household_id=f"HH-FORCED-{i + 1:04d}",
             age=age,
             sex=sex,
             date_of_birth=date(2024 - age, 1, 1),
             family_name="テスト" if is_jp(config.country) else "Test",
-            given_name=f"患者{i+1}" if is_jp(config.country) else f"Patient{i+1}",
+            given_name=f"患者{i + 1}" if is_jp(config.country) else f"Patient{i + 1}",
             chronic_conditions=scenario.patient_overrides.get("chronic_conditions", []),
         )
         patient = activate_patient(person, rng, _demo)
@@ -743,8 +806,14 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
         )
 
         record = _simulate_patient(
-            patient, event, scenario.disease_id, protocol,
-            healthcare, roster, config, rng,
+            patient,
+            event,
+            scenario.disease_id,
+            protocol,
+            healthcare,
+            roster,
+            config,
+            rng,
             forced_severity=scenario.severity,
             forced_archetype=scenario.archetype,
         )
@@ -764,16 +833,18 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
         total_patients_generated=len(patient_records),
         llm_mode="none",
     )
-    return CIFDataset(metadata=metadata, patients=patient_records,
-                      hospital_roster=list(roster.members),
-                      hospital_config={})
+    return CIFDataset(
+        metadata=metadata, patients=patient_records, hospital_roster=list(roster.members), hospital_config={}
+    )
 
 
 def run_alpha(config: SimulatorConfig | None = None) -> CIFDataset:
     """Backward-compatible alpha: 1 pneumonia patient via ForcedScenario."""
     scenario = ForcedScenario(
-        disease_id="bacterial_pneumonia", count=1,
-        severity="moderate", archetype="smooth_recovery",
+        disease_id="bacterial_pneumonia",
+        count=1,
+        severity="moderate",
+        archetype="smooth_recovery",
         patient_overrides={"age": 72, "sex": "F"},
     )
     return run_forced(scenario, config)

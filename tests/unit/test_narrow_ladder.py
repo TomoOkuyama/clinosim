@@ -1,4 +1,5 @@
 """PR3b-3: narrow_ladder.yaml loader + 3-way cross-validation tests."""
+
 from __future__ import annotations
 
 import pytest
@@ -36,12 +37,9 @@ def test_narrow_ladder_three_way_validation_holds() -> None:
             )
             antibiogram_drugs = set(antibiogram[hai_type][organism_snomed].keys())
             for drug_key in drug_list:
-                assert drug_key in valid_drugs, (
-                    f"ladder drug {drug_key!r} not in ANTIBIOTIC_DRUGS"
-                )
+                assert drug_key in valid_drugs, f"ladder drug {drug_key!r} not in ANTIBIOTIC_DRUGS"
                 assert drug_key in antibiogram_drugs, (
-                    f"ladder entry {hai_type}/{organism_snomed}/{drug_key} "
-                    f"not in antibiogram"
+                    f"ladder entry {hai_type}/{organism_snomed}/{drug_key} not in antibiogram"
                 )
 
 
@@ -54,6 +52,7 @@ def test_unknown_hai_type_raises(tmp_path, monkeypatch) -> None:
         encoding="utf-8",
     )
     from clinosim.modules.antibiotic import engine
+
     monkeypatch.setattr(engine, "_NARROW_LADDER_YAML", bad_yaml)
     load_narrow_ladder.cache_clear()
     with pytest.raises(ValueError, match="unknown hai_type"):
@@ -70,6 +69,7 @@ def test_unknown_organism_raises(tmp_path, monkeypatch) -> None:
         encoding="utf-8",
     )
     from clinosim.modules.antibiotic import engine
+
     monkeypatch.setattr(engine, "_NARROW_LADDER_YAML", bad_yaml)
     load_narrow_ladder.cache_clear()
     with pytest.raises(ValueError, match="not in antibiogram"):
@@ -86,6 +86,7 @@ def test_unknown_drug_raises(tmp_path, monkeypatch) -> None:
         encoding="utf-8",
     )
     from clinosim.modules.antibiotic import engine
+
     monkeypatch.setattr(engine, "_NARROW_LADDER_YAML", bad_yaml)
     load_narrow_ladder.cache_clear()
     with pytest.raises(ValueError, match="not in ANTIBIOTIC_DRUGS"):
@@ -99,6 +100,7 @@ def test_empty_narrow_ladder_raises(tmp_path, monkeypatch) -> None:
     bad_yaml = tmp_path / "bad.yaml"
     bad_yaml.write_text("narrow_ladder: {}\n", encoding="utf-8")
     from clinosim.modules.antibiotic import engine
+
     monkeypatch.setattr(engine, "_NARROW_LADDER_YAML", bad_yaml)
     load_narrow_ladder.cache_clear()
     with pytest.raises(ValueError, match="empty narrow_ladder"):
@@ -115,6 +117,7 @@ def test_empty_drug_list_raises(tmp_path, monkeypatch) -> None:
         encoding="utf-8",
     )
     from clinosim.modules.antibiotic import engine
+
     monkeypatch.setattr(engine, "_NARROW_LADDER_YAML", bad_yaml)
     load_narrow_ladder.cache_clear()
     with pytest.raises(ValueError, match="empty drug list"):
@@ -144,6 +147,7 @@ def test_antibiogram_organism_must_have_ladder_entry(tmp_path, monkeypatch) -> N
         encoding="utf-8",
     )
     from clinosim.modules.antibiotic import engine
+
     monkeypatch.setattr(engine, "_NARROW_LADDER_YAML", bad_yaml)
     load_narrow_ladder.cache_clear()
     with pytest.raises(ValueError, match="missing ladder entries"):
@@ -162,6 +166,7 @@ def test_drug_not_in_antibiogram_for_organism_raises(tmp_path, monkeypatch) -> N
         encoding="utf-8",
     )
     from clinosim.modules.antibiotic import engine
+
     monkeypatch.setattr(engine, "_NARROW_LADDER_YAML", bad_yaml)
     load_narrow_ladder.cache_clear()
     with pytest.raises(ValueError, match="not in antibiogram"):

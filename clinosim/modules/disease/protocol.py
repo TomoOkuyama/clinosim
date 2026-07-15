@@ -68,9 +68,7 @@ class NarrativeSpec(BaseModel):
     """
 
     hpi_template: HpiTemplate = Field(default_factory=HpiTemplate)
-    physical_exam_findings: dict[str, dict[str, PhysicalExamDayFindings]] = Field(
-        default_factory=dict
-    )
+    physical_exam_findings: dict[str, dict[str, PhysicalExamDayFindings]] = Field(default_factory=dict)
     discharge_instructions: DischargeInstructions = Field(default_factory=DischargeInstructions)
 
 

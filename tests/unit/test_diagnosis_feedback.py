@@ -41,33 +41,25 @@ class TestDiagnosisEffectiveness:
 
 class TestDiagnosisModifier:
     def test_full_effectiveness_passthrough(self):
-        directive = StateChangeDirective(
-            changes={"inflammation_level": -0.05, "renal_function": 0.02}
-        )
+        directive = StateChangeDirective(changes={"inflammation_level": -0.05, "renal_function": 0.02})
         result = apply_diagnosis_modifier(directive, 1.0)
         assert result is directive  # no modification
 
     def test_dampens_recovery_deltas(self):
-        directive = StateChangeDirective(
-            changes={"inflammation_level": -0.10, "renal_function": 0.05}
-        )
+        directive = StateChangeDirective(changes={"inflammation_level": -0.10, "renal_function": 0.05})
         result = apply_diagnosis_modifier(directive, 0.5)
         assert result.changes["inflammation_level"] == pytest.approx(-0.05)
         assert result.changes["renal_function"] == pytest.approx(0.025)
 
     def test_preserves_worsening_deltas(self):
-        directive = StateChangeDirective(
-            changes={"inflammation_level": 0.10, "renal_function": -0.05}
-        )
+        directive = StateChangeDirective(changes={"inflammation_level": 0.10, "renal_function": -0.05})
         result = apply_diagnosis_modifier(directive, 0.3)
         # Worsening should NOT be dampened
         assert result.changes["inflammation_level"] == pytest.approx(0.10)
         assert result.changes["renal_function"] == pytest.approx(-0.05)
 
     def test_zero_effectiveness(self):
-        directive = StateChangeDirective(
-            changes={"inflammation_level": -0.10, "perfusion_status": 0.05}
-        )
+        directive = StateChangeDirective(changes={"inflammation_level": -0.10, "perfusion_status": 0.05})
         result = apply_diagnosis_modifier(directive, 0.0)
         assert result.changes["inflammation_level"] == pytest.approx(0.0)
         assert result.changes["perfusion_status"] == pytest.approx(0.0)

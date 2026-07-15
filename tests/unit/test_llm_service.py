@@ -14,7 +14,9 @@ from clinosim.modules.llm_service.providers import MockProvider
 @pytest.fixture
 def patient_summary():
     return PatientSummary(
-        age=72, sex="F", country="JP",
+        age=72,
+        sex="F",
+        country="JP",
         chief_complaint="Fever, cough",
         relevant_conditions=["Hypertension", "Diabetes"],
         current_diagnosis="Bacterial pneumonia",
@@ -95,8 +97,7 @@ class TestLLMMode:
 
     def test_cost_report(self, event_data):
         mock = MockProvider()
-        llm = LLMService(mode="llm", narrative_provider=mock,
-                          narrative_model_map={"medium": "m"})
+        llm = LLMService(mode="llm", narrative_provider=mock, narrative_model_map={"medium": "m"})
         llm.generate(LLMTaskType.PROGRESS_NOTE, event_data)
         llm.generate(LLMTaskType.DISCHARGE_SUMMARY, event_data)
         report = llm.cost_report()

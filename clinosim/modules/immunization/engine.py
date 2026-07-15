@@ -32,6 +32,7 @@ def _det_hash(*args: object) -> int:
     key = repr(args).encode("utf-8")
     return int(hashlib.sha256(key).hexdigest(), 16)
 
+
 _HERE = Path(__file__).resolve().parent
 _LOCALE = _HERE.parents[1] / "locale"
 
@@ -76,9 +77,9 @@ def _safe_date(year: int, month: int, day: int) -> date:
         return date(year, month, day - 1)
 
 
-def generate_immunizations(patient, schedule: dict, as_of: date,
-                           rng: np.random.Generator,
-                           nurse_ids: list[str] | None = None) -> list:
+def generate_immunizations(
+    patient, schedule: dict, as_of: date, rng: np.random.Generator, nurse_ids: list[str] | None = None
+) -> list:
     from clinosim.types.encounter import ImmunizationRecord
 
     dob = getattr(patient, "date_of_birth", None)
@@ -116,9 +117,7 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
         # of history (real EHRs don't carry decades of e.g. annual flu shots).
         history_years = v.get("history_years")
         if history_years is not None:
-            lookback = _safe_date(
-                as_of.year - int(history_years), as_of.month, as_of.day
-            )
+            lookback = _safe_date(as_of.year - int(history_years), as_of.month, as_of.day)
             start = max(start, lookback)
         if start > as_of:
             continue
@@ -139,6 +138,7 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
         # interpreter run so lot numbers used to vary between two runs at
         # the same seed. reproduce.sh gates this now.
         _mfr_hash = f"{(_det_hash(cvx) % 900 + 100):03d}"  # 100-999
+
         def _synthetic_lot(occurrence):
             batch = f"{(_det_hash(cvx, occurrence.year, occurrence.month) % 900 + 100):03d}"
             return f"L{_mfr_hash}-{occurrence.year:04d}{occurrence.month:02d}-{batch}"
@@ -151,15 +151,22 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                     continue
                 age_at = _age_on(dob, occ, base_age)
                 if rng.random() < _coverage(cov, age_at, sex):
-                    out.append(ImmunizationRecord(
-                        vaccine_cvx=cvx, occurrence_date=occ,
-                        administered_by=default_nurse,
-                        lot_number=_synthetic_lot(occ),
-                    ))
+                    out.append(
+                        ImmunizationRecord(
+                            vaccine_cvx=cvx,
+                            occurrence_date=occ,
+                            administered_by=default_nurse,
+                            lot_number=_synthetic_lot(occ),
+                        )
+                    )
                 elif rng.random() < 0.02:
-                    out.append(ImmunizationRecord(
-                        vaccine_cvx=cvx, occurrence_date=occ, status="not-done",
-                    ))
+                    out.append(
+                        ImmunizationRecord(
+                            vaccine_cvx=cvx,
+                            occurrence_date=occ,
+                            status="not-done",
+                        )
+                    )
         elif freq == "every_n_years":
             interval = int(v.get("interval_years", 10))
             yr = start.year
@@ -167,15 +174,22 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                 occ = _safe_date(yr, start.month, start.day)
                 age_at = _age_on(dob, occ, base_age)
                 if rng.random() < _coverage(cov, age_at, sex):
-                    out.append(ImmunizationRecord(
-                        vaccine_cvx=cvx, occurrence_date=occ,
-                        administered_by=default_nurse,
-                        lot_number=_synthetic_lot(occ),
-                    ))
+                    out.append(
+                        ImmunizationRecord(
+                            vaccine_cvx=cvx,
+                            occurrence_date=occ,
+                            administered_by=default_nurse,
+                            lot_number=_synthetic_lot(occ),
+                        )
+                    )
                 elif rng.random() < 0.02:
-                    out.append(ImmunizationRecord(
-                        vaccine_cvx=cvx, occurrence_date=occ, status="not-done",
-                    ))
+                    out.append(
+                        ImmunizationRecord(
+                            vaccine_cvx=cvx,
+                            occurrence_date=occ,
+                            status="not-done",
+                        )
+                    )
                 yr += interval
         else:  # once
             age_at = _age_on(dob, as_of, base_age)
@@ -184,11 +198,14 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                 span = (as_of - start).days
                 offset = int(rng.integers(0, span + 1)) if span > 0 else 0
                 occ = date.fromordinal(start.toordinal() + offset)
-                out.append(ImmunizationRecord(
-                    vaccine_cvx=cvx, occurrence_date=occ,
-                    administered_by=default_nurse,
-                    lot_number=_synthetic_lot(occ),
-                ))
+                out.append(
+                    ImmunizationRecord(
+                        vaccine_cvx=cvx,
+                        occurrence_date=occ,
+                        administered_by=default_nurse,
+                        lot_number=_synthetic_lot(occ),
+                    )
+                )
 
     out.sort(key=lambda r: r.occurrence_date)
     return out

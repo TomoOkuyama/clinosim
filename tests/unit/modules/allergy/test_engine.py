@@ -60,10 +60,7 @@ def test_enricher_allergy_structure_valid():
 
     # Use a seed that deterministically produces an allergy for "pt-sample"
     # We'll run enough patients to ensure at least one gets sampled
-    patients = [
-        SimpleNamespace(patient_id=f"pt-{i}", age=40, sex="M", allergies=[])
-        for i in range(30)
-    ]
+    patients = [SimpleNamespace(patient_id=f"pt-{i}", age=40, sex="M", allergies=[]) for i in range(30)]
     ctx = _make_ctx(patients, master_seed=42)
     allergy_enricher(ctx)
 
@@ -83,17 +80,12 @@ def test_enricher_allergy_structure_valid():
 
 def test_enricher_15pct_calibration():
     """15% overall prevalence gate: US p=500 cohort should yield 60-110 allergies (12-22%)."""
-    patients = [
-        SimpleNamespace(patient_id=f"pt-{i}", age=40, sex="M", allergies=None)
-        for i in range(500)
-    ]
+    patients = [SimpleNamespace(patient_id=f"pt-{i}", age=40, sex="M", allergies=None) for i in range(500)]
     ctx = _make_ctx(patients, master_seed=42)
     allergy_enricher(ctx)
 
     count = sum(1 for p in patients if p.allergies)
-    assert 60 <= count <= 110, (
-        f"Expected 60-110 patients with allergies (12-22%) in 500 patients, got {count}"
-    )
+    assert 60 <= count <= 110, f"Expected 60-110 patients with allergies (12-22%) in 500 patients, got {count}"
 
 
 def test_enricher_sets_empty_list_not_none_for_no_allergy_patients():
@@ -107,10 +99,7 @@ def test_enricher_sets_empty_list_not_none_for_no_allergy_patients():
     """
     # Run a large cohort — expect 85% to have allergies == [] (not None).
     # Use the allergy_enricher with a fresh init so patient.allergies starts as None.
-    patients = [
-        SimpleNamespace(patient_id=f"pt-{i}", age=40, sex="M", allergies=None)
-        for i in range(200)
-    ]
+    patients = [SimpleNamespace(patient_id=f"pt-{i}", age=40, sex="M", allergies=None) for i in range(200)]
     ctx = _make_ctx(patients, master_seed=42)
     allergy_enricher(ctx)
 
@@ -126,12 +115,8 @@ def test_enricher_sets_empty_list_not_none_for_no_allergy_patients():
 
     # No-allergy patients must have EMPTY LIST (not None)
     for p in no_allergy:
-        assert p.allergies == [], (
-            f"Patient {p.patient_id}: expected [] for no-allergy, got {p.allergies!r}"
-        )
+        assert p.allergies == [], f"Patient {p.patient_id}: expected [] for no-allergy, got {p.allergies!r}"
 
     # Allergy patients must have non-empty list
     for p in with_allergy:
-        assert len(p.allergies) >= 1, (
-            f"Patient {p.patient_id}: expected ≥1 allergy, got {p.allergies!r}"
-        )
+        assert len(p.allergies) >= 1, f"Patient {p.patient_id}: expected ≥1 allergy, got {p.allergies!r}"

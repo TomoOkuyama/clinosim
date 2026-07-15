@@ -19,9 +19,7 @@ _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
 SUPPORTED_LEVEL_SYSTEMS: frozenset[str] = frozenset({"JTAS", "ESI"})
-SUPPORTED_ARRIVAL_MODES: frozenset[str] = frozenset(
-    {"walk-in", "ambulance", "police", "helicopter", "private_vehicle"}
-)
+SUPPORTED_ARRIVAL_MODES: frozenset[str] = frozenset({"walk-in", "ambulance", "police", "helicopter", "private_vehicle"})
 SUPPORTED_SEVERITIES: frozenset[str] = frozenset({"mild", "moderate", "severe"})
 
 
@@ -46,27 +44,20 @@ def _validate_triage_protocols(data: dict[str, Any]) -> None:
         levels = sys_data.get("levels", {})
         if set(levels.keys()) != {"1", "2", "3", "4", "5"}:
             raise ValueError(
-                f"triage_protocols.yaml[{sys_name}]: levels must be exactly 1-5, "
-                f"got {sorted(levels.keys())}"
+                f"triage_protocols.yaml[{sys_name}]: levels must be exactly 1-5, got {sorted(levels.keys())}"
             )
     # arrival_modes cross-validated
     arr = data.get("arrival_modes", [])
     if set(arr) != SUPPORTED_ARRIVAL_MODES:
-        raise ValueError(
-            "triage_protocols.yaml arrival_modes ↔ SUPPORTED_ARRIVAL_MODES drift"
-        )
+        raise ValueError("triage_protocols.yaml arrival_modes ↔ SUPPORTED_ARRIVAL_MODES drift")
     # severity_to_triage_distribution: all 3 severities present, each sums to ~1.0
     dist = data.get("severity_to_triage_distribution", {})
     if set(dist.keys()) != SUPPORTED_SEVERITIES:
-        raise ValueError(
-            "triage_protocols.yaml severity_to_triage_distribution keys drift"
-        )
+        raise ValueError("triage_protocols.yaml severity_to_triage_distribution keys drift")
     for sev, probs in dist.items():
         total = sum(probs.values())
         if not (0.99 <= total <= 1.01):
-            raise ValueError(
-                f"triage_protocols.yaml[severity={sev}] probs must sum to ~1.0, got {total}"
-            )
+            raise ValueError(f"triage_protocols.yaml[severity={sev}] probs must sum to ~1.0, got {total}")
     # arrival_mode_base_distribution: keys must match SUPPORTED_ARRIVAL_MODES
     base = data.get("arrival_mode_base_distribution", {})
     if set(base.keys()) != SUPPORTED_ARRIVAL_MODES:
@@ -147,9 +138,7 @@ def triage_enricher(ctx: Any) -> None:
                 continue
             severity = _o(enc, "severity", "moderate") or "moderate"
             enc_id = _o(enc, "encounter_id", "")
-            sub_seed = derive_sub_seed(
-                ctx.master_seed, ENRICHER_SEED_OFFSETS["triage"], enc_id
-            )
+            sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["triage"], enc_id)
             rng = np.random.default_rng(sub_seed)
             level = pick_triage_level(severity, level_system, rng)
             arrival_mode = pick_arrival_mode(severity, rng)

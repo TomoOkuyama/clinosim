@@ -55,6 +55,8 @@ def _sr_intent_from_clinical_intent(clinical_intent: str) -> str:
     if ci.startswith("ed workup") or ci.startswith("ed imaging"):
         return "original-order"
     return "order"
+
+
 from clinosim.types.encounter import OrderStatus, OrderType
 
 # === Canonical constants (silent-no-op defense, PR-90 lesson) ===
@@ -227,9 +229,7 @@ def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
     if lab_orders:
         resources.extend(_build_lab_service_requests(lab_orders, ctx))
 
-    imaging_orders = [
-        o for o in orders if _o(o, "order_type") in (OrderType.IMAGING, "imaging")
-    ]
+    imaging_orders = [o for o in orders if _o(o, "order_type") in (OrderType.IMAGING, "imaging")]
     if imaging_orders:
         resources.extend(_build_imaging_service_requests(imaging_orders, ctx))
 
@@ -297,10 +297,7 @@ def _build_imaging_service_requests(orders: list[Any], ctx: BundleContext) -> li
     """
     lang = resolve_lang(ctx.country)
     country = ctx.country.lower()
-    return [
-        _build_imaging_sr(o, lang, country)
-        for o in sorted(orders, key=lambda x: _o(x, "order_id", ""))
-    ]
+    return [_build_imaging_sr(o, lang, country) for o in sorted(orders, key=lambda x: _o(x, "order_id", ""))]
 
 
 def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
@@ -366,40 +363,48 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
     sr: dict[str, Any] = {
         "resourceType": "ServiceRequest",
         "id": sr_id,
-        "identifier": [{
-            "type": {
-                "coding": [{
-                    "system": V2_0203_SYSTEM,
-                    "code": "PLAC",
-                    "display": "Placer Identifier",
-                }],
-            },
-            "system": PLACER_ORDER_NUMBER_SYSTEM,
-            "value": _o(order, "order_id", ""),
-        }],
+        "identifier": [
+            {
+                "type": {
+                    "coding": [
+                        {
+                            "system": V2_0203_SYSTEM,
+                            "code": "PLAC",
+                            "display": "Placer Identifier",
+                        }
+                    ],
+                },
+                "system": PLACER_ORDER_NUMBER_SYSTEM,
+                "value": _o(order, "order_id", ""),
+            }
+        ],
         "status": _map_order_status_to_sr_status(_o(order, "status")),
         "intent": _sr_intent_from_clinical_intent(_o(order, "clinical_intent", "") or ""),
-        "category": [{
-            "coding": [
-                {
-                    "system": SNOMED_CT_SYSTEM,
-                    "code": IMAGING_CATEGORY_SNOMED,
-                    "display": snomed_imaging_display,
-                },
-                {
-                    "system": V2_0074_SYSTEM,
-                    "code": IMAGING_CATEGORY_V2_0074,
-                    "display": "Radiology",
-                },
-            ],
-        }],
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": SNOMED_CT_SYSTEM,
+                        "code": IMAGING_CATEGORY_SNOMED,
+                        "display": snomed_imaging_display,
+                    },
+                    {
+                        "system": V2_0074_SYSTEM,
+                        "code": IMAGING_CATEGORY_V2_0074,
+                        "display": "Radiology",
+                    },
+                ],
+            }
+        ],
         "priority": _PRIORITY_MAP.get(_o(order, "urgency", "routine"), "routine"),
         "code": {
-            "coding": [{
-                "system": get_system_uri("loinc"),
-                "code": loinc_code,
-                "display": loinc_display,
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": loinc_code,
+                    "display": loinc_display,
+                }
+            ],
             "text": _o(order, "display_name", ""),
         },
         "subject": {"reference": f"Patient/{patient_id}"},
@@ -408,13 +413,17 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
 
     # bodySite: emit when imaging_body_site_code is populated.
     if body_site_snomed:
-        sr["bodySite"] = [{
-            "coding": [{
-                "system": SNOMED_CT_SYSTEM,
-                "code": body_site_snomed,
-                "display": body_site_display,
-            }],
-        }]
+        sr["bodySite"] = [
+            {
+                "coding": [
+                    {
+                        "system": SNOMED_CT_SYSTEM,
+                        "code": body_site_snomed,
+                        "display": body_site_display,
+                    }
+                ],
+            }
+        ]
 
     # Optional fields
     dt = _o(order, "ordered_datetime")
@@ -453,7 +462,7 @@ def _build_panel_sr(
     """
     panel_loinc = panel_def["loinc"]
     panel_display = code_lookup("loinc", panel_loinc, lang) or panel_def.get("display", "")
-    placer_value = sr_id[len(SR_ID_PREFIX):]  # strip "sr-" prefix
+    placer_value = sr_id[len(SR_ID_PREFIX) :]  # strip "sr-" prefix
     status = aggregate_panel_status(members)
     return _build_sr_skeleton(
         sr_id=sr_id,
@@ -563,12 +572,8 @@ def _build_sr_skeleton(
     # Fail-loud on empty subject/encounter — "Patient/" is FHIR-invalid (PR-90 lesson).
     patient_id = _o(anchor, "patient_id", "")
     encounter_id_val = _o(anchor, "encounter_id", "")
-    assert patient_id, (
-        f"_build_sr_skeleton: patient_id must be non-empty (sr_id={sr_id!r})"
-    )
-    assert encounter_id_val, (
-        f"_build_sr_skeleton: encounter_id must be non-empty (sr_id={sr_id!r})"
-    )
+    assert patient_id, f"_build_sr_skeleton: patient_id must be non-empty (sr_id={sr_id!r})"
+    assert encounter_id_val, f"_build_sr_skeleton: encounter_id must be non-empty (sr_id={sr_id!r})"
 
     snomed_display = code_lookup("snomed-ct", LAB_CATEGORY_SNOMED, lang) or (
         localize_fixed_label("Laboratory procedure", country)
@@ -627,8 +632,7 @@ def _build_sr_skeleton(
                     # the JLAC10 mapping). Default remains the country's lab
                     # system per CO-4 (session 42 cycle 3).
                     "system": get_system_uri(
-                        code_system_override_key
-                        or system_key_for("lab", "JP" if is_jp(country) else "US")
+                        code_system_override_key or system_key_for("lab", "JP" if is_jp(country) else "US")
                     ),
                     "code": loinc_code,
                     "display": loinc_display,

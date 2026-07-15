@@ -3,6 +3,7 @@
 CIF-VS-FHIR-01 の silent-drop 修正:非-canonical path が生成する metadata なし
 imaging Order も ImagingStudy として emit されることを確認。
 """
+
 from __future__ import annotations
 
 import pytest
@@ -12,6 +13,7 @@ import pytest
 class TestInferImagingMetadata:
     def test_chest_xray_en(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         r = infer_imaging_metadata("Chest X-ray")
         assert r is not None
         assert r["modality"] == "CR"
@@ -19,53 +21,63 @@ class TestInferImagingMetadata:
 
     def test_chest_xray_jp(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         r = infer_imaging_metadata("胸部X線")
         assert r is not None and r["modality"] == "CR" and r["body_site_key"] == "chest"
 
     def test_head_ct_en(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         r = infer_imaging_metadata("Head CT")
         assert r is not None and r["modality"] == "CT" and r["body_site_key"] == "head"
 
     def test_head_ct_jp(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         r = infer_imaging_metadata("頭部CT")
         assert r is not None and r["modality"] == "CT" and r["body_site_key"] == "head"
 
     def test_abdominal_us_jp(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         r = infer_imaging_metadata("腹部エコー")
         assert r is not None and r["modality"] == "US" and r["body_site_key"] == "abdomen"
 
     def test_brain_mri_en(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         r = infer_imaging_metadata("Brain MRI")
         assert r is not None and r["modality"] == "MR" and r["body_site_key"] == "head"
 
     def test_kub_shorthand(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         r = infer_imaging_metadata("KUB")
         assert r is not None and r["modality"] == "CR" and r["body_site_key"] == "abdomen"
 
     def test_cxr_shorthand(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         r = infer_imaging_metadata("CXR")
         assert r is not None and r["modality"] == "CR"
 
     def test_body_site_snomed_populated(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         r = infer_imaging_metadata("Chest X-ray")
         # body_sites.yaml chest → 51185008
         assert r["body_site_snomed"] == "51185008"
 
     def test_unknown_returns_none(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         assert infer_imaging_metadata("Freetext imaging study") is None
         assert infer_imaging_metadata("") is None
         assert infer_imaging_metadata("random abbreviation ZZZ") is None
 
     def test_case_insensitive(self):
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         assert infer_imaging_metadata("CHEST X-RAY") is not None
         assert infer_imaging_metadata("head ct") is not None
         assert infer_imaging_metadata("HEAD CT") is not None
@@ -73,6 +85,7 @@ class TestInferImagingMetadata:
     def test_underscore_separated_forms(self):
         """session 48 cycle 8 拡張:simulator が生成する `_` 区切り display_name。"""
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         assert infer_imaging_metadata("Chest_Xray_PA") is not None
         assert infer_imaging_metadata("CT_Head") is not None
         assert infer_imaging_metadata("CT_abdomen_pelvis") is not None
@@ -96,6 +109,7 @@ class TestInferImagingMetadata:
         angiography)を modalities.yaml に正式登録 → stub 落ちから inference
         成功に変更。session 48 時点の stub 期待を新挙動の pin に更新。"""
         from clinosim.modules.imaging.inference import infer_imaging_metadata
+
         ecg = infer_imaging_metadata("ECG")
         assert ecg is not None and ecg["modality"] == "ECG"
         ecg12 = infer_imaging_metadata("ECG_12lead")
@@ -115,6 +129,7 @@ class TestEnricherInferencePath:
         from types import SimpleNamespace
 
         from clinosim.modules.imaging.engine import imaging_enricher as enrich_imaging
+
         record = SimpleNamespace(
             orders=orders,
             encounters=[],
@@ -128,10 +143,14 @@ class TestEnricherInferencePath:
 
     def test_enricher_inference_populates_metadata(self):
         from clinosim.types.encounter import Order, OrderStatus, OrderType
+
         # metadata 空、display_name="Chest X-ray" → inference で CR/chest populate
         o = Order(
-            order_id="ORD-1", encounter_id="ENC-1", patient_id="POP-1",
-            order_type=OrderType.IMAGING, display_name="Chest X-ray",
+            order_id="ORD-1",
+            encounter_id="ENC-1",
+            patient_id="POP-1",
+            order_type=OrderType.IMAGING,
+            display_name="Chest X-ray",
             status=OrderStatus.PLACED,
         )
         rec = self._make_ctx_and_run([o])
@@ -144,10 +163,14 @@ class TestEnricherInferencePath:
 
     def test_enricher_stub_when_inference_fails(self):
         from clinosim.types.encounter import Order, OrderStatus, OrderType
+
         # inference 失敗 display_name → stub emit(series=[], modality="")
         o = Order(
-            order_id="ORD-2", encounter_id="ENC-1", patient_id="POP-1",
-            order_type=OrderType.IMAGING, display_name="ZZZ unknown study",
+            order_id="ORD-2",
+            encounter_id="ENC-1",
+            patient_id="POP-1",
+            order_type=OrderType.IMAGING,
+            display_name="ZZZ unknown study",
             status=OrderStatus.PLACED,
         )
         rec = self._make_ctx_and_run([o])
@@ -165,9 +188,13 @@ class TestEnricherInferencePath:
     def test_enricher_still_handles_canonical_metadata_path(self):
         """既存 canonical path(metadata 完備)の regression がないこと。"""
         from clinosim.types.encounter import Order, OrderStatus, OrderType
+
         o = Order(
-            order_id="ORD-3", encounter_id="ENC-1", patient_id="POP-1",
-            order_type=OrderType.IMAGING, display_name="cxr",
+            order_id="ORD-3",
+            encounter_id="ENC-1",
+            patient_id="POP-1",
+            order_type=OrderType.IMAGING,
+            display_name="cxr",
             status=OrderStatus.PLACED,
             imaging_modality="CR",
             imaging_body_site_code="51185008",  # chest
@@ -186,17 +213,26 @@ class TestEnricherInferencePath:
 class TestFhirStubImagingStudy:
     def _build_and_get(self, study_record):
         from clinosim.modules.output._fhir_imaging_study import _build_imaging_study
+
         return _build_imaging_study(study_record, "ja", enc_reason_by_id={})
 
     def test_stub_emits_empty_modality_array(self):
         from clinosim.types.imaging import ImagingStudyRecord
+
         stub = ImagingStudyRecord(
-            study_id="ENC-1-1", study_instance_uid="1.2.3.999",
-            encounter_id="ENC-1", patient_id="POP-1",
-            order_id="ORD-2", status="available",
+            study_id="ENC-1-1",
+            study_instance_uid="1.2.3.999",
+            encounter_id="ENC-1",
+            patient_id="POP-1",
+            order_id="ORD-2",
+            status="available",
             started_datetime="2026-06-30T10:00:00",
-            modality_code="", body_site_snomed="",
-            series=[], endpoint_id="", contrast=False, report=None,
+            modality_code="",
+            body_site_snomed="",
+            series=[],
+            endpoint_id="",
+            contrast=False,
+            report=None,
         )
         r = self._build_and_get(stub)
         assert r["resourceType"] == "ImagingStudy"
@@ -210,18 +246,30 @@ class TestFhirStubImagingStudy:
 
     def test_full_study_unchanged(self):
         from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord
+
         full = ImagingStudyRecord(
-            study_id="ENC-1-1", study_instance_uid="1.2.3.999",
-            encounter_id="ENC-1", patient_id="POP-1",
-            order_id="ORD-3", status="available",
+            study_id="ENC-1-1",
+            study_instance_uid="1.2.3.999",
+            encounter_id="ENC-1",
+            patient_id="POP-1",
+            order_id="ORD-3",
+            status="available",
             started_datetime="2026-06-30T10:00:00",
-            modality_code="CR", body_site_snomed="51185008",
-            series=[ImagingSeries(
-                series_uid="1.2.3.999.1", series_number=1,
-                modality_code="CR", body_site_snomed="51185008",
-                description="PA view", instance_count=1,
-            )],
-            endpoint_id="ep-1.2.3.999", contrast=False, report=None,
+            modality_code="CR",
+            body_site_snomed="51185008",
+            series=[
+                ImagingSeries(
+                    series_uid="1.2.3.999.1",
+                    series_number=1,
+                    modality_code="CR",
+                    body_site_snomed="51185008",
+                    description="PA view",
+                    instance_count=1,
+                )
+            ],
+            endpoint_id="ep-1.2.3.999",
+            contrast=False,
+            report=None,
         )
         r = self._build_and_get(full)
         assert r["modality"][0]["code"] == "CR"

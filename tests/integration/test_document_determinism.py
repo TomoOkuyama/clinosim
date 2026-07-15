@@ -87,8 +87,7 @@ def test_different_seeds_produce_different_ndjson() -> None:
                 ndjson_files = list(out.rglob(f"{resource}.ndjson"))
                 if ndjson_files:
                     hashes[resource] = hashes_seed42.get(resource, "") or (
-                        hashes[resource] if resource in hashes else
-                        hashes_seed42.get(resource, "__absent__")
+                        hashes[resource] if resource in hashes else hashes_seed42.get(resource, "__absent__")
                     )
     # At least one resource must differ across seeds (trivial pass guard).
     # (Both runs must produce the resource for this check to be meaningful.)

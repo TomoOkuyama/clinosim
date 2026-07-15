@@ -124,6 +124,7 @@ def _panel_eligible_organisms() -> dict[str, set[str]]:
     organism actually has a S/I/R panel.
     """
     from clinosim.modules.hai import load_hai_antibiogram  # local: avoids any potential cycle
+
     abg = load_hai_antibiogram()
     return {hai_type: set(organism_map.keys()) for hai_type, organism_map in abg.items()}
 
@@ -191,9 +192,7 @@ def _hai_specimens(cohort: Cohort, country: str) -> set[str]:
             continue
         identifiers = row.get("identifier") or []
         is_hai = any(
-            i.get("system") == HAI_EVENT_ID_SYSTEM
-            and (i.get("value") or "").startswith("hai-")
-            for i in identifiers
+            i.get("system") == HAI_EVENT_ID_SYSTEM and (i.get("value") or "").startswith("hai-") for i in identifiers
         )
         if not is_hai:
             continue
@@ -222,15 +221,9 @@ def _check_care_team_coverage(cohort: Cohort, country: str, result: AxisResult) 
     n_warn_threshold = 30
 
     # Collect anchor id sets.
-    patient_ids: set[str] = {
-        row["id"] for row in cohort.ndjson(country, "Patient") if row.get("id")
-    }
-    encounter_ids: set[str] = {
-        row["id"] for row in cohort.ndjson(country, "Encounter") if row.get("id")
-    }
-    practitioner_ids: set[str] = {
-        row["id"] for row in cohort.ndjson(country, "Practitioner") if row.get("id")
-    }
+    patient_ids: set[str] = {row["id"] for row in cohort.ndjson(country, "Patient") if row.get("id")}
+    encounter_ids: set[str] = {row["id"] for row in cohort.ndjson(country, "Encounter") if row.get("id")}
+    practitioner_ids: set[str] = {row["id"] for row in cohort.ndjson(country, "Practitioner") if row.get("id")}
 
     care_team_count = 0
     dangling_patient: list[str] = []
@@ -424,12 +417,8 @@ def _check_imaging_basedon(cohort: Cohort, country: str, result: AxisResult) -> 
     n_warn_threshold = 30
 
     # Collect ServiceRequest ids and Endpoint ids from NDJSON.
-    sr_ids: set[str] = {
-        row["id"] for row in cohort.ndjson(country, "ServiceRequest") if row.get("id")
-    }
-    endpoint_ids: set[str] = {
-        row["id"] for row in cohort.ndjson(country, "Endpoint") if row.get("id")
-    }
+    sr_ids: set[str] = {row["id"] for row in cohort.ndjson(country, "ServiceRequest") if row.get("id")}
+    endpoint_ids: set[str] = {row["id"] for row in cohort.ndjson(country, "Endpoint") if row.get("id")}
 
     # Walk ImagingStudy, verify basedOn and endpoint refs.
     study_count = 0
@@ -515,11 +504,7 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     # "hai_empty_susceptibilities_max_rate", "narrow_rate_bands") are
     # consumed by the dedicated R-rate / empty-rate / narrow-rate gate blocks
     # below (PR3b-3 D1+D2 complete, 2026-06-29).
-    hai_acceptance = {
-        k: v
-        for k, v in spec.clinical_acceptance.items()
-        if isinstance(v, dict) and "icd10_code" in v
-    }
+    hai_acceptance = {k: v for k, v in spec.clinical_acceptance.items() if isinstance(v, dict) and "icd10_code" in v}
     if not hai_acceptance:
         return result  # N/A — no HAI-type entries (basedon_coverage already handled above)
 
@@ -643,21 +628,26 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
             # regressed — silent-no-op defense signal.
             total_hai_encs = sum(len(encs) for encs in cohort_enc.values())
             if total_hai_encs > 0 and not hai_specimens:
-                result.findings.append(AuditFinding(
-                    Severity.WARN,
-                    f"{country}: HAI specimen set empty "
-                    f"(total_hai_encounters={total_hai_encs}) — verify "
-                    f"HAI_EVENT_ID_SYSTEM identifier emit on Observation/"
-                    f"Specimen + mb-org-* coverage",
-                ))
+                result.findings.append(
+                    AuditFinding(
+                        Severity.WARN,
+                        f"{country}: HAI specimen set empty "
+                        f"(total_hai_encounters={total_hai_encs}) — verify "
+                        f"HAI_EVENT_ID_SYSTEM identifier emit on Observation/"
+                        f"Specimen + mb-org-* coverage",
+                    )
+                )
             if total_hai_encs > 0 and not org_per_specimen:
-                result.findings.append(AuditFinding(
-                    Severity.WARN,
-                    f"{country}: specimen→organism map empty "
-                    f"(total_hai_encounters={total_hai_encs}) — verify "
-                    f"mb-org-* specimen.reference + SNOMED valueCodeableConcept",
-                ))
+                result.findings.append(
+                    AuditFinding(
+                        Severity.WARN,
+                        f"{country}: specimen→organism map empty "
+                        f"(total_hai_encounters={total_hai_encs}) — verify "
+                        f"mb-org-* specimen.reference + SNOMED valueCodeableConcept",
+                    )
+                )
             from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
+
             for band in r_bands:
                 hai_type_b, organism_b = band["cohort"].split("/", maxsplit=1)
                 abx_key = band["antibiotic"]
@@ -696,21 +686,25 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                         r_count += 1
                 result.info[f"{country}_{band['cohort']}_{abx_key}_n"] = total_count
                 if total_count < 30:
-                    result.findings.append(AuditFinding(
-                        Severity.WARN,
-                        f"{country}/{band['cohort']}/{abx_key}: cohort too small "
-                        f"(n={total_count}); R-rate band not enforced",
-                    ))
+                    result.findings.append(
+                        AuditFinding(
+                            Severity.WARN,
+                            f"{country}/{band['cohort']}/{abx_key}: cohort too small "
+                            f"(n={total_count}); R-rate band not enforced",
+                        )
+                    )
                     continue
                 r_rate = r_count / total_count
                 result.info[f"{country}_{band['cohort']}_{abx_key}_R_rate"] = round(r_rate, 3)
                 if r_rate < band["expected_R_min"] or r_rate > band["expected_R_max"]:
-                    result.findings.append(AuditFinding(
-                        Severity.FAIL,
-                        f"{country}/{band['cohort']}/{abx_key}: R-rate "
-                        f"{r_rate:.3f} outside band [{band['expected_R_min']}, "
-                        f"{band['expected_R_max']}] (source: {band['source']})",
-                    ))
+                    result.findings.append(
+                        AuditFinding(
+                            Severity.FAIL,
+                            f"{country}/{band['cohort']}/{abx_key}: R-rate "
+                            f"{r_rate:.3f} outside band [{band['expected_R_min']}, "
+                            f"{band['expected_R_max']}] (source: {band['source']})",
+                        )
+                    )
 
         # ---------------------------------------------------------------
         # PR3b-3 D2 complete (2026-06-29): empty-susceptibilities rate gate.
@@ -751,30 +745,36 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
             # scale this can also be legitimate "all-no-panel cohort").
             total_hai_encs = sum(len(encs) for encs in cohort_enc.values())
             if total == 0 and total_hai_encs > 0:
-                result.findings.append(AuditFinding(
-                    Severity.WARN,
-                    f"{country}: panel-eligible cohort empty "
-                    f"(total_hai_encounters={total_hai_encs}) — verify "
-                    f"antibiogram + mb-org-* coverage + canonical SNOMED URI",
-                ))
+                result.findings.append(
+                    AuditFinding(
+                        Severity.WARN,
+                        f"{country}: panel-eligible cohort empty "
+                        f"(total_hai_encounters={total_hai_encs}) — verify "
+                        f"antibiogram + mb-org-* coverage + canonical SNOMED URI",
+                    )
+                )
 
             if total > 0:
                 empty_count = sum(1 for v in enc_has_susc.values() if not v)
                 empty_rate = empty_count / total
                 result.info[f"{country}_hai_empty_susc_rate"] = round(empty_rate, 3)
                 if total < 30:
-                    result.findings.append(AuditFinding(
-                        Severity.WARN,
-                        f"{country}: empty-susceptibility cohort too small "
-                        f"(n={total}); rate gate not enforced "
-                        f"(observed={empty_rate:.3f}, max={empty_max})",
-                    ))
+                    result.findings.append(
+                        AuditFinding(
+                            Severity.WARN,
+                            f"{country}: empty-susceptibility cohort too small "
+                            f"(n={total}); rate gate not enforced "
+                            f"(observed={empty_rate:.3f}, max={empty_max})",
+                        )
+                    )
                 elif empty_rate > empty_max:
-                    result.findings.append(AuditFinding(
-                        Severity.FAIL,
-                        f"{country}: empty-susceptibility rate {empty_rate:.3f} "
-                        f"exceeds max {empty_max} (panel-eligible HAI cohort)",
-                    ))
+                    result.findings.append(
+                        AuditFinding(
+                            Severity.FAIL,
+                            f"{country}: empty-susceptibility rate {empty_rate:.3f} "
+                            f"exceeds max {empty_max} (panel-eligible HAI cohort)",
+                        )
+                    )
 
         # ---------------------------------------------------------------
         # PR3b-3: narrow-rate gate per hai_type (adversarial-1 C-1 fix:
@@ -815,21 +815,21 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                 rate = narrow_count / total if total else 0.0
                 result.info[f"{country}_{band['cohort']}_narrow_rate"] = round(rate, 3)
                 if total < 30:
-                    result.findings.append(AuditFinding(
-                        Severity.WARN,
-                        f"{country}/{band['cohort']}: narrow cohort too small "
-                        f"(n={total}); rate band not enforced",
-                    ))
+                    result.findings.append(
+                        AuditFinding(
+                            Severity.WARN,
+                            f"{country}/{band['cohort']}: narrow cohort too small (n={total}); rate band not enforced",
+                        )
+                    )
                     continue
-                if (
-                    rate < band["expected_narrow_rate_min"]
-                    or rate > band["expected_narrow_rate_max"]
-                ):
-                    result.findings.append(AuditFinding(
-                        Severity.FAIL,
-                        f"{country}/{band['cohort']}: narrow rate {rate:.3f} "
-                        f"outside band [{band['expected_narrow_rate_min']}, "
-                        f"{band['expected_narrow_rate_max']}]",
-                    ))
+                if rate < band["expected_narrow_rate_min"] or rate > band["expected_narrow_rate_max"]:
+                    result.findings.append(
+                        AuditFinding(
+                            Severity.FAIL,
+                            f"{country}/{band['cohort']}: narrow rate {rate:.3f} "
+                            f"outside band [{band['expected_narrow_rate_min']}, "
+                            f"{band['expected_narrow_rate_max']}]",
+                        )
+                    )
 
     return result

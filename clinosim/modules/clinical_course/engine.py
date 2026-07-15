@@ -81,6 +81,7 @@ def _validate_course_archetypes(
             f"(typo) or expand the physiological model."
         )
 
+
 # --- archetype_modifiers condition evaluation (FP-YAML-2b) ---
 ARCHETYPE_EXPRESSION_VARS: frozenset[str] = frozenset(
     {"age", "immune_reactivity", "treatment_sensitivity", "prior_dka_episodes"}
@@ -164,9 +165,7 @@ def _apply_archetype_modifiers(
     return probs
 
 
-def _validate_archetype_modifiers(
-    disease_id: str, modifiers: list[dict[str, Any]], archetype_names: set[str]
-) -> None:
+def _validate_archetype_modifiers(disease_id: str, modifiers: list[dict[str, Any]], archetype_names: set[str]) -> None:
     """Fail-loud validation of an archetype_modifiers block at load time.
 
     Catches: an effect targeting an archetype the disease doesn't define (silent
@@ -484,9 +483,7 @@ def _evaluate_risk_condition(
         if "delirium_susceptibility" in condition:
             parts = condition.split(">")
             if len(parts) == 2 and hasattr(patient, "physiological_profile"):
-                return patient.physiological_profile.delirium_susceptibility > float(
-                    parts[1].strip()
-                )
+                return patient.physiological_profile.delirium_susceptibility > float(parts[1].strip())
         if "immobility_days" in condition:
             parts = condition.split(">")
             if len(parts) == 2:

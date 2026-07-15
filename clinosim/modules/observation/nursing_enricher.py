@@ -36,8 +36,7 @@ def enrich_nursing(ctx) -> None:
         for vs in _get(rec, "vital_signs", []) or []:
             vsd = vs if isinstance(vs, dict) else vs.__dict__
             news2 = compute_news2(vsd)
-            gcs = compute_gcs(vsd.get("consciousness_level", "A"),
-                              perfusion_status=1.0, rng=rng)
+            gcs = compute_gcs(vsd.get("consciousness_level", "A"), perfusion_status=1.0, rng=rng)
             if isinstance(vs, dict):
                 vs["news2_score"], vs["gcs_score"] = news2, gcs
             else:
@@ -74,8 +73,6 @@ def enrich_nursing(ctx) -> None:
             # volume_status is not persisted to CIF — always 0.0 (known limitation).
             loc = consciousness_by_date.get(str(d), "A")
             braden = compute_braden(adld, loc, volume_status=0.0, rng=rng)
-            morse, level = compute_morse_fall_risk(
-                age, adld, loc, has_iv=str(d) in iv_dates, rng=rng)
-            out.append(NursingRiskAssessment(
-                date=d, morse_total=morse, fall_risk_level=level, **braden))
+            morse, level = compute_morse_fall_risk(age, adld, loc, has_iv=str(d) in iv_dates, rng=rng)
+            out.append(NursingRiskAssessment(date=d, morse_total=morse, fall_risk_level=level, **braden))
         _set(rec, "nursing_risk_assessments", out)

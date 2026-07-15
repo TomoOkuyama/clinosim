@@ -1,4 +1,5 @@
 """Unit tests for clinosim.modules._shared dict/dataclass dual-access helpers."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -18,6 +19,7 @@ def test_get_attr_or_key_from_object():
     @dataclass
     class _S:
         x: int = 42
+
     assert get_attr_or_key(_S(), "x") == 42
 
 
@@ -28,6 +30,7 @@ def test_get_attr_or_key_missing_returns_default():
     @dataclass
     class _S:
         x: int = 42
+
     assert get_attr_or_key(_S(), "missing", "fb") == "fb"
 
 
@@ -43,6 +46,7 @@ def test_get_attr_or_key_none_obj():
 # sweep write side).
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.unit
 def test_set_attr_or_key_on_dict():
     d = {}
@@ -55,6 +59,7 @@ def test_set_attr_or_key_on_dataclass():
     @dataclass
     class _S:
         x: int = 0
+
     s = _S()
     set_attr_or_key(s, "x", 42)
     assert s.x == 42
@@ -67,6 +72,7 @@ def test_set_attr_or_key_on_dataclass():
 # further isinstance branching. Dataclass fields always exist via
 # default_factory, so no creation is needed on that path.
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 def test_get_or_create_container_dict_creates_missing():
@@ -89,6 +95,7 @@ def test_get_or_create_container_dataclass_reuses_field():
     @dataclass
     class _S:
         orders: list = field(default_factory=list)
+
     s = _S(orders=[1])
     orders = get_or_create_container(s, "orders", list)
     orders.append(2)

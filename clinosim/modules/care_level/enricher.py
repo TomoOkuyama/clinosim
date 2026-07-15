@@ -2,6 +2,7 @@
 
 Seeded by person_id so the value is stable across encounters and the main
 simulation stream is untouched (AD-16)."""
+
 from __future__ import annotations
 
 import numpy as np

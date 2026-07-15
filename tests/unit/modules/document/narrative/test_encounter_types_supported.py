@@ -15,6 +15,7 @@ from clinosim.types.document import DocumentType, FormatType
 # Helper factory — construct a minimal DocumentTypeSpec with encounter_types_supported
 # ---------------------------------------------------------------------------
 
+
 def _make_spec(type_key: str, encounter_types_supported: tuple[str, ...] = ()) -> DocumentTypeSpec:
     return DocumentTypeSpec(
         type_key=type_key,
@@ -30,6 +31,7 @@ def _make_spec(type_key: str, encounter_types_supported: tuple[str, ...] = ()) -
 # Test 1: α-min-1 specs have explicit inpatient/icu/rehab_inpatient gating (Task 10 fix)
 # ---------------------------------------------------------------------------
 
+
 def test_encounter_types_supported_alpha_min1_specs_explicit_inpatient() -> None:
     """Task 10 data-quality fix: α-min-1 specs now carry explicit encounter_types_supported
     = ('inpatient', 'icu', 'rehab_inpatient') to prevent leaking into outpatient/emergency.
@@ -38,14 +40,13 @@ def test_encounter_types_supported_alpha_min1_specs_explicit_inpatient() -> None
     expected = frozenset({"inpatient", "icu", "rehab_inpatient"})
     for dt in (DocumentType.ADMISSION_HP, DocumentType.PROGRESS_NOTE, DocumentType.DISCHARGE_SUMMARY):
         actual = frozenset(specs[dt].encounter_types_supported)
-        assert actual == expected, (
-            f"{dt.value} encounter_types_supported must be {expected}, got {actual}"
-        )
+        assert actual == expected, f"{dt.value} encounter_types_supported must be {expected}, got {actual}"
 
 
 # ---------------------------------------------------------------------------
 # Test 2: encounter-type gating returns correct specs per encounter type
 # ---------------------------------------------------------------------------
+
 
 def test_specs_for_encounter_type_inpatient_returns_inpatient_specs() -> None:
     """inpatient → α-min-1 specs + nursing specs; NOT outpatient/ED specs."""
@@ -96,6 +97,7 @@ def test_specs_for_encounter_type_emergency_returns_ed_specs_only() -> None:
 # Test 3: explicit gating — match hit
 # ---------------------------------------------------------------------------
 
+
 def test_specs_for_encounter_type_explicit_gating_hit() -> None:
     """Spec with encounter_types_supported=('outpatient',) IS returned for 'outpatient'."""
     outpatient_spec = _make_spec("outpatient_note", ("outpatient",))
@@ -113,6 +115,7 @@ def test_specs_for_encounter_type_explicit_gating_hit() -> None:
 # Test 4: explicit gating — miss
 # ---------------------------------------------------------------------------
 
+
 def test_specs_for_encounter_type_explicit_gating_miss() -> None:
     """Spec with encounter_types_supported=('outpatient',) is NOT returned for 'inpatient'."""
     outpatient_spec = _make_spec("outpatient_note", ("outpatient",))
@@ -129,6 +132,7 @@ def test_specs_for_encounter_type_explicit_gating_miss() -> None:
 # Test 5: mixed — some restricted, some unrestricted
 # ---------------------------------------------------------------------------
 
+
 def test_specs_for_encounter_type_mixed_default_and_explicit() -> None:
     """Unrestricted () spec + restricted spec → restricted one filtered out for wrong type."""
     unrestricted = _make_spec("admission_hp", ())
@@ -143,13 +147,14 @@ def test_specs_for_encounter_type_mixed_default_and_explicit() -> None:
     ):
         result = specs_for_encounter_type("inpatient")
     type_keys = [s.type_key for s in result]
-    assert "admission_hp" in type_keys      # unrestricted → always included
+    assert "admission_hp" in type_keys  # unrestricted → always included
     assert "outpatient_note" not in type_keys  # restricted to outpatient → excluded
 
 
 # ---------------------------------------------------------------------------
 # Test 6: case-insensitive matching on encounter_type input
 # ---------------------------------------------------------------------------
+
 
 def test_specs_for_encounter_type_case_insensitive_input() -> None:
     """'INPATIENT' and 'Inpatient' both match spec.encounter_types_supported=('inpatient',)."""
@@ -168,6 +173,7 @@ def test_specs_for_encounter_type_case_insensitive_input() -> None:
 # Test 7: multiple encounter_types in a single spec
 # ---------------------------------------------------------------------------
 
+
 def test_specs_for_encounter_type_multi_type_spec() -> None:
     """Spec covering ('inpatient', 'emergency') matches both but not 'outpatient'."""
     multi_spec = _make_spec("acute_note", ("inpatient", "emergency"))
@@ -185,6 +191,7 @@ def test_specs_for_encounter_type_multi_type_spec() -> None:
 # Test 8: re-export from document __init__
 # ---------------------------------------------------------------------------
 
+
 def test_specs_for_encounter_type_importable_from_module_init() -> None:
     """specs_for_encounter_type is importable from clinosim.modules.document."""
     from clinosim.modules.document import specs_for_encounter_type as fn  # noqa: F401
@@ -196,6 +203,7 @@ def test_specs_for_encounter_type_importable_from_module_init() -> None:
 # chain 2: admission_care_plan encounter-type gating (rehab_inpatient excluded —
 # uses a different MHLW form 別紙２の２, not this spec's target)
 # ---------------------------------------------------------------------------
+
 
 def test_admission_care_plan_excludes_rehab_inpatient() -> None:
     """rehab_inpatient uses the MHLW 別紙２の２ variant form, not this spec (design §2)."""

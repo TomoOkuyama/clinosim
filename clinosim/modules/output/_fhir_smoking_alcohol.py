@@ -11,6 +11,7 @@ Split out of the former _fhir_sdoh.py (PR2 G2 SDOH integrity refactor,
 care_level (JP-only) is in _fhir_care_level.py; future SDOH topics
 (occupation/education/housing) get their own files following this pattern.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -26,8 +27,7 @@ from clinosim.modules.output._fhir_common import (
 from clinosim.modules.sdoh import load_social_history
 
 
-def _obs(obs_id: str, country: str, loinc: str, loinc_text: str,
-         value_system: str, value_code: str) -> dict[str, Any]:
+def _obs(obs_id: str, country: str, loinc: str, loinc_text: str, value_system: str, value_code: str) -> dict[str, Any]:
     """LOINC-keyed social-history Observation skeleton.
 
     Local helper (not promoted to _fhir_common) because the LOINC-keyed
@@ -40,14 +40,19 @@ def _obs(obs_id: str, country: str, loinc: str, loinc_text: str,
         "resourceType": "Observation",
         "id": obs_id,
         # Session 46 chain #2: JP Core Observation_Common profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
-        ]}} if is_jp(country) else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
+            if is_jp(country)
+            else {}
+        ),
         "status": "final",
         "category": _social_category(country),
-        "code": {"coding": [{"system": get_system_uri("loinc"), "code": loinc,
-                             "display": code_lookup("loinc", loinc, "en")}],
-                 "text": loinc_text},
+        "code": {
+            "coding": [
+                {"system": get_system_uri("loinc"), "code": loinc, "display": code_lookup("loinc", loinc, "en")}
+            ],
+            "text": loinc_text,
+        },
         "valueCodeableConcept": _value(value_system, value_code, lang),
     }
 
@@ -63,6 +68,7 @@ def _sdoh_effective_datetime(ctx: BundleContext) -> str:
     """
     from clinosim.modules._shared import get_attr_or_key as _o
     from clinosim.modules.output._fhir_common import to_fhir_datetime
+
     encs = _o(ctx.record, "encounters", []) or []
     if not encs:
         return ""
@@ -86,6 +92,7 @@ def _sdoh_performer_ref(ctx: BundleContext) -> str:
     admin-of-record ("recorder"). Fall back to empty when no encounter.
     """
     from clinosim.modules._shared import get_attr_or_key as _o
+
     encs = _o(ctx.record, "encounters", []) or []
     for e in encs:
         att = _o(e, "attending_physician_id", "") or ""
@@ -101,8 +108,7 @@ def _build_smoking_status(ctx: BundleContext) -> list[dict]:
     if not entry:
         return []
     text = "喫煙状況" if is_jp(ctx.country) else "Tobacco smoking status"
-    o = _obs(f"smoking-{ctx.patient_id}", ctx.country, data["loinc"], text,
-             "snomed-ct", entry["snomed"])
+    o = _obs(f"smoking-{ctx.patient_id}", ctx.country, data["loinc"], text, "snomed-ct", entry["snomed"])
     o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
     eff = _sdoh_effective_datetime(ctx)
     if eff:
@@ -120,8 +126,7 @@ def _build_alcohol_use(ctx: BundleContext) -> list[dict]:
     if not entry:
         return []
     text = "飲酒歴" if is_jp(ctx.country) else "History of alcohol use"
-    o = _obs(f"alcohol-{ctx.patient_id}", ctx.country, data["loinc"], text,
-             "snomed-ct", entry["snomed"])
+    o = _obs(f"alcohol-{ctx.patient_id}", ctx.country, data["loinc"], text, "snomed-ct", entry["snomed"])
     o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
     eff = _sdoh_effective_datetime(ctx)
     if eff:

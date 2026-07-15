@@ -20,6 +20,7 @@ Two-layer cache design (N-chain, 2026-07-02):
 The layers are complementary, not duplicates: layer 1 fires before prompt
 construction (coarse clinical key), layer 2 fires after (exact prompt key).
 """
+
 from __future__ import annotations
 
 import hashlib

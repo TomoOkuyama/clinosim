@@ -9,6 +9,7 @@ common to both. The ctx-taking builder imports the shared
 BundleContext from _fhir_common, so this module never imports back
 through the adapter (no cycle).
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -48,17 +49,21 @@ def _build_hai_conditions(ctx: BundleContext) -> list[dict]:
         icd_sys_key = system_key_for("diagnosis", country)
         icd_disp = code_lookup(icd_sys_key, icd_country, lang) or ""
         snomed_disp = code_lookup("snomed-ct", snomed, lang) or ""
-        coding: list[dict[str, Any]] = [{
-            "system": get_system_uri(icd_sys_key),
-            "code": icd_country,
-            "display": icd_disp,
-        }]
+        coding: list[dict[str, Any]] = [
+            {
+                "system": get_system_uri(icd_sys_key),
+                "code": icd_country,
+                "display": icd_disp,
+            }
+        ]
         if snomed:
-            coding.append({
-                "system": get_system_uri("snomed-ct"),
-                "code": snomed,
-                "display": snomed_disp,
-            })
+            coding.append(
+                {
+                    "system": get_system_uri("snomed-ct"),
+                    "code": snomed,
+                    "display": snomed_disp,
+                }
+            )
         resource: dict[str, Any] = {
             "resourceType": "Condition",
             "id": hai_id,
@@ -66,16 +71,22 @@ def _build_hai_conditions(ctx: BundleContext) -> list[dict]:
             # are populated from codes/data/hl7-condition-{clinical,ver-status}.yaml.
             # Also fixes wrong system key `hl7-condition-verification` (never
             # registered; canonical URI ends in `condition-ver-status`).
-            "clinicalStatus": {"coding": [
-                _coding_with_display("hl7-condition-clinical", "active",
-                                     resolve_lang(ctx.country))]},
-            "verificationStatus": {"coding": [
-                _coding_with_display("hl7-condition-ver-status", "confirmed",
-                                     resolve_lang(ctx.country))]},
-            "category": [{"coding": [{
-                "system": get_system_uri("hl7-condition-category"),
-                "code": "encounter-diagnosis",
-            }]}],
+            "clinicalStatus": {
+                "coding": [_coding_with_display("hl7-condition-clinical", "active", resolve_lang(ctx.country))]
+            },
+            "verificationStatus": {
+                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", resolve_lang(ctx.country))]
+            },
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-condition-category"),
+                            "code": "encounter-diagnosis",
+                        }
+                    ]
+                }
+            ],
             "code": {"coding": coding, "text": icd_disp or snomed_disp},
             "subject": {"reference": f"Patient/{ctx.patient_id}"},
             "encounter": {"reference": f"Encounter/{enc_id}"},
@@ -83,21 +94,29 @@ def _build_hai_conditions(ctx: BundleContext) -> list[dict]:
             # cycle 8 cross-seed verify fix (C6-Cond-ev regression): HAI
             # Condition にも evidence を emit(CY6-19 と同型式)。院内感染は
             # 培養+臨床像から診断された感染症であることを示す text-only 記述。
-            "evidence": [{
-                "code": [{"text": "院内感染:培養検査+臨床所見に基づく診断"
-                                   if is_jp(ctx.country) else
-                                   "Hospital-acquired infection — culture + clinical findings"}],
-            }],
+            "evidence": [
+                {
+                    "code": [
+                        {
+                            "text": "院内感染:培養検査+臨床所見に基づく診断"
+                            if is_jp(ctx.country)
+                            else "Hospital-acquired infection — culture + clinical findings"
+                        }
+                    ],
+                }
+            ],
         }
         # CY8-21/22 polish (session 48 cycle 8): HAI Condition にも recorder /
         # asserter を emit(hospital-main の感染管理チーム相当)。encounter に
         # attending が居れば優先、無ければ hospital-main を fallback。
         _att = ""
         for _enc in ctx.record.get("encounters", []) or []:
-            if (_enc.get("encounter_id") if isinstance(_enc, dict)
-                else getattr(_enc, "encounter_id", "")) == enc_id:
-                _att = (_enc.get("attending_physician_id") if isinstance(_enc, dict)
-                        else getattr(_enc, "attending_physician_id", "")) or ""
+            if (_enc.get("encounter_id") if isinstance(_enc, dict) else getattr(_enc, "encounter_id", "")) == enc_id:
+                _att = (
+                    _enc.get("attending_physician_id")
+                    if isinstance(_enc, dict)
+                    else getattr(_enc, "attending_physician_id", "")
+                ) or ""
                 break
         if _att:
             resource["recorder"] = {"reference": f"Practitioner/{_att}"}

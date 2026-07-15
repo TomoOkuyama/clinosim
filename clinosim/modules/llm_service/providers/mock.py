@@ -37,11 +37,7 @@ class MockProvider:
 
         # Produce a stable, prompt-aware stub so tests can assert routing worked.
         snippet = prompt.strip().splitlines()[0] if prompt.strip() else ""
-        body = (
-            f"[Mock LLM response #{self.call_count}]\n"
-            f"Model: {self.last_model}\n"
-            f"First prompt line: {snippet[:120]}"
-        )
+        body = f"[Mock LLM response #{self.call_count}]\nModel: {self.last_model}\nFirst prompt line: {snippet[:120]}"
         return ProviderResponse(
             text=body,
             input_tokens=max(1, len(prompt.split())),

@@ -44,9 +44,7 @@ def test_config_hash_stable():
 @pytest.mark.unit
 def test_config_hash_ignores_snapshot_date():
     """snapshot_date が変わっても hash は同一(cache は cursor 越えで使うため)。"""
-    c1 = SimulatorConfig(
-        random_seed=42, catchment_population=200, country="US", snapshot_date="2026-05-31"
-    )
+    c1 = SimulatorConfig(random_seed=42, catchment_population=200, country="US", snapshot_date="2026-05-31")
     c2 = c1.model_copy(update={"snapshot_date": "2026-06-01"})
     assert compute_config_hash(c1) == compute_config_hash(c2)
 
@@ -69,9 +67,7 @@ def test_config_hash_detects_country_change():
 
 @pytest.mark.unit
 def test_write_and_read_manifest(tmp_path):
-    config = SimulatorConfig(
-        random_seed=42, catchment_population=200, country="US", snapshot_date="2026-05-31"
-    )
+    config = SimulatorConfig(random_seed=42, catchment_population=200, country="US", snapshot_date="2026-05-31")
     write_cache_manifest(tmp_path, config)
     manifest = read_cache_manifest(tmp_path)
     assert manifest is not None
@@ -88,9 +84,7 @@ def test_read_manifest_absent_returns_none(tmp_path):
 
 @pytest.mark.unit
 def test_is_cache_valid_happy_path(tmp_path):
-    config = SimulatorConfig(
-        random_seed=42, catchment_population=200, country="US", snapshot_date="2026-05-31"
-    )
+    config = SimulatorConfig(random_seed=42, catchment_population=200, country="US", snapshot_date="2026-05-31")
     write_cache_manifest(tmp_path, config)
     # cursor だけ進めた
     new_config = config.model_copy(update={"snapshot_date": "2026-06-01"})
@@ -200,12 +194,18 @@ def test_eligible_patient_ids_multiple_records_all_completed_includes():
     """1 patient の複数 record が全て completed なら eligible。"""
     patient = PatientProfile(patient_id="p1")
     enc1 = Encounter(
-        encounter_id="e1", patient_id="p1", encounter_type=EncounterType.INPATIENT,
-        admission_datetime=datetime(2025, 5, 1), discharge_datetime=datetime(2025, 5, 10),
+        encounter_id="e1",
+        patient_id="p1",
+        encounter_type=EncounterType.INPATIENT,
+        admission_datetime=datetime(2025, 5, 1),
+        discharge_datetime=datetime(2025, 5, 10),
     )
     enc2 = Encounter(
-        encounter_id="e2", patient_id="p1", encounter_type=EncounterType.OUTPATIENT,
-        admission_datetime=datetime(2025, 6, 1), discharge_datetime=datetime(2025, 6, 1),
+        encounter_id="e2",
+        patient_id="p1",
+        encounter_type=EncounterType.OUTPATIENT,
+        admission_datetime=datetime(2025, 6, 1),
+        discharge_datetime=datetime(2025, 6, 1),
     )
     r1 = CIFPatientRecord(patient=patient, encounters=[enc1])
     r2 = CIFPatientRecord(patient=patient, encounters=[enc2])
@@ -311,8 +311,11 @@ def test_memoize_hit_bit_identical(tmp_path):
     from clinosim.simulator.engine import run_beta
 
     config = SimulatorConfig(
-        random_seed=42, catchment_population=100, country="US",
-        time_range=("2025-01", "2026-01"), snapshot_date="2025-06-30",
+        random_seed=42,
+        catchment_population=100,
+        country="US",
+        time_range=("2025-01", "2026-01"),
+        snapshot_date="2025-06-30",
     )
     ds_a = run_beta(config)
 
@@ -354,10 +357,7 @@ def test_memoize_hit_bit_identical(tmp_path):
         return result
 
     memo_fingerprints = _chronic_fingerprints_by_pid(ds_b_memo)
-    accretion_affected_pids = {
-        pid for pid in eligible
-        if pid in memo_fingerprints and len(memo_fingerprints[pid]) > 1
-    }
+    accretion_affected_pids = {pid for pid in eligible if pid in memo_fingerprints and len(memo_fingerprints[pid]) > 1}
 
     checked = 0
     for enc_id, memo_rec in memo_by_enc.items():
@@ -365,13 +365,10 @@ def test_memoize_hit_bit_identical(tmp_path):
         if pid not in eligible or pid in accretion_affected_pids:
             continue
         assert enc_id in cold_by_enc, (
-            f"encounter {enc_id} (eligible patient {pid}) present in memo run "
-            f"but missing from cold run"
+            f"encounter {enc_id} (eligible patient {pid}) present in memo run but missing from cold run"
         )
         cold_rec = cold_by_enc[enc_id]
-        assert _canonical_cmp(cold_rec) == _canonical_cmp(memo_rec), (
-            f"F4 memoize drift for encounter {enc_id}"
-        )
+        assert _canonical_cmp(cold_rec) == _canonical_cmp(memo_rec), f"F4 memoize drift for encounter {enc_id}"
         checked += 1
 
     assert checked > 0, "no eligible-patient encounters were compared — test is vacuous"
@@ -401,8 +398,11 @@ def test_memoize_hit_ratio_realistic(tmp_path):
     from clinosim.simulator.engine import run_beta
 
     config = SimulatorConfig(
-        random_seed=42, catchment_population=500, country="US",
-        time_range=("2025-01", "2026-01"), snapshot_date="2025-06-30",
+        random_seed=42,
+        catchment_population=500,
+        country="US",
+        time_range=("2025-01", "2026-01"),
+        snapshot_date="2025-06-30",
     )
     ds_a = run_beta(config)
     cache_dir = tmp_path / "snap_a"

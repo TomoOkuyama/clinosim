@@ -55,26 +55,19 @@ def _validate_demographics(data: dict) -> None:
     ``population/engine.py`` callsites (smoking_dist :170, alcohol_dist :180).
     """
     if not isinstance(data, dict):
-        raise ValueError(
-            f"demographics.yaml: top-level must be a dict, "
-            f"got {type(data).__name__}"
-        )
+        raise ValueError(f"demographics.yaml: top-level must be a dict, got {type(data).__name__}")
     lifestyle = data.get("lifestyle_distribution")
     if lifestyle is None:
         return  # OK: optional block absent
     if not isinstance(lifestyle, dict):
-        raise ValueError(
-            f"demographics.yaml: lifestyle_distribution must be a dict, "
-            f"got {type(lifestyle).__name__}"
-        )
+        raise ValueError(f"demographics.yaml: lifestyle_distribution must be a dict, got {type(lifestyle).__name__}")
     for behavior in ("smoking", "alcohol"):
         per_sex = lifestyle.get(behavior)
         if per_sex is None:
             continue  # OK: behavior absent
         if not isinstance(per_sex, dict):
             raise ValueError(
-                f"demographics.yaml: lifestyle_distribution.{behavior} must be "
-                f"a dict, got {type(per_sex).__name__}"
+                f"demographics.yaml: lifestyle_distribution.{behavior} must be a dict, got {type(per_sex).__name__}"
             )
         for sex_key, dist in per_sex.items():
             if not isinstance(dist, dict):
@@ -99,8 +92,7 @@ def _validate_demographics(data: dict) -> None:
                 weights.append(w_f)
             if weights and sum(weights) <= 0:
                 raise ValueError(
-                    f"demographics.yaml: lifestyle_distribution.{behavior}."
-                    f"{sex_key!r} has zero-sum weights {weights}"
+                    f"demographics.yaml: lifestyle_distribution.{behavior}.{sex_key!r} has zero-sum weights {weights}"
                 )
 
 
@@ -115,42 +107,30 @@ def _validate_names(data: dict) -> None:
     (validator does not require all three).
     """
     if not isinstance(data, dict):
-        raise ValueError(
-            f"names.yaml: top-level must be a dict, got {type(data).__name__}"
-        )
+        raise ValueError(f"names.yaml: top-level must be a dict, got {type(data).__name__}")
     for key in ("surnames", "given_names_male", "given_names_female"):
         items = data.get(key)
         if items is None:
             continue  # OK: optional list absent
         if not isinstance(items, list):
-            raise ValueError(
-                f"names.yaml: {key!r} must be a list, got {type(items).__name__}"
-            )
+            raise ValueError(f"names.yaml: {key!r} must be a list, got {type(items).__name__}")
         if not items:
             continue  # OK: empty list (upstream normalize_probabilities raises on empty)
         weights: list[float] = []
         for entry in items:
             if not isinstance(entry, dict):
-                raise ValueError(
-                    f"names.yaml: {key!r} entry must be a dict, got {entry!r}"
-                )
+                raise ValueError(f"names.yaml: {key!r} entry must be a dict, got {entry!r}")
             try:
                 w = float(entry.get("weight", 0))
             except (TypeError, ValueError) as exc:
                 raise ValueError(
-                    f"names.yaml: {key!r}.{entry.get('name')!r} weight non-numeric: "
-                    f"{entry.get('weight')!r}"
+                    f"names.yaml: {key!r}.{entry.get('name')!r} weight non-numeric: {entry.get('weight')!r}"
                 ) from exc
             if w < 0:
-                raise ValueError(
-                    f"names.yaml: {key!r}.{entry.get('name')!r} has negative "
-                    f"weight {w}"
-                )
+                raise ValueError(f"names.yaml: {key!r}.{entry.get('name')!r} has negative weight {w}")
             weights.append(w)
         if weights and sum(weights) <= 0:
-            raise ValueError(
-                f"names.yaml: {key!r} has zero-sum weights"
-            )
+            raise ValueError(f"names.yaml: {key!r} has zero-sum weights")
 
 
 def _validate_addresses(data: dict) -> None:
@@ -163,41 +143,29 @@ def _validate_addresses(data: dict) -> None:
     population/engine.py:664).
     """
     if not isinstance(data, dict):
-        raise ValueError(
-            f"addresses.yaml: top-level must be a dict, got {type(data).__name__}"
-        )
+        raise ValueError(f"addresses.yaml: top-level must be a dict, got {type(data).__name__}")
     cities = data.get("cities")
     if cities is None:
         return  # OK: empty fallback ({}) takes this path
     if not isinstance(cities, list):
-        raise ValueError(
-            f"addresses.yaml: 'cities' must be a list, got {type(cities).__name__}"
-        )
+        raise ValueError(f"addresses.yaml: 'cities' must be a list, got {type(cities).__name__}")
     if not cities:
         return  # OK: empty list (upstream guards against use)
     weights: list[float] = []
     for entry in cities:
         if not isinstance(entry, dict):
-            raise ValueError(
-                f"addresses.yaml: cities entry must be a dict, got {entry!r}"
-            )
+            raise ValueError(f"addresses.yaml: cities entry must be a dict, got {entry!r}")
         try:
             w = float(entry.get("weight", 1))
         except (TypeError, ValueError) as exc:
             raise ValueError(
-                f"addresses.yaml: cities entry {entry.get('city')!r} weight "
-                f"non-numeric: {entry.get('weight')!r}"
+                f"addresses.yaml: cities entry {entry.get('city')!r} weight non-numeric: {entry.get('weight')!r}"
             ) from exc
         if w < 0:
-            raise ValueError(
-                f"addresses.yaml: cities entry {entry.get('city')!r} has negative "
-                f"weight {w}"
-            )
+            raise ValueError(f"addresses.yaml: cities entry {entry.get('city')!r} has negative weight {w}")
         weights.append(w)
     if sum(weights) <= 0:
-        raise ValueError(
-            "addresses.yaml: cities has zero-sum weights"
-        )
+        raise ValueError("addresses.yaml: cities has zero-sum weights")
 
 
 @lru_cache(maxsize=16)
@@ -354,8 +322,17 @@ _FALLBACK_FORMATTING: dict[str, Any] = {
 
 _FALLBACK_DEMOGRAPHICS: dict[str, Any] = {
     "average_household_size": 2.5,
-    "age_distribution": {"0-14": 0.18, "15-24": 0.13, "25-34": 0.14, "35-44": 0.13,
-                         "45-54": 0.13, "55-64": 0.13, "65-74": 0.09, "75-84": 0.05, "85-99": 0.02},
+    "age_distribution": {
+        "0-14": 0.18,
+        "15-24": 0.13,
+        "25-34": 0.14,
+        "35-44": 0.13,
+        "45-54": 0.13,
+        "55-64": 0.13,
+        "65-74": 0.09,
+        "75-84": 0.05,
+        "85-99": 0.02,
+    },
     "blood_type": {"O": 0.44, "A": 0.42, "B": 0.10, "AB": 0.04},
     "chronic_prevalence": {},
 }

@@ -23,11 +23,7 @@ BMP_COMPONENTS_EMITTED = {"Na", "K", "Cl", "HCO3", "BUN", "Creatinine", "Glucose
 
 def _emitted_lab_names(record) -> set[str]:
     """Set of lab_name values across every RESULTED order on the record."""
-    return {
-        o.result.lab_name
-        for o in record.orders
-        if o.result is not None and o.result.lab_name
-    }
+    return {o.result.lab_name for o in record.orders if o.result is not None and o.result.lab_name}
 
 
 def _panel_parent_orders(record, parent_name: str) -> list:
@@ -41,7 +37,9 @@ def test_cerebral_infarction_cbc_emits_four_components():
     after PR1 that order expands into a panel parent (RESULTED) plus
     four child orders that produce WBC, Hb, Hct, and Plt OrderResults."""
     scenario = ForcedScenario(
-        disease_id="cerebral_infarction", count=2, severity="moderate",
+        disease_id="cerebral_infarction",
+        count=2,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
@@ -61,7 +59,9 @@ def test_dka_bmp_emits_eight_components_full_canonical():
     eight child orders and Phase 1 (Cl/Ca added to derive_lab_values) makes
     all eight components RESULT — full BMP canonical 8."""
     scenario = ForcedScenario(
-        disease_id="diabetic_ketoacidosis", count=2, severity="moderate",
+        disease_id="diabetic_ketoacidosis",
+        count=2,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
@@ -87,7 +87,9 @@ def test_panel_children_cancellation_is_per_specimen():
     and RESULTED siblings.
     """
     scenario = ForcedScenario(
-        disease_id="cerebral_infarction", count=10, severity="moderate",
+        disease_id="cerebral_infarction",
+        count=10,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
@@ -96,15 +98,12 @@ def test_panel_children_cancellation_is_per_specimen():
         # Group panel children by parent (order_id pattern: f"{parent}-{comp}").
         # A parent is any RESULTED panel order whose children are also in record.orders.
         parents = {
-            o.order_id for o in record.orders
-            if o.display_name in {"CBC", "BMP", "ABG"}
-            and o.status == OrderStatus.RESULTED
+            o.order_id
+            for o in record.orders
+            if o.display_name in {"CBC", "BMP", "ABG"} and o.status == OrderStatus.RESULTED
         }
         for parent_id in parents:
-            children = [
-                o for o in record.orders
-                if o.order_id.startswith(parent_id + "-")
-            ]
+            children = [o for o in record.orders if o.order_id.startswith(parent_id + "-")]
             if not children:
                 continue
             statuses = {c.status for c in children}
@@ -127,25 +126,18 @@ def test_dka_bmp_cl_ca_children_now_resulted():
     result because derive_lab_values dropped them — now RESULT alongside
     their six siblings, completing the canonical 8."""
     scenario = ForcedScenario(
-        disease_id="diabetic_ketoacidosis", count=2, severity="moderate",
+        disease_id="diabetic_ketoacidosis",
+        count=2,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
 
     for record in dataset.patients:
-        bmp_parents = [
-            o for o in record.orders
-            if o.display_name == "BMP" and o.status == OrderStatus.RESULTED
-        ]
+        bmp_parents = [o for o in record.orders if o.display_name == "BMP" and o.status == OrderStatus.RESULTED]
         for parent in bmp_parents:
-            cl_children = [
-                o for o in record.orders
-                if o.order_id == f"{parent.order_id}-Cl"
-            ]
-            ca_children = [
-                o for o in record.orders
-                if o.order_id == f"{parent.order_id}-Ca"
-            ]
+            cl_children = [o for o in record.orders if o.order_id == f"{parent.order_id}-Cl"]
+            ca_children = [o for o in record.orders if o.order_id == f"{parent.order_id}-Ca"]
             # Specimen acceptance path: every Cl/Ca child should be
             # RESULTED with a numerical result. Specimen rejection path
             # (per-parent sub-RNG cancels all children together) stays
@@ -160,8 +152,7 @@ def test_dka_bmp_cl_ca_children_now_resulted():
                     f"got {child.status}."
                 )
                 assert child.result is not None, (
-                    f"BMP child {child.order_id} ({child.display_name}) "
-                    f"has no result despite being RESULTED."
+                    f"BMP child {child.order_id} ({child.display_name}) has no result despite being RESULTED."
                 )
 
 
@@ -176,7 +167,9 @@ def test_panel_parents_marked_resulted_no_scalar_observation():
          must never fire on a panel name.
     """
     scenario = ForcedScenario(
-        disease_id="diabetic_ketoacidosis", count=2, severity="moderate",
+        disease_id="diabetic_ketoacidosis",
+        count=2,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
@@ -185,10 +178,7 @@ def test_panel_parents_marked_resulted_no_scalar_observation():
         # Check 1: every CBC/BMP parent ended up RESULTED.
         for parent_name in ("CBC", "BMP"):
             parents = _panel_parent_orders(record, parent_name)
-            assert parents, (
-                f"DKA patient should carry at least one {parent_name} order "
-                f"per protocol; found none."
-            )
+            assert parents, f"DKA patient should carry at least one {parent_name} order per protocol; found none."
             for p in parents:
                 assert p.status == OrderStatus.RESULTED, (
                     f"Panel parent {parent_name} should be RESULTED, "
@@ -196,8 +186,7 @@ def test_panel_parents_marked_resulted_no_scalar_observation():
                     f"inpatient.py:584 must mark it after extending children."
                 )
                 assert p.result is None, (
-                    f"Panel parent {parent_name} must not carry a scalar "
-                    f"OrderResult (children emit individually)."
+                    f"Panel parent {parent_name} must not carry a scalar OrderResult (children emit individually)."
                 )
 
         # Check 2: no result row is labelled with a panel name.
@@ -218,7 +207,9 @@ def test_cerebral_infarction_individual_hb_plt_orders_removed():
     patient's record. (Panel-child orders are allowed — their order_id
     ends in "-Hb" or "-Plt".)"""
     scenario = ForcedScenario(
-        disease_id="cerebral_infarction", count=5, severity="moderate",
+        disease_id="cerebral_infarction",
+        count=5,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
@@ -241,17 +232,16 @@ def test_cerebral_infarction_cbc_panel_still_emits_all_four_components():
     all four canonical components via its children. This protects
     against accidentally deleting too many lines in the YAML edit."""
     scenario = ForcedScenario(
-        disease_id="cerebral_infarction", count=5, severity="moderate",
+        disease_id="cerebral_infarction",
+        count=5,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
     for record in dataset.patients:
         emitted = {
-            o.result.lab_name
-            for o in record.orders
-            if o.result is not None and o.result.lab_name in CBC_COMPONENTS
+            o.result.lab_name for o in record.orders if o.result is not None and o.result.lab_name in CBC_COMPONENTS
         }
         assert CBC_COMPONENTS.issubset(emitted), (
-            f"After PR2 cerebral_infarction must still emit "
-            f"{CBC_COMPONENTS}; missing {CBC_COMPONENTS - emitted}."
+            f"After PR2 cerebral_infarction must still emit {CBC_COMPONENTS}; missing {CBC_COMPONENTS - emitted}."
         )

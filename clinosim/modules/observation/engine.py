@@ -46,49 +46,123 @@ def lab_panel_components(name: str) -> list[str]:
 
 # Biological variation (within-individual CV, Ricos et al.)
 BIOLOGICAL_CV: dict[str, float] = {
-    "Na": 0.006, "K": 0.046, "Cl": 0.012, "Ca": 0.019,
-    "Creatinine": 0.056, "BUN": 0.121, "Glucose": 0.056,
-    "AST": 0.120, "ALT": 0.195, "ALP": 0.068, "GGT": 0.138,
-    "T_Bil": 0.213, "Albumin": 0.032, "TP": 0.028,
-    "LDH": 0.083, "CK": 0.226,
-    "WBC": 0.110, "Hb": 0.029, "Hct": 0.029, "Plt": 0.094,
-    "CRP": 0.423, "PCT": 0.30, "BNP": 0.40, "Troponin": 0.14,
-    "Troponin_I": 0.14, "CK_MB": 0.15,
-    "Lactate": 0.278, "pH": 0.002, "HCO3": 0.040, "pCO2": 0.046,
-    "eGFR": 0.056, "PT_INR": 0.040, "HbA1c": 0.015,
+    "Na": 0.006,
+    "K": 0.046,
+    "Cl": 0.012,
+    "Ca": 0.019,
+    "Creatinine": 0.056,
+    "BUN": 0.121,
+    "Glucose": 0.056,
+    "AST": 0.120,
+    "ALT": 0.195,
+    "ALP": 0.068,
+    "GGT": 0.138,
+    "T_Bil": 0.213,
+    "Albumin": 0.032,
+    "TP": 0.028,
+    "LDH": 0.083,
+    "CK": 0.226,
+    "WBC": 0.110,
+    "Hb": 0.029,
+    "Hct": 0.029,
+    "Plt": 0.094,
+    "CRP": 0.423,
+    "PCT": 0.30,
+    "BNP": 0.40,
+    "Troponin": 0.14,
+    "Troponin_I": 0.14,
+    "CK_MB": 0.15,
+    "Lactate": 0.278,
+    "pH": 0.002,
+    "HCO3": 0.040,
+    "pCO2": 0.046,
+    "eGFR": 0.056,
+    "PT_INR": 0.040,
+    "HbA1c": 0.015,
 }
 
 # Analytical variation (instrument imprecision)
 ANALYTICAL_CV: dict[str, float] = {
-    "Na": 0.008, "K": 0.015, "Cl": 0.008, "Ca": 0.015,
-    "Creatinine": 0.030, "BUN": 0.030, "Glucose": 0.020,
-    "AST": 0.050, "ALT": 0.050, "ALP": 0.040, "GGT": 0.050,
-    "T_Bil": 0.040, "Albumin": 0.025, "TP": 0.015,
-    "LDH": 0.035, "CK": 0.040,
-    "WBC": 0.025, "Hb": 0.015, "Hct": 0.015, "Plt": 0.035,
-    "CRP": 0.050, "PCT": 0.080, "BNP": 0.070, "Troponin": 0.080,
-    "Troponin_I": 0.080, "CK_MB": 0.050,
-    "Lactate": 0.040, "pH": 0.001, "HCO3": 0.025, "pCO2": 0.025,
-    "eGFR": 0.030, "PT_INR": 0.035, "HbA1c": 0.01,
+    "Na": 0.008,
+    "K": 0.015,
+    "Cl": 0.008,
+    "Ca": 0.015,
+    "Creatinine": 0.030,
+    "BUN": 0.030,
+    "Glucose": 0.020,
+    "AST": 0.050,
+    "ALT": 0.050,
+    "ALP": 0.040,
+    "GGT": 0.050,
+    "T_Bil": 0.040,
+    "Albumin": 0.025,
+    "TP": 0.015,
+    "LDH": 0.035,
+    "CK": 0.040,
+    "WBC": 0.025,
+    "Hb": 0.015,
+    "Hct": 0.015,
+    "Plt": 0.035,
+    "CRP": 0.050,
+    "PCT": 0.080,
+    "BNP": 0.070,
+    "Troponin": 0.080,
+    "Troponin_I": 0.080,
+    "CK_MB": 0.050,
+    "Lactate": 0.040,
+    "pH": 0.001,
+    "HCO3": 0.025,
+    "pCO2": 0.025,
+    "eGFR": 0.030,
+    "PT_INR": 0.035,
+    "HbA1c": 0.01,
 }
 
 # Reporting precision (number of decimal places)
 PRECISION: dict[str, int] = {
-    "Na": 0, "K": 1, "Cl": 0, "Ca": 1,
-    "Creatinine": 2, "BUN": 1, "Glucose": 0, "eGFR": 0,
-    "AST": 0, "ALT": 0, "ALP": 0, "GGT": 0, "T_Bil": 1, "Albumin": 1, "TP": 1,
-    "LDH": 0, "CK": 0,
-    "WBC": 0, "Hb": 1, "Hct": 1, "Plt": 0,  # Plt reported as integer (10^3/uL)
-    "CRP": 1, "PCT": 2, "BNP": 1, "Troponin": 3,
-    "Troponin_I": 3, "CK_MB": 1,
-    "Lactate": 1, "pH": 2, "HCO3": 1, "pCO2": 1,
+    "Na": 0,
+    "K": 1,
+    "Cl": 0,
+    "Ca": 1,
+    "Creatinine": 2,
+    "BUN": 1,
+    "Glucose": 0,
+    "eGFR": 0,
+    "AST": 0,
+    "ALT": 0,
+    "ALP": 0,
+    "GGT": 0,
+    "T_Bil": 1,
+    "Albumin": 1,
+    "TP": 1,
+    "LDH": 0,
+    "CK": 0,
+    "WBC": 0,
+    "Hb": 1,
+    "Hct": 1,
+    "Plt": 0,  # Plt reported as integer (10^3/uL)
+    "CRP": 1,
+    "PCT": 2,
+    "BNP": 1,
+    "Troponin": 3,
+    "Troponin_I": 3,
+    "CK_MB": 1,
+    "Lactate": 1,
+    "pH": 2,
+    "HCO3": 1,
+    "pCO2": 1,
     "PT_INR": 1,
-    "HbA1c": 1, "ESR": 0,
-    "LDL": 0, "HDL": 0, "TG": 0, "TC": 0,
+    "HbA1c": 1,
+    "ESR": 0,
+    "LDL": 0,
+    "HDL": 0,
+    "TG": 0,
+    "TC": 0,
     # session 52 lint: "Na": 0 was duplicated (already declared above); dropped.
     "Fibrinogen": 0,
     "D_dimer": 2,
-    "Amylase": 0, "Lipase": 0,
+    "Amylase": 0,
+    "Lipase": 0,
     "TSH": 2,
     "Cortisol": 1,
 }
@@ -97,26 +171,55 @@ PRECISION: dict[str, int] = {
 # Standard units for lab results — UCUM (http://unitsofmeasure.org)
 # References: https://ucum.org/, FHIR R4 Observation requires UCUM
 LAB_UNITS: dict[str, str] = {
-    "Na": "mmol/L", "K": "mmol/L", "Cl": "mmol/L", "Ca": "mg/dL",
-    "Creatinine": "mg/dL", "BUN": "mg/dL", "Glucose": "mg/dL",
+    "Na": "mmol/L",
+    "K": "mmol/L",
+    "Cl": "mmol/L",
+    "Ca": "mg/dL",
+    "Creatinine": "mg/dL",
+    "BUN": "mg/dL",
+    "Glucose": "mg/dL",
     "eGFR": "mL/min/{1.73_m2}",  # UCUM annotation for body surface area
-    "AST": "U/L", "ALT": "U/L", "ALP": "U/L", "GGT": "U/L",
-    "T_Bil": "mg/dL", "Albumin": "g/dL", "TP": "g/dL",
-    "LDH": "U/L", "CK": "U/L",
-    "WBC": "/uL",         # Cell count per microliter (e.g. 7500)
-    "Hb": "g/dL", "Hct": "%",
-    "Plt": "10*3/uL",     # UCUM (was "x10^3/uL")
-    "CRP": "mg/L", "PCT": "ng/mL", "BNP": "pg/mL", "Troponin": "ng/mL",
-    "Troponin_I": "ng/mL", "CK_MB": "ng/mL",
-    "Lactate": "mmol/L", "pH": "[pH]", "HCO3": "mmol/L", "pCO2": "mm[Hg]",
+    "AST": "U/L",
+    "ALT": "U/L",
+    "ALP": "U/L",
+    "GGT": "U/L",
+    "T_Bil": "mg/dL",
+    "Albumin": "g/dL",
+    "TP": "g/dL",
+    "LDH": "U/L",
+    "CK": "U/L",
+    "WBC": "/uL",  # Cell count per microliter (e.g. 7500)
+    "Hb": "g/dL",
+    "Hct": "%",
+    "Plt": "10*3/uL",  # UCUM (was "x10^3/uL")
+    "CRP": "mg/L",
+    "PCT": "ng/mL",
+    "BNP": "pg/mL",
+    "Troponin": "ng/mL",
+    "Troponin_I": "ng/mL",
+    "CK_MB": "ng/mL",
+    "Lactate": "mmol/L",
+    "pH": "[pH]",
+    "HCO3": "mmol/L",
+    "pCO2": "mm[Hg]",
     "pO2": "mm[Hg]",
-    "PT_INR": "{INR}", "Fibrinogen": "mg/dL", "D_dimer": "ug/mL",
-    "TSH": "m[IU]/L", "SpO2": "%",
-    "HbA1c": "%", "ESR": "mm/h",
-    "Urinalysis": "{qualitative}", "Urine_culture": "{qualitative}",
-    "Rapid_Strep": "{qualitative}", "Tetanus_status": "{qualitative}",
-    "LDL": "mg/dL", "HDL": "mg/dL", "TG": "mg/dL", "TC": "mg/dL",
-    "Amylase": "U/L", "Lipase": "U/L",
+    "PT_INR": "{INR}",
+    "Fibrinogen": "mg/dL",
+    "D_dimer": "ug/mL",
+    "TSH": "m[IU]/L",
+    "SpO2": "%",
+    "HbA1c": "%",
+    "ESR": "mm/h",
+    "Urinalysis": "{qualitative}",
+    "Urine_culture": "{qualitative}",
+    "Rapid_Strep": "{qualitative}",
+    "Tetanus_status": "{qualitative}",
+    "LDL": "mg/dL",
+    "HDL": "mg/dL",
+    "TG": "mg/dL",
+    "TC": "mg/dL",
+    "Amylase": "U/L",
+    "Lipase": "U/L",
     "Cortisol": "ug/dL",
     # session 52 lint: "BNP": "pg/mL" was duplicated (already declared above); dropped.
 }
@@ -128,33 +231,39 @@ LAB_UNITS: dict[str, str] = {
 # measurement-noise tails (e.g. K 10.5 mmol/L, CRP 663 mg/L) that the multiplicative
 # Gaussian noise model can otherwise produce on large true values.
 PHYSIOLOGIC_LIMITS: dict[str, tuple[float, float]] = {
-    "Na": (100.0, 180.0),       # mmol/L — survivable hypo/hypernatremia extremes
-    "K": (2.5, 8.5),            # mmol/L
-    "Cl": (70.0, 130.0),        # mmol/L
-    "Ca": (4.0, 16.0),          # mg/dL
+    "Na": (100.0, 180.0),  # mmol/L — survivable hypo/hypernatremia extremes
+    "K": (2.5, 8.5),  # mmol/L
+    "Cl": (70.0, 130.0),  # mmol/L
+    "Ca": (4.0, 16.0),  # mg/dL
     "Glucose": (20.0, 1300.0),  # mg/dL — hypoglycemia to HHS
     "Creatinine": (0.1, 25.0),  # mg/dL — up to dialysis-dependent ESRD
-    "BUN": (1.0, 250.0),        # mg/dL
-    "Lactate": (0.2, 30.0),     # mmol/L
-    "CRP": (0.0, 500.0),        # mg/L
-    "WBC": (50.0, 200000.0),    # /uL — agranulocytosis to leukemoid reaction
-    "Hb": (2.0, 24.0),          # g/dL
-    "Hct": (6.0, 72.0),         # %
-    "Plt": (1.0, 2000.0),       # 10^3/uL
-    "pH": (6.8, 7.8),           # survivable acid-base extremes
-    "pCO2": (10.0, 130.0),      # mm[Hg]
-    "HCO3": (3.0, 50.0),        # mmol/L
-    "Troponin_I": (0.0, 200.0), # ng/mL — massive MI
-    "CK_MB": (0.0, 500.0),      # ng/mL
-    "BNP": (0.0, 5000.0),       # pg/mL — assay reporting ceiling
-    "HbA1c": (3.0, 18.0),       # % — survivable glycemic range
+    "BUN": (1.0, 250.0),  # mg/dL
+    "Lactate": (0.2, 30.0),  # mmol/L
+    "CRP": (0.0, 500.0),  # mg/L
+    "WBC": (50.0, 200000.0),  # /uL — agranulocytosis to leukemoid reaction
+    "Hb": (2.0, 24.0),  # g/dL
+    "Hct": (6.0, 72.0),  # %
+    "Plt": (1.0, 2000.0),  # 10^3/uL
+    "pH": (6.8, 7.8),  # survivable acid-base extremes
+    "pCO2": (10.0, 130.0),  # mm[Hg]
+    "HCO3": (3.0, 50.0),  # mmol/L
+    "Troponin_I": (0.0, 200.0),  # ng/mL — massive MI
+    "CK_MB": (0.0, 500.0),  # ng/mL
+    "BNP": (0.0, 5000.0),  # pg/mL — assay reporting ceiling
+    "HbA1c": (3.0, 18.0),  # % — survivable glycemic range
 }
 
 
 # Reference-normal fallback values for analytes physiology does not model, shared by the
 # outpatient/emergency venues (DET-6 — single source of truth, replaces per-venue dicts).
 BASELINE_LAB_NORMALS: dict[str, float] = {
-    "Ca": 9.2, "TSH": 2.5, "LDL": 110, "HDL": 55, "TG": 130, "TC": 190, "ESR": 12,
+    "Ca": 9.2,
+    "TSH": 2.5,
+    "LDL": 110,
+    "HDL": 55,
+    "TG": 130,
+    "TC": 190,
+    "ESR": 12,
 }
 
 
@@ -214,15 +323,19 @@ def _generate_qualitative_result(lab_name: str, rng: np.random.Generator) -> str
     """Return categorical result for qualitative tests."""
     if lab_name == "Urinalysis":
         # Common qualitative urinalysis dipstick result
-        return str(rng.choice(
-            ["Normal", "Trace protein", "1+ protein", "Trace blood", "1+ leukocytes", "Glucose 1+"],
-            p=[0.55, 0.10, 0.05, 0.10, 0.15, 0.05],
-        ))
+        return str(
+            rng.choice(
+                ["Normal", "Trace protein", "1+ protein", "Trace blood", "1+ leukocytes", "Glucose 1+"],
+                p=[0.55, 0.10, 0.05, 0.10, 0.15, 0.05],
+            )
+        )
     if lab_name == "Urine_culture":
-        return str(rng.choice(
-            ["No growth", "Mixed flora (contaminated)", "E. coli >100,000 CFU/mL", "Klebsiella >100,000 CFU/mL"],
-            p=[0.55, 0.20, 0.20, 0.05],
-        ))
+        return str(
+            rng.choice(
+                ["No growth", "Mixed flora (contaminated)", "E. coli >100,000 CFU/mL", "Klebsiella >100,000 CFU/mL"],
+                p=[0.55, 0.20, 0.20, 0.05],
+            )
+        )
     if lab_name == "Rapid_Strep":
         return str(rng.choice(["Negative", "Positive"], p=[0.85, 0.15]))
     if lab_name == "Tetanus_status":

@@ -112,11 +112,13 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
 
     code: dict[str, Any] = {"text": resolved_display}
     if allergen_code:
-        code["coding"] = [{
-            "system": snomed_system,
-            "code": allergen_code,
-            "display": resolved_display,
-        }]
+        code["coding"] = [
+            {
+                "system": snomed_system,
+                "code": allergen_code,
+                "display": resolved_display,
+            }
+        ]
 
     # C5-24 (session 43 cycle 5): AllergyIntolerance status displays now
     # locale-aware. Was hard-coded "en" — JP output leaked English displays.
@@ -128,22 +130,28 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         # Session 46 chain #2: JP Core AllergyIntolerance profile.
         # lang == "ja" is the JP-country signal in this builder's caller chain
         # (BundleContext resolves lang from country in _bb_allergy_intolerances).
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"
-        ]}} if lang == "ja" else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"]}}
+            if lang == "ja"
+            else {}
+        ),
         "clinicalStatus": {
-            "coding": [{
-                "system": _CLINICAL_STATUS_SYSTEM,
-                "code": clinical_status,
-                "display": clin_display,
-            }],
+            "coding": [
+                {
+                    "system": _CLINICAL_STATUS_SYSTEM,
+                    "code": clinical_status,
+                    "display": clin_display,
+                }
+            ],
         },
         "verificationStatus": {
-            "coding": [{
-                "system": _VERIFICATION_STATUS_SYSTEM,
-                "code": verification_status,
-                "display": ver_display,
-            }],
+            "coding": [
+                {
+                    "system": _VERIFICATION_STATUS_SYSTEM,
+                    "code": verification_status,
+                    "display": ver_display,
+                }
+            ],
         },
         # C5-14 (session 43 cycle 5): AllergyIntolerance.type (0..1) —
         # `allergy` for immune-mediated hypersensitivity, `intolerance` for
@@ -188,11 +196,13 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         if resolved_manifestation:
             manifestation["text"] = resolved_manifestation
         if manifestation_snomed:
-            manifestation["coding"] = [{
-                "system": snomed_system,
-                "code": manifestation_snomed,
-                "display": resolved_manifestation or manifestation_snomed,
-            }]
+            manifestation["coding"] = [
+                {
+                    "system": snomed_system,
+                    "code": manifestation_snomed,
+                    "display": resolved_manifestation or manifestation_snomed,
+                }
+            ]
 
         rxn_entry: dict[str, Any] = {
             "manifestation": [manifestation] if manifestation else [{"text": "Adverse reaction"}],

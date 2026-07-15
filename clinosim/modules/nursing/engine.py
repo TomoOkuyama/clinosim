@@ -18,12 +18,8 @@ from clinosim.types.staff import StaffRoster
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
-SUPPORTED_ADL_CATEGORIES: frozenset[str] = frozenset(
-    {"eating", "bathing", "dressing", "toileting", "mobility"}
-)
-SUPPORTED_RISK_ASSESSMENTS: frozenset[str] = frozenset(
-    {"fall_risk", "pressure_ulcer_risk", "aspiration_risk"}
-)
+SUPPORTED_ADL_CATEGORIES: frozenset[str] = frozenset({"eating", "bathing", "dressing", "toileting", "mobility"})
+SUPPORTED_RISK_ASSESSMENTS: frozenset[str] = frozenset({"fall_risk", "pressure_ulcer_risk", "aspiration_risk"})
 INPATIENT_ENCOUNTER_TYPES: frozenset[str] = frozenset({"inpatient", "icu", "rehab_inpatient"})
 
 
@@ -41,13 +37,9 @@ def _validate_nursing_assessment(data: dict[str, Any]) -> None:
     # Layer 3: baseline required fields
     baseline = data["baseline"]
     if not isinstance(baseline, dict) or "focus" not in baseline:
-        raise ValueError(
-            "nursing_assessment.yaml: baseline must have 'focus' field"
-        )
+        raise ValueError("nursing_assessment.yaml: baseline must have 'focus' field")
     if "interventions_ja" not in baseline:
-        raise ValueError(
-            "nursing_assessment.yaml: baseline must have 'interventions_ja' field"
-        )
+        raise ValueError("nursing_assessment.yaml: baseline must have 'interventions_ja' field")
 
     # Layer 4: forward + reverse coverage for adl_categories vs SUPPORTED_ADL_CATEGORIES
     adl_keys = set(data["adl_categories"].keys())
@@ -73,10 +65,7 @@ def _validate_nursing_assessment(data: dict[str, Any]) -> None:
     disease_focus = data.get("disease_specific_nursing_focus", {}) or {}
     for disease_id, entry in disease_focus.items():
         if not isinstance(entry, dict):
-            raise ValueError(
-                f"nursing_assessment.yaml: disease_specific_nursing_focus[{disease_id!r}] "
-                f"must be a dict"
-            )
+            raise ValueError(f"nursing_assessment.yaml: disease_specific_nursing_focus[{disease_id!r}] must be a dict")
         if "focus" not in entry:
             raise ValueError(
                 f"nursing_assessment.yaml: disease_specific_nursing_focus[{disease_id!r}] "
@@ -90,9 +79,7 @@ def _validate_nursing_assessment(data: dict[str, Any]) -> None:
 
     # Layer 6: type checks (interventions_ja must be list)
     if not isinstance(baseline.get("interventions_ja"), list):
-        raise ValueError(
-            "nursing_assessment.yaml: baseline.interventions_ja must be a list"
-        )
+        raise ValueError("nursing_assessment.yaml: baseline.interventions_ja must be a list")
     for disease_id, entry in disease_focus.items():
         if not isinstance(entry.get("interventions_ja"), list):
             raise ValueError(
@@ -110,9 +97,7 @@ def load_nursing_assessment() -> dict[str, Any]:
     return data
 
 
-def assign_primary_nurse(
-    encounter: Any, roster: StaffRoster | None, rng: np.random.Generator
-) -> str:
+def assign_primary_nurse(encounter: Any, roster: StaffRoster | None, rng: np.random.Generator) -> str:
     """Pick a primary nurse from roster uniformly at random.
 
     Args:
@@ -163,8 +148,6 @@ def nursing_enricher(ctx: Any) -> None:
             if enc_type_str.lower() not in INPATIENT_ENCOUNTER_TYPES:
                 continue
             enc_id = _o(enc, "encounter_id", "")
-            sub_seed = derive_sub_seed(
-                ctx.master_seed, ENRICHER_SEED_OFFSETS["nursing"], enc_id
-            )
+            sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["nursing"], enc_id)
             rng = np.random.default_rng(sub_seed)
             enc.primary_nurse_id = assign_primary_nurse(enc, roster, rng)

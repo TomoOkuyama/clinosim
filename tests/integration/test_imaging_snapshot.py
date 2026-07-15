@@ -48,8 +48,7 @@ def test_snapshot_yields_active_imaging_sr_for_inprogress_encounters() -> None:
         in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
         if not in_progress_ids:
             pytest.skip(
-                "No in-progress Encounters for p=300, seed=42, end=2025-02-28. "
-                "Increase population or adjust end date."
+                "No in-progress Encounters for p=300, seed=42, end=2025-02-28. Increase population or adjust end date."
             )
 
         srs = load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))
@@ -94,10 +93,7 @@ def test_active_imaging_sr_without_imaging_study_on_snapshot() -> None:
 
         srs = load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))
         active_imaging_no_study = [
-            s for s in srs
-            if _is_imaging_sr(s)
-            and s.get("status") == "active"
-            and s["id"] not in study_order_ids
+            s for s in srs if _is_imaging_sr(s) and s.get("status") == "active" and s["id"] not in study_order_ids
         ]
 
         # The semantic holds: active imaging SRs without a backing study are valid
@@ -135,9 +131,7 @@ def test_snapshot_imaging_srs_valid_structure() -> None:
             pytest.skip("No imaging SRs in snapshot cohort n=200")
         for sr in imaging_srs:
             sr_id = sr.get("id", "?")
-            assert sr.get("status") in {"active", "completed"}, (
-                f"SR/{sr_id} has unexpected status {sr.get('status')!r}"
-            )
+            assert sr.get("status") in {"active", "completed"}, f"SR/{sr_id} has unexpected status {sr.get('status')!r}"
             # C1-16 (session 41 cycle 1): SR.intent is now context-derived from
             # order.clinical_intent — ED imaging orders map to "original-order"
             # (fresh order authored by ED clinician). Both are valid FHIR R4
@@ -146,6 +140,4 @@ def test_snapshot_imaging_srs_valid_structure() -> None:
                 f"SR/{sr_id} intent must be order/original-order, got {sr.get('intent')!r}"
             )
             subj = sr.get("subject", {}).get("reference", "")
-            assert subj.startswith("Patient/"), (
-                f"SR/{sr_id} subject must start with 'Patient/': {subj!r}"
-            )
+            assert subj.startswith("Patient/"), f"SR/{sr_id} subject must start with 'Patient/': {subj!r}"

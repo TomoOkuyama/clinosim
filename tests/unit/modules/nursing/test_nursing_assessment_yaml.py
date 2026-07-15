@@ -54,11 +54,17 @@ def test_validator_raises_on_adl_forward_drift():
     """ADL key not in SUPPORTED_ADL_CATEGORIES → extra key drift."""
     bad = {
         "adl_categories": {
-            "eating": [], "bathing": [], "dressing": [], "toileting": [], "mobility": [],
+            "eating": [],
+            "bathing": [],
+            "dressing": [],
+            "toileting": [],
+            "mobility": [],
             "unknown_adl": [],  # extra
         },
         "risk_assessments": {
-            "fall_risk": [], "pressure_ulcer_risk": [], "aspiration_risk": [],
+            "fall_risk": [],
+            "pressure_ulcer_risk": [],
+            "aspiration_risk": [],
         },
         "disease_specific_nursing_focus": {},
         "baseline": {"focus": "f", "interventions_ja": []},
@@ -71,10 +77,13 @@ def test_validator_raises_on_adl_reverse_drift():
     """Missing ADL key → reverse drift."""
     bad = {
         "adl_categories": {
-            "eating": [], "bathing": [],  # missing dressing, toileting, mobility
+            "eating": [],
+            "bathing": [],  # missing dressing, toileting, mobility
         },
         "risk_assessments": {
-            "fall_risk": [], "pressure_ulcer_risk": [], "aspiration_risk": [],
+            "fall_risk": [],
+            "pressure_ulcer_risk": [],
+            "aspiration_risk": [],
         },
         "disease_specific_nursing_focus": {},
         "baseline": {"focus": "f", "interventions_ja": []},
@@ -87,10 +96,16 @@ def test_validator_raises_on_risk_forward_drift():
     """Risk key not in SUPPORTED_RISK_ASSESSMENTS → extra key drift."""
     bad = {
         "adl_categories": {
-            "eating": [], "bathing": [], "dressing": [], "toileting": [], "mobility": [],
+            "eating": [],
+            "bathing": [],
+            "dressing": [],
+            "toileting": [],
+            "mobility": [],
         },
         "risk_assessments": {
-            "fall_risk": [], "pressure_ulcer_risk": [], "aspiration_risk": [],
+            "fall_risk": [],
+            "pressure_ulcer_risk": [],
+            "aspiration_risk": [],
             "unknown_risk": [],  # extra
         },
         "disease_specific_nursing_focus": {},
@@ -103,10 +118,16 @@ def test_validator_raises_on_risk_forward_drift():
 def test_validator_raises_on_disease_entry_missing_focus():
     bad = {
         "adl_categories": {
-            "eating": [], "bathing": [], "dressing": [], "toileting": [], "mobility": [],
+            "eating": [],
+            "bathing": [],
+            "dressing": [],
+            "toileting": [],
+            "mobility": [],
         },
         "risk_assessments": {
-            "fall_risk": [], "pressure_ulcer_risk": [], "aspiration_risk": [],
+            "fall_risk": [],
+            "pressure_ulcer_risk": [],
+            "aspiration_risk": [],
         },
         "disease_specific_nursing_focus": {
             "bacterial_pneumonia": {"interventions_ja": ["test"]},  # missing focus
@@ -120,10 +141,16 @@ def test_validator_raises_on_disease_entry_missing_focus():
 def test_validator_raises_on_disease_entry_interventions_not_list():
     bad = {
         "adl_categories": {
-            "eating": [], "bathing": [], "dressing": [], "toileting": [], "mobility": [],
+            "eating": [],
+            "bathing": [],
+            "dressing": [],
+            "toileting": [],
+            "mobility": [],
         },
         "risk_assessments": {
-            "fall_risk": [], "pressure_ulcer_risk": [], "aspiration_risk": [],
+            "fall_risk": [],
+            "pressure_ulcer_risk": [],
+            "aspiration_risk": [],
         },
         "disease_specific_nursing_focus": {
             "bacterial_pneumonia": {"focus": "f", "interventions_ja": "not_a_list"},
@@ -137,10 +164,16 @@ def test_validator_raises_on_disease_entry_interventions_not_list():
 def test_validator_raises_on_baseline_missing_focus():
     bad = {
         "adl_categories": {
-            "eating": [], "bathing": [], "dressing": [], "toileting": [], "mobility": [],
+            "eating": [],
+            "bathing": [],
+            "dressing": [],
+            "toileting": [],
+            "mobility": [],
         },
         "risk_assessments": {
-            "fall_risk": [], "pressure_ulcer_risk": [], "aspiration_risk": [],
+            "fall_risk": [],
+            "pressure_ulcer_risk": [],
+            "aspiration_risk": [],
         },
         "disease_specific_nursing_focus": {},
         "baseline": {"interventions_ja": []},  # missing focus

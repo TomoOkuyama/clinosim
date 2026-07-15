@@ -18,9 +18,14 @@ def _write_cif(cif_dir, record):
 
 def test_alcohol_in_patients_csv_and_care_level_csv(tmp_path):
     cif, out = str(tmp_path / "cif"), str(tmp_path / "out")
-    _write_cif(cif, {"patient": {"patient_id": "P1", "alcohol_use": "social"},
-                     "encounters": [{"encounter_id": "E1", "encounter_type": "inpatient"}],
-                     "care_level": "care2"})
+    _write_cif(
+        cif,
+        {
+            "patient": {"patient_id": "P1", "alcohol_use": "social"},
+            "encounters": [{"encounter_id": "E1", "encounter_type": "inpatient"}],
+            "care_level": "care2",
+        },
+    )
     convert_cif_to_csv(cif, out, country="JP")
     prows = list(csv.DictReader(open(os.path.join(out, "patients.csv"))))
     assert prows[0]["alcohol_use"] == "social"

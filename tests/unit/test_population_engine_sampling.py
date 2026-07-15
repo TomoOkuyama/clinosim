@@ -6,6 +6,7 @@ YAML-sourced blood_type weights through normalize_probabilities(fallback=
 in this file and closing the one YAML-sourced rng.choice(p=...) call site
 that bypassed it (0.40+0.30+0.20+0.10 sums to 0.9999999999999999 in float64).
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -16,6 +17,7 @@ pytestmark = pytest.mark.unit
 
 def test_sample_blood_type_returns_valid_key():
     from clinosim.modules.population.engine import _sample_blood_type
+
     demo = {"blood_type": {"A": 0.40, "O": 0.30, "B": 0.20, "AB": 0.10}}
     rng = np.random.default_rng(0)
     result = _sample_blood_type(demo, rng)
@@ -24,6 +26,7 @@ def test_sample_blood_type_returns_valid_key():
 
 def test_sample_blood_type_deterministic_with_seed():
     from clinosim.modules.population.engine import _sample_blood_type
+
     demo = {"blood_type": {"A": 0.40, "O": 0.30, "B": 0.20, "AB": 0.10}}
     r1 = _sample_blood_type(demo, np.random.default_rng(42))
     r2 = _sample_blood_type(demo, np.random.default_rng(42))
@@ -32,6 +35,7 @@ def test_sample_blood_type_deterministic_with_seed():
 
 def test_sample_blood_type_uses_default_when_demo_missing_key():
     from clinosim.modules.population.engine import _sample_blood_type
+
     rng = np.random.default_rng(0)
     result = _sample_blood_type({}, rng)
     assert result in {"O", "A", "B", "AB"}
@@ -39,6 +43,7 @@ def test_sample_blood_type_uses_default_when_demo_missing_key():
 
 def test_sample_blood_type_raises_on_zero_sum():
     from clinosim.modules.population.engine import _sample_blood_type
+
     demo = {"blood_type": {"A": 0.0, "O": 0.0}}
     rng = np.random.default_rng(0)
     with pytest.raises(ValueError, match="non-positive sum"):

@@ -30,6 +30,7 @@ def _make_lab_result(loinc: str, value):
 def _make_ctx(lab_results, patient):
     """narrative context 最小構成。"""
     from clinosim.types.document import DocumentType, NarrativeContext
+
     ctx = NarrativeContext(
         patient=patient,
         encounter=SimpleNamespace(encounter_id="CHK-ENC-001", admission_datetime="2026-04-15T09:00:00"),
@@ -58,11 +59,11 @@ def test_checkup_lab_results_all_normal_grade_a():
     """全項目が基準内 → 総合判定 A(異常なし)。"""
     gen = TemplateNarrativeGenerator()
     labs = [
-        _make_lab_result("39156-5", 22.5),   # BMI 標準
-        _make_lab_result("8480-6", 118),      # 収縮期 BP 基準内
-        _make_lab_result("8462-4", 76),       # 拡張期 BP 基準内
-        _make_lab_result("4548-4", 5.4),      # HbA1c 基準内
-        _make_lab_result("18262-6", 100),     # LDL 基準内
+        _make_lab_result("39156-5", 22.5),  # BMI 標準
+        _make_lab_result("8480-6", 118),  # 収縮期 BP 基準内
+        _make_lab_result("8462-4", 76),  # 拡張期 BP 基準内
+        _make_lab_result("4548-4", 5.4),  # HbA1c 基準内
+        _make_lab_result("18262-6", 100),  # LDL 基準内
     ]
     ctx = _make_ctx(labs, patient=SimpleNamespace(patient_id="P1"))
     text, facts = gen._build_checkup_lab_results(ctx)
@@ -79,7 +80,7 @@ def test_checkup_lab_results_high_bp_grade_d():
     gen = TemplateNarrativeGenerator()
     labs = [
         _make_lab_result("39156-5", 24.0),
-        _make_lab_result("8480-6", 152),      # 高血圧
+        _make_lab_result("8480-6", 152),  # 高血圧
         _make_lab_result("8462-4", 96),
         _make_lab_result("4548-4", 5.4),
         _make_lab_result("18262-6", 100),
@@ -98,7 +99,7 @@ def test_checkup_lab_results_high_hba1c_grade_d():
         _make_lab_result("39156-5", 25.0),
         _make_lab_result("8480-6", 128),
         _make_lab_result("8462-4", 82),
-        _make_lab_result("4548-4", 7.2),      # 糖尿病型
+        _make_lab_result("4548-4", 7.2),  # 糖尿病型
         _make_lab_result("18262-6", 100),
     ]
     ctx = _make_ctx(labs, patient=SimpleNamespace(patient_id="P3"))
@@ -140,6 +141,7 @@ def test_checkup_questionnaire_healthy_patient():
 def test_checkup_questionnaire_patient_with_chronic_conditions():
     """慢性疾患保有時は経過観察を要す。"""
     from clinosim.types.patient import ChronicCondition
+
     gen = TemplateNarrativeGenerator()
     patient = SimpleNamespace(
         patient_id="P6",

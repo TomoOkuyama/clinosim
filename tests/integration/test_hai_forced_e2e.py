@@ -8,6 +8,7 @@ test suite missed because every test bypassed the enricher path:
 These tests guard the plumbing directly (without depending on a 50-patient
 ICU-transfer rate that fluctuates).
 """
+
 from __future__ import annotations
 
 from datetime import date as _date
@@ -26,29 +27,27 @@ def test_run_forced_registers_post_encounter_enrichers():
     skipped register_builtin_enrichers() so POST_ENCOUNTER was empty and
     every encounter's enricher hook was a no-op."""
     scenario = ForcedScenario(
-        disease_id="bacterial_pneumonia", count=1, archetype="standard",
+        disease_id="bacterial_pneumonia",
+        count=1,
+        archetype="standard",
         severity="mild",
     )
     config = SimulatorConfig(country="US", random_seed=42)
     run_forced(scenario, config)
 
     from clinosim.simulator.enrichers import _ENRICHERS, POST_ENCOUNTER
-    names_in_post_encounter = {
-        name for name, e in _ENRICHERS.items() if e.stage == POST_ENCOUNTER
-    }
+
+    names_in_post_encounter = {name for name, e in _ENRICHERS.items() if e.stage == POST_ENCOUNTER}
     assert "device" in names_in_post_encounter, (
-        "modules/device not registered in POST_ENCOUNTER stage "
-        "(run_forced is missing register_builtin_enrichers)"
+        "modules/device not registered in POST_ENCOUNTER stage (run_forced is missing register_builtin_enrichers)"
     )
     assert "hai" in names_in_post_encounter, (
-        "modules/hai not registered in POST_ENCOUNTER stage "
-        "(run_forced is missing register_builtin_enrichers)"
+        "modules/hai not registered in POST_ENCOUNTER stage (run_forced is missing register_builtin_enrichers)"
     )
     # PR-93 adversarial review fix: also pin antibiotic registration
     # so a future PR cannot remove it without the test catching it.
     assert "antibiotic" in names_in_post_encounter, (
-        "modules/antibiotic not registered in POST_ENCOUNTER stage "
-        "(register_builtin_enrichers regression)"
+        "modules/antibiotic not registered in POST_ENCOUNTER stage (register_builtin_enrichers regression)"
     )
 
 
@@ -64,12 +63,14 @@ def test_hai_event_hai_type_strings_are_canonical():
     end-to-end with guaranteed HAI events.
     """
     scenario = ForcedScenario(
-        disease_id="sepsis", count=100, archetype="treatment_resistant",
+        disease_id="sepsis",
+        count=100,
+        archetype="treatment_resistant",
         severity="severe",
         force_hai_event={
             "hai_type": "cauti",
             "onset_offset_days": 3,
-            "organism_snomed": "112283007",   # E. coli
+            "organism_snomed": "112283007",  # E. coli
         },
     )
     config = SimulatorConfig(country="US", random_seed=42)
@@ -99,10 +100,7 @@ def test_hai_event_hai_type_strings_are_canonical():
         )
 
     bad = {t for t in seen_types if t not in HAI_TYPES}
-    assert not bad, (
-        f"enricher produced non-canonical hai_type strings {bad}; "
-        f"must be one of {HAI_TYPES}"
-    )
+    assert not bad, f"enricher produced non-canonical hai_type strings {bad}; must be one of {HAI_TYPES}"
 
 
 @pytest.mark.integration
@@ -120,18 +118,29 @@ def test_snapshot_truncates_post_snapshot_hai_events():
     from types import SimpleNamespace
 
     from clinosim.types.hai import HAIEvent
+
     snapshot_date = _date(2026, 1, 15)
     pre_hai = HAIEvent(
-        hai_id="h1", encounter_id="e1", hai_type="clabsi",
-        source_device_id="d1", icd10_code="T80.211A",
-        snomed_code="736442006", onset_date="2026-01-12",  # before snapshot
-        organism_snomed="3092008", culture_specimen_id="s1",
+        hai_id="h1",
+        encounter_id="e1",
+        hai_type="clabsi",
+        source_device_id="d1",
+        icd10_code="T80.211A",
+        snomed_code="736442006",
+        onset_date="2026-01-12",  # before snapshot
+        organism_snomed="3092008",
+        culture_specimen_id="s1",
     )
     post_hai = HAIEvent(
-        hai_id="h2", encounter_id="e1", hai_type="cauti",
-        source_device_id="d2", icd10_code="T83.511A",
-        snomed_code="68566005", onset_date="2026-01-18",  # past snapshot
-        organism_snomed="112283007", culture_specimen_id="s2",
+        hai_id="h2",
+        encounter_id="e1",
+        hai_type="cauti",
+        source_device_id="d2",
+        icd10_code="T83.511A",
+        snomed_code="68566005",
+        onset_date="2026-01-18",  # past snapshot
+        organism_snomed="112283007",
+        culture_specimen_id="s2",
     )
     record = SimpleNamespace(
         extensions={"hai": [pre_hai, post_hai]},

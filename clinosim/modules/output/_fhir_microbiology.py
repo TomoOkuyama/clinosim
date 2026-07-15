@@ -87,17 +87,28 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     lang = resolve_lang(ctx.country)
     subject = {"reference": f"Patient/{ctx.patient_id}"}
     enc_ref = {"reference": f"Encounter/{ctx.primary_enc_id}"} if ctx.primary_enc_id else None
-    lab_category = [{"coding": [{
-        "system": get_system_uri("hl7-observation-category"),
-        "code": "laboratory", "display": "Laboratory",
-    }]}]
+    lab_category = [
+        {
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-observation-category"),
+                    "code": "laboratory",
+                    "display": "Laboratory",
+                }
+            ]
+        }
+    ]
     # CY6-03 (Chain-6): microbiology DR performer — encounter attending
     # fallback (same rationale as lab panel DR).
     _mb_performer_ref = ""
     for _enc in ctx.record.get("encounters", []) or []:
         _eid = _enc.get("encounter_id", "") if isinstance(_enc, dict) else getattr(_enc, "encounter_id", "")
         if _eid == ctx.primary_enc_id:
-            _att = _enc.get("attending_physician_id", "") if isinstance(_enc, dict) else getattr(_enc, "attending_physician_id", "")
+            _att = (
+                _enc.get("attending_physician_id", "")
+                if isinstance(_enc, dict)
+                else getattr(_enc, "attending_physician_id", "")
+            )  # noqa: E501
             if _att:
                 _mb_performer_ref = f"Practitioner/{_att}"
             break
@@ -108,10 +119,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         spec_id = f"{MB_SPECIMEN_ID_PREFIX}{base}"
         # PR3b-5: build identifier list once per culture; empty when not HAI.
         hai_event_id = mb.get("hai_event_id", "")
-        hai_identifier = (
-            [{"system": HAI_EVENT_ID_SYSTEM, "value": hai_event_id}]
-            if hai_event_id else []
-        )
+        hai_identifier = [{"system": HAI_EVENT_ID_SYSTEM, "value": hai_event_id}] if hai_event_id else []
         specimen: dict[str, Any] = {"resourceType": "Specimen", "id": spec_id, "subject": subject}
         if hai_identifier:
             specimen["identifier"] = hai_identifier
@@ -132,17 +140,20 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # SNOMED CT 容器 code は正典未確定、text-only per no-fabrication policy。
         _spec_type = mb.get("specimen", "")
         _container_text_ja = {
-            "blood":        "血液培養ボトル",
-            "urine":        "滅菌尿カップ",
-            "sputum":       "喀痰カップ",
-            "wound":        "スワブ容器",
-            "csf":          "髄液滅菌管",
-            "stool":        "便検体容器",
+            "blood": "血液培養ボトル",
+            "urine": "滅菌尿カップ",
+            "sputum": "喀痰カップ",
+            "wound": "スワブ容器",
+            "csf": "髄液滅菌管",
+            "stool": "便検体容器",
         }
         _container_text_en = {
-            "blood":  "Blood culture bottle", "urine":  "Sterile urine container",
-            "sputum": "Sputum container",     "wound":  "Swab container",
-            "csf":    "Sterile CSF tube",     "stool":  "Stool container",
+            "blood": "Blood culture bottle",
+            "urine": "Sterile urine container",
+            "sputum": "Sputum container",
+            "wound": "Swab container",
+            "csf": "Sterile CSF tube",
+            "stool": "Stool container",
         }
         _ct = _container_text_ja if lang == "ja" else _container_text_en
         if _spec_type in _ct:
@@ -150,11 +161,17 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # CY8-11 fix: Specimen.condition — 品質状態。既定は SNOMED 260385009
         # (Negative — 異常無し)、hemolysis/quality-note があれば別 code。
         # 現状 CIF に quality flag 無いため一律 negative (98%+ realistic)。
-        specimen["condition"] = [{"coding": [{
-            "system": "http://snomed.info/sct",
-            "code": "260385009",
-            "display": "陰性(異常なし)" if lang == "ja" else "Negative (adequate)",
-        }]}]
+        specimen["condition"] = [
+            {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "260385009",
+                        "display": "陰性(異常なし)" if lang == "ja" else "Negative (adequate)",
+                    }
+                ]
+            }
+        ]
         # CY8-12 fix: Specimen.note — 技師コメント default 空、
         # quantitation(菌量表記等)がある場合のみ note を emit。
         if mb.get("quantitation"):
@@ -164,8 +181,11 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         culture_code_value, code_system = resolve_culture_code(
             mb.get("specimen", ""), mb.get("test_loinc", ""), ctx.country
         )
-        culture_code = ({"coding": [_micro_coding(code_system, culture_code_value, lang)]}
-                        if culture_code_value else {"text": "Culture"})
+        culture_code = (
+            {"coding": [_micro_coding(code_system, culture_code_value, lang)]}
+            if culture_code_value
+            else {"text": "Culture"}
+        )
         result_refs: list[dict] = []
 
         # C5-21 (Chain 2): Observation.method for microbiology. Culture-based
@@ -177,13 +197,18 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
 
         org_id = f"{MB_ORG_ID_PREFIX}{base}"
         org_obs: dict[str, Any] = {
-            "resourceType": "Observation", "id": org_id,
+            "resourceType": "Observation",
+            "id": org_id,
             # Session 46 chain #2: JP Core Observation_LabResult profile.
-            **({"meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"
-            ]}} if is_jp(ctx.country) else {}),
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"]}}
+                if is_jp(ctx.country)
+                else {}
+            ),
             "status": "final",
-            "category": lab_category, "code": culture_code, "subject": subject,
+            "category": lab_category,
+            "code": culture_code,
+            "subject": subject,
             "specimen": {"reference": f"Specimen/{spec_id}"},
             "method": {"text": _culture_method_text},
         }
@@ -194,9 +219,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         if mb.get("reported_datetime"):
             org_obs["effectiveDateTime"] = mb["reported_datetime"]
         if mb.get("growth") and mb.get("organism_snomed"):
-            org_obs["valueCodeableConcept"] = {
-                "coding": [_micro_coding("snomed-ct", mb["organism_snomed"], lang)]
-            }
+            org_obs["valueCodeableConcept"] = {"coding": [_micro_coding("snomed-ct", mb["organism_snomed"], lang)]}
             if mb.get("quantitation"):
                 org_obs["note"] = [{"text": mb["quantitation"]}]
         else:
@@ -208,26 +231,31 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             interp = sus.get("interpretation", "")
             sus_id = f"{MB_SUS_ID_PREFIX}{base}-{j}"
             antibiotic_loinc = sus.get("antibiotic_loinc", "")
-            sus_code_value, sus_code_system = resolve_susceptibility_code(
-                antibiotic_loinc, ctx.country
-            )
+            sus_code_value, sus_code_system = resolve_susceptibility_code(antibiotic_loinc, ctx.country)
             sus_obs: dict[str, Any] = {
-                "resourceType": "Observation", "id": sus_id,
+                "resourceType": "Observation",
+                "id": sus_id,
                 # Session 46 chain #2: JP Core Observation_LabResult profile.
-                **({"meta": {"profile": [
-                    "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"
-                ]}} if is_jp(ctx.country) else {}),
+                **(
+                    {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"]}}
+                    if is_jp(ctx.country)
+                    else {}
+                ),
                 "status": "final",
                 "category": lab_category,
                 "code": {"coding": [_micro_coding(sus_code_system, sus_code_value, lang)]},
                 "subject": subject,
                 "specimen": {"reference": f"Specimen/{spec_id}"},
                 "method": {"text": _sus_method_text},
-                "valueCodeableConcept": {"coding": [{
-                    "system": get_system_uri("hl7-observation-interpretation"),
-                    "code": interp,
-                    "display": code_lookup("hl7-observation-interpretation", interp, lang),
-                }]},
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-observation-interpretation"),
+                            "code": interp,
+                            "display": code_lookup("hl7-observation-interpretation", interp, lang),
+                        }
+                    ]
+                },
             }
             if hai_identifier:
                 sus_obs["identifier"] = hai_identifier
@@ -241,17 +269,28 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             result_refs.append({"reference": f"Observation/{sus_id}"})
 
         report: dict[str, Any] = {
-            "resourceType": "DiagnosticReport", "id": f"{MB_DR_ID_PREFIX}{base}",
+            "resourceType": "DiagnosticReport",
+            "id": f"{MB_DR_ID_PREFIX}{base}",
             # Session 46 chain #2: JP Core DiagnosticReport_LabResult profile.
-            **({"meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"
-            ]}} if is_jp(ctx.country) else {}),
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"]}}
+                if is_jp(ctx.country)
+                else {}
+            ),
             "status": "final",
-            "category": [{"coding": [{
-                "system": get_system_uri("hl7-diagnostic-service-section"),
-                "code": "MB", "display": "Microbiology",
-            }]}],
-            "code": culture_code, "subject": subject,
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-diagnostic-service-section"),
+                            "code": "MB",
+                            "display": "Microbiology",
+                        }
+                    ]
+                }
+            ],
+            "code": culture_code,
+            "subject": subject,
             "specimen": [{"reference": f"Specimen/{spec_id}"}],
             "result": result_refs,
         }
@@ -266,22 +305,26 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             # CY8-13 polish: DR.resultsInterpreter — 培養検査は微生物検査室で解釈。
             report["resultsInterpreter"] = [{"reference": _mb_performer_ref}]
         else:
-            report["resultsInterpreter"] = [
-                {"reference": "Organization/hospital-main"}
-            ]
+            report["resultsInterpreter"] = [{"reference": "Organization/hospital-main"}]
         # CY8-14 polish: MB DR.conclusionCode — growth の有無で normal/abnormal。
         _mb_abnormal = bool(mb.get("growth"))
-        report["conclusionCode"] = [{
-            "coding": [{
-                "system": "http://snomed.info/sct",
-                "code": "263654008" if _mb_abnormal else "17621005",
-                "display": ("異常所見" if lang == "ja" else "Abnormal")
-                           if _mb_abnormal else ("異常なし" if lang == "ja" else "Normal"),
-            }],
-        }]
+        report["conclusionCode"] = [
+            {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "263654008" if _mb_abnormal else "17621005",
+                        "display": ("異常所見" if lang == "ja" else "Abnormal")
+                        if _mb_abnormal
+                        else ("異常なし" if lang == "ja" else "Normal"),
+                    }
+                ],
+            }
+        ]
         # CY8-16 polish: MB DR.issued default = reported_datetime。
         if not report.get("issued") and mb.get("reported_datetime"):
             from clinosim.modules.output._fhir_common import to_fhir_instant
+
             report["issued"] = to_fhir_instant(mb["reported_datetime"])
         # C5-20 (Chain 3): presentedForm — text/plain summary of culture +
         # susceptibility results (patient-facing form of the microbiology

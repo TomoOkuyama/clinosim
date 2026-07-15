@@ -19,16 +19,23 @@ def _make_ctx(studies, hospital_config=None):
         country="us",
         patient_id="pt1",
         primary_enc_id="enc1",
-        roster_map={}, hospital_config=hospital_config or {},
-        patient_data={}, is_readmission=False, prior_encounter_id=None,
-        primary_dx_code="", admit_dx_code="",
+        roster_map={},
+        hospital_config=hospital_config or {},
+        patient_data={},
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
     )
 
 
 def _sample_study():
     return ImagingStudyRecord(
-        study_id="enc1-1", study_instance_uid="2.25.42",
-        encounter_id="enc1", patient_id="pt1", order_id="ord1",
+        study_id="enc1-1",
+        study_instance_uid="2.25.42",
+        encounter_id="enc1",
+        patient_id="pt1",
+        order_id="ord1",
         endpoint_id="endpoint-2.25.42",
     )
 
@@ -57,19 +64,14 @@ def test_connection_type_and_payload_type_displays_resolve_via_codes_yaml():
     from clinosim.codes import lookup
 
     e = _bb_endpoints(_make_ctx([_sample_study()]))[0]
-    assert e["connectionType"]["display"] == lookup(
-        "hl7-endpoint-connection-type", DICOM_WADO_RS_CONNECTION_TYPE, "en"
-    )
+    assert e["connectionType"]["display"] == lookup("hl7-endpoint-connection-type", DICOM_WADO_RS_CONNECTION_TYPE, "en")
     assert e["connectionType"]["display"] == "DICOM WADO-RS"
-    assert e["payloadType"][0]["coding"][0]["display"] == lookup(
-        "hl7-endpoint-payload-type", "any", "en"
-    )
+    assert e["payloadType"][0]["coding"][0]["display"] == lookup("hl7-endpoint-payload-type", "any", "en")
     assert e["payloadType"][0]["coding"][0]["display"] == "Any"
 
 
 def test_address_uses_wado_base_url_from_hospital_config():
-    ctx = _make_ctx([_sample_study()],
-                    hospital_config={"imaging": {"wado_base_url": "https://pacs.test/dicomweb"}})
+    ctx = _make_ctx([_sample_study()], hospital_config={"imaging": {"wado_base_url": "https://pacs.test/dicomweb"}})
     e = _bb_endpoints(ctx)[0]
     assert e["address"] == "https://pacs.test/dicomweb/studies/2.25.42"
 
@@ -92,8 +94,11 @@ def test_resolve_wado_base_url_returns_configured():
 def test_emits_endpoint_from_dict_path():
     """Production CIF is json.load() -> dict; verify _o() dict-access path."""
     study_dict = {
-        "study_id": "enc1-1", "study_instance_uid": "2.25.42",
-        "encounter_id": "enc1", "patient_id": "pt1", "order_id": "ord1",
+        "study_id": "enc1-1",
+        "study_instance_uid": "2.25.42",
+        "encounter_id": "enc1",
+        "patient_id": "pt1",
+        "order_id": "ord1",
         "endpoint_id": "endpoint-2.25.42",
     }
     ctx = _make_ctx([study_dict])

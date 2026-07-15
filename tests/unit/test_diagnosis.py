@@ -31,11 +31,15 @@ class TestDiagnosis:
     def test_bayesian_update_confirms(self):
         diff = initialize_differential()
         # Stack positive findings
-        diff = update_differential(diff, [
-            ("chest_xray_consolidation", True),
-            ("procalcitonin_elevated", True),
-            ("crp_above_100", True),
-        ], confirmation_threshold=0.90)
+        diff = update_differential(
+            diff,
+            [
+                ("chest_xray_consolidation", True),
+                ("procalcitonin_elevated", True),
+                ("crp_above_100", True),
+            ],
+            confirmation_threshold=0.90,
+        )
         assert diff.confirmed is True
         assert diff.working_diagnosis == "bacterial_pneumonia"
 
@@ -58,10 +62,13 @@ class TestDiagnosis:
         assert code in ("J18.9", "J18.1")  # unspecified or lobar
 
         # More findings → high confidence → most specific code
-        diff = update_differential(diff, [
-            ("procalcitonin_elevated", True),
-            ("crp_above_100", True),
-        ])
+        diff = update_differential(
+            diff,
+            [
+                ("procalcitonin_elevated", True),
+                ("crp_above_100", True),
+            ],
+        )
         code, name = get_current_diagnosis_code(diff)
         assert code == "J13"  # specific after high confidence
 

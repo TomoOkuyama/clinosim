@@ -38,6 +38,7 @@ from clinosim.modules.output._fhir_common import BundleContext, _sha1_b64, to_fh
 def _fhir_instant_or_empty(s: str) -> str:
     return to_fhir_instant(s) if s else ""
 
+
 logger = logging.getLogger(__name__)
 
 __all__ = ["_bb_document_references_checkup"]
@@ -77,8 +78,7 @@ def _bb_document_references_checkup(ctx: BundleContext) -> list[dict[str, Any]]:
         narrative = _o(doc, "narrative", None)
         if not narrative:
             logger.warning(
-                "checkup DocumentReference skipped: doc %s has no narrative "
-                "(Stage 2 pass not run)",
+                "checkup DocumentReference skipped: doc %s has no narrative (Stage 2 pass not run)",
                 _o(doc, "document_id", ""),
             )
             continue
@@ -88,9 +88,7 @@ def _bb_document_references_checkup(ctx: BundleContext) -> list[dict[str, Any]]:
     return out
 
 
-def _build_dref(
-    doc: Any, narrative: Any, patient_id: str, country: str
-) -> dict[str, Any] | None:
+def _build_dref(doc: Any, narrative: Any, patient_id: str, country: str) -> dict[str, Any] | None:
     """健診 DocumentReference を組み立てる。Composition を relatesTo で参照。"""
     loinc_code = _o(doc, "loinc_code", "") or "53576-5"
     lang = _o(doc, "language", "") or resolve_lang(country)
@@ -122,56 +120,68 @@ def _build_dref(
             "system": "urn:clinosim:documentreference-master",
             "value": resource_id,
         },
-        "identifier": [{
-            "system": "urn:clinosim:documentreference-id",
-            "value": resource_id,
-        }],
+        "identifier": [
+            {
+                "system": "urn:clinosim:documentreference-id",
+                "value": resource_id,
+            }
+        ],
         "status": "current",
         "docStatus": "final",
         "type": {
-            "coding": [{
-                "system": get_system_uri("loinc"),
-                "code": loinc_code,
-                "display": type_display,
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": loinc_code,
+                    "display": type_display,
+                }
+            ],
             "text": type_display,
         },
-        "category": [{
-            "coding": [_JP_CATEGORY],
-            "text": "健診結果報告書",
-        }],
-        "securityLabel": [{
-            "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
-                "code": "N",
-                "display": "Normal",
-            }],
-        }],
+        "category": [
+            {
+                "coding": [_JP_CATEGORY],
+                "text": "健診結果報告書",
+            }
+        ],
+        "securityLabel": [
+            {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+                        "code": "N",
+                        "display": "Normal",
+                    }
+                ],
+            }
+        ],
         "subject": {"reference": f"Patient/{patient_id}"},
-        "date": _fhir_instant_or_empty(
-            _o(doc, "authored_datetime", "") or _o(narrative, "generated_at", "")
-        ),
-        "content": [{
-            "attachment": {
-                "contentType": _o(doc, "content_type", "text/plain; charset=utf-8"),
-                "language": lang,
-                "data": encoded,
-                "title": type_display,
-                "size": len(text.encode("utf-8")),
-                "hash": _sha1_b64(text),
-            },
-            "format": {
-                "system": "urn:oid:1.3.6.1.4.1.19376.1.2.3",
-                "code": "urn:ihe:iti:xds:2017:mimeTypeSufficient",
-                "display": "MIME type sufficient (contentType is authoritative)",
-            },
-        }],
+        "date": _fhir_instant_or_empty(_o(doc, "authored_datetime", "") or _o(narrative, "generated_at", "")),
+        "content": [
+            {
+                "attachment": {
+                    "contentType": _o(doc, "content_type", "text/plain; charset=utf-8"),
+                    "language": lang,
+                    "data": encoded,
+                    "title": type_display,
+                    "size": len(text.encode("utf-8")),
+                    "hash": _sha1_b64(text),
+                },
+                "format": {
+                    "system": "urn:oid:1.3.6.1.4.1.19376.1.2.3",
+                    "code": "urn:ihe:iti:xds:2017:mimeTypeSufficient",
+                    "display": "MIME type sufficient (contentType is authoritative)",
+                },
+            }
+        ],
         # 対応する Composition への参照(実 EHR で Composition = 構造化、
         # DocumentReference = portable な wrapper として運用される二重発行)
-        "relatesTo": [{
-            "code": "transforms",
-            "target": {"reference": f"Composition/{document_id}"},
-        }],
+        "relatesTo": [
+            {
+                "code": "transforms",
+                "target": {"reference": f"Composition/{document_id}"},
+            }
+        ],
     }
 
     # encounter context(健診 encounter)

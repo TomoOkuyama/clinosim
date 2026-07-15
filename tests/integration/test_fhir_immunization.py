@@ -224,9 +224,7 @@ def test_us_output_no_japanese():
     resources = _build_immunizations(ctx)
 
     assert resources, "no Immunization resources built"
-    assert not _JAPANESE_RE.search(json.dumps(resources)), (
-        "Japanese characters found in US Immunization output"
-    )
+    assert not _JAPANESE_RE.search(json.dumps(resources)), "Japanese characters found in US Immunization output"
 
 
 def test_jp_output_may_have_japanese():
@@ -237,9 +235,7 @@ def test_jp_output_may_have_japanese():
     resources = _build_immunizations(ctx)
 
     dumped = json.dumps(resources, ensure_ascii=False)
-    assert _JAPANESE_RE.search(dumped), (
-        "Expected Japanese characters in JP Immunization output"
-    )
+    assert _JAPANESE_RE.search(dumped), "Expected Japanese characters in JP Immunization output"
 
 
 # ---------------------------------------------------------------------------

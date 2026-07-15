@@ -1,5 +1,6 @@
 """Unit tests for clinosim.audit.axes.clinical (Phase 1 cohort baseline +
 acceptance subset)."""
+
 from __future__ import annotations
 
 import json
@@ -52,7 +53,8 @@ def _cauti_cond(enc: str, cid: str):
 
 def _imp_enc(eid: str):
     return {
-        "resourceType": "Encounter", "id": eid,
+        "resourceType": "Encounter",
+        "id": eid,
         "class": {"code": "IMP"},
     }
 
@@ -74,45 +76,49 @@ def hai_spec():
 
 @pytest.mark.unit
 def test_clinical_pass_when_cauti_cohort_exceeds_acceptance(
-    tmp_path: Path, hai_spec,
+    tmp_path: Path,
+    hai_spec,
 ):
     # 5 cohort obs (n>=5 to bypass WARN) + baseline
-    _write(tmp_path, "us", "Encounter.ndjson", [
-        _imp_enc(f"E-CAUTI-{i}") for i in range(5)
-    ] + [
-        _imp_enc(f"E-BASE-{i}") for i in range(5)
-    ])
-    _write(tmp_path, "us", "Condition.ndjson", [
-        _cauti_cond(f"E-CAUTI-{i}", f"c-{i}") for i in range(5)
-    ])
-    _write(tmp_path, "us", "Observation.ndjson", [
-        _wbc(f"E-CAUTI-{i}", 14000, f"o-c-w-{i}") for i in range(5)
-    ] + [
-        _crp(f"E-CAUTI-{i}", 75, f"o-c-c-{i}") for i in range(5)
-    ] + [
-        _wbc(f"E-BASE-{i}", 12000, f"o-b-w-{i}") for i in range(5)
-    ] + [
-        _crp(f"E-BASE-{i}", 25, f"o-b-c-{i}") for i in range(5)
-    ])
+    _write(
+        tmp_path,
+        "us",
+        "Encounter.ndjson",
+        [_imp_enc(f"E-CAUTI-{i}") for i in range(5)] + [_imp_enc(f"E-BASE-{i}") for i in range(5)],
+    )
+    _write(tmp_path, "us", "Condition.ndjson", [_cauti_cond(f"E-CAUTI-{i}", f"c-{i}") for i in range(5)])
+    _write(
+        tmp_path,
+        "us",
+        "Observation.ndjson",
+        [_wbc(f"E-CAUTI-{i}", 14000, f"o-c-w-{i}") for i in range(5)]
+        + [_crp(f"E-CAUTI-{i}", 75, f"o-c-c-{i}") for i in range(5)]
+        + [_wbc(f"E-BASE-{i}", 12000, f"o-b-w-{i}") for i in range(5)]
+        + [_crp(f"E-BASE-{i}", 25, f"o-b-c-{i}") for i in range(5)],
+    )
     result = clinical.run(hai_spec, Cohort.open(tmp_path))
     assert result.status == "PASS"
 
 
 @pytest.mark.unit
 def test_clinical_fail_when_cohort_misses_acceptance(tmp_path: Path, hai_spec):
-    _write(tmp_path, "us", "Encounter.ndjson", [
-        _imp_enc(f"E-CAUTI-{i}") for i in range(5)
-    ] + [
-        _imp_enc(f"E-BASE-{i}") for i in range(5)
-    ])
-    _write(tmp_path, "us", "Condition.ndjson", [
-        _cauti_cond(f"E-CAUTI-{i}", f"c-{i}") for i in range(5)
-    ])
-    _write(tmp_path, "us", "Observation.ndjson", [
-        _wbc(f"E-CAUTI-{i}", 12100, f"o-c-w-{i}") for i in range(5)  # delta +100
-    ] + [
-        _wbc(f"E-BASE-{i}", 12000, f"o-b-w-{i}") for i in range(5)
-    ])
+    _write(
+        tmp_path,
+        "us",
+        "Encounter.ndjson",
+        [_imp_enc(f"E-CAUTI-{i}") for i in range(5)] + [_imp_enc(f"E-BASE-{i}") for i in range(5)],
+    )
+    _write(tmp_path, "us", "Condition.ndjson", [_cauti_cond(f"E-CAUTI-{i}", f"c-{i}") for i in range(5)])
+    _write(
+        tmp_path,
+        "us",
+        "Observation.ndjson",
+        [
+            _wbc(f"E-CAUTI-{i}", 12100, f"o-c-w-{i}")
+            for i in range(5)  # delta +100
+        ]
+        + [_wbc(f"E-BASE-{i}", 12000, f"o-b-w-{i}") for i in range(5)],
+    )
     result = clinical.run(hai_spec, Cohort.open(tmp_path))
     assert result.status == "FAIL"
 
@@ -121,8 +127,7 @@ def test_clinical_fail_when_cohort_misses_acceptance(tmp_path: Path, hai_spec):
 def test_clinical_warn_when_cohort_rare(tmp_path: Path, hai_spec):
     # No CAUTI Condition → cohort_n = 0 → rare-event WARN, not FAIL
     _write(tmp_path, "us", "Encounter.ndjson", [_imp_enc("E-1")])
-    _write(tmp_path, "us", "Observation.ndjson",
-           [_wbc("E-1", 12000, "o-1")])
+    _write(tmp_path, "us", "Observation.ndjson", [_wbc("E-1", 12000, "o-1")])
     result = clinical.run(hai_spec, Cohort.open(tmp_path))
     assert result.status == "WARN"
 
@@ -146,9 +151,7 @@ def test_check_lab_obs_basedon_excludes_microbiology(tmp_path: Path):
     is Tier 2 backlog.  Without this exclusion the gate would FAIL on any
     cohort with HAI events, masking genuine basedOn gaps.
     """
-    lab_category = {
-        "coding": [{"system": "http://terminology.hl7.org/CodeSystem/v2-0074", "code": "LAB"}]
-    }
+    lab_category = {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/v2-0074", "code": "LAB"}]}
 
     def _mb_obs(obs_id: str) -> dict:
         return {
@@ -160,10 +163,15 @@ def test_check_lab_obs_basedon_excludes_microbiology(tmp_path: Path):
         }
 
     # Write 1 mb-org-* + 1 mb-sus-* Observation with no basedOn, empty SR file.
-    _write(tmp_path, "us", "Observation.ndjson", [
-        _mb_obs(f"{MB_ORG_ID_PREFIX}enc-001-0"),
-        _mb_obs(f"{MB_SUS_ID_PREFIX}enc-001-0-0"),
-    ])
+    _write(
+        tmp_path,
+        "us",
+        "Observation.ndjson",
+        [
+            _mb_obs(f"{MB_ORG_ID_PREFIX}enc-001-0"),
+            _mb_obs(f"{MB_SUS_ID_PREFIX}enc-001-0-0"),
+        ],
+    )
     _write(tmp_path, "us", "ServiceRequest.ndjson", [])
 
     spec = ModuleAuditSpec(

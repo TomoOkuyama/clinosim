@@ -34,21 +34,30 @@ def _make_ctx(orders, country="us"):
         country=country,
         patient_id="pt1",
         primary_enc_id="enc1",
-        roster_map={}, hospital_config={},
-        patient_data={}, is_readmission=False, prior_encounter_id=None,
-        primary_dx_code="", admit_dx_code="",
+        roster_map={},
+        hospital_config={},
+        patient_data={},
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
     )
 
 
 def _imaging_order(order_id="ord1"):
     return Order(
-        order_id=order_id, encounter_id="enc1", patient_id="pt1",
-        order_type=OrderType.IMAGING, order_code="36572-6",
+        order_id=order_id,
+        encounter_id="enc1",
+        patient_id="pt1",
+        order_type=OrderType.IMAGING,
+        order_code="36572-6",
         display_name="Chest X-ray PA and Lateral",
-        urgency="routine", clinical_intent="Suspected pneumonia",
+        urgency="routine",
+        clinical_intent="Suspected pneumonia",
         ordered_datetime=datetime(2026, 6, 30, 8, 30),
         status=OrderStatus.PLACED,
-        imaging_modality="CR", imaging_body_site_code="51185008",
+        imaging_modality="CR",
+        imaging_body_site_code="51185008",
         imaging_views=["PA", "Lateral"],
     )
 
@@ -113,9 +122,13 @@ def test_imaging_sr_status_maps_resulted_to_completed():
 def test_lab_and_imaging_both_emit_when_both_present():
     """Polymorphic dispatch — LAB + IMAGING orders both emit SRs in same call."""
     lab = Order(
-        order_id="lab1", encounter_id="enc1", patient_id="pt1",
-        order_type=OrderType.LAB, order_code="6690-2",
-        display_name="WBC", urgency="routine",
+        order_id="lab1",
+        encounter_id="enc1",
+        patient_id="pt1",
+        order_type=OrderType.LAB,
+        order_code="6690-2",
+        display_name="WBC",
+        urgency="routine",
         ordered_datetime=datetime(2026, 6, 30, 8, 0),
         status=OrderStatus.PLACED,
     )
@@ -170,13 +183,13 @@ def test_imaging_sr_from_dict_path():
         "order_id": "dict-ord1",
         "encounter_id": "enc1",
         "patient_id": "pt1",
-        "order_type": "imaging",          # string, not OrderType.IMAGING
+        "order_type": "imaging",  # string, not OrderType.IMAGING
         "order_code": "36572-6",
         "display_name": "Chest X-ray PA and Lateral",
         "urgency": "routine",
         "clinical_intent": "Eval for pneumonia",
         "ordered_datetime": "2026-06-30T08:30:00",
-        "status": "placed",               # string, not OrderStatus.PLACED
+        "status": "placed",  # string, not OrderStatus.PLACED
         "imaging_modality": "CR",
         "imaging_body_site_code": "51185008",
         "imaging_views": ["PA", "Lateral"],

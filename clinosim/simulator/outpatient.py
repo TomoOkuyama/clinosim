@@ -55,6 +55,7 @@ def _simulate_outpatient_visit(
     elif post_discharge_disease:
         # Look up disease-specific post-discharge reason
         from clinosim.locale.loader import load_chronic_followup
+
         fu = load_chronic_followup()
         disease_fu = fu.get("_post_discharge_by_disease", {}).get(post_discharge_disease, {})
         raw = disease_fu.get("visit_reason", f"Post-discharge follow-up: {post_discharge_disease}")
@@ -63,6 +64,7 @@ def _simulate_outpatient_visit(
         # Try encounter protocol YAML for chief complaint
         try:
             from clinosim.modules.encounter.protocol import load_encounter_condition
+
             enc_proto = load_encounter_condition(chronic_code)
             raw = enc_proto.get("chief_complaint", f"Follow-up: {chronic_code}")
             chief = resolve_text(raw, country=country)
@@ -70,7 +72,8 @@ def _simulate_outpatient_visit(
             chief = f"Follow-up: {chronic_code}"
 
     encounter = create_inpatient_encounter(
-        patient.patient_id, visit_date,
+        patient.patient_id,
+        visit_date,
         chief_complaint=chief,
         visit_number=0,  # constant — id disambiguated by patient_id + visit_date hash (F1)
     )
@@ -90,15 +93,15 @@ def _simulate_outpatient_visit(
     # Vitals (subset depends on visit type and chronic condition)
     # Default profile: BP + HR (most common chronic followup measurements)
     profile_by_chronic = {
-        "I10":   {"bp", "hr"},                  # HTN
-        "E11.9": {"bp", "hr", "weight"},        # DM
-        "E78":   {"bp", "hr"},                  # Dyslipidemia
-        "I50":   {"bp", "hr", "weight", "spo2"},# HF
-        "I48":   {"bp", "hr"},                  # AFib
-        "I25":   {"bp", "hr"},                  # IHD
-        "J44":   {"bp", "hr", "spo2", "rr"},    # COPD
-        "N18":   {"bp", "hr", "weight"},        # CKD
-        "E03":   {"bp", "hr"},                  # Hypothyroid
+        "I10": {"bp", "hr"},  # HTN
+        "E11.9": {"bp", "hr", "weight"},  # DM
+        "E78": {"bp", "hr"},  # Dyslipidemia
+        "I50": {"bp", "hr", "weight", "spo2"},  # HF
+        "I48": {"bp", "hr"},  # AFib
+        "I25": {"bp", "hr"},  # IHD
+        "J44": {"bp", "hr", "spo2", "rr"},  # COPD
+        "N18": {"bp", "hr", "weight"},  # CKD
+        "E03": {"bp", "hr"},  # Hypothyroid
     }
     if visit_type == "post_discharge":
         # Post-discharge: full vital set
@@ -119,24 +122,26 @@ def _simulate_outpatient_visit(
         derive_observed_vitals,
         initialize_state,
     )
+
     baseline = patient.baseline_vitals
-    _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
-                              patient.patient_id)
+    _state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
     _state.timestamp = visit_date
     vit_time = visit_date + timedelta(minutes=5)
     raw = derive_observed_vitals(_state, baseline, vit_time, rng)
     opd_nurse_id = assign_staff("medication_administration", "primary_care", roster, rng).get("administering_nurse", "")
-    vitals.append(VitalSignRecord(
-        timestamp=vit_time,
-        temperature_celsius=round(raw["temperature"], 1) if "temp" in fields else None,
-        heart_rate=int(round(raw["heart_rate"])) if "hr" in fields else None,
-        systolic_bp=int(round(raw["systolic_bp"])) if "bp" in fields else None,
-        diastolic_bp=int(round(raw["diastolic_bp"])) if "bp" in fields else None,
-        respiratory_rate=int(round(raw["respiratory_rate"])) if "rr" in fields else None,
-        spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
-        measured_by=opd_nurse_id,
-        data_source="manual",
-    ))
+    vitals.append(
+        VitalSignRecord(
+            timestamp=vit_time,
+            temperature_celsius=round(raw["temperature"], 1) if "temp" in fields else None,
+            heart_rate=int(round(raw["heart_rate"])) if "hr" in fields else None,
+            systolic_bp=int(round(raw["systolic_bp"])) if "bp" in fields else None,
+            diastolic_bp=int(round(raw["diastolic_bp"])) if "bp" in fields else None,
+            respiratory_rate=int(round(raw["respiratory_rate"])) if "rr" in fields else None,
+            spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
+            measured_by=opd_nurse_id,
+            data_source="manual",
+        )
+    )
 
     # Pre-assign a lab tech for outpatient labs
     lab_tech_assignment = assign_staff("lab_collection", "laboratory", roster, rng)
@@ -151,6 +156,7 @@ def _simulate_outpatient_visit(
         medication_flags_from_context,
         scenario_flags_from_protocol,
     )
+
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     # J5 (Phase 2a): outpatient follow-ups carry no acute scenario flag by
     # design — causes_vte / causes_myocardial_injury describe acute events
@@ -172,6 +178,7 @@ def _simulate_outpatient_visit(
     # for the parallel fix. Noise draws on the master rng would shuffle
     # unrelated patients' cohorts whenever derive_lab_values gains an analyte.
     from clinosim.simulator.seeding import individual_lab_seed
+
     for i, test_name in enumerate(lab_tests):
         # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — they are
         # not lab analytes and must not get a fabricated value (AD-57 cleanup).
@@ -200,8 +207,10 @@ def _simulate_outpatient_visit(
         result = OrderResult(
             result_datetime=visit_date + timedelta(hours=2),
             performed_by=lab_tech_id,
-            lab_name=canon, value=observed,
-            unit=get_lab_unit(canon), flag=flag,
+            lab_name=canon,
+            value=observed,
+            unit=get_lab_unit(canon),
+            flag=flag,
         )
         order.result = result
         order.status = OrderStatus.RESULTED
@@ -236,6 +245,7 @@ def _simulate_outpatient_visit(
     if chronic_code:
         try:
             from clinosim.modules.encounter.protocol import load_encounter_condition
+
             enc_proto = load_encounter_condition(chronic_code)
             dx_code = enc_proto.get("icd10_code", "")
             enc_proto.get("icd10_display", "")
@@ -248,6 +258,7 @@ def _simulate_outpatient_visit(
         if len(chronic_code) >= 2 and chronic_code[0].isalpha() and chronic_code[1].isdigit():
             dx_code = chronic_code
             from clinosim.modules.patient.activator import CONDITION_NAMES
+
             CONDITION_NAMES.get(chronic_code, chronic_code)
 
     # Third priority: post-discharge follow-up
@@ -292,6 +303,7 @@ def _simulate_outpatient_visit(
             EnricherContext,
             run_stage,
         )
+
         run_stage(
             POST_ENCOUNTER,
             EnricherContext(

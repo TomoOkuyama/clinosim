@@ -39,19 +39,25 @@ def test_subprocess_care_team_ndjson_wellformed() -> None:
         out = Path(tmp) / "out"
         result = subprocess.run(
             [
-                sys.executable, "-m", "clinosim.simulator.cli", "generate",
-                "--country", "US",
-                "--population", "100",
-                "--seed", "42",
-                "--format", "fhir-r4",
-                "--output", str(out),
+                sys.executable,
+                "-m",
+                "clinosim.simulator.cli",
+                "generate",
+                "--country",
+                "US",
+                "--population",
+                "100",
+                "--seed",
+                "42",
+                "--format",
+                "fhir-r4",
+                "--output",
+                str(out),
             ],
             capture_output=True,
             text=True,
         )
-        assert result.returncode == 0, (
-            f"generate failed (returncode={result.returncode}):\n{result.stderr}"
-        )
+        assert result.returncode == 0, f"generate failed (returncode={result.returncode}):\n{result.stderr}"
         # PR-90 regression class: attribute/key errors appear in stderr
         for err_class in ("AttributeError", "KeyError", "TypeError"):
             assert err_class not in result.stderr, (
@@ -80,9 +86,9 @@ def test_subprocess_nursing_shift_note_in_document_reference() -> None:
         drefs = load_ndjson(find_ndjson(out, "DocumentReference.ndjson"))
         assert drefs, "DocumentReference.ndjson empty from subprocess run"
         nursing_shift = [
-            d for d in drefs
-            if any(c.get("code") == _LOINC_NURSING_SHIFT_NOTE
-                   for c in d.get("type", {}).get("coding", []))
+            d
+            for d in drefs
+            if any(c.get("code") == _LOINC_NURSING_SHIFT_NOTE for c in d.get("type", {}).get("coding", []))
         ]
         assert nursing_shift, (
             f"No NURSING_SHIFT_NOTE (LOINC {_LOINC_NURSING_SHIFT_NOTE}) in "
@@ -99,11 +105,7 @@ def test_subprocess_nursing_composition_types_present() -> None:
         run_generate("US", 100, 42, out)
         comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
         assert comps, "Composition.ndjson empty from subprocess run"
-        found_loinc = {
-            c.get("code")
-            for comp in comps
-            for c in comp.get("type", {}).get("coding", [])
-        }
+        found_loinc = {c.get("code") for comp in comps for c in comp.get("type", {}).get("coding", [])}
         assert _LOINC_ADMISSION_NURSING_ASSESSMENT in found_loinc, (
             f"ADMISSION_NURSING_ASSESSMENT (LOINC {_LOINC_ADMISSION_NURSING_ASSESSMENT}) "
             "missing from Composition.ndjson in subprocess run. "

@@ -35,9 +35,7 @@ def _rehab_session(encounter_id: str, session_date: datetime) -> dict[str, Any]:
     }
 
 
-def _make_record(
-    encounter_type: str, with_rehab: bool, encounter_id: str = "enc-rp-engine-test"
-) -> dict[str, Any]:
+def _make_record(encounter_type: str, with_rehab: bool, encounter_id: str = "enc-rp-engine-test") -> dict[str, Any]:
     admission_dt = datetime(2026, 7, 1, 10, 0)
     return {
         "patient": {"patient_id": "pt-rp-engine-test"},
@@ -55,11 +53,7 @@ def _make_record(
         "documents": [],
         "extensions": {},
         "physiological_states": [],
-        "rehab_sessions": (
-            [_rehab_session(encounter_id, admission_dt + timedelta(days=1))]
-            if with_rehab
-            else []
-        ),
+        "rehab_sessions": ([_rehab_session(encounter_id, admission_dt + timedelta(days=1))] if with_rehab else []),
     }
 
 

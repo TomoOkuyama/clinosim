@@ -47,27 +47,27 @@ class LLMTaskType(StrEnum):
     # operative_note, procedure_note, chief_complaint) are reserved for
     # future document phases.
     CHIEF_COMPLAINT = "chief_complaint"
-    ADMISSION_HP = "admission_hp"           # LOINC 34117-2
-    PROGRESS_NOTE = "progress_note"          # LOINC 11506-3
+    ADMISSION_HP = "admission_hp"  # LOINC 34117-2
+    PROGRESS_NOTE = "progress_note"  # LOINC 11506-3
     DISCHARGE_SUMMARY = "discharge_summary"  # LOINC 18842-5
-    DEATH_SUMMARY = "death_summary"          # LOINC 69730-0
-    OPERATIVE_NOTE = "operative_note"        # LOINC 11504-8
-    PROCEDURE_NOTE = "procedure_note"        # LOINC 28570-0
+    DEATH_SUMMARY = "death_summary"  # LOINC 69730-0
+    OPERATIVE_NOTE = "operative_note"  # LOINC 11504-8
+    PROCEDURE_NOTE = "procedure_note"  # LOINC 28570-0
     # α-min-2/3 document types (N-3 enum sync; coarse NURSING_NOTE removed)
     ADMISSION_NURSING_ASSESSMENT = "admission_nursing_assessment"  # LOINC 78390-2
-    NURSING_SHIFT_NOTE = "nursing_shift_note"                      # LOINC 34746-8
-    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"        # LOINC 34745-0
-    OUTPATIENT_SOAP = "outpatient_soap"                            # LOINC 34131-3
-    ED_NOTE = "ed_note"                                            # LOINC 34878-9
-    ED_TRIAGE_NOTE = "ed_triage_note"                              # LOINC 54094-8
+    NURSING_SHIFT_NOTE = "nursing_shift_note"  # LOINC 34746-8
+    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"  # LOINC 34745-0
+    OUTPATIENT_SOAP = "outpatient_soap"  # LOINC 34131-3
+    ED_NOTE = "ed_note"  # LOINC 34878-9
+    ED_TRIAGE_NOTE = "ed_triage_note"  # LOINC 54094-8
     # chain 2 (厚労省4帳票, N-3 enum sync)
-    ADMISSION_CARE_PLAN = "admission_care_plan"                    # LOINC 18776-5
-    NUTRITION_CARE_PLAN = "nutrition_care_plan"                    # LOINC 80791-7
-    REHABILITATION_PLAN = "rehabilitation_plan"                    # LOINC 34823-5
+    ADMISSION_CARE_PLAN = "admission_care_plan"  # LOINC 18776-5
+    NUTRITION_CARE_PLAN = "nutrition_care_plan"  # LOINC 80791-7
+    REHABILITATION_PLAN = "rehabilitation_plan"  # LOINC 34823-5
     # P2-13 PR2b (session 47) JP-CLINS 診療情報提供書
-    REFERRAL_NOTE = "referral_note"                                # LOINC 57133-1
+    REFERRAL_NOTE = "referral_note"  # LOINC 57133-1
     # P2-13 PR3 (session 47) JP-eCheckup General 健診結果報告書(opt-in)
-    HEALTH_CHECKUP_REPORT = "health_checkup_report"                # LOINC 53576-5
+    HEALTH_CHECKUP_REPORT = "health_checkup_report"  # LOINC 53576-5
 
 
 TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
@@ -105,23 +105,23 @@ TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
 # ============================================================
 
 DOCUMENT_LOINC: dict[LLMTaskType, str] = {
-    LLMTaskType.ADMISSION_HP: "34117-2",       # History and physical note
-    LLMTaskType.PROGRESS_NOTE: "11506-3",      # Progress note
+    LLMTaskType.ADMISSION_HP: "34117-2",  # History and physical note
+    LLMTaskType.PROGRESS_NOTE: "11506-3",  # Progress note
     LLMTaskType.DISCHARGE_SUMMARY: "18842-5",  # Discharge summary note
-    LLMTaskType.DEATH_SUMMARY: "69730-0",      # Death note
-    LLMTaskType.OPERATIVE_NOTE: "11504-8",     # Surgical operation note
-    LLMTaskType.PROCEDURE_NOTE: "28570-0",     # Procedure note
+    LLMTaskType.DEATH_SUMMARY: "69730-0",  # Death note
+    LLMTaskType.OPERATIVE_NOTE: "11504-8",  # Surgical operation note
+    LLMTaskType.PROCEDURE_NOTE: "28570-0",  # Procedure note
     LLMTaskType.ADMISSION_NURSING_ASSESSMENT: "78390-2",  # Nursing admission evaluation note
-    LLMTaskType.NURSING_SHIFT_NOTE: "34746-8",            # Nurse Note
-    LLMTaskType.NURSING_DISCHARGE_SUMMARY: "34745-0",     # Nurse Discharge summary
-    LLMTaskType.OUTPATIENT_SOAP: "34131-3",               # Outpatient Note
-    LLMTaskType.ED_NOTE: "34878-9",                       # Emergency medicine Note
-    LLMTaskType.ED_TRIAGE_NOTE: "54094-8",                # Emergency department Triage note
-    LLMTaskType.ADMISSION_CARE_PLAN: "18776-5",           # Plan of care note
-    LLMTaskType.NUTRITION_CARE_PLAN: "80791-7",           # Nutrition and dietetics Plan of care note
-    LLMTaskType.REHABILITATION_PLAN: "34823-5",           # Physical medicine and rehab Note
-    LLMTaskType.REFERRAL_NOTE: "57133-1",                 # Referral note (JP-CLINS 診療情報提供書)
-    LLMTaskType.HEALTH_CHECKUP_REPORT: "53576-5",         # Health checkup report (JP-eCheckup 検診・健診報告書)
+    LLMTaskType.NURSING_SHIFT_NOTE: "34746-8",  # Nurse Note
+    LLMTaskType.NURSING_DISCHARGE_SUMMARY: "34745-0",  # Nurse Discharge summary
+    LLMTaskType.OUTPATIENT_SOAP: "34131-3",  # Outpatient Note
+    LLMTaskType.ED_NOTE: "34878-9",  # Emergency medicine Note
+    LLMTaskType.ED_TRIAGE_NOTE: "54094-8",  # Emergency department Triage note
+    LLMTaskType.ADMISSION_CARE_PLAN: "18776-5",  # Plan of care note
+    LLMTaskType.NUTRITION_CARE_PLAN: "80791-7",  # Nutrition and dietetics Plan of care note
+    LLMTaskType.REHABILITATION_PLAN: "34823-5",  # Physical medicine and rehab Note
+    LLMTaskType.REFERRAL_NOTE: "57133-1",  # Referral note (JP-CLINS 診療情報提供書)
+    LLMTaskType.HEALTH_CHECKUP_REPORT: "53576-5",  # Health checkup report (JP-eCheckup 検診・健診報告書)
 }
 
 
@@ -149,17 +149,11 @@ def _validate_document_task_sync(
     """
     from clinosim.types.document import DocumentType
 
-    doc_values = (
-        document_type_values
-        if document_type_values is not None
-        else frozenset(d.value for d in DocumentType)
-    )
+    doc_values = document_type_values if document_type_values is not None else frozenset(d.value for d in DocumentType)
     narrative_values = (
         narrative_task_values
         if narrative_task_values is not None
-        else frozenset(
-            t.value for t in LLMTaskType if TASK_CATEGORY[t] == LLMTaskCategory.NARRATIVE
-        )
+        else frozenset(t.value for t in LLMTaskType if TASK_CATEGORY[t] == LLMTaskCategory.NARRATIVE)
     )
     missing = doc_values - narrative_values
     if missing:
@@ -177,6 +171,7 @@ _validate_document_task_sync()
 @dataclass
 class PatientSummary:
     """Compact patient representation for LLM context."""
+
     age: int = 0
     sex: str = ""
     country: str = ""
@@ -191,6 +186,7 @@ class PatientSummary:
 @dataclass
 class ClinicalEventData:
     """What modules pass to llm_service. Modules never write prompts."""
+
     patient_summary: PatientSummary
     event_data: dict[str, Any]
     language: str = "ja"
@@ -199,6 +195,7 @@ class ClinicalEventData:
 @dataclass
 class LLMResponse:
     """What modules get back."""
+
     text: str | None = None
     source: str = "none"  # "llm" | "template" | "cache" | "none"
     model: str | None = None
@@ -242,6 +239,7 @@ class LLMService:
         # Lazy import to avoid cycles
         if prompt_registry is None:
             from .prompt_registry import PromptRegistry
+
             prompt_registry = PromptRegistry()
         self.prompt_registry = prompt_registry
         self.cache = cache  # PromptCache | None
@@ -262,6 +260,7 @@ class LLMService:
         See ``clinosim/config/llm_service.yaml`` for the expected schema.
         """
         from .factory import build_from_config_file
+
         return build_from_config_file(path)
 
     # ------------------------------------------------------------
@@ -295,9 +294,7 @@ class LLMService:
         # LLM mode
         return self._llm_generate(task_type, event, language, category, variables)
 
-    def _template_generate(
-        self, task_type: LLMTaskType, event: ClinicalEventData, language: str
-    ) -> LLMResponse:
+    def _template_generate(self, task_type: LLMTaskType, event: ClinicalEventData, language: str) -> LLMResponse:
         """Rule-based template generation. No LLM call."""
         ps = event.patient_summary
         ed = event.event_data
@@ -337,7 +334,6 @@ class LLMService:
                 text = f"[Template: {task_type.value}]"
 
         return LLMResponse(text=text, source="template")
-
 
     def _llm_generate(
         self,
@@ -449,8 +445,7 @@ class LLMService:
 
         if provider is None:
             raise LLMCompletionError(
-                f"no provider configured for task_type={task_type.value!r} "
-                f"(category={TASK_CATEGORY[task_type].value})"
+                f"no provider configured for task_type={task_type.value!r} (category={TASK_CATEGORY[task_type].value})"
             )
 
         model = model_map.get("medium", model_map.get("small", "")) or ""
@@ -526,6 +521,7 @@ class LLMService:
                 if attempt == self.retry_attempts - 1:
                     break
                 import time
+
                 time.sleep(self.retry_backoff_seconds * (attempt + 1))
 
         raise LLMCompletionError(last_error or "no attempts made")
@@ -541,8 +537,7 @@ class LLMService:
         }
 
 
-def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
-                   language: str) -> tuple[str, str]:
+def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData, language: str) -> tuple[str, str]:
     """Build system and user prompts for an LLM call. Centralized here (AD-11)."""
     ps = event.patient_summary
     ed = event.event_data
@@ -555,8 +550,7 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
     match task_type:
         case LLMTaskType.PROGRESS_NOTE:
             system = (
-                f"You are a physician writing a daily progress note. "
-                f"Use SOAP format. Be concise. {lang_instruction}"
+                f"You are a physician writing a daily progress note. Use SOAP format. Be concise. {lang_instruction}"
             )
             user = (
                 f"Patient: {ps.age}yo {ps.sex}, Hospital Day {ps.hospital_day}\n"
@@ -568,8 +562,7 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
 
         case LLMTaskType.DISCHARGE_SUMMARY:
             system = (
-                f"You are a physician writing a discharge summary. "
-                f"Be comprehensive but concise. {lang_instruction}"
+                f"You are a physician writing a discharge summary. Be comprehensive but concise. {lang_instruction}"
             )
             user = (
                 f"Patient: {ps.age}yo {ps.sex}\n"
@@ -581,10 +574,7 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
             )
 
         case LLMTaskType.ADMISSION_HP:
-            system = (
-                f"You are a physician writing an admission History & Physical. "
-                f"{lang_instruction}"
-            )
+            system = f"You are a physician writing an admission History & Physical. {lang_instruction}"
             conditions = ", ".join(ps.relevant_conditions or [])
             user = (
                 f"Patient: {ps.age}yo {ps.sex}\n"
@@ -618,6 +608,7 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
 # ============================================================
 # Template generators
 # ============================================================
+
 
 def _jp_chief_complaint(ps: PatientSummary, ed: dict) -> str:
     symptoms = ed.get("symptoms", ["発熱", "咳嗽", "呼吸困難"])
@@ -685,11 +676,7 @@ def _discharge_summary(ps: PatientSummary, ed: dict, language: str) -> str:
             text += f"検査推移:\n{trends_str}\n"
         if procs:
             text += f"実施手技: {procs}\n"
-        text += (
-            f"退院時処方: {med_str}\n"
-            f"退院先: {disposition}\n"
-            f"外来フォロー: 2週間後。"
-        )
+        text += f"退院時処方: {med_str}\n退院先: {disposition}\n外来フォロー: 2週間後。"
         return text
     else:
         med_str = ", ".join(meds) if meds else "None"
@@ -706,11 +693,7 @@ def _discharge_summary(ps: PatientSummary, ed: dict, language: str) -> str:
             text += f"Lab trends:\n{trends_str}\n"
         if procs:
             text += f"Procedures: {procs}\n"
-        text += (
-            f"Discharge Rx: {med_str}\n"
-            f"Disposition: {disposition}\n"
-            f"Follow-up: 2 weeks."
-        )
+        text += f"Discharge Rx: {med_str}\nDisposition: {disposition}\nFollow-up: 2 weeks."
         return text
 
 
@@ -900,11 +883,7 @@ def _procedure_note_template(ps: PatientSummary, ed: dict, language: str) -> str
         )
         if findings:
             text += f"所見: {findings}\n"
-        text += (
-            f"検体: {specimen_str}\n"
-            f"合併症: {comp_str}\n"
-            f"転帰: {outcome}"
-        )
+        text += f"検体: {specimen_str}\n合併症: {comp_str}\n転帰: {outcome}"
         return text
     text = (
         f"Procedure Note\n"
@@ -917,9 +896,5 @@ def _procedure_note_template(ps: PatientSummary, ed: dict, language: str) -> str
     )
     if findings:
         text += f"Findings: {findings}\n"
-    text += (
-        f"Specimens: {specimen_str}\n"
-        f"Complications: {comp_str}\n"
-        f"Outcome: {outcome}"
-    )
+    text += f"Specimens: {specimen_str}\nComplications: {comp_str}\nOutcome: {outcome}"
     return text

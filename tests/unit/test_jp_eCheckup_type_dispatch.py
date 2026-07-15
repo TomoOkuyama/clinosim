@@ -22,10 +22,12 @@ def _make_checkup_doc(checkup_type: str):
         "period_start": "2026-04-15T09:00:00",
         "period_end": "2026-04-15T10:00:00",
         "checkup_type": checkup_type,
-        "narrative": {"sections": {
-            "checkup_lab_results": "BMI 22.5 標準。",
-            "checkup_questionnaire": "既往歴なし。",
-        }},
+        "narrative": {
+            "sections": {
+                "checkup_lab_results": "BMI 22.5 標準。",
+                "checkup_questionnaire": "既往歴なし。",
+            }
+        },
     }
 
 
@@ -33,6 +35,7 @@ def _make_checkup_doc(checkup_type: str):
 def test_occupational_dispatches_to_01031_01032():
     """事業者健診(occupational)は 01031 + 01032 に dispatch。"""
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _make_checkup_doc("occupational")
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     codes = [s["code"]["coding"][0]["code"] for s in comp["section"]]
@@ -45,6 +48,7 @@ def test_occupational_dispatches_to_01031_01032():
 def test_specific_dispatches_to_01011_01012():
     """特定健診(specific)は 01011 + 01012 に dispatch。"""
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _make_checkup_doc("specific")
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     codes = [s["code"]["coding"][0]["code"] for s in comp["section"]]
@@ -55,6 +59,7 @@ def test_specific_dispatches_to_01011_01012():
 def test_regional_union_dispatches_to_01021_01022():
     """広域連合健診(regional_union)は 01021 + 01022 に dispatch。"""
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _make_checkup_doc("regional_union")
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     codes = [s["code"]["coding"][0]["code"] for s in comp["section"]]
@@ -65,6 +70,7 @@ def test_regional_union_dispatches_to_01021_01022():
 def test_missing_checkup_type_falls_back_to_occupational():
     """checkup_type 未指定は事業者健診に fallback(既存 sub-PR-A/B 互換)。"""
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _make_checkup_doc("")
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     codes = [s["code"]["coding"][0]["code"] for s in comp["section"]]
@@ -75,6 +81,7 @@ def test_missing_checkup_type_falls_back_to_occupational():
 def test_unknown_checkup_type_falls_back_to_occupational():
     """未知の checkup_type も fallback(defensive)。"""
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _make_checkup_doc("gakko")  # 学校健診 = 未対応
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     codes = [s["code"]["coding"][0]["code"] for s in comp["section"]]
@@ -85,19 +92,24 @@ def test_unknown_checkup_type_falls_back_to_occupational():
 # Enricher 側の age-based 種別選択 test
 # ─────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
-@pytest.mark.parametrize("age,expected", [
-    (40, "occupational"),
-    (55, "occupational"),
-    (64, "occupational"),
-    (65, "specific"),
-    (74, "specific"),
-    (75, "regional_union"),
-    (90, "regional_union"),
-])
+@pytest.mark.parametrize(
+    "age,expected",
+    [
+        (40, "occupational"),
+        (55, "occupational"),
+        (64, "occupational"),
+        (65, "specific"),
+        (74, "specific"),
+        (75, "regional_union"),
+        (90, "regional_union"),
+    ],
+)
 def test_pick_checkup_type_by_age(age, expected):
     """年齢帯 → 健診種別の決定的マッピング。"""
     from clinosim.modules.health_checkup.engine import _pick_checkup_type
+
     assert _pick_checkup_type(age) == expected
 
 

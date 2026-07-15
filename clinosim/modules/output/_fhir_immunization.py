@@ -57,9 +57,11 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
             "resourceType": "Immunization",
             "id": f"imm-{ctx.patient_id}-{i}",
             # Session 46 chain #2: JP Core Immunization profile.
-            **({"meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"
-            ]}} if is_jp(ctx.country) else {}),
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"]}}
+                if is_jp(ctx.country)
+                else {}
+            ),
             "status": status,
             "vaccineCode": vaccine_code,
             "patient": {"reference": f"Patient/{ctx.patient_id}"},
@@ -88,9 +90,11 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
             }
         # C3-05 (session 42 cycle 3): reasonCode is universal — vaccination
         # is always the reason. text-only per AD-30 (no fabricated coding).
-        resource["reasonCode"] = [{
-            "text": "予防接種（定期接種）" if lang == "ja" else "Vaccination (routine)",
-        }]
+        resource["reasonCode"] = [
+            {
+                "text": "予防接種（定期接種）" if lang == "ja" else "Vaccination (routine)",
+            }
+        ]
         # RM-3 (session 42): lot_number + administered_by now populated in CIF
         # (nurse roster-based). Emit only when present — no fabrication.
         lot = get_attr_or_key(imm, "lot_number", "") or ""
@@ -98,9 +102,11 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
             resource["lotNumber"] = lot
         admin_by = get_attr_or_key(imm, "administered_by", "") or ""
         if admin_by:
-            resource["performer"] = [{
-                "actor": {"reference": f"Practitioner/{admin_by}"},
-            }]
+            resource["performer"] = [
+                {
+                    "actor": {"reference": f"Practitioner/{admin_by}"},
+                }
+            ]
         # CY7-20/21/22 (Chain-7): standard vaccine administration mechanics.
         # All adult IM vaccines follow the same pattern: 0.5mL IM into left
         # deltoid (SNOMED 368208006). Not fabricated — this is universal
@@ -108,18 +114,22 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
         # ガイドライン. Only omitted for not-done entries.
         if status != "not-done":
             resource["site"] = {
-                "coding": [{
-                    "system": get_system_uri("snomed-ct"),
-                    "code": "368208006",
-                    "display": "左三角筋" if lang == "ja" else "Left deltoid",
-                }],
+                "coding": [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": "368208006",
+                        "display": "左三角筋" if lang == "ja" else "Left deltoid",
+                    }
+                ],
             }
             resource["route"] = {
-                "coding": [{
-                    "system": get_system_uri("snomed-ct"),
-                    "code": "78421000",
-                    "display": "筋肉内注射" if lang == "ja" else "Intramuscular route",
-                }],
+                "coding": [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": "78421000",
+                        "display": "筋肉内注射" if lang == "ja" else "Intramuscular route",
+                    }
+                ],
             }
             resource["doseQuantity"] = {
                 "value": 0.5,

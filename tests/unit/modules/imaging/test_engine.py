@@ -39,8 +39,11 @@ def _make_cr_chest_order(order_id="ORD-pt1-enc1-I01"):
 
 def test_enricher_no_op_when_no_imaging_orders():
     record = SimpleNamespace(
-        patient_id="pt1", orders=[],
-        extensions={}, disease_id="bacterial_pneumonia", severity="moderate",
+        patient_id="pt1",
+        orders=[],
+        extensions={},
+        disease_id="bacterial_pneumonia",
+        severity="moderate",
     )
     ctx = _make_ctx(record)
     imaging_enricher(ctx)
@@ -49,8 +52,11 @@ def test_enricher_no_op_when_no_imaging_orders():
 
 def test_enricher_emits_one_study_per_imaging_order():
     record = SimpleNamespace(
-        patient_id="pt1", orders=[_make_cr_chest_order()],
-        extensions={}, disease_id="bacterial_pneumonia", severity="moderate",
+        patient_id="pt1",
+        orders=[_make_cr_chest_order()],
+        extensions={},
+        disease_id="bacterial_pneumonia",
+        severity="moderate",
     )
     ctx = _make_ctx(record)
     imaging_enricher(ctx)
@@ -72,8 +78,11 @@ def test_enricher_skips_cancelled_orders():
     cancelled = _make_cr_chest_order()
     cancelled.status = OrderStatus.CANCELLED
     record = SimpleNamespace(
-        patient_id="pt1", orders=[cancelled],
-        extensions={}, disease_id="bacterial_pneumonia", severity="moderate",
+        patient_id="pt1",
+        orders=[cancelled],
+        extensions={},
+        disease_id="bacterial_pneumonia",
+        severity="moderate",
     )
     ctx = _make_ctx(record)
     imaging_enricher(ctx)
@@ -82,8 +91,11 @@ def test_enricher_skips_cancelled_orders():
 
 def test_enricher_populates_report_from_template():
     record = SimpleNamespace(
-        patient_id="pt1", orders=[_make_cr_chest_order()],
-        extensions={}, disease_id="bacterial_pneumonia", severity="moderate",
+        patient_id="pt1",
+        orders=[_make_cr_chest_order()],
+        extensions={},
+        disease_id="bacterial_pneumonia",
+        severity="moderate",
     )
     ctx = _make_ctx(record)
     imaging_enricher(ctx)
@@ -102,12 +114,20 @@ def test_enricher_populates_report_from_template():
 
 def test_enricher_is_deterministic_for_same_seed():
     """Same seed + same order → same Study UID + same series UIDs + same report text."""
-    record1 = SimpleNamespace(patient_id="pt1", orders=[_make_cr_chest_order()],
-                              extensions={}, disease_id="bacterial_pneumonia",
-                              severity="moderate")
-    record2 = SimpleNamespace(patient_id="pt1", orders=[_make_cr_chest_order()],
-                              extensions={}, disease_id="bacterial_pneumonia",
-                              severity="moderate")
+    record1 = SimpleNamespace(
+        patient_id="pt1",
+        orders=[_make_cr_chest_order()],
+        extensions={},
+        disease_id="bacterial_pneumonia",
+        severity="moderate",
+    )
+    record2 = SimpleNamespace(
+        patient_id="pt1",
+        orders=[_make_cr_chest_order()],
+        extensions={},
+        disease_id="bacterial_pneumonia",
+        severity="moderate",
+    )
     imaging_enricher(_make_ctx(record1, master_seed=42))
     imaging_enricher(_make_ctx(record2, master_seed=42))
     s1, s2 = record1.extensions["imaging"][0], record2.extensions["imaging"][0]
@@ -119,19 +139,23 @@ def test_enricher_is_deterministic_for_same_seed():
 def test_enricher_ct_head_emits_axial_series_with_instance_range():
     ct_order = Order(
         order_id="ORD-pt1-enc1-I01",
-        encounter_id="enc1", patient_id="pt1",
+        encounter_id="enc1",
+        patient_id="pt1",
         order_type=OrderType.IMAGING,
-        order_code="30799-1", display_name="CT Head without contrast",
-        urgency="stat", clinical_intent="Suspected ICH",
+        order_code="30799-1",
+        display_name="CT Head without contrast",
+        urgency="stat",
+        clinical_intent="Suspected ICH",
         ordered_datetime=datetime(2026, 6, 30, 8, 30),
         status=OrderStatus.PLACED,
-        imaging_modality="CT", imaging_body_site_code="69536005",
+        imaging_modality="CT",
+        imaging_body_site_code="69536005",
         imaging_views=["axial"],
         imaging_spec_meta={"abnormal_rate_by_severity": {"any": 1.0}},
     )
-    record = SimpleNamespace(patient_id="pt1", orders=[ct_order],
-                             extensions={}, disease_id="hemorrhagic_stroke",
-                             severity="severe")
+    record = SimpleNamespace(
+        patient_id="pt1", orders=[ct_order], extensions={}, disease_id="hemorrhagic_stroke", severity="severe"
+    )
     ctx = _make_ctx(record)
     imaging_enricher(ctx)
     s = record.extensions["imaging"][0]
@@ -155,17 +179,23 @@ def test_enricher_infers_imaging_metadata_from_legacy_orders():
     """
     legacy_order = Order(
         order_id="ORD-legacy",
-        encounter_id="enc1", patient_id="pt1",
+        encounter_id="enc1",
+        patient_id="pt1",
         order_type=OrderType.IMAGING,
-        order_code="CT-HEAD", display_name="CT Head",
-        urgency="stat", clinical_intent="Stroke workup",
+        order_code="CT-HEAD",
+        display_name="CT Head",
+        urgency="stat",
+        clinical_intent="Stroke workup",
         ordered_datetime=datetime(2026, 6, 30, 8, 30),
         status=OrderStatus.PLACED,
         # imaging_modality and imaging_body_site_code intentionally absent
     )
     record = SimpleNamespace(
-        patient_id="pt1", orders=[legacy_order],
-        extensions={}, disease_id="hemorrhagic_stroke", severity="severe",
+        patient_id="pt1",
+        orders=[legacy_order],
+        extensions={},
+        disease_id="hemorrhagic_stroke",
+        severity="severe",
     )
     ctx = _make_ctx(record)
     imaging_enricher(ctx)

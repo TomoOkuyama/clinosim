@@ -74,6 +74,7 @@ def _sample_doc_dict(format_type="composition") -> dict:
 
 # --- Shape and required fields ---
 
+
 def test_empty_docs_emits_nothing():
     ctx = _make_ctx([])
     assert _bb_compositions(ctx) == []
@@ -188,6 +189,7 @@ def test_no_encounter_omits_encounter_field():
 
 # --- Dict path (production JSON-deserialized CIF) ---
 
+
 def test_composition_from_dict_path():
     """Production CIF is json.load() -> dict; verify _o() dict-access path."""
     ctx = _make_ctx([_sample_doc_dict()])
@@ -209,6 +211,7 @@ def test_dict_path_free_text_skipped():
 
 # --- Multi-doc scenarios ---
 
+
 def test_multiple_docs_only_composition_type_emitted():
     docs = [
         _sample_doc_dict(format_type="composition"),
@@ -217,6 +220,7 @@ def test_multiple_docs_only_composition_type_emitted():
     # Use production-format document_id with DOC_REFERENCE_ID_PREFIX ("doc-"); I-3 fix
     # strips "doc-" before prepending COMPOSITION_ID_PREFIX → "comp-enc-A" not "comp-doc-enc-A".
     from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
+
     docs[0]["document_id"] = f"{DOC_REFERENCE_ID_PREFIX}enc-A"
     ctx = _make_ctx(docs)
     resources = _bb_compositions(ctx)
@@ -240,6 +244,7 @@ def test_multiple_composition_docs_all_emitted():
 
 # --- JP locale ---
 
+
 def test_jp_locale_composition_language_field():
     doc = _sample_doc_dict()
     doc["language"] = "ja"
@@ -249,6 +254,7 @@ def test_jp_locale_composition_language_field():
 
 
 # --- I-1 regression: XHTML escaping in section text.div ---
+
 
 def test_composition_section_text_escapes_xhtml_special_chars():
     """I-1 regression: section narrative text must escape <, >, &, " before
@@ -281,12 +287,14 @@ def test_composition_section_text_escapes_xhtml_special_chars():
 
 # --- I-3 regression: Composition.id double-prefix ---
 
+
 def test_composition_id_strips_doc_prefix_from_document_id():
     """I-3 regression: production document_id carries 'doc-' prefix from
     DOC_REFERENCE_ID_PREFIX. Composition.id must NOT double-prefix to
     'comp-doc-{enc}-{seq}'; it should be 'comp-{enc}-{seq}'.
     """
     from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
+
     doc = _sample_doc_dict()
     doc["document_id"] = f"{DOC_REFERENCE_ID_PREFIX}enc-test-01"  # production format
     ctx = _make_ctx([doc])

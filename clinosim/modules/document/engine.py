@@ -79,11 +79,13 @@ logger = logging.getLogger(__name__)
 # author-dispatch gate reading stale codes (single-edit-point rule).
 # clinosim/codes/data/loinc.yaml 78390-2 comment documents the rationale
 # for those specific codes (34119-8 was rejected as SNF, not hospital).
-_NURSING_DOC_TYPE_KEYS = frozenset({
-    "admission_nursing_assessment",
-    "nursing_shift_note",
-    "nursing_discharge_summary",
-})
+_NURSING_DOC_TYPE_KEYS = frozenset(
+    {
+        "admission_nursing_assessment",
+        "nursing_shift_note",
+        "nursing_discharge_summary",
+    }
+)
 
 
 @lru_cache(maxsize=1)
@@ -98,13 +100,8 @@ def _load_nursing_loincs() -> frozenset[str]:
     from clinosim.modules.document.narrative.registry import load_document_type_specs
 
     specs = load_document_type_specs()
-    result = frozenset(
-        specs[DocumentType(k)].loinc_code for k in _NURSING_DOC_TYPE_KEYS
-    )
-    assert len(result) == 3, (
-        f"expected 3 distinct nursing LOINCs from document_type_specs.yaml, "
-        f"got {sorted(result)}"
-    )
+    result = frozenset(specs[DocumentType(k)].loinc_code for k in _NURSING_DOC_TYPE_KEYS)
+    assert len(result) == 3, f"expected 3 distinct nursing LOINCs from document_type_specs.yaml, got {sorted(result)}"
     return result
 
 
@@ -113,11 +110,13 @@ NURSING_LOINCS = _load_nursing_loincs()
 # Encounter types that receive daily ClinicalImpressionRecords (spec §3.3).
 # CI is a "daily working diagnosis update" — only meaningful for multi-day inpatient stays.
 # Outpatient / Emergency encounters do NOT receive ClinicalImpression entries.
-_CI_ENCOUNTER_TYPES: frozenset[str] = frozenset({
-    "inpatient",
-    "icu",
-    "rehab_inpatient",
-})
+_CI_ENCOUNTER_TYPES: frozenset[str] = frozenset(
+    {
+        "inpatient",
+        "icu",
+        "rehab_inpatient",
+    }
+)
 
 _CANCELLED_STATUSES: frozenset[str] = frozenset({"cancelled"})
 
@@ -154,6 +153,7 @@ def _referral_note_fires(encounter_id: str, patient_id: str) -> bool:
       result is stable across Python invocations and locales.
     """
     import hashlib
+
     key = f"{encounter_id}::{patient_id}".encode()
     digest = hashlib.sha256(key).digest()
     frac = int.from_bytes(digest[:8], "big") / (1 << 64)
@@ -232,8 +232,13 @@ def _compute_los_days(
 
 
 def _make_doc_stub(
-    spec: Any, encounter_id: str, doc_seq: int, dt: datetime,
-    pid: str, lang: str, author: str,
+    spec: Any,
+    encounter_id: str,
+    doc_seq: int,
+    dt: datetime,
+    pid: str,
+    lang: str,
+    author: str,
 ) -> ClinicalDocument:
     """Shared ClinicalDocument construction for the admission_once family of
     generation_frequency branches (admission_once / admission_once_los_gt_7 /
@@ -287,9 +292,7 @@ def document_enricher(ctx: Any) -> None:
     lang = resolve_lang(country)
 
     # Pre-compute country spec key set once per enricher call (lru_cache hit on repeated calls).
-    country_spec_keys: frozenset[str] = frozenset(
-        s.type_key for s in specs_for_country(country)
-    )
+    country_spec_keys: frozenset[str] = frozenset(s.type_key for s in specs_for_country(country))
 
     for record in ctx.records:
         patient = _o(record, "patient", None)
@@ -300,9 +303,7 @@ def document_enricher(ctx: Any) -> None:
 
         # Start from existing clinical_impressions (in case enricher is called >1x).
         raw_ext = _o(record, "extensions", {}) or {}
-        clinical_impressions: list[ClinicalImpressionRecord] = list(
-            raw_ext.get("clinical_impressions", [])
-        )
+        clinical_impressions: list[ClinicalImpressionRecord] = list(raw_ext.get("clinical_impressions", []))
 
         # Per-encounter sequential document sequence number.
         # Initialise per-record (not per-encounter) so IDs are globally unique
@@ -318,10 +319,7 @@ def document_enricher(ctx: Any) -> None:
 
             # Per-spec encounter-type × country intersection.
             # specs_for_encounter_type is lru_cache(maxsize=4); cheap repeated call.
-            applicable_specs = [
-                s for s in specs_for_encounter_type(enc_type_val)
-                if s.type_key in country_spec_keys
-            ]
+            applicable_specs = [s for s in specs_for_encounter_type(enc_type_val) if s.type_key in country_spec_keys]
 
             emit_ci = enc_type_val in _CI_ENCOUNTER_TYPES
 
@@ -348,10 +346,17 @@ def document_enricher(ctx: Any) -> None:
                 freq = spec.generation_frequency
 
                 if freq == "admission_once":
-                    documents.append(_make_doc_stub(
-                        spec, encounter_id, doc_seq, admission_dt, pid, lang,
-                        _pick_document_author(spec, encounter),
-                    ))
+                    documents.append(
+                        _make_doc_stub(
+                            spec,
+                            encounter_id,
+                            doc_seq,
+                            admission_dt,
+                            pid,
+                            lang,
+                            _pick_document_author(spec, encounter),
+                        )
+                    )
                     doc_seq += 1
 
                 elif freq == "admission_once_los_gt_7":
@@ -360,10 +365,17 @@ def document_enricher(ctx: Any) -> None:
                     # LOS-skip pattern below.
                     if los_days <= 7:
                         continue
-                    documents.append(_make_doc_stub(
-                        spec, encounter_id, doc_seq, admission_dt, pid, lang,
-                        _pick_document_author(spec, encounter),
-                    ))
+                    documents.append(
+                        _make_doc_stub(
+                            spec,
+                            encounter_id,
+                            doc_seq,
+                            admission_dt,
+                            pid,
+                            lang,
+                            _pick_document_author(spec, encounter),
+                        )
+                    )
                     doc_seq += 1
 
                 elif freq == "admission_once_if_rehab_sessions":
@@ -375,18 +387,22 @@ def document_enricher(ctx: Any) -> None:
                     # NOT admission_dt (the plan is assessed when rehab starts,
                     # which is POD1+ per generate_rehab_sessions, not at admission).
                     enc_rehab_sessions = [
-                        s for s in (_o(record, "rehab_sessions", []) or [])
-                        if _o(s, "encounter_id", "") == encounter_id
+                        s for s in (_o(record, "rehab_sessions", []) or []) if _o(s, "encounter_id", "") == encounter_id
                     ]
                     if not enc_rehab_sessions:
                         continue
-                    first_session_dt = min(
-                        _o(s, "session_date", admission_dt) for s in enc_rehab_sessions
+                    first_session_dt = min(_o(s, "session_date", admission_dt) for s in enc_rehab_sessions)
+                    documents.append(
+                        _make_doc_stub(
+                            spec,
+                            encounter_id,
+                            doc_seq,
+                            first_session_dt,
+                            pid,
+                            lang,
+                            _pick_document_author(spec, encounter),
+                        )
                     )
-                    documents.append(_make_doc_stub(
-                        spec, encounter_id, doc_seq, first_session_dt, pid, lang,
-                        _pick_document_author(spec, encounter),
-                    ))
                     doc_seq += 1
 
                 elif freq == "daily":
@@ -397,20 +413,22 @@ def document_enricher(ctx: Any) -> None:
                         continue
                     for day in range(los_days):
                         day_dt = admission_dt + timedelta(days=day)
-                        documents.append(ClinicalDocument(
-                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                            task_type=spec.type_key,
-                            loinc_code=spec.loinc_code,
-                            patient_id=pid,
-                            encounter_id=encounter_id,
-                            author_practitioner_id=_pick_document_author(spec, encounter),
-                            authored_datetime=day_dt.isoformat(),
-                            period_start=day_dt.isoformat(),
-                            period_end=day_dt.isoformat(),
-                            language=lang,
-                            format_type=spec.format_type.value,
-                            narrative=None,
-                        ))
+                        documents.append(
+                            ClinicalDocument(
+                                document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                                task_type=spec.type_key,
+                                loinc_code=spec.loinc_code,
+                                patient_id=pid,
+                                encounter_id=encounter_id,
+                                author_practitioner_id=_pick_document_author(spec, encounter),
+                                authored_datetime=day_dt.isoformat(),
+                                period_start=day_dt.isoformat(),
+                                period_end=day_dt.isoformat(),
+                                language=lang,
+                                format_type=spec.format_type.value,
+                                narrative=None,
+                            )
+                        )
                         doc_seq += 1
 
                 elif freq == "daily_3shift":
@@ -425,44 +443,45 @@ def document_enricher(ctx: Any) -> None:
                         day_date = (admission_dt + timedelta(days=day)).date()
                         for shift_key, shift_hour in SHIFT_SCHEDULE:
                             shift_dt = datetime.combine(day_date, time(hour=shift_hour))
-                            documents.append(ClinicalDocument(
-                                document_id=(
-                                    f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}"
-                                    f"-{doc_seq:02d}-{shift_key}"
-                                ),
-                                task_type=spec.type_key,
-                                loinc_code=spec.loinc_code,
-                                patient_id=pid,
-                                encounter_id=encounter_id,
-                                author_practitioner_id=_pick_document_author(spec, encounter),
-                                authored_datetime=shift_dt.isoformat(),
-                                period_start=shift_dt.isoformat(),
-                                period_end=shift_dt.isoformat(),
-                                language=lang,
-                                format_type=spec.format_type.value,
-                                shift=shift_key,
-                                narrative=None,
-                            ))
+                            documents.append(
+                                ClinicalDocument(
+                                    document_id=(f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}-{shift_key}"),
+                                    task_type=spec.type_key,
+                                    loinc_code=spec.loinc_code,
+                                    patient_id=pid,
+                                    encounter_id=encounter_id,
+                                    author_practitioner_id=_pick_document_author(spec, encounter),
+                                    authored_datetime=shift_dt.isoformat(),
+                                    period_start=shift_dt.isoformat(),
+                                    period_end=shift_dt.isoformat(),
+                                    language=lang,
+                                    format_type=spec.format_type.value,
+                                    shift=shift_key,
+                                    narrative=None,
+                                )
+                            )
                             doc_seq += 1
 
                 elif freq == "discharge_once":
                     if is_in_progress:
                         continue  # AD-32: no discharge summary while encounter is open
                     end_dt = discharge_dt or admission_dt  # discharge_dt is non-None here
-                    documents.append(ClinicalDocument(
-                        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                        task_type=spec.type_key,
-                        loinc_code=spec.loinc_code,
-                        patient_id=pid,
-                        encounter_id=encounter_id,
-                        author_practitioner_id=_pick_document_author(spec, encounter),
-                        authored_datetime=end_dt.isoformat(),
-                        period_start=admission_dt.isoformat(),
-                        period_end=end_dt.isoformat(),
-                        language=lang,
-                        format_type=spec.format_type.value,
-                        narrative=None,
-                    ))
+                    documents.append(
+                        ClinicalDocument(
+                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                            task_type=spec.type_key,
+                            loinc_code=spec.loinc_code,
+                            patient_id=pid,
+                            encounter_id=encounter_id,
+                            author_practitioner_id=_pick_document_author(spec, encounter),
+                            authored_datetime=end_dt.isoformat(),
+                            period_start=admission_dt.isoformat(),
+                            period_end=end_dt.isoformat(),
+                            language=lang,
+                            format_type=spec.format_type.value,
+                            narrative=None,
+                        )
+                    )
                     doc_seq += 1
 
                 elif freq == "discharge_fraction_20pct":
@@ -478,20 +497,22 @@ def document_enricher(ctx: Any) -> None:
                     if not _referral_note_fires(encounter_id, pid):
                         continue
                     end_dt = discharge_dt or admission_dt
-                    documents.append(ClinicalDocument(
-                        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                        task_type=spec.type_key,
-                        loinc_code=spec.loinc_code,
-                        patient_id=pid,
-                        encounter_id=encounter_id,
-                        author_practitioner_id=_pick_document_author(spec, encounter),
-                        authored_datetime=end_dt.isoformat(),
-                        period_start=admission_dt.isoformat(),
-                        period_end=end_dt.isoformat(),
-                        language=lang,
-                        format_type=spec.format_type.value,
-                        narrative=None,
-                    ))
+                    documents.append(
+                        ClinicalDocument(
+                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                            task_type=spec.type_key,
+                            loinc_code=spec.loinc_code,
+                            patient_id=pid,
+                            encounter_id=encounter_id,
+                            author_practitioner_id=_pick_document_author(spec, encounter),
+                            authored_datetime=end_dt.isoformat(),
+                            period_start=admission_dt.isoformat(),
+                            period_end=end_dt.isoformat(),
+                            language=lang,
+                            format_type=spec.format_type.value,
+                            narrative=None,
+                        )
+                    )
                     doc_seq += 1
 
                 elif freq == "checkup_once":
@@ -503,20 +524,22 @@ def document_enricher(ctx: Any) -> None:
                     if not ctx.config.module_enabled("health_checkup"):
                         continue
                     end_dt = discharge_dt or admission_dt
-                    documents.append(ClinicalDocument(
-                        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                        task_type=spec.type_key,
-                        loinc_code=spec.loinc_code,
-                        patient_id=pid,
-                        encounter_id=encounter_id,
-                        author_practitioner_id=_pick_document_author(spec, encounter),
-                        authored_datetime=end_dt.isoformat(),
-                        period_start=admission_dt.isoformat(),
-                        period_end=end_dt.isoformat(),
-                        language=lang,
-                        format_type=spec.format_type.value,
-                        narrative=None,
-                    ))
+                    documents.append(
+                        ClinicalDocument(
+                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                            task_type=spec.type_key,
+                            loinc_code=spec.loinc_code,
+                            patient_id=pid,
+                            encounter_id=encounter_id,
+                            author_practitioner_id=_pick_document_author(spec, encounter),
+                            authored_datetime=end_dt.isoformat(),
+                            period_start=admission_dt.isoformat(),
+                            period_end=end_dt.isoformat(),
+                            language=lang,
+                            format_type=spec.format_type.value,
+                            narrative=None,
+                        )
+                    )
                     doc_seq += 1
 
                 elif freq == "encounter_once":
@@ -525,20 +548,22 @@ def document_enricher(ctx: Any) -> None:
                     # AD-32: if discharge_dt is None (rare in-progress outpatient/ED),
                     # still emit — single-visit context makes partial data meaningful.
                     end_dt = discharge_dt or admission_dt
-                    documents.append(ClinicalDocument(
-                        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                        task_type=spec.type_key,
-                        loinc_code=spec.loinc_code,
-                        patient_id=pid,
-                        encounter_id=encounter_id,
-                        author_practitioner_id=_pick_document_author(spec, encounter),
-                        authored_datetime=admission_dt.isoformat(),
-                        period_start=admission_dt.isoformat(),
-                        period_end=end_dt.isoformat(),
-                        language=lang,
-                        format_type=spec.format_type.value,
-                        narrative=None,
-                    ))
+                    documents.append(
+                        ClinicalDocument(
+                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                            task_type=spec.type_key,
+                            loinc_code=spec.loinc_code,
+                            patient_id=pid,
+                            encounter_id=encounter_id,
+                            author_practitioner_id=_pick_document_author(spec, encounter),
+                            authored_datetime=admission_dt.isoformat(),
+                            period_start=admission_dt.isoformat(),
+                            period_end=end_dt.isoformat(),
+                            language=lang,
+                            format_type=spec.format_type.value,
+                            narrative=None,
+                        )
+                    )
                     doc_seq += 1
 
             # ── ClinicalImpression generation (inpatient types only; spec §3.3) ─
@@ -551,8 +576,10 @@ def document_enricher(ctx: Any) -> None:
                 # touch ClinicalImpression.description.
                 _disease_id = _o(encounter, "disease_id", "") or ""
                 _severity = _o(encounter, "severity", "") or ""
-                _enc_label = "inpatient" if enc_type_val == "inpatient" else (
-                    "ICU" if "icu" in enc_type_val.lower() else "rehab"
+                _enc_label = (
+                    "inpatient"
+                    if enc_type_val == "inpatient"
+                    else ("ICU" if "icu" in enc_type_val.lower() else "rehab")
                 )
                 for day in range(los_days):
                     day_dt = admission_dt + timedelta(days=day)
@@ -580,15 +607,17 @@ def document_enricher(ctx: Any) -> None:
                         f"medication response, complication risk, and progress toward "
                         f"discharge criteria."
                     )
-                    clinical_impressions.append(ClinicalImpressionRecord(
-                        impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
-                        encounter_id=encounter_id,
-                        date=day_dt.date(),
-                        day_index=day,
-                        description=description,
-                        practitioner_id=attending_id,
-                        is_in_progress=last_day_of_in_progress,
-                    ))
+                    clinical_impressions.append(
+                        ClinicalImpressionRecord(
+                            impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
+                            encounter_id=encounter_id,
+                            date=day_dt.date(),
+                            day_index=day,
+                            description=description,
+                            practitioner_id=attending_id,
+                            is_in_progress=last_day_of_in_progress,
+                        )
+                    )
 
         # ── Write back to record ─────────────────────────────────────────────
         # documents: typed field on CIFPatientRecord; assignable on both dict and object.

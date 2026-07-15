@@ -72,6 +72,7 @@ population / cursor 差分だと再現する。20+ seed × 3 population regime(U
    本当に同一値になるケース)。ev_key に disease_id を追加 + screening
    種別ごとの visit_reason に修正。
 """
+
 from __future__ import annotations
 
 from dataclasses import replace
@@ -103,17 +104,13 @@ def test_cross_cursor_shared_window_byte_identical():
     # A に居た全 patient は B にも同一 patient_id で存在
     a_by_pid = {r.patient.patient_id: r for r in ds_a.patients}
     b_by_pid = {r.patient.patient_id: r for r in ds_b.patients}
-    assert set(a_by_pid.keys()) <= set(b_by_pid.keys()), \
-        "cursor B is missing patients present in cursor A"
+    assert set(a_by_pid.keys()) <= set(b_by_pid.keys()), "cursor B is missing patients present in cursor A"
 
     # 「patient snapshot が A/B で異なる患者」を丸ごと除外(note 3 参照)。
     # `_activate_cached` は patient ごとに 1 回だけ snapshot するので、同一
     # cursor 内であればどの record の `.patient` を見ても同じ値になる —
     # よって各患者の最初の record だけを比較すれば十分。
-    accretion_affected_pids = {
-        pid for pid, a_rec in a_by_pid.items()
-        if a_rec.patient != b_by_pid[pid].patient
-    }
+    accretion_affected_pids = {pid for pid, a_rec in a_by_pid.items() if a_rec.patient != b_by_pid[pid].patient}
 
     # cursor A の各 encounter(record)を encounter_id で cursor B と対応付けて比較
     # (patient_id だけで対応付けると複数 record を持つ患者で誤対応する — note 1 参照)
@@ -132,8 +129,7 @@ def test_cross_cursor_shared_window_byte_identical():
             continue
         enc_id = enc.encounter_id
         assert enc_id in b_by_enc, (
-            f"encounter {enc_id} (patient {a_rec.patient.patient_id}) present in "
-            f"cursor A but missing in cursor B"
+            f"encounter {enc_id} (patient {a_rec.patient.patient_id}) present in cursor A but missing in cursor B"
         )
         b_rec = b_by_enc[enc_id]
         # immunizations は POST_RECORDS enricher が snapshot_date を as-of 参照日と

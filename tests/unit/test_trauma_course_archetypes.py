@@ -11,23 +11,43 @@ from clinosim.modules.disease.protocol import load_disease_protocol
 pytestmark = pytest.mark.unit
 
 _TRAUMA = [
-    "hip_fracture", "fall_from_height", "traffic_accident_severe",
-    "industrial_burn_severe", "crush_injury_hand", "electrical_injury",
+    "hip_fracture",
+    "fall_from_height",
+    "traffic_accident_severe",
+    "industrial_burn_severe",
+    "crush_injury_hand",
+    "electrical_injury",
     "wrist_fracture_surgical",
 ]
 _CANONICAL = {
-    "smooth_recovery", "dip_then_recovery", "plateau_then_recovery",
-    "treatment_resistant", "gradual_deterioration", "sudden_deterioration",
+    "smooth_recovery",
+    "dip_then_recovery",
+    "plateau_then_recovery",
+    "treatment_resistant",
+    "gradual_deterioration",
+    "sudden_deterioration",
 }
 _RECOGNIZED_VARS = {
-    "anemia_level", "cardiac_function", "coagulation_status", "glucose_status",
-    "hepatic_function", "inflammation_level", "perfusion_status", "ph_status",
-    "renal_function", "volume_status",
+    "anemia_level",
+    "cardiac_function",
+    "coagulation_status",
+    "glucose_status",
+    "hepatic_function",
+    "inflammation_level",
+    "perfusion_status",
+    "ph_status",
+    "renal_function",
+    "volume_status",
 }
 # risk_factor conditions _evaluate_risk_condition actually supports (else silent no-op)
 _SUPPORTED_RISK_PREFIXES = (
-    "severity_severe", "age_over_", "renal_function", "volume_status",
-    "perfusion_status", "delirium_susceptibility", "immobility_days",
+    "severity_severe",
+    "age_over_",
+    "renal_function",
+    "volume_status",
+    "perfusion_status",
+    "delirium_susceptibility",
+    "immobility_days",
 )
 
 

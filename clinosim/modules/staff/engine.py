@@ -69,26 +69,41 @@ def generate_roster(
         sex = "M" if rng.random() < 0.65 else "F"
         name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"DR-{prefix}-{idx:03d}"
-        roster.members.append(StaffMember(
-            staff_id=sid, name=name, role="physician",
-            department=dept, specialty=specialty or dept,
-            qualification_year=int(rng.integers(1985, 2020)),
-            sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
-            name_phonetic=name_kana,
-        ))
+        roster.members.append(
+            StaffMember(
+                staff_id=sid,
+                name=name,
+                role="physician",
+                department=dept,
+                specialty=specialty or dept,
+                qualification_year=int(rng.integers(1985, 2020)),
+                sex=sex,
+                phone=_gen_phone(country, rng),
+                email=_gen_email(sid),
+                name_phonetic=name_kana,
+            )
+        )
 
     def _add_nurse(dept: str, idx: int, ward: str) -> None:
         prefix = _DEPT_PREFIX.get(dept, dept[:2].upper())
         sex = "F" if rng.random() < 0.85 else "M"
         name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"NS-{prefix}-{idx:03d}"
-        roster.members.append(StaffMember(
-            staff_id=sid, name=name, role="nurse",
-            department=dept, specialty=dept, ward=ward,
-            qualification_year=int(rng.integers(1995, 2023)),
-            sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
-            name_phonetic=name_kana,
-        ))
+        roster.members.append(
+            StaffMember(
+                staff_id=sid,
+                name=name,
+                role="nurse",
+                department=dept,
+                specialty=dept,
+                ward=ward,
+                qualification_year=int(rng.integers(1995, 2023)),
+                sex=sex,
+                phone=_gen_phone(country, rng),
+                email=_gen_email(sid),
+                name_phonetic=name_kana,
+            )
+        )
 
     # Physicians per department (scaled with hospital size)
     # Formula: ~1 doctor per 5 beds minimum, more for internal medicine
@@ -150,37 +165,58 @@ def generate_roster(
     for i in range(10):
         sex = "F" if i % 2 == 0 else "M"
         name, name_kana = _generate_name_pair(sex, country, rng)
-        sid = f"TECH-LAB-{i+1:03d}"
-        roster.members.append(StaffMember(
-            staff_id=sid, name=name, role="lab_technician", department="laboratory",
-            qualification_year=int(rng.integers(2000, 2023)),
-            sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
-            name_phonetic=name_kana,
-        ))
+        sid = f"TECH-LAB-{i + 1:03d}"
+        roster.members.append(
+            StaffMember(
+                staff_id=sid,
+                name=name,
+                role="lab_technician",
+                department="laboratory",
+                qualification_year=int(rng.integers(2000, 2023)),
+                sex=sex,
+                phone=_gen_phone(country, rng),
+                email=_gen_email(sid),
+                name_phonetic=name_kana,
+            )
+        )
 
     # Radiologists
     for i in range(4):
         sex = "M" if i % 2 == 0 else "F"
         name, name_kana = _generate_name_pair(sex, country, rng)
-        sid = f"DR-RAD-{i+1:03d}"
-        roster.members.append(StaffMember(
-            staff_id=sid, name=name, role="radiologist", department="radiology",
-            qualification_year=int(rng.integers(1990, 2015)),
-            sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
-            name_phonetic=name_kana,
-        ))
+        sid = f"DR-RAD-{i + 1:03d}"
+        roster.members.append(
+            StaffMember(
+                staff_id=sid,
+                name=name,
+                role="radiologist",
+                department="radiology",
+                qualification_year=int(rng.integers(1990, 2015)),
+                sex=sex,
+                phone=_gen_phone(country, rng),
+                email=_gen_email(sid),
+                name_phonetic=name_kana,
+            )
+        )
 
     # Pharmacists
     for i in range(8):
         sex = "F" if i % 2 == 0 else "M"
         name, name_kana = _generate_name_pair(sex, country, rng)
-        sid = f"PH-{i+1:03d}"
-        roster.members.append(StaffMember(
-            staff_id=sid, name=name, role="pharmacist", department="pharmacy",
-            qualification_year=int(rng.integers(2000, 2023)),
-            sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
-            name_phonetic=name_kana,
-        ))
+        sid = f"PH-{i + 1:03d}"
+        roster.members.append(
+            StaffMember(
+                staff_id=sid,
+                name=name,
+                role="pharmacist",
+                department="pharmacy",
+                qualification_year=int(rng.integers(2000, 2023)),
+                sex=sex,
+                phone=_gen_phone(country, rng),
+                email=_gen_email(sid),
+                name_phonetic=name_kana,
+            )
+        )
 
     # C5-25 (Chain 3): roster expansion — multi-disciplinary staff types
     # typically present in a JP community hospital of this size. Counts
@@ -190,7 +226,7 @@ def generate_roster(
     # nutrition-order emit paths downstream.
     _extra_roles: list[tuple[str, str, str, int, float]] = [
         # (role, id_prefix, department, count, female_ratio)
-        ("physical_therapist", "PT",  "rehabilitation", 4, 0.55),
+        ("physical_therapist", "PT", "rehabilitation", 4, 0.55),
         ("occupational_therapist", "OT", "rehabilitation", 2, 0.65),
         ("speech_therapist", "ST", "rehabilitation", 2, 0.75),
         ("medical_social_worker", "MSW", "medical_social_work", 2, 0.70),
@@ -200,13 +236,20 @@ def generate_roster(
         for i in range(count):
             sex = "F" if rng.random() < female_ratio else "M"
             name, name_kana = _generate_name_pair(sex, country, rng)
-            sid = f"{prefix}-{i+1:03d}"
-            roster.members.append(StaffMember(
-                staff_id=sid, name=name, role=role, department=dept,
-                qualification_year=int(rng.integers(2005, 2023)),
-                sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
-                name_phonetic=name_kana,
-            ))
+            sid = f"{prefix}-{i + 1:03d}"
+            roster.members.append(
+                StaffMember(
+                    staff_id=sid,
+                    name=name,
+                    role=role,
+                    department=dept,
+                    qualification_year=int(rng.integers(2005, 2023)),
+                    sex=sex,
+                    phone=_gen_phone(country, rng),
+                    email=_gen_email(sid),
+                    name_phonetic=name_kana,
+                )
+            )
 
     return roster
 
@@ -226,8 +269,11 @@ def assign_staff(
             physicians = roster.get_by_role("physician", department)
             if not physicians:
                 # Match by specialty (e.g., cardiology → physician with specialty=cardiology)
-                physicians = [m for m in roster.members
-                              if m.role == "physician" and (m.specialty == department or department in m.specialty)]
+                physicians = [
+                    m
+                    for m in roster.members
+                    if m.role == "physician" and (m.specialty == department or department in m.specialty)
+                ]
             if not physicians:
                 # Fall back to any physician
                 physicians = roster.get_by_role("physician")
@@ -264,9 +310,7 @@ def _generate_name(sex: str, country: str, rng: np.random.Generator) -> str:
     return kanji
 
 
-def _generate_name_pair(
-    sex: str, country: str, rng: np.random.Generator
-) -> tuple[str, str]:
+def _generate_name_pair(sex: str, country: str, rng: np.random.Generator) -> tuple[str, str]:
     """Generate (kanji, kana) name pair for staff.
 
     C2-19 continuation (session 43 cycle 5): JP roster gen now returns the

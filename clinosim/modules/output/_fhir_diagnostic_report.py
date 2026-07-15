@@ -18,6 +18,7 @@ Spec: docs/superpowers/specs/2026-06-22-diagnostic-report-panels-design.md
 Panel YAML + canonical loader live in ``clinosim.modules.order.panel_grouping``
 (single source of truth per user directive: "データ参照やデータ生成のロジックは統一").
 """
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -64,8 +65,8 @@ def _o(obj: Any, name: str, default: Any = None) -> Any:
 
 class _GroupedPanel(NamedTuple):
     panel_name: str
-    bucket: str            # "YYYY-MM-DD" (day-resolution; see group_lab_orders)
-    obs_refs: list[str]    # Observation ids in YAML-component order
+    bucket: str  # "YYYY-MM-DD" (day-resolution; see group_lab_orders)
+    obs_refs: list[str]  # Observation ids in YAML-component order
 
 
 def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel]:
@@ -142,9 +143,13 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
                 for ref in obs_refs:
                     consumed.discard(ref)
                 continue
-            groups.append(_GroupedPanel(
-                panel_name=panel_name, bucket=bucket, obs_refs=obs_refs,
-            ))
+            groups.append(
+                _GroupedPanel(
+                    panel_name=panel_name,
+                    bucket=bucket,
+                    obs_refs=obs_refs,
+                )
+            )
     return groups
 
 
@@ -183,7 +188,7 @@ def parse_lab_obs_id(obs_id: str, encounter_id: str) -> int | None:
     if not obs_id.startswith(prefix):
         return None
     try:
-        return int(obs_id[len(prefix):])
+        return int(obs_id[len(prefix) :])
     except ValueError:
         return None
 
@@ -220,23 +225,31 @@ def build_dr_resource(
         "resourceType": "DiagnosticReport",
         "id": f"dr-{group.panel_name.lower()}-{encounter_id}-{seq}",
         # Session 46 chain #2: JP Core DiagnosticReport_LabResult profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"
-        ]}} if is_jp(country) else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"]}}
+            if is_jp(country)
+            else {}
+        ),
         "status": "final",
-        "category": [{
-            "coding": [{
-                "system": V2_0074_SYSTEM,
-                "code": LAB_CATEGORY_V2_0074,
-                "display": "Laboratory",
-            }],
-        }],
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": V2_0074_SYSTEM,
+                        "code": LAB_CATEGORY_V2_0074,
+                        "display": "Laboratory",
+                    }
+                ],
+            }
+        ],
         "code": {
-            "coding": [{
-                "system": get_system_uri("loinc"),
-                "code": panel["loinc"],
-                "display": display,
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": panel["loinc"],
+                    "display": display,
+                }
+            ],
         },
         "subject": {"reference": f"Patient/{patient_id}"},
         "encounter": {"reference": f"Encounter/{encounter_id}"},
@@ -250,6 +263,7 @@ def build_dr_resource(
     # effectiveDateTime を近似として emit(100% coverage 実現)。
     # feedback FB-F1: instant 型は 秒精度 + TZ 必須
     from clinosim.modules.output._fhir_common import to_fhir_instant
+
     if issued:
         res["issued"] = to_fhir_instant(issued)
     else:
@@ -265,21 +279,24 @@ def build_dr_resource(
         # 等 performer 未指定 DR にも performer + resultsInterpreter を
         # hospital-main で fallback emit(CY6-03 の 100% 発火を維持)。
         res["performer"] = [{"reference": "Organization/hospital-main"}]
-        res["resultsInterpreter"] = [
-            {"reference": "Organization/hospital-main"}
-        ]
+        res["resultsInterpreter"] = [{"reference": "Organization/hospital-main"}]
     # CY8-14 fix (session 48 cycle 8): DR.conclusionCode = 解釈カテゴリ code。
     # 全 Observation.interpretation を集計し、H/L があれば "abnormal"、
     # 全 N なら "normal"。SNOMED 17621005 (Normal) / 263654008 (Abnormal)。
     _abnormal = getattr(group, "any_abnormal", False)
-    res["conclusionCode"] = [{
-        "coding": [{
-            "system": "http://snomed.info/sct",
-            "code": "263654008" if _abnormal else "17621005",
-            "display": ("異常所見" if lang == "ja" else "Abnormal")
-                       if _abnormal else ("異常なし" if lang == "ja" else "Normal"),
-        }],
-    }]
+    res["conclusionCode"] = [
+        {
+            "coding": [
+                {
+                    "system": "http://snomed.info/sct",
+                    "code": "263654008" if _abnormal else "17621005",
+                    "display": ("異常所見" if lang == "ja" else "Abnormal")
+                    if _abnormal
+                    else ("異常なし" if lang == "ja" else "Normal"),
+                }
+            ],
+        }
+    ]
     # CY6-20 (Chain-6): DR.conclusion for lab panel. Encloses a locale-aware
     # one-line summary indicating the number of analytes included and
     # deferring to per-Observation interpretation for abnormal detail.
@@ -291,7 +308,9 @@ def build_dr_resource(
     if lang == "ja":
         res["conclusion"] = f"{display}({_n_obs}項目):個別検査値および解釈は関連 Observation を参照。"
     else:
-        res["conclusion"] = f"{display} ({_n_obs} analytes) — see linked Observation resources for per-analyte values and interpretation."
+        res["conclusion"] = (
+            f"{display} ({_n_obs} analytes) — see linked Observation resources for per-analyte values and interpretation."  # noqa: E501
+        )
     # C5-20 (Chain 3): presentedForm — text-plain rendered summary of the
     # panel report (patient-facing form). Header + observation count is
     # sufficient without inflating the attachment with per-analyte lines;
@@ -367,10 +386,7 @@ def build_lab_panel_reports(ctx) -> list[dict]:
         return []
 
     # Collect lab orders with dual-access type check (dict + dataclass).
-    lab_orders = [
-        o for o in orders
-        if _o(o, "order_type") in (OrderType.LAB, "lab")
-    ]
+    lab_orders = [o for o in orders if _o(o, "order_type") in (OrderType.LAB, "lab")]
 
     # Pre-compute panel counter once — same derivation as _bb_service_requests
     # so the SR ids produced here match those emitted in ServiceRequest.ndjson.
@@ -400,8 +416,13 @@ def build_lab_panel_reports(ctx) -> list[dict]:
         seq = seq_by_panel[g.panel_name]
         seq_by_panel[g.panel_name] = seq + 1
         report = build_dr_resource(
-            g, ctx.patient_id, enc_id, ctx.country,
-            performer_ref=_lab_performer_ref or None, issued=None, seq=seq,
+            g,
+            ctx.patient_id,
+            enc_id,
+            ctx.country,
+            performer_ref=_lab_performer_ref or None,
+            issued=None,
+            seq=seq,
         )
         # basedOn: look up contributing orders via the obs_id index embedded in
         # each obs_ref ("lab-{enc_id}-{idx:04d}").  This handles both panel orders
@@ -486,9 +507,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     if _body_site_key is not None:
         try:
             contrast: bool = bool(get_attr_or_key(study, "contrast", False))
-            code_key = _resolve_imaging_procedure_code_key(
-                modality_code, _body_site_key, [], contrast
-            )
+            code_key = _resolve_imaging_procedure_code_key(modality_code, _body_site_key, [], contrast)
             _proc = (body_sites[_body_site_key].get("procedure_codes") or {}).get(code_key, {})
             proc_code = _proc.get("loinc", "")
             proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
@@ -496,14 +515,8 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
             pass  # Unknown combination — proc_code stays ""; forward-compat for new modalities
 
     # Locale-bound findings + impression text (JP cohort → ja fields).
-    findings_text = (
-        _o(report, "findings_text_ja", "") if lang == "ja"
-        else _o(report, "findings_text", "")
-    )
-    impression_text = (
-        _o(report, "impression_text_ja", "") if lang == "ja"
-        else _o(report, "impression_text", "")
-    )
+    findings_text = _o(report, "findings_text_ja", "") if lang == "ja" else _o(report, "findings_text", "")
+    impression_text = _o(report, "impression_text_ja", "") if lang == "ja" else _o(report, "impression_text", "")
 
     # Fall back to en text when ja fields are empty (e.g. test stubs).
     if lang == "ja" and not findings_text:
@@ -525,35 +538,41 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
 
     dr: dict = {
         "resourceType": "DiagnosticReport",
-        # session 51: rep_id (engine.py) は既に RADIOLOGY_REPORT_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。
+        # session 51: rep_id (engine.py) は既に RADIOLOGY_REPORT_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。  # noqa: E501
         "id": rep_id,
         # Session 46 chain #2: JP Core DiagnosticReport_Common profile
         # (radiology; JP Core does not define a dedicated Radiology variant).
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common"
-        ]}} if is_jp(ctx.country) else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common"]}}
+            if is_jp(ctx.country)
+            else {}
+        ),
         "status": _o(report, "status", "final"),
         "text": {"status": "generated", "div": div},
-        "category": [{
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": RADIOLOGY_CATEGORY_SNOMED,
+                        "display": snomed_radiology_display,
+                    },
+                    {
+                        "system": V2_0074_SYSTEM,
+                        "code": RADIOLOGY_CATEGORY_V2_0074,
+                        "display": "Radiology",
+                    },
+                ],
+            }
+        ],
+        "code": {
             "coding": [
                 {
-                    "system": get_system_uri("snomed-ct"),
-                    "code": RADIOLOGY_CATEGORY_SNOMED,
-                    "display": snomed_radiology_display,
-                },
-                {
-                    "system": V2_0074_SYSTEM,
-                    "code": RADIOLOGY_CATEGORY_V2_0074,
-                    "display": "Radiology",
-                },
+                    "system": get_system_uri("loinc"),
+                    "code": proc_code,
+                    "display": proc_display,
+                }
             ],
-        }],
-        "code": {
-            "coding": [{
-                "system": get_system_uri("loinc"),
-                "code": proc_code,
-                "display": proc_display,
-            }],
             "text": proc_display,
         },
         "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
@@ -586,11 +605,12 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     # media[].link で参照(実 EHR で PACS DICOM への portal リンク相当)。
     # ImagingStudy 自体は既に imagingStudy field で refer 済みだが、media は
     # per-image / per-instance 参照の意図。ImagingStudy series の代表 1 件を link。
-    dr["media"] = [{
-        "comment": "画像は関連 ImagingStudy を参照" if lang == "ja"
-                   else "See linked ImagingStudy for image data",
-        "link": {"reference": f"ImagingStudy/{study_id}"},
-    }]
+    dr["media"] = [
+        {
+            "comment": "画像は関連 ImagingStudy を参照" if lang == "ja" else "See linked ImagingStudy for image data",
+            "link": {"reference": f"ImagingStudy/{study_id}"},
+        }
+    ]
 
     # conclusionCode: emit only when findings_codes is populated (PR1 default: empty → skipped).
     # CY8-14 fix (session 48 cycle 8): findings_codes 空でも normal/abnormal SNOMED を
@@ -598,23 +618,30 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     findings_codes = _o(report, "findings_codes", []) or []
     if findings_codes:
         dr["conclusionCode"] = [
-            {"coding": [{"system": get_system_uri("snomed-ct"), "code": code}]}
-            for code in findings_codes
+            {"coding": [{"system": get_system_uri("snomed-ct"), "code": code}]} for code in findings_codes
         ]
     else:
         _has_abnormal = bool(impression_text) and (
-            "異常" in impression_text or "abnormal" in impression_text.lower()
-            or "認め" in impression_text or "consolidation" in impression_text.lower()
-            or "fracture" in impression_text.lower() or "骨折" in impression_text
+            "異常" in impression_text
+            or "abnormal" in impression_text.lower()
+            or "認め" in impression_text
+            or "consolidation" in impression_text.lower()
+            or "fracture" in impression_text.lower()
+            or "骨折" in impression_text
         )
-        dr["conclusionCode"] = [{
-            "coding": [{
-                "system": "http://snomed.info/sct",
-                "code": "263654008" if _has_abnormal else "17621005",
-                "display": ("異常所見" if lang == "ja" else "Abnormal")
-                           if _has_abnormal else ("異常なし" if lang == "ja" else "Normal"),
-            }],
-        }]
+        dr["conclusionCode"] = [
+            {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "263654008" if _has_abnormal else "17621005",
+                        "display": ("異常所見" if lang == "ja" else "Abnormal")
+                        if _has_abnormal
+                        else ("異常なし" if lang == "ja" else "Normal"),
+                    }
+                ],
+            }
+        ]
     # C5-20 (Chain 3): presentedForm — findings + impression as text/plain
     # (mirrors text.div content, formatted for direct patient reading).
     _title_en = f"Radiology Report: {proc_display}" if proc_display else "Radiology Report"

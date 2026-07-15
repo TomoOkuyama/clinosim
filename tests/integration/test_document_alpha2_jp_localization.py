@@ -30,7 +30,7 @@ from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 def _has_jp_chars(s: str) -> bool:
     """Return True if *s* contains any CJK / Hiragana / Katakana character."""
     return any(
-        "぀" <= c <= "ヿ"   # Hiragana + Katakana
+        "぀" <= c <= "ヿ"  # Hiragana + Katakana
         or "一" <= c <= "鿿"  # CJK Unified Ideographs (common range)
         or "㐀" <= c <= "䶿"  # CJK Extension A
         or "＀" <= c <= "￯"  # Fullwidth / Halfwidth forms
@@ -73,10 +73,7 @@ def test_jp_nursing_composition_type_display_in_ja() -> None:
 
         # Filter to α-min-2 nursing composition types
         nursing_loincs = {_LOINC_ADMISSION_NURSING_ASSESSMENT, _LOINC_NURSING_DISCHARGE_SUMMARY}
-        nursing_comps = [
-            c for c in comps
-            if _loinc_code_from_type(c) in nursing_loincs
-        ]
+        nursing_comps = [c for c in comps if _loinc_code_from_type(c) in nursing_loincs]
         if not nursing_comps:
             pytest.skip(
                 "No ADMISSION_NURSING_ASSESSMENT or NURSING_DISCHARGE_SUMMARY Compositions "
@@ -89,12 +86,10 @@ def test_jp_nursing_composition_type_display_in_ja() -> None:
             display = _first_display_from_type(comp)
             if display and not _has_jp_chars(display):
                 non_jp.append(
-                    f"Composition/{comp_id} (LOINC {_loinc_code_from_type(comp)}) "
-                    f"type.display not JP: {display!r}"
+                    f"Composition/{comp_id} (LOINC {_loinc_code_from_type(comp)}) type.display not JP: {display!r}"
                 )
-        assert not non_jp, (
-            f"{len(non_jp)} nursing Composition resource(s) have non-JP type.display:\n"
-            + "\n".join(non_jp[:5])
+        assert not non_jp, f"{len(non_jp)} nursing Composition resource(s) have non-JP type.display:\n" + "\n".join(
+            non_jp[:5]
         )
 
 
@@ -111,10 +106,7 @@ def test_jp_nursing_shift_note_type_display_in_ja() -> None:
         if not drefs:
             pytest.skip("No DocumentReference resources emitted for JP cohort n=200")
 
-        nursing_shift_drefs = [
-            d for d in drefs
-            if _loinc_code_from_type(d) == _LOINC_NURSING_SHIFT_NOTE
-        ]
+        nursing_shift_drefs = [d for d in drefs if _loinc_code_from_type(d) == _LOINC_NURSING_SHIFT_NOTE]
         if not nursing_shift_drefs:
             pytest.skip(
                 "No NURSING_SHIFT_NOTE DocumentReferences (LOINC 34746-8) "
@@ -177,9 +169,7 @@ def test_jp_care_team_count_matches_encounter_count() -> None:
         # encounters (id ends with "-ED", used for Encounter.partOf ED→IMP
         # linkage) don't have CareTeam records because they don't exist in
         # CIF. Exclude them from the 1:1 count assertion.
-        real_encounter_count = sum(
-            1 for e in encounters if not e.get("id", "").endswith("-ED")
-        )
+        real_encounter_count = sum(1 for e in encounters if not e.get("id", "").endswith("-ED"))
         assert len(care_teams) == real_encounter_count, (
             f"JP CareTeam count {len(care_teams)} != real Encounter count "
             f"{real_encounter_count} (total encounters incl. synth ED: "
@@ -209,10 +199,7 @@ def test_jp_nursing_composition_section_text() -> None:
         if not comps:
             pytest.skip("No Composition resources emitted for JP cohort n=200")
 
-        nursing_comps = [
-            c for c in comps
-            if _loinc_code_from_type(c) == _LOINC_ADMISSION_NURSING_ASSESSMENT
-        ]
+        nursing_comps = [c for c in comps if _loinc_code_from_type(c) == _LOINC_ADMISSION_NURSING_ASSESSMENT]
         if not nursing_comps:
             pytest.skip(
                 "No ADMISSION_NURSING_ASSESSMENT Compositions in JP cohort n=200 — "

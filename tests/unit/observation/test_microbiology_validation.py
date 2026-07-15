@@ -1,4 +1,5 @@
 """Unit tests for microbiology load-time validation (PR-A Task 4)."""
+
 import textwrap
 from pathlib import Path
 

@@ -34,8 +34,8 @@ class HospitalCourseFact:
     """A single clinical event in the hospital course."""
 
     hospital_day: int
-    event_type: str    # admission | surgery | procedure | complication |
-                        # treatment_change | test_peak | transfer | discharge | death
+    event_type: str  # admission | surgery | procedure | complication |
+    # treatment_change | test_peak | transfer | discharge | death
     description: str
 
 
@@ -81,9 +81,7 @@ def extract_hospital_course(
     events.extend(_treatment_change_events(record, admission_dt))
 
     # --- Discharge / death ---
-    events.append(
-        _discharge_event(record, encounter, admission_dt, discharge_dt, language)
-    )
+    events.append(_discharge_event(record, encounter, admission_dt, discharge_dt, language))
 
     # Deduplicate and sort
     events.sort(key=lambda e: (e.hospital_day, _event_order(e.event_type)))
@@ -95,9 +93,7 @@ def extract_hospital_course(
 # ============================================================
 
 
-def summarize_discharge_medications(
-    record: dict[str, Any], language: str = "en"
-) -> list[str]:
+def summarize_discharge_medications(record: dict[str, Any], language: str = "en") -> list[str]:
     """Return a list of "<drug> <dose> <route> <frequency>" strings (English).
 
     Language parameter retained for API compatibility but no longer used:
@@ -120,9 +116,7 @@ def summarize_discharge_medications(
     return out
 
 
-def summarize_procedures(
-    record: dict[str, Any], language: str = "en"
-) -> list[str]:
+def summarize_procedures(record: dict[str, Any], language: str = "en") -> list[str]:
     """Return human-readable strings for all procedures (English).
 
     Language parameter retained for API compatibility; LLM translates.
@@ -136,9 +130,7 @@ def summarize_procedures(
         start = _format_dt(p.get("start_datetime"))
         surgeon = p.get("primary_surgeon_id", "")
         complications = p.get("intraop_complications") or []
-        comp_str = (
-            f" (complications: {', '.join(complications)})" if complications else ""
-        )
+        comp_str = f" (complications: {', '.join(complications)})" if complications else ""
         if start:
             out.append(f"{name} on {start} by {surgeon}{comp_str}".strip())
         else:
@@ -204,13 +196,8 @@ def _admission_event(
     # Code lookup IS language-aware (official short-form in target language)
     admit_dx = code_lookup(admit_dx_system, admit_dx_code, language) if admit_dx_code else "undiagnosed"
     chief = encounter.get("chief_complaint") or "not recorded"
-    description = (
-        f"Day 0: Admitted with {chief}. "
-        f"Initial working diagnosis: {admit_dx}."
-    )
-    return HospitalCourseFact(
-        hospital_day=0, event_type="admission", description=description
-    )
+    description = f"Day 0: Admitted with {chief}. Initial working diagnosis: {admit_dx}."
+    return HospitalCourseFact(hospital_day=0, event_type="admission", description=description)
 
 
 def _surgery_events(
@@ -255,7 +242,7 @@ def _procedure_events(
     """
     invasive = {
         "central_line",
-        "arterial_line",   # mentioned in hospital course but no standalone Procedure Note
+        "arterial_line",  # mentioned in hospital course but no standalone Procedure Note
         "lumbar_puncture",
         "thoracentesis",
         "paracentesis",
@@ -301,9 +288,7 @@ def _resolve_procedure_name(proc: dict, lang: str = "en") -> str:
     return proc.get("procedure_type") or "procedure"
 
 
-def _complication_events(
-    record: dict[str, Any], language: str
-) -> list[HospitalCourseFact]:
+def _complication_events(record: dict[str, Any], language: str) -> list[HospitalCourseFact]:
     """Complications occurred during the admission.
 
     ``complications_occurred`` is a list of simple labels like ``"pneumonia"``.
@@ -345,9 +330,7 @@ def _treatment_change_events(
         if not name:
             continue
         admin_dt = _parse_dt(
-            mar.get("actual_datetime")
-            or mar.get("administered_datetime")
-            or mar.get("administration_datetime")
+            mar.get("actual_datetime") or mar.get("administered_datetime") or mar.get("administration_datetime")
         )
         day = _day_offset(admission_dt, admin_dt) if admin_dt else 0
         if name not in drug_first_day or day < drug_first_day[name]:
@@ -439,19 +422,13 @@ def _discharge_event(
         return HospitalCourseFact(
             hospital_day=max(day, 0),
             event_type="death",
-            description=(
-                f"Day {max(day, 0)}: Patient died despite maximal therapy. "
-                f"Final diagnosis: {dx_name}."
-            ),
+            description=(f"Day {max(day, 0)}: Patient died despite maximal therapy. Final diagnosis: {dx_name}."),
         )
 
     return HospitalCourseFact(
         hospital_day=max(day, 0),
         event_type="discharge",
-        description=(
-            f"Day {max(day, 0)}: Discharged to {disposition}. "
-            f"Final diagnosis: {dx_name}."
-        ),
+        description=(f"Day {max(day, 0)}: Discharged to {disposition}. Final diagnosis: {dx_name}."),
     )
 
 
@@ -492,9 +469,7 @@ def extract_clinical_guidance(
         "disease_archetype": condition.get("archetype", ""),
         "los_days": _los_days_from_encounter(encounter),
         "had_surgery": any(
-            p.get("category_code") == "387713003"
-            for p in (record.get("procedures") or [])
-            if isinstance(p, dict)
+            p.get("category_code") == "387713003" for p in (record.get("procedures") or []) if isinstance(p, dict)
         ),
         "complications": record.get("complications_occurred") or [],
         "icu_transferred": record.get("icu_transferred", False),
@@ -583,9 +558,7 @@ def extract_lab_trends(
     return trends
 
 
-def format_lab_trends(
-    trends: dict[str, dict[str, Any]], language: str = "en"
-) -> list[str]:
+def format_lab_trends(trends: dict[str, dict[str, Any]], language: str = "en") -> list[str]:
     """Format lab trends as human-readable bullet strings for prompts."""
     out: list[str] = []
     for name, t in sorted(trends.items()):
@@ -641,7 +614,9 @@ def extract_treatment_timeline(
         if not name:
             continue
         route = mar.get("route", "")
-        admin_dt = _parse_dt(mar.get("actual_datetime") or mar.get("administered_datetime") or mar.get("administration_datetime"))
+        admin_dt = _parse_dt(
+            mar.get("actual_datetime") or mar.get("administered_datetime") or mar.get("administration_datetime")
+        )  # noqa: E501
         day = _day_offset(admission_dt, admin_dt) if admin_dt else 0
 
         if name not in drug_timeline:
@@ -661,9 +636,7 @@ def extract_treatment_timeline(
         route = info["route"]
         events.append((info["first_day"], f"Day {info['first_day']}: Started {drug} {route}".strip()))
         if info["last_day"] > info["first_day"] + 1:
-            events.append(
-                (info["last_day"], f"Day {info['last_day']}: Last dose of {drug}")
-            )
+            events.append((info["last_day"], f"Day {info['last_day']}: Last dose of {drug}"))
 
     events.sort(key=lambda x: x[0])
     return [e[1] for e in events[:20]]  # cap at 20 entries
@@ -700,18 +673,17 @@ def extract_vitals_snapshot(
     for vs in vitals:
         if not isinstance(vs, dict):
             continue
-        vs_dt = _parse_dt(
-            vs.get("timestamp") or vs.get("measured_datetime") or vs.get("datetime")
-        )
+        vs_dt = _parse_dt(vs.get("timestamp") or vs.get("measured_datetime") or vs.get("datetime"))
         if vs_dt is None:
             continue
         day = _day_offset(admission_dt, vs_dt)
         dist = abs(day - target_day)
         # Count non-None vital fields as a completeness score
-        completeness = sum(1 for k in ("heart_rate", "systolic_bp", "spo2",
-                                        "temperature_celsius", "temperature",
-                                        "respiratory_rate")
-                           if vs.get(k) is not None)
+        completeness = sum(
+            1
+            for k in ("heart_rate", "systolic_bp", "spo2", "temperature_celsius", "temperature", "respiratory_rate")
+            if vs.get(k) is not None
+        )
         # Sort key: within ±1 day, prefer completeness; beyond that, prefer proximity
         effective_dist = dist if dist > 1 else 0
         candidates.append((effective_dist, -completeness, vs))
@@ -815,8 +787,12 @@ def _normalize_lab_name(name: str) -> str:
 
 
 _UNIT_MAP = {
-    "CRP": "mg/L", "WBC": "cells/μL", "Cr": "mg/dL",
-    "Lactate": "mmol/L", "Hgb": "g/dL", "Plt": "x10^3/μL",
+    "CRP": "mg/L",
+    "WBC": "cells/μL",
+    "Cr": "mg/dL",
+    "Lactate": "mmol/L",
+    "Hgb": "g/dL",
+    "Plt": "x10^3/μL",
 }
 
 # Japanese conventional units differ from SI for CRP: mg/dL instead of mg/L.

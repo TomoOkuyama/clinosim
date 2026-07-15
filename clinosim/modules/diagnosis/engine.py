@@ -30,8 +30,7 @@ def _load_reference_data() -> tuple[
         data = yaml.safe_load(f) or {}
     differentials = data.get("differentials", {})
     progression = {
-        dx: [(float(row[0]), str(row[1])) for row in rows]
-        for dx, rows in data.get("diagnosis_progression", {}).items()
+        dx: [(float(row[0]), str(row[1])) for row in rows] for dx, rows in data.get("diagnosis_progression", {}).items()
     }
     lr_table = data.get("lr_table", {})
     # Sanity: every differential entry must carry disease/icd/prior
@@ -127,9 +126,7 @@ def update_differential(
                 else:
                     lr = dx_lr.get("neg", dx_lr.get("negative_LR", 1.0))
                 candidate.probability *= lr
-                candidate.evidence.append(
-                    f"{finding_name}: {'(+)' if is_positive else '(-)'} LR={lr}"
-                )
+                candidate.evidence.append(f"{finding_name}: {'(+)' if is_positive else '(-)'} LR={lr}")
 
     # Normalize
     total = sum(c.probability for c in diff.candidates)

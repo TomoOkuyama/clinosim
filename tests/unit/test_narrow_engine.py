@@ -1,4 +1,5 @@
 """PR3b-3: select_narrow_target + narrow_outcome + narrow_duration_days tests."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -40,6 +41,7 @@ def _ar(drug_key: str, start_offset_days: int = 0) -> AntibioticRegimen:
 
 
 # --- select_narrow_target ---
+
 
 @pytest.mark.unit
 def test_select_narrow_target_first_s_wins() -> None:
@@ -91,6 +93,7 @@ def test_select_narrow_target_skips_drug_not_in_susc() -> None:
 
 # --- narrow_outcome ---
 
+
 @pytest.mark.unit
 def test_narrow_outcome_no_change_when_target_is_none() -> None:
     """ladder all-non-S returns None → NO_CHANGE."""
@@ -108,8 +111,7 @@ def test_narrow_outcome_elimination_when_target_in_multi_empirical() -> None:
     """Case (ii): CLABSI MRSA — vancomycin S in empirical {vanc + pip-tazo}
     → ELIMINATION (keep vanc, discontinue pip-tazo)."""
     assert (
-        narrow_outcome("vancomycin", [_ar("vancomycin"), _ar("piperacillin_tazobactam")])
-        == NarrowOutcome.ELIMINATION
+        narrow_outcome("vancomycin", [_ar("vancomycin"), _ar("piperacillin_tazobactam")]) == NarrowOutcome.ELIMINATION
     )
 
 
@@ -117,13 +119,11 @@ def test_narrow_outcome_elimination_when_target_in_multi_empirical() -> None:
 def test_narrow_outcome_switch_when_target_not_in_empirical() -> None:
     """Case (i): CLABSI MSSA — cefazolin S, empirical {vanc + pip-tazo}
     → SWITCH (discontinue all, add new narrow regimen)."""
-    assert (
-        narrow_outcome("cefazolin", [_ar("vancomycin"), _ar("piperacillin_tazobactam")])
-        == NarrowOutcome.SWITCH
-    )
+    assert narrow_outcome("cefazolin", [_ar("vancomycin"), _ar("piperacillin_tazobactam")]) == NarrowOutcome.SWITCH
 
 
 # --- narrow_duration_days ---
+
 
 @pytest.mark.unit
 def test_narrow_duration_days_subtracts_elapsed() -> None:

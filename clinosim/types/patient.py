@@ -39,6 +39,7 @@ class BaselineVitals:
 @dataclass
 class Address:
     """Postal address."""
+
     postal_code: str = ""
     state: str = ""  # US: state, JP: prefecture
     city: str = ""
@@ -50,8 +51,9 @@ class Address:
 @dataclass
 class ContactInfo:
     """Patient contact information."""
-    phone_home: str = ""     # household landline
-    phone_mobile: str = ""   # personal mobile
+
+    phone_home: str = ""  # household landline
+    phone_mobile: str = ""  # personal mobile
     phone_primary: str = ""  # which one to use (home or mobile)
     email: str = ""
     emergency_contact_name: str = ""
@@ -80,7 +82,6 @@ class ChronicCondition:
     severity_score: float = 0.3
     stage: str = ""  # e.g., "CKD G3a", "NYHA II", "HbA1c 7.2%"
     glycemic_control: float | None = None  # E11/E10 only; 1.0=excellent .. 0.0=very poor
-
 
 
 @dataclass
@@ -122,7 +123,7 @@ class PatientProfile:
     # NOTE: identity.national.national_id is for internal use only — output adapters
     # MUST NOT emit it (privacy chokepoint).
     identity: IdentityTimeline | None = None
-    race: str = ""       # OMB race category — US only: "white"|"black"|"asian"|"native_american"|"other"
+    race: str = ""  # OMB race category — US only: "white"|"black"|"asian"|"native_american"|"other"
     ethnicity: str = ""  # "hispanic" | "not_hispanic" — US only
     health_literacy: float = 0.7
 
@@ -132,7 +133,5 @@ class PatientProfile:
     smoking_status: str = "never"
     alcohol_use: str = "none"
 
-    physiological_profile: PatientPhysiologicalProfile = field(
-        default_factory=PatientPhysiologicalProfile
-    )
+    physiological_profile: PatientPhysiologicalProfile = field(default_factory=PatientPhysiologicalProfile)
     baseline_vitals: BaselineVitals = field(default_factory=BaselineVitals)

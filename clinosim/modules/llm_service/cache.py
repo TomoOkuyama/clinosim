@@ -61,9 +61,7 @@ class PromptCache:
         assert self.dir is not None
         return self.dir / key[:2] / f"{key}.json"
 
-    def get(
-        self, system: str, user: str, model: str
-    ) -> ProviderResponse | None:
+    def get(self, system: str, user: str, model: str) -> ProviderResponse | None:
         if not self.enabled or self.dir is None:
             return None
         key = self._hash(system, user, model)
@@ -86,9 +84,7 @@ class PromptCache:
             metadata=data.get("metadata"),
         )
 
-    def put(
-        self, system: str, user: str, model: str, response: ProviderResponse
-    ) -> None:
+    def put(self, system: str, user: str, model: str, response: ProviderResponse) -> None:
         if not self.enabled or self.dir is None:
             return
         key = self._hash(system, user, model)

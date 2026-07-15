@@ -54,16 +54,19 @@ def _simulate_ed_visit(
     cond_name = condition.get("name", condition.get("condition_id", "ed_visit"))
     try:
         from clinosim.modules.encounter.protocol import load_encounter_condition
+
         protocol = load_encounter_condition(cond_name)
     except (FileNotFoundError, Exception):
         protocol = None
 
     from clinosim.locale.text import resolve_text
+
     raw_chief = (protocol or condition).get("chief_complaint", cond_name)
     chief = resolve_text(raw_chief, country=country)
 
     encounter = create_inpatient_encounter(
-        patient.patient_id, visit_time,
+        patient.patient_id,
+        visit_time,
         chief_complaint=chief,
     )
     proto_enc_type = (protocol or condition).get("encounter_type", "emergency")
@@ -105,18 +108,20 @@ def _simulate_ed_visit(
     if not lab_specs and not protocol:
         # Default: basic labs with 60% probability
         if rng.random() < 0.6:
-            lab_specs = [{"test": "WBC", "probability": 1.0},
-                         {"test": "CRP", "probability": 1.0},
-                         {"test": "Creatinine", "probability": 1.0}]
+            lab_specs = [
+                {"test": "WBC", "probability": 1.0},
+                {"test": "CRP", "probability": 1.0},
+                {"test": "Creatinine", "probability": 1.0},
+            ]
 
     # Comorbidity-aware true values via the same physiology path as inpatient (AD-57):
     # a baseline state built from the patient's chronic conditions (CKD → high Cr, etc.),
     # then derive_lab_values. baseline_values is the reference-normal fallback for analytes
     # physiology doesn't model (HbA1c/WBC/CRP etc. resolve via _true_labs first). DET-6.
     from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
+
     baseline_values = BASELINE_LAB_NORMALS
-    _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
-                              patient.patient_id)
+    _state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
     _state.timestamp = visit_time
     # Acute-presentation injection (AD-57): fold the ED scenario's physiological impact (by
     # the sampled severity) into the state so BOTH labs and vitals reflect the acute illness
@@ -125,7 +130,9 @@ def _simulate_ed_visit(
     # the same physiology entry point as inpatient onset. No new RNG draws (determinism).
     if protocol and protocol.get("initial_state_impact"):
         _state = apply_disease_onset(
-            _state, severity, protocol["initial_state_impact"],
+            _state,
+            severity,
+            protocol["initial_state_impact"],
             acid_base_type=protocol.get("acid_base_type", "metabolic"),
         )
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
@@ -145,6 +152,7 @@ def _simulate_ed_visit(
     # analyte (Cl/Ca emission, etc.). See inpatient.py Pass 1 for the parallel
     # fix on the inpatient side.
     from clinosim.simulator.seeding import individual_lab_seed
+
     for i, lab_spec in enumerate(lab_specs):
         test = lab_spec.get("test", "")
         order_id = f"ORD-{encounter.encounter_id}-ED-L{i}"
@@ -161,7 +169,8 @@ def _simulate_ed_visit(
             order_id=order_id,
             patient_id=patient.patient_id,
             order_type=OrderType.LAB,
-            display_name=test, urgency="stat",
+            display_name=test,
+            urgency="stat",
             clinical_intent=f"ED workup: {test}",
             ordered_datetime=visit_time + timedelta(minutes=int(lab_rng.normal(10, 5))),
             ordered_by=encounter.attending_physician_id,
@@ -173,8 +182,10 @@ def _simulate_ed_visit(
         order.result = OrderResult(
             result_datetime=visit_time + timedelta(minutes=int(lab_rng.normal(50, 15))),
             performed_by=lab_tech_id,
-            lab_name=canon, value=observed,
-            unit=get_lab_unit(canon), flag=flag,
+            lab_name=canon,
+            value=observed,
+            unit=get_lab_unit(canon),
+            flag=flag,
         )
         order.status = OrderStatus.RESULTED
         orders.append(order)
@@ -185,16 +196,19 @@ def _simulate_ed_visit(
         test = img_spec.get("test", "")
         if rng.random() > img_spec.get("probability", 1.0):
             continue
-        orders.append(Order(
-            order_id=f"ORD-{encounter.encounter_id}-ED-I{i}",
-            patient_id=patient.patient_id,
-            order_type=OrderType.IMAGING,
-            display_name=test, urgency="stat",
-            clinical_intent=f"ED imaging: {test}",
-            ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(20, 8))),
-            ordered_by=encounter.attending_physician_id,
-            status=OrderStatus.PLACED,
-        ))
+        orders.append(
+            Order(
+                order_id=f"ORD-{encounter.encounter_id}-ED-I{i}",
+                patient_id=patient.patient_id,
+                order_type=OrderType.IMAGING,
+                display_name=test,
+                urgency="stat",
+                clinical_intent=f"ED imaging: {test}",
+                ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(20, 8))),
+                ordered_by=encounter.attending_physician_id,
+                status=OrderStatus.PLACED,
+            )
+        )
 
     # Treatment orders from protocol — classify via the canonical
     # treatment_classifier (single source of truth shared with the inpatient
@@ -205,40 +219,47 @@ def _simulate_ed_visit(
             continue
         _tx_name = tx.get("name", "")
         _order_type = classify_encounter_treatment(_tx_name)
-        orders.append(Order(
-            order_id=f"ORD-{encounter.encounter_id}-ED-T{i}",
-            patient_id=patient.patient_id,
-            order_type=_order_type,
-            display_name=_tx_name,
-            urgency="stat",
-            clinical_intent=f"ED treatment: {tx.get('intent', _tx_name)}",
-            ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(30, 10))),
-            ordered_by=encounter.attending_physician_id,
-            status=OrderStatus.PLACED,
-        ))
+        orders.append(
+            Order(
+                order_id=f"ORD-{encounter.encounter_id}-ED-T{i}",
+                patient_id=patient.patient_id,
+                order_type=_order_type,
+                display_name=_tx_name,
+                urgency="stat",
+                clinical_intent=f"ED treatment: {tx.get('intent', _tx_name)}",
+                ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(30, 10))),
+                ordered_by=encounter.attending_physician_id,
+                status=OrderStatus.PLACED,
+            )
+        )
 
     # Vitals — physiology-driven via the same derivation path as inpatient (AD-57):
     # true values come from the comorbidity-adjusted state, then measurement noise.
-    ed_nurse_id = assign_staff("medication_administration", "emergency_medicine", roster, rng).get("administering_nurse", "")
+    ed_nurse_id = assign_staff("medication_administration", "emergency_medicine", roster, rng).get(
+        "administering_nurse", ""
+    )  # noqa: E501
     vit_time = visit_time + timedelta(minutes=5)
     raw = derive_observed_vitals(_state, patient.baseline_vitals, vit_time, rng)
     # ED presentations are acute → pain skews higher, scaled by inflammation.
     pain = int(max(0, min(10, rng.normal(_state.inflammation_level * 4 + 2, 1.5))))
-    vitals = [VitalSignRecord(
-        timestamp=vit_time,
-        temperature_celsius=round(raw["temperature"], 1),
-        heart_rate=int(round(raw["heart_rate"])),
-        systolic_bp=int(round(raw["systolic_bp"])),
-        diastolic_bp=int(round(raw["diastolic_bp"])),
-        respiratory_rate=int(round(raw["respiratory_rate"])),
-        spo2=round(raw["spo2"], 1),
-        pain_score=pain,
-        measured_by=ed_nurse_id,
-        data_source="manual",
-    )]
+    vitals = [
+        VitalSignRecord(
+            timestamp=vit_time,
+            temperature_celsius=round(raw["temperature"], 1),
+            heart_rate=int(round(raw["heart_rate"])),
+            systolic_bp=int(round(raw["systolic_bp"])),
+            diastolic_bp=int(round(raw["diastolic_bp"])),
+            respiratory_rate=int(round(raw["respiratory_rate"])),
+            spo2=round(raw["spo2"], 1),
+            pain_score=pain,
+            measured_by=ed_nurse_id,
+            data_source="manual",
+        )
+    ]
 
     # Enrich medication orders + assign encounter_id
     from clinosim.modules.order.engine import enrich_medication_order
+
     for o in orders:
         if o.order_type == OrderType.MEDICATION:
             enrich_medication_order(o)
@@ -261,10 +282,20 @@ def _simulate_ed_visit(
     # id) so we don't duplicate the SNOMED / CPT / K-code table. Sampled at the
     # ED encounter rng stream, deterministic (AD-16).
     from clinosim.modules.procedure.engine import generate_bedside_procedures
-    ed_procedures = generate_bedside_procedures(
-        patient.patient_id, encounter.encounter_id, cond_name,
-        encounter.admission_datetime, severity, rng, country=country,
-    ) if severity in ("moderate", "severe") else []
+
+    ed_procedures = (
+        generate_bedside_procedures(
+            patient.patient_id,
+            encounter.encounter_id,
+            cond_name,
+            encounter.admission_datetime,
+            severity,
+            rng,
+            country=country,
+        )
+        if severity in ("moderate", "severe")
+        else []
+    )
 
     record = CIFPatientRecord(
         patient=patient,
@@ -296,6 +327,7 @@ def _simulate_ed_visit(
             EnricherContext,
             run_stage,
         )
+
         run_stage(
             POST_ENCOUNTER,
             EnricherContext(

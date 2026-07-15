@@ -1,4 +1,5 @@
 """Unit tests for clinosim.audit.axes.jp_language."""
+
 from __future__ import annotations
 
 import json

@@ -1,4 +1,5 @@
 """AD-55 Module: device — ICU device placement (CVC / catheter / ventilator)."""
+
 from __future__ import annotations
 
 from clinosim.modules.device.engine import (

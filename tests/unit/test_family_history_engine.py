@@ -18,8 +18,10 @@ def test_always_has_mother_and_father():
 def test_deterministic():
     a = _gen(["E11"], seed=5)
     b = _gen(["E11"], seed=5)
+
     def key(fams):
         return [(f.relationship, f.sex, f.deceased, f.condition_codes) for f in fams]
+
     assert key(a) == key(b)
 
 
@@ -44,15 +46,17 @@ def test_heritability_boost_raises_parental_rate():
             for f in _gen(conditions, seed=s):
                 if f.relationship in ("MTH", "FTH"):
                     tot += 1
-                    hits += ("E11" in f.condition_codes)
+                    hits += "E11" in f.condition_codes
         return hits / tot
+
     assert parental_e11_rate(["E11"]) > parental_e11_rate([]) * 1.3
 
 
 def test_accepts_object_and_dict_conditions():
     # Real path passes ChronicCondition objects (.code); also support dict/str.
     class _CC:
-        def __init__(self, code): self.code = code
+        def __init__(self, code):
+            self.code = code
 
     def parental_e11(conds):
         hits = tot = 0
@@ -60,8 +64,9 @@ def test_accepts_object_and_dict_conditions():
             for f in _gen(conds, seed=s):
                 if f.relationship in ("MTH", "FTH"):
                     tot += 1
-                    hits += ("E11" in f.condition_codes)
+                    hits += "E11" in f.condition_codes
         return hits / tot
+
     # object form and dict form must apply the heritability boost like the str form
     assert parental_e11([_CC("E11.9")]) > parental_e11([]) * 1.3
     assert parental_e11([{"code": "E11.9"}]) > parental_e11([]) * 1.3
@@ -74,6 +79,7 @@ def test_jp_us_differ():
             for f in generate_family_history(75, [], country, np.random.default_rng(s)):
                 if f.sex == "male" and f.relationship == "FTH":
                     tot += 1
-                    hits += ("C61" in f.condition_codes)
+                    hits += "C61" in f.condition_codes
         return hits / max(tot, 1)
+
     assert prostate_rate("JP") < prostate_rate("US")

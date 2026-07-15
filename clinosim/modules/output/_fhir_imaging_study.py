@@ -89,7 +89,9 @@ def _bb_imaging_studies(ctx: BundleContext) -> list[dict[str, Any]]:
     return [_build_imaging_study(s, lang, _enc_reason_by_id) for s in studies]
 
 
-def _build_imaging_study(study: Any, lang: str, enc_reason_by_id: dict[str, list[dict]] | None = None) -> dict[str, Any]:
+def _build_imaging_study(
+    study: Any, lang: str, enc_reason_by_id: dict[str, list[dict]] | None = None
+) -> dict[str, Any]:  # noqa: E501
     """Build one FHIR R4 ImagingStudy resource from an ImagingStudyRecord.
 
     session 48 cycle 8 拡張(案 D):stub-only ImagingStudy(modality/body_site
@@ -109,20 +111,24 @@ def _build_imaging_study(study: Any, lang: str, enc_reason_by_id: dict[str, list
     # 案 D stub 対応: modality_code 空なら modality array 空 emit
     modality_field: list[dict] = []
     if modality_code:
-        modality_field = [{
-            "system": get_system_uri("dicom-modality"),
-            "code": modality_code,
-            "display": modality_display,
-        }]
+        modality_field = [
+            {
+                "system": get_system_uri("dicom-modality"),
+                "code": modality_code,
+                "display": modality_display,
+            }
+        ]
 
     res: dict[str, Any] = {
         "resourceType": "ImagingStudy",
-        # session 51: study_id (engine.py) は既に IMAGING_STUDY_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。
+        # session 51: study_id (engine.py) は既に IMAGING_STUDY_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。  # noqa: E501
         "id": _o(study, "study_id", ""),
-        "identifier": [{
-            "system": DICOM_UID_SYSTEM,
-            "value": f"urn:oid:{_o(study, 'study_instance_uid', '')}",
-        }],
+        "identifier": [
+            {
+                "system": DICOM_UID_SYSTEM,
+                "value": f"urn:oid:{_o(study, 'study_instance_uid', '')}",
+            }
+        ],
         "status": _o(study, "status", "available"),
         "modality": modality_field,
         "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
@@ -155,6 +161,7 @@ def _build_imaging_study(study: Any, lang: str, enc_reason_by_id: dict[str, list
         _resolve_imaging_procedure_code_key,
         load_body_sites,
     )
+
     body_sites = load_body_sites()
     _bs_key = None
     for bsk, bsv in body_sites.items():
@@ -164,21 +171,23 @@ def _build_imaging_study(study: Any, lang: str, enc_reason_by_id: dict[str, list
     if _bs_key is not None:
         try:
             _contrast = bool(_o(study, "contrast", False))
-            _ck = _resolve_imaging_procedure_code_key(
-                modality_code, _bs_key, [], _contrast
-            )
+            _ck = _resolve_imaging_procedure_code_key(modality_code, _bs_key, [], _contrast)
             _proc = (body_sites[_bs_key].get("procedure_codes") or {}).get(_ck, {})
             _proc_loinc = _proc.get("loinc", "")
             _proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
             if _proc_loinc:
-                res["procedureCode"] = [{
-                    "coding": [{
-                        "system": get_system_uri("loinc"),
-                        "code": _proc_loinc,
-                        "display": _proc_display,
-                    }],
-                    "text": _proc_display,
-                }]
+                res["procedureCode"] = [
+                    {
+                        "coding": [
+                            {
+                                "system": get_system_uri("loinc"),
+                                "code": _proc_loinc,
+                                "display": _proc_display,
+                            }
+                        ],
+                        "text": _proc_display,
+                    }
+                ]
         except ValueError:
             pass  # unknown combination, procedureCode omitted (forward-compat)
     return res

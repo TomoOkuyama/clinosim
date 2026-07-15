@@ -57,8 +57,7 @@ def test_imaging_ndjson_byte_identical_jp() -> None:
             study_files = list(out.rglob("ImagingStudy.ndjson"))
             if not study_files:
                 pytest.skip(
-                    "No ImagingStudy.ndjson for JP cohort n=200, seed=42. "
-                    "Increase population if this fires repeatedly."
+                    "No ImagingStudy.ndjson for JP cohort n=200, seed=42. Increase population if this fires repeatedly."
                 )
             for resource in ("ImagingStudy", "Endpoint"):
                 hashes[resource] = _sha256(find_ndjson(out, f"{resource}.ndjson"))
@@ -79,9 +78,7 @@ def test_radiology_dr_ndjson_byte_identical() -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "out"
             run_generate("US", 100, 42, out)
-            hashes["DiagnosticReport"] = _sha256(
-                find_ndjson(out, "DiagnosticReport.ndjson")
-            )
+            hashes["DiagnosticReport"] = _sha256(find_ndjson(out, "DiagnosticReport.ndjson"))
     assert hashes_run1["DiagnosticReport"] == hashes_run2["DiagnosticReport"], (
         "DiagnosticReport.ndjson byte-diff between deterministic re-runs (AD-16)\n"
         f"  run1 sha256={hashes_run1['DiagnosticReport']}\n"

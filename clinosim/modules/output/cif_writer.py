@@ -43,15 +43,20 @@ def write_cif(dataset: CIFDataset, output_dir: str) -> None:
     if dataset.hospital_roster or dataset.hospital_config:
         roster_dict = [asdict(m) for m in dataset.hospital_roster] if dataset.hospital_roster else []
         with open(os.path.join(output_dir, "hospital.json"), "w") as f:
-            json.dump({
-                "staff": roster_dict,
-                "config": dataset.hospital_config or {},
-            }, f, cls=_CIFEncoder, indent=2, ensure_ascii=False)
+            json.dump(
+                {
+                    "staff": roster_dict,
+                    "config": dataset.hospital_config or {},
+                },
+                f,
+                cls=_CIFEncoder,
+                indent=2,
+                ensure_ascii=False,
+            )
 
     for idx, patient_record in enumerate(dataset.patients):
         patient_id = patient_record.patient.patient_id
-        enc_id = (patient_record.encounters[0].encounter_id
-                  if patient_record.encounters else f"{patient_id}-{idx:04d}")
+        enc_id = patient_record.encounters[0].encounter_id if patient_record.encounters else f"{patient_id}-{idx:04d}"
         record_dict = asdict(patient_record)
         # AD-65: strip narrative content from documents (Stage 2 writes separately)
         for doc in record_dict.get("documents", []) or []:

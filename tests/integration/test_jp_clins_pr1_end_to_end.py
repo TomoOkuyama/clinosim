@@ -56,8 +56,7 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
     )
 
     # Dense resource types — expected to have at least one instance at p=100.
-    dense_types = {"Condition", "Observation",
-                   "MedicationRequest", "Procedure"}
+    dense_types = {"Condition", "Observation", "MedicationRequest", "Procedure"}
     # AllergyIntolerance is sparse (single-digit % prevalence in the general
     # population); the profile check is vacuous if the pool is empty.
     for rt in _JP_CLINS_PROFILES:
@@ -65,15 +64,11 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
         if rt == "Observation":
             pool = [r for r in pool if _is_lab_observation(r)]
         if rt in dense_types:
-            assert pool, (
-                f"expected dense JP-CLINS type {rt} non-empty at p=100 JP"
-            )
+            assert pool, f"expected dense JP-CLINS type {rt} non-empty at p=100 JP"
         for r in pool:
             profs = r.get("meta", {}).get("profile", [])
             expected = _JP_CLINS_PROFILES[rt][0]
-            assert expected in profs, (
-                f"{rt}/{r.get('id')} missing {expected}"
-            )
+            assert expected in profs, f"{rt}/{r.get('id')} missing {expected}"
 
 
 @pytest.mark.integration
@@ -102,6 +97,5 @@ def test_us_p50_has_no_clins_profile(tmp_path):
                 r = json.loads(line)
                 profs = r.get("meta", {}).get("profile", [])
                 assert not any(p.startswith(_JP_CLINS_PROFILE_ROOT) for p in profs), (
-                    "US cohort leaked JP-CLINS profile: "
-                    f"{r['resourceType']}/{r.get('id')} → {profs}"
+                    f"US cohort leaked JP-CLINS profile: {r['resourceType']}/{r.get('id')} → {profs}"
                 )

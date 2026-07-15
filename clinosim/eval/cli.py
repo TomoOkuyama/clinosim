@@ -16,7 +16,10 @@ def add_eval_subparser(subparsers: argparse._SubParsersAction) -> None:
         help="Score a generated cohort on structural / clinical / locale axes.",
     )
     ev.add_argument(
-        "-d", "--cohort-dir", required=True, type=Path,
+        "-d",
+        "--cohort-dir",
+        required=True,
+        type=Path,
         help=(
             "Cohort root directory (contains fhir_r4/ NDJSON), OR a "
             "Synthea `fhir/` output directory containing per-patient "
@@ -26,23 +29,32 @@ def add_eval_subparser(subparsers: argparse._SubParsersAction) -> None:
         ),
     )
     ev.add_argument(
-        "--json", type=Path, default=None,
+        "--json",
+        type=Path,
+        default=None,
         help="Write JSON report to PATH.",
     )
     ev.add_argument(
-        "--md", type=Path, default=None,
+        "--md",
+        type=Path,
+        default=None,
         help="Write Markdown report to PATH.",
     )
     ev.add_argument(
-        "--country", action="append", default=None,
+        "--country",
+        action="append",
+        default=None,
         help="Limit to one or more country subdirs (repeat flag). Default: all discovered.",
     )
     ev.add_argument(
-        "--strict", action="store_true",
+        "--strict",
+        action="store_true",
         help="Exit 1 if any axis has a FAIL check. Default: exit 0 regardless.",
     )
     ev.add_argument(
-        "--synthea-normalize", type=Path, default=None,
+        "--synthea-normalize",
+        type=Path,
+        default=None,
         help=(
             "When --cohort-dir points at Synthea output, write the "
             "normalized per-resourceType NDJSON layout to this "
@@ -59,15 +71,14 @@ def dispatch_eval(args: argparse.Namespace) -> int:
         bundle_dir_to_ndjson_layout,
         looks_like_synthea_output,
     )
+
     cohort_dir = args.cohort_dir
     if looks_like_synthea_output(cohort_dir):
         target = args.synthea_normalize or (cohort_dir.parent / "synthea-normalized")
-        print(f"clinosim eval: detected Synthea layout — normalizing into {target}",
-              file=sys.stderr)
+        print(f"clinosim eval: detected Synthea layout — normalizing into {target}", file=sys.stderr)
         counts = bundle_dir_to_ndjson_layout(cohort_dir, target, overwrite=True)
         total = sum(counts.values())
-        print(f"clinosim eval: wrote {total} resources across {len(counts)} ResourceType(s)",
-              file=sys.stderr)
+        print(f"clinosim eval: wrote {total} resources across {len(counts)} ResourceType(s)", file=sys.stderr)
         cohort_dir = target
 
     engine = EvalEngine(cohort_dir=cohort_dir, countries=args.country)

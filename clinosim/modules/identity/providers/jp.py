@@ -53,9 +53,7 @@ class JPIdentityProvider:
         if non_elderly:
             scheme, subscriber = self._sample_scheme(non_elderly, config, rng)
             head = (
-                subscriber
-                if scheme == "employee" and subscriber is not None
-                else max(non_elderly, key=lambda m: m.age)
+                subscriber if scheme == "employee" and subscriber is not None else max(non_elderly, key=lambda m: m.age)
             )
             insurer = self._insurer_for(scheme, payers, rng)
             symbol = generators.numeric_id(rng, 4)  # 記号 (employer for 社保 / 世帯 for 国保)
@@ -108,9 +106,7 @@ class JPIdentityProvider:
         cond = min(1.0, ins_rate / card_rate) if card_rate > 0 else 0.0
         linked = has_card and bool(rng.random() < cond)
 
-        national_id = (
-            generators.my_number(rng) if config.get("generate_national_id", True) else None
-        )
+        national_id = generators.my_number(rng) if config.get("generate_national_id", True) else None
         return NationalIdentity(
             country="JP",
             national_id=national_id,
@@ -145,9 +141,7 @@ class JPIdentityProvider:
         p = float(dist.get("employee", 0.5)) if dist else 0.5
         return ("employee", head) if rng.random() < p else ("national", None)
 
-    def _insurer_for(
-        self, scheme: str, payers: dict[str, Any], rng: np.random.Generator
-    ) -> str:
+    def _insurer_for(self, scheme: str, payers: dict[str, Any], rng: np.random.Generator) -> str:
         """Pick a representative payer's 保険者番号 for the scheme (name resolved at output)."""
         options = payers.get(scheme) or []
         if not options:
@@ -155,9 +149,7 @@ class JPIdentityProvider:
         choice = options[int(rng.integers(0, len(options)))]
         return str(choice["number"])
 
-    def _copula_decision(
-        self, p: float, household_latent: float, icc: float, rng: np.random.Generator
-    ) -> bool:
+    def _copula_decision(self, p: float, household_latent: float, icc: float, rng: np.random.Generator) -> bool:
         p = min(max(p, 1e-6), 1 - 1e-6)
         threshold = _NORM.inv_cdf(p)
         e = float(rng.standard_normal())

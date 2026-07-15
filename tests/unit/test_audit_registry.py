@@ -1,4 +1,5 @@
 """Unit tests for clinosim.audit.registry — register / discover / get_registered."""
+
 from __future__ import annotations
 
 import pytest

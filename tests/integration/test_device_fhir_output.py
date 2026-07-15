@@ -1,4 +1,5 @@
 """Integration: small ICU cohort produces well-formed Device + DUS NDJSON (PR-A Task 8)."""
+
 from __future__ import annotations
 
 import json
@@ -25,9 +26,20 @@ def test_device_extension_through_fhir_pipeline(tmp_path):
     """
     out = tmp_path / "out"
     cmd = [
-        "python", "-m", "clinosim.simulator.cli", "generate",
-        "-p", "300", "-s", "42", "--country", "US",
-        "--format", "fhir-r4", "-o", str(out),
+        "python",
+        "-m",
+        "clinosim.simulator.cli",
+        "generate",
+        "-p",
+        "300",
+        "-s",
+        "42",
+        "--country",
+        "US",
+        "--format",
+        "fhir-r4",
+        "-o",
+        str(out),
     ]
     proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
     assert proc.returncode == 0, f"stdout={proc.stdout}\nstderr={proc.stderr}"
@@ -52,8 +64,7 @@ def test_device_extension_through_fhir_pipeline(tmp_path):
     facility_device_ids = {"dev-infusion-pump"}
     patient_devices = [d for d in device if d["id"] not in facility_device_ids]
     assert len(dus) == len(patient_devices), (
-        f"per-patient Device count {len(patient_devices)} ≠ "
-        f"DeviceUseStatement count {len(dus)}"
+        f"per-patient Device count {len(patient_devices)} ≠ DeviceUseStatement count {len(dus)}"
     )
 
     # Referential integrity
@@ -78,6 +89,9 @@ def test_device_extension_through_fhir_pipeline(tmp_path):
     for d in device:
         coding = d["type"]["coding"][0]
         assert coding["code"] in (
-            "52124006", "23973005", "706172005", "433296005",
+            "52124006",
+            "23973005",
+            "706172005",
+            "433296005",
         )
-        assert coding["display"] != coding["code"]   # display ≠ code
+        assert coding["display"] != coding["code"]  # display ≠ code

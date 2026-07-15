@@ -33,12 +33,8 @@ import yaml
 
 _ROOT = Path(__file__).resolve().parents[2]
 _DISEASES = _ROOT / "clinosim/modules/disease/reference_data"
-_JP_MAP = yaml.safe_load(
-    (_ROOT / "clinosim/locale/jp/code_mapping_drug.yaml").read_text()
-)
-_US_MAP = yaml.safe_load(
-    (_ROOT / "clinosim/locale/us/code_mapping_drug.yaml").read_text()
-)
+_JP_MAP = yaml.safe_load((_ROOT / "clinosim/locale/jp/code_mapping_drug.yaml").read_text())
+_US_MAP = yaml.safe_load((_ROOT / "clinosim/locale/us/code_mapping_drug.yaml").read_text())
 
 _JP_CODE_TO_NAME: dict[str, str] = {}
 for _name, _code in _JP_MAP.items():
@@ -105,14 +101,40 @@ _QUALIFIER_PREFIXES = (
 # name (typically the full MHLW ingredient), these suffixes are the reason
 # for a naive-string mismatch even though the underlying molecule is the same.
 _INGREDIENT_SUFFIXES = (
-    "塩酸塩水和物", "硫酸塩水和物", "酢酸塩水和物", "リン酸塩水和物", "水和物",
-    "塩酸塩", "硫酸塩", "酢酸塩", "リン酸塩", "クエン酸塩", "マレイン酸塩",
-    "コハク酸塩", "フマル酸塩", "臭化物", "ナトリウム", "カリウム",
-    "カルシウム水和物", "カルシウム",
-    "(遺伝子組換え)", "（遺伝子組換え）", "遺伝子組換え",
-    "hydrochloride", "sulfate", "acetate", "phosphate", "citrate",
-    "maleate", "succinate", "fumarate", "sodium", "potassium",
-    "hydrate", "monohydrate", "dihydrate",
+    "塩酸塩水和物",
+    "硫酸塩水和物",
+    "酢酸塩水和物",
+    "リン酸塩水和物",
+    "水和物",
+    "塩酸塩",
+    "硫酸塩",
+    "酢酸塩",
+    "リン酸塩",
+    "クエン酸塩",
+    "マレイン酸塩",
+    "コハク酸塩",
+    "フマル酸塩",
+    "臭化物",
+    "ナトリウム",
+    "カリウム",
+    "カルシウム水和物",
+    "カルシウム",
+    "(遺伝子組換え)",
+    "（遺伝子組換え）",
+    "遺伝子組換え",
+    "hydrochloride",
+    "sulfate",
+    "acetate",
+    "phosphate",
+    "citrate",
+    "maleate",
+    "succinate",
+    "fumarate",
+    "sodium",
+    "potassium",
+    "hydrate",
+    "monohydrate",
+    "dihydrate",
 )
 
 
@@ -151,11 +173,7 @@ def test_disease_yaml_drug_code_consistency():
             drug_name = m.group(1)
             code_type = m.group(2)
             code_val = m.group(3)
-            canonical = (
-                _JP_CODE_TO_NAME.get(code_val)
-                if code_type == "yj"
-                else _US_CODE_TO_NAME.get(code_val)
-            )
+            canonical = _JP_CODE_TO_NAME.get(code_val) if code_type == "yj" else _US_CODE_TO_NAME.get(code_val)
             if not canonical:
                 continue  # unknown code — no ground truth
             drug_norm = _norm(drug_name)
@@ -167,9 +185,6 @@ def test_disease_yaml_drug_code_consistency():
             if (f.name, drug_name, code_type, code_val) in _KNOWN_MISMATCHES_TODO:
                 continue
             real_mismatches.append(
-                f"{f.name}: drug={drug_name!r} code_{code_type}={code_val} "
-                f"but code_mapping says {canonical!r}"
+                f"{f.name}: drug={drug_name!r} code_{code_type}={code_val} but code_mapping says {canonical!r}"
             )
-    assert not real_mismatches, (
-        "Disease YAML drug/code mismatch(es):\n" + "\n".join(real_mismatches)
-    )
+    assert not real_mismatches, "Disease YAML drug/code mismatch(es):\n" + "\n".join(real_mismatches)

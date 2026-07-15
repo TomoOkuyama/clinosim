@@ -51,9 +51,9 @@ def test_document_reference_subject_and_encounter_refs_resolve() -> None:
         assert any(d.get("subject") for d in drefs), (
             "No DocumentReference has a subject field — silent-no-op in builder"
         )
-        assert any(
-            dr.get("context", {}).get("encounter") for dr in drefs
-        ), "No DocumentReference has context.encounter — silent-no-op in builder?"
+        assert any(dr.get("context", {}).get("encounter") for dr in drefs), (
+            "No DocumentReference has context.encounter — silent-no-op in builder?"
+        )
 
         dangling_subject: list[str] = []
         dangling_encounter: list[str] = []
@@ -67,23 +67,17 @@ def test_document_reference_subject_and_encounter_refs_resolve() -> None:
             if pid not in patient_ids:
                 dangling_subject.append(f"DocumentReference/{dr_id} -> Patient/{pid}")
 
-            ctx_enc = (
-                dr.get("context", {}).get("encounter", [{}])[0].get("reference", "")
-                if dr.get("context")
-                else ""
-            )
+            ctx_enc = dr.get("context", {}).get("encounter", [{}])[0].get("reference", "") if dr.get("context") else ""
             if ctx_enc:
                 assert ctx_enc.startswith("Encounter/"), (
-                    f"DocumentReference/{dr_id} context.encounter must start with 'Encounter/': "
-                    f"{ctx_enc!r}"
+                    f"DocumentReference/{dr_id} context.encounter must start with 'Encounter/': {ctx_enc!r}"
                 )
                 eid = ctx_enc.removeprefix("Encounter/")
                 if eid not in encounter_ids:
                     dangling_encounter.append(f"DocumentReference/{dr_id} -> Encounter/{eid}")
 
-        assert not dangling_subject, (
-            f"{len(dangling_subject)} dangling DocumentReference.subject refs:\n"
-            + "\n".join(dangling_subject[:10])
+        assert not dangling_subject, f"{len(dangling_subject)} dangling DocumentReference.subject refs:\n" + "\n".join(
+            dangling_subject[:10]
         )
         assert not dangling_encounter, (
             f"{len(dangling_encounter)} dangling DocumentReference encounter refs:\n"
@@ -106,9 +100,7 @@ def test_composition_subject_and_encounter_refs_resolve() -> None:
             "Composition.ndjson is empty — cannot verify subject/encounter refs. "
             "Document enricher may not be firing (silent-no-op)."
         )
-        assert any(c.get("subject") for c in comps), (
-            "No Composition has a subject field — silent-no-op in builder"
-        )
+        assert any(c.get("subject") for c in comps), "No Composition has a subject field — silent-no-op in builder"
         assert any(comp.get("encounter") for comp in comps), (
             "No Composition has an encounter field — silent-no-op in builder?"
         )
@@ -118,9 +110,7 @@ def test_composition_subject_and_encounter_refs_resolve() -> None:
         for comp in comps:
             comp_id = comp.get("id", "?")
             subj = comp.get("subject", {}).get("reference", "")
-            assert subj.startswith("Patient/"), (
-                f"Composition/{comp_id} subject must start with 'Patient/': {subj!r}"
-            )
+            assert subj.startswith("Patient/"), f"Composition/{comp_id} subject must start with 'Patient/': {subj!r}"
             pid = subj.removeprefix("Patient/")
             if pid not in patient_ids:
                 dangling_subject.append(f"Composition/{comp_id} -> Patient/{pid}")
@@ -134,13 +124,11 @@ def test_composition_subject_and_encounter_refs_resolve() -> None:
                 if eid not in encounter_ids:
                     dangling_encounter.append(f"Composition/{comp_id} -> Encounter/{eid}")
 
-        assert not dangling_subject, (
-            f"{len(dangling_subject)} dangling Composition.subject refs:\n"
-            + "\n".join(dangling_subject[:10])
+        assert not dangling_subject, f"{len(dangling_subject)} dangling Composition.subject refs:\n" + "\n".join(
+            dangling_subject[:10]
         )
-        assert not dangling_encounter, (
-            f"{len(dangling_encounter)} dangling Composition encounter refs:\n"
-            + "\n".join(dangling_encounter[:10])
+        assert not dangling_encounter, f"{len(dangling_encounter)} dangling Composition encounter refs:\n" + "\n".join(
+            dangling_encounter[:10]
         )
 
 
@@ -187,9 +175,8 @@ def test_clinical_impression_subject_and_encounter_refs_resolve() -> None:
                 if eid not in encounter_ids:
                     dangling_encounter.append(f"ClinicalImpression/{ci_id} -> Encounter/{eid}")
 
-        assert not dangling_subject, (
-            f"{len(dangling_subject)} dangling ClinicalImpression.subject refs:\n"
-            + "\n".join(dangling_subject[:10])
+        assert not dangling_subject, f"{len(dangling_subject)} dangling ClinicalImpression.subject refs:\n" + "\n".join(
+            dangling_subject[:10]
         )
         assert not dangling_encounter, (
             f"{len(dangling_encounter)} dangling ClinicalImpression encounter refs:\n"
@@ -226,10 +213,7 @@ def test_allergy_intolerance_patient_ref_resolves() -> None:
             if pid not in patient_ids:
                 dangling.append(f"AllergyIntolerance/{ai_id} -> Patient/{pid}")
 
-        assert not dangling, (
-            f"{len(dangling)} dangling AllergyIntolerance.patient refs:\n"
-            + "\n".join(dangling[:10])
-        )
+        assert not dangling, f"{len(dangling)} dangling AllergyIntolerance.patient refs:\n" + "\n".join(dangling[:10])
 
 
 @pytest.mark.integration
@@ -244,14 +228,12 @@ def test_all_document_refs_have_required_fields() -> None:
         for dr in drefs:
             dr_id = dr.get("id", "?")
             assert dr.get("status") == "current", (
-                f"DocumentReference/{dr_id} expected status='current', "
-                f"got {dr.get('status')!r}"
+                f"DocumentReference/{dr_id} expected status='current', got {dr.get('status')!r}"
             )
             assert dr.get("type"), f"DocumentReference/{dr_id} missing type"
             assert dr.get("subject"), f"DocumentReference/{dr_id} missing subject"
             content = dr.get("content", [])
             assert content, f"DocumentReference/{dr_id} missing content"
             assert content[0].get("attachment", {}).get("data"), (
-                f"DocumentReference/{dr_id} attachment.data is empty "
-                "(base64 text must be present)"
+                f"DocumentReference/{dr_id} attachment.data is empty (base64 text must be present)"
             )

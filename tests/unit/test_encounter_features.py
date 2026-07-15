@@ -65,10 +65,11 @@ class TestIO:
 class TestPainScore:
     def test_full_round_vitals_have_pain_score(self, us_inpatient):
         # Pain score is recorded with full round vitals (not continuous monitor or recheck)
-        full_vitals = [v for v in us_inpatient.vital_signs
-                       if v.temperature_celsius is not None
-                       and v.systolic_bp is not None
-                       and v.respiratory_rate is not None]
+        full_vitals = [
+            v
+            for v in us_inpatient.vital_signs
+            if v.temperature_celsius is not None and v.systolic_bp is not None and v.respiratory_rate is not None
+        ]
         assert len(full_vitals) > 0
         assert all(v.pain_score is not None for v in full_vitals)
 
@@ -86,13 +87,15 @@ class TestNursingNotes:
 
 class TestEDVisits:
     def test_ed_visits_generated(self, small_population):
-        ed = [r for r in small_population.patients
-              if r.encounters and r.encounters[0].encounter_type.value == "emergency"]
+        ed = [
+            r for r in small_population.patients if r.encounters and r.encounters[0].encounter_type.value == "emergency"
+        ]
         assert len(ed) > 0
 
     def test_ed_has_chief_complaint(self, small_population):
-        ed = [r for r in small_population.patients
-              if r.encounters and r.encounters[0].encounter_type.value == "emergency"]
+        ed = [
+            r for r in small_population.patients if r.encounters and r.encounters[0].encounter_type.value == "emergency"
+        ]
         if ed:
             assert ed[0].encounters[0].chief_complaint != ""
 
@@ -108,8 +111,11 @@ class TestEDAcuteInjection:
         proto = load_encounter_condition(condition_id)
         state = PhysiologicalState()
         state = apply_disease_onset(
-            state, severity, proto.get("initial_state_impact", {}),
-            acid_base_type=proto.get("acid_base_type", "metabolic"))
+            state,
+            severity,
+            proto.get("initial_state_impact", {}),
+            acid_base_type=proto.get("acid_base_type", "metabolic"),
+        )
         return derive_lab_values(state, sex="M", age=45)
 
     def test_uti_drives_inflammation(self):
@@ -138,13 +144,19 @@ class TestEDAcuteInjection:
 
 class TestOutpatient:
     def test_outpatient_visits_generated(self, small_population):
-        opd = [r for r in small_population.patients
-               if r.encounters and r.encounters[0].encounter_type.value == "outpatient"]
+        opd = [
+            r
+            for r in small_population.patients
+            if r.encounters and r.encounters[0].encounter_type.value == "outpatient"
+        ]
         assert len(opd) > 0
 
     def test_outpatient_has_diagnosis(self, small_population):
-        opd = [r for r in small_population.patients
-               if r.encounters and r.encounters[0].encounter_type.value == "outpatient"]
+        opd = [
+            r
+            for r in small_population.patients
+            if r.encounters and r.encounters[0].encounter_type.value == "outpatient"
+        ]
         for r in opd[:5]:
             assert r.clinical_diagnosis.discharge_diagnosis_code != ""
 

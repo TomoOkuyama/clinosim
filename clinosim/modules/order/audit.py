@@ -26,6 +26,7 @@ resources without raising. clinical_acceptance["basedon_coverage"]
 catches the case where basedOn is present in unit tests but missing
 in production NDJSON output.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -113,9 +114,7 @@ def _build_order_proof() -> dict[str, Any]:
     # than relying on "enc-" prefix in the encounter_id.  Robust to any synthetic
     # encounter_id string used in tests.
     panel_sr_ids = {
-        sr["id"]
-        for sr in srs
-        if any(f"-{panel_name}-" in sr.get("id", "") for panel_name in PANEL_PRIORITY_ORDER)
+        sr["id"] for sr in srs if any(f"-{panel_name}-" in sr.get("id", "") for panel_name in PANEL_PRIORITY_ORDER)
     }
 
     return {

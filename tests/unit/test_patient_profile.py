@@ -1,4 +1,5 @@
 """AD-66 α-min-2c: PatientProfile Pydantic type + loader tests."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,6 +14,7 @@ from clinosim.types.config import (
 )
 
 # --- Basic construction ---
+
 
 def test_patient_profile_minimal_construction():
     """PatientProfile with only required fields works."""
@@ -58,6 +60,7 @@ def test_patient_profile_full_construction():
 
 # --- Validation: extras forbidden ---
 
+
 def test_patient_profile_rejects_unknown_keys():
     """Pydantic model_config = {'extra': 'forbid'} rejects typo'd YAML keys."""
     with pytest.raises(Exception) as exc_info:
@@ -97,6 +100,7 @@ def test_patient_profile_rejects_removed_unwired_fields():
 
 # --- Validation: country enum ---
 
+
 def test_patient_profile_rejects_unknown_country():
     """Only US and JP are accepted."""
     with pytest.raises(Exception):
@@ -108,6 +112,7 @@ def test_patient_profile_rejects_unknown_country():
 
 
 # --- Validation: severity enum ---
+
 
 def test_patient_profile_severity_none_is_valid():
     profile = PatientProfile(
@@ -139,6 +144,7 @@ def test_patient_profile_rejects_unknown_severity():
 
 # --- to_forced_scenario transform ---
 
+
 def test_to_forced_scenario_round_trips_relevant_fields():
     """PatientProfile.to_forced_scenario() preserves all ForcedScenario-relevant fields."""
     profile = PatientProfile(
@@ -166,20 +172,26 @@ def test_to_forced_scenario_round_trips_relevant_fields():
 
 # --- Loader: by name (default fixture dir) ---
 
+
 def test_load_patient_profile_by_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """load_patient_profile('name') resolves via fixtures directory."""
     fixture_dir = tmp_path / "patient_profiles"
     fixture_dir.mkdir()
     yaml_path = fixture_dir / "test_by_name.yaml"
-    yaml_path.write_text(yaml.safe_dump({
-        "profile_id": "test_by_name",
-        "disease_id": "bacterial_pneumonia",
-        "country": "JP",
-        "severity": "moderate",
-    }))
+    yaml_path.write_text(
+        yaml.safe_dump(
+            {
+                "profile_id": "test_by_name",
+                "disease_id": "bacterial_pneumonia",
+                "country": "JP",
+                "severity": "moderate",
+            }
+        )
+    )
 
     # Override the fixture dir lookup for this test
     from clinosim.types import config as config_module
+
     monkeypatch.setattr(config_module, "_PATIENT_PROFILE_DIR", fixture_dir)
 
     profile = load_patient_profile("test_by_name")
@@ -189,13 +201,18 @@ def test_load_patient_profile_by_name(tmp_path: Path, monkeypatch: pytest.Monkey
 
 # --- Loader: by absolute path ---
 
+
 def test_load_patient_profile_by_path(tmp_path: Path):
     """load_patient_profile('/abs/path.yaml') loads the file directly."""
     yaml_path = tmp_path / "custom_location.yaml"
-    yaml_path.write_text(yaml.safe_dump({
-        "profile_id": "custom_location",
-        "disease_id": "sepsis",
-    }))
+    yaml_path.write_text(
+        yaml.safe_dump(
+            {
+                "profile_id": "custom_location",
+                "disease_id": "sepsis",
+            }
+        )
+    )
 
     profile = load_patient_profile(str(yaml_path))
     assert profile.profile_id == "custom_location"
@@ -204,19 +221,25 @@ def test_load_patient_profile_by_path(tmp_path: Path):
 
 # --- Loader: profile_id / filename mismatch = raise ---
 
+
 def test_load_patient_profile_id_filename_mismatch_raises(tmp_path: Path):
     """profile_id in YAML must match filename stem (silent-no-op defense)."""
     yaml_path = tmp_path / "actual_name.yaml"
-    yaml_path.write_text(yaml.safe_dump({
-        "profile_id": "different_name",  # mismatch
-        "disease_id": "bacterial_pneumonia",
-    }))
+    yaml_path.write_text(
+        yaml.safe_dump(
+            {
+                "profile_id": "different_name",  # mismatch
+                "disease_id": "bacterial_pneumonia",
+            }
+        )
+    )
 
     with pytest.raises(ValueError, match="profile_id"):
         load_patient_profile(str(yaml_path))
 
 
 # --- Loader: file not found ---
+
 
 def test_load_patient_profile_missing_file_raises():
     """load_patient_profile with unknown name raises FileNotFoundError."""

@@ -58,10 +58,12 @@ def create_test_patient() -> PatientProfile:
                 category="medication",
                 criticality="low",
                 verification_status="confirmed",
-                reactions=[AllergyReaction(
-                    manifestation_snomed="247472004",
-                    severity="mild",
-                )],
+                reactions=[
+                    AllergyReaction(
+                        manifestation_snomed="247472004",
+                        severity="mild",
+                    )
+                ],
             ),
         ],
         current_medications=["Amlodipine 5mg", "Metformin 500mg BID"],

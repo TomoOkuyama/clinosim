@@ -27,17 +27,15 @@ def test_acute_mi_emits_pt_inr_and_aptt():
     After this PR's derive_lab_values extension both result with
     physiologic values (PT_INR existed pre-PR; APTT is new)."""
     scenario = ForcedScenario(
-        disease_id="acute_mi", count=3, severity="moderate",
+        disease_id="acute_mi",
+        count=3,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
 
     for record in dataset.patients:
-        emitted = {
-            o.result.lab_name
-            for o in record.orders
-            if o.result is not None and o.result.lab_name
-        }
+        emitted = {o.result.lab_name for o in record.orders if o.result is not None and o.result.lab_name}
         assert {"PT_INR", "APTT"}.issubset(emitted), (
             f"acute_mi patient {record.patient.patient_id}: expected "
             f"both PT_INR and APTT in emitted labs, got {emitted & {'PT_INR', 'APTT'}}"
@@ -50,29 +48,25 @@ def test_sepsis_emits_pt_inr_and_fibrinogen():
     After this PR Fibrinogen results with a physiologic value (50-800 mg/dL,
     biphasic acute-phase / DIC behavior)."""
     scenario = ForcedScenario(
-        disease_id="sepsis", count=3, severity="moderate",
+        disease_id="sepsis",
+        count=3,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
 
     for record in dataset.patients:
         fib_results = [
-            o.result.value
-            for o in record.orders
-            if o.result is not None and o.result.lab_name == "Fibrinogen"
+            o.result.value for o in record.orders if o.result is not None and o.result.lab_name == "Fibrinogen"
         ]
         pt_inr_results = [
-            o.result.value
-            for o in record.orders
-            if o.result is not None and o.result.lab_name == "PT_INR"
+            o.result.value for o in record.orders if o.result is not None and o.result.lab_name == "PT_INR"
         ]
         assert fib_results, (
-            f"sepsis patient {record.patient.patient_id}: expected "
-            f"at least one Fibrinogen result, got none"
+            f"sepsis patient {record.patient.patient_id}: expected at least one Fibrinogen result, got none"
         )
         assert pt_inr_results, (
-            f"sepsis patient {record.patient.patient_id}: expected "
-            f"at least one PT_INR result, got none"
+            f"sepsis patient {record.patient.patient_id}: expected at least one PT_INR result, got none"
         )
         for v in fib_results:
             assert 50 <= v <= 800, f"Fibrinogen {v} out of clamp range"
@@ -85,7 +79,9 @@ def test_pe_emits_clinically_positive_d_dimer():
     """End-to-end: pulmonary_embolism patients emit D-dimer Observations
     with median > 4 ug/mL FEU (clinically positive). Phase 2a."""
     scenario = ForcedScenario(
-        disease_id="pulmonary_embolism", count=5, severity="moderate",
+        disease_id="pulmonary_embolism",
+        count=5,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
@@ -97,8 +93,7 @@ def test_pe_emits_clinically_positive_d_dimer():
                 values.append(o.result.value)
     assert values, "expected ≥1 D_dimer result across PE cohort"
     median = sorted(values)[len(values) // 2]
-    assert median > 4.0, \
-        f"PE D-dimer median {median} should be clinically positive (>4)"
+    assert median > 4.0, f"PE D-dimer median {median} should be clinically positive (>4)"
 
 
 @pytest.mark.integration
@@ -109,7 +104,9 @@ def test_ed_mi_now_emits_high_troponin_after_j5_fix():
     derive_lab_values without myocardial_injury=True so MI never
     upshifted troponin in the ED."""
     scenario = ForcedScenario(
-        disease_id="acute_mi", count=5, severity="moderate",
+        disease_id="acute_mi",
+        count=5,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
@@ -133,17 +130,15 @@ def test_gi_bleeding_emits_pt_inr_and_aptt():
     coagulopathy + hepatic synthesis defect scenarios make this protocol's
     coag panel diagnostically important."""
     scenario = ForcedScenario(
-        disease_id="gi_bleeding", count=2, severity="moderate",
+        disease_id="gi_bleeding",
+        count=2,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
 
     for record in dataset.patients:
-        emitted = {
-            o.result.lab_name
-            for o in record.orders
-            if o.result is not None and o.result.lab_name
-        }
+        emitted = {o.result.lab_name for o in record.orders if o.result is not None and o.result.lab_name}
         assert {"PT_INR", "APTT"}.issubset(emitted), (
             f"gi_bleeding patient {record.patient.patient_id}: expected "
             f"both PT_INR and APTT in emitted labs, got "

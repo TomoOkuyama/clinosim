@@ -11,6 +11,7 @@ tests may pytest.skip when seed=42 doesn't trigger device placement
 for the chosen disease. The unit-test suite + AD-60 audit
 lift_firing_proof cover the enricher path even when devices don't fire.
 """
+
 import pytest
 
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
@@ -29,7 +30,7 @@ def cauti_forced_scenario():
         force_hai_event={
             "hai_type": "cauti",
             "onset_offset_days": 3,
-            "organism_snomed": "112283007",   # E. coli (most common CAUTI organism)
+            "organism_snomed": "112283007",  # E. coli (most common CAUTI organism)
         },
     )
 
@@ -55,13 +56,12 @@ def test_antibiotic_always_on_emits_medications(cauti_forced_scenario):
     assert any(r.drug_key == "ceftriaxone" for r in abx)
     cef = next(r for r in abx if r.drug_key == "ceftriaxone")
     assert cef.duration_days == 7
-    cef_orders = [o for o in rec_with_abx.orders
-                  if o.order_type.value == "medication"
-                  and o.display_name == "Ceftriaxone"]
+    cef_orders = [
+        o for o in rec_with_abx.orders if o.order_type.value == "medication" and o.display_name == "Ceftriaxone"
+    ]
     assert len(cef_orders) >= 1
-    cef_mar = [m for m in rec_with_abx.medication_administrations
-               if m.drug_name == "Ceftriaxone"]
-    assert len(cef_mar) >= 7   # at least one full course (possibly more if multiple HAI events)
+    cef_mar = [m for m in rec_with_abx.medication_administrations if m.drug_name == "Ceftriaxone"]
+    assert len(cef_mar) >= 7  # at least one full course (possibly more if multiple HAI events)
 
 
 @pytest.mark.integration
@@ -86,17 +86,13 @@ def test_antibiotic_no_hai_no_antibiotic():
     # via extensions["antibiotic"] above being empty).
     hai_abx_names = {"Vancomycin", "Piperacillin/Tazobactam", "Ceftriaxone"}
     enricher_mar_drug_names = {
-        m.drug_name for m in rec.medication_administrations
-        if any(
-            o.order_id == m.order_id
-            and (o.order_id or "").startswith(ABX_ORDER_ID_PREFIX)
-            for o in rec.orders
-        )
+        m.drug_name
+        for m in rec.medication_administrations
+        if any(o.order_id == m.order_id and (o.order_id or "").startswith(ABX_ORDER_ID_PREFIX) for o in rec.orders)
     }
     unexpected = enricher_mar_drug_names & hai_abx_names
     assert not unexpected, (
-        f"mild pneumonia without HAI should not get HAI empirical antibiotic "
-        f"via enricher path, but found {unexpected}"
+        f"mild pneumonia without HAI should not get HAI empirical antibiotic via enricher path, but found {unexpected}"
     )
 
 
@@ -107,12 +103,10 @@ def test_antibiotic_determinism_same_seed(cauti_forced_scenario):
     a = run_forced(cauti_forced_scenario, config=cfg)
     b = run_forced(cauti_forced_scenario, config=cfg)
     abx_a_all = [
-        (r.regimen_id, r.start_datetime)
-        for rec in a.patients for r in rec.extensions.get("antibiotic", []) or []
+        (r.regimen_id, r.start_datetime) for rec in a.patients for r in rec.extensions.get("antibiotic", []) or []
     ]
     abx_b_all = [
-        (r.regimen_id, r.start_datetime)
-        for rec in b.patients for r in rec.extensions.get("antibiotic", []) or []
+        (r.regimen_id, r.start_datetime) for rec in b.patients for r in rec.extensions.get("antibiotic", []) or []
     ]
     if not abx_a_all:
         pytest.skip(

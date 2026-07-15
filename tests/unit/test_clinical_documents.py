@@ -288,13 +288,11 @@ class TestHospitalCourseExtractor:
         # Per AD-30, CIF stores codes not names — test uses procedure_code
         # resolved via code_lookup at output time.
         record = {
-            "encounters": [
-                {"admission_datetime": "2026-03-01T09:00:00"}
-            ],
+            "encounters": [{"admission_datetime": "2026-03-01T09:00:00"}],
             "procedures": [
                 {
                     "procedure_type": "ORIF",
-                    "procedure_code": "K0461",   # resolves via k-codes.yaml
+                    "procedure_code": "K0461",  # resolves via k-codes.yaml
                     "category_code": "387713003",  # surgical
                     "start_datetime": "2026-03-02T10:00:00",
                     "estimated_blood_loss_ml": 300,
@@ -312,7 +310,6 @@ class TestHospitalCourseExtractor:
         assert len(surgery) == 1
         # procedure_name resolved from code via k-codes.yaml ("Open treatment of femoral fracture...")
         assert "Open treatment" in surgery[0].description or "femoral" in surgery[0].description
-
 
 
 # ---------------------------------------------------------------------------

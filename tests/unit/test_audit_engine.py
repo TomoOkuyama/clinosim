@@ -1,4 +1,5 @@
 """Unit tests for clinosim.audit.engine."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -27,10 +28,12 @@ def _empty_cohort(tmp_path: Path) -> Path:
 
 @pytest.mark.unit
 def test_engine_runs_all_builtin_axes(tmp_path: Path):
-    register_audit_module(ModuleAuditSpec(
-        name="hai",
-        structural_obs_codes={"WBC": ("6690-2",)},
-    ))
+    register_audit_module(
+        ModuleAuditSpec(
+            name="hai",
+            structural_obs_codes={"WBC": ("6690-2",)},
+        )
+    )
     engine = AuditEngine(cohort_dir=_empty_cohort(tmp_path))
     result = engine.run()
     assert sorted(result.axes) == sorted(_BUILTIN_AXES)

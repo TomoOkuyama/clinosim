@@ -40,9 +40,7 @@ def test_abdominal_pain_nonspecific_has_narrative_block() -> None:
 
 def test_all_46_encounters_have_narrative() -> None:
     """Forward-coverage gate: every encounter YAML must have a narrative block."""
-    yaml_files = sorted(
-        f for f in os.listdir(_ENCOUNTER_DIR) if f.endswith(".yaml")
-    )
+    yaml_files = sorted(f for f in os.listdir(_ENCOUNTER_DIR) if f.endswith(".yaml"))
     assert yaml_files, "No encounter YAML files found — check path"
 
     missing: list[str] = []
@@ -53,16 +51,12 @@ def test_all_46_encounters_have_narrative() -> None:
         if p.narrative is None:
             missing.append(cid)
 
-    assert not missing, (
-        f"{len(missing)} encounter(s) missing narrative block: {missing}"
-    )
+    assert not missing, f"{len(missing)} encounter(s) missing narrative block: {missing}"
 
 
 def test_encounter_narrative_type_matches_encounter_type() -> None:
     """outpatient encounters have outpatient_soap_template; ED encounters have ed_note_template."""
-    yaml_files = sorted(
-        f for f in os.listdir(_ENCOUNTER_DIR) if f.endswith(".yaml")
-    )
+    yaml_files = sorted(f for f in os.listdir(_ENCOUNTER_DIR) if f.endswith(".yaml"))
 
     outpatient_wrong: list[str] = []
     ed_wrong: list[str] = []
@@ -83,9 +77,5 @@ def test_encounter_narrative_type_matches_encounter_type() -> None:
             if p.narrative.ed_note_template is None:
                 ed_wrong.append(cid)
 
-    assert not outpatient_wrong, (
-        f"outpatient encounters missing outpatient_soap_template: {outpatient_wrong}"
-    )
-    assert not ed_wrong, (
-        f"ED encounters missing ed_note_template: {ed_wrong}"
-    )
+    assert not outpatient_wrong, f"outpatient encounters missing outpatient_soap_template: {outpatient_wrong}"
+    assert not ed_wrong, f"ED encounters missing ed_note_template: {ed_wrong}"

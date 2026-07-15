@@ -193,8 +193,7 @@ def _check_proof(spec: ModuleAuditSpec, result: AxisResult) -> None:
                 result.findings.append(
                     AuditFinding(
                         Severity.FAIL,
-                        f"lift-firing equality_check {label!r}: "
-                        f"actual={actual!r} != expected={expected!r}",
+                        f"lift-firing equality_check {label!r}: actual={actual!r} != expected={expected!r}",
                     )
                 )
             else:

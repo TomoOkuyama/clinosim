@@ -44,8 +44,13 @@ class MockProtocol:
 class TestSurgery:
     def test_produces_procedure_record(self, hip_patient, rng):
         record, impacts = simulate_surgery(
-            hip_patient, "hip_fracture", "ENC-001",
-            datetime(2024, 6, 15, 18, 0), MockProtocol(), rng, "JP",
+            hip_patient,
+            "hip_fracture",
+            "ENC-001",
+            datetime(2024, 6, 15, 18, 0),
+            MockProtocol(),
+            rng,
+            "JP",
         )
         assert isinstance(record, ProcedureRecord)
         assert record.procedure_type in ("ORIF", "hemiarthroplasty")
@@ -55,16 +60,26 @@ class TestSurgery:
 
     def test_state_impacts(self, hip_patient, rng):
         _, impacts = simulate_surgery(
-            hip_patient, "hip_fracture", "ENC-001",
-            datetime(2024, 6, 15, 18, 0), MockProtocol(), rng, "JP",
+            hip_patient,
+            "hip_fracture",
+            "ENC-001",
+            datetime(2024, 6, 15, 18, 0),
+            MockProtocol(),
+            rng,
+            "JP",
         )
         assert "anemia_level" in impacts or "inflammation_level" in impacts
         assert impacts.get("inflammation_level", 0) > 0  # surgical trauma
 
     def test_jp_surgery_timing(self, hip_patient, rng):
         record, _ = simulate_surgery(
-            hip_patient, "hip_fracture", "ENC-001",
-            datetime(2024, 6, 15, 18, 0), MockProtocol(), rng, "JP",
+            hip_patient,
+            "hip_fracture",
+            "ENC-001",
+            datetime(2024, 6, 15, 18, 0),
+            MockProtocol(),
+            rng,
+            "JP",
         )
         hours_to_surgery = (record.start_datetime - datetime(2024, 6, 15, 18, 0)).total_seconds() / 3600
         assert hours_to_surgery >= 12  # JP: at least 12h
@@ -74,16 +89,24 @@ class TestSurgery:
 class TestRehab:
     def test_generates_sessions(self, rng):
         sessions = generate_rehab_sessions(
-            "TEST-001", "ENC-001",
-            datetime(2024, 6, 17, 10, 0), 30, rng, "JP",
+            "TEST-001",
+            "ENC-001",
+            datetime(2024, 6, 17, 10, 0),
+            30,
+            rng,
+            "JP",
         )
         assert len(sessions) > 20  # ~27 sessions for 30-day stay
         assert all(isinstance(s, RehabSession) for s in sessions)
 
     def test_sessions_have_activities(self, rng):
         sessions = generate_rehab_sessions(
-            "TEST-001", "ENC-001",
-            datetime(2024, 6, 17, 10, 0), 30, rng, "JP",
+            "TEST-001",
+            "ENC-001",
+            datetime(2024, 6, 17, 10, 0),
+            30,
+            rng,
+            "JP",
         )
         for s in sessions[:5]:
             assert len(s.activities) > 0
@@ -91,8 +114,12 @@ class TestRehab:
 
     def test_pain_decreases_over_time(self, rng):
         sessions = generate_rehab_sessions(
-            "TEST-001", "ENC-001",
-            datetime(2024, 6, 17, 10, 0), 30, rng, "JP",
+            "TEST-001",
+            "ENC-001",
+            datetime(2024, 6, 17, 10, 0),
+            30,
+            rng,
+            "JP",
         )
         early = [s.pain_score for s in sessions[:5] if s.pain_score is not None]
         late = [s.pain_score for s in sessions[-5:] if s.pain_score is not None]

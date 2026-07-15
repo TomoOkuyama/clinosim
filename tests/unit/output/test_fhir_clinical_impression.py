@@ -60,6 +60,7 @@ def _sample_impression_dict() -> dict:
 
 # --- Empty input ---
 
+
 def test_no_impressions_emits_nothing():
     ctx = _make_ctx([])
     assert _bb_clinical_impressions(ctx) == []
@@ -85,6 +86,7 @@ def test_missing_extension_emits_nothing():
 
 
 # --- Resource shape ---
+
 
 def test_emits_one_clinical_impression_dataclass():
     ctx = _make_ctx([_sample_impression_dataclass()])
@@ -171,6 +173,7 @@ def test_prognosis_emitted():
 
 # --- Empty optional fields ---
 
+
 def test_empty_investigation_refs_omits_investigation():
     imp = _sample_impression_dataclass()
     imp.investigation_refs = []
@@ -213,6 +216,7 @@ def test_empty_encounter_id_omits_encounter():
 
 # --- Dict path ---
 
+
 def test_clinical_impression_from_dict_path():
     """Production CIF is json.load() -> dict; verify _o() dict-access path."""
     ctx = _make_ctx([_sample_impression_dict()])
@@ -230,6 +234,7 @@ def test_clinical_impression_from_dict_path():
 
 # --- Multiple impressions ---
 
+
 def test_multiple_impressions_all_emitted():
     imp1 = _sample_impression_dataclass()
     imp2 = _sample_impression_dataclass()
@@ -245,6 +250,7 @@ def test_multiple_impressions_all_emitted():
 
 
 # --- ID prefix handling ---
+
 
 def test_id_without_prefix_gets_prefix():
     """If impression_id doesn't already start with ci-, add the prefix."""

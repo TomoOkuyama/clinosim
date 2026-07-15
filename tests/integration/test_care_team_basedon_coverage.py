@@ -57,17 +57,12 @@ def test_care_team_subject_ref_resolves() -> None:
         for ct in care_teams:
             ct_id = ct.get("id", "?")
             subj = ct.get("subject", {}).get("reference", "")
-            assert subj.startswith("Patient/"), (
-                f"CareTeam/{ct_id} subject must start with 'Patient/': {subj!r}"
-            )
+            assert subj.startswith("Patient/"), f"CareTeam/{ct_id} subject must start with 'Patient/': {subj!r}"
             pid = subj.removeprefix("Patient/")
             if pid not in patient_ids:
                 dangling.append(f"CareTeam/{ct_id} -> Patient/{pid}")
 
-        assert not dangling, (
-            f"{len(dangling)} dangling CareTeam.subject refs:\n"
-            + "\n".join(dangling[:10])
-        )
+        assert not dangling, f"{len(dangling)} dangling CareTeam.subject refs:\n" + "\n".join(dangling[:10])
 
 
 @pytest.mark.integration
@@ -102,10 +97,7 @@ def test_care_team_encounter_ref_resolves() -> None:
             if eid not in encounter_ids:
                 dangling.append(f"CareTeam/{ct_id} -> Encounter/{eid}")
 
-        assert not dangling, (
-            f"{len(dangling)} dangling CareTeam.encounter refs:\n"
-            + "\n".join(dangling[:10])
-        )
+        assert not dangling, f"{len(dangling)} dangling CareTeam.encounter refs:\n" + "\n".join(dangling[:10])
 
 
 @pytest.mark.integration
@@ -150,13 +142,10 @@ def test_care_team_attending_physician_ref_resolves() -> None:
             for idx, participant in enumerate(participants):
                 member_ref = participant.get("member", {}).get("reference", "")
                 if not member_ref:
-                    dangling_attending.append(
-                        f"CareTeam/{ct_id} participant[{idx}]: missing member.reference"
-                    )
+                    dangling_attending.append(f"CareTeam/{ct_id} participant[{idx}]: missing member.reference")
                     continue
                 assert member_ref.startswith("Practitioner/"), (
-                    f"CareTeam/{ct_id} participant[{idx}].member must start with 'Practitioner/': "
-                    f"{member_ref!r}"
+                    f"CareTeam/{ct_id} participant[{idx}].member must start with 'Practitioner/': {member_ref!r}"
                 )
                 prac_id = member_ref.removeprefix("Practitioner/")
                 if prac_id not in practitioner_ids:
@@ -165,14 +154,11 @@ def test_care_team_attending_physician_ref_resolves() -> None:
                             f"CareTeam/{ct_id} attending (participant[0]) -> Practitioner/{prac_id}"
                         )
                     else:
-                        dangling_nurse.append(
-                            f"CareTeam/{ct_id} nurse (participant[{idx}]) -> Practitioner/{prac_id}"
-                        )
+                        dangling_nurse.append(f"CareTeam/{ct_id} nurse (participant[{idx}]) -> Practitioner/{prac_id}")
 
         assert not dangling_attending, (
             f"{len(dangling_attending)} dangling CareTeam.participant[0] (attending) refs "
-            "(attending physician must always resolve):\n"
-            + "\n".join(dangling_attending[:10])
+            "(attending physician must always resolve):\n" + "\n".join(dangling_attending[:10])
         )
 
         # Lenient check for nurses: only check format, not resolution.
@@ -208,13 +194,11 @@ def test_care_team_id_prefix_and_status() -> None:
             if status not in _VALID_CARE_TEAM_STATUSES:
                 bad_status.append(f"CareTeam/{ct_id} status={status!r}")
 
-        assert not bad_prefix, (
-            f"{len(bad_prefix)} CareTeam resources with wrong id prefix:\n"
-            + "\n".join(bad_prefix[:5])
+        assert not bad_prefix, f"{len(bad_prefix)} CareTeam resources with wrong id prefix:\n" + "\n".join(
+            bad_prefix[:5]
         )
-        assert not bad_status, (
-            f"{len(bad_status)} CareTeam resources with invalid status:\n"
-            + "\n".join(bad_status[:5])
+        assert not bad_status, f"{len(bad_status)} CareTeam resources with invalid status:\n" + "\n".join(
+            bad_status[:5]
         )
 
 
@@ -238,7 +222,6 @@ def test_care_team_has_category_coding() -> None:
             category = ct.get("category", [])
             if not category:
                 missing_category.append(f"CareTeam/{ct_id}")
-        assert not missing_category, (
-            f"{len(missing_category)} CareTeam resources missing category[]:\n"
-            + "\n".join(missing_category[:5])
+        assert not missing_category, f"{len(missing_category)} CareTeam resources missing category[]:\n" + "\n".join(
+            missing_category[:5]
         )

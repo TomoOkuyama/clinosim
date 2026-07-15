@@ -57,9 +57,7 @@ def test_snapshot_no_nursing_discharge_summary_for_inprogress() -> None:
         encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
         in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
         if not in_progress_ids:
-            pytest.skip(
-                f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}."
-            )
+            pytest.skip(f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}.")
 
         comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
         enc_to_loinc: dict[str, set[str]] = {}
@@ -97,9 +95,7 @@ def test_snapshot_nursing_admission_assessment_present_for_inprogress() -> None:
         encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
         in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
         if not in_progress_ids:
-            pytest.skip(
-                f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}."
-            )
+            pytest.skip(f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}.")
 
         comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
         enc_to_loinc: dict[str, set[str]] = {}
@@ -113,9 +109,9 @@ def test_snapshot_nursing_admission_assessment_present_for_inprogress() -> None:
 
         # Only check inpatient in-progress encounters (nursing docs are inpatient-only)
         inpatient_in_progress = {
-            e["id"] for e in encs
-            if e.get("status") == "in-progress"
-            and e.get("class", {}).get("code", "") in {"IMP", "ACUTE", "OBSENC"}
+            e["id"]
+            for e in encs
+            if e.get("status") == "in-progress" and e.get("class", {}).get("code", "") in {"IMP", "ACUTE", "OBSENC"}
         }
         if not inpatient_in_progress:
             pytest.skip(
@@ -150,9 +146,7 @@ def test_snapshot_nursing_shift_notes_present_for_inprogress() -> None:
         encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
         in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
         if not in_progress_ids:
-            pytest.skip(
-                f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}."
-            )
+            pytest.skip(f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}.")
 
         drefs = load_ndjson(find_ndjson(out, "DocumentReference.ndjson"))
         enc_to_loinc: dict[str, set[str]] = {}
@@ -167,16 +161,15 @@ def test_snapshot_nursing_shift_notes_present_for_inprogress() -> None:
                     enc_to_loinc.setdefault(eid, set()).add(loinc)
 
         inpatient_in_progress = {
-            e["id"] for e in encs
-            if e.get("status") == "in-progress"
-            and e.get("class", {}).get("code", "") in {"IMP", "ACUTE", "OBSENC"}
+            e["id"]
+            for e in encs
+            if e.get("status") == "in-progress" and e.get("class", {}).get("code", "") in {"IMP", "ACUTE", "OBSENC"}
         }
         if not inpatient_in_progress:
             pytest.skip("No inpatient in-progress Encounters in cohort")
 
         encounters_with_shift_notes = {
-            eid for eid in inpatient_in_progress
-            if _LOINC_NURSING_SHIFT_NOTE in enc_to_loinc.get(eid, set())
+            eid for eid in inpatient_in_progress if _LOINC_NURSING_SHIFT_NOTE in enc_to_loinc.get(eid, set())
         }
         if not encounters_with_shift_notes:
             pytest.skip(
@@ -205,9 +198,7 @@ def test_snapshot_care_team_present_for_inprogress_encounters() -> None:
         encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
         in_progress_enc_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
         if not in_progress_enc_ids:
-            pytest.skip(
-                f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}."
-            )
+            pytest.skip(f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}.")
 
         care_teams = load_ndjson(find_ndjson(out, "CareTeam.ndjson"))
         assert care_teams, "CareTeam.ndjson is empty — CareTeam builder not firing"

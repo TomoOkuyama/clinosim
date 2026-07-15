@@ -47,8 +47,7 @@ def _first_window_lactate(rec: dict, hours: int = 6) -> float | None:
     lactate_values = [
         float(lab.get("value"))
         for lab in labs
-        if lab.get("value") is not None
-        and str(lab.get("lab_name", "")).lower() == "lactate"
+        if lab.get("value") is not None and str(lab.get("lab_name", "")).lower() == "lactate"
     ]
     if not lactate_values:
         return None
@@ -69,15 +68,20 @@ def extract_sepsis_labels(cif_dir: str | Path) -> list[LabelRow]:
         enc_id = str((encs[0] if encs else {}).get("encounter_id", ""))
         label = 1 if _is_sepsis_encounter(rec) else 0
         ctx: dict[str, Any] = {"first_window_lactate": _first_window_lactate(rec)}
-        records.append(LabelRow(
-            patient_id=patient_id, encounter_id=enc_id,
-            label=label, context=ctx,
-        ))
+        records.append(
+            LabelRow(
+                patient_id=patient_id,
+                encounter_id=enc_id,
+                label=label,
+                context=ctx,
+            )
+        )
     return records
 
 
 def lactate_threshold_baseline(
-    labels: list[LabelRow], threshold: float = 2.0,
+    labels: list[LabelRow],
+    threshold: float = 2.0,
 ) -> BaselineReport:
     """Lactate > threshold(mmol/L)なら sepsis を予測する Surviving Sepsis 2021 相当 rule。
 
@@ -86,15 +90,17 @@ def lactate_threshold_baseline(
     """
     if not labels:
         return BaselineReport(
-            name="lactate_threshold", n=0, n_positive=0, prevalence=0.0,
-            auroc=0.0, accuracy=0.0, positive_predicted_rate=0.0,
+            name="lactate_threshold",
+            n=0,
+            n_positive=0,
+            prevalence=0.0,
+            auroc=0.0,
+            accuracy=0.0,
+            positive_predicted_rate=0.0,
             rationale="empty label set",
         )
     y_true = [r.label for r in labels]
-    y_score = [
-        float(r.context.get("first_window_lactate") or 0.0)
-        for r in labels
-    ]
+    y_score = [float(r.context.get("first_window_lactate") or 0.0) for r in labels]
     auroc = compute_auroc(y_true, y_score)
     predicted = [1 if s > threshold else 0 for s in y_score]
     correct = sum(1 for yt, yp in zip(y_true, predicted) if yt == yp)

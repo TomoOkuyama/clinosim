@@ -62,9 +62,7 @@ def _emittable_internal_codes() -> set[str]:
 def _engine_differential_codes() -> set[str]:
     """ICD codes in the built-in differential/progression tables (3rd emittable source:
     working/discharge diagnoses) loaded from diagnosis/reference_data."""
-    fp = os.path.join(
-        ROOT, "clinosim/modules/diagnosis/reference_data/builtin_differentials.yaml"
-    )
+    fp = os.path.join(ROOT, "clinosim/modules/diagnosis/reference_data/builtin_differentials.yaml")
     data = yaml.safe_load(open(fp)) or {}
     codes: set[str] = set()
     for rows in data.get("differentials", {}).values():
@@ -85,9 +83,7 @@ def _family_history_codes() -> set[str]:
     "(display unavailable)". The coverage test now spans all four channels so any
     future family_history addition without a code registration fails at unit time.
     """
-    fp = os.path.join(
-        ROOT, "clinosim/modules/family_history/reference_data/family_history.yaml"
-    )
+    fp = os.path.join(ROOT, "clinosim/modules/family_history/reference_data/family_history.yaml")
     data = yaml.safe_load(open(fp)) or {}
     return set((data.get("conditions") or {}).keys())
 
@@ -133,9 +129,7 @@ WHO = _codes("clinosim/codes/data/icd-10.yaml")
 US_MAP = _map("clinosim/locale/us/code_mapping_diagnosis.yaml")
 JP_MAP = _map("clinosim/locale/jp/code_mapping_diagnosis.yaml")
 INTERNAL = _emittable_internal_codes()
-_COUNTRY_AGNOSTIC = (
-    INTERNAL | _engine_differential_codes() | _family_history_codes()
-)
+_COUNTRY_AGNOSTIC = INTERNAL | _engine_differential_codes() | _family_history_codes()
 US_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("us")
 JP_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("jp")
 
@@ -167,9 +161,7 @@ def test_jp_never_emits_cm_granular_code() -> None:
     """JP Condition codes must be true WHO ICD-10 (3-4 char), never ICD-10-CM granularity
     (5-7 char, 7th-char extensions, X placeholders) emitted under the WHO system URI.
     Covers all three emittable sources: disease + encounter YAMLs + engine.py differentials."""
-    cm_granular = sorted(
-        c for c in JP_EMITTABLE if not _WHO_FORMAT.match(JP_MAP.get(c, c))
-    )
+    cm_granular = sorted(c for c in JP_EMITTABLE if not _WHO_FORMAT.match(JP_MAP.get(c, c)))
     assert not cm_granular, (
         "JP would emit non-WHO-format codes under the icd-10 (WHO) system URI; add a "
         f"code_mapping_diagnosis/jp entry folding each to its WHO 3-4 char code: {cm_granular}"

@@ -9,6 +9,7 @@ ANTIBIOTIC_DRUGS keys are lowercase snake_case (e.g. "vancomycin",
 section and the ANTIBIOTIC_LOINC_LOOKUP. The "name" value holds the
 display name used for Order.display_name and MedicationAdministration.drug_name.
 """
+
 from clinosim.modules.observation.microbiology import antibiotic_loinc_lookup
 
 ANTIBIOTIC_DRUGS: dict[str, dict[str, str]] = {

@@ -69,9 +69,7 @@ def test_no_discharge_summary_for_inprogress_encounters() -> None:
         encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
         in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
         if not in_progress_ids:
-            pytest.skip(
-                f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}."
-            )
+            pytest.skip(f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}.")
 
         comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
         # Build map: encounter_id → set of LOINC codes for Compositions
@@ -91,8 +89,7 @@ def test_no_discharge_summary_for_inprogress_encounters() -> None:
 
         assert not violations, (
             f"AD-32 VIOLATION: {len(violations)} in-progress encounter(s) have a "
-            f"DISCHARGE_SUMMARY Composition (LOINC {_LOINC_DISCHARGE_SUMMARY}):\n"
-            + "\n".join(violations[:10])
+            f"DISCHARGE_SUMMARY Composition (LOINC {_LOINC_DISCHARGE_SUMMARY}):\n" + "\n".join(violations[:10])
         )
 
 
@@ -106,9 +103,7 @@ def test_admission_hp_present_for_inprogress_encounters() -> None:
         encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
         in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
         if not in_progress_ids:
-            pytest.skip(
-                f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}."
-            )
+            pytest.skip(f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}.")
 
         # Map encounter_id → set of LOINC codes for Compositions
         comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
@@ -162,9 +157,7 @@ def test_progress_notes_present_for_inprogress_encounters() -> None:
         encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
         in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
         if not in_progress_ids:
-            pytest.skip(
-                f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}."
-            )
+            pytest.skip(f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}.")
 
         drefs = load_ndjson(find_ndjson(out, "DocumentReference.ndjson"))
         # Map encounter_id → set of LOINC codes for DocumentReferences
@@ -180,8 +173,7 @@ def test_progress_notes_present_for_inprogress_encounters() -> None:
                     enc_to_loinc.setdefault(eid, set()).add(loinc)
 
         encounters_with_progress_notes = {
-            eid for eid in in_progress_ids
-            if _LOINC_PROGRESS_NOTE in enc_to_loinc.get(eid, set())
+            eid for eid in in_progress_ids if _LOINC_PROGRESS_NOTE in enc_to_loinc.get(eid, set())
         }
         if not encounters_with_progress_notes:
             pytest.skip(

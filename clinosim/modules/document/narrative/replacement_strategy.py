@@ -28,6 +28,7 @@ Two cache layers (complementary, NOT duplicates):
    sha256(system+user+model). Survives process restarts and dedupes exact
    prompt repeats across runs (cost containment for cloud providers).
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -84,9 +85,14 @@ def apply_replacement_strategy(
         return template_output
     elif spec.stage2_strategy == "template_seed":
         return _apply_template_seed_strategy(
-            template_output, ctx, spec, llm,
-            task_type=task_type, language=language,
-            cache_get=cache_get, cache_put=cache_put,
+            template_output,
+            ctx,
+            spec,
+            llm,
+            task_type=task_type,
+            language=language,
+            cache_get=cache_get,
+            cache_put=cache_put,
         )
     else:
         # Unknown strategy → safe default: template output unchanged
@@ -140,9 +146,7 @@ def _apply_template_seed_strategy(
     # keeps us safe if the spec ever lists a section that the template
     # generator did not emit (defensive against ghost sections).
     country = ctx.locale.upper() if getattr(ctx, "locale", None) else "US"
-    llm_sections = [
-        s for s in spec.llm_enabled_sections_for(country) if s in new_sections
-    ]
+    llm_sections = [s for s in spec.llm_enabled_sections_for(country) if s in new_sections]
 
     for section in llm_sections:
         template_text = new_sections.get(section, "")

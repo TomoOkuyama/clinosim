@@ -49,10 +49,7 @@ def test_lab_observation_basedon_coverage_us():
 
         sr_ids = {r["id"] for r in load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))}
         obs = load_ndjson(find_ndjson(out, "Observation.ndjson"))
-        lab_obs = [
-            o for o in obs
-            if _is_lab_category(o) and not _is_microbiology_obs(o)
-        ]
+        lab_obs = [o for o in obs if _is_lab_category(o) and not _is_microbiology_obs(o)]
 
         missing = [o["id"] for o in lab_obs if not o.get("basedOn")]
         dangling: list[str] = []
@@ -62,13 +59,8 @@ def test_lab_observation_basedon_coverage_us():
                 if sr_id and sr_id not in sr_ids:
                     dangling.append(sr_id)
 
-        assert not missing, (
-            f"{len(missing)} LAB Observations missing basedOn: {missing[:5]}"
-        )
-        assert not dangling, (
-            f"{len(dangling)} dangling SR refs (SR not in ServiceRequest.ndjson): "
-            f"{dangling[:5]}"
-        )
+        assert not missing, f"{len(missing)} LAB Observations missing basedOn: {missing[:5]}"
+        assert not dangling, f"{len(dangling)} dangling SR refs (SR not in ServiceRequest.ndjson): {dangling[:5]}"
 
 
 @pytest.mark.integration
@@ -82,22 +74,18 @@ def test_diagnostic_report_basedon_coverage_us():
         reports = load_ndjson(find_ndjson(out, "DiagnosticReport.ndjson"))
         # Filter to lab panel DRs (not microbiology).
         lab_reports = [
-            r for r in reports
-            if r.get("id", "").startswith("dr-") and not r.get("id", "").startswith("dr-mb-")
+            r for r in reports if r.get("id", "").startswith("dr-") and not r.get("id", "").startswith("dr-mb-")
         ]
 
         if not lab_reports:
             pytest.skip("No lab-panel DiagnosticReports emitted for n=200 cohort")
 
         for r in lab_reports:
-            assert r.get("basedOn"), (
-                f"DiagnosticReport/{r['id']} missing basedOn"
-            )
+            assert r.get("basedOn"), f"DiagnosticReport/{r['id']} missing basedOn"
             for ref in r["basedOn"]:
                 sr_id = ref["reference"].removeprefix("ServiceRequest/")
                 assert sr_id in sr_ids, (
-                    f"DiagnosticReport/{r['id']} basedOn → ServiceRequest/{sr_id} "
-                    f"not found in ServiceRequest.ndjson"
+                    f"DiagnosticReport/{r['id']} basedOn → ServiceRequest/{sr_id} not found in ServiceRequest.ndjson"
                 )
 
 
@@ -121,9 +109,7 @@ def test_panel_members_share_sr_id():
         found_panel = False
         for group in by_slot.values():
             if len(group) >= 3:
-                sr_refs = {
-                    o["basedOn"][0]["reference"] for o in group if o.get("basedOn")
-                }
+                sr_refs = {o["basedOn"][0]["reference"] for o in group if o.get("basedOn")}
                 if len(sr_refs) == 1:
                     found_panel = True
                     break
@@ -163,23 +149,15 @@ def test_service_request_outgoing_references_resolve():
 
             # subject → Patient
             subj = sr.get("subject", {}).get("reference", "")
-            assert subj.startswith("Patient/"), (
-                f"SR/{sr_id} subject reference must start with 'Patient/': {subj!r}"
-            )
+            assert subj.startswith("Patient/"), f"SR/{sr_id} subject reference must start with 'Patient/': {subj!r}"
             pid = subj.removeprefix("Patient/")
-            assert pid in patient_ids, (
-                f"SR/{sr_id} dangling Patient ref Patient/{pid}"
-            )
+            assert pid in patient_ids, f"SR/{sr_id} dangling Patient ref Patient/{pid}"
 
             # encounter → Encounter
             enc = sr.get("encounter", {}).get("reference", "")
-            assert enc.startswith("Encounter/"), (
-                f"SR/{sr_id} encounter reference must start with 'Encounter/': {enc!r}"
-            )
+            assert enc.startswith("Encounter/"), f"SR/{sr_id} encounter reference must start with 'Encounter/': {enc!r}"
             eid = enc.removeprefix("Encounter/")
-            assert eid in encounter_ids, (
-                f"SR/{sr_id} dangling Encounter ref Encounter/{eid}"
-            )
+            assert eid in encounter_ids, f"SR/{sr_id} dangling Encounter ref Encounter/{eid}"
 
             # requester → Practitioner (optional)
             req = sr.get("requester", {}).get("reference", "")
@@ -188,6 +166,4 @@ def test_service_request_outgoing_references_resolve():
                     f"SR/{sr_id} requester reference must start with 'Practitioner/': {req!r}"
                 )
                 pract_id = req.removeprefix("Practitioner/")
-                assert pract_id in practitioner_ids, (
-                    f"SR/{sr_id} dangling Practitioner ref Practitioner/{pract_id}"
-                )
+                assert pract_id in practitioner_ids, f"SR/{sr_id} dangling Practitioner ref Practitioner/{pract_id}"

@@ -63,9 +63,7 @@ def build_from_config(config: dict[str, Any]) -> LLMService:
         prompt_registry=registry,
         cache=cache,
         retry_attempts=int(narrative_cfg.get("retry_attempts", 3)),
-        retry_backoff_seconds=float(
-            narrative_cfg.get("retry_backoff_seconds", 1.0)
-        ),
+        retry_backoff_seconds=float(narrative_cfg.get("retry_backoff_seconds", 1.0)),
         provider_name_judgment=judgment_cfg.get("provider", ""),
         provider_name_narrative=narrative_cfg.get("provider", ""),
     )

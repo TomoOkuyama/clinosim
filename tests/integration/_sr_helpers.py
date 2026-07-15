@@ -3,6 +3,7 @@
 Extracted from individual test modules to avoid 4-way duplication of
 _run_generate / _find_ndjson / _load_ndjson (Minor 3, Task 9 review).
 """
+
 from __future__ import annotations
 
 import json
@@ -25,19 +26,25 @@ def run_generate(
     (end - 1 year), producing a full-year cohort truncated at the snapshot.
     """
     cmd = [
-        "python", "-m", "clinosim.simulator.cli", "generate",
-        "--country", country,
-        "--population", str(n),
-        "--seed", str(seed),
-        "--format", "fhir-r4",
-        "--output", str(out),
+        "python",
+        "-m",
+        "clinosim.simulator.cli",
+        "generate",
+        "--country",
+        country,
+        "--population",
+        str(n),
+        "--seed",
+        str(seed),
+        "--format",
+        "fhir-r4",
+        "--output",
+        str(out),
     ]
     if end:
         cmd += ["--end", end]
     result = subprocess.run(cmd, capture_output=True, text=True)
-    assert result.returncode == 0, (
-        f"generate failed (returncode={result.returncode}):\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"generate failed (returncode={result.returncode}):\n{result.stderr}"
 
 
 def find_ndjson(out: Path, name: str) -> Path:

@@ -10,9 +10,7 @@ from clinosim.modules.disease.severity import _validate_severity_block
 
 pytestmark = pytest.mark.unit
 
-_IDS = [
-    os.path.basename(f)[:-5] for f in glob.glob("clinosim/modules/disease/reference_data/*.yaml")
-]
+_IDS = [os.path.basename(f)[:-5] for f in glob.glob("clinosim/modules/disease/reference_data/*.yaml")]
 
 
 def test_all_real_disease_severity_blocks_valid():
@@ -22,9 +20,7 @@ def test_all_real_disease_severity_blocks_valid():
 
 def test_bad_distribution_raises():
     with pytest.raises(ValueError):
-        _validate_severity_block(
-            "x", {"distribution": {"mild": 0.0, "moderate": 0.0, "severe": 0.0}}, None
-        )
+        _validate_severity_block("x", {"distribution": {"mild": 0.0, "moderate": 0.0, "severe": 0.0}}, None)
 
 
 def test_missing_category_raises():
@@ -46,9 +42,7 @@ def test_unknown_modifier_condition_raises():
 
 def test_bad_minimum_raises():
     with pytest.raises(ValueError):
-        _validate_severity_block(
-            "x", {"distribution": {"mild": 0.3, "moderate": 0.4, "severe": 0.3}}, "critical"
-        )
+        _validate_severity_block("x", {"distribution": {"mild": 0.3, "moderate": 0.4, "severe": 0.3}}, "critical")
 
 
 def test_nonpositive_multiplier_raises():

@@ -117,8 +117,7 @@ class PromptRegistry:
             path = self.prompts_dir / "en" / f"{task_type}.yaml"
         if not path.exists():
             raise FileNotFoundError(
-                f"No prompt template for task_type={task_type!r} "
-                f"language={language!r} (searched {self.prompts_dir})"
+                f"No prompt template for task_type={task_type!r} language={language!r} (searched {self.prompts_dir})"
             )
 
         data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}

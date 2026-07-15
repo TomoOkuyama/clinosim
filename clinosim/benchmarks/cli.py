@@ -26,8 +26,7 @@ def add_benchmark_subparser(subparsers: argparse._SubParsersAction) -> None:
     """`clinosim benchmark <task>` を simulator/cli.py に登録する。"""
     p = subparsers.add_parser(
         "benchmark",
-        help="Run reproducible baseline benchmarks on a CIF cohort "
-        "(sepsis / aki prediction floor numbers)",
+        help="Run reproducible baseline benchmarks on a CIF cohort (sepsis / aki prediction floor numbers)",
     )
     p.add_argument("task", choices=TASKS, help="Which prediction task to score")
     p.add_argument(
@@ -77,6 +76,7 @@ def dispatch_benchmark(args: argparse.Namespace) -> int:
 
     if args.json:
         import json as _json
+
         payload = {
             "task": args.task,
             "cif_dir": str(cif_dir),
@@ -87,8 +87,10 @@ def dispatch_benchmark(args: argparse.Namespace) -> int:
         print(_json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 
-    print(f"clinosim benchmark: task={args.task}, n={len(labels)}, "
-          f"prevalence={sum(r.label for r in labels) / len(labels):.4f}")
+    print(
+        f"clinosim benchmark: task={args.task}, n={len(labels)}, "
+        f"prevalence={sum(r.label for r in labels) / len(labels):.4f}"
+    )
     for r in reports:
         print(f"  == baseline: {r.name} ==")
         print(f"     AUROC     = {r.auroc:.4f}")

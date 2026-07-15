@@ -297,9 +297,7 @@ def test_admission_nursing_assessment_includes_primary_nurse() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     all_text = " ".join(out.sections.values())
-    assert "nurse-RN-001" in all_text, (
-        f"primary_nurse_id 'nurse-RN-001' not found in sections: {all_text[:400]!r}"
-    )
+    assert "nurse-RN-001" in all_text, f"primary_nurse_id 'nurse-RN-001' not found in sections: {all_text[:400]!r}"
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -322,9 +320,7 @@ def test_nursing_discharge_summary_returns_sections_dict() -> None:
 def test_nursing_discharge_summary_jp_has_japanese_text() -> None:
     """JP locale nursing discharge sections must contain Japanese characters."""
     spec = _make_nursing_discharge_spec()
-    ctx = _make_ctx(
-        DocumentType.NURSING_DISCHARGE_SUMMARY, target_lang="ja", day_index=5, los_days=5
-    )
+    ctx = _make_ctx(DocumentType.NURSING_DISCHARGE_SUMMARY, target_lang="ja", day_index=5, los_days=5)
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     all_text = " ".join(out.sections.values())
@@ -335,9 +331,7 @@ def test_nursing_discharge_summary_jp_has_japanese_text() -> None:
 def test_nursing_discharge_summary_los_days_appear_in_output() -> None:
     """LOS days should appear in nursing discharge summary (admission_status)."""
     spec = _make_nursing_discharge_spec()
-    ctx = _make_ctx(
-        DocumentType.NURSING_DISCHARGE_SUMMARY, target_lang="ja", day_index=7, los_days=7
-    )
+    ctx = _make_ctx(DocumentType.NURSING_DISCHARGE_SUMMARY, target_lang="ja", day_index=7, los_days=7)
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     all_text = " ".join(out.sections.values())
@@ -443,9 +437,7 @@ def test_ed_note_triage_details_uses_triage_data() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     triage_text = out.sections.get("triage_details", "")
-    assert "ESI" in triage_text or "2" in triage_text, (
-        f"triage_data not reflected in triage_details: {triage_text!r}"
-    )
+    assert "ESI" in triage_text or "2" in triage_text, f"triage_data not reflected in triage_details: {triage_text!r}"
 
 
 def test_ed_note_uses_encounter_protocol_template() -> None:
@@ -461,9 +453,7 @@ def test_ed_note_uses_encounter_protocol_template() -> None:
     assert "突然の胸痛" in out.sections.get("chief_complaint", ""), (
         f"chief_complaint_ja not used: {out.sections.get('chief_complaint', '')!r}"
     )
-    assert "30 分" in out.sections.get("hpi", ""), (
-        f"hpi_ja not used: {out.sections.get('hpi', '')!r}"
-    )
+    assert "30 分" in out.sections.get("hpi", ""), f"hpi_ja not used: {out.sections.get('hpi', '')!r}"
 
 
 def test_ed_note_no_triage_data_graceful() -> None:
@@ -530,9 +520,7 @@ def test_nursing_shift_note_with_primary_nurse() -> None:
     ctx = _make_ctx(DocumentType.NURSING_SHIFT_NOTE, encounter=enc, day_index=0)
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
-    assert "nurse-RN-042" in out.raw_text, (
-        f"primary_nurse_id not in shift note: {out.raw_text!r}"
-    )
+    assert "nurse-RN-042" in out.raw_text, f"primary_nurse_id not in shift note: {out.raw_text!r}"
 
 
 def test_nursing_shift_note_no_primary_nurse_graceful() -> None:
@@ -582,9 +570,7 @@ def test_ed_triage_note_uses_triage_data() -> None:
     raw = out.raw_text
     assert "JTAS" in raw or "1" in raw, f"triage level_system not in triage note: {raw!r}"
     assert "意識消失" in raw, f"chief_complaint_summary not in triage note: {raw!r}"
-    assert "ambulance" in raw or "救急車" in raw, (
-        f"arrival_mode not in triage note: {raw!r}"
-    )
+    assert "ambulance" in raw or "救急車" in raw, f"arrival_mode not in triage note: {raw!r}"
 
 
 def test_ed_triage_note_no_triage_data_graceful() -> None:
@@ -632,9 +618,7 @@ def test_all_new_types_metadata_generator_field() -> None:
     for doc_type, spec in test_cases:
         ctx = _make_ctx(doc_type)
         out = gen.generate(ctx, spec)
-        assert out.metadata.get("generator") == "template", (
-            f"{doc_type}: metadata.generator != 'template'"
-        )
+        assert out.metadata.get("generator") == "template", f"{doc_type}: metadata.generator != 'template'"
 
 
 def test_all_new_types_deterministic() -> None:

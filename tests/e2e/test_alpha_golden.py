@@ -77,10 +77,7 @@ class TestAlphaGolden:
         assert record.discharge_prescription is not None
         assert record.discharge_prescription.issue_date != _SENTINEL_DATETIME
         result2 = run_alpha(SimulatorConfig(random_seed=42))
-        assert (
-            result2.patients[0].discharge_prescription.issue_date
-            == record.discharge_prescription.issue_date
-        )
+        assert result2.patients[0].discharge_prescription.issue_date == record.discharge_prescription.issue_date
 
     def test_state_and_prescription_timestamps_reproducible_across_runs(self, alpha_result):
         """Two independent run_alpha(seed=42) calls, with real wall-clock time
@@ -95,8 +92,7 @@ class TestAlphaGolden:
         r1 = alpha_result.patients[0]
         r2 = result2.patients[0]
 
-        assert [s.timestamp for s in r1.physiological_states] == \
-            [s.timestamp for s in r2.physiological_states]
+        assert [s.timestamp for s in r1.physiological_states] == [s.timestamp for s in r2.physiological_states]
 
         assert r1.discharge_prescription is not None
         assert r2.discharge_prescription is not None
@@ -106,6 +102,7 @@ class TestAlphaGolden:
         import json
 
         from clinosim.modules.output.cif_writer import write_cif
+
         output_dir = str(tmp_path / "cif")
         write_cif(alpha_result, output_dir)
         with open(f"{output_dir}/metadata.json") as f:

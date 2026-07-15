@@ -42,6 +42,7 @@ def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | 
         return None
     try:
         from datetime import datetime as _dt
+
         start = _dt.fromisoformat(str(start_iso).replace("Z", "+00:00").split("+")[0])
         end = _dt.fromisoformat(str(end_iso).replace("Z", "+00:00").split("+")[0])
     except (ValueError, TypeError):
@@ -65,8 +66,10 @@ def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | 
 
 
 def _build_encounter(
-    enc: dict, patient_id: str,
-    is_readmission: bool = False, prior_encounter_id: str | None = None,
+    enc: dict,
+    patient_id: str,
+    is_readmission: bool = False,
+    prior_encounter_id: str | None = None,
     primary_dx_code: str = "",
     country: str = "US",
     admit_dx_code: str = "",
@@ -92,9 +95,11 @@ def _build_encounter(
         "resourceType": "Encounter",
         "id": encounter_id,
         # C2-20 (session 42 cycle 2): JP Core Encounter profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"
-        ]}} if str(country).upper() == "JP" else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"]}}
+            if str(country).upper() == "JP"
+            else {}
+        ),
         "status": _map_encounter_status(enc.get("status", "")),
         "class": {
             "system": get_system_uri("hl7-v3-actcode"),
@@ -117,8 +122,7 @@ def _build_encounter(
         # patient-initiated code (270427003) — not a disease-specific visit.
         if any(kw in _cc for kw in ("健康診断", "screening", "予防接種", "vaccination")):
             type_code = "270427003"
-        elif _cc.startswith("Follow-up") or _cc.startswith("フォローアップ") or \
-             _cc.startswith("Post-discharge"):
+        elif _cc.startswith("Follow-up") or _cc.startswith("フォローアップ") or _cc.startswith("Post-discharge"):
             type_code = "185349003"  # Encounter for check-up
         elif primary_dx_code:
             # Default for chronic-condition outpatient visits: check-up
@@ -129,9 +133,7 @@ def _build_encounter(
     if type_code:
         # C2-01 (session 42): use _coding_with_display so codes lacking a
         # codes/data entry emit without display=code fallback (FHIR interop).
-        resource["type"] = [{"coding": [
-            _coding_with_display("snomed-ct", type_code, resolve_lang(country))
-        ]}]
+        resource["type"] = [{"coding": [_coding_with_display("snomed-ct", type_code, resolve_lang(country))]}]
 
     # Priority (Encounter.priority)
     priority = enc.get("priority", "")
@@ -147,15 +149,16 @@ def _build_encounter(
         from clinosim.modules.output._fhir_localization import (
             _ACT_PRIORITY_DISPLAY_JA,
         )
-        priority_display = _localize_display(
-            priority_display, country, _ACT_PRIORITY_DISPLAY_JA
-        )
+
+        priority_display = _localize_display(priority_display, country, _ACT_PRIORITY_DISPLAY_JA)
         resource["priority"] = {
-            "coding": [{
-                "system": get_system_uri("hl7-v3-actpriority"),
-                "code": priority,
-                "display": priority_display,
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-v3-actpriority"),
+                    "code": priority,
+                    "display": priority_display,
+                }
+            ],
         }
 
     # Service type (department)
@@ -175,9 +178,7 @@ def _build_encounter(
             # Length — C5-11 (session 43 cycle 5): use days for LOS ≥ 1 day
             # (typical IMP encounters run to 20+ days = large minute counts;
             # UCUM `d` is more natural for chart LOS displays).
-            length = _compute_encounter_length(
-                enc["admission_datetime"], enc["discharge_datetime"]
-            )
+            length = _compute_encounter_length(enc["admission_datetime"], enc["discharge_datetime"])
             if length is not None:
                 resource["length"] = length
 
@@ -188,14 +189,15 @@ def _build_encounter(
     if class_code == "IMP" and enc.get("admission_datetime"):
         from datetime import datetime as _dt
         from datetime import timedelta as _td
+
         try:
-            _adm = _dt.fromisoformat(str(enc["admission_datetime"]).replace("Z","+00:00").split("+")[0])
+            _adm = _dt.fromisoformat(str(enc["admission_datetime"]).replace("Z", "+00:00").split("+")[0])
         except (ValueError, TypeError):
             _adm = None
         _dis = None
         if enc.get("discharge_datetime"):
             try:
-                _dis = _dt.fromisoformat(str(enc["discharge_datetime"]).replace("Z","+00:00").split("+")[0])
+                _dis = _dt.fromisoformat(str(enc["discharge_datetime"]).replace("Z", "+00:00").split("+")[0])
             except (ValueError, TypeError):
                 pass
         # classHistory: ward IMP → ICU IMP transition
@@ -205,9 +207,12 @@ def _build_encounter(
             class_history: list[dict[str, Any]] = [
                 {
                     "class": {
-                        "system": _act_uri, "code": "IMP",
+                        "system": _act_uri,
+                        "code": "IMP",
                         "display": _localize_display(
-                            "inpatient ward", country, _CLASS_DISPLAY_JA,
+                            "inpatient ward",
+                            country,
+                            _CLASS_DISPLAY_JA,
                         ),
                     },
                     "period": {
@@ -217,9 +222,12 @@ def _build_encounter(
                 },
                 {
                     "class": {
-                        "system": _act_uri, "code": "ACUTE",  # HL7 ActCode Acute inpatient
+                        "system": _act_uri,
+                        "code": "ACUTE",  # HL7 ActCode Acute inpatient
                         "display": _localize_display(
-                            "ICU", country, _CLASS_DISPLAY_JA,
+                            "ICU",
+                            country,
+                            _CLASS_DISPLAY_JA,
                         ),
                     },
                     "period": {
@@ -245,22 +253,28 @@ def _build_encounter(
             ]
             _cur_status = _map_encounter_status(enc.get("status", ""))
             if _cur_status == "finished" and _dis:
-                status_history.append({
-                    "status": "in-progress",
-                    "period": {
-                        "start": enc["admission_datetime"],
-                        "end": enc["discharge_datetime"],
-                    },
-                })
-                status_history.append({
-                    "status": "finished",
-                    "period": {"start": enc["discharge_datetime"]},
-                })
+                status_history.append(
+                    {
+                        "status": "in-progress",
+                        "period": {
+                            "start": enc["admission_datetime"],
+                            "end": enc["discharge_datetime"],
+                        },
+                    }
+                )
+                status_history.append(
+                    {
+                        "status": "finished",
+                        "period": {"start": enc["discharge_datetime"]},
+                    }
+                )
             else:
-                status_history.append({
-                    "status": "in-progress",
-                    "period": {"start": enc["admission_datetime"]},
-                })
+                status_history.append(
+                    {
+                        "status": "in-progress",
+                        "period": {"start": enc["admission_datetime"]},
+                    }
+                )
             resource["statusHistory"] = status_history
 
     if enc.get("chief_complaint"):
@@ -291,9 +305,11 @@ def _build_encounter(
         resource["reasonCode"] = [rc]
         # reasonReference: link to primary Condition (if dx exists)
         if primary_dx_code:
-            resource["reasonReference"] = [{
-                "reference": f"Condition/cond-{encounter_id}-primary",
-            }]
+            resource["reasonReference"] = [
+                {
+                    "reference": f"Condition/cond-{encounter_id}-primary",
+                }
+            ]
 
     # Participant: attending, admitter, discharger
     participants: list[dict[str, Any]] = []
@@ -311,9 +327,7 @@ def _build_encounter(
     # attending == admitter suppressed the elif fallback.
     _is_ip = class_code in ("IMP", "EMER")
     _admitter_effective = admitter or (attending if _is_ip else "")
-    _discharger_effective = discharger or (
-        attending if _is_ip and enc.get("discharge_datetime") else ""
-    )
+    _discharger_effective = discharger or (attending if _is_ip and enc.get("discharge_datetime") else "")
     if _admitter_effective:
         participants.append(_make_participant("ADM", "admitter", _admitter_effective, country))
     if _discharger_effective:
@@ -328,20 +342,23 @@ def _build_encounter(
         from clinosim.modules.output._fhir_localization import (
             _DIAGNOSIS_ROLE_DISPLAY_JA,
         )
-        _dd_display = _localize_display(
-            "Discharge diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA
-        )
-        diagnosis_list: list[dict[str, Any]] = [{
-            "condition": {"reference": f"Condition/cond-{encounter_id}-primary"},
-            "use": {
-                "coding": [{
-                    "system": get_system_uri("hl7-diagnosis-role"),
-                    "code": "DD",
-                    "display": _dd_display,
-                }],
-            },
-            "rank": 1,
-        }]
+
+        _dd_display = _localize_display("Discharge diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA)
+        diagnosis_list: list[dict[str, Any]] = [
+            {
+                "condition": {"reference": f"Condition/cond-{encounter_id}-primary"},
+                "use": {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-diagnosis-role"),
+                            "code": "DD",
+                            "display": _dd_display,
+                        }
+                    ],
+                },
+                "rank": 1,
+            }
+        ]
         # C5-12 (session 43 history-chain continuation): add secondary
         # diagnoses for polymorbid encounters. Chronic conditions carried
         # by the patient at encounter time contribute Encounter.diagnosis[]
@@ -352,7 +369,9 @@ def _build_encounter(
         # emitted as rank=1).
         if chronic_condition_codes:
             _cm_display = _localize_display(
-                "Comorbidity diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA,
+                "Comorbidity diagnosis",
+                country,
+                _DIAGNOSIS_ROLE_DISPLAY_JA,
             )
             _primary_base = primary_dx_code.split(".")[0] if primary_dx_code else ""
             _rank = 2
@@ -361,19 +380,23 @@ def _build_encounter(
                     continue
                 if _ccode.split(".")[0] == _primary_base:
                     continue  # already emitted as primary rank=1
-                diagnosis_list.append({
-                    "condition": {
-                        "reference": f"Condition/cond-chronic-{patient_id}-{_i:02d}",
-                    },
-                    "use": {
-                        "coding": [{
-                            "system": get_system_uri("hl7-diagnosis-role"),
-                            "code": "CM",
-                            "display": _cm_display,
-                        }],
-                    },
-                    "rank": _rank,
-                })
+                diagnosis_list.append(
+                    {
+                        "condition": {
+                            "reference": f"Condition/cond-chronic-{patient_id}-{_i:02d}",
+                        },
+                        "use": {
+                            "coding": [
+                                {
+                                    "system": get_system_uri("hl7-diagnosis-role"),
+                                    "code": "CM",
+                                    "display": _cm_display,
+                                }
+                            ],
+                        },
+                        "rank": _rank,
+                    }
+                )
                 _rank += 1
         resource["diagnosis"] = diagnosis_list
 
@@ -411,11 +434,13 @@ def _build_encounter(
     # Using HL7 v2 table 0092 "Re-admission Indicator" — the canonical source.
     if _emit_hospitalization and is_readmission:
         hosp["reAdmission"] = {
-            "coding": [{
-                "system": get_system_uri("hl7-v2-0092"),
-                "code": "R",
-                "display": "Re-admission",
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-v2-0092"),
+                    "code": "R",
+                    "display": "Re-admission",
+                }
+            ],
             "text": "再入院" if is_jp(country) else "Re-admission",
         }
     # C2-18 (session 42 cycle 2): IMP encounters must carry a hospitalization
@@ -440,8 +465,7 @@ def _build_encounter(
     # (e.g. status stored in FHIR form) still trigger the fallback.
     _cif_status = enc.get("status", "")
     _is_finished = _cif_status in ("completed", "finished")
-    if (_emit_hospitalization and not hosp.get("dischargeDisposition")
-            and _is_finished):
+    if _emit_hospitalization and not hosp.get("dischargeDisposition") and _is_finished:
         _dd_code = "home"
         _dd_disp = code_lookup("hl7-discharge-disposition", _dd_code, _lang)
         _dd_coding = {
@@ -458,11 +482,11 @@ def _build_encounter(
     if _emit_hospitalization:
         _rord = record_orders or []
         diet_orders = [
-            o for o in _rord
-            if str(o.get("order_type") if isinstance(o, dict)
-                    else getattr(o, "order_type", "")) in ("diet", "OrderType.DIET")
-            and (o.get("encounter_id") if isinstance(o, dict)
-                 else getattr(o, "encounter_id", "")) == encounter_id
+            o
+            for o in _rord
+            if str(o.get("order_type") if isinstance(o, dict) else getattr(o, "order_type", ""))
+            in ("diet", "OrderType.DIET")
+            and (o.get("encounter_id") if isinstance(o, dict) else getattr(o, "encounter_id", "")) == encounter_id
         ]
         if diet_orders:
             _diet_labels = {
@@ -476,8 +500,7 @@ def _build_encounter(
             }
             seen = []
             for o in diet_orders:
-                name = str(o.get("display_name") if isinstance(o, dict)
-                           else getattr(o, "display_name", ""))
+                name = str(o.get("display_name") if isinstance(o, dict) else getattr(o, "display_name", ""))
                 label = _diet_labels.get(name, name)
                 if label and label not in seen:
                     seen.append(label)
@@ -506,22 +529,26 @@ def _build_encounter(
     locations: list[dict[str, Any]] = []
     # Primary: Bed Location (most specific), if we have a bed assignment
     if bed_number and "-" in bed_number and ward_id not in ("ER", "OPD"):
-        locations.append({
-            "location": {
-                "reference": f"Location/loc-bed-{bed_number}",
-                "display": f"{bed_number}号室" if is_jp(country) else f"Bed {bed_number}",
-            },
-            "status": "completed" if enc.get("discharge_datetime") else "active",
-        })
+        locations.append(
+            {
+                "location": {
+                    "reference": f"Location/loc-bed-{bed_number}",
+                    "display": f"{bed_number}号室" if is_jp(country) else f"Bed {bed_number}",
+                },
+                "status": "completed" if enc.get("discharge_datetime") else "active",
+            }
+        )
     # Secondary: Ward Location
     if ward_id:
-        locations.append({
-            "location": {
-                "reference": f"Location/loc-ward-{ward_id}",
-                "display": f"{ward_id}病棟" if is_jp(country) else f"Ward {ward_id}",
-            },
-            "status": "completed" if enc.get("discharge_datetime") else "active",
-        })
+        locations.append(
+            {
+                "location": {
+                    "reference": f"Location/loc-ward-{ward_id}",
+                    "display": f"{ward_id}病棟" if is_jp(country) else f"Ward {ward_id}",
+                },
+                "status": "completed" if enc.get("discharge_datetime") else "active",
+            }
+        )
     # CO-5 (session 42 cycle 3): fallback Encounter.location for AMB/EMER.
     # If ward_id is empty (typical for outpatient / ED), attach the
     # department Organization as a location surrogate. Not a physical bed but
@@ -529,13 +556,15 @@ def _build_encounter(
     if not locations and department:
         loc_ref = f"loc-dept-{department.replace('_', '-')}"
         loc_display = dept_display or department
-        locations.append({
-            "location": {
-                "reference": f"Location/{loc_ref}",
-                "display": loc_display,
-            },
-            "status": "completed" if enc.get("discharge_datetime") else "active",
-        })
+        locations.append(
+            {
+                "location": {
+                    "reference": f"Location/{loc_ref}",
+                    "display": loc_display,
+                },
+                "status": "completed" if enc.get("discharge_datetime") else "active",
+            }
+        )
     if locations:
         resource["location"] = locations
 
@@ -544,20 +573,28 @@ def _build_encounter(
         resource["partOf"] = {"reference": f"Encounter/{prior_encounter_id}"}
         # Add READM type to existing types
         if "type" in resource:
-            resource["type"].append({
-                "coding": [{
-                    "system": get_system_uri("hl7-v3-actcode"),
-                    "code": "READM",
-                    "display": "Readmission",
-                }],
-            })
+            resource["type"].append(
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-v3-actcode"),
+                            "code": "READM",
+                            "display": "Readmission",
+                        }
+                    ],
+                }
+            )
         else:
-            resource["type"] = [{
-                "coding": [{
-                    "system": get_system_uri("hl7-v3-actcode"),
-                    "code": "READM",
-                    "display": "Readmission",
-                }],
-            }]
+            resource["type"] = [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-v3-actcode"),
+                            "code": "READM",
+                            "display": "Readmission",
+                        }
+                    ],
+                }
+            ]
 
     return resource

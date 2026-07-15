@@ -39,6 +39,7 @@ def test_triage_data_esi_payload():
 
 def test_document_type_alpha2_enum_values():
     from clinosim.types.document import DocumentType
+
     assert DocumentType.ADMISSION_NURSING_ASSESSMENT.value == "admission_nursing_assessment"
     assert DocumentType.NURSING_SHIFT_NOTE.value == "nursing_shift_note"
     assert DocumentType.NURSING_DISCHARGE_SUMMARY.value == "nursing_discharge_summary"
@@ -49,6 +50,7 @@ def test_document_type_alpha2_enum_values():
 
 def test_encounter_alpha2_fields():
     from clinosim.types.encounter import Encounter
+
     e = Encounter()
     assert e.primary_nurse_id == ""
     assert e.triage_data is None

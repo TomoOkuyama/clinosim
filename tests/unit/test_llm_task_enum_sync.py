@@ -4,6 +4,7 @@ Canonical-constants pattern (PR-90 discipline): every DocumentType value must
 be a narrative-category LLMTaskType (import-time validated in engine.py);
 DOCUMENT_LOINC must agree with document_type_specs.yaml for shared members.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -21,10 +22,7 @@ from clinosim.types.document import DocumentType
 
 @pytest.mark.unit
 def test_every_document_type_is_a_narrative_llm_task_type() -> None:
-    narrative_values = {
-        t.value for t in LLMTaskType
-        if TASK_CATEGORY[t] == LLMTaskCategory.NARRATIVE
-    }
+    narrative_values = {t.value for t in LLMTaskType if TASK_CATEGORY[t] == LLMTaskCategory.NARRATIVE}
     missing = {d.value for d in DocumentType} - narrative_values
     assert not missing, f"DocumentType values without narrative LLMTaskType: {missing}"
 
@@ -50,8 +48,7 @@ def test_document_loinc_matches_document_type_specs_yaml() -> None:
         task = LLMTaskType(doc_type.value)
         assert task in DOCUMENT_LOINC, f"DOCUMENT_LOINC missing entry for {task}"
         assert DOCUMENT_LOINC[task] == spec.loinc_code, (
-            f"LOINC drift for {doc_type.value}: "
-            f"DOCUMENT_LOINC={DOCUMENT_LOINC[task]} yaml={spec.loinc_code}"
+            f"LOINC drift for {doc_type.value}: DOCUMENT_LOINC={DOCUMENT_LOINC[task]} yaml={spec.loinc_code}"
         )
 
 

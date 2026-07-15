@@ -1,4 +1,5 @@
 """Unit tests for clinosim.modules.hai.enricher (PR-B)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -19,6 +20,7 @@ pytestmark = pytest.mark.unit
 @dataclass
 class _Ctx:
     """Minimal EnricherContext stand-in for unit tests."""
+
     config: Any = None
     master_seed: int = 42
     population: Any = None
@@ -58,21 +60,30 @@ def test_enrich_hai_with_device_long_period_emits_hai():
     ]
     rec.extensions["device"] = [
         DeviceRecord(
-            device_id="dev-enc1-cvc-0", encounter_id="enc1",
-            device_type="cvc", snomed_code="52124006",
-            placement_date="2026-01-01", removal_date="2026-12-31",
+            device_id="dev-enc1-cvc-0",
+            encounter_id="enc1",
+            device_type="cvc",
+            snomed_code="52124006",
+            placement_date="2026-01-01",
+            removal_date="2026-12-31",
             placement_indication="severity_moderate_plus",
         ),
         DeviceRecord(
-            device_id="dev-enc1-indwelling_catheter-0", encounter_id="enc1",
-            device_type="indwelling_catheter", snomed_code="23973005",
-            placement_date="2026-01-01", removal_date="2026-12-31",
+            device_id="dev-enc1-indwelling_catheter-0",
+            encounter_id="enc1",
+            device_type="indwelling_catheter",
+            snomed_code="23973005",
+            placement_date="2026-01-01",
+            removal_date="2026-12-31",
             placement_indication="severity_moderate_plus",
         ),
         DeviceRecord(
-            device_id="dev-enc1-mechanical_ventilator-0", encounter_id="enc1",
-            device_type="mechanical_ventilator", snomed_code="706172005",
-            placement_date="2026-01-01", removal_date="2026-12-31",
+            device_id="dev-enc1-mechanical_ventilator-0",
+            encounter_id="enc1",
+            device_type="mechanical_ventilator",
+            snomed_code="706172005",
+            placement_date="2026-01-01",
+            removal_date="2026-12-31",
             placement_indication="hypoxia",
         ),
     ]
@@ -101,9 +112,12 @@ def test_enrich_hai_unknown_device_type_skipped():
     ]
     rec.extensions["device"] = [
         DeviceRecord(
-            device_id="dev-enc1-piv-0", encounter_id="enc1",
-            device_type="peripheral_iv", snomed_code="000000",
-            placement_date="2026-01-01", removal_date="2026-12-31",
+            device_id="dev-enc1-piv-0",
+            encounter_id="enc1",
+            device_type="peripheral_iv",
+            snomed_code="000000",
+            placement_date="2026-01-01",
+            removal_date="2026-12-31",
             placement_indication="",
         ),
     ]
@@ -114,6 +128,7 @@ def test_enrich_hai_unknown_device_type_skipped():
 
 def test_enrich_hai_sub_seed_deterministic():
     """Same patient + same seed → same HAI set across runs."""
+
     def make_rec():
         rec = CIFPatientRecord()
         rec.patient.patient_id = "pid_test"
@@ -128,9 +143,12 @@ def test_enrich_hai_sub_seed_deterministic():
         ]
         rec.extensions["device"] = [
             DeviceRecord(
-                device_id="dev-enc1-cvc-0", encounter_id="enc1",
-                device_type="cvc", snomed_code="52124006",
-                placement_date="2026-01-01", removal_date="2026-12-31",
+                device_id="dev-enc1-cvc-0",
+                encounter_id="enc1",
+                device_type="cvc",
+                snomed_code="52124006",
+                placement_date="2026-01-01",
+                removal_date="2026-12-31",
                 placement_indication="severity_moderate_plus",
             ),
         ]

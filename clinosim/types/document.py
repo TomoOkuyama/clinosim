@@ -14,8 +14,8 @@ from typing import Any, Protocol, runtime_checkable
 class FormatType(StrEnum):
     """Document content format type."""
 
-    FREE_TEXT = "free_text"                  # → DocumentReference (text content)
-    COMPOSITION = "composition"              # → Composition (section structure)
+    FREE_TEXT = "free_text"  # → DocumentReference (text content)
+    COMPOSITION = "composition"  # → Composition (section structure)
     QUESTIONNAIRE_RESPONSE = "questionnaire_response"  # → QuestionnaireResponse(β-JP-1 で active)
 
 
@@ -28,25 +28,25 @@ class DocumentType(StrEnum):
     """
 
     # α-min-1 scope(既存)
-    ADMISSION_HP = "admission_hp"            # LOINC 34117-2
-    PROGRESS_NOTE = "progress_note"          # LOINC 11506-3
+    ADMISSION_HP = "admission_hp"  # LOINC 34117-2
+    PROGRESS_NOTE = "progress_note"  # LOINC 11506-3
     DISCHARGE_SUMMARY = "discharge_summary"  # LOINC 18842-5
     # α-min-2 scope(new)
     ADMISSION_NURSING_ASSESSMENT = "admission_nursing_assessment"  # LOINC 78390-2 (verified 2026-07)
-    NURSING_SHIFT_NOTE = "nursing_shift_note"                      # LOINC 34746-8 (verified 2026-07)
-    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"        # LOINC 34745-0 (verified 2026-07)
-    OUTPATIENT_SOAP = "outpatient_soap"                            # LOINC 34131-3 (verified 2026-07)
-    ED_NOTE = "ed_note"                                            # LOINC 34878-9 (verified 2026-07)
-    ED_TRIAGE_NOTE = "ed_triage_note"                             # LOINC 54094-8 (verified 2026-07)
+    NURSING_SHIFT_NOTE = "nursing_shift_note"  # LOINC 34746-8 (verified 2026-07)
+    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"  # LOINC 34745-0 (verified 2026-07)
+    OUTPATIENT_SOAP = "outpatient_soap"  # LOINC 34131-3 (verified 2026-07)
+    ED_NOTE = "ed_note"  # LOINC 34878-9 (verified 2026-07)
+    ED_TRIAGE_NOTE = "ed_triage_note"  # LOINC 54094-8 (verified 2026-07)
     # β-JP-1 chain 2 (厚労省4帳票, first sub-project)
-    ADMISSION_CARE_PLAN = "admission_care_plan"                   # LOINC 18776-5 (verified 2026-07-03)
-    NUTRITION_CARE_PLAN = "nutrition_care_plan"                   # LOINC 80791-7 (verified 2026-07-03)
+    ADMISSION_CARE_PLAN = "admission_care_plan"  # LOINC 18776-5 (verified 2026-07-03)
+    NUTRITION_CARE_PLAN = "nutrition_care_plan"  # LOINC 80791-7 (verified 2026-07-03)
     # β-JP-1 chain 2 (厚労省4帳票, third and final sub-project)
-    REHABILITATION_PLAN = "rehabilitation_plan"                   # LOINC 34823-5 (verified 2026-07-04)
+    REHABILITATION_PLAN = "rehabilitation_plan"  # LOINC 34823-5 (verified 2026-07-04)
     # P2-13 PR2b (session 47) JP-CLINS 診療情報提供書 — LOINC 57133-1
-    REFERRAL_NOTE = "referral_note"                               # LOINC 57133-1 (JP-CLINS v1.12.0)
+    REFERRAL_NOTE = "referral_note"  # LOINC 57133-1 (JP-CLINS v1.12.0)
     # P2-13 PR3 (session 47) JP-eCheckup General 健診結果報告書 — LOINC 53576-5(opt-in)
-    HEALTH_CHECKUP_REPORT = "health_checkup_report"               # LOINC 53576-5 (JP-eCheckup v1.7.0)
+    HEALTH_CHECKUP_REPORT = "health_checkup_report"  # LOINC 53576-5 (JP-eCheckup v1.7.0)
 
 
 @dataclass(frozen=True)
@@ -135,34 +135,34 @@ class NarrativeContext:
     """
 
     # === Patient 軸 ===
-    patient: Any                         # PatientProfile(避循環 import 用 Any)
+    patient: Any  # PatientProfile(避循環 import 用 Any)
 
     # === Encounter 軸 ===
-    encounter: Any                       # EncounterRecord
-    encounter_type: Any                  # EncounterType enum
+    encounter: Any  # EncounterRecord
+    encounter_type: Any  # EncounterType enum
 
     # === Scenario source ===
-    disease_protocol: Any | None         # Pydantic DiseaseProtocol
-    encounter_protocol: Any | None       # Pydantic EncounterProtocol
+    disease_protocol: Any | None  # Pydantic DiseaseProtocol
+    encounter_protocol: Any | None  # Pydantic EncounterProtocol
 
     # === Scenario flow ===
     clinical_course_archetype: str
     severity: str
-    day_index: int                       # 入院 day 0 = admission
+    day_index: int  # 入院 day 0 = admission
     los_days: int
 
     # === 生成済 clinical data ===
-    vitals: list[Any]                    # list[VitalSignRecord]
-    lab_results: list[Any]               # list[OrderResult]
-    medications: list[Any]               # list[MedicationAdministration]
-    diagnoses: list[Any]                 # list[ClinicalDiagnosis]
-    procedures: list[Any]                # list[ProcedureRecord]
-    allergies: list[Any]                 # list[Allergy]
+    vitals: list[Any]  # list[VitalSignRecord]
+    lab_results: list[Any]  # list[OrderResult]
+    medications: list[Any]  # list[MedicationAdministration]
+    diagnoses: list[Any]  # list[ClinicalDiagnosis]
+    procedures: list[Any]  # list[ProcedureRecord]
+    allergies: list[Any]  # list[Allergy]
 
     # === Document-specific ===
     document_type: DocumentType
-    target_lang: str                     # "en" / "ja"
-    locale: str                          # "us" / "jp"
+    target_lang: str  # "en" / "ja"
+    locale: str  # "us" / "jp"
 
     # === AD-65 enhancements ===
     narrative_spine: NarrativeSpine | None = None  # E1 scenario anchoring
@@ -197,11 +197,11 @@ class NarrativeOutput:
     documents only. COMPOSITION builders must iterate ``sections``, not ``raw_text``.
     """
 
-    raw_text: str = ""                       # FREE_TEXT 用
-    sections: dict[str, str] = field(default_factory=dict)    # COMPOSITION 用
-    structured: dict = field(default_factory=dict)            # QUESTIONNAIRE_RESPONSE 用
-    metadata: dict = field(default_factory=dict)              # {generator, lang, ...}
-    facts_used: list[str] = field(default_factory=list)       # 使用 CIF field(audit 用)
+    raw_text: str = ""  # FREE_TEXT 用
+    sections: dict[str, str] = field(default_factory=dict)  # COMPOSITION 用
+    structured: dict = field(default_factory=dict)  # QUESTIONNAIRE_RESPONSE 用
+    metadata: dict = field(default_factory=dict)  # {generator, lang, ...}
+    facts_used: list[str] = field(default_factory=list)  # 使用 CIF field(audit 用)
 
 
 @dataclass(frozen=True)

@@ -1,4 +1,5 @@
 """Family history generation (AD-55 Base). Pure + seeded; codes only (AD-30)."""
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -51,9 +52,16 @@ def _prevalence(prev: dict, code: str, sex: str, age: int) -> float:
     return 0.0
 
 
-def _relative(prev: dict, conditions: dict, patient_codes: set[str],
-              relationship: str, sex: str, age: int, deceased: bool,
-              rng: np.random.Generator) -> FamilyMemberHistoryRecord:
+def _relative(
+    prev: dict,
+    conditions: dict,
+    patient_codes: set[str],
+    relationship: str,
+    sex: str,
+    age: int,
+    deceased: bool,
+    rng: np.random.Generator,
+) -> FamilyMemberHistoryRecord:
     codes: list[str] = []
     for code, cfg in conditions.items():
         if cfg.get("sex") and cfg["sex"] != sex:
@@ -63,13 +71,12 @@ def _relative(prev: dict, conditions: dict, patient_codes: set[str],
             p = min(1.0, p * float(cfg.get("heritability", 1.0)))
         if rng.random() < p:
             codes.append(code)
-    return FamilyMemberHistoryRecord(relationship=relationship, sex=sex,
-                                     deceased=deceased, condition_codes=codes)
+    return FamilyMemberHistoryRecord(relationship=relationship, sex=sex, deceased=deceased, condition_codes=codes)
 
 
-def generate_family_history(patient_age: int, patient_conditions: list[str],
-                            country: str, rng: np.random.Generator
-                            ) -> list[FamilyMemberHistoryRecord]:
+def generate_family_history(
+    patient_age: int, patient_conditions: list[str], country: str, rng: np.random.Generator
+) -> list[FamilyMemberHistoryRecord]:
     """Synthesize first-degree relatives + their diseases for one patient.
 
     Deterministic for a given rng. Conditions are assigned by locale prevalence
@@ -78,18 +85,15 @@ def generate_family_history(patient_age: int, patient_conditions: list[str],
     ref = load_reference()
     prev = load_prevalence(country)
     conditions = ref["conditions"]
-    patient_codes = {
-        _condition_code(c).split(".")[0].upper()
-        for c in (patient_conditions or [])
-        if _condition_code(c)
-    }
+    patient_codes = {_condition_code(c).split(".")[0].upper() for c in (patient_conditions or []) if _condition_code(c)}
 
     po = ref["parent_age_offset"]
     out: list[FamilyMemberHistoryRecord] = []
     for rel, sex in (("MTH", "female"), ("FTH", "male")):
         age = patient_age + int(rng.integers(po["min"], po["max"] + 1))
-        dp = min(ref["parent_deceased_max"],
-                 max(0.0, (age - ref["parent_deceased_base_age"]) / ref["parent_deceased_span"]))
+        dp = min(
+            ref["parent_deceased_max"], max(0.0, (age - ref["parent_deceased_base_age"]) / ref["parent_deceased_span"])
+        )
         deceased = rng.random() < dp
         out.append(_relative(prev, conditions, patient_codes, rel, sex, age, deceased, rng))
 

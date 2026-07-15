@@ -34,10 +34,16 @@ def test_marital_status_display_jp():
     assert coding["display"] == "既婚"
 
 
-@pytest.mark.parametrize("code,en", [
-    ("S", "Never Married"), ("D", "Divorced"), ("W", "Widowed"),
-    ("U", "Unmarried"), ("T", "Domestic partner"),
-])
+@pytest.mark.parametrize(
+    "code,en",
+    [
+        ("S", "Never Married"),
+        ("D", "Divorced"),
+        ("W", "Widowed"),
+        ("U", "Unmarried"),
+        ("T", "Domestic partner"),
+    ],
+)
 def test_all_marital_codes_resolve_us(code, en):
     resource = _build_patient(_patient(marital=code), "US")
     assert resource["maritalStatus"]["coding"][0]["display"] == en

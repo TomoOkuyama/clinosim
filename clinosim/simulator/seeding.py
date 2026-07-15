@@ -95,25 +95,26 @@ def individual_lab_seed(order_id: str) -> int:
 # offset that no code path calls is a PR-90 class "green tripwire"
 # risk (see PR #131 adv-1 F-5 for the removal rationale).
 ENRICHER_SEED_OFFSETS = {
-    "identity":       540_054,    # legacy decimal (grandfathered)
-    "microbiology":   770_077,    # legacy decimal (grandfathered)
-    "immunization":   0x494D,     # "IM"
-    "code_status":    0x4353,     # "CS"
-    "family_history": 0x4648,     # "FH"
-    "care_level":     0x434C,     # "CL"
-    "nursing":        0x4E55,     # "NU"
-    "device":         0x4445,     # "DE" (PR-A)
-    "hai":            0x4841,     # "HA" (PR-B)
-    "antibiotic":     0x4142,     # "AB" (PR3b-1)
-    "imaging":        0x4947,     # "IG" (Tier 1 #2 PR1, imaging chain)
-    "allergy":        0x414C,     # "AL" (Tier 1 #3 α-min-1 PR1, allergy module)
-    "document":       0x444F,     # "DO" (Tier 1 #3 α-min-1 PR1, document module)
-    "triage":         0x5452,     # "TR" (Tier 1 #3 α-min-2 PR1, triage module)
-    "health_checkup": 0x4843,     # "HC" (P2-13 PR3 sub-PR-B 高度化, per-patient checkup lab sampling)
+    "identity": 540_054,  # legacy decimal (grandfathered)
+    "microbiology": 770_077,  # legacy decimal (grandfathered)
+    "immunization": 0x494D,  # "IM"
+    "code_status": 0x4353,  # "CS"
+    "family_history": 0x4648,  # "FH"
+    "care_level": 0x434C,  # "CL"
+    "nursing": 0x4E55,  # "NU"
+    "device": 0x4445,  # "DE" (PR-A)
+    "hai": 0x4841,  # "HA" (PR-B)
+    "antibiotic": 0x4142,  # "AB" (PR3b-1)
+    "imaging": 0x4947,  # "IG" (Tier 1 #2 PR1, imaging chain)
+    "allergy": 0x414C,  # "AL" (Tier 1 #3 α-min-1 PR1, allergy module)
+    "document": 0x444F,  # "DO" (Tier 1 #3 α-min-1 PR1, document module)
+    "triage": 0x5452,  # "TR" (Tier 1 #3 α-min-2 PR1, triage module)
+    "health_checkup": 0x4843,  # "HC" (P2-13 PR3 sub-PR-B 高度化, per-patient checkup lab sampling)
 }
 
-assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), \
+assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), (
     f"ENRICHER_SEED_OFFSETS contains duplicate values: {ENRICHER_SEED_OFFSETS!r}"
+)
 
 
 # ------------------------------------------------------------------
@@ -132,22 +133,21 @@ assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), \
 #
 # Convention: 16-bit hex ASCII (4 ASCII 大文字) の 32-bit 値。既存
 # ENRICHER_SEED_OFFSETS と衝突しないよう 0x504xxxxx 帯を使用。
-PHASE_LIFE_EVENT      = 0x504C4556  # "PLEV"
-PHASE_INPATIENT_SIM   = 0x50494E50  # "PINP"
-PHASE_READMISSION     = 0x50524541  # "PREA"
-PHASE_OUTPATIENT_CAL  = 0x504F5054  # "POPT"
-PHASE_ED_VISIT        = 0x50454456  # "PEDV"
+PHASE_LIFE_EVENT = 0x504C4556  # "PLEV"
+PHASE_INPATIENT_SIM = 0x50494E50  # "PINP"
+PHASE_READMISSION = 0x50524541  # "PREA"
+PHASE_OUTPATIENT_CAL = 0x504F5054  # "POPT"
+PHASE_ED_VISIT = 0x50454456  # "PEDV"
 
 _PHASE_OFFSETS = {
-    "life_event":          PHASE_LIFE_EVENT,
-    "inpatient_sim":       PHASE_INPATIENT_SIM,
-    "readmission":         PHASE_READMISSION,
+    "life_event": PHASE_LIFE_EVENT,
+    "inpatient_sim": PHASE_INPATIENT_SIM,
+    "readmission": PHASE_READMISSION,
     "outpatient_calendar": PHASE_OUTPATIENT_CAL,
-    "ed_visit":            PHASE_ED_VISIT,
+    "ed_visit": PHASE_ED_VISIT,
 }
 
-assert len(set(_PHASE_OFFSETS.values())) == len(_PHASE_OFFSETS), \
-    f"phase offset collision: {_PHASE_OFFSETS!r}"
+assert len(set(_PHASE_OFFSETS.values())) == len(_PHASE_OFFSETS), f"phase offset collision: {_PHASE_OFFSETS!r}"
 
 
 def derive_phase_rng(master_seed: int, phase_salt: int, key: str) -> np.random.Generator:
@@ -158,4 +158,5 @@ def derive_phase_rng(master_seed: int, phase_salt: int, key: str) -> np.random.G
     entity 識別子(event.person_id + timestamp + disease_id など)を使う。
     """
     import numpy as np
+
     return np.random.default_rng(derive_sub_seed(master_seed, phase_salt, key))

@@ -1,4 +1,5 @@
 """AD-66 α-min-2c: narrative regression pytest suite configuration."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -10,8 +11,7 @@ FIXTURE_DIR = Path(__file__).parent.parent / "fixtures" / "patient_profiles"
 _HERE = Path(__file__).resolve().parent
 
 _OPT_IN_SKIP = pytest.mark.skip(
-    reason="regression suite is opt-in: run with -m regression "
-    "(subprocess latency + β-JP-1 LLM cost budget)"
+    reason="regression suite is opt-in: run with -m regression (subprocess latency + β-JP-1 LLM cost budget)"
 )
 
 
@@ -36,9 +36,7 @@ def profile_ids() -> list[str]:
 
     Deterministic order (sorted) for parametrize stability.
     """
-    return sorted(
-        p.stem for p in FIXTURE_DIR.glob("*.yaml") if not p.name.endswith(".llm-expectations.yaml")
-    )
+    return sorted(p.stem for p in FIXTURE_DIR.glob("*.yaml") if not p.name.endswith(".llm-expectations.yaml"))
 
 
 _LLM_MOCK_GOLDEN_SUFFIX = ".llm-mock.golden.json"
@@ -51,7 +49,4 @@ def llm_mock_profile_ids() -> list[str]:
     exists — bootstrap via `clinosim regenerate-goldens --profile <name>
     --provider mock`. Sorted for parametrize stability.
     """
-    return sorted(
-        p.name[: -len(_LLM_MOCK_GOLDEN_SUFFIX)]
-        for p in FIXTURE_DIR.glob(f"*{_LLM_MOCK_GOLDEN_SUFFIX}")
-    )
+    return sorted(p.name[: -len(_LLM_MOCK_GOLDEN_SUFFIX)] for p in FIXTURE_DIR.glob(f"*{_LLM_MOCK_GOLDEN_SUFFIX}"))

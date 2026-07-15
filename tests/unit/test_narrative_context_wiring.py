@@ -85,13 +85,10 @@ def _patient_dict(**overrides: Any) -> dict[str, Any]:
     return base
 
 
-def _build_ctx(patient_dict: dict[str, Any], type_key: str = "admission_hp",
-               country: str = "US", language: str = "en"):
+def _build_ctx(patient_dict: dict[str, Any], type_key: str = "admission_hp", country: str = "US", language: str = "en"):
     p = TemplateNarrativePass(cif_dir="/nonexistent", country=country)
     encounter_dict = (patient_dict.get("encounters") or [{}])[0]
-    return p._build_context(
-        patient_dict, encounter_dict, _spec(type_key, country.lower()), language
-    )
+    return p._build_context(patient_dict, encounter_dict, _spec(type_key, country.lower()), language)
 
 
 # ─── field mappings ──────────────────────────────────────────────────────
@@ -245,7 +242,9 @@ def test_per_stub_day_index_and_los_via_run(tmp_path: Path):
             return NarrativeOutput(raw_text="x")
 
     TemplateNarrativePass(
-        cif_dir=str(tmp_path), country="US", tasks=["progress_note"],
+        cif_dir=str(tmp_path),
+        country="US",
+        tasks=["progress_note"],
         generator=CapturingGenerator(),
     ).run()
     assert captured == [(0, 5), (1, 5), (2, 5)]
@@ -253,13 +252,15 @@ def test_per_stub_day_index_and_los_via_run(tmp_path: Path):
 
 def test_stub_day_index_missing_dates_defaults_to_zero(tmp_path: Path):
     pd = _patient_dict()
-    pd["documents"] = [{
-        "document_id": "doc-ENC-1-progress_note-day-0",
-        "task_type": "progress_note",
-        "loinc_code": "11506-3",
-        "format_type": "free_text",
-        "narrative": None,
-    }]
+    pd["documents"] = [
+        {
+            "document_id": "doc-ENC-1-progress_note-day-0",
+            "task_type": "progress_note",
+            "loinc_code": "11506-3",
+            "format_type": "free_text",
+            "narrative": None,
+        }
+    ]
     structural = tmp_path / "structural" / "patients"
     structural.mkdir(parents=True)
     (structural / "ENC-1.json").write_text(json.dumps(pd, ensure_ascii=False))
@@ -272,7 +273,9 @@ def test_stub_day_index_missing_dates_defaults_to_zero(tmp_path: Path):
             return NarrativeOutput(raw_text="x")
 
     TemplateNarrativePass(
-        cif_dir=str(tmp_path), country="US", tasks=["progress_note"],
+        cif_dir=str(tmp_path),
+        country="US",
+        tasks=["progress_note"],
         generator=CapturingGenerator(),
     ).run()
     assert captured == [0]

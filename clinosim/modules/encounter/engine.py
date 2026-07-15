@@ -19,7 +19,7 @@ class DailyCycleEvent:
     """A scheduled event within the daily cycle."""
 
     timestamp: datetime
-    event_type: str  # "morning_vitals" | "morning_labs" | "rounds" | "afternoon_vitals" | "evening_vitals" | "evening_meds" | "night_check"
+    event_type: str  # "morning_vitals" | "morning_labs" | "rounds" | "afternoon_vitals" | "evening_vitals" | "evening_meds" | "night_check"  # noqa: E501
     data: dict[str, Any] = field(default_factory=dict)
 
 
@@ -68,10 +68,7 @@ def _encounter_id_suffix(
     *within one patient* (already namespaced by ``patient_id`` in the
     caller).
     """
-    key = (
-        f"{patient_id}|{admission_datetime.isoformat()}"
-        f"|{chief_complaint}|{department_id}|{visit_number}"
-    )
+    key = f"{patient_id}|{admission_datetime.isoformat()}|{chief_complaint}|{department_id}|{visit_number}"
     digest = hashlib.sha256(key.encode()).digest()[:6]
     return int.from_bytes(digest, "big") % _ENCOUNTER_SUFFIX_MODULUS
 
@@ -84,9 +81,7 @@ def create_inpatient_encounter(
     visit_number: int = 1,
 ) -> Encounter:
     """Create a new encounter with a deterministic, cursor-independent ID."""
-    enc_num = _encounter_id_suffix(
-        patient_id, admission_datetime, chief_complaint, department_id, visit_number
-    )
+    enc_num = _encounter_id_suffix(patient_id, admission_datetime, chief_complaint, department_id, visit_number)
     enc_id = f"ENC-{patient_id}-{enc_num:012d}"
     return Encounter(
         encounter_id=enc_id,
@@ -121,46 +116,60 @@ def generate_daily_cycle(encounter: Encounter, day_number: int) -> list[DailyCyc
         return datetime(base_date.year, base_date.month, base_date.day, hour, minute)
 
     # Morning vitals
-    events.append(DailyCycleEvent(
-        timestamp=at(6, 0),
-        event_type="morning_vitals",
-    ))
+    events.append(
+        DailyCycleEvent(
+            timestamp=at(6, 0),
+            event_type="morning_vitals",
+        )
+    )
 
     # Morning lab draw (if ordered)
-    events.append(DailyCycleEvent(
-        timestamp=at(6, 30),
-        event_type="morning_labs",
-    ))
+    events.append(
+        DailyCycleEvent(
+            timestamp=at(6, 30),
+            event_type="morning_labs",
+        )
+    )
 
     # Physician rounds
-    events.append(DailyCycleEvent(
-        timestamp=at(9, 0),
-        event_type="rounds",
-        data={"day_number": day_number},
-    ))
+    events.append(
+        DailyCycleEvent(
+            timestamp=at(9, 0),
+            event_type="rounds",
+            data={"day_number": day_number},
+        )
+    )
 
     # Afternoon vitals
-    events.append(DailyCycleEvent(
-        timestamp=at(14, 0),
-        event_type="afternoon_vitals",
-    ))
+    events.append(
+        DailyCycleEvent(
+            timestamp=at(14, 0),
+            event_type="afternoon_vitals",
+        )
+    )
 
     # Evening vitals + medications
-    events.append(DailyCycleEvent(
-        timestamp=at(18, 0),
-        event_type="evening_vitals",
-    ))
+    events.append(
+        DailyCycleEvent(
+            timestamp=at(18, 0),
+            event_type="evening_vitals",
+        )
+    )
 
-    events.append(DailyCycleEvent(
-        timestamp=at(18, 30),
-        event_type="evening_meds",
-    ))
+    events.append(
+        DailyCycleEvent(
+            timestamp=at(18, 30),
+            event_type="evening_meds",
+        )
+    )
 
     # Night check (sparse)
-    events.append(DailyCycleEvent(
-        timestamp=at(22, 0),
-        event_type="night_check",
-    ))
+    events.append(
+        DailyCycleEvent(
+            timestamp=at(22, 0),
+            event_type="night_check",
+        )
+    )
 
     return events
 
@@ -177,18 +186,24 @@ def generate_encounter_timeline(
 
     # Admission events (Day 0, at admission time)
     adm = encounter.admission_datetime
-    timeline.append(DailyCycleEvent(
-        timestamp=adm,
-        event_type="admission",
-    ))
-    timeline.append(DailyCycleEvent(
-        timestamp=adm + timedelta(minutes=30),
-        event_type="admission_assessment",
-    ))
-    timeline.append(DailyCycleEvent(
-        timestamp=adm + timedelta(hours=1),
-        event_type="admission_orders",
-    ))
+    timeline.append(
+        DailyCycleEvent(
+            timestamp=adm,
+            event_type="admission",
+        )
+    )
+    timeline.append(
+        DailyCycleEvent(
+            timestamp=adm + timedelta(minutes=30),
+            event_type="admission_assessment",
+        )
+    )
+    timeline.append(
+        DailyCycleEvent(
+            timestamp=adm + timedelta(hours=1),
+            event_type="admission_orders",
+        )
+    )
 
     # Daily cycles
     for day in range(total_days):
@@ -200,14 +215,18 @@ def generate_encounter_timeline(
 
     # Discharge events (last day)
     discharge_date = encounter.admission_datetime.date() + timedelta(days=total_days)
-    timeline.append(DailyCycleEvent(
-        timestamp=datetime(discharge_date.year, discharge_date.month, discharge_date.day, 10, 0),
-        event_type="discharge_decision",
-    ))
-    timeline.append(DailyCycleEvent(
-        timestamp=datetime(discharge_date.year, discharge_date.month, discharge_date.day, 14, 0),
-        event_type="discharge",
-    ))
+    timeline.append(
+        DailyCycleEvent(
+            timestamp=datetime(discharge_date.year, discharge_date.month, discharge_date.day, 10, 0),
+            event_type="discharge_decision",
+        )
+    )
+    timeline.append(
+        DailyCycleEvent(
+            timestamp=datetime(discharge_date.year, discharge_date.month, discharge_date.day, 14, 0),
+            event_type="discharge",
+        )
+    )
 
     # Sort chronologically
     timeline.sort(key=lambda e: e.timestamp)

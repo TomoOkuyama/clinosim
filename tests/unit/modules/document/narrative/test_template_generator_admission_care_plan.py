@@ -17,9 +17,16 @@ from clinosim.types.document import DocumentType, FormatType, NarrativeContext
 from clinosim.types.patient import PatientProfile
 
 _ACP_SECTIONS = (
-    "ward_and_room", "other_staff", "diagnosis", "symptoms",
-    "treatment_plan", "test_schedule", "surgery_schedule",
-    "estimated_los", "special_nutrition_management", "other_plans",
+    "ward_and_room",
+    "other_staff",
+    "diagnosis",
+    "symptoms",
+    "treatment_plan",
+    "test_schedule",
+    "surgery_schedule",
+    "estimated_los",
+    "special_nutrition_management",
+    "other_plans",
 )
 
 
@@ -224,9 +231,7 @@ def test_estimated_los_uses_disease_protocol_target_los_mean_when_available() ->
     100% accurate, which is unrealistic. 15 (target_los mean) must differ from
     and take precedence over los_days=7 (the realized LOS) here."""
     spec = _make_spec()
-    proto = _make_disease_protocol(
-        target_los={"japan": {"moderate": {"mean": 15, "sd": 3, "min": 8, "max": 25}}}
-    )
+    proto = _make_disease_protocol(target_los={"japan": {"moderate": {"mean": 15, "sd": 3, "min": 8, "max": 25}}})
     ctx = _make_ctx(los_days=7, disease_protocol=proto, severity="moderate", locale="jp")
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
@@ -238,9 +243,7 @@ def test_estimated_los_falls_back_when_severity_not_in_target_los() -> None:
     """disease_protocol present but target_los has no entry for ctx.severity
     -> fall back to ctx.los_days rather than crashing or emitting a blank."""
     spec = _make_spec()
-    proto = _make_disease_protocol(
-        target_los={"japan": {"mild": {"mean": 5, "sd": 1, "min": 3, "max": 8}}}
-    )
+    proto = _make_disease_protocol(target_los={"japan": {"mild": {"mean": 5, "sd": 1, "min": 3, "max": 8}}})
     ctx = _make_ctx(los_days=9, disease_protocol=proto, severity="severe", locale="jp")
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)

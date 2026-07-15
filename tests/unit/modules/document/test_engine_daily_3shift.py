@@ -214,9 +214,7 @@ def test_in_progress_encounter_uses_los_proxy() -> None:
 
 def test_cancelled_encounter_emits_no_shift_notes() -> None:
     """AD-32: cancelled encounters produce no documents at all."""
-    record = _make_record(
-        _make_encounter(status="cancelled", discharge_dt=None)
-    )
+    record = _make_record(_make_encounter(status="cancelled", discharge_dt=None))
     document_enricher(_make_ctx(record))
     assert record.documents == []
 
@@ -224,8 +222,6 @@ def test_cancelled_encounter_emits_no_shift_notes() -> None:
 def test_outpatient_and_emergency_get_no_shift_notes() -> None:
     """daily_3shift spec keeps the inpatient/icu/rehab allowlist (AD-64)."""
     for enc_type in ("outpatient", "emergency"):
-        record = _make_record(
-            _make_encounter(enc_type=enc_type, discharge_dt=LOS_1_DT)
-        )
+        record = _make_record(_make_encounter(enc_type=enc_type, discharge_dt=LOS_1_DT))
         document_enricher(_make_ctx(record))
         assert _shift_notes(record) == [], f"shift note leaked into {enc_type}"

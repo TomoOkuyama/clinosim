@@ -10,8 +10,7 @@ def test_loinc_codes():
     assert lookup("loinc", "11331-6", "en")
 
 
-@pytest.mark.parametrize("code", ["266919005", "8517006", "449868002",
-                                  "105542008", "28127009", "86933000"])
+@pytest.mark.parametrize("code", ["266919005", "8517006", "449868002", "105542008", "28127009", "86933000"])
 def test_snomed_values(code):
     assert lookup("snomed-ct", code, "en") not in ("", code)
 
@@ -31,8 +30,7 @@ def test_alcohol_social_uses_active_concept():
         assert lookup("snomed-ct", code, "en") not in ("", code)
 
 
-@pytest.mark.parametrize("code", ["independent", "support1", "support2",
-                                  "care1", "care2", "care3", "care4", "care5"])
+@pytest.mark.parametrize("code", ["independent", "support1", "support2", "care1", "care2", "care3", "care4", "care5"])
 def test_care_level_codes(code):
     assert lookup("jp-care-level", code, "en")
     assert lookup("jp-care-level", code, "ja")

@@ -9,6 +9,7 @@ The module-level ``@lru_cache(maxsize=1)`` on ``_lab_panels()`` can be pre-warme
 by other tests in the suite collection order — the autouse fixture below clears
 it before every test in this file so the assertions always read the YAML on disk.
 """
+
 import pytest
 
 from clinosim.modules.observation import engine as _obs_engine
@@ -42,5 +43,12 @@ def test_bmp_expands_to_eight_canonical_components():
     # absent from derive_lab_values(), so this entry being correct is what
     # lets a follow-up PR add Cl/Ca to the engine without YAML changes.
     assert lab_panel_components("BMP") == [
-        "Na", "K", "Cl", "HCO3", "BUN", "Creatinine", "Glucose", "Ca",
+        "Na",
+        "K",
+        "Cl",
+        "HCO3",
+        "BUN",
+        "Creatinine",
+        "Glucose",
+        "Ca",
     ]

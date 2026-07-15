@@ -74,9 +74,11 @@ class TestABGPanel:
 
     def test_po2_derived_and_drops_with_inflammation(self):
         from clinosim.modules.physiology.engine import derive_lab_values
+
         well = derive_lab_values(_state(1.0), sex="M", age=60)
         # high inflammation (pneumonia/COPD) → hypoxemia
         from clinosim.types.clinical import PhysiologicalState
+
         sick = derive_lab_values(PhysiologicalState(inflammation_level=0.8), sex="M", age=60)
         assert "pO2" in well and 45 <= well["pO2"] <= 105
         assert sick["pO2"] < well["pO2"]

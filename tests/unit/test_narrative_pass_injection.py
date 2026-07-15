@@ -9,6 +9,7 @@ Pins:
   (backwards-compat re-export).
 - NarrativeGenerator Protocol is runtime_checkable.
 """
+
 from __future__ import annotations
 
 import json
@@ -30,16 +31,25 @@ def _write_tiny_structural(tmp_path: Path) -> Path:
     structural = tmp_path / "structural" / "patients"
     structural.mkdir(parents=True)
     payload = {
-        "patient": {"patient_id": "POP-1", "age": 65, "sex": "M",
-                    "chronic_conditions": []},
-        "encounters": [{"encounter_id": "ENC-1",
-                        "encounter_type": {"value": "inpatient"},
-                        "attending_physician_id": "DR-1"}],
-        "documents": [{"document_id": "doc-1", "task_type": "admission_hp",
-                       "loinc_code": "34117-2", "format_type": "composition",
-                       "narrative": None}],
-        "vitals": [], "lab_results": [], "medications": [], "diagnoses": [],
-        "procedures": [], "allergies": [],
+        "patient": {"patient_id": "POP-1", "age": 65, "sex": "M", "chronic_conditions": []},
+        "encounters": [
+            {"encounter_id": "ENC-1", "encounter_type": {"value": "inpatient"}, "attending_physician_id": "DR-1"}
+        ],
+        "documents": [
+            {
+                "document_id": "doc-1",
+                "task_type": "admission_hp",
+                "loinc_code": "34117-2",
+                "format_type": "composition",
+                "narrative": None,
+            }
+        ],
+        "vitals": [],
+        "lab_results": [],
+        "medications": [],
+        "diagnoses": [],
+        "procedures": [],
+        "allergies": [],
     }
     (structural / "ENC-1.json").write_text(json.dumps(payload, ensure_ascii=False))
     return tmp_path
@@ -97,9 +107,7 @@ def test_injected_generator_flows_through_run(tmp_path: Path) -> None:
     manifest = p.run()
     assert stub.calls >= 1
     assert manifest.generator == "stub"
-    payload = json.loads(
-        (tmp_path / "narratives/stubtest/documents/ENC-1/doc-1.json").read_text()
-    )
+    payload = json.loads((tmp_path / "narratives/stubtest/documents/ENC-1/doc-1.json").read_text())
     assert payload["narrative"]["text"] == "STUB TEXT"
     assert payload["narrative"]["sections"] == {"hpi": "STUB SECTION"}
     assert payload["narrative"]["generator"] == "stub"
