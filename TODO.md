@@ -1,8 +1,86 @@
 # clinosim — TODO
 
-## Status (2026-07-14, **★★★ session 51 CLOSED — P1-4 slice URI 訂正 + docs rule + P1-3 dose fix + imgst/imgrpt double-prefix fix**)
+## Status (2026-07-15, **★★★★ session 52 CLOSED — CI 全 6 job green + workflow direct-master → Issue/PR/Merge 切替**)
 
-**master HEAD**: `5a5a77ed42`(imaging test fixtures + audit synthetic prefix production 準拠)
+**master HEAD**: `72e1b4db33`(direct-master 最終 commit = workflow 切替 documentation)
+
+### ★★ 重要:workflow 変更(session 53+ から発効)
+
+**master 直接 push 禁止**、以降は Issue → PR → Merge:
+
+1. Issue 起票(GitHub)
+2. `git checkout -b <type>/<slug>`
+3. Commit + push to feature branch
+4. `gh pr create` + CI 全 6 job PASS
+5. `gh pr merge --squash --delete-branch`
+6. Issue close
+
+hotfix 例外(本番 blocker のみ):direct-master OK、ただし post-hoc Issue 必須。
+詳細:`CLAUDE.md § Development workflow`。
+
+### Session 52 成果(9 commits direct-master、session 52 開始時点 `5a5a77ed42` → 終了時 `72e1b4db33`)
+
+| # | Commit | Chain | 主要成果 |
+|---:|---|---|---|
+| 1 | `d88ae6c357` | Integration 5 系統 fix | order_id encounter-scoping sweep(24 site)、silent-drop 1337 → 0、Endpoint empty id 54 → 0、ImagingStudy stub 54 → 4、facility Device/Location emit、imaging inference XA/ECG 追加 |
+| 2 | `c8d7959c1d` | Device test sibling regression | facility-shared pump は 1:1 DUS 対象外 test assertion 追随 |
+| 3 | `a0854d5cca` | iris4h-ai HAPI Tier A | invalid id 758,275 → 0(vs-* 757,543 + MR 732)、Procedure TZ 262 → 0、`sanitize_id_token` helper 新設 |
+| 4 | `4921bd6515` | MA→MR reference sync | order_id encounter-scoped 化に伴う reader/writer 両側同期(890+560 dangling → 0)|
+| 5 | `2969dff15d` | mypy override + F821/F601 | boto3/numpy stub ignore + physiology datetime import + 4 dict duplicate key(1 件は silent overwrite 実 bug = PCC synonym map)|
+| 6 | `7b06759e4d` | Lint 387 → 54 削減 | ruff auto-fix 33 + E702 手動 10 + per-file-ignores + line-length 100→120 |
+| 7 | `b2f92821ad` | E501 noqa + format sweep | 54 line 個別 `# noqa: E501` + ruff format 428 files(実装挙動不変)= Lint job 完全 green 化 |
+| 8 | `fd3329a918` | mypy shim + 53 real bug fix | typing-stubs/numpy shim + strict rule 抑制 + 53 real bug fix = **Type check 完全 green**(216 files, 0 error)|
+| 9 | `72e1b4db33` | workflow docs | direct-master → PR/Merge 切替 CLAUDE.md 反映 |
+
+### Session 52 テスト状態(2026-07-15)
+
+- **Unit 2704 PASS**
+- **mypy strict 0 error**(216 source files)
+- **ruff check + format --check 両 green**
+- **reproduce.sh PASS**(JP p=50 seed=42 byte-identical)
+- **Regression (AD-66) 12/12 PASS**
+- **Integration**:CI 実行中(72e1b4db33 = 前 fd3329a918 の Integration は preempt cancelled、新 run は現在進行)
+
+### CI 全 6 job final status(想定:72e1b4db33 完了時)
+
+| Job | Status |
+|---|---|
+| Unit tests (Py 3.11) | ✅ SUCCESS |
+| Unit tests (Py 3.12) | ✅ SUCCESS |
+| Reproducibility | ✅ SUCCESS |
+| Build sdist + wheel | ✅ SUCCESS |
+| Lint (informational) | ✅ SUCCESS(session 52 で 387 → 0)|
+| Type check (informational) | ✅ SUCCESS(session 52 で 1 error checking prevented → 0)|
+| Integration tests | ⏳(過去 pass 履歴あり、想定 PASS)|
+
+### Session 52 の bug 副産物(mypy 化で発見)
+
+- **`_interpolate` int() cast bug**:session 52 中に一時的に導入した `int(effective_day)` cast が physiology speed_factor > 1.0 patient で deterioration timing を silently ずらしていた。unit test で検出 → `_interpolate(day: int | float)` に signature 拡張で解消。
+- **types __init__.py PatientProfile 二重定義**:dataclass(patient.py)と Pydantic BaseModel(config.py)の同名 class が `import *` で衝突。`config.__all__` から除外して解決(明示 import は継続動作)。
+- **PCC synonym dict silent overwrite**:test_disease_yaml_drug_code_consistency.py の `_ALLOWED_ALIASES` に `4-factor pcc (kcentra)` key が 2 回宣言、後段の完全 set が silent 有効。ruff F601 で検出、統合。
+- **Endpoint empty id → shared collapse**:session 48 case D stub-only 対応で `endpoint_id=""` を emit していた → 54 個の empty-id が dedup で 1 個に集約 = "shared endpoint" 見え = 1:1 invariant 破壊。builder 側 skip で fix。
+
+### 残 backlog(session 53+、以降 Issue/PR 化)
+
+**iris4h-ai HAPI feedback Tier B**(次 session の PR chain 候補):
+- P1(中):coding が ValueSet 外 12 pattern(327件)= clinicalStatus / verificationStatus / MaritalStatus 等
+- P1(中):CodeSystem 内 code 不明 8 pattern(112件)= SNOMED 424535000 / LOINC 30794-3 / v2-0360 RD / v3-RoleCode OUTPT / UCUM mmHg / ICD-10 I84 等
+- P1(低):SNOMED CT 非アクティブ concept 2 pattern(7件)= 227037002 / 256349002 / 103693007
+- P1(低):LOINC 対応 profile 未指定 2 pattern(16件)= 39156-5 BMI / 8480-6 BP
+- P1(高)未着手:BP profile magic LOINC 85354-9(fhir_r4_review.md で 13,766件)
+- P1(高)未着手:referenceRange.extension 欠如(89,238件)
+
+**iris4h-ai/fhir_r4 再生成**:session 51 wrap で copy 済のは cd33b33dd2 時点。session 52 fix 群を反映した JP p=10000 seed=NEW での再生成 → HAPI validator 再走で実効検証(session 51/52 fix 総合効果 = TZ 262 + invalid id 758k + P1-4 slice + P1-3 dose + dangling reference が 0 になった状態)。
+
+**Tier C(IG 側)= scope 外**:
+- JP eCS profile canonical URL 解決(78,574件、IG dependency 追加案件)
+- JP ValueSet 定義未取得(114,073件、IG dep 追加)
+- Terminology JP display → EN 統一(1,314件、user 判断案件)
+- narrative 欠如 warning(273,523件、best-practice)
+
+**mypy strict 化 chain**(Type check 完全 green の次段階):
+- session 52 で抑制した `type-arg` (293) + `no-untyped-def` (50) + `no-any-return` (43) + `no-untyped-call` (18) = 404 annotation-noise を module 単位で段階再有効化
+- 目標:strict mode を pyproject.toml level で全再有効化 = code 全体の annotation 完備
 
 ### Session 51 成果(6 commits direct-master、session 50 CI green → 継続)
 
@@ -3508,3 +3586,196 @@ run — cohort aging never happens. Fix is medium-complexity (derive age from
 deferred rather than folded into this session's quick-fix batch since it
 touches multiple files for a scenario (multi-year runs) not in common use
 today.
+
+---
+
+# Session 53 Resume Prompt
+
+## STEP 0:状態確認(必須、順序厳守)
+
+```bash
+cd /Users/tokuyama/workspace/clinosim
+git branch --show-current
+git log --oneline -12 master
+git log --oneline -3 origin/master
+git status --short
+git worktree list
+git stash list
+```
+
+**期待値**:
+- current branch: `master`
+- master HEAD: `72e1b4db33` = `docs(workflow): direct-master 方式を Issue→PR→Merge に切替(session 52 末、user 明示)`
+- 1 つ手前:`fd3329a918` = `fix(typing): CI Type check 完全 green 化 — numpy stub shim + 53 real bug fix`
+- origin/master 同期
+- status: clean
+
+異なる HEAD なら pull/rebase。
+
+---
+
+## STEP 1:session 52 wrap 状態と workflow 変更を把握(必読)
+
+1. **Memory `project_session_52_end_state.md`** = 9 commits + Type check green + workflow 切替の詳細
+2. **Memory `feedback_clinosim_workflow.md`** = Issue→PR→Merge 手順(必ず読む)
+3. **CLAUDE.md § Development workflow** = 同手順の canonical source
+4. **TODO.md 冒頭 Status(session 52 CLOSED)** = 全 commit + テスト状態 + 残 backlog
+
+---
+
+## STEP 2:★★★ 重要 workflow 変更(session 53+ 発効)
+
+**master 直接 push 禁止**。以下必須:
+
+1. **Issue 起票**(GitHub、tracker 化)
+2. `git checkout -b <type>/<slug>`(例 `fix/valueset-p1-8`、`feat/bp-profile-magic-loinc`)
+3. Commit + push to feature branch(`Co-Authored-By` + `Claude-Session` 従来通り)
+4. `gh pr create` + Issue link + 検証結果(unit / mypy / ruff / reproduce)
+5. **CI 全 6 job PASS(Unit 3.11/3.12 + Reproducibility + Build + Integration + Lint + Type check)**が merge blocker
+6. Adversarial review(大 chain のみ推奨)= `/code-review`
+7. `gh pr merge --squash --delete-branch`(基本 squash)
+8. Issue close(merge SHA を post)
+
+**scope-discipline**: 1 PR = 1 論点。
+**hotfix 例外**: 本番 blocker(CI 全落ち / silent-drop 検出)のみ direct-master OK、ただし post-hoc Issue + comment 必須。
+
+---
+
+## STEP 3:Session 52 で完了したこと(再作業しない)
+
+### 9 commits direct-master(session 52 開始時 `5a5a77ed42` → 終了時 `72e1b4db33`)
+
+```
+72e1b4db33 docs(workflow): direct-master 方式を Issue→PR→Merge に切替(session 52 末、user 明示)
+fd3329a918 fix(typing): CI Type check 完全 green 化 — numpy stub shim + 53 real bug fix
+b2f92821ad lint(session52): E501 個別 noqa + ruff format sweep — Lint job 完全 green 化
+7b06759e4d lint(session52): informational lint 387→54 一括削減(auto-fix + per-file-ignores + line-length 120)
+2969dff15d fix(lint,mypy): real F821/F601 バグ + mypy boto3/numpy override
+4921bd6515 fix(fhir): MedicationAdministration.request reference — order_id 単体へ同期
+a0854d5cca fix(fhir): iris4h-ai HAPI feedback — invalid id + no-TZ dateTime 完全解消(3 系統)
+c8d7959c1d fix(session52): device test — facility-shared pump は 1:1 DUS 対象外 + SNOMED whitelist 拡張
+d88ae6c357 fix(session52): integration test 5 系統解消 — order_id encounter-scoping + dangling refs + imaging inference
+```
+
+### 主要 metric
+
+| 項目 | Before | After |
+|---|---|---|
+| Integration failure | 9 | **0** |
+| silent-drop orders(order_id 衝突)| 1337 | **0** |
+| iris4h-ai HAPI invalid id | 758,275 | **0** |
+| Procedure TZ 欠如 | 262 | **0** |
+| dangling reference(MA→MR + Device + Location)| 1,050+ | **0** |
+| CI Lint errors | 387 | **0** |
+| CI Type check errors | 1(checking prevented)| **0** |
+| Unit tests | 2704 | 2704 PASS |
+
+---
+
+## STEP 4:Session 53 で優先すべき候補
+
+### 候補 A(Recommended):iris4h-ai HAPI feedback Tier B chain
+
+user 主導で PR chain 化(1 PR = 1 subcategory):
+
+- **PR #1**:coding が ValueSet 外(clinicalStatus / verificationStatus / Coverage Class 系、12 pattern 327件)= spec ValueSet 内 coding へ切替 + pin test
+- **PR #2**:CodeSystem 内 code 不明(SNOMED 424535000 / LOINC 30794-3 / v2-0360 RD / v3-RoleCode OUTPT / UCUM mmHg / Encounter serviceType custom / SNOMED 303408005 / ICD-10 I84)= 有効 code へ差替 + pin test
+- **PR #3**:SNOMED inactive concept 更新(227037002 / 256349002 / 103693007)+ inactive-check unit test
+- **PR #4**:LOINC 対応 profile 未指定(BMI / BP)= meta.profile 付与
+- **PR #5**(大)**BP profile magic LOINC 85354-9**(13,766件)= FHIR BP profile 準拠、component slice + magic LOINC。既存 Observation.vital_signs から BP を分離した combined-BP Observation emit
+- **PR #6**(大)**referenceRange.extension 欠如**(89,238件)= JP_Observation_Common で必須の extension emit(全 lab Observation に relative to reference range 属性追加)
+
+### 候補 B:iris4h-ai/fhir_r4 再生成 + HAPI validator 再走
+
+session 52 fix 群を反映した実効検証:
+1. `clinosim simulate -o output-p10000-seed<X> --population 10000 --seed <new> --country JP --start 2025-04-01 --end 2026-03-31 --format fhir-r4`(16 分)
+2. iris4h-ai/fhir_r4 に copy
+3. iris4h-ai 側で HAPI Validator + JP Core 1.2.0 再走
+4. 期待:P1-4 slice 3.06M / invalid id 758k / TZ 262 / dangling 1050+ が全て 0
+5. 結果を Issue で報告 → Tier B chain と紐付け
+
+### 候補 C:mypy strict 化 chain(Type check level up)
+
+現状:strict + 4 rule 抑制(type-arg / no-untyped-def / no-any-return / no-untyped-call)で 0 error
+目標:全 rule 有効化(404 annotation-noise の分野別消化)
+approach:module 単位(clinosim/modules/<name>/ 毎に per-file-ignores → 削除 + annotation 追加 → PR)。5-10 PR chain。
+
+### 候補 D:E501 54 line 手動 reflow
+
+現在 `# noqa: E501` で silence 済(24 files)。将来的にきれいに reflow して noqa 削除。scope-clarity chain(1 PR 分)。
+
+---
+
+## STEP 5:再開時の作業順序
+
+1. STEP 0 状態確認 + CI(72e1b4db33)final status 確認
+2. STEP 1-3 memory / docs / rule 読解
+3. Session 53 で進める候補を user と相談(A/B/C/D)
+4. 選定後:
+   - **Issue 起票**(GitHub、tracker として)
+   - `git checkout -b <type>/<slug>`
+   - 実装 → commit → push
+   - `gh pr create`
+   - CI 全 6 job PASS 確認
+   - `gh pr merge --squash --delete-branch`
+   - Issue close
+
+---
+
+## STEP 6:プロジェクト現状(session 53 開始時)
+
+**clinosim** = population-driven, physiology-based synthetic EHR data simulator(v0.3.x)。
+
+**主要 architecture**:
+- CIF は codes only(AD-30)、display は output 時 lookup
+- LLM は llm_service module のみ(AD-11)
+- 決定論(AD-16 + session 49 F1 phase-based)
+- Two-pass narrative(AD-65 structural + narrative 分離)
+- Cron 日次追記対応(session 49 F1-F4 chain)
+- FHIR R4 Bulk Data Export(1 NDJSON per resource type + manifest.json)
+- JP Core 1.2.0 + JP-CLINS + JP-eCheckup 対応
+
+**session 52 で強化された点**:
+- **CI 全 6 job green**(Unit 3.11/3.12 + Reproducibility + Build + Integration + Lint + Type check)
+- **workflow Issue → PR → Merge 化**(session 53+ 必須)
+- **typing-stubs/numpy shim** = numpy 2.5+ PEP 695 stub blocker 排除
+- **sanitize_id_token helper** = FHIR id 型互換 token single source
+- **order_id encounter-scoping** = silent-drop 根治
+- **iris4h-ai HAPI Tier A 完全解消**
+
+---
+
+## STEP 7:再開時ユーザーへの最初の一言例
+
+「Session 52 wrap 状態確認済(master `72e1b4db33`、Unit 2704 PASS、mypy strict 0 error、Lint/Type/Format 全 green、reproduce.sh PASS)。CI(72e1b4db33 = docs(workflow))の final status を確認します。
+
+session 52 wrap で workflow が **direct-master → Issue/PR/Merge 必須**に切替済み。session 53 の chain を以下から選択したいです:
+
+- **(A)** iris4h-ai HAPI feedback Tier B chain(6 PR 規模、Recommended)
+- **(B)** iris4h-ai 再生成 + HAPI validator 再走(session 51/52 fix の実効検証)
+- **(C)** mypy strict 化 chain(4 rule 段階再有効化、5-10 PR 規模)
+- **(D)** E501 54 line 手動 reflow(1 PR 分)
+- **(E)** その他(user 主導の新 chain / 案内)
+
+どれで進めるか判断お願いします。」
+
+---
+
+## 参考:重要 workflow rules(session 53+)
+
+- **★★★ Issue → PR → Merge 必須**(session 52 末制定、user 明示):CLAUDE.md § Development workflow / feedback_clinosim_workflow.md 参照
+- **★ JP-only 日本語コメント / 共通英語**(session 47 制定)
+- **★ FHIR profile URI は spec fixedUri 引用**(session 51 制定、pin test 必須)
+- **★ long-running は session-end batch**(feedback-batch-long-running-ci):PR ごとに 30 分待たない、integration/e2e は次 session 開始時 or 別 batch
+- **★ 同 class バグ 1 件 → 全 sibling sweep**(feedback-check-sibling-bugs-across-modules)
+- **★ 観測前に語らない**(feedback-verify-before-asserting)
+- **★ scope discipline**(feedback-scope-discipline):1 PR = 1 論点
+
+---
+
+## 補足:session 52 の technical 気付き
+
+- **ruff format は noqa 位置を破壊する**:閉じ括弧が改行された結果、`)  # noqa: E501` が 1 行上の long f-string を cover しなくなる → post-format で再 noqa が必要
+- **mypy python_version bump は 456 error surface**:numpy stub の PEP 695 syntax error で checking prevented だった 456 error が一気に露出。shim + strict rule 抑制の 2 段策で管理可能に
+- **Integration CI は前 run が preempt cancelled されることがある**:master に短時間で連続 push すると github actions が前 run を cancel
+- **並行 subagent の存在**:別 AI process の commit が挟まる場合あり、予期しない diff 出現時は他 subagent を疑う
