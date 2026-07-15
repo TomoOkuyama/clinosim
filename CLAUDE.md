@@ -18,6 +18,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 | Module author HOW-TO + PR verification guide | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
 | New module template (boilerplate) | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
 | Roadmap | [`TODO.md`](TODO.md) |
+| ★ Next-session resume prompt(cold-start 必読) | [`docs/session-resume/next.md`](docs/session-resume/next.md) |
 | ★ Audit-cycle workflow + by-design exclusion registry | [`docs/audit-cycles/README.md`](docs/audit-cycles/README.md) + [`docs/audit-cycles/by-design-registry.md`](docs/audit-cycles/by-design-registry.md) |
 
 ## Language conventions
