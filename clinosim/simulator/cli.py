@@ -426,7 +426,11 @@ def main() -> None:
         print(f"\n{len(protocols)} inpatient disease protocols:")
         for name in sorted(protocols.keys()):
             p = protocols[name]
-            print(f"  {name:35s} | {p.chief_complaint[:50]}")
+            # chief_complaint is `str | dict[str, str]` (multi-lang variant).
+            # Coerce to str for the compact list display.
+            cc = p.chief_complaint
+            cc_str = cc if isinstance(cc, str) else (cc.get("en") or cc.get("ja") or "")
+            print(f"  {name:35s} | {cc_str[:50]}")
 
         from clinosim.modules.encounter.protocol import load_all_encounter_conditions
 
@@ -675,8 +679,8 @@ def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
     print(f"    Orders:       {sum(len(r.orders) for r in all_records):,}")
 
     # Disease distribution (inpatient only)
-    by_disease = Counter()
-    los_by_disease = defaultdict(list)
+    by_disease: Counter[str] = Counter()
+    los_by_disease: dict[str, list[float]] = defaultdict(list)
     for r in inpatients:
         d = r.condition_event.ground_truth_diseases[0] if r.condition_event.ground_truth_diseases else "?"
         by_disease[d] += 1
@@ -763,7 +767,7 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
     print(f"  ✅ Diet orders: {diet_count}/{len(inpatients)} inpatients")
 
     # Disease distribution
-    by_disease = Counter()
+    by_disease: Counter[str] = Counter()
     for r in inpatients:
         d = r.condition_event.ground_truth_diseases[0] if r.condition_event.ground_truth_diseases else "?"
         by_disease[d] += 1
@@ -1310,7 +1314,7 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
     print(f"  Dx: {r.clinical_diagnosis.discharge_diagnosis_code} ({_dx_name[:50]})")
 
     # Orders
-    order_types = {}
+    order_types: dict[str, int] = {}
     for o in r.orders:
         ot = o.order_type.value
         order_types[ot] = order_types.get(ot, 0) + 1

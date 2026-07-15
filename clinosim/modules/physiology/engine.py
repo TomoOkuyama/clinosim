@@ -319,7 +319,7 @@ def medication_flags_from_context(
             if not any(name in display.lower() for name in _WARFARIN_NAMES):
                 continue
             ordered_dt = getattr(o, "ordered_datetime", None)
-            ordered_date = ordered_dt.date() if hasattr(ordered_dt, "date") else None
+            ordered_date = ordered_dt.date() if ordered_dt is not None and hasattr(ordered_dt, "date") else None
             if ordered_date is None:
                 continue
             days_since_order = current_day - (ordered_date - admission_date).days
@@ -625,13 +625,13 @@ def derive_vital_signs(
     # complication / LOS / mortality RNG); that keeps the master stream stable while
     # still producing hypotension coherent with the already-elevated sepsis labs.
     distributive_drop = max(0.0, infl - DISTRIBUTIVE_THRESHOLD) * DISTRIBUTIVE_SBP_COEFF
-    sbp = baseline.systolic_bp + vol * 15 - (1 - perf) * 40 - distributive_drop
+    sbp: float = baseline.systolic_bp + vol * 15 - (1 - perf) * 40 - distributive_drop
     sbp = clamp(sbp, 60, 220)
-    dbp = baseline.diastolic_bp + vol * 8 - (1 - perf) * 20 - distributive_drop * 0.6
+    dbp: float = baseline.diastolic_bp + vol * 8 - (1 - perf) * 20 - distributive_drop * 0.6
     dbp = clamp(dbp, 30, 130)
 
     # Respiratory rate
-    rr = baseline.respiratory_rate
+    rr: float = baseline.respiratory_rate
     rr += max(0, -state.ph_status) * 10
     rr += infl * 4
     if vol > 0.5:

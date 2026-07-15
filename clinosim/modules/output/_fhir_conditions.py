@@ -428,7 +428,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # these are non-cancer clinical stages, so the former SNOMED 385356007 "Tumor
         # stage finding" coding was clinically wrong and is intentionally NOT emitted.
         if c_stage:
-            summary: dict[str, Any] = {"text": c_stage}
+            summary = {"text": c_stage}
             stage_snomed = _STAGE_SUMMARY_SNOMED.get(c_stage)
             if stage_snomed:
                 summary["coding"] = [

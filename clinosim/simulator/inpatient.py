@@ -72,7 +72,9 @@ from clinosim.types.clinical import (
 )
 from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
+    ADLAssessment,
     EncounterStatus,
+    IntakeOutputRecord,
     MedicationAdministration,
     Order,
     OrderResult,
@@ -907,13 +909,13 @@ def _run_daily_loop(
                 if not comps:
                     continue
                 children: list[Order] = []
-                for comp in comps:
+                for comp_name in comps:
                     children.append(
                         Order(
-                            order_id=f"{order.order_id}-{comp}",
+                            order_id=f"{order.order_id}-{comp_name}",
                             patient_id=order.patient_id,
                             order_type=OrderType.LAB,
-                            display_name=comp,
+                            display_name=comp_name,
                             urgency=order.urgency,
                             clinical_intent=order.clinical_intent,
                             ordered_datetime=order.ordered_datetime,
@@ -1200,7 +1202,7 @@ def _run_daily_loop(
                         encounter_id=encounter_id,
                         patient_id=patient.patient_id,
                         order_type=_esc_order_type,
-                        order_code=esc_drug.get("code_yj", esc_drug.get("code_rxnorm", "")),
+                        order_code=esc_drug.get("code_yj") or esc_drug.get("code_rxnorm") or "",
                         display_name=_esc_display,
                         urgency="urgent",
                         clinical_intent=f"Escalation day {day}: {drug_name} ({indication})",
@@ -1683,7 +1685,7 @@ def _generate_adl_assessment(
     day: int,
     admission_time: datetime,
     rng: np.random.Generator,
-) -> dict | None:
+) -> ADLAssessment | None:
     """Generate ADL (Barthel Index) assessment. Done on admission, weekly, and discharge."""
     from clinosim.types.encounter import ADLAssessment
 
@@ -1739,7 +1741,7 @@ def _generate_daily_io(
     day: int,
     admission_time: datetime,
     rng: np.random.Generator,
-) -> dict:
+) -> IntakeOutputRecord:
     """Generate daily intake/output record."""
     from clinosim.types.encounter import IntakeOutputRecord
 

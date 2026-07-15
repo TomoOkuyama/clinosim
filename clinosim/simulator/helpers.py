@@ -11,6 +11,19 @@ from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.disease.protocol import (  # noqa: F401 (re-export alias)
     load_all_disease_protocols as _load_all_disease_protocols,
 )
+
+__all__ = [
+    "DiseaseProtocol",
+    "HospitalizationSummary",
+    "LifeEvent",
+    "PhysiologicalState",
+    "CIFPatientRecord",
+    "PatientProfile",
+    # Session 52: `_` prefix is intentional (private-name alias for the
+    # canonical cached loader). Listed in __all__ so mypy's strict export
+    # check passes at import sites (simulator/__init__.py, cli.py, engine.py).
+    "_load_all_disease_protocols",
+]
 from clinosim.modules.population.engine import HospitalizationSummary, LifeEvent
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.output import CIFPatientRecord

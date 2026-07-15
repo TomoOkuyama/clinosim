@@ -439,8 +439,12 @@ def generate_monthly_events(
     mixed_probability = mixed_cfg.get("probability", 0.18)
     for event in events:
         if event.condition_type == "known_disease" and event.requires_hospital:
-            person = registry.persons.get(event.person_id)
-            if person and person.age >= mixed_min_age and len(person.chronic_conditions) >= mixed_min_chronic:
+            evt_person = registry.persons.get(event.person_id)
+            if (
+                evt_person
+                and evt_person.age >= mixed_min_age
+                and len(evt_person.chronic_conditions) >= mixed_min_chronic
+            ):
                 if rng.random() < mixed_probability:
                     event.condition_type = "mixed"
 
@@ -592,8 +596,8 @@ def generate_healthcare_calendar(
         # --- Chronic disease visits ---
         # Group conditions into combined visits (real patients see one doctor
         # for multiple conditions in a single visit)
-        conditions_with_spec = [
-            (code, followup_data.get(code)) for code in person.chronic_conditions if followup_data.get(code)
+        conditions_with_spec: list[tuple[str, dict]] = [
+            (code, spec_) for code in person.chronic_conditions if (spec_ := followup_data.get(code)) is not None
         ]
         if not conditions_with_spec:
             continue

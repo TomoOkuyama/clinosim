@@ -227,6 +227,8 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
                 _truncate_mar(rec, r)
                 _mark_order_stopped(rec, r)
             template = empirical_regimens[0]
+            if target is None:
+                continue  # session 52: type-narrowing gate for str|None target
             narrow_dur = narrow_duration_days(template.start_datetime, reported, template.duration_days)
             narrow_dose, narrow_freq = _narrow_dose_frequency(target)
             slug = _drug_slug(target)

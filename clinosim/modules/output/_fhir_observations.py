@@ -202,6 +202,8 @@ def _build_lab_observation(
                 coded = {"code": "N", "display": "Normal"}
     if coded is None:
         coded = interp_map.get(flag) if flag else {"code": "N", "display": "Normal"}
+    if coded is None:
+        coded = {"code": "N", "display": "Normal"}
     coded = _localize_interp(coded, country)
     resource["interpretation"] = [
         {

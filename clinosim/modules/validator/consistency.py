@@ -145,6 +145,8 @@ def _check_lab_ranges(record: CIFPatientRecord, pid: str, report: ConsistencyRep
     }
     for lab in record.lab_results:
         name = lab.lab_name or ""
+        if lab.value is None:
+            continue
         try:
             val = float(lab.value)
         except (TypeError, ValueError):

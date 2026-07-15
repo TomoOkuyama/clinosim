@@ -106,6 +106,7 @@ def generate_immunizations(
         cov = v["coverage_by_age_sex"]
 
         # earliest eligible date = max(availability, date patient reached min_age)
+        reached: date | None
         if dob is not None:
             reached = _safe_date(dob.year + min_age, dob.month, dob.day)
         else:

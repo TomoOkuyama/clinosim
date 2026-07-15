@@ -353,6 +353,7 @@ def run_beta(
 
         # Unknown condition
         if event.condition_type == "unknown" or disease_id.startswith("unknown_"):
+            record: CIFPatientRecord | None
             if cache_key in prev_admission_cache:
                 record = prev_admission_cache[cache_key]
             else:
@@ -424,11 +425,12 @@ def run_beta(
         person = population.get_person(record.patient.patient_id)
         if not person or not person.is_alive:
             continue
-        disease_id = (
+        readmit_disease_id = (
             record.condition_event.ground_truth_diseases[0] if record.condition_event.ground_truth_diseases else None
         )
-        if not disease_id:
+        if not readmit_disease_id:
             continue
+        disease_id = readmit_disease_id
         protocol = protocols.get(disease_id)
         if not protocol:
             continue

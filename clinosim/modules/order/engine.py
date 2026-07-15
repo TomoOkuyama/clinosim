@@ -344,7 +344,7 @@ def place_admission_orders(
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.MEDICATION,
-            order_code=med_spec.get("code_yj", med_spec.get("code_rxnorm", "")),
+            order_code=med_spec.get("code_yj") or med_spec.get("code_rxnorm") or "",
             display_name=drug_name,
             urgency="stat",
             clinical_intent=f"First-line treatment: {drug_name}",

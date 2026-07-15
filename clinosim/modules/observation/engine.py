@@ -345,11 +345,19 @@ def _generate_qualitative_result(lab_name: str, rng: np.random.Generator) -> str
 
 def determine_flag(
     lab_name: str,
-    value: float,
+    value: float | str,
     sex: str = "F",
     reference_ranges: dict | None = None,
 ) -> str | None:
-    """Determine H/L/critical flag for a lab value."""
+    """Determine H/L/critical flag for a lab value.
+
+    Accepts ``float | str`` because ``generate_lab_result`` returns ``str`` for
+    qualitative panels (Urinalysis, Rapid_Strep, etc.). Qualitative results
+    have no numeric range → return ``None`` (unflagged) instead of raising.
+    Session 52: type-annotation aligned with the caller-visible union.
+    """
+    if isinstance(value, str):
+        return None
     # Default reference ranges (adult)
     defaults: dict[str, dict[str, tuple[float, float]]] = {
         "CRP": {"all": (0, 3)},

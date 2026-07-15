@@ -153,7 +153,7 @@ def enrich_hai(ctx) -> None:
                     _ = rng.choice(len(_organism_weights), p=_probs)
                 if hai_type != forced["hai_type"]:
                     continue
-                onset_offset = int(forced["onset_offset_days"])
+                onset_offset: int | None = int(forced["onset_offset_days"])
                 organism = forced["organism_snomed"]
             else:
                 occurred, onset_offset = sample_hai_onset(device, rates_cfg[hai_type], rng)
@@ -163,6 +163,7 @@ def enrich_hai(ctx) -> None:
             enc_id = _get(device, "encounter_id", "")
             placement_date = _get(device, "placement_date", "")
             hai_id = f"hai-{enc_id}-{hai_type}-{len(hai_events)}"
+            assert onset_offset is not None  # gated above (either forced branch or `continue` on None)
             onset_date = _add_days(placement_date, onset_offset)
             ev = HAIEvent(
                 hai_id=hai_id,

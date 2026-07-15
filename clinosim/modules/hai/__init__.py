@@ -41,7 +41,7 @@ def _organisms_by_hai_type() -> dict[str, set[str]]:
 
 
 @lru_cache(maxsize=1)
-def load_hai_antibiogram() -> dict:  # type: ignore[type-arg]
+def load_hai_antibiogram() -> dict:
     """Load and validate hai_antibiogram.yaml.
 
     Validates at import time so a typo (uppercase hai_type, unknown organism,

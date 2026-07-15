@@ -90,9 +90,9 @@ def lookup(system: str, code: str, lang: str = "en") -> str:
         return str(entry[lang])
     if "en" in entry:
         return str(entry["en"])
-    for v in entry.values():
-        if isinstance(v, str):
-            return v
+    for candidate in entry.values():
+        if isinstance(candidate, str):
+            return candidate
     return code
 
 
