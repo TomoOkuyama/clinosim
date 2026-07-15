@@ -6392,10 +6392,10 @@ today.</p>
 </span></code></pre></div>
 <p><strong>期待値</strong>:
 - current branch: <code>master</code>
-- master HEAD: <code>72e1b4db33</code> = <code>docs(workflow): direct-master 方式を Issue→PR→Merge に切替(session 52 末、user 明示)</code>
-- 1 つ手前:<code>fd3329a918</code> = <code>fix(typing): CI Type check 完全 green 化 — numpy stub shim + 53 real bug fix</code>
+- master HEAD: <code>894a578fd3</code> = <code>docs(session): session 52 wrap + session 53 resume prompt(direct-master 最終例外)</code>
+- 1 つ手前:<code>72e1b4db33</code> = <code>docs(workflow): direct-master 方式を Issue→PR→Merge に切替(session 52 末、user 明示)</code>
 - origin/master 同期
-- status: clean</p>
+- status: clean(scratch cleanup 済、work tree 汚染なし)</p>
 <p>異なる HEAD なら pull/rebase。</p>
 <hr />
 <h2 id="step-1session-52-wrap-workflow">STEP 1:session 52 wrap 状態と workflow 変更を把握(必読)<a class="headerlink" href="#step-1session-52-wrap-workflow" title="Permanent link">&para;</a></h2>
@@ -6526,26 +6526,161 @@ approach:module 単位(clinosim/modules/<name>/ 毎に per-file-ignores → 削�
 <li>Issue close</li>
 </ol>
 <hr />
-<h2 id="step-6session-53">STEP 6:プロジェクト現状(session 53 開始時)<a class="headerlink" href="#step-6session-53" title="Permanent link">&para;</a></h2>
-<p><strong>clinosim</strong> = population-driven, physiology-based synthetic EHR data simulator(v0.3.x)。</p>
-<p><strong>主要 architecture</strong>:
-- CIF は codes only(AD-30)、display は output 時 lookup
-- LLM は llm_service module のみ(AD-11)
-- 決定論(AD-16 + session 49 F1 phase-based)
-- Two-pass narrative(AD-65 structural + narrative 分離)
-- Cron 日次追記対応(session 49 F1-F4 chain)
-- FHIR R4 Bulk Data Export(1 NDJSON per resource type + manifest.json)
-- JP Core 1.2.0 + JP-CLINS + JP-eCheckup 対応</p>
-<p><strong>session 52 で強化された点</strong>:
-- <strong>CI 全 6 job green</strong>(Unit 3.11/3.12 + Reproducibility + Build + Integration + Lint + Type check)
-- <strong>workflow Issue → PR → Merge 化</strong>(session 53+ 必須)
-- <strong>typing-stubs/numpy shim</strong> = numpy 2.5+ PEP 695 stub blocker 排除
-- <strong>sanitize_id_token helper</strong> = FHIR id 型互換 token single source
-- <strong>order_id encounter-scoping</strong> = silent-drop 根治
-- <strong>iris4h-ai HAPI Tier A 完全解消</strong></p>
+<h2 id="step-6-cold-start">STEP 6:プロジェクトコンセプト + ロジックデザイン(cold-start 必読)<a class="headerlink" href="#step-6-cold-start" title="Permanent link">&para;</a></h2>
+<h3 id="6-1">6-1 プロジェクトのゴール<a class="headerlink" href="#6-1" title="Permanent link">&para;</a></h3>
+<p><strong>clinosim</strong> = 母集団駆動・生理学ベースの合成 EHR/EMR データ生成器(v0.3.x)。
+差別化点(vs Synthea 等):
+- <strong>JP Core / JP-CLINS / JP-eCheckup Full 準拠</strong>(日本の医療 IT 基準対応が第一級)
+- <strong>実クリニカルワークフロー</strong>(inpatient / outpatient / ED / health checkup)を生理学 state で駆動 = 検査値・バイタルは全て hidden physiological state から derive
+- <strong>決定論的</strong>(seed + config 固定 → byte-identical output、reproduce.sh CI で常時検証)
+- <strong>cron 日次追記対応</strong>(session 49 F1-F4、<code>--cache-dir</code> で snapshot memoize)</p>
+<h3 id="6-2-pipeline">6-2 データ流れ(pipeline)<a class="headerlink" href="#6-2-pipeline" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>1. Population generation
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>   ├─ demographics (locale/&lt;c&gt;/demographics.yaml 由来)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>   ├─ chronic conditions (age/sex band × prevalence)
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>   └─ allergies (allergy_enricher, POST_POPULATION)
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>2. Simulation loop (per (year, month) walk)
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>   ├─ disease event 発火 → encounter simulator dispatch:
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>   │    ├─ inpatient.py   (physiology state 更新 × 毎日)
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>   │    ├─ emergency.py   (単一 encounter)
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>   │    ├─ outpatient.py  (chronic follow-up)
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>   │    └─ health_checkup (opt-in、JP only)
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>   ├─ Order 発行 → panel grouping → 検査値 derive
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>   └─ 各 encounter 単位で CIFPatientRecord 生成
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>3. POST_ENCOUNTER enricher chain(order 70-95)
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>   ├─ device (70)     — ICU 器械留置 (CVC/urinary catheter/ventilator)
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>   ├─ hai (80)        — CDC NHSN HAI サンプリング + lab lift
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>   ├─ antibiotic (85) — 経験療法 + S/I/R 感受性 → narrow/de-escalation
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>   ├─ imaging (90)    — Order(IMAGING) → ImagingStudyRecord + Endpoint + report
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>   ├─ triage (93)     — ED-only、triage acuity
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>   ├─ nursing (94)    — inpatient/ICU/rehab の primary nurse 割当
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>   └─ document (95)   — ClinicalDocument stub + ClinicalImpression
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>4. POST_RECORDS enricher chain(order 10-60)
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>   ├─ nursing_flowsheets (20) — NEWS2/GCS/Braden/Morse
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>   ├─ immunization (30)
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>   ├─ family_history (40)
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>   ├─ code_status (50)  — DNR/CMO
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>   └─ care_level (60)   — JP 要介護度
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>5. CIF 書き出し
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>   ├─ structural JSON per patient (cif/structural/patients/&lt;enc&gt;.json)
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>   └─ narrative subtree separate versioned (cif/narratives/&lt;v&gt;/documents/)
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>6. Two-pass narrative(AD-65、session 28 で復元)
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>   └─ TemplateNarrativePass が structural CIF を読み Composition section populate
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>7. FHIR R4 Bulk Data Export
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>   ├─ 1 NDJSON per resource type + manifest.json
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>   ├─ Resource.id は encounter-scoped で globally unique
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a>   └─ session 52 で silent-drop / dangling / invalid-id 全解消
+</span></code></pre></div>
+<h3 id="6-3-architecture-rulesad-architecture-decision">6-3 主要 architecture rules(AD = Architecture Decision)<a class="headerlink" href="#6-3-architecture-rulesad-architecture-decision" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>AD-11</strong> LLM calls only via <code>llm_service</code>(他 module 禁止)</li>
+<li><strong>AD-16</strong> Deterministic with seed(per-module sub-seed、session 49 F1 で 4-phase 化 = engine.py の run_beta 内で population/simulation/postrecords/output の各 phase 独立 seed)</li>
+<li><strong>AD-17</strong> CIF is the only simulation output(format adapters は CIF 読取のみ)</li>
+<li><strong>AD-18</strong> Types は <code>clinosim/types/</code>、Pydantic (YAML config) + dataclass (runtime)</li>
+<li><strong>AD-30</strong> CIF stores codes only, not display text(display は output 時 lookup)</li>
+<li><strong>AD-31</strong> FHIR = Bulk Data Access compliant(NDJSON + manifest.json、Bundle 禁止)</li>
+<li><strong>AD-32</strong> <code>--end</code> snapshot semantics(in-progress Encounter に discharge なし)</li>
+<li><strong>AD-55</strong> Base vs opt-in Module(near-essential → always-on、specialized → opt-in)</li>
+<li><strong>AD-56</strong> register_bundle_builder + register_output_adapter + register_enricher(edit-free extension)</li>
+<li><strong>AD-57</strong> BNP-pattern surgical(<code>derive_lab_values</code> に scenario/medication flags を helper 経由で splat)</li>
+<li><strong>AD-58</strong> OutputAdapter registry(<code>_BUNDLE_BUILDERS</code> dict / <code>register_output_adapter()</code>)</li>
+<li><strong>AD-59</strong> Per-order lab RNG isolation(specimen-rejection/hemolysis/technician を per-order sub-rng で分離)</li>
+<li><strong>AD-60</strong> Audit framework(<code>clinosim audit run</code> = structural / clinical / jp_language / silent_no_op 4 axis、new-feature ship-gate)</li>
+<li><strong>AD-61</strong> classify_lab_specs helper(panel grouping single edit point)</li>
+<li><strong>AD-62</strong> Imaging chain(<code>place_imaging_orders</code> single edit point、<code>_expand_views_to_series</code> multi-view expansion)</li>
+<li><strong>AD-63</strong> document 6<sup>th</sup> always-on Module(ClinicalDocument stub + ClinicalImpression)</li>
+<li><strong>AD-64</strong> triage + nursing_assignment 7<sup>th</sup>/8<sup>th</sup> always-on Module + CareTeam 2-name scope</li>
+<li><strong>AD-65</strong> Two-pass narrative separation(structural CIF file × narrative subtree、Stage 2 で populate、session 28 復元)</li>
+<li><strong>AD-66</strong> Canonical patient profile fixture library(narrative regression testing、golden vs snapshot 12/12 PASS)</li>
+<li><strong>AD-67/68/69</strong> Severity/archetype/YAML forbid model(FHIR completeness chain、session 38)</li>
+</ul>
+<h3 id="6-4-module">6-4 Module 独立性<a class="headerlink" href="#6-4-module" title="Permanent link">&para;</a></h3>
+<ul>
+<li>各 <code>clinosim/modules/&lt;name&gt;/</code> は <code>types/</code> / <code>codes/</code> / <code>locale/</code> + 宣言済 module のみ import(README Dependencies で定義)</li>
+<li><strong>Public API surface</strong> = <code>__init__.py</code> export のみ、<code>_</code> prefix は module-internal</li>
+<li><strong>LLM calls only via llm_service</strong>(AD-11)、他 module から直接 Ollama/Anthropic 禁止</li>
+<li><strong>Locale-independent code system</strong>:<code>clinosim/codes/</code> (ICD/LOINC/RxNorm/SNOMED-CT/JLAC10 等) は EN-first、<code>clinosim/locale/</code> (names/addresses/reference_range/code_mapping) は country-specific</li>
+</ul>
+<h3 id="6-5-fhir-output-rulessession-51-52">6-5 FHIR output rules(session 51-52 で強化)<a class="headerlink" href="#6-5-fhir-output-rulessession-51-52" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Multilingual coding</strong>:Condition/Procedure は primary + interop language の dual coding[]</li>
+<li><strong>Multilingual localization</strong>:JP 出力は 100% ja(<code>_localize_display()</code> 経由)、US は 100% en</li>
+<li><strong>referenceRange + interpretation</strong>:数値 Observation は両方必須で互いに consistent</li>
+<li><strong>★ JP Core / JP-CLINS / JP-eCheckup profile URI は必ず spec fixedUri 引用</strong>(session 50 adv-1 + session 51 制定)= 推測 URI 禁止 = HAPI validator silent-no-op で fix 完全無効化リスク。module-level 定数 + URI pin test 必須</li>
+<li><strong>Resource id は FHIR 型準拠</strong>(<code>[A-Za-z0-9\-\.]{1,64}</code>)= session 52 で <code>sanitize_id_token</code> helper に一元化</li>
+<li><strong>encounter-scoped order_id</strong>(session 52 sweep):writer id-dedup による silent-drop 防止</li>
+</ul>
+<h3 id="6-6-silent-no-op-defensesetup">6-6 Silent-no-op defense(setup 累積)<a class="headerlink" href="#6-6-silent-no-op-defensesetup" title="Permanent link">&para;</a></h3>
+<p><strong>4 層防御</strong>:
+1. <strong>canonical constants</strong>(HAI_TYPES / SUPPORTED_MODALITIES / ANTIBIOTIC_DRUGS 等)を module-level に定義
+2. <strong><em>validate</em>*(data) -&gt; None</strong> を YAML loader に配線(import 時 fail-loud)
+3. <strong>normalize_probabilities(..., fallback="raise")</strong> を全 15 YAML-sourced callsites に適用
+4. <strong>reverse-coverage(forward + staleness)</strong> を canonical set 側にも(HAI_TYPES / SUPPORTED_BODY_SITES 等)</p>
+<p><strong>PR-90 教訓</strong>(2026-06 hai lab lift silent-no-op)以降、以下の 7 chain pattern を確立:
+- lift firing proof(equality_checks + tolerance で "fired count &gt; 0" 保証)
+- 4-stage adversarial chain(original → adv-1 → adv-2 → adv-3 で converged)
+- reader/writer 両側同期(imgst/imgrpt double-prefix session 51、MA→MR reference session 52 の class)
+- HAI_EVENT_ID_SYSTEM canonical URI shared writer↔reader
+- panel-eligible denominator NHSN definition 一致
+- per-validator 6-layer(empty + per-bucket + forward-coverage + range + authoritative cross-validation + type check)
+- <strong>spec fixedUri 直接引用</strong>(session 51 制定):推測 URI 禁止</p>
+<h3 id="6-7-filedir-cheat-sheet">6-7 主要 file/dir cheat sheet<a class="headerlink" href="#6-7-filedir-cheat-sheet" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim/
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  codes/            ★ 国際 code system(locale-independent、EN-first)
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    data/           ← icd-10-cm.yaml / loinc.yaml / rxnorm.yaml / snomed-ct.yaml / ...
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    loader.py       ← lookup(system, code, lang) canonical API
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  locale/&lt;c&gt;/       ← 国別 demographics / names / addresses / code_mapping / reference_range
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>  config/           ← hospital_*.yaml + llm_service*.yaml
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>  types/            ← Pydantic (YAML config) + dataclass (runtime)
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>  modules/          ← 各 module 1 dir、README で dependencies 宣言
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    identity/       ← JP 被保険者番号(opt-in、AD-54)
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    device/         ← CVC/urinary catheter/ventilator(POST_ENCOUNTER 70)
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    hai/            ← CLABSI/CAUTI/VAP + lab lift + S/I/R(POST_ENCOUNTER 80)
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    antibiotic/     ← 経験療法 + narrow/de-escalation(POST_ENCOUNTER 85)
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    imaging/        ← ImagingStudy + Endpoint + radiology DR(POST_ENCOUNTER 90)
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    triage/         ← ED triage acuity(POST_ENCOUNTER 93、ED-only)
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>    nursing/        ← primary nurse (assignment、94) + flowsheets (POST_RECORDS 20)
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    document/       ← ClinicalDocument stub + ClinicalImpression(POST_ENCOUNTER 95)
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>    output/         ← CIF→format adapters + 30+ _fhir_*.py builders
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>      fhir_r4_adapter.py         ← 主 dispatcher(_BUNDLE_BUILDERS registry)
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>      _fhir_common.py            ← to_fhir_datetime / to_fhir_instant / sanitize
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>      _fhir_composition.py       ← JP-CLINS 3 文書
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>      _fhir_endpoint.py + _fhir_imaging_study.py + _fhir_diagnostic_report.py
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>      _fhir_medications.py       ← MedicationRequest + MedicationAdministration
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>      _fhir_observations.py      ← vital signs + lab results
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>      _fhir_facility.py          ← Organization + Location + facility Device(hospital-main/dev-infusion-pump)
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>      ...(30+ theme 別 builder)
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>  simulator/
+</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>    engine.py       ← run_beta 主 loop(session 49 F1 で 4-phase seeding)
+</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>    inpatient.py    ← _simulate_patient + _run_daily_loop(2200+ lines)
+</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>    emergency.py + outpatient.py
+</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>    enrichers.py    ← POST_POPULATION / POST_ENCOUNTER / POST_RECORDS registry
+</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>    seeding.py      ← ENRICHER_SEED_OFFSETS + panel_specimen_seed + individual_lab_seed
+</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>    cli.py          ← generate / simulate / audit / diff / test-disease etc.
+</span><span id="__span-3-33"><a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>  audit/            ← 4-axis audit framework(structural / clinical / jp_language / silent_no_op)
+</span><span id="__span-3-34"><a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>  eval/             ← 3-axis eval framework + synthea_adapter + preset test
+</span><span id="__span-3-35"><a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>typing-stubs/       ← ★ session 52 新設 numpy shim(PEP 695 blocker 排除)
+</span><span id="__span-3-36"><a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>scripts/
+</span><span id="__span-3-37"><a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a>  reproduce.sh      ← byte-identity CI 検証
+</span><span id="__span-3-38"><a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a>tests/
+</span><span id="__span-3-39"><a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a>  unit/             ← 2704 tests、~2 分
+</span><span id="__span-3-40"><a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a>  integration/      ← ~300 tests、~40 分 CI
+</span><span id="__span-3-41"><a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a>  e2e/              ← 37 tests、~8 分
+</span><span id="__span-3-42"><a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a>  fixtures/patient_profiles/  ← AD-66 canonical profile YAML
+</span></code></pre></div>
+<h3 id="6-8-session-52">6-8 session 52 で強化された点<a class="headerlink" href="#6-8-session-52" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>CI 全 6 job green</strong>(Unit 3.11/3.12 + Reproducibility + Build + Integration + Lint + Type check)= session 46 informational marker 導入以来の初完全 green</li>
+<li><strong>workflow Issue → PR → Merge</strong>(session 53+ 必須、hotfix 例外あり)</li>
+<li><strong>typing-stubs/numpy shim</strong> = numpy 2.5+ PEP 695 stub blocker 排除、mypy strict 0 error</li>
+<li><strong>sanitize_id_token helper</strong> = FHIR id 型互換 token single source</li>
+<li><strong>order_id encounter-scoping</strong> 24 site sweep = silent-drop 1337 orders 根治</li>
+<li><strong>iris4h-ai HAPI Tier A 完全解消</strong>(invalid id 758k + TZ 262 + dangling 1050+ → 0)</li>
+<li><strong><code>_interpolate</code> int() cast bug</strong> 発見+ fix(mypy 化で露呈、physiology speed_factor &gt; 1.0 で deterioration timing silent shift bug)</li>
+</ul>
 <hr />
 <h2 id="step-7">STEP 7:再開時ユーザーへの最初の一言例<a class="headerlink" href="#step-7" title="Permanent link">&para;</a></h2>
-<p>「Session 52 wrap 状態確認済(master <code>72e1b4db33</code>、Unit 2704 PASS、mypy strict 0 error、Lint/Type/Format 全 green、reproduce.sh PASS)。CI(72e1b4db33 = docs(workflow))の final status を確認します。</p>
+<p>「Session 52 wrap 状態確認済(master <code>894a578fd3</code>、Unit 2704 PASS、mypy strict 0 error、Lint/Type/Format 全 green、reproduce.sh PASS、Regression 12/12 PASS)。CI(894a578fd3 = session 52 wrap docs)の final status を確認します。</p>
 <p>session 52 wrap で workflow が <strong>direct-master → Issue/PR/Merge 必須</strong>に切替済み。session 53 の chain を以下から選択したいです:</p>
 <ul>
 <li><strong>(A)</strong> iris4h-ai HAPI feedback Tier B chain(6 PR 規模、Recommended)</li>
