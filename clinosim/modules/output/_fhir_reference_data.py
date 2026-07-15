@@ -23,6 +23,20 @@ _SEVERITY_SNOMED: dict[str, dict[str, str]] = {
     "severe": {"code": "24484000", "display": "Severe"},
 }
 
+# session 53 iris4h-ai feedback F-4: JP Core `JP_ConditionSeverity_VS` は
+# JP_ConditionSeverity_CS の 4 code(MI/MO/SE/UK)のみを許容。SNOMED は
+# ValueSet 外 = ~5k info。JP output では JP CS を primary、SNOMED を
+# secondary(国際互換性のため保持)として emit する。
+#
+# URI 出典:iris4h-ai/tx-server-build/.../CodeSystem-jp-conditionseverity-cs.json
+# (JP CS の display は `中度`、`中等度` ではないので注意)
+_JP_CONDITION_SEVERITY_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_ConditionSeverity_CS"
+_SEVERITY_JP: dict[str, dict[str, str]] = {
+    "mild": {"code": "MI", "display": "軽度"},
+    "moderate": {"code": "MO", "display": "中度"},
+    "severe": {"code": "SE", "display": "重度"},
+}
+
 
 _PREFECTURE_CODE: dict[str, str] = {
     "北海道": "01",
