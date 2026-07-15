@@ -7,11 +7,11 @@ NarrativeContext は全 narrative 生成の統一 input、全 generator(template
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Protocol, runtime_checkable
 
 
-class FormatType(str, Enum):
+class FormatType(StrEnum):
     """Document content format type."""
 
     FREE_TEXT = "free_text"                  # → DocumentReference (text content)
@@ -19,7 +19,7 @@ class FormatType(str, Enum):
     QUESTIONNAIRE_RESPONSE = "questionnaire_response"  # → QuestionnaireResponse(β-JP-1 で active)
 
 
-class DocumentType(str, Enum):
+class DocumentType(StrEnum):
     """Document types.
 
     α-min-1 scope: ADMISSION_HP + PROGRESS_NOTE + DISCHARGE_SUMMARY.

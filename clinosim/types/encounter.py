@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from clinosim.types.triage import TriageData
@@ -14,7 +14,7 @@ _UNSET_DATETIME = datetime(1970, 1, 1)
 _UNSET_DATE = date(1970, 1, 1)
 
 
-class EncounterType(str, Enum):
+class EncounterType(StrEnum):
     OUTPATIENT = "outpatient"
     EMERGENCY = "emergency"
     INPATIENT = "inpatient"
@@ -29,7 +29,7 @@ class EncounterType(str, Enum):
     CHECKUP = "checkup"
 
 
-class EncounterStatus(str, Enum):
+class EncounterStatus(StrEnum):
     PLANNED = "planned"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -100,7 +100,7 @@ class Encounter:
             self.time_resolution = TIME_RESOLUTION.get(self.encounter_type)
 
 
-class OrderType(str, Enum):
+class OrderType(StrEnum):
     LAB = "lab"
     IMAGING = "imaging"
     MEDICATION = "medication"
@@ -111,7 +111,7 @@ class OrderType(str, Enum):
     INFECTION_CONTROL = "infection_control"
 
 
-class OrderStatus(str, Enum):
+class OrderStatus(StrEnum):
     PLACED = "placed"
     ACCEPTED = "accepted"
     IN_PROGRESS = "in_progress"

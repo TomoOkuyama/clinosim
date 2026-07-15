@@ -217,7 +217,6 @@ def test_enrich_hai_force_consumes_exact_firing_path_sequence():
     # CAUTI / E. coli (112283007): 5 antibiotic entries in hai_antibiogram.yaml
     # ceftriaxone, cefepime, meropenem, ciprofloxacin, trimethoprim_sulfamethoxazole
     # 3 (PR-95 baseline) + 5 (antibiogram cauti/112283007) = 8 total
-    n_abx_cauti_ecoli = 5
     # CAUTI organism weights from hai_organisms.yaml (7 entries, sum=1.00)
     _cauti_org_probs = (0.27, 0.18, 0.16, 0.13, 0.1, 0.06, 0.1)
     # CAUTI/E.coli (112283007) antibiogram probs from hai_antibiogram.yaml

@@ -63,7 +63,7 @@ def _build_device_use(ctx: BundleContext) -> list[dict]:
     out: list[dict] = []
     for d in devices:
         device_id = get_attr_or_key(d, "device_id", "")
-        encounter_id = get_attr_or_key(d, "encounter_id", "")
+        get_attr_or_key(d, "encounter_id", "")
         placement_date = get_attr_or_key(d, "placement_date", "")
         removal_date = get_attr_or_key(d, "removal_date", None)
         if not device_id or not placement_date:

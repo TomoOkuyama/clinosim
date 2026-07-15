@@ -27,7 +27,6 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.imaging.engine import (
-    IMAGING_STUDY_ID_PREFIX,
     RADIOLOGY_REPORT_ID_PREFIX,
     _resolve_imaging_procedure_code_key,
     load_body_sites,

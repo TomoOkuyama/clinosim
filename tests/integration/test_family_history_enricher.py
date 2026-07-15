@@ -27,5 +27,6 @@ def test_enricher_populates_family_history():
 def test_stable_across_encounters_same_person():
     r1, r2 = _rec("P1", 70, ["E11"]), _rec("P1", 70, ["E11"])
     enrich_family_history(_Ctx([r1, r2]))
-    key = lambda fh: [(f.relationship, f.sex, f.deceased, f.condition_codes) for f in fh]
+    def key(fh):
+        return [(f.relationship, f.sex, f.deceased, f.condition_codes) for f in fh]
     assert key(r1["family_history"]) == key(r2["family_history"])

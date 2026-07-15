@@ -13,11 +13,11 @@ from __future__ import annotations
 import json
 from collections.abc import Iterator
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     INFO = "INFO"
     WARN = "WARN"
     FAIL = "FAIL"

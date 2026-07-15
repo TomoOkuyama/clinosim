@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # JP Core 1.2.0 実 spec で固定されている system URI
 JP_OBSERVATION_CATEGORY_SYSTEM = (
     "http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS"

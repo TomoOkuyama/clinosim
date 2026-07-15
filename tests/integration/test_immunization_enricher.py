@@ -39,7 +39,8 @@ def test_enricher_deterministic():
     r1, r2 = _record(), _record()
     enrich_immunizations(_ctx([r1], seed=99))
     enrich_immunizations(_ctx([r2], seed=99))
-    k = lambda recs: [(x.vaccine_cvx, x.occurrence_date) for x in recs]
+    def k(recs):
+        return [(x.vaccine_cvx, x.occurrence_date) for x in recs]
     assert k(r1.immunizations) == k(r2.immunizations)
 
 

@@ -18,7 +18,8 @@ def test_always_has_mother_and_father():
 def test_deterministic():
     a = _gen(["E11"], seed=5)
     b = _gen(["E11"], seed=5)
-    key = lambda fams: [(f.relationship, f.sex, f.deceased, f.condition_codes) for f in fams]
+    def key(fams):
+        return [(f.relationship, f.sex, f.deceased, f.condition_codes) for f in fams]
     assert key(a) == key(b)
 
 

@@ -8,6 +8,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.modules._shared import sanitize_id_token
 from clinosim.modules.clinical_course.engine import (
     apply_diagnosis_modifier,
     compute_diagnosis_effectiveness,
@@ -55,7 +56,6 @@ from clinosim.modules.procedure.engine import (
     simulate_surgery,
 )
 from clinosim.modules.staff.engine import StaffRoster, assign_staff
-from clinosim.modules._shared import sanitize_id_token
 from clinosim.simulator.helpers import (
     _check_discharge_ready,
     _country_to_yaml_key,
@@ -1999,11 +1999,11 @@ def _simulate_unknown_condition(
     # (workup finds something, but not a definitive diagnosis)
     if rng.random() < 0.5:
         discharge_code = "R50.9" if "fever" in event.disease_id else "R53.1"
-        discharge_name = "Unresolved " + complaint
+        "Unresolved " + complaint
     else:
         # Partially resolved: nonspecific diagnosis assigned
         discharge_code = "R50.9" if "fever" in event.disease_id else "R68.8"
-        discharge_name = complaint.title() + " (under investigation, outpatient follow-up)"
+        complaint.title() + " (under investigation, outpatient follow-up)"
 
     # Set encounter_id for all orders that don't have one — mirrors the
     # identical loop in simulate_inpatient (line 361-363). Without this,

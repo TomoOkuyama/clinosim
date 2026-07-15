@@ -124,7 +124,7 @@ def test_cli_subcommand_registered() -> None:
     """`clinosim dataset --help` must be reachable via the entry point."""
     from importlib import metadata
     try:
-        dist = metadata.distribution("clinosim")
+        metadata.distribution("clinosim")
     except metadata.PackageNotFoundError:
         pytest.skip("clinosim not installed")
 

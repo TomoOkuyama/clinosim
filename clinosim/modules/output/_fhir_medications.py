@@ -256,22 +256,22 @@ def _build_medication_request(
     # clinical_intent indicates the Rx is a take-home.
     _cat_code = _cat_display = ""
     if _is_home_med or (encounter_type == "outpatient" and not _is_episodic):
-        _cat_code = "community"; _cat_display = "Community"
+        _cat_code, _cat_display = "community", "Community"
     elif encounter_type == "outpatient":
-        _cat_code = "outpatient"; _cat_display = "Outpatient"
+        _cat_code, _cat_display = "outpatient", "Outpatient"
     elif encounter_type == "emergency":
         # ED order — outpatient by FHIR classification (no admission episode)
-        _cat_code = "outpatient"; _cat_display = "Outpatient"
+        _cat_code, _cat_display = "outpatient", "Outpatient"
     elif encounter_type == "inpatient":
         # Discharge medication if the clinical_intent explicitly says so
         if "discharge" in _ci_lower:
-            _cat_code = "discharge"; _cat_display = "Discharge"
+            _cat_code, _cat_display = "discharge", "Discharge"
         else:
-            _cat_code = "inpatient"; _cat_display = "Inpatient"
+            _cat_code, _cat_display = "inpatient", "Inpatient"
     else:
         # encounter_type not set (edge cases) — safe fallback to inpatient
         # since intent already indicated an order was authored (not a plan).
-        _cat_code = "inpatient"; _cat_display = "Inpatient"
+        _cat_code, _cat_display = "inpatient", "Inpatient"
     if _cat_code:
         resource["category"] = [{
             "coding": [{
