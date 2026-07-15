@@ -59,8 +59,11 @@ _ALLOWED_ALIASES: dict[str, set[str]] = {
     # Vitamin K1 = phytonadione = same molecule, clinical vs INN name pair.
     "vitamin k": {"phytonadione"},
     "phytonadione": {"vitamin k"},
-    # 4-Factor PCC = Kcentra = same product (brand name vs generic descriptor).
-    "4-factor pcc (kcentra)": {"kcentra"},
+    # 4-Factor PCC = Kcentra (brand vs generic descriptor).
+    # session 52 lint fix: this entry was duplicated further down as
+    # ``{"prothrombin complex concentrate (4f-pcc)", "kcentra"}``; the
+    # second literal silently overwrote the first (F601). Union both
+    # so ``kcentra`` and the INN spelling are BOTH accepted.
     "kcentra": {"4-factor pcc (kcentra)"},
     # Albumin = "Human serum albumin" (normalized to "serum albumin" after
     # stripping the qualifier "human"). Same clinical product.
