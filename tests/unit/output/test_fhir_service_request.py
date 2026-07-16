@@ -10,6 +10,7 @@ from clinosim.modules.output._fhir_service_request import (
     SR_ID_PREFIX,
     V2_0203_SYSTEM,
     _bb_service_requests,
+    _build_sr_code_field,
     aggregate_panel_status,
     build_panel_counter,
     order_to_sr_id,
@@ -498,3 +499,39 @@ def test_bb_service_requests_jp_falls_back_to_loinc_when_jlac10_missing():
     coding = sr["code"]["coding"][0]
     # Should resolve to JLAC10 (primary JP map), not fall back to LOINC
     assert coding["code"] == "2A010", f"JP path should use JLAC10 2A010, not LOINC 6690-2. Got {coding['code']!r}"
+
+
+# ---------------------------------------------------------------------------
+# feedback fix (2026-07-16, PR-H): empty-code coding[] entries violate FHIR
+# R4 ele-1 (elements must have a @value or children). Regression guard.
+# ---------------------------------------------------------------------------
+
+
+def test_build_sr_code_field_omits_coding_when_code_empty():
+    """Empty code must NOT produce a coding[] entry (FHIR R4 ele-1 violation)."""
+    result = _build_sr_code_field(system="http://loinc.org", code="", display="Ankle_Xray", text="Ankle_Xray")
+    assert "coding" not in result, f"Empty code must not emit coding[]: {result!r}"
+    assert result.get("text") == "Ankle_Xray", "text field must be preserved"
+
+
+def test_build_sr_code_field_includes_coding_when_code_present():
+    """Non-empty code must produce a coding[] entry with system + code + display."""
+    result = _build_sr_code_field(system="http://loinc.org", code="24627-2", display="CT chest", text="Chest CT")
+    assert "coding" in result and len(result["coding"]) == 1
+    entry = result["coding"][0]
+    assert entry == {"system": "http://loinc.org", "code": "24627-2", "display": "CT chest"}
+    assert result["text"] == "Chest CT"
+
+
+def test_build_sr_code_field_drops_display_when_empty():
+    """Empty display must not be emitted as an empty string (also an ele-1 violation)."""
+    result = _build_sr_code_field(system="http://loinc.org", code="24627-2", display="", text="Chest CT")
+    entry = result["coding"][0]
+    assert "display" not in entry, f"Empty display must be omitted, got {entry!r}"
+    assert entry["code"] == "24627-2"
+
+
+def test_build_sr_code_field_returns_empty_dict_when_all_empty():
+    """When nothing is available, return an empty dict (caller can decide to omit the field)."""
+    result = _build_sr_code_field(system="http://loinc.org", code="", display="", text="")
+    assert result == {}
