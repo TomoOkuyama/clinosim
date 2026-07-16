@@ -29,6 +29,7 @@ from clinosim.modules.output._fhir_localization import (
 )
 from clinosim.modules.output._fhir_reference_data import (
     _JP_CONDITION_SEVERITY_CS,
+    _JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL,
     _PREFECTURE_CODE,
     _ROUTE_SNOMED,
     _SEVERITY_JP,
@@ -665,7 +666,7 @@ def _build_reference_range(
         if source_url and country_code.upper() == "JP":
             rr["extension"] = [
                 {
-                    "url": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common#referenceRangeSource",
+                    "url": _JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL,
                     "valueString": source_url,
                 }
             ]
