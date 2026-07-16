@@ -146,3 +146,64 @@ def test_generate_fhir_writes_cif_and_fhir_export_events() -> None:
         sort_end = by_event["ndjson_sort_end"]
         assert sort_end["module"] == "fhir_r4_adapter"
         assert isinstance(sort_end.get("elapsed_s"), float)
+
+
+@pytest.mark.integration
+def test_generate_writes_inpatient_loop_progress_events() -> None:
+    """Issue #174: the inpatient loop emits `inpatient_loop_start`, at least
+    one `inpatient_progress` at the 50-record cadence (or at final record for
+    short loops), and `inpatient_loop_done` with `elapsed_s`.
+
+    Uses `--population 300` so several inpatient events fire (~30-40 based on
+    the population-level admission rate), guaranteeing at least the final
+    `inpatient_progress` triggers (`idx == n_hosp - 1` branch)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "clinosim.simulator.cli",
+                "generate",
+                "--country",
+                "JP",
+                "--population",
+                "300",
+                "--seed",
+                "42",
+                "--format",
+                "cif",
+                "--output",
+                str(out),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, f"generate failed:\n{result.stderr}"
+        log_file = out / "simulator.log"
+        events = [json.loads(line) for line in log_file.read_text().splitlines() if line.strip()]
+
+        # start bracket event
+        start = next((ev for ev in events if ev["event"] == "inpatient_loop_start"), None)
+        assert start is not None, "inpatient_loop_start missing"
+        assert start["module"] == "engine"
+        assert isinstance(start.get("target"), int)
+        assert start["target"] >= 0
+
+        # progress events — at least one (final tick) when the loop fires
+        progress = [ev for ev in events if ev["event"] == "inpatient_progress"]
+        if start["target"] > 0:
+            assert progress, "inpatient_progress missing despite loop having events"
+            for p in progress:
+                assert p["module"] == "engine"
+                assert isinstance(p.get("processed"), int)
+                assert isinstance(p.get("target"), int)
+                assert 1 <= p["processed"] <= p["target"]
+                assert isinstance(p.get("concurrent"), int)
+                assert isinstance(p.get("bed_occupancy"), float)
+
+        # done event carries elapsed_s (added by Issue #174)
+        done = next((ev for ev in events if ev["event"] == "inpatient_loop_done"), None)
+        assert done is not None
+        assert isinstance(done.get("elapsed_s"), float)
+        assert done["elapsed_s"] >= 0.0
