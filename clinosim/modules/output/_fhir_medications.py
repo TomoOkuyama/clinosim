@@ -6,6 +6,7 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 
 from __future__ import annotations
 
+import re
 import uuid
 from typing import Any
 
@@ -13,9 +14,7 @@ from clinosim.codes import (
     get_system_uri,
     system_key_for,
 )
-from clinosim.codes import (
-    lookup as code_lookup,
-)
+from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_us, resolve_lang
 from clinosim.modules.output._fhir_common import (
@@ -30,6 +29,50 @@ from clinosim.modules.output._fhir_localization import (
     _split_rate_adjustment_suffix,
 )
 from clinosim.modules.output._fhir_reference_data import _ROUTE_SNOMED
+
+# session 53 iris4h-ai feedback F-1: MedicationRequest / MedicationAdministration
+# の system URI を code 形式ごとに JP Core NamingSystem 準拠 URI に振り分け。
+#
+# 従来 `get_system_uri("yj")` は `urn:oid:1.2.392.100495.20.2.74` を常に返す
+# が、この OID は JP Core NamingSystem 上 HOT9 に紐付いており、clinosim の
+# yj.yaml に格納されている実 code(HOT7 106 件 + YJ12 59 件、HOT9 は 0 件)
+# のいずれも HOT9 pattern と一致しない = jpfhir-terminology 2.2606.0 で
+# ~53k info。format ごとに spec-fixed URI へ dispatch する。
+#
+# URI 出典(iris4h-ai/jp_core/package/NamingSystem-*.json fixedUri 直接引用):
+#   - HOT7  : http://medis.or.jp/CodeSystem/master-HOT7
+#   - HOT9  : http://medis.or.jp/CodeSystem/master-HOT9
+#   - HOT13 : http://medis.or.jp/CodeSystem/master-HOT13
+#   - YJ    : http://capstandard.jp/iyaku.info/CodeSystem/YJ-code
+_MEDIS_HOT7_URI = "http://medis.or.jp/CodeSystem/master-HOT7"
+_MEDIS_HOT9_URI = "http://medis.or.jp/CodeSystem/master-HOT9"
+_MEDIS_HOT13_URI = "http://medis.or.jp/CodeSystem/master-HOT13"
+_JP_YJ_CODE_URI = "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code"
+
+_YJ12_PATTERN = re.compile(r"^\d{7}[A-Z]\d{4}$")
+
+
+def _resolve_jp_drug_system_uri(code: str) -> str:
+    """Return the JP Core NamingSystem URI matching the drug code format.
+
+    - 7-digit numeric  → MEDIS HOT7 URI
+    - 9-digit numeric  → MEDIS HOT9 URI
+    - 13-digit numeric → MEDIS HOT13 URI
+    - 12-char YJ pattern (`^\\d{7}[A-Z]\\d{4}$`) → YJ code URI
+    - fallback → HOT9 URI(旧 clinosim 挙動維持、将来 code 追加時の safe default。
+      新 format を足す時は必ず本 helper と pin test を先に拡張すること)。
+    """
+    if code.isdigit():
+        n = len(code)
+        if n == 7:
+            return _MEDIS_HOT7_URI
+        if n == 9:
+            return _MEDIS_HOT9_URI
+        if n == 13:
+            return _MEDIS_HOT13_URI
+    elif _YJ12_PATTERN.match(code):
+        return _JP_YJ_CODE_URI
+    return _MEDIS_HOT9_URI
 
 
 def _map_order_status_to_fhir(status: str) -> str:
@@ -187,7 +230,12 @@ def _build_medication_request(
     display = code_lookup(drug_system_key, code_value, lang) if code_value else drug_name
     if display == code_value:
         display = drug_name
-    code_system = get_system_uri(drug_system_key)
+    # session 53 F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch。
+    # US は従来通り RxNorm URI。
+    if country_code == "JP" and drug_system_key == "yj" and code_value:
+        code_system = _resolve_jp_drug_system_uri(code_value)
+    else:
+        code_system = get_system_uri(drug_system_key)
 
     med_concept: dict[str, Any] = {"text": drug_name}
     if code_value:
@@ -463,7 +511,12 @@ def _build_medication_admin(
                 code_value = drug_codes[cand]
                 break
     drug_system_key = system_key_for("drug", country_code)
-    code_system = get_system_uri(drug_system_key)
+    # session 53 F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch
+    # (MR builder と同じ helper)。US は RxNorm URI。
+    if country_code == "JP" and drug_system_key == "yj" and code_value:
+        code_system = _resolve_jp_drug_system_uri(code_value)
+    else:
+        code_system = get_system_uri(drug_system_key)
 
     med_concept: dict[str, Any] = {"text": drug_name}
     if code_value:
