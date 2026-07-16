@@ -21,6 +21,7 @@ from clinosim.modules.population.engine import (
     generate_population,
 )
 from clinosim.modules.staff.engine import generate_roster
+from clinosim.simulator import log as sim_log
 from clinosim.simulator.emergency import _simulate_ed_visit
 from clinosim.simulator.enrichers import (
     POST_POPULATION,
@@ -149,9 +150,16 @@ def run_beta(
         pop_size = config.catchment_population or 40000
     beds = hospital_ops.get("resource_capacity", {}).get("inpatient_beds", 50)
     print(f"  Hospital: {beds} beds", flush=True)
+    sim_log.info("engine", "hospital_loaded", beds=beds, country=config.country)
 
     population = generate_population(pop_size, config.country, rng)
     print(f"  Population: {population.total_persons} persons")
+    sim_log.info(
+        "engine",
+        "population_generated",
+        persons=population.total_persons,
+        catchment=pop_size,
+    )
 
     # Post-population enrichers (AD-56 registry) — e.g. resident identifier / insurance
     # numbering (AD-54). Each enricher uses its own sub-seed; the main random stream
@@ -211,6 +219,12 @@ def run_beta(
         key=lambda e: e.timestamp,  # chronological order
     )
     print(f"  Life events: {len(all_events)} total, {len(hospital_events)} requiring hospital")
+    sim_log.info(
+        "engine",
+        "life_events_generated",
+        total=len(all_events),
+        hospital=len(hospital_events),
+    )
 
     # F4 (session 49): load a previous-snapshot cache, if given and valid. Only
     # the primary admission loop below (known_disease/mixed via `_simulate_patient`
@@ -415,6 +429,12 @@ def run_beta(
             person.is_alive = False
 
     print(f"  Inpatient done: {len(patient_records)} records (peak concurrent: {concurrent_patients})", flush=True)
+    sim_log.info(
+        "engine",
+        "inpatient_loop_done",
+        records=len(patient_records),
+        peak_concurrent=concurrent_patients,
+    )
 
     # === Readmission evaluation (post-loop pass) ===
     country_key = _country_to_yaml_key(config.country)
@@ -488,6 +508,7 @@ def run_beta(
             person.is_alive = False
 
     print(f"  Readmissions done: {len(readmission_events)} evaluated", flush=True)
+    sim_log.info("engine", "readmissions_done", evaluated=len(readmission_events))
 
     # === Outpatient encounters (healthcare calendar for ALL population) ===
     from clinosim.locale.loader import load_chronic_followup
@@ -551,6 +572,7 @@ def run_beta(
             if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
         ]
     print(f"  Healthcare calendar: {len(calendar_events)} events for population", flush=True)
+    sim_log.info("engine", "healthcare_calendar_generated", events=len(calendar_events))
 
     n_calendar = 0
     for event in calendar_events:
@@ -703,6 +725,7 @@ def run_beta(
             )
             patient_records.append(ed_record)
         print(f"  ED visits (not admitted): {n_ed} generated", flush=True)
+        sim_log.info("engine", "ed_visits_generated", ed_visits=n_ed)
 
     # Post-records enrichers (AD-56) — opt-in modules that read/extend finished records
     # (e.g. billing, devices, care-coordination write to CIFPatientRecord.extensions).
@@ -727,6 +750,16 @@ def run_beta(
         snapshot_date=config.snapshot_date,
         total_patients_generated=len(patient_records),
         llm_mode=config.llm.judgment.mode,
+    )
+    # L2 profile: emit one summary line per (stage, enricher) with total
+    # wall-clock and call count, then clear the accumulator for the next run.
+    sim_log.flush_stage_totals()
+    sim_log.info(
+        "engine",
+        "run_beta_done",
+        patients=len(patient_records),
+        country=config.country,
+        seed=config.random_seed,
     )
     return CIFDataset(
         metadata=metadata,

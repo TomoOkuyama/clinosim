@@ -39,6 +39,7 @@ Module classification:
 from __future__ import annotations
 
 import logging
+import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -83,13 +84,29 @@ def register_enricher(enricher: Enricher) -> None:
 
 
 def run_stage(stage: str, ctx: EnricherContext) -> None:
-    """Run all enabled enrichers for a stage, in deterministic (order, name) sequence."""
+    """Run all enabled enrichers for a stage, in deterministic (order, name) sequence.
+
+    Framework-level unified logging (Issue #172): each enricher invocation is
+    timed with ``time.perf_counter``; the elapsed is added to a per-(stage,
+    enricher) accumulator in :mod:`clinosim.simulator.log` and emitted per
+    invocation at DEBUG level. Aggregate INFO lines are emitted once via
+    :func:`clinosim.simulator.log.flush_stage_totals` at the tail of
+    ``run_beta``.
+    """
+    # Local import to keep sim_log optional at module load time (tests /
+    # library-use case that never call configure() still work).
+    from clinosim.simulator import log as sim_log
+
     for enricher in sorted(
         (e for e in _ENRICHERS.values() if e.stage == stage),
         key=lambda e: (e.order, e.name),
     ):
         if enricher.enabled(ctx.config):
+            t0 = time.perf_counter()
             enricher.run(ctx)
+            elapsed = time.perf_counter() - t0
+            sim_log.record_stage_call(stage, enricher.name, elapsed)
+            sim_log.debug(enricher.name, "enricher_run", stage=stage, elapsed_s=round(elapsed, 4))
 
 
 def register_builtin_enrichers() -> None:
