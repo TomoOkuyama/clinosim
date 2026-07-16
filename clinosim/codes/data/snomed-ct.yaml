@@ -309,6 +309,11 @@ codes:
   '424535000':
     en: Clinical team      # FSN: Clinical team (person) — FHIR CareTeam.category standard code
     ja: 臨床チーム
+  # Verified via SNOMED CT International Edition 2026-06-01 (HAPI Validator tx run,
+  # 2026-07-16). Active concept, replaces LA27976-8 which is unknown in LOINC 2.82.
+  '735320007':
+    en: Multidisciplinary care team    # FSN: Multidisciplinary care team (qualifier value)
+    ja: 多職種ケアチーム
 
   # === Allergic reaction manifestations (Tier 1 #3 α-min-1 PR1) ===
   # Verified via SNOMED International browser, 2026-07-01.
