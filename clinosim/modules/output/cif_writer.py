@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from dataclasses import asdict
 from datetime import date, datetime, timedelta
 from typing import Any
 
+from clinosim.simulator import log as sim_log
 from clinosim.types.output import CIFDataset
 
 
@@ -32,7 +34,22 @@ class _CIFEncoder(json.JSONEncoder):
 def write_cif(dataset: CIFDataset, output_dir: str) -> None:
     """Write structural CIF to JSON files. Narrative content is stripped
     from documents[] — Stage 2 TemplateNarrativePass writes narrative
-    separately to cif/narratives/<version>/documents/ (AD-65)."""
+    separately to cif/narratives/<version>/documents/ (AD-65).
+
+    Emits `sim_log` events (Issue #175):
+      - ``cif_write_start`` / ``cif_write_end`` bracket the whole call,
+        so a `tail -f` on ``simulator.log`` sees the boundary + ``elapsed_s``
+        without waiting for the next print in the caller.
+      - ``cif_written`` summary line carries ``patients``, ``bytes_out``,
+        ``elapsed_s`` so profile tooling can bucket the write phase.
+    """
+    t0 = time.perf_counter()
+    sim_log.info(
+        "cif_writer",
+        "cif_write_start",
+        patients=len(dataset.patients),
+        output_dir=output_dir,
+    )
     structural_dir = os.path.join(output_dir, "structural", "patients")
     os.makedirs(structural_dir, exist_ok=True)
 
@@ -54,6 +71,7 @@ def write_cif(dataset: CIFDataset, output_dir: str) -> None:
                 ensure_ascii=False,
             )
 
+    bytes_out = 0
     for idx, patient_record in enumerate(dataset.patients):
         patient_id = patient_record.patient.patient_id
         enc_id = patient_record.encounters[0].encounter_id if patient_record.encounters else f"{patient_id}-{idx:04d}"
@@ -64,3 +82,13 @@ def write_cif(dataset: CIFDataset, output_dir: str) -> None:
         filepath = os.path.join(structural_dir, f"{enc_id}.json")
         with open(filepath, "w") as f:
             json.dump(record_dict, f, cls=_CIFEncoder, indent=2, ensure_ascii=False)
+        bytes_out += os.path.getsize(filepath)
+
+    elapsed = time.perf_counter() - t0
+    sim_log.info(
+        "cif_writer",
+        "cif_write_end",
+        patients=len(dataset.patients),
+        bytes_out=bytes_out,
+        elapsed_s=round(elapsed, 3),
+    )

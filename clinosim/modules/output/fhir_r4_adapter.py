@@ -154,6 +154,7 @@ from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
     _build_smoking_status,
 )
 from clinosim.modules.output.cif_reader import CIFReader
+from clinosim.simulator import log as sim_log
 
 
 def convert_cif_to_fhir(
@@ -221,6 +222,22 @@ def convert_cif_to_fhir(
             writers[rt] = open(path, "w", encoding="utf-8")
         writers[rt].write(json.dumps(resource, ensure_ascii=False) + "\n")
 
+    # Issue #175: bracket the whole export with `sim_log` so `tail -f
+    # simulator.log` sees a clear ``fhir_export_start`` / ``fhir_export_end``
+    # boundary with elapsed_s + resources count for the p=10000 blind
+    # window that used to sit between ``run_beta_done`` and manifest write.
+    import time as _time
+
+    t0_export = _time.perf_counter()
+    sim_log.info(
+        "fhir_r4_adapter",
+        "fhir_export_start",
+        country=country,
+        output_dir=output_dir,
+        narrative_version=narrative_version,
+    )
+    n_resources = 0
+    n_patients = 0
     try:
         # Master resources (Organization + Location + Device) — written once.
         # Facility resources bypass `_build_bundle`, so the JP-only post-emit
@@ -238,6 +255,7 @@ def convert_cif_to_fhir(
                 _strip_japanese_display_on_english_only_systems(resource)
             _normalize_dt_fields(resource)
             write(resource)
+            n_resources += 1
 
         # Walk patient records (structural + merged narrative), build per-record
         # FHIR resources, write each line. Patient-scoped resources
@@ -247,9 +265,11 @@ def convert_cif_to_fhir(
         # (root-cause fix for cycle 3 RM-7 problem-list-item excess = per-
         # encounter re-emission with encounter-scoped IDs, C4-02 session 43).
         for record in reader.iter_patients():
+            n_patients += 1
             bundle = _build_bundle(record, country, roster_map, hospital_config)
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
+                n_resources += 1
 
         # Manifest (FHIR Bulk Data spec)
         manifest = {
@@ -270,9 +290,33 @@ def convert_cif_to_fhir(
         # genuine new / changed / removed resources.
         for w in writers.values():
             w.close()
+        # The sort pass is O(seconds) per NDJSON file on p=10000 — bracket
+        # it separately so profile tooling can attribute the fraction of
+        # export wall-clock spent here vs the per-resource write loop.
+        t0_sort = _time.perf_counter()
+        sim_log.info(
+            "fhir_r4_adapter",
+            "ndjson_sort_start",
+            files=len(writers),
+        )
         for rt in writers:
             path = os.path.join(output_dir, f"{rt}.ndjson")
             _sort_ndjson_by_id_inplace(path)
+        sim_log.info(
+            "fhir_r4_adapter",
+            "ndjson_sort_end",
+            files=len(writers),
+            elapsed_s=round(_time.perf_counter() - t0_sort, 3),
+        )
+    sim_log.info(
+        "fhir_r4_adapter",
+        "fhir_export_end",
+        country=country,
+        patients=n_patients,
+        resources=n_resources,
+        files=len(writers),
+        elapsed_s=round(_time.perf_counter() - t0_export, 3),
+    )
 
 
 def _sort_ndjson_by_id_inplace(path: str) -> None:

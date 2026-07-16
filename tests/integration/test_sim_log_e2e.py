@@ -1,9 +1,10 @@
-"""Integration: end-to-end unified logging (Issue #172).
+"""Integration: end-to-end unified logging (Issues #172, #175).
 
 Runs a tiny cohort via the `generate` CLI subcommand and asserts the
 simulator log file exists, contains the expected phase-boundary INFO
-events, and contains at least one `stage_total` aggregate line per
-always-on POST_ENCOUNTER / POST_RECORDS enricher.
+events (engine + cif_writer + fhir_r4_adapter), and contains at least
+one `stage_total` aggregate line per always-on POST_ENCOUNTER /
+POST_RECORDS enricher.
 """
 
 from __future__ import annotations
@@ -83,3 +84,65 @@ def test_generate_writes_simulator_log_with_expected_events() -> None:
             assert st["calls"] >= 1
             assert isinstance(st["elapsed_s"], float)
             assert st["elapsed_s"] >= 0.0
+
+
+@pytest.mark.integration
+def test_generate_fhir_writes_cif_and_fhir_export_events() -> None:
+    """Run a tiny JP cohort with --format fhir and verify the CIF write +
+    FHIR export phase events (Issue #175) are present with the expected
+    payload shape (patients / bytes_out / resources / files / elapsed_s /
+    sort sub-phase)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "clinosim.simulator.cli",
+                "generate",
+                "--country",
+                "JP",
+                "--population",
+                "20",
+                "--seed",
+                "42",
+                "--format",
+                "fhir",
+                "--output",
+                str(out),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, f"generate failed:\n{result.stderr}"
+        log_file = out / "simulator.log"
+        events = [json.loads(line) for line in log_file.read_text().splitlines() if line.strip()]
+        by_event = {ev["event"]: ev for ev in events}
+        # CIF write phase.
+        assert "cif_write_start" in by_event, "cif_write_start missing"
+        assert "cif_write_end" in by_event, "cif_write_end missing"
+        cw_end = by_event["cif_write_end"]
+        assert cw_end["module"] == "cif_writer"
+        assert isinstance(cw_end.get("patients"), int)
+        assert cw_end.get("patients", 0) >= 1
+        assert isinstance(cw_end.get("bytes_out"), int)
+        assert cw_end.get("bytes_out", 0) > 0
+        assert isinstance(cw_end.get("elapsed_s"), float)
+        # FHIR export phase.
+        assert "fhir_export_start" in by_event, "fhir_export_start missing"
+        assert "fhir_export_end" in by_event, "fhir_export_end missing"
+        fx_end = by_event["fhir_export_end"]
+        assert fx_end["module"] == "fhir_r4_adapter"
+        assert isinstance(fx_end.get("patients"), int)
+        assert fx_end.get("patients", 0) >= 1
+        assert isinstance(fx_end.get("resources"), int)
+        assert fx_end.get("resources", 0) > 0
+        assert isinstance(fx_end.get("files"), int)
+        assert fx_end.get("files", 0) > 0
+        assert isinstance(fx_end.get("elapsed_s"), float)
+        # NDJSON sort sub-phase.
+        assert "ndjson_sort_start" in by_event, "ndjson_sort_start missing"
+        assert "ndjson_sort_end" in by_event, "ndjson_sort_end missing"
+        sort_end = by_event["ndjson_sort_end"]
+        assert sort_end["module"] == "fhir_r4_adapter"
+        assert isinstance(sort_end.get("elapsed_s"), float)
