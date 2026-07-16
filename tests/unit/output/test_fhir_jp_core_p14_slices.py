@@ -1,16 +1,18 @@
-"""JP Core P1-4 slice fix pin tests(session 50 iris4h-ai feedback P1-4)。
+"""JP Core Observation.category normalization pin tests。
 
-adv-1 code review CRITICAL finding: session 50 初版で
-`Observation.category:first` の CodeSystem URI を推測で書いてしまい
-(`http://jpfhir.jp/fhir/observation-category`)、実 JP Core 1.2.0 spec
-の fixedUri と不一致で HAPI Validator が silent-no-op。実 spec URI
-(`JP_SimpleObservationCategory_CS`)に修正 + 本 test で URI を pin して
-再発防止。
-
-session 53 iris4h-ai feedback F-2 + B: 従来 prepend 方式(HL7 secondary
-slice 残存)から in-place replace 方式に変更。HL7 URL + session 49
-fabricated URL の両方を JP CS URL に置換、code は保持、eCS `category
-max=1` 制約にも適合。
+これまでの経緯:
+- 初版で `Observation.category:first` の CodeSystem URI を推測で書いた
+  ため(`http://jpfhir.jp/fhir/observation-category`)HAPI Validator が
+  silent-no-op。実 JP Core 1.2.0 spec fixedUri
+  `JP_SimpleObservationCategory_CS` に修正 + 本 test で URI を pin して
+  再発防止(このルールが「spec fixedUri 直接引用」に発展)。
+- 従来 prepend 方式(HL7 secondary slice 残存)から in-place replace
+  方式に変更。HL7 URL + fabricated URL の両方を JP CS URL に置換、code
+  は保持、eCS `category max=1` 制約にも適合。
+- iris4h-ai feedback V5 発見 A' + H により、JP CS 側 display 誤り(155k
+  error)+ HL7 base Vital Signs profile の VSCat slice 欠如(89k error)
+  が判明。normalization を拡張:display 省略 + vital-signs のみ HL7
+  category coding を再併記(2 coding)、他 category は JP CS 単独維持。
 
 同時に MedicationRequest / MedicationAdministration の
 identifier:rpNumber + orderInRp slice の URI も pin テストで守る。
@@ -27,6 +29,7 @@ import pytest
 
 # JP Core 1.2.0 実 spec で固定されている system URI
 JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS"
+HL7_OBSERVATION_CATEGORY_SYSTEM = "http://terminology.hl7.org/CodeSystem/observation-category"
 JP_MEDICATION_RP_GROUP_SYSTEM = "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber"
 JP_MEDICATION_ADMIN_INDEX_SYSTEM = "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex"
 
@@ -42,11 +45,11 @@ def test_observation_category_first_uri_pinned_to_spec():
     assert _JP_OBSERVATION_CATEGORY_SYSTEM == JP_OBSERVATION_CATEGORY_SYSTEM
 
 
-def test_convert_hl7_observation_category_to_jp_replaces_hl7_url():
-    """`_convert_hl7_observation_category_to_jp` は HL7 URL を in-place で
-    JP CS URL に置換する(code は保持、prepend しない)。"""
+def test_normalize_laboratory_category_emits_jp_cs_alone_without_display():
+    """laboratory category は JP CS 単独 coding + display 省略。
+    `JP_Observation_LabResult_eCS` の `category max=1` 制約に適合。"""
     from clinosim.modules.output.fhir_r4_adapter import (
-        _convert_hl7_observation_category_to_jp,
+        _normalize_jp_observation_category,
     )
 
     resource: dict[str, Any] = {
@@ -55,29 +58,62 @@ def test_convert_hl7_observation_category_to_jp_replaces_hl7_url():
             {
                 "coding": [
                     {
-                        "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                        "system": HL7_OBSERVATION_CATEGORY_SYSTEM,
                         "code": "laboratory",
-                        "display": "Laboratory",
+                        "display": "検体検査",
                     }
                 ],
+                "text": "検体検査",
             }
         ],
     }
-    _convert_hl7_observation_category_to_jp(resource)
-    # category は 1 個(eCS max=1 適合)、system は JP CS、code + display 保持
-    assert len(resource["category"]) == 1
-    cod = resource["category"][0]["coding"][0]
-    assert cod["system"] == JP_OBSERVATION_CATEGORY_SYSTEM
-    assert cod["code"] == "laboratory"
-    assert cod["display"] == "Laboratory"
+    _normalize_jp_observation_category(resource)
+    cat = resource["category"][0]
+    assert len(cat["coding"]) == 1
+    cod = cat["coding"][0]
+    assert cod == {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"}
+    # text field は日本語ラベルを保持(feedback Option 1:display 省略 +
+    # 日本語は text で保持、翻訳の自由度は text の方が高い)。
+    assert cat["text"] == "検体検査"
 
 
-def test_convert_hl7_observation_category_replaces_fabricated_url():
-    """session 49 fabricated URL `http://jpfhir.jp/fhir/observation-category`
-    (session 51 で spec fixedUri 訂正済だが古い regen data に残存)も
-    defensive normalize で JP CS URL に置換。"""
+def test_normalize_vital_signs_category_dual_coding_without_display():
+    """vital-signs category は HL7 + JP CS の 2 coding。両方 display 省略。
+    HL7 base Vital Signs profile の VSCat slice discriminator を満たす。"""
     from clinosim.modules.output.fhir_r4_adapter import (
-        _convert_hl7_observation_category_to_jp,
+        _normalize_jp_observation_category,
+    )
+
+    resource: dict[str, Any] = {
+        "resourceType": "Observation",
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": HL7_OBSERVATION_CATEGORY_SYSTEM,
+                        "code": "vital-signs",
+                        "display": "バイタルサイン",
+                    }
+                ],
+                "text": "バイタルサイン",
+            }
+        ],
+    }
+    _normalize_jp_observation_category(resource)
+    cat = resource["category"][0]
+    assert cat["coding"] == [
+        {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
+        {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
+    ]
+    assert cat["text"] == "バイタルサイン"
+
+
+def test_normalize_fabricated_url_replaced():
+    """過去 clinosim 版の fabricated URL
+    `http://jpfhir.jp/fhir/observation-category`(古い regen data に残存
+    しうる)も defensive normalize で JP CS URL に置換。"""
+    from clinosim.modules.output.fhir_r4_adapter import (
+        _normalize_jp_observation_category,
     )
 
     resource: dict[str, Any] = {
@@ -93,16 +129,16 @@ def test_convert_hl7_observation_category_replaces_fabricated_url():
             }
         ],
     }
-    _convert_hl7_observation_category_to_jp(resource)
-    cod = resource["category"][0]["coding"][0]
-    assert cod["system"] == JP_OBSERVATION_CATEGORY_SYSTEM
-    assert cod["code"] == "social-history"
+    _normalize_jp_observation_category(resource)
+    assert resource["category"][0]["coding"] == [
+        {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "social-history"},
+    ]
 
 
-def test_convert_hl7_observation_category_idempotent():
-    """既に JP CS URL の resource は no-op。"""
+def test_normalize_is_idempotent_for_laboratory():
+    """正規化後の laboratory 状態を再度 normalize しても同一結果。"""
     from clinosim.modules.output.fhir_r4_adapter import (
-        _convert_hl7_observation_category_to_jp,
+        _normalize_jp_observation_category,
     )
 
     resource: dict[str, Any] = {
@@ -110,46 +146,100 @@ def test_convert_hl7_observation_category_idempotent():
         "category": [
             {
                 "coding": [
-                    {
-                        "system": JP_OBSERVATION_CATEGORY_SYSTEM,
-                        "code": "laboratory",
-                    }
+                    {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"},
                 ],
             }
         ],
     }
-    before = [c["coding"][0]["system"] for c in resource["category"]]
-    _convert_hl7_observation_category_to_jp(resource)
-    after = [c["coding"][0]["system"] for c in resource["category"]]
-    assert before == after
+    _normalize_jp_observation_category(resource)
+    after_first = [dict(c) for c in resource["category"][0]["coding"]]
+    _normalize_jp_observation_category(resource)
+    after_second = [dict(c) for c in resource["category"][0]["coding"]]
+    assert after_first == after_second
 
 
-def test_convert_hl7_observation_category_skips_non_observation():
+def test_normalize_is_idempotent_for_vital_signs():
+    """正規化後の vital-signs 状態(HL7 + JP CS 2 coding)を再度
+    normalize しても 2 coding のまま維持(重複追加しない)。"""
+    from clinosim.modules.output.fhir_r4_adapter import (
+        _normalize_jp_observation_category,
+    )
+
+    resource: dict[str, Any] = {
+        "resourceType": "Observation",
+        "category": [
+            {
+                "coding": [
+                    {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
+                    {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
+                ],
+            }
+        ],
+    }
+    _normalize_jp_observation_category(resource)
+    assert resource["category"][0]["coding"] == [
+        {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
+        {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
+    ]
+
+
+def test_normalize_preserves_non_category_coding():
+    """observation-category 以外の system(独自 CodeSystem 等)は preserve。"""
+    from clinosim.modules.output.fhir_r4_adapter import (
+        _normalize_jp_observation_category,
+    )
+
+    custom_coding = {
+        "system": "http://example.com/CodeSystem/custom-category",
+        "code": "custom-lab",
+    }
+    resource: dict[str, Any] = {
+        "resourceType": "Observation",
+        "category": [
+            {
+                "coding": [
+                    {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"},
+                    custom_coding,
+                ],
+            }
+        ],
+    }
+    _normalize_jp_observation_category(resource)
+    # 独自 coding は先頭にそのまま残り、JP CS coding が末尾に追加。
+    assert resource["category"][0]["coding"] == [
+        custom_coding,
+        {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"},
+    ]
+
+
+def test_normalize_skips_non_observation():
     """Observation 以外の resource には触れない。"""
     from clinosim.modules.output.fhir_r4_adapter import (
-        _convert_hl7_observation_category_to_jp,
+        _normalize_jp_observation_category,
     )
 
     resource = {"resourceType": "Encounter", "category": [{"coding": []}]}
-    _convert_hl7_observation_category_to_jp(resource)
+    _normalize_jp_observation_category(resource)
     assert resource == {"resourceType": "Encounter", "category": [{"coding": []}]}
 
 
 @pytest.mark.parametrize(
-    "hl7_code",
+    ("hl7_code", "expected_dual_coding"),
     [
-        "laboratory",
-        "vital-signs",
-        "imaging",
-        "procedure",
-        "social-history",
+        ("laboratory", False),
+        ("vital-signs", True),
+        ("imaging", False),
+        ("procedure", False),
+        ("social-history", False),
+        ("survey", False),
+        ("exam", False),
     ],
 )
-def test_convert_hl7_observation_category_preserves_codes(hl7_code):
-    """HL7 code はそのまま JP CS URL 下で保持される
-    (JP_SimpleObservationCategory_CS は HL7 と code 語彙が概ね一致)。"""
+def test_normalize_dual_coding_only_for_vital_signs(hl7_code, expected_dual_coding):
+    """vital-signs のみ HL7 + JP CS の 2 coding、他 code は JP CS 単独。
+    (Lab eCS `category max=1` 制約を保持するため vital-signs 以外は 1 coding)。"""
     from clinosim.modules.output.fhir_r4_adapter import (
-        _convert_hl7_observation_category_to_jp,
+        _normalize_jp_observation_category,
     )
 
     resource: dict[str, Any] = {
@@ -158,16 +248,24 @@ def test_convert_hl7_observation_category_preserves_codes(hl7_code):
             {
                 "coding": [
                     {
-                        "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                        "system": HL7_OBSERVATION_CATEGORY_SYSTEM,
                         "code": hl7_code,
                     }
                 ],
             }
         ],
     }
-    _convert_hl7_observation_category_to_jp(resource)
-    assert resource["category"][0]["coding"][0]["system"] == JP_OBSERVATION_CATEGORY_SYSTEM
-    assert resource["category"][0]["coding"][0]["code"] == hl7_code
+    _normalize_jp_observation_category(resource)
+    codings = resource["category"][0]["coding"]
+    if expected_dual_coding:
+        assert codings == [
+            {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code},
+            {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code},
+        ]
+    else:
+        assert codings == [
+            {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code},
+        ]
 
 
 def test_medication_request_jp_identifier_slice_uris_pinned():
