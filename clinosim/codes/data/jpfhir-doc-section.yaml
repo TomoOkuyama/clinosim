@@ -14,7 +14,10 @@
 #   PCS(患者ケアサマリー):422
 metadata:
   name: JP-CLINS Document Section Code
-  uri: http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section
+  # spec `.url` fixedUri:resource id (`jp-codeSystem-clins-document-section`)
+  # を path segment に含めない(session 53 iris4h-ai feedback D 修正、
+  # session 51 rule「spec fixedUri 直接引用」準拠)。
+  uri: http://jpfhir.jp/fhir/clins/CodeSystem/document-section
   version: "1.12.0"
   source: "jpfhir.jp JP-CLINS v1.12.0 CodeSystem jp-codeSystem-clins-document-section"
   description: JP-CLINS document section code system for FHIR Composition.section
