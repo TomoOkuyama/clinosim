@@ -89,6 +89,15 @@ def main() -> None:
         "loaded from cache instead of re-simulated. Enables cron 日次追記 for "
         "large populations (p=500k advance drops from ~13h to ~minutes).",
     )
+    gen.add_argument(
+        "--log-file",
+        default=None,
+        help="Path to the structured JSONL simulator log (Issue #172). Defaults "
+        "to <output-dir>/simulator.log. Each line is one JSON event with "
+        "`ts` / `module` / `event` / stage timings. Use `tail -f` to watch a "
+        "run live; use `jq -c '{module,event,elapsed_s}'` for post-run "
+        "profiling. Log level via CLINOSIM_LOG_LEVEL (default INFO).",
+    )
 
     # === test-disease: generate specific disease/archetype ===
     td = sub.add_parser("test-disease", help="Generate data for a specific disease and archetype")
@@ -561,6 +570,15 @@ def main() -> None:
         cache_dir_arg = getattr(args, "cache_dir", None)
         if cache_dir_arg:
             print(f"  Cache dir (F4 memoize): {cache_dir_arg}")
+        # Issue #172: attach the unified simulator JSONL log before invoking
+        # run_beta so its phase-boundary events and enricher aggregates are
+        # captured. Default path is <output-dir>/simulator.log; overridable
+        # via --log-file. Level via CLINOSIM_LOG_LEVEL (default INFO).
+        from clinosim.simulator import log as sim_log
+
+        log_path = getattr(args, "log_file", None) or os.path.join(args.output, "simulator.log")
+        sim_log.configure(log_path)
+        print(f"  Log: {log_path}")
         dataset = run_beta(config, hospital_config_path=hospital_cfg, cache_dir=cache_dir_arg)
 
     else:
