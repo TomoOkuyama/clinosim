@@ -7,6 +7,11 @@ adv-1 code review CRITICAL finding: session 50 初版で
 (`JP_SimpleObservationCategory_CS`)に修正 + 本 test で URI を pin して
 再発防止。
 
+session 53 iris4h-ai feedback F-2 + B: 従来 prepend 方式(HL7 secondary
+slice 残存)から in-place replace 方式に変更。HL7 URL + session 49
+fabricated URL の両方を JP CS URL に置換、code は保持、eCS `category
+max=1` 制約にも適合。
+
 同時に MedicationRequest / MedicationAdministration の
 identifier:rpNumber + orderInRp slice の URI も pin テストで守る。
 
@@ -15,6 +20,8 @@ URI 出典:iris4h-ai/jp_core/package/StructureDefinition-jp-*.json の
 """
 
 from __future__ import annotations
+
+from typing import Any
 
 import pytest
 
@@ -35,13 +42,14 @@ def test_observation_category_first_uri_pinned_to_spec():
     assert _JP_OBSERVATION_CATEGORY_SYSTEM == JP_OBSERVATION_CATEGORY_SYSTEM
 
 
-def test_inject_jp_observation_category_first_uses_spec_uri():
-    """`_inject_jp_observation_category_first` は spec URI で prepend する。"""
+def test_convert_hl7_observation_category_to_jp_replaces_hl7_url():
+    """`_convert_hl7_observation_category_to_jp` は HL7 URL を in-place で
+    JP CS URL に置換する(code は保持、prepend しない)。"""
     from clinosim.modules.output.fhir_r4_adapter import (
-        _inject_jp_observation_category_first,
+        _convert_hl7_observation_category_to_jp,
     )
 
-    resource = {
+    resource: dict[str, Any] = {
         "resourceType": "Observation",
         "category": [
             {
@@ -55,23 +63,49 @@ def test_inject_jp_observation_category_first_uses_spec_uri():
             }
         ],
     }
-    _inject_jp_observation_category_first(resource)
-    # First slice は JP CodeSystem
-    first = resource["category"][0]
-    assert first["coding"][0]["system"] == JP_OBSERVATION_CATEGORY_SYSTEM
-    assert first["coding"][0]["code"] == "laboratory"
-    # 既存 HL7 slice は second として保持
-    second = resource["category"][1]
-    assert "hl7.org" in second["coding"][0]["system"]
+    _convert_hl7_observation_category_to_jp(resource)
+    # category は 1 個(eCS max=1 適合)、system は JP CS、code + display 保持
+    assert len(resource["category"]) == 1
+    cod = resource["category"][0]["coding"][0]
+    assert cod["system"] == JP_OBSERVATION_CATEGORY_SYSTEM
+    assert cod["code"] == "laboratory"
+    assert cod["display"] == "Laboratory"
 
 
-def test_inject_jp_observation_category_first_idempotent():
-    """既に JP-first slice ある場合は再挿入しない。"""
+def test_convert_hl7_observation_category_replaces_fabricated_url():
+    """session 49 fabricated URL `http://jpfhir.jp/fhir/observation-category`
+    (session 51 で spec fixedUri 訂正済だが古い regen data に残存)も
+    defensive normalize で JP CS URL に置換。"""
     from clinosim.modules.output.fhir_r4_adapter import (
-        _inject_jp_observation_category_first,
+        _convert_hl7_observation_category_to_jp,
     )
 
-    resource = {
+    resource: dict[str, Any] = {
+        "resourceType": "Observation",
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": "http://jpfhir.jp/fhir/observation-category",
+                        "code": "social-history",
+                    }
+                ],
+            }
+        ],
+    }
+    _convert_hl7_observation_category_to_jp(resource)
+    cod = resource["category"][0]["coding"][0]
+    assert cod["system"] == JP_OBSERVATION_CATEGORY_SYSTEM
+    assert cod["code"] == "social-history"
+
+
+def test_convert_hl7_observation_category_idempotent():
+    """既に JP CS URL の resource は no-op。"""
+    from clinosim.modules.output.fhir_r4_adapter import (
+        _convert_hl7_observation_category_to_jp,
+    )
+
+    resource: dict[str, Any] = {
         "resourceType": "Observation",
         "category": [
             {
@@ -84,20 +118,20 @@ def test_inject_jp_observation_category_first_idempotent():
             }
         ],
     }
-    original = [c["coding"][0]["system"] for c in resource["category"]]
-    _inject_jp_observation_category_first(resource)
+    before = [c["coding"][0]["system"] for c in resource["category"]]
+    _convert_hl7_observation_category_to_jp(resource)
     after = [c["coding"][0]["system"] for c in resource["category"]]
-    assert original == after
+    assert before == after
 
 
-def test_inject_jp_observation_category_skips_non_observation():
+def test_convert_hl7_observation_category_skips_non_observation():
     """Observation 以外の resource には触れない。"""
     from clinosim.modules.output.fhir_r4_adapter import (
-        _inject_jp_observation_category_first,
+        _convert_hl7_observation_category_to_jp,
     )
 
     resource = {"resourceType": "Encounter", "category": [{"coding": []}]}
-    _inject_jp_observation_category_first(resource)
+    _convert_hl7_observation_category_to_jp(resource)
     assert resource == {"resourceType": "Encounter", "category": [{"coding": []}]}
 
 
@@ -111,14 +145,14 @@ def test_inject_jp_observation_category_skips_non_observation():
         "social-history",
     ],
 )
-def test_inject_jp_observation_category_preserves_hl7_codes(hl7_code):
-    """HL7 code はそのまま JP slice の code として再利用される
+def test_convert_hl7_observation_category_preserves_codes(hl7_code):
+    """HL7 code はそのまま JP CS URL 下で保持される
     (JP_SimpleObservationCategory_CS は HL7 と code 語彙が概ね一致)。"""
     from clinosim.modules.output.fhir_r4_adapter import (
-        _inject_jp_observation_category_first,
+        _convert_hl7_observation_category_to_jp,
     )
 
-    resource = {
+    resource: dict[str, Any] = {
         "resourceType": "Observation",
         "category": [
             {
@@ -131,7 +165,8 @@ def test_inject_jp_observation_category_preserves_hl7_codes(hl7_code):
             }
         ],
     }
-    _inject_jp_observation_category_first(resource)
+    _convert_hl7_observation_category_to_jp(resource)
+    assert resource["category"][0]["coding"][0]["system"] == JP_OBSERVATION_CATEGORY_SYSTEM
     assert resource["category"][0]["coding"][0]["code"] == hl7_code
 
 
