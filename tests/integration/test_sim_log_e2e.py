@@ -65,6 +65,7 @@ def test_generate_writes_simulator_log_with_expected_events() -> None:
             "inpatient_loop_done",
             "readmissions_done",
             "healthcare_calendar_generated",
+            "outpatient_done",
             "run_beta_done",
         }
         got_events = {ev["event"] for ev in events}

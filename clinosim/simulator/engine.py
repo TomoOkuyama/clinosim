@@ -653,6 +653,7 @@ def run_beta(
         n_calendar += 1
 
     print(f"  Outpatient done: {n_post_dc} post-discharge + {n_calendar} calendar", flush=True)
+    sim_log.info("engine", "outpatient_done", post_discharge=n_post_dc, calendar=n_calendar)
 
     # === ED visits (not admitted — auto-discovered from encounter YAMLs) ===
     from clinosim.modules.encounter.protocol import load_all_encounter_conditions
