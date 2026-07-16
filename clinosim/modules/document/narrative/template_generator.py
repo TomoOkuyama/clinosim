@@ -222,6 +222,18 @@ _GENERIC_ASSESSMENT_EN = "Clinical assessment ongoing"
 _GENERIC_PLAN_JA = "治療継続"
 _GENERIC_PLAN_EN = "Continue current management"
 
+# session 53 (#149): English HPI onset phrases per severity — disease YAML
+# `hpi_template.onset_pattern` is Japanese-only, so EN locale must synthesize
+# its own text rather than fall back to the Japanese source (which caused US
+# Composition resources to leak CJK into `.section[].text.div`). Per-disease
+# English wording quality is deferred to β-JP-1 LLM narrative pass; these
+# generic phrases are clinically neutral and locale-appropriate.
+_HPI_ONSET_EN: dict[str, str] = {
+    "mild": "Patient reports gradual onset of symptoms over the preceding days.",
+    "moderate": "Patient reports symptoms developing over several days with progressive worsening.",
+    "severe": "Patient reports rapid symptom worsening prompting today's presentation.",
+}
+
 # α-min-2: Nursing section fallback phrases
 _NURSING_HISTORY_FALLBACK_JA = "入院目的・既往歴：特記事項なし"
 _NURSING_HISTORY_FALLBACK_EN = "Nursing history: no significant findings"
@@ -447,28 +459,41 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         soap_labels = _SOAP_JA if is_ja else _SOAP_EN
 
-        # Resolve daily trajectory for this day (with fallback chain)
-        traj, traj_source = self._resolve_daily_trajectory_with_source(
-            ctx, ctx.clinical_course_archetype, ctx.day_index
-        )
-        if traj_source:
-            facts.append(traj_source)
+        # session 53 (#149 sibling): daily_trajectory / physical_exam_findings
+        # values (disease YAML + reference_data) are JP-only strings. EN locale
+        # must not read the JP source directly — instead synthesize generic
+        # English SOAP text. Per-archetype English content is deferred to
+        # β-JP-1 LLM narrative pass.
+        if not is_ja:
+            facts.append("generic:progress_note_soap_en")
+            subjective = _GENERIC_FALLBACK_EN
+            objective = _GENERIC_FALLBACK_EN
+            assessment = _GENERIC_ASSESSMENT_EN
+            plan = _GENERIC_PLAN_EN
+        else:
+            # Resolve daily trajectory for this day (with fallback chain)
+            traj, traj_source = self._resolve_daily_trajectory_with_source(
+                ctx, ctx.clinical_course_archetype, ctx.day_index
+            )
+            if traj_source:
+                facts.append(traj_source)
 
-        _generic_s = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
-        _generic_a = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
-        _generic_p = _GENERIC_PLAN_JA if is_ja else _GENERIC_PLAN_EN
-        subjective = traj.get("subjective") or _generic_s
-        objective = traj.get("objective") or _generic_s
-        assessment = traj.get("assessment") or _generic_a
-        plan = traj.get("plan") or _generic_p
+            _generic_s = _GENERIC_FALLBACK_JA
+            _generic_a = _GENERIC_ASSESSMENT_JA
+            _generic_p = _GENERIC_PLAN_JA
+            subjective = traj.get("subjective") or _generic_s
+            objective = traj.get("objective") or _generic_s
+            assessment = traj.get("assessment") or _generic_a
+            plan = traj.get("plan") or _generic_p
 
-        # Add physical exam findings to the objective section
-        phys_exam = self._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
-        if phys_exam:
-            facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}")
-        phys_summary = self._format_physical_exam(phys_exam, ctx.severity, is_ja)
-        if phys_summary:
-            objective = f"{objective}。{phys_summary}" if is_ja else f"{objective}. {phys_summary}"
+            # Add physical exam findings to the objective section (JP only,
+            # EN skips to prevent CJK leak — sibling of _build_physical_examination fix)
+            phys_exam = self._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
+            if phys_exam:
+                facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}")
+            phys_summary = self._format_physical_exam(phys_exam, ctx.severity, is_ja)
+            if phys_summary:
+                objective = f"{objective}。{phys_summary}"
 
         # Build SOAP note
         sep = "\n"
@@ -709,6 +734,19 @@ class TemplateNarrativeGenerator:
         if hpi_tmpl is None:
             return fallback, facts
 
+        # session 53 (#149): US locale leak fix. `hpi_template.onset_pattern`
+        # and `trigger_options` in disease YAMLs are JP-only strings. Previously
+        # EN locale emitted the JP text (tagged `:ja_only_fallback`), which
+        # surfaced as CJK in US Composition `.section[].text.div`. Now EN
+        # locale synthesizes a locale-neutral English phrase per severity and
+        # skips `trigger_options` entirely (per-disease English wording is
+        # deferred to β-JP-1 LLM narrative pass — a functional fallback beats
+        # a locale leak).
+        if not is_ja:
+            onset_text_en = _HPI_ONSET_EN.get(ctx.severity) or _HPI_ONSET_EN["moderate"]
+            facts.append(f"generic:hpi_onset_en.{ctx.severity}")
+            return onset_text_en, facts
+
         onset_pattern = _o(hpi_tmpl, "onset_pattern", {})
         if isinstance(onset_pattern, dict):
             onset_text = onset_pattern.get(ctx.severity) or onset_pattern.get("moderate") or ""
@@ -720,19 +758,7 @@ class TemplateNarrativeGenerator:
 
         if onset_text:
             text = f"{onset_text} {trigger}".strip() if trigger else onset_text
-            fact = f"disease_protocol.narrative.hpi_template.onset_pattern.{ctx.severity}"
-            # hpi_template.onset_pattern (disease YAML) has no per-language split —
-            # only severity keys (mild/moderate/severe), Japanese-sourced text.
-            # Tag + warn for EN-locale auditability (AD-65 Bug A, documented
-            # ja_only_fallback convention — see module docstring).
-            if not is_ja:
-                fact += ":ja_only_fallback"
-                logger.warning(
-                    "hpi_template.onset_pattern has no English variant; falling back "
-                    "to Japanese source text for severity=%s",
-                    ctx.severity,
-                )
-            facts.append(fact)
+            facts.append(f"disease_protocol.narrative.hpi_template.onset_pattern.{ctx.severity}")
             if trigger:
                 facts.append("disease_protocol.narrative.hpi_template.trigger_options[0]")
         else:
@@ -867,28 +893,23 @@ class TemplateNarrativeGenerator:
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
+        # session 53 (#149 sibling): physical_exam_findings values (disease YAML
+        # + reference_data) are JP-only strings. Previously EN locale emitted
+        # them with a `:ja_only_fallback` tag, leaking CJK into US narratives.
+        # Now EN locale skips the JP source entirely and uses a generic
+        # placeholder; per-disease English content is deferred to β-JP-1 LLM
+        # narrative pass.
+        if not is_ja:
+            facts.append("generic:physical_exam_en")
+            return _GENERIC_FALLBACK_EN, facts
+
         phys_exam = self._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
         if phys_exam:
-            fact = f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}"
-            # physical_exam_findings (disease YAML + reference_data) carries no
-            # per-language split at all (data-authoring gap, tracked separately
-            # from this code fix) — content is always Japanese-sourced clinical
-            # text. Tag + warn so EN-locale (US) narratives are auditable
-            # instead of silently emitting Japanese with no trace (AD-65 Bug A,
-            # documented ja_only_fallback convention — see module docstring).
-            if not is_ja:
-                fact += ":ja_only_fallback"
-                logger.warning(
-                    "physical_exam_findings has no English variant; falling back to "
-                    "Japanese source text for archetype=%s day=%s",
-                    ctx.clinical_course_archetype,
-                    ctx.day_index,
-                )
-            facts.append(fact)
+            facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}")
 
         text = self._format_physical_exam(phys_exam, ctx.severity, is_ja)
         if not text:
-            text = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+            text = _GENERIC_FALLBACK_JA
 
         return text, facts
 
@@ -898,33 +919,26 @@ class TemplateNarrativeGenerator:
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
+        # session 53 (#149 sibling): daily_trajectory values (disease YAML) are
+        # JP-only strings. Previously EN locale emitted them with a
+        # `:ja_only_fallback` tag, leaking CJK into US narratives. Now EN
+        # locale skips the JP source and uses generic English assessment /
+        # plan phrases; per-archetype English wording is deferred to β-JP-1.
+        if not is_ja:
+            facts.append("generic:daily_trajectory_en")
+            text = f"Assessment: {_GENERIC_ASSESSMENT_EN}. Plan: {_GENERIC_PLAN_EN}."
+            return text, facts
+
         traj, traj_src = self._resolve_daily_trajectory_with_source(ctx, ctx.clinical_course_archetype, 0)
         if traj_src:
-            # daily_trajectory (disease YAML) has no per-language split —
-            # Japanese-sourced text only (same data-authoring gap class as
-            # hpi_template.onset_pattern / physical_exam_findings). Tag + warn
-            # for EN-locale auditability (AD-65 Bug A documented
-            # ja_only_fallback convention — see module docstring; β-JP-1
-            # chain 1a: this section only started emitting trajectory text
-            # once ctx.disease_protocol was wired).
-            if not is_ja:
-                traj_src += ":ja_only_fallback"
-                logger.warning(
-                    "daily_trajectory has no English variant; falling back to Japanese source text for archetype=%s",
-                    ctx.clinical_course_archetype,
-                )
             facts.append(traj_src)
 
-        _generic_a = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
-        _generic_p = _GENERIC_PLAN_JA if is_ja else _GENERIC_PLAN_EN
+        _generic_a = _GENERIC_ASSESSMENT_JA
+        _generic_p = _GENERIC_PLAN_JA
         assessment = traj.get("assessment") or _generic_a
         plan = traj.get("plan") or _generic_p
 
-        if is_ja:
-            text = f"評価: {assessment}。方針: {plan}。"
-        else:
-            text = f"Assessment: {assessment}. Plan: {plan}."
-
+        text = f"評価: {assessment}。方針: {plan}。"
         return text, facts
 
     def _build_admission_summary(self, ctx: NarrativeContext) -> tuple[str, list[str]]:

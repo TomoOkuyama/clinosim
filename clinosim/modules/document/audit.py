@@ -81,15 +81,20 @@ does not have a jp_language_checks field. Deferred to a follow-up sweep
 verify: DocumentReference.type.coding[].display in ja / Composition.section[].title
 in ja / AllergyIntolerance.code.text in ja / ClinicalImpression.description in ja.
 
-TODO(AD-65 Bug A residual gap): `hpi_template.onset_pattern` (disease YAML) and
-`physical_exam_findings` (disease YAML + `reference_data/physical_exam_findings.yaml`)
-carry no per-language split at all — a data-authoring gap across all 32 disease
-YAMLs, out of scope for the Task 9 code fix / Task 10 YAML `_en` population sweep
-(both explicitly deferred this; see task-9-report.md / task-10-report.md). Until
-closed, `KNOWN_JA_ONLY_FALLBACK_SECTIONS` intentionally excludes `hpi` +
-`physical_examination` from the ja-char count so this gate tracks the actual
-Bug-A locale-routing fix rather than perpetually failing on a known, tracked,
-separate issue. See TODO.md "disease YAML English narrative content" entry.
+Historical (AD-65 Bug A residual gap, closed session 53 by PR #149):
+`hpi_template.onset_pattern` / `physical_exam_findings` / `daily_trajectory`
+disease YAML values are Japanese-only strings. Previously the template
+generator emitted them into US narratives with a `:ja_only_fallback` fact
+tag, leaking CJK into `Composition.section[].text.div`. Session 53
+(``template_generator._build_hpi`` / ``_build_physical_examination`` /
+``_build_assessment_and_plan`` / ``_render_progress_note_text``) short-
+circuits EN locale to generic English placeholders before touching those
+YAML values, closing the leak at the code path.
+
+``KNOWN_JA_ONLY_FALLBACK_SECTIONS`` is retained as a defensive audit
+workaround-slot so any *new* data-authoring gap for these sections would
+be picked up quickly; per-disease English wording quality remains
+deferred to the β-JP-1 LLM narrative pass.
 """
 
 from __future__ import annotations
