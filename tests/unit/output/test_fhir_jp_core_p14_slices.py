@@ -158,6 +158,112 @@ def test_normalize_is_idempotent_for_laboratory():
     assert after_first == after_second
 
 
+def test_normalize_ecs_profile_forces_dual_coding_for_lab():
+    """`JP_Observation_LabResult_eCS` profile を含む Observation は
+    laboratory category でも HL7 + JP CS の dual coding を emit する
+    (fhir-jp-validator feedback 2026-07-16 §"【最優先 3】" 対応)。
+
+    `category:first` slice discriminator が LabResult_eCS では HL7
+    observation-category を要求するため、JP CS 単独では slice が
+    満たされない。同時に JP_Observation_Common が併記されている場合の
+    JP CS coding 要件も dual coding で満たす。"""
+    from clinosim.modules.output.fhir_r4_adapter import (
+        _normalize_jp_observation_category,
+    )
+
+    resource: dict[str, Any] = {
+        "resourceType": "Observation",
+        "meta": {
+            "profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult",
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common",
+                "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS",
+            ]
+        },
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": JP_OBSERVATION_CATEGORY_SYSTEM,
+                        "code": "laboratory",
+                    }
+                ],
+                "text": "検体検査",
+            }
+        ],
+    }
+    _normalize_jp_observation_category(resource)
+    cat = resource["category"][0]
+    # Both HL7 and JP CS codings emitted (dual satisfy both profiles' slices)
+    assert cat["coding"] == [
+        {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"},
+        {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"},
+    ]
+    # text field preserved (feedback Option 1)
+    assert cat["text"] == "検体検査"
+
+
+def test_normalize_non_ecs_lab_still_jp_cs_alone():
+    """eCS profile なしの Observation は従来通り JP CS 単独 coding。
+    (Common single-coding は non-eCS observation の base binding として
+    引き続き正しい形。regression 防衛)"""
+    from clinosim.modules.output.fhir_r4_adapter import (
+        _normalize_jp_observation_category,
+    )
+
+    resource: dict[str, Any] = {
+        "resourceType": "Observation",
+        "meta": {
+            "profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common",
+            ]
+        },
+        "category": [
+            {
+                "coding": [
+                    {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "social-history"},
+                ],
+                "text": "社会歴",
+            }
+        ],
+    }
+    _normalize_jp_observation_category(resource)
+    cat = resource["category"][0]
+    assert cat["coding"] == [
+        {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "social-history"},
+    ]
+
+
+def test_normalize_ecs_profile_idempotent():
+    """eCS Observation を 2 回 normalize しても HL7 + JP CS 2 coding
+    のまま維持(重複追加しない)。"""
+    from clinosim.modules.output.fhir_r4_adapter import (
+        _normalize_jp_observation_category,
+    )
+
+    resource: dict[str, Any] = {
+        "resourceType": "Observation",
+        "meta": {
+            "profile": [
+                "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS",
+            ]
+        },
+        "category": [
+            {
+                "coding": [
+                    {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"},
+                ],
+            }
+        ],
+    }
+    _normalize_jp_observation_category(resource)
+    after_first = [dict(c) for c in resource["category"][0]["coding"]]
+    _normalize_jp_observation_category(resource)
+    after_second = [dict(c) for c in resource["category"][0]["coding"]]
+    assert after_first == after_second
+    assert len(after_first) == 2
+
+
 def test_normalize_is_idempotent_for_vital_signs():
     """正規化後の vital-signs 状態(HL7 + JP CS 2 coding)を再度
     normalize しても 2 coding のまま維持(重複追加しない)。"""
