@@ -98,6 +98,35 @@ def _o(order: Any, name: str, default: Any = None) -> Any:
     return get_attr_or_key(order, name, default)
 
 
+def _build_sr_code_field(
+    *,
+    system: str,
+    code: str,
+    display: str,
+    text: str,
+) -> dict[str, Any]:
+    """Build `ServiceRequest.code` while skipping the coding[] entry on empty code.
+
+    FHIR R4 `ele-1` (`All FHIR elements must have a @value or children`) rejects
+    an empty-string element value. Imaging orders in particular lack a LOINC
+    procedure code (clinosim identifies imaging via DICOM modality + SNOMED body
+    site instead), and a subset of lab orders arrive with an empty resolved code
+    (panel-level orders where the panel LOINC could not be resolved). In both
+    cases the human-readable name is preserved in ``text`` — a `code` field with
+    only ``text`` is FHIR-valid and covers the "coding-less" recommendation from
+    the 2026-07-16 fhir-jp-validator feedback.
+    """
+    code_field: dict[str, Any] = {}
+    if code:
+        entry: dict[str, Any] = {"system": system, "code": code}
+        if display:
+            entry["display"] = display
+        code_field["coding"] = [entry]
+    if text:
+        code_field["text"] = text
+    return code_field
+
+
 def _status_value(s: Any) -> str:
     """Normalize OrderStatus enum OR plain string to a comparable string value."""
     if isinstance(s, OrderStatus):
@@ -403,16 +432,18 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
             }
         ],
         "priority": _PRIORITY_MAP.get(_o(order, "urgency", "routine"), "routine"),
-        "code": {
-            "coding": [
-                {
-                    "system": get_system_uri("loinc"),
-                    "code": loinc_code,
-                    "display": loinc_display,
-                }
-            ],
-            "text": _o(order, "display_name", ""),
-        },
+        # Imaging orders often lack a LOINC procedure code (clinosim identifies
+        # imaging via DICOM modality + SNOMED body site). FHIR R4 `ele-1` forbids
+        # empty-string element values, so skip the coding[] entry when the LOINC
+        # code is unavailable; the human-readable name is preserved in `text`.
+        # feedback fix (2026-07-16, PR-H): "code": ""ele-1 violation on 5,274
+        # imaging + 19,090 lab ServiceRequest resources.
+        "code": _build_sr_code_field(
+            system=get_system_uri("loinc"),
+            code=loinc_code,
+            display=loinc_display,
+            text=_o(order, "display_name", ""),
+        ),
         "subject": {"reference": f"Patient/{patient_id}"},
         "encounter": {"reference": f"Encounter/{encounter_id_val}"},
     }
@@ -632,23 +663,17 @@ def _build_sr_skeleton(
         # system_key_for("lab", country) so JP emits JLAC10 URI, not the
         # hardcoded loinc.org. This was cycle-2's C2-04 root cause — JLAC10
         # codes were labeled with LOINC system URI (spec violation).
-        "code": {
-            "coding": [
-                {
-                    # C5-01 (session 43 cycle 5): allow the caller to override
-                    # the code system when a JLAC10 fallback to LOINC is
-                    # needed (panel-level orders, or analytes missing from
-                    # the JLAC10 mapping). Default remains the country's lab
-                    # system per CO-4 (session 42 cycle 3).
-                    "system": get_system_uri(
-                        code_system_override_key or system_key_for("lab", "JP" if is_jp(country) else "US")
-                    ),
-                    "code": loinc_code,
-                    "display": loinc_display,
-                }
-            ],
-            "text": loinc_text,
-        },
+        # C5-01 (session 43 cycle 5): the caller may override the code system
+        # when a JLAC10 fallback to LOINC is needed (panel-level orders, or
+        # analytes missing from the JLAC10 mapping).
+        # feedback fix (2026-07-16, PR-H): skip coding[] when loinc_code is
+        # empty (FHIR R4 `ele-1` violation on ~19k lab SRs); preserve text.
+        "code": _build_sr_code_field(
+            system=get_system_uri(code_system_override_key or system_key_for("lab", "JP" if is_jp(country) else "US")),
+            code=loinc_code,
+            display=loinc_display,
+            text=loinc_text,
+        ),
         "subject": {"reference": f"Patient/{patient_id}"},
         "encounter": {"reference": f"Encounter/{encounter_id_val}"},
     }
