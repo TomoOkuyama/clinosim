@@ -290,6 +290,24 @@ def test_jp_locale_category_display_in_ja():
 
 
 # ---------------------------------------------------------------------------
+# Category system + code pin (regression: LA27976-8 was unknown in LOINC 2.82;
+# 424535000 is inactive in SNOMED CT International Edition. The current
+# authoritative value is SNOMED CT 735320007 "Multidisciplinary care team",
+# verified active in 2026-06-01 release via HAPI Validator tx server).
+# ---------------------------------------------------------------------------
+
+
+def test_care_team_category_uses_active_snomed_code():
+    ctx = _make_ctx([_inpatient_enc_dataclass()])
+    ct = _bb_care_teams(ctx)[0]
+    coding = ct["category"][0]["coding"][0]
+    assert coding["system"] == "http://snomed.info/sct", (
+        f"CareTeam.category.system must be SNOMED CT, got: {coding['system']!r}"
+    )
+    assert coding["code"] == "735320007", f"CareTeam.category.code must be 735320007, got: {coding['code']!r}"
+
+
+# ---------------------------------------------------------------------------
 # Dict path (PR-90 lesson: dual access)
 # ---------------------------------------------------------------------------
 

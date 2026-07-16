@@ -45,16 +45,22 @@ __all__ = [
 
 CARE_TEAM_ID_PREFIX = "careteam-"
 
-# SNOMED CT "Clinical team" — verified via SNOMED International browser, 2026-07-01.
-# Registered in clinosim/codes/data/snomed-ct.yaml (Task 11 addition).
-# feedback FB-F7: SNOMED CT 424535000 は現行 SNOMED CT International Edition で
-# 未定義(inactive?)扱いと validator が判定。FHIR R4 CareTeam.category は
-# `preferred` binding = http://hl7.org/fhir/ValueSet/care-team-category (LOINC 系)。
-# LA20429-6 "Encounter-focused care team" が inpatient encounter team に整合。
-_CARE_TEAM_CATEGORY_SYSTEM = get_system_uri("loinc")
-_CARE_TEAM_CATEGORY_CODE = "LA27976-8"  # Episode of care team focused
-_CARE_TEAM_CATEGORY_EN = "Episode of care team focused"
-_CARE_TEAM_CATEGORY_JA = "エピソード・オブ・ケアチーム"
+# SNOMED CT "Multidisciplinary care team" 735320007 — verified active in SNOMED CT
+# International Edition 2026-06-01 via HAPI Validator tx server (2026-07-16 feedback
+# from fhir-jp-validator run). Registered in clinosim/codes/data/snomed-ct.yaml.
+#
+# History:
+# - session 42: SNOMED 424535000 "Clinical team" was flagged inactive by HL7
+#   fhirserver, so we switched to LOINC LA27976-8 "Episode of care team focused".
+# - 2026-07-16 feedback: LOINC LA27976-8 is also unknown in LOINC 2.82 (Unknown
+#   code error, 1913/1913 CareTeam fail rate). Reverting to SNOMED with the
+#   currently active concept 735320007 (Multidisciplinary care team). FHIR R4
+#   CareTeam.category binding is `preferred` = LOINC OR SNOMED; the JP Core
+#   profile does not fix the code system so SNOMED is compliant.
+_CARE_TEAM_CATEGORY_SYSTEM = get_system_uri("snomed-ct")
+_CARE_TEAM_CATEGORY_CODE = "735320007"  # Multidisciplinary care team
+_CARE_TEAM_CATEGORY_EN = "Multidisciplinary care team"
+_CARE_TEAM_CATEGORY_JA = "多職種ケアチーム"
 
 
 def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
