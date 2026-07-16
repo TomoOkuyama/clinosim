@@ -6,7 +6,7 @@ import pytest
 
 _PROFILE_URL = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 _DOC_TYPE_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
-_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section"
+_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
 
 
 def _jp_ds_doc():

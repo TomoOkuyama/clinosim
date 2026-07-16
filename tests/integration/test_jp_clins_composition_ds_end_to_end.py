@@ -24,7 +24,7 @@ from tests.integration._sr_helpers import run_generate
 
 _PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 _DOC_TYPE_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
-_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section"
+_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
 _SNAPSHOT_END = "2026-06-30"
 
 

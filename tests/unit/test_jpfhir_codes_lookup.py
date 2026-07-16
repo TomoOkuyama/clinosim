@@ -14,9 +14,10 @@ def test_jpfhir_doc_typecodes_system_uri():
 
 @pytest.mark.unit
 def test_jpfhir_doc_section_system_uri():
-    assert get_system_uri("jpfhir-doc-section") == (
-        "http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section"
-    )
+    # session 53 iris4h-ai feedback D: URL は JP-CLINS spec `.url` fixedUri
+    # に一致する。resource id (`jp-codeSystem-clins-document-section`) を
+    # path segment に含めない。
+    assert get_system_uri("jpfhir-doc-section") == "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
 
 
 @pytest.mark.unit

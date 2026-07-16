@@ -333,7 +333,13 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
 
 _JP_CLINS_DS_PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 _JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
-_JPFHIR_DOC_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section"
+# session 53 iris4h-ai feedback D:JP-CLINS 実 canonical URL は
+# `.../CodeSystem/document-section`(resource id `jp-codeSystem-clins-
+# document-section` を path に含めない)。iris4h-ai の
+# clinical-information-sharing#1.12.0/package/
+# CodeSystem-jp-codeSystem-clins-document-section.json `.url` fixedUri
+# を直接引用(session 51 rule)。従来の id-in-URL 版は HAPI で 1272 warn。
+_JPFHIR_DOC_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
 
 # JP-CLINS 退院時サマリー section キー → jpfhir-doc-section 番号 code
 _JP_DS_SECTION_CODE: dict[str, str] = {
@@ -353,8 +359,10 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
       - type.coding[0].system = doc-typecodes(LOINC coding は US 互換の
         ため secondary として併存)
       - section は 1-level nested tree:300 構造情報 → 必須 5 子 section
-        (312/322/342/352/360)。section.code.system は
-        jp-codeSystem-clins-document-section(LOINC section code ではない)。
+        (312/322/342/352/360)。section.code.system は JP-CLINS 定義の
+        document-section CodeSystem(URL:
+        `http://jpfhir.jp/fhir/clins/CodeSystem/document-section`、LOINC
+        section code ではない)。
     """
     # 共通 field(id / subject / date / author / encounter / attester /
     # custodian / confidentiality 等)は汎用 builder を再利用し、type と
@@ -459,7 +467,8 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
       - section は 2-level tree:
           top-level:920 紹介元, 910 紹介先, 300 構造情報
           300 の下:950 紹介目的, 340 傷病名・主訴, 360 現病歴
-        section.code.system は jp-codeSystem-clins-document-section 固定。
+        section.code.system は JP-CLINS document-section CodeSystem
+        (URL: `http://jpfhir.jp/fhir/clins/CodeSystem/document-section`)固定。
     """
     comp = _build_composition_generic(doc, sections, lang)
 
