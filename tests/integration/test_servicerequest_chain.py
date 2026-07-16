@@ -164,8 +164,13 @@ def test_run_beta_emits_service_request_ndjson_us():
 
 
 @pytest.mark.integration
-def test_run_beta_emits_service_request_jp_with_ja_display():
-    """JP cohort: SR.category SNOMED display is in Japanese (臨床検査)."""
+def test_run_beta_emits_service_request_jp_with_ja_label():
+    """JP cohort: SR.category SNOMED 108252007 (lab) keeps its Japanese label
+    ("臨床検査") — after P2 A the `display` on the SNOMED coding is stripped
+    (HAPI Validator rejects Japanese `display` on the SNOMED CodeSystem as
+    "Wrong Display Name") and the label survives in the enclosing
+    CodeableConcept's `text` field.
+    """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
         run_generate("JP", 100, 42, out)
@@ -180,11 +185,17 @@ def test_run_beta_emits_service_request_jp_with_ja_display():
             if not line.strip():
                 continue
             sr = json.loads(line)
-            snomed = next(
-                (c for entry in sr["category"] for c in entry["coding"] if c["code"] == "108252007"),
+            entry = next(
+                (e for e in sr["category"] if any(c.get("code") == "108252007" for c in e.get("coding", []))),
                 None,
             )
-            if snomed is None:
+            if entry is None:
                 continue  # not a lab SR (imaging / other) — skip
-            assert snomed["display"] == "臨床検査", f"Expected '臨床検査', got {snomed['display']!r}"
+            snomed = next(c for c in entry["coding"] if c.get("code") == "108252007")
+            # SNOMED coding: display is stripped by the P2 A walker.
+            assert "display" not in snomed or snomed["display"] == "", (
+                f"SNOMED 108252007 leaked display: {snomed.get('display')!r}"
+            )
+            # CodeableConcept.text preserves the Japanese label.
+            assert entry.get("text") == "臨床検査", f"Expected category.text '臨床検査', got {entry.get('text')!r}"
             break  # one sample is sufficient

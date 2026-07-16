@@ -222,10 +222,22 @@ def convert_cif_to_fhir(
         writers[rt].write(json.dumps(resource, ensure_ascii=False) + "\n")
 
     try:
-        # Master resources (Organization + Location) — written once
+        # Master resources (Organization + Location + Device) — written once.
+        # Facility resources bypass `_build_bundle`, so the JP-only post-emit
+        # walkers must be reapplied here or they leak untouched Japanese
+        # display / raw HL7 URIs into the facility subset (iris4h-ai
+        # feedback V4/V5 P2 A regression when Device / Location emit HL7
+        # / SNOMED / DICOM coding with Japanese display).
         facility_bundle = _build_facility_bundle(hospital_config, country)
         for entry in facility_bundle.get("entry", []):
-            write(entry["resource"])
+            resource = entry["resource"]
+            if country == "JP":
+                _apply_jp_core_profile(resource)
+                _apply_jp_clins_profile(resource)
+                _normalize_jp_observation_category(resource)
+                _strip_japanese_display_on_english_only_systems(resource)
+            _normalize_dt_fields(resource)
+            write(resource)
 
         # Walk patient records (structural + merged narrative), build per-record
         # FHIR resources, write each line. Patient-scoped resources
@@ -929,6 +941,16 @@ def _build_bundle(
                 # 満たしつつ display 誤り error(V5 発見 A')も同時に解消
                 # する single seam(builders 個別修正回避)。
                 _normalize_jp_observation_category(resource)
+                # iris4h-ai feedback V4/V5 P2 A: LOINC / SNOMED / HL7
+                # terminology / DICOM / FHIR sid など英語 display のみ定義
+                # されている「standard CodeSystem」に対し、clinosim が
+                # 日本語 display を emit していると HAPI Validator が
+                # 「Wrong Display Name」error を出す(~635k 件)。feedback
+                # Option 1「display 省略、tx server が英語を補完」を採用し、
+                # builders 個別修正の代わりに単一 walker で strip する。
+                # CodeableConcept 側の text は保持されるため人間可読性は
+                # (text 未設定な Coding-direct field を除いて)維持。
+                _strip_japanese_display_on_english_only_systems(resource)
             # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource)
@@ -1125,6 +1147,85 @@ def _normalize_jp_observation_category(resource: dict) -> None:
                 rebuilt.append({"system": _HL7_OBSERVATION_CATEGORY_SYSTEM, "code": code_})
             rebuilt.append({"system": _JP_OBSERVATION_CATEGORY_SYSTEM, "code": code_})
         cat["coding"] = rebuilt
+
+
+# iris4h-ai feedback V4/V5 P2 A: display 省略対象の「英語 display のみ」
+# CodeSystem prefix 一覧。ここに含まれる system の Coding.display に日本語
+# 文字が入っていた場合、post-emit walker が display を削除する。
+# 出典:各 CodeSystem 公式定義(LOINC.org / SNOMED International /
+# HL7 terminology / DICOM / UCUM / HL7 FHIR sid)は英語 display のみ定義
+# しており、日本語文字を含む display は HAPI Validator に「Wrong Display
+# Name」として rejected される。
+#
+# JP-specific CodeSystem(JP Core / JP-CLINS / MEDIS HOT / YJ code /
+# clinosim custom)は本 prefix に含まれず、日本語 display が preserve される。
+_ENGLISH_ONLY_CODING_SYSTEM_PREFIXES: tuple[str, ...] = (
+    "http://loinc.org",
+    "http://snomed.info/sct",
+    "http://terminology.hl7.org/",
+    "http://hl7.org/fhir/",
+    "http://dicom.nema.org/",
+    "http://unitsofmeasure.org",
+)
+
+
+def _contains_japanese_char(text: str) -> bool:
+    """Return True if `text` contains at least one CJK Unified Ideograph /
+    Hiragana / Katakana / halfwidth-fullwidth character.
+
+    ASCII-only strings return False, so display fields that already carry a
+    valid English label are left untouched by the P2 A walker.
+    """
+    for ch in text:
+        cp = ord(ch)
+        if (
+            0x3040 <= cp <= 0x309F  # Hiragana
+            or 0x30A0 <= cp <= 0x30FF  # Katakana
+            or 0x4E00 <= cp <= 0x9FFF  # CJK Unified Ideographs
+            or 0xFF00 <= cp <= 0xFFEF  # Halfwidth and Fullwidth Forms
+        ):
+            return True
+    return False
+
+
+def _strip_japanese_display_on_english_only_systems(node: Any) -> None:
+    """Recursively drop `display` from Coding entries on English-only
+    CodeSystems when the display contains Japanese characters.
+
+    Called only on JP output. Duck-types Coding via `system` + `code` +
+    `display` all being non-empty strings; matches both
+    `CodeableConcept.coding[]` entries and Coding-typed fields
+    (e.g. `ImagingStudy.series[].modality`). The enclosing
+    CodeableConcept's `text` field is not touched, so the Japanese
+    human-readable label survives there.
+
+    Non-standard CodeSystem URIs (JP Core CS / JP-CLINS CS / MEDIS HOT /
+    YJ code / clinosim custom) are outside the prefix allowlist and are
+    preserved as-is.
+
+    Idempotent — re-running on already-normalized data has no effect
+    (the walker only touches entries whose `display` still contains
+    Japanese characters).
+    """
+    if isinstance(node, dict):
+        sys_ = node.get("system")
+        code_ = node.get("code")
+        disp = node.get("display")
+        if (
+            isinstance(sys_, str)
+            and isinstance(code_, str)
+            and isinstance(disp, str)
+            and disp
+            and sys_.startswith(_ENGLISH_ONLY_CODING_SYSTEM_PREFIXES)
+            and _contains_japanese_char(disp)
+        ):
+            del node["display"]
+        for value in node.values():
+            if isinstance(value, (dict, list)):
+                _strip_japanese_display_on_english_only_systems(value)
+    elif isinstance(node, list):
+        for item in node:
+            _strip_japanese_display_on_english_only_systems(item)
 
 
 def _normalize_dt_fields(resource) -> None:
