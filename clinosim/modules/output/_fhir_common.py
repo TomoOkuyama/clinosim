@@ -23,14 +23,15 @@ from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _FREQ_JA,
     _ROUTE_JA,
-    _SEVERITY_DISPLAY_JA,
     _localize_display,
     _localize_dosage_terms,
     _localize_drug_name,
 )
 from clinosim.modules.output._fhir_reference_data import (
+    _JP_CONDITION_SEVERITY_CS,
     _PREFECTURE_CODE,
     _ROUTE_SNOMED,
+    _SEVERITY_JP,
     _SEVERITY_SNOMED,
 )
 
@@ -277,13 +278,33 @@ def _infer_severity(record: dict) -> str:
 
 
 def _severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
-    """Build FHIR severity CodeableConcept from severity string."""
+    """Build FHIR Condition.severity CodeableConcept from severity string.
+
+    session 53 iris4h-ai feedback F-4:JP output では JP_ConditionSeverity_CS
+    (`MI` / `MO` / `SE`)を primary coding、SNOMED を secondary(国際互換性
+    のため保持)として emit。US output は従来通り SNOMED 単独。
+    """
     sev = severity.lower()
     _snomed_map = _SEVERITY_SNOMED.get(sev) or _SEVERITY_SNOMED.get("moderate") or {}
     snomed = dict(_snomed_map)
     if is_jp(country):
-        orig_display = snomed.get("display", "")
-        snomed["display"] = _SEVERITY_DISPLAY_JA.get(orig_display, orig_display)
+        # JP: JP CS primary + SNOMED secondary(SNOMED は英語 display のまま
+        # 保持 = 標準の英語 display と一致)。fallback は moderate(既存挙動と
+        # 同一)。JP CS の display は spec 準拠(`中度`、`中等度` ではない)。
+        _jp_map = _SEVERITY_JP.get(sev) or _SEVERITY_JP.get("moderate") or {}
+        jp_coding = {
+            "system": _JP_CONDITION_SEVERITY_CS,
+            **_jp_map,
+        }
+        snomed_coding = {
+            "system": get_system_uri("snomed-ct"),
+            **snomed,
+        }
+        return {
+            "coding": [jp_coding, snomed_coding],
+            "text": jp_coding.get("display", ""),
+        }
+    # US: SNOMED single coding
     return {
         "coding": [
             {
