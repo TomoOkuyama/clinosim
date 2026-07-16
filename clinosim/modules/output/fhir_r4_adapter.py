@@ -257,6 +257,22 @@ def convert_cif_to_fhir(
             # base-FHIR-optional but JP-eCS-required; universal emission keeps
             # US output consistent and cost-free.
             _populate_observation_identifier_and_last_updated(resource)
+            # PR-E (2026-07-17): emit companion Specimen for lab Observations
+            # (JP_Observation_LabResult_eCS.specimen min=1). No-op on the
+            # facility bundle (no lab Observations) but keeps the code path
+            # symmetric with the main bundle loop.
+            if _lab_observation_needs_specimen(resource):
+                specimen = _build_companion_specimen(resource, country)
+                resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
+                if country == "JP":
+                    # Same JP-only walkers as any other resource: SNOMED
+                    # `display` on the Specimen.type coding is English-only,
+                    # so the P2 A walker strips Japanese chars — the JP text
+                    # stays in `type.text` per feedback Option 1.
+                    _strip_japanese_display_on_english_only_systems(specimen)
+                _normalize_dt_fields(specimen)
+                write(specimen)
+                n_resources += 1
             _normalize_dt_fields(resource)
             write(resource)
             n_resources += 1
@@ -1002,6 +1018,17 @@ def _build_bundle(
             # PR-D (2026-07-17): populate Observation.identifier + meta.lastUpdated
             # (JP eCS min=1). Universal — safe on US output.
             _populate_observation_identifier_and_last_updated(resource)
+            # PR-E (2026-07-17): emit companion Specimen for lab Observations
+            # (JP_Observation_LabResult_eCS.specimen min=1). The Specimen is
+            # added to the bundle entries alongside the Observation, and the
+            # Observation carries a `specimen` reference pointing at it.
+            if _lab_observation_needs_specimen(resource):
+                specimen = _build_companion_specimen(resource, country)
+                resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
+                if country == "JP":
+                    _strip_japanese_display_on_english_only_systems(specimen)
+                _normalize_dt_fields(specimen)
+                entries.append(_entry(specimen))
             # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource)
@@ -1173,6 +1200,85 @@ def _populate_observation_identifier_and_last_updated(resource: dict) -> None:
         )
         if ts:
             meta["lastUpdated"] = ts
+
+
+def _lab_observation_needs_specimen(resource: dict) -> bool:
+    """True for lab Observations that need a companion Specimen resource.
+
+    JP-CLINS `JP_Observation_LabResult_eCS` declares `Observation.specimen`
+    with `min=1`. clinosim lab Observations use ids prefixed `lab-<encounter>-`;
+    microbiology / vital / social-history / imaging / survey Observations use
+    different prefixes and either have their own Specimen (microbiology) or
+    require none. Detect by id prefix + absence of a builder-set `specimen`.
+    """
+    if resource.get("resourceType") != "Observation":
+        return False
+    if resource.get("specimen"):
+        return False
+    rid = resource.get("id", "")
+    return isinstance(rid, str) and rid.startswith("lab-")
+
+
+# Companion-Specimen id prefix. Same shape as the lab-obs id it derives from,
+# preserving the `lab-<encounter>-NNNN` traceable structure.
+_COMPANION_SPECIMEN_ID_PREFIX = "spec-"
+
+# Default specimen: blood (SNOMED 119297000) — matches the majority of clinosim's
+# lab output (CBC / chem panel / LFT / cardiac markers / coagulation / ...).
+_SPECIMEN_TYPE_BLOOD = {"code": "119297000", "display_en": "Blood specimen", "display_ja": "血液検体"}
+# Urine specimen (SNOMED 122575003) — for Urinalysis / urine dipstick tests.
+_SPECIMEN_TYPE_URINE = {"code": "122575003", "display_en": "Urine specimen", "display_ja": "尿検体"}
+
+
+def _pick_specimen_type_for_lab(observation: dict) -> dict:
+    """Pick the Specimen.type coding for a lab Observation. Blood is the
+    default; Urinalysis-style tests get urine specimen.
+
+    The rule is intentionally conservative — only names that clearly indicate
+    a non-blood specimen switch away from blood. Anything else stays blood so
+    clinosim doesn't silently fabricate specimen types on general chem panels.
+    """
+    code_field = observation.get("code") or {}
+    text = str(code_field.get("text", "") or "").lower()
+    for coding in code_field.get("coding", []) or []:
+        display = str(coding.get("display", "") or "").lower()
+        if "urin" in display or "urine" in display:
+            return _SPECIMEN_TYPE_URINE
+    if "urin" in text or "urine" in text:
+        return _SPECIMEN_TYPE_URINE
+    return _SPECIMEN_TYPE_BLOOD
+
+
+def _build_companion_specimen(observation: dict, country: str) -> dict:
+    """Build a minimal Specimen resource paired with a lab Observation.
+
+    Populated fields:
+    - `id`  — `spec-<observation.id>` (canonical namespace, id-stable)
+    - `subject` — copied from the Observation.subject
+    - `type` — SNOMED specimen coding (blood by default; urine for Urinalysis)
+    - `collection.collectedDateTime` — the Observation's effectiveDateTime
+    - `identifier` — `urn:clinosim:specimen-id` for round-trip stability
+    """
+    obs_id = observation.get("id", "")
+    spec_id = f"{_COMPANION_SPECIMEN_ID_PREFIX}{obs_id}"
+    subject = observation.get("subject", {}) or {}
+    type_entry = _pick_specimen_type_for_lab(observation)
+    display = type_entry["display_ja"] if country == "JP" else type_entry["display_en"]
+    specimen: dict[str, Any] = {
+        "resourceType": "Specimen",
+        "id": spec_id,
+        "identifier": [{"system": "urn:clinosim:specimen-id", "value": spec_id}],
+        "subject": subject,
+        "type": {
+            "coding": [{"system": get_system_uri("snomed-ct"), "code": type_entry["code"], "display": display}],
+            "text": display,
+        },
+        "status": "available",
+    }
+    edt = observation.get("effectiveDateTime")
+    if edt:
+        specimen["collection"] = {"collectedDateTime": edt}
+    return specimen
 
 
 def _normalize_jp_observation_category(resource: dict) -> None:
