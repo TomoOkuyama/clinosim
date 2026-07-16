@@ -253,6 +253,10 @@ def convert_cif_to_fhir(
                 _apply_jp_clins_profile(resource)
                 _normalize_jp_observation_category(resource)
                 _strip_japanese_display_on_english_only_systems(resource)
+            # Runs regardless of country: identifier / meta.lastUpdated are
+            # base-FHIR-optional but JP-eCS-required; universal emission keeps
+            # US output consistent and cost-free.
+            _populate_observation_identifier_and_last_updated(resource)
             _normalize_dt_fields(resource)
             write(resource)
             n_resources += 1
@@ -995,6 +999,9 @@ def _build_bundle(
                 # CodeableConcept 側の text は保持されるため人間可読性は
                 # (text 未設定な Coding-direct field を除いて)維持。
                 _strip_japanese_display_on_english_only_systems(resource)
+            # PR-D (2026-07-17): populate Observation.identifier + meta.lastUpdated
+            # (JP eCS min=1). Universal — safe on US output.
+            _populate_observation_identifier_and_last_updated(resource)
             # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource)
@@ -1082,7 +1089,13 @@ _DATETIME_FIELDS = frozenset(
 )
 _PERIOD_FIELDS = frozenset(("start", "end"))
 # instant 型 field(秒精度+TZ 必須)
-_INSTANT_FIELDS = frozenset(("issued",))
+_INSTANT_FIELDS = frozenset(("issued", "lastUpdated"))
+
+# Observation.identifier system — internal namespace for clinosim-generated
+# Observations. Feedback (2026-07-16) noted that JP_Observation_LabResult_eCS
+# declares `identifier` with `min=1`; every Observation now carries this
+# identifier populated from `Observation.id`.
+_CLINOSIM_OBSERVATION_ID_SYSTEM = "urn:clinosim:observation-id"
 
 
 def _normalize_dt(v, want_instant: bool = False):
@@ -1120,6 +1133,46 @@ _HL7_OBSERVATION_CATEGORY_SYSTEMS = frozenset(
         "http://jpfhir.jp/fhir/observation-category",  # legacy fabricated
     ]
 )
+
+
+def _populate_observation_identifier_and_last_updated(resource: dict) -> None:
+    """Populate `Observation.identifier` and `Observation.meta.lastUpdated`.
+
+    JP_Observation_LabResult_eCS (JP-CLINS 1.12.0) requires both fields:
+    - `identifier[]` (`min=1`) — clinosim uses the internal `Observation.id`
+      as the identifier value under a canonical `urn:clinosim:observation-id`
+      system so consumers can round-trip resources across pipelines.
+    - `meta.lastUpdated` (`min=1`) — falls back to `effectiveDateTime` (or
+      `issued` / `effectivePeriod.end`) when the builder did not set one. The
+      value is a good approximation for synthesized data since clinosim has
+      no separate "record last modified" concept.
+
+    Base FHIR admits both as optional, so the walker fires universally and
+    US output picks up the same fields harmlessly. Idempotent — leaves any
+    builder-populated values untouched.
+
+    Feedback fix (2026-07-16, PR-D). Covers the "identifier" + "meta.lastUpdated"
+    bullets of §"【最優先 4】" from the fhir-jp-validator report.
+    """
+    if resource.get("resourceType") != "Observation":
+        return
+    # identifier
+    if not resource.get("identifier"):
+        rid = resource.get("id", "")
+        if rid:
+            resource["identifier"] = [{"system": _CLINOSIM_OBSERVATION_ID_SYSTEM, "value": rid}]
+    # meta.lastUpdated — reuse an existing datetime field. _normalize_dt_fields
+    # then converts it to the FHIR `instant` shape (seconds + TZ).
+    meta = resource.setdefault("meta", {})
+    if not meta.get("lastUpdated"):
+        ts = (
+            resource.get("effectiveDateTime")
+            or resource.get("issued")
+            or (resource.get("effectivePeriod") or {}).get("end")
+            or ""
+        )
+        if ts:
+            meta["lastUpdated"] = ts
 
 
 def _normalize_jp_observation_category(resource: dict) -> None:
