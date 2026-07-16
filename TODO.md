@@ -1,8 +1,70 @@
 # clinosim — TODO
 
-## Status (2026-07-15, **★★★★ session 52 CLOSED — CI 全 6 job green + workflow direct-master → Issue/PR/Merge 切替**)
+## Status (2026-07-16, **★★★★ session 53 CLOSED — 8 PR via Issue→PR→Merge workflow + iris4h-ai regen swap 済**)
 
-**master HEAD**: `72e1b4db33`(direct-master 最終 commit = workflow 切替 documentation)
+**master HEAD**: `7c4b2a2626`(docs(readme): add architecture pipeline SVG (#161))
+
+### Session 53 成果(8 PR merged、legacy 4 issue verify+close、Issue → PR → Merge workflow を初 session フル運用)
+
+**HAPI feedback chain(session 52 の 4 PR に続き session 53 で 4 PR = Tier F/D 系完了)**:
+
+| PR | Issue | 主要成果 | Merge SHA |
+|---|---|---|---|
+| #151 | #150 | **F-2+B** Observation.category → JP CS(HL7 + fabricated URL 両方 in-place replace、eCS `category max=1` 副次解消)| `85f091a538` |
+| #153 | #152 | **F-1** Medication OID → HOT7/9/13/YJ URI dispatch(code 桁数で spec URI 割振り、`_resolve_jp_drug_system_uri` helper)| `d992a86211` |
+| #155 | #154 | **F-4** Condition.severity JP CS primary(`MI/MO/SE` 3 code 写像、SNOMED はセカンダリ保持)| `bda4904f37` |
+| #157 | #156 | **D** CLINS document-section canonical URL 訂正(id-in-URL bug、6 files sweep + sibling sweep で他 2 CodeSystem URL 検証)| `502361326c` |
+
+**HAPI feedback 期待減 ~134k issue(V4 総 3.78M の 3.5%)**、iris4h-ai/fhir_r4 = 2026-07-16 10:12:34 regen swap 済(JP p=10000 seed=300、4.6GB、26 resource types)。#158/#159/#160/#161 は regen 後の merge のため未反映(次回 regen で反映)。
+
+**Backlog issue chain(session 53 で 4 追加解消)**:
+
+| PR | Issue | 主要成果 | Merge SHA |
+|---|---|---|---|
+| #158 | #144 | ClinicalImpression test を `snapshot-in-progress-clinical-impression-status` by-design 対応 + `.github/workflows/ci.yml` deselect 除去 | `27b04e39be` |
+| #160 | #145 | JP Core meta.profile 4 追加 resource(ServiceRequest / DocumentReference / FamilyMemberHistory / ImagingStudy_Radiology)、14→18 resource type、8 pin test 新設 | `6b798138a4` |
+| #159 | #149 | US locale JP text leak 解消。**Sibling sweep**: hpi/physical_examination/daily_trajectory の 3 系統 EN locale で JP YAML 読取を short-circuit。`clinosim dataset build us-100` + eval `no_japanese_leakage: PASS` 実測確認 | `b29cc06c10` |
+| #161 | #148 | architecture pipeline SVG 作成(6 stage、light/dark theme、self-contained、accessibility) | `7c4b2a2626` |
+
+**Legacy issue close verify(session 52 fix 実効確認 3 件 + user 判断 defer close 1 件)**:
+
+- #142 ruff check errors → session 52 で 0 error(verify: `ruff check clinosim tests` = All checks passed!)
+- #143 ruff format issues → session 52 で 566 files already formatted
+- #146 types-* stubs → session 52 で 216 files mypy strict 0 error
+- #147 demo GIF → user 判断で defer close(手順は close comment に記録、後日 asciinema/VHS で録画)
+
+### Workflow rule(session 53 で初フル運用)
+
+**Issue → feature branch → PR → CI 全 job PASS → squash merge → Issue close** を全 8 PR で遵守。DCO check(全 commit `Signed-off-by:` 必須)を途中で追加(feedback_git_commit_signoff.md 保存)。lint noqa 位置破壊など format 副作用を都度 amend で対応。
+
+### Session 53 副産物(新 memory 3 件 + workflow rule)
+
+- `feedback_issue_pr_self_contained.md` — Issue/PR body は self-contained(local file 参照禁止、実 JSON + spec URL で完結)
+- `feedback_git_commit_signoff.md` — `--signoff` 必須、忘れたら `--amend --signoff --no-edit` + `--force-with-lease`
+- **spec fixedUri 直接引用ルール**(session 51 制定)を全 8 PR で厳守。JP Core / JP-CLINS / MEDIS NamingSystem を `iris4h-ai/jp_core/package/*.json` から直接 grep → module-level 定数 + pin test で pin
+
+### Session 53 テスト状態(2026-07-16)
+
+- **Unit 2727 PASS**(session 52 の 2704 + PR2/PR3/PR6/PR7 で計 23 新 test 追加)
+- **mypy strict 0 error**(216 source files 継続)
+- **ruff check + format --check 両 green**(継続)
+- **reproduce.sh PASS**(継続)
+- **Integration** 全 4 PR CI で SUCCESS 完走(直近 30-40 min job 8 回全 PASS)
+- **eval `no_japanese_leakage`** on us-100 = **PASS**(#149 実効確認)
+
+### 未反映 backlog
+
+**iris4h-ai feedback 残 P3-P4(scope 大、user 判断待ち)**:
+
+| 優先 | 発見 | 件数 | 修正内容 | 判断保留理由 |
+|:---:|---|---:|---|---|
+| P3 | E eCS profile 制約違反 | ~334k | Option 1 profile 必須要素 emit(identifier / lastUpdated / category 単一化 / specimen / referenceRange.extension 除去) or Option 2 profile 撤去 | user が CLINS 5情報送信対象か判断 |
+| P3 | A 標準 CodeSystem 日本語 display | ~785k | Option 1 display 省略 / Option 2 英語固定 / Option 3 translation extension | user が 3 option 選択 |
+| P3 | G-2 JLAC10 5桁 → 17桁 | ~23k | test 5桁 + sample 5桁 + method 4桁 + ID 3桁 生成 | code 拡張が大きく別 chain |
+| P4 | F-3 LOINC → JLAC bilingual | ~23k | LOINC 継続 or JLAC 追加 | 別 chain |
+| P4 | C LOINC LA prefix code 有効性 | ~31k | LOINC 2.82 で有効な Answer List code に置換 | 別 chain |
+
+### 参考:直前 session の history
 
 ### ★★ 重要:workflow 変更(session 53+ から発効)
 
