@@ -1237,6 +1237,18 @@ _ALLERGY_VER_STATUS_DISPLAY: dict[str, str] = {
     "entered-in-error": "Entered in Error",
 }
 
+# Reverse map: FHIR system URI → clinosim system key (for `code_lookup`).
+# Used by `_copy_display_from_sibling_coding` fallback when no sibling coding
+# with a display is available (e.g. AllergyIntolerance.code carries a single
+# SNOMED coding).
+_FHIR_URI_TO_CODE_SYSTEM_KEY: dict[str, str] = {
+    "http://snomed.info/sct": "snomed-ct",
+    "http://loinc.org": "loinc",
+    "http://hl7.org/fhir/sid/icd-10": "icd-10",
+    "http://hl7.org/fhir/sid/icd-10-cm": "icd-10-cm",
+    "http://www.nlm.nih.gov/research/umls/rxnorm": "rxnorm",
+}
+
 
 def _normalize_dt(v, want_instant: bool = False):
     """string dateTime → +09:00 付与。TZ ある場合 passthrough。"""
@@ -1484,6 +1496,10 @@ def _copy_display_from_sibling_coding(codings: list) -> None:
     display stripped by the P2 A walker but the interop coding (ICD-10-CM /
     same code, English display) already has it.
 
+    When no sibling display is available (e.g. AllergyIntolerance emits a
+    single SNOMED coding), fall back to `code_lookup` for known FHIR system
+    URIs so the primary coding still carries the authoritative English display.
+
     Feedback fix (2026-07-16, PR-G). Preserves the FHIR R4 rule that every
     coding on an English-only CodeSystem must carry the authoritative English
     display.
@@ -1500,8 +1516,19 @@ def _copy_display_from_sibling_coding(codings: list) -> None:
     for c in codings:
         if isinstance(c, dict) and not c.get("display"):
             code_ = c.get("code")
-            if isinstance(code_, str) and code_ in code_display:
-                c["display"] = code_display[code_]
+            if not isinstance(code_, str) or not code_:
+                continue
+            # Prefer sibling display; fall back to code_lookup for known systems.
+            display = code_display.get(code_)
+            if not display:
+                system_uri = c.get("system", "")
+                system_key = _FHIR_URI_TO_CODE_SYSTEM_KEY.get(system_uri) if isinstance(system_uri, str) else None
+                if system_key:
+                    looked_up = code_lookup(system_key, code_, "en")
+                    if looked_up and looked_up != code_:
+                        display = looked_up
+            if display:
+                c["display"] = display
 
 
 def _populate_status_coding_display(coding_dict: Any, display_map: dict[str, str]) -> None:
