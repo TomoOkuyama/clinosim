@@ -196,6 +196,14 @@ def test_jp_clinical_impression_structural_fields_present() -> None:
     in α-min-1 — JP text is deferred to β-JP-1 phase.  This test verifies that
     the JP cohort still emits structurally valid ClinicalImpression resources with
     correct subject and encounter references.
+
+    Status assertion respects the ``snapshot-in-progress-clinical-impression-status``
+    by-design pattern (see ``docs/audit-cycles/by-design-registry.md``):
+    ``status = "completed"`` is the normal case, but ``"in-progress"`` is
+    legitimate when the linked Encounter itself is snapshot-truncated
+    (AD-32 snapshot semantics) — both are valid FHIR R4 EventStatus codes.
+    The by-design signature requires that an in-progress CI links to an
+    in-progress Encounter; any other status combination is a real defect.
     """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
@@ -203,9 +211,30 @@ def test_jp_clinical_impression_structural_fields_present() -> None:
         impressions = load_ndjson(find_ndjson(out, "ClinicalImpression.ndjson"))
         if not impressions:
             pytest.skip("No ClinicalImpression resources emitted for JP cohort n=200")
+        encounters = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
+        encounter_status_by_id = {enc.get("id", ""): enc.get("status", "") for enc in encounters}
         for ci in impressions:
             ci_id = ci.get("id", "?")
-            assert ci.get("status") == "completed", f"ClinicalImpression/{ci_id} unexpected status {ci.get('status')!r}"
+            status = ci.get("status", "")
+            assert status in ("completed", "in-progress"), (
+                f"ClinicalImpression/{ci_id} unexpected status {status!r}; "
+                "expected 'completed' or by-design 'in-progress' for snapshot-truncated Encounter"
+            )
+            enc_ref = ci.get("encounter", {}).get("reference", "")
+            if status == "in-progress":
+                # by-design signature: linked Encounter must also be in-progress
+                assert enc_ref.startswith("Encounter/"), (
+                    f"ClinicalImpression/{ci_id} in-progress but has no Encounter reference: {enc_ref!r}"
+                )
+                enc_id = enc_ref[len("Encounter/") :]
+                enc_status = encounter_status_by_id.get(enc_id)
+                assert enc_status == "in-progress", (
+                    f"ClinicalImpression/{ci_id} status='in-progress' but "
+                    f"linked Encounter/{enc_id} status={enc_status!r} (by-design "
+                    "signature requires both to be in-progress; see "
+                    "docs/audit-cycles/by-design-registry.md "
+                    "snapshot-in-progress-clinical-impression-status)"
+                )
             assert ci.get("subject", {}).get("reference", "").startswith("Patient/"), (
                 f"ClinicalImpression/{ci_id} subject must start with 'Patient/'"
             )
