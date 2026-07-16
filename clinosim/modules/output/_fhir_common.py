@@ -55,6 +55,30 @@ class BundleContext:
     patient_sex: str
 
 
+def build_ucum_quantity(value: Any, unit: str) -> dict[str, Any]:
+    """Build a FHIR ``Quantity`` (UCUM) with ``value``, ``unit`` (display), and ``code``.
+
+    JP-CLINS ``JP_MedicationAdministration_eCS`` (and related eCS profiles) declare
+    ``Quantity.code`` as ``min=1``; the FHIR-R4 UCUM idiom is that ``unit`` carries
+    the human-readable label and ``code`` carries the machine-readable UCUM token.
+    Clinical unit strings used by clinosim (``mg`` / ``mL`` / ``g/dL`` / ``mL/h``
+    / ``mmol/L`` / ``mEq/L`` / ``U/L`` ...) are already valid UCUM tokens, so we
+    reuse the string for both fields — matching the reference-range emission
+    pattern already established in this module.
+
+    feedback fix (2026-07-16, PR-A): a helper is introduced so every UCUM
+    Quantity site in the codebase goes through one edit point; MA.dosage.dose,
+    MA.dosage.rateQuantity, and MR.dosageInstruction[].doseAndRate[].doseQuantity
+    all lacked ``code`` before this fix (93% failure rate on
+    MedicationAdministration in the 2026-07-16 validator run).
+    """
+    q: dict[str, Any] = {"value": value, "system": get_system_uri("ucum")}
+    if unit:
+        q["unit"] = unit
+        q["code"] = unit
+    return q
+
+
 def _escape_html(s: str) -> str:
     """Escape HTML special characters for safe embedding in FHIR text.div.
 
@@ -463,15 +487,12 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
     dosage: dict[str, Any] = {}
     parts = []
 
-    # Dose quantity
+    # Dose quantity — route through build_ucum_quantity so `code` is populated
+    # (JP-CLINS eCS profiles require it).
     if dose_qty is not None and dose_unit:
         dosage["doseAndRate"] = [
             {
-                "doseQuantity": {
-                    "value": dose_qty,
-                    "unit": dose_unit,
-                    "system": get_system_uri("ucum"),
-                },
+                "doseQuantity": build_ucum_quantity(dose_qty, dose_unit),
             }
         ]
         parts.append(f"{dose_qty}{dose_unit}")
@@ -614,19 +635,9 @@ def _build_reference_range(
         rr: dict[str, Any] = {}
         unit_str = entry.get("unit", "")
         if entry.get("low") is not None:
-            rr["low"] = {
-                "value": entry["low"],
-                "unit": unit_str,
-                "system": get_system_uri("ucum"),
-                "code": unit_str,
-            }
+            rr["low"] = build_ucum_quantity(entry["low"], unit_str)
         if entry.get("high") is not None:
-            rr["high"] = {
-                "value": entry["high"],
-                "unit": unit_str,
-                "system": get_system_uri("ucum"),
-                "code": unit_str,
-            }
+            rr["high"] = build_ucum_quantity(entry["high"], unit_str)
         if entry.get("text"):
             rr["text"] = entry["text"]
 
