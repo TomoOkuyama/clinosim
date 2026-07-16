@@ -22,6 +22,7 @@ from clinosim.modules.output._fhir_common import (
     _map_mar_status,
     _parse_dose_for_mar,
     _strip_protocol_prefix,
+    build_ucum_quantity,
 )
 from clinosim.modules.output._fhir_localization import (
     _localize_drug_name,
@@ -600,18 +601,14 @@ def _build_medication_admin(
         dose_text = f"{dose_text} ({rate_note_localized})".strip() if dose_text.strip() else rate_note_localized
     dosage: dict[str, Any] = {"text": dose_text}
     if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
-        dosage["dose"] = {
-            "value": parsed["dose_quantity"],
-            "unit": parsed["dose_unit"],
-            "system": get_system_uri("ucum"),
-        }
+        # Route through build_ucum_quantity so `code` is populated (JP-CLINS
+        # eCS profiles require it — feedback fix PR-A, 2026-07-16).
+        dosage["dose"] = build_ucum_quantity(parsed["dose_quantity"], parsed["dose_unit"])
     # Rate for continuous infusions
     if "CONTINUOUS" in dose_text.upper() or "DRIP" in dose_text.upper() or "/h" in dose_text:
-        dosage["rateQuantity"] = {
-            "value": parsed.get("dose_quantity") or 1,
-            "unit": (parsed.get("dose_unit", "mL") + "/h"),
-            "system": get_system_uri("ucum"),
-        }
+        rate_value = parsed.get("dose_quantity") or 1
+        rate_unit = parsed.get("dose_unit", "mL") + "/h"
+        dosage["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
     # Route
     route = (mar.get("route") or parsed.get("route") or "").upper()
     if route:
