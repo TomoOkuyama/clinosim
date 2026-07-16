@@ -922,14 +922,13 @@ def _build_bundle(
             if ctx.country == "JP":
                 _apply_jp_core_profile(resource)
                 _apply_jp_clins_profile(resource)
-                # session 49 P1-4 + session 53 iris4h-ai feedback F-2 + B:
                 # JP Core は Observation.category:first slice に
-                # JP_SimpleObservationCategory_CS URL を要求。従来の HL7
-                # slice を残す prepend 方式では ValueSet-outside info 46k +
-                # eCS `category max=1` 違反 27k を招いたため、in-place replace
-                # 方式で URI のみ置換(code は保持)。builders 個別修正回避
-                # のため single seam で対応。
-                _convert_hl7_observation_category_to_jp(resource)
+                # JP_SimpleObservationCategory_CS を、HL7 base Vital Signs
+                # profile(bp / heartrate / oxygensat / bodytemp / resprate)は
+                # VSCat slice に HL7 category coding を要求する。両方を
+                # 満たしつつ display 誤り error(V5 発見 A')も同時に解消
+                # する single seam(builders 個別修正回避)。
+                _normalize_jp_observation_category(resource)
             # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource)
@@ -1041,47 +1040,47 @@ def _normalize_dt(v, want_instant: bool = False):
     return v + "+09:00"
 
 
-# session 49 clinosim_feedback P1-4 + session 53 iris4h-ai feedback F-2 + B:
-# JP Core Observation.category の system は JP_Observation_Common
-# (v1.2.0) StructureDefinition の `category:first.coding.system` に
-# `http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS`
-# として固定(iris4h-ai jp_core/package/StructureDefinition-jp-
-# observation-common.json の fixedUri で確認)。JP_SimpleObservationCategory_CS
-# は HL7 標準 observation-category と code 語彙(laboratory / vital-signs /
-# imaging / procedure / social-history / exam / body-measurement 他)が
-# 概ね一致するため、code はそのまま保持して URI だけを JP CodeSystem に
-# in-place 置換する。
-#
-# ★ session 50 adv-1 教訓: 初版で fabricated URL
-#   `http://jpfhir.jp/fhir/observation-category` を使い HAPI silent-no-op。
-#   実 spec fixedUri に修正済み(session 51 で「spec fixedUri 直接引用」
-#   ルール制定)。
-# ★ session 53 iris4h-ai feedback F-2 + B: session 50 は「HL7 slice を残して
-#   JP slice を prepend」方式だったため
-#   - F-2: HL7 secondary slice が ValueSet-outside info 46,014 件を発生
-#   - B: session 49 fabricated URL の残骸 1,680 件
-#   - E: JP_Observation_LabResult_eCS `category max=1` 違反 27,507 件
-#   を招いた。in-place replace 方式で 3 finding 同時解消(~75k)。
+# JP Core Observation.category の canonical CodeSystem URI(spec fixedUri
+# 直接引用、iris4h-ai/jp_core/package/StructureDefinition-jp-observation-
+# common.json の `category:first.coding.system.fixedUri`)。
 _JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS"
 
-# in-place 置換対象:HL7 標準 URL + session 49 fabricated URL(iris4h-ai
-# 古い regen data に残存する可能性への defensive normalize)。
+# HL7 標準 URL + 過去 clinosim 版が誤って使った fabricated URL の両方を
+# normalize 対象とする(古い regen data + defensive migration)。
+_HL7_OBSERVATION_CATEGORY_SYSTEM = "http://terminology.hl7.org/CodeSystem/observation-category"
 _HL7_OBSERVATION_CATEGORY_SYSTEMS = frozenset(
     [
-        "http://terminology.hl7.org/CodeSystem/observation-category",
-        "http://jpfhir.jp/fhir/observation-category",  # session 49 fabricated
+        _HL7_OBSERVATION_CATEGORY_SYSTEM,
+        "http://jpfhir.jp/fhir/observation-category",  # legacy fabricated
     ]
 )
 
 
-def _convert_hl7_observation_category_to_jp(resource: dict) -> None:
-    """In-place replace observation-category system URLs with the JP Core CS URL.
+def _normalize_jp_observation_category(resource: dict) -> None:
+    """Normalize `Observation.category` for JP output(single seam).
 
-    JP only(caller が country=JP のみで呼ぶ前提)。HL7 標準
-    `http://terminology.hl7.org/CodeSystem/observation-category` および
-    session 49 の fabricated URL `http://jpfhir.jp/fhir/observation-category`
-    を canonical JP_SimpleObservationCategory_CS URL に置換。code は保持。
-    display は既存のまま(JP CS は日本語 display 定義あり)。
+    JP only(caller が country=JP のみで呼ぶ前提)。以下 3 要件を同時に
+    満たす形へ category.coding を書き換える:
+
+    1. **JP CS coding を必ず emit**。HL7 標準 URL および過去の fabricated
+       URL は canonical `JP_SimpleObservationCategory_CS` に置換。
+    2. **VSCat slice を維持**(iris4h-ai feedback V5 発見 H, ~89k error)。
+       HL7 base Vital Signs profile(bp / heartrate / oxygensat / bodytemp /
+       resprate)は `Observation.code` の LOINC から HAPI が自動選択され、
+       `category:VSCat` slice discriminator として
+       `http://terminology.hl7.org/CodeSystem/observation-category#vital-signs`
+       coding を要求する。JP CS 単独 coding だけでは slice が満たされない
+       ため、`vital-signs` code を含む Observation では HL7 category coding
+       を JP CS coding と併記(2 coding)。
+    3. **`display` を省略**(iris4h-ai feedback V5 発見 A', ~155k error)。
+       JP CS も HL7 CodeSystem も英語 display のみ定義しているため、
+       日本語 display を残すと HAPI が「Wrong Display Name」error を出す。
+       feedback Option 1 に従い display 省略、日本語ラベルは text field
+       側で保持する(text field は translation として自由)。
+
+    非 vital-signs category(laboratory / social-history / survey / imaging /
+    procedure ...)は JP CS 単独 coding のまま維持し、
+    `JP_Observation_LabResult_eCS` の `category max=1` 制約を破らない。
     """
     if resource.get("resourceType") != "Observation":
         return
@@ -1092,11 +1091,40 @@ def _convert_hl7_observation_category_to_jp(resource: dict) -> None:
         codings = cat.get("coding")
         if not isinstance(codings, list):
             continue
+        # このカテゴリで登場する observation-category code(HL7 URL / JP CS URL
+        # / fabricated URL いずれ経由も同一 code 語彙)を出現順に収集。
+        category_codes: list[str] = []
+        seen_codes: set[str] = set()
         for cod in codings:
             if not isinstance(cod, dict):
                 continue
-            if cod.get("system") in _HL7_OBSERVATION_CATEGORY_SYSTEMS:
-                cod["system"] = _JP_OBSERVATION_CATEGORY_SYSTEM
+            sys_ = cod.get("system")
+            code_ = cod.get("code")
+            if not isinstance(code_, str) or not code_:
+                continue
+            if sys_ in _HL7_OBSERVATION_CATEGORY_SYSTEMS or sys_ == _JP_OBSERVATION_CATEGORY_SYSTEM:
+                if code_ not in seen_codes:
+                    category_codes.append(code_)
+                    seen_codes.add(code_)
+        if not category_codes:
+            continue
+        include_hl7_coding = "vital-signs" in category_codes
+        # observation-category に該当する coding をすべて破棄し、正規化した
+        # coding を再構築する。それ以外の system の coding(例:独自
+        # CodeSystem)は preserve。
+        preserved: list[dict] = [
+            cod
+            for cod in codings
+            if isinstance(cod, dict)
+            and cod.get("system") not in _HL7_OBSERVATION_CATEGORY_SYSTEMS
+            and cod.get("system") != _JP_OBSERVATION_CATEGORY_SYSTEM
+        ]
+        rebuilt: list[dict] = list(preserved)
+        for code_ in category_codes:
+            if include_hl7_coding:
+                rebuilt.append({"system": _HL7_OBSERVATION_CATEGORY_SYSTEM, "code": code_})
+            rebuilt.append({"system": _JP_OBSERVATION_CATEGORY_SYSTEM, "code": code_})
+        cat["coding"] = rebuilt
 
 
 def _normalize_dt_fields(resource) -> None:
