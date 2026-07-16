@@ -1125,7 +1125,7 @@ _HL7_OBSERVATION_CATEGORY_SYSTEMS = frozenset(
 def _normalize_jp_observation_category(resource: dict) -> None:
     """Normalize `Observation.category` for JP output(single seam).
 
-    JP only(caller が country=JP のみで呼ぶ前提)。以下 3 要件を同時に
+    JP only(caller が country=JP のみで呼ぶ前提)。以下 4 要件を同時に
     満たす形へ category.coding を書き換える:
 
     1. **JP CS coding を必ず emit**。HL7 標準 URL および過去の fabricated
@@ -1138,15 +1138,21 @@ def _normalize_jp_observation_category(resource: dict) -> None:
        coding を要求する。JP CS 単独 coding だけでは slice が満たされない
        ため、`vital-signs` code を含む Observation では HL7 category coding
        を JP CS coding と併記(2 coding)。
-    3. **`display` を省略**(iris4h-ai feedback V5 発見 A', ~155k error)。
+    3. **eCS profile 対応 dual coding**(fhir-jp-validator feedback 2026-07-16
+       §"【最優先 3】", ~112k error)。`JP_Observation_LabResult_eCS` は
+       `category:first` slice discriminator に HL7 observation-category
+       CodeSystem を要求する(JP_Observation_Common は JP CS を要求)。
+       両 profile が meta.profile に共存する場合、HL7 + JP CS 両方 coding
+       で dual-satisfy する。`category` は `1..1`(entry 1 個)だが同 entry
+       内で複数 coding は許容されるため spec 準拠。
+    4. **`display` を省略**(iris4h-ai feedback V5 発見 A', ~155k error)。
        JP CS も HL7 CodeSystem も英語 display のみ定義しているため、
        日本語 display を残すと HAPI が「Wrong Display Name」error を出す。
        feedback Option 1 に従い display 省略、日本語ラベルは text field
        側で保持する(text field は translation として自由)。
 
-    非 vital-signs category(laboratory / social-history / survey / imaging /
-    procedure ...)は JP CS 単独 coding のまま維持し、
-    `JP_Observation_LabResult_eCS` の `category max=1` 制約を破らない。
+    eCS profile なし + 非 vital-signs Observation(social-history / survey /
+    imaging / procedure ...)は JP CS 単独 coding のまま維持。
     """
     if resource.get("resourceType") != "Observation":
         return
@@ -1174,7 +1180,19 @@ def _normalize_jp_observation_category(resource: dict) -> None:
                     seen_codes.add(code_)
         if not category_codes:
             continue
-        include_hl7_coding = "vital-signs" in category_codes
+        # HL7 category coding は 2 条件のいずれかで emit する:
+        # (1) vital-signs Observation(session 54 で restore): HL7 base
+        #     Vital Signs profile の `category:VSCat` slice discriminator が
+        #     HL7 URL#vital-signs coding を要求する。
+        # (2) eCS profile Observation(feedback 2026-07-16 §"【最優先 3】"):
+        #     `JP_Observation_LabResult_eCS` は `category:first` slice に
+        #     HL7 observation-category CS を要求する。JP_Observation_Common
+        #     single-coding のみを維持すると eCS profile の slice が破れる。
+        #     両方 emit で dual-satisfy。
+        has_ecs_profile = any(
+            isinstance(p, str) and "/eCS/" in p for p in resource.get("meta", {}).get("profile", []) or []
+        )
+        include_hl7_coding = "vital-signs" in category_codes or has_ecs_profile
         # observation-category に該当する coding をすべて破棄し、正規化した
         # coding を再構築する。それ以外の system の coding(例:独自
         # CodeSystem)は preserve。
