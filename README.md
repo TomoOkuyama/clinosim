@@ -135,10 +135,11 @@ means in practice.
 > [good first issues](https://github.com/TomoOkuyama/clinosim/labels/good%20first%20issue)
 > tracker for the current TODO.
 >
-> 🖼️ **Architecture diagram placeholder.** The population → CIF → FHIR
-> pipeline diagram will land at `docs/assets/pipeline.svg`. Meanwhile,
-> the text walkthrough lives at
-> [`docs/design-guides/data-generation-walkthrough.md`](docs/design-guides/data-generation-walkthrough.md).
+**Architecture** — the population → CIF → FHIR pipeline:
+
+![clinosim end-to-end pipeline: population generation → physiology + encounter simulation → enricher stages → CIF → format adapters → NDJSON output](docs/assets/pipeline.svg)
+
+For a step-by-step walkthrough see [`docs/design-guides/data-generation-walkthrough.md`](docs/design-guides/data-generation-walkthrough.md).
 
 ---
 

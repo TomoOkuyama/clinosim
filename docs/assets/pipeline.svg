@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 620" role="img" aria-labelledby="title desc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title id="title">clinosim end-to-end pipeline</title>
+  <desc id="desc">Six-stage flow from population generation through physiology, enricher stages, CIF, format adapters, to NDJSON output.</desc>
+
+  <style><![CDATA[
+    .box { fill: #f8fafc; stroke: #334155; stroke-width: 1.5; }
+    .accent-population { fill: #dbeafe; stroke: #1d4ed8; }
+    .accent-physiology { fill: #fef3c7; stroke: #b45309; }
+    .accent-enricher { fill: #ede9fe; stroke: #6d28d9; }
+    .accent-cif { fill: #dcfce7; stroke: #15803d; }
+    .accent-adapter { fill: #fee2e2; stroke: #b91c1c; }
+    .accent-output { fill: #cffafe; stroke: #0e7490; }
+    .heading { font-size: 15px; font-weight: 600; fill: #0f172a; }
+    .subtext { font-size: 11px; fill: #334155; }
+    .arrow { fill: none; stroke: #475569; stroke-width: 2; }
+    .legend { font-size: 10px; fill: #64748b; }
+    .footer { font-size: 10px; fill: #64748b; }
+    @media (prefers-color-scheme: dark) {
+      .box { fill: #1e293b; stroke: #94a3b8; }
+      .accent-population { fill: #1e3a8a; stroke: #93c5fd; }
+      .accent-physiology { fill: #78350f; stroke: #fcd34d; }
+      .accent-enricher { fill: #4c1d95; stroke: #c4b5fd; }
+      .accent-cif { fill: #14532d; stroke: #86efac; }
+      .accent-adapter { fill: #7f1d1d; stroke: #fca5a5; }
+      .accent-output { fill: #164e63; stroke: #67e8f9; }
+      .heading { fill: #f1f5f9; }
+      .subtext { fill: #cbd5e1; }
+      .arrow { stroke: #94a3b8; }
+      .legend, .footer { fill: #94a3b8; }
+    }
+  ]]></style>
+
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <!-- Stage 1: Population -->
+  <rect x="120" y="30" width="560" height="70" rx="8" class="box accent-population"/>
+  <text x="400" y="58" text-anchor="middle" class="heading">1. Population Generation</text>
+  <text x="400" y="80" text-anchor="middle" class="subtext">demographics.yaml → cohort of Person records + chronic conditions + allergies</text>
+
+  <!-- arrow 1→2 -->
+  <path d="M400,100 L400,130" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- Stage 2: Physiology + encounter scheduling -->
+  <rect x="120" y="130" width="560" height="90" rx="8" class="box accent-physiology"/>
+  <text x="400" y="158" text-anchor="middle" class="heading">2. Physiology State + Encounter Simulation</text>
+  <text x="400" y="180" text-anchor="middle" class="subtext">hidden state (13 variables) updated per day; inpatient / ED / outpatient</text>
+  <text x="400" y="200" text-anchor="middle" class="subtext">encounters emit Orders, Observations, Procedures, Medications</text>
+
+  <!-- arrow 2→3 -->
+  <path d="M400,220 L400,250" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- Stage 3: Enrichers -->
+  <rect x="120" y="250" width="560" height="90" rx="8" class="box accent-enricher"/>
+  <text x="400" y="278" text-anchor="middle" class="heading">3. Enricher Stages (registered via AD-56)</text>
+  <text x="400" y="300" text-anchor="middle" class="subtext">POST_POPULATION  →  POST_ENCOUNTER  →  POST_RECORDS</text>
+  <text x="400" y="320" text-anchor="middle" class="subtext">identity · device · hai · antibiotic · imaging · triage · nursing · document · care_level · …</text>
+
+  <!-- arrow 3→4 -->
+  <path d="M400,340 L400,370" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- Stage 4: CIF -->
+  <rect x="120" y="370" width="560" height="80" rx="8" class="box accent-cif"/>
+  <text x="400" y="398" text-anchor="middle" class="heading">4. CIF — Canonical Intermediate Format</text>
+  <text x="400" y="420" text-anchor="middle" class="subtext">structural JSON per encounter + narrative subtree (AD-17 / AD-65)</text>
+  <text x="400" y="440" text-anchor="middle" class="subtext">codes only — no display text (AD-30); locale-neutral, deterministic</text>
+
+  <!-- arrow 4→5 -->
+  <path d="M400,450 L400,480" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- Stage 5: Format adapters -->
+  <rect x="120" y="480" width="560" height="70" rx="8" class="box accent-adapter"/>
+  <text x="400" y="508" text-anchor="middle" class="heading">5. Format Adapters (registered via AD-58)</text>
+  <text x="400" y="530" text-anchor="middle" class="subtext">FHIR R4 Bulk  |  CSV  |  Parquet  |  ...  (add via register_output_adapter())</text>
+
+  <!-- arrow 5→6 -->
+  <path d="M400,550 L400,575" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- Stage 6: NDJSON output -->
+  <rect x="120" y="575" width="560" height="35" rx="8" class="box accent-output"/>
+  <text x="400" y="598" text-anchor="middle" class="heading">6. Output — one NDJSON per resource type + manifest.json (Bulk Data spec)</text>
+
+  <!-- Footer / provenance -->
+  <text x="400" y="16" text-anchor="middle" class="legend">clinosim end-to-end pipeline · see docs/design-guides/data-generation-walkthrough.md</text>
+</svg>
