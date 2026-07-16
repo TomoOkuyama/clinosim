@@ -967,6 +967,22 @@ _JP_CORE_PROFILES: dict[str, list[str]] = {
     # RM-6c (session 42): Procedure profile so RECORD-based and ORDER-based
     # Procedure emissions both carry JP Core conformance.
     "Procedure": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"],
+    # session 53 (#145): additional JP Core StructureDefinition URLs — spec
+    # `.url` fixedUri copied verbatim from
+    # iris4h-ai/jp_core/package/StructureDefinition-jp-*.json.
+    # JP Core 1.2.0 does NOT publish profiles for CareTeam / Composition /
+    # ClinicalImpression / Endpoint, so those four resource types remain on
+    # base FHIR R4 (Composition still carries per-doc-type JP-CLINS profiles
+    # emitted at the composition builder level; see _JP_CLINS_PROFILES
+    # attach logic in _apply_jp_clins_profile).
+    "ServiceRequest": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_ServiceRequest_Common"],
+    "DocumentReference": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DocumentReference"],
+    "FamilyMemberHistory": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_FamilyMemberHistory"],
+    # ImagingStudy has two JP Core profiles (_Radiology + _Endoscopy).
+    # clinosim only emits radiology studies (CT/CXR/MRI via `imaging` module,
+    # AD-62 — endoscopy is out of scope), so only the radiology profile is
+    # attached.
+    "ImagingStudy": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_ImagingStudy_Radiology"],
 }
 
 
