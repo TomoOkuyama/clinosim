@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
@@ -327,6 +328,14 @@ def run_beta(
         return patient_cache[p.person_id]
 
     n_hosp = len(hospital_events)
+    # Issue #174: bracket the inpatient loop with `sim_log.phase` so a
+    # `tail -f simulator.log` sees `inpatient_loop_start` immediately (not
+    # only the paired `_end` when the whole loop finishes) and the total
+    # `elapsed_s` is attributable. The 50-record cadence progress line
+    # below gets a matching `inpatient_progress` sim_log event so a p=10000
+    # run's ~10-minute loop is no longer a JSONL blind window.
+    sim_log.info("engine", "inpatient_loop_start", target=n_hosp)
+    _t0_inp = time.perf_counter()
     for idx, event in enumerate(hospital_events):
         if (idx + 1) % 50 == 0 or idx == n_hosp - 1:
             print(
@@ -334,6 +343,14 @@ def run_beta(
                 f"(concurrent={concurrent_patients}, "
                 f"bed_occ={hospital_state.bed_occupancy:.0%})...",
                 flush=True,
+            )
+            sim_log.info(
+                "engine",
+                "inpatient_progress",
+                processed=idx + 1,
+                target=n_hosp,
+                concurrent=concurrent_patients,
+                bed_occupancy=round(hospital_state.bed_occupancy, 3),
             )
 
         # Advance hospital time — discharge patients who have left
@@ -434,6 +451,7 @@ def run_beta(
         "inpatient_loop_done",
         records=len(patient_records),
         peak_concurrent=concurrent_patients,
+        elapsed_s=round(time.perf_counter() - _t0_inp, 3),
     )
 
     # === Readmission evaluation (post-loop pass) ===
