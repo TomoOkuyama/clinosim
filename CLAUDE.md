@@ -26,10 +26,20 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - **Code**: Python 3.11+
 - **Code comments and docstrings (default)**: English
 - **JP-only code comments and docstrings** (session 47 rule): Japanese. JP-only means: JP-CLINS builder / JP section renderer / `_build_jp_clins_*` / `_JP_CLINS_*` maps / `codes/data/jpfhir-*.yaml` and other JP-locale-specific YAML / test docstrings of JP-only paths. Common dispatch/framework code that is *called for* JP but is locale-neutral in its own body (e.g. `_apply_jp_clins_profile`, `_referral_note_fires`, `_build_composition` dispatcher) keeps English.
-- **README.md**: English (default, international audience)
-- **README.ja.md**: Japanese translation of README.md
-- **Module READMEs** (`modules/<name>/README.md`): Japanese with English technical terms
-- **Other docs** (DESIGN.md, TODO.md, spec.md): English
+**Documentation naming rule (unified)**:
+- **Default language: English.** Every `*.md` file without a language suffix
+  is English (root READMEs, module READMEs, DESIGN.md, TODO.md, spec.md,
+  `docs/**`, and so on).
+- **Japanese variants**: name the file with a `.ja.md` suffix
+  (e.g. `README.ja.md`, `DESIGN.ja.md`, `modules/hai/README.ja.md`).
+- **No other language-mixing suffix conventions** are introduced.
+
+Contributors reading a path can tell the language from the suffix alone,
+and the shared repo defaults to English for international collaboration.
+
+Follow-up work: some existing module READMEs still contain Japanese
+content without a `.ja.md` suffix and will be migrated in follow-up PRs
+(one module at a time — see `#166`).
 - **Communication with user**: Japanese
 
 ## Code standards
