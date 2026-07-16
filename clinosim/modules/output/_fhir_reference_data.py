@@ -36,6 +36,12 @@ _SEVERITY_JP: dict[str, dict[str, str]] = {
     "moderate": {"code": "MO", "display": "中度"},
     "severe": {"code": "SE", "display": "重度"},
 }
+# JP Core reference range source extension URL. Fixed URI per JP Core spec
+# (session 50 adv-1 rule). URI taken from StructureDefinition-JP_Observation_Common.json
+# Used in _fhir_common._build_reference_range() for Observation.referenceRange[].extension.url
+_JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL = (
+    "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_ReferenceRangeSource"
+)
 
 
 _PREFECTURE_CODE: dict[str, str] = {
