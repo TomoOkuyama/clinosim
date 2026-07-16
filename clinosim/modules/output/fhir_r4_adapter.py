@@ -302,6 +302,10 @@ def convert_cif_to_fhir(
                 _normalize_dt_fields(specimen)
                 write(specimen)
                 n_resources += 1
+            # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
+            # Condition / AllergyIntolerance / MedicationRequest. Universal —
+            # US output picks up the same fields harmlessly.
+            _populate_condition_ai_mr_ecs_fields(resource)
             _normalize_dt_fields(resource)
             write(resource)
             n_resources += 1
@@ -1072,6 +1076,9 @@ def _build_bundle(
                     _strip_japanese_display_on_english_only_systems(specimen)
                 _normalize_dt_fields(specimen)
                 entries.append(_entry(specimen))
+            # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
+            # Condition / AllergyIntolerance / MedicationRequest. Universal.
+            _populate_condition_ai_mr_ecs_fields(resource)
             # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource)
@@ -1187,6 +1194,48 @@ _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL = (
 # The MHLW ePrescription CS is the "coded" alternative to the dummy code. When
 # a builder has emitted this system already, the walker leaves it alone.
 _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationUsage_ePrescription"
+# eCS-required identifier namespaces (feedback fix PR-G, 2026-07-17). Every
+# resource for which JP-CLINS eCS requires `identifier` with `min=1` gets a
+# canonical clinosim namespace so consumers can round-trip resources without
+# fabricating IDs. MedicationRequest is intentionally NOT in this map — its
+# builder already emits identifier[] with rpNumber + orderInRp (JP Core
+# NamingSystem slice discriminators, session 51 rule).
+_ECS_IDENTIFIER_SYSTEMS: dict[str, str] = {
+    "Condition": "urn:clinosim:condition-id",
+    "AllergyIntolerance": "urn:clinosim:allergyintolerance-id",
+}
+
+# HL7 condition-clinical / condition-ver-status display map. The tiny code
+# vocabulary is not in clinosim/codes/data/ (they are HL7 spec CS, not
+# clinical codes) so we keep the English display map inline.
+_CONDITION_CLINICAL_DISPLAY: dict[str, str] = {
+    "active": "Active",
+    "recurrence": "Recurrence",
+    "relapse": "Relapse",
+    "inactive": "Inactive",
+    "remission": "Remission",
+    "resolved": "Resolved",
+}
+_CONDITION_VER_STATUS_DISPLAY: dict[str, str] = {
+    "unconfirmed": "Unconfirmed",
+    "provisional": "Provisional",
+    "differential": "Differential",
+    "confirmed": "Confirmed",
+    "refuted": "Refuted",
+    "entered-in-error": "Entered in Error",
+}
+_ALLERGY_CLINICAL_DISPLAY: dict[str, str] = {
+    "active": "Active",
+    "inactive": "Inactive",
+    "resolved": "Resolved",
+}
+_ALLERGY_VER_STATUS_DISPLAY: dict[str, str] = {
+    "unconfirmed": "Unconfirmed",
+    "presumed": "Presumed",
+    "confirmed": "Confirmed",
+    "refuted": "Refuted",
+    "entered-in-error": "Entered in Error",
+}
 
 
 def _normalize_dt(v, want_instant: bool = False):
@@ -1427,6 +1476,116 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                 )
         if not code_field.get("text"):
             code_field["text"] = dosage.get("text") or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
+def _copy_display_from_sibling_coding(codings: list) -> None:
+    """When one coding entry has a display for a code and another sibling entry
+    with the same code lacks it, propagate the display. Used on
+    `Condition.code.coding[]` and `AllergyIntolerance.code.coding[]` where the
+    primary JP coding (WHO ICD-10 / SNOMED, English-only CodeSystem) had its
+    display stripped by the P2 A walker but the interop coding (ICD-10-CM /
+    same code, English display) already has it.
+
+    Feedback fix (2026-07-16, PR-G). Preserves the FHIR R4 rule that every
+    coding on an English-only CodeSystem must carry the authoritative English
+    display.
+    """
+    if not isinstance(codings, list):
+        return
+    code_display: dict[str, str] = {}
+    for c in codings:
+        if isinstance(c, dict):
+            code_ = c.get("code")
+            display = c.get("display")
+            if isinstance(code_, str) and code_ and isinstance(display, str) and display and code_ not in code_display:
+                code_display[code_] = display
+    for c in codings:
+        if isinstance(c, dict) and not c.get("display"):
+            code_ = c.get("code")
+            if isinstance(code_, str) and code_ in code_display:
+                c["display"] = code_display[code_]
+
+
+def _populate_status_coding_display(coding_dict: Any, display_map: dict[str, str]) -> None:
+    """Populate `.coding[].display` from a static map when missing.
+
+    Used on `clinicalStatus` / `verificationStatus` where the HL7 CodeSystem
+    values are a fixed small vocabulary (active / confirmed / ...) that is
+    not carried in clinosim/codes/data/.
+    """
+    if not isinstance(coding_dict, dict):
+        return
+    codings = coding_dict.get("coding")
+    if not isinstance(codings, list):
+        return
+    for c in codings:
+        if not isinstance(c, dict) or c.get("display"):
+            continue
+        code_ = c.get("code")
+        if isinstance(code_, str) and code_ in display_map:
+            c["display"] = display_map[code_]
+
+
+def _populate_condition_ai_mr_ecs_fields(resource: dict) -> None:
+    """Populate JP-CLINS eCS-required fields on Condition / AllergyIntolerance
+    / MedicationRequest.
+
+    Feedback fix (2026-07-16, PR-G). The 2026-07-16 fhir-jp-validator report
+    §"【最優先 2】" lists a common pattern across the three resources:
+
+    - `identifier` (min=1) — canonical clinosim namespace when not builder-set.
+    - `meta.lastUpdated` (min=1) — falls back to the most authoritative
+      datetime available on the resource; never fabricated when no source.
+    - `clinicalStatus.coding.display` — HL7 CodeSystem values (active /
+      inactive / resolved / confirmed / …) resolved via a static English
+      display map.
+    - `verificationStatus.coding.display` — same idea, different HL7 CS.
+    - `code.coding[].display` on the primary coding — copied from a sibling
+      coding that shares the same code and has a display (P2 A walker
+      strips Japanese display from English-only CodeSystems; when the
+      builder emits a paired interop coding with English display, we
+      propagate it to the primary coding).
+
+    The walker fires universally (US output picks up the same fields
+    harmlessly) and stays idempotent.
+    """
+    rt = resource.get("resourceType")
+    if rt not in ("Condition", "AllergyIntolerance", "MedicationRequest"):
+        return
+
+    # (1) identifier — canonical namespace, only when not builder-populated.
+    if rt in _ECS_IDENTIFIER_SYSTEMS and not resource.get("identifier"):
+        rid = resource.get("id", "")
+        if rid:
+            resource["identifier"] = [{"system": _ECS_IDENTIFIER_SYSTEMS[rt], "value": rid}]
+
+    # (2) meta.lastUpdated fallback chain.
+    meta = resource.setdefault("meta", {})
+    if not meta.get("lastUpdated"):
+        if rt == "MedicationRequest":
+            ts = resource.get("authoredOn") or resource.get("recorded") or ""
+        else:  # Condition, AllergyIntolerance
+            ts = resource.get("recordedDate") or resource.get("assertedDate") or resource.get("onsetDateTime") or ""
+        if ts:
+            meta["lastUpdated"] = ts
+
+    # (3) clinicalStatus / verificationStatus displays.
+    if rt == "Condition":
+        _populate_status_coding_display(resource.get("clinicalStatus"), _CONDITION_CLINICAL_DISPLAY)
+        _populate_status_coding_display(resource.get("verificationStatus"), _CONDITION_VER_STATUS_DISPLAY)
+    elif rt == "AllergyIntolerance":
+        _populate_status_coding_display(resource.get("clinicalStatus"), _ALLERGY_CLINICAL_DISPLAY)
+        _populate_status_coding_display(resource.get("verificationStatus"), _ALLERGY_VER_STATUS_DISPLAY)
+
+    # (4) code.coding[].display sibling-copy (Condition / AllergyIntolerance).
+    if rt in ("Condition", "AllergyIntolerance"):
+        code_field = resource.get("code")
+        if isinstance(code_field, dict):
+            _copy_display_from_sibling_coding(code_field.get("coding") or [])
+        if rt == "AllergyIntolerance":
+            for reaction in resource.get("reaction", []) or []:
+                if isinstance(reaction, dict):
+                    for manifestation in reaction.get("manifestation", []) or []:
+                        if isinstance(manifestation, dict):
+                            _copy_display_from_sibling_coding(manifestation.get("coding") or [])
 
 
 def _normalize_jp_observation_category(resource: dict) -> None:
