@@ -394,6 +394,12 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
                         "display": "Radiology",
                     },
                 ],
+                # Preserve the human-readable localized label in `text` even
+                # after the P2 A post-emit walker strips the Japanese `display`
+                # from the SNOMED coding on JP output (JP display + SNOMED URI
+                # combination is rejected by HAPI Validator as "Wrong Display
+                # Name" — feedback Option 1 keeps the label in `text`).
+                "text": snomed_imaging_display,
             }
         ],
         "priority": _PRIORITY_MAP.get(_o(order, "urgency", "routine"), "routine"),
@@ -615,7 +621,10 @@ def _build_sr_skeleton(
                         "code": LAB_CATEGORY_V2_0074,
                         "display": "Laboratory",
                     },
-                ]
+                ],
+                # Preserve the localized label in `text` (see the imaging SR
+                # `text` sibling above for the P2 A rationale).
+                "text": snomed_display,
             }
         ],
         "priority": priority,
