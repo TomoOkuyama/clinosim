@@ -83,6 +83,9 @@ from clinosim.modules.output._fhir_endpoint import (  # noqa: F401
 )
 from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
 from clinosim.modules.output._fhir_family_history import _build_family_history  # noqa: F401
+from clinosim.modules.output._fhir_generator_metadata import (
+    write_generator_metadata as _write_generator_metadata,
+)
 from clinosim.modules.output._fhir_hai import _build_hai_conditions  # noqa: F401
 from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
     _bb_imaging_studies,
@@ -340,6 +343,16 @@ def convert_cif_to_fhir(
         }
         with open(os.path.join(output_dir, "manifest.json"), "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2, ensure_ascii=False)
+
+        # Sidecar `_generator_metadata.json` (issue #206): validators and
+        # downstream ingestion pipelines want to know which clinosim revision
+        # generated a given export so they can correlate observed validation
+        # results with the fix-PRs already applied. The leading underscore
+        # keeps the file out of the FHIR resource-type namespace, so tools
+        # iterating `manifest.json.output[*]` never see it as a resource file.
+        # Soft-failure: any error is logged and swallowed inside
+        # `write_generator_metadata` — the export loop continues.
+        _write_generator_metadata(output_dir, cif_dir, country)
     finally:
         # F2 (session 49): close writers, then rewrite each NDJSON file with
         # its resources sorted by id ascending. Row order is otherwise
