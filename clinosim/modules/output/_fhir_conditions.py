@@ -324,9 +324,18 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # discharge_datetime が snapshot 前 = encounter finished/completed の場合
         # 「一時的な急性エピソード」型(cellulitis, pneumonia 等)は退院時に
         # resolved と想定し abatementDateTime を discharge に設定。
-        # 慢性疾患(chronic path 側)は resolved しない前提のため abatement 無し。
+        # 慢性疾患(chronic primary)は resolved しない前提のため abatement 無し。
         # 判定:encounter status が完了かつ non-chronic → abatement 付与。
-        if encounters:
+        #
+        # Session 57 Chain F (v2 feedback §【最優先 4】): the original guard
+        # relied on the docstring alone and did not check `is_chronic_primary`
+        # in the emit code, so chronic-primary encounters received both
+        # `clinicalStatus="active"` (line 213) and `abatementDateTime` from
+        # the block below, triggering FHIR R4 invariant `con-4` on 2,452
+        # Condition resources. Restrict the abatement emission to
+        # non-chronic-primary encounters so the docstring's intent is
+        # actually enforced.
+        if encounters and not is_chronic_primary:
             _enc0 = encounters[0]
             _dd = _enc0.get("discharge_datetime", "")
             _est = _enc0.get("status", "")
