@@ -74,7 +74,10 @@ def test_build_regimens_clabsi_two_drugs():
         assert r.start_datetime == datetime(2026, 2, 1, 8)
         assert r.hai_event_id == "h2"
     ids = {r.regimen_id for r in regs}
-    assert ids == {"abx-h2-vancomycin", "abx-h2-piperacillin_tazobactam"}
+    # PR-J (2026-07-17): _drug_slug now routes long / underscore-carrying
+    # drug names through a FHIR-id-safe override so composed ids stay
+    # under the 64-char spec limit. piperacillin_tazobactam → pip-tazo.
+    assert ids == {"abx-h2-vancomycin", "abx-h2-pip-tazo"}
 
 
 @pytest.mark.unit

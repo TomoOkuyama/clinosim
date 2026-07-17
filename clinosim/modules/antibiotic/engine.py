@@ -17,6 +17,7 @@ from typing import Any
 
 import yaml
 
+from clinosim.modules._shared import sanitize_id_token
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS, ANTIBIOTIC_LOINC_LOOKUP
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.types.antibiotic import AntibioticRegimen
@@ -169,9 +170,28 @@ def load_hai_empirical() -> dict[str, dict[str, Any]]:
     return data
 
 
+# Long drug names would blow the 64-char FHIR id budget once composed with the
+# `req-abx-{hai_id}-` prefix (~49 chars leaves ~15 for the slug). Keep the slug
+# clinically recognizable rather than truncating mid-word.
+_DRUG_SLUG_OVERRIDES: dict[str, str] = {
+    "piperacillin_tazobactam": "pip-tazo",
+}
+
+
 def _drug_slug(drug_key: str) -> str:
-    """canonical drug_key -> URL-safe slug for regimen_id."""
-    return drug_key.lower().replace("/", "_")
+    """Canonical drug_key -> FHIR-id-safe slug for regimen_id.
+
+    FHIR R4 restricts `Resource.id` to ``[A-Za-z0-9\\-\\.]{1,64}`` (session
+    52 fix, iris4h-ai P0 finding 2026-07-17). Route the drug_key through
+    ``sanitize_id_token`` so any ``_`` / ``/`` / space gets normalized to
+    ``-`` before it lands in an id string. Long drug names get a short
+    clinical override so the composed id (``req-abx-{hai_id}-{slug}``,
+    ~49 chars overhead) stays under the 64-char limit.
+    """
+    slug = _DRUG_SLUG_OVERRIDES.get(drug_key.lower())
+    if slug is not None:
+        return slug
+    return sanitize_id_token(drug_key.lower(), max_len=15)
 
 
 def build_regimens(
