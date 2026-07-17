@@ -31,14 +31,14 @@ def _make_ctx(allergies, country="us"):
 def _sample_allergy_dataclass() -> Allergy:
     return Allergy(
         allergy_id="a01",
-        allergen_code="372687004",
+        allergen_code="387458008",
         category="medication",
         criticality="high",
         verification_status="confirmed",
         onset_date=date(2020, 3, 15),
         reactions=[
             AllergyReaction(
-                manifestation_snomed="247472004",
+                manifestation_snomed="271807003",
                 severity="mild",
             ),
         ],
@@ -48,14 +48,14 @@ def _sample_allergy_dataclass() -> Allergy:
 def _sample_allergy_dict() -> dict:
     return {
         "allergy_id": "a01",
-        "allergen_code": "372687004",
+        "allergen_code": "387458008",
         "category": "medication",
         "criticality": "high",
         "verification_status": "confirmed",
         "onset_date": date(2020, 3, 15),
         "reactions": [
             {
-                "manifestation_snomed": "247472004",
+                "manifestation_snomed": "271807003",
                 "severity": "mild",
             }
         ],
@@ -149,11 +149,11 @@ def test_criticality_high():
 
 
 def test_code_snomed_allergen():
-    # allergen_code "372687004" = Aspirin in SNOMED. code_lookup resolves to "Aspirin".
+    # allergen_code "387458008" = Aspirin in SNOMED. code_lookup resolves to "Aspirin".
     ctx = _make_ctx([_sample_allergy_dataclass()])
     r = _bb_allergy_intolerances(ctx)[0]
     coding = r["code"]["coding"][0]
-    assert coding["code"] == "372687004"
+    assert coding["code"] == "387458008"
     assert "snomed" in coding["system"].lower() or "snomed.info" in coding["system"]
     assert r["code"]["text"] == "Aspirin"
 
@@ -177,8 +177,11 @@ def test_reaction_manifestation_and_severity():
     rxn = r["reaction"][0]
     assert rxn["severity"] == "mild"
     manifestation = rxn["manifestation"][0]
-    assert manifestation["coding"][0]["code"] == "247472004"
-    assert manifestation["text"] == "Rash"
+    assert manifestation["coding"][0]["code"] == "271807003"
+    # Session 57 v3: the coding.display is looked up from the SNOMED yaml so it
+    # reflects the canonical FSN ("Eruption of skin"); allergens.yaml's own
+    # display_en ("Rash") is a friendly gloss that surfaces via text.
+    assert manifestation["coding"][0]["display"] == "Eruption of skin"
 
 
 # --- Dict path ---
@@ -192,7 +195,7 @@ def test_allergy_from_dict_path():
     r = resources[0]
     assert r["resourceType"] == "AllergyIntolerance"
     assert r["id"] == f"{ALLERGY_ID_PREFIX}pt1-a01"
-    assert r["code"]["coding"][0]["code"] == "372687004"
+    assert r["code"]["coding"][0]["code"] == "387458008"
     assert r["criticality"] == "high"
     assert r["onsetDateTime"] == "2020-03-15"
 
@@ -244,7 +247,7 @@ def test_no_reactions_omits_reaction_field():
 def test_jp_locale_resolves_snomed_display_to_ja():
     """JP cohort: allergen_code 387207008 (Penicillin) resolved to ペニシリン via code_lookup."""
     a = _sample_allergy_dataclass()
-    a.allergen_code = "387207008"
+    a.allergen_code = "373270004"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
     assert r["code"]["coding"][0]["display"] == "ペニシリン"
@@ -254,10 +257,10 @@ def test_jp_locale_resolves_snomed_display_to_ja():
 def test_jp_locale_resolves_reaction_manifestation_to_ja():
     """JP cohort: manifestation_snomed 247472004 (Rash) resolved to 発疹 via code_lookup."""
     a = _sample_allergy_dataclass()
-    a.allergen_code = "387207008"
+    a.allergen_code = "373270004"
     a.reactions = [
         AllergyReaction(
-            manifestation_snomed="247472004",
+            manifestation_snomed="271807003",
             severity="moderate",
         )
     ]
@@ -276,7 +279,7 @@ def test_multiple_allergies_all_emitted():
     a1 = _sample_allergy_dataclass()
     a2 = _sample_allergy_dataclass()
     a2.allergy_id = "a02"
-    a2.allergen_code = "387207008"
+    a2.allergen_code = "373270004"
     ctx = _make_ctx([a1, a2])
     resources = _bb_allergy_intolerances(ctx)
     assert len(resources) == 2
