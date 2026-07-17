@@ -288,7 +288,7 @@ def convert_cif_to_fhir(
             # Runs regardless of country: identifier / meta.lastUpdated are
             # base-FHIR-optional but JP-eCS-required; universal emission keeps
             # US output consistent and cost-free.
-            _populate_observation_identifier_and_last_updated(resource)
+            _populate_observation_identifier_and_last_updated(resource, country)
             # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
             # (and low/high/component mirrors). LabResult_eCS forbids them
             # (max=0) and the previously-emitted `referenceRangeSource` URL
@@ -1083,7 +1083,7 @@ def _build_bundle(
                 _populate_jp_medication_dosage_ecs_fields(resource)
             # PR-D (2026-07-17): populate Observation.identifier + meta.lastUpdated
             # (JP eCS min=1). Universal — safe on US output.
-            _populate_observation_identifier_and_last_updated(resource)
+            _populate_observation_identifier_and_last_updated(resource, country)
             # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
             # (and low/high/component mirrors). LabResult_eCS forbids them
             # (max=0) and the previously-emitted `referenceRangeSource` URL
@@ -1199,6 +1199,19 @@ _INSTANT_FIELDS = frozenset(("issued", "lastUpdated"))
 # identifier populated from `Observation.id`.
 _CLINOSIM_OBSERVATION_ID_SYSTEM = "urn:clinosim:observation-id"
 
+# JP-CLINS 1.12.0 JP_Observation_LabResult_eCS profile requires an
+# `identifier:resourceIdentifier` slice whose `.system` matches the profile's
+# patternUri (spec directly from
+# `StructureDefinition-JP-Observation-LabResult-eCS.json`, differential
+# element `Observation.identifier:resourceIdentifier.system`). Emitting the
+# internal `urn:clinosim:observation-id` alone triggered 30,315 slice-
+# minimum-violation errors in the 2026-07-17 v2 fullset validation (v2
+# feedback §【最優先 1】, -7.3pp headroom). For JP output we prepend this
+# canonical spec URI; the internal urn is preserved as a secondary
+# identifier so downstream consumers can still round-trip clinosim
+# resources.
+_JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
+
 # JP-CLINS MedicationRequest.dosageInstruction (Dosage = JP_MedicationDosage_eCS)
 # canonical constants (spec fixedUri from
 # StructureDefinition-jp-medicationdosage-eCS.json in JP-CLINS 1.12.0).
@@ -1312,24 +1325,27 @@ _HL7_OBSERVATION_CATEGORY_SYSTEMS = frozenset(
 )
 
 
-def _populate_observation_identifier_and_last_updated(resource: dict) -> None:
+def _populate_observation_identifier_and_last_updated(resource: dict, country: str = "") -> None:
     """Populate `Observation.identifier` and `Observation.meta.lastUpdated`.
 
     JP_Observation_LabResult_eCS (JP-CLINS 1.12.0) requires both fields:
-    - `identifier[]` (`min=1`) — clinosim uses the internal `Observation.id`
-      as the identifier value under a canonical `urn:clinosim:observation-id`
-      system so consumers can round-trip resources across pipelines.
+    - `identifier[]` (`min=1`) with an `identifier:resourceIdentifier` slice
+      whose `.system` matches the spec `patternUri`. For JP output the
+      spec-canonical URI is emitted as the leading identifier so the slice
+      is satisfied; the internal `urn:clinosim:observation-id` is appended
+      as a secondary identifier so downstream consumers keep the round-trip
+      key.
     - `meta.lastUpdated` (`min=1`) — falls back to `effectiveDateTime` (or
       `issued` / `effectivePeriod.end`) when the builder did not set one. The
       value is a good approximation for synthesized data since clinosim has
       no separate "record last modified" concept.
 
-    Base FHIR admits both as optional, so the walker fires universally and
-    US output picks up the same fields harmlessly. Idempotent — leaves any
-    builder-populated values untouched.
+    Base FHIR admits both as optional, so the walker fires universally.
+    Idempotent — leaves builder-populated values untouched.
 
-    Feedback fix (2026-07-16, PR-D). Covers the "identifier" + "meta.lastUpdated"
-    bullets of §"【最優先 4】" from the fhir-jp-validator report.
+    Feedback fix (2026-07-16, PR-D) covered identifier + meta.lastUpdated
+    universally. Session 57 chain A (v2 feedback §【最優先 1】) adds the
+    JP-locale spec URI so the resourceIdentifier slice actually matches.
     """
     if resource.get("resourceType") != "Observation":
         return
@@ -1337,7 +1353,13 @@ def _populate_observation_identifier_and_last_updated(resource: dict) -> None:
     if not resource.get("identifier"):
         rid = resource.get("id", "")
         if rid:
-            resource["identifier"] = [{"system": _CLINOSIM_OBSERVATION_ID_SYSTEM, "value": rid}]
+            if country == "JP":
+                resource["identifier"] = [
+                    {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid},
+                    {"system": _CLINOSIM_OBSERVATION_ID_SYSTEM, "value": rid},
+                ]
+            else:
+                resource["identifier"] = [{"system": _CLINOSIM_OBSERVATION_ID_SYSTEM, "value": rid}]
     # meta.lastUpdated — reuse an existing datetime field. _normalize_dt_fields
     # then converts it to the FHIR `instant` shape (seconds + TZ).
     meta = resource.setdefault("meta", {})
