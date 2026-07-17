@@ -55,6 +55,11 @@ scratchpad/*_report.txt
 # `/` anchors to repo root, so `tests/unit/output/` etc. are NOT matched.
 /output-p*-seed*/
 /output/
+# Session 57: catch scratch CIF/FHIR generation dirs a maintainer may create
+# in-repo by accident when passing a relative `-o` to `clinosim generate`.
+/test_*_output/
+/verify-*/
+/pre-verify*/
 
 # Maintainer-local continuation notes(shared repo has only the shared roadmap).
 # Contributors may keep private session-scoped resume prompts here without
