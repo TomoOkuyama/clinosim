@@ -100,6 +100,13 @@ def test_jp_allergy_intolerance_display_in_ja() -> None:
     AllergyIntolerance from the Task 9 builder (id prefix 'allergy-{pid}-{idx}'):
     SNOMED code → resolved via code_lookup("snomed-ct", code, "ja").
     Example: SNOMED 387207008 (Penicillin) → "ペニシリン".
+
+    Session 57 Chain G: SNOMED is an English-only CodeSystem for HAPI
+    Validator purposes, so the JA label now lives in ``code.text`` instead
+    of being re-injected onto ``code.coding[].display``. The invariant this
+    test guards is that JP output carries a Japanese human-readable label
+    for the code — check the CodeableConcept as a whole (text OR any
+    coding.display), so either surface satisfies the JP-locale contract.
     """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
@@ -119,16 +126,17 @@ def test_jp_allergy_intolerance_display_in_ja() -> None:
         non_jp: list[str] = []
         for ai in task9_allergies:
             ai_id = ai.get("id", "?")
-            display = next(
-                (c.get("display", "") for c in ai.get("code", {}).get("coding", [])),
-                "",
-            )
-            if display and not _has_jp_chars(display):
-                non_jp.append(f"AllergyIntolerance/{ai_id} code.coding[0].display not JP: {display!r}")
+            code = ai.get("code", {})
+            text = code.get("text", "") or ""
+            coding_displays = [c.get("display", "") or "" for c in code.get("coding", [])]
+            has_jp = _has_jp_chars(text) or any(_has_jp_chars(d) for d in coding_displays)
+            if not has_jp:
+                non_jp.append(
+                    f"AllergyIntolerance/{ai_id} neither code.text nor code.coding[].display "
+                    f"carries JP characters (text={text!r}, coding_displays={coding_displays!r})"
+                )
 
-        assert not non_jp, f"{len(non_jp)} AllergyIntolerance resource(s) have non-JP code display:\n" + "\n".join(
-            non_jp[:5]
-        )
+        assert not non_jp, f"{len(non_jp)} AllergyIntolerance resource(s) have no JP label:\n" + "\n".join(non_jp[:5])
 
 
 @pytest.mark.integration

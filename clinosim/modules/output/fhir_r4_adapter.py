@@ -1626,7 +1626,21 @@ def _copy_display_from_sibling_coding(codings: list, lang: str = "en") -> None:
             display = None
             system_uri = c.get("system", "")
             system_key = _FHIR_URI_TO_CODE_SYSTEM_KEY.get(system_uri) if isinstance(system_uri, str) else None
-            if system_key and lang != "en":
+            # Session 57 chain G (v2 feedback §【中優先 7】): the sibling-copy
+            # step previously re-injected a Japanese display via
+            # `code_lookup(..., "ja")` for JP output. On English-only
+            # CodeSystems (LOINC / SNOMED / HL7 terminology / DICOM / UCUM
+            # / `http://hl7.org/fhir/sid/*` including ICD-10) that undid
+            # `_strip_japanese_display_on_english_only_systems`, so the
+            # HAPI Validator's "Wrong Display Name" check surfaced ~2.5k
+            # ICD-10 errors in v2 fullset. Skip the ja lookup path when
+            # the coding's system is on the English-only allowlist so the
+            # sibling-copy step falls through to the interop display
+            # (2) or the canonical English lookup (3).
+            is_english_only_system = isinstance(system_uri, str) and system_uri.startswith(
+                _ENGLISH_ONLY_CODING_SYSTEM_PREFIXES
+            )
+            if system_key and lang != "en" and not is_english_only_system:
                 looked_up = code_lookup(system_key, code_, lang)
                 if looked_up and looked_up != code_:
                     display = looked_up
