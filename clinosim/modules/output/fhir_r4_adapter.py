@@ -1770,6 +1770,23 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
                     }
                 ]
             }
+        # Session 57 v3 (Chain-10): JP_MedicationRequest_eCS requires
+        # `identifier` min=3 with the `identifier:requestIdentifier` slice
+        # (min=1 max=1) present in addition to the builder-emitted
+        # `rpNumber` + `orderInRp` slices. The requestIdentifier value is
+        # the per-medication order id; system is reused from the same
+        # `resourceInstance-identifier` namespace applied to Observation
+        # (Chain A) and Condition/AI (Chain-9). Idempotent — the walker
+        # skips when the URI is already present in identifier[].
+        ids = resource.get("identifier", []) or []
+        rid = resource.get("id", "")
+        if rid and not any(
+            isinstance(i, dict) and i.get("system") == _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM for i in ids
+        ):
+            resource["identifier"] = [
+                {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid},
+                *ids,
+            ]
 
 
 def _normalize_jp_observation_category(resource: dict) -> None:
