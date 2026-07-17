@@ -57,6 +57,15 @@ RADIOLOGY_CATEGORY_SNOMED = "394914008"
 # HL7 v2-0074 "Radiology" — owner: this file.
 RADIOLOGY_CATEGORY_V2_0074 = "RAD"
 
+# JP Core DiagnosticReport_LabResult profile (`jp-diagnosticreport-labresult`)
+# requires `category:first.coding.code` fixedCode = `LP29693-6` on LOINC
+# (see fhir-jp-validator/jp_core/package/
+# StructureDefinition-jp-diagnosticreport-labresult.json). Emitted alongside
+# the v2-0074 LAB category element for JP-locale lab DRs so the slice
+# discriminator (`value $this` on CodeableConcept) can identify a category
+# element that matches the fixed LOINC binding.
+JP_LAB_DR_CATEGORY_LOINC = "LP29693-6"
+
 
 def _o(obj: Any, name: str, default: Any = None) -> Any:
     """Dual-access helper: dataclass attribute OR dict key (production path)."""
@@ -231,7 +240,21 @@ def build_dr_resource(
             else {}
         ),
         "status": "final",
-        "category": [
+        "category": (
+            [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("loinc"),
+                            "code": JP_LAB_DR_CATEGORY_LOINC,
+                        }
+                    ]
+                }
+            ]
+            if is_jp(country)
+            else []
+        )
+        + [
             {
                 "coding": [
                     {
