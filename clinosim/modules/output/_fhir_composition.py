@@ -409,8 +409,15 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
                     ],
                     "text": disp_c,
                 },
+                # Session 57 Chain 8 (v2 feedback §【中優先 8】): JP-CLINS
+                # eDischargeSummary / eReferral / eCheckup pin
+                # Composition.section[*].text.status to fixedCode "additional"
+                # (see fhir-jp-validator/tx-server-build/.../clinical-information-sharing#1.12.0
+                # StructureDefinition-JP-Composition-*.json). generic
+                # Composition (_build_composition_generic below) keeps
+                # "generated" per base FHIR default.
                 "text": {
-                    "status": "generated",
+                    "status": "additional",
                     "div": (f'<div xmlns="http://www.w3.org/1999/xhtml">{_escape_html(text_val)}</div>'),
                 },
             }
@@ -507,8 +514,10 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
                 ],
                 "text": disp_c,
             },
+            # Session 57 Chain 8 (v2 feedback §【中優先 8】): JP-CLINS eReferral
+            # pins Composition.section[*].text.status to fixedCode "additional".
             "text": {
-                "status": "generated",
+                "status": "additional",
                 "div": (f'<div xmlns="http://www.w3.org/1999/xhtml">{_escape_html(text_val)}</div>'),
             },
         }
@@ -628,8 +637,15 @@ def _build_jp_eCheckup_general_composition(doc: Any, sections: dict[str, str], l
                     ],
                     "text": disp_c,
                 },
+                # Session 57 Chain 8 (v2 feedback §【中優先 8】): JP-CLINS
+                # eDischargeSummary / eReferral / eCheckup pin
+                # Composition.section[*].text.status to fixedCode "additional"
+                # (see fhir-jp-validator/tx-server-build/.../clinical-information-sharing#1.12.0
+                # StructureDefinition-JP-Composition-*.json). generic
+                # Composition (_build_composition_generic below) keeps
+                # "generated" per base FHIR default.
                 "text": {
-                    "status": "generated",
+                    "status": "additional",
                     "div": (f'<div xmlns="http://www.w3.org/1999/xhtml">{_escape_html(text_val)}</div>'),
                 },
             }
