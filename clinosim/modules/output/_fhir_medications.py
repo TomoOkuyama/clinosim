@@ -19,6 +19,7 @@ from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_us, resolve_lang
 from clinosim.modules.output._fhir_common import (
     _build_dosage_instruction,
+    _map_diagnosis_code,
     _map_mar_status,
     _parse_dose_for_mar,
     _strip_protocol_prefix,
@@ -634,13 +635,25 @@ def _build_medication_admin(
         # ICD code を CodeableConcept で並置(reasonReference との duplication は
         # FHIR R4 で recommended:code と reference は互いに補完)。
         # US = icd-10-cm、JP = icd-10。
+        #
+        # #208 (2026-07-17):`primary_dx_code` は CIF の
+        # `admission_diagnosis_code` にセットされる disease-YAML の
+        # `icd_codes.primary` 値を由来として、しばしば CM-granular な
+        # 表現(S72.00 / E11.65 / …)を含む。JP output では
+        # `_map_diagnosis_code` を通して WHO ICD-10 3-4 桁の親コードへ
+        # 畳み込む必要がある(fhir-jp-validator 2026-07-17 §【最優先 6】
+        # 7,652 errors)。US では identity(既に CM billable leaf に
+        # `code_mapping_diagnosis/us.yaml` で解決済み)。他 builder
+        # (Encounter.reasonCode / Condition.code / FamilyMemberHistory.code)
+        # は同 seam を既に通しており、これで漏れ経路が閉じる。
         _icd_system = get_system_uri("icd-10-cm" if country_code == "US" else "icd-10")
+        _mapped_dx_code = _map_diagnosis_code(primary_dx_code, country_code)
         resource["reasonCode"] = [
             {
                 "coding": [
                     {
                         "system": _icd_system,
-                        "code": primary_dx_code,
+                        "code": _mapped_dx_code,
                     }
                 ],
             }
