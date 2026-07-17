@@ -29,7 +29,6 @@ from clinosim.modules.output._fhir_localization import (
 )
 from clinosim.modules.output._fhir_reference_data import (
     _JP_CONDITION_SEVERITY_CS,
-    _JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL,
     _PREFECTURE_CODE,
     _ROUTE_SNOMED,
     _SEVERITY_JP,
@@ -624,7 +623,10 @@ def _build_reference_range(
     if not ranges:
         return None
 
-    source_url = ref_data.get("source_url", "")
+    # NOTE: `ref_data["source_url"]` was previously read into a
+    # `referenceRangeSource` extension per range; the extension has been
+    # dropped (#202). The YAML field is kept for provenance/audit trails
+    # but is not surfaced in the FHIR output.
     result: list[dict[str, Any]] = []
 
     for entry in ranges:
@@ -658,19 +660,20 @@ def _build_reference_range(
                 }
             ]
 
-        # Source extension. The JP Core Observation_Common profile defines a
-        # `referenceRangeSource` sub-extension for citing the range's issuing
-        # body (e.g. JCCLS 共用基準範囲 2022). Attach ONLY for country=JP;
-        # US bundles must not embed jpfhir.jp URLs (multi-locale isolation,
-        # session 47 P2-13 Task 5 bug fix).
-        if source_url and country_code.upper() == "JP":
-            rr["extension"] = [
-                {
-                    "url": _JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL,
-                    "valueString": source_url,
-                }
-            ]
-
+        # `referenceRangeSource` extension は emit しない。
+        # fhir-jp-validator 2026-07-17 §【最優先 2】(31k errors)で以下 2 点が
+        # 判明:
+        # (1) 過去 clinosim 版が使っていた URL(fragment 版 → 現行 spec 準拠版
+        #     どちらも)は JP Core 1.2.0 / JP-CLINS 1.12.0 / jpfhir-terminology
+        #     2.2606.0 のいずれの StructureDefinition にも存在しない
+        #     (`grep -rl 'ReferenceRangeSource' fhir-jp-validator/tx-server-build/...`
+        #      で match ゼロ)。spec fixedUri 直接引用 rule(session 51)違反。
+        # (2) `JP_Observation_LabResult_eCS` は `Observation.referenceRange.
+        #     extension max=0` を定めており、たとえ spec-valid URL でも profile
+        #     で禁止される。
+        # source_url 情報は JP-CLINS の slot が無いため、entirely drop する。
+        # ここで emit しない + `_strip_forbidden_observation_reference_range_extensions`
+        # walker(fhir_r4_adapter)で defensive 除去、の 2 重防御。
         result.append(rr)
 
     return result if result else None

@@ -36,12 +36,16 @@ _SEVERITY_JP: dict[str, dict[str, str]] = {
     "moderate": {"code": "MO", "display": "中度"},
     "severe": {"code": "SE", "display": "重度"},
 }
-# JP Core reference range source extension URL. Fixed URI per JP Core spec
-# (session 50 adv-1 rule). URI taken from StructureDefinition-JP_Observation_Common.json
-# Used in _fhir_common._build_reference_range() for Observation.referenceRange[].extension.url
-_JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL = (
-    "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_ReferenceRangeSource"
-)
+# NOTE: 過去に定義していた `_JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL`
+# (`.../StructureDefinition/JP_Observation_ReferenceRangeSource`)は削除。
+# 2026-07-17 fhir-jp-validator report で以下 2 点が判明したため:
+# (1) URL は JP Core 1.2.0 / JP-CLINS 1.12.0 / jpfhir-terminology 2.2606.0
+#     の StructureDefinition カタログに存在せず、HAPI が "extension is
+#     unknown" として reject する。
+# (2) `JP_Observation_LabResult_eCS` は `Observation.referenceRange.
+#     extension max=0` を定めており、たとえ spec-valid URL でも emit 不可。
+# → clinosim は referenceRangeSource extension を emit しない。
+# 該当 issue: #202、削除の PR は fix/observation-reference-range-strip-extension。
 
 
 _PREFECTURE_CODE: dict[str, str] = {
