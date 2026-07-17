@@ -207,8 +207,10 @@ def test_care_team_has_category_coding() -> None:
     """CareTeam.category must contain at least one coding entry.
 
     FHIR R4 CareTeam: category is recommended (not required) but our builder
-    always emits SNOMED 735320007 'Multidisciplinary care team'. Validates that
-    the builder is not silently omitting category[] on any CareTeam.
+    always emits SNOMED 407484005 'Rehabilitation care team' (session 57
+    Chain D, swapped from 735320007 which was Unknown in SNOMED
+    International 2026-06-01). Validates that the builder is not silently
+    omitting category[] on any CareTeam.
     """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"

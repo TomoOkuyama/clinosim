@@ -314,6 +314,17 @@ codes:
   '735320007':
     en: Multidisciplinary care team    # FSN: Multidisciplinary care team (qualifier value)
     ja: 多職種ケアチーム
+  # v2 feedback (2026-07-17_full_v2, §【最優先 2】): 735320007 は
+  # SNOMED CT International 2026-06-01 に未収録で fhirserver が "Unknown code"
+  # として 3,788 件を reject。v2 feedback 推奨の 407484005 (fhirserver 収録
+  # 確認済 active concept) に切替え。semantic は "Rehabilitation care team"
+  # で本来 rehab 特化だが、CareTeam.category binding は preferred (制約 loose)
+  # かつ full spec 沿った general concept で 2026-06-01 版に確実に載っている
+  # 選択肢が乏しかったため採用。encounter-type ごとの分岐は follow-up
+  # Issue で扱う (rehab_inpatient 以外は general team に refine 予定)。
+  '407484005':
+    en: Rehabilitation care team    # FSN: Rehabilitation care team (record artifact)
+    ja: リハビリテーションケアチーム
 
   # === Allergic reaction manifestations (Tier 1 #3 α-min-1 PR1) ===
   # Verified via SNOMED International browser, 2026-07-01.
