@@ -239,6 +239,95 @@ def _build_lab_observation(
     return resource
 
 
+def _build_bp_component(
+    loinc: str,
+    display_en: str,
+    display_ja: str,
+    value: float,
+    normal_low: float,
+    normal_high: float,
+    crit_low: float,
+    crit_high: float,
+    country: str,
+) -> dict[str, Any]:
+    """Build one `component[]` entry inside the BP-panel Observation (#210).
+
+    Encodes the LOINC code (systolic 8480-6 / diastolic 8462-4),
+    valueQuantity in mmHg, the paired referenceRange (normal + critical),
+    and the derived interpretation flag. Reference-range and
+    interpretation ranges match the pre-#210 per-Observation shape so
+    downstream flag semantics stay identical.
+    """
+    display = display_ja if is_jp(country) else display_en
+    unit = "mm[Hg]"
+    interp_code = "N"
+    interp_display = "Normal"
+    if value <= crit_low:
+        interp_code, interp_display = "LL", "Critical low"
+    elif value >= crit_high:
+        interp_code, interp_display = "HH", "Critical high"
+    elif value < normal_low:
+        interp_code, interp_display = "L", "Low"
+    elif value > normal_high:
+        interp_code, interp_display = "H", "High"
+
+    normal_text = "成人正常範囲" if is_jp(country) else "Normal adult range"
+    crit_text = "パニック値" if is_jp(country) else "Critical range"
+    return {
+        "code": {
+            "coding": [{"system": get_system_uri("loinc"), "code": loinc, "display": display}],
+            "text": display,
+        },
+        "valueQuantity": {
+            "value": value,
+            "unit": unit,
+            "system": get_system_uri("ucum"),
+            "code": unit,
+        },
+        "referenceRange": [
+            {
+                "low": {"value": normal_low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "high": {"value": normal_high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "type": {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-referencerange-meaning"),
+                            "code": "normal",
+                            "display": "正常範囲" if is_jp(country) else "Normal Range",
+                        }
+                    ],
+                },
+                "text": normal_text,
+            },
+            {
+                "low": {"value": crit_low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "high": {"value": crit_high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "type": {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-referencerange-meaning"),
+                            "code": "treatment",
+                            "display": "パニック範囲" if is_jp(country) else "Critical Range",
+                        }
+                    ],
+                },
+                "text": crit_text,
+            },
+        ],
+        "interpretation": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-observation-interpretation"),
+                        "code": interp_code,
+                        "display": _localize_display(interp_display, country, _INTERPRETATION_DISPLAY_JA),
+                    }
+                ],
+            }
+        ],
+    }
+
+
 def _build_vital_observations(
     vs: dict,
     patient_id: str,
@@ -246,17 +335,32 @@ def _build_vital_observations(
     country: str = "US",
     encounter_id: str = "",
 ) -> list[dict]:
-    """Build FHIR Observation resources for vital signs (one per parameter)."""
+    """Build FHIR Observation resources for vital signs (one per parameter).
+
+    Blood-pressure special case (#210, 2026-07-17): systolic (LOINC 8480-6)
+    and diastolic (LOINC 8462-4) are consolidated into a single Observation
+    with `code = LOINC 85354-9` (BP panel) and two `component[]` entries.
+    The FHIR base "bp" profile (auto-applied by HAPI on any Observation
+    whose `code` is a BP-panel LOINC) requires exactly this shape; emitting
+    the two components as separate top-level Observations produced ~14.5k
+    ``component:SystolicBP min=1`` / ``component:DiastolicBP min=1`` /
+    ``BPCode: magic LOINC code 85354-9 required`` errors on the
+    fhir-jp-validator 2026-07-17 report (§【最優先 7】).
+    """
     entries = []
 
     # (field, loinc, display_en, display_ja, unit, low, high, critical_low, critical_high, time_offset_sec)
     # crit_high=None means no upper critical bound (e.g., SpO2 cannot be critically high)
     # time_offset: per-field realistic delay within a vital-sign set
     # BP/HR measured simultaneously (same device cycle), Temp added later, RR counted last
+    #
+    # NOTE: `systolic_bp` / `diastolic_bp` used to appear here as separate
+    # Observations; they are now consolidated into a single BP panel
+    # Observation emitted at the end of this function (see #210). Reference
+    # ranges for the components live in the panel's per-component
+    # `referenceRange[]` block, matching the FHIR base "bp" profile shape.
     _vital_map = [
         ("heart_rate", "8867-4", "Heart rate", "脈拍", "/min", 60, 100, 40, 130, 0),
-        ("systolic_bp", "8480-6", "Systolic blood pressure", "収縮期血圧", "mm[Hg]", 90, 140, 80, 200, 0),
-        ("diastolic_bp", "8462-4", "Diastolic blood pressure", "拡張期血圧", "mm[Hg]", 60, 90, 50, 120, 0),
         ("spo2", "2708-6", "Oxygen saturation", "酸素飽和度", "%", 95, 100, 88, None, 5),
         ("temperature_celsius", "8310-5", "Body temperature", "体温", "Cel", 36.0, 37.5, 35.0, 39.5, 30),
         ("respiratory_rate", "9279-1", "Respiratory rate", "呼吸数", "/min", 12, 20, 8, 30, 60),
@@ -392,6 +496,85 @@ def _build_vital_observations(
         ]
 
         entries.append(_entry(obs))
+
+    # BP panel (#210, 2026-07-17). One Observation with LOINC 85354-9 in
+    # `code` and both systolic + diastolic as `component[]` — the exact
+    # shape the FHIR base "bp" profile requires (HAPI auto-applies that
+    # profile whenever it sees a BP-panel LOINC or its component codes).
+    # Emit only when both systolic and diastolic are present in `vs`; a
+    # partial (systolic-only or diastolic-only) BP reading is not clinically
+    # meaningful and does not appear in real clinosim output today.
+    sbp = vs.get("systolic_bp")
+    dbp = vs.get("diastolic_bp")
+    if sbp is not None and dbp is not None:
+        bp_display = "血圧" if is_jp(country) else "Blood pressure panel"
+        bp_obs: dict[str, Any] = {
+            "resourceType": "Observation",
+            "id": f"vs-{encounter_id or patient_id}-{index:04d}-bp-panel",
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
+                if is_jp(country)
+                else {}
+            ),
+            "status": "final",
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-observation-category"),
+                            "code": "vital-signs",
+                            "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
+                        }
+                    ],
+                    "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
+                }
+            ],
+            "code": {
+                "coding": [{"system": get_system_uri("loinc"), "code": "85354-9", "display": bp_display}],
+                "text": bp_display,
+            },
+            "subject": {"reference": f"Patient/{patient_id}"},
+            "component": [
+                _build_bp_component(
+                    loinc="8480-6",
+                    display_en="Systolic blood pressure",
+                    display_ja="収縮期血圧",
+                    value=sbp,
+                    normal_low=90,
+                    normal_high=140,
+                    crit_low=80,
+                    crit_high=200,
+                    country=country,
+                ),
+                _build_bp_component(
+                    loinc="8462-4",
+                    display_en="Diastolic blood pressure",
+                    display_ja="拡張期血圧",
+                    value=dbp,
+                    normal_low=60,
+                    normal_high=90,
+                    crit_low=50,
+                    crit_high=120,
+                    country=country,
+                ),
+            ],
+        }
+        # Timestamp — BP + HR share the same measurement cycle (offset 0)
+        timestamp = vs.get("timestamp")
+        if timestamp:
+            try:
+                from datetime import datetime as _dt
+
+                base_dt = _dt.fromisoformat(str(timestamp).replace("Z", "+00:00").split("+")[0])
+                bp_obs["effectiveDateTime"] = base_dt.isoformat()
+            except (ValueError, TypeError):
+                bp_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
+        if encounter_id:
+            bp_obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        performer_id = vs.get("measured_by", "")
+        if performer_id:
+            bp_obs["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
+        entries.append(_entry(bp_obs))
 
     # Consciousness level (AVPU) — Glasgow Coma Scale-related
     loc = vs.get("consciousness_level", "")
