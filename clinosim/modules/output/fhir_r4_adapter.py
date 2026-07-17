@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import uuid
 from collections.abc import Callable
 from datetime import datetime
@@ -156,6 +157,21 @@ from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
 from clinosim.modules.output.cif_reader import CIFReader
 from clinosim.simulator import log as sim_log
 
+# FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding
+# (2026-07-17): 812,606 ids across the export violated this spec — `_` in id
+# and >64 char ids were rejected by IRIS FHIR endpoint with HTTP 400. HAPI
+# validator is more lenient but the FHIR spec is strict. The regex here is the
+# single source of truth for the pattern — every writer path routes ids
+# through it, and any non-conforming id logs a warning (fail-soft: the write
+# still succeeds so a bug in a single builder does not break the whole export,
+# but the log lets the audit CI catch regressions).
+_FHIR_ID_PATTERN = re.compile(r"^[A-Za-z0-9\-\.]{1,64}$")
+
+
+def _fhir_id_is_spec_valid(rid: str) -> bool:
+    """True if ``rid`` conforms to FHIR R4 `Resource.id` = `[A-Za-z0-9\\-\\.]{1,64}`."""
+    return bool(_FHIR_ID_PATTERN.match(rid))
+
 
 def convert_cif_to_fhir(
     cif_dir: str,
@@ -202,6 +218,7 @@ def convert_cif_to_fhir(
     # Use a writer cache to lazy-create files only for types we encounter
     writers: dict[str, Any] = {}
     written_ids: dict[str, set[str]] = {}  # de-dup Patient and Practitioner
+    invalid_id_counts: dict[str, int] = {}  # per-resource-type spec-violation tally
 
     def write(resource: dict) -> None:
         rt = resource.get("resourceType", "")
@@ -212,6 +229,13 @@ def convert_cif_to_fhir(
         # Observation, ...) recur across a patient's per-encounter bundles; keep the
         # first write only. Per-encounter resources have unique ids → never dropped.
         rid = resource.get("id", "")
+        # FHIR R4 `Resource.id` spec check (iris4h-ai P0 finding, 2026-07-17).
+        # Fail-soft: increment the per-type counter and log a warning at
+        # export end. The write itself proceeds — a spec-invalid id from a
+        # regressed builder should surface loudly but not break the whole
+        # export.
+        if rid and not _fhir_id_is_spec_valid(rid):
+            invalid_id_counts[rt] = invalid_id_counts.get(rt, 0) + 1
         if rid:
             ids = written_ids.setdefault(rt, set())
             if rid in ids:
@@ -327,6 +351,17 @@ def convert_cif_to_fhir(
             "ndjson_sort_end",
             files=len(writers),
             elapsed_s=round(_time.perf_counter() - t0_sort, 3),
+        )
+    # Surface FHIR-id spec violations tallied inside `write()`. Empty when
+    # every emitted id conforms to `[A-Za-z0-9\-\.]{1,64}`; a non-empty dict
+    # indicates a regressed builder and shows up in `simulator.log` for the
+    # audit CI to flag (iris4h-ai P0 finding, 2026-07-17).
+    if invalid_id_counts:
+        sim_log.info(
+            "fhir_r4_adapter",
+            "invalid_fhir_ids",
+            counts=dict(invalid_id_counts),
+            total=sum(invalid_id_counts.values()),
         )
     sim_log.info(
         "fhir_r4_adapter",
