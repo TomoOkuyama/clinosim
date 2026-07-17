@@ -375,23 +375,25 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
     if _JP_CLINS_DS_PROFILE not in profs:
         profs.append(_JP_CLINS_DS_PROFILE)
 
-    # `type` field:jpfhir doc-typecodes を primary、LOINC を secondary(interop 用)
+    # `type` field:jpfhir doc-typecodes を primary。
+    # Session 57 v3 fix: eDS profile constrains type.coding to max=1, so
+    # emit only the doc-typecodes coding — the LOINC copy (previously
+    # emitted for interop) violated the profile slicing on 129 resources.
+    # The LOINC value is preserved via type.text so downstream consumers
+    # can still recover the same code as text.
     disp = code_lookup("jpfhir-doc-typecodes", "18842-5", lang) or "退院時サマリー"
     comp["type"] = {
         "coding": [
             {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "18842-5", "display": disp},
-            {
-                "system": get_system_uri("loinc"),
-                "code": "18842-5",
-                "display": code_lookup("loinc", "18842-5", lang) or disp,
-            },
         ],
         "text": disp,
     }
     comp["title"] = disp
 
     # section: 300 parent + 5 child sections
-    parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
+    # Session 57 v3 fix: display of section 300 corrected from "構造情報セクション"
+    # to "構造情報" per the eDS profile section.code display constraint.
+    parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報"
     child_sections: list[dict[str, Any]] = []
     for key, code in _JP_DS_SECTION_CODE.items():
         disp_c = code_lookup("jpfhir-doc-section", code, lang) or key
@@ -485,16 +487,14 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     if _JP_CLINS_REFERRAL_PROFILE not in profs:
         profs.append(_JP_CLINS_REFERRAL_PROFILE)
 
-    # `type` field:57133-1 を doc-typecodes と LOINC の両方で emit(interop 用)
+    # `type` field:57133-1 (eReferral / referral note)
+    # Session 57 v3 fix: eReferral profile constrains type.coding to a
+    # single doc-typecodes coding. LOINC copy removed; the LOINC value is
+    # preserved via type.text.
     disp = code_lookup("jpfhir-doc-typecodes", "57133-1", lang) or "診療情報提供書"
     comp["type"] = {
         "coding": [
             {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "57133-1", "display": disp},
-            {
-                "system": get_system_uri("loinc"),
-                "code": "57133-1",
-                "display": code_lookup("loinc", "57133-1", lang) or disp,
-            },
         ],
         "text": disp,
     }
@@ -531,7 +531,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     struct_children: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_STRUCTURAL_CHILDREN.items():
         struct_children.append(_one_section(code, sections.get(key, "") or ""))
-    struct_parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
+    struct_parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報"
     top_sections.append(
         {
             "title": struct_parent_disp,
