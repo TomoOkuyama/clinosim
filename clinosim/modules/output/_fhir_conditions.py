@@ -333,9 +333,10 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # `clinicalStatus="active"` (line 213) and `abatementDateTime` from
         # the block below, triggering FHIR R4 invariant `con-4` on 2,452
         # Condition resources. Restrict the abatement emission to
-        # non-chronic-primary encounters so the docstring's intent is
-        # actually enforced.
-        if encounters and not is_chronic_primary:
+        # non-chronic-primary, living-patient encounters so the docstring's
+        # intent is actually enforced. (Deceased patients: clinicalStatus=active
+        # because the diagnosis didn't resolve, so abatement must not be set.)
+        if encounters and not is_chronic_primary and not deceased:
             _enc0 = encounters[0]
             _dd = _enc0.get("discharge_datetime", "")
             _est = _enc0.get("status", "")
