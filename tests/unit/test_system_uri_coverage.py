@@ -40,7 +40,12 @@ EXPECTED_URIS = {
     "hl7-allergyintolerance-clinical": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
     "hl7-admit-source": "http://terminology.hl7.org/CodeSystem/admit-source",
     "us-core-documentreference-category": "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
-    "occupation-category": "http://clinosim.example.org/CodeSystem/occupation-category",
+    # #212 (2026-07-17): moved off `clinosim.example.org` — HAPI validator
+    # hard-rejects any *.example.org / *.example.com URL. The clinosim-owned
+    # namespace `clinosim.dev` is the fallback for values whose upstream
+    # standard body did not register a FHIR CodeSystem URI (patient
+    # occupation category is the current case).
+    "occupation-category": "http://clinosim.dev/fhir/CodeSystem/occupation-category",
 }
 
 _ADAPTER = Path(__file__).resolve().parent.parent.parent / "clinosim" / "modules" / "output" / "fhir_r4_adapter.py"
