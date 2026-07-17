@@ -1488,6 +1488,8 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                 )
         if not code_field.get("text"):
             code_field["text"] = dosage.get("text") or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
+
+
 def _copy_display_from_sibling_coding(codings: list, lang: str = "en") -> None:
     """When one coding entry has a display for a code and another sibling entry
     with the same code lacks it, propagate the display. Used on
