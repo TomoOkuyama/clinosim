@@ -27,6 +27,23 @@ MB_SUS_ID_PREFIX = "mb-sus-"
 MB_SPECIMEN_ID_PREFIX = "spec-"
 MB_DR_ID_PREFIX = "dr-mb-"
 
+# JP Core DiagnosticReport_Microbiology profile constants (spec-pinned from
+# fhir-jp-validator/jp_core/package/
+# StructureDefinition-jp-diagnosticreport-microbiology.json). Session 46
+# chain #2 originally routed microbiology DRs through
+# `JP_DiagnosticReport_LabResult` because Microbiology profile constraints
+# had not been surveyed; session 57 verifies Microbiology's actual profile
+# requirements are compatible with clinosim's existing MB emission shape and
+# switches meta.profile accordingly. The Microbiology profile requires:
+#   * `category:first.coding.code` fixedCode = `LP7819-8` on LOINC
+#   * `code.coding` patternCodeableConcept containing
+#     `{system: JP_DocumentCodes_CS, code: 18725-2}` ("微生物学的検査報告書")
+JP_MB_DR_PROFILE_URI = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Microbiology"
+JP_MB_DR_CATEGORY_LOINC = "LP7819-8"
+JP_MB_DR_CODE_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_DocumentCodes_CS"
+JP_MB_DR_CODE_VALUE = "18725-2"
+JP_MB_DR_CODE_DISPLAY = "微生物学的検査報告書"
+
 # Canonical URI for HAI event cross-reference identifiers (PR3b-5,
 # 2026-06-29). Emitted on Specimen + mb-org-*/mb-sus-* Observation +
 # DiagnosticReport when MicrobiologyResult.hai_event_id is non-empty.
@@ -268,17 +285,47 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             out.append(sus_obs)
             result_refs.append({"reference": f"Observation/{sus_id}"})
 
+        # Session 57 chain B: for JP output, the microbiology DR routes through
+        # JP_DiagnosticReport_Microbiology (session 46 chain #2 originally used
+        # LabResult without verifying Microbiology-specific constraints; spec
+        # `StructureDefinition-jp-diagnosticreport-microbiology.json` requires
+        # `code.coding` to contain a patternCodeableConcept for
+        # `JP_DocumentCodes_CS 18725-2`, which LabResult does not accept).
+        report_code: dict[str, Any] = culture_code
+        if is_jp(ctx.country):
+            _jp_doc_coding = {
+                "system": JP_MB_DR_CODE_CS,
+                "code": JP_MB_DR_CODE_VALUE,
+                "display": JP_MB_DR_CODE_DISPLAY,
+            }
+            report_code = {
+                **culture_code,
+                "coding": [_jp_doc_coding, *culture_code.get("coding", [])],
+            }
         report: dict[str, Any] = {
             "resourceType": "DiagnosticReport",
             "id": f"{MB_DR_ID_PREFIX}{base}",
-            # Session 46 chain #2: JP Core DiagnosticReport_LabResult profile.
             **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"]}}
+                {"meta": {"profile": [JP_MB_DR_PROFILE_URI]}}
                 if is_jp(ctx.country)
                 else {}
             ),
             "status": "final",
-            "category": [
+            "category": (
+                [
+                    {
+                        "coding": [
+                            {
+                                "system": get_system_uri("loinc"),
+                                "code": JP_MB_DR_CATEGORY_LOINC,
+                            }
+                        ]
+                    }
+                ]
+                if is_jp(ctx.country)
+                else []
+            )
+            + [
                 {
                     "coding": [
                         {
@@ -289,7 +336,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                     ]
                 }
             ],
-            "code": culture_code,
+            "code": report_code,
             "subject": subject,
             "specimen": [{"reference": f"Specimen/{spec_id}"}],
             "result": result_refs,
