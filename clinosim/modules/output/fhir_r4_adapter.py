@@ -253,6 +253,11 @@ def convert_cif_to_fhir(
                 _apply_jp_clins_profile(resource)
                 _normalize_jp_observation_category(resource)
                 _strip_japanese_display_on_english_only_systems(resource)
+                # PR-I (2026-07-17): populate JP-CLINS MedicationDosage_eCS
+                # required fields (extension:periodOfUse + timing.code with the
+                # uncoded dummy usage code that satisfies R5020). No-op on the
+                # facility bundle since it emits no MedicationRequests.
+                _populate_jp_medication_dosage_ecs_fields(resource)
             # Runs regardless of country: identifier / meta.lastUpdated are
             # base-FHIR-optional but JP-eCS-required; universal emission keeps
             # US output consistent and cost-free.
@@ -1015,6 +1020,9 @@ def _build_bundle(
                 # CodeableConcept 側の text は保持されるため人間可読性は
                 # (text 未設定な Coding-direct field を除いて)維持。
                 _strip_japanese_display_on_english_only_systems(resource)
+                # PR-I (2026-07-17): populate JP-CLINS MedicationDosage_eCS
+                # required fields on MedicationRequest.dosageInstruction[].
+                _populate_jp_medication_dosage_ecs_fields(resource)
             # PR-D (2026-07-17): populate Observation.identifier + meta.lastUpdated
             # (JP eCS min=1). Universal — safe on US output.
             _populate_observation_identifier_and_last_updated(resource)
@@ -1123,6 +1131,27 @@ _INSTANT_FIELDS = frozenset(("issued", "lastUpdated"))
 # declares `identifier` with `min=1`; every Observation now carries this
 # identifier populated from `Observation.id`.
 _CLINOSIM_OBSERVATION_ID_SYSTEM = "urn:clinosim:observation-id"
+
+# JP-CLINS MedicationRequest.dosageInstruction (Dosage = JP_MedicationDosage_eCS)
+# canonical constants (spec fixedUri from
+# StructureDefinition-jp-medicationdosage-eCS.json in JP-CLINS 1.12.0).
+# The R5020 constraint ("valid Usage-MedicationUsage-codesystem") requires
+# exactly one of: MHLW ePrescription code OR the dummy uncoded code.
+# clinosim has no MHLW usage-code mapping, so the dummy is the correct choice
+# and matches JP-CLINS's own example fixture
+# (MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json).
+_JP_CLINS_MEDICATION_USAGE_UNCODED_CS = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_MedicationUsage_Uncoded_CS"
+_JP_CLINS_MEDICATION_USAGE_UNCODED_CODE = "0X0XXXXXXXXX0000"
+_JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY = "ダミー用法コード"
+# JP_MedicationDosage_eCS declares Dosage.extension:periodOfUse as min=1
+# (spec differential slice). The extension's valuePeriod.start marks the day
+# the dose becomes effective.
+_JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL = (
+    "http://jpfhir.jp/fhir/core/Extension/StructureDefinition/JP_MedicationDosage_PeriodOfUse"
+)
+# The MHLW ePrescription CS is the "coded" alternative to the dummy code. When
+# a builder has emitted this system already, the walker leaves it alone.
+_JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationUsage_ePrescription"
 
 
 def _normalize_dt(v, want_instant: bool = False):
@@ -1279,6 +1308,90 @@ def _build_companion_specimen(observation: dict, country: str) -> dict:
     if edt:
         specimen["collection"] = {"collectedDateTime": edt}
     return specimen
+
+
+def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
+    """Populate `JP_MedicationDosage_eCS`-required fields on each
+    `MedicationRequest.dosageInstruction[]`.
+
+    JP-CLINS 1.12.0 pulls the Dosage type through a JP-specific profile that
+    layers three requirements the clinosim builder does not currently emit:
+
+    1. **`Dosage.extension:periodOfUse` (min=1)** — a `Period` whose `start`
+       marks the day the dose becomes effective. Derived from `authoredOn`
+       (fallback: `recorded`).
+    2. **`Dosage.timing.code.coding` (min=1) satisfying R5020** — exactly one
+       of the MHLW ePrescription coded system OR the JP-CLINS dummy uncoded
+       code `0X0XXXXXXXXX0000`. clinosim has no MHLW coded mapping, so we
+       emit the JP-CLINS dummy — this is the exact choice made by the
+       official JP-CLINS example fixture
+       (`MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json`).
+    3. **`Dosage.timing.code.text` (min=1)** — human-readable frequency
+       description; falls back to `Dosage.text` when unset.
+
+    JP only (the walker is registered inside the `country == "JP"` branch).
+    Idempotent — leaves any builder-populated extension / timing.code alone.
+
+    Feedback fix (2026-07-16, PR-I). Covers `dosageInstruction[N].extension` +
+    `Constraint failed: validUsage-MedicationUsage-codesystem` from §"【最優先 2】".
+    """
+    if resource.get("resourceType") != "MedicationRequest":
+        return
+    dosages = resource.get("dosageInstruction")
+    if not isinstance(dosages, list):
+        return
+
+    # Derive the period start from authoredOn / recorded (date portion only —
+    # Period.start is a dateTime, but the JP-CLINS example uses date-only).
+    authored = resource.get("authoredOn") or resource.get("recorded") or ""
+    start_date = ""
+    if isinstance(authored, str) and authored:
+        # authoredOn is dateTime with TZ; strip the T portion for a stable date.
+        start_date = authored.split("T", 1)[0]
+
+    for dosage in dosages:
+        if not isinstance(dosage, dict):
+            continue
+
+        # (1) PeriodOfUse extension (min=1 slice).
+        exts = dosage.setdefault("extension", [])
+        if isinstance(exts, list):
+            already_periodofuse = any(
+                isinstance(e, dict) and e.get("url") == _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL for e in exts
+            )
+            if not already_periodofuse and start_date:
+                exts.append(
+                    {
+                        "url": _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL,
+                        "valuePeriod": {"start": start_date},
+                    }
+                )
+
+        # (2)+(3) timing.code (R5020 + text min=1).
+        timing = dosage.setdefault("timing", {})
+        if not isinstance(timing, dict):
+            continue
+        code_field = timing.setdefault("code", {})
+        if not isinstance(code_field, dict):
+            continue
+        codings = code_field.setdefault("coding", [])
+        if isinstance(codings, list):
+            already_valid = any(
+                isinstance(c, dict)
+                and c.get("system")
+                in (_JP_CLINS_MEDICATION_USAGE_UNCODED_CS, _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS)
+                for c in codings
+            )
+            if not already_valid:
+                codings.append(
+                    {
+                        "system": _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,
+                        "code": _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE,
+                        "display": _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,
+                    }
+                )
+        if not code_field.get("text"):
+            code_field["text"] = dosage.get("text") or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
 
 
 def _normalize_jp_observation_category(resource: dict) -> None:
