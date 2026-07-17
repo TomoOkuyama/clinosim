@@ -305,7 +305,7 @@ def convert_cif_to_fhir(
             # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
             # Condition / AllergyIntolerance / MedicationRequest. Universal —
             # US output picks up the same fields harmlessly.
-            _populate_condition_ai_mr_ecs_fields(resource)
+            _populate_condition_ai_mr_ecs_fields(resource, country)
             _normalize_dt_fields(resource)
             write(resource)
             n_resources += 1
@@ -1078,7 +1078,7 @@ def _build_bundle(
                 entries.append(_entry(specimen))
             # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
             # Condition / AllergyIntolerance / MedicationRequest. Universal.
-            _populate_condition_ai_mr_ecs_fields(resource)
+            _populate_condition_ai_mr_ecs_fields(resource, country)
             # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource)
@@ -1488,7 +1488,7 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                 )
         if not code_field.get("text"):
             code_field["text"] = dosage.get("text") or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
-def _copy_display_from_sibling_coding(codings: list) -> None:
+def _copy_display_from_sibling_coding(codings: list, lang: str = "en") -> None:
     """When one coding entry has a display for a code and another sibling entry
     with the same code lacks it, propagate the display. Used on
     `Condition.code.coding[]` and `AllergyIntolerance.code.coding[]` where the
@@ -1497,12 +1497,13 @@ def _copy_display_from_sibling_coding(codings: list) -> None:
     same code, English display) already has it.
 
     When no sibling display is available (e.g. AllergyIntolerance emits a
-    single SNOMED coding), fall back to `code_lookup` for known FHIR system
-    URIs so the primary coding still carries the authoritative English display.
+    single SNOMED coding), fall back to `code_lookup` in ``lang`` for known
+    FHIR system URIs. JP output routes ``lang="ja"`` here so the primary
+    coding carries a JP-native display where clinosim/codes/data has one,
+    and only falls back to English when no ja entry exists.
 
     Feedback fix (2026-07-16, PR-G). Preserves the FHIR R4 rule that every
-    coding on an English-only CodeSystem must carry the authoritative English
-    display.
+    coding on an English-only CodeSystem must carry a resolvable display.
     """
     if not isinstance(codings, list):
         return
@@ -1518,15 +1519,25 @@ def _copy_display_from_sibling_coding(codings: list) -> None:
             code_ = c.get("code")
             if not isinstance(code_, str) or not code_:
                 continue
-            # Prefer sibling display; fall back to code_lookup for known systems.
-            display = code_display.get(code_)
+            # Priority for the display value on a coding that lacks one:
+            # (1) authoritative `code_lookup` in the requested language (ja)
+            # (2) sibling coding's display (interop entry with english)
+            # (3) `code_lookup` in english as a last-resort fallback.
+            # (1) beats (2) on JP output so a dual-coded Condition emits the
+            # authoritative JP display rather than the english interop label.
+            display = None
+            system_uri = c.get("system", "")
+            system_key = _FHIR_URI_TO_CODE_SYSTEM_KEY.get(system_uri) if isinstance(system_uri, str) else None
+            if system_key and lang != "en":
+                looked_up = code_lookup(system_key, code_, lang)
+                if looked_up and looked_up != code_:
+                    display = looked_up
             if not display:
-                system_uri = c.get("system", "")
-                system_key = _FHIR_URI_TO_CODE_SYSTEM_KEY.get(system_uri) if isinstance(system_uri, str) else None
-                if system_key:
-                    looked_up = code_lookup(system_key, code_, "en")
-                    if looked_up and looked_up != code_:
-                        display = looked_up
+                display = code_display.get(code_)
+            if not display and system_key:
+                looked_up = code_lookup(system_key, code_, "en")
+                if looked_up and looked_up != code_:
+                    display = looked_up
             if display:
                 c["display"] = display
 
@@ -1551,7 +1562,7 @@ def _populate_status_coding_display(coding_dict: Any, display_map: dict[str, str
             c["display"] = display_map[code_]
 
 
-def _populate_condition_ai_mr_ecs_fields(resource: dict) -> None:
+def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") -> None:
     """Populate JP-CLINS eCS-required fields on Condition / AllergyIntolerance
     / MedicationRequest.
 
@@ -1603,16 +1614,18 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict) -> None:
         _populate_status_coding_display(resource.get("verificationStatus"), _ALLERGY_VER_STATUS_DISPLAY)
 
     # (4) code.coding[].display sibling-copy (Condition / AllergyIntolerance).
+    # JP output prefers JP display via `code_lookup(..., "ja")`; US uses "en".
+    lang = "ja" if country == "JP" else "en"
     if rt in ("Condition", "AllergyIntolerance"):
         code_field = resource.get("code")
         if isinstance(code_field, dict):
-            _copy_display_from_sibling_coding(code_field.get("coding") or [])
+            _copy_display_from_sibling_coding(code_field.get("coding") or [], lang)
         if rt == "AllergyIntolerance":
             for reaction in resource.get("reaction", []) or []:
                 if isinstance(reaction, dict):
                     for manifestation in reaction.get("manifestation", []) or []:
                         if isinstance(manifestation, dict):
-                            _copy_display_from_sibling_coding(manifestation.get("coding") or [])
+                            _copy_display_from_sibling_coding(manifestation.get("coding") or [], lang)
 
 
 def _normalize_jp_observation_category(resource: dict) -> None:
