@@ -106,6 +106,7 @@ import re
 import tempfile
 from typing import Any
 
+from clinosim import __version__ as _clinosim_version
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
 from clinosim.modules.document import (
     ALLERGY_ID_PREFIX,
@@ -522,7 +523,7 @@ def _proof_structural_cif_zero_narrative_content() -> int:
         )
         dataset = CIFDataset(
             metadata=CIFMetadata(
-                clinosim_version="0.2",
+                clinosim_version=_clinosim_version,
                 generation_timestamp=datetime.now(),
                 random_seed=42,
                 country="US",
