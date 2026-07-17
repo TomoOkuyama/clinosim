@@ -77,12 +77,8 @@ def test_chronic_primary_active_no_abatement():
 
     # Verify con-4 compliance: active status WITHOUT abatement
     clinical_status = cond["clinicalStatus"]["coding"][0]["code"]
-    assert clinical_status == "active", (
-        f"Chronic primary should be active; got {clinical_status}"
-    )
-    assert "abatementDateTime" not in cond, (
-        "Chronic primary should NOT have abatementDateTime (violates con-4)"
-    )
+    assert clinical_status == "active", f"Chronic primary should be active; got {clinical_status}"
+    assert "abatementDateTime" not in cond, "Chronic primary should NOT have abatementDateTime (violates con-4)"
 
 
 def test_non_chronic_primary_completed_has_abatement():
@@ -105,13 +101,9 @@ def test_non_chronic_primary_completed_has_abatement():
 
     # Verify con-4 compliance: if abatement is present, status should NOT be active
     clinical_status = cond["clinicalStatus"]["coding"][0]["code"]
-    assert "abatementDateTime" in cond, (
-        "Non-chronic primary completed encounter should have abatementDateTime"
-    )
+    assert "abatementDateTime" in cond, "Non-chronic primary completed encounter should have abatementDateTime"
     # When abatement is present, clinicalStatus must be resolved (or inactive, remission)
-    assert clinical_status == "resolved", (
-        f"Acute primary with abatement should be resolved; got {clinical_status}"
-    )
+    assert clinical_status == "resolved", f"Acute primary with abatement should be resolved; got {clinical_status}"
 
 
 def test_non_chronic_primary_in_progress_no_abatement():
@@ -133,12 +125,8 @@ def test_non_chronic_primary_in_progress_no_abatement():
 
     # In-progress acute should be active WITHOUT abatement
     clinical_status = cond["clinicalStatus"]["coding"][0]["code"]
-    assert clinical_status == "active", (
-        f"In-progress acute should be active; got {clinical_status}"
-    )
-    assert "abatementDateTime" not in cond, (
-        "In-progress encounter should NOT have abatementDateTime"
-    )
+    assert clinical_status == "active", f"In-progress acute should be active; got {clinical_status}"
+    assert "abatementDateTime" not in cond, "In-progress encounter should NOT have abatementDateTime"
 
 
 def test_outpatient_encounter_resolved_no_abatement():
@@ -161,12 +149,8 @@ def test_outpatient_encounter_resolved_no_abatement():
 
     # Outpatient is resolved by default, and no abatement because discharge_dt is None
     clinical_status = cond["clinicalStatus"]["coding"][0]["code"]
-    assert clinical_status == "resolved", (
-        f"Outpatient should be resolved; got {clinical_status}"
-    )
-    assert "abatementDateTime" not in cond, (
-        "Outpatient without discharge_dt should NOT have abatementDateTime"
-    )
+    assert clinical_status == "resolved", f"Outpatient should be resolved; got {clinical_status}"
+    assert "abatementDateTime" not in cond, "Outpatient without discharge_dt should NOT have abatementDateTime"
 
 
 def test_jp_locale_chronic_primary_no_abatement():
@@ -183,9 +167,7 @@ def test_jp_locale_chronic_primary_no_abatement():
 
     clinical_status = cond["clinicalStatus"]["coding"][0]["code"]
     assert clinical_status == "active"
-    assert "abatementDateTime" not in cond, (
-        "JP locale: chronic primary should also NOT have abatementDateTime"
-    )
+    assert "abatementDateTime" not in cond, "JP locale: chronic primary should also NOT have abatementDateTime"
 
 
 def test_deceased_patient_acute_primary_no_abatement():
@@ -207,9 +189,7 @@ def test_deceased_patient_acute_primary_no_abatement():
 
     # Deceased: diagnosis is still 'active' (unresolved) and no abatement
     clinical_status = cond["clinicalStatus"]["coding"][0]["code"]
-    assert clinical_status == "active", (
-        "Deceased patient's acute diagnosis should remain active"
-    )
+    assert clinical_status == "active", "Deceased patient's acute diagnosis should remain active"
     assert "abatementDateTime" not in cond, (
         "Deceased patient should NOT have abatementDateTime (diagnosis didn't resolve)"
     )
