@@ -45,22 +45,30 @@ __all__ = [
 
 CARE_TEAM_ID_PREFIX = "careteam-"
 
-# SNOMED CT "Multidisciplinary care team" 735320007 — verified active in SNOMED CT
-# International Edition 2026-06-01 via HAPI Validator tx server (2026-07-16 feedback
-# from fhir-jp-validator run). Registered in clinosim/codes/data/snomed-ct.yaml.
+# SNOMED CT CareTeam.category — 2026-07-17 v2 feedback: 735320007 was Unknown
+# code in the fhirserver's SNOMED International Edition 2026-06-01 loadout
+# (3,788 CareTeam rejections). Switched to 407484005 "Rehabilitation care team"
+# which the v2 feedback explicitly proposed and is verified present in the
+# same edition.
 #
 # History:
 # - session 42: SNOMED 424535000 "Clinical team" was flagged inactive by HL7
 #   fhirserver, so we switched to LOINC LA27976-8 "Episode of care team focused".
-# - 2026-07-16 feedback: LOINC LA27976-8 is also unknown in LOINC 2.82 (Unknown
-#   code error, 1913/1913 CareTeam fail rate). Reverting to SNOMED with the
-#   currently active concept 735320007 (Multidisciplinary care team). FHIR R4
-#   CareTeam.category binding is `preferred` = LOINC OR SNOMED; the JP Core
-#   profile does not fix the code system so SNOMED is compliant.
+# - 2026-07-16 v1 feedback: LOINC LA27976-8 is unknown in LOINC 2.82 (1,913
+#   CareTeam failures). Adopted SNOMED 735320007 (Multidisciplinary care team)
+#   in place of the LOINC code.
+# - 2026-07-17 v2 feedback: 735320007 was itself Unknown in SNOMED International
+#   Edition 2026-06-01 (3,788 rejections). Switched to 407484005 following
+#   the v2 feedback's explicit recommendation (§【最優先 2】).
+# - Semantic caveat: "Rehabilitation care team" is technically rehab-specific;
+#   emitting it uniformly on all encounter types is a validator-conformance
+#   trade-off. A follow-up issue tracks encounter-type-specific dispatch
+#   (rehab_inpatient keeps 407484005; other encounter types get a general
+#   care-team code once one is verified present in the tx server load).
 _CARE_TEAM_CATEGORY_SYSTEM = get_system_uri("snomed-ct")
-_CARE_TEAM_CATEGORY_CODE = "735320007"  # Multidisciplinary care team
-_CARE_TEAM_CATEGORY_EN = "Multidisciplinary care team"
-_CARE_TEAM_CATEGORY_JA = "多職種ケアチーム"
+_CARE_TEAM_CATEGORY_CODE = "407484005"  # Rehabilitation care team (record artifact)
+_CARE_TEAM_CATEGORY_EN = "Rehabilitation care team"
+_CARE_TEAM_CATEGORY_JA = "リハビリテーションケアチーム"
 
 
 def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
