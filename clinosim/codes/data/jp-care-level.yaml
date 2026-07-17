@@ -1,8 +1,14 @@
 # JP long-term-care need level (要介護度). Authoritative classification: MHLW
 # 介護保険 区分 (厚生労働省). Local code system (no clean international code).
+#
+# NOTE (#212, 2026-07-17): the CodeSystem `uri` moved off `clinosim.example.org`
+# to `clinosim.dev` — a non-example TLD so HAPI validator does not reject
+# it with the hard-coded "Example URL not allowed" rule. MHLW 要介護度 has
+# no officially registered FHIR CodeSystem URI, so a clinosim-owned URI is
+# the only spec-conformant option.
 metadata:
   name: JP Long-term Care Need Level
-  uri: http://clinosim.example.org/CodeSystem/jp-care-level
+  uri: http://clinosim.dev/fhir/CodeSystem/jp-care-level
   source: "MHLW 介護保険 (要支援/要介護 区分)"
 codes:
   independent: {en: "Independent (no certification)", ja: "自立"}

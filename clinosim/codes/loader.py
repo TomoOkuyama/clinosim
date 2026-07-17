@@ -192,7 +192,14 @@ _BUILTIN_URIS: dict[str, str] = {
     "hl7-endpoint-payload-type": "http://terminology.hl7.org/CodeSystem/endpoint-payload-type",
     "hl7-subscriber-relationship": "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
     "us-core-documentreference-category": "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
-    "occupation-category": "http://clinosim.example.org/CodeSystem/occupation-category",
+    # clinosim-owned CodeSystems for values that have no authoritative
+    # standard-body CodeSystem URI (patient occupation category is a good
+    # example: FHIR core has no ValueSet binding, US Core uses text-only,
+    # JP Standard Occupation Classification has no registered FHIR URI).
+    # Namespace under `clinosim.dev` — a non-example TLD so HAPI validator
+    # does not reject it with the hard-coded "Example URL not allowed"
+    # rule (#212, 2026-07-17).
+    "occupation-category": "http://clinosim.dev/fhir/CodeSystem/occupation-category",
     # DICOM code systems (Tier 1 #2 Imaging, PR1)
     "dicom-modality": "http://dicom.nema.org/resources/ontology/DCM",
 }

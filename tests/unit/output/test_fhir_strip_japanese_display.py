@@ -83,7 +83,9 @@ def test_english_only_systems_strip_japanese_display(system, display):
         "http://medis.or.jp/CodeSystem/master-HOT7",
         "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code",
         "urn:oid:1.2.392.200119.4.1005",
-        "http://clinosim.example.org/CodeSystem/occupation-category",
+        # #212: clinosim-owned CodeSystem URI (previously `.example.org`,
+        # moved to `.dev` so HAPI validator does not reject the URL).
+        "http://clinosim.dev/fhir/CodeSystem/occupation-category",
     ],
 )
 def test_jp_specific_systems_preserve_japanese_display(system):
