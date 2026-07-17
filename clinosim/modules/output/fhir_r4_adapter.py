@@ -83,6 +83,9 @@ from clinosim.modules.output._fhir_endpoint import (  # noqa: F401
 )
 from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
 from clinosim.modules.output._fhir_family_history import _build_family_history  # noqa: F401
+from clinosim.modules.output._fhir_generator_metadata import (
+    write_generator_metadata as _write_generator_metadata,
+)
 from clinosim.modules.output._fhir_hai import _build_hai_conditions  # noqa: F401
 from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
     _bb_imaging_studies,
@@ -153,9 +156,6 @@ from clinosim.modules.output._fhir_service_request import (  # noqa: F401
 from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
     _build_alcohol_use,
     _build_smoking_status,
-)
-from clinosim.modules.output._fhir_generator_metadata import (
-    write_generator_metadata as _write_generator_metadata,
 )
 from clinosim.modules.output.cif_reader import CIFReader
 from clinosim.simulator import log as sim_log
