@@ -25,9 +25,15 @@ def test_build_ucum_quantity_populates_all_four_fields():
 
 
 def test_build_ucum_quantity_code_matches_unit():
-    """FHIR UCUM idiom: `unit` is display, `code` is machine token; for standard
-    clinical units the two strings are identical."""
-    for unit in ("mL", "g/dL", "mL/h", "mmol/L", "mEq/L", "U/L", "10*9/L"):
+    """FHIR UCUM idiom: `unit` is display, `code` is machine token; for units
+    that are already UCUM canonical (mL / g/dL / mL/h / mmol/L / U/L /
+    10*9/L etc.) the two strings are identical.
+
+    Informal clinical spellings (mEq/L, IU/L, mcg, ...) go through a
+    canonicalization map — see ``test_ucum_code_canonicalization.py``.
+    Keeping ``mEq/L`` out of this list preserves the "identity for canonical
+    units" invariant this test guards."""
+    for unit in ("mL", "g/dL", "mL/h", "mmol/L", "U/L", "10*9/L"):
         q = build_ucum_quantity(1.0, unit)
         assert q["unit"] == unit
         assert q["code"] == unit
