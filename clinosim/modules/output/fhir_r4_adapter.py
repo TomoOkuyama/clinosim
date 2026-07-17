@@ -1633,90 +1633,110 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
 def _normalize_jp_observation_category(resource: dict) -> None:
     """Normalize `Observation.category` for JP output(single seam).
 
-    JP only(caller が country=JP のみで呼ぶ前提)。以下 4 要件を同時に
-    満たす形へ category.coding を書き換える:
+    JP only(caller が country=JP のみで呼ぶ前提)。fhir-jp-validator
+    feedback 2026-07-17 §"【最優先 3】"(286k errors)の適合設計:
+    **1 category element = 1 coding**、HL7 と JP CS は必ず**別々の
+    category element**として emit する。
 
-    1. **JP CS coding を必ず emit**。HL7 標準 URL および過去の fabricated
-       URL は canonical `JP_SimpleObservationCategory_CS` に置換。
-    2. **VSCat slice を維持**(iris4h-ai feedback V5 発見 H, ~89k error)。
-       HL7 base Vital Signs profile(bp / heartrate / oxygensat / bodytemp /
-       resprate)は `Observation.code` の LOINC から HAPI が自動選択され、
-       `category:VSCat` slice discriminator として
-       `http://terminology.hl7.org/CodeSystem/observation-category#vital-signs`
-       coding を要求する。JP CS 単独 coding だけでは slice が満たされない
-       ため、`vital-signs` code を含む Observation では HL7 category coding
-       を JP CS coding と併記(2 coding)。
-    3. **eCS profile 対応 dual coding**(fhir-jp-validator feedback 2026-07-16
-       §"【最優先 3】", ~112k error)。`JP_Observation_LabResult_eCS` は
-       `category:first` slice discriminator に HL7 observation-category
-       CodeSystem を要求する(JP_Observation_Common は JP CS を要求)。
-       両 profile が meta.profile に共存する場合、HL7 + JP CS 両方 coding
-       で dual-satisfy する。`category` は `1..1`(entry 1 個)だが同 entry
-       内で複数 coding は許容されるため spec 準拠。
-    4. **`display` を省略**(iris4h-ai feedback V5 発見 A', ~155k error)。
-       JP CS も HL7 CodeSystem も英語 display のみ定義しているため、
-       日本語 display を残すと HAPI が「Wrong Display Name」error を出す。
-       feedback Option 1 に従い display 省略、日本語ラベルは text field
-       側で保持する(text field は translation として自由)。
+    Spec 根拠(StructureDefinition snapshot 実測):
 
-    eCS profile なし + 非 vital-signs Observation(social-history / survey /
-    imaging / procedure ...)は JP CS 単独 coding のまま維持。
+    - **JP_Observation_LabResult_eCS**(JP-CLINS 1.12.0)
+      `Observation.category` は `1..1`、slice `laboratory` の
+      `coding` は `1..1` かつ `coding.system fixedUri` =
+      `JP_SimpleObservationCategory_CS`。HL7 coding 併記は
+      `category:laboratory.coding max=1` を破り、かつ HL7 URL は
+      fixedUri と不一致で slice discriminator を破る。→ **lab は JP CS
+      単独 1 element**。
+    - **JP_Observation_VitalSigns**(jp-core 1.2.0)
+      `Observation.category` は `1..*`、slicing rules=`open`。
+      slice `first` は `coding.system fixedUri = JP_Simple...` +
+      `coding.code fixedCode = vital-signs`。`rules=open` により
+      slice に match しない追加 element は許容される。base HL7
+      `vitalsigns` profile(HAPI が LOINC 85354-9 等から自動適用)は
+      `category:VSCat` slice に HL7 URL#vital-signs coding を要求。
+      両方を満たすため → **VS は HL7 element + JP CS element の
+      2 element** に分離。公式 example
+      `Observation-jp-observation-vitalsigns-example-1.json` も
+      同形。
+    - **他 code**(social-history / imaging / procedure / survey / exam)
+      HL7 base の各 slice discriminator も `coding.system+code` を
+      使うため、混在すると同種の fixedUri 違反を招く。→ **JP CS
+      単独 1 element**(vital-signs 以外は「1 element = 1 coding」を
+      機械的に適用、conservatively minimal shape)。
+
+    共通処理:
+
+    - HL7 標準 URL および過去 clinosim 版の fabricated URL
+      (`http://jpfhir.jp/fhir/observation-category`)は canonical
+      `JP_SimpleObservationCategory_CS` に置換。
+    - `display` は省略。JP CS も HL7 CodeSystem も英語 display のみ
+      定義しているため日本語 display は HAPI に「Wrong Display Name」
+      で reject される(feedback V5 発見 A')。日本語ラベルは
+      `text` field 側で保持(translation として自由)。
+    - observation-category 以外の system coding は preserve(独自
+      CodeSystem を持ち込むテスト向けの defensive branch)。
+      preserve 先は JP element(最初の JP category element の coding
+      配列に前置)。
     """
     if resource.get("resourceType") != "Observation":
         return
     cats = resource.get("category")
     if not isinstance(cats, list) or not cats:
         return
+    # Sweep every category element: collect obs-cat codes (in appearance
+    # order, dedup), preserved foreign codings, and the first non-empty
+    # `text` hint. Then rebuild `resource["category"]` from scratch — the
+    # per-element output shape depends on the code (VS vs everything else)
+    # so we cannot rewrite in place safely.
+    category_codes: list[str] = []
+    seen_codes: set[str] = set()
+    preserved: list[dict] = []
+    text_hint: str = ""
     for cat in cats:
+        if not isinstance(cat, dict):
+            continue
+        if not text_hint:
+            t = cat.get("text")
+            if isinstance(t, str) and t:
+                text_hint = t
         codings = cat.get("coding")
         if not isinstance(codings, list):
             continue
-        # このカテゴリで登場する observation-category code(HL7 URL / JP CS URL
-        # / fabricated URL いずれ経由も同一 code 語彙)を出現順に収集。
-        category_codes: list[str] = []
-        seen_codes: set[str] = set()
         for cod in codings:
             if not isinstance(cod, dict):
                 continue
             sys_ = cod.get("system")
             code_ = cod.get("code")
-            if not isinstance(code_, str) or not code_:
-                continue
             if sys_ in _HL7_OBSERVATION_CATEGORY_SYSTEMS or sys_ == _JP_OBSERVATION_CATEGORY_SYSTEM:
-                if code_ not in seen_codes:
+                if isinstance(code_, str) and code_ and code_ not in seen_codes:
                     category_codes.append(code_)
                     seen_codes.add(code_)
-        if not category_codes:
-            continue
-        # HL7 category coding は 2 条件のいずれかで emit する:
-        # (1) vital-signs Observation(session 54 で restore): HL7 base
-        #     Vital Signs profile の `category:VSCat` slice discriminator が
-        #     HL7 URL#vital-signs coding を要求する。
-        # (2) eCS profile Observation(feedback 2026-07-16 §"【最優先 3】"):
-        #     `JP_Observation_LabResult_eCS` は `category:first` slice に
-        #     HL7 observation-category CS を要求する。JP_Observation_Common
-        #     single-coding のみを維持すると eCS profile の slice が破れる。
-        #     両方 emit で dual-satisfy。
-        has_ecs_profile = any(
-            isinstance(p, str) and "/eCS/" in p for p in resource.get("meta", {}).get("profile", []) or []
-        )
-        include_hl7_coding = "vital-signs" in category_codes or has_ecs_profile
-        # observation-category に該当する coding をすべて破棄し、正規化した
-        # coding を再構築する。それ以外の system の coding(例:独自
-        # CodeSystem)は preserve。
-        preserved: list[dict] = [
-            cod
-            for cod in codings
-            if isinstance(cod, dict)
-            and cod.get("system") not in _HL7_OBSERVATION_CATEGORY_SYSTEMS
-            and cod.get("system") != _JP_OBSERVATION_CATEGORY_SYSTEM
-        ]
-        rebuilt: list[dict] = list(preserved)
-        for code_ in category_codes:
-            if include_hl7_coding:
-                rebuilt.append({"system": _HL7_OBSERVATION_CATEGORY_SYSTEM, "code": code_})
-            rebuilt.append({"system": _JP_OBSERVATION_CATEGORY_SYSTEM, "code": code_})
-        cat["coding"] = rebuilt
+            else:
+                preserved.append(cod)
+    if not category_codes:
+        return
+    rebuilt: list[dict] = []
+    for code_ in category_codes:
+        if code_ == "vital-signs":
+            # HL7 element first: matched by the auto-applied base
+            # `vitalsigns` profile's `category:VSCat` slice; the JP Core
+            # `category:first` slice ignores it via `rules=open`.
+            rebuilt.append({"coding": [{"system": _HL7_OBSERVATION_CATEGORY_SYSTEM, "code": code_}]})
+        # Always emit a JP element (satisfies JP Core / eCS slices for
+        # every obs-cat code, including VS's `category:first`).
+        rebuilt.append({"coding": [{"system": _JP_OBSERVATION_CATEGORY_SYSTEM, "code": code_}]})
+    # Attach preserved foreign codings and the text hint to the first JP
+    # element. Foreign category codings are rare in production; landing
+    # them on the JP element mirrors the pre-refactor placement.
+    for cat_elem in rebuilt:
+        codings = cat_elem["coding"]
+        if codings and codings[0].get("system") == _JP_OBSERVATION_CATEGORY_SYSTEM:
+            if preserved:
+                cat_elem["coding"] = list(preserved) + codings
+            if text_hint:
+                cat_elem["text"] = text_hint
+            break
+    resource["category"] = rebuilt
 
 
 # iris4h-ai feedback V4/V5 P2 A: display 省略対象の「英語 display のみ」
