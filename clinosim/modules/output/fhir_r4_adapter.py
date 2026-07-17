@@ -1212,6 +1212,13 @@ _CLINOSIM_OBSERVATION_ID_SYSTEM = "urn:clinosim:observation-id"
 # resources.
 _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
 
+# HL7 v3 substanceAdminSubstitution CodeSystem (used by JP MR eCS walker to
+# convert `substitution.allowedBoolean` -> `substitution.allowedCodeableConcept`
+# per session 57 Chain 5). Defined at module top-level so the
+# test_adapter_does_not_hardcode_code_system_uris invariant continues to hold
+# (the URI never appears as a `"system": "..."` literal inside a builder).
+_HL7_V3_SUBSTITUTION_SYSTEM = "http://terminology.hl7.org/CodeSystem/v3-substanceAdminSubstitution"
+
 # JP-CLINS MedicationRequest.dosageInstruction (Dosage = JP_MedicationDosage_eCS)
 # canonical constants (spec fixedUri from
 # StructureDefinition-jp-medicationdosage-eCS.json in JP-CLINS 1.12.0).
@@ -1738,6 +1745,31 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
                     for manifestation in reaction.get("manifestation", []) or []:
                         if isinstance(manifestation, dict):
                             _copy_display_from_sibling_coding(manifestation.get("coding") or [], lang)
+
+    # (5) Session 57 Chain 5 (v2 feedback §【最優先 5】):
+    # JP_MedicationRequest_eCS pins `status` = patternCode "completed" and
+    # `intent` = patternCode "order", and requires `substitution.allowed[x]`
+    # to be a CodeableConcept (allowedBoolean is rejected). Spec:
+    # `tx-server-build/.../clinical-information-sharing#1.12.0/package/
+    # StructureDefinition-JP-MedicationRequest-eCS.json`. Enforced only on
+    # JP output; US path keeps the original semantics.
+    if rt == "MedicationRequest" and country == "JP":
+        resource["status"] = "completed"
+        resource["intent"] = "order"
+        sub = resource.get("substitution")
+        if isinstance(sub, dict) and "allowedBoolean" in sub:
+            allowed_bool = bool(sub.pop("allowedBoolean"))
+            _sub_code = "E" if allowed_bool else "N"
+            _sub_display = "equivalent" if allowed_bool else "none"
+            sub["allowedCodeableConcept"] = {
+                "coding": [
+                    {
+                        "system": _HL7_V3_SUBSTITUTION_SYSTEM,
+                        "code": _sub_code,
+                        "display": _sub_display,
+                    }
+                ]
+            }
 
 
 def _normalize_jp_observation_category(resource: dict) -> None:
