@@ -83,8 +83,9 @@ trap cleanup EXIT
 # Hash every output file that we require to be byte-identical.
 #
 # Included:  *.ndjson, cif/**/*.json, narratives/**/*.json (structural output)
-# Excluded (wall-clock metadata, expected to differ between runs):
+# Excluded (wall-clock metadata + git-dependent, expected to differ between runs):
 #   fhir_r4/manifest.json                       (FHIR Bulk transactionTime)
+#   fhir_r4/_generator_metadata.json            (generated_at + git commit)
 #   cif/metadata.json                           (CIF generation_timestamp)
 #   cif/narratives/*/manifest.json              (narrative-pass generated_at)
 #
@@ -98,6 +99,7 @@ hash_output_dir() {
         cd "$root"
         find . -type f \( -name "*.ndjson" -o -name "*.json" \) \
             ! -name "manifest.json" \
+            ! -name "_generator_metadata.json" \
             ! -path "./cif/metadata.json" \
             | LC_ALL=C sort
     ) | while read -r rel; do
