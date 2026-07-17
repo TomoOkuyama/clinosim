@@ -286,6 +286,12 @@ def convert_cif_to_fhir(
             # base-FHIR-optional but JP-eCS-required; universal emission keeps
             # US output consistent and cost-free.
             _populate_observation_identifier_and_last_updated(resource)
+            # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
+            # (and low/high/component mirrors). LabResult_eCS forbids them
+            # (max=0) and the previously-emitted `referenceRangeSource` URL
+            # was not registered anywhere in JP-CLINS 1.12.0. Universal —
+            # US output already omits the extension so the walker is a no-op.
+            _strip_forbidden_observation_reference_range_extensions(resource)
             # PR-E (2026-07-17): emit companion Specimen for lab Observations
             # (JP_Observation_LabResult_eCS.specimen min=1). No-op on the
             # facility bundle (no lab Observations) but keeps the code path
@@ -1065,6 +1071,12 @@ def _build_bundle(
             # PR-D (2026-07-17): populate Observation.identifier + meta.lastUpdated
             # (JP eCS min=1). Universal — safe on US output.
             _populate_observation_identifier_and_last_updated(resource)
+            # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
+            # (and low/high/component mirrors). LabResult_eCS forbids them
+            # (max=0) and the previously-emitted `referenceRangeSource` URL
+            # was not registered anywhere in JP-CLINS 1.12.0. Universal —
+            # US output already omits the extension so the walker is a no-op.
+            _strip_forbidden_observation_reference_range_extensions(resource)
             # PR-E (2026-07-17): emit companion Specimen for lab Observations
             # (JP_Observation_LabResult_eCS.specimen min=1). The Specimen is
             # added to the bundle entries alongside the Observation, and the
@@ -1325,6 +1337,55 @@ def _populate_observation_identifier_and_last_updated(resource: dict) -> None:
         )
         if ts:
             meta["lastUpdated"] = ts
+
+
+def _strip_forbidden_observation_reference_range_extensions(resource: dict) -> None:
+    """Remove `extension` / `modifierExtension` from every
+    `Observation.referenceRange[*]` (and `.low` / `.high`, plus
+    `Observation.component[*].referenceRange[*]` mirrored paths).
+
+    Rationale:
+
+    - `JP_Observation_LabResult_eCS` (JP-CLINS 1.12.0) locks
+      `Observation.referenceRange.extension` (and `modifierExtension`,
+      `low.extension`, `high.extension`) to `max=0`; the same lock
+      applies to `component[*].referenceRange.*`. Any extension emitted
+      on these paths violates the profile, regardless of URL.
+    - clinosim previously emitted a `referenceRangeSource` extension
+      whose URL was not registered anywhere in the JP-CLINS 1.12.0 /
+      jp-core 1.2.0 / jpfhir-terminology 2.2606.0 packages
+      (fhir-jp-validator 2026-07-17 §【最優先 2】surfaced 31,006
+      errors from this). The emit site in `_fhir_common._build_reference_range`
+      no longer writes it, but this walker is the second layer of the
+      silent-no-op defense: any cached CIF re-exported after the fix,
+      or a hypothetical future builder that reintroduces a sub-extension,
+      would still be scrubbed.
+
+    Universal (US Observation also benefits — the extension was already
+    JP-gated, but stripping is a no-op on non-existent fields).
+    Idempotent.
+    """
+    if resource.get("resourceType") != "Observation":
+        return
+
+    def _scrub(rrs: Any) -> None:
+        if not isinstance(rrs, list):
+            return
+        for rr in rrs:
+            if not isinstance(rr, dict):
+                continue
+            rr.pop("extension", None)
+            rr.pop("modifierExtension", None)
+            for side in ("low", "high"):
+                sub = rr.get(side)
+                if isinstance(sub, dict):
+                    sub.pop("extension", None)
+                    sub.pop("modifierExtension", None)
+
+    _scrub(resource.get("referenceRange"))
+    for comp in resource.get("component") or []:
+        if isinstance(comp, dict):
+            _scrub(comp.get("referenceRange"))
 
 
 def _lab_observation_needs_specimen(resource: dict) -> bool:
