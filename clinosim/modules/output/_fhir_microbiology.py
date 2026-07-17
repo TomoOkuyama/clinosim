@@ -305,11 +305,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         report: dict[str, Any] = {
             "resourceType": "DiagnosticReport",
             "id": f"{MB_DR_ID_PREFIX}{base}",
-            **(
-                {"meta": {"profile": [JP_MB_DR_PROFILE_URI]}}
-                if is_jp(ctx.country)
-                else {}
-            ),
+            **({"meta": {"profile": [JP_MB_DR_PROFILE_URI]}} if is_jp(ctx.country) else {}),
             "status": "final",
             "category": (
                 [

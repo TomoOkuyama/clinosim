@@ -169,10 +169,9 @@ def test_mb_dr_jp_profile_and_category_and_code() -> None:
     assert first_coding["code"] == JP_MB_DR_CATEGORY_LOINC == "LP7819-8"
 
     codings = dr["code"]["coding"]
-    assert any(
-        c.get("system") == JP_MB_DR_CODE_CS and c.get("code") == JP_MB_DR_CODE_VALUE
-        for c in codings
-    ), f"JP MB DR.code must contain JP_DocumentCodes_CS pattern; got {codings}"
+    assert any(c.get("system") == JP_MB_DR_CODE_CS and c.get("code") == JP_MB_DR_CODE_VALUE for c in codings), (
+        f"JP MB DR.code must contain JP_DocumentCodes_CS pattern; got {codings}"
+    )
 
 
 def test_mb_dr_us_unchanged() -> None:
@@ -223,7 +222,6 @@ def test_microbiology_spec_pin_lp7819_8_and_jp_document_codes() -> None:
     code_elem = _find_element(sd, "DiagnosticReport.code")
     pattern = code_elem.get("patternCodeableConcept", {})
     codings = pattern.get("coding", [])
-    assert any(
-        c.get("system") == JP_MB_DR_CODE_CS and c.get("code") == JP_MB_DR_CODE_VALUE
-        for c in codings
-    ), f"spec Microbiology DR.code patternCodeableConcept must include JP_DocumentCodes 18725-2; got {codings}"
+    assert any(c.get("system") == JP_MB_DR_CODE_CS and c.get("code") == JP_MB_DR_CODE_VALUE for c in codings), (
+        f"spec Microbiology DR.code patternCodeableConcept must include JP_DocumentCodes 18725-2; got {codings}"
+    )
