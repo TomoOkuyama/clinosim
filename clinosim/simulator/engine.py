@@ -9,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
+from clinosim import __version__ as _clinosim_version
 from clinosim.locale.loader import load_demographics
 from clinosim.modules._shared import is_jp
 from clinosim.modules.disease.protocol import load_disease_protocol
@@ -762,7 +763,7 @@ def run_beta(
     )
 
     metadata = CIFMetadata(
-        clinosim_version="0.1.0",
+        clinosim_version=_clinosim_version,
         random_seed=config.random_seed,
         country=config.country,
         hospital_scale=config.hospital_scale,
@@ -879,7 +880,7 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
         patient_records.append(record)
 
     metadata = CIFMetadata(
-        clinosim_version="0.1.0",
+        clinosim_version=_clinosim_version,
         random_seed=config.random_seed,
         country=config.country,
         hospital_scale=config.hospital_scale,

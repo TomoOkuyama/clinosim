@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import __version__ as _clinosim_version
 from clinosim.modules._shared import is_jp
 from clinosim.modules.patient.activator import activate_patient
 from clinosim.modules.staff.engine import generate_roster
@@ -950,7 +951,7 @@ def _run_test_encounter_generate(args: Any) -> None:
     # Build CIFDataset for this encounter cohort
     dataset = CIFDataset(
         metadata=CIFMetadata(
-            clinosim_version="0.2",
+            clinosim_version=_clinosim_version,
             generation_timestamp=datetime.now(),
             random_seed=args.seed,
             country=args.country,
