@@ -6,13 +6,19 @@
   silent-no-op。実 JP Core 1.2.0 spec fixedUri
   `JP_SimpleObservationCategory_CS` に修正 + 本 test で URI を pin して
   再発防止(このルールが「spec fixedUri 直接引用」に発展)。
-- 従来 prepend 方式(HL7 secondary slice 残存)から in-place replace
-  方式に変更。HL7 URL + fabricated URL の両方を JP CS URL に置換、code
-  は保持、eCS `category max=1` 制約にも適合。
+- HL7 URL + fabricated URL の両方を JP CS URL に置換、code は保持。
 - iris4h-ai feedback V5 発見 A' + H により、JP CS 側 display 誤り(155k
   error)+ HL7 base Vital Signs profile の VSCat slice 欠如(89k error)
   が判明。normalization を拡張:display 省略 + vital-signs のみ HL7
-  category coding を再併記(2 coding)、他 category は JP CS 単独維持。
+  category coding を再併記。
+- fhir-jp-validator feedback 2026-07-17 §【最優先 3】(286k errors)で
+  「1 category element 内の HL7 + JP CS dual coding」が JP Core
+  slice `first.coding.system fixedUri` と `LabResult_eCS
+  category:laboratory.coding max=1` の両方を破ることが判明。
+  最終設計:**1 element = 1 coding**、vital-signs のみ HL7 element と
+  JP CS element の 2 element、他は JP CS 単独 1 element。
+  公式 example `Observation-jp-observation-vitalsigns-example-1.json`
+  の shape と一致。
 
 同時に MedicationRequest / MedicationAdministration の
 identifier:rpNumber + orderInRp slice の URI も pin テストで守る。
@@ -77,9 +83,16 @@ def test_normalize_laboratory_category_emits_jp_cs_alone_without_display():
     assert cat["text"] == "検体検査"
 
 
-def test_normalize_vital_signs_category_dual_coding_without_display():
-    """vital-signs category は HL7 + JP CS の 2 coding。両方 display 省略。
-    HL7 base Vital Signs profile の VSCat slice discriminator を満たす。"""
+def test_normalize_vital_signs_category_split_into_two_elements():
+    """vital-signs category は HL7 element + JP CS element の 2 category
+    element に分離(1 element 内に 2 coding は入れない)。
+
+    HL7 base `vitalsigns` profile の `category:VSCat` slice は
+    `coding max=1` かつ `coding.system fixedUri=HL7`。JP Core
+    `JP_Observation_VitalSigns.category:first` は `coding.system fixedUri
+    =JP_Simple...`。両方の slice を満たすには element を分ける必要が
+    あり、混在は fixedUri 違反 + coding max=1 違反を引き起こす
+    (feedback 2026-07-17 §【最優先 3】286k errors)。"""
     from clinosim.modules.output.fhir_r4_adapter import (
         _normalize_jp_observation_category,
     )
@@ -100,12 +113,13 @@ def test_normalize_vital_signs_category_dual_coding_without_display():
         ],
     }
     _normalize_jp_observation_category(resource)
-    cat = resource["category"][0]
-    assert cat["coding"] == [
-        {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
-        {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
+    assert resource["category"] == [
+        {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
+        {
+            "coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}],
+            "text": "バイタルサイン",
+        },
     ]
-    assert cat["text"] == "バイタルサイン"
 
 
 def test_normalize_fabricated_url_replaced():
@@ -158,15 +172,11 @@ def test_normalize_is_idempotent_for_laboratory():
     assert after_first == after_second
 
 
-def test_normalize_ecs_profile_forces_dual_coding_for_lab():
-    """`JP_Observation_LabResult_eCS` profile を含む Observation は
-    laboratory category でも HL7 + JP CS の dual coding を emit する
-    (fhir-jp-validator feedback 2026-07-16 §"【最優先 3】" 対応)。
-
-    `category:first` slice discriminator が LabResult_eCS では HL7
-    observation-category を要求するため、JP CS 単独では slice が
-    満たされない。同時に JP_Observation_Common が併記されている場合の
-    JP CS coding 要件も dual coding で満たす。"""
+def test_normalize_ecs_profile_keeps_jp_cs_alone_for_lab():
+    """`JP_Observation_LabResult_eCS` profile を含む lab Observation は
+    JP CS 単独 1 coding。`category:laboratory.coding max=1` +
+    `coding.system fixedUri=JP_Simple...` 制約により HL7 併記は禁止
+    (fhir-jp-validator feedback 2026-07-17 §【最優先 3】対応)。"""
     from clinosim.modules.output.fhir_r4_adapter import (
         _normalize_jp_observation_category,
     )
@@ -183,24 +193,20 @@ def test_normalize_ecs_profile_forces_dual_coding_for_lab():
         "category": [
             {
                 "coding": [
-                    {
-                        "system": JP_OBSERVATION_CATEGORY_SYSTEM,
-                        "code": "laboratory",
-                    }
+                    {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"},
+                    {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"},
                 ],
                 "text": "検体検査",
             }
         ],
     }
     _normalize_jp_observation_category(resource)
-    cat = resource["category"][0]
-    # Both HL7 and JP CS codings emitted (dual satisfy both profiles' slices)
-    assert cat["coding"] == [
-        {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"},
-        {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"},
+    assert resource["category"] == [
+        {
+            "coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"}],
+            "text": "検体検査",
+        }
     ]
-    # text field preserved (feedback Option 1)
-    assert cat["text"] == "検体検査"
 
 
 def test_normalize_non_ecs_lab_still_jp_cs_alone():
@@ -235,7 +241,7 @@ def test_normalize_non_ecs_lab_still_jp_cs_alone():
 
 
 def test_normalize_ecs_profile_idempotent():
-    """eCS Observation を 2 回 normalize しても HL7 + JP CS 2 coding
+    """eCS Observation を 2 回 normalize しても JP CS 単独 1 coding
     のまま維持(重複追加しない)。"""
     from clinosim.modules.output.fhir_r4_adapter import (
         _normalize_jp_observation_category,
@@ -257,16 +263,21 @@ def test_normalize_ecs_profile_idempotent():
         ],
     }
     _normalize_jp_observation_category(resource)
-    after_first = [dict(c) for c in resource["category"][0]["coding"]]
+    after_first = [
+        {k: [dict(c) for c in v] if k == "coding" else v for k, v in cat.items()} for cat in resource["category"]
+    ]
     _normalize_jp_observation_category(resource)
-    after_second = [dict(c) for c in resource["category"][0]["coding"]]
+    after_second = [
+        {k: [dict(c) for c in v] if k == "coding" else v for k, v in cat.items()} for cat in resource["category"]
+    ]
     assert after_first == after_second
-    assert len(after_first) == 2
+    assert after_first == [{"coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "laboratory"}]}]
 
 
 def test_normalize_is_idempotent_for_vital_signs():
-    """正規化後の vital-signs 状態(HL7 + JP CS 2 coding)を再度
-    normalize しても 2 coding のまま維持(重複追加しない)。"""
+    """正規化後の vital-signs 状態(HL7 element + JP CS element の
+    2 category element)を再度 normalize しても同一維持
+    (重複追加しない)。"""
     from clinosim.modules.output.fhir_r4_adapter import (
         _normalize_jp_observation_category,
     )
@@ -274,18 +285,19 @@ def test_normalize_is_idempotent_for_vital_signs():
     resource: dict[str, Any] = {
         "resourceType": "Observation",
         "category": [
-            {
-                "coding": [
-                    {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
-                    {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
-                ],
-            }
+            {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
+            {"coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
         ],
     }
     _normalize_jp_observation_category(resource)
-    assert resource["category"][0]["coding"] == [
-        {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
-        {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
+    assert resource["category"] == [
+        {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
+        {"coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
+    ]
+    _normalize_jp_observation_category(resource)
+    assert resource["category"] == [
+        {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
+        {"coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
     ]
 
 
@@ -329,8 +341,36 @@ def test_normalize_skips_non_observation():
     assert resource == {"resourceType": "Encounter", "category": [{"coding": []}]}
 
 
+def test_normalize_matches_jp_core_vitalsigns_example_shape():
+    """出力形が公式 example
+    `Observation-jp-observation-vitalsigns-example-1.json` の category
+    形(2 category element、それぞれ単一 coding)と等価であることを
+    確認。この regression が壊れると HAPI 検証が再び 100k+ error に
+    戻るので pin する。"""
+    from clinosim.modules.output.fhir_r4_adapter import (
+        _normalize_jp_observation_category,
+    )
+
+    resource: dict[str, Any] = {
+        "resourceType": "Observation",
+        "category": [
+            {
+                "coding": [
+                    {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
+                    {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"},
+                ],
+                "text": "バイタルサイン",
+            }
+        ],
+    }
+    _normalize_jp_observation_category(resource)
+    assert len(resource["category"]) == 2
+    for cat in resource["category"]:
+        assert len(cat["coding"]) == 1
+
+
 @pytest.mark.parametrize(
-    ("hl7_code", "expected_dual_coding"),
+    ("hl7_code", "expected_two_elements"),
     [
         ("laboratory", False),
         ("vital-signs", True),
@@ -341,9 +381,15 @@ def test_normalize_skips_non_observation():
         ("exam", False),
     ],
 )
-def test_normalize_dual_coding_only_for_vital_signs(hl7_code, expected_dual_coding):
-    """vital-signs のみ HL7 + JP CS の 2 coding、他 code は JP CS 単独。
-    (Lab eCS `category max=1` 制約を保持するため vital-signs 以外は 1 coding)。"""
+def test_normalize_two_elements_only_for_vital_signs(hl7_code, expected_two_elements):
+    """vital-signs のみ HL7 element + JP CS element の 2 category
+    element、他 code は JP CS 単独 1 element。
+
+    HL7 base `vitalsigns` profile の `category:VSCat` slice(coding
+    max=1、fixedUri=HL7)と JP Core `category:first` slice(fixedUri
+    =JP_Simple...)を同時に満たすには element 分離が必須。lab / imaging
+    / survey 等の HL7 base profile 対応 slice も同種 constraint を
+    持つため vital-signs 以外の HL7 併記は禁忌。"""
     from clinosim.modules.output.fhir_r4_adapter import (
         _normalize_jp_observation_category,
     )
@@ -362,15 +408,14 @@ def test_normalize_dual_coding_only_for_vital_signs(hl7_code, expected_dual_codi
         ],
     }
     _normalize_jp_observation_category(resource)
-    codings = resource["category"][0]["coding"]
-    if expected_dual_coding:
-        assert codings == [
-            {"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code},
-            {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code},
+    if expected_two_elements:
+        assert resource["category"] == [
+            {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code}]},
+            {"coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code}]},
         ]
     else:
-        assert codings == [
-            {"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code},
+        assert resource["category"] == [
+            {"coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code}]},
         ]
 
 
