@@ -56,9 +56,7 @@ def test_bp_panel_emitted_with_both_components() -> None:
     panel = _find_by_code(resources, "85354-9")
     assert panel is not None, "BP panel Observation missing"
 
-    component_codes = [
-        c["code"]["coding"][0]["code"] for c in panel.get("component") or []
-    ]
+    component_codes = [c["code"]["coding"][0]["code"] for c in panel.get("component") or []]
     assert component_codes == ["8480-6", "8462-4"]
 
     # component values match the input
