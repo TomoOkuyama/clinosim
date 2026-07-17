@@ -281,34 +281,32 @@ def test_missing_encounters_key_returns_empty_list():
 def test_jp_locale_category_display_in_ja():
     ctx = _make_ctx([_inpatient_enc_dataclass()], country="jp")
     ct = _bb_care_teams(ctx)[0]
-    # category coding display should be Japanese
-    display = ct["category"][0]["coding"][0]["display"]
-    # Should contain Japanese characters (not just ASCII "Clinical team")
+    # Session 57 v3: category is emitted as a text-only CodeableConcept
+    # (see _fhir_care_team.py history block for the SNOMED-loadout rationale).
+    display = ct["category"][0]["text"]
     assert any("　" <= ch <= "鿿" or "゠" <= ch <= "ヿ" for ch in display), (
-        f"Expected Japanese characters in category display, got: {display!r}"
+        f"Expected Japanese characters in category text, got: {display!r}"
     )
 
 
 # ---------------------------------------------------------------------------
-# Category system + code pin. History:
+# Category shape pin. History of coded attempts (all rejected by successive
+# validator terminology loadouts):
 #   - LA27976-8: unknown in LOINC 2.82 (v1 feedback 2026-07-16)
 #   - 424535000: inactive in SNOMED CT International Edition
-#   - 735320007: unknown in SNOMED International 2026-06-01 (v2 feedback
-#     2026-07-17_full_v2, 3,788 rejections)
-# Current authoritative value: 407484005 "Rehabilitation care team"
-# — v2 feedback recommendation, verified present in the fhirserver's
-# SNOMED International 2026-06-01 loadout.
+#   - 735320007: unknown in SNOMED International 2026-06-01 (v2, 3,788 rej)
+#   - 407484005: unknown in the same loadout (v3, 3,786 rej)
+# Session 57 v3 fix: emit a text-only CodeableConcept — spec-compliant
+# (coding 0..* / text 0..1) and validator-clean under the current tx server.
 # ---------------------------------------------------------------------------
 
 
-def test_care_team_category_uses_active_snomed_code():
+def test_care_team_category_is_text_only_codeable_concept():
     ctx = _make_ctx([_inpatient_enc_dataclass()])
     ct = _bb_care_teams(ctx)[0]
-    coding = ct["category"][0]["coding"][0]
-    assert coding["system"] == "http://snomed.info/sct", (
-        f"CareTeam.category.system must be SNOMED CT, got: {coding['system']!r}"
-    )
-    assert coding["code"] == "407484005", f"CareTeam.category.code must be 407484005, got: {coding['code']!r}"
+    cat = ct["category"][0]
+    assert "coding" not in cat, f"CareTeam.category must be text-only, got coding: {cat.get('coding')!r}"
+    assert cat.get("text"), "CareTeam.category.text must be populated"
 
 
 # ---------------------------------------------------------------------------
