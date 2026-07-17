@@ -10,9 +10,6 @@ resources. The fix restricts abatement emission to non-chronic-primary encounter
 
 from __future__ import annotations
 
-from datetime import datetime
-from types import SimpleNamespace
-
 from clinosim.modules.output._fhir_conditions import _build_conditions
 
 
