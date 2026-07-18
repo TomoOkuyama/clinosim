@@ -621,7 +621,16 @@ def _build_medication_admin(
             }
         else:
             dosage["route"] = {"text": route}
-    resource["dosage"] = dosage
+    # Session 57 v3 (Chain-11, v3 feedback §保留 3 真因判明): FHIR R4
+    # `mad-1` requires `dosage.dose.exists() or dosage.rate.exists()` when a
+    # dosage element is present. Sliding-scale insulin / PRN / infusion
+    # bolus orders that only carry a `dosage.text` (no parsable numeric
+    # dose) tripped 3,005 MedicationAdministration resources. Drop the
+    # dosage element entirely when neither `dose` nor `rateQuantity` is
+    # populated — CIF still carries the free-text order description via
+    # the Order's `dose` field for downstream consumers.
+    if "dose" in dosage or "rateQuantity" in dosage:
+        resource["dosage"] = dosage
 
     # Reason reference (link to primary diagnosis)
     if primary_dx_code:
