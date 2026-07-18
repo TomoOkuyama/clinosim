@@ -87,12 +87,21 @@ _SECTION_LOINC: dict[str, str] = {
     "discharge_medications": "10183-2",  # Hospital discharge medications
     # Nursing sections
     "nursing_history": "34117-2",  # History and physical (H&P)
-    "adl_assessment": "45391-8",  # Functional status assessment
+    # Session 58 Chain #10: 45391-8 is unknown in the fhir-jp-validator's LOINC
+    # 2.82 cache (148 v4 errors). Substitute with the plan-of-care catch-all
+    # (18776-5) that clinosim already emits successfully across many section
+    # keys — ADL / functional / basic-movement notes fit under the rehab plan
+    # of care semantically.
+    "adl_assessment": "18776-5",  # Plan of care note (was 45391-8, unknown in LOINC 2.82)
     "risk_assessments": "75326-9",  # Assessment plan
     "nursing_diagnosis": "51848-0",  # Evaluation note (approx)
     "admission_status": "8648-8",  # Hospital course
     "nursing_interventions_provided": "10184-0",  # Interventions
-    "patient_education": "42346-6",  # Patient education plan
+    # Session 58 Chain #10: 42346-6 is unknown in the fhir-jp-validator's
+    # LOINC 2.82 cache (135 v4 errors). Substitute with 18776-5 (Plan of care
+    # note) — patient education / consent is part of the plan-of-care family
+    # in CCDA.
+    "patient_education": "18776-5",  # Plan of care note (was 42346-6)
     "discharge_readiness": "8650-4",  # Hospital discharge readiness
     # Ward-info & plan sections
     "ward_and_room": "42349-1",  # Reason for visit (approx)
@@ -106,8 +115,8 @@ _SECTION_LOINC: dict[str, str] = {
     # Rehab
     "patient_and_diagnosis": "29308-4",  # Diagnosis
     "rehab_team": "51897-7",  # Care team member
-    "functional_status": "45391-8",  # Functional status assessment
-    "basic_movement": "45391-8",  # (same)
+    "functional_status": "18776-5",  # Plan of care note (was 45391-8, unknown)
+    "basic_movement": "18776-5",  # (same)
     # CY2-C (session 42 cycle 3): residual auto-derived section titles that
     # appeared in cycle 2's 8% uncoded remainder. Codes verified via LOINC
     # search.
@@ -144,7 +153,7 @@ _SECTION_LOINC: dict[str, str] = {
     "goals": "18776-5",  # Plan of care (goals section of care plan)
     "policy": "18776-5",  # Plan of care (policy = clinical plan)
     "discharge_estimate": "8648-8",  # Hospital course (estimated LOS/discharge)
-    "explanation_consent": "42346-6",  # Patient education (consent / explanation)
+    "explanation_consent": "18776-5",  # Plan of care (was 42346-6, unknown)
 }
 
 
@@ -220,14 +229,22 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
     # of "comp-doc-{enc}-{seq}" (double-prefix defect, I-3 fix).
     enc_part = doc_id[len(DOC_REFERENCE_ID_PREFIX) :] if doc_id.startswith(DOC_REFERENCE_ID_PREFIX) else doc_id
     comp_id = f"{COMPOSITION_ID_PREFIX}{enc_part}"
+    # C2-34 (session 42 cycle 2): Composition.identifier (0..1) for cross-system
+    # document tracking. Session 58 Chain #10 (v4 §Composition.identifier URI):
+    # JP-CLINS eDS / eReferral profiles fix `Composition.identifier.system`
+    # to `http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier`
+    # (StructureDefinition-JP-Composition-{eDS,eReferral}.json). US / generic
+    # output keeps the clinosim namespace URI (no profile constraint). The
+    # decision follows the caller's `lang` — JP-CLINS builders pass "ja",
+    # generic / US pass "en".
+    identifier_system = (
+        _JP_COMPOSITION_IDENTIFIER_SYSTEM if lang == "ja" else "urn:clinosim:composition-id"
+    )
     res: dict[str, Any] = {
         "resourceType": "Composition",
         "id": comp_id,
-        # C2-34 (session 42 cycle 2): Composition.identifier (0..1) for
-        # cross-system document tracking. Uses the same id under a clinosim
-        # namespace URI — deterministic + unique across the export.
         "identifier": {
-            "system": "urn:clinosim:composition-id",
+            "system": identifier_system,
             "value": comp_id,
         },
         "status": "final",
@@ -333,6 +350,13 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
 
 _JP_CLINS_DS_PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 _JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
+
+# Session 58 Chain #10: JP-CLINS eDS / eReferral pin
+# `Composition.identifier.system` to this URI (spec `fixedUri`, verified via
+# `clinical-information-sharing#1.12.0/package/StructureDefinition-JP-Composition-
+# {eDischargeSummary,eReferral}.json`). Same URI as session 57 identifier
+# slices on Observation / Condition / AI / MR.
+_JP_COMPOSITION_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
 # session 53 iris4h-ai feedback D:JP-CLINS 実 canonical URL は
 # `.../CodeSystem/document-section`(resource id `jp-codeSystem-clins-
 # document-section` を path に含めない)。iris4h-ai の
