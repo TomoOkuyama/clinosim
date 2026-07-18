@@ -42,7 +42,19 @@ _ALLOWLIST_PATH = Path(__file__).parent / "authoritative_override_allowlist.yaml
 
 # Systems whose `data/*.yaml` is cross-checked against a snapshot. Extend this
 # tuple as each additional code system migrates into the framework (SNOMED,
-# MEDIS keyNumber, BCP-47, LOINC).
+# MEDIS keyNumber, BCP-47).
+#
+# Per-registration options:
+# - `system_key`, `snapshot_file`: which curated system and snapshot file.
+# - `compare_lang`: which curated-yaml language field is expected to match the
+#   snapshot display.
+# - `verify_mode` (default: "display"): "display" asserts curated-display
+#   matches the authoritative display/synonym set. "presence" asserts only
+#   that every curated code exists in the authoritative snapshot — used for
+#   code systems where clinosim's curated en display is a legitimate clinical
+#   shorthand that diverges from the source's canonical LONG_COMMON_NAME
+#   (LOINC style). Presence-mode still catches retired / renamed / fabricated
+#   codes at CI time — the immediate goal of Issue #264.
 _SYSTEMS_UNDER_CROSS_CHECK: tuple[dict, ...] = (
     {
         "system_key": "yj",
@@ -58,6 +70,19 @@ _SYSTEMS_UNDER_CROSS_CHECK: tuple[dict, ...] = (
         # tx-server has no Japanese designations, so we verify the `en`
         # field. Session 58 Chain #6 (Phase 2 framework citizen).
         "compare_lang": "en",
+    },
+    {
+        "system_key": "loinc",
+        "snapshot_file": "loinc_2_82_tx.json",
+        # LOINC is English-only in the source; clinosim ships a mix of
+        # authoritative LOINC long_display + curated clinical shorthand (e.g.
+        # `Discharge summary note` vs LOINC's `Discharge summary`). A full
+        # display migration is tracked as a follow-up; this registration
+        # enforces the smaller invariant that every code clinosim emits
+        # actually exists in LOINC 2.82 (catches retired / renumbered /
+        # fabricated codes — the class of bug Issue #264 addresses).
+        "compare_lang": "en",
+        "verify_mode": "presence",
     },
 )
 
@@ -109,9 +134,16 @@ def test_curated_displays_match_authoritative(registration: dict, allowlist: dic
     """Every clinosim code whose entry is present in the authoritative snapshot
     must match the snapshot's display (or a registered synonym / an allowlisted
     override). Codes outside the fragment are treated as unable-to-verify.
+
+    `verify_mode: "presence"` (Issue #264 addition) asserts only code
+    presence — used for LOINC where clinosim ships curated clinical shorthand
+    displays that legitimately diverge from LOINC's LONG_COMMON_NAME.
+    Presence-only still catches retired / renumbered / fabricated codes at
+    CI time, which was the core Issue #264 defect.
     """
     system_key = registration["system_key"]
     compare_lang = registration["compare_lang"]
+    verify_mode = registration.get("verify_mode", "display")
 
     snapshot = _load_snapshot(registration["snapshot_file"])
     authoritative = _build_authoritative_display_map(snapshot)
@@ -130,6 +162,11 @@ def test_curated_displays_match_authoritative(registration: dict, allowlist: dic
         code_str = str(code)
         if code_str not in authoritative:
             unverifiable.append(code_str)
+            continue
+        if verify_mode == "presence":
+            # Presence-only: knowing the code exists in the authoritative source
+            # is the win — display drift is tracked as a follow-up per system.
+            verified.append(code_str)
             continue
         curated_display = translations.get(compare_lang) if isinstance(translations, dict) else None
         if not isinstance(curated_display, str) or not curated_display:

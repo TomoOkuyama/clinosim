@@ -1,0 +1,1025 @@
+{
+  "metadata": {
+    "source_package": "LOINC 2.82",
+    "source_url": "http://loinc.org",
+    "source_file": "Loinc_2.82/LoincTable/Loinc.csv",
+    "source_content_mode": "complete",
+    "source_content_note": "The LOINC master ships complete (~109k codes). The snapshot filters to codes clinosim emits so shipped size stays small. Codes marked missing indicate clinosim references a LOINC code that does not exist in LOINC 2.82 (retired / renumbered / fabricated) — treat as regression and open an issue.",
+    "fetched_from": "https://github.com/iryohjoho/fhir-jp-validator tx-server-build/loinc-src/",
+    "extracted_at": "2026-07-19",
+    "clinosim_codes_total": 169,
+    "clinosim_codes_in_source": 167,
+    "clinosim_codes_missing_from_source": [
+      "42346-6",
+      "45391-8"
+    ],
+    "clinosim_known_gaps_not_in_loinc_2_82": [
+      "90557-9"
+    ],
+    "note": "LOINC 2.82 authoritative displays for codes clinosim emits. Includes `status` (ACTIVE / DEPRECATED / etc.) so downstream tests can WARN on non-ACTIVE. NEWS2 (90557-9) has no LOINC 2.82 canonical — tracked in #269. Codes 42346-6 / 45391-8 handled by the concurrent PR #266 (Chain #10) — they will disappear from clinosim's emit surface once that PR merges."
+  },
+  "concept": [
+    {
+      "code": "10154-3",
+      "display": "Chief complaint Narrative - Reported",
+      "short_display": "Chief complaint Reported",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10157-6",
+      "display": "History of family member diseases note",
+      "short_display": "Hx of fam member ds note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10160-0",
+      "display": "History of Medication use Narrative",
+      "short_display": "Hx of Medication use",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10164-2",
+      "display": "History of Present illness Narrative",
+      "short_display": "Hx of Pres illness",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10183-2",
+      "display": "Hospital discharge medications Narrative",
+      "short_display": "Hospital discharge medications",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10184-0",
+      "display": "Hospital discharge physical findings Narrative",
+      "short_display": "Hospital discharge physical findings",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10187-3",
+      "display": "Review of systems Narrative - Reported",
+      "short_display": "Review of systems",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "104816-4",
+      "display": "Beta hydroxybutyrate [Moles/volume] in Blood",
+      "short_display": "B-OH-Butyr Bld-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10839-9",
+      "display": "Troponin I.cardiac [Mass/volume] in Serum or Plasma",
+      "short_display": "Troponin I SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11331-6",
+      "display": "History of Alcohol use",
+      "short_display": "Hx of Alcohol use",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11348-0",
+      "display": "History of Past illness note",
+      "short_display": "Hx of Past illness note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11504-8",
+      "display": "Surgical operation note",
+      "short_display": "Operative note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11506-3",
+      "display": "Progress note",
+      "short_display": "Prog note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11535-2",
+      "display": "Hospital discharge diagnosis note",
+      "short_display": "Hospital dc px note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11580-8",
+      "display": "Thyrotropin [Units/volume] in Serum or Plasma by Detection limit <= 0.005 mIU/L",
+      "short_display": "TSH SerPl DL<=0.005 mIU/L-aCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "13457-7",
+      "display": "Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation",
+      "short_display": "LDLc SerPl Calc-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "13969-1",
+      "display": "Creatine kinase.MB [Mass/volume] in Serum or Plasma",
+      "short_display": "CK MB SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "14804-9",
+      "display": "Lactate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma by Lactate to pyruvate reaction",
+      "short_display": "LDH SerPl L to P-cCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "14979-9",
+      "display": "aPTT in Platelet poor plasma by Coagulation assay",
+      "short_display": "aPTT PPP",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1742-6",
+      "display": "Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "ALT SerPl-cCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1751-7",
+      "display": "Albumin [Mass/volume] in Serum or Plasma",
+      "short_display": "Albumin SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "17861-6",
+      "display": "Calcium [Mass/volume] in Serum or Plasma",
+      "short_display": "Calcium SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1798-8",
+      "display": "Amylase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "Amylase SerPl-cCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1863-0",
+      "display": "Anion gap in Serum or Plasma by Calculated.4Ions",
+      "short_display": "Anion Gap SerPl Calculated.4Ions-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18776-5",
+      "display": "Plan of care note",
+      "short_display": "Plan of care note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18842-5",
+      "display": "Discharge summary",
+      "short_display": "D/C sum",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18862-3",
+      "display": "Amoxicillin+Clavulanate [Susceptibility]",
+      "short_display": "Amoxicillin+Clav Susc Islt",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18866-4",
+      "display": "Azithromycin [Susceptibility]",
+      "short_display": "Azithromycin Susc Islt",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18879-7",
+      "display": "Cefepime [Susceptibility]",
+      "short_display": "Cefepime Susc Islt",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18895-3",
+      "display": "cefTRIAXone [Susceptibility]",
+      "short_display": "cefTRIAXone Susc Islt",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18906-8",
+      "display": "Ciprofloxacin [Susceptibility]",
+      "short_display": "Ciprofloxacin Susc Islt",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18908-4",
+      "display": "Clindamycin [Susceptibility]",
+      "short_display": "Clindamycin Susc Islt",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18943-1",
+      "display": "Meropenem [Susceptibility]",
+      "short_display": "Meropenem Susc Islt",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18970-4",
+      "display": "Piperacillin+Tazobactam [Susceptibility]",
+      "short_display": "Pip+Tazo Susc Islt",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18998-5",
+      "display": "Trimethoprim+Sulfamethoxazole [Susceptibility]",
+      "short_display": "TMP SMX Susc Islt",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "19000-9",
+      "display": "Vancomycin [Susceptibility]",
+      "short_display": "Vancomycin Susc Islt",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "19123-9",
+      "display": "Magnesium [Mass/volume] in Serum or Plasma",
+      "short_display": "Magnesium SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1920-8",
+      "display": "Aspartate aminotransferase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "AST SerPl-cCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1959-6",
+      "display": "Bicarbonate [Moles/volume] in Blood",
+      "short_display": "HCO3 Bld-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1963-8",
+      "display": "Bicarbonate [Moles/volume] in Serum or Plasma",
+      "short_display": "HCO3 SerPl-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1975-2",
+      "display": "Bilirubin.total [Mass/volume] in Serum or Plasma",
+      "short_display": "Bilirub SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1988-5",
+      "display": "C reactive protein [Mass/volume] in Serum or Plasma",
+      "short_display": "CRP SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2019-8",
+      "display": "Carbon dioxide [Partial pressure] in Arterial blood",
+      "short_display": "pCO2 BldA",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "20565-8",
+      "display": "Carbon dioxide, total [Moles/volume] in Blood",
+      "short_display": "CO2 Bld-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2075-0",
+      "display": "Chloride [Moles/volume] in Serum or Plasma",
+      "short_display": "Chloride SerPl-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2085-9",
+      "display": "Cholesterol in HDL [Mass/volume] in Serum or Plasma",
+      "short_display": "HDLc SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2089-1",
+      "display": "Cholesterol in LDL [Mass/volume] in Serum or Plasma",
+      "short_display": "LDLc SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2093-3",
+      "display": "Cholesterol [Mass/volume] in Serum or Plasma",
+      "short_display": "Cholest SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2157-6",
+      "display": "Creatine kinase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "CK SerPl-cCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2160-0",
+      "display": "Creatinine [Mass/volume] in Serum or Plasma",
+      "short_display": "Creat SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2324-2",
+      "display": "Gamma glutamyl transferase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "GGT SerPl-cCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2345-7",
+      "display": "Glucose [Mass/volume] in Serum or Plasma",
+      "short_display": "Glucose SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24325-3",
+      "display": "Hepatic function 2000 panel - Serum or Plasma",
+      "short_display": "Hep Func 2000 Pnl SerPl",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24338-6",
+      "display": "Gas panel - Blood",
+      "short_display": "Gas Pnl Bld",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24356-8",
+      "display": "Urinalysis complete panel - Urine",
+      "short_display": "Urinalysis complete pnl Ur",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24357-6",
+      "display": "Urinalysis macro (dipstick) panel - Urine",
+      "short_display": "UA Dipstick Pnl Ur",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24373-3",
+      "display": "Ferritin [Mass/volume] in Blood",
+      "short_display": "Ferritin Bld-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24558-9",
+      "display": "US Abdomen",
+      "short_display": "US Abd",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24619-9",
+      "display": "XR Wrist Views",
+      "short_display": "XR Wrist Views",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24628-0",
+      "display": "CT Chest W contrast IV",
+      "short_display": "CT Chest W contr IV",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24722-1",
+      "display": "XR Hand 3 Views",
+      "short_display": "XR Hand 3V",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24725-4",
+      "display": "CT Head",
+      "short_display": "CT Head",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24799-9",
+      "display": "XR Abdomen AP",
+      "short_display": "XR Abd AP",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24932-6",
+      "display": "CT Cervical spine",
+      "short_display": "CT C-spine",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24968-0",
+      "display": "MR Lumbar spine",
+      "short_display": "MR L-spine",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2518-9",
+      "display": "Lactate [Moles/volume] in Arterial blood",
+      "short_display": "Lactate BldA-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2524-7",
+      "display": "Lactate [Moles/volume] in Serum or Plasma",
+      "short_display": "Lactate SerPl-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2532-0",
+      "display": "Lactate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "LDH SerPl-cCnc",
+      "status": "DISCOURAGED"
+    },
+    {
+      "code": "2571-8",
+      "display": "Triglyceride [Mass/volume] in Serum or Plasma",
+      "short_display": "Trigl SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2703-7",
+      "display": "Oxygen [Partial pressure] in Arterial blood",
+      "short_display": "pO2 BldA",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2708-6",
+      "display": "Oxygen saturation in Arterial blood",
+      "short_display": "SaO2 % BldA",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2744-1",
+      "display": "pH of Arterial blood",
+      "short_display": "pH BldA",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2777-1",
+      "display": "Phosphate [Mass/volume] in Serum or Plasma",
+      "short_display": "Phosphate SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2823-3",
+      "display": "Potassium [Moles/volume] in Serum or Plasma",
+      "short_display": "Potassium SerPl-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "28570-0",
+      "display": "Procedure note",
+      "short_display": "Procedure note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2885-2",
+      "display": "Protein [Mass/volume] in Serum or Plasma",
+      "short_display": "Prot SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29252-4",
+      "display": "CT Chest WO contrast",
+      "short_display": "CT Chest WO contr",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29308-4",
+      "display": "Diagnosis",
+      "short_display": "Dx",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2951-2",
+      "display": "Sodium [Moles/volume] in Serum or Plasma",
+      "short_display": "Sodium SerPl-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29545-1",
+      "display": "Physical findings note",
+      "short_display": "Physical findings note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29762-2",
+      "display": "Social history note",
+      "short_display": "Social hx note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3016-3",
+      "display": "Thyrotropin [Units/volume] in Serum or Plasma",
+      "short_display": "TSH SerPl-aCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30341-2",
+      "display": "Erythrocyte [Sedimentation Rate] in Blood",
+      "short_display": "Erythrocyte Sed Rat Bld",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3040-3",
+      "display": "Lipase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "Lipase SerPl-cCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30657-1",
+      "display": "MR Brain WO contrast",
+      "short_display": "MR Brain WO contr",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30799-1",
+      "display": "CT Head WO contrast",
+      "short_display": "CT Head WO contr",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30934-4",
+      "display": "Natriuretic peptide B [Mass/volume] in Serum or Plasma",
+      "short_display": "BNP SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3094-0",
+      "display": "Urea nitrogen [Mass/volume] in Serum or Plasma",
+      "short_display": "BUN SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3151-8",
+      "display": "Inhaled oxygen flow rate",
+      "short_display": "Inhaled O2 flow rate",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3255-7",
+      "display": "Fibrinogen [Mass/volume] in Platelet poor plasma by Coagulation assay",
+      "short_display": "Fibrinogen PPP-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "32693-4",
+      "display": "Lactate [Moles/volume] in Blood",
+      "short_display": "Lactate Bld-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "33452-4",
+      "display": "Maximum expiratory gas flow Respiratory system airway",
+      "short_display": "PEF Airway",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "33762-6",
+      "display": "Natriuretic peptide.B prohormone N-Terminal [Mass/volume] in Serum or Plasma",
+      "short_display": "NT-proBNP SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "33914-3",
+      "display": "Glomerular filtration rate [Volume Rate/Area] in Serum or Plasma by Creatinine-based formula (MDRD)/1.73 sq M",
+      "short_display": "GFR SerPl Creatinine-bsd frml MDRD",
+      "status": "DISCOURAGED"
+    },
+    {
+      "code": "34117-2",
+      "display": "History and physical note",
+      "short_display": "H&P note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34131-3",
+      "display": "Outpatient Progress note",
+      "short_display": "OP Prog note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34745-0",
+      "display": "Nurse Discharge summary",
+      "short_display": "Nurse D/C sum",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34746-8",
+      "display": "Nurse Note",
+      "short_display": "Nurse Note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34823-5",
+      "display": "Physical medicine and rehab Note",
+      "short_display": "PM+R Note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34878-9",
+      "display": "Emergency medicine Note",
+      "short_display": "Emergency med Note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36572-6",
+      "display": "XR Chest AP",
+      "short_display": "XR Chest AP",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36663-3",
+      "display": "XR Hip 2 Views",
+      "short_display": "XR Hip 2V",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "37636-8",
+      "display": "XR Abdomen Views",
+      "short_display": "XR Abd Views",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "38036-0",
+      "display": "US Kidney",
+      "short_display": "US Kidney",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "38227-5",
+      "display": "Braden scale total score",
+      "short_display": "Braden Scale Total Score",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "41806-1",
+      "display": "CT Abdomen",
+      "short_display": "CT Abd",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "42349-1",
+      "display": "Reason for referral (narrative)",
+      "short_display": "",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "42637-9",
+      "display": "Natriuretic peptide B [Mass/volume] in Blood",
+      "short_display": "BNP Bld-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "44203-8",
+      "display": "Portable XR Cervical and thoracic and lumbar spine Views",
+      "short_display": "XR port C+T+L-spine Views",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "4537-7",
+      "display": "Erythrocyte [Sedimentation Rate] in Blood by Westergren method",
+      "short_display": "Erythrocyte Sed Rat Bld Westrgrn",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "4544-3",
+      "display": "Hematocrit [Volume Fraction] of Blood by Automated count",
+      "short_display": "Hct VFr Bld Auto",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "4548-4",
+      "display": "Hemoglobin A1c/Hemoglobin.total in Blood",
+      "short_display": "HbA1c MFr Bld",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "48065-7",
+      "display": "Fibrin D-dimer FEU [Mass/volume] in Platelet poor plasma",
+      "short_display": "D Dimer PPP FEU-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "48066-5",
+      "display": "Fibrin D-dimer DDU [Mass/volume] in Platelet poor plasma",
+      "short_display": "D Dimer PPP DDU-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "48642-3",
+      "display": "Glomerular filtration rate [Volume Rate/Area] in Serum, Plasma or Blood by Creatinine-based formula (MDRD)/1.73 sq M among non black population",
+      "short_display": "GFR/BSA pr.non blk SerPlBld MDRD-ArV",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "48765-2",
+      "display": "Allergies and adverse reactions Document",
+      "short_display": "Allergies &or adverse reactions Doc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "51847-2",
+      "display": "Evaluation + Plan note",
+      "short_display": "Eval+Plan note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "51848-0",
+      "display": "Evaluation note",
+      "short_display": "Eval note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "51852-2",
+      "display": "Letter",
+      "short_display": "Letter",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "51897-7",
+      "display": "Healthcare Associated Infection report Document",
+      "short_display": "HAI report Doc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "51990-0",
+      "display": "Basic metabolic panel - Blood",
+      "short_display": "Bas Metab Pnl Bld",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "53576-5",
+      "display": "Personal Health Monitoring Report",
+      "short_display": "Ph Monitoring Report",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "54094-8",
+      "display": "Emergency department Triage note",
+      "short_display": "ED Triage note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "55418-8",
+      "display": "Weight and Height tracking panel",
+      "short_display": "Weight & Height tracking Pnl",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "56816-2",
+      "display": "Patient location",
+      "short_display": "Patient location",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "57133-1",
+      "display": "Referral note",
+      "short_display": "Referral note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "57698-3",
+      "display": "Lipid panel with direct LDL - Serum or Plasma",
+      "short_display": "Lipid pnl with direct LDL SerPl",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "58410-2",
+      "display": "CBC panel - Blood by Automated count",
+      "short_display": "CBC Pnl Bld Auto",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "5902-2",
+      "display": "Prothrombin time (PT)",
+      "short_display": "Prothrombin time",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59460-6",
+      "display": "Fall risk total [Morse Fall Scale]",
+      "short_display": "",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "600-7",
+      "display": "Bacteria identified in Blood by Culture",
+      "short_display": "Bacteria Bld Cult",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "61144-2",
+      "display": "Diet and nutrition Narrative",
+      "short_display": "Diet+nutrition",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "619-7",
+      "display": "Bacteria identified in Peritoneal fluid by Culture",
+      "short_display": "Bacteria Prt Cult",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6295-0",
+      "display": "Complement C3d [Presence] in Red Blood Cells",
+      "short_display": "C3d RBC Ql",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "630-4",
+      "display": "Bacteria identified in Urine by Culture",
+      "short_display": "Bacteria Ur Cult",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6301-6",
+      "display": "INR in Platelet poor plasma by Coagulation assay",
+      "short_display": "INR PPP",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "634-6",
+      "display": "Bacteria identified in Specimen by Aerobe culture",
+      "short_display": "Bacteria Spec Aerobe Cult",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6598-7",
+      "display": "Troponin T.cardiac [Mass/volume] in Serum or Plasma",
+      "short_display": "Troponin T SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6690-2",
+      "display": "Leukocytes [#/volume] in Blood by Automated count",
+      "short_display": "WBC # Bld Auto",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6768-6",
+      "display": "Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "ALP SerPl-cCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "68609-7",
+      "display": "Hospital Letter",
+      "short_display": "Hosp Letter",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "69730-0",
+      "display": "Instructions",
+      "short_display": "Instructions",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "718-7",
+      "display": "Hemoglobin [Mass/volume] in Blood",
+      "short_display": "Hgb Bld-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "72166-2",
+      "display": "Tobacco smoking status",
+      "short_display": "Tobac smoke stat",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "75241-0",
+      "display": "Procalcitonin [Mass/volume] in Serum or Plasma by Immunoassay",
+      "short_display": "Procalcitonin SerPl IA-mCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "75326-9",
+      "display": "Problem",
+      "short_display": "Problem",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "777-3",
+      "display": "Platelets [#/volume] in Blood by Automated count",
+      "short_display": "Platelet # Bld Auto",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "78390-2",
+      "display": "Nurse Admission history and physical note",
+      "short_display": "Nurse Admit H&P note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "789-8",
+      "display": "Erythrocytes [#/volume] in Blood by Automated count",
+      "short_display": "RBC # Bld Auto",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "80288-4",
+      "display": "Level of consciousness",
+      "short_display": "Level of consciousness",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "80791-7",
+      "display": "Nutrition and dietetics Plan of care note",
+      "short_display": "Nutr+diet Plan of care note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "80861-8",
+      "display": "US Lower extremity soft tissue",
+      "short_display": "US LE soft tissue",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8310-5",
+      "display": "Body temperature",
+      "short_display": "Body temperature",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8462-4",
+      "display": "Diastolic blood pressure",
+      "short_display": "BP dias",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8480-6",
+      "display": "Systolic blood pressure",
+      "short_display": "BP sys",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8648-8",
+      "display": "Hospital course note",
+      "short_display": "Hospital course note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8650-4",
+      "display": "Hospital discharge disposition note",
+      "short_display": "Hospital dx disposition note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8653-8",
+      "display": "Hospital Discharge instructions",
+      "short_display": "Hosp Discharge instruct",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8716-3",
+      "display": "Vital signs note",
+      "short_display": "Vital signs note",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8867-4",
+      "display": "Heart rate",
+      "short_display": "Heart rate",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9108-2",
+      "display": "Fluid intake total 24 hour",
+      "short_display": "Fluid intake total 24h",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9192-6",
+      "display": "Urine output 24 hour",
+      "short_display": "Fluid output urine 24h",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9262-7",
+      "display": "Fluid output total 24 hour",
+      "short_display": "Fluid output total 24h",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9269-2",
+      "display": "Glasgow coma score total",
+      "short_display": "GCS total",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9279-1",
+      "display": "Respiratory rate",
+      "short_display": "Resp rate",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "96761-2",
+      "display": "Total score Barthel Index",
+      "short_display": "Total score Barthel Index",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "99607-4",
+      "display": "US.doppler Lower extremity vein - bilateral for venous mapping",
+      "short_display": "DOP LE v-Bl for venous map",
+      "status": "ACTIVE"
+    }
+  ]
+}

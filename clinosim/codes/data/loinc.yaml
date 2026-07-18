@@ -431,16 +431,18 @@ codes:
   18908-4:
     en: Gentamicin [Susceptibility]
     ja: ゲンタマイシン感受性
-  18991-2:
+  # session 58 Issue #264: 18991-2 / 18949-0 / 18943-3 / 18996-1 were retired
+  # from LOINC. Replaced with the corresponding LOINC 2.82 ACTIVE codes.
+  19000-9:
     en: Vancomycin [Susceptibility]
     ja: バンコマイシン感受性
-  18949-0:
+  18970-4:
     en: Piperacillin+Tazobactam [Susceptibility]
     ja: ピペラシリン・タゾバクタム感受性
-  18943-3:
+  18943-1:
     en: Meropenem [Susceptibility]
     ja: メロペネム感受性
-  18996-1:
+  18998-5:
     en: Trimethoprim+Sulfamethoxazole [Susceptibility]
     ja: ST合剤感受性
   72166-2:
@@ -506,9 +508,21 @@ codes:
   2777-1:
     en: Phosphate
     ja: リン
-  32340-6:
-    en: 3-Hydroxybutyrate
-    ja: 3-ヒドロキシ酪酸
+  # session 58 Issue #264: 32340-6 was retired from LOINC. Real active
+  # replacement for Beta hydroxybutyrate in Blood is 104816-4 (verified
+  # against LOINC 2.82 master table).
+  104816-4:
+    en: Beta hydroxybutyrate
+    ja: β-ヒドロキシ酪酸
+  # session 58 Issue #264: 30794-3 was retired from LOINC. Real active
+  # replacements for Chest CT (verified against LOINC 2.82) are 29252-4 for
+  # WO contrast and 24628-0 for W contrast IV.
+  29252-4:
+    en: CT Chest WO contrast
+    ja: 胸部CT 単純
+  24628-0:
+    en: CT Chest W contrast IV
+    ja: 胸部CT 造影
   1863-0:
     en: Anion gap
     ja: アニオンギャップ

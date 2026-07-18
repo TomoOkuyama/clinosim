@@ -129,10 +129,13 @@ class TestMicrobiologySusceptibilityJLAC10Integrity:
             "18879-7",
             "18906-8",
             "18908-4",
-            "18991-2",
-            "18949-0",
-            "18943-3",
-            "18996-1",
+            # session 58 Issue #264: 18991-2 / 18949-0 / 18943-3 / 18996-1 were
+            # retired from LOINC. Substitutes are the corresponding real
+            # active LOINCs (verified against LOINC 2.82).
+            "19000-9",  # was 18991-2 (Vancomycin Susc Isolate)
+            "18970-4",  # was 18949-0 (Piperacillin+Tazobactam Susc Isolate)
+            "18943-1",  # was 18943-3 (Meropenem Susc Isolate)
+            "18998-5",  # was 18996-1 (Trimethoprim+Sulfamethoxazole Susc Isolate)
         }
 
     def test_verified_code(self):
