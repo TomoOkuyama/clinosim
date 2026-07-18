@@ -41,8 +41,11 @@ def test_jp_clins_referral_composition_type():
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     systems = {c.get("system") for c in comp["type"]["coding"]}
+    # Session 57 v3 fix: eReferral profile constrains type.coding to max=1,
+    # so only the doc-typecodes coding is emitted (LOINC dropped).
     assert _DOC_TYPE_SYSTEM in systems
-    assert "http://loinc.org" in systems
+    assert "http://loinc.org" not in systems
+    assert len(comp["type"]["coding"]) == 1
     assert comp["title"] == "診療情報提供書"
 
 
