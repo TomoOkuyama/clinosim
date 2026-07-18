@@ -14,7 +14,7 @@ Companion documentation: [`docs/design-guides/code-display-authoritative-sync.md
 | File | Source | Fetched | Notes |
 |---|---|---|---|
 | `yj_tx_fragment.json` | `jpfhir-terminology 2.2606.0` / `CodeSystem-jp-medicationcodeyj-cs.json` (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`) | 2026-07-19 | Fragment (2000 concepts on the tx-server), filtered to the 9 codes clinosim currently emits. |
-| `loinc_2_82_tx.json` | LOINC 2.82 official master (`Loinc_2.82/LoincTable/Loinc.csv`) via `tx-server-build/loinc-src/` | 2026-07-19 | 167 codes clinosim emits; includes `display` (LONG_COMMON_NAME) + `short_display` (SHORTNAME) + `status`. Verified via Issue #264 sibling sweep. |
+| `loinc_2_82_tx.json` | LOINC 2.82 official master (`Loinc_2.82/LoincTable/Loinc.csv`) via `tx-server-build/loinc-src/` | 2026-07-19 | 167 codes clinosim emits; includes `display` (LONG_COMMON_NAME) + `short_display` (SHORTNAME) + `status`. Full display cross-check enabled in Issue #270 (Phase 3-b) — 75 legitimate shorthand + 17 tracked semantic-mismatch overrides registered in the allowlist. |
 
 Follow-on snapshots (SNOMED / ICD-10 / MEDIS / BCP-47 / LOINC etc.) are
 tracked in the design guide and land in subsequent PRs as each Chain migrates
