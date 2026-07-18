@@ -160,10 +160,7 @@ def test_news2_has_clinosim_custom_coding():
         assert codings[0]["system"] == expected_uri
         assert codings[0]["code"] == "NEWS2"
         # No leftover LOINC fallback under `http://loinc.org` with the retired 90557-9.
-        assert not any(
-            c.get("system") == get_system_uri("loinc") and c.get("code") == "90557-9"
-            for c in codings
-        )
+        assert not any(c.get("system") == get_system_uri("loinc") and c.get("code") == "90557-9" for c in codings)
 
 
 def test_gcs_has_loinc_coding():
