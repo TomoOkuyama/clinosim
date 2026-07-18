@@ -30,7 +30,10 @@ def test_medication_allergen_has_penicillin():
     med = a["medication"]
     pen = [e for e in med if e["allergen_display_en"] == "Penicillin"]
     assert pen
-    assert pen[0]["allergen_code"] == "387207008"
+    # Session 57 v3: allergens.yaml swapped the Penicillin code from
+    # 387207008 (Ibuprofen in SNOMED CT International 2026-06-01) to
+    # 373270004 (Substance with penicillin structure).
+    assert pen[0]["allergen_code"] == "373270004"
 
 
 def test_enricher_populates_allergies_per_patient():
