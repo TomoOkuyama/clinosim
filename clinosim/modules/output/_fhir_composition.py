@@ -349,6 +349,13 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
 _JP_CLINS_DS_PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 _JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
 
+# Session 58 Chain #10: JP-CLINS eDS / eReferral pin
+# `Composition.identifier.system` to this URI (spec `fixedUri`, verified via
+# `clinical-information-sharing#1.12.0/package/StructureDefinition-JP-Composition-
+# {eDischargeSummary,eReferral}.json`). Same URI as session 57 identifier
+# slices on Observation / Condition / AI / MR.
+_JP_COMPOSITION_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
+
 # Session 58 Chain #9: JP-CLINS eDS Composition required elements.
 # Extension URL for `Composition.extension:version` (spec `fixedUri` on the
 # slice discriminator). Verified via `clinical-information-sharing#1.12.0/
@@ -372,6 +379,8 @@ def _section_title_from_section_display(display: str) -> str:
     if isinstance(display, str) and display.endswith(_JP_SECTION_TITLE_SUFFIX):
         return display[: -len(_JP_SECTION_TITLE_SUFFIX)]
     return display
+
+
 # session 53 iris4h-ai feedback D:JP-CLINS 実 canonical URL は
 # `.../CodeSystem/document-section`(resource id `jp-codeSystem-clins-
 # document-section` を path に含めない)。iris4h-ai の
@@ -409,30 +418,8 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
 }
 
 
-# Session 58 Chain #8: JP-CLINS Composition profiles pin
-# `section.code.coding.display` to the "…セクション" long form (spec
-# `patternString`) but `section.title` to the short form (spec
-# `title.fixedString`, no `セクション` suffix). yaml carries the canonical
-# display form so `_fhir_code_lookup` and cross-check tests see a
-# consistent authoritative string; this helper derives the title.
-#
-# Verified against `clinical-information-sharing#1.12.0/package/
-# StructureDefinition-JP-Composition-{eDischargeSummary,eReferral}.json`
-# (`section.title.fixedString` vs `section.code.coding.display.patternString`
-# on every registered slice — the rule is uniform).
-_JP_SECTION_TITLE_SUFFIX = "セクション"
-
-
-def _section_title_from_section_display(display: str) -> str:
-    """Return the JP-CLINS `section.title` form for a section display.
-
-    Strips a trailing `セクション` when present; leaves the string unchanged
-    otherwise so non-JP callers (US LOINC section titles, generic Composition)
-    stay a no-op.
-    """
-    if isinstance(display, str) and display.endswith(_JP_SECTION_TITLE_SUFFIX):
-        return display[: -len(_JP_SECTION_TITLE_SUFFIX)]
-    return display
+# Chain #8's `_section_title_from_section_display` helper + `_JP_SECTION_TITLE_SUFFIX`
+# constant are defined once earlier in the file (Chain #9 additions block).
 
 
 def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
@@ -486,9 +473,7 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
     # per spec `valueString`. clinosim emits "1" (initial issue) since no
     # revision history is tracked; downstream systems can update in place.
     exts = comp.setdefault("extension", [])
-    if not any(
-        isinstance(e, dict) and e.get("url") == _JP_EDS_VERSION_EXTENSION_URL for e in exts
-    ):
+    if not any(isinstance(e, dict) and e.get("url") == _JP_EDS_VERSION_EXTENSION_URL for e in exts):
         exts.append({"url": _JP_EDS_VERSION_EXTENSION_URL, "valueString": "1"})
 
     # (Chain #9) `Composition.category` min=1 max=1 — fixed to DISCHARGE
@@ -509,16 +494,14 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
     # + 文書作成機関 (Organization). Generic builder already sets
     # author[0]=Practitioner from doc.author_practitioner_id. Append an
     # Organization reference. Uses the clinosim facility placeholder id;
-    # downstream FHIR consumers resolve against `Organization/facility`
+    # downstream FHIR consumers resolve against `Organization/hospital-main`
     # (defined by the facility bundle).
     authors = comp.setdefault("author", [])
     if not isinstance(authors, list):
         authors = []
         comp["author"] = authors
-    if not any(
-        isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/") for a in authors
-    ):
-        authors.append({"reference": "Organization/facility"})
+    if not any(isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/") for a in authors):
+        authors.append({"reference": "Organization/hospital-main"})
 
     # (Chain #9) section tree — 300 parent + 10 required child sections.
     # yaml carries `構造情報セクション` (long form, matches spec `patternString`);

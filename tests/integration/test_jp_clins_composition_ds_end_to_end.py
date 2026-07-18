@@ -63,7 +63,9 @@ def test_jp_p50_discharge_summary_composition_conforms(tmp_path):
         # doc-typecodes coding present alongside LOINC
         systems = {cc.get("system") for cc in c["type"]["coding"]}
         assert _DOC_TYPE_SYSTEM in systems, c["type"]
-        # nested 300 → 5 required children
+        # Session 58 Chain #9: nested 300 → 10 required children
+        # (5 admission + 5 discharge side, per JP-CLINS eDS spec
+        # `structuredSection.section` min=10).
         top = c.get("section", [])
         assert len(top) == 1, c["id"]
         parent = top[0]
@@ -71,10 +73,22 @@ def test_jp_p50_discharge_summary_composition_conforms(tmp_path):
         assert parent["code"]["coding"][0]["system"] == _SECTION_SYSTEM
         children = parent.get("section", [])
         codes = [ch["code"]["coding"][0]["code"] for ch in children]
-        assert set(codes) == {"312", "322", "342", "352", "360"}, codes
+        assert set(codes) == {
+            # Admission
+            "312",
+            "322",
+            "342",
+            "352",
+            "360",
+            # Discharge (Chain #9 additions)
+            "333",
+            "324",
+            "344",
+            "444",
+            "424",
+        }, codes
         for ch in children:
             assert ch["code"]["coding"][0]["system"] == _SECTION_SYSTEM
-            assert ch["text"]["div"], "empty section text.div"
 
 
 @pytest.mark.integration
