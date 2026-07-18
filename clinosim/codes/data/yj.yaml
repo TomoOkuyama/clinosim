@@ -82,7 +82,10 @@ codes:
     ja: アセトアミノフェン（カロナール）
   '1149037F1020':
     en: Celecoxib (Celebrex)
-    ja: セレコキシブ（セレコックス）
+    # ja display uses the tx-registered 製剤名 (product name + dosage form +
+    # strength, full-width digits) per YJ CodeSystem
+    # `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` (session 58 Chain #5).
+    ja: セレコックス錠１００ｍｇ
   '8119002B2023':
     en: Oxycodone (OxyContin)
     ja: オキシコドン（オキシコンチン）
@@ -118,7 +121,7 @@ codes:
     ja: ドネペジル（アリセプト）
   '1169101F1120':
     en: Levodopa/Carbidopa (Sinemet)
-    ja: レボドパ/カルビドパ（ネオドパストン/メネシット）
+    ja: ネオドパストン配合錠Ｌ１００
   '2431004F1013':
     en: Levothyroxine (Synthroid)
     ja: レボチロキシン（チラーヂンS）
@@ -154,10 +157,10 @@ codes:
     ja: リン酸ジソピラミド
   1124031Q1024:
     en: Midazolam
-    ja: ミダゾラム
+    ja: ドルミカムシロップ２ｍｇ／ｍＬ
   1119400A1031:
     en: Ketamine hydrochloride
-    ja: ケタミン塩酸塩
+    ja: ケタラール静注用２００ｍｇ
   3959402D1027:
     en: Alteplase (recombinant)
     ja: アルテプラーゼ（遺伝子組換え）
@@ -181,16 +184,16 @@ codes:
     ja: オクトレオチド酢酸塩
   1139010F1024:
     en: Levetiracetam
-    ja: レベチラセタム
+    ja: イーケプラ錠２５０ｍｇ
   1149019C1149:
     en: Loxoprofen sodium hydrate
-    ja: ロキソプロフェンナトリウム水和物
+    ja: ロキソニン細粒１０％
   1179040F1012:
     en: Milnacipran hydrochloride
     ja: ミルナシプラン塩酸塩
   1119402A1022:
     en: Propofol
-    ja: プロポフォール
+    ja: １％ディプリバン注
   8219700S5026:
     en: Fentanyl (Durotep MT patch)
     ja: フェンタニル（デュロテップMTパッチ）
@@ -208,7 +211,7 @@ codes:
     ja: スルファジアジン銀クリーム（ゲーベン）
   1147002F1013:
     en: Diclofenac sodium
-    ja: ジクロフェナクナトリウム
+    ja: ジクロフェナクナトリウム２５ｍｇ錠
   6290100F2115:
     en: Sulfamethoxazole-Trimethoprim (Bactrim/Baktar)
     ja: スルファメトキサゾール・トリメトプリム（バクタ）
@@ -220,7 +223,7 @@ codes:
     ja: エドキサバントシル酸塩水和物（リクシアナ錠15mg）
   1139403A1020:
     en: Lorazepam injection (Lorapita)
-    ja: ロラゼパム（ロラピタ静注2mg）
+    ja: ロラピタ静注２ｍｇ
   3999401A1200:
     en: Elcatonin injection (Elcitonin)
     ja: エルカトニン（エルシトニン注40単位）
