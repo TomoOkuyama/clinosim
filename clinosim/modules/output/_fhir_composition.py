@@ -237,9 +237,7 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
     # output keeps the clinosim namespace URI (no profile constraint). The
     # decision follows the caller's `lang` — JP-CLINS builders pass "ja",
     # generic / US pass "en".
-    identifier_system = (
-        _JP_COMPOSITION_IDENTIFIER_SYSTEM if lang == "ja" else "urn:clinosim:composition-id"
-    )
+    identifier_system = _JP_COMPOSITION_IDENTIFIER_SYSTEM if lang == "ja" else "urn:clinosim:composition-id"
     res: dict[str, Any] = {
         "resourceType": "Composition",
         "id": comp_id,
