@@ -46,6 +46,71 @@ _VERIFICATION_STATUS_SYSTEM = get_system_uri("hl7-allergyintolerance-verificatio
 _VALID_CATEGORIES = {"medication", "food", "environment", "biologic"}
 
 
+# Session 58 Issue #263: JP Core `JP_AllergyIntolerance_VS` binds
+# `AllergyIntolerance.code` to a required CodeSystem set that includes only
+# the JFAGY family — SNOMED is NOT admissible on this binding, producing 40
+# v4 errors on the 3 medication allergen codes emitted at cohort scale
+# (115556009 / 387458008 / 373270004).
+#
+# The tx-server ships the JFAGY CodeSystems as `content=fragment`, with only
+# the top-level generic codes loaded:
+#   00F = 食品 (Food)
+#   00M = 医薬品 (Medication)
+#   00N = 非食品・非医薬品 (Non-food non-medication)
+#
+# Strategy: on JP output, prepend a JFAGY generic coding as the primary
+# `code.coding[0]` (satisfies the VS binding) and keep the SNOMED coding as
+# the secondary informational entry so international consumers still see the
+# specific substance code. US output continues to emit SNOMED primary.
+#
+# URIs verified against
+# `tx-server-build/terminology/fhir-server/jpfhir-terminology#2.2606.0/package/
+# CodeSystem-jp-jfagy{food,medicationallergenycm,nonfoodnonmedicationallergen}-cs.json`
+# (session 51 rule: spec fixedUri direct quotation).
+_JP_JFAGY_FOOD_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS"
+_JP_JFAGY_MEDICATION_ALLERGEN_CS = (
+    "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
+)
+_JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS = (
+    "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
+)
+
+# Category → (CodeSystem URI, generic code, ja display, en display).
+_JFAGY_GENERIC_BY_CATEGORY: dict[str, tuple[str, str, str, str]] = {
+    "medication": (_JP_JFAGY_MEDICATION_ALLERGEN_CS, "00M", "医薬品", "Medication"),
+    "food": (_JP_JFAGY_FOOD_ALLERGEN_CS, "00F", "食品", "Food"),
+    # `environment` in clinosim's allergens.yaml (pollen / dust mite / etc.)
+    # maps to the non-food non-medication JFAGY bucket.
+    "environment": (
+        _JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS,
+        "00N",
+        "非食品・非医薬品",
+        "Non-food non-medication",
+    ),
+    # `biologic` (FHIR-valid category, currently unused by clinosim) —
+    # dispatched under the non-food non-medication CS as a safe default;
+    # future work may introduce a distinct code once tx-server exposes it.
+    "biologic": (
+        _JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS,
+        "00N",
+        "非食品・非医薬品",
+        "Non-food non-medication",
+    ),
+}
+
+
+def _jfagy_coding_for_category(category: str, lang: str) -> dict[str, str] | None:
+    """Return the JFAGY primary coding for a clinosim allergy category, or
+    ``None`` when clinosim has no mapping (never emit a fabricated coding).
+    """
+    entry = _JFAGY_GENERIC_BY_CATEGORY.get(category)
+    if entry is None:
+        return None
+    uri, code, ja_disp, en_disp = entry
+    display = ja_disp if lang == "ja" else en_disp
+    return {"system": uri, "code": code, "display": display}
+
+
 def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
     """Emit one AllergyIntolerance per Allergy in patient.allergies (8-field schema)."""
     patient_data = _o(ctx.record, "patient", {}) or {}
@@ -112,13 +177,25 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
 
     code: dict[str, Any] = {"text": resolved_display}
     if allergen_code:
-        code["coding"] = [
-            {
-                "system": snomed_system,
-                "code": allergen_code,
-                "display": resolved_display,
-            }
-        ]
+        snomed_coding = {
+            "system": snomed_system,
+            "code": allergen_code,
+            "display": resolved_display,
+        }
+        # Session 58 Issue #263: JP Core `JP_AllergyIntolerance_VS` requires
+        # a coding from one of the JFAGY CodeSystems. On JP output, emit the
+        # JFAGY generic category coding as primary (satisfies the VS
+        # binding) and keep the SNOMED coding as a secondary informational
+        # entry so international consumers keep the specific substance code.
+        # US output emits SNOMED alone (no VS binding constraint).
+        if lang == "ja":
+            jfagy = _jfagy_coding_for_category(category, lang)
+            if jfagy is not None:
+                code["coding"] = [jfagy, snomed_coding]
+            else:
+                code["coding"] = [snomed_coding]
+        else:
+            code["coding"] = [snomed_coding]
 
     # C5-24 (session 43 cycle 5): AllergyIntolerance status displays now
     # locale-aware. Was hard-coded "en" — JP output leaked English displays.
