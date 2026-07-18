@@ -1709,10 +1709,23 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
         return
 
     # (1) identifier — canonical namespace, only when not builder-populated.
+    # Session 57 v3 (Chain-9): for JP output, prepend the JP-CLINS
+    # `resourceIdentifier` slice (spec `patternUri`
+    # `http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier`) so the
+    # `Condition.identifier:resourceIdentifier` slice discriminator matches.
+    # Same URI + same 2-element pattern as Chain A on Observation. Keeps the
+    # internal `urn:clinosim:*` namespace as a secondary identifier so downstream
+    # consumers can still round-trip by resource id.
     if rt in _ECS_IDENTIFIER_SYSTEMS and not resource.get("identifier"):
         rid = resource.get("id", "")
         if rid:
-            resource["identifier"] = [{"system": _ECS_IDENTIFIER_SYSTEMS[rt], "value": rid}]
+            if country == "JP":
+                resource["identifier"] = [
+                    {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid},
+                    {"system": _ECS_IDENTIFIER_SYSTEMS[rt], "value": rid},
+                ]
+            else:
+                resource["identifier"] = [{"system": _ECS_IDENTIFIER_SYSTEMS[rt], "value": rid}]
 
     # (2) meta.lastUpdated fallback chain.
     meta = resource.setdefault("meta", {})
