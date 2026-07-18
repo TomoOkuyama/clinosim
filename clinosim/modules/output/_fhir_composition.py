@@ -349,12 +349,29 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
 _JP_CLINS_DS_PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 _JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
 
-# Session 58 Chain #10: JP-CLINS eDS / eReferral pin
-# `Composition.identifier.system` to this URI (spec `fixedUri`, verified via
-# `clinical-information-sharing#1.12.0/package/StructureDefinition-JP-Composition-
-# {eDischargeSummary,eReferral}.json`). Same URI as session 57 identifier
-# slices on Observation / Condition / AI / MR.
-_JP_COMPOSITION_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
+# Session 58 Chain #9: JP-CLINS eDS Composition required elements.
+# Extension URL for `Composition.extension:version` (spec `fixedUri` on the
+# slice discriminator). Verified via `clinical-information-sharing#1.12.0/
+# package/StructureDefinition-JP-Composition-eDischargeSummary.json`.
+_JP_EDS_VERSION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/composition-clinicaldocument-versionNumber"
+# `Composition.category.coding` fixed system + fixed code per spec.
+_JPFHIR_DOC_SUBTYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-subtypecodes"
+_JP_EDS_CATEGORY_CODE = "DISCHARGE"
+_JP_EDS_CATEGORY_DISPLAY_JA = "退院時サマリー"
+# Section title-vs-display split (also used by Chain #8's eDS/eReferral
+# builders; consolidated here for module scope).
+_JP_SECTION_TITLE_SUFFIX = "セクション"
+
+
+def _section_title_from_section_display(display: str) -> str:
+    """Return the JP-CLINS `section.title` form for a section display —
+    strip trailing `セクション` (spec `title.fixedString` / `patternString`
+    is the short form; `code.coding.display.patternString` is long).
+    Non-JP inputs pass through unchanged.
+    """
+    if isinstance(display, str) and display.endswith(_JP_SECTION_TITLE_SUFFIX):
+        return display[: -len(_JP_SECTION_TITLE_SUFFIX)]
+    return display
 # session 53 iris4h-ai feedback D:JP-CLINS 実 canonical URL は
 # `.../CodeSystem/document-section`(resource id `jp-codeSystem-clins-
 # document-section` を path に含めない)。iris4h-ai の
@@ -363,13 +380,32 @@ _JP_COMPOSITION_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourc
 # を直接引用(session 51 rule)。従来の id-in-URL 版は HAPI で 1272 warn。
 _JPFHIR_DOC_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
 
-# JP-CLINS 退院時サマリー section キー → jpfhir-doc-section 番号 code
+# JP-CLINS 退院時サマリー section キー → jpfhir-doc-section 番号 code.
+# Session 58 Chain #9: expanded from 5 admission-side to 10 required slices
+# (5 admission + 5 discharge) so `Composition.section:structuredSection.section`
+# min=10 is satisfied AND every required child slice (hospitalCourseSection,
+# detailsOnDischargeSection, diagnosesOnDischargeSection,
+# medicationOnDischargeSection, instructionOnDischargeSection) is present.
+#
+# Section-key names are the narrative-sections dict keys that
+# `TemplateNarrativeGenerator` (Task 6 α-min-1 / Task 8 α-min-2) emits into
+# `doc["narrative"]["sections"]`. When a discharge section key is absent
+# on a specific ClinicalDocument (older narrative pass version), the builder
+# emits the slice with an empty div — the slice is present with min=1 which
+# is what the spec requires; per-slice `text` content is optional.
 _JP_DS_SECTION_CODE: dict[str, str] = {
-    "admission_reason": "312",
-    "admission_details": "322",
-    "admission_diagnoses": "342",
-    "chief_complaint": "352",
-    "present_illness": "360",
+    # Admission side (5 slices — spec `patternString` for title)
+    "admission_reason": "312",  # reasonForAdmissionSection / 入院理由
+    "admission_details": "322",  # detailsOnAdmissionSection / 入院時詳細
+    "admission_diagnoses": "342",  # diagnosesOnAdmissionSection / 入院時診断
+    "chief_complaint": "352",  # chiefComplaintsSection / 主訴
+    "present_illness": "360",  # presentIllnessSection / 現病歴
+    # Discharge side (5 slices — session 58 Chain #9 additions)
+    "hospital_course": "333",  # hospitalCourseSection / 入院中経過
+    "discharge_details": "324",  # detailsOnDischargeSection / 退院時詳細
+    "discharge_diagnoses": "344",  # diagnosesOnDischargeSection / 退院時診断
+    "medication_on_discharge": "444",  # medicationOnDischargeSection / 退院時投薬指示
+    "instruction_on_discharge": "424",  # instructionOnDischargeSection / 退院時方針指示
 }
 
 
@@ -423,13 +459,20 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
     if _JP_CLINS_DS_PROFILE not in profs:
         profs.append(_JP_CLINS_DS_PROFILE)
 
+    # (Chain #9) `meta.lastUpdated` min=1 — reuse authoredOn / date. Emit
+    # only when a source datetime exists so we never fabricate.
+    if not meta.get("lastUpdated"):
+        ts = comp.get("date") or _o(doc, "authored_datetime", "")
+        if ts:
+            meta["lastUpdated"] = ts
+
     # `type` field:jpfhir doc-typecodes を primary。
     # Session 57 v3 fix: eDS profile constrains type.coding to max=1, so
     # emit only the doc-typecodes coding — the LOINC copy (previously
     # emitted for interop) violated the profile slicing on 129 resources.
     # The LOINC value is preserved via type.text so downstream consumers
     # can still recover the same code as text.
-    disp = code_lookup("jpfhir-doc-typecodes", "18842-5", lang) or "退院時サマリー"
+    disp = code_lookup("jpfhir-doc-typecodes", "18842-5", lang) or _JP_EDS_CATEGORY_DISPLAY_JA
     comp["type"] = {
         "coding": [
             {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "18842-5", "display": disp},
@@ -438,12 +481,49 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
     }
     comp["title"] = disp
 
-    # section: 300 parent + 5 child sections
-    # Session 58 Chain #8: yaml `ja` carries the canonical `code.coding.display`
-    # (`構造情報セクション` etc.) matching JP-CLINS spec `patternString`.
-    # `section.title` uses the short form (spec `title.fixedString`), derived
-    # by stripping the trailing `セクション` via
-    # `_section_title_from_section_display`. Uniform across every eDS slice.
+    # (Chain #9) `Composition.extension:version` min=1 — 文書バージョン番号。
+    # The extension slice is discriminated by URL; value[x] is `valueString`
+    # per spec `valueString`. clinosim emits "1" (initial issue) since no
+    # revision history is tracked; downstream systems can update in place.
+    exts = comp.setdefault("extension", [])
+    if not any(
+        isinstance(e, dict) and e.get("url") == _JP_EDS_VERSION_EXTENSION_URL for e in exts
+    ):
+        exts.append({"url": _JP_EDS_VERSION_EXTENSION_URL, "valueString": "1"})
+
+    # (Chain #9) `Composition.category` min=1 max=1 — fixed to DISCHARGE
+    # under the doc-subtypecodes CodeSystem.
+    comp["category"] = [
+        {
+            "coding": [
+                {
+                    "system": _JPFHIR_DOC_SUBTYPECODES_SYSTEM,
+                    "code": _JP_EDS_CATEGORY_CODE,
+                    "display": _JP_EDS_CATEGORY_DISPLAY_JA,
+                }
+            ]
+        }
+    ]
+
+    # (Chain #9) `Composition.author` min=2 — 文書作成責任者 (Practitioner)
+    # + 文書作成機関 (Organization). Generic builder already sets
+    # author[0]=Practitioner from doc.author_practitioner_id. Append an
+    # Organization reference. Uses the clinosim facility placeholder id;
+    # downstream FHIR consumers resolve against `Organization/facility`
+    # (defined by the facility bundle).
+    authors = comp.setdefault("author", [])
+    if not isinstance(authors, list):
+        authors = []
+        comp["author"] = authors
+    if not any(
+        isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/") for a in authors
+    ):
+        authors.append({"reference": "Organization/facility"})
+
+    # (Chain #9) section tree — 300 parent + 10 required child sections.
+    # yaml carries `構造情報セクション` (long form, matches spec `patternString`);
+    # `_section_title_from_section_display` derives the short-form title
+    # per spec `title.fixedString` (Chain #8 pattern).
     parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
     parent_title = _section_title_from_section_display(parent_disp)
     child_sections: list[dict[str, Any]] = []
@@ -451,6 +531,7 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
         disp_c = code_lookup("jpfhir-doc-section", code, lang) or key
         title_c = _section_title_from_section_display(disp_c)
         text_val = sections.get(key, "") or ""
+        # Chain #9: section.code.text max=0 — drop `text` from `code`.
         child_sections.append(
             {
                 "title": title_c,
@@ -462,21 +543,16 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
                             "display": disp_c,
                         }
                     ],
-                    "text": disp_c,
                 },
-                # Session 57 Chain 8 (v2 feedback §【中優先 8】): JP-CLINS
-                # eDischargeSummary / eReferral / eCheckup pin
-                # Composition.section[*].text.status to fixedCode "additional"
-                # (see fhir-jp-validator/tx-server-build/.../clinical-information-sharing#1.12.0
-                # StructureDefinition-JP-Composition-*.json). generic
-                # Composition (_build_composition_generic below) keeps
-                # "generated" per base FHIR default.
+                # Session 57 Chain 8: JP-CLINS pins `text.status` to `additional`.
                 "text": {
                     "status": "additional",
                     "div": (f'<div xmlns="http://www.w3.org/1999/xhtml">{_escape_html(text_val)}</div>'),
                 },
             }
         )
+    # Parent structuredSection — Chain #9: drop `code.text` (max=0) and use
+    # title-short / display-long split.
     comp["section"] = [
         {
             "title": parent_title,
@@ -488,7 +564,6 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
                         "display": parent_disp,
                     }
                 ],
-                "text": parent_disp,
             },
             "section": child_sections,
         }
@@ -554,9 +629,8 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     comp["title"] = disp
 
     def _one_section(section_code: str, text_val: str) -> dict[str, Any]:
-        # Session 58 Chain #8: eReferral title uses the short form
-        # (spec `title.fixedString`, no `セクション` suffix); display uses
-        # the long form (spec `patternString`).
+        # Session 58 Chain #8: title = short form, display = long form.
+        # Session 58 Chain #9: `code.text` max=0 → omit.
         disp_c = code_lookup("jpfhir-doc-section", section_code, lang) or section_code
         title_c = _section_title_from_section_display(disp_c)
         return {
@@ -569,7 +643,6 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
                         "display": disp_c,
                     }
                 ],
-                "text": disp_c,
             },
             # Session 57 Chain 8 (v2 feedback §【中優先 8】): JP-CLINS eReferral
             # pins Composition.section[*].text.status to fixedCode "additional".
@@ -588,7 +661,8 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     struct_children: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_STRUCTURAL_CHILDREN.items():
         struct_children.append(_one_section(code, sections.get(key, "") or ""))
-    # Session 58 Chain #8: same title-vs-display split as eDS.
+    # Session 58 Chain #8 + #9: yaml carries the canonical long form; title is
+    # derived by stripping `セクション`; `code.text` is dropped (max=0 per spec).
     struct_parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
     struct_parent_title = _section_title_from_section_display(struct_parent_disp)
     top_sections.append(
@@ -602,7 +676,6 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
                         "display": struct_parent_disp,
                     }
                 ],
-                "text": struct_parent_disp,
             },
             "section": struct_children,
         }
@@ -683,9 +756,12 @@ def _build_jp_eCheckup_general_composition(doc: Any, sections: dict[str, str], l
     for key, code in section_code_map.items():
         disp_c = code_lookup("jpfhir-eCheckup-section", code, lang) or key
         text_val = sections.get(key, "") or ""
+        # Session 58 Chain #8 / #9: eCheckup section entries follow the same
+        # code.text=absent / title-vs-display convention as eDS / eReferral.
+        title_c = _section_title_from_section_display(disp_c)
         section_entries.append(
             {
-                "title": disp_c,
+                "title": title_c,
                 "code": {
                     "coding": [
                         {
@@ -694,7 +770,6 @@ def _build_jp_eCheckup_general_composition(doc: Any, sections: dict[str, str], l
                             "display": disp_c,
                         }
                     ],
-                    "text": disp_c,
                 },
                 # Session 57 Chain 8 (v2 feedback §【中優先 8】): JP-CLINS
                 # eDischargeSummary / eReferral / eCheckup pin

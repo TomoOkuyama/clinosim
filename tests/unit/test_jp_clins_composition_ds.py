@@ -88,7 +88,9 @@ def test_jp_clins_composition_has_nested_structural_section():
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     top = comp["section"]
-    # Exactly one top-level section (300 構造情報) that nests 5 required children.
+    # Session 58 Chain #9: exactly one top-level section (300 構造情報セクション)
+    # that nests the 10 required child slices (5 admission + 5 discharge)
+    # per JP-CLINS eDS spec `structuredSection.section` min=10.
     assert len(top) == 1, top
     parent = top[0]
     parent_code = parent["code"]["coding"][0]
@@ -96,7 +98,20 @@ def test_jp_clins_composition_has_nested_structural_section():
     assert parent_code["code"] == "300"
     children = parent["section"]
     child_codes = {c["code"]["coding"][0]["code"] for c in children}
-    assert child_codes == {"312", "322", "342", "352", "360"}
+    assert child_codes == {
+        # Admission (5)
+        "312",  # reasonForAdmissionSection
+        "322",  # detailsOnAdmissionSection
+        "342",  # diagnosesOnAdmissionSection
+        "352",  # chiefComplaintsSection
+        "360",  # presentIllnessSection
+        # Discharge (5) — Chain #9 additions
+        "333",  # hospitalCourseSection
+        "324",  # detailsOnDischargeSection
+        "344",  # diagnosesOnDischargeSection
+        "444",  # medicationOnDischargeSection
+        "424",  # instructionOnDischargeSection
+    }
 
 
 @pytest.mark.unit
@@ -117,12 +132,10 @@ def test_jp_clins_composition_child_section_text_div():
 
 @pytest.mark.unit
 def test_jp_clins_composition_section_title_short_display_long():
-    """Session 58 Chain #8: JP-CLINS eDS spec pins
+    """Session 58 Chain #8/#9: JP-CLINS eDS spec pins
     `section.title` = short form (no `セクション` suffix, spec `title.fixedString`)
     and `section.code.coding.display` = long form (`patternString`,
-    ends in `セクション`). Both parent (300) and every child slice must
-    follow the split.
-    """
+    ends in `セクション`)."""
     from clinosim.modules.output._fhir_composition import _build_composition
 
     doc = _jp_ds_doc()
@@ -136,28 +149,93 @@ def test_jp_clins_composition_section_title_short_display_long():
         "342": ("入院時診断", "入院時診断セクション"),
         "352": ("主訴", "主訴セクション"),
         "360": ("現病歴", "現病歴セクション"),
+        "333": ("入院中経過", "入院中経過セクション"),
+        "324": ("退院時詳細", "退院時詳細セクション"),
+        "344": ("退院時診断", "退院時診断セクション"),
+        "444": ("退院時投薬指示", "退院時投薬指示セクション"),
+        "424": ("退院時方針指示", "退院時方針指示セクション"),
     }
     for child in parent["section"]:
         code = child["code"]["coding"][0]["code"]
-        title = child["title"]
-        display = child["code"]["coding"][0]["display"]
         assert code in expected, f"unexpected child section code {code!r}"
         exp_title, exp_display = expected[code]
-        assert title == exp_title, f"{code} title: got {title!r} expected {exp_title!r}"
-        assert display == exp_display, f"{code} display: got {display!r} expected {exp_display!r}"
+        assert child["title"] == exp_title, f"{code} title mismatch"
+        assert child["code"]["coding"][0]["display"] == exp_display, f"{code} display mismatch"
 
 
 @pytest.mark.unit
-def test_section_title_from_display_helper_strips_suffix_only():
-    from clinosim.modules.output._fhir_composition import _section_title_from_section_display
+def test_jp_clins_composition_section_code_text_max_zero():
+    """Chain #9: JP-CLINS eDS spec pins every section slice `code.text` to
+    max=0. clinosim must not emit a `text` field on any section's `code`
+    CodeableConcept (parent structuredSection or any child)."""
+    from clinosim.modules.output._fhir_composition import _build_composition
 
-    assert _section_title_from_section_display("構造情報セクション") == "構造情報"
-    assert _section_title_from_section_display("現病歴セクション") == "現病歴"
-    # Non-JP inputs (US LOINC section titles, generic Composition) unchanged.
-    assert _section_title_from_section_display("Discharge Summary") == "Discharge Summary"
-    # Empty / bare suffix edge cases stay predictable.
-    assert _section_title_from_section_display("") == ""
-    assert _section_title_from_section_display("セクション") == ""
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    parent = comp["section"][0]
+    assert "text" not in parent["code"], parent["code"]
+    for child in parent["section"]:
+        assert "text" not in child["code"], child["code"]
+
+
+@pytest.mark.unit
+def test_jp_clins_composition_extension_version_present():
+    """Chain #9: JP-CLINS eDS declares `Composition.extension:version` (min=1)
+    on the composition-clinicaldocument-versionNumber URL."""
+    from clinosim.modules.output._fhir_composition import (
+        _JP_EDS_VERSION_EXTENSION_URL,
+        _build_composition,
+    )
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    exts = comp.get("extension", [])
+    version_ext = [e for e in exts if e.get("url") == _JP_EDS_VERSION_EXTENSION_URL]
+    assert len(version_ext) == 1
+    assert version_ext[0]["valueString"] == "1"
+
+
+@pytest.mark.unit
+def test_jp_clins_composition_category_discharge():
+    """Chain #9: JP-CLINS eDS `Composition.category` min=1 max=1 fixed to
+    DISCHARGE under doc-subtypecodes CodeSystem."""
+    from clinosim.modules.output._fhir_composition import (
+        _JPFHIR_DOC_SUBTYPECODES_SYSTEM,
+        _build_composition,
+    )
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    category = comp.get("category")
+    assert isinstance(category, list) and len(category) == 1
+    coding = category[0]["coding"][0]
+    assert coding["system"] == _JPFHIR_DOC_SUBTYPECODES_SYSTEM
+    assert coding["code"] == "DISCHARGE"
+
+
+@pytest.mark.unit
+def test_jp_clins_composition_meta_lastupdated_from_authored_datetime():
+    """Chain #9: `Composition.meta.lastUpdated` min=1 — falls back to authored
+    datetime when not builder-set."""
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    assert comp["meta"]["lastUpdated"] == "2026-01-20T10:00:00"
+
+
+@pytest.mark.unit
+def test_jp_clins_composition_author_has_organization():
+    """Chain #9: `Composition.author` min=2 — practitioner + facility organization."""
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    authors = comp["author"]
+    assert len(authors) >= 2
+    refs = [a.get("reference", "") for a in authors]
+    assert any(r.startswith("Practitioner/") for r in refs)
+    assert any(r.startswith("Organization/") for r in refs)
 
 
 @pytest.mark.unit
