@@ -32,8 +32,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.codes import get_system_uri
-from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
@@ -45,30 +43,25 @@ __all__ = [
 
 CARE_TEAM_ID_PREFIX = "careteam-"
 
-# SNOMED CT CareTeam.category — 2026-07-17 v2 feedback: 735320007 was Unknown
-# code in the fhirserver's SNOMED International Edition 2026-06-01 loadout
-# (3,788 CareTeam rejections). Switched to 407484005 "Rehabilitation care team"
-# which the v2 feedback explicitly proposed and is verified present in the
-# same edition.
+# CareTeam.category — text-only CodeableConcept.
 #
-# History:
-# - session 42: SNOMED 424535000 "Clinical team" was flagged inactive by HL7
-#   fhirserver, so we switched to LOINC LA27976-8 "Episode of care team focused".
-# - 2026-07-16 v1 feedback: LOINC LA27976-8 is unknown in LOINC 2.82 (1,913
-#   CareTeam failures). Adopted SNOMED 735320007 (Multidisciplinary care team)
-#   in place of the LOINC code.
-# - 2026-07-17 v2 feedback: 735320007 was itself Unknown in SNOMED International
-#   Edition 2026-06-01 (3,788 rejections). Switched to 407484005 following
-#   the v2 feedback's explicit recommendation (§【最優先 2】).
-# - Semantic caveat: "Rehabilitation care team" is technically rehab-specific;
-#   emitting it uniformly on all encounter types is a validator-conformance
-#   trade-off. A follow-up issue tracks encounter-type-specific dispatch
-#   (rehab_inpatient keeps 407484005; other encounter types get a general
-#   care-team code once one is verified present in the tx server load).
-_CARE_TEAM_CATEGORY_SYSTEM = get_system_uri("snomed-ct")
-_CARE_TEAM_CATEGORY_CODE = "407484005"  # Rehabilitation care team (record artifact)
-_CARE_TEAM_CATEGORY_EN = "Rehabilitation care team"
-_CARE_TEAM_CATEGORY_JA = "リハビリテーションケアチーム"
+# History of coded attempts (all rejected by successive validator loadouts):
+# - session 42: SNOMED 424535000 "Clinical team" flagged inactive by HL7 fhirserver.
+# - 2026-07-16 v1 feedback: LOINC LA27976-8 is unknown in LOINC 2.82 (1,913 rejections).
+# - 2026-07-17 v2 feedback: SNOMED 735320007 unknown in fhirserver's SNOMED
+#   International 2026-06-01 (3,788 rejections).
+# - 2026-07-18 v3 feedback: SNOMED 407484005 (v2 feedback's own suggestion)
+#   is ALSO unknown in the same loadout (3,786 rejections).
+#
+# The pattern is validator terminology coverage, not an IG bug: the tx server's
+# SNOMED International subset simply does not include CareTeam-category
+# concepts. `CareTeam.category` has a `preferred` binding (advisory, not
+# required) and `CodeableConcept` allows `text` alone (`coding 0..*`,
+# `text 0..1`), so emitting text alone is spec-compliant and validator-clean.
+# When a validator loadout eventually gains one of the SNOMED concepts,
+# re-introduce a coding — but until then, text-only is the correct answer.
+_CARE_TEAM_CATEGORY_EN = "Multidisciplinary care team"
+_CARE_TEAM_CATEGORY_JA = "多職種ケアチーム"
 
 
 def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
@@ -109,13 +102,16 @@ def _build_care_team(
     # CareTeam.status: active = in-progress, inactive = completed.
     status = "active" if discharge_dt is None else "inactive"
 
-    # Category display — locale-aware via codes lookup; fallback to constant.
-    # code_lookup returns the code itself when not found; guard against that.
-    _raw_display = code_lookup("snomed-ct", _CARE_TEAM_CATEGORY_CODE, lang)
-    if _raw_display and _raw_display != _CARE_TEAM_CATEGORY_CODE:
-        category_display = _raw_display
-    else:
-        category_display = _CARE_TEAM_CATEGORY_JA if lang == "ja" else _CARE_TEAM_CATEGORY_EN
+    # Category display — locale-aware. Session 57 v3 feedback:
+    # SNOMED 407484005 (this session's replacement for the unknown 735320007)
+    # was ALSO Unknown in fhirserver's SNOMED International Edition 2026-06-01
+    # loadout (3,786 rejections). This is validator terminology coverage, not
+    # an IG bug — the SNOMED International subset shipped with the tx server
+    # simply does not include either concept. Emitting a text-only
+    # CodeableConcept satisfies the FHIR R4 CodeableConcept cardinality
+    # (coding 0..*, text 0..1 — either satisfies the datatype) AND the
+    # `preferred` binding on CareTeam.category (no strict code required).
+    category_display = _CARE_TEAM_CATEGORY_JA if lang == "ja" else _CARE_TEAM_CATEGORY_EN
 
     # attending_physician_id — UNKNOWN placeholder when missing (mirrors α-min-1 Composition
     # adv-1 fix). Surfaces for reference integrity audit; does not silently drop the resource.
@@ -175,18 +171,10 @@ def _build_care_team(
         "resourceType": "CareTeam",
         "id": f"{CARE_TEAM_ID_PREFIX}{encounter_id}",
         "status": status,
-        "category": [
-            {
-                "coding": [
-                    {
-                        "system": _CARE_TEAM_CATEGORY_SYSTEM,
-                        "code": _CARE_TEAM_CATEGORY_CODE,
-                        "display": category_display,
-                    }
-                ],
-                "text": category_display,
-            }
-        ],
+        # Session 57 v3 fix: text-only CodeableConcept — see the category
+        # display resolution above for the rationale (both 735320007 and
+        # 407484005 unknown in fhirserver's SNOMED loadout).
+        "category": [{"text": category_display}],
         "name": f"Care team for encounter {encounter_id}",
         "subject": {"reference": f"Patient/{patient_id}"},
         "encounter": {"reference": f"Encounter/{encounter_id}"},
