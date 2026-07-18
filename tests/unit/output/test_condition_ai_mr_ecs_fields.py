@@ -117,9 +117,7 @@ def test_us_condition_does_not_gain_medis_slice():
         "code": {"coding": [{"system": "http://hl7.org/fhir/sid/icd-10-cm", "code": "I10"}]},
     }
     _populate_condition_ai_mr_ecs_fields(r, country="US")
-    assert not any(
-        c.get("system") == _MEDIS_DISEASE_KEYNUMBER_SYSTEM for c in r["code"]["coding"]
-    )
+    assert not any(c.get("system") == _MEDIS_DISEASE_KEYNUMBER_SYSTEM for c in r["code"]["coding"])
 
 
 def test_jp_condition_medis_slice_creates_coding_list_when_empty():

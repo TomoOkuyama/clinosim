@@ -1784,10 +1784,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
         code_field = resource.get("code")
         if isinstance(code_field, dict):
             codings = code_field.setdefault("coding", [])
-            if not any(
-                isinstance(c, dict) and c.get("system") == _MEDIS_DISEASE_KEYNUMBER_SYSTEM
-                for c in codings
-            ):
+            if not any(isinstance(c, dict) and c.get("system") == _MEDIS_DISEASE_KEYNUMBER_SYSTEM for c in codings):
                 codings.append(
                     {
                         "system": _MEDIS_DISEASE_KEYNUMBER_SYSTEM,
