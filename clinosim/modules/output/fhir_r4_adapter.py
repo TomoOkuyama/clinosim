@@ -1250,6 +1250,19 @@ _ECS_IDENTIFIER_SYSTEMS: dict[str, str] = {
     "AllergyIntolerance": "urn:clinosim:allergyintolerance-id",
 }
 
+# JP-CLINS `JP_Condition_eCS` requires the `code.coding:medisRecordNo` slice
+# (min=1) whose `system` fixedUri is the MEDIS 標準病名マスター 病名管理番号
+# CodeSystem (spec: `StructureDefinition-JP-Condition-eCS.json`). clinosim does
+# not ship an ICD-10 → keyNumber mapping, so we emit the MEDIS "uncoded
+# disease" placeholder (`99999999` / `未コード化傷病名`) — an authoritative
+# entry used in real JP hospital systems when reception input does not map
+# cleanly to the 標準病名マスター. The code is verified present in the JP-
+# terminology fragment CodeSystem loaded by fhir-jp-validator
+# (`jpfhir-terminology 2.2606.0` / `medis-codesystem-diseasekanricodes`).
+_MEDIS_DISEASE_KEYNUMBER_SYSTEM = "http://medis.or.jp/CodeSystem/master-disease-keyNumber"
+_MEDIS_UNCODED_DISEASE_CODE = "99999999"
+_MEDIS_UNCODED_DISEASE_DISPLAY = "未コード化傷病名"
+
 # HL7 condition-clinical / condition-ver-status display map. The tiny code
 # vocabulary is not in clinosim/codes/data/ (they are HL7 spec CS, not
 # clinical codes) so we keep the English display map inline.
@@ -1758,6 +1771,30 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
                     for manifestation in reaction.get("manifestation", []) or []:
                         if isinstance(manifestation, dict):
                             _copy_display_from_sibling_coding(manifestation.get("coding") or [], lang)
+
+    # (4b) JP-CLINS `JP_Condition_eCS` `code.coding:medisRecordNo` slice min=1.
+    # Session 58 Chain #1 (v4 feedback, 6,242 errors, -1.5pp). Every JP
+    # Condition must carry a MEDIS 病名管理番号 coding; without an ICD-10 →
+    # keyNumber crosswalk shipped in clinosim, we use the MEDIS "uncoded
+    # disease" placeholder — a real, spec-registered entry (`99999999` /
+    # `未コード化傷病名`) used in JP hospital systems when reception input
+    # does not map cleanly. Idempotent: skips when a MEDIS coding is already
+    # present so future per-ICD-10 curation can be layered without conflict.
+    if rt == "Condition" and country == "JP":
+        code_field = resource.get("code")
+        if isinstance(code_field, dict):
+            codings = code_field.setdefault("coding", [])
+            if not any(
+                isinstance(c, dict) and c.get("system") == _MEDIS_DISEASE_KEYNUMBER_SYSTEM
+                for c in codings
+            ):
+                codings.append(
+                    {
+                        "system": _MEDIS_DISEASE_KEYNUMBER_SYSTEM,
+                        "code": _MEDIS_UNCODED_DISEASE_CODE,
+                        "display": _MEDIS_UNCODED_DISEASE_DISPLAY,
+                    }
+                )
 
     # (5) Session 57 Chain 5 (v2 feedback §【最優先 5】):
     # JP_MedicationRequest_eCS pins `status` = patternCode "completed" and
