@@ -497,10 +497,10 @@ codes:
   # 600-7 (Blood), 630-4 (Urine), 619-7 (Sputum) are already registered
   # above in the existing microbiology block; PR-B reuses those rather
   # than introducing duplicates.
-  # C2-30 (session 42 cycle 2): NEWS2 score. Verified via LOINC search.
-  90557-9:
-    en: National Early Warning Score (NEWS) 2
-    ja: NEWS2 スコア
+  # session 58 Issue #269: 90557-9 removed — NEWS2 does not have a
+  # canonical LOINC 2.82 code (the earlier session 42 verification comment
+  # was mistaken). Now emitted under the clinosim-owned `nursing-scores`
+  # CodeSystem — see `clinosim/codes/data/clinosim-nursing-scores.yaml`.
   # C5-01 residual (session 43 cycle 5): analyte LOINCs verified via NLM
   # Clinical Table Search Service (clinicaltables.nlm.nih.gov/api/loinc_items/v3/search).
   2777-1:
