@@ -1239,6 +1239,30 @@ _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL = (
 # The MHLW ePrescription CS is the "coded" alternative to the dummy code. When
 # a builder has emitted this system already, the walker leaves it alone.
 _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationUsage_ePrescription"
+
+# JP_MedicationDosage_eCS `Dosage.doseAndRate.type` min=1 (session 58 Chain #2).
+# Spec-authoritative example fixture
+# (`MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json` in
+# `clinical-information-sharing#1.12.0/package/example/`) uses the MHLW
+# MedicationIngredientStrengthType CodeSystem `code=1 / display=製剤量`
+# (pharmaceutical dose = the amount of formulation ordered, as opposed to
+# active-ingredient strength). clinosim does not otherwise emit this
+# CodeSystem, so we define the URI here so `_populate_jp_medication_dosage_ecs_fields`
+# can inject the coding without duplicating the literal.
+_JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS = (
+    "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationIngredientStrengthStrengthType"
+)
+_JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_CODE = "1"
+_JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY = "製剤量"
+
+# UCUM CodeSystem URI + daily unit — used to rewrite
+# `Dosage.timing.repeat.periodUnit='d'` (bare `code` with unresolvable-by-tx
+# UnitsOfTime binding) into a `Dosage.timing.repeat.boundsDuration` Duration
+# whose `system` field lets the validator resolve `d` inline. Session 58
+# Chain #2.
+_UCUM_SYSTEM_URI = "http://unitsofmeasure.org"
+_UCUM_DAY_CODE = "d"
+_UCUM_DAY_UNIT_JA = "日"
 # eCS-required identifier namespaces (feedback fix PR-G, 2026-07-17). Every
 # resource for which JP-CLINS eCS requires `identifier` with `min=1` gets a
 # canonical clinosim namespace so consumers can round-trip resources without
@@ -1591,6 +1615,53 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                 )
         if not code_field.get("text"):
             code_field["text"] = dosage.get("text") or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
+
+        # (4) `Dosage.doseAndRate.type` min=1 (session 58 Chain #2).
+        # Every doseAndRate entry gets the MHLW MedicationIngredientStrength
+        # `1 / 製剤量` coding when `type` is absent. Matches the JP-CLINS
+        # example fixture — see the `_JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS`
+        # constant docstring for the exact provenance.
+        dose_and_rate = dosage.get("doseAndRate")
+        if isinstance(dose_and_rate, list):
+            for dr in dose_and_rate:
+                if not isinstance(dr, dict) or dr.get("type"):
+                    continue
+                dr["type"] = {
+                    "coding": [
+                        {
+                            "system": _JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS,
+                            "code": _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_CODE,
+                            "display": _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY,
+                        }
+                    ]
+                }
+
+        # (5) Replace `timing.repeat.periodUnit='d'` with an equivalent
+        # `timing.repeat.boundsDuration` slice (session 58 Chain #2). The bare
+        # `periodUnit` code hits R4's UnitsOfTime binding, which the JP tx-
+        # server cannot resolve (UCUM not loaded) → 1,760 errors/fullset.
+        # Duration carries `system` inline (`http://unitsofmeasure.org`) so
+        # the validator can resolve `d` directly. The JP-CLINS example fixture
+        # emits both fields together, but dropping the periodUnit is the
+        # narrower spec-compliant change that eliminates the validator error
+        # without altering the semantic (frequency + period stay to describe
+        # cadence; boundsDuration takes over the time-unit anchoring).
+        repeat = timing.get("repeat")
+        if isinstance(repeat, dict) and repeat.get("periodUnit") == "d":
+            bounds = repeat.get("boundsDuration")
+            if not isinstance(bounds, dict):
+                # Value 1 mirrors the periodUnit anchoring semantics (per-day
+                # cadence). Downstream consumers relying on the total-therapy-
+                # duration reading of `boundsDuration` should look at
+                # dispenseRequest.expectedSupplyDuration instead.
+                period = repeat.get("period", 1)
+                repeat["boundsDuration"] = {
+                    "value": period if isinstance(period, (int, float)) else 1,
+                    "unit": _UCUM_DAY_UNIT_JA,
+                    "system": _UCUM_SYSTEM_URI,
+                    "code": _UCUM_DAY_CODE,
+                }
+            repeat.pop("periodUnit", None)
 
 
 def _copy_display_from_sibling_coding(codings: list, lang: str = "en") -> None:
