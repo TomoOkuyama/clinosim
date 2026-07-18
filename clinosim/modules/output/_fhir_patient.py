@@ -366,24 +366,16 @@ def _build_patient(p: dict, country: str) -> dict:
     else:
         resource["deceasedBoolean"] = False
 
-    # Extensions for blood type
-    # feedback FB-F4: `patient-bloodType` は FHIR 標準に存在せず HAPI validator
-    # が "unknown extension URL" と reject。US Core にも公式 ext 無いため、
-    # JP コホートは JP Core `StructureDefinition/JP_Patient_BloodType` を使用、
-    # US は Observation として blood type を emit する pattern が本来。
-    # 現状 CIF に blood type Observation-emit path がないため、当面 extension は
-    # 抑制(spec 違反解消 > 冗長情報保持)。
-    # 将来: (a) 別 Observation resource として emit or
-    #        (b) JP Core BloodType extension を codes registry に追加 + 使用
-    if p.get("blood_type") and is_jp(country):
-        resource["extension"] = [
-            {
-                "url": "http://jpfhir.jp/fhir/core/Extension/StructureDefinition/JP_Patient_BloodTypeCode",
-                "valueCodeableConcept": {
-                    "text": f"{p['blood_type']}{p.get('rh_factor', '+')}",
-                },
-            }
-        ]
+    # Blood type: Session 57 v3 fix - JP Core (as of jpfhir.jp.core#1.2.0)
+    # does not define a `JP_Patient_BloodTypeCode` Extension, and neither
+    # FHIR core nor US Core specifies a Patient-level BloodType extension.
+    # The URL we used to emit was fabricated; v3 validation flagged all
+    # 580 JP Patients with an unknown-extension warning (580 resources /
+    # ext URL). Since the correct FHIR pattern is a separate Observation
+    # (LOINC 883-9 "ABO group [Type] in Blood") and clinosim's CIF does
+    # not yet have a BloodType Observation emit path, omit the extension
+    # entirely. Follow-up chain will add the Observation representation.
+    _ = p.get("blood_type")  # explicit no-op: blood type stays in CIF, not FHIR
 
     # Address
     addr = p.get("address")
