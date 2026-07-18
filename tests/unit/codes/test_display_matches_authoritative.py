@@ -135,9 +135,12 @@ def test_curated_displays_match_authoritative(registration: dict, allowlist: dic
             continue
         # Not a direct match — check the override allowlist.
         override = overrides.get(code_str)
-        if isinstance(override, dict) and override.get("lang") == compare_lang and override.get(
-            "clinosim_display"
-        ) == curated_display and override.get("rationale"):
+        if (
+            isinstance(override, dict)
+            and override.get("lang") == compare_lang
+            and override.get("clinosim_display") == curated_display
+            and override.get("rationale")
+        ):
             allowlisted.append(code_str)
             continue
         drifted.append((code_str, curated_display, authoritative_options))
@@ -167,13 +170,9 @@ def test_allowlist_entries_have_required_fields(allowlist: dict) -> None:
     for system_key, per_system in allowlist.items():
         assert isinstance(per_system, dict), f"{system_key} allowlist must be a mapping"
         for code, entry in per_system.items():
-            assert isinstance(entry, dict), (
-                f"allowlist[{system_key!r}][{code!r}] must be a mapping"
-            )
+            assert isinstance(entry, dict), f"allowlist[{system_key!r}][{code!r}] must be a mapping"
             for required in ("lang", "clinosim_display", "authoritative_display", "rationale", "registered_at"):
-                assert entry.get(required), (
-                    f"allowlist[{system_key!r}][{code!r}] missing required field {required!r}"
-                )
+                assert entry.get(required), f"allowlist[{system_key!r}][{code!r}] missing required field {required!r}"
 
 
 def test_snapshot_metadata_present() -> None:
@@ -183,6 +182,4 @@ def test_snapshot_metadata_present() -> None:
         snapshot = _load_snapshot(registration["snapshot_file"])
         meta = snapshot.get("metadata") or {}
         for required in ("source_package", "source_url", "source_file", "extracted_at"):
-            assert meta.get(required), (
-                f"snapshot {registration['snapshot_file']!r} missing metadata.{required}"
-            )
+            assert meta.get(required), f"snapshot {registration['snapshot_file']!r} missing metadata.{required}"
