@@ -40,7 +40,7 @@ def test_jpfhir_doc_typecodes_ja_lookup(code, ja):
 @pytest.mark.parametrize(
     "code,ja",
     [
-        ("300", "構造情報セクション"),
+        ("300", "構造情報"),
         ("312", "入院理由セクション"),
         ("322", "入院時詳細セクション"),
         ("342", "入院時診断セクション"),
