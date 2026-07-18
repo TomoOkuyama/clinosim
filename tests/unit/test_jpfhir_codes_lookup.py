@@ -40,7 +40,11 @@ def test_jpfhir_doc_typecodes_ja_lookup(code, ja):
 @pytest.mark.parametrize(
     "code,ja",
     [
-        ("300", "構造情報"),
+        # Session 58 Chain #8: yaml carries the canonical
+        # `code.coding.display` form (`構造情報セクション`) per JP-CLINS
+        # spec `patternString`; `Composition.section.title` is derived by
+        # stripping the trailing `セクション` in the builder.
+        ("300", "構造情報セクション"),
         ("312", "入院理由セクション"),
         ("322", "入院時詳細セクション"),
         ("342", "入院時診断セクション"),
