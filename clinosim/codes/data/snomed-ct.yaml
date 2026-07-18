@@ -273,14 +273,29 @@ codes:
   # === Allergen substances (Tier 1 #3 α-min-1 PR1, allergy module) ===
   # Verified via SNOMED International browser
   # (https://browser.ihtsdotools.org/), 2026-07-01.
+  # Session 57 v3 fix: the code-display pairs that used to live here (387207008
+  # "Penicillin", 372687004 "Aspirin", 303408005 "Sulfonamide") were misassigned:
+  # per SNOMED CT International 2026-06-01 the concepts are Ibuprofen,
+  # Amoxicillin, and (absent) respectively. Replaced by the correct substance
+  # codes below. The obsolete entries are kept as legacy so any residual CIF
+  # references round-trip, but the new codes are the ones the emitter uses.
   '387207008':
-    en: Penicillin
-    ja: ペニシリン
+    en: Ibuprofen           # actual concept per SNOMED 2026-06-01 (legacy)
+    ja: イブプロフェン
   '372687004':
-    en: Aspirin
-    ja: アスピリン
+    en: Amoxicillin         # actual concept per SNOMED 2026-06-01 (legacy)
+    ja: アモキシシリン
   '303408005':
-    en: Sulfonamide        # FSN: Sulfonamide (substance) — common name: Sulfa drugs
+    en: Sulfonamide-legacy  # not present in SNOMED CT International 2026-06-01
+    ja: サルファ剤 (legacy)
+  '373270004':
+    en: Substance with penicillin structure
+    ja: ペニシリン
+  '387458008':
+    en: Aspirin             # FSN: Aspirin (substance)
+    ja: アスピリン
+  '115556009':
+    en: Sulfonamide         # FSN: Sulfonamide (substance)
     ja: サルファ剤
   # feedback FB-F8: 227037002 と 256349002 は inactive concept、
   # 735038006 (Egg protein) と 735029006 (Wheat) に更新済(allergens.yaml)。
@@ -328,15 +343,25 @@ codes:
 
   # === Allergic reaction manifestations (Tier 1 #3 α-min-1 PR1) ===
   # Verified via SNOMED International browser, 2026-07-01.
+  # Session 57 v3 fix: the previous mappings for "Rash" (247472004) and
+  # "Allergic rhinitis" (21719001) were misassigned per SNOMED CT
+  # International 2026-06-01 (actual concepts: Weal and Pollinosis).
+  # Correct concepts registered below; legacy entries updated.
   '247472004':
-    en: Rash               # FSN: Rash (disorder)
+    en: Weal               # actual concept (legacy — was used as "Rash")
+    ja: 蕁麻疹
+  '21719001':
+    en: Pollinosis         # actual concept (legacy — was used as "Allergic rhinitis")
+    ja: 花粉症
+  '271807003':
+    en: Eruption of skin   # substitute for the "Rash" manifestation
     ja: 発疹
+  '61582004':
+    en: Allergic rhinitis  # FSN: Allergic rhinitis (disorder)
+    ja: アレルギー性鼻炎
   '39579001':
     en: Anaphylaxis        # FSN: Anaphylaxis (disorder)
     ja: アナフィラキシー
-  '21719001':
-    en: Allergic rhinitis  # FSN: Allergic rhinitis (disorder)
-    ja: アレルギー性鼻炎
   '21522001':
     en: Abdominal pain     # FSN: Abdominal pain (finding)
     ja: 腹痛

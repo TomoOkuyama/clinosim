@@ -11,14 +11,18 @@
 
 allergens:
   medication:
-    - allergen_code: "387207008"
+    # Session 57 v3 fix: 387207008 is Ibuprofen in SNOMED CT International
+    # 2026-06-01 — swap to 373270004 (Substance with penicillin structure).
+    - allergen_code: "373270004"
       allergen_display_en: "Penicillin"
       allergen_display_ja: "ペニシリン"
       prevalence:
         adult: 0.08              # 8% population
       criticality: high
       common_reactions:
-        - manifestation_snomed: "247472004"
+        # Session 57 v3 fix: 247472004 is Weal in SNOMED CT International
+        # 2026-06-01 — swap to 271807003 (Eruption of skin) for "Rash".
+        - manifestation_snomed: "271807003"
           manifestation_display_en: "Rash"
           manifestation_display_ja: "発疹"
           severity: mild
@@ -26,25 +30,29 @@ allergens:
           manifestation_display_en: "Anaphylaxis"
           manifestation_display_ja: "アナフィラキシー"
           severity: severe
-    - allergen_code: "372687004"
+    # Session 57 v3 fix: 372687004 is Amoxicillin in SNOMED CT International
+    # 2026-06-01 — swap to 387458008 (Aspirin, substance).
+    - allergen_code: "387458008"
       allergen_display_en: "Aspirin"
       allergen_display_ja: "アスピリン"
       prevalence:
         adult: 0.03
       criticality: low
       common_reactions:
-        - manifestation_snomed: "247472004"
+        - manifestation_snomed: "271807003"
           manifestation_display_en: "Rash"
           manifestation_display_ja: "発疹"
           severity: mild
-    - allergen_code: "303408005"
+    # Session 57 v3 fix: 303408005 is not present in SNOMED CT International
+    # 2026-06-01 — swap to 115556009 (Sulfonamide, substance).
+    - allergen_code: "115556009"
       allergen_display_en: "Sulfa drugs"
       allergen_display_ja: "サルファ剤"
       prevalence:
         adult: 0.03
       criticality: high
       common_reactions:
-        - manifestation_snomed: "247472004"
+        - manifestation_snomed: "271807003"
           manifestation_display_en: "Rash"
           manifestation_display_ja: "発疹"
           severity: moderate
@@ -59,7 +67,7 @@ allergens:
         adult: 0.02
       criticality: low
       common_reactions:
-        - manifestation_snomed: "247472004"
+        - manifestation_snomed: "271807003"
           manifestation_display_en: "Rash"
           manifestation_display_ja: "発疹"
           severity: mild
@@ -85,7 +93,9 @@ allergens:
         adult: 0.20              # 20% — 高頻度
       criticality: low
       common_reactions:
-        - manifestation_snomed: "21719001"
+        # Session 57 v3 fix: 21719001 is Pollinosis in SNOMED CT International
+        # 2026-06-01 — swap to 61582004 (Allergic rhinitis, disorder).
+        - manifestation_snomed: "61582004"
           manifestation_display_en: "Allergic rhinitis"
           manifestation_display_ja: "アレルギー性鼻炎"
           severity: mild
@@ -96,7 +106,9 @@ allergens:
         adult: 0.15
       criticality: low
       common_reactions:
-        - manifestation_snomed: "21719001"
+        # Session 57 v3 fix: 21719001 is Pollinosis in SNOMED CT International
+        # 2026-06-01 — swap to 61582004 (Allergic rhinitis, disorder).
+        - manifestation_snomed: "61582004"
           manifestation_display_en: "Allergic rhinitis"
           manifestation_display_ja: "アレルギー性鼻炎"
           severity: mild
