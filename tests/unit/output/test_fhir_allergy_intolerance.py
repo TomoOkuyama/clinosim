@@ -246,23 +246,27 @@ def test_no_reactions_omits_reaction_field():
 
 def test_jp_locale_resolves_snomed_display_to_ja():
     """JP cohort: allergen_code 373270004 (Penicillin) resolved to ペニシリン via code_lookup.
-    Session 58 Issue #263: JP output prepends a JFAGY generic coding as
-    code.coding[0] (satisfies JP Core AllergyIntolerance VS binding). The
-    SNOMED coding with the ペニシリン display now sits at coding[1] but the
-    `code.text` still carries the human-readable substance name."""
+
+    Session 58 #263 → session 59 #293 evolution:
+      #263: JP output emits [JFAGY primary, SNOMED secondary] with SNOMED
+            display resolved to ja.
+      #293: JP output drops SNOMED secondary — HAPI VS binding + Wrong
+            Display errors were triggered per-coding by the secondary. JFAGY
+            primary alone satisfies JP profile. `code.text` retains the
+            human-readable substance display (ja) as the shared no-drop
+            channel for downstream consumers.
+    """
     a = _sample_allergy_dataclass()
     a.allergen_code = "373270004"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
     codings = r["code"]["coding"]
-    # JFAGY primary (index 0)
+    # #293:JFAGY primary alone
+    assert len(codings) == 1
     assert codings[0]["system"] == "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
     assert codings[0]["code"] == "00M"
     assert codings[0]["display"] == "医薬品"
-    # SNOMED secondary (index 1) carries the locale-resolved substance display
-    assert codings[1]["system"] == "http://snomed.info/sct"
-    assert codings[1]["code"] == "373270004"
-    assert codings[1]["display"] == "ペニシリン"
+    # substance ja display still surfaces via `code.text`
     assert r["code"]["text"] == "ペニシリン"
 
 
@@ -337,18 +341,40 @@ def test_us_output_keeps_snomed_primary_and_no_jfagy():
     assert codings[0]["code"] == "373270004"
 
 
-def test_jp_snomed_secondary_preserved_for_interop():
-    """JP output keeps the SNOMED coding at index 1 so international
-    consumers can still resolve the specific substance."""
+def test_jp_output_drops_snomed_secondary_when_jfagy_primary_available():
+    """#293:HAPI validator は VS binding を per-coding で厳格検査するため、
+    JP output の SNOMED secondary(session 58 #263 が interop 目的で残し
+    ていた)は VS binding 60+ 件 + Wrong Display 32+ 件を生む。JFAGY
+    primary が JP profile を満たしている以上、SNOMED secondary を drop
+    しても downstream JP consumer には影響しない。US は SNOMED 単独維持。
+    """
+    a = _sample_allergy_dataclass()
+    a.allergen_code = "373270004"
+    a.category = "medication"
+    ctx = _make_ctx([a], country="JP")
+    r = _bb_allergy_intolerances(ctx)[0]
+    codings = r["code"]["coding"]
+    # #293 regression: exactly 1 coding = JFAGY primary only, no SNOMED.
+    assert len(codings) == 1, codings
+    assert codings[0]["system"].endswith("/JP_JfagyMedicationAllergen_CS")
+    assert not any(c.get("system") == "http://snomed.info/sct" for c in codings)
+
+
+def test_jp_snomed_secondary_dropped_after_293():
+    """#293:JP output drops SNOMED secondary(HAPI per-coding VS binding
+    エラー回避)。session 58 #263 では interop 目的で残していたが、
+    JFAGY primary が JP profile を満たし、SNOMED substance code は
+    US 出力に維持されるため JP 側では不要と判定。substance display は
+    `code.text` に残るので narrative レベルの識別性は保たれる。
+    """
     a = _sample_allergy_dataclass()
     a.allergen_code = "115556009"  # Sulfonamide
     a.category = "medication"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
     codings = r["code"]["coding"]
-    assert len(codings) == 2
-    assert codings[1]["system"] == "http://snomed.info/sct"
-    assert codings[1]["code"] == "115556009"
+    assert len(codings) == 1
+    assert not any(c.get("system") == "http://snomed.info/sct" for c in codings)
 
 
 # --- Multiple allergies ---

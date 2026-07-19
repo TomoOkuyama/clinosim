@@ -181,14 +181,23 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         # Session 58 Issue #263: JP Core `JP_AllergyIntolerance_VS` requires
         # a coding from one of the JFAGY CodeSystems. On JP output, emit the
         # JFAGY generic category coding as primary (satisfies the VS
-        # binding) and keep the SNOMED coding as a secondary informational
-        # entry so international consumers keep the specific substance code.
-        # US output emits SNOMED alone (no VS binding constraint).
+        # binding).
+        #
+        # Session 59 #293: HAPI validator flags every non-VS SNOMED coding
+        # as a separate error even when JFAGY primary is present (60+ VS
+        # binding + 32+ Wrong Display errors, all against the SNOMED
+        # secondary). The JFAGY generic category is authoritative for the
+        # JP profile; the SNOMED substance code adds no JP-consumer value.
+        # Drop the SNOMED secondary for JP output. US output continues to
+        # emit SNOMED alone (no VS binding constraint applies).
         if lang == "ja":
             jfagy = _jfagy_coding_for_category(category, lang)
             if jfagy is not None:
-                code["coding"] = [jfagy, snomed_coding]
+                code["coding"] = [jfagy]
             else:
+                # Should not happen (all clinosim categories map to JFAGY),
+                # but fail-safe: keep SNOMED so `coding` is never empty and
+                # never-fabricate stays intact.
                 code["coding"] = [snomed_coding]
         else:
             code["coding"] = [snomed_coding]
