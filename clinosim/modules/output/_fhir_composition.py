@@ -660,12 +660,16 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     }
     comp["title"] = disp
 
-    def _one_section(section_code: str, text_val: str) -> dict[str, Any]:
+    def _one_section(
+        section_code: str,
+        text_val: str,
+        entry_refs: list[dict[str, str]] | None = None,
+    ) -> dict[str, Any]:
         # Session 58 Chain #8: title = short form, display = long form.
         # Session 58 Chain #9: `code.text` max=0 → omit.
         disp_c = code_lookup("jpfhir-doc-section", section_code, lang) or section_code
         title_c = _section_title_from_section_display(disp_c)
-        return {
+        section_obj: dict[str, Any] = {
             "title": title_c,
             "code": {
                 "coding": [
@@ -683,11 +687,30 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
                 "div": (f'<div xmlns="http://www.w3.org/1999/xhtml">{_escape_html(text_val)}</div>'),
             },
         }
+        # session 59:JP-CLINS eReferral は 920 / 910 の 2 section に
+        # `entry:referralFromOrganization` / `entry:referralToOrganization`
+        # slice(それぞれ min=1)を要求。clinosim は referring destination
+        # の別 Organization を model していないので、referralFrom = 自院
+        # (hospital-main)、referralTo も自院を placeholder として emit
+        # する(reference integrity は保たれる;data-shape trade-off)。
+        if entry_refs:
+            section_obj["entry"] = entry_refs
+        return section_obj
+
+    # session 59:各 top-level section slice の entry。920(紹介元)/
+    # 910(紹介先)いずれも Organization/hospital-main を pin。
+    _REFERRAL_ORG_REF = [{"reference": "Organization/hospital-main"}]
+    _TOP_LEVEL_ENTRY = {
+        "920": _REFERRAL_ORG_REF,  # referralFromOrganization
+        "910": _REFERRAL_ORG_REF,  # referralToOrganization
+    }
 
     # Top-level 920 + 910
     top_sections: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_TOP_LEVEL.items():
-        top_sections.append(_one_section(code, sections.get(key, "") or ""))
+        top_sections.append(
+            _one_section(code, sections.get(key, "") or "", _TOP_LEVEL_ENTRY.get(code))
+        )
 
     # 300 structural, nesting 950 / 340 / 360
     struct_children: list[dict[str, Any]] = []
