@@ -102,6 +102,54 @@ def test_jp_clins_referral_composition_section_content():
 
 
 @pytest.mark.unit
+def test_jp_clins_referral_composition_chain9_pattern_top_level():
+    """#289 (sibling of eDS Chain #9): JP-CLINS eReferral の 5 top-level
+    制約を pin — Composition.extension:version + category + author≥2 +
+    meta.lastUpdated + event.code。sec 58 で eDS には適用済だが eReferral
+    に sibling drift、v5 で 120 件 error。
+    """
+    from clinosim.modules.output._fhir_composition import (
+        _JP_EDS_VERSION_EXTENSION_URL,
+        _JP_ER_CATEGORY_CODE,
+        _JP_ER_CATEGORY_DISPLAY_JA,
+        _JP_ER_EVENT_CODE_TEXT_JA,
+        _JPFHIR_DOC_SUBTYPECODES_SYSTEM,
+        _build_composition,
+    )
+
+    doc = _jp_referral_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+
+    # 1. extension:version
+    exts = comp.get("extension", [])
+    version_ext = [e for e in exts if e.get("url") == _JP_EDS_VERSION_EXTENSION_URL]
+    assert len(version_ext) == 1
+    assert version_ext[0]["valueString"] == "1"
+
+    # 2. category (min=1 max=1, doc-subtypecodes CS, CONSULT / 他科コンサルト)
+    category = comp.get("category")
+    assert isinstance(category, list) and len(category) == 1
+    coding = category[0]["coding"][0]
+    assert coding["system"] == _JPFHIR_DOC_SUBTYPECODES_SYSTEM
+    assert coding["code"] == _JP_ER_CATEGORY_CODE == "CONSULT"
+    # doc-subtypecodes CS authoritative display for CONSULT
+    assert coding["display"] == _JP_ER_CATEGORY_DISPLAY_JA == "他科コンサルト"
+
+    # 3. author min=2 — Practitioner + Organization
+    authors = comp.get("author", [])
+    assert len(authors) >= 2
+    assert any(str(a.get("reference", "")).startswith("Practitioner/") for a in authors)
+    assert any(str(a.get("reference", "")).startswith("Organization/") for a in authors)
+
+    # 4. meta.lastUpdated
+    assert comp["meta"]["lastUpdated"] == "2026-01-20T10:00:00"
+
+    # 5. event.code min=1 (text-only satisfies)
+    events = comp.get("event", [])
+    assert events and events[0].get("code", {}).get("text") == _JP_ER_EVENT_CODE_TEXT_JA
+
+
+@pytest.mark.unit
 def test_referral_note_fires_deterministic():
     """20% fire rate は (encounter_id, patient_id) ごとに決定的であること。"""
     from clinosim.modules.document.engine import _referral_note_fires
