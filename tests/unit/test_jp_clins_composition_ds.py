@@ -226,12 +226,17 @@ def test_jp_clins_composition_meta_lastupdated_from_authored_datetime():
 
 @pytest.mark.unit
 def test_jp_clins_composition_required_entries_reference_correct_resources():
-    """Chain #9 follow-up (#267): 4 required `.entry` slices on the eDS
-    structuredSection children point at the correct resource types per spec.
-    - detailsOnAdmissionSection.entry → Encounter (min=1 max=1)
-    - hospitalCourseSection.entry → DocumentReference (min=1)
-    - detailsOnDischargeSection.entry → Encounter (min=1 max=1)
-    - diagnosesOnDischargeSection.entry → Condition (min=1)
+    """Chain #9 follow-up (#267): 3 of the 4 required `.entry` slices on the
+    eDS structuredSection children point at the correct resource types per
+    spec. The 4th (hospitalCourseSection.entry → DocumentReference) is
+    deferred to a follow-up because clinosim's Composition-format documents
+    have no companion DocumentReference resource emitted (`_bb_document_references`
+    skips them intentionally). Rather than emit a dangling reference we
+    leave the entry off — never-fabricate wins over min=1 on that one slice.
+    - detailsOnAdmissionSection.entry → Encounter (min=1 max=1) ✓
+    - hospitalCourseSection.entry → DocumentReference (deferred, no entry)
+    - detailsOnDischargeSection.entry → Encounter (min=1 max=1) ✓
+    - diagnosesOnDischargeSection.entry → Condition (min=1) ✓
     Non-required slices (chief complaint / present illness / etc.) do not
     fabricate an entry when clinosim has no source resource to link.
     """
@@ -246,10 +251,8 @@ def test_jp_clins_composition_required_entries_reference_correct_resources():
     assert len(entries) == 1
     assert entries[0]["reference"] == "Encounter/ENC-001"
 
-    # 333 = hospitalCourse → DocumentReference
-    entries = children_by_code["333"]["entry"]
-    assert len(entries) == 1
-    assert entries[0]["reference"] == "DocumentReference/doc-ENC-001-01"
+    # 333 = hospitalCourse — deferred, no entry emitted (see docstring).
+    assert "entry" not in children_by_code["333"]
 
     # 324 = detailsOnDischarge → Encounter
     entries = children_by_code["324"]["entry"]
