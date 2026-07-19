@@ -270,10 +270,13 @@ def test_dose_and_rate_type_not_overwritten_when_present():
     assert r["dosageInstruction"][0]["doseAndRate"][0]["type"] == pre
 
 
-def test_period_unit_d_replaced_with_bounds_duration():
-    """`timing.repeat.periodUnit='d'` hits R4's UnitsOfTime binding that the tx-
-    server can't resolve. Walker rewrites to `boundsDuration` (UCUM `d`) so the
-    validator can resolve `d` inline via the `system` field."""
+def test_period_unit_d_kept_and_bounds_duration_added():
+    """#281:walker は `timing.repeat.periodUnit='d'` を保持しつつ
+    `boundsDuration` を追加する。session 58 では `periodUnit` を pop していた
+    が、FHIR R4 `tim-2`(`period.exists() ⇒ periodUnit.exists()`)を 1748
+    件違反していたため session 59 で撤回。JP-CLINS example fixture も両
+    field を同時 emit するのが spec-compliant pattern。
+    """
     r = {
         "resourceType": "MedicationRequest",
         "id": "mr1",
@@ -287,7 +290,9 @@ def test_period_unit_d_replaced_with_bounds_duration():
     }
     _populate_jp_medication_dosage_ecs_fields(r)
     repeat = r["dosageInstruction"][0]["timing"]["repeat"]
-    assert "periodUnit" not in repeat
+    # #281 regression: periodUnit MUST stay to satisfy FHIR R4 tim-2.
+    assert repeat.get("periodUnit") == "d"
+    # boundsDuration still added (session 58 Chain #2 intent preserved).
     assert repeat["boundsDuration"] == {
         "value": 1,
         "unit": _UCUM_DAY_UNIT_JA,
@@ -339,4 +344,6 @@ def test_bounds_duration_not_overwritten_when_builder_supplied():
     _populate_jp_medication_dosage_ecs_fields(r)
     repeat = r["dosageInstruction"][0]["timing"]["repeat"]
     assert repeat["boundsDuration"] == pre
-    assert "periodUnit" not in repeat  # periodUnit is still dropped even when boundsDuration pre-supplied
+    # #281: periodUnit is now kept alongside boundsDuration (both required —
+    # periodUnit to satisfy tim-2, boundsDuration to match JP-CLINS fixture).
+    assert repeat.get("periodUnit") == "d"
