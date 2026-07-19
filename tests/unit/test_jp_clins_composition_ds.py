@@ -170,6 +170,28 @@ def test_jp_clins_composition_title_is_ja():
 
 
 @pytest.mark.unit
+def test_jp_clins_composition_identifier_uri_matches_spec():
+    """Session 58 Chain #10: JP-CLINS eDS / eReferral spec
+    `Composition.identifier.system` fixedUri =
+    `http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier`.
+    US / generic path retains the clinosim namespace URI (no spec constraint)."""
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    assert comp["identifier"]["system"] == "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
+
+
+@pytest.mark.unit
+def test_us_composition_identifier_keeps_clinosim_uri():
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _us_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "en")
+    assert comp["identifier"]["system"] == "urn:clinosim:composition-id"
+
+
+@pytest.mark.unit
 def test_us_discharge_summary_composition_unchanged():
     from clinosim.modules.output._fhir_composition import _build_composition
 
