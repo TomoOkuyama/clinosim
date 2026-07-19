@@ -74,8 +74,13 @@ def _build_lab_observation(
         code_system_key = "loinc"
 
     # Display text comes from codes module (via standard code)
-    display_name = code_lookup(code_system_key, code_value, lang) if code_value else lab_name
-    if display_name == code_value:  # no translation found
+    # #321 session 61:code_lookup が None を返す場合(該当 code に翻訳が
+    # ない、v6.1 で 190 件 code.text 欠落 error 発火)、display_name が
+    # None のまま emit されて JP_Observation_LabResult の code.text min=1
+    # を満たさない。empty / None / code-echo 全てを lab_name にフォール
+    # バックさせる。
+    display_name = code_lookup(code_system_key, code_value, lang) if code_value else None
+    if not display_name or display_name == code_value:
         display_name = lab_name
     code_system = get_system_uri(code_system_key)
 
