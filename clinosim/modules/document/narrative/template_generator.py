@@ -217,6 +217,23 @@ def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> 
 # Generic fallback phrases per locale
 _GENERIC_FALLBACK_JA = "特記事項なし"
 _GENERIC_FALLBACK_EN = "No special findings"
+
+# session 59 #286: `_build_discharge_details` の JP/EN disposition label map。
+# module-scope 定数(function 内では N806 lint violation)。
+_JA_DISPO_LABEL: dict[str, str] = {
+    "home": "自宅退院",
+    "hosp": "他院転院",
+    "other-hcf": "他施設転院",
+    "snf": "施設退院",
+    "exp": "死亡退院",
+}
+_EN_DISPO_LABEL: dict[str, str] = {
+    "home": "discharged home",
+    "hosp": "transferred to another hospital",
+    "other-hcf": "transferred to another healthcare facility",
+    "snf": "discharged to skilled nursing facility",
+    "exp": "expired",
+}
 _GENERIC_ASSESSMENT_JA = "経過観察中"
 _GENERIC_ASSESSMENT_EN = "Clinical assessment ongoing"
 _GENERIC_PLAN_JA = "治療継続"
@@ -1057,21 +1074,8 @@ class TemplateNarrativeGenerator:
         ward = _o(enc, "ward", "") if enc is not None else ""
         disposition = _o(enc, "discharge_disposition", "") if enc is not None else ""
         facts.append("ctx.encounter.discharge_datetime")
-        # 転帰 → 日本語表現(JP-CLINS spec 準拠 code は使わず narrative 用短形)
-        _JA_DISPO_LABEL = {
-            "home": "自宅退院",
-            "hosp": "他院転院",
-            "other-hcf": "他施設転院",
-            "snf": "施設退院",
-            "exp": "死亡退院",
-        }
-        _EN_DISPO_LABEL = {
-            "home": "discharged home",
-            "hosp": "transferred to another hospital",
-            "other-hcf": "transferred to another healthcare facility",
-            "snf": "discharged to skilled nursing facility",
-            "exp": "expired",
-        }
+        # 転帰 → 日本語表現(JP-CLINS spec 準拠 code は使わず narrative 用短形)。
+        # `_JA_DISPO_LABEL` / `_EN_DISPO_LABEL` は module-scope 定数(冒頭定義)。
 
         dis_date = ""
         if dis_dt:
