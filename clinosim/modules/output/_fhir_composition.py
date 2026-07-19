@@ -61,6 +61,11 @@ __all__ = [
     "_bb_compositions",
 ]
 
+# session 59 #278:enc → free-text-doc-id 優先度用 LOINC 定数。
+# module-scope(function 内では N806 lint violation)。
+_HOSPITAL_COURSE_LOINC = "8648-8"
+_PROGRESS_NOTE_LOINC = "11506-3"
+
 
 # C2-27 (session 42 cycle 2): map section titles (as produced by document
 # enrichers / narrative pass) to LOINC section codes. Codes verified via the
@@ -164,9 +169,49 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     i.e. the Stage 2 narrative pass has not (yet) generated content for this
     document_id. This is expected for documents produced between `generate`
     and `narrate` runs, not a data-quality defect.
+
+    session 59 #278:pre-compute encounter_id → free-text DocumentReference
+    id map so JP-CLINS eDS `hospitalCourseSection.entry` slice can point
+    at a real per-encounter DocumentReference (e.g. progress note 11506-3
+    from the same admission). Prefer LOINC 8648-8(Hospital course)/
+    11506-3(Progress note)を優先、その他 free-text は fallback。
     """
     raw_docs = _o(ctx.record, "documents", []) or []
     lang = resolve_lang(ctx.country)
+
+    # First pass: encounter_id → primary free-text doc id.
+    # Priority: 8648-8 (Hospital course) > 11506-3 (Progress note) > any
+    # other free-text doc from the same encounter (last-wins fallback).
+    # LOINC constants live at module scope (`_HOSPITAL_COURSE_LOINC` /
+    # `_PROGRESS_NOTE_LOINC`) — moved out of function body to satisfy
+    # N806 (session 59 #278 lint fix).
+    enc_to_free_text: dict[str, str] = {}
+    for doc in raw_docs:
+        if _o(doc, "format_type", "") != "free_text":
+            continue
+        enc = _o(doc, "encounter_id", "") or ""
+        doc_id = _o(doc, "document_id", "") or ""
+        if not enc or not doc_id:
+            continue
+        loinc = _o(doc, "loinc_code", "") or ""
+        current = enc_to_free_text.get(enc, "")
+        # Prefer 8648-8 > 11506-3 > any; last-wins otherwise.
+        if not current:
+            enc_to_free_text[enc] = doc_id
+        elif loinc == _HOSPITAL_COURSE_LOINC:
+            enc_to_free_text[enc] = doc_id
+        # Only overwrite with 11506-3 if current is not already the higher-priority code.
+        elif loinc == _PROGRESS_NOTE_LOINC:
+            # Check if current is already 8648-8; look up its LOINC by matching doc_id
+            # in raw_docs. Cheap since we've already iterated once — small N per patient.
+            current_loinc = ""
+            for d2 in raw_docs:
+                if _o(d2, "document_id", "") == current:
+                    current_loinc = _o(d2, "loinc_code", "") or ""
+                    break
+            if current_loinc != _HOSPITAL_COURSE_LOINC:
+                enc_to_free_text[enc] = doc_id
+
     out: list[dict[str, Any]] = []
     for doc in raw_docs:
         if _o(doc, "format_type", "") != "composition":
@@ -179,11 +224,16 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
             )
             continue
         sections = _o(narrative, "sections", {}) or {}
-        out.append(_build_composition(doc, sections, lang))
+        out.append(_build_composition(doc, sections, lang, enc_to_free_text))
     return out
 
 
-def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
+def _build_composition(
+    doc: Any,
+    sections: dict[str, str],
+    lang: str,
+    enc_to_free_text: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """Build one FHIR R4 Composition resource from a ClinicalDocument + its sections.
 
     P2-13 PR2a: dispatches to the JP-CLINS-conformant builder when
@@ -195,7 +245,7 @@ def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[st
     if lang == "ja":
         loinc = _o(doc, "loinc_code", "")
         if loinc == "18842-5":
-            return _build_jp_clins_discharge_summary_composition(doc, sections, lang)
+            return _build_jp_clins_discharge_summary_composition(doc, sections, lang, enc_to_free_text or {})
         if loinc == "57133-1":
             return _build_jp_clins_referral_note_composition(doc, sections, lang)
         # P2-13 PR3(session 47):JP-eCheckup General
@@ -450,19 +500,22 @@ _JP_DS_SECTION_ENTRY_REFERENCES: dict[str, tuple[str, str]] = {
     "discharge_details": ("Encounter", "Encounter/{encounter_id}"),
     # diagnosesOnDischargeSection.entry min=1 → JP_Condition (primary dx)
     "discharge_diagnoses": ("Condition", "Condition/cond-{encounter_id}-primary"),
-    # hospitalCourseSection.entry min=1 → JP_DocumentReference — deferred
-    # to a follow-up. `_bb_document_references` skips docs whose format_type
-    # is `composition` (they ARE the Composition), so the id derivable here
-    # from `doc.document_id` corresponds to no emitted DocumentReference.
-    # The real fix needs `_bb_compositions` to precompute an encounter_id →
-    # free-text-doc-id map (nurse progress notes / physician progress notes
-    # from the same encounter) and thread it into the builder. Dropping the
-    # slot rather than shipping a dangling reference — never-fabricate wins
-    # over min=1 spec compliance on this one slice.
+    # session 59 #278:hospitalCourseSection.entry min=1 → JP_DocumentReference
+    # 同一 encounter の progress note(LOINC 11506-3)or hospital course
+    # note(LOINC 8648-8)などの free-text DocumentReference id を precompute
+    # で解決。id は `_bb_compositions` が構築する enc_to_free_text map から
+    # `{free_text_doc_id}` として供給。map hit しない場合は never-fabricate
+    # rule に従い entry を emit しない。
+    "hospital_course": ("DocumentReference", "DocumentReference/{free_text_doc_id}"),
 }
 
 
-def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
+def _build_jp_clins_discharge_summary_composition(
+    doc: Any,
+    sections: dict[str, str],
+    lang: str,
+    enc_to_free_text: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """JP-CLINS eDischargeSummary v1.12.0 準拠 Composition を emit する。
 
     汎用 Composition builder との差分:
@@ -549,12 +602,14 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
     # per spec `title.fixedString` (Chain #8 pattern).
     parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
     parent_title = _section_title_from_section_display(parent_disp)
-    # Chain #9 follow-up (#267): pre-compute the ids the entry references
-    # need. See the `_JP_DS_SECTION_ENTRY_REFERENCES` comment for the
-    # hospital_course slot deferral (needs an encounter → DocumentReference
-    # cross-ref that the local scope does not have).
+    # Chain #9 follow-up (#267 / session 59 #278): pre-compute the ids the
+    # entry references need. session 59 で hospital_course の deferral を
+    # 解消 — `_bb_compositions` が enc → free-text DocumentReference id map
+    # を precompute し `enc_to_free_text` として渡す。map hit しない場合は
+    # `free_text_doc_id` を空文字で埋め、下の never-fabricate guard で drop。
     _enc_id = _o(doc, "encounter_id", "") or ""
-    _entry_ctx = {"encounter_id": _enc_id}
+    _free_text_doc_id = (enc_to_free_text or {}).get(_enc_id, "")
+    _entry_ctx = {"encounter_id": _enc_id, "free_text_doc_id": _free_text_doc_id}
 
     child_sections: list[dict[str, Any]] = []
     for key, code in _JP_DS_SECTION_CODE.items():
@@ -596,6 +651,8 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
             # empty leaves the string looking like `Encounter/` or
             # `Condition/cond--primary`. Both are dead references so we drop
             # the entry rather than emit garbage.
+            # session 59 #278: `DocumentReference/` (empty free_text_doc_id
+            # fallback) too — same never-fabricate guard.
             if ref.endswith("/") or "//" in ref or "cond--primary" in ref:
                 ref = ""
             if ref:
