@@ -26,7 +26,7 @@ codes:
     en: Type 2 diabetes mellitus
     ja: 2型糖尿病
   E11.9:
-    en: Type 2 diabetes mellitus without complications
+    en: 'Type 2 diabetes mellitus : Without complications'
     ja: 2型糖尿病（合併症なし）
   E78:
     en: Disorders of lipoprotein metabolism and other lipidaemias
@@ -38,7 +38,7 @@ codes:
     en: Disorders of purine and pyrimidine metabolism
     ja: プリン・ピリミジン代謝障害（高尿酸血症）
   F00:
-    en: Dementia in Alzheimer disease
+    en: Dementia in Alzheimer disease[G30.-]
     ja: アルツハイマー型認知症
   F10:
     en: Mental and behavioural disorders due to use of alcohol
@@ -168,10 +168,10 @@ codes:
     en: Other chronic obstructive pulmonary disease
     ja: その他のCOPD
   J44.0:
-    en: COPD with acute lower respiratory infection
+    en: Chronic obstructive pulmonary disease with acute lower respiratory infection
     ja: COPD急性下気道感染
   J44.1:
-    en: COPD with acute exacerbation, unspecified
+    en: Chronic obstructive pulmonary disease with acute exacerbation, unspecified
     ja: COPD急性増悪
   J45:
     en: Asthma
@@ -251,7 +251,7 @@ codes:
     en: Acute tubulo-interstitial nephritis
     ja: 急性腎盂腎炎
   N17:
-    en: Acute kidney failure
+    en: Acute renal failure
     ja: 急性腎不全
   N18:
     en: Chronic kidney disease
@@ -347,13 +347,13 @@ codes:
     en: Burns involving 30-39% of body surface
     ja: 体表面積30-39%の熱傷
   T54.3:
-    en: Toxic effect of corrosive alkalis and alkali-like substances
+    en: Corrosive alkalis and alkali-like substances
     ja: 腐食性アルカリ・アルカリ様物質の毒性
   T54.9:
-    en: Toxic effect of unspecified corrosive substance
+    en: Corrosive substance, unspecified
     ja: 腐食性物質による中毒、詳細不明
   T75.4:
-    en: Electrocution / shock from electric current
+    en: Effects of electric current
     ja: 感電、電流による傷害
   T78:
     en: Adverse effects, not elsewhere classified
@@ -362,10 +362,10 @@ codes:
     en: Crushing injury of hand
     ja: 手部挫滅損傷
   S67.8:
-    en: Crushing injury of other parts of wrist and hand
+    en: Crushing injury of other and unspecified parts of wrist and hand
     ja: 手関節・手部のその他の部位の挫滅損傷
   S68.1:
-    en: Traumatic amputation of finger
+    en: Traumatic amputation of other single finger (complete)(partial)
     ja: 指外傷性切断
   I49.9:
     en: Cardiac arrhythmia, unspecified
@@ -387,7 +387,7 @@ codes:
     en: Retention of urine, unspecified
     ja: 尿閉、詳細不明
   R68.8:
-    en: Other general symptoms and signs
+    en: Other specified general symptoms and signs
     ja: その他の全身症状および徴候
   W19:
     en: Unspecified fall
@@ -396,7 +396,7 @@ codes:
     en: Bitten or struck by dog
     ja: 犬咬傷・打撲
   Z00:
-    en: General examination and investigation of persons without complaint or reported diagnosis
+    en: General examination and investigation of persons without complaint and reported diagnosis
     ja: 一般健康診断（訴えなし）
   Z01:
     en: Other special examinations and investigations of persons without complaint or reported diagnosis
@@ -411,16 +411,16 @@ codes:
     en: Special screening examination for other diseases and disorders
     ja: その他疾患スクリーニング
   Z23:
-    en: Need for immunization
+    en: Need for immunization against single bacterial diseases
     ja: 予防接種
   Z48:
-    en: Encounter for other postprocedural aftercare
+    en: Other surgical follow-up care
     ja: 術後ケア
   Z51:
     en: Other medical care
     ja: その他の医療ケア
   Z71:
-    en: Persons encountering health services for other counselling and medical advice
+    en: Persons encountering health services for other counselling and medical advice, not elsewhere classified
     ja: 相談・医療指導
   Z76:
     en: Persons encountering health services in other circumstances
@@ -459,16 +459,16 @@ codes:
     en: Chronic viral hepatitis C
     ja: 慢性C型ウイルス肝炎
   E10.1:
-    en: Type 1 diabetes mellitus with ketoacidosis
+    en: 'Type 1 diabetes mellitus : With ketoacidosis'
     ja: ケトアシドーシスを伴う1型糖尿病
   E10.6:
-    en: Type 1 diabetes mellitus with other specified complications
+    en: 'Type 1 diabetes mellitus : With other specified complications'
     ja: その他の明示された合併症を伴う1型糖尿病
   E11.1:
-    en: Type 2 diabetes mellitus with ketoacidosis
+    en: 'Type 2 diabetes mellitus : With ketoacidosis'
     ja: ケトアシドーシスを伴う2型糖尿病
   E11.6:
-    en: Type 2 diabetes mellitus with other specified complications
+    en: 'Type 2 diabetes mellitus : With other specified complications'
     ja: その他の明示された合併症を伴う2型糖尿病
   G43.9:
     en: Migraine, unspecified
@@ -564,10 +564,10 @@ codes:
     en: Gastro-oesophageal laceration-haemorrhage syndrome
     ja: 胃食道裂傷出血症候群（マロリー・ワイス症候群）
   K25.4:
-    en: Gastric ulcer, chronic or unspecified with haemorrhage
+    en: 'Gastric ulcer : Chronic or unspecified with haemorrhage'
     ja: 胃潰瘍、慢性又は詳細不明、出血を伴うもの
   K26.4:
-    en: Duodenal ulcer, chronic or unspecified with haemorrhage
+    en: 'Duodenal ulcer : Chronic or unspecified with haemorrhage'
     ja: 十二指腸潰瘍、慢性又は詳細不明、出血を伴うもの
   K35.2:
     en: Acute appendicitis with generalized peritonitis
@@ -777,16 +777,16 @@ codes:
     en: Persons encountering health services in other specified circumstances
     ja: その他の明示された状況で保健サービスを受ける者
   E11.0:
-    en: Type 2 diabetes mellitus with coma
+    en: 'Type 2 diabetes mellitus : With coma'
     ja: 2型糖尿病（昏睡を伴うもの）
   M71.2:
     en: Synovial cyst of popliteal space [Baker]
     ja: 膝窩部滑液嚢腫［ベーカー嚢腫］
   R65.1:
-    en: Systemic inflammatory response syndrome of infectious origin with organ failure
+    en: Systemic Inflammatory Response Syndrome of infectious origin with organ failure
     ja: 感染性の全身性炎症反応症候群（臓器不全を伴うもの）
   R65.2:
-    en: Systemic inflammatory response syndrome of non-infectious origin without organ failure
+    en: Systemic Inflammatory Response Syndrome of non-infectious origin without organ failure
     ja: 非感染性の全身性炎症反応症候群（臓器不全を伴わないもの）
   S43.0:
     en: Dislocation of shoulder joint
@@ -803,7 +803,7 @@ codes:
     en: "Tuberculosis of lung, confirmed by sputum microscopy with or without culture"
     ja: "肺結核、喀痰塗抹（培養の有無を問わない）により確認"
   C16.9:
-    en: "Malignant neoplasm: Stomach, unspecified"
+    en: Stomach, unspecified
     ja: "胃の悪性新生物、詳細不明"
   # Cancer category codes for family history display (WHO ICD-10 categories).
   C18:
@@ -819,7 +819,7 @@ codes:
     en: "Malignant neoplasm of prostate"
     ja: "前立腺の悪性新生物"
   C71.9:
-    en: "Malignant neoplasm: Brain, unspecified"
+    en: Brain, unspecified
     ja: "脳の悪性新生物、詳細不明"
   C79.5:
     en: "Secondary malignant neoplasm of bone and bone marrow"
@@ -867,7 +867,7 @@ codes:
     en: "Gastro-oesophageal reflux disease with oesophagitis"
     ja: "胃食道逆流症、食道炎を伴うもの"
   K25.9:
-    en: "Gastric ulcer: unspecified as acute or chronic, without haemorrhage or perforation"
+    en: 'Gastric ulcer : Unspecified as acute or chronic, without haemorrhage or perforation'
     ja: "胃潰瘍、急性・慢性の別不明、出血または穿孔を伴わないもの"
   K46.0:
     en: "Unspecified abdominal hernia with obstruction, without gangrene"
@@ -909,7 +909,7 @@ codes:
     en: "Local infection of skin and subcutaneous tissue, unspecified"
     ja: "皮膚および皮下組織の局所感染、詳細不明"
   M51.1:
-    en: "Lumbar and other intervertebral disc disorders with radiculopathy"
+    en: Lumbar and other intervertebral disc disorders with radiculopathy[G55.1]
     ja: "腰部およびその他の椎間板障害、神経根症を伴うもの"
   M72.6:
     en: "Necrotizing fasciitis"
@@ -987,7 +987,7 @@ codes:
     en: "Chronic kidney disease, unspecified"
     ja: "慢性腎臓病、詳細不明"
   U07.1:
-    en: "COVID-19"
+    en: COVID-19, virus identified
     ja: "新型コロナウイルス感染症"
   # === HAI conditions (AD-55 Module: hai, PR-B) ===
   # WHO ICD-10 4-character categories that the JP HAI Conditions fold to.
