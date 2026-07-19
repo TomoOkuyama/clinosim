@@ -214,6 +214,38 @@ def test_jp_clins_composition_category_discharge():
 
 
 @pytest.mark.unit
+def test_jp_clins_composition_hospital_course_entry_from_free_text_map():
+    """#278 session 59:hospitalCourseSection.entry(min=1)は同一 encounter の
+    free-text DocumentReference(progress note 11506-3 / hospital course 8648-8
+    等)を precompute map から解決して emit。map hit なしなら never-fabricate
+    guard で entry を drop する。
+    """
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()  # encounter_id = "ENC-001"
+    enc_map = {"ENC-001": "doc-ENC-001-progressnote-01"}
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", enc_map)
+    children = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
+    hcs = children["333"]  # hospitalCourseSection
+    assert hcs.get("entry") == [{"reference": "DocumentReference/doc-ENC-001-progressnote-01"}]
+
+
+@pytest.mark.unit
+def test_jp_clins_composition_hospital_course_entry_dropped_when_no_free_text():
+    """#278:free-text map hit なし(scenario:progress note が未生成、
+    もしくは call site が map を渡していない)→ hospital_course entry は
+    never-fabricate rule に従い emit しない。"""
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    # empty map = no free-text doc for this encounter
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", {})
+    children = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
+    hcs = children["333"]
+    assert "entry" not in hcs  # never-fabricate: no ref, no entry
+
+
+@pytest.mark.unit
 def test_jp_clins_composition_meta_lastupdated_from_authored_datetime():
     """Chain #9: `Composition.meta.lastUpdated` min=1 — falls back to authored
     datetime when not builder-set."""
