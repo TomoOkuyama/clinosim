@@ -74,8 +74,15 @@ def test_susceptibility_display_us(interp, en, ja):
     ],
 )
 def test_susceptibility_display_jp(interp, en, ja):
+    """#321 session 61:JP output でも English display を emit する。
+    v3-ObservationInterpretation は English-only CS(tx-server の JA
+    display 未収録)。walker `_strip_japanese_display_on_english_only_
+    systems` により JA display は削除されるので、builder が最初から
+    English display を emit する方が pipeline 整合的。v6.1 で 162 件
+    error(builder JA emit → walker strip → validator "display=0")。
+    """
     resources = _bb_microbiology(_ctx("JP", [{"antibiotic_loinc": "19000-9", "interpretation": interp}]))
-    assert _sus_displays(resources) == [ja]
+    assert _sus_displays(resources) == [en]
 
 
 def test_yaml_matches_direct_lookup():
