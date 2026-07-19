@@ -38,10 +38,10 @@ codes:
     ja: 診療情報提供書
   # P2-13 PR3 (session 47) JP-eCheckup General 健診結果報告書
   53576-5:
-    en: Health checkup report
+    en: Personal Health Monitoring Report
     ja: 検診・健診報告書
   69730-0:
-    en: Death note
+    en: Instructions
     ja: 死亡時記録
   11504-8:
     en: Surgical operation note
@@ -107,7 +107,7 @@ codes:
     en: Hospital discharge medications Narrative
     ja: 退院時処方
   10184-0:
-    en: Hospital discharge interventions Narrative
+    en: Hospital discharge physical findings Narrative
     ja: 退院時介入内容
   10187-3:
     en: Review of systems Narrative - Reported
@@ -131,7 +131,7 @@ codes:
     en: Patient education Narrative
     ja: 患者教育
   42349-1:
-    en: Reason for visit Narrative
+    en: Reason for referral (narrative)
     ja: 受診理由
   45391-8:
     en: Physical function assessment Narrative
@@ -146,19 +146,16 @@ codes:
     en: Evaluation note
     ja: 評価記録
   51852-2:
-    en: Provider unspecified Progress note
+    en: Letter
     ja: 経過記録
   51897-7:
-    en: Care team Narrative
+    en: Healthcare Associated Infection report Document
     ja: ケアチームメンバー
-  56816-2:
-    en: Vital signs assessment Narrative
-    ja: バイタルサイン評価
   61144-2:
     en: Diet and nutrition Narrative
     ja: 食事栄養評価
   68609-7:
-    en: Hospital discharge disposition
+    en: Hospital Letter
     ja: 退院時転帰
   75326-9:
     en: Clinical finding
@@ -167,7 +164,7 @@ codes:
     en: Hospital course Narrative
     ja: 入院経過
   8650-4:
-    en: Hospital discharge readiness Narrative
+    en: Hospital discharge disposition note
     ja: 退院時準備状況
   8653-8:
     en: Hospital discharge instructions Narrative
@@ -237,7 +234,7 @@ codes:
     en: Glucose
     ja: 血糖
   2518-9:
-    en: Cortisol [Mass/volume] in Serum or Plasma
+    en: Lactate [Moles/volume] in Arterial blood
     ja: コルチゾール（血清）
   2524-7:
     en: Lactate
@@ -407,17 +404,17 @@ codes:
     en: Bacteria identified in Urine by Culture
     ja: 尿培養（細菌同定）
   619-7:
-    en: Bacteria identified in Sputum by Culture
+    en: Bacteria identified in Peritoneal fluid by Culture
     ja: 喀痰培養（細菌同定）
   634-6:
-    en: Bacteria identified in Wound by Culture
+    en: Bacteria identified in Specimen by Aerobe culture
     ja: 創部培養（細菌同定）
   # === Microbiology: antibiotic susceptibility tests ===
   18862-3:
-    en: Ampicillin [Susceptibility]
+    en: Amoxicillin+Clavulanate [Susceptibility]
     ja: アンピシリン感受性
   18866-4:
-    en: Cefazolin [Susceptibility]
+    en: Azithromycin [Susceptibility]
     ja: セファゾリン感受性
   18895-3:
     en: Ceftriaxone [Susceptibility]
@@ -429,7 +426,7 @@ codes:
     en: Ciprofloxacin [Susceptibility]
     ja: シプロフロキサシン感受性
   18908-4:
-    en: Gentamicin [Susceptibility]
+    en: Clindamycin [Susceptibility]
     ja: ゲンタマイシン感受性
   # session 58 Issue #264: 18991-2 / 18949-0 / 18943-3 / 18996-1 were retired
   # from LOINC. Replaced with the corresponding LOINC 2.82 ACTIVE codes.
@@ -472,9 +469,6 @@ codes:
   57698-3:
     en: Lipid panel with direct LDL - Serum or Plasma
     ja: 脂質パネル
-  24373-3:
-    en: Activated partial thromboplastin time (aPTT) and Prothrombin time (PT)/INR panel - Platelet poor plasma
-    ja: 凝固検査パネル (PT/INR/APTT)
   24356-8:
     en: Urinalysis complete panel - Urine
     ja: 尿検査パネル
@@ -533,7 +527,7 @@ codes:
     en: Carbon dioxide, total
     ja: 総二酸化炭素
   6295-0:
-    en: Ammonium
+    en: Complement C3d [Presence] in Red Blood Cells
     ja: アンモニア
   19123-9:
     en: Magnesium
