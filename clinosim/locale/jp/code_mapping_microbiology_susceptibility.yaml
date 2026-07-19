@@ -27,7 +27,11 @@
 "18879-7": "6C010"
 "18906-8": "6C010"
 "18908-4": "6C010"
-"18991-2": "6C010"
-"18949-0": "6C010"
-"18943-3": "6C010"
-"18996-1": "6C010"
+# session 58 Issue #264: 18943-3 / 18949-0 / 18991-2 / 18996-1 retired from
+# LOINC. Substitutes are the corresponding real active LOINCs (verified
+# against LOINC 2.82). Keys must stay in sync with
+# `modules/observation/reference_data/microbiology.yaml`.
+"19000-9": "6C010"    # was 18991-2 (Vancomycin Susc Isolate)
+"18970-4": "6C010"    # was 18949-0 (Piperacillin+Tazobactam Susc Isolate)
+"18943-1": "6C010"    # was 18943-3 (Meropenem Susc Isolate)
+"18998-5": "6C010"    # was 18996-1 (Trimethoprim+Sulfamethoxazole Susc Isolate)

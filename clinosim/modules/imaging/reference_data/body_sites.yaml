@@ -27,13 +27,15 @@ body_sites:
         display_en: "Chest X-ray PA"
         display_ja: "胸部単純X線撮影 正面"
       CT_non_contrast:
-        loinc: "30794-3"
+        # session 58 Issue #264: 30794-3 was retired from LOINC. Real active
+        # LOINCs for chest CT are 29252-4 (WO contrast) + 24628-0 (W contrast IV).
+        loinc: "29252-4"                         # CT Chest WO contrast (LOINC 2.82 ACTIVE)
         cpt: "71250"
         jp_k_code: "E200"                        # MHLW CT 単純
         display_en: "CT Chest without contrast"
         display_ja: "胸部CT 単純"
       CT_contrast:
-        loinc: "30794-3"                         # closest common LOINC (contrast variant tracked via `contrast: true` on order)
+        loinc: "24628-0"                         # CT Chest W contrast IV (LOINC 2.82 ACTIVE)
         cpt: "71260"
         jp_k_code: "E200"
         display_en: "CT Chest with contrast"

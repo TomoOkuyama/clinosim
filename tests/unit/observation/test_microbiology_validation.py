@@ -21,7 +21,7 @@ def test_healthy_yaml_loads_without_raising(monkeypatch, tmp_path):
     specimens:
       blood: {snomed: "119297000", test_loinc: "600-7"}
     antibiotics:
-      vancomycin: "18991-2"
+      vancomycin: "19000-9"
     organisms:
       staph:
         snomed: "3092008"
@@ -50,7 +50,7 @@ def test_organism_antibiogram_with_typo_raises_at_load_time(monkeypatch, tmp_pat
     specimens:
       blood: {snomed: "119297000", test_loinc: "600-7"}
     antibiotics:
-      vancomycin: "18991-2"
+      vancomycin: "19000-9"
     organisms:
       staph:
         snomed: "3092008"
@@ -79,7 +79,7 @@ def test_disease_references_unknown_organism_raises(monkeypatch, tmp_path):
     specimens:
       blood: {snomed: "119297000", test_loinc: "600-7"}
     antibiotics:
-      vancomycin: "18991-2"
+      vancomycin: "19000-9"
     organisms:
       staph:
         snomed: "3092008"
@@ -108,7 +108,7 @@ def test_disease_culture_references_unknown_specimen_raises(monkeypatch, tmp_pat
     specimens:
       blood: {snomed: "119297000", test_loinc: "600-7"}
     antibiotics:
-      vancomycin: "18991-2"
+      vancomycin: "19000-9"
     organisms:
       staph:
         snomed: "3092008"
@@ -137,7 +137,7 @@ def test_specimen_missing_snomed_raises(monkeypatch, tmp_path):
     specimens:
       blood: {snomed: "", test_loinc: "600-7"}
     antibiotics:
-      vancomycin: "18991-2"
+      vancomycin: "19000-9"
     organisms:
       staph:
         snomed: "3092008"
@@ -166,7 +166,7 @@ def test_specimen_missing_test_loinc_raises(monkeypatch, tmp_path):
     specimens:
       blood: {snomed: "119297000", test_loinc: ""}
     antibiotics:
-      vancomycin: "18991-2"
+      vancomycin: "19000-9"
     organisms:
       staph:
         snomed: "3092008"
@@ -195,7 +195,7 @@ def test_disease_organisms_as_list_raises_valueerror(monkeypatch, tmp_path):
     specimens:
       blood: {snomed: "119297000", test_loinc: "600-7"}
     antibiotics:
-      vancomycin: "18991-2"
+      vancomycin: "19000-9"
     organisms:
       staph:
         snomed: "3092008"
@@ -225,7 +225,7 @@ def test_organism_missing_snomed_raises(monkeypatch, tmp_path):
     specimens:
       blood: {snomed: "119297000", test_loinc: "600-7"}
     antibiotics:
-      vancomycin: "18991-2"
+      vancomycin: "19000-9"
     organisms:
       staph:
         snomed: ""
@@ -254,7 +254,7 @@ def test_organism_antibiogram_sir_triple_wrong_length_raises(monkeypatch, tmp_pa
     specimens:
       blood: {snomed: "119297000", test_loinc: "600-7"}
     antibiotics:
-      vancomycin: "18991-2"
+      vancomycin: "19000-9"
     organisms:
       staph:
         snomed: "3092008"
@@ -283,7 +283,7 @@ def test_organism_antibiogram_sir_triple_zero_sum_raises(monkeypatch, tmp_path):
     specimens:
       blood: {snomed: "119297000", test_loinc: "600-7"}
     antibiotics:
-      vancomycin: "18991-2"
+      vancomycin: "19000-9"
     organisms:
       staph:
         snomed: "3092008"

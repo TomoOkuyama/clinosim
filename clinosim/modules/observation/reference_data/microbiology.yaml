@@ -24,10 +24,16 @@ antibiotics:
   cefepime: "18879-7"  # Verified NLM + tx.fhir.org $lookup 2026-06-26 (Task 0 §6.1)
   ciprofloxacin: "18906-8"  # Verified NLM + tx.fhir.org 2026-06-26 (was incorrectly 18879-7 = Cefepime)
   gentamicin: "18908-4"
-  vancomycin: "18991-2"
-  piperacillin_tazobactam: "18949-0"
-  meropenem: "18943-3"
-  trimethoprim_sulfamethoxazole: "18996-1"
+  # session 58 Issue #264: 18943-3 / 18949-0 / 18991-2 / 18996-1 were retired
+  # from LOINC. Substitutes are real active LOINCs verified against LOINC 2.82:
+  #   meropenem            18943-3 → 18943-1 (Meropenem Susc Isolate)
+  #   piperacillin_tazo    18949-0 → 18970-4 (Piperacillin+Tazobactam Susc Isolate)
+  #   vancomycin           18991-2 → 19000-9 (Vancomycin Susc Isolate)
+  #   trimethoprim_sulfa   18996-1 → 18998-5 (Trimethoprim+Sulfamethoxazole Susc Isolate)
+  vancomycin: "19000-9"
+  piperacillin_tazobactam: "18970-4"
+  meropenem: "18943-1"
+  trimethoprim_sulfamethoxazole: "18998-5"
 
 # Organisms: id -> snomed code + antibiogram (antibiotic_key -> [P(S), P(I), P(R)]).  # TODO: verify
 organisms:
