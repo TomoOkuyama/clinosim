@@ -7,8 +7,8 @@
     "source_content_note": "The LOINC master ships complete (~109k codes). The snapshot filters to codes clinosim emits so shipped size stays small. Codes marked missing indicate clinosim references a LOINC code that does not exist in LOINC 2.82 (retired / renumbered / fabricated) — treat as regression and open an issue.",
     "fetched_from": "https://github.com/iryohjoho/fhir-jp-validator tx-server-build/loinc-src/",
     "extracted_at": "2026-07-19",
-    "clinosim_codes_total": 169,
-    "clinosim_codes_in_source": 167,
+    "clinosim_codes_total": 167,
+    "clinosim_codes_in_source": 165,
     "clinosim_codes_missing_from_source": [
       "42346-6",
       "45391-8"
@@ -353,12 +353,6 @@
       "code": "24357-6",
       "display": "Urinalysis macro (dipstick) panel - Urine",
       "short_display": "UA Dipstick Pnl Ur",
-      "status": "ACTIVE"
-    },
-    {
-      "code": "24373-3",
-      "display": "Ferritin [Mass/volume] in Blood",
-      "short_display": "Ferritin Bld-mCnc",
       "status": "ACTIVE"
     },
     {
@@ -761,12 +755,6 @@
       "code": "55418-8",
       "display": "Weight and Height tracking panel",
       "short_display": "Weight & Height tracking Pnl",
-      "status": "ACTIVE"
-    },
-    {
-      "code": "56816-2",
-      "display": "Patient location",
-      "short_display": "Patient location",
       "status": "ACTIVE"
     },
     {

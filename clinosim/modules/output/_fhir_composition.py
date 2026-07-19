@@ -84,7 +84,11 @@ _SECTION_LOINC: dict[str, str] = {
     "past_medical_history": "11348-0",  # History of past illness
     "medications_at_home": "10160-0",  # History of medication use
     "physical_exam": "29545-1",  # Physical findings
-    "triage_details": "56816-2",  # Vital signs assessment (triage)
+    # session 59 #276:従来 56816-2 を "Vital signs assessment" として
+    # section code に使用していたが LOINC 56816-2 の LONG_COMMON_NAME は
+    # "Patient location"(semantic-mismatch)。8716-3 "Vital signs note"
+    # に substitute(clinosim authoritative snapshot verified)。
+    "triage_details": "8716-3",  # Vital signs note
     # Discharge summary
     "admission_summary": "10154-3",  # (reused, admission complaint)
     "hospital_course": "8648-8",  # Hospital course
