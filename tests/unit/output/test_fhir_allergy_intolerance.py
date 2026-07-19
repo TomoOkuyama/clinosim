@@ -245,12 +245,24 @@ def test_no_reactions_omits_reaction_field():
 
 
 def test_jp_locale_resolves_snomed_display_to_ja():
-    """JP cohort: allergen_code 387207008 (Penicillin) resolved to ペニシリン via code_lookup."""
+    """JP cohort: allergen_code 373270004 (Penicillin) resolved to ペニシリン via code_lookup.
+    Session 58 Issue #263: JP output prepends a JFAGY generic coding as
+    code.coding[0] (satisfies JP Core AllergyIntolerance VS binding). The
+    SNOMED coding with the ペニシリン display now sits at coding[1] but the
+    `code.text` still carries the human-readable substance name."""
     a = _sample_allergy_dataclass()
     a.allergen_code = "373270004"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
-    assert r["code"]["coding"][0]["display"] == "ペニシリン"
+    codings = r["code"]["coding"]
+    # JFAGY primary (index 0)
+    assert codings[0]["system"] == "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
+    assert codings[0]["code"] == "00M"
+    assert codings[0]["display"] == "医薬品"
+    # SNOMED secondary (index 1) carries the locale-resolved substance display
+    assert codings[1]["system"] == "http://snomed.info/sct"
+    assert codings[1]["code"] == "373270004"
+    assert codings[1]["display"] == "ペニシリン"
     assert r["code"]["text"] == "ペニシリン"
 
 
@@ -270,6 +282,73 @@ def test_jp_locale_resolves_reaction_manifestation_to_ja():
     manifestation = rxn["manifestation"][0]
     assert manifestation["coding"][0]["display"] == "発疹"
     assert manifestation["text"] == "発疹"
+
+
+# --- Session 58 Issue #263: JP Core AllergyIntolerance VS binding via JFAGY ---
+
+
+def test_jp_medication_allergen_gets_jfagy_medication_cs_primary():
+    """Medication category → JFAGY YCM medication allergen CS (00M / 医薬品)."""
+    a = _sample_allergy_dataclass()
+    a.allergen_code = "373270004"
+    a.category = "medication"
+    ctx = _make_ctx([a], country="JP")
+    r = _bb_allergy_intolerances(ctx)[0]
+    primary = r["code"]["coding"][0]
+    assert primary["system"] == "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
+    assert primary["code"] == "00M"
+    assert primary["display"] == "医薬品"
+
+
+def test_jp_food_allergen_gets_jfagy_food_cs_primary():
+    a = _sample_allergy_dataclass()
+    a.allergen_code = "735038006"
+    a.category = "food"
+    ctx = _make_ctx([a], country="JP")
+    r = _bb_allergy_intolerances(ctx)[0]
+    primary = r["code"]["coding"][0]
+    assert primary["system"] == "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS"
+    assert primary["code"] == "00F"
+    assert primary["display"] == "食品"
+
+
+def test_jp_environment_allergen_gets_jfagy_non_food_non_medication_cs_primary():
+    a = _sample_allergy_dataclass()
+    a.allergen_code = "256262001"
+    a.category = "environment"
+    ctx = _make_ctx([a], country="JP")
+    r = _bb_allergy_intolerances(ctx)[0]
+    primary = r["code"]["coding"][0]
+    assert primary["system"] == "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
+    assert primary["code"] == "00N"
+    assert primary["display"] == "非食品・非医薬品"
+
+
+def test_us_output_keeps_snomed_primary_and_no_jfagy():
+    """US output has no JP Core VS constraint. Continue emitting SNOMED alone."""
+    a = _sample_allergy_dataclass()
+    a.allergen_code = "373270004"
+    a.category = "medication"
+    ctx = _make_ctx([a], country="US")
+    r = _bb_allergy_intolerances(ctx)[0]
+    codings = r["code"]["coding"]
+    assert len(codings) == 1
+    assert codings[0]["system"] == "http://snomed.info/sct"
+    assert codings[0]["code"] == "373270004"
+
+
+def test_jp_snomed_secondary_preserved_for_interop():
+    """JP output keeps the SNOMED coding at index 1 so international
+    consumers can still resolve the specific substance."""
+    a = _sample_allergy_dataclass()
+    a.allergen_code = "115556009"  # Sulfonamide
+    a.category = "medication"
+    ctx = _make_ctx([a], country="JP")
+    r = _bb_allergy_intolerances(ctx)[0]
+    codings = r["code"]["coding"]
+    assert len(codings) == 2
+    assert codings[1]["system"] == "http://snomed.info/sct"
+    assert codings[1]["code"] == "115556009"
 
 
 # --- Multiple allergies ---
