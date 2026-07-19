@@ -21,7 +21,13 @@ from clinosim.modules.output.fhir_r4_adapter import (
     _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,
     _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,
     _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL,
+    _JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS,
     _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS,
+    _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_CODE,
+    _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY,
+    _UCUM_DAY_CODE,
+    _UCUM_DAY_UNIT_JA,
+    _UCUM_SYSTEM_URI,
     _populate_jp_medication_dosage_ecs_fields,
 )
 
@@ -221,3 +227,116 @@ def test_idempotent_double_pass():
     assert after_first == after_second
     assert len(after_second["extension"]) == 1
     assert len(after_second["timing"]["code"]["coding"]) == 1
+
+
+# ---------------------------------------------------------------------------
+# Session 58 Chain #2: doseAndRate.type (min=1) + periodUnit → boundsDuration
+# ---------------------------------------------------------------------------
+
+
+def test_dose_and_rate_type_inserted_when_missing():
+    """`Dosage.doseAndRate.type` min=1 (eCS). Walker adds MHLW MedicationIngredient
+    StrengthType `1 / 製剤量` coding per JP-CLINS example fixture."""
+    r = {
+        "resourceType": "MedicationRequest",
+        "id": "mr1",
+        "authoredOn": "2025-11-25T14:24:00+09:00",
+        "dosageInstruction": [
+            {
+                "text": "1日3回",
+                "doseAndRate": [{"doseQuantity": {"value": 2, "unit": "錠"}}],
+            }
+        ],
+    }
+    _populate_jp_medication_dosage_ecs_fields(r)
+    dr = r["dosageInstruction"][0]["doseAndRate"][0]
+    assert dr["type"]["coding"][0] == {
+        "system": _JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS,
+        "code": _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_CODE,
+        "display": _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY,
+    }
+
+
+def test_dose_and_rate_type_not_overwritten_when_present():
+    """Walker skips when a builder already emitted a `doseAndRate[i].type`."""
+    pre = {"coding": [{"system": "http://example.org/other", "code": "X", "display": "X"}]}
+    r = {
+        "resourceType": "MedicationRequest",
+        "id": "mr1",
+        "authoredOn": "2025-11-25T14:24:00+09:00",
+        "dosageInstruction": [{"text": "1日3回", "doseAndRate": [{"type": pre}]}],
+    }
+    _populate_jp_medication_dosage_ecs_fields(r)
+    assert r["dosageInstruction"][0]["doseAndRate"][0]["type"] == pre
+
+
+def test_period_unit_d_replaced_with_bounds_duration():
+    """`timing.repeat.periodUnit='d'` hits R4's UnitsOfTime binding that the tx-
+    server can't resolve. Walker rewrites to `boundsDuration` (UCUM `d`) so the
+    validator can resolve `d` inline via the `system` field."""
+    r = {
+        "resourceType": "MedicationRequest",
+        "id": "mr1",
+        "authoredOn": "2025-11-25T14:24:00+09:00",
+        "dosageInstruction": [
+            {
+                "text": "1日1回",
+                "timing": {"repeat": {"frequency": 1, "period": 1, "periodUnit": "d"}},
+            }
+        ],
+    }
+    _populate_jp_medication_dosage_ecs_fields(r)
+    repeat = r["dosageInstruction"][0]["timing"]["repeat"]
+    assert "periodUnit" not in repeat
+    assert repeat["boundsDuration"] == {
+        "value": 1,
+        "unit": _UCUM_DAY_UNIT_JA,
+        "system": _UCUM_SYSTEM_URI,
+        "code": _UCUM_DAY_CODE,
+    }
+    # frequency + period preserved (cadence semantics still needed).
+    assert repeat["frequency"] == 1 and repeat["period"] == 1
+
+
+def test_period_unit_non_day_left_untouched():
+    """Only `periodUnit=='d'` triggers the rewrite; `h` / `wk` etc. bypass
+    (their UCUM resolution is a separate concern out of Chain #2's scope)."""
+    r = {
+        "resourceType": "MedicationRequest",
+        "id": "mr1",
+        "authoredOn": "2025-11-25T14:24:00+09:00",
+        "dosageInstruction": [
+            {"text": "8時間ごと", "timing": {"repeat": {"frequency": 1, "period": 8, "periodUnit": "h"}}}
+        ],
+    }
+    _populate_jp_medication_dosage_ecs_fields(r)
+    repeat = r["dosageInstruction"][0]["timing"]["repeat"]
+    assert repeat["periodUnit"] == "h"
+    assert "boundsDuration" not in repeat
+
+
+def test_bounds_duration_not_overwritten_when_builder_supplied():
+    """Walker preserves builder-supplied `boundsDuration`."""
+    pre = {"value": 7, "unit": "日", "system": _UCUM_SYSTEM_URI, "code": _UCUM_DAY_CODE}
+    r = {
+        "resourceType": "MedicationRequest",
+        "id": "mr1",
+        "authoredOn": "2025-11-25T14:24:00+09:00",
+        "dosageInstruction": [
+            {
+                "text": "7日間",
+                "timing": {
+                    "repeat": {
+                        "frequency": 1,
+                        "period": 1,
+                        "periodUnit": "d",
+                        "boundsDuration": pre,
+                    }
+                },
+            }
+        ],
+    }
+    _populate_jp_medication_dosage_ecs_fields(r)
+    repeat = r["dosageInstruction"][0]["timing"]["repeat"]
+    assert repeat["boundsDuration"] == pre
+    assert "periodUnit" not in repeat  # periodUnit is still dropped even when boundsDuration pre-supplied
