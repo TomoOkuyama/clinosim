@@ -625,6 +625,17 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
     "present_illness_ref": "360",
 }
 
+# session 59 #296:JP-CLINS eReferral の 920(紹介元)/ 910(紹介先)
+# top-level section slice に必須の Organization reference。CIF は destination
+# 別 Organization を model していないため hospital-main を両側 placeholder
+# として emit(reference integrity は保たれる;data-shape trade-off)。
+# module-scope 定数(function 内では N806 lint violation)。
+_JP_ER_REFERRAL_ORG_REF: list[dict[str, str]] = [{"reference": "Organization/hospital-main"}]
+_JP_ER_TOP_LEVEL_ENTRY: dict[str, list[dict[str, str]]] = {
+    "920": _JP_ER_REFERRAL_ORG_REF,  # referralFromOrganization
+    "910": _JP_ER_REFERRAL_ORG_REF,  # referralToOrganization
+}
+
 
 def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
     """JP-CLINS eReferral v1.12.0 準拠 Composition を emit する。
@@ -697,19 +708,14 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
             section_obj["entry"] = entry_refs
         return section_obj
 
-    # session 59:各 top-level section slice の entry。920(紹介元)/
-    # 910(紹介先)いずれも Organization/hospital-main を pin。
-    _REFERRAL_ORG_REF = [{"reference": "Organization/hospital-main"}]
-    _TOP_LEVEL_ENTRY = {
-        "920": _REFERRAL_ORG_REF,  # referralFromOrganization
-        "910": _REFERRAL_ORG_REF,  # referralToOrganization
-    }
-
+    # session 59 #296:各 top-level section slice の entry(module-scope
+    # 定数 `_JP_ER_REFERRAL_ORG_REF` / `_JP_ER_TOP_LEVEL_ENTRY`、下記
+    # `_JP_REFERRAL_TOP_LEVEL` の直後で定義)。
     # Top-level 920 + 910
     top_sections: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_TOP_LEVEL.items():
         top_sections.append(
-            _one_section(code, sections.get(key, "") or "", _TOP_LEVEL_ENTRY.get(code))
+            _one_section(code, sections.get(key, "") or "", _JP_ER_TOP_LEVEL_ENTRY.get(code))
         )
 
     # 300 structural, nesting 950 / 340 / 360
