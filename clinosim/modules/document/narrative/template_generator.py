@@ -592,6 +592,11 @@ class TemplateNarrativeGenerator:
             "admission_details": self._build_admission_details,
             "admission_diagnoses": self._build_admission_diagnoses,
             "present_illness": self._build_present_illness,
+            # Session 59 #286: JP-CLINS eDS discharge-side section builder.
+            # The other 4 discharge-side keys (hospital_course /
+            # discharge_diagnoses / discharge_medications /
+            # discharge_instructions)は上の共通 α-min-1 entry を再利用。
+            "discharge_details": self._build_discharge_details,
             # P2-13 PR2b: JP-CLINS 診療情報提供書 sections (JP only)
             "referring_institution": self._build_referring_institution,
             "referral_destination": self._build_referral_destination,
@@ -1034,6 +1039,64 @@ class TemplateNarrativeGenerator:
             if ward:
                 fragments.append(f"to the {ward} ward")
             text = " ".join(fragments) + "." if fragments else "Admitted for inpatient care."
+        return text, facts
+
+    def _build_discharge_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """324 退院時詳細セクション:退院日・退院病棟・退院時転帰(JP-only)。
+
+        session 59 #286:eDS spec の 5 discharge-side 必須 section の 1 つ。
+        session 58 Chain #9 で slice code だけ emit していたが narrative
+        content が unset で `text.div SHALL have non-whitespace content`
+        (FHIR R4 `txt-2`)違反を 130+ /fullset 起こしていた。ここでは
+        `_build_admission_details` と対称な template を用意。
+        """
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        enc = ctx.encounter
+        dis_dt = _o(enc, "discharge_datetime", None) if enc is not None else None
+        ward = _o(enc, "ward", "") if enc is not None else ""
+        disposition = _o(enc, "discharge_disposition", "") if enc is not None else ""
+        facts.append("ctx.encounter.discharge_datetime")
+        # 転帰 → 日本語表現(JP-CLINS spec 準拠 code は使わず narrative 用短形)
+        _JA_DISPO_LABEL = {
+            "home": "自宅退院",
+            "hosp": "他院転院",
+            "other-hcf": "他施設転院",
+            "snf": "施設退院",
+            "exp": "死亡退院",
+        }
+        _EN_DISPO_LABEL = {
+            "home": "discharged home",
+            "hosp": "transferred to another hospital",
+            "other-hcf": "transferred to another healthcare facility",
+            "snf": "discharged to skilled nursing facility",
+            "exp": "expired",
+        }
+
+        dis_date = ""
+        if dis_dt:
+            dis_date = str(dis_dt).split("T")[0]
+
+        if is_ja:
+            parts: list[str] = []
+            if dis_date:
+                parts.append(f"{dis_date}")
+            if ward:
+                parts.append(f"{ward}病棟から")
+            dispo_label = _JA_DISPO_LABEL.get(disposition, "退院")
+            parts.append(f"{dispo_label}となった。")
+            text = "、".join(parts[:-1]) + parts[-1] if len(parts) > 1 else parts[0]
+            if not text:
+                text = "退院時所見の記録なし。"
+        else:
+            fragments: list[str] = []
+            if dis_date:
+                fragments.append(f"Discharged on {dis_date}")
+            if ward:
+                fragments.append(f"from the {ward} ward")
+            dispo_label = _EN_DISPO_LABEL.get(disposition, "discharged")
+            fragments.append(f"({dispo_label})")
+            text = " ".join(fragments) + "." if fragments else "Discharge details not recorded."
         return text, facts
 
     def _build_admission_diagnoses(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
