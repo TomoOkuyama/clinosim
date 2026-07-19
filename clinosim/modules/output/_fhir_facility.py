@@ -322,17 +322,14 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         }
                     ],
                 },
-                "type": [
-                    {
-                        "coding": [
-                            {
-                                "system": get_system_uri("hl7-v3-rolecode"),
-                                "code": "OR",
-                                "display": _localize_display("Operating Room", country, _LOCATION_TYPE_DISPLAY_JA),
-                            }
-                        ],
-                    }
-                ],
+                # #327 session 61:v3-RoleCode CS には "OR" 概念が存在
+                # しない(authoritative 確認、v6.1 で 2 件 unknown-code
+                # error 発火)。近似 SU (Surgery clinic) は semantic 別
+                # 概念 (clinic ≠ room)、fabrication 回避のため coding を
+                # drop し text-only CodeableConcept で emit。FHIR R4
+                # Location.type binding は preferred strength = coding
+                # 無くても spec-valid。
+                "type": [{"text": _localize_display("Operating Room", country, _LOCATION_TYPE_DISPLAY_JA)}],
                 "managingOrganization": {"reference": or_org_ref},
             }
             entries.append(_entry(or_loc))
