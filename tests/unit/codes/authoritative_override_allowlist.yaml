@@ -1,0 +1,25 @@
+# Authoritative-display override allowlist.
+#
+# When clinosim intentionally emits a display that differs from the
+# authoritative terminology source (e.g. clinical shorthand more familiar to
+# JP physicians than the WHO preferred term), register the override here
+# WITH a clinical rationale. The cross-check test consults this file to
+# distinguish deliberate divergence (allowed) from silent drift (fails CI).
+#
+# Structure:
+#   <system-key>:
+#     <code>:
+#       lang: en | ja
+#       clinosim_display: "..."   # what clinosim/codes/data/<system>.yaml emits
+#       authoritative_display: "..." # what the snapshot has
+#       rationale: |
+#         Free-form clinical or curatorial reason. Cite guidelines or a spec
+#         when possible. Reviewers with clinical background evaluate this.
+#       registered_at: YYYY-MM-DD
+#
+# Empty at Phase 1 launch — session 58 Chain #5 modified the 9 flagged YJ
+# codes to match tx-server displays exactly, so no override is needed for YJ
+# today. Follow-up snapshots (SNOMED / ICD-10) may introduce entries when
+# JP clinical shorthand differs from WHO preferred terms.
+
+yj: {}
