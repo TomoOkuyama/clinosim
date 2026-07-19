@@ -236,8 +236,12 @@ class TestFhirStubImagingStudy:
         )
         r = self._build_and_get(stub)
         assert r["resourceType"] == "ImagingStudy"
-        assert r["modality"] == []
-        assert r["series"] == []
+        # session 59 #299:FHIR R4 「配列は空にできません」制約により
+        # modality / series の空 array 出力を停止。stub-only では両 field
+        # を省略(0..* なので不在 OK)。従来 `[]` を emit していたが
+        # HAPI validator が 48 件 error 検出、drop 方針に変更。
+        assert "modality" not in r
+        assert "series" not in r
         assert r["numberOfSeries"] == 0
         # endpoint field は stub では省略(FHIR R4 endpoint は 0..*)
         assert "endpoint" not in r
