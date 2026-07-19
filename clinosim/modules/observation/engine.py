@@ -204,6 +204,12 @@ LAB_UNITS: dict[str, str] = {
     "pCO2": "mm[Hg]",
     "pO2": "mm[Hg]",
     "PT_INR": "{INR}",
+    # #325 session 61:PT / APTT は reference_range_lab.yaml に unit "s"
+    # (seconds)定義済みだが LAB_UNITS 未登録で空 unit emit されていた。
+    # JP_Observation_LabResult_eCS の refRange units-isSameAs invariant を
+    # 22 件違反していた fix。
+    "PT": "s",
+    "APTT": "s",
     "Fibrinogen": "mg/dL",
     "D_dimer": "ug/mL",
     "TSH": "m[IU]/L",
