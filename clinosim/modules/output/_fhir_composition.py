@@ -626,7 +626,6 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
 }
 
 
-
 # session 59 #289 sibling of eDS Chain #9:JP-CLINS eReferral は eDS と同
 # 5 top-level 制約を持つ(extension:version min=1 / category min=1 /
 # author min=2 / meta.lastUpdated min=1 / event.code min=1)。CONSULT
@@ -710,10 +709,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     if not isinstance(authors, list):
         authors = []
         comp["author"] = authors
-    if not any(
-        isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/")
-        for a in authors
-    ):
+    if not any(isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/") for a in authors):
         authors.append({"reference": "Organization/hospital-main"})
 
     # #289:Composition.event.code min=1(coding は不要、text で満たす)。
