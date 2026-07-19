@@ -362,9 +362,19 @@ _JP_COMPOSITION_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourc
 # package/StructureDefinition-JP-Composition-eDischargeSummary.json`.
 _JP_EDS_VERSION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/composition-clinicaldocument-versionNumber"
 # `Composition.category.coding` fixed system + fixed code per spec.
+# doc-subtypecodes CS authoritative display (spec:
+# `clinical-information-sharing#1.12.0/package/CodeSystem-jp-codeSystem-
+# documentSubTypeCode.json`) → DISCHARGE = "退院時文書"。旧値 "退院時サマリー"
+# は jpfhir-doc-typecodes CS(下記 `_JP_EDS_TYPE_DISPLAY_JA`)の display で
+# あり、doc-subtypecodes CS とは別軸。session 58 Chain #9 (#267) で 1 定数を
+# 兼用したため drift、v5 validation で 126+126 errors として顕在化(#279)。
 _JPFHIR_DOC_SUBTYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-subtypecodes"
 _JP_EDS_CATEGORY_CODE = "DISCHARGE"
-_JP_EDS_CATEGORY_DISPLAY_JA = "退院時サマリー"
+_JP_EDS_CATEGORY_DISPLAY_JA = "退院時文書"
+# jpfhir-doc-typecodes CS 18842-5 の JP display(`code_lookup` fallback +
+# `Composition.title` に流用)。code_lookup が YAML から取得できる限り使わ
+# れないが、YAML 破損時の safety net。
+_JP_EDS_TYPE_DISPLAY_JA = "退院時サマリー"
 # Section title-vs-display split (also used by Chain #8's eDS/eReferral
 # builders; consolidated here for module scope).
 _JP_SECTION_TITLE_SUFFIX = "セクション"
@@ -481,7 +491,7 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
     # emitted for interop) violated the profile slicing on 129 resources.
     # The LOINC value is preserved via type.text so downstream consumers
     # can still recover the same code as text.
-    disp = code_lookup("jpfhir-doc-typecodes", "18842-5", lang) or _JP_EDS_CATEGORY_DISPLAY_JA
+    disp = code_lookup("jpfhir-doc-typecodes", "18842-5", lang) or _JP_EDS_TYPE_DISPLAY_JA
     comp["type"] = {
         "coding": [
             {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "18842-5", "display": disp},
