@@ -32,12 +32,12 @@ codes:
   "230":
     en: "PDF section"
     ja: "PDFセクション"
-  # session 58 Chain #8: yaml `ja` carries the canonical
-  # `code.coding.display` form (with セクション suffix) per the JP-CLINS eDS
-  # / eReferral spec `patternString`. The `title` element on the section is
-  # derived by stripping the trailing セクション in the Composition builder
-  # (`_section_title_from_section_display` helper), which matches the spec's
-  # `title.fixedString` (no suffix).
+  # Session 58 Chain #8/#9: yaml `ja` carries the canonical
+  # `code.coding.display` form (`patternString` with `セクション` suffix)
+  # per JP-CLINS eDS / eReferral spec. `Composition.section.title` is
+  # derived from this by stripping the trailing `セクション`
+  # (`_section_title_from_section_display` helper), matching the spec's
+  # `title.fixedString` short form.
   "300":
     en: "Structured information"
     ja: "構造情報セクション"
