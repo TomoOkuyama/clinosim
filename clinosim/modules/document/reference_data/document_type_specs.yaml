@@ -49,15 +49,26 @@ specs:
       - discharge_medications
       - discharge_instructions
       - follow_up
-    # JP-CLINS v1.12.0 準拠の必須 5 セクション(300 構造情報の下に nest)
+    # JP-CLINS v1.12.0 準拠の必須 10 セクション(300 構造情報の下に nest)。
+    # session 58 Chain #9(#267)で eDS spec の min=10 制約に合わせ 5→10 に拡張
+    # (312/322/342/352/360 admission + 333/324/344/444/424 discharge)。
+    # session 59 #286 で narrative content 側も同時に 10 に拡張し txt-2
+    # (`text.div SHALL have non-whitespace content`)違反 630 件を解消。
     # DocumentTypeSpec.composition_sections_for("JP") が読取り、Composition
-    # builder が section キーを番号 code(312/322/342/352/360)に変換する。
+    # builder(`_JP_DS_SECTION_CODE`)が section キーを番号 code に変換する。
     composition_sections_jp:
+      # Admission side (5)
       - admission_reason
       - admission_details
       - admission_diagnoses
       - chief_complaint
       - present_illness
+      # Discharge side (5, session 59 #286)
+      - hospital_course
+      - discharge_details
+      - discharge_diagnoses
+      - discharge_medications
+      - discharge_instructions
     stage2_strategy: template_seed
     llm_enabled_sections: [hospital_course, discharge_instructions]
     # β-JP-1 seam:JP-CLINS の 5 section 中、現病歴(present_illness / 360)

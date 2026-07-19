@@ -420,11 +420,19 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
     "chief_complaint": "352",  # chiefComplaintsSection / 主訴
     "present_illness": "360",  # presentIllnessSection / 現病歴
     # Discharge side (5 slices — session 58 Chain #9 additions)
+    # session 59 #286:sections dict の key を `medication_on_discharge` /
+    # `instruction_on_discharge` から narrative generator の実キー
+    # `discharge_medications` / `discharge_instructions` に修正。前者は
+    # session 58 Chain #9 で slice 名(medicationOnDischarge)を key にした
+    # ためだが narrative pass 側は `_build_discharge_medications` /
+    # `_build_discharge_instructions` を α-min-1 から流用しており key 名
+    # が `discharge_medications` / `discharge_instructions`。key drift で
+    # sections.get(...) が常に空になり FHIR R4 `txt-2` 違反 260+ 件。
     "hospital_course": "333",  # hospitalCourseSection / 入院中経過
     "discharge_details": "324",  # detailsOnDischargeSection / 退院時詳細
     "discharge_diagnoses": "344",  # diagnosesOnDischargeSection / 退院時診断
-    "medication_on_discharge": "444",  # medicationOnDischargeSection / 退院時投薬指示
-    "instruction_on_discharge": "424",  # instructionOnDischargeSection / 退院時方針指示
+    "discharge_medications": "444",  # medicationOnDischargeSection / 退院時投薬指示
+    "discharge_instructions": "424",  # instructionOnDischargeSection / 退院時方針指示
 }
 
 
