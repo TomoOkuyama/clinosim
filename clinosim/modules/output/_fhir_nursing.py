@@ -26,7 +26,8 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
     """Build FHIR Observation resources for nursing flowsheet data (category=survey).
 
     Emits observations for:
-    - NEWS2 score (no authoritative LOINC — code.text only)
+    - NEWS2 score (clinosim custom `nursing-scores` CS — LOINC 2.82 has no
+      canonical NEWS2 code; #269 fix)
     - GCS total (LOINC 9269-2)
     - Braden scale total (LOINC 38227-5)
     - Morse fall risk total (LOINC 59460-6) with fall_risk_level in interpretation
@@ -83,13 +84,23 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
         news2 = vs.get("news2_score")
         if news2 is not None:
             obs = _obs_base(f"news2-{enc or ctx.patient_id}-{i}", effective, performer_id)
-            # C2-30 (session 42 cycle 2): NEWS2 has an authoritative LOINC
-            # code — 90557-9 "National Early Warning Score (NEWS) 2 [Score]"
-            # (verified via LOINC search). Was text-only per earlier brief,
-            # 118,131 Observations lacked coding as a result.
+            # Session 58 Issue #269: NEWS2 does NOT have a canonical LOINC
+            # 2.82 code — the previously-used `90557-9` is not in LOINC
+            # (the closest entry `90557-0` is unrelated sleep-study data).
+            # Emit under a clinosim-owned `nursing-scores` CS instead so
+            # validators can either resolve or accept it as a locally-defined
+            # coding. Session 42 comment that claimed LOINC coverage was
+            # incorrect.
+            _news2_display = code_lookup("clinosim-nursing-scores", "NEWS2", lang) or "NEWS2"
             obs["code"] = {
-                "coding": [_loinc_coding("90557-9", lang)],
-                "text": code_lookup("loinc", "90557-9", lang) or "NEWS2",
+                "coding": [
+                    {
+                        "system": get_system_uri("clinosim-nursing-scores"),
+                        "code": "NEWS2",
+                        "display": _news2_display,
+                    }
+                ],
+                "text": _news2_display,
             }
             obs["valueInteger"] = int(news2)
             out.append(obs)
