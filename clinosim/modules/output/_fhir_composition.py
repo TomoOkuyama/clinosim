@@ -724,9 +724,11 @@ _JP_ER_TOP_LEVEL_ENTRY: dict[str, list[dict[str, str]]] = {
 # documentSubTypeCode.json)。
 _JP_ER_CATEGORY_CODE = "CONSULT"
 _JP_ER_CATEGORY_DISPLAY_JA = "他科コンサルト"
-# event.code は min=1 だが coding は不要、text-only CodeableConcept で満た
-# せる。narrative 用に定型文字列を pin。
-_JP_ER_EVENT_CODE_TEXT_JA = "他医療機関紹介"
+# #309 session 60:event.code.text は権威 spec の fixedString。
+# StructureDefinition-JP-Composition-eReferral.json:
+#   Composition.event.code.text.fixedString = "診療情報提供書発行"
+#   Composition.event.code.coding max=0(coding 禁止、text-only)
+_JP_ER_EVENT_CODE_TEXT_JA = "診療情報提供書発行"
 
 
 def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
@@ -805,12 +807,17 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     # #289:Composition.event.code min=1(coding は不要、text で満たす)。
     # generic builder が既に event[0]{period,detail} を set 済のため、既存
     # event[0] に code を追加。event 未 set の場合も安全に追加。
+    # #309 session 60:code は Array 必須(FHIR JSON serialization、base
+    # `Composition.event.code` cardinality `0..*`。profile は max=1 で
+    # 制限するが JSON は依然 Array 表現)。v6 で 15 件 structure error
+    # "プロパティcode は JSON 配列でなければならず、an Object ではありません"
+    # の regression fix。
     events = comp.setdefault("event", [])
     if not events:
         events.append({})
     events[0].setdefault(
         "code",
-        {"text": _JP_ER_EVENT_CODE_TEXT_JA},
+        [{"text": _JP_ER_EVENT_CODE_TEXT_JA}],
     )
 
     # #296 (session 59):`_one_section` に entry_refs 引数を追加し、920 /
