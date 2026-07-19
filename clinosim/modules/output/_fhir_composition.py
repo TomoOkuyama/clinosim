@@ -626,6 +626,20 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
 }
 
 
+
+# session 59 #289 sibling of eDS Chain #9:JP-CLINS eReferral は eDS と同
+# 5 top-level 制約を持つ(extension:version min=1 / category min=1 /
+# author min=2 / meta.lastUpdated min=1 / event.code min=1)。CONSULT
+# は authoritative doc-subtypecodes CS "他科コンサルト"(spec:
+# clinical-information-sharing#1.12.0/package/CodeSystem-jp-codeSystem-
+# documentSubTypeCode.json)。
+_JP_ER_CATEGORY_CODE = "CONSULT"
+_JP_ER_CATEGORY_DISPLAY_JA = "他科コンサルト"
+# event.code は min=1 だが coding は不要、text-only CodeableConcept で満た
+# せる。narrative 用に定型文字列を pin。
+_JP_ER_EVENT_CODE_TEXT_JA = "他医療機関紹介"
+
+
 def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
     """JP-CLINS eReferral v1.12.0 準拠 Composition を emit する。
 
@@ -638,6 +652,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
           300 の下:950 紹介目的, 340 傷病名・主訴, 360 現病歴
         section.code.system は JP-CLINS document-section CodeSystem
         (URL: `http://jpfhir.jp/fhir/clins/CodeSystem/document-section`)固定。
+      - session 59 #289:eDS Chain #9 の 5 top-level 制約を eReferral にも適用。
     """
     comp = _build_composition_generic(doc, sections, lang)
 
@@ -646,6 +661,13 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     profs = meta.setdefault("profile", [])
     if _JP_CLINS_REFERRAL_PROFILE not in profs:
         profs.append(_JP_CLINS_REFERRAL_PROFILE)
+
+    # #289:meta.lastUpdated min=1(Chain #9 pattern)。builder-set 済なら尊重、
+    # 未 set なら authored_datetime へ fallback。
+    if not meta.get("lastUpdated"):
+        ts = _o(doc, "authored_datetime", "")
+        if ts:
+            meta["lastUpdated"] = ts
 
     # `type` field:57133-1 (eReferral / referral note)
     # Session 57 v3 fix: eReferral profile constrains type.coding to a
@@ -659,6 +681,51 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
         "text": disp,
     }
     comp["title"] = disp
+
+    # #289 (Chain #9 pattern):Composition.extension:version min=1。
+    # 文書 revision 番号は未 tracking のため "1"(initial issue)を pin。
+    exts = comp.setdefault("extension", [])
+    if not any(isinstance(e, dict) and e.get("url") == _JP_EDS_VERSION_EXTENSION_URL for e in exts):
+        exts.append({"url": _JP_EDS_VERSION_EXTENSION_URL, "valueString": "1"})
+
+    # #289 (Chain #9 pattern):Composition.category min=1 max=1 — fixed to
+    # CONSULT("他科コンサルト")under doc-subtypecodes CS(authoritative
+    # display verified in spec CodeSystem file)。
+    comp["category"] = [
+        {
+            "coding": [
+                {
+                    "system": _JPFHIR_DOC_SUBTYPECODES_SYSTEM,
+                    "code": _JP_ER_CATEGORY_CODE,
+                    "display": _JP_ER_CATEGORY_DISPLAY_JA,
+                }
+            ]
+        }
+    ]
+
+    # #289 (Chain #9 pattern):Composition.author min=2 — 文書作成責任者
+    # (Practitioner)+ 文書作成機関(Organization)。generic builder は既に
+    # Practitioner を author[0] に置くので Organization reference を追加。
+    authors = comp.setdefault("author", [])
+    if not isinstance(authors, list):
+        authors = []
+        comp["author"] = authors
+    if not any(
+        isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/")
+        for a in authors
+    ):
+        authors.append({"reference": "Organization/hospital-main"})
+
+    # #289:Composition.event.code min=1(coding は不要、text で満たす)。
+    # generic builder が既に event[0]{period,detail} を set 済のため、既存
+    # event[0] に code を追加。event 未 set の場合も安全に追加。
+    events = comp.setdefault("event", [])
+    if not events:
+        events.append({})
+    events[0].setdefault(
+        "code",
+        {"text": _JP_ER_EVENT_CODE_TEXT_JA},
+    )
 
     def _one_section(section_code: str, text_val: str) -> dict[str, Any]:
         # Session 58 Chain #8: title = short form, display = long form.
