@@ -172,3 +172,25 @@ def test_icd10_who_file_has_no_cm_granular_codes() -> None:
     """The WHO ICD-10 data file must not contain ICD-10-CM-granularity codes."""
     bad = sorted(c for c in WHO if not _WHO_FORMAT.match(c))
     assert not bad, f"icd-10.yaml (WHO) contains non-WHO-format (ICD-10-CM) codes: {bad}"
+
+
+def test_hapi_absent_who_codes_are_remapped() -> None:
+    """#284 regression: 3 WHO ICD-10 codes historically emitted by clinosim are
+    absent from HAPI's ICD-10 CS (2019-covid-expanded, content=complete) and
+    were remapped to HAPI-present equivalents. Pin the remap so a future
+    accidental re-introduction is caught in CI.
+
+    - I84 (Haemorrhoids) → K64.9 (WHO 2013+; I84 was retired)
+    - R33.9 (Retention of urine, unspecified) → R33 (HAPI has no R33 subcodes)
+    - S62.9 → S62.8 (HAPI attaches the "other/unspecified wrist/hand fracture"
+      display to S62.8, not S62.9)
+    """
+    assert "I84" not in WHO, "I84 was retired from WHO ICD-10 2013+; use K64.9 (#284)"
+    assert "R33.9" not in WHO, "HAPI ICD-10 CS has no R33 subcodes; use R33 (#284)"
+    assert "S62.9" not in WHO, "HAPI ICD-10 CS attaches the display to S62.8 (#284)"
+    assert "K64.9" in WHO, "K64.9 (Haemorrhoids, unspecified) required (#284)"
+    assert "R33" in WHO, "R33 (Retention of urine) required (#284)"
+    assert "S62.8" in WHO, "S62.8 (Fracture of other/unspecified wrist/hand) required (#284)"
+    # JP code_mapping must fold CM/legacy codes to the HAPI-present WHO code.
+    assert JP_MAP.get("R33.9") == "R33", "jp map R33.9 → R33 required (#284)"
+    assert JP_MAP.get("S62.90XA") == "S62.8", "jp map S62.90XA → S62.8 required (#284)"

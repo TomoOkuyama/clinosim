@@ -95,7 +95,7 @@ chronic_prevalence:
   K59:      # Chronic constipation — MHLW: 60+ 15%, 70+ 20%
     "60-69": 0.15
     "70-99": 0.20
-  I84:      # Hemorrhoids — MHLW: 40+ 15%
+  K64.9:    # Haemorrhoids, unspecified (WHO 2013+; I84 retired) — MHLW: 40+ 15%
     "40-99": 0.15
   K74:      # Chronic liver disease — MHLW: 40+ 3% (JP hepatitis-B/C
             # cohort elevated)
