@@ -42,7 +42,7 @@ _ALLOWLIST_PATH = Path(__file__).parent / "authoritative_override_allowlist.yaml
 
 # Systems whose `data/*.yaml` is cross-checked against a snapshot. Extend this
 # tuple as each additional code system migrates into the framework (SNOMED,
-# ICD-10, MEDIS keyNumber, BCP-47, LOINC).
+# MEDIS keyNumber, BCP-47, LOINC).
 _SYSTEMS_UNDER_CROSS_CHECK: tuple[dict, ...] = (
     {
         "system_key": "yj",
@@ -50,6 +50,14 @@ _SYSTEMS_UNDER_CROSS_CHECK: tuple[dict, ...] = (
         # Which language field in the clinosim YAML is expected to match the
         # snapshot's `display`. YJ 製剤名 is Japanese only on the tx-server.
         "compare_lang": "ja",
+    },
+    {
+        "system_key": "icd-10",
+        "snapshot_file": "icd10_who_tx.json",
+        # WHO ICD-10 CodeSystem carries only English preferred terms; the
+        # tx-server has no Japanese designations, so we verify the `en`
+        # field. Session 58 Chain #6 (Phase 2 framework citizen).
+        "compare_lang": "en",
     },
 )
 
