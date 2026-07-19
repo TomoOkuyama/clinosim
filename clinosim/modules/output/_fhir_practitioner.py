@@ -119,6 +119,10 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         # validator に "code 未定義" と reject される。v2-0360 に含まれる code
         # (MD/DO/RN/PA 等)は system 付き coding、それ以外は text-only fallback。
         # v2-0360 定義済 code(HL7 official table 0360)
+        # session 59 #299:PT/OT/MSW/ST は v2-0360 に存在しない code(HAPI
+        # は tx-server-build/CodeSystem-v2-0360.json 権威 61 concepts のみ受理)。
+        # 従来 fabricated として登録していたため v5 で 10 件 unknown-code error。
+        # v2-0360 未定義 code(PT/OT/ST/MSW/RD 等)は text-only fallback へ。
         _V2_0360_VALID_CODES = {
             "MD",
             "DO",
@@ -127,10 +131,6 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             "PA",
             "NP",
             "CNM",  # 医師系 + 看護系
-            "PT",
-            "OT",
-            "MSW",
-            "ST",  # 療法士系
             "BA",
             "BS",
             "MBA",

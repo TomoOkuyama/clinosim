@@ -10,4 +10,6 @@ metadata:
   source: "HL7 Terminology (THO)"
 codes:
   home:    {en: "Home", ja: "自宅退院"}
-  expired: {en: "Expired", ja: "死亡退院"}
+  # session 59 #299:HL7 authoritative code is "exp" (not "expired"). See
+  # tx-server-build/.../CodeSystem-discharge-disposition.json 権威 concept。
+  exp: {en: "Expired", ja: "死亡退院"}
