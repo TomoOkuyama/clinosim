@@ -178,7 +178,25 @@ def _build_imaging_study(
             _contrast = bool(_o(study, "contrast", False))
             _ck = _resolve_imaging_procedure_code_key(modality_code, _bs_key, [], _contrast)
             _proc = (body_sites[_bs_key].get("procedure_codes") or {}).get(_ck, {})
-            _proc_loinc = _proc.get("loinc", "")
+            _proc_loinc = _proc.get
+            if lang != "ja":
+                if _proc_loinc:
+                    res["procedureCode"] = [
+                        {
+                            "coding": [
+                                {
+                                    "system": get_system_uri("loinc"),
+                                    "code": _proc_loinc,
+                                    "display": _proc.get("display_en", _proc_loinc),
+                                }
+                            ],
+                            "text": _proc.get("display_%s" % lang) or _proc.get("display_en", _proc_loinc),
+                        }
+                    ]
+            else:
+                _proc_text = _proc.get("display_%s" % lang) or _proc.get("display_en", "")
+                if _proc_text:
+                    res["procedureCode"] = [{"text": _proc_text}]("loinc", "")
             _proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
             if _proc_loinc:
                 # #315 session 60:JP output は procedureCode を text-only
