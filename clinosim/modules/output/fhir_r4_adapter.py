@@ -1649,16 +1649,17 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                     ]
                 }
 
-        # (5) Replace `timing.repeat.periodUnit='d'` with an equivalent
-        # `timing.repeat.boundsDuration` slice (session 58 Chain #2). The bare
-        # `periodUnit` code hits R4's UnitsOfTime binding, which the JP tx-
-        # server cannot resolve (UCUM not loaded) → 1,760 errors/fullset.
-        # Duration carries `system` inline (`http://unitsofmeasure.org`) so
-        # the validator can resolve `d` directly. The JP-CLINS example fixture
-        # emits both fields together, but dropping the periodUnit is the
-        # narrower spec-compliant change that eliminates the validator error
-        # without altering the semantic (frequency + period stay to describe
-        # cadence; boundsDuration takes over the time-unit anchoring).
+        # (5) Add a `timing.repeat.boundsDuration` slice alongside the
+        # existing `timing.repeat.periodUnit='d'` (session 58 Chain #2 で
+        # `boundsDuration` を追加、session 59 #281 で `periodUnit` の pop を
+        # 撤回). The JP-CLINS example fixture emits BOTH `periodUnit` and
+        # `boundsDuration`; that is the spec-compliant pattern. The earlier
+        # `.pop("periodUnit")` was intended to sidestep a UnitsOfTime binding
+        # error (1,760 errors/fullset in v4-era tx-server config), but v5
+        # showed 0 UnitsOfTime errors and 1,748 FHIR R4 `tim-2` errors
+        # instead (period.exists() ⇒ periodUnit.exists()). Keeping the pair
+        # atomic satisfies tim-2; `boundsDuration` remains as the redundant
+        # anchoring the JP-CLINS fixture also emits.
         repeat = timing.get("repeat")
         if isinstance(repeat, dict) and repeat.get("periodUnit") == "d":
             bounds = repeat.get("boundsDuration")
@@ -1674,7 +1675,6 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                     "system": _UCUM_SYSTEM_URI,
                     "code": _UCUM_DAY_CODE,
                 }
-            repeat.pop("periodUnit", None)
 
 
 def _copy_display_from_sibling_coding(codings: list, lang: str = "en") -> None:

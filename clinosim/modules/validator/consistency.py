@@ -110,22 +110,23 @@ def _check_discharge_hgb(record: CIFPatientRecord, pid: str, report: Consistency
 def _check_deceased_status(record: CIFPatientRecord, pid: str, report: ConsistencyReport) -> None:
     """Deceased patients must have discharge_disposition=expired."""
     enc = record.encounters[0]
-    if record.deceased and enc.discharge_disposition != "expired":
+    # session 59 #299:HL7 authoritative code is "exp"(not "expired")。
+    if record.deceased and enc.discharge_disposition != "exp":
         report.add(
             ConsistencyIssue(
                 pid,
                 "error",
                 "deceased_disposition",
-                f"Deceased but disposition={enc.discharge_disposition} (expected 'expired')",
+                f"Deceased but disposition={enc.discharge_disposition} (expected 'exp')",
             )
         )
-    if not record.deceased and enc.discharge_disposition == "expired":
+    if not record.deceased and enc.discharge_disposition == "exp":
         report.add(
             ConsistencyIssue(
                 pid,
                 "error",
                 "alive_but_expired",
-                "Not deceased but disposition='expired'",
+                "Not deceased but disposition='exp'",
             )
         )
 

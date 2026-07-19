@@ -130,14 +130,19 @@ def _build_imaging_study(
             }
         ],
         "status": _o(study, "status", "available"),
-        "modality": modality_field,
         "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
         "encounter": {"reference": f"Encounter/{_o(study, 'encounter_id', '')}"},
         "basedOn": [{"reference": f"ServiceRequest/{SR_ID_PREFIX}{_o(study, 'order_id', '')}"}],
         "numberOfSeries": len(series_resources),
         "numberOfInstances": total_instances,
-        "series": series_resources,
     }
+    # session 59 #299:FHIR R4 "配列は空にできません" 制約 — modality / series
+    # は 0..* だが FHIR 一般則で空 array の emit は禁止(v5 で 48 件 error)。
+    # stub-only ImagingStudy(modality_code 空)では両 field を drop。
+    if modality_field:
+        res["modality"] = modality_field
+    if series_resources:
+        res["series"] = series_resources
     # endpoint は stub でない時のみ emit(PACS 参照)
     endpoint_id = _o(study, "endpoint_id", "")
     if endpoint_id:

@@ -4,15 +4,12 @@
     "source_url": "http://hl7.org/fhir/sid/icd-10",
     "source_file": "CodeSystem-icd-10.json",
     "source_content_mode": "complete",
-    "source_content_note": "The source CodeSystem is marked content=complete (all 13,831 WHO ICD-10 concepts). The snapshot filters to codes clinosim emits (320) so shipped size stays small; unlike the fragment-content YJ snapshot, missing codes here mean clinosim references a WHO code that does not exist upstream (typically ICD-10-CM-only sub-granularity or legacy codes), not an incomplete fragment.",
+    "source_content_note": "The source CodeSystem is marked content=complete (all 13,831 WHO ICD-10 concepts). The snapshot filters to codes clinosim emits (320) so shipped size stays small; unlike the fragment-content YJ snapshot, missing codes here mean clinosim references a WHO code that does not exist upstream (typically ICD-10-CM-only sub-granularity or legacy codes), not an incomplete fragment. Session 59 #284: I84 → K64.9, R33.9 → R33, S62.9 → S62.8 to align with HAPI ICD-10 2019-covid-expanded (86 v5 errors closed).",
     "fetched_from": "https://github.com/iryohjoho/fhir-jp-validator tx-server-build/",
     "extracted_at": "2026-07-19",
     "clinosim_codes_total": 320,
-    "clinosim_codes_in_source": 316,
+    "clinosim_codes_in_source": 319,
     "clinosim_codes_missing_from_source": [
-      "I84",
-      "R33.9",
-      "S62.9",
       "S67.2"
     ],
     "note": "WHO ICD-10 authoritative displays for the codes clinosim emits."
@@ -4342,6 +4339,21 @@
       ]
     },
     {
+      "code": "K64.9",
+      "display": "Haemorrhoids, unspecified",
+      "definition": "Haemorrhoids, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "K64"
+        }
+      ]
+    },
+    {
       "code": "K65.0",
       "display": "Acute peritonitis",
       "definition": "Acute peritonitis",
@@ -6848,6 +6860,17 @@
       ]
     },
     {
+      "code": "R33",
+      "display": "Retention of urine",
+      "definition": "Retention of urine",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        }
+      ]
+    },
+    {
       "code": "R42",
       "display": "Dizziness and giddiness",
       "definition": "Dizziness and giddiness",
@@ -7820,6 +7843,21 @@
       "code": "S62.0",
       "display": "Fracture of navicular [scaphoid] bone of hand",
       "definition": "Fracture of navicular [scaphoid] bone of hand",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "S62"
+        }
+      ]
+    },
+    {
+      "code": "S62.8",
+      "display": "Fracture of other and unspecified parts of wrist and hand",
+      "definition": "Fracture of other and unspecified parts of wrist and hand",
       "property": [
         {
           "code": "kind",
