@@ -194,10 +194,14 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             phys_display = "Ward"
             if ward == "ER":
                 phys_type = "area"
-                phys_display = "Emergency Room"
+                # session 59 #299:location-physical-type CS の code "area"
+                # の権威 display は "Area"。従来 "Emergency Room" を出していた
+                # が HAPI Wrong Display 検出(1 件 v5)。ER 由来の semantic
+                # は Location.name / description で保持済。
+                phys_display = "Area"
             elif ward == "OPD":
                 phys_type = "area"
-                phys_display = "Outpatient Clinic"
+                phys_display = "Area"  # #299: 同 CS 権威 display
             org_ref = f"Organization/dept-{dept.replace('_', '-')}"
             # C4-14 (session 43 cycle 4): Location.type per HL7 v3-RoleCode.
             if ward == "ER":
