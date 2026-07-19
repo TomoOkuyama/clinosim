@@ -283,3 +283,86 @@ def test_escape_html_quotes():
 
 def test_escape_html_passthrough_plain():
     assert _escape_html("Normal finding. No acute changes.") == "Normal finding. No acute changes."
+
+
+# ---------------------------------------------------------------------------
+# session 59 #218: JP DR Radiology profile constraints
+# ---------------------------------------------------------------------------
+
+
+def test_jp_radiology_dr_uses_radiology_profile_not_common():
+    """#218:JP output は `JP_DiagnosticReport_Radiology` profile を emit。
+    session 46 chain #2 は誤って `_Common` を使用していた(v5 で 499 errors)。
+    walker `_apply_jp_core_profile` は variant profile 存在時 Common 追加を skip。
+    """
+    from clinosim.modules.output._fhir_diagnostic_report import (
+        _JP_DR_RADIOLOGY_PROFILE,
+    )
+
+    ctx = _make_ctx([_sample_study()], country="jp")
+    dr = _rad_drs(ctx)[0]
+    profs = dr.get("meta", {}).get("profile", [])
+    assert _JP_DR_RADIOLOGY_PROFILE in profs
+    # Common profile は emit されない(walker が variant 検出で skip する)。
+    # Ideally walker runs upstream at bundle assembly; ensure builder itself
+    # does not emit Common as a builder-level default.
+    assert "JP_DiagnosticReport_Common" not in "|".join(profs)
+
+
+def test_jp_radiology_dr_category_two_slices_loinc_and_dicom():
+    """#218:spec `category:first` = LOINC LP29684-5, `category:second` = DICOM modality。"""
+    from clinosim.modules.output._fhir_diagnostic_report import (
+        _JP_DR_DICOM_MODALITY_SYSTEM,
+        _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE,
+    )
+
+    ctx = _make_ctx([_sample_study()], country="jp")
+    dr = _rad_drs(ctx)[0]
+    cats = dr.get("category", [])
+    assert len(cats) == 2, cats
+    # first = LOINC LP29684-5
+    first = cats[0]["coding"][0]
+    assert first["system"] == "http://loinc.org"
+    assert first["code"] == _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE == "LP29684-5"
+    # second = DICOM modality
+    second = cats[1]["coding"][0]
+    assert second["system"] == _JP_DR_DICOM_MODALITY_SYSTEM
+    assert second["code"] == "CR"
+
+
+def test_jp_radiology_dr_code_coding_prepends_document_codes_18748_4():
+    """#218:spec `code.coding:radiologyReportCode` = JP_DocumentCodes_CS 18748-4
+    "画像検査報告書" を必須。既存 LOINC procedure code は secondary として維持。
+    """
+    from clinosim.modules.output._fhir_diagnostic_report import (
+        _JP_DOCUMENT_CODES_CS,
+        _JP_DR_RADIOLOGY_REPORT_CODE,
+        _JP_DR_RADIOLOGY_REPORT_DISPLAY_JA,
+    )
+
+    ctx = _make_ctx([_sample_study()], country="jp")
+    dr = _rad_drs(ctx)[0]
+    codings = dr.get("code", {}).get("coding", [])
+    assert len(codings) >= 2
+    # primary = radiologyReportCode slice
+    assert codings[0]["system"] == _JP_DOCUMENT_CODES_CS
+    assert codings[0]["code"] == _JP_DR_RADIOLOGY_REPORT_CODE == "18748-4"
+    assert codings[0]["display"] == _JP_DR_RADIOLOGY_REPORT_DISPLAY_JA == "画像検査報告書"
+    # secondary = LOINC procedure code
+    assert any(c["system"] == "http://loinc.org" for c in codings[1:])
+
+
+def test_us_radiology_dr_unchanged_from_session_58():
+    """#218:US output は変更なし(SNOMED + v2-0074 category、LOINC procedure code
+    のみ)。JP-only 変更を pin。"""
+    ctx = _make_ctx([_sample_study()], country="us")
+    dr = _rad_drs(ctx)[0]
+    # meta.profile を JP Core にしない
+    profs = dr.get("meta", {}).get("profile", [])
+    assert not any("jpfhir.jp" in p for p in profs)
+    # category dual coding 維持
+    cats = dr.get("category", [])
+    assert len(cats) == 1
+    codes = {c["code"] for c in cats[0]["coding"]}
+    assert RADIOLOGY_CATEGORY_SNOMED in codes
+    assert RADIOLOGY_CATEGORY_V2_0074 in codes
