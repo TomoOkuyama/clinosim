@@ -1649,17 +1649,28 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                     ]
                 }
 
-        # (5) Add a `timing.repeat.boundsDuration` slice alongside the
-        # existing `timing.repeat.periodUnit='d'` (session 58 Chain #2 で
-        # `boundsDuration` を追加、session 59 #281 で `periodUnit` の pop を
-        # 撤回). The JP-CLINS example fixture emits BOTH `periodUnit` and
-        # `boundsDuration`; that is the spec-compliant pattern. The earlier
-        # `.pop("periodUnit")` was intended to sidestep a UnitsOfTime binding
-        # error (1,760 errors/fullset in v4-era tx-server config), but v5
-        # showed 0 UnitsOfTime errors and 1,748 FHIR R4 `tim-2` errors
-        # instead (period.exists() ⇒ periodUnit.exists()). Keeping the pair
-        # atomic satisfies tim-2; `boundsDuration` remains as the redundant
-        # anchoring the JP-CLINS fixture also emits.
+        # (5) Add a `timing.repeat.boundsDuration` slice + strip
+        # `periodUnit='d'`/`period` on JP output.
+        #
+        # 履歴:
+        # - session 58 Chain #2:元の狙いは boundsDuration only 化
+        #   (UnitsOfTime binding 回避)
+        # - session 59 #281:JP-CLINS example fixture が両方 emit する
+        #   ことを根拠に `periodUnit` の pop を撤回
+        # - v6 (session 60):HAPI validator が `periodUnit=code`(FHIR R4
+        #   `code` type は system 情報を持たない)の binding 検証で
+        #   system URI を決定できず 3,532 件 UnitsOfTime error 発火
+        #   (v5 では 0 件だった regression、tim-2 と分岐した振舞い)
+        # - #307 session 60(判断リカバリ pragmatic middle path):
+        #   spec は example と別。JP-CLINS example が両方 emit しても
+        #   spec が両方 required とは限らず、boundsDuration + frequency
+        #   で per-day cadence 情報は spec-valid に保持可能。session 58
+        #   chain #2 元の狙いに復帰し、`periodUnit` + `period` を pop
+        #   する(tim-2 non-fire + UnitsOfTime binding 対象外)。
+        #
+        # US 側は影響なし(この walker は JP-only、_fhir_common.py の
+        # `period + periodUnit` はそのまま emit される。US は FHIR R4
+        # 標準 validator が `code` binding を通す仕様)。
         repeat = timing.get("repeat")
         if isinstance(repeat, dict) and repeat.get("periodUnit") == "d":
             bounds = repeat.get("boundsDuration")
@@ -1675,6 +1686,12 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                     "system": _UCUM_SYSTEM_URI,
                     "code": _UCUM_DAY_CODE,
                 }
+            # #307 session 60:pop `periodUnit` + `period` after boundsDuration
+            # is populated. tim-2 (period.exists() implies periodUnit.exists())
+            # は pair で無くなれば non-fire。frequency + boundsDuration で
+            # per-day cadence は保持。
+            repeat.pop("periodUnit", None)
+            repeat.pop("period", None)
 
 
 def _copy_display_from_sibling_coding(codings: list, lang: str = "en") -> None:

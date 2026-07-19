@@ -270,12 +270,18 @@ def test_dose_and_rate_type_not_overwritten_when_present():
     assert r["dosageInstruction"][0]["doseAndRate"][0]["type"] == pre
 
 
-def test_period_unit_d_kept_and_bounds_duration_added():
-    """#281:walker は `timing.repeat.periodUnit='d'` を保持しつつ
-    `boundsDuration` を追加する。session 58 では `periodUnit` を pop していた
-    が、FHIR R4 `tim-2`(`period.exists() ⇒ periodUnit.exists()`)を 1748
-    件違反していたため session 59 で撤回。JP-CLINS example fixture も両
-    field を同時 emit するのが spec-compliant pattern。
+def test_period_unit_d_stripped_and_bounds_duration_added():
+    """#307 session 60:walker は `timing.repeat.periodUnit='d'` +
+    `period` を pop し `boundsDuration` を代わりに emit する(session 58
+    Chain #2 の元の狙いに復帰、pragmatic middle path)。
+
+    - session 58 Chain #2:boundsDuration only 化(UnitsOfTime binding 回避)
+    - session 59 #281:JP-CLINS example fixture 準拠で `periodUnit` pop 撤回
+    - v6 (session 60):HAPI validator が `periodUnit=code` の binding 検証で
+      system URI を決定できず 3,532 件 UnitsOfTime error(v5 では 0 件)
+    - #307:JP-CLINS example ≠ spec required。boundsDuration + frequency
+      で per-day cadence を保持できるので pop 復活で spec-valid かつ
+      HAPI validator green。tim-2 non-fire(period 消えるので pair 不成立)。
     """
     r = {
         "resourceType": "MedicationRequest",
@@ -290,17 +296,20 @@ def test_period_unit_d_kept_and_bounds_duration_added():
     }
     _populate_jp_medication_dosage_ecs_fields(r)
     repeat = r["dosageInstruction"][0]["timing"]["repeat"]
-    # #281 regression: periodUnit MUST stay to satisfy FHIR R4 tim-2.
-    assert repeat.get("periodUnit") == "d"
-    # boundsDuration still added (session 58 Chain #2 intent preserved).
+    # #307 session 60: periodUnit + period stripped after boundsDuration
+    # is populated. HAPI validator UnitsOfTime binding error 回避 + tim-2
+    # non-fire。
+    assert "periodUnit" not in repeat
+    assert "period" not in repeat
+    # boundsDuration 追加(session 58 Chain #2 intent restored)。
     assert repeat["boundsDuration"] == {
         "value": 1,
         "unit": _UCUM_DAY_UNIT_JA,
         "system": _UCUM_SYSTEM_URI,
         "code": _UCUM_DAY_CODE,
     }
-    # frequency + period preserved (cadence semantics still needed).
-    assert repeat["frequency"] == 1 and repeat["period"] == 1
+    # frequency は保持(per-day cadence 意味を担う)。
+    assert repeat["frequency"] == 1
 
 
 def test_period_unit_non_day_left_untouched():
@@ -344,6 +353,9 @@ def test_bounds_duration_not_overwritten_when_builder_supplied():
     _populate_jp_medication_dosage_ecs_fields(r)
     repeat = r["dosageInstruction"][0]["timing"]["repeat"]
     assert repeat["boundsDuration"] == pre
-    # #281: periodUnit is now kept alongside boundsDuration (both required —
-    # periodUnit to satisfy tim-2, boundsDuration to match JP-CLINS fixture).
-    assert repeat.get("periodUnit") == "d"
+    # #307 session 60: builder が boundsDuration を pre-populate 済でも
+    # walker は同じく periodUnit + period を pop する(HAPI validator
+    # UnitsOfTime binding error 回避のため、条件式は periodUnit == "d"
+    # gate なので pre-populated boundsDuration も安全に pop 経路に乗る)。
+    assert "periodUnit" not in repeat
+    assert "period" not in repeat
