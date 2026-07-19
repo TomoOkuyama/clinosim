@@ -181,18 +181,33 @@ def _build_imaging_study(
             _proc_loinc = _proc.get("loinc", "")
             _proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
             if _proc_loinc:
-                res["procedureCode"] = [
-                    {
-                        "coding": [
-                            {
-                                "system": get_system_uri("loinc"),
-                                "code": _proc_loinc,
-                                "display": _proc_display,
-                            }
-                        ],
-                        "text": _proc_display,
-                    }
-                ]
+                # #315 session 60:JP output は procedureCode を text-only
+                # で emit。JP_ImagingStudy_Radiology profile は procedureCode
+                # binding strength "required" + valueSet =
+                # http://playbook.radlex.org/playbook/SearchRadlexAction
+                # (RadLexPlaybook)。clinosim は LOINC を emit しているため
+                # v6 で 571 件 validation error 発生。FHIR R4 required
+                # binding は "coding が存在する場合、少なくとも 1 つは VS
+                # から" = coding 無しなら satisfied。text で display 情報
+                # を保持しつつ binding error を回避する pragmatic middle
+                # path(RadLex → LOINC mapping table は別 chain)。
+                # US path は LOINC coding + text 両方 emit(US profile は
+                # 該当 binding なし)。
+                if lang == "ja":
+                    res["procedureCode"] = [{"text": _proc_display}] if _proc_display else []
+                else:
+                    res["procedureCode"] = [
+                        {
+                            "coding": [
+                                {
+                                    "system": get_system_uri("loinc"),
+                                    "code": _proc_loinc,
+                                    "display": _proc_display,
+                                }
+                            ],
+                            "text": _proc_display,
+                        }
+                    ]
         except ValueError:
             pass  # unknown combination, procedureCode omitted (forward-compat)
     return res

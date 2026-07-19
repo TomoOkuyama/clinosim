@@ -279,3 +279,50 @@ class TestFhirStubImagingStudy:
         assert r["modality"][0]["code"] == "CR"
         assert r["numberOfSeries"] == 1
         assert r["endpoint"][0]["reference"] == "Endpoint/ep-1.2.3.999"
+
+    def test_jp_procedure_code_text_only_no_loinc_coding(self):
+        """#314 session 60:JP output は procedureCode を text-only で emit
+        (JP_ImagingStudy_Radiology profile の RadLexPlaybook required binding
+        回避)。LOINC coding は US output のみ。v6 で 571 件 error。
+        """
+        from clinosim.modules.output._fhir_imaging_study import _build_imaging_study
+        from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord
+
+        study = ImagingStudyRecord(
+            study_id="ENC-1-1",
+            study_instance_uid="1.2.3.999",
+            encounter_id="ENC-1",
+            patient_id="POP-1",
+            order_id="ORD-3",
+            status="available",
+            started_datetime="2026-06-30T10:00:00",
+            modality_code="CR",
+            body_site_snomed="51185008",  # chest
+            series=[
+                ImagingSeries(
+                    series_uid="1.2.3.999.1",
+                    series_number=1,
+                    modality_code="CR",
+                    body_site_snomed="51185008",
+                    description="PA view",
+                    instance_count=1,
+                )
+            ],
+            endpoint_id="ep-1.2.3.999",
+            contrast=False,
+            report=None,
+        )
+        # JP output
+        r_jp = _build_imaging_study(study, "ja", enc_reason_by_id={})
+        if "procedureCode" in r_jp and r_jp["procedureCode"]:
+            pc = r_jp["procedureCode"][0]
+            # JP:coding 無し、text あり(RadLexPlaybook required binding 回避)
+            assert "coding" not in pc, f"JP procedureCode must be text-only (no LOINC coding). Got: {pc}"
+            assert pc.get("text"), "JP procedureCode text should carry display"
+        # US output
+        r_us = _build_imaging_study(study, "en", enc_reason_by_id={})
+        if "procedureCode" in r_us and r_us["procedureCode"]:
+            pc = r_us["procedureCode"][0]
+            # US:LOINC coding + text 両方 emit(US は該当 binding なし)
+            assert pc.get("coding"), "US procedureCode should emit LOINC coding"
+            assert pc["coding"][0].get("system") == "http://loinc.org"
