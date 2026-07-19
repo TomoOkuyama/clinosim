@@ -145,8 +145,15 @@ def test_jp_clins_referral_composition_chain9_pattern_top_level():
     assert comp["meta"]["lastUpdated"] == "2026-01-20T10:00:00"
 
     # 5. event.code min=1 (text-only satisfies)
+    # #309 session 60:code は Array 必須(FHIR JSON base cardinality 0..*)
+    # + text は spec fixedString "診療情報提供書発行"。
     events = comp.get("event", [])
-    assert events and events[0].get("code", {}).get("text") == _JP_ER_EVENT_CODE_TEXT_JA
+    assert events
+    code = events[0].get("code")
+    assert isinstance(code, list) and len(code) == 1
+    assert code[0].get("text") == _JP_ER_EVENT_CODE_TEXT_JA == "診療情報提供書発行"
+    # coding は spec max=0(text-only)。
+    assert "coding" not in code[0]
 
 
 @pytest.mark.unit
