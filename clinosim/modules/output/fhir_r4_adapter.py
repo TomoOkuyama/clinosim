@@ -2122,6 +2122,12 @@ def _apply_jp_core_profile(resource: dict) -> None:
     untouched when a builder has already set one. Appends any JP Core
     StructureDefinition URL that is not yet in `meta.profile[]`.
     Session 48 cleanup: dict shape unified with `_JP_CLINS_PROFILES` (list-of-URLs).
+
+    session 59 #218:radiology DR builder が `_Radiology` profile を pre-set
+    している場合、ここで `_Common` を追加すると 2 profile 併存で validator
+    がどちらの制約で検査するか曖昧化。同 resourceType で複数 JP Core profile
+    variants(_Common / _Radiology / _LabResult 等)が存在する場合、既に
+    variant profile が set 済なら generic Common の追加をスキップ。
     """
     rt = resource.get("resourceType", "")
     profiles = _JP_CORE_PROFILES.get(rt)
@@ -2129,6 +2135,12 @@ def _apply_jp_core_profile(resource: dict) -> None:
         return
     meta = resource.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
+    # session 59 #218:DR に variant profile(_Radiology / _LabResult)が
+    # pre-set 済なら Common を追加しない。
+    if rt == "DiagnosticReport":
+        _variant_prefix = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_"
+        if any(isinstance(p, str) and p.startswith(_variant_prefix) and not p.endswith("_Common") for p in profs):
+            return
     for profile in profiles:
         if profile not in profs:
             profs.append(profile)
