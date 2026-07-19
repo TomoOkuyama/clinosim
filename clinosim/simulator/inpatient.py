@@ -447,7 +447,7 @@ def _simulate_patient(
         encounter.admit_source_encounter_id = f"{encounter.encounter_id}-ED"
     if not encounter.discharge_disposition:
         if death_occurred:
-            encounter.discharge_disposition = "expired"
+            encounter.discharge_disposition = "exp"  # session 59 #299: HL7 authoritative
         else:
             encounter.discharge_disposition = "home"
     if not encounter.priority:
