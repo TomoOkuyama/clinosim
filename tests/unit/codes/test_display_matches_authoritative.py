@@ -75,14 +75,14 @@ _SYSTEMS_UNDER_CROSS_CHECK: tuple[dict, ...] = (
         "system_key": "loinc",
         "snapshot_file": "loinc_2_82_tx.json",
         # LOINC is English-only in the source; clinosim ships a mix of
-        # authoritative LOINC long_display + curated clinical shorthand (e.g.
-        # `Discharge summary note` vs LOINC's `Discharge summary`). A full
-        # display migration is tracked as a follow-up; this registration
-        # enforces the smaller invariant that every code clinosim emits
-        # actually exists in LOINC 2.82 (catches retired / renumbered /
-        # fabricated codes — the class of bug Issue #264 addresses).
+        # authoritative LOINC long_display + curated clinical shorthand.
+        # Session 58 Issue #270 (Phase 3-b) migrated from `presence` mode to
+        # full display verification. All 92 divergent codes are registered
+        # in `authoritative_override_allowlist.yaml` with per-code
+        # rationales (75 legitimate shorthand + 17 tracked semantic
+        # mismatches). Any NEW divergence introduced by a future edit fails
+        # CI unless a documented allowlist entry accompanies it.
         "compare_lang": "en",
-        "verify_mode": "presence",
     },
 )
 
