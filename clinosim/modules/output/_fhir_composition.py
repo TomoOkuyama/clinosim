@@ -61,6 +61,11 @@ __all__ = [
     "_bb_compositions",
 ]
 
+# session 59 #278:enc → free-text-doc-id 優先度用 LOINC 定数。
+# module-scope(function 内では N806 lint violation)。
+_HOSPITAL_COURSE_LOINC = "8648-8"
+_PROGRESS_NOTE_LOINC = "11506-3"
+
 
 # C2-27 (session 42 cycle 2): map section titles (as produced by document
 # enrichers / narrative pass) to LOINC section codes. Codes verified via the
@@ -177,8 +182,9 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     # First pass: encounter_id → primary free-text doc id.
     # Priority: 8648-8 (Hospital course) > 11506-3 (Progress note) > any
     # other free-text doc from the same encounter (last-wins fallback).
-    _HOSPITAL_COURSE_LOINC = "8648-8"
-    _PROGRESS_NOTE_LOINC = "11506-3"
+    # LOINC constants live at module scope (`_HOSPITAL_COURSE_LOINC` /
+    # `_PROGRESS_NOTE_LOINC`) — moved out of function body to satisfy
+    # N806 (session 59 #278 lint fix).
     enc_to_free_text: dict[str, str] = {}
     for doc in raw_docs:
         if _o(doc, "format_type", "") != "free_text":
