@@ -214,6 +214,22 @@ def test_jp_clins_composition_category_discharge():
 
 
 @pytest.mark.unit
+def test_jp_clins_composition_category_discharge_display_matches_cs_authoritative():
+    """#279 regression: `Composition.category.coding[0].display` must be
+    `退院時文書`(doc-subtypecodes CS authoritative)。session 58 Chain #9
+    は `退院時サマリー`(jpfhir-doc-typecodes 側 display)を誤って流用
+    し 126+126 errors を生んだ。CS 権威 display の drift を CI で検知。
+    """
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    coding = comp["category"][0]["coding"][0]
+    # authoritative doc-subtypecodes CS: DISCHARGE → "退院時文書"
+    assert coding["display"] == "退院時文書"
+
+
+@pytest.mark.unit
 def test_jp_clins_composition_meta_lastupdated_from_authored_datetime():
     """Chain #9: `Composition.meta.lastUpdated` min=1 — falls back to authored
     datetime when not builder-set."""
