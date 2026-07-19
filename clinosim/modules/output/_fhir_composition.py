@@ -351,6 +351,32 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
 }
 
 
+# Session 58 Chain #8: JP-CLINS Composition profiles pin
+# `section.code.coding.display` to the "…セクション" long form (spec
+# `patternString`) but `section.title` to the short form (spec
+# `title.fixedString`, no `セクション` suffix). yaml carries the canonical
+# display form so `_fhir_code_lookup` and cross-check tests see a
+# consistent authoritative string; this helper derives the title.
+#
+# Verified against `clinical-information-sharing#1.12.0/package/
+# StructureDefinition-JP-Composition-{eDischargeSummary,eReferral}.json`
+# (`section.title.fixedString` vs `section.code.coding.display.patternString`
+# on every registered slice — the rule is uniform).
+_JP_SECTION_TITLE_SUFFIX = "セクション"
+
+
+def _section_title_from_section_display(display: str) -> str:
+    """Return the JP-CLINS `section.title` form for a section display.
+
+    Strips a trailing `セクション` when present; leaves the string unchanged
+    otherwise so non-JP callers (US LOINC section titles, generic Composition)
+    stay a no-op.
+    """
+    if isinstance(display, str) and display.endswith(_JP_SECTION_TITLE_SUFFIX):
+        return display[: -len(_JP_SECTION_TITLE_SUFFIX)]
+    return display
+
+
 def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
     """JP-CLINS eDischargeSummary v1.12.0 準拠 Composition を emit する。
 
@@ -391,16 +417,21 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
     comp["title"] = disp
 
     # section: 300 parent + 5 child sections
-    # Session 57 v3 fix: display of section 300 corrected from "構造情報セクション"
-    # to "構造情報" per the eDS profile section.code display constraint.
-    parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報"
+    # Session 58 Chain #8: yaml `ja` carries the canonical `code.coding.display`
+    # (`構造情報セクション` etc.) matching JP-CLINS spec `patternString`.
+    # `section.title` uses the short form (spec `title.fixedString`), derived
+    # by stripping the trailing `セクション` via
+    # `_section_title_from_section_display`. Uniform across every eDS slice.
+    parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
+    parent_title = _section_title_from_section_display(parent_disp)
     child_sections: list[dict[str, Any]] = []
     for key, code in _JP_DS_SECTION_CODE.items():
         disp_c = code_lookup("jpfhir-doc-section", code, lang) or key
+        title_c = _section_title_from_section_display(disp_c)
         text_val = sections.get(key, "") or ""
         child_sections.append(
             {
-                "title": disp_c,
+                "title": title_c,
                 "code": {
                     "coding": [
                         {
@@ -426,7 +457,7 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
         )
     comp["section"] = [
         {
-            "title": parent_disp,
+            "title": parent_title,
             "code": {
                 "coding": [
                     {
@@ -501,9 +532,13 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     comp["title"] = disp
 
     def _one_section(section_code: str, text_val: str) -> dict[str, Any]:
+        # Session 58 Chain #8: eReferral title uses the short form
+        # (spec `title.fixedString`, no `セクション` suffix); display uses
+        # the long form (spec `patternString`).
         disp_c = code_lookup("jpfhir-doc-section", section_code, lang) or section_code
+        title_c = _section_title_from_section_display(disp_c)
         return {
-            "title": disp_c,
+            "title": title_c,
             "code": {
                 "coding": [
                     {
@@ -531,10 +566,12 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     struct_children: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_STRUCTURAL_CHILDREN.items():
         struct_children.append(_one_section(code, sections.get(key, "") or ""))
-    struct_parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報"
+    # Session 58 Chain #8: same title-vs-display split as eDS.
+    struct_parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
+    struct_parent_title = _section_title_from_section_display(struct_parent_disp)
     top_sections.append(
         {
-            "title": struct_parent_disp,
+            "title": struct_parent_title,
             "code": {
                 "coding": [
                     {

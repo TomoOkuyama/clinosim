@@ -116,6 +116,51 @@ def test_jp_clins_composition_child_section_text_div():
 
 
 @pytest.mark.unit
+def test_jp_clins_composition_section_title_short_display_long():
+    """Session 58 Chain #8: JP-CLINS eDS spec pins
+    `section.title` = short form (no `セクション` suffix, spec `title.fixedString`)
+    and `section.code.coding.display` = long form (`patternString`,
+    ends in `セクション`). Both parent (300) and every child slice must
+    follow the split.
+    """
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    parent = comp["section"][0]
+    assert parent["title"] == "構造情報"
+    assert parent["code"]["coding"][0]["display"] == "構造情報セクション"
+    expected = {
+        "312": ("入院理由", "入院理由セクション"),
+        "322": ("入院時詳細", "入院時詳細セクション"),
+        "342": ("入院時診断", "入院時診断セクション"),
+        "352": ("主訴", "主訴セクション"),
+        "360": ("現病歴", "現病歴セクション"),
+    }
+    for child in parent["section"]:
+        code = child["code"]["coding"][0]["code"]
+        title = child["title"]
+        display = child["code"]["coding"][0]["display"]
+        assert code in expected, f"unexpected child section code {code!r}"
+        exp_title, exp_display = expected[code]
+        assert title == exp_title, f"{code} title: got {title!r} expected {exp_title!r}"
+        assert display == exp_display, f"{code} display: got {display!r} expected {exp_display!r}"
+
+
+@pytest.mark.unit
+def test_section_title_from_display_helper_strips_suffix_only():
+    from clinosim.modules.output._fhir_composition import _section_title_from_section_display
+
+    assert _section_title_from_section_display("構造情報セクション") == "構造情報"
+    assert _section_title_from_section_display("現病歴セクション") == "現病歴"
+    # Non-JP inputs (US LOINC section titles, generic Composition) unchanged.
+    assert _section_title_from_section_display("Discharge Summary") == "Discharge Summary"
+    # Empty / bare suffix edge cases stay predictable.
+    assert _section_title_from_section_display("") == ""
+    assert _section_title_from_section_display("セクション") == ""
+
+
+@pytest.mark.unit
 def test_jp_clins_composition_title_is_ja():
     from clinosim.modules.output._fhir_composition import _build_composition
 
