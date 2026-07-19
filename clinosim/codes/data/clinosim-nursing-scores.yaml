@@ -1,0 +1,29 @@
+# clinosim custom CodeSystem for nursing / early-warning scores that have
+# no canonical LOINC 2.82 code (Issue #269 fix).
+#
+# Background: NEWS2 (National Early Warning Score 2, Royal College of
+# Physicians 2017 revision) is widely used in JP + UK inpatient practice as
+# a bedside deterioration score, but LOINC 2.82 does not carry a canonical
+# code for the total score. Prior clinosim code emitted `90557-9` under
+# `http://loinc.org` — that code does not exist in LOINC 2.82 (the closest
+# entry `90557-0` is an unrelated sleep-study measure). fhir-jp-validator's
+# tx-server therefore reported it as unknown; the fix is to move the coding
+# to a clinosim-owned CodeSystem so validators either recognize it or
+# accept it as a locally-defined coding.
+#
+# URI convention: session 56 #213 established `http://clinosim.dev/` as the
+# non-example TLD for clinosim-owned CodeSystems (previously
+# `clinosim.example.org` was rejected by HAPI's "Example URL not allowed"
+# check). Same convention as `jp-care-level`.
+#
+# Extension: additional non-LOINC nursing scores (e.g. MEWS, PEWS, qSOFA if
+# LOINC lacks an active canonical) land here without introducing a fresh
+# CodeSystem per score.
+metadata:
+  name: clinosim Nursing / Early-Warning Scores
+  uri: http://clinosim.dev/fhir/CodeSystem/nursing-scores
+  source: "clinosim — internal codes for nursing scores without a canonical LOINC 2.82 entry"
+codes:
+  NEWS2:
+    en: National Early Warning Score 2 total
+    ja: 早期警告スコア2 合計

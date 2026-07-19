@@ -138,11 +138,13 @@ def test_encounter_reference_present():
         assert enc_ref == "Encounter/enc1", f"Observation {o['id']} missing or wrong encounter ref: {enc_ref!r}"
 
 
-def test_news2_has_loinc_coding():
-    """NEWS2 has an authoritative LOINC (90557-9 "National Early Warning
-    Score (NEWS) 2 [Score]"), verified via LOINC search. Emit as
-    code.coding + code.text. Session 42 cycle 2 (C2-30): 118,131 NEWS2
-    Observations previously lacked coding entry, blocking interop."""
+def test_news2_has_clinosim_custom_coding():
+    """Session 58 Issue #269: NEWS2 does NOT have a canonical LOINC 2.82
+    code (the previously-used `90557-9` is not in LOINC — the closest
+    entry `90557-0` is unrelated). Emit under the clinosim-owned
+    `nursing-scores` CodeSystem instead so validators either resolve or
+    accept it as a locally-defined coding. Session 42 cycle 2 (C2-30)
+    verification comment was mistaken."""
     from clinosim.codes import get_system_uri
     from clinosim.modules.output.fhir_r4_adapter import _build_nursing_observations
 
@@ -151,11 +153,14 @@ def test_news2_has_loinc_coding():
 
     news2_obs = [o for o in obs if o["id"].startswith("news2-")]
     assert news2_obs, "No NEWS2 observation found"
+    expected_uri = get_system_uri("clinosim-nursing-scores")
     for o in news2_obs:
         codings = o["code"].get("coding", [])
-        assert codings, "NEWS2 must have code.coding (LOINC 90557-9)"
-        assert codings[0]["system"] == get_system_uri("loinc")
-        assert codings[0]["code"] == "90557-9"
+        assert codings, "NEWS2 must have code.coding under the clinosim nursing-scores CS"
+        assert codings[0]["system"] == expected_uri
+        assert codings[0]["code"] == "NEWS2"
+        # No leftover LOINC fallback under `http://loinc.org` with the retired 90557-9.
+        assert not any(c.get("system") == get_system_uri("loinc") and c.get("code") == "90557-9" for c in codings)
 
 
 def test_gcs_has_loinc_coding():
