@@ -239,11 +239,7 @@ def test_jp_clins_composition_all_10_child_sections_have_nonempty_text_div():
         code = child["code"]["coding"][0]["code"]
         div = (child.get("text") or {}).get("div", "")
         # Strip xhtml wrapper + whitespace
-        stripped = (
-            div.replace('<div xmlns="http://www.w3.org/1999/xhtml">', "")
-            .replace("</div>", "")
-            .strip()
-        )
+        stripped = div.replace('<div xmlns="http://www.w3.org/1999/xhtml">', "").replace("</div>", "").strip()
         assert stripped, f"child section {code} has empty text.div (txt-2 violation)"
 
 
