@@ -5,5 +5,11 @@ metadata:
   uri: "urn:ietf:bcp:47"
   source: "IETF BCP 47"
 codes:
-  en-US: {en: "English (US)", ja: "英語(米国)"}
-  ja-JP: {en: "Japanese (Japan)", ja: "日本語(日本)"}
+  # `en` displays match the fhir-jp-validator's registered form for
+  # `urn:ietf:bcp:47` (no space between "Language" and "(Region)") — verified
+  # against the v4 fullset error message quoting the expected display
+  # `Japanese(Japan)` for `ja-JP`. `ja` localizations are informational only
+  # (Patient.communication.language emits the English display regardless of
+  # country — the CodeSystem is English-only per the validator's loadout).
+  en-US: {en: "English(US)", ja: "英語(米国)"}
+  ja-JP: {en: "Japanese(Japan)", ja: "日本語(日本)"}

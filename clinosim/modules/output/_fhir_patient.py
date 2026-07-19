@@ -407,6 +407,9 @@ def _build_patient(p: dict, country: str) -> dict:
     # Communication / preferred language
     lang = p.get("preferred_language", "")
     if lang:
+        # BCP-47 (`urn:ietf:bcp:47`) is English-only per the fhir-jp-validator
+        # tx-server loadout — the ja localization is not a registered synonym.
+        # Emit the English display regardless of country (session 58 Chain #7).
         resource["communication"] = [
             {
                 "language": {
@@ -414,7 +417,7 @@ def _build_patient(p: dict, country: str) -> dict:
                         {
                             "system": get_system_uri("bcp-47-language"),
                             "code": lang,
-                            "display": code_lookup("bcp-47-language", lang, resolve_lang(country)),
+                            "display": code_lookup("bcp-47-language", lang, "en"),
                         }
                     ],
                 },

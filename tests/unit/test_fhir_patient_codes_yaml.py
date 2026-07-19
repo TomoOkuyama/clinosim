@@ -50,15 +50,19 @@ def test_all_marital_codes_resolve_us(code, en):
 
 
 def test_language_display():
+    # Session 58 Chain #7: Patient.communication.language always emits the
+    # English display (BCP-47 is English-only per the validator's terminology).
     resource = _build_patient(_patient(lang="en-US"), "US")
     coding = resource["communication"][0]["language"]["coding"][0]
-    assert coding["display"] == "English (US)"
+    assert coding["display"] == "English(US)"
 
 
 def test_language_display_ja():
+    # Even for JP output, the emitted display is the English form the tx-server
+    # accepts (session 58 Chain #7 — 580 v4 errors resolved by this shift).
     resource = _build_patient(_patient(lang="ja-JP"), "JP")
     coding = resource["communication"][0]["language"]["coding"][0]
-    assert coding["display"] == "日本語(日本)"
+    assert coding["display"] == "Japanese(Japan)"
 
 
 def test_marital_status_yaml_matches_direct_lookup():
@@ -67,4 +71,5 @@ def test_marital_status_yaml_matches_direct_lookup():
 
 
 def test_language_yaml_matches_direct_lookup():
-    assert lookup("bcp-47-language", "en-US", "en") == "English (US)"
+    assert lookup("bcp-47-language", "en-US", "en") == "English(US)"
+    assert lookup("bcp-47-language", "ja-JP", "en") == "Japanese(Japan)"
