@@ -76,11 +76,43 @@ def test_medication_request_jp_hot7_uri() -> None:
 
 
 def test_medication_request_jp_yj12_uri() -> None:
-    """12-char YJ code → JP YJ code URI。"""
-    mr = _build_mr("6139504G1028")
+    """12-char YJ code(tx-server fragment 内 = verified)→ JP YJ code URI。
+    session 59 #283:fragment 外の YJ code は nocoded fallback にダウングレード
+    されるので、この test は fragment に含まれる YJ12 code を使用する。
+    """
+    # 1112700X1011 = ハロタン(全身麻酔薬)、tx-server の 2000-concept
+    # fragment に含まれる(session 59 #283 で確認済)。
+    mr = _build_mr("1112700X1011")
     coding = mr["medicationCodeableConcept"]["coding"][0]
     assert coding["system"] == JP_YJ_CODE_URI
-    assert coding["code"] == "6139504G1028"
+    assert coding["code"] == "1112700X1011"
+
+
+def test_medication_request_jp_nocoded_fallback_when_yj_not_in_tx_fragment() -> None:
+    """#283:tx-server の YJ CodeSystem は 25542 中 2000 の fragment
+    (11xx/12xx 精神/神経系)しか収録していない。fragment 外の YJ code は
+    verify 不能で HAPI が "システムURIを決定できません" error を出す(v5
+    594 件)。JP output でこれらは nocoded slice へダウングレードし薬剤名
+    は text field で保持。verified YJ(fragment 内)は従来通り emit。
+    """
+    from clinosim.modules.output._fhir_medications import (
+        _JP_MEDICATION_CODE_NOCODED_CS,
+        _is_tx_server_verified_yj,
+    )
+
+    # 未検証 YJ(fragment 外の cardiovascular 系):nocoded fallback
+    unverified = "2149032F1013"  # カルベジロール
+    assert not _is_tx_server_verified_yj(unverified)
+    mr = _build_mr(unverified)
+    coding = mr["medicationCodeableConcept"]["coding"][0]
+    assert coding["system"] == _JP_MEDICATION_CODE_NOCODED_CS
+    assert coding["code"] == "NOCODED"
+    # 薬剤名は text field で保持
+    assert mr["medicationCodeableConcept"]["text"]
+
+    # US は影響なし(YJ system 未使用)
+    mr_us = _build_mr(unverified, country="US")
+    assert mr_us["medicationCodeableConcept"]["coding"][0]["system"] != _JP_MEDICATION_CODE_NOCODED_CS
 
 
 def test_medication_request_jp_nocoded_fallback_when_no_code_value() -> None:
@@ -164,8 +196,9 @@ def test_medication_administration_jp_hot7_uri() -> None:
 
 
 def test_medication_administration_jp_yj12_uri() -> None:
-    """MA builder も 12-char YJ code → YJ URI。"""
-    ma = _build_ma("6139504G1028")
+    """MA builder も 12-char YJ code(fragment 内 = verified)→ YJ URI。
+    session 59 #283 で fragment 外 YJ は nocoded fallback。"""
+    ma = _build_ma("1112700X1011")  # ハロタン、tx-server fragment 内
     coding = ma["medicationCodeableConcept"]["coding"][0]
     assert coding["system"] == JP_YJ_CODE_URI
 

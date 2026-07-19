@@ -61,6 +61,40 @@ _JP_MEDICATION_CODE_NOCODED_CS = "http://jpfhir.jp/fhir/eCS/CodeSystem/Medicatio
 _JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"
 _JP_MEDICATION_CODE_NOCODED_DISPLAY = "標準コードなし"
 
+# #283 session 59:tx-server-verifiable YJ code set(2000 concepts fragment)。
+# jpfhir-terminology 2.2606.0 の CodeSystem-jp-medicationcodeyj-cs.json は
+# 25542 全 YJ codes のうち先頭 2000(11xx/12xx = 精神/神経系のみ)を fragment
+# として出荷。clinosim が emit する YJ code はこの fragment 内なら通常の
+# `codingYJ` slice、fragment 外なら `nocoded` slice に fallback(薬剤名は
+# text field で保持)。HAPI validator が fragment 外の code を "システム URI
+# を決定できません" error で報告する(v5 で 594 件)ため defensive downgrade。
+# snapshot は `scripts/refresh_authoritative_yj_tx_valid.py` で更新可能。
+
+
+def _load_tx_server_verified_yj_codes() -> frozenset[str]:
+    """Load tx-server's verifiable YJ code set as an immutable frozenset."""
+    import json as _json
+    from pathlib import Path as _Path
+
+    _snapshot = _Path(__file__).resolve().parents[2] / "codes" / "authoritative" / "yj_tx_valid_codes.json"
+    if not _snapshot.is_file():
+        return frozenset()
+    return frozenset(_json.loads(_snapshot.read_text()).get("codes", []))
+
+
+_TX_SERVER_VERIFIED_YJ_CODES: frozenset[str] = _load_tx_server_verified_yj_codes()
+
+
+def _is_tx_server_verified_yj(code: str) -> bool:
+    """Return True when the YJ code is present in the tx-server's fragment CS.
+
+    Session 59 #283:the JP tx-server ships a 2000-concept fragment of the
+    25542-concept YJ CodeSystem. Codes outside the fragment cannot be
+    validator-verified even though they are real MHLW YJ codes; the caller
+    routes them to the JP-CLINS eCS `nocoded` slice instead of `codingYJ`.
+    """
+    return code in _TX_SERVER_VERIFIED_YJ_CODES
+
 
 def _resolve_jp_drug_system_uri(code: str) -> str:
     """Return the JP Core NamingSystem URI matching the drug code format.
@@ -248,7 +282,22 @@ def _build_medication_request(
         code_system = get_system_uri(drug_system_key)
 
     med_concept: dict[str, Any] = {"text": drug_name}
-    if code_value:
+    # #283 session 59:JP 出力で YJ system emit する場合、tx-server が
+    # verify できない code(fragment 外)は nocoded fallback にダウングレード。
+    # HAPI validator の VS binding error(594 件 v5)を解消しつつ薬剤名は
+    # text field で保持。US path 及び verified YJ 及び HOT/RxNorm はそのまま
+    # 通常 emit。
+    # #283:downgrade は YJ-code URI 経由の code だけ対象。同 drug_system_key
+    # ="yj" でも `_resolve_jp_drug_system_uri` が HOT7/HOT9/HOT13 に dispatch
+    # した場合(全 HOT 系は別 CodeSystem)は対象外 = 通常 emit。
+    _jp_yj_unverified = (
+        country_code == "JP"
+        and drug_system_key == "yj"
+        and bool(code_value)
+        and code_system == _JP_YJ_CODE_URI
+        and not _is_tx_server_verified_yj(code_value)
+    )
+    if code_value and not _jp_yj_unverified:
         med_concept["coding"] = [
             {
                 "system": code_system,
@@ -259,8 +308,10 @@ def _build_medication_request(
     elif country_code == "JP":
         # #291:JP-CLINS eCS(JP_MedicationRequest-eCS)は
         # `medication[x].coding` min=1 を要求。code_mapping にヒットしない
-        # ED 特異薬(点眼薬 / 泌尿器系一次治療薬 等)は eCS の "nocoded"
-        # slice に fallback して drug_name を display に流用する。
+        # ED 特異薬(点眼薬 / 泌尿器系一次治療薬 等)+ #283 で tx-server
+        # 未収録 YJ code は eCS の "nocoded" slice に fallback。drug_name を
+        # display に流用(text field と重複するが nocoded slice の
+        # `display` min=1 制約を満たすため)。
         # slice fixedUri は spec:
         # clinical-information-sharing#1.12.0/package/
         # CodeSystem-jp-eCS-medicationcode-nocoded-cs.json
@@ -549,12 +600,32 @@ def _build_medication_admin(
         code_system = get_system_uri(drug_system_key)
 
     med_concept: dict[str, Any] = {"text": drug_name}
-    if code_value:
+    # #283 session 59:MR builder と同 gate — tx-server 未収録 JP YJ code は
+    # nocoded fallback にダウングレード(薬剤名は text field で保持)。
+    # #283:downgrade は YJ-code URI 経由の code だけ対象。同 drug_system_key
+    # ="yj" でも `_resolve_jp_drug_system_uri` が HOT7/HOT9/HOT13 に dispatch
+    # した場合(全 HOT 系は別 CodeSystem)は対象外 = 通常 emit。
+    _jp_yj_unverified = (
+        country_code == "JP"
+        and drug_system_key == "yj"
+        and bool(code_value)
+        and code_system == _JP_YJ_CODE_URI
+        and not _is_tx_server_verified_yj(code_value)
+    )
+    if code_value and not _jp_yj_unverified:
         display = code_lookup(drug_system_key, code_value, lang)
-        coding = {"system": code_system, "code": code_value}
+        coding: dict[str, Any] = {"system": code_system, "code": code_value}
         if display and display != code_value:
             coding["display"] = display
         med_concept["coding"] = [coding]
+    elif country_code == "JP":
+        med_concept["coding"] = [
+            {
+                "system": _JP_MEDICATION_CODE_NOCODED_CS,
+                "code": _JP_MEDICATION_CODE_NOCODED_CODE,
+                "display": drug_name or _JP_MEDICATION_CODE_NOCODED_DISPLAY,
+            }
+        ]
 
     resource: dict[str, Any] = {
         "resourceType": "MedicationAdministration",
