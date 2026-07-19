@@ -280,10 +280,17 @@ class TestFhirStubImagingStudy:
         assert r["numberOfSeries"] == 1
         assert r["endpoint"][0]["reference"] == "Endpoint/ep-1.2.3.999"
 
-    def test_jp_procedure_code_text_only_no_loinc_coding(self):
-        """#314 session 60:JP output は procedureCode を text-only で emit
-        (JP_ImagingStudy_Radiology profile の RadLexPlaybook required binding
-        回避)。LOINC coding は US output のみ。v6 で 571 件 error。
+    def test_jp_procedure_code_omitted_and_us_keeps_loinc(self):
+        """#319 session 61:JP output は procedureCode 要素を完全省略。
+        session 60 #315 で text-only emit を試みたが v6.1 で regression
+        (571→589)、"コードが提供されていません" error 発火。
+
+        FHIR R4 required binding は text-only 回避不可 — text は補助表示
+        のためのフィールドで required binding の充足条件に含まれない。
+        VS が空でよい唯一の方法は要素自体を省略すること。
+
+        US path は LOINC coding + text 両方 emit(US profile は該当
+        binding なし、情報保持)。
         """
         from clinosim.modules.output._fhir_imaging_study import _build_imaging_study
         from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord
@@ -312,14 +319,13 @@ class TestFhirStubImagingStudy:
             contrast=False,
             report=None,
         )
-        # JP output
+        # JP output:procedureCode 要素を完全省略(required binding 回避)
         r_jp = _build_imaging_study(study, "ja", enc_reason_by_id={})
-        if "procedureCode" in r_jp and r_jp["procedureCode"]:
-            pc = r_jp["procedureCode"][0]
-            # JP:coding 無し、text あり(RadLexPlaybook required binding 回避)
-            assert "coding" not in pc, f"JP procedureCode must be text-only (no LOINC coding). Got: {pc}"
-            assert pc.get("text"), "JP procedureCode text should carry display"
-        # US output
+        assert "procedureCode" not in r_jp, (
+            f"JP procedureCode must be omitted (required binding cannot be satisfied "
+            f"by text alone). Got: {r_jp.get('procedureCode')}"
+        )
+        # US output:従来通り LOINC coding + text 両方 emit(US は該当 binding なし)
         r_us = _build_imaging_study(study, "en", enc_reason_by_id={})
         if "procedureCode" in r_us and r_us["procedureCode"]:
             pc = r_us["procedureCode"][0]
