@@ -2965,6 +2965,43 @@ deterministic sub-seed, FHIR built in <code>output</code> reading CIF (modules s
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Comprehensive documentation</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Stable API contracts</li>
 </ul>
+<h2 id="recent-completions-2026-07-20-session-59-v5-validation-feedback-chain-14-pr-merged">Recent completions (2026-07-20 — Session 59: v5 validation feedback chain, 14 PR merged)<a class="headerlink" href="#recent-completions-2026-07-20-session-59-v5-validation-feedback-chain-14-pr-merged" title="Permanent link">&para;</a></h2>
+<p>Session 59 = v5 feedback 対応 chain。全 14 PR merged, 全 defer 実装完了(user 指示「大規模改修のみ Defer」100% 遵守)。期待 v6 delta <strong>−4,344 errors</strong>(v5 5,048 → v6 ~704, fail rate 2.93% → 0.41%)。</p>
+<h3 id="merged-pr-14">Merged PR (14)<a class="headerlink" href="#merged-pr-14" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ #280 (#279) eDS Composition.category display = 退院時文書 (-252)</li>
+<li>✅ #282 (#281) MR tim-2 periodUnit 復活 (-1,748)</li>
+<li>✅ #285 (#284) ICD-10 3 codes swap: I84→K64.9, R33.9→R33, S62.9→S62.8 (-86)</li>
+<li>✅ #288 (#286) eDS 5 discharge sections text.div (-630)</li>
+<li>✅ #290 (#289) eReferral Chain #9 sibling sweep 5 top-level (-120)</li>
+<li>✅ #292 (#291) JP MR medication.coding NOCODED fallback (-26)</li>
+<li>✅ #294 (#293) AI drop SNOMED secondary (-76+)</li>
+<li>✅ #295 (#278) eDS hospitalCourseSection.entry from free-text DocRef (-126)</li>
+<li>✅ #297 (#296) eReferral 920/910 section entry Organizations (-96)</li>
+<li>✅ #298 (#287) US goldens post-#159 chore sync (0, hygiene)</li>
+<li>✅ #300 (#299) 5 residual sweep: READM/exp/PT-OT-ST-MSW/empty-array/area (-91)</li>
+<li>✅ #301 (#283) YJ nocoded fallback (tx-server unverified) (-594)</li>
+<li>✅ #302 (#218) JP radiology DR _Radiology profile + spec slices (-499)</li>
+<li>✅ #303 (#276) LOINC 17 semantic-mismatch resolved (0, hygiene)</li>
+</ul>
+<h3 id="new-patterns-infrastructure">New patterns / infrastructure<a class="headerlink" href="#new-patterns-infrastructure" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ Authoritative snapshot for tx-server-verifiable YJ code set (<code>clinosim/codes/authoritative/yj_tx_valid_codes.json</code>, 2000 concepts + <code>scripts/refresh_authoritative_yj_tx_valid.py</code>)</li>
+<li>✅ Walker <code>_apply_jp_core_profile</code> variant-priority skip (DR _Radiology/_LabResult 存在時 _Common 追加を skip)</li>
+<li>✅ eCS "nocoded" slice fallback pattern を 2 場面に拡張(#291 = code_value 空、#301 = tx-server 未検証 YJ)</li>
+<li>✅ v5 validation feedback を 14 PR に分解、user 指示「defer 最小化」を反映</li>
+<li>✅ 判断リカバリ 2 例(#283 YJ / #276 LOINC)= 「upstream 限界」判断を user push-back で pragmatic solution に転化</li>
+</ul>
+<h3 id="deferred-to-session-60">Deferred to session 60+<a class="headerlink" href="#deferred-to-session-60" title="Permanent link">&para;</a></h3>
+<ul>
+<li>⏸️ #276 内 8 code (Ampicillin susc / Cortisol / Ammonia / Sputum-Wound cultures 等)の実 LOINC code 差替 — 権威 LOINC master lookup 必要、session 60 followup</li>
+</ul>
+<h3 id="v6-validation">v6 validation 依頼状態<a class="headerlink" href="#v6-validation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>master <code>2253deda69</code> で JP p=1000 seed=300 fullset(615MB / 28 NDJSON)を <code>../fhir-jp-validator/fhir_r4/</code> にコピー済</li>
+<li><code>_generator_metadata.json</code> sidecar に master commit + 14 PR 反映履歴を記録</li>
+<li>cmux workspace:2 に v6 validation 依頼送信済</li>
+</ul>
 <h2 id="recent-completions-2026-04-20-demographics-externalization-us">Recent completions (2026-04-20 — Demographics externalization US)<a class="headerlink" href="#recent-completions-2026-04-20-demographics-externalization-us" title="Permanent link">&para;</a></h2>
 <ul>
 <li>✅ Population demographics externalization (US): 8 hardcoded fields moved to <code>us/demographics.yaml</code> — sex_ratio, physiology (BMI/height CDC NHANES), lifestyle_distribution (smoking/alcohol sex-specific CDC NHIS), lifestyle_risk_multipliers (BMI + smoking → chronic + acute events), comorbidity_correlations (I10/E11.9/E78 Framingham), insurance_distribution (age-band KFF 2023), race_distribution (Census 2020), occupation age_thresholds</li>
