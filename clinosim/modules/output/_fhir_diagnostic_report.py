@@ -57,6 +57,24 @@ RADIOLOGY_CATEGORY_SNOMED = "394914008"
 # HL7 v2-0074 "Radiology" — owner: this file.
 RADIOLOGY_CATEGORY_V2_0074 = "RAD"
 
+# === session 59 #218: JP Core DiagnosticReport_Radiology profile constants ===
+# spec: jp_core/package/StructureDefinition-jp-diagnosticreport-radiology.json
+# 従来 JP output は `_Common` profile を使用していたが radiology は専用 profile
+# (`_Radiology`)が存在(session 46 chain #2 導入時に見落とし)。以下の slice
+# 制約に対応:
+#   category:first  = LOINC LP29684-5(放射線)
+#   category:second = DICOM modality(CT/CR/MR ...)
+#   code.coding:radiologyReportCode = JP_DocumentCodes_CS 18748-4(画像検査報告書)
+_JP_DR_RADIOLOGY_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Radiology"
+_JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE = "LP29684-5"
+_JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_JA = "放射線"
+_JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_EN = "Radiology"
+_JP_DR_DICOM_MODALITY_SYSTEM = "http://dicom.nema.org/resources/ontology/DCM"
+_JP_DOCUMENT_CODES_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_DocumentCodes_CS"
+_JP_DR_RADIOLOGY_REPORT_CODE = "18748-4"
+_JP_DR_RADIOLOGY_REPORT_DISPLAY_JA = "画像検査報告書"
+_JP_DR_RADIOLOGY_REPORT_DISPLAY_EN = "Diagnostic imaging report"
+
 # JP Core DiagnosticReport_LabResult profile (`jp-diagnosticreport-labresult`)
 # requires `category:first.coding.code` fixedCode = `LP29693-6` on LOINC
 # (see fhir-jp-validator/jp_core/package/
@@ -559,43 +577,86 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         localize_fixed_label("Radiology", ctx.country)
     )
 
+    # session 59 #218:JP output は `_Radiology` profile 準拠へ切替(従来 Common)。
+    # 制約:
+    #   category:first  = LOINC LP29684-5 "放射線"
+    #   category:second = DICOM modality(CT/CR/MR etc.)
+    #   code.coding:radiologyReportCode = JP_DocumentCodes_CS 18748-4 "画像検査報告書"
+    _is_jp = is_jp(ctx.country)
+    _jp_dr_category: list[dict] = []
+    _jp_code_coding: list[dict] = []
+    if _is_jp:
+        _lp_display = (
+            _JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_JA if lang == "ja" else _JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_EN
+        )
+        _jp_dr_category.append(
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("loinc"),
+                        "code": _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE,
+                        "display": _lp_display,
+                    }
+                ]
+            }
+        )
+        if modality_code:
+            _jp_dr_category.append(
+                {
+                    "coding": [
+                        {
+                            "system": _JP_DR_DICOM_MODALITY_SYSTEM,
+                            "code": modality_code,
+                        }
+                    ]
+                }
+            )
+        _report_disp = _JP_DR_RADIOLOGY_REPORT_DISPLAY_JA if lang == "ja" else _JP_DR_RADIOLOGY_REPORT_DISPLAY_EN
+        _jp_code_coding.append(
+            {
+                "system": _JP_DOCUMENT_CODES_CS,
+                "code": _JP_DR_RADIOLOGY_REPORT_CODE,
+                "display": _report_disp,
+            }
+        )
+
+    # US path / default: 従来 SNOMED + v2-0074 category, LOINC procedure code.
+    _default_category = [
+        {
+            "coding": [
+                {
+                    "system": get_system_uri("snomed-ct"),
+                    "code": RADIOLOGY_CATEGORY_SNOMED,
+                    "display": snomed_radiology_display,
+                },
+                {
+                    "system": V2_0074_SYSTEM,
+                    "code": RADIOLOGY_CATEGORY_V2_0074,
+                    "display": "Radiology",
+                },
+            ],
+        }
+    ]
+    _default_code_coding = [
+        {
+            "system": get_system_uri("loinc"),
+            "code": proc_code,
+            "display": proc_display,
+        }
+    ]
+
     dr: dict = {
         "resourceType": "DiagnosticReport",
         # session 51: rep_id (engine.py) は既に RADIOLOGY_REPORT_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。  # noqa: E501
         "id": rep_id,
-        # Session 46 chain #2: JP Core DiagnosticReport_Common profile
-        # (radiology; JP Core does not define a dedicated Radiology variant).
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common"]}}
-            if is_jp(ctx.country)
-            else {}
-        ),
+        # session 59 #218: JP Core DiagnosticReport_Radiology profile
+        # (was _Common — session 46 chain #2 で見落とし、v5 で 499 errors)。
+        **({"meta": {"profile": [_JP_DR_RADIOLOGY_PROFILE]}} if _is_jp else {}),
         "status": _o(report, "status", "final"),
         "text": {"status": "generated", "div": div},
-        "category": [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("snomed-ct"),
-                        "code": RADIOLOGY_CATEGORY_SNOMED,
-                        "display": snomed_radiology_display,
-                    },
-                    {
-                        "system": V2_0074_SYSTEM,
-                        "code": RADIOLOGY_CATEGORY_V2_0074,
-                        "display": "Radiology",
-                    },
-                ],
-            }
-        ],
+        "category": _jp_dr_category if _is_jp else _default_category,
         "code": {
-            "coding": [
-                {
-                    "system": get_system_uri("loinc"),
-                    "code": proc_code,
-                    "display": proc_display,
-                }
-            ],
+            "coding": (_jp_code_coding + _default_code_coding) if _is_jp else _default_code_coding,
             "text": proc_display,
         },
         "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
