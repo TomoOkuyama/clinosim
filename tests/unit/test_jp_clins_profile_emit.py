@@ -146,6 +146,26 @@ class TestBundleIntegration:
             profs = entry["resource"].get("meta", {}).get("profile", [])
             assert not any("jpfhir.jp/fhir/eCS" in p for p in profs), f"US bundle leaked JP-CLINS profile: {profs}"
 
+    def test_facility_bundle_contains_ecs_organization(self):
+        from clinosim.modules.output._fhir_facility import _build_facility_bundle
+
+        # eCS Organization should be emitted when country is JP
+        bundle = _build_facility_bundle({"available_departments": ["internal_medicine"]}, "JP")
+        orgs = [e["resource"] for e in bundle["entry"] if e["resource"]["resourceType"] == "Organization"]
+        
+        ecs_org = next((o for o in orgs if o["id"] == "hospital-main-ecs"), None)
+        assert ecs_org is not None, "hospital-main-ecs Organization was not emitted"
+        
+        # Verify 8 required fields for eCS slice discriminator
+        assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Organization_eCS" in ecs_org["meta"]["profile"]
+        assert "lastUpdated" in ecs_org["meta"]
+        assert "identifier" in ecs_org
+        assert "type" in ecs_org and ecs_org["type"][0]["coding"][0]["system"]
+        assert "name" in ecs_org
+        assert "telecom" in ecs_org and ecs_org["telecom"][0]["value"]
+        assert "address" in ecs_org and ecs_org["address"][0]["text"]
+        assert ecs_org["partOf"]["reference"] == "Organization/hospital-main"
+
 
 def _minimal_jp_record() -> dict:
     """Minimal CIF-shaped dict sufficient for bundle build (JP)."""

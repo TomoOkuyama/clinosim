@@ -161,7 +161,7 @@ def test_jp_clins_referral_composition_from_to_section_entries():
     """#296:JP-CLINS eReferral は 920(紹介元 = referralFromOrganization)
     と 910(紹介先 = referralToOrganization)の 2 section slice それぞれに
     entry: Reference(Organization) min=1 を要求。clinosim は destination
-    別 Organization を model していないため hospital-main を placeholder
+    別 Organization を model していないため hospital-main-ecs を placeholder
     として両方に pin。reference integrity は facility bundle で保証。
     """
     from clinosim.modules.output._fhir_composition import _build_composition
@@ -170,9 +170,9 @@ def test_jp_clins_referral_composition_from_to_section_entries():
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     top_by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}
     # 920 紹介元 entry
-    assert top_by_code["920"].get("entry") == [{"reference": "Organization/hospital-main"}]
+    assert top_by_code["920"].get("entry") == [{"reference": "Organization/hospital-main-ecs"}]
     # 910 紹介先 entry
-    assert top_by_code["910"].get("entry") == [{"reference": "Organization/hospital-main"}]
+    assert top_by_code["910"].get("entry") == [{"reference": "Organization/hospital-main-ecs"}]
 
 
 @pytest.mark.unit

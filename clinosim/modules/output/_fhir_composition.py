@@ -709,7 +709,7 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
 # 別 Organization を model していないため hospital-main を両側 placeholder
 # として emit(reference integrity は保たれる;data-shape trade-off)。
 # module-scope 定数(function 内では N806 lint violation)。
-_JP_ER_REFERRAL_ORG_REF: list[dict[str, str]] = [{"reference": "Organization/hospital-main"}]
+_JP_ER_REFERRAL_ORG_REF: list[dict[str, str]] = [{"reference": "Organization/hospital-main-ecs"}]
 _JP_ER_TOP_LEVEL_ENTRY: dict[str, list[dict[str, str]]] = {
     "920": _JP_ER_REFERRAL_ORG_REF,  # referralFromOrganization
     "910": _JP_ER_REFERRAL_ORG_REF,  # referralToOrganization

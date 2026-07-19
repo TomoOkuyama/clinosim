@@ -56,6 +56,48 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     }
     entries.append(_entry(root_org))
 
+    # Session 61 #313: Emit eCS-compliant Organization for eReferral 920/910
+    # section entry slices (referralFromOrganization / referralToOrganization).
+    # hospital-main uses JP Core profile, which fails the eCS slice discriminator
+    # (type: profile, path: resolve()). eCS profile requires 8 fields min=1.
+    root_org_ecs = {
+        "resourceType": "Organization",
+        "id": "hospital-main-ecs",
+        **(
+            {
+                "meta": {
+                    "profile": ["http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Organization_eCS"],
+                    "lastUpdated": "2024-01-01T12:00:00Z"
+                }
+            }
+            if is_jp(country)
+            else {}
+        ),
+        "identifier": [
+            {
+                "system": "http://jpfhir.jp/fhir/core/IdSystem/insurance-medical-institution-no",
+                "value": "1311234567"  # placeholder
+            }
+        ],
+        "active": True,
+        "type": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-organization-type"),
+                        "code": "prov",
+                        "display": _localize_display("Healthcare Provider", country, _ORG_TYPE_DISPLAY_JA),
+                    }
+                ],
+            }
+        ],
+        "name": hosp_name,
+        "telecom": [{"system": "phone", "value": "03-1234-5678"}],
+        "address": [{"text": "Tokyo"}],
+        "partOf": {"reference": "Organization/hospital-main"}
+    }
+    entries.append(_entry(root_org_ecs))
+
     # Main-building Location — referenced by PractitionerRole.location fallback
     # (CY8-07) for staff without a ward assignment. Session 52 fix 2: the
     # reference existed since session 48 but the resource was never emitted
