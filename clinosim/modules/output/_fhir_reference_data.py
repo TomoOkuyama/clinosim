@@ -118,9 +118,12 @@ _ROUTE_SNOMED: dict[str, dict[str, str]] = {
     "IM": {"code": "78421000", "display": "Intramuscular"},
     "SL": {"code": "37161004", "display": "Sublingual"},
     "PR": {"code": "37161004", "display": "Per rectum"},
-    "INHALED": {"code": "447694001", "display": "Inhalation"},
+    # 447694001 SNOMED-authoritative default display is "Respiratory tract
+    # route (qualifier value)" — "Inhalation" is not a registered synonym in
+    # the tx-server's SNOMED CT terminology (session 58 Chain #4, 667 errors).
+    "INHALED": {"code": "447694001", "display": "Respiratory tract route (qualifier value)"},
     "TOPICAL": {"code": "6064005", "display": "Topical"},
-    "NEBULIZED": {"code": "447694001", "display": "Inhalation"},
+    "NEBULIZED": {"code": "447694001", "display": "Respiratory tract route (qualifier value)"},
 }
 
 
