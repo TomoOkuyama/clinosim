@@ -50,13 +50,17 @@ panels:
     min_components: 2
 
   Coag:
-    loinc: "24373-3"
-    display: "Activated partial thromboplastin time (aPTT) and Prothrombin time (PT)/INR panel - Platelet poor plasma"
-    # LOINC 24373-3 is authoritatively the "aPTT and PT/INR panel" per
-    # Regenstrief. Fibrinogen (3255-7) and D-dimer (30240-9) are NOT part
-    # of this panel and emit as individual Observations. A broader DIC
-    # panel (e.g. LOINC 48995-7 "Coagulation panel") is a future
-    # enhancement and would be a separate entry here.
+    loinc: "14979-9"
+    display: "aPTT in Platelet poor plasma by Coagulation assay"
+    # session 59 #276:従来 24373-3 を "aPTT+PT/INR panel" として使用して
+    # いたが LOINC 24373-3 の LONG_COMMON_NAME は "Ferritin [Mass/volume]
+    # in Blood" で完全に別の analyte(semantic-mismatch)。aPTT のみを
+    # 単独 loinc として emit する 14979-9(clinosim authoritative snapshot
+    # で verify 済)へ substitute。PT/INR は個別 Observation で emit。
+    # Fibrinogen (3255-7) and D-dimer (30240-9) are NOT part of this
+    # panel and emit as individual Observations. A broader DIC panel
+    # (e.g. LOINC 48995-7 "Coagulation panel") is a future enhancement
+    # and would be a separate entry here.
     components: [PT, PT_INR, APTT]
     # min=2: PT_INR + APTT are derived by physiology in every patient; PT
     # is derived too (= 12 * PT_INR) so panels with any 2 of these three

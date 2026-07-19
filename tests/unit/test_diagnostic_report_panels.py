@@ -380,9 +380,11 @@ class TestPanelYAMLs:
         assert "UA" in panels
 
     def test_lab_panel_groups_documents_coag_authoritative_scope(self):
-        """I2: lab_panel_groups.yaml documents Fibrinogen exclusion + LOINC 24373-3 scope.
+        """I2: lab_panel_groups.yaml documents Fibrinogen exclusion + LOINC scope.
 
-        YAML moved to order/reference_data/ in Task 2 (unification: panel = ordering concept).
+        session 59 #276:LOINC 24373-3 は "Ferritin" semantic-mismatch のため
+        14979-9 (aPTT) に substitute。yaml も 14979-9 参照 + 24373-3 の drop
+        経緯(session 59 substitution)を documentation として保持。
         """
         from pathlib import Path
 
@@ -391,7 +393,10 @@ class TestPanelYAMLs:
         # Canonical YAML location: order/reference_data/ (moved from output/reference_data/)
         path = Path(clinosim.__file__).parent / "modules/order/reference_data/lab_panel_groups.yaml"
         text = path.read_text()
-        assert "24373-3" in text
+        # #276 (session 59):24373-3 は semantic-mismatch のため drop、
+        # 現行 loinc = 14979-9。両 code が yaml text 内に document 経緯として残る。
+        assert "14979-9" in text  # canonical Coag panel loinc after #276
+        assert "24373-3" in text  # kept in comment documenting the substitution
         assert "Fibrinogen" in text  # documents why it's NOT in Coag components
 
     def test_lab_panels_yaml_header_does_not_cite_clca_silent_drop(self):
