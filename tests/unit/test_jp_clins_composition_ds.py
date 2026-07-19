@@ -225,6 +225,89 @@ def test_jp_clins_composition_meta_lastupdated_from_authored_datetime():
 
 
 @pytest.mark.unit
+def test_jp_clins_composition_required_entries_reference_correct_resources():
+    """Chain #9 follow-up (#267): 3 of the 4 required `.entry` slices on the
+    eDS structuredSection children point at the correct resource types per
+    spec. The 4th (hospitalCourseSection.entry → DocumentReference) is
+    deferred to a follow-up because clinosim's Composition-format documents
+    have no companion DocumentReference resource emitted (`_bb_document_references`
+    skips them intentionally). Rather than emit a dangling reference we
+    leave the entry off — never-fabricate wins over min=1 on that one slice.
+    - detailsOnAdmissionSection.entry → Encounter (min=1 max=1) ✓
+    - hospitalCourseSection.entry → DocumentReference (deferred, no entry)
+    - detailsOnDischargeSection.entry → Encounter (min=1 max=1) ✓
+    - diagnosesOnDischargeSection.entry → Condition (min=1) ✓
+    Non-required slices (chief complaint / present illness / etc.) do not
+    fabricate an entry when clinosim has no source resource to link.
+    """
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    children_by_code = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
+
+    # 322 = detailsOnAdmission → Encounter
+    entries = children_by_code["322"]["entry"]
+    assert len(entries) == 1
+    assert entries[0]["reference"] == "Encounter/ENC-001"
+
+    # 333 = hospitalCourse — deferred, no entry emitted (see docstring).
+    assert "entry" not in children_by_code["333"]
+
+    # 324 = detailsOnDischarge → Encounter
+    entries = children_by_code["324"]["entry"]
+    assert entries[0]["reference"] == "Encounter/ENC-001"
+
+    # 344 = diagnosesOnDischarge → Condition
+    entries = children_by_code["344"]["entry"]
+    assert entries[0]["reference"] == "Condition/cond-ENC-001-primary"
+
+    # Non-required section: chief_complaint (352) — no entry emitted.
+    assert "entry" not in children_by_code["352"]
+
+
+@pytest.mark.unit
+def test_jp_clins_composition_entry_omitted_when_ids_missing():
+    """Never fabricate a broken reference — if encounter_id (or the pieces
+    needed to derive a target id) is missing, drop the entry."""
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    doc["encounter_id"] = ""
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    children_by_code = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
+    for code in ("322", "324", "344"):
+        assert "entry" not in children_by_code[code], code
+
+
+@pytest.mark.unit
+def test_jp_clins_composition_custodian_emitted():
+    """Chain #9 follow-up (#267): `Composition.custodian` min=1. Reused from
+    the generic composition path — no fabrication if the resource id
+    placeholder ever becomes empty."""
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    assert comp["custodian"]["reference"].startswith("Organization/")
+
+
+@pytest.mark.unit
+def test_jp_clins_composition_event_period_populated():
+    """Chain #9 follow-up (#267): `Composition.event` min=1 max=1 with
+    period.start required — falls back to authored_datetime when
+    period_start is absent (generic builder emit)."""
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    event = comp.get("event")
+    assert isinstance(event, list) and len(event) == 1
+    period = event[0].get("period", {})
+    assert period.get("start")
+
+
+@pytest.mark.unit
 def test_jp_clins_composition_author_has_organization():
     """Chain #9: `Composition.author` min=2 — practitioner + facility organization."""
     from clinosim.modules.output._fhir_composition import _build_composition

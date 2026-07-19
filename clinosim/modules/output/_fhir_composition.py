@@ -418,8 +418,30 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
 }
 
 
-# Chain #8's `_section_title_from_section_display` helper + `_JP_SECTION_TITLE_SUFFIX`
-# constant are defined once earlier in the file (Chain #9 additions block).
+# Session 58 Chain #9 follow-up (#267): section slices with a required `entry`
+# reference. Values are `("resource_type", "id_template")`; the template
+# receives `encounter_id` and `doc_id` (comp-prefixed) as keyword args and
+# returns the reference string. The reference targets track the JP-CLINS spec
+# `type.targetProfile` on each `.entry` element (verified against
+# `clinical-information-sharing#1.12.0/package/StructureDefinition-JP-
+# Composition-eDischargeSummary.json`).
+_JP_DS_SECTION_ENTRY_REFERENCES: dict[str, tuple[str, str]] = {
+    # detailsOnAdmissionSection.entry min=1 max=1 → JP_Encounter
+    "admission_details": ("Encounter", "Encounter/{encounter_id}"),
+    # detailsOnDischargeSection.entry min=1 max=1 → JP_Encounter
+    "discharge_details": ("Encounter", "Encounter/{encounter_id}"),
+    # diagnosesOnDischargeSection.entry min=1 → JP_Condition (primary dx)
+    "discharge_diagnoses": ("Condition", "Condition/cond-{encounter_id}-primary"),
+    # hospitalCourseSection.entry min=1 → JP_DocumentReference — deferred
+    # to a follow-up. `_bb_document_references` skips docs whose format_type
+    # is `composition` (they ARE the Composition), so the id derivable here
+    # from `doc.document_id` corresponds to no emitted DocumentReference.
+    # The real fix needs `_bb_compositions` to precompute an encounter_id →
+    # free-text-doc-id map (nurse progress notes / physician progress notes
+    # from the same encounter) and thread it into the builder. Dropping the
+    # slot rather than shipping a dangling reference — never-fabricate wins
+    # over min=1 spec compliance on this one slice.
+}
 
 
 def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
@@ -509,31 +531,58 @@ def _build_jp_clins_discharge_summary_composition(doc: Any, sections: dict[str, 
     # per spec `title.fixedString` (Chain #8 pattern).
     parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
     parent_title = _section_title_from_section_display(parent_disp)
+    # Chain #9 follow-up (#267): pre-compute the ids the entry references
+    # need. See the `_JP_DS_SECTION_ENTRY_REFERENCES` comment for the
+    # hospital_course slot deferral (needs an encounter → DocumentReference
+    # cross-ref that the local scope does not have).
+    _enc_id = _o(doc, "encounter_id", "") or ""
+    _entry_ctx = {"encounter_id": _enc_id}
+
     child_sections: list[dict[str, Any]] = []
     for key, code in _JP_DS_SECTION_CODE.items():
         disp_c = code_lookup("jpfhir-doc-section", code, lang) or key
         title_c = _section_title_from_section_display(disp_c)
         text_val = sections.get(key, "") or ""
         # Chain #9: section.code.text max=0 — drop `text` from `code`.
-        child_sections.append(
-            {
-                "title": title_c,
-                "code": {
-                    "coding": [
-                        {
-                            "system": _JPFHIR_DOC_SECTION_SYSTEM,
-                            "code": code,
-                            "display": disp_c,
-                        }
-                    ],
-                },
-                # Session 57 Chain 8: JP-CLINS pins `text.status` to `additional`.
-                "text": {
-                    "status": "additional",
-                    "div": (f'<div xmlns="http://www.w3.org/1999/xhtml">{_escape_html(text_val)}</div>'),
-                },
-            }
-        )
+        section_obj: dict[str, Any] = {
+            "title": title_c,
+            "code": {
+                "coding": [
+                    {
+                        "system": _JPFHIR_DOC_SECTION_SYSTEM,
+                        "code": code,
+                        "display": disp_c,
+                    }
+                ],
+            },
+            # Session 57 Chain 8: JP-CLINS pins `text.status` to `additional`.
+            "text": {
+                "status": "additional",
+                "div": (f'<div xmlns="http://www.w3.org/1999/xhtml">{_escape_html(text_val)}</div>'),
+            },
+        }
+        # Chain #9 follow-up (#267): required `.entry` reference on
+        # detailsOnAdmission / hospitalCourse / detailsOnDischarge /
+        # diagnosesOnDischarge slices. Only emit when the referenced resource
+        # id is derivable (encounter_id / document_id present); a missing
+        # source leaves the entry off so we never fabricate a broken
+        # reference.
+        entry_spec = _JP_DS_SECTION_ENTRY_REFERENCES.get(key)
+        if entry_spec is not None:
+            _, ref_template = entry_spec
+            try:
+                ref = ref_template.format(**_entry_ctx)
+            except KeyError:
+                ref = ""
+            # Reject broken references — any format substitution that ended up
+            # empty leaves the string looking like `Encounter/` or
+            # `Condition/cond--primary`. Both are dead references so we drop
+            # the entry rather than emit garbage.
+            if ref.endswith("/") or "//" in ref or "cond--primary" in ref:
+                ref = ""
+            if ref:
+                section_obj["entry"] = [{"reference": ref}]
+        child_sections.append(section_obj)
     # Parent structuredSection — Chain #9: drop `code.text` (max=0) and use
     # title-short / display-long split.
     comp["section"] = [
