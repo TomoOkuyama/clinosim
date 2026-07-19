@@ -148,12 +148,15 @@ def _build_lab_observation(
 
     if isinstance(value, (int, float)):
         unit_str = result.get("unit", "")
-        resource["valueQuantity"] = {
-            "value": value,
-            "unit": unit_str,
-            "system": get_system_uri("ucum"),
-            "code": unit_str,  # UCUM code identical to display unit
-        }
+        # #323 session 61:FHIR R4 ele-1 は空文字列 field を禁止。unit が
+        # 未設定時(unit_str == "")は unit / code / system 全て omit
+        # (v6.1 で 44 件 error 発火)。value のみ emit する。
+        _vq: dict[str, Any] = {"value": value}
+        if unit_str:
+            _vq["unit"] = unit_str
+            _vq["system"] = get_system_uri("ucum")
+            _vq["code"] = unit_str  # UCUM code identical to display unit
+        resource["valueQuantity"] = _vq
     else:
         resource["valueString"] = str(value)
 
