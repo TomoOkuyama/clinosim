@@ -83,6 +83,22 @@ def test_medication_request_jp_yj12_uri() -> None:
     assert coding["code"] == "6139504G1028"
 
 
+def test_medication_request_course_of_therapy_display_matches_hl7_terminology() -> None:
+    """`courseOfTherapyType.coding[].display` must match the authoritative R4
+    HL7 terminology CodeSystem `medicationrequest-course-of-therapy` — verified
+    against `hl7.terminology.r4#7.2.0`. The hyphenated `Continuous long-term
+    therapy` variant produced 854 v4 fullset errors; the canonical form is
+    `Continuous long term therapy` (no hyphen)."""
+    mr = _build_mr("6131002")
+    coding = mr["courseOfTherapyType"]["coding"][0]
+    assert coding["system"] == "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy"
+    assert coding["code"] in ("continuous", "acute")
+    if coding["code"] == "continuous":
+        assert coding["display"] == "Continuous long term therapy"
+    else:
+        assert coding["display"] == "Short course (acute) therapy"
+
+
 def test_medication_request_us_keeps_rxnorm() -> None:
     """US output は RxNorm URI を維持(HOT/YJ dispatch は JP-only)。"""
     from clinosim.codes import get_system_uri
