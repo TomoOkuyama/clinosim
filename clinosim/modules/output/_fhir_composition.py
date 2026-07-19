@@ -470,11 +470,19 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
     "chief_complaint": "352",  # chiefComplaintsSection / 主訴
     "present_illness": "360",  # presentIllnessSection / 現病歴
     # Discharge side (5 slices — session 58 Chain #9 additions)
+    # session 59 #286:sections dict の key を `medication_on_discharge` /
+    # `instruction_on_discharge` から narrative generator の実キー
+    # `discharge_medications` / `discharge_instructions` に修正。前者は
+    # session 58 Chain #9 で slice 名(medicationOnDischarge)を key にした
+    # ためだが narrative pass 側は `_build_discharge_medications` /
+    # `_build_discharge_instructions` を α-min-1 から流用しており key 名
+    # が `discharge_medications` / `discharge_instructions`。key drift で
+    # sections.get(...) が常に空になり FHIR R4 `txt-2` 違反 260+ 件。
     "hospital_course": "333",  # hospitalCourseSection / 入院中経過
     "discharge_details": "324",  # detailsOnDischargeSection / 退院時詳細
     "discharge_diagnoses": "344",  # diagnosesOnDischargeSection / 退院時診断
-    "medication_on_discharge": "444",  # medicationOnDischargeSection / 退院時投薬指示
-    "instruction_on_discharge": "424",  # instructionOnDischargeSection / 退院時方針指示
+    "discharge_medications": "444",  # medicationOnDischargeSection / 退院時投薬指示
+    "discharge_instructions": "424",  # instructionOnDischargeSection / 退院時方針指示
 }
 
 
@@ -692,6 +700,17 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
     "present_illness_ref": "360",
 }
 
+# session 59 #296:JP-CLINS eReferral の 920(紹介元)/ 910(紹介先)
+# top-level section slice に必須の Organization reference。CIF は destination
+# 別 Organization を model していないため hospital-main を両側 placeholder
+# として emit(reference integrity は保たれる;data-shape trade-off)。
+# module-scope 定数(function 内では N806 lint violation)。
+_JP_ER_REFERRAL_ORG_REF: list[dict[str, str]] = [{"reference": "Organization/hospital-main"}]
+_JP_ER_TOP_LEVEL_ENTRY: dict[str, list[dict[str, str]]] = {
+    "920": _JP_ER_REFERRAL_ORG_REF,  # referralFromOrganization
+    "910": _JP_ER_REFERRAL_ORG_REF,  # referralToOrganization
+}
+
 
 # session 59 #289 sibling of eDS Chain #9:JP-CLINS eReferral は eDS と同
 # 5 top-level 制約を持つ(extension:version min=1 / category min=1 /
@@ -790,12 +809,18 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
         {"text": _JP_ER_EVENT_CODE_TEXT_JA},
     )
 
-    def _one_section(section_code: str, text_val: str) -> dict[str, Any]:
+    # #296 (session 59):`_one_section` に entry_refs 引数を追加し、920 /
+    # 910 top-level slice に referralFrom/ToOrganization reference を渡す。
+    def _one_section(
+        section_code: str,
+        text_val: str,
+        entry_refs: list[dict[str, str]] | None = None,
+    ) -> dict[str, Any]:
         # Session 58 Chain #8: title = short form, display = long form.
         # Session 58 Chain #9: `code.text` max=0 → omit.
         disp_c = code_lookup("jpfhir-doc-section", section_code, lang) or section_code
         title_c = _section_title_from_section_display(disp_c)
-        return {
+        section_obj: dict[str, Any] = {
             "title": title_c,
             "code": {
                 "coding": [
@@ -813,11 +838,23 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
                 "div": (f'<div xmlns="http://www.w3.org/1999/xhtml">{_escape_html(text_val)}</div>'),
             },
         }
+        # session 59:JP-CLINS eReferral は 920 / 910 の 2 section に
+        # `entry:referralFromOrganization` / `entry:referralToOrganization`
+        # slice(それぞれ min=1)を要求。clinosim は referring destination
+        # の別 Organization を model していないので、referralFrom = 自院
+        # (hospital-main)、referralTo も自院を placeholder として emit
+        # する(reference integrity は保たれる;data-shape trade-off)。
+        if entry_refs:
+            section_obj["entry"] = entry_refs
+        return section_obj
 
+    # session 59 #296:各 top-level section slice の entry(module-scope
+    # 定数 `_JP_ER_REFERRAL_ORG_REF` / `_JP_ER_TOP_LEVEL_ENTRY`、下記
+    # `_JP_REFERRAL_TOP_LEVEL` の直後で定義)。
     # Top-level 920 + 910
     top_sections: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_TOP_LEVEL.items():
-        top_sections.append(_one_section(code, sections.get(key, "") or ""))
+        top_sections.append(_one_section(code, sections.get(key, "") or "", _JP_ER_TOP_LEVEL_ENTRY.get(code)))
 
     # 300 structural, nesting 950 / 340 / 360
     struct_children: list[dict[str, Any]] = []
