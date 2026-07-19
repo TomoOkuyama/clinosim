@@ -32,14 +32,17 @@ _AUTHORITATIVE_SNOMED_ROUTE_DISPLAY: dict[str, str] = {
     # registered synonym in the tx-server loadout (v4 chain #4, 667 errors).
     "447694001": "Respiratory tract route (qualifier value)",
     "6064005": "Topical",
+    # #311 session 60:Sublingual route の authoritative code。SNOMED
+    # valid synonym として "Sublingual" を HAPI 受容。
+    "37839007": "Sublingual",
 }
 
 
-# SL (Sublingual) currently maps to SNOMED 37161004 = Rectal route (a semantic
-# code-selection bug, not a display bug — canonical Sublingual is 37839007).
-# Tracked as a follow-up in the Chain #4 Issue; excluded from the display
-# lock so this Chain's fix is landable without pulling in the semantic swap.
-_KNOWN_SEMANTIC_MISMATCH_ROUTE_KEYS: frozenset[str] = frozenset({"SL"})
+# #311 session 60:SL の semantic-mismatch(37161004 → 37839007)は
+# fix 済。allowlist から撤去。今後 sibling が同 class の bug を追加した
+# 場合はここに一時登録して cross-check test を pass させ、後日別 chain
+# で resolve する pattern を継続。
+_KNOWN_SEMANTIC_MISMATCH_ROUTE_KEYS: frozenset[str] = frozenset()
 
 
 @pytest.mark.parametrize("route_key,entry", sorted(_ROUTE_SNOMED.items()))
@@ -65,3 +68,15 @@ def test_inhalation_routes_use_respiratory_tract_display() -> None:
     for k in ("INHALED", "NEBULIZED"):
         assert _ROUTE_SNOMED[k]["code"] == "447694001"
         assert _ROUTE_SNOMED[k]["display"] == "Respiratory tract route (qualifier value)"
+
+
+def test_sl_uses_authoritative_sublingual_code() -> None:
+    """#311 session 60:SL は authoritative Sublingual code 37839007 を使用。
+    37161004 は Rectal(silent-code-substitution bug、session 45+ pattern
+    で v6 で 13 件 error として顕在化)。"""
+    assert _ROUTE_SNOMED["SL"]["code"] == "37839007"
+    # 37161004 は Rectal 専用として PR entry のみが使用。
+    assert _ROUTE_SNOMED["PR"]["code"] == "37161004"
+    assert _ROUTE_SNOMED["SL"]["code"] != _ROUTE_SNOMED["PR"]["code"], (
+        "SL と PR が同じ SNOMED code を使うのは semantic-mismatch(session 60 #311 で fix 済)"
+    )
