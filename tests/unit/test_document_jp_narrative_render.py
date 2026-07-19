@@ -52,14 +52,26 @@ def jp_bacterial_pneumonia_documents():
 
 
 @pytest.mark.unit
-def test_jp_discharge_summary_has_5_required_sections(jp_bacterial_pneumonia_documents):
+def test_jp_discharge_summary_has_10_required_sections(jp_bacterial_pneumonia_documents):
+    """#286: JP-CLINS eDS `structuredSection.section` min=10. session 58
+    Chain #9 added 5 discharge-side slice codes but narrative content wired
+    only 5 admission-side keys, producing 630 v5 `txt-2` errors. Session 59
+    #286 extends narrative to all 10 keys so text.div is non-empty on every
+    slice."""
     assert jp_bacterial_pneumonia_documents, "expected at least one JP discharge summary in the fixture cohort"
     expected = {
+        # Admission side (5)
         "admission_reason",
         "admission_details",
         "admission_diagnoses",
         "chief_complaint",
         "present_illness",
+        # Discharge side (5, session 59 #286)
+        "hospital_course",
+        "discharge_details",
+        "discharge_diagnoses",
+        "discharge_medications",
+        "discharge_instructions",
     }
     for doc in jp_bacterial_pneumonia_documents:
         narr = doc.get("narrative") or {}

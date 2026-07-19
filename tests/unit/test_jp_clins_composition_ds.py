@@ -24,11 +24,18 @@ def _jp_ds_doc():
         "period_end": "2026-01-20T10:00:00",
         "narrative": {
             "sections": {
+                # Admission side (5)
                 "admission_reason": "細菌性肺炎のため入院となった。",
                 "admission_details": "2026-01-15、救急外来受診後、内科病棟に入院した。",
                 "admission_diagnoses": "1. 細菌性肺炎（J13）",
                 "chief_complaint": "発熱・咳嗽",
                 "present_illness": "3日前より発熱と咳嗽を認め、当院受診となった。",
+                # Discharge side (5, session 59 #286)
+                "hospital_course": "抗菌薬治療により経過良好、5 日間の入院で改善。",
+                "discharge_details": "2026-01-20、内科病棟から自宅退院となった。",
+                "discharge_diagnoses": "1. 細菌性肺炎（J13）",
+                "discharge_medications": "アモキシシリン 500mg 1日3回 × 7日間",
+                "discharge_instructions": "十分な休養と水分摂取を心がけてください。",
             }
         },
     }
@@ -227,6 +234,29 @@ def test_jp_clins_composition_category_discharge_display_matches_cs_authoritativ
     coding = comp["category"][0]["coding"][0]
     # authoritative doc-subtypecodes CS: DISCHARGE → "退院時文書"
     assert coding["display"] == "退院時文書"
+
+
+@pytest.mark.unit
+def test_jp_clins_composition_all_10_child_sections_have_nonempty_text_div():
+    """#286 regression: all 10 JP-CLINS eDS child sections must have non-
+    whitespace text.div (FHIR R4 `txt-2`). Session 58 Chain #9 added the 5
+    discharge-side slice codes (333/324/344/444/424) but the sections dict
+    key names for 444/424 in `_JP_DS_SECTION_CODE` were
+    `medication_on_discharge` / `instruction_on_discharge` while the
+    narrative pass writes `discharge_medications` / `discharge_instructions`.
+    Key drift → empty `<div/>` → 260+ v5 errors.
+    """
+    from clinosim.modules.output._fhir_composition import _build_composition
+
+    doc = _jp_ds_doc()
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    parent = comp["section"][0]
+    for child in parent["section"]:
+        code = child["code"]["coding"][0]["code"]
+        div = (child.get("text") or {}).get("div", "")
+        # Strip xhtml wrapper + whitespace
+        stripped = div.replace('<div xmlns="http://www.w3.org/1999/xhtml">', "").replace("</div>", "").strip()
+        assert stripped, f"child section {code} has empty text.div (txt-2 violation)"
 
 
 @pytest.mark.unit

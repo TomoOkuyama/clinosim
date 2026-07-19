@@ -254,7 +254,12 @@
         "ctx.diagnoses",
         "disease_protocol.chief_complaint.ja",
         "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]"
+        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "ctx.encounter.discharge_datetime",
+        "ctx.diagnoses",
+        "ctx.discharge_medications",
+        "discharge_instructions.baseline",
+        "discharge_instructions.disease_specific.copd_exacerbation"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -267,6 +272,11 @@
         "admission_diagnoses": "1. COPD急性増悪（J44.1）",
         "admission_reason": "COPD急性増悪のため入院となった。",
         "chief_complaint": "呼吸困難増悪・喀痰増加・喘鳴",
+        "discharge_details": "2024-06-25自宅退院となった。",
+        "discharge_diagnoses": "COPD急性増悪（J44.1）",
+        "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 1-2 週間以内に外来受診をお願いします。 処方された薬を指示通り内服してください。 症状悪化があれば速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。 徐々に通常活動を再開してください。 バランスの良い食事と十分な水分摂取を心がけてください。",
+        "discharge_medications": "Prednisolone; Amoxicillin/Clavulanate",
+        "hospital_course": "入院 10 日間の治療を経て経過良好。症状は改善し退院となった。",
         "present_illness": "症状は数日前より出現し漸次増悪。 急性発症"
       },
       "structured": {},

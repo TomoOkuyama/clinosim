@@ -638,7 +638,12 @@
         "ctx.diagnoses",
         "disease_protocol.chief_complaint.ja",
         "disease_protocol.narrative.hpi_template.onset_pattern.severe",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]"
+        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "ctx.encounter.discharge_datetime",
+        "ctx.diagnoses",
+        "ctx.discharge_medications",
+        "discharge_instructions.baseline",
+        "discharge_instructions.disease_specific.sepsis"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -651,6 +656,11 @@
         "admission_diagnoses": "1. 敗血症、詳細不明（A41.9）",
         "admission_reason": "敗血症、詳細不明のため入院となった。",
         "chief_complaint": "発熱・意識変容・低血圧",
+        "discharge_details": "2024-07-09自宅退院となった。",
+        "discharge_diagnoses": "R65.20",
+        "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 1-2 週間以内に外来受診をお願いします。 処方された薬を指示通り内服してください。 症状悪化があれば速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。 徐々に通常活動を再開してください。 バランスの良い食事と十分な水分摂取を心がけてください。",
+        "discharge_medications": "Levofloxacin",
+        "hospital_course": "入院 24 日間の治療を経て経過良好。症状は改善し退院となった。",
         "present_illness": "症状急速に増悪、本日受診。 急性発症"
       },
       "structured": {},

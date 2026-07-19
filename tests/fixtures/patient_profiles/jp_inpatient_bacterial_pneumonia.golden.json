@@ -265,7 +265,12 @@
         "ctx.diagnoses",
         "disease_protocol.chief_complaint.ja",
         "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]"
+        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "ctx.encounter.discharge_datetime",
+        "ctx.diagnoses",
+        "ctx.discharge_medications",
+        "discharge_instructions.baseline",
+        "discharge_instructions.disease_specific.bacterial_pneumonia"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -278,6 +283,11 @@
         "admission_diagnoses": "1. 肺炎、詳細不明（J18.9）",
         "admission_reason": "肺炎、詳細不明のため入院となった。",
         "chief_complaint": "発熱・咳嗽・呼吸困難",
+        "discharge_details": "2024-06-25自宅退院となった。",
+        "discharge_diagnoses": "ウイルス性肺炎、詳細不明（J12.9）",
+        "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 7-10 日以内に呼吸器科または内科外来を受診してください。6-8 週後に胸部 X 線再撮影予定。 処方された抗菌薬は症状が改善しても最後まで内服してください。 発熱（38.5℃超）の持続、呼吸困難の増悪、SpO2 低下があれば速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。 徐々に活動を再開してください。2 週間は激しい運動を避けてください。 喫煙は回復を著しく遅らせます。禁煙を強くお勧めします。 十分な水分摂取と栄養補給を心がけてください。禁煙を強くお勧めします。",
+        "discharge_medications": "Amoxicillin",
+        "hospital_course": "入院 10 日間の治療を経て経過良好。症状は改善し退院となった。",
         "present_illness": "発熱・咳嗽・喀痰が出現し、SpO2 低下を認め緊急受診。 上気道感染後"
       },
       "structured": {},
