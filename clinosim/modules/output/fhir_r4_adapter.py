@@ -2139,12 +2139,7 @@ def _apply_jp_core_profile(resource: dict) -> None:
     # pre-set 済なら Common を追加しない。
     if rt == "DiagnosticReport":
         _variant_prefix = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_"
-        if any(
-            isinstance(p, str)
-            and p.startswith(_variant_prefix)
-            and not p.endswith("_Common")
-            for p in profs
-        ):
+        if any(isinstance(p, str) and p.startswith(_variant_prefix) and not p.endswith("_Common") for p in profs):
             return
     for profile in profiles:
         if profile not in profs:

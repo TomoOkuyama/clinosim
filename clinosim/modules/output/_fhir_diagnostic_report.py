@@ -65,9 +65,7 @@ RADIOLOGY_CATEGORY_V2_0074 = "RAD"
 #   category:first  = LOINC LP29684-5(放射線)
 #   category:second = DICOM modality(CT/CR/MR ...)
 #   code.coding:radiologyReportCode = JP_DocumentCodes_CS 18748-4(画像検査報告書)
-_JP_DR_RADIOLOGY_PROFILE = (
-    "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Radiology"
-)
+_JP_DR_RADIOLOGY_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Radiology"
 _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE = "LP29684-5"
 _JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_JA = "放射線"
 _JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_EN = "Radiology"
@@ -589,9 +587,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     _jp_code_coding: list[dict] = []
     if _is_jp:
         _lp_display = (
-            _JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_JA
-            if lang == "ja"
-            else _JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_EN
+            _JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_JA if lang == "ja" else _JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_EN
         )
         _jp_dr_category.append(
             {
@@ -615,9 +611,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
                     ]
                 }
             )
-        _report_disp = (
-            _JP_DR_RADIOLOGY_REPORT_DISPLAY_JA if lang == "ja" else _JP_DR_RADIOLOGY_REPORT_DISPLAY_EN
-        )
+        _report_disp = _JP_DR_RADIOLOGY_REPORT_DISPLAY_JA if lang == "ja" else _JP_DR_RADIOLOGY_REPORT_DISPLAY_EN
         _jp_code_coding.append(
             {
                 "system": _JP_DOCUMENT_CODES_CS,
