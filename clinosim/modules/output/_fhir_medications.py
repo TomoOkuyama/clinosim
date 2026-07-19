@@ -374,7 +374,12 @@ def _build_medication_request(
     # 急性期治療は acute、その他は継続困難なため無指定にせず acute default。
     # HL7 CodeSystem: http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy
     _course_code = "continuous" if (_is_home_med or _cat_code == "community") else "acute"
-    _course_display = "Continuous long-term therapy" if _course_code == "continuous" else "Short course (acute) therapy"
+    # Displays follow the authoritative HL7 terminology R4 CodeSystem
+    # `medicationrequest-course-of-therapy` (verified via
+    # `hl7.terminology.r4#7.2.0/package/CodeSystem-medicationrequest-course-of-therapy.json`).
+    # "Continuous long term therapy" (no hyphen) is the spec-canonical form —
+    # the hyphenated variant produced 854 v4 fullset errors.
+    _course_display = "Continuous long term therapy" if _course_code == "continuous" else "Short course (acute) therapy"
     resource["courseOfTherapyType"] = {
         "coding": [
             {
