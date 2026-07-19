@@ -306,20 +306,23 @@ def _build_medication_request(
             }
         ]
     elif country_code == "JP":
-        # #291:JP-CLINS eCS(JP_MedicationRequest-eCS)は
+        # #291 / #283:JP-CLINS eCS(JP_MedicationRequest-eCS)は
         # `medication[x].coding` min=1 を要求。code_mapping にヒットしない
         # ED 特異薬(点眼薬 / 泌尿器系一次治療薬 等)+ #283 で tx-server
-        # 未収録 YJ code は eCS の "nocoded" slice に fallback。drug_name を
-        # display に流用(text field と重複するが nocoded slice の
-        # `display` min=1 制約を満たすため)。
+        # 未収録 YJ code は eCS の "nocoded" slice に fallback。
         # slice fixedUri は spec:
         # clinical-information-sharing#1.12.0/package/
         # CodeSystem-jp-eCS-medicationcode-nocoded-cs.json
+        # #305 session 60:display は権威 CodeSystem 定義通り
+        # "標準コードなし" 固定(NOCODED は 1 code / 1 display の required
+        # binding 相当)。薬剤名は上の med_concept["text"] で保持。session
+        # 59 の drug_name-in-display は v6 で 12,891 件 display mismatch
+        # を発生させた regression。
         med_concept["coding"] = [
             {
                 "system": _JP_MEDICATION_CODE_NOCODED_CS,
                 "code": _JP_MEDICATION_CODE_NOCODED_CODE,
-                "display": drug_name or _JP_MEDICATION_CODE_NOCODED_DISPLAY,
+                "display": _JP_MEDICATION_CODE_NOCODED_DISPLAY,
             }
         ]
 
@@ -619,11 +622,14 @@ def _build_medication_admin(
             coding["display"] = display
         med_concept["coding"] = [coding]
     elif country_code == "JP":
+        # #305 session 60:display は権威 CodeSystem 定義通り
+        # "標準コードなし" 固定。薬剤名は med_concept["text"] で保持
+        # (MR builder と同じ理由、v6 で MAR も同 mismatch 発生)。
         med_concept["coding"] = [
             {
                 "system": _JP_MEDICATION_CODE_NOCODED_CS,
                 "code": _JP_MEDICATION_CODE_NOCODED_CODE,
-                "display": drug_name or _JP_MEDICATION_CODE_NOCODED_DISPLAY,
+                "display": _JP_MEDICATION_CODE_NOCODED_DISPLAY,
             }
         ]
 

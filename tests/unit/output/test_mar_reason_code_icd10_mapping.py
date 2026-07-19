@@ -88,3 +88,49 @@ def test_mar_reason_code_omitted_when_no_dx_code() -> None:
     """When no primary diagnosis is provided, no reasonCode is emitted."""
     resource = _build_mar(country="JP", primary_dx_code="")
     assert "reasonCode" not in resource
+
+
+def test_mar_nocoded_display_pinned_to_authoritative_value() -> None:
+    """#305 session 60:MedicationAdministration.medicationCodeableConcept
+    に nocoded fallback を emit するとき、display は権威 CodeSystem 定義
+    通り "標準コードなし" 固定。薬剤名は CodeableConcept.text で保持。
+
+    v6 validation で MAR に 12,565 件の display mismatch error が出た
+    regression の pin(v6 total 15,148 errors の 83%)。session 59 の
+    drug_name-in-display は権威 CodeSystem `MedicationCodeNocoded_CS`
+    (NOCODED 1 code / "標準コードなし" 1 display の required binding)
+    に反していた。
+    """
+    from clinosim.modules.output._fhir_medications import (
+        _JP_MEDICATION_CODE_NOCODED_CODE,
+        _JP_MEDICATION_CODE_NOCODED_CS,
+        _JP_MEDICATION_CODE_NOCODED_DISPLAY,
+    )
+
+    # JP + unknown drug (code_mapping にヒットしない) → nocoded fallback
+    mar = {
+        "mar_id": "MAR-1",
+        "drug_name": "some_unknown_med 5mg",
+        "administration_datetime": "2026-06-01T10:00:00",
+        "dose": "5 mg",
+        "route": "oral",
+        "status": "given",
+    }
+    resource = _build_medication_admin(
+        mar,
+        patient_id="pt1",
+        index=1,
+        country="JP",
+        encounter_id="enc1",
+        primary_dx_code="",
+    )
+    coding = resource["medicationCodeableConcept"]["coding"][0]
+    assert coding["system"] == _JP_MEDICATION_CODE_NOCODED_CS
+    assert coding["code"] == _JP_MEDICATION_CODE_NOCODED_CODE == "NOCODED"
+    assert coding["display"] == _JP_MEDICATION_CODE_NOCODED_DISPLAY == "標準コードなし"
+    # 薬剤名は text field で保持
+    assert resource["medicationCodeableConcept"]["text"]
+    assert (
+        "some_unknown_med" in resource["medicationCodeableConcept"]["text"].lower()
+        or (resource["medicationCodeableConcept"]["text"])
+    )

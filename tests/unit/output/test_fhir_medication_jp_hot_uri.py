@@ -97,6 +97,7 @@ def test_medication_request_jp_nocoded_fallback_when_yj_not_in_tx_fragment() -> 
     """
     from clinosim.modules.output._fhir_medications import (
         _JP_MEDICATION_CODE_NOCODED_CS,
+        _JP_MEDICATION_CODE_NOCODED_DISPLAY,
         _is_tx_server_verified_yj,
     )
 
@@ -107,7 +108,10 @@ def test_medication_request_jp_nocoded_fallback_when_yj_not_in_tx_fragment() -> 
     coding = mr["medicationCodeableConcept"]["coding"][0]
     assert coding["system"] == _JP_MEDICATION_CODE_NOCODED_CS
     assert coding["code"] == "NOCODED"
-    # 薬剤名は text field で保持
+    # #305 session 60:display は権威 CodeSystem 定義通り
+    # "標準コードなし" 固定(1-code / 1-display required binding)。
+    # 薬剤名は CodeableConcept.text で保持。
+    assert coding["display"] == _JP_MEDICATION_CODE_NOCODED_DISPLAY == "標準コードなし"
     assert mr["medicationCodeableConcept"]["text"]
 
     # US は影響なし(YJ system 未使用)
@@ -118,12 +122,15 @@ def test_medication_request_jp_nocoded_fallback_when_yj_not_in_tx_fragment() -> 
 def test_medication_request_jp_nocoded_fallback_when_no_code_value() -> None:
     """#291:JP-CLINS eCS `medication[x].coding` min=1 を満たすため、
     code_mapping にヒットしない薬(ED 特異薬 等)は "nocoded" slice へ
-    fallback する。system = MedicationCodeNocoded_CS, code = "NOCODED",
-    display = drug_name(あれば)。US 出力には影響しない。
+    fallback する。system = MedicationCodeNocoded_CS, code = "NOCODED"。
+    #305 session 60:display は "標準コードなし" 固定、薬剤名は text
+    field で保持(1-code / 1-display required binding)。US 出力には
+    影響しない。
     """
     from clinosim.modules.output._fhir_medications import (
         _JP_MEDICATION_CODE_NOCODED_CODE,
         _JP_MEDICATION_CODE_NOCODED_CS,
+        _JP_MEDICATION_CODE_NOCODED_DISPLAY,
     )
 
     # JP:code_value 空 → nocoded fallback 発火
@@ -131,9 +138,14 @@ def test_medication_request_jp_nocoded_fallback_when_no_code_value() -> None:
     coding = mr_jp["medicationCodeableConcept"]["coding"][0]
     assert coding["system"] == _JP_MEDICATION_CODE_NOCODED_CS
     assert coding["code"] == _JP_MEDICATION_CODE_NOCODED_CODE == "NOCODED"
-    # display は drug_name の localize 結果を優先。text field は不変。
-    assert coding["display"]  # non-empty
-    assert mr_jp["medicationCodeableConcept"]["text"]  # text は常に emit
+    # #305 session 60:display は権威 CodeSystem 定義通り
+    # "標準コードなし" 固定(1-code / 1-display required binding)。
+    assert coding["display"] == _JP_MEDICATION_CODE_NOCODED_DISPLAY == "標準コードなし"
+    assert mr_jp["medicationCodeableConcept"]["text"]  # text は常に emit(薬剤名)
+
+    # US:code_value 空 → fallback 発火しない(US 出力は eCS profile 対象外)
+    mr_us = _build_mr("", country="US")
+    assert "coding" not in mr_us["medicationCodeableConcept"]
 
     # US:code_value 空 → fallback 発火しない(US 出力は eCS profile 対象外)
     mr_us = _build_mr("", country="US")
