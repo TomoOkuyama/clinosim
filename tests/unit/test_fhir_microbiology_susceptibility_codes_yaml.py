@@ -61,7 +61,7 @@ def _sus_displays(resources: list[dict]) -> list[str]:
     ],
 )
 def test_susceptibility_display_us(interp, en, ja):
-    resources = _bb_microbiology(_ctx("US", [{"antibiotic_loinc": "18991-2", "interpretation": interp}]))
+    resources = _bb_microbiology(_ctx("US", [{"antibiotic_loinc": "19000-9", "interpretation": interp}]))
     assert _sus_displays(resources) == [en]
 
 
@@ -74,7 +74,7 @@ def test_susceptibility_display_us(interp, en, ja):
     ],
 )
 def test_susceptibility_display_jp(interp, en, ja):
-    resources = _bb_microbiology(_ctx("JP", [{"antibiotic_loinc": "18991-2", "interpretation": interp}]))
+    resources = _bb_microbiology(_ctx("JP", [{"antibiotic_loinc": "19000-9", "interpretation": interp}]))
     assert _sus_displays(resources) == [ja]
 
 

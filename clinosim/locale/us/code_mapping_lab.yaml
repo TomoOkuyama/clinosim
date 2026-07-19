@@ -50,7 +50,7 @@ ESR: "4537-7"
 # (clinicaltables.nlm.nih.gov) v3 LOINC API.
 Phosphate: "2777-1"          # Phosphate [Mass/volume] in Serum or Plasma
 T_Bilirubin: "1975-2"        # Total bilirubin (alias for T_Bil)
-Beta_hydroxybutyrate: "32340-6"  # 3-Hydroxybutyrate [Moles/volume] in Serum or Plasma
+Beta_hydroxybutyrate: "104816-4"  # Beta hydroxybutyrate [Moles/volume] in Blood (LOINC 2.82 ACTIVE, session 58 Issue #264 — 32340-6 was retired)
 Anion_gap: "1863-0"          # Anion gap in Serum or Plasma
 Peak_Expiratory_Flow: "33452-4"  # Peak expiratory flow
 CO2: "20565-8"               # Carbon dioxide, total [Moles/volume] in Serum or Plasma
