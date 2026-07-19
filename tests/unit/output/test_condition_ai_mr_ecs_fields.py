@@ -16,6 +16,9 @@ import pytest
 
 from clinosim.modules.output.fhir_r4_adapter import (
     _ECS_IDENTIFIER_SYSTEMS,
+    _MEDIS_DISEASE_KEYNUMBER_SYSTEM,
+    _MEDIS_UNCODED_DISEASE_CODE,
+    _MEDIS_UNCODED_DISEASE_DISPLAY,
     _copy_display_from_sibling_coding,
     _populate_condition_ai_mr_ecs_fields,
     _populate_status_coding_display,
@@ -66,6 +69,64 @@ def test_condition_verification_status_display_confirmed():
     }
     _populate_condition_ai_mr_ecs_fields(r)
     assert r["verificationStatus"]["coding"][0]["display"] == "Confirmed"
+
+
+def test_jp_condition_gains_medis_recordno_slice():
+    """JP output: walker appends the MEDIS 病名管理番号 coding (uncoded placeholder)
+    so `JP_Condition_eCS` `code.coding:medisRecordNo` slice min=1 is satisfied."""
+    r: dict = {
+        "resourceType": "Condition",
+        "id": "c1",
+        "code": {
+            "coding": [
+                {"system": "http://hl7.org/fhir/sid/icd-10", "code": "I10", "display": "本態性(原発性)高血圧症"},
+            ],
+        },
+    }
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    codings = r["code"]["coding"]
+    medis = [c for c in codings if c.get("system") == _MEDIS_DISEASE_KEYNUMBER_SYSTEM]
+    assert len(medis) == 1
+    assert medis[0]["code"] == _MEDIS_UNCODED_DISEASE_CODE
+    assert medis[0]["display"] == _MEDIS_UNCODED_DISEASE_DISPLAY
+
+
+def test_jp_condition_medis_slice_idempotent():
+    """Walker skips when a MEDIS coding already exists — supports future
+    per-ICD-10 curation without duplication."""
+    existing = {
+        "system": _MEDIS_DISEASE_KEYNUMBER_SYSTEM,
+        "code": "20050020",
+        "display": "２型糖尿病",
+    }
+    r: dict = {
+        "resourceType": "Condition",
+        "id": "c1",
+        "code": {"coding": [{"system": "http://hl7.org/fhir/sid/icd-10", "code": "E11.9"}, existing]},
+    }
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    medis = [c for c in r["code"]["coding"] if c.get("system") == _MEDIS_DISEASE_KEYNUMBER_SYSTEM]
+    assert medis == [existing]
+
+
+def test_us_condition_does_not_gain_medis_slice():
+    """MEDIS is JP-only — US Condition must not receive the coding."""
+    r: dict = {
+        "resourceType": "Condition",
+        "id": "c1",
+        "code": {"coding": [{"system": "http://hl7.org/fhir/sid/icd-10-cm", "code": "I10"}]},
+    }
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
+    assert not any(c.get("system") == _MEDIS_DISEASE_KEYNUMBER_SYSTEM for c in r["code"]["coding"])
+
+
+def test_jp_condition_medis_slice_creates_coding_list_when_empty():
+    """Walker synthesises coding[] when Condition has code.text only."""
+    r: dict = {"resourceType": "Condition", "id": "c1", "code": {"text": "本態性高血圧"}}
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    medis = [c for c in r["code"]["coding"] if c.get("system") == _MEDIS_DISEASE_KEYNUMBER_SYSTEM]
+    assert len(medis) == 1
+    assert medis[0]["code"] == _MEDIS_UNCODED_DISEASE_CODE
 
 
 def test_condition_code_display_sibling_copy():
