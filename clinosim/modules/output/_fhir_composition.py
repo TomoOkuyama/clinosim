@@ -714,9 +714,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     # Top-level 920 + 910
     top_sections: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_TOP_LEVEL.items():
-        top_sections.append(
-            _one_section(code, sections.get(key, "") or "", _JP_ER_TOP_LEVEL_ENTRY.get(code))
-        )
+        top_sections.append(_one_section(code, sections.get(key, "") or "", _JP_ER_TOP_LEVEL_ENTRY.get(code)))
 
     # 300 structural, nesting 950 / 340 / 360
     struct_children: list[dict[str, Any]] = []
