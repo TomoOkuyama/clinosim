@@ -109,11 +109,11 @@ def test_jp_clins_referral_composition_chain9_pattern_top_level():
     に sibling drift、v5 で 120 件 error。
     """
     from clinosim.modules.output._fhir_composition import (
-        _JPFHIR_DOC_SUBTYPECODES_SYSTEM,
         _JP_EDS_VERSION_EXTENSION_URL,
         _JP_ER_CATEGORY_CODE,
         _JP_ER_CATEGORY_DISPLAY_JA,
         _JP_ER_EVENT_CODE_TEXT_JA,
+        _JPFHIR_DOC_SUBTYPECODES_SYSTEM,
         _build_composition,
     )
 
