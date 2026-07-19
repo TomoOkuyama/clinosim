@@ -116,7 +116,14 @@ _ROUTE_SNOMED: dict[str, dict[str, str]] = {
     "IV": {"code": "47625008", "display": "Intravenous"},
     "SC": {"code": "34206005", "display": "Subcutaneous"},
     "IM": {"code": "78421000", "display": "Intramuscular"},
-    "SL": {"code": "37161004", "display": "Sublingual"},
+    # #311 session 60:SL は silent-code-substitution bug の fix。
+    # 37161004 の authoritative display は "Rectal route (qualifier value)"
+    # (SNOMED CT International、fhir-jp-validator GPS ValueSet 権威確認)
+    # なので SL entry で使うのは semantically 誤り。Sublingual の
+    # authoritative code は 37839007。用途は chest_pain_noncardiac.yaml の
+    # Nitroglycerin 0.4mg SL 等。display "Sublingual" は SNOMED valid
+    # synonym として HAPI 受容。
+    "SL": {"code": "37839007", "display": "Sublingual"},
     "PR": {"code": "37161004", "display": "Per rectum"},
     # 447694001 SNOMED-authoritative default display is "Respiratory tract
     # route (qualifier value)" — "Inhalation" is not a registered synonym in
