@@ -319,10 +319,7 @@ def test_jp_environment_allergen_gets_jfagy_non_food_non_medication_cs_primary()
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
     primary = r["code"]["coding"][0]
-    assert (
-        primary["system"]
-        == "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
-    )
+    assert primary["system"] == "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
     assert primary["code"] == "00N"
     assert primary["display"] == "非食品・非医薬品"
 

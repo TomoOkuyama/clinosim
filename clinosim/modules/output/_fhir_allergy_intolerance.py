@@ -68,12 +68,8 @@ _VALID_CATEGORIES = {"medication", "food", "environment", "biologic"}
 # CodeSystem-jp-jfagy{food,medicationallergenycm,nonfoodnonmedicationallergen}-cs.json`
 # (session 51 rule: spec fixedUri direct quotation).
 _JP_JFAGY_FOOD_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS"
-_JP_JFAGY_MEDICATION_ALLERGEN_CS = (
-    "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
-)
-_JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS = (
-    "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
-)
+_JP_JFAGY_MEDICATION_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
+_JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
 
 # Category → (CodeSystem URI, generic code, ja display, en display).
 _JFAGY_GENERIC_BY_CATEGORY: dict[str, tuple[str, str, str, str]] = {
