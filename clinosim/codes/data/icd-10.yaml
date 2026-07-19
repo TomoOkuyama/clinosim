@@ -126,11 +126,14 @@ codes:
   I82:
     en: Other venous embolism and thrombosis
     ja: その他の静脈塞栓・血栓症
-  I84:
-    # WHO ICD-10 2013 category — JP 厚労省 ICD-10 (2013 準拠) retains I84.
-    # WHO ICD-10 2019 update moved this to K64.x; JP DPC / MHLW still emits I84.
-    en: Haemorrhoids
-    ja: 痔核
+  # I84 (Haemorrhoids) was retired from WHO ICD-10 in the 2013 revision
+  # and moved to K64.x. HAPI's ICD-10 CS (2019-covid-expanded, content=complete)
+  # does not include I84 → hard "Unknown code" errors for 64 emit sites in
+  # JP p=10k. Switched to K64.9 (Haemorrhoids, unspecified) — same clinical
+  # concept, present in HAPI CS. See #284.
+  K64.9:
+    en: Haemorrhoids, unspecified
+    ja: 痔核、詳細不明
   J06.9:
     en: Acute upper respiratory infection, unspecified
     ja: 急性上気道感染症、詳細不明
@@ -383,9 +386,12 @@ codes:
   N20.0:
     en: Calculus of kidney
     ja: 腎結石
-  R33.9:
-    en: Retention of urine, unspecified
-    ja: 尿閉、詳細不明
+  # R33.9 (subcode-unspecified) is not in HAPI's ICD-10 CS 2019-covid-
+  # expanded (R33 has no subcodes; the WHO 2019 category is a leaf).
+  # Folded to R33; jp code_mapping_diagnosis carries the CM→WHO map. #284.
+  R33:
+    en: Retention of urine
+    ja: 尿閉
   R68.8:
     en: Other specified general symptoms and signs
     ja: その他の全身症状および徴候
@@ -725,7 +731,10 @@ codes:
   S52.5:
     en: Fracture of lower end of radius
     ja: 橈骨下端骨折
-  S62.9:
+  # HAPI ICD-10 CS 2019-covid-expanded assigns the "other and unspecified
+  # parts" display to S62.8 (not S62.9). Renamed here + jp code_mapping
+  # updated so S62.90XA folds to S62.8 instead of S62.9. #284.
+  S62.8:
     en: Fracture of other and unspecified parts of wrist and hand
     ja: 手首及び手のその他及び詳細不明の部位の骨折
   S72.2:

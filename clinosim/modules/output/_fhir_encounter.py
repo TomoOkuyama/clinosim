@@ -568,33 +568,13 @@ def _build_encounter(
     if locations:
         resource["location"] = locations
 
-    # Readmission: link to prior encounter
+    # Readmission: link to prior encounter via partOf.
+    # session 59 #299:従来 `Encounter.type[]` に v3-ActCode "READM" を
+    # 追加していたが、READM は v3-ActCode に存在しない code(v5 で 24 件
+    # error)。FHIR 正式には `Encounter.hospitalization.reAdmission`
+    # (v2-0092 "R" = Re-admission)で表現、上の line 435-444 で既に emit
+    # 済み。type[] への重複追加は無効な CS binding を生むので撤廃。
     if is_readmission and prior_encounter_id:
         resource["partOf"] = {"reference": f"Encounter/{prior_encounter_id}"}
-        # Add READM type to existing types
-        if "type" in resource:
-            resource["type"].append(
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-v3-actcode"),
-                            "code": "READM",
-                            "display": "Readmission",
-                        }
-                    ],
-                }
-            )
-        else:
-            resource["type"] = [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-v3-actcode"),
-                            "code": "READM",
-                            "display": "Readmission",
-                        }
-                    ],
-                }
-            ]
 
     return resource
