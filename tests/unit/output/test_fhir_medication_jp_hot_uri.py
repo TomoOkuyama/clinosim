@@ -83,6 +83,31 @@ def test_medication_request_jp_yj12_uri() -> None:
     assert coding["code"] == "6139504G1028"
 
 
+def test_medication_request_jp_nocoded_fallback_when_no_code_value() -> None:
+    """#291:JP-CLINS eCS `medication[x].coding` min=1 を満たすため、
+    code_mapping にヒットしない薬(ED 特異薬 等)は "nocoded" slice へ
+    fallback する。system = MedicationCodeNocoded_CS, code = "NOCODED",
+    display = drug_name(あれば)。US 出力には影響しない。
+    """
+    from clinosim.modules.output._fhir_medications import (
+        _JP_MEDICATION_CODE_NOCODED_CODE,
+        _JP_MEDICATION_CODE_NOCODED_CS,
+    )
+
+    # JP:code_value 空 → nocoded fallback 発火
+    mr_jp = _build_mr("")  # no order_code, unknown drug name
+    coding = mr_jp["medicationCodeableConcept"]["coding"][0]
+    assert coding["system"] == _JP_MEDICATION_CODE_NOCODED_CS
+    assert coding["code"] == _JP_MEDICATION_CODE_NOCODED_CODE == "NOCODED"
+    # display は drug_name の localize 結果を優先。text field は不変。
+    assert coding["display"]  # non-empty
+    assert mr_jp["medicationCodeableConcept"]["text"]  # text は常に emit
+
+    # US:code_value 空 → fallback 発火しない(US 出力は eCS profile 対象外)
+    mr_us = _build_mr("", country="US")
+    assert "coding" not in mr_us["medicationCodeableConcept"]
+
+
 def test_medication_request_course_of_therapy_display_matches_hl7_terminology() -> None:
     """`courseOfTherapyType.coding[].display` must match the authoritative R4
     HL7 terminology CodeSystem `medicationrequest-course-of-therapy` — verified

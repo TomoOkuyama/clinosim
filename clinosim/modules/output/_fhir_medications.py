@@ -53,6 +53,14 @@ _JP_YJ_CODE_URI = "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code"
 
 _YJ12_PATTERN = re.compile(r"^\d{7}[A-Z]\d{4}$")
 
+# #291 session 59:JP-CLINS eCS "nocoded" slice — code_mapping にヒットしない
+# 薬(ED 特異薬 等)の `medication[x].coding` min=1 を満たすための fallback。
+# spec: clinical-information-sharing#1.12.0/package/
+# CodeSystem-jp-eCS-medicationcode-nocoded-cs.json 権威 display "標準コードなし"。
+_JP_MEDICATION_CODE_NOCODED_CS = "http://jpfhir.jp/fhir/eCS/CodeSystem/MedicationCodeNocoded_CS"
+_JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"
+_JP_MEDICATION_CODE_NOCODED_DISPLAY = "標準コードなし"
+
 
 def _resolve_jp_drug_system_uri(code: str) -> str:
     """Return the JP Core NamingSystem URI matching the drug code format.
@@ -246,6 +254,21 @@ def _build_medication_request(
                 "system": code_system,
                 "code": code_value,
                 "display": display,
+            }
+        ]
+    elif country_code == "JP":
+        # #291:JP-CLINS eCS(JP_MedicationRequest-eCS)は
+        # `medication[x].coding` min=1 を要求。code_mapping にヒットしない
+        # ED 特異薬(点眼薬 / 泌尿器系一次治療薬 等)は eCS の "nocoded"
+        # slice に fallback して drug_name を display に流用する。
+        # slice fixedUri は spec:
+        # clinical-information-sharing#1.12.0/package/
+        # CodeSystem-jp-eCS-medicationcode-nocoded-cs.json
+        med_concept["coding"] = [
+            {
+                "system": _JP_MEDICATION_CODE_NOCODED_CS,
+                "code": _JP_MEDICATION_CODE_NOCODED_CODE,
+                "display": drug_name or _JP_MEDICATION_CODE_NOCODED_DISPLAY,
             }
         ]
 
