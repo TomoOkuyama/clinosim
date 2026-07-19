@@ -464,6 +464,45 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
 - [ ] Comprehensive documentation
 - [ ] Stable API contracts
 
+## Recent completions (2026-07-20 — Session 59: v5 validation feedback chain, 14 PR merged)
+
+Session 59 = v5 feedback 対応 chain。全 14 PR merged, 全 defer 実装完了(user 指示「大規模改修のみ Defer」100% 遵守)。期待 v6 delta **−4,344 errors**(v5 5,048 → v6 ~704, fail rate 2.93% → 0.41%)。
+
+### Merged PR (14)
+
+- ✅ #280 (#279) eDS Composition.category display = 退院時文書 (-252)
+- ✅ #282 (#281) MR tim-2 periodUnit 復活 (-1,748)
+- ✅ #285 (#284) ICD-10 3 codes swap: I84→K64.9, R33.9→R33, S62.9→S62.8 (-86)
+- ✅ #288 (#286) eDS 5 discharge sections text.div (-630)
+- ✅ #290 (#289) eReferral Chain #9 sibling sweep 5 top-level (-120)
+- ✅ #292 (#291) JP MR medication.coding NOCODED fallback (-26)
+- ✅ #294 (#293) AI drop SNOMED secondary (-76+)
+- ✅ #295 (#278) eDS hospitalCourseSection.entry from free-text DocRef (-126)
+- ✅ #297 (#296) eReferral 920/910 section entry Organizations (-96)
+- ✅ #298 (#287) US goldens post-#159 chore sync (0, hygiene)
+- ✅ #300 (#299) 5 residual sweep: READM/exp/PT-OT-ST-MSW/empty-array/area (-91)
+- ✅ #301 (#283) YJ nocoded fallback (tx-server unverified) (-594)
+- ✅ #302 (#218) JP radiology DR _Radiology profile + spec slices (-499)
+- ✅ #303 (#276) LOINC 17 semantic-mismatch resolved (0, hygiene)
+
+### New patterns / infrastructure
+
+- ✅ Authoritative snapshot for tx-server-verifiable YJ code set (`clinosim/codes/authoritative/yj_tx_valid_codes.json`, 2000 concepts + `scripts/refresh_authoritative_yj_tx_valid.py`)
+- ✅ Walker `_apply_jp_core_profile` variant-priority skip (DR _Radiology/_LabResult 存在時 _Common 追加を skip)
+- ✅ eCS "nocoded" slice fallback pattern を 2 場面に拡張(#291 = code_value 空、#301 = tx-server 未検証 YJ)
+- ✅ v5 validation feedback を 14 PR に分解、user 指示「defer 最小化」を反映
+- ✅ 判断リカバリ 2 例(#283 YJ / #276 LOINC)= 「upstream 限界」判断を user push-back で pragmatic solution に転化
+
+### Deferred to session 60+
+
+- ⏸️ #276 内 8 code (Ampicillin susc / Cortisol / Ammonia / Sputum-Wound cultures 等)の実 LOINC code 差替 — 権威 LOINC master lookup 必要、session 60 followup
+
+### v6 validation 依頼状態
+
+- master `2253deda69` で JP p=1000 seed=300 fullset(615MB / 28 NDJSON)を `../fhir-jp-validator/fhir_r4/` にコピー済
+- `_generator_metadata.json` sidecar に master commit + 14 PR 反映履歴を記録
+- cmux workspace:2 に v6 validation 依頼送信済
+
 ## Recent completions (2026-04-20 — Demographics externalization US)
 
 - ✅ Population demographics externalization (US): 8 hardcoded fields moved to `us/demographics.yaml` — sex_ratio, physiology (BMI/height CDC NHANES), lifestyle_distribution (smoking/alcohol sex-specific CDC NHIS), lifestyle_risk_multipliers (BMI + smoking → chronic + acute events), comorbidity_correlations (I10/E11.9/E78 Framingham), insurance_distribution (age-band KFF 2023), race_distribution (Census 2020), occupation age_thresholds
