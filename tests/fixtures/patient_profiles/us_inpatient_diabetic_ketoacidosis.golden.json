@@ -5,14 +5,13 @@
     "narrative": {
       "facts_used": [
         "disease_protocol.chief_complaint.en",
-        "disease_protocol.narrative.hpi_template.onset_pattern.severe:ja_only_fallback",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "generic:hpi_onset_en.severe",
         "ctx.patient.chronic_conditions",
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
-        "physical_exam_findings.smooth_recovery.day_0:ja_only_fallback",
-        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0:ja_only_fallback"
+        "generic:physical_exam_en",
+        "generic:daily_trajectory_en"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -22,13 +21,13 @@
       },
       "sections": {
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: 初期診断確定、治療開始. Plan: 治療継続、経過観察.",
+        "assessment_and_plan": "Assessment: Clinical assessment ongoing. Plan: Continue current management.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "family_history": "No significant family history",
-        "hpi": "症状急速に増悪、本日受診。 急性発症",
+        "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",
         "medications_at_home": "No home medications",
         "past_medical_history": "E11.9; E78",
-        "physical_examination": "General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし",
+        "physical_examination": "No special findings",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: other"
       },
       "structured": {},
@@ -40,8 +39,7 @@
     "encounter_id": "ENC-FORCED-0001-158288822451",
     "narrative": {
       "facts_used": [
-        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0",
-        "physical_exam_findings.smooth_recovery.day_0",
+        "generic:progress_note_soap_en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -54,7 +52,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "S: 症状あり\nO: バイタル安定、検査所見あり. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: 初期診断確定、治療開始\nP: 治療継続、経過観察"
+      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
   "doc-ENC-FORCED-0001-158288822451-03": {
@@ -62,8 +60,7 @@
     "encounter_id": "ENC-FORCED-0001-158288822451",
     "narrative": {
       "facts_used": [
-        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
-        "physical_exam_findings.smooth_recovery.day_1",
+        "generic:progress_note_soap_en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -76,7 +73,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "S: 症状緩和傾向\nO: バイタル安定、検査所見改善. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: 治療反応良好\nP: 治療継続"
+      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
   "doc-ENC-FORCED-0001-158288822451-04": {
@@ -84,8 +81,7 @@
     "encounter_id": "ENC-FORCED-0001-158288822451",
     "narrative": {
       "facts_used": [
-        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
-        "physical_exam_findings.smooth_recovery.day_2",
+        "generic:progress_note_soap_en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -98,7 +94,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "S: 症状緩和傾向\nO: バイタル安定、検査所見改善. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: 治療反応良好\nP: 治療継続"
+      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
   "doc-ENC-FORCED-0001-158288822451-05": {
@@ -106,8 +102,7 @@
     "encounter_id": "ENC-FORCED-0001-158288822451",
     "narrative": {
       "facts_used": [
-        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
-        "physical_exam_findings.smooth_recovery.day_3",
+        "generic:progress_note_soap_en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -120,7 +115,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "S: 症状緩和傾向\nO: バイタル安定、検査所見改善. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: 治療反応良好\nP: 治療継続"
+      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
   "doc-ENC-FORCED-0001-158288822451-06": {
@@ -128,8 +123,7 @@
     "encounter_id": "ENC-FORCED-0001-158288822451",
     "narrative": {
       "facts_used": [
-        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
-        "physical_exam_findings.smooth_recovery.day_4",
+        "generic:progress_note_soap_en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -142,7 +136,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "S: 症状緩和傾向\nO: バイタル安定、検査所見改善. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: 治療反応良好\nP: 治療継続"
+      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
   "doc-ENC-FORCED-0001-158288822451-07": {
@@ -150,8 +144,7 @@
     "encounter_id": "ENC-FORCED-0001-158288822451",
     "narrative": {
       "facts_used": [
-        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
-        "physical_exam_findings.smooth_recovery.day_5",
+        "generic:progress_note_soap_en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -164,7 +157,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "S: 症状緩和傾向\nO: バイタル安定、検査所見改善. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: 治療反応良好\nP: 治療継続"
+      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
   "doc-ENC-FORCED-0001-158288822451-08": {
