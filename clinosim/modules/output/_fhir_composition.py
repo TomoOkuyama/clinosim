@@ -245,9 +245,7 @@ def _build_composition(
     if lang == "ja":
         loinc = _o(doc, "loinc_code", "")
         if loinc == "18842-5":
-            return _build_jp_clins_discharge_summary_composition(
-                doc, sections, lang, enc_to_free_text or {}
-            )
+            return _build_jp_clins_discharge_summary_composition(doc, sections, lang, enc_to_free_text or {})
         if loinc == "57133-1":
             return _build_jp_clins_referral_note_composition(doc, sections, lang)
         # P2-13 PR3(session 47):JP-eCheckup General
