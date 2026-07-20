@@ -1393,17 +1393,24 @@ def _populate_observation_identifier_and_last_updated(resource: dict, country: s
     """
     if resource.get("resourceType") != "Observation":
         return
-    # identifier
-    if not resource.get("identifier"):
-        rid = resource.get("id", "")
-        if rid:
-            if country == "JP":
-                resource["identifier"] = [
-                    {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid},
-                    {"system": _CLINOSIM_OBSERVATION_ID_SYSTEM, "value": rid},
-                ]
-            else:
-                resource["identifier"] = [{"system": _CLINOSIM_OBSERVATION_ID_SYSTEM, "value": rid}]
+    # identifier — Issue #336 (session 62): 従来 `if not resource.get("identifier")`
+    # で全体 skip だったが、microbiology `mb-org-*` / `mb-sus-*` は builder 側で
+    # HAI_EVENT_ID_SYSTEM identifier を先に populate 済 → walker skip →
+    # JP_Observation_LabResult_eCS の `resourceIdentifier` slice min=1 fail
+    # (v9 obs 1 件 error)。sibling MedicationRequest walker (line 1908-1924)
+    # と同じ idempotent-prepend pattern に統一 = 既存 identifier list を保持
+    # しつつ、canonical URI が未収録なら prepend、internal namespace も append。
+    rid = resource.get("id", "")
+    if rid:
+        existing = resource.setdefault("identifier", [])
+        existing_systems = {i.get("system") for i in existing if isinstance(i, dict)}
+        # JP output: canonical resourceInstance-identifier slice を必ず先頭に
+        # (spec `Observation.identifier:resourceIdentifier.system` patternUri)。
+        if country == "JP" and _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM not in existing_systems:
+            existing.insert(0, {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid})
+        # 全 country: 内部 round-trip 用 identifier(既存 downstream consumer 用)。
+        if _CLINOSIM_OBSERVATION_ID_SYSTEM not in existing_systems:
+            existing.append({"system": _CLINOSIM_OBSERVATION_ID_SYSTEM, "value": rid})
     # meta.lastUpdated — reuse an existing datetime field. _normalize_dt_fields
     # then converts it to the FHIR `instant` shape (seconds + TZ).
     meta = resource.setdefault("meta", {})

@@ -74,15 +74,25 @@ def test_default_country_empty_uses_clinosim_namespace() -> None:
     assert ids[0]["system"] == _CLINOSIM_OBSERVATION_ID_SYSTEM
 
 
-def test_builder_populated_identifier_is_left_untouched() -> None:
-    """Idempotence: if a builder already emitted identifier[], the walker leaves it."""
+def test_builder_populated_identifier_preserved_and_jp_slice_prepended() -> None:
+    """Issue #336: builder-populated identifier (例: microbiology の
+    HAI_EVENT_ID_SYSTEM) は保持されるが、JP canonical resourceIdentifier
+    slice が必要なため walker で必ず prepend される。従来 walker が全体
+    skip していたため v9 obs で 1 件 slice min=1 error 発火 → fix。"""
     obs = {
         "resourceType": "Observation",
         "id": "obs-preset",
         "identifier": [{"system": "http://example.org/pre-existing", "value": "X"}],
     }
     _populate_observation_identifier_and_last_updated(obs, country="JP")
-    assert obs["identifier"] == [{"system": "http://example.org/pre-existing", "value": "X"}]
+    systems = [i["system"] for i in obs["identifier"]]
+    # 既存 identifier は保持
+    assert "http://example.org/pre-existing" in systems
+    # JP canonical resourceIdentifier slice が prepend されている(slice discriminator satisfy)
+    assert _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM in systems
+    assert systems[0] == _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM
+    # 内部 round-trip namespace も追加(既存 downstream consumer 用)
+    assert _CLINOSIM_OBSERVATION_ID_SYSTEM in systems
 
 
 def test_non_observation_resource_is_ignored() -> None:
