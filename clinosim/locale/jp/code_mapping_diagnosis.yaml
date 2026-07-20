@@ -91,6 +91,7 @@ M84.48: "M84.4"
 R07.89: "R07.3"
 R10.9: "R10.4"
 R33.9: "R33"  # #284: HAPI ICD-10 CS has no R33 subcodes; fold to the leaf
+R53.1: "R53"  # #332 session 62: R53.1 (Weakness) は ICD-10-CM 拡張、WHO ICD-10 は R53 (Malaise and fatigue) のみ (no subcodes). simulator/inpatient.py:2282/2318 の discharge_code / admission_diagnosis_code 由来
 S06.0X0A: "S06.0"
 S06.50: "S06.5"
 S06.51: "S06.5"
