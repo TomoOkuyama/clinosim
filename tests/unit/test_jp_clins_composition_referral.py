@@ -169,10 +169,13 @@ def test_jp_clins_referral_composition_from_to_section_entries():
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     top_by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}
+    # #313 session 61:eReferral slice discriminator は eCS profile 要求。
+    # 従来 hospital-main は JP Core profile のみで slice fail、eCS 別
+    # Organization `hospital-main-ecs` を facility bundle で emit + 参照。
     # 920 紹介元 entry
-    assert top_by_code["920"].get("entry") == [{"reference": "Organization/hospital-main"}]
+    assert top_by_code["920"].get("entry") == [{"reference": "Organization/hospital-main-ecs"}]
     # 910 紹介先 entry
-    assert top_by_code["910"].get("entry") == [{"reference": "Organization/hospital-main"}]
+    assert top_by_code["910"].get("entry") == [{"reference": "Organization/hospital-main-ecs"}]
 
 
 @pytest.mark.unit
