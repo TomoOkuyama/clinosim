@@ -48,7 +48,12 @@ def test_meta_lastupdated_falls_back_to_effective_period_end():
     assert r["meta"]["lastUpdated"] == "2026-04-15T20:53:00+09:00"
 
 
-def test_idempotent_leaves_builder_populated_identifier_untouched():
+def test_idempotent_preserves_builder_populated_identifier_and_appends_internal():
+    """Issue #336: builder-populated identifier は保持されるが、default
+    country での walker は internal clinosim namespace を append する。
+    従来 walker が全体 skip していたため microbiology HAI 由来 Observation
+    で JP canonical resourceIdentifier slice が付かず v9 obs error 発火 →
+    fix。"""
     r: dict = {
         "resourceType": "Observation",
         "id": "obs1",
@@ -56,7 +61,14 @@ def test_idempotent_leaves_builder_populated_identifier_untouched():
         "effectiveDateTime": "2026-04-15T20:53:00+09:00",
     }
     _populate_observation_identifier_and_last_updated(r)
-    assert r["identifier"] == [{"system": "http://example.com/other", "value": "PRE-EXISTING"}]
+    systems = [i["system"] for i in r["identifier"]]
+    # 既存 identifier は保持されている
+    assert "http://example.com/other" in systems
+    # internal round-trip namespace が append(country 未指定でも常に付く)
+    assert "urn:clinosim:observation-id" in systems
+    # 既存 identifier の value は変更されていない
+    original = next(i for i in r["identifier"] if i["system"] == "http://example.com/other")
+    assert original["value"] == "PRE-EXISTING"
 
 
 def test_idempotent_leaves_builder_populated_lastupdated_untouched():
