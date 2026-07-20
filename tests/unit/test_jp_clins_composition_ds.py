@@ -360,14 +360,16 @@ def test_jp_clins_composition_entry_omitted_when_ids_missing():
 
 @pytest.mark.unit
 def test_jp_clins_composition_custodian_emitted():
-    """Chain #9 follow-up (#267): `Composition.custodian` min=1. Reused from
-    the generic composition path — no fabrication if the resource id
-    placeholder ever becomes empty."""
+    """Chain #9 follow-up (#267): `Composition.custodian` min=1.
+
+    #330 session 61:eDS profile の custodian targetProfile は
+    JP_Organization_eCS 準拠を要求。hospital-main-ecs へ pin。
+    """
     from clinosim.modules.output._fhir_composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
-    assert comp["custodian"]["reference"].startswith("Organization/")
+    assert comp["custodian"]["reference"] == "Organization/hospital-main-ecs"
 
 
 @pytest.mark.unit
@@ -387,7 +389,11 @@ def test_jp_clins_composition_event_period_populated():
 
 @pytest.mark.unit
 def test_jp_clins_composition_author_has_organization():
-    """Chain #9: `Composition.author` min=2 — practitioner + facility organization."""
+    """Chain #9: `Composition.author` min=2 — practitioner + facility organization.
+
+    #330 session 61:eDS profile の author targetProfile は
+    JP_Organization_eCS 準拠を要求。Organization ref は hospital-main-ecs へ pin。
+    """
     from clinosim.modules.output._fhir_composition import _build_composition
 
     doc = _jp_ds_doc()
@@ -396,7 +402,9 @@ def test_jp_clins_composition_author_has_organization():
     assert len(authors) >= 2
     refs = [a.get("reference", "") for a in authors]
     assert any(r.startswith("Practitioner/") for r in refs)
-    assert any(r.startswith("Organization/") for r in refs)
+    # #330: Organization ref must be eCS variant, not hospital-main
+    assert "Organization/hospital-main-ecs" in refs
+    assert "Organization/hospital-main" not in refs
 
 
 @pytest.mark.unit
