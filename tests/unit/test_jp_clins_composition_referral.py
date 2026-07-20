@@ -136,10 +136,17 @@ def test_jp_clins_referral_composition_chain9_pattern_top_level():
     assert coding["display"] == _JP_ER_CATEGORY_DISPLAY_JA == "他科コンサルト"
 
     # 3. author min=2 — Practitioner + Organization
+    # #330 session 61:eReferral profile author targetProfile は
+    # JP_Organization_eCS 準拠を要求。hospital-main-ecs へ pin。
     authors = comp.get("author", [])
     assert len(authors) >= 2
-    assert any(str(a.get("reference", "")).startswith("Practitioner/") for a in authors)
-    assert any(str(a.get("reference", "")).startswith("Organization/") for a in authors)
+    refs = [str(a.get("reference", "")) for a in authors]
+    assert any(r.startswith("Practitioner/") for r in refs)
+    assert "Organization/hospital-main-ecs" in refs
+    assert "Organization/hospital-main" not in refs
+
+    # #330:Composition.custodian も同 spec で eCS 準拠必須。
+    assert comp.get("custodian", {}).get("reference") == "Organization/hospital-main-ecs"
 
     # 4. meta.lastUpdated
     assert comp["meta"]["lastUpdated"] == "2026-01-20T10:00:00"

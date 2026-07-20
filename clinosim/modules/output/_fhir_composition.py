@@ -590,15 +590,24 @@ def _build_jp_clins_discharge_summary_composition(
     # (Chain #9) `Composition.author` min=2 — 文書作成責任者 (Practitioner)
     # + 文書作成機関 (Organization). Generic builder already sets
     # author[0]=Practitioner from doc.author_practitioner_id. Append an
-    # Organization reference. Uses the clinosim facility placeholder id;
-    # downstream FHIR consumers resolve against `Organization/hospital-main`
-    # (defined by the facility bundle).
+    # Organization reference.
+    #
+    # #330 session 61:eDS profile の Composition.author target は
+    # JP_Organization_eCS 準拠を要求(spec verified)。従来 hospital-main
+    # (JP Core only)を参照していたため sticky include validation で
+    # profile mismatch。#329 で追加した hospital-main-ecs(eCS profile)
+    # へ切替。同 issue で custodian も eCS 対応(下記)。
     authors = comp.setdefault("author", [])
     if not isinstance(authors, list):
         authors = []
         comp["author"] = authors
     if not any(isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/") for a in authors):
-        authors.append({"reference": "Organization/hospital-main"})
+        authors.append({"reference": "Organization/hospital-main-ecs"})
+
+    # #330 session 61:eDS profile の Composition.custodian target は
+    # JP_Organization_eCS 準拠を要求。generic builder は hospital-main を
+    # set しているのでここで override。
+    comp["custodian"] = {"reference": "Organization/hospital-main-ecs"}
 
     # (Chain #9) section tree — 300 parent + 10 required child sections.
     # yaml carries `構造情報セクション` (long form, matches spec `patternString`);
@@ -805,12 +814,22 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     # #289 (Chain #9 pattern):Composition.author min=2 — 文書作成責任者
     # (Practitioner)+ 文書作成機関(Organization)。generic builder は既に
     # Practitioner を author[0] に置くので Organization reference を追加。
+    #
+    # #330 session 61:eReferral profile の Composition.author target は
+    # JP_Organization_eCS 準拠を要求(spec verified)。従来 hospital-main
+    # (JP Core only)を参照していたため sticky include validation で
+    # profile mismatch。#329 で追加した hospital-main-ecs へ切替。
     authors = comp.setdefault("author", [])
     if not isinstance(authors, list):
         authors = []
         comp["author"] = authors
     if not any(isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/") for a in authors):
-        authors.append({"reference": "Organization/hospital-main"})
+        authors.append({"reference": "Organization/hospital-main-ecs"})
+
+    # #330 session 61:eReferral profile の Composition.custodian target
+    # も JP_Organization_eCS 準拠を要求(spec verified)。generic builder
+    # の hospital-main override。
+    comp["custodian"] = {"reference": "Organization/hospital-main-ecs"}
 
     # #289:Composition.event.code min=1(coding は不要、text で満たす)。
     # generic builder が既に event[0]{period,detail} を set 済のため、既存
