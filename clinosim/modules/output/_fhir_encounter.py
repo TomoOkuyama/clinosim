@@ -446,10 +446,14 @@ def _build_encounter(
     # C2-18 (session 42 cycle 2): IMP encounters must carry a hospitalization
     # block. When both admit_source and discharge_disposition are missing
     # (edge case: 8 encounters in the JP p=10k cohort), fall back to sane
-    # defaults — admit_source=hosp (from hospital administration, catch-all)
-    # and discharge_disposition=home when the encounter is finished.
+    # defaults — admit_source=other (unspecified catch-all; authoritative HL7
+    # admit-source CS r4 7.2.0 concepts: hosp-trans/emd/outp/born/gp/mp/
+    # nursing/psych/rehab/other) and discharge_disposition=home when finished.
+    # Issue #332 (session 62): 従来 "hosp" は authoritative CS 未収録で
+    # v9 rest 2 件 unknown-code error 発火 → "other" へ訂正
+    # (`hosp-trans` は他院転入で specific meaning、不明時 emit は誤情報)。
     if _emit_hospitalization and not hosp.get("admitSource"):
-        _default_code = "hosp"
+        _default_code = "other"
         _default_disp = code_lookup("hl7-admit-source", _default_code, _lang)
         _default_coding: dict[str, Any] = {
             "system": get_system_uri("hl7-admit-source"),

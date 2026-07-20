@@ -10,6 +10,9 @@ metadata:
 codes:
   outp: {en: "From outpatient department", ja: "外来より入院"}
   emd:  {en: "From accident/emergency department", ja: "救急外来より入院"}
-  # C2-18 (session 42 cycle 2): default fallback code for IMP encounters
-  # missing an explicit admit_source in CIF.
-  hosp: {en: "From hospital", ja: "院内転入"}
+  # Issue #332 (session 62): default fallback code for IMP encounters missing
+  # an explicit admit_source in CIF. 従来 "hosp" は authoritative HL7
+  # admit-source CS(r4 7.2.0)に未収録で v9 validation で unknown-code
+  # error 発火 → semantic-honest な "other" へ訂正
+  # (`hosp-trans` は他院からの転院で specific meaning、不明時 emit は誤情報)。
+  other: {en: "Other, unspecified", ja: "その他、特定できず"}
