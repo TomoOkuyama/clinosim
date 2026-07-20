@@ -56,6 +56,70 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     }
     entries.append(_entry(root_org))
 
+    # #313 session 61:JP-CLINS eReferral の 920/910 section entry
+    # (referralFromOrganization / referralToOrganization slice)は
+    # `JP_Organization_eCS` profile 準拠の Organization を discriminator
+    # (type: profile, path: resolve())で要求。hospital-main は JP Core
+    # のみで eCS 未準拠のため slice validation が fail していた(v6.1 で
+    # 42 件 error)。
+    #
+    # eCS 別 id `hospital-main-ecs` を JP output に限定して追加 emit し、
+    # eReferral entries の参照先を新 id に切替(`_fhir_composition.py`)。
+    # US output には eCS profile 概念が無いので emit しない(is_jp gate)。
+    #
+    # spec 準拠フィールド(`StructureDefinition-JP-Organization-eCS.json`
+    # 権威直接確認、min=1 の 8 field 全て):
+    #   - meta.profile / meta.lastUpdated
+    #   - identifier:medicalInstitutionCode(system fixedUri +
+    #     10桁 medical-institution-code、hospital_config に無いため
+    #     placeholder "1300000000" — 東京都・番地全 0 の合成 code)
+    #   - type.coding.system + code(既存 hospital-main と同 "prov")
+    #   - name / telecom.value / address.text / partOf.reference
+    # telecom.use / address.use は required binding("home" 禁止、"work" 使用)。
+    #
+    # meta.lastUpdated は determinism 維持のため config 派生 or static
+    # placeholder(現状 hospital_config に無いので固定 epoch を使用)。
+    if is_jp(country):
+        root_org_ecs = {
+            "resourceType": "Organization",
+            "id": "hospital-main-ecs",
+            "meta": {
+                "profile": ["http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Organization_eCS"],
+                # Static placeholder for determinism (hospital_config に
+                # last_updated field 未定義)。実データ提供時に config か
+                # ら派生可能。
+                "lastUpdated": "2026-01-01T00:00:00+09:00",
+            },
+            "identifier": [
+                {
+                    "use": "official",
+                    # spec fixedUri:StructureDefinition-JP-Organization-
+                    # eCS.json の identifier:medicalInstitutionCode.system.
+                    "system": "http://jpfhir.jp/fhir/core/IdSystem/insurance-medical-institution-no",
+                    "value": "1300000000",  # placeholder 10-digit
+                }
+            ],
+            "active": True,
+            "type": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-organization-type"),
+                            "code": "prov",
+                            "display": _localize_display("Healthcare Provider", country, _ORG_TYPE_DISPLAY_JA),
+                        }
+                    ],
+                }
+            ],
+            "name": hosp_name,
+            # telecom.use / address.use は required binding、"home" 禁止
+            # (spec 明記)。"work" 使用。
+            "telecom": [{"system": "phone", "value": "03-0000-0000", "use": "work"}],
+            "address": [{"use": "work", "text": "東京都"}],
+            "partOf": {"reference": "Organization/hospital-main"},
+        }
+        entries.append(_entry(root_org_ecs))
+
     # Main-building Location — referenced by PractitionerRole.location fallback
     # (CY8-07) for staff without a ward assignment. Session 52 fix 2: the
     # reference existed since session 48 but the resource was never emitted

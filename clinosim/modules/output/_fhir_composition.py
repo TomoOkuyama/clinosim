@@ -706,10 +706,18 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
 
 # session 59 #296:JP-CLINS eReferral の 920(紹介元)/ 910(紹介先)
 # top-level section slice に必須の Organization reference。CIF は destination
-# 別 Organization を model していないため hospital-main を両側 placeholder
-# として emit(reference integrity は保たれる;data-shape trade-off)。
+# 別 Organization を model していないため両側 placeholder として emit
+# (reference integrity は保たれる;data-shape trade-off)。
 # module-scope 定数(function 内では N806 lint violation)。
-_JP_ER_REFERRAL_ORG_REF: list[dict[str, str]] = [{"reference": "Organization/hospital-main"}]
+#
+# #313 session 61:従来 hospital-main(JP Core profile)を参照していたが
+# eReferral profile の 920/910 section entry slice は discriminator
+# (type: profile, path: resolve())で `JP_Organization_eCS` profile 準拠
+# の Organization を要求する。v6.1 で 42 件 slice validation error 発火。
+# `_fhir_facility.py` が emit する eCS 別 id `hospital-main-ecs` を参照
+# するよう更新。JP output 限定(US 側では eReferral 自体を emit しない
+# ので影響なし)。
+_JP_ER_REFERRAL_ORG_REF: list[dict[str, str]] = [{"reference": "Organization/hospital-main-ecs"}]
 _JP_ER_TOP_LEVEL_ENTRY: dict[str, list[dict[str, str]]] = {
     "920": _JP_ER_REFERRAL_ORG_REF,  # referralFromOrganization
     "910": _JP_ER_REFERRAL_ORG_REF,  # referralToOrganization
