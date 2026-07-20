@@ -406,10 +406,19 @@ def document_enricher(ctx: Any) -> None:
                     doc_seq += 1
 
                 elif freq == "daily":
-                    # Spec §7: daily notes skipped for LOS=1 same-day encounters.
-                    # A same-day admission/discharge has an H&P and discharge summary;
-                    # intermediate notes are clinically redundant.
-                    if los_days <= 1:
+                    # Spec §7: daily notes skipped for LOS<1 encounters
+                    # (LOS=0 = day-surgery / immediate discharge、intermediate
+                    # notes 不要)。
+                    # Issue #337 (session 62):従来 `<= 1` で LOS=1 encounter も
+                    # skip していたが、eDS Composition (discharge_once) は
+                    # LOS=1 でも emit されるため hospitalCourseSection.entry
+                    # min=1 の valid DocumentReference target が欠落 →
+                    # v9 で 3 件 slice error 発火。LOS=1 の 1 progress_note は
+                    # 「入院当日 = 全入院期間の hospital course summary」
+                    # として clinically valid、spec 準拠と両立。
+                    # daily_3shift (nursing) は 3-per-day cadence 保持のため
+                    # LOS=1 skip を維持(下記)。
+                    if los_days < 1:
                         continue
                     for day in range(los_days):
                         day_dt = admission_dt + timedelta(days=day)
