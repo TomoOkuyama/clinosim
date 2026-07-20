@@ -88,11 +88,19 @@ def _make_ctx(
 # ─── Tests ───────────────────────────────────────────────────────────────────
 
 
-def test_inpatient_encounter_los1_gets_4_documents() -> None:
-    """Inpatient LOS=1 → 4 documents: H&P + Discharge + nursing admission + nursing discharge.
+def test_inpatient_encounter_los1_gets_5_documents() -> None:
+    """Inpatient LOS=1 → 5 documents: H&P + progress_note(1) + Discharge +
+    nursing admission + nursing discharge.
 
-    progress_note and nursing_shift_note are both 'daily' frequency and are skipped for LOS=1
-    (spec §7: same-day encounters don't need intermediate notes).
+    Issue #337 (session 62): 従来 LOS=1 で progress_note を skip していたが、
+    eDS Composition (discharge_summary、discharge_once) は LOS=1 でも emit
+    されるため hospitalCourseSection.entry min=1 の valid DocumentReference
+    target 欠落 → v9 で 3 件 slice error 発火。LOS=1 の 1 progress_note は
+    「入院当日 = 全入院期間の hospital course summary」として clinically
+    valid、spec 準拠と両立。
+
+    daily_3shift (nursing_shift_note) は 3-per-day cadence 保持のため
+    LOS=1 skip を維持。
     """
     encounter = _make_encounter(enc_type="inpatient", discharge_dt=LOS_1_DT)
     record = _make_record(encounter)
@@ -106,10 +114,13 @@ def test_inpatient_encounter_los1_gets_4_documents() -> None:
     assert "discharge_summary" in task_types, f"expected discharge_summary in {task_types}"
     assert "admission_nursing_assessment" in task_types, f"expected admission_nursing_assessment in {task_types}"
     assert "nursing_discharge_summary" in task_types, f"expected nursing_discharge_summary in {task_types}"
-    # daily specs skipped for LOS=1
-    assert "progress_note" not in task_types, f"progress_note must be skipped for LOS=1, got {task_types}"
+    # Issue #337: progress_note (daily) は LOS=1 で 1 件 emit(spec 準拠)
+    assert task_types.count("progress_note") == 1, (
+        f"progress_note must have exactly 1 emit for LOS=1 (Issue #337), got {task_types}"
+    )
+    # nursing_shift_note (daily_3shift) は LOS=1 で依然 skip
     assert "nursing_shift_note" not in task_types, f"nursing_shift_note must be skipped for LOS=1, got {task_types}"
-    assert len(docs) == 4, f"Expected 4 documents for LOS=1 inpatient, got {len(docs)}: {task_types}"
+    assert len(docs) == 5, f"Expected 5 documents for LOS=1 inpatient (Issue #337), got {len(docs)}: {task_types}"
 
 
 def test_inpatient_encounter_los3_gets_16_documents() -> None:
