@@ -38,19 +38,44 @@ class CodeSystem:
     codes: dict[str, dict[str, str]]  # code → {en, ja, ...}
 
 
+# Issue #350 (session 63): system keys that share underlying code data with
+# another system but carry a distinct canonical URI. Concrete case:
+# `icd-10-mhlw` uses the same 3-4 character ICD-10 codes as `icd-10` (WHO)
+# but its canonical URI is the JP Core / MHLW 2013 registry
+# `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full`. The alias
+# avoids duplicating the codes/data yaml (thousands of codes) while giving
+# the JP path its required binding URI.
+#
+# The aliased system's URI is drawn from `_BUILTIN_URIS[system_key]`
+# (below), NOT from the underlying yaml's `metadata.uri` — that way the
+# alias is a genuine namespace refinement, not a value clash.
+_SYSTEM_DATA_ALIASES: dict[str, str] = {
+    "icd-10-mhlw": "icd-10",
+}
+
+
 @lru_cache(maxsize=32)
 def _load_system(system_key: str) -> CodeSystem | None:
     """Load a code system yaml file. Returns None if not found."""
-    path = _DATA_DIR / f"{system_key}.yaml"
+    data_key = _SYSTEM_DATA_ALIASES.get(system_key, system_key)
+    path = _DATA_DIR / f"{data_key}.yaml"
     if not path.exists():
         return None
     with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     meta = data.get("metadata", {}) or {}
+    # For aliased systems, override the URI from `_BUILTIN_URIS` so the alias
+    # carries its distinct canonical URI while sharing the underlying code
+    # data. Non-aliased systems continue to read their URI from the yaml
+    # `metadata.uri` field as before.
+    if system_key in _SYSTEM_DATA_ALIASES:
+        uri = _BUILTIN_URIS.get(system_key, f"urn:clinosim:{system_key}")
+    else:
+        uri = meta.get("uri", f"urn:clinosim:{system_key}")
     return CodeSystem(
         key=system_key,
         name=meta.get("name", system_key),
-        uri=meta.get("uri", f"urn:clinosim:{system_key}"),
+        uri=uri,
         version=meta.get("version", ""),
         codes=data.get("codes", {}) or {},
     )
@@ -120,7 +145,13 @@ def get_system_uri(system: str) -> str:
 # RxNorm / CPT" selection previously inlined at each builder / simulator site.
 _COUNTRY_SYSTEM_KEYS: dict[str, dict[str, str]] = {
     "lab": {"jp": "jlac10", "default": "loinc"},
-    "diagnosis": {"jp": "icd-10", "default": "icd-10-cm"},
+    # Issue #350 (session 63): JP path uses `icd-10-mhlw` (aliased to the
+    # same code data as `icd-10` but carrying the MHLW canonical URI
+    # `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full`). JP Core
+    # `jp-condition-diagnosis` declares a required binding to that ValueSet;
+    # emitting WHO `http://hl7.org/fhir/sid/icd-10` violates the binding
+    # regardless of whether the code itself is valid.
+    "diagnosis": {"jp": "icd-10-mhlw", "default": "icd-10-cm"},
     "drug": {"jp": "yj", "default": "rxnorm"},
     "procedure": {"jp": "k-codes", "default": "cpt"},
     "microbiology": {"jp": "jlac10", "default": "loinc"},
@@ -150,6 +181,10 @@ def system_key_for(kind: str, country: str) -> str:
 _BUILTIN_URIS: dict[str, str] = {
     "icd-10-cm": "http://hl7.org/fhir/sid/icd-10-cm",
     "icd-10": "http://hl7.org/fhir/sid/icd-10",
+    # Issue #350 (session 63): JP-locale ICD-10 canonical URI. Same code
+    # data as `icd-10` (WHO) via `_SYSTEM_DATA_ALIASES` above. The URI is
+    # the required binding target on JP Core `jp-condition-diagnosis`.
+    "icd-10-mhlw": "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full",
     "loinc": "http://loinc.org",
     "snomed-ct": "http://snomed.info/sct",
     "rxnorm": "http://www.nlm.nih.gov/research/umls/rxnorm",

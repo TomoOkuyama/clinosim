@@ -62,7 +62,11 @@ def test_hai_condition_uses_icd10cm_system_for_us_any_case(country):
 
 
 @pytest.mark.parametrize("country", ["JP", "jp"])
-def test_hai_condition_uses_who_icd10_system_for_jp_any_case(country):
+def test_hai_condition_uses_mhlw_icd10_system_for_jp_any_case(country):
+    """Issue #350 (session 63): JP HAI Condition now emits the MHLW canonical
+    ICD-10 URI (`http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full`),
+    matching the JP Core `jp-condition-diagnosis` required binding. Previously
+    this test pinned the WHO URI, which was a binding violation on JP output."""
     resources = _build_hai_conditions(_ctx(country))
     assert resources, "expected one HAI Condition"
-    assert _icd_system(resources) == get_system_uri("icd-10")
+    assert _icd_system(resources) == get_system_uri("icd-10-mhlw")

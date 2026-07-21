@@ -54,7 +54,7 @@ def test_mar_reason_code_maps_hip_fracture_cm_to_who_on_jp() -> None:
     """S72.00 (CM-granular) → S72.0 (WHO ICD-10) on JP output."""
     resource = _build_mar(country="JP", primary_dx_code="S72.00")
     reason = resource["reasonCode"][0]
-    assert reason["coding"][0]["system"] == get_system_uri("icd-10")
+    assert reason["coding"][0]["system"] == get_system_uri("icd-10-mhlw")
     assert reason["coding"][0]["code"] == "S72.0"
 
 
@@ -62,7 +62,7 @@ def test_mar_reason_code_maps_dka_cm_to_who_on_jp() -> None:
     """E11.65 (CM-granular) → E11.6 (WHO ICD-10) on JP output."""
     resource = _build_mar(country="JP", primary_dx_code="E11.65")
     reason = resource["reasonCode"][0]
-    assert reason["coding"][0]["system"] == get_system_uri("icd-10")
+    assert reason["coding"][0]["system"] == get_system_uri("icd-10-mhlw")
     assert reason["coding"][0]["code"] == "E11.6"
 
 
