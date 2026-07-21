@@ -232,8 +232,18 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
             narrow_dur = narrow_duration_days(template.start_datetime, reported, template.duration_days)
             narrow_dose, narrow_freq = _narrow_dose_frequency(target)
             slug = _drug_slug(target)
+            regimen_id = f"{ABX_REGIMEN_ID_PREFIX}{hai_id}-{slug}{ABX_NARROW_SUFFIX}"
+            # Issue #347 guard: same as build_regimens above — validate the
+            # composed downstream Order.id length before construction, so a
+            # future long drug_key surfaces here rather than at HAPI validation.
+            from clinosim.modules.antibiotic.engine import (
+                ABX_ORDER_REQ_PREFIX,
+                _check_fhir_id_length,
+            )
+
+            _check_fhir_id_length(ABX_ORDER_REQ_PREFIX + regimen_id, "MedicationRequest (narrowed)")
             new_regimen = AntibioticRegimen(
-                regimen_id=f"{ABX_REGIMEN_ID_PREFIX}{hai_id}-{slug}{ABX_NARROW_SUFFIX}",
+                regimen_id=regimen_id,
                 hai_event_id=hai_id,
                 encounter_id=template.encounter_id,
                 drug_key=target,

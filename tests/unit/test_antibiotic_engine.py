@@ -29,7 +29,7 @@ def _make_event(hai_type: str, hai_id: str = "h1", enc_id: str = "enc-1") -> HAI
 
 def _ceftriaxone_regimen() -> AntibioticRegimen:
     return AntibioticRegimen(
-        regimen_id="abx-h1-ceftriaxone",
+        regimen_id="abx-h1-cft",
         hai_event_id="h1",
         encounter_id="enc-1",
         drug_key="ceftriaxone",
@@ -60,7 +60,7 @@ def test_build_regimens_cauti_single_drug():
     assert r.start_datetime == datetime(2026, 1, 10, 8)
     assert r.duration_days == 7
     assert r.intent == "empirical"
-    assert r.regimen_id == "abx-h1-ceftriaxone"
+    assert r.regimen_id == "abx-h1-cft"
 
 
 @pytest.mark.unit
@@ -77,7 +77,7 @@ def test_build_regimens_clabsi_two_drugs():
     # PR-J (2026-07-17): _drug_slug now routes long / underscore-carrying
     # drug names through a FHIR-id-safe override so composed ids stay
     # under the 64-char spec limit. piperacillin_tazobactam → pip-tazo.
-    assert ids == {"abx-h2-vancomycin", "abx-h2-pip-tazo"}
+    assert ids == {"abx-h2-vanc", "abx-h2-pip-tazo"}
 
 
 @pytest.mark.unit
@@ -124,7 +124,7 @@ def test_generate_mar_doses_ceftriaxone_q24h_7days_no_truncation():
 @pytest.mark.unit
 def test_generate_mar_doses_vancomycin_q12h_14days():
     r = AntibioticRegimen(
-        regimen_id="abx-h2-vancomycin",
+        regimen_id="abx-h2-vanc",
         hai_event_id="h2",
         encounter_id="enc-2",
         drug_key="vancomycin",
