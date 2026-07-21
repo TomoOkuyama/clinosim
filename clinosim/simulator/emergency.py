@@ -34,8 +34,18 @@ def _simulate_ed_visit(
     rng: np.random.Generator,
     country: str = "US",
     config: object | None = None,
+    force_severity: str | None = None,
 ) -> CIFPatientRecord:
-    """Simulate an ED visit using YAML protocol if available, else basic."""
+    """Simulate an ED visit using YAML protocol if available, else basic.
+
+    Issue #345 (session 63): `force_severity` bypasses the stochastic
+    `sample_severity_category` call so enumeration mode can generate one
+    patient per (encounter × severity) combination deterministically. Value
+    must be a key already declared in the encounter YAML's
+    `severity_distribution` (or a naturally supported category such as
+    "moderate" when the YAML omits severity — routine outpatient scheduled
+    visits). None preserves the legacy stochastic behavior.
+    """
     from clinosim.modules.observation.engine import (
         canonical_lab_name,
         determine_flag,
@@ -81,12 +91,18 @@ def _simulate_ed_visit(
         # Shared categorical severity primitive (FP-SEV-MODEL). ED encounter YAML
         # carries no modifiers/minimum, so pass []/None; the sampled category is the
         # single source used for triage + ed_stay_hours.
-        sev_dist = protocol.get("severity_distribution", {})
-        severity = sample_severity_category(sev_dist, [], patient, rng, None)
+        # Issue #345 (session 63): enumeration mode passes force_severity to skip
+        # stochastic sampling so every (encounter × severity) combination is
+        # exercised deterministically.
+        if force_severity is not None:
+            severity = force_severity
+        else:
+            sev_dist = protocol.get("severity_distribution", {})
+            severity = sample_severity_category(sev_dist, [], patient, rng, None)
         stay_cfg = protocol.get("ed_stay_hours", {}).get(severity, {"mean": 3, "sd": 1})
         ed_hours = float(rng.normal(stay_cfg["mean"], stay_cfg["sd"]))
     else:
-        severity = "moderate"
+        severity = force_severity or "moderate"
         ed_hours = float(rng.normal(3.5, 1.0))
     encounter.discharge_datetime = visit_time + timedelta(hours=max(1, ed_hours))
     # AD-65 Bug C fix: persist sampled severity onto the Encounter so the
