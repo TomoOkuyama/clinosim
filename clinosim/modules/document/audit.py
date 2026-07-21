@@ -839,7 +839,7 @@ def _build_document_proof() -> dict[str, Any]:
         "authored_datetime": "2026-01-10T08:00:00",
         "language": "en",
         "format_type": "free_text",
-        "content_type": "text/plain; charset=utf-8",
+        "content_type": "text/plain",
         # AD-65 Task 4: content lives in the narrative subtree (merged in by
         # CIFReader in production); the proof supplies it directly so the
         # builder is exercised on a "narrative already generated" stub, same
@@ -869,7 +869,7 @@ def _build_document_proof() -> dict[str, Any]:
         "authored_datetime": "2026-01-15T10:00:00",
         "language": "en",
         "format_type": "composition",
-        "content_type": "text/plain; charset=utf-8",
+        "content_type": "text/plain",
         # AD-65 Task 4: sections live in the narrative subtree (see free_text_doc
         # comment above for the CIFReader-parity rationale).
         "narrative": {
