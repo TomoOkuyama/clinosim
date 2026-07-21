@@ -66,6 +66,13 @@ __all__ = [
 _HOSPITAL_COURSE_LOINC = "8648-8"
 _PROGRESS_NOTE_LOINC = "11506-3"
 
+# Issue #340 (session 63):HL7 FHIR R4 core `clinicaldocument` profile canonical URL。
+# module-scope 定数(function 内では N806 lint violation、また複数関数で参照)。
+# spec 直接引用(feedback_verify_fhir_profile_uri_from_spec rule):
+# `hl7.fhir.r4.core#4.0.1/package/StructureDefinition-clinicaldocument.json` の
+# `url` field。JP-CLINS profile 未対応 LOINC の Composition 明示宣言に使用。
+_CLINICALDOCUMENT_PROFILE = "http://hl7.org/fhir/StructureDefinition/clinicaldocument"
+
 
 # C2-27 (session 42 cycle 2): map section titles (as produced by document
 # enrichers / narrative pass) to LOINC section codes. Codes verified via the
@@ -255,6 +262,36 @@ def _build_composition(
         # P2-13 PR3(session 47):JP-eCheckup General
         if loinc == "53576-5":
             return _build_jp_eCheckup_general_composition(doc, sections, lang)
+        # Issue #340 (session 63):JP-CLINS profile が存在しない JP path
+        # Composition (rehabilitation_plan LOINC 34823-5、admission_hp
+        # 34117-2、ED / outpatient SOAP、nursing docs 等) に HL7 FHIR R4
+        # core の `clinicaldocument` profile を meta.profile に明示宣言。
+        #
+        # Rationale (semantic + spec 準拠):
+        #   - `http://hl7.org/fhir/StructureDefinition/clinicaldocument` は
+        #     HL7 R4 core 公式 profile で Composition の refinement。
+        #     baseDefinition = Composition、constraints:
+        #       (1) Composition.subject targetProfile を Patient / Practitioner /
+        #           Group / Device / Location に制限
+        #       (2) versionNumber extension slice を宣言
+        #   - clinosim の Composition は subject = Patient reference で emit
+        #     (`_build_composition_generic` line 313)、targetProfile 完全準拠
+        #   - 「これは clinical document」の semantic を国際 profile で宣言
+        #     = base FHIR Composition profile 列挙のような redundant hack ではない
+        #
+        # Side effect: HAPI validator の VS 展開 default path 回避
+        #   (v13 (2026-07-21) で HAPI 6.9.12 upgrade / okhttp3 化 / chunk 縮小 /
+        #    Display cache patch 等 7 workaround 全滅した internal bug 対策、
+        #    ただし profile 宣言自体は spec 準拠かつ意味的に honest)
+        #
+        # JP-CLINS eDS / eReferral / eCheckup の baseDefinition は Composition
+        # 直下(clinicaldocument 経由でない)ため、それらの dispatch path は
+        # 変更せず(既存 profile は追加の意味を提供済み)。
+        comp = _build_composition_generic(doc, sections, lang)
+        profs = comp.setdefault("meta", {}).setdefault("profile", [])
+        if _CLINICALDOCUMENT_PROFILE not in profs:
+            profs.append(_CLINICALDOCUMENT_PROFILE)
+        return comp
     return _build_composition_generic(doc, sections, lang)
 
 
