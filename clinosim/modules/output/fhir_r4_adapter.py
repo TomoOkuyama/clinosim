@@ -1329,6 +1329,11 @@ _FHIR_URI_TO_CODE_SYSTEM_KEY: dict[str, str] = {
     "http://hl7.org/fhir/sid/icd-10": "icd-10",
     "http://hl7.org/fhir/sid/icd-10-cm": "icd-10-cm",
     "http://www.nlm.nih.gov/research/umls/rxnorm": "rxnorm",
+    # Issue #350 (session 63): JP-locale ICD-10 canonical URI. Reverse-map
+    # to the same code data as `icd-10` (via `_SYSTEM_DATA_ALIASES` in
+    # `clinosim/codes/loader.py`) so `_copy_display_from_sibling_coding`
+    # can look up displays for JP-emitted ICD-10 codings.
+    "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full": "icd-10-mhlw",
 }
 
 
