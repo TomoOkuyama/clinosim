@@ -312,3 +312,49 @@ def test_make_patient_id_stable_format() -> None:
     case = EnumerationCase(kind="disease", scenario_id="a", severity="mild", archetype="x", country="JP")
     assert make_patient_id(1, case) == "ENUM-JP-0001"
     assert make_patient_id(590, case) == "ENUM-JP-0590"
+
+
+# === Issue #351: encounter-axis Patient names non-empty ===
+
+
+def test_enumerate_encounter_patient_populates_family_and_given_names() -> None:
+    """Issue #351 regression pin: encounter-axis PersonRecord in
+    `run_enumeration` must populate `family_name` and `given_name`.
+
+    Without this, the emitted `Patient.name` on encounter-axis patients
+    carries `family=""` and `given=[""]` with an iso21090 IDE marker
+    (kanji representation asserted but no actual kanji present) — 104
+    validation errors on v17 enumerate cohort (96% of total).
+
+    We run a single-case plan through `run_enumeration` and assert the
+    resulting PatientProfile carries non-empty names. Disease path is
+    covered by `run_forced` which sets its own defaults; the fix is
+    specifically for the encounter branch.
+    """
+    from clinosim.simulator.enumerate import EnumerationPlan, run_enumeration
+
+    # Pick any encounter scenario — the fix is generic across all of them.
+    encounters = discover_encounter_scenarios()
+    assert encounters, "must have at least one encounter scenario discovered"
+    encounter = encounters[0]
+
+    case = EnumerationCase(
+        kind="encounter",
+        scenario_id=encounter.scenario_id,
+        severity=encounter.severity_levels[0],
+        archetype="",
+        country="JP",
+    )
+    plan = EnumerationPlan(cases=[case], countries=["JP"], level="full", base_seed=42)
+    dataset, manifest = run_enumeration(plan)
+
+    assert len(dataset.patients) == 1
+    patient = dataset.patients[0].patient
+    # PatientProfile.name is a nested PersonName dataclass with family_name /
+    # given_name fields (see `clinosim.types.patient.PersonName`).
+    assert patient.name.family_name, (
+        f"Issue #351: encounter-axis Patient must have non-empty family_name, got {patient.name.family_name!r}"
+    )
+    assert patient.name.given_name, (
+        f"Issue #351: encounter-axis Patient must have non-empty given_name, got {patient.name.given_name!r}"
+    )

@@ -627,12 +627,21 @@ def run_enumeration(plan: EnumerationPlan) -> tuple[Any, EnumerationManifest]:
             protocol = load_encounter_condition(case.scenario_id)
             age = int(rng.integers(30, 85))
             sex = str(rng.choice(["M", "F"]))
+            # Issue #351 (session 63): populate family/given so the emitted
+            # Patient.name carries non-empty strings on JP output. Without
+            # this, the encounter-axis Patient resources emit
+            # `family=""`, `given=[""]` with an iso21090 IDE representation
+            # marker — a JP Core Patient profile violation. Matches the
+            # same defaults `run_forced` sets on the disease path (which
+            # is why disease-axis Patients were not affected).
             person = PersonRecord(
                 person_id=pid,
                 household_id=f"HH-{pid}",
                 age=age,
                 sex=sex,
                 date_of_birth=date(2024 - age, 1, 1),
+                family_name="テスト" if case.country == "JP" else "Test",
+                given_name=f"患者{i + 1}" if case.country == "JP" else f"Patient{i + 1}",
             )
             patient = activate_patient(person, rng, _demo)
             visit_time = _dt(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
