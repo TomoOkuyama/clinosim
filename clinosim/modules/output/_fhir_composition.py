@@ -255,6 +255,17 @@ def _build_composition(
         # P2-13 PR3(session 47):JP-eCheckup General
         if loinc == "53576-5":
             return _build_jp_eCheckup_general_composition(doc, sections, lang)
+        # Issue #340 (session 63):JP-CLINS profile に該当しない JP path
+        # Composition(rehabilitation_plan LOINC 34823-5、admission_hp
+        # 34117-2、ED / outpatient SOAP 等)は base FHIR Composition profile
+        # を meta.profile に明示追加。HAPI validator の profile 未指定時
+        # default path (LOINC 全走査 VS 展開) を回避、v12 (2026-07-21) で
+        # 6 件確定した rehab_plan HTTP timeout を消滅。sibling-sweep で
+        # generic fallback に該当する全 JP LOINC に適用 → predictive
+        # prevention。
+        comp = _build_composition_generic(doc, sections, lang)
+        comp.setdefault("meta", {}).setdefault("profile", ["http://hl7.org/fhir/StructureDefinition/Composition"])
+        return comp
     return _build_composition_generic(doc, sections, lang)
 
 
