@@ -26,12 +26,32 @@ from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
 from clinosim.codes import get_system_uri
 from clinosim.modules.antibiotic.engine import ABX_NARROW_SUFFIX, ABX_ORDER_ID_PREFIX
+from clinosim.modules.output._fhir_medications import MEDICATION_REQUEST_KEY_SYSTEM
 from clinosim.modules.output._fhir_microbiology import (
     HAI_EVENT_ID_SYSTEM,
     MB_ORG_ID_PREFIX,
     MB_SUS_ID_PREFIX,
 )
 from clinosim.modules.output._fhir_service_request import LAB_CATEGORY_V2_0074
+
+
+def _medication_request_structural_key(row: dict) -> str:
+    """Return the antibiotic MedicationRequest structural key from a FHIR row.
+
+    Issue #349 Phase 1b: antibiotic MR.id is opaque (``mr-{hash}``). The
+    original compound key (``req-abx-hai-...-{drug}-{intent}``) is preserved
+    in ``identifier[]`` under system ``MEDICATION_REQUEST_KEY_SYSTEM``.
+    The narrow-rate gate reads it from there instead of the (opaque) ``id``.
+
+    Returns ``""`` when the identifier is absent (non-antibiotic MRs, or
+    resources emitted before Phase 1b was wired) so upstream ``continue``
+    logic naturally excludes them.
+    """
+    for ident in row.get("identifier", []) or []:
+        if ident.get("system") == MEDICATION_REQUEST_KEY_SYSTEM:
+            return str(ident.get("value") or "")
+    return ""
+
 
 # Canonical SNOMED CT URI (PR3b-3 stage-1 adversarial finding C3): substring
 # match against "snomed" silently broke on OID form
@@ -797,7 +817,6 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     eid = _enc_id(row)
                     if eid not in enc_narrowed:
                         continue
-                    rid = row.get("id", "")
                     # pr112-adv-2 fix F3: antibiotic order ids are prefixed with
                     # the encounter id, then ABX_ORDER_ID_PREFIX + hai_id +
                     # ... + optional ABX_NARROW_SUFFIX. Filter to antibiotic
@@ -806,9 +825,20 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     # clinosim.modules.antibiotic.engine — a rename there
                     # triggers an ImportError downstream rather than a silent
                     # gate skip (same defense pattern as MB_ORG_ID_PREFIX, C4).
-                    if ABX_ORDER_ID_PREFIX not in rid:
+                    #
+                    # Issue #349 Phase 1b(session 64): antibiotic MR.id is now
+                    # opaque(`mr-{sha256[:12]}`)なので `id` 文字列 match は
+                    # 全 antibiotic MR を silently drop する silent-no-op に
+                    # なる。 structural key(compound `req-abx-...-{intent}`)は
+                    # identifier[] に round-trip 保存されているので、そちらを
+                    # 唯一の source of truth として prefix + suffix を判定する。
+                    # `MEDICATION_REQUEST_KEY_SYSTEM` は writer / reader 共有
+                    # constant(_fhir_medications.py 由来)= rename で ImportError
+                    # に落ちる same MB_ORG_ID_PREFIX 防御 pattern。
+                    structural_key = _medication_request_structural_key(row)
+                    if ABX_ORDER_ID_PREFIX not in structural_key:
                         continue
-                    if row.get("status") == "stopped" or rid.endswith(ABX_NARROW_SUFFIX):
+                    if row.get("status") == "stopped" or structural_key.endswith(ABX_NARROW_SUFFIX):
                         enc_narrowed[eid] = True
                 total = len(enc_narrowed)
                 narrow_count = sum(1 for v in enc_narrowed.values() if v)
