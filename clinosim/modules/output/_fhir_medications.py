@@ -760,7 +760,13 @@ def _build_medication_admin(
         # `code_mapping_diagnosis/us.yaml` で解決済み)。他 builder
         # (Encounter.reasonCode / Condition.code / FamilyMemberHistory.code)
         # は同 seam を既に通しており、これで漏れ経路が閉じる。
-        _icd_system = get_system_uri("icd-10-cm" if country_code == "US" else "icd-10")
+        # Issue #350 (session 63): route through `system_key_for("diagnosis",
+        # country)` — single source of truth for the JP → MHLW / US → ICD-10-CM
+        # mapping. Previously this site hardcoded `"icd-10-cm" if US else
+        # "icd-10"` which bypassed the country-key registry and emitted the
+        # WHO URI on JP output (JP Core `jp-condition-diagnosis` required
+        # binding violation, ~7,600 errors on a p=200 6mo JP cohort).
+        _icd_system = get_system_uri(system_key_for("diagnosis", country_code))
         _mapped_dx_code = _map_diagnosis_code(primary_dx_code, country_code)
         resource["reasonCode"] = [
             {
