@@ -975,7 +975,11 @@ def test_abx_order_id_canonical_constant() -> None:
     assert ABX_REGIMEN_ID_PREFIX == "abx-"
     assert ABX_ORDER_REQ_PREFIX == "req-"
     assert ABX_ORDER_ID_PREFIX == "req-abx-"
-    assert ABX_NARROW_SUFFIX == "-narrowed"
+    # Issue #347 (session 63): shortened from "-narrowed" (9) to "-n" (2)
+    # so composed `req-abx-{hai_id 37}-{drug_slug ≤15}-n` = ≤59 chars, safely
+    # under FHIR R4's 64-char Resource.id limit. See engine.py comment for
+    # the concrete v16 (2026-07-21) 66-char failure that motivated the change.
+    assert ABX_NARROW_SUFFIX == "-n"
     # The audit gate imports the same constants — proving the coupling
     assert clinical_axis.ABX_ORDER_ID_PREFIX is ABX_ORDER_ID_PREFIX
     assert clinical_axis.ABX_NARROW_SUFFIX is ABX_NARROW_SUFFIX
