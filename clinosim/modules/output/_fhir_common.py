@@ -454,9 +454,13 @@ def build_presented_form(text: str, title: str, lang: str = "en") -> list[dict[s
 
     encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")
     h = hashlib.sha1(text.encode("utf-8")).digest()
+    # Issue #343 (session 63): FHIR R4 Attachment.contentType の required
+    # binding は IANA Media Types (urn:ietf:bcp:13) で bare mime type のみ。
+    # HTTP Content-Type header の charset parameter は VS 外 → "text/plain"
+    # bare で emit(UTF-8 は FHIR default 前提、semantic loss なし)。
     return [
         {
-            "contentType": "text/plain; charset=utf-8",
+            "contentType": "text/plain",
             "language": lang,
             "data": encoded,
             "title": title,

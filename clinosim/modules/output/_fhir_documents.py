@@ -237,7 +237,9 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
         "content": [
             {
                 "attachment": {
-                    "contentType": _o(doc, "content_type", "text/plain; charset=utf-8"),
+                    # Issue #343 (session 63): fallback は bare "text/plain"
+                    # (charset parameter は IANA Media Types VS 外)。
+                    "contentType": _o(doc, "content_type", "text/plain"),
                     "language": lang,
                     "data": encoded,
                     "title": type_display,

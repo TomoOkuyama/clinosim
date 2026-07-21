@@ -151,7 +151,13 @@ class ClinicalDocument:
     period_start: str = ""
     period_end: str = ""
     language: str = "en"
-    content_type: str = "text/plain; charset=utf-8"
+    # Issue #343 (session 63): FHIR R4 Attachment.contentType の required
+    # binding は IANA Media Types (urn:ietf:bcp:13) で、bare mime type のみ
+    # 収録(HTTP Content-Type header の charset parameter は含まない)。
+    # 従来 "text/plain; charset=utf-8" が MimeType VS 外で v14gen (2026-07-21)
+    # で 23,600 件 error 発火 → bare "text/plain" へ訂正。UTF-8 は FHIR 全体
+    # の default 前提で semantic loss なし。
+    content_type: str = "text/plain"
     format_type: str = ""
     # α-min-3: neutral nursing shift key ("night" / "day" / "evening") for
     # daily_3shift documents; "" for all other frequencies. Metadata only —
