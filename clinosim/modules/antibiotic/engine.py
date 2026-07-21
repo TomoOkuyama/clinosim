@@ -40,7 +40,16 @@ _NARROW_LADDER_YAML = _REF_DIR / "narrow_ladder.yaml"
 ABX_REGIMEN_ID_PREFIX = "abx-"  # AntibioticRegimen.regimen_id
 ABX_ORDER_REQ_PREFIX = "req-"  # Order.order_id = "req-" + regimen_id
 ABX_ORDER_ID_PREFIX = ABX_ORDER_REQ_PREFIX + ABX_REGIMEN_ID_PREFIX  # composed prefix for readers
-ABX_NARROW_SUFFIX = "-narrowed"  # narrowed regimen id suffix
+# ABX_NARROW_SUFFIX: shortened from "-narrowed" (9 chars) to "-n" (2 chars) in
+# Issue #347 (session 63) to keep composed MedicationRequest.id
+#   req- (4) + abx- (4) + hai-{enc_id 26}-{hai_type 3-6}-{index 1-2}- (~37)
+#   + {drug_slug ≤15} + {suffix}
+# under FHIR R4's 64-char Resource.id limit. Concrete failure that motivated
+# the change: v16 (seed=700) validation on 2026-07-21 emitted
+#   req-abx-hai-ENC-POP-000905-266868769799-vap-0-ceftriaxone-narrowed  (66)
+# which HAPI rejected as `Invalid Resource id ... exceeds the max length of 64`.
+# With the short suffix the same id is 59 chars.
+ABX_NARROW_SUFFIX = "-n"  # narrowed regimen id suffix
 
 
 FREQ_PER_DAY: dict[str, int] = {
@@ -173,8 +182,24 @@ def load_hai_empirical() -> dict[str, dict[str, Any]]:
 # Long drug names would blow the 64-char FHIR id budget once composed with the
 # `req-abx-{hai_id}-` prefix (~49 chars leaves ~15 for the slug). Keep the slug
 # clinically recognizable rather than truncating mid-word.
+# Issue #347 (session 63): expanded coverage to all HAI empirical drugs whose
+# canonical drug_key exceeds 10 chars, since worst-case composition
+# `req-abx-{hai_id 37}-{slug}-n` gives {slug} a ~14-char budget once the
+# narrowed suffix is present. `ceftriaxone` (11) hit the limit in v16
+# (2026-07-21). Sibling drugs added preemptively even when their length would
+# fit today, so a future HAI YAML edit does not silently reintroduce a >64 id.
 _DRUG_SLUG_OVERRIDES: dict[str, str] = {
     "piperacillin_tazobactam": "pip-tazo",
+    "trimethoprim_sulfamethoxazole": "tmp-smx",
+    "ceftriaxone": "cft",
+    "cefepime": "cfp",
+    "meropenem": "mero",
+    "vancomycin": "vanc",
+    "amikacin": "amk",
+    "levofloxacin": "levo",
+    "linezolid": "lnz",
+    "daptomycin": "dap",
+    "ciprofloxacin": "cipro",
 }
 
 
@@ -186,12 +211,37 @@ def _drug_slug(drug_key: str) -> str:
     ``sanitize_id_token`` so any ``_`` / ``/`` / space gets normalized to
     ``-`` before it lands in an id string. Long drug names get a short
     clinical override so the composed id (``req-abx-{hai_id}-{slug}``,
-    ~49 chars overhead) stays under the 64-char limit.
+    ~49 chars overhead, up to 51 with the ``-n`` narrowed suffix) stays
+    under the 64-char limit.
     """
     slug = _DRUG_SLUG_OVERRIDES.get(drug_key.lower())
     if slug is not None:
         return slug
     return sanitize_id_token(drug_key.lower(), max_len=15)
+
+
+# FHIR R4 Resource.id max length. Used by the guard below and by tests.
+_FHIR_ID_MAX_LENGTH = 64
+
+
+def _check_fhir_id_length(id_value: str, resource_kind: str) -> None:
+    """Fail-loud guard: raises ValueError if the constructed id exceeds
+    the FHIR R4 Resource.id max length of 64. Same defensive spirit as
+    ``sanitize_id_token``; caught here at the builder rather than at
+    HAPI validation time when the offending resource may already have
+    been persisted and referenced from other bundles.
+
+    Issue #347 (session 63): the composed
+    ``req-abx-{hai_id}-{drug_slug}-narrowed`` id hit 66 chars in v16
+    (2026-07-21) with drug_key=ceftriaxone. This guard would have
+    surfaced the problem at generate time instead of only at validation.
+    """
+    if len(id_value) > _FHIR_ID_MAX_LENGTH:
+        raise ValueError(
+            f"{resource_kind} id {id_value!r} is {len(id_value)} chars, "
+            f"exceeds FHIR R4 Resource.id max length {_FHIR_ID_MAX_LENGTH}. "
+            f"Add an entry to `_DRUG_SLUG_OVERRIDES` or shorten the id prefix."
+        )
 
 
 def build_regimens(
@@ -210,9 +260,13 @@ def build_regimens(
     out: list[AntibioticRegimen] = []
     for drug in cfg["drugs"]:
         slug = _drug_slug(drug["drug_key"])
+        regimen_id = f"{ABX_REGIMEN_ID_PREFIX}{hai_event.hai_id}-{slug}"
+        # Issue #347 guard: the composed Order.id later prepends "req-" (4 chars),
+        # so validate the total downstream id length here rather than at HAPI time.
+        _check_fhir_id_length(ABX_ORDER_REQ_PREFIX + regimen_id, "MedicationRequest")
         out.append(
             AntibioticRegimen(
-                regimen_id=f"{ABX_REGIMEN_ID_PREFIX}{hai_event.hai_id}-{slug}",
+                regimen_id=regimen_id,
                 hai_event_id=hai_event.hai_id,
                 encounter_id=hai_event.encounter_id,
                 drug_key=drug["drug_key"],
