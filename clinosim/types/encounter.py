@@ -64,7 +64,13 @@ class Encounter:
     discharging_physician_id: str = ""
     admission_datetime: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     discharge_datetime: datetime | None = None
-    chief_complaint: str = ""
+    chief_complaint: str = ""  # 英語版(AD-30: CIF は EN が canonical)
+    # 日本語版主訴。JP output で Encounter.reasonCode.text にフォールバック時
+    # に使用(Issue #360 G1、iris4h-ai 2026-07-22 feedback)。CIF は EN を
+    # canonical とする(AD-30)ため両方を保持し、caller が生成時に populate。
+    # ClinicalImpressionRecord.description_ja / EncounterConditionProtocol.
+    # chief_complaint_ja と同 pattern。
+    chief_complaint_ja: str = ""
     disease_event_id: str = ""
     ward_id: str = ""  # e.g. "4W" (4th floor west)
     bed_number: str = ""  # e.g. "401-2"
