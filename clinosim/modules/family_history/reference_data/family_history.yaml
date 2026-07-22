@@ -3,8 +3,15 @@
 
 # Relationship codes (HL7 v3-RoleCode) with display.
 relationships:
-  MTH: {en: "Mother", ja: "母"}
-  FTH: {en: "Father", ja: "父"}
+  # Issue #369 follow-up: v3-RoleCode MTH/FTH canonical ja displays are
+  # "natural mother"/"natural father" ("natural" qualifier = biological,
+  # distinct from step / adopted). Preventive alignment — the strict
+  # HAPI validator currently accepts the short forms with 0 errors, but
+  # NSIB already required the canonical (see line 12), and sibling code
+  # alignment keeps the CodeSystem canonical enforced uniformly. `text`
+  # field (JP UI label) is unchanged.
+  MTH: {en: "natural mother", ja: "母"}
+  FTH: {en: "natural father", ja: "父"}
   # Issue #369: v3-RoleCode NSIB canonical display in ja lookup is "natural sibling"
   # ("natural" qualifier = biological, not step/adopted). Strict FHIR validators
   # reject the short form "Sibling". `coding.display` carries the CodeSystem

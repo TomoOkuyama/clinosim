@@ -62,5 +62,6 @@ def test_jp_localized_relationship():
     the JP label into ``text``."""
     res = _build_family_history(_ctx("JP"))
     rel = res[0]["relationship"]
-    assert rel["coding"][0]["display"] == "Mother"
+    # Issue #369 follow-up: canonical is "natural mother" for v3-RoleCode MTH.
+    assert rel["coding"][0]["display"] == "natural mother"
     assert rel["text"] == "母"
