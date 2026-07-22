@@ -697,14 +697,19 @@ def _build_vital_observations(
                 "code": "L/min",
             }
         if device:
+            # Issue #376: LOINC 8478-0 is "Mean blood pressure" — completely
+            # unrelated to oxygen delivery. Verified via NLM Clinical Table +
+            # tx.fhir.org $lookup. Correct code for "device / method by which
+            # oxygen is delivered" is LOINC 107117-4 "Method of oxygen
+            # delivery" (ACTIVE on tx.fhir.org).
             o2_obs["component"] = [
                 {
                     "code": {
                         "coding": [
                             {
                                 "system": get_system_uri("loinc"),
-                                "code": "8478-0",
-                                "display": "Inhaled oxygen delivery system",
+                                "code": "107117-4",
+                                "display": "Method of oxygen delivery",
                             }
                         ],
                     },

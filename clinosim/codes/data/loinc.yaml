@@ -293,6 +293,16 @@ codes:
   3151-8:
     en: Inhaled oxygen flow rate
     ja: 吸入酸素流量
+  # Issue #376 (2026-07-23): LOINC 107117-4 "Method of oxygen delivery" —
+  # emitted as the code for Observation.component when an oxygen delivery
+  # device (e.g., "Nasal cannula") is present on the O2 flow-rate
+  # observation. Previously LOINC 8478-0 was used, which is actually
+  # "Mean blood pressure" — a semantic mismatch caught by the v24 obs
+  # tx=8181 sanity check. Authoritative: NLM Clinical Table Search
+  # (loinc_items API) + tx.fhir.org/r4/CodeSystem/$lookup — verified 2026-07-23.
+  107117-4:
+    en: Method of oxygen delivery
+    ja: 酸素投与方法
   3255-7:
     # NLM COMPONENT="Fibrinogen"; clinosim convention uses clean short names
     # (TestLoincDisplay guards against [Mass/volume] etc. in `display`).
