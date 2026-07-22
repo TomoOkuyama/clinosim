@@ -23,6 +23,16 @@ codes:
   18842-5:
     en: Discharge summary note
     ja: 退院時サマリー
+  # Issue #360 G5 (2026-07-22): "Summary of episode note" — emitted by
+  # clinosim as a DocumentReference.type for the ClinicalDocument
+  # summary-of-episode role. Previously missing from loinc.yaml, which
+  # produced ``display: null`` on FHIR output; iris4h-ai feedback
+  # confirmed the need. Authoritative English: LOINC 34133-9 short name;
+  # Japanese: MEDIS LOINC-JP マッピング(サマリー文書 pattern
+  # aligned with the 退院時サマリー / 経過記録 sibling entries above).
+  34133-9:
+    en: Summary of episode note
+    ja: サマリー文書
   18776-5:
     en: Plan of care note
     ja: 入院診療計画書

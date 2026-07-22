@@ -49,6 +49,21 @@ def _first_display_from_type(resource: dict) -> str:
     )
 
 
+def _text_or_first_display_from_type(resource: dict) -> str:
+    """Return the JP-UI-visible label for ``resource.type``.
+
+    Issue #360 G5 (2026-07-22): DocumentReference.type now emits EN LOINC
+    canonical on ``coding[].display`` (walker-safe on English-only LOINC
+    CS) + JP on ``text``. Prefer ``type.text``, else fall back to
+    ``coding[0].display`` (sufficient for both pre-fix + post-fix
+    shapes).
+    """
+    text = resource.get("type", {}).get("text", "") or ""
+    if text:
+        return str(text)
+    return _first_display_from_type(resource)
+
+
 @pytest.mark.integration
 def test_jp_composition_type_display_in_ja() -> None:
     """JP cohort: Composition.type.coding[0].display must contain Japanese characters.
@@ -85,10 +100,13 @@ def test_jp_document_reference_type_display_in_ja() -> None:
         non_jp: list[str] = []
         for dr in drefs:
             dr_id = dr.get("id", "?")
-            display = _first_display_from_type(dr)
+            # Issue #360 G5 (2026-07-22): read JP from type.text (walker-safe
+            # UI source of truth); coding[].display now carries EN LOINC
+            # canonical.
+            display = _text_or_first_display_from_type(dr)
             if display and not _has_jp_chars(display):
-                non_jp.append(f"DocumentReference/{dr_id} type.display not JP: {display!r}")
-        assert not non_jp, f"{len(non_jp)} DocumentReference resource(s) have non-JP type.display:\n" + "\n".join(
+                non_jp.append(f"DocumentReference/{dr_id} type UI-label not JP: {display!r}")
+        assert not non_jp, f"{len(non_jp)} DocumentReference resource(s) have non-JP type UI-label:\n" + "\n".join(
             non_jp[:5]
         )
 
