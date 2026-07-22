@@ -17,6 +17,7 @@ from clinosim.codes import (
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_us, resolve_lang
+from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.modules.output._fhir_common import (
     _build_dosage_instruction,
     _map_diagnosis_code,
@@ -31,6 +32,82 @@ from clinosim.modules.output._fhir_localization import (
     _split_rate_adjustment_suffix,
 )
 from clinosim.modules.output._fhir_reference_data import _ROUTE_SNOMED
+from clinosim.modules.output.opaque_ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+# Issue #349 Phase 1b: canonical Identifier.system URI for antibiotic
+# MedicationRequest structural-key round-trip. `.id` becomes an opaque
+# `mr-{sha256(key)[:12]}` short id; the original compound key
+# (`req-abx-hai-...-{drug}-{intent}`) is preserved as an Identifier so
+# downstream consumers can recover parent HAI id + drug slug + intent
+# without string-parsing the (now opaque) Resource.id.
+# Constant is PUBLIC (no underscore prefix): imported by
+# `clinosim/audit/axes/clinical.py` for the narrow-rate gate that filters
+# antibiotic MRs by their structural-key identifier — same
+# writer/reader shared-constant pattern as ``MB_ORG_ID_PREFIX``
+# (`_fhir_microbiology.py`). Rename here triggers an ImportError
+# downstream rather than a silent gate skip.
+MEDICATION_REQUEST_KEY_SYSTEM = structural_key_system("medication-request-key")
+
+
+def _resolve_antibiotic_mr_id(order_id: str) -> str:
+    """Return the FHIR MedicationRequest.id for an antibiotic Order.
+
+    For antibiotic orders (structural key starts with ``ABX_ORDER_ID_PREFIX``
+    = ``"req-abx-"``), returns the opaque `mr-{hash}` id derived from the
+    compound Order.order_id. For non-antibiotic orders returns the order_id
+    unchanged (Phase 3 sibling-sweep will extend the opaque pattern to other
+    resource kinds). Central helper so the MR builder and every cross-
+    reference site (MAR.request.reference, future basedOn[]) resolve the
+    same opaque value from the same structural key — determinism preserved.
+    """
+    if order_id.startswith(ABX_ORDER_ID_PREFIX):
+        return derive_opaque_id("mr-", order_id)
+    return order_id
+
+
+def _build_medication_request_identifiers(
+    structural_key: str,
+    is_antibiotic_mr: bool,
+    country_code: str,
+    rp_number: str,
+    order_in_rp: str,
+) -> dict[str, list[dict[str, str]]]:
+    """Assemble the MedicationRequest.identifier[] slice list.
+
+    Two concerns coexist:
+
+    * Antibiotic MR (Issue #349 Phase 1b): the structural key preserved via
+      :func:`wrap_as_identifier` so consumers can recover parent HAI +
+      drug + intent from the (now opaque) Resource.id.
+    * JP Core MR (session 49 P1-4): mhlw ``rpNumber`` + ``orderInRp``
+      slices required by JP_MedicationRequest profile.
+
+    Returns ``{"identifier": [...]}`` when at least one entry exists,
+    otherwise ``{}`` (so ``**splat`` into the resource dict is a no-op for
+    US non-antibiotic MRs).
+    """
+    entries: list[dict[str, str]] = []
+    if is_antibiotic_mr:
+        entries.append(wrap_as_identifier(structural_key, MEDICATION_REQUEST_KEY_SYSTEM))
+    if country_code == "JP":
+        entries.extend(
+            [
+                {
+                    "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
+                    "value": rp_number,
+                },
+                {
+                    "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
+                    "value": order_in_rp,
+                },
+            ]
+        )
+    return {"identifier": entries} if entries else {}
+
 
 # session 53 iris4h-ai feedback F-1: MedicationRequest / MedicationAdministration
 # の system URI を code 形式ごとに JP Core NamingSystem 準拠 URI に振り分け。
@@ -331,7 +408,17 @@ def _build_medication_request(
     # resource id として使えば globally unique。以前の "prepend encounter_id"
     # 実装は二重 prefix を作り 64-char 制限を超過(iris4h-ai HAPI 732 件)
     # + Endpoint/imgst/imgrpt double-prefix (session 51) と同一 class。
-    resource_id = order.get("order_id") or str(uuid.uuid4())
+    #
+    # Issue #349 Phase 1b(session 64): antibiotic MedicationRequest だけは
+    # opaque id `mr-{sha256(order_id)[:12]}` に切替。structural key(元の
+    # compound `req-abx-hai-...-{drug}-{intent}`)は identifier[] に
+    # round-trip 保存。PR #348 の tactical fix(-narrowed → -n)で 64-char
+    # 逸脱は塞いだが、compound-id-as-key pattern そのものが root cause —
+    # FHIR R4 の Resource.id は opaque logical identifier という intent に
+    # 沿わせる。非 antibiotic MR は phase 3 sibling-sweep まで unchanged。
+    _structural_key = order.get("order_id") or str(uuid.uuid4())
+    _is_antibiotic_mr = _structural_key.startswith(ABX_ORDER_ID_PREFIX)
+    resource_id = _resolve_antibiotic_mr_id(_structural_key)
 
     # C2-14 (session 42 cycle 2): MR.intent context-aware — mirrors C1-16 which
     # applied the same idea to ServiceRequest. Chronic-management refills →
@@ -373,21 +460,16 @@ def _build_medication_request(
         # 順序)の 2 slice を JP output で emit。system URL は JP Core 1.2.0
         # の StructureDefinition から取得(mhlw/IdSystem/Medication-RPGroupNumber
         # + MedicationAdministrationIndex)。
-        **(
-            {
-                "identifier": [
-                    {
-                        "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
-                        "value": rp_number,
-                    },
-                    {
-                        "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
-                        "value": order_in_rp,
-                    },
-                ]
-            }
-            if country_code == "JP"
-            else {}
+        #
+        # Issue #349 Phase 1b(session 64): antibiotic MR は opaque `.id` の
+        # 逆引き用 structural-key identifier を先頭に追加。JP-only の
+        # rpNumber / orderInRp slice との共存は list 連結で実現。
+        **_build_medication_request_identifiers(
+            _structural_key,
+            _is_antibiotic_mr,
+            country_code,
+            rp_number,
+            order_in_rp,
         ),
         "status": status_val,
         "intent": intent_val,
@@ -689,9 +771,16 @@ def _build_medication_admin(
     # session 52 で削除、reader/writer 両側を同期(session 51 imgst/imgrpt
     # double-prefix と同一 class の reference-integrity fix)。CI で 890
     # dangling references を surface。
+    #
+    # Issue #349 Phase 1b(session 64): antibiotic MR は opaque id に切替
+    # したため、antibiotic MAR の request.reference も同じ derive_opaque_id
+    # を経由して opaque id へ resolve する。`_resolve_antibiotic_mr_id`
+    # helper が deterministic なので同じ structural key → 同じ opaque id
+    # で reference-integrity 保持。非 antibiotic MAR は unchanged。
     mar_order_id = mar.get("order_id", "")
     if mar_order_id:
-        resource["request"] = {"reference": f"MedicationRequest/{mar_order_id}"}
+        _mr_id = _resolve_antibiotic_mr_id(mar_order_id)
+        resource["request"] = {"reference": f"MedicationRequest/{_mr_id}"}
 
     if mar.get("administered_by"):
         resource["performer"] = [{"actor": {"reference": f"Practitioner/{mar['administered_by']}"}}]
