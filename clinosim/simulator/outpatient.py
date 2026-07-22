@@ -50,24 +50,26 @@ def _simulate_outpatient_visit(
 
     # Build visit reason from YAML spec or disease-specific post-discharge reason
     spec = followup_spec or {}
+    raw_chief: str | dict = ""  # captured for the JP-side resolution below (Issue #360 G1)
     if spec.get("visit_reason"):
-        chief = resolve_text(spec["visit_reason"], country=country)
+        raw_chief = spec["visit_reason"]
+        chief = resolve_text(raw_chief, country=country)
     elif post_discharge_disease:
         # Look up disease-specific post-discharge reason
         from clinosim.locale.loader import load_chronic_followup
 
         fu = load_chronic_followup()
         disease_fu = fu.get("_post_discharge_by_disease", {}).get(post_discharge_disease, {})
-        raw = disease_fu.get("visit_reason", f"Post-discharge follow-up: {post_discharge_disease}")
-        chief = resolve_text(raw, country=country)
+        raw_chief = disease_fu.get("visit_reason", f"Post-discharge follow-up: {post_discharge_disease}")
+        chief = resolve_text(raw_chief, country=country)
     else:
         # Try encounter protocol YAML for chief complaint
         try:
             from clinosim.modules.encounter.protocol import load_encounter_condition
 
             enc_proto = load_encounter_condition(chronic_code)
-            raw = enc_proto.get("chief_complaint", f"Follow-up: {chronic_code}")
-            chief = resolve_text(raw, country=country)
+            raw_chief = enc_proto.get("chief_complaint", f"Follow-up: {chronic_code}")
+            chief = resolve_text(raw_chief, country=country)
         except (FileNotFoundError, Exception):
             chief = f"Follow-up: {chronic_code}"
 
@@ -77,6 +79,14 @@ def _simulate_outpatient_visit(
         chief_complaint=chief,
         visit_number=0,  # constant — id disambiguated by patient_id + visit_date hash (F1)
     )
+    # Issue #360 G1 (iris4h-ai 2026-07-22): store JP chief_complaint alongside
+    # so JP FHIR emission has a Japanese fallback for reasonCode.text when
+    # ICD-10 code_lookup can't resolve a Japanese display.
+    if raw_chief:
+        _chief_ja = resolve_text(raw_chief, language="ja")
+        _chief_en = resolve_text(raw_chief, language="en")
+        if _chief_ja and _chief_ja != _chief_en:
+            encounter.chief_complaint_ja = _chief_ja
     encounter.encounter_type = EncounterType.OUTPATIENT
     encounter.status = EncounterStatus.COMPLETED
     encounter.discharge_datetime = visit_date + timedelta(minutes=int(rng.integers(15, 45)))

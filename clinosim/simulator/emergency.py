@@ -79,6 +79,13 @@ def _simulate_ed_visit(
         visit_time,
         chief_complaint=chief,
     )
+    # Issue #360 G1 (iris4h-ai 2026-07-22): store JP chief on the JP field
+    # regardless of the country param so a downstream JP FHIR emission on a
+    # US-generated CIF still has a JP fallback (rare but supported).
+    _chief_ja = resolve_text(raw_chief, language="ja")
+    _chief_en = resolve_text(raw_chief, language="en")
+    if _chief_ja and _chief_ja != _chief_en:
+        encounter.chief_complaint_ja = _chief_ja
     proto_enc_type = (protocol or condition).get("encounter_type", "emergency")
     encounter.encounter_type = EncounterType.OUTPATIENT if proto_enc_type == "outpatient" else EncounterType.EMERGENCY
     encounter.status = EncounterStatus.COMPLETED
