@@ -53,5 +53,14 @@ def test_unique_ids():
 
 
 def test_jp_localized_relationship():
+    """Issue #360 G2 (2026-07-22): JP output emits English canonical on
+    ``coding[].display`` (walker-safe on v3-RoleCode English-only CS) +
+    Japanese on ``text`` (JP UI's source of truth). Pre-fix this test
+    asserted JP on ``coding[].display``, but that display was
+    subsequently stripped by
+    ``_strip_japanese_display_on_english_only_systems`` — the fix moved
+    the JP label into ``text``."""
     res = _build_family_history(_ctx("JP"))
-    assert res[0]["relationship"]["coding"][0]["display"] == "母"
+    rel = res[0]["relationship"]
+    assert rel["coding"][0]["display"] == "Mother"
+    assert rel["text"] == "母"
