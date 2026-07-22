@@ -5,7 +5,11 @@
 relationships:
   MTH: {en: "Mother", ja: "母"}
   FTH: {en: "Father", ja: "父"}
-  NSIB: {en: "Sibling", ja: "兄弟姉妹"}
+  # Issue #369: v3-RoleCode NSIB canonical display in ja lookup is "natural sibling"
+  # ("natural" qualifier = biological, not step/adopted). Strict FHIR validators
+  # reject the short form "Sibling". `coding.display` carries the CodeSystem
+  # canonical EN; `text` field (built at emit time) carries the JP UI label.
+  NSIB: {en: "natural sibling", ja: "兄弟姉妹"}
 
 # Sibling count distribution (weights for 0, 1, 2).
 sibling_count_weights: [0.4, 0.4, 0.2]
