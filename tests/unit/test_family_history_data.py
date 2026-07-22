@@ -18,6 +18,10 @@ def test_reference_data_shape():
     d = yaml.safe_load(open(_ROOT / "modules/family_history/reference_data/family_history.yaml"))
     assert set(d["conditions"]) == {"E11", "I10", "I25", "I63", "I64", "E78", "C50", "C18", "C34", "C61"}
     assert d["relationships"]["MTH"]["en"] == "Mother"
+    # Issue #369: NSIB canonical display in v3-RoleCode ja lookup is
+    # "natural sibling" (not "Sibling"). Pin here so silent revert is caught
+    # at unit-data-shape level before it reaches FHIR emission.
+    assert d["relationships"]["NSIB"]["en"] == "natural sibling"
     assert d["conditions"]["C61"]["sex"] == "male"  # prostate
     assert d["conditions"]["C50"]["sex"] == "female"  # breast
 

@@ -40,7 +40,8 @@ pytestmark = pytest.mark.unit
 
 _FATHER_DISPLAYS: dict[str, str] = {"en": "Father", "ja": "父"}
 _MOTHER_DISPLAYS: dict[str, str] = {"en": "Mother", "ja": "母"}
-_SIBLING_DISPLAYS: dict[str, str] = {"en": "Sibling", "ja": "兄弟姉妹"}
+# Issue #369: v3-RoleCode NSIB canonical ja display is "natural sibling" (not "Sibling").
+_SIBLING_DISPLAYS: dict[str, str] = {"en": "natural sibling", "ja": "兄弟姉妹"}
 
 
 # === JP output: coding.display = English canonical + text = Japanese ===
