@@ -23,6 +23,26 @@
 # JP clinical shorthand differs from WHO preferred terms.
 yj: {}
 loinc:
+  11506-3:
+    lang: en
+    clinosim_display: Provider-unspecified Progress note
+    authoritative_display: Progress note
+    rationale: |
+      HAPI-based FHIR validators (specifically the JP-flavor spec validator
+      run against clinosim output, using tx.fhir.org as the terminology
+      backend but with strict ja-display enforcement via -check-display
+      beyond Ignore) reject the SHORTNAME "Progress note" on
+      DocumentReference.type / Composition.type coding[].display for
+      LOINC 11506-3 and require the LONG_COMMON_NAME
+      "Provider-unspecified Progress note" as the CS canonical for
+      language 'ja'. This is a validator-implementation divergence:
+      tx.fhir.org $lookup returns SHORTNAME as the primary display in the
+      snapshot we captured, but the LONG_COMMON_NAME is the CS-registered
+      ja designation and is what strict downstream consumers require.
+      Adopting LONG_COMMON_NAME as clinosim's canonical resolves 2,513
+      "Wrong Display Name" errors in the most recent iris4h-ai run
+      (Issue #369).
+    registered_at: 2026-07-22
   104816-4:
     lang: en
     clinosim_display: Beta hydroxybutyrate
