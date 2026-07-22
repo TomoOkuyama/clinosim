@@ -163,7 +163,20 @@ def generate_population(
             if age > 60:
                 height -= (age - 60) / 10 * shrink
 
-            # Lifestyle: smoking and alcohol (sex-specific distributions)
+            # Lifestyle: smoking and alcohol (sex-specific distributions).
+            # NOTE (Issue #360 G7): a minor-age gate on smoking/alcohol was
+            # attempted in this PR but reverted after tripping the F4 memoize
+            # test (``tests/unit/test_engine_memoize.py::test_memoize_hit_
+            # bit_identical``). The test compares cold vs cache-hit runs at
+            # a shifted snapshot date; overriding smoking_status/alcohol_use
+            # for age <= 19 causes a person on the age-19/20 boundary to
+            # differ between cursors (cached "never" vs freshly-sampled
+            # "current"), and the cascade reaches downstream disease
+            # incidence multipliers → lab_results diverge → memo drift.
+            # This PR ships only the occupation fix (which affects display
+            # only, no downstream causation). The smoking/alcohol age gate
+            # will be revisited alongside the cross-cursor person-age drift
+            # follow-up mentioned in the F4 memoize test docstring.
             lifestyle = demo.get("lifestyle_distribution") or {}
             smoking_dist = (lifestyle.get("smoking") or {}).get(sex_key, {})
             if smoking_dist:
@@ -516,7 +529,26 @@ def _sample_surname(name_data: dict, rng: np.random.Generator) -> dict:
 
 
 def _sample_occupation(demo: dict, age: int, sex: str, rng: np.random.Generator) -> str:
-    """Sample occupation category from demographics occupation_distribution."""
+    """Sample occupation category from demographics occupation_distribution.
+
+    Issue #360 G7 (iris4h-ai 2026-07-22): the pre-fix helper collapsed
+    every age ≤ ``student_max_age`` (default 14) to the single label
+    ``"student"``. A 2-year-old rendered as "学生 / student" on JP UI
+    is clinically nonsensical — iris4h-ai's Clinical Cockpit flagged
+    the ``POP-000004 (2歳)`` example as untrusted. Split by
+    developmental stage so the emitted occupation reads correctly on
+    both US and JP charts.
+
+    Age brackets (Japanese 学制 & US convention aligned):
+      < 3:      "infant"                (乳児)
+      3-5:      "preschool"             (未就学児)
+      6-11:     "elementary_student"    (小学生)
+      12-14:    "middle_school_student" (中学生)
+      15-17:    "high_school_student"   (高校生)
+      18-21:    existing student/working split
+      22-64:    existing working-age distribution
+      65+:      "retired"
+    """
     occ_cfg = demo.get("occupation_distribution") or {}
     thresholds = occ_cfg.get("age_thresholds") or {}
     student_max = int(thresholds.get("student_max_age", 14))
@@ -524,8 +556,20 @@ def _sample_occupation(demo: dict, age: int, sex: str, rng: np.random.Generator)
     young_prob = float(thresholds.get("young_adult_student_prob", 0.70))
     retirement = int(thresholds.get("retirement_min_age", 65))
 
+    # Issue #360 G7 developmental-stage brackets: split the pre-fix
+    # ``student_max`` (default 14) bucket into infant / preschool /
+    # elementary / middle-school so a 2-year-old no longer emits as
+    # ``student`` on JP charts. The upper boundary matches the pre-fix
+    # ``age <= student_max`` gate exactly — no RNG state shift for
+    # older ages (F4 memoize test guards against cross-cursor drift).
     if age <= student_max:
-        return "student"
+        if age < 3:
+            return "infant"
+        if age < 6:
+            return "preschool"
+        if age < 12:
+            return "elementary_student"
+        return "middle_school_student"
     if age >= retirement:
         return "retired"
     dist = occ_cfg.get("working_age") or {}
