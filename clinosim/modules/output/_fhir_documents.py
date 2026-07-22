@@ -162,7 +162,17 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
         return None
 
     lang = _o(doc, "language", "") or resolve_lang(country)
-    type_display = code_lookup("loinc", loinc_code, lang) or loinc_code
+    # Issue #360 G5 (iris4h-ai 2026-07-22 feedback): DocumentReference.type
+    # needs a display consumers can render. LOINC is treated as an
+    # English-only CodeSystem by ``_strip_japanese_display_on_english_only_
+    # systems`` (walker in fhir_r4_adapter.py) — a Japanese display on
+    # ``coding[].display`` would be stripped on JP output, leaving the
+    # coding without any display. Emit English canonical on
+    # ``coding[].display`` (survives walker) and Japanese on ``text``
+    # (walker does not touch text) so the JP UI has a Japanese label AND
+    # the LOINC coding stays FHIR-canonical for interop consumers.
+    en_display = code_lookup("loinc", loinc_code, "en") or loinc_code
+    text_display = code_lookup("loinc", loinc_code, lang) or en_display
 
     resource_id = _o(doc, "document_id", "") or (
         f"{DOC_REFERENCE_ID_PREFIX}{_o(doc, 'encounter_id', 'unknown')}-{_o(doc, 'task_type', 'note')}"
@@ -201,10 +211,10 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
                 {
                     "system": get_system_uri("loinc"),
                     "code": loinc_code,
-                    "display": type_display,
+                    "display": en_display,
                 }
             ],
-            "text": type_display,
+            "text": text_display,
         },
         "category": [
             {
@@ -242,7 +252,7 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
                     "contentType": _o(doc, "content_type", "text/plain"),
                     "language": lang,
                     "data": encoded,
-                    "title": type_display,
+                    "title": text_display,
                     "size": len(text.encode("utf-8")),
                     "hash": _sha1_b64(text),
                 },

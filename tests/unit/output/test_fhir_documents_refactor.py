@@ -117,16 +117,22 @@ def test_bb_document_references_dict_path():
 
 
 def test_bb_document_references_jp_locale():
-    """country='JP' → DocumentReference type.coding[0].display in Japanese."""
+    """country='JP' → DocumentReference type carries EN LOINC canonical on
+    ``coding[].display`` (walker-safe) + JP on ``text`` (Issue #360 G5,
+    2026-07-22 — pre-fix this test asserted JP on coding[].display which
+    was subsequently stripped by
+    ``_strip_japanese_display_on_english_only_systems``)."""
     doc = _sample_doc_dict()
     doc["language"] = "ja"
     ctx = _make_ctx([doc], country="JP")
     resources = _bb_document_references(ctx)
     assert len(resources) == 1
     r = resources[0]
-    type_display = r["type"]["coding"][0]["display"]
-    # LOINC 11506-3 ja = "経過記録"
-    assert type_display == "経過記録"
+    coding_display = r["type"]["coding"][0]["display"]
+    text_display = r["type"]["text"]
+    # LOINC 11506-3 canonical: en="Progress note", ja="経過記録".
+    assert coding_display == "Progress note"
+    assert text_display == "経過記録"
 
 
 def test_bb_document_references_empty_input_returns_empty_list():

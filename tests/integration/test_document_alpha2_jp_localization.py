@@ -45,6 +45,24 @@ def _first_display_from_type(resource: dict) -> str:
     )
 
 
+def _text_or_first_display_from_type(resource: dict) -> str:
+    """Return the JP-UI-visible label for ``resource.type``.
+
+    Issue #360 G5 (2026-07-22): DocumentReference.type now emits EN LOINC
+    canonical on ``coding[].display`` (walker-safe on the English-only
+    LOINC CS) + JP on ``text`` (JP UI's source of truth). This helper
+    prefers ``type.text`` when populated, else falls back to
+    ``coding[0].display`` — sufficient for both the pre-fix (JP on
+    coding.display) and post-fix (JP on text) shapes, so downstream
+    integration assertions read as "the JP label" rather than "the
+    coding.display slot".
+    """
+    text = resource.get("type", {}).get("text", "") or ""
+    if text:
+        return str(text)
+    return _first_display_from_type(resource)
+
+
 def _loinc_code_from_type(resource: dict) -> str:
     return next(
         (c.get("code", "") for c in resource.get("type", {}).get("coding", [])),
@@ -116,9 +134,13 @@ def test_jp_nursing_shift_note_type_display_in_ja() -> None:
         non_jp: list[str] = []
         for dr in nursing_shift_drefs:
             dr_id = dr.get("id", "?")
-            display = _first_display_from_type(dr)
+            # Issue #360 G5 (2026-07-22): read JP from type.text (walker-safe
+            # UI source of truth); coding[].display carries EN LOINC canonical
+            # (walker-safe on English-only CS) so pre-fix "display must be JP"
+            # assertion no longer holds on coding[].display.
+            display = _text_or_first_display_from_type(dr)
             if display and not _has_jp_chars(display):
-                non_jp.append(f"DocumentReference/{dr_id} type.display not JP: {display!r}")
+                non_jp.append(f"DocumentReference/{dr_id} type UI-label not JP: {display!r}")
         assert not non_jp, (
             f"{len(non_jp)} NURSING_SHIFT_NOTE DocumentReference resource(s) "
             "have non-JP type.display:\n" + "\n".join(non_jp[:5])

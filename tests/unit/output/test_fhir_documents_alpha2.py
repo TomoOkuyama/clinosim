@@ -132,15 +132,27 @@ def test_nursing_shift_note_dict_path():
 
 
 def test_jp_locale_nursing_shift_note_display():
-    """JP locale: LOINC 34746-8 display resolves to '看護記録'."""
+    """JP locale: DocumentReference.type carries EN LOINC canonical on
+    ``coding[].display`` (walker-safe) + JP on ``text`` (Issue #360 G5,
+    2026-07-22). Pre-fix this test asserted JP on ``coding[].display``,
+    but that display was subsequently stripped by
+    ``_strip_japanese_display_on_english_only_systems`` — the fix moved
+    the JP label into ``text`` (walker-safe) and kept English on the
+    coding for interop."""
     doc = _sample_shift_note_dict()
     doc["language"] = "ja"
     ctx = _make_ctx([doc], country="JP")
     resources = _bb_document_references(ctx)
     assert len(resources) == 1
     r = resources[0]
-    display = r["type"]["coding"][0]["display"]
-    assert display == "看護記録", f"Expected '看護記録', got '{display}' — check loinc.yaml 34746-8 ja field"
+    coding_display = r["type"]["coding"][0]["display"]
+    text_display = r["type"]["text"]
+    assert coding_display == "Nurse Note", (
+        f"Expected EN LOINC canonical 'Nurse Note' on coding[].display (walker-safe), got '{coding_display}'"
+    )
+    assert text_display == "看護記録", (
+        f"Expected JP '看護記録' on type.text (JP UI's source of truth), got '{text_display}'"
+    )
 
 
 # ── ED_TRIAGE_NOTE ────────────────────────────────────────────────────────────
@@ -216,16 +228,24 @@ def test_ed_triage_note_dict_path():
 
 
 def test_jp_locale_ed_triage_note_display():
-    """JP locale: LOINC 54094-8 display resolves to 'トリアージ記録'."""
+    """JP locale: DocumentReference.type carries EN LOINC canonical on
+    ``coding[].display`` (walker-safe) + JP ``トリアージ記録`` on
+    ``text`` (Issue #360 G5, 2026-07-22 — parallel to the nursing
+    shift-note test above)."""
     doc = _sample_ed_triage_dict()
     doc["language"] = "ja"
     ctx = _make_ctx([doc], country="JP")
     resources = _bb_document_references(ctx)
     assert len(resources) == 1
     r = resources[0]
-    display = r["type"]["coding"][0]["display"]
-    assert display == "トリアージ記録", (
-        f"Expected 'トリアージ記録', got '{display}' — check loinc.yaml 54094-8 ja field"
+    coding_display = r["type"]["coding"][0]["display"]
+    text_display = r["type"]["text"]
+    # LOINC 54094-8 canonical English = "Triage note" (see loinc.yaml).
+    assert "riage" in coding_display, (
+        f"Expected EN LOINC canonical (~'Triage') on coding[].display (walker-safe), got '{coding_display}'"
+    )
+    assert text_display == "トリアージ記録", (
+        f"Expected JP 'トリアージ記録' on type.text (JP UI's source of truth), got '{text_display}'"
     )
 
 
