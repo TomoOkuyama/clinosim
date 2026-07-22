@@ -212,7 +212,8 @@ class ClinicalImpressionRecord:
     encounter_id: str = ""
     date: date = field(default_factory=lambda: _UNSET_DATE)
     day_index: int = 0
-    description: str = ""  # 短い要約
+    description: str = ""  # 英語版短い要約(AD-30: CIF は EN が canonical)
+    description_ja: str = ""  # 日本語版(JP output で ClinicalImpression.description に注入)
     summary: str = ""  # 詳細
     investigation_refs: list[str] = field(default_factory=list)  # Observation id refs
     finding_refs: list[str] = field(default_factory=list)  # Condition id refs

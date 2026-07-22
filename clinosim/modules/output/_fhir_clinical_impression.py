@@ -24,6 +24,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import is_jp
 from clinosim.modules.document import CLINICAL_IMPRESSION_ID_PREFIX
 from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
 
@@ -39,15 +40,26 @@ def _bb_clinical_impressions(ctx: BundleContext) -> list[dict[str, Any]]:
     impressions = _o(ext, "clinical_impressions", []) or []
     if not impressions:
         return []
-    return [_build_clinical_impression(imp, ctx.patient_id) for imp in impressions]
+    return [_build_clinical_impression(imp, ctx.patient_id, ctx.country) for imp in impressions]
 
 
-def _build_clinical_impression(imp: Any, patient_id: str) -> dict[str, Any]:
-    """Build one FHIR R4 ClinicalImpression from a ClinicalImpressionRecord."""
+def _build_clinical_impression(imp: Any, patient_id: str, country: str = "US") -> dict[str, Any]:
+    """Build one FHIR R4 ClinicalImpression from a ClinicalImpressionRecord.
+
+    Issue #360 G4 (iris4h-ai 2026-07-22 feedback): JP output picks the
+    Japanese description populated at document/engine.py side. The
+    ``description_ja`` field is populated in parallel with ``description``
+    (English) because ClinicalImpressionRecord does not carry the source
+    parameters (day / los / phase / disease_id / severity) needed to
+    re-derive the template at FHIR emission time — CIF must carry both
+    strings, sibling to ``EncounterConditionProtocol.chief_complaint_ja``.
+    """
     impression_id = _o(imp, "impression_id", "") or ""
     encounter_id = _o(imp, "encounter_id", "") or ""
     date_val = _o(imp, "date", None)
-    description = _o(imp, "description", "") or ""
+    description_en = _o(imp, "description", "") or ""
+    description_ja = _o(imp, "description_ja", "") or ""
+    description = description_ja if is_jp(country) and description_ja else description_en
     summary = _o(imp, "summary", "") or ""
     investigation_refs = _o(imp, "investigation_refs", []) or []
     finding_refs = _o(imp, "finding_refs", []) or []
