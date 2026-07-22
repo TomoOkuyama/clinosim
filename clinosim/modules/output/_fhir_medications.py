@@ -69,6 +69,34 @@ def _resolve_antibiotic_mr_id(order_id: str) -> str:
     return order_id
 
 
+def _build_medication_request_meta(
+    country_code: str,
+    medication_intent: str,
+) -> dict[str, Any]:
+    """Build MedicationRequest.meta with profile (JP only) and tag[] (medication_intent).
+
+    Issue #349 Phase 2: medication_intent ("empirical" or "narrowed") is emitted
+    in meta.tag[] with system urn:clinosim:regimen-intent. For non-antibiotic
+    orders, medication_intent is empty and no tag is emitted.
+    """
+    meta = {}
+
+    # JP Core profile
+    if country_code == "JP":
+        meta["profile"] = ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]
+
+    # Medication intent tag (antibiotic regimens only)
+    if medication_intent:
+        meta["tag"] = [
+            {
+                "system": "urn:clinosim:regimen-intent",
+                "code": medication_intent,
+            }
+        ]
+
+    return {"meta": meta} if meta else {}
+
+
 def _build_medication_request_identifiers(
     structural_key: str,
     is_antibiotic_mr: bool,
@@ -436,6 +464,7 @@ def _build_medication_request(
     # Home-medication orders REMAIN active because chronic-meds continue
     # post-discharge.
     status_val = _map_order_status_to_fhir(order.get("status", ""))
+    medication_intent = order.get("medication_intent", "")  # Issue #349 Phase 2
     _ci_lower = str(order.get("clinical_intent", "") or "").lower()
     _episodic_kw = ("supportive:", "ed treatment:", "day ", "dvt_prophylaxis", "antibiotic", "escalation")
     _is_home_med = "home medication" in _ci_lower
@@ -450,11 +479,7 @@ def _build_medication_request(
         "resourceType": "MedicationRequest",
         "id": resource_id,
         # Session 46 chain #2: JP Core MedicationRequest profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]}}
-            if country_code == "JP"
-            else {}
-        ),
+        **_build_medication_request_meta(country_code, medication_intent),
         # session 49 clinosim_feedback P1-4: JP_MedicationRequest.identifier
         # slice `rpNumber`(処方内 Rp グループ番号)+ `orderInRp`(Rp 内医薬品
         # 順序)の 2 slice を JP output で emit。system URL は JP Core 1.2.0
