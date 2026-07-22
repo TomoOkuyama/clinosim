@@ -56,11 +56,12 @@ from clinosim.modules.procedure.engine import (
     simulate_surgery,
 )
 from clinosim.modules.staff.engine import StaffRoster, assign_staff
-from clinosim.simulator.helpers import (
+from clinosim.simulator.helpers import (  # noqa: I001
     _check_discharge_ready,
     _country_to_yaml_key,
     _determine_route,
     _disease_chief_complaint,
+    _disease_chief_complaint_ja,
     _disease_to_department,
     _evaluate_mortality,
 )
@@ -183,6 +184,10 @@ def _simulate_patient(
         chief_complaint=chief_complaint,
         visit_number=readmission_number + 1,
     )
+    # Issue #360 G1 (iris4h-ai 2026-07-22): stash JP chief complaint alongside
+    # so JP FHIR emitter has a Japanese fallback for Encounter.reasonCode.text
+    # when ICD-10 code_lookup can't resolve a Japanese display.
+    encounter.chief_complaint_ja = _disease_chief_complaint_ja(protocol)
     # β-JP-1 chain 1a (spec §2a): persist the selected severity + archetype on
     # the Encounter so Stage 2 narrative generation reads them from structural
     # CIF (they were previously in scope here but never written → every

@@ -279,7 +279,8 @@ def _build_encounter(
 
     if enc.get("chief_complaint"):
         # reasonCode: use diagnosis display in target language (codes module)
-        # Falls back to English chief_complaint text if no code available
+        # Falls back to JP-stashed chief_complaint_ja on JP output, or
+        # English chief_complaint text otherwise, if no code available.
         lang = resolve_lang(country)
         # C4-24 (session 43 cycle 4): route the admission dx system + code
         # through the country's diagnosis code system so JP output never
@@ -290,12 +291,21 @@ def _build_encounter(
         # roots via code_mapping_diagnosis.
         _reason_system = system_key_for("diagnosis", country)
         _reason_code = _map_diagnosis_code(admit_dx_code, country) if admit_dx_code else ""
+        # Issue #360 G1 (iris4h-ai 2026-07-22): the fallback path (used when
+        # admit_dx_code is empty or code_lookup returns the raw code) must
+        # prefer the JP chief_complaint stashed by the simulator on JP
+        # output — CIF stores English canonical (AD-30), so the plain
+        # ``enc["chief_complaint"]`` is English and would reach the JP
+        # Clinical Cockpit as English protocol text (feedback G1).
+        _chief_en = enc.get("chief_complaint", "")
+        _chief_ja = enc.get("chief_complaint_ja", "") or ""
+        _fallback_text = _chief_ja if lang == "ja" and _chief_ja else _chief_en
         if _reason_code:
             reason_text = code_lookup(_reason_system, _reason_code, lang)
             if reason_text == _reason_code:
-                reason_text = enc["chief_complaint"]  # fallback to English text
+                reason_text = _fallback_text
         else:
-            reason_text = enc["chief_complaint"]
+            reason_text = _fallback_text
         # C2-29 (session 42 cycle 2): also emit reasonCode.coding pointing at
         # the admission diagnosis code (ICD-10 or ICD-10-CM), not just text.
         # This gives every Encounter a machine-processable reason.
