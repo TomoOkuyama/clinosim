@@ -17,12 +17,15 @@ def test_record_construction():
 def test_reference_data_shape():
     d = yaml.safe_load(open(_ROOT / "modules/family_history/reference_data/family_history.yaml"))
     assert set(d["conditions"]) == {"E11", "I10", "I25", "I63", "I64", "E78", "C50", "C18", "C34", "C61"}
-    # Issue #369 + follow-up: v3-RoleCode canonical ja displays are
-    # "natural mother" / "natural father" / "natural sibling"
-    # ("natural" = biological qualifier). Pin at data-shape level so
-    # silent revert is caught before it reaches FHIR emission.
-    assert d["relationships"]["MTH"]["en"] == "natural mother"
-    assert d["relationships"]["FTH"]["en"] == "natural father"
+    # Issue #369 revised (v23 regression fix): v3-RoleCode canonical ja
+    # displays are per-code, NOT a uniform pattern:
+    #   MTH  = "mother"   (lowercase)
+    #   FTH  = "father"   (lowercase)
+    #   NSIB = "natural sibling"  (this ONE has the "natural" qualifier)
+    # PR #372 (session 65) speculatively applied NSIB's "natural" prefix
+    # to MTH/FTH → 1,164 strict-validator errors → reverted here.
+    assert d["relationships"]["MTH"]["en"] == "mother"
+    assert d["relationships"]["FTH"]["en"] == "father"
     assert d["relationships"]["NSIB"]["en"] == "natural sibling"
     assert d["conditions"]["C61"]["sex"] == "male"  # prostate
     assert d["conditions"]["C50"]["sex"] == "female"  # breast

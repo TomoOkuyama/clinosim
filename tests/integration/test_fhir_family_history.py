@@ -62,6 +62,9 @@ def test_jp_localized_relationship():
     the JP label into ``text``."""
     res = _build_family_history(_ctx("JP"))
     rel = res[0]["relationship"]
-    # Issue #369 follow-up: canonical is "natural mother" for v3-RoleCode MTH.
-    assert rel["coding"][0]["display"] == "natural mother"
+    # Issue #369 revised (v23 regression fix): v3-RoleCode MTH canonical
+    # ja display is "mother" (lowercase, NOT "natural mother"). See
+    # family_history.yaml commentary — canonicals are per-code, not a
+    # uniform pattern.
+    assert rel["coding"][0]["display"] == "mother"
     assert rel["text"] == "母"
