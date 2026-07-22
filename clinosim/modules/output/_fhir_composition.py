@@ -79,6 +79,92 @@ _CLINICALDOCUMENT_PROFILE = "http://hl7.org/fhir/StructureDefinition/clinicaldoc
 # LOINC search (loinc.org), matching HL7 recommendations for CCD document
 # sections. Titles not listed here remain title-only until either the enricher
 # starts emitting a canonical title or the code is verified.
+# Issue #360 G3 (iris4h-ai 2026-07-22 feedback): Composition.section.title
+# on JP output previously emitted the raw English slug ("adl_assessment",
+# "hpi", "chief_complaint", ...) which iris4h-ai's Clinical Cockpit had to
+# dictionary-lookup on the UI side to render Japanese titles. Generator-side
+# translation moves that responsibility back to clinosim, matching how
+# JP-CLINS DISCHARGE_SUMMARY sections already carry Japanese titles.
+#
+# Keys are the section_title strings written by the enrichers / narrative
+# pass; values are the JP-clinical-chart display form. When an entry is
+# missing (unknown slug) the caller falls back to the raw slug so the
+# section still emits — silent-no-op deferral rather than a silent drop.
+# Coverage extends to every slug currently in `_SECTION_LOINC` (below) plus
+# the 30 slugs listed in the iris4h-ai feedback report.
+_SECTION_TITLE_JA: dict[str, str] = {
+    # SOAP outpatient / progress notes
+    "subjective": "主観的所見",
+    "objective": "客観的所見",
+    "assessment": "評価",
+    "plan": "計画",
+    # Admission H&P / progress
+    "chief_complaint": "主訴",
+    "hpi": "現病歴",
+    "past_medical_history": "既往歴",
+    "medications_at_home": "服薬歴",
+    "physical_exam": "身体所見",
+    "physical_examination": "身体所見",
+    "triage_details": "トリアージ情報",
+    # Discharge summary
+    "admission_summary": "入院時サマリー",
+    "hospital_course": "入院経過",
+    "discharge_diagnoses": "退院時診断",
+    "discharge_medications": "退院時処方",
+    "discharge_evaluation": "退院時評価",
+    "discharge_readiness": "退院可能性",
+    # Nursing sections
+    "nursing_history": "看護歴",
+    "nursing_diagnosis": "看護診断",
+    "nursing_interventions_provided": "実施した看護介入",
+    "admission_status": "入院時状態",
+    "adl_assessment": "ADL評価",
+    "risk_assessments": "リスク評価",
+    "care_plan": "看護計画",
+    "reassessment_timing": "再評価予定",
+    "other_issues": "その他",
+    # Ward-info & plan sections
+    "ward_and_room": "病棟・病室",
+    "ward_and_physician": "病棟・主治医",
+    "other_staff": "その他スタッフ",
+    "diagnosis": "診断",
+    "symptoms": "症状",
+    # Rehab
+    "patient_and_diagnosis": "患者・診断",
+    # Dietitian / nutrition
+    "dietitian": "栄養士",
+    "nutrition_risk": "栄養リスク",
+    "nutrition_assessment": "栄養評価",
+    "nutrition_goals": "栄養目標",
+    "nutrition_supply": "栄養供給",
+    "nutrition_counseling": "栄養指導",
+    "dietary_content": "食事内容",
+    "dysphagia_diet": "嚥下食",
+    # History / social
+    "allergies": "アレルギー",
+    "family_history": "家族歴",
+    "social_history": "社会歴",
+    # Education / assessment
+    "patient_education": "患者教育",
+    "assessment_and_plan": "評価と計画",
+}
+
+
+def _localize_section_title(section_title: str, lang: str) -> str:
+    """Return the display form of a Composition.section.title for ``lang``.
+
+    Issue #360 G3: JP output previously emitted the raw English slug
+    (``adl_assessment``, ``hpi``); this helper substitutes the Japanese
+    display when ``lang == "ja"``. Unknown slugs pass through unchanged
+    so the section still emits (silent-no-op deferral is intentional —
+    adding a new slug is an incremental dict edit, not an emitter
+    change).
+    """
+    if lang == "ja":
+        return _SECTION_TITLE_JA.get(section_title, section_title)
+    return section_title
+
+
 _SECTION_LOINC: dict[str, str] = {
     # SOAP outpatient / progress notes
     "subjective": "10164-2",  # History of Present illness (subj narrative)
@@ -406,9 +492,13 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
     # populated for interop; unknown titles retain title-only (documented
     # deferral).
     section_entries: list[dict[str, Any]] = []
+    # Issue #360 G3 (2026-07-22): resolve doc language once outside the loop
+    # so title/code both see the same locale. Falls back to "en" for legacy
+    # docs where the language field is unset.
+    _doc_lang = _o(doc, "language", "") or "en"
     for section_title, section_text in sections.items():
         entry: dict[str, Any] = {
-            "title": section_title,
+            "title": _localize_section_title(section_title, _doc_lang),
             "text": {
                 "status": "generated",
                 "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{_escape_html(section_text)}</div>",
@@ -416,13 +506,12 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
         }
         loinc_section = _SECTION_LOINC.get(section_title)
         if loinc_section:
-            lang = _o(doc, "language", "en")
             entry["code"] = {
                 "coding": [
                     {
                         "system": get_system_uri("loinc"),
                         "code": loinc_section,
-                        "display": code_lookup("loinc", loinc_section, lang) or section_title,
+                        "display": code_lookup("loinc", loinc_section, _doc_lang) or section_title,
                     }
                 ]
             }
