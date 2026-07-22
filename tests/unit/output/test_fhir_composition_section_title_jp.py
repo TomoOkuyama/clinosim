@@ -32,8 +32,8 @@ import pytest
 
 from clinosim.modules.output._fhir_composition import (
     _SECTION_TITLE_JA,
-    _localize_section_title,
     _build_composition_generic,
+    _localize_section_title,
 )
 
 pytestmark = pytest.mark.unit
