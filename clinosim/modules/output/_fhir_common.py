@@ -260,7 +260,14 @@ def _build_diagnosis_codeable_concept(code: str, system_key: str, country: str) 
     """Build a FHIR CodeableConcept for a diagnosis code with multilingual coding.
 
     - Primary coding: target country's system + target language display
-    - Secondary coding: always includes English display (for interop)
+    - Secondary coding: English display (for interop) — SKIPPED when the
+      primary system is Japanese-only (Issue #358): MHLW ICD-10 2013 and
+      similar registries publish only a Japanese display per concept, so an
+      English display against the same system URI can never match the
+      authoritative CS and would produce a validator display-mismatch
+      error. Consumers wanting the English string should read
+      ``code.text`` (in JA locales that is the JA short name) or look up
+      via ``clinosim.codes.lookup(system_key, code, "en")`` themselves.
     - code.text: primary language display (local charting expression)
     - Never emits display==code: falls back to "(display unavailable)"
 
@@ -271,6 +278,8 @@ def _build_diagnosis_codeable_concept(code: str, system_key: str, country: str) 
     (e.g. "COPD" instead of "Other chronic obstructive pulmonary disease"),
     enabling search by common clinical abbreviations.
     """
+    from clinosim.codes.loader import is_japanese_only_display_system
+
     primary_lang = resolve_lang(country)
     primary_system = get_system_uri(system_key)
 
@@ -301,8 +310,9 @@ def _build_diagnosis_codeable_concept(code: str, system_key: str, country: str) 
             "display": primary_display,
         }
     ]
-    # Add English coding for multilingual interop when primary is not English
-    if primary_lang != "en" and en_display != primary_display:
+    # Add English coding for multilingual interop when primary is not English.
+    # Skip for Japanese-only registries (Issue #358) — see docstring.
+    if primary_lang != "en" and en_display != primary_display and not is_japanese_only_display_system(system_key):
         coding.append(
             {
                 "system": primary_system,  # same code system, different display

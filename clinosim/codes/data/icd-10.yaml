@@ -815,18 +815,24 @@ codes:
     en: Stomach, unspecified
     ja: "胃の悪性新生物、詳細不明"
   # Cancer category codes for family history display (WHO ICD-10 categories).
+  # Issue #358 (2026-07-22 v19 → v20): JP display aligned to the MHLW
+  # ICD-10 2013 registry canonical — 「および」→「及び」表記統一 + 悪性新生物
+  # C-series には ＜腫瘍＞ suffix を必ず付与。同 URI は JP Core
+  # jp-condition-diagnosis の required binding で strict display match が
+  # 発火するため。WHO ICD-10 (`http://hl7.org/fhir/sid/icd-10`) では display
+  # tolerance が緩く v15 まで発火せず、PR #353 の MHLW URI 切替後に露出。
   C18:
     en: "Malignant neoplasm of colon"
-    ja: "結腸の悪性新生物"
+    ja: "結腸の悪性新生物＜腫瘍＞"
   C34:
     en: "Malignant neoplasm of bronchus and lung"
-    ja: "気管支および肺の悪性新生物"
+    ja: "気管支及び肺の悪性新生物＜腫瘍＞"
   C50:
     en: "Malignant neoplasm of breast"
-    ja: "乳房の悪性新生物"
+    ja: "乳房の悪性新生物＜腫瘍＞"
   C61:
     en: "Malignant neoplasm of prostate"
-    ja: "前立腺の悪性新生物"
+    ja: "前立腺の悪性新生物＜腫瘍＞"
   C71.9:
     en: Brain, unspecified
     ja: "脳の悪性新生物、詳細不明"
