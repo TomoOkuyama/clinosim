@@ -48,10 +48,16 @@ jobs:
     name: Integration tests (Py 3.12)
     runs-on: ubuntu-latest
     needs: unit
-    # ~17-18 min locally, ~42 min extrapolated on GitHub-hosted ubuntu-latest
-    # runners (2-vCPU / 7GB — verified by the first CI run cancelled at 72%
-    # after 30 min). Timeout headroom = 60 min so a legitimate slow-down
-    # doesn't cancel a passing run.
+    # Historical: ~17-18 min locally, ~42-50 min on GitHub-hosted
+    # ubuntu-latest (2-vCPU / 7GB — verified by the first CI run cancelled
+    # at 72% after 30 min).
+    #
+    # Session 65: `-n 2 --dist=worksteal` parallelises across the runner's
+    # 2 vCPUs; expected ~25-30 min wall clock, ~40% faster. Tests that
+    # mutate shared filesystem or global state are marked with
+    # `@pytest.mark.serial` and executed in a second single-worker pass so
+    # they cannot collide with parallel siblings. Timeout headroom kept at
+    # 60 min so a legitimate slow-down doesn't cancel a passing run.
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -61,8 +67,15 @@ jobs:
           cache: pip
       - name: Install (with dev extras)
         run: pip install -e ".[dev]"
-      - name: Run integration tests
-        run: pytest tests/integration -q --tb=short
+      - name: Run integration tests (parallel — excludes serial)
+        run: pytest tests/integration -q --tb=short -n 2 --dist=worksteal -m "not serial"
+      - name: Run integration tests (serial pass, no-op when zero serial tests)
+        # `|| [ $? -eq 5 ]` treats "no tests collected" (pytest exit 5) as
+        # success — the current state has 0 serial-marked tests (local
+        # xdist verify 2026-07-22 showed 0 test collisions, so no serial
+        # marker was needed). Step stays in the workflow so a future
+        # serial-marked test runs automatically without workflow edits.
+        run: pytest tests/integration -q --tb=short -m serial || [ $? -eq 5 ]
 
   lint:
     name: Lint (informational)

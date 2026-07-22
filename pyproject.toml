@@ -59,6 +59,7 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "pytest-cov>=5.0",
+    "pytest-xdist>=3.5",  # parallel test execution (Issue #TODO CI integration speedup)
     "ruff>=0.3",
     "mypy>=1.8",
     "types-PyYAML>=6.0",  # mypy stubs for pyyaml (P0-2, session 46)
@@ -117,6 +118,7 @@ markers = [
     "integration: Integration tests (module chains)",
     "e2e: End-to-end tests (full simulation, slow)",
     "regression: Narrative regression suite (AD-66 α-min-2c, opt-in)",
+    "serial: Test cannot run in parallel with other tests (mutates shared filesystem or global state); pytest-xdist skips these in the parallel batch and runs them single-worker in a follow-up pass.",
 ]
 
 [tool.ruff]
