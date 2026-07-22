@@ -79,7 +79,7 @@ def _build_medication_request_meta(
     in meta.tag[] with system urn:clinosim:regimen-intent. For non-antibiotic
     orders, medication_intent is empty and no tag is emitted.
     """
-    meta = {}
+    meta: dict[str, Any] = {}
 
     # JP Core profile
     if country_code == "JP":
