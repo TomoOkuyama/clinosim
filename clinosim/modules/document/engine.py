@@ -590,6 +590,17 @@ def document_enricher(ctx: Any) -> None:
                     if enc_type_val == "inpatient"
                     else ("ICU" if "icu" in enc_type_val.lower() else "rehab")
                 )
+                # Issue #360 G4: JP-localized encounter labels + phase hints for
+                # ClinicalImpression.description_ja. Parallel to the English template
+                # already computed below; consumed by _build_clinical_impression on
+                # JP output (AD-30: CIF stores both because ClinicalImpressionRecord
+                # has no diagnosis/severity code — the JP description cannot be
+                # re-derived from a code_lookup at FHIR emission time).
+                _enc_label_ja = (
+                    "入院"
+                    if enc_type_val == "inpatient"
+                    else ("ICU" if "icu" in enc_type_val.lower() else "リハビリ入院")
+                )
                 for day in range(los_days):
                     day_dt = admission_dt + timedelta(days=day)
                     # AD-32: the last day of an in-progress encounter is "in-progress"
@@ -598,16 +609,22 @@ def document_enricher(ctx: Any) -> None:
                     # Phase hint (deterministic by day-index vs LOS).
                     if los_days <= 2:
                         _phase = "brief admission"
+                        _phase_ja = "短期入院"
                     elif day == 0:
                         _phase = "admission workup"
+                        _phase_ja = "入院時精査"
                     elif day == los_days - 1:
                         _phase = "pre-discharge review"
+                        _phase_ja = "退院前評価"
                     elif day < los_days / 3:
                         _phase = "acute phase"
+                        _phase_ja = "急性期"
                     elif day < 2 * los_days / 3:
                         _phase = "stabilisation"
+                        _phase_ja = "安定期"
                     else:
                         _phase = "recovery"
+                        _phase_ja = "回復期"
                     _dx_part = f" for {_disease_id}" if _disease_id else ""
                     _sev_part = f" ({_severity})" if _severity else ""
                     description = (
@@ -616,6 +633,15 @@ def document_enricher(ctx: Any) -> None:
                         f"medication response, complication risk, and progress toward "
                         f"discharge criteria."
                     )
+                    # JP description — 主治医が JP-CLINS Progress Note / ClinicalImpression
+                    # を読む画面で表示される。iris4h-ai 2026-07-22 feedback G4。
+                    _dx_part_ja = f"（{_disease_id}）" if _disease_id else ""
+                    _sev_part_ja = f"（{_severity}）" if _severity else ""
+                    description_ja = (
+                        f"{_enc_label_ja}第{day + 1}病日／全{los_days}病日 臨床評価"
+                        f"{_dx_part_ja}{_sev_part_ja} — {_phase_ja}。"
+                        f"バイタル・薬効反応・合併症リスク・退院基準への進捗を主治医が評価。"
+                    )
                     clinical_impressions.append(
                         ClinicalImpressionRecord(
                             impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
@@ -623,6 +649,7 @@ def document_enricher(ctx: Any) -> None:
                             date=day_dt.date(),
                             day_index=day,
                             description=description,
+                            description_ja=description_ja,
                             practitioner_id=attending_id,
                             is_in_progress=last_day_of_in_progress,
                         )
