@@ -23,6 +23,19 @@ categories:
   ppi: PPI
   nsaid: NSAIDs
   antibiotic: 抗菌薬
+  # Issue #360 G6: supportive-care category prefixes emitted by
+  # disease-YAML supportive[] items → Procedure.code.text on JP output.
+  # Matches "{type}: {detail}" composed at
+  # clinosim/modules/order/engine.py:385.
+  o2: 酸素投与
+  continuous_telemetry: 心電図モニター
+  continuous telemetry: 心電図モニター
+  nutritional_support: 栄養サポート
+  nutritional support: 栄養サポート
+  respiratory_support: 呼吸補助
+  respiratory support: 呼吸補助
+  fluid_resuscitation: 輸液蘇生
+  fluid resuscitation: 輸液蘇生
 
 terms:
   PRN: 頓用
@@ -78,6 +91,17 @@ terms:
   nasal: 鼻
   spray: スプレー
   glue: 接着剤
+  # Issue #360 G6: supportive-care detail terms.
+  # Compound "nasal cannula" comes first so longest-match-wins substitutes
+  # "経鼻カニューラ" before the shorter "nasal"/"cannula" tokens fire.
+  nasal cannula: 経鼻カニューラ
+  cannula: カニューラ
+  mask: マスク
+  controlled: 制御下
+  hyperoxia: 高酸素
+  retainers: 貯留患者
+  target: 目標
+  needed: 必要時
   Nebulized: ネブライザー
   nebulized: ネブライザー
   Propofol: プロポフォール

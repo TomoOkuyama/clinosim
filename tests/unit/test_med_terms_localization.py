@@ -41,6 +41,8 @@ def test_med_terms_tables_loaded():
     assert tables["categories"]["antipyretic"] == "解熱剤"
     assert tables["terms"]["PRN"] == "頓用"
     assert tables["terms"]["q6h"] == "6時間毎"
-    # Sizes match the original inline dicts.
-    assert len(tables["categories"]) == 16
-    assert len(tables["terms"]) == 148
+    # Sizes match the current YAML. Update these counts intentionally when
+    # editing med_terms_ja.yaml — a diff here is the load-bearing signal
+    # that the localization table changed.
+    assert len(tables["categories"]) == 25
+    assert len(tables["terms"]) == 155

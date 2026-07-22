@@ -17,7 +17,7 @@ from clinosim.codes import (
 )
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output._fhir_common import to_fhir_datetime
-from clinosim.modules.output._fhir_localization import _procedure_display
+from clinosim.modules.output._fhir_localization import _localize_dosage_terms, _procedure_display
 
 
 def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> dict:
@@ -46,6 +46,18 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     # Resolve displays via code dictionaries (k-codes.yaml / cpt.yaml)
     primary_lang = resolve_lang(country)
     primary_display = _procedure_display(primary_code, primary_lang, fallback)
+    # Issue #360 G6 (iris4h-ai 2026-07-22 feedback): supportive-care Procedure
+    # records commonly lack a K-code, so `primary_display` falls back to the
+    # English composite ``{type}: {detail}`` text from
+    # ``modules/order/engine.py`` (e.g. "O2: Nasal cannula SpO2 >= 94%"). On
+    # JP output, run that fallback through `_localize_dosage_terms` so the
+    # JP UI sees "酸素投与: 経鼻カニューラ SpO2 >= 94%" — sibling to the JP
+    # localization already applied to MedicationRequest / MAR display text.
+    # When a K-code was resolved, `_procedure_display` already returned the
+    # authoritative JP display, so the extra translation is a no-op there
+    # (idempotent — the JP display contains no English tokens the map hits).
+    if is_jp(country) and primary_display:
+        primary_display = _localize_dosage_terms(primary_display)
 
     coding_entries: list[dict[str, Any]] = [
         {
