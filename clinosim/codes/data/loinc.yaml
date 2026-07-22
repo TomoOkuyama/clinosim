@@ -18,7 +18,12 @@ codes:
     en: History and physical note
     ja: 入院時記録
   11506-3:
-    en: Progress note
+    # Issue #369: LOINC canonical LONG_COMMON_NAME is "Provider-unspecified
+    # Progress note"; SHORTNAME "Progress note" is not registered in the
+    # `ja` translation table and strict FHIR validators reject it there.
+    # `text` field (JP UI label) carries "経過記録"; `coding.display` carries
+    # the LOINC canonical EN.
+    en: Provider-unspecified Progress note
     ja: 経過記録
   18842-5:
     en: Discharge summary note

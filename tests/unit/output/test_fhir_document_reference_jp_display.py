@@ -65,7 +65,8 @@ def _narr(text: str = "Sample progress note text.") -> dict[str, Any]:
 @pytest.mark.parametrize(
     "loinc,expected_en,expected_ja",
     [
-        ("11506-3", "Progress note", "経過記録"),
+        # Issue #369: LOINC canonical LONG_COMMON_NAME (ja lookup requires it).
+        ("11506-3", "Provider-unspecified Progress note", "経過記録"),
         ("18842-5", "Discharge summary note", "退院時サマリー"),
         ("34117-2", "History and physical note", "入院時記録"),
         # 34133-9 was missing from loinc.yaml pre-fix; adding it here is
@@ -90,8 +91,10 @@ def test_us_dref_type_has_en_coding_display_and_en_text() -> None:
     unchanged from pre-fix behaviour."""
     res = _build_dref_from_clinical_doc(_doc_stub("11506-3"), _narr(), patient_id="pt-1", country="US")
     assert res is not None
-    assert res["type"]["coding"][0]["display"] == "Progress note"
-    assert res["type"]["text"] == "Progress note"
+    # Issue #369: LOINC canonical LONG_COMMON_NAME (also used on US path
+    # for consistency; SHORTNAME "Progress note" is not the CS canonical).
+    assert res["type"]["coding"][0]["display"] == "Provider-unspecified Progress note"
+    assert res["type"]["text"] == "Provider-unspecified Progress note"
 
 
 def test_missing_loinc_falls_back_to_code_on_both_slots() -> None:
