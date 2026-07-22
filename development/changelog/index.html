@@ -1767,6 +1767,20 @@ byte output but must document the change here.</p>
   has a machine-enforced guarantee. README <code>Testing → Reproducibility</code>
   subsection documents the script + environment variable overrides.</li>
 </ul>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Antibiotic regimen intent metadata moved to FHIR <code>meta.tag[]</code></strong> (Issue #349 Phase 2):
+  regimen intent (<code>empirical</code> vs <code>narrowed</code>) was previously encoded in
+  <code>MedicationRequest.id</code> suffix (e.g. <code>...cft-n</code> for narrowed). This violates
+  FHIR R4's specification that <code>Resource.id</code> is an opaque identifier, and
+  creates a 64-character bottleneck whenever id components grow. Refactored to
+  emit intent in proper FHIR fields: <code>meta.tag[]</code> with
+  <code>system="urn:clinosim:regimen-intent"</code> and <code>code="empirical"|"narrowed"</code>.
+  CIF output (Order.medication_intent) is unchanged; FHIR only. <code>ABX_NARROW_SUFFIX</code>
+  constant retired; audit gates updated to read <code>meta.tag[]</code> instead of id
+  patterns. <strong>This is the first phase of a three-phase architectural refactor to
+  eliminate compound-key id encoding across all resource types.</strong></li>
+</ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Immunization <code>lot_number</code> was non-deterministic across runs.</strong>
@@ -1797,7 +1811,7 @@ byte output but must document the change here.</p>
 <p>Initial public v0.2 baseline release. Bundles the physiology-driven
 generator (session-16-through-46 development) with the packaging /
 distribution work that makes it installable.</p>
-<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Version bumped 0.1.0 → 0.2.0</strong> to align the version string with the
   codebase reality — <code>CLAUDE.md</code>, README <code>[![Status](../../...v0.2...)]</code> badge,
