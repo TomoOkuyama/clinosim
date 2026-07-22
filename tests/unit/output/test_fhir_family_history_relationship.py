@@ -38,8 +38,10 @@ from clinosim.modules.output._fhir_family_history import _build_relationship_cod
 pytestmark = pytest.mark.unit
 
 
-_FATHER_DISPLAYS: dict[str, str] = {"en": "Father", "ja": "父"}
-_MOTHER_DISPLAYS: dict[str, str] = {"en": "Mother", "ja": "母"}
+# Issue #369 follow-up: v3-RoleCode canonical ja displays are
+# "natural father" / "natural mother" (biological, not step / adopted).
+_FATHER_DISPLAYS: dict[str, str] = {"en": "natural father", "ja": "父"}
+_MOTHER_DISPLAYS: dict[str, str] = {"en": "natural mother", "ja": "母"}
 # Issue #369: v3-RoleCode NSIB canonical ja display is "natural sibling" (not "Sibling").
 _SIBLING_DISPLAYS: dict[str, str] = {"en": "natural sibling", "ja": "兄弟姉妹"}
 
@@ -54,7 +56,7 @@ def test_jp_relationship_emits_english_display_and_japanese_text() -> None:
     result = _build_relationship_codeable("FTH", _FATHER_DISPLAYS, "ja")
     assert result["coding"][0]["system"] == "http://terminology.hl7.org/CodeSystem/v3-RoleCode"
     assert result["coding"][0]["code"] == "FTH"
-    assert result["coding"][0]["display"] == "Father"
+    assert result["coding"][0]["display"] == "natural father"
     assert result["text"] == "父"
 
 
@@ -97,7 +99,7 @@ def test_us_relationship_omits_text_when_it_equals_english_display() -> None:
     the English string; ``text`` is omitted to avoid duplication (there is
     no target-language string that would add information)."""
     result = _build_relationship_codeable("FTH", _FATHER_DISPLAYS, "en")
-    assert result["coding"][0]["display"] == "Father"
+    assert result["coding"][0]["display"] == "natural father"
     assert "text" not in result
 
 
@@ -108,7 +110,7 @@ def test_us_relationship_still_has_valid_coding_shape() -> None:
     result = _build_relationship_codeable("MTH", _MOTHER_DISPLAYS, "en")
     coding = result["coding"][0]
     assert set(coding.keys()) == {"system", "code", "display"}
-    assert coding["display"] == "Mother"
+    assert coding["display"] == "natural mother"
 
 
 # === Defensive: missing English display / missing target-lang display ===
@@ -128,9 +130,9 @@ def test_relationship_omits_text_when_target_lang_missing() -> None:
     """If the target-language string is missing, ``text`` is not emitted —
     consumers should render the English coding display instead of an
     empty ``text``."""
-    disp_en_only: dict[str, str] = {"en": "Father"}
+    disp_en_only: dict[str, str] = {"en": "natural father"}
     result = _build_relationship_codeable("FTH", disp_en_only, "ja")
-    assert result["coding"][0]["display"] == "Father"
+    assert result["coding"][0]["display"] == "natural father"
     assert "text" not in result
 
 
@@ -176,12 +178,12 @@ def test_jp_fmh_relationship_has_english_display_and_japanese_text() -> None:
     ``_build_family_history`` carries the new two-slot relationship shape."""
     fmh = _build_one_fmh("JP")
     rel = fmh["relationship"]
-    assert rel["coding"][0]["display"] == "Father"
+    assert rel["coding"][0]["display"] == "natural father"
     assert rel["text"] == "父"
 
 
 def test_us_fmh_relationship_has_only_english_coding() -> None:
     fmh = _build_one_fmh("US")
     rel = fmh["relationship"]
-    assert rel["coding"][0]["display"] == "Father"
+    assert rel["coding"][0]["display"] == "natural father"
     assert "text" not in rel
