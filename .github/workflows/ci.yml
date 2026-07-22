@@ -45,19 +45,36 @@ jobs:
         run: pytest tests/unit -q --tb=short
 
   integration:
-    name: Integration tests (Py 3.12)
+    name: Integration tests (Py 3.12, shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     needs: unit
-    # Historical: ~17-18 min locally, ~42-50 min on GitHub-hosted
-    # ubuntu-latest (2-vCPU / 7GB — verified by the first CI run cancelled
-    # at 72% after 30 min).
+    # Historical:
+    #   * Single-worker serial:  ~42-50 min on GitHub-hosted ubuntu-latest
+    #   * PR #373 (session 65):  xdist -n 2 (2 vCPUs)                  ≈ 25 min
+    #   * PR E   (session 65):   xdist -n 2  ×  pytest-split N=3       ≈ 8-10 min
     #
-    # Session 65: `-n 2 --dist=worksteal` parallelises across the runner's
-    # 2 vCPUs; expected ~25-30 min wall clock, ~40% faster. Tests that
-    # mutate shared filesystem or global state are marked with
-    # `@pytest.mark.serial` and executed in a second single-worker pass so
-    # they cannot collide with parallel siblings. Timeout headroom kept at
-    # 60 min so a legitimate slow-down doesn't cancel a passing run.
+    # The `pytest-split` matrix splits tests[integration] into 3 groups
+    # using `.test_durations` (committed at repo root) so each shard runs
+    # ~1/3 of the wall-clock work. Within each shard, `pytest-xdist -n 2
+    # --dist=worksteal` fills both vCPUs. Combined parallelism = 3 × 2 = 6
+    # concurrent workers — theoretical ~8-10 min wall clock, verified per
+    # PR by the slowest shard.
+    #
+    # `.test_durations` seeded from a single-shot local run and refreshed
+    # by rerunning `pytest tests/integration --store-durations -n 2
+    # --dist=worksteal` when the test suite composition drifts noticeably
+    # (add/remove ~20% or more integration tests).
+    #
+    # Tests that mutate shared filesystem or global state are marked with
+    # `@pytest.mark.serial` and executed in a separate single-worker job
+    # (`integration_serial`) so they cannot collide with parallel siblings.
+    #
+    # Timeout headroom kept at 60 min so a legitimate slow-down doesn't
+    # cancel a passing run.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -67,14 +84,32 @@ jobs:
           cache: pip
       - name: Install (with dev extras)
         run: pip install -e ".[dev]"
-      - name: Run integration tests (parallel — excludes serial)
-        run: pytest tests/integration -q --tb=short -n 2 --dist=worksteal -m "not serial"
-      - name: Run integration tests (serial pass, no-op when zero serial tests)
-        # `|| [ $? -eq 5 ]` treats "no tests collected" (pytest exit 5) as
-        # success — the current state has 0 serial-marked tests (local
-        # xdist verify 2026-07-22 showed 0 test collisions, so no serial
-        # marker was needed). Step stays in the workflow so a future
-        # serial-marked test runs automatically without workflow edits.
+      - name: Run integration tests (shard ${{ matrix.shard }}/3, xdist -n 2)
+        run: >
+          pytest tests/integration -q --tb=short
+          -n 2 --dist=worksteal
+          -m "not serial"
+          --splits 3 --group ${{ matrix.shard }}
+
+  integration_serial:
+    name: Integration tests (serial pass)
+    runs-on: ubuntu-latest
+    needs: unit
+    # Runs @pytest.mark.serial-marked tests single-worker. Today the set
+    # is empty (local xdist verify 2026-07-22 surfaced 0 collisions across
+    # all 305 tests), so this job exits 0 in <30s via the `exit 5`
+    # (no tests collected) short-circuit. Job stays in the workflow so a
+    # future serial-marked test runs automatically without a workflow edit.
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (with dev extras)
+        run: pip install -e ".[dev]"
+      - name: Run serial-marked integration tests
         run: pytest tests/integration -q --tb=short -m serial || [ $? -eq 5 ]
 
   lint:
