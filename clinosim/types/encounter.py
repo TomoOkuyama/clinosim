@@ -201,6 +201,9 @@ class Order:
     imaging_body_site_code: str = ""  # SNOMED body structure
     imaging_views: list[str] = field(default_factory=list)
     imaging_spec_meta: dict[str, Any] = field(default_factory=dict)  # abnormal_rate_by_severity etc. (Task 4)
+    # Issue #349 Phase 2: medication_intent carries "empirical" or "narrowed"
+    # for antibiotic regimens. Empty for non-antibiotic orders.
+    medication_intent: str = ""  # "empirical" | "narrowed" (antibiotic regimens only)
 
 
 @dataclass

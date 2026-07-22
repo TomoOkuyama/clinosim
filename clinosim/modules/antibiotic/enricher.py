@@ -27,7 +27,6 @@ from clinosim.modules._shared import get_or_create_container
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
 from clinosim.modules.antibiotic.engine import (
-    ABX_NARROW_SUFFIX,
     ABX_ORDER_REQ_PREFIX,
     ABX_REGIMEN_ID_PREFIX,
     NarrowOutcome,
@@ -111,6 +110,7 @@ def enrich_antibiotic(ctx) -> None:
                     route=regimen.route,
                     duration_days=regimen.duration_days,
                     reason_condition=regimen.hai_event_id,
+                    medication_intent=regimen.intent,
                 )
                 get_or_create_container(rec, "orders", list).append(order)
                 mars = generate_mar_doses(regimen, snapshot_datetime=snapshot, order_id=order_id)
@@ -232,7 +232,10 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
             narrow_dur = narrow_duration_days(template.start_datetime, reported, template.duration_days)
             narrow_dose, narrow_freq = _narrow_dose_frequency(target)
             slug = _drug_slug(target)
-            regimen_id = f"{ABX_REGIMEN_ID_PREFIX}{hai_id}-{slug}{ABX_NARROW_SUFFIX}"
+            # Phase 2 (Issue #349): move intent from id suffix to meta.tag[].
+            # Regimen_id is now unique by virtue of different drug_slug or
+            # (ELIMINATION case) discontinuation, so ABX_NARROW_SUFFIX is retired.
+            regimen_id = f"{ABX_REGIMEN_ID_PREFIX}{hai_id}-{slug}"
             # Issue #347 guard: same as build_regimens above — validate the
             # composed downstream Order.id length before construction, so a
             # future long drug_key surfaces here rather than at HAPI validation.
@@ -272,6 +275,7 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
                 route="IV",
                 duration_days=narrow_dur,
                 reason_condition=hai_id,
+                medication_intent="narrowed",
             )
             get_or_create_container(rec, "orders", list).append(order)
             mars = generate_mar_doses(new_regimen, snapshot_datetime=snapshot, order_id=order_id)
