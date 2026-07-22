@@ -107,6 +107,20 @@ byte output but must document the change here.
   has a machine-enforced guarantee. README `Testing → Reproducibility`
   subsection documents the script + environment variable overrides.
 
+### Changed
+
+- **Antibiotic regimen intent metadata moved to FHIR `meta.tag[]`** (Issue #349 Phase 2):
+  regimen intent (`empirical` vs `narrowed`) was previously encoded in
+  `MedicationRequest.id` suffix (e.g. `...cft-n` for narrowed). This violates
+  FHIR R4's specification that `Resource.id` is an opaque identifier, and
+  creates a 64-character bottleneck whenever id components grow. Refactored to
+  emit intent in proper FHIR fields: `meta.tag[]` with
+  `system="urn:clinosim:regimen-intent"` and `code="empirical"|"narrowed"`.
+  CIF output (Order.medication_intent) is unchanged; FHIR only. `ABX_NARROW_SUFFIX`
+  constant retired; audit gates updated to read `meta.tag[]` instead of id
+  patterns. **This is the first phase of a three-phase architectural refactor to
+  eliminate compound-key id encoding across all resource types.**
+
 ### Fixed
 
 - **Immunization `lot_number` was non-deterministic across runs.**

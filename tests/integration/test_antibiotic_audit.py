@@ -963,10 +963,13 @@ def test_narrow_rate_bands_forward_coverage_complete() -> None:
 def test_abx_order_id_canonical_constant() -> None:
     """pr112-adv-2 F3 fix: ABX_ORDER_ID_PREFIX shared between writer (enricher)
     and reader (audit clinical.py). A rename in engine.py triggers ImportError
-    downstream instead of a silent gate skip — same defense pattern as C4."""
+    downstream instead of a silent gate skip — same defense pattern as C4.
+
+    Issue #349 Phase 2: ABX_NARROW_SUFFIX retired from id suffix (moved to
+    meta.tag[]), so it's no longer imported/shared with audit gate.
+    """
     from clinosim.audit.axes import clinical as clinical_axis
     from clinosim.modules.antibiotic.engine import (
-        ABX_NARROW_SUFFIX,
         ABX_ORDER_ID_PREFIX,
         ABX_ORDER_REQ_PREFIX,
         ABX_REGIMEN_ID_PREFIX,
@@ -975,14 +978,8 @@ def test_abx_order_id_canonical_constant() -> None:
     assert ABX_REGIMEN_ID_PREFIX == "abx-"
     assert ABX_ORDER_REQ_PREFIX == "req-"
     assert ABX_ORDER_ID_PREFIX == "req-abx-"
-    # Issue #347 (session 63): shortened from "-narrowed" (9) to "-n" (2)
-    # so composed `req-abx-{hai_id 37}-{drug_slug ≤15}-n` = ≤59 chars, safely
-    # under FHIR R4's 64-char Resource.id limit. See engine.py comment for
-    # the concrete v16 (2026-07-21) 66-char failure that motivated the change.
-    assert ABX_NARROW_SUFFIX == "-n"
     # The audit gate imports the same constants — proving the coupling
     assert clinical_axis.ABX_ORDER_ID_PREFIX is ABX_ORDER_ID_PREFIX
-    assert clinical_axis.ABX_NARROW_SUFFIX is ABX_NARROW_SUFFIX
 
 
 @pytest.mark.integration

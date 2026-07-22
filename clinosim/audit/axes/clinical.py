@@ -25,7 +25,7 @@ import statistics
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
 from clinosim.codes import get_system_uri
-from clinosim.modules.antibiotic.engine import ABX_NARROW_SUFFIX, ABX_ORDER_ID_PREFIX
+from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.modules.output._fhir_medications import MEDICATION_REQUEST_KEY_SYSTEM
 from clinosim.modules.output._fhir_microbiology import (
     HAI_EVENT_ID_SYSTEM,
@@ -838,7 +838,14 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     structural_key = _medication_request_structural_key(row)
                     if ABX_ORDER_ID_PREFIX not in structural_key:
                         continue
-                    if row.get("status") == "stopped" or structural_key.endswith(ABX_NARROW_SUFFIX):
+                    # Phase 2 (Issue #349): intent moved from id suffix to meta.tag[].
+                    # Filter narrowed regimens by checking meta.tag[] for "narrowed" code.
+                    has_narrowed_tag = False
+                    for tag in row.get("meta", {}).get("tag", []):
+                        if tag.get("system") == "urn:clinosim:regimen-intent" and tag.get("code") == "narrowed":
+                            has_narrowed_tag = True
+                            break
+                    if row.get("status") == "stopped" or has_narrowed_tag:
                         enc_narrowed[eid] = True
                 total = len(enc_narrowed)
                 narrow_count = sum(1 for v in enc_narrowed.values() if v)
