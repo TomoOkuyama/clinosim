@@ -623,7 +623,18 @@ def _build_vital_observations(
                     {
                         "system": get_system_uri("loinc"),
                         "code": "80288-4",
-                        "display": "Level of consciousness AVPU",
+                        # Issue #384 hotfix follow-up (session 66): the AVPU
+                        # Observation.code emit was hardcoded, so PR #385's
+                        # loinc.yaml + override_allowlist update did NOT
+                        # propagate to the FHIR output — v28 confirmed 1,252
+                        # errors persisted with the SHORTNAME emit
+                        # "Level of consciousness AVPU". Adopt the
+                        # fhirserver-side canonical directly
+                        # (LONG_COMMON_NAME with "score" suffix, matching
+                        # loinc.yaml's en for this code). Refactoring the
+                        # hardcode to a code_lookup call is a separate
+                        # cleanup; the immediate fix is the string.
+                        "display": "Level of consciousness AVPU score",
                     }
                 ],
                 "text": "意識レベル (AVPU)" if is_jp(country) else "Level of consciousness (AVPU)",
