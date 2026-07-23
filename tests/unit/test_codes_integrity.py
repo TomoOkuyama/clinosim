@@ -67,15 +67,17 @@ class TestDrugMapping:
 @pytest.mark.unit
 class TestLoincDisplay:
     def test_us_mapped_codes_present_and_clean(self):
+        """Guard: every LOINC code emitted for a US-mapped analyte MUST be
+        registered in loinc.yaml. Historically this test also enforced a
+        "clean clinical short name" invariant (no LONG_COMMON_NAME
+        `[Mass/volume] in Serum or Plasma` fragments), but under strict HAPI
+        validation the LONG_COMMON_NAME is the CodeSystem canonical for
+        LOINC and clinosim must emit it to pass tx=8181 validation
+        (Issue #380 / session 66). The clean-name invariant conflicted
+        with spec conformance, so it was removed here; `text` field on
+        Observation.code carries the human-readable label instead.
+        """
         loinc = yaml.safe_load((_DATA / "loinc.yaml").read_text())["codes"]
         us = yaml.safe_load((_LOCALE / "us/code_mapping_lab.yaml").read_text())
         missing = {n: c for n, c in us.items() if c not in loinc}
         assert not missing, f"US-mapped LOINC codes absent from loinc.yaml: {missing}"
-        # Emitted analyte display must be a clean clinical short name, not the raw
-        # LOINC LONG_COMMON_NAME (no units/system syntax).
-        bad = {}
-        for name, code in us.items():
-            en = loinc[code].get("en", "")
-            if re.search(r"\[(Mass|Moles|Partial pressure|Units|#|Volume|Enzymatic)", en):
-                bad[name] = en
-        assert not bad, f"verbose LOINC long-names leaking into display: {bad}"
