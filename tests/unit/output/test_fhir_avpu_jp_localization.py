@@ -39,3 +39,30 @@ def test_avpu_coding_display_stays_english_for_us():
     loc_obs = next(e["resource"] for e in entries if e["resource"]["id"].endswith("-loc"))
     coding_display = loc_obs["valueCodeableConcept"]["coding"][0]["display"]
     assert coding_display == "Unresponsive"
+
+
+def test_avpu_observation_code_display_is_fhirserver_canonical():
+    """Issue #384 hotfix follow-up (session 66): the AVPU Observation's
+    `code.coding[0]` (LOINC 80288-4) MUST emit the fhirserver-side
+    canonical `"Level of consciousness AVPU score"`, NOT the SHORTNAME
+    `"Level of consciousness AVPU"`. The emit path is hardcoded in
+    `_build_vital_observations` (does not go through code_lookup), so a
+    yaml-only update does not propagate — this test guards the hardcoded
+    string directly. v28 confirmed 1,252 external-validator errors
+    persisted with the SHORTNAME emit before PR N shipped."""
+    for country in ("JP", "US"):
+        entries = _build_vital_observations(
+            {"consciousness_level": "U", "timestamp": "2026-01-01T08:00:00"},
+            patient_id="p1",
+            index=0,
+            country=country,
+        )
+        loc_obs = next(e["resource"] for e in entries if e["resource"]["id"].endswith("-loc"))
+        code_coding = loc_obs["code"]["coding"][0]
+        assert code_coding["code"] == "80288-4"
+        assert code_coding["display"] == "Level of consciousness AVPU score", (
+            f"country={country}: Observation.code.coding[0].display was "
+            f"{code_coding['display']!r} — regressed to a non-canonical form. "
+            f"See Issue #384. If validator canonical changes, update BOTH the "
+            f"hardcode in _fhir_observations.py AND clinosim/codes/data/loinc.yaml."
+        )
