@@ -623,18 +623,21 @@ def _build_vital_observations(
                     {
                         "system": get_system_uri("loinc"),
                         "code": "80288-4",
-                        # Issue #384 hotfix follow-up (session 66): the AVPU
-                        # Observation.code emit was hardcoded, so PR #385's
-                        # loinc.yaml + override_allowlist update did NOT
-                        # propagate to the FHIR output — v28 confirmed 1,252
-                        # errors persisted with the SHORTNAME emit
-                        # "Level of consciousness AVPU". Adopt the
-                        # fhirserver-side canonical directly
-                        # (LONG_COMMON_NAME with "score" suffix, matching
-                        # loinc.yaml's en for this code). Refactoring the
-                        # hardcode to a code_lookup call is a separate
-                        # cleanup; the immediate fix is the string.
-                        "display": "Level of consciousness AVPU score",
+                        # Issue #384 hotfix wave 4 (session 66): the actual
+                        # fhirserver LOINC 2.82 canonical for 80288-4 is
+                        # "Level of consciousness" (simple, no "AVPU"
+                        # qualifier, no "score" suffix) — confirmed via
+                        # direct SQLite Codes.Description query + curl
+                        # against fhirserver. Prior emits were all wrong:
+                        #   v25:  "Level of consciousness AVPU"        (SHORTNAME, hardcoded)
+                        #   v28:  same (PR #385 yaml-only change did not propagate — hardcoded)
+                        #   v29:  "Level of consciousness AVPU score"  (PR #388 wrong-canonical hardcode)
+                        # This 4th iteration adopts the ACTUAL fhirserver
+                        # canonical. Lesson memorialised in
+                        # feedback_fhirserver_actual_canonical_verify.md
+                        # (never trust user-report or narrative canonicals
+                        # without direct fhirserver measurement).
+                        "display": "Level of consciousness",
                     }
                 ],
                 "text": "意識レベル (AVPU)" if is_jp(country) else "Level of consciousness (AVPU)",
