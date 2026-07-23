@@ -197,8 +197,15 @@ codes:
   14804-9:
     en: Lactate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma by Lactate to pyruvate reaction
     ja: LDH（血清）
+  # Issue #380 (session 66): 14-code LOINC canonical alignment
+  # (SHORTNAME → LONG_COMMON_NAME) for v25 Pattern A #1-3. Under strict
+  # HAPI validation the SHORTNAME is rejected as "Wrong Display Name";
+  # snapshot LONG_COMMON_NAME (from clinosim/codes/authoritative/loinc_2_82_tx.json,
+  # sourced tx.fhir.org $lookup) is the canonical ja display. Session-58
+  # override_allowlist "clinical shorthand" entries for 11331-6 and 80288-4
+  # removed accordingly. Prior sibling: PR #371 (LOINC 11506-3) session 65.
   1742-6:
-    en: Alanine aminotransferase
+    en: Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma
     ja: ALT(GPT)
   1751-7:
     en: Albumin
@@ -210,7 +217,7 @@ codes:
     en: Amylase [Enzymatic activity/volume] in Serum or Plasma
     ja: アミラーゼ
   1920-8:
-    en: Aspartate aminotransferase
+    en: Aspartate aminotransferase [Enzymatic activity/volume] in Serum or Plasma
     ja: AST(GOT)
   1959-6:
     en: Bicarbonate [Moles/volume] in Arterial blood
@@ -222,7 +229,7 @@ codes:
     en: Total bilirubin
     ja: 総ビリルビン
   1988-5:
-    en: C-reactive protein
+    en: C reactive protein [Mass/volume] in Serum or Plasma
     ja: C反応性蛋白
   2019-8:
     en: pCO2
@@ -240,13 +247,13 @@ codes:
     en: Creatine kinase
     ja: CK(CPK)
   2160-0:
-    en: Creatinine
+    en: Creatinine [Mass/volume] in Serum or Plasma
     ja: クレアチニン
   2324-2:
     en: Gamma-glutamyl transferase
     ja: γ-GTP
   2345-7:
-    en: Glucose
+    en: Glucose [Mass/volume] in Serum or Plasma
     ja: 血糖
   2518-9:
     en: Lactate [Moles/volume] in Arterial blood
@@ -270,13 +277,13 @@ codes:
     en: pH
     ja: pH
   2823-3:
-    en: Potassium
+    en: Potassium [Moles/volume] in Serum or Plasma
     ja: カリウム
   2885-2:
     en: Total protein
     ja: 総蛋白
   2951-2:
-    en: Sodium
+    en: Sodium [Moles/volume] in Serum or Plasma
     ja: ナトリウム
   30341-2:
     en: Erythrocyte sedimentation rate
@@ -288,7 +295,7 @@ codes:
     en: Brain natriuretic peptide [Mass/volume] in Plasma
     ja: BNP（血漿）
   3094-0:
-    en: Blood urea nitrogen
+    en: Urea nitrogen [Mass/volume] in Serum or Plasma
     ja: 尿素窒素
   3151-8:
     en: Inhaled oxygen flow rate
@@ -318,7 +325,7 @@ codes:
     en: Glomerular filtration rate/1.73 sq M.predicted
     ja: 推算糸球体濾過量（eGFR）
   42637-9:
-    en: B-type natriuretic peptide
+    en: Natriuretic peptide B [Mass/volume] in Blood
     ja: BNP
   4544-3:
     en: Hematocrit
@@ -336,19 +343,19 @@ codes:
     en: Prothrombin time (PT)
     ja: プロトロンビン時間
   6301-6:
-    en: PT-INR
+    en: INR in Platelet poor plasma by Coagulation assay
     ja: PT-INR
   6598-7:
     en: Troponin T, cardiac
     ja: 心筋トロポニンT
   6690-2:
-    en: White blood cell count
+    en: Leukocytes [#/volume] in Blood by Automated count
     ja: 白血球数
   6768-6:
     en: Alkaline phosphatase
     ja: ALP
   718-7:
-    en: Hemoglobin
+    en: Hemoglobin [Mass/volume] in Blood
     ja: ヘモグロビン
   75241-0:
     en: Procalcitonin
@@ -360,7 +367,7 @@ codes:
     en: Erythrocyte count [#/volume] in Blood
     ja: 赤血球数（血液）
   80288-4:
-    en: Level of consciousness AVPU
+    en: Level of consciousness
     ja: 意識レベル（AVPU）
   8310-5:
     en: Body temperature
@@ -471,7 +478,7 @@ codes:
     en: Tobacco smoking status
     ja: 喫煙状況
   11331-6:
-    en: History of alcohol use
+    en: History of Alcohol use
     ja: 飲酒歴
   # ---------------------------------------------------------------------------
   # DiagnosticReport panel grouping codes (2026-06-22)

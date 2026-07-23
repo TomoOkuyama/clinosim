@@ -75,14 +75,10 @@ loinc:
       equivalent short form of LOINC LONG_COMMON_NAME 'Troponin I.cardiac [Mass/volume]
       in Serum or Plasma' (specimen / units / method suffix elided for readability).
     registered_at: 2026-07-19
-  11331-6:
-    lang: en
-    clinosim_display: History of alcohol use
-    authoritative_display: History of Alcohol use
-    rationale: Clinical shorthand. Curated 'History of alcohol use' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'History of Alcohol use' (specimen
-      / units / method suffix elided for readability).
-    registered_at: 2026-07-19
+  # 11331-6 entry removed 2026-07-23 (Issue #380 / session 66) — clinosim
+  # now emits the LOINC LONG_COMMON_NAME "History of Alcohol use" directly
+  # (SHORTNAME "History of alcohol use" was rejected by strict HAPI
+  # validator with 61 v25 errors). Override no longer needed.
   11348-0:
     lang: en
     clinosim_display: History of Past illness Narrative
@@ -647,14 +643,15 @@ loinc:
       [#/volume] in Blood by Automated count' (specimen / units / method suffix elided
       for readability).
     registered_at: 2026-07-19
-  80288-4:
-    lang: en
-    clinosim_display: Level of consciousness AVPU
-    authoritative_display: Level of consciousness
-    rationale: Clinical shorthand. Curated 'Level of consciousness AVPU' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Level of consciousness' (specimen
-      / units / method suffix elided for readability).
-    registered_at: 2026-07-19
+  # 80288-4 entry removed 2026-07-23 (Issue #380 / session 66) — clinosim
+  # now emits the snapshot canonical "Level of consciousness" directly
+  # (SHORTNAME "Level of consciousness AVPU" was rejected by strict HAPI
+  # validator with 1,252 v25 errors). If v26 shows this specific code
+  # still failing under a different fhirserver-side canonical
+  # ("Level of consciousness AVPU score" was suggested by the v25 report
+  # narrative but not confirmed by tx.fhir.org $lookup), a follow-up
+  # hotfix will register the new override with the fhirserver-side
+  # canonical documented.
   8648-8:
     lang: en
     clinosim_display: Hospital course Narrative
