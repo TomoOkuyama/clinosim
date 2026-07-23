@@ -643,15 +643,21 @@ loinc:
       [#/volume] in Blood by Automated count' (specimen / units / method suffix elided
       for readability).
     registered_at: 2026-07-19
-  # 80288-4 entry removed 2026-07-23 (Issue #380 / session 66) — clinosim
-  # now emits the snapshot canonical "Level of consciousness" directly
-  # (SHORTNAME "Level of consciousness AVPU" was rejected by strict HAPI
-  # validator with 1,252 v25 errors). If v26 shows this specific code
-  # still failing under a different fhirserver-side canonical
-  # ("Level of consciousness AVPU score" was suggested by the v25 report
-  # narrative but not confirmed by tx.fhir.org $lookup), a follow-up
-  # hotfix will register the new override with the fhirserver-side
-  # canonical documented.
+  80288-4:
+    lang: en
+    clinosim_display: Level of consciousness AVPU score
+    authoritative_display: Level of consciousness
+    rationale: |
+      Issue #384 (session 66 follow-up): fhirserver-side canonical ja
+      display for LOINC 80288-4 is "Level of consciousness AVPU score"
+      (LONG_COMMON_NAME with AVPU-score specifier), NOT the tx.fhir.org
+      $lookup response "Level of consciousness" which is spec-legal but
+      not accepted by strict HAPI validator's ja translation lookup.
+      v27 confirmed 1,252 errors when snapshot canonical was emitted;
+      switching to the AVPU-suffixed form is expected to clear them all.
+      Analogous to LOINC 11506-3 (PR #371, session 65) — same class of
+      validator-side authoritative-source divergence.
+    registered_at: 2026-07-23
   8648-8:
     lang: en
     clinosim_display: Hospital course Narrative
