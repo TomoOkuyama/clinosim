@@ -1,16 +1,17 @@
-"""Regression pin for Issue #378: Patient.meta.profile carries both
-JP_Patient (JP Core) and JP_Patient_eCS (JP-CLINS).
+"""Regression guard for Issue #382 (session 66 hotfix reverting #379).
 
-Pre-fix, JP Patient only declared JP_Patient; JP-CLINS eCS Observations,
-Conditions, and MedicationRequests referencing the patient via
-`subject.reference` triggered validator errors because the referenced
-Patient did not assert JP_Patient_eCS. In the v25 full-set report
-(2026-07-23), this single omission accounted for 3,096 errors, including
-100% (736/736) of Conditions failing validation.
+PR #379 added `JP_Patient_eCS` to `Patient.meta.profile` expecting to
+resolve v25 Pattern B (3,096 errors on referring eCS resources). But
+Patient data does not yet emit the eCS profile's required identifier
+slices / extensions — the URI-only assertion caused a 5× cascade
+regression in v26 (~30k additional errors as every Patient failed eCS
+validation, and every resource referencing a Patient inherited the
+failure). Issue #382 hotfix reverts to JP_Patient only.
 
-Fix: declare both profile URIs (multi-profile assertion — FHIR R4
-`Resource.meta.profile 0..*`). This test pins the URIs + ordering so
-neither can silently be dropped nor reordered.
+This test now guards the OPPOSITE invariant: `JP_Patient_eCS` MUST NOT
+appear on `Patient.meta.profile` unless the accompanying data emit is
+also implemented (Option B follow-up chain). Re-adding the URI without
+the data → immediate re-regression.
 """
 
 from __future__ import annotations
@@ -37,27 +38,33 @@ def _sample_p() -> dict:
     }
 
 
-def test_jp_patient_meta_profile_carries_both_jp_core_and_jp_clins_ecs() -> None:
-    """Issue #378 core assertion: JP Patient carries JP_Patient AND
-    JP_Patient_eCS in meta.profile."""
+def test_jp_patient_meta_profile_carries_jp_core_only() -> None:
+    """JP output declares JP_Patient (JP Core) on meta.profile."""
     p = _build_patient(_sample_p(), country="JP")
     profiles = p.get("meta", {}).get("profile", [])
-    assert _JP_PATIENT in profiles, "JP_Patient (JP Core) missing"
-    assert _JP_PATIENT_ECS in profiles, "JP_Patient_eCS (JP-CLINS) missing"
+    assert profiles == [_JP_PATIENT], f"unexpected meta.profile: {profiles}"
 
 
-def test_jp_patient_meta_profile_order_pinned() -> None:
-    """JP_Patient (Core) first, JP_Patient_eCS (CLINS) second. Ordering
-    is not FHIR-significant but pinning it prevents a silent swap that
-    would show up as a byte-diff regression in downstream test fixtures."""
+def test_jp_patient_must_not_declare_ecs_without_data_completeness() -> None:
+    """Regression guard for Issue #382: JP_Patient_eCS MUST NOT be
+    asserted on Patient.meta.profile until the accompanying data-emit
+    changes are implemented (Option B follow-up). Re-adding this URI
+    without emitting the eCS profile's required identifier slices /
+    extensions caused ~30k cascade errors in v26 — every Patient failed
+    eCS validation and every referring resource inherited the failure."""
     p = _build_patient(_sample_p(), country="JP")
-    profiles = p["meta"]["profile"]
-    assert profiles == [_JP_PATIENT, _JP_PATIENT_ECS]
+    profiles = p.get("meta", {}).get("profile", [])
+    assert _JP_PATIENT_ECS not in profiles, (
+        "JP_Patient_eCS re-declared on Patient.meta.profile without eCS "
+        "data-completeness. This causes ~30k cascade validator errors "
+        "(v26 regression, Issue #382). See _fhir_patient.py comment + "
+        "Issue #382 follow-up plan (Option B) before re-adding."
+    )
 
 
 def test_us_patient_omits_meta_profile_entirely() -> None:
     """US export intentionally omits meta.profile (no US Core profile is
-    asserted — a separate roadmap item). Regression pin: adding
-    JP_Patient_eCS must NOT leak the JP profile into US output."""
+    asserted — a separate roadmap item). Regression pin: the JP-side
+    revert must NOT accidentally add meta.profile to US output."""
     p = _build_patient(_sample_p(), country="US")
     assert "meta" not in p or "profile" not in p.get("meta", {}), f"US Patient carries meta.profile: {p.get('meta')}"
