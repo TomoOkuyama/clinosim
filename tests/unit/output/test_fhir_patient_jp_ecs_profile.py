@@ -55,10 +55,10 @@ def test_jp_patient_must_not_declare_ecs_without_data_completeness() -> None:
     p = _build_patient(_sample_p(), country="JP")
     profiles = p.get("meta", {}).get("profile", [])
     assert _JP_PATIENT_ECS not in profiles, (
-        f"JP_Patient_eCS re-declared on Patient.meta.profile without eCS "
-        f"data-completeness. This causes ~30k cascade validator errors "
-        f"(v26 regression, Issue #382). See _fhir_patient.py comment + "
-        f"Issue #382 follow-up plan (Option B) before re-adding."
+        "JP_Patient_eCS re-declared on Patient.meta.profile without eCS "
+        "data-completeness. This causes ~30k cascade validator errors "
+        "(v26 regression, Issue #382). See _fhir_patient.py comment + "
+        "Issue #382 follow-up plan (Option B) before re-adding."
     )
 
 
@@ -67,6 +67,4 @@ def test_us_patient_omits_meta_profile_entirely() -> None:
     asserted — a separate roadmap item). Regression pin: the JP-side
     revert must NOT accidentally add meta.profile to US output."""
     p = _build_patient(_sample_p(), country="US")
-    assert "meta" not in p or "profile" not in p.get("meta", {}), (
-        f"US Patient carries meta.profile: {p.get('meta')}"
-    )
+    assert "meta" not in p or "profile" not in p.get("meta", {}), f"US Patient carries meta.profile: {p.get('meta')}"
