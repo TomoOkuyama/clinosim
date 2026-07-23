@@ -367,7 +367,14 @@ codes:
     en: Erythrocyte count [#/volume] in Blood
     ja: 赤血球数（血液）
   80288-4:
-    en: Level of consciousness
+    # Issue #384 (session 66 follow-up): fhirserver-side canonical is
+    # "Level of consciousness AVPU score", NOT the snapshot's shorter
+    # "Level of consciousness" (tx.fhir.org $lookup returns the short
+    # form; strict HAPI validator's ja translation lookup requires the
+    # AVPU-score-suffixed LONG_COMMON_NAME). Divergence recorded in
+    # tests/unit/codes/authoritative_override_allowlist.yaml.
+    # Analogous to LOINC 11506-3 (PR #371, session 65).
+    en: Level of consciousness AVPU score
     ja: 意識レベル（AVPU）
   8310-5:
     en: Body temperature
