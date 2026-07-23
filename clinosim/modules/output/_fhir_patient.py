@@ -317,22 +317,21 @@ def _build_patient(p: dict, country: str) -> dict:
         # C2-20 (session 42 cycle 2): declare JP Core Patient conformance
         # for JP exports. US export intentionally omits — no US Core profile
         # is asserted (a separate roadmap item).
-        # Issue #378 (v25 P=100 tx=8181 report, session 66): also assert
-        # JP_Patient_eCS. JP-CLINS eCS Observation / Condition /
-        # MedicationRequest references require the referenced Patient to
-        # conform to JP_Patient_eCS as well. Multi-profile assertion is
-        # FHIR-legal (Resource.meta.profile 0..*). Canonical URI verified
-        # against fhir-jp-validator test-cases/jp-clins/patient-ecs-*.ndjson
-        # (spec-anchored, per session-65 feedback_verify_fhir_profile_uri_from_spec rule).
+        # Issue #382 (session 66 hotfix, reverting #379): JP_Patient_eCS
+        # assertion REMOVED. #379 added the URI expecting to resolve v25
+        # Pattern B (3,096 errors on referring eCS resources), but Patient
+        # data does not yet emit the eCS profile's required identifier
+        # slices / extensions — the URI-only assertion caused a 5× cascade
+        # regression in v26 (~30k additional errors as every Patient failed
+        # eCS validation, and every resource referencing a Patient
+        # inherited the failure). Full eCS-compliance implementation is
+        # tracked as Option B follow-up (Issue #382 comment + reopened #378).
+        # Lesson: profile assertion must be verified for data-completeness
+        # (MustSupport / slice / cardinality) before shipping, not only for
+        # URI canonical-ness. Analogous to session-65
+        # feedback_codesystem_canonical_per_code_verify but at profile scope.
         **(
-            {
-                "meta": {
-                    "profile": [
-                        "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient",
-                        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Patient_eCS",
-                    ]
-                }
-            }
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient"]}}
             if is_jp(country)
             else {}
         ),
