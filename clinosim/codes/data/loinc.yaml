@@ -208,10 +208,10 @@ codes:
     en: Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma
     ja: ALT(GPT)
   1751-7:
-    en: Albumin
+    en: Albumin [Mass/volume] in Serum or Plasma
     ja: アルブミン
   17861-6:
-    en: Calcium
+    en: Calcium [Mass/volume] in Serum or Plasma
     ja: カルシウム
   1798-8:
     en: Amylase [Enzymatic activity/volume] in Serum or Plasma
@@ -223,7 +223,7 @@ codes:
     en: Bicarbonate [Moles/volume] in Arterial blood
     ja: HCO3（動脈血）
   1963-8:
-    en: Bicarbonate
+    en: Bicarbonate [Moles/volume] in Serum or Plasma
     ja: HCO3
   1975-2:
     en: Total bilirubin
@@ -232,13 +232,13 @@ codes:
     en: C reactive protein [Mass/volume] in Serum or Plasma
     ja: C反応性蛋白
   2019-8:
-    en: pCO2
+    en: Carbon dioxide [Partial pressure] in Arterial blood
     ja: pCO2
   2075-0:
     en: Chloride
     ja: クロール
   2085-9:
-    en: HDL cholesterol
+    en: Cholesterol in HDL [Mass/volume] in Serum or Plasma
     ja: HDLコレステロール
   2093-3:
     en: Total cholesterol
@@ -259,22 +259,22 @@ codes:
     en: Lactate [Moles/volume] in Arterial blood
     ja: コルチゾール（血清）
   2524-7:
-    en: Lactate
+    en: Lactate [Moles/volume] in Serum or Plasma
     ja: 乳酸
   2532-0:
     en: Lactate dehydrogenase
     ja: LDH
   2571-8:
-    en: Triglyceride
+    en: Triglyceride [Mass/volume] in Serum or Plasma
     ja: トリグリセリド
   2703-7:
-    en: pO2
+    en: Oxygen [Partial pressure] in Arterial blood
     ja: 動脈血酸素分圧 (pO2)
   2708-6:
     en: Oxygen saturation in Arterial blood
     ja: 動脈血酸素飽和度
   2744-1:
-    en: pH
+    en: pH of Arterial blood
     ja: pH
   2823-3:
     en: Potassium [Moles/volume] in Serum or Plasma
@@ -331,7 +331,7 @@ codes:
     en: Hematocrit
     ja: ヘマトクリット
   4548-4:
-    en: Hemoglobin A1c
+    en: Hemoglobin A1c/Hemoglobin.total in Blood
     ja: HbA1c
   48066-5:
     en: D dimer [Mass/volume] in Platelet poor plasma by Immunoassay
@@ -358,10 +358,10 @@ codes:
     en: Hemoglobin [Mass/volume] in Blood
     ja: ヘモグロビン
   75241-0:
-    en: Procalcitonin
+    en: Procalcitonin [Mass/volume] in Serum or Plasma by Immunoassay
     ja: プロカルシトニン
   777-3:
-    en: Platelet count
+    en: Platelets [#/volume] in Blood by Automated count
     ja: 血小板数
   789-8:
     en: Erythrocyte count [#/volume] in Blood
@@ -423,10 +423,10 @@ codes:
     ja: 赤血球沈降速度 (ESR)
   # === Cardiac injury markers (AD-55) ===
   10839-9:
-    en: Cardiac troponin I
+    en: Troponin I.cardiac [Mass/volume] in Serum or Plasma
     ja: 心筋トロポニンI
   13969-1:
-    en: Creatine kinase-MB
+    en: Creatine kinase.MB [Mass/volume] in Serum or Plasma
     ja: CK-MB
   # === Microbiology: culture tests (AD-55) ===  # TODO: verify LOINC codes
   600-7:

@@ -67,14 +67,11 @@ loinc:
       a semantically equivalent short form of LOINC LONG_COMMON_NAME 'History of Medication
       use Narrative' (specimen / units / method suffix elided for readability).
     registered_at: 2026-07-19
-  10839-9:
-    lang: en
-    clinosim_display: Cardiac troponin I
-    authoritative_display: Troponin I.cardiac [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Cardiac troponin I' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Troponin I.cardiac [Mass/volume]
-      in Serum or Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
+  # 10839-9 entry removed 2026-07-23 (Issue #380 follow-up / PR L) — clinosim
+  # now emits the LOINC LONG_COMMON_NAME "Troponin I.cardiac [Mass/volume]
+  # in Serum or Plasma" directly (SHORTNAME "Cardiac troponin I" was
+  # rejected by strict HAPI validator with 27 v27 errors). Override no
+  # longer needed.
   # 11331-6 entry removed 2026-07-23 (Issue #380 / session 66) — clinosim
   # now emits the LOINC LONG_COMMON_NAME "History of Alcohol use" directly
   # (SHORTNAME "History of alcohol use" was rejected by strict HAPI
@@ -116,14 +113,9 @@ loinc:
       LONG_COMMON_NAME 'Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation'
       (specimen / units / method suffix elided for readability).
     registered_at: 2026-07-19
-  13969-1:
-    lang: en
-    clinosim_display: Creatine kinase-MB
-    authoritative_display: Creatine kinase.MB [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Creatine kinase-MB' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Creatine kinase.MB [Mass/volume]
-      in Serum or Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
+  # 13969-1 entry removed 2026-07-23 (Issue #380 follow-up / PR L) — clinosim
+  # now emits the LOINC LONG_COMMON_NAME "Creatine kinase.MB [Mass/volume]
+  # in Serum or Plasma" directly (SHORTNAME "Creatine kinase-MB" rejected).
   14979-9:
     lang: en
     clinosim_display: aPTT
@@ -142,14 +134,9 @@ loinc:
       activity/volume] in Serum or Plasma' (specimen / units / method suffix elided
       for readability).
     registered_at: 2026-07-19
-  1751-7:
-    lang: en
-    clinosim_display: Albumin
-    authoritative_display: Albumin [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Albumin' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Albumin [Mass/volume] in Serum or Plasma'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
+  # 1751-7 entry removed 2026-07-23 (Issue #380 follow-up / PR L) — clinosim
+  # now emits the LOINC LONG_COMMON_NAME "Albumin [Mass/volume] in Serum or
+  # Plasma" directly (SHORTNAME "Albumin" rejected).
   17861-6:
     lang: en
     clinosim_display: Calcium
