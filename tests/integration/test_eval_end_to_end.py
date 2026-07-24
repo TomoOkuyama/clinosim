@@ -52,9 +52,11 @@ def test_eval_preset_end_to_end(preset: str, tmp_path: Path) -> None:
     # 1. Report shape is well-formed.
     assert report.overall_score >= 0
     assert report.overall_status in ("PASS", "WARN", "FAIL")
-    assert len(report.axes) == 3  # structural + clinical + locale
+    assert len(report.axes) == 4  # structural + clinical + locale + jp_clins_lab_compliance
 
-    # 2. All three axes actually ran and produced checks.
+    # 2. Core three axes actually ran and produced checks. The JP-CLINS lab
+    #    compliance axis returns [] on non-JP or eCS-less cohorts, so it's
+    #    excluded from the checks-nonempty assertion below.
     for axis_name in ("structural", "clinical", "locale"):
         axis = next(a for a in report.axes if a.axis == axis_name)
         assert axis.checks, f"{axis_name} axis produced no checks on {preset}"
