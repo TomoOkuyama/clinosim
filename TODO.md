@@ -625,6 +625,122 @@ Session 59 = v5 feedback 対応 chain。全 14 PR merged, 全 defer 実装完了
 
 ---
 
+## JP-CLINS lab compliance chain — session 67 spin-off TODOs
+
+These are non-blocking follow-ups spun out of the JP-CLINS lab
+self-measurement axis PR (session 67, workspace:5 memo). They are
+independent scope items — NOT rolled into the migration 5 PR chain —
+so they remain visible as unresolved even after that chain closes.
+
+### T67-M1 [OPEN, MAJOR] Microbiology Observation profile 宣言先が非準拠
+
+**問題**: `mb-org-*` / `mb-sus-*` の 14 件 Observation が
+`JP_Observation_LabResult` + `JP_Observation_LabResult_eCS` を宣言している。
+JP-CLINS eCS の prose (spec: 「細菌検査 (塗抹・培養・感受性) および病理はスコープ外」)
+に反する。session 67 axis PR で `fhir_r4_adapter._is_lab_observation` から
+`mb-*` prefix を eCS stacking scope から除外したことにより axis の母集団からは
+消えたが、**profile 宣言自体は残っている**(prose 規定なので Tier 3 = どの
+FHIR validator でも検出されない = 自己計測 axis からも見えない、二重不可視)。
+
+これは「品質を上げた」ではなく「計測範囲を狭めた」結果。指標議論の中で
+繰り返し扱ってきた failure mode そのものなので、独立 TODO として visible に
+残す。
+
+**正しい修正の方向**: JP Core 1.2.0 には
+**`JP_Observation_Microbiology`** SD が存在 (URL
+`http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Microbiology`、
+`baseDef=JP_Observation_Common`、`Observation.code.coding` に 3 slice:
+`infectious-agent` (JANIS OID `urn:oid:1.2.392.100495.10.3.100.5.27.6.1` +
+required binding to `JP_Microbiology_InfectiousAgent_VS`)、
+`antimicrobial-drug` (JANIS OID `urn:oid:1.2.392.100495.10.3.100.5.11.5.2`)、
+`jlac10` (`http://medis.or.jp/CodeSystem/master-JLAC10-17digits`))。
+
+`mb-org-*` は感染性物質 (organism) を SNOMED CT で持っており、
+JANIS 微生物マスターへのマッピングが必要。`mb-sus-*` は抗菌薬感受性で、
+JANIS 抗菌薬マスターにマッピングし直す。**「対応不能だから除外」ではなく
+「宣言先を間違えている」** が実態。
+
+**authoritative source 存在確認** (session 67 で workspace:5 memo 中の
+「JANIS マスターの入手可能性を確認」要求に対する実測、`jpfhir-terminology#2.2606.0`):
+
+- `CodeSystem-jp-microbiology-infectiousagent-cs.json`:
+  content=**complete**、version=1.1.1、**554 concept**
+  (Gram-positive cocci 1011 / bacilli 1012 / negative cocci 1013 …)
+- `CodeSystem-jp-microbiology-antimicrobialdrug-cs.json`:
+  content=**complete**、version=1.1.1、**270 concept**
+  (モノバクタム系 1100 / ペニシリン系 1200 / ペネム系 1300 …)
+- `ValueSet-jp-microbiology-infectious-agent-vs.json` / `-anti-microbial-drug-vs.json` 共存
+
+= **CoreLabo 型の situation**(authoritative CS 完備)であって
+LOINC-JA(存在せず)/ MEDIS 17 digit(content=fragment、2,000 concept 部分実装)
+型の situation ではない。**SNOMED CT → JANIS 数値 code の mapping table が
+新規に必要**だが、target authoritative source は存在するので実装可能。
+
+**修正 file**: `clinosim/modules/output/_fhir_microbiology.py:227` +
+`fhir_r4_adapter._apply_jp_core_profile` の分岐追加。
+
+**実測**: v30 で 14 件 (mb-org 8 + mb-sus 6)。
+
+### T67-D1 [OPEN, MAJOR] DiagnosticReport の code.coding slice 群 — LabResult は違反、Radiology は既に benign
+
+**scope 確定**: workspace:5 memo の「DR unmatched 203 件」は
+`210 − 203 = 7`(= Microbiology DR、benign) が式的に成立し、
+`203 = 177 + 26` = **LabResult 177 + Radiology 26** が確定。
+偶然の一致ではない = **spec 側の性質が両方に共通**。
+
+**現状の 2 系統 emit shape**(v30 実測):
+
+| 系統 | 件数 | code.coding[] 内容 | 状態 |
+|---:|---:|---|---|
+| LabResult | **177** | `[(LOINC, 24325-3, null)]` のみ(単発 coding) | **true violation** — 必須 slice `laboratoryCode` が欠落 |
+| Radiology | 26 | `[(JP_DocumentCodes_CS, 18748-4), (LOINC, 36572-6, null)]`(2 coding) | 既に **benign** — 必須 slice `radiologyReportCode` は満たされている、LOINC が余剰 unmatched |
+| Microbiology | 7 | `[(JP_DocumentCodes_CS, 18725-2, 微生物学的検査報告書), (JSLM OID, 6B010, 培養同定(一般細菌))]` | 既に spec 準拠(unmatched 0) |
+
+**spec 側**: JP Core 1.2.0 の 2 profile 両方が `code.coding` に `slicing=Y`
++ `discriminator=system` を持つ (fhirserver 実測):
+- `JP_DiagnosticReport_LabResult` → `laboratoryCode` slice:
+  `system fixedUri = JP_DocumentCodes_CS`, `code fixedCode = 11502-2`, display optional
+- `JP_DiagnosticReport_Radiology` → `radiologyReportCode` slice:
+  `system fixedUri = JP_DocumentCodes_CS`, `code fixedCode = 18748-4`, display optional
+
+**期待される修正効果** (LabResult 側のみ修正):
+
+- `code.coding = [(JP_DocumentCodes_CS, 11502-2, "Laboratory report"), (LOINC, 24325-3, null)]`
+  で `laboratoryCode` slice 満足
+- **LabResult 177: TRUE violation → benign silent-pass**(生の unmatched 件数は減らない、LOINC panel は引き続き Open slicing の余剰 coding として unmatched information 発火)
+- Radiology 26 は変更不要(既に benign)
+- Microbiology 7 は変更不要(unmatched 0)
+
+**メンタルモデル**: 「validator error/warning が 0 に減る」ではなく
+**「203 件全てが benign に統一される(修正前は 177 件が真の違反、修正後は 0 件)」**。
+raw unmatched 件数 (203) は不変、**categorization** が変わる。
+この点を知らずに検証すると「修正したのに件数が減らない」と誤読する。
+
+**幸運**: 2 slice とも `display` は `min=None` (optional)、Fixed value も無い
+→ Observation 側の CoreLabo slice のような「Fixed display 一致罠」は存在しない。
+ここは Observation 側と違って楽。
+
+**修正 file**: `clinosim/modules/output/_fhir_diagnostic_report.py` の
+`build_diagnostic_report_lab` 相当のパスで `code.coding[]` head に
+`{system: JP_DocumentCodes_CS, code: 11502-2, display: "Laboratory report"}`
+を prepend。**Radiology 側は既に prepend 済み**(dispatcher 対応済み)ので
+LabResult のみに同 pattern を追加する形。dispatcher の共有は不要
+(Observation 側 CoreLabo dispatcher とは独立 domain)。
+~0.5 日 estimate。
+
+### T67-V1 [OPEN, MINOR] version 名で generator commit SHA を含める
+
+**問題**: `v29`/`v30`/`v31` の単調増加連番が採番者を持たないため、
+generator 側と validator 側で同じ数字が別 dataset を指すことがある
+(session 67 で v30 vs v31 で混乱)。
+
+**修正**: 以後 `output/jp_p<N>_s<S>_<commit-sha-short>/` 形式で生成、
+workspace:5 に送る際も同名 dir で渡す。**generator commit SHA を版番号に
+含める**ことで採番者依存を排除。
+
+**着手ハードル**: 極めて低い (CLI arg default 変更のみ)。ただし
+既存 external references (memory, docs) の一斉更新は伴う。
+
 ## PR1 ServiceRequest follow-ups (Tier 1 backlog)
 
 ### PR2 — ServiceRequest for PROCEDURE

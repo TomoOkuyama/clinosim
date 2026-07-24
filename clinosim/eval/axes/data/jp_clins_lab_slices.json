@@ -1,0 +1,761 @@
+{
+  "_metadata": {
+    "source": "StructureDefinition-JP-Observation-LabResult-eCS.json",
+    "source_url": "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS",
+    "source_package": "clinical-information-sharing#1.12.0",
+    "extracted_via": "Observation.code.coding:<slice>.system.fixedUri + .display.fixedString from differential",
+    "extraction_date": "2026-07-23",
+    "slice_count": 187,
+    "note": "Slice discriminator = value:system + value:display (open slicing). Regenerate when eCS SD updates."
+  },
+  "slices": {
+    "coreLaboJLAC10/abo-bld": {
+      "display": "血液型-ABO",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/alb": {
+      "display": "ALB",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/alp": {
+      "display": "ALP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/alt": {
+      "display": "ALT",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/amy": {
+      "display": "AMY",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/aptt": {
+      "display": "APTT",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/ast": {
+      "display": "AST",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/bg": {
+      "display": "BG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/bnp": {
+      "display": "BNP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/bun": {
+      "display": "BUN",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/ca": {
+      "display": "Ca",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/cbg": {
+      "display": "CBG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/che": {
+      "display": "ChE",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/ck": {
+      "display": "CK",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/cl": {
+      "display": "Cl",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/cre": {
+      "display": "Cre",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/crp": {
+      "display": "CRP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/crp-class": {
+      "display": "CRP-class",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/ctg": {
+      "display": "CTG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/cys-c": {
+      "display": "Cys-C",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/d-bil": {
+      "display": "D-Bil",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/dd": {
+      "display": "DD",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/dd-class": {
+      "display": "DD-定性",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/fbg": {
+      "display": "FBG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/ftg": {
+      "display": "FTG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/ggt": {
+      "display": "GGT",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/hb": {
+      "display": "Hb",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/hba1c-ngsp": {
+      "display": "HbA1c-NGSP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/hdl-c": {
+      "display": "HDL-C",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/k": {
+      "display": "K",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/ld": {
+      "display": "LD",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/ldl-c": {
+      "display": "LDL-C",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/na": {
+      "display": "Na",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/nt-probnp": {
+      "display": "NT-proBNP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/plt": {
+      "display": "PLT",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/pt-act": {
+      "display": "PT-活性%",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/pt-inr": {
+      "display": "PT-INR",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/pt-ratio": {
+      "display": "PT比",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/pt-sec": {
+      "display": "PT-秒",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/rbc": {
+      "display": "RBC",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/rh-bld": {
+      "display": "血液型-Rh",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/t-bil": {
+      "display": "T-Bil",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/t-cho": {
+      "display": "T-CHO",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/tg": {
+      "display": "TG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/tp": {
+      "display": "TP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/u-ac": {
+      "display": "U-A/C",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/u-bld": {
+      "display": "U-Bld",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/u-bld-HalfQty": {
+      "display": "U-Bld-半定量",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/u-glu": {
+      "display": "U-Glu",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/u-glu-HalfQty": {
+      "display": "U-Glu-半定量",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/u-pc": {
+      "display": "U-P/C",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/ua": {
+      "display": "UA",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/utp": {
+      "display": "U-TP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/utp-HalfQty": {
+      "display": "U-TP-半定量",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC10/wbc": {
+      "display": "WBC",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/abo-bld": {
+      "display": "血液型-ABO",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/alb": {
+      "display": "ALB",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/alp": {
+      "display": "ALP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/alt": {
+      "display": "ALT",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/amy": {
+      "display": "AMY",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/aptt": {
+      "display": "APTT",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/ast": {
+      "display": "AST",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/bg": {
+      "display": "BG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/bnp": {
+      "display": "BNP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/bun": {
+      "display": "BUN",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/ca": {
+      "display": "Ca",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/cbg": {
+      "display": "CBG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/che": {
+      "display": "ChE",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/ck": {
+      "display": "CK",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/cl": {
+      "display": "Cl",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/cre": {
+      "display": "Cre",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/crp": {
+      "display": "CRP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/crp-class": {
+      "display": "CRP-class",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/ctg": {
+      "display": "CTG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/cys-c": {
+      "display": "Cys-C",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/d-bil": {
+      "display": "D-Bil",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/dd": {
+      "display": "DD",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/dd-class": {
+      "display": "DD-定性",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/fbg": {
+      "display": "FBG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/ftg": {
+      "display": "FTG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/ggt": {
+      "display": "GGT",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/hb": {
+      "display": "Hb",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/hba1c-ngsp": {
+      "display": "HbA1c-NGSP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/hdl-c": {
+      "display": "HDL-C",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/k": {
+      "display": "K",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/ld": {
+      "display": "LD",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/ldl-c": {
+      "display": "LDL-C",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/na": {
+      "display": "Na",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/nt-probnp": {
+      "display": "NT-proBNP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/plt": {
+      "display": "PLT",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/pt-act": {
+      "display": "PT-活性%",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/pt-inr": {
+      "display": "PT-INR",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/pt-ratio": {
+      "display": "PT比",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/pt-sec": {
+      "display": "PT-秒",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/rbc": {
+      "display": "RBC",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/rh-bld": {
+      "display": "血液型-Rh",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/t-bil": {
+      "display": "T-Bil",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/t-cho": {
+      "display": "T-CHO",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/tg": {
+      "display": "TG",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/tp": {
+      "display": "TP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/u-ac": {
+      "display": "U-A/C",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/u-bld": {
+      "display": "U-Bld",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/u-bld-HalfQty": {
+      "display": "U-Bld-半定量",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/u-glu": {
+      "display": "U-Glu",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/u-glu-HalfQty": {
+      "display": "U-Glu-半定量",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/u-pc": {
+      "display": "U-P/C",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/ua": {
+      "display": "UA",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/utp": {
+      "display": "U-TP",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/utp-HalfQty": {
+      "display": "U-TP-半定量",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "coreLaboJLAC11/wbc": {
+      "display": "WBC",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+    },
+    "infectionLaboJLAC10/hbsabdil": {
+      "display": "HBs抗体(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hbsabquant": {
+      "display": "HBs抗体(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hbsabresult": {
+      "display": "HBs抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hbsagdil": {
+      "display": "HBs抗原(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hbsagod": {
+      "display": "HBs抗原(吸光度)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hbsagposcoi": {
+      "display": "HBs抗原(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hbsagquant": {
+      "display": "HBs抗原(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hbsagresult": {
+      "display": "HBs抗原(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hcvabdil": {
+      "display": "HCV抗体(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hcvabposcoi": {
+      "display": "HCV抗体(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hcvabresult": {
+      "display": "HCV抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hcvagabposcoi": {
+      "display": "HCV抗原・抗体同時(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hcvagabresult": {
+      "display": "HCV抗原・抗体同時(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hcvagquant": {
+      "display": "HCV抗原検査(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hcvagresult": {
+      "display": "HCV抗原検査(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hcvnquant": {
+      "display": "HCV核酸増幅検査(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hcvnresult": {
+      "display": "HCV核酸増幅検査(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1abdil": {
+      "display": "HIV-1抗体(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1abresult": {
+      "display": "HIV-1抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1p24agabod": {
+      "display": "HIV-1+2抗原・抗体同時(吸光度)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1p24agabposcoi": {
+      "display": "HIV-1+2抗原・抗体同時(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1p24agabresult": {
+      "display": "HIV-1+2抗原・抗体同時(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1p24agposcoi": {
+      "display": "HIV-1p24抗原(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1p24agresult": {
+      "display": "HIV-1p24抗原(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1p2abdil": {
+      "display": "HIV-1+2抗体(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1p2abposcoi": {
+      "display": "HIV-1+2抗体(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1p2abresult": {
+      "display": "HIV-1+2抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1quant": {
+      "display": "HIV-1(ウイルスRNA定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv1result": {
+      "display": "HIV-1(ウイルスRNA定量判定)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv2abdil": {
+      "display": "HIV-2抗体(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/hiv2abresult": {
+      "display": "HIV-2抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/stsdil": {
+      "display": "梅毒STS(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/stsqlresult": {
+      "display": "梅毒STS(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/stsquant": {
+      "display": "梅毒STS(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/tphquant": {
+      "display": "梅毒TP抗体(半定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/tpposcoi": {
+      "display": "梅毒TP抗体(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/tpquant": {
+      "display": "梅毒TP抗体(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC10/tpresult": {
+      "display": "梅毒TP抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hbsabdil": {
+      "display": "HBs抗体(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hbsabquant": {
+      "display": "HBs抗体(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hbsabresult": {
+      "display": "HBs抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hbsagdil": {
+      "display": "HBs抗原(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hbsagod": {
+      "display": "HBs抗原(吸光度)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hbsagposcoi": {
+      "display": "HBs抗原(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hbsagquant": {
+      "display": "HBs抗原(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hbsagresult": {
+      "display": "HBs抗原(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hcvabdil": {
+      "display": "HCV抗体(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hcvabposcoi": {
+      "display": "HCV抗体(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hcvabresult": {
+      "display": "HCV抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hcvagabposcoi": {
+      "display": "HCV抗原・抗体同時(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hcvagabresult": {
+      "display": "HCV抗原・抗体同時(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hcvagquant": {
+      "display": "HCV抗原検査(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hcvagresult": {
+      "display": "HCV抗原検査(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hcvnquant": {
+      "display": "HCV核酸増幅検査(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hcvnresult": {
+      "display": "HCV核酸増幅検査(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1abdil": {
+      "display": "HIV-1抗体(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1abresult": {
+      "display": "HIV-1抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1p24agabod": {
+      "display": "HIV-1+2抗原・抗体同時(吸光度)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1p24agabposcoi": {
+      "display": "HIV-1+2抗原・抗体同時(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1p24agabresult": {
+      "display": "HIV-1+2抗原・抗体同時(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1p24agposcoi": {
+      "display": "HIV-1p24抗原(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1p24agresult": {
+      "display": "HIV-1p24抗原(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1p2abdil": {
+      "display": "HIV-1+2抗体(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1p2abposcoi": {
+      "display": "HIV-1+2抗体(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1p2abresult": {
+      "display": "HIV-1+2抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1quant": {
+      "display": "HIV-1(ウイルスRNA定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv1result": {
+      "display": "HIV-1(ウイルスRNA定量判定)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv2abdil": {
+      "display": "HIV-2抗体(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/hiv2abresult": {
+      "display": "HIV-2抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/stsdil": {
+      "display": "梅毒STS(希釈倍率)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/stsqlresult": {
+      "display": "梅毒STS(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/stsquant": {
+      "display": "梅毒STS(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/tphquant": {
+      "display": "梅毒TP抗体(半定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/tpposcoi": {
+      "display": "梅毒TP抗体(陽性コントロール比)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/tpquant": {
+      "display": "梅毒TP抗体(定量)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "infectionLaboJLAC11/tpresult": {
+      "display": "梅毒TP抗体(定性)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    },
+    "unCoded": {
+      "display": "未標準化コード項目(JLAC)",
+      "system": "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_Uncoded_CS"
+    }
+  }
+}
