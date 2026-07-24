@@ -2224,9 +2224,34 @@ def _apply_jp_clins_profile(resource: dict) -> None:
 
 
 def _is_lab_observation(resource: dict) -> bool:
+    """Predicate: does the resource qualify for JP_Observation_LabResult_eCS?
+
+    Excludes microbiology (culture identification / antimicrobial
+    susceptibility) even though FHIR category is ``laboratory`` — JP-CLINS
+    eCS covers chemistry / hematology / serology only; microbiology and
+    pathology are explicitly out of scope in the profile's prose
+    (spec: "細菌検査(塗抹・培養・感受性)および病理はスコープ外").
+    Microbiology Observations are emitted by ``_fhir_microbiology.py``
+    with ``id`` prefixes ``mb-org-*`` / ``mb-sus-*``. Silent-fallback via
+    id-prefix is intentional: category is a display concern (all lab-like
+    results carry ``laboratory``), while profile stacking is a spec-scope
+    concern that requires the finer distinction.
+
+    NOTE: this predicate ONLY governs eCS stacking. The parent
+    ``JP_Observation_LabResult`` (JP Core) is still emitted on
+    microbiology Observations by ``_fhir_microbiology.py`` line ~227 —
+    that too is non-compliant (correct target is
+    ``JP_Observation_Microbiology``, JP Core 1.2.0). Tracked in
+    TODO.md § T67-M1. Excluding only from eCS stacking here keeps this
+    fix minimally invasive; the full profile-declaration fix is a
+    separate work item.
+    """
     for cat in resource.get("category", []) or []:
         for coding in cat.get("coding", []) or []:
             if coding.get("code") == "laboratory":
+                rid = resource.get("id", "")
+                if rid.startswith("mb-org-") or rid.startswith("mb-sus-"):
+                    return False
                 return True
     return False
 

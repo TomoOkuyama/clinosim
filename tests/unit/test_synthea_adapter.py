@@ -152,7 +152,9 @@ def test_output_ndjson_feeds_eval_engine(tmp_path: Path) -> None:
     from clinosim.eval.engine import EvalEngine
 
     report = EvalEngine(cohort_dir=out).run()
-    # Structural + clinical + locale.
-    assert len(report.axes) == 3
+    # Structural + clinical + locale + jp_clins_lab_compliance
+    # (jp_clins_lab_compliance returns [] on non-JP or eCS-less cohorts,
+    # but the axis result wrapper is still counted).
+    assert len(report.axes) == 4
     assert report.resource_counts["_flat"]["Patient"] == 1
     assert report.resource_counts["_flat"]["Encounter"] == 1
