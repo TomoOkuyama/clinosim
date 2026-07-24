@@ -3156,6 +3156,125 @@ deterministic sub-seed, FHIR built in <code>output</code> reading CIF (modules s
 </tbody>
 </table>
 <hr />
+<h2 id="jp-clins-lab-compliance-chain-session-67-spin-off-todos">JP-CLINS lab compliance chain — session 67 spin-off TODOs<a class="headerlink" href="#jp-clins-lab-compliance-chain-session-67-spin-off-todos" title="Permanent link">&para;</a></h2>
+<p>These are non-blocking follow-ups spun out of the JP-CLINS lab
+self-measurement axis PR (session 67, workspace:5 memo). They are
+independent scope items — NOT rolled into the migration 5 PR chain —
+so they remain visible as unresolved even after that chain closes.</p>
+<h3 id="t67-m1-open-major-microbiology-observation-profile">T67-M1 [OPEN, MAJOR] Microbiology Observation profile 宣言先が非準拠<a class="headerlink" href="#t67-m1-open-major-microbiology-observation-profile" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>: <code>mb-org-*</code> / <code>mb-sus-*</code> の 14 件 Observation が
+<code>JP_Observation_LabResult</code> + <code>JP_Observation_LabResult_eCS</code> を宣言している。
+JP-CLINS eCS の prose (spec: 「細菌検査 (塗抹・培養・感受性) および病理はスコープ外」)
+に反する。session 67 axis PR で <code>fhir_r4_adapter._is_lab_observation</code> から
+<code>mb-*</code> prefix を eCS stacking scope から除外したことにより axis の母集団からは
+消えたが、<strong>profile 宣言自体は残っている</strong>(prose 規定なので Tier 3 = どの
+FHIR validator でも検出されない = 自己計測 axis からも見えない、二重不可視)。</p>
+<p>これは「品質を上げた」ではなく「計測範囲を狭めた」結果。指標議論の中で
+繰り返し扱ってきた failure mode そのものなので、独立 TODO として visible に
+残す。</p>
+<p><strong>正しい修正の方向</strong>: JP Core 1.2.0 には
+<strong><code>JP_Observation_Microbiology</code></strong> SD が存在 (URL
+<code>http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Microbiology</code>、
+<code>baseDef=JP_Observation_Common</code>、<code>Observation.code.coding</code> に 3 slice:
+<code>infectious-agent</code> (JANIS OID <code>urn:oid:1.2.392.100495.10.3.100.5.27.6.1</code> +
+required binding to <code>JP_Microbiology_InfectiousAgent_VS</code>)、
+<code>antimicrobial-drug</code> (JANIS OID <code>urn:oid:1.2.392.100495.10.3.100.5.11.5.2</code>)、
+<code>jlac10</code> (<code>http://medis.or.jp/CodeSystem/master-JLAC10-17digits</code>))。</p>
+<p><code>mb-org-*</code> は感染性物質 (organism) を SNOMED CT で持っており、
+JANIS 微生物マスターへのマッピングが必要。<code>mb-sus-*</code> は抗菌薬感受性で、
+JANIS 抗菌薬マスターにマッピングし直す。<strong>「対応不能だから除外」ではなく
+「宣言先を間違えている」</strong> が実態。</p>
+<p><strong>authoritative source 存在確認</strong> (session 67 で workspace:5 memo 中の
+「JANIS マスターの入手可能性を確認」要求に対する実測、<code>jpfhir-terminology#2.2606.0</code>):</p>
+<ul>
+<li><code>CodeSystem-jp-microbiology-infectiousagent-cs.json</code>:
+  content=<strong>complete</strong>、version=1.1.1、<strong>554 concept</strong>
+  (Gram-positive cocci 1011 / bacilli 1012 / negative cocci 1013 …)</li>
+<li><code>CodeSystem-jp-microbiology-antimicrobialdrug-cs.json</code>:
+  content=<strong>complete</strong>、version=1.1.1、<strong>270 concept</strong>
+  (モノバクタム系 1100 / ペニシリン系 1200 / ペネム系 1300 …)</li>
+<li><code>ValueSet-jp-microbiology-infectious-agent-vs.json</code> / <code>-anti-microbial-drug-vs.json</code> 共存</li>
+</ul>
+<p>= <strong>CoreLabo 型の situation</strong>(authoritative CS 完備)であって
+LOINC-JA(存在せず)/ MEDIS 17 digit(content=fragment、2,000 concept 部分実装)
+型の situation ではない。<strong>SNOMED CT → JANIS 数値 code の mapping table が
+新規に必要</strong>だが、target authoritative source は存在するので実装可能。</p>
+<p><strong>修正 file</strong>: <code>clinosim/modules/output/_fhir_microbiology.py:227</code> +
+<code>fhir_r4_adapter._apply_jp_core_profile</code> の分岐追加。</p>
+<p><strong>実測</strong>: v30 で 14 件 (mb-org 8 + mb-sus 6)。</p>
+<h3 id="t67-d1-open-major-diagnosticreport-codecoding-slice-labresult-radiology-benign">T67-D1 [OPEN, MAJOR] DiagnosticReport の code.coding slice 群 — LabResult は違反、Radiology は既に benign<a class="headerlink" href="#t67-d1-open-major-diagnosticreport-codecoding-slice-labresult-radiology-benign" title="Permanent link">&para;</a></h3>
+<p><strong>scope 確定</strong>: workspace:5 memo の「DR unmatched 203 件」は
+<code>210 − 203 = 7</code>(= Microbiology DR、benign) が式的に成立し、
+<code>203 = 177 + 26</code> = <strong>LabResult 177 + Radiology 26</strong> が確定。
+偶然の一致ではない = <strong>spec 側の性質が両方に共通</strong>。</p>
+<p><strong>現状の 2 系統 emit shape</strong>(v30 実測):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">系統</th>
+<th style="text-align: right;">件数</th>
+<th>code.coding[] 内容</th>
+<th>状態</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">LabResult</td>
+<td style="text-align: right;"><strong>177</strong></td>
+<td><code>[(LOINC, 24325-3, null)]</code> のみ(単発 coding)</td>
+<td><strong>true violation</strong> — 必須 slice <code>laboratoryCode</code> が欠落</td>
+</tr>
+<tr>
+<td style="text-align: right;">Radiology</td>
+<td style="text-align: right;">26</td>
+<td><code>[(JP_DocumentCodes_CS, 18748-4), (LOINC, 36572-6, null)]</code>(2 coding)</td>
+<td>既に <strong>benign</strong> — 必須 slice <code>radiologyReportCode</code> は満たされている、LOINC が余剰 unmatched</td>
+</tr>
+<tr>
+<td style="text-align: right;">Microbiology</td>
+<td style="text-align: right;">7</td>
+<td><code>[(JP_DocumentCodes_CS, 18725-2, 微生物学的検査報告書), (JSLM OID, 6B010, 培養同定(一般細菌))]</code></td>
+<td>既に spec 準拠(unmatched 0)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>spec 側</strong>: JP Core 1.2.0 の 2 profile 両方が <code>code.coding</code> に <code>slicing=Y</code>
++ <code>discriminator=system</code> を持つ (fhirserver 実測):
+- <code>JP_DiagnosticReport_LabResult</code> → <code>laboratoryCode</code> slice:
+  <code>system fixedUri = JP_DocumentCodes_CS</code>, <code>code fixedCode = 11502-2</code>, display optional
+- <code>JP_DiagnosticReport_Radiology</code> → <code>radiologyReportCode</code> slice:
+  <code>system fixedUri = JP_DocumentCodes_CS</code>, <code>code fixedCode = 18748-4</code>, display optional</p>
+<p><strong>期待される修正効果</strong> (LabResult 側のみ修正):</p>
+<ul>
+<li><code>code.coding = [(JP_DocumentCodes_CS, 11502-2, "Laboratory report"), (LOINC, 24325-3, null)]</code>
+  で <code>laboratoryCode</code> slice 満足</li>
+<li><strong>LabResult 177: TRUE violation → benign silent-pass</strong>(生の unmatched 件数は減らない、LOINC panel は引き続き Open slicing の余剰 coding として unmatched information 発火)</li>
+<li>Radiology 26 は変更不要(既に benign)</li>
+<li>Microbiology 7 は変更不要(unmatched 0)</li>
+</ul>
+<p><strong>メンタルモデル</strong>: 「validator error/warning が 0 に減る」ではなく
+<strong>「203 件全てが benign に統一される(修正前は 177 件が真の違反、修正後は 0 件)」</strong>。
+raw unmatched 件数 (203) は不変、<strong>categorization</strong> が変わる。
+この点を知らずに検証すると「修正したのに件数が減らない」と誤読する。</p>
+<p><strong>幸運</strong>: 2 slice とも <code>display</code> は <code>min=None</code> (optional)、Fixed value も無い
+→ Observation 側の CoreLabo slice のような「Fixed display 一致罠」は存在しない。
+ここは Observation 側と違って楽。</p>
+<p><strong>修正 file</strong>: <code>clinosim/modules/output/_fhir_diagnostic_report.py</code> の
+<code>build_diagnostic_report_lab</code> 相当のパスで <code>code.coding[]</code> head に
+<code>{system: JP_DocumentCodes_CS, code: 11502-2, display: "Laboratory report"}</code>
+を prepend。<strong>Radiology 側は既に prepend 済み</strong>(dispatcher 対応済み)ので
+LabResult のみに同 pattern を追加する形。dispatcher の共有は不要
+(Observation 側 CoreLabo dispatcher とは独立 domain)。
+~0.5 日 estimate。</p>
+<h3 id="t67-v1-open-minor-version-generator-commit-sha">T67-V1 [OPEN, MINOR] version 名で generator commit SHA を含める<a class="headerlink" href="#t67-v1-open-minor-version-generator-commit-sha" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>: <code>v29</code>/<code>v30</code>/<code>v31</code> の単調増加連番が採番者を持たないため、
+generator 側と validator 側で同じ数字が別 dataset を指すことがある
+(session 67 で v30 vs v31 で混乱)。</p>
+<p><strong>修正</strong>: 以後 <code>output/jp_p&lt;N&gt;_s&lt;S&gt;_&lt;commit-sha-short&gt;/</code> 形式で生成、
+workspace:5 に送る際も同名 dir で渡す。<strong>generator commit SHA を版番号に
+含める</strong>ことで採番者依存を排除。</p>
+<p><strong>着手ハードル</strong>: 極めて低い (CLI arg default 変更のみ)。ただし
+既存 external references (memory, docs) の一斉更新は伴う。</p>
 <h2 id="pr1-servicerequest-follow-ups-tier-1-backlog">PR1 ServiceRequest follow-ups (Tier 1 backlog)<a class="headerlink" href="#pr1-servicerequest-follow-ups-tier-1-backlog" title="Permanent link">&para;</a></h2>
 <h3 id="pr2-servicerequest-for-procedure">PR2 — ServiceRequest for PROCEDURE<a class="headerlink" href="#pr2-servicerequest-for-procedure" title="Permanent link">&para;</a></h3>
 <ul>
