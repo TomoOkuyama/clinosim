@@ -3284,6 +3284,39 @@ raw unmatched 件数 (203) は不変、<strong>categorization</strong> が変わ
 LabResult のみに同 pattern を追加する形。dispatcher の共有は不要
 (Observation 側 CoreLabo dispatcher とは独立 domain)。
 ~0.5 日 estimate。</p>
+<h3 id="t67-i1-open-major-infectionlabo-uncoded-fallback">T67-I1 [OPEN, MAJOR] InfectionLabo Uncoded fallback は仕様違反<a class="headerlink" href="#t67-i1-open-major-infectionlabo-uncoded-fallback" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>: JP-CLINS 検体検査の 5 感染症項目 (HBs 抗原、HCV 抗体、HIV、
+梅毒 STS、TP) は spec 上「感染症 5 項目該当なら共有項目 JLAC code
+(InfectionLabo slice) 必須」と規定されている。</p>
+<p>migration PR 1 で <code>InfectionLaboStrategy</code> を導入したが、実装本体は
+JANIS master mapping (T67-M1) に依存するため未実装 stub。<strong>stub は
+<code>raise NotImplementedError</code></strong> としている(Uncoded fallback は絶対に
+返さない)。</p>
+<p><strong>なぜ Uncoded fallback は禁止か</strong>:
+- 適用規則:感染症該当 → InfectionLabo JLAC 必須
+- Uncoded は「どちらのリストにも該当しない項目」専用の fallback
+- 感染症項目に Uncoded を返すと <strong>spec の適用規則違反</strong>、しかも
+  validator では検出されない(Uncoded slice は required binding が
+  緩く、system+display Fixed が満たされていれば通ってしまう)
+- silent 非準拠になる、workspace:5 memo (session 67) の指摘そのもの</p>
+<p><strong>現状の callsite</strong>:
+- <code>_classify_analyte</code> (PR 1) は全ての JP を <code>LEGACY_JSLM</code> に routing、
+  <code>INFECTION_LABO_JLAC10</code> には route しない
+- PR 3 で classifier に infection 判別が入る前に、T67-M1 の JANIS
+  mapping table が用意されないと production 生成中に NotImplementedError
+  が発火するリスク</p>
+<p><strong>着手順序</strong> (dependency):
+1. T67-M1 の JANIS master fhirserver ロード確認 + SNOMED CT → JANIS
+   mapping table
+2. <code>InfectionLaboStrategy.emit_codings</code> 本実装(infectious-agent slice
+   + LocalCode + LOINC secondary)
+3. <code>_classify_analyte</code> に infection 判別追加
+4. 現行 5 感染症項目データ (現状 emit 0、実データ準備が必要) が
+   実際に routing されるように data pipeline 側の対応</p>
+<p><strong>実測</strong>: 現行データで感染症 5 項目該当 emit は 0 件、v30 baseline
+で InfectionLabo path 起動なし。従って PR 1 の stub 状態は production
+影響ゼロ、instant safety net として NotImplementedError が働く。</p>
+<p><strong>関連</strong>: [[T67-M1]]、session 67 workspace:5 memo (2026-07-25)。</p>
 <h3 id="t67-v1-open-minor-version-generator-commit-sha">T67-V1 [OPEN, MINOR] version 名で generator commit SHA を含める<a class="headerlink" href="#t67-v1-open-minor-version-generator-commit-sha" title="Permanent link">&para;</a></h3>
 <p><strong>問題</strong>: <code>v29</code>/<code>v30</code>/<code>v31</code> の単調増加連番が採番者を持たないため、
 generator 側と validator 側で同じ数字が別 dataset を指すことがある
