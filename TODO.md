@@ -676,6 +676,25 @@ LOINC-JA(存在せず)/ MEDIS 17 digit(content=fragment、2,000 concept 部分�
 型の situation ではない。**SNOMED CT → JANIS 数値 code の mapping table が
 新規に必要**だが、target authoritative source は存在するので実装可能。
 
+**着手時チェックリスト**(セッション 67 workspace:5 memo より、CoreLabo で
+2 度踏んだ「package にある vs fhirserver にロードされている」区別):
+
+- [ ] `curl -s http://localhost:8181/fhir/CodeSystem/$lookup?system=<JANIS-URI>&code=<sample>`
+      で 200 + 一致(infectious-agent の JANIS OID +
+      `urn:oid:1.2.392.100495.10.3.100.5.27.6.1` の sample code 1011 で試験)
+- [ ] `curl -s http://localhost:8181/fhir/ValueSet/JP_Microbiology_InfectiousAgent_VS/$expand?count=5`
+      で expansion 成功、含まれる code が 554 concept と一致
+- [ ] 同 antimicrobial-drug OID `urn:oid:1.2.392.100495.10.3.100.5.11.5.2` +
+      sample code 1200 (ペニシリン系) で同 2 チェック
+- [ ] 現行データで生成中の菌種 (`mb-org-*` 8 件 + `mb-sus-*` 6 件) が使う
+      SNOMED CT code を先に確定 → 必要な JANIS mapping 数は 14 件以下
+      (554 全部ではない)
+
+ロード確認は着手 PR 1(mapping table 作成)より **前**、Phase 0 として実行。
+CoreLabo で「file はある、しかし fhirserver に載っていない」状態が
+migration 中に発覚すると required binding 未解決で validator が
+error 発火する。
+
 **修正 file**: `clinosim/modules/output/_fhir_microbiology.py:227` +
 `fhir_r4_adapter._apply_jp_core_profile` の分岐追加。
 
