@@ -747,6 +747,47 @@ LabResult のみに同 pattern を追加する形。dispatcher の共有は不�
 (Observation 側 CoreLabo dispatcher とは独立 domain)。
 ~0.5 日 estimate。
 
+### T67-I1 [OPEN, MAJOR] InfectionLabo Uncoded fallback は仕様違反
+
+**問題**: JP-CLINS 検体検査の 5 感染症項目 (HBs 抗原、HCV 抗体、HIV、
+梅毒 STS、TP) は spec 上「感染症 5 項目該当なら共有項目 JLAC code
+(InfectionLabo slice) 必須」と規定されている。
+
+migration PR 1 で `InfectionLaboStrategy` を導入したが、実装本体は
+JANIS master mapping (T67-M1) に依存するため未実装 stub。**stub は
+`raise NotImplementedError`** としている(Uncoded fallback は絶対に
+返さない)。
+
+**なぜ Uncoded fallback は禁止か**:
+- 適用規則:感染症該当 → InfectionLabo JLAC 必須
+- Uncoded は「どちらのリストにも該当しない項目」専用の fallback
+- 感染症項目に Uncoded を返すと **spec の適用規則違反**、しかも
+  validator では検出されない(Uncoded slice は required binding が
+  緩く、system+display Fixed が満たされていれば通ってしまう)
+- silent 非準拠になる、workspace:5 memo (session 67) の指摘そのもの
+
+**現状の callsite**:
+- `_classify_analyte` (PR 1) は全ての JP を `LEGACY_JSLM` に routing、
+  `INFECTION_LABO_JLAC10` には route しない
+- PR 3 で classifier に infection 判別が入る前に、T67-M1 の JANIS
+  mapping table が用意されないと production 生成中に NotImplementedError
+  が発火するリスク
+
+**着手順序** (dependency):
+1. T67-M1 の JANIS master fhirserver ロード確認 + SNOMED CT → JANIS
+   mapping table
+2. `InfectionLaboStrategy.emit_codings` 本実装(infectious-agent slice
+   + LocalCode + LOINC secondary)
+3. `_classify_analyte` に infection 判別追加
+4. 現行 5 感染症項目データ (現状 emit 0、実データ準備が必要) が
+   実際に routing されるように data pipeline 側の対応
+
+**実測**: 現行データで感染症 5 項目該当 emit は 0 件、v30 baseline
+で InfectionLabo path 起動なし。従って PR 1 の stub 状態は production
+影響ゼロ、instant safety net として NotImplementedError が働く。
+
+**関連**: [[T67-M1]]、session 67 workspace:5 memo (2026-07-25)。
+
 ### T67-V1 [OPEN, MINOR] version 名で generator commit SHA を含める
 
 **問題**: `v29`/`v30`/`v31` の単調増加連番が採番者を持たないため、
