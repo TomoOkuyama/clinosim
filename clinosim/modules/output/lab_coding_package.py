@@ -1,0 +1,444 @@
+"""Shared JP-CLINS lab coding package loader — pure SD/CS runtime view.
+
+Extracts JP_Observation_LabResult_eCS slice information (from the SD)
+and joins it with 17-digit codes (from CoreLabo / InfectionLabo
+CodeSystems) at runtime. **All data returned by this loader is derived
+strictly from the installed JP-CLINS package** — no clinosim-side
+mapping, no bundled extract. The pkg is CC BY-ND; adapted derivatives
+must not be committed (see hotfix PR #394).
+
+Consumers:
+- ``clinosim.eval.axes.jp_clins_lab_compliance`` (axis) — uses
+  ``all_slices_by_system_display()`` to check emitted display against
+  the SD's Fixed value set.
+- ``clinosim.modules.output._lab_coding_strategy`` (PR 3 CoreLabo /
+  Uncoded emission) — will use ``slice_info(slice_name)`` to get the
+  slice's Fixed display, VS URL, and the list of 17-digit code
+  candidates with segment decomposition (5/4/3/3/2) for
+  ``996``-preferred selection + specimen back-derivation.
+
+License / responsibility boundary:
+- **Loader = pure SD/CS view.** Never carries clinosim-side mappings.
+- **clinosim-side ``analyte name → slice_name``** lives in
+  ``_lab_coding_strategy._slice_name_for_analyte`` (PR 3), which
+  builds a small mapping table (clinosim IP, commit-safe).
+
+Universal join key:
+- SD provides ``(slice_name, system_uri, Fixed_display, VS_url)``.
+- CS provides ``(17-digit code, display, segments, designation_ja)``.
+- The join key is ``(system_uri, display)`` — this is the same
+  discriminator the eCS profile's Open slicing uses (``value:system``
+  + ``value:display``), so uniqueness is guaranteed by the profile
+  itself. CS parent codes are NOT a reliable join key: e.g. SD slice
+  ``abo-bld`` maps to CS parent ``BLD-ABO`` (letter reversal), SD
+  ``u-ac`` maps to CS parent ``U-A/C`` (contains slash).
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
+from typing import Protocol
+
+_ECS_SD_FILENAME = "StructureDefinition-JP-Observation-LabResult-eCS.json"
+_CORELABO_JLAC10_CS_FILENAME = "CodeSystem-jp-clins-codesystem-jlac10-corelabo-cs.json"
+_CORELABO_JLAC11_CS_FILENAME = "CodeSystem-jp-clins-codesystem-jlac11-corelabo-cs.json"
+_INFECTIONLABO_JLAC10_CS_FILENAME = "CodeSystem-jp-clins-codesystem-jlac10-infectionlabo-cs.json"
+_INFECTIONLABO_JLAC11_CS_FILENAME = "CodeSystem-jp-clins-codesystem-jlac11-infectionlabo-cs.json"
+
+_JP_CLINS_PKG_ID = "clinical-information-sharing"
+_JP_CLINS_PKG_VERSION = "1.12.0"
+_JP_CLINS_TERMINOLOGY_PKG_ID = "jpfhir-terminology"
+_JP_CLINS_TERMINOLOGY_PKG_VERSION = "2.2606.0"
+
+_ENV_PKG_DIR = "CLINOSIM_JP_CLINS_PKG_DIR"
+
+# Uncoded slice constants — from SD extraction, pinned as literals so
+# the Uncoded emission does not require a runtime SD read for these
+# single-value fields (the SD does carry them as Fixed values on the
+# unCoded slice's system / code / display sub-elements). This is a
+# de-minimis copy of publicly published FHIR spec constants (spec
+# values, not clinosim IP), used to construct the Uncoded slice info
+# when the SD is loaded — never as a bundled fallback substitute for
+# the SD.
+_UNCODED_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_Uncoded_CS"
+_UNCODED_CODE = "99999999999999999"
+_UNCODED_DISPLAY = "未標準化コード項目(JLAC)"
+
+_LOCALCODE_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_LocalCode_CS"
+
+
+# --------------------------------------------------------------------------- #
+# Types.
+
+
+@dataclass(frozen=True)
+class CodeSegments:
+    """17-digit JLAC10 code boundary decomposition — 5 / 4 / 3 / 3 / 2.
+
+    Example: ``3H015000002399801`` for K, material 023, method 998:
+      ``analyte='3H015'``, ``identifier='0000'``, ``material='023'``,
+      ``method='998'``, ``result_id='01'``.
+
+    Method values pinned in the CoreLabo CS: ``998`` = method-agnostic
+    (session 67 memo §H.3 rev: **preferred** — synthetic data does not
+    simulate specific measurement methods, so 998 is the most honest
+    selection); ``999`` = other; else a specific method (e.g. ``261``
+    = potentiometry). Material segment is used by PR 3 to back-derive
+    ``Observation.specimen.contained JP_Specimen.type`` from the code.
+    """
+
+    analyte: str
+    identifier: str
+    material: str
+    method: str
+    result_id: str
+
+    @classmethod
+    def from_code(cls, code: str) -> CodeSegments:
+        assert len(code) == 17, f"expected 17-digit JLAC10 code, got {len(code)}: {code!r}"
+        return cls(code[0:5], code[5:9], code[9:12], code[12:15], code[15:17])
+
+
+@dataclass(frozen=True)
+class LabCodeCandidate:
+    """A single CoreLabo / InfectionLabo 17-digit concept.
+
+    ``designation_ja`` is the **raw** Japanese designation from the CS
+    ``concept.designation[language=ja].value``. It is intentionally
+    NOT sanitized here (LocalCode display sanitization — whitespace
+    strip per JP-CLINS spec — is a PR 3 emission-side concern; loader
+    supplying raw preserves ``code.text`` fidelity, which permits
+    whitespace).
+
+    IMPORTANT display-usage boundary:
+    - **CoreLabo/InfectionLabo slice ``coding.display``** MUST use
+      ``LabSliceInfo.fixed_display`` (SD Fixed value, e.g. ``K``,
+      ``WBC``, ``血液型-ABO``). ``designation_ja`` MUST NOT be used
+      here — the slice discriminator is ``value:display``, and any
+      non-Fixed display silently mis-matches → Tier 2 silent
+      non-compliance (workspace:5 Gate 2 measurement, session 67).
+    - **LocalCode slice ``coding.display``** MAY use ``designation_ja``
+      after PR 3 whitespace sanitize.
+    - **``code.text``** MAY use raw ``designation_ja`` (whitespace
+      permitted per JP-CLINS spec).
+    """
+
+    code: str
+    designation_ja: str | None
+    segments: CodeSegments
+
+
+@dataclass(frozen=True)
+class LabSliceInfo:
+    """SD + CS merged view for a single JP-CLINS lab slice.
+
+    - ``slice_name``: SD-native identifier (e.g. ``coreLaboJLAC10/k``).
+    - ``slice_system``: SD ``.system.fixedUri`` for the slice.
+    - ``fixed_display``: SD ``.display.fixedString`` — the Fixed value
+      that the slice's discriminator matches on. Callers MUST use this
+      verbatim in ``coding.display`` for slice-compliant emit.
+    - ``value_set_url``: SD ``.code.binding.valueSet`` **verbatim** —
+      NOT mangled. If the SD carries the version suffix (``|1.1.0a``)
+      it is preserved as-is; if not, it is preserved as-is. Loader
+      never adds or strips a version segment (session 67 memo: version
+      mismatch on ``$expand`` breaks binding resolution — SD is the
+      single source of truth for the reference string).
+    - ``codes``: joined CS concepts with segment decomposition.
+      Immutable tuple for cache safety.
+    """
+
+    slice_name: str
+    slice_system: str
+    fixed_display: str
+    value_set_url: str
+    codes: tuple[LabCodeCandidate, ...]
+
+
+# --------------------------------------------------------------------------- #
+# Package protocol + implementations.
+
+
+class LabCodingPackage(Protocol):
+    """Shared contract consumed by axis + emission strategies."""
+
+    def is_available(self) -> bool: ...
+
+    def slice_info(self, slice_name: str) -> LabSliceInfo | None:
+        """Return the SD/CS merged view for the given SD slice_name
+        (e.g. ``coreLaboJLAC10/k``). Returns None when the slice is
+        not in the SD."""
+
+    def uncoded_slice(self) -> LabSliceInfo:
+        """Return the JP-CLINS Uncoded slice info. Available whenever
+        ``is_available()`` is True — the Uncoded slice's Fixed values
+        are pinned to spec-published literals so no per-analyte CS
+        lookup is required."""
+
+    def all_slices_by_system_display(self) -> dict[tuple[str, str], str]:
+        """``(system_uri, display) → slice_name`` pivot. axis Metric 2
+        uses this to check ``coding.display`` against the SD's Fixed
+        value set."""
+
+    def localcode_system_uri(self) -> str:
+        """LocalCode slice system URI, for PR 3 co-emission."""
+
+
+class MissingPackage:
+    """Pkg-absent state — every method returns a no-op sentinel.
+
+    axis surfaces ``Outcome.NA``; emission path in PR 1..2 does not
+    call this loader (LegacyJSLM / LegacyLOINC strategies are
+    pkg-independent by design)."""
+
+    def is_available(self) -> bool:
+        return False
+
+    def slice_info(self, slice_name: str) -> LabSliceInfo | None:
+        return None
+
+    def uncoded_slice(self) -> LabSliceInfo:
+        raise RuntimeError(
+            "JP-CLINS pkg not installed — uncoded_slice not available. Install "
+            f"'{_JP_CLINS_PKG_ID}#{_JP_CLINS_PKG_VERSION}' via the fhir CLI or "
+            f"set ${_ENV_PKG_DIR}."
+        )
+
+    def all_slices_by_system_display(self) -> dict[tuple[str, str], str]:
+        return {}
+
+    def localcode_system_uri(self) -> str:
+        return _LOCALCODE_SYSTEM
+
+
+class EcsRuntimePackage:
+    """Runtime-parsed JP-CLINS eCS package.
+
+    Constructed with paths to the SD JSON + the four CS JSONs
+    (CoreLabo JLAC10/JLAC11 + InfectionLabo JLAC10/JLAC11). Parses
+    lazily on first access via cached properties."""
+
+    def __init__(
+        self,
+        sd_path: Path,
+        corelabo_jlac10_cs_path: Path,
+        corelabo_jlac11_cs_path: Path | None,
+        infectionlabo_jlac10_cs_path: Path | None,
+        infectionlabo_jlac11_cs_path: Path | None,
+    ) -> None:
+        self._sd_path = sd_path
+        self._cs_paths = [
+            corelabo_jlac10_cs_path,
+            corelabo_jlac11_cs_path,
+            infectionlabo_jlac10_cs_path,
+            infectionlabo_jlac11_cs_path,
+        ]
+        self._slices_by_name: dict[str, LabSliceInfo] | None = None
+        self._by_system_display: dict[tuple[str, str], str] | None = None
+
+    def is_available(self) -> bool:
+        return True
+
+    def _ensure_loaded(self) -> None:
+        if self._slices_by_name is not None:
+            return
+        # 1. Parse SD for slice info (name → system, fixed_display, VS URL)
+        sd = json.loads(self._sd_path.read_text(encoding="utf-8"))
+        sd_by_name: dict[str, dict[str, str]] = {}
+        for el in sd.get("differential", {}).get("element", []):
+            eid = el.get("id", "")
+            if not eid.startswith("Observation.code.coding:"):
+                continue
+            rest = eid[len("Observation.code.coding:") :]
+            if "." in rest:
+                slice_name, sub = rest.split(".", 1)
+            else:
+                slice_name, sub = rest, ""
+            entry = sd_by_name.setdefault(slice_name, {})
+            if sub == "system" and el.get("fixedUri"):
+                entry["system"] = el["fixedUri"]
+            elif sub == "display" and el.get("fixedString"):
+                entry["display"] = el["fixedString"]
+            elif sub == "code" and el.get("binding", {}).get("valueSet"):
+                # SD value_set reference — verbatim, no version mangling.
+                entry["value_set"] = el["binding"]["valueSet"]
+        # 2. Parse CS(es) for leaf codes with segments + designation_ja
+        # Join key: (system_uri, display) → list of LabCodeCandidate
+        codes_by_key: dict[tuple[str, str], list[LabCodeCandidate]] = {}
+        for cs_path in self._cs_paths:
+            if cs_path is None or not cs_path.exists():
+                continue
+            cs = json.loads(cs_path.read_text(encoding="utf-8"))
+            system_uri = cs.get("url", "")
+
+            def _walk(concepts: list[dict]) -> None:
+                for c in concepts or []:
+                    children = c.get("concept", [])
+                    if children:
+                        _walk(children)
+                        continue
+                    code = c.get("code", "")
+                    display = c.get("display", "")
+                    if not code or not display or len(code) != 17:
+                        continue
+                    designation_ja: str | None = None
+                    for dg in c.get("designation", []):
+                        if dg.get("language") == "ja":
+                            designation_ja = dg.get("value")
+                            break
+                    try:
+                        segments = CodeSegments.from_code(code)
+                    except AssertionError:
+                        continue
+                    key = (system_uri, display)
+                    codes_by_key.setdefault(key, []).append(
+                        LabCodeCandidate(code=code, designation_ja=designation_ja, segments=segments)
+                    )
+
+            _walk(cs.get("concept", []))
+        # 3. Merge SD slice info with CS codes via (system, display) join.
+        slices_by_name: dict[str, LabSliceInfo] = {}
+        by_system_display: dict[tuple[str, str], str] = {}
+        for slice_name, meta in sd_by_name.items():
+            system = meta.get("system", "")
+            display = meta.get("display", "")
+            if not system or not display:
+                continue
+            vs_url = meta.get("value_set", "")
+            key = (system, display)
+            codes = tuple(codes_by_key.get(key, ()))
+            slices_by_name[slice_name] = LabSliceInfo(
+                slice_name=slice_name,
+                slice_system=system,
+                fixed_display=display,
+                value_set_url=vs_url,
+                codes=codes,
+            )
+            by_system_display[key] = slice_name
+        self._slices_by_name = slices_by_name
+        self._by_system_display = by_system_display
+
+    def slice_info(self, slice_name: str) -> LabSliceInfo | None:
+        self._ensure_loaded()
+        assert self._slices_by_name is not None  # for mypy
+        return self._slices_by_name.get(slice_name)
+
+    def uncoded_slice(self) -> LabSliceInfo:
+        self._ensure_loaded()
+        # Uncoded is one concept, pinned by spec; construct directly.
+        segments = CodeSegments.from_code(_UNCODED_CODE)
+        candidate = LabCodeCandidate(code=_UNCODED_CODE, designation_ja=_UNCODED_DISPLAY, segments=segments)
+        return LabSliceInfo(
+            slice_name="unCoded",
+            slice_system=_UNCODED_SYSTEM,
+            fixed_display=_UNCODED_DISPLAY,
+            value_set_url="",  # SD has no VS binding on the unCoded slice
+            codes=(candidate,),
+        )
+
+    def all_slices_by_system_display(self) -> dict[tuple[str, str], str]:
+        self._ensure_loaded()
+        assert self._by_system_display is not None
+        return self._by_system_display
+
+    def localcode_system_uri(self) -> str:
+        return _LOCALCODE_SYSTEM
+
+
+# --------------------------------------------------------------------------- #
+# Package discovery.
+
+
+def _find_pkg_files() -> tuple[Path, Path, Path | None, Path | None, Path | None] | None:
+    """Locate the SD + 4 CS JSONs on disk.
+
+    Search order (matches axis's pre-migration ``_find_ecs_sd_path``):
+    1. ``$CLINOSIM_JP_CLINS_PKG_DIR`` — explicit override for the
+       ``package/`` directory of the JP-CLINS clinical-information-sharing pkg.
+    2. Standard ``fhir`` CLI cache under ``~/.fhir/packages/`` for both
+       clinical-information-sharing (SD) and jpfhir-terminology (CS).
+    3. Sibling ``../fhir-jp-validator`` dev fallback.
+
+    Returns ``(sd_path, corelabo_jlac10_cs, corelabo_jlac11_cs,
+    infectionlabo_jlac10_cs, infectionlabo_jlac11_cs)`` or None. CS
+    paths may be None if that particular CS is unavailable — the
+    loader gracefully degrades (fewer codes joined, but SD slices are
+    still enumerated for axis Metric 1 / Metric 3)."""
+
+    def _first_existing(*candidates: Path) -> Path | None:
+        for c in candidates:
+            if c.exists():
+                return c
+        return None
+
+    # Candidate SD locations
+    sd_candidates: list[Path] = []
+    if env_val := os.environ.get(_ENV_PKG_DIR):
+        sd_candidates.append(Path(env_val) / _ECS_SD_FILENAME)
+    home_cache = Path.home() / ".fhir" / "packages"
+    for sep in ("#", "-"):
+        sd_candidates.append(
+            home_cache / f"{_JP_CLINS_PKG_ID}{sep}{_JP_CLINS_PKG_VERSION}" / "package" / _ECS_SD_FILENAME
+        )
+    repo_root = Path(__file__).resolve().parents[3]
+    dev_root = repo_root.parent / "fhir-jp-validator" / "tx-server-build" / "terminology" / "fhir-server"
+    sd_candidates.append(dev_root / f"{_JP_CLINS_PKG_ID}#{_JP_CLINS_PKG_VERSION}" / "package" / _ECS_SD_FILENAME)
+    sd_path = _first_existing(*sd_candidates)
+    if sd_path is None:
+        return None
+
+    # CS locations — jpfhir-terminology pkg
+    cs_search_dirs: list[Path] = []
+    if env_val := os.environ.get(_ENV_PKG_DIR):
+        # env override may point at a bundle including CS
+        cs_search_dirs.append(Path(env_val))
+    for sep in ("#", "-"):
+        cs_search_dirs.append(
+            home_cache / f"{_JP_CLINS_TERMINOLOGY_PKG_ID}{sep}{_JP_CLINS_TERMINOLOGY_PKG_VERSION}" / "package"
+        )
+    cs_search_dirs.append(dev_root / f"{_JP_CLINS_TERMINOLOGY_PKG_ID}#{_JP_CLINS_TERMINOLOGY_PKG_VERSION}" / "package")
+
+    def _find_cs(filename: str) -> Path | None:
+        for d in cs_search_dirs:
+            candidate = d / filename
+            if candidate.exists():
+                return candidate
+        return None
+
+    return (
+        sd_path,
+        _find_cs(_CORELABO_JLAC10_CS_FILENAME) or Path("<missing>"),
+        _find_cs(_CORELABO_JLAC11_CS_FILENAME),
+        _find_cs(_INFECTIONLABO_JLAC10_CS_FILENAME),
+        _find_cs(_INFECTIONLABO_JLAC11_CS_FILENAME),
+    )
+
+
+@lru_cache(maxsize=1)
+def load_lab_coding_package() -> LabCodingPackage:
+    """Return the shared package. Cached — call any number of times.
+
+    Returns ``MissingPackage`` when the SD cannot be found; callers
+    check ``is_available()`` or handle ``None`` from ``slice_info``.
+    """
+    found = _find_pkg_files()
+    if found is None:
+        return MissingPackage()
+    sd_path, corelabo10, corelabo11, infection10, infection11 = found
+    if not corelabo10.exists():
+        # CoreLabo JLAC10 CS is required for CoreLabo emissions; without
+        # it the package can still serve SD-only queries (axis Metric 1 /
+        # 3) but not slice code lookups. Keep the package available but
+        # note that slice_info(coreLabo…) will return LabSliceInfo with
+        # empty codes tuple.
+        corelabo10 = Path("<missing>")
+    return EcsRuntimePackage(
+        sd_path=sd_path,
+        corelabo_jlac10_cs_path=corelabo10 if corelabo10.name != "<missing>" else Path("/nonexistent"),
+        corelabo_jlac11_cs_path=corelabo11,
+        infectionlabo_jlac10_cs_path=infection10,
+        infectionlabo_jlac11_cs_path=infection11,
+    )

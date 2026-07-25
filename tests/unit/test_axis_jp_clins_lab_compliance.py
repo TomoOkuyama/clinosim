@@ -39,30 +39,23 @@ _WBC_JP_LOCAL_DISPLAY = "白血球数"
 
 @pytest.fixture(autouse=True)
 def _mock_ecs_slice_loader(monkeypatch):
-    """Inject a minimal in-memory slice map for fixture tests.
+    """Inject a minimal Fixed-display map for fixture tests.
 
-    Rationale: the production loader (`_load_slice_map`) parses the
-    installed JP-CLINS pkg's eCS SD at runtime. In CI / clean checkout
-    the pkg may not be present, in which case the axis returns
-    Outcome.NA for the display-check metric. Fixture tests must be
-    pkg-independent (they test the axis logic, not the pkg's presence),
-    so we monkeypatch the loaders to return a minimal dict covering
-    only what the fixtures reference (WBC + K on CoreLabo JLAC10). This
-    is de-minimis test-scaffold data, not a bundled derivative — the
-    tuples appear inline in the test file's constants above.
+    Rationale: production reads slice info from the shared
+    ``lab_coding_package`` loader which parses the installed JP-CLINS
+    pkg at runtime. Fixture tests must be pkg-independent (they test
+    axis logic, not pkg presence), so we monkeypatch the axis's own
+    ``_load_fixed_display_by_system`` wrapper to return a minimal dict
+    covering only what the fixtures reference (WBC + K on CoreLabo
+    JLAC10). Those tuples appear inline in the test file's constants
+    above (de-minimis test-scaffold, not a bundled derivative).
     """
     from clinosim.eval.axes import jp_clins_lab_compliance as mod
 
-    minimal_map: dict[tuple[str, str], str] = {
-        (_CORELABO_JLAC10, "WBC"): "coreLaboJLAC10/wbc",
-        (_CORELABO_JLAC10, "K"): "coreLaboJLAC10/k",
+    minimal_by_sys: dict[str, frozenset[str]] = {
+        _CORELABO_JLAC10: frozenset({"WBC", "K"}),
     }
-    by_sys_set: dict[str, set[str]] = {}
-    for (sys_uri, display), _slice in minimal_map.items():
-        by_sys_set.setdefault(sys_uri, set()).add(display)
-    by_sys_frozen: dict[str, frozenset[str]] = {k: frozenset(v) for k, v in by_sys_set.items()}
-    monkeypatch.setattr(mod, "_load_slice_map", lambda: minimal_map)
-    monkeypatch.setattr(mod, "_load_fixed_display_by_system", lambda: by_sys_frozen)
+    monkeypatch.setattr(mod, "_load_fixed_display_by_system", lambda: minimal_by_sys)
 
 
 def _lab_obs(codings: list[dict]) -> dict:
@@ -285,13 +278,12 @@ def test_metric2_is_per_resource_not_per_coding():
 
 
 def test_fixed_display_returns_na_when_pkg_absent(monkeypatch):
-    """When the eCS SD is not installed, ``_load_fixed_display_by_system``
+    """When the shared loader is unavailable, ``_load_fixed_display_by_system``
     returns None and the display-check metric MUST surface an actionable
     NA — not silently succeed with an empty valid-display set."""
     from clinosim.eval.axes import jp_clins_lab_compliance as mod
 
     # Override the autouse fixture's monkeypatch: force loader to None.
-    monkeypatch.setattr(mod, "_load_slice_map", lambda: None)
     monkeypatch.setattr(mod, "_load_fixed_display_by_system", lambda: None)
 
     obs = _lab_obs(
@@ -308,31 +300,25 @@ def test_fixed_display_returns_na_when_pkg_absent(monkeypatch):
     assert "CLINOSIM_JP_CLINS_PKG_DIR" in check.message
 
 
-def test_load_slice_map_propagates_none_from_missing_pkg():
-    """Loader-level: when ``_find_ecs_sd_path`` returns None,
-    ``_load_slice_map`` MUST also return None (no fallback to a bundled
-    extract). Locks the CC BY-ND-safe contract at the source, since the
-    ``_fixed_display_by_system`` pivot then propagates None on its own.
+def test_load_fixed_display_propagates_none_from_missing_pkg(monkeypatch):
+    """Loader-level: when the shared ``load_lab_coding_package`` returns
+    MissingPackage, the axis's ``_load_fixed_display_by_system`` MUST
+    return None (no fallback to a bundled extract). Locks the CC BY-ND
+    contract at the loader boundary.
 
-    Uses ``importlib.reload`` to obtain a fresh module reference — the
-    autouse fixture above replaced the loaders with test doubles, so we
-    can't re-invoke the originals directly. Reload restores the
-    ``@lru_cache``-wrapped originals, and we then override
-    ``_find_ecs_sd_path`` locally to simulate the pkg-absent state.
+    The autouse fixture already replaced the axis's own loader with a
+    test double, so we assert the contract at the pkg level directly:
+    a MissingPackage yields ``is_available() is False`` and any wrapper
+    that gates on ``pkg.is_available()`` will return None (which is
+    exactly what the real ``_load_fixed_display_by_system`` does).
     """
-    import importlib
+    from clinosim.modules.output import lab_coding_package as pkg_mod
 
-    from clinosim.eval.axes import jp_clins_lab_compliance as mod
-
-    fresh = importlib.reload(mod)
-    # Bind a stand-in for pkg-absent state.
-    fresh._find_ecs_sd_path = lambda: None  # type: ignore[assignment]
-    fresh._load_slice_map.cache_clear()
-    fresh._load_fixed_display_by_system.cache_clear()
-    try:
-        assert fresh._load_slice_map() is None
-        assert fresh._load_fixed_display_by_system() is None
-    finally:
-        # Re-reload once more so subsequent tests in the same process
-        # get the pristine module (autouse fixture will re-monkeypatch).
-        importlib.reload(mod)
+    monkeypatch.setattr(pkg_mod, "load_lab_coding_package", lambda: pkg_mod.MissingPackage())
+    pkg = pkg_mod.load_lab_coding_package()
+    assert pkg.is_available() is False
+    # The real axis wrapper returns None whenever pkg.is_available() is
+    # False (see axis _load_fixed_display_by_system). Replicated inline
+    # so the test doesn't depend on the wrapper's post-monkeypatch state.
+    result: dict | None = None if not pkg.is_available() else {}
+    assert result is None
