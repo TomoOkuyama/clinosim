@@ -29,9 +29,13 @@ per-coding counting biases against resources that carry many codings).
    ``localLaboCode`` slice AND at least one of
    {CoreLabo / InfectionLabo / Uncoded / jlac10LaboCode} slice.
 
-Slice fixed values are extracted from the eCS StructureDefinition and
-persisted at ``clinosim/eval/axes/data/jp_clins_lab_slices.json``
-(regenerate when the source SD updates).
+Slice fixed values are extracted **at runtime** from an installed JP-CLINS
+package (via ``_find_ecs_sd_path``). The extract is intentionally NOT
+committed to the repo — the JP-CLINS pkg is CC BY-ND and the
+(system, display) tuple set is an adapted derivative of the
+StructureDefinition. When the pkg is not installed, the display-check
+metric returns ``Outcome.NA`` with an actionable message pointing to
+the pkg install step.
 
 Applicability
 -------------
@@ -50,6 +54,7 @@ failed. Baseline (pre-migration, v29 dataset) must produce ``0/0/0``.
 from __future__ import annotations
 
 import json
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -57,7 +62,17 @@ from clinosim.audit.types import Cohort
 from clinosim.eval.axes.locale import _detect_country_from_cohort
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 
-_DATA_PATH = Path(__file__).resolve().parent / "data" / "jp_clins_lab_slices.json"
+# JP-CLINS pkg is CC BY-ND. Extracted (system, display) tuples are an
+# adapted derivative and MUST NOT be committed to this repo. The axis
+# parses the eCS StructureDefinition JSON at runtime from a pkg install
+# location; when the pkg is absent, the display-check metric returns
+# Outcome.NA rather than falling back to a bundled extract (bundling
+# would re-introduce the license issue).
+
+_ECS_SD_FILENAME = "StructureDefinition-JP-Observation-LabResult-eCS.json"
+_JP_CLINS_PKG_ID = "clinical-information-sharing"
+_JP_CLINS_PKG_VERSION = "1.12.0"
+_ENV_PKG_DIR = "CLINOSIM_JP_CLINS_PKG_DIR"
 
 # --------------------------------------------------------------------------- #
 # JP-CLINS-defined CodeSystem URIs (spec eCS v1.12.0).
@@ -101,13 +116,76 @@ _FIXED_DISPLAY_SYSTEMS = frozenset(
 )
 
 
+def _find_ecs_sd_path() -> Path | None:
+    """Locate the eCS SD JSON in a known pkg install location.
+
+    Search order:
+    1. ``$CLINOSIM_JP_CLINS_PKG_DIR`` — explicit override, points at the
+       pkg's ``package/`` directory.
+    2. Standard ``fhir`` CLI package cache under ``~/.fhir/packages/``.
+       Both version separator conventions (``#`` and ``-``) are tried.
+    3. Sibling repo ``../fhir-jp-validator`` dev layout — kept only as
+       a developer convenience; not part of the runtime contract.
+
+    Returns None when the SD JSON is not found. Callers MUST treat None
+    as "eCS SD unavailable" and NOT fall back to a bundled extract
+    (that would re-introduce the CC BY-ND derivative concern the
+    runtime-extraction design was created to avoid).
+    """
+    candidates: list[Path] = []
+    if env_val := os.environ.get(_ENV_PKG_DIR):
+        candidates.append(Path(env_val) / _ECS_SD_FILENAME)
+    home_cache = Path.home() / ".fhir" / "packages"
+    for sep in ("#", "-"):
+        candidates.append(home_cache / f"{_JP_CLINS_PKG_ID}{sep}{_JP_CLINS_PKG_VERSION}" / "package" / _ECS_SD_FILENAME)
+    repo_root = Path(__file__).resolve().parents[3]
+    candidates.append(
+        repo_root.parent
+        / "fhir-jp-validator"
+        / "tx-server-build"
+        / "terminology"
+        / "fhir-server"
+        / f"{_JP_CLINS_PKG_ID}#{_JP_CLINS_PKG_VERSION}"
+        / "package"
+        / _ECS_SD_FILENAME
+    )
+    for p in candidates:
+        if p.exists():
+            return p
+    return None
+
+
 @lru_cache(maxsize=1)
-def _load_slice_map() -> dict[tuple[str, str], str]:
-    """Return {(system, display): slice_name} for every slice with a Fixed
-    display in the eCS SD. Used to verify Metric 2."""
-    raw = json.loads(_DATA_PATH.read_text(encoding="utf-8"))
+def _load_slice_map() -> dict[tuple[str, str], str] | None:
+    """Parse the eCS SD JSON at runtime and return
+    ``{(system, display): slice_name}`` for every slice that carries a
+    Fixed display constraint. Returns ``None`` when the pkg is not
+    installed — the display-check metric then returns ``Outcome.NA``.
+
+    The SD is fetched via ``_find_ecs_sd_path`` and never bundled in
+    this repo (CC BY-ND); this loader is also the prototype the
+    migration PR 2 pkg-loader will factor into a shared module."""
+    sd_path = _find_ecs_sd_path()
+    if sd_path is None:
+        return None
+    sd = json.loads(sd_path.read_text(encoding="utf-8"))
+    per_slice: dict[str, dict[str, str]] = {}
+    for el in sd.get("differential", {}).get("element", []):
+        eid = el.get("id", "")
+        if not eid.startswith("Observation.code.coding:"):
+            continue
+        rest = eid[len("Observation.code.coding:") :]
+        if "." in rest:
+            slice_name, sub = rest.split(".", 1)
+        else:
+            slice_name, sub = rest, ""
+        entry = per_slice.setdefault(slice_name, {})
+        if sub == "system" and el.get("fixedUri"):
+            entry["system"] = el["fixedUri"]
+        elif sub == "display" and el.get("fixedString"):
+            entry["display"] = el["fixedString"]
     out: dict[tuple[str, str], str] = {}
-    for slice_name, entry in raw["slices"].items():
+    for slice_name, entry in per_slice.items():
         sys_uri = entry.get("system")
         display = entry.get("display")
         if sys_uri and display:
@@ -116,11 +194,15 @@ def _load_slice_map() -> dict[tuple[str, str], str]:
 
 
 @lru_cache(maxsize=1)
-def _load_fixed_display_by_system() -> dict[str, frozenset[str]]:
-    """{system_uri: {valid_display, ...}} — same source as _load_slice_map
-    but pivoted for Fixed-display lookup."""
+def _load_fixed_display_by_system() -> dict[str, frozenset[str]] | None:
+    """{system_uri: {valid_display, ...}} — pivoted view of
+    ``_load_slice_map``. Returns ``None`` when the pkg is not
+    installed."""
+    m = _load_slice_map()
+    if m is None:
+        return None
     by_sys: dict[str, set[str]] = {}
-    for (sys_uri, display), _ in _load_slice_map().items():
+    for (sys_uri, display), _ in m.items():
         by_sys.setdefault(sys_uri, set()).add(display)
     return {k: frozenset(v) for k, v in by_sys.items()}
 
@@ -199,6 +281,19 @@ def _check_fixed_display(lab_obs: list[dict]) -> EvalCheck:
     """
     name = "jp_clins_lab_fixed_display"
     valid_by_sys = _load_fixed_display_by_system()
+    if valid_by_sys is None:
+        return EvalCheck(
+            name=name,
+            outcome=Outcome.NA,
+            severity=Severity.MAJOR,
+            message=(
+                "JP-CLINS eCS StructureDefinition not available — install pkg "
+                f"'{_JP_CLINS_PKG_ID}#{_JP_CLINS_PKG_VERSION}' via the fhir CLI or set "
+                f"${_ENV_PKG_DIR} to the pkg's package/ directory. Display check requires "
+                "the SD's Fixed value table and MUST NOT fall back to a bundled extract (CC BY-ND)."
+            ),
+            detail={"pkg_missing": True},
+        )
     obs_with_slice_typed = 0
     obs_all_correct = 0
     for obs in lab_obs:
