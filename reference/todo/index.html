@@ -3199,6 +3199,24 @@ JANIS 抗菌薬マスターにマッピングし直す。<strong>「対応不能
 LOINC-JA(存在せず)/ MEDIS 17 digit(content=fragment、2,000 concept 部分実装)
 型の situation ではない。<strong>SNOMED CT → JANIS 数値 code の mapping table が
 新規に必要</strong>だが、target authoritative source は存在するので実装可能。</p>
+<p><strong>着手時チェックリスト</strong>(セッション 67 workspace:5 memo より、CoreLabo で
+2 度踏んだ「package にある vs fhirserver にロードされている」区別):</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>curl -s http://localhost:8181/fhir/CodeSystem/$lookup?system=&lt;JANIS-URI&gt;&amp;code=&lt;sample&gt;</code>
+      で 200 + 一致(infectious-agent の JANIS OID +
+      <code>urn:oid:1.2.392.100495.10.3.100.5.27.6.1</code> の sample code 1011 で試験)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>curl -s http://localhost:8181/fhir/ValueSet/JP_Microbiology_InfectiousAgent_VS/$expand?count=5</code>
+      で expansion 成功、含まれる code が 554 concept と一致</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 同 antimicrobial-drug OID <code>urn:oid:1.2.392.100495.10.3.100.5.11.5.2</code> +
+      sample code 1200 (ペニシリン系) で同 2 チェック</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 現行データで生成中の菌種 (<code>mb-org-*</code> 8 件 + <code>mb-sus-*</code> 6 件) が使う
+      SNOMED CT code を先に確定 → 必要な JANIS mapping 数は 14 件以下
+      (554 全部ではない)</li>
+</ul>
+<p>ロード確認は着手 PR 1(mapping table 作成)より <strong>前</strong>、Phase 0 として実行。
+CoreLabo で「file はある、しかし fhirserver に載っていない」状態が
+migration 中に発覚すると required binding 未解決で validator が
+error 発火する。</p>
 <p><strong>修正 file</strong>: <code>clinosim/modules/output/_fhir_microbiology.py:227</code> +
 <code>fhir_r4_adapter._apply_jp_core_profile</code> の分岐追加。</p>
 <p><strong>実測</strong>: v30 で 14 件 (mb-org 8 + mb-sus 6)。</p>
