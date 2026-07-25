@@ -14,10 +14,8 @@ from __future__ import annotations
 import dataclasses
 from typing import Any
 
-from clinosim.codes import get_system_uri, system_key_for
-from clinosim.codes import lookup as code_lookup
-from clinosim.locale.loader import load_code_mapping
-from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, resolve_lang, sanitize_id_token
+from clinosim.codes import get_system_uri
+from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, sanitize_id_token
 from clinosim.modules.output._fhir_common import (
     BundleContext,
     _build_reference_range,
@@ -32,6 +30,7 @@ from clinosim.modules.output._fhir_localization import (
     _localize_interp,
 )
 from clinosim.modules.output._fhir_service_request import build_panel_counter, order_to_sr_id
+from clinosim.modules.output._lab_coding_strategy import select_lab_coding_strategy
 from clinosim.types.encounter import Order, OrderType
 
 
@@ -57,32 +56,23 @@ def _build_lab_observation(
     # Prefer the result's canonical analyte name (stat/serial/alias resolved upstream)
     # over the raw order label, so the code mapping resolves (AD-55).
     lab_name = result.get("lab_name") or order.get("display_name", "Unknown")
-
-    # test_name → code mapping still lives in locale (internal name → standard code)
     country_code = "US" if is_us(country) else "JP"
-    lang = resolve_lang(country_code)
-    code_map = load_code_mapping("lab", country_code)
-    if lab_name in code_map:
-        code_value = code_map[lab_name]
-        code_system_key = system_key_for("lab", country_code)
-    else:
-        # Unmapped lab_name falls back to the raw order_code (LOINC-shaped) — the
-        # system must fall back with it, since tagging a LOINC code under the
-        # country's mapped system (e.g. jlac10) would produce an incoherent coding
-        # (same fix as _bb_microbiology's culture-code resolution, TODO.md 2026-07-04).
-        code_value = order.get("order_code", "")
-        code_system_key = "loinc"
 
-    # Display text comes from codes module (via standard code)
-    # #321 session 61:code_lookup が None を返す場合(該当 code に翻訳が
-    # ない、v6.1 で 190 件 code.text 欠落 error 発火)、display_name が
-    # None のまま emit されて JP_Observation_LabResult の code.text min=1
-    # を満たさない。empty / None / code-echo 全てを lab_name にフォール
-    # バックさせる。
-    display_name = code_lookup(code_system_key, code_value, lang) if code_value else None
-    if not display_name or display_name == code_value:
-        display_name = lab_name
-    code_system = get_system_uri(code_system_key)
+    # PR 1 (JP-CLINS lab coding migration): route through the strategy
+    # dispatcher. In PR 1 the classifier returns LEGACY_JSLM (JP) /
+    # LEGACY_LOINC (US) for every analyte, so emit_codings reproduces
+    # the pre-refactor inline emit exactly (byte-identical guarantee).
+    # emit_localcode_coding returns None on every strategy in PR 1 —
+    # PR 3 will begin activating LocalCode emission on the CoreLabo /
+    # Uncoded paths without protocol churn.
+    _strategy = select_lab_coding_strategy(lab_name, country)
+    _strategy_kwargs = {"lab_name": lab_name, "order": order, "result": result, "country": country}
+    codings = _strategy.emit_codings(**_strategy_kwargs)
+    _localcode = _strategy.emit_localcode_coding(**_strategy_kwargs)
+    if _localcode is not None:
+        codings.append(_localcode)
+    display_name = codings[0]["display"]
+    code_value = codings[0]["code"]
 
     # encounter_id must be non-empty: the production path always provides ctx.primary_enc_id,
     # and the diagnostic-report reader (parse_lab_obs_id) matches on the same encounter_id.
@@ -127,29 +117,12 @@ def _build_lab_observation(
             }
         ],
         "code": {
-            "coding": [{"system": code_system, "code": code_value, "display": display_name}],
+            "coding": codings,
             "text": display_name,
         },
         "subject": {"reference": f"Patient/{patient_id}"},
         "effectiveDateTime": result.get("result_datetime", ""),
     }
-    # Session 45 seed=400 verification: JP Core Observation_Common profile
-    # recommends dual coding (JLAC10 primary + LOINC interop) so downstream
-    # consumers not conversant with JLAC10 can still recognize the analyte.
-    # Condition / Procedure already dual-code (JP Core + WHO); Observation
-    # was the outlier. Attach the LOINC equivalent when the analyte has one.
-    if country_code == "JP":
-        us_code_map = load_code_mapping("lab", "US")
-        loinc_code = us_code_map.get(lab_name)
-        if loinc_code and loinc_code != code_value:
-            loinc_display = code_lookup("loinc", loinc_code, "en") or lab_name
-            resource["code"]["coding"].append(
-                {
-                    "system": get_system_uri("loinc"),
-                    "code": loinc_code,
-                    "display": loinc_display,
-                }
-            )
 
     if isinstance(value, (int, float)):
         unit_str = result.get("unit", "")
