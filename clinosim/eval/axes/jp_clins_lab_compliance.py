@@ -77,7 +77,12 @@ from __future__ import annotations
 from clinosim.audit.types import Cohort
 from clinosim.eval.axes.locale import _detect_country_from_cohort
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
-from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+from clinosim.modules.output.lab_coding_package import (
+    jp_clins_defined_system_uris,
+    jp_clins_fixed_display_system_uris,
+    jp_clins_localcode_system_uri,
+    load_lab_coding_package,
+)
 
 # JP-CLINS pkg is CC BY-ND. The axis consumes the shared pkg loader
 # (``clinosim.modules.output.lab_coding_package``) — see that module's
@@ -85,45 +90,22 @@ from clinosim.modules.output.lab_coding_package import load_lab_coding_package
 # pkg is absent, the display-check metric returns ``Outcome.NA``.
 
 # --------------------------------------------------------------------------- #
-# JP-CLINS-defined CodeSystem URIs (spec eCS v1.12.0).
-# These are the ONLY systems the axis recognizes as "JP-CLINS defined".
-# Any other system (e.g. urn:oid:1.2.392.200119.4.1005 JSLM generic OID,
-# http://loinc.org, http://medis.or.jp/CodeSystem/master-JLAC10-17digits)
-# does NOT count toward the CS 使用率 numerator for JP-CLINS eCS compliance.
+# JP-CLINS-defined CodeSystem URIs — canonical registry lives in
+# ``lab_coding_package``. The three module-level names below are
+# module-load-time binds of the accessors (frozen set + str, both cheap
+# lru_cached returns) so the hot-path predicates in this file continue
+# to compare against a local constant with no per-call function overhead.
+# When adding / removing a JP-CLINS-defined lab CS URI, edit
+# ``lab_coding_package`` — the change flows here automatically.
+#
+# The defined set includes MEDIS's generic 17-digit JLAC10 CodeSystem
+# (``http://medis.or.jp/CodeSystem/master-JLAC10-17digits``) — JP-CLINS
+# recognizes it as an acceptable ``coding.system`` for the jlac10LaboCode
+# slice even though it is not JP-CLINS-authored.
 
-_CORELABO_JLAC10_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
-_CORELABO_JLAC11_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
-_INFECTIONLABO_JLAC10_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
-_INFECTIONLABO_JLAC11_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
-_LOCALCODE_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_LocalCode_CS"
-_UNCODED_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_Uncoded_CS"
-_JLAC10_GENERIC_SYSTEM = "http://medis.or.jp/CodeSystem/master-JLAC10-17digits"
-
-_JP_CLINS_DEFINED_SYSTEMS = frozenset(
-    {
-        _CORELABO_JLAC10_SYSTEM,
-        _CORELABO_JLAC11_SYSTEM,
-        _INFECTIONLABO_JLAC10_SYSTEM,
-        _INFECTIONLABO_JLAC11_SYSTEM,
-        _LOCALCODE_SYSTEM,
-        _UNCODED_SYSTEM,
-        _JLAC10_GENERIC_SYSTEM,
-    }
-)
-
-# Systems that carry a per-slice Fixed display constraint (open slicing
-# discriminator = system + display). LocalCode and jlac10LaboCode do NOT
-# have Fixed displays — they are permitted to carry site-local / analyte
-# display text and are therefore excluded from the Fixed display metric.
-_FIXED_DISPLAY_SYSTEMS = frozenset(
-    {
-        _CORELABO_JLAC10_SYSTEM,
-        _CORELABO_JLAC11_SYSTEM,
-        _INFECTIONLABO_JLAC10_SYSTEM,
-        _INFECTIONLABO_JLAC11_SYSTEM,
-        _UNCODED_SYSTEM,
-    }
-)
+_JP_CLINS_DEFINED_SYSTEMS = jp_clins_defined_system_uris()
+_FIXED_DISPLAY_SYSTEMS = jp_clins_fixed_display_system_uris()
+_LOCALCODE_SYSTEM = jp_clins_localcode_system_uri()
 
 
 def _load_fixed_display_by_system() -> dict[str, frozenset[str]] | None:

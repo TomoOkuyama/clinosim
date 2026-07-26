@@ -70,6 +70,97 @@ _UNCODED_DISPLAY = "未標準化コード項目(JLAC)"
 
 _LOCALCODE_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_LocalCode_CS"
 
+# --------------------------------------------------------------------------- #
+# JP-CLINS lab CS URI canonical registry — single source of truth.
+#
+# Owned here (not in the axis) so that adding a new JP-CLINS-defined
+# lab CS URI is a one-line change consumed by every reader. Emission
+# side (``_lab_coding_strategy``) does NOT read these — it obtains the
+# correct URI dynamically via ``slice_info(slice_name).slice_system`` /
+# ``localcode_system_uri()`` / ``uncoded_slice().slice_system`` (SD
+# fixedUri driven). The axis (``eval.axes.jp_clins_lab_compliance``)
+# reads these via the accessors below to keep the pre-migration set
+# comparable at axis load time even when the pkg is missing (Metric 1
+# / Metric 2 need a static set to compare emitted ``coding.system``
+# against; deriving from SD would collapse the axis to N/A when the
+# pkg is not installed, breaking the "0/0/0 pre-migration baseline vs
+# 100% post-migration" distinction the axis docstring guarantees).
+
+_CORELABO_JLAC10_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
+_CORELABO_JLAC11_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
+_INFECTIONLABO_JLAC10_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+_INFECTIONLABO_JLAC11_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+# Generic JLAC10 17-digit CodeSystem published by MEDIS. Not a
+# JP-CLINS-authored CS but recognized by JP-CLINS as an acceptable
+# ``coding.system`` for the jlac10LaboCode slice. Kept in the defined
+# set so the axis's Metric 1 numerator matches this URI as well.
+_JLAC10_GENERIC_SYSTEM = "http://medis.or.jp/CodeSystem/master-JLAC10-17digits"
+
+# Full JP-CLINS-defined lab CS URI set (7 URIs) — axis Metric 1
+# (CS 使用率) numerator match.
+_JP_CLINS_DEFINED_SYSTEM_URIS: frozenset[str] = frozenset(
+    {
+        _CORELABO_JLAC10_SYSTEM,
+        _CORELABO_JLAC11_SYSTEM,
+        _INFECTIONLABO_JLAC10_SYSTEM,
+        _INFECTIONLABO_JLAC11_SYSTEM,
+        _UNCODED_SYSTEM,
+        _LOCALCODE_SYSTEM,
+        _JLAC10_GENERIC_SYSTEM,
+    }
+)
+
+# Subset (5 URIs) that carries an SD Fixed-display constraint. Open
+# slicing discriminator = system + display. LocalCode + jlac10LaboCode
+# (MEDIS generic) do NOT have Fixed displays — they are permitted to
+# carry site-local / analyte display text and are therefore excluded
+# from the Fixed-display metric.
+_FIXED_DISPLAY_SYSTEM_URIS: frozenset[str] = frozenset(
+    {
+        _CORELABO_JLAC10_SYSTEM,
+        _CORELABO_JLAC11_SYSTEM,
+        _INFECTIONLABO_JLAC10_SYSTEM,
+        _INFECTIONLABO_JLAC11_SYSTEM,
+        _UNCODED_SYSTEM,
+    }
+)
+
+
+def jp_clins_defined_system_uris() -> frozenset[str]:
+    """Return the canonical JP-CLINS-defined lab CS URI set (7 URIs).
+
+    Consumed by ``eval.axes.jp_clins_lab_compliance`` Metric 1
+    (CS 使用率). Emission-side callers MUST NOT use this — they get the
+    correct URI via ``slice_info(slice_name).slice_system`` /
+    ``localcode_system_uri()`` / ``uncoded_slice().slice_system`` so the
+    emission path stays SD-driven and cannot drift from the SD.
+    """
+    return _JP_CLINS_DEFINED_SYSTEM_URIS
+
+
+def jp_clins_fixed_display_system_uris() -> frozenset[str]:
+    """Return the JP-CLINS lab CS URI subset (5 URIs) that carries an
+    SD Fixed-display constraint.
+
+    LocalCode + jlac10LaboCode (MEDIS generic URI) are excluded — their
+    ``coding.display`` is permitted to carry site-local / analyte text,
+    not the SD's Fixed value. Consumed by axis Metric 2 to bound the
+    denominator to slice-typed codings.
+    """
+    return _FIXED_DISPLAY_SYSTEM_URIS
+
+
+def jp_clins_localcode_system_uri() -> str:
+    """Return the JP-CLINS LocalCode slice CS URI.
+
+    Available regardless of pkg presence (spec-published constant, same
+    literal as ``MissingPackage.localcode_system_uri()`` and
+    ``EcsRuntimePackage.localcode_system_uri()``). Consumed by axis
+    Metric 3 for LocalCode presence checking.
+    """
+    return _LOCALCODE_SYSTEM
+
+
 # Specimen material CodeSystem (JLAC10) — session 67 spec verification
 # (2026-07-26): 17-digit CoreLabo code's material segment (10-12桁目, e.g.
 # "023") maps 1-1 to JP_ObservationSampleMaterialCodeJLAC10_CS codes
