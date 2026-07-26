@@ -50,20 +50,23 @@ def test_kind_enum_membership_is_fixed_for_migration():
 # PR 1 invariant: emit_localcode_coding returns None on EVERY strategy
 
 
+# PR 3c (migration complete): CoreLabo + Uncoded now emit LocalCode
+# co-slice. Legacy / InfectionLabo remain None (Legacy has no LocalCode
+# semantics; InfectionLabo raises at emit_codings before LocalCode is
+# consulted).
+
+
 @pytest.mark.parametrize(
     "strategy_cls",
-    [LegacyJSLMStrategy, LegacyLOINCStrategy, CoreLaboStrategy, UncodedStrategy, InfectionLaboStrategy],
+    [LegacyJSLMStrategy, LegacyLOINCStrategy, InfectionLaboStrategy],
 )
-def test_pr1_invariant_emit_localcode_coding_returns_none(strategy_cls):
-    """CRITICAL: byte-identical guarantee depends on this. If any
-    strategy starts returning a LocalCode coding in PR 1..2, downstream
-    ``code.coding[]`` will grow by one element and every JP Observation
-    NDJSON line will shift, breaking the migration chain's bisect
-    ability. PR 3 will flip specific strategies to non-None; this
-    test's expected value moves at that time."""
+def test_legacy_and_infection_strategies_never_emit_localcode(strategy_cls):
+    """Legacy paths carry no LocalCode semantics; InfectionLabo raises
+    at emit_codings so LocalCode is unreachable. Both return None
+    forever (invariant, session 67 memo)."""
     strategy = strategy_cls()
     result = strategy.emit_localcode_coding(lab_name="WBC", order={}, result={}, country="JP")
-    assert result is None, f"{strategy_cls.__name__}.emit_localcode_coding returned non-None in PR 1: {result!r}"
+    assert result is None
 
 
 # --------------------------------------------------------------------------- #
@@ -240,30 +243,23 @@ def test_expected_kind_totals_match_v30_analyte_split():
 # PR 3a dispatcher invariant — byte-identical preserved.
 
 
-def test_select_lab_coding_strategy_pr3b_bridge():
-    """PR 3b bridge (session 67 2026-07-26): dispatcher consults
-    ``_classify_analyte`` for JP. CoreLabo → CoreLaboStrategy;
-    Uncoded / unmapped → LegacyJSLM (deferred to PR 3c bridge).
-    US remains LegacyLOINC unchanged.
-
-    byte-partial: only CoreLabo-classified analytes see their strategy
-    changed vs PR 3a; Uncoded / unmapped stay on LegacyJSLM =
-    byte-identical output for those paths."""
-    # CoreLabo analytes → new CoreLaboStrategy
+def test_select_lab_coding_strategy_pr3c_full_bridge():
+    """PR 3c bridge (session 67 migration complete): dispatcher fully
+    consults ``_classify_analyte`` for JP. CoreLabo → CoreLaboStrategy;
+    Uncoded / unmapped → UncodedStrategy. LegacyJSLM is no longer
+    routed to for any classified JP analyte (kept as defensive
+    fallback for pkg-absent state)."""
+    # CoreLabo analytes → CoreLaboStrategy
     for analyte in ("WBC", "K", "Creatinine", "PT_INR"):
         s = select_lab_coding_strategy(analyte, "JP")
-        assert s.kind == LabCodingKind.CORELABO_JLAC10, (
-            f"{analyte} should route to CoreLaboStrategy after PR 3b bridge, got {s.kind}"
-        )
-    # Uncoded analytes → still LegacyJSLM (PR 3c will bridge)
+        assert s.kind == LabCodingKind.CORELABO_JLAC10, f"{analyte} → {s.kind}"
+    # Uncoded analytes → UncodedStrategy (PR 3c bridge)
     for analyte in ("Glucose", "pH", "Lactate"):
         s = select_lab_coding_strategy(analyte, "JP")
-        assert s.kind == LabCodingKind.LEGACY_JSLM, (
-            f"{analyte} (Uncoded) should stay on LegacyJSLM until PR 3c bridge, got {s.kind}"
-        )
-    # Unknown → still LegacyJSLM (PR 3c will bridge to UNCODED)
+        assert s.kind == LabCodingKind.UNCODED, f"{analyte} (Uncoded) → {s.kind}"
+    # Unknown JP → UncodedStrategy (safe default)
     s = select_lab_coding_strategy("UnknownNewAnalyte", "JP")
-    assert s.kind == LabCodingKind.LEGACY_JSLM
+    assert s.kind == LabCodingKind.UNCODED
     # US → LegacyLOINC unchanged
     s = select_lab_coding_strategy("WBC", "US")
     assert s.kind == LabCodingKind.LEGACY_LOINC
@@ -393,13 +389,31 @@ def test_corelabo_pr3b_keeps_loinc_secondary(_pkg_or_skip_corelabo):
 # UncodedStrategy + InfectionLaboStrategy: not implemented in PR 1
 
 
-def test_uncoded_strategy_raises_in_pr1():
-    """PR 1: UncodedStrategy is not routed to by the classifier.
-    Explicit raise beats silent Uncoded emission if a call site ever
-    reaches here."""
+def test_uncoded_strategy_pr3c_emits_uncoded_slice(_pkg_or_skip_corelabo):
+    """PR 3c: UncodedStrategy activated. Emits spec-pinned Uncoded slice
+    (code=99999999999999999, display=未標準化コード項目(JLAC)) + LOINC
+    secondary (when available in code_mapping_lab US)."""
     s = UncodedStrategy()
-    with pytest.raises(NotImplementedError, match="not activated in PR 1"):
-        s.emit_codings(lab_name="X", order={}, result={}, country="JP")
+    codings = s.emit_codings(lab_name="pH", order={}, result={}, country="JP")
+    primary = codings[0]
+    assert "Uncoded" in primary["system"], f"primary must be Uncoded CS, got {primary['system']!r}"
+    assert primary["code"] == "99999999999999999"
+    assert primary["display"] == "未標準化コード項目(JLAC)"
+    # LOINC secondary if lab_name has a US mapping (pH → 2744-1)
+    systems = [c["system"] for c in codings]
+    assert "http://loinc.org" in systems, "LOINC secondary preserved for interop"
+
+
+def test_uncoded_strategy_pr3c_emits_localcode_with_sanitized_ja(_pkg_or_skip_corelabo):
+    """PR 3c: UncodedStrategy emits LocalCode co-slice with sanitized
+    Japanese display. pH gets '動脈血pH' (space removed per JP-CLINS
+    LocalCode display rule)."""
+    s = UncodedStrategy()
+    lc = s.emit_localcode_coding(lab_name="pH", order={}, result={}, country="JP")
+    assert lc is not None
+    assert "LocalCode" in lc["system"]
+    assert lc["code"] == "pH"  # alphanumeric passes sanitize unchanged
+    assert lc["display"] == "動脈血pH"  # spec-required no-whitespace form
 
 
 def test_infection_labo_strategy_raises_with_spec_violation_note():
