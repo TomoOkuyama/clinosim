@@ -319,10 +319,24 @@ def test_legacy_loinc_emits_single_loinc_primary():
 
 
 # --------------------------------------------------------------------------- #
-# CoreLaboStrategy: PR 1 wrapper delegates to LegacyJSLM
+# CoreLaboStrategy PR 3b: real emit (skipped when JP-CLINS pkg unavailable).
+# CoreLaboStrategy has a defensive fallback to LegacyJSLM emission when the
+# pkg is missing (so a minimal-install run doesn't crash mid-generate). The
+# 4 tests below are validating the real emit path and skip when pkg absent —
+# same pattern as ``tests/unit/test_lab_coding_package.py::_pkg_or_skip``.
 
 
-def test_corelabo_pr3b_emits_real_17digit_with_fixed_display():
+@pytest.fixture
+def _pkg_or_skip_corelabo():
+    from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+
+    pkg = load_lab_coding_package()
+    if not pkg.is_available():
+        pytest.skip("JP-CLINS pkg not installed — CoreLabo real emit tests require the eCS SD + CoreLabo CS")
+    return pkg
+
+
+def test_corelabo_pr3b_emits_real_17digit_with_fixed_display(_pkg_or_skip_corelabo):
     """PR 3b (2026-07-26): CoreLaboStrategy no longer delegates to
     LegacyJSLM. Emits primary coding = (CoreLabo CS URI, 17-digit code,
     Fixed display from SD) + LOINC secondary. session 67 memo §H.3 rev
@@ -337,7 +351,7 @@ def test_corelabo_pr3b_emits_real_17digit_with_fixed_display():
     assert primary["display"] == "WBC", f"Fixed display must be SD Fixed value 'WBC', got {primary['display']!r}"
 
 
-def test_corelabo_pr3b_998_method_preference_for_k():
+def test_corelabo_pr3b_998_method_preference_for_k(_pkg_or_skip_corelabo):
     """PR 3b code-selection rule: method=998 preferred + numerically-largest
     material. For K, this resolves to material 023 (血清) + method 998 =
     3H015000002399801 (session 67 memo example)."""
@@ -350,7 +364,7 @@ def test_corelabo_pr3b_998_method_preference_for_k():
     assert primary["display"] == "K", f"K Fixed display, got {primary['display']!r}"
 
 
-def test_corelabo_pr3b_single_material_analytes_resolve_deterministically():
+def test_corelabo_pr3b_single_material_analytes_resolve_deterministically(_pkg_or_skip_corelabo):
     """WBC / Plt have only material 019 in CoreLabo CS — Option B (max)
     yields 019 vacuously, no material-selection ambiguity."""
     core = CoreLaboStrategy()
@@ -363,7 +377,7 @@ def test_corelabo_pr3b_single_material_analytes_resolve_deterministically():
         assert primary["display"] == expected_display
 
 
-def test_corelabo_pr3b_keeps_loinc_secondary():
+def test_corelabo_pr3b_keeps_loinc_secondary(_pkg_or_skip_corelabo):
     """JP dual-coding invariant: CoreLabo primary + LOINC secondary.
     Preserves the JP output's international interop (LOINC readable
     by non-JP consumers); PR 4 will decide the retain/drop ADR

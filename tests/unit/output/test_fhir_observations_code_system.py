@@ -70,7 +70,16 @@ def test_jp_mapped_lab_uses_corelabo_jlac10_after_pr3b():
     CoreLabo CS URI + a 17-digit code + the SD's Fixed display.
     Pre-PR-3b behavior (JSLM generic OID ``jlac10`` + 5-digit code
     ``2A010`` + Japanese display) is no longer produced for CoreLabo
-    analytes."""
+    analytes.
+
+    Skipped when JP-CLINS pkg is not installed — CoreLaboStrategy has
+    a defensive fallback to LegacyJSLM in that state so a minimal-
+    install run doesn't crash. Same pattern as
+    ``test_lab_coding_strategy.test_corelabo_pr3b_*``."""
+    from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+
+    if not load_lab_coding_package().is_available():
+        pytest.skip("JP-CLINS pkg not installed — CoreLabo emit falls back to LegacyJSLM")
     t = datetime(2026, 7, 4, 8, 0)
     o = _make_lab_order("O1", "WBC", "6690-2", 6.0, t)
     ctx = _make_ctx([o], "JP")
