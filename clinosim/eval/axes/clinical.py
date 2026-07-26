@@ -6,7 +6,20 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 from clinosim.audit.types import Cohort
+from clinosim.codes import get_system_uri
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
+
+# JP medication CodeSystem URI set — mirrors locale.py `_JP_MEDICATION_SYSTEM_URIS`.
+# canonical single source of truth = `codes/loader.py::_BUILTIN_URIS` + `codes/data/yj.yaml`.
+# 用途: warfarin 患者検出 (`_check_medication_lab_coherence_warfarin`) で JP path の
+# `MedicationRequest.medicationCodeableConcept.coding[*].system` を判定する際、
+# emit 側 (`_fhir_medications.py:_resolve_jp_drug_system_uri`) が code format ごとに
+# dispatch する 5 URI (yj / hot7 / hot9 / hot13 / medication-nocoded) 全てを認識。
+# B2 2026-07-26 で旧 hardcoded `urn:oid:1.2.392.100495.20.2.74` prefix 判定を置換
+# (旧 OID は JP Core NamingSystem 上 HOT9 alias で YJ の canonical ではない、YJ
+# code は capstandard URI で emit されるため旧判定は silent broken だった)。
+_JP_MEDICATION_SYSTEM_KEYS = ("yj", "hot7", "hot9", "hot13", "medication-nocoded")
+_JP_MEDICATION_SYSTEM_URIS: frozenset[str] = frozenset(get_system_uri(k) for k in _JP_MEDICATION_SYSTEM_KEYS)
 
 # Physiological plausibility bounds. Values outside these are almost
 # certainly a bug — not a real edge case. All in the units clinosim emits.
@@ -478,7 +491,7 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
         is_warfarin = any(
             (c.get("system") == "http://www.nlm.nih.gov/research/umls/rxnorm" and c.get("code") == _WARFARIN_RXNORM)
             or (
-                c.get("system", "").startswith("urn:oid:1.2.392.100495.20.2.74")
+                (c.get("system") or "") in _JP_MEDICATION_SYSTEM_URIS
                 and (c.get("code") or "").startswith(_WARFARIN_YJ_PREFIX)
             )
             for c in codings
