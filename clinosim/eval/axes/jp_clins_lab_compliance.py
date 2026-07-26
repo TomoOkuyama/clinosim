@@ -43,6 +43,27 @@ Axis returns an empty list when the cohort is not JP — this is a JP-only
 compliance surface. When called on a JP cohort with zero lab
 Observations, each check returns ``Outcome.NA``.
 
+CI Invariant Thresholds (Session 68 PR 5)
+-----------------------------------------
+The axis is integrated into clinosim CI via ``clinosim eval --strict``:
+
+1. **Metric 1 (CS usage)** threshold = 100% (strict) — every lab Observation
+   MUST carry a JP-CLINS-defined CodeSystem. Baseline for regression detection:
+   1898/2509 CoreLabo + Uncoded analytes (session 67 migration completion).
+   If new analytes added without proper JP-CLINS coding wiring, this metric
+   will drop and signal regression.
+
+2. **Metric 2 (Fixed display)** threshold = 100% (strict) — every slice-typed
+   coding (CoreLabo / InfectionLabo / Uncoded) MUST carry the eCS SD Fixed
+   display. No regression tolerance.
+
+3. **Metric 3 (Rule satisfaction)** threshold = 100% (strict) — every lab
+   Observation MUST carry localLaboCode + one typed coding. No regression
+   tolerance.
+
+All three checks are MAJOR severity, so one FAIL causes the entire axis to FAIL,
+which triggers ``clinosim eval --strict`` exit code 1 (CI gate failure).
+
 Positive/negative fixture tests in
 ``tests/unit/test_axis_jp_clins_lab_compliance.py`` are load-bearing:
 the axis's whole purpose is to distinguish "measured zero" from "silently
