@@ -54,6 +54,8 @@ is safer than emitting a wrong coding.
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from enum import StrEnum
 from typing import Any, Protocol
 
@@ -62,6 +64,69 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_us, resolve_lang
 from clinosim.modules.output.lab_coding_package import LabCodeCandidate
+
+# --------------------------------------------------------------------------- #
+# JP-CLINS LocalCode display / code sanitization (session 67 memo 2026-07-26).
+#
+# JP-CLINS spec prose (not encoded as FHIR constraints, so no validator
+# catches violations):
+#   - LocalCode display: MUST NOT contain whitespace (half-width space,
+#     full-width space, tabs); katakana MUST be full-width; alphanumeric
+#     + symbols + space MUST be half-width; NO control characters.
+#   - LocalCode code: alphanumeric + hyphen + underscore only (no other
+#     symbols, no whitespace).
+#   - code.text: whitespace is permitted (patient-facing text, not slice
+#     match input); raw designation_ja goes here without sanitization.
+#
+# The sanitize helpers apply the display / code rules at emit time.
+# Never applied to code.text — raw Japanese names go there so the
+# display integrity is preserved (`動脈血 pH` → `code.text = "動脈血 pH"`
+# + `display = "動脈血pH"`, both correct for their respective slots).
+
+
+def _sanitize_localcode_display(text: str) -> str:
+    """Apply JP-CLINS LocalCode display rules to a Japanese analyte name.
+
+    - Remove all whitespace (half-width space, full-width space \\u3000, tabs)
+    - Normalize half-width katakana → full-width (NFKC form)
+    - Strip C0/C1 control characters (Unicode category ``C*``)
+
+    ``code.text`` MUST NOT be sanitized this way (whitespace permitted).
+    """
+    if not text:
+        return ""
+    text = unicodedata.normalize("NFKC", text)
+    text = re.sub(r"[\s　]+", "", text)
+    text = "".join(c for c in text if not unicodedata.category(c).startswith("C"))
+    return text
+
+
+def _sanitize_localcode_code(name: str) -> str:
+    """Apply JP-CLINS LocalCode code rules: alphanumeric + hyphen +
+    underscore only. Anything else becomes underscore. Preserves the
+    analyte's identifying shape while satisfying spec character-class
+    restriction."""
+    return re.sub(r"[^A-Za-z0-9_-]", "_", name or "")
+
+
+# clinosim-side Japanese display for Uncoded analytes (12 entries; clinosim
+# IP — Uncoded analytes have no CoreLabo CS designation_ja to fall back on,
+# so we carry the JA name here for the LocalCode display + code.text).
+# Mirror of _KNOWN_UNCODED_ANALYTES; keep in sync.
+_UNCODED_ANALYTE_JA_DISPLAY: dict[str, str] = {
+    "pH": "動脈血pH",
+    "pCO2": "動脈血二酸化炭素分圧",
+    "pO2": "動脈血酸素分圧",
+    "HCO3": "重炭酸イオン",
+    "Troponin_I": "トロポニンI",
+    "CK_MB": "CK-MB",
+    "Lactate": "乳酸",
+    "PCT": "プロカルシトニン",
+    "TSH": "甲状腺刺激ホルモン",
+    "Fibrinogen": "フィブリノゲン",
+    "eGFR": "推算糸球体濾過量",
+    "Glucose": "血糖",
+}
 
 # --------------------------------------------------------------------------- #
 # Kind enum — finalized in PR 1, extended only with matching strategy.
@@ -234,6 +299,12 @@ class UncodedStrategy:
 
     kind = LabCodingKind.UNCODED
 
+    def __init__(self) -> None:
+        # Defensive fallback path — Uncoded emit relies on the JP-CLINS
+        # pkg loader for the Uncoded slice constants; if pkg missing we
+        # defer to LegacyJSLM rather than crash mid-generate.
+        self._legacy = LegacyJSLMStrategy()
+
     def emit_codings(
         self,
         *,
@@ -242,15 +313,65 @@ class UncodedStrategy:
         result: dict,
         country: str,
     ) -> list[dict]:
-        raise NotImplementedError(
-            f"UncodedStrategy is not activated in PR 1 (analyte={lab_name!r}). "
-            "PR 3 will implement the JP-CLINS Uncoded slice emission "
-            "(system=JP_CLINS_ObsLabResult_Uncoded_CS, code=99999999999999999, "
-            "display='未標準化コード項目(JLAC)')."
-        )
+        """PR 3c real emit — JP-CLINS Uncoded slice for the 12 analytes
+        classified UNCODED (blood gas / cardiac markers / metabolic +
+        Glucose per T67-Glucose-disambig).
 
-    def emit_localcode_coding(self, **_kwargs: Any) -> dict | None:
-        return None
+        Primary coding: ``(Uncoded CS URI, 99999999999999999,
+        未標準化コード項目(JLAC))`` — spec-published constants. LOINC
+        secondary is retained (mirrors LegacyJSLM / CoreLabo dual-coding
+        for international interop; PR 4 will formalize retain ADR).
+        """
+        from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+
+        pkg = load_lab_coding_package()
+        if not pkg.is_available():
+            # Defensive fallback — cohort still generates, just without
+            # Uncoded emit (per T67-I1 rule this is safer than raising).
+            return self._legacy.emit_codings(lab_name=lab_name, order=order, result=result, country=country)
+        uncoded = pkg.uncoded_slice()
+        primary: dict[str, Any] = {
+            "system": uncoded.slice_system,
+            "code": uncoded.codes[0].code,
+            "display": uncoded.fixed_display,
+        }
+        codings: list[dict] = [primary]
+        # LOINC secondary — Uncoded analytes typically do have a LOINC
+        # code (they were classified Uncoded because CoreLabo lacks a
+        # slice, not because LOINC is missing). Preserves interop.
+        us_code_map = load_code_mapping("lab", "US")
+        loinc_code = us_code_map.get(lab_name)
+        if loinc_code:
+            loinc_display = code_lookup("loinc", loinc_code, "en") or lab_name
+            codings.append({"system": get_system_uri("loinc"), "code": loinc_code, "display": loinc_display})
+        return codings
+
+    def emit_localcode_coding(
+        self,
+        *,
+        lab_name: str,
+        order: dict,
+        result: dict,
+        country: str,
+    ) -> dict | None:
+        """PR 3c: emit LocalCode co-slice for Uncoded analytes.
+
+        code = sanitized ASCII form of lab_name; display = sanitized
+        Japanese name from ``_UNCODED_ANALYTE_JA_DISPLAY``. Applying
+        display sanitize here (not in loader) matches session 67
+        boundary: loader supplies raw text, strategy applies user-
+        facing rules per slot."""
+        from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+
+        pkg = load_lab_coding_package()
+        if not pkg.is_available():
+            return None
+        raw_ja = _UNCODED_ANALYTE_JA_DISPLAY.get(lab_name, lab_name)
+        return {
+            "system": pkg.localcode_system_uri(),
+            "code": _sanitize_localcode_code(lab_name),
+            "display": _sanitize_localcode_display(raw_ja),
+        }
 
 
 class InfectionLaboStrategy:
@@ -362,11 +483,38 @@ class CoreLaboStrategy:
             )
         return codings
 
-    def emit_localcode_coding(self, **_kwargs: Any) -> dict | None:
-        # PR 3c will emit LocalCode co-slice; PR 3b keeps None so this
-        # PR moves only Metric 1 (CS 使用率) + Metric 2 (Fixed display).
-        # Metric 3 (適用規則満足率) intentionally stays 0/2509 until 3c.
-        return None
+    def emit_localcode_coding(
+        self,
+        *,
+        lab_name: str,
+        order: dict,
+        result: dict,
+        country: str,
+    ) -> dict | None:
+        """PR 3c: emit LocalCode co-slice for CoreLabo analytes.
+
+        code = sanitized ASCII form of lab_name; display = sanitized
+        Japanese name from the chosen CoreLabo code's ``designation_ja``
+        (e.g. "カリウム(K)" for K, "白血球数" for WBC). Falls back to
+        lab_name if designation missing (should not happen for CoreLabo
+        analytes — all CS entries carry ja designation).
+        """
+        from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+
+        slice_name = _slice_name_for_analyte(lab_name)
+        pkg = load_lab_coding_package()
+        if slice_name is None or not pkg.is_available():
+            return None
+        slice_info = pkg.slice_info(f"coreLaboJLAC10/{slice_name}")
+        if slice_info is None or not slice_info.codes:
+            return None
+        chosen = _pick_corelabo_code(slice_info.codes)
+        raw_ja = chosen.designation_ja or lab_name
+        return {
+            "system": pkg.localcode_system_uri(),
+            "code": _sanitize_localcode_code(lab_name),
+            "display": _sanitize_localcode_display(raw_ja),
+        }
 
 
 def _pick_corelabo_code(codes: tuple[LabCodeCandidate, ...]) -> LabCodeCandidate:
@@ -517,22 +665,23 @@ _STRATEGIES: dict[LabCodingKind, LabCodingStrategy] = {
 def select_lab_coding_strategy(lab_name: str, country: str) -> LabCodingStrategy:
     """Look up the strategy for this (analyte, country) pair.
 
-    **PR 3b bridge** (session 67 2026-07-26): US → LegacyLOINC, JP →
-    consult ``_classify_analyte``. CoreLabo-classified analytes route
-    to ``CoreLaboStrategy`` (real 17-digit + Fixed display emit).
-    Uncoded and unmapped-JP still route to ``LegacyJSLMStrategy`` to
-    preserve byte-identical output for those paths — PR 3c will bridge
-    Uncoded and retire the JP LegacyJSLM path.
+    **PR 3c bridge** (session 67 2026-07-26, migration complete): US →
+    LegacyLOINC, JP → consult ``_classify_analyte``. CoreLabo →
+    ``CoreLaboStrategy`` (real 17-digit + Fixed display + LocalCode).
+    Uncoded → ``UncodedStrategy`` (spec-pinned Uncoded slice + LOINC
+    secondary + LocalCode). Unmapped-JP falls to ``UncodedStrategy``
+    too (safe default per session 67 memo, JP LegacyJSLM path is
+    effectively retired for classified analytes).
 
-    byte-partial guarantee for PR 3b: only ``_classify_analyte(...) ==
-    CORELABO_JLAC10`` analytes have their emit changed. Uncoded /
-    LegacyJSLM-classified analytes (611 obs on v30 JP CIF) stay
-    byte-identical vs PR 3a.
+    LegacyJSLM remains registered as a defensive strategy for both
+    CoreLabo and Uncoded pkg-absent fallback paths, and as the US-adjacent
+    JP-analog for legacy callers. It is no longer routed to by the
+    dispatcher for any classified JP analyte after PR 3c.
     """
     if is_us(country):
         return _STRATEGIES[LabCodingKind.LEGACY_LOINC]
     kind = _classify_analyte(lab_name, country)
     if kind == LabCodingKind.CORELABO_JLAC10:
         return _STRATEGIES[LabCodingKind.CORELABO_JLAC10]
-    # UNCODED and anything else on JP → LegacyJSLM (unchanged, PR 3c bridge)
-    return _STRATEGIES[LabCodingKind.LEGACY_JSLM]
+    # UNCODED (classified) or unmapped JP (defaults to UNCODED per classifier) → UncodedStrategy
+    return _STRATEGIES[LabCodingKind.UNCODED]

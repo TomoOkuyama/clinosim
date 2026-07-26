@@ -92,16 +92,28 @@ def test_jp_mapped_lab_uses_corelabo_jlac10_after_pr3b():
     assert coding["display"] == "WBC", f"Fixed display must be 'WBC' (SD Fixed value), got: {coding['display']!r}"
 
 
-def test_jp_unmapped_lab_falls_back_to_loinc_system():
-    """An unmapped lab_name's LOINC-shaped order_code fallback must be tagged loinc,
-    not jlac10 — the code system must co-vary with which branch produced the value."""
+def test_jp_unmapped_lab_routes_to_uncoded_after_pr3c():
+    """PR 3c (2026-07-26): an unmapped JP lab_name now routes to
+    ``UncodedStrategy`` (the safe classifier default), which emits the
+    JP-CLINS Uncoded slice (code=99999999999999999). Pre-PR-3c fell
+    back to LegacyJSLM with LOINC-shaped order_code — that path is
+    retired for classified analytes. Uncoded emit is spec-compliant
+    (Uncoded slice is the "cannot map to standard code" fallback).
+
+    Skipped when JP-CLINS pkg is not installed — UncodedStrategy has
+    a defensive fallback to LegacyJSLM in that state so a minimal-
+    install run still emits something rather than crashing."""
+    from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+
+    if not load_lab_coding_package().is_available():
+        pytest.skip("JP-CLINS pkg not installed — Uncoded emit falls back to LegacyJSLM")
     t = datetime(2026, 7, 4, 8, 0)
     o = _make_lab_order("O1", "NotARealLabName", "99999-9", 1.0, t)
     ctx = _make_ctx([o], "JP")
     obs = _bb_labs(ctx)
     coding = obs[0]["code"]["coding"][0]
-    assert coding["system"] == get_system_uri("loinc")
-    assert coding["code"] == "99999-9"
+    assert "Uncoded" in coding["system"], f"Unmapped JP should route to Uncoded post-PR-3c, got {coding['system']!r}"
+    assert coding["code"] == "99999999999999999"
 
 
 def test_us_unmapped_lab_still_loinc():
