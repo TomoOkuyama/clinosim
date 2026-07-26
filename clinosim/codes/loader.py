@@ -224,7 +224,22 @@ _BUILTIN_URIS: dict[str, str] = {
     "rxnorm": "http://www.nlm.nih.gov/research/umls/rxnorm",
     "cpt": "http://www.ama-assn.org/go/cpt",
     "jlac10": "urn:oid:1.2.392.200119.4.1005",
-    "yj": "urn:oid:1.2.392.100495.20.2.74",
+    # JP Core NamingSystem preferred=True fixedUri (session 53 iris4h-ai F-1
+    # rationale + B2 2026-07-26 registry drift 訂正)。旧値 `.74` は HOT9 alias OID、
+    # YJ 本来の OID は `.73`。emit 側は既に capstandard URI へ dispatch 済み。
+    "yj": "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code",
+    # JP MEDIS medication code families — JP Core NamingSystem preferred fixedUri
+    # 直接引用 (iris4h-ai/jp_core/package/NamingSystem-jp-medis-medicationcode*.json)。
+    # code data 自体は現状 clinosim 側に持たない (URI resolve 目的の registry
+    # entry のみ)。emit 側 `_fhir_medications.py:_resolve_jp_drug_system_uri`
+    # の format 別 dispatch から eval axis が同一 canonical を参照するため。
+    "hot7": "http://medis.or.jp/CodeSystem/master-HOT7",
+    "hot9": "http://medis.or.jp/CodeSystem/master-HOT9",
+    "hot13": "http://medis.or.jp/CodeSystem/master-HOT13",
+    # JP-CLINS eCS Nocoded fallback CS — clinical-information-sharing#1.12.0
+    # の CodeSystem-jp-eCS-medicationcode-nocoded-cs.json `url` 直接引用。
+    # medication[x].coding min=1 を code_mapping 不在薬でも満たすための slice。
+    "medication-nocoded": "http://jpfhir.jp/fhir/eCS/CodeSystem/MedicationCodeNocoded_CS",
     "k-codes": "urn:oid:1.2.392.200119.4.401",
     "ucum": "http://unitsofmeasure.org",
     "hl7-v3-actcode": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
