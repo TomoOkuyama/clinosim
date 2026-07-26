@@ -313,25 +313,116 @@ class CoreLaboStrategy:
 
 
 # --------------------------------------------------------------------------- #
-# Dispatcher.
+# Classifier — clinosim analyte-name → coding kind (clinosim IP).
+#
+# This is the ONLY place clinosim-side mapping lives (per session 67
+# memo license boundary: SD/CS-derived data stays in
+# ``lab_coding_package``; clinosim's own analyte name → SD slice_name
+# lookup stays here, commit-safe).
+#
+# PR 3a scope: classifier is implemented + unit-tested but NOT yet
+# consumed by ``select_lab_coding_strategy`` (dispatcher is 1-line
+# unchanged for byte-identical guarantee). PR 3b will bridge the
+# classifier result into the dispatcher for CoreLabo-eligible analytes;
+# PR 3c bridges Uncoded. Until then, the classifier's return values
+# are verified by unit tests alone — production callsites of the
+# dispatcher never see the new classification.
+
+
+# clinosim internal analyte name → SD slice suffix (SD slice name is
+# ``coreLaboJLAC10/<suffix>``). 20 entries — every JP analyte that
+# resolves to a CoreLabo slice today.
+#
+# Glucose is INTENTIONALLY absent here — it maps to Uncoded (see below)
+# because the upstream simulator does not carry fasting_state, so
+# distinguishing BG / FBG / CBG is not currently possible. See TODO
+# ``T67-Glucose-disambig``. Assigning Glucose to any single CoreLabo
+# slice (e.g. ``bg``) would fabricate a semantic identity the data
+# does not support (some emitted glucose is legitimately fasting or
+# capillary); Uncoded is the honest classification under uncertainty.
+_ANALYTE_TO_SLICE_NAME: dict[str, str] = {
+    "Creatinine": "cre",
+    "K": "k",
+    "Na": "na",
+    "WBC": "wbc",
+    "AST": "ast",
+    "ALT": "alt",
+    "CRP": "crp",
+    "Hb": "hb",
+    "BUN": "bun",
+    "PT_INR": "pt-inr",
+    "BNP": "bnp",
+    "Plt": "plt",
+    "Ca": "ca",
+    "Albumin": "alb",
+    "HbA1c": "hba1c-ngsp",
+    "TG": "tg",
+    "HDL": "hdl-c",
+    "TC": "t-cho",
+    "APTT": "aptt",
+    "D_dimer": "dd",
+}
+
+# clinosim analytes explicitly known to have no CoreLabo slice —
+# routed to Uncoded (spec-compliant fallback for standardization-not-possible).
+# Enumerated (not implicit) so a NEW analyte added to the pipeline
+# without a mapping decision triggers the completeness test in
+# ``tests/unit/test_lab_coding_strategy.py`` — unmapped→UNCODED default
+# is a safety net for the runtime, not a mechanism for silent takedowns.
+_KNOWN_UNCODED_ANALYTES: frozenset[str] = frozenset(
+    {
+        # Arterial blood gas (4)
+        "pH",
+        "pCO2",
+        "pO2",
+        "HCO3",
+        # Cardiac markers not in CoreLabo (2)
+        "Troponin_I",
+        "CK_MB",
+        # Metabolic / infection markers (5)
+        "Lactate",
+        "PCT",
+        "TSH",
+        "Fibrinogen",
+        "eGFR",
+        # Glucose — needs disambig into bg/fbg/cbg but upstream does not
+        # carry fasting_state today. Uncoded until T67-Glucose-disambig
+        # lands data-pipeline changes.
+        "Glucose",
+    }
+)
+
+
+def _slice_name_for_analyte(lab_name: str) -> str | None:
+    """Return the SD slice suffix (e.g. ``k`` for
+    ``coreLaboJLAC10/k``) for a clinosim internal analyte name.
+    Returns ``None`` for analytes with no CoreLabo slice — those route
+    to Uncoded via ``_classify_analyte``."""
+    return _ANALYTE_TO_SLICE_NAME.get(lab_name)
 
 
 def _classify_analyte(lab_name: str, country: str) -> LabCodingKind:
-    """Placeholder in PR 1 — returns ``LEGACY_*`` to preserve
-    byte-identical output. PR 3 will replace with real classification:
+    """PR 3a real classifier. Return the coding kind for this
+    (analyte, country) pair.
 
-    - JP + analyte in CoreLabo 55-parent set → ``CORELABO_JLAC10``
-    - JP + analyte in InfectionLabo 5-item set → ``INFECTION_LABO_JLAC10``
-    - JP + otherwise → ``UNCODED`` (with LocalCode always co-emitted)
-    - US → ``LEGACY_LOINC`` (unchanged)
+    - US → ``LEGACY_LOINC`` (unchanged; LOINC direct mapping remains)
+    - JP + analyte in ``_ANALYTE_TO_SLICE_NAME`` → ``CORELABO_JLAC10``
+    - JP + analyte in ``_KNOWN_UNCODED_ANALYTES`` → ``UNCODED``
+    - JP + analyte NOT in either set → ``UNCODED`` (safe fallback for
+      unrecognised analytes; the completeness test in unit tests
+      guards against silent takedowns of known analytes)
 
-    The lookup table for CoreLabo / InfectionLabo membership is
-    supplied by the shared pkg loader (PR 2 factors this from
-    ``clinosim/eval/axes/jp_clins_lab_compliance._load_slice_map``).
+    **NOTE (PR 3a invariant)**: this function is only called from
+    unit tests in PR 3a. ``select_lab_coding_strategy`` does not
+    invoke it yet — the dispatcher continues to return LegacyJSLM /
+    LegacyLOINC unchanged for byte-identical production output.
+    PR 3b bridges CoreLabo-classified analytes; PR 3c bridges Uncoded.
     """
     if is_us(country):
         return LabCodingKind.LEGACY_LOINC
-    return LabCodingKind.LEGACY_JSLM
+    if lab_name in _ANALYTE_TO_SLICE_NAME:
+        return LabCodingKind.CORELABO_JLAC10
+    return LabCodingKind.UNCODED
 
 
 _STRATEGIES: dict[LabCodingKind, LabCodingStrategy] = {
@@ -344,8 +435,18 @@ _STRATEGIES: dict[LabCodingKind, LabCodingStrategy] = {
 
 
 def select_lab_coding_strategy(lab_name: str, country: str) -> LabCodingStrategy:
-    """Look up the strategy for this (analyte, country) pair. Uses
-    ``_classify_analyte`` to determine ``LabCodingKind`` and returns
-    the corresponding singleton strategy."""
-    kind = _classify_analyte(lab_name, country)
-    return _STRATEGIES[kind]
+    """Look up the strategy for this (analyte, country) pair.
+
+    **PR 3a invariant**: dispatcher returns ``LegacyJSLMStrategy`` for
+    JP and ``LegacyLOINCStrategy`` for US, exactly as in PR 1 —
+    unchanged for byte-identical guarantee. The new ``_classify_analyte``
+    (below) is implemented and unit-tested but NOT consumed here;
+    PR 3b will bridge CoreLabo-classified analytes into
+    ``CoreLaboStrategy`` here, and PR 3c will bridge Uncoded. Keeping
+    this dispatcher literally 1-line-unchanged from PR 1 is the
+    byte-identical proof — the classifier's return values cannot
+    influence production output because they never reach this
+    function."""
+    if is_us(country):
+        return _STRATEGIES[LabCodingKind.LEGACY_LOINC]
+    return _STRATEGIES[LabCodingKind.LEGACY_JSLM]
