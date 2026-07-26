@@ -2731,3 +2731,89 @@ consumption path in `order/engine.py` bypasses Pydantic (not covered by forbid).
 
 **Related documents:** `docs/design-notes/2026-07-06-fix-point-registry.md` (FP-YAML-3);
 `docs/design-guides/data-model-and-completeness-conventions.md` §2
+
+
+---
+
+### AD-70 · JP-CLINS lab coding: JLAC10 primary + LOINC secondary (international interoperability)
+
+**Date:** 2026-07-26 (session 68, migration PR 4)
+
+**Status:** Accepted
+
+**Context:**
+
+JP-CLINS 検体検査 migration (PR #396–#404) established JLAC10 as the primary coding system
+for 1,898 CoreLabo analytes (session 67 axis 100% completion). The architecture decision for
+secondary coding systems arose: should LOINC be retained as secondary coding alongside JLAC10
+primary, or removed entirely for JP-only purism?
+
+Three options were considered:
+
+- **Option A (JP purism):** Remove LOINC secondary coding entirely; emit JLAC10 primary only.
+  Rationale: JP-CLINS is JP-specific data exchange standard; LOINC is redundant in domestic JP
+  context. Removes ~0.5 KB FHIR overhead per exam instance.
+
+- **Option B (interoperability):** Retain dual coding — JLAC10 as primary (discriminator + Fixed
+  coding), LOINC as secondary. Rationale: allows downstream international-facing systems (cloud EHR,
+  research integrations, academic medical data pipelines) to normalize into LOINC without losing
+  JLAC10 traceability; supports the implicit contract that "any JP clinic can export to
+  international viewer if needed."
+
+- **Option C (branching):** Country-flag-based dispatch — `_fhir_observations.py` checks
+  `country == "JP"` and omits LOINC for JP only. Rationale: keeps US output optimally compact,
+  gives JP the choice.
+
+**Decision:** **Option B** — retain dual coding (JLAC10 primary + LOINC secondary).
+
+**Rationale:**
+
+1. **Binding constraint:** JP Core `JP_Observation_LabResult.code` is defined with binding
+   strength `example` (FHIR terms: weakest binding, "recommended but not required"). This means
+   both **single-system coding** (JLAC10 only) and **multi-system coding** (JLAC10 + LOINC) are
+   spec-compliant.
+
+2. **International interoperability:** LOINC is the de facto global lab code standard. Dual coding
+   enables downstream systems (research DBs, cloud EHR platforms, international healthcare
+   networks) to accept clinosim export without custom mapping code. Removing LOINC forces those
+   systems to maintain JLAC10→LOINC mapping tables externally, increasing integration friction.
+
+3. **Metadata cost is acceptable:** Each lab Observation adds ~30–50 bytes (LOINC coding[] slice +
+   system + code + display). At p=100 JP dataset, this is ~90–150 KB cumulative — negligible
+   within the multi-GB export footprint. The `example` binding level does not impose a penalty
+   for additional codings.
+
+4. **Traceability and reversibility:** Retaining LOINC enables full round-trip mapping (JLAC10↔LOINC)
+   without data loss. Removing it forecloses downstream reverse-mapping if a use case later
+   requires it.
+
+5. **Alignment with FA-1 principle (AD-56):** Adapters (FHIR builders) are single-responsibility
+   (emit what CIF provides); CIF stores codes language-neutrally (AD-30). The dual-coding choice
+   is a **FHIR presentation choice**, not a data-model choice — perfectly aligned with separating
+   data from adapter.
+
+**Consequences:**
+
+Positive:
+- Downstream systems can integrate clinosim export without custom mapping.
+- JP and US outputs remain 100% identical (no branching logic to maintain).
+- Future JP-CLINS profile evolution (if binding ever strengthens to `required`) is forward-compatible.
+
+Negative/neutral:
+- Slight FHIR size increase (~0.2–0.5% of per-dataset NDJSON).
+- Authoring burden on LOINC code coverage (already complete; PR #396 ensured all 20 CoreLabo
+  analytes have LOINC codes in `codes/data/loinc.yaml`).
+
+Alternative deferred:
+- If JP-CLINS 2.1 / JP FHIR profiles ever restrict binding to `required` + explicitly forbid
+  non-JLAC10 coding, this ADR will be revisited and option A/C re-evaluated (with a separate
+  migration chain to remove LOINC secondary). Until then, `example` binding is the governing
+  constraint.
+
+**Related ADRs:** AD-30 (CIF language-neutral) / AD-31 (Bulk Data compliance) / AD-56 (adapter
+single responsibility) / AD-58 (output adapter registration pattern)
+
+**Related documents:**
+- Migration PRs: #396 (dispatcher refactor) / #398 (shared pkg loader) / #400 (analyte classifier)
+  / #402 (CoreLabo emit) / #404 (Uncoded + LocalCode + sanitize)
+- Session notes: `project_session_67_end_state.md` (axis completion, decision B adoption)
