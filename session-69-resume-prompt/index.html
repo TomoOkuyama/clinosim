@@ -1626,22 +1626,33 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#session-69-accomplishments" class="md-nav__link">
+  <a href="#correction-notice" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Session 69 Accomplishments
+        Correction notice
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Session 69 Accomplishments">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#session-69-accomplishments-actual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session 69 accomplishments (actual)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Session 69 accomplishments (actual)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#1-completed-merge-sequence-b2b3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Completed Merge Sequence (B2+B3)
+        1. Completed merge sequence (B2+B3)
       
     </span>
   </a>
@@ -1649,10 +1660,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-implemented-ci-gate-pr-421-a6" class="md-nav__link">
+  <a href="#2-ci-gate-landed-as-pr-424-not-pr-421" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Implemented CI Gate (PR #421, A6)
+        2. CI gate — landed as PR #424 (not PR #421)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-issue-416-kcrealb-distribution-investigation-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Issue #416 (K/Cre/Alb distribution) — investigation only
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-records-filed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Records filed
       
     </span>
   </a>
@@ -1665,10 +1698,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#technical-summary" class="md-nav__link">
+  <a href="#silent-no-op-defense-layers-unchanged-from-session-68" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Technical Summary
+        Silent-no-op defense layers (unchanged from session 68)
       
     </span>
   </a>
@@ -1676,43 +1709,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#remaining-baseline-issues-separate-from-jp-clins" class="md-nav__link">
+  <a href="#baseline-issues-still-open-at-wrap" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Remaining Baseline Issues (Separate from JP-CLINS)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#pending-tasks-session-70" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pending Tasks (Session 70+)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#session-70-action-items" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Session 70 Action Items
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#technical-notes-for-session-70" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Technical Notes for Session 70
+        Baseline issues still open at wrap
       
     </span>
   </a>
@@ -1723,7 +1723,7 @@
   <a href="#files-changed-this-session" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Files Changed This Session
+        Files changed this session
       
     </span>
   </a>
@@ -1731,10 +1731,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#previous-session-context" class="md-nav__link">
+  <a href="#session-70-startup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Previous Session Context
+        Session 70 startup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#previous-session-context-retained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Previous session context (retained)
       
     </span>
   </a>
@@ -1767,141 +1778,128 @@
 
 
 <h1 id="session-69-resume-prompt">Session 69 Resume Prompt<a class="headerlink" href="#session-69-resume-prompt" title="Permanent link">&para;</a></h1>
-<p><strong>Date</strong>: 2026-07-26<br />
-<strong>Branch</strong>: master <code>13bfdb4af4</code><br />
-<strong>Status</strong>: 3 PRs merged (B1+B2+B3), 1 PR pending (A6 CI gate)</p>
-<h2 id="session-69-accomplishments">Session 69 Accomplishments<a class="headerlink" href="#session-69-accomplishments" title="Permanent link">&para;</a></h2>
-<h3 id="1-completed-merge-sequence-b2b3">1. Completed Merge Sequence (B2+B3)<a class="headerlink" href="#1-completed-merge-sequence-b2b3" title="Permanent link">&para;</a></h3>
-<p><strong>Problem</strong>: Stacked PRs (#413, #414) were auto-closed when parent PR #411 (B1) was squash-merged.<br />
-<strong>Root cause</strong>: squash merge creates new commit SHA, base reference breaks.<br />
-<strong>Solution</strong>: Rebase both B2 and B3 branches after B1 squash, force-push, create new PRs.</p>
+<p><strong>Date</strong>: 2026-07-26
+<strong>Master head at wrap</strong>: <code>80b5f422a3</code> (feat(eval): JP-CLINS lab compliance CI gate + --only-axes flag (#424))</p>
+<h2 id="correction-notice">Correction notice<a class="headerlink" href="#correction-notice" title="Permanent link">&para;</a></h2>
+<p>An earlier version of this document (committed as <code>2712c3d28c</code>) recorded
+"PR #421 (A6) implemented the CI gate" and listed A1 (CI validation) /
+A2 (pkg strategy) as session-70 P0 tasks. That was not accurate at the
+time of writing and has since been overtaken. The record is corrected
+below to match what actually landed. No attribution to who made the
+earlier statements — git identity does not distinguish authors here.</p>
+<h2 id="session-69-accomplishments-actual">Session 69 accomplishments (actual)<a class="headerlink" href="#session-69-accomplishments-actual" title="Permanent link">&para;</a></h2>
+<h3 id="1-completed-merge-sequence-b2b3">1. Completed merge sequence (B2+B3)<a class="headerlink" href="#1-completed-merge-sequence-b2b3" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>PR #419 (B2)</strong>: registry drift fixes (YJ OID + eval axis URI replacements)</li>
-<li><strong>PR #420 (B3)</strong>: unit-aware lab bounds (584 false positives → 10 true)</li>
-<li><strong>Byte-diff</strong>: 26/26 IDENTICAL (no regression)</li>
+<li><strong>PR #411 (B1)</strong>: JP-CLINS lab CS URI single source of truth</li>
+<li><strong>PR #419 (B2)</strong>: registry drift fixes (YJ OID correction + eval axis URI hardcoded drift 解消)</li>
+<li><strong>PR #420 (B3)</strong>: unit-aware lab bounds (584 false positives → 10 true positives)</li>
+<li><strong>PR #413 / #414</strong>: closed unmerged. B3 landed as new PR #420 on <code>base=master</code>; B2 landed as new PR #419 on <code>base=master</code>. The stacked-PR + parent-branch-delete pattern that closed #413 / #414 is documented as a session-68 lesson.</li>
 </ul>
-<h3 id="2-implemented-ci-gate-pr-421-a6">2. Implemented CI Gate (PR #421, A6)<a class="headerlink" href="#2-implemented-ci-gate-pr-421-a6" title="Permanent link">&para;</a></h3>
-<p><strong>Scope</strong>: G2 (jp_clins_lab_compliance axis only)<br />
-<strong>Design</strong>: Hard gate after unit tests, p=10 JP cohort seed=42, exits 1 on FAIL<br />
-<strong>Decoupling</strong>: Does NOT gate on lab_values/warfarin (tracked separately #416/#417/#418)</p>
-<h2 id="technical-summary">Technical Summary<a class="headerlink" href="#technical-summary" title="Permanent link">&para;</a></h2>
-<p><strong>JP-CLINS Infrastructure Complete</strong>:
-- B1 (<code>cefc0f73e4</code>): URI single-source consolidation (codes/loader.py registry + lab_coding_package accessors)
-- B2 (<code>9809123ec0</code>): registry drift fixes (YJ OID correction + eval axis consumer migration)
-- B3 (<code>13bfdb4af4</code>): unit-aware lab bounds (WBC/K/Na unit matching)
-- A6 (PR #421): CI gate (focused on jp_clins axis, ignores other baseline issues)</p>
-<p><strong>Silent-no-op Defense</strong> (6 layers established):
-1. Canonical constants (HAI_TYPES, JLAC10_SYSTEM_PREFIXES, etc.)
-2. YAML loader cross-validation (import-time fail-loud)
-3. normalize_probabilities(..., fallback="raise") on 15 callsites
-4. reverse-coverage + forward-staleness checks
-5. eval axis registry union pattern (B2: legacy OID + new JP-CLINS URIs)
-6. tx-server-verifiable code set gate (Framework Phase 4)</p>
-<h2 id="remaining-baseline-issues-separate-from-jp-clins">Remaining Baseline Issues (Separate from JP-CLINS)<a class="headerlink" href="#remaining-baseline-issues-separate-from-jp-clins" title="Permanent link">&para;</a></h2>
+<h3 id="2-ci-gate-landed-as-pr-424-not-pr-421">2. CI gate — landed as <strong>PR #424</strong> (not PR #421)<a class="headerlink" href="#2-ci-gate-landed-as-pr-424-not-pr-421" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>PR #421</strong> was opened during session 69 with the same scope (<code>jp_clins_lab_compliance</code> axis only) but did not include the JP-CLINS package acquisition step, so it would have exited with <code>cs_usage = 0%</code> on any CI run. It was closed unmerged and superseded by PR #424.</li>
+<li><strong>PR #424</strong> (merged as <code>80b5f422a3</code>): the CI gate that actually landed.</li>
+<li>New workflow <code>.github/workflows/jp-clins-lab-compliance-gate.yml</code> — independent job, <code>ci.yml</code> untouched.</li>
+<li>Cohort: <strong>JP p=300 seed=300</strong> (~40s wall clock).</li>
+<li>pkg fetch: <strong>jpfhir.jp direct</strong> at run time (CC0-1.0):<ul>
+<li><code>https://jpfhir.jp/fhir/clins/igv1/package.tgz</code></li>
+<li><code>https://jpfhir.jp/fhir/core/terminology/igv-2.2606.0/package.tgz</code></li>
+</ul>
+</li>
+<li>Pin: <strong>per-file SHA256</strong> + extract-time <code>package.json.version</code> assert (URL path <code>igv1</code> / <code>igv-2.2606.0</code> is a channel that can be republished; the SHA is the real pin).</li>
+<li>Merge with <strong>visible collision handling</strong>: 4 filename collisions between the two pkgs are logged (not silently <code>cp -n</code> skipped); clins wins for those, term fills in the rest.</li>
+<li>Gate signal: <code>clinosim eval --strict --only-axes jp_clins_lab_compliance</code> exit code. Any FAIL check on the 3-metric axis (<code>cs_usage</code> / <code>fixed_display</code> / <code>rule_satisfaction</code>, all <code>threshold=1.0</code>) breaks the build.</li>
+<li>Intentional-regression unit test (<code>tests/unit/test_axis_jp_clins_lab_compliance_gate_regression.py</code>): drops the LocalCode co-slice on 1 of 5 hand-crafted Observations, asserts <code>rule_satisfaction</code> outcome = FAIL. Selection rationale: unwire-JLAC10-code_mapping is absorbed by the Uncoded strategy fallback (Uncoded is in <code>_JP_CLINS_DEFINED_SYSTEMS</code>), so <code>cs_usage</code> stays 100% — the LocalCode-omission shape is what actually detects the failure.</li>
+<li>Generalized eval CLI: <code>--only-axes &lt;axis_id&gt;[,&lt;axis_id&gt;...]</code> (unknown ids fail-fast; flag-omitted preserves all-axes default, pinned by <code>tests/unit/test_eval_only_axes_flag.py</code>).</li>
+<li><strong>A1 (CI validation) and A2 (pkg strategy) are subsumed by PR #424.</strong> Both were resolved as part of that PR — A1 by the workflow going green on the first run against <code>p=300 seed=300</code> (verified on real GitHub-hosted Ubuntu), and A2 by the SHA-pinned jpfhir.jp direct-fetch design landing in the workflow itself. Neither is a pending session-70 task.</li>
+</ul>
+<h3 id="3-issue-416-kcrealb-distribution-investigation-only">3. Issue #416 (K/Cre/Alb distribution) — investigation only<a class="headerlink" href="#3-issue-416-kcrealb-distribution-investigation-only" title="Permanent link">&para;</a></h3>
+<p>Root cause investigation completed under a strict "no implementation, design only" constraint. Results attached as an in-thread comment on #416 (<code>issuecomment-5083314777</code>):</p>
+<ul>
+<li>3 physiological reserves (renal / cardiac / hepatic) share the same <code>beta(8, 2)</code> draw in <code>modules/patient/activator.py:170-179</code>, regardless of chronic-condition status or age.</li>
+<li>Beta(8, 2) mean = 0.805, median = 0.826. Hepatic median 0.826 → <code>Albumin = 4.2 - (1 - 0.826) * 1.5 = 3.94</code> for a fully healthy patient (<code>infl = 0</code>), below the JP lower bound 4.1.</li>
+<li><strong>Decisive observation</strong>: outpatient (<code>AMB</code>) patients with no chronic conditions and age <code>&lt; 65</code> have Cre <code>median = 1.16 (M) / 0.93 (F)</code>, both above their sex-specific JP upper bounds (1.07 / 0.79). This is a healthy-cohort baseline drift, not disease enrichment.</li>
+<li><strong>Hb is not affected.</strong> The session-68 signal ("median below M lower bound") was a sex-mixed-median vs single-sex-reference comparison. Sex-stratified: <code>M AMB median 15.0 / F AMB median 13.0</code>, both within-range.</li>
+</ul>
+<p>Fix direction: renal / cardiac / hepatic reserve distributions need to yield healthy-young reference-band-centered analyte values. Specific parameter change is deferred pending product-level decision — the change would move every existing golden fixture. This is on-hold at session 69 wrap.</p>
+<h3 id="4-records-filed">4. Records filed<a class="headerlink" href="#4-records-filed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Issue #423</strong>: license clarification — <code>package.json.license = CC0-1.0</code> (primary source, both packages) vs commit <code>803bd4547d</code> message stating "CC BY-ND." Recorded for future resolution. Runtime-fetch stays regardless of resolution.</li>
+<li><strong>Issue #425</strong>: master direct-push (<code>2712c3d28c</code>) + orphan branch <code>docs/session-70-a2-pkg-strategy</code> (still present on origin at session 69 wrap). Recorded without attribution.</li>
+</ul>
+<h2 id="silent-no-op-defense-layers-unchanged-from-session-68">Silent-no-op defense layers (unchanged from session 68)<a class="headerlink" href="#silent-no-op-defense-layers-unchanged-from-session-68" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Canonical constants (<code>HAI_TYPES</code>, <code>JLAC10_SYSTEM_PREFIXES</code>, …)</li>
+<li>YAML loader cross-validation (import-time fail-loud)</li>
+<li><code>normalize_probabilities(..., fallback="raise")</code> on 15 callsites</li>
+<li>Reverse-coverage + forward-staleness checks</li>
+<li>Eval axis registry union pattern (B2: legacy OID + new JP-CLINS URIs)</li>
+<li>Tx-server-verifiable code set gate (Framework Phase 4)</li>
+</ol>
+<h2 id="baseline-issues-still-open-at-wrap">Baseline issues still open at wrap<a class="headerlink" href="#baseline-issues-still-open-at-wrap" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
 <th>Issue</th>
-<th>Status</th>
-<th>Impact</th>
+<th>State</th>
+<th>Note</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>#416</td>
-<td>Investigation</td>
-<td>K/Cre/Alb distribution anomalies (not JP-CLINS related)</td>
+<td>Investigation attached, product decision pending</td>
+<td>K / Cre / Alb: 3-reserve <code>beta(8,2)</code> drift. Do not implement without approved parameter proposal.</td>
 </tr>
 <tr>
 <td>#417</td>
-<td>Investigation</td>
-<td>Warfarin 17/34 out-of-band (true data quality, revealed by B2)</td>
+<td>Open</td>
+<td>Warfarin 17/34 out-of-band. Real data quality signal surfaced by B2.</td>
 </tr>
 <tr>
 <td>#418</td>
-<td>Design</td>
-<td>Silent JSLM fallback when JP-CLINS pkg unavailable</td>
+<td>Open</td>
+<td>Silent JSLM fallback when JP-CLINS pkg unavailable. Runtime-fetch in CI is not a mitigation for the product-level issue.</td>
+</tr>
+<tr>
+<td>#423</td>
+<td>Open</td>
+<td>License clarification (session 69). Not blocking.</td>
+</tr>
+<tr>
+<td>#425</td>
+<td>Open</td>
+<td>Master direct-push + orphan branch record (session 69). Not blocking.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="pending-tasks-session-70">Pending Tasks (Session 70+)<a class="headerlink" href="#pending-tasks-session-70" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Priority</th>
-<th>Task</th>
-<th>Scope</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>P0</td>
-<td>A1: PR #421 CI validation</td>
-<td>Confirm GitHub Actions job runs end-to-end</td>
-</tr>
-<tr>
-<td>P0</td>
-<td>A2: pkg acquisition strategy</td>
-<td>Design G1a (fhir CLI) vs G1b (direct download + cache)</td>
-</tr>
-<tr>
-<td>P1</td>
-<td>#416</td>
-<td>Investigate K/Cre/Alb distribution (per-disease stratification)</td>
-</tr>
-<tr>
-<td>P1</td>
-<td>#417</td>
-<td>Investigate warfarin band (likely real PT_INR variability)</td>
-</tr>
-<tr>
-<td>P1</td>
-<td>#418</td>
-<td>Design silent fallback handling (fail-loud vs warning vs flag)</td>
-</tr>
-</tbody>
-</table>
-<h2 id="session-70-action-items">Session 70 Action Items<a class="headerlink" href="#session-70-action-items" title="Permanent link">&para;</a></h2>
+<h2 id="files-changed-this-session">Files changed this session<a class="headerlink" href="#files-changed-this-session" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>.github/workflows/jp-clins-lab-compliance-gate.yml</code> (new, PR #424)</li>
+<li><code>clinosim/eval/cli.py</code> (+21, PR #424 — <code>--only-axes</code> flag)</li>
+<li><code>clinosim/eval/engine.py</code> (+8, PR #424 — axis filter validation)</li>
+<li><code>tests/unit/test_axis_jp_clins_lab_compliance_gate_regression.py</code> (new, PR #424 — 3 tests)</li>
+<li><code>tests/unit/test_eval_only_axes_flag.py</code> (new, PR #424 — 5 tests)</li>
+<li>Via PR #419: <code>codes/data/yj.yaml</code>, <code>codes/loader.py</code>, <code>eval/axes/locale.py</code>, <code>eval/axes/clinical.py</code>, <code>tests/unit/test_registry_uri_pin.py</code></li>
+<li>Via PR #420: <code>eval/axes/clinical.py</code> (unit-aware bounds)</li>
+</ul>
+<h2 id="session-70-startup">Session 70 startup<a class="headerlink" href="#session-70-startup" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>A1</strong>: Check PR #421 CI job on GitHub Actions</li>
-<li>Verify jp-cohort generation completes</li>
-<li>Verify eval JSON report is valid</li>
-<li>
-<p>Verify jp_clins_lab_compliance outcome is correctly extracted</p>
-</li>
-<li>
-<p><strong>A2</strong>: Design pkg acquisition strategy (do not implement yet)</p>
-</li>
-<li>Option G1a: fhir CLI <code>get_version_info()</code> approach</li>
-<li>Option G1b: Direct HTTPS download from GitHub + cache to $CLINOSIM_JP_CLINS_PKG_DIR</li>
-<li>
-<p>Consider: CI timeout, bandwidth, reproducibility</p>
-</li>
-<li>
-<p><strong>Do NOT start</strong>: New features, Framework Phase 5 (SNOMED/MEDIS), until A1/A2 complete</p>
-</li>
+<li>Verify state: <code>git fetch origin &amp;&amp; git log --oneline origin/master -5</code>. Expected top is <code>80b5f422a3</code> (PR #424 merge). <code>gh pr list --state open</code> should not include a JP-CLINS-gate PR.</li>
+<li>Await the #416 fix-direction decision. Do not touch <code>modules/patient/activator.py:170-179</code> without it.</li>
+<li>Cleanup candidates (all optional, all requiring PR / Issue-first per CLAUDE.md workflow):</li>
+<li>Investigate <code>docs/session-70-a2-pkg-strategy</code> orphan branch. If content is worth keeping, open a PR from it; otherwise delete.</li>
+<li>Consider <code>master</code>-branch-protection to prevent direct push (record in #425).</li>
+<li>Address existing repository-wide <code>ruff format</code> debt (39 files, Lint informational job).</li>
 </ol>
-<h2 id="technical-notes-for-session-70">Technical Notes for Session 70<a class="headerlink" href="#technical-notes-for-session-70" title="Permanent link">&para;</a></h2>
+<h2 id="previous-session-context-retained">Previous session context (retained)<a class="headerlink" href="#previous-session-context-retained" title="Permanent link">&para;</a></h2>
 <ul>
-<li>If PR #421 CI fails: Issue likely in eval JSON parsing (axis key name, check structure)</li>
-<li>Silent fallback (#418): Product-level decision required (affects all JP cohorts without pkg)</li>
-<li>K/Cre/Alb (#416): Requires cohort-level statistical audit (histogram per disease, per stage)</li>
-<li>Warfarin (#417): True data quality issue (not measurement noise), may require domain expert review</li>
-</ul>
-<h2 id="files-changed-this-session">Files Changed This Session<a class="headerlink" href="#files-changed-this-session" title="Permanent link">&para;</a></h2>
-<ul>
-<li><code>.github/workflows/ci.yml</code>: Added <code>jp-clins-compliance</code> job (hard gate)</li>
-<li>(via PR #419): codes/data/yj.yaml, codes/loader.py, eval/axes/locale.py, eval/axes/clinical.py, tests/unit/test_registry_uri_pin.py</li>
-<li>(via PR #420): eval/axes/clinical.py (unit-aware bounds)</li>
-</ul>
-<h2 id="previous-session-context">Previous Session Context<a class="headerlink" href="#previous-session-context" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Session 68: Rebased B1→B2→B3 chain, authored B1/B2/B3 PRs, discovered B2 warfarin gap (#417), authored B3 unit-awareness fix</li>
-<li>Session 67: JP-CLINS migration complete (2509/2509 specimens), 3 metric axis at 100%, measurement system complete</li>
-<li>Session 66-62: Incremental validator error reduction (v1 52,000x errors → v8 0.00125%)</li>
+<li>Session 68: rebased B1→B2→B3 chain, authored the B1/B2/B3 PRs, discovered B2 warfarin gap (#417), authored the B3 unit-awareness fix.</li>
+<li>Session 67: JP-CLINS migration complete (2509/2509 specimens), 3-metric axis at 100%, measurement system complete.</li>
+<li>Sessions 62–66: incremental validator error reduction (v1 → v8 ≈ 52,000× improvement).</li>
 </ul>
 <hr />
-<p><strong>Next Session Start</strong>: Confirm PR #421 CI job passes, then proceed to A2 (pkg strategy design).</p>
+<p><strong>Next session start</strong>: verify master head against <code>80b5f422a3</code>, then defer to the #416 decision before touching physiology parameters.</p>
 
 
 
