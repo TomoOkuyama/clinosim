@@ -625,6 +625,25 @@ Session 59 = v5 feedback 対応 chain。全 14 PR merged, 全 defer 実装完了
 
 ---
 
+## JP-CLINS lab coding migration — session 67 chain(完了)
+
+### Status(2026-07-26 wrap): 本体完成 + 2 PR 残
+
+Migration 本体(axis 3 metrics 0→100%)完成。7 PR merged:
+- #392 axis 導入 + microbiology 除外
+- #394 CC BY-ND runtime 抽出化 hotfix
+- #396 PR 1 dispatcher refactor(byte-identical)
+- #398 PR 2 shared pkg loader(pure SD/CS view + 11-item pre-cover)
+- #400 PR 3a analyte classifier(20 CoreLabo + 12 Uncoded、Glucose→Uncoded)
+- #402 PR 3b CoreLabo real emit(1898 obs、998-preferred + Option B 数値最大 material)
+- #404 PR 3c Uncoded + LocalCode + sanitize(全 2509 obs 100%)
+
+**axis 到達**: CS 使用率 2509/2509 = 100.0% / Fixed display 一致率 2509/2509 = 100.0% / 適用規則満足率 2509/2509 = 100.0%(全 PASS)
+
+**残 2 PR**(session 68 起点で ~2-2.5 h):
+- **PR 4**: LOINC secondary retention ADR(コード変更なし、DESIGN.md ADR のみ、決定 B = dual coding 保持)
+- **PR 5**: CI invariant gate(axis 3 metrics 自動チェック、Metric 1 は baseline 比較で退行検出)
+
 ## JP-CLINS lab compliance chain — session 67 spin-off TODOs
 
 These are non-blocking follow-ups spun out of the JP-CLINS lab
