@@ -162,6 +162,7 @@ class EvalEngine:
         cohort_dir: Path | str,
         axes: dict[str, AxisRunner] | None = None,
         countries: list[str] | None = None,
+        only_axes: list[str] | None = None,
     ):
         self.cohort_dir = Path(cohort_dir)
         # Lazy import to keep the top-level `clinosim.eval` import cheap.
@@ -174,6 +175,13 @@ class EvalEngine:
                 "locale": locale.run,
                 "jp_clins_lab_compliance": jp_clins_lab_compliance.run,
             }
+        if only_axes is not None:
+            unknown = [a for a in only_axes if a not in axes]
+            if unknown:
+                raise ValueError(
+                    f"unknown axis id(s): {unknown}. Known: {sorted(axes)}"
+                )
+            axes = {k: v for k, v in axes.items() if k in only_axes}
         self.axes = axes
         self.country_filter = countries
 
