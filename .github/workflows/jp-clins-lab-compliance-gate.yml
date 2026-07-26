@@ -1,0 +1,155 @@
+# JP-CLINS lab compliance CI gate (Issue #410).
+#
+# Enforces the JP-CLINS eCS invariant that every JP lab Observation
+# emitted by clinosim references a JP-CLINS-defined CodeSystem, carries
+# a LocalCode co-slice, and satisfies the eCS applicability rule.
+#
+# The gate runs a fresh JP cohort (p=300, seed=300) → clinosim eval on
+# only the ``jp_clins_lab_compliance`` axis → exit 1 if the axis has
+# any FAIL check. That axis carries a threshold=1.0 gate on all three
+# of its metrics, so any regression that drops a metric below 100%
+# breaks the build.
+#
+# The JP-CLINS pkg is fetched from jpfhir.jp at run time (CC0-1.0,
+# publisher-hosted). SHA256 is pinned per-file so a same-version
+# republish upstream would flip the gate red — that is the intended
+# behavior. If the pin needs to change: (1) confirm the upstream
+# change is intentional (diff package.json vs your current dir),
+# (2) update the SHA256 lines below, (3) re-run this workflow
+# locally against the new tgz to prove nothing else moved.
+#
+# Not committing the pkg: even though CC0-1.0 permits it, the
+# runtime-fetch approach means the gate always exercises the
+# published-canonical bytes, so a rename or repack upstream can never
+# be silently absorbed by a stale checked-in copy.
+
+name: JP-CLINS lab compliance gate
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: jp-clins-lab-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: JP p=300 seed=300 → eval only jp_clins_lab_compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install clinosim
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Fetch JP-CLINS pkgs (jpfhir.jp, SHA256-pinned)
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          # curl -f fails hard on HTTP >= 400 so no NA-fallback on 404.
+          curl -sSfL -o clins.tgz  "https://jpfhir.jp/fhir/clins/igv1/package.tgz"
+          curl -sSfL -o term.tgz   "https://jpfhir.jp/fhir/core/terminology/igv-2.2606.0/package.tgz"
+          # SHA256 pin — url path (igv1 / igv-2.2606.0) is a major channel
+          # and the payload can be republished under the same URL. This
+          # step is what actually stops silent drift.
+          shasum -a 256 -c <<'CHECKSUMS'
+          51d838eecb48a9bb377657333b5389c8ce83303bc34ef12bcadaa659316699a3  clins.tgz
+          831b1f6ce5c3d7712ea5d167cb371c87dbf3ea08e70f29267d80acd508becaff  term.tgz
+          CHECKSUMS
+
+      - name: Extract and assert package.json versions
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          mkdir -p clins-ext term-ext
+          tar -xzf clins.tgz -C clins-ext/
+          tar -xzf term.tgz  -C term-ext/
+          # package.json version is a stronger pin than the URL path
+          # (the URL channel could carry a different point release).
+          python3 - <<'PY'
+          import json, sys
+          for path, want in (("clins-ext/package/package.json", "1.12.0"),
+                             ("term-ext/package/package.json", "2.2606.0")):
+              got = json.load(open(path))["version"]
+              if got != want:
+                  sys.exit(f"pkg {path}: expected version {want}, got {got}")
+              print(f"OK  {path} version={got}")
+          PY
+
+      - name: Merge into single pkg dir (visible collision handling)
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          mkdir -p pkg-merged/package
+          # Report any file present in BOTH pkgs — cp -n silently drops
+          # the second one, which is what the previous session cautioned
+          # against. Print them so an unexpected new collision surfaces.
+          overlap=$(comm -12 \
+            <(ls clins-ext/package/ | sort) \
+            <(ls term-ext/package/ | sort))
+          if [ -n "$overlap" ]; then
+            echo "note: $(echo "$overlap" | wc -l | tr -d ' ') filename collision(s) between clins and term pkgs:"
+            echo "$overlap" | sed 's/^/  - /'
+            echo "  clins (eCS SD authority) wins for these; term-side copies are dropped intentionally."
+          fi
+          # clins-side goes in first (SD authority for eCS).
+          cp clins-ext/package/*.json pkg-merged/package/
+          # term-side fills in what clins doesn't have. Explicit copy
+          # only when the target file is absent — no silent -n skip.
+          for f in term-ext/package/*.json; do
+            name=$(basename "$f")
+            if [ ! -f "pkg-merged/package/$name" ]; then
+              cp "$f" "pkg-merged/package/$name"
+            fi
+          done
+          # Sanity: the eCS SD and each CoreLabo/InfectionLabo CS must
+          # exist in the merged dir — the loader would otherwise degrade.
+          for required in \
+            StructureDefinition-JP-Observation-LabResult-eCS.json \
+            CodeSystem-jp-clins-codesystem-jlac10-corelabo-cs.json \
+            CodeSystem-jp-clins-codesystem-jlac10-infectionlabo-cs.json ; do
+            if [ ! -f "pkg-merged/package/$required" ]; then
+              echo "ERROR: required pkg file missing after merge: $required" >&2
+              exit 1
+            fi
+          done
+          echo "CLINOSIM_JP_CLINS_PKG_DIR=${GITHUB_WORKSPACE:-$PWD}/pkg-merged/package" | true
+          # Emit the resolved path for later steps.
+          echo "CLINOSIM_JP_CLINS_PKG_DIR=$(pwd)/pkg-merged/package" >> "$GITHUB_ENV"
+
+      - name: Generate JP cohort (p=300 seed=300)
+        run: |
+          set -euo pipefail
+          mkdir -p cohort
+          clinosim simulate \
+            --country JP \
+            -p 300 \
+            -s 300 \
+            --format fhir-r4 \
+            -o cohort
+
+      - name: Run gate (clinosim eval --strict --only-axes jp_clins_lab_compliance)
+        run: |
+          set -euo pipefail
+          # --strict promotes any FAIL check in the selected axis to
+          # exit code 1. --only-axes restricts scoring to the one axis
+          # whose 3 metrics all carry threshold=1.0. If a metric drops
+          # below 100% (e.g., a new analyte forgot LocalCode
+          # co-emission), the axis has a FAIL check and the gate breaks
+          # the build.
+          clinosim eval \
+            -d cohort \
+            --country JP \
+            --strict \
+            --only-axes jp_clins_lab_compliance

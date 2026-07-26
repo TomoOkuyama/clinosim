@@ -52,6 +52,15 @@ def add_eval_subparser(subparsers: argparse._SubParsersAction) -> None:
         help="Exit 1 if any axis has a FAIL check. Default: exit 0 regardless.",
     )
     ev.add_argument(
+        "--only-axes",
+        default=None,
+        help=(
+            "Restrict scoring to a comma-separated axis id list "
+            "(e.g. 'jp_clins_lab_compliance' or 'clinical,locale'). "
+            "Unknown axis ids fail-fast. Default: run all registered axes."
+        ),
+    )
+    ev.add_argument(
         "--synthea-normalize",
         type=Path,
         default=None,
@@ -81,10 +90,20 @@ def dispatch_eval(args: argparse.Namespace) -> int:
         print(f"clinosim eval: wrote {total} resources across {len(counts)} ResourceType(s)", file=sys.stderr)
         cohort_dir = target
 
-    engine = EvalEngine(cohort_dir=cohort_dir, countries=args.country)
+    only_axes: list[str] | None = None
+    if args.only_axes:
+        only_axes = [a.strip() for a in args.only_axes.split(",") if a.strip()]
+        if not only_axes:
+            print("clinosim eval: --only-axes must list at least one axis id", file=sys.stderr)
+            return 2
+
     try:
+        engine = EvalEngine(cohort_dir=cohort_dir, countries=args.country, only_axes=only_axes)
         report = engine.run()
     except FileNotFoundError as exc:
+        print(f"clinosim eval: {exc}", file=sys.stderr)
+        return 2
+    except ValueError as exc:
         print(f"clinosim eval: {exc}", file=sys.stderr)
         return 2
 
