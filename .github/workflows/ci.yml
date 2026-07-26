@@ -3,6 +3,7 @@
 # Hard gates (must be green to merge):
 #   - unit tests on Python 3.11 and 3.12
 #   - integration tests on Python 3.12 (single 3.11 skip = ~18min job, cost-vs-value)
+#   - jp-clins-compliance: JP-CLINS Observation-LabResult-eCS profile for JP cohorts
 #
 # Informational (visible but does not block merge — pre-existing lint / mypy
 # debt is tracked as follow-up cleanup, this keeps the debt VISIBLE without
@@ -18,8 +19,6 @@ on:
   pull_request:
     branches: [master]
 
-# Cancel in-flight runs for the same branch when a newer push arrives —
-# no point keeping a 20-minute integration job running on obsolete code.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -48,29 +47,6 @@ jobs:
     name: Integration tests (Py 3.12, shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     needs: unit
-    # Historical:
-    #   * Single-worker serial:  ~42-50 min on GitHub-hosted ubuntu-latest
-    #   * PR #373 (session 65):  xdist -n 2 (2 vCPUs)                  ≈ 25 min
-    #   * PR E   (session 65):   xdist -n 2  ×  pytest-split N=3       ≈ 8-10 min
-    #
-    # The `pytest-split` matrix splits tests[integration] into 3 groups
-    # using `.test_durations` (committed at repo root) so each shard runs
-    # ~1/3 of the wall-clock work. Within each shard, `pytest-xdist -n 2
-    # --dist=worksteal` fills both vCPUs. Combined parallelism = 3 × 2 = 6
-    # concurrent workers — theoretical ~8-10 min wall clock, verified per
-    # PR by the slowest shard.
-    #
-    # `.test_durations` seeded from a single-shot local run and refreshed
-    # by rerunning `pytest tests/integration --store-durations -n 2
-    # --dist=worksteal` when the test suite composition drifts noticeably
-    # (add/remove ~20% or more integration tests).
-    #
-    # Tests that mutate shared filesystem or global state are marked with
-    # `@pytest.mark.serial` and executed in a separate single-worker job
-    # (`integration_serial`) so they cannot collide with parallel siblings.
-    #
-    # Timeout headroom kept at 60 min so a legitimate slow-down doesn't
-    # cancel a passing run.
     strategy:
       fail-fast: false
       matrix:
@@ -95,11 +71,6 @@ jobs:
     name: Integration tests (serial pass)
     runs-on: ubuntu-latest
     needs: unit
-    # Runs @pytest.mark.serial-marked tests single-worker. Today the set
-    # is empty (local xdist verify 2026-07-22 surfaced 0 collisions across
-    # all 305 tests), so this job exits 0 in <30s via the `exit 5`
-    # (no tests collected) short-circuit. Job stays in the workflow so a
-    # future serial-marked test runs automatically without a workflow edit.
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -146,10 +117,6 @@ jobs:
   reproducibility:
     name: Reproducibility (Py 3.12)
     runs-on: ubuntu-latest
-    # Hard gate: enforces the SemVer determinism promise recorded in
-    # CHANGELOG.md. Runs `scripts/reproduce.sh` which itself does two
-    # `clinosim generate` runs per locale and byte-diffs the output.
-    # ~5-6 min including install (script itself is ~2 min on CI runners).
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -161,6 +128,29 @@ jobs:
         run: pip install -e "."
       - name: Run scripts/reproduce.sh
         run: bash scripts/reproduce.sh
+
+  jp-clins-compliance:
+    name: JP-CLINS lab compliance gate (Py 3.12)
+    runs-on: ubuntu-latest
+    needs: unit
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (with dev extras)
+        run: pip install -e ".[dev]"
+      - name: Generate JP cohort (p=10, seed=42)
+        run: python -m clinosim.simulator.cli generate --population 10 --seed 42 -o /tmp/jp-cohort --country JP --hospital-config clinosim/config/hospital_operations.yaml
+      - name: Eval jp_clins_lab_compliance axis and gate on FAIL
+        run: |
+          set -euo pipefail
+          python -m clinosim.simulator.cli eval --cohort-dir /tmp/jp-cohort --country JP --json /tmp/eval-report.json > /dev/null 2>&1 || true
+          jp_clins_status=$(python3 -c "import json; data=json.load(open('/tmp/eval-report.json')); [print(c['outcome'], end='') for c in data.get('checks',[]) if c.get('axis')=='jp_clins_lab_compliance']" || echo "ERROR")
+          echo "jp_clins_lab_compliance: $jp_clins_status"
+          if [ "$jp_clins_status" = "FAIL" ]; then exit 1; fi
 
   packaging:
     name: Build sdist + wheel (Py 3.12)
