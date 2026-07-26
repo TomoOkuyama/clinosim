@@ -3317,6 +3317,41 @@ JANIS master mapping (T67-M1) に依存するため未実装 stub。<strong>stub
 で InfectionLabo path 起動なし。従って PR 1 の stub 状態は production
 影響ゼロ、instant safety net として NotImplementedError が働く。</p>
 <p><strong>関連</strong>: [[T67-M1]]、session 67 workspace:5 memo (2026-07-25)。</p>
+<h3 id="t67-glucose-disambig-open-major-glucose-fasting_state-bg-fbg-cbg">T67-Glucose-disambig [OPEN, MAJOR] Glucose を fasting_state 付きで BG / FBG / CBG に振り分ける<a class="headerlink" href="#t67-glucose-disambig-open-major-glucose-fasting_state-bg-fbg-cbg" title="Permanent link">&para;</a></h3>
+<p><strong>問題</strong>: JP-CLINS CoreLabo は Glucose を <code>bg</code>(血糖)/ <code>fbg</code>(空腹時血糖)/
+<code>cbg</code>(随時血糖)の 3 slice に分けている。臨床的にも別種検査
+(空腹時採血 vs 救急随時採血)。しかし clinosim upstream は現在
+<code>lab_name = "Glucose"</code> を単一 name で emit しており、fasting/context
+情報を carry していない。</p>
+<p><strong>現状</strong>(v30 実測): 393 件全て <code>lab_name = "Glucose"</code>。これを PR 3a で
+CoreLabo 該当扱いにして <code>bg</code> slice 固定すると <strong>393 件のうち本来
+FBG/CBG であるべきものが誤って BG(静脈血糖)として emit される</strong>
+= 検体検査の種類を偽る = 合成データでも許容不能な意味の誤り。</p>
+<p><strong>PR 3a 段階の judgement</strong>(session 67 workspace:5 memo 決定):
+Glucose を <strong><code>_KNOWN_UNCODED_ANALYTES</code> に含めて Uncoded routing</strong> で
+妥協。Uncoded は「標準コードに正しくマップできない」を明示する
+正当な spec fallback であり、嘘をつかない。CS 使用率は下がるが、
+<code>bg</code> 誤固定より誠実。</p>
+<p><strong>修正 (T67-Glucose-disambig)</strong>:
+1. <strong>upstream data-pipeline 変更</strong>: CIF <code>lab_result</code> に <code>fasting_state</code>
+   or <code>clinical_context</code> field を追加、simulator が生成時に carry
+   (空腹時採血の routine order は FBG、ED や急変時は CBG、
+   通常 order は BG)
+2. <strong>classifier update</strong>: <code>_classify_analyte</code> を <code>(lab_name, country,
+   context)</code> shape に拡張 or 別 hook で分岐、Glucose を
+   <code>_KNOWN_UNCODED_ANALYTES</code> から <code>_ANALYTE_TO_SLICE_NAME</code> の
+   <code>bg</code> / <code>fbg</code> / <code>cbg</code> へ移動
+3. <strong>PR 3a test 更新</strong>: <code>_JP_EXPECTED_KIND</code> から Glucose を移動、
+   CoreLabo 20 → 23、Uncoded 12 → 11 に更新
+4. <strong>_ANALYTE_TO_SLICE_NAME 更新</strong>: <code>Glucose_bg</code> / <code>Glucose_fbg</code> /
+   <code>Glucose_cbg</code> 等の disambiguated names を追加(または contextual
+   dispatch)</p>
+<p><strong>影響 metric</strong>: 393 obs が Uncoded → CoreLabo に移り CS 使用率上昇
+(ただし 3 slice に散らばるので slice-per-slice の Fixed display 一致
+verification が要る)。適用規則満足率は変わらない(Uncoded も CoreLabo
+も spec 準拠)。</p>
+<p><strong>関連</strong>: <code>docs/reviews/2026-07-25-pr2-lab-coding-package-loader.md</code>
+の PR 3 handoff / [[T67-M1]]。session 67 memo。</p>
 <h3 id="t67-v1-open-minor-version-generator-commit-sha">T67-V1 [OPEN, MINOR] version 名で generator commit SHA を含める<a class="headerlink" href="#t67-v1-open-minor-version-generator-commit-sha" title="Permanent link">&para;</a></h3>
 <p><strong>問題</strong>: <code>v29</code>/<code>v30</code>/<code>v31</code> の単調増加連番が採番者を持たないため、
 generator 側と validator 側で同じ数字が別 dataset を指すことがある
