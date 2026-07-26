@@ -240,20 +240,33 @@ def test_expected_kind_totals_match_v30_analyte_split():
 # PR 3a dispatcher invariant — byte-identical preserved.
 
 
-def test_select_lab_coding_strategy_jp_returns_legacy_jslm_singleton():
-    """PR 3a invariant (byte-identical): the dispatcher still returns
-    LegacyJSLMStrategy for JP regardless of classifier verdict.
-    Classifier is verified separately by ``test_classify_analyte_*``
-    but has zero influence on production output until PR 3b/3c bridges
-    it into this dispatcher."""
-    s1 = select_lab_coding_strategy("WBC", "JP")
-    s2 = select_lab_coding_strategy("Glucose", "JP")
-    s3 = select_lab_coding_strategy("pH", "JP")
-    assert s1.kind == LabCodingKind.LEGACY_JSLM
-    assert s2.kind == LabCodingKind.LEGACY_JSLM  # classifier would say UNCODED, but dispatcher ignores
-    assert s3.kind == LabCodingKind.LEGACY_JSLM  # classifier would say UNCODED, but dispatcher ignores
-    # Singleton
-    assert s1 is s2 is s3
+def test_select_lab_coding_strategy_pr3b_bridge():
+    """PR 3b bridge (session 67 2026-07-26): dispatcher consults
+    ``_classify_analyte`` for JP. CoreLabo → CoreLaboStrategy;
+    Uncoded / unmapped → LegacyJSLM (deferred to PR 3c bridge).
+    US remains LegacyLOINC unchanged.
+
+    byte-partial: only CoreLabo-classified analytes see their strategy
+    changed vs PR 3a; Uncoded / unmapped stay on LegacyJSLM =
+    byte-identical output for those paths."""
+    # CoreLabo analytes → new CoreLaboStrategy
+    for analyte in ("WBC", "K", "Creatinine", "PT_INR"):
+        s = select_lab_coding_strategy(analyte, "JP")
+        assert s.kind == LabCodingKind.CORELABO_JLAC10, (
+            f"{analyte} should route to CoreLaboStrategy after PR 3b bridge, got {s.kind}"
+        )
+    # Uncoded analytes → still LegacyJSLM (PR 3c will bridge)
+    for analyte in ("Glucose", "pH", "Lactate"):
+        s = select_lab_coding_strategy(analyte, "JP")
+        assert s.kind == LabCodingKind.LEGACY_JSLM, (
+            f"{analyte} (Uncoded) should stay on LegacyJSLM until PR 3c bridge, got {s.kind}"
+        )
+    # Unknown → still LegacyJSLM (PR 3c will bridge to UNCODED)
+    s = select_lab_coding_strategy("UnknownNewAnalyte", "JP")
+    assert s.kind == LabCodingKind.LEGACY_JSLM
+    # US → LegacyLOINC unchanged
+    s = select_lab_coding_strategy("WBC", "US")
+    assert s.kind == LabCodingKind.LEGACY_LOINC
 
 
 # --------------------------------------------------------------------------- #
@@ -306,17 +319,74 @@ def test_legacy_loinc_emits_single_loinc_primary():
 
 
 # --------------------------------------------------------------------------- #
-# CoreLaboStrategy: PR 1 wrapper delegates to LegacyJSLM
+# CoreLaboStrategy PR 3b: real emit (skipped when JP-CLINS pkg unavailable).
+# CoreLaboStrategy has a defensive fallback to LegacyJSLM emission when the
+# pkg is missing (so a minimal-install run doesn't crash mid-generate). The
+# 4 tests below are validating the real emit path and skip when pkg absent —
+# same pattern as ``tests/unit/test_lab_coding_package.py::_pkg_or_skip``.
 
 
-def test_corelabo_pr1_delegates_to_legacy_jslm():
-    """PR 1: CoreLaboStrategy is a thin wrapper over LegacyJSLM to
-    preserve byte-identical output. PR 3 replaces the delegation with
-    real 17-digit code selection."""
+@pytest.fixture
+def _pkg_or_skip_corelabo():
+    from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+
+    pkg = load_lab_coding_package()
+    if not pkg.is_available():
+        pytest.skip("JP-CLINS pkg not installed — CoreLabo real emit tests require the eCS SD + CoreLabo CS")
+    return pkg
+
+
+def test_corelabo_pr3b_emits_real_17digit_with_fixed_display(_pkg_or_skip_corelabo):
+    """PR 3b (2026-07-26): CoreLaboStrategy no longer delegates to
+    LegacyJSLM. Emits primary coding = (CoreLabo CS URI, 17-digit code,
+    Fixed display from SD) + LOINC secondary. session 67 memo §H.3 rev
+    + user Option B decision: numerically-largest material (chemistry
+    resolves to 023 血清), method 998 preferred."""
     core = CoreLaboStrategy()
-    legacy = LegacyJSLMStrategy()
-    kwargs = {"lab_name": "WBC", "order": {}, "result": {}, "country": "JP"}
-    assert core.emit_codings(**kwargs) == legacy.emit_codings(**kwargs)
+    codings = core.emit_codings(lab_name="WBC", order={}, result={}, country="JP")
+    assert len(codings) >= 1
+    primary = codings[0]
+    assert "CoreLabo" in primary["system"], f"primary must be CoreLabo CS, got {primary['system']!r}"
+    assert len(primary["code"]) == 17, f"CoreLabo code must be 17 digits, got {primary['code']!r}"
+    assert primary["display"] == "WBC", f"Fixed display must be SD Fixed value 'WBC', got {primary['display']!r}"
+
+
+def test_corelabo_pr3b_998_method_preference_for_k(_pkg_or_skip_corelabo):
+    """PR 3b code-selection rule: method=998 preferred + numerically-largest
+    material. For K, this resolves to material 023 (血清) + method 998 =
+    3H015000002399801 (session 67 memo example)."""
+    core = CoreLaboStrategy()
+    codings = core.emit_codings(lab_name="K", order={}, result={}, country="JP")
+    primary = codings[0]
+    # Segment decomposition: 5/4/3/3/2 = analyte/id/material/method/result_id
+    assert primary["code"][9:12] == "023", f"K material segment must be 023 (Option B), got {primary['code'][9:12]}"
+    assert primary["code"][12:15] == "998", f"K method segment must be 998, got {primary['code'][12:15]}"
+    assert primary["display"] == "K", f"K Fixed display, got {primary['display']!r}"
+
+
+def test_corelabo_pr3b_single_material_analytes_resolve_deterministically(_pkg_or_skip_corelabo):
+    """WBC / Plt have only material 019 in CoreLabo CS — Option B (max)
+    yields 019 vacuously, no material-selection ambiguity."""
+    core = CoreLaboStrategy()
+    for analyte, expected_display in [("WBC", "WBC"), ("Plt", "PLT")]:
+        codings = core.emit_codings(lab_name=analyte, order={}, result={}, country="JP")
+        primary = codings[0]
+        assert primary["code"][9:12] == "019", (
+            f"{analyte} material segment must be 019 (only material in CS), got {primary['code'][9:12]}"
+        )
+        assert primary["display"] == expected_display
+
+
+def test_corelabo_pr3b_keeps_loinc_secondary(_pkg_or_skip_corelabo):
+    """JP dual-coding invariant: CoreLabo primary + LOINC secondary.
+    Preserves the JP output's international interop (LOINC readable
+    by non-JP consumers); PR 4 will decide the retain/drop ADR
+    formally, but PR 3b keeps the dual-coding by default."""
+    core = CoreLaboStrategy()
+    codings = core.emit_codings(lab_name="WBC", order={}, result={}, country="JP")
+    systems = [c["system"] for c in codings]
+    assert any("CoreLabo" in s for s in systems), "primary must include CoreLabo"
+    assert "http://loinc.org" in systems, "LOINC secondary must be preserved for JP dual-coding"
 
 
 # --------------------------------------------------------------------------- #

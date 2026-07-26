@@ -64,15 +64,32 @@ def _make_ctx(orders, country):
     )
 
 
-def test_jp_mapped_lab_uses_jlac10():
-    """Sanity: a lab_name present in code_mapping_lab.yaml still resolves to jlac10 for JP."""
+def test_jp_mapped_lab_uses_corelabo_jlac10_after_pr3b():
+    """PR 3b (session 67 migration): a CoreLabo-classified analyte
+    (e.g. WBC, in ``_ANALYTE_TO_SLICE_NAME``) now emits the JP-CLINS
+    CoreLabo CS URI + a 17-digit code + the SD's Fixed display.
+    Pre-PR-3b behavior (JSLM generic OID ``jlac10`` + 5-digit code
+    ``2A010`` + Japanese display) is no longer produced for CoreLabo
+    analytes.
+
+    Skipped when JP-CLINS pkg is not installed — CoreLaboStrategy has
+    a defensive fallback to LegacyJSLM in that state so a minimal-
+    install run doesn't crash. Same pattern as
+    ``test_lab_coding_strategy.test_corelabo_pr3b_*``."""
+    from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+
+    if not load_lab_coding_package().is_available():
+        pytest.skip("JP-CLINS pkg not installed — CoreLabo emit falls back to LegacyJSLM")
     t = datetime(2026, 7, 4, 8, 0)
     o = _make_lab_order("O1", "WBC", "6690-2", 6.0, t)
     ctx = _make_ctx([o], "JP")
     obs = _bb_labs(ctx)
     coding = obs[0]["code"]["coding"][0]
-    assert coding["system"] == get_system_uri("jlac10")
-    assert coding["code"] == "2A010"
+    assert "CoreLabo" in coding["system"], (
+        f"WBC primary coding should now use JP-CLINS CoreLabo CS URI post-PR-3b, got: {coding['system']}"
+    )
+    assert len(coding["code"]) == 17, f"CoreLabo code must be 17 digits, got: {coding['code']!r}"
+    assert coding["display"] == "WBC", f"Fixed display must be 'WBC' (SD Fixed value), got: {coding['display']!r}"
 
 
 def test_jp_unmapped_lab_falls_back_to_loinc_system():

@@ -70,6 +70,15 @@ _UNCODED_DISPLAY = "未標準化コード項目(JLAC)"
 
 _LOCALCODE_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_LocalCode_CS"
 
+# Specimen material CodeSystem (JLAC10) — session 67 spec verification
+# (2026-07-26): 17-digit CoreLabo code's material segment (10-12桁目, e.g.
+# "023") maps 1-1 to JP_ObservationSampleMaterialCodeJLAC10_CS codes
+# (verified: 129 top + 57 nested + 1 depth-2 = 187 codes, all 9 material
+# segments used by CoreLabo analytes resolve to CS displays 尿/全血/血清 etc).
+# NO translation table needed — the material segment IS the specimen CS code.
+_SPECIMEN_MATERIAL_CS_FILENAME = "CodeSystem-jp-observationsamplematerialcodejlac10-cs.json"
+_SPECIMEN_MATERIAL_CS_URI = "http://jpfhir.jp/fhir/core/CodeSystem/JP_ObservationSampleMaterialCodeJLAC10_CS"
+
 
 # --------------------------------------------------------------------------- #
 # Types.
@@ -186,6 +195,17 @@ class LabCodingPackage(Protocol):
     def localcode_system_uri(self) -> str:
         """LocalCode slice system URI, for PR 3 co-emission."""
 
+    def specimen_material_cs_uri(self) -> str:
+        """JLAC10 specimen material CodeSystem URI for
+        ``Observation.specimen.contained JP_Specimen.type.coding`` +
+        alignment verification against ``CoreLabo code.material segment``.
+        Available even when pkg is missing (spec-published constant)."""
+
+    def specimen_material_display(self, material_code: str) -> str | None:
+        """Look up specimen material display (e.g. "023" → "血清") from
+        the JLAC10 specimen material CS. Returns ``None`` if the pkg
+        is unavailable or the material code is unknown."""
+
 
 class MissingPackage:
     """Pkg-absent state — every method returns a no-op sentinel.
@@ -213,6 +233,13 @@ class MissingPackage:
     def localcode_system_uri(self) -> str:
         return _LOCALCODE_SYSTEM
 
+    def specimen_material_cs_uri(self) -> str:
+        # Spec-published constant, safe to return even in pkg-absent state.
+        return _SPECIMEN_MATERIAL_CS_URI
+
+    def specimen_material_display(self, material_code: str) -> str | None:
+        return None
+
 
 class EcsRuntimePackage:
     """Runtime-parsed JP-CLINS eCS package.
@@ -228,6 +255,7 @@ class EcsRuntimePackage:
         corelabo_jlac11_cs_path: Path | None,
         infectionlabo_jlac10_cs_path: Path | None,
         infectionlabo_jlac11_cs_path: Path | None,
+        specimen_material_cs_path: Path | None = None,
     ) -> None:
         self._sd_path = sd_path
         self._cs_paths = [
@@ -236,8 +264,10 @@ class EcsRuntimePackage:
             infectionlabo_jlac10_cs_path,
             infectionlabo_jlac11_cs_path,
         ]
+        self._specimen_material_cs_path = specimen_material_cs_path
         self._slices_by_name: dict[str, LabSliceInfo] | None = None
         self._by_system_display: dict[tuple[str, str], str] | None = None
+        self._specimen_material_map: dict[str, str] | None = None
 
     def is_available(self) -> bool:
         return True
@@ -347,13 +377,45 @@ class EcsRuntimePackage:
     def localcode_system_uri(self) -> str:
         return _LOCALCODE_SYSTEM
 
+    def specimen_material_cs_uri(self) -> str:
+        return _SPECIMEN_MATERIAL_CS_URI
+
+    def specimen_material_display(self, material_code: str) -> str | None:
+        """Look up specimen material code (e.g. "023") → display (e.g. "血清").
+
+        Traverses the JLAC10 specimen material CS's 3-level hierarchy
+        (129 top + 57 depth-1 + 1 depth-2 = 187 codes). Returns None if
+        the code is not present or the CS file is unavailable.
+        """
+        self._ensure_specimen_material_loaded()
+        assert self._specimen_material_map is not None
+        return self._specimen_material_map.get(material_code)
+
+    def _ensure_specimen_material_loaded(self) -> None:
+        if self._specimen_material_map is not None:
+            return
+        out: dict[str, str] = {}
+        if self._specimen_material_cs_path is not None and self._specimen_material_cs_path.exists():
+            cs = json.loads(self._specimen_material_cs_path.read_text(encoding="utf-8"))
+
+            def _walk(concepts: list[dict]) -> None:
+                for c in concepts or []:
+                    code = c.get("code", "")
+                    display = c.get("display", "")
+                    if code and display:
+                        out[code] = display
+                    _walk(c.get("concept", []))
+
+            _walk(cs.get("concept", []))
+        self._specimen_material_map = out
+
 
 # --------------------------------------------------------------------------- #
 # Package discovery.
 
 
-def _find_pkg_files() -> tuple[Path, Path, Path | None, Path | None, Path | None] | None:
-    """Locate the SD + 4 CS JSONs on disk.
+def _find_pkg_files() -> tuple[Path, Path, Path | None, Path | None, Path | None, Path | None] | None:
+    """Locate the SD + 4 CS JSONs + specimen material CS on disk.
 
     Search order (matches axis's pre-migration ``_find_ecs_sd_path``):
     1. ``$CLINOSIM_JP_CLINS_PKG_DIR`` — explicit override for the
@@ -363,9 +425,9 @@ def _find_pkg_files() -> tuple[Path, Path, Path | None, Path | None, Path | None
     3. Sibling ``../fhir-jp-validator`` dev fallback.
 
     Returns ``(sd_path, corelabo_jlac10_cs, corelabo_jlac11_cs,
-    infectionlabo_jlac10_cs, infectionlabo_jlac11_cs)`` or None. CS
-    paths may be None if that particular CS is unavailable — the
-    loader gracefully degrades (fewer codes joined, but SD slices are
+    infectionlabo_jlac10_cs, infectionlabo_jlac11_cs, specimen_material_cs)``
+    or None. CS paths may be None if that particular CS is unavailable —
+    the loader gracefully degrades (fewer codes joined, but SD slices are
     still enumerated for axis Metric 1 / Metric 3)."""
 
     def _first_existing(*candidates: Path) -> Path | None:
@@ -414,6 +476,7 @@ def _find_pkg_files() -> tuple[Path, Path, Path | None, Path | None, Path | None
         _find_cs(_CORELABO_JLAC11_CS_FILENAME),
         _find_cs(_INFECTIONLABO_JLAC10_CS_FILENAME),
         _find_cs(_INFECTIONLABO_JLAC11_CS_FILENAME),
+        _find_cs(_SPECIMEN_MATERIAL_CS_FILENAME),
     )
 
 
@@ -427,7 +490,7 @@ def load_lab_coding_package() -> LabCodingPackage:
     found = _find_pkg_files()
     if found is None:
         return MissingPackage()
-    sd_path, corelabo10, corelabo11, infection10, infection11 = found
+    sd_path, corelabo10, corelabo11, infection10, infection11, specimen_mat = found
     if not corelabo10.exists():
         # CoreLabo JLAC10 CS is required for CoreLabo emissions; without
         # it the package can still serve SD-only queries (axis Metric 1 /
@@ -441,4 +504,5 @@ def load_lab_coding_package() -> LabCodingPackage:
         corelabo_jlac11_cs_path=corelabo11,
         infectionlabo_jlac10_cs_path=infection10,
         infectionlabo_jlac11_cs_path=infection11,
+        specimen_material_cs_path=specimen_mat,
     )
