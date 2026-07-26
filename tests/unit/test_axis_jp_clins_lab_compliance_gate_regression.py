@@ -37,24 +37,20 @@ from pathlib import Path
 
 import pytest
 
-from clinosim.eval.engine import EvalEngine, Outcome
-
-
 # URIs used by the axis under test — read them from the axis module so
 # the fixture stays in lockstep with the eval's constants.
 from clinosim.eval.axes.jp_clins_lab_compliance import (
     _ECS_LABRESULT_PROFILE,
     _LOCALCODE_SYSTEM,
 )
+from clinosim.eval.engine import EvalEngine, Outcome
 
 # CoreLabo JLAC10 slice URI (one of the "typed" codings) — pinned as a
 # literal here (not imported) because we deliberately want the axis to
 # see this coding when we hand-craft the fixture; if the axis renames
 # its constant, the test *should* fail loud to force a review of the
 # fixture rather than silently follow the rename.
-_JLAC10_CORELABO_SYSTEM = (
-    "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
-)
+_JLAC10_CORELABO_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
 
 
 def _lab_observation(
@@ -164,9 +160,7 @@ def test_gate_fires_on_localcode_omission(tmp_path: Path) -> None:
     )
     _write_cohort(tmp_path, obs)
 
-    engine = EvalEngine(
-        cohort_dir=tmp_path, only_axes=["jp_clins_lab_compliance"]
-    )
+    engine = EvalEngine(cohort_dir=tmp_path, only_axes=["jp_clins_lab_compliance"])
     report = engine.run()
 
     # Extract the rule_satisfaction check from the single-axis report.
@@ -177,13 +171,10 @@ def test_gate_fires_on_localcode_omission(tmp_path: Path) -> None:
 
     # Primary assertion: the gate goes red on the exact failure mode.
     assert rule.outcome is Outcome.FAIL, (
-        f"gate did not fire on LocalCode omission: outcome={rule.outcome!r}, "
-        f"message={rule.message!r}"
+        f"gate did not fire on LocalCode omission: outcome={rule.outcome!r}, message={rule.message!r}"
     )
     # Ratio must reflect 4/5 satisfaction (the regression is one row).
-    assert "4/5" in rule.message, (
-        f"expected 4/5 numerator in message, got: {rule.message!r}"
-    )
+    assert "4/5" in rule.message, f"expected 4/5 numerator in message, got: {rule.message!r}"
     # Overall report status must also be FAIL — this is what --strict
     # reads to decide the exit code, and what the CI gate ultimately
     # keys off.
@@ -222,24 +213,16 @@ def test_baseline_rule_satisfaction_is_green_when_analytes_wired(
     ]
     _write_cohort(tmp_path, obs)
 
-    engine = EvalEngine(
-        cohort_dir=tmp_path, only_axes=["jp_clins_lab_compliance"]
-    )
+    engine = EvalEngine(cohort_dir=tmp_path, only_axes=["jp_clins_lab_compliance"])
     report = engine.run()
 
-    checks = {
-        c.name: c
-        for c in next(
-            a for a in report.axes if a.axis == "jp_clins_lab_compliance"
-        ).checks
-    }
+    checks = {c.name: c for c in next(a for a in report.axes if a.axis == "jp_clins_lab_compliance").checks}
     for metric_name in (
         "jp_clins_lab_cs_usage",
         "jp_clins_lab_rule_satisfaction",
     ):
         assert checks[metric_name].outcome is Outcome.PASS, (
-            f"{metric_name} unexpectedly {checks[metric_name].outcome!r}: "
-            f"{checks[metric_name].message!r}"
+            f"{metric_name} unexpectedly {checks[metric_name].outcome!r}: {checks[metric_name].message!r}"
         )
 
 
@@ -267,17 +250,10 @@ def test_localcode_omission_does_not_break_cs_usage(tmp_path: Path) -> None:
     ]
     _write_cohort(tmp_path, obs)
 
-    engine = EvalEngine(
-        cohort_dir=tmp_path, only_axes=["jp_clins_lab_compliance"]
-    )
+    engine = EvalEngine(cohort_dir=tmp_path, only_axes=["jp_clins_lab_compliance"])
     report = engine.run()
 
-    checks = {
-        c.name: c
-        for c in next(
-            a for a in report.axes if a.axis == "jp_clins_lab_compliance"
-        ).checks
-    }
+    checks = {c.name: c for c in next(a for a in report.axes if a.axis == "jp_clins_lab_compliance").checks}
     # cs_usage misses this failure mode — record it.
     assert checks["jp_clins_lab_cs_usage"].outcome is Outcome.PASS
     # rule_satisfaction catches it — this is what carries the gate.

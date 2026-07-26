@@ -34,9 +34,7 @@ def test_default_runs_all_registered_axes(tmp_path: Path) -> None:
 @pytest.mark.unit
 def test_only_axes_restricts_to_named_axis(tmp_path: Path) -> None:
     _minimal_flat_cohort(tmp_path)
-    report = EvalEngine(
-        cohort_dir=tmp_path, only_axes=["jp_clins_lab_compliance"]
-    ).run()
+    report = EvalEngine(cohort_dir=tmp_path, only_axes=["jp_clins_lab_compliance"]).run()
     axis_names = {a.axis for a in report.axes}
     assert axis_names == {"jp_clins_lab_compliance"}
 
@@ -44,9 +42,7 @@ def test_only_axes_restricts_to_named_axis(tmp_path: Path) -> None:
 @pytest.mark.unit
 def test_only_axes_accepts_multiple(tmp_path: Path) -> None:
     _minimal_flat_cohort(tmp_path)
-    report = EvalEngine(
-        cohort_dir=tmp_path, only_axes=["clinical", "locale"]
-    ).run()
+    report = EvalEngine(cohort_dir=tmp_path, only_axes=["clinical", "locale"]).run()
     axis_names = {a.axis for a in report.axes}
     assert axis_names == {"clinical", "locale"}
 

@@ -178,9 +178,7 @@ class EvalEngine:
         if only_axes is not None:
             unknown = [a for a in only_axes if a not in axes]
             if unknown:
-                raise ValueError(
-                    f"unknown axis id(s): {unknown}. Known: {sorted(axes)}"
-                )
+                raise ValueError(f"unknown axis id(s): {unknown}. Known: {sorted(axes)}")
             axes = {k: v for k, v in axes.items() if k in only_axes}
         self.axes = axes
         self.country_filter = countries
