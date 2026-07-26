@@ -4825,6 +4825,88 @@ consumption path in <code>order/engine.py</code> bypasses Pydantic (not covered 
 <p><strong>Related ADRs:</strong> AD-67 / AD-68 (the severity + archetype activations this unblocks/hardens)</p>
 <p><strong>Related documents:</strong> <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> (FP-YAML-3);
 <code>docs/design-guides/data-model-and-completeness-conventions.md</code> §2</p>
+<hr />
+<h3 id="ad-70-jp-clins-lab-coding-jlac10-primary-loinc-secondary-international-interoperability">AD-70 · JP-CLINS lab coding: JLAC10 primary + LOINC secondary (international interoperability)<a class="headerlink" href="#ad-70-jp-clins-lab-coding-jlac10-primary-loinc-secondary-international-interoperability" title="Permanent link">&para;</a></h3>
+<p><strong>Date:</strong> 2026-07-26 (session 68, migration PR 4)</p>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong></p>
+<p>JP-CLINS 検体検査 migration (PR #396–#404) established JLAC10 as the primary coding system
+for 1,898 CoreLabo analytes (session 67 axis 100% completion). The architecture decision for
+secondary coding systems arose: should LOINC be retained as secondary coding alongside JLAC10
+primary, or removed entirely for JP-only purism?</p>
+<p>Three options were considered:</p>
+<ul>
+<li>
+<p><strong>Option A (JP purism):</strong> Remove LOINC secondary coding entirely; emit JLAC10 primary only.
+  Rationale: JP-CLINS is JP-specific data exchange standard; LOINC is redundant in domestic JP
+  context. Removes ~0.5 KB FHIR overhead per exam instance.</p>
+</li>
+<li>
+<p><strong>Option B (interoperability):</strong> Retain dual coding — JLAC10 as primary (discriminator + Fixed
+  coding), LOINC as secondary. Rationale: allows downstream international-facing systems (cloud EHR,
+  research integrations, academic medical data pipelines) to normalize into LOINC without losing
+  JLAC10 traceability; supports the implicit contract that "any JP clinic can export to
+  international viewer if needed."</p>
+</li>
+<li>
+<p><strong>Option C (branching):</strong> Country-flag-based dispatch — <code>_fhir_observations.py</code> checks
+  <code>country == "JP"</code> and omits LOINC for JP only. Rationale: keeps US output optimally compact,
+  gives JP the choice.</p>
+</li>
+</ul>
+<p><strong>Decision:</strong> <strong>Option B</strong> — retain dual coding (JLAC10 primary + LOINC secondary).</p>
+<p><strong>Rationale:</strong></p>
+<ol>
+<li>
+<p><strong>Binding constraint:</strong> JP Core <code>JP_Observation_LabResult.code</code> is defined with binding
+   strength <code>example</code> (FHIR terms: weakest binding, "recommended but not required"). This means
+   both <strong>single-system coding</strong> (JLAC10 only) and <strong>multi-system coding</strong> (JLAC10 + LOINC) are
+   spec-compliant.</p>
+</li>
+<li>
+<p><strong>International interoperability:</strong> LOINC is the de facto global lab code standard. Dual coding
+   enables downstream systems (research DBs, cloud EHR platforms, international healthcare
+   networks) to accept clinosim export without custom mapping code. Removing LOINC forces those
+   systems to maintain JLAC10→LOINC mapping tables externally, increasing integration friction.</p>
+</li>
+<li>
+<p><strong>Metadata cost is acceptable:</strong> Each lab Observation adds ~30–50 bytes (LOINC coding[] slice +
+   system + code + display). At p=100 JP dataset, this is ~90–150 KB cumulative — negligible
+   within the multi-GB export footprint. The <code>example</code> binding level does not impose a penalty
+   for additional codings.</p>
+</li>
+<li>
+<p><strong>Traceability and reversibility:</strong> Retaining LOINC enables full round-trip mapping (JLAC10↔LOINC)
+   without data loss. Removing it forecloses downstream reverse-mapping if a use case later
+   requires it.</p>
+</li>
+<li>
+<p><strong>Alignment with FA-1 principle (AD-56):</strong> Adapters (FHIR builders) are single-responsibility
+   (emit what CIF provides); CIF stores codes language-neutrally (AD-30). The dual-coding choice
+   is a <strong>FHIR presentation choice</strong>, not a data-model choice — perfectly aligned with separating
+   data from adapter.</p>
+</li>
+</ol>
+<p><strong>Consequences:</strong></p>
+<p>Positive:
+- Downstream systems can integrate clinosim export without custom mapping.
+- JP and US outputs remain 100% identical (no branching logic to maintain).
+- Future JP-CLINS profile evolution (if binding ever strengthens to <code>required</code>) is forward-compatible.</p>
+<p>Negative/neutral:
+- Slight FHIR size increase (~0.2–0.5% of per-dataset NDJSON).
+- Authoring burden on LOINC code coverage (already complete; PR #396 ensured all 20 CoreLabo
+  analytes have LOINC codes in <code>codes/data/loinc.yaml</code>).</p>
+<p>Alternative deferred:
+- If JP-CLINS 2.1 / JP FHIR profiles ever restrict binding to <code>required</code> + explicitly forbid
+  non-JLAC10 coding, this ADR will be revisited and option A/C re-evaluated (with a separate
+  migration chain to remove LOINC secondary). Until then, <code>example</code> binding is the governing
+  constraint.</p>
+<p><strong>Related ADRs:</strong> AD-30 (CIF language-neutral) / AD-31 (Bulk Data compliance) / AD-56 (adapter
+single responsibility) / AD-58 (output adapter registration pattern)</p>
+<p><strong>Related documents:</strong>
+- Migration PRs: #396 (dispatcher refactor) / #398 (shared pkg loader) / #400 (analyte classifier)
+  / #402 (CoreLabo emit) / #404 (Uncoded + LocalCode + sanitize)
+- Session notes: <code>project_session_67_end_state.md</code> (axis completion, decision B adoption)</p>
 
 
 
