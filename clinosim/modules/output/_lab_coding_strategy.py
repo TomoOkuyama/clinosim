@@ -61,6 +61,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_us, resolve_lang
+from clinosim.modules.output.lab_coding_package import LabCodeCandidate
 
 # --------------------------------------------------------------------------- #
 # Kind enum — finalized in PR 1, extended only with matching strategy.
@@ -283,18 +284,37 @@ class InfectionLaboStrategy:
 
 
 class CoreLaboStrategy:
-    """CoreLabo JLAC10 slice — PR 1 wrapper delegating to
-    ``LegacyJSLMStrategy`` for byte-identical output.
+    """CoreLabo JLAC10 slice — PR 3b real emit.
 
-    PR 3 replaces the delegation with the real 17-digit code selection
-    (session 67 memo §H.3 rev: 998-preferred method + material-match
-    → code chosen first → specimen back-derived) and non-None
-    ``emit_localcode_coding`` for the LocalCode slice."""
+    Session 67 memo §H.3 rev + user judgment (Option B, 2026-07-26):
+    - method priority: ``998`` (method-agnostic, "測定法問わず" — the
+      most honest choice given clinosim does not simulate specific
+      measurement methods) → fallback ``999`` (other) → fallback any
+    - material priority: numerically-largest material code (Option B)
+      — for chemistry analytes this resolves to 023 (血清 serum) which
+      matches Japanese standard-lab practice; for hematology-only
+      analytes (WBC / Plt) there is only one material (019 EDTA whole
+      blood) so the rule is vacuous
+    - specimen back-derivation: the chosen code's material segment IS
+      the JP_ObservationSampleMaterialCodeJLAC10_CS code (1-1 mapping,
+      verified session 67 2026-07-26 — no translation table needed)
+
+    Also carries the LOINC secondary co-emission from ``LegacyJSLMStrategy``
+    to preserve the JP dual-coding invariant (JLAC primary + LOINC
+    interop, per DESIGN Global-symmetry principle; PR 4 will make the
+    LOINC retain/drop decision explicit).
+
+    Requires an installed JP-CLINS pkg (falls back to LegacyJSLM
+    emission when the pkg is not available, so cohorts generated on a
+    minimal install still get some coding rather than crash)."""
 
     kind = LabCodingKind.CORELABO_JLAC10
 
     def __init__(self) -> None:
-        self._delegate = LegacyJSLMStrategy()
+        # Kept for the pkg-absent fallback path — CoreLabo emit requires
+        # the eCS SD + CoreLabo CS from the JP-CLINS pkg; if either is
+        # missing we defer to LegacyJSLM rather than crash mid-generate.
+        self._legacy = LegacyJSLMStrategy()
 
     def emit_codings(
         self,
@@ -304,12 +324,72 @@ class CoreLaboStrategy:
         result: dict,
         country: str,
     ) -> list[dict]:
-        # PR 1: byte-identical delegation. Replace in PR 3.
-        return self._delegate.emit_codings(lab_name=lab_name, order=order, result=result, country=country)
+        from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+
+        slice_name = _slice_name_for_analyte(lab_name)
+        pkg = load_lab_coding_package()
+        if slice_name is None or not pkg.is_available():
+            # Defensive fallback — classifier should never route here without
+            # a slice mapping, but if pkg missing we can't emit CoreLabo codes.
+            return self._legacy.emit_codings(lab_name=lab_name, order=order, result=result, country=country)
+        slice_info = pkg.slice_info(f"coreLaboJLAC10/{slice_name}")
+        if slice_info is None or not slice_info.codes:
+            return self._legacy.emit_codings(lab_name=lab_name, order=order, result=result, country=country)
+
+        chosen = _pick_corelabo_code(slice_info.codes)
+        # Primary CoreLabo coding — Fixed display MUST come from the SD,
+        # NOT designation_ja (session 67 dual-slot rule: coding.display =
+        # canonical Fixed value, JP text goes into LocalCode display /
+        # code.text via PR 3c).
+        primary: dict[str, Any] = {
+            "system": slice_info.slice_system,
+            "code": chosen.code,
+            "display": slice_info.fixed_display,
+        }
+        codings: list[dict] = [primary]
+        # JP dual coding: keep LOINC secondary (mirrors LegacyJSLM's
+        # dual-emit; PR 4 will formalize the retain decision as an ADR).
+        us_code_map = load_code_mapping("lab", "US")
+        loinc_code = us_code_map.get(lab_name)
+        if loinc_code:
+            loinc_display = code_lookup("loinc", loinc_code, "en") or lab_name
+            codings.append(
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": loinc_code,
+                    "display": loinc_display,
+                }
+            )
+        return codings
 
     def emit_localcode_coding(self, **_kwargs: Any) -> dict | None:
-        # PR 3 will emit LocalCode; PR 1 returns None for byte-identical.
+        # PR 3c will emit LocalCode co-slice; PR 3b keeps None so this
+        # PR moves only Metric 1 (CS 使用率) + Metric 2 (Fixed display).
+        # Metric 3 (適用規則満足率) intentionally stays 0/2509 until 3c.
         return None
+
+
+def _pick_corelabo_code(codes: tuple[LabCodeCandidate, ...]) -> LabCodeCandidate:
+    """Session 67 memo §H.3 rev + user Option B judgment (2026-07-26).
+
+    1. Filter to ``method='998'`` (method-agnostic, the honest default
+       for synthetic data that does not simulate specific methods).
+       Fallback to ``method='999'`` (other) if no 998 exists;
+       final fallback to any code (should not trigger — all 20
+       CoreLabo analytes have 998 codes per session 67 pre-cover).
+    2. Among the filtered candidates, pick the numerically-largest
+       material code (Option B — for chemistry this resolves to 023
+       血清 which matches standard Japanese lab practice).
+    3. Within material + method, deterministic sort by full code for
+       reproducibility across runs.
+    """
+    m998 = [c for c in codes if c.segments.method == "998"]
+    pool = m998 or [c for c in codes if c.segments.method == "999"] or list(codes)
+    # Numerically-largest material — Option B
+    max_material = max(c.segments.material for c in pool)
+    same_material = [c for c in pool if c.segments.material == max_material]
+    # Deterministic tiebreak inside same material + method: sort by full code
+    return sorted(same_material, key=lambda c: c.code)[0]
 
 
 # --------------------------------------------------------------------------- #
@@ -437,16 +517,22 @@ _STRATEGIES: dict[LabCodingKind, LabCodingStrategy] = {
 def select_lab_coding_strategy(lab_name: str, country: str) -> LabCodingStrategy:
     """Look up the strategy for this (analyte, country) pair.
 
-    **PR 3a invariant**: dispatcher returns ``LegacyJSLMStrategy`` for
-    JP and ``LegacyLOINCStrategy`` for US, exactly as in PR 1 —
-    unchanged for byte-identical guarantee. The new ``_classify_analyte``
-    (below) is implemented and unit-tested but NOT consumed here;
-    PR 3b will bridge CoreLabo-classified analytes into
-    ``CoreLaboStrategy`` here, and PR 3c will bridge Uncoded. Keeping
-    this dispatcher literally 1-line-unchanged from PR 1 is the
-    byte-identical proof — the classifier's return values cannot
-    influence production output because they never reach this
-    function."""
+    **PR 3b bridge** (session 67 2026-07-26): US → LegacyLOINC, JP →
+    consult ``_classify_analyte``. CoreLabo-classified analytes route
+    to ``CoreLaboStrategy`` (real 17-digit + Fixed display emit).
+    Uncoded and unmapped-JP still route to ``LegacyJSLMStrategy`` to
+    preserve byte-identical output for those paths — PR 3c will bridge
+    Uncoded and retire the JP LegacyJSLM path.
+
+    byte-partial guarantee for PR 3b: only ``_classify_analyte(...) ==
+    CORELABO_JLAC10`` analytes have their emit changed. Uncoded /
+    LegacyJSLM-classified analytes (611 obs on v30 JP CIF) stay
+    byte-identical vs PR 3a.
+    """
     if is_us(country):
         return _STRATEGIES[LabCodingKind.LEGACY_LOINC]
+    kind = _classify_analyte(lab_name, country)
+    if kind == LabCodingKind.CORELABO_JLAC10:
+        return _STRATEGIES[LabCodingKind.CORELABO_JLAC10]
+    # UNCODED and anything else on JP → LegacyJSLM (unchanged, PR 3c bridge)
     return _STRATEGIES[LabCodingKind.LEGACY_JSLM]
