@@ -324,7 +324,6 @@ def test_load_fixed_display_propagates_none_from_missing_pkg(monkeypatch):
     assert result is None
 
 
-
 # --------------------------------------------------------------------------- #
 # CI invariant gate tests (Session 68 PR 5).
 # These tests demonstrate that the CI gate can detect regression in each
@@ -334,7 +333,7 @@ def test_load_fixed_display_propagates_none_from_missing_pkg(monkeypatch):
 def test_metric1_regression_detection_non_jp_clins_system():
     """Regression detection: Metric 1 should FAIL if any observation uses
     a non-JP-CLINS system (e.g., SNOMED-CT, ICD-10).
-    
+
     Scenario: an emission bug switches some observations to SNOMED instead
     of the JP-CLINS CodeSystem. The axis must catch this."""
     compliant_obs = _lab_obs(
@@ -343,7 +342,7 @@ def test_metric1_regression_detection_non_jp_clins_system():
             {"system": _LOCALCODE, "code": "wbc", "display": _WBC_JP_LOCAL_DISPLAY},
         ]
     )
-    
+
     # Regression: uses SNOMED-CT only (not JP-CLINS)
     snomed_system = "http://snomed.info/sct"
     non_jp_clins_obs = _lab_obs(
@@ -351,18 +350,18 @@ def test_metric1_regression_detection_non_jp_clins_system():
             {"system": snomed_system, "code": "87612001", "display": "WBC"},
         ]
     )
-    
+
     # 1 compliant (100% JP-CLINS), 1 non-JP-CLINS (0%) → 1/2 = 50%
     obs_list = [compliant_obs, non_jp_clins_obs]
     check = _check_cs_usage(obs_list)
-    
+
     assert check.outcome == Outcome.FAIL, "Non-JP-CLINS system should be detected as regression"
     assert check.detail["ratio"] == 0.5
 
 
 def test_metric2_regression_detection_broken_fixed_display():
     """Metric 2 regression: if CoreLabo display drifts from Fixed value.
-    
+
     Scenario: emission code accidentally uses Japanese display instead of
     the eCS-defined Fixed display string."""
     compliant_obs = _lab_obs(
@@ -371,7 +370,7 @@ def test_metric2_regression_detection_broken_fixed_display():
             {"system": _LOCALCODE, "code": "wbc", "display": _WBC_JP_LOCAL_DISPLAY},
         ]
     )
-    
+
     # Regression: Fixed display drifted to Japanese
     regressed_obs = _lab_obs(
         [
@@ -379,17 +378,17 @@ def test_metric2_regression_detection_broken_fixed_display():
             {"system": _LOCALCODE, "code": "wbc", "display": _WBC_JP_LOCAL_DISPLAY},
         ]
     )
-    
+
     obs_list = [compliant_obs, regressed_obs]
     check = _check_fixed_display(obs_list)
-    
+
     assert check.outcome == Outcome.FAIL, "Fixed display regression should be detected"
     assert check.detail["ratio"] == 0.5
 
 
 def test_metric3_regression_detection_missing_localcode():
     """Metric 3 regression: if localCode slice is accidentally omitted.
-    
+
     Scenario: emission code is refactored without maintaining the LocalCode
     slice requirement."""
     compliant_obs = _lab_obs(
@@ -398,16 +397,16 @@ def test_metric3_regression_detection_missing_localcode():
             {"system": _LOCALCODE, "code": "wbc", "display": _WBC_JP_LOCAL_DISPLAY},
         ]
     )
-    
+
     # Regression: LocalCode slice omitted
     regressed_obs = _lab_obs(
         [
             {"system": _CORELABO_JLAC10, "code": _WBC_17DIGIT, "display": _WBC_FIXED_DISPLAY},
         ]
     )
-    
+
     obs_list = [compliant_obs, regressed_obs]
     check = _check_rule_satisfaction(obs_list)
-    
+
     assert check.outcome == Outcome.FAIL, "Missing localLaboCode should be detected"
     assert check.detail["ratio"] == 0.5
