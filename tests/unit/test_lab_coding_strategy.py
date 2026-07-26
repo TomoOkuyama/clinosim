@@ -1,15 +1,22 @@
 """Unit tests for the JP-CLINS lab coding strategy dispatcher.
 
-PR 1 scope: pin the interface + strategy dispatch + PR 1 invariants
+PR 1 scope: interface + strategy dispatch + PR 1 invariants
 (byte-identical delegation, LocalCode always None, InfectionLabo
-raises). PR 3 will add tests for the CoreLabo real emit +
-LocalCode activation."""
+raises).
+
+PR 3a scope: real ``_classify_analyte`` + ``_ANALYTE_TO_SLICE_NAME``
++ ``_slice_name_for_analyte``. Dispatcher stays unchanged for
+byte-identical guarantee — classifier is verified here alone and
+never consumed by production code until PR 3b (CoreLabo) / PR 3c
+(Uncoded)."""
 
 from __future__ import annotations
 
 import pytest
 
 from clinosim.modules.output._lab_coding_strategy import (
+    _ANALYTE_TO_SLICE_NAME,
+    _KNOWN_UNCODED_ANALYTES,
     CoreLaboStrategy,
     InfectionLaboStrategy,
     LabCodingKind,
@@ -17,6 +24,7 @@ from clinosim.modules.output._lab_coding_strategy import (
     LegacyLOINCStrategy,
     UncodedStrategy,
     _classify_analyte,
+    _slice_name_for_analyte,
     select_lab_coding_strategy,
 )
 
@@ -62,35 +70,190 @@ def test_pr1_invariant_emit_localcode_coding_returns_none(strategy_cls):
 # Dispatcher: PR 1 classifier placeholder returns LEGACY_* for every input
 
 
-@pytest.mark.parametrize("country", ["JP", "jp"])
-def test_classifier_returns_legacy_jslm_for_jp(country):
-    """PR 1: any analyte on any accepted JP country string routes to
-    LEGACY_JSLM. Country string acceptance follows the shared
-    ``is_us`` predicate — the classifier is JP-else-US, so ``JP`` and
-    anything the codebase doesn't classify as US (e.g. ``Japan``) both
-    reach LEGACY_JSLM. Only strict ``US`` / ``us`` diverge."""
-    assert _classify_analyte("WBC", country) == LabCodingKind.LEGACY_JSLM
-    assert _classify_analyte("Glucose", country) == LabCodingKind.LEGACY_JSLM
-    assert _classify_analyte("SomeUnknownAnalyte", country) == LabCodingKind.LEGACY_JSLM
+# --------------------------------------------------------------------------- #
+# PR 3a classifier — expected classification for every JP analyte in
+# current production data (32 unique lab_name values in v30 CIF).
+# CoreLabo 20 (1,898 obs) + Uncoded 12 (611 obs) = 32 (2,509 obs).
+# Glucose is INTENTIONALLY Uncoded — see T67-Glucose-disambig backlog.
+_JP_EXPECTED_KIND: dict[str, LabCodingKind] = {
+    # CoreLabo — 20 entries, each maps to a slice in _ANALYTE_TO_SLICE_NAME
+    "Creatinine": LabCodingKind.CORELABO_JLAC10,
+    "K": LabCodingKind.CORELABO_JLAC10,
+    "Na": LabCodingKind.CORELABO_JLAC10,
+    "WBC": LabCodingKind.CORELABO_JLAC10,
+    "AST": LabCodingKind.CORELABO_JLAC10,
+    "ALT": LabCodingKind.CORELABO_JLAC10,
+    "CRP": LabCodingKind.CORELABO_JLAC10,
+    "Hb": LabCodingKind.CORELABO_JLAC10,
+    "BUN": LabCodingKind.CORELABO_JLAC10,
+    "PT_INR": LabCodingKind.CORELABO_JLAC10,
+    "BNP": LabCodingKind.CORELABO_JLAC10,
+    "Plt": LabCodingKind.CORELABO_JLAC10,
+    "Ca": LabCodingKind.CORELABO_JLAC10,
+    "Albumin": LabCodingKind.CORELABO_JLAC10,
+    "HbA1c": LabCodingKind.CORELABO_JLAC10,
+    "TG": LabCodingKind.CORELABO_JLAC10,
+    "HDL": LabCodingKind.CORELABO_JLAC10,
+    "TC": LabCodingKind.CORELABO_JLAC10,
+    "APTT": LabCodingKind.CORELABO_JLAC10,
+    "D_dimer": LabCodingKind.CORELABO_JLAC10,
+    # Uncoded — 12 entries, each in _KNOWN_UNCODED_ANALYTES
+    "pH": LabCodingKind.UNCODED,
+    "pCO2": LabCodingKind.UNCODED,
+    "pO2": LabCodingKind.UNCODED,
+    "HCO3": LabCodingKind.UNCODED,
+    "Troponin_I": LabCodingKind.UNCODED,
+    "CK_MB": LabCodingKind.UNCODED,
+    "Lactate": LabCodingKind.UNCODED,
+    "PCT": LabCodingKind.UNCODED,
+    "TSH": LabCodingKind.UNCODED,
+    "Fibrinogen": LabCodingKind.UNCODED,
+    "eGFR": LabCodingKind.UNCODED,
+    "Glucose": LabCodingKind.UNCODED,
+}
+
+
+@pytest.mark.parametrize("lab_name,expected_kind", list(_JP_EXPECTED_KIND.items()))
+def test_classify_analyte_jp_matches_expected_kind(lab_name, expected_kind):
+    """Pins the CoreLabo / Uncoded classification for every JP analyte
+    currently emitted (v30 CIF, 32 unique lab_name values). If a value
+    here starts producing an unexpected kind, either the classification
+    map has drifted or a data-pipeline change (e.g. T67-Glucose-disambig)
+    should update this table intentionally — never silently."""
+    assert _classify_analyte(lab_name, "JP") == expected_kind
+
+
+def test_classify_analyte_unknown_jp_defaults_to_uncoded():
+    """Unmapped JP analyte routes to UNCODED — safe-side fallback that
+    does NOT resurrect the pre-migration LEGACY_JSLM path. PR 3c will
+    activate UncodedStrategy dispatch; PR 3a keeps this as a return-value
+    contract only."""
+    assert _classify_analyte("SomeUnknownAnalyteNotInAnyList", "JP") == LabCodingKind.UNCODED
 
 
 @pytest.mark.parametrize("country", ["US", "us"])
-def test_classifier_returns_legacy_loinc_for_us(country):
+def test_classify_analyte_us_returns_legacy_loinc(country):
     """Only strict ``US`` / ``us`` route to LEGACY_LOINC; the shared
     ``is_us`` predicate does not accept ``United States`` as US."""
     assert _classify_analyte("WBC", country) == LabCodingKind.LEGACY_LOINC
     assert _classify_analyte("SomeUnknownAnalyte", country) == LabCodingKind.LEGACY_LOINC
 
 
-def test_select_returns_singleton_strategy_per_kind():
-    """Strategies are cached (module-level singletons in
-    ``_STRATEGIES``). Repeated calls must return the same instance so
-    stateful behaviors added in PR 3 (e.g. LRU-cached lookups) don't
-    fragment across per-call instances."""
+# --------------------------------------------------------------------------- #
+# _slice_name_for_analyte — clinosim IP mapping
+
+
+@pytest.mark.parametrize(
+    "lab_name,expected_slice",
+    [
+        ("Creatinine", "cre"),
+        ("K", "k"),
+        ("Na", "na"),
+        ("WBC", "wbc"),
+        ("AST", "ast"),
+        ("ALT", "alt"),
+        ("CRP", "crp"),
+        ("Hb", "hb"),
+        ("BUN", "bun"),
+        ("PT_INR", "pt-inr"),
+        ("BNP", "bnp"),
+        ("Plt", "plt"),
+        ("Ca", "ca"),
+        ("Albumin", "alb"),
+        ("HbA1c", "hba1c-ngsp"),
+        ("TG", "tg"),
+        ("HDL", "hdl-c"),
+        ("TC", "t-cho"),
+        ("APTT", "aptt"),
+        ("D_dimer", "dd"),
+    ],
+)
+def test_slice_name_for_analyte_covers_all_corelabo_entries(lab_name, expected_slice):
+    """All 20 CoreLabo-classified analytes map to the expected SD
+    slice suffix. Any mismatch means either the SD naming changed
+    (session 67 pinned these against SD 1.12.0) or the analyte moved
+    kind (should also flip the _JP_EXPECTED_KIND table)."""
+    assert _slice_name_for_analyte(lab_name) == expected_slice
+
+
+def test_slice_name_for_analyte_returns_none_for_uncoded_analytes():
+    """Uncoded analytes have no CoreLabo slice by definition."""
+    for lab_name in _KNOWN_UNCODED_ANALYTES:
+        assert _slice_name_for_analyte(lab_name) is None, (
+            f"{lab_name} is in _KNOWN_UNCODED_ANALYTES but has a slice mapping "
+            "— inconsistency between _ANALYTE_TO_SLICE_NAME and _KNOWN_UNCODED_ANALYTES"
+        )
+
+
+# --------------------------------------------------------------------------- #
+# Completeness — silent takedown guard.
+
+
+def test_no_overlap_between_corelabo_and_uncoded_sets():
+    """An analyte cannot be BOTH CoreLabo and Known-Uncoded. Overlap
+    would let the classifier's iteration order determine the kind
+    (silent behavior)."""
+    overlap = set(_ANALYTE_TO_SLICE_NAME.keys()) & set(_KNOWN_UNCODED_ANALYTES)
+    assert overlap == set(), f"analytes in BOTH sets: {overlap}"
+
+
+def test_all_current_production_analytes_have_explicit_classification():
+    """Every JP analyte currently emitted by the pipeline (v30 CIF)
+    MUST be explicitly classified — either in _ANALYTE_TO_SLICE_NAME
+    or _KNOWN_UNCODED_ANALYTES. If a new analyte lands in the
+    pipeline, this test fails and the maintainer must choose
+    intentionally whether it goes to CoreLabo (with a slice mapping)
+    or Uncoded (explicit membership) rather than falling into the
+    silent unmapped→UNCODED default. That default is a runtime safety
+    net, not a mechanism for silent takedowns of newly-added
+    analytes."""
+    # Enumerated from v30 CIF Observation.ndjson (session 67 PR 3a
+    # preparation). Any new lab_name that appears in production
+    # requires an intentional classification decision.
+    current_production_analytes = set(_JP_EXPECTED_KIND.keys())
+    classified = set(_ANALYTE_TO_SLICE_NAME.keys()) | set(_KNOWN_UNCODED_ANALYTES)
+    missing = current_production_analytes - classified
+    assert missing == set(), (
+        f"Production analytes without explicit classification: {sorted(missing)}. "
+        "Add each to _ANALYTE_TO_SLICE_NAME (CoreLabo) or _KNOWN_UNCODED_ANALYTES (Uncoded)."
+    )
+
+
+def test_expected_kind_totals_match_v30_analyte_split():
+    """Session 67 memo confirms the CoreLabo / Uncoded split on v30
+    p=100 s=300: 20 CoreLabo analytes + 12 Uncoded analytes = 32
+    total (1,898 + 611 = 2,509 observations; observation counts
+    verified against v30 CIF at classifier design time)."""
+    corelabo = [n for n, k in _JP_EXPECTED_KIND.items() if k == LabCodingKind.CORELABO_JLAC10]
+    uncoded = [n for n, k in _JP_EXPECTED_KIND.items() if k == LabCodingKind.UNCODED]
+    assert len(corelabo) == 20, f"expected 20 CoreLabo, got {len(corelabo)}"
+    assert len(uncoded) == 12, f"expected 12 Uncoded (incl. Glucose), got {len(uncoded)}"
+    assert len(_ANALYTE_TO_SLICE_NAME) == 20, (
+        f"_ANALYTE_TO_SLICE_NAME should have 20 entries, got {len(_ANALYTE_TO_SLICE_NAME)}"
+    )
+    assert len(_KNOWN_UNCODED_ANALYTES) == 12, (
+        f"_KNOWN_UNCODED_ANALYTES should have 12 entries, got {len(_KNOWN_UNCODED_ANALYTES)}"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# PR 3a dispatcher invariant — byte-identical preserved.
+
+
+def test_select_lab_coding_strategy_jp_returns_legacy_jslm_singleton():
+    """PR 3a invariant (byte-identical): the dispatcher still returns
+    LegacyJSLMStrategy for JP regardless of classifier verdict.
+    Classifier is verified separately by ``test_classify_analyte_*``
+    but has zero influence on production output until PR 3b/3c bridges
+    it into this dispatcher."""
     s1 = select_lab_coding_strategy("WBC", "JP")
     s2 = select_lab_coding_strategy("Glucose", "JP")
-    assert s1 is s2  # same LEGACY_JSLM singleton
+    s3 = select_lab_coding_strategy("pH", "JP")
     assert s1.kind == LabCodingKind.LEGACY_JSLM
+    assert s2.kind == LabCodingKind.LEGACY_JSLM  # classifier would say UNCODED, but dispatcher ignores
+    assert s3.kind == LabCodingKind.LEGACY_JSLM  # classifier would say UNCODED, but dispatcher ignores
+    # Singleton
+    assert s1 is s2 is s3
 
 
 # --------------------------------------------------------------------------- #

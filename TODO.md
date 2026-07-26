@@ -788,6 +788,48 @@ JANIS master mapping (T67-M1) に依存するため未実装 stub。**stub は
 
 **関連**: [[T67-M1]]、session 67 workspace:5 memo (2026-07-25)。
 
+### T67-Glucose-disambig [OPEN, MAJOR] Glucose を fasting_state 付きで BG / FBG / CBG に振り分ける
+
+**問題**: JP-CLINS CoreLabo は Glucose を `bg`(血糖)/ `fbg`(空腹時血糖)/
+`cbg`(随時血糖)の 3 slice に分けている。臨床的にも別種検査
+(空腹時採血 vs 救急随時採血)。しかし clinosim upstream は現在
+`lab_name = "Glucose"` を単一 name で emit しており、fasting/context
+情報を carry していない。
+
+**現状**(v30 実測): 393 件全て `lab_name = "Glucose"`。これを PR 3a で
+CoreLabo 該当扱いにして `bg` slice 固定すると **393 件のうち本来
+FBG/CBG であるべきものが誤って BG(静脈血糖)として emit される**
+= 検体検査の種類を偽る = 合成データでも許容不能な意味の誤り。
+
+**PR 3a 段階の judgement**(session 67 workspace:5 memo 決定):
+Glucose を **`_KNOWN_UNCODED_ANALYTES` に含めて Uncoded routing** で
+妥協。Uncoded は「標準コードに正しくマップできない」を明示する
+正当な spec fallback であり、嘘をつかない。CS 使用率は下がるが、
+`bg` 誤固定より誠実。
+
+**修正 (T67-Glucose-disambig)**:
+1. **upstream data-pipeline 変更**: CIF `lab_result` に `fasting_state`
+   or `clinical_context` field を追加、simulator が生成時に carry
+   (空腹時採血の routine order は FBG、ED や急変時は CBG、
+   通常 order は BG)
+2. **classifier update**: `_classify_analyte` を `(lab_name, country,
+   context)` shape に拡張 or 別 hook で分岐、Glucose を
+   `_KNOWN_UNCODED_ANALYTES` から `_ANALYTE_TO_SLICE_NAME` の
+   `bg` / `fbg` / `cbg` へ移動
+3. **PR 3a test 更新**: `_JP_EXPECTED_KIND` から Glucose を移動、
+   CoreLabo 20 → 23、Uncoded 12 → 11 に更新
+4. **_ANALYTE_TO_SLICE_NAME 更新**: `Glucose_bg` / `Glucose_fbg` /
+   `Glucose_cbg` 等の disambiguated names を追加(または contextual
+   dispatch)
+
+**影響 metric**: 393 obs が Uncoded → CoreLabo に移り CS 使用率上昇
+(ただし 3 slice に散らばるので slice-per-slice の Fixed display 一致
+verification が要る)。適用規則満足率は変わらない(Uncoded も CoreLabo
+も spec 準拠)。
+
+**関連**: `docs/reviews/2026-07-25-pr2-lab-coding-package-loader.md`
+の PR 3 handoff / [[T67-M1]]。session 67 memo。
+
 ### T67-V1 [OPEN, MINOR] version 名で generator commit SHA を含める
 
 **問題**: `v29`/`v30`/`v31` の単調増加連番が採番者を持たないため、
