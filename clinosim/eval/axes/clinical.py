@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, timedelta
+from typing import Any
 
 from clinosim.audit.types import Cohort
 from clinosim.codes import get_system_uri
@@ -21,18 +22,52 @@ from clinosim.eval.engine import EvalCheck, Outcome, Severity
 _JP_MEDICATION_SYSTEM_KEYS = ("yj", "hot7", "hot9", "hot13", "medication-nocoded")
 _JP_MEDICATION_SYSTEM_URIS: frozenset[str] = frozenset(get_system_uri(k) for k in _JP_MEDICATION_SYSTEM_KEYS)
 
-# Physiological plausibility bounds. Values outside these are almost
-# certainly a bug — not a real edge case. All in the units clinosim emits.
-_LAB_BOUNDS = {
-    # LOINC → (min, max, unit hint)
-    "6690-2": (0.0, 500.0, "WBC 10^9/L"),  # WBC
-    "718-7": (0.0, 25.0, "Hb g/dL"),  # Hemoglobin
-    "2160-0": (0.0, 30.0, "Creatinine mg/dL"),  # Serum creatinine
-    "2345-7": (0.0, 1500.0, "Glucose mg/dL"),  # Serum glucose
-    "2823-3": (0.0, 10.0, "Potassium mEq/L"),  # Serum potassium
-    "2951-2": (0.0, 200.0, "Sodium mEq/L"),  # Serum sodium
-    "1975-2": (0.0, 50.0, "Total bilirubin mg/dL"),  # Total bili
-    "6301-6": (0.5, 20.0, "PT-INR"),  # PT-INR
+# Physiological plausibility bounds — **unit-aware** (B3 2026-07-26 fix).
+#
+# 旧実装は `{LOINC: (lo, hi, unit_hint)}` の 1 単位 bounds で、`unit_hint` は
+# 判定に使われず (単位無視の数値比較のみ)。emit unit と bounds unit が違うと
+# 系統的な偽 FAIL を生む silent bug。実測 (JP p=300 seed=300 post-B2 cohort):
+#   6690-2 (WBC) emit `/uL` × 584 vs bounds `10^9/L` prefix (500 上限) →
+#     584 件が偽 FAIL (WBC 4720-17522 /uL は臨床的に正常範囲)。
+# ★ 監督必須要件: 境界広げて 584 件を隠すのは禁止。単位無視の数値比較を
+#   やめるのが本質。単位対応した bounds を定義し、emit unit と一致した
+#   bounds のみで判定。不明な単位は fail-safe skip (誤 FAIL を生まない、
+#   ただし新しい unit 混入は unknown_units 数として EvalCheck.detail に
+#   surface して silent 化を防ぐ)。
+#
+# 出典:
+#   - WBC: LOINC 6690-2 canonical unit `10*9/L` (UCUM)、臨床慣行 US=10^9/L、
+#     JP=/uL。1 x 10^9/L = 1000 /uL。bounds 上限 500 x 10^9/L = 500_000 /uL。
+#   - K: LOINC 2823-3、mmol/L = mEq/L (1 価イオン)、bounds [0, 10] 共通。
+#   - Na: LOINC 2951-2、同上。
+#   - Cre / Glucose / Hb / Bili: 単一単位 (mg/dL / g/dL) のみ実測、alias なし。
+#   - PT-INR: 単位無し (`{INR}` unitless UCUM)、数値そのまま判定。
+_LAB_BOUNDS_BY_UNIT: dict[str, dict[str, tuple[float, float]]] = {
+    # LOINC → {unit_string: (min, max)}
+    # unit_string は `valueQuantity.unit` (human-readable) or `.code` (UCUM) の
+    # いずれかにマッチすればよい (判定 site で両方チェック、順序は unit → code)。
+    "6690-2": {  # WBC
+        "/uL": (0.0, 500_000.0),
+        "/μL": (0.0, 500_000.0),
+        "10^9/L": (0.0, 500.0),
+        "10*9/L": (0.0, 500.0),  # UCUM 正式表記
+    },
+    "718-7": {"g/dL": (0.0, 25.0)},  # Hemoglobin
+    "2160-0": {"mg/dL": (0.0, 30.0)},  # Serum creatinine
+    "2345-7": {"mg/dL": (0.0, 1500.0)},  # Serum glucose
+    "2823-3": {  # Serum potassium
+        "mmol/L": (0.0, 10.0),
+        "mEq/L": (0.0, 10.0),
+    },
+    "2951-2": {  # Serum sodium
+        "mmol/L": (0.0, 200.0),
+        "mEq/L": (0.0, 200.0),
+    },
+    "1975-2": {"mg/dL": (0.0, 50.0)},  # Total bilirubin
+    "6301-6": {  # PT-INR
+        "{INR}": (0.5, 20.0),
+        "": (0.5, 20.0),  # unitless fallback (some emitters omit unit for INR)
+    },
 }
 
 
@@ -170,24 +205,55 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]:
 
 def _check_lab_values_physiological_range(cohort: Cohort, country: str) -> EvalCheck:
     """Lab values must fall inside gross physiological bounds. Any WBC
-    of 10^30 or negative creatinine is a defect."""
+    of 10^30 or negative creatinine is a defect.
+
+    B3 2026-07-26: unit-aware bounds — emit `valueQuantity.unit` (fallback
+    `.code`) と ``_LAB_BOUNDS_BY_UNIT[loinc]`` の key が一致する場合のみ
+    bounds を適用。単位不明の場合は fail-safe skip (誤 FAIL を生まない)
+    し、``detail.unknown_units_by_loinc`` に surface して silent 化を防ぐ
+    (新しい unit が emit 側で導入されたら EvalCheck detail で気付ける)。
+    """
     out_of_range: dict[str, int] = {}
+    unknown_units: dict[str, dict[str, int]] = {}
     total_checked = 0
     for row in _read(cohort, country, "Observation"):
         code_bag = (row.get("code") or {}).get("coding") or []
         loinc_code = _first_code_for_system(code_bag, "http://loinc.org")
-        if not loinc_code or loinc_code not in _LAB_BOUNDS:
+        if not loinc_code or loinc_code not in _LAB_BOUNDS_BY_UNIT:
             continue
         vq = row.get("valueQuantity") or {}
         val = vq.get("value")
         if val is None:
             continue
+        unit_str = vq.get("unit") or ""
+        unit_code = vq.get("code") or ""
+        bounds_by_unit = _LAB_BOUNDS_BY_UNIT[loinc_code]
+        # unit → code の順で探す (unit 側は human-readable, code は UCUM canonical)
+        bounds = bounds_by_unit.get(unit_str) or bounds_by_unit.get(unit_code)
+        if bounds is None:
+            # 未知の単位 = 判定不能 (fail-safe skip)、ただし surface する。
+            key = unit_str or unit_code or "<empty>"
+            unknown_units.setdefault(loinc_code, {}).setdefault(key, 0)
+            unknown_units[loinc_code][key] += 1
+            continue
         total_checked += 1
-        lo, hi, _hint = _LAB_BOUNDS[loinc_code]
+        lo, hi = bounds
         if not (lo <= val <= hi):
             out_of_range[loinc_code] = out_of_range.get(loinc_code, 0) + 1
 
+    detail_extras: dict[Any, Any] = {}
+    if unknown_units:
+        detail_extras["unknown_units_by_loinc"] = unknown_units
+
     if total_checked == 0:
+        if detail_extras:
+            return EvalCheck(
+                name="lab_values_physiological_range",
+                outcome=Outcome.NA,
+                severity=Severity.MAJOR,
+                message="No LOINC-coded lab values in the checked set were found.",
+                detail=detail_extras,
+            )
         return EvalCheck(
             name="lab_values_physiological_range",
             outcome=Outcome.NA,
@@ -200,14 +266,14 @@ def _check_lab_values_physiological_range(cohort: Cohort, country: str) -> EvalC
             outcome=Outcome.PASS,
             severity=Severity.MAJOR,
             message=f"{total_checked} lab value(s) checked; all within physiological bounds.",
-            detail={"checked": total_checked, "loinc_bounds": _bounds_summary()},
+            detail={"checked": total_checked, "loinc_bounds": _bounds_summary(), **detail_extras},
         )
     return EvalCheck(
         name="lab_values_physiological_range",
         outcome=Outcome.FAIL,
         severity=Severity.MAJOR,
         message=f"{sum(out_of_range.values())} lab value(s) out of physiological bounds",
-        detail={"by_loinc": out_of_range, "checked": total_checked},
+        detail={"by_loinc": out_of_range, "checked": total_checked, **detail_extras},
     )
 
 
@@ -391,8 +457,11 @@ def _patient_ages(cohort: Cohort, country: str) -> dict[str, int]:
     return ages
 
 
-def _bounds_summary() -> dict[str, str]:
-    return {code: f"[{lo}, {hi}] {hint}" for code, (lo, hi, hint) in _LAB_BOUNDS.items()}
+def _bounds_summary() -> dict[str, dict[str, str]]:
+    """LOINC → unit → "[lo, hi]" (unit-aware, B3 2026-07-26)."""
+    return {
+        code: {unit: f"[{lo}, {hi}]" for unit, (lo, hi) in units.items()} for code, units in _LAB_BOUNDS_BY_UNIT.items()
+    }
 
 
 # --------------------------------------------------------------------------- #
