@@ -3,12 +3,43 @@
 from __future__ import annotations
 
 from clinosim.audit.types import Cohort
+from clinosim.codes import get_system_uri
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
+from clinosim.modules.output.lab_coding_package import jp_clins_defined_system_uris
 
 _RXNORM_SYSTEM = "http://www.nlm.nih.gov/research/umls/rxnorm"
 _LOINC_SYSTEM = "http://loinc.org"
-_JLAC10_SYSTEM_PREFIXES = ("urn:oid:1.2.392.200119.4.1005",)  # JLAC10 canonical OID
-_YJ_SYSTEM_PREFIXES = ("urn:oid:1.2.392.100495.20.2.74",)
+
+# --------------------------------------------------------------------------- #
+# JLAC10 identification set — used by `_jp_jlac10_or_loinc_on_lab`.
+#
+# JP-CLINS-defined JLAC10 系 CS (B1 で確立、`jp_clins_defined_system_uris()`
+# 経由) ∪ 旧 JSLM canonical OID (`urn:oid:1.2.392.200119.4.1005`) の**和集合**。
+#
+# 旧 JSLM OID は「まだ JLAC10 を名乗る正当な出所」で、除去対象ではない (微生物
+# `mb-org-*` / `mb-sus-*` 系 53 件が旧 OID で 5 桁 JLAC10 を emit、LOINC を
+# 併走しない = T67-M1 の JP-CLINS 化が未着手のため正当な emit)。B2 2026-07-26
+# で置換ではなく和集合に整理。
+_LEGACY_JLAC10_OID = "urn:oid:1.2.392.200119.4.1005"
+_JLAC10_SYSTEM_URIS: frozenset[str] = jp_clins_defined_system_uris() | frozenset({_LEGACY_JLAC10_OID})
+
+# --------------------------------------------------------------------------- #
+# JP medication CodeSystem URI set — used by `_jp_yj_code_on_medications` and
+# `_check_medication_lab_coherence_warfarin` (clinical.py).
+#
+# emit 側 (`_fhir_medications.py:_resolve_jp_drug_system_uri`) は code format
+# ごとに 5 URI に dispatch する:
+#   - YJ (12桁)  → capstandard URI
+#   - HOT7 (7桁) → MEDIS HOT7 URI
+#   - HOT9 (9桁) → MEDIS HOT9 URI
+#   - HOT13 (13桁) → MEDIS HOT13 URI
+#   - nocoded    → JP-CLINS eCS Nocoded URI
+# eval axis は同 5 URI を canonical registry (`codes/loader.py::_BUILTIN_URIS`
+# + `codes/data/yj.yaml`) から取得。B2 2026-07-26 で hardcoded `.74` prefix
+# を registry accessor 経由に置換。
+_JP_MEDICATION_SYSTEM_KEYS = ("yj", "hot7", "hot9", "hot13", "medication-nocoded")
+_JP_MEDICATION_SYSTEM_URIS: frozenset[str] = frozenset(get_system_uri(k) for k in _JP_MEDICATION_SYSTEM_KEYS)
+
 _JP_CORE_URL_PREFIX = "http://jpfhir.jp/fhir/core/StructureDefinition/"
 
 
@@ -107,7 +138,7 @@ def _jp_jlac10_or_loinc_on_lab(cohort: Cohort, country: str) -> EvalCheck:
             continue
         total += 1
         codings = (row.get("code") or {}).get("coding") or []
-        has_jlac = any(any(c.get("system", "").startswith(p) for p in _JLAC10_SYSTEM_PREFIXES) for c in codings)
+        has_jlac = any((c.get("system") or "") in _JLAC10_SYSTEM_URIS for c in codings)
         has_loinc = any(c.get("system") == _LOINC_SYSTEM for c in codings)
         if not (has_jlac or has_loinc):
             without += 1
@@ -146,7 +177,7 @@ def _jp_yj_code_on_medications(cohort: Cohort, country: str) -> EvalCheck:
         if not codings:
             continue
         total += 1
-        if not any(any(c.get("system", "").startswith(p) for p in _YJ_SYSTEM_PREFIXES) for c in codings):
+        if not any((c.get("system") or "") in _JP_MEDICATION_SYSTEM_URIS for c in codings):
             without += 1
     if total == 0:
         return EvalCheck(

@@ -1,9 +1,16 @@
 metadata:
   name: YJ Code
-  uri: urn:oid:1.2.392.100495.20.2.74
+  # JP Core NamingSystem-jp-medicationcodeyj-namingsystem.json uniqueId
+  # preferred=True fixedUri. 旧値 `urn:oid:1.2.392.100495.20.2.74` は JP Core
+  # 上 HOT9 (JP_MEDIS_MedicationCodeHOT9_NamingSystem) の alias OID、YJ の
+  # OID は `urn:oid:1.2.392.100495.20.2.73`。emit 側 (_fhir_medications.py)
+  # は既に session 53 iris4h-ai F-1 feedback で capstandard URI に切替済み、
+  # registry 側の drift 訂正 (B2, 2026-07-26)。
+  uri: http://capstandard.jp/iyaku.info/CodeSystem/YJ-code
   version: '2024'
-  source: MHLW 薬価基準 YJ / MEDIS HOT-YJ master
-  description: Japanese drug code (YJ/HOT)
+  source: JP Core NamingSystem preferred fixedUri / MHLW 薬価基準 YJ / MEDIS HOT-YJ master
+  description: Japanese drug code (YJ/HOT). 注意 codes は HOT7 106 件 + YJ12 59 件が混在
+    (system 属性の drift, code system 分離は別 issue で追跡)。
 codes:
   '6139504G1028':
     en: Ampicillin/Sulbactam (Unasyn)
