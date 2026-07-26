@@ -3156,6 +3156,20 @@ deterministic sub-seed, FHIR built in <code>output</code> reading CIF (modules s
 </tbody>
 </table>
 <hr />
+<h2 id="jp-clins-lab-coding-migration-session-67-chain">JP-CLINS lab coding migration — session 67 chain(完了)<a class="headerlink" href="#jp-clins-lab-coding-migration-session-67-chain" title="Permanent link">&para;</a></h2>
+<h3 id="status2026-07-26-wrap-2-pr">Status(2026-07-26 wrap): 本体完成 + 2 PR 残<a class="headerlink" href="#status2026-07-26-wrap-2-pr" title="Permanent link">&para;</a></h3>
+<p>Migration 本体(axis 3 metrics 0→100%)完成。7 PR merged:
+- #392 axis 導入 + microbiology 除外
+- #394 CC BY-ND runtime 抽出化 hotfix
+- #396 PR 1 dispatcher refactor(byte-identical)
+- #398 PR 2 shared pkg loader(pure SD/CS view + 11-item pre-cover)
+- #400 PR 3a analyte classifier(20 CoreLabo + 12 Uncoded、Glucose→Uncoded)
+- #402 PR 3b CoreLabo real emit(1898 obs、998-preferred + Option B 数値最大 material)
+- #404 PR 3c Uncoded + LocalCode + sanitize(全 2509 obs 100%)</p>
+<p><strong>axis 到達</strong>: CS 使用率 2509/2509 = 100.0% / Fixed display 一致率 2509/2509 = 100.0% / 適用規則満足率 2509/2509 = 100.0%(全 PASS)</p>
+<p><strong>残 2 PR</strong>(session 68 起点で ~2-2.5 h):
+- <strong>PR 4</strong>: LOINC secondary retention ADR(コード変更なし、DESIGN.md ADR のみ、決定 B = dual coding 保持)
+- <strong>PR 5</strong>: CI invariant gate(axis 3 metrics 自動チェック、Metric 1 は baseline 比較で退行検出)</p>
 <h2 id="jp-clins-lab-compliance-chain-session-67-spin-off-todos">JP-CLINS lab compliance chain — session 67 spin-off TODOs<a class="headerlink" href="#jp-clins-lab-compliance-chain-session-67-spin-off-todos" title="Permanent link">&para;</a></h2>
 <p>These are non-blocking follow-ups spun out of the JP-CLINS lab
 self-measurement axis PR (session 67, workspace:5 memo). They are
