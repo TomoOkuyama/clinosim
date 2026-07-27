@@ -1370,6 +1370,14 @@ def _generate_home_medication_orders(
     Returns:
         (medication_orders, chronic_monitoring_specs)
     """
+    # Issue #432: `patient.current_medications` (set at population time by
+    # `_derive_home_medications`) is the SINGLE SOURCE OF TRUTH for what
+    # the patient is actually taking at home. Do NOT re-sample the YAML
+    # here — that would let activator pick Warfarin and inpatient pick
+    # Apixaban, so the "Home medication (continue)" order would not match
+    # the patient's home meds (silent data-drift). YAML is still read for
+    # per-condition `monitoring` specs (unaffected by the exclusivity
+    # question — monitoring is class-independent add-on labs).
     from clinosim.locale.loader import load_chronic_medications
 
     chronic_meds = load_chronic_medications()
@@ -1378,81 +1386,80 @@ def _generate_home_medication_orders(
     monitoring: list[dict] = []
     med_idx = 0
 
+    # Collect monitoring specs from every matching ICD block (unchanged).
     for condition in patient.chronic_conditions:
         code = condition.code
         spec = chronic_meds.get(code) or chronic_meds.get(code.split(".")[0])
         if not spec:
             continue
-
-        # Home medications (with YAML-driven holds + renal dose adjustment)
-        has_ckd = any(c.code.startswith("N18") for c in patient.chronic_conditions)
-        renal_reserve = (
-            patient.physiological_profile.renal_reserve if hasattr(patient, "physiological_profile") else 1.0
-        )  # noqa: E501
-        initial_renal = state.renal_function if state else renal_reserve
-        has_renal_impairment = has_ckd or initial_renal < 0.4
-
-        # Build held drug set from disease protocol's medication_holds (YAML-driven)
-        held_drugs: set[str] = set()
-        hold_reasons: dict[str, str] = {}
-        if protocol and hasattr(protocol, "medication_holds"):
-            for hold in protocol.medication_holds or []:
-                reason = hold.get("reason", "disease-specific hold")
-                for drug in hold.get("drugs", []):
-                    held_drugs.add(drug.lower())
-                    hold_reasons[drug.lower()] = reason
-
-        for med in spec.get("medications", []):
-            prob = med.get("probability", 1.0)
-            if prob < 1.0 and rng.random() > prob:
-                continue
-
-            drug_name = med["drug"]
-            intent = f"Home medication (continue): {code} - {drug_name}"
-
-            # 1. YAML-driven disease-specific holds (highest priority)
-            drug_lower = drug_name.lower()
-            yaml_held = False
-            for held_name in held_drugs:
-                if held_name in drug_lower:
-                    reason = hold_reasons.get(held_name, "disease-specific hold")
-                    yaml_held = True
-                    break
-            if yaml_held:
-                continue  # silently skip — not ordered
-
-            # 2. Metformin: renal-function-based hold (fallback for diseases without YAML holds)
-            if "metformin" in drug_lower and (initial_renal < 0.4 or has_renal_impairment):
-                continue
-
-            # 3. Renal dose adjustment for CKD patients
-            if has_renal_impairment and renal_reserve < 0.5:
-                renal_drugs = ["enoxaparin", "enalapril", "candesartan", "alendronate", "celecoxib"]
-                if any(rd in drug_lower for rd in renal_drugs):
-                    if "celecoxib" in drug_lower:
-                        continue  # held
-                    else:
-                        intent += " [dose reduced for renal impairment]"
-
-            order = Order(
-                order_id=f"ORD-{encounter_id}-HM-{med_idx:02d}",
-                encounter_id=encounter_id,
-                patient_id=patient.patient_id,
-                order_type=OrderType.MEDICATION,
-                order_code="",
-                display_name=drug_name,
-                urgency="routine",
-                clinical_intent=intent,
-                ordered_datetime=admission_time + timedelta(minutes=60),
-                ordered_by=attending_id,
-                status=OrderStatus.PLACED,
-            )
-            orders.append(order)
-            med_idx += 1
-
-        # Monitoring specs (passed to daily loop)
         for mon in spec.get("monitoring", []):
             monitoring.append(mon)
+
+    # Renal state (used by hold + dose-adjustment logic on current_meds below).
+    has_ckd = any(c.code.startswith("N18") for c in patient.chronic_conditions)
+    renal_reserve = patient.physiological_profile.renal_reserve if hasattr(patient, "physiological_profile") else 1.0
+    initial_renal = state.renal_function if state else renal_reserve
+    has_renal_impairment = has_ckd or initial_renal < 0.4
+
+    # Held drug set from disease protocol's medication_holds (YAML-driven,
+    # protocol side — unchanged semantics, now applied against current_meds).
+    held_drugs: set[str] = set()
+    hold_reasons: dict[str, str] = {}
+    if protocol and hasattr(protocol, "medication_holds"):
+        for hold in protocol.medication_holds or []:
+            reason = hold.get("reason", "disease-specific hold")
+            for drug in hold.get("drugs", []):
+                held_drugs.add(drug.lower())
+                hold_reasons[drug.lower()] = reason
+
+    # Iterate the patient's actual home meds (single source of truth).
+    for drug_name in getattr(patient, "current_medications", None) or []:
+        if not drug_name:
+            continue
+        drug_lower = drug_name.lower()
+        intent = f"Home medication (continue): {drug_name}"
+
+        # 1. Protocol-driven disease-specific holds.
+        yaml_held = False
+        for held_name in held_drugs:
+            if held_name in drug_lower:
+                yaml_held = True
+                break
+        if yaml_held:
+            continue  # silently skip — not ordered
+
+        # 2. Metformin: renal-function-based hold.
+        if "metformin" in drug_lower and (initial_renal < 0.4 or has_renal_impairment):
+            continue
+
+        # 3. Renal dose adjustment for CKD patients.
+        if has_renal_impairment and renal_reserve < 0.5:
+            renal_drugs = ["enoxaparin", "enalapril", "candesartan", "alendronate", "celecoxib"]
+            if any(rd in drug_lower for rd in renal_drugs):
+                if "celecoxib" in drug_lower:
+                    continue  # held
+                else:
+                    intent += " [dose reduced for renal impairment]"
+
+        order = Order(
+            order_id=f"ORD-{encounter_id}-HM-{med_idx:02d}",
+            encounter_id=encounter_id,
+            patient_id=patient.patient_id,
+            order_type=OrderType.MEDICATION,
+            order_code="",
+            display_name=drug_name,
+            urgency="routine",
+            clinical_intent=intent,
+            ordered_datetime=admission_time + timedelta(minutes=60),
+            ordered_by=attending_id,
+            status=OrderStatus.PLACED,
+        )
+        orders.append(order)
+        med_idx += 1
+
+    # `rng` argument is retained for signature/backward compat; the
+    # sampling that consumed it now lives in `_derive_home_medications`.
+    _ = rng
 
     return orders, monitoring
 
@@ -1998,24 +2005,64 @@ def _build_discharge_rx(
     # Drugs contraindicated at low renal function (eGFR roughly maps to state value)
     renal_hold_drugs = {"metformin", "celecoxib", "ibuprofen", "naproxen", "enoxaparin", "alendronate"}
 
-    discharge_drugs = protocol.drugs.get("discharge_oral", {}).get(country_key, [])
+    def _append_item(drug_spec: dict) -> None:
+        """Renal-check + append. Shared by exclusive & independent paths."""
+        drug_name = drug_spec.get("drug", "")
+        if final_renal_function < 0.3 and any(rd in drug_name.lower() for rd in renal_hold_drugs):
+            return
+        items.append(
+            {
+                "drug_name": drug_name,
+                "dose": drug_spec.get("dose", ""),
+                "duration_days": drug_spec.get("duration_days", 7),
+                "route": drug_spec.get("route", "PO"),
+            }
+        )
+
+    # Issue #432: `discharge_oral` blocks may declare `exclusive_classes` +
+    # per-entry `drug_class` (same schema as chronic_medications.yaml). Drugs
+    # whose class is exclusive get a categorical draw (at most one per class);
+    # drugs without a class stay on the original unconditional-append path so
+    # blocks that predate this addition are byte-identical.
+    discharge_oral_block = protocol.drugs.get("discharge_oral", {})
+    if isinstance(discharge_oral_block, dict):
+        exclusive_classes = set(discharge_oral_block.get("exclusive_classes") or ())
+        discharge_drugs = discharge_oral_block.get(country_key, [])
+    else:
+        exclusive_classes = set()
+        discharge_drugs = discharge_oral_block  # legacy shape (unlikely)
     if isinstance(discharge_drugs, dict):
         discharge_drugs = [discharge_drugs]
 
+    by_exclusive_class: dict[str, list[dict]] = {}
+    independent: list[dict] = []
     for drug_spec in discharge_drugs:
-        if isinstance(drug_spec, dict):
-            drug_name = drug_spec.get("drug", "")
-            # Renal contraindication check at discharge
-            if final_renal_function < 0.3 and any(rd in drug_name.lower() for rd in renal_hold_drugs):
-                continue  # skip nephrotoxic drug
-            items.append(
-                {
-                    "drug_name": drug_name,
-                    "dose": drug_spec.get("dose", ""),
-                    "duration_days": drug_spec.get("duration_days", 7),
-                    "route": drug_spec.get("route", "PO"),
-                }
+        if not isinstance(drug_spec, dict):
+            continue
+        cls = drug_spec.get("drug_class")
+        if cls and cls in exclusive_classes:
+            by_exclusive_class.setdefault(cls, []).append(drug_spec)
+        else:
+            independent.append(drug_spec)
+
+    # Categorical draw per exclusive class (residual mass = "no drug this class").
+    for cls, drugs in by_exclusive_class.items():
+        probs = [float(d.get("probability", 1.0)) for d in drugs]
+        total = sum(probs)
+        if total > 1.0 + 1e-9:
+            raise ValueError(
+                f"disease {disease_id!r} discharge_oral exclusive_class "
+                f"{cls!r} probability sum={total:.3f} > 1.0 — invalid categorical distribution"
             )
+        weights = probs + [max(0.0, 1.0 - total)]
+        idx = int(rng.choice(len(weights), p=weights))
+        if idx == len(drugs):
+            continue  # residual: no drug from this class
+        _append_item(drugs[idx])
+
+    # Independent drugs: unchanged unconditional append (preserves legacy).
+    for drug_spec in independent:
+        _append_item(drug_spec)
 
     # Continue chronic medications (with renal check)
     for med in patient.current_medications:

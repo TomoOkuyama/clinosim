@@ -399,26 +399,51 @@ drugs:
         indication: "shock"
 
   discharge_oral:
+    # Issue #432: anticoagulant selection is mutually exclusive. A PE patient
+    # gets ONE oral anticoagulant, not both. Prior to this fix the two
+    # entries were emitted unconditionally (implicit probability=1.0),
+    # producing 100% 2-drug regimens for every PE discharge. The single-mechanism
+    # (`exclusive_classes` + `drug_class`) matches `chronic_medications.yaml`
+    # so `_build_discharge_rx` and `_derive_home_medications` share one rule.
+    exclusive_classes: ["anticoagulant"]
     japan:
-      - drug: "Warfarin"
-        code_yj: "3332001"
-        dose: "Adjusted to INR 2.0-3.0 (1.5-2.5 age>70)"
-        duration_days: 90
-        note: "Minimum 3 months; longer if unprovoked or cancer"
+      # JP: DOAC first-line for VTE per JCS 2017 (肺血栓塞栓症治療ガイドライン)
+      # + JAAM 2020; VKA (warfarin) is retained for mechanical valve, severe
+      # renal impairment, or DOAC contraindication. Probability split
+      # mirrors chronic_medications.yaml I26/I82 (Rivaroxaban 0.5 + Apixaban 0.3
+      # + Warfarin 0.2 → DOAC 0.8 / warfarin 0.2 for the JP 2-drug PE menu).
       - drug: "Edoxaban"
+        drug_class: "anticoagulant"
+        probability: 0.8
         code_yj: "3339002"
         dose: "60mg PO daily (30mg if body weight <=60kg or eGFR 15-50)"
         duration_days: 90
-        note: "DOAC alternative widely used in Japan"
+        note: "DOAC first-line (JCS 2017)"
+      - drug: "Warfarin"
+        drug_class: "anticoagulant"
+        probability: 0.2
+        code_yj: "3332001"
+        dose: "Adjusted to INR 2.0-3.0 (1.5-2.5 age>70)"
+        duration_days: 90
+        note: "Used if mechanical valve or DOAC contraindicated (JCS 2017)"
     us:
+      # US: both Rivaroxaban (EINSTEIN-PE) and Apixaban (AMPLIFY) are
+      # first-line DOACs per CHEST 2021 Antithrombotic Therapy Guideline;
+      # the guideline does not prefer one over the other. Split 0.5/0.5.
       - drug: "Rivaroxaban"
+        drug_class: "anticoagulant"
+        probability: 0.5
         code_rxnorm: "1114195"
         dose: "20mg PO daily with food"
         duration_days: 90
+        note: "DOAC first-line (CHEST 2021, EINSTEIN-PE)"
       - drug: "Apixaban"
+        drug_class: "anticoagulant"
+        probability: 0.5
         code_rxnorm: "1364430"
         dose: "5mg PO BID (after 7 days of 10mg BID)"
         duration_days: 90
+        note: "DOAC first-line (CHEST 2021, AMPLIFY)"
 
 # ============================================================
 # DRUG INTERACTIONS

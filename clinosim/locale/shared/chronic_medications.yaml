@@ -71,9 +71,13 @@ I50:  # Heart failure
     - {drug: "Enalapril 5mg", condition: "SBP < 90 or K > 5.5", field: "systolic_bp", threshold: 90, direction: "below"}
 
 I48:  # Atrial fibrillation
+  # Anticoagulant selection is mutually exclusive (categorical): a patient
+  # gets ONE agent, not both. See top-of-file rationale block on
+  # `exclusive_classes` (Issue #432).
+  exclusive_classes: ["anticoagulant"]
   medications:
-    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", route: "PO", frequency: "bid", probability: 0.5}
+    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.5}
   monitoring:
     - {test: "PT-INR", frequency: "daily", intent: "Anticoagulation monitoring"}
   hold_conditions:
@@ -104,33 +108,40 @@ F00:  # Dementia / Alzheimer's
 # Drug probabilities reflect modern ACCP 2020 / ESC 2019 guideline: DOAC
 # (rivaroxaban/apixaban) is first-line for non-valvular indications;
 # warfarin remains for severe renal impairment, mechanical valves, cost.
-# Note: existing activator (_derive_home_medications) draws each entry's
-# probability independently — a patient can end up on warfarin AND apixaban
-# (~few percent of AC-indicated patients). This is a pre-existing limitation
-# logged for Phase 2c (activator AC-drug exclusivity). For Phase 2b's
-# warfarin-detection purpose this is benign (any warfarin presence triggers
-# on_warfarin=True correctly).
+#
+# Issue #432 (Session 70): anticoagulant selection MUST be mutually
+# exclusive (a patient gets one agent, not both). The activator now
+# reads `exclusive_classes` and does a categorical draw for drugs whose
+# `drug_class` is in the exclusive list; drugs without a class-tag
+# remain on the independent-Bernoulli path so clinically-valid concurrent
+# regimens (e.g. I50 HF triad, I25 DAPT) are unaffected.
 I26:  # Pulmonary embolism — post-discharge AC (>=3 mo, indefinite if unprovoked)
+  exclusive_classes: ["anticoagulant"]
   medications:
-    - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", route: "PO", frequency: "bid", probability: 0.3}
-    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", route: "PO", frequency: "daily", probability: 0.2}
+    - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.2}
   monitoring:
     - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
     - {test: "Cr", frequency: "every_6_months", intent: "DOAC renal monitoring (if on DOAC)"}
 
 I82:  # Deep vein thrombosis — same duration logic as I26
+  exclusive_classes: ["anticoagulant"]
   medications:
-    - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", route: "PO", frequency: "bid", probability: 0.3}
-    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", route: "PO", frequency: "daily", probability: 0.2}
+    - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.2}
   monitoring:
     - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
 
 I63:  # Cerebral infarction — embolic source (AF/cardiac) gets AC; non-embolic gets antiplatelet
+  # Mixed block: anticoagulants are mutually exclusive (categorical);
+  # antiplatelets stay independent (aspirin+clopidogrel dual therapy is
+  # clinically valid for select stroke subtypes / early phase).
+  exclusive_classes: ["anticoagulant"]
   medications:
-    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", route: "PO", frequency: "daily", probability: 0.3}
-    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
     - {drug: "Aspirin 100mg", drug_ja: "アスピリン100mg", route: "PO", frequency: "daily", probability: 0.7}
     - {drug: "Clopidogrel 75mg", drug_ja: "クロピドグレル75mg", route: "PO", frequency: "daily", probability: 0.3}
   monitoring:

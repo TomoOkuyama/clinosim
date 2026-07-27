@@ -445,7 +445,18 @@ def activate_patient(
 def _derive_home_medications(chronic_conditions: list, rng: np.random.Generator, country: str = "US") -> list[str]:
     """Derive home medications from chronic conditions via chronic_medications.yaml.
 
-    Returns a list of drug name strings. JP uses drug_ja if available.
+    Per-ICD block ``exclusive_classes`` (Issue #432) lists ``drug_class``
+    tags whose drugs must be selected via a mutually-exclusive categorical
+    draw (at most one drug from the class). Drugs without a ``drug_class``,
+    or whose class is not in the exclusive list, follow the original
+    independent-Bernoulli path so clinically-valid concurrent regimens
+    (e.g. I50 HF triad, I25 DAPT) stay intact.
+
+    Categorical semantics: probabilities within an exclusive class MUST
+    sum to <= 1.0. Residual mass (1 - sum) becomes the "no drug from this
+    class" branch. Sum > 1.0 is a YAML author error (fail-loud).
+
+    Returns a list of drug name strings. JP uses ``drug_ja`` if available.
     """
     from clinosim.locale.loader import load_chronic_medications
 
@@ -461,13 +472,51 @@ def _derive_home_medications(chronic_conditions: list, rng: np.random.Generator,
         spec = data.get(code) or data.get(code.split(".")[0])
         if not spec:
             continue
-        for drug_spec in spec.get("medications", []):
+
+        exclusive_classes = set(spec.get("exclusive_classes") or ())
+        medications = spec.get("medications", [])
+
+        # Partition drugs into (exclusive_class → [drug_spec, ...]) and
+        # independent (no class, or class not in exclusive_classes).
+        by_exclusive_class: dict[str, list[dict]] = {}
+        independent: list[dict] = []
+        for drug_spec in medications:
+            cls = drug_spec.get("drug_class")
+            if cls and cls in exclusive_classes:
+                by_exclusive_class.setdefault(cls, []).append(drug_spec)
+            else:
+                independent.append(drug_spec)
+
+        # Exclusive classes: categorical draw with residual "no drug" branch.
+        for cls, drugs in by_exclusive_class.items():
+            probs = [float(d.get("probability", 1.0)) for d in drugs]
+            total = sum(probs)
+            if total > 1.0 + 1e-9:
+                raise ValueError(
+                    f"chronic_medications.yaml: ICD {code} exclusive_class "
+                    f"{cls!r} probability sum={total:.3f} > 1.0 — invalid "
+                    f"categorical distribution (residual mass would go negative)"
+                )
+            # Residual mass = 1 - sum → "no drug from this class" branch.
+            weights = probs + [max(0.0, 1.0 - total)]
+            idx = int(rng.choice(len(weights), p=weights))
+            if idx == len(drugs):
+                continue  # residual branch: no drug from this class
+            picked = drugs[idx]
+            name = picked.get("drug", "")
+            if is_jp(country):
+                name = picked.get("drug_ja", name)
+            if name and name not in seen:
+                seen.add(name)
+                meds.append(name)
+
+        # Independent (non-exclusive) drugs: original Bernoulli.
+        for drug_spec in independent:
             name = drug_spec.get("drug", "")
             if is_jp(country):
                 name = drug_spec.get("drug_ja", name)
             if not name or name in seen:
                 continue
-            # Respect probability (some drugs are not universally prescribed)
             prob = drug_spec.get("probability", 1.0)
             if prob < 1.0 and rng.random() >= prob:
                 continue
