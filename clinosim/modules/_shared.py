@@ -136,6 +136,113 @@ def sanitize_id_token(token: str, max_len: int = 40) -> str:
     return out[:max_len]
 
 
+def select_with_exclusive_classes(
+    drug_specs: list[dict],
+    exclusive_classes: set[str] | frozenset[str],
+    rng: np.random.Generator,
+    *,
+    independent_mode: str = "bernoulli",
+    context: str = "",
+) -> list[dict]:
+    """Partition drug_specs by ``drug_class`` + ``exclusive_classes``, return
+    the drug_specs actually selected for prescription.
+
+    Two selection modes coexist within one call (Issue #432 single-mechanism):
+
+    - **Exclusive class draw**: drugs whose ``drug_class`` is in
+      ``exclusive_classes`` are grouped by class, and each class does an
+      independent categorical draw across its members' ``probability``
+      values. At most one drug per exclusive class is selected. The
+      residual mass (``1 - sum(probs)``) becomes a "no drug from this
+      class" branch. Sum > 1.0 in an exclusive class is a YAML author
+      error and raises ``ValueError`` (fail-loud).
+
+    - **Non-exclusive drugs** (drugs with no ``drug_class`` or whose class
+      is not in the exclusive set) are selected per ``independent_mode``:
+
+      * ``"bernoulli"`` (default): independent Bernoulli per drug using its
+        ``probability`` field (drugs with probability >= 1.0 always selected).
+        Used by population-time activator where per-drug independent draws
+        model "some drugs are optional".
+      * ``"always"``: include unconditionally, ignoring ``probability``.
+        Used by ``_build_discharge_rx`` where the pre-existing legacy
+        semantics are "every drug listed for this discharge_oral block is
+        prescribed" (byte-compat with disease protocols that predate
+        Issue #432 and rely on unconditional emit).
+
+    This helper deliberately does NOT do renal-hold checks, drug-name
+    localization (``drug_ja``), item construction, or ``seen`` dedup — those
+    differ between callers (activator vs discharge_rx builder) and stay in
+    the call sites so the helper stays testable and semantically small.
+
+    Args:
+        drug_specs: list of drug spec dicts, each optionally carrying
+            ``drug_class: str`` and/or ``probability: float`` fields.
+        exclusive_classes: set/frozenset of drug_class labels that must be
+            selected mutually exclusively. Empty set = no exclusive draw
+            (all drugs go through the independent path).
+        rng: seeded numpy Generator (AD-16 determinism).
+        independent_mode: ``"bernoulli"`` (default) or ``"always"``.
+        context: optional human-readable label included in the fail-loud
+            ``ValueError`` message when an exclusive class has probability
+            sum > 1.0 (e.g. ``"ICD I48"`` or ``"disease pulmonary_embolism
+            discharge_oral"``).
+
+    Returns:
+        list of drug_spec dicts (subset of the input, preserving input dict
+        identity — no copies). Order: exclusive-class picks first (in the
+        order classes were first seen), then non-exclusive picks (in input
+        order).
+
+    Raises:
+        ValueError: if any exclusive class has ``sum(probabilities) > 1.0``.
+    """
+    by_exclusive_class: dict[str, list[dict]] = {}
+    independent: list[dict] = []
+    for spec in drug_specs:
+        if not isinstance(spec, dict):
+            continue
+        cls = spec.get("drug_class")
+        if cls and cls in exclusive_classes:
+            by_exclusive_class.setdefault(cls, []).append(spec)
+        else:
+            independent.append(spec)
+
+    selected: list[dict] = []
+
+    # Exclusive-class categorical draws.
+    for cls, drugs in by_exclusive_class.items():
+        probs = [float(d.get("probability", 1.0)) for d in drugs]
+        total = sum(probs)
+        if total > 1.0 + 1e-9:
+            label = f" ({context})" if context else ""
+            raise ValueError(
+                f"select_with_exclusive_classes: exclusive_class {cls!r} "
+                f"probability sum={total:.3f} > 1.0{label} — invalid categorical distribution"
+            )
+        weights = probs + [max(0.0, 1.0 - total)]
+        idx = int(rng.choice(len(weights), p=weights))
+        if idx == len(drugs):
+            continue  # residual: no drug from this class
+        selected.append(drugs[idx])
+
+    # Non-exclusive drugs.
+    if independent_mode == "always":
+        selected.extend(independent)
+    elif independent_mode == "bernoulli":
+        for spec in independent:
+            prob = float(spec.get("probability", 1.0))
+            if prob < 1.0 and rng.random() >= prob:
+                continue
+            selected.append(spec)
+    else:
+        raise ValueError(
+            f"select_with_exclusive_classes: independent_mode must be 'bernoulli' or 'always', got {independent_mode!r}"
+        )
+
+    return selected
+
+
 def get_attr_or_key(obj: Any, name: str, default: Any = None) -> Any:
     """Read ``name`` from ``obj`` whether ``obj`` is a dict or has attributes.
 
