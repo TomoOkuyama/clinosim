@@ -445,7 +445,18 @@ def activate_patient(
 def _derive_home_medications(chronic_conditions: list, rng: np.random.Generator, country: str = "US") -> list[str]:
     """Derive home medications from chronic conditions via chronic_medications.yaml.
 
-    Returns a list of drug name strings. JP uses drug_ja if available.
+    Per-ICD block ``exclusive_classes`` (Issue #432) lists ``drug_class``
+    tags whose drugs must be selected via a mutually-exclusive categorical
+    draw (at most one drug from the class). Drugs without a ``drug_class``,
+    or whose class is not in the exclusive list, follow the original
+    independent-Bernoulli path so clinically-valid concurrent regimens
+    (e.g. I50 HF triad, I25 DAPT) stay intact.
+
+    Categorical semantics: probabilities within an exclusive class MUST
+    sum to <= 1.0. Residual mass (1 - sum) becomes the "no drug from this
+    class" branch. Sum > 1.0 is a YAML author error (fail-loud).
+
+    Returns a list of drug name strings. JP uses ``drug_ja`` if available.
     """
     from clinosim.locale.loader import load_chronic_medications
 
@@ -461,16 +472,26 @@ def _derive_home_medications(chronic_conditions: list, rng: np.random.Generator,
         spec = data.get(code) or data.get(code.split(".")[0])
         if not spec:
             continue
-        for drug_spec in spec.get("medications", []):
-            name = drug_spec.get("drug", "")
+
+        exclusive_classes = set(spec.get("exclusive_classes") or ())
+        medications = spec.get("medications", [])
+
+        # Single-mechanism selection: exclusive_classes categorical + non-exclusive
+        # independent Bernoulli. Shared with `_build_discharge_rx` — see
+        # `select_with_exclusive_classes` in clinosim.modules._shared.
+        from clinosim.modules._shared import select_with_exclusive_classes
+
+        for picked in select_with_exclusive_classes(
+            medications,
+            exclusive_classes,
+            rng,
+            independent_mode="bernoulli",
+            context=f"chronic_medications ICD {code}",
+        ):
+            name = picked.get("drug", "")
             if is_jp(country):
-                name = drug_spec.get("drug_ja", name)
-            if not name or name in seen:
-                continue
-            # Respect probability (some drugs are not universally prescribed)
-            prob = drug_spec.get("probability", 1.0)
-            if prob < 1.0 and rng.random() >= prob:
-                continue
-            seen.add(name)
-            meds.append(name)
+                name = picked.get("drug_ja", name)
+            if name and name not in seen:
+                seen.add(name)
+                meds.append(name)
     return meds

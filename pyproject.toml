@@ -175,6 +175,11 @@ select = ["E", "F", "I", "N", "W", "UP"]
 # the tokens used in modules/observation/engine.py and modules/physiology/
 # engine.py). Renaming to snake_case would break grep-alignment with the spec.
 "tests/unit/test_reserve_distribution_healthy_band.py" = ["N802", "N806"]
+# ICD-10 codes (I48, I26, I82, I63, I50, I25) are WHO / ICD-10-CM identifiers
+# whose canonical form is uppercase. Test function names embedding them
+# (test_I48_never_yields_..., etc.) keep tests grep-linkable to the spec
+# and to chronic_medications.yaml block keys.
+"tests/unit/test_activator_chronic_medications_exclusive.py" = ["N802"]
 "tests/integration/test_hai_lab_lift.py" = ["N811"]
 "tests/integration/test_antibiotic_audit.py" = ["N812", "E741"]
 
