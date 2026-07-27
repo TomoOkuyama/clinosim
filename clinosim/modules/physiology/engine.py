@@ -365,10 +365,37 @@ def derive_lab_values(
     else:
         labs["WBC"] = max(1500, 7000 + 0.8 * 12000 - (effective_infl - 0.8) * 30000)
     labs["PCT"] = 0.03 * math.exp(infl * 7)
-    labs["Albumin"] = max(1.0, 4.2 - infl * 2.0 - (1 - hepatic) * 1.5)
+    # Alb baseline calibrated so the healthy-cohort median lands on the JCCLS
+    # reference-range center (4.6 g/dL). See the calibration note at
+    # base_cr below for the derivation and design implications. Issue #416.
+    labs["Albumin"] = max(1.0, 4.69375 - infl * 2.0 - (1 - hepatic) * 1.5)
 
     # --- Renal ---
-    base_cr = 0.9 if sex == "M" else 0.7
+    # base_cr calibration (Issue #416):
+    #   base = JCCLS ref center × E[reserve],  E[beta(30, 2)] = 30/32 = 0.9375
+    #     Cre_M:  0.86  × 0.9375 = 0.80625
+    #     Cre_F:  0.625 × 0.9375 = 0.5859375
+    #
+    # Authoritative-vs-derived distinction:
+    #   JCCLS 共用基準範囲 2022 bands are authoritative:
+    #     Cre_M [0.65, 1.07]  Cre_F [0.46, 0.79]
+    #   Their centers (0.86, 0.625) are NOT authoritative — they are our
+    #   calibration targets. The base coefficients here are then reverse-
+    #   derived so the E[reserve] < 1 offset does not push the cohort median
+    #   off the center.
+    #
+    # Design implication:
+    #   ``reserve = 1.0`` no longer means "textbook typical" — it now means
+    #   "slightly better than typical." The bases are chosen so the population
+    #   MEDIAN lands on the ref center, not so an idealized reserve=1.0
+    #   patient does. Anyone touching this must understand that the two
+    #   readings diverge.
+    #
+    # Scope of this calibration:
+    #   Applied only to analytes whose healthy-young in-band ratio fell below
+    #   95% on the legacy math (Cre / Alb here; K was 99.07% and needs no
+    #   change). Not a blanket refactor.
+    base_cr = 0.80625 if sex == "M" else 0.5859375
     if renal > 0.5:
         labs["Creatinine"] = base_cr / renal
     else:
