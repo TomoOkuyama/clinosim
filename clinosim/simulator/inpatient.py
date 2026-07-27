@@ -2020,10 +2020,15 @@ def _build_discharge_rx(
         )
 
     # Issue #432: `discharge_oral` blocks may declare `exclusive_classes` +
-    # per-entry `drug_class` (same schema as chronic_medications.yaml). Drugs
-    # whose class is exclusive get a categorical draw (at most one per class);
-    # drugs without a class stay on the original unconditional-append path so
-    # blocks that predate this addition are byte-identical.
+    # per-entry `drug_class` (same schema as chronic_medications.yaml). The
+    # partition + categorical draw is shared with the activator via
+    # `select_with_exclusive_classes` — single edit point for the "at most one
+    # per exclusive class" semantic. `independent_mode="always"` preserves the
+    # pre-#432 behavior where every non-exclusive discharge_oral entry was
+    # appended unconditionally (byte-compat with disease protocols that predate
+    # exclusive_classes).
+    from clinosim.modules._shared import select_with_exclusive_classes
+
     discharge_oral_block = protocol.drugs.get("discharge_oral", {})
     if isinstance(discharge_oral_block, dict):
         exclusive_classes = set(discharge_oral_block.get("exclusive_classes") or ())
@@ -2034,35 +2039,14 @@ def _build_discharge_rx(
     if isinstance(discharge_drugs, dict):
         discharge_drugs = [discharge_drugs]
 
-    by_exclusive_class: dict[str, list[dict]] = {}
-    independent: list[dict] = []
-    for drug_spec in discharge_drugs:
-        if not isinstance(drug_spec, dict):
-            continue
-        cls = drug_spec.get("drug_class")
-        if cls and cls in exclusive_classes:
-            by_exclusive_class.setdefault(cls, []).append(drug_spec)
-        else:
-            independent.append(drug_spec)
-
-    # Categorical draw per exclusive class (residual mass = "no drug this class").
-    for cls, drugs in by_exclusive_class.items():
-        probs = [float(d.get("probability", 1.0)) for d in drugs]
-        total = sum(probs)
-        if total > 1.0 + 1e-9:
-            raise ValueError(
-                f"disease {disease_id!r} discharge_oral exclusive_class "
-                f"{cls!r} probability sum={total:.3f} > 1.0 — invalid categorical distribution"
-            )
-        weights = probs + [max(0.0, 1.0 - total)]
-        idx = int(rng.choice(len(weights), p=weights))
-        if idx == len(drugs):
-            continue  # residual: no drug from this class
-        _append_item(drugs[idx])
-
-    # Independent drugs: unchanged unconditional append (preserves legacy).
-    for drug_spec in independent:
-        _append_item(drug_spec)
+    for picked in select_with_exclusive_classes(
+        discharge_drugs,
+        exclusive_classes,
+        rng,
+        independent_mode="always",
+        context=f"disease {disease_id!r} discharge_oral",
+    ):
+        _append_item(picked)
 
     # Continue chronic medications (with renal check)
     for med in patient.current_medications:

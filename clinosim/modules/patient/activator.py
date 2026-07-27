@@ -476,50 +476,22 @@ def _derive_home_medications(chronic_conditions: list, rng: np.random.Generator,
         exclusive_classes = set(spec.get("exclusive_classes") or ())
         medications = spec.get("medications", [])
 
-        # Partition drugs into (exclusive_class → [drug_spec, ...]) and
-        # independent (no class, or class not in exclusive_classes).
-        by_exclusive_class: dict[str, list[dict]] = {}
-        independent: list[dict] = []
-        for drug_spec in medications:
-            cls = drug_spec.get("drug_class")
-            if cls and cls in exclusive_classes:
-                by_exclusive_class.setdefault(cls, []).append(drug_spec)
-            else:
-                independent.append(drug_spec)
+        # Single-mechanism selection: exclusive_classes categorical + non-exclusive
+        # independent Bernoulli. Shared with `_build_discharge_rx` — see
+        # `select_with_exclusive_classes` in clinosim.modules._shared.
+        from clinosim.modules._shared import select_with_exclusive_classes
 
-        # Exclusive classes: categorical draw with residual "no drug" branch.
-        for cls, drugs in by_exclusive_class.items():
-            probs = [float(d.get("probability", 1.0)) for d in drugs]
-            total = sum(probs)
-            if total > 1.0 + 1e-9:
-                raise ValueError(
-                    f"chronic_medications.yaml: ICD {code} exclusive_class "
-                    f"{cls!r} probability sum={total:.3f} > 1.0 — invalid "
-                    f"categorical distribution (residual mass would go negative)"
-                )
-            # Residual mass = 1 - sum → "no drug from this class" branch.
-            weights = probs + [max(0.0, 1.0 - total)]
-            idx = int(rng.choice(len(weights), p=weights))
-            if idx == len(drugs):
-                continue  # residual branch: no drug from this class
-            picked = drugs[idx]
+        for picked in select_with_exclusive_classes(
+            medications,
+            exclusive_classes,
+            rng,
+            independent_mode="bernoulli",
+            context=f"chronic_medications ICD {code}",
+        ):
             name = picked.get("drug", "")
             if is_jp(country):
                 name = picked.get("drug_ja", name)
             if name and name not in seen:
                 seen.add(name)
                 meds.append(name)
-
-        # Independent (non-exclusive) drugs: original Bernoulli.
-        for drug_spec in independent:
-            name = drug_spec.get("drug", "")
-            if is_jp(country):
-                name = drug_spec.get("drug_ja", name)
-            if not name or name in seen:
-                continue
-            prob = drug_spec.get("probability", 1.0)
-            if prob < 1.0 and rng.random() >= prob:
-                continue
-            seen.add(name)
-            meds.append(name)
     return meds
