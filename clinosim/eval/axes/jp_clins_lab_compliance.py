@@ -30,12 +30,16 @@ per-coding counting biases against resources that carry many codings).
    {CoreLabo / InfectionLabo / Uncoded / jlac10LaboCode} slice.
 
 Slice fixed values are extracted **at runtime** from an installed JP-CLINS
-package (via ``_find_ecs_sd_path``). The extract is intentionally NOT
-committed to the repo — the JP-CLINS pkg is CC BY-ND and the
-(system, display) tuple set is an adapted derivative of the
-StructureDefinition. When the pkg is not installed, the display-check
-metric returns ``Outcome.NA`` with an actionable message pointing to
-the pkg install step.
+package (via the shared ``lab_coding_package.load_lab_coding_package``
+loader, which walks ``_find_pkg_files``). The extract is intentionally NOT
+committed to the repo — the installed pkg is the single source of truth,
+and a committed extract would drift from pkg updates (Fixed value table
+additions/changes), causing the axis to measure "clinosim's snapshot"
+instead of "the actual spec". When the pkg is not installed, the
+display-check metric returns ``Outcome.NA`` with an actionable message
+pointing to the pkg install step. (The pkg license itself is CC0-1.0
+per its ``package.json.license`` field, verified 2026-07-27;
+runtime-extract is driven by the drift concern, not by license.)
 
 Applicability
 -------------
@@ -84,9 +88,10 @@ from clinosim.modules.output.lab_coding_package import (
     load_lab_coding_package,
 )
 
-# JP-CLINS pkg is CC BY-ND. The axis consumes the shared pkg loader
+# JP-CLINS pkg license is CC0-1.0 (per ``package.json.license``, verified
+# 2026-07-27). The axis consumes the shared pkg loader
 # (``clinosim.modules.output.lab_coding_package``) — see that module's
-# docstring for pkg discovery + license-boundary rationale. When the
+# docstring for pkg discovery + drift-avoidance rationale. When the
 # pkg is absent, the display-check metric returns ``Outcome.NA``.
 
 # --------------------------------------------------------------------------- #
@@ -207,7 +212,8 @@ def _check_fixed_display(lab_obs: list[dict]) -> EvalCheck:
                 "JP-CLINS eCS StructureDefinition not available — install pkg "
                 "'clinical-information-sharing#1.12.0' via the fhir CLI or set "
                 "$CLINOSIM_JP_CLINS_PKG_DIR to the pkg's package/ directory. Display check "
-                "requires the SD's Fixed value table and MUST NOT fall back to a bundled extract (CC BY-ND)."
+                "requires the SD's Fixed value table from the installed pkg — a bundled "
+                "extract would drift from pkg updates and undermine the check's meaning."
             ),
             detail={"pkg_missing": True},
         )

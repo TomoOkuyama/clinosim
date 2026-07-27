@@ -1,9 +1,12 @@
 """Unit tests for the shared JP-CLINS lab coding package loader.
 
 Pins the pre-cover 11-item contract PR 2 committed to (see PR body /
-docs review). The pkg is CC BY-ND — these tests must run without
-depending on bundled extracts, so anything that requires the SD is
-skipped when the pkg is not installed."""
+docs review). The pkg is loaded at runtime (never bundled), so these
+tests must run without depending on bundled extracts: anything that
+requires the SD is skipped when the pkg is not installed. The pkg
+license itself is CC0-1.0 (per ``package.json.license``, verified
+2026-07-27); runtime-load is driven by the pkg-updates drift concern,
+not by license."""
 
 from __future__ import annotations
 

@@ -271,10 +271,11 @@ def test_metric2_is_per_resource_not_per_coding():
 
 
 # --------------------------------------------------------------------------- #
-# pkg-absent NA path — the runtime extraction is CC BY-ND compliant only
-# if the axis genuinely returns NA when the pkg is missing (falling back
-# to a bundled extract would re-introduce the license issue that
-# motivated the hotfix). This test locks that behavior.
+# pkg-absent NA path — the axis MUST return NA when the pkg is missing,
+# not silently succeed with an empty valid-display set. Falling back to
+# a bundled extract would let a stale copy drift from the actual pkg,
+# so the axis would measure "clinosim's snapshot" instead of "the
+# installed spec". This test locks that behavior.
 
 
 def test_fixed_display_returns_na_when_pkg_absent(monkeypatch):
@@ -303,8 +304,9 @@ def test_fixed_display_returns_na_when_pkg_absent(monkeypatch):
 def test_load_fixed_display_propagates_none_from_missing_pkg(monkeypatch):
     """Loader-level: when the shared ``load_lab_coding_package`` returns
     MissingPackage, the axis's ``_load_fixed_display_by_system`` MUST
-    return None (no fallback to a bundled extract). Locks the CC BY-ND
-    contract at the loader boundary.
+    return None (no fallback to a bundled extract). Locks the no-drift
+    contract at the loader boundary: the axis's meaning depends on the
+    installed pkg being its single source of truth.
 
     The autouse fixture already replaced the axis's own loader with a
     test double, so we assert the contract at the pkg level directly:

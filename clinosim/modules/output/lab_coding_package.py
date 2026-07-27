@@ -4,8 +4,14 @@ Extracts JP_Observation_LabResult_eCS slice information (from the SD)
 and joins it with 17-digit codes (from CoreLabo / InfectionLabo
 CodeSystems) at runtime. **All data returned by this loader is derived
 strictly from the installed JP-CLINS package** — no clinosim-side
-mapping, no bundled extract. The pkg is CC BY-ND; adapted derivatives
-must not be committed (see hotfix PR #394).
+mapping, no bundled extract. The installed pkg is the single source of
+truth; a committed extract would drift from pkg updates and would cause
+downstream axes to measure clinosim's snapshot instead of the actual
+spec. (The pkg license itself is CC0-1.0 per its ``package.json.license``
+field, verified 2026-07-27; runtime-extract is driven by the drift
+concern, not by license. Hotfix PR #394 originally cited CC BY-ND;
+the license claim is corrected here, and the runtime-extract mechanic
+remains valid regardless.)
 
 Consumers:
 - ``clinosim.eval.axes.jp_clins_lab_compliance`` (axis) — uses
