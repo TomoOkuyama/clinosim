@@ -557,16 +557,20 @@ def test_creatinine_curve_matches_clinical_bands():
     boundary value MUST stay continuous between the >0.5 (base_cr / renal) and
     <=0.5 (linear) branches.
     """
-    # Male baseline (base_cr = 0.9). State is fabricated directly so we exercise
-    # the formula independent of disease onset / coupling.
+    # Male baseline (base_cr = 0.80625, calibrated per Issue #416). State is
+    # fabricated directly so we exercise the formula independent of disease
+    # onset / coupling. Values shifted -0.1875 mg/dL from the legacy pin
+    # (delta = (0.9 - 0.80625) / 0.5 = 0.1875) after the reserve+baseline
+    # calibration; the shape of the curve (continuity at 0.5, KDIGO
+    # progression) is unchanged.
     expected = {
         # state.renal_function -> Cr (mg/dL), tolerance 0.05
-        0.0: 5.05,  # severe AKI (anuric state) - KDIGO 3 mid-high
-        0.1: 4.40,  # KDIGO 3
-        0.2: 3.75,  # KDIGO 2
-        0.3: 3.10,  # CKD3 typical
-        0.4: 2.45,  # early CKD
-        0.5: 1.80,  # baseline (boundary, continuous with renal>0.5 branch)
+        0.0: 4.86,  # severe AKI (anuric state) - KDIGO 3 mid-high
+        0.1: 4.21,  # KDIGO 3
+        0.2: 3.56,  # KDIGO 2
+        0.3: 2.91,  # CKD3 typical
+        0.4: 2.26,  # early CKD
+        0.5: 1.61,  # baseline (boundary, continuous with renal>0.5 branch)
     }
     for renal, target in expected.items():
         st = PhysiologicalState(patient_id="pt")
