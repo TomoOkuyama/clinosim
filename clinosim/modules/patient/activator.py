@@ -22,6 +22,17 @@ from clinosim.types.patient import (
     PersonName,
 )
 
+# Physiological-reserve distribution shared by renal / cardiac / hepatic reserves.
+# Issue #416: the legacy (8, 2) placed the healthy-cohort median at ~0.826, which
+# combined with the derive_lab_values math pushed healthy young Cre / K / Alb /
+# Troponin_I outside JP reference bands. (30, 2) shifts the median to ~0.92,
+# lands ≥95% of healthy young inside the bands (measured in
+# tests/unit/test_reserve_distribution_healthy_band.py), and is RNG-cursor-
+# neutral vs (8, 2) — numpy's Cheng BB algorithm consumes the same number of
+# uniforms per beta call for any (a > 1, b = 2). Kept module-level so the unit
+# test can pin it and future tweaks stay in one place.
+_RESERVE_BETA_PARAMS: tuple[float, float] = (30, 2)
+
 # Graded chronic-condition stage text (as returned by _generate_stage) ->
 # ChronicCondition.severity_score, keyed by ICD-10-CM category. Consumed by
 # physiology/engine.py's per-code branches so a sampled clinical stage (KDIGO
@@ -175,9 +186,9 @@ def activate_patient(
                 p=[0.15, 0.65, 0.15, 0.05] if is_jp(country) else [0.07, 0.70, 0.15, 0.08],
             )
         ),
-        renal_reserve=max(0.1, float(rng.beta(8, 2)) - age_penalty),
-        cardiac_reserve=max(0.1, float(rng.beta(8, 2)) - age_penalty),
-        hepatic_reserve=max(0.1, float(rng.beta(8, 2)) - age_penalty * 0.7),
+        renal_reserve=max(0.1, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
+        cardiac_reserve=max(0.1, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
+        hepatic_reserve=max(0.1, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty * 0.7),
         treatment_sensitivity=float(rng.normal(1.0, 0.15)),
         symptom_reporting_bias=float(rng.normal(1.0, 0.25)),
         delirium_susceptibility=float(rng.beta(2, 8))

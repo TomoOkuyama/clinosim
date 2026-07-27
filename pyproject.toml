@@ -168,6 +168,13 @@ select = ["E", "F", "I", "N", "W", "UP"]
 "clinosim/simulator/inpatient.py" = ["N806"]
 "tests/integration/test_document_jp_localization.py" = ["N806"]
 "tests/integration/test_narrow_enricher.py" = ["N806"]
+# Analyte identifiers (K / Cre / Cre_M / Cre_F / Alb / labs_M / labs_F) follow
+# the JCCLS / LOINC clinical convention — CamelCase / UPPER_CASE for analyte
+# names is standard in lab / physiology contexts and matches how they appear
+# in JCCLS 共用基準範囲 and clinosim's own baseline math (K / Cre / Alb are
+# the tokens used in modules/observation/engine.py and modules/physiology/
+# engine.py). Renaming to snake_case would break grep-alignment with the spec.
+"tests/unit/test_reserve_distribution_healthy_band.py" = ["N802", "N806"]
 "tests/integration/test_hai_lab_lift.py" = ["N811"]
 "tests/integration/test_antibiotic_audit.py" = ["N812", "E741"]
 
