@@ -2005,11 +2005,32 @@ def _build_discharge_rx(
     # Drugs contraindicated at low renal function (eGFR roughly maps to state value)
     renal_hold_drugs = {"metformin", "celecoxib", "ibuprofen", "naproxen", "enoxaparin", "alendronate"}
 
+    # A' Phase 1 (Issue #440) dedup: with `patient.current_medications` now
+    # tracking newly started drugs across encounters, both the protocol
+    # ``discharge_oral`` path AND the chronic-transcribe path below can
+    # append the same drug name. Without dedup, the same drug accumulates on
+    # every subsequent admission (2 admissions → 2 copies, 3 admissions → 3,
+    # etc.). Match key is lowercase whitespace-normalized ``drug_name``. This
+    # is an EXACT-name dedup: it does NOT collapse representational variants
+    # ("Insulin glargine" vs "Insulin glargine 4 units/kg/day") because
+    # dose/formulation differences are clinically meaningful and belong in
+    # separate line items.
+    seen_dedup_keys: set[str] = set()
+
+    def _dedup_key(name: str) -> str:
+        return " ".join(name.lower().split())
+
     def _append_item(drug_spec: dict) -> None:
-        """Renal-check + append. Shared by exclusive & independent paths."""
+        """Renal-check + dedup + append. Shared by exclusive & independent paths."""
         drug_name = drug_spec.get("drug", "")
+        if not drug_name:
+            return
         if final_renal_function < 0.3 and any(rd in drug_name.lower() for rd in renal_hold_drugs):
             return
+        key = _dedup_key(drug_name)
+        if key in seen_dedup_keys:
+            return
+        seen_dedup_keys.add(key)
         items.append(
             {
                 "drug_name": drug_name,
@@ -2048,10 +2069,20 @@ def _build_discharge_rx(
     ):
         _append_item(picked)
 
-    # Continue chronic medications (with renal check)
+    # Continue chronic medications (with renal check + dedup vs protocol path).
+    # The dedup keeps the FIRST occurrence, so a drug added by the protocol
+    # discharge_oral wins over the chronic transcription (protocol carries the
+    # authoritative dose/duration for this admission's discharge, whereas
+    # chronic entries default to dose="" / 28-day supply).
     for med in patient.current_medications:
+        if not med:
+            continue
         if final_renal_function < 0.3 and any(rd in med.lower() for rd in renal_hold_drugs):
             continue  # do not restart nephrotoxic drug at discharge
+        key = _dedup_key(med)
+        if key in seen_dedup_keys:
+            continue
+        seen_dedup_keys.add(key)
         items.append({"drug_name": med, "dose": "", "route": "PO", "duration_days": 28})
 
     return PrescriptionRecord(

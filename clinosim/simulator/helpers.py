@@ -40,11 +40,27 @@ def _deactivate_to_layer1(
     person: Any,
     record: CIFPatientRecord,
     disease_id: str,
+    *,
+    patient_cache: dict[str, PatientProfile],
 ) -> None:
     """Feed hospital results back to Layer 1 PersonRecord after discharge.
 
     Updates chronic conditions, medications, and hospitalization history
     so future encounters can reference the patient's medical history.
+
+    A' Phase 1 (Issue #440): also syncs the Layer 2 ``PatientProfile`` held
+    in ``patient_cache[person.person_id]``. ``engine.py`` caches the
+    activated profile per person for deterministic re-use across encounters
+    (see ``_activate_cached``). Without this sync a drug newly started
+    during the hospitalization (e.g., an anticoagulant appended to
+    ``discharge_prescription``) never reaches the cached profile, so the
+    next encounter's ``_generate_home_medication_orders`` (which reads
+    ``patient.current_medications``, the Layer 2 snapshot) silently omits
+    it. ``patient_cache`` is keyword-only + required so a caller cannot
+    drop the sync by omitting the argument. Every caller must ensure
+    ``patient_cache[person.person_id]`` is populated first (production
+    call sites in ``engine.py`` both run ``_activate_cached(person)``
+    before this function).
     """
     person.has_visited_hospital = True
     person.visit_count += 1
@@ -119,6 +135,18 @@ def _deactivate_to_layer1(
         was_readmission=record.is_readmission,
     )
     person.hospitalization_history.append(summary)
+
+    # A' Phase 1 (Issue #440) sync: keep the cached Layer 2 profile's
+    # `current_medications` in step with the Layer 1 update above. The
+    # cache is populated by `engine.py:_activate_cached` before every
+    # `_simulate_patient` call, so a missing key here means an unexpected
+    # caller path — fail loud rather than silently no-op.
+    assert person.person_id in patient_cache, (
+        f"patient_cache missing person_id={person.person_id!r}. "
+        f"Every call site must precede _deactivate_to_layer1 with "
+        f"_activate_cached(person)."
+    )
+    patient_cache[person.person_id].current_medications = list(person.current_medications)
 
 
 def _select_secondary_disease(
