@@ -29,6 +29,48 @@ Task 8 実装時に stress test(p=300〜1000、複数 seed)で確認した **既
    波及しうる。`tests/unit/test_engine_memoize.py::test_memoize_hit_bit_identical`
    はこの class を検出したら該当 patient を丸ごと比較対象から除外する
    (``test_engine_cross_cursor.py`` note 3 と同じ pattern)。
+
+   **A' Phase 1 補足(Issue #440、2026-07-28)**: ``_deactivate_to_layer1``
+   が新たに ``patient_cache[pid].current_medications`` を live sync する
+   ようになったため、限界 1 と同型の cold/memo 乖離経路が
+   ``current_medications`` field にも生じた。**新しい経路が開いたこと自体は
+   実測で確認**されている。ただし PR A に併せて追加した ``_build_discharge_rx``
+   の exact-name dedup(``inpatient.py``)により複数 admission にまたがる
+   同名薬 accumulation は発生しなくなり、Phase 1 + dedup 適用後の実測
+   (p=600/seed=123/2mo advance、tests/unit/test_engine_memoize.py::
+   test_memoize_hit_bit_identical の stress variant)は次の通り:
+
+   ::
+
+     master   chronic_conditions drift = 5 (POP-000281 / 483 / 489 / 502 / 537)
+              current_medications drift = 0
+              combined drift               = 5
+     branch   chronic_conditions drift = 5 (同 5 pids)
+              current_medications drift = 1 (POP-000483)
+              combined drift               = 5 (POP-000483 は chronic 側で
+                                                既に捕捉済 = 既存 fingerprint
+                                                除外で自動排除)
+
+   除外対象 pid の集合は **master と branch で完全一致**。したがって上記
+   fingerprint detection を chronic + current_medications に広げる
+   **予防的除外は行わない**。理由は、拡張は「今守れるもの」を増やさない
+   上に、**将来 chronic-drift せず current_meds のみで drift する patient
+   が現れた場合、``_canonical_cmp`` の全 field 比較が test を落として
+   fail-loud で気づかせる**チャネルを、除外で自ら潰してしまうため。
+   予防的に除外を広げないこと。将来 canonical_cmp が落ちたら、その時点で
+   drift の原因(A' Phase 2 由来 / 別 field / 別 mechanism)を切り分けて
+   から対処する。
+
+   **A' Phase 2 残作業(Issue #440)**: memo run 側は cache-hit した
+   admission について前 CIF から load するが、``patient_cache[pid]`` は
+   ``_activate_cached`` で改めて構築するため、cursor A 時点で
+   ``person.current_medications`` が持っていた「入院で新規開始された薬」を
+   復元しない = memo run 内で該当 patient が cursor A 完了後に迎える
+   後続 encounter は「退院時に貰った薬を持たない患者」として simulate
+   される。臨床的には誤り(cold は A' で正しく継承する)。根治するには
+   memo 側で前 CIF `_deactivate_to_layer1` 相当の Layer 2 復元を行う
+   必要がある = Phase 2 として ``patient_cache`` 復元設計を Issue #440 に
+   残作業として記録済。
 2. **``HospitalState`` resource-queue congestion**(``clinosim/modules/order/engine.py``
    の ``calculate_result_time_from_state`` → ``hospital_state.add_to_queue``)—
    lab/imaging の result turnaround は

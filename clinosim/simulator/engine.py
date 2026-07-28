@@ -438,7 +438,7 @@ def run_beta(
                 hospital_ops=hospital_ops,
             )
         patient_records.append(record)
-        _deactivate_to_layer1(person, record, disease_id)
+        _deactivate_to_layer1(person, record, disease_id, patient_cache=patient_cache)
         # Track discharge for bed occupancy management
         if record.encounters and record.encounters[0].discharge_datetime:
             dc_date = record.encounters[0].discharge_datetime.date()
@@ -522,7 +522,7 @@ def run_beta(
             hospital_ops=hospital_ops,
         )
         patient_records.append(record)
-        _deactivate_to_layer1(person, record, re_event.disease_id)
+        _deactivate_to_layer1(person, record, re_event.disease_id, patient_cache=patient_cache)
         if record.deceased:
             person.is_alive = False
 
