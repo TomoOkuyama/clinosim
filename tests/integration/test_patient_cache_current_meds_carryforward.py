@@ -49,7 +49,6 @@ import pytest
 
 from clinosim.simulator.engine import run_beta
 from clinosim.types.config import SimulatorConfig
-from clinosim.types.encounter import OrderType
 from clinosim.types.output import CIFPatientRecord
 
 ANTICOAG_TERMS = ("warfarin", "apixaban", "rivaroxaban", "edoxaban", "dabigatran")
@@ -66,11 +65,7 @@ def _anticoag_hits(names: list[str]) -> list[str]:
 def _inpatients_sorted(recs: list[CIFPatientRecord]) -> list[CIFPatientRecord]:
     """Inpatient records for one patient, sorted by admission_datetime."""
     return sorted(
-        [
-            r
-            for r in recs
-            if r.encounters and r.encounters[0].encounter_type.value == "inpatient"
-        ],
+        [r for r in recs if r.encounters and r.encounters[0].encounter_type.value == "inpatient"],
         key=lambda r: r.encounters[0].admission_datetime,
     )
 
@@ -105,15 +100,14 @@ def _find_carryforward_candidates(
         if not (first.discharge_prescription and first.discharge_prescription.items):
             continue
 
-        dc_drugs = [
-            str(item.get("drug_name", "") or "") for item in first.discharge_prescription.items
-        ]
+        dc_drugs = [str(item.get("drug_name", "") or "") for item in first.discharge_prescription.items]
         dc_anticoags = _anticoag_hits(dc_drugs)
         if not dc_anticoags:
             continue
 
         # Admission-time snapshot via Order objects (record-owned, not shared).
         first_home_meds = _home_med_display_names(first)
+
         # Newly started = anticoag in dc_drugs whose substring anticoag class
         # is NOT already in first_home_meds.
         def _class_of(name: str) -> str | None:
@@ -124,9 +118,7 @@ def _find_carryforward_candidates(
             return None
 
         home_med_classes = {c for c in (_class_of(m) for m in first_home_meds) if c}
-        newly_started = [
-            drug for drug in dc_anticoags if (_class_of(drug) not in home_med_classes)
-        ]
+        newly_started = [drug for drug in dc_anticoags if (_class_of(drug) not in home_med_classes)]
         if not newly_started:
             continue
 
@@ -141,8 +133,7 @@ def _home_med_display_names(record: CIFPatientRecord) -> list[str]:
     return [
         o.display_name
         for o in record.orders
-        if _order_type_value(o) == "medication"
-        and (o.clinical_intent or "").startswith("Home medication")
+        if _order_type_value(o) == "medication" and (o.clinical_intent or "").startswith("Home medication")
     ]
 
 
@@ -197,8 +188,7 @@ def test_anticoag_from_admission1_carries_forward_to_admission2_home_meds():
         f"with person.current_medications across encounters.\n"
         f"Failure samples (up to 5):\n"
         + "\n".join(
-            f"  pid={pid}  newly_started_at_adm1={anticoags}  "
-            f"adm2_home_meds={home}"
+            f"  pid={pid}  newly_started_at_adm1={anticoags}  adm2_home_meds={home}"
             for pid, home, anticoags in failures[:5]
         )
     )

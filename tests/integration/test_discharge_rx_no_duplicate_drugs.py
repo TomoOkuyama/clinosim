@@ -61,16 +61,12 @@ def test_no_duplicate_drug_names_in_discharge_prescription():
             offenders.append((r.patient.patient_id, r.encounters[0].encounter_id, dups))
 
     assert total_admissions > 0, (
-        "cohort produced no inpatient admissions — test is vacuous. "
-        "Update p / seed / time_range."
+        "cohort produced no inpatient admissions — test is vacuous. Update p / seed / time_range."
     )
 
     assert not offenders, (
         f"{len(offenders)}/{total_admissions} inpatient admissions had "
         f"duplicate drug_name in discharge_prescription.items. This means "
         f"the exact-name dedup in _build_discharge_rx regressed. First 5:\n"
-        + "\n".join(
-            f"  pid={pid}  enc={enc}  dup_counts={dups}"
-            for pid, enc, dups in offenders[:5]
-        )
+        + "\n".join(f"  pid={pid}  enc={enc}  dup_counts={dups}" for pid, enc, dups in offenders[:5])
     )
