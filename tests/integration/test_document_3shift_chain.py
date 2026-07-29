@@ -139,8 +139,7 @@ def test_progress_and_shift_note_per_encounter_los_invariant() -> None:
                 checked_los1 += 1
             elif los >= 2:
                 assert cnt["progress"] == los, (
-                    f"{eid} LOS={los}: expected {los} PROGRESS_NOTE (1 per LOS day), "
-                    f"got {cnt['progress']}"
+                    f"{eid} LOS={los}: expected {los} PROGRESS_NOTE (1 per LOS day), got {cnt['progress']}"
                 )
                 assert cnt["shift"] == 3 * los, (
                     f"{eid} LOS={los}: expected {3 * los} NURSING_SHIFT_NOTE "
@@ -161,8 +160,8 @@ def test_progress_and_shift_note_per_encounter_los_invariant() -> None:
         # optional (cohort-dependent) but when present must satisfy the
         # asymmetry assertion above.
         assert checked_los_ge_2 > 0, (
-            f"No LOS>=2 encounters in cohort — the 3× shift invariant is untested. "
-            f"Grow the population or seed to include multi-day admissions."
+            "No LOS>=2 encounters in cohort — the 3× shift invariant is untested. "
+            "Grow the population or seed to include multi-day admissions."
         )
 
 
