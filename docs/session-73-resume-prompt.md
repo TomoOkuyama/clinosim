@@ -16,8 +16,8 @@ gh issue list --state open --limit 20
 
 ## STEP 0 期待実測 (session 72 wrap 時点)
 
-- master HEAD 直近: PR #446 (session 72 主 PR) + PR #<TBD> (session 73 resume-prompt PR) 相当が乗っているはず
-- 直前 3: `0c6b2139e6` (session 72 起点) / `d84d2af81c` (#443) / `8bcb5b09ae` (#441)
+- master HEAD 直近: `b68b81cad6` (PR #446 = session 72 主 PR) — resume-prompt PR (session 73 起点 = PR #447) は本 PR merge 時点で追加、そのハッシュは次セッション実測で確定
+- 直前 3: `b68b81cad6` (#446 session 72 主) / `0c6b2139e6` (#444 session 72 起点 resume-prompt) / `d84d2af81c` (#443 session 71 A' Phase 1)
 - **open PR**: session 72 wrap 直後は 0 想定 (#446 merge 済み + resume-prompt PR merged 想定)
 - **open Issue**: 15 (session 72 開始時 14 + Issue #445 新規)
   - 445 (新規, session 72) / 442 / 440 / 439 / 437 / 436 / 433 / 431 / 430 / 428 / 425 / 418 / 417 / 415 / 378
@@ -103,6 +103,15 @@ session 72 の NDJSON diff で MedRequest -15 / MedAdmin -345 / Observation -517
 2. push は `-u` 初回設定 or `--force-with-lease` (`--force` NG)
 3. 想定外 commit を見つけたら止めて監督報告
 4. squash + signoff で history rewrite する場合、force push 前に PR body に "commit history note" 節を append
+
+## 未確認事項 (このセッションで確かめきれなかったこと)
+
+「調査済み」と誤解して飛ばさないよう明示。session 68 以降の resume-prompt 必須節を継承。
+
+- **外部 session commit の犯人が未特定**。session 71 で「Skill 経由 subagent が commit / push した」が最有力候補として残ったが、当該ワーカーの session が終了して確認できていない。**session 72 では発生 0 件**だが、原因不明のまま。次セッションでも `git fetch && git log origin/<branch>` の頻回実測を継続すること。skill 呼び出し時は subagent 実行型かを事前確認する rule も継続 (session 72 では skill 一度も呼んでいない、Bash のみで完結)
+- **Issue #445 の修正難度が未評価**。`discharge_prescription.items` を FHIR MedicationRequest として emit する経路 (`_fhir_medications` に新 builder path 追加 + 適切な identifier system + `intent=order` の semantic 決定) の規模・下流影響 (既存 MedicationRequest との衝突検出、reference integrity 保証、CSV との整合維持) は未調査。session 73 でまず実測して規模感を掴み、その上で proposal
+- **#417 層 X (7 trauma 疾患) に適用できる機構が未検討**。crush_injury_hand / electrical_injury / fall_from_height / industrial_burn_severe / subdural_hematoma / traffic_accident_severe / wrist_fracture_surgical は `discharge_oral` も chronic 適応 category も持たない。`continue_at_discharge` では救えない。別の approach (術後 rehabilitation-oriented category / post_op block を chronic 継続扱いにする reader 等) が要るが未検討
+- **#439 の優先度が未決**。session 72 で 2 例目 (archetype 選択ずれ) を観測、#443 の 1 例目 (退院時刻ずれ) と合わせて「同じ原因が違う形で 2 回」だが、sub-rng 分離の実装コスト (`_derive_home_medications` + `_build_discharge_rx` に per-order sub-seed を導入する影響、下流の byte-diff 波及、既存 test の goldens 更新規模) と効果 (どこまで下流 stability が得られるか) が未評価。次セッションで具体案検討
 
 ## Session 73 起点 checklist
 
