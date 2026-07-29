@@ -2085,6 +2085,70 @@ def _build_discharge_rx(
         seen_dedup_keys.add(key)
         items.append({"drug_name": med, "dose": "", "route": "PO", "duration_days": 28})
 
+    # Issue #417 段 1 / #437: continue_at_discharge — data-declared chronic
+    # continuation categories in disease YAML (e.g. cerebral_infarction's
+    # `drugs.anticoagulation` / `drugs.statin` / `drugs.antihypertensive` /
+    # `drugs.antiplatelet`). Prior to this loop those categories were dead
+    # data (no Python reader anywhere), so a patient admitted for
+    # cerebral_infarction without a matching chronic condition received an
+    # empty discharge prescription — session 71 verification (POP=8, seed=901,
+    # JP) confirmed 8/8 empty. Categories opt in via
+    # `continue_at_discharge: true`; this is the single reader.
+    #
+    # Cross-source exclusive-class de-duplication uses approach (a) — derive
+    # covered exclusive classes from `patient.chronic_conditions` via
+    # `chronic_medications.yaml`. If the chronic ICD already covers the same
+    # exclusive class (e.g. I48 → "anticoagulant"), the loop skips the block
+    # entirely so `_derive_home_medications`' pick (transcribed above via
+    # patient.current_medications) remains the sole anticoagulant. Approach
+    # (a) is chosen over (a') "reverse-lookup from item strings" because
+    # `patient.current_medications` is a plain `list[str]` — reverse-lookup
+    # would require drug-name substring matching, which is the fragility
+    # documented in Issue #442. Known gap: same YAML declaring BOTH
+    # `discharge_oral` and a flagged category with overlapping exclusive
+    # classes is not covered by (a); no current disease has this shape (see
+    # PR body). Refs #442.
+    from clinosim.locale.loader import load_chronic_medications
+
+    _chronic_data = load_chronic_medications()
+    covered_exclusive_classes: set[str] = set()
+    for cond in getattr(patient, "chronic_conditions", None) or []:
+        code = getattr(cond, "code", cond) if not isinstance(cond, str) else cond
+        if not code:
+            continue
+        spec = _chronic_data.get(code) or _chronic_data.get(str(code).split(".")[0])
+        if not spec:
+            continue
+        covered_exclusive_classes.update(spec.get("exclusive_classes") or ())
+
+    for cat_name, block in (protocol.drugs or {}).items():
+        if cat_name == "discharge_oral":
+            continue  # already handled above
+        if not isinstance(block, dict):
+            continue
+        if not block.get("continue_at_discharge"):
+            continue
+        cat_exclusive = set(block.get("exclusive_classes") or ())
+        # Cross-source guard: chronic ICD already emitted a drug of this class.
+        if cat_exclusive & covered_exclusive_classes:
+            continue
+        cat_drug_list = block.get(country_key, [])
+        if isinstance(cat_drug_list, dict):
+            cat_drug_list = [cat_drug_list]
+        for picked in select_with_exclusive_classes(
+            cat_drug_list,
+            cat_exclusive,
+            rng,
+            independent_mode="bernoulli",
+            context=f"disease {disease_id!r} {cat_name} (continue_at_discharge)",
+        ):
+            # Discharge prescriptions are oral-only. Infusions (IV heparin
+            # bridge, IV nicardipine drip) are inpatient-only even when the
+            # category is flagged for continuation.
+            if str(picked.get("route", "PO")).upper() != "PO":
+                continue
+            _append_item(picked)
+
     return PrescriptionRecord(
         prescription_id=f"RX-{patient.patient_id}-DC",
         patient_id=patient.patient_id,
