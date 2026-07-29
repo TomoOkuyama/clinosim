@@ -379,6 +379,10 @@ drugs:
       - drug: "ICS/LABA inhaler"
         code_yj: "2290900"
         dose: "Resume or initiate controller therapy"
+        route: "INH"   # session 73 Issue #455: matches chronic_medications.yaml
+                       # convention for inhaled drugs; without this key the
+                       # `_append_item` fallback at inpatient.py:2039 fills
+                       # "PO" which falsely asserts oral administration.
         note: "Ensure step-up from pre-exacerbation level"
     us:
       - drug: "Prednisone"
@@ -388,6 +392,7 @@ drugs:
       - drug: "ICS/LABA inhaler"
         code_rxnorm: "745679"
         dose: "Resume or initiate controller therapy"
+        route: "INH"   # session 73 Issue #455 (same rationale as japan side).
 
 # ============================================================
 # DRUG INTERACTIONS
