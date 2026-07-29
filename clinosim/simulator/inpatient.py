@@ -2083,7 +2083,16 @@ def _build_discharge_rx(
         if key in seen_dedup_keys:
             continue
         seen_dedup_keys.add(key)
-        items.append({"drug_name": med, "dose": "", "route": "PO", "duration_days": 28})
+        # route stays empty ("unknown"), NOT "PO" — sibling of the fix at
+        # `outpatient.py:236` landed in PR #451. `patient.current_medications`
+        # is a list[str] that dropped route information at the
+        # `_derive_home_medications` / `helpers._deactivate_to_layer1` steps.
+        # Hardcoding "PO" here falsely asserted oral administration for
+        # inhaled (Tiotropium, Salbutamol, ICS/LABA, Fluticasone/Salmeterol)
+        # and subcutaneous (Sliding scale insulin) drugs which
+        # `chronic_medications.yaml` correctly declares as INH / SC.
+        # Root information loss is tracked in Issue #452.
+        items.append({"drug_name": med, "dose": "", "route": "", "duration_days": 28})
 
     # Issue #417 段 1 / #437: continue_at_discharge — data-declared chronic
     # continuation categories in disease YAML (e.g. cerebral_infarction's
