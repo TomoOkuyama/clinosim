@@ -16,9 +16,11 @@ gh issue list --state open --limit 20
 
 ## STEP 0 期待実測 (session 73 wrap 時点の見込み)
 
-- master HEAD (session 73 wrap 時点 = **PR #454 merge 直後**): `6413708927 fix(inpatient): drop hardcoded route="PO" from chronic-transcribe loop (Refs #452 #451 #445) (#454)`。session 74 起点で resume-prompt PR がこの上に載る想定。次セッションが `git log --oneline -8` を叩いた実測ハッシュが真値、本文の想定は破棄せよ
-- 直前 4 (session 73 wave、実 hash):
-  - この resume-prompt PR (hash は次セッションが `git log` で確認、self-reference のため埋め不能)
+- master HEAD (session 73 の PR #454 merge 時点 + session 73 follow-up PR #457 追加後 + 本 resume-prompt update PR merge 想定): 次セッションが `git log --oneline -8` を叩いた実測ハッシュが真値。session 73 の follow-up (#457 + #458 + この resume-prompt update PR) を含めて 3 個追加された最新 master が session 74 の起点
+- 直前 6 (session 73 wave 実 hash):
+  - この resume-prompt update PR (hash は次セッションが `git log` で確認、self-reference のため埋め不能)
+  - `34524ba148` PR #457 = fix(disease) discharge_oral 非経口薬に route "INH" / "SC" 明示 (Closes #455)
+  - `8090d373c9` PR #456 = docs(session) session 74 resume prompt 初版
   - `6413708927` PR #454 = fix(inpatient) chronic-transcribe route hardcode 撤廃
   - `ccebf924b4` PR #451 = fix(csv,outpatient) drug_name fallback + shape 統一
   - `a9f04f4daa` PR #453 = chore(lint) ruff==0.16.0 pin + .md exclude
@@ -31,7 +33,9 @@ gh issue list --state open --limit 20
   - `-#450` (session 73 PR #451 の Closes で close) → 16
   - `+#455` (session 73 起票) → 17
   - `#454` は `Refs` のみで close 動詞なし → 変化なし
-  - **=17** (session 73 wrap 想定)
+  - `-#455` (session 73 follow-up PR #457 の Closes で close) → 16
+  - `+#458` (session 73 follow-up 起票、`_ROUTE_SNOMED` canonical mismatch) → 17
+  - **=17** (session 73 wrap 実測、#457 merge 後の値)
   - 実測が正、本文の想定は破棄せよ
   - open list 予想: 455 / 452 / 445 / 442 / 440 / 439 / 437 / 436 / 433 / 431 / 430 / 428 / 425 / 418 / 417 / 415 / 378
 
@@ -135,7 +139,7 @@ session 73 で PR #451 (Phase 1) merge 済み。outpatient item shape は `{drug
 
 **判定基準**: "空欄は無知だが、誤った断言は虚偽" (#451 で採用済み、CIF layer + FHIR layer に一貫適用)
 
-**副作用**: `asthma_exacerbation.yaml` の `discharge_oral` ICS/LABA inhaler 4 行が protocol-authored で route="PO" 継続、Phase 2 で SNOMED Oral emit される。**これは Issue #455 で追跡**、Phase 2 の blocker 化するかは #455 の (a) YAML fix 完了で解決見込み。**PR-A の scope 外**
+**副作用**: session 73 wrap 時点の `asthma_exacerbation.yaml` の `discharge_oral` ICS/LABA inhaler 4 行が protocol-authored で route="PO" 継続していたが、**session 73 追加 PR #457 (Issue #455 の (a) YAML fix)** で `route: "INH"` × 2、`diabetic_ketoacidosis.yaml` の Insulin glargine 2 行に `route: "SC"` × 2 を明示追加、解消済み。副次発見として **Issue #458 = `_ROUTE_SNOMED` map に `NEB` / `INH` が無く silent fallback** を起票、Phase 2 前に (4) validation + alias で対応推奨
 
 ## Session 73 の教訓 (実際に判断を変えたもの)
 
@@ -170,7 +174,7 @@ session 68 以降必須節。「調査済み誤解」を避けるため実測で
 - **route 設計は合意済みだが FHIR 側の実装は未着手**。session 73 で CIF 層 (PR #451 / #454) は 2 段 fix 完了、FHIR builder への流し方 (item.route 非空のみ SNOMED emit) は proposal で監督承認済みだが code は書いていない
 - **`dosageInstruction` text-only が JP_MR_eCS profile validator を通るかは未検証**。PR-B の gate。ローカルでは fhir-jp-validator の binary + tx-server が要り、session 73 では実行していない
 - **`eCS_InstitutionNumber` / `eCS_Department` extension を CIF から埋められるかは未確認**。両者 optional (min=0) だが MustSupport=True。CIF `encounter.department` / hospital metadata から埋める設計要 (`.measure-s73/q4-ecs-slices.txt:9-14` に slice 詳細)
-- **Issue #455 (discharge_oral asymmetry)** の解決方針。(a) YAML fix / (b) filter 対称化 [臨床的に誤りで却下] / (c) fallback 変更 の 3 案を Issue に列挙、監督判断待ち
+- **Issue #455 (discharge_oral asymmetry)** は (a) YAML fix で解決済み (PR #457 merged、`asthma_exacerbation.yaml` に `route: "INH"` × 2、`diabetic_ketoacidosis.yaml` に `route: "SC"` × 2)。派生して **Issue #458 = `_ROUTE_SNOMED` canonical mismatch** を起票、live 6 rows の text-only fallback (NEB) + latent 9 箇所 (INH) が silent drop、CLAUDE.md `Import-time canonical-constants validation` rule 違反。修正案 (1) `_ROUTE_SNOMED` に alias 追加 / (2) YAML 語彙正規化 / (4) route 値の import-time validation、worker 推奨 = (4) + (1) 組合せ、ただし (1) vs (2) は (4) 実装後に選択可能。**未決、監督/user 判断待ち**
 - **Issue #452 Option A (current_medications dataclass 化) の実装難度と phasing**: 3-4 PR 予想、影響範囲 (types + activator + inpatient/outpatient + FHIR + memoize snapshot + narrative + test 全 5 test file)、実装コストは #445 完了後の中期 backlog
 
 ## 参照ファイル (`.measure-s73/`、untracked、コミットしない選択)
@@ -199,9 +203,9 @@ clinosim simulate -p 300 -s 42 --country JP -o .measure-s73/g3_cohort --start 20
 
 | Metric | Value | 説明 |
 |---|---|---|
-| PR merged this session | 3 (#453 `a9f04f4daa` / #451 `ccebf924b4` / #454 `6413708927`) | ruff pin / drug_name fallback / route hardcode 撤廃 |
+| PR merged this session | 4 (#453 `a9f04f4daa` / #451 `ccebf924b4` / #454 `6413708927` / #457 `34524ba148`) + session 74 起点 resume-prompt (#456 `8090d373c9`) + 本 update PR = 6 | ruff pin / drug_name fallback / route hardcode / discharge_oral 非経口薬 route + docs |
 | PR opened this session | 4 (#453, #451, #454, resume-prompt PR) | 上記 3 個 + session 74 起点 |
-| Issue filed this session | 3 (#450, #452, #455) | csv silent-drop / current_medications root cause / discharge_oral asymmetry |
+| Issue filed this session | 4 (#450, #452, #455, #458) | csv silent-drop / current_medications root cause / discharge_oral asymmetry / _ROUTE_SNOMED canonical mismatch (session 73 follow-up) |
 | Issue appended this session | 0 | |
 | open Issue at wrap | 17 想定 | 導出は STEP 0 節参照。実測が正 |
 | Auto-close 事故 | 0 | Refs 遵守 |
@@ -242,4 +246,4 @@ session 72 wrap の #445 最優先候補が session 73 で proposal step-2 ま�
 
 ---
 
-**Session 73 wrap 時点**: session 73 中に merged PR は `#453 / #451 / #454` の 3 個 (実 hash 上記記載)。本 resume-prompt PR merge 前の master HEAD = `6413708927`。open Issue 17 (実測、内訳は上記)。session 74 起点 = **PR-A 実装、合意事項の再導出不要**。
+**Session 73 wrap 時点** (session 73 follow-up + resume-prompt update 反映後): session 73 中に merged PR は `#453 / #451 / #454 / #457` の 4 個 + `#456` (session 74 起点 resume-prompt 初版) + 本 resume-prompt update PR = 6 個 (実 hash 上記直前 6 リスト参照)。open Issue 17 (実測、内訳は STEP 0 節)。session 74 起点 = **PR-A 実装、合意事項の再導出不要**。session 73 が clean な起点と wrap 後の follow-up を分けて記録している状態。
