@@ -61,7 +61,12 @@ dev = [
     "pytest-cov>=5.0",
     "pytest-xdist>=3.5",  # parallel test execution (PR #373, session 65 — CI Integration -40%)
     "pytest-split>=0.9",  # test suite sharding (PR E, session 65 — 3 shards × xdist -n 2 → ~10 min wall)
-    "ruff>=0.3",
+    # exact-pinned (session 73, Issue #449): an unpinned range let local and
+    # CI resolve to different ruff versions for 3 sessions, which kept the
+    # `Lint (informational)` job red and masked a real F541 debt until it
+    # was cleaned up in PR #448. Bumping this pin is now an intentional,
+    # reviewable change; sync with `.github/workflows/ci.yml` in the same PR.
+    "ruff==0.16.0",
     "mypy>=1.8",
     "types-PyYAML>=6.0",  # mypy stubs for pyyaml (P0-2, session 46)
     "build>=1.0",         # sdist/wheel build (P0-2, used by CI packaging job)
@@ -124,6 +129,18 @@ markers = [
 
 [tool.ruff]
 target-version = "py311"
+# Session 73 Issue #449: exclude Markdown from format/check. ruff 0.16.0
+# extended `ruff format` to Python code blocks embedded in .md docs; the
+# reformats compress hand-aligned tables and expand compact enum-style dicts,
+# both of which regress docs readability. Format target is Python source only.
+extend-exclude = ["*.md"]
+# `extend-exclude` alone only fires on directory-level ruff invocations
+# (`ruff format clinosim/`); an explicit path `ruff format some.md` bypasses
+# it. `force-exclude = true` makes exclude patterns apply to explicit paths
+# too, so editor LSP hooks and hand-invocations like
+# `ruff format docs/whatever.md` cannot inadvertently reformat markdown.
+force-exclude = true
+
 # Session 52 lint sweep: bumped from 100 → 120. The remaining 312 pre-existing
 # E501 hits after auto-fix + noqa sweep concentrate on (a) spec-anchored URIs
 # (JP Core / JP-CLINS / SNOMED / LOINC URLs are load-bearing literals that
