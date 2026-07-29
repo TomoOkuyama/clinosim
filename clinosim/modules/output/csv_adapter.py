@@ -381,7 +381,18 @@ def convert_cif_to_csv(
                         "patient_id": patient_id,
                         "prescription_id": rx.get("prescription_id"),
                         "prescriber_id": rx.get("prescriber_id"),
-                        "drug_name": item.get("drug_name"),
+                        # Issue #450 (session 73): fall back to the legacy
+                        # `drug` key so pre-migration outpatient renewals with
+                        # `{drug: ..., duration_days: ...}` shape still populate
+                        # drug_name. Matches the fallback pattern used by
+                        # `simulator/helpers.py:103`,
+                        # `document/narrative/passes.py:_o` and
+                        # `hospital_course_extractor.py`. Outpatient side has
+                        # since been unified to the inpatient
+                        # `{drug_name, dose, route, duration_days}` shape in
+                        # the same PR, so on future runs the fallback path is
+                        # inert; it remains as a defensive read-side guard.
+                        "drug_name": item.get("drug_name") or item.get("drug"),
                         "dose": item.get("dose"),
                         "route": item.get("route"),
                         "duration_days": item.get("duration_days"),
