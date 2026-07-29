@@ -416,97 +416,148 @@ drugs:
           - "SBP > 185 or DBP > 110 (uncontrolled)"
       note: "Door-to-needle target < 60 min"
 
+  # Issue #417 段 1 / #437: post-stroke secondary prevention set.
+  # These four blocks (antiplatelet + anticoagulation + statin +
+  # antihypertensive) are all clinically continued post-discharge for
+  # cerebral infarction. Prior to the `continue_at_discharge` mechanism
+  # they existed as YAML data but had NO Python reader (dead code — see
+  # Issue #437), so cerebral_infarction patients silently received an
+  # empty discharge prescription. Each block below opts in via
+  # `continue_at_discharge: true`; the reader is `_build_discharge_rx`
+  # (single edit point, `select_with_exclusive_classes` shared with
+  # `chronic_medications.yaml` and `discharge_oral`). Sources for each
+  # category are cited inline (JCS 2019 / AHA-ASA 2021 / JCS 2015 etc.).
   antiplatelet:
-    first_line:
-      japan:
-        - drug: "Aspirin"
-          code_yj: "1143001"
-          dose: "160-300mg loading, then 100mg PO daily"
-          route: PO
-          start_timing: "within 24-48h (after 24h if tPA given)"
-          pregnancy_safe: false
-        - drug: "Clopidogrel"
-          code_yj: "3399008"
-          dose: "300mg loading, then 75mg PO daily"
-          route: PO
-          probability: 0.40  # dual antiplatelet for minor stroke / high-risk TIA
-          note: "DAPT (aspirin + clopidogrel) for 21 days in minor stroke"
-      us:
-        - drug: "Aspirin"
-          code_rxnorm: "1191"
-          dose: "325mg loading, then 81mg PO daily"
-          route: PO
-          start_timing: "within 24-48h (after 24h if tPA given)"
-          pregnancy_safe: false
-        - drug: "Clopidogrel"
-          code_rxnorm: "32968"
-          dose: "300mg loading, then 75mg PO daily"
-          route: PO
-          probability: 0.40
-          note: "DAPT for 21 days per POINT/CHANCE trial for minor stroke"
+    # Historical structural note: this block used to nest an intermediate
+    # `first_line:` layer. The nested form had no Python consumer at any
+    # depth (grep -rn 'first_line' shows only top-level `drugs.first_line`
+    # and `admission.medications.first_line` — both unrelated). Flattened
+    # 2026-07-29 (session 72) to align with the schema `_build_discharge_rx`
+    # expects (block[country_key] → list[drug_spec]).
+    continue_at_discharge: true
+    japan:
+      - drug: "Aspirin"
+        code_yj: "1143001"
+        dose: "160-300mg loading, then 100mg PO daily"
+        route: PO
+        start_timing: "within 24-48h (after 24h if tPA given)"
+        pregnancy_safe: false
+      - drug: "Clopidogrel"
+        code_yj: "3399008"
+        dose: "300mg loading, then 75mg PO daily"
+        route: PO
+        probability: 0.40  # dual antiplatelet for minor stroke / high-risk TIA
+        note: "DAPT (aspirin + clopidogrel) for 21 days in minor stroke"
+    us:
+      - drug: "Aspirin"
+        code_rxnorm: "1191"
+        dose: "325mg loading, then 81mg PO daily"
+        route: PO
+        start_timing: "within 24-48h (after 24h if tPA given)"
+        pregnancy_safe: false
+      - drug: "Clopidogrel"
+        code_rxnorm: "32968"
+        dose: "300mg loading, then 75mg PO daily"
+        route: PO
+        probability: 0.40
+        note: "DAPT for 21 days per POINT/CHANCE trial for minor stroke"
 
+  # Anticoagulation for cardioembolic stroke secondary prevention.
+  # JP guideline: JCS 2019 脳卒中治療ガイドライン → DOAC (edoxaban / apixaban /
+  # rivaroxaban / dabigatran) is first-line for non-valvular AF-source
+  # cerebral infarction; warfarin retained for mechanical valve, severe
+  # renal impairment (CrCl < 15), or DOAC contraindication. The 0.8/0.2
+  # probability split mirrors PE (pulmonary_embolism.yaml discharge_oral)
+  # and DVT (chronic_medications.yaml I82) to keep the "80% DOAC / 20%
+  # warfarin" ratio consistent across cardioembolic indications.
+  # US guideline: AHA/ASA 2021 secondary stroke prevention → same DOAC
+  # preference; Apixaban chosen as representative DOAC (ARISTOTLE-trial
+  # first-line evidence in AF stroke prevention).
   anticoagulation:
+    continue_at_discharge: true
+    exclusive_classes: ["anticoagulant"]
     indication: "atrial_fibrillation_or_cardioembolic_source"
     start_timing: "typically Day 3-14 depending on infarct size"
     japan:
       - drug: "Edoxaban"
+        drug_class: "anticoagulant"
+        probability: 0.8
         code_yj: "3339002"
         dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
         route: PO
-        note: "DOAC preferred over warfarin in Japan"
+        note: "DOAC first-line (JCS 2019 脳卒中治療ガイドライン)"
       - drug: "Warfarin"
+        drug_class: "anticoagulant"
+        probability: 0.2
         code_yj: "3332001"
         dose: "Titrate to INR 2.0-3.0 (1.6-2.6 if age >= 70)"
         route: PO
-        probability: 0.30
-        note: "Used if mechanical valve or DOAC contraindicated"
+        note: "Used if mechanical valve or DOAC contraindicated (JCS 2019)"
     us:
       - drug: "Apixaban"
+        drug_class: "anticoagulant"
+        probability: 0.8
         code_rxnorm: "1364430"
         dose: "5mg PO BID (2.5mg if age >= 80, weight <= 60kg, or Cr >= 1.5)"
         route: PO
-        note: "DOAC preferred; ARISTOTLE trial data"
+        note: "DOAC preferred (AHA/ASA 2021, ARISTOTLE)"
       - drug: "Warfarin"
+        drug_class: "anticoagulant"
+        probability: 0.2
         code_rxnorm: "11289"
         dose: "Titrate to INR 2.0-3.0"
         route: PO
-        probability: 0.20
-        note: "Used if mechanical valve or DOAC contraindicated"
+        note: "Used if mechanical valve or DOAC contraindicated (AHA/ASA 2021)"
 
+  # High-intensity statin therapy is a Class I recommendation for all
+  # ischemic stroke patients regardless of baseline LDL — AHA/ASA 2021
+  # secondary stroke prevention + SPARCL trial. JP: JCS 2015 脳卒中治療
+  # ガイドライン echoes the recommendation at lower typical doses.
   statin:
+    continue_at_discharge: true
     japan:
       - drug: "Atorvastatin"
         code_yj: "2189015"
         dose: "10-20mg PO daily"
         route: PO
-        note: "Lower typical dose in Japan"
+        note: "Standard dose in Japan (JCS 2015)"
     us:
       - drug: "Atorvastatin"
         code_rxnorm: "83367"
         dose: "40-80mg PO daily"
         route: PO
-        note: "High-intensity statin per AHA guidelines"
+        note: "High-intensity statin (AHA/ASA 2021, SPARCL)"
 
+  # Long-term BP control post-stroke: target < 130/80 (AHA/ASA 2021 Class
+  # I). Amlodipine + Candesartan (JP) or Amlodipine + Lisinopril (US) are
+  # both continued as independent (non-exclusive) additions — 2-drug
+  # regimens are clinically valid for post-stroke BP management (PROGRESS
+  # trial ARB+CCB combination).
   antihypertensive:
+    continue_at_discharge: true
     start_timing: "after acute phase (typically Day 2-3, once neurologically stable)"
     japan:
       - drug: "Amlodipine"
         code_yj: "2149114"
         dose: "5mg PO daily"
         route: PO
+        note: "AHA/ASA 2021 + JCS 2019 target < 130/80"
       - drug: "Candesartan"
         code_yj: "2149040"
         dose: "8mg PO daily"
         route: PO
+        note: "ARB post-stroke (PROGRESS trial)"
     us:
       - drug: "Amlodipine"
         code_rxnorm: "17767"
         dose: "5-10mg PO daily"
         route: PO
+        note: "AHA/ASA 2021 target < 130/80"
       - drug: "Lisinopril"
         code_rxnorm: "29046"
         dose: "10-20mg PO daily"
         route: PO
+        note: "ACE-I post-stroke (PROGRESS trial)"
 
   bp_lowering_acute:
     indication: "SBP > 185 or DBP > 110 (pre-tPA) or SBP > 220 (no tPA)"
