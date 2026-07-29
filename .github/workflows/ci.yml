@@ -122,7 +122,10 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install ruff
-        run: pip install "ruff>=0.3"
+        # Exact-pinned (session 73 Issue #449): CI and local envs must resolve
+        # to the same ruff version so lint failures reproduce byte-identically
+        # across machines. Bumping this line = intentional lint-config change.
+        run: pip install "ruff==0.16.0"
       - name: ruff check
         run: ruff check clinosim/ tests/
       - name: ruff format --check
