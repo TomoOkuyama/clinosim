@@ -233,7 +233,16 @@ def _simulate_outpatient_visit(
             prescription_id=f"RX-{patient.patient_id}-OPD",
             prescriber_id=encounter.attending_physician_id,
             issue_date=visit_date,
-            items=[{"drug": med, "duration_days": 30} for med in patient.current_medications],
+            items=[
+                # route stays empty ("unknown") not "PO" — patient.current_medications
+                # is a list[str] with no route info; hardcoding "PO" would falsely
+                # claim oral administration for inhaled (Tiotropium/Salbutamol/ICS
+                # inhalers) and subcutaneous (Sliding scale insulin) drugs that
+                # chronic_medications.yaml actually declares as INH/SC. The root
+                # information loss is tracked separately (Refs #452).
+                {"drug_name": med, "dose": "", "route": "", "duration_days": 30}
+                for med in patient.current_medications
+            ],
         )
 
     # Set encounter_id on all orders
