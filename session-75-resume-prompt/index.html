@@ -1,0 +1,2548 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Population-driven, physiology-based synthetic Electronic Health Record generator (FHIR R4). Multi-country (US + JP), JP Core profile compliance, YAML-driven disease extension.
+">
+      
+      
+      
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/session-75-resume-prompt/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Session 75 resume prompt - clinosim</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#session-75-resume-prompt" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            clinosim
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Session 75 resume prompt
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../design-guides/project-concept-and-design/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/datasets/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../CONTRIBUTING-modules/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../development/reproducibility/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../governance/contributing/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Governance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    clinosim
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning & releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/project-concept-and-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project concept & design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/data-generation-walkthrough/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data generation walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/implementation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/fhir-data-generation-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FHIR data generation logic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/data-model-and-completeness-conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data model conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eval-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/scenario-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap (TODO)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRIBUTING-modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clinical_documents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical documents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synthea-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare to Synthea
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fhir-server-ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load into a FHIR server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bedrock_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bedrock LLM setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Governance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ★★★ この文書を信じる前に実測せよ
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="★★★ この文書を信じる前に実測せよ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#session-74-wrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        session 74 wrap 時点の実測値 (突合対象)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        プロジェクトコンセプト (再開前の primer)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="プロジェクトコンセプト (再開前の primer)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#claudemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        設計原則 (CLAUDE.md 参照、超重要)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#session-74-commit-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session 74 の成果 (commit / merge で裏付けられるものだけ)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Session 74 の成果 (commit / merge で裏付けられるものだけ)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pr-461-discharge_oral-fallback-dose-3-entries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PR #461 — discharge_oral の fallback が dose 文字列と矛盾する 3 entries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-463-route-snomed-helper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PR #463 — route 略号を SNOMED に写像する単一 helper
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#route-pr-2a-master-65e41a19f6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ★ route 語彙の現状 (PR-2a 後、master 65e41a19f6 実測)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="★ route 語彙の現状 (PR-2a 後、master 65e41a19f6 実測)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#text-only-10-fhir-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        text-only 10 種のうち FHIR に到達するのは 4 種のみ
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        未確認事項 (このセッションで確かめきれなかったこと)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="未確認事項 (このセッションで確かめきれなかったこと)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#445-pr-a-route-blocker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #445 PR-A — 実装ゼロ、ただし route blocker は解消済み
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#458" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #458 残件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#canonical-route-snomed-code-verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新 canonical route の SNOMED code — 権威 verify 未実施
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#460-462" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #460 / #462 — いずれも設計論点、未決
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#445-pr-a-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ★ #445 PR-A の gate 仕様 (実装できる粒度)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ★ 測定スクリプトを commit しなかった理由 (同じ検討を繰り返さないため)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="★ 測定スクリプトを commit しなかった理由 (同じ検討を繰り返さないため)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#durable-harness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        判断の骨子: durable な資産は仕様であって harness ではない
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        スクリプト個別の理由
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measure-s74" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .measure-s74/ の扱い
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#session-74" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session 74 の教訓 (実際に判断を変えたもの)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Session 74 の教訓 (実際に判断を変えたもの)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#j-n-close-cross-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        (j) ★ 裸の #N は close 動詞が無くても cross-reference を作る
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rule-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ★★ この rule の説明文自体がこの rule を破る
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#k-merge-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        (k) ★ merge 前の 2 段確認 — 「待てば安全」を「なぜ待ち終わったと言えるか」に変える
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#l-claudemd-claudemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        (l) 監督の指示が CLAUDE.md に反したら CLAUDE.md が勝つ
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#m-session-74-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        (m) 単一の観測窓で結論しない — session 74 で 3 回効いた
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#n-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        (n) 測定器バグは 3 種類とも「集計スクリプトの書き方」から出た
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#o" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        (o) 「重複 = 欠陥」で片付けない
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        (p) 中身が誤っているまま正しさの見た目を足さない
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/session-75-resume-prompt.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="session-75-resume-prompt">Session 75 resume prompt<a class="headerlink" href="#session-75-resume-prompt" title="Permanent link">&para;</a></h1>
+<h2 id="_1">★★★ この文書を信じる前に実測せよ<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>session 68 → 74 と 7 セッション連続で resume-prompt と実測が乖離した実績がある。<strong>必ず以下を叩き、実測と本文を突合せよ。差分があれば実測が正、本文は破棄。</strong></p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>/Users/tokuyama/workspace/clinosim
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git<span class="w"> </span>checkout<span class="w"> </span>master
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>git<span class="w"> </span>fetch<span class="w"> </span>--prune<span class="w"> </span>origin
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>git<span class="w"> </span>pull<span class="w"> </span>--ff-only
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>git<span class="w"> </span>log<span class="w"> </span>--oneline<span class="w"> </span>-6<span class="w"> </span>origin/master
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>gh<span class="w"> </span>pr<span class="w"> </span>list<span class="w"> </span>--state<span class="w"> </span>open
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>gh<span class="w"> </span>issue<span class="w"> </span>list<span class="w"> </span>--state<span class="w"> </span>open<span class="w"> </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>git<span class="w"> </span>status<span class="w"> </span>--short
+</span></code></pre></div>
+<h3 id="session-74-wrap">session 74 wrap 時点の実測値 (突合対象)<a class="headerlink" href="#session-74-wrap" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>master HEAD  65e41a19f6  fix(fhir): map authored route abbreviations to SNOMED
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>                         via a single helper (Refs #458) (#463)
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>             ※ 本 resume-prompt の PR が merge されるとその 1 commit が上に乗る
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>直前 5 (subject 末尾の close 参照は本 PR が誤リンクを作らないよう `…` で省略。
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        verbatim は STEP 0 の `git log --oneline -6` で取れる):
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  a15a6c1677  fix(disease): guard drug-block route fallback against contradicting
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>              dose strings (Closes …) (#461)
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  f1a7315206  docs(session): update session-74 resume prompt ... (#459)
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  34524ba148  fix(disease): declare route &quot;INH&quot; / &quot;SC&quot; on non-oral discharge_oral
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>              entries (Closes …) (#457)
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  8090d373c9  docs(session): session 74 resume prompt (#456)
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>  6413708927  fix(inpatient): drop hardcoded route=&quot;PO&quot; from chronic-transcribe (#454)
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>open PR      0 (本 resume-prompt PR を除く)
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>open Issue   19
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>  #462 #460 #458 #452 #445 #442 #440 #439 #437 #436 #433 #431 #430 #428 #425
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>  #418 #417 #415 #378
+</span></code></pre></div>
+<p><code>.measure-s74/</code> は <strong>untracked のまま残置</strong>。commit していない。扱いは後述。</p>
+<hr />
+<h2 id="primer">プロジェクトコンセプト (再開前の primer)<a class="headerlink" href="#primer" title="Permanent link">&para;</a></h2>
+<p><strong>clinosim</strong> = <strong>population-driven, physiology-based synthetic EHR data simulator</strong>。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>population 生成 → per-patient physiology state → per-encounter simulation
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    → CIF (Clinical Interoperability Format, structural + narrative 2 層)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    → format adapters (FHIR R4 Bulk Data / CSV / narrative)
+</span></code></pre></div>
+<h3 id="claudemd">設計原則 (CLAUDE.md 参照、超重要)<a class="headerlink" href="#claudemd" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>CIF is the only simulation output</strong> (AD-17)。format adapter は CIF のみ読む</li>
+<li><strong>CIF stores codes only, not display text</strong> (AD-30)。表示は <code>clinosim.codes</code> で resolve</li>
+<li><strong>Two-pass CIF generation</strong> (AD-65): structural = Stage 1 immutable / narrative = Stage 2</li>
+<li><strong>Base vs Module</strong> (AD-55): near-essential = always-on / specialized = opt-in module</li>
+<li><strong>Deterministic with seed</strong> (AD-16)、per-order lab RNG isolation (AD-59)</li>
+<li><strong>LLM calls only via <code>llm_service</code></strong> (AD-11)</li>
+<li><strong>Silent-no-op 防御 triplet</strong>: canonical constants + <code>_validate_*</code> at YAML load + <code>normalize_probabilities(fallback="raise")</code></li>
+<li><strong>Register-based extension</strong> (AD-56): 新 FHIR resource = <code>register_bundle_builder()</code>、<strong><code>_build_bundle()</code> 直接編集は禁止</strong></li>
+</ul>
+<p>必読: <code>CLAUDE.md</code> / <code>docs/design-guides/project-concept-and-design.md</code> / <code>docs/design-guides/implementation-rules.md</code></p>
+<hr />
+<h2 id="session-74-commit-merge">Session 74 の成果 (commit / merge で裏付けられるものだけ)<a class="headerlink" href="#session-74-commit-merge" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>種別</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PR merged 2 本</strong></td>
+<td><code>#461</code> <code>a15a6c1677</code> / <code>#463</code> <code>65e41a19f6</code></td>
+</tr>
+<tr>
+<td><strong>Issue 起票 2 本</strong></td>
+<td><code>#460</code> escalation 非投薬 entry / <code>#462</code> duration_days fallback</td>
+</tr>
+<tr>
+<td><strong>Issue reopen 1 本</strong></td>
+<td><code>#455</code> — PR #457 が取り落とした同 class 3 entries を発見、<code>#461</code> で完全解決して再 close</td>
+</tr>
+<tr>
+<td><strong>Issue 追記 3 comment</strong></td>
+<td><code>#458</code> に dual-route 曖昧性 / canonical 置き場所の選択肢 / 語彙 6 系統</td>
+</tr>
+<tr>
+<td><strong>live degenerate 解消</strong></td>
+<td><strong>text-only route 172 件 → 0 件</strong> (JP p=300 seed=42 実測)</td>
+</tr>
+<tr>
+<td>auto-close 事故</td>
+<td>0</td>
+</tr>
+<tr>
+<td>master 直 push</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Skill / Agent / Workflow 呼び出し</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pr-461-discharge_oral-fallback-dose-3-entries">PR #461 — <code>discharge_oral</code> の fallback が dose 文字列と矛盾する 3 entries<a class="headerlink" href="#pr-461-discharge_oral-fallback-dose-3-entries" title="Permanent link">&para;</a></h3>
+<p><strong>#455 は PR #457 で close されていたが、同 class が 3 entries 残っていた。</strong> PR #457 の sibling sweep が <strong>薬剤名に含まれる経路語</strong> (<code>inhal</code> / <code>insulin</code> / <code>inject</code> / <code>patch</code> / …) を軸にしていたため、薬剤名から経路が読めない薬を取り落としていた。<strong>経路情報は dose 文字列側にあった。</strong></p>
+<table>
+<thead>
+<tr>
+<th>file</th>
+<th>country</th>
+<th>drug</th>
+<th>dose</th>
+<th>修正前</th>
+<th>修正後</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hip_fracture.yaml</code></td>
+<td>japan</td>
+<td>Enoxaparin</td>
+<td><code>2000IU SC daily</code></td>
+<td>PO (fallback)</td>
+<td><code>SC</code></td>
+</tr>
+<tr>
+<td><code>hip_fracture.yaml</code></td>
+<td>us</td>
+<td>Enoxaparin</td>
+<td><code>40mg SC daily</code></td>
+<td>PO (fallback)</td>
+<td><code>SC</code></td>
+</tr>
+<tr>
+<td><code>vertebral_compression_fracture.yaml</code></td>
+<td>japan</td>
+<td>Denosumab</td>
+<td><code>60mg SC q6months</code></td>
+<td>PO (fallback)</td>
+<td><code>SC</code></td>
+</tr>
+</tbody>
+</table>
+<p>再発防止として <code>clinosim/modules/disease/protocol.py</code> に <strong>load 時の fallback-relative validation</strong> を追加:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">DRUG_BLOCK_ROUTE_FALLBACKS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;discharge_oral&quot;</span><span class="p">:</span> <span class="s2">&quot;PO&quot;</span><span class="p">,</span> <span class="s2">&quot;escalation&quot;</span><span class="p">:</span> <span class="s2">&quot;IV&quot;</span><span class="p">}</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">dose_route_tokens</span><span class="p">(</span><span class="n">dose</span><span class="p">)</span>                   <span class="c1"># 単語境界で経路略号を抽出</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">dose_contradicts_fallback</span><span class="p">(</span><span class="n">dose</span><span class="p">,</span> <span class="n">fallback</span><span class="p">)</span> <span class="c1"># fallback がその集合に含まれないか</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">_validate_drug_route_consistency</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>     <span class="c1"># fail-loud ValueError、loader に配線</span>
+</span></code></pre></div>
+<p><strong>設計上の要点 3 つ (次セッターが変更する前に読むこと)</strong>:</p>
+<ol>
+<li><strong>load 時であって runtime ではない</strong> — データは全て YAML 由来なので患者 1 人目の生成前に全件判定できる。<code>_append_item</code> 内に置くと該当疾患が抽選された時点で初めて落ちる</li>
+<li><strong>fallback 相対判定</strong> — <code>escalation</code> は <code>IV</code> を代入し、<strong>38 entries は dose も <code>IV</code> で正しい</strong>。「非経口トークンの有無」で判定すると 38 件が誤発火する。判定は「dose が名指しする経路集合が fallback を除外しているか」のみ</li>
+<li><strong>単語境界必須</strong> — 部分一致だと <code>PRN</code> 内の <code>PR</code> (9 件) と <code>remaining</code> 内の <code>NG</code> (1 件) で <strong>10 件誤検出</strong>。これは <code>_determine_route</code> の <code>"IV" in "Rivaroxaban"</code> と同じクラス</li>
+</ol>
+<p>検査対象は <strong>reader + fallback がある block のみ</strong>。<code>first_line</code> は代入値が <code>""</code> (断言していない)、<code>post_op</code> / <code>alternative_penicillin_allergy</code> / <code>mrsa_coverage</code> / <code>hyperkalemia_management</code> / <code>alternative_beta_blocker_contraindicated</code> は <strong>Python reader が 0</strong> (Refs #437) なので除外。含めると出力に到達しないデータのために build が落ちる。</p>
+<h3 id="pr-463-route-snomed-helper">PR #463 — route 略号を SNOMED に写像する単一 helper<a class="headerlink" href="#pr-463-route-snomed-helper" title="Permanent link">&para;</a></h3>
+<p><strong>live 実測: text-only route 172 件</strong> (MedicationAdministration 166 + MedicationRequest 6、すべて <code>NEB</code>)。<code>166 : 6</code> の偏りは偶然ではなく、<code>_ROUTE_SNOMED.get(...)</code> の lookup が <strong>2 箇所に独立して存在</strong>し同じ欠陥が両方に載ったため。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># clinosim/modules/output/_fhir_reference_data.py</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">_ROUTE_ALIASES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;INH&quot;</span><span class="p">:</span> <span class="s2">&quot;INHALED&quot;</span><span class="p">,</span> <span class="s2">&quot;INHALATION&quot;</span><span class="p">:</span> <span class="s2">&quot;INHALED&quot;</span><span class="p">,</span> <span class="s2">&quot;NEB&quot;</span><span class="p">:</span> <span class="s2">&quot;NEBULIZED&quot;</span><span class="p">}</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># clinosim/modules/output/_fhir_common.py</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">build_route_concept</span><span class="p">(</span><span class="n">raw_route</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span>   <span class="c1"># ★ route → SNOMED の単一 lookup 点</span>
+</span></code></pre></div>
+<p>呼出 2 箇所 (<code>_build_dosage_instruction</code> = MR / <code>_build_medication_admin</code> = MAR) を helper 経由に統一、<code>.upper()</code> を helper 内に取り込み。</p>
+<p><strong>新規 SNOMED code は 0</strong> — alias の target は全て既存 canonical key。<code>INH</code>/<code>NEB</code>/<code>INHALATION</code> は <code>447694001</code> "Respiratory tract route (qualifier value)" に着地し、この display は <code>50ee345b9a</code> (session 58, chain 4) で tx-server 実測済み。</p>
+<p><strong><code>route.text</code> は作者の値を保持</strong> (<code>NEB</code> は <code>NEB</code> のまま)。根拠は FHIR 意味論 — <code>CodeableConcept.text</code> は元システム自身の表現を置く場所で、<code>coding</code> が標準的意味を運ぶ。<code>INH</code>/<code>NEB</code> は実在の臨床略号なので、合成 EHR としては実際の診療記録に含まれる表記を持つ方が忠実。</p>
+<hr />
+<h2 id="route-pr-2a-master-65e41a19f6">★ route 語彙の現状 (PR-2a 後、master <code>65e41a19f6</code> 実測)<a class="headerlink" href="#route-pr-2a-master-65e41a19f6" title="Permanent link">&para;</a></h2>
+<p><strong>語彙は 6 系統ある。</strong> #458 の残件を把握するのに必要なので、sweep を再実行せずに使えるよう実測値を貼る。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>語彙源</th>
+<th>場所</th>
+<th>内容</th>
+<th>SNOMED</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>V1</td>
+<td>YAML の <code>route:</code></td>
+<td>disease / encounter / locale YAML</td>
+<td>21 種</td>
+<td>—</td>
+</tr>
+<tr>
+<td>V2</td>
+<td><code>parse_dose_string</code> regex</td>
+<td><code>clinosim/modules/order/engine.py</code></td>
+<td><code>IM INHALED IV NEBULIZED NG PO PR SC SL TOPICAL</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>V3</td>
+<td><code>_determine_route</code> 返り値</td>
+<td><code>clinosim/simulator/helpers.py</code></td>
+<td><code>IM IV PO SC</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>V4</strong></td>
+<td><strong><code>_ROUTE_SNOMED</code> key</strong></td>
+<td><code>clinosim/modules/output/_fhir_reference_data.py</code></td>
+<td><code>IM INHALED IV NEBULIZED PO PR SC SL TOPICAL</code> (9)</td>
+<td><strong>✅</strong></td>
+</tr>
+<tr>
+<td>V5</td>
+<td><code>_parse_dose_for_mar</code> regex</td>
+<td><code>clinosim/modules/output/_fhir_common.py</code></td>
+<td>上記 V2 から <strong><code>NEBULIZED</code> を欠く</strong></td>
+<td>—</td>
+</tr>
+<tr>
+<td>V6</td>
+<td><code>_ROUTE_JA</code> key</td>
+<td><code>clinosim/modules/output/_fhir_localization.py</code></td>
+<td><code>IM INH INHALED IV NG PO PR SC SL TOPICAL</code> (10)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>_ROUTE_ALIASES = {&#39;INH&#39;: &#39;INHALED&#39;, &#39;INHALATION&#39;: &#39;INHALED&#39;, &#39;NEB&#39;: &#39;NEBULIZED&#39;}
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>V1 (21 種) の解決状況:
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  coding に解決 (11): IM INH INHALATION INHALED IV NEB PO PR SC SL TOPICAL
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  text-only     (10): CATHETER EXTRACORPOREAL LOCAL N/A NASAL
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>                      NON-PHARMACOLOGIC OTHER PROCEDURAL PROCEDURE TRANSDERMAL
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>canonical に無い値:
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  V2 \ resolvable = [&#39;NG&#39;]      ← parser が吐けるが coding が無い
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  V5 \ resolvable = [&#39;NG&#39;]
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  V6 \ resolvable = [&#39;NG&#39;]
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  V3 \ resolvable = []          ← heuristic は安全
+</span></code></pre></div>
+<h3 id="text-only-10-fhir-4">text-only 10 種のうち FHIR に到達するのは 4 種のみ<a class="headerlink" href="#text-only-10-fhir-4" title="Permanent link">&para;</a></h3>
+<p>session 74 の block 別 reader 追跡の結論 (再導出不要):</p>
+<table>
+<thead>
+<tr>
+<th>YAML block</th>
+<th>reader</th>
+<th>FHIR 到達</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>drugs.first_line.&lt;country&gt;[]</code></td>
+<td><code>order/engine.py:358</code> → <code>Order.route</code></td>
+<td>✅ LIVE</td>
+</tr>
+<tr>
+<td><code>drugs.escalation.&lt;country&gt;[]</code></td>
+<td><code>inpatient.py:1217</code> → <code>Order.route</code></td>
+<td>✅ LIVE</td>
+</tr>
+<tr>
+<td><code>drugs.discharge_oral.&lt;country&gt;[]</code></td>
+<td><code>inpatient.py:2039</code> → <code>discharge_prescription.items[]</code></td>
+<td>⚠ CIF のみ (#445 で FHIR 到達予定)</td>
+</tr>
+<tr>
+<td>encounter <code>treatment[]</code></td>
+<td><code>emergency.py:240</code> が <code>route=</code> を渡さない</td>
+<td>❌ dead</td>
+</tr>
+<tr>
+<td>encounter <code>discharge_prescriptions[]</code> / <code>prescriptions[]</code></td>
+<td>reader 皆無</td>
+<td>❌ dead</td>
+</tr>
+<tr>
+<td><code>chronic_medications.yaml &lt;ICD&gt;.medications[]</code></td>
+<td><code>_derive_home_medications</code> が <code>list[str]</code> を返す</td>
+<td>❌ route 破棄 (#452)</td>
+</tr>
+<tr>
+<td><code>drugs.post_op</code> 他 5 block</td>
+<td>Python 参照 0</td>
+<td>❌ dead (#437)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>LIVE / LIVE-capable な text-only</strong>: <code>NASAL</code> (<code>vertebral_compression_fracture</code> first_line us) / <code>CATHETER</code> (<code>deep_vein_thrombosis</code> escalation) / <code>PROCEDURAL</code> (<code>vertebral_compression_fracture</code> escalation)。いずれも p=300 では未発火 = latent。残りは dead block。</p>
+<hr />
+<h2 id="_2">未確認事項 (このセッションで確かめきれなかったこと)<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p><strong>「調査済み誤解」を避けるため実測で書く。</strong></p>
+<h3 id="445-pr-a-route-blocker">#445 PR-A — 実装ゼロ、ただし route blocker は解消済み<a class="headerlink" href="#445-pr-a-route-blocker" title="Permanent link">&para;</a></h3>
+<ul>
+<li>設計合意は <strong>session 73 の Q1-Q7</strong> (<code>docs/session-74-resume-prompt.md</code> に完全版)。再導出不要</li>
+<li><strong>route blocker は session 74 で解消</strong>: PR-A が新規に FHIR 到達させる <code>INH</code> は now coded (<code>build_route_concept('INH')</code> → <code>coding=True</code>)</li>
+<li><strong>branch 未 create、コード 0 行</strong></li>
+<li><code>dosageInstruction</code> text-only が JP_MR_eCS validator を通るかは <strong>未検証</strong> (PR-B の gate)</li>
+<li><code>eCS_InstitutionNumber</code> / <code>eCS_Department</code> extension を CIF から埋められるかは <strong>未確認</strong> (両者 min=0 だが MustSupport=True)</li>
+</ul>
+<h3 id="458">#458 残件<a class="headerlink" href="#458" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>V1 の import-time validation</strong> 未実装 (reader のある block に限定すること — PR #461 と同じ制約)</li>
+<li><strong>V2 / V5 の token 突合</strong> 未実装。<strong><code>modules/output</code> ↔ <code>modules/order</code> の相互依存を作れない</strong> (CLAUDE.md module independence rule) ため、token を名前付き定数に hoist し <strong>突合は test 層</strong>で行う方針が session 74 で合意済み</li>
+<li><strong><code>NG</code> が canonical に無い</strong> — V2 / V5 / V6 が知っているのに V4 にない。現状 dose 文字列に単独 <code>NG</code> は 0 件で到達不能。<strong>SNOMED code は権威 verify が必要</strong></li>
+<li><strong>★ route 日本語表記の SoT が未決</strong> — <code>_ROUTE_JA</code> と <code>_localize_dosage_terms</code> の 2 経路がある。実測: <code>NEBULIZED</code> は <code>_ROUTE_JA</code> に entry が無いのに <code>dosage.text</code> は正しく「ネブライザー」になる (効いているのは後者)。どちらが single source of truth か決まっていない</li>
+<li><strong><code>_ROUTE_SNOMED</code> を <code>clinosim/codes/</code> へ移す案</strong> — 概念的には正しい置き場所 (国際 code system) だが import を広く触る refactor。#458 に選択肢として記録、未決</li>
+<li><strong><code>_parse_dose_for_mar</code> の <code>nebulized</code> 欠落</strong> (V5 の非対称)。docstring が "avoids importing order engine in adapter" と明記しており <strong>複製は意図的な設計判断</strong>。欠陥は複製が非対称なことであって複製そのものではない</li>
+</ul>
+<h3 id="canonical-route-snomed-code-verify">新 canonical route の SNOMED code — 権威 verify 未実施<a class="headerlink" href="#canonical-route-snomed-code-verify" title="Permanent link">&para;</a></h3>
+<p><code>EXTRACORPOREAL</code> / <code>NASAL</code> / <code>TRANSDERMAL</code> / <code>LOCAL</code> / <code>CATHETER</code> / <code>PROCEDURAL</code> / <code>PROCEDURE</code> / <code>NON-PHARMACOLOGIC</code> / <code>OTHER</code> / <code>N/A</code> / <code>NG</code></p>
+<p><strong>推測 code を置いてはならない。</strong> fhirserver / tx.fhir.org <code>$lookup</code> での per-code 実測が必要 (session 66 で 80288-4 に 4 サイクル消費した教訓)。近い既存 code に寄せるのは silent code substitution で、<code>SL</code> に <code>37161004</code> (Rectal) を使っていた #311 と同じクラス。</p>
+<h3 id="460-462">#460 / #462 — いずれも設計論点、未決<a class="headerlink" href="#460-462" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>#460</strong>: <code>drugs.escalation</code> に非投薬 (手技) entry 6 件。<strong>主題は route ではなく resource type</strong> (<code>Order(MEDICATION)</code> → <code>MedicationRequest</code> として emit される)。6 件は drug code field に <code>"procedure"</code> / <code>"N/A"</code> marker を持ち、この軸で全 disease YAML を掃引すると該当は 6 件で閉じる。<strong>route だけ直すと「正しい route を持つ手技の MedicationRequest」になってかえって妥当に見える</strong> (session 66 の profile 宣言事例と同型) ので、resource type の設計判断が先</li>
+<li><strong>#462</strong>: <code>discharge_oral</code> の <code>duration_days</code> fallback (7) が dose の投与間隔と矛盾する 2 件 (<code>q6months</code> の Denosumab / <code>weekly</code> の Alendronate)。PR #461 の fallback-relative 検査が一般化できるが、期間表現のパースは route 略号より難しい (実装案 4 つを列挙、未決)</li>
+</ul>
+<hr />
+<h2 id="445-pr-a-gate">★ #445 PR-A の gate 仕様 (実装できる粒度)<a class="headerlink" href="#445-pr-a-gate" title="Permanent link">&para;</a></h2>
+<p>PR-A は <strong>既存 CIF から追加 emit するだけで乱数を消費しない</strong>はずなので、それを測る。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>既存 25 NDJSON            → byte-identical (sha256)
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>MedicationRequest.ndjson  → 既存 ORD-* 行は byte-identical、rxdc-/rxopd- 行のみ追加
+</span></code></pre></div>
+<p><strong>検査の形 (これが仕様。件数だけ見る実装は不可)</strong>:</p>
+<ol>
+<li><strong>件数比較ではなく <code>(resource_id, element_index) → value</code> の写像を集合として突合する</strong> — 件数一致だけを見ると「A が消えて B が増えた」が通る</li>
+<li><strong>baseline の集合が new の集合に包含されることを別途 assert する</strong> (<code>baseline ⊆ new</code>)</li>
+<li><strong>変化を「期待したパターン / 想定外のパターン」に分類し、想定外 0 を assert する</strong> — 「何件変わった」ではなく「期待した種類の変化しか起きていない」を示す</li>
+<li><strong>対象外フィールドの不変も確認する</strong> — PR-2a では route 以外の dosage フィールドを JSON 正規化して突合し 0 を確認した</li>
+<li><strong>id prefix 別に行集合を分割する</strong> — <code>ORD-*</code> の集合が不変、<code>rxdc-*</code> / <code>rxopd-*</code> が純増であることを別々に見る</li>
+<li><strong>他が 1 file でも動いたら止めて報告</strong> — 意図しない乱数消費のサイン</li>
+</ol>
+<p><strong>実例</strong>: PR #461 body (26/26 byte-identical + CIF 1 行のみ変化 + 想定外 0) / PR #463 body (24/24 identical + 172 件の coding 追加 + 既 coded 13,687 件不変、算術 <code>13206+166=13372</code> / <code>481+6=487</code> も明示)。</p>
+<p>コホート生成コマンド:
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">300</span><span class="w"> </span>-s<span class="w"> </span><span class="m">42</span><span class="w"> </span>--country<span class="w"> </span>JP<span class="w"> </span>-o<span class="w"> </span>&lt;DIR&gt;<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>--start<span class="w"> </span><span class="m">2025</span>-01-01<span class="w"> </span>--end<span class="w"> </span><span class="m">2026</span>-01-01<span class="w"> </span>--format<span class="w"> </span>fhir-r4
+</span></code></pre></div>
+CSV も必要なら <code>--format csv</code> で別 dir に。</p>
+<hr />
+<h2 id="commit">★ 測定スクリプトを commit しなかった理由 (同じ検討を繰り返さないため)<a class="headerlink" href="#commit" title="Permanent link">&para;</a></h2>
+<p>session 74 は <code>.measure-s74/</code> に 8 本の <code>.py</code> 測定スクリプトを作ったが、<strong><code>scripts/</code> への promote は 0 本</strong>と判断した。次セッターが「測定スクリプトがあれば便利では」と考えて同じ検討を繰り返さないよう、理由を記録する。</p>
+<h3 id="durable-harness">判断の骨子: <strong>durable な資産は仕様であって harness ではない</strong><a class="headerlink" href="#durable-harness" title="Permanent link">&para;</a></h3>
+<p><code>gate_pr1a.py</code> (コホート差分 harness) が唯一 promote 候補だったが、分解すると:
+- 全 NDJSON の sha256 突合 → 10 行程度の自明なコード
+- id 集合の突合・分類 → 中程度</p>
+<p><strong>難しいのはコードではなく「何を検査するか」の知識</strong>で、それは上の「gate 仕様」節に書ける。書けば次セッターは fresh な実装をし、hardcode パスも <code>discharge_prescription</code> 固有部分も継承しない。</p>
+<h3 id="_3">スクリプト個別の理由<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>sweep1_yaml_routes.py</code> / <code>sweep5_vocabulary_consistency.py</code> は STALE</strong>。<code>_ROUTE_ALIASES</code> を見ないため、master で走らせると <strong><code>INH</code>(9) <code>NEB</code>(4) <code>INHALATION</code>(2) を今も unmatched と報告する</strong> (真の値は <code>45-15=30</code>)。exit 0 で正しそうな出力が出るので、<strong>壊れているより厄介</strong>。<strong>別 branch 等で入手しても信じないこと</strong></li>
+<li><strong><code>sweep4_route_key_absence.py</code> / <code>sweep10b_regex_boundary.py</code> は production に取り込み済み</strong>。しかも <code>sweep4</code> は独自の token regex を持っており、commit すると同じ検査に語彙源が 2 つできる = <strong>#458 で文書化した「語彙が 6 系統あって誰も突合していない」問題の 7 系統目を自分で作る</strong>ことになる</li>
+<li><strong><code>sweep9_escalation_route.py</code></strong> の非投薬判定は heuristic 正規表現。#460 本文の機械的な軸 (drug code field の <code>"N/A"</code> / <code>"procedure"</code> marker) の方が確実で、script は劣った実装</li>
+<li><strong>結論はすべて GitHub artifact に残っている</strong> — #458 (3 comment) / #460 / #462 / PR #461 / #463 の body に実測値と表が記載済み。script が提供するのは「再測定」だけ</li>
+</ul>
+<h3 id="measure-s74"><code>.measure-s74/</code> の扱い<a class="headerlink" href="#measure-s74" title="Permanent link">&para;</a></h3>
+<p>untracked のまま残置している (session 74 では削除しなかった)。<strong>次セッターが不要と判断すれば削除して構わない。</strong> 中身は 50-150 行のスクリプトと出力 <code>.txt</code>、および JP p=300 コホート 3 本 (<code>route_cohort</code> / <code>route_cohort_new</code> / <code>route_cohort_pr2a</code> / <code>csv_new</code>)。コホートはディスクを食うので削除候補。</p>
+<hr />
+<h2 id="session-74">Session 74 の教訓 (実際に判断を変えたもの)<a class="headerlink" href="#session-74" title="Permanent link">&para;</a></h2>
+<h3 id="j-n-close-cross-reference">(j) ★ 裸の <code>#N</code> は close 動詞が無くても cross-reference を作る<a class="headerlink" href="#j-n-close-cross-reference" title="Permanent link">&para;</a></h3>
+<p>commit / PR body に <code>chain #&lt;n&gt;</code> / <code>phase #&lt;n&gt;</code> のような<strong>序数表記</strong>を書くと、GitHub は <code>#&lt;n&gt;</code> を issue 番号への参照として解釈し、<strong>無関係な issue のタイムラインに我々の PR が現れる</strong>。close 動詞より踏みやすい。</p>
+<p><strong>実測で確認済み</strong>: <code>#311</code> を PR #463 body で「先例」として引いたが、<code>gh api .../issues/311/timeline</code> で <code>closedAt: 2026-07-19</code> (merge の 11 日前) / <code>commit_id: null</code> (手動 close) を確認し、<strong>state は変わっていない</strong>ことを検証した。裸の <code>#N</code> は言及だけ作り state は変えない。</p>
+<p>運用:
+- <strong>序数・識別子には <code>#</code> を付けない</strong> (<code>chain 4</code> / <code>phase 2</code>)
+- <code>#N</code> を書くのは実際にその issue / PR を指すときだけ
+- <strong>書いたら <code>grep -oE '#[0-9]+'</code> で全番号を列挙し、1 つずつ意図したものか確認する</strong>
+- <strong>close 動詞近接も検査する</strong>: <code>grep -inE '(clos(e|es|ed)|fix(es|ed)?|resolv(e|es|ed))[^.]{0,30}#[0-9]+'</code></p>
+<h3 id="rule-rule">★★ この rule の説明文自体がこの rule を破る<a class="headerlink" href="#rule-rule" title="Permanent link">&para;</a></h3>
+<p>session 74 で <strong>3 回</strong>起きた:</p>
+<ol>
+<li>この rule の説明文で、裸の <code>#N</code> を<strong>実例の数字で</strong>書いた (issue 2 件への spurious 参照)</li>
+<li><code>git log</code> の subject を引用したら <strong>close 動詞 + 番号の組</strong>が入った (この文書の「直前 5」ブロック)</li>
+<li><strong>(2) を PR body で説明する文が、同じ組を再導入した</strong></li>
+</ol>
+<p><strong>「気をつける」では防げない。</strong> 番号や close 動詞に言及する文書を書いたら、<strong>書いた後に必ず</strong>上記 2 つの grep を回すこと。</p>
+<p><strong>3 回すべて検算で捕まっており、意図では 1 度も防げていない。</strong> 自分は気をつけるから大丈夫、とは考えないこと — 書いている最中は見えない。事後検算が唯一の防御。</p>
+<p>(session 71 の教訓「原則を書くとき自身にも適用する」の一段先。あれは「適用を忘れた」だが、ここで分かったのは <strong>適用しようとしても書いている最中は見えない</strong> という構造。)</p>
+<h3 id="k-merge-2">(k) ★ merge 前の 2 段確認 — 「待てば安全」を「なぜ待ち終わったと言えるか」に変える<a class="headerlink" href="#k-merge-2" title="Permanent link">&para;</a></h3>
+<p><code>gh pr checks</code> のスナップショットには<strong>まだスケジュールされていない下流 job が写らない</strong>。<code>integration</code> は <code>needs: unit</code> で gate されているため、Unit が pass するまで check list に存在し得ない。</p>
+<p>session 74 で監督が「Unit が pass したら merge」と指示し、それをそのまま実行すると CLAUDE.md の merge blocker 規則 (Integration を含む) に違反する状態だった。</p>
+<p>運用:
+1. <strong>merge 条件は「CI 全 job pass」と書く。job を部分列挙しない</strong>
+2. <strong>依存グラフで期待 check 数を導出し、待機条件に入れる</strong>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;needs:&quot;</span><span class="w"> </span>.github/workflows/ci.yml
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;needs:.*integration&quot;</span><span class="w"> </span>.github/workflows/*.yml<span class="w">   </span><span class="c1"># → なし ⇒ integration が最後</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># ⇒ 期待 check 数 14 (この workflow の場合)</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">until</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>gh<span class="w"> </span>pr<span class="w"> </span>checks<span class="w"> </span>&lt;N&gt;<span class="w"> </span>--json<span class="w"> </span>name,bucket<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;import json,sys; d=json.load(sys.stdin); print(1 if (len(d)&gt;=14 and sum(1 for x in d if x[&quot;bucket&quot;]==&quot;pending&quot;)==0) else 0)&#39;</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">do</span><span class="w"> </span>sleep<span class="w"> </span><span class="m">30</span><span class="p">;</span><span class="w"> </span><span class="k">done</span>
+</span></code></pre></div>
+規律に頼らず機構が保証する形。<strong>「pending == 0」だけの待機は Unit pass 直後の窓で抜ける。</strong></p>
+<h3 id="l-claudemd-claudemd">(l) 監督の指示が CLAUDE.md に反したら CLAUDE.md が勝つ<a class="headerlink" href="#l-claudemd-claudemd" title="Permanent link">&para;</a></h3>
+<p>上記 (k) の merge 条件がまさにこれ。session 74 では worker が止めて報告し、監督が誤りを認めて運用ルールを変更した。<strong>指示をそのまま実行せず、プロジェクト規則との整合を確認する。</strong></p>
+<h3 id="m-session-74-3">(m) 単一の観測窓で結論しない — session 74 で 3 回効いた<a class="headerlink" href="#m-session-74-3" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong><code>git branch -a</code> に remote branch が残って見えた</strong> → <code>git ls-remote --heads origin</code> で実測 → remote 上は削除済み、local の tracking ref が stale だけ。<code>--prune</code> で解消。「削除されていない」と誤報告する寸前だった</li>
+<li><strong>background 待機 task が「CI 完了」を報告</strong> → task の出力を信用せず <code>gh pr checks</code> で再実測してから merge</li>
+<li><strong><code>#311</code> の state が CLOSED</strong> → timeline API で closedAt と mergedAt を突合 → 11 日前の手動 close</li>
+</ol>
+<p><strong>自分の道具の出力に対しても「報告を信じない、実測を信じる」を適用する。</strong></p>
+<h3 id="n-3">(n) 測定器バグは 3 種類とも「集計スクリプトの書き方」から出た<a class="headerlink" href="#n-3" title="Permanent link">&para;</a></h3>
+<p>session 74 で worker が出した測定器バグ:
+1. <strong>glob 重複読み</strong> — <code>clinosim/locale/*/x.yaml</code> と <code>clinosim/locale/shared/x.yaml</code> を並べ、同一ファイルを 2 回 grep して<strong>全カウントが 2 倍</strong> (<code>INH</code> を 8 と報告、実際 4)
+2. <strong>country-key 階層の descend 漏れ</strong> — <code>discharge_oral</code> を country 別 dict と認識せず全件を <code>&lt;absent&gt;</code> と出力 (報告前に自己捕捉)
+3. <strong>heredoc 二重 escape</strong> — <code>python3 - &lt;&lt;'PY'</code> 内で <code>r'\\bPR\\b'</code> と書き、regex が literal backslash になって検証が無効化</p>
+<p><strong>対策</strong>: (1) glob は <code>ls | sort -u</code> で展開結果を確認 / (2) YAML は再帰 walk で書く / (3) <strong>regex を含むスクリプトは heredoc でなくファイルに書いて実行する</strong></p>
+<h3 id="o">(o) 「重複 = 欠陥」で片付けない<a class="headerlink" href="#o" title="Permanent link">&para;</a></h3>
+<p><code>_parse_dose_for_mar</code> は <code>parse_dose_string</code> の複製だが、docstring が "avoids importing order engine in adapter" と明記しており <strong>module independence を守るための設計判断</strong>。欠陥は複製そのものではなく <strong>複製が非対称になっていること</strong> (<code>nebulized</code> 欠落)。同じ場所にある 2 つの問題を分離する。</p>
+<h3 id="p">(p) 中身が誤っているまま正しさの見た目を足さない<a class="headerlink" href="#p" title="Permanent link">&para;</a></h3>
+<h1 id="460-hemodialysis-drugsescalation-medicationrequest-emit-route-extracorporeal-route-medicationrequest-iv-text-only-route">460 の Hemodialysis は <code>drugs.escalation</code> にあるため <code>MedicationRequest</code> として emit される。ここで route だけ <code>EXTRACORPOREAL</code> に直すと「<strong>正しい route を持つ血液透析という薬剤の MedicationRequest</strong>」になり、<strong>かえって妥当に見える</strong>。現状の <code>IV</code> / text-only は欠陥を可視化しており、route だけの修正はその可視性を失わせる。<a class="headerlink" href="#460-hemodialysis-drugsescalation-medicationrequest-emit-route-extracorporeal-route-medicationrequest-iv-text-only-route" title="Permanent link">&para;</a></h1>
+<p>session 66 で <code>meta.profile</code> を MustSupport / slice 充足の verify 前に宣言して cascade regression を招いた事例と同型。<strong>完成度 verify の前に正しさを宣言しない。</strong></p>
+<hr />
+<h2 id="session-75">Session 75 の監督へ<a class="headerlink" href="#session-75" title="Permanent link">&para;</a></h2>
+<p>session 74 supervisor <code>5v0qgryj</code> → session 75 supervisor への引き継ぎ。</p>
+<ul>
+<li><strong>worktree 共有</strong>: 監督と worker が同一ディレクトリなら working tree を共有する。監督の <code>grep</code> は <strong>worker が <code>git checkout</code> した branch の内容を読む</strong>。master を見たいなら <code>git show master:&lt;path&gt;</code>、branch 跨ぎは <code>gh pr diff</code> 等の tree 非依存 API。<strong>worker は <code>git checkout</code> 前に peer message で事前通告する</strong></li>
+<li><strong>実測ファイル方式</strong>: worker はリポジトリ内 untracked (<code>.measure-s7N/</code>) へ出力を直接リダイレクトし、監督が <code>Read</code> で読む。<strong>peer message の code fence への転記はさせない</strong> (session 73 で 3 回連続の加工が起きた)。<code>/tmp</code> は sandbox 境界で監督から見えないことがあるので repo 内が確実</li>
+<li><strong>ctx 申告</strong>: <strong>「測れるなら実数、測れないなら『不明』」</strong>。体感 % は書かせない (session 70 で 65-70% 申告 → 実測 35%)</li>
+<li><strong>merge 前の 2 段確認</strong> — 上記 (k)。<strong>merge 条件に job を部分列挙しない</strong></li>
+<li><strong>裸の <code>#N</code></strong> — 上記 (j)。commit / PR body / Issue comment を書いたら全番号を列挙して意図確認させる</li>
+<li><strong>監督の主張は検証対象</strong> — session 74 では監督の入力の訂正が <strong>6 件</strong> (live 影響 6→172 / route 欠落 43→221 / map 命名説の機序 / PR 分割軸の前提 / 判定式の PO 包含 / merge 条件)、制約の指摘が <strong>1 件</strong> (module independence)、検証中の副産物発見が <strong>1 件</strong> (<code>INHALED</code>/<code>NEBULIZED</code> の code 同一)。<strong>否定してくれた方が助かる、を明示的に伝える</strong></li>
+<li><strong>worker 自身の誤りは 4 件</strong> (根拠記述 1 + 測定器バグ 3、うち 1 件は報告前に自己捕捉)。<strong>worker が自己申告で集計を上方修正した</strong>ので、この数は worker 側の申告を採っている。<strong>誤りの帰属を混同しない</strong> — 混同した記録が残ると次セッションが誤った信頼度で相手を評価する</li>
+<li><strong>規模の大きい task に入る前に状態を確認する</strong> — session 74 は #445 PR-A (最大の変更) を選ばず wrap した。判断根拠は「ctx 実数が取れないため『あと何ができるか』を根拠づけられず、その状態で最大の変更に入るのは半端に切れるリスクが高い」。<strong>「まだいけます」を期待しない</strong></li>
+</ul>
+<hr />
+<h2 id="session-75-checklist">Session 75 起点 checklist<a class="headerlink" href="#session-75-checklist" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>STEP 0 コマンドで master + open PR + open Issue を実測、本文の想定と突合</strong></li>
+<li>想定外があれば止めて監督報告</li>
+<li><code>CLAUDE.md</code> + <code>docs/design-guides/implementation-rules.md</code> を読む</li>
+<li>次候補から選ぶ (下記) — <strong>branch 切替は事前通告</strong></li>
+<li><code>--signoff</code> 必須 / push 前に <strong><code>uvx ruff@0.16.0 format --check</code></strong> (後述)</li>
+<li><strong>merge は監督承認後</strong></li>
+</ol>
+<h3 id="_4">次候補<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>候補</th>
+<th>内容</th>
+<th>規模</th>
+<th>価値</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>(1) #445 PR-A</strong></td>
+<td><code>discharge_prescription.items</code> を FHIR MedicationRequest として emit</td>
+<td><strong>大</strong></td>
+<td><strong>CIF→FHIR no-drop invariant 違反の解消</strong>。route blocker は解消済み、設計合意も揃っている</td>
+</tr>
+<tr>
+<td>(2) #458 PR-2b</td>
+<td>V1 import-time validation + V2/V5 token hoist と test 層突合 + <code>NG</code> の扱い</td>
+<td>小</td>
+<td>再発防止 (live なデータは PR-2a で解消済み)</td>
+</tr>
+<tr>
+<td>(3) #460</td>
+<td>escalation の非投薬 entry の resource type 設計</td>
+<td>中</td>
+<td>modeling の正しさ</td>
+</tr>
+<tr>
+<td>(4) #462</td>
+<td>duration_days fallback</td>
+<td>小-中</td>
+<td>#461 の一般化</td>
+</tr>
+</tbody>
+</table>
+<p><strong>session 74 の監督は (1) に傾いていた</strong> (価値が最も高い)。fresh ctx で PR-A 単独に集中するのが想定。</p>
+<h3 id="_5">開発環境の注記 (コード側の問題ではない)<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p><strong>local の ruff が 0.15.9、<code>pyproject.toml</code> の pin は <code>ruff==0.16.0</code></strong> という乖離がある。<code>pip install -e '.[dev]'</code> の再実行が必要な状態。session 74 では <code>uvx ruff@0.16.0 format --check &lt;paths&gt;</code> で検証した。</p>
+<p><strong><code>ruff format --check .</code></strong> をリポジトリ全体に掛けると 0.15.9 では 29 files が reformat 対象と報告されるが、これは version 差由来の既存差分。<strong>自分が触ったファイルだけを pin 版で検査すること。</strong></p>
+<p>なお zsh は unquoted な変数を単語分割しないので、<code>ruff format $FILES</code> は 1 パスとして渡って失敗する。<strong>パスは明示列挙する。</strong></p>
+<hr />
+<h2 id="_6">メタ<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p>session 73 wrap 時点の最優先候補だった #445 PR-A は、session 74 では着手していない。代わりに <strong>その blocker だった route 語彙問題を完全に片付けた</strong> (live degenerate 172 → 0、#455 の未解決分を発見して解決、#458 の scope を 13 種 → 実質 5 種に確定)。</p>
+<p>session 74 は <strong>PR 2 本 merged / Issue 2 本起票 / #455 の再発見と完全解決 / #458 の scope 確定</strong> で、成果は自立している。#445 PR-A は <strong>設計合意 (session 73 Q1-Q7) + route blocker 解消 (session 74)</strong> が揃った状態で session 75 に引き継がれる。</p>
+<hr />
+<p><strong>Session 74 wrap 時点</strong>: master <code>65e41a19f6</code> (+ 本 resume-prompt PR)。open Issue 19、open PR 0。auto-close 事故 0、master 直 push 0、Skill / Agent / Workflow 呼び出し 0。<strong>実測が本文に勝つ。</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/TomoOkuyama/clinosim" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
