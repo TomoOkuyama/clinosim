@@ -134,6 +134,38 @@ _ROUTE_SNOMED: dict[str, dict[str, str]] = {
 }
 
 
+# Issue #458 (session 74): YAML-authored route abbreviations → canonical `_ROUTE_SNOMED`
+# key.
+#
+# `_ROUTE_SNOMED`'s keys are the token vocabulary `parse_dose_string`
+# (`modules/order/engine.py`) emits — which is why `INHALED` / `NEBULIZED` / `TOPICAL`
+# are spelled out while the rest are abbreviated. Disease and locale YAMLs were authored
+# against a THIRD vocabulary that nobody reconciled with it, so `_ROUTE_SNOMED.get(route)`
+# returned None for `INH` / `NEB` / `INHALATION` and the builders fell back to
+# `{"text": route}` with no coding. Measured on JP p=300 seed=42: 172 route elements
+# (166 MedicationAdministration + 6 MedicationRequest) were text-only, all `NEB`.
+#
+# That these are real abbreviations rather than typos is corroborated by the sibling
+# JP display map `_ROUTE_JA` (`_fhir_localization.py`), which already carries
+# `INH: "吸入"` — two maps over the same vocabulary disagreed.
+#
+# INVARIANT: every value here MUST be an existing `_ROUTE_SNOMED` key. This table adds
+# NO new SNOMED code, which is why the authoritative-display guard in
+# `tests/unit/output/test_fhir_route_snomed_display.py` is unaffected.
+#
+# Deliberately NOT aliased — these need a NEW canonical code and therefore per-code
+# authoritative verification (fhirserver / tx.fhir.org `$lookup`), never a guess:
+#   NASAL, NG, TRANSDERMAL, LOCAL, CATHETER, PROCEDURAL, PROCEDURE, EXTRACORPOREAL,
+#   NON-PHARMACOLOGIC, OTHER, N/A
+# Aliasing any of them onto a nearby existing code would be a silent code substitution
+# (the class fixed for `SL` in #311). They keep the honest text-only form until verified.
+_ROUTE_ALIASES: dict[str, str] = {
+    "INH": "INHALED",
+    "INHALATION": "INHALED",
+    "NEB": "NEBULIZED",
+}
+
+
 _ROLE_PREFIX_MAP: dict[str, dict[str, str]] = {
     "physician": {"qual_code": "MD", "qual_display": "Doctor of Medicine"},
     "nurse": {"qual_code": "RN", "qual_display": "Registered Nurse"},
