@@ -30,6 +30,7 @@ from clinosim.modules.output._fhir_localization import (
 from clinosim.modules.output._fhir_reference_data import (
     _JP_CONDITION_SEVERITY_CS,
     _PREFECTURE_CODE,
+    _ROUTE_ALIASES,
     _ROUTE_SNOMED,
     _SEVERITY_JP,
     _SEVERITY_SNOMED,
@@ -539,13 +540,58 @@ def _make_participant(code: str, display: str, practitioner_id: str, country: st
     }
 
 
+def build_route_concept(raw_route: str | None) -> dict[str, Any] | None:
+    """Build the FHIR route `CodeableConcept` for a raw route value, or None if absent.
+
+    SINGLE lookup point for route → SNOMED across every FHIR builder (Issue #458).
+    Two independent `_ROUTE_SNOMED.get(...)` sites previously existed — one in
+    `_build_dosage_instruction` (MedicationRequest) and one in `_build_medication_admin`
+    (MedicationAdministration) — and the same missing-alias defect landed on both,
+    producing 166 text-only elements on the MAR path versus 6 on the MR path. Anything
+    reading a route MUST come through here; `tests/unit/output/
+    test_fhir_route_alias_resolution.py` fails if a builder reaches for `_ROUTE_SNOMED`
+    again. Sibling of the `classify_lab_specs` / `scenario_flags_from_protocol`
+    single-edit-point pattern.
+
+    Resolution order: canonical key, then `_ROUTE_ALIASES` (author abbreviations such as
+    `INH` / `NEB`). Case is normalised here so call sites do not each carry `.upper()`.
+
+    `text` keeps the author's own wording (upper-cased) rather than the canonical key:
+    `CodeableConcept.text` is where the source system's representation belongs, while
+    `coding` carries the standard meaning. `NEB` therefore stays `NEB` and is not
+    rewritten to `NEBULIZED` — a string the source data never contained.
+
+    An unresolvable route yields `{"text": route}` with no `coding`. That is deliberate:
+    routes needing a NEW SNOMED code (`NASAL`, `NG`, `CATHETER`, …) must be verified
+    per-code against an authoritative terminology server, never aliased onto a nearby
+    code — see the note on `_ROUTE_ALIASES`.
+
+    Note: no `.strip()`. Behaviour is intentionally byte-identical to the two call sites
+    it replaces so the PR's diff is confined to alias resolution; whitespace-padded route
+    values do not occur in the corpus.
+    """
+    route = (raw_route or "").upper()
+    if not route:
+        return None
+    snomed = _ROUTE_SNOMED.get(route) or _ROUTE_SNOMED.get(_ROUTE_ALIASES.get(route, ""))
+    if snomed:
+        return {
+            "coding": [{"system": get_system_uri("snomed-ct"), **snomed}],
+            "text": route,
+        }
+    return {"text": route}
+
+
 def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any] | None:
     """Build FHIR Dosage from structured order fields."""
     dose_qty = order.get("dose_quantity")
     dose_unit = order.get("dose_unit", "")
     freq = order.get("frequency", "")
     freq_per_day = order.get("frequency_per_day")
-    route = (order.get("route") or "").upper()
+    route_concept = build_route_concept(order.get("route"))
+    # `text` is the normalised authored token — the same string the previous inline
+    # `.upper()` produced, so the dosage text summary below is unchanged.
+    route = route_concept["text"] if route_concept else ""
 
     # If nothing structured is available, fall back to text from display_name
     if dose_qty is None and not freq and not route:
@@ -568,15 +614,8 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
         parts.append(f"{dose_qty}{dose_unit}")
 
     # Route
-    if route:
-        snomed = _ROUTE_SNOMED.get(route)
-        if snomed:
-            dosage["route"] = {
-                "coding": [{"system": get_system_uri("snomed-ct"), **snomed}],
-                "text": route,
-            }
-        else:
-            dosage["route"] = {"text": route}
+    if route_concept:
+        dosage["route"] = route_concept
         parts.append(route)
 
     # Timing

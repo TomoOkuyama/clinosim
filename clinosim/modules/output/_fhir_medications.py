@@ -24,6 +24,7 @@ from clinosim.modules.output._fhir_common import (
     _map_mar_status,
     _parse_dose_for_mar,
     _strip_protocol_prefix,
+    build_route_concept,
     build_ucum_quantity,
 )
 from clinosim.modules.output._fhir_localization import (
@@ -31,7 +32,6 @@ from clinosim.modules.output._fhir_localization import (
     _localize_rate_adjustment,
     _split_rate_adjustment_suffix,
 )
-from clinosim.modules.output._fhir_reference_data import _ROUTE_SNOMED
 from clinosim.modules.output.opaque_ids import (
     derive_opaque_id,
     structural_key_system,
@@ -829,17 +829,13 @@ def _build_medication_admin(
         rate_value = parsed.get("dose_quantity") or 1
         rate_unit = parsed.get("dose_unit", "mL") + "/h"
         dosage["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
-    # Route
-    route = (mar.get("route") or parsed.get("route") or "").upper()
-    if route:
-        snomed = _ROUTE_SNOMED.get(route)
-        if snomed:
-            dosage["route"] = {
-                "coding": [{"system": get_system_uri("snomed-ct"), **snomed}],
-                "text": route,
-            }
-        else:
-            dosage["route"] = {"text": route}
+    # Route — resolved through the shared helper so the MAR and MR paths cannot drift
+    # apart again (Issue #458: the missing `INH` / `NEB` aliases produced 166 text-only
+    # elements here versus 6 on the MR path). `.upper()` now lives in the helper.
+    route_concept = build_route_concept(mar.get("route") or parsed.get("route"))
+    route = route_concept["text"] if route_concept else ""
+    if route_concept:
+        dosage["route"] = route_concept
     # Session 57 v3 (Chain-11, v3 feedback §保留 3 真因判明): FHIR R4
     # `mad-1` requires `dosage.dose.exists() or dosage.rate.exists()` when a
     # dosage element is present. Sliding-scale insulin / PRN / infusion
