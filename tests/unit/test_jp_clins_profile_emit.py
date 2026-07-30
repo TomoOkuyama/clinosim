@@ -24,7 +24,11 @@ class TestApplyJpClinsProfile:
         assert r["meta"]["profile"] == ["http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS"]
 
     def test_medication_request_gets_ecs_profile(self):
-        r = {"resourceType": "MedicationRequest"}
+        # `dosageInstruction` is required by the fixture because eCS raises it to min=1
+        # and `_medication_request_satisfies_ecs` withholds the profile without it
+        # (Issue #445). Every MedicationRequest built from an inpatient Order carries a
+        # structured route, so this is the realistic shape.
+        r = {"resourceType": "MedicationRequest", "dosageInstruction": [{"text": "20mg PO daily"}]}
         _apply_jp_clins_profile(r)
         assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS" in r["meta"]["profile"]
 
@@ -55,10 +59,43 @@ class TestApplyJpClinsProfile:
         r = {
             "resourceType": "MedicationRequest",
             "meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]},
+            "dosageInstruction": [{"text": "20mg PO daily"}],
         }
         _apply_jp_clins_profile(r)
         assert "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest" in r["meta"]["profile"]
         assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS" in r["meta"]["profile"]
+
+    def test_medication_request_without_dosage_withholds_ecs_but_keeps_jp_core(self):
+        """Issue #445: eCS raises `dosageInstruction` to min=1; JP Core leaves it min=0.
+
+        A prescription transcribed from `patient.current_medications` has neither dose nor
+        route (both lost upstream — Issue #452), so it cannot satisfy eCS. Withholding the
+        eCS URL leaves it conformant to the profile it does satisfy instead of asserting
+        one it does not — the session-66 rule applied per instance.
+        """
+        r = {
+            "resourceType": "MedicationRequest",
+            "meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]},
+        }
+        _apply_jp_clins_profile(r)
+        assert r["meta"]["profile"] == ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]
+
+    def test_medication_request_with_empty_dosage_list_also_withholds_ecs(self):
+        """An empty `dosageInstruction` array satisfies min=1 no better than an absent one."""
+        r = {"resourceType": "MedicationRequest", "dosageInstruction": []}
+        _apply_jp_clins_profile(r)
+        assert not r.get("meta", {}).get("profile")
+
+    def test_medication_request_filter_does_not_leak_to_other_resource_types(self):
+        """The dosage predicate must gate MedicationRequest only."""
+        for rt, url in (
+            ("Condition", "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS"),
+            ("Procedure", "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS"),
+            ("AllergyIntolerance", "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS"),
+        ):
+            r = {"resourceType": rt}  # no dosageInstruction anywhere in sight
+            _apply_jp_clins_profile(r)
+            assert url in r["meta"]["profile"]
 
 
 @pytest.mark.unit

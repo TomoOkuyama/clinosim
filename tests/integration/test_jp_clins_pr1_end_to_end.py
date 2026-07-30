@@ -6,6 +6,11 @@ verifies:
   Observation.laboratory, MedicationRequest, Procedure) carry JP-CLINS
   eCS profile URLs
 - Observation filter honored (lab-only)
+- MedicationRequest filter honored (Issue #445): a prescription with no dose
+  and no route cannot satisfy the eCS `dosageInstruction` min=1 constraint, so
+  it withholds the eCS URL and keeps only the parent JP Core profile. Both
+  sides are asserted — the excluded rows must not claim eCS AND must retain
+  JP Core.
 - DiagnosticReport is NOT in JP-CLINS scope; it must NOT carry any
   JP-CLINS profile URL even for lab category
 - No profile URLs leak into country=US cohort
@@ -53,6 +58,7 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
     from clinosim.modules.output.fhir_r4_adapter import (
         _JP_CLINS_PROFILES,
         _is_lab_observation,
+        _medication_request_satisfies_ecs,
     )
 
     # Dense resource types — expected to have at least one instance at p=100.
@@ -63,6 +69,30 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
         pool = resources_by_type.get(rt, [])
         if rt == "Observation":
             pool = [r for r in pool if _is_lab_observation(r)]
+        if rt == "MedicationRequest":
+            # Issue #445: eCS raises `dosageInstruction` to min=1 while the parent JP Core
+            # profile leaves it at min=0, so a prescription that carries no dose and no
+            # route in CIF (transcribed from `patient.current_medications`, where both are
+            # lost upstream — Issue #452) cannot satisfy eCS and deliberately does not
+            # claim it. Same narrowing shape as the `_is_lab_observation` filter above, and
+            # it reuses the PRODUCTION predicate so this test cannot drift into a second
+            # definition of "eCS-eligible".
+            ecs_ineligible = [r for r in pool if not _medication_request_satisfies_ecs(r)]
+            pool = [r for r in pool if _medication_request_satisfies_ecs(r)]
+            assert ecs_ineligible, (
+                "expected at least one dosage-less prescription at p=100 JP — an empty pool "
+                "here means the eCS-withholding path went untested, not that it is gone"
+            )
+            # Pin BOTH sides of the narrowing. Asserting only "does not claim eCS" would
+            # still pass if the resource had also lost its parent JP Core profile, which
+            # would be a silent conformance regression rather than a deliberate withholding.
+            jp_core_mr = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"
+            for r in ecs_ineligible:
+                profs = r.get("meta", {}).get("profile", [])
+                assert _JP_CLINS_PROFILES[rt][0] not in profs, (
+                    f"{rt}/{r.get('id')} claims eCS with no dosageInstruction (min=1 violation)"
+                )
+                assert jp_core_mr in profs, f"{rt}/{r.get('id')} lost the parent JP Core profile"
         if rt in dense_types:
             assert pool, f"expected dense JP-CLINS type {rt} non-empty at p=100 JP"
         for r in pool:
