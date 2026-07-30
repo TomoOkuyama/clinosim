@@ -417,6 +417,11 @@ drugs:
       - drug: "Denosumab"
         code_yj: "3999435"
         dose: "60mg SC q6months"
+        # Issue #455: subcutaneous-only anti-RANKL antibody. Without an explicit
+        # `route`, `_build_discharge_rx._append_item` substitutes "PO" and the CIF
+        # item asserts oral administration. Matches the `osteoporosis_treatment`
+        # block above, which already declares `route: SC` for the same drug.
+        route: SC
         note: "Continue osteoporosis treatment"
       - drug: "Alfacalcidol"
         code_yj: "3112001"

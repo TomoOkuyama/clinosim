@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,135 @@ from pydantic import BaseModel, ConfigDict, Field
 # reference_data is in the same package: clinosim/modules/disease/reference_data/
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
+
+
+# ---------------------------------------------------------------------------
+# Drug-block route fallback validation (Issue #455)
+# ---------------------------------------------------------------------------
+#
+# Two readers in `clinosim/simulator/inpatient.py` substitute a route when a
+# drug entry omits the `route` key. Each substitutes a different default:
+#
+#   drugs.discharge_oral -> "PO"   (`_build_discharge_rx._append_item`)
+#   drugs.escalation     -> "IV"   (escalation order placement)
+#
+# The substitution is a grounded inference for most entries — `discharge_oral`
+# is named "oral" and its doses usually say `PO`; `escalation` doses usually say
+# `IV`. It becomes a FALSE ASSERTION only when the entry's own dose string names
+# a route set that EXCLUDES the fallback (e.g. `2000IU SC daily` under `PO`).
+#
+# The check is therefore fallback-RELATIVE. A non-relative rule ("dose contains a
+# non-oral token") would reject 38 shipped `escalation` entries whose dose says
+# `IV` under an `IV` fallback — cases where the fallback is producing the right
+# answer.
+#
+# Blocks absent from this table are NOT validated, deliberately:
+#   * `first_line` has a reader but substitutes "" (no assertion to contradict).
+#   * `post_op` / `alternative_penicillin_allergy` / `mrsa_coverage` /
+#     `hyperkalemia_management` / `alternative_beta_blocker_contraindicated`
+#     have ZERO Python readers (Issue #437 dead-data class) — no fallback exists,
+#     so there is nothing to contradict, and validating them would fail the build
+#     for data that never reaches output.
+# Adding a third substituting reader means adding it here in the same change.
+DRUG_BLOCK_ROUTE_FALLBACKS: dict[str, str] = {
+    "discharge_oral": "PO",
+    "escalation": "IV",
+}
+
+# Route abbreviations that appear inside free-text `dose` strings.
+#
+# PO is included deliberately, as a *forward* defense — it changes no verdict today.
+# The fallback-relative test asks "is the fallback among the routes this dose names",
+# so a dose that names the fallback ALONGSIDE another route must not read as a
+# contradiction. Dual-route doses do exist in the corpus — e.g.
+# `hyperkalemia_management` `15-30g PO or PR`, `first_line` `20-40mg IV or PO daily`,
+# `alternative_penicillin_allergy` `500mg IV or PO daily` — but none currently sit in
+# a block listed in DRUG_BLOCK_ROUTE_FALLBACKS, so measured impact is 0 entries
+# (verified: 0 of the 123 route-less entries in the checked blocks name more than one
+# route, and 0 change verdict if PO is dropped from this tuple). The tuple stays
+# PO-inclusive so that a dual-route dose landing in a checked block later — or a
+# currently-dead block gaining a reader and a fallback — cannot be mis-flagged.
+ROUTE_DOSE_TOKENS: tuple[str, ...] = (
+    "PO",
+    "IV",
+    "SC",
+    "IM",
+    "SL",
+    "PR",
+    "NG",
+    "TD",
+    "INH",
+    "NEB",
+)
+
+# Word boundaries are load-bearing. Substring matching false-positives on 10
+# shipped entries: 9 PRN (as-needed) doses where `PR` sits inside `PRN`, and one
+# `NG` inside "remaining days of 5-day course". That is the same defect class as
+# the `_determine_route` substring flaw (`"IV" in "Rivaroxaban"`), so this guard
+# must not reintroduce it — see
+# tests/unit/test_discharge_oral_route_integrity.py negative cases.
+_ROUTE_DOSE_RE = re.compile(r"\b(" + "|".join(ROUTE_DOSE_TOKENS) + r")\b", re.IGNORECASE)
+
+
+def dose_route_tokens(dose: str) -> set[str]:
+    """Return the uppercased route abbreviations named in a free-text dose string.
+
+    Word-boundary matched, so `PRN` yields no `PR` and `remaining` yields no `NG`.
+    Returns an empty set when the dose names no route (e.g. "Resume or initiate
+    controller therapy") — silence is not a contradiction.
+    """
+    return {m.upper() for m in _ROUTE_DOSE_RE.findall(dose or "")}
+
+
+def dose_contradicts_fallback(dose: str, fallback: str) -> bool:
+    """True when the dose string names route(s) and the fallback is not among them.
+
+    A dose naming no route at all never contradicts: the block name remains the
+    only evidence and the fallback is the best available inference.
+    """
+    named = dose_route_tokens(dose)
+    return bool(named) and (fallback or "").upper() not in named
+
+
+def _validate_drug_route_consistency(disease_id: str, drugs: dict[str, Any]) -> None:
+    """Fail loudly when an absent-`route` entry's dose contradicts its block fallback.
+
+    Load-time (not runtime) on purpose: the data is entirely YAML-sourced, so every
+    offender is decidable before a single patient is simulated. Raising inside the
+    per-patient `_append_item` path would surface the same defect only once the
+    offending disease happened to be drawn.
+
+    Issue #455: PR #457 fixed 4 entries but its sweep keyed on drug-NAME words, so
+    Enoxaparin / Denosumab (whose route lives only in the dose string) were missed.
+    """
+    if not isinstance(drugs, dict):
+        return
+    offenders: list[str] = []
+    for block_name, fallback in DRUG_BLOCK_ROUTE_FALLBACKS.items():
+        block = drugs.get(block_name)
+        if not isinstance(block, dict):
+            continue
+        for country_key in ("japan", "us"):
+            entries = block.get(country_key) or []
+            if isinstance(entries, dict):
+                entries = [entries]
+            if not isinstance(entries, list):
+                continue
+            for entry in entries:
+                if not isinstance(entry, dict) or "route" in entry:
+                    continue
+                dose = str(entry.get("dose", "") or "")
+                if dose_contradicts_fallback(dose, fallback):
+                    offenders.append(
+                        f"  drugs.{block_name}.{country_key}: drug={entry.get('drug', '')!r} "
+                        f"dose={dose!r} names route(s) {sorted(dose_route_tokens(dose))} "
+                        f"but omits `route`, so the reader would assert route={fallback!r}"
+                    )
+    if offenders:
+        raise ValueError(
+            f"disease {disease_id!r}: dose string contradicts the absent-`route` fallback "
+            f"(Issue #455). Declare an explicit `route` on each entry below:\n" + "\n".join(offenders)
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -227,6 +357,12 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
 
     _validate_initial_state_impact(disease_id, data.get("initial_state_impact", {}) or {})
     _validate_complications_state_impact(disease_id, data.get("complications", []) or [])
+
+    # Fail-loud drug-block route fallback validation (Issue #455). Catches entries
+    # whose dose string names a route that excludes the fallback the reader would
+    # substitute — the class PR #457 missed because its sweep keyed on drug names
+    # rather than dose strings.
+    _validate_drug_route_consistency(disease_id, data.get("drugs", {}) or {})
     return protocol
 
 
