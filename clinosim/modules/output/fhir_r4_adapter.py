@@ -16,6 +16,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
     _bb_allergy_intolerances,
 )
@@ -116,6 +117,7 @@ from clinosim.modules.output._fhir_localization import (  # noqa: F401
     _procedure_display,
 )
 from clinosim.modules.output._fhir_medications import (  # noqa: F401
+    _build_discharge_medication_request,
     _build_medication_admin,
     _build_medication_request,
 )
@@ -677,6 +679,72 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     return out
 
 
+def _bb_discharge_medication_requests(ctx: BundleContext) -> list[dict]:
+    """Emit `discharge_prescription.items[]` as MedicationRequest (Issue #445).
+
+    `CIFPatientRecord.discharge_prescription` reached the CSV adapter and the discharge
+    summary narrative but no FHIR builder, so take-home and outpatient-renewal
+    prescriptions were dropped from the FHIR export — a CIF→FHIR no-drop violation.
+    This builder closes that path; it reads only existing CIF and draws no randomness, so
+    every other resource type stays byte-identical.
+
+    One prescription belongs to one encounter (CIF records carry exactly one), so the
+    sequence numbers restart per record and feed both the id suffix and `orderInRp`.
+    """
+    out: list[dict] = []
+    rx = ctx.record.get("discharge_prescription")
+    if not rx:
+        return out
+    items = get_attr_or_key(rx, "items", None) or []
+    if not items:
+        return out
+
+    encounters = ctx.record.get("encounters") or []
+    if not encounters:
+        return out
+    enc = encounters[0]
+    enc_id = get_attr_or_key(enc, "encounter_id", "") or ctx.primary_enc_id
+    enc_type = str(get_attr_or_key(enc, "encounter_type", "") or "")
+
+    issue_date = str(get_attr_or_key(rx, "issue_date", "") or "")
+    discharge_dt = str(get_attr_or_key(enc, "discharge_datetime", "") or "")
+    # `authoredOn` is min=1 in JP_MedicationRequest (JP Core 1.2.0), so it cannot be left
+    # out. For an inpatient stay the CIF `issue_date` holds the ADMISSION timestamp —
+    # `_build_discharge_rx` runs before the discharge time is computed — which would date a
+    # take-home script days before it was written (measured spread: 7-15 days). The
+    # encounter's own `discharge_datetime` is the moment the script is authored. An
+    # outpatient renewal is issued during the visit, so there `issue_date` is already
+    # right. Each side falls back to the other only so a future snapshot-truncation change
+    # cannot produce a cardinality violation; in the measured corpus every inpatient
+    # discharge prescription carries a discharge_datetime, because truncation drops the
+    # prescription entirely. The CIF-side `issue_date` defect is tracked separately.
+    if enc_type == "inpatient":
+        authored_on = discharge_dt or issue_date
+    else:
+        authored_on = issue_date or discharge_dt
+
+    prescriber_id = str(get_attr_or_key(rx, "prescriber_id", "") or "")
+
+    seq = 0
+    for item in items:
+        if not str(get_attr_or_key(item, "drug_name", "") or "").strip():
+            continue  # blank drug name (CIF data quality) — same skip as _bb_medication_requests
+        seq += 1
+        out.append(
+            _build_discharge_medication_request(
+                item,
+                ctx.patient_id,
+                ctx.country,
+                enc_id,
+                enc_type,
+                seq,
+                authored_on,
+                prescriber_id=prescriber_id,
+            )
+        )
+    return out
+
+
 def _build_order_in_rp_map(orders: list) -> dict[str, int]:
     """Per-encounter medication order 出現順 → orderInRp 番号(1-based)map を返す。
 
@@ -964,6 +1032,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_microbiology,
     _bb_diagnostic_reports,
     _bb_medication_requests,
+    _bb_discharge_medication_requests,  # Issue #445: discharge / outpatient-renewal prescriptions
     _bb_medication_admins,
     _bb_procedures,
     _bb_practitioners,
@@ -2206,9 +2275,11 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     """Attach JP-CLINS eCS profile URLs additively (idempotent).
 
     Called after `_apply_jp_core_profile`. Preserves existing meta.profile[]
-    entries and skips URLs already present. Filter: for Observation, only
+    entries and skips URLs already present. Filters: for Observation, only
     laboratory category resources receive the JP-CLINS profile (vital signs
-    stay on the JP Core profile only).
+    stay on the JP Core profile only); for MedicationRequest, only resources that
+    can actually satisfy the eCS constraints (see
+    `_medication_request_satisfies_ecs`).
     """
     rt = resource.get("resourceType", "")
     profiles = _JP_CLINS_PROFILES.get(rt)
@@ -2216,11 +2287,42 @@ def _apply_jp_clins_profile(resource: dict) -> None:
         return
     if rt == "Observation" and not _is_lab_observation(resource):
         return
+    if rt == "MedicationRequest" and not _medication_request_satisfies_ecs(resource):
+        return
     meta = resource.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
     for url in profiles:
         if url not in profs:
             profs.append(url)
+
+
+def _medication_request_satisfies_ecs(resource: dict) -> bool:
+    """Predicate: may this MedicationRequest assert JP_MedicationRequest_eCS? (Issue #445)
+
+    `JP_MedicationRequest_eCS` (JP-CLINS 1.12.0) raises `dosageInstruction` to
+    **min=1**; the parent `JP_MedicationRequest` (JP Core 1.2.0) leaves it at
+    **min=0**. Discharge and outpatient-renewal prescriptions transcribed from
+    `patient.current_medications` carry neither dose nor route — both are lost upstream
+    where the field is a plain `list[str]` (Issue #452) — so there is nothing truthful to
+    put in `dosageInstruction`. Withholding the eCS URL leaves those resources conformant
+    to the profile they *do* satisfy instead of claiming one they do not. This is the
+    session-66 rule ("a `meta.profile` claim must follow data-completeness
+    verification") applied per instance, and the same shape as the `_is_lab_observation`
+    filter: a resourceType-wide claim narrowed by a predicate.
+
+    Every MedicationRequest built from an inpatient Order carries a structured route, so
+    this predicate is true for all of them and their output is unchanged.
+
+    FUTURE CONSTRAINT — read before assembling a JP-CLINS Bundle: `JP_Bundle_CLINS`
+    slices `Bundle.entry` with `discriminator: profile@resource` and `rules: closed`
+    over 5 slices, so a MedicationRequest *without* the eCS URL matches no slice and
+    becomes a closed-slicing violation rather than a `dosageInstruction` violation.
+    clinosim emits no Bundle today (Bulk Data NDJSON, AD-31) and no Composition
+    references a MedicationRequest, so that is currently unreachable. Whoever builds a
+    CLINS bundle must first either fix Issue #452 (give these rows a real dose/route and
+    delete this predicate) or exclude dosage-less prescriptions from the bundle.
+    """
+    return bool(resource.get("dosageInstruction"))
 
 
 def _is_lab_observation(resource: dict) -> bool:

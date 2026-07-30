@@ -16,7 +16,7 @@ from clinosim.codes import (
 )
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules._shared import is_us, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, resolve_lang
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.modules.output._fhir_common import (
     _build_dosage_instruction,
@@ -28,6 +28,7 @@ from clinosim.modules.output._fhir_common import (
     build_ucum_quantity,
 )
 from clinosim.modules.output._fhir_localization import (
+    _localize_dosage_terms,
     _localize_drug_name,
     _localize_rate_adjustment,
     _split_rate_adjustment_suffix,
@@ -51,6 +52,34 @@ from clinosim.modules.output.opaque_ids import (
 # (`_fhir_microbiology.py`). Rename here triggers an ImportError
 # downstream rather than a silent gate skip.
 MEDICATION_REQUEST_KEY_SYSTEM = structural_key_system("medication-request-key")
+
+# Issue #445: Resource.id prefixes for prescriptions that come from
+# `CIFPatientRecord.discharge_prescription` rather than from an inpatient Order.
+# Two prefixes, not one, so a consumer can tell a take-home script written at
+# inpatient discharge from an outpatient chronic-medication renewal without
+# re-reading the encounter. PUBLIC (no underscore): the bundle builder in
+# `fhir_r4_adapter` and the tests both import these, so a rename raises
+# ImportError instead of silently splitting writer and reader.
+DISCHARGE_RX_ID_PREFIX = "rxdc-"
+OUTPATIENT_RX_ID_PREFIX = "rxopd-"
+
+# `dispenseRequest.expectedSupplyDuration` carries FIXED VALUES in BOTH profiles that
+# clinosim's JP MedicationRequests claim. Quoted from the spec StructureDefinitions,
+# never inferred (CLAUDE.md: spec fixedUri / fixed value must be copied from the spec):
+#
+#   JP_MedicationRequest (JP Core 1.2.0) — StructureDefinition-jp-medicationrequest.json
+#     dispenseRequest.expectedSupplyDuration.unit    min=0  fixedString '日'
+#   JP_MedicationRequest_eCS (JP-CLINS 1.12.0) — StructureDefinition-JP-MedicationRequest-eCS.json
+#     dispenseRequest.expectedSupplyDuration.value   min=1  MS=True
+#     dispenseRequest.expectedSupplyDuration.unit    min=1  MS=True  fixedString '日'
+#     dispenseRequest.expectedSupplyDuration.system  min=1  MS=True  fixedUri  'http://unitsofmeasure.org'
+#     dispenseRequest.expectedSupplyDuration.code    min=1  MS=True  fixedCode 'd'
+#
+# `unit` is the Japanese character, `code` is the UCUM token. Putting "d" in `unit`
+# is a fixed-value violation that survives dropping the eCS profile, because JP Core
+# pins the same string.
+_SUPPLY_DURATION_UNIT = "日"
+_SUPPLY_DURATION_CODE = "d"
 
 
 def _resolve_antibiotic_mr_id(order_id: str) -> str:
@@ -291,26 +320,25 @@ def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
     return "order"
 
 
-def _build_medication_request(
-    order: dict,
-    patient_id: str,
+def _resolve_medication_concept(
+    display_name_raw: str,
+    order_code: str,
     country: str,
-    encounter_id: str = "",
-    primary_dx_code: str = "",
-    encounter_type: str = "",
-    rp_number: str = "1",
-    order_in_rp: str = "1",
-) -> dict:
-    """Build FHIR MedicationRequest resource.
+) -> tuple[dict[str, Any], str]:
+    """Resolve a raw drug display name into a FHIR `medicationCodeableConcept`.
 
-    rp_number / order_in_rp (session 49 clinosim_feedback P1-4): JP Core
-    JP_MedicationRequest.identifier:rpNumber と :orderInRp slice を満たす
-    ための per-order identifier 値。caller は 1 encounter 内の医薬品
-    orders に対して同じ rp_number(処方単位)+ 連番 order_in_rp を
-    与える。同一 order の MedicationRequest と MedicationAdministration
-    は同じ (rp_number, order_in_rp) を使い、両者の紐付けが取れる。
+    SINGLE resolution point for drug name -> code -> display across every
+    MedicationRequest builder. Extracted from `_build_medication_request` so the
+    discharge-prescription builder (Issue #445) shares the same code_mapping lookup,
+    JP HOT7/HOT9/HOT13/YJ system dispatch, tx-server-unverified-YJ downgrade to the
+    eCS `nocoded` slice, and locale display resolution. Re-implementing any of that
+    at a second call site is the duplication this helper exists to prevent.
+
+    Returns `(medicationCodeableConcept, rate_adjustment_note)`. The second element is
+    the continuous-infusion rate-adjustment suffix peeled off the display name (session
+    45); callers append it to `dosageInstruction`, never to the medication text.
     """
-    drug_name_raw = order.get("display_name", "Unknown medication")
+    drug_name_raw = display_name_raw or "Unknown medication"
     # Strip protocol prefix (e.g. "DVT_prophylaxis:") from medicationCodeableConcept.text
     # The prefix goes to dosageInstruction note instead.
     drug_name_clean, protocol_category = _strip_protocol_prefix(drug_name_raw)
@@ -338,7 +366,7 @@ def _build_medication_request(
     # missed the code_mapping match. Simultaneously honor Order.order_code
     # when the disease YAML already supplies an authoritative `code_yj` /
     # `code_rxnorm` (Order.order_code is set at place_admission_orders time).
-    code_value = order.get("order_code", "") or ""
+    code_value = order_code or ""
     if not code_value and drug_name_clean:
         normalized = drug_name_clean.replace("_", " ")
         tokens = normalized.split(" ")
@@ -430,6 +458,35 @@ def _build_medication_request(
                 "display": _JP_MEDICATION_CODE_NOCODED_DISPLAY,
             }
         ]
+
+    return med_concept, rate_adjustment_note
+
+
+def _build_medication_request(
+    order: dict,
+    patient_id: str,
+    country: str,
+    encounter_id: str = "",
+    primary_dx_code: str = "",
+    encounter_type: str = "",
+    rp_number: str = "1",
+    order_in_rp: str = "1",
+) -> dict:
+    """Build FHIR MedicationRequest resource.
+
+    rp_number / order_in_rp (session 49 clinosim_feedback P1-4): JP Core
+    JP_MedicationRequest.identifier:rpNumber と :orderInRp slice を満たす
+    ための per-order identifier 値。caller は 1 encounter 内の医薬品
+    orders に対して同じ rp_number(処方単位)+ 連番 order_in_rp を
+    与える。同一 order の MedicationRequest と MedicationAdministration
+    は同じ (rp_number, order_in_rp) を使い、両者の紐付けが取れる。
+    """
+    med_concept, rate_adjustment_note = _resolve_medication_concept(
+        order.get("display_name", "Unknown medication"),
+        order.get("order_code", "") or "",
+        country,
+    )
+    country_code = "US" if is_us(country) else "JP"
 
     # ID: order_id は session 52 fix 0 で encounter-scoped 化された
     # (grep で "ORD-{encounter_id}-..." pattern に統一済)ので、そのまま
@@ -641,6 +698,159 @@ def _build_medication_request(
     # marked "brand only" — default `allowed = true` for outpatient/home-med.
     if encounter_type == "outpatient" or _is_home_med:
         resource["substitution"] = {"allowedBoolean": True}
+
+    return resource
+
+
+def _supply_duration_days(raw: Any) -> int | None:
+    """Return a positive day count, or None when the CIF value is an open-ended sentinel.
+
+    Disease YAMLs express "no fixed supply duration" two different ways —
+    `duration_days: 0   # chronic` (liver_cirrhosis_decompensated,
+    atrial_fibrillation_rvr) and `duration_days: ongoing`
+    (diabetic_ketoacidosis) — so the raw value is not always a usable number.
+    Emitting `{"value": 0}` would assert a zero-day supply, and a JSON string in a
+    FHIR `Duration.value` (type `decimal`) is a type violation. Both profiles put
+    `expectedSupplyDuration` at min=0, so omitting the element is spec-legal and is
+    the honest reading of a sentinel: the duration is unknown, not zero.
+    """
+    if isinstance(raw, bool):  # bool is an int subclass — never a day count
+        return None
+    try:
+        days = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return days if days > 0 else None
+
+
+def _build_discharge_medication_request(
+    item: Any,
+    patient_id: str,
+    country: str,
+    encounter_id: str,
+    encounter_type: str,
+    seq: int,
+    authored_on: str,
+    prescriber_id: str = "",
+) -> dict:
+    """Build a MedicationRequest for one `discharge_prescription.items[]` entry (Issue #445).
+
+    A discharge prescription is not an inpatient Order: it has no `order_id`, no
+    structured `dose_quantity` / `frequency`, and no `status` / `urgency`. Adapting it
+    into `_build_medication_request` would mean threading empty values through every
+    Order-specific branch, so this is a sibling builder that shares the pieces that are
+    genuinely common — `_resolve_medication_concept` for the drug coding,
+    `_build_medication_request_meta` for profiles, `_build_medication_request_identifiers`
+    for the JP rpNumber / orderInRp slices, and `build_route_concept` for the route.
+
+    `identifier:requestIdentifier` is deliberately NOT written here. The JP walker in
+    `fhir_r4_adapter._apply_jp_clins_profile`'s sibling pass derives it from
+    `resource["id"]` and skips when the system URI is already present, so hand-writing it
+    would stop that derivation. `rpNumber` / `orderInRp` are the opposite case — the
+    walker never adds them and JP Core requires both, so the builder must.
+
+    `seq` is 1-based within the prescription and drives both the id suffix and
+    `orderInRp`.
+    """
+    drug_name = str(get_attr_or_key(item, "drug_name", "") or "")
+    dose = str(get_attr_or_key(item, "dose", "") or "")
+    route = str(get_attr_or_key(item, "route", "") or "")
+    duration_days = _supply_duration_days(get_attr_or_key(item, "duration_days", None))
+
+    country_code = "US" if is_us(country) else "JP"
+    med_concept, rate_adjustment_note = _resolve_medication_concept(drug_name, "", country)
+
+    prefix = DISCHARGE_RX_ID_PREFIX if encounter_type == "inpatient" else OUTPATIENT_RX_ID_PREFIX
+    resource_id = f"{prefix}{encounter_id}-{seq:02d}"
+
+    # A take-home script is "on" once written; the JP walker overwrites both fields to
+    # the eCS patternCodes (`completed` / `order`) so these values only reach US output.
+    resource: dict[str, Any] = {
+        "resourceType": "MedicationRequest",
+        "id": resource_id,
+        **_build_medication_request_meta(country_code, ""),
+        **_build_medication_request_identifiers(
+            resource_id,
+            False,
+            country_code,
+            "1",
+            str(seq),
+        ),
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": med_concept,
+        "subject": {"reference": f"Patient/{patient_id}"},
+        "authoredOn": authored_on,
+    }
+    if encounter_id:
+        resource["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+    if prescriber_id:
+        resource["requester"] = {"reference": f"Practitioner/{prescriber_id}"}
+        resource["recorder"] = {"reference": f"Practitioner/{prescriber_id}"}
+
+    # category: derived from the encounter, never hardcoded. An inpatient take-home
+    # script is `discharge`; an outpatient renewal of chronic medication is `community`
+    # (the same code `_build_medication_request` assigns to home-medication orders).
+    _is_discharge = encounter_type == "inpatient"
+    cat_code, cat_display = ("discharge", "Discharge") if _is_discharge else ("community", "Community")
+    resource["category"] = [
+        {
+            "coding": [
+                {
+                    "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-category",
+                    "code": cat_code,
+                    "display": cat_display,
+                }
+            ],
+        }
+    ]
+
+    # An open-ended supply (the `0` / `ongoing` sentinels) means maintenance therapy, so
+    # it selects `continuous` even on a discharge script — a lifelong anticoagulant does
+    # not become a short course by being handed over at discharge.
+    _continuous = (not _is_discharge) or duration_days is None
+    course_code = "continuous" if _continuous else "acute"
+    resource["courseOfTherapyType"] = {
+        "coding": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy",
+                "code": course_code,
+                "display": ("Continuous long term therapy" if _continuous else "Short course (acute) therapy"),
+            }
+        ],
+    }
+
+    dispense: dict[str, Any] = {}
+    if authored_on:
+        dispense["validityPeriod"] = {"start": authored_on}
+    if duration_days is not None:
+        dispense["expectedSupplyDuration"] = {
+            "value": duration_days,
+            "unit": _SUPPLY_DURATION_UNIT,
+            "system": get_system_uri("ucum"),
+            "code": _SUPPLY_DURATION_CODE,
+        }
+    # `numberOfRepeatsAllowed` is intentionally absent: CIF carries no refill count, and
+    # guessing one would assert a dispensing policy the simulation never modelled.
+    if dispense:
+        resource["dispenseRequest"] = dispense
+
+    # dosageInstruction is emitted ONLY from information the CIF actually holds. Items
+    # transcribed from `patient.current_medications` have neither dose nor route (both are
+    # lost upstream — Issue #452); for those the element is omitted rather than filled
+    # with the drug name, which would restate `medicationCodeableConcept.text` as if it
+    # were a dosage. `_apply_jp_clins_profile` withholds the eCS profile from exactly
+    # these resources, because eCS raises `dosageInstruction` to min=1.
+    dosage: dict[str, Any] = {}
+    route_concept = build_route_concept(route)
+    if route_concept:
+        dosage["route"] = route_concept
+    dose_parts = [p for p in (dose, rate_adjustment_note) if p]
+    if dose_parts:
+        dose_text = " ".join(dose_parts)
+        dosage["text"] = _localize_dosage_terms(dose_text) if is_jp(country) else dose_text
+    if dosage:
+        resource["dosageInstruction"] = [dosage]
 
     return resource
 
