@@ -1029,7 +1029,10 @@ def _build_medication_admin(
     if rate_adjustment_note:
         rate_note_localized = _localize_rate_adjustment(rate_adjustment_note, country)
         dose_text = f"{dose_text} ({rate_note_localized})".strip() if dose_text.strip() else rate_note_localized
-    dosage: dict[str, Any] = {"text": dose_text}
+    # Issue #472: localize at the assignment only — `dose_text` itself stays English
+    # because the continuous-infusion detection below matches on "CONTINUOUS" / "DRIP".
+    # The MedicationRequest sibling applies the same call on its own dosage["text"].
+    dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text) if is_jp(country) else dose_text}
     if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
         # Route through build_ucum_quantity so `code` is populated (JP-CLINS
         # eCS profiles require it — feedback fix PR-A, 2026-07-16).
