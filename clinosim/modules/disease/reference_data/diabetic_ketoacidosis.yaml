@@ -1,80 +1,126 @@
-# Diabetic Ketoacidosis (DKA) — Complete Reference Data
-# Sources cited per section. All rates are approximate and should be validated
-# against the most current published data before production use.
-
 disease_id: diabetic_ketoacidosis
 chief_complaint:
-  en: "Nausea, vomiting, abdominal pain, polyuria, altered consciousness"
-  ja: "嘔気・嘔吐・腹痛・多尿・意識障害"
+  en: Nausea, vomiting, abdominal pain, polyuria, altered consciousness
+  ja: 嘔気・嘔吐・腹痛・多尿・意識障害
 department: endocrinology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 minimum_severity: moderate
-
-# DKA implies long-standing poor chronic glycemic control -> high HbA1c (~11%), even for
-# new-onset diabetes. Overrides the patient's sampled glycemic_control for this admission.
 chronic_glycemic_control: 0.1
-
 medication_holds:
-  - drugs: ["Metformin"]
-    reason: "DKA — lactic acidosis risk; resume after metabolic stabilization"
+- drugs:
+  - Metformin
+  reason: DKA — lactic acidosis risk; resume after metabolic stabilization
 diagnostic:
-  diagnostic_difficulty: 0.2  # glucose + ABG + ketones confirms quickly
-
+  diagnostic_difficulty: 0.2
 icd_codes:
-  primary: "E11.10"  # Type 2 DM with ketoacidosis without coma
+  primary: E11.10
   variants:
-    - {code: "E10.10", name: "Type 1 DM with ketoacidosis without coma", probability: 0.40}
-    - {code: "E11.10", name: "Type 2 DM with ketoacidosis without coma", probability: 0.30}
-    - {code: "E10.11", name: "Type 1 DM with ketoacidosis with coma", probability: 0.05}
-    - {code: "E11.11", name: "Type 2 DM with ketoacidosis with coma", probability: 0.03}
-    - {code: "E11.65", name: "Type 2 DM with hyperglycemia", probability: 0.15}
-    - {code: "E10.65", name: "Type 1 DM with hyperglycemia", probability: 0.07}
-
-# ============================================================
-# INCIDENCE (per 100,000 per year, by age band and sex)
-# Source: JP — 患者調査 2020, Japan Diabetes Society reports
-#         US — CDC Diabetes Surveillance, Benoit et al. Diabetes Care 2018
-# ============================================================
+  - code: E10.10
+    name: Type 1 DM with ketoacidosis without coma
+    probability: 0.4
+  - code: E11.10
+    name: Type 2 DM with ketoacidosis without coma
+    probability: 0.3
+  - code: E10.11
+    name: Type 1 DM with ketoacidosis with coma
+    probability: 0.05
+  - code: E11.11
+    name: Type 2 DM with ketoacidosis with coma
+    probability: 0.03
+  - code: E11.65
+    name: Type 2 DM with hyperglycemia
+    probability: 0.15
+  - code: E10.65
+    name: Type 1 DM with hyperglycemia
+    probability: 0.07
 incidence:
   japan:
-    "0-4":   {M: 1, F: 1}
-    "5-14":  {M: 3, F: 4}
-    "15-24": {M: 5, F: 6}
-    "25-34": {M: 6, F: 5}
-    "35-44": {M: 8, F: 6}
-    "45-54": {M: 12, F: 8}
-    "55-64": {M: 15, F: 10}
-    "65-74": {M: 18, F: 14}
-    "75-84": {M: 20, F: 16}
-    "85+":   {M: 15, F: 12}
+    0-4:
+      M: 1
+      F: 1
+    5-14:
+      M: 3
+      F: 4
+    15-24:
+      M: 5
+      F: 6
+    25-34:
+      M: 6
+      F: 5
+    35-44:
+      M: 8
+      F: 6
+    45-54:
+      M: 12
+      F: 8
+    55-64:
+      M: 15
+      F: 10
+    65-74:
+      M: 18
+      F: 14
+    75-84:
+      M: 20
+      F: 16
+    85+:
+      M: 15
+      F: 12
   us:
-    "0-4":   {M: 2, F: 2}
-    "5-14":  {M: 8, F: 10}
-    "15-24": {M: 15, F: 18}
-    "25-34": {M: 20, F: 16}
-    "35-44": {M: 25, F: 18}
-    "45-54": {M: 30, F: 22}
-    "55-64": {M: 35, F: 25}
-    "65-74": {M: 30, F: 22}
-    "75-84": {M: 25, F: 20}
-    "85+":   {M: 18, F: 15}
-
+    0-4:
+      M: 2
+      F: 2
+    5-14:
+      M: 8
+      F: 10
+    15-24:
+      M: 15
+      F: 18
+    25-34:
+      M: 20
+      F: 16
+    35-44:
+      M: 25
+      F: 18
+    45-54:
+      M: 30
+      F: 22
+    55-64:
+      M: 35
+      F: 25
+    65-74:
+      M: 30
+      F: 22
+    75-84:
+      M: 25
+      F: 20
+    85+:
+      M: 18
+      F: 15
   risk_multipliers:
-    - {condition: "type_1_diabetes", multiplier: 10.0}
-    - {condition: "type_2_diabetes_insulin", multiplier: 3.0}
-    - {condition: "type_2_diabetes_non_insulin", multiplier: 1.5}
-    - {condition: "prior_dka", multiplier: 4.0}
-    - {condition: "insulin_pump_user", multiplier: 2.0}
-    - {condition: "psychiatric_illness", multiplier: 2.5}      # non-compliance risk
-    - {condition: "substance_abuse", multiplier: 2.0}
-    - {condition: "low_socioeconomic", multiplier: 1.8}        # access to care
-    - {condition: "infection_active", multiplier: 3.0}         # common precipitant
-    - {condition: "CKD", multiplier: 1.5}
-
-  seasonal_curve:  # monthly multiplier (1.0 = baseline); mild seasonal variation
-    1: 1.1   # Jan — infections
+  - condition: type_1_diabetes
+    multiplier: 10.0
+  - condition: type_2_diabetes_insulin
+    multiplier: 3.0
+  - condition: type_2_diabetes_non_insulin
+    multiplier: 1.5
+  - condition: prior_dka
+    multiplier: 4.0
+  - condition: insulin_pump_user
+    multiplier: 2.0
+  - condition: psychiatric_illness
+    multiplier: 2.5
+  - condition: substance_abuse
+    multiplier: 2.0
+  - condition: low_socioeconomic
+    multiplier: 1.8
+  - condition: infection_active
+    multiplier: 3.0
+  - condition: CKD
+    multiplier: 1.5
+  seasonal_curve:
+    1: 1.1
     2: 1.1
     3: 1.0
     4: 1.0
@@ -86,912 +132,1248 @@ incidence:
     10: 1.0
     11: 1.0
     12: 1.1
-
-  vaccine_protection: {}  # not directly vaccine-preventable
-
-# ============================================================
-# SEVERITY DISTRIBUTION
-# Source: ADA DKA classification (mild/moderate/severe by pH and HCO3)
-# ============================================================
+  vaccine_protection: {}
 severity:
   distribution:
-    mild: 0.00        # DKA by definition requires hospitalization; minimum_severity is moderate
-    moderate: 0.65    # pH 7.00-7.24, HCO3 10-15
-    severe: 0.35      # pH <7.00, HCO3 <10, obtunded/coma
+    mild: 0.0
+    moderate: 0.65
+    severe: 0.35
   modifiers:
-    - {condition: "age_over_65", moderate_multiplier: 0.8, severe_multiplier: 1.5}
-    - {condition: "CKD", severe_multiplier: 1.5}
-    - {condition: "heart_failure", severe_multiplier: 1.3}
-    - {condition: "first_presentation_T1DM", severe_multiplier: 1.4}
-    - {condition: "delayed_presentation", severe_multiplier: 2.0, moderate_multiplier: 0.5}
-
-# ============================================================
-# INITIAL PHYSIOLOGICAL STATE IMPACT
-# How this disease changes physiological state at onset (added to patient baseline)
-# ============================================================
+  - condition: age_over_65
+    moderate_multiplier: 0.8
+    severe_multiplier: 1.5
+  - condition: CKD
+    severe_multiplier: 1.5
+  - condition: heart_failure
+    severe_multiplier: 1.3
+  - condition: first_presentation_T1DM
+    severe_multiplier: 1.4
+  - condition: delayed_presentation
+    severe_multiplier: 2.0
+    moderate_multiplier: 0.5
 initial_state_impact:
   moderate:
-    ph_status: -0.35            # major: metabolic acidosis (pH 7.00-7.24)
-    volume_status: -0.40        # severe dehydration (3-6L deficit typical)
-    glucose_status: 0.60        # markedly elevated (300-500 mg/dL)
-    renal_function: -0.15       # prerenal AKI from volume depletion
-    perfusion_status: -0.10     # tachycardia, mild hypotension
-    anion_gap_status: 1.0       # AG axis: ketoacids drive high-AG (AG 20-30)
-    # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status (K/PO4 shift) was
-    # authored here but is not a canonical state var — silently dropped in
-    # apply_state_delta. Removed to fail-loud on future typos. Modeling DKA K+
-    # kinetics (insulin-driven cellular uptake, phosphate depletion) requires a
-    # new state axis + coupling — deferred to a physiological-model extension.
+    ph_status: -0.35
+    volume_status: -0.4
+    glucose_status: 0.6
+    renal_function: -0.15
+    perfusion_status: -0.1
+    anion_gap_status: 1.0
   severe:
-    ph_status: -0.60            # severe acidosis (pH <7.00)
-    volume_status: -0.60        # severe dehydration (6-9L deficit)
-    glucose_status: 0.80        # very high (>500 mg/dL)
-    renal_function: -0.30       # significant prerenal AKI
-    perfusion_status: -0.30     # hypotension, shock possible
-    anion_gap_status: 1.0       # AG axis: severe DKA (AG 25-35)
-    # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status + consciousness
-    # were authored here but are not canonical state vars — silently dropped.
-    # Consciousness/GCS is produced independently by the nursing flowsheet enricher
-    # and is not currently coupled to disease severity; modeling that link
-    # requires a new consciousness state axis. Deferred to a physiological-model
-    # extension.
-
-# ============================================================
-# ORDER PROTOCOLS (what to order and when)
-# All admission orders, daily monitoring, and discharge criteria
-# are defined here — the engine reads this, not hardcoded.
-# ============================================================
+    ph_status: -0.6
+    volume_status: -0.6
+    glucose_status: 0.8
+    renal_function: -0.3
+    perfusion_status: -0.3
+    anion_gap_status: 1.0
 order_protocols:
   admission_orders:
     labs:
-      - {test: "Glucose", urgency: "stat"}
-      - {test: "ABG", urgency: "stat"}
-      - {test: "Beta_hydroxybutyrate", urgency: "stat"}
-      - {test: "BMP", urgency: "stat"}    # Na, K, Cl, HCO3, BUN, Creatinine, Glucose
-      - {test: "Na", urgency: "stat"}
-      - {test: "K", urgency: "stat"}
-      - {test: "Cl", urgency: "stat"}
-      - {test: "HCO3", urgency: "stat"}
-      - {test: "BUN", urgency: "stat"}
-      - {test: "Creatinine", urgency: "stat"}
-      - {test: "Anion_gap", urgency: "stat"}  # calculated: Na - (Cl + HCO3)
-      - {test: "Phosphate", urgency: "stat"}
-      - {test: "Mg", urgency: "stat"}
-      - {test: "Lactate", urgency: "stat", probability: 0.70}
-      - {test: "Urinalysis", urgency: "stat"}  # ketones, glucose, infection screen
-      - {test: "HbA1c", urgency: "routine"}
-      - {test: "CBC", urgency: "stat"}
-      - {test: "CRP", urgency: "stat", probability: 0.60}      # infection screen
-      - {test: "Blood_culture_x2", urgency: "stat", probability: 0.50}  # if infection suspected
-      - {test: "Lipase", urgency: "stat", probability: 0.40}   # abdominal pain differential
-      - {test: "Troponin", urgency: "stat", probability: 0.30} # if cardiac concern
+    - test: Glucose
+      urgency: stat
+    - test: ABG
+      urgency: stat
+    - test: Beta_hydroxybutyrate
+      urgency: stat
+    - test: BMP
+      urgency: stat
+    - test: Na
+      urgency: stat
+    - test: K
+      urgency: stat
+    - test: Cl
+      urgency: stat
+    - test: HCO3
+      urgency: stat
+    - test: BUN
+      urgency: stat
+    - test: Creatinine
+      urgency: stat
+    - test: Anion_gap
+      urgency: stat
+    - test: Phosphate
+      urgency: stat
+    - test: Mg
+      urgency: stat
+    - test: Lactate
+      urgency: stat
+      probability: 0.7
+    - test: Urinalysis
+      urgency: stat
+    - test: HbA1c
+      urgency: routine
+    - test: CBC
+      urgency: stat
+    - test: CRP
+      urgency: stat
+      probability: 0.6
+    - test: Blood_culture_x2
+      urgency: stat
+      probability: 0.5
+    - test: Lipase
+      urgency: stat
+      probability: 0.4
+    - test: Troponin
+      urgency: stat
+      probability: 0.3
     imaging:
-      - {test: "Chest_Xray_PA", urgency: "stat", probability: 0.70}  # infection screen
-      - {test: "ECG", urgency: "stat"}   # K+ effects, cardiac assessment
+    - test: Chest_Xray_PA
+      urgency: stat
+      probability: 0.7
+    - test: ECG
+      urgency: stat
     supportive:
-      - {type: "IV_fluid", detail: "NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h"}
-      - {type: "IV_insulin", detail: "Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3)"}
-      - {type: "K_replacement", detail: "KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0"}
-      - {type: "monitoring", detail: "Continuous cardiac monitoring"}
-      - {type: "glucose_check", detail: "Fingerstick glucose q1h"}
-      - {type: "I_and_O", detail: "Strict intake and output monitoring"}
-      - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily (once hemodynamically stable)"}
-
+    - type: IV_fluid
+      detail: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h
+    - type: IV_insulin
+      detail: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3)
+    - type: K_replacement
+      detail: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0
+    - type: monitoring
+      detail: Continuous cardiac monitoring
+    - type: glucose_check
+      detail: Fingerstick glucose q1h
+    - type: I_and_O
+      detail: Strict intake and output monitoring
+    - type: DVT_prophylaxis
+      detail: Enoxaparin 2000IU SC daily (once hemodynamically stable)
   daily_monitoring:
     labs:
-      - {test: "BMP", frequency: "q4-6h until AG closed, then daily"}
-      - {test: "Glucose", frequency: "q1-2h until stable, then q4h"}
-      - {test: "ABG_or_VBG", frequency: "q2-4h until pH > 7.30, then q6h"}
-      - {test: "Beta_hydroxybutyrate", frequency: "q4-6h until normal"}
-      - {test: "K", frequency: "q2h during insulin drip"}
-      - {test: "Anion_gap", frequency: "q4-6h until closed"}
-      - {test: "Phosphate", frequency: "daily"}
+    - test: BMP
+      frequency: q4-6h until AG closed, then daily
+    - test: Glucose
+      frequency: q1-2h until stable, then q4h
+    - test: ABG_or_VBG
+      frequency: q2-4h until pH > 7.30, then q6h
+    - test: Beta_hydroxybutyrate
+      frequency: q4-6h until normal
+    - test: K
+      frequency: q2h during insulin drip
+    - test: Anion_gap
+      frequency: q4-6h until closed
+    - test: Phosphate
+      frequency: daily
     vitals:
-      stable: "q2h"
-      unstable: "q1h"
-    imaging: []  # no routine imaging unless indicated
-
+      stable: q2h
+      unstable: q1h
+    imaging: []
   trigger_orders:
     glucose_below_250:
-      condition: "glucose < 250 mg/dL while on insulin drip"
+      condition: glucose < 250 mg/dL while on insulin drip
       actions:
-        - {type: "fluid_change", action: "switch_to_D5_half_NS"}
-        - {type: "insulin_adjust", action: "reduce_insulin_rate_to_0.05_U_kg_h"}
+      - type: fluid_change
+        action: switch_to_D5_half_NS
+      - type: insulin_adjust
+        action: reduce_insulin_rate_to_0.05_U_kg_h
     potassium_below_3.3:
-      condition: "K < 3.3 mEq/L"
+      condition: K < 3.3 mEq/L
       actions:
-        - {type: "insulin_hold", action: "hold_insulin_drip_until_K_above_3.3"}
-        - {type: "K_replace", action: "KCl_40mEq_IV_over_1h"}
+      - type: insulin_hold
+        action: hold_insulin_drip_until_K_above_3.3
+      - type: K_replace
+        action: KCl_40mEq_IV_over_1h
     potassium_3.3_to_5.3:
-      condition: "K 3.3-5.3 mEq/L"
+      condition: K 3.3-5.3 mEq/L
       actions:
-        - {type: "K_replace", action: "KCl_20-40_mEq_per_L_in_each_liter_IV_fluid"}
+      - type: K_replace
+        action: KCl_20-40_mEq_per_L_in_each_liter_IV_fluid
     anion_gap_closed:
-      condition: "Anion gap < 12 and patient tolerating PO"
+      condition: Anion gap < 12 and patient tolerating PO
       actions:
-        - {type: "transition", action: "start_SC_insulin_overlap_1-2h_then_stop_drip"}
+      - type: transition
+        action: start_SC_insulin_overlap_1-2h_then_stop_drip
     persistent_acidosis:
-      condition: "pH < 7.10 despite 6h treatment"
+      condition: pH < 7.10 despite 6h treatment
       actions:
-        - {type: "evaluate", action: "consider_ICU_transfer"}
-        - {type: "lab", test: "Lactate"}
-        - {type: "evaluate", action: "reassess_insulin_rate_and_hydration"}
-
+      - type: evaluate
+        action: consider_ICU_transfer
+      - type: lab
+        test: Lactate
+      - type: evaluate
+        action: reassess_insulin_rate_and_hydration
   discharge_criteria:
     japan:
-      - "Anion gap closed (<12) for >= 24 hours"
-      - "Tolerating oral intake for >= 24 hours"
-      - "Subcutaneous insulin regimen established and stable"
-      - "Glucose 100-250 mg/dL on SC insulin"
-      - "K 3.5-5.0 without IV replacement"
-      - "Trigger identified and addressed (infection treated, insulin education done)"
-      - "HbA1c result reviewed, outpatient plan established"
-      - "Diabetes education completed (insulin technique, sick-day rules)"
+    - Anion gap closed (<12) for >= 24 hours
+    - Tolerating oral intake for >= 24 hours
+    - Subcutaneous insulin regimen established and stable
+    - Glucose 100-250 mg/dL on SC insulin
+    - K 3.5-5.0 without IV replacement
+    - Trigger identified and addressed (infection treated, insulin education done)
+    - HbA1c result reviewed, outpatient plan established
+    - Diabetes education completed (insulin technique, sick-day rules)
     us:
-      - "Anion gap closed (<12) for >= 12 hours"
-      - "Tolerating oral intake"
-      - "SC insulin regimen started, drip discontinued >= 2 hours"
-      - "Glucose < 250 mg/dL on SC insulin"
-      - "K 3.5-5.0 without replacement"
-      - "Precipitant identified and addressed"
-      - "Outpatient follow-up arranged within 1 week"
-
-# ============================================================
-# LIKELIHOOD RATIO TABLE
-# Source: Clinical diagnostic studies
-#         Kitabchi et al. Diabetes Care 2009 (ADA consensus)
-#         Umpierrez & Korytkowski. Nat Rev Endocrinol 2016
-# ============================================================
+    - Anion gap closed (<12) for >= 12 hours
+    - Tolerating oral intake
+    - SC insulin regimen started, drip discontinued >= 2 hours
+    - Glucose < 250 mg/dL on SC insulin
+    - K 3.5-5.0 without replacement
+    - Precipitant identified and addressed
+    - Outpatient follow-up arranged within 1 week
 likelihood_ratios:
   glucose_above_250:
-    diabetic_ketoacidosis: {positive_LR: 3.0, negative_LR: 0.05}
-    hyperosmolar_hyperglycemic_state: {positive_LR: 3.0, negative_LR: 0.05}
-    stress_hyperglycemia: {positive_LR: 1.5, negative_LR: 0.5}
-
+    diabetic_ketoacidosis:
+      positive_LR: 3.0
+      negative_LR: 0.05
+    hyperosmolar_hyperglycemic_state:
+      positive_LR: 3.0
+      negative_LR: 0.05
+    stress_hyperglycemia:
+      positive_LR: 1.5
+      negative_LR: 0.5
   ph_below_7.30:
-    diabetic_ketoacidosis: {positive_LR: 8.0, negative_LR: 0.15}
-    lactic_acidosis: {positive_LR: 4.0, negative_LR: 0.5}
-    alcoholic_ketoacidosis: {positive_LR: 5.0, negative_LR: 0.3}
-    starvation_ketosis: {positive_LR: 2.0, negative_LR: 0.6}
-
+    diabetic_ketoacidosis:
+      positive_LR: 8.0
+      negative_LR: 0.15
+    lactic_acidosis:
+      positive_LR: 4.0
+      negative_LR: 0.5
+    alcoholic_ketoacidosis:
+      positive_LR: 5.0
+      negative_LR: 0.3
+    starvation_ketosis:
+      positive_LR: 2.0
+      negative_LR: 0.6
   beta_hydroxybutyrate_above_3:
-    diabetic_ketoacidosis: {positive_LR: 15.0, negative_LR: 0.10}
-    alcoholic_ketoacidosis: {positive_LR: 6.0, negative_LR: 0.3}
-    starvation_ketosis: {positive_LR: 3.0, negative_LR: 0.5}
-    hyperosmolar_hyperglycemic_state: {positive_LR: 0.5, negative_LR: 1.5}
-
+    diabetic_ketoacidosis:
+      positive_LR: 15.0
+      negative_LR: 0.1
+    alcoholic_ketoacidosis:
+      positive_LR: 6.0
+      negative_LR: 0.3
+    starvation_ketosis:
+      positive_LR: 3.0
+      negative_LR: 0.5
+    hyperosmolar_hyperglycemic_state:
+      positive_LR: 0.5
+      negative_LR: 1.5
   anion_gap_above_12:
-    diabetic_ketoacidosis: {positive_LR: 6.0, negative_LR: 0.10}
-    lactic_acidosis: {positive_LR: 5.0, negative_LR: 0.3}
-    alcoholic_ketoacidosis: {positive_LR: 4.0, negative_LR: 0.4}
-
+    diabetic_ketoacidosis:
+      positive_LR: 6.0
+      negative_LR: 0.1
+    lactic_acidosis:
+      positive_LR: 5.0
+      negative_LR: 0.3
+    alcoholic_ketoacidosis:
+      positive_LR: 4.0
+      negative_LR: 0.4
   urine_ketones_positive:
-    diabetic_ketoacidosis: {positive_LR: 4.0, negative_LR: 0.20}
-    alcoholic_ketoacidosis: {positive_LR: 3.0, negative_LR: 0.4}
-    starvation_ketosis: {positive_LR: 3.0, negative_LR: 0.4}
-
+    diabetic_ketoacidosis:
+      positive_LR: 4.0
+      negative_LR: 0.2
+    alcoholic_ketoacidosis:
+      positive_LR: 3.0
+      negative_LR: 0.4
+    starvation_ketosis:
+      positive_LR: 3.0
+      negative_LR: 0.4
   serum_osmolality_above_320:
-    hyperosmolar_hyperglycemic_state: {positive_LR: 10.0, negative_LR: 0.2}
-    diabetic_ketoacidosis: {positive_LR: 1.5, negative_LR: 0.8}
-
+    hyperosmolar_hyperglycemic_state:
+      positive_LR: 10.0
+      negative_LR: 0.2
+    diabetic_ketoacidosis:
+      positive_LR: 1.5
+      negative_LR: 0.8
   hba1c_above_10:
-    diabetic_ketoacidosis: {positive_LR: 3.0, negative_LR: 0.5}
-    hyperosmolar_hyperglycemic_state: {positive_LR: 3.0, negative_LR: 0.5}
-
-# ============================================================
-# LAB REFERENCE RANGES (admission values for DKA patients)
-# For benchmarking generated data
-# Source: Kitabchi et al. Diabetes Care 2009, clinical studies
-# ============================================================
+    diabetic_ketoacidosis:
+      positive_LR: 3.0
+      negative_LR: 0.5
+    hyperosmolar_hyperglycemic_state:
+      positive_LR: 3.0
+      negative_LR: 0.5
 expected_lab_distributions:
   admission:
     Glucose:
-      unit: "mg/dL"
+      unit: mg/dL
       median: 450
-      iqr: [350, 600]
-      range: [250, 1000]
+      iqr:
+      - 350
+      - 600
+      range:
+      - 250
+      - 1000
     pH:
-      unit: ""
+      unit: ''
       median: 7.18
-      iqr: [7.05, 7.28]
-      range: [6.80, 7.35]
+      iqr:
+      - 7.05
+      - 7.28
+      range:
+      - 6.8
+      - 7.35
     HCO3:
-      unit: "mEq/L"
+      unit: mEq/L
       median: 10
-      iqr: [6, 15]
-      range: [2, 20]
+      iqr:
+      - 6
+      - 15
+      range:
+      - 2
+      - 20
     Beta_hydroxybutyrate:
-      unit: "mmol/L"
+      unit: mmol/L
       median: 5.5
-      iqr: [3.5, 8.0]
-      range: [3.0, 15.0]
+      iqr:
+      - 3.5
+      - 8.0
+      range:
+      - 3.0
+      - 15.0
     Anion_gap:
-      unit: "mEq/L"
+      unit: mEq/L
       median: 22
-      iqr: [18, 28]
-      range: [12, 40]
+      iqr:
+      - 18
+      - 28
+      range:
+      - 12
+      - 40
     K:
-      unit: "mEq/L"
+      unit: mEq/L
       median: 5.0
-      iqr: [4.2, 5.8]
-      range: [2.5, 7.5]
-      note: "Often normal/high on admission despite total body depletion; drops with insulin"
+      iqr:
+      - 4.2
+      - 5.8
+      range:
+      - 2.5
+      - 7.5
+      note: Often normal/high on admission despite total body depletion; drops with
+        insulin
     Na:
-      unit: "mEq/L"
+      unit: mEq/L
       median: 131
-      iqr: [128, 135]
-      range: [120, 145]
-      note: "Pseudohyponatremia from hyperglycemia; corrected Na = measured + 1.6*(glucose-100)/100"
+      iqr:
+      - 128
+      - 135
+      range:
+      - 120
+      - 145
+      note: Pseudohyponatremia from hyperglycemia; corrected Na = measured + 1.6*(glucose-100)/100
     Creatinine:
-      unit: "mg/dL"
+      unit: mg/dL
       median: 1.5
-      iqr: [1.0, 2.2]
-      range: [0.6, 6.0]
-      note: "Elevated due to volume depletion (prerenal AKI)"
+      iqr:
+      - 1.0
+      - 2.2
+      range:
+      - 0.6
+      - 6.0
+      note: Elevated due to volume depletion (prerenal AKI)
     BUN:
-      unit: "mg/dL"
+      unit: mg/dL
       median: 28
-      iqr: [18, 40]
-      range: [10, 80]
+      iqr:
+      - 18
+      - 40
+      range:
+      - 10
+      - 80
     Phosphate:
-      unit: "mg/dL"
+      unit: mg/dL
       median: 4.5
-      iqr: [3.0, 6.0]
-      range: [1.5, 8.0]
-      note: "Often normal/high initially; drops with insulin treatment"
+      iqr:
+      - 3.0
+      - 6.0
+      range:
+      - 1.5
+      - 8.0
+      note: Often normal/high initially; drops with insulin treatment
     Lactate:
-      unit: "mmol/L"
+      unit: mmol/L
       median: 2.0
-      iqr: [1.2, 3.5]
-      range: [0.5, 10.0]
+      iqr:
+      - 1.2
+      - 3.5
+      range:
+      - 0.5
+      - 10.0
     WBC:
-      unit: "/uL"
+      unit: /uL
       median: 14000
-      iqr: [10000, 20000]
-      range: [5000, 35000]
-      note: "Leukocytosis common even without infection (stress response)"
+      iqr:
+      - 10000
+      - 20000
+      range:
+      - 5000
+      - 35000
+      note: Leukocytosis common even without infection (stress response)
     HbA1c:
-      unit: "%"
+      unit: '%'
       median: 11.5
-      iqr: [9.5, 13.5]
-      range: [7.0, 16.0]
-
+      iqr:
+      - 9.5
+      - 13.5
+      range:
+      - 7.0
+      - 16.0
   discharge:
     Glucose:
-      unit: "mg/dL"
+      unit: mg/dL
       median: 160
-      iqr: [120, 200]
+      iqr:
+      - 120
+      - 200
     pH:
-      unit: ""
-      median: 7.40
-      iqr: [7.37, 7.43]
+      unit: ''
+      median: 7.4
+      iqr:
+      - 7.37
+      - 7.43
     HCO3:
-      unit: "mEq/L"
+      unit: mEq/L
       median: 22
-      iqr: [20, 25]
+      iqr:
+      - 20
+      - 25
     Anion_gap:
-      unit: "mEq/L"
+      unit: mEq/L
       median: 10
-      iqr: [8, 12]
+      iqr:
+      - 8
+      - 12
     K:
-      unit: "mEq/L"
+      unit: mEq/L
       median: 4.0
-      iqr: [3.8, 4.5]
+      iqr:
+      - 3.8
+      - 4.5
     Creatinine:
-      unit: "mg/dL"
+      unit: mg/dL
       median: 0.9
-      iqr: [0.7, 1.2]
-
-# ============================================================
-# VITAL SIGN DISTRIBUTIONS
-# Source: Clinical studies on DKA
-# ============================================================
+      iqr:
+      - 0.7
+      - 1.2
 expected_vital_distributions:
   admission:
     temperature:
-      unit: "C"
+      unit: C
       mean: 37.0
       sd: 0.6
-      range: [35.5, 39.0]
-      note: "Often normothermic or hypothermic; fever suggests infection as trigger"
+      range:
+      - 35.5
+      - 39.0
+      note: Often normothermic or hypothermic; fever suggests infection as trigger
     heart_rate:
-      unit: "bpm"
+      unit: bpm
       mean: 110
       sd: 18
-      range: [70, 150]
-      note: "Tachycardia from dehydration and acidosis"
+      range:
+      - 70
+      - 150
+      note: Tachycardia from dehydration and acidosis
     systolic_bp:
-      unit: "mmHg"
+      unit: mmHg
       mean: 110
       sd: 22
-      range: [70, 170]
-      note: "Often low-normal from volume depletion"
+      range:
+      - 70
+      - 170
+      note: Often low-normal from volume depletion
     respiratory_rate:
-      unit: "/min"
+      unit: /min
       mean: 24
       sd: 6
-      range: [16, 40]
-      note: "Kussmaul breathing (deep, rapid) is classic compensatory response"
+      range:
+      - 16
+      - 40
+      note: Kussmaul breathing (deep, rapid) is classic compensatory response
     spo2:
-      unit: "%"
+      unit: '%'
       mean: 97
       sd: 2
-      range: [90, 100]
-      note: "Usually preserved unless pulmonary complication"
-
-# ============================================================
-# TREATMENT REFERENCE — Drug / fluid / insulin protocols
-# Source: ADA DKA Guidelines (Kitabchi et al. 2009),
-#         JDS Guidelines, Umpierrez & Korytkowski 2016
-# ============================================================
+      range:
+      - 90
+      - 100
+      note: Usually preserved unless pulmonary complication
 drugs:
   first_line:
     japan:
-      - drug: "Regular insulin (continuous IV)"
-        code_yj: "2491404"
-        dose: "0.1 U/kg/h continuous infusion"
-        route: IV
-        note: "Start after confirming K >= 3.3 mEq/L"
-      - drug: "Normal saline"
-        code_yj: "3311401"
-        dose: "1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h"
-        route: IV
-      - drug: "Potassium chloride"
-        code_yj: "3229001"
-        dose: "20-40 mEq/L in IV fluids"
-        route: IV
-        note: "Hold if K > 5.3; increase if K < 3.3"
-
+    - drug: Regular insulin (continuous IV)
+      code_yj: '2491404'
+      dose: 0.1 U/kg/h continuous infusion
+      route: IV
+      note: Start after confirming K >= 3.3 mEq/L
+    - drug: Normal saline
+      code_yj: '3311401'
+      dose: 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h
+      route: IV
+    - drug: Potassium chloride
+      code_yj: '3229001'
+      dose: 20-40 mEq/L in IV fluids
+      route: IV
+      note: Hold if K > 5.3; increase if K < 3.3
     us:
-      - drug: "Regular insulin (continuous IV)"
-        code_rxnorm: "311034"
-        dose: "0.1 U/kg/h continuous infusion (or 0.14 U/kg/h without bolus)"
-        route: IV
-        note: "ADA protocol: 0.1 U/kg bolus then 0.1 U/kg/h, OR 0.14 U/kg/h no bolus"
-      - drug: "Normal saline (0.9% NaCl)"
-        code_rxnorm: "313002"
-        dose: "15-20 mL/kg/h x 1h (1-1.5L), then 250-500 mL/h"
-        route: IV
-      - drug: "Potassium chloride"
-        code_rxnorm: "8591"
-        dose: "20-40 mEq/L added to IV fluids"
-        route: IV
-
+    - drug: Regular insulin (continuous IV)
+      code_rxnorm: '311034'
+      dose: 0.1 U/kg/h continuous infusion (or 0.14 U/kg/h without bolus)
+      route: IV
+      note: 'ADA protocol: 0.1 U/kg bolus then 0.1 U/kg/h, OR 0.14 U/kg/h no bolus'
+    - drug: Normal saline (0.9% NaCl)
+      code_rxnorm: '313002'
+      dose: 15-20 mL/kg/h x 1h (1-1.5L), then 250-500 mL/h
+      route: IV
+    - drug: Potassium chloride
+      code_rxnorm: '8591'
+      dose: 20-40 mEq/L added to IV fluids
+      route: IV
   glucose_management:
     japan:
-      - drug: "D5 half-NS (5% dextrose in 0.45% NaCl)"
-        dose: "250 mL/h"
-        route: IV
-        indication: "glucose < 250 mg/dL"
-        note: "Switch from NS to D5 when glucose approaches 200-250"
+    - drug: D5 half-NS (5% dextrose in 0.45% NaCl)
+      dose: 250 mL/h
+      route: IV
+      indication: glucose < 250 mg/dL
+      note: Switch from NS to D5 when glucose approaches 200-250
     us:
-      - drug: "D5 half-NS (5% dextrose in 0.45% NaCl)"
-        code_rxnorm: "308971"
-        dose: "150-250 mL/h"
-        route: IV
-        indication: "glucose < 200 mg/dL (ADA: 200 for DKA)"
-
+    - drug: D5 half-NS (5% dextrose in 0.45% NaCl)
+      code_rxnorm: '308971'
+      dose: 150-250 mL/h
+      route: IV
+      indication: 'glucose < 200 mg/dL (ADA: 200 for DKA)'
   bicarbonate:
     japan:
-      - drug: "Sodium bicarbonate"
-        code_yj: "2344004"
-        dose: "100 mEq in 400mL sterile water + 20mEq KCl, infuse over 2h"
-        route: IV
-        indication: "pH < 6.9 ONLY"
-        note: "Controversial; only for pH < 6.9. Repeat q2h until pH > 7.0"
+    - drug: Sodium bicarbonate
+      code_yj: '2344004'
+      dose: 100 mEq in 400mL sterile water + 20mEq KCl, infuse over 2h
+      route: IV
+      indication: pH < 6.9 ONLY
+      note: Controversial; only for pH < 6.9. Repeat q2h until pH > 7.0
     us:
-      - drug: "Sodium bicarbonate"
-        code_rxnorm: "8782"
-        dose: "100 mEq in 400mL sterile water + 20mEq KCl, infuse over 2h"
-        route: IV
-        indication: "pH < 6.9"
-
+    - drug: Sodium bicarbonate
+      code_rxnorm: '8782'
+      dose: 100 mEq in 400mL sterile water + 20mEq KCl, infuse over 2h
+      route: IV
+      indication: pH < 6.9
   transition_to_subcutaneous:
     japan:
-      - drug: "Insulin glargine"
-        code_yj: "2492416"
-        dose: "0.2-0.3 U/kg SC daily"
-        route: SC
-        note: "Give 1-2h before stopping drip; add rapid-acting insulin with meals"
-      - drug: "Insulin aspart"
-        code_yj: "2492415"
-        dose: "Dose per carb counting or sliding scale"
-        route: SC
+    - drug: Insulin glargine
+      code_yj: '2492416'
+      dose: 0.2-0.3 U/kg SC daily
+      route: SC
+      note: Give 1-2h before stopping drip; add rapid-acting insulin with meals
+    - drug: Insulin aspart
+      code_yj: '2492415'
+      dose: Dose per carb counting or sliding scale
+      route: SC
     us:
-      - drug: "Insulin glargine"
-        code_rxnorm: "261551"
-        dose: "0.2-0.3 U/kg SC daily (or resume home dose)"
-        route: SC
-        note: "Overlap with IV insulin for 1-2h"
-      - drug: "Insulin lispro"
-        code_rxnorm: "86009"
-        dose: "Dose per carb counting or sliding scale"
-        route: SC
-
+    - drug: Insulin glargine
+      code_rxnorm: '261551'
+      dose: 0.2-0.3 U/kg SC daily (or resume home dose)
+      route: SC
+      note: Overlap with IV insulin for 1-2h
+    - drug: Insulin lispro
+      code_rxnorm: '86009'
+      dose: Dose per carb counting or sliding scale
+      route: SC
   discharge_oral:
     japan:
-      - drug: "Insulin glargine"
-        code_yj: "2492416"
-        dose: "Per established regimen"
-        duration_days: ongoing
-        route: "SC"    # session 73 Issue #455: without this key the
-                       # `_append_item` fallback at inpatient.py:2039 fills
-                       # "PO" which falsely asserts oral administration for
-                       # a subcutaneous long-acting insulin.
-        note: "T1DM: always insulin. T2DM: may add metformin once stable."
+    - drug: Insulin glargine
+      code_yj: '2492416'
+      dose: As prescribed
+      duration_days: ongoing
+      route: SC
+      note: 'Per established regimen (T1DM: always insulin. T2DM: may add metformin
+        once stable.)'
     us:
-      - drug: "Insulin glargine"
-        code_rxnorm: "261551"
-        dose: "Per established regimen"
-        duration_days: ongoing
-        route: "SC"    # session 73 Issue #455 (same rationale as japan side).
-
-# ============================================================
-# DRUG INTERACTIONS relevant to DKA treatment
-# ============================================================
+    - drug: Insulin glargine
+      code_rxnorm: '261551'
+      dose: As prescribed
+      duration_days: ongoing
+      route: SC
+      note: Per established regimen
 drug_interactions:
-  - drug_a: "Insulin"
-    drug_b: "Beta-blockers"
-    severity: "moderate"
-    effect: "Masked hypoglycemia symptoms, impaired glucose recovery"
-    action: "Monitor glucose more frequently"
-
-  - drug_a: "Insulin"
-    drug_b: "Corticosteroids"
-    severity: "moderate"
-    effect: "Hyperglycemia, increased insulin requirement"
-    action: "Increase insulin dose; monitor glucose q4h"
-
-  - drug_a: "Potassium chloride IV"
-    drug_b: "ACE inhibitors"
-    severity: "major"
-    effect: "Hyperkalemia risk"
-    action: "Monitor K closely; reduce KCl supplementation if needed"
-
-  - drug_a: "Potassium chloride IV"
-    drug_b: "Spironolactone"
-    severity: "major"
-    effect: "Hyperkalemia risk"
-    action: "Hold spironolactone during DKA treatment"
-
-  - drug_a: "Metformin"
-    drug_b: "IV contrast"
-    severity: "major"
-    effect: "Lactic acidosis risk"
-    action: "Hold metformin 48h before/after contrast"
-
-# ============================================================
-# TARGET LENGTH OF STAY (country-specific)
-# Source: JP — DPC data, JDS reports (longer stay for education)
-#         US — Premier/NIS database, Dhatariya et al. 2020
-# ============================================================
+- drug_a: Insulin
+  drug_b: Beta-blockers
+  severity: moderate
+  effect: Masked hypoglycemia symptoms, impaired glucose recovery
+  action: Monitor glucose more frequently
+- drug_a: Insulin
+  drug_b: Corticosteroids
+  severity: moderate
+  effect: Hyperglycemia, increased insulin requirement
+  action: Increase insulin dose; monitor glucose q4h
+- drug_a: Potassium chloride IV
+  drug_b: ACE inhibitors
+  severity: major
+  effect: Hyperkalemia risk
+  action: Monitor K closely; reduce KCl supplementation if needed
+- drug_a: Potassium chloride IV
+  drug_b: Spironolactone
+  severity: major
+  effect: Hyperkalemia risk
+  action: Hold spironolactone during DKA treatment
+- drug_a: Metformin
+  drug_b: IV contrast
+  severity: major
+  effect: Lactic acidosis risk
+  action: Hold metformin 48h before/after contrast
 target_los:
   japan:
-    moderate: {mean: 12, sd: 3, min: 7, max: 18}
-    severe: {mean: 16, sd: 4, min: 10, max: 28}
+    moderate:
+      mean: 12
+      sd: 3
+      min: 7
+      max: 18
+    severe:
+      mean: 16
+      sd: 4
+      min: 10
+      max: 28
   us:
-    moderate: {mean: 3.5, sd: 1.5, min: 2, max: 6}
-    severe: {mean: 5, sd: 2, min: 3, max: 10}
-
-# OUTCOME BENCHMARKS
-# For validating generated data against reality
-# ============================================================
+    moderate:
+      mean: 3.5
+      sd: 1.5
+      min: 2
+      max: 6
+    severe:
+      mean: 5
+      sd: 2
+      min: 3
+      max: 10
 outcome_benchmarks:
   japan:
     median_los: 12
-    los_iqr: [9, 16]
+    los_iqr:
+    - 9
+    - 16
     in_hospital_mortality: 0.02
     icu_transfer_rate: 0.15
-    thirty_day_readmission: 0.20
+    thirty_day_readmission: 0.2
     anion_gap_closure_median_hours: 12
     insulin_drip_median_hours: 18
     mean_age_admitted: 52
     male_ratio: 0.55
-    type_1_ratio: 0.40
-
+    type_1_ratio: 0.4
   us:
     median_los: 3.5
-    los_iqr: [2.5, 5]
+    los_iqr:
+    - 2.5
+    - 5
     in_hospital_mortality: 0.01
-    icu_transfer_rate: 0.20
+    icu_transfer_rate: 0.2
     thirty_day_readmission: 0.22
     anion_gap_closure_median_hours: 10
     insulin_drip_median_hours: 14
     mean_age_admitted: 45
-    male_ratio: 0.50
+    male_ratio: 0.5
     type_1_ratio: 0.45
-
-# ============================================================
-# CLINICAL COURSE ARCHETYPES (daily state variable changes)
-# Each archetype defines day-by-day deltas for physiological state variables.
-# Disease authors specify these trajectories — the engine interpolates between days.
-# Patient profile (immune_reactivity, treatment_sensitivity) modulates amplitude.
-# ============================================================
 course_archetypes:
   smooth_recovery:
-    probability: 0.60
-    description: "Anion gap closes within 12-24h, smooth transition to SC insulin"
+    probability: 0.6
+    description: Anion gap closes within 12-24h, smooth transition to SC insulin
     trajectory:
-      ph_status: {0: 0.05, 0.5: 0.15, 1: 0.10, 2: 0.05, 3: 0.02, 5: 0.01, 7: 0.00}
-      volume_status: {0: 0.10, 0.5: 0.10, 1: 0.08, 2: 0.05, 3: 0.03, 5: 0.02, 7: 0.00}
-      glucose_status: {0: -0.10, 0.5: -0.20, 1: -0.15, 2: -0.08, 3: -0.05, 5: -0.02, 7: 0.00}
-      renal_function: {0: 0.02, 0.5: 0.03, 1: 0.04, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.00}
-      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status trajectory
-      # removed — not a canonical trajectory-able state var (silently dropped
-      # by get_state_changes). K axis is a physiological-model extension TODO.
+      ph_status:
+        0: 0.05
+        0.5: 0.15
+        1: 0.1
+        2: 0.05
+        3: 0.02
+        5: 0.01
+        7: 0.0
+      volume_status:
+        0: 0.1
+        0.5: 0.1
+        1: 0.08
+        2: 0.05
+        3: 0.03
+        5: 0.02
+        7: 0.0
+      glucose_status:
+        0: -0.1
+        0.5: -0.2
+        1: -0.15
+        2: -0.08
+        3: -0.05
+        5: -0.02
+        7: 0.0
+      renal_function:
+        0: 0.02
+        0.5: 0.03
+        1: 0.04
+        2: 0.03
+        3: 0.02
+        5: 0.01
+        7: 0.0
     order_modifications: {}
     treatment_modifications: {}
-
     daily_trajectory:
       day_0:
-        subjective: "症状あり"
-        objective: "バイタル安定、検査所見あり"
-        assessment: "初期診断確定、治療開始"
-        plan: "治療継続、経過観察"
+        subjective: 症状あり
+        objective: バイタル安定、検査所見あり
+        assessment: 初期診断確定、治療開始
+        plan: 治療継続、経過観察
       day_1:
-        subjective: "症状緩和傾向"
-        objective: "バイタル安定、検査所見改善"
-        assessment: "治療反応良好"
-        plan: "治療継続"
-
+        subjective: 症状緩和傾向
+        objective: バイタル安定、検査所見改善
+        assessment: 治療反応良好
+        plan: 治療継続
   dip_then_recovery:
     probability: 0.15
-    description: "Initial K drops too fast or glucose rebounds; stabilizes by Day 2-3"
+    description: Initial K drops too fast or glucose rebounds; stabilizes by Day 2-3
     trajectory:
-      ph_status: {0: 0.03, 0.5: 0.08, 1: 0.02, 2: 0.08, 3: 0.05, 5: 0.02, 7: 0.00}
-      volume_status: {0: 0.08, 0.5: 0.06, 1: 0.04, 2: 0.05, 3: 0.04, 5: 0.02, 7: 0.00}
-      glucose_status: {0: -0.08, 0.5: -0.15, 1: 0.05, 2: -0.10, 3: -0.08, 5: -0.03, 7: 0.00}
-      renal_function: {0: 0.01, 0.5: 0.02, 1: 0.02, 2: 0.03, 3: 0.03, 5: 0.01, 7: 0.00}
-      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status trajectory
-      # removed — silently dropped by get_state_changes. See smooth_recovery.
+      ph_status:
+        0: 0.03
+        0.5: 0.08
+        1: 0.02
+        2: 0.08
+        3: 0.05
+        5: 0.02
+        7: 0.0
+      volume_status:
+        0: 0.08
+        0.5: 0.06
+        1: 0.04
+        2: 0.05
+        3: 0.04
+        5: 0.02
+        7: 0.0
+      glucose_status:
+        0: -0.08
+        0.5: -0.15
+        1: 0.05
+        2: -0.1
+        3: -0.08
+        5: -0.03
+        7: 0.0
+      renal_function:
+        0: 0.01
+        0.5: 0.02
+        1: 0.02
+        2: 0.03
+        3: 0.03
+        5: 0.01
+        7: 0.0
     order_modifications:
       day_1:
-        add_labs: ["K_stat", "Glucose_stat", "ABG"]
+        add_labs:
+        - K_stat
+        - Glucose_stat
+        - ABG
     treatment_modifications:
       day_1:
-        adjust: {detail: "Increase K replacement rate; adjust insulin drip"}
-
+        adjust:
+          detail: Increase K replacement rate; adjust insulin drip
   plateau:
-    probability: 0.10
-    description: "Anion gap slow to close; persistent mild ketosis for 2-3 days"
+    probability: 0.1
+    description: Anion gap slow to close; persistent mild ketosis for 2-3 days
     trajectory:
-      ph_status: {0: 0.03, 0.5: 0.05, 1: 0.03, 2: 0.02, 3: 0.05, 5: 0.05, 7: 0.02}
-      volume_status: {0: 0.08, 0.5: 0.06, 1: 0.04, 2: 0.02, 3: 0.02, 5: 0.01, 7: 0.00}
-      glucose_status: {0: -0.08, 0.5: -0.12, 1: -0.05, 2: -0.02, 3: -0.05, 5: -0.05, 7: -0.02}
-      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status trajectory
-      # removed — silently dropped by get_state_changes. See smooth_recovery.
+      ph_status:
+        0: 0.03
+        0.5: 0.05
+        1: 0.03
+        2: 0.02
+        3: 0.05
+        5: 0.05
+        7: 0.02
+      volume_status:
+        0: 0.08
+        0.5: 0.06
+        1: 0.04
+        2: 0.02
+        3: 0.02
+        5: 0.01
+        7: 0.0
+      glucose_status:
+        0: -0.08
+        0.5: -0.12
+        1: -0.05
+        2: -0.02
+        3: -0.05
+        5: -0.05
+        7: -0.02
     order_modifications:
       day_2:
-        add_labs: ["Beta_hydroxybutyrate", "Anion_gap", "Lactate"]
+        add_labs:
+        - Beta_hydroxybutyrate
+        - Anion_gap
+        - Lactate
     treatment_modifications:
       day_2:
-        adjust: {detail: "Increase insulin drip rate if AG not closing"}
-
+        adjust:
+          detail: Increase insulin drip rate if AG not closing
   treatment_resistant:
     probability: 0.08
-    description: "Underlying infection or non-compliance complicates recovery; prolonged insulin drip"
+    description: Underlying infection or non-compliance complicates recovery; prolonged
+      insulin drip
     trajectory:
-      ph_status: {0: 0.02, 0.5: 0.03, 1: 0.01, 2: 0.00, 3: 0.02, 5: 0.05, 7: 0.05, 10: 0.03}
-      volume_status: {0: 0.05, 0.5: 0.04, 1: 0.03, 2: 0.02, 3: 0.03, 5: 0.03, 7: 0.02, 10: 0.01}
-      glucose_status: {0: -0.05, 0.5: -0.08, 1: -0.03, 2: 0.02, 3: -0.05, 5: -0.08, 7: -0.05, 10: -0.02}
-      renal_function: {0: 0.01, 0.5: 0.01, 1: 0.00, 2: -0.01, 3: 0.01, 5: 0.02, 7: 0.02, 10: 0.01}
-      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status trajectory
-      # removed — silently dropped by get_state_changes. See smooth_recovery.
+      ph_status:
+        0: 0.02
+        0.5: 0.03
+        1: 0.01
+        2: 0.0
+        3: 0.02
+        5: 0.05
+        7: 0.05
+        10: 0.03
+      volume_status:
+        0: 0.05
+        0.5: 0.04
+        1: 0.03
+        2: 0.02
+        3: 0.03
+        5: 0.03
+        7: 0.02
+        10: 0.01
+      glucose_status:
+        0: -0.05
+        0.5: -0.08
+        1: -0.03
+        2: 0.02
+        3: -0.05
+        5: -0.08
+        7: -0.05
+        10: -0.02
+      renal_function:
+        0: 0.01
+        0.5: 0.01
+        1: 0.0
+        2: -0.01
+        3: 0.01
+        5: 0.02
+        7: 0.02
+        10: 0.01
     order_modifications:
       day_2:
-        add_labs: ["Blood_culture_x2", "CRP", "Urinalysis", "Chest_Xray"]
-        add_consult: ["infectious_disease"]
+        add_labs:
+        - Blood_culture_x2
+        - CRP
+        - Urinalysis
+        - Chest_Xray
+        add_consult:
+        - infectious_disease
       day_4:
-        add_labs: ["Beta_hydroxybutyrate", "ABG", "Lactate"]
+        add_labs:
+        - Beta_hydroxybutyrate
+        - ABG
+        - Lactate
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Broad spectrum antibiotic", indication: "suspected occult infection"}]
-          us: [{drug: "Broad spectrum antibiotic", indication: "suspected occult infection"}]
+          japan:
+          - drug: Broad spectrum antibiotic
+            indication: suspected occult infection
+          us:
+          - drug: Broad spectrum antibiotic
+            indication: suspected occult infection
     triggers:
-      - day: 2
-        condition: "anion_gap > 16 despite treatment"
-        actions: ["increase_insulin_rate", "infection_workup", "reassess_fluid_status"]
-
+    - day: 2
+      condition: anion_gap > 16 despite treatment
+      actions:
+      - increase_insulin_rate
+      - infection_workup
+      - reassess_fluid_status
   gradual_deterioration:
     probability: 0.05
-    description: "Multi-organ involvement; progressive AKI, possible ICU transfer"
+    description: Multi-organ involvement; progressive AKI, possible ICU transfer
     trajectory:
-      ph_status: {0: 0.02, 0.5: 0.02, 1: 0.00, 2: -0.02, 3: 0.02, 5: 0.03, 7: 0.03, 10: 0.02}
-      volume_status: {0: 0.05, 0.5: 0.03, 1: 0.01, 2: -0.02, 3: 0.02, 5: 0.02, 7: 0.02, 10: 0.01}
-      glucose_status: {0: -0.05, 0.5: -0.08, 1: -0.03, 2: 0.05, 3: -0.02, 5: -0.05, 7: -0.05, 10: -0.03}
-      renal_function: {0: 0.00, 0.5: -0.02, 1: -0.03, 2: -0.05, 3: -0.03, 5: 0.01, 7: 0.02, 10: 0.02}
-      perfusion_status: {0: 0.00, 0.5: -0.02, 1: -0.05, 2: -0.05, 3: -0.02, 5: 0.02, 7: 0.02, 10: 0.01}
+      ph_status:
+        0: 0.02
+        0.5: 0.02
+        1: 0.0
+        2: -0.02
+        3: 0.02
+        5: 0.03
+        7: 0.03
+        10: 0.02
+      volume_status:
+        0: 0.05
+        0.5: 0.03
+        1: 0.01
+        2: -0.02
+        3: 0.02
+        5: 0.02
+        7: 0.02
+        10: 0.01
+      glucose_status:
+        0: -0.05
+        0.5: -0.08
+        1: -0.03
+        2: 0.05
+        3: -0.02
+        5: -0.05
+        7: -0.05
+        10: -0.03
+      renal_function:
+        0: 0.0
+        0.5: -0.02
+        1: -0.03
+        2: -0.05
+        3: -0.03
+        5: 0.01
+        7: 0.02
+        10: 0.02
+      perfusion_status:
+        0: 0.0
+        0.5: -0.02
+        1: -0.05
+        2: -0.05
+        3: -0.02
+        5: 0.02
+        7: 0.02
+        10: 0.01
     order_modifications:
       day_1:
-        add_labs: ["ABG", "Lactate", "Troponin"]
+        add_labs:
+        - ABG
+        - Lactate
+        - Troponin
       day_2:
-        add_labs: ["ABG", "Lactate", "Creatinine"]
-        add_imaging: ["Renal_ultrasound"]
+        add_labs:
+        - ABG
+        - Lactate
+        - Creatinine
+        add_imaging:
+        - Renal_ultrasound
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
-        action: "icu_transfer"
+          japan:
+          - drug: Norepinephrine
+            dose: 0.05ug/kg/min IV drip
+        action: icu_transfer
     triggers:
-      - day: 2
-        condition: "perfusion_status < 0.4"
-        actions: ["icu_transfer", "start_vasopressor"]
-
+    - day: 2
+      condition: perfusion_status < 0.4
+      actions:
+      - icu_transfer
+      - start_vasopressor
   sudden_deterioration:
     probability: 0.02
-    description: "Cerebral edema or cardiac arrest from electrolyte shift — rare but life-threatening"
+    description: Cerebral edema or cardiac arrest from electrolyte shift — rare but
+      life-threatening
     trajectory:
-      ph_status: {0: 0.03, 0.5: 0.05, 1: -0.10, 2: -0.05, 3: 0.05, 5: 0.05, 7: 0.03}
-      volume_status: {0: 0.05, 0.5: 0.04, 1: -0.10, 2: 0.05, 3: 0.05, 5: 0.03, 7: 0.01}
-      glucose_status: {0: -0.08, 0.5: -0.15, 1: -0.10, 2: 0.00, 3: -0.05, 5: -0.03, 7: -0.02}
-      perfusion_status: {0: 0.00, 0.5: 0.00, 1: -0.25, 2: 0.05, 3: 0.05, 5: 0.03, 7: 0.01}
-      # NOTE (FP-DELTA-VALIDATE, session 40): consciousness trajectory removed
-      # — silently dropped by get_state_changes. GCS is produced independently
-      # by the nursing flowsheet enricher.
+      ph_status:
+        0: 0.03
+        0.5: 0.05
+        1: -0.1
+        2: -0.05
+        3: 0.05
+        5: 0.05
+        7: 0.03
+      volume_status:
+        0: 0.05
+        0.5: 0.04
+        1: -0.1
+        2: 0.05
+        3: 0.05
+        5: 0.03
+        7: 0.01
+      glucose_status:
+        0: -0.08
+        0.5: -0.15
+        1: -0.1
+        2: 0.0
+        3: -0.05
+        5: -0.03
+        7: -0.02
+      perfusion_status:
+        0: 0.0
+        0.5: 0.0
+        1: -0.25
+        2: 0.05
+        3: 0.05
+        5: 0.03
+        7: 0.01
     order_modifications:
       day_1:
-        add_labs: ["ABG", "K_stat", "Glucose_stat", "Troponin", "Lactate"]
-        add_imaging: ["Head_CT"]
+        add_labs:
+        - ABG
+        - K_stat
+        - Glucose_stat
+        - Troponin
+        - Lactate
+        add_imaging:
+        - Head_CT
     treatment_modifications:
       day_1:
         start:
           japan:
-            - {drug: "Mannitol", dose: "1g/kg IV over 20min", indication: "cerebral edema"}
+          - drug: Mannitol
+            dose: 1g/kg IV over 20min
+            indication: cerebral edema
           us:
-            - {drug: "Mannitol", dose: "0.5-1g/kg IV over 20min", indication: "cerebral edema"}
-            - {drug: "Hypertonic saline 3%", dose: "5mL/kg IV over 30min", indication: "alternative to mannitol"}
-        action: "icu_transfer"
-        action_2: "intubation_evaluation"
+          - drug: Mannitol
+            dose: 0.5-1g/kg IV over 20min
+            indication: cerebral edema
+          - drug: Hypertonic saline 3%
+            dose: 5mL/kg IV over 30min
+            indication: alternative to mannitol
+        action: icu_transfer
+        action_2: intubation_evaluation
     triggers:
-      - day: 1
-        condition: "consciousness < 0.3 or cardiac_arrest"
-        actions: ["icu_transfer", "intubation", "mannitol_if_cerebral_edema"]
-
-# Archetype selection modifiers (patient profile dependent)
+    - day: 1
+      condition: consciousness < 0.3 or cardiac_arrest
+      actions:
+      - icu_transfer
+      - intubation
+      - mannitol_if_cerebral_edema
 archetype_modifiers:
-  - condition: "age < 18"
-    effect: {sudden_deterioration: 0.03, smooth_recovery: -0.03}  # cerebral edema more common in children
-  - condition: "age >= 70"
-    effect: {gradual_deterioration: 0.05, smooth_recovery: -0.05}
-  - condition: "prior_dka_episodes >= 3"
-    effect: {treatment_resistant: 0.05, smooth_recovery: -0.05}   # non-compliance pattern
-  - condition: "treatment_sensitivity > 1.2"
-    effect: {smooth_recovery: 0.10, treatment_resistant: -0.05}
-  - condition: "CKD"
-    effect: {gradual_deterioration: 0.05, plateau: 0.03, smooth_recovery: -0.08}
-  - condition: "active_infection"
-    effect: {treatment_resistant: 0.10, smooth_recovery: -0.10}
-
-# ============================================================
-# COMPLICATIONS (secondary events during hospitalization)
-# Each complication has: trigger conditions, timing, probability,
-# physiological impact, and detection/treatment actions.
-# Complications can themselves trigger further complications (cascade).
-# ============================================================
+- condition: age < 18
+  effect:
+    sudden_deterioration: 0.03
+    smooth_recovery: -0.03
+- condition: age >= 70
+  effect:
+    gradual_deterioration: 0.05
+    smooth_recovery: -0.05
+- condition: prior_dka_episodes >= 3
+  effect:
+    treatment_resistant: 0.05
+    smooth_recovery: -0.05
+- condition: treatment_sensitivity > 1.2
+  effect:
+    smooth_recovery: 0.1
+    treatment_resistant: -0.05
+- condition: CKD
+  effect:
+    gradual_deterioration: 0.05
+    plateau: 0.03
+    smooth_recovery: -0.08
+- condition: active_infection
+  effect:
+    treatment_resistant: 0.1
+    smooth_recovery: -0.1
 complications:
-  - name: "hypokalemia"
-    description: "K drops rapidly with insulin therapy; life-threatening arrhythmia risk"
-    probability_per_day: 0.05
-    onset_day_range: [0, 2]
-    risk_factors:
-      - {condition: "admission_K_below_4", multiplier: 2.0}
-      - {condition: "aggressive_insulin_without_K_monitoring", multiplier: 3.0}
-      - {condition: "vomiting", multiplier: 1.5}
-    state_impact: {}
-      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status was authored
-      # here but is not a canonical state var — silently dropped in
-      # apply_state_delta. Modeling K+ derangement requires a new K axis;
-      # deferred to a physiological-model extension. Complication actions
-      # (K replacement, insulin hold) are unchanged and still fire.
-    detection:
-      test: "K"
-      finding: "K_below_3.3"
-    actions: ["hold_insulin", "K_replacement_40mEq_IV", "continuous_cardiac_monitor", "recheck_K_1h"]
-
-  - name: "hypoglycemia"
-    description: "Glucose drops too fast or too low from insulin treatment"
-    probability_per_day: 0.04
-    onset_day_range: [0, 3]
-    risk_factors:
-      - {condition: "not_switched_to_D5_timely", multiplier: 3.0}
-      - {condition: "renal_impairment", multiplier: 1.5}
-      - {condition: "poor_oral_intake", multiplier: 1.5}
-    state_impact:
-      glucose_status: -0.30
-      # NOTE (FP-DELTA-VALIDATE, session 40): consciousness silent-drop removed
-      # — not a canonical state var. Consciousness/GCS is produced independently
-      # by the nursing flowsheet enricher; modeling severity-linked change
-      # deferred to a physiological-model extension.
-    detection:
-      test: "glucose"
-      finding: "glucose_below_70"
-    actions: ["D50_IV_push", "reduce_insulin_rate", "recheck_glucose_15min"]
-
-  - name: "cerebral_edema"
-    description: "Brain swelling from rapid osmolality shifts; more common in children"
-    probability_per_day: 0.002
-    onset_day_range: [0, 1]
-    risk_factors:
-      - {condition: "age_under_18", multiplier: 10.0}
-      - {condition: "new_onset_T1DM", multiplier: 3.0}
-      - {condition: "severe_acidosis_pH_below_7.0", multiplier: 2.0}
-      - {condition: "rapid_glucose_drop_over_100_per_hour", multiplier: 2.5}
-    state_impact:
-      perfusion_status: -0.10
-      # NOTE (FP-DELTA-VALIDATE, session 40): consciousness silent-drop removed
-      # — not a canonical state var. See hypoglycemia complication above.
-    detection:
-      test: "clinical_assessment"
-      finding: "altered_consciousness_headache_papilledema"
-    actions: ["mannitol_IV", "elevate_head_of_bed", "reduce_IV_rate", "head_CT", "icu_transfer"]
-
-  - name: "acute_kidney_injury"
-    description: "Prerenal AKI from severe volume depletion; may progress to intrinsic if prolonged"
-    probability_per_day: 0.02
-    onset_day_range: [0, 3]
-    risk_factors:
-      - {condition: "volume_status < -0.5", multiplier: 2.5}
-      - {condition: "age_over_65", multiplier: 1.5}
-      - {condition: "CKD_baseline", multiplier: 2.0}
-      - {condition: "NSAID_use", multiplier: 1.8}
-    state_impact:
-      renal_function: -0.20
-      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status silent-drop
-      # removed — not a canonical state var. See hypokalemia complication above.
-    detection:
-      test: "creatinine"
-      finding: "rise_above_0.3_from_baseline_or_50_percent"
-    actions: ["aggressive_IV_hydration", "hold_nephrotoxic_drugs", "monitor_urine_output", "renal_consult_if_no_improvement"]
-
-  - name: "aspiration_pneumonia"
-    description: "Aspiration from vomiting with altered consciousness"
-    probability_per_day: 0.005
-    onset_day_range: [0, 2]
-    risk_factors:
-      - {condition: "altered_consciousness", multiplier: 5.0}
-      - {condition: "active_vomiting", multiplier: 3.0}
-      - {condition: "severe_DKA", multiplier: 2.0}
-    state_impact:
-      inflammation_level: 0.20
-      perfusion_status: -0.05
-    detection:
-      test: "chest_xray"
-      finding: "new_infiltrate"
-    actions: ["start_antibiotics", "supplemental_O2", "consider_intubation_if_severe"]
-
-  - name: "cardiac_arrhythmia"
-    description: "Arrhythmia from K/Mg shifts or severe acidosis"
-    probability_per_day: 0.008
-    onset_day_range: [0, 2]
-    risk_factors:
-      - {condition: "K_below_3.0_or_above_6.0", multiplier: 5.0}
-      - {condition: "pre_existing_cardiac_disease", multiplier: 2.0}
-      - {condition: "pH_below_7.0", multiplier: 2.5}
-    state_impact:
-      perfusion_status: -0.15
-    detection:
-      test: "cardiac_monitor_or_ECG"
-      finding: "arrhythmia_detected"
-    actions: ["correct_electrolytes_emergently", "12_lead_ECG", "cardiology_consult", "consider_icu"]
-
-  - name: "rhabdomyolysis"
-    description: "Muscle breakdown from severe volume depletion and electrolyte shifts"
-    probability_per_day: 0.003
-    onset_day_range: [1, 4]
-    risk_factors:
-      - {condition: "severe_dehydration", multiplier: 3.0}
-      - {condition: "hypophosphatemia", multiplier: 2.0}
-    state_impact:
-      renal_function: -0.10
-    detection:
-      test: "CK"
-      finding: "CK_above_5x_upper_limit"
-    actions: ["aggressive_IV_fluids", "monitor_CK_and_renal_function", "urine_alkalinization"]
-
-  - name: "dvt"
-    description: "Deep vein thrombosis from dehydration and immobility"
-    probability_per_day: 0.005
-    onset_day_range: [2, 10]
-    risk_factors:
-      - {condition: "immobility_days > 2", multiplier: 2.0}
-      - {condition: "severe_dehydration", multiplier: 1.5}
-      - {condition: "no_dvt_prophylaxis", multiplier: 3.0}
-    state_impact:
-      coagulation_status: 0.05
-    detection:
-      test: "d_dimer_then_ultrasound"
-      finding: "dvt_confirmed"
-    actions: ["start_anticoagulation"]
-    cascade: ["pulmonary_embolism"]
-
-  - name: "pulmonary_embolism"
-    description: "PE from DVT embolization"
-    probability_given_parent: 0.10
-    parent_complication: "dvt"
-    onset_days_after_parent: [0, 7]
-    state_impact:
-      perfusion_status: -0.20
-      ph_status: -0.05
-    actions: ["ct_angiography", "anticoagulation", "consider_icu"]
-
-# ============================================================
-# DIFFERENTIAL DIAGNOSIS
-# Used by the diagnostic reasoning engine
-# ============================================================
-# ============================================================
-# PRECIPITANT / TRIGGER IDENTIFICATION
-# DKA always has a trigger — identifying it is critical for treatment
-# ============================================================
-# ============================================================
-# FORCED GENERATION (for testing / specific scenario creation)
-# Users can override population-driven generation to force specific cases.
-# See SimulatorConfig.forced_scenarios
-# ============================================================
-# Example usage in config:
-#   forced_scenarios:
-#     - disease_id: "diabetic_ketoacidosis"
-#       count: 3
-#       severity: "severe"
-#       archetype: "treatment_resistant"
-#       complications: ["hypokalemia", "acute_kidney_injury"]
-#       patient_overrides:
-#         age: 28
-#         sex: "F"
-#         chronic_conditions: ["E10"]   # Type 1 DM
-#       precipitant: "insulin_non_compliance"
-
-# ============================================================
-# NARRATIVE SPEC (Tier 1 #3 α-min-1)
-# Consumed by TemplateNarrativeGenerator (Task 6)
-# ============================================================
+- name: hypokalemia
+  description: K drops rapidly with insulin therapy; life-threatening arrhythmia risk
+  probability_per_day: 0.05
+  onset_day_range:
+  - 0
+  - 2
+  risk_factors:
+  - condition: admission_K_below_4
+    multiplier: 2.0
+  - condition: aggressive_insulin_without_K_monitoring
+    multiplier: 3.0
+  - condition: vomiting
+    multiplier: 1.5
+  state_impact: {}
+  detection:
+    test: K
+    finding: K_below_3.3
+  actions:
+  - hold_insulin
+  - K_replacement_40mEq_IV
+  - continuous_cardiac_monitor
+  - recheck_K_1h
+- name: hypoglycemia
+  description: Glucose drops too fast or too low from insulin treatment
+  probability_per_day: 0.04
+  onset_day_range:
+  - 0
+  - 3
+  risk_factors:
+  - condition: not_switched_to_D5_timely
+    multiplier: 3.0
+  - condition: renal_impairment
+    multiplier: 1.5
+  - condition: poor_oral_intake
+    multiplier: 1.5
+  state_impact:
+    glucose_status: -0.3
+  detection:
+    test: glucose
+    finding: glucose_below_70
+  actions:
+  - D50_IV_push
+  - reduce_insulin_rate
+  - recheck_glucose_15min
+- name: cerebral_edema
+  description: Brain swelling from rapid osmolality shifts; more common in children
+  probability_per_day: 0.002
+  onset_day_range:
+  - 0
+  - 1
+  risk_factors:
+  - condition: age_under_18
+    multiplier: 10.0
+  - condition: new_onset_T1DM
+    multiplier: 3.0
+  - condition: severe_acidosis_pH_below_7.0
+    multiplier: 2.0
+  - condition: rapid_glucose_drop_over_100_per_hour
+    multiplier: 2.5
+  state_impact:
+    perfusion_status: -0.1
+  detection:
+    test: clinical_assessment
+    finding: altered_consciousness_headache_papilledema
+  actions:
+  - mannitol_IV
+  - elevate_head_of_bed
+  - reduce_IV_rate
+  - head_CT
+  - icu_transfer
+- name: acute_kidney_injury
+  description: Prerenal AKI from severe volume depletion; may progress to intrinsic
+    if prolonged
+  probability_per_day: 0.02
+  onset_day_range:
+  - 0
+  - 3
+  risk_factors:
+  - condition: volume_status < -0.5
+    multiplier: 2.5
+  - condition: age_over_65
+    multiplier: 1.5
+  - condition: CKD_baseline
+    multiplier: 2.0
+  - condition: NSAID_use
+    multiplier: 1.8
+  state_impact:
+    renal_function: -0.2
+  detection:
+    test: creatinine
+    finding: rise_above_0.3_from_baseline_or_50_percent
+  actions:
+  - aggressive_IV_hydration
+  - hold_nephrotoxic_drugs
+  - monitor_urine_output
+  - renal_consult_if_no_improvement
+- name: aspiration_pneumonia
+  description: Aspiration from vomiting with altered consciousness
+  probability_per_day: 0.005
+  onset_day_range:
+  - 0
+  - 2
+  risk_factors:
+  - condition: altered_consciousness
+    multiplier: 5.0
+  - condition: active_vomiting
+    multiplier: 3.0
+  - condition: severe_DKA
+    multiplier: 2.0
+  state_impact:
+    inflammation_level: 0.2
+    perfusion_status: -0.05
+  detection:
+    test: chest_xray
+    finding: new_infiltrate
+  actions:
+  - start_antibiotics
+  - supplemental_O2
+  - consider_intubation_if_severe
+- name: cardiac_arrhythmia
+  description: Arrhythmia from K/Mg shifts or severe acidosis
+  probability_per_day: 0.008
+  onset_day_range:
+  - 0
+  - 2
+  risk_factors:
+  - condition: K_below_3.0_or_above_6.0
+    multiplier: 5.0
+  - condition: pre_existing_cardiac_disease
+    multiplier: 2.0
+  - condition: pH_below_7.0
+    multiplier: 2.5
+  state_impact:
+    perfusion_status: -0.15
+  detection:
+    test: cardiac_monitor_or_ECG
+    finding: arrhythmia_detected
+  actions:
+  - correct_electrolytes_emergently
+  - 12_lead_ECG
+  - cardiology_consult
+  - consider_icu
+- name: rhabdomyolysis
+  description: Muscle breakdown from severe volume depletion and electrolyte shifts
+  probability_per_day: 0.003
+  onset_day_range:
+  - 1
+  - 4
+  risk_factors:
+  - condition: severe_dehydration
+    multiplier: 3.0
+  - condition: hypophosphatemia
+    multiplier: 2.0
+  state_impact:
+    renal_function: -0.1
+  detection:
+    test: CK
+    finding: CK_above_5x_upper_limit
+  actions:
+  - aggressive_IV_fluids
+  - monitor_CK_and_renal_function
+  - urine_alkalinization
+- name: dvt
+  description: Deep vein thrombosis from dehydration and immobility
+  probability_per_day: 0.005
+  onset_day_range:
+  - 2
+  - 10
+  risk_factors:
+  - condition: immobility_days > 2
+    multiplier: 2.0
+  - condition: severe_dehydration
+    multiplier: 1.5
+  - condition: no_dvt_prophylaxis
+    multiplier: 3.0
+  state_impact:
+    coagulation_status: 0.05
+  detection:
+    test: d_dimer_then_ultrasound
+    finding: dvt_confirmed
+  actions:
+  - start_anticoagulation
+  cascade:
+  - pulmonary_embolism
+- name: pulmonary_embolism
+  description: PE from DVT embolization
+  probability_given_parent: 0.1
+  parent_complication: dvt
+  onset_days_after_parent:
+  - 0
+  - 7
+  state_impact:
+    perfusion_status: -0.2
+    ph_status: -0.05
+  actions:
+  - ct_angiography
+  - anticoagulation
+  - consider_icu
 narrative:
   hpi_template:
     onset_pattern:
-      mild: "症状は数日前より緩徐に出現。"
-      moderate: "症状は数日前より出現し漸次増悪。"
-      severe: "症状急速に増悪、本日受診。"
+      mild: 症状は数日前より緩徐に出現。
+      moderate: 症状は数日前より出現し漸次増悪。
+      severe: 症状急速に増悪、本日受診。
     trigger_options:
-      - "急性発症"
+    - 急性発症
   physical_exam_findings:
     smooth_recovery:
       day_0:
         general:
-          all: "意識清明、苦痛様"
+          all: 意識清明、苦痛様
         cardiovascular:
-          all: "整、心雑音なし"
+          all: 整、心雑音なし
         respiratory:
-          all: "肺音清明"
-        abdominal: "平坦、軟、圧痛なし"
-        neurological: "麻痺なし、項部硬直なし"
+          all: 肺音清明
+        abdominal: 平坦、軟、圧痛なし
+        neurological: 麻痺なし、項部硬直なし
   discharge_instructions:
     follow_up:
-      en: "Follow up with PCP in 7-10 days."
-      ja: "退院後 1-2 週間以内に外来受診をお願いします。"
+      en: Follow up with PCP in 7-10 days.
+      ja: 退院後 1-2 週間以内に外来受診をお願いします。
     activity:
-      en: "Gradual return to normal activity."
-      ja: "徐々に通常活動を再開してください。"
+      en: Gradual return to normal activity.
+      ja: 徐々に通常活動を再開してください。
     medications:
-      en: "Complete prescribed medications as directed."
-      ja: "処方された薬を指示通り内服してください。"
+      en: Complete prescribed medications as directed.
+      ja: 処方された薬を指示通り内服してください。
     emergency:
-      en: "Return to ER if symptoms worsen."
-      ja: "症状悪化があれば速やかに救急受診してください。"
+      en: Return to ER if symptoms worsen.
+      ja: 症状悪化があれば速やかに救急受診してください。
     diet_lifestyle:
-      en: "Maintain balanced diet and adequate hydration."
-      ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
-
-# ============================================================
-# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
-# ============================================================
+      en: Maintain balanced diet and adequate hydration.
+      ja: バランスの良い食事と十分な水分摂取を心がけてください。
 imaging_orders:
-  - modality: CR
-    body_site: chest
-    views: [PA]
-    urgency: routine
-    clinical_indication: "Rule out pneumonia as trigger"
-    day: 0
-    abnormal_rate_by_severity:
-      mild: 0.15
-      moderate: 0.25
-      severe: 0.4
+- modality: CR
+  body_site: chest
+  views:
+  - PA
+  urgency: routine
+  clinical_indication: Rule out pneumonia as trigger
+  day: 0
+  abnormal_rate_by_severity:
+    mild: 0.15
+    moderate: 0.25
+    severe: 0.4

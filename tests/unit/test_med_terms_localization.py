@@ -45,4 +45,4 @@ def test_med_terms_tables_loaded():
     # editing med_terms_ja.yaml — a diff here is the load-bearing signal
     # that the localization table changed.
     assert len(tables["categories"]) == 25
-    assert len(tables["terms"]) == 155
+    assert len(tables["terms"]) == 157  # +2 from #469: tablet, q6months

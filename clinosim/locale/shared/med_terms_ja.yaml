@@ -132,6 +132,8 @@ terms:
   local: 局所
   q3h: 3時間毎
   q2h: 2時間毎
+  q6months: 6ヶ月毎
+  tablet: 錠
   CONTINUOUS: 持続
   NEB: ネブライザー
   NEBULIZED: ネブライザー
