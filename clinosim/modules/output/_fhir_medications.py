@@ -26,6 +26,7 @@ from clinosim.modules.output._fhir_common import (
     _strip_protocol_prefix,
     build_route_concept,
     build_ucum_quantity,
+    canonicalize_route,
 )
 from clinosim.modules.output._fhir_localization import (
     _localize_dosage_terms,
@@ -842,7 +843,7 @@ def _build_discharge_medication_request(
     # were a dosage. `_apply_jp_clins_profile` withholds the eCS profile from exactly
     # these resources, because eCS raises `dosageInstruction` to min=1.
     dosage: dict[str, Any] = {}
-    route_concept = build_route_concept(route)
+    route_concept = build_route_concept(route, country)
     if route_concept:
         dosage["route"] = route_concept
     dose_parts = [p for p in (dose, rate_adjustment_note) if p]
@@ -1045,8 +1046,7 @@ def _build_medication_admin(
     # Route — resolved through the shared helper so the MAR and MR paths cannot drift
     # apart again (Issue #458: the missing `INH` / `NEB` aliases produced 166 text-only
     # elements here versus 6 on the MR path). `.upper()` now lives in the helper.
-    route_concept = build_route_concept(mar.get("route") or parsed.get("route"))
-    route = route_concept["text"] if route_concept else ""
+    route_concept = build_route_concept(mar.get("route") or parsed.get("route"), country)
     if route_concept:
         dosage["route"] = route_concept
     # Session 57 v3 (Chain-11, v3 feedback §保留 3 真因判明): FHIR R4
@@ -1107,8 +1107,20 @@ def _build_medication_admin(
     # rate指定ある/CONTINUOUS/DRIP を含む admin のみ pump 参照 emit。
     # Device resource 自体は既存 hospital-main の generic infusion pump を
     # 参照(実 EHR 実装と同様、pump を patient に固有発行しない運用)。
+    # Gate the infusion-pump reference on the CANONICAL route key, resolved through
+    # `canonicalize_route` (alias-aware). Two distinct failure modes this closes:
+    #  (i) `route_concept["text"]` is localized under Issue #479 dual-slot rule —
+    #      `"静注"` on JP would fail `== "IV"` and drop every IV continuous-infusion
+    #      `resource["device"]`. Same J5 pattern as PR #475 (`dose_text` localization
+    #      dropping `rateQuantity`).
+    #  (ii) A future alias for IV (e.g. `INTRAVENOUS: "IV"` in `_ROUTE_ALIASES`) would
+    #      break a raw-upper comparison the same way — the raw `"INTRAVENOUS"` fails
+    #      `== "IV"` even though it means IV. `canonicalize_route` resolves the alias.
+    _canonical_route = canonicalize_route(mar.get("route") or parsed.get("route"))
     _dose_text_up = (mar.get("dose") or "").upper()
-    _is_infusion = route == "IV" and ("CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up or "/H" in _dose_text_up)
+    _is_infusion = _canonical_route == "IV" and (
+        "CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up or "/H" in _dose_text_up
+    )
     if _is_infusion:
         resource["device"] = [
             {

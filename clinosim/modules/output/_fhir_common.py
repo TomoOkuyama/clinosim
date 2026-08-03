@@ -540,7 +540,7 @@ def _make_participant(code: str, display: str, practitioner_id: str, country: st
     }
 
 
-def build_route_concept(raw_route: str | None) -> dict[str, Any] | None:
+def build_route_concept(raw_route: str | None, country: str) -> dict[str, Any] | None:
     """Build the FHIR route `CodeableConcept` for a raw route value, or None if absent.
 
     SINGLE lookup point for route → SNOMED across every FHIR builder (Issue #458).
@@ -553,18 +553,29 @@ def build_route_concept(raw_route: str | None) -> dict[str, Any] | None:
     again. Sibling of the `classify_lab_specs` / `scenario_flags_from_protocol`
     single-edit-point pattern.
 
+    `country` is REQUIRED (no default). A default was previously "US" and one call site
+    (`_build_dosage_instruction` internal) failed to forward it, silently emitting the
+    US `text` form on JP output — the same J5 pattern PR #475 fixed in
+    `MedicationAdministration.dosage.text`. `TypeError` at call time is preferable to
+    silent locale drift.
+
     Resolution order: canonical key, then `_ROUTE_ALIASES` (author abbreviations such as
     `INH` / `NEB`). Case is normalised here so call sites do not each carry `.upper()`.
+    The JA lookup uses the CANONICAL form, so `INHALATION` (alias) → `INHALED`
+    (canonical) → `"吸入"`, not a raw miss.
 
-    `text` keeps the author's own wording (upper-cased) rather than the canonical key:
+    `text` field adheres to dual-slot rule (Issue #479):
+    - JP (country="JP"): localized to Japanese via `_ROUTE_JA` lookup on the canonical
+      form, following the pattern of Observation.code and Procedure.code
+    - US (country="US"): keeps the author's own wording (upper-cased abbreviation)
     `CodeableConcept.text` is where the source system's representation belongs, while
-    `coding` carries the standard meaning. `NEB` therefore stays `NEB` and is not
-    rewritten to `NEBULIZED` — a string the source data never contained.
+    `coding` carries the standard meaning.
 
-    An unresolvable route yields `{"text": route}` with no `coding`. That is deliberate:
-    routes needing a NEW SNOMED code (`NASAL`, `NG`, `CATHETER`, …) must be verified
-    per-code against an authoritative terminology server, never aliased onto a nearby
-    code — see the note on `_ROUTE_ALIASES`.
+    An unresolvable route yields `{"text": text_value}` with no `coding`. That is
+    deliberate: routes needing a NEW SNOMED code (`NASAL`, `NG`, `CATHETER`, …) must be
+    verified per-code against an authoritative terminology server, never aliased onto
+    a nearby code — see the note on `_ROUTE_ALIASES`. The `text` is still localized for
+    JP so `NG` reads `経鼻` in JP output rather than the English abbreviation.
 
     Note: no `.strip()`. Behaviour is intentionally byte-identical to the two call sites
     it replaces so the PR's diff is confined to alias resolution; whitespace-padded route
@@ -573,13 +584,73 @@ def build_route_concept(raw_route: str | None) -> dict[str, Any] | None:
     route = (raw_route or "").upper()
     if not route:
         return None
-    snomed = _ROUTE_SNOMED.get(route) or _ROUTE_SNOMED.get(_ROUTE_ALIASES.get(route, ""))
+    canonical = _ROUTE_ALIASES.get(route, route)
+    snomed = _ROUTE_SNOMED.get(canonical)
+    text_value = route
+    if is_jp(country):
+        text_value = _ROUTE_JA.get(canonical, route)
     if snomed:
         return {
             "coding": [{"system": get_system_uri("snomed-ct"), **snomed}],
-            "text": route,
+            "text": text_value,
         }
-    return {"text": route}
+    return {"text": text_value}
+
+
+def canonicalize_route(raw_route: str | None) -> str:
+    """Return the canonical `_ROUTE_SNOMED` key for a raw route (upper + alias-resolved).
+
+    Same normalization `build_route_concept` performs internally, exposed as a helper
+    for downstream code that needs to gate behavior on the canonical route WITHOUT
+    going through the CodeableConcept builder.
+
+    Motivating call site: `_build_medication_admin`'s infusion-pump gate
+    (`_is_infusion = canonical == "IV" and ...`). Comparing the raw upper form is
+    fragile — adding an alias like `INTRAVENOUS: "IV"` to `_ROUTE_ALIASES` would
+    silently break the gate (raw `INTRAVENOUS` != `"IV"`), losing every
+    `resource["device"]` reference on IV continuous infusions. Same J5 pattern this
+    PR is fixing elsewhere — the gate must resolve the alias first.
+
+    Returns the upper-cased raw route when there is no alias mapping (canonical routes
+    like `IV`, `PO`, SNOMED-less specials like `NG`, and truly unknown routes like
+    `CATHETER` all return themselves). Empty / None inputs return `""` — the caller
+    decides how to handle absence, consistent with `build_route_concept` returning
+    `None` for the same case.
+
+    Isolating this in `_fhir_common` keeps the "route maps are looked up in exactly
+    one module" rule (test_no_builder_reads_the_route_maps_directly) — call sites
+    import the helper, not the underlying tables.
+    """
+    route = (raw_route or "").upper()
+    if not route:
+        return ""
+    return _ROUTE_ALIASES.get(route, route)
+
+
+def _validate_route_maps() -> None:
+    """Reverse-coverage guard for the route lookup tables (import-time).
+
+    Same silent-no-op class as PR #90 — see `_validate_narrow_ladder` / `_validate_hai_*`
+    for sibling shape. Two invariants:
+
+    1. `_ROUTE_JA.keys() ⊇ _ROUTE_SNOMED.keys()` — every canonical SNOMED route MUST
+       have a JP translation. A new `_ROUTE_SNOMED` entry without a companion
+       `_ROUTE_JA` entry would silently emit the English canonical on JP output.
+    2. `_ROUTE_JA.keys() ∩ _ROUTE_ALIASES.keys() == ∅` — aliases are resolved to
+       canonical BEFORE the JA lookup, so an alias entry in `_ROUTE_JA` is dead
+       (never reached) and misleads authors into thinking coverage exists.
+    """
+    missing_ja = set(_ROUTE_SNOMED.keys()) - set(_ROUTE_JA.keys())
+    if missing_ja:
+        raise ValueError(f"_ROUTE_JA missing JP translation for canonical SNOMED routes: {sorted(missing_ja)}")
+    alias_in_ja = set(_ROUTE_JA.keys()) & set(_ROUTE_ALIASES.keys())
+    if alias_in_ja:
+        raise ValueError(
+            f"_ROUTE_JA contains alias keys — resolve via _ROUTE_ALIASES to canonical first: {sorted(alias_in_ja)}"
+        )
+
+
+_validate_route_maps()
 
 
 def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any] | None:
@@ -588,9 +659,11 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
     dose_unit = order.get("dose_unit", "")
     freq = order.get("frequency", "")
     freq_per_day = order.get("frequency_per_day")
-    route_concept = build_route_concept(order.get("route"))
-    # `text` is the normalised authored token — the same string the previous inline
-    # `.upper()` produced, so the dosage text summary below is unchanged.
+    route_concept = build_route_concept(order.get("route"), country)
+    # `text` is the localized (JP) or authored (US) route form used only for the dosage
+    # text summary block below (line 670+). The JP text summary path re-derives the JA
+    # form via `_ROUTE_JA.get(p_upper)`, so a JA `route` here fails that lookup and
+    # falls back to `p` (itself already JA) — net-safe.
     route = route_concept["text"] if route_concept else ""
 
     # If nothing structured is available, fall back to text from display_name
