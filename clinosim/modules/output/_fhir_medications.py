@@ -26,6 +26,7 @@ from clinosim.modules.output._fhir_common import (
     _strip_protocol_prefix,
     build_route_concept,
     build_ucum_quantity,
+    canonicalize_route,
 )
 from clinosim.modules.output._fhir_localization import (
     _localize_dosage_terms,
@@ -1106,14 +1107,18 @@ def _build_medication_admin(
     # rate指定ある/CONTINUOUS/DRIP を含む admin のみ pump 参照 emit。
     # Device resource 自体は既存 hospital-main の generic infusion pump を
     # 参照(実 EHR 実装と同様、pump を patient に固有発行しない運用)。
-    # Gate the infusion-pump reference on the CANONICAL route key (raw upper), not on
-    # `route_concept["text"]`. Under Issue #479 dual-slot rule that `text` is localized
-    # for JP output — `"静注"` for `IV`, so `route_concept["text"] == "IV"` is False on
-    # JP and every IV continuous-infusion MAR would silently lose `resource["device"]`.
-    # Same J5 pattern as PR #475 (`dose_text` localization dropping `rateQuantity`).
-    _raw_route_up = (mar.get("route") or parsed.get("route") or "").upper()
+    # Gate the infusion-pump reference on the CANONICAL route key, resolved through
+    # `canonicalize_route` (alias-aware). Two distinct failure modes this closes:
+    #  (i) `route_concept["text"]` is localized under Issue #479 dual-slot rule —
+    #      `"静注"` on JP would fail `== "IV"` and drop every IV continuous-infusion
+    #      `resource["device"]`. Same J5 pattern as PR #475 (`dose_text` localization
+    #      dropping `rateQuantity`).
+    #  (ii) A future alias for IV (e.g. `INTRAVENOUS: "IV"` in `_ROUTE_ALIASES`) would
+    #      break a raw-upper comparison the same way — the raw `"INTRAVENOUS"` fails
+    #      `== "IV"` even though it means IV. `canonicalize_route` resolves the alias.
+    _canonical_route = canonicalize_route(mar.get("route") or parsed.get("route"))
     _dose_text_up = (mar.get("dose") or "").upper()
-    _is_infusion = _raw_route_up == "IV" and (
+    _is_infusion = _canonical_route == "IV" and (
         "CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up or "/H" in _dose_text_up
     )
     if _is_infusion:

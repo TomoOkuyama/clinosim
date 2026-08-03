@@ -309,15 +309,21 @@ def test_no_builder_reads_the_route_maps_directly():
 
 
 def test_common_module_confines_the_lookup_to_the_helper():
-    """`_fhir_common` owns the maps' only lookup — it must sit in `build_route_concept`
-    or `_validate_route_maps` (the import-time reverse-coverage guard)."""
+    """`_fhir_common` owns the maps' only lookup — three sanctioned functions:
+    `build_route_concept` (the CodeableConcept builder), `canonicalize_route` (the
+    alias-aware normalizer for downstream gates like `_is_infusion`), and
+    `_validate_route_maps` (the import-time reverse-coverage guard).
+
+    All three live in `_fhir_common.py` so downstream builders import a function,
+    never the underlying `_ROUTE_*` dicts (test_no_builder_reads_the_route_maps_directly).
+    """
     import pathlib
 
     path = pathlib.Path(__file__).resolve().parents[3] / "clinosim" / "modules" / "output" / "_fhir_common.py"
     refs = _route_map_references(path) - {"<import>"}
-    assert refs == {"build_route_concept", "_validate_route_maps"}, (
+    assert refs == {"build_route_concept", "canonicalize_route", "_validate_route_maps"}, (
         f"route-map lookups in _fhir_common.py live in {sorted(refs)}; they belong only in "
-        f"build_route_concept() or _validate_route_maps() (the import-time guard)"
+        f"build_route_concept() / canonicalize_route() / _validate_route_maps()"
     )
 
 
@@ -472,7 +478,8 @@ def test_iv_continuous_infusion_still_emits_device_on_jp():
     Issue #479 the gate compared `route_concept["text"] == "IV"`; localizing `text` to
     `"静注"` on JP would flip every IV MAR to `route == "IV"` False and drop the device
     reference silently. Same J5 class as PR #475 (`dose_text.upper()` losing `rateQuantity`
-    on 488 rows). The fix uses the raw upper (canonical) for the gate.
+    on 488 rows). The fix routes the gate through `canonicalize_route()` so it compares
+    the canonical `IV`, unaffected by dual-slot localization.
     """
     from clinosim.modules.output._fhir_medications import _build_medication_admin
 
@@ -495,3 +502,44 @@ def test_iv_continuous_infusion_still_emits_device_on_jp():
         "IV continuous infusion on JP must still emit device[] (infusion-pump ref); "
         "if this drops, the _is_infusion gate is comparing localized text again"
     )
+
+
+def test_infusion_gate_survives_future_iv_alias():
+    """Future-proof guard: adding an alias for IV (e.g. `INTRAVENOUS`) MUST NOT
+    silently drop the infusion-pump `device[]` reference.
+
+    Motivating scenario: someone adds `_ROUTE_ALIASES["INTRAVENOUS"] = "IV"` to cover
+    a YAML that writes it out in full. Before this PR the gate compared
+    `mar.get("route").upper() == "IV"` — that comparison is `"INTRAVENOUS" == "IV"`,
+    False, and every INTRAVENOUS continuous infusion silently loses `resource["device"]`.
+    Same J5 class the rest of this PR is fixing (the "raw vs canonical" mistake).
+
+    The fix routes the gate through `canonicalize_route()`, which resolves the alias
+    to the canonical `IV` first — so this test uses `monkeypatch.setitem` to inject
+    an IV alias and verifies `device[]` still emits.
+    """
+    from clinosim.modules.output import _fhir_reference_data
+    from clinosim.modules.output._fhir_medications import _build_medication_admin
+
+    # Inject a hypothetical IV alias into _ROUTE_ALIASES.
+    _fhir_reference_data._ROUTE_ALIASES["INTRAVENOUS"] = "IV"
+    try:
+        resource = _build_medication_admin(
+            {
+                "drug_name": "Norepinephrine",
+                "dose": "0.1 mcg/kg/min CONTINUOUS",
+                "route": "INTRAVENOUS",  # alias form, not the canonical "IV"
+                "status": "given",
+            },
+            patient_id="POP-000001",
+            index=1,
+            country="JP",
+            encounter_id="ENC-POP-000001-000000000001",
+        )
+        # `device` MUST still be present — the gate resolved the alias.
+        assert "device" in resource, (
+            "adding an alias for IV dropped device[]; the _is_infusion gate is comparing "
+            "raw route text instead of the canonical form (canonicalize_route)"
+        )
+    finally:
+        del _fhir_reference_data._ROUTE_ALIASES["INTRAVENOUS"]

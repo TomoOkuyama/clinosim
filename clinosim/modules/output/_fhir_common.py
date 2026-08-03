@@ -597,6 +597,36 @@ def build_route_concept(raw_route: str | None, country: str) -> dict[str, Any] |
     return {"text": text_value}
 
 
+def canonicalize_route(raw_route: str | None) -> str:
+    """Return the canonical `_ROUTE_SNOMED` key for a raw route (upper + alias-resolved).
+
+    Same normalization `build_route_concept` performs internally, exposed as a helper
+    for downstream code that needs to gate behavior on the canonical route WITHOUT
+    going through the CodeableConcept builder.
+
+    Motivating call site: `_build_medication_admin`'s infusion-pump gate
+    (`_is_infusion = canonical == "IV" and ...`). Comparing the raw upper form is
+    fragile — adding an alias like `INTRAVENOUS: "IV"` to `_ROUTE_ALIASES` would
+    silently break the gate (raw `INTRAVENOUS` != `"IV"`), losing every
+    `resource["device"]` reference on IV continuous infusions. Same J5 pattern this
+    PR is fixing elsewhere — the gate must resolve the alias first.
+
+    Returns the upper-cased raw route when there is no alias mapping (canonical routes
+    like `IV`, `PO`, SNOMED-less specials like `NG`, and truly unknown routes like
+    `CATHETER` all return themselves). Empty / None inputs return `""` — the caller
+    decides how to handle absence, consistent with `build_route_concept` returning
+    `None` for the same case.
+
+    Isolating this in `_fhir_common` keeps the "route maps are looked up in exactly
+    one module" rule (test_no_builder_reads_the_route_maps_directly) — call sites
+    import the helper, not the underlying tables.
+    """
+    route = (raw_route or "").upper()
+    if not route:
+        return ""
+    return _ROUTE_ALIASES.get(route, route)
+
+
 def _validate_route_maps() -> None:
     """Reverse-coverage guard for the route lookup tables (import-time).
 
