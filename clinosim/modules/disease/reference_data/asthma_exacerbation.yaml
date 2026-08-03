@@ -378,12 +378,15 @@ drugs:
         note: "Taper over 5-7 days"
       - drug: "ICS/LABA inhaler"
         code_yj: "2290900"
-        dose: "Resume or initiate controller therapy"
+        dose: "As prescribed"   # session 76 Issue #469: `dose` carries a dose
+                                # expression only. The instruction moved to `note`
+                                # because term-level JP translation mangles prose
+                                # ("Per" -> "あたり" at sentence start).
         route: "INH"   # session 73 Issue #455: matches chronic_medications.yaml
                        # convention for inhaled drugs; without this key the
                        # `_append_item` fallback at inpatient.py:2039 fills
                        # "PO" which falsely asserts oral administration.
-        note: "Ensure step-up from pre-exacerbation level"
+        note: "Resume or initiate controller therapy (Ensure step-up from pre-exacerbation level)"
     us:
       - drug: "Prednisone"
         code_rxnorm: "8640"
@@ -391,8 +394,9 @@ drugs:
         duration_days: 5
       - drug: "ICS/LABA inhaler"
         code_rxnorm: "745679"
-        dose: "Resume or initiate controller therapy"
+        dose: "As prescribed"   # session 76 Issue #469 (same rationale as japan side).
         route: "INH"   # session 73 Issue #455 (same rationale as japan side).
+        note: "Resume or initiate controller therapy"
 
 # ============================================================
 # DRUG INTERACTIONS
