@@ -1046,7 +1046,6 @@ def _build_medication_admin(
     # apart again (Issue #458: the missing `INH` / `NEB` aliases produced 166 text-only
     # elements here versus 6 on the MR path). `.upper()` now lives in the helper.
     route_concept = build_route_concept(mar.get("route") or parsed.get("route"), country)
-    route = route_concept["text"] if route_concept else ""
     if route_concept:
         dosage["route"] = route_concept
     # Session 57 v3 (Chain-11, v3 feedback §保留 3 真因判明): FHIR R4
@@ -1107,8 +1106,16 @@ def _build_medication_admin(
     # rate指定ある/CONTINUOUS/DRIP を含む admin のみ pump 参照 emit。
     # Device resource 自体は既存 hospital-main の generic infusion pump を
     # 参照(実 EHR 実装と同様、pump を patient に固有発行しない運用)。
+    # Gate the infusion-pump reference on the CANONICAL route key (raw upper), not on
+    # `route_concept["text"]`. Under Issue #479 dual-slot rule that `text` is localized
+    # for JP output — `"静注"` for `IV`, so `route_concept["text"] == "IV"` is False on
+    # JP and every IV continuous-infusion MAR would silently lose `resource["device"]`.
+    # Same J5 pattern as PR #475 (`dose_text` localization dropping `rateQuantity`).
+    _raw_route_up = (mar.get("route") or parsed.get("route") or "").upper()
     _dose_text_up = (mar.get("dose") or "").upper()
-    _is_infusion = route == "IV" and ("CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up or "/H" in _dose_text_up)
+    _is_infusion = _raw_route_up == "IV" and (
+        "CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up or "/H" in _dose_text_up
+    )
     if _is_infusion:
         resource["device"] = [
             {

@@ -425,6 +425,11 @@ def _localize_interp(coded: dict[str, str], country: str) -> dict[str, str]:
     return d
 
 
+# Keys MUST be _ROUTE_SNOMED canonical form (or SNOMED-less exceptions like `NG`).
+# Alias forms (`INH`, `INHALATION`, `NEB` — see `_ROUTE_ALIASES`) MUST NOT appear here:
+# `build_route_concept` resolves alias → canonical BEFORE this lookup, so alias entries
+# are dead code that misleads future authors into thinking coverage exists.
+# Guarded at import time by `_validate_route_maps()` in `_fhir_common.py`.
 _ROUTE_JA: dict[str, str] = {
     "PO": "経口",
     "IV": "静注",
@@ -432,11 +437,9 @@ _ROUTE_JA: dict[str, str] = {
     "IM": "筋注",
     "SL": "舌下",
     "PR": "直腸",
-    "INH": "吸入",
     "TOPICAL": "外用",
     "NG": "経鼻",
     "INHALED": "吸入",
-    "NEB": "ネブライザー",
     "NEBULIZED": "ネブライザー",
 }
 _FREQ_JA: dict[str, str] = {
