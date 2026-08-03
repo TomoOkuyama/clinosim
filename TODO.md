@@ -21,6 +21,44 @@ For contribution workflow (Issue → PR → CI → squash merge) see
 
 ---
 
+## Where work is tracked today (updated 2026-08-03)
+
+**Active work is tracked in [GitHub Issues](https://github.com/TomoOkuyama/clinosim/issues),
+not in this file.** The sections below were last reconciled at session 67
+(`f3a7e57f94`, 2026-07-23); work from session 68 onward is not reflected here.
+
+Individual issue numbers are deliberately not mirrored into this file. A copy
+goes stale the moment the tracker moves, and two places to look is worse than
+one. Query the tracker for the current set. As of 2026-08-03 the 30 open issues
+cluster into these themes:
+
+- **Localization gaps in output paths** — fields that were never routed through
+  the localizer. These were found by *running* the localizer and diffing its
+  output, not by pattern-matching for non-Japanese text; the pattern-matching
+  estimates undercounted by roughly 15%.
+- **Vocabulary conformance** — dual-slot handling for English-only code systems
+  (`coding.display` carries the English canonical, `text` carries the Japanese),
+  and elements that currently hold prose where a coded value belongs.
+- **Disease YAML data quality** — dose prose that never reaches output, and
+  missing route keys that let a fallback assert a wrong administration route.
+- **Documentation pointers that no longer resolve** — `#483`.
+- **`current_medications` data model** — `#452`, the largest open item
+  (estimated 3-4 PRs).
+
+### A contradiction in this file's own preamble
+
+The preamble above says per-session continuation notes are kept out of the
+shared repo. That is no longer true: `docs/session-74-resume-prompt.md` and
+`docs/session-77-resume-prompt.md` are tracked, deliberately, because notes left
+untracked went missing between sessions.
+
+The sentence is left in place rather than quietly edited, so the contradiction
+stays visible for the decision in `#483` (which covers the related dangling
+pointer in `CLAUDE.md`). Editing it here would settle a policy question inside
+an unrelated change.
+
+---
+
 ## Architecture Decisions (current)
 
 | Decision | Date | Description |
