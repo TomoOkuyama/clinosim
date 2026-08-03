@@ -842,7 +842,7 @@ def _build_discharge_medication_request(
     # were a dosage. `_apply_jp_clins_profile` withholds the eCS profile from exactly
     # these resources, because eCS raises `dosageInstruction` to min=1.
     dosage: dict[str, Any] = {}
-    route_concept = build_route_concept(route)
+    route_concept = build_route_concept(route, country)
     if route_concept:
         dosage["route"] = route_concept
     dose_parts = [p for p in (dose, rate_adjustment_note) if p]
@@ -1045,7 +1045,7 @@ def _build_medication_admin(
     # Route — resolved through the shared helper so the MAR and MR paths cannot drift
     # apart again (Issue #458: the missing `INH` / `NEB` aliases produced 166 text-only
     # elements here versus 6 on the MR path). `.upper()` now lives in the helper.
-    route_concept = build_route_concept(mar.get("route") or parsed.get("route"))
+    route_concept = build_route_concept(mar.get("route") or parsed.get("route"), country)
     route = route_concept["text"] if route_concept else ""
     if route_concept:
         dosage["route"] = route_concept

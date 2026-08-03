@@ -164,7 +164,7 @@ def test_dose_and_route_are_both_preserved() -> None:
     r = _build(_DISCHARGE_ITEM)
     dosage = r["dosageInstruction"][0]
     assert dosage["route"]["coding"][0]["system"] == _SNOMED
-    assert dosage["route"]["text"] == "PO"
+    assert dosage["route"]["text"] == "経口", "JP output localizes route.text to Japanese"
     assert "20mg" in dosage["text"], "the authored dose string must not be dropped"
 
 

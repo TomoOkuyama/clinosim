@@ -436,6 +436,8 @@ _ROUTE_JA: dict[str, str] = {
     "TOPICAL": "外用",
     "NG": "経鼻",
     "INHALED": "吸入",
+    "NEB": "ネブライザー",
+    "NEBULIZED": "ネブライザー",
 }
 _FREQ_JA: dict[str, str] = {
     "DAILY": "1日1回",

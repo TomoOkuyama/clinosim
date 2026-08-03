@@ -540,7 +540,7 @@ def _make_participant(code: str, display: str, practitioner_id: str, country: st
     }
 
 
-def build_route_concept(raw_route: str | None) -> dict[str, Any] | None:
+def build_route_concept(raw_route: str | None, country: str = "US") -> dict[str, Any] | None:
     """Build the FHIR route `CodeableConcept` for a raw route value, or None if absent.
 
     SINGLE lookup point for route → SNOMED across every FHIR builder (Issue #458).
@@ -556,10 +556,13 @@ def build_route_concept(raw_route: str | None) -> dict[str, Any] | None:
     Resolution order: canonical key, then `_ROUTE_ALIASES` (author abbreviations such as
     `INH` / `NEB`). Case is normalised here so call sites do not each carry `.upper()`.
 
-    `text` keeps the author's own wording (upper-cased) rather than the canonical key:
+    `text` field adheres to dual-slot rule (Issue #479):
+    - JP (country="JP"): localized to Japanese via `_ROUTE_JA` lookup, following the
+      pattern of Observation.code and Procedure.code
+    - US (country="US"): keeps the author's own wording (upper-cased abbreviation)
     `CodeableConcept.text` is where the source system's representation belongs, while
-    `coding` carries the standard meaning. `NEB` therefore stays `NEB` and is not
-    rewritten to `NEBULIZED` — a string the source data never contained.
+    `coding` carries the standard meaning. For JP, the English abbreviation (`NEB`,
+    `INHALED`) is mapped to the Japanese term via the canonical `_ROUTE_JA` dictionary.
 
     An unresolvable route yields `{"text": route}` with no `coding`. That is deliberate:
     routes needing a NEW SNOMED code (`NASAL`, `NG`, `CATHETER`, …) must be verified
@@ -575,9 +578,13 @@ def build_route_concept(raw_route: str | None) -> dict[str, Any] | None:
         return None
     snomed = _ROUTE_SNOMED.get(route) or _ROUTE_SNOMED.get(_ROUTE_ALIASES.get(route, ""))
     if snomed:
+        # Localize text for JP output, keep abbreviation for US
+        text_value = route
+        if is_jp(country):
+            text_value = _ROUTE_JA.get(route, route)
         return {
             "coding": [{"system": get_system_uri("snomed-ct"), **snomed}],
-            "text": route,
+            "text": text_value,
         }
     return {"text": route}
 
