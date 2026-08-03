@@ -57,6 +57,15 @@ terms:
   q8h: 8時間毎
   q12h: 12時間毎
   q1h: 1時間毎
+  # session 76 Issue #469: intervals / forms that reached JP output untranslated.
+  # The substitution loop is longest-match-first, so ordering here is not load-bearing.
+  q6months: 6ヶ月毎
+  tablet: 錠
+  # `as prescribed` is the dose placeholder this Issue introduces for drugs that
+  # genuinely have no fixed dose (resume the prior inhaler / titrate to INR). Without
+  # an entry here the placeholder itself would be the new English residue — the gate
+  # caught exactly that on the first run.
+  as prescribed: 指示どおり
   bolus: ボーラス
   continuous: 持続
   drip: 点滴静注

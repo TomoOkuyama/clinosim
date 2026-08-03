@@ -41,8 +41,13 @@ def test_med_terms_tables_loaded():
     assert tables["categories"]["antipyretic"] == "解熱剤"
     assert tables["terms"]["PRN"] == "頓用"
     assert tables["terms"]["q6h"] == "6時間毎"
+    # Issue #469 additions — pinned by value, not just by count, so a later edit
+    # cannot silently swap a translation while keeping the total.
+    assert tables["terms"]["q6months"] == "6ヶ月毎"
+    assert tables["terms"]["tablet"] == "錠"
+    assert tables["terms"]["as prescribed"] == "指示どおり"
     # Sizes match the current YAML. Update these counts intentionally when
     # editing med_terms_ja.yaml — a diff here is the load-bearing signal
     # that the localization table changed.
     assert len(tables["categories"]) == 25
-    assert len(tables["terms"]) == 155
+    assert len(tables["terms"]) == 158  # 155 + q6months / tablet / as prescribed (Issue #469)

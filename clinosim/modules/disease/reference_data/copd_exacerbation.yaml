@@ -524,9 +524,12 @@ drugs:
     japan:
       - drug: "Prednisolone"
         code_yj: "2456001"
-        dose: "20mg PO daily, taper over 5-7 days"
+        dose: "20mg PO daily"   # session 76 Issue #469: the taper moved to `note`.
+                                # `asthma_exacerbation.yaml` already had that shape
+                                # (dose "30-40mg PO daily" + note "Taper over 5-7 days");
+                                # this file was the odd one out.
         duration_days: 7
-        note: "total steroid course 10-14 days"
+        note: "total steroid course 10-14 days; taper over 5-7 days"
       - drug: "Amoxicillin/Clavulanate"
         code_yj: "6131101"
         dose: "250mg PO TID"

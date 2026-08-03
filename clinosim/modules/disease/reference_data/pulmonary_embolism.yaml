@@ -416,16 +416,22 @@ drugs:
         drug_class: "anticoagulant"
         probability: 0.8
         code_yj: "3339002"
-        dose: "60mg PO daily (30mg if body weight <=60kg or eGFR 15-50)"
+        dose: "60mg PO daily"   # session 76 Issue #469: the renal/weight dose
+                                # adjustment moved to `note`. Word-level JP
+                                # translation cannot place a conditional clause
+                                # ("30mg 場合 body weight <=60kg" is not Japanese).
         duration_days: 90
-        note: "DOAC first-line (JCS 2017)"
+        note: "DOAC first-line (JCS 2017); 30mg if body weight <=60kg or eGFR 15-50"
       - drug: "Warfarin"
         drug_class: "anticoagulant"
         probability: 0.2
         code_yj: "3332001"
-        dose: "Adjusted to INR 2.0-3.0 (1.5-2.5 age>70)"
+        dose: "As prescribed"   # session 76 Issue #469: same class as the sibling
+                                # entries. Warfarin has no fixed dose — it is titrated
+                                # to INR, so the target belongs in `note`. Not emitted
+                                # at p=300 seed=42 (probability 0.2), hence latent.
         duration_days: 90
-        note: "Used if mechanical valve or DOAC contraindicated (JCS 2017)"
+        note: "Used if mechanical valve or DOAC contraindicated (JCS 2017); adjusted to INR 2.0-3.0 (1.5-2.5 age>70)"
     us:
       # US: both Rivaroxaban (EINSTEIN-PE) and Apixaban (AMPLIFY) are
       # first-line DOACs per CHEST 2021 Antithrombotic Therapy Guideline;
