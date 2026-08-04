@@ -126,7 +126,9 @@ def test_route_text_preserves_the_authored_value_uppercased_on_us(raw):
     source data never contained. JP output localizes instead (see
     `test_route_text_localizes_to_ja_on_jp`).
     """
-    assert build_route_concept(raw, "US")["text"] == raw.upper()
+    concept = build_route_concept(raw, "US")
+    assert concept is not None
+    assert concept["text"] == raw.upper()
 
 
 @pytest.mark.parametrize(
@@ -146,6 +148,7 @@ def test_route_text_preserves_the_authored_value_uppercased_on_us(raw):
 def test_canonical_routes_unchanged(raw, code):
     """Every pre-existing canonical route resolves exactly as before."""
     concept = build_route_concept(raw, "US")
+    assert concept is not None
     assert concept["coding"][0]["code"] == code
     assert concept["text"] == raw
 
@@ -208,6 +211,7 @@ def test_dosage_instruction_text_still_uses_the_authored_token():
         {"route": "NEB", "dose_quantity": 2.5, "dose_unit": "mg"},
         country="US",
     )
+    assert dosage is not None
     assert "NEB" in dosage["text"]
 
 
@@ -248,6 +252,7 @@ def test_both_call_sites_produce_identical_concepts_for_the_same_route():
     from clinosim.modules.output._fhir_medications import _build_medication_admin
 
     mr_dosage = _build_dosage_instruction({"route": "NEB", "dose_quantity": 2.5, "dose_unit": "mg"}, country="US")
+    assert mr_dosage is not None
     mar = _build_medication_admin(
         {"drug_name": "Salbutamol", "dose": "2.5mg", "route": "NEB", "status": "given"},
         patient_id="POP-000001",
@@ -268,7 +273,7 @@ def _route_map_references(path):
     import ast
 
     tree = ast.parse(path.read_text(encoding="utf-8"))
-    parent_func = {}
+    parent_func: dict[int, str] = {}
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
             for child in ast.walk(node):
