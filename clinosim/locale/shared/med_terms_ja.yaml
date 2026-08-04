@@ -66,6 +66,20 @@ terms:
   # an entry here the placeholder itself would be the new English residue — the gate
   # caught exactly that on the first run.
   as prescribed: 指示どおり
+  # Issue #481: unfired dose prose — entries needed for JP localization when
+  # these YAML dose values fire in larger cohorts. See resume prompt for details.
+  increase infusion rate: 注入速度を増加
+  as: 〜
+  urine alkalinization: 尿アルカリ化
+  Increase: 増加
+  Percutaneous: 経皮的
+  vertebroplasty: 椎骨成形術
+  weight-based: 体重ベース
+  IPAP: IPAP
+  EPAP: EPAP
+  # BiPAP (Non-invasive ventilation) device settings
+  BiPAP: バイレベル陽圧換気
+  cmH2O: cmH2O
   bolus: ボーラス
   continuous: 持続
   drip: 点滴静注
