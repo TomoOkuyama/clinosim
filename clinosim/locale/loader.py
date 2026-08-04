@@ -17,6 +17,7 @@ Directory structure (country-based):
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -231,8 +232,42 @@ def load_demographics(country: str) -> dict[str, Any]:
 
 @lru_cache(maxsize=1)
 def load_chronic_medications() -> dict[str, Any]:
-    """Load chronic condition home medications and monitoring rules."""
-    return _load_yaml(_LOCALE_DIR / "shared" / "chronic_medications.yaml", fallback={})
+    """Load chronic condition home medications and monitoring rules.
+
+    Issue #458: import-time route vocabulary validation. Same silent-no-op
+    class as the disease / encounter YAMLs; an unknown `route:` string here
+    would silently emit `{"text": VALUE}` with no SNOMED coding on the FHIR
+    side.
+    """
+    data = _load_yaml(_LOCALE_DIR / "shared" / "chronic_medications.yaml", fallback={})
+    _validate_chronic_medications_route_vocabulary(data)
+    return data
+
+
+def _iter_route_values(data: Any) -> Iterator[str]:
+    """Yield every `route:` string found anywhere in a nested YAML structure.
+
+    Third copy of this walker (sibling to disease/protocol.py and
+    encounter/protocol.py). Kept local so the `locale` package retains its
+    "loader lives with the data" convention and does not depend on either.
+    """
+    if isinstance(data, dict):
+        for k, v in data.items():
+            if k == "route" and isinstance(v, str):
+                yield v
+            else:
+                yield from _iter_route_values(v)
+    elif isinstance(data, list):
+        for item in data:
+            yield from _iter_route_values(item)
+
+
+def _validate_chronic_medications_route_vocabulary(data: Any) -> None:
+    """Delegate to the single-sourced canonical validator (Issue #458)."""
+    from clinosim.modules.output._fhir_reference_data import validate_yaml_route_value
+
+    for raw in _iter_route_values(data):
+        validate_yaml_route_value(raw, source="chronic_medications.yaml")
 
 
 @lru_cache(maxsize=8)
