@@ -21,53 +21,19 @@ For contribution workflow (Issue → PR → CI → squash merge) see
 
 ---
 
-## Backlog work order (updated 2026-08-04)
+## Backlog work order (updated 2026-08-04, session 78 wrap)
 
 The open issues are being worked one issue per PR. The order below is not
-arbitrary — three pairs have a dependency that makes the reverse order produce
+arbitrary — some pairs have a dependency that makes the reverse order produce
 rework. **Read this before picking an issue.**
 
-### Start here — independent, no ordering constraint
+### Session 78 closed (all merged to master)
 
-| Issue | What |
-|---|---|
-| `#465` | CI job is named `mkdocs build --strict` but runs without `--strict` |
-| `#486` | mypy strict errors in `test_fhir_route_alias_resolution.py` (pre-existing) |
-
-### Then — `#468` before `#466` (order matters)
-
-Both write an admission timestamp into a field that should hold a discharge
-timestamp:
-
-```
-clinosim/simulator/inpatient.py:2165   issue_date = admission_time                (#466)
-clinosim/simulator/inpatient.py:2417   discharge_datetime = admission_time + ...  (#468)
-clinosim/modules/output/fhir_r4_adapter.py:722
-                                       authored_on = discharge_dt or issue_date
-```
-
-The FHIR adapter already prefers `discharge_dt`, so **FHIR output is likely
-correct and only the CIF value is wrong**. That is not an AD-17 violation —
-AD-17 defines the three-stage pipeline and the adapter reads only CIF fields.
-The real exposure is **AD-58**: "adding a format = add one `OutputAdapter`"
-assumes CIF values are correct. A new SS-MIX2 / HL7 v2 adapter would read
-`issue_date` directly, emit the admission timestamp, and nothing would fail.
-
-Fix `#468` first — otherwise `#466` copies a `discharge_datetime` that is itself
-wrong. The `#466` PR should also drop the adapter workaround, since a correct
-CIF removes the reason for it.
-
-### Then — check `#460` before implementing `#458`
-
-`#458`'s remaining scope is import-time validation of YAML `route` values
-against the canonical set. But `route: PROCEDURAL` (2 occurrences) may be the
-same non-medication entries `#460` describes — procedures emitted as
-`MedicationRequest`. **Unverified.** If `#460` lands first, `PROCEDURAL`
-disappears from the route vocabulary and `#458`'s by-design set changes.
-
-`#458`'s original live defect (`NEB` emitting no SNOMED coding) is **already
-fixed** by the `_ROUTE_ALIASES` work in `#484`, pinned by
-`test_aliased_routes_now_emit_a_coding`. Only the validation gap remains.
+- `#465` — CI docs job renamed to match its actual command (`mkdocs build`).
+- `#486` — mypy strict errors in `test_fhir_route_alias_resolution.py`.
+- `#468` — inpatient `discharge_datetime` now absolute time (was offset from admission), planned-discharge helper extracted for testability.
+- `#466` — inpatient `discharge_prescription.issue_date` backfilled to `planned_discharge`; FHIR adapter's inpatient/outpatient branching workaround retired.
+- `#458` — YAML `route:` values validated at import time against canonical + alias + by-design set (silent-no-op defense per CLAUDE.md rule).
 
 ### Largest item — `#452`
 
@@ -75,21 +41,21 @@ fixed** by the `_ROUTE_ALIASES` work in `#484`, pinned by
 dose. It is the root of `#442`, `#445`, and `#436`; fixing those first means
 reworking them. Estimated 3-4 PRs. Worth a written proposal before implementing.
 
-### Before starting `#452` or `#458`
+### Before starting `#452`
 
-Both issues quote figures from measurement files that are **not in the
-repository** and no longer exist anywhere. The numbers in their descriptions
-cannot be re-derived, and they predate several merged PRs. Re-measure at the
-start rather than treating the quoted figures as current — both issues carry a
-comment explaining this, with the commands to regenerate a cohort.
+`#452` (and the now-closed `#458`) quote figures from measurement files that
+are **not in the repository** and no longer exist. The numbers in their
+descriptions cannot be re-derived and predate several merged PRs. Re-measure
+at the start rather than treating the quoted figures as current — the issue
+carries a comment explaining this with the commands to regenerate a cohort.
 
 ### On grouping
 
 The batches above came from reading issue titles, then checking. Two of the
-groupings that looked independent were not (`#468`/`#466`, `#458`/`#460`). The
-remaining issues have not been checked the same way. **Before starting any
-issue, grep for the symbols and files it touches and see which other issues
-touch them.**
+groupings that looked independent were not (`#468`/`#466`, `#458`/`#460`).
+Both landed in session 78. **The remaining issues have not been checked the
+same way — before starting any issue, grep for the symbols and files it
+touches and see which other issues touch them.**
 
 ---
 

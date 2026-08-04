@@ -65,3 +65,9 @@ scratchpad/*_report.txt
 # Contributors may keep private session-scoped resume prompts here without
 # tracking them in git.
 docs/session-resume/
+
+# Session-local resume prompts at repo root (personal / one-off).
+# `.resume-prompt-<name>.md` for named variants; `.resume-prompt.md` for the
+# default one written at end of a session (see s78 handover convention).
+.resume-prompt.md
+.resume-prompt-*.md
