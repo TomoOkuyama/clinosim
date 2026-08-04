@@ -708,20 +708,14 @@ def _bb_discharge_medication_requests(ctx: BundleContext) -> list[dict]:
 
     issue_date = str(get_attr_or_key(rx, "issue_date", "") or "")
     discharge_dt = str(get_attr_or_key(enc, "discharge_datetime", "") or "")
-    # `authoredOn` is min=1 in JP_MedicationRequest (JP Core 1.2.0), so it cannot be left
-    # out. For an inpatient stay the CIF `issue_date` holds the ADMISSION timestamp —
-    # `_build_discharge_rx` runs before the discharge time is computed — which would date a
-    # take-home script days before it was written (measured spread: 7-15 days). The
-    # encounter's own `discharge_datetime` is the moment the script is authored. An
-    # outpatient renewal is issued during the visit, so there `issue_date` is already
-    # right. Each side falls back to the other only so a future snapshot-truncation change
-    # cannot produce a cardinality violation; in the measured corpus every inpatient
-    # discharge prescription carries a discharge_datetime, because truncation drops the
-    # prescription entirely. The CIF-side `issue_date` defect is tracked separately.
-    if enc_type == "inpatient":
-        authored_on = discharge_dt or issue_date
-    else:
-        authored_on = issue_date or discharge_dt
+    # `authoredOn` is min=1 in JP_MedicationRequest (JP Core 1.2.0). Before the
+    # Issue #466 fix in `_simulate_patient`, the inpatient CIF `issue_date`
+    # held the admission timestamp (7-15 days early) and needed to be replaced
+    # here with `discharge_datetime`. That defect is fixed at the source, so
+    # `issue_date` is now correct for both inpatient (= planned_discharge) and
+    # outpatient (= visit start). `discharge_dt` remains as a fallback so a
+    # future snapshot-truncation change cannot produce an empty cardinality.
+    authored_on = issue_date or discharge_dt
 
     prescriber_id = str(get_attr_or_key(rx, "prescriber_id", "") or "")
 
