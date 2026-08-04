@@ -92,9 +92,7 @@ from clinosim.types.patient import PatientProfile
 # ============================================================
 
 
-def _planned_discharge_datetime(
-    admission_time: datetime, actual_los: int, dc_hour: int
-) -> datetime:
+def _planned_discharge_datetime(admission_time: datetime, actual_los: int, dc_hour: int) -> datetime:
     """Discharge timestamp for a planned (non-death) discharge.
 
     The discharge date is `admission_date + actual_los`, and the hour is set
@@ -107,9 +105,7 @@ def _planned_discharge_datetime(
     admission_time, which rolled afternoon admissions past midnight and
     silently defeated the clamp.
     """
-    return (admission_time + timedelta(days=actual_los)).replace(
-        hour=dc_hour, minute=admission_time.minute
-    )
+    return (admission_time + timedelta(days=actual_los)).replace(hour=dc_hour, minute=admission_time.minute)
 
 
 def _simulate_patient(
