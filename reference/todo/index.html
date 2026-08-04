@@ -1681,6 +1681,72 @@ kept out of the shared repo.</p>
 <p>For contribution workflow (Issue → PR → CI → squash merge) see
 <a href="../../CLAUDE.md"><code>CLAUDE.md § Development workflow</code></a>.</p>
 <hr />
+<h2 id="backlog-work-order-updated-2026-08-04">Backlog work order (updated 2026-08-04)<a class="headerlink" href="#backlog-work-order-updated-2026-08-04" title="Permanent link">&para;</a></h2>
+<p>The open issues are being worked one issue per PR. The order below is not
+arbitrary — three pairs have a dependency that makes the reverse order produce
+rework. <strong>Read this before picking an issue.</strong></p>
+<h3 id="start-here-independent-no-ordering-constraint">Start here — independent, no ordering constraint<a class="headerlink" href="#start-here-independent-no-ordering-constraint" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>What</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>#465</code></td>
+<td>CI job is named <code>mkdocs build --strict</code> but runs without <code>--strict</code></td>
+</tr>
+<tr>
+<td><code>#486</code></td>
+<td>mypy strict errors in <code>test_fhir_route_alias_resolution.py</code> (pre-existing)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="then-468-before-466-order-matters">Then — <code>#468</code> before <code>#466</code> (order matters)<a class="headerlink" href="#then-468-before-466-order-matters" title="Permanent link">&para;</a></h3>
+<p>Both write an admission timestamp into a field that should hold a discharge
+timestamp:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>clinosim/simulator/inpatient.py:2165   issue_date = admission_time                (#466)
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>clinosim/simulator/inpatient.py:2417   discharge_datetime = admission_time + ...  (#468)
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>clinosim/modules/output/fhir_r4_adapter.py:722
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                                       authored_on = discharge_dt or issue_date
+</span></code></pre></div>
+<p>The FHIR adapter already prefers <code>discharge_dt</code>, so <strong>FHIR output is likely
+correct and only the CIF value is wrong</strong>. That is not an AD-17 violation —
+AD-17 defines the three-stage pipeline and the adapter reads only CIF fields.
+The real exposure is <strong>AD-58</strong>: "adding a format = add one <code>OutputAdapter</code>"
+assumes CIF values are correct. A new SS-MIX2 / HL7 v2 adapter would read
+<code>issue_date</code> directly, emit the admission timestamp, and nothing would fail.</p>
+<p>Fix <code>#468</code> first — otherwise <code>#466</code> copies a <code>discharge_datetime</code> that is itself
+wrong. The <code>#466</code> PR should also drop the adapter workaround, since a correct
+CIF removes the reason for it.</p>
+<h3 id="then-check-460-before-implementing-458">Then — check <code>#460</code> before implementing <code>#458</code><a class="headerlink" href="#then-check-460-before-implementing-458" title="Permanent link">&para;</a></h3>
+<p><code>#458</code>'s remaining scope is import-time validation of YAML <code>route</code> values
+against the canonical set. But <code>route: PROCEDURAL</code> (2 occurrences) may be the
+same non-medication entries <code>#460</code> describes — procedures emitted as
+<code>MedicationRequest</code>. <strong>Unverified.</strong> If <code>#460</code> lands first, <code>PROCEDURAL</code>
+disappears from the route vocabulary and <code>#458</code>'s by-design set changes.</p>
+<p><code>#458</code>'s original live defect (<code>NEB</code> emitting no SNOMED coding) is <strong>already
+fixed</strong> by the <code>_ROUTE_ALIASES</code> work in <code>#484</code>, pinned by
+<code>test_aliased_routes_now_emit_a_coding</code>. Only the validation gap remains.</p>
+<h3 id="largest-item-452">Largest item — <code>#452</code><a class="headerlink" href="#largest-item-452" title="Permanent link">&para;</a></h3>
+<p><code>current_medications</code> is <code>list[str]</code>, which silently drops route / frequency /
+dose. It is the root of <code>#442</code>, <code>#445</code>, and <code>#436</code>; fixing those first means
+reworking them. Estimated 3-4 PRs. Worth a written proposal before implementing.</p>
+<h3 id="before-starting-452-or-458">Before starting <code>#452</code> or <code>#458</code><a class="headerlink" href="#before-starting-452-or-458" title="Permanent link">&para;</a></h3>
+<p>Both issues quote figures from measurement files that are <strong>not in the
+repository</strong> and no longer exist anywhere. The numbers in their descriptions
+cannot be re-derived, and they predate several merged PRs. Re-measure at the
+start rather than treating the quoted figures as current — both issues carry a
+comment explaining this, with the commands to regenerate a cohort.</p>
+<h3 id="on-grouping">On grouping<a class="headerlink" href="#on-grouping" title="Permanent link">&para;</a></h3>
+<p>The batches above came from reading issue titles, then checking. Two of the
+groupings that looked independent were not (<code>#468</code>/<code>#466</code>, <code>#458</code>/<code>#460</code>). The
+remaining issues have not been checked the same way. <strong>Before starting any
+issue, grep for the symbols and files it touches and see which other issues
+touch them.</strong></p>
+<hr />
 <h2 id="where-work-is-tracked-today-updated-2026-08-03">Where work is tracked today (updated 2026-08-03)<a class="headerlink" href="#where-work-is-tracked-today-updated-2026-08-03" title="Permanent link">&para;</a></h2>
 <p><strong>Active work is tracked in <a href="https://github.com/TomoOkuyama/clinosim/issues">GitHub Issues</a>,
 not in this file.</strong> The sections below were last reconciled at session 67
