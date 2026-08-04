@@ -221,6 +221,48 @@ content without a `.ja.md` suffix and will be migrated in follow-up PRs
 横断作業は別 PR に分割)。session 内で複数 chain を進める場合、
 chain 毎に別ブランチ + 別 PR。
 
+### ★ CI 待ちで手を止めない — 別 Issue を別ブランチで並行して進める
+
+CI は integration shard を含むと 10-15 分かかる。**その間 idle で待たない。**
+PR を出したら `master` に戻り、**次の Issue を別ブランチで開始する**。
+
+```bash
+# Issue A: 実装 → push → PR 作成 (ここで CI が走り始める)
+git switch -c fix/<A>-<slug> master
+# ... 実装 ...
+git commit --signoff -m "..." && git push -u origin fix/<A>-<slug>
+gh pr create --base master ...
+
+# CI を待たずに Issue B へ
+git switch master && git pull --ff-only origin master
+git switch -c fix/<B>-<slug>
+# ... 実装 ...
+
+# A の CI が緑になったら merge し、master を更新してから B を続ける
+gh pr merge <A の PR 番号> --squash --delete-branch
+git switch master && git pull --ff-only origin master
+```
+
+**並行してよい Issue の条件**:
+
+- **触るファイルが重ならないこと。** 着手前に、各 Issue が触るファイル・シンボルを
+  grep して重なりを確認する。重なる場合は**並行させず順番に**やる
+  (`TODO.md` 冒頭「Backlog work order」に既知の依存を記載)
+- **依存関係のある Issue は並行させない。** 例: `#468` → `#466` は同じ
+  `inpatient.py` の退院時刻を扱うため、必ず順番に
+
+**master が進んだら、作業中のブランチを rebase する**:
+
+```bash
+git switch fix/<B>-<slug>
+git rebase master          # 衝突したら、重なりの判定が誤っていた合図
+```
+
+**待つべき場面もある**: merge 直前の最終確認、および**取り消せない操作の直前**
+(`gh issue delete` / force push)。ここは状態が変わっていないことを実行直前に
+測り直す。並行作業で state が動いている可能性があるため、**承認時の HEAD と
+merge 時の HEAD が同一であること**を確認する。
+
 **hotfix 例外**: 本番 blocker(CI 全落ち / silent-drop 検出)は master
 直接 push OK、ただし同一 session 内で post-hoc Issue + 説明 comment
 を残すこと。
