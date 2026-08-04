@@ -511,6 +511,13 @@ def _simulate_patient(
     else:
         encounter.status = EncounterStatus.COMPLETED
         encounter.discharge_datetime = planned_discharge
+        # Issue #466: `_build_discharge_rx` runs before planned_discharge is
+        # known (it consumes rng; moving it later would shift the cohort per
+        # AD-16). Backfill the correct issue_date here — pure assignment, no
+        # rng consumption. Also lets the FHIR adapter drop its inpatient
+        # workaround (fhir_r4_adapter.py `_bb_discharge_medication_requests`).
+        if discharge_rx is not None:
+            discharge_rx.issue_date = planned_discharge
 
     # Microbiology cultures + susceptibilities (AD-55 Base) — infections only.
     # Encounter-scoped sub-seed keeps the main random stream unperturbed (AD-16).
