@@ -463,10 +463,14 @@ def _simulate_patient(
             else "UR"
         )
 
-    # Discharge time: morning (10-12) for planned discharge, any time for death
+    # Discharge time: daytime (09-16) for planned discharge, any time for death
+    # Clinical convention: discharges happen during daytime business hours
     dc_hour = 0 if death_occurred else int(rng.normal(11, 1.5))
     dc_hour = max(9, min(16, dc_hour)) if not death_occurred else 0
-    planned_discharge = admission_time + timedelta(days=actual_los, hours=dc_hour)
+    # Set absolute discharge time to the specified hour, preserving admission minute
+    planned_discharge = (admission_time + timedelta(days=actual_los)).replace(
+        hour=dc_hour, minute=admission_time.minute
+    )
 
     # Snapshot truncation: if planned discharge is after snapshot date,
     # patient is still admitted as of snapshot → no discharge_datetime
