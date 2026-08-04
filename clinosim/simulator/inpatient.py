@@ -92,6 +92,26 @@ from clinosim.types.patient import PatientProfile
 # ============================================================
 
 
+def _planned_discharge_datetime(
+    admission_time: datetime, actual_los: int, dc_hour: int
+) -> datetime:
+    """Discharge timestamp for a planned (non-death) discharge.
+
+    The discharge date is `admission_date + actual_los`, and the hour is set
+    absolutely from `dc_hour` (typically clamped to 09-16 for business-hour
+    discharge). The minute is preserved from admission_time so patients do
+    not all land on the same minute.
+
+    Extracted from `_simulate_patient` (Issue #468) so the invariant can be
+    unit-tested. The pre-fix code added `dc_hour` as an offset to
+    admission_time, which rolled afternoon admissions past midnight and
+    silently defeated the clamp.
+    """
+    return (admission_time + timedelta(days=actual_los)).replace(
+        hour=dc_hour, minute=admission_time.minute
+    )
+
+
 def _simulate_patient(
     patient: PatientProfile,
     event: LifeEvent,
@@ -467,10 +487,7 @@ def _simulate_patient(
     # Clinical convention: discharges happen during daytime business hours
     dc_hour = 0 if death_occurred else int(rng.normal(11, 1.5))
     dc_hour = max(9, min(16, dc_hour)) if not death_occurred else 0
-    # Set absolute discharge time to the specified hour, preserving admission minute
-    planned_discharge = (admission_time + timedelta(days=actual_los)).replace(
-        hour=dc_hour, minute=admission_time.minute
-    )
+    planned_discharge = _planned_discharge_datetime(admission_time, actual_los, dc_hour)
 
     # Snapshot truncation: if planned discharge is after snapshot date,
     # patient is still admitted as of snapshot → no discharge_datetime
