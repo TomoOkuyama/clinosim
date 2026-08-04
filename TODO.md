@@ -41,21 +41,19 @@ cluster into these themes:
   and elements that currently hold prose where a coded value belongs.
 - **Disease YAML data quality** — dose prose that never reaches output, and
   missing route keys that let a fallback assert a wrong administration route.
-- **Documentation pointers that no longer resolve** — `#483`.
 - **`current_medications` data model** — `#452`, the largest open item
   (estimated 3-4 PRs).
 
 ### A contradiction in this file's own preamble
 
 The preamble above says per-session continuation notes are kept out of the
-shared repo. That is no longer true: `docs/session-74-resume-prompt.md` and
-`docs/session-77-resume-prompt.md` are tracked, deliberately, because notes left
-untracked went missing between sessions.
+shared repo. That is no longer strictly true: numbered per-session wrap files
+under `docs/session-NN-resume-prompt.md` are tracked, deliberately, because
+notes left untracked went missing between sessions.
 
-The sentence is left in place rather than quietly edited, so the contradiction
-stays visible for the decision in `#483` (which covers the related dangling
-pointer in `CLAUDE.md`). Editing it here would settle a policy question inside
-an unrelated change.
+The sentence is left in place rather than quietly edited, so the practice
+change stays visible — the convention did shift, but only for the numbered
+wrap files. Personal in-flight notes still stay untracked.
 
 ---
 
@@ -2131,8 +2129,9 @@ today.
 # Session Resume Prompt
 
 次 session の cold-start 用 resume prompt(STEP 0-7 + プロジェクトコンセプト + logic
-design 完全網羅)は別 file に切出し済:
+design 完全網羅)は連番形式で `docs/` 直下に切出し:
 
-→ **[`docs/session-resume/next.md`](docs/session-resume/next.md)**
+→ 最新は `docs/session-NN-resume-prompt.md`(`ls docs/session-*-resume-prompt.md | sort -V | tail -1` で解決)。
 
-Session wrap ごとに同 file を上書き更新(以前のは git history 参照)。
+Session wrap ごとに次番号の新規 file を追加(git log で全履歴が辿れる形式。旧慣行の
+「上書き更新 + git history 参照」から、file 名に番号を持たせる形に変更した)。
