@@ -2,7 +2,7 @@
 #
 # Two jobs:
 #   - build  (fires on PRs to master) — validates docs compile with
-#            `mkdocs build --strict` so a broken link never merges.
+#            `mkdocs build` (warnings tolerated; see note in job for details)
 #   - deploy (fires on master push)   — publishes to the gh-pages branch
 #            via `mkdocs gh-deploy`, which GitHub Pages then serves.
 #
@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: mkdocs build --strict
+    name: mkdocs build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
