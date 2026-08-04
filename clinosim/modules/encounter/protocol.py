@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -95,6 +96,36 @@ class EncounterConditionProtocol(BaseModel):
     narrative: EncounterNarrativeSpec | None = None
 
 
+def _iter_route_values(data: Any) -> Iterator[str]:
+    """Yield every `route:` string found anywhere in a nested YAML structure.
+
+    Sibling of the identically-named helper in `disease/protocol.py` — kept
+    inline here rather than shared to preserve module independence
+    (encounter module has no dependency on disease module).
+    """
+    if isinstance(data, dict):
+        for k, v in data.items():
+            if k == "route" and isinstance(v, str):
+                yield v
+            else:
+                yield from _iter_route_values(v)
+    elif isinstance(data, list):
+        for item in data:
+            yield from _iter_route_values(item)
+
+
+def _validate_encounter_route_vocabulary(condition_id: str, data: Any) -> None:
+    """Issue #458: import-time route vocabulary check for encounter YAMLs.
+
+    Sibling of `disease.protocol._validate_drug_route_vocabulary`. Delegates
+    to `validate_yaml_route_value` so the recognized set stays single-sourced.
+    """
+    from clinosim.modules.output._fhir_reference_data import validate_yaml_route_value
+
+    for raw in _iter_route_values(data):
+        validate_yaml_route_value(raw, source=f"encounter {condition_id!r}")
+
+
 @lru_cache(maxsize=64)
 def load_encounter_condition(condition_id: str) -> dict[str, Any]:
     """Load and validate a single encounter condition YAML.
@@ -111,6 +142,7 @@ def load_encounter_condition(condition_id: str) -> dict[str, Any]:
     with open(path) as f:
         data = yaml.safe_load(f)
     EncounterConditionProtocol.model_validate(data)
+    _validate_encounter_route_vocabulary(condition_id, data)
     return data
 
 
@@ -125,5 +157,6 @@ def load_all_encounter_conditions() -> dict[str, dict[str, Any]]:
         except Exception as exc:  # narrow re-raise with offending filename
             raise ValueError(f"Invalid encounter condition YAML: {yaml_file.name}") from exc
         cid = data.get("condition_id", yaml_file.stem)
+        _validate_encounter_route_vocabulary(cid, data)
         conditions[cid] = data
     return conditions

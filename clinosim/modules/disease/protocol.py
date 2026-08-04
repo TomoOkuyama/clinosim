@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -101,6 +102,43 @@ def dose_contradicts_fallback(dose: str, fallback: str) -> bool:
     """
     named = dose_route_tokens(dose)
     return bool(named) and (fallback or "").upper() not in named
+
+
+def _iter_route_values(data: Any) -> Iterator[str]:
+    """Yield every `route:` string found anywhere in a nested YAML structure.
+
+    Walks lists and dicts recursively; only picks up the value keyed exactly
+    `route`. Sibling to `_validate_drug_route_consistency` — feeds the
+    Issue #458 vocabulary check without hard-coding which drug blocks exist.
+    """
+    if isinstance(data, dict):
+        for k, v in data.items():
+            if k == "route" and isinstance(v, str):
+                yield v
+            else:
+                yield from _iter_route_values(v)
+    elif isinstance(data, list):
+        for item in data:
+            yield from _iter_route_values(item)
+
+
+def _validate_drug_route_vocabulary(disease_id: str, data: dict[str, Any]) -> None:
+    """Fail loudly when a disease YAML author uses a route value that isn't in
+    the canonical / alias / by-design set (Issue #458).
+
+    Pre-fix: `_ROUTE_SNOMED.get(route)` silently returned None for unknown
+    values and the FHIR builder emitted `{"text": VALUE}` with no coding —
+    the PR-90 silent-no-op class explicitly documented in CLAUDE.md §
+    "Import-time canonical-constants validation". Adding a new value in a
+    disease YAML would ship broken FHIR with no error until an audit ran.
+
+    Delegates to `validate_yaml_route_value` so the recognized set stays
+    single-sourced in `_fhir_reference_data.py`.
+    """
+    from clinosim.modules.output._fhir_reference_data import validate_yaml_route_value
+
+    for raw in _iter_route_values(data):
+        validate_yaml_route_value(raw, source=f"disease {disease_id!r}")
 
 
 def _validate_drug_route_consistency(disease_id: str, drugs: dict[str, Any]) -> None:
@@ -363,6 +401,11 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     # substitute — the class PR #457 missed because its sweep keyed on drug names
     # rather than dose strings.
     _validate_drug_route_consistency(disease_id, data.get("drugs", {}) or {})
+
+    # Issue #458: import-time route vocabulary validation. Walks every `route:`
+    # value in the whole YAML (not only `drugs`) so newly-added blocks are
+    # covered without maintenance here.
+    _validate_drug_route_vocabulary(disease_id, data)
     return protocol
 
 

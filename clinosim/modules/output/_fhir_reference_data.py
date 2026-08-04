@@ -166,6 +166,70 @@ _ROUTE_ALIASES: dict[str, str] = {
 }
 
 
+# Issue #458: Recognized-but-text-only route values (upper-case). These come out
+# as `{"text": VALUE}` with no SNOMED coding — either because they need a NEW
+# canonical code that hasn't been authoritatively verified yet, or because the
+# real fix is elsewhere (e.g. PROCEDURAL / CATHETER on procedure-shaped drug
+# entries — see Issue #460 for the resource-type problem). Kept as an explicit
+# allowlist so the YAML validator doesn't reject them and reviewers see the
+# by-design set at a glance. Adding a value here MUST be intentional; a new
+# YAML value NOT in canonical / aliases / this set fails load with ValueError.
+_ROUTE_TEXT_ONLY_BY_DESIGN: frozenset[str] = frozenset(
+    {
+        "NASAL",
+        "NG",
+        "TRANSDERMAL",
+        "LOCAL",
+        "CATHETER",
+        "PROCEDURAL",
+        "PROCEDURE",
+        "EXTRACORPOREAL",
+        "NON-PHARMACOLOGIC",
+        "OTHER",
+        "N/A",
+    }
+)
+
+
+KNOWN_ROUTE_VOCABULARY: frozenset[str] = frozenset(
+    set(_ROUTE_SNOMED.keys()) | set(_ROUTE_ALIASES.keys()) | _ROUTE_TEXT_ONLY_BY_DESIGN
+)
+"""Every YAML-authored `route` value MUST upper-case into this set. Comprises
+the canonical SNOMED-coded set (`_ROUTE_SNOMED`), the author-abbreviation
+aliases (`_ROUTE_ALIASES`), and the by-design text-only allowlist
+(`_ROUTE_TEXT_ONLY_BY_DESIGN`). Consumed by `validate_yaml_route_value` — the
+import-time guard added in Issue #458."""
+
+
+def validate_yaml_route_value(raw_route: str, source: str) -> None:
+    """Raise ValueError if `raw_route` is not a recognized route vocabulary token.
+
+    `source` is a human-readable location string (e.g. disease id, file path)
+    used only in the error message so the offender is trivial to locate.
+
+    Case-insensitive: the raw value is upper-cased before lookup — matches the
+    `.upper()` normalization at every runtime call site
+    (`_fhir_common.build_route_concept` etc.).
+
+    Purpose: closes the silent-no-op class documented in CLAUDE.md §
+    "Import-time canonical-constants validation". A new YAML `route` value
+    not on the canonical / alias / by-design set falls through to text-only
+    silently — the exact drift that motivated Issue #458.
+    """
+    if not raw_route:
+        return
+    normalized = str(raw_route).upper().strip()
+    if not normalized:
+        return
+    if normalized not in KNOWN_ROUTE_VOCABULARY:
+        raise ValueError(
+            f"{source}: unknown route value {raw_route!r} (normalized {normalized!r}). "
+            f"Add to _ROUTE_SNOMED (with a verified SNOMED code), _ROUTE_ALIASES "
+            f"(if it aliases an existing canonical), or _ROUTE_TEXT_ONLY_BY_DESIGN "
+            f"in clinosim/modules/output/_fhir_reference_data.py — do not guess a code."
+        )
+
+
 _ROLE_PREFIX_MAP: dict[str, dict[str, str]] = {
     "physician": {"qual_code": "MD", "qual_display": "Doctor of Medicine"},
     "nurse": {"qual_code": "RN", "qual_display": "Registered Nurse"},
