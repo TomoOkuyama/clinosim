@@ -21,41 +21,42 @@ For contribution workflow (Issue → PR → CI → squash merge) see
 
 ---
 
-## Backlog work order (updated 2026-08-04, session 78 wrap)
+## Backlog work order (updated 2026-08-05, session 79 wrap)
 
-The open issues are being worked one issue per PR. The order below is not
-arbitrary — some pairs have a dependency that makes the reverse order produce
-rework. **Read this before picking an issue.**
+The open issues are being worked one issue per PR. **Read this before
+picking an issue.**
 
-### Session 78 closed (all merged to master)
+### Session 78 + 79 closed (all merged to master)
 
-- `#465` — CI docs job renamed to match its actual command (`mkdocs build`).
-- `#486` — mypy strict errors in `test_fhir_route_alias_resolution.py`.
-- `#468` — inpatient `discharge_datetime` now absolute time (was offset from admission), planned-discharge helper extracted for testability.
-- `#466` — inpatient `discharge_prescription.issue_date` backfilled to `planned_discharge`; FHIR adapter's inpatient/outpatient branching workaround retired.
-- `#458` — YAML `route:` values validated at import time against canonical + alias + by-design set (silent-no-op defense per CLAUDE.md rule).
+- `#465` — CI docs job renamed to match its actual command (session 78).
+- `#486` — mypy strict errors in `test_fhir_route_alias_resolution.py` (session 78).
+- `#468` — inpatient `discharge_datetime` now absolute time (was offset from admission) + regression test (session 78).
+- `#466` — inpatient `discharge_prescription.issue_date` backfilled to `planned_discharge`; FHIR adapter's inpatient/outpatient branching workaround retired (session 78).
+- `#458` — YAML `route:` values validated at import time against canonical + alias + by-design set (session 78).
+- `#452` — **`current_medications` root cause fixed via 3-PR chain (session 79)**:
+  - `#498` PR 1/3 introduced `HomeMedication` dataclass + reader-side shims (byte-identical).
+  - `#499` PR 2/3 consumed `HomeMedication.route/dose` at outpatient renewal + inpatient discharge transcribe. **Route quality: JP outpatient rxopd-* MR went from 100% no-route (2318/2318) to fully SNOMED-coded (PO 84% / INH 13% / SC 3%); zero PO misclaimed for 吸入 or インスリン rows.**
+  - `#500` PR 3/3 migrated readers to `.drug_name` and retired the shims (byte-identical).
+- `#445` — verify-closed session 79. `_bb_discharge_medication_requests` emits 203 `rxdc-*` + 2318 `rxopd-*` MedicationRequest per JP p=200 seed=42; introduced in `4a27a46c38` (Refs #445).
 
-### Largest item — `#452`
+### Largest remaining item — `#442`
 
-`current_medications` is `list[str]`, which silently drops route / frequency /
-dose. It is the root of `#442`, `#445`, and `#436`; fixing those first means
-reworking them. Estimated 3-4 PRs. Worth a written proposal before implementing.
+`drug_name` mixes bare-name (`Atorvastatin`) and dose-appended (`Atorvastatin 10mg`)
+variants because `chronic_medications.yaml` bakes dose into the `drug` field.
+Now that `#452` has landed `HomeMedication.dose` as a first-class field, the
+Option α fix (bare-name in YAML + dose in a sibling field) is unblocked.
+Estimated 3-4 PRs (~30 YAML entries + hold_conditions cross-refs + consumer
+verification). Worth a proposal similar to #452's before implementing.
 
-### Before starting `#452`
+### `#436` — investigated session 79, deferred
 
-`#452` (and the now-closed `#458`) quote figures from measurement files that
-are **not in the repository** and no longer exist. The numbers in their
-descriptions cannot be re-derived and predate several merged PRs. Re-measure
-at the start rather than treating the quoted figures as current — the issue
-carries a comment explaining this with the commands to regenerate a cohort.
+STOP order (`OrderStatus.PLACED` at `inpatient.py:1145`) emits `MedicationRequest.status="completed"` in FHIR, indistinguishable from active. **F1 fix (assign `OrderStatus.STOPPED` at Order creation) breaks AD-16**: `_generate_mar` filters on `status==PLACED`, and removing STOP orders from the loop shifts the rng cursor via `assign_staff(..., rng)` → cohort-level RNG shift (MAR -122, Observation -65, ServiceRequest +6, Specimen +7 measured at JP p=200 seed=42). Full investigation: https://github.com/TomoOkuyama/clinosim/issues/436#issuecomment-5187366974. Next session: implement F3 (`note[]` on discontinuation MR) or F1' (id-based override at FHIR emit) — both rng-neutral.
 
 ### On grouping
 
-The batches above came from reading issue titles, then checking. Two of the
-groupings that looked independent were not (`#468`/`#466`, `#458`/`#460`).
-Both landed in session 78. **The remaining issues have not been checked the
-same way — before starting any issue, grep for the symbols and files it
-touches and see which other issues touch them.**
+Before starting any issue, grep for the symbols and files it touches and
+see which other issues touch them. Two session-78 groupings looked
+independent but were not (`#468`/`#466`, `#458`/`#460`).
 
 ---
 
