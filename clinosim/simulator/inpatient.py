@@ -2102,29 +2102,38 @@ def _build_discharge_rx(
     # discharge_oral wins over the chronic transcription (protocol carries the
     # authoritative dose/duration for this admission's discharge, whereas
     # chronic entries default to dose="" / 28-day supply).
-    for med in patient.current_medications:
-        # Issue #452 PR 1: `med` is HomeMedication (with __str__ / .lower shim).
-        # PR 2 will consume `med.route` / `med.dose` here to drop the empty
-        # route claim below. Byte-identical for now via str() projection.
-        drug_str = str(med)
+    # Issue #452 PR 2: normalize before iterating. `PatientProfile.__post_init__`
+    # promotes list[str] fixtures at construction time, but attribute-assigned
+    # `p.current_medications = [...]` (fixture pattern in
+    # test_build_discharge_rx_*.py) bypasses that. Normalize here so every
+    # element is guaranteed HomeMedication with the structured fields present.
+    from clinosim.types.patient import _normalize_home_medications
+
+    for med in _normalize_home_medications(patient.current_medications):
+        # `med` is HomeMedication with structured route / dose / frequency
+        # (populated by activator or by the previous encounter's discharge).
+        # Thread them through so the chronic discharge transcribe emits
+        # INH / SC correctly for inhaled and subcutaneous drugs (was
+        # uniformly empty before).
+        drug_str = med.drug_name if med.drug_name else str(med)
         if not drug_str:
             continue
-        if final_renal_function < 0.3 and any(rd in med.lower() for rd in renal_hold_drugs):
+        drug_lower = drug_str.lower()
+        if final_renal_function < 0.3 and any(rd in drug_lower for rd in renal_hold_drugs):
             continue  # do not restart nephrotoxic drug at discharge
         key = _dedup_key(drug_str)
         if key in seen_dedup_keys:
             continue
         seen_dedup_keys.add(key)
-        # route stays empty ("unknown"), NOT "PO" — sibling of the fix at
-        # `outpatient.py:236` landed in PR #451. `patient.current_medications`
-        # is a list[str] that dropped route information at the
-        # `_derive_home_medications` / `helpers._deactivate_to_layer1` steps.
-        # Hardcoding "PO" here falsely asserted oral administration for
-        # inhaled (Tiotropium, Salbutamol, ICS/LABA, Fluticasone/Salmeterol)
-        # and subcutaneous (Sliding scale insulin) drugs which
-        # `chronic_medications.yaml` correctly declares as INH / SC.
-        # Root information loss is tracked in Issue #452.
-        items.append({"drug_name": drug_str, "dose": "", "route": "", "duration_days": 28})
+        items.append(
+            {
+                "drug_name": drug_str,
+                "dose": med.dose,
+                "route": med.route,
+                "frequency": med.frequency,
+                "duration_days": 28,
+            }
+        )
 
     # Issue #417 段 1 / #437: continue_at_discharge — data-declared chronic
     # continuation categories in disease YAML (e.g. cerebral_infarction's

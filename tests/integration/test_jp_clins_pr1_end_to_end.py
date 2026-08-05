@@ -72,20 +72,25 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
         if rt == "MedicationRequest":
             # Issue #445: eCS raises `dosageInstruction` to min=1 while the parent JP Core
             # profile leaves it at min=0, so a prescription that carries no dose and no
-            # route in CIF (transcribed from `patient.current_medications`, where both are
-            # lost upstream — Issue #452) cannot satisfy eCS and deliberately does not
-            # claim it. Same narrowing shape as the `_is_lab_observation` filter above, and
-            # it reuses the PRODUCTION predicate so this test cannot drift into a second
-            # definition of "eCS-eligible".
+            # route in CIF cannot satisfy eCS and deliberately does not claim it. Same
+            # narrowing shape as the `_is_lab_observation` filter above, and it reuses the
+            # PRODUCTION predicate so this test cannot drift into a second definition of
+            # "eCS-eligible".
+            #
+            # Issue #452 PR 2 (2026-08-05): `HomeMedication` now carries route / dose /
+            # frequency through `_derive_home_medications` and `_deactivate_to_layer1` to
+            # both the outpatient renewal (`outpatient.py`) and inpatient discharge
+            # chronic-transcribe (`inpatient.py`) sites. The pathway that produced
+            # dosage-less prescriptions in production cohorts is no longer exercised at
+            # this seed / population. The withholding logic remains defensive for edge
+            # cases (e.g. a future YAML omitting route on a chronic drug), so an empty
+            # `ecs_ineligible` pool is informational rather than a regression.
             ecs_ineligible = [r for r in pool if not _medication_request_satisfies_ecs(r)]
             pool = [r for r in pool if _medication_request_satisfies_ecs(r)]
-            assert ecs_ineligible, (
-                "expected at least one dosage-less prescription at p=100 JP — an empty pool "
-                "here means the eCS-withholding path went untested, not that it is gone"
-            )
-            # Pin BOTH sides of the narrowing. Asserting only "does not claim eCS" would
-            # still pass if the resource had also lost its parent JP Core profile, which
-            # would be a silent conformance regression rather than a deliberate withholding.
+            # Pin BOTH sides of the narrowing when the pool is non-empty. Asserting only
+            # "does not claim eCS" would still pass if the resource had also lost its
+            # parent JP Core profile, which would be a silent conformance regression
+            # rather than a deliberate withholding.
             jp_core_mr = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"
             for r in ecs_ineligible:
                 profs = r.get("meta", {}).get("profile", [])
