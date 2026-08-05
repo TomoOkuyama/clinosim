@@ -12,6 +12,7 @@ from datetime import date
 from typing import TYPE_CHECKING
 
 from clinosim.types.identity import IdentityTimeline
+from clinosim.types.patient import HomeMedication
 
 if TYPE_CHECKING:
     from clinosim.types.allergy import Allergy
@@ -57,7 +58,7 @@ class PersonRecord:
     phone_home: str = ""
     phone_mobile: str = ""
     chronic_conditions: list[str] = field(default_factory=list)
-    current_medications: list[str] = field(default_factory=list)  # active medications
+    current_medications: list[HomeMedication] = field(default_factory=list)  # active medications (see #452)
     # Occupation category (drives work-related injury risk); see PatientProfile.occupation
     occupation: str = "other"
     # Lifestyle attributes (set at generation time; drive disease risk multipliers)
@@ -80,6 +81,14 @@ class PersonRecord:
     # None = enricher hasn't run; [] = enricher ran, patient has no allergy.
     # Task 15 will make the enricher the sole source and remove the activator block.
     allergies: list[Allergy] | None = None
+
+    def __post_init__(self) -> None:
+        """Issue #452 PR 1 migration shim: accept legacy `list[str]` fixtures
+        for `current_medications`. Same behavior as
+        `PatientProfile.__post_init__`."""
+        from clinosim.types.patient import _normalize_home_medications
+
+        self.current_medications = _normalize_home_medications(self.current_medications)
 
 
 @dataclass

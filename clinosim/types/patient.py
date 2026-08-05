@@ -85,6 +85,49 @@ class ChronicCondition:
 
 
 @dataclass
+class HomeMedication:
+    """A single active home medication with the structured fields the upstream
+    YAML actually carries (Issue #452).
+
+    Pre-#452, `current_medications` was `list[str]` (drug name only), which
+    silently discarded `route` / `frequency` / `dose` at the two producer
+    sites (`activator._derive_home_medications` reading
+    `chronic_medications.yaml`, and `helpers._deactivate_to_layer1` reading
+    the previous encounter's `discharge_prescription.items`). Losing `route`
+    was the root of the "PO hardcoded on inhaled and SC drugs" cascade
+    documented in #452 comments — the drug name string was left to carry
+    dose by embedding, which is exactly what #442 catches.
+
+    Reader-side backward compatibility: `__str__` returns `drug_name`, so
+    existing substring checks and dedup keys (`"warfarin" in med.lower()`,
+    `_dedup_key(med)`) continue to work while individual readers migrate to
+    the structured fields (#452 PR 2 / PR 3).
+    """
+
+    drug_name: str = ""  # canonical drug identifier (matches chronic YAML `drug`)
+    drug_name_ja: str = ""  # optional JP display (matches chronic YAML `drug_ja`)
+    route: str = ""  # PO | IV | SC | INH | NEB | ... — validated by #458's KNOWN_ROUTE_VOCABULARY
+    dose: str = ""  # freeform text carried through to Order.dose
+    dose_quantity: float | None = None
+    dose_unit: str = ""
+    frequency: str = ""  # daily | bid | tid | qid | prn
+
+    def __str__(self) -> str:
+        """Substring-check + dedup back-compat: `"warfarin" in med.lower()` etc.
+
+        Readers migrating to structured access should use `.drug_name`
+        explicitly instead of relying on this shim.
+        """
+        return self.drug_name
+
+    def lower(self) -> str:
+        """Same purpose as __str__ — some readers call `med.lower()` directly
+        (e.g. renal-hold checks in `_build_discharge_rx`). Return the lowered
+        drug name so those continue to fire on the correct string."""
+        return self.drug_name.lower()
+
+
+@dataclass
 class PatientProfile:
     """Full Layer 2 clinical profile."""
 
@@ -129,9 +172,44 @@ class PatientProfile:
 
     chronic_conditions: list[ChronicCondition] = field(default_factory=list)
     allergies: list[Allergy] = field(default_factory=list)
-    current_medications: list[str] = field(default_factory=list)
+    current_medications: list[HomeMedication] = field(default_factory=list)
     smoking_status: str = "never"
     alcohol_use: str = "none"
 
     physiological_profile: PatientPhysiologicalProfile = field(default_factory=PatientPhysiologicalProfile)
     baseline_vitals: BaselineVitals = field(default_factory=BaselineVitals)
+
+    def __post_init__(self) -> None:
+        """Issue #452 PR 1 migration shim: accept legacy `list[str]` fixtures
+        for `current_medications` and lift each string into a bare
+        `HomeMedication(drug_name=s)`. Remove in PR 3 once all fixtures use
+        `HomeMedication` directly."""
+        self.current_medications = _normalize_home_medications(self.current_medications)
+
+
+def _normalize_home_medications(items: list) -> list[HomeMedication]:
+    """Accept legacy `list[str]` and current `list[HomeMedication]`. Any
+    string is promoted to `HomeMedication(drug_name=s)`. Empty strings and
+    Nones are dropped (matches the pre-#452 filter in activator.py:308)."""
+    out: list[HomeMedication] = []
+    for item in items or []:
+        if item is None or item == "":
+            continue
+        if isinstance(item, HomeMedication):
+            out.append(item)
+        elif isinstance(item, str):
+            out.append(HomeMedication(drug_name=item))
+        elif isinstance(item, dict):
+            # Rare but has appeared in test fixtures — build from keys.
+            out.append(
+                HomeMedication(
+                    drug_name=str(item.get("drug_name") or item.get("drug") or ""),
+                    drug_name_ja=str(item.get("drug_name_ja") or item.get("drug_ja") or ""),
+                    route=str(item.get("route") or ""),
+                    dose=str(item.get("dose") or ""),
+                    frequency=str(item.get("frequency") or ""),
+                )
+            )
+        else:
+            raise TypeError(f"current_medications item must be HomeMedication / str / dict, got {type(item).__name__}")
+    return out

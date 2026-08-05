@@ -1437,7 +1437,11 @@ def _generate_home_medication_orders(
                 hold_reasons[drug.lower()] = reason
 
     # Iterate the patient's actual home meds (single source of truth).
-    for drug_name in getattr(patient, "current_medications", None) or []:
+    # Issue #452 PR 1: elements are HomeMedication. Coerce to str for name-only
+    # consumption here (Order.display_name, .lower() checks). PR 3 will migrate
+    # this loop to read `med.drug_name` explicitly.
+    for med in getattr(patient, "current_medications", None) or []:
+        drug_name = str(med)
         if not drug_name:
             continue
         drug_lower = drug_name.lower()
@@ -2099,11 +2103,15 @@ def _build_discharge_rx(
     # authoritative dose/duration for this admission's discharge, whereas
     # chronic entries default to dose="" / 28-day supply).
     for med in patient.current_medications:
-        if not med:
+        # Issue #452 PR 1: `med` is HomeMedication (with __str__ / .lower shim).
+        # PR 2 will consume `med.route` / `med.dose` here to drop the empty
+        # route claim below. Byte-identical for now via str() projection.
+        drug_str = str(med)
+        if not drug_str:
             continue
         if final_renal_function < 0.3 and any(rd in med.lower() for rd in renal_hold_drugs):
             continue  # do not restart nephrotoxic drug at discharge
-        key = _dedup_key(med)
+        key = _dedup_key(drug_str)
         if key in seen_dedup_keys:
             continue
         seen_dedup_keys.add(key)
@@ -2116,7 +2124,7 @@ def _build_discharge_rx(
         # and subcutaneous (Sliding scale insulin) drugs which
         # `chronic_medications.yaml` correctly declares as INH / SC.
         # Root information loss is tracked in Issue #452.
-        items.append({"drug_name": med, "dose": "", "route": "", "duration_days": 28})
+        items.append({"drug_name": drug_str, "dose": "", "route": "", "duration_days": 28})
 
     # Issue #417 段 1 / #437: continue_at_discharge — data-declared chronic
     # continuation categories in disease YAML (e.g. cerebral_infarction's
