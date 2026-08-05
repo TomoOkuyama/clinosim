@@ -94,14 +94,13 @@ class HomeMedication:
     sites (`activator._derive_home_medications` reading
     `chronic_medications.yaml`, and `helpers._deactivate_to_layer1` reading
     the previous encounter's `discharge_prescription.items`). Losing `route`
-    was the root of the "PO hardcoded on inhaled and SC drugs" cascade
-    documented in #452 comments — the drug name string was left to carry
-    dose by embedding, which is exactly what #442 catches.
+    was the root of the "PO hardcoded on inhaled and SC drugs" cascade —
+    the drug name string was left to carry dose by embedding, which is
+    exactly what #442 catches.
 
-    Reader-side backward compatibility: `__str__` returns `drug_name`, so
-    existing substring checks and dedup keys (`"warfarin" in med.lower()`,
-    `_dedup_key(med)`) continue to work while individual readers migrate to
-    the structured fields (#452 PR 2 / PR 3).
+    #452 PR 3 retired the reader-side back-compat shims (`__str__`, `lower`,
+    `__contains__`): every reader now accesses `.drug_name` / `.route` / etc.
+    explicitly.
     """
 
     drug_name: str = ""  # canonical drug identifier (matches chronic YAML `drug`)
@@ -111,29 +110,6 @@ class HomeMedication:
     dose_quantity: float | None = None
     dose_unit: str = ""
     frequency: str = ""  # daily | bid | tid | qid | prn
-
-    def __str__(self) -> str:
-        """Substring-check + dedup back-compat: `"warfarin" in med.lower()` etc.
-
-        Readers migrating to structured access should use `.drug_name`
-        explicitly instead of relying on this shim.
-        """
-        return self.drug_name
-
-    def lower(self) -> str:
-        """Same purpose as __str__ — some readers call `med.lower()` directly
-        (e.g. renal-hold checks in `_build_discharge_rx`). Return the lowered
-        drug name so those continue to fire on the correct string."""
-        return self.drug_name.lower()
-
-    def __contains__(self, item: object) -> bool:
-        """Substring-check back-compat: `"Warfarin" in home_medication` — used
-        by test fixtures and legacy readers written for `list[str]`. Delegates
-        to the drug_name string. Removing this in PR 3 requires migrating any
-        remaining `"str" in med` call sites to `"str" in med.drug_name`."""
-        if not isinstance(item, str):
-            return False
-        return item in self.drug_name
 
 
 @dataclass

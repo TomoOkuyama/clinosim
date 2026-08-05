@@ -23,6 +23,7 @@ import numpy as np
 
 from clinosim.modules.patient.activator import _derive_home_medications
 from clinosim.modules.physiology.engine import medication_flags_from_context
+from clinosim.types.patient import HomeMedication
 
 
 @dataclass
@@ -30,7 +31,7 @@ class _Cond:
     code: str
 
 
-def _sample_us(codes: list[str], n: int) -> list[list[str]]:
+def _sample_us(codes: list[str], n: int) -> list[list[HomeMedication]]:  # #452 PR 3
     """Draw n independent activator samples (US drug names)."""
     return [
         _derive_home_medications([_Cond(code=c) for c in codes], np.random.default_rng(s), country="US")
@@ -44,7 +45,9 @@ def _sample_us(codes: list[str], n: int) -> list[list[str]]:
 
 def test_I48_never_yields_warfarin_and_apixaban_together():
     samples = _sample_us(["I48"], n=1000)
-    both = sum(1 for s in samples if any("Warfarin" in m for m in s) and any("Apixaban" in m for m in s))
+    both = sum(
+        1 for s in samples if any("Warfarin" in m.drug_name for m in s) and any("Apixaban" in m.drug_name for m in s)
+    )
     assert both == 0, f"Warfarin+Apixaban chronic concurrent: {both}/1000 (must be 0)"
 
 
@@ -52,8 +55,8 @@ def test_I48_each_anticoagulant_still_appears_at_expected_rate():
     """I48 = [Warfarin 0.5, Apixaban 0.5] sum=1.0 → each ~50% under
     categorical (no residual 'no drug' branch since sum==1.0)."""
     samples = _sample_us(["I48"], n=1000)
-    n_warf = sum(1 for s in samples if any("Warfarin" in m for m in s))
-    n_apix = sum(1 for s in samples if any("Apixaban" in m for m in s))
+    n_warf = sum(1 for s in samples if any("Warfarin" in m.drug_name for m in s))
+    n_apix = sum(1 for s in samples if any("Apixaban" in m.drug_name for m in s))
     assert 400 < n_warf < 600, f"Warfarin rate {n_warf}/1000 (expected ~500)"
     assert 400 < n_apix < 600, f"Apixaban rate {n_apix}/1000 (expected ~500)"
 
@@ -65,14 +68,14 @@ def test_I48_each_anticoagulant_still_appears_at_expected_rate():
 def test_I26_never_yields_multiple_anticoagulants():
     samples = _sample_us(["I26"], n=1000)
     for s in samples:
-        count = sum(1 for tok in ("Rivaroxaban", "Apixaban", "Warfarin") if any(tok in m for m in s))
+        count = sum(1 for tok in ("Rivaroxaban", "Apixaban", "Warfarin") if any(tok in m.drug_name for m in s))
         assert count <= 1, f"I26 multiple anticoag in one sample: {s}"
 
 
 def test_I82_never_yields_multiple_anticoagulants():
     samples = _sample_us(["I82"], n=1000)
     for s in samples:
-        count = sum(1 for tok in ("Rivaroxaban", "Apixaban", "Warfarin") if any(tok in m for m in s))
+        count = sum(1 for tok in ("Rivaroxaban", "Apixaban", "Warfarin") if any(tok in m.drug_name for m in s))
         assert count <= 1, f"I82 multiple anticoag in one sample: {s}"
 
 
@@ -83,7 +86,7 @@ def test_I82_never_yields_multiple_anticoagulants():
 def test_I63_anticoagulants_exclusive():
     samples = _sample_us(["I63"], n=1000)
     for s in samples:
-        count = sum(1 for tok in ("Warfarin", "Apixaban") if any(tok in m for m in s))
+        count = sum(1 for tok in ("Warfarin", "Apixaban") if any(tok in m.drug_name for m in s))
         assert count <= 1, f"I63 multiple anticoag in one sample: {s}"
 
 
@@ -91,7 +94,9 @@ def test_I63_antiplatelets_can_coexist():
     """Aspirin (0.7) + Clopidogrel (0.3) — independent Bernoulli.
     Expected co-occurrence ≈ 0.7 × 0.3 = 21% → strictly non-zero in 1000."""
     samples = _sample_us(["I63"], n=1000)
-    both = sum(1 for s in samples if any("Aspirin" in m for m in s) and any("Clopidogrel" in m for m in s))
+    both = sum(
+        1 for s in samples if any("Aspirin" in m.drug_name for m in s) and any("Clopidogrel" in m.drug_name for m in s)
+    )
     assert both > 100, f"I63 Aspirin+Clopidogrel coexist: {both}/1000 (expected ~210)"
 
 
@@ -104,8 +109,8 @@ def test_I63_can_yield_anticoag_plus_antiplatelet():
     any_combo = sum(
         1
         for s in samples
-        if (any("Warfarin" in m for m in s) or any("Apixaban" in m for m in s))
-        and (any("Aspirin" in m for m in s) or any("Clopidogrel" in m for m in s))
+        if (any("Warfarin" in m.drug_name for m in s) or any("Apixaban" in m.drug_name for m in s))
+        and (any("Aspirin" in m.drug_name for m in s) or any("Clopidogrel" in m.drug_name for m in s))
     )
     assert any_combo > 100, f"I63 anticoag+antiplatelet coexist: {any_combo}/1000 (independence lost)"
 
@@ -121,7 +126,9 @@ def test_I50_heart_failure_triad_can_coexist():
     triad = sum(
         1
         for s in samples
-        if any("Furosemide" in m for m in s) and any("Carvedilol" in m for m in s) and any("Enalapril" in m for m in s)
+        if any("Furosemide" in m.drug_name for m in s)
+        and any("Carvedilol" in m.drug_name for m in s)
+        and any("Enalapril" in m.drug_name for m in s)
     )
     assert triad > 200, f"I50 HF triad coexist: {triad}/1000 (expected ~300)"
 
@@ -129,7 +136,9 @@ def test_I50_heart_failure_triad_can_coexist():
 def test_I25_DAPT_pair_can_coexist():
     """I25 = Aspirin 1.0 + Clopidogrel 0.4 → P(both) = 40% → ≥ 250/1000."""
     samples = _sample_us(["I25"], n=1000)
-    both = sum(1 for s in samples if any("Aspirin" in m for m in s) and any("Clopidogrel" in m for m in s))
+    both = sum(
+        1 for s in samples if any("Aspirin" in m.drug_name for m in s) and any("Clopidogrel" in m.drug_name for m in s)
+    )
     assert both > 250, f"I25 DAPT coexist: {both}/1000 (expected ~400)"
 
 
@@ -141,17 +150,19 @@ def test_on_warfarin_detection_fires_for_chronic_warfarin_patient():
     """Regression guard: population-side exclusivity change must NOT
     break ``medication_flags_from_context``'s on_warfarin detection from
     ``patient.current_medications``."""
+    from clinosim.types.patient import HomeMedication
 
     class _P:
-        current_medications = ["Warfarin 3mg"]
+        current_medications = [HomeMedication(drug_name="Warfarin 3mg")]
 
     assert medication_flags_from_context(_P()) == {"on_warfarin": True}
 
 
 def test_on_warfarin_detection_fires_for_chronic_warfarin_jp():
     """Same regression, JP drug name path."""
+    from clinosim.types.patient import HomeMedication
 
     class _P:
-        current_medications = ["ワルファリン3mg"]
+        current_medications = [HomeMedication(drug_name="ワルファリン3mg")]
 
     assert medication_flags_from_context(_P()) == {"on_warfarin": True}

@@ -140,7 +140,7 @@ def test_checkup_questionnaire_healthy_patient():
 @pytest.mark.unit
 def test_checkup_questionnaire_patient_with_chronic_conditions():
     """慢性疾患保有時は経過観察を要す。"""
-    from clinosim.types.patient import ChronicCondition
+    from clinosim.types.patient import ChronicCondition, HomeMedication
 
     gen = TemplateNarrativeGenerator()
     patient = SimpleNamespace(
@@ -148,7 +148,7 @@ def test_checkup_questionnaire_patient_with_chronic_conditions():
         chronic_conditions=[
             ChronicCondition(code="I10", system="icd-10", severity="mild"),
         ],
-        current_medications=["アムロジピン 5mg"],
+        current_medications=[HomeMedication(drug_name="アムロジピン 5mg")],
         smoking_status="former",
         alcohol_use="regular",
     )

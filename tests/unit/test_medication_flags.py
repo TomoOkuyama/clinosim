@@ -11,13 +11,19 @@ from datetime import date, datetime
 import pytest
 
 from clinosim.modules.physiology.engine import medication_flags_from_context
+from clinosim.types.patient import HomeMedication
+
+
+def _hm(*names: str) -> list[HomeMedication]:
+    """Build a `list[HomeMedication]` fixture from bare drug names (#452 PR 3)."""
+    return [HomeMedication(drug_name=n) for n in names]
 
 
 @dataclass
 class _StubPatient:
     """Minimal stand-in for PatientProfile.current_medications consumers."""
 
-    current_medications: list[str] = field(default_factory=list)
+    current_medications: list[HomeMedication] = field(default_factory=list)
 
 
 @dataclass
@@ -30,31 +36,31 @@ class _StubOrder:
 
 @pytest.mark.unit
 def test_chronic_warfarin_en_detected():
-    p = _StubPatient(current_medications=["Warfarin 3mg"])
+    p = _StubPatient(current_medications=_hm("Warfarin 3mg"))
     assert medication_flags_from_context(p) == {"on_warfarin": True}
 
 
 @pytest.mark.unit
 def test_chronic_warfarin_jp_detected():
-    p = _StubPatient(current_medications=["ワルファリン3mg"])
+    p = _StubPatient(current_medications=_hm("ワルファリン3mg"))
     assert medication_flags_from_context(p) == {"on_warfarin": True}
 
 
 @pytest.mark.unit
 def test_chronic_coumadin_detected_case_insensitive():
-    p = _StubPatient(current_medications=["COUMADIN 5mg PO daily"])
+    p = _StubPatient(current_medications=_hm("COUMADIN 5mg PO daily"))
     assert medication_flags_from_context(p) == {"on_warfarin": True}
 
 
 @pytest.mark.unit
 def test_chronic_apixaban_not_warfarin():
-    p = _StubPatient(current_medications=["Apixaban 5mg"])
+    p = _StubPatient(current_medications=_hm("Apixaban 5mg"))
     assert medication_flags_from_context(p) == {"on_warfarin": False}
 
 
 @pytest.mark.unit
 def test_chronic_rivaroxaban_not_warfarin():
-    p = _StubPatient(current_medications=["Rivaroxaban 20mg", "リバーロキサバン15mg"])
+    p = _StubPatient(current_medications=_hm("Rivaroxaban 20mg", "リバーロキサバン15mg"))
     assert medication_flags_from_context(p) == {"on_warfarin": False}
 
 
@@ -110,7 +116,7 @@ def test_in_hospital_warfarin_ordered_day_5_current_day_6_not_yet():
 @pytest.mark.unit
 def test_chronic_overrides_in_hospital_gate():
     """Chronic warfarin is True even at current_day=1 (gate only applies to in-hospital path)."""
-    p = _StubPatient(current_medications=["Warfarin 3mg"])
+    p = _StubPatient(current_medications=_hm("Warfarin 3mg"))
     admission = date(2026, 6, 1)
     flags = medication_flags_from_context(p, medication_orders=[], admission_date=admission, current_day=1)
     assert flags == {"on_warfarin": True}
