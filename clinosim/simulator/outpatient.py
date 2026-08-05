@@ -226,26 +226,35 @@ def _simulate_outpatient_visit(
         order.status = OrderStatus.RESULTED
         lab_results.append(result)
 
-    # Prescription renewal
+    # Prescription renewal.
+    # Issue #452 PR 2: `patient.current_medications` is `list[HomeMedication]`
+    # (introduced in PR #498). Thread `route` / `dose` / `frequency` through
+    # from the HomeMedication into the prescription item so downstream FHIR
+    # emits a correct `route.coding` for inhaled (Tiotropium/Salbutamol/ICS
+    # inhalers) and subcutaneous (Sliding scale insulin) drugs — before this
+    # PR both types silently landed with an empty route (100% of outpatient
+    # rxopd-* MedicationRequest at JP p=200 seed=42).
     rx = None
     if spec.get("prescriptions_renewed") and patient.current_medications:
+        # Issue #452 PR 2: normalize to defend against attribute-assigned
+        # `patient.current_medications = [...]` bypassing __post_init__
+        # (fixture pattern in tests). Sibling to inpatient.py:2100.
+        from clinosim.types.patient import _normalize_home_medications
+
+        _norm_meds = _normalize_home_medications(patient.current_medications)
         rx = PrescriptionRecord(
             prescription_id=f"RX-{patient.patient_id}-OPD",
             prescriber_id=encounter.attending_physician_id,
             issue_date=visit_date,
             items=[
-                # route stays empty ("unknown") not "PO" — patient.current_medications
-                # is a list[str] with no route info; hardcoding "PO" would falsely
-                # claim oral administration for inhaled (Tiotropium/Salbutamol/ICS
-                # inhalers) and subcutaneous (Sliding scale insulin) drugs that
-                # chronic_medications.yaml actually declares as INH/SC. The root
-                # information loss is tracked separately (Refs #452).
-                # Issue #452 PR 1: `patient.current_medications` is now
-                # `list[HomeMedication]`. Project to drug_name to preserve
-                # byte-identical output — PR 2 will thread the structured
-                # route / dose through and drop the empty-route claim above.
-                {"drug_name": str(med), "dose": "", "route": "", "duration_days": 30}
-                for med in patient.current_medications
+                {
+                    "drug_name": med.drug_name if med.drug_name else str(med),
+                    "dose": med.dose,
+                    "route": med.route,
+                    "frequency": med.frequency,
+                    "duration_days": 30,
+                }
+                for med in _norm_meds
             ],
         )
 
