@@ -30,8 +30,11 @@ from clinosim.types.patient import ChronicCondition, PatientProfile
 
 
 def _patient(current_meds: list[str], chronic_codes: tuple[str, ...] = ("I48",)) -> PatientProfile:
+    from clinosim.types.patient import HomeMedication
+
     p = PatientProfile(patient_id="POP-000001")
-    p.current_medications = list(current_meds)
+    # #452 PR 3: attribute-assign bypasses PatientProfile.__post_init__.
+    p.current_medications = [HomeMedication(drug_name=m) for m in current_meds]
     p.chronic_conditions = [ChronicCondition(code=c) for c in chronic_codes]
     return p
 

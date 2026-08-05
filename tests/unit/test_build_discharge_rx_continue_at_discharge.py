@@ -33,8 +33,12 @@ from clinosim.types.patient import ChronicCondition, PatientProfile
 
 
 def _patient(current_meds: list[str] | None = None, chronic_icds: list[str] | None = None) -> PatientProfile:
+    from clinosim.types.patient import HomeMedication
+
     p = PatientProfile(patient_id="POP-000001")
-    p.current_medications = current_meds or []
+    # #452 PR 3: attribute-assign bypasses PatientProfile.__post_init__, so
+    # promote str fixtures to HomeMedication here.
+    p.current_medications = [HomeMedication(drug_name=m) for m in (current_meds or [])]
     p.chronic_conditions = [ChronicCondition(code=icd) for icd in (chronic_icds or [])]
     return p
 
