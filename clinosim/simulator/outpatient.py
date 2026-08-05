@@ -236,25 +236,26 @@ def _simulate_outpatient_visit(
     # rxopd-* MedicationRequest at JP p=200 seed=42).
     rx = None
     if spec.get("prescriptions_renewed") and patient.current_medications:
-        # Issue #452 PR 2: normalize to defend against attribute-assigned
-        # `patient.current_medications = [...]` bypassing __post_init__
-        # (fixture pattern in tests). Sibling to inpatient.py:2100.
-        from clinosim.types.patient import _normalize_home_medications
-
-        _norm_meds = _normalize_home_medications(patient.current_medications)
+        # Issue #452 PR 3: readers now access `HomeMedication.drug_name` directly.
+        # The `_normalize_home_medications` shim previously called here (PR 2)
+        # is retired — every writer of `current_medications` (activator +
+        # helpers) now emits `HomeMedication` instances, and the __post_init__
+        # shim on the two container types still handles fixture-time
+        # `list[str]` construction. Attribute-assigned test fixtures were
+        # migrated to `HomeMedication(drug_name=...)` in this PR.
         rx = PrescriptionRecord(
             prescription_id=f"RX-{patient.patient_id}-OPD",
             prescriber_id=encounter.attending_physician_id,
             issue_date=visit_date,
             items=[
                 {
-                    "drug_name": med.drug_name if med.drug_name else str(med),
+                    "drug_name": med.drug_name,
                     "dose": med.dose,
                     "route": med.route,
                     "frequency": med.frequency,
                     "duration_days": 30,
                 }
-                for med in _norm_meds
+                for med in patient.current_medications
             ],
         )
 

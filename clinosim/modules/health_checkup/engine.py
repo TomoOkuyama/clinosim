@@ -162,10 +162,8 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
     if has_dyslipidemia:
         ldl_base += 40.0  # 未治療脂質異常症の相対上昇
     # スタチン系薬(-statin 末尾)服用で薬理制御。
-    # Issue #452 PR 1: `current_medications` は `list[HomeMedication]` (drug_name field を持つ)
-    # 過渡的に list[str] fixture も受ける(HomeMedication.__str__ = drug_name)。
-    # str(m).lower() で HomeMedication / str 両対応。
-    on_statin = any(str(m).lower().endswith("statin") for m in meds)
+    # Issue #452 PR 3: read `m.drug_name` directly (readers migrated off the __str__ shim).
+    on_statin = any(m.drug_name.lower().endswith("statin") for m in meds)
     if on_statin:
         ldl_base -= 30.0
     ldl = float(np.clip(ldl_base + rng.normal(0.0, 10.0), 40.0, 300.0))

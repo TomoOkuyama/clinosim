@@ -1437,11 +1437,9 @@ def _generate_home_medication_orders(
                 hold_reasons[drug.lower()] = reason
 
     # Iterate the patient's actual home meds (single source of truth).
-    # Issue #452 PR 1: elements are HomeMedication. Coerce to str for name-only
-    # consumption here (Order.display_name, .lower() checks). PR 3 will migrate
-    # this loop to read `med.drug_name` explicitly.
+    # Issue #452 PR 3: read `med.drug_name` explicitly instead of `str(med)`.
     for med in getattr(patient, "current_medications", None) or []:
-        drug_name = str(med)
+        drug_name = med.drug_name
         if not drug_name:
             continue
         drug_lower = drug_name.lower()
@@ -2102,32 +2100,23 @@ def _build_discharge_rx(
     # discharge_oral wins over the chronic transcription (protocol carries the
     # authoritative dose/duration for this admission's discharge, whereas
     # chronic entries default to dose="" / 28-day supply).
-    # Issue #452 PR 2: normalize before iterating. `PatientProfile.__post_init__`
-    # promotes list[str] fixtures at construction time, but attribute-assigned
-    # `p.current_medications = [...]` (fixture pattern in
-    # test_build_discharge_rx_*.py) bypasses that. Normalize here so every
-    # element is guaranteed HomeMedication with the structured fields present.
-    from clinosim.types.patient import _normalize_home_medications
-
-    for med in _normalize_home_medications(patient.current_medications):
-        # `med` is HomeMedication with structured route / dose / frequency
-        # (populated by activator or by the previous encounter's discharge).
-        # Thread them through so the chronic discharge transcribe emits
-        # INH / SC correctly for inhaled and subcutaneous drugs (was
-        # uniformly empty before).
-        drug_str = med.drug_name if med.drug_name else str(med)
-        if not drug_str:
+    # Issue #452 PR 3: read `med.drug_name` directly. Test fixtures that
+    # attribute-assign `p.current_medications = [...]` (bypassing __post_init__)
+    # were migrated to construct `HomeMedication` instances in this PR.
+    for med in patient.current_medications:
+        drug_name = med.drug_name
+        if not drug_name:
             continue
-        drug_lower = drug_str.lower()
+        drug_lower = drug_name.lower()
         if final_renal_function < 0.3 and any(rd in drug_lower for rd in renal_hold_drugs):
             continue  # do not restart nephrotoxic drug at discharge
-        key = _dedup_key(drug_str)
+        key = _dedup_key(drug_name)
         if key in seen_dedup_keys:
             continue
         seen_dedup_keys.add(key)
         items.append(
             {
-                "drug_name": drug_str,
+                "drug_name": drug_name,
                 "dose": med.dose,
                 "route": med.route,
                 "frequency": med.frequency,

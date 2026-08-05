@@ -21,6 +21,7 @@ from clinosim.modules.physiology.engine import (
     medication_flags_from_context,
 )
 from clinosim.types.clinical import PhysiologicalState
+from clinosim.types.patient import HomeMedication
 
 
 @pytest.mark.integration
@@ -29,7 +30,7 @@ def test_warfarin_patient_pt_inr_in_therapeutic_band():
     current_medications produces INR in the therapeutic [2.0, 3.5] band."""
 
     class _P:
-        current_medications = ["Warfarin 3mg PO daily"]
+        current_medications = [HomeMedication(drug_name="Warfarin 3mg PO daily")]
 
     flags = medication_flags_from_context(_P())
     assert flags["on_warfarin"] is True
@@ -46,7 +47,7 @@ def test_doac_patient_pt_inr_baseline():
     for DOAC and our model preserves baseline behavior."""
 
     class _P:
-        current_medications = ["Apixaban 5mg PO BID"]
+        current_medications = [HomeMedication(drug_name="Apixaban 5mg PO BID")]
 
     flags = medication_flags_from_context(_P())
     assert flags["on_warfarin"] is False
@@ -61,7 +62,7 @@ def test_no_anticoagulation_pt_inr_baseline():
     """Patient with no AC: baseline formula path (~1.0 for healthy state)."""
 
     class _P:
-        current_medications = ["Aspirin 100mg", "Metformin 500mg"]
+        current_medications = [HomeMedication(drug_name="Aspirin 100mg"), HomeMedication(drug_name="Metformin 500mg")]
 
     flags = medication_flags_from_context(_P())
     assert flags["on_warfarin"] is False
@@ -77,7 +78,7 @@ def test_warfarin_with_dic_above_therapeutic():
     Clinically: warfarin + DIC raises bleeding risk and INR over-shoot."""
 
     class _P:
-        current_medications = ["Warfarin 3mg"]
+        current_medications = [HomeMedication(drug_name="Warfarin 3mg")]
 
     flags = medication_flags_from_context(_P())
     state = PhysiologicalState()
