@@ -126,6 +126,15 @@ class HomeMedication:
         drug name so those continue to fire on the correct string."""
         return self.drug_name.lower()
 
+    def __contains__(self, item: object) -> bool:
+        """Substring-check back-compat: `"Warfarin" in home_medication` — used
+        by test fixtures and legacy readers written for `list[str]`. Delegates
+        to the drug_name string. Removing this in PR 3 requires migrating any
+        remaining `"str" in med` call sites to `"str" in med.drug_name`."""
+        if not isinstance(item, str):
+            return NotImplemented  # type: ignore[return-value]
+        return item in self.drug_name
+
 
 @dataclass
 class PatientProfile:
