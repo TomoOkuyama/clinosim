@@ -297,11 +297,10 @@ def medication_flags_from_context(
 
     on_warfarin = False
 
-    # (1) Chronic warfarin from home meds
+    # (1) Chronic warfarin from home meds.
+    # Issue #452 PR 1: iterate as HomeMedication (str shim via __str__/lower).
     for med in getattr(patient, "current_medications", None) or []:
-        if not isinstance(med, str):
-            continue
-        med_lower = med.lower()
+        med_lower = str(med).lower()
         if any(name in med_lower for name in _WARFARIN_NAMES):
             on_warfarin = True
             break

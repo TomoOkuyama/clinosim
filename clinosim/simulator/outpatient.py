@@ -240,7 +240,11 @@ def _simulate_outpatient_visit(
                 # inhalers) and subcutaneous (Sliding scale insulin) drugs that
                 # chronic_medications.yaml actually declares as INH/SC. The root
                 # information loss is tracked separately (Refs #452).
-                {"drug_name": med, "dose": "", "route": "", "duration_days": 30}
+                # Issue #452 PR 1: `patient.current_medications` is now
+                # `list[HomeMedication]`. Project to drug_name to preserve
+                # byte-identical output — PR 2 will thread the structured
+                # route / dose through and drop the empty-route claim above.
+                {"drug_name": str(med), "dose": "", "route": "", "duration_days": 30}
                 for med in patient.current_medications
             ],
         )
