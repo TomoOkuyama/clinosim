@@ -1681,34 +1681,35 @@ kept out of the shared repo.</p>
 <p>For contribution workflow (Issue → PR → CI → squash merge) see
 <a href="../../CLAUDE.md"><code>CLAUDE.md § Development workflow</code></a>.</p>
 <hr />
-<h2 id="backlog-work-order-updated-2026-08-04-session-78-wrap">Backlog work order (updated 2026-08-04, session 78 wrap)<a class="headerlink" href="#backlog-work-order-updated-2026-08-04-session-78-wrap" title="Permanent link">&para;</a></h2>
-<p>The open issues are being worked one issue per PR. The order below is not
-arbitrary — some pairs have a dependency that makes the reverse order produce
-rework. <strong>Read this before picking an issue.</strong></p>
-<h3 id="session-78-closed-all-merged-to-master">Session 78 closed (all merged to master)<a class="headerlink" href="#session-78-closed-all-merged-to-master" title="Permanent link">&para;</a></h3>
+<h2 id="backlog-work-order-updated-2026-08-05-session-79-wrap">Backlog work order (updated 2026-08-05, session 79 wrap)<a class="headerlink" href="#backlog-work-order-updated-2026-08-05-session-79-wrap" title="Permanent link">&para;</a></h2>
+<p>The open issues are being worked one issue per PR. <strong>Read this before
+picking an issue.</strong></p>
+<h3 id="session-78-79-closed-all-merged-to-master">Session 78 + 79 closed (all merged to master)<a class="headerlink" href="#session-78-79-closed-all-merged-to-master" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>#465</code> — CI docs job renamed to match its actual command (<code>mkdocs build</code>).</li>
-<li><code>#486</code> — mypy strict errors in <code>test_fhir_route_alias_resolution.py</code>.</li>
-<li><code>#468</code> — inpatient <code>discharge_datetime</code> now absolute time (was offset from admission), planned-discharge helper extracted for testability.</li>
-<li><code>#466</code> — inpatient <code>discharge_prescription.issue_date</code> backfilled to <code>planned_discharge</code>; FHIR adapter's inpatient/outpatient branching workaround retired.</li>
-<li><code>#458</code> — YAML <code>route:</code> values validated at import time against canonical + alias + by-design set (silent-no-op defense per CLAUDE.md rule).</li>
+<li><code>#465</code> — CI docs job renamed to match its actual command (session 78).</li>
+<li><code>#486</code> — mypy strict errors in <code>test_fhir_route_alias_resolution.py</code> (session 78).</li>
+<li><code>#468</code> — inpatient <code>discharge_datetime</code> now absolute time (was offset from admission) + regression test (session 78).</li>
+<li><code>#466</code> — inpatient <code>discharge_prescription.issue_date</code> backfilled to <code>planned_discharge</code>; FHIR adapter's inpatient/outpatient branching workaround retired (session 78).</li>
+<li><code>#458</code> — YAML <code>route:</code> values validated at import time against canonical + alias + by-design set (session 78).</li>
+<li><code>#452</code> — <strong><code>current_medications</code> root cause fixed via 3-PR chain (session 79)</strong>:</li>
+<li><code>#498</code> PR &#8531; introduced <code>HomeMedication</code> dataclass + reader-side shims (byte-identical).</li>
+<li><code>#499</code> PR &#8532; consumed <code>HomeMedication.route/dose</code> at outpatient renewal + inpatient discharge transcribe. <strong>Route quality: JP outpatient rxopd-* MR went from 100% no-route (2318/2318) to fully SNOMED-coded (PO 84% / INH 13% / SC 3%); zero PO misclaimed for 吸入 or インスリン rows.</strong></li>
+<li><code>#500</code> PR 3/3 migrated readers to <code>.drug_name</code> and retired the shims (byte-identical).</li>
+<li><code>#445</code> — verify-closed session 79. <code>_bb_discharge_medication_requests</code> emits 203 <code>rxdc-*</code> + 2318 <code>rxopd-*</code> MedicationRequest per JP p=200 seed=42; introduced in <code>4a27a46c38</code> (Refs #445).</li>
 </ul>
-<h3 id="largest-item-452">Largest item — <code>#452</code><a class="headerlink" href="#largest-item-452" title="Permanent link">&para;</a></h3>
-<p><code>current_medications</code> is <code>list[str]</code>, which silently drops route / frequency /
-dose. It is the root of <code>#442</code>, <code>#445</code>, and <code>#436</code>; fixing those first means
-reworking them. Estimated 3-4 PRs. Worth a written proposal before implementing.</p>
-<h3 id="before-starting-452">Before starting <code>#452</code><a class="headerlink" href="#before-starting-452" title="Permanent link">&para;</a></h3>
-<p><code>#452</code> (and the now-closed <code>#458</code>) quote figures from measurement files that
-are <strong>not in the repository</strong> and no longer exist. The numbers in their
-descriptions cannot be re-derived and predate several merged PRs. Re-measure
-at the start rather than treating the quoted figures as current — the issue
-carries a comment explaining this with the commands to regenerate a cohort.</p>
+<h3 id="largest-remaining-item-442">Largest remaining item — <code>#442</code><a class="headerlink" href="#largest-remaining-item-442" title="Permanent link">&para;</a></h3>
+<p><code>drug_name</code> mixes bare-name (<code>Atorvastatin</code>) and dose-appended (<code>Atorvastatin 10mg</code>)
+variants because <code>chronic_medications.yaml</code> bakes dose into the <code>drug</code> field.
+Now that <code>#452</code> has landed <code>HomeMedication.dose</code> as a first-class field, the
+Option α fix (bare-name in YAML + dose in a sibling field) is unblocked.
+Estimated 3-4 PRs (~30 YAML entries + hold_conditions cross-refs + consumer
+verification). Worth a proposal similar to #452's before implementing.</p>
+<h3 id="436-investigated-session-79-deferred"><code>#436</code> — investigated session 79, deferred<a class="headerlink" href="#436-investigated-session-79-deferred" title="Permanent link">&para;</a></h3>
+<p>STOP order (<code>OrderStatus.PLACED</code> at <code>inpatient.py:1145</code>) emits <code>MedicationRequest.status="completed"</code> in FHIR, indistinguishable from active. <strong>F1 fix (assign <code>OrderStatus.STOPPED</code> at Order creation) breaks AD-16</strong>: <code>_generate_mar</code> filters on <code>status==PLACED</code>, and removing STOP orders from the loop shifts the rng cursor via <code>assign_staff(..., rng)</code> → cohort-level RNG shift (MAR -122, Observation -65, ServiceRequest +6, Specimen +7 measured at JP p=200 seed=42). Full investigation: https://github.com/TomoOkuyama/clinosim/issues/436#issuecomment-5187366974. Next session: implement F3 (<code>note[]</code> on discontinuation MR) or F1' (id-based override at FHIR emit) — both rng-neutral.</p>
 <h3 id="on-grouping">On grouping<a class="headerlink" href="#on-grouping" title="Permanent link">&para;</a></h3>
-<p>The batches above came from reading issue titles, then checking. Two of the
-groupings that looked independent were not (<code>#468</code>/<code>#466</code>, <code>#458</code>/<code>#460</code>).
-Both landed in session 78. <strong>The remaining issues have not been checked the
-same way — before starting any issue, grep for the symbols and files it
-touches and see which other issues touch them.</strong></p>
+<p>Before starting any issue, grep for the symbols and files it touches and
+see which other issues touch them. Two session-78 groupings looked
+independent but were not (<code>#468</code>/<code>#466</code>, <code>#458</code>/<code>#460</code>).</p>
 <hr />
 <h2 id="where-work-is-tracked-today-updated-2026-08-03">Where work is tracked today (updated 2026-08-03)<a class="headerlink" href="#where-work-is-tracked-today-updated-2026-08-03" title="Permanent link">&para;</a></h2>
 <p><strong>Active work is tracked in <a href="https://github.com/TomoOkuyama/clinosim/issues">GitHub Issues</a>,
