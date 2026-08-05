@@ -48,18 +48,18 @@ logger = logging.getLogger(__name__)
 def _render_home_med_name(m: Any) -> str:
     """Extract the display name of a home medication for narrative text.
 
-    Handles all three shapes `current_medications` items can appear as:
+    Handles the two shapes `current_medications` items appear as here:
     - `HomeMedication` instance (in-memory, sim-time)
-    - `dict` (re-loaded from CIF JSON in the narrative pass)
-    - `str` (legacy fixtures during Issue #452 migration)
+    - `dict` (re-loaded from CIF JSON in the narrative pass — the pydantic
+      TypeAdapter round-trip runs only in memoize; the narrative pass reads
+      raw JSON via CIFReader)
 
-    Introduced in #452 PR 1. Once all writers land HomeMedication and the
-    reader-side dict shape is normalized on load, this helper can shrink to
-    `str(m)`.
+    Introduced in #452 PR 1; the `str` fallback (legacy fixture support) was
+    dropped in PR 3 once every writer emits `HomeMedication`.
     """
     if isinstance(m, dict):
         return str(m.get("drug_name") or m.get("drug") or "").strip()
-    return str(m)
+    return m.drug_name
 
 
 def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext | None = None) -> str:
