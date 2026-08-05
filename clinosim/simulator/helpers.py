@@ -27,7 +27,7 @@ __all__ = [
 from clinosim.modules.population.engine import HospitalizationSummary, LifeEvent
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.output import CIFPatientRecord
-from clinosim.types.patient import PatientProfile
+from clinosim.types.patient import HomeMedication, PatientProfile
 
 # ``_load_all_disease_protocols`` is a thin re-export alias of the canonical
 # cached aggregate loader that now lives in ``modules/disease/protocol.py``
@@ -95,15 +95,36 @@ def _deactivate_to_layer1(
             if base_code not in existing_bases:
                 person.chronic_conditions.append(base_code)
 
-    # Update medications: discharge prescriptions become current medications
+    # Update medications: discharge prescriptions become current medications.
+    # Issue #452 PR 1: `PersonRecord.current_medications` is now
+    # `list[HomeMedication]` — carry route / dose / frequency through from
+    # `discharge_prescription.items` instead of dropping them (root of the
+    # #452 cascade). Pre-fix this collapsed to a bare `list[str]`.
     if record.discharge_prescription and record.discharge_prescription.items:
-        person.current_medications = [
-            drug_name
-            for item in record.discharge_prescription.items
-            if isinstance(item, dict)
-            for drug_name in [item.get("drug_name", item.get("drug", item.get("name", "")))]
-            if drug_name  # filter out empty strings
-        ]
+        new_meds: list[HomeMedication] = []
+        for item in record.discharge_prescription.items:
+            if not isinstance(item, dict):
+                continue
+            drug_name = item.get("drug_name") or item.get("drug") or item.get("name") or ""
+            if not drug_name:
+                continue
+            dq = item.get("dose_quantity")
+            try:
+                dose_qty = float(dq) if dq is not None and dq != "" else None
+            except (TypeError, ValueError):
+                dose_qty = None
+            new_meds.append(
+                HomeMedication(
+                    drug_name=str(drug_name),
+                    drug_name_ja=str(item.get("drug_name_ja") or ""),
+                    route=str(item.get("route") or ""),
+                    dose=str(item.get("dose") or ""),
+                    dose_quantity=dose_qty,
+                    dose_unit=str(item.get("dose_unit") or ""),
+                    frequency=str(item.get("frequency") or ""),
+                )
+            )
+        person.current_medications = new_meds
 
     # Residual physiological state at discharge
     residual_infl = 0.0
@@ -129,7 +150,9 @@ def _deactivate_to_layer1(
         los_days=max(1, los),
         outcome="deceased" if record.deceased else "discharged",
         discharge_diagnoses=[dx_code] if dx_code else [disease_id],
-        discharge_medications=person.current_medications.copy(),
+        # HospitalizationSummary.discharge_medications remains typed list[str]
+        # (historical log). Project HomeMedication → drug_name.
+        discharge_medications=[m.drug_name for m in person.current_medications],
         residual_inflammation=residual_infl,
         residual_renal=residual_renal,
         was_readmission=record.is_readmission,

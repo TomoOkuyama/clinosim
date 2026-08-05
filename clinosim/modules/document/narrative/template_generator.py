@@ -45,6 +45,23 @@ from clinosim.types.document import DocumentType, FormatType, NarrativeContext, 
 logger = logging.getLogger(__name__)
 
 
+def _render_home_med_name(m: Any) -> str:
+    """Extract the display name of a home medication for narrative text.
+
+    Handles all three shapes `current_medications` items can appear as:
+    - `HomeMedication` instance (in-memory, sim-time)
+    - `dict` (re-loaded from CIF JSON in the narrative pass)
+    - `str` (legacy fixtures during Issue #452 migration)
+
+    Introduced in #452 PR 1. Once all writers land HomeMedication and the
+    reader-side dict shape is normalized on load, this helper can shrink to
+    `str(m)`.
+    """
+    if isinstance(m, dict):
+        return str(m.get("drug_name") or m.get("drug") or "").strip()
+    return str(m)
+
+
 def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext | None = None) -> str:
     """AD-65 Bug A fix: locale-aware field access.
 
@@ -831,7 +848,10 @@ class TemplateNarrativeGenerator:
             return none_text, facts
 
         facts.append("ctx.patient.current_medications")
-        return "; ".join(str(m) for m in meds), facts
+        # Issue #452 PR 1: `HomeMedication` serializes to dict when the CIF is
+        # written to disk and reloaded here in the narrative pass. Extract
+        # drug_name explicitly so we don't render a Python dict repr.
+        return "; ".join(_render_home_med_name(m) for m in meds), facts
 
     def _build_allergies(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build allergies section from ctx.allergies.
@@ -1413,12 +1433,14 @@ class TemplateNarrativeGenerator:
             facts.append("ctx.patient.chronic_conditions")
         history_text = "\n".join(history_lines) if history_lines else ("特記事項なし" if is_ja else "None noted")
 
-        # 服薬(current_medications は drug 名の str list)
+        # 服薬(#452 PR 1: current_medications は HomeMedication または dict / str 混在の list)
         current_meds = _o(patient, "current_medications", []) or []
         if current_meds:
             facts.append("ctx.patient.current_medications")
         med_text = (
-            "、".join(str(m) for m in current_meds) if current_meds else ("常用薬なし" if is_ja else "None taken")
+            "、".join(_render_home_med_name(m) for m in current_meds)
+            if current_meds
+            else ("常用薬なし" if is_ja else "None taken")
         )
 
         # 生活習慣(smoking_status / alcohol_use)

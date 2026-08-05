@@ -17,6 +17,7 @@ from clinosim.modules.population.engine import PersonRecord, _sample_given_name
 from clinosim.types.patient import (
     BaselineVitals,
     ChronicCondition,
+    HomeMedication,
     PatientPhysiologicalProfile,
     PatientProfile,
     PersonName,
@@ -442,7 +443,9 @@ def activate_patient(
     )
 
 
-def _derive_home_medications(chronic_conditions: list, rng: np.random.Generator, country: str = "US") -> list[str]:
+def _derive_home_medications(
+    chronic_conditions: list, rng: np.random.Generator, country: str = "US"
+) -> list[HomeMedication]:
     """Derive home medications from chronic conditions via chronic_medications.yaml.
 
     Per-ICD block ``exclusive_classes`` (Issue #432) lists ``drug_class``
@@ -456,13 +459,16 @@ def _derive_home_medications(chronic_conditions: list, rng: np.random.Generator,
     sum to <= 1.0. Residual mass (1 - sum) becomes the "no drug from this
     class" branch. Sum > 1.0 is a YAML author error (fail-loud).
 
-    Returns a list of drug name strings. JP uses ``drug_ja`` if available.
+    Returns a list of `HomeMedication` (Issue #452 PR 1). Before that PR
+    this returned `list[str]`, dropping `route` / `frequency` from the
+    YAML at exactly this point — the root of #442 / #445 cascade.
+    Structured fields flow through to Layer 2 unchanged.
     """
     from clinosim.locale.loader import load_chronic_medications
 
     data = load_chronic_medications()
 
-    meds: list[str] = []
+    meds: list[HomeMedication] = []
     seen: set[str] = set()
     for condition in chronic_conditions:
         code = condition.code if hasattr(condition, "code") else ""
@@ -488,10 +494,22 @@ def _derive_home_medications(chronic_conditions: list, rng: np.random.Generator,
             independent_mode="bernoulli",
             context=f"chronic_medications ICD {code}",
         ):
-            name = picked.get("drug", "")
-            if is_jp(country):
-                name = picked.get("drug_ja", name)
-            if name and name not in seen:
-                seen.add(name)
-                meds.append(name)
+            drug_en = picked.get("drug", "")
+            drug_ja = picked.get("drug_ja", "")
+            # CIF stores English drug names (AD-30). JP display picks up drug_ja
+            # at output time. Selection key uses the string that reaches the
+            # display side so JP and US dedup identically.
+            name_for_display = drug_ja if is_jp(country) else drug_en
+            if not name_for_display or name_for_display in seen:
+                continue
+            seen.add(name_for_display)
+            meds.append(
+                HomeMedication(
+                    drug_name=drug_en if drug_en else name_for_display,
+                    drug_name_ja=drug_ja,
+                    route=str(picked.get("route", "") or ""),
+                    dose=str(picked.get("dose", "") or ""),
+                    frequency=str(picked.get("frequency", "") or ""),
+                )
+            )
     return meds
