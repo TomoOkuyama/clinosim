@@ -2102,12 +2102,19 @@ def _build_discharge_rx(
     # discharge_oral wins over the chronic transcription (protocol carries the
     # authoritative dose/duration for this admission's discharge, whereas
     # chronic entries default to dose="" / 28-day supply).
-    for med in patient.current_medications:
-        # Issue #452 PR 2: `med` is HomeMedication with structured
-        # route / dose / frequency (populated by activator or by the
-        # previous encounter's discharge). Thread them through so the
-        # chronic discharge transcribe emits INH / SC correctly for
-        # inhaled and subcutaneous drugs (was uniformly empty before).
+    # Issue #452 PR 2: normalize before iterating. `PatientProfile.__post_init__`
+    # promotes list[str] fixtures at construction time, but attribute-assigned
+    # `p.current_medications = [...]` (fixture pattern in
+    # test_build_discharge_rx_*.py) bypasses that. Normalize here so every
+    # element is guaranteed HomeMedication with the structured fields present.
+    from clinosim.types.patient import _normalize_home_medications
+
+    for med in _normalize_home_medications(patient.current_medications):
+        # `med` is HomeMedication with structured route / dose / frequency
+        # (populated by activator or by the previous encounter's discharge).
+        # Thread them through so the chronic discharge transcribe emits
+        # INH / SC correctly for inhaled and subcutaneous drugs (was
+        # uniformly empty before).
         drug_str = med.drug_name if med.drug_name else str(med)
         if not drug_str:
             continue

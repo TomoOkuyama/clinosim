@@ -236,6 +236,12 @@ def _simulate_outpatient_visit(
     # rxopd-* MedicationRequest at JP p=200 seed=42).
     rx = None
     if spec.get("prescriptions_renewed") and patient.current_medications:
+        # Issue #452 PR 2: normalize to defend against attribute-assigned
+        # `patient.current_medications = [...]` bypassing __post_init__
+        # (fixture pattern in tests). Sibling to inpatient.py:2100.
+        from clinosim.types.patient import _normalize_home_medications
+
+        _norm_meds = _normalize_home_medications(patient.current_medications)
         rx = PrescriptionRecord(
             prescription_id=f"RX-{patient.patient_id}-OPD",
             prescriber_id=encounter.attending_physician_id,
@@ -248,7 +254,7 @@ def _simulate_outpatient_visit(
                     "frequency": med.frequency,
                     "duration_days": 30,
                 }
-                for med in patient.current_medications
+                for med in _norm_meds
             ],
         )
 
