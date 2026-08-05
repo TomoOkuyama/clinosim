@@ -8,6 +8,7 @@ from clinosim.types.allergy import Allergy, AllergyReaction
 from clinosim.types.patient import (
     BaselineVitals,
     ChronicCondition,
+    HomeMedication,
     PatientPhysiologicalProfile,
     PatientProfile,
 )
@@ -66,7 +67,10 @@ def create_test_patient() -> PatientProfile:
                 ],
             ),
         ],
-        current_medications=["Amlodipine 5mg", "Metformin 500mg BID"],
+        current_medications=[
+            HomeMedication(drug_name="Amlodipine 5mg", route="PO", frequency="daily"),
+            HomeMedication(drug_name="Metformin 500mg BID", route="PO", frequency="bid"),
+        ],
         smoking_status="never",
         alcohol_use="none",
         physiological_profile=PatientPhysiologicalProfile(

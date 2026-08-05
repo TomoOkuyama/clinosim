@@ -132,7 +132,7 @@ class HomeMedication:
         to the drug_name string. Removing this in PR 3 requires migrating any
         remaining `"str" in med` call sites to `"str" in med.drug_name`."""
         if not isinstance(item, str):
-            return NotImplemented  # type: ignore[return-value]
+            return False
         return item in self.drug_name
 
 
