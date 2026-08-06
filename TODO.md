@@ -21,10 +21,66 @@ For contribution workflow (Issue → PR → CI → squash merge) see
 
 ---
 
-## Backlog work order (updated 2026-08-05, session 79 wrap)
+## Backlog work order (updated 2026-08-06, session 80 wrap)
 
 The open issues are being worked one issue per PR. **Read this before
 picking an issue.**
+
+### Session 80 closed (12 PRs merged to master)
+
+Master advanced from `a39526069a` → `ab579da0c2`. Session merged 10
+issues by me + reviewed & merged 2 more autonomously produced by a
+prior session's Claude that was still running against this worktree
+(`#502` / `#503`).
+
+- **`#442`** — chronic_medications.yaml bare-name + separate `dose` field migration
+  (PR #504). Variant duplicate class 6→0 on US p=1000 seed=42; JP p=200 same.
+  Rivaroxaban entries (I26/I82/I63) kept dose-embedded pending `dose_ja` extension
+  (JP VTE dose 15mg vs US 20mg — locale-divergent).
+- **`#474`** — `Procedure.code.text` JP localize via `_localize_drug_name` in both
+  `_fhir_procedures._build_procedure` and `fhir_r4_adapter._bb_procedures`
+  (PR #505). JP p=300 seed=42: 68 EN → 0 EN in `code.text`; `coding[1]` CPT unchanged
+  (by-design 27 EN). US byte-identical.
+- **`#467`** — `_build_dosage_instruction` display_name fallback removed (PR #506).
+  Fallback was unreachable in production (487/487 MRs carry structured route
+  post-#452); byte-identical fix. Prevents future silent leakage into JP output.
+- **`#462`** — `_validate_drug_block_duration_days` fail-loud on long-interval doses
+  (weekly / q6months) in `discharge_oral` without explicit `duration_days` (PR #507).
+  Fixes 2 known offenders (Denosumab / Alendronate). Sibling to `#455` route validator.
+- **`#437`** — `atrial_fibrillation_rvr.drugs.anticoagulation` wired via
+  `continue_at_discharge: true` (PR #508). Systematic audit of 28 dead drug
+  categories posted as follow-up comment on the issue (Direction B deferred).
+- **`#428`** — `regenerate-goldens` message names variant + integrity test
+  asserts profile-YAML count == llm-mock-golden count (PR #509). Prevents
+  new-profile silent-skip in llm-mock regression leg.
+- **`#430`** — BNP base 30 → 15 for JP JCCLS reference alignment (PR #510).
+  Healthy 15 pg/mL (JCCLS M<18.4 / F<22.9), MI ~76 (rule-out zone), HF ~500
+  (moderate HF band per ADHERE registry). Test bands updated to guideline-sourced
+  thresholds (100 rule-out, HF>400, HF>5×MI invariant retained).
+- **`#476`** — `dose_ja` / `dose_en` field pattern for disease YAML (PR #511).
+  5 entries (asthma / DKA / PE) restored authored JP + EN instructions to FHIR
+  `dosageInstruction.text`. Three-layer silent-drop defense: end-to-end wiring
+  + text-summary override + load-time typo validator (`_validate_drug_entry_localized_dose_keys`).
+- **`#418`** — CLI fail-loud gate on `--country JP` when JP-CLINS pkg absent
+  (PR #512). `--allow-legacy` flag + `CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1`
+  env var for CI test harnesses; `tests/integration/conftest.py` sets the env
+  var so subprocess-based integration tests keep working without the pkg.
+- **`#378`** — `JP_Patient_eCS` profile assertion restored on `Patient.meta.profile`
+  with data completeness (PR #513). Resolves v25 Pattern B (3,096 errors on referring
+  eCS resources). Three min=1 fields added JP-only: `meta.lastUpdated` (static
+  `2026-01-01T00:00:00+09:00`), `name.text`, `address.text`. US Patient byte-identical.
+  Follows `feedback_profile_assertion_requires_data_completeness` (rule established
+  after `#379`/`#382` cascade regression).
+- **`#477`** (autonomous CC's PR #502) — `Dosage.timing.code.text` no longer
+  populated with dosage text (FHIR `Timing.code` binding is `TimingAbbreviation`,
+  not free text). Reviewed and merged.
+- **`#481`** (autonomous CC's PR #503) — remaining 6 disease-YAML `dose:` prose
+  entries moved to `note:` (#480 completion). Reviewed and merged.
+
+Cross-refs also posted on: `#442` (3 follow-ups), `#476` (Rivaroxaban), `#440`
+(drug_name_ja loss through `_deactivate_to_layer1` — same class), `#437`
+(28-category dead-data audit table). `#477` was manually closed after PR #502
+merge because the PR body's `Resolves` keyword didn't auto-close.
 
 ### Session 78 + 79 closed (all merged to master)
 
@@ -38,15 +94,6 @@ picking an issue.**
   - `#499` PR 2/3 consumed `HomeMedication.route/dose` at outpatient renewal + inpatient discharge transcribe. **Route quality: JP outpatient rxopd-* MR went from 100% no-route (2318/2318) to fully SNOMED-coded (PO 84% / INH 13% / SC 3%); zero PO misclaimed for 吸入 or インスリン rows.**
   - `#500` PR 3/3 migrated readers to `.drug_name` and retired the shims (byte-identical).
 - `#445` — verify-closed session 79. `_bb_discharge_medication_requests` emits 203 `rxdc-*` + 2318 `rxopd-*` MedicationRequest per JP p=200 seed=42; introduced in `4a27a46c38` (Refs #445).
-
-### Largest remaining item — `#442`
-
-`drug_name` mixes bare-name (`Atorvastatin`) and dose-appended (`Atorvastatin 10mg`)
-variants because `chronic_medications.yaml` bakes dose into the `drug` field.
-Now that `#452` has landed `HomeMedication.dose` as a first-class field, the
-Option α fix (bare-name in YAML + dose in a sibling field) is unblocked.
-Estimated 3-4 PRs (~30 YAML entries + hold_conditions cross-refs + consumer
-verification). Worth a proposal similar to #452's before implementing.
 
 ### `#436` — investigated session 79, deferred
 
@@ -68,20 +115,22 @@ not in this file.** The sections below were last reconciled at session 67
 
 Individual issue numbers are deliberately not mirrored into this file. A copy
 goes stale the moment the tracker moves, and two places to look is worse than
-one. Query the tracker for the current set. As of 2026-08-03 the 30 open issues
-cluster into these themes:
+one. Query the tracker for the current set. As of 2026-08-06 (post-session-80)
+the 9 remaining open issues cluster into these themes:
 
-- **Localization gaps in output paths** — fields that were never routed through
-  the localizer. These were found by *running* the localizer and diffing its
-  output, not by pattern-matching for non-Japanese text; the pattern-matching
-  estimates undercounted by roughly 15%.
-- **Vocabulary conformance** — dual-slot handling for English-only code systems
-  (`coding.display` carries the English canonical, `text` carries the Japanese),
-  and elements that currently hold prose where a coded value belongs.
-- **Disease YAML data quality** — dose prose that never reaches output, and
-  missing route keys that let a fallback assert a wrong administration route.
-- **`current_medications` data model** — `#452`, the largest open item
-  (estimated 3-4 PRs).
+- **Audit / eval extension** — `#473` (jp_language axis is Observation-only,
+  missed 13,372 EN residues that PR #505/#511 partially addressed at the
+  source; extending the axis catches future regressions of the same class).
+- **Resource-type / model refactors** — `#460` (drugs.escalation
+  non-medication entries), `#440` (patient_cache doesn't follow person
+  updates), `#439` (sub-rng isolation for drug selection), `#433`
+  (current_medications restart after renal-hold), `#436` (STOP order intent
+  lost in CIF→FHIR — F3/F1' rng-neutral needed).
+- **Data cleanup with wide consumer trace** — `#415` (`yj.yaml` mixes
+  HOT7 + YJ12 by system attribute, requires code_lookup consumer trace).
+- **Investigation** (produces analysis comments, not necessarily PRs) —
+  `#431` (POP-000105 sustained hyperglycemia), `#417` (warfarin JP path
+  PT-INR band excursion).
 
 ### A contradiction in this file's own preamble
 
