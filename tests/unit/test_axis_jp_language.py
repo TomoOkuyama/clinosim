@@ -68,6 +68,7 @@ def test_jp_na_when_no_jp_country(tmp_path: Path, spec):
 def _write_medication_admin(path, country, dosage_text, id_):
     """Helper to write MedicationAdministration resource."""
     from pathlib import Path
+
     p = Path(path) / country / "fhir_r4" / "MedicationAdministration.ndjson"
     p.parent.mkdir(parents=True, exist_ok=True)
     rec = {
@@ -82,6 +83,7 @@ def _write_medication_admin(path, country, dosage_text, id_):
 def _write_medication_request(path, country, dosage_text, id_):
     """Helper to write MedicationRequest resource."""
     from pathlib import Path
+
     p = Path(path) / country / "fhir_r4" / "MedicationRequest.ndjson"
     p.parent.mkdir(parents=True, exist_ok=True)
     rec = {
@@ -96,6 +98,7 @@ def _write_medication_request(path, country, dosage_text, id_):
 def _write_procedure(path, country, code_text, id_):
     """Helper to write Procedure resource."""
     from pathlib import Path
+
     p = Path(path) / country / "fhir_r4" / "Procedure.ndjson"
     p.parent.mkdir(parents=True, exist_ok=True)
     rec = {

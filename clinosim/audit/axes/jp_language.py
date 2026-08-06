@@ -29,9 +29,34 @@ from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
 
 _UNIT_ALLOWLIST = {
-    "mg", "mL", "mcg", "ug", "IU", "g", "L", "dL", "mmol",
-    "h", "d", "PO", "IV", "IM", "SC", "PRN", "BID", "TID",
-    "QID", "QD", "QAM", "QPM", "QHS", "QOD", "PC", "AC", "HS", "STAT",
+    "mg",
+    "mL",
+    "mcg",
+    "ug",
+    "IU",
+    "g",
+    "L",
+    "dL",
+    "mmol",
+    "h",
+    "d",
+    "PO",
+    "IV",
+    "IM",
+    "SC",
+    "PRN",
+    "BID",
+    "TID",
+    "QID",
+    "QD",
+    "QAM",
+    "QPM",
+    "QHS",
+    "QOD",
+    "PC",
+    "AC",
+    "HS",
+    "STAT",
 }
 
 
@@ -156,7 +181,9 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
             text = code_concept.get("text", "")
             if _has_english_violation(text):
                 jp_violations += 1
-                violation_details["AllergyIntolerance.code.text"] = violation_details.get("AllergyIntolerance.code.text", 0) + 1
+                violation_details["AllergyIntolerance.code.text"] = (
+                    violation_details.get("AllergyIntolerance.code.text", 0) + 1
+                )
             else:
                 for coding in code_concept.get("coding", []):
                     display = coding.get("display", "")
