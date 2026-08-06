@@ -1443,8 +1443,25 @@ def _run_regenerate_goldens(args: Any) -> None:
             count += 1
             print(f"regenerated: {golden_path}", file=sys.stderr)
 
+    # Issue #428 (F1): make the variant explicit, and remind authors that
+    # narrative-changing PRs must regenerate EACH variant they touch. The old
+    # message ("Regenerated 6 golden(s)") looked complete even when it was
+    # only 1 of 2 variants — the llm-mock leg fell out of sync without a
+    # visible signal until `pytest -m regression` was run.
+    variant_name = "template" if provider == "template" else f"llm-{tag}"
+    other_variants_hint = (
+        "  Other variants (llm-mock, llm-<provider>) were NOT touched. If your\n"
+        "  change alters narrative output, rerun with --provider mock (and any\n"
+        "  LLM providers you use) or 'pytest -m regression' will fail on the\n"
+        "  variants you skipped."
+        if provider == "template"
+        else "  The `template` variant was NOT touched. Rerun without --provider,\n"
+        "  or with --provider template, to regenerate it as well when narrative\n"
+        "  output changes."
+    )
     print(
-        f"Regenerated {count} golden(s). Review + git diff + commit if intentional.",
+        f"Regenerated {count} {variant_name} golden(s). Review + git diff + commit if intentional.\n"
+        f"{other_variants_hint}",
         file=sys.stderr,
     )
 
