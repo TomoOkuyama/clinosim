@@ -7,7 +7,9 @@ of the base `Dosage` type that clinosim's builder does not emit:
   the day the dose becomes effective.
 - `Dosage.timing.code.coding` (min=1) satisfying R5020 — exactly one of
   MHLW ePrescription CS OR the JP-CLINS uncoded dummy code.
-- `Dosage.timing.code.text` (min=1).
+
+See Issue #477: `Dosage.timing.code.text` is NOT populated. Timing.code is
+a CodeableConcept with binding to TimingAbbreviation, not a free-text field.
 
 Feedback fix (2026-07-16, PR-I).
 """
@@ -117,24 +119,32 @@ def test_timing_code_dummy_uncoded_added_when_missing():
     }
 
 
-def test_timing_code_text_falls_back_to_dosage_text():
+def test_timing_code_text_not_populated():
+    """Issue #477: timing.code.text should NOT be populated. It's a
+    CodeableConcept with TimingAbbreviation binding, not a free-text field."""
     r = {
         "resourceType": "MedicationRequest",
         "id": "mr1",
         "dosageInstruction": [{"text": "1日3回 毎食後"}],
     }
     _populate_jp_medication_dosage_ecs_fields(r)
-    assert r["dosageInstruction"][0]["timing"]["code"]["text"] == "1日3回 毎食後"
+    # timing.code.text should NOT be set (Issue #477)
+    assert "text" not in r["dosageInstruction"][0]["timing"]["code"]
+    # But timing.code.coding should still be present
+    assert len(r["dosageInstruction"][0]["timing"]["code"]["coding"]) == 1
 
 
-def test_timing_code_text_falls_back_to_dummy_display_when_no_dosage_text():
+def test_timing_code_text_not_populated_even_with_no_dosage_text():
+    """Issue #477: timing.code.text should NOT be populated, even as a
+    fallback when dosageInstruction.text is missing."""
     r = {
         "resourceType": "MedicationRequest",
         "id": "mr1",
         "dosageInstruction": [{}],
     }
     _populate_jp_medication_dosage_ecs_fields(r)
-    assert r["dosageInstruction"][0]["timing"]["code"]["text"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
+    # timing.code.text should NOT be set (Issue #477)
+    assert "text" not in r["dosageInstruction"][0]["timing"]["code"]
 
 
 def test_timing_code_preserves_pre_existing_mhlw_coding():
@@ -195,9 +205,9 @@ def test_all_dosage_instructions_receive_fields():
         assert any(e["url"] == _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL for e in di["extension"])
         codings = di["timing"]["code"]["coding"]
         assert any(c["system"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_CS for c in codings)
-    # timing.code.text carries the per-dose text
-    assert r["dosageInstruction"][0]["timing"]["code"]["text"] == "AM"
-    assert r["dosageInstruction"][1]["timing"]["code"]["text"] == "PM"
+    # Issue #477: timing.code.text should NOT be set
+    assert "text" not in r["dosageInstruction"][0]["timing"]["code"]
+    assert "text" not in r["dosageInstruction"][1]["timing"]["code"]
 
 
 def test_ignores_non_medication_request_resources():
