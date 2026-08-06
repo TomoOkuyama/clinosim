@@ -666,11 +666,22 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
     # falls back to `p` (itself already JA) — net-safe.
     route = route_concept["text"] if route_concept else ""
 
-    # If nothing structured is available, fall back to text from display_name
+    # If nothing structured is available, return None so the caller omits
+    # `dosageInstruction`. Issue #467: the previous fallback stuffed the
+    # Order's `display_name` (drug name, e.g. "Atorvastatin 10mg") into
+    # `Dosage.text`. That is wrong on two counts:
+    #  (1) `medicationCodeableConcept.text` already carries the drug name;
+    #      duplicating it into the dosage field misrepresents "dosage".
+    #  (2) The fallback was not localized — a JP MedicationRequest emitted
+    #      via this path would leak an English drug string into JP output.
+    # The single caller (`_fhir_medications._build_medication_request`) handles
+    # `None` cleanly (line 659: `if dosage: resource["dosageInstruction"] = [dosage]`)
+    # and independently populates a stand-alone dosage instruction from
+    # `rate_adjustment_note` when needed. "空欄は無知、誤った断言は虚偽"
+    # (feedback_empty_vs_wrong_assertion) — a missing dosageInstruction is
+    # correct when we have no dosage information, unlike inventing one from
+    # the drug name.
     if dose_qty is None and not freq and not route:
-        text = order.get("display_name", "")
-        if text:
-            return {"text": text}
         return None
 
     dosage: dict[str, Any] = {}
