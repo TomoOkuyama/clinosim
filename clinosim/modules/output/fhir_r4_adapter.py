@@ -1710,8 +1710,11 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                         "display": _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,
                     }
                 )
-        if not code_field.get("text"):
-            code_field["text"] = dosage.get("text") or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
+        # DO NOT fill timing.code.text with dosage text. Timing.code is a
+        # CodeableConcept with binding to TimingAbbreviation (BID/TID/QID/Q4H/QD).
+        # Dosage text belongs in Dosage.text only (line 745). Filling both
+        # creates duplication and makes timing.code.text unsuitable for its
+        # intended purpose (machine-readable frequency abbreviations). Issue #477.
 
         # (4) `Dosage.doseAndRate.type` min=1 (session 58 Chain #2).
         # Every doseAndRate entry gets the MHLW MedicationIngredientStrength
