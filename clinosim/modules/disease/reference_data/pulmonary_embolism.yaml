@@ -426,12 +426,14 @@ drugs:
         drug_class: "anticoagulant"
         probability: 0.2
         code_yj: "3332001"
-        dose: "As prescribed"   # session 76 Issue #469: same class as the sibling
-                                # entries. Warfarin has no fixed dose — it is titrated
-                                # to INR, so the target belongs in `note`. Not emitted
-                                # at p=300 seed=42 (probability 0.2), hence latent.
+        dose: ""   # Issue #476: Warfarin has no fixed dose — it is titrated
+                   # to INR. Authored JP instruction (with target INR band)
+                   # lives in `dose_ja`; kept empty (rather than "As prescribed")
+                   # to avoid the term translator mangling — session 76 Issue #469
+                   # rationale, restored to output via #476.
+        dose_ja: "INR 2.0-3.0 に調整 (70 歳以上は 1.5-2.5)"
         duration_days: 90
-        note: "Used if mechanical valve or DOAC contraindicated (JCS 2017); adjusted to INR 2.0-3.0 (1.5-2.5 age>70)"
+        note: "Used if mechanical valve or DOAC contraindicated (JCS 2017)"
     us:
       # US: both Rivaroxaban (EINSTEIN-PE) and Apixaban (AMPLIFY) are
       # first-line DOACs per CHEST 2021 Antithrombotic Therapy Guideline;

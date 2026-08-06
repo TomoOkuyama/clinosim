@@ -258,6 +258,61 @@ def _validate_drug_route_consistency(disease_id: str, drugs: dict[str, Any]) -> 
 
 
 # ---------------------------------------------------------------------------
+# Localized dose instruction key typo defense (Issue #476)
+# ---------------------------------------------------------------------------
+#
+# `DiseaseProtocol.drugs` is `dict[str, Any]`, so `extra="forbid"` on the model
+# does NOT guard drug-entry keys — a typo like `dose_jp` (instead of `dose_ja`)
+# is silently swallowed by the reader's `.get("dose_ja", "")`. This validator
+# catches the specific typos most likely to trip up authors extending the
+# Issue #476 pattern to new drug entries.
+_LOCALIZED_DOSE_KEY_TYPOS: dict[str, str] = {
+    "dose_jp": "dose_ja",
+    "dose_us": "dose_en",
+    "dose_english": "dose_en",
+    "dose_japanese": "dose_ja",
+    "ja_dose": "dose_ja",
+    "en_dose": "dose_en",
+}
+
+
+def _validate_drug_entry_localized_dose_keys(disease_id: str, drugs: dict[str, Any]) -> None:
+    """Fail loudly on likely typos of the `dose_ja` / `dose_en` keys (Issue #476).
+
+    Load-time (not runtime) on purpose: the data is entirely YAML-sourced,
+    so every offender is decidable before a single patient is simulated.
+    Same class as `_validate_drug_route_consistency` / `_validate_drug_block_duration_days`.
+    """
+    if not isinstance(drugs, dict):
+        return
+    offenders: list[str] = []
+    for block_name, block in drugs.items():
+        if not isinstance(block, dict):
+            continue
+        for country_key in ("japan", "us"):
+            entries = block.get(country_key) or []
+            if isinstance(entries, dict):
+                entries = [entries]
+            if not isinstance(entries, list):
+                continue
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    continue
+                for typo, canonical in _LOCALIZED_DOSE_KEY_TYPOS.items():
+                    if typo in entry:
+                        offenders.append(
+                            f"  drugs.{block_name}.{country_key}: drug={entry.get('drug', '')!r} "
+                            f"has key {typo!r} — did you mean {canonical!r}? "
+                            f"(Issue #476 localized dose instruction key)"
+                        )
+    if offenders:
+        raise ValueError(
+            f"disease {disease_id!r}: localized dose instruction key typo(s) detected "
+            f"(silent-drop risk — the reader would swallow the typo and emit no text):\n" + "\n".join(offenders)
+        )
+
+
+# ---------------------------------------------------------------------------
 # Narrative spec models (Tier 1 #3 α-min-1 Task 4)
 # ---------------------------------------------------------------------------
 
@@ -483,6 +538,11 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     # must declare `duration_days` explicitly, so the reader does not substitute
     # a 7-day supply that contradicts the dose.
     _validate_drug_block_duration_days(disease_id, data.get("drugs", {}) or {})
+
+    # Fail-loud localized dose instruction key typo defense (Issue #476).
+    # Catches likely typos of `dose_ja` / `dose_en` (`dose_jp`, `dose_us`, etc.)
+    # that would otherwise silently swallow the authored instruction.
+    _validate_drug_entry_localized_dose_keys(disease_id, data.get("drugs", {}) or {})
 
     # Issue #458: import-time route vocabulary validation. Walks every `route:`
     # value in the whole YAML (not only `drugs`) so newly-added blocks are

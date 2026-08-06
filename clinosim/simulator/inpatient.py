@@ -1239,6 +1239,11 @@ def _run_daily_loop(
                         ordered_by=attending_id,
                         status=OrderStatus.PLACED,
                         route=esc_drug.get("route", "IV"),
+                        # Issue #476: propagate authored localized dose
+                        # instructions from YAML so the FHIR builder can emit
+                        # them as country-scoped `dosageInstruction.text`.
+                        dose_text_ja=esc_drug.get("dose_ja", ""),
+                        dose_text_en=esc_drug.get("dose_en", ""),
                     )
                 )
 
@@ -2069,12 +2074,19 @@ def _build_discharge_rx(
         if key in seen_dedup_keys:
             return
         seen_dedup_keys.add(key)
+        # Issue #476: propagate authored localized dose instructions
+        # (`dose_ja` / `dose_en`) into the item dict so the discharge-Rx FHIR
+        # builder can emit them as country-scoped `dosageInstruction.text`.
+        # Empty for the ~all entries that carry a real numeric dose; only the
+        # 5 disease-YAML entries flagged by #476 populate these.
         items.append(
             {
                 "drug_name": drug_name,
                 "dose": drug_spec.get("dose", ""),
                 "duration_days": drug_spec.get("duration_days", 7),
                 "route": drug_spec.get("route", "PO"),
+                "dose_ja": drug_spec.get("dose_ja", ""),
+                "dose_en": drug_spec.get("dose_en", ""),
             }
         )
 

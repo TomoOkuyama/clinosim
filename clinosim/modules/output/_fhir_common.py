@@ -666,6 +666,19 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
     # falls back to `p` (itself already JA) — net-safe.
     route = route_concept["text"] if route_concept else ""
 
+    # Issue #476: when the disease author wrote a localized dose instruction
+    # (`dose_ja` / `dose_en` on the YAML entry → `dose_text_ja` / `dose_text_en`
+    # on the Order), emit it as the dosage text even when structured fields
+    # are empty. This is DIFFERENT from the Issue #467 defect (which stuffed
+    # `display_name` into `Dosage.text` — the drug name, not the dosage):
+    # `dose_text_{ja,en}` carries an authored dose instruction that is exactly
+    # what belongs in `Dosage.text` when the dose is a clinical instruction
+    # rather than a numeric expression (e.g. "以前の吸入薬を再開または新規開始"
+    # for `ICS/LABA inhaler` step-up-after-exacerbation).
+    dose_text_ja = str(order.get("dose_text_ja", "") or "")
+    dose_text_en = str(order.get("dose_text_en", "") or "")
+    authored_text = dose_text_ja if is_jp(country) else dose_text_en
+
     # If nothing structured is available, return None so the caller omits
     # `dosageInstruction`. Issue #467: the previous fallback stuffed the
     # Order's `display_name` (drug name, e.g. "Atorvastatin 10mg") into
@@ -674,14 +687,16 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
     #      duplicating it into the dosage field misrepresents "dosage".
     #  (2) The fallback was not localized — a JP MedicationRequest emitted
     #      via this path would leak an English drug string into JP output.
-    # The single caller (`_fhir_medications._build_medication_request`) handles
-    # `None` cleanly (line 659: `if dosage: resource["dosageInstruction"] = [dosage]`)
-    # and independently populates a stand-alone dosage instruction from
-    # `rate_adjustment_note` when needed. "空欄は無知、誤った断言は虚偽"
-    # (feedback_empty_vs_wrong_assertion) — a missing dosageInstruction is
-    # correct when we have no dosage information, unlike inventing one from
-    # the drug name.
+    # "空欄は無知、誤った断言は虚偽" (feedback_empty_vs_wrong_assertion):
+    # a missing dosageInstruction is correct when we have no dosage
+    # information, unlike inventing one from the drug name.
+    #
+    # BUT if the author provided an explicit country-scoped instruction (via
+    # `dose_text_{ja,en}` — Issue #476), emit it as a text-only dosage even
+    # when structured fields are absent.
     if dose_qty is None and not freq and not route:
+        if authored_text:
+            return {"text": authored_text}
         return None
 
     dosage: dict[str, Any] = {}
@@ -745,7 +760,14 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
         parts.append(freq)
 
     # Text summary
-    if parts:
+    # Issue #476: when the disease author provided an explicit country-scoped
+    # instruction, it wins over the auto-derived summary. This is intentional:
+    # for instruction-only doses (e.g. "以前の吸入薬を再開または新規開始")
+    # the authored text carries the clinical meaning the summary cannot
+    # reconstruct from route + frequency alone.
+    if authored_text:
+        dosage["text"] = authored_text
+    elif parts:
         if is_jp(country):
             ja_parts = []
             for p in parts:
