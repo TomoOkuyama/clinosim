@@ -141,6 +141,81 @@ def _validate_drug_route_vocabulary(disease_id: str, data: dict[str, Any]) -> No
         validate_yaml_route_value(raw, source=f"disease {disease_id!r}")
 
 
+# ---------------------------------------------------------------------------
+# Drug-block duration_days fallback validation (Issue #462)
+# ---------------------------------------------------------------------------
+#
+# `_build_discharge_rx._append_item` substitutes `duration_days = 7` when a
+# `discharge_oral` entry omits the field. That fallback is a grounded inference
+# for daily-dosed drugs where "7 days = 1 week supply" is a defensible default.
+#
+# It becomes a FALSE ASSERTION when the entry's dose string names an
+# administration interval **longer than one week** — a `q6months` dose gets 0
+# doses in a 7-day supply, a `weekly` dose gets exactly 1 when a typical
+# prescription supply is 3 months. Sibling to the route-fallback check
+# (`_validate_drug_route_consistency`); same "空欄は無知、誤った断言は虚偽"
+# principle: silence in the dose is acceptable (fallback = best guess), but a
+# dose that names a long interval contradicts the 7-day default.
+#
+# Detection is conservative — only intervals unambiguously > 1 week fire.
+# Daily / BID / TID / q4-6h etc. remain valid under the 7-day fallback.
+_LONG_INTERVAL_RE = re.compile(
+    r"\b(weekly|monthly|q\s*\d+\s*(weeks?|months?|weekly|monthly))\b",
+    re.IGNORECASE,
+)
+
+
+def dose_names_long_interval(dose: str) -> bool:
+    """True when the dose string names an administration interval > 1 week.
+
+    Fires on: `weekly`, `monthly`, `q<N>weeks`, `q<N>months` (case-insensitive).
+    Does NOT fire on: daily / BID / TID / q<N>h — those are within the 7-day
+    fallback envelope. Returns False for empty / silence-only doses.
+    """
+    return bool(_LONG_INTERVAL_RE.search(dose or ""))
+
+
+def _validate_drug_block_duration_days(disease_id: str, drugs: dict[str, Any]) -> None:
+    """Fail loudly when a `discharge_oral` entry's dose names a long interval but
+    omits `duration_days`, forcing the reader to substitute the 7-day fallback.
+
+    Load-time (not runtime) on purpose — same rationale as
+    `_validate_drug_route_consistency`. Sibling check; scoped to `discharge_oral`
+    because that is the only block whose reader (`_append_item`) substitutes a
+    numeric `duration_days` default. Escalation orders carry their own duration
+    semantics (drip / titration) and are not covered here.
+    """
+    if not isinstance(drugs, dict):
+        return
+    block = drugs.get("discharge_oral")
+    if not isinstance(block, dict):
+        return
+    offenders: list[str] = []
+    for country_key in ("japan", "us"):
+        entries = block.get(country_key) or []
+        if isinstance(entries, dict):
+            entries = [entries]
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict) or "duration_days" in entry:
+                continue
+            dose = str(entry.get("dose", "") or "")
+            if dose_names_long_interval(dose):
+                offenders.append(
+                    f"  drugs.discharge_oral.{country_key}: drug={entry.get('drug', '')!r} "
+                    f"dose={dose!r} names an interval longer than the 7-day fallback "
+                    f"but omits `duration_days`, so the reader would substitute `7`."
+                )
+    if offenders:
+        raise ValueError(
+            f"disease {disease_id!r}: dose string names a long administration interval "
+            f"but no `duration_days` is declared (Issue #462). Declare an explicit "
+            f"`duration_days` on each entry below so the reader does not assert a "
+            f"7-day supply that contradicts the dose interval:\n" + "\n".join(offenders)
+        )
+
+
 def _validate_drug_route_consistency(disease_id: str, drugs: dict[str, Any]) -> None:
     """Fail loudly when an absent-`route` entry's dose contradicts its block fallback.
 
@@ -401,6 +476,13 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     # substitute — the class PR #457 missed because its sweep keyed on drug names
     # rather than dose strings.
     _validate_drug_route_consistency(disease_id, data.get("drugs", {}) or {})
+
+    # Fail-loud drug-block duration_days fallback validation (Issue #462).
+    # Sibling to the route-fallback check: entries whose dose names an
+    # administration interval longer than one week (`weekly`, `q6months` etc.)
+    # must declare `duration_days` explicitly, so the reader does not substitute
+    # a 7-day supply that contradicts the dose.
+    _validate_drug_block_duration_days(disease_id, data.get("drugs", {}) or {})
 
     # Issue #458: import-time route vocabulary validation. Walks every `route:`
     # value in the whole YAML (not only `drugs`) so newly-added blocks are
