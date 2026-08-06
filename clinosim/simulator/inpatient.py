@@ -8,7 +8,7 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.modules._shared import sanitize_id_token
+from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
 from clinosim.modules.clinical_course.engine import (
     apply_diagnosis_modifier,
     compute_diagnosis_effectiveness,
@@ -1144,7 +1144,10 @@ def _run_daily_loop(
             for stop_idx, drug_name in enumerate(mod.get("stop", [])):
                 all_orders.append(
                     Order(
-                        order_id=f"ORD-{encounter_id}-STOP-D{day}-{stop_idx}-{sanitize_id_token(drug_name, 8)}",
+                        order_id=(
+                            f"ORD-{encounter_id}{MED_STOP_ORDER_ID_MARKER}"
+                            f"D{day}-{stop_idx}-{sanitize_id_token(drug_name, 8)}"
+                        ),
                         patient_id=patient.patient_id,
                         order_type=OrderType.MEDICATION,
                         display_name=f"DISCONTINUE: {drug_name}",

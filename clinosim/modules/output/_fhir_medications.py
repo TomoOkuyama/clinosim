@@ -16,7 +16,13 @@ from clinosim.codes import (
 )
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, resolve_lang
+from clinosim.modules._shared import (
+    MED_STOP_ORDER_ID_MARKER,
+    get_attr_or_key,
+    is_jp,
+    is_us,
+    resolve_lang,
+)
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.modules.output._fhir_common import (
     _build_dosage_instruction,
@@ -533,6 +539,30 @@ def _build_medication_request(
         or (_is_episodic and encounter_type == "inpatient" and order.get("encounter_id"))
     ):
         status_val = "completed"
+
+    # Issue #436 F1': daily-loop STOP (discontinuation) orders are
+    # emitted with the ``MED_STOP_ORDER_ID_MARKER`` id marker (see
+    # ``clinosim/modules/_shared.py``). FHIR MedicationRequest.status
+    # for these orders is set to ``"stopped"`` so downstream consumers
+    # cannot mistake a discontinuation for an active prescription. The
+    # override is at the emit layer only (F1', not F1) — session 79
+    # investigation showed that reassigning ``OrderStatus.STOPPED`` at
+    # Order creation shifts ``_generate_mar``'s per-order rng cursor
+    # and violates AD-16 determinism (+6 ServiceRequest / +7 Specimen /
+    # +1 DiagnosticReport cascade). The id-based override at emit is
+    # rng-neutral: the Order iteration order is unchanged.
+    #
+    # JP asymmetry: JP_MedicationRequest_eCS pins ``status`` =
+    # patternCode ``"completed"`` per the JP-CLINS spec, so
+    # ``fhir_r4_adapter._normalize_ecs_metadata`` (around
+    # ``fhir_r4_adapter.py:1978``) forcibly re-overrides JP output
+    # back to ``"completed"``. On JP, F1' is effectively no-op and
+    # the STOP intent survives only via F3 (``note[].text`` below,
+    # which the eCS profile does not restrict). On US, both F1' and
+    # F3 survive.
+    _is_stop_order = MED_STOP_ORDER_ID_MARKER in _structural_key
+    if _is_stop_order:
+        status_val = "stopped"
     resource: dict[str, Any] = {
         "resourceType": "MedicationRequest",
         "id": resource_id,
@@ -699,6 +729,18 @@ def _build_medication_request(
     # marked "brand only" — default `allowed = true` for outpatient/home-med.
     if encounter_type == "outpatient" or _is_home_med:
         resource["substitution"] = {"allowedBoolean": True}
+
+    # Issue #436 F3: STOP orders' ``clinical_intent`` (e.g. "Day 2
+    # sudden_deterioration: stop Warfarin") is otherwise dropped by the
+    # emit path. Copy it into ``note[].text`` so downstream FHIR readers
+    # (human or machine) can see WHY the medication was discontinued.
+    # F1' (above) makes ``status="stopped"`` machine-actionable; F3 adds
+    # the human-facing rationale. Emitted only for STOP orders — no-op
+    # for regular orders (keeps their emit shape byte-identical).
+    if _is_stop_order:
+        _stop_intent = str(order.get("clinical_intent", "") or "").strip()
+        if _stop_intent:
+            resource["note"] = [{"text": _stop_intent}]
 
     return resource
 
