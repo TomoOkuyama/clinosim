@@ -44,9 +44,47 @@ def test_engine_runs_all_builtin_axes(tmp_path: Path):
 def test_engine_module_filter(tmp_path: Path):
     register_audit_module(ModuleAuditSpec(name="hai"))
     register_audit_module(ModuleAuditSpec(name="device"))
-    engine = AuditEngine(cohort_dir=_empty_cohort(tmp_path), modules=["hai"])
+    # Restrict axes to per-module ones so the cohort-level sentinel
+    # (added when jp_language runs) does not confound the filter test.
+    engine = AuditEngine(
+        cohort_dir=_empty_cohort(tmp_path),
+        modules=["hai"],
+        axes=["structural", "silent_no_op"],
+    )
     result = engine.run()
     assert result.modules == ["hai"]
+
+
+@pytest.mark.unit
+def test_engine_cohort_axis_adds_sentinel_module(tmp_path: Path):
+    """jp_language is a cohort-level axis (#473): it runs once with
+    ``spec=None`` and its result is attached to the synthetic
+    ``_cohort_`` module row so the reporter grid can render it."""
+    register_audit_module(ModuleAuditSpec(name="hai"))
+    engine = AuditEngine(cohort_dir=_empty_cohort(tmp_path), axes=["jp_language"])
+    result = engine.run()
+    # ``discover()`` re-imports every ``modules/*/audit.py`` so the
+    # exact module list depends on registered specs. The invariant we
+    # pin: the sentinel is present, and no per-registered-module
+    # jp_language result exists.
+    assert "_cohort_" in result.modules
+    assert ("jp_language", "_cohort_") in result.results
+    # Per-module keys MUST NOT be created for cohort-level axes.
+    for mod in result.modules:
+        if mod == "_cohort_":
+            continue
+        assert ("jp_language", mod) not in result.results
+
+
+@pytest.mark.unit
+def test_engine_cohort_axis_runs_once_regardless_of_module_count(tmp_path: Path):
+    register_audit_module(ModuleAuditSpec(name="hai"))
+    register_audit_module(ModuleAuditSpec(name="device"))
+    engine = AuditEngine(cohort_dir=_empty_cohort(tmp_path), axes=["jp_language"])
+    result = engine.run()
+    # Exactly one cohort-level result exists, not one per module.
+    jp_keys = [k for k in result.results if k[0] == "jp_language"]
+    assert jp_keys == [("jp_language", "_cohort_")]
 
 
 @pytest.mark.unit
