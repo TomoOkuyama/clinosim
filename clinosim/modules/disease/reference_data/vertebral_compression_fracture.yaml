@@ -422,6 +422,11 @@ drugs:
         # item asserts oral administration. Matches the `osteoporosis_treatment`
         # block above, which already declares `route: SC` for the same drug.
         route: SC
+        # Issue #462: dose says `q6months` (single dose every 6 months). Without
+        # an explicit `duration_days`, the reader substitutes 7 — a supply that
+        # allows zero doses in the interval. 180 days = one dose supply covering
+        # the interval to the next injection.
+        duration_days: 180
         note: "Continue osteoporosis treatment"
       - drug: "Alfacalcidol"
         code_yj: "3112001"
@@ -434,6 +439,10 @@ drugs:
       - drug: "Alendronate"
         code_rxnorm: "3164"
         dose: "70mg PO weekly"
+        # Issue #462: dose says `weekly`. The 7-day fallback allows only one
+        # dose. 90 days = 12-13 doses, a typical bisphosphonate prescription
+        # supply for outpatient follow-up.
+        duration_days: 90
 
 # ============================================================
 # DRUG INTERACTIONS
