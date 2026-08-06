@@ -880,6 +880,15 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # filter. category is a Procedure.category coding, well-known SNOMED
         # concept from https://build.fhir.org/valueset-procedure-category.html.
         _cat_lang = "ja" if str(ctx.country).upper() == "JP" else "en"
+        # Issue #474: localize the Order display for JP so treatment-side
+        # procedures (splint/bandage/wound-care/O2 etc.) don't leak English
+        # into JP `Procedure.code.text`. `_localize_drug_name` is the
+        # phrase-level translator that consults `drug_names_ja.yaml` (which
+        # already carries entries like "Ice pack application" → "氷嚢貼付",
+        # "Wound irrigation with normal saline" → "生理食塩液による創部洗浄")
+        # and internally chains dosage-abbrev translation (O2 → 酸素投与 etc.).
+        # US path unchanged (helper is a no-op for is_us(country)).
+        _code_text = _localize_drug_name(display, ctx.country) if display else "Procedure"
         procedure_res: dict = {
             "resourceType": "Procedure",
             "id": f"proc-order-{order_id}" if order_id else f"proc-order-{ctx.patient_id}-{proc_seq:04d}",
@@ -894,7 +903,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
                     }
                 ],
             },
-            "code": {"text": display} if display else {"text": "Procedure"},
+            "code": {"text": _code_text},
             "subject": {"reference": f"Patient/{ctx.patient_id}"},
         }
         if enc_id:
