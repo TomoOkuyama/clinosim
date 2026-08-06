@@ -216,6 +216,16 @@ def _minimal_jp_record() -> dict:
                 "start_datetime": "2026-01-15T10:00:00",
                 "encounter_id": "ENC-001",
                 "ordered_by": "PRAC-JP-001",
+                # Issue #467: structured dose fields required so the fallback
+                # (removed in #467 fix) doesn't have to invent a dosageInstruction
+                # from display_name. Matches the realistic inpatient-Order shape
+                # (`# Every MedicationRequest built from an inpatient Order carries
+                # a structured route` — file docstring above).
+                "dose_quantity": 100,
+                "dose_unit": "mg",
+                "frequency": "daily",
+                "frequency_per_day": 1,
+                "route": "PO",
             }
         ],
     }
