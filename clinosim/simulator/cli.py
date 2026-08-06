@@ -22,6 +22,44 @@ from clinosim.types.encounter import EncounterType
 from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
 
 
+def _enforce_jp_clins_pkg_gate(allow_legacy: bool) -> None:
+    """Fail-loud when JP-CLINS package is not detected (Issue #418).
+
+    Called at CLI entry for `--country JP`. Prior behavior silently degraded
+    to legacy 5-digit JLAC10 OIDs without any signal — the axis surfaced
+    Outcome.NA but the generator itself produced non-compliant output
+    invisibly. Post-#418: exit 2 unless the caller explicitly opts into the
+    legacy fallback via `--allow-legacy` (option C from the Issue body).
+
+    Import is inside the function so non-JP runs never pay the lookup cost
+    and so the test suite can monkeypatch the loader cleanly.
+    """
+    from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+
+    pkg = load_lab_coding_package()
+    if pkg.is_available():
+        return
+    if not allow_legacy:
+        print(
+            "ERROR: JP-CLINS package not detected. `clinosim generate --country JP`\n"
+            "requires either:\n"
+            "  - `fhir install clinical-information-sharing 1.12.0` (+ jpfhir-terminology 2.2606.0), OR\n"
+            "  - set $CLINOSIM_JP_CLINS_PKG_DIR to the pkg's `package/` directory.\n"
+            "Without the package, output would fall back to legacy 5-digit JLAC10 OIDs\n"
+            "(non-JP-CLINS eCS compliant) with no signal to downstream consumers.\n"
+            "Pass `--allow-legacy` to acknowledge non-compliant output and continue.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    print(
+        "WARN: JP-CLINS package not detected — --allow-legacy was passed, so\n"
+        "  the run will continue with legacy 5-digit JLAC10 OID output.\n"
+        "  Output will NOT be JP-CLINS eCS compliant. Downstream validators\n"
+        "  (jp_clins_lab_compliance axis) will surface Outcome.NA rather than PASS.",
+        file=sys.stderr,
+    )
+
+
 def main() -> None:
     """CLI entry point: clinosim [command] [options]"""
     import argparse
@@ -98,6 +136,18 @@ def main() -> None:
         "`ts` / `module` / `event` / stage timings. Use `tail -f` to watch a "
         "run live; use `jq -c '{module,event,elapsed_s}'` for post-run "
         "profiling. Log level via CLINOSIM_LOG_LEVEL (default INFO).",
+    )
+    gen.add_argument(
+        "--allow-legacy",
+        action="store_true",
+        default=False,
+        help="(JP only) Permit generation to proceed with legacy 5-digit JLAC10 OID "
+        "output when the JP-CLINS package is not installed (Issue #418). "
+        "Default is fail-loud: `--country JP` requires the pkg "
+        "(`clinical-information-sharing#1.12.0` + `jpfhir-terminology#2.2606.0`) "
+        "so the emitted output is JP-CLINS eCS compliant. Set this flag to "
+        "acknowledge non-compliant output — the run will print a warning and "
+        "produce legacy fallback codes. Ignored for non-JP countries.",
     )
 
     # === test-disease: generate specific disease/archetype ===
@@ -619,6 +669,7 @@ def main() -> None:
             f"clinosim generate: population={pop_label}, seed={args.seed}, country={args.country}, period={start}~{end}"
         )
         if is_jp(args.country):
+            _enforce_jp_clins_pkg_gate(allow_legacy=getattr(args, "allow_legacy", False))
             status = "on" if args.jp_insurance else "off"
             print(f"  JP insurance numbers (被保険者番号): {status}")
         if hospital_cfg:
