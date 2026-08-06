@@ -54,6 +54,29 @@ _SYSTEM_DATA_ALIASES: dict[str, str] = {
 }
 
 
+# Issue #415 (session 81): sibling systems consulted as read-only lookup
+# fallbacks. When ``lookup(primary, code, lang)`` finds no entry in
+# ``primary``, ``lookup`` retries each sibling in order until one hits.
+# Concrete case: ``system_key_for("drug", "JP") = "yj"`` and callers pass
+# both YJ12 (12-char) codes AND HOT7 (7-digit MEDIS) codes with the same
+# ``"yj"`` key. Splitting HOT7 into ``codes/data/hot7.yaml`` would break
+# HOT7 display lookup at the ``"yj"`` call sites; declaring ``"hot7"``
+# as a sibling of ``"yj"`` restores it without touching those consumers.
+#
+# The FHIR emit path (``_fhir_medications._resolve_jp_drug_system_uri``)
+# already dispatches to the correct canonical URI per code format, so
+# only ``lookup`` (display resolution) needs this fallback — the URI
+# side is unaffected.
+#
+# Each sibling still lives in its own YAML with its own canonical URI:
+# this is a display-only fallback, NOT a data merge. ``get_system_uri
+# ("hot7")`` still returns the MEDIS-HOT7 URI, ``get_system_uri("yj")``
+# still returns the capstandard YJ URI.
+_SYSTEM_LOOKUP_SIBLINGS: dict[str, tuple[str, ...]] = {
+    "yj": ("hot7",),
+}
+
+
 # Issue #358: system keys whose canonical CodeSystem publishes only a
 # Japanese ``display`` for each concept — emitting an English display against
 # this system URI produces a display-mismatch error at conformance time
@@ -115,34 +138,49 @@ def _load_system(system_key: str) -> CodeSystem | None:
     )
 
 
+def _lookup_in_system(cs: CodeSystem, code: str) -> dict[str, str] | None:
+    """Return the code entry from ``cs`` or None. Same resolution order as
+    ``lookup``: exact → base (E11.9→E11) → child of base."""
+    entry = cs.codes.get(code)
+    if entry:
+        return entry
+    base = code.split(".")[0]
+    entry = cs.codes.get(base)
+    if entry:
+        return entry
+    prefix = code + "."
+    for k, v in cs.codes.items():
+        if k.startswith(prefix) or k == code:
+            return v
+    return None
+
+
 def lookup(system: str, code: str, lang: str = "en") -> str:
     """Look up display text for a code in the given language.
 
     Resolution order:
-    1. Exact match
-    2. Base code (e.g. "E11.9" → "E11")
-    3. Any sub-code starting with the given base (e.g. "I63" → "I63.9")
-    4. Return the code itself as fallback
+    1. Exact match in ``system``
+    2. Base code (e.g. "E11.9" → "E11") in ``system``
+    3. Any sub-code starting with the given base (e.g. "I63" → "I63.9") in ``system``
+    4. Steps 1-3 in each sibling system declared in
+       ``_SYSTEM_LOOKUP_SIBLINGS[system]`` (Issue #415 — e.g. ``"yj"`` falls
+       back to ``"hot7"`` so a HOT7 code passed with the ``"yj"`` key still
+       resolves after the split).
+    5. Return the code itself as fallback.
     """
     cs = _load_system(system)
-    if not cs:
-        return code
-
-    entry = cs.codes.get(code)
-    if not entry:
-        # Base code lookup (strip subcode)
-        base = code.split(".")[0]
-        entry = cs.codes.get(base)
-
-    if not entry:
-        # Reverse: try to find a child code if the query is a base code
-        prefix = code + "."
-        for k, v in cs.codes.items():
-            if k.startswith(prefix) or k == code:
-                entry = v
+    entry: dict[str, str] | None = None
+    if cs:
+        entry = _lookup_in_system(cs, code)
+    if entry is None:
+        for sibling_key in _SYSTEM_LOOKUP_SIBLINGS.get(system, ()):
+            sibling = _load_system(sibling_key)
+            if not sibling:
+                continue
+            entry = _lookup_in_system(sibling, code)
+            if entry is not None:
                 break
-
-    if not entry:
+    if entry is None:
         return code
 
     if lang in entry:
