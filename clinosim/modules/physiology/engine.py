@@ -423,11 +423,21 @@ def derive_lab_values(
     # elevates BNP when the heart is failing: HF (low cardiac x high volume) rises sharply,
     # uncomplicated MI (low cardiac, normal volume) stays moderate, and non-cardiac fluid
     # overload in a preserved heart (cirrhosis ascites, AKI) stays low. Deterministic
-    # (state -> lab, no rng). Coefficients tuned by generation audit: with the states the
-    # simulator actually produces (HF exacerbation cardiac~0.27/volume~0.56, acute MI
-    # cardiac~0.19/volume~0), these give HF exacerbation BNP ~800-1500, MI ~150-300, and
-    # non-cardiac < 100 pg/mL.
-    labs["BNP"] = 30.0 * math.exp((1 - cardiac) * 2.0 + max(0.0, state.volume_status) * (1 - cardiac) * 5.0)
+    # (state -> lab, no rng).
+    #
+    # Base 15.0 (Issue #430, from prior 30.0): healthy cardiac=1.0 gives
+    # BNP = 15 pg/mL, centering healthy volunteers within the JP JCCLS reference
+    # (M < 18.4, F < 22.9). Base 30.0 exceeded the JP healthy upper bound at
+    # cardiac=1.0 and forced healthy patients into a systematically elevated BNP,
+    # the 4th baseline-off-center after Alb / Cre F / Troponin_I (all closed in
+    # PR #427). With base 15.0, HF exacerbation (cardiac~0.27 / volume~0.56)
+    # lands BNP ~500 pg/mL (moderate HF band), acute MI (cardiac~0.19 / volume~0)
+    # ~75 pg/mL (below HF rule-out 100, clinically appropriate for uncomplicated
+    # MI), and non-cardiac cohorts stay clearly under the 100 pg/mL rule-out
+    # cutoff. Trade-off vs prior calibration: HF cohort BNP median halves — the
+    # prior 800-1500 range was above typical HF-exacerbation clinical values;
+    # ~500 is more representative of the moderate HF band.
+    labs["BNP"] = 15.0 * math.exp((1 - cardiac) * 2.0 + max(0.0, state.volume_status) * (1 - cardiac) * 5.0)
     # Cardiac injury markers. Normal heart (cardiac≈1.0) stays negative so troponin
     # rule-outs in non-cardiac disease read normal; acute injury (MI: cardiac 0.3–0.5)
     # elevates strongly. Steep (^4) so only meaningful dysfunction lifts troponin.
