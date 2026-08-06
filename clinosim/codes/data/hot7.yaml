@@ -1,0 +1,325 @@
+metadata:
+  name: MEDIS HOT7 Medication Code
+  uri: http://medis.or.jp/CodeSystem/master-HOT7
+  version: '2024'
+  source: JP Core NamingSystem JP_MEDIS_MedicationCodeHOT7_NamingSystem preferred fixedUri / MEDIS HOT-YJ master (7-digit MEDIS Hosokan-Term)
+  description: 'MEDIS HOT7 medication codes (7-digit numeric MEDIS master). Session 81 split from yj.yaml (Issue #415) — the two systems previously coexisted in yj.yaml, which was semantically incorrect (yj system URI is capstandard YJ-code). Per-code URI dispatch in _fhir_medications._resolve_jp_drug_system_uri already emits the correct URI at FHIR emit time; this split makes the source-of-truth registry match.'
+codes:
+  '1139010':
+    en: Levetiracetam
+    ja: レベチラセタム
+  '1141001':
+    en: Acetaminophen
+    ja: アセトアミノフェン
+  '1141007':
+    en: Acetaminophen (Tylenol)
+    ja: アセトアミノフェン（カロナール）
+  '1143001':
+    en: Aspirin
+    ja: アスピリン
+  '1147002':
+    en: Diclofenac
+    ja: ジクロフェナクナトリウム
+  '1149001':
+    en: Ibuprofen
+    ja: イブプロフェン
+  '1149019':
+    en: NSAID (Loxoprofen)
+    ja: ロキソプロフェンナトリウム水和物
+  '1149038':
+    en: Tramadol
+    ja: トラマドール塩酸塩
+  '1190012':
+    en: Donepezil (Aricept)
+    ja: ドネペジル（アリセプト）
+  '1190017':
+    en: Pregabalin
+    ja: プレガバリン
+  '2113003':
+    en: Digoxin
+    ja: ジゴキシン
+  '2115001':
+    en: Aminophylline
+    ja: アミノフィリン水和物
+  '2119404':
+    en: Dobutamine
+    ja: ドブタミン塩酸塩
+  '2123404':
+    en: Landiolol
+    ja: ランジオロール塩酸塩
+  '2133001':
+    en: Spironolactone
+    ja: スピロノラクトン
+  '2139005':
+    en: Furosemide
+    ja: フロセミド
+  '2139007':
+    en: Furosemide (Lasix)
+    ja: フロセミド（ラシックス）
+  '2144002':
+    en: Enalapril (Vasotec)
+    ja: エナラプリル（レニベース）
+  '2144005':
+    en: Lisinopril (Zestril)
+    ja: リシノプリル（ゼストリル）
+  '2144006':
+    en: Lisinopril
+    ja: リシノプリル水和物
+  '2149009':
+    en: Labetalol
+    ja: ラベタロール塩酸塩
+  '2149010':
+    en: Metoprolol
+    ja: メトプロロール酒石酸塩
+  '2149019':
+    en: Nicardipine
+    ja: ニカルジピン塩酸塩
+  '2149040':
+    en: Candesartan (Atacand)
+    ja: カンデサルタン（ブロプレス）
+  '2149114':
+    en: Amlodipine
+    ja: バルサルタン・アムロジピンベシル酸塩
+  '2149700':
+    en: Bisoprolol
+    ja: ビソプロロール
+  '2160002':
+    en: Midodrine
+    ja: ミドドリン塩酸塩
+  '2171002':
+    en: Nitroglycerin (Nitrostat)
+    ja: ニトログリセリン（ミリスロール）
+  '2171006':
+    en: Diltiazem
+    ja: ジルチアゼム塩酸塩
+  '2171013':
+    en: Nitroglycerin
+    ja: ニトログリセリン
+  '2171022':
+    en: Amlodipine (Norvasc)
+    ja: アムロジピン（アムロジン/ノルバスク）
+  '2189015':
+    en: Atorvastatin (Lipitor)
+    ja: アトルバスタチン（リピトール）
+  '2190009':
+    en: Sodium_polystyrene_sulfonate
+    ja: ポリスチレンスルホン酸ナトリウム
+  '2190024':
+    en: Calcium carbonate + Vitamin D
+    ja: 沈降炭酸カルシウム
+  '2190046':
+    en: Patiromer
+    ja: パチロマーソルビテクスカルシウム
+  '2190400':
+    en: Mannitol
+    ja: Ｄ－マンニトール
+  '2254001':
+    en: Salbutamol
+    ja: サルブタモール硫酸塩
+  '2254701':
+    en: Albuterol (ProAir / Ventolin)
+    ja: サルブタモール（サルタノール/ベネトリン）
+  '2259702':
+    en: Ipratropium
+    ja: イプラトロピウム臭化物水和物
+  '2290800':
+    en: Fluticasone/Salmeterol (Advair)
+    ja: フルチカゾン/サルメテロール（アドエア）
+  '2329022':
+    en: Omeprazole
+    ja: オメプラゾール
+  '2344004':
+    en: Sodium_bicarbonate_oral
+    ja: 炭酸水素ナトリウム
+  '2355002':
+    en: Magnesium Sulfate
+    ja: 硫酸マグネシウム水和物
+  '2399004':
+    en: Metoclopramide
+    ja: メトクロプラミド
+  '2399010':
+    en: Mosapride
+    ja: モサプリドクエン酸塩水和物
+  '2456001':
+    en: Prednisolone
+    ja: プレドニゾロン
+  '2456003':
+    en: Methylprednisolone
+    ja: メチルプレドニゾロン
+  '2492410':
+    en: Sliding scale insulin (Regular insulin)
+    ja: スライディングスケールインスリン（ヒューマリンR）
+  '2492414':
+    en: Insulin lispro
+    ja: インスリンリスプロ（遺伝子組換え）
+  '2492415':
+    en: Insulin aspart
+    ja: インスリンアスパルト（遺伝子組換え）
+  '2492416':
+    en: Insulin glargine
+    ja: インスリングラルギン（遺伝子組換え）
+  '2499403':
+    en: Octreotide
+    ja: オクトレオチド酢酸塩
+  '2590009':
+    en: Tamsulosin (Flomax)
+    ja: タムスロシン（ハルナール）
+  '3112001':
+    en: Alfacalcidol
+    ja: アルファカルシドール
+  '3160001':
+    en: Vitamin K
+    ja: フィトナジオン
+  '3222007':
+    en: Ferrous_sulfate
+    ja: 硫酸鉄水和物
+  '3229001':
+    en: Potassium chloride
+    ja: 塩化カリウム
+  '3311401':
+    en: Normal_saline
+    ja: 生理食塩液
+  '3332001':
+    en: Warfarin (Coumadin)
+    ja: ワルファリン（ワーファリン）
+  '3334400':
+    en: Enoxaparin (Lovenox)
+    ja: エノキサパリン（クレキサン）
+  '3334406':
+    en: Enoxaparin
+    ja: エノキサパリンナトリウム
+  '3339002':
+    en: Edoxaban
+    ja: エドキサバントシル酸塩水和物
+  '3339003':
+    en: Rivaroxaban
+    ja: リバーロキサバン
+  '3339004':
+    en: Apixaban
+    ja: アピキサバン
+  '3339005':
+    en: Apixaban (Eliquis)
+    ja: アピキサバン（エリキュース）
+  '3399004':
+    en: Clopidogrel (Plavix)
+    ja: クロピドグレル（プラビックス）
+  '3399007':
+    en: Aspirin
+    ja: アスピリン（バイアスピリン）
+  '3399008':
+    en: Clopidogrel
+    ja: クロピドグレル硫酸塩
+  '3399011':
+    en: Ticagrelor
+    ja: チカグレロル
+  '3399412':
+    en: Idarucizumab
+    ja: イダルシズマブ（遺伝子組換え）
+  '3999001':
+    en: Lactulose
+    ja: ラクツロース
+  '3999003':
+    en: Camostat mesilate
+    ja: カモスタットメシル酸塩
+  '3999401':
+    en: Elcatonin
+    ja: エルカトニン
+  '3999407':
+    en: Nafamostat
+    ja: ナファモスタットメシル酸塩
+  '3999435':
+    en: Denosumab
+    ja: デノスマブ（遺伝子組換え）
+  '5200092':
+    en: Daikenchuto
+    ja: 大建中湯エキス
+  '6112001':
+    en: Clindamycin
+    ja: クリンダマイシン塩酸塩
+  '6113001':
+    en: Vancomycin
+    ja: バンコマイシン塩酸塩
+  '6113400':
+    en: Vancomycin (Vancocin)
+    ja: バンコマイシン塩酸塩（バンコマイシン）
+  '6122400':
+    en: Aztreonam
+    ja: アズトレオナム
+  '6131001':
+    en: Amoxicillin
+    ja: アモキシシリン水和物
+  '6131002':
+    en: Amoxicillin (Amoxil)
+    ja: アモキシシリン（サワシリン）
+  '6131700':
+    en: Piperacillin/Tazobactam (Zosyn)
+    ja: ピペラシリン/タゾバクタム（ゾシン）
+  '6132002':
+    en: Cephalexin
+    ja: セファレキシン
+  '6132401':
+    en: Cefazolin
+    ja: セファゾリンナトリウム水和物
+  '6132408':
+    en: Cefmetazole
+    ja: セフメタゾールナトリウム
+  '6132409':
+    en: Cefotaxime
+    ja: セフォタキシムナトリウム
+  '6132413':
+    en: Ceftriaxone (Rocephin)
+    ja: セフトリアキソン（ロセフィン）
+  '6132419':
+    en: Ceftriaxone
+    ja: セフトリアキソンナトリウム水和物
+  '6132425':
+    en: Cefepime
+    ja: セフェピム塩酸塩水和物
+  '6134407':
+    en: Gentamicin
+    ja: ゲンタマイシン硫酸塩
+  '6139002':
+    en: Meropenem (Merrem)
+    ja: メロペネム（メロペン）
+  '6139400':
+    en: Meropenem
+    ja: メロペネム水和物
+  '6149004':
+    en: Azithromycin (Zithromax)
+    ja: アジスロマイシン（ジスロマック）
+  '6179400':
+    en: Micafungin
+    ja: ミカファンギンナトリウム
+  '6199001':
+    en: Rifaximin
+    ja: リファキシミン
+  '6241013':
+    en: Levofloxacin
+    ja: レボフロキサシン水和物
+  '6241015':
+    en: Levofloxacin (Levaquin)
+    ja: レボフロキサシン（クラビット）
+  '6241016':
+    en: Moxifloxacin
+    ja: モキシフロキサシン塩酸塩
+  '6241400':
+    en: Ciprofloxacin
+    ja: シプロフロキサシン
+  '6250021':
+    en: Oseltamivir
+    ja: オセルタミビルリン酸塩
+  '6250405':
+    en: Peramivir
+    ja: ペラミビル水和物
+  '6343449':
+    en: Prothrombin Complex Concentrate (4F-PCC)
+    ja: 乾燥濃縮人プロトロンビン複合体
+  '6419002':
+    en: Metronidazole
+    ja: メトロニダゾール
+  '7211001':
+    en: Sodium bicarbonate
+    ja: 炭酸水素ナトリウム（メイロン）
+  '8219700':
+    en: Fentanyl
+    ja: フェンタニル
