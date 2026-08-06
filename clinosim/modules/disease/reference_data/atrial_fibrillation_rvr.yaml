@@ -364,7 +364,18 @@ drugs:
         indication: "persistent_AF_or_hemodynamic_compromise"
         pregnancy_safe: false
 
+  # Issue #437: block was previously dead (no `continue_at_discharge: true` and
+  # no other Python reader). Now opted in to the generic `continue_at_discharge`
+  # consumer in `_build_discharge_rx` (inpatient.py:2163), which filters to
+  # PO-only entries — so only the oral DOACs (Edoxaban japan / Apixaban us)
+  # reach discharge; the IV Heparin drip stays inpatient-only as intended.
+  # `exclusive_classes: ["anticoagulant"]` + per-entry `drug_class` follow the
+  # cerebral_infarction pattern so the cross-source guard in _build_discharge_rx
+  # correctly skips patients whose chronic I48 already covers the anticoagulant
+  # class.
   anticoagulation:
+    continue_at_discharge: true
+    exclusive_classes: ["anticoagulant"]
     japan:
       - drug: "Heparin"
         code_yj: "3334400"
@@ -373,6 +384,7 @@ drugs:
         indication: "CHA2DS2-VASc >= 1 (Japan)"
         pregnancy_safe: false
       - drug: "Edoxaban"
+        drug_class: "anticoagulant"
         code_yj: "3339002"
         dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
         route: PO
@@ -386,6 +398,7 @@ drugs:
         indication: "CHA2DS2-VASc >= 2 (men) or >= 3 (women)"
         pregnancy_safe: false
       - drug: "Apixaban"
+        drug_class: "anticoagulant"
         code_rxnorm: "1364430"
         dose: "5mg PO BID (2.5mg BID if age>=80, weight<=60kg, or Cr>=1.5)"
         route: PO
