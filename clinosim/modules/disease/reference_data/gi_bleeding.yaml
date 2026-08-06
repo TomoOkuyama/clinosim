@@ -428,8 +428,9 @@ drugs:
   transfusion:
     japan:
       - drug: "Packed_red_blood_cells"
-        dose: "2 units pRBC per transfusion"
+        dose: "2 units pRBC"
         route: IV
+        note: "Per transfusion"
         threshold: "Hb < 7 g/dL (or < 8 if cardiac comorbidity)"
       - drug: "Fresh_frozen_plasma"
         dose: "2-4 units"
@@ -437,8 +438,9 @@ drugs:
         threshold: "PT-INR > 1.5 with active bleeding"
     us:
       - drug: "Packed_red_blood_cells"
-        dose: "2 units pRBC per transfusion"
+        dose: "2 units pRBC"
         route: IV
+        note: "Per transfusion"
         threshold: "Hb < 7 g/dL (or < 8 if cardiac comorbidity)"
       - drug: "Fresh_frozen_plasma"
         dose: "2-4 units"
@@ -453,7 +455,8 @@ drugs:
       dose: "5g IV"
       indication: "Dabigatran reversal"
     - drug: "Andexanet_alfa"
-      dose: "Per weight-based protocol"
+      dose: "As prescribed"
+      note: "Per weight-based protocol"
       indication: "Factor Xa inhibitor reversal (rivaroxaban, apixaban)"
 
   discharge_oral:
