@@ -846,10 +846,23 @@ def _build_discharge_medication_request(
     route_concept = build_route_concept(route, country)
     if route_concept:
         dosage["route"] = route_concept
-    dose_parts = [p for p in (dose, rate_adjustment_note) if p]
-    if dose_parts:
-        dose_text = " ".join(dose_parts)
-        dosage["text"] = _localize_dosage_terms(dose_text) if is_jp(country) else dose_text
+    # Issue #476: when the disease-YAML author provided an explicit
+    # country-scoped instruction (`dose_ja` / `dose_en` on the drug entry →
+    # threaded through `_build_discharge_rx._append_item` into the item dict),
+    # emit it as the dosage text. This wins over the auto-derived summary
+    # (`dose` field text) because the authored text is what carries the
+    # clinical meaning for instruction-only doses (e.g. "既存のインスリン
+    # レジメンどおり" for insulin glargine restart at DKA discharge).
+    dose_text_ja = str(get_attr_or_key(item, "dose_ja", "") or "")
+    dose_text_en = str(get_attr_or_key(item, "dose_en", "") or "")
+    authored_text = dose_text_ja if is_jp(country) else dose_text_en
+    if authored_text:
+        dosage["text"] = authored_text
+    else:
+        dose_parts = [p for p in (dose, rate_adjustment_note) if p]
+        if dose_parts:
+            dose_text = " ".join(dose_parts)
+            dosage["text"] = _localize_dosage_terms(dose_text) if is_jp(country) else dose_text
     if dosage:
         resource["dosageInstruction"] = [dosage]
 
