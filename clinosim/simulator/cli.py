@@ -31,6 +31,13 @@ def _enforce_jp_clins_pkg_gate(allow_legacy: bool) -> None:
     invisibly. Post-#418: exit 2 unless the caller explicitly opts into the
     legacy fallback via `--allow-legacy` (option C from the Issue body).
 
+    Env var override `CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1` has the same
+    effect as `--allow-legacy` — meant for CI test harnesses and shell
+    scripts (`scripts/reproduce.sh`) that deliberately run in a pkg-less
+    environment for byte-diff / cohort verification rather than JP-CLINS
+    compliance. Product code should NOT set this env var — it defeats
+    the fail-loud silent-harm protection Issue #418 tracks.
+
     Import is inside the function so non-JP runs never pay the lookup cost
     and so the test suite can monkeypatch the loader cleanly.
     """
@@ -39,6 +46,8 @@ def _enforce_jp_clins_pkg_gate(allow_legacy: bool) -> None:
     pkg = load_lab_coding_package()
     if pkg.is_available():
         return
+    if os.environ.get("CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG") == "1":
+        allow_legacy = True
     if not allow_legacy:
         print(
             "ERROR: JP-CLINS package not detected. `clinosim generate --country JP`\n"
