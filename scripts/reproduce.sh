@@ -117,6 +117,18 @@ for country in "${COUNTRIES[@]}"; do
     dir1="$REPO_TMP/${country}-run1"
     dir2="$REPO_TMP/${country}-run2"
 
+    # Issue #418: `--allow-legacy` is passed unconditionally for JP because
+    # the reproducibility script is a byte-diff invariant test (same seed →
+    # same output twice) — not a JP-CLINS compliance check. The dedicated
+    # `jp-clins-lab-compliance-gate.yml` workflow sets
+    # $CLINOSIM_JP_CLINS_PKG_DIR and verifies pkg-driven emission; this
+    # script deliberately runs in a pkg-less environment to exercise the
+    # legacy fallback code path's determinism. Passing the flag on US is a
+    # no-op (the gate only fires for --country JP).
+    allow_legacy_flag=""
+    if [ "$country" = "JP" ]; then
+        allow_legacy_flag="--allow-legacy"
+    fi
     for target in "$dir1" "$dir2"; do
         echo "-- generating into $target"
         clinosim simulate \
@@ -127,6 +139,7 @@ for country in "${COUNTRIES[@]}"; do
             --end "$END" \
             --output "$target" \
             --format fhir \
+            $allow_legacy_flag \
             > "$target.log" 2>&1 || {
                 echo "reproduce.sh: clinosim simulate failed for $country; see $target.log" >&2
                 exit 2
