@@ -1438,12 +1438,20 @@ def _generate_home_medication_orders(
 
     # Iterate the patient's actual home meds (single source of truth).
     # Issue #452 PR 3: read `med.drug_name` explicitly instead of `str(med)`.
+    # Issue #442: `med.drug_name` is now bare (dose lives in `med.dose`).
+    # Order.display_name stays bare so it matches the protocol-side discharge
+    # path; structured dose is plumbed into Order.dose_quantity/dose_unit via
+    # enrich_medication_order. clinical_intent re-appends dose for narrative
+    # continuity ("Home medication (continue): Amlodipine 5mg").
+    from clinosim.modules.order.engine import enrich_medication_order
+
     for med in getattr(patient, "current_medications", None) or []:
         drug_name = med.drug_name
         if not drug_name:
             continue
         drug_lower = drug_name.lower()
-        intent = f"Home medication (continue): {drug_name}"
+        intent_drug = f"{drug_name} {med.dose}".strip() if med.dose else drug_name
+        intent = f"Home medication (continue): {intent_drug}"
 
         # 1. Protocol-driven disease-specific holds.
         yaml_held = False
@@ -1479,7 +1487,11 @@ def _generate_home_medication_orders(
             ordered_datetime=admission_time + timedelta(minutes=60),
             ordered_by=attending_id,
             status=OrderStatus.PLACED,
+            route=med.route,
+            frequency=med.frequency.upper() if med.frequency else "",
         )
+        if med.dose:
+            enrich_medication_order(order, med.dose)
         orders.append(order)
         med_idx += 1
 
