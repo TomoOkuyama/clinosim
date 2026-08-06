@@ -50,7 +50,7 @@ def test_every_profile_yaml_has_llm_mock_golden():
         msgs.append(
             "profile YAML(s) with no matching *.llm-mock.golden.json — run "
             "`clinosim regenerate-goldens --profile <name> --provider mock` "
-            f"to bootstrap:\n  " + "\n  ".join(missing_mock)
+            "to bootstrap:\n  " + "\n  ".join(missing_mock)
         )
     if orphan_mock:
         msgs.append(
