@@ -250,16 +250,30 @@ class TestDeriveLabValues:
         # State values mirror what the simulator actually produces (verified by the
         # generation audit), not design estimates: HF exacerbation drops cardiac to
         # ~0.27 with volume overload ~0.56; acute MI drops cardiac to ~0.19 with normal
-        # volume. The thresholds encode the clinical target bands (HF 800-1500, MI <400).
-        # HF exacerbation: low cardiac + volume overload (wall stress) -> high BNP.
+        # volume.
+        #
+        # Issue #430 (base 30->15 recalibration): thresholds updated from
+        # implementation-derived targets (MI 100-400, HF >800) to clinical-guideline-
+        # sourced bands:
+        #   - normal < 50 pg/mL  — JCCLS healthy reference (M<18.4 / F<22.9)
+        #   - MI < 200 pg/mL     — uncomplicated MI without HF is commonly <100
+        #                          per JCS 2018 HF guideline; the <200 ceiling still
+        #                          allows moderate elevation from ventricular stress
+        #                          without asserting HF-level values
+        #   - HF > 400 pg/mL     — moderate HF band, matches ADHERE registry median
+        #                          (~600-1000) with margin; the prior >800 threshold
+        #                          was above ADHERE median and reflected the
+        #                          base=30 calibration rather than a clinical target
+        #   - HF > 5 * MI        — retained; the 5x discrimination is the invariant
+        #                          this test guards, independent of base calibration
         hf = derive_lab_values(PhysiologicalState(cardiac_function=0.27, volume_status=0.56), sex="M", age=75)
-        # Uncomplicated MI: low cardiac, normal/low volume -> moderate BNP.
+        # Uncomplicated MI: low cardiac, normal/low volume -> moderate BNP elevation.
         mi = derive_lab_values(PhysiologicalState(cardiac_function=0.19, volume_status=-0.05), sex="M", age=75)
-        # Normal heart -> near-baseline BNP.
+        # Normal heart -> BNP within JP healthy reference range.
         normal = derive_lab_values(PhysiologicalState(cardiac_function=0.90, volume_status=0.0), sex="M", age=75)
-        assert normal["BNP"] < 100
-        assert 100 < mi["BNP"] < 400
-        assert hf["BNP"] > 800
+        assert normal["BNP"] < 50
+        assert mi["BNP"] < 200
+        assert hf["BNP"] > 400
         assert hf["BNP"] > 5 * mi["BNP"]
 
     def test_bnp_volume_term_gated_by_cardiac(self):
