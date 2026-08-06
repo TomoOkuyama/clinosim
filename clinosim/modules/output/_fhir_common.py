@@ -429,6 +429,12 @@ def _build_address(addr: dict, country: str) -> dict[str, Any] | None:
         # (was implicit "?"/missing, 100% of Patient.address records).
         "use": "home",
         "type": "both",
+        # Issue #378: JP_Patient_eCS requires `address.text` (min=1). Only
+        # emit on JP so US Patient.address stays byte-clean (US doesn't
+        # assert eCS and adding `text` there would be an unrelated diff).
+        # JP `line` already carries the concatenated 都道府県+市区町村+番地
+        # form, which is exactly what `text` should hold.
+        **({"text": line} if line and is_jp(country_code) else {}),
         "line": [line] if line else [],
         "city": addr.get("city", ""),
         "postalCode": addr.get("postal_code", ""),
