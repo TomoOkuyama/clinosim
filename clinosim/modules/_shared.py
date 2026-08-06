@@ -12,6 +12,22 @@ from typing import Any
 
 import numpy as np
 
+# ────────────────────────────────────────────────────────────────────
+# Cross-writer/reader id markers.
+
+# STOP (discontinuation) order id marker used by daily-loop simulators
+# when a treatment-modification archetype discontinues an active
+# medication (see ``clinosim/simulator/inpatient.py:1147`` and
+# ``sanitize_id_token``'s docstring). FHIR emitters (currently
+# ``clinosim/modules/output/_fhir_medications.py``) key on this marker
+# to override MedicationRequest.status → ``"stopped"`` (Issue #436;
+# session 79 investigation ruled out F1 because reassigning
+# ``OrderStatus.STOPPED`` at Order creation shifts ``_generate_mar``'s
+# per-order rng cursor and violates AD-16 determinism). Marker
+# constant is shared so writer and reader stay in lockstep — the same
+# convention as ``ABX_ORDER_ID_PREFIX`` in ``modules/antibiotic/engine.py``.
+MED_STOP_ORDER_ID_MARKER: str = "-STOP-"
+
 
 def is_jp(country: str) -> bool:
     """True when the country code refers to Japan (case-insensitive).
