@@ -96,7 +96,7 @@ exclude_docs: |
 
 # Downgrade to info the whole class of warnings that come from
 # transcluded content (README.md, MODULES.md, etc.) pointing at repo-root
-# files (../DESIGN.md / ../CLAUDE.md / ../TODO.md) that don't exist as
+# files (../DESIGN.md / ../CLAUDE.md) that don't exist as
 # entries in the mkdocs site tree. Those links resolve fine when the
 # transcluded file is viewed on GitHub; when it's rendered inside the
 # docs site they need to point at the corresponding
@@ -140,7 +140,6 @@ nav:
       - Modules: reference/modules.md
       - Design (ADRs): reference/design.md
       - Scenario flags: reference/scenario-flags.md
-      - Roadmap (TODO): reference/todo.md
   - Guides:
       - Adding a module: CONTRIBUTING-modules.md
       - Clinical documents: clinical_documents.md
