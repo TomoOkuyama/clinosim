@@ -538,7 +538,8 @@ drugs:
     us:
       - drug: "Prednisone"
         code_rxnorm: "8640"
-        dose: "40mg PO daily (remaining days of 5-day course)"
+        dose: "40mg PO daily"
+        note: "Taper over remaining days of 5-day course (total 5 days)"
         duration_days: 3
       - drug: "Amoxicillin/Clavulanate"
         code_rxnorm: "562251"

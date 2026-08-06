@@ -475,16 +475,17 @@ drugs:
     japan:
       - drug: "Sodium bicarbonate"
         code_yj: "2344004"
-        dose: "100 mEq in 400mL sterile water + 20mEq KCl, infuse over 2h"
+        dose: "100 mEq IV"
         route: IV
         indication: "pH < 6.9 ONLY"
-        note: "Controversial; only for pH < 6.9. Repeat q2h until pH > 7.0"
+        note: "Controversial; only for pH < 6.9. Repeat q2h until pH > 7.0. Dilute in 400mL sterile water + 20mEq KCl, infuse over 2h."
     us:
       - drug: "Sodium bicarbonate"
         code_rxnorm: "8782"
-        dose: "100 mEq in 400mL sterile water + 20mEq KCl, infuse over 2h"
+        dose: "100 mEq IV"
         route: IV
         indication: "pH < 6.9"
+        note: "Dilute in 400mL sterile water + 20mEq KCl, infuse over 2h."
 
   transition_to_subcutaneous:
     japan:
@@ -495,18 +496,20 @@ drugs:
         note: "Give 1-2h before stopping drip; add rapid-acting insulin with meals"
       - drug: "Insulin aspart"
         code_yj: "2492415"
-        dose: "Dose per carb counting or sliding scale"
+        dose: "As prescribed"
         route: SC
+        note: "Dose per carb counting or sliding scale"
     us:
       - drug: "Insulin glargine"
         code_rxnorm: "261551"
-        dose: "0.2-0.3 U/kg SC daily (or resume home dose)"
+        dose: "0.2-0.3 U/kg SC daily"
         route: SC
-        note: "Overlap with IV insulin for 1-2h"
+        note: "Overlap with IV insulin for 1-2h. Or resume home dose if previously taking insulin."
       - drug: "Insulin lispro"
         code_rxnorm: "86009"
-        dose: "Dose per carb counting or sliding scale"
+        dose: "As prescribed"
         route: SC
+        note: "Dose per carb counting or sliding scale"
 
   discharge_oral:
     japan:
