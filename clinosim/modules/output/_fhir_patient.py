@@ -279,8 +279,12 @@ def _build_patient(p: dict, country: str) -> dict:
     names: list[dict[str, Any]] = []
     if is_jp(country):
         # Kanji entry — always emitted for JP.
+        # Issue #378: JP_Patient_eCS requires `name.text` (min=1). Concatenate
+        # kanji family + given with a single space (JP clinical convention:
+        # "田中 徹") so the eCS profile assertion is data-complete.
         kanji_name: dict[str, Any] = {
             "use": "official",
+            "text": f"{family} {given}".strip(),
             "family": family,
             "given": [given],
             "extension": [{"url": ISO21090_URL, "valueCode": "IDE"}],
@@ -292,11 +296,14 @@ def _build_patient(p: dict, country: str) -> dict:
             kana_family = phonetic.get("family_name", "")
             kana_given = phonetic.get("given_name", "")
             if kana_family or kana_given:
+                _kana_fam = kana_family or family
+                _kana_giv = kana_given or given
                 names.append(
                     {
                         "use": "official",
-                        "family": kana_family or family,
-                        "given": [kana_given or given],
+                        "text": f"{_kana_fam} {_kana_giv}".strip(),
+                        "family": _kana_fam,
+                        "given": [_kana_giv],
                         "extension": [{"url": ISO21090_URL, "valueCode": "SYL"}],
                     }
                 )
@@ -317,21 +324,34 @@ def _build_patient(p: dict, country: str) -> dict:
         # C2-20 (session 42 cycle 2): declare JP Core Patient conformance
         # for JP exports. US export intentionally omits — no US Core profile
         # is asserted (a separate roadmap item).
-        # Issue #382 (session 66 hotfix, reverting #379): JP_Patient_eCS
-        # assertion REMOVED. #379 added the URI expecting to resolve v25
-        # Pattern B (3,096 errors on referring eCS resources), but Patient
-        # data does not yet emit the eCS profile's required identifier
-        # slices / extensions — the URI-only assertion caused a 5× cascade
-        # regression in v26 (~30k additional errors as every Patient failed
-        # eCS validation, and every resource referencing a Patient
-        # inherited the failure). Full eCS-compliance implementation is
-        # tracked as Option B follow-up (Issue #382 comment + reopened #378).
-        # Lesson: profile assertion must be verified for data-completeness
-        # (MustSupport / slice / cardinality) before shipping, not only for
-        # URI canonical-ness. Analogous to session-65
-        # feedback_codesystem_canonical_per_code_verify but at profile scope.
+        #
+        # Issue #378 (session 80, restoring #379 with data-completeness):
+        # JP_Patient_eCS assertion RESTORED. #382 removed the URI because
+        # #379 had shipped URI-only without emitting the required fields
+        # (`name.text`, `address.text`, `meta.lastUpdated`) — the resulting
+        # 5× validator cascade justified the revert (feedback:
+        # `feedback_profile_assertion_requires_data_completeness`). This PR
+        # emits all three required fields BEFORE claiming the profile, so
+        # the assertion is now data-complete and the eCS Pattern B (3,096
+        # errors on referring resources) is resolved without the earlier
+        # cascade. SD-verified min=1 requirements: `meta.lastUpdated`,
+        # `meta.profile`, `name`, `name.text`, `name.given`, `gender`,
+        # `birthDate`, `address`, `address.text`.
         **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient"]}}
+            {
+                "meta": {
+                    "profile": [
+                        "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient",
+                        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Patient_eCS",
+                    ],
+                    # Static deterministic timestamp mirrors `_fhir_facility.py`
+                    # (session 46 pattern). Real-world lastUpdated is server-
+                    # provided; clinosim's simulator has no such notion, so
+                    # a fixed value keeps reproducibility byte-clean while
+                    # satisfying the eCS min=1 requirement.
+                    "lastUpdated": "2026-01-01T00:00:00+09:00",
+                }
+            }
             if is_jp(country)
             else {}
         ),
