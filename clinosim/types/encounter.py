@@ -204,6 +204,19 @@ class Order:
     # Issue #349 Phase 2: medication_intent carries "empirical" or "narrowed"
     # for antibiotic regimens. Empty for non-antibiotic orders.
     medication_intent: str = ""  # "empirical" | "narrowed" (antibiotic regimens only)
+    # Issue #476: localized dose instruction text for cases where the dose is
+    # not a numeric expression but a clinical instruction ("Resume or initiate
+    # controller therapy", "Per established regimen"). Set from disease-YAML
+    # `dose_ja` / `dose_en` fields at Order creation time (only where the
+    # authored instruction exists — empty on the vast majority of Orders).
+    # Consumed by `_fhir_common._build_dosage_instruction` as a country-scoped
+    # text fallback: JP MedicationRequest gets `dosageInstruction.text = dose_text_ja`
+    # when structured `dose_quantity` is None. The pre-existing `display_name`
+    # text fallback was removed in Issue #467 (it stuffed the drug name into
+    # the dosage field); `dose_text_{ja,en}` restores the ability to emit an
+    # authored instruction without repeating the drug name.
+    dose_text_ja: str = ""  # JP dose instruction (authored, not term-translated)
+    dose_text_en: str = ""  # EN dose instruction (authored, mirror slot for US)
 
 
 @dataclass

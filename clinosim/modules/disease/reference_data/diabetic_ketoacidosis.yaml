@@ -515,23 +515,27 @@ drugs:
     japan:
       - drug: "Insulin glargine"
         code_yj: "2492416"
-        dose: "As prescribed"   # session 76 Issue #469: `dose` carries a dose
-                                # expression only. "Per established regimen"
-                                # rendered as "あたり established regimen" — the
-                                # term translator matched "Per" mid-sentence.
+        dose: ""   # Issue #476: no fixed dose; authored instructions live in
+                   # `dose_ja` / `dose_en` and reach FHIR output via the
+                   # discharge-Rx / dosage-instruction consumer chain (kept
+                   # empty rather than "As prescribed" to avoid the term
+                   # translator mangling — see Issue #469 rationale).
+        dose_ja: "既存のインスリンレジメンどおり"
+        dose_en: "Per established regimen"
         duration_days: ongoing
         route: "SC"    # session 73 Issue #455: without this key the
                        # `_append_item` fallback at inpatient.py:2039 fills
                        # "PO" which falsely asserts oral administration for
                        # a subcutaneous long-acting insulin.
-        note: "Per established regimen (T1DM: always insulin. T2DM: may add metformin once stable.)"
+        note: "T1DM: always insulin. T2DM: may add metformin once stable."
     us:
       - drug: "Insulin glargine"
         code_rxnorm: "261551"
-        dose: "As prescribed"   # session 76 Issue #469 (same rationale as japan side).
+        dose: ""   # Issue #476 (same rationale as japan side above).
+        dose_ja: "既存のインスリンレジメンどおり"
+        dose_en: "Per established regimen"
         duration_days: ongoing
         route: "SC"    # session 73 Issue #455 (same rationale as japan side).
-        note: "Per established regimen"
 
 # ============================================================
 # DRUG INTERACTIONS relevant to DKA treatment
