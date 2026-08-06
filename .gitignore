@@ -71,3 +71,16 @@ docs/session-resume/
 # default one written at end of a session (see s78 handover convention).
 .resume-prompt.md
 .resume-prompt-*.md
+
+# Personal roadmap / backlog. TODO.md was previously tracked (contributor-
+# facing docs), but per session 80 convention it is now personal / per-
+# session-local — the shared roadmap lives in GitHub Issues, and
+# per-session narrative lives in `docs/session-NN-resume-prompt.md`
+# (for numbered wraps that ARE tracked) or `.resume-prompt.md`
+# (for the current session's personal one).
+TODO.md
+
+# mkdocs local build output (`mkdocs build` default writes here). CI uses
+# a fresh runner directory; contributors keep the artifact locally without
+# committing it. Sibling to the existing session-local ignore convention.
+site/
