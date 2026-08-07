@@ -11,6 +11,7 @@ from pathlib import Path
 import yaml
 
 from clinosim.codes import lookup
+from clinosim.modules.diagnosis.nonspecific_codes import UNRESOLVED_DIAGNOSIS_ICD
 from clinosim.types.diagnosis import DiagnosisCandidate, DifferentialDiagnosis
 
 _HERE = Path(__file__).resolve().parent
@@ -165,7 +166,7 @@ def get_current_diagnosis_code(
         target = diff.candidates[0].disease_code
 
     if not target:
-        return "R69", _display("R69")
+        return UNRESOLVED_DIAGNOSIS_ICD, _display(UNRESOLVED_DIAGNOSIS_ICD)
 
     # Look up progression (YAML > built-in)
     progression = None
@@ -179,7 +180,7 @@ def get_current_diagnosis_code(
         top = diff.top_candidate
         if top and top.icd_code:
             return (top.icd_code, _display(top.icd_code))
-        return "R69", _display("R69")
+        return UNRESOLVED_DIAGNOSIS_ICD, _display(UNRESOLVED_DIAGNOSIS_ICD)
 
     confidence = diff.candidates[0].probability if diff.candidates else 0
     code = progression[0][1]

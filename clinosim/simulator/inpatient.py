@@ -23,6 +23,7 @@ from clinosim.modules.diagnosis.engine import (
     initialize_differential,
     update_differential,
 )
+from clinosim.modules.diagnosis.nonspecific_codes import UNRESOLVED_DIAGNOSIS_ICD
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.disease.severity import category_from_score
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -415,7 +416,12 @@ def _simulate_patient(
         admission_diagnosis_system=icd_sys,
         discharge_diagnosis_code=dx_code,
         discharge_diagnosis_system=icd_sys,
-        diagnosis_correct=(dx_code != "R05" and not missed),
+        # Issue #551: the engine returns ``UNRESOLVED_DIAGNOSIS_ICD`` (R69) when
+        # the differential did not converge. Previous code compared against
+        # ``"R05"`` (Cough) — a real ICD-10 code, which made legitimate cough
+        # presentations look incorrect and disagreed with the engine's actual
+        # sentinel.
+        diagnosis_correct=(dx_code != UNRESOLVED_DIAGNOSIS_ICD and not missed),
         missed_diagnoses=missed,
         overcalled_diagnoses=overcalled,
     )
