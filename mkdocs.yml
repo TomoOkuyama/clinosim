@@ -93,6 +93,7 @@ exclude_docs: |
   reviews/
   design-notes/
   superpowers/
+  history/
 
 # Downgrade to info the whole class of warnings that come from
 # transcluded content (README.md, MODULES.md, etc.) pointing at repo-root
