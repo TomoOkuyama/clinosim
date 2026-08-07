@@ -313,7 +313,7 @@ def activate_patient(
     if not current_meds:
         # Derive home medications from chronic conditions via chronic_medications.yaml
         # CIF stores English drug names (AD-30). JP names resolved at FHIR output.
-        current_meds = _derive_home_medications(conditions, rng, country="US")
+        current_meds = _derive_home_medications(conditions, patient_id=person.person_id, country="US")
 
     # Address and contact from Layer 1
     from clinosim.types.patient import Address, ContactInfo
@@ -447,7 +447,11 @@ def activate_patient(
 
 
 def _derive_home_medications(
-    chronic_conditions: list, rng: np.random.Generator, country: str = "US"
+    chronic_conditions: list,
+    rng: np.random.Generator | None = None,
+    country: str = "US",
+    *,
+    patient_id: str = "",
 ) -> list[HomeMedication]:
     """Derive home medications from chronic conditions via chronic_medications.yaml.
 
@@ -470,6 +474,21 @@ def _derive_home_medications(
     from clinosim.locale.loader import load_chronic_medications
 
     data = load_chronic_medications()
+
+    # Issue #439 P1: per-patient sub-RNG for chronic-medication selection so
+    # YAML edits to chronic_medications.yaml do NOT shift unrelated patients'
+    # cohorts. Sibling of AD-59 panel_specimen_seed / individual_lab_seed.
+    # Tests may inject an explicit rng; production callers pass patient_id
+    # (rng=None) and the helper derives the sub-RNG internally.
+    if rng is None:
+        from clinosim.simulator.seeding import chronic_medication_seed
+
+        if not patient_id:
+            raise ValueError(
+                "_derive_home_medications: either `rng` or `patient_id` must "
+                "be provided (patient_id required for stable sub-RNG derivation)."
+            )
+        rng = np.random.default_rng(chronic_medication_seed(patient_id))
 
     meds: list[HomeMedication] = []
     seen: set[str] = set()
