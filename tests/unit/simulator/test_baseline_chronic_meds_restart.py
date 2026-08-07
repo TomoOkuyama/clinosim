@@ -3,7 +3,7 @@
 Verifies:
 1. `baseline_chronic_medications` is populated at activation as a snapshot of
    the initial chronic regimen.
-2. When `_build_discharge_rx` runs with `final_renal_function < 0.3`, metformin
+2. When `build_discharge_rx` runs with `final_renal_function < 0.3`, metformin
    is held (not emitted in discharge items).
 3. On a subsequent admission with `final_renal_function >= 0.3`, metformin is
    re-emitted BECAUSE baseline still carries it — even if `current_medications`
@@ -17,7 +17,7 @@ from datetime import date, datetime
 import numpy as np
 
 from clinosim.modules.disease.protocol import DiseaseProtocol
-from clinosim.simulator.inpatient import _build_discharge_rx
+from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.types.patient import ChronicCondition, HomeMedication, PatientProfile
 
 
@@ -48,7 +48,7 @@ def _minimal_protocol() -> DiseaseProtocol:
 
 
 def _rx_drugs(patient: PatientProfile, protocol: DiseaseProtocol, renal: float) -> list[str]:
-    rx = _build_discharge_rx(
+    rx = build_discharge_rx(
         patient,
         "test_disease",
         protocol,
