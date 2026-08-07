@@ -23,6 +23,49 @@ from clinosim.modules._shared import (
     resolve_lang,
 )
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
+
+# HL7 CodeSystem URIs for MedicationRequest classification (both callers
+# emitted them inline before Issue #548 partial extraction).
+_MR_CATEGORY_SYSTEM = "http://terminology.hl7.org/CodeSystem/medicationrequest-category"
+_MR_COURSE_OF_THERAPY_SYSTEM = "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy"
+
+
+def _build_category_block(code: str, display: str) -> list[dict]:
+    """Return the standard ``MedicationRequest.category`` block for a
+    ``medicationrequest-category`` code (Issue #548 partial extraction).
+
+    Both public builders emit this exact shape; the code + display pair is the
+    only per-caller variance. Kept in ``_fhir_medications`` to avoid a
+    cross-module dependency for such a leaf helper.
+    """
+    return [
+        {
+            "coding": [
+                {
+                    "system": _MR_CATEGORY_SYSTEM,
+                    "code": code,
+                    "display": display,
+                }
+            ],
+        }
+    ]
+
+
+def _build_course_of_therapy_block(code: str, display: str) -> dict:
+    """Return the standard ``MedicationRequest.courseOfTherapyType`` block for a
+    ``medicationrequest-course-of-therapy`` code (Issue #548 partial extraction).
+    """
+    return {
+        "coding": [
+            {
+                "system": _MR_COURSE_OF_THERAPY_SYSTEM,
+                "code": code,
+                "display": display,
+            }
+        ],
+    }
+
+
 from clinosim.modules.output._fhir_common import (
     _build_dosage_instruction,
     _map_diagnosis_code,
@@ -615,17 +658,7 @@ def _build_medication_request(
         # since intent already indicated an order was authored (not a plan).
         _cat_code, _cat_display = "inpatient", "Inpatient"
     if _cat_code:
-        resource["category"] = [
-            {
-                "coding": [
-                    {
-                        "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-category",
-                        "code": _cat_code,
-                        "display": _cat_display,
-                    }
-                ],
-            }
-        ]
+        resource["category"] = _build_category_block(_cat_code, _cat_display)
 
     # Encounter reference
     enc_ref = order.get("encounter_id", "") or encounter_id
@@ -651,15 +684,7 @@ def _build_medication_request(
     # "Continuous long term therapy" (no hyphen) is the spec-canonical form —
     # the hyphenated variant produced 854 v4 fullset errors.
     _course_display = "Continuous long term therapy" if _course_code == "continuous" else "Short course (acute) therapy"
-    resource["courseOfTherapyType"] = {
-        "coding": [
-            {
-                "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy",
-                "code": _course_code,
-                "display": _course_display,
-            }
-        ],
-    }
+    resource["courseOfTherapyType"] = _build_course_of_therapy_block(_course_code, _course_display)
 
     # CY7-08 (Chain-7): MR.priority — derive from Order.urgency (routine /
     # urgent / stat / asap). FHIR R4 valueset: routine | urgent | asap | stat.
@@ -835,32 +860,15 @@ def _build_discharge_medication_request(
     # (the same code `_build_medication_request` assigns to home-medication orders).
     _is_discharge = encounter_type == "inpatient"
     cat_code, cat_display = ("discharge", "Discharge") if _is_discharge else ("community", "Community")
-    resource["category"] = [
-        {
-            "coding": [
-                {
-                    "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-category",
-                    "code": cat_code,
-                    "display": cat_display,
-                }
-            ],
-        }
-    ]
+    resource["category"] = _build_category_block(cat_code, cat_display)
 
     # An open-ended supply (the `0` / `ongoing` sentinels) means maintenance therapy, so
     # it selects `continuous` even on a discharge script — a lifelong anticoagulant does
     # not become a short course by being handed over at discharge.
     _continuous = (not _is_discharge) or duration_days is None
     course_code = "continuous" if _continuous else "acute"
-    resource["courseOfTherapyType"] = {
-        "coding": [
-            {
-                "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy",
-                "code": course_code,
-                "display": ("Continuous long term therapy" if _continuous else "Short course (acute) therapy"),
-            }
-        ],
-    }
+    course_display = "Continuous long term therapy" if _continuous else "Short course (acute) therapy"
+    resource["courseOfTherapyType"] = _build_course_of_therapy_block(course_code, course_display)
 
     dispense: dict[str, Any] = {}
     if authored_on:
