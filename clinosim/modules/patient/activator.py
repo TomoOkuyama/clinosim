@@ -437,6 +437,10 @@ def activate_patient(
         chronic_conditions=conditions,
         allergies=allergies,
         current_medications=current_meds,
+        # Issue #433 C1: immutable snapshot for renal-hold restart logic.
+        # Shallow copy — subsequent encounters mutate current_medications but
+        # baseline preserves the activation-time chronic regimen.
+        baseline_chronic_medications=list(current_meds),
         smoking_status=person.smoking_status,
         alcohol_use=person.alcohol_use,
         physiological_profile=profile,

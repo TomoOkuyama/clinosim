@@ -158,6 +158,17 @@ class PatientProfile:
     chronic_conditions: list[ChronicCondition] = field(default_factory=list)
     allergies: list[Allergy] = field(default_factory=list)
     current_medications: list[HomeMedication] = field(default_factory=list)
+    # Issue #433 C1: immutable snapshot of the patient's baseline chronic
+    # medications, captured at Layer 1 → Layer 2 activation. `current_medications`
+    # is a dynamic view that mutates across encounters (renal-hold at discharge,
+    # hospital-started drug propagation, etc.); `baseline_chronic_medications`
+    # preserves the original list so that a drug held during an AKI admission
+    # can be re-emitted at discharge after renal function recovers, and so that
+    # `_build_discharge_rx` can distinguish "held this admission" from
+    # "chronic drug permanently discontinued". Populated by `activate_patient`
+    # as a shallow copy of `current_medications` at activation time; never
+    # mutated after that. Empty until the activator runs.
+    baseline_chronic_medications: list[HomeMedication] = field(default_factory=list)
     smoking_status: str = "never"
     alcohol_use: str = "none"
 
