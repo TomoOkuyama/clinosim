@@ -23,6 +23,27 @@ from clinosim.modules._shared import (
     resolve_lang,
 )
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
+from clinosim.modules.output._fhir_common import (
+    _build_dosage_instruction,
+    _map_diagnosis_code,
+    _map_mar_status,
+    _parse_dose_for_mar,
+    _strip_protocol_prefix,
+    build_route_concept,
+    build_ucum_quantity,
+    canonicalize_route,
+)
+from clinosim.modules.output._fhir_localization import (
+    _localize_dosage_terms,
+    _localize_drug_name,
+    _localize_rate_adjustment,
+    _split_rate_adjustment_suffix,
+)
+from clinosim.modules.output.opaque_ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
 
 # HL7 CodeSystem URIs for MedicationRequest classification (both callers
 # emitted them inline before Issue #548 partial extraction).
@@ -65,28 +86,6 @@ def _build_course_of_therapy_block(code: str, display: str) -> dict:
         ],
     }
 
-
-from clinosim.modules.output._fhir_common import (
-    _build_dosage_instruction,
-    _map_diagnosis_code,
-    _map_mar_status,
-    _parse_dose_for_mar,
-    _strip_protocol_prefix,
-    build_route_concept,
-    build_ucum_quantity,
-    canonicalize_route,
-)
-from clinosim.modules.output._fhir_localization import (
-    _localize_dosage_terms,
-    _localize_drug_name,
-    _localize_rate_adjustment,
-    _split_rate_adjustment_suffix,
-)
-from clinosim.modules.output.opaque_ids import (
-    derive_opaque_id,
-    structural_key_system,
-    wrap_as_identifier,
-)
 
 # Issue #349 Phase 1b: canonical Identifier.system URI for antibiotic
 # MedicationRequest structural-key round-trip. `.id` becomes an opaque
