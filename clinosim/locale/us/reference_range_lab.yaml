@@ -92,8 +92,11 @@ ranges:
     - {low: 0, high: 100, unit: "pg/mL", text: "Rule-out heart failure (<100)"}
   # Cardiac troponin I (cTnI). Key matches the canonical analyte name Troponin_I
   # used by observation engine + code_mapping_lab.yaml (LOINC 10839-9).
+  # Cardiac troponin I sex-specific 99th-percentile URL per the 4th Universal
+  # Definition of MI (Thygesen 2018): female 0.03 ng/mL, male 0.04 ng/mL.
   Troponin_I:
-    - {low: 0, high: 0.04, unit: "ng/mL", text: "99th percentile upper reference limit"}
+    - {low: 0, high: 0.04, unit: "ng/mL", text: "99th percentile upper reference limit (M)", sex: "M"}
+    - {low: 0, high: 0.03, unit: "ng/mL", text: "99th percentile upper reference limit (F)", sex: "F"}
   # CK-MB mass. Canonical analyte CK_MB (LOINC 13969-1).
   CK_MB:
     - {low: 0, high: 5.0, unit: "ng/mL", text: "Upper reference limit (CK-MB mass)"}

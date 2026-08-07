@@ -101,8 +101,11 @@ ranges:
     - {low: 0, high: 18.4, unit: "pg/mL", text: "JCCLS共用基準範囲2022"}
   # 心筋トロポニンI (cTnI)。キーは canonical 分析物名 Troponin_I に一致
   # (observation engine + code_mapping_lab.yaml、JLAC10 5C094)。
+  # 心筋トロポニン I の性別特異的 99 パーセンタイル URL（第 4 回 MI 世界的定義
+  # Thygesen 2018）: 女性 0.03 ng/mL、男性 0.04 ng/mL。
   Troponin_I:
-    - {low: 0, high: 0.04, unit: "ng/mL", text: "99パーセンタイル上限基準値（cTnI）"}
+    - {low: 0, high: 0.04, unit: "ng/mL", text: "99パーセンタイル上限基準値（cTnI, M）", sex: "M"}
+    - {low: 0, high: 0.03, unit: "ng/mL", text: "99パーセンタイル上限基準値（cTnI, F）", sex: "F"}
   # CK-MB 質量。canonical 分析物 CK_MB (JLAC10 3B015)。
   CK_MB:
     - {low: 0, high: 5.0, unit: "ng/mL", text: "基準値上限（CK-MB 質量）"}

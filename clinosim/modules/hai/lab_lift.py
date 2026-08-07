@@ -172,6 +172,7 @@ def apply_hai_lab_lift(
     encounter,
     state_history: list[Any],
     admission_time: datetime,
+    country: str = "US",
 ) -> int:
     """Apply HAI WBC + CRP forward-delta to existing lab_results.
 
@@ -274,6 +275,6 @@ def apply_hai_lab_lift(
 
         new_val = round_to_precision(lab_name, float(val) + delta)
         obs.value = new_val
-        obs.flag = determine_flag(lab_name, new_val, sex=sex)
+        obs.flag = determine_flag(lab_name, new_val, sex=sex, country=country)
         modified += 1
     return modified

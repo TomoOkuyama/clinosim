@@ -201,7 +201,7 @@ def _simulate_ed_visit(
         )
         true_val = _true_labs.get(canon, baseline_values.get(canon, 1.0))
         observed = generate_lab_result(canon, true_val, lab_rng)
-        flag = determine_flag(canon, observed, sex=patient.sex)
+        flag = determine_flag(canon, observed, sex=patient.sex, country=country)
         order.result = OrderResult(
             result_datetime=visit_time + timedelta(minutes=int(lab_rng.normal(50, 15))),
             performed_by=lab_tech_id,
