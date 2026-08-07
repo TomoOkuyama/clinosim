@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS
+from clinosim.seeding import ENRICHER_SEED_OFFSETS
 
 
 @pytest.mark.unit

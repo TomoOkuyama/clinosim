@@ -174,7 +174,7 @@ def _simulate_ed_visit(
     # cannot poison the patient master stream when derive_lab_values gains a new
     # analyte (Cl/Ca emission, etc.). See inpatient.py Pass 1 for the parallel
     # fix on the inpatient side.
-    from clinosim.simulator.seeding import individual_lab_seed
+    from clinosim.seeding import individual_lab_seed
 
     for i, lab_spec in enumerate(lab_specs):
         test = lab_spec.get("test", "")

@@ -13,7 +13,7 @@ import numpy as np
 
 from clinosim.locale.loader import load_identity_config
 from clinosim.modules.identity.registry import get_provider
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS
+from clinosim.seeding import ENRICHER_SEED_OFFSETS
 from clinosim.types import IdentityTimeline
 
 

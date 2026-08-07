@@ -187,7 +187,7 @@ def _simulate_outpatient_visit(
     # AD-16: per-lab-order sub-RNG — see inpatient.py Pass 1 / emergency.py
     # for the parallel fix. Noise draws on the master rng would shuffle
     # unrelated patients' cohorts whenever derive_lab_values gains an analyte.
-    from clinosim.simulator.seeding import individual_lab_seed
+    from clinosim.seeding import individual_lab_seed
 
     for i, test_name in enumerate(lab_tests):
         # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — they are

@@ -41,7 +41,7 @@ from clinosim.simulator.helpers import (
 )
 from clinosim.simulator.inpatient import _simulate_patient, _simulate_unknown_condition
 from clinosim.simulator.outpatient import _simulate_outpatient_visit
-from clinosim.simulator.seeding import (
+from clinosim.seeding import (
     PHASE_ED_VISIT,
     PHASE_INPATIENT_SIM,
     PHASE_LIFE_EVENT,

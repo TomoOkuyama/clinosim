@@ -126,7 +126,7 @@ def assign_primary_nurse(encounter: Any, roster: StaffRoster | None, rng: np.ran
 from clinosim.modules._shared import (
     get_attr_or_key as _o,  # noqa: E402 — kept here to avoid circular import
 )
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed  # noqa: E402
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed  # noqa: E402
 
 
 def nursing_enricher(ctx: Any) -> None:

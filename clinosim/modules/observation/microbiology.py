@@ -16,7 +16,7 @@ import numpy as np
 import yaml
 
 from clinosim.modules._shared import normalize_probabilities
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types import MicrobiologyResult, SusceptibilityResult
 
 _HERE = Path(__file__).resolve().parent

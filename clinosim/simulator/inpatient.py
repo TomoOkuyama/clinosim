@@ -69,7 +69,7 @@ from clinosim.simulator.helpers import (  # noqa: I001
     _disease_to_department,
     _evaluate_mortality,
 )
-from clinosim.simulator.seeding import individual_lab_seed, panel_specimen_seed
+from clinosim.seeding import individual_lab_seed, panel_specimen_seed
 from clinosim.types.clinical import (
     ClinicalDiagnosis,
     ConditionEvent,

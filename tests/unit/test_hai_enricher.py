@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 
 from clinosim.modules.hai.enricher import enrich_hai
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS
+from clinosim.seeding import ENRICHER_SEED_OFFSETS
 from clinosim.types.device import DeviceRecord
 from clinosim.types.encounter import Encounter, EncounterType
 from clinosim.types.output import CIFPatientRecord

@@ -16,7 +16,7 @@ from clinosim.modules.observation.nursing import (
     compute_morse_fall_risk,
     compute_news2,
 )
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.encounter import NursingRiskAssessment
 
 # AVPU severity order: A (best/0) < V < P < U (worst/3).

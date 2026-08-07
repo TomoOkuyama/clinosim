@@ -78,7 +78,7 @@ Enricher(
 メインランダムストリームを汚染しないよう、`hashlib.sha256` ベースの専用サブシードを使用する。
 
 ```python
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
 rng = np.random.default_rng(
     derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["immunization"], patient_id)

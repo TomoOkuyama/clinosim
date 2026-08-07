@@ -8,7 +8,7 @@ master RNG (sibling of `panel_specimen_seed` / `individual_lab_seed`).
 
 from __future__ import annotations
 
-from clinosim.simulator.seeding import (
+from clinosim.seeding import (
     chronic_medication_seed,
     discharge_prescription_seed,
 )
