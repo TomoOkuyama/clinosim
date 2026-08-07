@@ -458,12 +458,12 @@ drugs:
   escalation:
     japan:
       - drug: "Hemodialysis"
-        code_yj: "procedure"
+        type: "procedure"
         dose: "3-4h session, 3x/week or continuous (CRRT)"
         indication: "refractory_hyperkalemia, acidosis, volume_overload, uremia, or BUN > 100"
     us:
       - drug: "Hemodialysis"
-        code_rxnorm: "procedure"
+        type: "procedure"
         dose: "3-4h session or CRRT"
         indication: "same"
 

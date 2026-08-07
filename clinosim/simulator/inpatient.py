@@ -38,7 +38,10 @@ from clinosim.modules.order.engine import (
     place_daily_lab_orders,
     place_imaging_orders,
 )
-from clinosim.modules.order.treatment_classifier import classify_encounter_treatment
+from clinosim.modules.order.treatment_classifier import (
+    classify_encounter_treatment,
+    classify_escalation_treatment,
+)
 from clinosim.modules.physiology.engine import (
     apply_disease_onset,
     apply_state_delta,
@@ -1227,7 +1230,7 @@ def _run_daily_loop(
                 # Hemodialysis, endoscopy, etc.). Route via the canonical
                 # treatment_classifier (J5 pattern prevention).
                 _esc_display = f"{drug_name} {dose}".strip()
-                _esc_order_type = classify_encounter_treatment(_esc_display)
+                _esc_order_type = classify_escalation_treatment(esc_drug)
                 all_orders.append(
                     Order(
                         order_id=f"ORD-{encounter_id}-ESC-D{day}-{sanitize_id_token(drug_name, 8)}",

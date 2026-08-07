@@ -397,15 +397,13 @@ drugs:
   escalation:  # vertebroplasty/kyphoplasty consideration
     japan:
       - drug: "Vertebroplasty"
-        code_yj: "N/A"
+        type: "procedure"
         dose: "Percutaneous vertebroplasty under fluoroscopy"
-        route: procedural
         indication: "pain_refractory_to_conservative_treatment_4_weeks"
     us:
       - drug: "Kyphoplasty"
-        code_rxnorm: "N/A"
+        type: "procedure"
         dose: "Balloon kyphoplasty under fluoroscopy"
-        route: procedural
         indication: "pain_refractory_to_conservative_treatment_2_weeks"
 
   discharge_oral:
