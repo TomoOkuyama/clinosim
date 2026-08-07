@@ -349,60 +349,84 @@ def _generate_qualitative_result(lab_name: str, rng: np.random.Generator) -> str
     return "Negative"
 
 
+# Critical / panic thresholds — clinically-defined absolute cutoffs that
+# override H/L flags. Kept in code because they are safety-critical values
+# derived from clinical convention, not lab-normal statistics, and would not
+# vary between JCCLS (JP) and CLSI (US) reference standards.
+_PANIC_THRESHOLDS: dict[str, tuple[float | None, float | None]] = {
+    "K": (2.5, 6.5),
+    "Hb": (7.0, None),  # critical low only (Hb < 7.0 = critical)
+    "Glucose": (40, 500),
+    "Na": (120, 160),
+    "pH": (7.1, 7.6),
+}
+
+
+@lru_cache(maxsize=2)
+def _reference_ranges_by_sex(country: str) -> dict[str, dict[str, tuple[float, float]]]:
+    """Transform the YAML `ranges: {lab: [{low, high, sex?}]}` shape into a
+    `{lab_name: {sex: (low, high)}}` dict that ``determine_flag`` consumes.
+
+    Entries without a ``sex`` field become the ``"all"`` key so the caller can
+    look up ``ranges.get(sex, ranges.get("all"))``. Cached per country
+    (``maxsize=2`` = JP + US).
+    """
+    from clinosim.locale.loader import load_reference_ranges
+
+    raw = load_reference_ranges(country) or {}
+    ranges_yaml = raw.get("ranges") or {}
+    out: dict[str, dict[str, tuple[float, float]]] = {}
+    for lab_name, entries in ranges_yaml.items():
+        if not isinstance(entries, list):
+            continue
+        by_sex: dict[str, tuple[float, float]] = {}
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            low = entry.get("low")
+            high = entry.get("high")
+            if low is None or high is None:
+                continue
+            key = entry.get("sex") or "all"
+            by_sex[key] = (float(low), float(high))
+        if by_sex:
+            out[lab_name] = by_sex
+    return out
+
+
 def determine_flag(
     lab_name: str,
     value: float | str,
     sex: str = "F",
-    reference_ranges: dict | None = None,
+    country: str = "US",
 ) -> str | None:
     """Determine H/L/critical flag for a lab value.
 
-    Accepts ``float | str`` because ``generate_lab_result`` returns ``str`` for
-    qualitative panels (Urinalysis, Rapid_Strep, etc.). Qualitative results
-    have no numeric range → return ``None`` (unflagged) instead of raising.
-    Session 52: type-annotation aligned with the caller-visible union.
+    Reference ranges are loaded from ``clinosim/locale/<country>/reference_range_lab.yaml``
+    (JCCLS 共用基準範囲 for JP; standard US clinical reference for US) so the
+    CIF ``flag`` and the FHIR ``Observation.interpretation`` (which reads the
+    same YAML via ``_fhir_common._build_reference_range``) agree on every lab
+    (Issue #542 single-source-of-truth fix).
+
+    Panic / critical thresholds remain hardcoded (:data:`_PANIC_THRESHOLDS`) —
+    they are safety-critical absolute cutoffs shared across locales.
+
+    Qualitative results (``value: str`` from ``generate_lab_result`` for
+    Urinalysis / Rapid_Strep / etc.) return ``None`` (unflagged) — they have
+    no numeric range.
     """
     if isinstance(value, str):
         return None
-    # Default reference ranges (adult)
-    defaults: dict[str, dict[str, tuple[float, float]]] = {
-        "CRP": {"all": (0, 3)},
-        "WBC": {"all": (3500, 9500)},
-        "Hb": {"M": (13.5, 17.5), "F": (11.5, 15.5)},
-        "Plt": {"all": (150, 400)},
-        "Creatinine": {"M": (0.6, 1.1), "F": (0.4, 0.8)},
-        "BUN": {"all": (8, 20)},
-        "Na": {"all": (136, 145)},
-        "K": {"all": (3.5, 5.0)},
-        "Glucose": {"all": (70, 110)},
-        "Albumin": {"all": (3.5, 5.0)},
-        "AST": {"all": (10, 35)},
-        "ALT": {"all": (5, 40)},
-        "Lactate": {"all": (0.5, 2.0)},
-        "pH": {"all": (7.35, 7.45)},
-        "PCT": {"all": (0, 0.05)},
-        "Troponin_I": {"M": (0.0, 0.04), "F": (0.0, 0.03)},  # ng/mL; sex-specific cutoff
-        "CK_MB": {"all": (0.0, 5.0)},  # ng/mL
-        "HbA1c": {"all": (4.0, 5.6)},  # % — ADA normal; diabetics flag H
-    }
 
-    ranges = reference_ranges or defaults
+    ranges = _reference_ranges_by_sex(country)
     range_entry = ranges.get(lab_name)
     if not range_entry:
         return None
 
-    low, high = range_entry.get(sex, range_entry.get("all", (0, 9999)))
+    low, high = range_entry.get(sex, range_entry.get("all", (0.0, 9999.0)))
 
-    # Panic values
-    panic: dict[str, tuple[float | None, float | None]] = {
-        "K": (2.5, 6.5),
-        "Hb": (7.0, None),  # critical low only (Hb < 7.0 = critical)
-        "Glucose": (40, 500),
-        "Na": (120, 160),
-        "pH": (7.1, 7.6),
-    }
-    if lab_name in panic:
-        p_lo, p_hi = panic[lab_name]
+    if lab_name in _PANIC_THRESHOLDS:
+        p_lo, p_hi = _PANIC_THRESHOLDS[lab_name]
         if p_lo is not None and value < p_lo:
             return "critical"
         if p_hi is not None and value > p_hi:

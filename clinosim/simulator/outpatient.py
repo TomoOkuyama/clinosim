@@ -213,7 +213,7 @@ def _simulate_outpatient_visit(
         # Comorbidity-aware true value: physiology if modeled, else baseline normal.
         true_val = _true_labs.get(canon, baseline_values.get(canon, 1.0))
         observed = generate_lab_result(canon, true_val, lab_rng)
-        flag = determine_flag(canon, observed, sex=patient.sex)
+        flag = determine_flag(canon, observed, sex=patient.sex, country=country)
         result = OrderResult(
             result_datetime=visit_date + timedelta(hours=2),
             performed_by=lab_tech_id,
