@@ -2,8 +2,8 @@ import pytest
 
 from clinosim.modules.output._fhir_common import BundleContext
 from clinosim.modules.output._fhir_smoking_alcohol import (
-    _build_alcohol_use,
-    _build_smoking_status,
+    _bb_alcohol_use,
+    _bb_smoking_status,
 )
 
 pytestmark = pytest.mark.integration
@@ -28,7 +28,7 @@ def _ctx(profile, country="US"):
 
 
 def test_smoking_observation():
-    o = _build_smoking_status(_ctx({"smoking_status": "current"}))[0]
+    o = _bb_smoking_status(_ctx({"smoking_status": "current"}))[0]
     assert o["resourceType"] == "Observation"
     assert o["code"]["coding"][0]["code"] == "72166-2"
     assert o["category"][0]["coding"][0]["code"] == "social-history"
@@ -37,16 +37,16 @@ def test_smoking_observation():
 
 
 def test_smoking_empty_when_missing():
-    assert _build_smoking_status(_ctx({})) == []
+    assert _bb_smoking_status(_ctx({})) == []
 
 
 def test_alcohol_observation():
-    o = _build_alcohol_use(_ctx({"alcohol_use": "heavy"}))[0]
+    o = _bb_alcohol_use(_ctx({"alcohol_use": "heavy"}))[0]
     assert o["code"]["coding"][0]["code"] == "11331-6"
     assert o["valueCodeableConcept"]["coding"][0]["code"] == "86933000"
     assert o["id"] == "alcohol-p1"
 
 
 def test_alcohol_none_still_emitted():
-    o = _build_alcohol_use(_ctx({"alcohol_use": "none"}))[0]
+    o = _bb_alcohol_use(_ctx({"alcohol_use": "none"}))[0]
     assert o["valueCodeableConcept"]["coding"][0]["code"] == "105542008"

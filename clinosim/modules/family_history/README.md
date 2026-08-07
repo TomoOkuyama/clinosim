@@ -40,7 +40,7 @@ generate_family_history(patient_age: int, patient_conditions: list, country: str
   `enrich_family_history`。**person_id 由来の独立サブシード**
   (`derive_sub_seed(master, 0x4648, person_id)`)で encounter 間安定 & 主乱数列不変(AD-16)。
   `CIFPatientRecord.family_history`(typed field、Base)に格納。
-- **FHIR**: `modules/output/_fhir_family_history.py` の `_build_family_history` を
+- **FHIR**: `modules/output/_fhir_family_history.py` の `_bb_family_history` を
   `_BUNDLE_BUILDERS` に登録(AD-56)。患者単位 id(`fmh-{pid}-NN`)で write 時 de-dup。
 - **CSV**: `csv_adapter.py` が `family_history.csv` を出力(患者単位 de-dup)。
 

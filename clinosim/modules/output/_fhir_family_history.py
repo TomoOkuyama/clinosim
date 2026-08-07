@@ -74,7 +74,7 @@ def _resolve_family_history_code(code: str, country: str) -> str:
     return mapped
 
 
-def _build_family_history(ctx: BundleContext) -> list[dict]:
+def _bb_family_history(ctx: BundleContext) -> list[dict]:
     """Build FHIR FamilyMemberHistory from CIF family_history (v3-RoleCode + ICD).
 
     One resource per relative; patient-scoped id so the write-time de-dup keeps a

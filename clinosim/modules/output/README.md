@@ -388,13 +388,22 @@ clinosim の output 層は **2 種類の registry** で拡張可能 — 既存�
 
 新規 builder ファイルを作成し、`_BUNDLE_BUILDERS` に登録します。
 
+**命名規約 (Issue #558)**:
+
+- `_bb_X(ctx) -> list[dict]` — bundle-builder (この registry に登録するもの)
+- `_build_X(...) -> dict` — 単一 resource / fragment を返す leaf helper
+
+`fhir_r4_adapter.py` の import-time assertion が `_BUNDLE_BUILDERS` 内 entry
+全てが `_bb_` prefix を持つことを check します。`register_bundle_builder()`
+経由の動的登録も同 prefix 必須 (violation は `ValueError`)。
+
 ```python
 # clinosim/modules/output/_fhir_my_resource.py
 from clinosim.modules.output._fhir_common import (
     BundleContext, _social_category, _value,
 )
 
-def _build_my_resource(ctx: BundleContext) -> list[dict]:
+def _bb_my_resource(ctx: BundleContext) -> list[dict]:
     """Build FHIR MyResource resources from CIF data.
 
     Reads ctx.record / ctx.patient_data / ctx.country, returns a list
@@ -411,11 +420,11 @@ def _build_my_resource(ctx: BundleContext) -> list[dict]:
 `fhir_r4_adapter.py` 末尾の `_BUNDLE_BUILDERS` リストに append (将来 entry-point discovery 化予定):
 
 ```python
-from clinosim.modules.output._fhir_my_resource import _build_my_resource  # noqa: F401
+from clinosim.modules.output._fhir_my_resource import _bb_my_resource  # noqa: F401
 
 _BUNDLE_BUILDERS = [
     ...,
-    _build_my_resource,
+    _bb_my_resource,
 ]
 ```
 

@@ -24,7 +24,7 @@ from clinosim.modules.output._fhir_common import (
 from clinosim.modules.output._fhir_smoking_alcohol import _sdoh_effective_datetime
 
 
-def _build_care_level(ctx: BundleContext) -> list[dict]:
+def _bb_care_level(ctx: BundleContext) -> list[dict]:
     """JP 要介護度 (long-term-care need level) social-history Observation."""
     code = ctx.record.get("care_level") or ""
     if not code:

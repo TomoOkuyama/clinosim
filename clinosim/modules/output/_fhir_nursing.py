@@ -22,7 +22,7 @@ from clinosim.modules.output._fhir_common import (
 )
 
 
-def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
+def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
     """Build FHIR Observation resources for nursing flowsheet data (category=survey).
 
     Emits observations for:

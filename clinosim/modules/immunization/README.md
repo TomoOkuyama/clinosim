@@ -147,7 +147,7 @@ CIF はコードのみ保持 (AD-30)。display text は出力時に `clinosim.co
 
 ## FHIR 出力
 
-`_build_immunizations(ctx)` が `_BUNDLE_BUILDERS` に登録されており、
+`_bb_immunizations(ctx)` が `_BUNDLE_BUILDERS` に登録されており、
 FHIR R4 `Immunization` リソースを生成する。
 
 | フィールド | 値 |
@@ -206,7 +206,7 @@ clinosim/locale/us/immunization_schedule.yaml   # US スケジュール (5 ワ�
 clinosim/locale/jp/immunization_schedule.yaml   # JP スケジュール (3 ワクチン)
 clinosim/types/encounter.py                     # ImmunizationRecord dataclass
 clinosim/simulator/enrichers.py                 # enricher 登録
-clinosim/modules/output/fhir_r4_adapter.py      # _build_immunizations
+clinosim/modules/output/fhir_r4_adapter.py      # _bb_immunizations
 clinosim/modules/output/csv_adapter.py          # immunizations.csv
 ```
 
@@ -230,7 +230,7 @@ clinosim/modules/output/csv_adapter.py          # immunizations.csv
 |---|---|---|
 | `simulator/enrichers.py` | `POST_RECORDS` 段階での enricher 登録 | core (enricher registry) |
 | `modules/immunization/enricher.py` | 同 module 内の enricher 実装 | core |
-| `modules/output/_fhir_observations.py` (or future `_fhir_immunization.py` after PR3 split) | `_build_immunizations` で FHIR Immunization 生成 | medium (FHIR builder) |
+| `modules/output/_fhir_observations.py` (or future `_fhir_immunization.py` after PR3 split) | `_bb_immunizations` で FHIR Immunization 生成 | medium (FHIR builder) |
 | `modules/output/csv_adapter.py` (cross-ref) | `immunizations.csv` 書き出し | medium |
 | `tests/integration/test_immunization_enricher.py` | enricher integration test | guard |
 | `tests/unit/test_immunization.py` | engine unit tests | guard |

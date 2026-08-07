@@ -16,10 +16,10 @@ from typing import Any
 
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output._fhir_allergy_intolerance import _bb_allergy_intolerances
-from clinosim.modules.output._fhir_care_level import _build_care_level
+from clinosim.modules.output._fhir_care_level import _bb_care_level
 from clinosim.modules.output._fhir_care_team import _bb_care_teams
 from clinosim.modules.output._fhir_clinical_impression import _bb_clinical_impressions
-from clinosim.modules.output._fhir_code_status import _build_code_status
+from clinosim.modules.output._fhir_code_status import _bb_code_status
 
 # FA-1 (Phases 1-13) + session 82 (H/I/K/L/N) split this adapter's leaf data,
 # shared fragment helpers, and per-theme resource builders into sibling
@@ -33,19 +33,19 @@ from clinosim.modules.output._fhir_common import (
 )
 from clinosim.modules.output._fhir_composition import _bb_compositions
 from clinosim.modules.output._fhir_device import (
-    _build_device,
-    _build_device_use,
+    _bb_device,
+    _bb_device_use,
 )
 from clinosim.modules.output._fhir_diagnostic_report import _bb_diagnostic_reports
 from clinosim.modules.output._fhir_document_reference_checkup import _bb_document_references_checkup
 from clinosim.modules.output._fhir_documents import _bb_document_references
 from clinosim.modules.output._fhir_endpoint import _bb_endpoints
 from clinosim.modules.output._fhir_facility import _build_facility_bundle
-from clinosim.modules.output._fhir_family_history import _build_family_history
+from clinosim.modules.output._fhir_family_history import _bb_family_history
 from clinosim.modules.output._fhir_generator_metadata import write_generator_metadata as _write_generator_metadata
-from clinosim.modules.output._fhir_hai import _build_hai_conditions
+from clinosim.modules.output._fhir_hai import _bb_hai_conditions
 from clinosim.modules.output._fhir_imaging_study import _bb_imaging_studies
-from clinosim.modules.output._fhir_immunization import _build_immunizations
+from clinosim.modules.output._fhir_immunization import _bb_immunizations
 from clinosim.modules.output._fhir_inline_bb import (
     _bb_conditions,
     _bb_coverage,
@@ -60,7 +60,7 @@ from clinosim.modules.output._fhir_inline_bb import (
     _bb_vitals,
 )
 from clinosim.modules.output._fhir_microbiology import _bb_microbiology
-from clinosim.modules.output._fhir_nursing import _build_nursing_observations
+from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
 from clinosim.modules.output._fhir_observations import _bb_labs
 
 # Session 82 PR N: post-emit helpers extracted to _fhir_post_process.py.
@@ -80,8 +80,8 @@ from clinosim.modules.output._fhir_post_process import (
 )
 from clinosim.modules.output._fhir_service_request import _bb_service_requests
 from clinosim.modules.output._fhir_smoking_alcohol import (
-    _build_alcohol_use,
-    _build_smoking_status,
+    _bb_alcohol_use,
+    _bb_smoking_status,
 )
 from clinosim.modules.output.cif_reader import CIFReader
 from clinosim.simulator import log as sim_log
@@ -376,20 +376,33 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_medication_admins,
     _bb_procedures,
     _bb_practitioners,
-    _build_nursing_observations,
-    _build_immunizations,
-    _build_family_history,
-    _build_code_status,
-    _build_smoking_status,
-    _build_alcohol_use,
-    _build_care_level,
-    _build_device,
-    _build_device_use,
-    _build_hai_conditions,
+    _bb_nursing_observations,
+    _bb_immunizations,
+    _bb_family_history,
+    _bb_code_status,
+    _bb_smoking_status,
+    _bb_alcohol_use,
+    _bb_care_level,
+    _bb_device,
+    _bb_device_use,
+    _bb_hai_conditions,
     _bb_document_references,  # Task 10: DocumentReference from record.documents (free_text, §2.2)
     _bb_compositions,  # Task 9: Composition (section-structured H&P / Discharge)
     _bb_document_references_checkup,  # P2-13 PR3 sub-PR-E (session 48): DocumentReference wrapper for HEALTH_CHECKUP_REPORT  # noqa: E501
 ]
+
+
+# Import-time contract (Issue #558): every registry entry MUST use the `_bb_`
+# prefix. `_build_X` is reserved for single-resource helpers (returning a
+# `dict`); `_bb_X` marks a bundle-builder (returning `list[dict]`). Mixing the
+# two on this list would silently break grep-by-role and let a stray
+# single-resource builder slip in without a type error. See
+# `modules/output/README.md` for the full convention.
+assert all(cb.__name__.startswith("_bb_") for cb in _BUNDLE_BUILDERS), (
+    "Bundle builders must use the _bb_ prefix. Offenders: "
+    f"{[cb.__name__ for cb in _BUNDLE_BUILDERS if not cb.__name__.startswith('_bb_')]}. "
+    "See modules/output/README.md."
+)
 
 
 def register_bundle_builder(builder: Callable[[BundleContext], list[dict]]) -> None:
@@ -397,7 +410,12 @@ def register_bundle_builder(builder: Callable[[BundleContext], list[dict]]) -> N
 
     Deduplicated by function name (first registration wins), so a second builder with
     the same name — e.g. a re-import of the same module — is not double-registered.
+
+    Enforces the `_bb_` prefix contract (Issue #558) so external registrations
+    honour the same convention as the built-in registry above.
     """
+    if not builder.__name__.startswith("_bb_"):
+        raise ValueError(f"Bundle builder {builder.__name__!r} must use the _bb_ prefix. See modules/output/README.md.")
     if builder.__name__ not in {b.__name__ for b in _BUNDLE_BUILDERS}:
         _BUNDLE_BUILDERS.append(builder)
 

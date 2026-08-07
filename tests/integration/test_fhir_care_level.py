@@ -1,6 +1,6 @@
 import pytest
 
-from clinosim.modules.output._fhir_care_level import _build_care_level
+from clinosim.modules.output._fhir_care_level import _bb_care_level
 from clinosim.modules.output._fhir_common import BundleContext
 
 pytestmark = pytest.mark.integration
@@ -25,7 +25,7 @@ def _ctx(code, country="JP"):
 
 
 def test_care_level_observation():
-    o = _build_care_level(_ctx("care3"))[0]
+    o = _bb_care_level(_ctx("care3"))[0]
     assert o["resourceType"] == "Observation"
     assert o["category"][0]["coding"][0]["code"] == "social-history"
     vc = o["valueCodeableConcept"]["coding"][0]
@@ -35,4 +35,4 @@ def test_care_level_observation():
 
 
 def test_empty_when_no_care_level():
-    assert _build_care_level(_ctx("")) == []
+    assert _bb_care_level(_ctx("")) == []
