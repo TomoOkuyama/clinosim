@@ -30,7 +30,7 @@ import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.clinical import ClinicalDocument
 from clinosim.types.encounter import (
     Encounter,

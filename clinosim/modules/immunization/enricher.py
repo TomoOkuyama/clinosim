@@ -13,7 +13,7 @@ import numpy as np
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.immunization.engine import generate_immunizations, load_schedule
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
 
 def _as_of(ctx, rec) -> date:

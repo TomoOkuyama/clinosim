@@ -18,7 +18,7 @@ from clinosim.modules.device.engine import (
     load_devices_config,
     place_devices_for_encounter,
 )
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
 
 def enrich_device(ctx) -> None:

@@ -69,7 +69,7 @@ def build_discharge_rx(
     explicit ``rng`` wins (test-only escape hatch).
     """
     if rng is None:
-        from clinosim.simulator.seeding import discharge_prescription_seed
+        from clinosim.seeding import discharge_prescription_seed
 
         if not encounter_id:
             raise ValueError(

@@ -27,7 +27,7 @@ from clinosim.modules.hai.engine import (
     load_hai_specimens,
     sample_hai_onset,
 )
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.hai import HAIEvent
 from clinosim.types.microbiology import MicrobiologyResult, SusceptibilityResult
 
