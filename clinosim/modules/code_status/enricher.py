@@ -11,7 +11,7 @@ import numpy as np
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.code_status.engine import assign_code_status
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
 
 def _qualifies(encounter_type: str, deceased: bool, icu: bool) -> bool:

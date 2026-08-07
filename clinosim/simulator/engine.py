@@ -23,6 +23,14 @@ from clinosim.modules.population.engine import (
     generate_population,
 )
 from clinosim.modules.staff.engine import generate_roster
+from clinosim.seeding import (
+    PHASE_ED_VISIT,
+    PHASE_INPATIENT_SIM,
+    PHASE_LIFE_EVENT,
+    PHASE_OUTPATIENT_CAL,
+    PHASE_READMISSION,
+    derive_phase_rng,
+)
 from clinosim.simulator import log as sim_log
 from clinosim.simulator.emergency import _simulate_ed_visit
 from clinosim.simulator.enrichers import (
@@ -41,14 +49,6 @@ from clinosim.simulator.helpers import (
 )
 from clinosim.simulator.inpatient import _simulate_patient, _simulate_unknown_condition
 from clinosim.simulator.outpatient import _simulate_outpatient_visit
-from clinosim.simulator.seeding import (
-    PHASE_ED_VISIT,
-    PHASE_INPATIENT_SIM,
-    PHASE_LIFE_EVENT,
-    PHASE_OUTPATIENT_CAL,
-    PHASE_READMISSION,
-    derive_phase_rng,
-)
 from clinosim.types.config import ForcedScenario, SimulatorConfig
 from clinosim.types.encounter import EncounterType
 from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord

@@ -485,7 +485,7 @@ def _derive_home_medications(
     # Tests may inject an explicit rng; production callers pass patient_id
     # (rng=None) and the helper derives the sub-RNG internally.
     if rng is None:
-        from clinosim.simulator.seeding import chronic_medication_seed
+        from clinosim.seeding import chronic_medication_seed
 
         if not patient_id:
             raise ValueError(

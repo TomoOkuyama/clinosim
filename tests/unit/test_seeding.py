@@ -8,7 +8,7 @@ stays distinct (so two enrichers never collide on the same sub-stream).
 
 import pytest
 
-from clinosim.simulator.seeding import (
+from clinosim.seeding import (
     _PHASE_OFFSETS,
     ENRICHER_SEED_OFFSETS,
     PHASE_ED_VISIT,

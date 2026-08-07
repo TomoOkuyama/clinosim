@@ -102,7 +102,7 @@ def pick_arrival_mode(severity: str, rng: np.random.Generator) -> str:
 from datetime import datetime  # noqa: E402 — kept here to avoid circular import at module top
 
 from clinosim.modules._shared import get_attr_or_key as _o  # noqa: E402
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed  # noqa: E402
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed  # noqa: E402
 from clinosim.types.triage import TriageData  # noqa: E402
 
 ED_ENCOUNTER_TYPES: frozenset[str] = frozenset({"emergency"})
