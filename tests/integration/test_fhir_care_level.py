@@ -1,6 +1,7 @@
 import pytest
 
-from clinosim.modules.output.fhir_r4_adapter import BundleContext, _build_care_level
+from clinosim.modules.output._fhir_care_level import _build_care_level
+from clinosim.modules.output._fhir_common import BundleContext
 
 pytestmark = pytest.mark.integration
 

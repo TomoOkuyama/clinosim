@@ -55,7 +55,7 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
     run_generate("JP", 100, 42, outdir, end=_SNAPSHOT_END)
     resources_by_type = _load_resources(outdir)
 
-    from clinosim.modules.output.fhir_r4_adapter import (
+    from clinosim.modules.output._fhir_post_process import (
         _JP_CLINS_PROFILES,
         _is_lab_observation,
         _medication_request_satisfies_ecs,
