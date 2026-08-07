@@ -48,6 +48,53 @@ def panel_specimen_seed(parent_order_id: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+def chronic_medication_seed(patient_id: str) -> int:
+    """Per-patient deterministic sub-seed for chronic-medication selection (Issue #439).
+
+    `_derive_home_medications` (activator.py) samples a patient's chronic drug
+    regimen via `select_with_exclusive_classes` — an `exclusive_classes`
+    categorical draw followed by independent Bernoulli picks over the remaining
+    drugs. Pre-Issue-439 that sampling drew from the patient-scoped master RNG,
+    so YAML edits to `chronic_medications.yaml` (e.g. adding a new drug,
+    tweaking a probability, extending an `exclusive_classes` set) silently
+    shifted every downstream draw for that patient AND cascaded across the
+    whole cohort because the master stream is shared across patients.
+
+    Sibling of ``panel_specimen_seed`` / ``individual_lab_seed`` — the same
+    AD-16 pattern applied to the drug-selection layer. See CLAUDE.md
+    "Per-order lab RNG isolation" (AD-59) for precedent; this helper extends
+    the pattern to chronic-medication sampling per Issue #439 P1.
+
+    Patient IDs are themselves derived deterministically from the master seed
+    by population activation, so this sub-seed is stable across runs and
+    unique per patient without needing the master seed itself.
+    """
+    salt = "clinosim:chronic-medication:v1"
+    digest = hashlib.sha256(f"{salt}|{patient_id}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
+def discharge_prescription_seed(patient_id: str, encounter_id: str) -> int:
+    """Per-(patient, encounter) deterministic sub-seed for discharge Rx (Issue #439).
+
+    `_build_discharge_rx` (inpatient.py) samples the discharge-oral block via
+    `select_with_exclusive_classes` (categorical + Bernoulli) plus a
+    `continue_at_discharge` loop. Pre-Issue-439 that sampling drew from the
+    patient-scoped master RNG, so YAML edits to `drugs.discharge_oral` or
+    `drugs.<category>` cascaded across unrelated patients' cohorts.
+
+    Sibling of ``chronic_medication_seed`` — same AD-16 rationale, keyed on
+    the encounter (not just the patient) because discharge sampling is
+    per-admission (multiple admissions per patient must draw independently).
+
+    Both patient_id and encounter_id are derived deterministically from the
+    master seed by the simulator, so this sub-seed is stable across runs.
+    """
+    salt = "clinosim:discharge-prescription:v1"
+    digest = hashlib.sha256(f"{salt}|{patient_id}|{encounter_id}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 def individual_lab_seed(order_id: str) -> int:
     """Per-individual-lab-order deterministic sub-seed in ``[0, 2**32)``.
 
