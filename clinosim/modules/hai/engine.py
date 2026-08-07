@@ -106,7 +106,7 @@ def _validate_hai_rates(data: dict) -> None:
         raise ValueError(f"hai_rates.yaml: top-level must be a dict, got {type(data).__name__}")
     rates = data.get("hai_rates") or {}
     if not rates:
-        raise ValueError("hai_rates.yaml top-level empty — silent no-op risk")
+        raise ValueError("hai_rates.yaml top-level empty — silent-no-op risk")
     valid_types = set(HAI_TYPES)
     device_table = load_devices_config().get("devices", {})
     for hai_type, bucket in rates.items():
@@ -174,7 +174,7 @@ def _validate_hai_codes(data: dict) -> None:
         raise ValueError(f"hai_codes.yaml: top-level must be a dict, got {type(data).__name__}")
     codes_table = data.get("hai_codes") or {}
     if not codes_table:
-        raise ValueError("hai_codes.yaml top-level empty — silent no-op risk")
+        raise ValueError("hai_codes.yaml top-level empty — silent-no-op risk")
     valid_types = set(HAI_TYPES)
     for hai_type, bucket in codes_table.items():
         if hai_type not in valid_types:
@@ -224,7 +224,7 @@ def _validate_hai_specimens(data: dict) -> None:
         raise ValueError(f"hai_specimens.yaml: top-level must be a dict, got {type(data).__name__}")
     spec_table = data.get("hai_specimens") or {}
     if not spec_table:
-        raise ValueError("hai_specimens.yaml top-level empty — silent no-op risk")
+        raise ValueError("hai_specimens.yaml top-level empty — silent-no-op risk")
     valid_types = set(HAI_TYPES)
     for hai_type, bucket in spec_table.items():
         if hai_type not in valid_types:

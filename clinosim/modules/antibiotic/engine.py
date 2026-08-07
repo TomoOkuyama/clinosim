@@ -71,7 +71,7 @@ def _validate_narrow_ladder(data: dict[str, dict[str, list[str]]]) -> None:
     from clinosim.modules.hai import load_hai_antibiogram  # local: avoid circular import
 
     if not data:
-        raise ValueError("narrow_ladder.yaml: empty narrow_ladder (PR-90 class silent no-op)")
+        raise ValueError("narrow_ladder.yaml: empty narrow_ladder (PR-90 class silent-no-op)")
 
     antibiogram = load_hai_antibiogram()
     valid_hai_types = set(HAI_TYPES)
@@ -85,12 +85,12 @@ def _validate_narrow_ladder(data: dict[str, dict[str, list[str]]]) -> None:
             )
         if not organism_map:
             raise ValueError(
-                f"narrow_ladder.yaml: hai_type {hai_type!r} has empty organism map (PR-90 class silent no-op)"
+                f"narrow_ladder.yaml: hai_type {hai_type!r} has empty organism map (PR-90 class silent-no-op)"
             )
         for organism_snomed, drug_list in organism_map.items():
             if not drug_list:
                 raise ValueError(
-                    f"narrow_ladder.yaml: empty drug list for {hai_type}/{organism_snomed} (PR-90 class silent no-op)"
+                    f"narrow_ladder.yaml: empty drug list for {hai_type}/{organism_snomed} (PR-90 class silent-no-op)"
                 )
             if organism_snomed not in antibiogram.get(hai_type, {}):
                 raise ValueError(

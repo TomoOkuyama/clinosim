@@ -509,7 +509,7 @@ Threshold は §7.2 unit-test calibration から導出(baseline infl=0.4 で CLA
 
 ## 13a. Post-PR-90 xhigh review hardening (2026-06-25 second pass)
 
-PR #90 was opened with **byte-diff 37/37 IDENTICAL + 3-axis DQR PASS + 691 tests** — but a workflow-backed xhigh code review caught **13 confirmed + 2 plausible bugs**. The critical one: YAML hai_type keys were UPPERCASE (`CLABSI`/`VAP`/`CAUTI`) while the enricher writes lowercase (`clabsi`/`cauti`/`vap`), so `lift_table.get` always returned 0.0 — **the entire Phase 3a lift was a silent no-op in production**, and the DQR's +2,135 WBC / +50.4 CRP CAUTI delta was a confounder of UTI disease state, not the lift code.
+PR #90 was opened with **byte-diff 37/37 IDENTICAL + 3-axis DQR PASS + 691 tests** — but a workflow-backed xhigh code review caught **13 confirmed + 2 plausible bugs**. The critical one: YAML hai_type keys were UPPERCASE (`CLABSI`/`VAP`/`CAUTI`) while the enricher writes lowercase (`clabsi`/`cauti`/`vap`), so `lift_table.get` always returned 0.0 — **the entire Phase 3a lift was a silent-no-op in production**, and the DQR's +2,135 WBC / +50.4 CRP CAUTI delta was a confounder of UTI disease state, not the lift code.
 
 ### Why all three gates missed it
 

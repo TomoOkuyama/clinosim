@@ -341,7 +341,7 @@ All profiles are **disease-based inpatient/ICU** to dispatch via `test-disease` 
 - **AD-16 determinism**: profile fixtures use fixed seeds (default 42); golden regeneration must be byte-diff-stable at seed 42
 - **Scope discipline** (feedback_scope_discipline): 6 profiles only; no CI workflow; no clinical review loop; no semantic diff — all deferred to TODO.md at spec-write time (already done in §0 Non-goals + §7 doc 6)
 - **Canonical single source** (feedback_unify_data_logic): fixture dir path constants (`FIXTURE_DIR`) defined ONCE in `conftest.py`, imported everywhere
-- **PR-90 silent no-op defense**: PatientProfile validates schema strictly (extra=forbid), profile_id filename match, disease_id registry lookup, RxNorm code lookup — all fail-loud at load time
+- **PR-90 silent-no-op defense**: PatientProfile validates schema strictly (extra=forbid), profile_id filename match, disease_id registry lookup, RxNorm code lookup — all fail-loud at load time
 
 ## 11. Success criteria
 

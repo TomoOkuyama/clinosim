@@ -153,7 +153,7 @@ ForcedScenario(
   - CLABSI: T80.211A、Vanc + Pip-Tazo × 14d、min MAR=84
   - CAUTI: T83.511A、Ceftriaxone × 7d、min MAR=7
   - VAP: J95.851、Vanc + Pip-Tazo × 7d、min MAR=42
-- `lift_firing_proof`: 合成 CAUTI record を `enrich_antibiotic` で drive、closed-form delta(Ceftriaxone q24h × 7d = 7 MAR、first/last datetime 厳密一致)= PR-90 class silent no-op gate
+- `lift_firing_proof`: 合成 CAUTI record を `enrich_antibiotic` で drive、closed-form delta(Ceftriaxone q24h × 7d = 7 MAR、first/last datetime 厳密一致)= PR-90 class silent-no-op gate
 
 **Phase 3b-2 拡張 (`audit.py`)**:
 - `_ABX_LOINCS: frozenset[str]` — categorical S/I/R Observations の LOINC 集合。structural_obs_codes には未登録(categorical Observation は numeric structural check 非対象、PR3b-3 clinical axis の R-rate gate で active enforcement されている)。

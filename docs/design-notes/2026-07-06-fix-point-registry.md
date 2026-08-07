@@ -297,7 +297,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 
 - **由来(session 40、`FP-UNIFY-2` に続く「FHIR データ品質・臨床整合性」観点の候補洗い出し
   中に検出)**: `physiology.engine.apply_state_delta` は `getattr(state, var, None)` で存在しない
-  state 属性を **silent no-op** にする。session 39 の `anion_gap_status` 追加(GI acidosis 実害)
+  state 属性を **silent-no-op** にする。session 39 の `anion_gap_status` 追加(GI acidosis 実害)
   と同 class の C1 silent-drop が YAML author 側に **3 sink × 25 entry** 残存していた:
   1. `initial_state_impact.<severity>.<state_var>` — 5 件(DKA `electrolyte_status` moderate/severe
      + DKA `consciousness` severe + hemorrhagic_stroke `neurological_status` moderate/severe)。

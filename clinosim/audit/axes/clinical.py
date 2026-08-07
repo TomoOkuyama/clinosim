@@ -56,7 +56,7 @@ def _medication_request_structural_key(row: dict) -> str:
 # Canonical SNOMED CT URI (PR3b-3 stage-1 adversarial finding C3): substring
 # match against "snomed" silently broke on OID form
 # (urn:oid:2.16.840.1.113883.6.96) or uppercase variants — same class as
-# PR-90's hai_type case-mismatch silent no-op. Use canonical equality.
+# PR-90's hai_type case-mismatch silent-no-op. Use canonical equality.
 _SNOMED_URI = get_system_uri("snomed-ct")
 
 _WBC_CODE = "6690-2"

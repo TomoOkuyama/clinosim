@@ -431,7 +431,7 @@ def _validate_narrow_rate_bands() -> None:
     """
     if not _NARROW_RATE_BANDS:
         raise ValueError(
-            "_NARROW_RATE_BANDS is empty — narrow rate gate would be silently disabled (PR-90 class silent no-op)"
+            "_NARROW_RATE_BANDS is empty — narrow rate gate would be silently disabled (PR-90 class silent-no-op)"
         )
     valid_hai_types = set(HAI_TYPES)
     banded_hai_types: set[str] = set()

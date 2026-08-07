@@ -209,7 +209,7 @@ Key no-drop invariants verified (spec §3.4 CIF→FHIR no-drop rule):
   Composition.section[], without it the builder had no way to split the narrative into structured
   sections — a CIF→FHIR no-drop invariant violation per spec §3.4)
 - `format_type: str` (Task 9 dispatch required this to select between free_text vs composition
-  builder path; silent no-op without it)
+  builder path; silent-no-op without it)
 
 Fixed in Task 8 by adding both fields to `clinosim/types/clinical.py:ClinicalDocument` (default
 `{}` / `""` for backward compat) and wiring them at all 3 emission sites in

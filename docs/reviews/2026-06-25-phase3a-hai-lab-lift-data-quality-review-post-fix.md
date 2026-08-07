@@ -46,7 +46,7 @@ essentially unchanged** because:
    cohort-median noise next to the +1,500-2,000 underlying UTI baseline.
 
 **This is a real-world confounder that strengthens the new audit
-guidance:** cohort-level deltas can mask both a silent no-op (PR-90) and
+guidance:** cohort-level deltas can mask both a silent-no-op (PR-90) and
 a fully-firing lift (post-fix). The closed-form proof is the
 load-bearing verification.
 

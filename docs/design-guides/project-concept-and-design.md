@@ -130,7 +130,7 @@
 | `check-narratives` | 実 LLM narrative の semantic gate |
 | adversarial review | PR ごとに 5-lens レビュー(finding は実証必須)→ fix → merge の chain 文化 |
 
-**silent no-op(動いているように見えて実は発火していない)がこのプロジェクト最大の敵**。
+**silent-no-op(動いているように見えて実は発火していない)がこのプロジェクト最大の敵**。
 歴史的事故(PR-90 / J5 / C-1)から fail-loud validation・canonical constants・発火 counter
 の 3 層防御が全域に張られている。詳細 = `implementation-rules.md` §9。
 
@@ -168,7 +168,7 @@
 |---|---|
 | CIF | Clinical Intermediate Format。シミュレーションの唯一の出力(structural + narrative 2 層) |
 | chain | 1 テーマの作業単位(spec → 実装 → adv review → merge、通常 1 PR) |
-| adv-1 / 5-lens | merge 前の adversarial review(silent no-op / data unification / FHIR·JP Core / determinism / spec 整合の 5 観点) |
+| adv-1 / 5-lens | merge 前の adversarial review(silent-no-op / data unification / FHIR·JP Core / determinism / spec 整合の 5 観点) |
 | golden | canonical patient profile の期待出力 JSON(byte-diff regression 用) |
 | DQR | Data Quality Review(構造/臨床整合/JP 言語の 3 軸レビュー文書、`docs/reviews/`) |
 | lift_firing_proof | audit の silent_no_op 軸で「機能が発火した」ことを等式で証明する仕組み |

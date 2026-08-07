@@ -78,7 +78,7 @@ def test_patient_profile_rejects_removed_unwired_fields():
 
     They were declared but consumed by NOTHING (to_forced_scenario() omitted
     both; CLI built SimulatorConfig without time_range) — a profile author
-    setting them got a silent no-op (PR-90 class). extra=forbid must now
+    setting them got a silent-no-op (PR-90 class). extra=forbid must now
     reject them loudly.
     """
     with pytest.raises(Exception) as exc_info:

@@ -203,7 +203,7 @@ for abx_key, sir in (org.get("antibiogram") or {}).items():
 
 **Risk**: a typo in an organism's `antibiogram` entry (e.g., `vancomicin`
 instead of `vancomycin`) makes the susceptibility silently vanish at runtime.
-No test catches it. Same class as PR-90 silent no-op.
+No test catches it. Same class as PR-90 silent-no-op.
 
 **Two-part fix**:
 
