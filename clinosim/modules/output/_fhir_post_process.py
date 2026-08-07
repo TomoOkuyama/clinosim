@@ -41,6 +41,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.modules._shared import is_jp  # noqa: I001
 from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
     _bb_allergy_intolerances,
 )
@@ -517,7 +518,7 @@ def _populate_observation_identifier_and_last_updated(resource: dict, country: s
         existing_systems = {i.get("system") for i in existing if isinstance(i, dict)}
         # JP output: canonical resourceInstance-identifier slice を必ず先頭に
         # (spec `Observation.identifier:resourceIdentifier.system` patternUri)。
-        if country == "JP" and _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM not in existing_systems:
+        if is_jp(country) and _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM not in existing_systems:
             existing.insert(0, {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid})
         # 全 country: 内部 round-trip 用 identifier(既存 downstream consumer 用)。
         if _CLINOSIM_OBSERVATION_ID_SYSTEM not in existing_systems:
@@ -646,7 +647,7 @@ def _build_companion_specimen(observation: dict, country: str) -> dict:
     spec_id = f"{_COMPANION_SPECIMEN_ID_PREFIX}{obs_id}"
     subject = observation.get("subject", {}) or {}
     type_entry = _pick_specimen_type_for_lab(observation)
-    display = type_entry["display_ja"] if country == "JP" else type_entry["display_en"]
+    display = type_entry["display_ja"] if is_jp(country) else type_entry["display_en"]
     specimen: dict[str, Any] = {
         "resourceType": "Specimen",
         "id": spec_id,
@@ -683,7 +684,7 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
     3. **`Dosage.timing.code.text` (min=1)** — human-readable frequency
        description; falls back to `Dosage.text` when unset.
 
-    JP only (the walker is registered inside the `country == "JP"` branch).
+    JP only (the walker is registered inside the `is_jp(country)` branch).
     Idempotent — leaves any builder-populated extension / timing.code alone.
 
     Feedback fix (2026-07-16, PR-I). Covers `dosageInstruction[N].extension` +
@@ -941,7 +942,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     if rt in _ECS_IDENTIFIER_SYSTEMS and not resource.get("identifier"):
         rid = resource.get("id", "")
         if rid:
-            if country == "JP":
+            if is_jp(country):
                 resource["identifier"] = [
                     {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid},
                     {"system": _ECS_IDENTIFIER_SYSTEMS[rt], "value": rid},
@@ -969,7 +970,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
 
     # (4) code.coding[].display sibling-copy (Condition / AllergyIntolerance).
     # JP output prefers JP display via `code_lookup(..., "ja")`; US uses "en".
-    lang = "ja" if country == "JP" else "en"
+    lang = "ja" if is_jp(country) else "en"
     if rt in ("Condition", "AllergyIntolerance"):
         code_field = resource.get("code")
         if isinstance(code_field, dict):
@@ -989,7 +990,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # `未コード化傷病名`) used in JP hospital systems when reception input
     # does not map cleanly. Idempotent: skips when a MEDIS coding is already
     # present so future per-ICD-10 curation can be layered without conflict.
-    if rt == "Condition" and country == "JP":
+    if rt == "Condition" and is_jp(country):
         code_field = resource.get("code")
         if isinstance(code_field, dict):
             codings = code_field.setdefault("coding", [])
@@ -1009,7 +1010,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # `tx-server-build/.../clinical-information-sharing#1.12.0/package/
     # StructureDefinition-JP-MedicationRequest-eCS.json`. Enforced only on
     # JP output; US path keeps the original semantics.
-    if rt == "MedicationRequest" and country == "JP":
+    if rt == "MedicationRequest" and is_jp(country):
         resource["status"] = "completed"
         resource["intent"] = "order"
         sub = resource.get("substitution")

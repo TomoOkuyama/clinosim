@@ -30,7 +30,7 @@ import re
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import get_attr_or_key
+from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
     _bb_allergy_intolerances,
 )
@@ -276,7 +276,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                 "class": {
                     "system": get_system_uri("hl7-v3-actcode"),
                     "code": "EMER",
-                    "display": "救急外来" if str(ctx.country).upper() == "JP" else "Emergency",
+                    "display": "救急外来" if is_jp(ctx.country) else "Emergency",
                 },
                 "subject": {"reference": f"Patient/{ctx.patient_id}"},
             }
@@ -309,7 +309,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                     {
                         "system": get_system_uri("hl7-v3-actpriority"),
                         "code": "EM",
-                        "display": "緊急" if str(ctx.country).upper() == "JP" else "emergency",
+                        "display": "緊急" if is_jp(ctx.country) else "emergency",
                     }
                 ],
             }
@@ -319,7 +319,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                         {
                             "system": get_system_uri("hl7-admit-source"),
                             "code": "outp",
-                            "display": "外来より" if str(ctx.country).upper() == "JP" else "From outpatient",
+                            "display": "外来より" if is_jp(ctx.country) else "From outpatient",
                         }
                     ],
                 },
@@ -328,7 +328,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                         {
                             "system": get_system_uri("hl7-discharge-disposition"),
                             "code": "hosp",
-                            "display": "入院となる" if str(ctx.country).upper() == "JP" else "Admitted to hospital",
+                            "display": "入院となる" if is_jp(ctx.country) else "Admitted to hospital",
                         }
                     ],
                 },
@@ -620,10 +620,10 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         ordered_dt = (
             order.get("ordered_datetime", "") if isinstance(order, dict) else getattr(order, "ordered_datetime", "")
         )  # noqa: E501
-        _lang = "ja" if str(ctx.country).upper() == "JP" else "en"
+        _lang = "ja" if is_jp(ctx.country) else "en"
         _profile = (
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}}
-            if str(ctx.country).upper() == "JP"
+            if is_jp(ctx.country)
             else {}
         )
         # C4-03/18 (session 43 cycle 4): PROCEDURE-Order path lacked
@@ -632,7 +632,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # wound care / etc.) routed to PROCEDURE by emergency.py's _procedure_kw
         # filter. category is a Procedure.category coding, well-known SNOMED
         # concept from https://build.fhir.org/valueset-procedure-category.html.
-        _cat_lang = "ja" if str(ctx.country).upper() == "JP" else "en"
+        _cat_lang = "ja" if is_jp(ctx.country) else "en"
         # Issue #474: localize the Order display for JP so treatment-side
         # procedures (splint/bandage/wound-care/O2 etc.) don't leak English
         # into JP `Procedure.code.text`. `_localize_drug_name` is the
@@ -673,7 +673,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         procedure_res["reasonCode"] = [
             {
                 "text": "入院時診断に基づく処置"
-                if str(ctx.country).upper() == "JP"
+                if is_jp(ctx.country)
                 else "Procedure indicated by encounter diagnosis",  # noqa: E501
             }
         ]
@@ -682,7 +682,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # code, so text is defensible.
         procedure_res["bodySite"] = [
             {
-                "text": "処置部位不明" if str(ctx.country).upper() == "JP" else "Body site not specified",
+                "text": "処置部位不明" if is_jp(ctx.country) else "Body site not specified",
             }
         ]
         # CY7-19 (Chain-7): outcome default = Successful for completed status.
@@ -694,7 +694,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
                     "display": code_lookup("snomed-ct", "385669000", _cat_lang) or "Successful",
                 }
             ],
-            "text": "成功" if str(ctx.country).upper() == "JP" else "Successful",
+            "text": "成功" if is_jp(ctx.country) else "Successful",
         }
         out.append(procedure_res)
         proc_seq += 1
