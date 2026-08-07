@@ -3,6 +3,7 @@
 > **Clinically Realistic Hospital Data Simulator** — Generate FHIR R4 EHR data from a virtual hospital
 
 [![CI](https://github.com/TomoOkuyama/clinosim/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/TomoOkuyama/clinosim/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-84%25-yellowgreen)](https://github.com/TomoOkuyama/clinosim/actions/workflows/ci.yml)
 [![Docs](https://github.com/TomoOkuyama/clinosim/actions/workflows/docs.yml/badge.svg?branch=master)](https://tomookuyama.github.io/clinosim/)
 [![PyPI](https://img.shields.io/pypi/v/clinosim.svg?label=PyPI&color=blue)](https://pypi.org/project/clinosim/)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)

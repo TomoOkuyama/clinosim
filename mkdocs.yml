@@ -149,6 +149,7 @@ nav:
       - Bedrock LLM setup: bedrock_setup.md
   - Development:
       - Reproducibility: development/reproducibility.md
+      - Publishing to PyPI: development/publishing-to-pypi.md
       - Changelog: development/changelog.md
   - Governance:
       - Contributing: governance/contributing.md

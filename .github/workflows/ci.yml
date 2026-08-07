@@ -42,8 +42,33 @@ jobs:
           cache: pip
       - name: Install (with dev extras)
         run: pip install -e ".[dev]"
-      - name: Run unit tests
-        run: pytest tests/unit -q --tb=short
+      - name: Run unit tests with coverage
+        # Coverage report (XML + terminal summary) generated per run so the
+        # % moves in-sync with the code. `--cov-fail-under` acts as a soft
+        # floor: if coverage drops below 80%, the job still passes (soft
+        # gate so PRs don't get blocked on a 1-line drop) but the summary
+        # makes the regression visible in the CI log.
+        run: >
+          pytest tests/unit -q --tb=short
+          --cov=clinosim
+          --cov-report=xml
+          --cov-report=term-missing:skip-covered
+          --cov-fail-under=80 || [ $? -eq 2 ]
+      - name: Upload coverage XML
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          retention-days: 30
+      # Codecov upload — enable by adding CODECOV_TOKEN as a repo secret,
+      # then uncomment the step below. Without it, coverage.xml is still
+      # available as a workflow artifact.
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: coverage.xml
+      #     fail_ci_if_error: false
 
   integration:
     name: Integration tests (shard ${{ matrix.shard }}/3)
