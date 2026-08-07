@@ -15,6 +15,7 @@ bundle on the current tree at seed=42, walks the resulting Observation.ndjson
 If (a)'s 5th-percentile is below the planned threshold, the spec returns
 to brainstorming.
 """
+
 import collections
 import csv
 import json
@@ -32,10 +33,18 @@ REPO = Path(__file__).resolve().parents[1]
 # unnecessary for the rule-validation we're doing (per-panel grouping
 # semantics are identical across locales).
 LOINC_TO_COMPONENT = {
-    "6690-2": "WBC", "718-7": "Hb", "4544-3": "Hct", "777-3": "Plt",
-    "2951-2": "Na", "2823-3": "K", "1963-8": "HCO3", "3094-0": "BUN",
-    "2160-0": "Creatinine", "2345-7": "Glucose",
-    "2075-0": "Cl", "17861-6": "Ca",  # added by BMP Cl/Ca physiology PR (2026-06-23)
+    "6690-2": "WBC",
+    "718-7": "Hb",
+    "4544-3": "Hct",
+    "777-3": "Plt",
+    "2951-2": "Na",
+    "2823-3": "K",
+    "1963-8": "HCO3",
+    "3094-0": "BUN",
+    "2160-0": "Creatinine",
+    "2345-7": "Glucose",
+    "2075-0": "Cl",
+    "17861-6": "Ca",  # added by BMP Cl/Ca physiology PR (2026-06-23)
 }
 
 CBC_COMPONENTS = {"WBC", "Hb", "Hct", "Plt"}
@@ -43,11 +52,27 @@ BMP_COMPONENTS = {"Na", "K", "Cl", "HCO3", "BUN", "Creatinine", "Glucose", "Ca"}
 
 
 def run_simulator(cwd: Path, out_dir: Path, country: str, n: int, seed: int = 42) -> None:
-    subprocess.run([
-        sys.executable, "-m", "clinosim.simulator.cli",
-        "generate", "--country", country, "-p", str(n), "-s", str(seed),
-        "-o", str(out_dir), "--format", "fhir", "csv",
-    ], check=True, cwd=cwd)
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "generate",
+            "--country",
+            country,
+            "-p",
+            str(n),
+            "-s",
+            str(seed),
+            "-o",
+            str(out_dir),
+            "--format",
+            "fhir",
+            "csv",
+        ],
+        check=True,
+        cwd=cwd,
+    )
 
 
 def load_lab_observations(fhir_dir: Path):
@@ -94,10 +119,8 @@ def bucket_distributions(fhir_dir: Path, csv_dir: Path):
             bmp_buckets[key].add(comp)
 
     out = {
-        "CBC": {"with_parent": collections.Counter(),
-                "coincidence":   collections.Counter()},
-        "BMP": {"with_parent": collections.Counter(),
-                "coincidence":   collections.Counter()},
+        "CBC": {"with_parent": collections.Counter(), "coincidence": collections.Counter()},
+        "BMP": {"with_parent": collections.Counter(), "coincidence": collections.Counter()},
     }
     for key, comps in cbc_buckets.items():
         if not comps:

@@ -38,6 +38,7 @@
 Usage:
     python scratchpad/dqr_coag_panel_review.py <bundle-root> <country>
 """
+
 from __future__ import annotations
 
 import collections
@@ -81,8 +82,9 @@ def primary_admit_date(enc: dict) -> str | None:
     return (p.get("start") or "")[:10] or None
 
 
-def admit_obs_for_diseases(obs: list[dict], encs: list[dict], conds: list[dict],
-                           dx_prefixes: tuple[str, ...]) -> list[dict]:
+def admit_obs_for_diseases(
+    obs: list[dict], encs: list[dict], conds: list[dict], dx_prefixes: tuple[str, ...]
+) -> list[dict]:
     """Return Observations whose effectiveDateTime[:10] matches the admission
     date of an Encounter whose primary diagnosis ICD-10 starts with any of
     the given prefixes."""
@@ -90,10 +92,7 @@ def admit_obs_for_diseases(obs: list[dict], encs: list[dict], conds: list[dict],
     cond_pid_dates: dict[str, set[str]] = collections.defaultdict(set)
     for c in conds:
         codings = c.get("code", {}).get("coding") or []
-        if not any(
-            cd.get("code", "").startswith(dx_prefixes)
-            for cd in codings
-        ):
+        if not any(cd.get("code", "").startswith(dx_prefixes) for cd in codings):
             continue
         subj = c.get("subject", {}).get("reference", "")
         pid = subj.split("/")[-1] if subj else ""
@@ -146,11 +145,7 @@ def structural_axis(root: Path, country: str) -> list[str]:
     out: list[str] = ["## Structural\n"]
 
     # Coag DR (24373-3) count + result[] integrity
-    coag_drs = [
-        d for d in drs
-        if any(c.get("code") == "24373-3"
-               for c in d.get("code", {}).get("coding") or [])
-    ]
+    coag_drs = [d for d in drs if any(c.get("code") == "24373-3" for c in d.get("code", {}).get("coding") or [])]
     obs_ids = {o.get("id") for o in obs}
     bad_refs = 0
     for d in coag_drs:
@@ -162,20 +157,17 @@ def structural_axis(root: Path, country: str) -> list[str]:
             if target not in obs_ids:
                 bad_refs += 1
     out.append(f"- Coag DR (24373-3) count: **{len(coag_drs)}**")
-    out.append(f"- Coag DR result[] unresolved references: **{bad_refs}**  "
-               f"({'PASS' if bad_refs == 0 else 'FAIL'})")
+    out.append(f"- Coag DR result[] unresolved references: **{bad_refs}**  ({'PASS' if bad_refs == 0 else 'FAIL'})")
 
     # referenceRange coverage on new analytes
     target_codes = {"14979-9", "5902-2", "3255-7"} if country == "US" else {"2B020", "2B030", "2B100"}
-    target_obs = [
-        o for o in obs
-        if any(c.get("code") in target_codes
-               for c in o.get("code", {}).get("coding") or [])
-    ]
+    target_obs = [o for o in obs if any(c.get("code") in target_codes for c in o.get("code", {}).get("coding") or [])]
     with_range = [o for o in target_obs if o.get("referenceRange")]
     rr_pct = 100 * len(with_range) / len(target_obs) if target_obs else float("nan")
-    out.append(f"- New Coag-related Observations: **{len(target_obs)}**, with refRange: **{len(with_range)}** "
-               f"({rr_pct:.1f}%)  ({'PASS' if rr_pct == 100 else 'CHECK' if target_obs else 'N/A'})")
+    out.append(
+        f"- New Coag-related Observations: **{len(target_obs)}**, with refRange: **{len(with_range)}** "
+        f"({rr_pct:.1f}%)  ({'PASS' if rr_pct == 100 else 'CHECK' if target_obs else 'N/A'})"
+    )
 
     # display != code on new Coag codings
     bad_display = []
@@ -188,8 +180,9 @@ def structural_axis(root: Path, country: str) -> list[str]:
                 code_displays[code].add(disp)
                 if disp == code or not disp:
                     bad_display.append((code, disp))
-    out.append(f"- Coag codings with display==code or empty: **{len(bad_display)}**  "
-               f"({'PASS' if not bad_display else 'FAIL'})")
+    out.append(
+        f"- Coag codings with display==code or empty: **{len(bad_display)}**  ({'PASS' if not bad_display else 'FAIL'})"
+    )
     out.append("- Coag code → display samples:")
     for code, displays in code_displays.items():
         for d in displays:
@@ -218,21 +211,25 @@ def clinical_axis(root: Path, country: str) -> list[str]:
     if sepsis_fib:
         p50 = statistics.median(sepsis_fib)
         in_band = 350 <= p50 <= 650
-        out.append(f"- Sepsis (A41) admit-day Fibrinogen p50 = **{p50:.1f}** mg/dL  "
-                   f"(target 350-650 acute-phase band; "
-                   f"{'PASS' if in_band else 'CHECK'})  "
-                   f"[n={len(sepsis_fib)}]  "
-                   f"NB: DIC consumption appears in LOS-mid for the subset that "
-                   f"develops DIC (~10-30% of sepsis), not on admit day.")
+        out.append(
+            f"- Sepsis (A41) admit-day Fibrinogen p50 = **{p50:.1f}** mg/dL  "
+            f"(target 350-650 acute-phase band; "
+            f"{'PASS' if in_band else 'CHECK'})  "
+            f"[n={len(sepsis_fib)}]  "
+            f"NB: DIC consumption appears in LOS-mid for the subset that "
+            f"develops DIC (~10-30% of sepsis), not on admit day."
+        )
     else:
         out.append(f"- Sepsis Fibrinogen: no admit-day samples in cohort")
     if sepsis_aptt:
         p75 = pct(sepsis_aptt, 75)
-        out.append(f"- Sepsis (A41) admit-day APTT p75 = **{p75:.1f}** s  "
-                   f"(target ≥ 30 = above upper reference, mild trending; "
-                   f"{'PASS' if p75 >= 30 else 'CHECK'})  "
-                   f"[n={len(sepsis_aptt)}]  "
-                   f"NB: DIC-grade prolongation appears in LOS-mid for the DIC subset.")
+        out.append(
+            f"- Sepsis (A41) admit-day APTT p75 = **{p75:.1f}** s  "
+            f"(target ≥ 30 = above upper reference, mild trending; "
+            f"{'PASS' if p75 >= 30 else 'CHECK'})  "
+            f"[n={len(sepsis_aptt)}]  "
+            f"NB: DIC-grade prolongation appears in LOS-mid for the DIC subset."
+        )
     else:
         out.append(f"- Sepsis APTT: no admit-day samples in cohort")
 
@@ -242,9 +239,11 @@ def clinical_axis(root: Path, country: str) -> list[str]:
     hepatic_pt_inr = hepatic_by.get(pt_inr_code, [])
     if hepatic_pt_inr:
         p75 = pct(hepatic_pt_inr, 75)
-        out.append(f"- Hepatic (K70/K72) admit-day PT_INR p75 = **{p75:.2f}**  "
-                   f"(target ≥ 1.5; {'PASS' if p75 >= 1.5 else 'CHECK'})  "
-                   f"[n={len(hepatic_pt_inr)}]")
+        out.append(
+            f"- Hepatic (K70/K72) admit-day PT_INR p75 = **{p75:.2f}**  "
+            f"(target ≥ 1.5; {'PASS' if p75 >= 1.5 else 'CHECK'})  "
+            f"[n={len(hepatic_pt_inr)}]"
+        )
     else:
         out.append("- Hepatic PT_INR: no admit-day samples in cohort")
 
@@ -255,12 +254,11 @@ def clinical_axis(root: Path, country: str) -> list[str]:
         by_key: dict[tuple, dict[str, float]] = collections.defaultdict(dict)
         for o in obs:
             codings = o.get("code", {}).get("coding") or []
-            code = next((c.get("code") for c in codings
-                         if c.get("code") in {"5902-2", "6301-6"}), None)
+            code = next((c.get("code") for c in codings if c.get("code") in {"5902-2", "6301-6"}), None)
             if not code:
                 continue
             pid = (o.get("subject", {}).get("reference") or "").split("/")[-1]
-            when = (o.get("effectiveDateTime") or "")
+            when = o.get("effectiveDateTime") or ""
             val = o.get("valueQuantity", {}).get("value")
             if val is not None:
                 by_key[(pid, when)][code] = float(val)
@@ -273,11 +271,15 @@ def clinical_axis(root: Path, country: str) -> list[str]:
                 if abs(vals["5902-2"] - expected) > 0.1:
                     n_bad += 1
         if n_pairs:
-            out.append(f"- PT = 12 × PT_INR consistency: **{n_pairs - n_bad}/{n_pairs}** pairs match  "
-                       f"({'PASS' if n_bad == 0 else 'CHECK'})")
+            out.append(
+                f"- PT = 12 × PT_INR consistency: **{n_pairs - n_bad}/{n_pairs}** pairs match  "
+                f"({'PASS' if n_bad == 0 else 'CHECK'})"
+            )
         else:
-            out.append("- PT = 12 × PT_INR consistency: no matched pairs "
-                       "(expected — no disease YAML orders {test:'PT'} individually)")
+            out.append(
+                "- PT = 12 × PT_INR consistency: no matched pairs "
+                "(expected — no disease YAML orders {test:'PT'} individually)"
+            )
 
     # Whole-cohort Fibrinogen distribution (emergent — not a strict gate).
     all_fib = obs_values_by_lab(obs, {fib_code}).get(fib_code, [])
@@ -285,12 +287,14 @@ def clinical_axis(root: Path, country: str) -> list[str]:
         med = statistics.median(all_fib)
         p10 = pct(all_fib, 10)
         p90 = pct(all_fib, 90)
-        in_clamp = (50 <= min(all_fib) and max(all_fib) <= 800)
-        out.append(f"- Whole-cohort Fibrinogen: p10=**{p10:.0f}** p50=**{med:.0f}** "
-                   f"p90=**{p90:.0f}** mg/dL  "
-                   f"(in [50, 800] clamp: {'PASS' if in_clamp else 'FAIL'})  "
-                   f"[n={len(all_fib)}]  "
-                   f"NB: cohort median ≠ healthy median (cohort is disease-weighted).")
+        in_clamp = 50 <= min(all_fib) and max(all_fib) <= 800
+        out.append(
+            f"- Whole-cohort Fibrinogen: p10=**{p10:.0f}** p50=**{med:.0f}** "
+            f"p90=**{p90:.0f}** mg/dL  "
+            f"(in [50, 800] clamp: {'PASS' if in_clamp else 'FAIL'})  "
+            f"[n={len(all_fib)}]  "
+            f"NB: cohort median ≠ healthy median (cohort is disease-weighted)."
+        )
     return out
 
 
@@ -300,18 +304,11 @@ def jp_language_axis(root: Path, country: str) -> list[str]:
     drs = load_ndjson(fhir / "DiagnosticReport.ndjson")
     out: list[str] = ["\n## JP Language\n"]
 
-    target_codes = {"14979-9", "5902-2", "3255-7", "24373-3"} \
-        if country == "US" else {"2B020", "2B030", "2B100", "24373-3"}
-    coag_obs = [
-        o for o in obs
-        if any(c.get("code") in target_codes
-               for c in o.get("code", {}).get("coding") or [])
-    ]
-    coag_drs = [
-        d for d in drs
-        if any(c.get("code") == "24373-3"
-               for c in d.get("code", {}).get("coding") or [])
-    ]
+    target_codes = (
+        {"14979-9", "5902-2", "3255-7", "24373-3"} if country == "US" else {"2B020", "2B030", "2B100", "24373-3"}
+    )
+    coag_obs = [o for o in obs if any(c.get("code") in target_codes for c in o.get("code", {}).get("coding") or [])]
+    coag_drs = [d for d in drs if any(c.get("code") == "24373-3" for c in d.get("code", {}).get("coding") or [])]
     bag = coag_obs + coag_drs
 
     jp_leak = 0
@@ -336,23 +333,27 @@ def jp_language_axis(root: Path, country: str) -> list[str]:
                     jp_leak += 1
             if JAPANESE.search(r.get("code", {}).get("text", "")):
                 jp_leak += 1
-        out.append(f"- US output Japanese leak in Coag fields: **{jp_leak}**  "
-                   f"({'PASS' if jp_leak == 0 else 'FAIL'})  [scanned {len(bag)} resources]")
+        out.append(
+            f"- US output Japanese leak in Coag fields: **{jp_leak}**  "
+            f"({'PASS' if jp_leak == 0 else 'FAIL'})  [scanned {len(bag)} resources]"
+        )
     else:
-        out.append(f"- JP output Japanese coverage in Coag fields: **{jp_hit}** instances  "
-                   f"({'PASS' if jp_hit > 0 else 'FAIL'})  [scanned {len(bag)} resources]")
+        out.append(
+            f"- JP output Japanese coverage in Coag fields: **{jp_hit}** instances  "
+            f"({'PASS' if jp_hit > 0 else 'FAIL'})  [scanned {len(bag)} resources]"
+        )
 
     # Check jlac10.yaml ja values (PR #76 enforcement)
     if country == "JP":
         from yaml import safe_load
+
         jp_repo = Path(__file__).resolve().parents[1] / "clinosim/codes/data/jlac10.yaml"
         jlac = safe_load(jp_repo.read_text())["codes"]
         for code in ("2B020", "2B030", "2B100"):
             ja = jlac.get(code, {}).get("ja", "")
             jp_present = bool(JAPANESE.search(ja))
             not_eng_abbrev = ja not in {"APTT", "PT", "Fibrinogen"}
-            out.append(f"  - `{code}` ja=`{ja}`  "
-                       f"({'PASS' if jp_present and not_eng_abbrev else 'FAIL'})")
+            out.append(f"  - `{code}` ja=`{ja}`  ({'PASS' if jp_present and not_eng_abbrev else 'FAIL'})")
 
     return out
 

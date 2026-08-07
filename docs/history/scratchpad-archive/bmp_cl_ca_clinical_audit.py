@@ -12,6 +12,7 @@ Expected ranges (per spec §9.4):
   CKD/AKI:  Cl 100-105, Ca 8.8-9.2, AG 12-18
   Healthy:  Cl 99-106,  Ca 9.0-10.0, AG 8-14
 """
+
 import collections
 import json
 import statistics
@@ -22,31 +23,44 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 
-US_CODES = {"Na": "2951-2", "K": "2823-3", "Cl": "2075-0",
-            "HCO3": "1963-8", "Ca": "17861-6"}
-JP_CODES = {"Na": "3H010", "K": "3H015", "Cl": "3H020",
-            "HCO3": "3G125", "Ca": "3H030"}
+US_CODES = {"Na": "2951-2", "K": "2823-3", "Cl": "2075-0", "HCO3": "1963-8", "Ca": "17861-6"}
+JP_CODES = {"Na": "3H010", "K": "3H015", "Cl": "3H020", "HCO3": "3G125", "Ca": "3H030"}
 
 COHORTS = {
-    "DKA":            ["E10.1", "E11.1", "E13.1"],
-    "Sepsis":         ["A41"],
-    "AKI":            ["N17"],
-    "CKD":            ["N18"],
-    "GE/diarrhea":    ["A09", "K52.9"],
-    "Pneumonia":      ["J15", "J18"],
-    "GI_bleed":       ["K92.2", "K92.0", "K92.1"],
-    "MI":             ["I21"],
-    "Healthy":        ["Z00"],
+    "DKA": ["E10.1", "E11.1", "E13.1"],
+    "Sepsis": ["A41"],
+    "AKI": ["N17"],
+    "CKD": ["N18"],
+    "GE/diarrhea": ["A09", "K52.9"],
+    "Pneumonia": ["J15", "J18"],
+    "GI_bleed": ["K92.2", "K92.0", "K92.1"],
+    "MI": ["I21"],
+    "Healthy": ["Z00"],
 }
 
 
 def run_simulator(cwd: Path, out_dir: Path, country: str, n: int, seed: int = 42) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
-    subprocess.run([
-        sys.executable, "-m", "clinosim.simulator.cli",
-        "generate", "--country", country, "-p", str(n), "-s", str(seed),
-        "-o", str(out_dir), "--format", "fhir",
-    ], check=True, cwd=cwd)
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "generate",
+            "--country",
+            country,
+            "-p",
+            str(n),
+            "-s",
+            str(seed),
+            "-o",
+            str(out_dir),
+            "--format",
+            "fhir",
+        ],
+        check=True,
+        cwd=cwd,
+    )
 
 
 def patient_diagnoses(fhir_dir: Path) -> dict[str, set[str]]:
@@ -55,7 +69,7 @@ def patient_diagnoses(fhir_dir: Path) -> dict[str, set[str]]:
         for line in f:
             c = json.loads(line)
             pid = (c.get("subject") or {}).get("reference", "").split("/")[-1]
-            for coding in (c.get("code", {}).get("coding") or []):
+            for coding in c.get("code", {}).get("coding") or []:
                 if coding.get("code"):
                     out[pid].add(coding["code"])
     return out
@@ -114,9 +128,7 @@ def report(fhir_dir: Path, codes: dict[str, str], label: str) -> None:
         enc_values[enc][analyte] = v
         enc_pat[enc] = pid
 
-    cohort_vals: dict[str, dict[str, list[float]]] = collections.defaultdict(
-        lambda: {"Cl": [], "Ca": [], "AG": []}
-    )
+    cohort_vals: dict[str, dict[str, list[float]]] = collections.defaultdict(lambda: {"Cl": [], "Ca": [], "AG": []})
     for enc, vals in enc_values.items():
         pid = enc_pat.get(enc, "")
         if not pid:
@@ -145,16 +157,23 @@ def report(fhir_dir: Path, codes: dict[str, str], label: str) -> None:
         if ncl == 0:
             print(f"{cohort:<14} {ncl:>5} {nag:>5}   (no Cl observations)")
             continue
-        cl_str = f"{quantile(cl,0.10):5.1f}/{statistics.median(cl):5.1f}/{quantile(cl,0.90):5.1f}"
-        ca_str = f"{quantile(ca,0.10):5.2f}/{statistics.median(ca):5.2f}/{quantile(ca,0.90):5.2f}" if ca else "(no Ca)"
-        ag_str = f"{quantile(ag,0.10):5.1f}/{statistics.median(ag):5.1f}/{quantile(ag,0.90):5.1f}" if ag else "(no AG triple)"
+        cl_str = f"{quantile(cl, 0.10):5.1f}/{statistics.median(cl):5.1f}/{quantile(cl, 0.90):5.1f}"
+        ca_str = (
+            f"{quantile(ca, 0.10):5.2f}/{statistics.median(ca):5.2f}/{quantile(ca, 0.90):5.2f}" if ca else "(no Ca)"
+        )
+        ag_str = (
+            f"{quantile(ag, 0.10):5.1f}/{statistics.median(ag):5.1f}/{quantile(ag, 0.90):5.1f}"
+            if ag
+            else "(no AG triple)"
+        )
         print(f"{cohort:<14} {ncl:>5} {nag:>5}   {cl_str:<22}{ca_str:<22}{ag_str:<22}")
 
 
 def main() -> None:
     work = Path(tempfile.mkdtemp(prefix="bmp-cl-ca-audit-"))
     print("Generating US p=4000 + JP p=2000 (seed=42)...")
-    us = work / "us"; jp = work / "jp"
+    us = work / "us"
+    jp = work / "jp"
     run_simulator(REPO, us, "US", 4000)
     run_simulator(REPO, jp, "JP", 2000)
     report(us / "fhir_r4", US_CODES, "US")

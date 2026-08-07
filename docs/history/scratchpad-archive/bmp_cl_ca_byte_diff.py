@@ -17,6 +17,7 @@ This script generates US/JP at p=2000 seed=42 from (a) master HEAD and
 (b) the current feature branch and reports the actual cohort drift +
 new Cl/Ca emission counts as PR evidence. It is NOT a pass/fail gate.
 """
+
 import hashlib
 import json
 import subprocess
@@ -29,11 +30,27 @@ REPO = Path(__file__).resolve().parents[1]
 
 def run_simulator(cwd: Path, out_dir: Path, country: str, n: int, seed: int = 42) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
-    subprocess.run([
-        sys.executable, "-m", "clinosim.simulator.cli",
-        "generate", "--country", country, "-p", str(n), "-s", str(seed),
-        "-o", str(out_dir), "--format", "fhir", "csv",
-    ], check=True, cwd=cwd)
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "generate",
+            "--country",
+            country,
+            "-p",
+            str(n),
+            "-s",
+            str(seed),
+            "-o",
+            str(out_dir),
+            "--format",
+            "fhir",
+            "csv",
+        ],
+        check=True,
+        cwd=cwd,
+    )
 
 
 def sha256(path: Path) -> str:
@@ -85,8 +102,7 @@ def main() -> None:
     branch_dir = work / "branch"
 
     master_repo = work / "master-repo"
-    subprocess.run(["git", "worktree", "add", str(master_repo), "master"],
-                   check=True, cwd=REPO)
+    subprocess.run(["git", "worktree", "add", str(master_repo), "master"], check=True, cwd=REPO)
     try:
         for country, n in [("US", 2000), ("JP", 2000)]:
             print(f"\n=== Generating master {country} p={n} (seed=42) ===")
@@ -97,8 +113,7 @@ def main() -> None:
             report(master_dir / country, branch_dir / country, country)
         print(f"\nWorkspaces kept at {work} for inspection.")
     finally:
-        subprocess.run(["git", "worktree", "remove", "--force", str(master_repo)],
-                       check=False, cwd=REPO)
+        subprocess.run(["git", "worktree", "remove", "--force", str(master_repo)], check=False, cwd=REPO)
 
 
 if __name__ == "__main__":
