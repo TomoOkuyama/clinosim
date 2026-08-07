@@ -19,7 +19,6 @@ from clinosim.modules.output._fhir_post_process import (
     _normalize_dt_fields,
 )
 
-
 pytestmark = pytest.mark.unit
 
 
