@@ -576,6 +576,7 @@ def run_enumeration(plan: EnumerationPlan) -> tuple[Any, EnumerationManifest]:
     import numpy as np
 
     from clinosim.locale.loader import load_demographics
+    from clinosim.modules._shared import is_jp
     from clinosim.modules.encounter.protocol import load_encounter_condition
     from clinosim.modules.patient.activator import activate_patient
     from clinosim.modules.population.engine import PersonRecord
@@ -640,8 +641,8 @@ def run_enumeration(plan: EnumerationPlan) -> tuple[Any, EnumerationManifest]:
                 age=age,
                 sex=sex,
                 date_of_birth=date(2024 - age, 1, 1),
-                family_name="テスト" if case.country == "JP" else "Test",
-                given_name=f"患者{i + 1}" if case.country == "JP" else f"Patient{i + 1}",
+                family_name="テスト" if is_jp(case.country) else "Test",
+                given_name=f"患者{i + 1}" if is_jp(case.country) else f"Patient{i + 1}",
             )
             patient = activate_patient(person, rng, _demo)
             visit_time = _dt(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))

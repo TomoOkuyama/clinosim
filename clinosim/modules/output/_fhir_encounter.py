@@ -97,7 +97,7 @@ def _build_encounter(
         # C2-20 (session 42 cycle 2): JP Core Encounter profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"]}}
-            if str(country).upper() == "JP"
+            if is_jp(country)
             else {}
         ),
         "status": _map_encounter_status(enc.get("status", "")),

@@ -14,6 +14,7 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output._fhir_allergy_intolerance import _bb_allergy_intolerances
 from clinosim.modules.output._fhir_care_level import _build_care_level
 from clinosim.modules.output._fhir_care_team import _bb_care_teams
@@ -200,7 +201,7 @@ def convert_cif_to_fhir(
         facility_bundle = _build_facility_bundle(hospital_config, country)
         for entry in facility_bundle.get("entry", []):
             resource = entry["resource"]
-            if country == "JP":
+            if is_jp(country):
                 _apply_jp_core_profile(resource)
                 _apply_jp_clins_profile(resource)
                 _normalize_jp_observation_category(resource)
@@ -227,7 +228,7 @@ def convert_cif_to_fhir(
             if _lab_observation_needs_specimen(resource):
                 specimen = _build_companion_specimen(resource, country)
                 resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
-                if country == "JP":
+                if is_jp(country):
                     # Same JP-only walkers as any other resource: SNOMED
                     # `display` on the Specimen.type coding is English-only,
                     # so the P2 A walker strips Japanese chars — the JP text
@@ -466,7 +467,7 @@ def _build_bundle(
             # declarations without touching each builder. Coverage / Patient /
             # Encounter / Condition already carry inline profile; the helper is
             # idempotent (skips when meta.profile is already populated).
-            if ctx.country == "JP":
+            if is_jp(ctx.country):
                 _apply_jp_core_profile(resource)
                 _apply_jp_clins_profile(resource)
                 # JP Core は Observation.category:first slice に
@@ -505,7 +506,7 @@ def _build_bundle(
             if _lab_observation_needs_specimen(resource):
                 specimen = _build_companion_specimen(resource, country)
                 resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
-                if country == "JP":
+                if is_jp(country):
                     _strip_japanese_display_on_english_only_systems(specimen)
                 _normalize_dt_fields(specimen, country)
                 entries.append(_entry(specimen))
