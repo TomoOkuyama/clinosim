@@ -109,11 +109,10 @@ drugs:
 
 
 def test_all_shipped_disease_yamls_still_load():
-    """All shipped YAMLs must still import PASS after Task 3.
+    """All shipped YAMLs must still import PASS after Layer 2 + Layer 3 raises.
 
-    Task 4 will migrate 6 entries to type=procedure; Task 3 must not reject them.
-    Pre-migration YAMLs (with legacy marker) also pass because Layer 2/3 raises
-    are deferred to Task 5.
+    Task 4 migrated the 6 legacy-marker entries; no shipped YAML now trips any
+    of the 3 layers.
     """
     load_disease_protocol.cache_clear()
     for p in _REF_DIR.glob("*.yaml"):
@@ -122,3 +121,96 @@ def test_all_shipped_disease_yamls_still_load():
             load_disease_protocol(disease_id)
         except Exception as e:
             pytest.fail(f"{disease_id} failed to load: {e}")
+
+
+# ---------------------------------------------------------------------------
+# Layer 2: legacy marker `code_*: "procedure"|"N/A"` must raise
+# ---------------------------------------------------------------------------
+
+
+def test_legacy_procedure_marker_code_yj_rejected(tmp_path, monkeypatch):
+    """`code_yj: "procedure"` is a pre-Issue-460 marker; must migrate to type=procedure."""
+    monkeypatch.setattr("clinosim.modules.disease.protocol._REF_DIR", tmp_path)
+    load_disease_protocol.cache_clear()
+    _write_disease_yaml(
+        tmp_path,
+        """
+drugs:
+  escalation:
+    japan:
+      - {drug: Hemodialysis, code_yj: procedure, dose: 3-4h}
+""",
+    )
+    with pytest.raises(ValueError, match="legacy non-code marker"):
+        load_disease_protocol("test_disease")
+
+
+def test_legacy_na_marker_code_rxnorm_rejected(tmp_path, monkeypatch):
+    monkeypatch.setattr("clinosim.modules.disease.protocol._REF_DIR", tmp_path)
+    load_disease_protocol.cache_clear()
+    _write_disease_yaml(
+        tmp_path,
+        """
+drugs:
+  escalation:
+    us:
+      - {drug: Kyphoplasty, code_rxnorm: N/A, dose: under fluoroscopy}
+""",
+    )
+    with pytest.raises(ValueError, match="legacy non-code marker"):
+        load_disease_protocol("test_disease")
+
+
+def test_real_code_value_not_rejected(tmp_path, monkeypatch):
+    """Layer 2 only rejects the 2 sentinel values; real codes pass."""
+    monkeypatch.setattr("clinosim.modules.disease.protocol._REF_DIR", tmp_path)
+    load_disease_protocol.cache_clear()
+    _write_disease_yaml(
+        tmp_path,
+        """
+drugs:
+  escalation:
+    japan:
+      - {drug: Real drug, code_yj: "1234567890", dose: 1g IV daily, route: IV}
+""",
+    )
+    protocol = load_disease_protocol("test_disease")
+    assert protocol.disease_id == "test_disease"
+
+
+# ---------------------------------------------------------------------------
+# Layer 3: type=procedure + route co-occurrence must raise
+# ---------------------------------------------------------------------------
+
+
+def test_type_procedure_with_route_rejected(tmp_path, monkeypatch):
+    monkeypatch.setattr("clinosim.modules.disease.protocol._REF_DIR", tmp_path)
+    load_disease_protocol.cache_clear()
+    _write_disease_yaml(
+        tmp_path,
+        """
+drugs:
+  escalation:
+    japan:
+      - {drug: Hemodialysis, type: procedure, dose: 3-4h, route: EXTRACORPOREAL}
+""",
+    )
+    with pytest.raises(ValueError, match="must not carry a `route` field"):
+        load_disease_protocol("test_disease")
+
+
+def test_type_medication_with_route_still_accepted(tmp_path, monkeypatch):
+    """Layer 3 only rejects type=procedure + route. type=medication + route is legit."""
+    monkeypatch.setattr("clinosim.modules.disease.protocol._REF_DIR", tmp_path)
+    load_disease_protocol.cache_clear()
+    _write_disease_yaml(
+        tmp_path,
+        """
+drugs:
+  escalation:
+    japan:
+      - {drug: Vasopressin, type: medication, dose: 0.03u/min, route: IV}
+""",
+    )
+    protocol = load_disease_protocol("test_disease")
+    assert protocol.disease_id == "test_disease"

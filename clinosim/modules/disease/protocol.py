@@ -295,7 +295,17 @@ _ALLOWED_ESCALATION_TYPES: frozenset[str] = frozenset({"medication", "procedure"
 
 
 def _validate_escalation_type_signal(disease_id: str, drugs: dict[str, Any]) -> None:
-    """Layer 1: reject unknown `type` values in `drugs.escalation` entries."""
+    """3-layer validation of drugs.escalation[*] entries (Issue #460).
+
+    Layer 1: `type` field, if present, must be one of {"medication", "procedure"}.
+    Layer 2: pre-Issue-460 legacy marker `code_yj: "procedure"|"N/A"` or
+             `code_rxnorm: "procedure"|"N/A"` must be replaced with explicit
+             `type: "procedure"` (the marker was YAML-author signal that the
+             pre-refactor code did not read).
+    Layer 3: `type: "procedure"` MUST NOT co-occur with a `route:` field.
+             Procedure resource has no `route`; carrying one is a semantic
+             contradiction that would confuse a downstream reader.
+    """
     if not isinstance(drugs, dict):
         return
     escalation = drugs.get("escalation")
@@ -306,15 +316,36 @@ def _validate_escalation_type_signal(disease_id: str, drugs: dict[str, Any]) -> 
         for entry in entry_list:
             if not isinstance(entry, dict):
                 continue
+            drug_label = entry.get("drug", "")
             type_signal = entry.get("type")
-            if type_signal is None:
-                continue
-            if type_signal not in _ALLOWED_ESCALATION_TYPES:
+
+            # Layer 1
+            if type_signal is not None and type_signal not in _ALLOWED_ESCALATION_TYPES:
                 raise ValueError(
                     f"drugs.escalation entry in disease {disease_id!r} has invalid "
                     f"type={type_signal!r} (country {country_key!r}, drug "
-                    f"{entry.get('drug', '')!r}). Allowed: "
-                    f"{sorted(_ALLOWED_ESCALATION_TYPES)}."
+                    f"{drug_label!r}). Allowed: {sorted(_ALLOWED_ESCALATION_TYPES)}."
+                )
+
+            # Layer 2
+            code_yj = entry.get("code_yj", "")
+            code_rxnorm = entry.get("code_rxnorm", "")
+            if code_yj in ("procedure", "N/A") or code_rxnorm in ("procedure", "N/A"):
+                raise ValueError(
+                    f"drugs.escalation entry in disease {disease_id!r} carries a "
+                    f"legacy non-code marker (code_yj={code_yj!r}, "
+                    f"code_rxnorm={code_rxnorm!r}) at country {country_key!r}, "
+                    f'drug {drug_label!r}. Migrate to `type: "procedure"` and '
+                    f"remove the marker (Issue #460)."
+                )
+
+            # Layer 3
+            if type_signal == "procedure" and entry.get("route"):
+                raise ValueError(
+                    f"drugs.escalation entry in disease {disease_id!r} with "
+                    f'type="procedure" must not carry a `route` field '
+                    f"(Procedure resource has no route). Remove `route` from entry "
+                    f"at country {country_key!r}, drug {drug_label!r}."
                 )
 
 
