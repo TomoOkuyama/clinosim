@@ -1,4 +1,4 @@
-"""`_build_discharge_rx` anticoagulant exclusivity tests (Issue #432).
+"""`build_discharge_rx` anticoagulant exclusivity tests (Issue #432).
 
 The disease-protocol `discharge_oral` block may declare `exclusive_classes`
 + per-entry `drug_class` (same schema as chronic_medications.yaml). Drugs
@@ -19,7 +19,7 @@ from datetime import datetime
 import numpy as np
 
 from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_protocol
-from clinosim.simulator.inpatient import _build_discharge_rx
+from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.types.patient import PatientProfile
 
 
@@ -42,7 +42,7 @@ def test_pe_discharge_never_has_warfarin_and_edoxaban_together_japan():
     protocol = _pe_protocol()
     both = 0
     for seed in range(1000):
-        rx = _build_discharge_rx(
+        rx = build_discharge_rx(
             _patient(),
             "pulmonary_embolism",
             protocol,
@@ -61,7 +61,7 @@ def test_pe_discharge_never_has_rivaroxaban_and_apixaban_together_us():
     protocol = _pe_protocol()
     both = 0
     for seed in range(1000):
-        rx = _build_discharge_rx(
+        rx = build_discharge_rx(
             _patient(),
             "pulmonary_embolism",
             protocol,
@@ -82,7 +82,7 @@ def test_pe_discharge_japan_probability_matches_yaml_declared_split():
     counts: Counter[str] = Counter()
     n = 2000
     for seed in range(n):
-        rx = _build_discharge_rx(
+        rx = build_discharge_rx(
             _patient(),
             "pulmonary_embolism",
             protocol,
@@ -106,7 +106,7 @@ def test_pe_discharge_us_probability_matches_yaml_declared_split():
     counts: Counter[str] = Counter()
     n = 2000
     for seed in range(n):
-        rx = _build_discharge_rx(
+        rx = build_discharge_rx(
             _patient(),
             "pulmonary_embolism",
             protocol,
@@ -128,7 +128,7 @@ def test_pe_discharge_always_has_exactly_one_anticoagulant_japan():
     should fire. Every discharge MUST have exactly one anticoagulant."""
     protocol = _pe_protocol()
     for seed in range(200):
-        rx = _build_discharge_rx(
+        rx = build_discharge_rx(
             _patient(),
             "pulmonary_embolism",
             protocol,

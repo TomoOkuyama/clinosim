@@ -263,11 +263,3 @@ def build_discharge_rx(
         issue_date=admission_time,
         items=items,
     )
-
-
-# Backward-compat alias — `_build_discharge_rx` used to live at
-# `clinosim.simulator.inpatient._build_discharge_rx` and had a leading
-# underscore because it was module-private. Tests and older docs reference
-# that name; keep the alias so nothing external breaks. The canonical
-# public name is now `build_discharge_rx` above.
-_build_discharge_rx = build_discharge_rx
