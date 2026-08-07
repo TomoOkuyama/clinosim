@@ -1046,7 +1046,7 @@ People outside the catchment area who need care:
 clinosim/
 ├── DESIGN.md              ← This document (design guidelines)
 ├── TODO.md                ← Project-wide TODO tracking
-├── spec.md                ← Original full spec (reference)
+├── docs/history/spec-2026-04.md  ← Historical spec (2026-04, retained for reference)
 ├── README.md              ← Project introduction
 │
 ├── modules/
