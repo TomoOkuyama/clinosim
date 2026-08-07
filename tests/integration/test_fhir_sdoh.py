@@ -1,7 +1,7 @@
 import pytest
 
-from clinosim.modules.output.fhir_r4_adapter import (
-    BundleContext,
+from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.output._fhir_smoking_alcohol import (
     _build_alcohol_use,
     _build_smoking_status,
 )

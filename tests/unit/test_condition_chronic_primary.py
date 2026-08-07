@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4_adapter import _build_conditions
+from clinosim.modules.output._fhir_conditions import _build_conditions
 
 pytestmark = pytest.mark.unit
 

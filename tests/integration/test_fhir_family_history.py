@@ -1,6 +1,7 @@
 import pytest
 
-from clinosim.modules.output.fhir_r4_adapter import BundleContext, _build_family_history
+from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.output._fhir_family_history import _build_family_history
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 
 pytestmark = pytest.mark.integration

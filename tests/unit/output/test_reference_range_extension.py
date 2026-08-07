@@ -22,9 +22,7 @@ Issue: #202.
 import pytest
 
 from clinosim.modules.output._fhir_common import _build_reference_range
-from clinosim.modules.output.fhir_r4_adapter import (
-    _strip_forbidden_observation_reference_range_extensions,
-)
+from clinosim.modules.output._fhir_post_process import _strip_forbidden_observation_reference_range_extensions
 
 pytestmark = pytest.mark.unit
 
