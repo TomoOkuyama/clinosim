@@ -250,6 +250,7 @@ def _simulate_outpatient_visit(
             items=[
                 {
                     "drug_name": med.drug_name,
+                    "drug_name_ja": med.drug_name_ja,
                     "dose": med.dose,
                     "route": med.route,
                     "frequency": med.frequency,

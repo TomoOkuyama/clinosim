@@ -2088,6 +2088,7 @@ def _build_discharge_rx(
         items.append(
             {
                 "drug_name": drug_name,
+                "drug_name_ja": drug_spec.get("drug_ja", ""),
                 "dose": drug_spec.get("dose", ""),
                 "duration_days": drug_spec.get("duration_days", 7),
                 "route": drug_spec.get("route", "PO"),
@@ -2147,6 +2148,7 @@ def _build_discharge_rx(
         items.append(
             {
                 "drug_name": drug_name,
+                "drug_name_ja": med.drug_name_ja,
                 "dose": med.dose,
                 "route": med.route,
                 "frequency": med.frequency,
