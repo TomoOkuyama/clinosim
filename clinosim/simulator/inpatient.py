@@ -29,6 +29,7 @@ from clinosim.modules.disease.acuity import (
     EMERGENCY_PRIORITY_DISEASES,
     NEURO_LOC_MONITORING_DISEASES,
 )
+from clinosim.modules.disease.localization import target_los_config
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.disease.severity import category_from_score
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -238,10 +239,18 @@ def _simulate_patient(
     bed_idx = int(rng.integers(1, ward_cap + 1))
     encounter.bed_number = f"{encounter.ward_id}-{bed_idx:02d}"
 
-    # LOS (country-specific)
+    # `country_key` is still needed downstream for drug-block lookups etc.
     country_key = _country_to_yaml_key(config.country)
-    los_by_country = protocol.target_los.get(country_key) or protocol.target_los.get("us", {})
-    los_cfg = los_by_country.get(severity, {"mean": 14, "sd": 4, "min": 5, "max": 30})
+    # LOS (country-specific) — canonical resolver, Issue #550.
+    # `target_los_config` returns None when the protocol has no entry for
+    # (country, severity); fall back to the historical wide-Normal default
+    # for the sampler.
+    los_cfg = target_los_config(protocol, config.country, severity) or {
+        "mean": 14,
+        "sd": 4,
+        "min": 5,
+        "max": 30,
+    }
     target_los = int(
         max(los_cfg.get("min", 5), min(los_cfg.get("max", 30), rng.normal(los_cfg["mean"], los_cfg["sd"])))
     )  # noqa: E501
@@ -355,7 +364,9 @@ def _simulate_patient(
 
     # Daily simulation loop
     has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
-    protocol_min_los = los_cfg.get("min", 3)
+    # `target_los_config` (Issue #550) returns dict[str, float]; `min_los` param
+    # is typed `int`. Cast at the boundary rather than widening the param type.
+    protocol_min_los = int(los_cfg.get("min", 3))
     loop_result = _run_daily_loop(
         state,
         patient,

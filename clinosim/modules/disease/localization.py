@@ -19,6 +19,44 @@ def _country_to_yaml_key(country: str) -> str:
     return {"JP": "japan", "US": "us"}.get(country, "us")
 
 
+def target_los_config(
+    protocol: DiseaseProtocol,
+    country: str,
+    severity: str,
+) -> dict[str, float] | None:
+    """Canonical resolver for ``protocol.target_los`` (Issue #550).
+
+    Returns the ``{"mean", "sd", "min", "max"}`` dict for the requested
+    ``(country, severity)`` slot, or ``None`` when the protocol has no entry
+    for it. The caller decides how to interpret ``None`` — the inpatient
+    simulator falls back to a hardcoded default distribution, while the
+    narrative template generator falls back to the observed ``ctx.los_days``.
+
+    Fallback shape:
+
+    * **Country**: if the country's yaml key (``japan`` / ``us``) is not
+      present in ``protocol.target_los``, falls back to the ``"us"`` key
+      (matches the default-US locale convention documented in
+      ``AGENTS.md § Country / locale convention``). This preserves the
+      inpatient simulator's pre-canonical behaviour verbatim.
+    * **Severity**: no fallback — the caller receives ``None`` when the
+      severity slot is missing so it can apply its own domain-appropriate
+      default (a hardcoded distribution for sampling vs the observed
+      encounter length for a narrative sentence).
+
+    Placed here (not in ``protocol.py`` as Issue #550's proposal suggested)
+    because this module already owns ``_country_to_yaml_key``; keeping the
+    two helpers together avoids a duplicate mapping and a
+    ``protocol → localization → protocol`` import cycle.
+    """
+    country_key = _country_to_yaml_key(country)
+    los_by_country = protocol.target_los.get(country_key) or protocol.target_los.get("us", {})
+    if not los_by_country:
+        return None
+    cfg = los_by_country.get(severity)
+    return cfg if isinstance(cfg, dict) else None
+
+
 def _disease_chief_complaint(protocol: DiseaseProtocol, country: str = "US") -> str:
     """Get chief complaint from disease protocol YAML (multi-language support).
 
