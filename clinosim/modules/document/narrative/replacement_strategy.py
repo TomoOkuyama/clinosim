@@ -55,31 +55,27 @@ def apply_replacement_strategy(
 ) -> NarrativeOutput:
     """Dispatch by spec.stage2_strategy and return a NarrativeOutput.
 
-    Parameters
-    ----------
-    template_output:
-        Output from TemplateNarrativeGenerator; used verbatim for
-        ``template_only`` strategy or as seed/base for ``template_seed``.
-    ctx:
-        Narrative context supplying patient + encounter data.
-    spec:
-        DocumentTypeSpec carrying ``stage2_strategy`` + ``llm_enabled_sections``.
-    llm:
-        LLMService instance (AD-11); section replacement goes through
-        ``llm.complete_prompt``. Raises ``LLMCompletionError`` on provider
-        absence / retry exhaustion — the caller (``LLMNarrativeGenerator``)
-        owns the template fallback.
-    task_type:
-        LLMTaskType for provider/model selection + accounting.
-    language:
-        Target language ("en" / "ja"); selects the narrative_seed prompt.
-    cache_get / cache_put:
-        Optional ``NarrativeCache`` callables (layer 1, clinical-context key —
-        see module docstring).
+    Args:
+        template_output: Output from TemplateNarrativeGenerator; used verbatim
+            for ``template_only`` strategy or as seed/base for
+            ``template_seed``.
+        ctx: Narrative context supplying patient + encounter data.
+        spec: DocumentTypeSpec carrying ``stage2_strategy`` +
+            ``llm_enabled_sections``.
+        llm: LLMService instance (AD-11); section replacement goes through
+            ``llm.complete_prompt``. Raises ``LLMCompletionError`` on provider
+            absence / retry exhaustion — the caller
+            (``LLMNarrativeGenerator``) owns the template fallback.
+        task_type: LLMTaskType for provider/model selection + accounting.
+        language: Target language ("en" / "ja"); selects the narrative_seed
+            prompt.
+        cache_get: Optional ``NarrativeCache`` getter (layer 1,
+            clinical-context key — see module docstring).
+        cache_put: Optional ``NarrativeCache`` setter (layer 1).
 
-    Returns
-    -------
-    NarrativeOutput with sections potentially replaced by LLM-generated text.
+    Returns:
+        ``NarrativeOutput`` with sections potentially replaced by
+        LLM-generated text.
     """
     if spec.stage2_strategy == "template_only":
         return template_output

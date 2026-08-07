@@ -215,14 +215,14 @@ YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュ
 - `clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands` — `_NHSN_RESISTANCE_BANDS` の cohort/antibiotic を canonical に対し検証
 - `clinosim/modules/hai/engine.py:_validate_hai_organisms` — `hai_organisms.yaml` を `HAI_TYPES` × SNOMED non-empty × non-negative weight × non-zero-sum で検証(本 PR 2026-06-27)
 - `clinosim/locale/loader.py:_validate_demographics` / `_validate_names` / `_validate_addresses` — `demographics.yaml` の lifestyle_distribution + `names.yaml` の surnames/given_names + `addresses.yaml` の cities を、各 weight の非負 + sum > 0 で検証(本 PR 2026-06-27、4 主要 loader 完備)
-- `clinosim/modules/antibiotic/engine.py:_validate_narrow_ladder` — `narrow_ladder.yaml` を **4-way 検証**: `HAI_TYPES` × `hai_antibiogram.yaml` (forward + reverse-coverage) × `ANTIBIOTIC_DRUGS` + 空コンテナ(top-level / drug list)拒否(PR3b-3 + adversarial-2 stage-3、reverse-coverage は新組織追加時の silent no-op 防御)
+- `clinosim/modules/antibiotic/engine.py:_validate_narrow_ladder` — `narrow_ladder.yaml` を **4-way 検証**: `HAI_TYPES` × `hai_antibiogram.yaml` (forward + reverse-coverage) × `ANTIBIOTIC_DRUGS` + 空コンテナ(top-level / drug list)拒否(PR3b-3 + adversarial-2 stage-3、reverse-coverage は新組織追加時の silent-no-op 防御)
 - `clinosim/modules/antibiotic/audit.py:_validate_narrow_rate_bands` — `_NARROW_RATE_BANDS` cohort string format (per-hai_type のみ、no slash) + 必須 key + [0, 1] 範囲 + 空 list 拒否(PR3b-3 adversarial-1 / 2、cohort string typo 防御)
 - `clinosim/modules/hai/engine.py:_validate_hai_rates` — `per_day_risk ∈ [0, 1]` + `source_device_type ∈ load_devices_config()["devices"]` (HAI sibling sweep 2026-06-29)
 - `clinosim/modules/hai/engine.py:_validate_hai_codes` — `icd10_us_billable` / `icd10_jp_who` / `snomed` を `_code_in_data()` で authoritative cs.codes 直接 membership 検証(HAI sibling sweep 2026-06-29)
 - `clinosim/modules/hai/engine.py:_validate_hai_specimens` — `specimen_snomed` / `test_loinc` を `_code_in_data()` で authoritative 検証(HAI sibling sweep 2026-06-29)
 - `clinosim/modules/hai/lab_lift.py:_validate_hai_lab_lift_config` — `ramp_peak_days > 0` + lift values ∈ [0, 1] + HAI_TYPES forward-coverage(HAI sibling sweep 2026-06-29、inline check から refactor)
 
-新規 module で外部 ID 参照 YAML または確率重み YAML を作る場合は同パターンを必須化してください(`_validate_X(data)` を `load_X` 内で wire、`fallback="raise"` と組み合わせて後方防御も同時に確保)。**Reverse-coverage**(canonical set ⊆ data set)も忘れずに wire — adv-1 stage-2 sibling sweep で発覚した通り、forward-only validation は新 canonical 追加時の silent no-op を防げない。
+新規 module で外部 ID 参照 YAML または確率重み YAML を作る場合は同パターンを必須化してください(`_validate_X(data)` を `load_X` 内で wire、`fallback="raise"` と組み合わせて後方防御も同時に確保)。**Reverse-coverage**(canonical set ⊆ data set)も忘れずに wire — adv-1 stage-2 sibling sweep で発覚した通り、forward-only validation は新 canonical 追加時の silent-no-op を防げない。
 
 ### Per-dimensional cohort filter(PR3b-3 D1+D2, 2026-06-29)
 
@@ -238,7 +238,7 @@ YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュ
 監査 module の `audit.py` が canonical-constants validator + reverse-coverage validator を定義する場合、以下 3 原則を守ること:
 
 1. **All validators MUST run BEFORE `register_audit_module`**: validator が失敗したときに stale spec が registry に入らないことを保証する。先例 `clinosim/modules/antibiotic/audit.py:656-658` で `_validate_narrow_rate_bands` + `_validate_nhsn_resistance_bands` + `_validate_narrow_ladder_at_import` が全て register の前に invoked。
-2. **Forward-coverage + reverse-coverage の対称性**: band 集合が "every (dim1, dim2) in canonical YAML が covered or explicitly exempt" を要求する場合(reverse)、同じ集合に "every canonical HAI_TYPE has at least one band"(forward)も要求する。両方 missing → 新 dimension 追加時の silent no-op risk。先例 `_validate_narrow_rate_bands`(forward)+ `_validate_nhsn_resistance_bands`(reverse + forward via band)。
+2. **Forward-coverage + reverse-coverage の対称性**: band 集合が "every (dim1, dim2) in canonical YAML が covered or explicitly exempt" を要求する場合(reverse)、同じ集合に "every canonical HAI_TYPE has at least one band"(forward)も要求する。両方 missing → 新 dimension 追加時の silent-no-op risk。先例 `_validate_narrow_rate_bands`(forward)+ `_validate_nhsn_resistance_bands`(reverse + forward via band)。
 3. **Reverse-coverage の staleness check**: exempt list を持つ validator は「exempt 中の entry が現 YAML データに本当に存在するか」も check。dropping an organism from YAML が stale exempt を残す silent risk を防ぐ。先例 `_validate_nhsn_resistance_bands` の `_NHSN_REVERSE_COVERAGE_EXEMPT` staleness ループ。
 
 regression test pattern:`inspect.getsource()` で source 内 `_validate_*()` 呼び出し position が `register_audit_module(` よりも小さいことを assert(`tests/integration/test_antibiotic_audit.py:test_validators_run_before_register_audit_module` precedent)。

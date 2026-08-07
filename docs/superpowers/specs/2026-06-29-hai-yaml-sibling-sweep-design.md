@@ -62,7 +62,7 @@ def _validate_hai_<name>(data: dict) -> None:
     """6-layer silent-no-op defense applied to hai_<name>.yaml."""
     table = data.get("hai_<name>") or {}
     if not table:
-        raise ValueError("hai_<name>.yaml top-level empty — silent no-op risk")
+        raise ValueError("hai_<name>.yaml top-level empty — silent-no-op risk")
 
     valid_hai_types = set(HAI_TYPES)
     for hai_type, bucket in table.items():
@@ -132,7 +132,7 @@ if code_lookup("loinc", bucket.get("test_loinc", ""), "en") is None:
 ```python
 # data = {"ramp_peak_days": int/float, "hai_lift": {hai_type: float, ...}}
 if not data:
-    raise ValueError("hai_lab_lift.yaml empty — silent no-op risk")
+    raise ValueError("hai_lab_lift.yaml empty — silent-no-op risk")
 ramp = data.get("ramp_peak_days")
 if not isinstance(ramp, (int, float)) or ramp <= 0:
     raise ValueError(f"hai_lab_lift.yaml: ramp_peak_days {ramp!r} must be > 0")

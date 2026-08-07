@@ -50,22 +50,16 @@ def bundle_dir_to_ndjson_layout(
     ``<output_dir>/fhir_r4/<ResourceType>.ndjson`` layout that
     :class:`clinosim.eval.EvalEngine` can consume.
 
-    Parameters
-    ----------
-    input_dir
-        Directory containing Synthea's ``*.json`` Bundles. Any file that
-        is not a JSON Bundle is skipped silently (Synthea also writes a
-        ``hospitalInformation<…>.json`` sidecar which _is_ a Bundle, so
-        it's included by default).
-    output_dir
-        Where to write the ``fhir_r4/`` NDJSON files. Created if
-        missing.
-    overwrite
-        When True, delete ``output_dir/fhir_r4/`` before writing.
+    Args:
+        input_dir: Directory containing Synthea's ``*.json`` Bundles. Any file
+            that is not a JSON Bundle is skipped silently (Synthea also writes
+            a ``hospitalInformation<…>.json`` sidecar which _is_ a Bundle, so
+            it's included by default).
+        output_dir: Where to write the ``fhir_r4/`` NDJSON files. Created if
+            missing.
+        overwrite: When True, delete ``output_dir/fhir_r4/`` before writing.
 
-    Returns
-    -------
-    dict[str, int]
+    Returns:
         ``{ResourceType: row_count}`` after conversion.
     """
     input_dir = Path(input_dir)

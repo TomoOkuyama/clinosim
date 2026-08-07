@@ -418,7 +418,7 @@ def test_load_raises_on_unknown_generation_frequency() -> None:
     """α-min-3 Layer 7: an unknown generation_frequency raises fail-loud ValueError.
 
     Without this layer a typo like "daily3shift" would fall through the engine
-    if/elif dispatch and silently emit zero documents (PR-90 class silent no-op).
+    if/elif dispatch and silently emit zero documents (PR-90 class silent-no-op).
     """
     import clinosim.modules.document.narrative.registry as reg_module
 
@@ -446,7 +446,7 @@ def test_load_raises_on_unknown_stage2_strategy() -> None:
 
     Without this layer, replacement_strategy's unknown-strategy branch
     silently returns template output — the whole LLM path becomes a
-    silent no-op (PR-90 class).
+    silent-no-op (PR-90 class).
     """
     import clinosim.modules.document.narrative.registry as reg_module
 

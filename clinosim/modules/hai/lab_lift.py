@@ -70,13 +70,13 @@ def _validate_hai_lab_lift_config(data: dict) -> None:
     6. HAI_TYPES forward-coverage
     """
     if not isinstance(data, dict) or not data:
-        raise ValueError("hai_lab_lift.yaml empty — silent no-op risk")
+        raise ValueError("hai_lab_lift.yaml empty — silent-no-op risk")
     ramp = data.get("ramp_peak_days")
     if not isinstance(ramp, (int, float)) or float(ramp) <= 0:
         raise ValueError(f"hai_lab_lift.yaml: ramp_peak_days {ramp!r} must be > 0")
     lift_table = data.get("hai_lift") or {}
     if not lift_table:
-        raise ValueError("hai_lab_lift.yaml: hai_lift bucket empty — silent no-op risk")
+        raise ValueError("hai_lab_lift.yaml: hai_lift bucket empty — silent-no-op risk")
     valid_types = set(HAI_TYPES)
     for hai_type, value in lift_table.items():
         if hai_type not in valid_types:

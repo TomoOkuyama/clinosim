@@ -127,11 +127,10 @@ def infer_imaging_metadata(display_name: str) -> dict | None:
 
     見つからなければ ``None`` を返す(caller は text-only stub emit を選ぶ)。
 
-    Returns
-    -------
-    dict | None
-        ``{"modality": str, "body_site_snomed": str, "views": list[str]}``
-        いずれかの key が空 str/list なら partial match(caller 責任で判断)。
+    Returns:
+        ``{"modality": str, "body_site_snomed": str, "views": list[str]}`` の
+        dict、または ``None``。いずれかの key が空 str/list なら partial
+        match(caller 責任で判断)。
     """
     if not display_name:
         return None

@@ -2201,7 +2201,7 @@ After all 13 tasks land + verification passes, the chain proceeds through:
 **Stage 2** — Final whole-branch opus review (catches stale-test / API drift; e.g., session 28's 62-test migration surprise)
 
 **Stage 3** — Adv-1 5-lens fan-out:
-- Lens 1: silent no-op (`PatientProfile` extra=forbid actually rejects; `regenerate-goldens` sort_keys deterministic; golden regeneration idempotent)
+- Lens 1: silent-no-op (`PatientProfile` extra=forbid actually rejects; `regenerate-goldens` sort_keys deterministic; golden regeneration idempotent)
 - Lens 2: data unification (`FIXTURE_DIR` single source in conftest.py; no dup literals)
 - Lens 3: FHIR compliance (n/a — no new FHIR emission)
 - Lens 4: determinism + scale (seed 42 respected; sorted dir iteration; no `datetime.now`/`uuid.uuid4` in narrative pass)

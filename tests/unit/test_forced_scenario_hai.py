@@ -415,7 +415,7 @@ def test_run_forced_auto_injects_force_hai_event_into_config(monkeypatch):
     assert any(scenario in c for c in captured_configs), (
         "run_forced did not inject force_hai_event scenario into "
         "ctx.config.forced_scenarios — Task 6 injection is broken "
-        "(PR-90 class silent no-op recurrence)"
+        "(PR-90 class silent-no-op recurrence)"
     )
     # Caller's config must NOT be mutated
     assert config.forced_scenarios == [], (

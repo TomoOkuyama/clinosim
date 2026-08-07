@@ -1443,7 +1443,7 @@ any subset:
        pre_values[obs] and compares to expected_deltas[obs] within
        per-analyte tolerance (WBC ±2.0, CRP ±0.5).
    ANY mismatch → FAIL. This is the load-bearing verification that
-   would have caught PR-90's UPPERCASE/lowercase silent no-op.
+   would have caught PR-90's UPPERCASE/lowercase silent-no-op.
 
 3. **Fired counter** — Phase 1 surface: counts Condition emissions
    carrying the codes in spec.canonical_constants["icd_codes"] if set.
@@ -2855,7 +2855,7 @@ gh pr create --title "feat(audit): clinosim audit framework Phase 1" --body "$(c
 New `clinosim audit` framework — the unified verification gate that
 absorbs the existing 3-axis DQR (structural / clinical / JP language)
 and adds a fourth `silent_no_op` axis specifically designed to catch
-the PR-90 class of bug (case-mismatch silent no-op).
+the PR-90 class of bug (case-mismatch silent-no-op).
 
 - New `clinosim/audit/` package: types + registry + 4 axis runners +
   reporter + AuditEngine + CLI wiring (`clinosim audit run/smoke/list`).

@@ -154,6 +154,15 @@ line-length = 120
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
 
+# Docstring convention declaration (Issue #565): Google-style is the project
+# canonical (Args / Returns / Raises sections). The `D` rule family is NOT
+# enabled in `select` above — turning it on would surface hundreds of
+# pre-existing docstring issues at once. Follow-up PRs enable individual `D`
+# rules (D200 / D205 / D400 / D401) after fixing the corresponding
+# module-scope backlog.
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
 # Session 52 lint sweep: `per-file-ignores` protects intentional naming choices
 # so noise doesn't drown out real lint findings. Every entry corresponds to a
 # spec-anchored or convention-anchored decision noted below.

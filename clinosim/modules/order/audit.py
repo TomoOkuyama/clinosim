@@ -53,7 +53,7 @@ def _build_order_proof() -> dict[str, Any]:
     Returns equality_checks format: list[tuple[label, actual, expected]].
     The silent_no_op axis iterates and asserts hard equality on each.
 
-    Exercises the production code path so that a silent no-op (builder
+    Exercises the production code path so that a silent-no-op (builder
     returns [] without raising) would produce a count=0 failure instead
     of a green audit.
     """

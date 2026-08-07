@@ -45,21 +45,18 @@ class LLMNarrativeGenerator:
     - Fallback: if ``llm`` is None or the strategy raises, template output is
       returned with ``generator=template_fallback`` in metadata + WARNING log.
 
-    Parameters
-    ----------
-    template_generator:
-        Stage 1 generator instance. If None, a new ``TemplateNarrativeGenerator``
-        is created.
-    llm:
-        ``LLMService`` instance (may be None → always-fallback path).
-        Constructed by the CLI via ``build_from_config_file`` or, for tests,
-        ``LLMService(mode="llm", narrative_provider=MockProvider(), ...)``.
-    cache:
-        ``NarrativeCache`` instance (layer-1 clinical-context cache — see
-        ``replacement_strategy`` module docstring for the two-layer design).
-        Defaults to a fresh instance per generator to avoid cross-instance
-        contamination; pass a shared instance for cross-patient reuse within
-        one narrate run.
+    Args:
+        template_generator: Stage 1 generator instance. If None, a new
+            ``TemplateNarrativeGenerator`` is created.
+        llm: ``LLMService`` instance (may be None → always-fallback path).
+            Constructed by the CLI via ``build_from_config_file`` or, for
+            tests, ``LLMService(mode="llm", narrative_provider=MockProvider(),
+            ...)``.
+        cache: ``NarrativeCache`` instance (layer-1 clinical-context cache —
+            see ``replacement_strategy`` module docstring for the two-layer
+            design). Defaults to a fresh instance per generator to avoid
+            cross-instance contamination; pass a shared instance for
+            cross-patient reuse within one narrate run.
     """
 
     #: Bound on sampled fallback exception reasons (manifest stays small).

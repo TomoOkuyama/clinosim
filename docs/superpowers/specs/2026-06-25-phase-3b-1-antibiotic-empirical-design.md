@@ -220,7 +220,7 @@ register_audit_module(ModuleAuditSpec(
 ))
 ```
 
-### `lift_firing_proof` = load-bearing PR-90 type silent no-op gate
+### `lift_firing_proof` = load-bearing PR-90 type silent-no-op gate
 
 合成 record で end-to-end enricher path を drive し、期待される副作用を closed-form で照合:
 
@@ -330,7 +330,7 @@ AD-60 silent_no_op 軸が `actual == expected` を per-field assert。PR-90 で�
 
 | リスク | 緩和 |
 |---|---|
-| PR-90 同型 silent no-op (canonical string mismatch) | (1) ANTIBIOTIC_DRUGS + HAI_TYPES canonical constants、(2) YAML loader import-time validation、(3) lift_firing_proof for end-to-end enricher path drive、(4) forced-scenario integration test |
+| PR-90 同型 silent-no-op (canonical string mismatch) | (1) ANTIBIOTIC_DRUGS + HAI_TYPES canonical constants、(2) YAML loader import-time validation、(3) lift_firing_proof for end-to-end enricher path drive、(4) forced-scenario integration test |
 | RxNorm/YJ Vancomycin code fabrication | impl 時 NLM RxNav + MEDIS HOT で必須照合、失敗時は impl 停止 |
 | IDSA duration の出典明示不足 | YAML に `# Source: IDSA 2009 CLABSI ...` コメント、README に出典記載 |
 | always-on でも既存 golden 不変・regression なし | (1) `record.extensions["hai"]` が空のときは早期 return = no-op、(2) e2e golden に impact ある場合は spike で確認後 golden 更新を PR で透明化(Task 7c)、(3) byte-diff scope = master(antibiotic コード不在)vs branch(antibiotic 追加)で MedicationRequest/Administration NDJSON のみ delta、他全 IDENTICAL |

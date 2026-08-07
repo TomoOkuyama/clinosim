@@ -182,7 +182,7 @@ def _validate_hai_rates(data: dict) -> None:
     rates = data.get("hai_rates") or {}
     if not rates:
         raise ValueError(
-            "hai_rates.yaml top-level empty — silent no-op risk"
+            "hai_rates.yaml top-level empty — silent-no-op risk"
         )
     valid_types = set(HAI_TYPES)
     device_table = load_devices_config().get("devices", {})
@@ -408,7 +408,7 @@ def _validate_hai_codes(data: dict) -> None:
         )
     codes_table = data.get("hai_codes") or {}
     if not codes_table:
-        raise ValueError("hai_codes.yaml top-level empty — silent no-op risk")
+        raise ValueError("hai_codes.yaml top-level empty — silent-no-op risk")
     valid_types = set(HAI_TYPES)
     for hai_type, bucket in codes_table.items():
         if hai_type not in valid_types:
@@ -605,7 +605,7 @@ def _validate_hai_specimens(data: dict) -> None:
         )
     spec_table = data.get("hai_specimens") or {}
     if not spec_table:
-        raise ValueError("hai_specimens.yaml top-level empty — silent no-op risk")
+        raise ValueError("hai_specimens.yaml top-level empty — silent-no-op risk")
     valid_types = set(HAI_TYPES)
     for hai_type, bucket in spec_table.items():
         if hai_type not in valid_types:
@@ -778,7 +778,7 @@ def _validate_hai_lab_lift_config(data: dict) -> None:
     6. HAI_TYPES forward-coverage
     """
     if not isinstance(data, dict) or not data:
-        raise ValueError("hai_lab_lift.yaml empty — silent no-op risk")
+        raise ValueError("hai_lab_lift.yaml empty — silent-no-op risk")
     ramp = data.get("ramp_peak_days")
     if not isinstance(ramp, (int, float)) or float(ramp) <= 0:
         raise ValueError(
@@ -787,7 +787,7 @@ def _validate_hai_lab_lift_config(data: dict) -> None:
     lift_table = data.get("hai_lift") or {}
     if not lift_table:
         raise ValueError(
-            "hai_lab_lift.yaml: hai_lift bucket empty — silent no-op risk"
+            "hai_lab_lift.yaml: hai_lift bucket empty — silent-no-op risk"
         )
     valid_types = set(HAI_TYPES)
     for hai_type, value in lift_table.items():

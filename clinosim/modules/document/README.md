@@ -45,7 +45,7 @@ Task 6+ で template generator、Task 8 で POST_ENCOUNTER enricher、Task 9 で
 | `encounter_once` | day 0 に 1 通(外来/ED 単回受診) | OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE |
 
 未知の値は `registry._validate_document_type_specs` Layer 7 が YAML load 時に fail-loud
-(engine dispatch は if/elif のため、allowlist なしでは typo が silent no-op になる — PR-90 class)。
+(engine dispatch は if/elif のため、allowlist なしでは typo が silent-no-op になる — PR-90 class)。
 `daily_3shift` の stub は neutral shift key(`ClinicalDocument.shift` = night/day/evening)を保持し、
 localized label(en: night/day/evening、ja: 深夜/日勤/準夜)は Stage 2 render 時に解決(AD-30 spirit)。
 
