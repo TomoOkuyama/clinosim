@@ -33,6 +33,7 @@ import string
 from datetime import datetime, timedelta
 from typing import Any
 
+from clinosim.codes import system_key_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
@@ -1025,7 +1026,7 @@ class TemplateNarrativeGenerator:
             system = (
                 _o(primary, "admission_diagnosis_system", "")
                 or _o(primary, "discharge_diagnosis_system", "")
-                or ("icd-10" if is_ja else "icd-10-cm")
+                or system_key_for("diagnosis", ctx.locale.upper())
             )
         display = code_lookup(system, code, ctx.target_lang) if code else ""
         if display and display != code:
@@ -1147,7 +1148,7 @@ class TemplateNarrativeGenerator:
             system = (
                 _o(dx, "admission_diagnosis_system", "")
                 or _o(dx, "discharge_diagnosis_system", "")
-                or ("icd-10" if is_ja else "icd-10-cm")
+                or system_key_for("diagnosis", ctx.locale.upper())
             )
             display = code_lookup(system, code, ctx.target_lang)
             if display and display != code:
@@ -1261,7 +1262,7 @@ class TemplateNarrativeGenerator:
             system = (
                 _o(dx, "discharge_diagnosis_system", "")
                 or _o(dx, "admission_diagnosis_system", "")
-                or ("icd-10" if is_ja else "icd-10-cm")
+                or system_key_for("diagnosis", ctx.locale.upper())
             )
             display = code_lookup(system, code, ctx.target_lang)
             if display and display != code:
@@ -1423,7 +1424,7 @@ class TemplateNarrativeGenerator:
             if not code:
                 continue
             # JP は icd-10 権威、US は icd-10-cm(spec §Diagnosis code coverage)
-            resolved_system = "icd-10" if is_ja else system
+            resolved_system = system_key_for("diagnosis", "JP") if is_ja else system
             display = code_lookup(resolved_system, code, ctx.target_lang)
             if display and display != code:
                 history_lines.append(f"- {display}（{code}）" if is_ja else f"- {display} ({code})")
@@ -1539,7 +1540,7 @@ class TemplateNarrativeGenerator:
             system = (
                 _o(dx, "discharge_diagnosis_system", "")
                 or _o(dx, "admission_diagnosis_system", "")
-                or ("icd-10" if is_ja else "icd-10-cm")
+                or system_key_for("diagnosis", ctx.locale.upper())
             )
             display = code_lookup(system, code, ctx.target_lang)
             if display and display != code:
@@ -1862,7 +1863,7 @@ class TemplateNarrativeGenerator:
             system = str(
                 _o(dx, "admission_diagnosis_system", "")
                 or _o(dx, "discharge_diagnosis_system", "")
-                or ("icd-10" if is_ja else "icd-10-cm")
+                or system_key_for("diagnosis", ctx.locale.upper())
             )
             display = code_lookup(system, code, ctx.target_lang)
             if display and display != code:
