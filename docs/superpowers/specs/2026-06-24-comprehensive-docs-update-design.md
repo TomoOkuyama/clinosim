@@ -553,7 +553,7 @@ Quick Navigation section at the top (after "Project overview"):
 | Architecture / ADR | [`DESIGN.md`](DESIGN.md) |
 | Module author HOW-TO | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
 | New module template | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
-| Roadmap | [`TODO.md`](TODO.md) |
+| Roadmap | [`docs/roadmap.md`](../../roadmap.md) |
 ```
 
 ### `CONTRIBUTING-modules.md`

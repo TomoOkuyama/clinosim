@@ -11,7 +11,7 @@
 ## Project overview
 
 clinosim is a population-driven, physiology-based synthetic EHR data simulator.
-See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview, `DESIGN.md` for full architecture (ADRs), `TODO.md` for roadmap, and each `modules/<name>/README.md` for module-level reference.
+See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview, `DESIGN.md` for full architecture (ADRs), [`docs/roadmap.md`](docs/roadmap.md) (points at the GitHub Issues board) for roadmap, and each `modules/<name>/README.md` for module-level reference.
 
 ## Quick navigation
 
@@ -25,8 +25,8 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 | Architecture + ADR table (55+ entries) | [`DESIGN.md`](DESIGN.md) |
 | Module author HOW-TO + PR verification guide | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
 | New module template (boilerplate) | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
-| Roadmap | [`TODO.md`](TODO.md) |
-| ★ Next-session resume prompt(cold-start 必読) | 最新の `docs/session-NN-resume-prompt.md`(`ls docs/session-*-resume-prompt.md \| sort -V \| tail -1` で解決)|
+| Roadmap | [`docs/roadmap.md`](docs/roadmap.md) (GitHub Issues board) |
+| ★ Next-session resume prompt(cold-start 必読) | 最新の `docs/history/session-prompts/session-NN-resume-prompt.md`(`ls docs/history/session-prompts/session-*-resume-prompt.md \| sort -V \| tail -1` で解決)|
 | ★ Audit-cycle workflow + by-design exclusion registry | [`docs/audit-cycles/README.md`](docs/audit-cycles/README.md) + [`docs/audit-cycles/by-design-registry.md`](docs/audit-cycles/by-design-registry.md) |
 
 ## Language conventions
@@ -36,7 +36,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - **JP-only code comments and docstrings** (session 47 rule): Japanese. JP-only means: JP-CLINS builder / JP section renderer / `_build_jp_clins_*` / `_JP_CLINS_*` maps / `codes/data/jpfhir-*.yaml` and other JP-locale-specific YAML / test docstrings of JP-only paths. Common dispatch/framework code that is *called for* JP but is locale-neutral in its own body (e.g. `_apply_jp_clins_profile`, `_referral_note_fires`, `_build_composition` dispatcher) keeps English.
 **Documentation naming rule (unified)**:
 - **Default language: English.** Every `*.md` file without a language suffix
-  is English (root READMEs, module READMEs, DESIGN.md, TODO.md, spec.md,
+  is English (root READMEs, module READMEs, DESIGN.md, `docs/roadmap.md`, spec.md,
   `docs/**`, and so on).
 - **Japanese variants**: name the file with a `.ja.md` suffix
   (e.g. `README.ja.md`, `DESIGN.ja.md`, `modules/hai/README.ja.md`).
@@ -159,7 +159,7 @@ content without a `.ja.md` suffix and will be migrated in follow-up PRs
   - **メンテ性**: 7-layer system-level silent-no-op defense(canonical URIs + ID prefixes + validator ordering + reverse-coverage forward+staleness + HAI_EVENT_ID_SYSTEM) + per-validator 6-layer pattern(empty + per-bucket + forward-coverage + range + authoritative cross-validation)を全 HAI YAML に適用、責任分解点 clear
   - **コンセプト適切性**: silent-no-op 防御 4 層 pattern(canonical constants + YAML loader cross-validation + normalize_probabilities + reverse-coverage)が確立 + 5 例目 4-stage adversarial chain pattern converged(PR-A / PR #102 / PR-B1 / PR3b-3-original / PR3b-3-D1+D2 / PR3b-5 / sibling sweep)= **7 例の安定 chain pattern**
 
-  残 backlog はすべて TODO.md formal entries(PR3b-4 WBC/CRP decay / audit registry `_reset_for_test` ordering / Phase 2 per-event observed-vs-theoretical / NHSN clinical-accuracy band verification / I1 WARN UX / MB_*_PREFIX cleanup / DESIGN.md AD-55+AD-60 extended ADR / `_code_in_data` public API promote)。半端な状態ゼロ、各 deferred item は文脈完備で書面化済。
+  残 backlog はすべて GitHub Issues (see `docs/roadmap.md`)(PR3b-4 WBC/CRP decay / audit registry `_reset_for_test` ordering / Phase 2 per-event observed-vs-theoretical / NHSN clinical-accuracy band verification / I1 WARN UX / MB_*_PREFIX cleanup / DESIGN.md AD-55+AD-60 extended ADR / `_code_in_data` public API promote)。半端な状態ゼロ、各 deferred item は文脈完備で書面化済。
 
   **HAI YAML sibling sweep CLOSED (2026-06-29, PR #121 + adv-1 #122 = 2-stage adversarial chain converged)** — the **per-validator 6-layer defense pattern** (empty top + per-bucket guards + unknown-hai_type rejection + HAI_TYPES forward-coverage + range/type checks + authoritative cross-validation) is now applied to **all 6 HAI YAML loaders**: `hai_antibiogram` + `hai_organisms` (existing, PR3b-3) + new `hai_lab_lift` + `hai_rates` + `hai_codes` + `hai_specimens` (sibling sweep). Each `_validate_hai_<name>` performs the pattern with authoritative loader lookups (`_code_in_data()` for ICD/SNOMED/LOINC, `load_devices_config()["devices"]` for device_type). Note: the system-level 7-layer silent-no-op defense established by PR3b-3 / PR3b-5 chains (canonical URIs + ID prefixes + validator ordering + reverse-coverage etc.) is unchanged by sibling sweep — the new validators are pattern applications, not new defense layers. YAML data unchanged; byte-diff verified zero NDJSON at p=1000 seed=42 (only manifest.json transactionTime differs).
 
@@ -208,7 +208,7 @@ content without a `.ja.md` suffix and will be migrated in follow-up PRs
 以下の手順で必ず PR/Merge 経由:
 
 1. **Issue 起票** — 修正対象を GitHub Issue で定義(bug report / feature
-   / chain 単位)。既存 iris4h-ai HAPI feedback や TODO.md 記載事項は
+   / chain 単位)。既存 iris4h-ai HAPI feedback や GitHub Issues (see `docs/roadmap.md`) の記載事項は
    Issue にコピーし tracker 化。
 2. **Feature branch 作成** — `git checkout -b <type>/<short-slug>`
    (例:`fix/mypy-numpy-shim`、`feat/valueset-p1-8`)。
@@ -255,7 +255,7 @@ git switch master && git pull --ff-only origin master
 
 - **触るファイルが重ならないこと。** 着手前に、各 Issue が触るファイル・シンボルを
   grep して重なりを確認する。重なる場合は**並行させず順番に**やる
-  (`TODO.md` 冒頭「Backlog work order」に既知の依存を記載)
+  (`docs/roadmap.md` → GitHub Issues board に既知の依存を記載)
 - **依存関係のある Issue は並行させない。** 例: `#468` → `#466` は同じ
   `inpatient.py` の退院時刻を扱うため、必ず順番に
 
@@ -345,7 +345,7 @@ FP-ARCH-2/3 (7 trauma diseases), cross-cutting follow-ups (Condition.stage SNOME
 staged conditions, 3 dead model fields, cohort-level statistical completeness audit axis) — all in
 the registry. Implementation conventions: `docs/design-guides/data-model-and-completeness-conventions.md`.
 
-See `TODO.md` for roadmap and remaining tasks.
+See [`docs/roadmap.md`](docs/roadmap.md) — which points at the GitHub Issues board — for roadmap and remaining tasks.
 
 ## Key directories
 

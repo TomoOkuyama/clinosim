@@ -148,6 +148,7 @@ nav:
       - Load into a FHIR server: fhir-server-ingestion.md
       - Bedrock LLM setup: bedrock_setup.md
   - Development:
+      - Roadmap: roadmap.md
       - Reproducibility: development/reproducibility.md
       - Publishing to PyPI: development/publishing-to-pypi.md
       - Changelog: development/changelog.md
