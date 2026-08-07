@@ -47,7 +47,7 @@ def load_hai_antibiogram() -> dict:
     Validates at import time so a typo (uppercase hai_type, unknown organism,
     unknown antibiotic, malformed probability triple) raises ValueError loudly
     instead of silently producing a no-op antibiogram lookup at runtime.
-    Lesson from PR-90 silent no-op (xhigh review).
+    Lesson from PR-90 silent-no-op (xhigh review).
     """
     from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
 
@@ -61,7 +61,7 @@ def load_hai_antibiogram() -> dict:
     if not abg:
         raise ValueError(
             "hai_antibiogram.yaml top-level is empty — would silently disable "
-            "PR3b-3 D2 panel-eligible filter (PR-90 class silent no-op)"
+            "PR3b-3 D2 panel-eligible filter (PR-90 class silent-no-op)"
         )
     valid_hai_types = set(HAI_TYPES)
     valid_organisms = _organisms_by_hai_type()
@@ -84,7 +84,7 @@ def load_hai_antibiogram() -> dict:
             raise ValueError(
                 f"hai_antibiogram.yaml: {hai_type!r} bucket empty — would "
                 f"silently disable PR3b-3 D2 panel-eligible filter for "
-                f"that hai_type (PR-90 class silent no-op)"
+                f"that hai_type (PR-90 class silent-no-op)"
             )
         for snomed, abx_table in organisms.items():
             allowed_snomeds = valid_organisms.get(hai_type, set())

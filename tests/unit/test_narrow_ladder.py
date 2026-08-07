@@ -96,7 +96,7 @@ def test_unknown_drug_raises(tmp_path, monkeypatch) -> None:
 
 @pytest.mark.unit
 def test_empty_narrow_ladder_raises(tmp_path, monkeypatch) -> None:
-    """Empty top-level mapping → silent no-op gate (adversarial-1 C-5)."""
+    """Empty top-level mapping → silent-no-op gate (adversarial-1 C-5)."""
     bad_yaml = tmp_path / "bad.yaml"
     bad_yaml.write_text("narrow_ladder: {}\n", encoding="utf-8")
     from clinosim.modules.antibiotic import engine
@@ -110,7 +110,7 @@ def test_empty_narrow_ladder_raises(tmp_path, monkeypatch) -> None:
 
 @pytest.mark.unit
 def test_empty_drug_list_raises(tmp_path, monkeypatch) -> None:
-    """Empty drug list for an organism → silent no-op gate (adversarial-1 C-5)."""
+    """Empty drug list for an organism → silent-no-op gate (adversarial-1 C-5)."""
     bad_yaml = tmp_path / "bad.yaml"
     bad_yaml.write_text(
         'narrow_ladder:\n  clabsi:\n    "3092008": []\n',
@@ -128,7 +128,7 @@ def test_empty_drug_list_raises(tmp_path, monkeypatch) -> None:
 @pytest.mark.unit
 def test_antibiogram_organism_must_have_ladder_entry(tmp_path, monkeypatch) -> None:
     """Reverse-coverage: every (hai_type, organism) in antibiogram must have a
-    ladder entry. Missing entry = silent no-op narrow for that organism
+    ladder entry. Missing entry = silent-no-op narrow for that organism
     (adversarial-1 C-3 PR-90 class)."""
     # Construct a ladder missing clabsi/3092008 (S.aureus is in antibiogram)
     bad_yaml = tmp_path / "bad.yaml"

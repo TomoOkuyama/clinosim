@@ -39,7 +39,7 @@ _RECOGNIZED_VARS = {
     "renal_function",
     "volume_status",
 }
-# risk_factor conditions _evaluate_risk_condition actually supports (else silent no-op)
+# risk_factor conditions _evaluate_risk_condition actually supports (else silent-no-op)
 _SUPPORTED_RISK_PREFIXES = (
     "severity_severe",
     "age_over_",
@@ -77,5 +77,5 @@ def test_trauma_complications_supported_and_present(disease_id):
             cond = rf.get("condition", "")
             assert cond.startswith(_SUPPORTED_RISK_PREFIXES), (
                 f"{disease_id}/{c.get('name')}: risk condition {cond!r} unsupported "
-                f"by _evaluate_risk_condition (silent no-op)"
+                f"by _evaluate_risk_condition (silent-no-op)"
             )

@@ -758,7 +758,7 @@ def load_hai_antibiogram() -> dict:
     Validates at import time so a typo (uppercase hai_type, unknown organism,
     unknown antibiotic, malformed probability triple) raises ValueError loudly
     instead of silently producing a no-op antibiogram lookup at runtime.
-    Lesson from PR-90 silent no-op (xhigh review).
+    Lesson from PR-90 silent-no-op (xhigh review).
     """
     from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
 
@@ -835,7 +835,7 @@ against HAI_TYPES, hai_organisms.yaml organism SNOMED set, and
 ANTIBIOTIC_LOINC_LOOKUP at load time. Raises ValueError on any typo,
 unknown key, malformed triple, or sum ≠ 1.0.
 
-Lesson from PR-90 silent no-op (xhigh review) — never let runtime
+Lesson from PR-90 silent-no-op (xhigh review) — never let runtime
 get-with-default lookup mask a typo.
 
 Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>

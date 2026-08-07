@@ -451,7 +451,7 @@ feat(antibiotic): hai_empirical.yaml + import-time validated loader (Task 2)
 
 IDSA 2009/2016 guideline empirical regimens for CLABSI/CAUTI/VAP.
 Loader cross-validates YAML keys against modules.hai.HAI_TYPES +
-ANTIBIOTIC_DRUGS to gate PR-90 class silent no-op bugs.
+ANTIBIOTIC_DRUGS to gate PR-90 class silent-no-op bugs.
 
 Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01BPCNtAC7fmvNV8Ndy61T2j
@@ -2318,7 +2318,7 @@ class AntibioticRegimen:
 - canonical_constants: `HAI_TYPES` + `ANTIBIOTIC_DRUGS`
 - yaml_keys_to_validate: `hai_empirical.yaml` の `hai_empirical` キー
 - clinical_acceptance: per-HAI-type expected drugs + duration + min_mar_per_event
-- lift_firing_proof: 合成 CAUTI record を `enrich_antibiotic` で drive、closed-form delta(Ceftriaxone q24h × 7d = 7 MAR)と完全一致照合 = PR-90 class silent no-op gate
+- lift_firing_proof: 合成 CAUTI record を `enrich_antibiotic` で drive、closed-form delta(Ceftriaxone q24h × 7d = 7 MAR)と完全一致照合 = PR-90 class silent-no-op gate
 
 ## Test
 

@@ -37,9 +37,9 @@ def test_antibiotic_proof_factory_returns_equality_checks():
     assert "mar_count" in labels
     assert "mar_first_dt" in labels
     # PR3b-2 antibiogram checks — a broken proof returning [] would silently pass
-    # without these assertions (PR-90 class silent no-op gate).
-    assert "clabsi_saureus_susceptibility_count" in labels, "PR3b-2 antibiogram count check missing — silent no-op"
-    assert "clabsi_saureus_vancomycin_is_S" in labels, "PR3b-2 vancomycin-S check missing — silent no-op"
+    # without these assertions (PR-90 class silent-no-op gate).
+    assert "clabsi_saureus_susceptibility_count" in labels, "PR3b-2 antibiogram count check missing — silent-no-op"
+    assert "clabsi_saureus_vancomycin_is_S" in labels, "PR3b-2 vancomycin-S check missing — silent-no-op"
     assert len(proof["equality_checks"]) == 17, (
         f"Expected 17 equality_checks (8 PR3b-1 + 3 PR3b-2 + 6 PR3b-3 "
         f"narrow chain), got {len(proof['equality_checks'])}"
@@ -71,7 +71,7 @@ def test_antibiotic_silent_no_op_axis_actually_runs_proof():
         "silent_no_op axis did not consume any equality_checks — the axis is silently no-op'ing the antibiotic proof"
     )
     # PR3b-2 specific info keys — a broken antibiogram proof returning []
-    # would silently pass without these (PR-90 class silent no-op gate).
+    # would silently pass without these (PR-90 class silent-no-op gate).
     assert "proof_eq_clabsi_saureus_susceptibility_count" in result.info, (
         "silent_no_op axis did not surface PR3b-2 count proof"
     )

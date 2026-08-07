@@ -33,7 +33,7 @@ _REF_DIR = _HERE.parent / "reference_data"
 # α-min-3: canonical allowlist of generation_frequency values. The engine
 # dispatch (engine.py document_enricher) is an if/elif chain — an unknown
 # frequency value would fall through and silently emit ZERO documents for
-# that spec (PR-90 class silent no-op). Fail-loud here at YAML load time so
+# that spec (PR-90 class silent-no-op). Fail-loud here at YAML load time so
 # a typo (e.g. "daily3shift") raises before any simulation runs. Adding a
 # new frequency requires BOTH the engine branch and this allowlist entry.
 GENERATION_FREQUENCIES: frozenset[str] = frozenset(
@@ -102,7 +102,7 @@ def _validate_document_type_specs(data: dict[str, Any]) -> None:
              unknown value would silently no-op in the engine dispatch)
     Layer 8: stage2_strategy ∈ STAGE2_STRATEGIES allowlist (N-chain adv-1 I-1;
              the replacement-strategy dispatch returns template output on an
-             unknown value → typo = silent no-op of the whole LLM path)
+             unknown value → typo = silent-no-op of the whole LLM path)
     Layer 9: template_seed coherence (N-chain adv-1 I-1) — requires non-empty
              llm_enabled_sections, composition format (free_text /
              questionnaire_response renderers emit no sections to seed from),

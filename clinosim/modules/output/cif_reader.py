@@ -84,7 +84,7 @@ class CIFReader:
         # 3. "current" alias without pointer: fall back to "template"; if template
         #    dir also missing, this is a legitimate "structural-only CIF" case
         #    (e.g. a test fixture, or a pre-narrate export step) — log a warning
-        #    and continue with `_narrative_available=False`. Silent no-op merge
+        #    and continue with `_narrative_available=False`. Silent-no-op merge
         #    is acceptable here because the user did NOT request a specific
         #    version; they get whatever is there.
         explicit_version = narrative_version != "current"
@@ -110,7 +110,7 @@ class CIFReader:
                     f"--narrative-version arg or run `clinosim narrate` first"
                 )
             # Case 3: no pointer, fallback dir also missing → structural-only
-            # mode. Log a warning so the user sees this is not a silent no-op,
+            # mode. Log a warning so the user sees this is not a silent-no-op,
             # but don't raise (backward-compat with pre-AD-65 structural CIF).
             logger.warning(
                 "CIFReader: no narrative directory found under %s/narratives/ — "

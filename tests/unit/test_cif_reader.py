@@ -144,7 +144,7 @@ def test_reader_current_pointer_missing_version_raises(tmp_path):
 def test_reader_current_no_pointer_no_template_warns_but_reads(tmp_path, caplog):
     """F-1 fix: 'current' with no pointer AND no 'template/' dir is a
     legitimate structural-only mode (pre-narrate export, or a hand-built
-    test fixture). Log a warning but don't raise — silent no-op is
+    test fixture). Log a warning but don't raise — silent-no-op is
     acceptable when the user did not request a specific version."""
     import logging
 

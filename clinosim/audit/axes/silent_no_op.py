@@ -21,7 +21,7 @@ any subset:
    asserts (obs.value - pre_value) matches expected_delta within
    per-analyte tolerance (WBC ±2.0, CRP ±0.5). ANY mismatch → FAIL.
    This is the load-bearing verification that would have caught PR-90's
-   UPPERCASE/lowercase silent no-op.
+   UPPERCASE/lowercase silent-no-op.
 
 3. **Fired counter** — Phase 1 surface: counts Condition emissions
    carrying the codes in spec.canonical_constants["icd_codes"] if set.
