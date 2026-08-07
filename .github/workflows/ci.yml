@@ -1,15 +1,21 @@
-# clinosim CI — hard-gate on tests, informational on lint / typecheck.
+# clinosim CI — hard-gate on tests, informational on quality.
 #
 # Hard gates (must be green to merge):
-#   - unit tests on Python 3.11 and 3.12
-#   - integration tests on Python 3.12 (single 3.11 skip = ~18min job, cost-vs-value)
+#   - unit tests on Python 3.12 (PR gate; 3.11 covered by weekly cron)
+#   - integration tests on Python 3.12 (3 pytest-split shards × xdist -n 2)
 #
 # Informational (visible but does not block merge — pre-existing lint / mypy
 # debt is tracked as follow-up cleanup, this keeps the debt VISIBLE without
 # freezing the repo):
-#   - ruff check + ruff format --check
-#   - mypy strict
+#   - quality: ruff check + ruff format --check + mypy strict (combined)
 #
+# Rate-of-change gates (moved off the PR path per session 82 CI review):
+#   - reproducibility (`scripts/reproduce.sh`)  → runs nightly, see `nightly.yml`.
+#     Determinism regressions are rare, the check costs ~5-6 min, and nightly
+#     detection is soon enough to unwind the offending PR before it ships.
+#   - Python 3.11 unit tests → run weekly (nightly.yml) and immediately before
+#     any release tag. Pre-release smoke covers the 3.11 compatibility floor
+#     without paying 2× cost on every PR.
 name: CI
 
 on:
@@ -26,18 +32,13 @@ concurrency:
 
 jobs:
   unit:
-    name: Unit tests (Py ${{ matrix.python-version }})
+    name: Unit tests (Py 3.12)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
           cache: pip
       - name: Install (with dev extras)
         run: pip install -e ".[dev]"
@@ -45,7 +46,7 @@ jobs:
         run: pytest tests/unit -q --tb=short
 
   integration:
-    name: Integration tests (Py 3.12, shard ${{ matrix.shard }}/3)
+    name: Integration tests (shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     needs: unit
     # Historical:
@@ -65,9 +66,10 @@ jobs:
     # --dist=worksteal` when the test suite composition drifts noticeably
     # (add/remove ~20% or more integration tests).
     #
-    # Tests that mutate shared filesystem or global state are marked with
-    # `@pytest.mark.serial` and executed in a separate single-worker job
-    # (`integration_serial`) so they cannot collide with parallel siblings.
+    # No @pytest.mark.serial pass here — local xdist verify 2026-07-22
+    # confirmed 0 collisions across all 305 integration tests. If a
+    # serial-marked test is ever added, either drop its marker (parallel-
+    # safe) or reintroduce a `integration_serial` job at that point.
     #
     # Timeout headroom kept at 60 min so a legitimate slow-down doesn't
     # cancel a passing run.
@@ -88,19 +90,15 @@ jobs:
         run: >
           pytest tests/integration -q --tb=short
           -n 2 --dist=worksteal
-          -m "not serial"
           --splits 3 --group ${{ matrix.shard }}
 
-  integration_serial:
-    name: Integration tests (serial pass)
+  quality:
+    name: Quality (informational)
     runs-on: ubuntu-latest
-    needs: unit
-    # Runs @pytest.mark.serial-marked tests single-worker. Today the set
-    # is empty (local xdist verify 2026-07-22 surfaced 0 collisions across
-    # all 305 tests), so this job exits 0 in <30s via the `exit 5`
-    # (no tests collected) short-circuit. Job stays in the workflow so a
-    # future serial-marked test runs automatically without a workflow edit.
-    timeout-minutes: 20
+    continue-on-error: true
+    # Combines the former `lint` and `typecheck` jobs into a single runner
+    # since neither blocks merge. Removes one runner boot + install cycle
+    # from every PR.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -109,19 +107,7 @@ jobs:
           cache: pip
       - name: Install (with dev extras)
         run: pip install -e ".[dev]"
-      - name: Run serial-marked integration tests
-        run: pytest tests/integration -q --tb=short -m serial || [ $? -eq 5 ]
-
-  lint:
-    name: Lint (informational)
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install ruff
+      - name: Install pinned ruff
         # Exact-pinned (session 73 Issue #449): CI and local envs must resolve
         # to the same ruff version so lint failures reproduce byte-identically
         # across machines. Bumping this line = intentional lint-config change.
@@ -130,43 +116,11 @@ jobs:
         run: ruff check clinosim/ tests/
       - name: ruff format --check
         run: ruff format --check clinosim/ tests/
-
-  typecheck:
-    name: Type check (informational)
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - name: Install (with dev extras)
-        run: pip install -e ".[dev]"
       - name: mypy
         run: mypy clinosim/
 
-  reproducibility:
-    name: Reproducibility (Py 3.12)
-    runs-on: ubuntu-latest
-    # Hard gate: enforces the SemVer determinism promise recorded in
-    # CHANGELOG.md. Runs `scripts/reproduce.sh` which itself does two
-    # `clinosim generate` runs per locale and byte-diffs the output.
-    # ~5-6 min including install (script itself is ~2 min on CI runners).
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - name: Install (runtime deps only; dev extras not needed for the script)
-        run: pip install -e "."
-      - name: Run scripts/reproduce.sh
-        run: bash scripts/reproduce.sh
-
   packaging:
-    name: Build sdist + wheel (Py 3.12)
+    name: Build sdist + wheel
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

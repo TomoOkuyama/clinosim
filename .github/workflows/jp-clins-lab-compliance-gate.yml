@@ -28,8 +28,21 @@ name: JP-CLINS lab compliance gate
 on:
   push:
     branches: [master]
+    # No paths filter on push: master should always have current gate state
+    # so a new PR can rely on the last-known-green baseline.
   pull_request:
     branches: [master]
+    # Paths filter (session 82 CI review): the gate is only meaningful when
+    # code, YAML, or tests that shape JP FHIR output change. Docs-only /
+    # workflow / infra PRs (e.g. this file, .gitignore-only) don't affect
+    # the emitted lab data and don't need a full JP cohort run. This cuts
+    # ~2 min from a large class of admin PRs without losing coverage on
+    # any change that could regress JP compliance.
+    paths:
+      - "clinosim/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - ".github/workflows/jp-clins-lab-compliance-gate.yml"
 
 concurrency:
   group: jp-clins-lab-gate-${{ github.workflow }}-${{ github.ref }}
