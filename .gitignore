@@ -61,6 +61,12 @@ scratchpad/*_report.txt
 /verify-*/
 /pre-verify*/
 
+# LLM narrative eval outputs — accumulated locally, not versioned data.
+# Nothing under `tests/` or `clinosim/` references this path; keeping it
+# tracked would ship 200MB of past run artifacts to every clone. Same
+# rationale as the .tar.gz maintainer artifacts above (session 82 PR C).
+/test_data/
+
 # Maintainer-local continuation notes(shared repo has only the shared roadmap).
 # Contributors may keep private session-scoped resume prompts here without
 # tracking them in git.
