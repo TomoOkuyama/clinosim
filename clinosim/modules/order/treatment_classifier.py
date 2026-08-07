@@ -285,3 +285,44 @@ def classify_inpatient_supportive(display_name: str, type_hint: str) -> OrderTyp
     if type_hint and "drug" in type_hint.lower():
         return OrderType.MEDICATION
     return OrderType.THERAPY
+
+
+def classify_escalation_treatment(esc_drug: object) -> OrderType:
+    """Classify a disease-YAML ``drugs.escalation[*]`` entry into an OrderType.
+
+    Three-stage precedence (Issue #460):
+
+    (1) Explicit ``type`` signal — YAML author's intent wins.
+        ``type: "procedure"``  -> OrderType.PROCEDURE
+        ``type: "medication"`` -> OrderType.MEDICATION
+
+    (2) Keyword fallback — delegate to ``classify_encounter_treatment`` on the
+        combined ``drug + dose`` display string (same string ``inpatient.py``
+        builds for the Order's ``display_name``). Preserves the session-74
+        behavior for un-migrated entries.
+
+    (3) Default MEDICATION.
+
+    Defensive: non-dict input returns the (3) default so a misuse in the caller
+    loop doesn't crash. The caller (``inpatient.py:1220``) already
+    isinstance-guards; this is double-defense.
+    """
+    if not isinstance(esc_drug, dict):
+        return OrderType.MEDICATION
+
+    # (1) explicit signal
+    type_signal = esc_drug.get("type")
+    if type_signal == "procedure":
+        return OrderType.PROCEDURE
+    if type_signal == "medication":
+        return OrderType.MEDICATION
+
+    # (2) keyword fallback via classify_encounter_treatment
+    drug = esc_drug.get("drug", "") or ""
+    dose = esc_drug.get("dose", "") or ""
+    display = f"{drug} {dose}".strip()
+    if display:
+        return classify_encounter_treatment(display)
+
+    # (3) default
+    return OrderType.MEDICATION
