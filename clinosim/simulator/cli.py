@@ -681,7 +681,7 @@ def main() -> None:
             snapshot_date=end,
             jp_insurance_numbers=args.jp_insurance,
         )
-        hospital_cfg = getattr(args, "hospital_config", None)
+        hospital_ops = getattr(args, "hospital_config", None)
         pop_label = str(population_arg) if population_arg is not None else "hospital recommended"
         print(
             f"clinosim generate: population={pop_label}, seed={args.seed}, country={args.country}, period={start}~{end}"
@@ -690,8 +690,8 @@ def main() -> None:
             _enforce_jp_clins_pkg_gate(allow_legacy=getattr(args, "allow_legacy", False))
             status = "on" if args.jp_insurance else "off"
             print(f"  JP insurance numbers (被保険者番号): {status}")
-        if hospital_cfg:
-            print(f"  Hospital config: {hospital_cfg}")
+        if hospital_ops:
+            print(f"  Hospital config: {hospital_ops}")
         # F4 (session 49): reuse prior snapshot's discharged patients when
         # --cache-dir is provided. run_beta validates seed / config / country
         # match; on mismatch it prints a warn and full-recomputes.
@@ -707,7 +707,7 @@ def main() -> None:
         log_path = getattr(args, "log_file", None) or os.path.join(args.output, "simulator.log")
         sim_log.configure(log_path)
         print(f"  Log: {log_path}")
-        dataset = run_beta(config, hospital_config_path=hospital_cfg, cache_dir=cache_dir_arg)
+        dataset = run_beta(config, hospital_config_path=hospital_ops, cache_dir=cache_dir_arg)
 
     else:
         parser.print_help()

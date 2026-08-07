@@ -65,7 +65,7 @@ class HospitalState:
 
 シミュレーション時刻ごとに 1 つ存在し、 各オーダー処理時に状態を読む/更新する。
 
-### `update_for_time(dt: datetime, ops_config: dict) -> None`
+### `update_for_time(dt: datetime, hospital_ops: dict) -> None`
 
 シミュレーション時刻が進むたびに呼び、 staffing と baseline utilization を更新する。
 
@@ -77,11 +77,11 @@ class HospitalState:
 | 16 ≤ hour < 24 | evening |
 | 0 ≤ hour < 8 | night |
 
-各シフトの staff 値は `ops_config["staffing"][shift]` から読む。 週末 (`weekday >= 5`) は `weekend_modifier` (デフォルト 0.6) が lab/radiology/pharmacy/or の staff に乗算される。
+各シフトの staff 値は `hospital_ops["staffing"][shift]` から読む。 週末 (`weekday >= 5`) は `weekend_modifier` (デフォルト 0.6) が lab/radiology/pharmacy/or の staff に乗算される。
 
 **Daily patterns**:
 
-`ops_config["daily_patterns"]` の各エントリは時間帯・曜日条件と `<resource>_queue_delta` を持ち、 マッチ時に該当する queue 値を加減する。 結果は `[0.0, 0.95]` にクランプ。
+`hospital_ops["daily_patterns"]` の各エントリは時間帯・曜日条件と `<resource>_queue_delta` を持ち、 マッチ時に該当する queue 値を加減する。 結果は `[0.0, 0.95]` にクランプ。
 
 ```yaml
 # hospital_operations.yaml の例
@@ -94,20 +94,20 @@ daily_patterns:
     or_queue_delta: 0.15
 ```
 
-### `calculate_delay(resource: str, urgency: str, ops_config: dict) -> float`
+### `calculate_delay(resource: str, urgency: str, hospital_ops: dict) -> float`
 
 特定リソースで特定 urgency のオーダーを処理する場合の **想定遅延 (分)** を返す。
 
 **式**:
 
 ```python
-base = ops_config["base_processing_time"][f"{resource}_{urgency}"]
+base = hospital_ops["base_processing_time"][f"{resource}_{urgency}"]
 utilization = getattr(state, f"{resource}_queue")           # [0, 0.95]
 congestion_factor = 1.0 / max(0.05, 1.0 - utilization)      # M/M/1 delay factor
 staff_factor = 1.0 / max(0.1, <relevant staff>)             # 1/staff
 congestion_factor = min(congestion_factor, 5.0)             # cap 5x
 staff_factor = min(staff_factor, 4.0)                       # cap 4x
-reporting = ops_config["reporting_time"][urgency]           # 画像のみ
+reporting = hospital_ops["reporting_time"][urgency]           # 画像のみ
 reporting *= staff_factor                                   # less staff → slower reads
 delay = base * congestion_factor * staff_factor + reporting
 return min(delay, 240.0 if urgency == "stat" else 720.0)    # ハードキャップ
@@ -124,21 +124,21 @@ return min(delay, 240.0 if urgency == "stat" else 720.0)    # ハードキャッ
 
 ```python
 state = HospitalState()
-state.update_for_time(datetime(2026, 4, 6, 22, 30), ops_config)  # 夜勤
-delay = state.calculate_delay("ct", urgency="routine", ops_config=ops_config)
+state.update_for_time(datetime(2026, 4, 6, 22, 30), hospital_ops)  # 夜勤
+delay = state.calculate_delay("ct", urgency="routine", hospital_ops=hospital_ops)
 # → 例: 320 分 (utilization 0.4, radiology_staff 0.4 → 大きい staff_factor)
 ```
 
-### `add_to_queue(resource: str, ops_config: dict) -> None`
+### `add_to_queue(resource: str, hospital_ops: dict) -> None`
 
 オーダー受付時に呼び、 該当 queue の utilization を `1/capacity` だけ増やす (上限 0.95)。
 
 ```python
-capacity = ops_config["resource_capacity"]["ct_scanners"]   # e.g., 2
+capacity = hospital_ops["resource_capacity"]["ct_scanners"]   # e.g., 2
 state.ct_queue += 1 / capacity                              # +0.5
 ```
 
-### `release_from_queue(resource: str, ops_config: dict) -> None`
+### `release_from_queue(resource: str, hospital_ops: dict) -> None`
 
 オーダー完了時に呼び、 utilization を `1/capacity` だけ減らす (下限 0.0)。
 
