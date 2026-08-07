@@ -36,6 +36,7 @@ from typing import Any
 from clinosim.codes import system_key_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
+from clinosim.modules.disease.localization import target_los_config
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
@@ -1930,9 +1931,13 @@ class TemplateNarrativeGenerator:
         los: float = 0
         proto = ctx.disease_protocol
         if proto is not None:
-            country_key = "japan" if ctx.locale == "jp" else "us"
-            target_los = _o(proto, "target_los", {}) or {}
-            los_cfg = (target_los.get(country_key) or {}).get(ctx.severity) or {}
+            # Issue #550: canonical resolver — same fallback ladder as the
+            # inpatient simulator. The narrative path takes the mean rather
+            # than sampling (RNG-free per this method's docstring above), and
+            # falls back to the observed encounter length when the protocol
+            # has no matching (country, severity) slot.
+            country = "JP" if ctx.locale == "jp" else "US"
+            los_cfg = target_los_config(proto, country, ctx.severity) or {}
             if "mean" in los_cfg:
                 los = los_cfg["mean"]
                 facts.append("disease_protocol.target_los")
