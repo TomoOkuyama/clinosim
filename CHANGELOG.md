@@ -18,6 +18,106 @@ byte output but must document the change here.
 
 ## [Unreleased]
 
+### Added (session 82)
+
+- **New `AGENTS.md`** at repo root (agentmd.dev convention). AI coding
+  agents (Claude Code, Codex, Cursor, Gemini CLI, Copilot, …) all
+  discover repo-level instructions from a single, tool-agnostic
+  filename. `CLAUDE.md` remains as a thin pointer for backward
+  compatibility with older sessions. PR #527.
+- **Coverage reporting in CI** (unit tests, PR #533): `pytest --cov=clinosim`
+  now runs on every PR with `--cov-report=xml`, XML uploaded as a
+  workflow artifact (30-day retention), soft floor `--cov-fail-under=80`
+  (regression visible in log, doesn't block merge). Codecov integration
+  scaffolded (commented) — enable via `CODECOV_TOKEN` secret. Baseline
+  coverage: **84%** across `clinosim/`.
+- **`docs/development/publishing-to-pypi.md`** — step-by-step runbook
+  for both PyPI publishing paths (Trusted Publisher / API token). The
+  `release.yml` workflow already builds sdist + wheel + dataset presets
+  on tag push; PyPI upload is commented out until a maintainer
+  completes one of the paths in the runbook. PR #533.
+- **Nightly cron workflow** (`.github/workflows/nightly.yml`, PR #530):
+  runs the reproducibility gate (`scripts/reproduce.sh`, byte-diffs the
+  output for a fixed seed) and Python 3.11 unit tests once a day. Moves
+  these rate-of-change gates off the PR path.
+- **Escalation `type: "procedure"` signal** (Issue #460, PR #521): disease
+  YAML `drugs.escalation[*]` now accepts an explicit `type` field
+  (`"procedure"` or `"medication"`). A new 3-stage classifier
+  (`classify_escalation_treatment`) routes each escalation on explicit
+  type first, keyword fallback second, default MEDICATION third. Six
+  latent misclassify entries (Hemodialysis / Vertebroplasty / Kyphoplasty
+  / Catheter-directed thrombolysis) now emit as FHIR `Procedure` instead
+  of `MedicationRequest`. Import-time validator raises on legacy
+  `code_*: "procedure"|"N/A"` markers and on `type: "procedure"` +
+  `route:` co-occurrence.
+- **Chronic-medication + discharge-prescription sub-RNG isolation**
+  (Issue #439, PR #522): new `chronic_medication_seed(patient_id)` and
+  `discharge_prescription_seed(patient_id, encounter_id)` helpers in
+  `clinosim/simulator/seeding.py` (AD-16 pattern, sibling of
+  `panel_specimen_seed` / `individual_lab_seed`). YAML edits to
+  `chronic_medications.yaml` or `drugs.discharge_oral` no longer shift
+  unrelated patients' cohorts.
+- **`baseline_chronic_medications` immutable field** on `PatientProfile`
+  (Issue #433, PR #523): activation-time snapshot of the chronic
+  regimen. The discharge chronic loop iterates `baseline ∪
+  current_medications`, so a drug held during an AKI admission is
+  re-emitted at the next admission when renal function recovers — the
+  "chronic drug permanently lost after renal-hold" defect is fixed.
+- **`drug_name_ja` threading** through `discharge_prescription.items[]`
+  (Issue #440, commit c7f0c31071): 3 writer sites (inpatient / outpatient
+  / chronic transcribe) now emit `drug_name_ja` so `_deactivate_to_layer1`
+  preserves the JP display on round-trip.
+- **Module README coverage gate** (PR #531): 31/31 real modules now ship
+  a `README.md`, and a durable unit test
+  (`tests/unit/test_module_readme_coverage.py`) will fail any future
+  module added under `clinosim/modules/` without one.
+
+### Changed (session 82)
+
+- **CI PR-gate simplification** (PR #530): PR-level check count reduced
+  from 13 to 9. Drops the empty `integration_serial` job, drops Python
+  3.11 from the unit matrix (moved to nightly), combines `lint` +
+  `typecheck` into a single `quality` job, moves `reproducibility` to
+  nightly, and adds a `paths` filter to the JP-CLINS gate so docs-only
+  PRs skip the JP cohort run.
+- **`_build_discharge_rx` extracted** into
+  `clinosim/simulator/discharge_rx.py` (PR #532). `inpatient.py`
+  shrinks 2560 → 2338 lines. Backward-compat alias
+  `_build_discharge_rx = build_discharge_rx` remains for existing test
+  imports.
+- **`cli.py` split by subcommand family** (PR #534): 1845 → 780 lines.
+  Each `_run_*` handler moves to a dedicated sibling module
+  (`cli_test_encounter` / `cli_test_disease` / `cli_regenerate` /
+  `cli_narrate` / `cli_enumerate` / `cli_export_fhir`), shared print /
+  export / debug helpers to `cli_common.py`. Back-compat re-exports
+  keep existing test imports working.
+- **`fhir_r4_adapter.py` inline `_bb_*` builders extracted** into
+  `clinosim/modules/output/_fhir_inline_bb.py` (PR #535): 2382 → 1808
+  lines. 11 bundle builders + `_build_order_in_rp_map` moved. The
+  `_BUNDLE_BUILDERS` registry stays with `_build_bundle` in the
+  adapter.
+
+### Fixed (session 82 — subsumed under Added / Changed above)
+
+Detailed defect-fix notes for the three Issue tickets (#460 / #439 / #433)
+are recorded in the corresponding PR bodies (#521 / #522 / #523). All
+three preserve deterministic output for pre-existing cohorts — byte-diff
+verified on US + JP p=3000 seed=42 (Observation.ndjson identical, no
+regression).
+
+### Repo hygiene (session 82)
+
+- `.tar.gz` maintainer artifacts (3 files) untracked, `.gitignore`
+  unified (PR #524).
+- 13 `docs/session-*.md` snapshots archived under
+  `docs/history/session-prompts/` (PR #525); 30 `scratchpad/` audit
+  artifacts under `docs/history/scratchpad-archive/` (PR #526); the
+  root `scratchpad/` directory is now gitignored.
+- Historical `spec.md` (2026-04) + `DES_MIGRATION.md` moved under
+  `docs/history/` with an index README (PR #528).
+- `test_data/` (5392 files / 200 MB of accumulated LLM narrative eval
+  outputs) untracked; `.gitignore` prevents re-add (PR #529).
+
 ### Added
 
 - **Synthea comparison adapter** (P1-10):
