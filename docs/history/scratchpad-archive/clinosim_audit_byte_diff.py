@@ -1,4 +1,5 @@
 """Byte-diff vs master to verify clinosim/audit/ doesn't touch simulation."""
+
 from __future__ import annotations
 
 import hashlib
@@ -32,10 +33,7 @@ def report(country: str) -> None:
         m = sha256_of(path)
         b = sha256_of(bp)
         verdict = "IDENTICAL" if m == b else "DIFF"
-        print(
-            f"| {path.name} | {m[:12]}... | {b[:12]}... | "
-            f"{line_count(path)} | {line_count(bp)} | {verdict} |"
-        )
+        print(f"| {path.name} | {m[:12]}... | {b[:12]}... | {line_count(path)} | {line_count(bp)} | {verdict} |")
 
 
 if __name__ == "__main__":

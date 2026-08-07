@@ -38,6 +38,7 @@ Usage:
     python scratchpad/dqr_pr75_review.py /tmp/cbcbmp-dqr-pr75/us US
     python scratchpad/dqr_pr75_review.py /tmp/cbcbmp-dqr-pr75/jp JP
 """
+
 from __future__ import annotations
 
 import collections
@@ -76,6 +77,7 @@ def percentile(values, p):
 
 # --------- 1. STRUCTURAL HYGIENE -----------------------------------------
 
+
 def check_structural(fhir_dir: Path, country: str):
     section(f"1. STRUCTURAL HYGIENE ({country})")
     id_by_type: dict[str, set[str]] = collections.defaultdict(set)
@@ -100,8 +102,8 @@ def check_structural(fhir_dir: Path, country: str):
     refs_checked = 0
     for fname, fields in [
         ("Observation.ndjson", ["encounter", "subject"]),
-        ("Condition.ndjson",   ["subject", "encounter"]),
-        ("Procedure.ndjson",   ["subject", "encounter"]),
+        ("Condition.ndjson", ["subject", "encounter"]),
+        ("Procedure.ndjson", ["subject", "encounter"]),
         ("MedicationRequest.ndjson", ["subject", "encounter"]),
         ("MedicationAdministration.ndjson", ["subject", "context"]),
     ]:
@@ -154,9 +156,15 @@ def check_structural(fhir_dir: Path, country: str):
 # --------- 2. CLINICAL FIDELITY ------------------------------------------
 
 DISEASES_OF_INTEREST = {
-    "diabetic_ketoacidosis", "acute_mi", "sepsis", "heart_failure_exacerbation",
-    "ckd_stage_3", "ckd_stage_4", "acute_kidney_injury",
-    "bacterial_pneumonia", "copd_exacerbation",
+    "diabetic_ketoacidosis",
+    "acute_mi",
+    "sepsis",
+    "heart_failure_exacerbation",
+    "ckd_stage_3",
+    "ckd_stage_4",
+    "acute_kidney_injury",
+    "bacterial_pneumonia",
+    "copd_exacerbation",
 }
 
 
@@ -168,14 +176,18 @@ def check_clinical(csv_dir: Path, country: str):
     # disease ICD prefix → disease_id (for code-based mapping when
     # ground_truth_diseases is empty or unrecognised)
     icd_to_disease = {
-        "E10.1": "diabetic_ketoacidosis", "E11.1": "diabetic_ketoacidosis",
+        "E10.1": "diabetic_ketoacidosis",
+        "E11.1": "diabetic_ketoacidosis",
         "E13.1": "diabetic_ketoacidosis",
-        "I21":   "acute_mi",
-        "A41":   "sepsis", "R65.20": "sepsis", "R65.21": "sepsis",
-        "I50":   "heart_failure_exacerbation",
-        "N17":   "acute_kidney_injury",
-        "N18":   "ckd_stage_3",
-        "J15":   "bacterial_pneumonia", "J18": "bacterial_pneumonia",
+        "I21": "acute_mi",
+        "A41": "sepsis",
+        "R65.20": "sepsis",
+        "R65.21": "sepsis",
+        "I50": "heart_failure_exacerbation",
+        "N17": "acute_kidney_injury",
+        "N18": "ckd_stage_3",
+        "J15": "bacterial_pneumonia",
+        "J18": "bacterial_pneumonia",
     }
     for row in csv.DictReader(open(csv_dir / "diagnoses.csv")):
         if patient_disease.get(row["patient_id"]):
@@ -198,9 +210,7 @@ def check_clinical(csv_dir: Path, country: str):
     # patient × analyte → list of values (admit-day = first row, day 0)
     # lab_results.csv columns: patient_id, encounter_id, lab_name, value,
     #                          result_datetime, ...
-    labs_by_disease: dict[str, dict[str, list[float]]] = collections.defaultdict(
-        lambda: collections.defaultdict(list)
-    )
+    labs_by_disease: dict[str, dict[str, list[float]]] = collections.defaultdict(lambda: collections.defaultdict(list))
     first_seen: dict[tuple[str, str, str], bool] = {}
     for row in csv.DictReader(open(csv_dir / "lab_results.csv")):
         pid = row["patient_id"]
@@ -238,8 +248,10 @@ def check_clinical(csv_dir: Path, country: str):
         med = percentile(vs, 50)
         p75 = percentile(vs, 75)
         p90 = percentile(vs, 90)
-        print(f"  [{status}] {d:30s} {analyte:12s}  n={len(vs):4d}  "
-              f"p50={med:7.2f} p75={p75:7.2f} p90={p90:7.2f}  ({expected})")
+        print(
+            f"  [{status}] {d:30s} {analyte:12s}  n={len(vs):4d}  "
+            f"p50={med:7.2f} p75={p75:7.2f} p90={p90:7.2f}  ({expected})"
+        )
 
     # HbA1c × Glucose correlation in all patients who have both
     pairs = []
@@ -269,11 +281,12 @@ def check_clinical(csv_dir: Path, country: str):
         cov = sum((ai - mean_a) * (gi - mean_g) for ai, gi in pairs) / n
         var_a = sum((ai - mean_a) ** 2 for ai in a) / n
         var_g = sum((gi - mean_g) ** 2 for gi in g) / n
-        r = cov / (var_a ** 0.5 * var_g ** 0.5) if var_a and var_g else 0
+        r = cov / (var_a**0.5 * var_g**0.5) if var_a and var_g else 0
         print(f"  HbA1c × Glucose: n={n}, r={r:.3f}  (expect 0.40 ≤ r ≤ 0.70)")
 
 
 # --------- 3. JP LOCALIZATION --------------------------------------------
+
 
 def check_localization(fhir_dir: Path, country: str):
     section(f"3. JP LOCALIZATION ({country})")
@@ -303,8 +316,10 @@ def check_localization(fhir_dir: Path, country: str):
                     if JP_CHAR_RE.search(t):
                         names_jp += 1
         if names_total:
-            print(f"  JP Patient name.text Japanese coverage: "
-                  f"{names_jp}/{names_total} ({100*names_jp/names_total:.1f}%)")
+            print(
+                f"  JP Patient name.text Japanese coverage: "
+                f"{names_jp}/{names_total} ({100 * names_jp / names_total:.1f}%)"
+            )
 
         # Condition.code.text — sample
         cond_jp = cond_total = 0
@@ -320,10 +335,11 @@ def check_localization(fhir_dir: Path, country: str):
                 if CM_GRANULAR_RE.match(code):
                     cm_granular_hits += 1
         if cond_total:
-            print(f"  JP Condition.code.text Japanese coverage: "
-                  f"{cond_jp}/{cond_total} ({100*cond_jp/cond_total:.1f}%)")
-        print(f"  JP CM-granular ICD-10 leaks: {cm_granular_hits}  "
-              f"(expected 0; WHO 3-4 char only)")
+            print(
+                f"  JP Condition.code.text Japanese coverage: "
+                f"{cond_jp}/{cond_total} ({100 * cond_jp / cond_total:.1f}%)"
+            )
+        print(f"  JP CM-granular ICD-10 leaks: {cm_granular_hits}  (expected 0; WHO 3-4 char only)")
 
         # DR.code.coding[0].display — should be Japanese for known panel codes
         dr_jp = dr_total = 0
@@ -335,8 +351,7 @@ def check_localization(fhir_dir: Path, country: str):
                     if JP_CHAR_RE.search(d):
                         dr_jp += 1
         if dr_total:
-            print(f"  JP DR.code display Japanese coverage: "
-                  f"{dr_jp}/{dr_total} ({100*dr_jp/dr_total:.1f}%)")
+            print(f"  JP DR.code display Japanese coverage: {dr_jp}/{dr_total} ({100 * dr_jp / dr_total:.1f}%)")
 
         # Observation.code.text Japanese — for lab Observations only
         obs_jp = obs_total = 0
@@ -349,8 +364,10 @@ def check_localization(fhir_dir: Path, country: str):
                 if JP_CHAR_RE.search(t):
                     obs_jp += 1
         if obs_total:
-            print(f"  JP lab Observation.code.text Japanese coverage: "
-                  f"{obs_jp}/{obs_total} ({100*obs_jp/obs_total:.1f}%)")
+            print(
+                f"  JP lab Observation.code.text Japanese coverage: "
+                f"{obs_jp}/{obs_total} ({100 * obs_jp / obs_total:.1f}%)"
+            )
 
 
 def main() -> None:

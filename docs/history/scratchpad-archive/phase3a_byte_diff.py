@@ -7,6 +7,7 @@ Expected (per spec §8 v3):
   per-patient sub-seed determinism for device + hai sampling)
 - Observation: same line count, WBC + CRP values shifted in HAI cohort rows
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -27,21 +28,16 @@ def line_count(path: Path) -> int:
 
 def report(country: str) -> None:
     print(f"\n## {country.upper()}\n")
-    print(
-        "| NDJSON | master sha256 | branch sha256 "
-        "| master lines | branch lines | verdict |"
-    )
+    print("| NDJSON | master sha256 | branch sha256 | master lines | branch lines | verdict |")
     print("|---|---|---|---|---|---|")
     master_dir = MASTER / country / "fhir_r4"
     branch_dir = BRANCH / country / "fhir_r4"
-    files = sorted({p.name for p in master_dir.glob("*.ndjson")} |
-                   {p.name for p in branch_dir.glob("*.ndjson")})
+    files = sorted({p.name for p in master_dir.glob("*.ndjson")} | {p.name for p in branch_dir.glob("*.ndjson")})
     for name in files:
         m_path = master_dir / name
         b_path = branch_dir / name
         if not m_path.exists():
-            print(f"| {name} | MISSING | — | 0 | "
-                  f"{line_count(b_path) if b_path.exists() else 0} | NEW |")
+            print(f"| {name} | MISSING | — | 0 | {line_count(b_path) if b_path.exists() else 0} | NEW |")
             continue
         if not b_path.exists():
             print(f"| {name} | — | MISSING | {line_count(m_path)} | 0 | REMOVED |")
@@ -56,10 +52,7 @@ def report(country: str) -> None:
             verdict = "same-count shift"
         else:
             verdict = "count diff"
-        print(
-            f"| {name} | {m_hash[:12]}... | {b_hash[:12]}... "
-            f"| {m_lines} | {b_lines} | {verdict} |"
-        )
+        print(f"| {name} | {m_hash[:12]}... | {b_hash[:12]}... | {m_lines} | {b_lines} | {verdict} |")
 
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@
 Usage:
     python scratchpad/dqr_phase2a_vte_review.py <bundle-root> <US|JP>
 """
+
 from __future__ import annotations
 
 import collections
@@ -54,8 +55,9 @@ def primary_admit_date(enc: dict) -> str | None:
     return (p.get("start") or "")[:10] or None
 
 
-def admit_obs_for_diseases(obs: list[dict], encs: list[dict], conds: list[dict],
-                           dx_prefixes: tuple[str, ...]) -> list[dict]:
+def admit_obs_for_diseases(
+    obs: list[dict], encs: list[dict], conds: list[dict], dx_prefixes: tuple[str, ...]
+) -> list[dict]:
     cond_pid_dates: dict[str, set[str]] = collections.defaultdict(set)
     for c in conds:
         codings = c.get("code", {}).get("coding") or []
@@ -107,14 +109,13 @@ def structural_axis(root: Path, country: str) -> list[str]:
     out: list[str] = ["## Structural\n"]
 
     target = D_DIMER_LOINC if country == "US" else D_DIMER_JLAC10
-    dd_obs = [
-        o for o in obs
-        if any(c.get("code") == target for c in o.get("code", {}).get("coding") or [])
-    ]
+    dd_obs = [o for o in obs if any(c.get("code") == target for c in o.get("code", {}).get("coding") or [])]
     with_range = [o for o in dd_obs if o.get("referenceRange")]
     rr_pct = 100 * len(with_range) / len(dd_obs) if dd_obs else float("nan")
-    out.append(f"- D-dimer Observations: **{len(dd_obs)}**, with refRange: **{len(with_range)}** "
-               f"({rr_pct:.1f}%)  ({'PASS' if rr_pct == 100 else 'CHECK' if dd_obs else 'N/A'})")
+    out.append(
+        f"- D-dimer Observations: **{len(dd_obs)}**, with refRange: **{len(with_range)}** "
+        f"({rr_pct:.1f}%)  ({'PASS' if rr_pct == 100 else 'CHECK' if dd_obs else 'N/A'})"
+    )
 
     bad_display = []
     code_displays: set[str] = set()
@@ -126,8 +127,7 @@ def structural_axis(root: Path, country: str) -> list[str]:
                 code_displays.add(disp)
                 if disp == code or not disp:
                     bad_display.append((code, disp))
-    out.append(f"- D-dimer display==code or empty: **{len(bad_display)}**  "
-               f"({'PASS' if not bad_display else 'FAIL'})")
+    out.append(f"- D-dimer display==code or empty: **{len(bad_display)}**  ({'PASS' if not bad_display else 'FAIL'})")
     for d in code_displays:
         out.append(f"  - `{target}` → `{d}`")
     return out
@@ -153,9 +153,11 @@ def clinical_axis(root: Path, country: str) -> list[str]:
             ok = p50 >= target_p50
         else:
             ok = p50 < target_p50
-        out.append(f"- {disease_label} admit-day D-dimer p50 = **{p50:.2f}** ug/mL  "
-                   f"(target {comparator} {target_p50}; {'PASS' if ok else 'CHECK'})  "
-                   f"[n={len(vals)}]")
+        out.append(
+            f"- {disease_label} admit-day D-dimer p50 = **{p50:.2f}** ug/mL  "
+            f"(target {comparator} {target_p50}; {'PASS' if ok else 'CHECK'})  "
+            f"[n={len(vals)}]"
+        )
 
     report("PE (I26)", ("I26",), 4.0)
     report("DVT (I80)", ("I80", "I82"), 4.0)
@@ -167,11 +169,13 @@ def clinical_axis(root: Path, country: str) -> list[str]:
         p10 = pct(all_dd, 10)
         p50 = statistics.median(all_dd)
         p90 = pct(all_dd, 90)
-        in_clamp = (0.15 <= min(all_dd) and max(all_dd) <= 20.0)
-        out.append(f"- Whole-cohort D-dimer: p10=**{p10:.2f}** p50=**{p50:.2f}** "
-                   f"p90=**{p90:.2f}** ug/mL  "
-                   f"(in [0.15, 20] clamp: {'PASS' if in_clamp else 'FAIL'})  "
-                   f"[n={len(all_dd)}]")
+        in_clamp = 0.15 <= min(all_dd) and max(all_dd) <= 20.0
+        out.append(
+            f"- Whole-cohort D-dimer: p10=**{p10:.2f}** p50=**{p50:.2f}** "
+            f"p90=**{p90:.2f}** ug/mL  "
+            f"(in [0.15, 20] clamp: {'PASS' if in_clamp else 'FAIL'})  "
+            f"[n={len(all_dd)}]"
+        )
 
     # J5 evidence: MI-grade troponin presence
     tn = obs_values_by_lab(obs, TROPONIN_CODES)
@@ -181,9 +185,11 @@ def clinical_axis(root: Path, country: str) -> list[str]:
     if all_tn:
         high = [v for v in all_tn if v > 5.0]
         very_high = [v for v in all_tn if v > 30.0]
-        out.append(f"- Troponin distribution: n=**{len(all_tn)}**; "
-                   f">5 ng/mL = **{len(high)}**; >30 ng/mL = **{len(very_high)}** "
-                   f"(J5 fix lets ED-route MI reach these tiers)")
+        out.append(
+            f"- Troponin distribution: n=**{len(all_tn)}**; "
+            f">5 ng/mL = **{len(high)}**; >30 ng/mL = **{len(very_high)}** "
+            f"(J5 fix lets ED-route MI reach these tiers)"
+        )
     return out
 
 
@@ -193,10 +199,7 @@ def jp_language_axis(root: Path, country: str) -> list[str]:
     out: list[str] = ["\n## JP Language\n"]
 
     target = D_DIMER_LOINC if country == "US" else D_DIMER_JLAC10
-    dd_obs = [
-        o for o in obs
-        if any(c.get("code") == target for c in o.get("code", {}).get("coding") or [])
-    ]
+    dd_obs = [o for o in obs if any(c.get("code") == target for c in o.get("code", {}).get("coding") or [])]
 
     if country == "US":
         jp_leak = 0
@@ -206,8 +209,10 @@ def jp_language_axis(root: Path, country: str) -> list[str]:
                     jp_leak += 1
             if JAPANESE.search(r.get("code", {}).get("text", "") or ""):
                 jp_leak += 1
-        out.append(f"- US output Japanese leak in D-dimer fields: **{jp_leak}**  "
-                   f"({'PASS' if jp_leak == 0 else 'FAIL'})  [scanned {len(dd_obs)} resources]")
+        out.append(
+            f"- US output Japanese leak in D-dimer fields: **{jp_leak}**  "
+            f"({'PASS' if jp_leak == 0 else 'FAIL'})  [scanned {len(dd_obs)} resources]"
+        )
     else:
         jp_hit = 0
         for r in dd_obs:
@@ -216,17 +221,19 @@ def jp_language_axis(root: Path, country: str) -> list[str]:
                     jp_hit += 1
             if JAPANESE.search(r.get("code", {}).get("text", "") or ""):
                 jp_hit += 1
-        out.append(f"- JP output Japanese coverage in D-dimer fields: **{jp_hit}** instances  "
-                   f"({'PASS' if jp_hit > 0 else 'FAIL'})  [scanned {len(dd_obs)} resources]")
+        out.append(
+            f"- JP output Japanese coverage in D-dimer fields: **{jp_hit}** instances  "
+            f"({'PASS' if jp_hit > 0 else 'FAIL'})  [scanned {len(dd_obs)} resources]"
+        )
 
         from yaml import safe_load
+
         jp_repo = Path(__file__).resolve().parents[1] / "clinosim/codes/data/jlac10.yaml"
         jlac = safe_load(jp_repo.read_text())["codes"]
         ja = jlac.get("2B140", {}).get("ja", "")
         jp_present = bool(JAPANESE.search(ja))
         not_eng_abbrev = ja not in {"D-D dimer", "D-dimer", "D dimer", "D-D dymer"}
-        out.append(f"  - `2B140` ja=`{ja}`  "
-                   f"({'PASS' if jp_present and not_eng_abbrev else 'FAIL'})")
+        out.append(f"  - `2B140` ja=`{ja}`  ({'PASS' if jp_present and not_eng_abbrev else 'FAIL'})")
 
     return out
 

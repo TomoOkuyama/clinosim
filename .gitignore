@@ -35,6 +35,10 @@ Miniconda3*.sh
 htmlcov/
 .coverage
 
+# Working scratchpad — maintainer per-session investigation files
+# (past archives live under docs/history/scratchpad-archive/)
+/scratchpad/
+
 # Claude Code
 .claude/
 venv/
