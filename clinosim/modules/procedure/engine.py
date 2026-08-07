@@ -13,6 +13,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.modules._shared import is_jp
+from clinosim.modules.disease.acuity import NEURO_LOC_MONITORING_DISEASES
 from clinosim.types.procedure import ProcedureRecord, RehabSession
 
 __all__ = ["ProcedureRecord", "RehabSession"]
@@ -300,9 +301,12 @@ _PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
     (["acute_mi"], [("arterial_line", 0.60), ("central_line", 0.40), ("echocardiography", 0.90)]),
     # Stroke: nasogastric tube (dysphagia risk), lumbar puncture
     (["cerebral_infarction", "hemorrhagic_stroke"], [("nasogastric_tube", 0.30), ("echocardiography", 0.50)]),
-    # Hemorrhagic stroke / subdural: intubation
+    # Hemorrhagic stroke / subdural: intubation. Same 2-disease pair as
+    # `NEURO_LOC_MONITORING_DISEASES` — kept as `list(...)` because the outer
+    # rule table's item type is `list[str]`, but membership stays synced with
+    # the canonical set.
     (
-        ["hemorrhagic_stroke", "subdural_hematoma"],
+        list(NEURO_LOC_MONITORING_DISEASES),
         [("intubation", 0.40), ("central_line", 0.50), ("arterial_line", 0.40)],
     ),
     # GI bleeding: nasogastric tube, blood transfusion

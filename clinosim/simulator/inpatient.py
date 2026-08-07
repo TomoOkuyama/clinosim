@@ -24,6 +24,11 @@ from clinosim.modules.diagnosis.engine import (
     update_differential,
 )
 from clinosim.modules.diagnosis.nonspecific_codes import UNRESOLVED_DIAGNOSIS_ICD
+from clinosim.modules.disease.acuity import (
+    CRITICAL_MONITORING_DISEASES,
+    EMERGENCY_PRIORITY_DISEASES,
+    NEURO_LOC_MONITORING_DISEASES,
+)
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.disease.severity import category_from_score
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -487,12 +492,7 @@ def _simulate_patient(
         else:
             encounter.discharge_disposition = "home"
     if not encounter.priority:
-        encounter.priority = (
-            "EM"
-            if disease_id
-            in ("acute_mi", "sepsis", "hemorrhagic_stroke", "subdural_hematoma", "traffic_accident_severe")
-            else "UR"
-        )
+        encounter.priority = "EM" if disease_id in EMERGENCY_PRIORITY_DISEASES else "UR"
 
     # Discharge time: daytime (09-16) for planned discharge, any time for death
     # Clinical convention: discharges happen during daytime business hours
@@ -1912,7 +1912,7 @@ def _loc_for(state, disease_id, day, rng):
         return "V" if rng.random() < 0.7 else "P"
     if state.perfusion_status < 0.6 and disease_id in _NEURO_DISEASES:
         return "V" if rng.random() < 0.5 else "A"
-    if disease_id in ("hemorrhagic_stroke", "subdural_hematoma") and day <= 2:
+    if disease_id in NEURO_LOC_MONITORING_DISEASES and day <= 2:
         return str(rng.choice(["A", "V", "P"], p=[0.4, 0.4, 0.2]))
     return "A"
 
@@ -1940,13 +1940,11 @@ def _generate_vitals(
     is_respiratory = disease_id in _RESPIRATORY_DISEASES or disease_id == "heart_failure_exacerbation"
 
     # Routine full-vitals schedule by acuity
-    # Critically unstable (septic shock, acute MI, hemorrhagic stroke): q1-2h
-    is_critical = state.perfusion_status < 0.3 or disease_id in (
-        "sepsis",
-        "acute_mi",
-        "hemorrhagic_stroke",
-        "traffic_accident_severe",
-    )
+    # Critically unstable (septic shock, acute MI, hemorrhagic stroke, subdural
+    # hematoma, severe trauma): q1-2h. Set defined in
+    # `clinosim.modules.disease.acuity.CRITICAL_MONITORING_DISEASES` — Issue
+    # #563 added `subdural_hematoma` to close the drift with EMERGENCY_PRIORITY.
+    is_critical = state.perfusion_status < 0.3 or disease_id in CRITICAL_MONITORING_DISEASES
     if is_critical and day <= 2:
         full_hours = list(range(0, 24, 2))  # q2h (12 sets/day)
     elif is_unstable:
