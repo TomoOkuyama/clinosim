@@ -1035,3 +1035,28 @@ def _map_encounter_status(status: str) -> str:
         "cancelled": "cancelled",
     }
     return mapping.get(status, "unknown")
+
+
+def derive_meta_last_updated(resource: dict, prefer: tuple[str, ...]) -> str | None:
+    """Canonical fallback resolver for FHIR ``Resource.meta.lastUpdated`` (Issue #549).
+
+    Walks ``prefer`` field paths in order and returns the first non-empty value.
+    Supports dotted paths for nested lookups (e.g. ``"effectivePeriod.end"``).
+    Returns ``None`` when no field yields a value — callers may then apply a
+    secondary fallback (bundle-context timestamp, doc-source datetime, etc.).
+
+    Six emit sites populated ``meta.lastUpdated`` with five distinct hardcoded
+    fallback chains before this helper; new resource types had no canonical
+    pattern to follow. The chain is now expressed as a tuple at each call site
+    and the traversal shares one implementation.
+    """
+    for path in prefer:
+        cur: Any = resource
+        for part in path.split("."):
+            if not isinstance(cur, dict):
+                cur = None
+                break
+            cur = cur.get(part)
+        if cur:
+            return cur
+    return None

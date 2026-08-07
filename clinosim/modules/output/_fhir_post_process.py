@@ -81,6 +81,7 @@ from clinosim.modules.output._fhir_common import (  # noqa: F401
     _sha1_b64,
     _strip_protocol_prefix,
     _survey_category,
+    derive_meta_last_updated,
 )
 from clinosim.modules.output._fhir_composition import (  # noqa: F401
     _bb_compositions,
@@ -527,12 +528,7 @@ def _populate_observation_identifier_and_last_updated(resource: dict, country: s
     # then converts it to the FHIR `instant` shape (seconds + TZ).
     meta = resource.setdefault("meta", {})
     if not meta.get("lastUpdated"):
-        ts = (
-            resource.get("effectiveDateTime")
-            or resource.get("issued")
-            or (resource.get("effectivePeriod") or {}).get("end")
-            or ""
-        )
+        ts = derive_meta_last_updated(resource, ("effectiveDateTime", "issued", "effectivePeriod.end"))
         if ts:
             meta["lastUpdated"] = ts
 
@@ -953,10 +949,12 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # (2) meta.lastUpdated fallback chain.
     meta = resource.setdefault("meta", {})
     if not meta.get("lastUpdated"):
-        if rt == "MedicationRequest":
-            ts = resource.get("authoredOn") or resource.get("recorded") or ""
-        else:  # Condition, AllergyIntolerance
-            ts = resource.get("recordedDate") or resource.get("assertedDate") or resource.get("onsetDateTime") or ""
+        prefer: tuple[str, ...] = (
+            ("authoredOn", "recorded")
+            if rt == "MedicationRequest"
+            else ("recordedDate", "assertedDate", "onsetDateTime")
+        )
+        ts = derive_meta_last_updated(resource, prefer)
         if ts:
             meta["lastUpdated"] = ts
 
