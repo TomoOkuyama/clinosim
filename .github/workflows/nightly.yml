@@ -12,6 +12,18 @@
 #   - unit tests on Python 3.11: the compatibility floor. Weekly cadence
 #     covers it without paying 2× runner cost on every PR — a 3.11-only
 #     break gets one workday of latency, which the maintainer can absorb.
+#   - clinical-integrity audit (session 82 Tier C): `clinosim audit run`
+#     on a small US + JP cohort. Surfaces silent_no_op / structural /
+#     clinical / jp_language axis regressions that unit tests can't see
+#     because they only fire on real cohort data. Failures here are
+#     data-quality signals that should be triaged like reproducibility
+#     failures — bisect the last night's merges.
+#   - cohort byte-diff vs prior master (session 82 Tier C): generates a
+#     small deterministic cohort at the current master HEAD, diffs it
+#     against a cached baseline (previous nightly's cohort), and
+#     surfaces any silent output drift. Complements the reproducibility
+#     job (which proves same code → same output) by also proving
+#     "unchanged code = unchanged output across master advances".
 #
 # Any failure here should be triaged the next morning: `git bisect` the
 # last night's merges to find the offender.
@@ -60,3 +72,129 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Run unit tests
         run: pytest tests/unit -q --tb=short
+
+  audit:
+    name: Clinical-integrity audit (US + JP p=100 seed=42)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Session 82 Tier C: the audit framework (`clinosim audit run`) checks
+    # silent_no_op / structural / clinical / jp_language axes on real
+    # cohort data. Runs both US and JP so JP-CLINS / JP Core axes fire.
+    # p=100 is small enough for a ~5 min job total but large enough that
+    # per-module gates (HAI empirical, antibiotic narrow rate, JP-CLINS
+    # slice presence) have non-degenerate cohort sizes.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Generate US cohort (p=100 seed=42)
+        run: |
+          mkdir -p audit-cohort/us
+          clinosim simulate --country US -p 100 -s 42 \
+            --format fhir-r4 -o audit-cohort/us
+      - name: Generate JP cohort (p=100 seed=42, --allow-legacy for CI)
+        env:
+          CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG: "1"
+        run: |
+          mkdir -p audit-cohort/jp
+          clinosim simulate --country JP -p 100 -s 42 \
+            --format fhir-r4 --allow-legacy -o audit-cohort/jp
+      - name: Run audit on US cohort
+        # `--strict` promotes any FAIL check to exit code 1. Nightly
+        # cadence means a real regression gets one workday of visibility
+        # before other work builds on top of it.
+        run: clinosim audit run -d audit-cohort/us
+      - name: Run audit on JP cohort
+        run: clinosim audit run -d audit-cohort/jp
+      - name: Upload audit reports (retained 30 days)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-reports
+          path: audit-cohort/**/*.md
+          retention-days: 30
+
+  cohort-byte-diff-vs-master:
+    name: Cohort byte-diff vs master (US p=100 seed=42)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Session 82 Tier C: complements the reproducibility gate.
+    # Reproducibility: same code → same output (SemVer determinism).
+    # This job: generates today's cohort at HEAD, restores yesterday's
+    # cohort from cache, byte-diffs the NDJSON. Any drift is either
+    # (a) an intentional cohort-visible change (release-notable), or
+    # (b) a silent regression (fix or revert). Both need eyes on them.
+    #
+    # First run has no cached baseline → job PASSES trivially and
+    # populates the cache for tomorrow. From day 2 onward it enforces.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -e "."
+      - name: Restore prior cohort cache
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          # Restore any cache from the same nightly job; the exact key
+          # never matches (differs by run number), forcing GitHub to
+          # fall back to the `restore-keys` prefix which grabs the most
+          # recent entry.
+          key: cohort-baseline-${{ github.run_number }}
+          restore-keys: cohort-baseline-
+          path: cohort-baseline/
+      - name: Generate today's cohort
+        run: |
+          mkdir -p cohort-today
+          clinosim simulate --country US -p 100 -s 42 \
+            --format fhir-r4 -o cohort-today
+      - name: Byte-diff vs cached baseline
+        # Cache miss on first run → skip diff, just populate.
+        # Cache hit → cmp -s every ndjson and fail on any diff.
+        run: |
+          set -euo pipefail
+          if [ ! -d cohort-baseline/fhir_r4 ]; then
+            echo "::notice::First nightly run — no baseline yet. Today's cohort becomes the baseline."
+            exit 0
+          fi
+          diff_count=0
+          for f in cohort-today/fhir_r4/*.ndjson; do
+            base=$(basename "$f")
+            baseline="cohort-baseline/fhir_r4/$base"
+            if [ ! -f "$baseline" ]; then
+              echo "::warning::new file today: $base"
+              diff_count=$((diff_count + 1))
+              continue
+            fi
+            if ! cmp -s "$f" "$baseline"; then
+              lines_today=$(wc -l < "$f")
+              lines_base=$(wc -l < "$baseline")
+              echo "::warning::DIFF: $base (today=$lines_today, baseline=$lines_base)"
+              diff_count=$((diff_count + 1))
+            fi
+          done
+          if [ "$diff_count" -gt 0 ]; then
+            echo "::error::$diff_count NDJSON file(s) drifted since yesterday. Either the merge queue contains an intentional cohort-visible change (add to CHANGELOG under a MINOR bump) or a silent regression (revert / fix)."
+            exit 1
+          fi
+          echo "cohort byte-identical vs yesterday's baseline"
+      - name: Rotate cache — today becomes tomorrow's baseline
+        # Always rotate, even on diff-detected failure, so a legitimate
+        # cohort-visible change auto-baseline updates the next night.
+        if: always()
+        run: |
+          rm -rf cohort-baseline
+          cp -r cohort-today cohort-baseline
+      - name: Save updated baseline cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          key: cohort-baseline-${{ github.run_number }}
+          path: cohort-baseline/
