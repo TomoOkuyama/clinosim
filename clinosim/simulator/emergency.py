@@ -11,7 +11,11 @@ from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
 from clinosim.modules.order.treatment_classifier import classify_encounter_treatment
-from clinosim.modules.staff.engine import StaffRoster, assign_staff
+from clinosim.modules.staff.engine import (
+    FALLBACK_PHYSICIAN_ID,
+    StaffRoster,
+    assign_staff,
+)
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.encounter import (
     EncounterStatus,
@@ -91,7 +95,7 @@ def _simulate_ed_visit(
     encounter.status = EncounterStatus.COMPLETED
 
     staff = assign_staff("admission", "internal_medicine", roster, rng)
-    encounter.attending_physician_id = staff.get("attending_physician", "DR-001")
+    encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
 
     # ED stay duration from protocol or default
     if protocol:
