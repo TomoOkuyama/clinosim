@@ -2131,10 +2131,21 @@ def _build_discharge_rx(
     # discharge_oral wins over the chronic transcription (protocol carries the
     # authoritative dose/duration for this admission's discharge, whereas
     # chronic entries default to dose="" / 28-day supply).
-    # Issue #452 PR 3: read `med.drug_name` directly. Test fixtures that
-    # attribute-assign `p.current_medications = [...]` (bypassing __post_init__)
-    # were migrated to construct `HomeMedication` instances in this PR.
-    for med in patient.current_medications:
+    # Issue #452 PR 3: read `med.drug_name` directly.
+    # Issue #433 C1: prefer baseline_chronic_medications (immutable snapshot
+    # captured at activator time) UNION current_medications (dynamic — may
+    # carry hospital-started drugs propagated forward by PR A Phase 1 sync).
+    # This is the fix for "chronic drug permanently lost after renal-hold":
+    # a metformin held during an AKI admission stays in baseline; when the
+    # next admission's final_renal_function >= 0.3 (renal recovered), the
+    # renal-hold filter no longer applies and the drug is re-emitted from
+    # baseline even though it was absent from that intermediate admission's
+    # discharge_prescription.items. Older PatientProfile fixtures without a
+    # populated baseline fall back to current_medications only.
+    baseline = list(patient.baseline_chronic_medications) if patient.baseline_chronic_medications else []
+    baseline_keys = {_dedup_key(m.drug_name) for m in baseline if m.drug_name}
+    combined = list(baseline) + [m for m in patient.current_medications if _dedup_key(m.drug_name) not in baseline_keys]
+    for med in combined:
         drug_name = med.drug_name
         if not drug_name:
             continue
