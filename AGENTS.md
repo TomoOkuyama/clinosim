@@ -50,6 +50,30 @@ content without a `.ja.md` suffix and will be migrated in follow-up PRs
 (one module at a time — see `#166`).
 - **Communication with user**: Japanese
 
+## Country / locale convention
+
+- **Default country = US.** CLI subcommands and the programmatic API default to
+  `country="US"` when no value is supplied. Any fallback in code MUST default
+  to US — never to JP. Anti-pattern: `x.get(country_key) or x.get("japan", {})`
+  or `x if is_us(country) else "JP"` (both invert the convention).
+- **JP is opt-in** via explicit `--country JP` (CLI) or `country="JP"` (API).
+  JP-specific modules — JP Core / JP-CLINS profile application, JCCLS
+  reference ranges, JST (`+09:00`) timestamp appenders, MHLW ICD system
+  routing, MEDIS code emission, 保険者番号 lookup, JP-specific display strings —
+  MUST be gated behind `is_jp(country)` from `clinosim.modules._shared` and
+  MUST no-op on non-JP cohorts.
+- **Future US-specific profile support** (US Core / USCDI) will be gated behind
+  `is_us(country)` in the same manner. The default cohort (no `--country`)
+  emits generic FHIR R4; explicit `--country US` will additionally apply US
+  Core once implemented.
+- **Fallback direction**: use `x if is_jp(country) else "us"`, not
+  `x if is_us(country) else "jp"`. A pre-commit / CI grep check rejects new
+  `else "japan"` / `else "JP"` fallbacks.
+- **Locale-gate regression tests** (`tests/regression/test_us_cohort_no_jp_literals.py`
+  and its sibling `test_jp_cohort_no_us_literals.py`) assert that US cohorts
+  contain no JP-specific literals (`+09:00`, JP-CLINS / JP Core profile URIs,
+  MEDIS / MHLW / JLAC10 system URIs) and vice-versa.
+
 ## Code standards
 
 - Formatter: ruff
