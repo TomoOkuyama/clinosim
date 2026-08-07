@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4_adapter import (
+from clinosim.modules.output._fhir_post_process import (
     _apply_jp_clins_profile,
     _is_lab_observation,
 )

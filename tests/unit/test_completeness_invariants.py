@@ -166,7 +166,7 @@ class TestJpClinsProfileEmissionInvariants:
     """
 
     def test_jp_bacterial_pneumonia_cohort_has_clins_profiles(self, jp_bacterial_pneumonia_resources):
-        from clinosim.modules.output.fhir_r4_adapter import (
+        from clinosim.modules.output._fhir_post_process import (
             _JP_CLINS_PROFILES,
             _is_lab_observation,
         )

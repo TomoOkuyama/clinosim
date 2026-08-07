@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4_adapter import (
+from clinosim.modules.output._fhir_post_process import (
     _CLINOSIM_OBSERVATION_ID_SYSTEM,
     _populate_observation_identifier_and_last_updated,
 )

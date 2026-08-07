@@ -23,7 +23,7 @@ display via ja lookup as before.
 
 from __future__ import annotations
 
-from clinosim.modules.output.fhir_r4_adapter import (
+from clinosim.modules.output._fhir_post_process import (
     _copy_display_from_sibling_coding,
     _strip_japanese_display_on_english_only_systems,
 )

@@ -14,81 +14,37 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
-from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
-    _bb_allergy_intolerances,
-)
-from clinosim.modules.output._fhir_care_level import _build_care_level  # noqa: F401
-from clinosim.modules.output._fhir_care_team import (  # noqa: F401
-    _bb_care_teams,
-)
-from clinosim.modules.output._fhir_clinical_impression import (  # noqa: F401
-    _bb_clinical_impressions,
-)
-from clinosim.modules.output._fhir_code_status import _build_code_status  # noqa: F401
+from clinosim.modules.output._fhir_allergy_intolerance import _bb_allergy_intolerances
+from clinosim.modules.output._fhir_care_level import _build_care_level
+from clinosim.modules.output._fhir_care_team import _bb_care_teams
+from clinosim.modules.output._fhir_clinical_impression import _bb_clinical_impressions
+from clinosim.modules.output._fhir_code_status import _build_code_status
 
-# FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
-# per-theme resource builders into sibling _fhir_* modules. The blocks below are
-# re-imported here so existing `from ...fhir_r4_adapter import X` call sites keep
-# working (facade). They are marked # noqa: F401 because many symbols are now used
-# only by the extracted modules (which import them directly) and are re-exported
-# purely as a compatibility facade; the # noqa keeps the facade stable as further
-# builders move out, without per-symbol import churn each phase.
-from clinosim.modules.output._fhir_common import (  # noqa: F401
+# FA-1 (Phases 1-13) + session 82 (H/I/K/L/N) split this adapter's leaf data,
+# shared fragment helpers, and per-theme resource builders into sibling
+# `_fhir_*` modules. The imports below are exactly the symbols `_build_bundle`
+# and `convert_cif_to_fhir` (this module's public surface) actually call —
+# the historical facade re-export block (marked with `noqa` directives) was
+# dropped once tests migrated to canonical imports.
+from clinosim.modules.output._fhir_common import (
     BundleContext,
-    _build_address,
-    _build_diagnosis_codeable_concept,
-    _build_dosage_instruction,
-    _build_reference_range,
-    _build_telecom,
     _entry,
-    _infer_severity,
-    _loinc_coding,
-    _make_participant,
-    _map_diagnosis_code,
-    _map_encounter_status,
-    _map_mar_status,
-    _micro_coding,
-    _parse_dose_for_mar,
-    _severity_coding,
-    _sha1_b64,
-    _strip_protocol_prefix,
-    _survey_category,
 )
-from clinosim.modules.output._fhir_composition import (  # noqa: F401
-    _bb_compositions,
-)
-from clinosim.modules.output._fhir_conditions import _build_conditions  # noqa: F401
-from clinosim.modules.output._fhir_device import (  # noqa: F401
+from clinosim.modules.output._fhir_composition import _bb_compositions
+from clinosim.modules.output._fhir_device import (
     _build_device,
     _build_device_use,
 )
-from clinosim.modules.output._fhir_diagnostic_report import (  # noqa: F401
-    _bb_diagnostic_reports,
-    build_lab_panel_reports,  # kept for backward compat (tests + external callers)
-)
-from clinosim.modules.output._fhir_document_reference_checkup import (  # noqa: F401
-    _bb_document_references_checkup,
-)
-from clinosim.modules.output._fhir_documents import (  # noqa: F401
-    _bb_document_references,
-)
-from clinosim.modules.output._fhir_encounter import (  # noqa: F401
-    _build_encounter,
-    _compute_encounter_length,
-)
-from clinosim.modules.output._fhir_endpoint import (  # noqa: F401
-    _bb_endpoints,
-)
-from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
-from clinosim.modules.output._fhir_family_history import _build_family_history  # noqa: F401
-from clinosim.modules.output._fhir_generator_metadata import (
-    write_generator_metadata as _write_generator_metadata,
-)
-from clinosim.modules.output._fhir_hai import _build_hai_conditions  # noqa: F401
-from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
-    _bb_imaging_studies,
-)
-from clinosim.modules.output._fhir_immunization import _build_immunizations  # noqa: F401
+from clinosim.modules.output._fhir_diagnostic_report import _bb_diagnostic_reports
+from clinosim.modules.output._fhir_document_reference_checkup import _bb_document_references_checkup
+from clinosim.modules.output._fhir_documents import _bb_document_references
+from clinosim.modules.output._fhir_endpoint import _bb_endpoints
+from clinosim.modules.output._fhir_facility import _build_facility_bundle
+from clinosim.modules.output._fhir_family_history import _build_family_history
+from clinosim.modules.output._fhir_generator_metadata import write_generator_metadata as _write_generator_metadata
+from clinosim.modules.output._fhir_hai import _build_hai_conditions
+from clinosim.modules.output._fhir_imaging_study import _bb_imaging_studies
+from clinosim.modules.output._fhir_immunization import _build_immunizations
 from clinosim.modules.output._fhir_inline_bb import (
     _bb_conditions,
     _bb_coverage,
@@ -101,130 +57,28 @@ from clinosim.modules.output._fhir_inline_bb import (
     _bb_practitioners,
     _bb_procedures,
     _bb_vitals,
-    _build_order_in_rp_map,  # noqa: F401 — back-compat re-export for test imports
 )
-from clinosim.modules.output._fhir_localization import (  # noqa: F401
-    _CATEGORY_DISPLAY_JA,
-    _CLASS_DISPLAY_JA,
-    _FREQ_JA,
-    _INTERPRETATION_DISPLAY_JA,
-    _LOCATION_NAME_JA,
-    _LOCATION_TYPE_DISPLAY_JA,
-    _OCCUPATION_DISPLAY_EN,
-    _OCCUPATION_DISPLAY_JA,
-    _ORG_TYPE_DISPLAY_JA,
-    _RELATIONSHIP_DISPLAY_JA,
-    _ROLE_PREFIX_MAP_JA,
-    _ROUTE_JA,
-    _SEVERITY_DISPLAY_JA,
-    _dept_display,
-    _load_department_display,
-    _load_drug_names_ja,
-    _load_med_terms_ja,
-    _localize_display,
-    _localize_dosage_terms,
-    _localize_drug_name,
-    _localize_interp,
-    _procedure_display,
-)
-from clinosim.modules.output._fhir_medications import (  # noqa: F401
-    _build_discharge_medication_request,
-    _build_medication_admin,
-    _build_medication_request,
-)
-from clinosim.modules.output._fhir_microbiology import _bb_microbiology  # noqa: F401
-from clinosim.modules.output._fhir_nursing import _build_nursing_observations  # noqa: F401
-from clinosim.modules.output._fhir_observations import (  # noqa: F401
-    _bb_labs,
-    _build_lab_observation,
-    _build_vital_observations,
-)
-from clinosim.modules.output._fhir_patient import (  # noqa: F401
-    _IDENTITY_CFG_CACHE,
-    _ORG_TYPE_SYSTEM,
-    _SUBSCRIBER_REL_SYSTEM,
-    _build_coverage_resources,
-    _build_occupation_observation,
-    _build_patient,
-    _identity_cfg,
-    _payer_name_map,
-)
+from clinosim.modules.output._fhir_microbiology import _bb_microbiology
+from clinosim.modules.output._fhir_nursing import _build_nursing_observations
+from clinosim.modules.output._fhir_observations import _bb_labs
 
 # Session 82 PR N: post-emit helpers extracted to _fhir_post_process.py.
-# Import back for use inside _build_bundle + back-compat for test callers.
-from clinosim.modules.output._fhir_post_process import (  # noqa: F401
-    _ALLERGY_CLINICAL_DISPLAY,
-    _ALLERGY_VER_STATUS_DISPLAY,
-    _CLINOSIM_OBSERVATION_ID_SYSTEM,
-    _COMPANION_SPECIMEN_ID_PREFIX,
-    _CONDITION_CLINICAL_DISPLAY,
-    _CONDITION_VER_STATUS_DISPLAY,
-    _DATETIME_FIELDS,
-    _ECS_IDENTIFIER_SYSTEMS,
-    _ENGLISH_ONLY_CODING_SYSTEM_PREFIXES,
-    _FHIR_URI_TO_CODE_SYSTEM_KEY,
-    _HL7_OBSERVATION_CATEGORY_SYSTEM,
-    _HL7_OBSERVATION_CATEGORY_SYSTEMS,
-    _HL7_V3_SUBSTITUTION_SYSTEM,
-    _INSTANT_FIELDS,
-    _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE,
-    _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,
-    _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,
-    _JP_CLINS_PROFILES,
-    _JP_CORE_PROFILES,
-    _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL,
-    _JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS,
-    _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS,
-    _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_CODE,
-    _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY,
-    _JP_OBSERVATION_CATEGORY_SYSTEM,
-    _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM,
-    _MEDIS_DISEASE_KEYNUMBER_SYSTEM,
-    _MEDIS_UNCODED_DISEASE_CODE,
-    _MEDIS_UNCODED_DISEASE_DISPLAY,
-    _PERIOD_FIELDS,
-    _SPECIMEN_TYPE_BLOOD,
-    _SPECIMEN_TYPE_URINE,
-    _UCUM_DAY_CODE,
-    _UCUM_DAY_UNIT_JA,
-    _UCUM_SYSTEM_URI,
+# Imported for use inside `_build_bundle` (see finalize pass).
+from clinosim.modules.output._fhir_post_process import (
     _apply_jp_clins_profile,
     _apply_jp_core_profile,
     _build_companion_specimen,
-    _contains_japanese_char,
-    _copy_display_from_sibling_coding,
-    _is_lab_observation,
     _lab_observation_needs_specimen,
-    _medication_request_satisfies_ecs,
-    _normalize_dt,
     _normalize_dt_fields,
     _normalize_jp_observation_category,
-    _pick_specimen_type_for_lab,
     _populate_condition_ai_mr_ecs_fields,
     _populate_jp_medication_dosage_ecs_fields,
     _populate_observation_identifier_and_last_updated,
-    _populate_status_coding_display,
     _strip_forbidden_observation_reference_range_extensions,
     _strip_japanese_display_on_english_only_systems,
 )
-from clinosim.modules.output._fhir_practitioner import (  # noqa: F401
-    _build_practitioner,
-    _build_practitioner_role,
-)
-from clinosim.modules.output._fhir_procedures import _build_procedure  # noqa: F401
-from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
-    _ALLERGEN_RXNORM,
-    _ENCOUNTER_TYPE_SNOMED_CODE,
-    _PREFECTURE_CODE,
-    _ROLE_PREFIX_MAP,
-    _ROUTE_SNOMED,
-    _SEVERITY_SNOMED,
-    _SPECIALTY_SNOMED,
-)
-from clinosim.modules.output._fhir_service_request import (  # noqa: F401
-    _bb_service_requests,
-)
-from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
+from clinosim.modules.output._fhir_service_request import _bb_service_requests
+from clinosim.modules.output._fhir_smoking_alcohol import (
     _build_alcohol_use,
     _build_smoking_status,
 )

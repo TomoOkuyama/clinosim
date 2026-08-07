@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4_adapter import (
+from clinosim.modules.output._fhir_post_process import (
     _ECS_IDENTIFIER_SYSTEMS,
     _MEDIS_DISEASE_KEYNUMBER_SYSTEM,
     _MEDIS_UNCODED_DISEASE_CODE,
