@@ -437,7 +437,7 @@ def _simulate_patient(
             protocol,
             attending_id,
             admission_time,
-            rng,
+            encounter_id=encounter.encounter_id,
             country_key=country_key,
             final_renal_function=final_renal,
         )
@@ -2039,7 +2039,9 @@ def _build_discharge_rx(
     protocol: DiseaseProtocol,
     prescriber_id: str,
     admission_time: datetime,
-    rng: np.random.Generator,
+    rng: np.random.Generator | None = None,
+    *,
+    encounter_id: str = "",
     country_key: str = "japan",
     final_renal_function: float = 1.0,
 ) -> PrescriptionRecord:
@@ -2048,7 +2050,27 @@ def _build_discharge_rx(
     Applies renal contraindication checks so that nephrotoxic drugs or drugs
     requiring renal clearance are not prescribed at discharge if the patient's
     renal function is impaired.
+
+    Issue #439 P1: per-(patient, encounter) sub-RNG derived internally from
+    ``discharge_prescription_seed`` so YAML edits to ``drugs.discharge_oral`` /
+    ``drugs.<category>`` do not shift unrelated patients' cohorts. Sibling of
+    AD-59 ``panel_specimen_seed`` / ``individual_lab_seed``. Production callers
+    pass ``encounter_id`` and leave ``rng=None`` — the helper derives the RNG
+    internally. Tests may inject an explicit ``rng`` to exercise probabilistic
+    invariants across a range of RNG streams; when both are provided the
+    explicit ``rng`` wins (test-only escape hatch).
     """
+    if rng is None:
+        from clinosim.simulator.seeding import discharge_prescription_seed
+
+        if not encounter_id:
+            raise ValueError(
+                "_build_discharge_rx: either `rng` or `encounter_id` must be "
+                "provided (encounter_id is required so the sub-RNG is stable "
+                "across runs; rng override is intended for test property "
+                "exploration only)."
+            )
+        rng = np.random.default_rng(discharge_prescription_seed(patient.patient_id, encounter_id))
     items: list[dict] = []
 
     # Drugs contraindicated at low renal function (eGFR roughly maps to state value)
