@@ -52,7 +52,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
-from clinosim.modules.output._fhir_common import BundleContext, _escape_html
+from clinosim.modules.output._fhir_common import BundleContext, _escape_html, derive_meta_last_updated
 
 logger = logging.getLogger(__name__)
 
@@ -672,7 +672,7 @@ def _build_jp_clins_discharge_summary_composition(
     # (Chain #9) `meta.lastUpdated` min=1 — reuse authoredOn / date. Emit
     # only when a source datetime exists so we never fabricate.
     if not meta.get("lastUpdated"):
-        ts = comp.get("date") or _o(doc, "authored_datetime", "")
+        ts = derive_meta_last_updated(comp, ("date",)) or _o(doc, "authored_datetime", "")
         if ts:
             meta["lastUpdated"] = ts
 
