@@ -15,7 +15,7 @@
 結果時刻計算は **2 つのモード** を持つ:
 
 1. **Legacy mode** (`calculate_lab_result_time`, `calculate_imaging_result_time`) — urgency + 時刻 + 曜日 + ランダム混雑 で統計的にモデル化
-2. **Hospital-state-aware mode** (`calculate_result_time_from_state`) — 病院リソース状態 (lab / CT / MRI の待ち行列) と `ops_config` から遅延を導出
+2. **Hospital-state-aware mode** (`calculate_result_time_from_state`) — 病院リソース状態 (lab / CT / MRI の待ち行列) と `hospital_ops` から遅延を導出
 
 ## 設計原則
 
@@ -327,18 +327,18 @@ result_time = calculate_lab_result_time(order, rng)
 **週末補正**: ×1.5, さらに MRI non-stat は +24h (月曜繰越)
 **夜間 non-stat**: 翌朝 6:00 まで繰延
 
-### `calculate_result_time_from_state(order, hospital_state, ops_config, rng) -> datetime`
+### `calculate_result_time_from_state(order, hospital_state, hospital_ops, rng) -> datetime`
 
 病院 state-aware な結果時刻計算 (`engine.py:405`)。待ち行列モデル統合。
 
 **ロジック**:
 
 1. `order.display_name` から resource 種別を判定 (`lab` / `xray` / `ct` / `mri` / `ultrasound`)
-2. `hospital_state.update_for_time(ordered, ops_config)` で現時点の稼働状況に更新
-3. `hospital_state.calculate_delay(resource, urgency, ops_config)` → 基本遅延
+2. `hospital_state.update_for_time(ordered, hospital_ops)` で現時点の稼働状況に更新
+3. `hospital_state.calculate_delay(resource, urgency, hospital_ops)` → 基本遅延
 4. ±20% のランダムバリエーション
 5. 夜間 non-stat は翌朝繰越
-6. `hospital_state.add_to_queue(resource, ops_config)` で待ち行列に追加
+6. `hospital_state.add_to_queue(resource, hospital_ops)` で待ち行列に追加
 
 `hospital_state is None` の場合は `calculate_lab_result_time` にフォールバック。
 
@@ -388,7 +388,7 @@ orders = place_admission_orders(
 for o in orders:
     if o.order_type.value in ("lab", "imaging"):
         o.result_datetime = calculate_result_time_from_state(
-            o, hospital_state, ops_config, rng,
+            o, hospital_state, hospital_ops, rng,
         )
 
 # Day 3: daily monitoring
@@ -456,7 +456,7 @@ elif "PET" in name_upper:
     resource = "pet"
 ```
 
-`ops_config` に `pet` リソースの定義 (`capacity`, `slot_duration_minutes` 等) も合わせて追加する。
+`hospital_ops` に `pet` リソースの定義 (`capacity`, `slot_duration_minutes` 等) も合わせて追加する。
 
 ### 新しい疾患のデフォルトオーダーを定義する
 

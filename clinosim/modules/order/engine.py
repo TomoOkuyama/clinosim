@@ -611,7 +611,7 @@ def calculate_imaging_result_time(
 def calculate_result_time_from_state(
     order: Order,
     hospital_state: Any,
-    ops_config: dict,
+    hospital_ops: dict,
     rng: Any,
 ) -> datetime:
     """Calculate result time using hospital operational state.
@@ -646,10 +646,10 @@ def calculate_result_time_from_state(
         return ordered + timedelta(minutes=5)
 
     # Update hospital state for current time
-    hospital_state.update_for_time(ordered, ops_config)
+    hospital_state.update_for_time(ordered, hospital_ops)
 
     # Calculate delay from state
-    delay = hospital_state.calculate_delay(resource, order.urgency, ops_config)
+    delay = hospital_state.calculate_delay(resource, order.urgency, hospital_ops)
 
     # Add randomness (±20%)
     delay *= float(1.0 + rng.normal(0, 0.2))
@@ -664,6 +664,6 @@ def calculate_result_time_from_state(
         delay = max(delay, (next_morning - ordered).total_seconds() / 60)
 
     # Update queue
-    hospital_state.add_to_queue(resource, ops_config)
+    hospital_state.add_to_queue(resource, hospital_ops)
 
     return ordered + timedelta(minutes=delay)
