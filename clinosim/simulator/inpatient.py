@@ -724,6 +724,7 @@ def _simulate_patient(
         encounter=encounter,
         state_history=state_history,
         admission_time=admission_time,
+        country=config.country,
     )
 
     return record
@@ -1003,7 +1004,9 @@ def _run_daily_loop(
 
                 result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, lab_rng)
                 observed = generate_lab_result(canon, true_labs[canon], lab_rng)
-                flag = determine_flag(canon, observed, sex=patient.sex)
+                flag = determine_flag(
+                    canon, observed, sex=patient.sex, country="JP" if country_key == "japan" else "US"
+                )
                 lab_tech = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", "TECH-001")
                 order.result = OrderResult(
                     result_datetime=result_time,
@@ -1057,7 +1060,9 @@ def _run_daily_loop(
                     )
                 else:
                     observed = generate_lab_result(canon, true_labs[canon], sub_rng)
-                    flag = determine_flag(canon, observed, sex=patient.sex)
+                    flag = determine_flag(
+                        canon, observed, sex=patient.sex, country="JP" if country_key == "japan" else "US"
+                    )
                     child.result = OrderResult(
                         result_datetime=result_time,
                         performed_by=lab_tech,
@@ -2255,7 +2260,12 @@ def _simulate_unknown_condition(
                     order, None, {}, rng
                 )  # unknown condition: no hospital state  # noqa: E501
                 observed = generate_lab_result(order.display_name, true_labs[order.display_name], rng)
-                flag = determine_flag(order.display_name, observed, sex=patient.sex)
+                flag = determine_flag(
+                    order.display_name,
+                    observed,
+                    sex=patient.sex,
+                    country=config.country if config else "US",
+                )
                 tech_id = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
                 order.result = OrderResult(
                     result_datetime=result_time,
