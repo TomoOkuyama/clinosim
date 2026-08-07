@@ -25,10 +25,9 @@ Thumbs.db
 !/output/fhir_jp_v2/
 /output_*/
 
-# Installers (do not commit)
+# Installers and generated tarballs (do not commit — keep local only)
 Miniconda3*.sh
 *.tar.gz
-!clinosim_fullrun_v2.tar.gz
 
 # Test artifacts
 .pytest_cache/
