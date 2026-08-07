@@ -1,0 +1,29 @@
+# Dependabot configuration — Issue #569.
+#
+# Weekly bumps for GitHub Actions (workflow pins) and Python (pip minor/patch
+# only) so security-advisory updates do not require manual watching. Grouped
+# to minimise PR noise.
+version: 2
+updates:
+  # GitHub Actions pins — actions/checkout, actions/setup-python, etc.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # Python deps — minor / patch bumps only; majors reviewed manually
+  # because they can affect FHIR / mypy / pydantic invariants.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "master"
+    groups:
+      minor:
+        update-types:
+          - "minor"
+          - "patch"
