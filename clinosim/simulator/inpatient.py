@@ -8,6 +8,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes import system_key_for
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
 from clinosim.modules.clinical_course.engine import (
     apply_diagnosis_modifier,
@@ -403,7 +404,12 @@ def _simulate_patient(
         if rng.random() < 0.30:
             missed.append(secondary_disease_id)
 
-    icd_sys = "icd-10" if country_key == "japan" else "icd-10-cm"
+    # Issue #547: use the canonical registry (`icd-10-mhlw` on JP per JP Core
+    # `jp-condition-diagnosis` required binding). The previous inline `"icd-10"`
+    # branch emitted the WHO code system on JP inpatient encounters, whereas
+    # ED / OPD paths and the FHIR emitter routed via the registry — CIF-side
+    # diagnosis_system was inconsistent across encounter types.
+    icd_sys = system_key_for("diagnosis", config.country)
     clinical_diagnosis = ClinicalDiagnosis(
         admission_diagnosis_code=protocol.icd_codes.get("primary", ""),
         admission_diagnosis_system=icd_sys,
