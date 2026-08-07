@@ -78,3 +78,17 @@ def test_display_name_built_from_drug_and_dose_for_keyword_match():
     # for the Order display_name. "continuous renal replacement" spans the join.
     esc = {"drug": "Continuous", "dose": "renal replacement therapy"}
     assert classify_escalation_treatment(esc) == OrderType.PROCEDURE
+
+
+def test_inpatient_module_imports_new_classifier():
+    """After Task 2 wiring, inpatient.py imports classify_escalation_treatment.
+
+    Smoke guard against silent revert. Behavioral verification lives in the
+    integration test suite (test_escalation_procedure_emission.py).
+    """
+    import clinosim.simulator.inpatient as inpatient_mod
+
+    assert hasattr(inpatient_mod, "classify_escalation_treatment"), (
+        "inpatient.py must import classify_escalation_treatment from "
+        "clinosim.modules.order.treatment_classifier (Issue #460)"
+    )
