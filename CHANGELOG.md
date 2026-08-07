@@ -129,7 +129,7 @@ regression).
 ### Added
 
 - **Synthea comparison adapter** (P1-10):
-  [`clinosim eval`](eval.md) can now score a
+  [`clinosim eval`](docs/eval.md) can now score a
   [Synthea](https://synthetichealth.github.io/synthea/) `fhir/`
   output directory directly. Point `-d` at the Synthea directory;
   the new `clinosim/eval/synthea_adapter.py` auto-detects the

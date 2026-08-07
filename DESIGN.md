@@ -1045,7 +1045,7 @@ People outside the catchment area who need care:
 ```
 clinosim/
 ├── DESIGN.md              ← This document (design guidelines)
-├── TODO.md                ← Project-wide TODO tracking
+├── docs/roadmap.md        ← Roadmap (points at the GitHub Issues board)
 ├── docs/history/spec-2026-04.md  ← Historical spec (2026-04, retained for reference)
 ├── README.md              ← Project introduction
 │
@@ -1867,7 +1867,7 @@ microbiology, blood gas, cardiac markers, nursing flowsheets).
 | Base | Microbiology + susceptibility; lactate / ABG / cardiac markers; `DiagnosticReport` grouping; nursing flowsheets (I/O, NEWS2, pain, GCS, Braden); immunization history; family history; code status / advance directive; extended SDOH (incl. JP 要介護度) | core: `types`, `population`, `observation`, `simulator`, `output` |
 | Module | Billing (`modules/billing/` — JP DPC / US Claim+EOB); Devices + HAI (`modules/device/` — CLABSI/CAUTI/VAP); Care coordination (`modules/care_coordination/` — CarePlan/CareTeam/Goal) | one opt-in module per theme |
 
-See `TODO.md` for the phased implementation plan.
+See [`docs/roadmap.md`](docs/roadmap.md) — which points at the GitHub Issues board — for the phased implementation plan.
 
 ---
 

@@ -286,5 +286,5 @@ directly. See [clinosim/modules/output/README.md](clinosim/modules/output/README
 | [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md) | Module-author playbook + PR verification guide |
 | [.github/TEMPLATE_MODULE_README.md](.github/TEMPLATE_MODULE_README.md) | Boilerplate for new module READMEs |
 | [SCENARIO_FLAGS.md](SCENARIO_FLAGS.md) | Scenario / medication flag central reference |
-| [TODO.md](TODO.md) | Roadmap |
+| [docs/roadmap.md](docs/roadmap.md) | Roadmap (GitHub Issues board) |
 | Per-module `README.md` | API + Dependencies + Consumers |

@@ -309,7 +309,7 @@ directly.
 | [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md) | Module-author playbook + PR verification guide |
 | [.github/TEMPLATE_MODULE_README.md](.github/TEMPLATE_MODULE_README.md) | Boilerplate for new module READMEs |
 | [SCENARIO_FLAGS.md](SCENARIO_FLAGS.md) | Scenario / medication flag central reference |
-| [TODO.md](TODO.md) | Roadmap |
+| [`docs/roadmap.md`](../../roadmap.md) | Roadmap |
 | Per-module `README.md` | API + Dependencies + Consumers |
 ```
 
@@ -1307,7 +1307,7 @@ Find the top of `CLAUDE.md` (after the "## Project overview" or first heading). 
 | Architecture / ADR table | [`DESIGN.md`](DESIGN.md) |
 | Module author HOW-TO + PR verification guide | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
 | New module template | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
-| Roadmap | [`TODO.md`](TODO.md) |
+| Roadmap | [`docs/roadmap.md`](../../roadmap.md) |
 ```
 
 - [ ] **Step 5: Add header link to CONTRIBUTING-modules.md**

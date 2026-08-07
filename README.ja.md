@@ -150,7 +150,7 @@ clinosim simulate -o ./output \
 # α-min-1 (2026-07-01) 以降、DocumentReference / Composition / ClinicalImpression は
 # Stage 1 (clinosim simulate --format fhir-r4) で自動生成されます。
 # clinosim narrate サブコマンドは廃止済みでエラー終了します。
-# Stage 2 LLM ナラティブ統合は β-JP-1 chain に延期 (TODO.md 参照)。
+# Stage 2 LLM ナラティブ統合は β-JP-1 chain に延期 ([docs/roadmap.md](docs/roadmap.md) 参照)。
 #
 # 旧 narrate コマンド例 (参照のみ — 現在は使用不可):
 #   clinosim narrate --cif-dir ./output/cif \
@@ -816,7 +816,7 @@ MIT License. See [LICENSE](LICENSE) for details.
 ## 関連ドキュメント
 
 - [DESIGN.md](DESIGN.md) — 詳細な設計ドキュメント (アーキテクチャ判定、 ADR)
-- [TODO.md](TODO.md) — 開発ロードマップ
+- [docs/roadmap.md](docs/roadmap.md) — 開発ロードマップ（GitHub Issues board 参照）
 - [CLAUDE.md](CLAUDE.md) — Claude Code 開発ガイドライン
 - [BEDROCK_SETUP.md](BEDROCK_SETUP.md) — AWS Bedrock 統合ガイド (ナラティブ生成)
 - [NEXT_STEPS.md](NEXT_STEPS.md) — 次のステップと開発引き継ぎメモ

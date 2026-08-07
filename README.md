@@ -369,7 +369,7 @@ clinosim simulate -o ./output \
 # As of α-min-1 (2026-07-01), DocumentReference / Composition / ClinicalImpression are
 # generated automatically during Stage 1 (clinosim simulate --format fhir-r4).
 # The clinosim narrate subcommand is deprecated and will exit with an error.
-# Stage 2 LLM narrative integration is deferred to the β-JP-1 chain (see TODO.md).
+# Stage 2 LLM narrative integration is deferred to the β-JP-1 chain (see [docs/roadmap.md](docs/roadmap.md)).
 #
 # Legacy narrate examples (for reference only — these commands NO LONGER WORK):
 #   clinosim narrate --cif-dir ./output/cif --version-id template_v1
@@ -480,7 +480,7 @@ Population-driven simulation. Produces the structural CIF and optionally runs St
 > DocumentReference resources are now generated automatically during simulation
 > by the `document_enricher` module (Stage 1). Run `clinosim simulate --format fhir-r4`
 > to get DocumentReferences without a separate narrate step.
-> Stage 2 LLM provider integration is deferred to the β-JP-1 chain (see TODO.md).
+> Stage 2 LLM provider integration is deferred to the β-JP-1 chain (see [docs/roadmap.md](docs/roadmap.md)).
 
 Reads an existing CIF directory and generates clinical documents via the LLM service. Writes a new narrative version to `<cif>/narratives/<version_id>/`.
 
@@ -1353,7 +1353,7 @@ Code system data follows the original registry's license:
 
 - [README.ja.md](README.ja.md) — 日本語版 README
 - [DESIGN.md](DESIGN.md) — Detailed design document (architecture decisions, ADRs)
-- [TODO.md](TODO.md) — Development roadmap
+- [docs/roadmap.md](docs/roadmap.md) — Development roadmap (points at the GitHub Issues board)
 - [CLAUDE.md](CLAUDE.md) — Claude Code development guidelines
 - [docs/clinical_documents.md](docs/clinical_documents.md) — Clinical document generation guide (LOINC mapping, prompts, extending to new types)
 - [docs/bedrock_setup.md](docs/bedrock_setup.md) — EC2 + AWS Bedrock setup for Stage 2 at scale
