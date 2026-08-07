@@ -1,0 +1,62 @@
+# clinosim nightly cron — rate-of-change gates that were too expensive
+# to run on every PR.
+#
+# Runs jobs that PR-level CI intentionally does not carry:
+#   - reproducibility: `scripts/reproduce.sh` runs `clinosim generate`
+#     twice per locale and byte-diffs the output. Deterministic-output
+#     regressions are rare (SemVer promise) and the check costs ~5-6 min
+#     on top of an install; running it nightly instead of per-PR halves
+#     the average PR runtime without meaningfully delaying regression
+#     detection (worst case: a broken determinism PR is caught the next
+#     morning rather than at merge time).
+#   - unit tests on Python 3.11: the compatibility floor. Weekly cadence
+#     covers it without paying 2× runner cost on every PR — a 3.11-only
+#     break gets one workday of latency, which the maintainer can absorb.
+#
+# Any failure here should be triaged the next morning: `git bisect` the
+# last night's merges to find the offender.
+#
+# `workflow_dispatch` lets a maintainer trigger this manually before a
+# release cut without waiting for the schedule.
+name: Nightly
+
+on:
+  schedule:
+    # 09:00 UTC = 18:00 JST — after the maintainer's workday, before the
+    # next one. Adjust if the cadence lands on GH runner peak load.
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  reproducibility:
+    name: Reproducibility (Py 3.12)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (runtime deps only; dev extras not needed for the script)
+        run: pip install -e "."
+      - name: Run scripts/reproduce.sh
+        run: bash scripts/reproduce.sh
+
+  unit-py311:
+    name: Unit tests (Py 3.11 — compat floor)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install (with dev extras)
+        run: pip install -e ".[dev]"
+      - name: Run unit tests
+        run: pytest tests/unit -q --tb=short
