@@ -90,12 +90,6 @@ from clinosim.types.encounter import (
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
 
-# Session 82: backward-compat alias — `_build_discharge_rx` used to live in
-# this module and is imported by existing tests. Extraction to
-# `clinosim/simulator/discharge_rx.py::build_discharge_rx` is transparent
-# to callers. Remove this alias after tests migrate to the new import.
-_build_discharge_rx = build_discharge_rx
-
 # ============================================================
 # Patient simulation
 # ============================================================

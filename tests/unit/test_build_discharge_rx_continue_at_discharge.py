@@ -1,5 +1,5 @@
 """Unit tests for the `continue_at_discharge` mechanism in
-`_build_discharge_rx` (Issue #417 段 1 / #437).
+`build_discharge_rx` (Issue #417 段 1 / #437).
 
 Locks:
   1. `drugs.<category>` blocks flagged `continue_at_discharge: true` are
@@ -28,7 +28,7 @@ from datetime import datetime
 import numpy as np
 
 from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_protocol
-from clinosim.simulator.inpatient import _build_discharge_rx
+from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.types.patient import ChronicCondition, PatientProfile
 
 
@@ -57,7 +57,7 @@ def test_cerebral_infarction_discharge_always_has_exactly_one_anticoagulant_japa
     """
     protocol = _ci_protocol()
     for seed in range(200):
-        rx = _build_discharge_rx(
+        rx = build_discharge_rx(
             _patient(),
             "cerebral_infarction",
             protocol,
@@ -78,7 +78,7 @@ def test_cerebral_infarction_japan_probability_matches_yaml_declared_split():
     counts: Counter[str] = Counter()
     n = 2000
     for seed in range(n):
-        rx = _build_discharge_rx(
+        rx = build_discharge_rx(
             _patient(),
             "cerebral_infarction",
             protocol,
@@ -102,7 +102,7 @@ def test_cerebral_infarction_us_probability_matches_yaml_declared_split():
     counts: Counter[str] = Counter()
     n = 2000
     for seed in range(n):
-        rx = _build_discharge_rx(
+        rx = build_discharge_rx(
             _patient(),
             "cerebral_infarction",
             protocol,
@@ -132,7 +132,7 @@ def test_cross_source_dedup_i48_chronic_suppresses_new_loop_anticoag():
     # population time). We pin the input as "Warfarin 3mg" to exercise
     # the (a) covered_classes lookup, not the drug-name dedup.
     for seed in range(200):
-        rx = _build_discharge_rx(
+        rx = build_discharge_rx(
             _patient(current_meds=["Warfarin 3mg"], chronic_icds=["I48"]),
             "cerebral_infarction",
             protocol,
@@ -160,7 +160,7 @@ def test_cross_source_dedup_without_chronic_af_allows_new_loop_anticoag():
     protocol = _ci_protocol()
     seen = 0
     for seed in range(20):
-        rx = _build_discharge_rx(
+        rx = build_discharge_rx(
             _patient(current_meds=[], chronic_icds=[]),
             "cerebral_infarction",
             protocol,
