@@ -10,7 +10,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import (
     _build_diagnosis_codeable_concept,
     _coding_with_display,
@@ -139,7 +139,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     discharge_dt = encounters[0].get("discharge_datetime", "") if encounters else ""
     deceased = record.get("deceased", False)
 
-    country_code = "US" if is_us(country) else "JP"
+    country_code = "JP" if is_jp(country) else "US"
     lang = resolve_lang(country_code)
     icd_system_key = system_key_for("diagnosis", country_code)
 

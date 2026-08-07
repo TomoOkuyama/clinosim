@@ -233,14 +233,14 @@ def convert_cif_to_fhir(
                     # so the P2 A walker strips Japanese chars — the JP text
                     # stays in `type.text` per feedback Option 1.
                     _strip_japanese_display_on_english_only_systems(specimen)
-                _normalize_dt_fields(specimen)
+                _normalize_dt_fields(specimen, country)
                 write(specimen)
                 n_resources += 1
             # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
             # Condition / AllergyIntolerance / MedicationRequest. Universal —
             # US output picks up the same fields harmlessly.
             _populate_condition_ai_mr_ecs_fields(resource, country)
-            _normalize_dt_fields(resource)
+            _normalize_dt_fields(resource, country)
             write(resource)
             n_resources += 1
 
@@ -507,14 +507,14 @@ def _build_bundle(
                 resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
                 if country == "JP":
                     _strip_japanese_display_on_english_only_systems(specimen)
-                _normalize_dt_fields(specimen)
+                _normalize_dt_fields(specimen, country)
                 entries.append(_entry(specimen))
             # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
             # Condition / AllergyIntolerance / MedicationRequest. Universal.
             _populate_condition_ai_mr_ecs_fields(resource, country)
             # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
-            _normalize_dt_fields(resource)
+            _normalize_dt_fields(resource, country)
             entries.append(_entry(resource))
 
     return {

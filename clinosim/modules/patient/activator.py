@@ -175,7 +175,8 @@ def activate_patient(
     weight = bmi * (height / 100) ** 2
 
     # Derive country from demo (for name formatting, language, etc.)
-    country = demo.get("_country", "JP") if isinstance(demo, dict) else "JP"
+    # Issue #570 convention: default US when demo lacks _country.
+    country = demo.get("_country", "US") if isinstance(demo, dict) else "US"
 
     # Physiological profile
     age_penalty = max(0, (age - 40) * 0.005)

@@ -20,7 +20,6 @@ from clinosim.modules._shared import (
     MED_STOP_ORDER_ID_MARKER,
     get_attr_or_key,
     is_jp,
-    is_us,
     resolve_lang,
 )
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
@@ -358,7 +357,7 @@ def _resolve_medication_concept(
     # Strip dose info to get base drug name for code lookup (use cleaned name)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
 
-    country_code = "US" if is_us(country) else "JP"
+    country_code = "JP" if is_jp(country) else "US"
     lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)  # name → RxNorm/YJ
 
@@ -493,7 +492,7 @@ def _build_medication_request(
         order.get("order_code", "") or "",
         country,
     )
-    country_code = "US" if is_us(country) else "JP"
+    country_code = "JP" if is_jp(country) else "US"
 
     # ID: order_id は session 52 fix 0 で encounter-scoped 化された
     # (grep で "ORD-{encounter_id}-..." pattern に統一済)ので、そのまま
@@ -800,7 +799,7 @@ def _build_discharge_medication_request(
     route = str(get_attr_or_key(item, "route", "") or "")
     duration_days = _supply_duration_days(get_attr_or_key(item, "duration_days", None))
 
-    country_code = "US" if is_us(country) else "JP"
+    country_code = "JP" if is_jp(country) else "US"
     med_concept, rate_adjustment_note = _resolve_medication_concept(drug_name, "", country)
 
     prefix = DISCHARGE_RX_ID_PREFIX if encounter_type == "inpatient" else OUTPATIENT_RX_ID_PREFIX
@@ -934,7 +933,7 @@ def _build_medication_admin(
     drug_name_clean, rate_adjustment_note = _split_rate_adjustment_suffix(drug_name_clean)
     drug_name = _localize_drug_name(drug_name_clean, country)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
-    country_code = "US" if is_us(country) else "JP"
+    country_code = "JP" if is_jp(country) else "US"
     lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)
     # C3-10 (session 42 cycle 3): longest-match-wins for multi-word keys.

@@ -15,7 +15,7 @@ import dataclasses
 from typing import Any
 
 from clinosim.codes import get_system_uri
-from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, sanitize_id_token
+from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
 from clinosim.modules.output._fhir_common import (
     BundleContext,
     _build_reference_range,
@@ -56,7 +56,7 @@ def _build_lab_observation(
     # Prefer the result's canonical analyte name (stat/serial/alias resolved upstream)
     # over the raw order label, so the code mapping resolves (AD-55).
     lab_name = result.get("lab_name") or order.get("display_name", "Unknown")
-    country_code = "US" if is_us(country) else "JP"
+    country_code = "JP" if is_jp(country) else "US"
 
     # PR 1 (JP-CLINS lab coding migration): route through the strategy
     # dispatcher. In PR 1 the classifier returns LEGACY_JSLM (JP) /

@@ -370,7 +370,12 @@ def main() -> None:
             "Default: full."
         ),
     )
-    en.add_argument("--country", default="JP", choices=["JP", "US"], help="Country locale (single). Default: JP.")
+    en.add_argument(
+        "--country",
+        default="US",
+        choices=["JP", "US"],
+        help="Country locale (single). Default: US (Issue #570 convention).",
+    )
     en.add_argument(
         "--include-both-countries",
         action="store_true",

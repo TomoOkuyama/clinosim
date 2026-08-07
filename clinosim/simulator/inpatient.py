@@ -233,7 +233,7 @@ def _simulate_patient(
 
     # LOS (country-specific)
     country_key = _country_to_yaml_key(config.country)
-    los_by_country = protocol.target_los.get(country_key) or protocol.target_los.get("japan", {})
+    los_by_country = protocol.target_los.get(country_key) or protocol.target_los.get("us", {})
     los_cfg = los_by_country.get(severity, {"mean": 14, "sd": 4, "min": 5, "max": 30})
     target_los = int(
         max(los_cfg.get("min", 5), min(los_cfg.get("max", 30), rng.normal(los_cfg["mean"], los_cfg["sd"])))

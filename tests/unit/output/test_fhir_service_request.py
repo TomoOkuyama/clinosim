@@ -318,10 +318,11 @@ def test_bb_service_requests_dict_input_standalone():
 def test_bb_service_requests_dict_input_authored_on_iso():
     """Production-path: authoredOn must be the ISO string (no .isoformat() crash).
 
-    Session 48 FB-F1: post-emit `_normalize_dt_fields` walker normalizes dateTime
-    fields to include JST timezone. authoredOn is a top-level dateTime, so the
-    normalized value should carry `+09:00`. The original string is preserved
-    verbatim except for the appended TZ suffix.
+    Builders unconditionally emit ``+09:00`` via ``to_fhir_datetime`` — the
+    country-specific TZ rewrite is applied by the post-emit walker
+    (``_normalize_dt_fields``), which is not exercised in this unit test.
+    Issue #570 locale gate covers the walker's rewrite behaviour in
+    ``tests/unit/output/test_normalize_dt_country_gated.py``.
     """
     t = "2026-06-29T08:05:00"
     orders = [_make_dict_order(ordered_datetime=t)]
