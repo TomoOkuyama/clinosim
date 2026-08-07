@@ -1678,6 +1678,14 @@ start, end, population)</code> tuple, output NDJSON must be byte-identical acros
 PATCH-only releases within the same MINOR line. MINOR releases may change
 byte output but must document the change here.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h3 id="refactored-session-83">Refactored (session 83)<a class="headerlink" href="#refactored-session-83" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Test import migration to canonical modules + re-export facade removal</strong> (PR #540, PR #541):
+  All test suites migrated to import directly from extracted <code>_fhir_*</code> sibling modules instead of the backward-compat re-export facade in <code>fhir_r4_adapter.py</code>. This allows deletion of the re-export block and further shrinkage of <code>fhir_r4_adapter.py</code>.</li>
+<li><strong>PR #540</strong>: 3 test files migrate <code>_build_discharge_rx</code> imports from <code>clinosim.simulator.inpatient._build_discharge_rx</code> (back-compat alias, deprecated in PR #532) to canonical <code>clinosim.simulator.discharge_rx.build_discharge_rx</code>. Back-compat alias removed from both <code>inpatient.py</code> and <code>discharge_rx.py</code>.</li>
+<li><strong>PR #541</strong>: 32 test files migrate 104 symbol references from <code>clinosim.modules.output.fhir_r4_adapter</code> facade to canonical modules (<code>_fhir_common</code>, <code>_fhir_inline_bb</code>, <code>_fhir_post_process</code>, etc.). The re-export block (109 symbols with <code># noqa: F401</code>) is removed, and <code>fhir_r4_adapter.py</code> shrinks 689 → 543 lines (-146 lines). Module boundary now explicit: adapter holds only orchestration (<code>convert_cif_to_fhir</code> + <code>_build_bundle</code> + registry), leaf symbols live in canonical modules.</li>
+<li>Verification: both PRs byte-diff neutral (session 82 protocol: unit + E2E + byte-diff), all CI checks green.</li>
+</ul>
 <h3 id="added-session-82">Added (session 82)<a class="headerlink" href="#added-session-82" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>New <code>AGENTS.md</code></strong> at repo root (agentmd.dev convention). AI coding
