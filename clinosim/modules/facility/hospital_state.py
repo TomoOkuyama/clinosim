@@ -46,14 +46,14 @@ class HospitalState:
     pharmacy_staff: float = 1.0
     or_staff: float = 1.0
 
-    def update_for_time(self, dt: datetime, ops_config: dict[str, Any]) -> None:
+    def update_for_time(self, dt: datetime, hospital_ops: dict[str, Any]) -> None:
         """Update staffing and baseline utilization for the given time."""
         hour = dt.hour
         weekday = dt.weekday()
         self.timestamp = dt
 
         # Determine shift
-        staffing = ops_config.get("staffing", {})
+        staffing = hospital_ops.get("staffing", {})
         if 8 <= hour < 16:
             shift = staffing.get("day", {})
         elif 16 <= hour or hour < 0:
@@ -77,7 +77,7 @@ class HospitalState:
             self.or_staff *= modifier
 
         # Daily patterns
-        for pattern in ops_config.get("daily_patterns", {}).values():
+        for pattern in hospital_ops.get("daily_patterns", {}).values():
             if not isinstance(pattern, dict):
                 continue
             # Check if pattern applies to this hour
@@ -105,14 +105,14 @@ class HospitalState:
         self,
         resource: str,
         urgency: str,
-        ops_config: dict[str, Any],
+        hospital_ops: dict[str, Any],
     ) -> float:
         """Calculate delay in minutes based on current hospital state.
 
         Uses queueing theory: delay = base_time / (1 - utilization) * (1 / staff)
         """
-        base_times = ops_config.get("base_processing_time", {})
-        report_times = ops_config.get("reporting_time", {})
+        base_times = hospital_ops.get("base_processing_time", {})
+        report_times = hospital_ops.get("reporting_time", {})
 
         # Base processing time
         if urgency == "stat":
@@ -166,9 +166,9 @@ class HospitalState:
         max_delay = 240.0 if urgency == "stat" else 720.0  # minutes
         return min(delay, max_delay)
 
-    def add_to_queue(self, resource: str, ops_config: dict[str, Any]) -> None:
+    def add_to_queue(self, resource: str, hospital_ops: dict[str, Any]) -> None:
         """Record that a resource is being used (increases utilization)."""
-        capacity = ops_config.get("resource_capacity", {})
+        capacity = hospital_ops.get("resource_capacity", {})
         cap_map = {
             "lab": "lab_analyzers",
             "ct": "ct_scanners",
@@ -184,9 +184,9 @@ class HospitalState:
             current = getattr(self, queue_attr)
             setattr(self, queue_attr, min(0.95, current + 1.0 / cap))
 
-    def release_from_queue(self, resource: str, ops_config: dict[str, Any]) -> None:
+    def release_from_queue(self, resource: str, hospital_ops: dict[str, Any]) -> None:
         """Record that a resource is freed."""
-        capacity = ops_config.get("resource_capacity", {})
+        capacity = hospital_ops.get("resource_capacity", {})
         cap_map = {
             "lab": "lab_analyzers",
             "ct": "ct_scanners",
