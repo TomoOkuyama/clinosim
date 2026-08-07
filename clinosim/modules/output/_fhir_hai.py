@@ -29,7 +29,7 @@ def _extensions_hai_list(ctx: BundleContext) -> list:
     return ext.get("hai", []) or []
 
 
-def _build_hai_conditions(ctx: BundleContext) -> list[dict]:
+def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
     """Build FHIR Condition resources from CIF extensions['hai']."""
     hais = _extensions_hai_list(ctx)
     if not hais:

@@ -39,7 +39,7 @@ assign_code_status(age: int, context: str, country: str,
   `enrich_code_status`。**encounter_id 由来の独立サブシード**
   (`derive_sub_seed(master, 0x4353, encounter_id)`)で encounter 内安定 & 主乱数列不変(AD-16)。
   付与ゲートを適用し `CIFPatientRecord.code_status`(SNOMED コード、非該当は空)に格納。
-- **FHIR**: `modules/output/_fhir_code_status.py` の `_build_code_status` を
+- **FHIR**: `modules/output/_fhir_code_status.py` の `_bb_code_status` を
   `_BUNDLE_BUILDERS` 登録(AD-56)。survey カテゴリの Observation、code=observable、
   valueCodeableConcept=段階 SNOMED、encounter 参照、effectiveDateTime=入院日時。id `codestatus-{enc}`。
 - **CSV**: `csv_adapter.py` が `code_status.csv` を出力。

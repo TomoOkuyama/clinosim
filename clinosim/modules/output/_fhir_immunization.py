@@ -22,7 +22,7 @@ from clinosim.modules.output._fhir_common import (
 )
 
 
-def _build_immunizations(ctx: BundleContext) -> list[dict]:
+def _bb_immunizations(ctx: BundleContext) -> list[dict]:
     """Build FHIR Immunization resources from CIF immunizations (CVX codes, AD-30/AD-56).
 
     Each ImmunizationRecord in ctx.record["immunizations"] maps to one FHIR Immunization.

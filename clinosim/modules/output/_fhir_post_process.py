@@ -45,14 +45,14 @@ from clinosim.modules._shared import is_jp  # noqa: I001
 from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
     _bb_allergy_intolerances,
 )
-from clinosim.modules.output._fhir_care_level import _build_care_level  # noqa: F401
+from clinosim.modules.output._fhir_care_level import _bb_care_level  # noqa: F401
 from clinosim.modules.output._fhir_care_team import (  # noqa: F401
     _bb_care_teams,
 )
 from clinosim.modules.output._fhir_clinical_impression import (  # noqa: F401
     _bb_clinical_impressions,
 )
-from clinosim.modules.output._fhir_code_status import _build_code_status  # noqa: F401
+from clinosim.modules.output._fhir_code_status import _bb_code_status  # noqa: F401
 
 # FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
 # per-theme resource builders into sibling _fhir_* modules. The blocks below are
@@ -87,8 +87,8 @@ from clinosim.modules.output._fhir_composition import (  # noqa: F401
 )
 from clinosim.modules.output._fhir_conditions import _build_conditions  # noqa: F401
 from clinosim.modules.output._fhir_device import (  # noqa: F401
-    _build_device,
-    _build_device_use,
+    _bb_device,
+    _bb_device_use,
 )
 from clinosim.modules.output._fhir_diagnostic_report import (  # noqa: F401
     _bb_diagnostic_reports,
@@ -108,12 +108,12 @@ from clinosim.modules.output._fhir_endpoint import (  # noqa: F401
     _bb_endpoints,
 )
 from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
-from clinosim.modules.output._fhir_family_history import _build_family_history  # noqa: F401
-from clinosim.modules.output._fhir_hai import _build_hai_conditions  # noqa: F401
+from clinosim.modules.output._fhir_family_history import _bb_family_history  # noqa: F401
+from clinosim.modules.output._fhir_hai import _bb_hai_conditions  # noqa: F401
 from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
     _bb_imaging_studies,
 )
-from clinosim.modules.output._fhir_immunization import _build_immunizations  # noqa: F401
+from clinosim.modules.output._fhir_immunization import _bb_immunizations  # noqa: F401
 from clinosim.modules.output._fhir_inline_bb import (
     _build_order_in_rp_map,  # noqa: F401 — back-compat re-export for test imports
 )
@@ -147,7 +147,7 @@ from clinosim.modules.output._fhir_medications import (  # noqa: F401
     _build_medication_request,
 )
 from clinosim.modules.output._fhir_microbiology import _bb_microbiology  # noqa: F401
-from clinosim.modules.output._fhir_nursing import _build_nursing_observations  # noqa: F401
+from clinosim.modules.output._fhir_nursing import _bb_nursing_observations  # noqa: F401
 from clinosim.modules.output._fhir_observations import (  # noqa: F401
     _bb_labs,
     _build_lab_observation,
@@ -181,8 +181,8 @@ from clinosim.modules.output._fhir_service_request import (  # noqa: F401
     _bb_service_requests,
 )
 from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
-    _build_alcohol_use,
-    _build_smoking_status,
+    _bb_alcohol_use,
+    _bb_smoking_status,
 )
 
 # FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding
