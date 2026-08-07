@@ -18,7 +18,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
-from clinosim.modules._shared import is_jp, is_us, resolve_lang, strip_protocol_prefix
+from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _FREQ_JA,
@@ -348,7 +348,7 @@ def _map_diagnosis_code(code: str, country: str) -> str:
     """
     if not code:
         return code
-    country_code = "US" if is_us(country) else "JP"
+    country_code = "JP" if is_jp(country) else "US"
     return load_code_mapping("diagnosis", country_code).get(code, code)
 
 
@@ -911,10 +911,30 @@ def _map_mar_status(status: str) -> str:
 # HAPI FHIR Validator (JP Core 準拠) は TZ 無し dateTime を regex エラーとする。
 # to_fhir_datetime + to_fhir_instant で単一 seam 化、per-builder 個別修正回避。
 _JST_TZ_SUFFIX = "+09:00"
+# Issue #570 convention: non-JP cohorts append UTC (`Z`) as the neutral default.
+# Once locale-aware US time modelling lands, this may switch to a US-specific
+# suffix (e.g. `-05:00` for America/New_York); callers still route through
+# `tz_suffix_for_country(country)` so the change is a one-constant edit.
+_UTC_TZ_SUFFIX = "Z"
+
+
+def tz_suffix_for_country(country: str) -> str:
+    """Canonical timezone suffix for the country's FHIR datetime / instant fields.
+
+    JP → `+09:00` (JST); anything else → `Z` (UTC). Callers use this instead of
+    hardcoding a TZ suffix so US cohorts do not silently emit JST timestamps
+    (Issue #570 locale-gate convention).
+    """
+    return _JST_TZ_SUFFIX if is_jp(country) else _UTC_TZ_SUFFIX
 
 
 def _append_tz_if_missing(s: str) -> str:
-    """ISO 8601 datetime string に TZ が無ければ +09:00 (JST) を付与。
+    """ISO 8601 datetime string に TZ が無ければ ``+09:00`` (JST) を付与。
+
+    Historical helper: builders unconditionally append JST here. The post-emit
+    walker (:func:`clinosim.modules.output._fhir_post_process._normalize_dt_fields`)
+    rewrites the suffix per-country afterwards (Issue #570 locale gate), so US
+    cohorts do not retain JST in their final output.
 
     既に TZ suffix(+HH:MM / -HH:MM / Z)がある場合は passthrough。
     'T' を含まない date-only 文字列 (YYYY-MM-DD) は passthrough(FHIR は date
@@ -976,7 +996,8 @@ def to_fhir_instant(value: Any) -> str:
             s += ":00"
         return _append_tz_if_missing(s)
     if isinstance(value, date):
-        # date-only → make midnight instant with TZ
+        # date-only → make midnight instant with JST (post-process walker
+        # rewrites for non-JP cohorts per Issue #570).
         return f"{value.isoformat()}T00:00:00{_JST_TZ_SUFFIX}"
     s = str(value)
     if len(s) >= 11 and s[10] == " ":
