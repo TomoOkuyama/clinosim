@@ -364,7 +364,9 @@ def _simulate_patient(
 
     # Daily simulation loop
     has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
-    protocol_min_los = los_cfg.get("min", 3)
+    # `target_los_config` (Issue #550) returns dict[str, float]; `min_los` param
+    # is typed `int`. Cast at the boundary rather than widening the param type.
+    protocol_min_los = int(los_cfg.get("min", 3))
     loop_result = _run_daily_loop(
         state,
         patient,
