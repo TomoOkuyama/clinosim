@@ -23,7 +23,7 @@ def _extensions_device_list(ctx: BundleContext) -> list:
     return ext.get("device", []) or []
 
 
-def _build_device(ctx: BundleContext) -> list[dict]:
+def _bb_device(ctx: BundleContext) -> list[dict]:
     """Build FHIR Device resources from CIF extensions['device']."""
     devices = _extensions_device_list(ctx)
     if not devices:
@@ -57,7 +57,7 @@ def _build_device(ctx: BundleContext) -> list[dict]:
     return out
 
 
-def _build_device_use(ctx: BundleContext) -> list[dict]:
+def _bb_device_use(ctx: BundleContext) -> list[dict]:
     """Build FHIR DeviceUseStatement resources from CIF extensions['device']."""
     devices = _extensions_device_list(ctx)
     if not devices:

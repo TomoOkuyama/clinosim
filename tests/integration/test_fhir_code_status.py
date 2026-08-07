@@ -1,6 +1,6 @@
 import pytest
 
-from clinosim.modules.output._fhir_code_status import _build_code_status
+from clinosim.modules.output._fhir_code_status import _bb_code_status
 from clinosim.modules.output._fhir_common import BundleContext
 
 pytestmark = pytest.mark.integration
@@ -28,7 +28,7 @@ def _ctx(code="304253006", country="US"):
 
 
 def test_builds_observation():
-    res = _build_code_status(_ctx())
+    res = _bb_code_status(_ctx())
     assert len(res) == 1
     o = res[0]
     assert o["resourceType"] == "Observation"
@@ -39,4 +39,4 @@ def test_builds_observation():
 
 
 def test_empty_when_no_code_status():
-    assert _build_code_status(_ctx(code="")) == []
+    assert _bb_code_status(_ctx(code="")) == []

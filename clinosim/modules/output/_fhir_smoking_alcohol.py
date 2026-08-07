@@ -101,7 +101,7 @@ def _sdoh_performer_ref(ctx: BundleContext) -> str:
     return ""
 
 
-def _build_smoking_status(ctx: BundleContext) -> list[dict]:
+def _bb_smoking_status(ctx: BundleContext) -> list[dict]:
     data = load_social_history()["smoking_status"]
     status = (ctx.patient_data or {}).get("smoking_status", "")
     entry = data["values"].get(status)
@@ -119,7 +119,7 @@ def _build_smoking_status(ctx: BundleContext) -> list[dict]:
     return [o]
 
 
-def _build_alcohol_use(ctx: BundleContext) -> list[dict]:
+def _bb_alcohol_use(ctx: BundleContext) -> list[dict]:
     data = load_social_history()["alcohol_use"]
     use = (ctx.patient_data or {}).get("alcohol_use", "")
     entry = data["values"].get(use)

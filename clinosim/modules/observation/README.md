@@ -540,7 +540,7 @@ class NursingRiskAssessment:
 
 ### FHIR 出力
 
-`_build_nursing_observations()` が `_BUNDLE_BUILDERS` に登録されており、
+`_bb_nursing_observations()` が `_BUNDLE_BUILDERS` に登録されており、
 `category=survey` の FHIR `Observation` リソースを生成する。
 
 | 観測値 | LOINC | 備考 |

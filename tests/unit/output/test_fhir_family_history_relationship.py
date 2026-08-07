@@ -140,10 +140,10 @@ def test_relationship_omits_text_when_target_lang_missing() -> None:
 
 
 def _build_one_fmh(country: str) -> dict[str, Any]:
-    """Run ``_build_family_history`` on a minimal one-relative fixture and
+    """Run ``_bb_family_history`` on a minimal one-relative fixture and
     return the emitted FamilyMemberHistory resource."""
     from clinosim.modules.output._fhir_common import BundleContext
-    from clinosim.modules.output._fhir_family_history import _build_family_history
+    from clinosim.modules.output._fhir_family_history import _bb_family_history
 
     ctx = BundleContext(
         record={
@@ -168,14 +168,14 @@ def _build_one_fmh(country: str) -> dict[str, Any]:
         primary_enc_id="",
         patient_sex="",
     )
-    result = _build_family_history(ctx)
+    result = _bb_family_history(ctx)
     assert len(result) == 1
     return result[0]
 
 
 def test_jp_fmh_relationship_has_english_display_and_japanese_text() -> None:
     """End-to-end pin: the JP FamilyMemberHistory FHIR resource emitted by
-    ``_build_family_history`` carries the new two-slot relationship shape."""
+    ``_bb_family_history`` carries the new two-slot relationship shape."""
     fmh = _build_one_fmh("JP")
     rel = fmh["relationship"]
     assert rel["coding"][0]["display"] == "father"

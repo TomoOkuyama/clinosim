@@ -11,7 +11,7 @@ from clinosim.modules.code_status.engine import load_reference
 from clinosim.modules.output._fhir_common import BundleContext, _survey_category
 
 
-def _build_code_status(ctx: BundleContext) -> list[dict]:
+def _bb_code_status(ctx: BundleContext) -> list[dict]:
     code = ctx.record.get("code_status") or ""
     if not code:
         return []

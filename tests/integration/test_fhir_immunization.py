@@ -1,4 +1,4 @@
-"""Integration tests for _build_immunizations FHIR builder (Task 6).
+"""Integration tests for _bb_immunizations FHIR builder (Task 6).
 
 Verifies that CIF immunization records produce valid FHIR Immunization resources,
 that US output contains no Japanese characters, and that CVX-coded resources
@@ -96,10 +96,10 @@ def _make_ctx(record: dict, country: str, patient_id: str = "p1", primary_enc_id
 
 def test_resource_types_are_immunization():
     """Every resource must have resourceType == Immunization."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx = _make_ctx(_record_multi(), country="US")
-    resources = _build_immunizations(ctx)
+    resources = _bb_immunizations(ctx)
 
     assert resources, "no Immunization resources built"
     assert all(r["resourceType"] == "Immunization" for r in resources)
@@ -107,10 +107,10 @@ def test_resource_types_are_immunization():
 
 def test_status_is_completed():
     """status field must equal 'completed' for standard records."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx = _make_ctx(_record(), country="US")
-    resources = _build_immunizations(ctx)
+    resources = _bb_immunizations(ctx)
 
     assert resources
     assert all(r["status"] == "completed" for r in resources)
@@ -118,10 +118,10 @@ def test_status_is_completed():
 
 def test_ids_unique():
     """All Immunization ids within the output must be unique."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx = _make_ctx(_record_multi(), country="US", patient_id="p1")
-    resources = _build_immunizations(ctx)
+    resources = _bb_immunizations(ctx)
 
     ids = [r["id"] for r in resources]
     assert len(ids) == len(set(ids)), f"Duplicate Immunization ids: {ids}"
@@ -129,11 +129,11 @@ def test_ids_unique():
 
 def test_patient_reference():
     """patient.reference must point to the Patient resource."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     patient_id = "pat-xyz"
     ctx = _make_ctx(_record(), country="US", patient_id=patient_id)
-    resources = _build_immunizations(ctx)
+    resources = _bb_immunizations(ctx)
 
     assert resources
     for r in resources:
@@ -143,10 +143,10 @@ def test_patient_reference():
 
 def test_occurrence_date_present():
     """occurrenceDateTime must be set and match the CIF occurrence_date."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx = _make_ctx(_record(occurrence_date="2025-10-01"), country="US")
-    resources = _build_immunizations(ctx)
+    resources = _bb_immunizations(ctx)
 
     assert resources
     assert resources[0]["occurrenceDateTime"] == "2025-10-01"
@@ -154,13 +154,13 @@ def test_occurrence_date_present():
 
 def test_primary_source_preserved():
     """primarySource must reflect the CIF record value."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx_true = _make_ctx(_record(primary_source=True), country="US")
     ctx_false = _make_ctx(_record(primary_source=False), country="US")
 
-    assert _build_immunizations(ctx_true)[0]["primarySource"] is True
-    assert _build_immunizations(ctx_false)[0]["primarySource"] is False
+    assert _bb_immunizations(ctx_true)[0]["primarySource"] is True
+    assert _bb_immunizations(ctx_false)[0]["primarySource"] is False
 
 
 # ---------------------------------------------------------------------------
@@ -171,11 +171,11 @@ def test_primary_source_preserved():
 def test_vaccine_code_has_cvx_system():
     """vaccineCode.coding[0].system must be the canonical CVX URI."""
     from clinosim.codes import get_system_uri
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     cvx_uri = get_system_uri("cvx")
     ctx = _make_ctx(_record(vaccine_cvx="150"), country="US")
-    resources = _build_immunizations(ctx)
+    resources = _bb_immunizations(ctx)
 
     assert resources
     coding = resources[0]["vaccineCode"]["coding"][0]
@@ -184,10 +184,10 @@ def test_vaccine_code_has_cvx_system():
 
 def test_vaccine_code_value():
     """vaccineCode.coding[0].code must equal the CVX code from CIF."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx = _make_ctx(_record(vaccine_cvx="115"), country="US")
-    resources = _build_immunizations(ctx)
+    resources = _bb_immunizations(ctx)
 
     assert resources
     coding = resources[0]["vaccineCode"]["coding"][0]
@@ -197,12 +197,12 @@ def test_vaccine_code_value():
 def test_display_not_equal_to_code():
     """vaccineCode.coding[0].display must not equal the raw CVX code."""
     from clinosim.codes import get_system_uri
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     cvx_uri = get_system_uri("cvx")
     for country in ("US", "JP"):
         ctx = _make_ctx(_record_multi(), country=country)
-        resources = _build_immunizations(ctx)
+        resources = _bb_immunizations(ctx)
         for r in resources:
             for coding in r["vaccineCode"].get("coding", []):
                 if coding.get("system") == cvx_uri and "display" in coding:
@@ -218,10 +218,10 @@ def test_display_not_equal_to_code():
 
 def test_us_output_no_japanese():
     """US output must contain no Japanese characters in any field."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx = _make_ctx(_record_multi(), country="US")
-    resources = _build_immunizations(ctx)
+    resources = _bb_immunizations(ctx)
 
     assert resources, "no Immunization resources built"
     assert not _JAPANESE_RE.search(json.dumps(resources)), "Japanese characters found in US Immunization output"
@@ -229,10 +229,10 @@ def test_us_output_no_japanese():
 
 def test_jp_output_may_have_japanese():
     """JP output should include Japanese display text from CVX lookup."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx = _make_ctx(_record_multi(), country="JP")
-    resources = _build_immunizations(ctx)
+    resources = _bb_immunizations(ctx)
 
     dumped = json.dumps(resources, ensure_ascii=False)
     assert _JAPANESE_RE.search(dumped), "Expected Japanese characters in JP Immunization output"
@@ -245,25 +245,25 @@ def test_jp_output_may_have_japanese():
 
 def test_empty_immunizations_returns_empty():
     """No immunizations in record → empty list returned."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx = _make_ctx({"patient_id": "p1", "immunizations": []}, country="US")
-    assert _build_immunizations(ctx) == []
+    assert _bb_immunizations(ctx) == []
 
 
 def test_missing_immunizations_key_returns_empty():
     """Missing immunizations key in record → empty list returned."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx = _make_ctx({"patient_id": "p1"}, country="US")
-    assert _build_immunizations(ctx) == []
+    assert _bb_immunizations(ctx) == []
 
 
 def test_multiple_immunizations_count():
     """Three immunization records should produce three FHIR Immunization resources."""
-    from clinosim.modules.output._fhir_immunization import _build_immunizations
+    from clinosim.modules.output._fhir_immunization import _bb_immunizations
 
     ctx = _make_ctx(_record_multi(), country="US")
-    resources = _build_immunizations(ctx)
+    resources = _bb_immunizations(ctx)
 
     assert len(resources) == 3

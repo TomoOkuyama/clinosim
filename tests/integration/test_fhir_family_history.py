@@ -1,7 +1,7 @@
 import pytest
 
 from clinosim.modules.output._fhir_common import BundleContext
-from clinosim.modules.output._fhir_family_history import _build_family_history
+from clinosim.modules.output._fhir_family_history import _bb_family_history
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 
 pytestmark = pytest.mark.integration
@@ -30,7 +30,7 @@ def _ctx(country="US"):
 
 
 def test_builds_one_resource_per_relative():
-    res = _build_family_history(_ctx())
+    res = _bb_family_history(_ctx())
     assert len(res) == 2
     r0 = res[0]
     assert r0["resourceType"] == "FamilyMemberHistory"
@@ -48,7 +48,7 @@ def test_builds_one_resource_per_relative():
 
 
 def test_unique_ids():
-    res = _build_family_history(_ctx())
+    res = _bb_family_history(_ctx())
     ids = [r["id"] for r in res]
     assert len(ids) == len(set(ids))
 
@@ -61,7 +61,7 @@ def test_jp_localized_relationship():
     subsequently stripped by
     ``_strip_japanese_display_on_english_only_systems`` — the fix moved
     the JP label into ``text``."""
-    res = _build_family_history(_ctx("JP"))
+    res = _bb_family_history(_ctx("JP"))
     rel = res[0]["relationship"]
     # Issue #369 revised (v23 regression fix): v3-RoleCode MTH canonical
     # ja display is "mother" (lowercase, NOT "natural mother"). See
