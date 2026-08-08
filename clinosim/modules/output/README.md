@@ -211,10 +211,10 @@ Note: `_home_meds`, `_allergies`, `_initial_labs`, `_pmh`, `_resolve_dx` は Tas
 | `tests/integration/test_output_adapter_contract.py` | adapter registry contract test | guard |
 | `tests/integration/test_readmission_flow.py` | readmission flow + output 整合性 | guard |
 | `tests/unit/test_*` (~15 件) | FHIR fragment / CSV / display localization 等の unit tests | guard |
-| **`modules/output/_fhir_*.py`** (29 ファイル、内部 cross-reference) | builder file 群が `_fhir_common.py` helper を共有 + `fhir_r4_adapter.py` で `_BUNDLE_BUILDERS` 登録 (内部分割、PR2 で SDOH 分離、PR3 で immunization 分離済み) | core (FHIR output 全体) |
+| **`modules/output/_fhir_*.py`** (29 ファイル、内部 cross-reference) | builder file 群が `fhir_common.py` helper を共有 + `fhir_r4_adapter.py` で `_BUNDLE_BUILDERS` 登録 (内部分割、PR2 で SDOH 分離、PR3 で immunization 分離済み) | core (FHIR output 全体) |
 
 > output module 内の `_fhir_*.py` 兄弟ファイル間は
-> 相互参照 (`_fhir_common.py` 共有 helper 経由)。本表では 1 行に集約。
+> 相互参照 (`fhir_common.py` 共有 helper 経由)。本表では 1 行に集約。
 > 詳細は `## 拡張方法 (Extensibility) 総合ガイド` セクション参照。
 
 ## 修正ガイド
@@ -399,7 +399,7 @@ clinosim の output 層は **2 種類の registry** で拡張可能 — 既存�
 
 ```python
 # clinosim/modules/output/_fhir_my_resource.py
-from clinosim.modules.output._fhir_common import (
+from clinosim.modules.output.fhir_common import (
     BundleContext, _social_category, _value,
 )
 
@@ -449,9 +449,9 @@ _BUNDLE_BUILDERS = [
 `OutputAdapter` サブクラスを `register_output_adapter()` で登録 → CLI `--format` が自動拡張
 (詳細は上記「出力フォーマットの追加 (AD-58)」セクション参照)。
 
-### 3. 共通 helper (`_fhir_common.py`)
+### 3. 共通 helper (`fhir_common.py`)
 
-複数 builder で使う helper は `_fhir_common.py` に集約済。各 builder 側で
+複数 builder で使う helper は `fhir_common.py` に集約済。各 builder 側で
 import して再利用:
 
 | Helper | 用途 |
@@ -467,7 +467,7 @@ import して再利用:
 | `_infer_severity(record)` | physiology peak-inflammation から severity 推定 |
 | `_map_diagnosis_code(code, country)` | 内部診断コード → locale billable コード変換 |
 
-新しい helper を `_fhir_common.py` に追加する基準: **2 builder 以上で実需が生じた**タイミング
+新しい helper を `fhir_common.py` に追加する基準: **2 builder 以上で実需が生じた**タイミング
 (YAGNI — 1 builder しか使わないなら local 定義のまま)。
 
 ### 関連

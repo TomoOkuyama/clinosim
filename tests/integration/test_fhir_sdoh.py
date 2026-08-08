@@ -1,10 +1,10 @@
 import pytest
 
-from clinosim.modules.output._fhir_common import BundleContext
 from clinosim.modules.output._fhir_smoking_alcohol import (
     _bb_alcohol_use,
     _bb_smoking_status,
 )
+from clinosim.modules.output.fhir_common import BundleContext
 
 pytestmark = pytest.mark.integration
 

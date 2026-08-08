@@ -151,7 +151,7 @@ def test_aggregate_panel_status_single_member():
 
 def _make_ctx(orders: list[Order], country: str = "us"):
     """Minimal BundleContext for builder testing."""
-    from clinosim.modules.output._fhir_common import BundleContext
+    from clinosim.modules.output.fhir_common import BundleContext
 
     return BundleContext(
         record={"orders": orders},

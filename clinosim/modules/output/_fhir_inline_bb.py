@@ -42,35 +42,6 @@ from clinosim.modules.output._fhir_clinical_impression import (  # noqa: F401
     _bb_clinical_impressions,
 )
 from clinosim.modules.output._fhir_code_status import _bb_code_status  # noqa: F401
-
-# FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
-# per-theme resource builders into sibling _fhir_* modules. The blocks below are
-# re-imported here so existing `from ...fhir_r4_adapter import X` call sites keep
-# working (facade). They are marked # noqa: F401 because many symbols are now used
-# only by the extracted modules (which import them directly) and are re-exported
-# purely as a compatibility facade; the # noqa keeps the facade stable as further
-# builders move out, without per-symbol import churn each phase.
-from clinosim.modules.output._fhir_common import (  # noqa: F401
-    BundleContext,
-    _build_address,
-    _build_diagnosis_codeable_concept,
-    _build_dosage_instruction,
-    _build_reference_range,
-    _build_telecom,
-    _entry,
-    _infer_severity,
-    _loinc_coding,
-    _make_participant,
-    _map_diagnosis_code,
-    _map_encounter_status,
-    _map_mar_status,
-    _micro_coding,
-    _parse_dose_for_mar,
-    _severity_coding,
-    _sha1_b64,
-    _strip_protocol_prefix,
-    _survey_category,
-)
 from clinosim.modules.output._fhir_composition import (  # noqa: F401
     _bb_compositions,
 )
@@ -169,6 +140,35 @@ from clinosim.modules.output._fhir_service_request import (  # noqa: F401
 from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
     _bb_alcohol_use,
     _bb_smoking_status,
+)
+
+# FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
+# per-theme resource builders into sibling _fhir_* modules. The blocks below are
+# re-imported here so existing `from ...fhir_r4_adapter import X` call sites keep
+# working (facade). They are marked # noqa: F401 because many symbols are now used
+# only by the extracted modules (which import them directly) and are re-exported
+# purely as a compatibility facade; the # noqa keeps the facade stable as further
+# builders move out, without per-symbol import churn each phase.
+from clinosim.modules.output.fhir_common import (  # noqa: F401
+    BundleContext,
+    _build_address,
+    _build_diagnosis_codeable_concept,
+    _build_dosage_instruction,
+    _build_reference_range,
+    _build_telecom,
+    _entry,
+    _infer_severity,
+    _loinc_coding,
+    _make_participant,
+    _map_diagnosis_code,
+    _map_encounter_status,
+    _map_mar_status,
+    _micro_coding,
+    _parse_dose_for_mar,
+    _severity_coding,
+    _sha1_b64,
+    _strip_protocol_prefix,
+    _survey_category,
 )
 
 # FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding

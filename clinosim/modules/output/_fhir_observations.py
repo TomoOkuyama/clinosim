@@ -16,12 +16,6 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
-from clinosim.modules.output._fhir_common import (
-    BundleContext,
-    _build_reference_range,
-    _entry,
-    to_fhir_datetime,
-)
 from clinosim.modules.output._fhir_diagnostic_report import lab_obs_id
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
@@ -31,6 +25,12 @@ from clinosim.modules.output._fhir_localization import (
 )
 from clinosim.modules.output._fhir_service_request import build_panel_counter, order_to_sr_id
 from clinosim.modules.output._lab_coding_strategy import select_lab_coding_strategy
+from clinosim.modules.output.fhir_common import (
+    BundleContext,
+    _build_reference_range,
+    _entry,
+    to_fhir_datetime,
+)
 from clinosim.types.encounter import Order, OrderType
 
 
