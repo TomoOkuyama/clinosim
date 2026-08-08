@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from clinosim.codes import system_key_for
+from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
@@ -294,9 +295,9 @@ def _simulate_ed_visit(
             o.encounter_id = encounter.encounter_id
 
     # ED encounter metadata
-    encounter.admit_source = "outp"
-    encounter.discharge_disposition = "home"
-    encounter.priority = "EM"
+    encounter.admit_source = AdmitSource.OUTP
+    encounter.discharge_disposition = DischargeDisposition.HOME
+    encounter.priority = ActPriority.EM
     encounter.admitting_physician_id = encounter.attending_physician_id
     encounter.discharging_physician_id = encounter.attending_physician_id
 

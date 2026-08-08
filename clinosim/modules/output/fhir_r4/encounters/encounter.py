@@ -13,6 +13,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
@@ -142,9 +143,13 @@ def _build_encounter(
     # completeness gap. 8 IMP encounters in cycle 7 baseline had priority
     # empty (all `type == 32485007` general hospital admission).
     if not priority:
-        priority = "R"
+        priority = ActPriority.R.value
     if priority:
-        priority_display = {"EM": "emergency", "UR": "urgent", "R": "routine"}.get(priority, "")
+        priority_display = {
+            ActPriority.EM.value: "emergency",
+            ActPriority.UR.value: "urgent",
+            ActPriority.R.value: "routine",
+        }.get(priority, "")
         # C5-03 (session 43 cycle 5): localize priority display for JP output.
         from clinosim.modules.output.fhir_r4.lib.localization import (
             _ACT_PRIORITY_DISPLAY_JA,
