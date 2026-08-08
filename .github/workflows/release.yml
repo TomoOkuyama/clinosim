@@ -39,14 +39,14 @@ jobs:
       # Uncomment when enabling PyPI trusted publishing (OIDC-based):
       # id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history helps release-notes tooling walk CHANGELOG history
           # and is cheap for a tag build.
           fetch-depth: 0
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -146,7 +146,7 @@ jobs:
         # Even without a PyPI push, keep the artifacts attached to the run
         # for 90 days so they can be inspected / re-downloaded from the
         # Actions UI if the Release page misses something.
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist-${{ github.ref_name }}
           path: dist/*
