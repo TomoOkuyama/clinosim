@@ -14,18 +14,18 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output._fhir_common import (
-    _coding_with_display,
-    _make_participant,
-    _map_diagnosis_code,
-    _map_encounter_status,
-)
 from clinosim.modules.output._fhir_localization import (
     _CLASS_DISPLAY_JA,
     _dept_display,
     _localize_display,
 )
 from clinosim.modules.output._fhir_reference_data import _ENCOUNTER_TYPE_SNOMED_CODE
+from clinosim.modules.output.fhir_common import (
+    _coding_with_display,
+    _make_participant,
+    _map_diagnosis_code,
+    _map_encounter_status,
+)
 
 
 def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | None:

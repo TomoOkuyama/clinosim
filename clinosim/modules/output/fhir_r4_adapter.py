@@ -20,17 +20,6 @@ from clinosim.modules.output._fhir_care_level import _bb_care_level
 from clinosim.modules.output._fhir_care_team import _bb_care_teams
 from clinosim.modules.output._fhir_clinical_impression import _bb_clinical_impressions
 from clinosim.modules.output._fhir_code_status import _bb_code_status
-
-# FA-1 (Phases 1-13) + session 82 (H/I/K/L/N) split this adapter's leaf data,
-# shared fragment helpers, and per-theme resource builders into sibling
-# `_fhir_*` modules. The imports below are exactly the symbols `_build_bundle`
-# and `convert_cif_to_fhir` (this module's public surface) actually call —
-# the historical facade re-export block (marked with `noqa` directives) was
-# dropped once tests migrated to canonical imports.
-from clinosim.modules.output._fhir_common import (
-    BundleContext,
-    _entry,
-)
 from clinosim.modules.output._fhir_composition import _bb_compositions
 from clinosim.modules.output._fhir_device import (
     _bb_device,
@@ -84,6 +73,17 @@ from clinosim.modules.output._fhir_smoking_alcohol import (
     _bb_smoking_status,
 )
 from clinosim.modules.output.cif_reader import CIFReader
+
+# FA-1 (Phases 1-13) + session 82 (H/I/K/L/N) split this adapter's leaf data,
+# shared fragment helpers, and per-theme resource builders into sibling
+# `_fhir_*` modules. The imports below are exactly the symbols `_build_bundle`
+# and `convert_cif_to_fhir` (this module's public surface) actually call —
+# the historical facade re-export block (marked with `noqa` directives) was
+# dropped once tests migrated to canonical imports.
+from clinosim.modules.output.fhir_common import (
+    BundleContext,
+    _entry,
+)
 from clinosim.simulator import log as sim_log
 
 # FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding

@@ -34,8 +34,8 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.order.panel_grouping import load_panel_definitions
-from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
 from clinosim.modules.output._fhir_localization import localize_fixed_label
+from clinosim.modules.output.fhir_common import BundleContext, to_fhir_datetime
 
 
 # C1-16 (session 41 cycle 1): FHIR R4 ServiceRequest.intent values are

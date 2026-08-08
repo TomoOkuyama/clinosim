@@ -65,9 +65,9 @@ def _build_imaging_proof() -> dict[str, Any]:
     """
     # Lazy imports: defer FHIR builder import to proof time (avoids import-time
     # overhead; same pattern as antibiotic/audit.py _build_combined_proof).
-    from clinosim.modules.output._fhir_common import BundleContext
     from clinosim.modules.output._fhir_endpoint import _bb_endpoints
     from clinosim.modules.output._fhir_imaging_study import _bb_imaging_studies
+    from clinosim.modules.output.fhir_common import BundleContext
 
     study_uid = "1.2.840.10008.5.1.4.1.1.1.proof.1"
     endpoint_id = f"{ENDPOINT_ID_PREFIX}{study_uid}"

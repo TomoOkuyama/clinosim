@@ -32,7 +32,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext, _sha1_b64, to_fhir_instant
+from clinosim.modules.output.fhir_common import BundleContext, _sha1_b64, to_fhir_instant
 
 
 def _fhir_instant_or_empty(s: str) -> str:

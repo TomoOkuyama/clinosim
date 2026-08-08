@@ -32,7 +32,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import ALLERGY_ID_PREFIX
-from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_common import BundleContext, to_fhir_datetime
 
 __all__ = [
     "ALLERGY_ID_PREFIX",

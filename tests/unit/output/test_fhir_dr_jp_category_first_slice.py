@@ -26,7 +26,6 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from clinosim.modules.output._fhir_common import BundleContext
 from clinosim.modules.output._fhir_diagnostic_report import (
     JP_LAB_DR_CATEGORY_LOINC,
     build_lab_panel_reports,
@@ -38,6 +37,7 @@ from clinosim.modules.output._fhir_microbiology import (
     JP_MB_DR_PROFILE_URI,
     _bb_microbiology,
 )
+from clinosim.modules.output.fhir_common import BundleContext
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
 
 _LOINC_URI = "http://loinc.org"
