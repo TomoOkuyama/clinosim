@@ -135,12 +135,18 @@ nav:
       - FHIR data generation logic: design-guides/fhir-data-generation-logic.md
       - Data model conventions: design-guides/data-model-and-completeness-conventions.md
   - Reference:
+      - CLI: reference/cli.md
+      - Output formats: reference/output-formats.md
+      - LLM integration: reference/llm-integration.md
       - Datasets: reference/datasets.md
       - Evaluation: eval.md
       - Evaluation rules: eval-rules.md
       - Modules: reference/modules.md
       - Design (ADRs): reference/design.md
       - Scenario flags: reference/scenario-flags.md
+  - Architecture:
+      - Overview: architecture/README.md
+      - Module architecture: architecture/module-architecture.md
   - Guides:
       - Adding a module: CONTRIBUTING-modules.md
       - Clinical documents: clinical_documents.md
