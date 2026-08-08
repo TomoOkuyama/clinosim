@@ -6,16 +6,21 @@ Currently exports:
   and integration tests. Replaces the 5 near-duplicate local ``_patient()``
   helpers that had drifted across test files. See `tests/README.md § Fixture
   policy` for the convention.
+- ``patient_dict_factory`` — canonical shallow-dict builder for tests that
+  go through the FHIR builder path (which reads a CIF-shape dict directly,
+  bypassing ``PatientProfile``). Currently exercised by
+  ``test_fhir_patient_codes_yaml.py``.
 
-Not covered here (deliberately):
+Not covered here (deliberately, per the current AGENTS.md scope):
 
-- ``dict``-shaped patient fixtures (used by tests that go through the CIF
-  reader path — ``test_fhir_patient_codes_yaml.py``, ``test_narrative_
-  context_wiring.py``). Those bypass ``PatientProfile`` entirely and belong
-  to a separate ``patient_dict_factory`` follow-up.
+- Nested CIF-shaped fixtures used by ``test_narrative_context_wiring.py``.
+  That file builds a full patient + encounters + orders + docs bundle whose
+  shape is too test-specific to promote to a shared fixture.
 - ``SimpleNamespace``-shaped stand-ins (``test_archetype_modifiers.py``,
-  ``test_hai_lab_lift.py``). Those exist to test code paths that only need
-  attribute access, not a full ``PatientProfile``.
+  ``test_select_archetype_modifiers.py``, ``test_hai_lab_lift.py``). Those
+  exist to test code paths that only need attribute access, not a full
+  ``PatientProfile``. Promoting them to a shared factory would obscure the
+  intent (attribute-only stand-in) rather than clarify it.
 """
 
 from __future__ import annotations
@@ -81,6 +86,48 @@ def patient_factory():
             p.current_medications = [HomeMedication(drug_name=m) for m in current_meds]
         if baseline_chronic_medications is not None:
             p.baseline_chronic_medications = list(baseline_chronic_medications)
+        return p
+
+    return _make
+
+
+@pytest.fixture
+def patient_dict_factory():
+    """Return a callable that builds a shallow CIF-shape patient dict.
+
+    Used by FHIR-emit tests that call `_build_patient(patient_dict, country)`
+    directly (bypassing PatientProfile). The dict shape matches what the CIF
+    reader produces for the patient record — top-level keys only.
+
+    Args accepted:
+
+    - ``patient_id`` (default ``"P1"``)
+    - ``sex`` (default ``"F"``)
+    - ``name`` dict (default ``{"family_name": "Smith", "given_name": "Jane"}``)
+    - ``marital`` — added as ``marital_status`` when truthy
+    - ``lang`` — added as ``preferred_language`` when truthy
+    - ``**extra`` — merged into the returned dict (escape hatch for tests
+      that need a field not on the shared list)
+    """
+
+    def _make(
+        patient_id: str = "P1",
+        sex: str = "F",
+        name: dict | None = None,
+        marital: str = "",
+        lang: str = "",
+        **extra: object,
+    ) -> dict:
+        p: dict = {
+            "patient_id": patient_id,
+            "name": name if name is not None else {"family_name": "Smith", "given_name": "Jane"},
+            "sex": sex,
+        }
+        if marital:
+            p["marital_status"] = marital
+        if lang:
+            p["preferred_language"] = lang
+        p.update(extra)
         return p
 
     return _make
