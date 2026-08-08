@@ -986,7 +986,7 @@ def _append_tz_if_missing(s: str) -> str:
     """ISO 8601 datetime string に TZ が無ければ ``+09:00`` (JST) を付与。
 
     Historical helper: builders unconditionally append JST here. The post-emit
-    walker (:func:`clinosim.modules.output._fhir_post_process._normalize_dt_fields`)
+    walker (:func:`clinosim.modules.output.fhir_r4.post_process._normalize_dt_fields`)
     rewrites the suffix per-country afterwards (Issue #570 locale gate), so US
     cohorts do not retain JST in their final output.
 

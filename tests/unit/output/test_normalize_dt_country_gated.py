@@ -3,7 +3,7 @@ JST timestamps to the country's canonical TZ suffix.
 
 Builders unconditionally emit ``+09:00`` via ``to_fhir_datetime`` /
 ``to_fhir_instant`` in :mod:`clinosim.modules.output.fhir_common`. The walker
-:func:`clinosim.modules.output._fhir_post_process._normalize_dt_fields` then
+:func:`clinosim.modules.output.fhir_r4.post_process._normalize_dt_fields` then
 rewrites the suffix per country: JP keeps ``+09:00``; other cohorts (US
 default) get ``Z`` (UTC neutral default). Other pre-existing TZ suffixes
 (e.g. ``-05:00``) are preserved.
@@ -13,11 +13,11 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_post_process import (
+from clinosim.modules.output.fhir_r4.lib.common import tz_suffix_for_country
+from clinosim.modules.output.fhir_r4.post_process import (
     _normalize_dt,
     _normalize_dt_fields,
 )
-from clinosim.modules.output.fhir_r4.lib.common import tz_suffix_for_country
 
 pytestmark = pytest.mark.unit
 

@@ -105,7 +105,7 @@ def test_fhir_uri_to_code_system_key_includes_mhlw() -> None:
     """The FHIR-URI-to-clinosim-key reverse map in `fhir_r4_adapter.py`
     must recognize the MHLW URI so display lookups from an inbound coding
     (e.g. `_copy_display_from_sibling_coding`) still work on the JP path."""
-    from clinosim.modules.output._fhir_post_process import _FHIR_URI_TO_CODE_SYSTEM_KEY
+    from clinosim.modules.output.fhir_r4.post_process import _FHIR_URI_TO_CODE_SYSTEM_KEY
 
     assert _MHLW_URI in _FHIR_URI_TO_CODE_SYSTEM_KEY
     assert _FHIR_URI_TO_CODE_SYSTEM_KEY[_MHLW_URI] == "icd-10-mhlw"
