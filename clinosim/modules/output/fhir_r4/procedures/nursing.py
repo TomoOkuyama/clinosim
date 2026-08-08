@@ -16,8 +16,8 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
-    _loinc_coding,
-    _survey_category,
+    loinc_coding,
+    survey_category,
     to_fhir_datetime,
 )
 
@@ -64,7 +64,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 else {}
             ),
             "status": "final",
-            "category": _survey_category(),
+            "category": survey_category(),
             "subject": subject,
         }
         if enc_ref:
@@ -109,7 +109,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         if gcs is not None:
             obs = _obs_base(f"gcs-{enc or ctx.patient_id}-{i}", effective, performer_id)
             obs["code"] = {
-                "coding": [_loinc_coding("9269-2", lang)],
+                "coding": [loinc_coding("9269-2", lang)],
                 "text": code_lookup("loinc", "9269-2", lang) or "Glasgow coma score total",
             }
             obs["valueInteger"] = int(gcs)
@@ -124,7 +124,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         if braden is not None:
             obs = _obs_base(f"braden-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             obs["code"] = {
-                "coding": [_loinc_coding("38227-5", lang)],
+                "coding": [loinc_coding("38227-5", lang)],
                 "text": code_lookup("loinc", "38227-5", lang) or "Braden scale total score",
             }
             obs["valueInteger"] = int(braden)
@@ -135,7 +135,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs = _obs_base(f"morse-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             morse_text = code_lookup("loinc", "59460-6", lang) or "Fall risk total [Morse Fall Scale]"
             obs["code"] = {
-                "coding": [_loinc_coding("59460-6", lang)],
+                "coding": [loinc_coding("59460-6", lang)],
                 "text": morse_text,
             }
             obs["valueInteger"] = int(morse)
@@ -174,7 +174,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         if barthel is not None:
             obs = _obs_base(f"barthel-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             obs["code"] = {
-                "coding": [_loinc_coding("96761-2", lang)],
+                "coding": [loinc_coding("96761-2", lang)],
                 "text": code_lookup("loinc", "96761-2", lang) or "Total score Barthel Index",
             }
             obs["valueInteger"] = int(barthel)
@@ -193,7 +193,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         if intake_total > 0:
             obs = _obs_base(f"intake-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             obs["code"] = {
-                "coding": [_loinc_coding("9108-2", lang)],
+                "coding": [loinc_coding("9108-2", lang)],
                 "text": code_lookup("loinc", "9108-2", lang) or "Fluid intake total 24 hour",
             }
             obs["valueQuantity"] = {
@@ -209,7 +209,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         if urine_ml is not None:
             obs = _obs_base(f"urine-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             obs["code"] = {
-                "coding": [_loinc_coding("9192-6", lang)],
+                "coding": [loinc_coding("9192-6", lang)],
                 "text": code_lookup("loinc", "9192-6", lang) or "Urine output 24 hour",
             }
             obs["valueQuantity"] = {
@@ -227,7 +227,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         if output_total > 0:
             obs = _obs_base(f"output-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             obs["code"] = {
-                "coding": [_loinc_coding("9262-7", lang)],
+                "coding": [loinc_coding("9262-7", lang)],
                 "text": code_lookup("loinc", "9262-7", lang) or "Fluid output total 24 hour",
             }
             obs["valueQuantity"] = {

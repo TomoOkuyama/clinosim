@@ -4,7 +4,7 @@
 `loc_label_ja` lookup) but left `valueCodeableConcept.coding[].display`
 hardcoded to the English string regardless of `country` — a JP output could
 leak English coding display text while `.text` was properly Japanese,
-inconsistent with the rest of the codebase's `_severity_coding()`-style
+inconsistent with the rest of the codebase's `severity_coding()`-style
 pattern where both `text` and `coding[].display` are localized together.
 """
 

@@ -21,7 +21,7 @@ Session 40 fix — three defects converged into one:
    the FH builder would regress I63 emission.
 
 The fix pattern: (a) add the missing WHO code and US category-map entries,
-(b) apply ``_map_diagnosis_code`` in the FH builder,
+(b) apply ``map_diagnosis_code`` in the FH builder,
 (c) wrap it in ``_resolve_family_history_code`` which rejects Z-code
 targets so I63 stays as the disease.
 """

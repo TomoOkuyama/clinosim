@@ -29,30 +29,30 @@ __all__ = [
     # Public dataclass shared by every bundle-builder
     "BundleContext",
     # Fragment builders — resource-shared, used by every profile
-    "_build_address",
-    "_build_diagnosis_codeable_concept",
-    "_build_dosage_instruction",
-    "_build_reference_range",
-    "_build_telecom",
+    "build_address",
+    "build_diagnosis_codeable_concept",
+    "build_dosage_instruction",
+    "build_reference_range",
+    "build_telecom",
     "build_presented_form",
     "build_route_concept",
     "build_ucum_quantity",
     "canonicalize_route",
     # Bundle-entry constructor
-    "_entry",
+    "entry",
     # Status / code mappers
-    "_map_diagnosis_code",
-    "_map_encounter_status",
-    "_map_mar_status",
+    "map_diagnosis_code",
+    "map_encounter_status",
+    "map_mar_status",
     # Coding-system helpers (used by both output/ and audit modules)
-    "_loinc_coding",
-    "_micro_coding",
-    "_severity_coding",
+    "loinc_coding",
+    "micro_coding",
+    "severity_coding",
     # Cross-profile helpers
-    "_infer_severity",
-    "_make_participant",
-    "_survey_category",
-    "_strip_protocol_prefix",
+    "infer_severity",
+    "make_participant",
+    "survey_category",
+    "strip_protocol_prefix",
     # Date / datetime normalisers
     "derive_meta_last_updated",
     "to_fhir_date",
@@ -209,8 +209,8 @@ def _coding_with_display(system_key: str, code: str, lang: str) -> dict:
 
     Used at every builder site that emits a single coding (no CodeableConcept
     wrapping and no multilingual duplicate). Sibling helpers: ``_value()``
-    (wraps as full CodeableConcept), ``_loinc_coding()`` (LOINC-specialized),
-    ``_build_diagnosis_codeable_concept()`` (multi-language dx codes).
+    (wraps as full CodeableConcept), ``loinc_coding()`` (LOINC-specialized),
+    ``build_diagnosis_codeable_concept()`` (multi-language dx codes).
 
     C2-01/02/03/05/06/07/08 (session 42 cycle 2) — migrated the display-fallback
     sites (Encounter.type, Condition.clinicalStatus/verificationStatus,
@@ -227,10 +227,10 @@ def _coding_with_display(system_key: str, code: str, lang: str) -> dict:
 # Legacy alias — microbiology builders (_fhir_microbiology) use this name.
 # The public helper name is `_coding_with_display`. Keep the alias to avoid
 # churn on unrelated call sites (session 42, cycle 2).
-_micro_coding = _coding_with_display
+micro_coding = _coding_with_display
 
 
-def _survey_category() -> list[dict]:
+def survey_category() -> list[dict]:
     """Return the observation category list for survey-type observations.
 
     Uses get_system_uri to avoid hardcoding FHIR system URIs (project rule).
@@ -249,7 +249,7 @@ def _survey_category() -> list[dict]:
     ]
 
 
-def _loinc_coding(code: str, lang: str) -> dict:
+def loinc_coding(code: str, lang: str) -> dict:
     """Build a LOINC coding entry. Display resolved via lookup; never display == code."""
     disp = code_lookup("loinc", code, lang)
     entry: dict[str, Any] = {"system": get_system_uri("loinc"), "code": code}
@@ -286,7 +286,7 @@ def _value(system_key: str, code: str, lang: str) -> dict[str, Any]:
     Generic helper for any coded value whose display lives in
     clinosim.codes. Returns a CodeableConcept fragment
     {"coding": [{"system": ..., "code": ..., "display": ...}], "text": ...}
-    — distinct from _micro_coding() in this module which returns the
+    — distinct from micro_coding() in this module which returns the
     bare coding dict (no CodeableConcept wrapping). Used by SDOH
     builders (smoking_status / alcohol_use / care_level) and any future
     builder emitting a coded valueCodeableConcept.
@@ -301,7 +301,7 @@ def _value(system_key: str, code: str, lang: str) -> dict[str, Any]:
     return {"coding": [coding], "text": disp or code}
 
 
-def _entry(resource: dict) -> dict:
+def entry(resource: dict) -> dict:
     """Wrap a resource as a Bundle entry."""
     rid = resource.get("id", str(uuid.uuid4()))
     resource.get("resourceType", "Resource")
@@ -311,7 +311,7 @@ def _entry(resource: dict) -> dict:
     }
 
 
-def _build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -> dict[str, Any]:
+def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -> dict[str, Any]:
     """Build a FHIR CodeableConcept for a diagnosis code with multilingual coding.
 
     - Primary coding: target country's system + target language display
@@ -388,7 +388,7 @@ def _build_diagnosis_codeable_concept(code: str, system_key: str, country: str) 
     }
 
 
-def _map_diagnosis_code(code: str, country: str) -> str:
+def map_diagnosis_code(code: str, country: str) -> str:
     """Translate an internal chronic/history diagnosis base code to its locale code.
 
     US maps internal category/WHO codes (I50, E78, I21, ...) to billable ICD-10-CM
@@ -406,7 +406,7 @@ def _map_diagnosis_code(code: str, country: str) -> str:
     return load_code_mapping("diagnosis", country_code).get(code, code)
 
 
-def _infer_severity(record: dict) -> str:
+def infer_severity(record: dict) -> str:
     """Infer encounter severity from physiological states."""
     states = record.get("physiological_states", [])
     if not states:
@@ -422,7 +422,7 @@ def _infer_severity(record: dict) -> str:
     return ""
 
 
-def _severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
+def severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
     """Build FHIR Condition.severity CodeableConcept from severity string.
 
     session 53 iris4h-ai feedback F-4:JP output では JP_ConditionSeverity_CS
@@ -461,7 +461,7 @@ def _severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
     }
 
 
-def _build_address(addr: dict, country: str) -> dict[str, Any] | None:
+def build_address(addr: dict, country: str) -> dict[str, Any] | None:
     """Build FHIR Address from CIF address data."""
     if not addr.get("city") and not addr.get("line1"):
         return None
@@ -541,7 +541,7 @@ def build_presented_form(text: str, title: str, lang: str = "en") -> list[dict[s
     ]
 
 
-def _build_telecom(contact: dict) -> list[dict[str, str]]:
+def build_telecom(contact: dict) -> list[dict[str, str]]:
     """Build FHIR ContactPoint list from CIF contact data."""
     telecoms: list[dict[str, str]] = []
     if contact.get("phone_mobile"):
@@ -571,7 +571,7 @@ def _build_telecom(contact: dict) -> list[dict[str, str]]:
     return telecoms
 
 
-def _make_participant(code: str, display: str, practitioner_id: str, country: str = "US") -> dict[str, Any]:
+def make_participant(code: str, display: str, practitioner_id: str, country: str = "US") -> dict[str, Any]:
     """Build an Encounter.participant entry.
 
     C5-02 (session 43 cycle 5): localize `display` for JP output — HL7
@@ -605,7 +605,7 @@ def build_route_concept(raw_route: str | None, country: str) -> dict[str, Any] |
 
     SINGLE lookup point for route → SNOMED across every FHIR builder (Issue #458).
     Two independent `_ROUTE_SNOMED.get(...)` sites previously existed — one in
-    `_build_dosage_instruction` (MedicationRequest) and one in `_build_medication_admin`
+    `build_dosage_instruction` (MedicationRequest) and one in `_build_medication_admin`
     (MedicationAdministration) — and the same missing-alias defect landed on both,
     producing 166 text-only elements on the MAR path versus 6 on the MR path. Anything
     reading a route MUST come through here; `tests/unit/output/
@@ -614,7 +614,7 @@ def build_route_concept(raw_route: str | None, country: str) -> dict[str, Any] |
     single-edit-point pattern.
 
     `country` is REQUIRED (no default). A default was previously "US" and one call site
-    (`_build_dosage_instruction` internal) failed to forward it, silently emitting the
+    (`build_dosage_instruction` internal) failed to forward it, silently emitting the
     US `text` form on JP output — the same J5 pattern PR #475 fixed in
     `MedicationAdministration.dosage.text`. `TypeError` at call time is preferable to
     silent locale drift.
@@ -713,7 +713,7 @@ def _validate_route_maps() -> None:
 _validate_route_maps()
 
 
-def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any] | None:
+def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any] | None:
     """Build FHIR Dosage from structured order fields."""
     dose_qty = order.get("dose_quantity")
     dose_unit = order.get("dose_unit", "")
@@ -848,7 +848,7 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
 # Promoted to clinosim/modules/_shared.py (β-JP-1 chain 1a adv-1 I-1) so the
 # narrative renderer shares the same normalization; kept as an alias here for
 # the existing FHIR-builder import sites.
-_strip_protocol_prefix = strip_protocol_prefix
+strip_protocol_prefix = strip_protocol_prefix
 
 
 def _parse_dose_for_mar(text: str) -> dict[str, Any]:
@@ -880,7 +880,7 @@ def _sha1_b64(text: str) -> str:
     return base64.b64encode(h).decode("ascii")
 
 
-def _build_reference_range(
+def build_reference_range(
     lab_name: str,
     patient_sex: str,
     country_code: str,
@@ -954,7 +954,7 @@ def _build_reference_range(
     return result if result else None
 
 
-def _map_mar_status(status: str) -> str:
+def map_mar_status(status: str) -> str:
     return {"given": "completed", "held": "on-hold", "refused": "not-done", "not_available": "not-done"}.get(
         status, "completed"
     )  # noqa: E501
@@ -1081,7 +1081,7 @@ def to_fhir_date(value: Any) -> str:
     return str(value)[:10]
 
 
-def _map_encounter_status(status: str) -> str:
+def map_encounter_status(status: str) -> str:
     mapping = {
         "planned": "planned",
         "in_progress": "in-progress",
@@ -1114,3 +1114,27 @@ def derive_meta_last_updated(resource: dict, prefer: tuple[str, ...]) -> str | N
         if cur:
             return cur
     return None
+
+
+# ---- Issue #545 Step 3 backward-compat aliases ----
+# Underscore-prefixed names below are aliases for the promoted
+# public API above. Kept for one release cycle so external callers
+# that import via the deprecated `_fhir_common` shim (or that missed
+# this PR's mechanical rewrite) keep resolving. Migrate to the
+# unprefixed names.
+_build_address = build_address
+_build_diagnosis_codeable_concept = build_diagnosis_codeable_concept
+_build_dosage_instruction = build_dosage_instruction
+_build_reference_range = build_reference_range
+_build_telecom = build_telecom
+_entry = entry
+_map_diagnosis_code = map_diagnosis_code
+_map_encounter_status = map_encounter_status
+_map_mar_status = map_mar_status
+_loinc_coding = loinc_coding
+_micro_coding = micro_coding
+_severity_coding = severity_coding
+_infer_severity = infer_severity
+_make_participant = make_participant
+_survey_category = survey_category
+_strip_protocol_prefix = strip_protocol_prefix

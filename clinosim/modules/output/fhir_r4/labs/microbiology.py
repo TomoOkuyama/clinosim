@@ -15,7 +15,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _micro_coding, build_presented_form
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, build_presented_form, micro_coding
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
 
 # Canonical id prefixes for microbiology resources. Imported by readers
@@ -141,7 +141,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         if hai_identifier:
             specimen["identifier"] = hai_identifier
         if mb.get("specimen_snomed"):
-            specimen["type"] = {"coding": [_micro_coding("snomed-ct", mb["specimen_snomed"], lang)]}
+            specimen["type"] = {"coding": [micro_coding("snomed-ct", mb["specimen_snomed"], lang)]}
         if mb.get("collected_datetime"):
             specimen["collection"] = {"collectedDateTime": mb["collected_datetime"]}
         # CY8-09 fix (session 48 cycle 8): Specimen.receivedTime = 検体到着時刻。
@@ -202,7 +202,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # coding が存在する場合も text を必ず併記(coding display を text に
         # コピー、無ければ "Culture" fallback)。
         if culture_code_value:
-            _c = _micro_coding(code_system, culture_code_value, lang)
+            _c = micro_coding(code_system, culture_code_value, lang)
             culture_code = {
                 "coding": [_c],
                 "text": _c.get("display") or ("培養検査" if lang == "ja" else "Culture"),
@@ -250,7 +250,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             # _only_systems` により削除、validator が "display=0" を検出)。
             # lookup 失敗時は SNOMED code 自体を display fallback として
             # 使う(FHIR spec:code は不明でも display 必要)。
-            _org_c = _micro_coding("snomed-ct", mb["organism_snomed"], "en")
+            _org_c = micro_coding("snomed-ct", mb["organism_snomed"], "en")
             if not _org_c.get("display"):
                 _org_c["display"] = mb["organism_snomed"]
             org_obs["valueCodeableConcept"] = {"coding": [_org_c]}
@@ -267,7 +267,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             antibiotic_loinc = sus.get("antibiotic_loinc", "")
             sus_code_value, sus_code_system = resolve_susceptibility_code(antibiotic_loinc, ctx.country)
             # #321 session 61:JP_Observation_LabResult code.text min=1 満たす。
-            _sus_c = _micro_coding(sus_code_system, sus_code_value, lang)
+            _sus_c = micro_coding(sus_code_system, sus_code_value, lang)
             _sus_code_text = _sus_c.get("display") or ("感受性試験" if lang == "ja" else "Antimicrobial susceptibility")
             # 同 profile の valueCodeableConcept.coding.display min=1 満たす
             # (v6.1 で 162 件 error)。v3-ObservationInterpretation は

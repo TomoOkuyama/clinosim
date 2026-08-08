@@ -34,7 +34,7 @@ def _strip_forbidden_observation_reference_range_extensions(resource: dict) -> N
       whose URL was not registered anywhere in the JP-CLINS 1.12.0 /
       jp-core 1.2.0 / jpfhir-terminology 2.2606.0 packages
       (fhir-jp-validator 2026-07-17 §【最優先 2】surfaced 31,006
-      errors from this). The emit site in `_fhir_common._build_reference_range`
+      errors from this). The emit site in `_fhir_common.build_reference_range`
       no longer writes it, but this walker is the second layer of the
       silent-no-op defense: any cached CIF re-exported after the fix,
       or a hypothetical future builder that reintroduces a sub-extension,

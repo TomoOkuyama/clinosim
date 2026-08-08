@@ -405,7 +405,7 @@ def determine_flag(
     Reference ranges are loaded from ``clinosim/locale/<country>/reference_range_lab.yaml``
     (JCCLS 共用基準範囲 for JP; standard US clinical reference for US) so the
     CIF ``flag`` and the FHIR ``Observation.interpretation`` (which reads the
-    same YAML via ``_fhir_common._build_reference_range``) agree on every lab
+    same YAML via ``_fhir_common.build_reference_range``) agree on every lab
     (Issue #542 single-source-of-truth fix).
 
     Panic / critical thresholds remain hardcoded (:data:`_PANIC_THRESHOLDS`) —
