@@ -26,25 +26,14 @@ from datetime import datetime
 import numpy as np
 
 from clinosim.simulator.inpatient import _generate_home_medication_orders
-from clinosim.types.patient import ChronicCondition, PatientProfile
 
 
-def _patient(current_meds: list[str], chronic_codes: tuple[str, ...] = ("I48",)) -> PatientProfile:
-    from clinosim.types.patient import HomeMedication
-
-    p = PatientProfile(patient_id="POP-000001")
-    # #452 PR 3: attribute-assign bypasses PatientProfile.__post_init__.
-    p.current_medications = [HomeMedication(drug_name=m) for m in current_meds]
-    p.chronic_conditions = [ChronicCondition(code=c) for c in chronic_codes]
-    return p
-
-
-def test_orders_match_current_medications_exactly():
+def test_orders_match_current_medications_exactly(patient_factory):
     """When ``current_medications = ['Warfarin 3mg']`` and chronic I48
     is on the record, the resulting orders MUST include Warfarin and
     MUST NOT include Apixaban — regardless of what a YAML re-sample
     might have picked."""
-    p = _patient(["Warfarin 3mg"], chronic_codes=("I48",))
+    p = patient_factory(current_meds=["Warfarin 3mg"], chronic_icds=["I48"])
     orders, _monitoring = _generate_home_medication_orders(
         p,
         encounter_id="ENC-1",
@@ -57,10 +46,10 @@ def test_orders_match_current_medications_exactly():
     assert not any("Apixaban" in n for n in names), f"Apixaban unexpectedly ordered: {names}"
 
 
-def test_empty_current_medications_produces_zero_home_orders():
+def test_empty_current_medications_produces_zero_home_orders(patient_factory):
     """A patient with chronic conditions but no home meds MUST NOT
     receive re-sampled orders from the YAML."""
-    p = _patient([], chronic_codes=("I48",))
+    p = patient_factory(current_meds=[], chronic_icds=["I48"])
     orders, _ = _generate_home_medication_orders(
         p,
         encounter_id="ENC-2",
@@ -71,14 +60,14 @@ def test_empty_current_medications_produces_zero_home_orders():
     assert len(orders) == 0, f"empty current_meds should yield 0 orders, got {len(orders)}"
 
 
-def test_medication_hold_from_protocol_still_applies():
+def test_medication_hold_from_protocol_still_applies(patient_factory):
     """medication_holds logic (disease-specific hold via disease protocol)
     MUST still apply when the drug comes from ``current_medications``."""
 
     class _Protocol:
         medication_holds = [{"reason": "Test hold", "drugs": ["warfarin"]}]
 
-    p = _patient(["Warfarin 3mg"], chronic_codes=("I48",))
+    p = patient_factory(current_meds=["Warfarin 3mg"], chronic_icds=["I48"])
     orders, _ = _generate_home_medication_orders(
         p,
         encounter_id="ENC-3",
@@ -91,9 +80,9 @@ def test_medication_hold_from_protocol_still_applies():
     assert not any("Warfarin" in n for n in names), f"Warfarin should be held by protocol hold, got: {names}"
 
 
-def test_multiple_home_meds_all_ordered():
+def test_multiple_home_meds_all_ordered(patient_factory):
     """Multi-drug current_medications (e.g. HF triad) all appear in orders."""
-    p = _patient(["Furosemide 20mg", "Carvedilol 2.5mg", "Enalapril 5mg"], chronic_codes=("I50",))
+    p = patient_factory(current_meds=["Furosemide 20mg", "Carvedilol 2.5mg", "Enalapril 5mg"], chronic_icds=["I50"])
     orders, _ = _generate_home_medication_orders(
         p,
         encounter_id="ENC-4",
@@ -106,11 +95,11 @@ def test_multiple_home_meds_all_ordered():
         assert any(drug in n for n in names), f"{drug} missing from HF triad orders: {names}"
 
 
-def test_current_medications_not_in_yaml_still_ordered():
+def test_current_medications_not_in_yaml_still_ordered(patient_factory):
     """If ``current_medications`` contains a drug not listed in the YAML
     (e.g. from a different indication or LLM-suggested), it MUST still
     be ordered — the point is that current_medications is authoritative."""
-    p = _patient(["Some Unusual Drug 10mg"], chronic_codes=("I48",))
+    p = patient_factory(current_meds=["Some Unusual Drug 10mg"], chronic_icds=["I48"])
     orders, _ = _generate_home_medication_orders(
         p,
         encounter_id="ENC-5",
