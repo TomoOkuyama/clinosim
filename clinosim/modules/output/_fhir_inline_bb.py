@@ -182,6 +182,44 @@ from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
 _FHIR_ID_PATTERN = re.compile(r"^[A-Za-z0-9\-\.]{1,64}$")
 
 
+# Synthesised ED encounter (CY7-05) display strings — Issue #546 partial.
+# `_fhir_inline_bb.py::_bb_encounters` builds an ED partOf encounter that
+# bypasses `_build_encounter_resource` (the canonical builder). The 4
+# hardcoded display strings below were inlined as `"救急外来" if is_jp(country)
+# else "Emergency"` at 4 sites. Extracted here as a single named table so:
+#
+#   * A JP-CLINS revision that touches synth-ED display copy is a one-file edit.
+#   * `grep _SYNTH_ED_DISPLAYS` surfaces every consumer.
+#   * A future full-canonical migration (delegating synth ED to
+#     `_build_encounter_resource`) knows exactly which slots differ from
+#     the canonical `_CLASS_DISPLAY_JA` / `_ACT_PRIORITY_DISPLAY_JA` /
+#     `code_lookup("hl7-admit-source"/"hl7-discharge-disposition", …)`
+#     tables and needs a targeted override.
+#
+# NOTE: These four values INTENTIONALLY diverge from the canonical tables
+# — the canonical helpers currently render:
+#   * `_CLASS_DISPLAY_JA["EMER"]           = "救急"`      (vs synth ED "救急外来")
+#   * `_ACT_PRIORITY_DISPLAY_JA["EM"]      = "救急"`      (vs synth ED "緊急")
+#   * `code_lookup("hl7-admit-source",         "outp", "ja")`
+#     and `code_lookup("hl7-discharge-disposition", "hosp", "ja")` return
+#     the CS-registered displays; synth-ED's copy diverges deliberately for
+#     the ED department context. A future PR that unifies them must update
+#     both tables together (byte-diff shift documented in that PR).
+_SYNTH_ED_DISPLAYS: dict[str, tuple[str, str]] = {
+    # (JP display, US display) keyed by the JP-facing semantic slot name.
+    "class_emer": ("救急外来", "Emergency"),
+    "priority_em": ("緊急", "emergency"),
+    "admit_source_outp": ("外来より", "From outpatient"),
+    "discharge_disposition_hosp": ("入院となる", "Admitted to hospital"),
+}
+
+
+def _synth_ed_display(slot: str, country: str) -> str:
+    """Return the JP or US display for a synth-ED slot from `_SYNTH_ED_DISPLAYS`."""
+    jp, en = _SYNTH_ED_DISPLAYS[slot]
+    return jp if is_jp(country) else en
+
+
 def _bb_patient(ctx: BundleContext) -> list[dict]:
     return [_build_patient(ctx.patient_data, ctx.country)]
 
@@ -276,7 +314,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                 "class": {
                     "system": get_system_uri("hl7-v3-actcode"),
                     "code": "EMER",
-                    "display": "救急外来" if is_jp(ctx.country) else "Emergency",
+                    "display": _synth_ed_display("class_emer", ctx.country),
                 },
                 "subject": {"reference": f"Patient/{ctx.patient_id}"},
             }
@@ -309,7 +347,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                     {
                         "system": get_system_uri("hl7-v3-actpriority"),
                         "code": "EM",
-                        "display": "緊急" if is_jp(ctx.country) else "emergency",
+                        "display": _synth_ed_display("priority_em", ctx.country),
                     }
                 ],
             }
@@ -319,7 +357,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                         {
                             "system": get_system_uri("hl7-admit-source"),
                             "code": "outp",
-                            "display": "外来より" if is_jp(ctx.country) else "From outpatient",
+                            "display": _synth_ed_display("admit_source_outp", ctx.country),
                         }
                     ],
                 },
@@ -328,7 +366,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                         {
                             "system": get_system_uri("hl7-discharge-disposition"),
                             "code": "hosp",
-                            "display": "入院となる" if is_jp(ctx.country) else "Admitted to hospital",
+                            "display": _synth_ed_display("discharge_disposition_hosp", ctx.country),
                         }
                     ],
                 },
