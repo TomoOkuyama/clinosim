@@ -88,11 +88,10 @@ def _simulate_unknown_condition(
     # `_simulate_unknown_condition` for backwards compat, so a module-scope
     # import from `inpatient` would form a `inpatient → unknown_condition →
     # inpatient` loop. Deferred to call time keeps this module import-clean.
-    # `_generate_vitals` now lives in `vitals_pipeline` (PR B); `_generate_mar`
-    # is still in `inpatient` (moves in PR C — until then imported from there
-    # directly, which is fine because it's a first-class definition, not a
-    # re-export).
-    from clinosim.simulator.inpatient import _generate_mar
+    # Post-PR-B (`vitals_pipeline`) + PR-C (`medication_pipeline`), both
+    # helpers live in their own topic modules and unknown_condition no longer
+    # needs `inpatient.py` at all — direct imports from the topic modules.
+    from clinosim.simulator.medication_pipeline import _generate_mar
     from clinosim.simulator.vitals_pipeline import _generate_vitals
 
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
