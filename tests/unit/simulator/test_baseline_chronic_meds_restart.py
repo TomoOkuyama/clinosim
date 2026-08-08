@@ -21,19 +21,22 @@ from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.types.patient import ChronicCondition, HomeMedication, PatientProfile
 
 
-def _patient_with_metformin_baseline() -> PatientProfile:
-    p = PatientProfile(
+def _metformin_patient(patient_factory) -> PatientProfile:
+    """Wrap ``patient_factory`` with the metformin+E11.9 shape shared by the
+    Issue #433 scenarios below. Kept as a module-local wrapper (not a pytest
+    fixture) because callers pass in the ``patient_factory`` fixture."""
+    metformin = HomeMedication(drug_name="Metformin", dose="500mg", route="PO", frequency="BID")
+    p = patient_factory(
         patient_id="POP-TEST",
         household_id="HH-TEST",
         age=65,
         sex="F",
         date_of_birth=date(1960, 1, 1),
         chronic_conditions=[ChronicCondition(code="E11.9", severity_score=0.3)],
+        baseline_chronic_medications=[metformin],
     )
-    # Simulate activator populate: baseline = current_medications at activation
-    metformin = HomeMedication(drug_name="Metformin", dose="500mg", route="PO", frequency="BID")
+    # Simulate activator populate: current = baseline at activation.
     p.current_medications = [metformin]
-    p.baseline_chronic_medications = list(p.current_medications)
     return p
 
 
@@ -61,30 +64,30 @@ def _rx_drugs(patient: PatientProfile, protocol: DiseaseProtocol, renal: float) 
     return [it["drug_name"] for it in rx.items]
 
 
-def test_baseline_populated_from_current_meds_at_activation():
-    p = _patient_with_metformin_baseline()
+def test_baseline_populated_from_current_meds_at_activation(patient_factory):
+    p = _metformin_patient(patient_factory)
     assert len(p.baseline_chronic_medications) == 1
     assert p.baseline_chronic_medications[0].drug_name == "Metformin"
 
 
-def test_renal_ok_emits_metformin_from_baseline():
-    p = _patient_with_metformin_baseline()
+def test_renal_ok_emits_metformin_from_baseline(patient_factory):
+    p = _metformin_patient(patient_factory)
     drugs = _rx_drugs(p, _minimal_protocol(), renal=0.9)
     assert "Metformin" in drugs
 
 
-def test_renal_impaired_holds_metformin():
+def test_renal_impaired_holds_metformin(patient_factory):
     """Renal function < 0.3 → nephrotoxic drug (Metformin) suppressed."""
-    p = _patient_with_metformin_baseline()
+    p = _metformin_patient(patient_factory)
     drugs = _rx_drugs(p, _minimal_protocol(), renal=0.2)
     assert "Metformin" not in drugs
 
 
-def test_renal_recovered_re_emits_metformin_even_if_current_meds_lost_it():
+def test_renal_recovered_re_emits_metformin_even_if_current_meds_lost_it(patient_factory):
     """The core #433 scenario: after AKI cleared metformin from current_medications
     (intermediate admission at renal=0.2 didn't re-emit it), the next admission at
     renal=0.9 restores it from baseline — chronic drug NOT permanently lost."""
-    p = _patient_with_metformin_baseline()
+    p = _metformin_patient(patient_factory)
     # Simulate the intermediate admission clearing metformin from current
     p.current_medications = []
     # baseline_chronic_medications unchanged (immutable snapshot)
@@ -96,9 +99,9 @@ def test_renal_recovered_re_emits_metformin_even_if_current_meds_lost_it():
     )
 
 
-def test_empty_baseline_falls_back_to_current_medications():
+def test_empty_baseline_falls_back_to_current_medications(patient_factory):
     """Backcompat: patient with empty baseline (older fixtures) uses current_medications."""
-    p = PatientProfile(
+    p = patient_factory(
         patient_id="POP-LEGACY",
         household_id="HH-LEGACY",
         age=70,

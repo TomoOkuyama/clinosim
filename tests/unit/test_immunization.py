@@ -15,38 +15,31 @@ def test_types_importable():
     assert r.status == "completed" and r.primary_source is True
 
 
-def _patient(age, sex="M", dob_year=None):
-    from clinosim.types.patient import PatientProfile
-
-    dob = date((dob_year or (2026 - age)), 1, 1)
-    return PatientProfile(patient_id="p1", age=age, sex=sex, date_of_birth=dob)
-
-
 def _sched():
     from clinosim.modules.immunization.engine import load_schedule
 
     return load_schedule("US")
 
 
-def test_min_age_excludes_pneumococcal_for_young():
+def test_min_age_excludes_pneumococcal_for_young(patient_factory):
     from clinosim.modules.immunization.engine import generate_immunizations
 
-    recs = generate_immunizations(_patient(40), _sched(), date(2026, 1, 1), np.random.default_rng(1))
+    recs = generate_immunizations(patient_factory(age=40), _sched(), date(2026, 1, 1), np.random.default_rng(1))
     assert all(r.vaccine_cvx != "33" for r in recs)  # PPSV23 min_age 65
 
 
-def test_all_dates_within_window():
+def test_all_dates_within_window(patient_factory):
     from clinosim.modules.immunization.engine import generate_immunizations
 
     as_of = date(2026, 1, 1)
-    recs = generate_immunizations(_patient(80), _sched(), as_of, np.random.default_rng(2))
+    recs = generate_immunizations(patient_factory(age=80), _sched(), as_of, np.random.default_rng(2))
     assert all(r.occurrence_date <= as_of for r in recs)
     # COVID-19 (cvx 309) never before its availability date
     covid = [r for r in recs if r.vaccine_cvx == "309"]
     assert all(r.occurrence_date >= date(2020, 12, 14) for r in covid)
 
 
-def test_history_years_caps_annual_lookback():
+def test_history_years_caps_annual_lookback(patient_factory):
     """An annual vaccine with history_years=N only generates within the last N years
     (models EHR data retention — avoids decades of accumulated flu shots)."""
     from clinosim.modules.immunization.engine import generate_immunizations
@@ -63,7 +56,7 @@ def test_history_years_caps_annual_lookback():
             "coverage_by_age_sex": {"18-99": {"M": 1.0, "F": 1.0}},
         }
     }
-    recs = generate_immunizations(_patient(80), schedule, as_of, np.random.default_rng(2))
+    recs = generate_immunizations(patient_factory(age=80), schedule, as_of, np.random.default_rng(2))
     flu = [r for r in recs if r.vaccine_cvx == "150"]
     # With coverage 1.0 and a 10-year lookback, at most ~11 seasons (2016-2026), never 26.
     assert flu, "expected flu records"
@@ -71,34 +64,36 @@ def test_history_years_caps_annual_lookback():
     assert len(flu) <= 11
 
 
-def test_high_coverage_more_than_low_band():
+def test_high_coverage_more_than_low_band(patient_factory):
     from clinosim.modules.immunization.engine import generate_immunizations
 
     # elderly flu coverage (0.68-0.70) >> younger; count flu records across many seeds
     def flu_count(age):
         n = 0
         for s in range(60):
-            recs = generate_immunizations(_patient(age), _sched(), date(2026, 1, 1), np.random.default_rng(s))
+            recs = generate_immunizations(
+                patient_factory(age=age), _sched(), date(2026, 1, 1), np.random.default_rng(s)
+            )
             n += sum(1 for r in recs if r.vaccine_cvx == "150")
         return n
 
     assert flu_count(80) > flu_count(30)
 
 
-def test_deterministic_same_seed():
+def test_deterministic_same_seed(patient_factory):
     from clinosim.modules.immunization.engine import generate_immunizations
 
-    a = generate_immunizations(_patient(70), _sched(), date(2026, 1, 1), np.random.default_rng(7))
-    b = generate_immunizations(_patient(70), _sched(), date(2026, 1, 1), np.random.default_rng(7))
+    a = generate_immunizations(patient_factory(age=70), _sched(), date(2026, 1, 1), np.random.default_rng(7))
+    b = generate_immunizations(patient_factory(age=70), _sched(), date(2026, 1, 1), np.random.default_rng(7))
     assert [(r.vaccine_cvx, r.occurrence_date) for r in a] == [(r.vaccine_cvx, r.occurrence_date) for r in b]
 
 
-def test_covid_never_before_availability():
+def test_covid_never_before_availability(patient_factory):
     from clinosim.modules.immunization.engine import generate_immunizations
 
     found = 0
     for s in range(40):
-        recs = generate_immunizations(_patient(80), _sched(), date(2026, 1, 1), np.random.default_rng(s))
+        recs = generate_immunizations(patient_factory(age=80), _sched(), date(2026, 1, 1), np.random.default_rng(s))
         covid = [r for r in recs if r.vaccine_cvx == "309"]
         found += len(covid)
         assert all(r.occurrence_date >= date(2020, 12, 14) for r in covid)
