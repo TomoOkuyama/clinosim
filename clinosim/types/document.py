@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, Protocol, runtime_checkable
 
+from clinosim.modules._shared import is_jp
+
 
 class FormatType(StrEnum):
     """Document content format type."""
@@ -110,7 +112,7 @@ class DocumentTypeSpec:
         されており country=JP のときは JP 固有 list を優先する。それ以外は
         country-neutral な ``composition_sections`` をそのまま返す。
         """
-        if country.upper() == "JP" and self.composition_sections_jp:
+        if is_jp(country) and self.composition_sections_jp:
             return self.composition_sections_jp
         return self.composition_sections
 
@@ -121,7 +123,7 @@ class DocumentTypeSpec:
         それを、無ければ ``llm_enabled_sections`` を返す。US path は
         常に ``llm_enabled_sections`` を返す。
         """
-        if country.upper() == "JP" and self.llm_enabled_sections_jp:
+        if is_jp(country) and self.llm_enabled_sections_jp:
             return self.llm_enabled_sections_jp
         return self.llm_enabled_sections
 
