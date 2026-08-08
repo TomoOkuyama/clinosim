@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout PR head with full history
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # `git rev-list base..head` needs both refs; `fetch-depth: 0` gets
           # them regardless of how many commits are in the PR.

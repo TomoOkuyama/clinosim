@@ -49,8 +49,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -63,8 +63,8 @@ jobs:
     name: Unit tests (Py 3.11 — compat floor)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
           cache: pip
@@ -84,8 +84,8 @@ jobs:
     # per-module gates (HAI empirical, antibiotic narrow rate, JP-CLINS
     # slice presence) have non-degenerate cohort sizes.
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -112,7 +112,7 @@ jobs:
         run: clinosim audit run -d audit-cohort/jp
       - name: Upload audit reports (retained 30 days)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: audit-reports
           path: audit-cohort/**/*.md
@@ -132,8 +132,8 @@ jobs:
     # First run has no cached baseline → job PASSES trivially and
     # populates the cache for tomorrow. From day 2 onward it enforces.
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -141,7 +141,7 @@ jobs:
         run: pip install -e "."
       - name: Restore prior cohort cache
         id: cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           # Restore any cache from the same nightly job; the exact key
           # never matches (differs by run number), forcing GitHub to
@@ -194,7 +194,7 @@ jobs:
           cp -r cohort-today cohort-baseline
       - name: Save updated baseline cache
         if: always()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           key: cohort-baseline-${{ github.run_number }}
           path: cohort-baseline/
