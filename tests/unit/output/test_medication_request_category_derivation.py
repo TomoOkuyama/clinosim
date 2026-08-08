@@ -65,10 +65,7 @@ def test_derive_mr_category(
     expected: tuple[str, str],
 ) -> None:
     """Direct-input coverage for all five rules of ``_derive_mr_category``."""
-    assert (
-        _derive_mr_category(encounter_type, is_home_med, is_episodic, is_discharge_intent)
-        == expected
-    )
+    assert _derive_mr_category(encounter_type, is_home_med, is_episodic, is_discharge_intent) == expected
 
 
 @pytest.mark.parametrize(
@@ -81,9 +78,7 @@ def test_derive_mr_category(
         ("virtual", "inpatient"),  # SHIFT edge (unknown encounter type)
     ],
 )
-def test_derive_mr_category_discharge_caller_shift(
-    encounter_type: str, expected_code: str
-) -> None:
+def test_derive_mr_category_discharge_caller_shift(encounter_type: str, expected_code: str) -> None:
     """Documented shifts introduced by the Issue #548 unification.
 
     The discharge path historically used a 2-branch decision (inpatient →
@@ -114,9 +109,7 @@ def test_derive_mr_category_discharge_caller_shift(
         ("", "", "inpatient"),  # empty fallback
     ],
 )
-def test_order_caller_category_byte_neutral(
-    encounter_type: str, clinical_intent: str, expected_code: str
-) -> None:
+def test_order_caller_category_byte_neutral(encounter_type: str, clinical_intent: str, expected_code: str) -> None:
     """Prove the order-path helper derivation reproduces pre-#548 behavior.
 
     The order caller derives is_home_med / is_episodic / is_discharge_intent
@@ -137,7 +130,5 @@ def test_order_caller_category_byte_neutral(
     )
     is_episodic = (not is_home_med) and any(kw in ci_lower for kw in episodic_kw)
     is_discharge_intent = "discharge" in ci_lower
-    code, _display = _derive_mr_category(
-        encounter_type, is_home_med, is_episodic, is_discharge_intent
-    )
+    code, _display = _derive_mr_category(encounter_type, is_home_med, is_episodic, is_discharge_intent)
     assert code == expected_code
