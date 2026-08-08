@@ -436,10 +436,11 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
         "subject": {"reference": f"Patient/{patient_id}"},
         "date": authored_dt,
         # FHIR R4 Composition.author cardinality 1..*; empty [] is non-conformant.
-        # Production fallback: inpatient.py:184 sets attending_id=DR-001 so this
-        # branch should never fire in production. Placeholder surfaces failures via
-        # reference integrity audit (dangling Practitioner/UNKNOWN) rather than
-        # silently emitting [] (non-conformant) or hiding the bug.
+        # Production fallback: encounter.attending_physician_id is populated to
+        # FALLBACK_PHYSICIAN_ID (staff/engine.py) when the roster is empty, so
+        # this branch should never fire in production. Placeholder surfaces
+        # failures via reference integrity audit (dangling Practitioner/UNKNOWN)
+        # rather than silently emitting [] (non-conformant) or hiding the bug.
         # TODO(Task 10/15): document enricher must always populate author_practitioner_id.
         "author": [{"reference": f"Practitioner/{author_id}"}]
         if author_id
