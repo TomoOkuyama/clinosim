@@ -40,6 +40,12 @@ from clinosim.modules.observation.engine import (
     get_lab_unit,
     lab_panel_components,
 )
+from clinosim.modules.observation.pre_analytical import (
+    HEMOLYSIS_LIFT_RANGE,
+    HEMOLYSIS_PRONE_LABS,
+    HEMOLYSIS_RATE,
+    SPECIMEN_REJECTION_RATE,
+)
 from clinosim.modules.order.engine import (
     calculate_result_time_from_state,
     place_admission_orders,
@@ -1004,14 +1010,15 @@ def _run_daily_loop(
             canon = canonical_lab_name(order.display_name)
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and canon in true_labs:
                 lab_rng = np.random.default_rng(individual_lab_seed(order.order_id))
-                # Pre-analytical issues: specimen rejection (~2%), hemolysis (~3% for K/LDH)
-                if lab_rng.random() < 0.02:
+                # Pre-analytical issues (constants in observation/pre_analytical.py):
+                # ~2% specimen rejection, ~3% hemolysis on K/LDH.
+                if lab_rng.random() < SPECIMEN_REJECTION_RATE:
                     order.status = OrderStatus.CANCELLED
                     continue  # specimen lost/rejected
-                if canon in ("K", "LDH") and lab_rng.random() < 0.03:
+                if canon in HEMOLYSIS_PRONE_LABS and lab_rng.random() < HEMOLYSIS_RATE:
                     # Hemolyzed sample → falsely elevated K/LDH, flagged
                     result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, lab_rng)
-                    hemolyzed_val = true_labs[canon] * float(lab_rng.uniform(1.2, 1.8))
+                    hemolyzed_val = true_labs[canon] * float(lab_rng.uniform(*HEMOLYSIS_LIFT_RANGE))
                     lab_tech = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", "TECH-001")
                     order.result = OrderResult(
                         result_datetime=result_time,
@@ -1051,7 +1058,7 @@ def _run_daily_loop(
         # the existing behaviour for any individual order that engine cannot result.
         for parent_id, children in _panel_children_by_parent.items():
             sub_rng = np.random.default_rng(panel_specimen_seed(parent_id))
-            if sub_rng.random() < 0.02:
+            if sub_rng.random() < SPECIMEN_REJECTION_RATE:
                 for child in children:
                     child.status = OrderStatus.CANCELLED
                 continue
@@ -1071,8 +1078,8 @@ def _run_daily_loop(
                     roster,
                     sub_rng,
                 ).get("performing_technician", "TECH-001")
-                if canon in ("K", "LDH") and sub_rng.random() < 0.03:
-                    hemolyzed_val = true_labs[canon] * float(sub_rng.uniform(1.2, 1.8))
+                if canon in HEMOLYSIS_PRONE_LABS and sub_rng.random() < HEMOLYSIS_RATE:
+                    hemolyzed_val = true_labs[canon] * float(sub_rng.uniform(*HEMOLYSIS_LIFT_RANGE))
                     child.result = OrderResult(
                         result_datetime=result_time,
                         performed_by=lab_tech,
