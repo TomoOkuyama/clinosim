@@ -279,19 +279,31 @@ Expected volume: seed 42, 30-patient JP+US cohort emits approximately
 ED); the exact count is fingerprint-stable and is captured in the PR
 verification report.
 
-### Diffs pending spec-time measurement (canonical builder branches)
+### Preflight-observed extras (canonical enrichment surface)
 
-- `type[]` (SNOMED): `_ENCOUNTER_TYPE_SNOMED_CODE.get("emergency")` in
-  `encounter.py:119`. If a code exists, `type[]` gains a coding array;
-  if not, no change.
-- `serviceType.text`: `_dept_display("", country)` in `encounter.py:176`.
-  Returns whatever the localization table maps `""` to; may add a
-  `{"text": "..."}` field.
+The preflight measurement (Task 1 of the implementation plan, executed
+against `origin/master@642c5b7`) confirms the canonical builder emits
+**five additional structural enrichments** for the synth_enc dict shape,
+beyond the 5 display-level diffs above:
 
-**Action**: at the start of implementation, run `_build_encounter` with
-the intended synth_enc dict shape, dump the result, and add the
-observed `type[]` / `serviceType` behaviour to the confirmed-diff table
-in the PR body. This measurement replaces speculation with data.
+| Field | Before (inline synth-ED) | After (canonical delegation) |
+|---|---|---|
+| `type[]` | absent | `[{coding: [{system: snomed-ct, code: "50849002", display: "救急入院" / "Emergency hospital admission"}]}]` — canonical `_ENCOUNTER_TYPE_SNOMED_CODE["emergency"]` |
+| `serviceType.text` | absent | `"内科"` (JP) / `"Internal Medicine"` (US) — canonical `department` fallback `or "internal_medicine"` at `encounter.py:175` |
+| `serviceProvider.reference` | `Organization/hospital-main` | `Organization/dept-internal-medicine` — chained from the `internal_medicine` default |
+| `location[]` | absent | `[{location: {reference: "Location/loc-dept-internal-medicine", display: "内科" / "Internal Medicine"}, status: "completed"}]` — CO-5 fallback at `encounter.py:575-586` |
+| `participant[]` | 1 (bare ATND, no `type[]`) | 3 (ATND + ADM + DIS, each with canonical `type[]`) — `_is_ip = class_code in ("IMP", "EMER")` causes admitter/discharger auto-fill to the attending practitioner |
+
+All five additions are **canonical enrichments** — the same shape
+primary IMP encounters already emit — not invented content. They are
+the intended effect of "single source of truth" (spec DD1); the earlier
+"5 confirmed diffs" list was narrow.
+
+**Byte-diff volume revised**: on a 30-patient seed 42 cohort, expect
+~5 display shifts + ~5 structural enrichments per synth-ED bridge
+Encounter, applied to every bridge (approximately 20-30 per cohort).
+All shifts must fall into the categories above; any diff outside this
+set blocks merge.
 
 ## Error handling & edge cases
 

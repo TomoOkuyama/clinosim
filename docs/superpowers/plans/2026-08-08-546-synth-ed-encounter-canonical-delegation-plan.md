@@ -611,8 +611,19 @@ diff -r /tmp/546-baseline-us /tmp/546-pr-us -x _generator_metadata.json > /priva
 
 Open each diff file. For each hunk, categorise:
 
-- **Expected**: on `Encounter.ndjson`, and matches one of the 5 confirmed diffs from the spec (class.display / priority.display / admitSource.display / dischargeDisposition removal / participant[0].type[] addition) or a Task 1 preflight-observed addition (`type[]` or `serviceType`).
-- **Unexpected**: any other file, or any Encounter diff not matching above.
+- **Expected — display shifts** (spec § Data flow → Confirmed diffs): on `Encounter.ndjson`, matching one of:
+  - `class.display`: `"救急外来"` → `"救急"` (JP), `"Emergency"` → `"emergency"` (US)
+  - `priority.display`: `"緊急"` → `"救急"` (JP), unchanged (US)
+  - `hospitalization.admitSource.display`: `"外来より"` → `"外来より入院"` (JP), `"From outpatient"` → `"From outpatient department"` (US)
+  - `hospitalization.dischargeDisposition`: field removed
+- **Expected — canonical enrichments** (spec § Data flow → Preflight-observed extras):
+  - `type[]` added (SNOMED 50849002 "救急入院" / "Emergency hospital admission")
+  - `serviceType.text` added (`"内科"` / `"Internal Medicine"`)
+  - `serviceProvider.reference` changed: `Organization/hospital-main` → `Organization/dept-internal-medicine`
+  - `location[]` added (`loc-dept-internal-medicine`)
+  - `participant[]` grows 1 → 3 (ATND with `type[]` + ADM + DIS, all referencing the attending practitioner)
+  - `meta.profile` on JP synth-ED bridges: gains `JP_Encounter` if the source IMP encounter's `meta.profile` was empty (canonical builder always emits it for JP)
+- **Unexpected**: any other file, or any Encounter diff not matching either category above.
 
 Every unexpected hunk BLOCKS merge until root-caused. Common root causes:
 - IMP encounter changes (indicates the refactor accidentally touched the primary path — undo).
