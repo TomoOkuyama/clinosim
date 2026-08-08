@@ -20,22 +20,6 @@ from datetime import datetime
 from typing import Any
 
 from clinosim.modules._shared import is_jp
-
-# Session 82 PR N: post-emit helpers extracted to _fhir_post_process.py.
-# Imported for use inside `_build_bundle` (see finalize pass).
-from clinosim.modules.output._fhir_post_process import (
-    _apply_jp_clins_profile,
-    _apply_jp_core_profile,
-    _build_companion_specimen,
-    _lab_observation_needs_specimen,
-    _normalize_dt_fields,
-    _normalize_jp_observation_category,
-    _populate_condition_ai_mr_ecs_fields,
-    _populate_jp_medication_dosage_ecs_fields,
-    _populate_observation_identifier_and_last_updated,
-    _strip_forbidden_observation_reference_range_extensions,
-    _strip_japanese_display_on_english_only_systems,
-)
 from clinosim.modules.output.cif_reader import CIFReader
 from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import _bb_allergy_intolerances
 from clinosim.modules.output.fhir_r4.conditions.clinical_impression import _bb_clinical_impressions
@@ -82,6 +66,22 @@ from clinosim.modules.output.fhir_r4.lib.inline_bb import (
     _bb_practitioners,
     _bb_procedures,
     _bb_vitals,
+)
+
+# Session 82 PR N: post-emit helpers extracted to _fhir_post_process.py.
+# Imported for use inside `_build_bundle` (see finalize pass).
+from clinosim.modules.output.fhir_r4.post_process import (
+    _apply_jp_clins_profile,
+    _apply_jp_core_profile,
+    _build_companion_specimen,
+    _lab_observation_needs_specimen,
+    _normalize_dt_fields,
+    _normalize_jp_observation_category,
+    _populate_condition_ai_mr_ecs_fields,
+    _populate_jp_medication_dosage_ecs_fields,
+    _populate_observation_identifier_and_last_updated,
+    _strip_forbidden_observation_reference_range_extensions,
+    _strip_japanese_display_on_english_only_systems,
 )
 from clinosim.modules.output.fhir_r4.procedures.device import (
     _bb_device,

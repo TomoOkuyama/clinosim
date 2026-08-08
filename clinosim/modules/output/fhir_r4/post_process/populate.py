@@ -1,297 +1,37 @@
-"""Post-emit resource-shape helpers for `fhir_r4_adapter.py` (session 82 PR N).
+"""Post-populate ECS / status coding / condition-tree helpers.
 
-Extracted from `clinosim/modules/output/fhir_r4_adapter.py` — this module owns
-the 35 module-level constants + 18 helper functions that fire AFTER each
-`_bb_*` builder emits a resource but BEFORE the adapter serializes it to
-NDJSON. Contents (grouped):
+Extracted from ``_fhir_post_process.py`` (Issue #555 PR3, folds Issue #556).
 
-- Datetime normalization: `_normalize_dt`, `_normalize_dt_fields`
-  (+ `_DATETIME_FIELDS`, `_PERIOD_FIELDS`, `_INSTANT_FIELDS`)
-- Post-populate ECS / status coding / condition:
-  `_populate_observation_identifier_and_last_updated`,
-  `_populate_jp_medication_dosage_ecs_fields`,
-  `_populate_status_coding_display`, `_populate_condition_ai_mr_ecs_fields`
-  (+ many JP / MHLW / MEDIS constants)
-- Strip helpers:
-  `_strip_forbidden_observation_reference_range_extensions`,
-  `_strip_japanese_display_on_english_only_systems`
-- Companion Specimen synthesis: `_lab_observation_needs_specimen`,
-  `_pick_specimen_type_for_lab`, `_build_companion_specimen`
-  (+ `_SPECIMEN_TYPE_BLOOD`, `_SPECIMEN_TYPE_URINE`, `_COMPANION_SPECIMEN_ID_PREFIX`)
-- Sibling-coding lookup: `_copy_display_from_sibling_coding`
-  (+ `_FHIR_URI_TO_CODE_SYSTEM_KEY`)
-- JP classification / profile stacking: `_contains_japanese_char`,
-  `_apply_jp_core_profile`, `_apply_jp_clins_profile`,
-  `_normalize_jp_observation_category`, `_medication_request_satisfies_ecs`,
-  `_is_lab_observation` (+ `_JP_CORE_PROFILES`, `_JP_CLINS_PROFILES`,
-  `_JP_OBSERVATION_CATEGORY_SYSTEM`, `_HL7_OBSERVATION_CATEGORY_SYSTEM`,
-  `_ECS_IDENTIFIER_SYSTEMS`, `_ENGLISH_ONLY_CODING_SYSTEM_PREFIXES`,
-  `_HL7_V3_SUBSTITUTION_SYSTEM`)
-
-**No import from `fhir_r4_adapter.py`** — this module is self-contained on
-purpose, so `adapter.py` can back-compat re-export these names at the bottom
-of its file (test callers do `from ...fhir_r4_adapter import _apply_jp_core_profile`
-today).
+Contains the ``_populate_*`` walkers that fire AFTER every ``_bb_*`` builder
+emits a resource — they attach identifier slices, meta.lastUpdated, static
+display maps, and JP-CLINS eCS-required fields that are cheaper to inject
+here than to weave through every resource-specific builder. Also owns
+``_normalize_jp_observation_category`` (the JP-only category rewrite) and
+``_copy_display_from_sibling_coding`` (dual-slot display propagation).
 """
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
-from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import is_jp  # noqa: I001
-from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import (  # noqa: F401
-    _bb_allergy_intolerances,
+from clinosim.modules._shared import is_jp
+from clinosim.modules.output.fhir_r4.lib.common import derive_meta_last_updated
+from clinosim.modules.output.fhir_r4.post_process.profile import (
+    _HL7_OBSERVATION_CATEGORY_SYSTEM,
+    _HL7_OBSERVATION_CATEGORY_SYSTEMS,
+    _JP_OBSERVATION_CATEGORY_SYSTEM,
 )
-from clinosim.modules.output.fhir_r4.conditions.clinical_impression import (  # noqa: F401
-    _bb_clinical_impressions,
+from clinosim.modules.output.fhir_r4.post_process.strip import (
+    _ENGLISH_ONLY_CODING_SYSTEM_PREFIXES,
 )
-from clinosim.modules.output.fhir_r4.conditions.code_status import _bb_code_status  # noqa: F401
-from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions  # noqa: F401
-from clinosim.modules.output.fhir_r4.conditions.hai import _bb_hai_conditions  # noqa: F401
-from clinosim.modules.output.fhir_r4.demographics.family_history import _bb_family_history  # noqa: F401
-from clinosim.modules.output.fhir_r4.demographics.patient import (  # noqa: F401
-    _ORG_TYPE_SYSTEM,
-    _SUBSCRIBER_REL_SYSTEM,
-    _build_coverage_resources,
-    _build_occupation_observation,
-    _build_patient,
-    _identity_cfg,
-    _payer_name_map,
-)
-from clinosim.modules.output.fhir_r4.demographics.practitioner import (  # noqa: F401
-    _build_practitioner,
-    _build_practitioner_role,
-)
-from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (  # noqa: F401
-    _bb_alcohol_use,
-    _bb_smoking_status,
-)
-from clinosim.modules.output.fhir_r4.documents.composition import (  # noqa: F401
-    _bb_compositions,
-)
-from clinosim.modules.output.fhir_r4.documents.document_reference_checkup import (  # noqa: F401
-    _bb_document_references_checkup,
-)
-from clinosim.modules.output.fhir_r4.documents.documents import (  # noqa: F401
-    _bb_document_references,
-)
-from clinosim.modules.output.fhir_r4.encounters.care_level import _bb_care_level  # noqa: F401
-from clinosim.modules.output.fhir_r4.encounters.care_team import (  # noqa: F401
-    _bb_care_teams,
-)
-from clinosim.modules.output.fhir_r4.encounters.encounter import (  # noqa: F401
-    _build_encounter,
-    _compute_encounter_length,
-)
-from clinosim.modules.output.fhir_r4.encounters.endpoint import (  # noqa: F401
-    _bb_endpoints,
-)
-from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle  # noqa: F401
-from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # noqa: F401
-    _bb_diagnostic_reports,
-    build_lab_panel_reports,  # kept for backward compat (tests + external callers)
-)
-from clinosim.modules.output.fhir_r4.labs.imaging_study import (  # noqa: F401
-    _bb_imaging_studies,
-)
-from clinosim.modules.output.fhir_r4.labs.microbiology import _bb_microbiology  # noqa: F401
-from clinosim.modules.output.fhir_r4.labs.observations import (  # noqa: F401
-    _bb_labs,
-    _build_lab_observation,
-    _build_vital_observations,
-)
-from clinosim.modules.output.fhir_r4.labs.service_request import (  # noqa: F401
-    _bb_service_requests,
-)
-
-# FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
-# per-theme resource builders into sibling _fhir_* modules. The blocks below are
-# re-imported here so existing `from ...fhir_r4_adapter import X` call sites keep
-# working (facade). They are marked # noqa: F401 because many symbols are now used
-# only by the extracted modules (which import them directly) and are re-exported
-# purely as a compatibility facade; the # noqa keeps the facade stable as further
-# builders move out, without per-symbol import churn each phase.
-from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
-    BundleContext,
-    _build_address,
-    _build_diagnosis_codeable_concept,
-    _build_dosage_instruction,
-    _build_reference_range,
-    _build_telecom,
-    _entry,
-    _infer_severity,
-    _loinc_coding,
-    _make_participant,
-    _map_diagnosis_code,
-    _map_encounter_status,
-    _map_mar_status,
-    _micro_coding,
-    _parse_dose_for_mar,
-    _severity_coding,
-    _sha1_b64,
-    _strip_protocol_prefix,
-    _survey_category,
-    derive_meta_last_updated,
-)
-from clinosim.modules.output.fhir_r4.lib.inline_bb import (
-    build_order_in_rp_map,  # noqa: F401 — back-compat re-export for test imports
-)
-from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401
-    _CATEGORY_DISPLAY_JA,
-    _CLASS_DISPLAY_JA,
-    _FREQ_JA,
-    _INTERPRETATION_DISPLAY_JA,
-    _LOCATION_NAME_JA,
-    _LOCATION_TYPE_DISPLAY_JA,
-    _OCCUPATION_DISPLAY_EN,
-    _OCCUPATION_DISPLAY_JA,
-    _ORG_TYPE_DISPLAY_JA,
-    _RELATIONSHIP_DISPLAY_JA,
-    _ROLE_PREFIX_MAP_JA,
-    _ROUTE_JA,
-    _SEVERITY_DISPLAY_JA,
-    _dept_display,
-    _load_department_display,
-    _load_drug_names_ja,
-    _load_med_terms_ja,
-    _localize_display,
-    _localize_dosage_terms,
-    _localize_drug_name,
-    _localize_interp,
-    _procedure_display,
-)
-from clinosim.modules.output.fhir_r4.lib.reference_data import (  # noqa: F401
-    _ALLERGEN_RXNORM,
-    _ENCOUNTER_TYPE_SNOMED_CODE,
-    _PREFECTURE_CODE,
-    _ROLE_PREFIX_MAP,
-    _ROUTE_SNOMED,
-    _SEVERITY_SNOMED,
-    _SPECIALTY_SNOMED,
-)
-from clinosim.modules.output.fhir_r4.medications.medications import (  # noqa: F401
-    _build_discharge_medication_request,
-    _build_medication_admin,
-    _build_medication_request,
-)
-from clinosim.modules.output.fhir_r4.procedures.device import (  # noqa: F401
-    _bb_device,
-    _bb_device_use,
-)
-from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations  # noqa: F401
-from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations  # noqa: F401
-from clinosim.modules.output.fhir_r4.procedures.procedures import _build_procedure  # noqa: F401
-
-# FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding
-# (2026-07-17): 812,606 ids across the export violated this spec — `_` in id
-# and >64 char ids were rejected by IRIS FHIR endpoint with HTTP 400. HAPI
-# validator is more lenient but the FHIR spec is strict. The regex here is the
-# single source of truth for the pattern — every writer path routes ids
-# through it, and any non-conforming id logs a warning (fail-soft: the write
-# still succeeds so a bug in a single builder does not break the whole export,
-# but the log lets the audit CI catch regressions).
-_FHIR_ID_PATTERN = re.compile(r"^[A-Za-z0-9\-\.]{1,64}$")
-
-
-# session 48 deferred cleanup (g): shape unification.
-# JP Core registry uses `dict[str, list[str]]` (was `dict[str, str]`) so its
-# shape matches `_JP_CLINS_PROFILES` below. Future JP Core release with
-# multiple sibling profiles per resource type (e.g. JP_Observation_Common
-# + JP_Observation_Vital) can be listed here without an accessor change.
-_JP_CORE_PROFILES: dict[str, list[str]] = {
-    # Resources with a canonical JP Core profile URL (JPFHIR core 1.1+).
-    # Verified via https://jpfhir.jp/fhir/core/
-    "Patient": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient"],
-    "Encounter": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"],
-    "Condition": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"],
-    "Coverage": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Coverage"],
-    "Observation": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"],
-    "MedicationRequest": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"],
-    "MedicationAdministration": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"],
-    "AllergyIntolerance": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"],
-    "Immunization": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"],
-    "Practitioner": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner"],
-    "PractitionerRole": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"],
-    "Organization": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"],
-    "DiagnosticReport": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common"],
-    # RM-6c (session 42): Procedure profile so RECORD-based and ORDER-based
-    # Procedure emissions both carry JP Core conformance.
-    "Procedure": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"],
-    # session 53 (#145): additional JP Core StructureDefinition URLs — spec
-    # `.url` fixedUri copied verbatim from
-    # iris4h-ai/jp_core/package/StructureDefinition-jp-*.json.
-    # JP Core 1.2.0 does NOT publish profiles for CareTeam / Composition /
-    # ClinicalImpression / Endpoint, so those four resource types remain on
-    # base FHIR R4 (Composition still carries per-doc-type JP-CLINS profiles
-    # emitted at the composition builder level; see _JP_CLINS_PROFILES
-    # attach logic in _apply_jp_clins_profile).
-    "ServiceRequest": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_ServiceRequest_Common"],
-    "DocumentReference": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DocumentReference"],
-    "FamilyMemberHistory": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_FamilyMemberHistory"],
-    # ImagingStudy has two JP Core profiles (_Radiology + _Endoscopy).
-    # clinosim only emits radiology studies (CT/CXR/MRI via `imaging` module,
-    # AD-62 — endoscopy is out of scope), so only the radiology profile is
-    # attached.
-    "ImagingStudy": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_ImagingStudy_Radiology"],
-}
-
-
-# session 48 feedback FB-F1: 全 emit resource で dateTime / instant field を
-# TZ 付与に正規化する post-emit normalization pass。builders 個別修正の代替。
-# 対象 field は FHIR R4 で dateTime / instant 型を持つ known-name 一覧。
-_DATETIME_FIELDS = frozenset(
-    (
-        # top-level dateTime
-        "authoredOn",
-        "effectiveDateTime",
-        "performedDateTime",
-        "date",
-        "started",
-        "receivedTime",
-        "recordedDate",
-        "onsetDateTime",
-        "occurrenceDateTime",
-        "abatementDateTime",
-        "assertedDate",
-        "authored",
-        "assertedDateTime",
-        "collectedDateTime",  # Specimen.collection.collectedDateTime (nested)
-        "time",  # attester.time / Provenance.recorded など
-        # instant type
-        "issued",
-        "recorded",
-        "createdOn",
-        "sent",
-        "lastUpdated",
-    )
-)
-_PERIOD_FIELDS = frozenset(("start", "end"))
-# Period-typed dict keys the walker treats as `{"start": ..., "end": ...}` sub-objects.
-# Issue #570 audit: `performedPeriod` / `effectivePeriod` / `occurrencePeriod` were
-# recursed but their `start`/`end` were not in `_DATETIME_FIELDS`, so JST leaked
-# through them on US cohorts. Enumerated here as a single source of truth.
-_PERIOD_KEYS = frozenset(
-    (
-        "period",
-        "validityPeriod",
-        "servicedPeriod",
-        "performedPeriod",
-        "effectivePeriod",
-        "occurrencePeriod",
-        "authoredOnPeriod",
-    )
-)
-# instant 型 field(秒精度+TZ 必須)
-_INSTANT_FIELDS = frozenset(("issued", "lastUpdated"))
 
 # Observation.identifier system — internal namespace for clinosim-generated
 # Observations. Feedback (2026-07-16) noted that JP_Observation_LabResult_eCS
 # declares `identifier` with `min=1`; every Observation now carries this
 # identifier populated from `Observation.id`.
 _CLINOSIM_OBSERVATION_ID_SYSTEM = "urn:clinosim:observation-id"
+
 
 # JP-CLINS 1.12.0 JP_Observation_LabResult_eCS profile requires an
 # `identifier:resourceIdentifier` slice whose `.system` matches the profile's
@@ -306,12 +46,14 @@ _CLINOSIM_OBSERVATION_ID_SYSTEM = "urn:clinosim:observation-id"
 # resources.
 _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
 
+
 # HL7 v3 substanceAdminSubstitution CodeSystem (used by JP MR eCS walker to
 # convert `substitution.allowedBoolean` -> `substitution.allowedCodeableConcept`
 # per session 57 Chain 5). Defined at module top-level so the
 # test_adapter_does_not_hardcode_code_system_uris invariant continues to hold
 # (the URI never appears as a `"system": "..."` literal inside a builder).
 _HL7_V3_SUBSTITUTION_SYSTEM = "http://terminology.hl7.org/CodeSystem/v3-substanceAdminSubstitution"
+
 
 # JP-CLINS MedicationRequest.dosageInstruction (Dosage = JP_MedicationDosage_eCS)
 # canonical constants (spec fixedUri from
@@ -322,17 +64,26 @@ _HL7_V3_SUBSTITUTION_SYSTEM = "http://terminology.hl7.org/CodeSystem/v3-substanc
 # and matches JP-CLINS's own example fixture
 # (MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json).
 _JP_CLINS_MEDICATION_USAGE_UNCODED_CS = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_MedicationUsage_Uncoded_CS"
+
+
 _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE = "0X0XXXXXXXXX0000"
+
+
 _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY = "ダミー用法コード"
+
+
 # JP_MedicationDosage_eCS declares Dosage.extension:periodOfUse as min=1
 # (spec differential slice). The extension's valuePeriod.start marks the day
 # the dose becomes effective.
 _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL = (
     "http://jpfhir.jp/fhir/core/Extension/StructureDefinition/JP_MedicationDosage_PeriodOfUse"
 )
+
+
 # The MHLW ePrescription CS is the "coded" alternative to the dummy code. When
 # a builder has emitted this system already, the walker leaves it alone.
 _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationUsage_ePrescription"
+
 
 # JP_MedicationDosage_eCS `Dosage.doseAndRate.type` min=1 (session 58 Chain #2).
 # Spec-authoritative example fixture
@@ -346,8 +97,13 @@ _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = "http://jpfhir.jp/fhir/core/mhlw/Co
 _JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS = (
     "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationIngredientStrengthStrengthType"
 )
+
+
 _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_CODE = "1"
+
+
 _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY = "製剤量"
+
 
 # UCUM CodeSystem URI + daily unit — used to rewrite
 # `Dosage.timing.repeat.periodUnit='d'` (bare `code` with unresolvable-by-tx
@@ -355,8 +111,14 @@ _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY = "製剤量"
 # whose `system` field lets the validator resolve `d` inline. Session 58
 # Chain #2.
 _UCUM_SYSTEM_URI = "http://unitsofmeasure.org"
+
+
 _UCUM_DAY_CODE = "d"
+
+
 _UCUM_DAY_UNIT_JA = "日"
+
+
 # eCS-required identifier namespaces (feedback fix PR-G, 2026-07-17). Every
 # resource for which JP-CLINS eCS requires `identifier` with `min=1` gets a
 # canonical clinosim namespace so consumers can round-trip resources without
@@ -368,6 +130,7 @@ _ECS_IDENTIFIER_SYSTEMS: dict[str, str] = {
     "AllergyIntolerance": "urn:clinosim:allergyintolerance-id",
 }
 
+
 # JP-CLINS `JP_Condition_eCS` requires the `code.coding:medisRecordNo` slice
 # (min=1) whose `system` fixedUri is the MEDIS 標準病名マスター 病名管理番号
 # CodeSystem (spec: `StructureDefinition-JP-Condition-eCS.json`). clinosim does
@@ -378,8 +141,13 @@ _ECS_IDENTIFIER_SYSTEMS: dict[str, str] = {
 # terminology fragment CodeSystem loaded by fhir-jp-validator
 # (`jpfhir-terminology 2.2606.0` / `medis-codesystem-diseasekanricodes`).
 _MEDIS_DISEASE_KEYNUMBER_SYSTEM = "http://medis.or.jp/CodeSystem/master-disease-keyNumber"
+
+
 _MEDIS_UNCODED_DISEASE_CODE = "99999999"
+
+
 _MEDIS_UNCODED_DISEASE_DISPLAY = "未コード化傷病名"
+
 
 # HL7 condition-clinical / condition-ver-status display map. The tiny code
 # vocabulary is not in clinosim/codes/data/ (they are HL7 spec CS, not
@@ -392,6 +160,8 @@ _CONDITION_CLINICAL_DISPLAY: dict[str, str] = {
     "remission": "Remission",
     "resolved": "Resolved",
 }
+
+
 _CONDITION_VER_STATUS_DISPLAY: dict[str, str] = {
     "unconfirmed": "Unconfirmed",
     "provisional": "Provisional",
@@ -400,11 +170,15 @@ _CONDITION_VER_STATUS_DISPLAY: dict[str, str] = {
     "refuted": "Refuted",
     "entered-in-error": "Entered in Error",
 }
+
+
 _ALLERGY_CLINICAL_DISPLAY: dict[str, str] = {
     "active": "Active",
     "inactive": "Inactive",
     "resolved": "Resolved",
 }
+
+
 _ALLERGY_VER_STATUS_DISPLAY: dict[str, str] = {
     "unconfirmed": "Unconfirmed",
     "presumed": "Presumed",
@@ -412,6 +186,7 @@ _ALLERGY_VER_STATUS_DISPLAY: dict[str, str] = {
     "refuted": "Refuted",
     "entered-in-error": "Entered in Error",
 }
+
 
 # Reverse map: FHIR system URI → clinosim system key (for `code_lookup`).
 # Used by `_copy_display_from_sibling_coding` fallback when no sibling coding
@@ -429,56 +204,6 @@ _FHIR_URI_TO_CODE_SYSTEM_KEY: dict[str, str] = {
     # can look up displays for JP-emitted ICD-10 codings.
     "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full": "icd-10-mhlw",
 }
-
-
-def _normalize_dt(v, country: str = "", want_instant: bool = False):
-    """string dateTime → country-specific TZ suffix 付与 / rewrite。
-
-    Issue #570 locale gate: builders unconditionally emit ``+09:00`` (JST) via
-    ``to_fhir_datetime`` / ``to_fhir_instant``. This walker then rewrites the
-    suffix per country: JP keeps ``+09:00``; other cohorts (US default) get
-    ``Z`` (UTC neutral). Other pre-existing TZ suffixes (e.g. ``-05:00``) are
-    preserved as-is.
-    """
-    from clinosim.modules.output.fhir_r4.lib.common import tz_suffix_for_country
-
-    tz = tz_suffix_for_country(country)
-    if not isinstance(v, str) or not v:
-        return v
-    # date-only YYYY-MM-DD は通す(FHIR date 型として valid)
-    if len(v) == 10 and v[4] == "-" and v[7] == "-":
-        if want_instant:
-            # instant 要求 → 秒 + TZ 補完
-            return f"{v}T00:00:00{tz}"
-        return v
-    if "T" not in v:
-        return v  # 空 or 非 datetime 形式は不変
-    # 既に JST suffix — country が JP なら維持、それ以外は country の TZ に rewrite。
-    if v.endswith("+09:00"):
-        return v if tz == "+09:00" else v[:-6] + tz
-    # 他 TZ (Z, -05:00 等) は既に explicit なので変更しない (builder or upstream 意図)。
-    if v.endswith("Z") or (len(v) >= 6 and v[-6] in "+-" and v[-3] == ":"):
-        return v
-    # TZ 無し → country の TZ を付与。秒欠落補完 (instant 用)。
-    if want_instant and v.count(":") == 1:
-        v = v + ":00"
-    return v + tz
-
-
-# JP Core Observation.category の canonical CodeSystem URI(spec fixedUri
-# 直接引用、iris4h-ai/jp_core/package/StructureDefinition-jp-observation-
-# common.json の `category:first.coding.system.fixedUri`)。
-_JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS"
-
-# HL7 標準 URL + 過去 clinosim 版が誤って使った fabricated URL の両方を
-# normalize 対象とする(古い regen data + defensive migration)。
-_HL7_OBSERVATION_CATEGORY_SYSTEM = "http://terminology.hl7.org/CodeSystem/observation-category"
-_HL7_OBSERVATION_CATEGORY_SYSTEMS = frozenset(
-    [
-        _HL7_OBSERVATION_CATEGORY_SYSTEM,
-        "http://jpfhir.jp/fhir/observation-category",  # legacy fabricated
-    ]
-)
 
 
 def _populate_observation_identifier_and_last_updated(resource: dict, country: str = "") -> None:
@@ -530,134 +255,6 @@ def _populate_observation_identifier_and_last_updated(resource: dict, country: s
         ts = derive_meta_last_updated(resource, ("effectiveDateTime", "issued", "effectivePeriod.end"))
         if ts:
             meta["lastUpdated"] = ts
-
-
-def _strip_forbidden_observation_reference_range_extensions(resource: dict) -> None:
-    """Remove `extension` / `modifierExtension` from every
-    `Observation.referenceRange[*]` (and `.low` / `.high`, plus
-    `Observation.component[*].referenceRange[*]` mirrored paths).
-
-    Rationale:
-
-    - `JP_Observation_LabResult_eCS` (JP-CLINS 1.12.0) locks
-      `Observation.referenceRange.extension` (and `modifierExtension`,
-      `low.extension`, `high.extension`) to `max=0`; the same lock
-      applies to `component[*].referenceRange.*`. Any extension emitted
-      on these paths violates the profile, regardless of URL.
-    - clinosim previously emitted a `referenceRangeSource` extension
-      whose URL was not registered anywhere in the JP-CLINS 1.12.0 /
-      jp-core 1.2.0 / jpfhir-terminology 2.2606.0 packages
-      (fhir-jp-validator 2026-07-17 §【最優先 2】surfaced 31,006
-      errors from this). The emit site in `_fhir_common._build_reference_range`
-      no longer writes it, but this walker is the second layer of the
-      silent-no-op defense: any cached CIF re-exported after the fix,
-      or a hypothetical future builder that reintroduces a sub-extension,
-      would still be scrubbed.
-
-    Universal (US Observation also benefits — the extension was already
-    JP-gated, but stripping is a no-op on non-existent fields).
-    Idempotent.
-    """
-    if resource.get("resourceType") != "Observation":
-        return
-
-    def _scrub(rrs: Any) -> None:
-        if not isinstance(rrs, list):
-            return
-        for rr in rrs:
-            if not isinstance(rr, dict):
-                continue
-            rr.pop("extension", None)
-            rr.pop("modifierExtension", None)
-            for side in ("low", "high"):
-                sub = rr.get(side)
-                if isinstance(sub, dict):
-                    sub.pop("extension", None)
-                    sub.pop("modifierExtension", None)
-
-    _scrub(resource.get("referenceRange"))
-    for comp in resource.get("component") or []:
-        if isinstance(comp, dict):
-            _scrub(comp.get("referenceRange"))
-
-
-def _lab_observation_needs_specimen(resource: dict) -> bool:
-    """True for lab Observations that need a companion Specimen resource.
-
-    JP-CLINS `JP_Observation_LabResult_eCS` declares `Observation.specimen`
-    with `min=1`. clinosim lab Observations use ids prefixed `lab-<encounter>-`;
-    microbiology / vital / social-history / imaging / survey Observations use
-    different prefixes and either have their own Specimen (microbiology) or
-    require none. Detect by id prefix + absence of a builder-set `specimen`.
-    """
-    if resource.get("resourceType") != "Observation":
-        return False
-    if resource.get("specimen"):
-        return False
-    rid = resource.get("id", "")
-    return isinstance(rid, str) and rid.startswith("lab-")
-
-
-# Companion-Specimen id prefix. Same shape as the lab-obs id it derives from,
-# preserving the `lab-<encounter>-NNNN` traceable structure.
-_COMPANION_SPECIMEN_ID_PREFIX = "spec-"
-
-# Default specimen: blood (SNOMED 119297000) — matches the majority of clinosim's
-# lab output (CBC / chem panel / LFT / cardiac markers / coagulation / ...).
-_SPECIMEN_TYPE_BLOOD = {"code": "119297000", "display_en": "Blood specimen", "display_ja": "血液検体"}
-# Urine specimen (SNOMED 122575003) — for Urinalysis / urine dipstick tests.
-_SPECIMEN_TYPE_URINE = {"code": "122575003", "display_en": "Urine specimen", "display_ja": "尿検体"}
-
-
-def _pick_specimen_type_for_lab(observation: dict) -> dict:
-    """Pick the Specimen.type coding for a lab Observation. Blood is the
-    default; Urinalysis-style tests get urine specimen.
-
-    The rule is intentionally conservative — only names that clearly indicate
-    a non-blood specimen switch away from blood. Anything else stays blood so
-    clinosim doesn't silently fabricate specimen types on general chem panels.
-    """
-    code_field = observation.get("code") or {}
-    text = str(code_field.get("text", "") or "").lower()
-    for coding in code_field.get("coding", []) or []:
-        display = str(coding.get("display", "") or "").lower()
-        if "urin" in display or "urine" in display:
-            return _SPECIMEN_TYPE_URINE
-    if "urin" in text or "urine" in text:
-        return _SPECIMEN_TYPE_URINE
-    return _SPECIMEN_TYPE_BLOOD
-
-
-def _build_companion_specimen(observation: dict, country: str) -> dict:
-    """Build a minimal Specimen resource paired with a lab Observation.
-
-    Populated fields:
-    - `id`  — `spec-<observation.id>` (canonical namespace, id-stable)
-    - `subject` — copied from the Observation.subject
-    - `type` — SNOMED specimen coding (blood by default; urine for Urinalysis)
-    - `collection.collectedDateTime` — the Observation's effectiveDateTime
-    - `identifier` — `urn:clinosim:specimen-id` for round-trip stability
-    """
-    obs_id = observation.get("id", "")
-    spec_id = f"{_COMPANION_SPECIMEN_ID_PREFIX}{obs_id}"
-    subject = observation.get("subject", {}) or {}
-    type_entry = _pick_specimen_type_for_lab(observation)
-    display = type_entry["display_ja"] if is_jp(country) else type_entry["display_en"]
-    specimen: dict[str, Any] = {
-        "resourceType": "Specimen",
-        "id": spec_id,
-        "identifier": [{"system": "urn:clinosim:specimen-id", "value": spec_id}],
-        "subject": subject,
-        "type": {
-            "coding": [{"system": get_system_uri("snomed-ct"), "code": type_entry["code"], "display": display}],
-            "text": display,
-        },
-        "status": "available",
-    }
-    edt = observation.get("effectiveDateTime")
-    if edt:
-        specimen["collection"] = {"collectedDateTime": edt}
-    return specimen
 
 
 def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
@@ -1150,252 +747,3 @@ def _normalize_jp_observation_category(resource: dict) -> None:
                 cat_elem["text"] = text_hint
             break
     resource["category"] = rebuilt
-
-
-# iris4h-ai feedback V4/V5 P2 A: display 省略対象の「英語 display のみ」
-# CodeSystem prefix 一覧。ここに含まれる system の Coding.display に日本語
-# 文字が入っていた場合、post-emit walker が display を削除する。
-# 出典:各 CodeSystem 公式定義(LOINC.org / SNOMED International /
-# HL7 terminology / DICOM / UCUM / HL7 FHIR sid)は英語 display のみ定義
-# しており、日本語文字を含む display は HAPI Validator に「Wrong Display
-# Name」として rejected される。
-#
-# JP-specific CodeSystem(JP Core / JP-CLINS / MEDIS HOT / YJ code /
-# clinosim custom)は本 prefix に含まれず、日本語 display が preserve される。
-_ENGLISH_ONLY_CODING_SYSTEM_PREFIXES: tuple[str, ...] = (
-    "http://loinc.org",
-    "http://snomed.info/sct",
-    "http://terminology.hl7.org/",
-    "http://hl7.org/fhir/",
-    "http://dicom.nema.org/",
-    "http://unitsofmeasure.org",
-)
-
-
-def _contains_japanese_char(text: str) -> bool:
-    """Return True if `text` contains at least one CJK Unified Ideograph /
-    Hiragana / Katakana / halfwidth-fullwidth character.
-
-    ASCII-only strings return False, so display fields that already carry a
-    valid English label are left untouched by the P2 A walker.
-    """
-    for ch in text:
-        cp = ord(ch)
-        if (
-            0x3040 <= cp <= 0x309F  # Hiragana
-            or 0x30A0 <= cp <= 0x30FF  # Katakana
-            or 0x4E00 <= cp <= 0x9FFF  # CJK Unified Ideographs
-            or 0xFF00 <= cp <= 0xFFEF  # Halfwidth and Fullwidth Forms
-        ):
-            return True
-    return False
-
-
-def _strip_japanese_display_on_english_only_systems(node: Any) -> None:
-    """Recursively drop `display` from Coding entries on English-only
-    CodeSystems when the display contains Japanese characters.
-
-    Called only on JP output. Duck-types Coding via `system` + `code` +
-    `display` all being non-empty strings; matches both
-    `CodeableConcept.coding[]` entries and Coding-typed fields
-    (e.g. `ImagingStudy.series[].modality`). The enclosing
-    CodeableConcept's `text` field is not touched, so the Japanese
-    human-readable label survives there.
-
-    Non-standard CodeSystem URIs (JP Core CS / JP-CLINS CS / MEDIS HOT /
-    YJ code / clinosim custom) are outside the prefix allowlist and are
-    preserved as-is.
-
-    Idempotent — re-running on already-normalized data has no effect
-    (the walker only touches entries whose `display` still contains
-    Japanese characters).
-    """
-    if isinstance(node, dict):
-        sys_ = node.get("system")
-        code_ = node.get("code")
-        disp = node.get("display")
-        if (
-            isinstance(sys_, str)
-            and isinstance(code_, str)
-            and isinstance(disp, str)
-            and disp
-            and sys_.startswith(_ENGLISH_ONLY_CODING_SYSTEM_PREFIXES)
-            and _contains_japanese_char(disp)
-        ):
-            del node["display"]
-        for value in node.values():
-            if isinstance(value, (dict, list)):
-                _strip_japanese_display_on_english_only_systems(value)
-    elif isinstance(node, list):
-        for item in node:
-            _strip_japanese_display_on_english_only_systems(item)
-
-
-def _normalize_dt_fields(resource, country: str = "") -> None:
-    """resource dict を再帰 walk、_DATETIME_FIELDS / _INSTANT_FIELDS / Period を正規化。
-
-    Issue #570: threads ``country`` through so US cohorts append UTC (``Z``)
-    instead of JST (``+09:00``). Callers with country in scope must pass it;
-    the default `""` falls back to UTC (safest neutral).
-    """
-    if isinstance(resource, dict):
-        for k, v in list(resource.items()):
-            if k in _INSTANT_FIELDS and isinstance(v, str):
-                resource[k] = _normalize_dt(v, country, want_instant=True)
-            elif k in _DATETIME_FIELDS and isinstance(v, str):
-                resource[k] = _normalize_dt(v, country)
-            elif k in _PERIOD_KEYS and isinstance(v, dict):
-                for pk in _PERIOD_FIELDS:
-                    if pk in v:
-                        v[pk] = _normalize_dt(v[pk], country)
-                _normalize_dt_fields(v, country)
-            elif isinstance(v, (dict, list)):
-                _normalize_dt_fields(v, country)
-    elif isinstance(resource, list):
-        for item in resource:
-            _normalize_dt_fields(item, country)
-
-
-def _apply_jp_core_profile(resource: dict) -> None:
-    """Attach the JP Core profile URLs for the resource's type when absent.
-
-    C3-11..18 (session 42 cycle 3): idempotent — leaves existing meta.profile
-    untouched when a builder has already set one. Appends any JP Core
-    StructureDefinition URL that is not yet in `meta.profile[]`.
-    Session 48 cleanup: dict shape unified with `_JP_CLINS_PROFILES` (list-of-URLs).
-
-    session 59 #218:radiology DR builder が `_Radiology` profile を pre-set
-    している場合、ここで `_Common` を追加すると 2 profile 併存で validator
-    がどちらの制約で検査するか曖昧化。同 resourceType で複数 JP Core profile
-    variants(_Common / _Radiology / _LabResult 等)が存在する場合、既に
-    variant profile が set 済なら generic Common の追加をスキップ。
-    """
-    rt = resource.get("resourceType", "")
-    profiles = _JP_CORE_PROFILES.get(rt)
-    if not profiles:
-        return
-    meta = resource.setdefault("meta", {})
-    profs = meta.setdefault("profile", [])
-    # session 59 #218:DR に variant profile(_Radiology / _LabResult)が
-    # pre-set 済なら Common を追加しない。
-    if rt == "DiagnosticReport":
-        _variant_prefix = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_"
-        if any(isinstance(p, str) and p.startswith(_variant_prefix) and not p.endswith("_Common") for p in profs):
-            return
-    for profile in profiles:
-        if profile not in profs:
-            profs.append(profile)
-
-
-# JP-CLINS eCS profiles (電子カルテ情報共有サービス).
-# Applied additively on top of JP Core profiles for country=JP.
-# URLs verified against jpfhir.jp/fhir/clins/igv1/artifacts.html (v1.12.0,
-# 2026-02-16) on 2026-07-12. Canonical URLs use /fhir/eCS/ path.
-#
-# JP-CLINS v1.12.0 publishes 5 profiles covering the "6 information items"
-# domain: 傷病名 + 感染症 share JP_Condition_eCS; DiagnosticReport is not in
-# JP-CLINS scope (lab results emitted only as Observation.LabResult).
-_JP_CLINS_PROFILES: dict[str, list[str]] = {
-    "Condition": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS",
-    ],
-    "AllergyIntolerance": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS",
-    ],
-    "Observation": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS",
-    ],
-    "MedicationRequest": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS",
-    ],
-    "Procedure": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS",
-    ],
-}
-
-
-def _apply_jp_clins_profile(resource: dict) -> None:
-    """Attach JP-CLINS eCS profile URLs additively (idempotent).
-
-    Called after `_apply_jp_core_profile`. Preserves existing meta.profile[]
-    entries and skips URLs already present. Filters: for Observation, only
-    laboratory category resources receive the JP-CLINS profile (vital signs
-    stay on the JP Core profile only); for MedicationRequest, only resources that
-    can actually satisfy the eCS constraints (see
-    `_medication_request_satisfies_ecs`).
-    """
-    rt = resource.get("resourceType", "")
-    profiles = _JP_CLINS_PROFILES.get(rt)
-    if not profiles:
-        return
-    if rt == "Observation" and not _is_lab_observation(resource):
-        return
-    if rt == "MedicationRequest" and not _medication_request_satisfies_ecs(resource):
-        return
-    meta = resource.setdefault("meta", {})
-    profs = meta.setdefault("profile", [])
-    for url in profiles:
-        if url not in profs:
-            profs.append(url)
-
-
-def _medication_request_satisfies_ecs(resource: dict) -> bool:
-    """Predicate: may this MedicationRequest assert JP_MedicationRequest_eCS? (Issue #445)
-
-    `JP_MedicationRequest_eCS` (JP-CLINS 1.12.0) raises `dosageInstruction` to
-    **min=1**; the parent `JP_MedicationRequest` (JP Core 1.2.0) leaves it at
-    **min=0**. Discharge and outpatient-renewal prescriptions transcribed from
-    `patient.current_medications` carry neither dose nor route — both are lost upstream
-    where the field is a plain `list[str]` (Issue #452) — so there is nothing truthful to
-    put in `dosageInstruction`. Withholding the eCS URL leaves those resources conformant
-    to the profile they *do* satisfy instead of claiming one they do not. This is the
-    session-66 rule ("a `meta.profile` claim must follow data-completeness
-    verification") applied per instance, and the same shape as the `_is_lab_observation`
-    filter: a resourceType-wide claim narrowed by a predicate.
-
-    Every MedicationRequest built from an inpatient Order carries a structured route, so
-    this predicate is true for all of them and their output is unchanged.
-
-    FUTURE CONSTRAINT — read before assembling a JP-CLINS Bundle: `JP_Bundle_CLINS`
-    slices `Bundle.entry` with `discriminator: profile@resource` and `rules: closed`
-    over 5 slices, so a MedicationRequest *without* the eCS URL matches no slice and
-    becomes a closed-slicing violation rather than a `dosageInstruction` violation.
-    clinosim emits no Bundle today (Bulk Data NDJSON, AD-31) and no Composition
-    references a MedicationRequest, so that is currently unreachable. Whoever builds a
-    CLINS bundle must first either fix Issue #452 (give these rows a real dose/route and
-    delete this predicate) or exclude dosage-less prescriptions from the bundle.
-    """
-    return bool(resource.get("dosageInstruction"))
-
-
-def _is_lab_observation(resource: dict) -> bool:
-    """Predicate: does the resource qualify for JP_Observation_LabResult_eCS?
-
-    Excludes microbiology (culture identification / antimicrobial
-    susceptibility) even though FHIR category is ``laboratory`` — JP-CLINS
-    eCS covers chemistry / hematology / serology only; microbiology and
-    pathology are explicitly out of scope in the profile's prose
-    (spec: "細菌検査(塗抹・培養・感受性)および病理はスコープ外").
-    Microbiology Observations are emitted by ``_fhir_microbiology.py``
-    with ``id`` prefixes ``mb-org-*`` / ``mb-sus-*``. Silent-fallback via
-    id-prefix is intentional: category is a display concern (all lab-like
-    results carry ``laboratory``), while profile stacking is a spec-scope
-    concern that requires the finer distinction.
-
-    NOTE: this predicate ONLY governs eCS stacking. The parent
-    ``JP_Observation_LabResult`` (JP Core) is still emitted on
-    microbiology Observations by ``_fhir_microbiology.py`` line ~227 —
-    that too is non-compliant (correct target is
-    ``JP_Observation_Microbiology``, JP Core 1.2.0). Tracked in
-    TODO.md § T67-M1. Excluding only from eCS stacking here keeps this
-    fix minimally invasive; the full profile-declaration fix is a
-    separate work item.
-    """
-    for cat in resource.get("category", []) or []:
-        for coding in cat.get("coding", []) or []:
-            if coding.get("code") == "laboratory":
-                rid = resource.get("id", "")
-                if rid.startswith("mb-org-") or rid.startswith("mb-sus-"):
-                    return False
-                return True
-    return False
