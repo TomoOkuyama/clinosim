@@ -22,7 +22,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.imaging.engine import ENDPOINT_ID_PREFIX
-from clinosim.modules.output.fhir_common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
 # Writer-owned constant — unique to Endpoint builder, not in engine.py.
 DICOM_WADO_RS_CONNECTION_TYPE = "dicom-wado-rs"

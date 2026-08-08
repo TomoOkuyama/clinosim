@@ -15,8 +15,8 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output._fhir_localization import localize_fixed_label
-from clinosim.modules.output.fhir_common import BundleContext, _micro_coding, build_presented_form
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _micro_coding, build_presented_form
+from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
 
 # Canonical id prefixes for microbiology resources. Imported by readers
 # (e.g. clinosim.audit.axes.clinical._organism_per_encounter) to avoid the
@@ -394,7 +394,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         ]
         # CY8-16 polish: MB DR.issued default = reported_datetime。
         if not report.get("issued") and mb.get("reported_datetime"):
-            from clinosim.modules.output.fhir_common import to_fhir_instant
+            from clinosim.modules.output.fhir_r4.lib.common import to_fhir_instant
 
             report["issued"] = to_fhir_instant(mb["reported_datetime"])
         # C5-20 (Chain 3): presentedForm — text/plain summary of culture +

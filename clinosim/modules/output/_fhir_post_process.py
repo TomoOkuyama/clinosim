@@ -85,33 +85,6 @@ from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
     _bb_imaging_studies,
 )
 from clinosim.modules.output._fhir_immunization import _bb_immunizations  # noqa: F401
-from clinosim.modules.output._fhir_inline_bb import (
-    build_order_in_rp_map,  # noqa: F401 — back-compat re-export for test imports
-)
-from clinosim.modules.output._fhir_localization import (  # noqa: F401
-    _CATEGORY_DISPLAY_JA,
-    _CLASS_DISPLAY_JA,
-    _FREQ_JA,
-    _INTERPRETATION_DISPLAY_JA,
-    _LOCATION_NAME_JA,
-    _LOCATION_TYPE_DISPLAY_JA,
-    _OCCUPATION_DISPLAY_EN,
-    _OCCUPATION_DISPLAY_JA,
-    _ORG_TYPE_DISPLAY_JA,
-    _RELATIONSHIP_DISPLAY_JA,
-    _ROLE_PREFIX_MAP_JA,
-    _ROUTE_JA,
-    _SEVERITY_DISPLAY_JA,
-    _dept_display,
-    _load_department_display,
-    _load_drug_names_ja,
-    _load_med_terms_ja,
-    _localize_display,
-    _localize_dosage_terms,
-    _localize_drug_name,
-    _localize_interp,
-    _procedure_display,
-)
 from clinosim.modules.output._fhir_medications import (  # noqa: F401
     _build_discharge_medication_request,
     _build_medication_admin,
@@ -138,15 +111,6 @@ from clinosim.modules.output._fhir_practitioner import (  # noqa: F401
     _build_practitioner_role,
 )
 from clinosim.modules.output._fhir_procedures import _build_procedure  # noqa: F401
-from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
-    _ALLERGEN_RXNORM,
-    _ENCOUNTER_TYPE_SNOMED_CODE,
-    _PREFECTURE_CODE,
-    _ROLE_PREFIX_MAP,
-    _ROUTE_SNOMED,
-    _SEVERITY_SNOMED,
-    _SPECIALTY_SNOMED,
-)
 from clinosim.modules.output._fhir_service_request import (  # noqa: F401
     _bb_service_requests,
 )
@@ -162,7 +126,7 @@ from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
 # only by the extracted modules (which import them directly) and are re-exported
 # purely as a compatibility facade; the # noqa keeps the facade stable as further
 # builders move out, without per-symbol import churn each phase.
-from clinosim.modules.output.fhir_common import (  # noqa: F401
+from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
     BundleContext,
     _build_address,
     _build_diagnosis_codeable_concept,
@@ -183,6 +147,42 @@ from clinosim.modules.output.fhir_common import (  # noqa: F401
     _strip_protocol_prefix,
     _survey_category,
     derive_meta_last_updated,
+)
+from clinosim.modules.output.fhir_r4.lib.inline_bb import (
+    build_order_in_rp_map,  # noqa: F401 — back-compat re-export for test imports
+)
+from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401
+    _CATEGORY_DISPLAY_JA,
+    _CLASS_DISPLAY_JA,
+    _FREQ_JA,
+    _INTERPRETATION_DISPLAY_JA,
+    _LOCATION_NAME_JA,
+    _LOCATION_TYPE_DISPLAY_JA,
+    _OCCUPATION_DISPLAY_EN,
+    _OCCUPATION_DISPLAY_JA,
+    _ORG_TYPE_DISPLAY_JA,
+    _RELATIONSHIP_DISPLAY_JA,
+    _ROLE_PREFIX_MAP_JA,
+    _ROUTE_JA,
+    _SEVERITY_DISPLAY_JA,
+    _dept_display,
+    _load_department_display,
+    _load_drug_names_ja,
+    _load_med_terms_ja,
+    _localize_display,
+    _localize_dosage_terms,
+    _localize_drug_name,
+    _localize_interp,
+    _procedure_display,
+)
+from clinosim.modules.output.fhir_r4.lib.reference_data import (  # noqa: F401
+    _ALLERGEN_RXNORM,
+    _ENCOUNTER_TYPE_SNOMED_CODE,
+    _PREFECTURE_CODE,
+    _ROLE_PREFIX_MAP,
+    _ROUTE_SNOMED,
+    _SEVERITY_SNOMED,
+    _SPECIALTY_SNOMED,
 )
 
 # FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding
@@ -440,7 +440,7 @@ def _normalize_dt(v, country: str = "", want_instant: bool = False):
     ``Z`` (UTC neutral). Other pre-existing TZ suffixes (e.g. ``-05:00``) are
     preserved as-is.
     """
-    from clinosim.modules.output.fhir_common import tz_suffix_for_country
+    from clinosim.modules.output.fhir_r4.lib.common import tz_suffix_for_country
 
     tz = tz_suffix_for_country(country)
     if not isinstance(v, str) or not v:

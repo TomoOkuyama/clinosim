@@ -9,7 +9,7 @@ order-sensitive substitution semantics.
 
 import pytest
 
-from clinosim.modules.output._fhir_localization import (
+from clinosim.modules.output.fhir_r4.lib.localization import (
     _load_med_terms_ja,
     _localize_dosage_terms,
 )

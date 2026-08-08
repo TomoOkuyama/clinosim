@@ -18,7 +18,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from clinosim.modules.output._fhir_inline_bb import _SYNTH_ED_DISPLAYS, _synth_ed_display
+from clinosim.modules.output.fhir_r4.lib.inline_bb import _SYNTH_ED_DISPLAYS, _synth_ed_display
 
 EXPECTED_SLOTS: dict[str, tuple[str, str]] = {
     "class_emer": ("救急外来", "Emergency"),
@@ -55,7 +55,7 @@ def test_no_bare_synth_ed_literals_in_inline_bb_source() -> None:
     ONLY as values inside the `_SYNTH_ED_DISPLAYS` dict — anywhere else in
     the source is a regression to the pre-Issue #546 pattern.
     """
-    src = (Path(__file__).parent / "../../../clinosim/modules/output/_fhir_inline_bb.py").resolve().read_text()
+    src = (Path(__file__).parent / "../../../clinosim/modules/output/fhir_r4/lib/inline_bb.py").resolve().read_text()
     tree = ast.parse(src)
 
     forbidden = {"救急外来", "緊急", "外来より", "入院となる"}

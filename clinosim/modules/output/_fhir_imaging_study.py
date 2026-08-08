@@ -40,7 +40,7 @@ from clinosim.modules.imaging.engine import (  # canonical owners; re-exported b
     load_modalities,
 )
 from clinosim.modules.output._fhir_service_request import SR_ID_PREFIX  # canonical owner
-from clinosim.modules.output.fhir_common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 
 # Writer-owned constant — DICOM/FHIR standard URI for DICOM Study UID.
 DICOM_UID_SYSTEM = "urn:dicom:uid"

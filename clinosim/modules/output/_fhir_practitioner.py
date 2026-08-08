@@ -12,12 +12,12 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output._fhir_localization import _ROLE_PREFIX_MAP_JA
-from clinosim.modules.output._fhir_reference_data import (
+from clinosim.modules.output.fhir_r4.lib.common import _coding_with_display
+from clinosim.modules.output.fhir_r4.lib.localization import _ROLE_PREFIX_MAP_JA
+from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _ROLE_PREFIX_MAP,
     _SPECIALTY_SNOMED,
 )
-from clinosim.modules.output.fhir_common import _coding_with_display
 
 
 def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None, country: str = "US") -> dict:

@@ -399,7 +399,7 @@ clinosim の output 層は **2 種類の registry** で拡張可能 — 既存�
 
 ```python
 # clinosim/modules/output/_fhir_my_resource.py
-from clinosim.modules.output.fhir_common import (
+from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext, _social_category, _value,
 )
 

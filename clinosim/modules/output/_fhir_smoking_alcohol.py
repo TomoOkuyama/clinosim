@@ -19,7 +19,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output.fhir_common import (
+from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _social_category,
     _value,
@@ -67,7 +67,7 @@ def _sdoh_effective_datetime(ctx: BundleContext) -> str:
     that visit). Empty string when the record carries no encounter.
     """
     from clinosim.modules._shared import get_attr_or_key as _o
-    from clinosim.modules.output.fhir_common import to_fhir_datetime
+    from clinosim.modules.output.fhir_r4.lib.common import to_fhir_datetime
 
     encs = _o(ctx.record, "encounters", []) or []
     if not encs:
