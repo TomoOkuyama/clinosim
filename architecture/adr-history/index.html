@@ -1,0 +1,3104 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Population-driven, physiology-based synthetic Electronic Health Record generator (FHIR R4). Multi-country (US + JP), JP Core profile compliance, YAML-driven disease extension.
+">
+      
+      
+      
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/architecture/adr-history/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Adr history - clinosim</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#part-9-japanese-narrative-localization-2026-04-13" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            clinosim
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Adr history
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../design-guides/project-concept-and-design/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../CONTRIBUTING-modules/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../governance/contributing/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Governance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    clinosim
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning & releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/project-concept-and-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project concept & design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/data-generation-walkthrough/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data generation walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/implementation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/fhir-data-generation-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FHIR data generation logic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/data-model-and-completeness-conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data model conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/output-formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/llm-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/datasets-full/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/code-systems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code systems
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/hospital-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hospital configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/extension-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extension guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/multi-country/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-country
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../eval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../eval-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/scenario-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../module-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../module-dependency-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module dependency graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING-modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../clinical_documents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical documents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../synthea-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare to Synthea
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fhir-server-ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load into a FHIR server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bedrock_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bedrock LLM setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/publishing-to-pypi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing to PyPI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Governance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#part-9-japanese-narrative-localization-2026-04-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 9: Japanese narrative localization (2026-04-13)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 9: Japanese narrative localization (2026-04-13)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ad-42-code-side-unit-conversion-for-japanese-locale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-42: Code-side unit conversion for Japanese locale
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-43-japanese-narrative-prompt-quality-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-43: Japanese narrative prompt quality rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chronic-medication-base-code-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chronic medication base code fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jp-fhir-localization-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP FHIR localization summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-10-fhir-standards-compliance-occupational-injuries-2026-04-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 10: FHIR standards compliance + occupational injuries (2026-04-19)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 10: FHIR standards compliance + occupational injuries (2026-04-19)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ad-44-enrichment-is-language-neutral" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-44: Enrichment is language-neutral
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-45-occupation-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-45: Occupation model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-46-multilingual-fhir-coding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-46: Multilingual FHIR coding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-47-observation-referencerange-interpretation-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-47: Observation referenceRange + interpretation consistency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-48-procedure_name-removed-from-cif" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-48: procedure_name removed from CIF
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#work-related-injury-yamls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Work-related injury YAMLs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-61-lab-servicerequest-emission-panel-aware-grouping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-61: Lab ServiceRequest emission, panel-aware grouping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-62-imaging-metadata-only-chain-with-wado-rs-placeholder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-62: Imaging metadata-only chain with WADO-RS placeholder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-63-document-narrative-structured-event-density-foundation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-63: Document narrative + structured event density foundation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-64-nursing-outpatient-ed-careteam-density-foundation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-64: Nursing + Outpatient + ED + CareTeam density foundation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-65-structural-narrative-cif-file-separation-two-pass-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-65: Structural + Narrative CIF file separation (two-pass generation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-66-canonical-patient-profile-fixture-library-for-narrative-regression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-66 · Canonical patient profile fixture library for narrative regression
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-67-severity-single-source-of-truth-disease-yaml-canonical-hybrid-c2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-67 · Severity single source of truth (disease YAML canonical, hybrid c2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-68-archetype_modifiers-wiring-dead-yaml-activation-sibling-to-ad-67" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-68 · archetype_modifiers wiring (dead YAML activation, sibling to AD-67)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-69-diseaseprotocol-extraforbid-author-time-silent-drop-defense" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-69 · DiseaseProtocol extra="forbid" (author-time silent-drop defense)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ad-70-jp-clins-lab-coding-jlac10-primary-loinc-secondary-international-interoperability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-70 · JP-CLINS lab coding: JLAC10 primary + LOINC secondary (international interoperability)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/architecture/adr-history.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+  <h1>Adr history</h1>
+
+<h2 id="part-9-japanese-narrative-localization-2026-04-13">Part 9: Japanese narrative localization (2026-04-13)<a class="headerlink" href="#part-9-japanese-narrative-localization-2026-04-13" title="Permanent link">&para;</a></h2>
+<h3 id="ad-42-code-side-unit-conversion-for-japanese-locale">AD-42: Code-side unit conversion for Japanese locale<a class="headerlink" href="#ad-42-code-side-unit-conversion-for-japanese-locale" title="Permanent link">&para;</a></h3>
+<p>CIF stores lab values in SI units (CRP in mg/L). Japanese clinical convention uses mg/dL for CRP.
+Rather than asking the LLM to convert (which was inconsistent), conversion happens in code:</p>
+<ul>
+<li><code>hospital_course_extractor.format_lab_trends(trends, language="ja")</code> applies <code>_JA_CONVERSION</code> factors</li>
+<li><code>document_generator._initial_labs(record, language="ja")</code> applies the same conversion</li>
+<li><code>_JA_CONVERSION = {"CRP": 0.1}</code> — multiply mg/L by 0.1 to get mg/dL</li>
+<li>Prompts say "use input units as-is" — no LLM-side conversion</li>
+</ul>
+<p>This is extensible: add entries to <code>_JA_CONVERSION</code> and <code>_UNIT_MAP_JA</code> for other locale-specific units.</p>
+<h3 id="ad-43-japanese-narrative-prompt-quality-rules">AD-43: Japanese narrative prompt quality rules<a class="headerlink" href="#ad-43-japanese-narrative-prompt-quality-rules" title="Permanent link">&para;</a></h3>
+<p>All 5 Japanese prompts (<code>prompts/ja/*.yaml</code>) enforce:</p>
+<ol>
+<li><strong>Staff name suffix</strong>: "医師名には必ず「医師」を付けてください" — prevents inconsistent Dr./no-prefix output</li>
+<li><strong>Unit passthrough</strong>: "検査値の単位は入力データのまま使用してください" — prevents LLM from annotating "(換算値)" or showing conversion work</li>
+<li><strong>No fabrication</strong>: all prompts prohibit inventing data not present in input (consistent with EN prompts)</li>
+</ol>
+<h3 id="chronic-medication-base-code-fallback">Chronic medication base code fallback<a class="headerlink" href="#chronic-medication-base-code-fallback" title="Permanent link">&para;</a></h3>
+<p><code>chronic_medications.yaml</code> keys are specific ICD codes (e.g., <code>E11.9</code>). After discharge,
+<code>_deactivate_to_layer1()</code> normalizes codes to base form (<code>E11</code>). The medication lookup in
+<code>inpatient.py</code> now falls back to base code:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">spec</span> <span class="o">=</span> <span class="n">chronic_meds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="ow">or</span> <span class="n">chronic_meds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+</span></code></pre></div>
+<p>This matches the existing fallback in <code>activator.py:326</code> and prevents medication loss on readmission.</p>
+<h3 id="jp-fhir-localization-summary">JP FHIR localization summary<a class="headerlink" href="#jp-fhir-localization-summary" title="Permanent link">&para;</a></h3>
+<p>The FHIR R4 adapter applies Japanese localization when <code>country="JP"</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Field</th>
+<th>JP value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Location</td>
+<td>name</td>
+<td><code>4E病棟</code>, <code>4E-01号室</code></td>
+</tr>
+<tr>
+<td>Encounter</td>
+<td>type</td>
+<td><code>入院</code>, <code>外来</code>, <code>救急</code></td>
+</tr>
+<tr>
+<td>Encounter</td>
+<td>serviceType</td>
+<td><code>内科</code>, <code>外科</code>, etc.</td>
+</tr>
+<tr>
+<td>Patient</td>
+<td>maritalStatus</td>
+<td><code>既婚</code>, <code>未婚</code></td>
+</tr>
+<tr>
+<td>MedicationRequest</td>
+<td>dosageInstruction.route</td>
+<td><code>経口</code>, <code>静注</code>, <code>皮下注</code></td>
+</tr>
+<tr>
+<td>MedicationRequest</td>
+<td>dosageInstruction.timing</td>
+<td><code>1日1回</code>, <code>1日2回</code>, <code>6時間毎</code></td>
+</tr>
+<tr>
+<td>Practitioner</td>
+<td>qualification</td>
+<td><code>医師</code></td>
+</tr>
+</tbody>
+</table>
+<p>All localization is at FHIR output time (AD-30). CIF remains language-neutral.</p>
+<hr />
+<h2 id="part-10-fhir-standards-compliance-occupational-injuries-2026-04-19">Part 10: FHIR standards compliance + occupational injuries (2026-04-19)<a class="headerlink" href="#part-10-fhir-standards-compliance-occupational-injuries-2026-04-19" title="Permanent link">&para;</a></h2>
+<h3 id="ad-44-enrichment-is-language-neutral">AD-44: Enrichment is language-neutral<a class="headerlink" href="#ad-44-enrichment-is-language-neutral" title="Permanent link">&para;</a></h3>
+<p>A/B test on 8 patients × 2 document types (admission_hp, discharge_summary) confirmed:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>A (pre-localized JP)</th>
+<th>B (English, LLM translates)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Drug/procedure names</td>
+<td>Both correct</td>
+<td>Both correct</td>
+</tr>
+<tr>
+<td>Natural Japanese flow</td>
+<td>Slightly mechanical</td>
+<td>More natural</td>
+</tr>
+<tr>
+<td>CRP unit</td>
+<td>Correct (mg/dL)</td>
+<td><strong>Wrong</strong> (mg/L leaked)</td>
+</tr>
+<tr>
+<td>Diagnosis short names</td>
+<td>Correct</td>
+<td>ICD full names (unnatural)</td>
+</tr>
+<tr>
+<td>Token usage</td>
+<td>9,219</td>
+<td>9,231 (≈ identical)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Conclusion</strong>: LLM translates free text well, but fails at math (CRP) and code normalization
+(ICD display). Keep code_lookup + CRP conversion only. Everything else English.</p>
+<h3 id="ad-45-occupation-model">AD-45: Occupation model<a class="headerlink" href="#ad-45-occupation-model" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>PersonRecord.occupation: str  →  PatientProfile.occupation: str
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>                                  ↓
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                         FHIR Observation (LOINC 11341-5, social-history)
+</span></code></pre></div>
+<p>Categories: manufacturing, construction, agriculture, healthcare, service, office,
+transportation, education, homemaker, student, retired, unemployed, other.</p>
+<p><code>demographics.yaml</code> provides:
+- <code>occupation_distribution.working_age</code> — per-country labor statistics
+- <code>occupation_risk_multipliers</code> — per-injury-type risk by occupation (e.g. crush_injury_hand × 6.0 for manufacturing)</p>
+<h3 id="ad-46-multilingual-fhir-coding">AD-46: Multilingual FHIR coding<a class="headerlink" href="#ad-46-multilingual-fhir-coding" title="Permanent link">&para;</a></h3>
+<p>Condition and Procedure resources emit dual <code>coding[]</code> entries:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;coding&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;system&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;icd-10&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;J44.1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;display&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;その他の慢性閉塞性肺疾患&quot;</span><span class="p">},</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;system&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;icd-10&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;J44.1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;display&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Other chronic obstructive pulmonary disease&quot;</span><span class="p">}</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="p">],</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;COPD（慢性閉塞性肺疾患）&quot;</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><code>_build_diagnosis_codeable_concept()</code> tries <code>icd-10</code> → falls back to <code>icd-10-cm</code> → <code>"(display unavailable)"</code>.
+<code>code.text</code> uses <code>_CONDITION_SHORT_NAME</code> for search-friendly abbreviations (AD-49).</p>
+<h3 id="ad-47-observation-referencerange-interpretation-consistency">AD-47: Observation referenceRange + interpretation consistency<a class="headerlink" href="#ad-47-observation-referencerange-interpretation-consistency" title="Permanent link">&para;</a></h3>
+<p>Per FHIR R5 Note 5: "The interpretation should be consistent with the reference range when both
+are provided."</p>
+<ul>
+<li>Lab interpretation recomputed from value vs normal range (not CIF flag alone)</li>
+<li>Critical flags (H<em>/L</em>/critical) → directional LL/HH (not generic AA)</li>
+<li>Vital signs emit two referenceRange entries: <code>type=normal</code> and <code>type=treatment</code> (critical/panic)</li>
+<li>SpO2: <code>crit_high=None</code> (no upper critical — 100% is normal, not HH)</li>
+</ul>
+<h3 id="ad-48-procedure_name-removed-from-cif">AD-48: procedure_name removed from CIF<a class="headerlink" href="#ad-48-procedure_name-removed-from-cif" title="Permanent link">&para;</a></h3>
+<p>Strict AD-30 compliance: <code>ProcedureRecord</code> no longer has <code>procedure_name</code> field.
+Display is resolved at output time via <code>code_lookup("k-codes"|"cpt", code, lang)</code>.
+Both <code>procedure_code_jp</code> and <code>procedure_code_us</code> are stored for multilingual output.
+<code>_resolve_procedure_name(proc_dict, lang)</code> is the shared helper across all consumers.</p>
+<h3 id="work-related-injury-yamls">Work-related injury YAMLs<a class="headerlink" href="#work-related-injury-yamls" title="Permanent link">&para;</a></h3>
+<p>4 inpatient (disease/reference_data/):
+- <code>crush_injury_hand.yaml</code> (S67.2, ICD)
+- <code>industrial_burn_severe.yaml</code> (T31.2, ICD)
+- <code>fall_from_height.yaml</code> (T07, ICD)
+- <code>electrical_injury.yaml</code> (T75.4, ICD)</p>
+<p>2 ED (encounter/reference_data/):
+- <code>eye_foreign_body.yaml</code> (T15.0, ICD)
+- <code>chemical_exposure.yaml</code> (T54.9, ICD)</p>
+<p>All have <code>probability</code> (for ED weighted selection) and age_rates/sex_ratio (for inpatient
+incidence). Occupation risk multipliers concentrate events in industrial workers.</p>
+<hr />
+<h3 id="ad-61-lab-servicerequest-emission-panel-aware-grouping">AD-61: Lab ServiceRequest emission, panel-aware grouping<a class="headerlink" href="#ad-61-lab-servicerequest-emission-panel-aware-grouping" title="Permanent link">&para;</a></h3>
+<p><strong>Status:</strong> Accepted (PR1, 2026-06-29)
+<strong>Context:</strong> EHR/EMR sample dataset target (Tier 1 #1) requires FHIR
+ServiceRequest for lab order lifecycle. JP Core / US Core idiomatic
+emission is panel-level (1 SR per CBC, not 1 SR per WBC/Hb/Hct/Plt).
+<strong>Decision:</strong> Add <code>Order.panel_key</code> 1 field (empty = stand-alone). Order
+engine reuses lab_panel_groups.yaml (canonical loader unified in
+<code>order/panel_grouping.py</code>) to assign panel_key + shared ordered_datetime
+to panel members. New <code>_fhir_service_request.py</code> builder groups Orders by
+<code>(encounter_id, panel_key, ordered_datetime)</code> to emit 1 SR per panel
+instance; stand-alone Orders emit 1 SR each. JP Core compliance via HL7
+v2-0203 PLAC identifier type + dual category coding (SNOMED 108252007 +
+v2-0074 LAB).
+<strong>Consequences:</strong> rng draw count change for lab orders (per-panel rather
+than per-test draw). e2e attribute-based tests unchanged (run_alpha golden
+patient FORCED-0001 not affected). Production scale verified at US p=10k
++ JP p=5k (362k+42k SR, 0 dangling refs, audit silent_no_op 7/7 PASS).
+ServiceRequest is the foundation for Tier 1 #2-#7 (Imaging / NutritionOrder
+/ ADT / DocumentReference / Appointment / CarePlan).</p>
+<h3 id="ad-62-imaging-metadata-only-chain-with-wado-rs-placeholder">AD-62: Imaging metadata-only chain with WADO-RS placeholder<a class="headerlink" href="#ad-62-imaging-metadata-only-chain-with-wado-rs-placeholder" title="Permanent link">&para;</a></h3>
+<p><strong>Status:</strong> Accepted (Tier 1 #2, 2026-06-30)
+<strong>Context:</strong> Tier 1 #2 EHR/EMR sample dataset extension required imaging
+metadata foundation for radiology NLP/IE/CDSS/revenue-cycle/PACS-migration
+evaluation. DICOM pixel data generation deferred to external image-gen AI.</p>
+<p><strong>Decision:</strong> Adopt always-on Module pattern (device/hai/antibiotic precedent)
+with <code>ImagingStudyRecord</code> in <code>extensions["imaging"]</code>. Emit 4 FHIR resources:
+ServiceRequest (imaging category, SNOMED 363679005 + v2-0074 RAD),
+ImagingStudy (with urn:dicom:uid identifier, DCM modality, multi-series),
+DiagnosticReport (radiology variant with findings + impression in <code>text.div</code> +
+<code>conclusion</code>), Endpoint (WADO-RS placeholder URL via
+<code>hospital_config.imaging.wado_base_url</code>). Polymorphic <code>_fhir_service_request</code>
+dispatches LAB + IMAGING category from one builder.</p>
+<p><strong>Consequences:</strong>
+- CIF → FHIR no-drop invariant enforced (emission matrix: every
+  <code>ImagingStudyRecord</code> maps 1:1 to ImagingStudy + Endpoint + radiology DR
+  + imaging SR)
+- Future image-gen AI integration point: Endpoint.address substitution +
+  urn:dicom:uid lookup
+- AD-55 always-on Module count increases to 4 (device, hai, antibiotic,
+  imaging). POST_ENCOUNTER order=90 (after antibiotic=85)
+- 15-check <code>lift_firing_proof</code> (AD-60 audit) verifies non-zero ImagingStudy
+  + Endpoint + radiology DR + imaging SR emission and JP locale display
+  correctness (modality display / bodySite display / DR.code / conclusion)
+- Legacy IMAGING orders (Chest_Xray / CT_abdomen_pelvis without
+  <code>imaging_modality</code> metadata) are silently skipped by the enricher and
+  remain as Order-only records without ImagingStudy (tracked for migration
+  in TODO.md)</p>
+<h3 id="ad-63-document-narrative-structured-event-density-foundation">AD-63: Document narrative + structured event density foundation<a class="headerlink" href="#ad-63-document-narrative-structured-event-density-foundation" title="Permanent link">&para;</a></h3>
+<p><strong>Status:</strong> Accepted (Tier 1 #3 α-min-1, 2026-07-01)
+<strong>Context:</strong> Tier 1 #3 EHR/EMR sample dataset extension required clinical
+document density foundation. Pre-chain baseline: DocumentReference = 0 (Stage 1
+<code>generate</code> only; Stage 2 <code>narrate</code> required separate LLM step), Composition = 0,
+ClinicalImpression = 0. Target: default Stage 1 template-based emission of the
+3 core document types for all inpatient/ICU/rehab encounters. AllergyIntolerance
+schema was 3-field (allergen string only); upgrade to 8-field SNOMED-coded schema
+(allergen code + reaction manifestation + category + criticality + clinical status +
+verification status + onset period + note) per JP Core Allergy profile.</p>
+<p><strong>Decision:</strong> Two new always-on Modules (same <code>enabled=lambda c: True</code>
+pattern as device/hai/antibiotic/imaging):
+- <code>allergy</code> (POST_POPULATION order=10): replaces activator.py inline 15% allergy sampling with a
+  proper enricher that writes <code>PersonRecord.allergies: list[Allergy] | None</code>
+  (None = not-yet-enriched sentinel; [] = no allergy after sampling). Produces
+  SNOMED-coded <code>AllergyIntolerance</code> via new <code>_fhir_allergy_intolerance.py</code> builder.
+- <code>document</code> (order=95): emits <code>ClinicalDocument</code> records (free_text for DR + CI,
+  composition for Composition) via a <code>TemplateNarrativeGenerator</code> 5-step fallback chain.
+  LLM-driven generation deferred (Task 15 will wire the existing LLM provider integration).</p>
+<p>CIF storage: <code>CIFPatientRecord.documents</code> (typed field) stores <code>list[ClinicalDocument]</code>;
+<code>extensions["clinical_impressions"]</code> stores <code>list[ClinicalImpressionRecord]</code>. Core type
+<code>ClinicalDocument</code> gains two fields: <code>sections: dict[str, str]</code> (section name → text,
+required for Composition.section[] reconstruction) and <code>format_type: str</code> (dispatch key
+for builder selection: "free_text" vs "composition").</p>
+<p>Three new FHIR builders:
+- <code>_fhir_documents.py</code> (DOC_REFERENCE_ID_PREFIX = "doc-")
+- <code>_fhir_composition.py</code> (COMPOSITION_ID_PREFIX = "comp-")
+- <code>_fhir_clinical_impression.py</code> (CLINICAL_IMPRESSION_ID_PREFIX = "ci-")</p>
+<p><strong>Consequences:</strong>
+- Stage 1 <code>generate</code> now emits 3 document-class FHIR resource types by default,
+  closing the EHR sample dataset document-density gap without requiring <code>narrate</code>
+- Task 15 (same branch) completed the migration: legacy <code>narrative_generator.py</code> /
+  <code>document_generator.py</code> are deleted; activator.py allergy inline sampling is removed.
+  No dedup guard needed — no coexistence path remains.
+- CIF→FHIR no-drop invariant enforced via <code>ClinicalDocument.sections</code> field:
+  Composition builder reads sections directly without re-parsing raw_text (Task 8
+  fix lesson — "sections authoritative for COMPOSITION; raw_text for FREE_TEXT only")
+- AD-55 always-on Module count increases to 6 (device, hai, antibiotic, imaging,
+  allergy, document). Stages: allergy (POST_POPULATION order=10) → document (POST_ENCOUNTER order=95)
+- 17-check <code>lift_firing_proof</code> (AD-60 audit) verifies 4 canonical ID prefixes,
+  4 emission gates, 3 ID-prefix format checks, 5 no-drop invariants (spec §3.4)
+- Future phases: α-min-3 (outpatient/ED POST_ENCOUNTER gap fix + Practitioner roster expansion),
+  β-JP-1 (full JP localization / QuestionnaireResponse / 厚労省必須文書),
+  β-2 (手術記録 / MedicationDispense / Procedure density)</p>
+<h3 id="ad-64-nursing-outpatient-ed-careteam-density-foundation">AD-64: Nursing + Outpatient + ED + CareTeam density foundation<a class="headerlink" href="#ad-64-nursing-outpatient-ed-careteam-density-foundation" title="Permanent link">&para;</a></h3>
+<p><strong>Status:</strong> Accepted (Tier 1 #3 α-min-2, 2026-07-01)
+<strong>Context:</strong> α-min-1 (AD-63) established the Stage 1 document emission infrastructure for
+inpatient encounters only. Three major gaps remained: (1) CareTeam = 0 across all encounter
+types, (2) nursing domain documents = 0 (no nursing-domain always-on Module), (3) outpatient /
+emergency encounter documents = 0 (no outpatient SOAP / ED note / triage note). The EHR/EMR
+sample dataset target requires nurse-authored document density and primary team allocation for
+all encounter types.</p>
+<p><strong>Decision:</strong> Three new always-on POST_ENCOUNTER Modules (same <code>enabled=lambda c: True</code> pattern
+as device/hai/antibiotic/imaging precedents):</p>
+<ol>
+<li>
+<p><strong><code>triage</code> (POST_ENCOUNTER order=93)</strong>: ED-only enricher. Samples JTAS (JP) / ESI (US) triage
+   level, arrival_mode (ambulance/walk-in), and acuity_score from <code>triage_protocols.yaml</code>.
+   Writes <code>EncounterRecord.triage_data</code> (new field). Consumed by document_enricher for
+   <code>ED_TRIAGE_NOTE</code> LOINC 54094-8 dispatch.</p>
+</li>
+<li>
+<p><strong><code>nursing_assignment</code> (POST_ENCOUNTER order=94)</strong>: Inpatient/ICU/rehab enricher. Assigns a
+   primary nurse from the StaffRoster for the encounter's ward. Writes
+   <code>EncounterRecord.primary_nurse_id</code> (new field). Consumed by <code>_fhir_care_team.py</code> builder
+   for CareTeam.participant[1]. <strong>Naming note</strong>: the module directory is <code>modules/nursing/</code> but
+   the enricher function is <code>nursing_enricher</code> (POST_ENCOUNTER). The existing POST_RECORDS nursing
+   module (<code>observation/nursing.py</code>) handles NEWS2/GCS/Braden/Morse — these are DIFFERENT modules
+   registered in DIFFERENT stages under the same directory.</p>
+</li>
+<li>
+<p><strong><code>_fhir_care_team.py</code> builder</strong>: New FHIR builder registered via <code>register_bundle_builder()</code>
+   as <code>_bb_care_teams</code>. Emits one CareTeam resource per encounter (ALL encounter types). Two-name
+   scope: participant[0] = attending physician, participant[1] = primary nurse (when assigned).
+   CareTeam ID = <code>careteam-{encounter_id}</code> (CARE_TEAM_ID_PREFIX canonical constant).</p>
+</li>
+<li>
+<p><strong>6 new DocumentType specs</strong> in <code>document_type_specs.yaml</code>:</p>
+</li>
+<li><code>admission_nursing_assessment</code> (78390-2, Composition, admission_once, inpatient)</li>
+<li><code>nursing_shift_note</code> (34746-8, DocumentReference free_text, daily, inpatient)</li>
+<li><code>nursing_discharge_summary</code> (34745-0, Composition, discharge_once, inpatient)</li>
+<li><code>outpatient_soap</code> (34131-3, Composition, encounter_once, outpatient)</li>
+<li><code>ed_note</code> (34878-9, Composition, encounter_once, emergency)</li>
+<li><code>ed_triage_note</code> (54094-8, DocumentReference free_text, encounter_once, emergency)</li>
+</ol>
+<p><code>DocumentTypeSpec.encounter_types_supported</code> field (introduced in α-min-2 Task 10) controls
+   dispatch per encounter_type. α-min-1 specs now carry explicit <code>[inpatient, icu, rehab_inpatient]</code>
+   allowlists (Task 10 data-quality fix: prevents leaking inpatient docs into outpatient/ED).</p>
+<ol>
+<li>
+<p><strong>46 encounter YAML narrative extensions</strong>: All 46 encounter YAML files received a <code>narrative:</code>
+   block with outpatient_soap / ed_note / ed_triage templates for outpatient_soap + ED encounter
+   types. 5 priority conditions have detailed narrative; 41 use baseline template text.</p>
+</li>
+<li>
+<p><strong>Task 8 LOINC verification</strong>: 3 of 6 candidate LOINC codes were corrected via NLM
+   verification (ADMISSION_NURSING_ASSESSMENT 34820-1→78390-2, OUTPATIENT_SOAP 11488-4→34131-3,
+   ED_NOTE 51841-6→34878-9). All codes registered in <code>codes/data/loinc.yaml</code> (EN + JA bilingual).</p>
+</li>
+</ol>
+<p><strong>Consequences:</strong>
+- CIF → FHIR no-drop invariant: CareTeam (1:1 with Encounter) + 3 nursing document types
+  (1:1 with inpatient encounters) enforced via lift_firing_proof equality_checks 18-25
+- AD-55 always-on Module count increases to 8 (device, hai, antibiotic, imaging, triage,
+  nursing_assignment, allergy, document). POST_ENCOUNTER ordering: 70/80/85/90/93/94/95
+- <strong>Known production gap</strong>: outpatient.py + emergency.py do NOT invoke POST_ENCOUNTER enrichers
+  (only inpatient.py does). OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE produce 0 resources in
+  production. Dispatch logic is correct (verified by audit proof checks 22-25); fix requires
+  adding <code>run_stage(POST_ENCOUNTER, ...)</code> to outpatient.py + emergency.py (targeted for α-min-3).
+- <strong>Naming collision guard</strong>: <code>modules/nursing/</code> contains both <code>nursing_enricher</code> (POST_ENCOUNTER
+  order=94, primary_nurse assignment) and <code>nursery_enricher</code> (POST_RECORDS observation).
+  Always specify the enricher name when referencing. <code>nursing_assignment</code> = POST_ENCOUNTER.
+  <code>nursing</code> (observation) = POST_RECORDS.
+- <strong>CareTeam 2-name scope</strong>: β-JP-1 will expand to 6-name multi-disciplinary team
+  (pharmacist / nutritionist / rehab / MSW / charge nurse). AD-64 scope = physician + nurse only.
+- 25-check <code>lift_firing_proof</code> (17 α-min-1 + 8 α-min-2). silent_no_op PASS both US + JP cohorts.
+  Clinical axis PASS: 158,811 US / 16,046 JP CareTeam, 0 unknown_attending.
+- Production cohort: US p=10k (158,811 CareTeam + 46,558 DR + 17,946 Composition) +
+  JP p=5k (16,046 CareTeam + 7,416 DR + 970 Composition). DQR:
+  <code>docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-2-dqr.md</code></p>
+<h3 id="ad-65-structural-narrative-cif-file-separation-two-pass-generation">AD-65: Structural + Narrative CIF file separation (two-pass generation)<a class="headerlink" href="#ad-65-structural-narrative-cif-file-separation-two-pass-generation" title="Permanent link">&para;</a></h3>
+<p><strong>Status:</strong> Accepted (Tier 1 #3 α-min-2b, 2026-07-02, session 28)</p>
+<p><strong>Context:</strong>
+- clinosim's initial architecture (<code>clinosim/modules/output/SPEC.md</code>) defines a three-stage
+  pipeline: structural CIF Stage 1 (immutable) / narrative Stage 2 (separate version dir) /
+  Stage 3 (adapter merge).
+- α-min-1 Task 15 (commit <code>2c09b6a099</code>) removed the legacy narrative subsystem
+  (<code>document_generator.py</code> 951 lines, <code>narrative_generator.py</code> 205 lines) and folded narrative
+  generation into <code>document_enricher</code>. At the time, this closure of Stage 1 default-emission gaps
+  was correct; however, as a long-term Stage 2 replacement architecture, it was a premature
+  deletion, causing drift from the <code>clinosim/modules/output/SPEC.md</code> Stage 2 design.
+- Session 27 Clinical Integrity review uncovered three Critical narrative bugs. The inline-only
+  pattern requires full cohort regeneration to fix them, destroying development velocity.
+- User explicitly indicated (session 27→28): the original design assumed structural CIF and
+  narrative CIF as separate files = restoration of the SPEC.md original design.</p>
+<p><strong>Decision:</strong>
+1. Refactor <code>ClinicalDocument</code> to stub-only: metadata + author + encounter binding, with
+   <code>narrative: ClinicalDocumentNarrative | None</code> field (new type). Narrative content
+   (text/sections/facts_used) population is forbidden in Stage 1.
+2. Restore two-pass CIF generation pipeline (SPEC.md original design intent, fully restored).
+3. Reinstate <code>clinosim narrate</code> CLI verb (template mode as fallback; LLM actual invocation deferred
+   to β-JP-1).
+4. Establish Bedrock prompt-cache-friendly walk order contract: <code>NarrativePass</code> base class
+   guarantees <code>(doc_type, language)</code> group serial iteration.
+5. Extend <code>NarrativeContext</code> with three enhancements: <code>NarrativeSpine</code> (scenario anchoring),
+   <code>materialized_facts</code> (fact-first generation), <code>section_facts</code> (COMPOSITION section extraction).
+6. Fix silent CLI override (Bug D): <code>-p</code> explicit values no longer silently overridden by
+   <code>recommended_population</code>.
+7. Add dev iteration facility: <code>test-disease --format</code> + <code>test-encounter --format</code> +
+   <code>--output</code> flag + standalone <code>narrate</code> verb enable narrative bug verification cycle to
+   10–30 seconds (vs. 5–50 min full generate).</p>
+<p><strong>Consequences:</strong>
+- Narrative bug verification: <code>narrate --tasks &lt;task&gt;</code> (~30 sec) + structural via <code>test-disease
+  --format all</code> (~10 sec) = 100× faster development cycle.
+- FHIR builders now exclusively access narrative content via <code>doc.narrative.*</code> → single source
+  of truth (prevents <code>document_enricher</code> and Stage 2 pass from conflicting).
+- β-JP-1 can implement <code>LLMNarrativePass</code> as drop-in subclass of <code>NarrativePass</code> base class,
+  inheriting Bedrock walk-order contract without modification.
+- All 39 existing e2e goldens require full regeneration (no backwards compatibility).
+- Five new AD-65 rules added to <code>CLAUDE.md</code> (prevents next-session drift: two-pass invariant,
+  stub-only enricher, narrative post-simulation, walk order, FHIR builder wrapper).</p>
+<p><strong>Alternatives considered:</strong>
+- <strong>Approach A</strong> (Inline populate + writer split): Lower silent-no-op risk; weaker Stage 2
+  replacement symmetry → rejected.
+- <strong>Approach B</strong> (Explicit two-pass without auto-invoke): Larger UX change → rejected in favor
+  of inline default (preserves <code>clinosim generate</code> user experience).
+- <strong>Approach C</strong> (Flat field + physical split without wrapper): Weaker defense-in-depth → rejected
+  in favor of <code>ClinicalDocumentNarrative</code> wrapper type.</p>
+<p><strong>Related ADRs:</strong> AD-30 / AD-55 / AD-56 / AD-60 / AD-63 / AD-64</p>
+<hr />
+<h3 id="ad-66-canonical-patient-profile-fixture-library-for-narrative-regression">AD-66 · Canonical patient profile fixture library for narrative regression<a class="headerlink" href="#ad-66-canonical-patient-profile-fixture-library-for-narrative-regression" title="Permanent link">&para;</a></h3>
+<p><strong>Date:</strong> 2026-07-03 (α-min-2c chain)</p>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong>
+The AD-65 two-pass CIF architecture enables template narrative output to be
+compared against a canonical baseline. β-JP-1 will introduce <code>LLMNarrativePass</code>
+which produces non-deterministic LLM output. To detect narrative regression
+(template drift, LLM drift, semantic changes), we need a canonical set of
+deterministic patient profiles + expected narrative outputs to diff against.</p>
+<p><strong>Decision:</strong>
+Ship 6 canonical patient profile YAML fixtures in <code>tests/fixtures/patient_profiles/</code>,
+each accompanied by a <code>&lt;profile&gt;.golden.json</code> file containing the expected
+template narrative output at seed 42. A <code>pytest -m regression</code> suite
+subprocess-invokes <code>clinosim test-disease --patient-profile &lt;id&gt;</code> and byte-diffs
+the generated narrative against the golden.</p>
+<p>Introduce a new <code>PatientProfile</code> Pydantic type in <code>clinosim/types/config.py</code>
+with <code>.to_forced_scenario()</code> transform, and a <code>clinosim regenerate-goldens</code>
+CLI subcommand for bootstrap + re-generation.</p>
+<p>Scope-in for α-min-2c: 6 disease-based inpatient/ICU profiles only.
+Scope-out (deferred to β-JP-1 or later): ED/outpatient encounter profiles
+(requires symmetric <code>test-encounter --patient-profile</code> extension), LLM
+semantic diff mechanism, GitHub Actions CI integration, clinical review loop.</p>
+<p><strong>Consequences:</strong></p>
+<p>Positive:
+- β-JP-1 unblocked — deterministic canonical patients for template vs LLM narrative regression
+- Adding new profiles is a documented workflow (regenerate + review + commit)
+- Determinism enforced at seed 42 via existing AD-16 discipline</p>
+<p>Negative:
+- Additional maintenance burden when template narrative logic changes
+  (all goldens need regeneration)
+- Fixture library is separate from disease YAMLs (contributors need to
+  understand both)</p>
+<p>Neutral:
+- 6 profiles × ~10-76 documents/profile × N sections = ~100-500 KB of golden
+  JSON checked into git (acceptable)</p>
+<p><strong>Alternatives considered:</strong></p>
+<ul>
+<li><strong>Input + narrative expectations in single YAML</strong>: rejected — LLM output
+  cannot be represented as expected substrings without semantic diff engine
+  (deferred to β-JP-1 scope)</li>
+<li><strong>Input + reference golden narrative embedded (base64 in YAML)</strong>: rejected
+  — YAML would grow to 100-500 lines/profile, git diff becomes noisy, LLM
+  parallel storage difficult</li>
+<li><strong>Integrated into existing AD-60 <code>audit run</code> framework</strong>: rejected —
+  fixture regression is per-profile deterministic byte-diff, not cohort
+  statistics; overloading audit purpose</li>
+</ul>
+<p><strong>Related ADRs:</strong> AD-16 / AD-56 / AD-63 / AD-65</p>
+<p><strong>Related documents:</strong>
+- Spec: <code>docs/history/specs-archive/2026-07-03-tier1-3-alpha-min-2c-fixture-library-design.md</code>
+- Plan: <code>docs/history/plans-archive/2026-07-03-tier1-3-alpha-min-2c-fixture-library-plan.md</code></p>
+<hr />
+<h3 id="ad-67-severity-single-source-of-truth-disease-yaml-canonical-hybrid-c2">AD-67 · Severity single source of truth (disease YAML canonical, hybrid c2)<a class="headerlink" href="#ad-67-severity-single-source-of-truth-disease-yaml-canonical-hybrid-c2" title="Permanent link">&para;</a></h3>
+<p><strong>Date:</strong> 2026-07-06 (session 38, FP-SEV-MODEL)</p>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong></p>
+<p>Three disconnected severity systems coexisted: (A) locale <code>demographics.yaml</code>
+per-disease <code>severity_beta</code> continuous draw (the only live inpatient source, also
+load-bearing for the hospitalization gate), (B) disease-YAML <code>severity.distribution</code>
++ <code>modifiers</code> (present in all 30 diseases with clinical-literature citations but read
+by zero code — dead), (C) encounter-YAML <code>severity_distribution</code> for the ED path.
+The float→category boundary was hardcoded (<code>inpatient.py</code>, <code>&gt; 0.7</code>/<code>&gt; 0.3</code>) and the
+minimum was defined twice (<code>severity_minimum</code> float + <code>minimum_severity</code> str, clamped
+separately). System B being dead meant the authored, comorbidity-aware severity
+distributions never reached the FHIR output — the largest C1 (silent-drop) instance
+in the FHIR-completeness goal.</p>
+<p><strong>Decision:</strong></p>
+<p>Disease-YAML <code>severity.distribution</code> × <code>modifiers</code> is the single canonical severity
+source (hybrid <strong>c2</strong>). A new <code>clinosim/modules/disease/severity.py</code> owns severity
+sampling and the canonical category↔score boundary (<code>SEVERITY_SCORE_RANGES</code>,
+<code>category_from_score</code>). <code>sample_severity(protocol, person, rng)</code> samples a category
+from the distribution × person-derived comorbidity modifiers (age/comorbidity), clamps
+to <code>minimum_severity</code>, and maps the category to a uniform continuous score; the score
+still feeds the population-time hospitalization gate and re-derives the same category.
+<code>population/engine.py</code> calls it (new population→disease dependency); <code>inpatient.py</code>
+uses <code>category_from_score</code>; <code>emergency.py</code> shares the categorical primitive. Locale
+<code>severity_beta</code>/<code>severity_minimum</code> are retired (incidence-only). Import-time
+<code>_validate_severity_block</code> fails loud on malformed distribution / unknown modifier
+condition / bad minimum / non-positive multiplier (silent-no-op defense).</p>
+<p>Modifier conditions were enumerated from the 30 YAMLs (66 distinct), partitioned into
+EVALUABLE (person-derived, ~34: age/comorbidity/BMI/smoking) and RESERVED_INTRINSIC
+(disease sub-type / scenario-specific, ~32: <code>anterior_wall_MI</code>, <code>gcs_below_8</code>, etc.),
+which are KNOWN (validation does not raise) but skipped this chain.</p>
+<p><strong>Consequences:</strong></p>
+<p>Positive:
+- The authored, comorbidity-aware severity distributions now drive generation
+  (e.g. acute_mi severe rate ~0.11 → ~0.5 for the older/comorbid MI cohort).
+- Single owner for the category↔score boundary and the minimum (no duplicate clamp).
+- Silent-no-op defense extended to the disease-YAML severity block.</p>
+<p>Negative / neutral:
+- New-feature-class change: inpatient cohort composition (hospitalization rate /
+  severity mix) shifts toward disease-YAML distributions; goldens regenerate
+  (profile goldens are forced-severity so byte-unchanged; cohort output shifts).
+- Disease-intrinsic modifiers deferred (scenario-flag mechanism) — TODO.</p>
+<p><strong>Related ADRs:</strong> AD-16 / AD-55 / AD-57 (scenario flags sibling pattern)</p>
+<p><strong>Related documents:</strong>
+- Spec: <code>docs/history/specs-archive/2026-07-06-severity-single-source-c2-design.md</code>
+- Plan: <code>docs/history/plans-archive/2026-07-06-severity-single-source-c2.md</code>
+- Registry: <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> (FP-SEV-MODEL)</p>
+<hr />
+<h3 id="ad-68-archetype_modifiers-wiring-dead-yaml-activation-sibling-to-ad-67">AD-68 · archetype_modifiers wiring (dead YAML activation, sibling to AD-67)<a class="headerlink" href="#ad-68-archetype_modifiers-wiring-dead-yaml-activation-sibling-to-ad-67" title="Permanent link">&para;</a></h3>
+<p><strong>Date:</strong> 2026-07-06 (session 38, FP-YAML-2b)</p>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong></p>
+<p><code>archetype_modifiers</code> (23 disease YAMLs) was silently dropped at load (<code>extra="ignore"</code>)
+and never read; <code>select_archetype</code> applied its own hardcoded <code>immune_reactivity</code> /
+<code>treatment_sensitivity</code> heuristics instead. The YAML block is a superset (adds age,
+comorbidities, disease factors) — a C1 (silent-drop) instance and the same
+dead-authored-YAML class AD-67 addressed for severity.</p>
+<p><strong>Decision:</strong></p>
+<p>Wire <code>archetype_modifiers</code> into <code>select_archetype</code> (owner: <code>clinical_course/engine.py</code>),
+replacing the hardcoded profile modifiers. <code>_eval_archetype_condition</code> evaluates each
+modifier's condition — expression form (<code>&lt;var&gt; &lt;op&gt; &lt;number&gt;</code> for age / immune_reactivity /
+treatment_sensitivity via a strict regex, NOT eval()) and named form (reusing
+<code>disease.severity._evaluate_condition</code> for the overlapping comorbidity vocabulary;
+disease-intrinsic conditions are reserved/skipped). <code>_apply_archetype_modifiers</code> adds the
+effect deltas to the archetype probabilities before the single <code>rng.choice</code> (no new rng
+draw). <code>DiseaseProtocol</code> gains <code>archetype_modifiers</code>; <code>_validate_archetype_modifiers</code>
+fails loud at load when an effect targets an archetype the disease doesn't define
+(silent-phantom guard), a condition is unknown, or a delta is non-numeric.</p>
+<p>NOTE: <code>plateau</code> is a legitimate per-disease archetype NAME (defined in those diseases'
+<code>course_archetypes</code>), not a typo for <code>plateau_then_recovery</code> — validation enforces
+per-disease self-consistency (effect keys ⊆ the disease's own archetypes) rather than a
+fixed canonical set.</p>
+<p><strong>Consequences:</strong></p>
+<p>Positive: the authored per-disease archetype adjustments (age/comorbidity → deterioration
+share) now drive course selection; single silent-no-op-guarded path.
+Negative/neutral: new-feature-class change (archetype distribution shifts, goldens
+regenerate; profile goldens use forced-archetype so byte-unchanged). Disease-intrinsic
+conditions deferred (shared scenario-flag mechanism with AD-67's reserved set).</p>
+<p><strong>Related ADRs:</strong> AD-16 / AD-67 (severity sibling)</p>
+<p><strong>Related documents:</strong>
+- Spec: <code>docs/history/specs-archive/2026-07-06-archetype-modifiers-wiring-design.md</code>
+- Plan: <code>docs/history/plans-archive/2026-07-06-archetype-modifiers-wiring.md</code>
+- Registry: <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> (FP-YAML-2)</p>
+<hr />
+<h3 id="ad-69-diseaseprotocol-extraforbid-author-time-silent-drop-defense">AD-69 · DiseaseProtocol extra="forbid" (author-time silent-drop defense)<a class="headerlink" href="#ad-69-diseaseprotocol-extraforbid-author-time-silent-drop-defense" title="Permanent link">&para;</a></h3>
+<p><strong>Date:</strong> 2026-07-06 (session 38, FP-YAML-3)</p>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> <code>DiseaseProtocol</code> used Pydantic's default <code>extra="ignore"</code>, so any
+top-level YAML key not matching a model field was silently dropped at load. This was
+the root cause of a whole class of C1 (silent-drop) defects — <code>diagnostic_difficulty</code>
+placed top-level (fell back to 0.3), <code>archetype_modifiers</code> (23 files unread),
+<code>severity.distribution</code> never read — and left new typos undetectable.</p>
+<p><strong>Decision:</strong> After resolving every orphan key (diagnostic_difficulty nested,
+archetype_modifiers wired, and 4 unread keys — differential_diagnosis / rehabilitation /
+precipitants / prerequisite — deleted), turn on <code>model_config = ConfigDict(extra="forbid")</code>
+on <code>DiseaseProtocol</code> so an unrecognized top-level key raises at load. <code>EncounterConditionProtocol</code>
+already uses <code>extra="allow"</code> (returns the raw dict); <code>PatientProfile</code> already uses forbid —
+this brings the disease protocol into line. Also removed the vestigial <code>readmission</code>
+model field (0 YAML, 0 readers).</p>
+<p><strong>Consequences:</strong> Byte-diff identical to master (deleted keys were never consumed) —
+a refactor-class change. New disease-YAML authors must add a model field for any new
+top-level key (or it fails loud).</p>
+<p><strong>Dead-field triage (session 39, registry FP-YAML-3 follow-up):</strong> of the 3
+declared-but-unconsumed fields, only <code>reference_ranges</code> was removed — it duplicated the
+live locale-side lab reference ranges (locale is the single source of truth, AD-30), so
+the disease-YAML copy was pure drift. Its model field + 23×3 YAML blocks (banner + body,
+1184 lines) were deleted byte-cleanly (all-deletions diff; the 6 profile goldens are
+byte-identical). The other two were <strong>retained as future-wiring seeds, not deleted</strong>,
+because both are authored clinical content with a documented downstream plan:
+<code>drug_interactions</code> (real interaction pairs + clinical actions) seeds the planned FHIR
+<code>DetectedIssue</code> resource (<code>docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md</code>),
+and <code>expected_vital_distributions</code> is a candidate verification target for the cohort-level
+completeness audit axis (FP-COMPLETENESS-GATE). Deleting them would have destroyed authored
+seeds for planned features. One follow-up remains (registry FP-YAML-3): the raw-dict
+consumption path in <code>order/engine.py</code> bypasses Pydantic (not covered by forbid).</p>
+<p><strong>Related ADRs:</strong> AD-67 / AD-68 (the severity + archetype activations this unblocks/hardens)</p>
+<p><strong>Related documents:</strong> <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> (FP-YAML-3);
+<code>docs/design-guides/data-model-and-completeness-conventions.md</code> §2</p>
+<hr />
+<h3 id="ad-70-jp-clins-lab-coding-jlac10-primary-loinc-secondary-international-interoperability">AD-70 · JP-CLINS lab coding: JLAC10 primary + LOINC secondary (international interoperability)<a class="headerlink" href="#ad-70-jp-clins-lab-coding-jlac10-primary-loinc-secondary-international-interoperability" title="Permanent link">&para;</a></h3>
+<p><strong>Date:</strong> 2026-07-26 (session 68, migration PR 4)</p>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong></p>
+<p>JP-CLINS 検体検査 migration (PR #396–#404) established JLAC10 as the primary coding system
+for 1,898 CoreLabo analytes (session 67 axis 100% completion). The architecture decision for
+secondary coding systems arose: should LOINC be retained as secondary coding alongside JLAC10
+primary, or removed entirely for JP-only purism?</p>
+<p>Three options were considered:</p>
+<ul>
+<li>
+<p><strong>Option A (JP purism):</strong> Remove LOINC secondary coding entirely; emit JLAC10 primary only.
+  Rationale: JP-CLINS is JP-specific data exchange standard; LOINC is redundant in domestic JP
+  context. Removes ~0.5 KB FHIR overhead per exam instance.</p>
+</li>
+<li>
+<p><strong>Option B (interoperability):</strong> Retain dual coding — JLAC10 as primary (discriminator + Fixed
+  coding), LOINC as secondary. Rationale: allows downstream international-facing systems (cloud EHR,
+  research integrations, academic medical data pipelines) to normalize into LOINC without losing
+  JLAC10 traceability; supports the implicit contract that "any JP clinic can export to
+  international viewer if needed."</p>
+</li>
+<li>
+<p><strong>Option C (branching):</strong> Country-flag-based dispatch — <code>_fhir_observations.py</code> checks
+  <code>country == "JP"</code> and omits LOINC for JP only. Rationale: keeps US output optimally compact,
+  gives JP the choice.</p>
+</li>
+</ul>
+<p><strong>Decision:</strong> <strong>Option B</strong> — retain dual coding (JLAC10 primary + LOINC secondary).</p>
+<p><strong>Rationale:</strong></p>
+<ol>
+<li>
+<p><strong>Binding constraint:</strong> JP Core <code>JP_Observation_LabResult.code</code> is defined with binding
+   strength <code>example</code> (FHIR terms: weakest binding, "recommended but not required"). This means
+   both <strong>single-system coding</strong> (JLAC10 only) and <strong>multi-system coding</strong> (JLAC10 + LOINC) are
+   spec-compliant.</p>
+</li>
+<li>
+<p><strong>International interoperability:</strong> LOINC is the de facto global lab code standard. Dual coding
+   enables downstream systems (research DBs, cloud EHR platforms, international healthcare
+   networks) to accept clinosim export without custom mapping code. Removing LOINC forces those
+   systems to maintain JLAC10→LOINC mapping tables externally, increasing integration friction.</p>
+</li>
+<li>
+<p><strong>Metadata cost is acceptable:</strong> Each lab Observation adds ~30–50 bytes (LOINC coding[] slice +
+   system + code + display). At p=100 JP dataset, this is ~90–150 KB cumulative — negligible
+   within the multi-GB export footprint. The <code>example</code> binding level does not impose a penalty
+   for additional codings.</p>
+</li>
+<li>
+<p><strong>Traceability and reversibility:</strong> Retaining LOINC enables full round-trip mapping (JLAC10↔LOINC)
+   without data loss. Removing it forecloses downstream reverse-mapping if a use case later
+   requires it.</p>
+</li>
+<li>
+<p><strong>Alignment with FA-1 principle (AD-56):</strong> Adapters (FHIR builders) are single-responsibility
+   (emit what CIF provides); CIF stores codes language-neutrally (AD-30). The dual-coding choice
+   is a <strong>FHIR presentation choice</strong>, not a data-model choice — perfectly aligned with separating
+   data from adapter.</p>
+</li>
+</ol>
+<p><strong>Consequences:</strong></p>
+<p>Positive:
+- Downstream systems can integrate clinosim export without custom mapping.
+- JP and US outputs remain 100% identical (no branching logic to maintain).
+- Future JP-CLINS profile evolution (if binding ever strengthens to <code>required</code>) is forward-compatible.</p>
+<p>Negative/neutral:
+- Slight FHIR size increase (~0.2–0.5% of per-dataset NDJSON).
+- Authoring burden on LOINC code coverage (already complete; PR #396 ensured all 20 CoreLabo
+  analytes have LOINC codes in <code>codes/data/loinc.yaml</code>).</p>
+<p>Alternative deferred:
+- If JP-CLINS 2.1 / JP FHIR profiles ever restrict binding to <code>required</code> + explicitly forbid
+  non-JLAC10 coding, this ADR will be revisited and option A/C re-evaluated (with a separate
+  migration chain to remove LOINC secondary). Until then, <code>example</code> binding is the governing
+  constraint.</p>
+<p><strong>Related ADRs:</strong> AD-30 (CIF language-neutral) / AD-31 (Bulk Data compliance) / AD-56 (adapter
+single responsibility) / AD-58 (output adapter registration pattern)</p>
+<p><strong>Related documents:</strong>
+- Migration PRs: #396 (dispatcher refactor) / #398 (shared pkg loader) / #400 (analyte classifier)
+  / #402 (CoreLabo emit) / #404 (Uncoded + LocalCode + sanitize)
+- Session notes: <code>project_session_67_end_state.md</code> (axis completion, decision B adoption)</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/TomoOkuyama/clinosim" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -2174,21 +2174,37 @@
 or cross-cutting invariants live here; per-module deep dives live inside each
 module's own <code>README.md</code>.</p>
 <h2 id="contents">Contents<a class="headerlink" href="#contents" title="Permanent link">&para;</a></h2>
+<p><strong>Split from the historical root <code>DESIGN.md</code></strong> (Issue #568 PR B, 2026-08-09):</p>
+<ul>
+<li><a href="design-principles/"><code>design-principles.md</code></a> — realism-above-all,
+  modular architecture, LLM integration, simulation modes, folder
+  structure, inter-module interface conventions, naming. Historical
+  foundation; largely stable.</li>
+<li><a href="architecture-notes/"><code>architecture-notes.md</code></a> — per-module
+  architectural notes: code system, FHIR bulk data (AD-31), snapshot
+  semantics (AD-32), hospital config layout (AD-34), vital sign
+  patterns, NEWS2, resident identifiers (AD-54), EHR enrichment split
+  (AD-55), extensibility (AD-56). Clinical documents via FHIR
+  DocumentReference. LLM service architecture.</li>
+<li><a href="adr-history/"><code>adr-history.md</code></a> — clean <code>### AD-NN:</code> sections:
+  Japanese localization (AD-42, AD-43), FHIR standards compliance +
+  occupational injuries (AD-44 through AD-48, AD-61 through AD-70).</li>
+</ul>
+<p><strong>Extracted from the root <code>README.md</code></strong> (Issue #568 PR A):</p>
 <ul>
 <li><a href="module-architecture/"><code>module-architecture.md</code></a> — high-level module
   layering, dependency direction, and how the simulator / output subsystems
-  cross-reference each other. Extracted from the root <code>README.md</code> (Issue #568
-  PR A).</li>
+  cross-reference each other.</li>
 <li><a href="data-flow/"><code>data-flow.md</code></a> — end-to-end data flow across population,
-  simulation, and FHIR export. Extracted from <code>README.md</code> (Issue #568 PR A2).</li>
+  simulation, and FHIR export.</li>
 <li><a href="module-dependency-graph/"><code>module-dependency-graph.md</code></a> — top-level
-  package import graph. Extracted from <code>README.md</code> (Issue #568 PR A2).</li>
+  package import graph.</li>
 </ul>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Design guides: <a href="../design-guides/"><code>../design-guides/</code></a>.</li>
-<li>Historical ADRs (2025-era): <code>DESIGN.md</code> at the repo root — pending split
-  into per-ADR files under <code>adr/</code> (Issue #568 PR B).</li>
+<li>Root pointer: <a href="../../DESIGN.md"><code>../../DESIGN.md</code></a> is now a landing
+  page pointing at the three files above.</li>
 <li>Per-module architecture: <code>clinosim/modules/&lt;X&gt;/README.md</code>.</li>
 </ul>
 
