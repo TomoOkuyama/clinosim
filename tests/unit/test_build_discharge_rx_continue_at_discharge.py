@@ -29,18 +29,6 @@ import numpy as np
 
 from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_protocol
 from clinosim.simulator.discharge_rx import build_discharge_rx
-from clinosim.types.patient import ChronicCondition, PatientProfile
-
-
-def _patient(current_meds: list[str] | None = None, chronic_icds: list[str] | None = None) -> PatientProfile:
-    from clinosim.types.patient import HomeMedication
-
-    p = PatientProfile(patient_id="POP-000001")
-    # #452 PR 3: attribute-assign bypasses PatientProfile.__post_init__, so
-    # promote str fixtures to HomeMedication here.
-    p.current_medications = [HomeMedication(drug_name=m) for m in (current_meds or [])]
-    p.chronic_conditions = [ChronicCondition(code=icd) for icd in (chronic_icds or [])]
-    return p
 
 
 def _ci_protocol() -> DiseaseProtocol:
@@ -51,14 +39,14 @@ def _has(items: list[dict], token: str) -> bool:
     return any(token in it.get("drug_name", "") for it in items)
 
 
-def test_cerebral_infarction_discharge_always_has_exactly_one_anticoagulant_japan():
+def test_cerebral_infarction_discharge_always_has_exactly_one_anticoagulant_japan(patient_factory):
     """JP anticoag: Edoxaban 0.8 + Warfarin 0.2 = 1.0. No residual → every
     seed must produce exactly one anticoagulant.
     """
     protocol = _ci_protocol()
     for seed in range(200):
         rx = build_discharge_rx(
-            _patient(),
+            patient_factory(),
             "cerebral_infarction",
             protocol,
             "PR-1",
@@ -72,14 +60,14 @@ def test_cerebral_infarction_discharge_always_has_exactly_one_anticoagulant_japa
         )
 
 
-def test_cerebral_infarction_japan_probability_matches_yaml_declared_split():
+def test_cerebral_infarction_japan_probability_matches_yaml_declared_split(patient_factory):
     """JP: Edoxaban 0.8 / Warfarin 0.2 over 2000 seeds. ±3σ band."""
     protocol = _ci_protocol()
     counts: Counter[str] = Counter()
     n = 2000
     for seed in range(n):
         rx = build_discharge_rx(
-            _patient(),
+            patient_factory(),
             "cerebral_infarction",
             protocol,
             "PR-1",
@@ -96,14 +84,14 @@ def test_cerebral_infarction_japan_probability_matches_yaml_declared_split():
     assert 300 < counts["Warfarin"] < 500, f"Warfarin {counts['Warfarin']}/2000 (expected ~400)"
 
 
-def test_cerebral_infarction_us_probability_matches_yaml_declared_split():
+def test_cerebral_infarction_us_probability_matches_yaml_declared_split(patient_factory):
     """US: Apixaban 0.8 / Warfarin 0.2 — same split as JP."""
     protocol = _ci_protocol()
     counts: Counter[str] = Counter()
     n = 2000
     for seed in range(n):
         rx = build_discharge_rx(
-            _patient(),
+            patient_factory(),
             "cerebral_infarction",
             protocol,
             "PR-1",
@@ -119,7 +107,7 @@ def test_cerebral_infarction_us_probability_matches_yaml_declared_split():
     assert 300 < counts["Warfarin"] < 500, f"Warfarin {counts['Warfarin']}/2000 (expected ~400)"
 
 
-def test_cross_source_dedup_i48_chronic_suppresses_new_loop_anticoag():
+def test_cross_source_dedup_i48_chronic_suppresses_new_loop_anticoag(patient_factory):
     """Patient with I48 (chronic AF) admitted for cerebral_infarction:
     chronic transcription (path 2) contributes 1 anticoagulant; the new
     continue_at_discharge loop (path 3) MUST detect that `anticoagulant`
@@ -133,7 +121,7 @@ def test_cross_source_dedup_i48_chronic_suppresses_new_loop_anticoag():
     # the (a) covered_classes lookup, not the drug-name dedup.
     for seed in range(200):
         rx = build_discharge_rx(
-            _patient(current_meds=["Warfarin 3mg"], chronic_icds=["I48"]),
+            patient_factory(current_meds=["Warfarin 3mg"], chronic_icds=["I48"]),
             "cerebral_infarction",
             protocol,
             "PR-1",
@@ -151,7 +139,7 @@ def test_cross_source_dedup_i48_chronic_suppresses_new_loop_anticoag():
         )
 
 
-def test_cross_source_dedup_without_chronic_af_allows_new_loop_anticoag():
+def test_cross_source_dedup_without_chronic_af_allows_new_loop_anticoag(patient_factory):
     """Same patient minus the I48 chronic condition: covered_classes is
     empty, so the new loop DOES add an anticoagulant (JP: Edoxaban or
     Warfarin categorical). Regression guard against an over-eager
@@ -161,7 +149,7 @@ def test_cross_source_dedup_without_chronic_af_allows_new_loop_anticoag():
     seen = 0
     for seed in range(20):
         rx = build_discharge_rx(
-            _patient(current_meds=[], chronic_icds=[]),
+            patient_factory(current_meds=[], chronic_icds=[]),
             "cerebral_infarction",
             protocol,
             "PR-1",

@@ -20,13 +20,6 @@ import numpy as np
 
 from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_protocol
 from clinosim.simulator.discharge_rx import build_discharge_rx
-from clinosim.types.patient import PatientProfile
-
-
-def _patient() -> PatientProfile:
-    p = PatientProfile(patient_id="POP-000001")
-    p.current_medications = []
-    return p
 
 
 def _pe_protocol() -> DiseaseProtocol:
@@ -37,13 +30,13 @@ def _has(items: list[dict], drug: str) -> bool:
     return any(drug in it.get("drug_name", "") for it in items)
 
 
-def test_pe_discharge_never_has_warfarin_and_edoxaban_together_japan():
+def test_pe_discharge_never_has_warfarin_and_edoxaban_together_japan(patient_factory):
     """Warfarin + Edoxaban MUST NEVER co-appear in a single PE discharge Rx."""
     protocol = _pe_protocol()
     both = 0
     for seed in range(1000):
         rx = build_discharge_rx(
-            _patient(),
+            patient_factory(current_meds=[]),
             "pulmonary_embolism",
             protocol,
             "PR-1",
@@ -56,13 +49,13 @@ def test_pe_discharge_never_has_warfarin_and_edoxaban_together_japan():
     assert both == 0, f"PE JP Warfarin+Edoxaban concurrent: {both}/1000 (must be 0)"
 
 
-def test_pe_discharge_never_has_rivaroxaban_and_apixaban_together_us():
+def test_pe_discharge_never_has_rivaroxaban_and_apixaban_together_us(patient_factory):
     """US: Rivaroxaban + Apixaban MUST NEVER co-appear."""
     protocol = _pe_protocol()
     both = 0
     for seed in range(1000):
         rx = build_discharge_rx(
-            _patient(),
+            patient_factory(current_meds=[]),
             "pulmonary_embolism",
             protocol,
             "PR-1",
@@ -75,7 +68,7 @@ def test_pe_discharge_never_has_rivaroxaban_and_apixaban_together_us():
     assert both == 0, f"PE US Rivaroxaban+Apixaban concurrent: {both}/1000 (must be 0)"
 
 
-def test_pe_discharge_japan_probability_matches_yaml_declared_split():
+def test_pe_discharge_japan_probability_matches_yaml_declared_split(patient_factory):
     """JP: Edoxaban 0.8 / Warfarin 0.2 — each rate must land in a ~3-sigma
     interval so authors know a YAML swap on those fields would be caught."""
     protocol = _pe_protocol()
@@ -83,7 +76,7 @@ def test_pe_discharge_japan_probability_matches_yaml_declared_split():
     n = 2000
     for seed in range(n):
         rx = build_discharge_rx(
-            _patient(),
+            patient_factory(current_meds=[]),
             "pulmonary_embolism",
             protocol,
             "PR-1",
@@ -100,14 +93,14 @@ def test_pe_discharge_japan_probability_matches_yaml_declared_split():
     assert 300 < counts["Warfarin"] < 500, f"Warfarin rate {counts['Warfarin']}/2000 (expected ~400)"
 
 
-def test_pe_discharge_us_probability_matches_yaml_declared_split():
+def test_pe_discharge_us_probability_matches_yaml_declared_split(patient_factory):
     """US: Rivaroxaban 0.5 / Apixaban 0.5 — both ~1000/2000."""
     protocol = _pe_protocol()
     counts: Counter[str] = Counter()
     n = 2000
     for seed in range(n):
         rx = build_discharge_rx(
-            _patient(),
+            patient_factory(current_meds=[]),
             "pulmonary_embolism",
             protocol,
             "PR-1",
@@ -123,13 +116,13 @@ def test_pe_discharge_us_probability_matches_yaml_declared_split():
     assert 900 < counts["Apixaban"] < 1100, f"Apixaban {counts['Apixaban']}/2000 (expected ~1000)"
 
 
-def test_pe_discharge_always_has_exactly_one_anticoagulant_japan():
+def test_pe_discharge_always_has_exactly_one_anticoagulant_japan(patient_factory):
     """Sum of the two JP probabilities is 1.0 → NO residual "no drug" branch
     should fire. Every discharge MUST have exactly one anticoagulant."""
     protocol = _pe_protocol()
     for seed in range(200):
         rx = build_discharge_rx(
-            _patient(),
+            patient_factory(current_meds=[]),
             "pulmonary_embolism",
             protocol,
             "PR-1",
