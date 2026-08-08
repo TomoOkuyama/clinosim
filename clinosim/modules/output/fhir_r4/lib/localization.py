@@ -350,8 +350,13 @@ _PARTICIPATION_TYPE_DISPLAY_JA: dict[str, str] = {
 _ACT_PRIORITY_DISPLAY_JA: dict[str, str] = {
     "R": "通常",
     "routine": "通常",
-    "EM": "救急",
-    "emergency": "救急",
+    # Issue #616: "EM" is a priority-level value (emergency-priority), not
+    # a class-level value. "救急" is the class label (used for _CLASS_DISPLAY_JA
+    # ["EMER"]); "緊急" is the accurate priority-level label. Rendering both slots
+    # with the same "救急" made priority.display visually indistinguishable
+    # from class.display in JP-facing consumers.
+    "EM": "緊急",
+    "emergency": "緊急",
     "S": "予定",
     "stat": "至急",
     "UR": "至急",
