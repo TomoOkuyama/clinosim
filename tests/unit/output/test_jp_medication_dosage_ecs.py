@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_post_process import (
+from clinosim.modules.output.fhir_r4.post_process import (
     _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE,
     _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,
     _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,

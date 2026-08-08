@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_post_process import (
+from clinosim.modules.output.fhir_r4.post_process import (
     _build_companion_specimen,
     _lab_observation_needs_specimen,
     _pick_specimen_type_for_lab,

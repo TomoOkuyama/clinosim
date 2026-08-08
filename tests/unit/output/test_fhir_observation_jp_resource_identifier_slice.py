@@ -23,7 +23,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from clinosim.modules.output._fhir_post_process import (
+from clinosim.modules.output.fhir_r4.post_process import (
     _CLINOSIM_OBSERVATION_ID_SYSTEM,
     _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM,
     _populate_observation_identifier_and_last_updated,

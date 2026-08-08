@@ -22,7 +22,7 @@ def test_english_only_prefix_allowlist_pinned():
     """allowlist prefix セットが期待通り。ここを狭めると
     HAPI Validator "Wrong Display Name" error が再発するため
     pin test で規制。"""
-    from clinosim.modules.output._fhir_post_process import _ENGLISH_ONLY_CODING_SYSTEM_PREFIXES
+    from clinosim.modules.output.fhir_r4.post_process import _ENGLISH_ONLY_CODING_SYSTEM_PREFIXES
 
     assert set(_ENGLISH_ONLY_CODING_SYSTEM_PREFIXES) == {
         "http://loinc.org",
@@ -53,7 +53,7 @@ def test_english_only_prefix_allowlist_pinned():
 )
 def test_english_only_systems_strip_japanese_display(system, display):
     """英語 display のみの CodeSystem では日本語 display を削除する。"""
-    from clinosim.modules.output._fhir_post_process import _strip_japanese_display_on_english_only_systems
+    from clinosim.modules.output.fhir_r4.post_process import _strip_japanese_display_on_english_only_systems
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -88,7 +88,7 @@ def test_jp_specific_systems_preserve_japanese_display(system):
     """JP-specific CodeSystem は日本語 display を preserve する
     (JP Core / JP-CLINS / MEDIS / YJ / clinosim custom には正規な
     日本語 display 定義がある or 独自 display 使用が想定されている)。"""
-    from clinosim.modules.output._fhir_post_process import _strip_japanese_display_on_english_only_systems
+    from clinosim.modules.output.fhir_r4.post_process import _strip_japanese_display_on_english_only_systems
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -106,7 +106,7 @@ def test_jp_specific_systems_preserve_japanese_display(system):
 def test_english_display_on_standard_system_preserved():
     """既に英語 display の Coding には触れない(US output に本 walker
     が呼ばれるパスは無いが、defensive で ASCII display は preserve)。"""
-    from clinosim.modules.output._fhir_post_process import _strip_japanese_display_on_english_only_systems
+    from clinosim.modules.output.fhir_r4.post_process import _strip_japanese_display_on_english_only_systems
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -125,7 +125,7 @@ def test_walker_handles_bare_coding_field():
     """ImagingStudy.series[].modality のような CodeableConcept でない
     Coding-typed field(coding[] にラップされていない直接 Coding)も
     strip 対象になる。"""
-    from clinosim.modules.output._fhir_post_process import _strip_japanese_display_on_english_only_systems
+    from clinosim.modules.output.fhir_r4.post_process import _strip_japanese_display_on_english_only_systems
 
     resource: dict[str, Any] = {
         "resourceType": "ImagingStudy",
@@ -159,7 +159,7 @@ def test_walker_handles_bare_coding_field():
 def test_walker_recursion_covers_deep_nesting():
     """AllergyIntolerance.reaction[].manifestation[].coding[] のような
     深い nesting でも Coding 単位で strip する。"""
-    from clinosim.modules.output._fhir_post_process import _strip_japanese_display_on_english_only_systems
+    from clinosim.modules.output.fhir_r4.post_process import _strip_japanese_display_on_english_only_systems
 
     resource: dict[str, Any] = {
         "resourceType": "AllergyIntolerance",
@@ -189,7 +189,7 @@ def test_walker_recursion_covers_deep_nesting():
 
 def test_walker_is_idempotent():
     """既に display 剥ぎ済みの resource に再度 walker を通しても no-op。"""
-    from clinosim.modules.output._fhir_post_process import _strip_japanese_display_on_english_only_systems
+    from clinosim.modules.output.fhir_r4.post_process import _strip_japanese_display_on_english_only_systems
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -206,7 +206,7 @@ def test_walker_is_idempotent():
 def test_walker_ignores_identifier_shape():
     """Identifier は `system` + `value` を持ち `code` を持たない。
     Coding とは異なるため walker は触れない(誤削除防止)。"""
-    from clinosim.modules.output._fhir_post_process import _strip_japanese_display_on_english_only_systems
+    from clinosim.modules.output.fhir_r4.post_process import _strip_japanese_display_on_english_only_systems
 
     resource: dict[str, Any] = {
         "resourceType": "Patient",
@@ -230,7 +230,7 @@ def test_walker_ignores_identifier_shape():
 
 def test_walker_no_op_when_display_absent():
     """display key が無ければ何もしない(既に stripped 済 or 未設定)。"""
-    from clinosim.modules.output._fhir_post_process import _strip_japanese_display_on_english_only_systems
+    from clinosim.modules.output.fhir_r4.post_process import _strip_japanese_display_on_english_only_systems
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
