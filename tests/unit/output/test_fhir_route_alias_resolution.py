@@ -531,8 +531,8 @@ def test_infusion_gate_survives_future_iv_alias():
     to the canonical `IV` first — so this test uses `monkeypatch.setitem` to inject
     an IV alias and verifies `device[]` still emits.
     """
-    from clinosim.modules.output.fhir_r4.lib import reference_data as _fhir_reference_data
     from clinosim.modules.output._fhir_medications import _build_medication_admin
+    from clinosim.modules.output.fhir_r4.lib import reference_data as _fhir_reference_data
 
     # Inject a hypothetical IV alias into _ROUTE_ALIASES.
     _fhir_reference_data._ROUTE_ALIASES["INTRAVENOUS"] = "IV"

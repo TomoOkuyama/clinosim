@@ -19,7 +19,7 @@ from clinosim.modules.output.fhir_r4 import *  # noqa: E402, F401, F403
 # by name — ``from ... import *`` only re-exports names in ``__all__``, so
 # underscore-prefixed helpers need explicit re-import.
 from clinosim.modules.output.fhir_r4 import (  # noqa: E402, F401
-    _build_bundle,
     _BUNDLE_BUILDERS,
+    _build_bundle,
     _fhir_id_is_spec_valid,
 )
