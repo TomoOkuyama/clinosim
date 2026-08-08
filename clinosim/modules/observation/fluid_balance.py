@@ -27,10 +27,13 @@ Clinical citations:
   random sampler from producing negative urine.
 - ``DEHYDRATION_IV_TRIGGER`` (−0.2) — negative :attr:`volume_status`
   cutoff below which the dehydration IV regimen fires. This is ONE of
-  three related dehydration thresholds in the codebase (see
-  ``clinosim/modules/physiology/engine.py`` for −0.3 and −0.35 used by
-  other rules); the divergence is intentional as of this extraction and
-  is called out as follow-up in Issue #561.
+  three related dehydration thresholds in the codebase; see
+  :mod:`clinosim.modules.physiology.dehydration_thresholds` for the
+  other two (``BUN_ELEVATION_THRESHOLD = −0.3`` and
+  ``HYPERNATREMIA_THRESHOLD = −0.35``). The three form a clinical
+  progression (mild IV trigger → moderate BUN rise → severe hypernatremia)
+  and are intentionally distinct — see the physiology-side module
+  docstring for citations.
 """
 
 from __future__ import annotations

@@ -11,6 +11,10 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
+from clinosim.modules.physiology.dehydration_thresholds import (
+    BUN_ELEVATION_THRESHOLD,
+    HYPERNATREMIA_THRESHOLD,
+)
 from clinosim.types.clinical import PhysiologicalState, StateChangeDirective
 from clinosim.types.patient import BaselineVitals, ChronicCondition, PatientPhysiologicalProfile
 
@@ -218,8 +222,12 @@ def apply_coupling_rules(state: PhysiologicalState) -> None:
         state.anemia_level = clamp(state.anemia_level - 0.005, 0.0, 1.0)
 
     # Dehydration (free-water deficit) concentrates serum sodium -> hypernatremia.
-    if state.volume_status < -0.35:
-        state.sodium_status = clamp(state.sodium_status + (abs(state.volume_status) - 0.35) * 1.2, -1.0, 1.0)
+    if state.volume_status < HYPERNATREMIA_THRESHOLD:
+        state.sodium_status = clamp(
+            state.sodium_status + (abs(state.volume_status) - abs(HYPERNATREMIA_THRESHOLD)) * 1.2,
+            -1.0,
+            1.0,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -406,7 +414,7 @@ def derive_lab_values(
         # the master-RNG cascade documented in spec 2026-06-22-aki-dka-...).
         labs["Creatinine"] = base_cr / 0.5 + (0.5 - renal) * 6.5
     labs["BUN"] = 15.0 / max(renal, 0.1)
-    if state.volume_status < -0.3:
+    if state.volume_status < BUN_ELEVATION_THRESHOLD:
         labs["BUN"] *= 1.0 + abs(state.volume_status) * 0.5
     labs["eGFR"] = renal * 120
     # K: renal failure causes hyperkalemia, but not as aggressively as before
