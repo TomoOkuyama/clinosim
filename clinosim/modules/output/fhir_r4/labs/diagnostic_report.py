@@ -13,7 +13,7 @@ findings_text + impression_text (FHIR Radiology IG standard). conclusion
 = impression_text. conclusionCode emitted only when findings_codes non-empty
 (forward-compat slot for NLP/IE enrichment, PR1 default empty → gate skipped).
 
-Spec: docs/superpowers/specs/2026-06-22-diagnostic-report-panels-design.md
+Spec: docs/history/specs-archive/2026-06-22-diagnostic-report-panels-design.md
 
 Panel YAML + canonical loader live in ``clinosim.modules.order.panel_grouping``
 (single source of truth per user directive: "データ参照やデータ生成のロジックは統一").

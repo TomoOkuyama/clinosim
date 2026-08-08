@@ -274,7 +274,7 @@ The layer is deterministic — `scripts/reproduce.sh` continues to pass with cou
 
 ## Out of scope for PR1
 
-See spec §1.3 in `docs/superpowers/specs/2026-07-12-p2-13-jp-clins-design.md`:
+See spec §1.3 in `docs/history/specs-archive/2026-07-12-p2-13-jp-clins-design.md`:
 
 - 3 documents Composition (退院時サマリー / 診療情報提供書 / 健康診断結果報告書) — PR2 + PR3
 - 健診 encounter generation — PR3 opt-in

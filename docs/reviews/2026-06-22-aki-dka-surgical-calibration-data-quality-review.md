@@ -28,7 +28,7 @@ Every FHIR conformance check is green; AD-55 Base distributions match the
 bands as intended; every non-target cohort's central tendency is preserved.
 Two **pre-existing** items (JP CRP unit convention, I50 admit-day BNP
 discrimination) are explicitly out of scope — both are documented under
-separate plans (`docs/superpowers/plans/2026-06-20-bnp-hf-specificity.md`,
+separate plans (`docs/history/plans-archive/2026-06-20-bnp-hf-specificity.md`,
 AD-42) and the byte-diff invariant proves the calibration neither caused
 nor worsened them.
 

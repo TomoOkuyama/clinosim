@@ -34,5 +34,5 @@ PR1 scope:
 
 ## 関連
 
-- Spec: `docs/superpowers/specs/2026-06-30-tier1-imaging-chain-design.md`
+- Spec: `docs/history/specs-archive/2026-06-30-tier1-imaging-chain-design.md`
 - DESIGN.md: AD-62(Imaging metadata-only chain with WADO-RS placeholder)

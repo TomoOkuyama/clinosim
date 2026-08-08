@@ -12,7 +12,7 @@ provides **medication flags** (`on_X`). All flags follow the BNP-pattern
 surgical principle (AD-57): **no `PhysiologicalState` mutation,
 formula-only override**. This keeps state immutable and prevents the
 master-RNG-cascade defect documented in spec
-`docs/superpowers/specs/2026-06-22-aki-dka-surgical-calibration-design.md`.
+`docs/history/specs-archive/2026-06-22-aki-dka-surgical-calibration-design.md`.
 
 ## All current flags
 
@@ -112,4 +112,4 @@ PR #82 (Phase 2b) for the full rationale.
 - [CLAUDE.md](CLAUDE.md) "AD-55 enricher patterns"
 - [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md) "PR 検証ガイド" + "sub-seed 導出ルール"
 - [clinosim/modules/physiology/README.md](clinosim/modules/physiology/README.md) — helper API reference
-- spec / plan: `docs/superpowers/specs/2026-06-24-phase2a-vte-d-dimer-design.md` (causes_vte) + `docs/superpowers/specs/2026-06-24-phase2b-on-anticoagulation-design.md` (on_warfarin)
+- spec / plan: `docs/history/specs-archive/2026-06-24-phase2a-vte-d-dimer-design.md` (causes_vte) + `docs/history/specs-archive/2026-06-24-phase2b-on-anticoagulation-design.md` (on_warfarin)

@@ -3,7 +3,7 @@
 **Date:** 2026-06-23
 **Branch:** `feat/cbc-bmp-panel-expansion`
 **Base:** master @ `75f850b9`
-**Spec:** `docs/superpowers/specs/2026-06-23-cbc-bmp-panel-expansion-design.md`
+**Spec:** `docs/history/specs-archive/2026-06-23-cbc-bmp-panel-expansion-design.md`
 **Script:** `scratchpad/cbc_bmp_byte_diff.py`
 
 ## Configuration

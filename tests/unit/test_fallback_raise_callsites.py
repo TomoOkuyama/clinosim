@@ -1,7 +1,7 @@
 """Verify all YAML-sourced normalize_probabilities callsites raise on zero-sum.
 
 Covers the 10 callsites enumerated in
-docs/superpowers/specs/2026-06-27-foundation-polish-validation-sweep-design.md
+docs/history/specs-archive/2026-06-27-foundation-polish-validation-sweep-design.md
 Section 2.1. Each test injects a zero-sum input via the call path and asserts
 ValueError. This guards against silent uniform fallback (PR-90 class bug).
 """

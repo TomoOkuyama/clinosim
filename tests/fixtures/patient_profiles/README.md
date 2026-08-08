@@ -76,7 +76,7 @@ execute it (LLM cost + subprocess latency budget considerations).
 
 ## Related
 
-- Spec: `docs/superpowers/specs/2026-07-03-tier1-3-alpha-min-2c-fixture-library-design.md`
-- Plan: `docs/superpowers/plans/2026-07-03-tier1-3-alpha-min-2c-fixture-library-plan.md`
+- Spec: `docs/history/specs-archive/2026-07-03-tier1-3-alpha-min-2c-fixture-library-design.md`
+- Plan: `docs/history/plans-archive/2026-07-03-tier1-3-alpha-min-2c-fixture-library-plan.md`
 - ADR: `DESIGN.md` AD-66
 - CLAUDE.md AD-66 rules

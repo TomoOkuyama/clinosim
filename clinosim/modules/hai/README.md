@@ -256,8 +256,8 @@ vap:
 - [MODULES.md](../../../MODULES.md) — 全 module 俯瞰
 - 関連モジュール: `output/_fhir_hai.py` (HAI Condition builder)、`output/_fhir_microbiology.py` (culture emit、既存)、`modules/device` (upstream)、`modules/antibiotic` (ANTIBIOTIC_LOINC_LOOKUP 供給 + downstream consumer)
 - 関連 spec / plan:
-  - `docs/superpowers/specs/2026-06-24-hai-module-design.md`
-  - `docs/superpowers/plans/2026-06-24-hai-module-prb.md`
+  - `docs/history/specs-archive/2026-06-24-hai-module-design.md`
+  - `docs/history/plans-archive/2026-06-24-hai-module-prb.md`
 - DQR reviews:
   - `docs/reviews/2026-06-24-hai-module-data-quality-review.md` (Phase PR-B)
   - `docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md` (Phase 3b-2)

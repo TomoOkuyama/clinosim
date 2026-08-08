@@ -1,8 +1,8 @@
 # BMP Cl/Ca physiology PR — Data-quality review
 
 **Date:** 2026-06-23
-**Spec:** `docs/superpowers/specs/2026-06-23-bmp-cl-ca-physiology-design.md`
-**Plan:** `docs/superpowers/plans/2026-06-23-bmp-cl-ca-physiology-plan.md`
+**Spec:** `docs/history/specs-archive/2026-06-23-bmp-cl-ca-physiology-design.md`
+**Plan:** `docs/history/plans-archive/2026-06-23-bmp-cl-ca-physiology-plan.md`
 **Branch:** `feat/bmp-cl-ca-physiology`
 **Pool:** US p=10,000 (24,690 patients) + JP p=5,000 (2,455 patients), seed=42
 **Methodology:** `scratchpad/dqr_pr75_review.py` (PR #76 reuse, column-fix for
@@ -118,7 +118,7 @@ mixed-cohort artifact). PR is ready to push and merge.
 
 ## Documents updated
 
-- `docs/superpowers/specs/2026-06-23-bmp-cl-ca-physiology-design.md`
+- `docs/history/specs-archive/2026-06-23-bmp-cl-ca-physiology-design.md`
   (encounter scope 3→2, §13.1 structural-defect-discovered narrative)
 - `docs/reviews/2026-06-23-bmp-cl-ca-audit.md` (per-analyte distribution
   + isolation invariant)

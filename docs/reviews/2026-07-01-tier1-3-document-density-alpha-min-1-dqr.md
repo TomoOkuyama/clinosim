@@ -3,8 +3,8 @@
 **Date:** 2026-07-01
 **Cohorts:** US p=10,000 seed=42 + JP p=5,000 seed=42
 **Branch:** feature/tier1-document-density-alpha-min-1
-**Spec:** docs/superpowers/specs/2026-07-01-tier1-3-document-density-alpha-min-1-design.md
-**Plan:** docs/superpowers/plans/2026-07-01-tier1-3-document-density-alpha-min-1-plan.md
+**Spec:** docs/history/specs-archive/2026-07-01-tier1-3-document-density-alpha-min-1-design.md
+**Plan:** docs/history/plans-archive/2026-07-01-tier1-3-document-density-alpha-min-1-plan.md
 **Master plan:** docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md
 
 ## Summary

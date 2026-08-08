@@ -2,7 +2,7 @@
 
 **Date**: 2026-06-26
 **Branch**: feat/phase-3b-2-hai-susceptibility (HEAD: cc8bfa954)
-**Spec**: docs/superpowers/specs/2026-06-26-phase-3b-2-hai-susceptibility-design.md
+**Spec**: docs/history/specs-archive/2026-06-26-phase-3b-2-hai-susceptibility-design.md
 **Master baseline**: 6011b06e (post-PR-93/94/95)
 **Verdict**: PASS
 

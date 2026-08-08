@@ -174,4 +174,4 @@ See `clinosim/modules/hai/audit.py` for the canonical example. Run with
 - [MODULES.md](../../../MODULES.md) — 全 module 俯瞰
 - [SCENARIO_FLAGS.md](../../../SCENARIO_FLAGS.md) (scenario / medication flag を扱う場合)
 - 関連モジュール: [リスト]
-- 関連 spec / plan: `docs/superpowers/specs/...` (該当時)
+- 関連 spec / plan: `docs/history/specs-archive/...` (該当時)

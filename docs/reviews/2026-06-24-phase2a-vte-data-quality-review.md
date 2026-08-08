@@ -2,8 +2,8 @@
 
 - **Date:** 2026-06-24
 - **PR:** feat/phase2a-vte-d-dimer (master `b6bc8eab` + this branch)
-- **Spec:** `docs/superpowers/specs/2026-06-24-phase2a-vte-d-dimer-design.md`
-- **Plan:** `docs/superpowers/plans/2026-06-24-phase2a-vte-d-dimer.md`
+- **Spec:** `docs/history/specs-archive/2026-06-24-phase2a-vte-d-dimer-design.md`
+- **Plan:** `docs/history/plans-archive/2026-06-24-phase2a-vte-d-dimer.md`
 - **Generator:** `python -m clinosim.simulator.cli generate -s 42 --format fhir csv`
   - US: p=10000
   - JP: p=5000

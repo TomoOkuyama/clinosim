@@ -1,7 +1,7 @@
 """Verify global mutable _cache → @lru_cache(maxsize=1) migration.
 
 Covers the 3 loaders enumerated in
-docs/superpowers/specs/2026-06-27-pr-b1-lru-cache-migration-design.md
+docs/history/specs-archive/2026-06-27-pr-b1-lru-cache-migration-design.md
 Section 2.1. Each test confirms the loader exposes the lru_cache API
 (cache_info / cache_clear) and that subsequent calls return cached results.
 """

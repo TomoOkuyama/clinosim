@@ -23,7 +23,7 @@ and `encounter_type` confirms the BNP wall-stress formula
 > band) with chronic stable HF follow-ups (BNP < 200). The p90 reaches
 > 417-1167 (acute-decomp range) and max saturates the assay clamp at 5000.
 > **Open issue** — admit-day BNP central tendency for I50 is below the
-> spec band, tracked in `docs/superpowers/plans/2026-06-20-bnp-hf-specificity.md`
+> spec band, tracked in `docs/history/plans-archive/2026-06-20-bnp-hf-specificity.md`
 > (HF discrimination). The byte-diff invariant guarantees this PR did NOT change
 > any BNP value (the only Observations that differ are Cr / HCO3 / pCO2 / pH).
 > **Not a regression — pre-existing.**
@@ -90,7 +90,7 @@ discrimination metric.
 ## Conclusion
 
 **No code change.** The BNP wall-stress formula
-(`docs/superpowers/specs/2026-06-20-bnp-hf-specificity-design.md`, implemented
+(`docs/history/specs-archive/2026-06-20-bnp-hf-specificity-design.md`, implemented
 in `ac36ff63` / `1c22a3e6`) is correct and the post-PR-#69 data-quality
 review's "Open issue" on I50 admit BNP is a cohort-decomposition artifact.
 The data-quality review note can be cross-referenced to this doc when the

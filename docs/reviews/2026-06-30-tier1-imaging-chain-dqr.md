@@ -3,8 +3,8 @@
 **Date:** 2026-06-30
 **Cohorts:** US p=10,000 seed=42 + JP p=5,000 seed=42
 **Branch:** feature/tier1-imaging-chain
-**Spec:** docs/superpowers/specs/2026-06-30-tier1-imaging-chain-design.md
-**Plan:** docs/superpowers/plans/2026-06-30-tier1-imaging-chain-plan.md
+**Spec:** docs/history/specs-archive/2026-06-30-tier1-imaging-chain-design.md
+**Plan:** docs/history/plans-archive/2026-06-30-tier1-imaging-chain-plan.md
 
 ## Bug found during cohort generation
 
