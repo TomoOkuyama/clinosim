@@ -87,6 +87,41 @@ def _build_course_of_therapy_block(code: str, display: str) -> dict:
     }
 
 
+# Course-of-therapy selection rules (Issue #548 partial extraction) — two
+# different callers use two DIFFERENT rules; named helpers make the
+# divergence explicit at every call site. See Issue #548 for the full
+# unification proposal (decision table shared by both paths).
+#
+# HL7 CodeSystem: `medicationrequest-course-of-therapy`
+#   * `continuous` — "Continuous long term therapy" (chronic / maintenance)
+#   * `acute`      — "Short course (acute) therapy"
+
+_COURSE_CONTINUOUS = ("continuous", "Continuous long term therapy")
+_COURSE_ACUTE = ("acute", "Short course (acute) therapy")
+
+
+def _course_for_order(is_home_med: bool, category_code: str) -> tuple[str, str]:
+    """Rule used by ``_build_medication_request`` (encounter-time orders).
+
+    A chronic home med, or an order tagged with the ``community`` category,
+    is continuous therapy; everything else is treated as acute (default).
+    Preserves the CY8-18 (session 48) heuristic verbatim.
+    """
+    return _COURSE_CONTINUOUS if (is_home_med or category_code == "community") else _COURSE_ACUTE
+
+
+def _course_for_discharge(is_discharge: bool, duration_days: int | None) -> tuple[str, str]:
+    """Rule used by ``_build_discharge_medication_request``.
+
+    A non-discharge script (i.e. an outpatient renewal) is continuous by
+    definition. A discharge script with an open-ended supply (no
+    ``duration_days``) is a maintenance therapy handed over at discharge
+    — continuous. A discharge script with an explicit duration is a short
+    course — acute.
+    """
+    return _COURSE_CONTINUOUS if ((not is_discharge) or duration_days is None) else _COURSE_ACUTE
+
+
 # Issue #349 Phase 1b: canonical Identifier.system URI for antibiotic
 # MedicationRequest structural-key round-trip. `.id` becomes an opaque
 # `mr-{sha256(key)[:12]}` short id; the original compound key
@@ -672,17 +707,12 @@ def _build_medication_request(
         # ordered_by を fallback として emit(100% coverage)。
         resource["recorder"] = {"reference": f"Practitioner/{order['ordered_by']}"}
 
-    # CY8-18 fix (session 48 cycle 8): MR.courseOfTherapyType — acute / continuous /
-    # seasonal 分類。慢性処方(is_home_med / community intent)は continuous、
-    # 急性期治療は acute、その他は継続困難なため無指定にせず acute default。
-    # HL7 CodeSystem: http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy
-    _course_code = "continuous" if (_is_home_med or _cat_code == "community") else "acute"
-    # Displays follow the authoritative HL7 terminology R4 CodeSystem
-    # `medicationrequest-course-of-therapy` (verified via
-    # `hl7.terminology.r4#7.2.0/package/CodeSystem-medicationrequest-course-of-therapy.json`).
-    # "Continuous long term therapy" (no hyphen) is the spec-canonical form —
-    # the hyphenated variant produced 854 v4 fullset errors.
-    _course_display = "Continuous long term therapy" if _course_code == "continuous" else "Short course (acute) therapy"
+    # CY8-18 fix (session 48 cycle 8): MR.courseOfTherapyType — acute /
+    # continuous / seasonal 分類。Rule is `_course_for_order` (Issue #548
+    # partial extraction); the sibling `_build_discharge_medication_request`
+    # uses `_course_for_discharge` instead. Displays are the spec-canonical
+    # HL7 terminology R4 forms — "Continuous long term therapy" (no hyphen).
+    _course_code, _course_display = _course_for_order(_is_home_med, _cat_code)
     resource["courseOfTherapyType"] = _build_course_of_therapy_block(_course_code, _course_display)
 
     # CY7-08 (Chain-7): MR.priority — derive from Order.urgency (routine /
@@ -861,12 +891,14 @@ def _build_discharge_medication_request(
     cat_code, cat_display = ("discharge", "Discharge") if _is_discharge else ("community", "Community")
     resource["category"] = _build_category_block(cat_code, cat_display)
 
-    # An open-ended supply (the `0` / `ongoing` sentinels) means maintenance therapy, so
-    # it selects `continuous` even on a discharge script — a lifelong anticoagulant does
-    # not become a short course by being handed over at discharge.
-    _continuous = (not _is_discharge) or duration_days is None
-    course_code = "continuous" if _continuous else "acute"
-    course_display = "Continuous long term therapy" if _continuous else "Short course (acute) therapy"
+    # Rule = `_course_for_discharge` (Issue #548 partial extraction).
+    # Non-discharge (outpatient renewal) is continuous by definition;
+    # an open-ended supply (`0` / `ongoing` sentinels) means maintenance
+    # therapy handed over at discharge, so it stays continuous too — a
+    # lifelong anticoagulant does not become a short course by being
+    # handed over at discharge. Sibling `_build_medication_request` uses
+    # `_course_for_order` instead.
+    course_code, course_display = _course_for_discharge(_is_discharge, duration_days)
     resource["courseOfTherapyType"] = _build_course_of_therapy_block(course_code, course_display)
 
     dispense: dict[str, Any] = {}
