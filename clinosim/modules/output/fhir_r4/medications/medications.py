@@ -122,6 +122,50 @@ def _course_for_discharge(is_discharge: bool, duration_days: int | None) -> tupl
     return _COURSE_CONTINUOUS if ((not is_discharge) or duration_days is None) else _COURSE_ACUTE
 
 
+def _derive_mr_category(
+    encounter_type: str,
+    is_home_med: bool,
+    is_episodic: bool,
+    is_discharge_intent: bool,
+) -> tuple[str, str]:
+    """Derive the ``medicationrequest-category`` (code, display) tuple for
+    a FHIR MedicationRequest emission (Issue #548 unification).
+
+    Single source of truth for the 5-way decision tree previously
+    duplicated across the order path (5-branch) and the discharge path
+    (2-branch, which silently omitted episodic / discharge-intent
+    awareness).
+
+    HL7 CodeSystem: ``medicationrequest-category``
+      * ``community``  — chronic home-medication or outpatient renewal
+      * ``outpatient`` — episodic outpatient / emergency-department order
+      * ``inpatient``  — inpatient order that is NOT a take-home
+      * ``discharge``  — inpatient take-home script (Rx at discharge)
+
+    Decision rule (evaluated in order):
+
+    1. ``is_home_med`` OR (``encounter_type=="outpatient"`` AND NOT ``is_episodic``)
+       → ``community`` — chronic maintenance / outpatient renewal
+    2. ``encounter_type`` in ("outpatient", "emergency")
+       → ``outpatient`` — episodic OP / ED order
+    3. ``encounter_type == "inpatient"`` AND ``is_discharge_intent``
+       → ``discharge`` — inpatient take-home
+    4. ``encounter_type == "inpatient"``
+       → ``inpatient`` — in-house prescription
+    5. otherwise (encounter_type empty / unknown)
+       → ``inpatient`` — safe fallback (intent already indicates an order was authored)
+    """
+    if is_home_med or (encounter_type == "outpatient" and not is_episodic):
+        return "community", "Community"
+    if encounter_type in ("outpatient", "emergency"):
+        return "outpatient", "Outpatient"
+    if encounter_type == "inpatient" and is_discharge_intent:
+        return "discharge", "Discharge"
+    if encounter_type == "inpatient":
+        return "inpatient", "Inpatient"
+    return "inpatient", "Inpatient"
+
+
 # Issue #349 Phase 1b: canonical Identifier.system URI for antibiotic
 # MedicationRequest structural-key round-trip. `.id` becomes an opaque
 # `mr-{sha256(key)[:12]}` short id; the original compound key
@@ -670,32 +714,17 @@ def _build_medication_request(
         "authoredOn": order.get("ordered_datetime", ""),
     }
     # CY6-22 (Chain-6): MedicationRequest.category — HL7 medicationrequest-
-    # category (inpatient / outpatient / community / discharge). Derived
-    # from encounter_type + is_home_med + is_episodic (already computed above).
-    # ED encounters (encounter_type == "emergency") map to "outpatient" because
-    # the patient is not admitted; discharge from ED emits under the same
-    # community-Rx-at-discharge category as chronic outpatient scripts when
-    # clinical_intent indicates the Rx is a take-home.
-    _cat_code = _cat_display = ""
-    if _is_home_med or (encounter_type == "outpatient" and not _is_episodic):
-        _cat_code, _cat_display = "community", "Community"
-    elif encounter_type == "outpatient":
-        _cat_code, _cat_display = "outpatient", "Outpatient"
-    elif encounter_type == "emergency":
-        # ED order — outpatient by FHIR classification (no admission episode)
-        _cat_code, _cat_display = "outpatient", "Outpatient"
-    elif encounter_type == "inpatient":
-        # Discharge medication if the clinical_intent explicitly says so
-        if "discharge" in _ci_lower:
-            _cat_code, _cat_display = "discharge", "Discharge"
-        else:
-            _cat_code, _cat_display = "inpatient", "Inpatient"
-    else:
-        # encounter_type not set (edge cases) — safe fallback to inpatient
-        # since intent already indicated an order was authored (not a plan).
-        _cat_code, _cat_display = "inpatient", "Inpatient"
-    if _cat_code:
-        resource["category"] = _build_category_block(_cat_code, _cat_display)
+    # category (inpatient / outpatient / community / discharge). Issue #548:
+    # canonical decision tree extracted to `_derive_mr_category` — shared with
+    # `_build_discharge_medication_request`.
+    _is_discharge_intent = "discharge" in _ci_lower
+    _cat_code, _cat_display = _derive_mr_category(
+        encounter_type=encounter_type,
+        is_home_med=_is_home_med,
+        is_episodic=_is_episodic,
+        is_discharge_intent=_is_discharge_intent,
+    )
+    resource["category"] = _build_category_block(_cat_code, _cat_display)
 
     # Encounter reference
     enc_ref = order.get("encounter_id", "") or encounter_id
@@ -887,11 +916,20 @@ def _build_discharge_medication_request(
         resource["requester"] = {"reference": f"Practitioner/{prescriber_id}"}
         resource["recorder"] = {"reference": f"Practitioner/{prescriber_id}"}
 
-    # category: derived from the encounter, never hardcoded. An inpatient take-home
-    # script is `discharge`; an outpatient renewal of chronic medication is `community`
-    # (the same code `_build_medication_request` assigns to home-medication orders).
+    # Issue #548: canonical decision tree extracted to `_derive_mr_category`.
+    # The discharge builder's caller identity implies is_discharge_intent=True
+    # and no episodic-order / home-medication semantics — DischargeRxItem lacks
+    # the clinical_intent tag that the order path uses to detect these. Pre-#548
+    # this path used a 2-branch inline decision that silently misclassified
+    # emergency-encounter discharge scripts as `community` instead of the
+    # HL7-canonical `outpatient`; the unified helper now emits the correct value.
     _is_discharge = encounter_type == "inpatient"
-    cat_code, cat_display = ("discharge", "Discharge") if _is_discharge else ("community", "Community")
+    cat_code, cat_display = _derive_mr_category(
+        encounter_type=encounter_type,
+        is_home_med=False,
+        is_episodic=False,
+        is_discharge_intent=True,
+    )
     resource["category"] = _build_category_block(cat_code, cat_display)
 
     # Rule = `_course_for_discharge` (Issue #548 partial extraction).
