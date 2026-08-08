@@ -1116,25 +1116,5 @@ def derive_meta_last_updated(resource: dict, prefer: tuple[str, ...]) -> str | N
     return None
 
 
-# ---- Issue #545 Step 3 backward-compat aliases ----
-# Underscore-prefixed names below are aliases for the promoted
-# public API above. Kept for one release cycle so external callers
-# that import via the deprecated `_fhir_common` shim (or that missed
-# this PR's mechanical rewrite) keep resolving. Migrate to the
-# unprefixed names.
-_build_address = build_address
-_build_diagnosis_codeable_concept = build_diagnosis_codeable_concept
-_build_dosage_instruction = build_dosage_instruction
-_build_reference_range = build_reference_range
-_build_telecom = build_telecom
-_entry = entry
-_map_diagnosis_code = map_diagnosis_code
-_map_encounter_status = map_encounter_status
-_map_mar_status = map_mar_status
-_loinc_coding = loinc_coding
-_micro_coding = micro_coding
-_severity_coding = severity_coding
-_infer_severity = infer_severity
-_make_participant = make_participant
-_survey_category = survey_category
-_strip_protocol_prefix = strip_protocol_prefix
+# Issue #545 Step 3 backward-compat aliases were removed in Step 4
+# (this PR). All in-tree callers use the unprefixed public names above.
