@@ -73,17 +73,21 @@ def test_run_daily_loop_passes_real_severity_to_evaluate_complications(monkeypat
     parameter and re-derived a separate, less-accurate `severity_str` via
     target_los-mean matching, which is what actually reached
     evaluate_complications. This pins that the real, forced severity is what
-    gets passed."""
-    from clinosim.simulator import inpatient as inpatient_mod
+    gets passed.
+
+    Issue #552 (2026-08-09): _run_daily_loop moved to a sibling
+    `daily_loop.py`; monkeypatch target follows the code.
+    """
+    from clinosim.simulator import daily_loop as daily_loop_mod
 
     captured: dict = {}
-    original = inpatient_mod.evaluate_complications
+    original = daily_loop_mod.evaluate_complications
 
     def spy(*args, **kwargs):
         captured["kwargs"] = kwargs
         return original(*args, **kwargs)
 
-    monkeypatch.setattr(inpatient_mod, "evaluate_complications", spy)
+    monkeypatch.setattr(daily_loop_mod, "evaluate_complications", spy)
 
     scenario = ForcedScenario(disease_id="bacterial_pneumonia", count=1, severity="severe")
     config = SimulatorConfig(random_seed=42, country="US")
