@@ -28,7 +28,7 @@ SNOMED = "http://snomed.info/sct"
 def test_severity_coding_jp_primary_snomed_secondary(
     severity: str, jp_code: str, jp_display: str, snomed_code: str
 ) -> None:
-    from clinosim.modules.output.fhir_common import _severity_coding
+    from clinosim.modules.output.fhir_r4.lib.common import _severity_coding
 
     result = _severity_coding(severity, country="JP")
     codings = result["coding"]
@@ -45,7 +45,7 @@ def test_severity_coding_jp_primary_snomed_secondary(
 
 def test_severity_coding_jp_moderate_display_pins_spec_chuudo() -> None:
     """JP CS spec は `中度`、`中等度` ではない(spec 直接引用)。"""
-    from clinosim.modules.output.fhir_common import _severity_coding
+    from clinosim.modules.output.fhir_r4.lib.common import _severity_coding
 
     result = _severity_coding("moderate", country="JP")
     jp_coding = result["coding"][0]
@@ -63,7 +63,7 @@ def test_severity_coding_jp_moderate_display_pins_spec_chuudo() -> None:
 )
 def test_severity_coding_us_single_snomed_coding(severity: str, snomed_code: str, snomed_display: str) -> None:
     """US output は SNOMED single coding、英語 display。"""
-    from clinosim.modules.output.fhir_common import _severity_coding
+    from clinosim.modules.output.fhir_r4.lib.common import _severity_coding
 
     result = _severity_coding(severity, country="US")
     codings = result["coding"]
@@ -75,7 +75,7 @@ def test_severity_coding_us_single_snomed_coding(severity: str, snomed_code: str
 
 def test_severity_coding_unknown_severity_falls_back_to_moderate_jp() -> None:
     """未知の severity は moderate に fallback(既存挙動維持)。JP でも同じ。"""
-    from clinosim.modules.output.fhir_common import _severity_coding
+    from clinosim.modules.output.fhir_r4.lib.common import _severity_coding
 
     result = _severity_coding("nonsense", country="JP")
     assert result["coding"][0]["code"] == "MO"
@@ -83,7 +83,7 @@ def test_severity_coding_unknown_severity_falls_back_to_moderate_jp() -> None:
 
 
 def test_severity_coding_unknown_severity_falls_back_to_moderate_us() -> None:
-    from clinosim.modules.output.fhir_common import _severity_coding
+    from clinosim.modules.output.fhir_r4.lib.common import _severity_coding
 
     result = _severity_coding("nonsense", country="US")
     assert result["coding"][0]["code"] == "6736007"

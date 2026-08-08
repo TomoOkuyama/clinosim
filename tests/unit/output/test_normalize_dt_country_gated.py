@@ -17,7 +17,7 @@ from clinosim.modules.output._fhir_post_process import (
     _normalize_dt,
     _normalize_dt_fields,
 )
-from clinosim.modules.output.fhir_common import tz_suffix_for_country
+from clinosim.modules.output.fhir_r4.lib.common import tz_suffix_for_country
 
 pytestmark = pytest.mark.unit
 

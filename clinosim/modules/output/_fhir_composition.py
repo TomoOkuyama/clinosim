@@ -52,7 +52,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
-from clinosim.modules.output.fhir_common import BundleContext, _escape_html, derive_meta_last_updated
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
 
 logger = logging.getLogger(__name__)
 

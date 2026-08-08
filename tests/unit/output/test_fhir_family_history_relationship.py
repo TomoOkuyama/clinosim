@@ -143,7 +143,7 @@ def _build_one_fmh(country: str) -> dict[str, Any]:
     """Run ``_bb_family_history`` on a minimal one-relative fixture and
     return the emitted FamilyMemberHistory resource."""
     from clinosim.modules.output._fhir_family_history import _bb_family_history
-    from clinosim.modules.output.fhir_common import BundleContext
+    from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
     ctx = BundleContext(
         record={

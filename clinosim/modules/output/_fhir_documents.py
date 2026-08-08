@@ -45,7 +45,7 @@ from clinosim.codes import (
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
-from clinosim.modules.output.fhir_common import BundleContext, _sha1_b64, to_fhir_instant
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _sha1_b64, to_fhir_instant
 
 
 def _fhir_instant_or_empty(s: str) -> str:

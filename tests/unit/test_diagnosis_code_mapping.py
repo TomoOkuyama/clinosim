@@ -12,7 +12,7 @@ import pytest
 
 from clinosim.codes import lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules.output.fhir_common import _map_diagnosis_code
+from clinosim.modules.output.fhir_r4.lib.common import _map_diagnosis_code
 
 pytestmark = pytest.mark.unit
 

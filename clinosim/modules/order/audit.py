@@ -43,7 +43,7 @@ from clinosim.modules.output._fhir_service_request import (
     build_panel_counter,
     order_to_sr_id,
 )
-from clinosim.modules.output.fhir_common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.types.encounter import Order, OrderType
 
 

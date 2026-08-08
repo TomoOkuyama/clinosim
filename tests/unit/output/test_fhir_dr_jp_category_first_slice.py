@@ -37,7 +37,7 @@ from clinosim.modules.output._fhir_microbiology import (
     JP_MB_DR_PROFILE_URI,
     _bb_microbiology,
 )
-from clinosim.modules.output.fhir_common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
 
 _LOINC_URI = "http://loinc.org"

@@ -10,7 +10,7 @@ Locks the canonical fallback-chain resolver:
 
 from __future__ import annotations
 
-from clinosim.modules.output.fhir_common import derive_meta_last_updated
+from clinosim.modules.output.fhir_r4.lib.common import derive_meta_last_updated
 
 
 def test_returns_first_non_empty_field() -> None:

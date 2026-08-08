@@ -32,7 +32,7 @@ from pathlib import Path
 
 import pytest
 
-from clinosim.modules.output.fhir_common import build_presented_form
+from clinosim.modules.output.fhir_r4.lib.common import build_presented_form
 from clinosim.types.clinical import ClinicalDocument
 
 pytestmark = pytest.mark.unit

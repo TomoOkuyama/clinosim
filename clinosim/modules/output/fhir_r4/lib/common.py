@@ -17,7 +17,10 @@ the rename list).
 
 The deprecated ``_fhir_common`` import path still works via a compatibility
 shim in ``clinosim/modules/output/_fhir_common.py`` that emits a
-``DeprecationWarning``. Migrate to ``clinosim.modules.output.fhir_common``.
+``DeprecationWarning``. Migrate to
+``clinosim.modules.output.fhir_r4.lib.common`` (Issue #555 canonical path;
+the earlier intermediate ``clinosim.modules.output.fhir_common`` path from
+Issue #545 is also removed by this restructure).
 """
 
 from __future__ import annotations
@@ -70,7 +73,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
 from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
-from clinosim.modules.output._fhir_localization import (
+from clinosim.modules.output.fhir_r4.lib.localization import (
     _CATEGORY_DISPLAY_JA,
     _FREQ_JA,
     _ROUTE_JA,
@@ -78,7 +81,7 @@ from clinosim.modules.output._fhir_localization import (
     _localize_dosage_terms,
     _localize_drug_name,
 )
-from clinosim.modules.output._fhir_reference_data import (
+from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _JP_CONDITION_SEVERITY_CS,
     _PREFECTURE_CODE,
     _ROUTE_ALIASES,
@@ -575,7 +578,7 @@ def _make_participant(code: str, display: str, practitioner_id: str, country: st
     v3-ParticipationType English default (attender / admitter / discharger)
     was leaking to JP output as literal text.
     """
-    from clinosim.modules.output._fhir_localization import (
+    from clinosim.modules.output.fhir_r4.lib.localization import (
         _PARTICIPATION_TYPE_DISPLAY_JA,
         _localize_display,
     )

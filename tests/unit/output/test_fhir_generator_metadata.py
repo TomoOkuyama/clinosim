@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 import pytest
 
-from clinosim.modules.output._fhir_generator_metadata import (
+from clinosim.modules.output.fhir_r4.lib.generator_metadata import (
     _PR_NUMBER_RE,
     _RECENT_MERGES_LIMIT,
     _SIDECAR_FILENAME,
@@ -132,7 +132,7 @@ def test_collect_recent_merges_extracts_pr_numbers_from_subjects() -> None:
         ]
     )
     with patch(
-        "clinosim.modules.output._fhir_generator_metadata._run_git",
+        "clinosim.modules.output.fhir_r4.lib.generator_metadata._run_git",
         return_value=fake_log,
     ):
         merges = _collect_recent_merges(Path("/nonexistent"), limit=10)
@@ -146,7 +146,7 @@ def test_collect_recent_merges_extracts_pr_numbers_from_subjects() -> None:
 def test_collect_recent_merges_returns_empty_when_git_unavailable() -> None:
     """`git log` failure (not a repo / no git on PATH) → empty list, not raise."""
     with patch(
-        "clinosim.modules.output._fhir_generator_metadata._run_git",
+        "clinosim.modules.output.fhir_r4.lib.generator_metadata._run_git",
         return_value=None,
     ):
         assert _collect_recent_merges(Path("/nonexistent")) == []
@@ -157,7 +157,7 @@ def test_collect_recent_merges_respects_limit() -> None:
     lines = [f"aaa{n:03d} fix: item {n} (#{n})" for n in range(50)]
     fake_log = "\n".join(lines)
     with patch(
-        "clinosim.modules.output._fhir_generator_metadata._run_git",
+        "clinosim.modules.output.fhir_r4.lib.generator_metadata._run_git",
         return_value=fake_log,
     ):
         merges = _collect_recent_merges(Path("/nonexistent"), limit=5)

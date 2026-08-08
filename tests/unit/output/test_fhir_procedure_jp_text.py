@@ -109,6 +109,6 @@ def test_jp_already_japanese_display_is_idempotent() -> None:
     # Simulate: proc has a procedure_code that resolves to already_jp;
     # we can achieve this via primary_code fallback. Simpler: exercise
     # the localizer helper directly.
-    from clinosim.modules.output._fhir_localization import _localize_dosage_terms
+    from clinosim.modules.output.fhir_r4.lib.localization import _localize_dosage_terms
 
     assert _localize_dosage_terms(already_jp) == already_jp

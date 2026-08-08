@@ -135,7 +135,7 @@ def _validate_drug_route_vocabulary(disease_id: str, data: dict[str, Any]) -> No
     Delegates to `validate_yaml_route_value` so the recognized set stays
     single-sourced in `_fhir_reference_data.py`.
     """
-    from clinosim.modules.output._fhir_reference_data import validate_yaml_route_value
+    from clinosim.modules.output.fhir_r4.lib.reference_data import validate_yaml_route_value
 
     for raw in _iter_route_values(data):
         validate_yaml_route_value(raw, source=f"disease {disease_id!r}")

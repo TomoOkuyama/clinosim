@@ -70,7 +70,7 @@ def _record_multi() -> dict:
 
 def _make_ctx(record: dict, country: str, patient_id: str = "p1", primary_enc_id: str = "enc1"):
     """Construct a minimal BundleContext for testing, mirroring test_fhir_nursing.py."""
-    from clinosim.modules.output.fhir_common import BundleContext
+    from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
     return BundleContext(
         record=record,

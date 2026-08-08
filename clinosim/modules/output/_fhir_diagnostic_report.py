@@ -33,7 +33,6 @@ from clinosim.modules.imaging.engine import (
     load_body_sites,
 )
 from clinosim.modules.order.panel_grouping import load_panel_definitions
-from clinosim.modules.output._fhir_localization import localize_fixed_label
 from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_V2_0074,
     SR_ID_PREFIX,
@@ -41,11 +40,12 @@ from clinosim.modules.output._fhir_service_request import (
     build_panel_counter,
     order_to_sr_id,
 )
-from clinosim.modules.output.fhir_common import (
+from clinosim.modules.output.fhir_r4.lib.common import (
     _escape_html,
     build_presented_form,
     to_fhir_datetime,
 )
+from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
 from clinosim.types.encounter import OrderType
 
 # === Radiology DR constants (Tier 1 #2 PR1) ===
@@ -303,7 +303,7 @@ def build_dr_resource(
     # 実運用では検査値確定+ラボ承認時刻が入るが、CIF 相当時刻無いため
     # effectiveDateTime を近似として emit(100% coverage 実現)。
     # feedback FB-F1: instant 型は 秒精度 + TZ 必須
-    from clinosim.modules.output.fhir_common import to_fhir_instant
+    from clinosim.modules.output.fhir_r4.lib.common import to_fhir_instant
 
     if issued:
         res["issued"] = to_fhir_instant(issued)

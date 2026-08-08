@@ -10,7 +10,7 @@ high all route through it.
 
 from __future__ import annotations
 
-from clinosim.modules.output.fhir_common import build_ucum_quantity
+from clinosim.modules.output.fhir_r4.lib.common import build_ucum_quantity
 
 
 def test_build_ucum_quantity_populates_all_four_fields():
