@@ -40,10 +40,10 @@ from clinosim.modules.imaging.engine import (
     IMAGING_STUDY_ID_PREFIX,
     RADIOLOGY_REPORT_ID_PREFIX,
 )
-from clinosim.modules.output._fhir_diagnostic_report import _bb_diagnostic_reports
-from clinosim.modules.output._fhir_endpoint import DICOM_WADO_RS_CONNECTION_TYPE
-from clinosim.modules.output._fhir_imaging_study import DICOM_UID_SYSTEM
-from clinosim.modules.output._fhir_service_request import (
+from clinosim.modules.output.fhir_r4.encounters.endpoint import DICOM_WADO_RS_CONNECTION_TYPE
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _bb_diagnostic_reports
+from clinosim.modules.output.fhir_r4.labs.imaging_study import DICOM_UID_SYSTEM
+from clinosim.modules.output.fhir_r4.labs.service_request import (
     IMAGING_CATEGORY_SNOMED,
     IMAGING_CATEGORY_V2_0074,
     SR_ID_PREFIX,
@@ -65,8 +65,8 @@ def _build_imaging_proof() -> dict[str, Any]:
     """
     # Lazy imports: defer FHIR builder import to proof time (avoids import-time
     # overhead; same pattern as antibiotic/audit.py _build_combined_proof).
-    from clinosim.modules.output._fhir_endpoint import _bb_endpoints
-    from clinosim.modules.output._fhir_imaging_study import _bb_imaging_studies
+    from clinosim.modules.output.fhir_r4.encounters.endpoint import _bb_endpoints
+    from clinosim.modules.output.fhir_r4.labs.imaging_study import _bb_imaging_studies
     from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
     study_uid = "1.2.840.10008.5.1.4.1.1.1.proof.1"

@@ -34,7 +34,7 @@ def _make_checkup_doc(checkup_type: str):
 @pytest.mark.unit
 def test_occupational_dispatches_to_01031_01032():
     """事業者健診(occupational)は 01031 + 01032 に dispatch。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _make_checkup_doc("occupational")
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -47,7 +47,7 @@ def test_occupational_dispatches_to_01031_01032():
 @pytest.mark.unit
 def test_specific_dispatches_to_01011_01012():
     """特定健診(specific)は 01011 + 01012 に dispatch。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _make_checkup_doc("specific")
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -58,7 +58,7 @@ def test_specific_dispatches_to_01011_01012():
 @pytest.mark.unit
 def test_regional_union_dispatches_to_01021_01022():
     """広域連合健診(regional_union)は 01021 + 01022 に dispatch。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _make_checkup_doc("regional_union")
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -69,7 +69,7 @@ def test_regional_union_dispatches_to_01021_01022():
 @pytest.mark.unit
 def test_missing_checkup_type_falls_back_to_occupational():
     """checkup_type 未指定は事業者健診に fallback(既存 sub-PR-A/B 互換)。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _make_checkup_doc("")
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -80,7 +80,7 @@ def test_missing_checkup_type_falls_back_to_occupational():
 @pytest.mark.unit
 def test_unknown_checkup_type_falls_back_to_occupational():
     """未知の checkup_type も fallback(defensive)。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _make_checkup_doc("gakko")  # 学校健診 = 未対応
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")

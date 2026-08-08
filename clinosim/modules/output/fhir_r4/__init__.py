@@ -20,28 +20,6 @@ from datetime import datetime
 from typing import Any
 
 from clinosim.modules._shared import is_jp
-from clinosim.modules.output._fhir_allergy_intolerance import _bb_allergy_intolerances
-from clinosim.modules.output._fhir_care_level import _bb_care_level
-from clinosim.modules.output._fhir_care_team import _bb_care_teams
-from clinosim.modules.output._fhir_clinical_impression import _bb_clinical_impressions
-from clinosim.modules.output._fhir_code_status import _bb_code_status
-from clinosim.modules.output._fhir_composition import _bb_compositions
-from clinosim.modules.output._fhir_device import (
-    _bb_device,
-    _bb_device_use,
-)
-from clinosim.modules.output._fhir_diagnostic_report import _bb_diagnostic_reports
-from clinosim.modules.output._fhir_document_reference_checkup import _bb_document_references_checkup
-from clinosim.modules.output._fhir_documents import _bb_document_references
-from clinosim.modules.output._fhir_endpoint import _bb_endpoints
-from clinosim.modules.output._fhir_facility import _build_facility_bundle
-from clinosim.modules.output._fhir_family_history import _bb_family_history
-from clinosim.modules.output._fhir_hai import _bb_hai_conditions
-from clinosim.modules.output._fhir_imaging_study import _bb_imaging_studies
-from clinosim.modules.output._fhir_immunization import _bb_immunizations
-from clinosim.modules.output._fhir_microbiology import _bb_microbiology
-from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
-from clinosim.modules.output._fhir_observations import _bb_labs
 
 # Session 82 PR N: post-emit helpers extracted to _fhir_post_process.py.
 # Imported for use inside `_build_bundle` (see finalize pass).
@@ -58,12 +36,28 @@ from clinosim.modules.output._fhir_post_process import (
     _strip_forbidden_observation_reference_range_extensions,
     _strip_japanese_display_on_english_only_systems,
 )
-from clinosim.modules.output._fhir_service_request import _bb_service_requests
-from clinosim.modules.output._fhir_smoking_alcohol import (
+from clinosim.modules.output.cif_reader import CIFReader
+from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import _bb_allergy_intolerances
+from clinosim.modules.output.fhir_r4.conditions.clinical_impression import _bb_clinical_impressions
+from clinosim.modules.output.fhir_r4.conditions.code_status import _bb_code_status
+from clinosim.modules.output.fhir_r4.conditions.hai import _bb_hai_conditions
+from clinosim.modules.output.fhir_r4.demographics.family_history import _bb_family_history
+from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (
     _bb_alcohol_use,
     _bb_smoking_status,
 )
-from clinosim.modules.output.cif_reader import CIFReader
+from clinosim.modules.output.fhir_r4.documents.composition import _bb_compositions
+from clinosim.modules.output.fhir_r4.documents.document_reference_checkup import _bb_document_references_checkup
+from clinosim.modules.output.fhir_r4.documents.documents import _bb_document_references
+from clinosim.modules.output.fhir_r4.encounters.care_level import _bb_care_level
+from clinosim.modules.output.fhir_r4.encounters.care_team import _bb_care_teams
+from clinosim.modules.output.fhir_r4.encounters.endpoint import _bb_endpoints
+from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _bb_diagnostic_reports
+from clinosim.modules.output.fhir_r4.labs.imaging_study import _bb_imaging_studies
+from clinosim.modules.output.fhir_r4.labs.microbiology import _bb_microbiology
+from clinosim.modules.output.fhir_r4.labs.observations import _bb_labs
+from clinosim.modules.output.fhir_r4.labs.service_request import _bb_service_requests
 
 # FA-1 (Phases 1-13) + session 82 (H/I/K/L/N) split this adapter's leaf data,
 # shared fragment helpers, and per-theme resource builders into sibling
@@ -89,6 +83,12 @@ from clinosim.modules.output.fhir_r4.lib.inline_bb import (
     _bb_procedures,
     _bb_vitals,
 )
+from clinosim.modules.output.fhir_r4.procedures.device import (
+    _bb_device,
+    _bb_device_use,
+)
+from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations
+from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 from clinosim.simulator import log as sim_log
 
 # FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding

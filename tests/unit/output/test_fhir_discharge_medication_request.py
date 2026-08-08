@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_medications import (
+from clinosim.modules.output.fhir_r4.medications.medications import (
     DISCHARGE_RX_ID_PREFIX,
     OUTPATIENT_RX_ID_PREFIX,
     _build_discharge_medication_request,

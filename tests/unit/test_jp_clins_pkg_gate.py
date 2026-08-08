@@ -22,7 +22,7 @@ from unittest.mock import patch
 
 import pytest
 
-from clinosim.modules.output.lab_coding_package import MissingPackage
+from clinosim.modules.output.fhir_r4.labs.coding_package import MissingPackage
 from clinosim.simulator.cli import _enforce_jp_clins_pkg_gate
 
 
@@ -38,7 +38,7 @@ class TestEnforceJpClinsPkgGate:
     def test_pkg_absent_no_flag_exits_2(self, capsys):
         with (
             patch(
-                "clinosim.modules.output.lab_coding_package.load_lab_coding_package",
+                "clinosim.modules.output.fhir_r4.labs.coding_package.load_lab_coding_package",
                 return_value=MissingPackage(),
             ),
             pytest.raises(SystemExit) as excinfo,
@@ -56,7 +56,7 @@ class TestEnforceJpClinsPkgGate:
 
     def test_pkg_absent_with_allow_legacy_warns_and_returns(self, capsys):
         with patch(
-            "clinosim.modules.output.lab_coding_package.load_lab_coding_package",
+            "clinosim.modules.output.fhir_r4.labs.coding_package.load_lab_coding_package",
             return_value=MissingPackage(),
         ):
             _enforce_jp_clins_pkg_gate(allow_legacy=True)  # must not raise
@@ -73,7 +73,7 @@ class TestEnforceJpClinsPkgGate:
         and shell scripts that run in pkg-less environments deliberately."""
         monkeypatch.setenv("CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG", "1")
         with patch(
-            "clinosim.modules.output.lab_coding_package.load_lab_coding_package",
+            "clinosim.modules.output.fhir_r4.labs.coding_package.load_lab_coding_package",
             return_value=MissingPackage(),
         ):
             _enforce_jp_clins_pkg_gate(allow_legacy=False)  # must not raise despite flag=False
@@ -88,7 +88,7 @@ class TestEnforceJpClinsPkgGate:
             monkeypatch.setenv("CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG", val)
             with (
                 patch(
-                    "clinosim.modules.output.lab_coding_package.load_lab_coding_package",
+                    "clinosim.modules.output.fhir_r4.labs.coding_package.load_lab_coding_package",
                     return_value=MissingPackage(),
                 ),
                 pytest.raises(SystemExit) as excinfo,
@@ -104,7 +104,7 @@ class TestEnforceJpClinsPkgGate:
                 return True
 
         with patch(
-            "clinosim.modules.output.lab_coding_package.load_lab_coding_package",
+            "clinosim.modules.output.fhir_r4.labs.coding_package.load_lab_coding_package",
             return_value=_AvailablePkg(),
         ):
             _enforce_jp_clins_pkg_gate(allow_legacy=False)  # must not raise

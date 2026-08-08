@@ -15,7 +15,7 @@ str-vs-dict disambiguation with a genuine dataclass gap alongside it).
 
 import pytest
 
-from clinosim.modules.output._fhir_conditions import _build_conditions
+from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions
 from clinosim.types.patient import ChronicCondition
 
 pytestmark = pytest.mark.unit

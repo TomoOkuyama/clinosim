@@ -5,7 +5,7 @@ from __future__ import annotations
 from clinosim.audit.types import Cohort
 from clinosim.codes import get_system_uri
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
-from clinosim.modules.output.lab_coding_package import jp_clins_defined_system_uris
+from clinosim.modules.output.fhir_r4.labs.coding_package import jp_clins_defined_system_uris
 
 _RXNORM_SYSTEM = "http://www.nlm.nih.gov/research/umls/rxnorm"
 _LOINC_SYSTEM = "http://loinc.org"

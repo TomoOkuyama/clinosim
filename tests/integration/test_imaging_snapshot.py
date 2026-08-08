@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from clinosim.modules.output._fhir_service_request import IMAGING_CATEGORY_SNOMED
+from clinosim.modules.output.fhir_r4.labs.service_request import IMAGING_CATEGORY_SNOMED
 from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 
 

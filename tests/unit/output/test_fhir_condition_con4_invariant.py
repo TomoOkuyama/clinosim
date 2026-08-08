@@ -10,7 +10,7 @@ resources. The fix restricts abatement emission to non-chronic-primary encounter
 
 from __future__ import annotations
 
-from clinosim.modules.output._fhir_conditions import _build_conditions
+from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions
 
 
 def _make_ctx(

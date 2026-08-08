@@ -45,7 +45,7 @@ def _enforce_jp_clins_pkg_gate(allow_legacy: bool) -> None:
     Import is inside the function so non-JP runs never pay the lookup cost
     and so the test suite can monkeypatch the loader cleanly.
     """
-    from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+    from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
 
     pkg = load_lab_coding_package()
     if pkg.is_available():

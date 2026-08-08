@@ -5,7 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from clinosim.modules.document import COMPOSITION_ID_PREFIX
-from clinosim.modules.output._fhir_composition import _bb_compositions
+from clinosim.modules.output.fhir_r4.documents.composition import _bb_compositions
 from clinosim.types.clinical import ClinicalDocument, ClinicalDocumentNarrative
 
 

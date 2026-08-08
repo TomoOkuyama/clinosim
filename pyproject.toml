@@ -171,7 +171,7 @@ convention = "google"
 # (`eCheckup`, `UNKNOWN`, `refRange`, `T` — literal fragments from FHIR /
 # HAPI validator error text) — matching those tokens in identifiers keeps
 # tests and JP builders grep-linkable to the spec.
-"clinosim/modules/output/_fhir_composition.py" = ["N802"]
+"clinosim/modules/output/fhir_r4/documents/composition.py" = ["N802"]
 "tests/unit/test_jp_eCheckup_*.py" = ["N802", "N999"]
 "tests/unit/output/test_fhir_care_team.py" = ["N802"]
 "tests/unit/test_axis_structural.py" = ["N802"]
@@ -180,15 +180,15 @@ convention = "google"
 # Module-level lazy import (top of file has a circular-import guard) —
 # intentional pattern, documented at each site with the reason inline.
 "clinosim/modules/nursing/engine.py" = ["E402"]
-"clinosim/modules/output/_fhir_service_request.py" = ["E402"]
+"clinosim/modules/output/fhir_r4/labs/service_request.py" = ["E402"]
 "tests/unit/test_hai_yaml_validators.py" = ["E402"]
 "tests/unit/test_population_demographics.py" = ["E402"]
 
 # Function-local UPPER_CASE constants declared inside builders (SCREAMING_SNAKE
 # marks lookup-table intent even when scoped to a single function). N806 lint
 # would force lower_snake_case which reads as ordinary state — misleading.
-"clinosim/modules/output/_fhir_patient.py" = ["N806"]
-"clinosim/modules/output/_fhir_practitioner.py" = ["N806"]
+"clinosim/modules/output/fhir_r4/demographics/patient.py" = ["N806"]
+"clinosim/modules/output/fhir_r4/demographics/practitioner.py" = ["N806"]
 "clinosim/modules/physiology/engine.py" = ["N806"]
 "clinosim/simulator/helpers.py" = ["N806"]
 "clinosim/simulator/inpatient.py" = ["N806"]

@@ -316,7 +316,7 @@ def test_mb_org_id_prefix_canonical_constant() -> None:
     imported by both the FHIR builder (writer) and the audit helper
     (reader). Pins the contract so a rename in either side raises an
     ImportError at module load instead of silently no-op'ing the gate."""
-    from clinosim.modules.output._fhir_microbiology import MB_ORG_ID_PREFIX
+    from clinosim.modules.output.fhir_r4.labs.microbiology import MB_ORG_ID_PREFIX
 
     assert MB_ORG_ID_PREFIX == "mb-org-"
     # The audit helper must import the same constant — proving they're
@@ -355,7 +355,7 @@ def _mb_org_with_specimen(
     else:
         obs["valueString"] = "No growth"
     if hai_event_id:
-        from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+        from clinosim.modules.output.fhir_r4.labs.microbiology import HAI_EVENT_ID_SYSTEM
 
         obs["identifier"] = [{"system": HAI_EVENT_ID_SYSTEM, "value": hai_event_id}]
     return obs
@@ -521,7 +521,7 @@ def test_hai_specimens_rejects_wrong_system(tmp_path: Path) -> None:
 @pytest.mark.unit
 def test_hai_specimens_rejects_empty_value(tmp_path: Path) -> None:
     """Identifier with correct system but empty value is not a HAI marker."""
-    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+    from clinosim.modules.output.fhir_r4.labs.microbiology import HAI_EVENT_ID_SYSTEM
 
     _write(
         tmp_path,
@@ -551,7 +551,7 @@ def test_hai_specimens_rejects_malformed_value(tmp_path: Path) -> None:
     value not matching the `hai-` prefix convention is not a HAI marker.
     Truthy-only check accepted whitespace / arbitrary placeholders, which
     would silently inflate hai_specs."""
-    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+    from clinosim.modules.output.fhir_r4.labs.microbiology import HAI_EVENT_ID_SYSTEM
 
     _write(
         tmp_path,
@@ -593,7 +593,7 @@ def test_hai_specimens_skips_missing_specimen_ref(tmp_path: Path) -> None:
     """pr117-adv-1 Agent 3 LOW: defensive `if spec_id:` branch — mb-org-*
     with HAI identifier but no specimen.reference must skip silently
     (rather than add empty string to the set)."""
-    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+    from clinosim.modules.output.fhir_r4.labs.microbiology import HAI_EVENT_ID_SYSTEM
 
     _write(
         tmp_path,
@@ -630,7 +630,7 @@ def test_hai_event_id_system_canonical_constant_shared() -> None:
     (clinical) import the same HAI_EVENT_ID_SYSTEM. Renaming triggers
     ImportError downstream, not a silent gate skip."""
     from clinosim.audit.axes import clinical as clinical_axis
-    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+    from clinosim.modules.output.fhir_r4.labs.microbiology import HAI_EVENT_ID_SYSTEM
 
     assert HAI_EVENT_ID_SYSTEM == "urn:clinosim:identifier:hai-event-id"
     assert clinical_axis.HAI_EVENT_ID_SYSTEM is HAI_EVENT_ID_SYSTEM

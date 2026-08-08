@@ -293,7 +293,10 @@ def _load_tx_server_verified_yj_codes() -> frozenset[str]:
     import json as _json
     from pathlib import Path as _Path
 
-    _snapshot = _Path(__file__).resolve().parents[2] / "codes" / "authoritative" / "yj_tx_valid_codes.json"
+    # PR2 (Issue #555): file moved from output/_fhir_medications.py to
+    # output/fhir_r4/medications/medications.py (2 layers deeper) — parent
+    # depth adjusted from 2 to 4 so the path still resolves to clinosim/codes/.
+    _snapshot = _Path(__file__).resolve().parents[4] / "codes" / "authoritative" / "yj_tx_valid_codes.json"
     if not _snapshot.is_file():
         return frozenset()
     return frozenset(_json.loads(_snapshot.read_text()).get("codes", []))

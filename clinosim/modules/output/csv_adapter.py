@@ -7,11 +7,11 @@ import os
 
 from clinosim.codes import get_display
 from clinosim.modules._shared import get_attr_or_key
-from clinosim.modules.output._fhir_microbiology import (
+from clinosim.modules.output.cif_reader import CIFReader
+from clinosim.modules.output.fhir_r4.labs.microbiology import (
     resolve_culture_code,
     resolve_susceptibility_code,
 )
-from clinosim.modules.output.cif_reader import CIFReader
 
 
 def convert_cif_to_csv(

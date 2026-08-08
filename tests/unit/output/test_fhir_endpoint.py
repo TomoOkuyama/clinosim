@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from clinosim.modules.output._fhir_endpoint import (
+from clinosim.modules.output.fhir_r4.encounters.endpoint import (
     DICOM_WADO_RS_CONNECTION_TYPE,
     ENDPOINT_ID_PREFIX,
     _bb_endpoints,

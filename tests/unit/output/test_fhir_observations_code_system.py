@@ -16,7 +16,7 @@ from datetime import datetime
 import pytest
 
 from clinosim.codes import get_system_uri
-from clinosim.modules.output._fhir_observations import _bb_labs
+from clinosim.modules.output.fhir_r4.labs.observations import _bb_labs
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
 
@@ -76,7 +76,7 @@ def test_jp_mapped_lab_uses_corelabo_jlac10_after_pr3b():
     a defensive fallback to LegacyJSLM in that state so a minimal-
     install run doesn't crash. Same pattern as
     ``test_lab_coding_strategy.test_corelabo_pr3b_*``."""
-    from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+    from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
 
     if not load_lab_coding_package().is_available():
         pytest.skip("JP-CLINS pkg not installed — CoreLabo emit falls back to LegacyJSLM")
@@ -103,7 +103,7 @@ def test_jp_unmapped_lab_routes_to_uncoded_after_pr3c():
     Skipped when JP-CLINS pkg is not installed — UncodedStrategy has
     a defensive fallback to LegacyJSLM in that state so a minimal-
     install run still emits something rather than crashing."""
-    from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+    from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
 
     if not load_lab_coding_package().is_available():
         pytest.skip("JP-CLINS pkg not installed — Uncoded emit falls back to LegacyJSLM")

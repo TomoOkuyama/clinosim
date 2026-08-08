@@ -36,7 +36,7 @@ def _jp_referral_doc():
 
 @pytest.mark.unit
 def test_jp_clins_referral_composition_type():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -51,7 +51,7 @@ def test_jp_clins_referral_composition_type():
 
 @pytest.mark.unit
 def test_jp_clins_referral_composition_profile():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -61,7 +61,7 @@ def test_jp_clins_referral_composition_profile():
 
 @pytest.mark.unit
 def test_jp_clins_referral_composition_top_level_sections():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -74,7 +74,7 @@ def test_jp_clins_referral_composition_top_level_sections():
 
 @pytest.mark.unit
 def test_jp_clins_referral_composition_structural_children():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -85,7 +85,7 @@ def test_jp_clins_referral_composition_structural_children():
 
 @pytest.mark.unit
 def test_jp_clins_referral_composition_section_content():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -108,7 +108,7 @@ def test_jp_clins_referral_composition_chain9_pattern_top_level():
     meta.lastUpdated + event.code。sec 58 で eDS には適用済だが eReferral
     に sibling drift、v5 で 120 件 error。
     """
-    from clinosim.modules.output._fhir_composition import (
+    from clinosim.modules.output.fhir_r4.documents.composition import (
         _JP_EDS_VERSION_EXTENSION_URL,
         _JP_ER_CATEGORY_CODE,
         _JP_ER_CATEGORY_DISPLAY_JA,
@@ -171,7 +171,7 @@ def test_jp_clins_referral_composition_from_to_section_entries():
     別 Organization を model していないため hospital-main を placeholder
     として両方に pin。reference integrity は facility bundle で保証。
     """
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")

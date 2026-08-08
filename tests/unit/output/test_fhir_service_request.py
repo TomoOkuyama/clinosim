@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from clinosim.modules.output._fhir_service_request import (
+from clinosim.modules.output.fhir_r4.labs.service_request import (
     LAB_CATEGORY_SNOMED,
     LAB_CATEGORY_V2_0074,
     PLACER_ORDER_NUMBER_SYSTEM,

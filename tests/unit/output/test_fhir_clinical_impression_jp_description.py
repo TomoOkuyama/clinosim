@@ -32,7 +32,7 @@ from datetime import date
 
 import pytest
 
-from clinosim.modules.output._fhir_clinical_impression import (
+from clinosim.modules.output.fhir_r4.conditions.clinical_impression import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     _build_clinical_impression,
 )

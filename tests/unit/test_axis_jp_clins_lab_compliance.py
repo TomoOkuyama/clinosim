@@ -314,7 +314,7 @@ def test_load_fixed_display_propagates_none_from_missing_pkg(monkeypatch):
     that gates on ``pkg.is_available()`` will return None (which is
     exactly what the real ``_load_fixed_display_by_system`` does).
     """
-    from clinosim.modules.output import lab_coding_package as pkg_mod
+    from clinosim.modules.output.fhir_r4.labs import coding_package as pkg_mod
 
     monkeypatch.setattr(pkg_mod, "load_lab_coding_package", lambda: pkg_mod.MissingPackage())
     pkg = pkg_mod.load_lab_coding_package()

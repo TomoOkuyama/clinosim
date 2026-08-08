@@ -221,7 +221,7 @@ def test_medication_admin_emits_coding_for_aliased_route():
     This is the path that produced 166 of the 172 measured text-only elements, so the
     MR-only test above would not have caught a half-applied fix.
     """
-    from clinosim.modules.output._fhir_medications import _build_medication_admin
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_admin
 
     resource = _build_medication_admin(
         {"drug_name": "Salbutamol", "dose": "2.5mg", "route": "NEB", "status": "given"},
@@ -235,7 +235,7 @@ def test_medication_admin_emits_coding_for_aliased_route():
 
 
 def test_medication_admin_unresolvable_route_stays_text_only():
-    from clinosim.modules.output._fhir_medications import _build_medication_admin
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_admin
 
     resource = _build_medication_admin(
         {"drug_name": "Urokinase", "dose": "60000 IU", "route": "CATHETER", "status": "given"},
@@ -249,7 +249,7 @@ def test_medication_admin_unresolvable_route_stays_text_only():
 
 def test_both_call_sites_produce_identical_concepts_for_the_same_route():
     """The point of consolidating: MR and MAR must not drift apart again."""
-    from clinosim.modules.output._fhir_medications import _build_medication_admin
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_admin
 
     mr_dosage = _build_dosage_instruction({"route": "NEB", "dose_quantity": 2.5, "dose_unit": "mg"}, country="US")
     assert mr_dosage is not None
@@ -494,7 +494,7 @@ def test_iv_continuous_infusion_still_emits_device_on_jp():
     on 488 rows). The fix routes the gate through `canonicalize_route()` so it compares
     the canonical `IV`, unaffected by dual-slot localization.
     """
-    from clinosim.modules.output._fhir_medications import _build_medication_admin
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_admin
 
     resource = _build_medication_admin(
         {
@@ -531,8 +531,8 @@ def test_infusion_gate_survives_future_iv_alias():
     to the canonical `IV` first — so this test uses `monkeypatch.setitem` to inject
     an IV alias and verifies `device[]` still emits.
     """
-    from clinosim.modules.output._fhir_medications import _build_medication_admin
     from clinosim.modules.output.fhir_r4.lib import reference_data as _fhir_reference_data
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_admin
 
     # Inject a hypothetical IV alias into _ROUTE_ALIASES.
     _fhir_reference_data._ROUTE_ALIASES["INTRAVENOUS"] = "IV"

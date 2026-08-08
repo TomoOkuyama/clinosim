@@ -14,7 +14,7 @@ import base64
 from types import SimpleNamespace
 
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
-from clinosim.modules.output._fhir_documents import _bb_document_references
+from clinosim.modules.output.fhir_r4.documents.documents import _bb_document_references
 from clinosim.types.clinical import ClinicalDocument, ClinicalDocumentNarrative
 
 
