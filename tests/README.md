@@ -45,10 +45,13 @@ cases under `tests/integration/`.
 
 ## Fixture policy
 
-- **Patient fixtures**: use the canonical `patient_factory` fixture (planned
-  in Issue #567) and `load_patient_profile(profile_id)` for the six YAML
-  profiles under `tests/fixtures/patient_profiles/`. Do not add another local
-  `_patient()` helper — 8 near-duplicates already exist.
+- **Patient fixtures**: use the canonical `patient_factory` fixture
+  (`tests/conftest.py`, added by Issue #567) for building `PatientProfile`
+  instances in new tests. Use `load_patient_profile(profile_id)` for the six
+  YAML profiles under `tests/fixtures/patient_profiles/` — loader still
+  scoped to `tests/regression/` (unit-scope exposure pending Issue #567
+  follow-up). Do NOT add a new local `_patient()` helper; the existing
+  duplicates will be migrated in follow-up PRs.
 - **Bundle-context**: use the shared `BundleContext` builder from
   `tests/integration/_sr_helpers.py` for integration tests that need one.
 - **Country/locale**: default is US (per `AGENTS.md § Country / locale
@@ -84,8 +87,9 @@ Duration file at repo root drives xdist sharding. Refresh policy:
 ## Related backlog
 
 - **Layout sweep** (top-level → mirrored): Issue #567
-- **Canonical `patient_factory` fixture**: Issue #567
-- **`_patient()` helper consolidation** (8 divergent copies): Issue #567
+- **`patient_factory` fixture**: added to `tests/conftest.py` (Issue #567)
+- **`_patient()` helper migration** (existing 8 divergent copies → canonical fixture): Issue #567 follow-up
+- **Unit-scope `load_patient_profile(profile_id)` exposure** (currently scoped to `tests/regression/`): Issue #567 follow-up
 - **Numeric-tolerance helper module**: Issue #567 follow-up
 - **Marker enforcement `conftest.py`** (auto-apply by path): Issue #567 follow-up
 
