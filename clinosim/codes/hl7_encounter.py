@@ -41,9 +41,6 @@ class AdmitSource(StrEnum):
     OUTP = "outp"
     """Outpatient department — walk-in / scheduled outpatient encounter origin."""
 
-    HOSP = "hosp"
-    """Hospital transfer — synth-ED companion Encounter's discharge-to-inpatient path."""
-
 
 class DischargeDisposition(StrEnum):
     """HL7 v2 discharge-disposition ``http://terminology.hl7.org/CodeSystem/discharge-disposition``."""
