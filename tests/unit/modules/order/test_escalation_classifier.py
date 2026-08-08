@@ -80,15 +80,19 @@ def test_display_name_built_from_drug_and_dose_for_keyword_match():
     assert classify_escalation_treatment(esc) == OrderType.PROCEDURE
 
 
-def test_inpatient_module_imports_new_classifier():
-    """After Task 2 wiring, inpatient.py imports classify_escalation_treatment.
+def test_daily_loop_module_imports_new_classifier():
+    """After Task 2 wiring, the daily-loop state machine imports
+    classify_escalation_treatment.
 
     Smoke guard against silent revert. Behavioral verification lives in the
     integration test suite (test_escalation_procedure_emission.py).
-    """
-    import clinosim.simulator.inpatient as inpatient_mod
 
-    assert hasattr(inpatient_mod, "classify_escalation_treatment"), (
-        "inpatient.py must import classify_escalation_treatment from "
-        "clinosim.modules.order.treatment_classifier (Issue #460)"
+    Issue #552 (2026-08-09) moved the daily-loop body out of inpatient.py
+    to a sibling `daily_loop.py`; the classifier consumer moved with it.
+    """
+    import clinosim.simulator.daily_loop as daily_loop_mod
+
+    assert hasattr(daily_loop_mod, "classify_escalation_treatment"), (
+        "daily_loop.py must import classify_escalation_treatment from "
+        "clinosim.modules.order.treatment_classifier (Issue #460 wiring)"
     )
