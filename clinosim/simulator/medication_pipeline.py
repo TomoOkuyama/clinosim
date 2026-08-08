@@ -28,6 +28,10 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.modules.physiology.renal_thresholds import (
+    METFORMIN_ADMISSION_HOLD_THRESHOLD,
+    METFORMIN_RENAL_RESERVE_THRESHOLD,
+)
 from clinosim.modules.staff.engine import FALLBACK_NURSE_ID, StaffRoster, assign_staff
 from clinosim.simulator.helpers import _determine_route
 from clinosim.types.encounter import (
@@ -83,7 +87,7 @@ def _generate_home_medication_orders(
     has_ckd = any(c.code.startswith("N18") for c in patient.chronic_conditions)
     renal_reserve = patient.physiological_profile.renal_reserve if hasattr(patient, "physiological_profile") else 1.0
     initial_renal = state.renal_function if state else renal_reserve
-    has_renal_impairment = has_ckd or initial_renal < 0.4
+    has_renal_impairment = has_ckd or initial_renal < METFORMIN_ADMISSION_HOLD_THRESHOLD
 
     # Held drug set from disease protocol's medication_holds (YAML-driven,
     # protocol side — unchanged semantics, now applied against current_meds).
@@ -123,11 +127,11 @@ def _generate_home_medication_orders(
             continue  # silently skip — not ordered
 
         # 2. Metformin: renal-function-based hold.
-        if "metformin" in drug_lower and (initial_renal < 0.4 or has_renal_impairment):
+        if "metformin" in drug_lower and (initial_renal < METFORMIN_ADMISSION_HOLD_THRESHOLD or has_renal_impairment):
             continue
 
         # 3. Renal dose adjustment for CKD patients.
-        if has_renal_impairment and renal_reserve < 0.5:
+        if has_renal_impairment and renal_reserve < METFORMIN_RENAL_RESERVE_THRESHOLD:
             renal_drugs = ["enoxaparin", "enalapril", "candesartan", "alendronate", "celecoxib"]
             if any(rd in drug_lower for rd in renal_drugs):
                 if "celecoxib" in drug_lower:
