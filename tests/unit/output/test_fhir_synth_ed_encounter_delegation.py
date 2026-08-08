@@ -75,9 +75,7 @@ def _synth_ed_resource(resources: list[dict]) -> dict:
     for r in resources:
         if r.get("id", "").endswith("-ED"):
             return r
-    raise AssertionError(
-        f"No synth-ED bridge encounter in resources: {[r.get('id') for r in resources]}"
-    )
+    raise AssertionError(f"No synth-ED bridge encounter in resources: {[r.get('id') for r in resources]}")
 
 
 @pytest.mark.parametrize("country", ["JP", "US"])
@@ -123,9 +121,7 @@ def test_synth_ed_omits_discharge_disposition(country: str) -> None:
     ctx = _make_ctx(country)
     synth_ed = _synth_ed_resource(_bb_encounters(ctx))
     hosp = synth_ed.get("hospitalization", {})
-    assert "dischargeDisposition" not in hosp, (
-        f"synth-ED must NOT emit dischargeDisposition (spec DD2). Got: {hosp!r}"
-    )
+    assert "dischargeDisposition" not in hosp, f"synth-ED must NOT emit dischargeDisposition (spec DD2). Got: {hosp!r}"
 
 
 @pytest.mark.parametrize("country,lang", [("JP", "ja"), ("US", "en")])

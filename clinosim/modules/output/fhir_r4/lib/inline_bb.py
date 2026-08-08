@@ -182,42 +182,63 @@ from clinosim.modules.output.fhir_r4.procedures.procedures import _build_procedu
 _FHIR_ID_PATTERN = re.compile(r"^[A-Za-z0-9\-\.]{1,64}$")
 
 
-# Synthesised ED encounter (CY7-05) display strings — Issue #546 partial.
-# `_fhir_inline_bb.py::_bb_encounters` builds an ED partOf encounter that
-# bypasses `_build_encounter_resource` (the canonical builder). The 4
-# hardcoded display strings below were inlined as `"救急外来" if is_jp(country)
-# else "Emergency"` at 4 sites. Extracted here as a single named table so:
-#
-#   * A JP-CLINS revision that touches synth-ED display copy is a one-file edit.
-#   * `grep _SYNTH_ED_DISPLAYS` surfaces every consumer.
-#   * A future full-canonical migration (delegating synth ED to
-#     `_build_encounter_resource`) knows exactly which slots differ from
-#     the canonical `_CLASS_DISPLAY_JA` / `_ACT_PRIORITY_DISPLAY_JA` /
-#     `code_lookup("hl7-admit-source"/"hl7-discharge-disposition", …)`
-#     tables and needs a targeted override.
-#
-# NOTE: These four values INTENTIONALLY diverge from the canonical tables
-# — the canonical helpers currently render:
-#   * `_CLASS_DISPLAY_JA["EMER"]           = "救急"`      (vs synth ED "救急外来")
-#   * `_ACT_PRIORITY_DISPLAY_JA["EM"]      = "救急"`      (vs synth ED "緊急")
-#   * `code_lookup("hl7-admit-source",         "outp", "ja")`
-#     and `code_lookup("hl7-discharge-disposition", "hosp", "ja")` return
-#     the CS-registered displays; synth-ED's copy diverges deliberately for
-#     the ED department context. A future PR that unifies them must update
-#     both tables together (byte-diff shift documented in that PR).
-_SYNTH_ED_DISPLAYS: dict[str, tuple[str, str]] = {
-    # (JP display, US display) keyed by the JP-facing semantic slot name.
-    "class_emer": ("救急外来", "Emergency"),
-    "priority_em": ("緊急", "emergency"),
-    "admit_source_outp": ("外来より", "From outpatient"),
-    "discharge_disposition_hosp": ("入院となる", "Admitted to hospital"),
-}
+# Issue #546: synth-ED bridge Encounter now delegates to canonical
+# `_build_encounter`. `_make_synth_ed_enc_dict` builds a minimal CIF-shape
+# enc dict; the caller pops the canonical `dischargeDisposition` fallback
+# because the ED→IMP transition is expressed via `partOf` on the primary
+# IMP encounter (spec DD2 / DD4).
+def _make_synth_ed_enc_dict(
+    ctx: BundleContext,
+    imp_enc: dict,
+    partof_id: str,
+) -> dict:
+    """Build a minimal CIF-shape enc dict for the synth-ED bridge Encounter.
 
+    Fed to `_build_encounter` so the synth-ED path emits through the
+    single canonical builder (Issue #546, spec DD1). Preserves the
+    ValueError/TypeError-tolerant admission_datetime derivation of the
+    pre-refactor inline block: if the IMP encounter's admission_datetime
+    is missing or non-ISO, admission_datetime is left empty and the
+    canonical builder skips the period block (encounter.py:179).
+    """
+    _imp_adm = (
+        imp_enc.get("admission_datetime", "")
+        if isinstance(imp_enc, dict)
+        else getattr(imp_enc, "admission_datetime", "")
+    )
+    _imp_adm_str = str(_imp_adm) if _imp_adm else ""
+    # ED stay ~3.5 hours before IMP admission — clinical-realistic bridge.
+    _ed_end_str = _imp_adm_str
+    _ed_start_str = ""
+    try:
+        from datetime import datetime as _dt
+        from datetime import timedelta as _td
 
-def _synth_ed_display(slot: str, country: str) -> str:
-    """Return the JP or US display for a synth-ED slot from `_SYNTH_ED_DISPLAYS`."""
-    jp, en = _SYNTH_ED_DISPLAYS[slot]
-    return jp if is_jp(country) else en
+        if _imp_adm_str and "T" in _imp_adm_str:
+            _dt0 = _dt.fromisoformat(_imp_adm_str.replace("Z", "+00:00"))
+            _ed_start_str = (_dt0 - _td(hours=3, minutes=30)).isoformat()
+    except (ValueError, TypeError):
+        pass
+    _att = (
+        imp_enc.get("attending_physician_id", "")
+        if isinstance(imp_enc, dict)
+        else getattr(imp_enc, "attending_physician_id", "")
+    )
+    _chief = (
+        imp_enc.get("chief_complaint", "") if isinstance(imp_enc, dict) else getattr(imp_enc, "chief_complaint", "")
+    )
+    return {
+        "encounter_id": partof_id,
+        "encounter_type": "emergency",
+        "status": "completed",
+        "priority": ActPriority.EM.value,
+        "admit_source": AdmitSource.OUTP.value,
+        "admission_datetime": _ed_start_str,
+        "discharge_datetime": _ed_end_str,
+        "attending_physician_id": _att,
+        "chief_complaint": _chief,
+        "department_id": "",
+    }
 
 
 def _bb_patient(ctx: BundleContext) -> list[dict]:
@@ -282,100 +303,20 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
         # (readmission takes precedence — same field, different semantics).
         if _partof_id and "partOf" not in _resource:
             _resource["partOf"] = {"reference": f"Encounter/{_partof_id}"}
-            # Synthesize the ED Encounter FHIR resource (minimal but valid).
-            _adm_dt = (
-                enc.get("admission_datetime", "") if isinstance(enc, dict) else getattr(enc, "admission_datetime", "")
-            )  # noqa: E501
-            _adm_str = str(_adm_dt) if _adm_dt else ""
-            # ED stay ~3.5 hours before IMP admission — clinical-realistic.
-            _ed_end_str = _adm_str
-            _ed_start_str = ""
-            try:
-                from datetime import datetime as _dt
-                from datetime import timedelta as _td
-
-                if _adm_str:
-                    _dt0 = _dt.fromisoformat(_adm_str.replace("Z", "+00:00")) if "T" in _adm_str else None
-                    if _dt0:
-                        _ed_start_str = (_dt0 - _td(hours=3, minutes=30)).isoformat()
-            except (ValueError, TypeError):
-                pass
-            _att = (
-                enc.get("attending_physician_id", "")
-                if isinstance(enc, dict)
-                else getattr(enc, "attending_physician_id", "")
-            )  # noqa: E501
-            _chief = enc.get("chief_complaint", "") if isinstance(enc, dict) else getattr(enc, "chief_complaint", "")
-            _ed_resource: dict = {
-                "resourceType": "Encounter",
-                "id": _partof_id,
-                "meta": _resource.get("meta", {}),
-                "status": "finished",
-                "class": {
-                    "system": get_system_uri("hl7-v3-actcode"),
-                    "code": "EMER",
-                    "display": _synth_ed_display("class_emer", ctx.country),
-                },
-                "subject": {"reference": f"Patient/{ctx.patient_id}"},
-            }
-            _period: dict = {}
-            if _ed_start_str:
-                _period["start"] = _ed_start_str
-            if _ed_end_str:
-                _period["end"] = _ed_end_str
-            if _period:
-                _ed_resource["period"] = _period
-            # Session 45: emit Encounter.length on the synthesized ED encounter
-            # (CY7-05 synthesis previously skipped this — verification found
-            # 1093/1144 length-missing Encounter were EMER-with-partOf).
-            _ed_length = _compute_encounter_length(_ed_start_str, _ed_end_str)
-            if _ed_length is not None:
-                _ed_resource["length"] = _ed_length
-            if _att:
-                _ed_resource["participant"] = [
-                    {
-                        "individual": {"reference": f"Practitioner/{_att}"},
-                    }
-                ]
-            if _chief:
-                _ed_resource["reasonCode"] = [{"text": _chief}]
-            # cycle 8 cross-seed verify fix (CY7-06 regression): ED synth
-            # encounter に priority を emit(実運用では ED は emergency = "EM"、
-            # ここでは実 IMP と同じ priority CodeableConcept 形状で "EM" 固定)。
-            _ed_resource["priority"] = {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-v3-actpriority"),
-                        "code": ActPriority.EM.value,
-                        "display": _synth_ed_display("priority_em", ctx.country),
-                    }
-                ],
-            }
-            _ed_resource["hospitalization"] = {
-                "admitSource": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-admit-source"),
-                            "code": AdmitSource.OUTP.value,
-                            "display": _synth_ed_display("admit_source_outp", ctx.country),
-                        }
-                    ],
-                },
-                "dischargeDisposition": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-discharge-disposition"),
-                            "code": AdmitSource.HOSP.value,
-                            "display": _synth_ed_display("discharge_disposition_hosp", ctx.country),
-                        }
-                    ],
-                },
-            }
-            # CY8-04 (session 48 cycle 8): synthesized ED encounter にも
-            # serviceProvider を hospital-main で emit。従来 1075 EMER 欠落。
-            _ed_resource["serviceProvider"] = {
-                "reference": "Organization/hospital-main",
-            }
+            # CY7-05 synth-ED bridge Encounter: delegate to canonical
+            # `_build_encounter` so localization / CS-registry lookups
+            # are single-source-of-truth (Issue #546, spec DD1).
+            synth_enc = _make_synth_ed_enc_dict(ctx, enc, _partof_id)
+            _ed_resource = _build_encounter(
+                synth_enc,
+                ctx.patient_id,
+                country=ctx.country,
+            )
+            # synth-ED conveys the discharge-to-IMP transition via partOf,
+            # not dischargeDisposition; the canonical "home" fallback
+            # (encounter.py:487) does not fit the bridge-encounter
+            # context (spec DD2 / DD4).
+            _ed_resource.get("hospitalization", {}).pop("dischargeDisposition", None)
             _resources.append(_ed_resource)
         _resources.append(_resource)
     return _resources
