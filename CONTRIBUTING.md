@@ -80,9 +80,19 @@ pytest tests/unit -q               # ~1 minute, must be green
    describing user-facing behaviour changes. Skip only for docs-only PRs.
 7. **Open the PR** — the PR template walks you through the checklist.
 8. **CI must be green** on all required jobs before a maintainer merges:
-   `Unit tests (3.11, 3.12)`, `Integration tests (3.12)`,
-   `Build sdist + wheel`, and `DCO`. `Lint` / `Type check` are
-   informational for now (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
+   - `Unit tests (Py 3.12)`
+   - `Integration tests (shard 1/3, 2/3, 3/3)`
+   - `Build sdist + wheel`
+   - `Signed-off-by check`
+   - `mkdocs build`
+   - `JP-CLINS lab compliance gate`
+
+   Informational (not merge-blocking):
+   - `Quality (informational)` — ruff check + ruff format --check + mypy
+
+   Python 3.11 unit-test compatibility runs nightly (see
+   [`.github/workflows/nightly.yml`](.github/workflows/nightly.yml)).
+   Full workflow definitions in [`.github/workflows/`](.github/workflows/).
 
 ---
 

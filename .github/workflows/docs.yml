@@ -25,6 +25,7 @@ jobs:
   build:
     name: mkdocs build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -47,6 +48,7 @@ jobs:
   deploy:
     name: Deploy to gh-pages
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: build
     # Only master push deploys — PRs just build to catch errors.
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'

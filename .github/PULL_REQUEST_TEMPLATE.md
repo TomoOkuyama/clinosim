@@ -38,7 +38,7 @@ If your PR is a work in progress, open it as a draft.
 - [ ] `CHANGELOG.md` `[Unreleased]` section updated with a user-facing bullet
 - [ ] Documentation updated when a new module / YAML field / CLI subcommand / public API is added
 - [ ] No real patient data, PHI, or PII introduced
-- [ ] No InterSystems-specific code / trademarks introduced
+- [ ] No proprietary vendor code or trademarks introduced
 - [ ] License header preserved (MIT)
 
 ## Notes for reviewers
