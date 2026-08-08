@@ -16,9 +16,9 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
-    _make_participant,
-    _map_diagnosis_code,
-    _map_encounter_status,
+    make_participant,
+    map_diagnosis_code,
+    map_encounter_status,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _CLASS_DISPLAY_JA,
@@ -100,7 +100,7 @@ def _build_encounter(
             if is_jp(country)
             else {}
         ),
-        "status": _map_encounter_status(enc.get("status", "")),
+        "status": map_encounter_status(enc.get("status", "")),
         "class": {
             "system": get_system_uri("hl7-v3-actcode"),
             "code": class_code,
@@ -251,7 +251,7 @@ def _build_encounter(
                     },
                 },
             ]
-            _cur_status = _map_encounter_status(enc.get("status", ""))
+            _cur_status = map_encounter_status(enc.get("status", ""))
             if _cur_status == "finished" and _dis:
                 status_history.append(
                     {
@@ -287,10 +287,10 @@ def _build_encounter(
         # emits icd-10-cm under an icd-10 semantic surface (was 4 encounters
         # in baseline where CIF stored icd-10-cm CM-granular codes as-is).
         # `system_key_for("diagnosis", ...)` yields `icd-10-cm` for US and
-        # `icd-10` for JP; `_map_diagnosis_code` folds CM-granular to WHO
+        # `icd-10` for JP; `map_diagnosis_code` folds CM-granular to WHO
         # roots via code_mapping_diagnosis.
         _reason_system = system_key_for("diagnosis", country)
-        _reason_code = _map_diagnosis_code(admit_dx_code, country) if admit_dx_code else ""
+        _reason_code = map_diagnosis_code(admit_dx_code, country) if admit_dx_code else ""
         # Issue #360 G1 (iris4h-ai 2026-07-22): the fallback path (used when
         # admit_dx_code is empty or code_lookup returns the raw code) must
         # prefer the JP chief_complaint stashed by the simulator on JP
@@ -328,7 +328,7 @@ def _build_encounter(
     discharger = enc.get("discharging_physician_id", "")
 
     if attending:
-        participants.append(_make_participant("ATND", "attender", attending, country))
+        participants.append(make_participant("ATND", "attender", attending, country))
     # C4-30 (session 43 cycle 4): emit ADM / DIS for IMP encounters even
     # when the practitioner is the same as attending — FHIR R4 allows the
     # same Practitioner across multiple participant.type entries, and JP
@@ -339,9 +339,9 @@ def _build_encounter(
     _admitter_effective = admitter or (attending if _is_ip else "")
     _discharger_effective = discharger or (attending if _is_ip and enc.get("discharge_datetime") else "")
     if _admitter_effective:
-        participants.append(_make_participant("ADM", "admitter", _admitter_effective, country))
+        participants.append(make_participant("ADM", "admitter", _admitter_effective, country))
     if _discharger_effective:
-        participants.append(_make_participant("DIS", "discharger", _discharger_effective, country))
+        participants.append(make_participant("DIS", "discharger", _discharger_effective, country))
 
     if participants:
         resource["participant"] = participants
@@ -473,7 +473,7 @@ def _build_encounter(
             _default_coding["display"] = _default_disp
         hosp["admitSource"] = {"coding": [_default_coding]}
     # C4-20 (session 43 cycle 4): CIF encounter status is "completed"
-    # (mapped to FHIR "finished" by _map_encounter_status). Prior comparison
+    # (mapped to FHIR "finished" by map_encounter_status). Prior comparison
     # to raw "finished" never matched, so 4 IMP encounters retained no
     # dischargeDisposition. Use both CIF and FHIR values so future refactors
     # (e.g. status stored in FHIR form) still trigger the fallback.

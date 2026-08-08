@@ -24,14 +24,14 @@ from clinosim.modules._shared import (
 )
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.modules.output.fhir_r4.lib.common import (
-    _build_dosage_instruction,
-    _map_diagnosis_code,
-    _map_mar_status,
     _parse_dose_for_mar,
-    _strip_protocol_prefix,
+    build_dosage_instruction,
     build_route_concept,
     build_ucum_quantity,
     canonicalize_route,
+    map_diagnosis_code,
+    map_mar_status,
+    strip_protocol_prefix,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -427,7 +427,7 @@ def _resolve_medication_concept(
     drug_name_raw = display_name_raw or "Unknown medication"
     # Strip protocol prefix (e.g. "DVT_prophylaxis:") from medicationCodeableConcept.text
     # The prefix goes to dosageInstruction note instead.
-    drug_name_clean, protocol_category = _strip_protocol_prefix(drug_name_raw)
+    drug_name_clean, protocol_category = strip_protocol_prefix(drug_name_raw)
     # Session 45: split off any "increase/decrease rate by X%" continuous-infusion
     # adjustment suffix (disease YAML pattern for Day-N drip rate changes) so
     # the medicationCodeableConcept.text stays as a clean drug name and the
@@ -477,7 +477,7 @@ def _resolve_medication_concept(
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
     # C6-C7 residual sweep: fallback to `protocol_category` (the "TYPE:" prefix
-    # stripped by `_strip_protocol_prefix`, e.g. "lactulose:" / "antibiotic:" /
+    # stripped by `strip_protocol_prefix`, e.g. "lactulose:" / "antibiotic:" /
     # "antipyretic:"). Supportive Orders carry the drug identity in the type
     # field rather than the detail text — the classifier already trusts
     # this signal via MEDICATION_TYPE_HINTS, so the FHIR builder should too.
@@ -731,7 +731,7 @@ def _build_medication_request(
     resource["priority"] = _priority_map.get(_urgency, "routine")
 
     # Dosage instruction
-    dosage = _build_dosage_instruction(order, country=country)
+    dosage = build_dosage_instruction(order, country=country)
     # Session 45: append any rate-adjustment note peeled off drug_name so the
     # continuous-infusion adjustment intent (e.g. "increase rate by 20%") lives
     # in dosageInstruction where it belongs — not in medicationCodeableConcept.text.
@@ -970,7 +970,7 @@ def _build_medication_admin(
     encounter 内で MR と同じ per-order 連番を割当てる。
     """
     drug_name_raw = mar.get("drug_name", "")
-    drug_name_clean, protocol_category = _strip_protocol_prefix(drug_name_raw)
+    drug_name_clean, protocol_category = strip_protocol_prefix(drug_name_raw)
     # Session 45: peel off rate-adjustment suffix (see _build_medication_request).
     drug_name_clean, rate_adjustment_note = _split_rate_adjustment_suffix(drug_name_clean)
     drug_name = _localize_drug_name(drug_name_clean, country)
@@ -1074,7 +1074,7 @@ def _build_medication_admin(
             if country_code == "JP"
             else {}
         ),
-        "status": _map_mar_status(mar.get("status", "completed")),
+        "status": map_mar_status(mar.get("status", "completed")),
         "medicationCodeableConcept": med_concept,
         "subject": {"reference": f"Patient/{patient_id}"},
         "effectiveDateTime": mar.get("actual_datetime") or mar.get("scheduled_datetime", ""),
@@ -1173,7 +1173,7 @@ def _build_medication_admin(
         # `admission_diagnosis_code` にセットされる disease-YAML の
         # `icd_codes.primary` 値を由来として、しばしば CM-granular な
         # 表現(S72.00 / E11.65 / …)を含む。JP output では
-        # `_map_diagnosis_code` を通して WHO ICD-10 3-4 桁の親コードへ
+        # `map_diagnosis_code` を通して WHO ICD-10 3-4 桁の親コードへ
         # 畳み込む必要がある(fhir-jp-validator 2026-07-17 §【最優先 6】
         # 7,652 errors)。US では identity(既に CM billable leaf に
         # `code_mapping_diagnosis/us.yaml` で解決済み)。他 builder
@@ -1186,7 +1186,7 @@ def _build_medication_admin(
         # WHO URI on JP output (JP Core `jp-condition-diagnosis` required
         # binding violation, ~7,600 errors on a p=200 6mo JP cohort).
         _icd_system = get_system_uri(system_key_for("diagnosis", country_code))
-        _mapped_dx_code = _map_diagnosis_code(primary_dx_code, country_code)
+        _mapped_dx_code = map_diagnosis_code(primary_dx_code, country_code)
         resource["reasonCode"] = [
             {
                 "coding": [

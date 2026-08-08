@@ -11,14 +11,14 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_common import _build_reference_range
+from clinosim.modules.output._fhir_common import build_reference_range
 
 pytestmark = pytest.mark.unit
 
 
 @pytest.mark.parametrize("country", ["US", "JP"])
 def test_troponin_i_has_reference_range(country: str) -> None:
-    rr = _build_reference_range("Troponin_I", "M", country)
+    rr = build_reference_range("Troponin_I", "M", country)
     assert rr, f"Troponin_I must resolve a reference range for {country}"
     assert rr[0]["high"]["value"] == pytest.approx(0.04)
     assert rr[0]["high"]["unit"] == "ng/mL"
@@ -26,7 +26,7 @@ def test_troponin_i_has_reference_range(country: str) -> None:
 
 @pytest.mark.parametrize("country", ["US", "JP"])
 def test_ck_mb_has_reference_range(country: str) -> None:
-    rr = _build_reference_range("CK_MB", "F", country)
+    rr = build_reference_range("CK_MB", "F", country)
     assert rr, f"CK_MB must resolve a reference range for {country}"
     assert rr[0]["high"]["value"] == pytest.approx(5.0)
     assert rr[0]["high"]["unit"] == "ng/mL"

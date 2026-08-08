@@ -12,11 +12,11 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
-    _build_diagnosis_codeable_concept,
     _coding_with_display,
-    _infer_severity,
-    _map_diagnosis_code,
-    _severity_coding,
+    build_diagnosis_codeable_concept,
+    infer_severity,
+    map_diagnosis_code,
+    severity_coding,
     to_fhir_date,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import (
@@ -148,10 +148,10 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     chronic_list = record.get("patient", {}).get("chronic_conditions", [])
     chronic_onset_by_base: dict[str, str] = {}
     # C4-05 / C4-07..09 (session 43 cycle 4): also index severity + stage so a
-    # chronic-primary encounter-diagnosis can inherit them when _infer_severity
+    # chronic-primary encounter-diagnosis can inherit them when infer_severity
     # returns empty (routine outpatient follow-up with no physiological states).
     # Applies to essential HTN (I10) routine visits, DM/COPD/HF/CKD follow-ups —
-    # 65.8% of I10 lacked severity because _infer_severity fell back to "" for
+    # 65.8% of I10 lacked severity because infer_severity fell back to "" for
     # outpatient encounters.
     chronic_severity_by_base: dict[str, str] = {}
     chronic_stage_by_base: dict[str, str] = {}
@@ -181,7 +181,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         seen_codes.add(base_code)
 
         # Determine severity from physiological states
-        severity = _infer_severity(record)
+        severity = infer_severity(record)
 
         # A primary diagnosis that is one of the patient's chronic conditions
         # (e.g. an outpatient diabetes follow-up coding E11.9) is ongoing, not
@@ -189,7 +189,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         is_chronic_primary = base_code in chronic_onset_by_base
         chronic_onset = chronic_onset_by_base.get(base_code, "") if is_chronic_primary else ""
         # C4-05 (session 43 cycle 4): chronic-primary severity fallback.
-        # _infer_severity returns "" when the encounter has no physiological
+        # infer_severity returns "" when the encounter has no physiological
         # states (routine outpatient follow-up), leaving I10/E11/etc. Condition
         # without severity. Inherit from patient chronic_conditions severity
         # so problem-list severity is consistent with encounter-diagnosis.
@@ -243,12 +243,12 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                     ],
                 }
             ],
-            "code": _build_diagnosis_codeable_concept(_map_diagnosis_code(dx_code, country), icd_system_key, country),
+            "code": build_diagnosis_codeable_concept(map_diagnosis_code(dx_code, country), icd_system_key, country),
             "subject": {"reference": f"Patient/{patient_id}"},
         }
 
         if severity:
-            cond["severity"] = _severity_coding(severity, country)
+            cond["severity"] = severity_coding(severity, country)
 
         # CY6-19 (Chain-6): Condition.evidence — record what supported the
         # diagnosis. Cross-referencing specific DiagnosticReport IDs requires
@@ -409,12 +409,12 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                     ],
                 }
             ],
-            "code": _build_diagnosis_codeable_concept(_map_diagnosis_code(c_code, country), icd_system_key, country),
+            "code": build_diagnosis_codeable_concept(map_diagnosis_code(c_code, country), icd_system_key, country),
             "subject": {"reference": f"Patient/{patient_id}"},
         }
 
         if c_severity:
-            cond["severity"] = _severity_coding(c_severity, country)
+            cond["severity"] = severity_coding(c_severity, country)
 
         # CY6-19 (Chain-6): Condition.evidence — problem-list-item entries are
         # established from prior encounters. Text-only evidence label per the

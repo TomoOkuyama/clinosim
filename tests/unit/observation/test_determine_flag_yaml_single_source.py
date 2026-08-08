@@ -118,7 +118,7 @@ class TestPanicSetIsDocumentedConstant:
 
 
 class TestSourceLoaderMatches:
-    """The raw YAML loader used by the FHIR emitter (``_build_reference_range``)
+    """The raw YAML loader used by the FHIR emitter (``build_reference_range``)
     reads the same source as ``determine_flag``. A drift here would re-open the
     exact CIF-vs-FHIR discrepancy Issue #542 closed."""
 

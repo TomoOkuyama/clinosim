@@ -21,8 +21,8 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import lab_obs_id
 from clinosim.modules.output.fhir_r4.labs.service_request import build_panel_counter, order_to_sr_id
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
-    _build_reference_range,
-    _entry,
+    build_reference_range,
+    entry,
     to_fhir_datetime,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import (
@@ -139,7 +139,7 @@ def _build_lab_observation(
         resource["valueString"] = str(value)
 
     # Reference range (JP: JCCLS共用基準範囲)
-    ref_range = _build_reference_range(lab_name, patient_sex, country_code)
+    ref_range = build_reference_range(lab_name, patient_sex, country_code)
     if ref_range:
         resource["referenceRange"] = ref_range
 
@@ -476,7 +476,7 @@ def _build_vital_observations(
             }
         ]
 
-        entries.append(_entry(obs))
+        entries.append(entry(obs))
 
     # BP panel (#210, 2026-07-17). One Observation with LOINC 85354-9 in
     # `code` and both systolic + diastolic as `component[]` — the exact
@@ -555,7 +555,7 @@ def _build_vital_observations(
         performer_id = vs.get("measured_by", "")
         if performer_id:
             bp_obs["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
-        entries.append(_entry(bp_obs))
+        entries.append(entry(bp_obs))
 
     # Consciousness level (AVPU) — Glasgow Coma Scale-related
     loc = vs.get("consciousness_level", "")
@@ -636,7 +636,7 @@ def _build_vital_observations(
         _perf = vs.get("measured_by", "")
         if _perf:
             loc_obs["performer"] = [{"reference": f"Practitioner/{_perf}"}]
-        entries.append(_entry(loc_obs))
+        entries.append(entry(loc_obs))
 
     # Supplemental oxygen (LOINC 3151-8 = inhaled oxygen flow rate)
     if vs.get("on_supplemental_oxygen"):
@@ -712,7 +712,7 @@ def _build_vital_observations(
         _perf = vs.get("measured_by", "")
         if _perf:
             o2_obs["performer"] = [{"reference": f"Practitioner/{_perf}"}]
-        entries.append(_entry(o2_obs))
+        entries.append(entry(o2_obs))
 
     return entries
 

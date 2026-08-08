@@ -37,14 +37,34 @@ from clinosim.modules.output.fhir_r4.lib.common import *  # noqa: E402, F401, F4
 # The `*` import only imports names listed in `__all__`. Re-import
 # non-`__all__` helpers explicitly so `from _fhir_common import
 # _parse_dose_for_mar` (etc) still resolves under the shim.
+# Issue #545 Step 3 backward-compat aliases — the 16 public helpers had a
+# leading underscore before Step 3. External callers (or in-tree code that
+# was not migrated by the mechanical rewrite) still importing via the
+# underscore name resolve through these re-exports for one release cycle.
 from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: E402, F401
     _UCUM_CODE_MAP,
     _append_tz_if_missing,
+    _build_address,
+    _build_diagnosis_codeable_concept,
+    _build_dosage_instruction,
+    _build_reference_range,
+    _build_telecom,
     _coding_with_display,
+    _entry,
     _escape_html,
+    _infer_severity,
+    _loinc_coding,
+    _make_participant,
+    _map_diagnosis_code,
+    _map_encounter_status,
+    _map_mar_status,
+    _micro_coding,
     _parse_dose_for_mar,
+    _severity_coding,
     _sha1_b64,
     _social_category,
+    _strip_protocol_prefix,
+    _survey_category,
     _to_ucum_code,
     _validate_route_maps,
     _value,

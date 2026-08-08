@@ -51,7 +51,7 @@ from clinosim.modules.output.fhir_r4.labs.service_request import _bb_service_req
 # dropped once tests migrated to canonical imports.
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
-    _entry,
+    entry,
 )
 from clinosim.modules.output.fhir_r4.lib.generator_metadata import write_generator_metadata as _write_generator_metadata
 from clinosim.modules.output.fhir_r4.lib.inline_bb import (
@@ -532,14 +532,14 @@ def _build_bundle(
                 if is_jp(country):
                     _strip_japanese_display_on_english_only_systems(specimen)
                 _normalize_dt_fields(specimen, country)
-                entries.append(_entry(specimen))
+                entries.append(entry(specimen))
             # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
             # Condition / AllergyIntolerance / MedicationRequest. Universal.
             _populate_condition_ai_mr_ecs_fields(resource, country)
             # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource, country)
-            entries.append(_entry(resource))
+            entries.append(entry(resource))
 
     return {
         "resourceType": "Bundle",

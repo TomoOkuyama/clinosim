@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import is_jp
-from clinosim.modules.output.fhir_r4.lib.common import _entry
+from clinosim.modules.output.fhir_r4.lib.common import entry
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _LOCATION_NAME_JA,
     _LOCATION_TYPE_DISPLAY_JA,
@@ -54,7 +54,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         "name": hosp_name,
         "alias": [f"{beds}-bed hospital"] if beds else [],
     }
-    entries.append(_entry(root_org))
+    entries.append(entry(root_org))
 
     # #313 session 61:JP-CLINS eReferral の 920/910 section entry
     # (referralFromOrganization / referralToOrganization slice)は
@@ -118,7 +118,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "address": [{"use": "work", "text": "東京都"}],
             "partOf": {"reference": "Organization/hospital-main"},
         }
-        entries.append(_entry(root_org_ecs))
+        entries.append(entry(root_org_ecs))
 
     # Main-building Location — referenced by PractitionerRole.location fallback
     # (CY8-07) for staff without a ward assignment. Session 52 fix 2: the
@@ -156,7 +156,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         },
         "managingOrganization": {"reference": "Organization/hospital-main"},
     }
-    entries.append(_entry(main_loc))
+    entries.append(entry(main_loc))
 
     # Facility-shared generic infusion pump Device — referenced by
     # MedicationAdministration.device for continuous IV infusions (CY8-20).
@@ -179,7 +179,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         },
         "owner": {"reference": "Organization/hospital-main"},
     }
-    entries.append(_entry(pump_device))
+    entries.append(entry(pump_device))
 
     # Department Organizations (one per available_department)
     for dept in available:
@@ -203,7 +203,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "name": display,
             "partOf": {"reference": "Organization/hospital-main"},
         }
-        entries.append(_entry(dept_org))
+        entries.append(entry(dept_org))
         # CO-5 (session 42 cycle 3): also emit a Location per department so
         # AMB / EMER Encounter.location = Location/loc-dept-{dept} resolves.
         # Previously only ward + bed Locations existed; AMB visits linked
@@ -244,7 +244,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             },
             "managingOrganization": {"reference": f"Organization/dept-{dept.replace('_', '-')}"},
         }
-        entries.append(_entry(dept_loc))
+        entries.append(entry(dept_loc))
 
     # Ward Location resources + Bed Locations (partOf ward)
     ward_capacity = hospital_config.get("ward_capacity", {}) or {}
@@ -314,7 +314,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 },
                 "managingOrganization": {"reference": org_ref},
             }
-            entries.append(_entry(ward_loc))
+            entries.append(entry(ward_loc))
 
             # Bed Location resources for inpatient wards
             if ward not in ("ER", "OPD"):
@@ -356,7 +356,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         "partOf": {"reference": f"Location/loc-ward-{ward}"},
                         "managingOrganization": {"reference": org_ref},
                     }
-                    entries.append(_entry(bed_loc))
+                    entries.append(entry(bed_loc))
 
     # Operating room Location resources
     n_or = int((hospital_config.get("resource_capacity") or {}).get("operating_rooms", 0))
@@ -396,7 +396,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "type": [{"text": _localize_display("Operating Room", country, _LOCATION_TYPE_DISPLAY_JA)}],
                 "managingOrganization": {"reference": or_org_ref},
             }
-            entries.append(_entry(or_loc))
+            entries.append(entry(or_loc))
 
     return {
         "resourceType": "Bundle",

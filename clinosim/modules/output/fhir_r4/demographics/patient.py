@@ -18,10 +18,10 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_identity_config
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
-    _build_address,
-    _build_telecom,
     _coding_with_display,
     _social_category,
+    build_address,
+    build_telecom,
     to_fhir_date,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import (
@@ -419,14 +419,14 @@ def _build_patient(p: dict, country: str) -> dict:
     # Address
     addr = p.get("address")
     if addr and isinstance(addr, dict):
-        fhir_addr = _build_address(addr, country)
+        fhir_addr = build_address(addr, country)
         if fhir_addr:
             resource["address"] = [fhir_addr]
 
     # Telecom (phone)
     contact = p.get("contact")
     if contact and isinstance(contact, dict):
-        telecoms = _build_telecom(contact)
+        telecoms = build_telecom(contact)
         if telecoms:
             resource["telecom"] = telecoms
 

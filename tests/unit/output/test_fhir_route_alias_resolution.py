@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.lib.common import _build_dosage_instruction, build_route_concept
+from clinosim.modules.output.fhir_r4.lib.common import build_dosage_instruction, build_route_concept
 from clinosim.modules.output.fhir_r4.lib.localization import _ROUTE_JA
 from clinosim.modules.output.fhir_r4.lib.reference_data import _ROUTE_ALIASES, _ROUTE_SNOMED
 
@@ -182,7 +182,7 @@ def test_helper_internalises_the_uppercase_normalisation():
 
 def test_country_is_required():
     """`country` has no default. Every call site MUST forward it explicitly — a
-    missing forward is a silent locale drift (`_build_dosage_instruction` shipped
+    missing forward is a silent locale drift (`build_dosage_instruction` shipped
     with `build_route_concept(...)` missing `country` in PR #484; JP output silently
     emitted the US text form). `TypeError` at call time > silent drift.
     """
@@ -194,8 +194,8 @@ def test_country_is_required():
 
 
 def test_dosage_instruction_emits_coding_for_aliased_route():
-    """`_build_dosage_instruction` (MedicationRequest path) goes through the helper."""
-    dosage = _build_dosage_instruction(
+    """`build_dosage_instruction` (MedicationRequest path) goes through the helper."""
+    dosage = build_dosage_instruction(
         {"route": "NEB", "dose_quantity": 2.5, "dose_unit": "mg", "frequency": "DAILY"},
         country="US",
     )
@@ -207,7 +207,7 @@ def test_dosage_instruction_emits_coding_for_aliased_route():
 def test_dosage_instruction_text_still_uses_the_authored_token():
     """The human-readable summary keeps using the authored token, so `dosage.text`
     is byte-unchanged by this PR (the JP path already translates NEB separately)."""
-    dosage = _build_dosage_instruction(
+    dosage = build_dosage_instruction(
         {"route": "NEB", "dose_quantity": 2.5, "dose_unit": "mg"},
         country="US",
     )
@@ -251,7 +251,7 @@ def test_both_call_sites_produce_identical_concepts_for_the_same_route():
     """The point of consolidating: MR and MAR must not drift apart again."""
     from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_admin
 
-    mr_dosage = _build_dosage_instruction({"route": "NEB", "dose_quantity": 2.5, "dose_unit": "mg"}, country="US")
+    mr_dosage = build_dosage_instruction({"route": "NEB", "dose_quantity": 2.5, "dose_unit": "mg"}, country="US")
     assert mr_dosage is not None
     mar = _build_medication_admin(
         {"drug_name": "Salbutamol", "dose": "2.5mg", "route": "NEB", "status": "given"},

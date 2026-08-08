@@ -6,7 +6,7 @@ An `dose_ja` field added to the YAML without a consumer wire-up would be
 silently swallowed — the failure mode is invisible in FHIR output.
 
 This test exercises the two consumer paths that #476 wires:
-* `_build_dosage_instruction` — used by inpatient MedicationRequest / MAR
+* `build_dosage_instruction` — used by inpatient MedicationRequest / MAR
   and by the escalation-Order path (`_place_escalation_orders` at
   `inpatient.py:1216`).
 * `_build_discharge_medication_request` — used by the discharge-Rx builder
@@ -24,10 +24,10 @@ import pytest
 
 @pytest.mark.unit
 class TestBuildDosageInstruction:
-    """Order-side path (`_build_dosage_instruction` in `_fhir_common`)."""
+    """Order-side path (`build_dosage_instruction` in `_fhir_common`)."""
 
     def test_jp_uses_dose_text_ja_when_structured_empty(self):
-        from clinosim.modules.output.fhir_r4.lib.common import _build_dosage_instruction
+        from clinosim.modules.output.fhir_r4.lib.common import build_dosage_instruction
 
         order = {
             "dose_quantity": None,
@@ -37,11 +37,11 @@ class TestBuildDosageInstruction:
             "dose_text_ja": "以前の吸入薬を再開または新規開始",
             "dose_text_en": "Resume or initiate controller therapy",
         }
-        result = _build_dosage_instruction(order, country="JP")
+        result = build_dosage_instruction(order, country="JP")
         assert result == {"text": "以前の吸入薬を再開または新規開始"}
 
     def test_us_uses_dose_text_en_when_structured_empty(self):
-        from clinosim.modules.output.fhir_r4.lib.common import _build_dosage_instruction
+        from clinosim.modules.output.fhir_r4.lib.common import build_dosage_instruction
 
         order = {
             "dose_quantity": None,
@@ -51,14 +51,14 @@ class TestBuildDosageInstruction:
             "dose_text_ja": "以前の吸入薬を再開または新規開始",
             "dose_text_en": "Resume or initiate controller therapy",
         }
-        result = _build_dosage_instruction(order, country="US")
+        result = build_dosage_instruction(order, country="US")
         assert result == {"text": "Resume or initiate controller therapy"}
 
     def test_authored_text_wins_over_structured_summary(self):
         """Even when structured route is present, the author's instruction
         takes precedence for the text summary — the auto-derived summary
         can't reconstruct instruction-only doses."""
-        from clinosim.modules.output.fhir_r4.lib.common import _build_dosage_instruction
+        from clinosim.modules.output.fhir_r4.lib.common import build_dosage_instruction
 
         order = {
             "dose_quantity": None,
@@ -67,7 +67,7 @@ class TestBuildDosageInstruction:
             "route": "INH",
             "dose_text_ja": "以前の吸入薬を再開または新規開始",
         }
-        result = _build_dosage_instruction(order, country="JP")
+        result = build_dosage_instruction(order, country="JP")
         # Route is still emitted as a coded field
         assert result is not None
         assert "route" in result
@@ -76,7 +76,7 @@ class TestBuildDosageInstruction:
 
     def test_none_when_empty_and_no_authored_text(self):
         """Issue #467 invariant preserved: no text, no dose → return None."""
-        from clinosim.modules.output.fhir_r4.lib.common import _build_dosage_instruction
+        from clinosim.modules.output.fhir_r4.lib.common import build_dosage_instruction
 
         order = {
             "dose_quantity": None,
@@ -86,11 +86,11 @@ class TestBuildDosageInstruction:
             "dose_text_ja": "",
             "dose_text_en": "",
         }
-        assert _build_dosage_instruction(order, country="JP") is None
+        assert build_dosage_instruction(order, country="JP") is None
 
     def test_us_falls_through_when_only_ja_authored(self):
         """A JP-only authored instruction should NOT leak into US output."""
-        from clinosim.modules.output.fhir_r4.lib.common import _build_dosage_instruction
+        from clinosim.modules.output.fhir_r4.lib.common import build_dosage_instruction
 
         order = {
             "dose_quantity": None,
@@ -101,7 +101,7 @@ class TestBuildDosageInstruction:
             "dose_text_en": "",
         }
         # US path: no dose_en, no structured → None
-        assert _build_dosage_instruction(order, country="US") is None
+        assert build_dosage_instruction(order, country="US") is None
 
 
 @pytest.mark.unit

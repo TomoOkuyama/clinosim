@@ -14,7 +14,7 @@ the disease-YAML ``icd_codes.primary`` value verbatim, i.e.
 ``S72.00`` for hip fracture / ``E11.65`` for DKA). Every other builder
 that emits a diagnosis code (Encounter.reasonCode, Condition.code,
 FamilyMemberHistory.code) already routed through
-``_map_diagnosis_code``. This test pins the fix at the MAR seam.
+``map_diagnosis_code``. This test pins the fix at the MAR seam.
 
 Issue: #208.
 """

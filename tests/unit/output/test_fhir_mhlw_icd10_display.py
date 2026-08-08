@@ -2,7 +2,7 @@
 
 Pins two related invariants introduced by the v19 → v20 fix chain:
 
-1. ``_build_diagnosis_codeable_concept`` does NOT emit an English secondary
+1. ``build_diagnosis_codeable_concept`` does NOT emit an English secondary
    coding when the primary system is a Japanese-only registry
    (``icd-10-mhlw``). MHLW's ICD-10 2013 registry publishes only a Japanese
    display per concept, so an English display against the same system URI
@@ -28,7 +28,7 @@ import pytest
 
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loader import is_japanese_only_display_system
-from clinosim.modules.output.fhir_r4.lib.common import _build_diagnosis_codeable_concept
+from clinosim.modules.output.fhir_r4.lib.common import build_diagnosis_codeable_concept
 
 pytestmark = pytest.mark.unit
 
@@ -56,7 +56,7 @@ def test_unknown_system_is_not_japanese_only() -> None:
     assert is_japanese_only_display_system("") is False
 
 
-# === _build_diagnosis_codeable_concept: JP-only CS emits single Japanese coding ===
+# === build_diagnosis_codeable_concept: JP-only CS emits single Japanese coding ===
 
 
 def test_jp_diagnosis_mhlw_emits_only_japanese_coding() -> None:
@@ -64,7 +64,7 @@ def test_jp_diagnosis_mhlw_emits_only_japanese_coding() -> None:
     ICD-10 has exactly ONE coding entry (Japanese display only). Emitting a
     second English coding against the same MHLW URI is what produced the
     v19 189 English-display validator errors."""
-    cc = _build_diagnosis_codeable_concept("C34", "icd-10-mhlw", "JP")
+    cc = build_diagnosis_codeable_concept("C34", "icd-10-mhlw", "JP")
     assert len(cc["coding"]) == 1
     coding = cc["coding"][0]
     assert coding["system"] == "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full"
@@ -78,7 +78,7 @@ def test_jp_diagnosis_mhlw_never_emits_english_display_against_jp_uri() -> None:
     """Regression pin: even for a code where the Japanese display would
     differ meaningfully from English, no English coding leaks in."""
     for code in ("C18", "C34", "C50", "C61"):
-        cc = _build_diagnosis_codeable_concept(code, "icd-10-mhlw", "JP")
+        cc = build_diagnosis_codeable_concept(code, "icd-10-mhlw", "JP")
         displays = [c["display"] for c in cc["coding"]]
         for d in displays:
             # None of the displays should contain ASCII letters (a Japanese
@@ -91,7 +91,7 @@ def test_jp_diagnosis_mhlw_never_emits_english_display_against_jp_uri() -> None:
 def test_us_diagnosis_icd10cm_still_emits_english_only() -> None:
     """Regression pin: US path (primary_lang=en) always emitted a single
     English coding; Issue #358 must not affect US behaviour."""
-    cc = _build_diagnosis_codeable_concept("C34", "icd-10-cm", "US")
+    cc = build_diagnosis_codeable_concept("C34", "icd-10-cm", "US")
     assert len(cc["coding"]) == 1
     assert cc["coding"][0]["system"] == "http://hl7.org/fhir/sid/icd-10-cm"
 
@@ -101,7 +101,7 @@ def test_jp_diagnosis_non_mhlw_system_still_emits_english_secondary() -> None:
     A hypothetical JP path using a non-Japanese-only CS (e.g. WHO
     ``icd-10``) still gets the English secondary coding for interop —
     Issue #358 explicitly does not change that path."""
-    cc = _build_diagnosis_codeable_concept("C34", "icd-10", "JP")
+    cc = build_diagnosis_codeable_concept("C34", "icd-10", "JP")
     # Should have 2 coding entries: Japanese primary + English secondary,
     # because "icd-10" is NOT in the Japanese-only whitelist.
     assert len(cc["coding"]) == 2
@@ -149,7 +149,7 @@ def test_cancer_c_series_uses_kyuji_kanji_and_tumor_suffix() -> None:
         )
 
 
-# === Round-trip through _build_diagnosis_codeable_concept ===
+# === Round-trip through build_diagnosis_codeable_concept ===
 
 
 @pytest.mark.parametrize(
@@ -164,7 +164,7 @@ def test_cancer_c_series_uses_kyuji_kanji_and_tumor_suffix() -> None:
 def test_mhlw_codeable_concept_carries_canonical_display(code: str, expected_ja: str) -> None:
     """End-to-end: the same MHLW canonical display reaches ``coding[0].display``
     when a JP FamilyMemberHistory FHIR builder calls
-    ``_build_diagnosis_codeable_concept``. This is the surface the v19
+    ``build_diagnosis_codeable_concept``. This is the surface the v19
     validator inspects."""
-    cc = _build_diagnosis_codeable_concept(code, "icd-10-mhlw", "JP")
+    cc = build_diagnosis_codeable_concept(code, "icd-10-mhlw", "JP")
     assert cc["coding"][0]["display"] == expected_ja

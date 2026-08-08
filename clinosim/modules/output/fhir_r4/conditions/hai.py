@@ -20,7 +20,7 @@ from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _coding_with_display,
-    _map_diagnosis_code,
+    map_diagnosis_code,
 )
 
 
@@ -45,7 +45,7 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
         onset_date = get_attr_or_key(h, "onset_date", "")
         if not icd_internal or not hai_id:
             continue
-        icd_country = _map_diagnosis_code(icd_internal, country)
+        icd_country = map_diagnosis_code(icd_internal, country)
         icd_sys_key = system_key_for("diagnosis", country)
         icd_disp = code_lookup(icd_sys_key, icd_country, lang) or ""
         snomed_disp = code_lookup("snomed-ct", snomed, lang) or ""

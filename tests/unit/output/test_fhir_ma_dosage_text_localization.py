@@ -15,8 +15,8 @@ from __future__ import annotations
 import pytest
 
 from clinosim.modules.output.fhir_r4.medications.medications import (
-    _build_dosage_instruction,
     _build_medication_admin,
+    build_dosage_instruction,
 )
 
 _ENC = "ENC-POP-000001-000000000001"
@@ -74,11 +74,11 @@ def test_jp_medication_admin_dosage_text_has_no_ascii_letters() -> None:
 def test_mr_and_ma_localize_the_same_dose_text_identically() -> None:
     """Drift guard: the two builders must agree, as they do for `route` (Issue #458).
 
-    `_build_dosage_instruction` is the MedicationRequest side. Feeding both a dose
+    `build_dosage_instruction` is the MedicationRequest side. Feeding both a dose
     that renders to the same free text pins that a future edit to one call site
     cannot silently leave the other in English.
     """
-    mr = _build_dosage_instruction(
+    mr = build_dosage_instruction(
         {"route": "PO", "dose_quantity": 5.0, "dose_unit": "mg", "frequency": "DAILY"},
         country="JP",
     )

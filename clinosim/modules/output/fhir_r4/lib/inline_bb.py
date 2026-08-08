@@ -105,24 +105,24 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (  # noqa: F401
 # builders move out, without per-symbol import churn each phase.
 from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
     BundleContext,
-    _build_address,
-    _build_diagnosis_codeable_concept,
-    _build_dosage_instruction,
-    _build_reference_range,
-    _build_telecom,
-    _entry,
-    _infer_severity,
-    _loinc_coding,
-    _make_participant,
-    _map_diagnosis_code,
-    _map_encounter_status,
-    _map_mar_status,
-    _micro_coding,
     _parse_dose_for_mar,
-    _severity_coding,
     _sha1_b64,
-    _strip_protocol_prefix,
-    _survey_category,
+    build_address,
+    build_diagnosis_codeable_concept,
+    build_dosage_instruction,
+    build_reference_range,
+    build_telecom,
+    entry,
+    infer_severity,
+    loinc_coding,
+    make_participant,
+    map_diagnosis_code,
+    map_encounter_status,
+    map_mar_status,
+    micro_coding,
+    severity_coding,
+    strip_protocol_prefix,
+    survey_category,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401
     _CATEGORY_DISPLAY_JA,
@@ -410,11 +410,11 @@ def _bb_occupation(ctx: BundleContext) -> list[dict]:
 
 def _bb_vitals(ctx: BundleContext) -> list[dict]:
     # _build_vital_observations returns already-wrapped Bundle entries; unwrap to raw
-    # resources so the registry's single _entry() wrap applies uniformly.
+    # resources so the registry's single entry() wrap applies uniformly.
     out: list[dict] = []
     for i, vs in enumerate(ctx.record.get("vital_signs", [])):
-        for entry in _build_vital_observations(vs, ctx.patient_id, i, ctx.country, ctx.primary_enc_id):
-            out.append(entry["resource"])
+        for bundle_entry in _build_vital_observations(vs, ctx.patient_id, i, ctx.country, ctx.primary_enc_id):
+            out.append(bundle_entry["resource"])
     return out
 
 
