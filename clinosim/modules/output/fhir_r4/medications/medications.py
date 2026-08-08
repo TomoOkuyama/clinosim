@@ -194,7 +194,7 @@ def _build_medication_request_meta(
     meta: dict[str, Any] = {}
 
     # JP Core profile
-    if country_code == "JP":
+    if is_jp(country_code):
         meta["profile"] = ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]
 
     # Medication intent tag (antibiotic regimens only)
@@ -233,7 +233,7 @@ def _build_medication_request_identifiers(
     entries: list[dict[str, str]] = []
     if is_antibiotic_mr:
         entries.append(wrap_as_identifier(structural_key, MEDICATION_REQUEST_KEY_SYSTEM))
-    if country_code == "JP":
+    if is_jp(country_code):
         entries.extend(
             [
                 {
@@ -495,7 +495,7 @@ def _resolve_medication_concept(
         display = drug_name
     # session 53 F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch。
     # US は従来通り RxNorm URI。
-    if country_code == "JP" and drug_system_key == "yj" and code_value:
+    if is_jp(country_code) and drug_system_key == "yj" and code_value:
         code_system = _resolve_jp_drug_system_uri(code_value)
     else:
         code_system = get_system_uri(drug_system_key)
@@ -510,7 +510,7 @@ def _resolve_medication_concept(
     # ="yj" でも `_resolve_jp_drug_system_uri` が HOT7/HOT9/HOT13 に dispatch
     # した場合(全 HOT 系は別 CodeSystem)は対象外 = 通常 emit。
     _jp_yj_unverified = (
-        country_code == "JP"
+        is_jp(country_code)
         and drug_system_key == "yj"
         and bool(code_value)
         and code_system == _JP_YJ_CODE_URI
@@ -524,7 +524,7 @@ def _resolve_medication_concept(
                 "display": display,
             }
         ]
-    elif country_code == "JP":
+    elif is_jp(country_code):
         # #291 / #283:JP-CLINS eCS(JP_MedicationRequest-eCS)は
         # `medication[x].coding` min=1 を要求。code_mapping にヒットしない
         # ED 特異薬(点眼薬 / 泌尿器系一次治療薬 等)+ #283 で tx-server
@@ -1011,7 +1011,7 @@ def _build_medication_admin(
     drug_system_key = system_key_for("drug", country_code)
     # session 53 F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch
     # (MR builder と同じ helper)。US は RxNorm URI。
-    if country_code == "JP" and drug_system_key == "yj" and code_value:
+    if is_jp(country_code) and drug_system_key == "yj" and code_value:
         code_system = _resolve_jp_drug_system_uri(code_value)
     else:
         code_system = get_system_uri(drug_system_key)
@@ -1023,7 +1023,7 @@ def _build_medication_admin(
     # ="yj" でも `_resolve_jp_drug_system_uri` が HOT7/HOT9/HOT13 に dispatch
     # した場合(全 HOT 系は別 CodeSystem)は対象外 = 通常 emit。
     _jp_yj_unverified = (
-        country_code == "JP"
+        is_jp(country_code)
         and drug_system_key == "yj"
         and bool(code_value)
         and code_system == _JP_YJ_CODE_URI
@@ -1035,7 +1035,7 @@ def _build_medication_admin(
         if display and display != code_value:
             coding["display"] = display
         med_concept["coding"] = [coding]
-    elif country_code == "JP":
+    elif is_jp(country_code):
         # #305 session 60:display は権威 CodeSystem 定義通り
         # "標準コードなし" 固定。薬剤名は med_concept["text"] で保持
         # (MR builder と同じ理由、v6 で MAR も同 mismatch 発生)。
@@ -1053,7 +1053,7 @@ def _build_medication_admin(
         # Session 46 chain #2: JP Core MedicationAdministration profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"]}}
-            if country_code == "JP"
+            if is_jp(country_code)
             else {}
         ),
         # session 49 clinosim_feedback P1-4: JP_MedicationAdministration.
@@ -1071,7 +1071,7 @@ def _build_medication_admin(
                     },
                 ]
             }
-            if country_code == "JP"
+            if is_jp(country_code)
             else {}
         ),
         "status": map_mar_status(mar.get("status", "completed")),
@@ -1221,7 +1221,7 @@ def _build_medication_admin(
         resource["device"] = [
             {
                 "reference": "Device/dev-infusion-pump",
-                "display": "汎用輸液ポンプ" if country_code == "JP" else "Generic infusion pump",
+                "display": "汎用輸液ポンプ" if is_jp(country_code) else "Generic infusion pump",
             }
         ]
 
