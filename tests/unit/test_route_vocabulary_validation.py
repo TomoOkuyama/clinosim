@@ -34,7 +34,7 @@ from clinosim.modules.encounter.protocol import (
 from clinosim.modules.encounter.protocol import (
     load_all_encounter_conditions,
 )
-from clinosim.modules.output._fhir_reference_data import (
+from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _ROUTE_ALIASES,
     _ROUTE_SNOMED,
     _ROUTE_TEXT_ONLY_BY_DESIGN,

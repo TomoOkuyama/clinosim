@@ -17,7 +17,7 @@ from typing import Any
 
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_smoking_alcohol import _sdoh_effective_datetime
-from clinosim.modules.output.fhir_common import (
+from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _social_category,
     _value,

@@ -16,8 +16,8 @@ from clinosim.codes import (
     lookup as code_lookup,
 )
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
-from clinosim.modules.output._fhir_localization import _localize_drug_name, _procedure_display
-from clinosim.modules.output.fhir_common import to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name, _procedure_display
 
 
 def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> dict:

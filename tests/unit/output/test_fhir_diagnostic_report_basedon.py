@@ -9,7 +9,7 @@ regression where one access style works but the other is ignored.
 from datetime import datetime
 
 from clinosim.modules.output._fhir_diagnostic_report import build_lab_panel_reports
-from clinosim.modules.output.fhir_common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
 
 # CBC components matching lab_panel_groups.yaml

@@ -22,7 +22,7 @@ Issue: #202.
 import pytest
 
 from clinosim.modules.output._fhir_post_process import _strip_forbidden_observation_reference_range_extensions
-from clinosim.modules.output.fhir_common import _build_reference_range
+from clinosim.modules.output.fhir_r4.lib.common import _build_reference_range
 
 pytestmark = pytest.mark.unit
 
@@ -150,6 +150,6 @@ def test_strip_walker_skips_non_observation() -> None:
 def test_reference_range_source_url_constant_is_removed() -> None:
     """旧 `_JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL` 定数が消えていること
     (regression 防衛:speculative URL の再導入禁止)。"""
-    from clinosim.modules.output import _fhir_reference_data
+    from clinosim.modules.output.fhir_r4.lib import reference_data as _fhir_reference_data
 
     assert not hasattr(_fhir_reference_data, "_JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL")

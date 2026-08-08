@@ -17,21 +17,21 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_identity_config
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output._fhir_localization import (
-    _OCCUPATION_DISPLAY_EN,
-    _OCCUPATION_DISPLAY_JA,
-    _RELATIONSHIP_DISPLAY_JA,
-    _localize_display,
-    _localize_drug_name,
-)
-from clinosim.modules.output._fhir_reference_data import _ALLERGEN_RXNORM
-from clinosim.modules.output.fhir_common import (
+from clinosim.modules.output.fhir_r4.lib.common import (
     _build_address,
     _build_telecom,
     _coding_with_display,
     _social_category,
     to_fhir_date,
 )
+from clinosim.modules.output.fhir_r4.lib.localization import (
+    _OCCUPATION_DISPLAY_EN,
+    _OCCUPATION_DISPLAY_JA,
+    _RELATIONSHIP_DISPLAY_JA,
+    _localize_display,
+    _localize_drug_name,
+)
+from clinosim.modules.output.fhir_r4.lib.reference_data import _ALLERGEN_RXNORM
 
 # FHIR R4 standard: payer organization type
 _ORG_TYPE_SYSTEM = get_system_uri("hl7-organization-type")

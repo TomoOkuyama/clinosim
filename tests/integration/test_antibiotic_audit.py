@@ -872,7 +872,7 @@ def test_fhir_microbiology_emits_hai_event_id_identifier() -> None:
         HAI_EVENT_ID_SYSTEM,
         _bb_microbiology,
     )
-    from clinosim.modules.output.fhir_common import BundleContext
+    from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
     # HAI culture: hai_event_id set
     hai_mb = {

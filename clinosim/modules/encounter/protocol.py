@@ -120,7 +120,7 @@ def _validate_encounter_route_vocabulary(condition_id: str, data: Any) -> None:
     Sibling of `disease.protocol._validate_drug_route_vocabulary`. Delegates
     to `validate_yaml_route_value` so the recognized set stays single-sourced.
     """
-    from clinosim.modules.output._fhir_reference_data import validate_yaml_route_value
+    from clinosim.modules.output.fhir_r4.lib.reference_data import validate_yaml_route_value
 
     for raw in _iter_route_values(data):
         validate_yaml_route_value(raw, source=f"encounter {condition_id!r}")

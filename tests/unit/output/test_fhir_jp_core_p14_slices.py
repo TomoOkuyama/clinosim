@@ -446,7 +446,7 @@ def test_medication_request_us_no_jp_identifier_slice():
 def test_build_order_in_rp_map_per_encounter_numbering():
     """`build_order_in_rp_map` は encounter 内 medication order の
     出現順を 1-based で orderInRp に割当てる。"""
-    from clinosim.modules.output._fhir_inline_bb import build_order_in_rp_map
+    from clinosim.modules.output.fhir_r4.lib.inline_bb import build_order_in_rp_map
 
     orders = [
         {"order_id": "O1", "order_type": "medication", "display_name": "A", "encounter_id": "enc-x"},
@@ -470,7 +470,7 @@ def test_build_order_in_rp_map_per_encounter_numbering():
 
 def test_build_order_in_rp_map_deterministic_across_calls():
     """同 orders を 2 回渡すと同 dict を返す(MR と MA が同 map を使う根拠)。"""
-    from clinosim.modules.output._fhir_inline_bb import build_order_in_rp_map
+    from clinosim.modules.output.fhir_r4.lib.inline_bb import build_order_in_rp_map
 
     orders = [
         {"order_id": f"O{i}", "order_type": "medication", "display_name": "d", "encounter_id": "e1"} for i in range(5)

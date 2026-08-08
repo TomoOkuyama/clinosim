@@ -8,7 +8,7 @@ import pytest
 
 from clinosim.codes import lookup
 from clinosim.modules.output._fhir_microbiology import _bb_microbiology
-from clinosim.modules.output.fhir_common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
 pytestmark = pytest.mark.unit
 

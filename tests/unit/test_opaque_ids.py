@@ -20,7 +20,7 @@ import hashlib
 
 import pytest
 
-from clinosim.modules.output.opaque_ids import (
+from clinosim.modules.output.fhir_r4.lib.ids import (
     CLINOSIM_IDENTIFIER_SYSTEM_PREFIX,
     derive_opaque_id,
     structural_key_system,
