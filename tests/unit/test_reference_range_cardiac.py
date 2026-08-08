@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_common import build_reference_range
+from clinosim.modules.output.fhir_r4.lib.common import build_reference_range
 
 pytestmark = pytest.mark.unit
 
