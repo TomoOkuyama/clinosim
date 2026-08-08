@@ -47,8 +47,9 @@ from clinosim.simulator.helpers import (
     _select_secondary_disease,
     load_all_disease_protocols,
 )
-from clinosim.simulator.inpatient import _simulate_patient, _simulate_unknown_condition
+from clinosim.simulator.inpatient import _simulate_patient
 from clinosim.simulator.outpatient import _simulate_outpatient_visit
+from clinosim.simulator.unknown_condition import _simulate_unknown_condition
 from clinosim.types.config import ForcedScenario, SimulatorConfig
 from clinosim.types.encounter import EncounterType
 from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
