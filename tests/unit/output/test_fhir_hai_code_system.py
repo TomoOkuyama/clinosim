@@ -11,7 +11,7 @@ case-insensitive, matching every sibling diagnosis builder.
 import pytest
 
 from clinosim.codes import get_system_uri
-from clinosim.modules.output._fhir_hai import _bb_hai_conditions
+from clinosim.modules.output.fhir_r4.conditions.hai import _bb_hai_conditions
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
 pytestmark = pytest.mark.unit

@@ -31,62 +31,17 @@ import re
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp
-from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
+from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import (  # noqa: F401
     _bb_allergy_intolerances,
 )
-from clinosim.modules.output._fhir_care_level import _bb_care_level  # noqa: F401
-from clinosim.modules.output._fhir_care_team import (  # noqa: F401
-    _bb_care_teams,
-)
-from clinosim.modules.output._fhir_clinical_impression import (  # noqa: F401
+from clinosim.modules.output.fhir_r4.conditions.clinical_impression import (  # noqa: F401
     _bb_clinical_impressions,
 )
-from clinosim.modules.output._fhir_code_status import _bb_code_status  # noqa: F401
-from clinosim.modules.output._fhir_composition import (  # noqa: F401
-    _bb_compositions,
-)
-from clinosim.modules.output._fhir_conditions import _build_conditions  # noqa: F401
-from clinosim.modules.output._fhir_device import (  # noqa: F401
-    _bb_device,
-    _bb_device_use,
-)
-from clinosim.modules.output._fhir_diagnostic_report import (  # noqa: F401
-    _bb_diagnostic_reports,
-    build_lab_panel_reports,  # kept for backward compat (tests + external callers)
-)
-from clinosim.modules.output._fhir_document_reference_checkup import (  # noqa: F401
-    _bb_document_references_checkup,
-)
-from clinosim.modules.output._fhir_documents import (  # noqa: F401
-    _bb_document_references,
-)
-from clinosim.modules.output._fhir_encounter import (  # noqa: F401
-    _build_encounter,
-    _compute_encounter_length,
-)
-from clinosim.modules.output._fhir_endpoint import (  # noqa: F401
-    _bb_endpoints,
-)
-from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
-from clinosim.modules.output._fhir_family_history import _bb_family_history  # noqa: F401
-from clinosim.modules.output._fhir_hai import _bb_hai_conditions  # noqa: F401
-from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
-    _bb_imaging_studies,
-)
-from clinosim.modules.output._fhir_immunization import _bb_immunizations  # noqa: F401
-from clinosim.modules.output._fhir_medications import (  # noqa: F401
-    _build_discharge_medication_request,
-    _build_medication_admin,
-    _build_medication_request,
-)
-from clinosim.modules.output._fhir_microbiology import _bb_microbiology  # noqa: F401
-from clinosim.modules.output._fhir_nursing import _bb_nursing_observations  # noqa: F401
-from clinosim.modules.output._fhir_observations import (  # noqa: F401
-    _bb_labs,
-    _build_lab_observation,
-    _build_vital_observations,
-)
-from clinosim.modules.output._fhir_patient import (  # noqa: F401
+from clinosim.modules.output.fhir_r4.conditions.code_status import _bb_code_status  # noqa: F401
+from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions  # noqa: F401
+from clinosim.modules.output.fhir_r4.conditions.hai import _bb_hai_conditions  # noqa: F401
+from clinosim.modules.output.fhir_r4.demographics.family_history import _bb_family_history  # noqa: F401
+from clinosim.modules.output.fhir_r4.demographics.patient import (  # noqa: F401
     _ORG_TYPE_SYSTEM,
     _SUBSCRIBER_REL_SYSTEM,
     _build_coverage_resources,
@@ -95,17 +50,50 @@ from clinosim.modules.output._fhir_patient import (  # noqa: F401
     _identity_cfg,
     _payer_name_map,
 )
-from clinosim.modules.output._fhir_practitioner import (  # noqa: F401
+from clinosim.modules.output.fhir_r4.demographics.practitioner import (  # noqa: F401
     _build_practitioner,
     _build_practitioner_role,
 )
-from clinosim.modules.output._fhir_procedures import _build_procedure  # noqa: F401
-from clinosim.modules.output._fhir_service_request import (  # noqa: F401
-    _bb_service_requests,
-)
-from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
+from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (  # noqa: F401
     _bb_alcohol_use,
     _bb_smoking_status,
+)
+from clinosim.modules.output.fhir_r4.documents.composition import (  # noqa: F401
+    _bb_compositions,
+)
+from clinosim.modules.output.fhir_r4.documents.document_reference_checkup import (  # noqa: F401
+    _bb_document_references_checkup,
+)
+from clinosim.modules.output.fhir_r4.documents.documents import (  # noqa: F401
+    _bb_document_references,
+)
+from clinosim.modules.output.fhir_r4.encounters.care_level import _bb_care_level  # noqa: F401
+from clinosim.modules.output.fhir_r4.encounters.care_team import (  # noqa: F401
+    _bb_care_teams,
+)
+from clinosim.modules.output.fhir_r4.encounters.encounter import (  # noqa: F401
+    _build_encounter,
+    _compute_encounter_length,
+)
+from clinosim.modules.output.fhir_r4.encounters.endpoint import (  # noqa: F401
+    _bb_endpoints,
+)
+from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle  # noqa: F401
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # noqa: F401
+    _bb_diagnostic_reports,
+    build_lab_panel_reports,  # kept for backward compat (tests + external callers)
+)
+from clinosim.modules.output.fhir_r4.labs.imaging_study import (  # noqa: F401
+    _bb_imaging_studies,
+)
+from clinosim.modules.output.fhir_r4.labs.microbiology import _bb_microbiology  # noqa: F401
+from clinosim.modules.output.fhir_r4.labs.observations import (  # noqa: F401
+    _bb_labs,
+    _build_lab_observation,
+    _build_vital_observations,
+)
+from clinosim.modules.output.fhir_r4.labs.service_request import (  # noqa: F401
+    _bb_service_requests,
 )
 
 # FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
@@ -169,6 +157,18 @@ from clinosim.modules.output.fhir_r4.lib.reference_data import (  # noqa: F401
     _SEVERITY_SNOMED,
     _SPECIALTY_SNOMED,
 )
+from clinosim.modules.output.fhir_r4.medications.medications import (  # noqa: F401
+    _build_discharge_medication_request,
+    _build_medication_admin,
+    _build_medication_request,
+)
+from clinosim.modules.output.fhir_r4.procedures.device import (  # noqa: F401
+    _bb_device,
+    _bb_device_use,
+)
+from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations  # noqa: F401
+from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations  # noqa: F401
+from clinosim.modules.output.fhir_r4.procedures.procedures import _build_procedure  # noqa: F401
 
 # FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding
 # (2026-07-17): 812,606 ids across the export violated this spec — `_` in id
@@ -393,7 +393,7 @@ def _bb_occupation(ctx: BundleContext) -> list[dict]:
             # C1-12 (session 41 cycle 1): US Core / JP Core social-history
             # profile lists effective[x] as MUST-SUPPORT. Use earliest encounter
             # admission as the SDOH-as-of proxy (same helper as smoking / alcohol).
-            from clinosim.modules.output._fhir_smoking_alcohol import (
+            from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (
                 _sdoh_effective_datetime,
                 _sdoh_performer_ref,
             )

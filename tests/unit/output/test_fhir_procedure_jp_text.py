@@ -26,7 +26,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.locale.loader import load_med_terms_ja
-from clinosim.modules.output._fhir_procedures import _build_procedure
+from clinosim.modules.output.fhir_r4.procedures.procedures import _build_procedure
 
 pytestmark = pytest.mark.unit
 

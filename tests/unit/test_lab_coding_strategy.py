@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._lab_coding_strategy import (
+from clinosim.modules.output.fhir_r4.labs.coding_strategy import (
     _ANALYTE_TO_SLICE_NAME,
     _KNOWN_UNCODED_ANALYTES,
     CoreLaboStrategy,
@@ -324,7 +324,7 @@ def test_legacy_loinc_emits_single_loinc_primary():
 
 @pytest.fixture
 def _pkg_or_skip_corelabo():
-    from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+    from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
 
     pkg = load_lab_coding_package()
     if not pkg.is_available():

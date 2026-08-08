@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.lab_coding_package import (
+from clinosim.modules.output.fhir_r4.labs.coding_package import (
     CodeSegments,
     LabCodeCandidate,
     LabSliceInfo,

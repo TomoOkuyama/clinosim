@@ -7,7 +7,7 @@ _LANG_DISPLAY dicts (2026-07-02 grand design review, display-dict migration).
 import pytest
 
 from clinosim.codes import get_system_uri, lookup
-from clinosim.modules.output._fhir_patient import _build_patient
+from clinosim.modules.output.fhir_r4.demographics.patient import _build_patient
 
 pytestmark = pytest.mark.unit
 

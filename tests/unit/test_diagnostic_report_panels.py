@@ -54,7 +54,7 @@ def _order(lab_name: str, when: str, idx: int) -> dict:
 class TestGroupLabOrders:
     def test_cbc_full_panel_emits_one_group(self):
         """Day-bucket: components can be hours apart but still group as one DR per day."""
-        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
 
         orders = [
             _order("WBC", "2026-05-12T14:28:38", 0),
@@ -76,7 +76,7 @@ class TestGroupLabOrders:
 
     def test_below_threshold_yields_no_group(self):
         """A single CBC component (below CBC's min=3 per PR2) yields no DR."""
-        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
 
         orders = [_order("WBC", "2026-05-12T14:28:38", 0)]
         assert group_lab_orders(orders, "ENC-001") == []
@@ -85,7 +85,7 @@ class TestGroupLabOrders:
         """Repeat draws on a different day produce separate DRs (e.g. daily CBC
         trend). With CBC min_components=3 (PR2), each day needs at least 3
         components to register as a CBC DR."""
-        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
 
         orders = [
             _order("WBC", "2026-05-12T14:28:38", 0),
@@ -100,7 +100,7 @@ class TestGroupLabOrders:
         assert {g.bucket for g in groups} == {"2026-05-12", "2026-05-13"}
 
     def test_abg_consumes_hco3_before_bmp(self):
-        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
 
         orders = [
             _order("pH", "2026-05-12T14:28:00", 0),
@@ -125,7 +125,7 @@ class TestGroupLabOrders:
         assert "lab-ENC-001-0003" not in bmp.obs_refs
 
     def test_solo_lab_yields_no_group(self):
-        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
 
         orders = [
             _order("CRP", "2026-05-12T14:28:38", 0),
@@ -139,7 +139,7 @@ class TestGroupLabOrders:
         """BMP min_components = 7 after Cl/Ca added to derive_lab_values
         (canonical N − 1 = 8 − 1). Seven components (any 7 of canonical 8)
         on the same day must group into a BMP DR."""
-        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
 
         orders = [
             _order("Na", "2026-05-12T14:28:00", 0),
@@ -156,7 +156,7 @@ class TestGroupLabOrders:
     def test_bmp_six_components_below_threshold(self):
         """BMP threshold rose 5→7 (PR for Cl/Ca physiology). Six
         components on the same day must NOT group into a BMP DR."""
-        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
 
         orders = [
             _order("Na", "2026-05-12T14:28:00", 0),
@@ -172,7 +172,7 @@ class TestGroupLabOrders:
         )
 
     def test_ua_skip_when_no_components_present(self):
-        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
 
         orders = [
             _order("WBC", "2026-05-12T14:28:38", 0),
@@ -185,7 +185,7 @@ class TestGroupLabOrders:
     def test_components_ordered_by_yaml_definition(self):
         """obs_refs in the group must follow the YAML's components order so the
         emitted FHIR result[] is stable across runs."""
-        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
 
         orders = [
             _order("Plt", "2026-05-12T14:28:00", 0),
@@ -207,7 +207,7 @@ class TestGroupLabOrders:
 @pytest.mark.unit
 class TestBuildDrResource:
     def _group(self):
-        from clinosim.modules.output._fhir_diagnostic_report import _GroupedPanel
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel
 
         return _GroupedPanel(
             panel_name="CBC",
@@ -221,7 +221,7 @@ class TestBuildDrResource:
         )
 
     def test_shape_us(self):
-        from clinosim.modules.output._fhir_diagnostic_report import build_dr_resource
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import build_dr_resource
 
         r = build_dr_resource(
             self._group(),
@@ -255,7 +255,7 @@ class TestBuildDrResource:
         ]
 
     def test_shape_jp_uses_japanese_display(self):
-        from clinosim.modules.output._fhir_diagnostic_report import build_dr_resource
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import build_dr_resource
 
         r = build_dr_resource(
             self._group(),
@@ -273,7 +273,7 @@ class TestBuildDrResource:
         assert r["performer"] == [{"reference": "Organization/hospital-main"}]
 
     def test_seq_increments_per_call(self):
-        from clinosim.modules.output._fhir_diagnostic_report import build_dr_resource
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import build_dr_resource
 
         r0 = build_dr_resource(
             self._group(),
@@ -324,7 +324,7 @@ class TestBuildLabPanelReports:
         )
 
     def test_cbc_panel_emits_one_dr(self):
-        from clinosim.modules.output._fhir_diagnostic_report import build_lab_panel_reports
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import build_lab_panel_reports
 
         orders = [
             _order("WBC", "2026-05-12T14:28:38", 0),
@@ -340,12 +340,12 @@ class TestBuildLabPanelReports:
         assert len(r["result"]) == 4
 
     def test_no_lab_orders_yields_empty_list(self):
-        from clinosim.modules.output._fhir_diagnostic_report import build_lab_panel_reports
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import build_lab_panel_reports
 
         assert build_lab_panel_reports(self._ctx([])) == []
 
     def test_jp_locale_passes_through(self):
-        from clinosim.modules.output._fhir_diagnostic_report import build_lab_panel_reports
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import build_lab_panel_reports
 
         orders = [
             _order("WBC", "2026-05-12T14:28:38", 0),

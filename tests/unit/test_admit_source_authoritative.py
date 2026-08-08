@@ -48,7 +48,7 @@ def test_admit_source_yaml_has_authoritative_other_fallback() -> None:
 
 
 def test_fhir_encounter_default_admit_source_code_is_other() -> None:
-    src = (_REPO_ROOT / "clinosim" / "modules" / "output" / "_fhir_encounter.py").read_text()
+    src = (_REPO_ROOT / "clinosim" / "modules" / "output" / "fhir_r4" / "encounters" / "encounter.py").read_text()
     assert '_default_code = "other"' in src, (
         "Issue #332: _fhir_encounter.py の IMP admit_source fallback は "
         '"other" を emit すること('

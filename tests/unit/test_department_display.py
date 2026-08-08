@@ -8,8 +8,8 @@ locale/shared/department_display.yaml table for both EN and JA.
 
 import pytest
 
-from clinosim.modules.output._fhir_encounter import _build_encounter
-from clinosim.modules.output._fhir_facility import _build_facility_bundle
+from clinosim.modules.output.fhir_r4.encounters.encounter import _build_encounter
+from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle
 
 
 def _service_text(enc: dict, country: str) -> str:

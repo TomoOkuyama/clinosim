@@ -63,7 +63,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_us, resolve_lang
-from clinosim.modules.output.lab_coding_package import LabCodeCandidate
+from clinosim.modules.output.fhir_r4.labs.coding_package import LabCodeCandidate
 
 # --------------------------------------------------------------------------- #
 # JP-CLINS LocalCode display / code sanitization (session 67 memo 2026-07-26).
@@ -322,7 +322,7 @@ class UncodedStrategy:
         secondary is retained (mirrors LegacyJSLM / CoreLabo dual-coding
         for international interop; PR 4 will formalize retain ADR).
         """
-        from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+        from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
 
         pkg = load_lab_coding_package()
         if not pkg.is_available():
@@ -361,7 +361,7 @@ class UncodedStrategy:
         display sanitize here (not in loader) matches session 67
         boundary: loader supplies raw text, strategy applies user-
         facing rules per slot."""
-        from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+        from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
 
         pkg = load_lab_coding_package()
         if not pkg.is_available():
@@ -445,7 +445,7 @@ class CoreLaboStrategy:
         result: dict,
         country: str,
     ) -> list[dict]:
-        from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+        from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
 
         slice_name = _slice_name_for_analyte(lab_name)
         pkg = load_lab_coding_package()
@@ -499,7 +499,7 @@ class CoreLaboStrategy:
         lab_name if designation missing (should not happen for CoreLabo
         analytes — all CS entries carry ja designation).
         """
-        from clinosim.modules.output.lab_coding_package import load_lab_coding_package
+        from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
 
         slice_name = _slice_name_for_analyte(lab_name)
         pkg = load_lab_coding_package()

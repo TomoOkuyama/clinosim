@@ -22,7 +22,7 @@ from typing import Any
 
 import pytest
 
-from clinosim.modules.output._fhir_observations import _build_vital_observations
+from clinosim.modules.output.fhir_r4.labs.observations import _build_vital_observations
 
 pytestmark = pytest.mark.unit
 
