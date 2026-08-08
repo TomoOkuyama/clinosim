@@ -10,6 +10,10 @@ module's own `README.md`.
   layering, dependency direction, and how the simulator / output subsystems
   cross-reference each other. Extracted from the root `README.md` (Issue #568
   PR A).
+- [`data-flow.md`](data-flow.md) — end-to-end data flow across population,
+  simulation, and FHIR export. Extracted from `README.md` (Issue #568 PR A2).
+- [`module-dependency-graph.md`](module-dependency-graph.md) — top-level
+  package import graph. Extracted from `README.md` (Issue #568 PR A2).
 
 ## Related
 
