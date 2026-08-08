@@ -12,12 +12,17 @@ CLI:
 
 from clinosim.simulator.cli import main
 from clinosim.simulator.engine import run_alpha, run_beta, run_forced
-from clinosim.simulator.helpers import _load_all_disease_protocols
+from clinosim.simulator.helpers import (
+    _load_all_disease_protocols,  # noqa: F401 — deprecated alias, kept for one release
+    load_all_disease_protocols,
+)
 
 __all__ = [
     "run_alpha",
     "run_beta",
     "run_forced",
     "main",
+    "load_all_disease_protocols",
+    # Deprecated alias (Issue #557) — remove next release.
     "_load_all_disease_protocols",
 ]

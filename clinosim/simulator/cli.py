@@ -22,7 +22,7 @@ from clinosim.simulator.cli_regenerate import _run_regenerate_goldens
 from clinosim.simulator.cli_test_disease import _run_test_disease
 from clinosim.simulator.cli_test_encounter import _run_test_encounter
 from clinosim.simulator.engine import run_beta
-from clinosim.simulator.helpers import _load_all_disease_protocols
+from clinosim.simulator.helpers import load_all_disease_protocols
 from clinosim.types.config import SimulatorConfig
 
 
@@ -554,7 +554,7 @@ def main() -> None:
         sys.exit(dispatch_benchmark(args))
 
     if args.command == "list-diseases":
-        protocols = _load_all_disease_protocols()
+        protocols = load_all_disease_protocols()
         print(f"\n{len(protocols)} inpatient disease protocols:")
         for name in sorted(protocols.keys()):
             p = protocols[name]

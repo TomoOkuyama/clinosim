@@ -15,7 +15,7 @@ Contains:
   - _bb_vitals
   - _bb_medication_requests
   - _bb_discharge_medication_requests
-  - _bb_medication_admins (+ helper _build_order_in_rp_map)
+  - _bb_medication_admins (+ helper build_order_in_rp_map)
   - _bb_procedures
   - _bb_practitioners
 
@@ -111,7 +111,6 @@ from clinosim.modules.output._fhir_observations import (  # noqa: F401
     _build_vital_observations,
 )
 from clinosim.modules.output._fhir_patient import (  # noqa: F401
-    _IDENTITY_CFG_CACHE,
     _ORG_TYPE_SYSTEM,
     _SUBSCRIBER_REL_SYSTEM,
     _build_coverage_resources,
@@ -443,7 +442,7 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     # encounter 内の medication order 出現順を orderInRp (1-based) にする。
     # 同一 order の MedicationRequest / MedicationAdministration は同じ
     # order_id → order_in_rp map を使うため両者の紐付けが取れる。
-    _order_in_rp_by_oid = _build_order_in_rp_map(ctx.record.get("orders", []) or [])
+    _order_in_rp_by_oid = build_order_in_rp_map(ctx.record.get("orders", []) or [])
     for order in ctx.record.get("orders", []):
         if order.get("order_type") == "medication":
             if not (order.get("display_name") or "").strip():
@@ -530,7 +529,7 @@ def _bb_discharge_medication_requests(ctx: BundleContext) -> list[dict]:
     return out
 
 
-def _build_order_in_rp_map(orders: list) -> dict[str, int]:
+def build_order_in_rp_map(orders: list) -> dict[str, int]:
     """Per-encounter medication order 出現順 → orderInRp 番号(1-based)map を返す。
 
     JP Core JP_MedicationRequest / JP_MedicationAdministration の
@@ -582,8 +581,8 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
                 _order_code_by_id[_base_oid] = _oc
     # session 49 clinosim_feedback P1-4: JP_MedicationAdministration.identifier
     # slice orderInRp。同 order_id を参照する MedicationRequest と同じ
-    # 番号にするため、`_build_order_in_rp_map` の同一ロジックで再構築。
-    _order_in_rp_by_oid = _build_order_in_rp_map(ctx.record.get("orders", []) or [])
+    # 番号にするため、`build_order_in_rp_map` の同一ロジックで再構築。
+    _order_in_rp_by_oid = build_order_in_rp_map(ctx.record.get("orders", []) or [])
     for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
         if not (mar.get("drug_name") or "").strip():
             continue
