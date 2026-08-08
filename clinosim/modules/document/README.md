@@ -192,7 +192,7 @@ primary_nurse_id 優先。4 branch 内の hardcoded attending_id 直接使用を
 
 ## 関連
 
-- 設計: `docs/superpowers/specs/2026-07-02-tier1-3-narrative-stage2-architecture-design.md` (AD-65)
+- 設計: `docs/history/specs-archive/2026-07-02-tier1-3-narrative-stage2-architecture-design.md` (AD-65)
 - 仕様: `docs/spec/tier1-document-density-alpha-min-1-spec.md`
 - マスタープラン: `docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md`
 - DESIGN.md (AD-55, AD-62, AD-63, AD-65)

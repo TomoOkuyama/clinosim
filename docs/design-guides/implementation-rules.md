@@ -11,7 +11,7 @@
 ## 0. Workflow 規律(コードを書く前に)
 
 1. **Chain workflow(確立済、逸脱禁止)**: recon → design spec commit
-   (`docs/superpowers/specs/`)→ TDD 実装(test first)→ 独立検証 → PR →
+   (`docs/history/specs-archive/`)→ TDD 実装(test first)→ 独立検証 → PR →
    compact adversarial review(5-lens、finding は実証必須)→ fix → 全 suite green → merge。
 2. **Scope discipline(★★★)**: spec 確定後の scope 拡大禁止。scope 外の発見は
    「データ品質/臨床整合性に必須」の場合のみ対応、それ以外は **TODO.md に formal entry 化**

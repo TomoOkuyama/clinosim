@@ -1,7 +1,7 @@
 # BMP Cl/Ca Physiology — Audit Results (2026-06-23)
 
-**Spec:** `docs/superpowers/specs/2026-06-23-bmp-cl-ca-physiology-design.md`
-**Plan:** `docs/superpowers/plans/2026-06-23-bmp-cl-ca-physiology-plan.md`
+**Spec:** `docs/history/specs-archive/2026-06-23-bmp-cl-ca-physiology-design.md`
+**Plan:** `docs/history/plans-archive/2026-06-23-bmp-cl-ca-physiology-plan.md`
 **Branch:** `feat/bmp-cl-ca-physiology`
 
 ## Summary

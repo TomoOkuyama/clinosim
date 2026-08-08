@@ -140,6 +140,6 @@ CIF 上の location: `CIFPatientRecord.extensions["device"]: list[DeviceRecord]`
 - [MODULES.md](../../../MODULES.md) — 全 module 俯瞰
 - 関連モジュール: `output/_fhir_device.py` (builder)、Phase 2 `modules/hai` (consumer)
 - 関連 spec / plan:
-  - `docs/superpowers/specs/2026-06-24-device-module-design.md`
-  - `docs/superpowers/plans/2026-06-24-device-module-pra.md`
+  - `docs/history/specs-archive/2026-06-24-device-module-design.md`
+  - `docs/history/plans-archive/2026-06-24-device-module-pra.md`
 - DQR review: `docs/reviews/2026-06-24-device-module-data-quality-review.md`

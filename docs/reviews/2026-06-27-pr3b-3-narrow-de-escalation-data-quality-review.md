@@ -4,8 +4,8 @@
 **Branch**: `feat/pr3b-3-narrow-de-escalation`
 **Generation**: US p=10000 + JP p=5000, seed=42, `--format fhir-r4`, hospital `hospital_operations.yaml`
 **Audit gate**: `clinosim audit run` 4-axis verdict
-**Spec**: [`docs/superpowers/specs/2026-06-27-pr3b-3-narrow-de-escalation-design.md`](../superpowers/specs/2026-06-27-pr3b-3-narrow-de-escalation-design.md)
-**Plan**: [`docs/superpowers/plans/2026-06-27-pr3b-3-narrow-de-escalation.md`](../superpowers/plans/2026-06-27-pr3b-3-narrow-de-escalation.md)
+**Spec**: [`docs/history/specs-archive/2026-06-27-pr3b-3-narrow-de-escalation-design.md`](../superpowers/specs/2026-06-27-pr3b-3-narrow-de-escalation-design.md)
+**Plan**: [`docs/history/plans-archive/2026-06-27-pr3b-3-narrow-de-escalation.md`](../superpowers/plans/2026-06-27-pr3b-3-narrow-de-escalation.md)
 
 ---
 

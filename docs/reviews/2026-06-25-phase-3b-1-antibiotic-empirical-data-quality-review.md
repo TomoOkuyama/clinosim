@@ -4,8 +4,8 @@
 **Branch**: `feat/phase-3b-1-antibiotic-empirical`
 **Master baseline**: `5401cc37` (PR #92)
 **Scope**: PR3b-1 of the 4-PR Phase 3b HAI antibiotic chain
-**Spec**: `docs/superpowers/specs/2026-06-25-phase-3b-1-antibiotic-empirical-design.md`
-**Plan**: `docs/superpowers/plans/2026-06-25-phase-3b-1-antibiotic-empirical-plan.md`
+**Spec**: `docs/history/specs-archive/2026-06-25-phase-3b-1-antibiotic-empirical-design.md`
+**Plan**: `docs/history/plans-archive/2026-06-25-phase-3b-1-antibiotic-empirical-plan.md`
 
 ## TL;DR
 

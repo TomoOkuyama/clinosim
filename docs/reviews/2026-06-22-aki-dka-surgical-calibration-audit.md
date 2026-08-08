@@ -156,7 +156,7 @@ dropped into the slope's domain. No spurious cross-cohort effects.
 
 ## Why no cascade
 
-Spec: `docs/superpowers/specs/2026-06-22-aki-dka-surgical-calibration-design.md`.
+Spec: `docs/history/specs-archive/2026-06-22-aki-dka-surgical-calibration-design.md`.
 
 `state.renal_function` and `state.ph_status` derive from `apply_disease_onset`
 (disease YAML) and `apply_coupling_rules`, neither of which is touched. After

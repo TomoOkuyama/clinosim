@@ -144,7 +144,7 @@ id in the same export. No dangling references.
 
 ## Why no cascade
 
-Spec ref: `docs/superpowers/specs/2026-06-22-diagnostic-report-panels-design.md`.
+Spec ref: `docs/history/specs-archive/2026-06-22-diagnostic-report-panels-design.md`.
 The grouping is a pure read of `ctx.record["orders"]` and produces a separate
 list of `DiagnosticReport` resources. No state mutation, no RNG draws, no
 CIF schema change. Every other resource type is byte-identical to master.

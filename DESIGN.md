@@ -2573,8 +2573,8 @@ Neutral:
 **Related ADRs:** AD-16 / AD-56 / AD-63 / AD-65
 
 **Related documents:**
-- Spec: `docs/superpowers/specs/2026-07-03-tier1-3-alpha-min-2c-fixture-library-design.md`
-- Plan: `docs/superpowers/plans/2026-07-03-tier1-3-alpha-min-2c-fixture-library-plan.md`
+- Spec: `docs/history/specs-archive/2026-07-03-tier1-3-alpha-min-2c-fixture-library-design.md`
+- Plan: `docs/history/plans-archive/2026-07-03-tier1-3-alpha-min-2c-fixture-library-plan.md`
 
 ---
 
@@ -2634,8 +2634,8 @@ Negative / neutral:
 **Related ADRs:** AD-16 / AD-55 / AD-57 (scenario flags sibling pattern)
 
 **Related documents:**
-- Spec: `docs/superpowers/specs/2026-07-06-severity-single-source-c2-design.md`
-- Plan: `docs/superpowers/plans/2026-07-06-severity-single-source-c2.md`
+- Spec: `docs/history/specs-archive/2026-07-06-severity-single-source-c2-design.md`
+- Plan: `docs/history/plans-archive/2026-07-06-severity-single-source-c2.md`
 - Registry: `docs/design-notes/2026-07-06-fix-point-registry.md` (FP-SEV-MODEL)
 
 ---
@@ -2683,8 +2683,8 @@ conditions deferred (shared scenario-flag mechanism with AD-67's reserved set).
 **Related ADRs:** AD-16 / AD-67 (severity sibling)
 
 **Related documents:**
-- Spec: `docs/superpowers/specs/2026-07-06-archetype-modifiers-wiring-design.md`
-- Plan: `docs/superpowers/plans/2026-07-06-archetype-modifiers-wiring.md`
+- Spec: `docs/history/specs-archive/2026-07-06-archetype-modifiers-wiring-design.md`
+- Plan: `docs/history/plans-archive/2026-07-06-archetype-modifiers-wiring.md`
 - Registry: `docs/design-notes/2026-07-06-fix-point-registry.md` (FP-YAML-2)
 
 ---

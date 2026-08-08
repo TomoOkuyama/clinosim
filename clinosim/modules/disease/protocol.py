@@ -287,7 +287,7 @@ _LOCALIZED_DOSE_KEY_TYPOS: dict[str, str] = {
 # Consumed by `clinosim/simulator/inpatient.py` via
 # `classify_escalation_treatment`, which routes on `type` in preference to the
 # text-substring keyword fallback. Design:
-# `docs/superpowers/specs/2026-08-07-drugs-escalation-procedure-signal-design.md`.
+# `docs/history/specs-archive/2026-08-07-drugs-escalation-procedure-signal-design.md`.
 #
 # Layers 2 (legacy marker reject) and 3 (`type=procedure` + `route` reject) are
 # added in a follow-up commit after the 3 shipped YAMLs are migrated.
