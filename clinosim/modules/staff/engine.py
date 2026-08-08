@@ -12,7 +12,25 @@ from clinosim.locale.loader import load_names
 from clinosim.modules._shared import is_jp
 from clinosim.types.staff import StaffMember, StaffRoster
 
-__all__ = ["StaffMember", "StaffRoster", "generate_roster", "assign_staff"]
+__all__ = [
+    "FALLBACK_NURSE_ID",
+    "FALLBACK_PHYSICIAN_ID",
+    "FALLBACK_TECH_ID",
+    "StaffMember",
+    "StaffRoster",
+    "assign_staff",
+    "generate_roster",
+]
+
+
+# Staff-ID sentinels — Issue #562. Used only when `assign_staff` finds an
+# empty roster (test fixtures, smoke runs). Production paths always have a
+# real ID by the time these dict.get(...)s fire. Grep-alignable so a rename
+# is a one-file edit and a "reader can tell it's a fallback, not a
+# deterministic ID" at every call site.
+FALLBACK_PHYSICIAN_ID: str = "DR-001"
+FALLBACK_NURSE_ID: str = "NS-001"
+FALLBACK_TECH_ID: str = "TECH-001"
 
 
 def _gen_phone(country: str, rng: np.random.Generator) -> str:
