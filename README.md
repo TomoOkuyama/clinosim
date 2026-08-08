@@ -434,53 +434,7 @@ Moved to [`docs/reference/output-formats.md`](docs/reference/output-formats.md) 
 
 ## Data Flow
 
-clinosim implements a three-stage pipeline. Each stage is self-contained, has a well-defined input and output on disk, and can be run independently of the others.
-
-```mermaid
-flowchart TD
-    subgraph stage1["Stage 1 — clinosim simulate"]
-        pop["population engine<br/>Catchment (household-based)<br/>PersonRecord (Layer 1)<br/>Monthly LifeEvent"]
-        act["patient activator<br/>Layer 1 → Layer 2"]
-        enc["encounter creation<br/>disease YAML → department<br/>staff / ward / bed / OR"]
-        loop["daily simulation loop<br/>clinical_course → physiology<br/>→ orders → diagnosis<br/>→ procedure + MAR<br/>→ discharge readiness?"]
-        cif_s["CIF structural/<br/>immutable, one JSON per encounter"]
-        pop --> act --> enc --> loop --> cif_s
-    end
-
-    subgraph stage2["Stage 2 — clinosim narrate (DEPRECATED)"]
-        gen2["document_enricher (document module)<br/>Stage 1 built-in: DR + Composition + ClinicalImpression<br/>template-based, fully deterministic"]
-        llm2["LLM narrative deferred to β-JP-1 chain<br/>(narrate subcommand removed)"]
-    end
-
-    subgraph stage3["Stage 3 — clinosim export-fhir"]
-        adapter["fhir_r4_adapter (+ per-theme _fhir_* builders)<br/>structural → 16 FHIR resource types<br/>narratives → DocumentReference (base64)<br/>display text via clinosim.codes"]
-        fhir["output/fhir_r4/<br/>HL7 Bulk Data NDJSON + manifest.json"]
-        adapter --> fhir
-    end
-
-    cif_s --> adapter
-```
-
-**Why three stages?**
-
-- **Reproducibility** — Stage 1 is fully deterministic from a seed (includes built-in document enricher). Stage 3 is a pure function of CIF.
-- **Extensibility** — Stage 2 LLM narrative integration (Ollama / Bedrock) is deferred to the β-JP-1 chain; the architecture is preserved for future wiring.
-- **Cost control** — When LLM narratives land, Stage 2 will be the only stage that may call a paid LLM API. Bedrock runs can be isolated to a single EC2 invocation.
-- **Remote execution** — Future Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock), while Stage 1 and Stage 3 stay local.
-
-### Snapshot Semantics
-
-- Simulation period: `--start` ~ `--end`
-- `--end` = **snapshot date**
-- No life events generated past the snapshot date (no future admissions)
-- Inpatients whose `discharge_datetime` would fall after the snapshot date:
-  - `discharge_datetime = None`
-  - `Encounter.status = "in-progress"`
-  - Partial data only (labs/vitals/orders/MAR up to snapshot day)
-  - Primary `Condition.clinicalStatus = "active"` (not resolved)
-- This produces a realistic EHR snapshot **including currently admitted patients** (e.g., 50-bed × 60% occupancy ≈ 30 in-progress encounters)
-
----
+Moved to [`docs/architecture/data-flow.md`](docs/architecture/data-flow.md) — End-to-end data flow (population → simulation → FHIR export).
 
 ## Module Architecture
 
@@ -488,56 +442,7 @@ Moved to [`docs/architecture/module-architecture.md`](docs/architecture/module-a
 
 ## Code Systems & Authoritative Sources
 
-`clinosim/codes/` centralizes international standard code systems, all with English display (Japanese is optional).
-
-| Key | Name | Use | Authoritative Source |
-|---|---|---|---|
-| `icd-10-cm` | ICD-10-CM | US diagnoses | [CMS](https://www.cms.gov/medicare/coding-billing/icd-10-codes) |
-| `icd-10` | WHO ICD-10 | JP diagnoses | [WHO](https://icd.who.int/browse10/) |
-| `loinc` | LOINC | Lab tests, vitals, clinical document types | [Regenstrief](https://loinc.org/) |
-| `snomed-ct` | SNOMED CT (subset) | Procedure category, performer role, body site, outcome, complication | [SNOMED International](https://www.snomed.org/) |
-| `jlac10` | JLAC10 | JP lab codes | [JCCLS](https://www.jccls.org/) |
-| `rxnorm` | RxNorm | US drugs | [NLM](https://www.nlm.nih.gov/research/umls/rxnorm/) |
-| `yj` | YJ codes | JP drugs | MHLW Drug Price Standards |
-| `cpt` | CPT | US procedures | [AMA](https://www.ama-assn.org/practice-management/cpt) |
-| `k-codes` | K codes | JP reimbursement procedures | MHLW Medical Fee Schedule |
-
-Clinical document types use the following LOINC codes:
-
-| Document | LOINC | Notes |
-|---|---|---|
-| History and physical note | `34117-2` | Generated at admission |
-| Progress note | `11506-3` | Reserved for future Tier C scope |
-| Discharge summary note | `18842-5` | Generated at discharge |
-| Death note | `69730-0` | Generated when `deceased=true` |
-| Surgical operation note | `11504-8` | Generated per surgical procedure |
-| Procedure note | `28570-0` | Generated per invasive bedside procedure |
-
-### Using Code Systems (FHIR Observation example)
-
-```python
-from clinosim.codes import lookup, get_system_uri
-
-# CIF data is code-only
-crp_code = "1988-5"  # LOINC
-
-# Build FHIR Observation
-obs = {
-    "resourceType": "Observation",
-    "code": {
-        "coding": [{
-            "system": get_system_uri("loinc"),
-            "code": crp_code,
-            "display": lookup("loinc", crp_code, "en"),
-        }],
-    },
-    "valueQuantity": {"value": 38.2, "unit": "mg/L"},
-}
-```
-
-See `clinosim/codes/README.md` for details.
-
----
+Moved to [`docs/reference/code-systems.md`](docs/reference/code-systems.md) — FHIR code system URIs + authoritative-source references.
 
 ## Supported Diseases
 
@@ -566,78 +471,11 @@ Adding new diseases requires **only adding a YAML file** (no code changes). See 
 
 ## Multi-Country Support
 
-| Item | US (default) | JP (`--country JP`) |
-|---|---|---|
-| Diagnosis codes | ICD-10-CM | ICD-10 (WHO) |
-| Lab codes | LOINC | JLAC10 |
-| Drug codes | RxNorm | YJ codes |
-| Procedure codes | CPT | K codes |
-| Display language | English | Japanese (English fallback) |
-| Patient names | English | Kanji + kana extension |
-| Addresses | 50 US states | 47 Japanese prefectures (JIS X 0401) |
-| Lab reference ranges | Tietz/Mayo | JCCLS Reference Intervals 2022 |
-| Marital status | HL7 v3 (S/M/D/W) | Same |
-| Language | en-US | ja-JP |
-
----
+Moved to [`docs/reference/multi-country.md`](docs/reference/multi-country.md) — Multi-country locale + code-system dispatch reference.
 
 ## Hospital Configuration
 
-`clinosim/config/hospital_*.yaml` defines hospital physical layout and operational parameters:
-
-```yaml
-recommended_population: 60000
-
-available_departments:           # Available specialties
-  - internal_medicine
-  - cardiology
-  - gastroenterology
-  - general_surgery
-  - orthopedics
-  - emergency_medicine
-  - primary_care
-
-department_rollup:              # Sub-specialty → available department
-  pulmonology: internal_medicine
-  neurology: internal_medicine
-  neurosurgery: general_surgery
-
-wards:                          # Wards per department
-  internal_medicine: ["4E", "4W"]
-  cardiology: ["5E"]
-  general_surgery: ["3E"]
-  orthopedics: ["3W"]
-  emergency_medicine: ["ER"]
-  primary_care: ["OPD"]
-
-ward_capacity:                  # Bed count per ward
-  "4E": 10
-  "4W": 10
-  "5E": 8
-  "3E": 8
-  "3W": 6
-
-resource_capacity:              # Lab/imaging capacity
-  lab_analyzers: 2
-  ct_scanners: 1
-  mri_scanners: 0
-  inpatient_beds: 50
-
-staffing:                       # Staffing ratio per shift
-  day:    {hours: [8, 16],  lab_staff: 1.0, nursing_staff: 1.0}
-  evening:{hours: [16, 0],  lab_staff: 0.5, nursing_staff: 0.7}
-  night:  {hours: [0, 8],   lab_staff: 0.2, nursing_staff: 0.5}
-```
-
-This enables:
-- Automatic disease → department → ward → bed routing
-- M/M/1 queueing model with dynamic test result delays
-- Nurses assigned per ward (PractitionerRole.location)
-- Switchable hospital templates (large / mid-size / clinic)
-
-See `clinosim/modules/facility/README.md`.
-
----
+Moved to [`docs/reference/hospital-configuration.md`](docs/reference/hospital-configuration.md) — Hospital YAML config reference (beds / departments / roster).
 
 ## Design Philosophy
 
@@ -654,82 +492,11 @@ See `clinosim/modules/facility/README.md`.
 
 ## Testing
 
-```bash
-source .venv/bin/activate
-
-# All tests (unit ~1 min, integration ~30 min, e2e ~8 min)
-pytest -x
-
-# By category
-pytest -m unit                   # Unit tests (~2400 fast tests)
-pytest -m integration            # Cross-module (includes reproduce.sh gate)
-pytest -m e2e                    # E2E + golden tests
-
-# Coverage
-pytest --cov=clinosim
-```
-
-### Reproducibility
-
-clinosim guarantees **byte-identical output** for a given
-`(seed, config, country, start, end, population)` tuple within a MINOR
-release line — wall-clock metadata (`fhir_r4/manifest.json`,
-`cif/metadata.json`, narrative-pass `manifest.json`) is expected to
-differ, everything else must match.
-
-Verify at any time:
-
-```bash
-bash scripts/reproduce.sh
-```
-
-The script runs `clinosim simulate --format fhir` twice per locale
-(US + JP by default) to two isolated temp directories, sha256s every
-NDJSON + CIF JSON, and diffs the hash lists. Exit 0 = byte-identical,
-exit 1 = determinism regression with the offending file(s) listed in
-the diff. Environment variables `CLINOSIM_REPRO_COUNTRIES`,
-`CLINOSIM_REPRO_POPULATION`, `CLINOSIM_REPRO_SEED`,
-`CLINOSIM_REPRO_START`, `CLINOSIM_REPRO_END` override the defaults.
-
-The CI `reproducibility` job runs this on every push and PR, so any
-regression trips the merge gate before code lands.
-
----
+Moved to [`docs/development/testing.md`](docs/development/testing.md) — Test suite layout, markers, and how to run each tier.
 
 ## Datasets
 
-Four named dataset presets live under
-[`datasets/`](datasets/) — small (US/JP × 100) for smoke tests and
-demos, medium (US/JP × 1000) for ML development. All at seed 42 and
-reproducibly buildable from the CLI:
-
-```bash
-clinosim dataset list                                    # enumerate presets
-clinosim dataset build jp-100 --output ./jp-100          # build one preset
-```
-
-| Preset | Country | Patients | Period | Approx. size |
-|---|---|---:|---:|---:|
-| [`us-100`](datasets/us-100/)   | US | 100  | 3 months | ~2 MB   |
-| [`us-1000`](datasets/us-1000/) | US | 1000 | 6 months | ~30 MB  |
-| [`jp-100`](datasets/jp-100/)   | JP | 100  | 3 months | ~2 MB   |
-| [`jp-1000`](datasets/jp-1000/) | JP | 1000 | 6 months | ~30 MB  |
-
-Each preset ships with a dataset card in HuggingFace format
-(`datasets/<name>/README.md`) so it can be pushed to the HF Hub with no
-metadata rework. The Zenodo integration (`.zenodo.json` at repo root)
-mints a DOI on every tagged release, so cite the DOI for the exact
-clinosim version you built the data with.
-
-Starting with the **next release cycle**, the release workflow builds
-all four presets and attaches them as GitHub Release assets. The
-current v0.2.0 release ships the infrastructure only — use
-`clinosim dataset build` to reproduce locally.
-
-To load a dataset into a FHIR server (HAPI FHIR, etc.), see
-[`docs/fhir-server-ingestion.md`](docs/fhir-server-ingestion.md).
-
----
+Moved to [`docs/reference/datasets-full.md`](docs/reference/datasets-full.md) — Full dataset descriptions (chronic / disease / population).
 
 ## Evaluation
 
@@ -757,92 +524,11 @@ CRITICAL = 3, MAJOR = 2, MINOR = 1; PASS = 1.0, WARN = 0.5, FAIL / N/A
 
 ## Extension Guide
 
-### Add a new disease
-
-1. Create `clinosim/modules/disease/reference_data/<disease_id>.yaml` (use existing disease as template)
-2. Add to incidence list in `clinosim/locale/<country>/demographics.yaml`
-3. Add necessary ICD codes to `clinosim/codes/data/icd-10-cm.yaml` (if not present)
-4. Test: `clinosim test-disease <disease_id>`
-
-Details: `clinosim/modules/disease/README.md`
-
-### Add a new encounter type (ED/outpatient)
-
-1. Create `clinosim/modules/encounter/reference_data/<condition_id>.yaml`
-2. Include `icd10_code` and `icd10_display`
-3. Test: `clinosim test-encounter <condition_id>`
-
-### Add a new country
-
-1. Create `clinosim/locale/<country_code>/` folder
-2. Add `names.yaml`, `addresses.yaml`, `demographics.yaml`, `reference_range_lab.yaml`, `formatting.yaml`
-3. Add entry in `clinosim/locale/shared/naming_rules.yaml`
-4. (Optional) Add country-specific code system to `codes/data/`
-
-### Add a new language
-
-Add a new language key to each entry in `clinosim/codes/data/*.yaml`:
-
-```yaml
-N10:
-  en: "Acute tubulo-interstitial nephritis"
-  ja: "急性腎盂腎炎"
-  de: "Akute tubulointerstitielle Nephritis"   # New language
-```
-
-Details: `clinosim/codes/README.md`
-
----
+Moved to [`docs/reference/extension-guide.md`](docs/reference/extension-guide.md) — How to add a new disease / country / module (short form).
 
 ## Module Dependency Graph
 
-```mermaid
-flowchart TD
-    codes["codes<br/>(international code systems)"]
-    locale["locale<br/>(country)"]
-    output["output<br/>(FHIR / CIF / CSV)"]
-    patient["patient activator"]
-    encounter["encounter"]
-    disease["disease (YAML)"]
-    facility["facility (queue)"]
-    population["population"]
-    staff["staff"]
-    healthcare["healthcare_system"]
-    identity["identity<br/>(JP insurance, opt-in)"]
-
-    subgraph loop["daily simulation loop"]
-        cc["clinical_course"] --> phys["physiology"]
-        phys --> obs["observation"]
-        phys --> dx["diagnosis"]
-        dx --> cc
-        obs --> proc["procedure + MAR"]
-        dx --> order["order"]
-        order --> proc
-    end
-
-    codes -->|lookup| output
-    locale --> output
-    locale --> patient
-    patient --> encounter
-    encounter --> loop
-    disease --> loop
-    facility --> loop
-    loop --> output
-    population --> disease
-    population --> facility
-    population --> staff
-    healthcare --> staff
-    population --> identity
-    identity --> output
-```
-
-`llm_service` and `validator` are cross-cutting (used in dedicated phases).
-`identity` is an opt-in enricher (AD-54): it runs as a post-population pass via the
-enricher registry (AD-56) and its data is emitted as FHIR `Coverage` by `output`.
-
-See each module's `clinosim/modules/<module>/README.md` for details.
-
----
+Moved to [`docs/architecture/module-dependency-graph.md`](docs/architecture/module-dependency-graph.md) — Import dependency graph across the top-level packages.
 
 ## LLM Integration (Optional)
 
