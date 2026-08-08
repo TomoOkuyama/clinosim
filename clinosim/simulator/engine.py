@@ -44,8 +44,8 @@ from clinosim.simulator.helpers import (
     _country_to_yaml_key,
     _deactivate_to_layer1,
     _evaluate_readmission,
-    _load_all_disease_protocols,
     _select_secondary_disease,
+    load_all_disease_protocols,
 )
 from clinosim.simulator.inpatient import _simulate_patient, _simulate_unknown_condition
 from clinosim.simulator.outpatient import _simulate_outpatient_visit
@@ -102,7 +102,7 @@ def run_beta(
 
     # Load modules
     healthcare = load_healthcare_config(config.country)
-    protocols = _load_all_disease_protocols()
+    protocols = load_all_disease_protocols()
     demo = load_demographics(config.country)
 
     # Hospital operational state (YAML-configurable per hospital)
