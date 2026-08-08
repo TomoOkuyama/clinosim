@@ -3,8 +3,8 @@
 **Date:** 2026-06-23
 **Branch:** `feat/cbc-bmp-pr2-min-components`
 **Base:** master @ `28834f6a` (PR #74 merged)
-**Spec:** `docs/superpowers/specs/2026-06-23-cbc-bmp-pr2-min-components-design.md`
-**Plan:** `docs/superpowers/plans/2026-06-23-cbc-bmp-pr2-min-components.md`
+**Spec:** `docs/history/specs-archive/2026-06-23-cbc-bmp-pr2-min-components-design.md`
+**Plan:** `docs/history/plans-archive/2026-06-23-cbc-bmp-pr2-min-components.md`
 **Audit script:** `scratchpad/cbc_bmp_panel_audit.py`
 **Byte-diff script:** `scratchpad/cbc_bmp_byte_diff.py` (PR1's, reused unchanged)
 

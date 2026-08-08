@@ -77,7 +77,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   3. 下限定義の一元化。
   4. 入院/ED 重症度系統の統一 or 分離維持。
   5. `severity_from_protocol(protocol, draw)` 兄弟ヘルパ(`scenario_flags_from_protocol` パターン)の新設。
-- **成果物**: `docs/superpowers/specs/` に design spec。実装は挙動変更 = golden 全再生成 + AD 追記。
+- **成果物**: `docs/history/specs-archive/` に design spec。実装は挙動変更 = golden 全再生成 + AD 追記。
 - **依存先**: FP-YAML-2(archetype_modifiers)/ FP-I10 がこの決定に乗る。
 - **Status:** DONE(session 38、c2、AD-67)。`clinosim/modules/disease/severity.py` 新設
   (`sample_severity` / `sample_severity_category` / `category_from_score` /
@@ -442,7 +442,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   ({N18,I50,J44,J45,I10,I25})が STAGE_SEVERITY 消費者を持つ(I10-class no-op 再発防止)。
   C3: HF/subdural closures 維持 + course_archetypes backlog allowlist の drift 検出。
   regression 捕捉を実証(I10 除去で guard fail)。spec:
-  `docs/superpowers/specs/2026-07-06-completeness-gate-design.md`。
+  `docs/history/specs-archive/2026-07-06-completeness-gate-design.md`。
   **残(別 chain)**: cohort-level 統計 audit 軸(`audit/axes/completeness.py`、authored 分布の
   cohort 反映 / stage 別 vitals 分離 / per-disease 期待 resource マトリクス)= audit framework 統合が要る大工事。
 </content>

@@ -40,6 +40,6 @@ Identity (order=10, name="identity") とのタイブレークは名前順 ("alle
 
 ## 関連
 
-- Spec: `docs/superpowers/specs/2026-07-01-tier1-3-document-density-alpha-min-1-design.md`
+- Spec: `docs/history/specs-archive/2026-07-01-tier1-3-document-density-alpha-min-1-design.md`
 - Master plan: `docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md`
 - Task brief: `.superpowers/sdd/task-2-brief.md`

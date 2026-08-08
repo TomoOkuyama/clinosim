@@ -1,7 +1,7 @@
 """Integration test: CBC and BMP panel orders expand into canonical
 component child orders (PR1 of CBC/BMP panel expansion).
 
-Spec: docs/superpowers/specs/2026-06-23-cbc-bmp-panel-expansion-design.md
+Spec: docs/history/specs-archive/2026-06-23-cbc-bmp-panel-expansion-design.md
 
 The CIFPatientRecord stores `orders` and `lab_results` as flat patient-level
 lists (not encounter-nested) — see clinosim/types/output.py. Tests therefore

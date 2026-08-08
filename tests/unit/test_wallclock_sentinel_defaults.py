@@ -4,7 +4,7 @@ no longer read the wall clock (determinism chain, 2026-07-04).
 Each assertion constructs the class with no args (or the minimal args needed)
 and checks the timestamp/date field equals the fixed sentinel — proving the
 default is a constant, not a live wall-clock call. See
-docs/superpowers/specs/2026-07-04-determinism-chain-wallclock-removal-design.md.
+docs/history/specs-archive/2026-07-04-determinism-chain-wallclock-removal-design.md.
 """
 
 from __future__ import annotations

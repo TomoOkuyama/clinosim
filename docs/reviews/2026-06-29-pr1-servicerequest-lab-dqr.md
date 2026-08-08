@@ -3,7 +3,7 @@
 **Date:** 2026-06-29
 **Branch:** feature/pr1-servicerequest-lab
 **Cohort:** US p=10,000 seed=42 + JP p=5,000 seed=42
-**Spec:** docs/superpowers/specs/2026-06-29-pr1-servicerequest-lab-design.md
+**Spec:** docs/history/specs-archive/2026-06-29-pr1-servicerequest-lab-design.md
 
 ---
 

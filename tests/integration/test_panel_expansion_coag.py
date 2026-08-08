@@ -1,6 +1,6 @@
 """Integration test: Coag panel (LOINC 24373-3) analyte emission.
 
-Spec: docs/superpowers/specs/2026-06-23-coag-panel-physiology-design.md
+Spec: docs/history/specs-archive/2026-06-23-coag-panel-physiology-design.md
 
 After Tasks 2-4 add APTT / PT / Fibrinogen derives, the disease YAMLs that
 already order these analytes (acute_mi, sepsis, gi_bleeding, subdural,
