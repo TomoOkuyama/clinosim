@@ -34,6 +34,7 @@ jobs:
   unit:
     name: Unit tests (Py 3.12)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -120,6 +121,7 @@ jobs:
   quality:
     name: Quality (informational)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     continue-on-error: true
     # Combines the former `lint` and `typecheck` jobs into a single runner
     # since neither blocks merge. Removes one runner boot + install cycle
@@ -147,6 +149,7 @@ jobs:
   packaging:
     name: Build sdist + wheel
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
