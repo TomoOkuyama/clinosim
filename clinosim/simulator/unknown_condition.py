@@ -84,12 +84,16 @@ def _simulate_unknown_condition(
     Unlike known-disease patients, unknown condition patients undergo extensive
     diagnostic workup that progressively broadens without reaching a conclusion.
     """
-    # Local import to avoid a cycle: `inpatient.py` re-exports this function
-    # for backwards compat, so importing it at module-scope would form a
-    # `inpatient → unknown_condition → inpatient` loop. Deferred to call
-    # time keeps this module import-clean while still reusing the two shared
-    # per-day helpers (which live in `inpatient.py` until PRs B and C).
-    from clinosim.simulator.inpatient import _generate_mar, _generate_vitals
+    # Local import to avoid a cycle: `inpatient.py` re-exports
+    # `_simulate_unknown_condition` for backwards compat, so a module-scope
+    # import from `inpatient` would form a `inpatient → unknown_condition →
+    # inpatient` loop. Deferred to call time keeps this module import-clean.
+    # `_generate_vitals` now lives in `vitals_pipeline` (PR B); `_generate_mar`
+    # is still in `inpatient` (moves in PR C — until then imported from there
+    # directly, which is fine because it's a first-class definition, not a
+    # re-export).
+    from clinosim.simulator.inpatient import _generate_mar
+    from clinosim.simulator.vitals_pipeline import _generate_vitals
 
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
     state.inflammation_level += float(rng.uniform(0.10, 0.30))
