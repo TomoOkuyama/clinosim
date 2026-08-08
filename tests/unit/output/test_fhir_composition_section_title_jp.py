@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_composition import (
+from clinosim.modules.output.fhir_r4.documents.composition import (
     _SECTION_TITLE_JA,
     _build_composition_generic,
     _localize_section_title,

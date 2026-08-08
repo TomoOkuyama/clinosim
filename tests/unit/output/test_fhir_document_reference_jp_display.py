@@ -35,7 +35,7 @@ from typing import Any
 import pytest
 
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules.output._fhir_documents import _build_dref_from_clinical_doc
+from clinosim.modules.output.fhir_r4.documents.documents import _build_dref_from_clinical_doc
 
 pytestmark = pytest.mark.unit
 

@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_patient import _build_patient
+from clinosim.modules.output.fhir_r4.demographics.patient import _build_patient
 
 pytestmark = pytest.mark.unit
 

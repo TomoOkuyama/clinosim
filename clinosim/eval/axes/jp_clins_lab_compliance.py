@@ -81,7 +81,7 @@ from __future__ import annotations
 from clinosim.audit.types import Cohort
 from clinosim.eval.axes.locale import _detect_country_from_cohort
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
-from clinosim.modules.output.lab_coding_package import (
+from clinosim.modules.output.fhir_r4.labs.coding_package import (
     jp_clins_defined_system_uris,
     jp_clins_fixed_display_system_uris,
     jp_clins_localcode_system_uri,

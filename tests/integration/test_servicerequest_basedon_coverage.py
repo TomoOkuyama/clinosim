@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from clinosim.modules.output._fhir_service_request import LAB_CATEGORY_V2_0074
+from clinosim.modules.output.fhir_r4.labs.service_request import LAB_CATEGORY_V2_0074
 from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 
 # Microbiology observation IDs use these prefixes (from _fhir_microbiology.py).

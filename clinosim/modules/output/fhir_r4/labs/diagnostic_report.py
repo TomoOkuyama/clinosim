@@ -33,7 +33,7 @@ from clinosim.modules.imaging.engine import (
     load_body_sites,
 )
 from clinosim.modules.order.panel_grouping import load_panel_definitions
-from clinosim.modules.output._fhir_service_request import (
+from clinosim.modules.output.fhir_r4.labs.service_request import (
     LAB_CATEGORY_V2_0074,
     SR_ID_PREFIX,
     V2_0074_SYSTEM,

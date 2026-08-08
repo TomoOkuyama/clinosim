@@ -31,7 +31,7 @@ from typing import Any
 import pytest
 
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER
-from clinosim.modules.output._fhir_medications import _build_medication_request
+from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_request
 
 pytestmark = pytest.mark.unit
 

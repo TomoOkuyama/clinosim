@@ -212,7 +212,7 @@ class TestEnricherInferencePath:
 @pytest.mark.unit
 class TestFhirStubImagingStudy:
     def _build_and_get(self, study_record):
-        from clinosim.modules.output._fhir_imaging_study import _build_imaging_study
+        from clinosim.modules.output.fhir_r4.labs.imaging_study import _build_imaging_study
 
         return _build_imaging_study(study_record, "ja", enc_reason_by_id={})
 
@@ -292,7 +292,7 @@ class TestFhirStubImagingStudy:
         US path は LOINC coding + text 両方 emit(US profile は該当
         binding なし、情報保持)。
         """
-        from clinosim.modules.output._fhir_imaging_study import _build_imaging_study
+        from clinosim.modules.output.fhir_r4.labs.imaging_study import _build_imaging_study
         from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord
 
         study = ImagingStudyRecord(

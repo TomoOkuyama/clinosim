@@ -72,7 +72,7 @@ def _make_ctx(record: dict, country: str, patient_id: str = "p1", primary_enc_id
 
 def test_nursing_observations_us_no_japanese():
     """US output must have no Japanese characters."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -83,7 +83,7 @@ def test_nursing_observations_us_no_japanese():
 
 def test_resource_types_are_observation():
     """Every resource must have resourceType == Observation."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -93,7 +93,7 @@ def test_resource_types_are_observation():
 
 def test_category_is_survey():
     """Every Observation must have category containing the 'survey' code."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -105,7 +105,7 @@ def test_category_is_survey():
 
 def test_ids_unique():
     """All observation ids within the output must be unique."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -116,7 +116,7 @@ def test_ids_unique():
 
 def test_subject_references_patient():
     """subject.reference must point to the Patient resource."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US", patient_id="p1")
     obs = _bb_nursing_observations(ctx)
@@ -128,7 +128,7 @@ def test_subject_references_patient():
 
 def test_encounter_reference_present():
     """When primary_enc_id is set, encounter reference must be on each Observation."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US", primary_enc_id="enc1")
     obs = _bb_nursing_observations(ctx)
@@ -146,7 +146,7 @@ def test_news2_has_clinosim_custom_coding():
     accept it as a locally-defined coding. Session 42 cycle 2 (C2-30)
     verification comment was mistaken."""
     from clinosim.codes import get_system_uri
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -166,7 +166,7 @@ def test_news2_has_clinosim_custom_coding():
 def test_gcs_has_loinc_coding():
     """GCS Observation must have LOINC 9269-2 in code.coding."""
     from clinosim.codes import get_system_uri
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -183,7 +183,7 @@ def test_gcs_has_loinc_coding():
 def test_loinc_display_not_equal_to_code():
     """For LOINC-coded observations, display must differ from the code value."""
     from clinosim.codes import get_system_uri
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     loinc_uri = get_system_uri("loinc")
     for country in ("US", "JP"):
@@ -199,7 +199,7 @@ def test_loinc_display_not_equal_to_code():
 
 def test_braden_and_morse_present():
     """Braden and Morse observations must be generated from nursing_risk_assessments."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -212,7 +212,7 @@ def test_braden_and_morse_present():
 
 def test_morse_has_interpretation():
     """Morse observation must include interpretation when fall_risk_level is set."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -225,7 +225,7 @@ def test_morse_has_interpretation():
 
 def test_barthel_present():
     """Barthel index Observation must be generated from adl_assessments."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -236,7 +236,7 @@ def test_barthel_present():
 
 def test_intake_output_observations():
     """Fluid intake, urine output, and total output Observations must be generated."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -251,7 +251,7 @@ def test_intake_output_observations():
 
 def test_intake_value_is_sum_of_components():
     """Fluid intake total must equal iv + oral + other."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -264,7 +264,7 @@ def test_intake_value_is_sum_of_components():
 
 def test_output_value_is_sum_of_components():
     """Fluid output total must equal urine + drain + other."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -277,7 +277,7 @@ def test_output_value_is_sum_of_components():
 
 def test_fluid_observations_have_ml_unit():
     """Fluid volume Observations must use mL as unit."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
     obs = _bb_nursing_observations(ctx)
@@ -292,7 +292,7 @@ def test_fluid_observations_have_ml_unit():
 
 def test_jp_output_may_have_japanese():
     """JP output should have Japanese display text from lookup."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="JP")
     obs = _bb_nursing_observations(ctx)
@@ -304,7 +304,7 @@ def test_jp_output_may_have_japanese():
 
 def test_empty_record_returns_empty_list():
     """No nursing data → empty observation list."""
-    from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx({}, country="US")
     obs = _bb_nursing_observations(ctx)

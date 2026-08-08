@@ -11,7 +11,7 @@ import pytest
 from clinosim.audit.axes import clinical
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import Cohort
-from clinosim.modules.output._fhir_microbiology import MB_ORG_ID_PREFIX, MB_SUS_ID_PREFIX
+from clinosim.modules.output.fhir_r4.labs.microbiology import MB_ORG_ID_PREFIX, MB_SUS_ID_PREFIX
 
 
 def _write(path: Path, country: str, file: str, rows: list[dict]):

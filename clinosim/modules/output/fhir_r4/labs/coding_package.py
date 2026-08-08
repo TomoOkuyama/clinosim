@@ -17,7 +17,7 @@ Consumers:
 - ``clinosim.eval.axes.jp_clins_lab_compliance`` (axis) — uses
   ``all_slices_by_system_display()`` to check emitted display against
   the SD's Fixed value set.
-- ``clinosim.modules.output._lab_coding_strategy`` (PR 3 CoreLabo /
+- ``clinosim.modules.output.fhir_r4.labs.coding_strategy`` (PR 3 CoreLabo /
   Uncoded emission) — will use ``slice_info(slice_name)`` to get the
   slice's Fixed display, VS URL, and the list of 17-digit code
   candidates with segment decomposition (5/4/3/3/2) for
@@ -542,7 +542,11 @@ def _find_pkg_files() -> tuple[Path, Path, Path | None, Path | None, Path | None
         sd_candidates.append(
             home_cache / f"{_JP_CLINS_PKG_ID}{sep}{_JP_CLINS_PKG_VERSION}" / "package" / _ECS_SD_FILENAME
         )
-    repo_root = Path(__file__).resolve().parents[3]
+    # PR2 (Issue #555): file moved from output/lab_coding_package.py to
+    # output/fhir_r4/labs/coding_package.py (2 layers deeper) — parent depth
+    # adjusted from 3 to 5 so repo_root still resolves to the workspace root
+    # containing the sibling fhir-jp-validator/ checkout.
+    repo_root = Path(__file__).resolve().parents[5]
     dev_root = repo_root.parent / "fhir-jp-validator" / "tx-server-build" / "terminology" / "fhir-server"
     sd_candidates.append(dev_root / f"{_JP_CLINS_PKG_ID}#{_JP_CLINS_PKG_VERSION}" / "package" / _ECS_SD_FILENAME)
     sd_path = _first_existing(*sd_candidates)

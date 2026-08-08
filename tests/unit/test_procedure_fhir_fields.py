@@ -9,7 +9,7 @@ from datetime import datetime
 import numpy as np
 import pytest
 
-from clinosim.modules.output._fhir_procedures import _build_procedure
+from clinosim.modules.output.fhir_r4.procedures.procedures import _build_procedure
 from clinosim.modules.procedure.engine import (
     _PROCEDURE_METADATA,
     generate_bedside_procedures,

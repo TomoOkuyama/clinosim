@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_facility import _build_facility_bundle
+from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle
 
 pytestmark = pytest.mark.unit
 

@@ -121,7 +121,7 @@ class TestBuildDischargeMedicationRequest:
         return base
 
     def test_jp_discharge_uses_dose_ja(self):
-        from clinosim.modules.output._fhir_medications import _build_discharge_medication_request
+        from clinosim.modules.output.fhir_r4.medications.medications import _build_discharge_medication_request
 
         r = _build_discharge_medication_request(
             self._item(),
@@ -137,7 +137,7 @@ class TestBuildDischargeMedicationRequest:
         assert di[0].get("text") == "以前の吸入薬を再開または新規開始"
 
     def test_us_discharge_uses_dose_en(self):
-        from clinosim.modules.output._fhir_medications import _build_discharge_medication_request
+        from clinosim.modules.output.fhir_r4.medications.medications import _build_discharge_medication_request
 
         r = _build_discharge_medication_request(
             self._item(),

@@ -395,7 +395,7 @@ def test_normalize_two_elements_only_for_vital_signs(hl7_code, expected_two_elem
 
 def test_medication_request_jp_identifier_slice_uris_pinned():
     """MedicationRequest.identifier:rpNumber + orderInRp system URIs pinned to spec."""
-    from clinosim.modules.output._fhir_medications import _build_medication_request
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_request
 
     order = {
         "order_id": "ORD-1",
@@ -421,7 +421,7 @@ def test_medication_request_jp_identifier_slice_uris_pinned():
 
 def test_medication_request_us_no_jp_identifier_slice():
     """US output は JP identifier slice を emit しない。"""
-    from clinosim.modules.output._fhir_medications import _build_medication_request
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_request
 
     order = {
         "order_id": "ORD-1",

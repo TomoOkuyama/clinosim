@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_medications import (
+from clinosim.modules.output.fhir_r4.medications.medications import (
     _build_dosage_instruction,
     _build_medication_admin,
 )

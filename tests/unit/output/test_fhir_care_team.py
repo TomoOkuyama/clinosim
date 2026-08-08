@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from types import SimpleNamespace
 
-from clinosim.modules.output._fhir_care_team import (
+from clinosim.modules.output.fhir_r4.encounters.care_team import (
     CARE_TEAM_ID_PREFIX,
     _bb_care_teams,
 )

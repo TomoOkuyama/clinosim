@@ -32,7 +32,7 @@ from typing import Any
 
 import pytest
 
-from clinosim.modules.output._fhir_encounter import _build_encounter
+from clinosim.modules.output.fhir_r4.encounters.encounter import _build_encounter
 
 pytestmark = pytest.mark.unit
 

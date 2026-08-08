@@ -236,7 +236,7 @@ def test_fhir_medicationrequest_status_stopped_for_discontinued_empirical() -> N
     narrowed order gets FHIR status='active'."""
     from dataclasses import asdict
 
-    from clinosim.modules.output._fhir_medications import _build_medication_request
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_request
 
     rec = _make_record(
         hai_type=HAI_TYPES[0],
@@ -271,7 +271,7 @@ def test_fhir_medicationrequest_status_cancelled_pin() -> None:
     FHIR MedicationRequest.status='cancelled' (existing behavior; previously
     not pinned by any test so a future _map_order_status_to_fhir edit could
     silently drop the mapping)."""
-    from clinosim.modules.output._fhir_medications import _map_order_status_to_fhir
+    from clinosim.modules.output.fhir_r4.medications.medications import _map_order_status_to_fhir
 
     assert _map_order_status_to_fhir("cancelled") == "cancelled"
     assert _map_order_status_to_fhir("stopped") == "stopped"
@@ -287,7 +287,7 @@ def test_fhir_medicationrequest_status_exhaustive_enum_coverage() -> None:
     exhaustively maps every current OrderStatus value to a deliberate FHIR
     status (not silently falling through to 'active'). Adding a new OrderStatus
     enum value WITHOUT updating the mapping will trip this test."""
-    from clinosim.modules.output._fhir_medications import _map_order_status_to_fhir
+    from clinosim.modules.output.fhir_r4.medications.medications import _map_order_status_to_fhir
     from clinosim.types.encounter import OrderStatus
 
     # Every current OrderStatus value must have an explicit mapping entry.

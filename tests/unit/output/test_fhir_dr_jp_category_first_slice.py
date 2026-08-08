@@ -26,11 +26,11 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from clinosim.modules.output._fhir_diagnostic_report import (
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     JP_LAB_DR_CATEGORY_LOINC,
     build_lab_panel_reports,
 )
-from clinosim.modules.output._fhir_microbiology import (
+from clinosim.modules.output.fhir_r4.labs.microbiology import (
     JP_MB_DR_CATEGORY_LOINC,
     JP_MB_DR_CODE_CS,
     JP_MB_DR_CODE_VALUE,

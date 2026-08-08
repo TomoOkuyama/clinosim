@@ -78,7 +78,7 @@ def test_no_module_level_cache_in_helpers():
 
 def test_no_module_level_cache_in_fhir_diagnostic_report():
     """Module-level `_PANELS_CACHE: ... | None = None` must be removed."""
-    import clinosim.modules.output._fhir_diagnostic_report as mod
+    import clinosim.modules.output.fhir_r4.labs.diagnostic_report as mod
 
     assert not hasattr(mod, "_PANELS_CACHE"), "module-level _PANELS_CACHE should be gone"
 
