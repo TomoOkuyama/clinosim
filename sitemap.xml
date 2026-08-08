@@ -49,6 +49,14 @@
          <lastmod>2026-08-08</lastmod>
     </url>
     <url>
+         <loc>https://tomookuyama.github.io/clinosim/architecture/</loc>
+         <lastmod>2026-08-08</lastmod>
+    </url>
+    <url>
+         <loc>https://tomookuyama.github.io/clinosim/architecture/module-architecture/</loc>
+         <lastmod>2026-08-08</lastmod>
+    </url>
+    <url>
          <loc>https://tomookuyama.github.io/clinosim/design-guides/</loc>
          <lastmod>2026-08-08</lastmod>
     </url>
@@ -117,6 +125,10 @@
          <lastmod>2026-08-08</lastmod>
     </url>
     <url>
+         <loc>https://tomookuyama.github.io/clinosim/reference/cli/</loc>
+         <lastmod>2026-08-08</lastmod>
+    </url>
+    <url>
          <loc>https://tomookuyama.github.io/clinosim/reference/datasets/</loc>
          <lastmod>2026-08-08</lastmod>
     </url>
@@ -125,7 +137,15 @@
          <lastmod>2026-08-08</lastmod>
     </url>
     <url>
+         <loc>https://tomookuyama.github.io/clinosim/reference/llm-integration/</loc>
+         <lastmod>2026-08-08</lastmod>
+    </url>
+    <url>
          <loc>https://tomookuyama.github.io/clinosim/reference/modules/</loc>
+         <lastmod>2026-08-08</lastmod>
+    </url>
+    <url>
+         <loc>https://tomookuyama.github.io/clinosim/reference/output-formats/</loc>
          <lastmod>2026-08-08</lastmod>
     </url>
     <url>
