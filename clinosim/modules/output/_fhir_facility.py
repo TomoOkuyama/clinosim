@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import is_jp
-from clinosim.modules.output._fhir_common import _entry
 from clinosim.modules.output._fhir_localization import (
     _LOCATION_NAME_JA,
     _LOCATION_TYPE_DISPLAY_JA,
@@ -16,6 +15,7 @@ from clinosim.modules.output._fhir_localization import (
     _dept_display,
     _localize_display,
 )
+from clinosim.modules.output.fhir_common import _entry
 
 
 def _build_facility_bundle(hospital_config: dict, country: str) -> dict:

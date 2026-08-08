@@ -40,7 +40,7 @@ def _make_doc(**overrides):
 
 def _make_ctx(record, country="JP"):
     """`BundleContext` を最小構成で作る。"""
-    from clinosim.modules.output._fhir_common import BundleContext
+    from clinosim.modules.output.fhir_common import BundleContext
 
     # record は dataclass だが builder は _o() で dict/attr 両対応、
     # 最小必要フィールドは record + country。builder は他フィールドを触らない。

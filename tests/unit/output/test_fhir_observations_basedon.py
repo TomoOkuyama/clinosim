@@ -2,8 +2,8 @@
 
 from datetime import datetime
 
-from clinosim.modules.output._fhir_common import BundleContext
 from clinosim.modules.output._fhir_observations import _bb_labs
+from clinosim.modules.output.fhir_common import BundleContext
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
 
 

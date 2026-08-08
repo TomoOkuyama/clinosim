@@ -868,11 +868,11 @@ def test_fhir_microbiology_emits_hai_event_id_identifier() -> None:
     DiagnosticReport all carry identifier[].system == HAI_EVENT_ID_SYSTEM
     with value == hai_event_id. Empty hai_event_id → no identifier field
     (byte-identical to pre-PR3b-5 community-culture output)."""
-    from clinosim.modules.output._fhir_common import BundleContext
     from clinosim.modules.output._fhir_microbiology import (
         HAI_EVENT_ID_SYSTEM,
         _bb_microbiology,
     )
+    from clinosim.modules.output.fhir_common import BundleContext
 
     # HAI culture: hai_event_id set
     hai_mb = {

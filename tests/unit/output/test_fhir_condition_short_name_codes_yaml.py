@@ -7,7 +7,7 @@ display-dict migration — the largest/last item in this backlog).
 import pytest
 
 from clinosim.codes import lookup
-from clinosim.modules.output._fhir_common import _build_diagnosis_codeable_concept
+from clinosim.modules.output.fhir_common import _build_diagnosis_codeable_concept
 
 pytestmark = pytest.mark.unit
 

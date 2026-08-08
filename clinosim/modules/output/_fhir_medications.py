@@ -23,7 +23,13 @@ from clinosim.modules._shared import (
     resolve_lang,
 )
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
-from clinosim.modules.output._fhir_common import (
+from clinosim.modules.output._fhir_localization import (
+    _localize_dosage_terms,
+    _localize_drug_name,
+    _localize_rate_adjustment,
+    _split_rate_adjustment_suffix,
+)
+from clinosim.modules.output.fhir_common import (
     _build_dosage_instruction,
     _map_diagnosis_code,
     _map_mar_status,
@@ -32,12 +38,6 @@ from clinosim.modules.output._fhir_common import (
     build_route_concept,
     build_ucum_quantity,
     canonicalize_route,
-)
-from clinosim.modules.output._fhir_localization import (
-    _localize_dosage_terms,
-    _localize_drug_name,
-    _localize_rate_adjustment,
-    _split_rate_adjustment_suffix,
 )
 from clinosim.modules.output.opaque_ids import (
     derive_opaque_id,

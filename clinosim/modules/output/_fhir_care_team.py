@@ -34,7 +34,7 @@ from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_common import BundleContext, to_fhir_datetime
 
 __all__ = [
     "CARE_TEAM_ID_PREFIX",

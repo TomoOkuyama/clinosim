@@ -301,7 +301,7 @@ class TestBuildDrResource:
 @pytest.mark.unit
 class TestBuildLabPanelReports:
     def _ctx(self, orders, country="US"):
-        from clinosim.modules.output._fhir_common import BundleContext
+        from clinosim.modules.output.fhir_common import BundleContext
 
         record = {
             "patient": {"patient_id": "POP-000002"},

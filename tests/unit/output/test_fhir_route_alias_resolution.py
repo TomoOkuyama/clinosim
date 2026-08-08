@@ -29,9 +29,9 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_common import _build_dosage_instruction, build_route_concept
 from clinosim.modules.output._fhir_localization import _ROUTE_JA
 from clinosim.modules.output._fhir_reference_data import _ROUTE_ALIASES, _ROUTE_SNOMED
+from clinosim.modules.output.fhir_common import _build_dosage_instruction, build_route_concept
 
 pytestmark = pytest.mark.unit
 
@@ -300,7 +300,7 @@ def test_no_builder_reads_the_route_maps_directly():
     import pathlib
 
     root = pathlib.Path(__file__).resolve().parents[3] / "clinosim" / "modules" / "output"
-    exempt = {"_fhir_reference_data.py", "fhir_r4_adapter.py", "_fhir_common.py"}
+    exempt = {"_fhir_reference_data.py", "fhir_r4_adapter.py", "fhir_common.py", "_fhir_common.py"}
     offenders = {}
     for path in sorted(root.glob("*.py")):
         if path.name in exempt:
@@ -324,10 +324,10 @@ def test_common_module_confines_the_lookup_to_the_helper():
     """
     import pathlib
 
-    path = pathlib.Path(__file__).resolve().parents[3] / "clinosim" / "modules" / "output" / "_fhir_common.py"
+    path = pathlib.Path(__file__).resolve().parents[3] / "clinosim" / "modules" / "output" / "fhir_common.py"
     refs = _route_map_references(path) - {"<import>"}
     assert refs == {"build_route_concept", "canonicalize_route", "_validate_route_maps"}, (
-        f"route-map lookups in _fhir_common.py live in {sorted(refs)}; they belong only in "
+        f"route-map lookups in fhir_common.py live in {sorted(refs)}; they belong only in "
         f"build_route_concept() / canonicalize_route() / _validate_route_maps()"
     )
 
@@ -447,7 +447,7 @@ def test_import_time_guard_rejects_alias_key_in_route_ja():
     guard, expect `ValueError`. Direct call because monkeypatching the module-global
     on import is fragile (the guard runs at import, before test fixtures).
     """
-    from clinosim.modules.output._fhir_common import _validate_route_maps
+    from clinosim.modules.output.fhir_common import _validate_route_maps
 
     # Temporarily poison _ROUTE_JA and confirm the guard rejects.
     _ROUTE_JA["INH"] = "吸入"  # alias key sneaking in
@@ -462,7 +462,7 @@ def test_import_time_guard_rejects_missing_canonical_in_route_ja():
     """`_validate_route_maps` must raise when a canonical `_ROUTE_SNOMED` key lacks
     a `_ROUTE_JA` entry — the class of bug that silently emits English on JP output.
     """
-    from clinosim.modules.output._fhir_common import _validate_route_maps
+    from clinosim.modules.output.fhir_common import _validate_route_maps
 
     saved = _ROUTE_JA.pop("PO")
     try:
