@@ -10,7 +10,7 @@ from dataclasses import asdict
 
 import pytest
 
-from clinosim.modules.output._fhir_patient import (
+from clinosim.modules.output.fhir_r4.builders.patient import (
     _build_coverage_resources,
     _build_patient,
 )

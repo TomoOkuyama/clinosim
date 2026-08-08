@@ -183,7 +183,7 @@ def _write_obs_with_specimen(
 ) -> list[dict]:
     """Build a triple (Specimen, mb-org-*, mb-sus-*) wired with the same
     specimen reference, optionally with HAI identifier."""
-    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+    from clinosim.modules.output.fhir_r4.builders.microbiology import HAI_EVENT_ID_SYSTEM
 
     spec_id = f"spec-{enc}-{spec_suffix}"
     rows: list[dict] = []
@@ -576,7 +576,7 @@ def test_clinical_axis_r_rate_gate_filters_per_organism(tmp_path) -> None:
     # PR3b-5: include specimen.reference + HAI identifier on both
     # mb-org-* and mb-sus-* so the specimen-based join + HAI-only filter
     # finds these. (Pre-PR3b-5 the gate joined via encounter ref alone.)
-    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+    from clinosim.modules.output.fhir_r4.builders.microbiology import HAI_EVENT_ID_SYSTEM
 
     organism_obs = []
     susc_obs = []
@@ -868,11 +868,11 @@ def test_fhir_microbiology_emits_hai_event_id_identifier() -> None:
     DiagnosticReport all carry identifier[].system == HAI_EVENT_ID_SYSTEM
     with value == hai_event_id. Empty hai_event_id → no identifier field
     (byte-identical to pre-PR3b-5 community-culture output)."""
-    from clinosim.modules.output._fhir_microbiology import (
+    from clinosim.modules.output.fhir_r4.builders.microbiology import (
         HAI_EVENT_ID_SYSTEM,
         _bb_microbiology,
     )
-    from clinosim.modules.output.fhir_common import BundleContext
+    from clinosim.modules.output.fhir_r4.common import BundleContext
 
     # HAI culture: hai_event_id set
     hai_mb = {

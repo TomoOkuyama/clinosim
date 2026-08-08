@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_reference_data import _ROUTE_SNOMED
+from clinosim.modules.output.fhir_r4.reference_data import _ROUTE_SNOMED
 
 pytestmark = pytest.mark.unit
 

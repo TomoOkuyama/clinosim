@@ -34,7 +34,7 @@ from typing import Any
 
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
 from clinosim.modules.order.panel_grouping import PANEL_PRIORITY_ORDER
-from clinosim.modules.output._fhir_service_request import (
+from clinosim.modules.output.fhir_r4.builders.service_request import (
     LAB_CATEGORY_SNOMED,
     LAB_CATEGORY_V2_0074,
     PLACER_ORDER_NUMBER_SYSTEM,
@@ -43,7 +43,7 @@ from clinosim.modules.output._fhir_service_request import (
     build_panel_counter,
     order_to_sr_id,
 )
-from clinosim.modules.output.fhir_common import BundleContext
+from clinosim.modules.output.fhir_r4.common import BundleContext
 from clinosim.types.encounter import Order, OrderType
 
 

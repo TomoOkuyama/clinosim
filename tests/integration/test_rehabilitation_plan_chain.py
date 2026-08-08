@@ -20,7 +20,7 @@ import pytest
 
 from clinosim.modules.document.engine import document_enricher
 from clinosim.modules.document.narrative.passes import TemplateNarrativePass
-from clinosim.modules.output._fhir_composition import _bb_compositions
+from clinosim.modules.output.fhir_r4.builders.composition import _bb_compositions
 
 
 def _write_structural_cif(cif_dir: str, patient_dict: dict) -> None:

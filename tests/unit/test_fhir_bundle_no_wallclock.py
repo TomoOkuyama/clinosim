@@ -10,7 +10,7 @@ discarded. A wall-clock read there is a determinism footgun with no benefit
 
 import pytest
 
-from clinosim.modules.output._fhir_facility import _build_facility_bundle
+from clinosim.modules.output.fhir_r4.builders.facility import _build_facility_bundle
 from clinosim.modules.output.fhir_r4_adapter import _build_bundle
 
 pytestmark = pytest.mark.unit

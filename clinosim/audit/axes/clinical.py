@@ -26,13 +26,13 @@ from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
 from clinosim.codes import get_system_uri
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
-from clinosim.modules.output._fhir_medications import MEDICATION_REQUEST_KEY_SYSTEM
-from clinosim.modules.output._fhir_microbiology import (
+from clinosim.modules.output.fhir_r4.builders.medications import MEDICATION_REQUEST_KEY_SYSTEM
+from clinosim.modules.output.fhir_r4.builders.microbiology import (
     HAI_EVENT_ID_SYSTEM,
     MB_ORG_ID_PREFIX,
     MB_SUS_ID_PREFIX,
 )
-from clinosim.modules.output._fhir_service_request import LAB_CATEGORY_V2_0074
+from clinosim.modules.output.fhir_r4.builders.service_request import LAB_CATEGORY_V2_0074
 
 
 def _medication_request_structural_key(row: dict) -> str:

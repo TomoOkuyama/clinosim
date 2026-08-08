@@ -33,7 +33,7 @@ from typing import Any
 
 import pytest
 
-from clinosim.modules.output._fhir_family_history import _build_relationship_codeable
+from clinosim.modules.output.fhir_r4.builders.family_history import _build_relationship_codeable
 
 pytestmark = pytest.mark.unit
 
@@ -142,8 +142,8 @@ def test_relationship_omits_text_when_target_lang_missing() -> None:
 def _build_one_fmh(country: str) -> dict[str, Any]:
     """Run ``_bb_family_history`` on a minimal one-relative fixture and
     return the emitted FamilyMemberHistory resource."""
-    from clinosim.modules.output._fhir_family_history import _bb_family_history
-    from clinosim.modules.output.fhir_common import BundleContext
+    from clinosim.modules.output.fhir_r4.builders.family_history import _bb_family_history
+    from clinosim.modules.output.fhir_r4.common import BundleContext
 
     ctx = BundleContext(
         record={

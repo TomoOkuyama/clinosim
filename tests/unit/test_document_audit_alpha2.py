@@ -13,7 +13,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.audit.registry import discover, get_registered
-from clinosim.modules.output._fhir_care_team import CARE_TEAM_ID_PREFIX
+from clinosim.modules.output.fhir_r4.builders.care_team import CARE_TEAM_ID_PREFIX
 
 
 def _get_spec():

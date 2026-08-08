@@ -26,7 +26,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.locale.loader import load_med_terms_ja
-from clinosim.modules.output._fhir_procedures import _build_procedure
+from clinosim.modules.output.fhir_r4.builders.procedures import _build_procedure
 
 pytestmark = pytest.mark.unit
 
@@ -109,6 +109,6 @@ def test_jp_already_japanese_display_is_idempotent() -> None:
     # Simulate: proc has a procedure_code that resolves to already_jp;
     # we can achieve this via primary_code fallback. Simpler: exercise
     # the localizer helper directly.
-    from clinosim.modules.output._fhir_localization import _localize_dosage_terms
+    from clinosim.modules.output.fhir_r4.localization import _localize_dosage_terms
 
     assert _localize_dosage_terms(already_jp) == already_jp

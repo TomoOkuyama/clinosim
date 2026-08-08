@@ -6,7 +6,7 @@ from datetime import date
 from types import SimpleNamespace
 
 from clinosim.modules.document import ALLERGY_ID_PREFIX
-from clinosim.modules.output._fhir_allergy_intolerance import _bb_allergy_intolerances
+from clinosim.modules.output.fhir_r4.builders.allergy_intolerance import _bb_allergy_intolerances
 from clinosim.types.allergy import Allergy, AllergyReaction
 
 

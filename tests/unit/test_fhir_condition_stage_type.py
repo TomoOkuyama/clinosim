@@ -8,7 +8,7 @@ by stage.summary.text; the wrong type coding is removed.
 
 import pytest
 
-from clinosim.modules.output._fhir_conditions import _build_conditions
+from clinosim.modules.output.fhir_r4.builders.conditions import _build_conditions
 from clinosim.types.patient import ChronicCondition
 
 pytestmark = pytest.mark.unit
@@ -140,7 +140,7 @@ def test_every_generated_stage_is_mapped():
     """Drift guard: every stage string _generate_stage can produce must be in
     the stage->SNOMED map, or the coding silently drops (the whitelist-drift bug
     class). Fails loud if activator adds a stage value without a code."""
-    from clinosim.modules.output._fhir_conditions import _STAGE_SUMMARY_SNOMED
+    from clinosim.modules.output.fhir_r4.builders.conditions import _STAGE_SUMMARY_SNOMED
 
     ckd = [f"CKD {g}" for g in ("G1", "G2", "G3a", "G3b", "G4", "G5")]
     nyha = [f"NYHA {c}" for c in ("I", "II", "III", "IV")]

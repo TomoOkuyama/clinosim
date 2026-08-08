@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output._fhir_medications import (
+from clinosim.modules.output.fhir_r4.builders.medications import (
     _COURSE_ACUTE,
     _COURSE_CONTINUOUS,
     _course_for_discharge,

@@ -31,7 +31,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.codes import lookup
-from clinosim.modules.output._fhir_family_history import _resolve_family_history_code
+from clinosim.modules.output.fhir_r4.builders.family_history import _resolve_family_history_code
 
 pytestmark = pytest.mark.unit
 

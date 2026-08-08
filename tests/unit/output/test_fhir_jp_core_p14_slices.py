@@ -44,7 +44,7 @@ def test_observation_category_first_uri_pinned_to_spec():
     """`_JP_OBSERVATION_CATEGORY_SYSTEM` が実 JP Core spec の
     `JP_SimpleObservationCategory_CS` に一致していること(推測 URI に
     差し戻す変更を規制)。"""
-    from clinosim.modules.output._fhir_post_process import _JP_OBSERVATION_CATEGORY_SYSTEM
+    from clinosim.modules.output.fhir_r4.post_process import _JP_OBSERVATION_CATEGORY_SYSTEM
 
     assert _JP_OBSERVATION_CATEGORY_SYSTEM == JP_OBSERVATION_CATEGORY_SYSTEM
 
@@ -52,7 +52,7 @@ def test_observation_category_first_uri_pinned_to_spec():
 def test_normalize_laboratory_category_emits_jp_cs_alone_without_display():
     """laboratory category は JP CS 単独 coding + display 省略。
     `JP_Observation_LabResult_eCS` の `category max=1` 制約に適合。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -89,7 +89,7 @@ def test_normalize_vital_signs_category_split_into_two_elements():
     =JP_Simple...`。両方の slice を満たすには element を分ける必要が
     あり、混在は fixedUri 違反 + coding max=1 違反を引き起こす
     (feedback 2026-07-17 §【最優先 3】286k errors)。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -120,7 +120,7 @@ def test_normalize_fabricated_url_replaced():
     """過去 clinosim 版の fabricated URL
     `http://jpfhir.jp/fhir/observation-category`(古い regen data に残存
     しうる)も defensive normalize で JP CS URL に置換。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -143,7 +143,7 @@ def test_normalize_fabricated_url_replaced():
 
 def test_normalize_is_idempotent_for_laboratory():
     """正規化後の laboratory 状態を再度 normalize しても同一結果。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -167,7 +167,7 @@ def test_normalize_ecs_profile_keeps_jp_cs_alone_for_lab():
     JP CS 単独 1 coding。`category:laboratory.coding max=1` +
     `coding.system fixedUri=JP_Simple...` 制約により HL7 併記は禁止
     (fhir-jp-validator feedback 2026-07-17 §【最優先 3】対応)。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -201,7 +201,7 @@ def test_normalize_non_ecs_lab_still_jp_cs_alone():
     """eCS profile なしの Observation は従来通り JP CS 単独 coding。
     (Common single-coding は non-eCS observation の base binding として
     引き続き正しい形。regression 防衛)"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -229,7 +229,7 @@ def test_normalize_non_ecs_lab_still_jp_cs_alone():
 def test_normalize_ecs_profile_idempotent():
     """eCS Observation を 2 回 normalize しても JP CS 単独 1 coding
     のまま維持(重複追加しない)。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -262,7 +262,7 @@ def test_normalize_is_idempotent_for_vital_signs():
     """正規化後の vital-signs 状態(HL7 element + JP CS element の
     2 category element)を再度 normalize しても同一維持
     (重複追加しない)。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -285,7 +285,7 @@ def test_normalize_is_idempotent_for_vital_signs():
 
 def test_normalize_preserves_non_category_coding():
     """observation-category 以外の system(独自 CodeSystem 等)は preserve。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     custom_coding = {
         "system": "http://example.com/CodeSystem/custom-category",
@@ -312,7 +312,7 @@ def test_normalize_preserves_non_category_coding():
 
 def test_normalize_skips_non_observation():
     """Observation 以外の resource には触れない。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource = {"resourceType": "Encounter", "category": [{"coding": []}]}
     _normalize_jp_observation_category(resource)
@@ -325,7 +325,7 @@ def test_normalize_matches_jp_core_vitalsigns_example_shape():
     形(2 category element、それぞれ単一 coding)と等価であることを
     確認。この regression が壊れると HAPI 検証が再び 100k+ error に
     戻るので pin する。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -366,7 +366,7 @@ def test_normalize_two_elements_only_for_vital_signs(hl7_code, expected_two_elem
     =JP_Simple...)を同時に満たすには element 分離が必須。lab / imaging
     / survey 等の HL7 base profile 対応 slice も同種 constraint を
     持つため vital-signs 以外の HL7 併記は禁忌。"""
-    from clinosim.modules.output._fhir_post_process import _normalize_jp_observation_category
+    from clinosim.modules.output.fhir_r4.post_process import _normalize_jp_observation_category
 
     resource: dict[str, Any] = {
         "resourceType": "Observation",
@@ -395,7 +395,7 @@ def test_normalize_two_elements_only_for_vital_signs(hl7_code, expected_two_elem
 
 def test_medication_request_jp_identifier_slice_uris_pinned():
     """MedicationRequest.identifier:rpNumber + orderInRp system URIs pinned to spec."""
-    from clinosim.modules.output._fhir_medications import _build_medication_request
+    from clinosim.modules.output.fhir_r4.builders.medications import _build_medication_request
 
     order = {
         "order_id": "ORD-1",
@@ -421,7 +421,7 @@ def test_medication_request_jp_identifier_slice_uris_pinned():
 
 def test_medication_request_us_no_jp_identifier_slice():
     """US output は JP identifier slice を emit しない。"""
-    from clinosim.modules.output._fhir_medications import _build_medication_request
+    from clinosim.modules.output.fhir_r4.builders.medications import _build_medication_request
 
     order = {
         "order_id": "ORD-1",
@@ -446,7 +446,7 @@ def test_medication_request_us_no_jp_identifier_slice():
 def test_build_order_in_rp_map_per_encounter_numbering():
     """`build_order_in_rp_map` は encounter 内 medication order の
     出現順を 1-based で orderInRp に割当てる。"""
-    from clinosim.modules.output._fhir_inline_bb import build_order_in_rp_map
+    from clinosim.modules.output.fhir_r4.inline_bb import build_order_in_rp_map
 
     orders = [
         {"order_id": "O1", "order_type": "medication", "display_name": "A", "encounter_id": "enc-x"},
@@ -470,7 +470,7 @@ def test_build_order_in_rp_map_per_encounter_numbering():
 
 def test_build_order_in_rp_map_deterministic_across_calls():
     """同 orders を 2 回渡すと同 dict を返す(MR と MA が同 map を使う根拠)。"""
-    from clinosim.modules.output._fhir_inline_bb import build_order_in_rp_map
+    from clinosim.modules.output.fhir_r4.inline_bb import build_order_in_rp_map
 
     orders = [
         {"order_id": f"O{i}", "order_type": "medication", "display_name": "d", "encounter_id": "e1"} for i in range(5)

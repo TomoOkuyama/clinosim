@@ -6,7 +6,7 @@ from datetime import date
 from types import SimpleNamespace
 
 from clinosim.modules.document import CLINICAL_IMPRESSION_ID_PREFIX
-from clinosim.modules.output._fhir_clinical_impression import _bb_clinical_impressions
+from clinosim.modules.output.fhir_r4.builders.clinical_impression import _bb_clinical_impressions
 from clinosim.types.clinical import ClinicalImpressionRecord
 
 

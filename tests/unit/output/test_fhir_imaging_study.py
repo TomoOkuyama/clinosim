@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from clinosim.modules.output._fhir_imaging_study import (
+from clinosim.modules.output.fhir_r4.builders.imaging_study import (
     DICOM_UID_SYSTEM,
     ENDPOINT_ID_PREFIX,
     IMAGING_STUDY_ID_PREFIX,

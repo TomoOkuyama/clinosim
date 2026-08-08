@@ -15,27 +15,29 @@ from datetime import datetime
 from typing import Any
 
 from clinosim.modules._shared import is_jp
-from clinosim.modules.output._fhir_allergy_intolerance import _bb_allergy_intolerances
-from clinosim.modules.output._fhir_care_level import _bb_care_level
-from clinosim.modules.output._fhir_care_team import _bb_care_teams
-from clinosim.modules.output._fhir_clinical_impression import _bb_clinical_impressions
-from clinosim.modules.output._fhir_code_status import _bb_code_status
-from clinosim.modules.output._fhir_composition import _bb_compositions
-from clinosim.modules.output._fhir_device import (
+from clinosim.modules.output.fhir_r4.builders.allergy_intolerance import _bb_allergy_intolerances
+from clinosim.modules.output.fhir_r4.builders.care_level import _bb_care_level
+from clinosim.modules.output.fhir_r4.builders.care_team import _bb_care_teams
+from clinosim.modules.output.fhir_r4.builders.clinical_impression import _bb_clinical_impressions
+from clinosim.modules.output.fhir_r4.builders.code_status import _bb_code_status
+from clinosim.modules.output.fhir_r4.builders.composition import _bb_compositions
+from clinosim.modules.output.fhir_r4.builders.device import (
     _bb_device,
     _bb_device_use,
 )
-from clinosim.modules.output._fhir_diagnostic_report import _bb_diagnostic_reports
-from clinosim.modules.output._fhir_document_reference_checkup import _bb_document_references_checkup
-from clinosim.modules.output._fhir_documents import _bb_document_references
-from clinosim.modules.output._fhir_endpoint import _bb_endpoints
-from clinosim.modules.output._fhir_facility import _build_facility_bundle
-from clinosim.modules.output._fhir_family_history import _bb_family_history
-from clinosim.modules.output._fhir_generator_metadata import write_generator_metadata as _write_generator_metadata
-from clinosim.modules.output._fhir_hai import _bb_hai_conditions
-from clinosim.modules.output._fhir_imaging_study import _bb_imaging_studies
-from clinosim.modules.output._fhir_immunization import _bb_immunizations
-from clinosim.modules.output._fhir_inline_bb import (
+from clinosim.modules.output.fhir_r4.builders.diagnostic_report import _bb_diagnostic_reports
+from clinosim.modules.output.fhir_r4.builders.document_reference_checkup import _bb_document_references_checkup
+from clinosim.modules.output.fhir_r4.builders.documents import _bb_document_references
+from clinosim.modules.output.fhir_r4.builders.endpoint import _bb_endpoints
+from clinosim.modules.output.fhir_r4.builders.facility import _build_facility_bundle
+from clinosim.modules.output.fhir_r4.builders.family_history import _bb_family_history
+from clinosim.modules.output.fhir_r4.builders.generator_metadata import (
+    write_generator_metadata as _write_generator_metadata,
+)
+from clinosim.modules.output.fhir_r4.builders.hai import _bb_hai_conditions
+from clinosim.modules.output.fhir_r4.builders.imaging_study import _bb_imaging_studies
+from clinosim.modules.output.fhir_r4.builders.immunization import _bb_immunizations
+from clinosim.modules.output.fhir_r4.inline_bb import (
     _bb_conditions,
     _bb_coverage,
     _bb_discharge_medication_requests,
@@ -48,13 +50,13 @@ from clinosim.modules.output._fhir_inline_bb import (
     _bb_procedures,
     _bb_vitals,
 )
-from clinosim.modules.output._fhir_microbiology import _bb_microbiology
-from clinosim.modules.output._fhir_nursing import _bb_nursing_observations
-from clinosim.modules.output._fhir_observations import _bb_labs
+from clinosim.modules.output.fhir_r4.builders.microbiology import _bb_microbiology
+from clinosim.modules.output.fhir_r4.builders.nursing import _bb_nursing_observations
+from clinosim.modules.output.fhir_r4.builders.observations import _bb_labs
 
 # Session 82 PR N: post-emit helpers extracted to _fhir_post_process.py.
 # Imported for use inside `_build_bundle` (see finalize pass).
-from clinosim.modules.output._fhir_post_process import (
+from clinosim.modules.output.fhir_r4.post_process import (
     _apply_jp_clins_profile,
     _apply_jp_core_profile,
     _build_companion_specimen,
@@ -67,8 +69,8 @@ from clinosim.modules.output._fhir_post_process import (
     _strip_forbidden_observation_reference_range_extensions,
     _strip_japanese_display_on_english_only_systems,
 )
-from clinosim.modules.output._fhir_service_request import _bb_service_requests
-from clinosim.modules.output._fhir_smoking_alcohol import (
+from clinosim.modules.output.fhir_r4.builders.service_request import _bb_service_requests
+from clinosim.modules.output.fhir_r4.builders.smoking_alcohol import (
     _bb_alcohol_use,
     _bb_smoking_status,
 )
@@ -80,7 +82,7 @@ from clinosim.modules.output.cif_reader import CIFReader
 # and `convert_cif_to_fhir` (this module's public surface) actually call —
 # the historical facade re-export block (marked with `noqa` directives) was
 # dropped once tests migrated to canonical imports.
-from clinosim.modules.output.fhir_common import (
+from clinosim.modules.output.fhir_r4.common import (
     BundleContext,
     _entry,
 )

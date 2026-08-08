@@ -264,7 +264,7 @@ def _iter_route_values(data: Any) -> Iterator[str]:
 
 def _validate_chronic_medications_route_vocabulary(data: Any) -> None:
     """Delegate to the single-sourced canonical validator (Issue #458)."""
-    from clinosim.modules.output._fhir_reference_data import validate_yaml_route_value
+    from clinosim.modules.output.fhir_r4.reference_data import validate_yaml_route_value
 
     for raw in _iter_route_values(data):
         validate_yaml_route_value(raw, source="chronic_medications.yaml")

@@ -19,7 +19,7 @@ from __future__ import annotations
 from datetime import datetime
 from types import SimpleNamespace
 
-from clinosim.modules.output._fhir_diagnostic_report import (
+from clinosim.modules.output.fhir_r4.builders.diagnostic_report import (
     RADIOLOGY_CATEGORY_SNOMED,
     RADIOLOGY_CATEGORY_V2_0074,
     RADIOLOGY_DR_ID_PREFIX,
@@ -295,7 +295,7 @@ def test_jp_radiology_dr_uses_radiology_profile_not_common():
     session 46 chain #2 は誤って `_Common` を使用していた(v5 で 499 errors)。
     walker `_apply_jp_core_profile` は variant profile 存在時 Common 追加を skip。
     """
-    from clinosim.modules.output._fhir_diagnostic_report import (
+    from clinosim.modules.output.fhir_r4.builders.diagnostic_report import (
         _JP_DR_RADIOLOGY_PROFILE,
     )
 
@@ -311,7 +311,7 @@ def test_jp_radiology_dr_uses_radiology_profile_not_common():
 
 def test_jp_radiology_dr_category_two_slices_loinc_and_dicom():
     """#218:spec `category:first` = LOINC LP29684-5, `category:second` = DICOM modality。"""
-    from clinosim.modules.output._fhir_diagnostic_report import (
+    from clinosim.modules.output.fhir_r4.builders.diagnostic_report import (
         _JP_DR_DICOM_MODALITY_SYSTEM,
         _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE,
     )
@@ -334,7 +334,7 @@ def test_jp_radiology_dr_code_coding_prepends_document_codes_18748_4():
     """#218:spec `code.coding:radiologyReportCode` = JP_DocumentCodes_CS 18748-4
     "画像検査報告書" を必須。既存 LOINC procedure code は secondary として維持。
     """
-    from clinosim.modules.output._fhir_diagnostic_report import (
+    from clinosim.modules.output.fhir_r4.builders.diagnostic_report import (
         _JP_DOCUMENT_CODES_CS,
         _JP_DR_RADIOLOGY_REPORT_CODE,
         _JP_DR_RADIOLOGY_REPORT_DISPLAY_JA,

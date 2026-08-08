@@ -18,7 +18,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from clinosim.modules.output._fhir_inline_bb import _SYNTH_ED_DISPLAYS, _synth_ed_display
+from clinosim.modules.output.fhir_r4.inline_bb import _SYNTH_ED_DISPLAYS, _synth_ed_display
 
 EXPECTED_SLOTS: dict[str, tuple[str, str]] = {
     "class_emer": ("救急外来", "Emergency"),

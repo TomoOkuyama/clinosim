@@ -40,7 +40,7 @@ def _make_doc(**overrides):
 
 def _make_ctx(record, country="JP"):
     """`BundleContext` を最小構成で作る。"""
-    from clinosim.modules.output.fhir_common import BundleContext
+    from clinosim.modules.output.fhir_r4.common import BundleContext
 
     # record は dataclass だが builder は _o() で dict/attr 両対応、
     # 最小必要フィールドは record + country。builder は他フィールドを触らない。
@@ -84,7 +84,7 @@ def _make_narrative(text="健診結果:BMI 22.5、血圧 118/76、HbA1c 5.4%"):
 
 @pytest.mark.unit
 def test_no_emit_when_country_us():
-    from clinosim.modules.output._fhir_document_reference_checkup import (
+    from clinosim.modules.output.fhir_r4.builders.document_reference_checkup import (
         _bb_document_references_checkup,
     )
 
@@ -96,7 +96,7 @@ def test_no_emit_when_country_us():
 
 @pytest.mark.unit
 def test_no_emit_when_task_type_not_checkup():
-    from clinosim.modules.output._fhir_document_reference_checkup import (
+    from clinosim.modules.output.fhir_r4.builders.document_reference_checkup import (
         _bb_document_references_checkup,
     )
 
@@ -113,7 +113,7 @@ def test_no_emit_when_task_type_not_checkup():
 @pytest.mark.unit
 def test_no_emit_when_format_type_free_text():
     """free_text は既存 `_bb_document_references` が処理するので重複回避。"""
-    from clinosim.modules.output._fhir_document_reference_checkup import (
+    from clinosim.modules.output.fhir_r4.builders.document_reference_checkup import (
         _bb_document_references_checkup,
     )
 
@@ -126,7 +126,7 @@ def test_no_emit_when_format_type_free_text():
 @pytest.mark.unit
 def test_skip_when_narrative_none():
     """Stage 2 未実行(narrative=None)は warn + skip、silent-no-op ではなく明示スキップ。"""
-    from clinosim.modules.output._fhir_document_reference_checkup import (
+    from clinosim.modules.output.fhir_r4.builders.document_reference_checkup import (
         _bb_document_references_checkup,
     )
 
@@ -138,7 +138,7 @@ def test_skip_when_narrative_none():
 
 @pytest.mark.unit
 def test_emit_docref_with_composition_relatesto():
-    from clinosim.modules.output._fhir_document_reference_checkup import (
+    from clinosim.modules.output.fhir_r4.builders.document_reference_checkup import (
         _bb_document_references_checkup,
     )
 
@@ -172,7 +172,7 @@ def test_emit_docref_with_composition_relatesto():
 
 @pytest.mark.unit
 def test_content_attachment_contains_narrative_text():
-    from clinosim.modules.output._fhir_document_reference_checkup import (
+    from clinosim.modules.output.fhir_r4.builders.document_reference_checkup import (
         _bb_document_references_checkup,
     )
 
@@ -191,7 +191,7 @@ def test_content_attachment_contains_narrative_text():
 @pytest.mark.unit
 def test_fallback_to_sections_join_when_text_empty():
     """narrative.text が空でも sections 値を join して attachment を作れる。"""
-    from clinosim.modules.output._fhir_document_reference_checkup import (
+    from clinosim.modules.output.fhir_r4.builders.document_reference_checkup import (
         _bb_document_references_checkup,
     )
     from clinosim.types.clinical import ClinicalDocumentNarrative
@@ -215,7 +215,7 @@ def test_fallback_to_sections_join_when_text_empty():
 
 @pytest.mark.unit
 def test_custodian_set_and_masteridentifier_stable():
-    from clinosim.modules.output._fhir_document_reference_checkup import (
+    from clinosim.modules.output.fhir_r4.builders.document_reference_checkup import (
         _bb_document_references_checkup,
     )
 

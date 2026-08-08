@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_common import (
+from clinosim.modules.output.fhir_r4.common import (
     _to_ucum_code,
     build_ucum_quantity,
 )

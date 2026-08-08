@@ -40,7 +40,7 @@ from pathlib import Path
 
 import pytest
 
-from clinosim.modules.output._fhir_composition import _build_composition
+from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
 pytestmark = pytest.mark.unit
 

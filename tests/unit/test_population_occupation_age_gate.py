@@ -31,7 +31,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from clinosim.modules.output._fhir_localization import (
+from clinosim.modules.output.fhir_r4.localization import (
     _OCCUPATION_DISPLAY_EN,
     _OCCUPATION_DISPLAY_JA,
 )

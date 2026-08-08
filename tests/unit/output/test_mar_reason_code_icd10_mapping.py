@@ -26,7 +26,7 @@ from typing import Any
 import pytest
 
 from clinosim.codes import get_system_uri
-from clinosim.modules.output._fhir_medications import _build_medication_admin
+from clinosim.modules.output.fhir_r4.builders.medications import _build_medication_admin
 
 pytestmark = pytest.mark.unit
 
@@ -101,7 +101,7 @@ def test_mar_nocoded_display_pinned_to_authoritative_value() -> None:
     (NOCODED 1 code / "標準コードなし" 1 display の required binding)
     に反していた。
     """
-    from clinosim.modules.output._fhir_medications import (
+    from clinosim.modules.output.fhir_r4.builders.medications import (
         _JP_MEDICATION_CODE_NOCODED_CODE,
         _JP_MEDICATION_CODE_NOCODED_CS,
         _JP_MEDICATION_CODE_NOCODED_DISPLAY,

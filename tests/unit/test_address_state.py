@@ -9,7 +9,7 @@ Guards the country-specific state encoding in _build_address:
 
 import pytest
 
-from clinosim.modules.output.fhir_common import _build_address
+from clinosim.modules.output.fhir_r4.common import _build_address
 
 
 @pytest.mark.unit

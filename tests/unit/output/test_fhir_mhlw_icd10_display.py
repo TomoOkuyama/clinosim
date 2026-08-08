@@ -28,7 +28,7 @@ import pytest
 
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loader import is_japanese_only_display_system
-from clinosim.modules.output.fhir_common import _build_diagnosis_codeable_concept
+from clinosim.modules.output.fhir_r4.common import _build_diagnosis_codeable_concept
 
 pytestmark = pytest.mark.unit
 

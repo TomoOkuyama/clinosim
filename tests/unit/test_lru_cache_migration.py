@@ -78,7 +78,7 @@ def test_no_module_level_cache_in_helpers():
 
 def test_no_module_level_cache_in_fhir_diagnostic_report():
     """Module-level `_PANELS_CACHE: ... | None = None` must be removed."""
-    import clinosim.modules.output._fhir_diagnostic_report as mod
+    import clinosim.modules.output.fhir_r4.builders.diagnostic_report as mod
 
     assert not hasattr(mod, "_PANELS_CACHE"), "module-level _PANELS_CACHE should be gone"
 
@@ -87,7 +87,7 @@ def test_no_module_level_cache_in_fhir_diagnostic_report():
 
 
 def test_l4_load_med_terms_ja_uses_lru_cache():
-    from clinosim.modules.output._fhir_localization import _load_med_terms_ja
+    from clinosim.modules.output.fhir_r4.localization import _load_med_terms_ja
 
     _load_med_terms_ja.cache_clear()
     info0 = _load_med_terms_ja.cache_info()
@@ -100,7 +100,7 @@ def test_l4_load_med_terms_ja_uses_lru_cache():
 
 
 def test_l5_load_drug_names_ja_uses_lru_cache():
-    from clinosim.modules.output._fhir_localization import _load_drug_names_ja
+    from clinosim.modules.output.fhir_r4.localization import _load_drug_names_ja
 
     _load_drug_names_ja.cache_clear()
     info0 = _load_drug_names_ja.cache_info()
@@ -113,7 +113,7 @@ def test_l5_load_drug_names_ja_uses_lru_cache():
 
 
 def test_l6_load_department_display_uses_lru_cache():
-    from clinosim.modules.output._fhir_localization import _load_department_display
+    from clinosim.modules.output.fhir_r4.localization import _load_department_display
 
     _load_department_display.cache_clear()
     info0 = _load_department_display.cache_info()

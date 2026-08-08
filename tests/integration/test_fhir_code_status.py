@@ -1,7 +1,7 @@
 import pytest
 
-from clinosim.modules.output._fhir_code_status import _bb_code_status
-from clinosim.modules.output.fhir_common import BundleContext
+from clinosim.modules.output.fhir_r4.builders.code_status import _bb_code_status
+from clinosim.modules.output.fhir_r4.common import BundleContext
 
 pytestmark = pytest.mark.integration
 

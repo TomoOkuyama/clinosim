@@ -36,7 +36,7 @@ def _jp_checkup_doc():
 @pytest.mark.unit
 def test_jp_eCheckup_composition_type_uses_doc_typecodes():
     """type.coding が doc-typecodes system + 53576-5 を含むこと。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_checkup_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -49,7 +49,7 @@ def test_jp_eCheckup_composition_type_uses_doc_typecodes():
 @pytest.mark.unit
 def test_jp_eCheckup_composition_has_profile():
     """JP_Composition_eCheckupGeneral profile URL が meta.profile に含まれること。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_checkup_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -60,7 +60,7 @@ def test_jp_eCheckup_composition_has_profile():
 @pytest.mark.unit
 def test_jp_eCheckup_composition_sections_flat_2():
     """事業者健診の 2 必須 section(01031 + 01032)が flat 構造で emit されること。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_checkup_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -74,7 +74,7 @@ def test_jp_eCheckup_composition_sections_flat_2():
 @pytest.mark.unit
 def test_jp_eCheckup_composition_section_content():
     """section.text.div に narrative sections dict の内容が反映されること。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_checkup_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -86,7 +86,7 @@ def test_jp_eCheckup_composition_section_content():
 @pytest.mark.unit
 def test_us_locale_never_emits_eCheckup_profile():
     """lang!='ja' の場合、53576-5 でも eCheckup profile は付与されないこと。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_checkup_doc()
     doc["language"] = "en"

@@ -27,7 +27,7 @@ class TestBuildDosageInstruction:
     """Order-side path (`_build_dosage_instruction` in `_fhir_common`)."""
 
     def test_jp_uses_dose_text_ja_when_structured_empty(self):
-        from clinosim.modules.output.fhir_common import _build_dosage_instruction
+        from clinosim.modules.output.fhir_r4.common import _build_dosage_instruction
 
         order = {
             "dose_quantity": None,
@@ -41,7 +41,7 @@ class TestBuildDosageInstruction:
         assert result == {"text": "以前の吸入薬を再開または新規開始"}
 
     def test_us_uses_dose_text_en_when_structured_empty(self):
-        from clinosim.modules.output.fhir_common import _build_dosage_instruction
+        from clinosim.modules.output.fhir_r4.common import _build_dosage_instruction
 
         order = {
             "dose_quantity": None,
@@ -58,7 +58,7 @@ class TestBuildDosageInstruction:
         """Even when structured route is present, the author's instruction
         takes precedence for the text summary — the auto-derived summary
         can't reconstruct instruction-only doses."""
-        from clinosim.modules.output.fhir_common import _build_dosage_instruction
+        from clinosim.modules.output.fhir_r4.common import _build_dosage_instruction
 
         order = {
             "dose_quantity": None,
@@ -76,7 +76,7 @@ class TestBuildDosageInstruction:
 
     def test_none_when_empty_and_no_authored_text(self):
         """Issue #467 invariant preserved: no text, no dose → return None."""
-        from clinosim.modules.output.fhir_common import _build_dosage_instruction
+        from clinosim.modules.output.fhir_r4.common import _build_dosage_instruction
 
         order = {
             "dose_quantity": None,
@@ -90,7 +90,7 @@ class TestBuildDosageInstruction:
 
     def test_us_falls_through_when_only_ja_authored(self):
         """A JP-only authored instruction should NOT leak into US output."""
-        from clinosim.modules.output.fhir_common import _build_dosage_instruction
+        from clinosim.modules.output.fhir_r4.common import _build_dosage_instruction
 
         order = {
             "dose_quantity": None,
@@ -121,7 +121,7 @@ class TestBuildDischargeMedicationRequest:
         return base
 
     def test_jp_discharge_uses_dose_ja(self):
-        from clinosim.modules.output._fhir_medications import _build_discharge_medication_request
+        from clinosim.modules.output.fhir_r4.builders.medications import _build_discharge_medication_request
 
         r = _build_discharge_medication_request(
             self._item(),
@@ -137,7 +137,7 @@ class TestBuildDischargeMedicationRequest:
         assert di[0].get("text") == "以前の吸入薬を再開または新規開始"
 
     def test_us_discharge_uses_dose_en(self):
-        from clinosim.modules.output._fhir_medications import _build_discharge_medication_request
+        from clinosim.modules.output.fhir_r4.builders.medications import _build_discharge_medication_request
 
         r = _build_discharge_medication_request(
             self._item(),

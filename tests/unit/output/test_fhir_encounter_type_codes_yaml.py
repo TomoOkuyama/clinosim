@@ -7,7 +7,7 @@ dict (2026-07-02 grand design review, display-dict migration).
 import pytest
 
 from clinosim.codes import lookup
-from clinosim.modules.output._fhir_encounter import _build_encounter
+from clinosim.modules.output.fhir_r4.builders.encounter import _build_encounter
 
 pytestmark = pytest.mark.unit
 

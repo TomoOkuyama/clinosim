@@ -8,7 +8,7 @@ mis-link (PR-90 silent-no-op class, PR1 Important finding).
 
 import re
 
-from clinosim.modules.output._fhir_diagnostic_report import (
+from clinosim.modules.output.fhir_r4.builders.diagnostic_report import (
     OBS_ID_FORMAT,
     lab_obs_id,
     parse_lab_obs_id,

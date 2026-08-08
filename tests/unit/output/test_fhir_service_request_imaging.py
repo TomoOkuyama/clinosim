@@ -18,7 +18,7 @@ from __future__ import annotations
 from datetime import datetime
 from types import SimpleNamespace
 
-from clinosim.modules.output._fhir_service_request import (
+from clinosim.modules.output.fhir_r4.builders.service_request import (
     IMAGING_CATEGORY_SNOMED,
     IMAGING_CATEGORY_V2_0074,
     LAB_CATEGORY_SNOMED,

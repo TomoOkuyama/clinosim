@@ -28,7 +28,7 @@ from typing import Any
 import pytest
 
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
-from clinosim.modules.output._fhir_medications import (
+from clinosim.modules.output.fhir_r4.builders.medications import (
     MEDICATION_REQUEST_KEY_SYSTEM,
     _build_medication_admin,
     _build_medication_request,

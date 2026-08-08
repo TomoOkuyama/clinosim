@@ -69,7 +69,7 @@ def _us_ds_doc():
 
 @pytest.mark.unit
 def test_jp_clins_composition_type_uses_doc_typecodes():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -80,7 +80,7 @@ def test_jp_clins_composition_type_uses_doc_typecodes():
 
 @pytest.mark.unit
 def test_jp_clins_composition_has_profile():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -90,7 +90,7 @@ def test_jp_clins_composition_has_profile():
 
 @pytest.mark.unit
 def test_jp_clins_composition_has_nested_structural_section():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -123,7 +123,7 @@ def test_jp_clins_composition_has_nested_structural_section():
 
 @pytest.mark.unit
 def test_jp_clins_composition_child_section_text_div():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -143,7 +143,7 @@ def test_jp_clins_composition_section_title_short_display_long():
     `section.title` = short form (no `セクション` suffix, spec `title.fixedString`)
     and `section.code.coding.display` = long form (`patternString`,
     ends in `セクション`)."""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -175,7 +175,7 @@ def test_jp_clins_composition_section_code_text_max_zero():
     """Chain #9: JP-CLINS eDS spec pins every section slice `code.text` to
     max=0. clinosim must not emit a `text` field on any section's `code`
     CodeableConcept (parent structuredSection or any child)."""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -189,7 +189,7 @@ def test_jp_clins_composition_section_code_text_max_zero():
 def test_jp_clins_composition_extension_version_present():
     """Chain #9: JP-CLINS eDS declares `Composition.extension:version` (min=1)
     on the composition-clinicaldocument-versionNumber URL."""
-    from clinosim.modules.output._fhir_composition import (
+    from clinosim.modules.output.fhir_r4.builders.composition import (
         _JP_EDS_VERSION_EXTENSION_URL,
         _build_composition,
     )
@@ -206,7 +206,7 @@ def test_jp_clins_composition_extension_version_present():
 def test_jp_clins_composition_category_discharge():
     """Chain #9: JP-CLINS eDS `Composition.category` min=1 max=1 fixed to
     DISCHARGE under doc-subtypecodes CodeSystem."""
-    from clinosim.modules.output._fhir_composition import (
+    from clinosim.modules.output.fhir_r4.builders.composition import (
         _JPFHIR_DOC_SUBTYPECODES_SYSTEM,
         _build_composition,
     )
@@ -227,7 +227,7 @@ def test_jp_clins_composition_category_discharge_display_matches_cs_authoritativ
     は `退院時サマリー`(jpfhir-doc-typecodes 側 display)を誤って流用
     し 126+126 errors を生んだ。CS 権威 display の drift を CI で検知。
     """
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -246,7 +246,7 @@ def test_jp_clins_composition_all_10_child_sections_have_nonempty_text_div():
     narrative pass writes `discharge_medications` / `discharge_instructions`.
     Key drift → empty `<div/>` → 260+ v5 errors.
     """
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -266,7 +266,7 @@ def test_jp_clins_composition_hospital_course_entry_from_free_text_map():
     等)を precompute map から解決して emit。map hit なしなら never-fabricate
     guard で entry を drop する。
     """
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()  # encounter_id = "ENC-001"
     enc_map = {"ENC-001": "doc-ENC-001-progressnote-01"}
@@ -281,7 +281,7 @@ def test_jp_clins_composition_hospital_course_entry_dropped_when_no_free_text():
     """#278:free-text map hit なし(scenario:progress note が未生成、
     もしくは call site が map を渡していない)→ hospital_course entry は
     never-fabricate rule に従い emit しない。"""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     # empty map = no free-text doc for this encounter
@@ -295,7 +295,7 @@ def test_jp_clins_composition_hospital_course_entry_dropped_when_no_free_text():
 def test_jp_clins_composition_meta_lastupdated_from_authored_datetime():
     """Chain #9: `Composition.meta.lastUpdated` min=1 — falls back to authored
     datetime when not builder-set."""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -318,7 +318,7 @@ def test_jp_clins_composition_required_entries_reference_correct_resources():
     Non-required slices (chief complaint / present illness / etc.) do not
     fabricate an entry when clinosim has no source resource to link.
     """
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -348,7 +348,7 @@ def test_jp_clins_composition_required_entries_reference_correct_resources():
 def test_jp_clins_composition_entry_omitted_when_ids_missing():
     """Never fabricate a broken reference — if encounter_id (or the pieces
     needed to derive a target id) is missing, drop the entry."""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     doc["encounter_id"] = ""
@@ -365,7 +365,7 @@ def test_jp_clins_composition_custodian_emitted():
     #330 session 61:eDS profile の custodian targetProfile は
     JP_Organization_eCS 準拠を要求。hospital-main-ecs へ pin。
     """
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -377,7 +377,7 @@ def test_jp_clins_composition_event_period_populated():
     """Chain #9 follow-up (#267): `Composition.event` min=1 max=1 with
     period.start required — falls back to authored_datetime when
     period_start is absent (generic builder emit)."""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -394,7 +394,7 @@ def test_jp_clins_composition_author_has_organization():
     #330 session 61:eDS profile の author targetProfile は
     JP_Organization_eCS 準拠を要求。Organization ref は hospital-main-ecs へ pin。
     """
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -409,7 +409,7 @@ def test_jp_clins_composition_author_has_organization():
 
 @pytest.mark.unit
 def test_jp_clins_composition_title_is_ja():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -422,7 +422,7 @@ def test_jp_clins_composition_identifier_uri_matches_spec():
     `Composition.identifier.system` fixedUri =
     `http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier`.
     US / generic path retains the clinosim namespace URI (no spec constraint)."""
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
@@ -431,7 +431,7 @@ def test_jp_clins_composition_identifier_uri_matches_spec():
 
 @pytest.mark.unit
 def test_us_composition_identifier_keeps_clinosim_uri():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _us_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "en")
@@ -440,7 +440,7 @@ def test_us_composition_identifier_keeps_clinosim_uri():
 
 @pytest.mark.unit
 def test_us_discharge_summary_composition_unchanged():
-    from clinosim.modules.output._fhir_composition import _build_composition
+    from clinosim.modules.output.fhir_r4.builders.composition import _build_composition
 
     doc = _us_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "en")

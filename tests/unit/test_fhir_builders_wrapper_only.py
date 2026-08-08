@@ -13,12 +13,12 @@ import base64
 
 import pytest
 
-from clinosim.modules.output._fhir_composition import _bb_compositions, _build_composition
-from clinosim.modules.output._fhir_documents import (
+from clinosim.modules.output.fhir_r4.builders.composition import _bb_compositions, _build_composition
+from clinosim.modules.output.fhir_r4.builders.documents import (
     _bb_document_references,
     _build_dref_from_clinical_doc,
 )
-from clinosim.modules.output.fhir_common import BundleContext
+from clinosim.modules.output.fhir_r4.common import BundleContext
 
 
 def _make_ctx(docs: list[dict], country: str = "us") -> BundleContext:
