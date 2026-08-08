@@ -30,6 +30,7 @@ import re
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import (  # noqa: F401
     _bb_allergy_intolerances,
@@ -345,7 +346,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                 "coding": [
                     {
                         "system": get_system_uri("hl7-v3-actpriority"),
-                        "code": "EM",
+                        "code": ActPriority.EM.value,
                         "display": _synth_ed_display("priority_em", ctx.country),
                     }
                 ],
@@ -355,7 +356,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                     "coding": [
                         {
                             "system": get_system_uri("hl7-admit-source"),
-                            "code": "outp",
+                            "code": AdmitSource.OUTP.value,
                             "display": _synth_ed_display("admit_source_outp", ctx.country),
                         }
                     ],
@@ -364,7 +365,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                     "coding": [
                         {
                             "system": get_system_uri("hl7-discharge-disposition"),
-                            "code": "hosp",
+                            "code": AdmitSource.HOSP.value,
                             "display": _synth_ed_display("discharge_disposition_hosp", ctx.country),
                         }
                     ],

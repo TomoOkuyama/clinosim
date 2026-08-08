@@ -9,6 +9,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.codes import system_key_for
+from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
 from clinosim.modules.clinical_course.engine import (
     apply_diagnosis_modifier,
@@ -525,7 +526,7 @@ def _simulate_patient(
     encounter.discharging_physician_id = attending_id
     encounter.admitting_physician_id = attending_id
     if not encounter.admit_source:
-        encounter.admit_source = "emd"  # Most inpatients come via ED
+        encounter.admit_source = AdmitSource.EMD  # Most inpatients come via ED
     # CY7-05 (structural fix, 2026-07-11): populate `admit_source_encounter_id`
     # on the inpatient encounter so the FHIR adapter can emit a synthetic ED
     # Encounter with Encounter.partOf → IMP. Only sets the ID (a deterministic
@@ -533,15 +534,15 @@ def _simulate_patient(
     # emit time in _bb_encounters. Keeping this CIF-side change ID-only avoids
     # the record.encounters[0] contract breakage (many downstream sites assume
     # singleton) and avoids extra doc stubs for the synthesized ED.
-    if encounter.admit_source == "emd" and not encounter.admit_source_encounter_id:
+    if encounter.admit_source == AdmitSource.EMD and not encounter.admit_source_encounter_id:
         encounter.admit_source_encounter_id = f"{encounter.encounter_id}-ED"
     if not encounter.discharge_disposition:
         if death_occurred:
-            encounter.discharge_disposition = "exp"  # session 59 #299: HL7 authoritative
+            encounter.discharge_disposition = DischargeDisposition.EXP  # session 59 #299: HL7 authoritative
         else:
-            encounter.discharge_disposition = "home"
+            encounter.discharge_disposition = DischargeDisposition.HOME
     if not encounter.priority:
-        encounter.priority = "EM" if disease_id in EMERGENCY_PRIORITY_DISEASES else "UR"
+        encounter.priority = ActPriority.EM if disease_id in EMERGENCY_PRIORITY_DISEASES else ActPriority.UR
 
     # Discharge time: daytime (09-16) for planned discharge, any time for death
     # Clinical convention: discharges happen during daytime business hours
