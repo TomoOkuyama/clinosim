@@ -7,7 +7,7 @@ display-dict migration — the largest/last item in this backlog).
 import pytest
 
 from clinosim.codes import lookup
-from clinosim.modules.output.fhir_r4.lib.common import _build_diagnosis_codeable_concept
+from clinosim.modules.output.fhir_r4.lib.common import build_diagnosis_codeable_concept
 
 pytestmark = pytest.mark.unit
 
@@ -22,7 +22,7 @@ pytestmark = pytest.mark.unit
     ],
 )
 def test_short_name_us(code, en):
-    concept = _build_diagnosis_codeable_concept(code, "icd-10-cm", "US")
+    concept = build_diagnosis_codeable_concept(code, "icd-10-cm", "US")
     assert concept["text"] == en
     assert concept["text"] == lookup("condition-short-name", code.split(".")[0], "en")
 
@@ -37,7 +37,7 @@ def test_short_name_us(code, en):
     ],
 )
 def test_short_name_jp(code, ja):
-    concept = _build_diagnosis_codeable_concept(code, "icd-10", "JP")
+    concept = build_diagnosis_codeable_concept(code, "icd-10", "JP")
     assert concept["text"] == ja
     assert concept["text"] == lookup("condition-short-name", code, "ja")
 
@@ -45,6 +45,6 @@ def test_short_name_jp(code, ja):
 def test_code_without_short_name_falls_back_to_primary_display():
     # M48 (spinal stenosis) has no short-name entry; text should fall back to
     # the primary display (i.e. equal coding[].display), not the raw code.
-    concept = _build_diagnosis_codeable_concept("M48.9", "icd-10-cm", "US")
+    concept = build_diagnosis_codeable_concept("M48.9", "icd-10-cm", "US")
     assert concept["text"] == concept["coding"][0]["display"]
     assert concept["text"] != "M48"

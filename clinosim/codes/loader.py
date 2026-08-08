@@ -81,7 +81,7 @@ _SYSTEM_LOOKUP_SIBLINGS: dict[str, tuple[str, ...]] = {
 # Japanese ``display`` for each concept — emitting an English display against
 # this system URI produces a display-mismatch error at conformance time
 # (validator compares against the authoritative CS). Consumers building
-# multilingual CodeableConcepts (e.g. ``_build_diagnosis_codeable_concept``)
+# multilingual CodeableConcepts (e.g. ``build_diagnosis_codeable_concept``)
 # must skip the English secondary coding when the primary system is here.
 #
 # Concrete case: MHLW ICD-10 2013 registry

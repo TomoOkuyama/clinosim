@@ -11,7 +11,7 @@ Historical context:
   `Observation.referenceRange.extension` (and `.low.extension` /
   `.high.extension`) to `max=0`, so no URL — spec-valid or not — can
   live there under the eCS profile.
-- Fix: `_build_reference_range` no longer emits the extension, and a
+- Fix: `build_reference_range` no longer emits the extension, and a
   post-emit walker `_strip_forbidden_observation_reference_range_extensions`
   in `fhir_r4_adapter` scrubs any legacy or regressed extensions on
   `referenceRange` and `component[*].referenceRange`.
@@ -21,15 +21,15 @@ Issue: #202.
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.lib.common import _build_reference_range
+from clinosim.modules.output.fhir_r4.lib.common import build_reference_range
 from clinosim.modules.output.fhir_r4.post_process import _strip_forbidden_observation_reference_range_extensions
 
 pytestmark = pytest.mark.unit
 
 
 def test_build_reference_range_emits_no_extension_on_jp() -> None:
-    """`_build_reference_range` は country=JP でも extension を emit しない。"""
-    result = _build_reference_range(
+    """`build_reference_range` は country=JP でも extension を emit しない。"""
+    result = build_reference_range(
         lab_name="WBC",
         patient_sex="M",
         country_code="JP",
@@ -46,7 +46,7 @@ def test_build_reference_range_emits_no_extension_on_jp() -> None:
 
 def test_build_reference_range_emits_no_extension_on_us() -> None:
     """US output も同様に extension は emit されない(regression pin)。"""
-    result = _build_reference_range(
+    result = build_reference_range(
         lab_name="WBC",
         patient_sex="M",
         country_code="US",

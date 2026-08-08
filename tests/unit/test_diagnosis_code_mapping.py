@@ -12,7 +12,7 @@ import pytest
 
 from clinosim.codes import lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules.output.fhir_r4.lib.common import _map_diagnosis_code
+from clinosim.modules.output.fhir_r4.lib.common import map_diagnosis_code
 
 pytestmark = pytest.mark.unit
 
@@ -48,7 +48,7 @@ US_MAPPINGS = [
 
 @pytest.mark.parametrize("internal,target", US_MAPPINGS)
 def test_us_maps_internal_to_billable_target(internal: str, target: str) -> None:
-    assert _map_diagnosis_code(internal, "US") == target
+    assert map_diagnosis_code(internal, "US") == target
 
 
 @pytest.mark.parametrize("internal,target", US_MAPPINGS)
@@ -72,7 +72,7 @@ def test_every_us_target_resolves_a_real_display() -> None:
 def test_specific_primary_codes_pass_through_unchanged() -> None:
     # Disease primary diagnoses are already specific/billable; never remapped.
     for code in ["I21.9", "A41.9", "I63.9", "I50.9", "J44.1", "K35.80"]:
-        assert _map_diagnosis_code(code, "US") == code
+        assert map_diagnosis_code(code, "US") == code
 
 
 def test_jp_mapping_folds_to_who_granularity() -> None:
@@ -86,11 +86,11 @@ def test_jp_mapping_folds_to_who_granularity() -> None:
     for k, v in jp_map.items():
         assert who_format.match(v), f"JP map target must be WHO ICD-10 granularity, got {k} -> {v}"
     # WHO category codes pass through identity; CM granularity folds to the WHO parent.
-    assert _map_diagnosis_code("I21", "JP") == "I21"
-    assert _map_diagnosis_code("E78", "JP") == "E78"
-    assert _map_diagnosis_code("A41.01", "JP") == "A41.0"
-    assert _map_diagnosis_code("S06.0X0A", "JP") == "S06.0"
+    assert map_diagnosis_code("I21", "JP") == "I21"
+    assert map_diagnosis_code("E78", "JP") == "E78"
+    assert map_diagnosis_code("A41.01", "JP") == "A41.0"
+    assert map_diagnosis_code("S06.0X0A", "JP") == "S06.0"
 
 
 def test_empty_code_passes_through() -> None:
-    assert _map_diagnosis_code("", "US") == ""
+    assert map_diagnosis_code("", "US") == ""

@@ -76,7 +76,7 @@ def strip_protocol_prefix(name: str) -> tuple[str, str]:
     Promoted from ``modules/output/_fhir_common.py`` (β-JP-1 chain 1a adv-1
     I-1): narrative rendering (``modules/document``) needs the same
     normalization as the FHIR medication builders — single edit point per the
-    data-logic unification rule. ``_fhir_common._strip_protocol_prefix`` is an
+    data-logic unification rule. ``_fhir_common.strip_protocol_prefix`` is an
     alias of this function.
     """
     if ":" in name:

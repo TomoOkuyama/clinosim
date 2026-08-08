@@ -209,7 +209,7 @@ class Order:
     # controller therapy", "Per established regimen"). Set from disease-YAML
     # `dose_ja` / `dose_en` fields at Order creation time (only where the
     # authored instruction exists — empty on the vast majority of Orders).
-    # Consumed by `_fhir_common._build_dosage_instruction` as a country-scoped
+    # Consumed by `_fhir_common.build_dosage_instruction` as a country-scoped
     # text fallback: JP MedicationRequest gets `dosageInstruction.text = dose_text_ja`
     # when structured `dose_quantity` is None. The pre-existing `display_name`
     # text fallback was removed in Issue #467 (it stuffed the drug name into
