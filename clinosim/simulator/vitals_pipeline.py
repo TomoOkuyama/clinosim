@@ -46,6 +46,23 @@ from clinosim.modules.disease.acuity import (
     CRITICAL_MONITORING_DISEASES,
     NEURO_LOC_MONITORING_DISEASES,
 )
+from clinosim.modules.observation.fluid_balance import (
+    AGGRESSIVE_IV_ML,
+    AGGRESSIVE_IV_SD,
+    ANURIA_FLOOR_ML,
+    DEHYDRATION_IV_ML,
+    DEHYDRATION_IV_SD,
+    DEHYDRATION_IV_TRIGGER,
+    MAINTENANCE_IV_ML,
+    MAINTENANCE_IV_SD,
+)
+from clinosim.modules.observation.oxygenation import SPO2_HYPOXEMIA_TRIGGER, SPO2_SEVERE_HYPOXEMIA
+from clinosim.modules.observation.vitals_thresholds import (
+    FEBRILE_RECHECK_PROB,
+    FEBRILE_RECHECK_WINDOW_MIN,
+    FEVER_THRESHOLD_C,
+    HIGH_FEVER_RECHECK_C,
+)
 from clinosim.modules.physiology.engine import derive_observed_vitals
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
@@ -136,11 +153,11 @@ def _generate_daily_io(
     """Generate daily intake/output record."""
     # IV fluid: higher in early days, less as patient improves
     if day <= 2:
-        iv = int(rng.normal(1500, 300))  # aggressive hydration
-    elif state.volume_status < -0.2:
-        iv = int(rng.normal(1200, 200))  # dehydrated
+        iv = int(rng.normal(AGGRESSIVE_IV_ML, AGGRESSIVE_IV_SD))  # aggressive hydration
+    elif state.volume_status < DEHYDRATION_IV_TRIGGER:
+        iv = int(rng.normal(DEHYDRATION_IV_ML, DEHYDRATION_IV_SD))  # dehydrated
     else:
-        iv = int(rng.normal(500, 200))  # maintenance
+        iv = int(rng.normal(MAINTENANCE_IV_ML, MAINTENANCE_IV_SD))  # maintenance
 
     # Oral intake: improves as patient recovers
     if day == 0:
@@ -153,7 +170,7 @@ def _generate_daily_io(
     # Urine output: correlates with renal function and hydration
     base_urine = 1500 * state.renal_function
     urine_sd = max(100, base_urine * 0.2)  # SD proportional to base
-    urine = int(max(50, rng.normal(base_urine, urine_sd)))  # min 50ml (anuria threshold)
+    urine = int(max(ANURIA_FLOOR_ML, rng.normal(base_urine, urine_sd)))  # min 50ml (anuria threshold)
 
     # Drain (post-surgical only, simplified)
     drain = 0
@@ -181,13 +198,17 @@ def _make_raw(state, patient, vit_time, rng):
 
 def _o2_for(spo2, disease_id, rng):
     """Return (on_o2, flow, device)."""
-    needs = spo2 < 92 or disease_id in _RESPIRATORY_DISEASES or disease_id == "heart_failure_exacerbation"
+    needs = (
+        spo2 < SPO2_HYPOXEMIA_TRIGGER
+        or disease_id in _RESPIRATORY_DISEASES
+        or disease_id == "heart_failure_exacerbation"
+    )
     if not needs:
         return False, None, ""
-    if spo2 < 88:
+    if spo2 < SPO2_SEVERE_HYPOXEMIA:
         flow = float(rng.uniform(6, 10))
         device = "non-rebreather" if flow >= 8 else "simple_mask"
-    elif spo2 < 92:
+    elif spo2 < SPO2_HYPOXEMIA_TRIGGER:
         flow = float(rng.uniform(2, 5))
         device = "nasal_cannula" if flow <= 4 else "simple_mask"
     else:
@@ -295,7 +316,7 @@ def _generate_vitals(
 
         # CIF stores English nursing notes (AD-30). JP translation at FHIR output.
         note_parts = []
-        if raw["temperature"] >= 38.0:
+        if raw["temperature"] >= FEVER_THRESHOLD_C:
             note_parts.append("febrile")
         if raw["spo2"] < 93:
             note_parts.append("SpO2 low, O2 adjusted")
@@ -308,8 +329,8 @@ def _generate_vitals(
         _emit(actual_time, fields={"temp", "hr", "bp", "rr", "spo2", "pain", "loc"}, raw=raw, note=note)
 
         # 1a. Febrile re-check: re-measure temperature 30-60 min later
-        if raw["temperature"] >= 38.5 and rng.random() < 0.7:
-            recheck_time = actual_time + timedelta(minutes=int(rng.uniform(30, 60)))
+        if raw["temperature"] >= HIGH_FEVER_RECHECK_C and rng.random() < FEBRILE_RECHECK_PROB:
+            recheck_time = actual_time + timedelta(minutes=int(rng.uniform(*FEBRILE_RECHECK_WINDOW_MIN)))
             recheck_raw = _make_raw(state, patient, recheck_time, rng)
             _emit(
                 recheck_time,

@@ -23,14 +23,16 @@ from datetime import datetime
 import numpy as np
 
 from clinosim.modules.disease.protocol import DiseaseProtocol
+from clinosim.modules.physiology.renal_thresholds import DISCHARGE_RENAL_HOLD_THRESHOLD
 from clinosim.types.encounter import PrescriptionRecord
 from clinosim.types.patient import PatientProfile
 
 # Drugs held at discharge when renal function is impaired.
-# Threshold `final_renal_function < 0.3` maps to KDIGO stage 3b+ CKD or
-# active AKI. Held drugs include nephrotoxins (NSAIDs) and drugs cleared
-# renally where a stopped dose is safer than a discharge-strength one
-# (metformin for lactic-acidosis risk, enoxaparin for bleeding-risk).
+# Threshold `final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD` maps to
+# KDIGO stage 3b+ CKD or active AKI. Held drugs include nephrotoxins
+# (NSAIDs) and drugs cleared renally where a stopped dose is safer than a
+# discharge-strength one (metformin for lactic-acidosis risk, enoxaparin
+# for bleeding-risk).
 _RENAL_HOLD_DRUGS: frozenset[str] = frozenset(
     {"metformin", "celecoxib", "ibuprofen", "naproxen", "enoxaparin", "alendronate"}
 )
@@ -99,7 +101,9 @@ def build_discharge_rx(
         drug_name = drug_spec.get("drug", "")
         if not drug_name:
             return
-        if final_renal_function < 0.3 and any(rd in drug_name.lower() for rd in _RENAL_HOLD_DRUGS):
+        if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(
+            rd in drug_name.lower() for rd in _RENAL_HOLD_DRUGS
+        ):
             return
         key = _dedup_key(drug_name)
         if key in seen_dedup_keys:
@@ -175,7 +179,7 @@ def build_discharge_rx(
         if not drug_name:
             continue
         drug_lower = drug_name.lower()
-        if final_renal_function < 0.3 and any(rd in drug_lower for rd in _RENAL_HOLD_DRUGS):
+        if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(rd in drug_lower for rd in _RENAL_HOLD_DRUGS):
             continue  # do not restart nephrotoxic drug at discharge
         key = _dedup_key(drug_name)
         if key in seen_dedup_keys:
