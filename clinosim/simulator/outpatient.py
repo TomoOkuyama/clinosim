@@ -14,7 +14,11 @@ from clinosim.modules.observation.engine import (
     generate_lab_result,
     get_lab_unit,
 )
-from clinosim.modules.staff.engine import StaffRoster, assign_staff
+from clinosim.modules.staff.engine import (
+    FALLBACK_PHYSICIAN_ID,
+    StaffRoster,
+    assign_staff,
+)
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.encounter import (
     EncounterStatus,
@@ -92,7 +96,7 @@ def _simulate_outpatient_visit(
     encounter.discharge_datetime = visit_date + timedelta(minutes=int(rng.integers(15, 45)))
 
     staff = assign_staff("rounds", "internal_medicine", roster, rng)
-    encounter.attending_physician_id = staff.get("attending_physician", "DR-001")
+    encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
 
     orders: list[Order] = []
     lab_results: list[OrderResult] = []

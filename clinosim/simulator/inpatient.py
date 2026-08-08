@@ -72,7 +72,13 @@ from clinosim.modules.procedure.engine import (
     generate_rehab_sessions,
     simulate_surgery,
 )
-from clinosim.modules.staff.engine import StaffRoster, assign_staff
+from clinosim.modules.staff.engine import (
+    FALLBACK_NURSE_ID,
+    FALLBACK_PHYSICIAN_ID,
+    FALLBACK_TECH_ID,
+    StaffRoster,
+    assign_staff,
+)
 from clinosim.seeding import individual_lab_seed, panel_specimen_seed
 from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.simulator.helpers import (  # noqa: I001
@@ -235,7 +241,7 @@ def _simulate_patient(
     department = resolve_department(granular_dept, hospital_ops)
     encounter.department_id = department
     staff = assign_staff("admission", department, roster, rng)
-    attending_id = staff.get("attending_physician", "DR-001")
+    attending_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
     encounter.attending_physician_id = attending_id
 
     # Ward assignment from hospital config
@@ -1019,7 +1025,9 @@ def _run_daily_loop(
                     # Hemolyzed sample → falsely elevated K/LDH, flagged
                     result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, lab_rng)
                     hemolyzed_val = true_labs[canon] * float(lab_rng.uniform(*HEMOLYSIS_LIFT_RANGE))
-                    lab_tech = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", "TECH-001")
+                    lab_tech = assign_staff("lab_result", "", roster, lab_rng).get(
+                        "performing_technician", FALLBACK_TECH_ID
+                    )
                     order.result = OrderResult(
                         result_datetime=result_time,
                         performed_by=lab_tech,
@@ -1037,7 +1045,9 @@ def _run_daily_loop(
                 flag = determine_flag(
                     canon, observed, sex=patient.sex, country="JP" if country_key == "japan" else "US"
                 )
-                lab_tech = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", "TECH-001")
+                lab_tech = assign_staff("lab_result", "", roster, lab_rng).get(
+                    "performing_technician", FALLBACK_TECH_ID
+                )
                 order.result = OrderResult(
                     result_datetime=result_time,
                     performed_by=lab_tech,
@@ -1077,7 +1087,7 @@ def _run_daily_loop(
                     "",
                     roster,
                     sub_rng,
-                ).get("performing_technician", "TECH-001")
+                ).get("performing_technician", FALLBACK_TECH_ID)
                 if canon in HEMOLYSIS_PRONE_LABS and sub_rng.random() < HEMOLYSIS_RATE:
                     hemolyzed_val = true_labs[canon] * float(sub_rng.uniform(*HEMOLYSIS_LIFT_RANGE))
                     child.result = OrderResult(
@@ -1321,7 +1331,7 @@ def _run_daily_loop(
 
         # Vitals
         ward_nurse_id = assign_staff("medication_administration", department, roster, rng).get(
-            "administering_nurse", "NS-001"
+            "administering_nurse", FALLBACK_NURSE_ID
         )  # noqa: E501
         vitals_country = "JP" if country_key == "japan" else "US"
         vitals_today = _generate_vitals(
@@ -1675,7 +1685,9 @@ def _generate_mar(
     # Ensure medication orders are enriched (idempotent) so MAR can use structured dose
     for o in med_orders:
         enrich_medication_order(o)
-    nurse_id = assign_staff("medication_administration", department, roster, rng).get("administering_nurse", "NS-001")
+    nurse_id = assign_staff("medication_administration", department, roster, rng).get(
+        "administering_nurse", FALLBACK_NURSE_ID
+    )
 
     for order in med_orders:
         drug_name = order.display_name
@@ -2129,7 +2141,7 @@ def _simulate_unknown_condition(
 
     department = resolve_department("internal_medicine", hospital_ops)
     encounter.department_id = department
-    attending_id = assign_staff("admission", department, roster, rng).get("attending_physician", "DR-001")
+    attending_id = assign_staff("admission", department, roster, rng).get("attending_physician", FALLBACK_PHYSICIAN_ID)
     encounter.attending_physician_id = attending_id
     encounter.ward_id = pick_ward(department, hospital_ops, rng)
     ward_cap = (hospital_ops or {}).get("ward_capacity", {}).get(encounter.ward_id, 10)
@@ -2294,7 +2306,7 @@ def _simulate_unknown_condition(
                     sex=patient.sex,
                     country=config.country if config else "US",
                 )
-                tech_id = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
+                tech_id = assign_staff("lab_result", "", roster, rng).get("performing_technician", FALLBACK_TECH_ID)
                 order.result = OrderResult(
                     result_datetime=result_time,
                     performed_by=tech_id,
@@ -2308,7 +2320,7 @@ def _simulate_unknown_condition(
 
         # Vitals
         unk_nurse_id = assign_staff("medication_administration", department, roster, rng).get(
-            "administering_nurse", "NS-001"
+            "administering_nurse", FALLBACK_NURSE_ID
         )  # noqa: E501
         all_vitals.extend(_generate_vitals(state, patient, day, admission_time, rng, nurse_id=unk_nurse_id))
 
