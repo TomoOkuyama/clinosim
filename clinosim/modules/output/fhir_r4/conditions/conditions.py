@@ -223,7 +223,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             # C2-20 (session 42 cycle 2): JP Core Condition profile.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
-                if country_code == "JP"
+                if is_jp(country_code)
                 else {}
             ),
             "clinicalStatus": {
@@ -266,7 +266,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         )  # noqa: E501
         cond["evidence"] = [
             {
-                "code": [{"text": _ev_text_ja if country_code == "JP" else _ev_text_en}],
+                "code": [{"text": _ev_text_ja if is_jp(country_code) else _ev_text_en}],
             }
         ]
 
@@ -387,7 +387,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             # condition path (encounter-dx path handled above).
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
-                if country_code == "JP"
+                if is_jp(country_code)
                 else {}
             ),
             # C2-02/03 (session 42 cycle 2): use _coding_with_display so the
@@ -424,7 +424,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 "code": [
                     {
                         "text": "問題リスト:過去診療で確立"
-                        if country_code == "JP"
+                        if is_jp(country_code)
                         else "Problem list — established in prior encounters"
                     }
                 ],  # noqa: E501
