@@ -21,10 +21,13 @@ pytestmark = pytest.mark.unit
 
 
 def test_admit_source_wire_values() -> None:
+    # Issue #617: AdmitSource.HOSP removed — it was a synth-ED overload for a
+    # discharge-disposition slot (HL7 spec: "hosp" under discharge-disposition
+    # means Hospice, not "hospitalized"). Removed after #615 dropped the
+    # dischargeDisposition emission from synth-ED bridge Encounters.
     expected = {
         AdmitSource.EMD: "emd",
         AdmitSource.OUTP: "outp",
-        AdmitSource.HOSP: "hosp",
     }
     for member, code in expected.items():
         assert member.value == code, f"{member.name}.value must be {code!r}"
