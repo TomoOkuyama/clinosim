@@ -35,9 +35,9 @@ from clinosim.modules.disease.localization import (  # noqa: F401
     _disease_chief_complaint_ja,
     _disease_to_department,
 )
-from clinosim.modules.disease.protocol import DiseaseProtocol
-from clinosim.modules.disease.protocol import (  # noqa: F401 (re-export alias)
-    load_all_disease_protocols as _load_all_disease_protocols,
+from clinosim.modules.disease.protocol import (
+    DiseaseProtocol,
+    load_all_disease_protocols,
 )
 from clinosim.modules.population.engine import HospitalizationSummary, LifeEvent
 from clinosim.simulator.discharge_gate import (  # noqa: F401
@@ -50,6 +50,11 @@ from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import HomeMedication, PatientProfile
 
+# Deprecated underscore alias (Issue #557) — kept for one release cycle so
+# existing imports continue to resolve. New code imports
+# `load_all_disease_protocols` directly.
+_load_all_disease_protocols = load_all_disease_protocols
+
 __all__ = [
     "DiseaseProtocol",
     "HospitalizationSummary",
@@ -57,10 +62,11 @@ __all__ = [
     "PhysiologicalState",
     "CIFPatientRecord",
     "PatientProfile",
-    # Underscore-prefixed alias for the canonical cached loader; kept for
-    # existing mypy-strict export checks at import sites (Issue #544
-    # follow-up plans to rename to `load_all_disease_protocols`).
-    "_load_all_disease_protocols",
+    # Public loader (Issue #557 rename). `_load_all_disease_protocols` is
+    # still available as a deprecated alias defined above; new code should
+    # import `load_all_disease_protocols`.
+    "load_all_disease_protocols",
+    "_load_all_disease_protocols",  # deprecated alias, remove next release
     # Issue #544 re-exports (kept for one deprecation cycle; import from the
     # topic module in new code — mypy-strict requires explicit `__all__`
     # membership for underscore-prefixed re-exports).

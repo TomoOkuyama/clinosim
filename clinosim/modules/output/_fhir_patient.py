@@ -10,6 +10,7 @@ reference/localization + _fhir_common helper modules (no adapter import cycle).
 from __future__ import annotations
 
 import uuid
+from functools import lru_cache
 from typing import Any
 
 from clinosim.codes import get_system_uri
@@ -32,8 +33,6 @@ from clinosim.modules.output._fhir_localization import (
 )
 from clinosim.modules.output._fhir_reference_data import _ALLERGEN_RXNORM
 
-_IDENTITY_CFG_CACHE: dict[str, dict] = {}
-
 # FHIR R4 standard: payer organization type
 _ORG_TYPE_SYSTEM = get_system_uri("hl7-organization-type")
 # FHIR R4 standard: beneficiary's relationship to the policy subscriber
@@ -54,11 +53,18 @@ def _default_coverage_period_year(patient_data: dict) -> int:
     return 2025
 
 
+@lru_cache(maxsize=2)
 def _identity_cfg(country: str) -> dict:
-    """Full resident-identity locale config (AD-54), cached."""
-    if country not in _IDENTITY_CFG_CACHE:
-        _IDENTITY_CFG_CACHE[country] = load_identity_config(country)
-    return _IDENTITY_CFG_CACHE[country]
+    """Full resident-identity locale config (AD-54).
+
+    ``@lru_cache(maxsize=2)`` bounds the cache to the two supported
+    countries (US / JP). Issue #557: replaces the pre-Aug-2026 pattern
+    of a module-level `_IDENTITY_CFG_CACHE: dict` mutated across module
+    boundaries — the previous 3 external re-imports (`_fhir_post_process`,
+    `_fhir_inline_bb`) were unused ``noqa: F401`` re-exports and are
+    removed.
+    """
+    return load_identity_config(country)
 
 
 def _payer_name_map(country: str) -> dict[str, str]:

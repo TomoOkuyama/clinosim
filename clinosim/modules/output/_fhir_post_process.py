@@ -116,7 +116,7 @@ from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
 )
 from clinosim.modules.output._fhir_immunization import _bb_immunizations  # noqa: F401
 from clinosim.modules.output._fhir_inline_bb import (
-    _build_order_in_rp_map,  # noqa: F401 — back-compat re-export for test imports
+    build_order_in_rp_map,  # noqa: F401 — back-compat re-export for test imports
 )
 from clinosim.modules.output._fhir_localization import (  # noqa: F401
     _CATEGORY_DISPLAY_JA,
@@ -155,7 +155,6 @@ from clinosim.modules.output._fhir_observations import (  # noqa: F401
     _build_vital_observations,
 )
 from clinosim.modules.output._fhir_patient import (  # noqa: F401
-    _IDENTITY_CFG_CACHE,
     _ORG_TYPE_SYSTEM,
     _SUBSCRIBER_REL_SYSTEM,
     _build_coverage_resources,
