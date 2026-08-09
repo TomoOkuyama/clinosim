@@ -146,6 +146,35 @@ jobs:
       - name: ruff check --select F401,F841 clinosim/ tests/
         run: ruff check --select F401,F841 clinosim/ tests/
 
+  vulture-dead-code:
+    name: vulture dead-code
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Merge-blocking semantic dead-code guard (policy §6 — see
+    # docs/design-guides/documentation-and-code-quality-policy.md).
+    # Runs `vulture` at min-confidence 60 % against the project's
+    # `.vulture-whitelist.py`. Any new finding not covered by the
+    # whitelist fails the job. When adding a new whitelist entry,
+    # categorise it per the header comment inside `.vulture-whitelist.py`.
+    #
+    # Threshold is 60 % (not vulture's default 60 % nor a stricter 80 %):
+    # at 80 % the tree yields only 1 finding, so 60 % is the useful
+    # signal band for this codebase, and the categorised whitelist
+    # captures the (large) legitimate false-positive population.
+    #
+    # No `pip install -e ".[dev]"` step: vulture analyses source files
+    # directly and does not need the project's runtime dependencies.
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install pinned vulture
+        run: pip install "vulture==2.16"
+      - name: vulture (with whitelist)
+        run: vulture clinosim/ .vulture-whitelist.py --min-confidence 60
+
   quality:
     name: Quality (informational)
     runs-on: ubuntu-latest
