@@ -43,7 +43,7 @@ from clinosim.modules.output.fhir_r4.labs.microbiology import _bb_microbiology
 from clinosim.modules.output.fhir_r4.labs.observations import _bb_labs
 from clinosim.modules.output.fhir_r4.labs.service_request import _bb_service_requests
 
-# FA-1 (Phases 1-13) + session 82 (H/I/K/L/N) split this adapter's leaf data,
+# FA-1 (Phases 1-13) + (H/I/K/L/N) split this adapter's leaf data,
 # shared fragment helpers, and per-theme resource builders into sibling
 # `_fhir_*` modules. The imports below are exactly the symbols `_build_bundle`
 # and `convert_cif_to_fhir` (this module's public surface) actually call —
@@ -68,7 +68,7 @@ from clinosim.modules.output.fhir_r4.lib.inline_bb import (
     _bb_vitals,
 )
 
-# Session 82 PR N: post-emit helpers extracted to _fhir_post_process.py.
+# PR N: post-emit helpers extracted to _fhir_post_process.py.
 # Imported for use inside `_build_bundle` (see finalize pass).
 from clinosim.modules.output.fhir_r4.post_process import (
     _apply_jp_clins_profile,
@@ -256,7 +256,7 @@ def convert_cif_to_fhir(
         # FamilyMemberHistory, Immunization) use patient-scoped IDs so the
         # `write()` helper's `written_ids` dedup keeps them at one per patient
         # (root-cause fix for cycle 3 RM-7 problem-list-item excess = per-
-        # encounter re-emission with encounter-scoped IDs, C4-02 session 43).
+        # encounter re-emission with encounter-scoped IDs, C4-02).
         for record in reader.iter_patients():
             n_patients += 1
             bundle = _build_bundle(record, country, roster_map, hospital_config)
@@ -285,7 +285,7 @@ def convert_cif_to_fhir(
         # `write_generator_metadata` — the export loop continues.
         _write_generator_metadata(output_dir, cif_dir, country)
     finally:
-        # F2 (session 49): close writers, then rewrite each NDJSON file with
+        # F2: close writers, then rewrite each NDJSON file with
         # its resources sorted by id ascending. Row order is otherwise
         # cursor-dependent (patient_records iteration order), so a line diff
         # between two snapshots (cursor A / cursor B) would surface spurious
@@ -336,7 +336,7 @@ def convert_cif_to_fhir(
 def _sort_ndjson_by_id_inplace(path: str) -> None:
     """Rewrite an NDJSON file in place with lines sorted by resource id ascending.
 
-    F2 (session 49): sorting removes cursor-dependent (patient_records
+    F2: sorting removes cursor-dependent (patient_records
     iteration order) row ordering so that a line diff between two snapshots
     surfaces only genuine new / changed / removed resources, not spurious
     "line moved" noise.
@@ -393,7 +393,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_hai_conditions,
     _bb_document_references,  # Task 10: DocumentReference from record.documents (free_text, §2.2)
     _bb_compositions,  # Task 9: Composition (section-structured H&P / Discharge)
-    _bb_document_references_checkup,  # P2-13 PR3 sub-PR-E (session 48): DocumentReference wrapper for HEALTH_CHECKUP_REPORT  # noqa: E501
+    _bb_document_references_checkup,  # P2-13 PR3 sub-PR-E: DocumentReference wrapper for HEALTH_CHECKUP_REPORT  # noqa: E501
 ]
 
 
@@ -444,7 +444,7 @@ def _build_bundle(
     patient_data = record.get("patient", {})
     dx = record.get("clinical_diagnosis", {})
     encounters = record.get("encounters") or []
-    # Session 45 seed=400 verification finding: record.deceased was set by
+    # seed=400 verification finding: record.deceased was set by
     # `_evaluate_mortality` in the inpatient simulator (74 expired IMP
     # encounters at seed=400 v2) but never propagated to `patient_data`, so
     # `_build_patient` always emitted `deceasedBoolean=False`. Copy the flag
@@ -485,7 +485,7 @@ def _build_bundle(
     entries: list[dict] = []
     for builder in _BUNDLE_BUILDERS:
         for resource in builder(ctx):
-            # C3-11..18 (session 42 cycle 3): apply JP Core profile URLs at
+            # C3-11..18: apply JP Core profile URLs at
             # the adapter level so every resource type gains conformance
             # declarations without touching each builder. Coverage / Patient /
             # Encounter / Condition already carry inline profile; the helper is
@@ -536,7 +536,7 @@ def _build_bundle(
             # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
             # Condition / AllergyIntolerance / MedicationRequest. Universal.
             _populate_condition_ai_mr_ecs_fields(resource, country)
-            # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
+            # feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource, country)
             entries.append(entry(resource))

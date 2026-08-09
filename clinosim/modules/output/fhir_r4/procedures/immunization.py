@@ -56,7 +56,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
         resource: dict[str, Any] = {
             "resourceType": "Immunization",
             "id": f"imm-{ctx.patient_id}-{i}",
-            # Session 46 chain #2: JP Core Immunization profile.
+            # Chain #2: JP Core Immunization profile.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"]}}
                 if is_jp(ctx.country)
@@ -66,7 +66,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
             "vaccineCode": vaccine_code,
             "patient": {"reference": f"Patient/{ctx.patient_id}"},
             "occurrenceDateTime": occ_str,
-            # C5-13 (session 43 cycle 5): Immunization.recorded (0..1) —
+            # C5-13: Immunization.recorded (0..1) —
             # timestamp of registry entry. Defaults to occurrence_date for
             # historical entries (JP 予防接種台帳 practice: recorded on the
             # day of administration for real-time entry). Distinct from
@@ -75,27 +75,27 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
             "recorded": occ_str,
             "primarySource": primary_source,
         }
-        # C1-19 (session 41 cycle 1): FHIR R4 requires statusReason when
+        # C1-19: FHIR R4 requires statusReason when
         # Immunization.status is "not-done". Use v3-ActReason PATOBJ
         # ("patient objection") since clinosim samples refusals rather than
         # medical contraindications; expand YAML → statusReason mapping when
         # the CIF gains an authored reason.
         if status == "not-done":
-            # C2-28 (session 42): display resolved via codes/data/
+            # C2-28: display resolved via codes/data/
             # hl7-v3-actreason.yaml — was en-only hardcoded string.
             lang = resolve_lang(ctx.country)
             resource["statusReason"] = {
                 "coding": [_coding_with_display("hl7-v3-actreason", "PATOBJ", lang)],
                 "text": "患者拒否" if lang == "ja" else "Patient refused",
             }
-        # C3-05 (session 42 cycle 3): reasonCode is universal — vaccination
+        # C3-05: reasonCode is universal — vaccination
         # is always the reason. text-only per AD-30 (no fabricated coding).
         resource["reasonCode"] = [
             {
                 "text": "予防接種（定期接種）" if lang == "ja" else "Vaccination (routine)",
             }
         ]
-        # RM-3 (session 42): lot_number + administered_by now populated in CIF
+        # RM-3: lot_number + administered_by now populated in CIF
         # (nurse roster-based). Emit only when present — no fabrication.
         lot = get_attr_or_key(imm, "lot_number", "") or ""
         if lot:
