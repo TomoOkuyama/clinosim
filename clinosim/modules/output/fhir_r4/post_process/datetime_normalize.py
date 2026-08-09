@@ -7,7 +7,7 @@ fields to the country-appropriate TZ suffix.
 
 from __future__ import annotations
 
-# session 48 feedback FB-F1: 全 emit resource で dateTime / instant field を
+# feedback FB-F1: 全 emit resource で dateTime / instant field を
 # TZ 付与に正規化する post-emit normalization pass。builders 個別修正の代替。
 # 対象 field は FHIR R4 で dateTime / instant 型を持つ known-name 一覧。
 _DATETIME_FIELDS = frozenset(

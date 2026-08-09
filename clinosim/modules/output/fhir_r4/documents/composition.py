@@ -61,12 +61,12 @@ __all__ = [
     "_bb_compositions",
 ]
 
-# session 59 #278:enc → free-text-doc-id 優先度用 LOINC 定数。
+# #278:enc → free-text-doc-id 優先度用 LOINC 定数。
 # module-scope(function 内では N806 lint violation)。
 _HOSPITAL_COURSE_LOINC = "8648-8"
 _PROGRESS_NOTE_LOINC = "11506-3"
 
-# Issue #340 (session 63):HL7 FHIR R4 core `clinicaldocument` profile canonical URL。
+# Issue #340:HL7 FHIR R4 core `clinicaldocument` profile canonical URL。
 # module-scope 定数(function 内では N806 lint violation、また複数関数で参照)。
 # spec 直接引用(feedback_verify_fhir_profile_uri_from_spec rule):
 # `hl7.fhir.r4.core#4.0.1/package/StructureDefinition-clinicaldocument.json` の
@@ -74,7 +74,7 @@ _PROGRESS_NOTE_LOINC = "11506-3"
 _CLINICALDOCUMENT_PROFILE = "http://hl7.org/fhir/StructureDefinition/clinicaldocument"
 
 
-# C2-27 (session 42 cycle 2): map section titles (as produced by document
+# C2-27: map section titles (as produced by document
 # enrichers / narrative pass) to LOINC section codes. Codes verified via the
 # LOINC search (loinc.org), matching HL7 recommendations for CCD document
 # sections. Titles not listed here remain title-only until either the enricher
@@ -177,7 +177,7 @@ _SECTION_LOINC: dict[str, str] = {
     "past_medical_history": "11348-0",  # History of past illness
     "medications_at_home": "10160-0",  # History of medication use
     "physical_exam": "29545-1",  # Physical findings
-    # session 59 #276:従来 56816-2 を "Vital signs assessment" として
+    # #276:従来 56816-2 を "Vital signs assessment" として
     # section code に使用していたが LOINC 56816-2 の LONG_COMMON_NAME は
     # "Patient location"(semantic-mismatch)。8716-3 "Vital signs note"
     # に substitute(clinosim authoritative snapshot verified)。
@@ -189,7 +189,7 @@ _SECTION_LOINC: dict[str, str] = {
     "discharge_medications": "10183-2",  # Hospital discharge medications
     # Nursing sections
     "nursing_history": "34117-2",  # History and physical (H&P)
-    # Session 58 Chain #10: 45391-8 is unknown in the fhir-jp-validator's LOINC
+    # 45391-8 is unknown in the fhir-jp-validator's LOINC
     # 2.82 cache (148 v4 errors). Substitute with the plan-of-care catch-all
     # (18776-5) that clinosim already emits successfully across many section
     # keys — ADL / functional / basic-movement notes fit under the rehab plan
@@ -199,7 +199,7 @@ _SECTION_LOINC: dict[str, str] = {
     "nursing_diagnosis": "51848-0",  # Evaluation note (approx)
     "admission_status": "8648-8",  # Hospital course
     "nursing_interventions_provided": "10184-0",  # Interventions
-    # Session 58 Chain #10: 42346-6 is unknown in the fhir-jp-validator's
+    # 42346-6 is unknown in the fhir-jp-validator's
     # LOINC 2.82 cache (135 v4 errors). Substitute with 18776-5 (Plan of care
     # note) — patient education / consent is part of the plan-of-care family
     # in CCDA.
@@ -219,7 +219,7 @@ _SECTION_LOINC: dict[str, str] = {
     "rehab_team": "51897-7",  # Care team member
     "functional_status": "18776-5",  # Plan of care note (was 45391-8, unknown)
     "basic_movement": "18776-5",  # (same)
-    # CY2-C (session 42 cycle 3): residual auto-derived section titles that
+    # CY2-C: residual auto-derived section titles that
     # appeared in cycle 2's 8% uncoded remainder. Codes verified via LOINC
     # search.
     "ed_workup": "51852-2",  # Workup panel (ED assessment)
@@ -242,7 +242,7 @@ _SECTION_LOINC: dict[str, str] = {
     "nutrition_supply": "61144-2",  # (same)
     "dysphagia_diet": "61144-2",  # (same)
     "dietary_content": "61144-2",  # (same)
-    # C4-19 (session 43 cycle 4): residual unmapped titles from cycle 4
+    # C4-19: residual unmapped titles from cycle 4
     # baseline (546 sections in JP p=10000). Bind to the closest LOINC where
     # the CCDA / narrative theme corresponds; uncertain titles fall back to
     # a plan-of-care catch-all (18776-5) matching how care_plan / follow_up
@@ -267,7 +267,7 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     document_id. This is expected for documents produced between `generate`
     and `narrate` runs, not a data-quality defect.
 
-    session 59 #278:pre-compute encounter_id → free-text DocumentReference
+    #278:pre-compute encounter_id → free-text DocumentReference
     id map so JP-CLINS eDS `hospitalCourseSection.entry` slice can point
     at a real per-encounter DocumentReference (e.g. progress note 11506-3
     from the same admission). Prefer LOINC 8648-8(Hospital course)/
@@ -281,7 +281,7 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     # other free-text doc from the same encounter (last-wins fallback).
     # LOINC constants live at module scope (`_HOSPITAL_COURSE_LOINC` /
     # `_PROGRESS_NOTE_LOINC`) — moved out of function body to satisfy
-    # N806 (session 59 #278 lint fix).
+    # N806.
     enc_to_free_text: dict[str, str] = {}
     for doc in raw_docs:
         if _o(doc, "format_type", "") != "free_text":
@@ -335,7 +335,7 @@ def _build_composition(
 
     P2-13 PR2a: dispatches to the JP-CLINS-conformant builder when
     ``lang == "ja"`` and the LOINC code is 18842-5 (discharge summary).
-    PR2b (session 47): 57133-1 (referral note) dispatches to the eReferral
+    PR2b: 57133-1 (referral note) dispatches to the eReferral
     builder. Otherwise the existing generic builder is used (US path
     unchanged).
     """
@@ -345,10 +345,10 @@ def _build_composition(
             return _build_jp_clins_discharge_summary_composition(doc, sections, lang, enc_to_free_text or {})
         if loinc == "57133-1":
             return _build_jp_clins_referral_note_composition(doc, sections, lang)
-        # P2-13 PR3(session 47):JP-eCheckup General
+        # P2-13 PR3:JP-eCheckup General
         if loinc == "53576-5":
             return _build_jp_eCheckup_general_composition(doc, sections, lang)
-        # Issue #340 (session 63):JP-CLINS profile が存在しない JP path
+        # Issue #340:JP-CLINS profile が存在しない JP path
         # Composition (rehabilitation_plan LOINC 34823-5、admission_hp
         # 34117-2、ED / outpatient SOAP、nursing docs 等) に HL7 FHIR R4
         # core の `clinicaldocument` profile を meta.profile に明示宣言。
@@ -406,8 +406,8 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
     # of "comp-doc-{enc}-{seq}" (double-prefix defect, I-3 fix).
     enc_part = doc_id[len(DOC_REFERENCE_ID_PREFIX) :] if doc_id.startswith(DOC_REFERENCE_ID_PREFIX) else doc_id
     comp_id = f"{COMPOSITION_ID_PREFIX}{enc_part}"
-    # C2-34 (session 42 cycle 2): Composition.identifier (0..1) for cross-system
-    # document tracking. Session 58 Chain #10 (v4 §Composition.identifier URI):
+    # C2-34: Composition.identifier (0..1) for cross-system
+    # document tracking. (v4 §Composition.identifier URI):
     # JP-CLINS eDS / eReferral profiles fix `Composition.identifier.system`
     # to `http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier`
     # (StructureDefinition-JP-Composition-{eDS,eReferral}.json). US / generic
@@ -446,7 +446,7 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
         if author_id
         else [{"reference": "Practitioner/UNKNOWN"}],  # noqa: E501
         "title": loinc_display or loinc_code,
-        # C5-27 (session 43 cycle 5): Composition.confidentiality (0..1 code)
+        # C5-27: Composition.confidentiality (0..1 code)
         # per HL7 CDA / FHIR ConfidentialityCode. `N` = Normal (default JP
         # 医療情報 practice). All clinical documents are Normal unless
         # explicit privacy tag is set.
@@ -474,7 +474,7 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
     # CY7-12 (Chain-7): Composition.custodian — managing hospital.
     res["custodian"] = {"reference": "Organization/hospital-main"}
 
-    # C3-02 (session 42 cycle 3): Composition.attester — JP EHR legal
+    # C3-02: Composition.attester — JP EHR legal
     # signature (電子署名). Attester = the document author (attending
     # physician) with mode=legal. FHIR R4 Composition.attester is 0..*;
     # populate when author_practitioner_id is known.
@@ -488,7 +488,7 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
         ]
 
     # Build section[] from doc["narrative"]["sections"] (passed in as `sections`)
-    # C2-27 (session 42 cycle 2): resolve LOINC section codes from the
+    # C2-27: resolve LOINC section codes from the
     # canonical mapping. Sections with a known LOINC code get `section.code`
     # populated for interop; unknown titles retain title-only (documented
     # deferral).
@@ -530,14 +530,14 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
 _JP_CLINS_DS_PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 _JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
 
-# Session 58 Chain #10: JP-CLINS eDS / eReferral pin
+# JP-CLINS eDS / eReferral pin
 # `Composition.identifier.system` to this URI (spec `fixedUri`, verified via
 # `clinical-information-sharing#1.12.0/package/StructureDefinition-JP-Composition-
-# {eDischargeSummary,eReferral}.json`). Same URI as session 57 identifier
+# {eDischargeSummary,eReferral}.json`). Same URI as identifier
 # slices on Observation / Condition / AI / MR.
 _JP_COMPOSITION_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
 
-# Session 58 Chain #9: JP-CLINS eDS Composition required elements.
+# JP-CLINS eDS Composition required elements.
 # Extension URL for `Composition.extension:version` (spec `fixedUri` on the
 # slice discriminator). Verified via `clinical-information-sharing#1.12.0/
 # package/StructureDefinition-JP-Composition-eDischargeSummary.json`.
@@ -547,7 +547,7 @@ _JP_EDS_VERSION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/composi
 # `clinical-information-sharing#1.12.0/package/CodeSystem-jp-codeSystem-
 # documentSubTypeCode.json`) → DISCHARGE = "退院時文書"。旧値 "退院時サマリー"
 # は jpfhir-doc-typecodes CS(下記 `_JP_EDS_TYPE_DISPLAY_JA`)の display で
-# あり、doc-subtypecodes CS とは別軸。session 58 Chain #9 (#267) で 1 定数を
+# あり、doc-subtypecodes CS とは別軸。 (#267) で 1 定数を
 # 兼用したため drift、v5 validation で 126+126 errors として顕在化(#279)。
 _JPFHIR_DOC_SUBTYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-subtypecodes"
 _JP_EDS_CATEGORY_CODE = "DISCHARGE"
@@ -572,16 +572,16 @@ def _section_title_from_section_display(display: str) -> str:
     return display
 
 
-# session 53 iris4h-ai feedback D:JP-CLINS 実 canonical URL は
+# JP-CLINS 実 canonical URL は
 # `.../CodeSystem/document-section`(resource id `jp-codeSystem-clins-
 # document-section` を path に含めない)。iris4h-ai の
 # clinical-information-sharing#1.12.0/package/
 # CodeSystem-jp-codeSystem-clins-document-section.json `.url` fixedUri
-# を直接引用(session 51 rule)。従来の id-in-URL 版は HAPI で 1272 warn。
+# を直接引用。従来の id-in-URL 版は HAPI で 1272 warn。
 _JPFHIR_DOC_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
 
 # JP-CLINS 退院時サマリー section キー → jpfhir-doc-section 番号 code.
-# Session 58 Chain #9: expanded from 5 admission-side to 10 required slices
+# expanded from 5 admission-side to 10 required slices
 # (5 admission + 5 discharge) so `Composition.section:structuredSection.section`
 # min=10 is satisfied AND every required child slice (hospitalCourseSection,
 # detailsOnDischargeSection, diagnosesOnDischargeSection,
@@ -600,12 +600,12 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
     "admission_diagnoses": "342",  # diagnosesOnAdmissionSection / 入院時診断
     "chief_complaint": "352",  # chiefComplaintsSection / 主訴
     "present_illness": "360",  # presentIllnessSection / 現病歴
-    # Discharge side (5 slices — session 58 Chain #9 additions)
-    # session 59 #286:sections dict の key を `medication_on_discharge` /
+    # Discharge side (5 slices — additions)
+    # #286: sections dict の key を `medication_on_discharge` /
     # `instruction_on_discharge` から narrative generator の実キー
     # `discharge_medications` / `discharge_instructions` に修正。前者は
-    # session 58 Chain #9 で slice 名(medicationOnDischarge)を key にした
-    # ためだが narrative pass 側は `_build_discharge_medications` /
+    # slice 名(medicationOnDischarge)を key にしたためだが narrative
+    # pass 側は `_build_discharge_medications` /
     # `_build_discharge_instructions` を α-min-1 から流用しており key 名
     # が `discharge_medications` / `discharge_instructions`。key drift で
     # sections.get(...) が常に空になり FHIR R4 `txt-2` 違反 260+ 件。
@@ -617,7 +617,7 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
 }
 
 
-# Session 58 Chain #9 follow-up (#267): section slices with a required `entry`
+# Follow-up (#267): section slices with a required `entry`
 # reference. Values are `("resource_type", "id_template")`; the template
 # receives `encounter_id` and `doc_id` (comp-prefixed) as keyword args and
 # returns the reference string. The reference targets track the JP-CLINS spec
@@ -631,7 +631,7 @@ _JP_DS_SECTION_ENTRY_REFERENCES: dict[str, tuple[str, str]] = {
     "discharge_details": ("Encounter", "Encounter/{encounter_id}"),
     # diagnosesOnDischargeSection.entry min=1 → JP_Condition (primary dx)
     "discharge_diagnoses": ("Condition", "Condition/cond-{encounter_id}-primary"),
-    # session 59 #278:hospitalCourseSection.entry min=1 → JP_DocumentReference
+    # #278:hospitalCourseSection.entry min=1 → JP_DocumentReference
     # 同一 encounter の progress note(LOINC 11506-3)or hospital course
     # note(LOINC 8648-8)などの free-text DocumentReference id を precompute
     # で解決。id は `_bb_compositions` が構築する enc_to_free_text map から
@@ -678,7 +678,7 @@ def _build_jp_clins_discharge_summary_composition(
             meta["lastUpdated"] = ts
 
     # `type` field:jpfhir doc-typecodes を primary。
-    # Session 57 v3 fix: eDS profile constrains type.coding to max=1, so
+    # v3 fix: eDS profile constrains type.coding to max=1, so
     # emit only the doc-typecodes coding — the LOINC copy (previously
     # emitted for interop) violated the profile slicing on 129 resources.
     # The LOINC value is preserved via type.text so downstream consumers
@@ -719,7 +719,7 @@ def _build_jp_clins_discharge_summary_composition(
     # author[0]=Practitioner from doc.author_practitioner_id. Append an
     # Organization reference.
     #
-    # #330 session 61:eDS profile の Composition.author target は
+    # #330 eDS profile の Composition.author target は
     # JP_Organization_eCS 準拠を要求(spec verified)。従来 hospital-main
     # (JP Core only)を参照していたため sticky include validation で
     # profile mismatch。#329 で追加した hospital-main-ecs(eCS profile)
@@ -731,7 +731,7 @@ def _build_jp_clins_discharge_summary_composition(
     if not any(isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/") for a in authors):
         authors.append({"reference": "Organization/hospital-main-ecs"})
 
-    # #330 session 61:eDS profile の Composition.custodian target は
+    # #330 eDS profile の Composition.custodian target は
     # JP_Organization_eCS 準拠を要求。generic builder は hospital-main を
     # set しているのでここで override。
     comp["custodian"] = {"reference": "Organization/hospital-main-ecs"}
@@ -742,8 +742,8 @@ def _build_jp_clins_discharge_summary_composition(
     # per spec `title.fixedString` (Chain #8 pattern).
     parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
     parent_title = _section_title_from_section_display(parent_disp)
-    # Chain #9 follow-up (#267 / session 59 #278): pre-compute the ids the
-    # entry references need. session 59 で hospital_course の deferral を
+    # Chain #9 follow-up (#267): pre-compute the ids the
+    # entry references need. hospital_course の deferral を
     # 解消 — `_bb_compositions` が enc → free-text DocumentReference id map
     # を precompute し `enc_to_free_text` として渡す。map hit しない場合は
     # `free_text_doc_id` を空文字で埋め、下の never-fabricate guard で drop。
@@ -768,7 +768,7 @@ def _build_jp_clins_discharge_summary_composition(
                     }
                 ],
             },
-            # Session 57 Chain 8: JP-CLINS pins `text.status` to `additional`.
+            # Chain 8: JP-CLINS pins `text.status` to `additional`.
             "text": {
                 "status": "additional",
                 "div": (f'<div xmlns="http://www.w3.org/1999/xhtml">{_escape_html(text_val)}</div>'),
@@ -791,7 +791,7 @@ def _build_jp_clins_discharge_summary_composition(
             # empty leaves the string looking like `Encounter/` or
             # `Condition/cond--primary`. Both are dead references so we drop
             # the entry rather than emit garbage.
-            # session 59 #278: `DocumentReference/` (empty free_text_doc_id
+            # #278:`DocumentReference/` (empty free_text_doc_id
             # fallback) too — same never-fabricate guard.
             if ref.endswith("/") or "//" in ref or "cond--primary" in ref:
                 ref = ""
@@ -840,13 +840,13 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
     "present_illness_ref": "360",
 }
 
-# session 59 #296:JP-CLINS eReferral の 920(紹介元)/ 910(紹介先)
+# #296:JP-CLINS eReferral の 920(紹介元)/ 910(紹介先)
 # top-level section slice に必須の Organization reference。CIF は destination
 # 別 Organization を model していないため両側 placeholder として emit
 # (reference integrity は保たれる;data-shape trade-off)。
 # module-scope 定数(function 内では N806 lint violation)。
 #
-# #313 session 61:従来 hospital-main(JP Core profile)を参照していたが
+# #313 従来 hospital-main(JP Core profile)を参照していたが
 # eReferral profile の 920/910 section entry slice は discriminator
 # (type: profile, path: resolve())で `JP_Organization_eCS` profile 準拠
 # の Organization を要求する。v6.1 で 42 件 slice validation error 発火。
@@ -860,7 +860,7 @@ _JP_ER_TOP_LEVEL_ENTRY: dict[str, list[dict[str, str]]] = {
 }
 
 
-# session 59 #289 sibling of eDS Chain #9:JP-CLINS eReferral は eDS と同
+# #289 sibling of eDS Chain #9:JP-CLINS eReferral は eDS と同
 # 5 top-level 制約を持つ(extension:version min=1 / category min=1 /
 # author min=2 / meta.lastUpdated min=1 / event.code min=1)。CONSULT
 # は authoritative doc-subtypecodes CS "他科コンサルト"(spec:
@@ -868,7 +868,7 @@ _JP_ER_TOP_LEVEL_ENTRY: dict[str, list[dict[str, str]]] = {
 # documentSubTypeCode.json)。
 _JP_ER_CATEGORY_CODE = "CONSULT"
 _JP_ER_CATEGORY_DISPLAY_JA = "他科コンサルト"
-# #309 session 60:event.code.text は権威 spec の fixedString。
+# #309 event.code.text は権威 spec の fixedString。
 # StructureDefinition-JP-Composition-eReferral.json:
 #   Composition.event.code.text.fixedString = "診療情報提供書発行"
 #   Composition.event.code.coding max=0(coding 禁止、text-only)
@@ -887,7 +887,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
           300 の下:950 紹介目的, 340 傷病名・主訴, 360 現病歴
         section.code.system は JP-CLINS document-section CodeSystem
         (URL: `http://jpfhir.jp/fhir/clins/CodeSystem/document-section`)固定。
-      - session 59 #289:eDS Chain #9 の 5 top-level 制約を eReferral にも適用。
+      - #289:eDS Chain #9 の 5 top-level 制約を eReferral にも適用。
     """
     comp = _build_composition_generic(doc, sections, lang)
 
@@ -905,7 +905,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
             meta["lastUpdated"] = ts
 
     # `type` field:57133-1 (eReferral / referral note)
-    # Session 57 v3 fix: eReferral profile constrains type.coding to a
+    # v3 fix: eReferral profile constrains type.coding to a
     # single doc-typecodes coding. LOINC copy removed; the LOINC value is
     # preserved via type.text.
     disp = code_lookup("jpfhir-doc-typecodes", "57133-1", lang) or "診療情報提供書"
@@ -942,7 +942,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     # (Practitioner)+ 文書作成機関(Organization)。generic builder は既に
     # Practitioner を author[0] に置くので Organization reference を追加。
     #
-    # #330 session 61:eReferral profile の Composition.author target は
+    # #330 eReferral profile の Composition.author target は
     # JP_Organization_eCS 準拠を要求(spec verified)。従来 hospital-main
     # (JP Core only)を参照していたため sticky include validation で
     # profile mismatch。#329 で追加した hospital-main-ecs へ切替。
@@ -953,7 +953,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     if not any(isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/") for a in authors):
         authors.append({"reference": "Organization/hospital-main-ecs"})
 
-    # #330 session 61:eReferral profile の Composition.custodian target
+    # #330 eReferral profile の Composition.custodian target
     # も JP_Organization_eCS 準拠を要求(spec verified)。generic builder
     # の hospital-main override。
     comp["custodian"] = {"reference": "Organization/hospital-main-ecs"}
@@ -961,7 +961,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     # #289:Composition.event.code min=1(coding は不要、text で満たす)。
     # generic builder が既に event[0]{period,detail} を set 済のため、既存
     # event[0] に code を追加。event 未 set の場合も安全に追加。
-    # #309 session 60:code は Array 必須(FHIR JSON serialization、base
+    # #309 code は Array 必須(FHIR JSON serialization、base
     # `Composition.event.code` cardinality `0..*`。profile は max=1 で
     # 制限するが JSON は依然 Array 表現)。v6 で 15 件 structure error
     # "プロパティcode は JSON 配列でなければならず、an Object ではありません"
@@ -974,15 +974,15 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
         [{"text": _JP_ER_EVENT_CODE_TEXT_JA}],
     )
 
-    # #296 (session 59):`_one_section` に entry_refs 引数を追加し、920 /
+    # #296:`_one_section` に entry_refs 引数を追加し、920 /
     # 910 top-level slice に referralFrom/ToOrganization reference を渡す。
     def _one_section(
         section_code: str,
         text_val: str,
         entry_refs: list[dict[str, str]] | None = None,
     ) -> dict[str, Any]:
-        # Session 58 Chain #8: title = short form, display = long form.
-        # Session 58 Chain #9: `code.text` max=0 → omit.
+        # title = short form, display = long form.
+        # `code.text` max=0 → omit.
         disp_c = code_lookup("jpfhir-doc-section", section_code, lang) or section_code
         title_c = _section_title_from_section_display(disp_c)
         section_obj: dict[str, Any] = {
@@ -996,14 +996,14 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
                     }
                 ],
             },
-            # Session 57 Chain 8 (v2 feedback §【中優先 8】): JP-CLINS eReferral
+            # Chain 8 (v2 feedback §【中優先 8】): JP-CLINS eReferral
             # pins Composition.section[*].text.status to fixedCode "additional".
             "text": {
                 "status": "additional",
                 "div": (f'<div xmlns="http://www.w3.org/1999/xhtml">{_escape_html(text_val)}</div>'),
             },
         }
-        # session 59:JP-CLINS eReferral は 920 / 910 の 2 section に
+        # JP-CLINS eReferral は 920 / 910 の 2 section に
         # `entry:referralFromOrganization` / `entry:referralToOrganization`
         # slice(それぞれ min=1)を要求。clinosim は referring destination
         # の別 Organization を model していないので、referralFrom = 自院
@@ -1013,7 +1013,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
             section_obj["entry"] = entry_refs
         return section_obj
 
-    # session 59 #296:各 top-level section slice の entry(module-scope
+    # #296:各 top-level section slice の entry(module-scope
     # 定数 `_JP_ER_REFERRAL_ORG_REF` / `_JP_ER_TOP_LEVEL_ENTRY`、下記
     # `_JP_REFERRAL_TOP_LEVEL` の直後で定義)。
     # Top-level 920 + 910
@@ -1025,8 +1025,8 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     struct_children: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_STRUCTURAL_CHILDREN.items():
         struct_children.append(_one_section(code, sections.get(key, "") or ""))
-    # Session 58 Chain #8 + #9: yaml carries the canonical long form; title is
-    # derived by stripping `セクション`; `code.text` is dropped (max=0 per spec).
+    # yaml carries the canonical long form; title is derived by stripping
+    # `セクション`; `code.text` is dropped (max=0 per spec).
     struct_parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
     struct_parent_title = _section_title_from_section_display(struct_parent_disp)
     top_sections.append(
@@ -1120,8 +1120,8 @@ def _build_jp_eCheckup_general_composition(doc: Any, sections: dict[str, str], l
     for key, code in section_code_map.items():
         disp_c = code_lookup("jpfhir-eCheckup-section", code, lang) or key
         text_val = sections.get(key, "") or ""
-        # Session 58 Chain #8 / #9: eCheckup section entries follow the same
-        # code.text=absent / title-vs-display convention as eDS / eReferral.
+        # eCheckup section entries follow the same code.text=absent /
+        # title-vs-display convention as eDS / eReferral.
         title_c = _section_title_from_section_display(disp_c)
         section_entries.append(
             {
@@ -1135,7 +1135,7 @@ def _build_jp_eCheckup_general_composition(doc: Any, sections: dict[str, str], l
                         }
                     ],
                 },
-                # Session 57 Chain 8 (v2 feedback §【中優先 8】): JP-CLINS
+                # Chain 8 (v2 feedback §【中優先 8】): JP-CLINS
                 # eDischargeSummary / eReferral / eCheckup pin
                 # Composition.section[*].text.status to fixedCode "additional"
                 # (see fhir-jp-validator/tx-server-build/.../clinical-information-sharing#1.12.0

@@ -100,7 +100,7 @@ def _build_lab_observation(
     resource: dict[str, Any] = {
         "resourceType": "Observation",
         "id": lab_obs_id(encounter_id, index),
-        # Session 46 chain #2: JP Core Observation_LabResult profile.
+        # chain #2: JP Core Observation_LabResult profile.
         # feedback FB-F6: 該当 LOINC の standard profile も stack 追加。
         **({"meta": {"profile": _profiles}} if _profiles else {}),
         "status": "final",
@@ -126,7 +126,7 @@ def _build_lab_observation(
 
     if isinstance(value, (int, float)):
         unit_str = result.get("unit", "")
-        # #323 session 61:FHIR R4 ele-1 は空文字列 field を禁止。unit が
+        # #323 FHIR R4 ele-1 は空文字列 field を禁止。unit が
         # 未設定時(unit_str == "")は unit / code / system 全て omit
         # (v6.1 で 44 件 error 発火)。value のみ emit する。
         _vq: dict[str, Any] = {"value": value}
@@ -213,7 +213,7 @@ def _build_lab_observation(
     # data-generation pipeline). Text-only CodeableConcept per FHIR R4
     # (system+code omitted intentionally — no authoritative universal
     # method-code exists for "automated bench analyzer" that fits every
-    # analyte). Mirrors session-42 Coverage.type text-only precedent.
+    # analyte). Mirrors Coverage.type text-only precedent.
     _method_text = "自動分析器測定" if is_jp(country) else "Automated laboratory measurement"
     resource["method"] = {"text": _method_text}
 
@@ -355,12 +355,12 @@ def _build_vital_observations(
 
         obs: dict[str, Any] = {
             "resourceType": "Observation",
-            # Session 52 fix (iris4h-ai HAPI): vital field names carry
+            # fix (iris4h-ai HAPI): vital field names carry
             # underscores (systolic_bp / oxygen_saturation etc.); FHIR R4
             # id type forbids '_'. sanitize_id_token routes the fragment
             # through a single normalization point.
             "id": f"vs-{encounter_id or patient_id}-{index:04d}-{sanitize_id_token(field)}",
-            # Session 46 chain #2: JP Core Observation_Common profile for vitals.
+            # chain #2: JP Core Observation_Common profile for vitals.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
                 if is_jp(country)
@@ -572,7 +572,7 @@ def _build_vital_observations(
         loc_obs: dict[str, Any] = {
             "resourceType": "Observation",
             "id": f"vs-{encounter_id or patient_id}-{index:04d}-loc",
-            # Session 46 chain #2: JP Core Observation_Common profile for vitals.
+            # chain #2: JP Core Observation_Common profile for vitals.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
                 if is_jp(country)
@@ -596,7 +596,7 @@ def _build_vital_observations(
                     {
                         "system": get_system_uri("loinc"),
                         "code": "80288-4",
-                        # Issue #384 hotfix wave 4 (session 66): the actual
+                        # Issue #384 hotfix wave 4: the actual
                         # fhirserver LOINC 2.82 canonical for 80288-4 is
                         # "Level of consciousness" (simple, no "AVPU"
                         # qualifier, no "score" suffix) — confirmed via
@@ -632,7 +632,7 @@ def _build_vital_observations(
             loc_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
         if encounter_id:
             loc_obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
-        # RM-1 (session 42): forward performer (nurse measured_by) on LOC obs.
+        # RM-1: forward performer (nurse measured_by) on LOC obs.
         _perf = vs.get("measured_by", "")
         if _perf:
             loc_obs["performer"] = [{"reference": f"Practitioner/{_perf}"}]
@@ -645,7 +645,7 @@ def _build_vital_observations(
         o2_obs: dict[str, Any] = {
             "resourceType": "Observation",
             "id": f"vs-{encounter_id or patient_id}-{index:04d}-o2",
-            # Session 46 chain #2: JP Core Observation_Common profile for vitals.
+            # chain #2: JP Core Observation_Common profile for vitals.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
                 if is_jp(country)
@@ -708,7 +708,7 @@ def _build_vital_observations(
             o2_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
         if encounter_id:
             o2_obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
-        # RM-1 (session 42): forward performer on O2 obs.
+        # RM-1: forward performer on O2 obs.
         _perf = vs.get("measured_by", "")
         if _perf:
             o2_obs["performer"] = [{"reference": f"Practitioner/{_perf}"}]

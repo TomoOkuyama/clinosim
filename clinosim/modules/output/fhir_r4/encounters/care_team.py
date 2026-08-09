@@ -46,7 +46,7 @@ CARE_TEAM_ID_PREFIX = "careteam-"
 # CareTeam.category — text-only CodeableConcept.
 #
 # History of coded attempts (all rejected by successive validator loadouts):
-# - session 42: SNOMED 424535000 "Clinical team" flagged inactive by HL7 fhirserver.
+# - SNOMED 424535000 "Clinical team" flagged inactive by HL7 fhirserver.
 # - 2026-07-16 v1 feedback: LOINC LA27976-8 is unknown in LOINC 2.82 (1,913 rejections).
 # - 2026-07-17 v2 feedback: SNOMED 735320007 unknown in fhirserver's SNOMED
 #   International 2026-06-01 (3,788 rejections).
@@ -75,7 +75,7 @@ def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
         return []
     lang = resolve_lang(ctx.country)
     patient_id = _o(_o(ctx.record, "patient", {}) or {}, "patient_id", "") or ctx.patient_id
-    # C1-15 (session 41 cycle 1): pharmacist ids from the hospital roster for
+    # C1-15: pharmacist ids from the hospital roster for
     # multi-disciplinary CareTeam participation. Selected deterministically per
     # encounter (id hash) so re-generation is byte-identical (AD-16).
     pharmacist_ids = sorted(
@@ -102,7 +102,7 @@ def _build_care_team(
     # CareTeam.status: active = in-progress, inactive = completed.
     status = "active" if discharge_dt is None else "inactive"
 
-    # Category display — locale-aware. Session 57 v3 feedback:
+    # Category display — locale-aware. v3 feedback:
     # SNOMED 407484005 (this session's replacement for the unknown 735320007)
     # was ALSO Unknown in fhirserver's SNOMED International Edition 2026-06-01
     # loadout (3,786 rejections). This is validator terminology coverage, not
@@ -117,7 +117,7 @@ def _build_care_team(
     # adv-1 fix). Surfaces for reference integrity audit; does not silently drop the resource.
     attending_ref = attending_id if attending_id else "UNKNOWN"
 
-    # CY2-A (session 42 cycle 3): CareTeam.participant.role = SNOMED role
+    # CY2-A: CareTeam.participant.role = SNOMED role
     # code. Verified SNOMED CT concepts:
     #   309343006 = "Physician"
     #   224535009 = "Registered nurse"
@@ -151,7 +151,7 @@ def _build_care_team(
                 "member": {"reference": f"Practitioner/{primary_nurse_id}"},
             }
         )
-    # C1-15 (session 41 cycle 1): pharmacist participant for encounters that
+    # C1-15: pharmacist participant for encounters that
     # actually had medication activity — inpatient/emergency where a clinical
     # pharmacist is standard-of-care in JP multi-disciplinary teams
     # (病棟薬剤師). Deterministic selection from roster by encounter-id hash so
@@ -171,7 +171,7 @@ def _build_care_team(
         "resourceType": "CareTeam",
         "id": f"{CARE_TEAM_ID_PREFIX}{encounter_id}",
         "status": status,
-        # Session 57 v3 fix: text-only CodeableConcept — see the category
+        # v3 fix: text-only CodeableConcept — see the category
         # display resolution above for the rationale (both 735320007 and
         # 407484005 unknown in fhirserver's SNOMED loadout).
         "category": [{"text": category_display}],

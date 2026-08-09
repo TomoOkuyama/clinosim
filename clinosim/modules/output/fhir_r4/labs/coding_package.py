@@ -167,7 +167,7 @@ def jp_clins_localcode_system_uri() -> str:
     return _LOCALCODE_SYSTEM
 
 
-# Specimen material CodeSystem (JLAC10) — session 67 spec verification
+# Specimen material CodeSystem (JLAC10) — spec verification
 # (2026-07-26): 17-digit CoreLabo code's material segment (10-12桁目, e.g.
 # "023") maps 1-1 to JP_ObservationSampleMaterialCodeJLAC10_CS codes
 # (verified: 129 top + 57 nested + 1 depth-2 = 187 codes, all 9 material
@@ -190,7 +190,7 @@ class CodeSegments:
       ``method='998'``, ``result_id='01'``.
 
     Method values pinned in the CoreLabo CS: ``998`` = method-agnostic
-    (session 67 memo §H.3 rev: **preferred** — synthetic data does not
+    (memo §H.3 rev: **preferred** — synthetic data does not
     simulate specific measurement methods, so 998 is the most honest
     selection); ``999`` = other; else a specific method (e.g. ``261``
     = potentiometry). Material segment is used by PR 3 to back-derive
@@ -226,7 +226,7 @@ class LabCodeCandidate:
       ``WBC``, ``血液型-ABO``). ``designation_ja`` MUST NOT be used
       here — the slice discriminator is ``value:display``, and any
       non-Fixed display silently mis-matches → Tier 2 silent
-      non-compliance (workspace:5 Gate 2 measurement, session 67).
+      non-compliance (workspace:5 Gate 2 measurement).
     - **LocalCode slice ``coding.display``** MAY use ``designation_ja``
       after PR 3 whitespace sanitize.
     - **``code.text``** MAY use raw ``designation_ja`` (whitespace
@@ -250,7 +250,7 @@ class LabSliceInfo:
     - ``value_set_url``: SD ``.code.binding.valueSet`` **verbatim** —
       NOT mangled. If the SD carries the version suffix (``|1.1.0a``)
       it is preserved as-is; if not, it is preserved as-is. Loader
-      never adds or strips a version segment (session 67 memo: version
+      never adds or strips a version segment (memo: version
       mismatch on ``$expand`` breaks binding resolution — SD is the
       single source of truth for the reference string).
     - ``codes``: joined CS concepts with segment decomposition.

@@ -49,7 +49,7 @@ _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSyste
 
 # HL7 v3 substanceAdminSubstitution CodeSystem (used by JP MR eCS walker to
 # convert `substitution.allowedBoolean` -> `substitution.allowedCodeableConcept`
-# per session 57 Chain 5). Defined at module top-level so the
+# per Chain 5). Defined at module top-level so the
 # test_adapter_does_not_hardcode_code_system_uris invariant continues to hold
 # (the URI never appears as a `"system": "..."` literal inside a builder).
 _HL7_V3_SUBSTITUTION_SYSTEM = "http://terminology.hl7.org/CodeSystem/v3-substanceAdminSubstitution"
@@ -85,7 +85,7 @@ _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL = (
 _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationUsage_ePrescription"
 
 
-# JP_MedicationDosage_eCS `Dosage.doseAndRate.type` min=1 (session 58 Chain #2).
+# JP_MedicationDosage_eCS `Dosage.doseAndRate.type` min=1.
 # Spec-authoritative example fixture
 # (`MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json` in
 # `clinical-information-sharing#1.12.0/package/example/`) uses the MHLW
@@ -108,8 +108,7 @@ _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY = "製剤量"
 # UCUM CodeSystem URI + daily unit — used to rewrite
 # `Dosage.timing.repeat.periodUnit='d'` (bare `code` with unresolvable-by-tx
 # UnitsOfTime binding) into a `Dosage.timing.repeat.boundsDuration` Duration
-# whose `system` field lets the validator resolve `d` inline. Session 58
-# Chain #2.
+# whose `system` field lets the validator resolve `d` inline.# Chain #2.
 _UCUM_SYSTEM_URI = "http://unitsofmeasure.org"
 
 
@@ -124,7 +123,7 @@ _UCUM_DAY_UNIT_JA = "日"
 # canonical clinosim namespace so consumers can round-trip resources without
 # fabricating IDs. MedicationRequest is intentionally NOT in this map — its
 # builder already emits identifier[] with rpNumber + orderInRp (JP Core
-# NamingSystem slice discriminators, session 51 rule).
+# NamingSystem slice discriminators, rule).
 _ECS_IDENTIFIER_SYSTEMS: dict[str, str] = {
     "Condition": "urn:clinosim:condition-id",
     "AllergyIntolerance": "urn:clinosim:allergyintolerance-id",
@@ -198,7 +197,7 @@ _FHIR_URI_TO_CODE_SYSTEM_KEY: dict[str, str] = {
     "http://hl7.org/fhir/sid/icd-10": "icd-10",
     "http://hl7.org/fhir/sid/icd-10-cm": "icd-10-cm",
     "http://www.nlm.nih.gov/research/umls/rxnorm": "rxnorm",
-    # Issue #350 (session 63): JP-locale ICD-10 canonical URI. Reverse-map
+    # Issue #350: JP-locale ICD-10 canonical URI. Reverse-map
     # to the same code data as `icd-10` (via `_SYSTEM_DATA_ALIASES` in
     # `clinosim/codes/loader.py`) so `_copy_display_from_sibling_coding`
     # can look up displays for JP-emitted ICD-10 codings.
@@ -225,12 +224,12 @@ def _populate_observation_identifier_and_last_updated(resource: dict, country: s
     Idempotent — leaves builder-populated values untouched.
 
     Feedback fix (2026-07-16, PR-D) covered identifier + meta.lastUpdated
-    universally. Session 57 chain A (v2 feedback §【最優先 1】) adds the
+    universally. chain A (v2 feedback §【最優先 1】) adds the
     JP-locale spec URI so the resourceIdentifier slice actually matches.
     """
     if resource.get("resourceType") != "Observation":
         return
-    # identifier — Issue #336 (session 62): 従来 `if not resource.get("identifier")`
+    # identifier — Issue #336: 従来 `if not resource.get("identifier")`
     # で全体 skip だったが、microbiology `mb-org-*` / `mb-sus-*` は builder 側で
     # HAI_EVENT_ID_SYSTEM identifier を先に populate 済 → walker skip →
     # JP_Observation_LabResult_eCS の `resourceIdentifier` slice min=1 fail
@@ -343,7 +342,7 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
         # creates duplication and makes timing.code.text unsuitable for its
         # intended purpose (machine-readable frequency abbreviations). Issue #477.
 
-        # (4) `Dosage.doseAndRate.type` min=1 (session 58 Chain #2).
+        # (4) `Dosage.doseAndRate.type` min=1.
         # Every doseAndRate entry gets the MHLW MedicationIngredientStrength
         # `1 / 製剤量` coding when `type` is absent. Matches the JP-CLINS
         # example fixture — see the `_JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS`
@@ -367,20 +366,20 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
         # `periodUnit='d'`/`period` on JP output.
         #
         # 履歴:
-        # - session 58 Chain #2:元の狙いは boundsDuration only 化
+        # - 元の狙いは boundsDuration only 化
         #   (UnitsOfTime binding 回避)
-        # - session 59 #281:JP-CLINS example fixture が両方 emit する
+        # - #281:JP-CLINS example fixture が両方 emit する
         #   ことを根拠に `periodUnit` の pop を撤回
-        # - v6 (session 60):HAPI validator が `periodUnit=code`(FHIR R4
+        # - v6:HAPI validator が `periodUnit=code`(FHIR R4
         #   `code` type は system 情報を持たない)の binding 検証で
         #   system URI を決定できず 3,532 件 UnitsOfTime error 発火
         #   (v5 では 0 件だった regression、tim-2 と分岐した振舞い)
-        # - #307 session 60(判断リカバリ pragmatic middle path):
+        # - #307 (判断リカバリ pragmatic middle path):
         #   spec は example と別。JP-CLINS example が両方 emit しても
         #   spec が両方 required とは限らず、boundsDuration + frequency
-        #   で per-day cadence 情報は spec-valid に保持可能。session 58
-        #   chain #2 元の狙いに復帰し、`periodUnit` + `period` を pop
-        #   する(tim-2 non-fire + UnitsOfTime binding 対象外)。
+        #   で per-day cadence 情報は spec-valid に保持可能。chain #2
+        #   元の狙いに復帰し、`periodUnit` + `period` を pop する
+        #   (tim-2 non-fire + UnitsOfTime binding 対象外)。
         #
         # US 側は影響なし(この walker は JP-only、_fhir_common.py の
         # `period + periodUnit` はそのまま emit される。US は FHIR R4
@@ -400,7 +399,7 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                     "system": _UCUM_SYSTEM_URI,
                     "code": _UCUM_DAY_CODE,
                 }
-            # #307 session 60:pop `periodUnit` + `period` after boundsDuration
+            # #307 pop `periodUnit` + `period` after boundsDuration
             # is populated. tim-2 (period.exists() implies periodUnit.exists())
             # は pair で無くなれば non-fire。frequency + boundsDuration で
             # per-day cadence は保持。
@@ -448,7 +447,7 @@ def _copy_display_from_sibling_coding(codings: list, lang: str = "en") -> None:
             display = None
             system_uri = c.get("system", "")
             system_key = _FHIR_URI_TO_CODE_SYSTEM_KEY.get(system_uri) if isinstance(system_uri, str) else None
-            # Session 57 chain G (v2 feedback §【中優先 7】): the sibling-copy
+            # chain G (v2 feedback §【中優先 7】): the sibling-copy
             # step previously re-injected a Japanese display via
             # `code_lookup(..., "ja")` for JP output. On English-only
             # CodeSystems (LOINC / SNOMED / HL7 terminology / DICOM / UCUM
@@ -524,7 +523,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
         return
 
     # (1) identifier — canonical namespace, only when not builder-populated.
-    # Session 57 v3 (Chain-9): for JP output, prepend the JP-CLINS
+    # v3 (Chain-9): for JP output, prepend the JP-CLINS
     # `resourceIdentifier` slice (spec `patternUri`
     # `http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier`) so the
     # `Condition.identifier:resourceIdentifier` slice discriminator matches.
@@ -577,7 +576,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
                             _copy_display_from_sibling_coding(manifestation.get("coding") or [], lang)
 
     # (4b) JP-CLINS `JP_Condition_eCS` `code.coding:medisRecordNo` slice min=1.
-    # Session 58 Chain #1 (v4 feedback, 6,242 errors, -1.5pp). Every JP
+    #  (v4 feedback, 6,242 errors, -1.5pp). Every JP
     # Condition must carry a MEDIS 病名管理番号 coding; without an ICD-10 →
     # keyNumber crosswalk shipped in clinosim, we use the MEDIS "uncoded
     # disease" placeholder — a real, spec-registered entry (`99999999` /
@@ -597,7 +596,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
                     }
                 )
 
-    # (5) Session 57 Chain 5 (v2 feedback §【最優先 5】):
+    # (5) Chain 5 (v2 feedback §【最優先 5】):
     # JP_MedicationRequest_eCS pins `status` = patternCode "completed" and
     # `intent` = patternCode "order", and requires `substitution.allowed[x]`
     # to be a CodeableConcept (allowedBoolean is rejected). Spec:
@@ -621,7 +620,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
                     }
                 ]
             }
-        # Session 57 v3 (Chain-10): JP_MedicationRequest_eCS requires
+        # v3 (Chain-10): JP_MedicationRequest_eCS requires
         # `identifier` min=3 with the `identifier:requestIdentifier` slice
         # (min=1 max=1) present in addition to the builder-emitted
         # `rpNumber` + `orderInRp` slices. The requestIdentifier value is

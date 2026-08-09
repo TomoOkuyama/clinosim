@@ -67,7 +67,7 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
         resource: dict[str, Any] = {
             "resourceType": "Condition",
             "id": hai_id,
-            # C2-02/03 (session 42): use _coding_with_display so status displays
+            # C2-02/03: use _coding_with_display so status displays
             # are populated from codes/data/hl7-condition-{clinical,ver-status}.yaml.
             # Also fixes wrong system key `hl7-condition-verification` (never
             # registered; canonical URI ends in `condition-ver-status`).
@@ -106,7 +106,7 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
                 }
             ],
         }
-        # CY8-21/22 polish (session 48 cycle 8): HAI Condition にも recorder /
+        # CY8-21/22 polish: HAI Condition にも recorder /
         # asserter を emit(hospital-main の感染管理チーム相当)。encounter に
         # attending が居れば優先、無ければ hospital-main を fallback。
         _att = ""
