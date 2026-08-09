@@ -581,6 +581,7 @@ clinosim is an independent personal project. Community-facing documents:
 | Document | Purpose |
 |---|---|
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to file issues, propose changes, and open a PR. Includes the DCO signoff requirement (`git commit -s`). |
+| [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md) | Documentation-language pairing (English + Japanese), source-code comment-language rule, self-contained-OSS-quality standard, constants documentation rule, and dead-code hygiene expectations. Every PR is reviewed against this policy. |
 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Contributor Covenant 2.1. Contact: `tomo.okuyama@gmail.com`. |
 | [SECURITY.md](SECURITY.md) | How to report vulnerabilities privately via GitHub Security Advisories. **Please do not open public issues for security bugs.** |
 | [CITATION.cff](CITATION.cff) | Machine-readable citation metadata — renders as GitHub's "Cite this repository" button. |

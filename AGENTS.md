@@ -19,6 +19,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 |---|---|
 | ★ Project concept + pipeline catch-up (read first) | [`docs/design-guides/project-concept-and-design.md`](docs/design-guides/project-concept-and-design.md) |
 | ★ Implementation rules distilled (must-follow invariants) | [`docs/design-guides/implementation-rules.md`](docs/design-guides/implementation-rules.md) |
+| ★ Documentation + code-quality policy (all contributors follow) | [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md) |
 | ★ How data is generated (end-to-end walkthrough) | [`docs/design-guides/data-generation-walkthrough.md`](docs/design-guides/data-generation-walkthrough.md) |
 | Module overview (30 modules at a glance) | [`MODULES.md`](MODULES.md) |
 | Scenario / medication flags (`causes_X` / `on_warfarin`) | [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |

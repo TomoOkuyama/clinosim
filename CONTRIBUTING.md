@@ -25,6 +25,11 @@ If you're going to work on the code, please also read:
 - [`CLAUDE.md`](CLAUDE.md) — repo-wide conventions and invariants.
 - [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md)
   — boilerplate for a new module directory.
+- [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md)
+  — documentation-language pairing (English + Japanese), source-code comment
+  language rule, self-contained-OSS-quality standard, constants documentation
+  rule, and dead-code hygiene expectations. All PRs are reviewed against this
+  policy.
 
 ---
 
@@ -148,6 +153,31 @@ the trailer.
   library, not just what changed in the diff.
 - **Documentation update** when the change adds a new module, YAML
   field, CLI subcommand, or public API surface.
+
+---
+
+## Documentation and comment-language policy
+
+Every PR is reviewed against
+[`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md).
+The short version:
+
+- Documentation files come in language pairs: English `README.md` plus
+  Japanese `README.ja.md` (and the same pattern under `docs/`).
+- Links inside an English document point to English documents; links inside
+  a Japanese document point to Japanese documents.
+- READMEs and Issue bodies are self-contained. No session identifiers,
+  insider pronouns, or references to gitignored files.
+- Source-code comments are English by default. Japanese is permitted only
+  for JP-Core / JP-CLINS profile invariants, JLAC10 / JJ1017 / MEDIS
+  code-system specifics, and verbatim quotes from Japanese authoritative
+  sources.
+- Every scalar constant / threshold / magic number is named, docstring-
+  annotated (purpose / unit / source), and located in the right place per
+  the policy.
+- CI enforces the dead-code baseline (`ruff` F401 / F841) and DCO signoff.
+
+Read the full policy before opening a PR that adds or changes documentation.
 
 ---
 
