@@ -11,27 +11,31 @@
       
       
       
-        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/design-guides/">
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/design-guides/documentation-and-code-quality-policy/">
       
       
+        <link rel="prev" href="../implementation-rules/">
+      
+      
+        <link rel="next" href="../fhir-data-generation-logic/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Design Guides — 新規モジュール著者のための読書パス - clinosim</title>
+        <title>Documentation + code-quality policy - clinosim</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -50,7 +54,7 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -75,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#design-guides" class="md-skip">
+        <a href="#documentation-code-quality-policy" class="md-skip">
           Skip to content
         </a>
       
@@ -91,7 +95,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
+    <a href="../.." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -111,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Design Guides — 新規モジュール著者のための読書パス
+              Documentation + code-quality policy
             
           </span>
         </div>
@@ -218,7 +222,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -239,7 +243,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../getting-started/installation/" class="md-tabs__link">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
           
   
   
@@ -257,11 +261,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="project-concept-and-design/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../project-concept-and-design/" class="md-tabs__link">
           
   
   
@@ -283,7 +289,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../reference/cli/" class="md-tabs__link">
+        <a href="../../reference/cli/" class="md-tabs__link">
           
   
   
@@ -305,7 +311,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../architecture/" class="md-tabs__link">
+        <a href="../../architecture/" class="md-tabs__link">
           
   
   
@@ -327,7 +333,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../CONTRIBUTING-modules/" class="md-tabs__link">
+        <a href="../../CONTRIBUTING-modules/" class="md-tabs__link">
           
   
   
@@ -349,7 +355,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../roadmap/" class="md-tabs__link">
+        <a href="../../roadmap/" class="md-tabs__link">
           
   
   
@@ -371,7 +377,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../governance/contributing/" class="md-tabs__link">
+        <a href="../../governance/contributing/" class="md-tabs__link">
           
   
   
@@ -413,7 +419,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
+    <a href="../.." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -443,7 +449,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -532,7 +538,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/installation/" class="md-nav__link">
+      <a href="../../getting-started/installation/" class="md-nav__link">
         
   
   
@@ -560,7 +566,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/quick-start/" class="md-nav__link">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
         
   
   
@@ -588,7 +594,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/versioning/" class="md-nav__link">
+      <a href="../../getting-started/versioning/" class="md-nav__link">
         
   
   
@@ -620,8 +626,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -641,21 +649,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -673,7 +682,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -691,7 +700,7 @@
   
   
     <li class="md-nav__item">
-      <a href="project-concept-and-design/" class="md-nav__link">
+      <a href="../project-concept-and-design/" class="md-nav__link">
         
   
   
@@ -719,7 +728,7 @@
   
   
     <li class="md-nav__item">
-      <a href="data-generation-walkthrough/" class="md-nav__link">
+      <a href="../data-generation-walkthrough/" class="md-nav__link">
         
   
   
@@ -747,7 +756,7 @@
   
   
     <li class="md-nav__item">
-      <a href="implementation-rules/" class="md-nav__link">
+      <a href="../implementation-rules/" class="md-nav__link">
         
   
   
@@ -772,10 +781,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="documentation-and-code-quality-policy/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation + code-quality policy
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -791,6 +827,142 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-documentation-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Documentation language
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-cross-document-linking-language-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Cross-document linking (language consistency)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-self-contained-oss-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Self-contained OSS quality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-source-code-comment-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Source-code comment language
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-constants-and-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Constants and configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-dead-code-hygiene" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Dead-code hygiene
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-contributing-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Contributing workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-how-to-change-this-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. How to change this policy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. How to change this policy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#change-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change history
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -803,7 +975,7 @@
   
   
     <li class="md-nav__item">
-      <a href="fhir-data-generation-logic/" class="md-nav__link">
+      <a href="../fhir-data-generation-logic/" class="md-nav__link">
         
   
   
@@ -831,7 +1003,7 @@
   
   
     <li class="md-nav__item">
-      <a href="data-model-and-completeness-conventions/" class="md-nav__link">
+      <a href="../data-model-and-completeness-conventions/" class="md-nav__link">
         
   
   
@@ -950,7 +1122,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/cli/" class="md-nav__link">
+      <a href="../../reference/cli/" class="md-nav__link">
         
   
   
@@ -978,7 +1150,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/output-formats/" class="md-nav__link">
+      <a href="../../reference/output-formats/" class="md-nav__link">
         
   
   
@@ -1006,7 +1178,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/llm-integration/" class="md-nav__link">
+      <a href="../../reference/llm-integration/" class="md-nav__link">
         
   
   
@@ -1034,7 +1206,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/datasets/" class="md-nav__link">
+      <a href="../../reference/datasets/" class="md-nav__link">
         
   
   
@@ -1062,7 +1234,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/datasets-full/" class="md-nav__link">
+      <a href="../../reference/datasets-full/" class="md-nav__link">
         
   
   
@@ -1090,7 +1262,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/code-systems/" class="md-nav__link">
+      <a href="../../reference/code-systems/" class="md-nav__link">
         
   
   
@@ -1118,7 +1290,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/hospital-configuration/" class="md-nav__link">
+      <a href="../../reference/hospital-configuration/" class="md-nav__link">
         
   
   
@@ -1146,7 +1318,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/extension-guide/" class="md-nav__link">
+      <a href="../../reference/extension-guide/" class="md-nav__link">
         
   
   
@@ -1174,7 +1346,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/multi-country/" class="md-nav__link">
+      <a href="../../reference/multi-country/" class="md-nav__link">
         
   
   
@@ -1202,7 +1374,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../eval/" class="md-nav__link">
+      <a href="../../eval/" class="md-nav__link">
         
   
   
@@ -1230,7 +1402,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../eval-rules/" class="md-nav__link">
+      <a href="../../eval-rules/" class="md-nav__link">
         
   
   
@@ -1258,7 +1430,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/modules/" class="md-nav__link">
+      <a href="../../reference/modules/" class="md-nav__link">
         
   
   
@@ -1286,7 +1458,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/design/" class="md-nav__link">
+      <a href="../../reference/design/" class="md-nav__link">
         
   
   
@@ -1314,7 +1486,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/scenario-flags/" class="md-nav__link">
+      <a href="../../reference/scenario-flags/" class="md-nav__link">
         
   
   
@@ -1380,7 +1552,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../architecture/" class="md-nav__link ">
+            <a href="../../architecture/" class="md-nav__link ">
               
   
   
@@ -1424,7 +1596,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/module-architecture/" class="md-nav__link">
+      <a href="../../architecture/module-architecture/" class="md-nav__link">
         
   
   
@@ -1452,7 +1624,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/data-flow/" class="md-nav__link">
+      <a href="../../architecture/data-flow/" class="md-nav__link">
         
   
   
@@ -1480,7 +1652,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/module-dependency-graph/" class="md-nav__link">
+      <a href="../../architecture/module-dependency-graph/" class="md-nav__link">
         
   
   
@@ -1581,7 +1753,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CONTRIBUTING-modules/" class="md-nav__link">
+      <a href="../../CONTRIBUTING-modules/" class="md-nav__link">
         
   
   
@@ -1609,7 +1781,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../clinical_documents/" class="md-nav__link">
+      <a href="../../clinical_documents/" class="md-nav__link">
         
   
   
@@ -1637,7 +1809,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../synthea-comparison/" class="md-nav__link">
+      <a href="../../synthea-comparison/" class="md-nav__link">
         
   
   
@@ -1665,7 +1837,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../fhir-server-ingestion/" class="md-nav__link">
+      <a href="../../fhir-server-ingestion/" class="md-nav__link">
         
   
   
@@ -1693,7 +1865,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../bedrock_setup/" class="md-nav__link">
+      <a href="../../bedrock_setup/" class="md-nav__link">
         
   
   
@@ -1794,7 +1966,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../roadmap/" class="md-nav__link">
+      <a href="../../roadmap/" class="md-nav__link">
         
   
   
@@ -1822,7 +1994,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../development/testing/" class="md-nav__link">
+      <a href="../../development/testing/" class="md-nav__link">
         
   
   
@@ -1850,7 +2022,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../development/reproducibility/" class="md-nav__link">
+      <a href="../../development/reproducibility/" class="md-nav__link">
         
   
   
@@ -1878,7 +2050,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../development/publishing-to-pypi/" class="md-nav__link">
+      <a href="../../development/publishing-to-pypi/" class="md-nav__link">
         
   
   
@@ -1906,7 +2078,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../development/changelog/" class="md-nav__link">
+      <a href="../../development/changelog/" class="md-nav__link">
         
   
   
@@ -2005,7 +2177,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../governance/contributing/" class="md-nav__link">
+      <a href="../../governance/contributing/" class="md-nav__link">
         
   
   
@@ -2033,7 +2205,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../governance/code-of-conduct/" class="md-nav__link">
+      <a href="../../governance/code-of-conduct/" class="md-nav__link">
         
   
   
@@ -2061,7 +2233,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../governance/security/" class="md-nav__link">
+      <a href="../../governance/security/" class="md-nav__link">
         
   
   
@@ -2089,7 +2261,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../governance/citation/" class="md-nav__link">
+      <a href="../../governance/citation/" class="md-nav__link">
         
   
   
@@ -2137,6 +2309,130 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-documentation-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Documentation language
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-cross-document-linking-language-consistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Cross-document linking (language consistency)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-self-contained-oss-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Self-contained OSS quality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-source-code-comment-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Source-code comment language
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-constants-and-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Constants and configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-dead-code-hygiene" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Dead-code hygiene
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-contributing-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Contributing workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-how-to-change-this-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. How to change this policy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. How to change this policy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#change-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change history
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2152,7 +2448,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/design-guides/README.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/design-guides/documentation-and-code-quality-policy.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2160,75 +2456,231 @@
   
 
 
-<h1 id="design-guides">Design Guides — 新規モジュール著者のための読書パス<a class="headerlink" href="#design-guides" title="Permanent link">&para;</a></h1>
-<p>clinosim にモジュールを追加する新規開発者/実装 AI 向けの索引です。以下の順に読んでください。
-(0)〜(4) は全員必読、(5)〜(7) は触る領域に応じて読みます。</p>
+<h1 id="documentation-code-quality-policy">Documentation + Code-Quality Policy<a class="headerlink" href="#documentation-code-quality-policy" title="Permanent link">&para;</a></h1>
+<p><strong>Status</strong>: Active
+<strong>Applies to</strong>: every contributor (human and automated) submitting changes to
+this repository, on every pull request.
+<strong>Enforcement</strong>: reviewers check compliance during PR review; some rules
+(dead-code baseline in §6, signed-off commits in §7) are also enforced by CI.</p>
+<p>This document is the single source of truth for how documentation is
+written and how source-code quality is maintained in this project. It is
+referenced from <a href="../../AGENTS.md"><code>AGENTS.md</code></a> (for automated agents),
+<a href="../../CONTRIBUTING.md"><code>CONTRIBUTING.md</code></a> (for human contributors), and the
+top-level READMEs.</p>
+<p>The policy was ratified as part of the campaign designed in
+<a href="../../superpowers/specs/2026-08-09-doc-code-quality-campaign-design/"><code>docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md</code></a>.</p>
+<hr />
+<h2 id="contents">Contents<a class="headerlink" href="#contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#1-documentation-language">Documentation language</a></li>
+<li><a href="#2-cross-document-linking-language-consistency">Cross-document linking (language consistency)</a></li>
+<li><a href="#3-self-contained-oss-quality">Self-contained OSS quality</a></li>
+<li><a href="#4-source-code-comment-language">Source-code comment language</a></li>
+<li><a href="#5-constants-and-configuration">Constants and configuration</a></li>
+<li><a href="#6-dead-code-hygiene">Dead-code hygiene</a></li>
+<li><a href="#7-contributing-workflow">Contributing workflow</a></li>
+<li><a href="#8-how-to-change-this-policy">How to change this policy</a></li>
+</ol>
+<hr />
+<h2 id="1-documentation-language">1. Documentation language<a class="headerlink" href="#1-documentation-language" title="Permanent link">&para;</a></h2>
+<p>Every part of the project's documentation is either English or Japanese, and
+the language of a file is identified by its filename suffix.</p>
 <table>
 <thead>
 <tr>
-<th>#</th>
-<th>ドキュメント</th>
-<th>いつ読むか</th>
+<th>File location</th>
+<th>Language</th>
+<th>Required</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>0a</td>
-<td><a href="project-concept-and-design/"><code>project-concept-and-design.md</code></a></td>
-<td><strong>一番最初</strong>。プロジェクトのコンセプト(9 要求)・パイプライン全体像・ナラティブ 2 層設計・現在地とロードマップのキャッチアップ</td>
+<td>Root <code>README.md</code></td>
+<td>English</td>
+<td>Yes</td>
 </tr>
 <tr>
-<td>0b</td>
-<td><a href="implementation-rules/"><code>implementation-rules.md</code></a></td>
-<td><strong>コードを書く前に必ず</strong>。全実装者が守る不変則の蒸留版(workflow 規律 / 決定性 / canonical helpers / silent-no-op 防御 / 検証 gate)</td>
+<td>Root <code>README.ja.md</code></td>
+<td>Japanese</td>
+<td>Yes</td>
 </tr>
 <tr>
-<td>0c</td>
-<td><a href="data-generation-walkthrough/"><code>data-generation-walkthrough.md</code></a></td>
-<td><strong>コンセプトの次に</strong>。「1 件の患者データがどう生まれるか」を population → イベント → 受診シミュレーション → CIF → FHIR まで実ファイル/関数名つきで end-to-end に追う。3 段 CLI・enricher・拡張の入口も。新規貢献者のオンボーディング用</td>
+<td>Every package/module directory <code>README.md</code></td>
+<td>English</td>
+<td>Yes</td>
 </tr>
 <tr>
-<td>1</td>
-<td><a href="../../MODULES.md"><code>MODULES.md</code></a></td>
-<td>全 30 module(<code>clinosim/modules/</code> 配下の package)の俯瞰・依存関係・データフローを 1 ページで把握する</td>
+<td>Every package/module directory <code>README.ja.md</code></td>
+<td>Japanese</td>
+<td>Yes</td>
 </tr>
 <tr>
-<td>2</td>
-<td><a href="../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a></td>
-<td>実装前に。Base/Module 判定、正準 layout、loader / sub-seed / registry / 検証 (byte-diff vs DQR) の実践 playbook</td>
+<td><code>docs/**/*.md</code> (canonical English documents)</td>
+<td>English</td>
+<td>Yes</td>
 </tr>
 <tr>
-<td>3</td>
-<td><a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a></td>
-<td>モジュールの skeleton を作るとき。README + パス定数などの boilerplate をここからコピーする</td>
-</tr>
-<tr>
-<td>4</td>
-<td><a href="../../DESIGN.md"><code>DESIGN.md</code></a> の curated ADR</td>
-<td>設計判断の背景が必要なとき。まず AD-16 / AD-17 / AD-25 / AD-30 / AD-55 / AD-56 / AD-59 / AD-60 / AD-65 の 9 つ(一言サマリは CONTRIBUTING-modules.md「最初に読む ADR」参照)</td>
-</tr>
-<tr>
-<td>5</td>
-<td><a href="../../clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a></td>
-<td>臨床文書 / narrative を触るときのみ。two-pass CIF(structural + narrative 分離、AD-65)の canonical spec</td>
-</tr>
-<tr>
-<td>6</td>
-<td><a href="fhir-data-generation-logic/"><code>docs/design-guides/fhir-data-generation-logic.md</code></a></td>
-<td>FHIR builder(<code>_fhir_*.py</code>、Layer 4)を追加・拡張するときのみ。code_lookup / URI / multilingual / anti-patterns</td>
-</tr>
-<tr>
-<td>7</td>
-<td><a href="../../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a></td>
-<td>lab 値や scenario / medication flag(<code>causes_X</code> / <code>on_warfarin</code>)を触るときのみ。flag の一覧と追加手順</td>
-</tr>
-<tr>
-<td>8</td>
-<td><a href="data-model-and-completeness-conventions/"><code>data-model-and-completeness-conventions.md</code></a></td>
-<td>FHIR completeness fix-point(重症度統合 / 孤児 YAML キー / <code>extra="forbid"</code> / I10 stage / person.age / course_archetypes)を実装するときのみ。C1/C2/C3 不完全状態の禁止規約と as-of-age パターン。台帳 = <code>docs/design-notes/2026-07-06-fix-point-registry.md</code></td>
+<td><code>docs/**/*.ja.md</code> (Japanese mirror documents)</td>
+<td>Japanese</td>
+<td>When the English document is user-facing or contributor-facing (not a purely internal design note)</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Filename convention</strong>: the default (unsuffixed) filename is always English.
+Japanese counterparts use the <code>&lt;name&gt;.ja.md</code> suffix — for example
+<code>README.ja.md</code>, <code>installation.ja.md</code>. No other language-mixing suffix
+conventions are introduced.</p>
+<p><strong>Rule</strong>: whenever a new user-facing or contributor-facing documentation
+file is added in English, a Japanese counterpart is added in the same
+directory using the <code>.ja.md</code> suffix. Whenever the English file is updated,
+the Japanese file is updated in the same PR (or a follow-up Issue is filed
+and linked in the PR description).</p>
+<hr />
+<h2 id="2-cross-document-linking-language-consistency">2. Cross-document linking (language consistency)<a class="headerlink" href="#2-cross-document-linking-language-consistency" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Links inside an <strong>English</strong> document point to <strong>English</strong> documents.</li>
+<li>Links inside a <strong>Japanese</strong> document point to <strong>Japanese</strong> documents.</li>
+<li>If the target document only exists in one language, the link may point to
+  the other language, but the link text must include a language marker
+  (e.g. <code>[foo (English)](foo.md)</code> inside a Japanese document). File a
+  follow-up Issue to add the missing translation.</li>
+<li>External links (GitHub Issues, upstream specs, RFCs) may be in either
+  language and do not need a marker.</li>
+</ul>
+<hr />
+<h2 id="3-self-contained-oss-quality">3. Self-contained OSS quality<a class="headerlink" href="#3-self-contained-oss-quality" title="Permanent link">&para;</a></h2>
+<p>All READMEs, documentation files, and Issue bodies must be understandable
+to a first-time contributor who has no prior context on the repository or
+its history.</p>
+<p><strong>Prohibited in any repo-committed document or Issue body</strong>:</p>
+<ul>
+<li>Session or conversation identifiers (<code>session-NN</code>, "last session",
+  "previous session", etc.).</li>
+<li>Insider pronouns ("you and I", "as we discussed", "私", "あなた").</li>
+<li>References to local, gitignored files (e.g. <code>.resume-prompt.md</code>, personal
+  notes, scratchpad files).</li>
+<li>Un-explained project-internal jargon without a link to a definition.</li>
+<li>Time-relative language without an absolute date ("yesterday", "recently"
+  → use <code>YYYY-MM-DD</code>).</li>
+</ul>
+<p><strong>Required in every README</strong>:</p>
+<ul>
+<li>Purpose sentence — what does this module do, in one sentence.</li>
+<li>Scope boundaries — what it does not do; what other modules do instead.</li>
+<li>Public API surface — what does it export; what should callers import.</li>
+<li>Dependencies — which other modules or external systems does it use.</li>
+<li>Constants and configuration — see <a href="#5-constants-and-configuration">§5</a>.</li>
+<li>Testing pointer — how to run the module's tests.</li>
+<li>Ownership / area lead — may be <code>maintainers@</code> if no single owner.</li>
+</ul>
+<p>Every new module README starts from the boilerplate at
+<a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>.</p>
+<hr />
+<h2 id="4-source-code-comment-language">4. Source-code comment language<a class="headerlink" href="#4-source-code-comment-language" title="Permanent link">&para;</a></h2>
+<p><strong>Default: English.</strong> Every comment (line comment, docstring, TODO/FIXME
+marker, block comment) is written in English unless it falls into an
+explicitly permitted Japanese-comment category listed below.</p>
+<p><strong>Permitted Japanese-comment categories</strong>:</p>
+<ol>
+<li><strong>JP-Core / JP-CLINS profile invariants.</strong> When a comment exists to
+   document a Japanese healthcare profile constraint (e.g. "JP eCS
+   requires <code>MedicationRequest.status='completed'</code>") and the surrounding
+   variable / element names come from the Japanese spec vocabulary
+   (<code>検体検査</code>, <code>処方せん</code>, <code>救急</code>, etc.), Japanese is permitted so that
+   Japanese-locale contributors can cross-reference the spec text.</li>
+<li><strong>JLAC10 / JJ1017 / MEDIS code-system specifics.</strong> Comments that quote
+   or explain a Japanese code-system entry (five-axis JLAC10, JJ1017
+   procedure code, MEDIS drug master, YJ code, HOT code) may include the
+   original Japanese text of the code entry.</li>
+<li><strong>Verbatim quotes from Japanese authoritative sources</strong> (厚生労働省
+   通知, JAHIS technical reports, jpfhir.jp implementation guides). Quote
+   the source in Japanese and add a one-line English gloss so an
+   English-only reader can navigate.</li>
+</ol>
+<p><strong>All other comments must be English</strong>, including:</p>
+<ul>
+<li>Simulator core (<code>clinosim/simulator/</code>)</li>
+<li>Audit / eval / benchmark harnesses</li>
+<li>Non-JP module business logic</li>
+<li>Test files</li>
+<li>CLI help strings (use gettext-style locale files for translation)</li>
+</ul>
+<p>A comment that only says "Japanese output" or "JP handling" without
+quoting the spec text does <strong>not</strong> qualify for the Japanese exception —
+write it in English.</p>
+<hr />
+<h2 id="5-constants-and-configuration">5. Constants and configuration<a class="headerlink" href="#5-constants-and-configuration" title="Permanent link">&para;</a></h2>
+<p>Every scalar constant, threshold, cutoff, or magic number that affects
+patient state, clinical logic, resource output, or a user-visible number
+must be:</p>
+<ol>
+<li><strong>Named</strong> — never inlined as a bare literal in the middle of an
+   expression.</li>
+<li><strong>Docstring-annotated</strong> with:</li>
+<li>purpose — what does it mean,</li>
+<li>unit — mg/dL, days, count, probability, …,</li>
+<li>source / rationale — clinical reference, spec section, empirical
+     tuning, link to a design ADR or external source.</li>
+<li><strong>Located</strong> in one of:</li>
+<li>a module-local <code>_constants.py</code> (private to the module),</li>
+<li>the module's public <code>__init__.py</code> if the constant is part of the API,</li>
+<li><code>clinosim/config/*.yaml</code> if runtime-configurable,</li>
+<li><code>clinosim/types/config.py</code> if a typed config model.</li>
+</ol>
+<p>Bare <code>MAGIC_NUMBER = 42</code> without a docstring is a review-blocker.</p>
+<hr />
+<h2 id="6-dead-code-hygiene">6. Dead-code hygiene<a class="headerlink" href="#6-dead-code-hygiene" title="Permanent link">&para;</a></h2>
+<ul>
+<li>CI runs <code>ruff</code> with F401 (unused import) and F841 (unused local) as
+  errors. This is baseline.</li>
+<li>On every major release cycle (or at least every six months), maintainers
+  run <code>vulture</code> at a confidence threshold of 80% or higher, review the
+  results, and either delete dead symbols or add them to a by-design
+  exclusion registry (<code>.vulture-whitelist.py</code> or equivalent) with a
+  one-line comment explaining why the symbol looks unused but must be kept
+  (e.g. plugin entry-point, reflected access, public API kept for backward
+  compatibility).</li>
+<li>When removing dead code, prefer full deletion. Do not leave "removed by
+  X" placeholder comments — the commit history is the authoritative
+  record.</li>
+</ul>
+<hr />
+<h2 id="7-contributing-workflow">7. Contributing workflow<a class="headerlink" href="#7-contributing-workflow" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Never commit directly to <code>master</code>. Every change lands via a branch + PR</li>
+<li>CI + merge.</li>
+<li>Every commit is signed off (<code>Signed-off-by:</code> trailer). The DCO CI job
+  blocks merges when any commit is missing the trailer.</li>
+<li>Every commit is <code>ruff format</code>-clean and <code>ruff check</code>-clean.</li>
+<li>One logical change per PR. Do not bundle unrelated refactors.</li>
+<li>CHANGELOG entry required for user-facing behaviour changes.</li>
+<li>Test plan required in every PR description.</li>
+</ul>
+<p>See <a href="../../CONTRIBUTING.md"><code>CONTRIBUTING.md</code></a> for the full contribution
+workflow, including local setup, DCO signoff mechanics, and CI job
+descriptions.</p>
+<hr />
+<h2 id="8-how-to-change-this-policy">8. How to change this policy<a class="headerlink" href="#8-how-to-change-this-policy" title="Permanent link">&para;</a></h2>
+<p>This policy governs a large portion of the codebase and every future PR.
+Changes to it are not routine. To propose a change:</p>
+<ol>
+<li>Open a GitHub Issue describing the change, its motivation, and its
+   expected impact on existing code and documentation.</li>
+<li>Get maintainer agreement on the direction before opening a PR.</li>
+<li>The PR updates this document, updates any downstream pointers
+   (<code>AGENTS.md</code>, <code>CONTRIBUTING.md</code>, both top-level READMEs), and includes a
+   <code>## Change history</code> entry below with the date and a one-sentence
+   summary.</li>
+<li>If the change tightens the policy, file follow-up Issues for any
+   existing code / documentation that will fall out of compliance, so the
+   codebase catches up rather than being left with a mixed standard.</li>
+</ol>
+<h3 id="change-history">Change history<a class="headerlink" href="#change-history" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>2026-08-09</strong> — Policy created. Extracted from §2 of the campaign
+  design spec at
+  <a href="../../superpowers/specs/2026-08-09-doc-code-quality-campaign-design/"><code>docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md</code></a>.</li>
+</ul>
 
 
 
@@ -2259,6 +2711,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../implementation-rules/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Implementation rules">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Implementation rules
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../fhir-data-generation-logic/" class="md-footer__link md-footer__link--next" aria-label="Next: FHIR data generation logic">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                FHIR data generation logic
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -2297,10 +2787,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

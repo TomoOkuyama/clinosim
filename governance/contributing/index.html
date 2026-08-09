@@ -641,6 +641,8 @@
       
         
       
+        
+      
     
     
     
@@ -759,6 +761,34 @@
     
   
     Implementation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/documentation-and-code-quality-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation + code-quality policy
   
 
     
@@ -2175,6 +2205,11 @@ properties the project relies on:</p>
 <li><a href="../../CLAUDE.md"><code>CLAUDE.md</code></a> — repo-wide conventions and invariants.</li>
 <li><a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>
   — boilerplate for a new module directory.</li>
+<li><a href="../../design-guides/documentation-and-code-quality-policy/"><code>docs/design-guides/documentation-and-code-quality-policy.md</code></a>
+  — documentation-language pairing (English + Japanese), source-code comment
+  language rule, self-contained-OSS-quality standard, constants documentation
+  rule, and dead-code hygiene expectations. All PRs are reviewed against this
+  policy.</li>
 </ul>
 <hr />
 <h2 id="getting-set-up">Getting set up<a class="headerlink" href="#getting-set-up" title="Permanent link">&para;</a></h2>
@@ -2271,6 +2306,28 @@ the trailer.</p>
 <li><strong>Documentation update</strong> when the change adds a new module, YAML
   field, CLI subcommand, or public API surface.</li>
 </ul>
+<hr />
+<h2 id="documentation-and-comment-language-policy">Documentation and comment-language policy<a class="headerlink" href="#documentation-and-comment-language-policy" title="Permanent link">&para;</a></h2>
+<p>Every PR is reviewed against
+<a href="../../design-guides/documentation-and-code-quality-policy/"><code>docs/design-guides/documentation-and-code-quality-policy.md</code></a>.
+The short version:</p>
+<ul>
+<li>Documentation files come in language pairs: English <code>README.md</code> plus
+  Japanese <code>README.ja.md</code> (and the same pattern under <code>docs/</code>).</li>
+<li>Links inside an English document point to English documents; links inside
+  a Japanese document point to Japanese documents.</li>
+<li>READMEs and Issue bodies are self-contained. No session identifiers,
+  insider pronouns, or references to gitignored files.</li>
+<li>Source-code comments are English by default. Japanese is permitted only
+  for JP-Core / JP-CLINS profile invariants, JLAC10 / JJ1017 / MEDIS
+  code-system specifics, and verbatim quotes from Japanese authoritative
+  sources.</li>
+<li>Every scalar constant / threshold / magic number is named, docstring-
+  annotated (purpose / unit / source), and located in the right place per
+  the policy.</li>
+<li>CI enforces the dead-code baseline (<code>ruff</code> F401 / F841) and DCO signoff.</li>
+</ul>
+<p>Read the full policy before opening a PR that adds or changes documentation.</p>
 <hr />
 <h2 id="reporting-bugs-and-requesting-features">Reporting bugs and requesting features<a class="headerlink" href="#reporting-bugs-and-requesting-features" title="Permanent link">&para;</a></h2>
 <p>Use the <a href="https://github.com/TomoOkuyama/clinosim/issues/new/choose">issue templates</a>.
