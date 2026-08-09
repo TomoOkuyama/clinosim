@@ -164,7 +164,7 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
             coverage["meta"] = {"profile": [cfg["profile"]]}
         if branch:
             coverage["dependent"] = branch
-        # C2-06 (session 42 cycle 2): resolve display via codes/data/
+        # C2-06: resolve display via codes/data/
         # hl7-subscriber-relationship.yaml — was raw code emission.
         # Beneficiary's relationship to the subscriber: 被扶養者 → not self.
         rel_code = "other" if category == "dependent" else "self"
@@ -181,7 +181,7 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
         label = type_labels.get(category)
         if label:
             coverage["type"] = {"text": label}
-        # C2-11 (session 42 cycle 2): guarantee Coverage.period. FHIR R4
+        # C2-11: guarantee Coverage.period. FHIR R4
         # recommends period on active coverage. If enrollment lacks explicit
         # start/end, default to the current calendar year — clinosim's
         # 保険証 renewal cycle is annual per JP 医療保険 practice.
@@ -196,10 +196,10 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
             year = _default_coverage_period_year(patient_data)
             period = {"start": f"{year}-04-01", "end": f"{year + 1}-03-31"}
         coverage["period"] = period
-        # C3-08 (session 42 cycle 3): Coverage.class[] — group / plan
+        # C3-08: Coverage.class[] — group / plan
         # classification. For JP, class[0].type=group with 保険者番号 as
         # the coverage class identifier.
-        # C5-09 (session 43 cycle 5): diversify to include both `group` and
+        # C5-09: diversify to include both `group` and
         # `plan` classifications when insurer symbol resolves to a plan
         # name — plan carries the human-readable insurance product name.
         _class_entries: list[dict[str, Any]] = [
@@ -274,13 +274,13 @@ def _build_patient(p: dict, country: str) -> dict:
     gender = "female" if p.get("sex") == "F" else "male"
     dob = p.get("date_of_birth")
 
-    # Build FHIR HumanName. C2-19 (session 42 cycle 2): JP Core requires
+    # Build FHIR HumanName. C2-19: JP Core requires
     # kanji + kana names as TWO separate name[] entries, each tagged with the
     # ISO21090 EN-representation extension using `valueCode` (was
     # `valueString` — an FHIR schema violation, JP Core validators reject).
     # Kanji name → IDE (ideographic), phonetic (katakana / hiragana) → SYL.
     ISO21090_URL = "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation"
-    # C4-12 (session 43 cycle 4): HumanName.use = "official" per FHIR R4 spec
+    # C4-12: HumanName.use = "official" per FHIR R4 spec
     # and JP Core Patient recommendation for the registered / kanji name.
     names: list[dict[str, Any]] = []
     if is_jp(country):
@@ -327,11 +327,11 @@ def _build_patient(p: dict, country: str) -> dict:
     resource: dict[str, Any] = {
         "resourceType": "Patient",
         "id": pid,
-        # C2-20 (session 42 cycle 2): declare JP Core Patient conformance
+        # C2-20: declare JP Core Patient conformance
         # for JP exports. US export intentionally omits — no US Core profile
         # is asserted (a separate roadmap item).
         #
-        # Issue #378 (session 80, restoring #379 with data-completeness):
+        # Issue #378 (restoring #379 with data-completeness):
         # JP_Patient_eCS assertion RESTORED. #382 removed the URI because
         # #379 had shipped URI-only without emitting the required fields
         # (`name.text`, `address.text`, `meta.lastUpdated`) — the resulting
@@ -351,7 +351,7 @@ def _build_patient(p: dict, country: str) -> dict:
                         "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Patient_eCS",
                     ],
                     # Static deterministic timestamp mirrors `_fhir_facility.py`
-                    # (session 46 pattern). Real-world lastUpdated is server-
+                    # (pattern). Real-world lastUpdated is server-
                     # provided; clinosim's simulator has no such notion, so
                     # a fixed value keeps reproducibility byte-clean while
                     # satisfying the eCS min=1 requirement.
@@ -405,7 +405,7 @@ def _build_patient(p: dict, country: str) -> dict:
     else:
         resource["deceasedBoolean"] = False
 
-    # Blood type: Session 57 v3 fix - JP Core (as of jpfhir.jp.core#1.2.0)
+    # Blood type: v3 fix - JP Core (as of jpfhir.jp.core#1.2.0)
     # does not define a `JP_Patient_BloodTypeCode` Extension, and neither
     # FHIR core nor US Core specifies a Patient-level BloodType extension.
     # The URL we used to emit was fabricated; v3 validation flagged all
@@ -448,7 +448,7 @@ def _build_patient(p: dict, country: str) -> dict:
     if lang:
         # BCP-47 (`urn:ietf:bcp:47`) is English-only per the fhir-jp-validator
         # tx-server loadout — the ja localization is not a registered synonym.
-        # Emit the English display regardless of country (session 58 Chain #7).
+        # Emit the English display regardless of country.
         resource["communication"] = [
             {
                 "language": {
@@ -522,7 +522,7 @@ def _build_occupation_observation(
     return {
         "resourceType": "Observation",
         "id": f"occupation-{patient_id}",
-        # Session 46 chain #2: JP Core Observation_Common profile.
+        # chain #2: JP Core Observation_Common profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
             if is_jp(country)

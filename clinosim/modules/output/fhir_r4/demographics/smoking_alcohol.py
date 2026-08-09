@@ -39,7 +39,7 @@ def _obs(obs_id: str, country: str, loinc: str, loinc_text: str, value_system: s
     return {
         "resourceType": "Observation",
         "id": obs_id,
-        # Session 46 chain #2: JP Core Observation_Common profile.
+        # chain #2: JP Core Observation_Common profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
             if is_jp(country)
@@ -60,7 +60,7 @@ def _obs(obs_id: str, country: str, loinc: str, loinc_text: str, value_system: s
 def _sdoh_effective_datetime(ctx: BundleContext) -> str:
     """Return the effectiveDateTime string for a patient-level SDOH Observation.
 
-    C1-12 (session 41 cycle 1) fix: US Core and JP Core social-history
+    C1-12 fix: US Core and JP Core social-history
     profiles list effective[x] as MUST-SUPPORT. Base FHIR R4 allows
     omission, but interop degrades. Use the patient's earliest encounter
     admission date as the SDOH-as-of proxy (the SDOH was assessed at
@@ -87,7 +87,7 @@ def _sdoh_effective_datetime(ctx: BundleContext) -> str:
 def _sdoh_performer_ref(ctx: BundleContext) -> str:
     """Return a Practitioner reference for SDOH Observation.performer.
 
-    C4-29 (session 43 cycle 5): SDOH is patient-self-reported but JP 健診
+    C4-29: SDOH is patient-self-reported but JP 健診
     practice records the earliest encounter's attending as the
     admin-of-record ("recorder"). Fall back to empty when no encounter.
     """

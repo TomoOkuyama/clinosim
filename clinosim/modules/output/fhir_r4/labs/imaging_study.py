@@ -57,7 +57,7 @@ __all__ = [
 def _isoformat_or_str(dt: Any) -> str:
     """Convert datetime to ISO-8601 string; passthrough for str; empty for None.
 
-    Session 40 (FP-UNIFY-2 completion): delegates to the shared
+    (FP-UNIFY-2 completion): delegates to the shared
     ``to_fhir_datetime`` helper in ``_fhir_common``. Kept as a thin alias so
     external callers importing this symbol continue to work; new code should
     import ``to_fhir_datetime`` directly.
@@ -94,7 +94,7 @@ def _build_imaging_study(
 ) -> dict[str, Any]:  # noqa: E501
     """Build one FHIR R4 ImagingStudy resource from an ImagingStudyRecord.
 
-    session 48 cycle 8 拡張(案 D):stub-only ImagingStudy(modality/body_site
+    cycle 8 拡張(案 D):stub-only ImagingStudy(modality/body_site
     が空)にも対応。stub は modality / series 0..* を空で emit、identifier +
     status + subject + basedOn 最小構成で spec-valid。SR がある限り「オーダー
     はあった」ことを FHIR consumer に伝達可能。
@@ -121,7 +121,7 @@ def _build_imaging_study(
 
     res: dict[str, Any] = {
         "resourceType": "ImagingStudy",
-        # session 51: study_id (engine.py) は既に IMAGING_STUDY_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。  # noqa: E501
+        # study_id (engine.py) は既に IMAGING_STUDY_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。  # noqa: E501
         "id": _o(study, "study_id", ""),
         "identifier": [
             {
@@ -136,7 +136,7 @@ def _build_imaging_study(
         "numberOfSeries": len(series_resources),
         "numberOfInstances": total_instances,
     }
-    # session 59 #299:FHIR R4 "配列は空にできません" 制約 — modality / series
+    # #299:FHIR R4 "配列は空にできません" 制約 — modality / series
     # は 0..* だが FHIR 一般則で空 array の emit は禁止(v5 で 48 件 error)。
     # stub-only ImagingStudy(modality_code 空)では両 field を drop。
     if modality_field:
@@ -181,15 +181,15 @@ def _build_imaging_study(
             _proc_loinc = _proc.get("loinc", "")
             _proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
             if _proc_loinc:
-                # #319 session 61:JP output は procedureCode 要素を完全省略。
+                # #319 JP output は procedureCode 要素を完全省略。
                 # JP_ImagingStudy_Radiology profile は procedureCode binding
                 # strength "required" + valueSet =
                 # http://playbook.radlex.org/playbook/SearchRadlexAction
-                # (RadLexPlaybook)。session 60 #315 で text-only emit を
+                # (RadLexPlaybook)。#315 で text-only emit を
                 # 試みたが v6.1 で regression(571→589)、"コードが提供
                 # されていません" error 発火。
                 #
-                # 【session 61 新規教訓】FHIR R4 required binding は text-only
+                # 【新規教訓】FHIR R4 required binding は text-only
                 # 回避不可 — text は補助表示のためのフィールドで、required
                 # binding の充足条件に含まれない。VS が空でよい唯一の方法は
                 # 要素自体を省略すること。

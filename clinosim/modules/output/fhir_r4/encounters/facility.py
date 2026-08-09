@@ -26,7 +26,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     beds = hospital_config.get("resource_capacity", {}).get("inpatient_beds", 0)
 
     # Root hospital Organization
-    # C3-17 (session 42 cycle 3): JP Core Organization profile also on
+    # C3-17: JP Core Organization profile also on
     # facility-bundle entries (adapter's post-hook doesn't touch the
     # separate facility bundle).
     _jp_org_profile = (
@@ -56,7 +56,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     }
     entries.append(entry(root_org))
 
-    # #313 session 61:JP-CLINS eReferral の 920/910 section entry
+    # #313 JP-CLINS eReferral の 920/910 section entry
     # (referralFromOrganization / referralToOrganization slice)は
     # `JP_Organization_eCS` profile 準拠の Organization を discriminator
     # (type: profile, path: resolve())で要求。hospital-main は JP Core
@@ -121,8 +121,8 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         entries.append(entry(root_org_ecs))
 
     # Main-building Location — referenced by PractitionerRole.location fallback
-    # (CY8-07) for staff without a ward assignment. Session 52 fix 2: the
-    # reference existed since session 48 but the resource was never emitted
+    # (CY8-07) for staff without a ward assignment. fix 2: the
+    # reference existed since but the resource was never emitted
     # (dangling reference, eval reference_integrity FAIL).
     main_loc = {
         "resourceType": "Location",
@@ -160,7 +160,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
 
     # Facility-shared generic infusion pump Device — referenced by
     # MedicationAdministration.device for continuous IV infusions (CY8-20).
-    # Session 52 fix 2: same dangling-reference closure as loc-hospital-main.
+    # fix 2: same dangling-reference closure as loc-hospital-main.
     # Real EHRs reference a shared pump asset rather than issuing one per
     # patient, so a single facility-level Device is clinically appropriate.
     pump_device = {
@@ -204,14 +204,14 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "partOf": {"reference": "Organization/hospital-main"},
         }
         entries.append(entry(dept_org))
-        # CO-5 (session 42 cycle 3): also emit a Location per department so
+        # CO-5: also emit a Location per department so
         # AMB / EMER Encounter.location = Location/loc-dept-{dept} resolves.
         # Previously only ward + bed Locations existed; AMB visits linked
         # to nothing physical.
         dept_loc = {
             "resourceType": "Location",
             "id": f"loc-dept-{dept.replace('_', '-')}",
-            # Session 46 chain #2: JP Core Location profile.
+            # chain #2: JP Core Location profile.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
                 if is_jp(country)
@@ -219,7 +219,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             ),
             "status": "active",
             "name": display,
-            # C4-14 (session 43 cycle 4): Location.type per FHIR spec
+            # C4-14: Location.type per FHIR spec
             # (HL7 v3-RoleCode _ServiceDeliveryLocationRoleType). Departments
             # are outpatient service delivery locations.
             "type": [
@@ -258,7 +258,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             phys_display = "Ward"
             if ward == "ER":
                 phys_type = "area"
-                # session 59 #299:location-physical-type CS の code "area"
+                # #299:location-physical-type CS の code "area"
                 # の権威 display は "Area"。従来 "Emergency Room" を出していた
                 # が HAPI Wrong Display 検出(1 件 v5)。ER 由来の semantic
                 # は Location.name / description で保持済。
@@ -267,7 +267,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 phys_type = "area"
                 phys_display = "Area"  # #299: 同 CS 権威 display
             org_ref = f"Organization/dept-{dept.replace('_', '-')}"
-            # C4-14 (session 43 cycle 4): Location.type per HL7 v3-RoleCode.
+            # C4-14: Location.type per HL7 v3-RoleCode.
             if ward == "ER":
                 _type_code, _type_disp = "ER", "Emergency room"
             elif ward == "OPD":
@@ -282,7 +282,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             ward_loc = {
                 "resourceType": "Location",
                 "id": f"loc-ward-{ward}",
-                # Session 46 chain #2: JP Core Location profile.
+                # chain #2: JP Core Location profile.
                 **(
                     {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
                     if is_jp(country)
@@ -324,7 +324,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     bed_loc = {
                         "resourceType": "Location",
                         "id": f"loc-bed-{bed_id}",
-                        # Session 46 chain #2: JP Core Location profile.
+                        # chain #2: JP Core Location profile.
                         **(
                             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
                             if is_jp(country)
@@ -332,7 +332,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         ),
                         "status": "active",
                         "name": f"{bed_id}号室" if is_jp(country) else f"Bed {bed_id}",
-                        # C4-14 (session 43 cycle 4): Location.type per HL7 v3-RoleCode.
+                        # C4-14: Location.type per HL7 v3-RoleCode.
                         "type": [
                             {
                                 "coding": [
@@ -369,7 +369,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             or_loc = {
                 "resourceType": "Location",
                 "id": f"loc-or-{i}",
-                # Session 46 chain #2: JP Core Location profile.
+                # chain #2: JP Core Location profile.
                 **(
                     {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
                     if is_jp(country)
@@ -386,7 +386,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         }
                     ],
                 },
-                # #327 session 61:v3-RoleCode CS には "OR" 概念が存在
+                # #327 v3-RoleCode CS には "OR" 概念が存在
                 # しない(authoritative 確認、v6.1 で 2 件 unknown-code
                 # error 発火)。近似 SU (Surgery clinic) は semantic 別
                 # 概念 (clinic ≠ room)、fabrication 回避のため coding を

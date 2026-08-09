@@ -212,7 +212,7 @@ def _coding_with_display(system_key: str, code: str, lang: str) -> dict:
     (wraps as full CodeableConcept), ``loinc_coding()`` (LOINC-specialized),
     ``build_diagnosis_codeable_concept()`` (multi-language dx codes).
 
-    C2-01/02/03/05/06/07/08 (session 42 cycle 2) — migrated the display-fallback
+    C2-01/02/03/05/06/07/08 — migrated the display-fallback
     sites (Encounter.type, Condition.clinicalStatus/verificationStatus,
     Observation.referenceRange.appliesTo, Coverage.relationship,
     PractitionerRole.code, DiagnosticReport.category) through this helper.
@@ -226,7 +226,7 @@ def _coding_with_display(system_key: str, code: str, lang: str) -> dict:
 
 # Legacy alias — microbiology builders (_fhir_microbiology) use this name.
 # The public helper name is `_coding_with_display`. Keep the alias to avoid
-# churn on unrelated call sites (session 42, cycle 2).
+# churn on unrelated call sites (cycle 2).
 micro_coding = _coding_with_display
 
 
@@ -425,7 +425,7 @@ def infer_severity(record: dict) -> str:
 def severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
     """Build FHIR Condition.severity CodeableConcept from severity string.
 
-    session 53 iris4h-ai feedback F-4:JP output では JP_ConditionSeverity_CS
+    iris4h-ai feedback F-4:JP output では JP_ConditionSeverity_CS
     (`MI` / `MO` / `SE`)を primary coding、SNOMED を secondary(国際互換性
     のため保持)として emit。US output は従来通り SNOMED 単独。
     """
@@ -478,7 +478,7 @@ def build_address(addr: dict, country: str) -> dict[str, Any] | None:
         line = addr.get("line1", "")
 
     fhir_addr: dict[str, Any] = {
-        # C4-13 (session 43 cycle 4): Address.use = "home" per FHIR R4 spec.
+        # C4-13: Address.use = "home" per FHIR R4 spec.
         # JP Core Patient guidance mirrors HL7 R4: use should be populated
         # (was implicit "?"/missing, 100% of Patient.address records).
         "use": "home",
@@ -525,7 +525,7 @@ def build_presented_form(text: str, title: str, lang: str = "en") -> list[dict[s
 
     encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")
     h = hashlib.sha1(text.encode("utf-8")).digest()
-    # Issue #343 (session 63): FHIR R4 Attachment.contentType の required
+    # Issue #343: FHIR R4 Attachment.contentType の required
     # binding は IANA Media Types (urn:ietf:bcp:13) で bare mime type のみ。
     # HTTP Content-Type header の charset parameter は VS 外 → "text/plain"
     # bare で emit(UTF-8 は FHIR default 前提、semantic loss なし)。
@@ -574,7 +574,7 @@ def build_telecom(contact: dict) -> list[dict[str, str]]:
 def make_participant(code: str, display: str, practitioner_id: str, country: str = "US") -> dict[str, Any]:
     """Build an Encounter.participant entry.
 
-    C5-02 (session 43 cycle 5): localize `display` for JP output — HL7
+    C5-02: localize `display` for JP output — HL7
     v3-ParticipationType English default (attender / admitter / discharger)
     was leaking to JP output as literal text.
     """
@@ -778,7 +778,7 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
         parts.append(route)
 
     # Timing
-    # C4-16 (session 43 cycle 4): derive freq_per_day from common freq
+    # C4-16: derive freq_per_day from common freq
     # strings when the order only supplies the label (was 13% of MR with
     # dosageInstruction lacking timing.repeat).
     if freq_per_day is None and freq:
@@ -921,7 +921,7 @@ def build_reference_range(
 
         # appliesTo for sex-specific ranges
         if sex:
-            # C2-05 (session 42): resolve display via codes/data/hl7-v3-
+            # C2-05: resolve display via codes/data/hl7-v3-
             # administrativegender.yaml (was raw code emission with no display).
             rr["appliesTo"] = [
                 {
@@ -942,7 +942,7 @@ def build_reference_range(
         #     どちらも)は JP Core 1.2.0 / JP-CLINS 1.12.0 / jpfhir-terminology
         #     2.2606.0 のいずれの StructureDefinition にも存在しない
         #     (`grep -rl 'ReferenceRangeSource' fhir-jp-validator/tx-server-build/...`
-        #      で match ゼロ)。spec fixedUri 直接引用 rule(session 51)違反。
+        #      で match ゼロ)。spec fixedUri 直接引用 rule違反。
         # (2) `JP_Observation_LabResult_eCS` は `Observation.referenceRange.
         #     extension max=0` を定めており、たとえ spec-valid URL でも profile
         #     で禁止される。
@@ -960,7 +960,7 @@ def map_mar_status(status: str) -> str:
     )  # noqa: E501
 
 
-# session 48 cycle 8 拡張 (feedback FB-F1):
+# cycle 8 拡張 (feedback FB-F1):
 # JP コホートの dateTime / instant field は JST (+09:00) を必ず付与する。
 # HAPI FHIR Validator (JP Core 準拠) は TZ 無し dateTime を regex エラーとする。
 # to_fhir_datetime + to_fhir_instant で単一 seam 化、per-builder 個別修正回避。
@@ -1020,7 +1020,7 @@ def to_fhir_datetime(value: Any) -> str:
     Single edit point for the ``str(x)`` / ``hasattr(x, "isoformat")`` fallback
     pattern previously scattered across FHIR builders (FP-UNIFY-2, 2026-07-07).
 
-    session 48 cycle 8 (feedback FB-F1): TZ 無し文字列には JST (+09:00) を付与。
+    cycle 8 (feedback FB-F1): TZ 無し文字列には JST (+09:00) を付与。
     """
     if value is None or value == "":
         return ""
@@ -1037,7 +1037,7 @@ def to_fhir_instant(value: Any) -> str:
     """Normalize to FHIR R4 ``instant`` (秒精度 + TZ 必須).
 
     ``instant`` is stricter than ``dateTime``: time-of-day and TZ are required.
-    Milliseconds recommended. session 48 feedback FB-F1 で導入。
+    Milliseconds recommended. feedback FB-F1 で導入。
     """
     if value is None or value == "":
         return ""

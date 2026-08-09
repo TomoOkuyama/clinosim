@@ -18,7 +18,7 @@ from clinosim.locale.loader import load_drug_names_ja as _load_drug_names_ja
 from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 
-# Session 52: expose the private-name loader aliases so mypy's strict export
+# expose the private-name loader aliases so mypy's strict export
 # check passes at fhir_r4_adapter.py's import site.
 __all__ = [
     "_load_department_display",
@@ -63,7 +63,7 @@ def _localize_dosage_terms(text: str) -> str:
     return text
 
 
-# Rate-adjustment suffix pattern for continuous-infusion medications (session 45).
+# Rate-adjustment suffix pattern for continuous-infusion medications.
 # Disease YAMLs (e.g. pulmonary_embolism.yaml Day-2 heparin drip) may emit
 # `dose: "increase_rate_by_20%"` which upstream concatenates to display_name as
 # `"Unfractionated_Heparin increase_rate_by_20%"`. That protocol notation belongs
@@ -232,7 +232,7 @@ _CLASS_DISPLAY_JA: dict[str, str] = {
     "home health": "訪問看護",
     "FLD": "現地訪問",
     "field": "現地訪問",
-    # C5-22 (session 43): classHistory transition labels.
+    # C5-22: classHistory transition labels.
     "inpatient ward": "一般病棟",
     "ICU": "集中治療室",
     "ACUTE": "集中治療室",
@@ -327,7 +327,7 @@ _LOCATION_NAME_JA: dict[str, str] = {
     "Outpatient Clinic": "外来",
 }
 
-# C5-02 (session 43 cycle 5): HL7 v3-ParticipationType displays used by
+# C5-02: HL7 v3-ParticipationType displays used by
 # Encounter.participant.type.coding.display. English default per HL7 leaks
 # to JP output; localize here.
 _PARTICIPATION_TYPE_DISPLAY_JA: dict[str, str] = {
@@ -345,7 +345,7 @@ _PARTICIPATION_TYPE_DISPLAY_JA: dict[str, str] = {
     "Participation": "参加者",
 }
 
-# C5-03 (session 43 cycle 5): HL7 v3-ActPriority displays used by
+# C5-03: HL7 v3-ActPriority displays used by
 # Encounter.priority.coding.display.
 _ACT_PRIORITY_DISPLAY_JA: dict[str, str] = {
     "R": "通常",
@@ -377,7 +377,7 @@ _ACT_PRIORITY_DISPLAY_JA: dict[str, str] = {
     "as needed": "頓用",
 }
 
-# C5-04 (session 43 cycle 5): HL7 diagnosis-role displays used by
+# C5-04: HL7 diagnosis-role displays used by
 # Encounter.diagnosis.use.coding.display.
 _DIAGNOSIS_ROLE_DISPLAY_JA: dict[str, str] = {
     "AD": "入院時診断",
@@ -465,7 +465,7 @@ _FREQ_JA: dict[str, str] = {
     "4x/day": "1日4回",
 }
 
-# FHIR fixed-label JA dictionary (FP-UNIFY-3, session 40): centralizes short
+# FHIR fixed-label JA dictionary (FP-UNIFY-3): centralizes short
 # free-text FHIR field labels that used to be scattered as inline conditionals
 # ("放射線科" if lang == "ja" else "Radiology"). Add a new EN → JA row here rather
 # than reintroducing an inline conditional. Consumed via ``localize_fixed_label``.
@@ -499,7 +499,7 @@ _ROLE_PREFIX_MAP_JA: dict[str, dict[str, str]] = {
     "lab_technician": {"qual_code": "MT", "qual_display": "臨床検査技師", "prefix": ""},
     "radiologist": {"qual_code": "MD", "qual_display": "放射線科医", "prefix": ""},
     "pharmacist": {"qual_code": "PharmD", "qual_display": "薬剤師", "prefix": ""},
-    # CY6-02 (Chain-6): allied-health qualifications (session 44 C5-25 roster).
+    # CY6-02 (Chain-6): allied-health qualifications (C5-25 roster).
     "physical_therapist": {"qual_code": "PT", "qual_display": "理学療法士", "prefix": ""},
     "occupational_therapist": {"qual_code": "OT", "qual_display": "作業療法士", "prefix": ""},
     "speech_therapist": {"qual_code": "ST", "qual_display": "言語聴覚士", "prefix": ""},

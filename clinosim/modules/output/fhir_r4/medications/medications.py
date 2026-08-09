@@ -105,7 +105,7 @@ def _course_for_order(is_home_med: bool, category_code: str) -> tuple[str, str]:
 
     A chronic home med, or an order tagged with the ``community`` category,
     is continuous therapy; everything else is treated as acute (default).
-    Preserves the CY8-18 (session 48) heuristic verbatim.
+    Preserves the CY8-18 heuristic verbatim.
     """
     return _COURSE_CONTINUOUS if (is_home_med or category_code == "community") else _COURSE_ACUTE
 
@@ -267,7 +267,7 @@ def _build_medication_request_identifiers(
     * Antibiotic MR (Issue #349 Phase 1b): the structural key preserved via
       :func:`wrap_as_identifier` so consumers can recover parent HAI +
       drug + intent from the (now opaque) Resource.id.
-    * JP Core MR (session 49 P1-4): mhlw ``rpNumber`` + ``orderInRp``
+    * JP Core MR (P1-4): mhlw ``rpNumber`` + ``orderInRp``
       slices required by JP_MedicationRequest profile.
 
     Returns ``{"identifier": [...]}`` when at least one entry exists,
@@ -293,7 +293,7 @@ def _build_medication_request_identifiers(
     return {"identifier": entries} if entries else {}
 
 
-# session 53 iris4h-ai feedback F-1: MedicationRequest / MedicationAdministration
+# iris4h-ai feedback F-1: MedicationRequest / MedicationAdministration
 # の system URI を code 形式ごとに JP Core NamingSystem 準拠 URI に振り分け。
 #
 # 従来 `get_system_uri("yj")` は `urn:oid:1.2.392.100495.20.2.74` を常に返す
@@ -314,7 +314,7 @@ _JP_YJ_CODE_URI = "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code"
 
 _YJ12_PATTERN = re.compile(r"^\d{7}[A-Z]\d{4}$")
 
-# #291 session 59:JP-CLINS eCS "nocoded" slice — code_mapping にヒットしない
+# #291 JP-CLINS eCS "nocoded" slice — code_mapping にヒットしない
 # 薬(ED 特異薬 等)の `medication[x].coding` min=1 を満たすための fallback。
 # spec: clinical-information-sharing#1.12.0/package/
 # CodeSystem-jp-eCS-medicationcode-nocoded-cs.json 権威 display "標準コードなし"。
@@ -322,7 +322,7 @@ _JP_MEDICATION_CODE_NOCODED_CS = "http://jpfhir.jp/fhir/eCS/CodeSystem/Medicatio
 _JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"
 _JP_MEDICATION_CODE_NOCODED_DISPLAY = "標準コードなし"
 
-# #283 session 59:tx-server-verifiable YJ code set(2000 concepts fragment)。
+# #283 tx-server-verifiable YJ code set(2000 concepts fragment)。
 # jpfhir-terminology 2.2606.0 の CodeSystem-jp-medicationcodeyj-cs.json は
 # 25542 全 YJ codes のうち先頭 2000(11xx/12xx = 精神/神経系のみ)を fragment
 # として出荷。clinosim が emit する YJ code はこの fragment 内なら通常の
@@ -352,7 +352,7 @@ _TX_SERVER_VERIFIED_YJ_CODES: frozenset[str] = _load_tx_server_verified_yj_codes
 def _is_tx_server_verified_yj(code: str) -> bool:
     """Return True when the YJ code is present in the tx-server's fragment CS.
 
-    Session 59 #283:the JP tx-server ships a 2000-concept fragment of the
+    #283:the JP tx-server ships a 2000-concept fragment of the
     25542-concept YJ CodeSystem. Codes outside the fragment cannot be
     validator-verified even though they are real MHLW YJ codes; the caller
     routes them to the JP-CLINS eCS `nocoded` slice instead of `codingYJ`.
@@ -408,7 +408,7 @@ def _map_order_status_to_fhir(status: str) -> str:
 
 
 def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
-    """Pick MedicationRequest.intent from the CIF Order (C2-14, session 42).
+    """Pick MedicationRequest.intent from the CIF Order (C2-14).
 
     Mirrors `_sr_intent_from_clinical_intent` (C1-16) for medications:
     - Chronic-management refills (clinical_intent contains "Follow-up" /
@@ -417,7 +417,7 @@ def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
     - Discharge / take-home prescriptions → `original-order` (starts a new
       series of encounters at another provider).
     - Outpatient AMB encounter → `instance-order` (an instance on the
-      ongoing outpatient chronic-management plan). CO-7 (session 42 cycle 3):
+      ongoing outpatient chronic-management plan). CO-7:
       broaden the inference because upstream CIF rarely populates
       `clinical_intent`; encounter_type is a reliable proxy.
     - Default → `order`.
@@ -427,7 +427,7 @@ def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
     display = str(order.get("display_name", "") or "").lower()
     if "discharge" in ci or "discharge" in protocol or display.startswith("discharge:"):
         return "original-order"
-    # RM-2 (session 42): expanded to match clinosim's actual CIF phrasing
+    # RM-2: expanded to match clinosim's actual CIF phrasing
     # ("Home medication (continue)" → chronic-refill / "Outpatient follow-up"
     # → chronic follow-up).
     if any(
@@ -444,7 +444,7 @@ def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
         )
     ):
         return "instance-order"
-    # CO-7 (session 42 cycle 3): outpatient encounter type → instance-order.
+    # CO-7: outpatient encounter type → instance-order.
     if encounter_type == "outpatient":
         return "instance-order"
     return "order"
@@ -472,7 +472,7 @@ def _resolve_medication_concept(
     # Strip protocol prefix (e.g. "DVT_prophylaxis:") from medicationCodeableConcept.text
     # The prefix goes to dosageInstruction note instead.
     drug_name_clean, protocol_category = strip_protocol_prefix(drug_name_raw)
-    # Session 45: split off any "increase/decrease rate by X%" continuous-infusion
+    # split off any "increase/decrease rate by X%" continuous-infusion
     # adjustment suffix (disease YAML pattern for Day-N drip rate changes) so
     # the medicationCodeableConcept.text stays as a clean drug name and the
     # adjustment note can be appended to dosageInstruction.
@@ -485,7 +485,7 @@ def _resolve_medication_concept(
     lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)  # name → RxNorm/YJ
 
-    # C3-10 (session 42 cycle 3): multi-word drug names (e.g. "Normal saline",
+    # C3-10: multi-word drug names (e.g. "Normal saline",
     # "Regular insulin") previously failed the base-only lookup because
     # `.split(" ")[0]` truncated at the first space. Try progressively shorter
     # prefixes so multi-word keys match too. Longest-match-wins.
@@ -506,7 +506,7 @@ def _resolve_medication_concept(
                 code_value = drug_codes[candidate]
                 base_name = candidate
                 break
-        # Session 45: suffix-match fallback lets qualifier-prefixed aliases
+        # suffix-match fallback lets qualifier-prefixed aliases
         # ("Unfractionated Heparin", "Recombinant Insulin", "Regular Human Insulin"
         # 等) resolve to their base drug entry without duplicating the same code
         # under multiple keys in code_mapping_drug.yaml (which would violate the
@@ -537,7 +537,7 @@ def _resolve_medication_concept(
     display = code_lookup(drug_system_key, code_value, lang) if code_value else drug_name
     if display == code_value:
         display = drug_name
-    # session 53 F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch。
+    # F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch。
     # US は従来通り RxNorm URI。
     if is_jp(country_code) and drug_system_key == "yj" and code_value:
         code_system = _resolve_jp_drug_system_uri(code_value)
@@ -545,7 +545,7 @@ def _resolve_medication_concept(
         code_system = get_system_uri(drug_system_key)
 
     med_concept: dict[str, Any] = {"text": drug_name}
-    # #283 session 59:JP 出力で YJ system emit する場合、tx-server が
+    # #283 JP 出力で YJ system emit する場合、tx-server が
     # verify できない code(fragment 外)は nocoded fallback にダウングレード。
     # HAPI validator の VS binding error(594 件 v5)を解消しつつ薬剤名は
     # text field で保持。US path 及び verified YJ 及び HOT/RxNorm はそのまま
@@ -576,7 +576,7 @@ def _resolve_medication_concept(
         # slice fixedUri は spec:
         # clinical-information-sharing#1.12.0/package/
         # CodeSystem-jp-eCS-medicationcode-nocoded-cs.json
-        # #305 session 60:display は権威 CodeSystem 定義通り
+        # #305 display は権威 CodeSystem 定義通り
         # "標準コードなし" 固定(NOCODED は 1 code / 1 display の required
         # binding 相当)。薬剤名は上の med_concept["text"] で保持。session
         # 59 の drug_name-in-display は v6 で 12,891 件 display mismatch
@@ -604,7 +604,7 @@ def _build_medication_request(
 ) -> dict:
     """Build FHIR MedicationRequest resource.
 
-    rp_number / order_in_rp (session 49 clinosim_feedback P1-4): JP Core
+    rp_number / order_in_rp (clinosim_feedback P1-4): JP Core
     JP_MedicationRequest.identifier:rpNumber と :orderInRp slice を満たす
     ための per-order identifier 値。caller は 1 encounter 内の医薬品
     orders に対して同じ rp_number(処方単位)+ 連番 order_in_rp を
@@ -618,13 +618,13 @@ def _build_medication_request(
     )
     country_code = "JP" if is_jp(country) else "US"
 
-    # ID: order_id は session 52 fix 0 で encounter-scoped 化された
+    # ID: order_id は fix 0 で encounter-scoped 化された
     # (grep で "ORD-{encounter_id}-..." pattern に統一済)ので、そのまま
     # resource id として使えば globally unique。以前の "prepend encounter_id"
     # 実装は二重 prefix を作り 64-char 制限を超過(iris4h-ai HAPI 732 件)
-    # + Endpoint/imgst/imgrpt double-prefix (session 51) と同一 class。
+    # + Endpoint/imgst/imgrpt double-prefix と同一 class。
     #
-    # Issue #349 Phase 1b(session 64): antibiotic MedicationRequest だけは
+    # Issue #349 Phase 1b: antibiotic MedicationRequest だけは
     # opaque id `mr-{sha256(order_id)[:12]}` に切替。structural key(元の
     # compound `req-abx-hai-...-{drug}-{intent}`)は identifier[] に
     # round-trip 保存。PR #348 の tactical fix(-narrowed → -n)で 64-char
@@ -635,18 +635,18 @@ def _build_medication_request(
     _is_antibiotic_mr = _structural_key.startswith(ABX_ORDER_ID_PREFIX)
     resource_id = _resolve_antibiotic_mr_id(_structural_key)
 
-    # C2-14 (session 42 cycle 2): MR.intent context-aware — mirrors C1-16 which
+    # C2-14: MR.intent context-aware — mirrors C1-16 which
     # applied the same idea to ServiceRequest. Chronic-management refills →
     # `instance-order`; discharge take-home meds → `original-order`; the rest
     # remain `order`.
     intent_val = _mr_intent_from_order(order, encounter_type)
-    # C2-16 (session 42): finished courses get status=completed. `end_datetime`
+    # C2-16: finished courses get status=completed. `end_datetime`
     # (or `discontinuation_datetime`) is populated in CIF when the course is
     # deliberately stopped or naturally ends; fall through to whatever
     # _map_order_status_to_fhir returns otherwise.
-    # CO-9 (session 42 cycle 3): also complete when the encounter itself is
+    # CO-9: also complete when the encounter itself is
     # finished (outpatient Rx end at encounter close in JP practice).
-    # RM-2 (session 42): episodic inpatient orders (Supportive / ED treatment /
+    # RM-2: episodic inpatient orders (Supportive / ED treatment /
     # antibiotics keyed on clinical_intent phrasing) complete at discharge.
     # Home-medication orders REMAIN active because chronic-meds continue
     # post-discharge.
@@ -668,9 +668,9 @@ def _build_medication_request(
     # ``clinosim/modules/_shared.py``). FHIR MedicationRequest.status
     # for these orders is set to ``"stopped"`` so downstream consumers
     # cannot mistake a discontinuation for an active prescription. The
-    # override is at the emit layer only (F1', not F1) — session 79
-    # investigation showed that reassigning ``OrderStatus.STOPPED`` at
-    # Order creation shifts ``_generate_mar``'s per-order rng cursor
+    # override is at the emit layer only (F1', not F1) — investigation
+    # showed that reassigning ``OrderStatus.STOPPED`` at Order creation
+    # shifts ``_generate_mar``'s per-order rng cursor
     # and violates AD-16 determinism (+6 ServiceRequest / +7 Specimen /
     # +1 DiagnosticReport cascade). The id-based override at emit is
     # rng-neutral: the Order iteration order is unchanged.
@@ -689,15 +689,15 @@ def _build_medication_request(
     resource: dict[str, Any] = {
         "resourceType": "MedicationRequest",
         "id": resource_id,
-        # Session 46 chain #2: JP Core MedicationRequest profile.
+        # chain #2: JP Core MedicationRequest profile.
         **_build_medication_request_meta(country_code, medication_intent),
-        # session 49 clinosim_feedback P1-4: JP_MedicationRequest.identifier
+        # clinosim_feedback P1-4: JP_MedicationRequest.identifier
         # slice `rpNumber`(処方内 Rp グループ番号)+ `orderInRp`(Rp 内医薬品
         # 順序)の 2 slice を JP output で emit。system URL は JP Core 1.2.0
         # の StructureDefinition から取得(mhlw/IdSystem/Medication-RPGroupNumber
         # + MedicationAdministrationIndex)。
         #
-        # Issue #349 Phase 1b(session 64): antibiotic MR は opaque `.id` の
+        # Issue #349 Phase 1b: antibiotic MR は opaque `.id` の
         # 逆引き用 structural-key identifier を先頭に追加。JP-only の
         # rpNumber / orderInRp slice との共存は list 連結で実現。
         **_build_medication_request_identifiers(
@@ -734,12 +734,12 @@ def _build_medication_request(
     # Requester (ordering physician)
     if order.get("ordered_by"):
         resource["requester"] = {"reference": f"Practitioner/{order['ordered_by']}"}
-        # CY8-17 fix (session 48 cycle 8): MR.recorder = 記録者(オーダー入力者)。
+        # CY8-17 fix: MR.recorder = 記録者(オーダー入力者)。
         # clinosim では requester と同一 practitioner が入力する運用モデル、
         # ordered_by を fallback として emit(100% coverage)。
         resource["recorder"] = {"reference": f"Practitioner/{order['ordered_by']}"}
 
-    # CY8-18 fix (session 48 cycle 8): MR.courseOfTherapyType — acute /
+    # CY8-18 fix: MR.courseOfTherapyType — acute /
     # continuous / seasonal 分類。Rule is `_course_for_order` (Issue #548
     # partial extraction); the sibling `_build_discharge_medication_request`
     # uses `_course_for_discharge` instead. Displays are the spec-canonical
@@ -761,7 +761,7 @@ def _build_medication_request(
 
     # Dosage instruction
     dosage = build_dosage_instruction(order, country=country)
-    # Session 45: append any rate-adjustment note peeled off drug_name so the
+    # append any rate-adjustment note peeled off drug_name so the
     # continuous-infusion adjustment intent (e.g. "increase rate by 20%") lives
     # in dosageInstruction where it belongs — not in medicationCodeableConcept.text.
     if rate_adjustment_note:
@@ -784,7 +784,7 @@ def _build_medication_request(
             }
         ]
 
-    # C4-15 (session 43 cycle 4): dispenseRequest for outpatient / discharge
+    # C4-15: dispenseRequest for outpatient / discharge
     # scripts. FHIR R4 MedicationRequest.dispenseRequest is 0..1; JP Core
     # recommends population for meaningful pharmacy dispense workflow. We
     # emit a light-weight dispenseRequest describing typical validity period
@@ -808,7 +808,7 @@ def _build_medication_request(
         disp["numberOfRepeatsAllowed"] = 0  # inpatient/ED dispense once per order
     resource["dispenseRequest"] = disp
 
-    # C5-23 (session 43 cycle 5): MedicationRequest.substitution (0..1)
+    # C5-23: MedicationRequest.substitution (0..1)
     # for generic substitution allowance. JP GE 促進 policy allows generic
     # substitution for chronic outpatient scripts unless explicitly
     # marked "brand only" — default `allowed = true` for outpatient/home-med.
@@ -1002,21 +1002,21 @@ def _build_medication_admin(
 ) -> dict:
     """Build FHIR MedicationAdministration resource.
 
-    rp_number / order_in_rp (session 49 clinosim_feedback P1-4): 対応する
+    rp_number / order_in_rp (clinosim_feedback P1-4): 対応する
     parent MedicationRequest と同じ値を渡すことで JP Core
     JP_MedicationAdministration.identifier slice を満たす。caller は同
     encounter 内で MR と同じ per-order 連番を割当てる。
     """
     drug_name_raw = mar.get("drug_name", "")
     drug_name_clean, protocol_category = strip_protocol_prefix(drug_name_raw)
-    # Session 45: peel off rate-adjustment suffix (see _build_medication_request).
+    # peel off rate-adjustment suffix (see _build_medication_request).
     drug_name_clean, rate_adjustment_note = _split_rate_adjustment_suffix(drug_name_clean)
     drug_name = _localize_drug_name(drug_name_clean, country)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
     country_code = "JP" if is_jp(country) else "US"
     lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)
-    # C3-10 (session 42 cycle 3): longest-match-wins for multi-word keys.
+    # C3-10: longest-match-wins for multi-word keys.
     # CO-8 (Chain 4 2026-07-11): normalize underscores + honor MAR.code_yj
     # if downstream ever propagates the Order's code (see _build_medication_request).
     code_value = mar.get("code_yj", "") or ""
@@ -1029,7 +1029,7 @@ def _build_medication_admin(
                 code_value = drug_codes[candidate]
                 base_name = candidate
                 break
-        # Session 45: suffix-match fallback for qualifier-prefixed aliases.
+        # suffix-match fallback for qualifier-prefixed aliases.
         if not code_value and len(tokens) > 1:
             for n_tokens in range(len(tokens) - 1, 0, -1):
                 candidate = " ".join(tokens[-n_tokens:])
@@ -1047,7 +1047,7 @@ def _build_medication_admin(
                 code_value = drug_codes[cand]
                 break
     drug_system_key = system_key_for("drug", country_code)
-    # session 53 F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch
+    # F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch
     # (MR builder と同じ helper)。US は RxNorm URI。
     if is_jp(country_code) and drug_system_key == "yj" and code_value:
         code_system = _resolve_jp_drug_system_uri(code_value)
@@ -1055,7 +1055,7 @@ def _build_medication_admin(
         code_system = get_system_uri(drug_system_key)
 
     med_concept: dict[str, Any] = {"text": drug_name}
-    # #283 session 59:MR builder と同 gate — tx-server 未収録 JP YJ code は
+    # #283 MR builder と同 gate — tx-server 未収録 JP YJ code は
     # nocoded fallback にダウングレード(薬剤名は text field で保持)。
     # #283:downgrade は YJ-code URI 経由の code だけ対象。同 drug_system_key
     # ="yj" でも `_resolve_jp_drug_system_uri` が HOT7/HOT9/HOT13 に dispatch
@@ -1074,7 +1074,7 @@ def _build_medication_admin(
             coding["display"] = display
         med_concept["coding"] = [coding]
     elif is_jp(country_code):
-        # #305 session 60:display は権威 CodeSystem 定義通り
+        # #305 display は権威 CodeSystem 定義通り
         # "標準コードなし" 固定。薬剤名は med_concept["text"] で保持
         # (MR builder と同じ理由、v6 で MAR も同 mismatch 発生)。
         med_concept["coding"] = [
@@ -1088,13 +1088,13 @@ def _build_medication_admin(
     resource: dict[str, Any] = {
         "resourceType": "MedicationAdministration",
         "id": f"mar-{encounter_id or patient_id}-{index:05d}",
-        # Session 46 chain #2: JP Core MedicationAdministration profile.
+        # chain #2: JP Core MedicationAdministration profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"]}}
             if is_jp(country_code)
             else {}
         ),
-        # session 49 clinosim_feedback P1-4: JP_MedicationAdministration.
+        # clinosim_feedback P1-4: JP_MedicationAdministration.
         # identifier slice `rpNumber` + `orderInRp`(parent MR と同 URL / 同 値)。
         **(
             {
@@ -1136,13 +1136,13 @@ def _build_medication_admin(
         resource["context"] = {"reference": f"Encounter/{encounter_id}"}
 
     # Cycle-1 C1-06/C1-07: MAR → MR audit-trail link. The MedicationRequest id
-    # Session 52 fix: MR resource id は order_id 単体(encounter-scoped で
+    # fix: MR resource id は order_id 単体(encounter-scoped で
     # globally unique)。以前は `{enc_id}-{order_id}` 二重 prefix だったが
-    # session 52 で削除、reader/writer 両側を同期(session 51 imgst/imgrpt
+    # 削除、reader/writer 両側を同期(imgst/imgrpt
     # double-prefix と同一 class の reference-integrity fix)。CI で 890
     # dangling references を surface。
     #
-    # Issue #349 Phase 1b(session 64): antibiotic MR は opaque id に切替
+    # Issue #349 Phase 1b: antibiotic MR は opaque id に切替
     # したため、antibiotic MAR の request.reference も同じ derive_opaque_id
     # を経由して opaque id へ resolve する。`_resolve_antibiotic_mr_id`
     # helper が deterministic なので同じ structural key → 同じ opaque id
@@ -1159,7 +1159,7 @@ def _build_medication_admin(
     dose_text = mar.get("dose", "") or drug_name
     dose_str = mar.get("dose", "")
     parsed = _parse_dose_for_mar(dose_str or drug_name)
-    # Session 45: attach any rate-adjustment note peeled off drug_name to dose_text
+    # attach any rate-adjustment note peeled off drug_name to dose_text
     # so continuous-infusion titration intent surfaces in the dosage record.
     if rate_adjustment_note:
         rate_note_localized = _localize_rate_adjustment(rate_adjustment_note, country)
@@ -1183,7 +1183,7 @@ def _build_medication_admin(
     route_concept = build_route_concept(mar.get("route") or parsed.get("route"), country)
     if route_concept:
         dosage["route"] = route_concept
-    # Session 57 v3 (Chain-11, v3 feedback §保留 3 真因判明): FHIR R4
+    # v3 (Chain-11, v3 feedback §保留 3 真因判明): FHIR R4
     # `mad-1` requires `dosage.dose.exists() or dosage.rate.exists()` when a
     # dosage element is present. Sliding-scale insulin / PRN / infusion
     # bolus orders that only carry a `dosage.text` (no parsable numeric
@@ -1202,7 +1202,7 @@ def _build_medication_admin(
                 "reference": f"Condition/{cond_ref}",
             }
         ]
-        # CY8-19 fix (session 48 cycle 8): MAR.reasonCode — primary diagnosis
+        # CY8-19 fix: MAR.reasonCode — primary diagnosis
         # ICD code を CodeableConcept で並置(reasonReference との duplication は
         # FHIR R4 で recommended:code と reference は互いに補完)。
         # US = icd-10-cm、JP = icd-10。
@@ -1217,7 +1217,7 @@ def _build_medication_admin(
         # `code_mapping_diagnosis/us.yaml` で解決済み)。他 builder
         # (Encounter.reasonCode / Condition.code / FamilyMemberHistory.code)
         # は同 seam を既に通しており、これで漏れ経路が閉じる。
-        # Issue #350 (session 63): route through `system_key_for("diagnosis",
+        # Issue #350: route through `system_key_for("diagnosis",
         # country)` — single source of truth for the JP → MHLW / US → ICD-10-CM
         # mapping. Previously this site hardcoded `"icd-10-cm" if US else
         # "icd-10"` which bypassed the country-key registry and emitted the
@@ -1236,7 +1236,7 @@ def _build_medication_admin(
             }
         ]
 
-    # CY8-20 fix (session 48 cycle 8): MAR.device — 持続点滴 (continuous
+    # CY8-20 fix: MAR.device — 持続点滴 (continuous
     # infusion / drip) のとき infusion pump Device を参照。route=IV かつ
     # rate指定ある/CONTINUOUS/DRIP を含む admin のみ pump 参照 emit。
     # Device resource 自体は既存 hospital-main の generic infusion pump を

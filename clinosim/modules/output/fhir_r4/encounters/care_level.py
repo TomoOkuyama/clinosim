@@ -31,7 +31,7 @@ def _bb_care_level(ctx: BundleContext) -> list[dict]:
         return []
     lang = resolve_lang(ctx.country)
     text = "要介護度" if is_jp(ctx.country) else "Long-term care need level"
-    # C2-10 (session 42 cycle 2): derive effectiveDateTime from earliest
+    # C2-10: derive effectiveDateTime from earliest
     # encounter admission (mirrors _fhir_smoking_alcohol._sdoh_effective_datetime
     # pattern from C1-12). Care-level is patient-level SDOH, so tying it to the
     # first encounter is appropriate as a proxy for when the level was recorded.
@@ -39,7 +39,7 @@ def _bb_care_level(ctx: BundleContext) -> list[dict]:
     o: dict[str, Any] = {
         "resourceType": "Observation",
         "id": f"carelevel-{ctx.patient_id}",
-        # Session 46 chain #2: JP Core Observation_Common profile.
+        # chain #2: JP Core Observation_Common profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
             if is_jp(ctx.country)

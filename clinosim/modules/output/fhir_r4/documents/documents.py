@@ -192,7 +192,7 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
             "system": "urn:clinosim:documentreference-master",
             "value": resource_id,
         },
-        # C4-05 (session 43 cycle 4): DocumentReference.identifier 0..* for
+        # C4-05: DocumentReference.identifier 0..* for
         # cross-system document tracking (JP Core recommends). Uses the same
         # id under a clinosim namespace URI — deterministic + unique across
         # the export, mirrors Composition.identifier (C2-34).
@@ -227,7 +227,7 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
                 ]
             }
         ],
-        # C5-28 (session 43 cycle 5): DocumentReference.securityLabel
+        # C5-28: DocumentReference.securityLabel
         # (0..* CodeableConcept). Mirrors Composition.confidentiality "N".
         # Uses HL7 v3-Confidentiality valueset (system + code).
         "securityLabel": [
@@ -247,7 +247,7 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
         "content": [
             {
                 "attachment": {
-                    # Issue #343 (session 63): fallback は bare "text/plain"
+                    # Issue #343: fallback は bare "text/plain"
                     # (charset parameter は IANA Media Types VS 外)。
                     "contentType": _o(doc, "content_type", "text/plain"),
                     "language": lang,
@@ -256,7 +256,7 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
                     "size": len(text.encode("utf-8")),
                     "hash": _sha1_b64(text),
                 },
-                # C4-06 (session 43 cycle 4): DocumentReference.content.format
+                # C4-06: DocumentReference.content.format
                 # 0..1 IHE XDS format code. Non-standardized here — plain-text
                 # narrative in UTF-8 corresponds to IHE PCC "medical summary" =
                 # "urn:ihe:iti:xds:2017:mimeTypeSufficient" (uses contentType).

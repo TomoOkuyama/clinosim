@@ -76,7 +76,7 @@ _CHECKUP_TYPE_CHIEF_COMPLAINT: dict[str, str] = {
 
 # 法定健診項目の LOINC コードと単位。実測値は
 # `_derive_checkup_values(patient, rng)` が PatientProfile と chronic_conditions
-# から個別化する(sub-PR-B 高度化, session 48)。
+# から個別化する(sub-PR-B 高度化)。
 _CHECKUP_ITEMS: list[dict[str, str]] = [
     # feedback FB-F7: UCUM canonical 形式に統一。
     # 「kg/m2」→「kg/m2」(UCUM 準拠のまま、変更なし)
@@ -100,7 +100,7 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
 
     - BMI:``patient.bmi`` に測定日変動を乗せる(sd 0.3 kg/m²)。
     - SBP/DBP:``patient.baseline_vitals`` を base とし、日間変動 sd 5.0/3.5 mmHg。
-      HT(I10)は FP-I10(session 38)で baseline_vitals に既に反映済み。
+      HT(I10)は FP-I10で baseline_vitals に既に反映済み。
     - HbA1c:糖尿病(E10/E11)保有時は ``glycemic_control`` から
       ``hba1c_from_glycemic_control`` を再利用(条件側未設定なら中央値 0.5)。
       非糖尿病は 5.1 + 年齢係数 0.003(HBA1C_NONDM_BASE パターンを踏襲)。
@@ -354,7 +354,7 @@ def enrich_health_checkup(ctx: Any) -> None:
     # pass は record.encounters[0] で spec applicability を判定するため、
     # 既存 inpatient record に健診 encounter を後ろから足すと
     # HEALTH_CHECKUP_REPORT spec が適用対象外になり narrative 生成が skip
-    # される(session 47 sub-PR-B verify で発覚)。健診 record を独立させる
+    # される(sub-PR-B verify で発覚)。健診 record を独立させる
     # ことで narrative pass の walk が CHECKUP encounter を正しく認識する。
     from clinosim.types.output import CIFPatientRecord
 
@@ -403,7 +403,7 @@ def enrich_health_checkup(ctx: Any) -> None:
             lang,
             checkup_type=checkup_type,
         )
-        # CY8-01 fix(session 48 cycle 8):Order を lab_results 数だけ作り
+        # CY8-01 fix:Order を lab_results 数だけ作り
         # `result` に checkup_labs を対応付ける。これで既存 `_bb_labs` /
         # `_bb_service_requests` / `_bb_diagnostic_reports` が checkup lab を
         # 拾い、FHIR Observation + ServiceRequest + DiagnosticReport が

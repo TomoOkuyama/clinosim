@@ -1,4 +1,4 @@
-"""JP-eCheckup 事業者健診 opt-in module(P2-13 PR3 sub-PR-A、session 47).
+"""JP-eCheckup 事業者健診 opt-in module(P2-13 PR3 sub-PR-A、).
 
 opt-in 制御は SimulatorConfig.modules["health_checkup"]=True + country=JP。
 default OFF で急性期病院想定を維持する。

@@ -1,4 +1,4 @@
-"""JP-eCheckup DocumentReference builder(P2-13 PR3 sub-PR-E, session 48).
+"""JP-eCheckup DocumentReference builder(P2-13 PR3 sub-PR-E).
 
 HEALTH_CHECKUP_REPORT の Composition に対して、対応する DocumentReference を
 併存させる。実 EHR での健診結果交換シナリオ(事業所 ⇄ 保険者 ⇄ 実施機関)で
@@ -160,7 +160,7 @@ def _build_dref(doc: Any, narrative: Any, patient_id: str, country: str) -> dict
         "content": [
             {
                 "attachment": {
-                    # Issue #343 (session 63): fallback は bare "text/plain"
+                    # Issue #343: fallback は bare "text/plain"
                     # (charset parameter は IANA Media Types VS 外)。
                     "contentType": _o(doc, "content_type", "text/plain"),
                     "language": lang,
@@ -193,7 +193,7 @@ def _build_dref(doc: Any, narrative: Any, patient_id: str, country: str) -> dict
             "encounter": [{"reference": f"Encounter/{encounter_id}"}],
         }
 
-    # author / custodian(session 47 patterns per)
+    # author / custodian(patterns per)
     author_id = _o(doc, "author_practitioner_id", "")
     if author_id:
         resource["author"] = [{"reference": f"Practitioner/{author_id}"}]

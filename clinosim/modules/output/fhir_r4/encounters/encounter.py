@@ -35,7 +35,7 @@ def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | 
     Returns ``None`` if either bound cannot be parsed or if the interval
     is non-positive. Emits UCUM ``d`` (days) for LOS ≥ 1 day, else ``min``.
 
-    Session 45: extracted from ``_build_encounter`` so the ED-encounter
+    extracted from ``_build_encounter`` so the ED-encounter
     synthesis path in ``fhir_r4_adapter._bb_encounters`` can share the same
     computation instead of only IMP paths getting length.
     """
@@ -95,7 +95,7 @@ def _build_encounter(
     resource: dict[str, Any] = {
         "resourceType": "Encounter",
         "id": encounter_id,
-        # C2-20 (session 42 cycle 2): JP Core Encounter profile.
+        # C2-20: JP Core Encounter profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"]}}
             if is_jp(country)
@@ -110,7 +110,7 @@ def _build_encounter(
         "subject": {"reference": f"Patient/{patient_id}"},
     }
 
-    # Type (SNOMED). C1-05 (session 41 cycle 1): outpatient AMB no longer
+    # Type (SNOMED). C1-05: outpatient AMB no longer
     # uniformly "Patient-initiated encounter". Use existing context to pick a
     # more specific SNOMED code — JP EHR reality: 再診 (follow-up check-up) is
     # the vast majority of outpatient visits, 初診 (first-visit consultation)
@@ -132,7 +132,7 @@ def _build_encounter(
             # future cycle (needs new CIF field).
             type_code = "185349003"
     if type_code:
-        # C2-01 (session 42): use _coding_with_display so codes lacking a
+        # C2-01: use _coding_with_display so codes lacking a
         # codes/data entry emit without display=code fallback (FHIR interop).
         resource["type"] = [{"coding": [_coding_with_display("snomed-ct", type_code, resolve_lang(country))]}]
 
@@ -150,7 +150,7 @@ def _build_encounter(
             ActPriority.UR.value: "urgent",
             ActPriority.R.value: "routine",
         }.get(priority, "")
-        # C5-03 (session 43 cycle 5): localize priority display for JP output.
+        # C5-03: localize priority display for JP output.
         from clinosim.modules.output.fhir_r4.lib.localization import (
             _ACT_PRIORITY_DISPLAY_JA,
         )
@@ -180,14 +180,14 @@ def _build_encounter(
         resource["period"] = {"start": enc["admission_datetime"]}
         if enc.get("discharge_datetime"):
             resource["period"]["end"] = enc["discharge_datetime"]
-            # Length — C5-11 (session 43 cycle 5): use days for LOS ≥ 1 day
+            # Length — C5-11: use days for LOS ≥ 1 day
             # (typical IMP encounters run to 20+ days = large minute counts;
             # UCUM `d` is more natural for chart LOS displays).
             length = _compute_encounter_length(enc["admission_datetime"], enc["discharge_datetime"])
             if length is not None:
                 resource["length"] = length
 
-    # C5-22 (session 43): Encounter.classHistory + statusHistory for
+    # C5-22: Encounter.classHistory + statusHistory for
     # inpatient encounters that transitioned through ward → ICU (icu_transferred_day
     # captured in inpatient.py simulator loop) OR whose planned → in-progress
     # → finished status transitions matter for audit trail.
@@ -287,7 +287,7 @@ def _build_encounter(
         # Falls back to JP-stashed chief_complaint_ja on JP output, or
         # English chief_complaint text otherwise, if no code available.
         lang = resolve_lang(country)
-        # C4-24 (session 43 cycle 4): route the admission dx system + code
+        # C4-24: route the admission dx system + code
         # through the country's diagnosis code system so JP output never
         # emits icd-10-cm under an icd-10 semantic surface (was 4 encounters
         # in baseline where CIF stored icd-10-cm CM-granular codes as-is).
@@ -311,7 +311,7 @@ def _build_encounter(
                 reason_text = _fallback_text
         else:
             reason_text = _fallback_text
-        # C2-29 (session 42 cycle 2): also emit reasonCode.coding pointing at
+        # C2-29: also emit reasonCode.coding pointing at
         # the admission diagnosis code (ICD-10 or ICD-10-CM), not just text.
         # This gives every Encounter a machine-processable reason.
         rc: dict[str, Any] = {"text": reason_text}
@@ -334,7 +334,7 @@ def _build_encounter(
 
     if attending:
         participants.append(make_participant("ATND", "attender", attending, country))
-    # C4-30 (session 43 cycle 4): emit ADM / DIS for IMP encounters even
+    # C4-30: emit ADM / DIS for IMP encounters even
     # when the practitioner is the same as attending — FHIR R4 allows the
     # same Practitioner across multiple participant.type entries, and JP
     # Core Encounter recommends admitter / discharger tracking for inpatient
@@ -353,7 +353,7 @@ def _build_encounter(
 
     # Diagnosis reference (link to Condition)
     if primary_dx_code:
-        # C5-04 (session 43 cycle 5): localize diagnosis role display.
+        # C5-04: localize diagnosis role display.
         from clinosim.modules.output.fhir_r4.lib.localization import (
             _DIAGNOSIS_ROLE_DISPLAY_JA,
         )
@@ -374,7 +374,7 @@ def _build_encounter(
                 "rank": 1,
             }
         ]
-        # C5-12 (session 43 history-chain continuation): add secondary
+        # C5-12 (history-chain continuation): add secondary
         # diagnoses for polymorbid encounters. Chronic conditions carried
         # by the patient at encounter time contribute Encounter.diagnosis[]
         # with `use=CM` (Comorbidity, from HL7 diagnosis-role valueset) and
@@ -416,9 +416,9 @@ def _build_encounter(
         resource["diagnosis"] = diagnosis_list
 
     # Hospitalization (admit source / discharge disposition / re-admission).
-    # C1-02/C1-03 (session 41 cycle 1): resolve display via authoritative
+    # C1-02/C1-03: resolve display via authoritative
     # hl7-admit-source / hl7-discharge-disposition code data.
-    # C1-01 (session 41 cycle 1): FHIR R4 Encounter.hospitalization models
+    # C1-01: FHIR R4 Encounter.hospitalization models
     # inpatient/emergency admission context (admission/discharge, re-admission
     # flag, etc.); skip for AMB (ambulatory) so we don't emit outp→home rings
     # on every 30-minute outpatient visit.
@@ -458,13 +458,13 @@ def _build_encounter(
             ],
             "text": "再入院" if is_jp(country) else "Re-admission",
         }
-    # C2-18 (session 42 cycle 2): IMP encounters must carry a hospitalization
+    # C2-18: IMP encounters must carry a hospitalization
     # block. When both admit_source and discharge_disposition are missing
     # (edge case: 8 encounters in the JP p=10k cohort), fall back to sane
     # defaults — admit_source=other (unspecified catch-all; authoritative HL7
     # admit-source CS r4 7.2.0 concepts: hosp-trans/emd/outp/born/gp/mp/
     # nursing/psych/rehab/other) and discharge_disposition=home when finished.
-    # Issue #332 (session 62): 従来 "hosp" は authoritative CS 未収録で
+    # Issue #332: 従来 "hosp" は authoritative CS 未収録で
     # v9 rest 2 件 unknown-code error 発火 → "other" へ訂正
     # (`hosp-trans` は他院転入で specific meaning、不明時 emit は誤情報)。
     if _emit_hospitalization and not hosp.get("admitSource"):
@@ -477,7 +477,7 @@ def _build_encounter(
         if _default_disp and _default_disp != _default_code:
             _default_coding["display"] = _default_disp
         hosp["admitSource"] = {"coding": [_default_coding]}
-    # C4-20 (session 43 cycle 4): CIF encounter status is "completed"
+    # C4-20: CIF encounter status is "completed"
     # (mapped to FHIR "finished" by map_encounter_status). Prior comparison
     # to raw "finished" never matched, so 4 IMP encounters retained no
     # dischargeDisposition. Use both CIF and FHIR values so future refactors
@@ -494,7 +494,7 @@ def _build_encounter(
         if _dd_disp and _dd_disp != _dd_code:
             _dd_coding["display"] = _dd_disp
         hosp["dischargeDisposition"] = {"coding": [_dd_coding]}
-    # CY8-03 fix (session 48 cycle 8):Encounter.hospitalization.dietPreference
+    # CY8-03 fix:Encounter.hospitalization.dietPreference
     # を CIF の DIET Order から derive。IMP/EMER encounter で diet order あれば
     # 一意の diet 種別を text-only CodeableConcept として emit。
     # (SNOMED diet codes は正典未確定、no-fabrication policy per text-only)
@@ -530,7 +530,7 @@ def _build_encounter(
         resource["hospitalization"] = hosp
 
     # Service provider (department Organization in _facility.json)
-    # CY8-04 fix (session 48 cycle 8):department 未設定 encounter は
+    # CY8-04 fix:department 未設定 encounter は
     # hospital-main を fallback として serviceProvider に emit。従来 79.6% →
     # 100% 化。department 名の "_" は "-" に normalize(既存 pattern)。
     if department:
@@ -568,7 +568,7 @@ def _build_encounter(
                 "status": "completed" if enc.get("discharge_datetime") else "active",
             }
         )
-    # CO-5 (session 42 cycle 3): fallback Encounter.location for AMB/EMER.
+    # CO-5: fallback Encounter.location for AMB/EMER.
     # If ward_id is empty (typical for outpatient / ED), attach the
     # department Organization as a location surrogate. Not a physical bed but
     # gives Encounter.location non-empty per JP EHR practice.
@@ -588,7 +588,7 @@ def _build_encounter(
         resource["location"] = locations
 
     # Readmission: link to prior encounter via partOf.
-    # session 59 #299:従来 `Encounter.type[]` に v3-ActCode "READM" を
+    # #299:従来 `Encounter.type[]` に v3-ActCode "READM" を
     # 追加していたが、READM は v3-ActCode に存在しない code(v5 で 24 件
     # error)。FHIR 正式には `Encounter.hospitalization.reAdmission`
     # (v2-0092 "R" = Re-admission)で表現、上の line 435-444 で既に emit

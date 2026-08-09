@@ -6,7 +6,7 @@ Applied AFTER every ``_bb_*`` builder emits a resource. ``_apply_jp_core_profile
 attaches the JP Core StructureDefinition URL(s) matching the resourceType;
 ``_apply_jp_clins_profile`` layers the JP-CLINS eCS URL on top, gated by
 predicates (``_is_lab_observation``, ``_medication_request_satisfies_ecs``) that
-enforce the session-66 rule "a ``meta.profile`` claim must follow
+enforce the rule "a ``meta.profile`` claim must follow
 data-completeness verification".
 """
 
@@ -25,7 +25,7 @@ import re
 _FHIR_ID_PATTERN = re.compile(r"^[A-Za-z0-9\-\.]{1,64}$")
 
 
-# session 48 deferred cleanup (g): shape unification.
+# deferred cleanup (g): shape unification.
 # JP Core registry uses `dict[str, list[str]]` (was `dict[str, str]`) so its
 # shape matches `_JP_CLINS_PROFILES` below. Future JP Core release with
 # multiple sibling profiles per resource type (e.g. JP_Observation_Common
@@ -46,10 +46,10 @@ _JP_CORE_PROFILES: dict[str, list[str]] = {
     "PractitionerRole": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"],
     "Organization": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"],
     "DiagnosticReport": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common"],
-    # RM-6c (session 42): Procedure profile so RECORD-based and ORDER-based
+    # RM-6c: Procedure profile so RECORD-based and ORDER-based
     # Procedure emissions both carry JP Core conformance.
     "Procedure": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"],
-    # session 53 (#145): additional JP Core StructureDefinition URLs — spec
+    # (#145): additional JP Core StructureDefinition URLs — spec
     # `.url` fixedUri copied verbatim from
     # iris4h-ai/jp_core/package/StructureDefinition-jp-*.json.
     # JP Core 1.2.0 does NOT publish profiles for CareTeam / Composition /
@@ -90,12 +90,12 @@ _HL7_OBSERVATION_CATEGORY_SYSTEMS = frozenset(
 def _apply_jp_core_profile(resource: dict) -> None:
     """Attach the JP Core profile URLs for the resource's type when absent.
 
-    C3-11..18 (session 42 cycle 3): idempotent — leaves existing meta.profile
+    C3-11..18: idempotent — leaves existing meta.profile
     untouched when a builder has already set one. Appends any JP Core
     StructureDefinition URL that is not yet in `meta.profile[]`.
-    Session 48 cleanup: dict shape unified with `_JP_CLINS_PROFILES` (list-of-URLs).
+    cleanup: dict shape unified with `_JP_CLINS_PROFILES` (list-of-URLs).
 
-    session 59 #218:radiology DR builder が `_Radiology` profile を pre-set
+    #218:radiology DR builder が `_Radiology` profile を pre-set
     している場合、ここで `_Common` を追加すると 2 profile 併存で validator
     がどちらの制約で検査するか曖昧化。同 resourceType で複数 JP Core profile
     variants(_Common / _Radiology / _LabResult 等)が存在する場合、既に
@@ -107,7 +107,7 @@ def _apply_jp_core_profile(resource: dict) -> None:
         return
     meta = resource.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
-    # session 59 #218:DR に variant profile(_Radiology / _LabResult)が
+    # #218:DR に variant profile(_Radiology / _LabResult)が
     # pre-set 済なら Common を追加しない。
     if rt == "DiagnosticReport":
         _variant_prefix = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_"
@@ -180,7 +180,7 @@ def _medication_request_satisfies_ecs(resource: dict) -> bool:
     where the field is a plain `list[str]` (Issue #452) — so there is nothing truthful to
     put in `dosageInstruction`. Withholding the eCS URL leaves those resources conformant
     to the profile they *do* satisfy instead of claiming one they do not. This is the
-    session-66 rule ("a `meta.profile` claim must follow data-completeness
+    rule ("a `meta.profile` claim must follow data-completeness
     verification") applied per instance, and the same shape as the `_is_lab_observation`
     filter: a resourceType-wide claim narrowed by a predicate.
 

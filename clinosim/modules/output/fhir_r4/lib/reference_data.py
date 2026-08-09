@@ -23,7 +23,7 @@ _SEVERITY_SNOMED: dict[str, dict[str, str]] = {
     "severe": {"code": "24484000", "display": "Severe"},
 }
 
-# session 53 iris4h-ai feedback F-4: JP Core `JP_ConditionSeverity_VS` は
+# iris4h-ai feedback F-4: JP Core `JP_ConditionSeverity_VS` は
 # JP_ConditionSeverity_CS の 4 code(MI/MO/SE/UK)のみを許容。SNOMED は
 # ValueSet 外 = ~5k info。JP output では JP CS を primary、SNOMED を
 # secondary(国際互換性のため保持)として emit する。
@@ -101,7 +101,7 @@ _PREFECTURE_CODE: dict[str, str] = {
 
 # Encounter type -> SNOMED code. Display text (en/ja) lives in
 # codes/data/snomed-ct.yaml, resolved via code_lookup — not duplicated here
-# (session 37 display-dict migration; this mapping itself, enum -> code, is
+# (display-dict migration; this mapping itself, enum -> code, is
 # not display text and stays in Python).
 _ENCOUNTER_TYPE_SNOMED_CODE: dict[str, str] = {
     "inpatient": "32485007",
@@ -116,7 +116,7 @@ _ROUTE_SNOMED: dict[str, dict[str, str]] = {
     "IV": {"code": "47625008", "display": "Intravenous"},
     "SC": {"code": "34206005", "display": "Subcutaneous"},
     "IM": {"code": "78421000", "display": "Intramuscular"},
-    # #311 session 60:SL は silent-code-substitution bug の fix。
+    # #311 SL は silent-code-substitution bug の fix。
     # 37161004 の authoritative display は "Rectal route (qualifier value)"
     # (SNOMED CT International、fhir-jp-validator GPS ValueSet 権威確認)
     # なので SL entry で使うのは semantically 誤り。Sublingual の
@@ -127,14 +127,14 @@ _ROUTE_SNOMED: dict[str, dict[str, str]] = {
     "PR": {"code": "37161004", "display": "Per rectum"},
     # 447694001 SNOMED-authoritative default display is "Respiratory tract
     # route (qualifier value)" — "Inhalation" is not a registered synonym in
-    # the tx-server's SNOMED CT terminology (session 58 Chain #4, 667 errors).
+    # the tx-server's SNOMED CT terminology (667 errors).
     "INHALED": {"code": "447694001", "display": "Respiratory tract route (qualifier value)"},
     "TOPICAL": {"code": "6064005", "display": "Topical"},
     "NEBULIZED": {"code": "447694001", "display": "Respiratory tract route (qualifier value)"},
 }
 
 
-# Issue #458 (session 74): YAML-authored route abbreviations → canonical `_ROUTE_SNOMED`
+# Issue #458: YAML-authored route abbreviations → canonical `_ROUTE_SNOMED`
 # key.
 #
 # `_ROUTE_SNOMED`'s keys are the token vocabulary `parse_dose_string`
@@ -237,7 +237,7 @@ _ROLE_PREFIX_MAP: dict[str, dict[str, str]] = {
     "radiologist": {"qual_code": "MD", "qual_display": "Doctor of Medicine"},
     "pharmacist": {"qual_code": "PharmD", "qual_display": "Doctor of Pharmacy"},
     # CY6-02 (Chain-6): allied-health qualifications for the roster
-    # expansion added in session 44 C5-25. Codes follow HL7 v2-0360
+    # expansion added in C5-25. Codes follow HL7 v2-0360
     # convention where possible (PT/OT/ST are widely-used qual codes;
     # MSW / RD are text-only since v2-0360 does not enumerate them —
     # FHIR R4 CodeableConcept allows text-only representations).

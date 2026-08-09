@@ -57,10 +57,10 @@ RADIOLOGY_CATEGORY_SNOMED = "394914008"
 # HL7 v2-0074 "Radiology" — owner: this file.
 RADIOLOGY_CATEGORY_V2_0074 = "RAD"
 
-# === session 59 #218: JP Core DiagnosticReport_Radiology profile constants ===
+# === #218:JP Core DiagnosticReport_Radiology profile constants ===
 # spec: jp_core/package/StructureDefinition-jp-diagnosticreport-radiology.json
 # 従来 JP output は `_Common` profile を使用していたが radiology は専用 profile
-# (`_Radiology`)が存在(session 46 chain #2 導入時に見落とし)。以下の slice
+# (`_Radiology`)が存在(chain #2 導入時に見落とし)。以下の slice
 # 制約に対応:
 #   category:first  = LOINC LP29684-5(放射線)
 #   category:second = DICOM modality(CT/CR/MR ...)
@@ -251,7 +251,7 @@ def build_dr_resource(
     res: dict[str, object] = {
         "resourceType": "DiagnosticReport",
         "id": f"dr-{group.panel_name.lower()}-{encounter_id}-{seq}",
-        # Session 46 chain #2: JP Core DiagnosticReport_LabResult profile.
+        # chain #2: JP Core DiagnosticReport_LabResult profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"]}}
             if is_jp(country)
@@ -298,7 +298,7 @@ def build_dr_resource(
         "effectiveDateTime": group.bucket,
         "result": [{"reference": f"Observation/{ref}"} for ref in group.obs_refs],
     }
-    # CY8-16 fix (session 48 cycle 8): lab DR.issued default = effectiveDateTime。
+    # CY8-16 fix: lab DR.issued default = effectiveDateTime。
     # 従来 imaging DR のみ issued が入り lab DR は 0% だった (6.9% overall)。
     # 実運用では検査値確定+ラボ承認時刻が入るが、CIF 相当時刻無いため
     # effectiveDateTime を近似として emit(100% coverage 実現)。
@@ -311,7 +311,7 @@ def build_dr_resource(
         res["issued"] = to_fhir_instant(group.bucket)
     if performer_ref:
         res["performer"] = [{"reference": performer_ref}]
-        # CY8-13 fix (session 48 cycle 8): DR.resultsInterpreter — lab DR は
+        # CY8-13 fix: DR.resultsInterpreter — lab DR は
         # 検査技師(performer)が解釈も担う運用が多い。imaging は放射線科医が
         # 別途担うが CIF 相当 field 無いため performer を fallback として emit。
         res["resultsInterpreter"] = [{"reference": performer_ref}]
@@ -321,7 +321,7 @@ def build_dr_resource(
         # hospital-main で fallback emit(CY6-03 の 100% 発火を維持)。
         res["performer"] = [{"reference": "Organization/hospital-main"}]
         res["resultsInterpreter"] = [{"reference": "Organization/hospital-main"}]
-    # CY8-14 fix (session 48 cycle 8): DR.conclusionCode = 解釈カテゴリ code。
+    # CY8-14 fix: DR.conclusionCode = 解釈カテゴリ code。
     # 全 Observation.interpretation を集計し、H/L があれば "abnormal"、
     # 全 N なら "normal"。SNOMED 17621005 (Normal) / 263654008 (Abnormal)。
     _abnormal = getattr(group, "any_abnormal", False)
@@ -577,7 +577,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         localize_fixed_label("Radiology", ctx.country)
     )
 
-    # session 59 #218:JP output は `_Radiology` profile 準拠へ切替(従来 Common)。
+    # #218:JP output は `_Radiology` profile 準拠へ切替(従来 Common)。
     # 制約:
     #   category:first  = LOINC LP29684-5 "放射線"
     #   category:second = DICOM modality(CT/CR/MR etc.)
@@ -647,10 +647,10 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
 
     dr: dict = {
         "resourceType": "DiagnosticReport",
-        # session 51: rep_id (engine.py) は既に RADIOLOGY_REPORT_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。  # noqa: E501
+        # rep_id (engine.py) は既に RADIOLOGY_REPORT_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。  # noqa: E501
         "id": rep_id,
-        # session 59 #218: JP Core DiagnosticReport_Radiology profile
-        # (was _Common — session 46 chain #2 で見落とし、v5 で 499 errors)。
+        # #218:JP Core DiagnosticReport_Radiology profile
+        # (was _Common — chain #2 で見落とし、v5 で 499 errors)。
         **({"meta": {"profile": [_JP_DR_RADIOLOGY_PROFILE]}} if _is_jp else {}),
         "status": _o(report, "status", "final"),
         "text": {"status": "generated", "div": div},
@@ -677,7 +677,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
             break
     if _att:
         dr["performer"] = [{"reference": f"Practitioner/{_att}"}]
-        # CY8-13 fix (session 48 cycle 8): radiology DR resultsInterpreter =
+        # CY8-13 fix: radiology DR resultsInterpreter =
         # 放射線科医(clinosim roster では attending fallback、performer と同一)。
         dr["resultsInterpreter"] = [{"reference": f"Practitioner/{_att}"}]
 
@@ -685,7 +685,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         dr["effectiveDateTime"] = started_iso
         dr["issued"] = started_iso
 
-    # CY8-15 fix (session 48 cycle 8): imaging DR.media — 対応する ImagingStudy を
+    # CY8-15 fix: imaging DR.media — 対応する ImagingStudy を
     # media[].link で参照(実 EHR で PACS DICOM への portal リンク相当)。
     # ImagingStudy 自体は既に imagingStudy field で refer 済みだが、media は
     # per-image / per-instance 参照の意図。ImagingStudy series の代表 1 件を link。
@@ -697,7 +697,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     ]
 
     # conclusionCode: emit only when findings_codes is populated (PR1 default: empty → skipped).
-    # CY8-14 fix (session 48 cycle 8): findings_codes 空でも normal/abnormal SNOMED を
+    # CY8-14 fix: findings_codes 空でも normal/abnormal SNOMED を
     # default emit。従来 0/imaging DR。radiology impression の存否で分岐。
     findings_codes = _o(report, "findings_codes", []) or []
     if findings_codes:

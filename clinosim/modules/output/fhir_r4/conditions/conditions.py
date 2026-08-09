@@ -45,7 +45,7 @@ _STAGE_SUMMARY_SNOMED: dict[str, str] = {
     "NYHA II": "421704003",
     "NYHA III": "420913000",
     "NYHA IV": "422293003",
-    # COPD severity — GOLD 1/2/3 verified session 42 (RM-4); GOLD 4 mapped
+    # COPD severity — GOLD 1/2/3 verified (RM-4); GOLD 4 mapped
     # to SNOMED 135836000 "End stage COPD" (clinical equivalence; no distinct
     # "Very severe COPD" concept exists in SNOMED CT International Edition).
     "GOLD 1": "313296004",
@@ -68,7 +68,7 @@ _STAGE_SUMMARY_SNOMED: dict[str, str] = {
     "CCS IV": "89323001",
 }
 
-# CY8-23 fix (session 48 cycle 8):Condition.bodySite mapping。
+# CY8-23 fix:Condition.bodySite mapping。
 # 特定の解剖学的部位を持つ疾患について SNOMED body structure コードを付与。
 # 非部位性(高血圧・糖尿病等)は bodySite emit しない = 100% 化はせず
 # 臨床的に意味のある約 15 疾患に絞る。ICD prefix で match、no fabrication。
@@ -147,7 +147,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     # primary diagnosis (active + chronic onset) and to emit problem-list items below.
     chronic_list = record.get("patient", {}).get("chronic_conditions", [])
     chronic_onset_by_base: dict[str, str] = {}
-    # C4-05 / C4-07..09 (session 43 cycle 4): also index severity + stage so a
+    # C4-05 / C4-07..09: also index severity + stage so a
     # chronic-primary encounter-diagnosis can inherit them when infer_severity
     # returns empty (routine outpatient follow-up with no physiological states).
     # Applies to essential HTN (I10) routine visits, DM/COPD/HF/CKD follow-ups —
@@ -188,7 +188,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # resolved at the visit: mark it active with the chronic onset date.
         is_chronic_primary = base_code in chronic_onset_by_base
         chronic_onset = chronic_onset_by_base.get(base_code, "") if is_chronic_primary else ""
-        # C4-05 (session 43 cycle 4): chronic-primary severity fallback.
+        # C4-05: chronic-primary severity fallback.
         # infer_severity returns "" when the encounter has no physiological
         # states (routine outpatient follow-up), leaving I10/E11/etc. Condition
         # without severity. Inherit from patient chronic_conditions severity
@@ -197,7 +197,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             severity = chronic_severity_by_base.get(base_code, "")
         # CY6-21 (Chain-6): acute encounter-diagnosis severity fallback.
         # ED visits sampled from encounter YAMLs carry a severity category
-        # ("mild"/"moderate"/"severe") on Encounter (session 43 AD-65 Bug C
+        # ("mild"/"moderate"/"severe") on Encounter (AD-65 Bug C
         # fix stored it as Encounter.severity). Use it when neither the
         # physiological-state inference nor chronic inheritance produced a
         # severity, so acute non-chronic Z00 / R07 / T14 / etc. no longer
@@ -220,7 +220,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         cond: dict[str, Any] = {
             "resourceType": "Condition",
             "id": f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary",
-            # C2-20 (session 42 cycle 2): JP Core Condition profile.
+            # C2-20: JP Core Condition profile.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
                 if is_jp(country_code)
@@ -270,7 +270,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             }
         ]
 
-        # C4-07..10 (session 43 cycle 4): encounter-diagnosis stage inheritance.
+        # C4-07..10: encounter-diagnosis stage inheritance.
         # When the primary dx is a staged chronic condition (DM/COPD/HF/CKD)
         # the encounter-diagnosis Condition should carry the same stage as the
         # patient's chronic entry. Otherwise E11/J44/I50 encounter-dx records
@@ -308,18 +308,18 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
         if encounters:
             cond["encounter"] = {"reference": f"Encounter/{encounters[0].get('encounter_id', '')}"}
-            # C2-31 (session 42 cycle 2): Condition.recorder ← attending physician
+            # C2-31: Condition.recorder ← attending physician
             # of the encounter. FHIR R4 R0..1; JP Core Condition recommends
             # this reference for chart traceability. Attending is emitted as
             # Practitioner in the encounter builder so this ref resolves.
             _att = encounters[0].get("attending_physician_id", "")
             if _att:
                 cond["recorder"] = {"reference": f"Practitioner/{_att}"}
-                # CY8-22 fix (session 48 cycle 8):Condition.asserter — 疾患を
+                # CY8-22 fix:Condition.asserter — 疾患を
                 # 診断・断定する医師。clinosim 運用では recorder と同一 attending。
                 cond["asserter"] = {"reference": f"Practitioner/{_att}"}
 
-        # CY8-24 fix (session 48 cycle 8):Condition.abatementDateTime — 疾患解消日。
+        # CY8-24 fix:Condition.abatementDateTime — 疾患解消日。
         # 入院診断が退院時に active/resolved どちらであるかを CIF は保持しないが、
         # discharge_datetime が snapshot 前 = encounter finished/completed の場合
         # 「一時的な急性エピソード」型(cellulitis, pneumonia 等)は退院時に
@@ -327,7 +327,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # 慢性疾患(chronic primary)は resolved しない前提のため abatement 無し。
         # 判定:encounter status が完了かつ non-chronic → abatement 付与。
         #
-        # Session 57 Chain F (v2 feedback §【最優先 4】): the original guard
+        # Chain F (v2 feedback §【最優先 4】): the original guard
         # relied on the docstring alone and did not check `is_chronic_primary`
         # in the emit code, so chronic-primary encounters received both
         # `clinicalStatus="active"` (line 213) and `abatementDateTime` from
@@ -343,7 +343,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             if _dd and _est in ("completed", "finished"):
                 cond["abatementDateTime"] = to_fhir_date(_dd)
 
-        # CY8-23 fix (session 48 cycle 8):Condition.bodySite — 解剖学的部位。
+        # CY8-23 fix:Condition.bodySite — 解剖学的部位。
         # 15 疾患 prefix に対して SNOMED body structure を emit(非部位性は無し)。
         _bs = _bodysite_for(dx_code, country)
         if _bs:
@@ -377,20 +377,20 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
         cond = {
             "resourceType": "Condition",
-            # C4-02 (session 43 cycle 4): patient-scoped ID so the adapter's
+            # C4-02: patient-scoped ID so the adapter's
             # write() dedup collapses per-encounter re-emissions. Was
             # `cond-{encounter_id}-chronic-{i}` which produced N duplicates
             # per patient (N = number of the patient's encounters), driving
             # cycle-3 RM-7 problem-list-item excess to 10x realistic count.
             "id": f"cond-chronic-{patient_id}-{i:02d}",
-            # C2-20 (session 42): JP Core Condition profile also on chronic-
+            # C2-20: JP Core Condition profile also on chronic-
             # condition path (encounter-dx path handled above).
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
                 if is_jp(country_code)
                 else {}
             ),
-            # C2-02/03 (session 42 cycle 2): use _coding_with_display so the
+            # C2-02/03: use _coding_with_display so the
             # chronic-condition path also emits displays (was raw code).
             "clinicalStatus": {
                 "coding": [_coding_with_display("hl7-condition-clinical", "active", lang)],
@@ -458,8 +458,8 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         if c_onset:
             cond["onsetDateTime"] = to_fhir_date(c_onset)
 
-        # C2-31 (session 42): Condition.recorder for chronic path as well.
-        # CY8-21 fix (session 48 cycle 8):encounters が無い(problem-list chronic
+        # C2-31: Condition.recorder for chronic path as well.
+        # CY8-21 fix:encounters が無い(problem-list chronic
         # で outpatient-only 患者)の場合も recorder / asserter を担当医らしき
         # ID(先頭 encounter が無ければ hospital-main の primary care physician)
         # にフォールバック。旧 88.7% → 100%。
@@ -468,7 +468,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             _att = encounters[0].get("attending_physician_id", "") or ""
         if _att:
             cond["recorder"] = {"reference": f"Practitioner/{_att}"}
-            # CY8-22 fix (session 48 cycle 8):chronic path も asserter を並置。
+            # CY8-22 fix:chronic path も asserter を並置。
             cond["asserter"] = {"reference": f"Practitioner/{_att}"}
         else:
             cond["recorder"] = {"reference": "Practitioner/DR-IM-001"}

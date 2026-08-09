@@ -1,6 +1,6 @@
 """Inline bundle builders for `fhir_r4_adapter.py`.
 
-Split from `clinosim/modules/output/fhir_r4_adapter.py` (session 82) — see PR L.
+Split from `clinosim/modules/output/fhir_r4_adapter.py` — see PR L.
 
 Each `_bb_*` function takes a `BundleContext` and returns a list of FHIR
 resource dicts. They complement the per-theme `_fhir_*.py` builders (which
@@ -250,7 +250,7 @@ def _bb_coverage(ctx: BundleContext) -> list[dict]:
 
 
 def _bb_encounters(ctx: BundleContext) -> list[dict]:
-    # C5-22 (session 43): record-level fields propagated to Encounter builder
+    # C5-22: record-level fields propagated to Encounter builder
     # so classHistory (ward→ICU transition) + statusHistory (planned→in-progress→finished)
     # can be emitted.
     _record = ctx.record
@@ -260,7 +260,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
         else getattr(_record, "icu_transferred_day", -1)
     )
     _deceased = _record.get("deceased", False) if isinstance(_record, dict) else getattr(_record, "deceased", False)
-    # C5-12 (session 43 history chain): extract chronic condition codes
+    # C5-12 (history chain): extract chronic condition codes
     # from record.patient.chronic_conditions for secondary diagnosis emit.
     _chronic_codes: list[str] = []
     _patient_dict = ctx.patient_data or {}
@@ -332,7 +332,7 @@ def _bb_occupation(ctx: BundleContext) -> list[dict]:
     if occupation:
         occ_obs = _build_occupation_observation(occupation, ctx.patient_id, ctx.country)
         if occ_obs:
-            # C1-12 (session 41 cycle 1): US Core / JP Core social-history
+            # C1-12: US Core / JP Core social-history
             # profile lists effective[x] as MUST-SUPPORT. Use earliest encounter
             # admission as the SDOH-as-of proxy (same helper as smoking / alcohol).
             from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (
@@ -362,12 +362,12 @@ def _bb_vitals(ctx: BundleContext) -> list[dict]:
 
 def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     out: list[dict] = []
-    # CO-7 (session 42 cycle 3): propagate encounter_type for MR.intent
+    # CO-7: propagate encounter_type for MR.intent
     # inference. The primary encounter type is a reliable proxy when
     # CIF Order.clinical_intent is not populated.
     encounters = ctx.record.get("encounters", []) or []
     primary_enc_type = encounters[0].get("encounter_type", "") if encounters else ""
-    # C4-22 (session 43 cycle 4): MR.requester fallback to encounter attending
+    # C4-22: MR.requester fallback to encounter attending
     # (was 3% missing requester). Same pattern as C4-17 for Procedure.performer.
     _attending_by_enc: dict[str, str] = {}
     for _enc in encounters:
@@ -379,7 +379,7 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
         ) or ""
         if _eid and _att:
             _attending_by_enc[_eid] = _att
-    # session 49 clinosim_feedback P1-4: JP_MedicationRequest.identifier slice
+    # clinosim_feedback P1-4: JP_MedicationRequest.identifier slice
     # rpNumber + orderInRp を assign。1 encounter = 1 Rp グループとして扱い、
     # encounter 内の medication order 出現順を orderInRp (1-based) にする。
     # 同一 order の MedicationRequest / MedicationAdministration は同じ
@@ -496,7 +496,7 @@ def build_order_in_rp_map(orders: list) -> dict[str, int]:
 
 def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
     out: list[dict] = []
-    # C5-07 (session 43 history chain): build the set of MedicationRequest ids
+    # C5-07 (history chain): build the set of MedicationRequest ids
     # that WILL be emitted so we can drop MAR.request references that would
     # otherwise dangle (was 4 orphan refs in baseline — CIF corner case where
     # a supportive Order is created but not persisted into record.orders while
@@ -507,7 +507,7 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
     # MAR builder can inherit the parent Order's authoritative YJ / RxNorm code
     # (previously the MAR builder re-derived code via English code_mapping,
     # missing JP-text drug names like "エルカトニン" / "乳酸リンゲル液" that
-    # bypass the English keys). Session 44 CO-8 fixed the MR-side; MAR-side
+    # bypass the English keys). CO-8 fixed the MR-side; MAR-side
     # requires this join because MAR records don't carry code_yj directly.
     _order_code_by_id: dict[str, str] = {}
     for order in ctx.record.get("orders", []) or []:
@@ -521,7 +521,7 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             _oc = order.get("order_code", "") or ""
             if _base_oid and _oc:
                 _order_code_by_id[_base_oid] = _oc
-    # session 49 clinosim_feedback P1-4: JP_MedicationAdministration.identifier
+    # clinosim_feedback P1-4: JP_MedicationAdministration.identifier
     # slice orderInRp。同 order_id を参照する MedicationRequest と同じ
     # 番号にするため、`build_order_in_rp_map` の同一ロジックで再構築。
     _order_in_rp_by_oid = build_order_in_rp_map(ctx.record.get("orders", []) or [])
@@ -556,7 +556,7 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
 
 
 def _bb_procedures(ctx: BundleContext) -> list[dict]:
-    # C4-17 (session 43 cycle 4): Procedure.performer fallback to encounter
+    # C4-17: Procedure.performer fallback to encounter
     # attending physician when the CIF procedure record has no
     # primary_surgeon_id (was 59% missing performer in baseline). Look up by
     # encounter_id; falls through to _build_procedure's own no-performer path
@@ -582,7 +582,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
                 proc["primary_surgeon_id"] = _att
         _enriched.append(proc)
     out = [_build_procedure(proc, ctx.patient_id, i, ctx.country) for i, proc in enumerate(_enriched)]
-    # RM-6c (session 42): emit Procedure resources from PROCEDURE-type Orders
+    # RM-6c: emit Procedure resources from PROCEDURE-type Orders
     # too. These are procedure/device items (compression device, splint, etc.)
     # that used to leak through the MedicationRequest path — RM-6a/b routed
     # them here at CIF creation. Emit a light-weight Procedure per Order.
@@ -605,7 +605,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
             if is_jp(ctx.country)
             else {}
         )
-        # C4-03/18 (session 43 cycle 4): PROCEDURE-Order path lacked
+        # C4-03/18: PROCEDURE-Order path lacked
         # Procedure.category. Bind SNOMED 277132007 (Therapeutic procedure,
         # SNOMED CT) — these are treatment-side procedures (splint / bandage /
         # wound care / etc.) routed to PROCEDURE by emergency.py's _procedure_kw
@@ -708,14 +708,14 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
     for proc in ctx.record.get("procedures", []):
         add(proc.get("primary_surgeon_id", ""))
         add(proc.get("anesthesiologist_id", ""))
-    # RM-3 (session 42): Immunization.performer.actor references (nurse admin).
+    # RM-3: Immunization.performer.actor references (nurse admin).
     for imm in ctx.record.get("immunizations", []) or []:
         add(imm.get("administered_by", "") if isinstance(imm, dict) else getattr(imm, "administered_by", ""))
-    # RM-1 (session 42): nursing survey Observations use primary_nurse_id;
+    # RM-1: nursing survey Observations use primary_nurse_id;
     # ensure the nurse is emitted even when not the primary_nurse of encounter.
     for enc in ctx.record.get("encounters", []) or []:
         add(enc.get("primary_nurse_id", "") if isinstance(enc, dict) else getattr(enc, "primary_nurse_id", ""))
-    # C2-09 (session 42 cycle 2): also emit every pharmacist in the roster so
+    # C2-09: also emit every pharmacist in the roster so
     # CareTeam.participant refs to `Practitioner/PH-*` (C1-15 fix) resolve.
     # Pharmacists are assigned deterministically by encounter-id hash in
     # _fhir_care_team.py, so any pharmacist in the roster might be referenced.

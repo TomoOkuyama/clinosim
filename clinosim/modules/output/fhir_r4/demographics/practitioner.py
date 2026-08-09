@@ -25,7 +25,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
     resource: dict[str, Any] = {
         "resourceType": "Practitioner",
         "id": staff_id,
-        # Session 46 chain #2: JP Core Practitioner profile.
+        # chain #2: JP Core Practitioner profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner"]}}
             if is_jp(country)
@@ -54,9 +54,9 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         name_obj: dict[str, Any] = {"family": family, "given": [given] if given else []}
         if role in ("physician", "radiologist") and not is_jp(country):
             name_obj["prefix"] = ["Dr."]
-        # C3-01 (session 42 cycle 3): JP Core requires kanji (IDE)
+        # C3-01: JP Core requires kanji (IDE)
         # representation tag on Practitioner names as well as Patient.
-        # C2-19 continuation (session 43 cycle 5): Kana SYL entry now
+        # C2-19 continuation: Kana SYL entry now
         # emitted when roster generation populated `name_phonetic`.
         # names.yaml carries kana column for every kanji entry so JP
         # rosters always fill this field.
@@ -119,7 +119,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         # validator に "code 未定義" と reject される。v2-0360 に含まれる code
         # (MD/DO/RN/PA 等)は system 付き coding、それ以外は text-only fallback。
         # v2-0360 定義済 code(HL7 official table 0360)
-        # session 59 #299:PT/OT/MSW/ST は v2-0360 に存在しない code(HAPI
+        # #299:PT/OT/MSW/ST は v2-0360 に存在しない code(HAPI
         # は tx-server-build/CodeSystem-v2-0360.json 権威 61 concepts のみ受理)。
         # 従来 fabricated として登録していたため v5 で 10 件 unknown-code error。
         # v2-0360 未定義 code(PT/OT/ST/MSW/RD 等)は text-only fallback へ。
@@ -208,7 +208,7 @@ def _build_practitioner_role(
     resource: dict[str, Any] = {
         "resourceType": "PractitionerRole",
         "id": f"role-{staff_id}",
-        # Session 46 chain #2: JP Core PractitionerRole profile.
+        # chain #2: JP Core PractitionerRole profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"]}}
             if is_jp(country)
@@ -219,7 +219,7 @@ def _build_practitioner_role(
     }
 
     # Organization (department) reference
-    # CY8-08 fix(session 48 cycle 8):department 未指定 or 支援部門は
+    # CY8-08 fix:department 未指定 or 支援部門は
     # hospital-main を fallback として emit(83.8% → 100%)。
     if department and department not in ("laboratory", "radiology", "pharmacy"):
         resource["organization"] = {
@@ -231,7 +231,7 @@ def _build_practitioner_role(
         }
 
     # Location reference (for nurses assigned to a ward)
-    # CY8-07 fix(session 48 cycle 8):ward 未指定 staff は hospital-main
+    # CY8-07 fix:ward 未指定 staff は hospital-main
     # Location を fallback として emit(46.8% → 100%)。
     ward = staff.get("ward", "")
     if ward:
@@ -247,7 +247,7 @@ def _build_practitioner_role(
             }
         ]
 
-    # CY8-06 fix(session 48 cycle 8):PractitionerRole.period.start を
+    # CY8-06 fix:PractitionerRole.period.start を
     # データ収集開始起点(2024-01-01)を default に emit。従来 0/111 → 100%。
     # 実運用では雇用開始日を使うが、CIF に staff の hire_date は無いため
     # simulator の period 全体を staff の active period として近似。
@@ -256,7 +256,7 @@ def _build_practitioner_role(
     }
 
     if role_code:
-        # C2-07 (session 42 cycle 2): resolve display via codes/data/
+        # C2-07: resolve display via codes/data/
         # hl7-practitioner-role.yaml — was raw code with no display.
         resource["code"] = [
             {
@@ -275,7 +275,7 @@ def _build_practitioner_role(
         resource["code"] = [{"text": _disp}]
 
     if spec_info:
-        # C5-05 (session 43 cycle 5): resolve specialty display through
+        # C5-05: resolve specialty display through
         # snomed-ct.yaml so JP output uses 内科/循環器内科 etc. instead of
         # the English fallback baked into _SPECIALTY_SNOMED entries.
         _lang = resolve_lang(country)
@@ -294,7 +294,7 @@ def _build_practitioner_role(
             }
         ]
     else:
-        # CY8-05 fix(session 48 cycle 8):allied-health / nurse など
+        # CY8-05 fix:allied-health / nurse など
         # SNOMED specialty 未マッピングの staff にも text-only specialty
         # を emit(42.3% → 100%)。role table から derive、無ければ role 名。
         _lang = resolve_lang(country)
