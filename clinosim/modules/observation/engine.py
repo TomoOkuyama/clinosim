@@ -12,6 +12,15 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+from clinosim.modules.observation._variability_defaults import (
+    DEFAULT_ANALYTICAL_CV,
+    DEFAULT_BIOLOGICAL_CV,
+    RAPID_STREP_RESULT_DIST,
+    TETANUS_STATUS_RESULT_DIST,
+    URINALYSIS_RESULT_DIST,
+    URINE_CULTURE_RESULT_DIST,
+)
+
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
@@ -287,8 +296,8 @@ def apply_realistic_variability(
     if true_value <= 0:
         return 0.0
 
-    cvi = BIOLOGICAL_CV.get(lab_name, 0.05)
-    cva = ANALYTICAL_CV.get(lab_name, 0.03)
+    cvi = BIOLOGICAL_CV.get(lab_name, DEFAULT_BIOLOGICAL_CV)
+    cva = ANALYTICAL_CV.get(lab_name, DEFAULT_ANALYTICAL_CV)
 
     bio_noise = rng.normal(0, true_value * cvi)
     analytical_noise = rng.normal(0, true_value * cva)
@@ -326,26 +335,20 @@ def generate_lab_result(
 
 
 def _generate_qualitative_result(lab_name: str, rng: np.random.Generator) -> str:
-    """Return categorical result for qualitative tests."""
+    """Return categorical result for qualitative tests.
+
+    Distribution vectors (options + weights per test) live in
+    ``_variability_defaults.py`` (Issue #637); this function only owns
+    the per-test dispatch.
+    """
     if lab_name == "Urinalysis":
-        # Common qualitative urinalysis dipstick result
-        return str(
-            rng.choice(
-                ["Normal", "Trace protein", "1+ protein", "Trace blood", "1+ leukocytes", "Glucose 1+"],
-                p=[0.55, 0.10, 0.05, 0.10, 0.15, 0.05],
-            )
-        )
+        return str(rng.choice(URINALYSIS_RESULT_DIST.options, p=URINALYSIS_RESULT_DIST.weights))
     if lab_name == "Urine_culture":
-        return str(
-            rng.choice(
-                ["No growth", "Mixed flora (contaminated)", "E. coli >100,000 CFU/mL", "Klebsiella >100,000 CFU/mL"],
-                p=[0.55, 0.20, 0.20, 0.05],
-            )
-        )
+        return str(rng.choice(URINE_CULTURE_RESULT_DIST.options, p=URINE_CULTURE_RESULT_DIST.weights))
     if lab_name == "Rapid_Strep":
-        return str(rng.choice(["Negative", "Positive"], p=[0.85, 0.15]))
+        return str(rng.choice(RAPID_STREP_RESULT_DIST.options, p=RAPID_STREP_RESULT_DIST.weights))
     if lab_name == "Tetanus_status":
-        return str(rng.choice(["Up to date", "Unknown", "Last >10 years ago"], p=[0.55, 0.30, 0.15]))
+        return str(rng.choice(TETANUS_STATUS_RESULT_DIST.options, p=TETANUS_STATUS_RESULT_DIST.weights))
     return "Negative"
 
 
