@@ -156,7 +156,7 @@ ENRICHER_SEED_OFFSETS = {
     "allergy": 0x414C,  # "AL" (Tier 1 #3 α-min-1 PR1, allergy module)
     "document": 0x444F,  # "DO" (Tier 1 #3 α-min-1 PR1, document module)
     "triage": 0x5452,  # "TR" (Tier 1 #3 α-min-2 PR1, triage module)
-    "health_checkup": 0x4843,  # "HC" (P2-13 PR3 sub-PR-B 高度化, per-patient checkup lab sampling)
+    "health_checkup": 0x4843,  # "HC" (per-patient checkup lab sampling)
 }
 
 assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), (
@@ -165,21 +165,24 @@ assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), (
 
 
 # ------------------------------------------------------------------
-# Phase-scoped sub-seed offsets (session 49, F1 cross-cursor determinism).
+# Phase-scoped sub-seed offsets (F1 cross-cursor determinism).
 #
-# run_beta の 4 phase(life event 生成 / hospital main loop / readmission /
-# outpatient calendar / ED)は現行 master RNG を串刺しに消費している。
-# cursor 移動 (snapshot_date の変更) で phase P1 の event 数が変わると
-# master RNG state が phase P2 開始時点で異なる → 同 patient X でも
-# 違う結果になる = 「cursor A の output と cursor B の共有区間が
-# bytewise 一致」が保証されない。
+# The four run_beta phases (life-event generation / hospital main loop
+# / readmission / outpatient calendar / ED) currently consume the
+# master RNG serially. If a cursor advance (snapshot_date change)
+# changes the event count in phase P1, the master RNG state at the
+# start of phase P2 differs — so the same patient X ends up with a
+# different result under the new cursor, and "the shared interval
+# between the output at cursor A and the output at cursor B is
+# bytewise identical" is not guaranteed.
 #
-# ここで phase salt を分離し、各 phase 内で per-key sub-seed に切り替える
-# ことで master RNG を完全に迂回する。cursor 移動が phase をまたいで
-# 影響を伝播させない。
+# Separating a phase salt here and switching to per-key sub-seeds
+# inside each phase bypasses the master RNG entirely, so a cursor
+# advance no longer propagates across phases.
 #
-# Convention: 16-bit hex ASCII (4 ASCII 大文字) の 32-bit 値。既存
-# ENRICHER_SEED_OFFSETS と衝突しないよう 0x504xxxxx 帯を使用。
+# Convention: 32-bit values whose four bytes are ASCII uppercase
+# letters, using the 0x504xxxxx range to avoid collisions with the
+# existing ENRICHER_SEED_OFFSETS values.
 PHASE_LIFE_EVENT = 0x504C4556  # "PLEV"
 PHASE_INPATIENT_SIM = 0x50494E50  # "PINP"
 PHASE_READMISSION = 0x50524541  # "PREA"
@@ -198,11 +201,13 @@ assert len(set(_PHASE_OFFSETS.values())) == len(_PHASE_OFFSETS), f"phase offset 
 
 
 def derive_phase_rng(master_seed: int, phase_salt: int, key: str) -> np.random.Generator:
-    """AD-16 徹底: run_beta の phase 内 key ごとに独立 RNG stream を返す。
+    """Return an independent RNG stream per ``(phase, key)`` inside ``run_beta`` (AD-16).
 
-    cursor A と cursor B で同 phase の同 key を要求すれば同一 stream になり、
-    cross-cursor byte-identity が保証される。key は phase 内で unique な
-    entity 識別子(event.person_id + timestamp + disease_id など)を使う。
+    Cursor A and cursor B asking for the same ``(phase, key)`` receive
+    the same stream, which guarantees cross-cursor byte-identity. The
+    ``key`` argument must be an entity identifier that is unique within
+    the phase — for example ``event.person_id + timestamp +
+    disease_id``.
     """
     import numpy as np
 
