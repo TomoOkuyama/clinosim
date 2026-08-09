@@ -282,7 +282,7 @@ directly. See [clinosim/modules/output/README.md](clinosim/modules/output/README
 |---|---|
 | [README.md](README.md) / [README.ja.md](README.ja.md) | User-facing overview |
 | [DESIGN.md](DESIGN.md) | Architecture + ADR table (55+ entries) |
-| [CLAUDE.md](CLAUDE.md) | AI agent rules + project conventions |
+| [AGENTS.md](AGENTS.md) | AI-agent rules + project conventions (`CLAUDE.md` is a thin pointer to this file) |
 | [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md) | Module-author playbook + PR verification guide |
 | [.github/TEMPLATE_MODULE_README.md](.github/TEMPLATE_MODULE_README.md) | Boilerplate for new module READMEs |
 | [SCENARIO_FLAGS.md](SCENARIO_FLAGS.md) | Scenario / medication flag central reference |
