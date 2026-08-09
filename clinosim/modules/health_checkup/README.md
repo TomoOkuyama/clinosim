@@ -1,85 +1,91 @@
-# health_checkup — JP-eCheckup 事業者健診 opt-in module
+# `clinosim.modules.health_checkup` — JP employer-provided health checkup (opt-in)
 
-## 概要 / 役割
+## Purpose
 
-日本の労働安全衛生法に基づく **事業者健診** (annual employer-provided
-health checkup) を JP コホートに追加する opt-in POST_RECORDS enricher。
+Opt-in POST_RECORDS enricher that adds Japanese **employer-provided
+annual health checkup** encounters (事業者健診, established under the
+Industrial Safety and Health Act) to JP cohorts.
 
-40 歳以上の成人患者から決定的 30% サブセット
-(SHA-256 hash on `patient_id`、`HEALTH_CHECKUP_SUBSET_RATE` で調整可)
-を選定し、simulation snapshot 手前の日付に 1 年 1 回の CHECKUP encounter
-+ 法定健診項目 5 種 (BMI / 収縮期 BP / 拡張期 BP / HbA1c / LDL コレステロール)
-+ HEALTH_CHECKUP_REPORT の ClinicalDocument stub (narrative=None) を追加する。
+Selects a deterministic 30 % subset of adult patients (age ≥ 40)
+via SHA-256 hash on `patient_id` (rate tunable via
+`HEALTH_CHECKUP_SUBSET_RATE`) and adds one `CHECKUP` encounter per year
+before the simulation snapshot, together with the five statutory
+health-checkup measurements (BMI / systolic BP / diastolic BP / HbA1c
+/ LDL cholesterol) and a `HEALTH_CHECKUP_REPORT` ClinicalDocument stub
+(narrative left `None` — populated by
+[`document.narrative`](../document/narrative/README.md) if enabled).
 
-## 設計原則
+## Scope
 
-| Principle | Source |
-|---|---|
-| opt-in (default OFF) — 急性期病院想定を保つ | `SimulatorConfig.modules["health_checkup"]` gate |
-| JP-only | country=="JP" gate |
-| AD-16 deterministic — new RNG 追加なし、hash-based 選定 | DESIGN.md AD-16 |
-| AD-55 Base 拡張 (Module registered as POST_RECORDS enricher) | DESIGN.md AD-55 / AD-56 |
-| Stage 1 emits stub, Stage 2 populates narrative | DESIGN.md AD-65 (two-pass CIF generation) |
-
-## ディレクトリ構造
-
-```
-clinosim/modules/health_checkup/
-  __init__.py            # public API: enrich_health_checkup, HEALTH_CHECKUP_SUBSET_RATE
-  engine.py              # POST_RECORDS enricher body
-  README.md              # this file
-```
-
-reference_data/ は現状なし(日本語 5 種の LOINC / JLAC10 codes は
-`clinosim/codes/data/*.yaml` の canonical set を lookup で使用)。
+- **In scope**: JP-only checkup encounter generation for adult
+  patients on an annual cadence, five statutory measurements per
+  encounter, deterministic patient-subset selection, ClinicalDocument
+  stub emission.
+- **Out of scope**: US-side health checkups (US health-maintenance
+  encounters follow different regulatory patterns and are not
+  currently modelled), narrative-text generation for the checkup
+  report (that's [`document.narrative`](../document/narrative/README.md)),
+  FHIR serialisation (in [`clinosim/modules/output/`](../output/README.md)),
+  non-adult (< 40 yr) health-checkup variants (school checkups,
+  specific-age adult checkups are follow-up scope).
 
 ## Public API
 
-`__init__.py` に export される 2 symbols:
+```python
+from clinosim.modules.health_checkup import (
+    HEALTH_CHECKUP_SUBSET_RATE,  # deterministic subset rate (default 0.30)
+    enrich_health_checkup,       # AD-56 post_records enricher entry
+)
+```
 
-- `enrich_health_checkup(records, config, rng)` — enricher entry point
-  (POST_RECORDS stage で `clinosim.simulator.enrichers.register_builtin_enrichers`
-  経由で dispatch される)。
-- `HEALTH_CHECKUP_SUBSET_RATE: float = 0.30` — subset selection rate。
-  試験や calibration で調整可能。
+The enricher is registered at import time; it runs only when
+`SimulatorConfig.modules["health_checkup"] == True` and
+`SimulatorConfig.country == "JP"`.
+
+## Design principles
+
+- **Opt-in (default OFF)** — preserves the "acute-care hospital"
+  assumption of the default clinosim configuration. Gate:
+  `SimulatorConfig.modules["health_checkup"]`.
+- **JP-only** — gate: `SimulatorConfig.country == "JP"`.
+- **AD-16 deterministic** — no new RNG. Patient selection uses
+  hash-based logic on `patient_id`.
+- **AD-56 Module** (post_records enricher) — matches the shape of
+  every other opt-in module.
 
 ## Dependencies
 
-- `clinosim/types/` (`PatientRecord`, `EncounterRecord`, `ClinicalDocument`,
-  `ObservationRecord`)
-- `clinosim/codes/` (LOINC / JLAC10 lookups for the 5 lab items)
-- `clinosim/simulator/enrichers.py` (Enricher registry)
-- `numpy` (`np.random.Generator`; only used for deterministic-shape API,
-  actual randomness comes from patient_id hash)
+- `clinosim.types.patient` — `PatientProfile`, age computation.
+- `clinosim.types.encounter` — `Encounter`, `EncounterType.CHECKUP`,
+  observation records.
+- `clinosim.types.clinical` — `ClinicalDocument`.
 
-## FHIR emit path
+## Constants and configuration
 
-Stage 1 が emit した `ClinicalDocument(document_type="HEALTH_CHECKUP_REPORT")`
-stub は Stage 2 の `TemplateNarrativePass` が populate、`_fhir_composition.py`
-の JP-eCheckup builder が Composition.section の `text.div` を埋める。
+- `HEALTH_CHECKUP_SUBSET_RATE = 0.30` — fraction of eligible adults
+  (age ≥ 40) selected via SHA-256 hash on `patient_id`. Adjusting this
+  changes cohort output byte-identity; treat as a public-API constant.
+- Five statutory measurements are hard-coded in the engine because
+  they are legally mandated (BMI / SBP / DBP / HbA1c / LDL). Adding a
+  sixth measurement is a scope-expansion PR.
 
-## Opt-in の使い方
+## Directory contents
 
-```python
-from clinosim.simulator.engine import run_beta
-from clinosim.simulator.config import SimulatorConfig
-
-config = SimulatorConfig(
-    country="JP",
-    modules={"health_checkup": True},   # opt-in
-    ...,
-)
-run_beta(config, ...)
+```
+clinosim/modules/health_checkup/
+  __init__.py           public API (constants + entry point)
+  enricher.py           POST_RECORDS enricher body
+  audit.py              per-module audit spec
 ```
 
-## Test
+## Testing
 
-- `tests/unit/modules/health_checkup/` — enricher-level determinism / subset
-  selection / observation emission tests
-- `tests/integration/test_jp_echeckup_composition.py` — JP-eCheckup FHIR
-  Composition end-to-end
+```bash
+pytest tests/unit -k health_checkup -q
+```
 
-## Related
+## Ownership
 
-- 追加履歴: session 47 P2-13 PR3 sub-PR-A
-- 関連 FHIR builder: `clinosim/modules/output/_fhir_composition.py` (JP-eCheckup)
+`maintainers@` — see [`CONTRIBUTING.md`](../../../CONTRIBUTING.md).
+
+Japanese counterpart: [`README.ja.md`](README.ja.md).
