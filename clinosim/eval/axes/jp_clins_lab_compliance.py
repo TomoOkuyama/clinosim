@@ -47,13 +47,13 @@ Axis returns an empty list when the cohort is not JP — this is a JP-only
 compliance surface. When called on a JP cohort with zero lab
 Observations, each check returns ``Outcome.NA``.
 
-CI Invariant Thresholds (Session 68 PR 5)
+CI Invariant Thresholds (PR 5)
 -----------------------------------------
 The axis is integrated into clinosim CI via ``clinosim eval --strict``:
 
 1. **Metric 1 (CS usage)** threshold = 100% (strict) — every lab Observation
    MUST carry a JP-CLINS-defined CodeSystem. Baseline for regression detection:
-   1898/2509 CoreLabo + Uncoded analytes (session 67 migration completion).
+   1898/2509 CoreLabo + Uncoded analytes (migration completion).
    If new analytes added without proper JP-CLINS coding wiring, this metric
    will drop and signal regression.
 

@@ -72,7 +72,7 @@ class CIFPatientRecord:
     microbiology: list[MicrobiologyResult] = field(default_factory=list)  # AD-55 Base (codes only)
     discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
-    # C5-22 (session 43 imaging chain closure): day (0-indexed LOS day) at
+    # C5-22 (imaging chain closure): day (0-indexed LOS day) at
     # which the patient was transferred to ICU. -1 when no transfer. Used
     # by `_fhir_encounter._build_class_history` to emit FHIR
     # Encounter.classHistory segments (ward → ICU transition point).
@@ -92,7 +92,7 @@ class CIFPatientRecord:
     # write under extensions[<module_name>] so they never edit this core type.
     extensions: dict[str, Any] = field(default_factory=dict)
 
-    # session 48 cleanup (g.3): typed views onto `orders` filtered by
+    # cleanup (g.3): typed views onto `orders` filtered by
     # `Order.order_type`. `orders` is still the mixed source of truth
     # (backwards-compat with 30+ callers); these views are read-only
     # convenience for new code so it does not have to inline

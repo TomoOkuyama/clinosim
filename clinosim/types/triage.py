@@ -1,7 +1,8 @@
-"""Triage CIF dataclass(Tier 1 #3 α-min-2 PR1).
+"""Triage CIF dataclass.
 
-EncounterRecord.triage_data に格納、FHIR builder + ED_TRIAGE_NOTE
-narrative generator が参照。level_system = "JTAS" or "ESI"、locale-gated。
+Stored on ``EncounterRecord.triage_data`` and consumed by the FHIR
+builder and the ``ED_TRIAGE_NOTE`` narrative generator.
+``level_system`` is ``"JTAS"`` (JP) or ``"ESI"`` (US), locale-gated.
 """
 
 from __future__ import annotations
@@ -12,11 +13,11 @@ from datetime import datetime
 
 @dataclass
 class TriageData:
-    """ED triage data(AD-30 code-only CIF、display は output で解決)."""
+    """ED triage data (AD-30 code-only CIF; display resolved at output time)."""
 
     level: str = ""  # e.g. "1"..."5"
     level_system: str = ""  # "JTAS" | "ESI"
     arrival_mode: str = ""  # "walk-in" | "ambulance" | "police" | "helicopter" | "private_vehicle"
     triage_time: datetime | None = None
-    acuity_score: float | None = None  # 0-100 数値スコア
-    chief_complaint_summary: str = ""  # triage 時 chief complaint 短文
+    acuity_score: float | None = None  # 0-100 numeric score
+    chief_complaint_summary: str = ""  # Short chief-complaint text captured at triage time.

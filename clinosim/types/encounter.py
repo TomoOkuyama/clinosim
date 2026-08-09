@@ -24,8 +24,9 @@ class EncounterType(StrEnum):
     PRENATAL_VISIT = "prenatal_visit"
     DELIVERY = "delivery"
     NICU = "nicu"
-    # P2-13 PR3 (session 47) 健診(健康診断)encounter — opt-in、
-    # SimulatorConfig.modules["health_checkup"]=True かつ country=JP 時のみ発生
+    # 健診 (health checkup) encounter — opt-in; only produced when
+    # ``SimulatorConfig.modules["health_checkup"] == True`` and
+    # ``country == "JP"``.
     CHECKUP = "checkup"
 
 
@@ -47,7 +48,7 @@ TIME_RESOLUTION: dict[EncounterType, timedelta | None] = {
     EncounterType.PRENATAL_VISIT: None,  # snapshot
     EncounterType.DELIVERY: timedelta(minutes=5),
     EncounterType.NICU: timedelta(minutes=15),
-    EncounterType.CHECKUP: None,  # 健診は snapshot(1日で完結)
+    EncounterType.CHECKUP: None,  # 健診 (health checkup) is a same-day snapshot encounter.
 }
 
 
@@ -64,12 +65,13 @@ class Encounter:
     discharging_physician_id: str = ""
     admission_datetime: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     discharge_datetime: datetime | None = None
-    chief_complaint: str = ""  # 英語版(AD-30: CIF は EN が canonical)
-    # 日本語版主訴。JP output で Encounter.reasonCode.text にフォールバック時
-    # に使用(Issue #360 G1、iris4h-ai 2026-07-22 feedback)。CIF は EN を
-    # canonical とする(AD-30)ため両方を保持し、caller が生成時に populate。
+    chief_complaint: str = ""  # English chief complaint (AD-30: EN is canonical in the CIF).
+    # Japanese chief complaint. Used as the fallback for
+    # ``Encounter.reasonCode.text`` on JP output (Issue #360 G1). The
+    # CIF keeps English as canonical (AD-30), so both fields are held
+    # and the caller populates them at generation time.
     # ClinicalImpressionRecord.description_ja / EncounterConditionProtocol.
-    # chief_complaint_ja と同 pattern。
+    # Same pattern as ``chief_complaint_ja``.
     chief_complaint_ja: str = ""
     disease_event_id: str = ""
     ward_id: str = ""  # e.g. "4W" (4th floor west)
@@ -83,18 +85,18 @@ class Encounter:
     admit_source_encounter_id: str = ""
     discharge_disposition: str = ""  # "home" | "hosp" | "other-hcf" | "exp" | "snf"
     priority: str = ""  # "EM" (emergency) | "UR" (urgent) | "R" (routine)
-    # Tier 1 #3 α-min-2 additions
-    primary_nurse_id: str = ""  # nursing_enricher が set(inpatient のみ)
-    triage_data: TriageData | None = None  # triage_enricher が set(ED のみ)
+    # Tier 1 #3 additions
+    primary_nurse_id: str = ""  # Set by nursing_enricher (inpatient only).
+    triage_data: TriageData | None = None  # Set by triage_enricher (ED only).
     # AD-65 Bug C fix: severity sampled in emergency.py ("mild"/"moderate"/"severe"),
     # consumed by triage_enricher.pick_triage_level(). Previously sampled but never
     # stored on Encounter -> triage_enricher always defaulted to "moderate" -> no
     # L1/L5 triage levels ever emitted (see clinosim/simulator/emergency.py:82-87).
-    # β-JP-1 chain 1a (2026-07-03): also written by the inpatient simulator so
+    # chain 1a (2026-07-03): also written by the inpatient simulator so
     # Stage 2 narrative generation (NarrativePass._build_context) can read it
     # from structural CIF instead of defaulting to "".
     severity: str = ""
-    # β-JP-1 chain 1a (spec §2a): clinical course archetype selected in
+    # chain 1a (spec §2a): clinical course archetype selected in
     # inpatient.py (e.g. "uncomplicated_improvement" / "treatment_resistant").
     # Internal enum-like key, not display text — AD-30 compliant. Default ""
     # keeps pre-1a structural CIF JSON loading unchanged (backward compat);
@@ -195,8 +197,9 @@ class Order:
     # ("CBC"/"BMP"/"LFT"/"ABG"/"Lipid"/"Coag"/"UA") — Orders sharing the same
     # (encounter_id, panel_key, ordered_datetime) tuple emit a single ServiceRequest.
     panel_key: str = ""
-    # PR2(Tier 1 #2 imaging chain)— imaging-only fields. LAB / MED / 他 OrderType
-    # では default ("" / [])のまま、FHIR 出力に影響しない(no-op safe)。
+    # Imaging-only fields (imaging chain). For LAB / MED and every
+    # other ``OrderType`` these remain at the defaults ("" / []) and
+    # do not affect FHIR output (no-op safe).
     imaging_modality: str = ""  # DCM code(CR/CT/MR/US/NM/...)
     imaging_body_site_code: str = ""  # SNOMED body structure
     imaging_views: list[str] = field(default_factory=list)
@@ -294,7 +297,7 @@ class ImmunizationRecord:
 
     CIF stores the CVX code only; display resolved at output via clinosim.codes (AD-30).
 
-    RM-3 (session 42): `lot_number` + `administered_by` fields added so FHIR
+    RM-3: `lot_number` + `administered_by` fields added so FHIR
     Immunization.lotNumber and .performer[].actor can be populated from real
     CIF data instead of a builder-side stub.
     """
