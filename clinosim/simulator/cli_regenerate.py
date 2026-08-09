@@ -1,6 +1,6 @@
 """CLI subcommand handler: `clinosim regenerate-goldens`.
 
-Split from `clinosim/simulator/cli.py` (session 82) — see PR K.
+Split from `clinosim/simulator/cli.py` — see PR K.
 """
 
 from __future__ import annotations

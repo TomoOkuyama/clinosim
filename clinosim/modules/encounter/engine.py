@@ -35,7 +35,7 @@ def _encounter_id_suffix(
 ) -> int:
     """Deterministic 12-digit id suffix, stable regardless of *other* encounters.
 
-    F1 (session 49): previously a module-global sequential counter assigned
+    F1: previously a module-global sequential counter assigned
     the suffix, so an encounter's id depended on how many *unrelated*
     encounters (e.g. other patients' readmissions) had already been created
     earlier in the same ``run_beta()`` call. Two cursor runs (differing only

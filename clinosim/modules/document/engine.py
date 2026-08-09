@@ -135,7 +135,7 @@ SHIFT_SCHEDULE: tuple[tuple[str, int], ...] = (
 )
 
 
-# P2-13 PR2b (session 47): JP-CLINS 診療情報提供書 emission rate.
+# P2-13 PR2b: JP-CLINS 診療情報提供書 emission rate.
 # 0.20 = 20% of eligible inpatient discharges emit a referral note.
 # Empirical acute-care hospital benchmark from spec §3.2.2. Deterministic
 # per (encounter_id, patient_id) so the same cohort seed produces the same
@@ -149,7 +149,7 @@ def _referral_note_fires(encounter_id: str, patient_id: str) -> bool:
     Deterministic:
       hash((encounter_id, patient_id)) as an int → normalized to [0, 1).
       Fires when the value is below REFERRAL_NOTE_FIRE_RATE. The hash is
-      hashlib.sha256-based (like session 46 P1-7 lot_number fix) so the
+      hashlib.sha256-based (like P1-7 lot_number fix) so the
       result is stable across Python invocations and locales.
     """
     import hashlib
@@ -163,7 +163,7 @@ def _referral_note_fires(encounter_id: str, patient_id: str) -> bool:
 def _pick_document_author(spec: Any, encounter: Any) -> str:
     """AD-65 Bug B fix: author dispatch by document type.
 
-    Session 27 clinical-integrity review found 23,279 nursing docs (LOINC
+    clinical-integrity review found 23,279 nursing docs (LOINC
     34746-8 / 78390-2 / 34745-0) had ``author_practitioner_id`` set to the
     attending physician instead of the assigned nurse — clinically incorrect
     (a nursing assessment/shift note/discharge summary is authored by
@@ -409,7 +409,7 @@ def document_enricher(ctx: Any) -> None:
                     # Spec §7: daily notes skipped for LOS<1 encounters
                     # (LOS=0 = day-surgery / immediate discharge、intermediate
                     # notes 不要)。
-                    # Issue #337 (session 62):従来 `<= 1` で LOS=1 encounter も
+                    # Issue #337:従来 `<= 1` で LOS=1 encounter も
                     # skip していたが、eDS Composition (discharge_once) は
                     # LOS=1 でも emit されるため hospitalCourseSection.entry
                     # min=1 の valid DocumentReference target が欠落 →
@@ -494,7 +494,7 @@ def document_enricher(ctx: Any) -> None:
                     doc_seq += 1
 
                 elif freq == "discharge_fraction_20pct":
-                    # P2-13 PR2b (session 47): JP-CLINS 診療情報提供書 fires on
+                    # P2-13 PR2b: JP-CLINS 診療情報提供書 fires on
                     # a deterministic 20% subset of inpatient discharges
                     # (empirical acute-care hospital referral-note rate).
                     # AD-32: no referral note while encounter is open.
@@ -525,7 +525,7 @@ def document_enricher(ctx: Any) -> None:
                     doc_seq += 1
 
                 elif freq == "checkup_once":
-                    # P2-13 PR3(session 47):JP-eCheckup 健診結果報告書
+                    # P2-13 PR3:JP-eCheckup 健診結果報告書
                     # opt-in。config.module_enabled("health_checkup") が
                     # True の場合のみ発行対象。encounter_types_supported
                     # ["checkup"] gate と併せて、通常の inpatient/outpatient
@@ -577,7 +577,7 @@ def document_enricher(ctx: Any) -> None:
 
             # ── ClinicalImpression generation (inpatient types only; spec §3.3) ─
             if emit_ci:
-                # C4-11 (session 43 cycle 4): richer template description.
+                # C4-11: richer template description.
                 # Pre-fix was a 25-char stub ("Day N clinical assessment").
                 # Now includes disease id + severity + phase hint. Purely
                 # template-driven (deterministic, no LLM) — β-JP-1 is a

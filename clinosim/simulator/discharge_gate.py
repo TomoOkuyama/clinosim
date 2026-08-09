@@ -67,7 +67,7 @@ def _evaluate_readmission(
     if rng.random() >= rate:
         return None
 
-    # F1 (session 49): anchor to *this record's own* discharge, not
+    # F1: anchor to *this record's own* discharge, not
     # person.last_discharge_date — the latter is mutated in-place by
     # `_deactivate_to_layer1` after every admission and can silently attach a
     # readmission chain from an EARLIER admission to a LATER admission.

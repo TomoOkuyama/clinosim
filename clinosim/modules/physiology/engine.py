@@ -765,10 +765,10 @@ def canonical_state_vars() -> frozenset[str]:
     """Return the canonical set of delta-driven physiological state vars.
 
     Consumed by :func:`_validate_initial_state_impact` to reject typo'd /
-    unmodeled state-var keys in disease YAMLs at author time (FP-DELTA-VALIDATE,
-    session 40). The set is the keys of the internal ``_VARIABLE_RANGES`` map,
-    which is the canonical clamp-range source consumed by
-    :func:`apply_state_delta`.
+    unmodeled state-var keys in disease YAMLs at author time
+    (FP-DELTA-VALIDATE). The set is the keys of the internal
+    ``_VARIABLE_RANGES`` map, which is the canonical clamp-range source
+    consumed by :func:`apply_state_delta`.
     """
     return frozenset(_VARIABLE_RANGES.keys())
 
@@ -782,7 +782,7 @@ def _validate_complications_state_impact(
     Sibling of :func:`_validate_initial_state_impact` — complication state
     deltas route through the same :func:`apply_state_delta` sink, so an
     unmodeled var here also silently no-ops (FP-DELTA-VALIDATE cross-module
-    sweep, session 40).
+    sweep).
     """
     if not complications:
         return
@@ -817,7 +817,7 @@ def _validate_initial_state_impact(
     Raises ``ValueError`` if any severity block references a state var that is
     not in :func:`canonical_state_vars` — such keys would silently no-op in
     :func:`apply_state_delta` (via ``getattr(state, var, None)``) and lose the
-    author's clinical intent (FP-DELTA-VALIDATE, session 40). Error message
+    author's clinical intent (FP-DELTA-VALIDATE). Error message
     lists the disease id, offending severity, offending var(s), and the
     canonical set.
     """

@@ -120,7 +120,7 @@ def _check_required_fields_present(cohort: Cohort, country: str) -> EvalCheck:
 
 def _check_meta_profile_declared(cohort: Cohort, country: str) -> EvalCheck:
     """For JP cohorts, every emitted primary resource type should carry
-    ``meta.profile`` — the session-46 milestone was 16 primary types at 100%.
+    ``meta.profile`` — the milestone was 16 primary types at 100%.
     For US, this check is N/A (no US Core profiles asserted yet)."""
     # Delegate country detection to the locale axis's helper (handles flat
     # cohorts where the directory doesn't encode the country).

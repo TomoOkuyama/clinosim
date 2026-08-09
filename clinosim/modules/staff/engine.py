@@ -331,7 +331,7 @@ def _generate_name(sex: str, country: str, rng: np.random.Generator) -> str:
 def _generate_name_pair(sex: str, country: str, rng: np.random.Generator) -> tuple[str, str]:
     """Generate (kanji, kana) name pair for staff.
 
-    C2-19 continuation (session 43 cycle 5): JP roster gen now returns the
+    C2-19 continuation: JP roster gen now returns the
     kana reading alongside the kanji so ``StaffMember.name_phonetic`` can be
     populated and downstream FHIR emit adds the SYL (syllabic) HumanName
     entry required by JP Core Practitioner. Non-JP rosters return kana="".

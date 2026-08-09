@@ -158,7 +158,7 @@ PRECISION: dict[str, int] = {
     "HDL": 0,
     "TG": 0,
     "TC": 0,
-    # session 52 lint: "Na": 0 was duplicated (already declared above); dropped.
+    # lint: "Na": 0 was duplicated (already declared above); dropped.
     "Fibrinogen": 0,
     "D_dimer": 2,
     "Amylase": 0,
@@ -204,7 +204,7 @@ LAB_UNITS: dict[str, str] = {
     "pCO2": "mm[Hg]",
     "pO2": "mm[Hg]",
     "PT_INR": "{INR}",
-    # #325 session 61:PT / APTT は reference_range_lab.yaml に unit "s"
+    # #325 PT / APTT は reference_range_lab.yaml に unit "s"
     # (seconds)定義済みだが LAB_UNITS 未登録で空 unit emit されていた。
     # JP_Observation_LabResult_eCS の refRange units-isSameAs invariant を
     # 22 件違反していた fix。
@@ -227,7 +227,7 @@ LAB_UNITS: dict[str, str] = {
     "Amylase": "U/L",
     "Lipase": "U/L",
     "Cortisol": "ug/dL",
-    # session 52 lint: "BNP": "pg/mL" was duplicated (already declared above); dropped.
+    # lint: "BNP": "pg/mL" was duplicated (already declared above); dropped.
 }
 
 

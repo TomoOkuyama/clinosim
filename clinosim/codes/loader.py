@@ -38,7 +38,7 @@ class CodeSystem:
     codes: dict[str, dict[str, str]]  # code → {en, ja, ...}
 
 
-# Issue #350 (session 63): system keys that share underlying code data with
+# Issue #350: system keys that share underlying code data with
 # another system but carry a distinct canonical URI. Concrete case:
 # `icd-10-mhlw` uses the same 3-4 character ICD-10 codes as `icd-10` (WHO)
 # but its canonical URI is the JP Core / MHLW 2013 registry
@@ -54,7 +54,7 @@ _SYSTEM_DATA_ALIASES: dict[str, str] = {
 }
 
 
-# Issue #415 (session 81): sibling systems consulted as read-only lookup
+# Issue #415: sibling systems consulted as read-only lookup
 # fallbacks. When ``lookup(primary, code, lang)`` finds no entry in
 # ``primary``, ``lookup`` retries each sibling in order until one hits.
 # Concrete case: ``system_key_for("drug", "JP") = "yj"`` and callers pass
@@ -217,7 +217,7 @@ def get_system_uri(system: str) -> str:
 # RxNorm / CPT" selection previously inlined at each builder / simulator site.
 _COUNTRY_SYSTEM_KEYS: dict[str, dict[str, str]] = {
     "lab": {"jp": "jlac10", "default": "loinc"},
-    # Issue #350 (session 63): JP path uses `icd-10-mhlw` (aliased to the
+    # Issue #350: JP path uses `icd-10-mhlw` (aliased to the
     # same code data as `icd-10` but carrying the MHLW canonical URI
     # `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full`). JP Core
     # `jp-condition-diagnosis` declares a required binding to that ValueSet;
@@ -253,7 +253,7 @@ def system_key_for(kind: str, country: str) -> str:
 _BUILTIN_URIS: dict[str, str] = {
     "icd-10-cm": "http://hl7.org/fhir/sid/icd-10-cm",
     "icd-10": "http://hl7.org/fhir/sid/icd-10",
-    # Issue #350 (session 63): JP-locale ICD-10 canonical URI. Same code
+    # Issue #350: JP-locale ICD-10 canonical URI. Same code
     # data as `icd-10` (WHO) via `_SYSTEM_DATA_ALIASES` above. The URI is
     # the required binding target on JP Core `jp-condition-diagnosis`.
     "icd-10-mhlw": "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full",
@@ -262,7 +262,7 @@ _BUILTIN_URIS: dict[str, str] = {
     "rxnorm": "http://www.nlm.nih.gov/research/umls/rxnorm",
     "cpt": "http://www.ama-assn.org/go/cpt",
     "jlac10": "urn:oid:1.2.392.200119.4.1005",
-    # JP Core NamingSystem preferred=True fixedUri (session 53 iris4h-ai F-1
+    # JP Core NamingSystem preferred=True fixedUri (iris4h-ai F-1
     # rationale + B2 2026-07-26 registry drift 訂正)。旧値 `.74` は HOT9 alias OID、
     # YJ 本来の OID は `.73`。emit 側は既に capstandard URI へ dispatch 済み。
     "yj": "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code",
@@ -297,7 +297,7 @@ _BUILTIN_URIS: dict[str, str] = {
     "hl7-v3-participationtype": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
     "hl7-v3-administrativegender": "http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender",
     "hl7-v3-actpriority": "http://terminology.hl7.org/CodeSystem/v3-ActPriority",
-    # C1-19 (session 41 cycle 1): Immunization.statusReason for status="not-done".
+    # C1-19: Immunization.statusReason for status="not-done".
     "hl7-v3-actreason": "http://terminology.hl7.org/CodeSystem/v3-ActReason",
     "hl7-v2-0360": "http://terminology.hl7.org/CodeSystem/v2-0360",
     "hl7-v2-0203": "http://terminology.hl7.org/CodeSystem/v2-0203",

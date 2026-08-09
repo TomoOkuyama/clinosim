@@ -298,8 +298,7 @@ def classify_escalation_treatment(esc_drug: object) -> OrderType:
 
     (2) Keyword fallback — delegate to ``classify_encounter_treatment`` on the
         combined ``drug + dose`` display string (same string ``inpatient.py``
-        builds for the Order's ``display_name``). Preserves the session-74
-        behavior for un-migrated entries.
+        builds for the Order's ``display_name``). Preserves the        behavior for un-migrated entries.
 
     (3) Default MEDICATION.
 

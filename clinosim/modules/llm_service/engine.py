@@ -64,9 +64,9 @@ class LLMTaskType(StrEnum):
     ADMISSION_CARE_PLAN = "admission_care_plan"  # LOINC 18776-5
     NUTRITION_CARE_PLAN = "nutrition_care_plan"  # LOINC 80791-7
     REHABILITATION_PLAN = "rehabilitation_plan"  # LOINC 34823-5
-    # P2-13 PR2b (session 47) JP-CLINS 診療情報提供書
+    # P2-13 PR2b JP-CLINS 診療情報提供書
     REFERRAL_NOTE = "referral_note"  # LOINC 57133-1
-    # P2-13 PR3 (session 47) JP-eCheckup General 健診結果報告書(opt-in)
+    # P2-13 PR3 JP-eCheckup General 健診結果報告書(opt-in)
     HEALTH_CHECKUP_REPORT = "health_checkup_report"  # LOINC 53576-5
 
 

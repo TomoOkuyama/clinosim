@@ -1,4 +1,4 @@
-"""P2-15 benchmark harness (session 48).
+"""P2-15 benchmark harness.
 
 Provides label extractors + baseline classifiers for common early-warning
 prediction tasks derived from clinosim-generated CIF:

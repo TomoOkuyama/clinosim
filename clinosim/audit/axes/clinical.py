@@ -826,7 +826,7 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     # triggers an ImportError downstream rather than a silent
                     # gate skip (same defense pattern as MB_ORG_ID_PREFIX, C4).
                     #
-                    # Issue #349 Phase 1b(session 64): antibiotic MR.id is now
+                    # Issue #349 Phase 1b: antibiotic MR.id is now
                     # opaque(`mr-{sha256[:12]}`)なので `id` 文字列 match は
                     # 全 antibiotic MR を silently drop する silent-no-op に
                     # なる。 structural key(compound `req-abx-...-{intent}`)は

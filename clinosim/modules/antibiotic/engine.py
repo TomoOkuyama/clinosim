@@ -41,7 +41,7 @@ ABX_REGIMEN_ID_PREFIX = "abx-"  # AntibioticRegimen.regimen_id
 ABX_ORDER_REQ_PREFIX = "req-"  # Order.order_id = "req-" + regimen_id
 ABX_ORDER_ID_PREFIX = ABX_ORDER_REQ_PREFIX + ABX_REGIMEN_ID_PREFIX  # composed prefix for readers
 # ABX_NARROW_SUFFIX: shortened from "-narrowed" (9 chars) to "-n" (2 chars) in
-# Issue #347 (session 63) to keep composed MedicationRequest.id
+# Issue #347 to keep composed MedicationRequest.id
 #   req- (4) + abx- (4) + hai-{enc_id 26}-{hai_type 3-6}-{index 1-2}- (~37)
 #   + {drug_slug ≤15} + {suffix}
 # under FHIR R4's 64-char Resource.id limit. Concrete failure that motivated
@@ -182,7 +182,7 @@ def load_hai_empirical() -> dict[str, dict[str, Any]]:
 # Long drug names would blow the 64-char FHIR id budget once composed with the
 # `req-abx-{hai_id}-` prefix (~49 chars leaves ~15 for the slug). Keep the slug
 # clinically recognizable rather than truncating mid-word.
-# Issue #347 (session 63): expanded coverage to all HAI empirical drugs whose
+# Issue #347: expanded coverage to all HAI empirical drugs whose
 # canonical drug_key exceeds 10 chars, since worst-case composition
 # `req-abx-{hai_id 37}-{slug}-n` gives {slug} a ~14-char budget once the
 # narrowed suffix is present. `ceftriaxone` (11) hit the limit in v16
@@ -231,7 +231,7 @@ def _check_fhir_id_length(id_value: str, resource_kind: str) -> None:
     HAPI validation time when the offending resource may already have
     been persisted and referenced from other bundles.
 
-    Issue #347 (session 63): the composed
+    Issue #347: the composed
     ``req-abx-{hai_id}-{drug_slug}-narrowed`` id hit 66 chars in v16
     (2026-07-21) with drug_key=ceftriaxone. This guard would have
     surfaced the problem at generate time instead of only at validation.

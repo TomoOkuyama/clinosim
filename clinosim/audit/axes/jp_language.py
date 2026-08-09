@@ -81,7 +81,7 @@ def _looks_like_url(text: str) -> bool:
 # Slot scope
 
 # Systems whose ``coding.display`` is the English canonical text by
-# design. The dual-slot rule (session 67) says the JP-facing text goes
+# design. The dual-slot rule says the JP-facing text goes
 # into ``code.text`` — not into the display of a canonical coding —
 # so these displays MUST NOT be flagged as JP-side violations.
 #

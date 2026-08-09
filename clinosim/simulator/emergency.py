@@ -43,7 +43,7 @@ def _simulate_ed_visit(
 ) -> CIFPatientRecord:
     """Simulate an ED visit using YAML protocol if available, else basic.
 
-    Issue #345 (session 63): `force_severity` bypasses the stochastic
+    Issue #345: `force_severity` bypasses the stochastic
     `sample_severity_category` call so enumeration mode can generate one
     patient per (encounter × severity) combination deterministically. Value
     must be a key already declared in the encounter YAML's
@@ -103,7 +103,7 @@ def _simulate_ed_visit(
         # Shared categorical severity primitive (FP-SEV-MODEL). ED encounter YAML
         # carries no modifiers/minimum, so pass []/None; the sampled category is the
         # single source used for triage + ed_stay_hours.
-        # Issue #345 (session 63): enumeration mode passes force_severity to skip
+        # Issue #345: enumeration mode passes force_severity to skip
         # stochastic sampling so every (encounter × severity) combination is
         # exercised deterministically.
         if force_severity is not None:
@@ -305,7 +305,7 @@ def _simulate_ed_visit(
     icd_code = (protocol or condition).get("icd10_code", "R69")  # R69 = Illness, unspecified
     (protocol or condition).get("icd10_display", chief or cond_name)
 
-    # C1-09 (session 41 cycle 1): emit bedside procedures for ED severe cases.
+    # C1-09: emit bedside procedures for ED severe cases.
     # Reuse the existing procedure engine (already keyed by internal condition
     # id) so we don't duplicate the SNOMED / CPT / K-code table. Sampled at the
     # ED encounter rng stream, deterministic (AD-16).

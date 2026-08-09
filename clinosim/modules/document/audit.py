@@ -81,15 +81,16 @@ does not have a jp_language_checks field. Deferred to a follow-up sweep
 verify: DocumentReference.type.coding[].display in ja / Composition.section[].title
 in ja / AllergyIntolerance.code.text in ja / ClinicalImpression.description in ja.
 
-Historical (AD-65 Bug A residual gap, closed session 53 by PR #149):
+Historical (AD-65 Bug A residual gap, closed by PR #149):
 `hpi_template.onset_pattern` / `physical_exam_findings` / `daily_trajectory`
 disease YAML values are Japanese-only strings. Previously the template
 generator emitted them into US narratives with a `:ja_only_fallback` fact
-tag, leaking CJK into `Composition.section[].text.div`. Session 53
-(``template_generator._build_hpi`` / ``_build_physical_examination`` /
-``_build_assessment_and_plan`` / ``_render_progress_note_text``) short-
-circuits EN locale to generic English placeholders before touching those
-YAML values, closing the leak at the code path.
+tag, leaking CJK into `Composition.section[].text.div`. The current
+implementation (``template_generator._build_hpi`` /
+``_build_physical_examination`` / ``_build_assessment_and_plan`` /
+``_render_progress_note_text``) short-circuits EN locale to generic
+English placeholders before touching those YAML values, closing the
+leak at the code path.
 
 ``KNOWN_JA_ONLY_FALLBACK_SECTIONS`` is retained as a defensive audit
 workaround-slot so any *new* data-authoring gap for these sections would

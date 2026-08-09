@@ -43,7 +43,7 @@ def _as_of(ctx, rec) -> date:
 def enrich_immunizations(ctx) -> None:
     country = _get(_get(ctx, "config"), "country", "US") if _get(ctx, "config") else "US"
     schedule = load_schedule(country)
-    # RM-3 (session 42): pass a sorted nurse roster so administered_by can be
+    # RM-3: pass a sorted nurse roster so administered_by can be
     # populated per-Immunization deterministically (real JP practice: nurses
     # administer routine vaccinations).
     roster = getattr(ctx, "roster", None)

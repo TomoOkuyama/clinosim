@@ -508,7 +508,7 @@ def _simulate_patient(
         encounter.admit_source_encounter_id = f"{encounter.encounter_id}-ED"
     if not encounter.discharge_disposition:
         if death_occurred:
-            encounter.discharge_disposition = DischargeDisposition.EXP  # session 59 #299: HL7 authoritative
+            encounter.discharge_disposition = DischargeDisposition.EXP  # #299:HL7 authoritative
         else:
             encounter.discharge_disposition = DischargeDisposition.HOME
     if not encounter.priority:
@@ -571,7 +571,7 @@ def _simulate_patient(
                 m for m in microbiology if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
             ]
 
-    # RM-7d (session 42): acquired chronic conditions during inpatient stay.
+    # RM-7d: acquired chronic conditions during inpatient stay.
     # Real EHR practice: hospitalization commonly surfaces newly-diagnosed
     # chronic disease (new-onset HTN, DM, AF, CKD, HF, IHD detected in
     # workup). We map primary disease_id → likely-implied chronic ICD codes
@@ -601,7 +601,7 @@ def _simulate_patient(
         (c.code.split(".")[0] if hasattr(c, "code") else str(c).split(".")[0])
         for c in (getattr(patient, "chronic_conditions", []) or [])
     }
-    # Session 45 seed=400 verification finding: N40 (BPH) is anatomically
+    # seed=400 verification finding: N40 (BPH) is anatomically
     # male-only, but the implied-chronic table was applying it sex-blind.
     # Register sex constraints per code so future additions are safe by
     # default (single edit point; sibling-sweep-safe pattern).
@@ -629,7 +629,7 @@ def _simulate_patient(
                 )
             )
 
-    # Session 45 seed=400 verification: propagate in-hospital death to the
+    # seed=400 verification: propagate in-hospital death to the
     # Patient record so `_fhir_patient` can emit `deceasedDateTime`. Uses
     # the encounter's discharge_datetime (set to the death moment in the
     # simulator when death_occurred is True).

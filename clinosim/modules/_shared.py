@@ -21,7 +21,7 @@ import numpy as np
 # ``sanitize_id_token``'s docstring). FHIR emitters (currently
 # ``clinosim/modules/output/_fhir_medications.py``) key on this marker
 # to override MedicationRequest.status → ``"stopped"`` (Issue #436;
-# session 79 investigation ruled out F1 because reassigning
+# investigation ruled out F1 because reassigning
 # ``OrderStatus.STOPPED`` at Order creation shifts ``_generate_mar``'s
 # per-order rng cursor and violates AD-16 determinism). Marker
 # constant is shared so writer and reader stay in lockstep — the same
@@ -122,7 +122,7 @@ def sanitize_id_token(token: str, max_len: int = 40) -> str:
     This helper is the single source of truth for producing the fragment
     that ends up inside a resource id.
 
-    Session 52 fix (iris4h-ai HAPI FB): 24 Procedure / 3 MedicationRequest /
+    fix (iris4h-ai HAPI FB): 24 Procedure / 3 MedicationRequest /
     2 ServiceRequest ids carried ``NIV_BiPA`` / ``Broad sp`` / ``DIC_p``
     substrings from raw ``drug[:8]`` slices. Route those slices through
     ``sanitize_id_token(name)[:max_len]`` — never truncate first.

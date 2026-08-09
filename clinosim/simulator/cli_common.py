@@ -1,6 +1,6 @@
 """Shared CLI helpers used by main + subcommand handlers.
 
-Split from `clinosim/simulator/cli.py` (session 82) — see PR K.
+Split from `clinosim/simulator/cli.py` — see PR K.
 The subcommand handler modules (`cli_regenerate`, `cli_narrate`,
 `cli_test_encounter`, `cli_test_disease`, `cli_enumerate`, `cli_export_fhir`)
 import their shared print / export / debug helpers from here so they can be
@@ -19,7 +19,7 @@ from clinosim.types.output import CIFDataset, CIFPatientRecord
 _FORMAT_ALIASES = {"fhir": "fhir-r4"}
 
 
-# ---- _validate_formats (moved from cli.py, session 82) ----
+# ---- _validate_formats (moved from cli.py) ----
 def _validate_formats(formats: list[str], parser: Any) -> None:
     """Fail fast with a clean parser error on an unknown --format, before generation runs."""
     from clinosim.modules.output.adapter import get_adapter
@@ -34,7 +34,7 @@ def _validate_formats(formats: list[str], parser: Any) -> None:
             parser.error(str(e))
 
 
-# ---- _run_exports (moved from cli.py, session 82) ----
+# ---- _run_exports (moved from cli.py) ----
 def _run_exports(
     formats: list[str],
     cif_dir: str,
@@ -60,7 +60,7 @@ def _run_exports(
         adapter.convert(cif_dir, os.path.join(output_root, adapter.subdir), ctx)
 
 
-# ---- _print_summary (moved from cli.py, session 82) ----
+# ---- _print_summary (moved from cli.py) ----
 def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
     """Print a summary report of generated data."""
     from collections import Counter, defaultdict
@@ -102,7 +102,7 @@ def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
     print(f"\n  Output: {output_dir}/")
 
 
-# ---- _run_quality_checks (moved from cli.py, session 82) ----
+# ---- _run_quality_checks (moved from cli.py) ----
 def _run_quality_checks(dataset: CIFDataset) -> None:
     """Run comprehensive quality checks on generated data."""
     from collections import Counter
@@ -198,7 +198,7 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
     print(f"\n  {'✅ ALL CHECKS PASSED' if issues == 0 else f'⚠ {issues} ISSUES FOUND'}")
 
 
-# ---- _print_debug_record (moved from cli.py, session 82) ----
+# ---- _print_debug_record (moved from cli.py) ----
 def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
     """Print detailed debug output for a single patient record."""
     r = record

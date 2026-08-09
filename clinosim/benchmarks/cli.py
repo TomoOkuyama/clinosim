@@ -1,4 +1,4 @@
-"""`clinosim benchmark` CLI subcommand — session 48 P2-15.
+"""`clinosim benchmark` CLI subcommand — P2-15.
 
 Reads a generated CIF directory and prints baseline reports for the requested
 task. Deterministic: same CIF input → same report.
