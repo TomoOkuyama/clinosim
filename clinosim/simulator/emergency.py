@@ -17,6 +17,24 @@ from clinosim.modules.staff.engine import (
     StaffRoster,
     assign_staff,
 )
+from clinosim.simulator._ed_thresholds import (
+    DEFAULT_TRIAGE_LAB_PANEL,
+    DEFAULT_TRIAGE_LAB_PROBABILITY,
+    ED_IMAGING_ORDER_OFFSET_MEAN_MIN,
+    ED_IMAGING_ORDER_OFFSET_STD_MIN,
+    ED_LAB_ORDER_OFFSET_MEAN_MIN,
+    ED_LAB_ORDER_OFFSET_STD_MIN,
+    ED_LAB_RESULT_OFFSET_MEAN_MIN,
+    ED_LAB_RESULT_OFFSET_STD_MIN,
+    ED_PAIN_BASELINE,
+    ED_PAIN_INFLAMMATION_SCALE,
+    ED_PAIN_MAX,
+    ED_PAIN_MIN,
+    ED_PAIN_NOISE_STD,
+    ED_TREATMENT_ORDER_OFFSET_MEAN_MIN,
+    ED_TREATMENT_ORDER_OFFSET_STD_MIN,
+    ED_VITALS_OFFSET_MIN,
+)
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.encounter import (
     EncounterStatus,
@@ -134,13 +152,9 @@ def _simulate_ed_visit(
     workup = (protocol or {}).get("workup", {})
     lab_specs = workup.get("labs", [])
     if not lab_specs and not protocol:
-        # Default: basic labs with 60% probability
-        if rng.random() < 0.6:
-            lab_specs = [
-                {"test": "WBC", "probability": 1.0},
-                {"test": "CRP", "probability": 1.0},
-                {"test": "Creatinine", "probability": 1.0},
-            ]
+        # Default: basic triage-lab panel (see _ed_thresholds.py)
+        if rng.random() < DEFAULT_TRIAGE_LAB_PROBABILITY:
+            lab_specs = list(DEFAULT_TRIAGE_LAB_PANEL)
 
     # Comorbidity-aware true values via the same physiology path as inpatient (AD-57):
     # a baseline state built from the patient's chronic conditions (CKD → high Cr, etc.),
@@ -200,7 +214,8 @@ def _simulate_ed_visit(
             display_name=test,
             urgency="stat",
             clinical_intent=f"ED workup: {test}",
-            ordered_datetime=visit_time + timedelta(minutes=int(lab_rng.normal(10, 5))),
+            ordered_datetime=visit_time
+            + timedelta(minutes=int(lab_rng.normal(ED_LAB_ORDER_OFFSET_MEAN_MIN, ED_LAB_ORDER_OFFSET_STD_MIN))),
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         )
@@ -208,7 +223,8 @@ def _simulate_ed_visit(
         observed = generate_lab_result(canon, true_val, lab_rng)
         flag = determine_flag(canon, observed, sex=patient.sex, country=country)
         order.result = OrderResult(
-            result_datetime=visit_time + timedelta(minutes=int(lab_rng.normal(50, 15))),
+            result_datetime=visit_time
+            + timedelta(minutes=int(lab_rng.normal(ED_LAB_RESULT_OFFSET_MEAN_MIN, ED_LAB_RESULT_OFFSET_STD_MIN))),
             performed_by=lab_tech_id,
             lab_name=canon,
             value=observed,
@@ -232,7 +248,8 @@ def _simulate_ed_visit(
                 display_name=test,
                 urgency="stat",
                 clinical_intent=f"ED imaging: {test}",
-                ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(20, 8))),
+                ordered_datetime=visit_time
+                + timedelta(minutes=int(rng.normal(ED_IMAGING_ORDER_OFFSET_MEAN_MIN, ED_IMAGING_ORDER_OFFSET_STD_MIN))),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.PLACED,
             )
@@ -255,7 +272,10 @@ def _simulate_ed_visit(
                 display_name=_tx_name,
                 urgency="stat",
                 clinical_intent=f"ED treatment: {tx.get('intent', _tx_name)}",
-                ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(30, 10))),
+                ordered_datetime=visit_time
+                + timedelta(
+                    minutes=int(rng.normal(ED_TREATMENT_ORDER_OFFSET_MEAN_MIN, ED_TREATMENT_ORDER_OFFSET_STD_MIN))
+                ),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.PLACED,
             )
@@ -266,10 +286,11 @@ def _simulate_ed_visit(
     ed_nurse_id = assign_staff("medication_administration", "emergency_medicine", roster, rng).get(
         "administering_nurse", ""
     )  # noqa: E501
-    vit_time = visit_time + timedelta(minutes=5)
+    vit_time = visit_time + timedelta(minutes=ED_VITALS_OFFSET_MIN)
     raw = derive_observed_vitals(_state, patient.baseline_vitals, vit_time, rng)
     # ED presentations are acute → pain skews higher, scaled by inflammation.
-    pain = int(max(0, min(10, rng.normal(_state.inflammation_level * 4 + 2, 1.5))))
+    _pain_mean = _state.inflammation_level * ED_PAIN_INFLAMMATION_SCALE + ED_PAIN_BASELINE
+    pain = int(max(ED_PAIN_MIN, min(ED_PAIN_MAX, rng.normal(_pain_mean, ED_PAIN_NOISE_STD))))
     vitals = [
         VitalSignRecord(
             timestamp=vit_time,
