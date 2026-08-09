@@ -23,7 +23,7 @@ def _det_hash(*args: object) -> int:
 
     Python's builtin :func:`hash` on strings is salted per-interpreter (see
     ``PYTHONHASHSEED``), so two runs of the same clinosim invocation produce
-    different lot numbers. P1-7 (session 46) uncovered this via the
+    different lot numbers. P1-7 uncovered this via the
     reproduce.sh determinism gate — the immunization ``lotNumber`` was the
     only field in the whole FHIR bundle that varied across runs at a fixed
     seed. This helper substitutes ``hashlib.sha256`` so the value is
@@ -86,13 +86,13 @@ def generate_immunizations(
     base_age = int(getattr(patient, "age", 0) or 0)
     sex = getattr(patient, "sex", "M") or "M"
     pid = getattr(patient, "patient_id", "") or ""
-    # RM-3 (session 42): pick a stable "family nurse" per patient (nurses
+    # RM-3: pick a stable "family nurse" per patient (nurses
     # administer routine vaccinations in JP practice).
     default_nurse = ""
     if nurse_ids:
         default_nurse = nurse_ids[sum(ord(c) for c in pid) % len(nurse_ids)]
     out: list = []
-    # C1-19 (session 41 cycle 1): a small share of vaccines are documented in
+    # C1-19: a small share of vaccines are documented in
     # the EHR as declined by the patient / caregiver (FHIR status="not-done" +
     # statusReason "PATOBJ" patient objection). Real JP EHRs carry this ~1-3%
     # depending on vaccine — flu/pneumococcal in the elderly; HPV in
@@ -123,7 +123,7 @@ def generate_immunizations(
         if start > as_of:
             continue
 
-        # C3-03 continuation (session 43): synthetic lot number generator.
+        # C3-03 continuation: synthetic lot number generator.
         # JP 薬機法 requires vaccine lot tracking for post-market surveillance
         # (副作用報告制度). Real lot numbers come from manufacturer QC systems;
         # for synthetic data we generate a deterministic manufacturer-style
@@ -134,7 +134,7 @@ def generate_immunizations(
         # 0..1 and JP practice pattern documentation. Downstream consumers
         # must treat it as synthetic (AD-57 spirit: no fabrication of billing
         # / regulatory codes; lot number is neither).
-        # P1-7 (session 46): use _det_hash (sha256-based) instead of the
+        # P1-7: use _det_hash (sha256-based) instead of the
         # Python builtin `hash()`. Builtin hash on strings is salted per
         # interpreter run so lot numbers used to vary between two runs at
         # the same seed. reproduce.sh gates this now.

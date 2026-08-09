@@ -365,7 +365,7 @@ def place_admission_orders(
     # the ED treatment path in simulator/emergency.py; J5 pattern prevention).
     for i, sup in enumerate(admission.get("supportive", [])):
         sup_type = sup.get("type", "")
-        # CY2-B continuation (session 43 cycle 5): disease-YAML supportive detail
+        # CY2-B continuation: disease-YAML supportive detail
         # texts sometimes carry alternatives ("NS or LR", "Enoxaparin ... or IPC").
         # Real MARs specify what was given — pick the primary (first) alternative
         # for the Order display_name so downstream FHIR emit doesn't produce
@@ -389,7 +389,7 @@ def place_admission_orders(
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,
         )
-        # P1-3 (session 51): Enrich MEDICATION orders with dose from detail_raw
+        # P1-3: Enrich MEDICATION orders with dose from detail_raw
         # so dose_quantity / dose_unit are correctly set (not display_name).
         if order_type == OrderType.MEDICATION:
             enrich_medication_order(order, dose_str=detail_raw)

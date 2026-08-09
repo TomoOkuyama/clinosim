@@ -49,7 +49,7 @@ class DischargeDisposition(StrEnum):
     """Discharged to home / self-care (default for successful inpatient completion)."""
 
     EXP = "exp"
-    """Expired — patient died during the encounter (session 59 #299: HL7 authoritative)."""
+    """Expired — patient died during the encounter (#299:HL7 authoritative)."""
 
 
 class ActPriority(StrEnum):

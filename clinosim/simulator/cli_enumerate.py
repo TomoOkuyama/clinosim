@@ -1,6 +1,6 @@
 """CLI subcommand handler: `clinosim enumerate`.
 
-Split from `clinosim/simulator/cli.py` (session 82) — see PR K.
+Split from `clinosim/simulator/cli.py` — see PR K.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from clinosim.simulator.cli_common import _print_summary, _run_exports
 
 
 def _run_enumerate(args: Any) -> None:
-    """enumerate dispatch (Issue #345, session 63).
+    """enumerate dispatch (Issue #345).
 
     Discovers every disease/encounter YAML, expands cases at the requested
     coverage level, and emits CIF + FHIR (and optionally CSV) for every

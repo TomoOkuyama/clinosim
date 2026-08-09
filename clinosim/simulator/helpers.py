@@ -1,6 +1,6 @@
 """Backward-compat facade for the historical ``simulator/helpers.py`` grab-bag.
 
-Session 83 (Issue #544) split the 491-line grab-bag into topic-owned modules.
+(Issue #544) split the 491-line grab-bag into topic-owned modules.
 This file remains as a thin re-export layer so existing callers continue to
 work; new code should import from the topic-owned modules directly:
 
@@ -119,7 +119,7 @@ def _deactivate_to_layer1(
     if dx_code:
         base_code = dx_code.split(".")[0] if "." in dx_code else dx_code
         chronic_prefixes = ("I", "E", "J44", "J45", "N18", "M", "G20", "F00", "K21", "N40")
-        # Session 45 seed=400 verification finding: N40 (BPH) is anatomically
+        # seed=400 verification finding: N40 (BPH) is anatomically
         # male-only. Prevent discharge-Dx propagation from attaching a
         # sex-restricted ICD to the wrong sex.
         _SEX_RESTRICTED_ICD = {"N40": "M"}

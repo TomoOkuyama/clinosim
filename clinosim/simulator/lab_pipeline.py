@@ -13,7 +13,7 @@ Pass 2 — panel children. A panel is ONE specimen, so specimen rejection
 fires at most once per parent and cancels every child. Per-child
 hemolysis is still drawn per child from the parent's sub-RNG stream.
 
-RNG contract (byte-neutral extraction, Session 84 spec):
+RNG contract (byte-neutral extraction, spec):
   * NO master-RNG consumption inside this pipeline. Every draw comes
     from a per-specimen sub-RNG (``individual_lab_seed`` for scalar
     orders, ``panel_specimen_seed`` for panel parents).

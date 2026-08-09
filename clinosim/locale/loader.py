@@ -31,7 +31,7 @@ _COUNTRY_DIR_MAP = {"JP": "jp", "US": "us"}
 
 
 def _country_dir(country: str) -> Path:
-    # session 48 P2-14: `_template` scaffold directory MUST NOT be usable
+    # P2-14: `_template` scaffold directory MUST NOT be usable
     # as a country. Reject any code that resolves to a leading-underscore
     # folder — those are reserved for structural scaffolds (see
     # `docs/add-your-country.md`).

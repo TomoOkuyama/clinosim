@@ -150,7 +150,7 @@ def allergy_enricher(ctx: Any) -> None:
         entry = entries[int(rng.integers(0, len(entries)))]
         reaction_entry = entry["common_reactions"][0]
 
-        # C1-17 (session 41 cycle 1): sample clinical/verification status
+        # C1-17: sample clinical/verification status
         # variety realistically. Real EHR shows ~85% active+confirmed,
         # ~5% resolved (typical: childhood peanut/milk outgrown by adulthood
         # for food category), ~10% unconfirmed (patient-reported not verified

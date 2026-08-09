@@ -22,7 +22,7 @@ from clinosim.types.patient import PatientPhysiologicalProfile
 # (metabolic/mixed/respiratory) set at disease onset — not day-evolving.
 # Iteration order is LOAD-BEARING for determinism (AD-16): ``get_state_changes``
 # consumes ``rng`` inside the loop, so shuffling the order shifts RNG draws.
-# The tuple pins the pre-FP-DELTA-VALIDATE order (session 40); the trailing
+# The tuple pins the pre-FP-DELTA-VALIDATE order; the trailing
 # invariant check keeps it equal to ``canonical_state_vars() - {respiratory_fraction}``
 # so a physiology-model addition surfaces here as a fail-loud drift instead of a
 # silent trajectory-drop.
@@ -57,7 +57,7 @@ def _validate_course_archetypes(
     — trajectory keys not in :data:`TRAJECTORY_STATE_VARS` are silently
     ignored by :func:`get_state_changes` (see the for-loop iteration on the
     hardcoded whitelist that was previously in that function). FP-DELTA-VALIDATE
-    sibling sweep, session 40.
+    sibling sweep, .
     """
     if not course_archetypes:
         return
@@ -360,7 +360,7 @@ def get_daily_directive(
     # source of truth in physiology.engine). Author-time validator
     # _validate_course_archetypes rejects YAML trajectory keys outside this
     # set at load time so a typo can never silently drop again
-    # (FP-DELTA-VALIDATE, session 40).
+    # (FP-DELTA-VALIDATE).
     for var_name in TRAJECTORY_STATE_VARS:
         if var_name in trajectory_data:
             traj = trajectory_data[var_name]
@@ -496,7 +496,7 @@ def _evaluate_risk_condition(
 def _interpolate(trajectory: dict[int, float], day: int | float) -> float:
     """Linearly interpolate between defined day points.
 
-    Session 52: accepts ``int | float`` since ``effective_day = day *
+    accepts ``int | float`` since ``effective_day = day *
     speed_factor`` (get_daily_directive) is real-valued when speed_factor !=
     1.0. Previously the caller cast to ``int`` which truncated e.g.
     ``day=2, speed_factor=1.25 -> effective_day 2.5 -> int 2``, silently

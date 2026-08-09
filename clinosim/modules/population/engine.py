@@ -255,7 +255,7 @@ def generate_population(
                         conditions.append(code)
 
             # Care seeking threshold (JP: lower = more willing)
-            # RM-7e (session 42): care-seeking threshold from locale
+            # RM-7e: care-seeking threshold from locale
             # (JP: 20% reflects 健診 culture; US: 30% baseline).
             _cs = demo.get("care_seeking") or {}
             _cs_mean = float(_cs.get("threshold_mean", 0.30))
@@ -613,7 +613,7 @@ def generate_healthcare_calendar(
 
     followup_data = load_chronic_followup()
 
-    # F1 (session 49): spawn one independent child generator per person instead
+    # F1: spawn one independent child generator per person instead
     # of consuming a single shared stream sequentially across the whole
     # population. Each person's own draw *count* varies with their own
     # age/sex/chronic_conditions (e.g. whether the flu-vaccination /

@@ -157,7 +157,7 @@ def simulate_surgery(
 # ============================================================
 _SCT_CATEGORY_SURGICAL = "387713003"
 # feedback FB-F8: SNOMED 103693007 は inactive、active 386053000 "Evaluation
-# procedure" に更新(session 48 cycle 8 拡張)。
+# procedure" に更新(cycle 8 拡張)。
 _SCT_CATEGORY_DIAGNOSTIC = "386053000"
 _SCT_CATEGORY_THERAPEUTIC = "277132007"
 
@@ -207,7 +207,7 @@ _PROCEDURE_METADATA: dict[str, ProcedureMeta] = {
     "dialysis_acute": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "80581009"),  # upper urinary tract
     "bronchoscopy": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "39607008"),  # lung
     "echocardiography": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "113257007"),  # cardiovascular
-    # CO-3 (session 42 cycle 3): ED procedures.
+    # CO-3: ED procedures.
     "ecg_12lead": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "80891009"),  # heart
     "iv_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "58602004"),  # peripheral vascular
     "wound_care": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "87642003"),  # skin
@@ -251,7 +251,7 @@ _BEDSIDE_PROCEDURES: list[tuple[str, str, str, str, str, str]] = [
     ("dialysis_acute", "90935", "J038", "Acute hemodialysis", "急性血液透析", "none"),
     ("bronchoscopy", "31622", "D302", "Bronchoscopy", "気管支鏡検査", "sedation"),
     ("echocardiography", "93306", "D215", "Transthoracic echocardiography", "経胸壁心エコー", "none"),
-    # CO-3 (session 42 cycle 3): ED-typical procedures. CPT codes verified
+    # CO-3: ED-typical procedures. CPT codes verified
     # (AMA CPT 2024). K-codes intentionally BLANK — MHLW authoritative
     # verification deferred to a separate chain (mirrors cycle 2 C2-15 YJ
     # policy: no fabrication).  A subsequent chain will populate K-codes
@@ -343,7 +343,7 @@ _PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
     ),
     # Cellulitis with severe: wound debridement
     (["cellulitis"], [("wound_debridement", 0.30)]),
-    # CO-3 (session 42 cycle 3): ED-specific rules keyed on ED condition_ids.
+    # CO-3: ED-specific rules keyed on ED condition_ids.
     # Aligned with JP-common ED workflow; probabilities from clinical practice
     # (JEMS 2022 protocols).
     (["chest_pain", "syncope", "arrhythmia", "acute_coronary_syndrome_ed"], [("ecg_12lead", 0.98), ("iv_line", 0.85)]),
@@ -395,7 +395,7 @@ def generate_bedside_procedures(
             continue
 
         _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
-        # CO-3 review (session 42): when JP export and no authoritative K-code
+        # CO-3 review: when JP export and no authoritative K-code
         # is registered, skip emission rather than emit an empty code (broken
         # FHIR). Mirrors the cycle 2 no-fabrication policy — real K-codes will
         # land when the MHLW verification chain populates them.

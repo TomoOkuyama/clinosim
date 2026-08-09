@@ -115,7 +115,7 @@ CONDITION_NAMES = {
     "J69": "Aspiration pneumonia",
     "J10": "Influenza",
     "J11": "Influenza",
-    # session 52 lint: "J45": "Asthma" was duplicated (declared earlier in this dict); dropped.
+    # lint: "J45": "Asthma" was duplicated (declared earlier in this dict); dropped.
     "I61": "Intracerebral hemorrhage",
     "M80": "Osteoporotic fracture",
     "M48": "Vertebral collapse",
