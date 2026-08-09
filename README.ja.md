@@ -818,6 +818,7 @@ MIT License. See [LICENSE](LICENSE) for details.
 - [DESIGN.md](DESIGN.md) — 詳細な設計ドキュメント (アーキテクチャ判定、 ADR)
 - [docs/roadmap.md](docs/roadmap.md) — 開発ロードマップ（GitHub Issues board 参照）
 - [CLAUDE.md](CLAUDE.md) — Claude Code 開発ガイドライン
+- [docs/design-guides/documentation-and-code-quality-policy.md](docs/design-guides/documentation-and-code-quality-policy.md) — ドキュメント言語ペアリング (EN + JA)、ソースコードコメント言語ルール、self-contained OSS 品質基準、定数ドキュメント化ルール、dead-code 衛生方針。全 PR がこのポリシーに照らしてレビューされる (現時点で本ポリシー本体は英語のみ、日本語版はフォローアップ Issue 起票予定)
 - [BEDROCK_SETUP.md](BEDROCK_SETUP.md) — AWS Bedrock 統合ガイド (ナラティブ生成)
 - [NEXT_STEPS.md](NEXT_STEPS.md) — 次のステップと開発引き継ぎメモ
 - 各モジュール `README.md` — モジュール別 API リファレンス
