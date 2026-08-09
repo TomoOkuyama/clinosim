@@ -1,60 +1,63 @@
-# care_level モジュール
+# `clinosim.modules.care_level` — care-level / activity-of-daily-living scoring
 
-日本の **要介護度(介護保険 区分)** を患者に付与し、FHIR `Observation`(social-history)+
-CSV `care_level.csv` として出力する AD-55 Base モジュール(**JP のみ**)。
+## Purpose
 
-## 概要
+Assigns care-level ratings (independent / assisted / dependent) and
+ADL scoring to patients based on age, chronic conditions, and current
+functional state. Emits `CareLevelRecord` dataclasses attached to
+inpatient / rehab encounters.
 
-介護保険の認定区分(自立 / 要支援1-2 / 要介護1-5)を **年齢駆動**で確率的に割り当てる。
-65歳未満は稀(~2%)、75歳以上で増加(~30%)、85歳以上で過半(~60%)が認定。
+The JP variant maps to **要介護度** (Long-Term Care Insurance /
+介護保険 levels 要支援 1-2 / 要介護 1-5) when applicable.
 
-- 値: `jp-care-level` コード(自立=`independent` は Observation を出さず `care_level=""`)。
-- AD-30: CIF は `jp-care-level` コードのみ保持。表示は出力時解決。
-- 権威分類: 厚生労働省 介護保険(要支援/要介護 区分)。国際標準コードがないため
-  ローカルコード体系 `codes/data/jp-care-level.yaml`(source=MHLW)。
+## Scope
 
-## データファイル
+- **In scope**: per-patient care-level assignment, ADL scoring
+  scaffolding (feeds into the nursing module's Barthel index),
+  JP 要介護度 mapping when country is JP and patient age ≥ 65.
+- **Out of scope**: nursing assessments themselves (in
+  [`clinosim.modules.nursing`](../nursing/README.md)), FHIR
+  serialisation (in [`clinosim.modules.output`](../output/README.md)).
 
-- `reference_data/care_level.yaml` — レベル一覧(weight ベクトル順)+ 年齢帯。
-- `clinosim/locale/jp/care_level_rates.yaml` — 年齢帯ごとの相対 weights(engine が正規化)。
-
-## API
+## Public API
 
 ```python
-assign_care_level(age: int, country: str, rng: np.random.Generator) -> str
-# jp-care-level コード(自立/非JP は "")を返す。決定的。
+from clinosim.modules.care_level import (
+    assign_care_level,           # (patient, encounter, rng) -> CareLevelRecord
+)
 ```
 
-## 配線
+## Dependencies
 
-- **Enricher**(`simulator/enrichers.py`、stage=`post_records`、order=60、
-  **JP のみ** `enabled=lambda c: c.country=="JP"`): `enrich_care_level`。
-  **person_id 由来サブシード**(`derive_sub_seed(master, 0x434C, person_id)`)で
-  encounter 間安定 & 主乱数列不変(AD-16)。`CIFPatientRecord.care_level` に格納。
-- **FHIR**: `modules/output/_fhir_care_level.py` の `_bb_care_level` を `_BUNDLE_BUILDERS`
-  登録。social-history Observation、value=`jp-care-level` コード、id `carelevel-{pid}`。
-- **CSV**: `csv_adapter.py` が `care_level.csv` を出力。
+- `clinosim.types.encounter` — care-level fields on the encounter
+  record, Barthel-related types.
+- `clinosim.types.patient` — `PatientProfile.age`, chronic conditions.
 
-## 依存
+## Constants and configuration
 
-`types/output`(`care_level` フィールド)、`codes`(`jp-care-level` 表示)、
-`locale/jp`(レート)、`simulator/seeding`。
+- Care-level assignment thresholds live inline in `engine.py` and are
+  flagged for extraction in
+  [`docs/reviews/2026-08-09-constants-audit.md`](../../../docs/reviews/2026-08-09-constants-audit.md).
+- JP 要介護度 mapping table lives in `reference_data/*.yaml`.
 
-## Consumers
+## Directory contents
 
-このモジュールに依存するもの:
+```
+clinosim/modules/care_level/
+  __init__.py           public API
+  engine.py             care-level assignment logic
+  audit.py              per-module audit spec
+  reference_data/       care-level and ADL reference tables
+```
 
-| Caller | How | Impact |
-|---|---|---|
-| `simulator/enrichers.py` | `register_builtin_enrichers()` で post_records enricher 登録 | core (enricher registry) |
-| `modules/care_level/enricher.py` | 同 module 内の enricher 実装 | core |
-| `tests/integration/test_care_level_enricher.py` | enricher integration test | guard |
-| `tests/unit/test_care_level_engine.py` | engine unit tests | guard |
-| `modules/output/_fhir_care_level.py` (cross-ref) | care_level コードを FHIR Observation 化(PR2 で `_fhir_sdoh.py` から分離) | medium (FHIR builder) |
+## Testing
 
-## 検証
+```bash
+pytest tests/unit -k care_level -q
+```
 
-- 決定論: 同一 seed 生成で **byte-diff は新規 carelevel-* Observation のみ**
-  (削除0・既存 Observation 変化0)=主乱数列不変。
-- 監査(JP 2000): 認定率 <65 2% / 65-74 12% / 75-84 27% / 85+ 57%(年齢駆動が機能)、
-  US は要介護度0(JP のみ)。
+## Ownership
+
+`maintainers@` — see [`CONTRIBUTING.md`](../../../CONTRIBUTING.md).
+
+Japanese counterpart: [`README.ja.md`](README.ja.md).
