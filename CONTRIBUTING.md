@@ -92,6 +92,7 @@ pytest tests/unit -q               # ~1 minute, must be green
    - `mkdocs build`
    - `JP-CLINS lab compliance gate`
    - `ruff dead-code (F401 / F841)`
+   - `vulture dead-code`
 
    Informational (not merge-blocking):
    - `Quality (informational)` — ruff check + ruff format --check + mypy
