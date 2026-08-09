@@ -118,6 +118,34 @@ jobs:
           -n 2 --dist=worksteal
           --splits 3 --group ${{ matrix.shard }}
 
+  ruff-dead-code:
+    name: ruff dead-code (F401 / F841)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Merge-blocking dead-code guard (policy §6 — see
+    # docs/design-guides/documentation-and-code-quality-policy.md).
+    # Scoped narrowly to F401 (unused import) and F841 (unused local
+    # variable) so this check can be `required` in the branch-protection
+    # rule without inheriting the mypy + format-check debt that keeps the
+    # broader `Quality (informational)` job informational-only.
+    #
+    # No `pip install -e ".[dev]"` step: ruff analyses source files
+    # directly and does not need the project's runtime dependencies, so
+    # this job finishes in well under a minute versus ~5 min for a full
+    # install.
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install pinned ruff
+        # Match the version pinned in the informational Quality job so
+        # findings reproduce byte-identically across the two jobs.
+        run: pip install "ruff==0.16.0"
+      - name: ruff check --select F401,F841 clinosim/ tests/
+        run: ruff check --select F401,F841 clinosim/ tests/
+
   quality:
     name: Quality (informational)
     runs-on: ubuntu-latest
