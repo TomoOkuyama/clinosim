@@ -14,6 +14,39 @@ import numpy as np
 
 from clinosim.modules._shared import is_jp
 from clinosim.modules.disease.acuity import NEURO_LOC_MONITORING_DISEASES
+from clinosim.modules.procedure._surgery_thresholds import (
+    ASA_AGE_HIGH_THRESHOLD,
+    ASA_AGE_LOW_THRESHOLD,
+    ASA_BASE_CLASS,
+    ASA_COMORBIDITY_HIGH_THRESHOLD,
+    ASA_COMORBIDITY_LOW_THRESHOLD,
+    ASA_HIGH_CLASS,
+    ASA_LOW_CLASS,
+    DEFAULT_EBL_MEAN_ML,
+    DEFAULT_EBL_STD_ML,
+    DEFAULT_SURGERY_DURATION_MEAN_MIN,
+    DEFAULT_SURGERY_DURATION_STD_MIN,
+    EBL_ANEMIA_LIFT_DIVISOR,
+    EBL_ANEMIA_LIFT_THRESHOLD_ML,
+    EBL_MAJOR_BLEED_PERFUSION_PENALTY,
+    EBL_MAJOR_BLEED_THRESHOLD_ML,
+    EBL_MIN_ML,
+    HIP_FRACTURE_ORIF_INTRAMEDULLARY_NAIL_PROBABILITY,
+    HIP_FRACTURE_ORIF_PROBABILITY,
+    INTRAOP_ANESTHESIA_HYPOTENSION_PROBABILITY,
+    INTRAOP_EBL_BLEEDING_MULTIPLIER,
+    INTRAOP_EXCESSIVE_BLEEDING_PROBABILITY,
+    JP_TIME_TO_SURGERY_FLOOR_HOURS,
+    JP_TIME_TO_SURGERY_MEAN_HOURS,
+    JP_TIME_TO_SURGERY_STD_HOURS,
+    SPINAL_ANESTHESIA_PROBABILITY_WHEN_ALLOWED,
+    SURGERY_DURATION_MIN_MIN,
+    SURGERY_INFLAMMATION_LIFT,
+    SURGERY_VOLUME_LIFT,
+    US_TIME_TO_SURGERY_FLOOR_HOURS,
+    US_TIME_TO_SURGERY_MEAN_HOURS,
+    US_TIME_TO_SURGERY_STD_HOURS,
+)
 from clinosim.types.procedure import ProcedureRecord, RehabSession
 
 __all__ = ["ProcedureRecord", "RehabSession"]
@@ -39,51 +72,77 @@ def simulate_surgery(
 
     # Time to surgery
     if is_jp(country):
-        hours_to_surgery = max(12, float(rng.normal(48, 24)))  # JP: Day 1-2
+        hours_to_surgery = max(
+            JP_TIME_TO_SURGERY_FLOOR_HOURS,
+            float(rng.normal(JP_TIME_TO_SURGERY_MEAN_HOURS, JP_TIME_TO_SURGERY_STD_HOURS)),
+        )
     else:
-        hours_to_surgery = max(6, float(rng.normal(24, 12)))  # US: target < 24h
+        hours_to_surgery = max(
+            US_TIME_TO_SURGERY_FLOOR_HOURS,
+            float(rng.normal(US_TIME_TO_SURGERY_MEAN_HOURS, US_TIME_TO_SURGERY_STD_HOURS)),
+        )
 
     surgery_start = admission_time + timedelta(hours=hours_to_surgery)
 
     # Duration
-    dur_config = proc_data.get("typical_duration_minutes", {"mean": 90, "sd": 30})
-    duration = int(max(30, rng.normal(dur_config.get("mean", 90), dur_config.get("sd", 30))))
+    dur_config = proc_data.get(
+        "typical_duration_minutes",
+        {"mean": DEFAULT_SURGERY_DURATION_MEAN_MIN, "sd": DEFAULT_SURGERY_DURATION_STD_MIN},
+    )
+    duration = int(
+        max(
+            SURGERY_DURATION_MIN_MIN,
+            rng.normal(
+                dur_config.get("mean", DEFAULT_SURGERY_DURATION_MEAN_MIN),
+                dur_config.get("sd", DEFAULT_SURGERY_DURATION_STD_MIN),
+            ),
+        )
+    )
 
     # Anesthesia
     anesthesia = proc_data.get("anesthesia", "spinal or general")
     if "spinal" in anesthesia:
-        anesthesia_type = "spinal" if rng.random() < 0.6 else "general"
+        anesthesia_type = "spinal" if rng.random() < SPINAL_ANESTHESIA_PROBABILITY_WHEN_ALLOWED else "general"
     else:
         anesthesia_type = "general"
 
     # ASA class
     age = patient.age if hasattr(patient, "age") else 75
     n_conditions = len(patient.chronic_conditions) if hasattr(patient, "chronic_conditions") else 1
-    asa = 2
-    if n_conditions >= 2 or age >= 80:
-        asa = 3
-    if n_conditions >= 3 and age >= 85:
-        asa = 4
+    asa = ASA_BASE_CLASS
+    if n_conditions >= ASA_COMORBIDITY_LOW_THRESHOLD or age >= ASA_AGE_LOW_THRESHOLD:
+        asa = ASA_LOW_CLASS
+    if n_conditions >= ASA_COMORBIDITY_HIGH_THRESHOLD and age >= ASA_AGE_HIGH_THRESHOLD:
+        asa = ASA_HIGH_CLASS
 
     # EBL
-    ebl_config = proc_data.get("estimated_blood_loss_ml", {"mean": 300, "sd": 150})
-    ebl = int(max(50, rng.normal(ebl_config.get("mean", 300), ebl_config.get("sd", 150))))
+    ebl_config = proc_data.get("estimated_blood_loss_ml", {"mean": DEFAULT_EBL_MEAN_ML, "sd": DEFAULT_EBL_STD_ML})
+    ebl = int(
+        max(
+            EBL_MIN_ML,
+            rng.normal(ebl_config.get("mean", DEFAULT_EBL_MEAN_ML), ebl_config.get("sd", DEFAULT_EBL_STD_ML)),
+        )
+    )
 
     # Intraop complications
     intraop_comps = []
-    if rng.random() < 0.03:
+    if rng.random() < INTRAOP_EXCESSIVE_BLEEDING_PROBABILITY:
         intraop_comps.append("excessive_bleeding")
-        ebl = int(ebl * 2)
-    if rng.random() < 0.01:
+        ebl = int(ebl * INTRAOP_EBL_BLEEDING_MULTIPLIER)
+    if rng.random() < INTRAOP_ANESTHESIA_HYPOTENSION_PROBABILITY:
         intraop_comps.append("anesthesia_hypotension")
 
     # Procedure type (hip fracture specific)
     if disease_id == "hip_fracture":
-        if rng.random() < 0.55:
+        if rng.random() < HIP_FRACTURE_ORIF_PROBABILITY:
             proc_type = "ORIF"
             proc_code_jp = "K0461"
             proc_code_us = "27236"
-            implants = ["compression hip screw" if rng.random() < 0.5 else "intramedullary nail"]
+            implants = [
+                "compression hip screw"
+                if rng.random() < HIP_FRACTURE_ORIF_INTRAMEDULLARY_NAIL_PROBABILITY
+                else "intramedullary nail"
+            ]
         else:
             proc_type = "hemiarthroplasty"
             proc_code_jp = "K0811"
@@ -139,15 +198,15 @@ def simulate_surgery(
     # State impacts from surgery
     state_impacts: dict[str, float] = {}
     # Blood loss → anemia
-    if ebl > 200:
-        state_impacts["anemia_level"] = ebl / 5000  # 500mL ≈ 0.1 increase
+    if ebl > EBL_ANEMIA_LIFT_THRESHOLD_ML:
+        state_impacts["anemia_level"] = ebl / EBL_ANEMIA_LIFT_DIVISOR
     # Fluid administration
-    state_impacts["volume_status"] = 0.10  # IV fluid during surgery
+    state_impacts["volume_status"] = SURGERY_VOLUME_LIFT
     # Inflammation from tissue trauma
-    state_impacts["inflammation_level"] = 0.10
+    state_impacts["inflammation_level"] = SURGERY_INFLAMMATION_LIFT
     # Excessive bleeding → perfusion impact
-    if ebl > 800:
-        state_impacts["perfusion_status"] = -0.10
+    if ebl > EBL_MAJOR_BLEED_THRESHOLD_ML:
+        state_impacts["perfusion_status"] = EBL_MAJOR_BLEED_PERFUSION_PENALTY
 
     return record, state_impacts
 
