@@ -12,6 +12,22 @@ import numpy as np
 
 from clinosim.locale.loader import load_names
 from clinosim.modules._shared import is_jp, normalize_probabilities, resolve_lang
+from clinosim.modules.patient._severity_activation import (
+    I10_STAGE_WEIGHTS,
+    I10_STAGES,
+    I25_STAGE_WEIGHTS,
+    I25_STAGES,
+    I50_STAGE_WEIGHTS_DEFAULT,
+    I50_STAGE_WEIGHTS_MILD,
+    I50_STAGES,
+    J44_STAGE_WEIGHTS,
+    J44_STAGES,
+    J45_STAGE_WEIGHTS,
+    J45_STAGES,
+    N18_STAGE_WEIGHTS,
+    N18_STAGES,
+    STAGE_SEVERITY,
+)
 from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
 from clinosim.modules.population.engine import PersonRecord, _sample_given_name
 from clinosim.types.patient import (
@@ -34,55 +50,30 @@ from clinosim.types.patient import (
 # test can pin it and future tweaks stay in one place.
 _RESERVE_BETA_PARAMS: tuple[float, float] = (30, 2)
 
-# Graded chronic-condition stage text (as returned by _generate_stage) ->
-# ChronicCondition.severity_score, keyed by ICD-10-CM category. Consumed by
-# physiology/engine.py's per-code branches so a sampled clinical stage (KDIGO
-# CKD, NYHA heart failure, GOLD COPD, asthma severity, CCS ischemic heart
-# disease) actually drives physiologic severity instead of every condition
-# sharing the generic uniform(0.1, 0.4) draw below. Ranges chosen so
-# severity-gated branches (CKD's s>0.5, heart failure's s>0.3) trigger only
-# for the clinically severe stages (2026-06-20 realism audit finding, CKD;
-# extended this session to the other graded-stage conditions with the same
-# disconnect).
-STAGE_SEVERITY: dict[str, dict[str, float]] = {
-    "N18": {"G1": 0.05, "G2": 0.15, "G3a": 0.35, "G3b": 0.50, "G4": 0.70, "G5": 0.90},
-    "I50": {"NYHA I": 0.10, "NYHA II": 0.25, "NYHA III": 0.45, "NYHA IV": 0.70},
-    "J44": {"GOLD 1": 0.10, "GOLD 2": 0.25, "GOLD 3": 0.45, "GOLD 4": 0.70},
-    "J45": {"Mild intermittent": 0.05, "Mild persistent": 0.15, "Moderate persistent": 0.35, "Severe persistent": 0.60},
-    "I25": {"CCS I": 0.10, "CCS II": 0.25, "CCS III": 0.50},
-    # Hypertension: Stage 1 (130-139/80-89) vs Stage 2 (>=140/90). Consumed by the
-    # stage-scaled baseline-BP elevation below (FP-I10), making the stage non-degenerate.
-    "I10": {"Stage 1": 0.30, "Stage 2": 0.60},
-}
-
 
 def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
-    """Generate clinical staging text for a chronic condition by ICD code."""
+    """Generate clinical staging text for a chronic condition by ICD code.
+
+    Stage lists and selection weights live in
+    ``clinosim.modules.patient._severity_activation`` (per Issue #637
+    PR-D); this function only owns the per-code branching + display-string
+    formatting. The severity-score table ``STAGE_SEVERITY`` used
+    downstream is imported and re-exported from the same module.
+    """
     base = code.split(".")[0]
-    if base == "N18":  # CKD
-        # Distribute G1-G5 with most patients in G2-G3
-        stages = ["G1", "G2", "G3a", "G3b", "G4", "G5"]
-        weights = [0.05, 0.30, 0.30, 0.20, 0.10, 0.05]
-        return f"CKD {str(rng.choice(stages, p=weights))}"
-    if base == "I50":  # Heart failure
-        nyha = ["I", "II", "III", "IV"]
-        if severity == "mild":
-            weights = [0.30, 0.50, 0.15, 0.05]
-        else:
-            weights = [0.10, 0.30, 0.40, 0.20]
-        return f"NYHA {str(rng.choice(nyha, p=weights))}"
-    if base == "J44":  # COPD (GOLD)
-        gold = ["GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4"]
-        weights = [0.20, 0.40, 0.30, 0.10]
-        return str(rng.choice(gold, p=weights))
-    if base == "J45":  # Asthma
-        levels = ["Mild intermittent", "Mild persistent", "Moderate persistent", "Severe persistent"]
-        weights = [0.30, 0.35, 0.25, 0.10]
-        return str(rng.choice(levels, p=weights))
-    if base == "I10":  # Hypertension
-        return f"Stage {str(rng.choice(['1', '2'], p=[0.6, 0.4]))}"
+    if base == "N18":  # CKD (KDIGO G1-G5)
+        return f"CKD {str(rng.choice(N18_STAGES, p=N18_STAGE_WEIGHTS))}"
+    if base == "I50":  # Heart failure (NYHA I-IV)
+        weights = I50_STAGE_WEIGHTS_MILD if severity == "mild" else I50_STAGE_WEIGHTS_DEFAULT
+        return f"NYHA {str(rng.choice(I50_STAGES, p=weights))}"
+    if base == "J44":  # COPD (GOLD 1-4)
+        return str(rng.choice(J44_STAGES, p=J44_STAGE_WEIGHTS))
+    if base == "J45":  # Asthma (NAEPP EPR-3)
+        return str(rng.choice(J45_STAGES, p=J45_STAGE_WEIGHTS))
+    if base == "I10":  # Hypertension (ACC-AHA 2017 / JNC-8)
+        return f"Stage {str(rng.choice(I10_STAGES, p=I10_STAGE_WEIGHTS))}"
     if base == "I25":  # Ischemic heart disease (CCS class)
-        return f"CCS {str(rng.choice(['I', 'II', 'III'], p=[0.4, 0.4, 0.2]))}"
+        return f"CCS {str(rng.choice(I25_STAGES, p=I25_STAGE_WEIGHTS))}"
     return ""
 
 
