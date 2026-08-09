@@ -1,4 +1,4 @@
-"""Synthea → clinosim eval adapter (P1-10, session 46).
+"""Synthea → clinosim eval adapter (P1-10).
 
 `Synthea <https://synthetichealth.github.io/synthea/>`_ emits its FHIR
 R4 output as one JSON file per patient — the top-level document is a

@@ -94,7 +94,7 @@ def enrich_antibiotic(ctx) -> None:
             start_dt = datetime.fromisoformat(ev.onset_date).replace(hour=_ORDER_HOUR)
             for regimen in build_regimens(ev, start_datetime=start_dt):
                 order_id = f"{ABX_ORDER_REQ_PREFIX}{regimen.regimen_id}"
-                # P1-3 (session 51): Parse dose string to split quantity/unit
+                # P1-3: Parse dose string to split quantity/unit
                 dose_parsed = parse_dose_string(regimen.dose)
                 order = Order(
                     order_id=order_id,
@@ -228,7 +228,7 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
                 _mark_order_stopped(rec, r)
             template = empirical_regimens[0]
             if target is None:
-                continue  # session 52: type-narrowing gate for str|None target
+                continue  # type-narrowing gate for str|None target
             narrow_dur = narrow_duration_days(template.start_datetime, reported, template.duration_days)
             narrow_dose, narrow_freq = _narrow_dose_frequency(target)
             slug = _drug_slug(target)
@@ -259,7 +259,7 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
             )
             new_regimens.append(new_regimen)
             order_id = f"{ABX_ORDER_REQ_PREFIX}{new_regimen.regimen_id}"
-            # P1-3 (session 51): Parse narrow_dose to split quantity/unit
+            # P1-3: Parse narrow_dose to split quantity/unit
             dose_parsed_narrow = parse_dose_string(narrow_dose)
             order = Order(
                 order_id=order_id,

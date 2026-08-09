@@ -3,7 +3,7 @@
 Contains the per-day loop that drives state update, orders, labs, MAR,
 vitals, ADL/IO, complications, and discharge check for each simulated
 day of an inpatient encounter. Extracted to reduce `inpatient.py`'s file
-size (session 84's sibling-file convention: `lab_pipeline.py`,
+size ('s sibling-file convention: `lab_pipeline.py`,
 `vitals_pipeline.py`, etc.).
 
 Function bodies moved verbatim; byte-diff-neutral vs pre-extraction.
@@ -108,7 +108,7 @@ def _run_daily_loop(
     complications_occurred: list[str] = []
     death_occurred = False
     icu_transferred = False
-    icu_transferred_day_local: int = -1  # C5-22 (session 43): day of ICU transfer
+    icu_transferred_day_local: int = -1  # C5-22: day of ICU transfer
 
     prev_diet = ""  # last diet ordered for this patient; threaded through the day loop
     for day in range(target_los):
@@ -420,7 +420,7 @@ def _run_daily_loop(
                         # IPC / cardiac monitoring / etc.). Classify via the
                         # canonical treatment_classifier (single source of
                         # truth; J5 pattern prevention — this was C4-28's
-                        # RM-6b sibling gap in session 43).
+                        # RM-6b sibling gap in).
                         display = f"{drug} {med.get('dose', '')}".strip()
                         _dc_order_type = classify_encounter_treatment(drug)
                         _is_medication = _dc_order_type == OrderType.MEDICATION
@@ -575,7 +575,7 @@ def _run_daily_loop(
                 complications_occurred.append(comp_name)
                 if "icu_transfer" in comp.get("actions", []):
                     if not icu_transferred:
-                        # C5-22 (session 43): capture day of transfer for
+                        # C5-22: capture day of transfer for
                         # Encounter.classHistory. First trigger wins;
                         # subsequent ICU-triggering complications on later
                         # days do not overwrite (the patient is already in

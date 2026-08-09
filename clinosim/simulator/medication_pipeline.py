@@ -15,7 +15,7 @@ Public per-day API (called from `inpatient.py::_run_daily_loop` and from
   condition monitoring (daily / q3d / tid / qid schedules).
 * ``_generate_mar`` — MedicationAdministration records for placed
   medication orders (STAT sepsis first-dose grid preserved verbatim,
-  session 45).
+).
 
 These functions consume the master RNG in specific orders; extraction
 preserves the byte-neutral contract by moving them verbatim.
@@ -318,7 +318,7 @@ def _generate_mar(
         else:
             admin_hours = [8, 14, 20]  # TID default for PO
 
-        # Session 45 seed=400 verification finding: Sepsis abx-within-3h
+        # seed=400 verification finding: Sepsis abx-within-3h
         # target (Surviving Sepsis / JSSCG bundle) was 34% because Day-0
         # first dose waited for the next fixed slot (0/8/16). For STAT
         # urgency (sepsis empirical antibiotics, cardiogenic-shock pressor,

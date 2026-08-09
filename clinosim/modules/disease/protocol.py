@@ -496,7 +496,7 @@ class DiseaseProtocol(BaseModel):
     expected_lab_distributions: dict[str, Any] = {}
     expected_vital_distributions: dict[str, Any] = {}
     drugs: dict[str, Any] = {}
-    # NOTE (session 39): reference_ranges was removed — it duplicated the live
+    # NOTE: reference_ranges was removed — it duplicated the live
     # locale-side lab reference ranges (locale is the single source; AD-30). The
     # sibling authored-but-unwired blocks (drug_interactions below and
     # expected_vital_distributions at line 128) are RETAINED as future-wiring
@@ -581,15 +581,15 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     _validate_archetype_modifiers(disease_id, data.get("archetype_modifiers", []), arch_names)
 
     # Fail-loud course_archetypes[].trajectory state-var validation
-    # (FP-DELTA-VALIDATE sibling, session 40). Trajectory keys not in
+    # (FP-DELTA-VALIDATE sibling). Trajectory keys not in
     # TRAJECTORY_STATE_VARS silently no-op in get_state_changes.
     from clinosim.modules.clinical_course.engine import _validate_course_archetypes
 
     _validate_course_archetypes(disease_id, data.get("course_archetypes", {}) or {})
 
     # Fail-loud initial_state_impact + complications state-var validation
-    # (FP-DELTA-VALIDATE, session 40). Sibling of anion_gap_status silent-drop
-    # closed in session 39 — catches typo'd or unmodeled state-var keys that
+    # (FP-DELTA-VALIDATE). Sibling of anion_gap_status silent-drop
+    # closed in — catches typo'd or unmodeled state-var keys that
     # would silently no-op in apply_state_delta at both delta sinks.
     from clinosim.modules.physiology.engine import (
         _validate_complications_state_impact,

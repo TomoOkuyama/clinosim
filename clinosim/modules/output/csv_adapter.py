@@ -381,7 +381,7 @@ def convert_cif_to_csv(
                         "patient_id": patient_id,
                         "prescription_id": rx.get("prescription_id"),
                         "prescriber_id": rx.get("prescriber_id"),
-                        # Issue #450 (session 73): fall back to the legacy
+                        # Issue #450: fall back to the legacy
                         # `drug` key so pre-migration outpatient renewals with
                         # `{drug: ..., duration_days: ...}` shape still populate
                         # drug_name. Matches the fallback pattern used by
