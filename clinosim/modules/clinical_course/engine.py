@@ -12,6 +12,20 @@ from typing import Any
 import numpy as np
 
 from clinosim.modules._shared import normalize_probabilities
+from clinosim.modules.clinical_course._archetype_modifiers import (
+    AGE_SPEED_FACTOR_BANDS,
+    AGE_SPEED_FACTORS,
+    AGED_DETERIORATION_AMPLIFIER_BASE,
+    IMMUNE_REACTIVITY_SCALE,
+    MILD_GRADUAL_DETERIORATION_MULT,
+    MILD_SMOOTH_RECOVERY_MULT,
+    MILD_SUDDEN_DETERIORATION_MULT,
+    SEVERE_GRADUAL_DETERIORATION_MULT,
+    SEVERE_SMOOTH_RECOVERY_MULT,
+    SEVERE_SUDDEN_DETERIORATION_MULT,
+    TRAJECTORY_NOISE_FLOOR,
+    TRAJECTORY_NOISE_PROP_SCALE,
+)
 from clinosim.modules.disease.severity import _evaluate_condition as _severity_condition
 from clinosim.modules.physiology.engine import canonical_state_vars
 from clinosim.types.clinical import StateChangeDirective
@@ -289,13 +303,13 @@ def select_archetype(
 
     # Severity modifiers
     if severity == "severe":
-        probs["gradual_deterioration"] = probs.get("gradual_deterioration", 0.05) * 2.0
-        probs["sudden_deterioration"] = probs.get("sudden_deterioration", 0.02) * 2.0
-        probs["smooth_recovery"] = probs.get("smooth_recovery", 0.55) * 0.6
+        probs["gradual_deterioration"] = probs.get("gradual_deterioration", 0.05) * SEVERE_GRADUAL_DETERIORATION_MULT
+        probs["sudden_deterioration"] = probs.get("sudden_deterioration", 0.02) * SEVERE_SUDDEN_DETERIORATION_MULT
+        probs["smooth_recovery"] = probs.get("smooth_recovery", 0.55) * SEVERE_SMOOTH_RECOVERY_MULT
     elif severity == "mild":
-        probs["smooth_recovery"] = probs.get("smooth_recovery", 0.55) * 1.3
-        probs["gradual_deterioration"] = probs.get("gradual_deterioration", 0.05) * 0.3
-        probs["sudden_deterioration"] = probs.get("sudden_deterioration", 0.02) * 0.3
+        probs["smooth_recovery"] = probs.get("smooth_recovery", 0.55) * MILD_SMOOTH_RECOVERY_MULT
+        probs["gradual_deterioration"] = probs.get("gradual_deterioration", 0.05) * MILD_GRADUAL_DETERIORATION_MULT
+        probs["sudden_deterioration"] = probs.get("sudden_deterioration", 0.02) * MILD_SUDDEN_DETERIORATION_MULT
 
     # Patient risk-factor modifiers from the disease YAML (FP-YAML-2b), replacing the
     # former hardcoded immune_reactivity / treatment_sensitivity heuristics with the
@@ -334,19 +348,15 @@ def get_daily_directive(
         trajectory_data = _FALLBACK_TRAJECTORIES.get(archetype_name, {})
 
     # --- Speed modulation: age-based time stretch ---
-    # Elderly patients progress more slowly (both recovery and deterioration)
-    # Young patients recover faster
-    # age 40 → speed 1.2x (faster), age 70 → 1.0x, age 85 → 0.7x, age 95 → 0.5x
-    if age < 50:
-        speed_factor = 1.2
-    elif age < 70:
-        speed_factor = 1.0
-    elif age < 80:
-        speed_factor = 0.85
-    elif age < 90:
-        speed_factor = 0.7
-    else:
-        speed_factor = 0.55
+    # Elderly patients progress more slowly (both recovery and deterioration);
+    # young patients recover faster. Ladder details + citations live in
+    # ``_archetype_modifiers.AGE_SPEED_FACTOR_BANDS`` /
+    # ``AGE_SPEED_FACTORS``.
+    speed_factor = AGE_SPEED_FACTORS[-1]  # default = oldest-band factor
+    for i, upper in enumerate(AGE_SPEED_FACTOR_BANDS):
+        if age < upper:
+            speed_factor = AGE_SPEED_FACTORS[i]
+            break
 
     # Treatment sensitivity also affects speed of recovery (but not deterioration)
     recovery_speed = speed_factor * profile.treatment_sensitivity
@@ -370,7 +380,7 @@ def get_daily_directive(
             # --- Amplitude modulation ---
             # Immune reactivity: high → bigger inflammation swings (both up and down)
             if var_name == "inflammation_level":
-                delta *= profile.immune_reactivity / 0.5
+                delta *= profile.immune_reactivity / IMMUNE_REACTIVITY_SCALE
 
             # Recovery deltas (positive for renal/perfusion) scale with treatment sensitivity
             if delta > 0 and var_name in ("renal_function", "perfusion_status"):
@@ -378,7 +388,7 @@ def get_daily_directive(
 
             # Deterioration deltas: elderly deteriorate faster
             if delta < 0 and var_name in ("renal_function", "perfusion_status"):
-                delta *= 2.0 - speed_factor  # age 85, speed 0.7 → deterioration ×1.3
+                delta *= AGED_DETERIORATION_AMPLIFIER_BASE - speed_factor
 
             # --- Daily noise (biological variation) ---
             # Two components:
@@ -386,7 +396,7 @@ def get_daily_directive(
             # 2. Random daily perturbation (e.g., activity, meals, stress)
             #    This creates non-monotonic trajectories (CRP may bump up on Day 4)
             if rng is not None:
-                prop_noise = float(rng.normal(0, abs(delta) * 0.15 + 0.002))
+                prop_noise = float(rng.normal(0, abs(delta) * TRAJECTORY_NOISE_PROP_SCALE + TRAJECTORY_NOISE_FLOOR))
                 # Occasional larger perturbation (~10% chance of a "bump day")
                 if rng.random() < 0.10:
                     bump = float(rng.normal(0, 0.008))
