@@ -44,6 +44,20 @@ from clinosim.modules.staff.engine import (
     StaffRoster,
     assign_staff,
 )
+from clinosim.simulator._stay_thresholds import (
+    ELECTIVE_SURGERY_ADMISSION_HOUR_WEIGHTS,
+    ELECTIVE_SURGERY_ADMISSION_HOURS,
+    EMERGENCY_ADMISSION_SEVERITY_THRESHOLD,
+    MIXED_CASE_MISSED_SECONDARY_DX_PROB,
+    READMISSION_INFLAMMATION_FLOOR,
+    READMISSION_RENAL_CEILING,
+    TRANSFUSION_ANEMIA_LIFT,
+    TRANSFUSION_VOLUME_LIFT,
+    URGENT_ADMISSION_HOUR_MAX,
+    URGENT_ADMISSION_HOUR_MEAN,
+    URGENT_ADMISSION_HOUR_MIN,
+    URGENT_ADMISSION_HOUR_STD,
+)
 
 # Backwards-compat re-export (Issue #552 residual). The per-day state
 # machine `_run_daily_loop` (573 LOC) and its helper `_extract_findings`
@@ -179,8 +193,8 @@ def _simulate_patient(
     # Readmission: carry over residual state from prior hospitalization
     if is_readmission:
         # Readmitted patients have worse baseline (incomplete recovery from prior stay)
-        state.inflammation_level = max(state.inflammation_level, 0.05)
-        state.renal_function = min(state.renal_function, 0.9)
+        state.inflammation_level = max(state.inflammation_level, READMISSION_INFLAMMATION_FLOOR)
+        state.renal_function = min(state.renal_function, READMISSION_RENAL_CEILING)
 
     state = apply_disease_onset(state, severity, protocol.initial_state_impact, acid_base_type=protocol.acid_base_type)
 
@@ -201,15 +215,15 @@ def _simulate_patient(
 
     # Create encounter — realistic admission time pattern
     if protocol.encounter_type == "surgical":
-        # Elective surgery: morning admission (8-10)
-        adm_hour = int(rng.choice([8, 9, 10], p=[0.3, 0.5, 0.2]))
-    elif event.severity > 0.6:
+        # Elective surgery: morning admission
+        adm_hour = int(rng.choice(ELECTIVE_SURGERY_ADMISSION_HOURS, p=ELECTIVE_SURGERY_ADMISSION_HOUR_WEIGHTS))
+    elif event.severity > EMERGENCY_ADMISSION_SEVERITY_THRESHOLD:
         # Emergency: any hour, peak in evening (ED presentation)
         adm_hour = int(rng.choice(24))
     else:
-        # Urgent: daytime bias (9-20)
-        adm_hour = int(rng.normal(14, 3))
-        adm_hour = max(8, min(22, adm_hour))
+        # Urgent: daytime bias
+        adm_hour = int(rng.normal(URGENT_ADMISSION_HOUR_MEAN, URGENT_ADMISSION_HOUR_STD))
+        adm_hour = max(URGENT_ADMISSION_HOUR_MIN, min(URGENT_ADMISSION_HOUR_MAX, adm_hour))
     adm_minute = int(rng.integers(0, 60))
     admission_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day, adm_hour, adm_minute)
     state.timestamp = admission_time
@@ -362,10 +376,8 @@ def _simulate_patient(
     # Apply state impacts from bedside procedures (e.g., blood transfusion)
     for proc in bedside:
         if proc.procedure_type == "blood_transfusion":
-            # Each unit of RBC raises Hgb ~1 g/dL → anemia_level -0.07 per unit
-            # Assume 1-2 units per transfusion event
-            state.anemia_level = max(0.0, state.anemia_level - 0.15)
-            state.volume_status = min(1.0, state.volume_status + 0.05)
+            state.anemia_level = max(0.0, state.anemia_level - TRANSFUSION_ANEMIA_LIFT)
+            state.volume_status = min(1.0, state.volume_status + TRANSFUSION_VOLUME_LIFT)
 
     # Differential diagnosis
     protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
@@ -426,8 +438,8 @@ def _simulate_patient(
     missed: list[str] = []
     overcalled: list[str] = []
     if secondary_protocol and secondary_disease_id:
-        # 30% chance of missing the secondary diagnosis in mixed cases
-        if rng.random() < 0.30:
+        # Simulated missed-secondary-diagnosis rate in mixed cases
+        if rng.random() < MIXED_CASE_MISSED_SECONDARY_DX_PROB:
             missed.append(secondary_disease_id)
 
     # Issue #547: use the canonical registry (`icd-10-mhlw` on JP per JP Core
