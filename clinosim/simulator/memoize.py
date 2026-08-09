@@ -1,92 +1,102 @@
-"""F4 snapshot memoize (session 49):前 snapshot output を cache として利用。
+"""F4 snapshot memoisation — reuse the previous snapshot's output as a cache.
 
-大規模 population で daily cron を実現するための最重要 primitive。
-前 snapshot で全 encounter が discharge 済の patient は、cursor が
-進んでも bit-identical な output になる(snapshot semantics + F1
-cross-cursor determinism の帰結)。この patient を simulate skip して
-前 CIF から load することで、p=500k advance が数分に短縮される。
+The core primitive that makes daily cron feasible for large populations.
+A patient whose every encounter was already discharged as of the previous
+snapshot produces bit-identical output on the next cursor advance
+(consequence of snapshot semantics + F1 cross-cursor determinism). By
+skipping the simulator for those patients and loading them from the
+previous CIF instead, a p=500k advance shrinks from hours to minutes.
 
-state module / cursor.json は不要。cache directory = 前 snapshot output
-directory 自体(_cache_manifest.json 1 ファイルだけ併存)。
+No state module or ``cursor.json`` is needed. The cache directory is the
+previous snapshot's output directory itself; only a single
+``_cache_manifest.json`` file coexists alongside it.
 
-Task 8 実装時に stress test(p=300〜1000、複数 seed)で確認した **既知の限界
-2 件**(いずれも ``clinosim/simulator/engine.py`` の cache-hit path 挿入範囲
-(admission loop のみ)を超えて ``clinosim/simulator/inpatient.py`` /
-``clinosim/modules/order/engine.py`` / ``clinosim/modules/facility/hospital_state.py``
-に手を入れないと根治できない — Task 8 の file scope 外のため followup backlog
-とする):
+**Two known limitations** were confirmed under stress test at
+implementation time (p=300-1000, multiple seeds). Both require touching
+files outside the cache-hit path insertion range
+(``clinosim/simulator/engine.py`` admission loop only) — specifically
+``clinosim/simulator/inpatient.py``, ``clinosim/modules/order/engine.py``,
+and ``clinosim/modules/facility/hospital_state.py``. They are recorded
+here as follow-up backlog rather than fixed inline because the required
+fixes fall outside this module's scope.
 
-1. **``_IMPLIED_CHRONIC_BY_DISEASE`` accretion**(``inpatient.py:493``)—
-   `_simulate_patient` は admission の disease_id が implied-chronic table に
-   あると、activate 済で patient の全 record に共有される ``PatientProfile``
-   object(``engine.py`` の ``patient_cache[pid]``)の ``chronic_conditions``
-   に直接 in-place append する(RNG 不使用、disease_id + sex のみに依存する
-   純粋な決定論的 mutation)。cache hit は `_simulate_patient` 呼び出し自体を
-   skip するため、この mutation が memo run の共有 object に反映されない。
-   同一 patient の(cache hit した admission より後に処理される)他の
-   record は同じ共有 object を見るため、chronic_conditions が 1 件少ない
-   まま推移し、``initialize_state`` 経由で後続 admission の生理状態にまで
-   波及しうる。`tests/unit/test_engine_memoize.py::test_memoize_hit_bit_identical`
-   はこの class を検出したら該当 patient を丸ごと比較対象から除外する
-   (``test_engine_cross_cursor.py`` note 3 と同じ pattern)。
+1. **``_IMPLIED_CHRONIC_BY_DISEASE`` accretion**
+   (``inpatient.py:493``). When ``_simulate_patient`` sees an admission
+   whose disease_id maps to the implied-chronic table, it appends
+   directly (in-place, no RNG, purely deterministic on disease_id + sex)
+   to the ``chronic_conditions`` list of the *shared* ``PatientProfile``
+   object held in ``engine.py``'s ``patient_cache[pid]``. A cache hit
+   skips the ``_simulate_patient`` call entirely, so this mutation is
+   never applied to the shared object during the memo run. Any later
+   record for the same patient (processed after the cache-hit admission)
+   sees the shared object with one fewer chronic condition, which then
+   propagates through ``initialize_state`` into the physiological state
+   of downstream admissions. The test
+   ``tests/unit/test_engine_memoize.py::test_memoize_hit_bit_identical``
+   excludes any patient in this class from the comparison entirely (same
+   pattern as ``test_engine_cross_cursor.py`` note 3).
 
-   **A' Phase 1 補足(Issue #440、2026-07-28)**: ``_deactivate_to_layer1``
-   が新たに ``patient_cache[pid].current_medications`` を live sync する
-   ようになったため、限界 1 と同型の cold/memo 乖離経路が
-   ``current_medications`` field にも生じた。**新しい経路が開いたこと自体は
-   実測で確認**されている。ただし PR A に併せて追加した ``_build_discharge_rx``
-   の exact-name dedup(``inpatient.py``)により複数 admission にまたがる
-   同名薬 accumulation は発生しなくなり、Phase 1 + dedup 適用後の実測
-   (p=600/seed=123/2mo advance、tests/unit/test_engine_memoize.py::
-   test_memoize_hit_bit_identical の stress variant)は次の通り:
-
-   ::
+   **A' Phase 1 note (Issue #440)**. After
+   ``_deactivate_to_layer1`` began live-syncing
+   ``patient_cache[pid].current_medications``, a cold-vs-memo divergence
+   analogous to limitation 1 appeared on the ``current_medications``
+   field. **The new divergence path is confirmed empirically.** However,
+   the exact-name dedup added alongside the change (``_build_discharge_rx``
+   in ``inpatient.py``) prevents same-name drug accumulation across
+   admissions, so the observed drift after Phase 1 + dedup
+   (p=600 / seed=123 / 2 mo advance, stress variant of
+   ``tests/unit/test_engine_memoize.py::test_memoize_hit_bit_identical``)
+   is::
 
      master   chronic_conditions drift = 5 (POP-000281 / 483 / 489 / 502 / 537)
               current_medications drift = 0
               combined drift               = 5
-     branch   chronic_conditions drift = 5 (同 5 pids)
+     branch   chronic_conditions drift = 5 (same 5 pids)
               current_medications drift = 1 (POP-000483)
-              combined drift               = 5 (POP-000483 は chronic 側で
-                                                既に捕捉済 = 既存 fingerprint
-                                                除外で自動排除)
+              combined drift               = 5 (POP-000483 is already
+                                                caught on the chronic side,
+                                                so the existing fingerprint
+                                                exclusion covers it)
 
-   除外対象 pid の集合は **master と branch で完全一致**。したがって上記
-   fingerprint detection を chronic + current_medications に広げる
-   **予防的除外は行わない**。理由は、拡張は「今守れるもの」を増やさない
-   上に、**将来 chronic-drift せず current_meds のみで drift する patient
-   が現れた場合、``_canonical_cmp`` の全 field 比較が test を落として
-   fail-loud で気づかせる**チャネルを、除外で自ら潰してしまうため。
-   予防的に除外を広げないこと。将来 canonical_cmp が落ちたら、その時点で
-   drift の原因(A' Phase 2 由来 / 別 field / 別 mechanism)を切り分けて
-   から対処する。
+   The excluded-pid set is **identical between master and branch**, so
+   the fingerprint detection is not extended pre-emptively to include
+   ``current_medications``. Extending it would not add protection for
+   any patient not already protected, and it would silence a future
+   canonical-cmp failure that would fail loudly if a patient ever drifts
+   on ``current_medications`` without drifting on ``chronic_conditions``.
+   That fail-loud channel is worth keeping.
 
-   **A' Phase 2 残作業(Issue #440)**: memo run 側は cache-hit した
-   admission について前 CIF から load するが、``patient_cache[pid]`` は
-   ``_activate_cached`` で改めて構築するため、cursor A 時点で
-   ``person.current_medications`` が持っていた「入院で新規開始された薬」を
-   復元しない = memo run 内で該当 patient が cursor A 完了後に迎える
-   後続 encounter は「退院時に貰った薬を持たない患者」として simulate
-   される。臨床的には誤り(cold は A' で正しく継承する)。根治するには
-   memo 側で前 CIF `_deactivate_to_layer1` 相当の Layer 2 復元を行う
-   必要がある = Phase 2 として ``patient_cache`` 復元設計を Issue #440 に
-   残作業として記録済。
-2. **``HospitalState`` resource-queue congestion**(``clinosim/modules/order/engine.py``
-   の ``calculate_result_time_from_state`` → ``hospital_state.add_to_queue``)—
-   lab/imaging の result turnaround は
-   ``hospital_state.lab_queue`` / ``ct_queue`` 等の**累積・共有**な congestion
-   state に依存する。cache hit した admission は、その admission が生成した
-   はずの lab/imaging order 分の queue 増分を一切発生させないため、
-   **同一 run 内でそれ以降に処理される、無関係な(同一 patient である
-   必要すらない)admission の result_datetime** が cold run と drift しうる
-   (p=300〜1000 の stress test で複数 seed で再現確認済み、値そのものは
-   数十分オーダーのシフト、日付/臨床内容は無傷)。1 と異なり「patient 単位
-   の除外」では検出しきれない(patient をまたいで波及するため)。Task 8
-   の admission-loop-only cache scope では未対応 — 根治には
-   ``hospital_state`` の queue を「完全 time-based(累積依存なし)」に
-   するか、cache-hit 側で該当 order 分の queue 増分を replay する設計変更が
-   必要。次 task で `hospital_state.py` / `order/engine.py` を touch する
-   前提の backlog として TODO.md に記載すること。
+   **A' Phase 2 outstanding work (Issue #440)**. On the memo run,
+   cache-hit admissions load from the previous CIF but
+   ``patient_cache[pid]`` is rebuilt in ``_activate_cached``, which does
+   not restore the "medications newly started in the previous admission"
+   that ``person.current_medications`` held at cursor A. Consequently
+   a subsequent encounter for the same patient in the same memo run
+   simulates as "patient without the drugs prescribed at discharge",
+   which is clinically wrong (the cold run correctly carries them
+   through via A'). The fix requires performing the equivalent of the
+   previous CIF's ``_deactivate_to_layer1`` Layer 2 restore on the memo
+   side; that has been captured on Issue #440 as Phase 2.
+
+2. **``HospitalState`` resource-queue congestion**
+   (``clinosim/modules/order/engine.py``:``calculate_result_time_from_state``
+   → ``hospital_state.add_to_queue``). The result turnaround for a lab
+   or imaging order depends on the *cumulative, shared* congestion
+   state ``hospital_state.lab_queue`` / ``ct_queue`` etc. A cache-hit
+   admission never produces the queue increments its lab / imaging
+   orders would have produced, so the ``result_datetime`` of unrelated
+   admissions later in the same run (not even necessarily the same
+   patient) can drift compared with the cold run. Stress test at
+   p=300-1000 across multiple seeds reproduces the drift; the magnitude
+   is on the order of tens of minutes, and dates and clinical content
+   are unaffected. Unlike limitation 1 this cannot be caught by a
+   per-patient exclusion because it propagates across patients. The
+   admission-loop-only cache scope in this module does not address it;
+   a permanent fix requires either making ``hospital_state`` queues
+   purely time-based (no cumulative dependency) or replaying the
+   cache-hit admission's queue increments on the memo side. Recorded
+   on ``TODO.md`` as backlog for whichever future PR touches
+   ``hospital_state.py`` or ``order/engine.py``.
 """
 
 from __future__ import annotations
@@ -108,7 +118,7 @@ _MANIFEST_SCHEMA_VERSION = 1
 
 @dataclass
 class CacheManifest:
-    """前 snapshot の cache 情報。output directory に併存 (_cache_manifest.json)."""
+    """Metadata for a previous snapshot's cache. Persists as ``_cache_manifest.json``."""
 
     schema_version: int
     master_seed: int
@@ -119,36 +129,40 @@ class CacheManifest:
 
 
 def compute_config_hash(config: SimulatorConfig) -> str:
-    """SimulatorConfig の canonical sha256 hash (cursor-dependent field を除外)。
+    """Canonical SHA-256 hash of a ``SimulatorConfig``, excluding cursor-dependent fields.
 
-    cursor(観測時点)だけが違う config は cache 対象なので hash 一致させる。
-    seed / country / population / hospital / time_range[0] (start) 等が
-    変わったら hash が変わって cache 無効になる。
+    Configs that differ only in cursor (observation cutoff) are cache-
+    eligible, so their hashes must match. If seed / country / population
+    / hospital / ``time_range[0]`` (start) changes, the hash changes and
+    the cache is invalidated.
 
-    除外 field:
-      - `snapshot_date`(明示的な cursor)
-      - `time_range[1]`(--end 経由の cursor 同期。CLI では --end が
-        snapshot_date と time_range[1] を両方 set するため、両方揃って
-        除外しないと cursor 進めた瞬間 cache invalidate される)
+    Excluded fields:
+      - ``snapshot_date`` (the explicit cursor).
+      - ``time_range[1]`` (cursor mirror on the CLI ``--end``; the CLI
+        sets both ``snapshot_date`` and ``time_range[1]`` from ``--end``,
+        so both must be excluded to keep the cache valid as the cursor
+        advances).
 
-    NOTE: SimulatorConfig is a Pydantic BaseModel (not a stdlib dataclass),
-    so `model_dump()` is used instead of `dataclasses.asdict()` for the
-    canonical snapshot. `default=str` in `json.dumps` covers any residual
-    non-JSON-native values (e.g. tuples serialize as lists already, but
-    this keeps the hash robust to future field types).
+    NOTE: ``SimulatorConfig`` is a Pydantic ``BaseModel`` (not a stdlib
+    dataclass), so ``model_dump()`` is used rather than
+    ``dataclasses.asdict()`` for the canonical snapshot. ``default=str``
+    in ``json.dumps`` covers any residual non-JSON-native values (tuples
+    already serialise as lists, but this keeps the hash robust against
+    future field types).
     """
     d = config.model_dump()
     d.pop("snapshot_date", None)
-    # cursor は time_range[1] にも入る(CLI --end 経由)。tuple/list 両方許容。
+    # The cursor also lives in ``time_range[1]`` via the CLI ``--end`` flag.
+    # Accept either tuple or list.
     tr = d.get("time_range")
     if isinstance(tr, (list, tuple)) and len(tr) >= 2:
-        # start だけ残す:cursor が動いても start が同じなら cache 使う
+        # Keep only the start: the cache stays valid as long as start is stable.
         d["time_range"] = [tr[0]]
     return hashlib.sha256(json.dumps(d, sort_keys=True, ensure_ascii=False, default=str).encode("utf-8")).hexdigest()
 
 
 def write_cache_manifest(output_dir: Path, config: SimulatorConfig) -> None:
-    """output directory に _cache_manifest.json を書き出す。"""
+    """Write ``_cache_manifest.json`` to the output directory."""
     manifest = CacheManifest(
         schema_version=_MANIFEST_SCHEMA_VERSION,
         master_seed=config.random_seed,
@@ -163,7 +177,7 @@ def write_cache_manifest(output_dir: Path, config: SimulatorConfig) -> None:
 
 
 def read_cache_manifest(cache_dir: Path) -> CacheManifest | None:
-    """cache directory の manifest を読む。存在しなければ None。"""
+    """Read the cache manifest from a directory. Returns ``None`` if absent."""
     path = cache_dir / _MANIFEST_FILENAME
     if not path.exists():
         return None
@@ -173,11 +187,12 @@ def read_cache_manifest(cache_dir: Path) -> CacheManifest | None:
 
 
 def is_cache_valid(cache_dir: Path, config: SimulatorConfig) -> tuple[bool, str]:
-    """cache が現 config と互換か判定。返り値 = (valid, reason)。
+    """Decide whether ``cache_dir`` is compatible with ``config``.
 
-    snapshot_date 以外の全て(seed / country / population / hospital / ...)
-    が cache manifest と一致していれば valid。不一致は fail loud:cache
-    を無視して全再走することを caller に告げる。
+    Returns ``(valid, reason)``. The cache is valid when everything
+    except ``snapshot_date`` (seed / country / population / hospital /
+    ...) matches the cache manifest. Any mismatch fails loudly: the
+    caller is told to ignore the cache and rerun end-to-end.
     """
     manifest = read_cache_manifest(cache_dir)
     if manifest is None:
@@ -197,26 +212,28 @@ def eligible_patient_ids(
     patient_records: list[CIFPatientRecord],
     prev_cursor_date: date,
 ) -> set[str]:
-    """全 encounter が prev_cursor 以前に完了した patient_id 集合。
+    """Patient IDs whose every encounter completed on or before ``prev_cursor_date``.
 
-    厳格 rule: encounter が 1 件でも in-progress (discharge_datetime = None) or
-    discharge_datetime > prev_cursor だった場合は非 eligible。cursor 越えの
-    可能性がある patient は full sim させる。
+    Strict rule: if any encounter is still in progress
+    (``discharge_datetime is None``) or has ``discharge_datetime >
+    prev_cursor``, the patient is ineligible. Any patient who could
+    cross the cursor must be re-simulated fully.
 
-    Task 8 fix: a single patient_id commonly maps to MANY separate
-    ``CIFPatientRecord`` entries in ``patient_records`` (one admission +
-    several annual chronic-disease follow-up visits, ED visits, etc. — a
-    p=300 empirical run showed ~90% of patients have 2+ records). The
-    original implementation added ``pid`` to the result set independently
-    per-record (``if all_completed: result.add(pid)``), so a patient with
-    one *complete* record and one *in-progress* record among their several
-    records would still end up in the eligible set (whichever record
-    happened to be iterated last didn't matter — ``add`` is monotonic and
-    nothing ever removed a pid once added). That would let the F4 cache
-    substitute a patient who still has an open encounter. Aggregating
-    per-pid first (any incomplete encounter anywhere disqualifies the whole
-    patient) fixes this; behavior for the existing single-record-per-patient
-    unit tests is unchanged.
+    A single ``patient_id`` typically maps to many separate
+    ``CIFPatientRecord`` entries in ``patient_records`` (one admission
+    plus several annual chronic-disease follow-up visits, ED visits,
+    etc. — an empirical p=300 run showed ~90 % of patients have two or
+    more records). The original implementation added ``pid`` to the
+    result set independently per record
+    (``if all_completed: result.add(pid)``), so a patient with one
+    complete record and one in-progress record would still end up in
+    the eligible set (whichever record happened to be iterated last did
+    not matter — ``add`` is monotonic and nothing ever removed a pid
+    once added). That would let the F4 cache substitute a patient who
+    still has an open encounter. Aggregating per pid first (any
+    incomplete encounter anywhere disqualifies the whole patient) fixes
+    it; behaviour for the existing single-record-per-patient unit tests
+    is unchanged.
     """
     seen: set[str] = set()
     ineligible: set[str] = set()
@@ -234,12 +251,13 @@ def eligible_patient_ids(
 
 
 def _all_pids_from_cif(cif_dir: Path) -> set[str]:
-    """前 CIF に存在する全 patient_id を高速 pre-scan する(dataclass 変換なし)。
+    """Fast pre-scan of every ``patient_id`` present in the previous CIF (no dataclass conversion).
 
-    ``clinosim.modules.output.cif_reader.CIFReader`` の ``iter_patients()`` を
-    single source of truth として再利用(structural CIF walk ロジックの
-    重複を避ける — narrative merge は cache 用途では不要だが、CIFReader は
-    narrative dir が無くても warn のみで動作を続けるので害はない)。
+    Reuses ``clinosim.modules.output.cif_reader.CIFReader.iter_patients()``
+    as the single source of truth so the structural-CIF walk logic is
+    not duplicated. Narrative merge is not needed for cache use, but
+    ``CIFReader`` continues (with a warning only) when the narrative
+    directory is absent, so it is harmless here.
     """
     from clinosim.modules.output.cif_reader import CIFReader
 
@@ -256,25 +274,30 @@ def load_patient_records_from_cif(
     cif_dir: Path,
     eligible_pids: set[str],
 ) -> dict[str, list[CIFPatientRecord]]:
-    """前 CIF から指定 patient_id の record を全件 load し、pid でグルーピングする。
+    """Load every record for the given patient IDs from the previous CIF, grouped by ``pid``.
 
-    1 patient は admission / readmission / chronic follow-up (calendar) /
-    ED visit 等、複数の独立した ``CIFPatientRecord`` を持ちうる(p=300 実測で
-    patient の ~90% が 2 件以上)。よって ``dict[str, CIFPatientRecord]``
-    (1 patient 1 record 前提)ではなく ``dict[str, list[CIFPatientRecord]]``
-    でグルーピングして返す — ``eligible_patient_ids`` が同一 patient の
-    全 record を横断して completeness を判定できるようにするため。
+    A single patient may have multiple independent ``CIFPatientRecord``
+    entries — admission, readmission, chronic follow-up (calendar),
+    ED visit, and so on (p=300 empirical: ~90 % of patients have two
+    or more records). Return a ``dict[str, list[CIFPatientRecord]]``
+    grouped by ``pid`` (rather than the naive ``dict[str,
+    CIFPatientRecord]`` that assumes one record per patient), so that
+    ``eligible_patient_ids`` can inspect every record for a given
+    patient when deciding completeness.
 
-    Deserialization は ``pydantic.TypeAdapter(CIFPatientRecord)`` を使う。
-    ``CIFPatientRecord`` は stdlib dataclass だが pydantic v2 は dataclass も
-    validate 可能(ネストした dataclass / Enum / date / datetime を含め、
-    JSON → 元の型へ正しく復元することを p=200 の実データで検証済 —
-    唯一 ``extensions: dict[str, Any]`` フィールドだけは型情報が無いため
-    module 側が書いた dataclass(例: ImagingStudyRecord)が生の dict の
-    ままになる。これは既存の AD-55/56 dual-access 規約
-    (``clinosim/modules/_shared.py:get_attr_or_key`` / ``_o()`` helper)が
-    前提とする状態そのもの — CIF を disk から読む経路(FHIR adapter 等)は
-    元々 extensions を dict として扱っている)。
+    Deserialisation uses ``pydantic.TypeAdapter(CIFPatientRecord)``.
+    ``CIFPatientRecord`` is a stdlib dataclass, but Pydantic v2 can
+    validate dataclasses (including nested dataclasses, ``Enum``,
+    ``date``, and ``datetime`` — a p=200 real-data verification
+    confirmed correct round-trip from JSON back to the original types).
+    The single exception is ``extensions: dict[str, Any]``: because the
+    field has no declared type, values written by a module as a
+    dataclass (e.g. ``ImagingStudyRecord``) come back as raw dicts.
+    That is the same state assumed by the existing AD-55 / AD-56
+    dual-access convention
+    (``clinosim/modules/_shared.py:get_attr_or_key`` / ``_o()``); the
+    FHIR adapter and other CIF-from-disk readers already treat
+    ``extensions`` as dicts.
     """
     if not eligible_pids:
         return {}

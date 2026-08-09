@@ -1,8 +1,10 @@
-"""FHIR snapshot diff — 2 snapshot output の差分を FHIR Bundle transaction に変換 (F3, session 49)。
+"""FHIR snapshot diff — convert the difference between two snapshot outputs into a FHIR Bundle transaction (F3).
 
-Approach C の operational cover。clinosim 自身は決定的な snapshot generator に留まり、
-「cursor 移動した差分だけを FHIR server に POST する」用の Bundle 生成をここで行う。
-push は user 側 tool (curl / httpx / hapi-fhir-cli) に委ねる。
+Operational cover for Approach C. clinosim itself stays a deterministic
+snapshot generator; this module produces the Bundle that carries only
+the resources that changed between two cursor positions, ready to POST
+to a FHIR server. Pushing the Bundle is left to a user-side tool (curl
+/ httpx / hapi-fhir-cli).
 """
 
 from __future__ import annotations
@@ -14,20 +16,21 @@ from collections import Counter
 from collections.abc import Iterator
 from pathlib import Path
 
-# meta 内 cursor 依存 field。hash 計算前に strip する。
+# Fields inside ``meta`` that depend on the cursor. Stripped before hashing.
 _META_HASH_IGNORE_KEYS = ("lastUpdated", "versionId", "source")
 
 
 def canonical_hash(resource: dict) -> str:
-    """Resource の canonical sha256 hash。
+    """Canonical SHA-256 hash of a resource.
 
-    meta.lastUpdated / meta.versionId / meta.source は cursor 依存で
-    変わりうるので hash 前に除外(false-positive UPDATED を防ぐ)。
-    meta.profile / meta.security 等は意味論的差分なので保持。
+    ``meta.lastUpdated`` / ``meta.versionId`` / ``meta.source`` depend
+    on the cursor, so they are stripped before hashing to prevent
+    false-positive UPDATED classifications. ``meta.profile`` /
+    ``meta.security`` etc. are semantic and kept.
 
-    dict key order は sorted で正規化。
+    Dict key order is normalised by ``sort_keys=True``.
     """
-    # 深いコピーして meta を strip(元 resource を破壊しない)
+    # Deep-copy so meta stripping does not mutate the caller's resource.
     stripped = copy.deepcopy(resource)
     meta = stripped.get("meta")
     if isinstance(meta, dict):
@@ -42,17 +45,20 @@ def classify_resources(
     old_by_id: dict[str, dict],
     new_by_id: dict[str, dict],
 ) -> tuple[list[dict], list[dict], list[dict]]:
-    """Resource id ごとに (new_only, updated, unchanged) に分類。
+    """Classify every resource id into ``(new_only, updated, unchanged)``.
 
-    DELETED(old にあり new にない)は snapshot が cumulative なので通常発生しない。
-    発生した場合は上位 caller で warning ログを出す(この関数は返り値に含めない)。
+    ``DELETED`` (present in the old snapshot, absent in the new one) is
+    normally not produced because snapshots are cumulative. If it does
+    occur, the upstream caller should log a warning — this function
+    intentionally does not surface it in the return tuple.
 
     Args:
-        old_by_id: 前 snapshot の {id: resource}
-        new_by_id: 現 snapshot の {id: resource}
+        old_by_id: ``{id: resource}`` for the previous snapshot.
+        new_by_id: ``{id: resource}`` for the current snapshot.
 
     Returns:
-        (new_only, updated, unchanged) の 3 list。全て resource dict の list。
+        A ``(new_only, updated, unchanged)`` triple, each a list of
+        resource dicts.
     """
     new_only: list[dict] = []
     updated: list[dict] = []
@@ -71,13 +77,15 @@ def classify_resources(
 
 
 def load_ndjson_by_id(path: Path) -> dict[str, dict]:
-    """単一 NDJSON file を {resource.id: resource} 辞書に読み込む。
+    """Load a single NDJSON file into a ``{resource.id: resource}`` dict.
 
     Args:
-        path: NDJSON file path。存在しなければ空辞書を返す。
+        path: NDJSON file path. Returns an empty dict if the file is
+            absent.
 
     Returns:
-        {resource.id: resource_dict}。id なし resource は除外。
+        ``{resource.id: resource_dict}``; resources without an ``id``
+        field are dropped.
     """
     result: dict[str, dict] = {}
     if not path.exists():
@@ -95,13 +103,13 @@ def load_ndjson_by_id(path: Path) -> dict[str, dict]:
 
 
 def _iter_resource_types(directory: Path) -> Iterator[tuple[str, Path]]:
-    """directory 内の *.ndjson を (resource_type, path) で yield。
+    """Yield ``(resource_type, path)`` for every ``*.ndjson`` under ``directory``.
 
     Args:
-        directory: NDJSON file が格納されたディレクトリ。
+        directory: The directory holding the NDJSON files.
 
     Yields:
-        (resource_type_from_filename, path) tuples。
+        ``(resource_type_from_filename, path)`` tuples.
     """
     for path in sorted(directory.glob("*.ndjson")):
         rt = path.stem
@@ -114,21 +122,23 @@ def build_diff_bundle(
     bundle_id: str,
     last_updated: str,
 ) -> dict:
-    """2 snapshot output directory から FHIR Bundle transaction を生成する。
+    """Build a FHIR Bundle transaction from two snapshot output directories.
 
     Args:
-        old_dir: 前 snapshot の FHIR NDJSON directory。
-        new_dir: 現 snapshot の FHIR NDJSON directory。
-        bundle_id: Bundle.id。
-        last_updated: Bundle.meta.lastUpdated (FHIR instant format)。
+        old_dir: Previous snapshot's FHIR NDJSON directory.
+        new_dir: Current snapshot's FHIR NDJSON directory.
+        bundle_id: ``Bundle.id`` to stamp on the output Bundle.
+        last_updated: ``Bundle.meta.lastUpdated`` in FHIR instant format.
 
     Returns:
-        FHIR R4 Bundle resource (transaction type)。
-        NEW resource は POST、UPDATED resource は PUT、UNCHANGED resource は除外。
+        A FHIR R4 Bundle resource of type ``transaction``. NEW
+        resources are POSTed, UPDATED resources are PUT, UNCHANGED
+        resources are omitted.
     """
     entries: list[dict] = []
 
-    # 新 dir の全 resource type を対象(旧 dir 側で消滅した type は空)
+    # Iterate every resource type present in the new dir (any type that
+    # disappeared from the old dir is simply absent here).
     resource_types = {rt for rt, _ in _iter_resource_types(new_dir)}
 
     for rt in sorted(resource_types):
@@ -162,15 +172,16 @@ def build_diff_bundle(
 
 
 def format_summary(bundle: dict, old_cursor: str, new_cursor: str) -> str:
-    """Bundle transaction の human-readable summary を返す。
+    """Return a human-readable summary of a Bundle transaction.
 
     Args:
-        bundle: FHIR R4 Bundle resource (transaction type)。
-        old_cursor: 前 snapshot の cursor (表示用)。
-        new_cursor: 現 snapshot の cursor (表示用)。
+        bundle: A FHIR R4 Bundle resource of type ``transaction``.
+        old_cursor: The previous snapshot's cursor (display-only).
+        new_cursor: The current snapshot's cursor (display-only).
 
     Returns:
-        Resource type ごとに new / modified を集計した summary text。
+        A summary text that aggregates ``new`` / ``modified`` counts
+        per resource type.
     """
     entries = bundle.get("entry", [])
     new_count: Counter[str] = Counter()

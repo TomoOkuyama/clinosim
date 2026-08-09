@@ -1,4 +1,4 @@
-"""Discharge-prescription builder — extracted from `simulator/inpatient.py` (session 82).
+"""Discharge-prescription builder — extracted from `simulator/inpatient.py`.
 
 Renal-hold filtering, exclusive-class categorical selection, chronic-medication
 transcription, and disease-YAML `continue_at_discharge` continuation live here.
@@ -196,13 +196,13 @@ def build_discharge_rx(
             }
         )
 
-    # Issue #417 段 1 / #437: continue_at_discharge — data-declared chronic
+    # Issues #417 stage 1 / #437: continue_at_discharge — data-declared chronic
     # continuation categories in disease YAML (e.g. cerebral_infarction's
     # `drugs.anticoagulation` / `drugs.statin` / `drugs.antihypertensive` /
     # `drugs.antiplatelet`). Prior to this loop those categories were dead
     # data (no Python reader anywhere), so a patient admitted for
     # cerebral_infarction without a matching chronic condition received an
-    # empty discharge prescription — session 71 verification (POP=8, seed=901,
+    # empty discharge prescription — verification (POP=8, seed=901,
     # JP) confirmed 8/8 empty. Categories opt in via
     # `continue_at_discharge: true`; this is the single reader.
     #

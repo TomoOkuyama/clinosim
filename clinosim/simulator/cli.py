@@ -84,10 +84,11 @@ def main() -> None:
     sub = parser.add_subparsers(dest="command", help="Command to run")
 
     # === simulate: population-driven simulation ===
-    # session 48 cleanup (g): 元 command 名は "generate" だったが
-    # physiology-driven simulator という実態を反映して "simulate" を canonical に
-    # し、"generate" は deprecation alias として残す。alias 利用時のみ
-    # deprecation warning を stderr に出す(run() で sys.argv 検査)。
+    # The original command name was "generate"; the canonical command is
+    # now "simulate", reflecting that this is a physiology-driven simulator
+    # rather than a random generator. "generate" is kept as a deprecation
+    # alias. A deprecation warning is emitted on stderr only when the
+    # alias is invoked (checked in run() via sys.argv).
     gen = sub.add_parser(
         "simulate",
         aliases=["generate"],
@@ -128,17 +129,17 @@ def main() -> None:
         "--jp-insurance",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="(JP only) Include Japanese insurance enrollment / 被保険者番号 "
+        help="(JP only) Include Japanese insurance enrollment / insurance-card member number "
         "(emitted as FHIR Coverage). Use --no-jp-insurance to omit. "
         "Ignored for non-JP countries.",
     )
     gen.add_argument(
         "--cache-dir",
         default=None,
-        help="F4 memoize (session 49): path to a previous snapshot output "
+        help="F4 memoize: path to a previous snapshot output "
         "directory. When provided and valid (same seed / config / country), "
         "patients whose encounters completed before the previous cursor are "
-        "loaded from cache instead of re-simulated. Enables cron 日次追記 for "
+        "loaded from cache instead of re-simulated. Enables daily-cron append for "
         "large populations (p=500k advance drops from ~13h to ~minutes).",
     )
     gen.add_argument(
@@ -344,7 +345,7 @@ def main() -> None:
         help="Output directory (required when --format is set)",
     )
 
-    # === enumerate: exhaustive debug enumeration (Issue #345, session 63) ===
+    # === enumerate: exhaustive debug enumeration (Issue #345) ===
     # Generates exactly one patient per (disease × severity × course_archetype)
     # plus per (encounter × severity). Purpose: comprehensive FHIR validation
     # coverage and pattern regression detection — population-driven sampling
@@ -403,20 +404,24 @@ def main() -> None:
         help="Plan only — print discovered scenarios and case count, do not simulate or write output.",
     )
 
-    # === diff: F3 snapshot diff → Bundle transaction (session 49) ===
+    # === diff: F3 snapshot diff → Bundle transaction ===
     df = sub.add_parser(
         "diff",
-        help="Generate FHIR Bundle transaction from 2 snapshot outputs (session 49 F3)",
+        help="Generate FHIR Bundle transaction from 2 snapshot outputs (F3)",
     )
-    df.add_argument("--old", required=True, help="前 snapshot の FHIR output directory")
-    df.add_argument("--new", required=True, help="現 snapshot の FHIR output directory")
-    df.add_argument("--output-bundle", required=True, help="Bundle transaction JSON の出力 path")
-    df.add_argument("--output-summary", default=None, help="Summary text の出力 path (省略時は stdout)")
+    df.add_argument("--old", required=True, help="Previous snapshot's FHIR output directory")
+    df.add_argument("--new", required=True, help="Current snapshot's FHIR output directory")
+    df.add_argument("--output-bundle", required=True, help="Output path for the Bundle transaction JSON")
+    df.add_argument("--output-summary", default=None, help="Output path for the summary text (stdout if omitted)")
     df.add_argument(
-        "--old-cursor", default=None, help="前 snapshot の cursor 日付(summary 表示用、省略時は --old dir 名)"
+        "--old-cursor",
+        default=None,
+        help="Previous snapshot's cursor date (for the summary; defaults to the --old dir name)",
     )
     df.add_argument(
-        "--new-cursor", default=None, help="現 snapshot の cursor 日付(summary 表示用、省略時は --new dir 名)"
+        "--new-cursor",
+        default=None,
+        help="Current snapshot's cursor date (for the summary; defaults to the --new dir name)",
     )
 
     # === regenerate-goldens: AD-66 α-min-2c golden narrative bootstrap ===
@@ -518,7 +523,7 @@ def main() -> None:
 
     add_eval_subparser(sub)
 
-    # === benchmark: session 48 P2-15 prediction benchmark harness ===
+    # === benchmark: P2-15 prediction benchmark harness ===
     from clinosim.benchmarks.cli import add_benchmark_subparser
 
     add_benchmark_subparser(sub)
@@ -647,9 +652,10 @@ def main() -> None:
         _run_quality_checks(dataset)
         return
 
-    # session 48 cleanup (g): canonical は "simulate"、"generate" は
-    # deprecation alias。argparse の alias は args.command に打鍵された表記を
-    # そのまま返すため、両方を受け入れつつ alias 側では stderr に warn を出す。
+    # Canonical command is "simulate"; "generate" is a deprecation alias.
+    # argparse's alias mechanism returns the token the user actually typed in
+    # args.command, so both are accepted and the alias path emits a
+    # deprecation warning on stderr.
     if args.command in ("simulate", "generate"):
         if args.command == "generate":
             import sys as _sys
@@ -692,7 +698,7 @@ def main() -> None:
             print(f"  JP insurance numbers (被保険者番号): {status}")
         if hospital_ops:
             print(f"  Hospital config: {hospital_ops}")
-        # F4 (session 49): reuse prior snapshot's discharged patients when
+        # F4: reuse prior snapshot's discharged patients when
         # --cache-dir is provided. run_beta validates seed / config / country
         # match; on mismatch it prints a warn and full-recomputes.
         cache_dir_arg = getattr(args, "cache_dir", None)
@@ -719,7 +725,7 @@ def main() -> None:
     cif_dir = os.path.join(args.output, "cif")
     write_cif(dataset, cif_dir)
 
-    # F4 (session 49): write _cache_manifest.json alongside the output so a
+    # F4: write _cache_manifest.json alongside the output so a
     # future `run_beta(..., cache_dir=args.output)` call (later cursor / cron
     # advance) can validate + reuse already-discharged patients from this run.
     from pathlib import Path as _Path
@@ -758,7 +764,7 @@ def main() -> None:
 
 
 # `_FORMAT_ALIASES` moved to `cli_common.py` alongside `_run_exports` /
-# `_validate_formats` (session 82 PR K split).
+# `_validate_formats` (PR K split).
 
 # Backward-compat re-exports for test callers that import from this module
 # directly. The canonical homes are the sub-modules below; these aliases stay

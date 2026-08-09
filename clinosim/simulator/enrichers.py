@@ -197,7 +197,7 @@ def register_builtin_enrichers() -> None:
         )
     )
 
-    # JP 要介護度 (AD-55 Base): long-term-care need level. JP only.
+    # JP long-term-care need level (要介護度, AD-55 Base). JP only.
     from clinosim.modules.care_level.enricher import enrich_care_level
 
     register_enricher(
@@ -246,7 +246,7 @@ def register_builtin_enrichers() -> None:
 
     # Empirical antibiotic regimen for HAI events (AD-55 always-on
     # Module = near-essential clinical cascade, PR3b-1). Consumes
-    # extensions["hai"] (PR-B output); HAI 不在時は no-op. Order 85
+    # extensions["hai"] (PR-B output); no-op when no HAI events are present. Order 85.
     # ensures it runs AFTER hai (80) so extensions["hai"] is populated.
     from clinosim.modules.antibiotic.enricher import enrich_antibiotic
 
@@ -328,17 +328,19 @@ def register_builtin_enrichers() -> None:
         )
     )
 
-    # P2-13 PR3 sub-PR-A(session 47):JP-eCheckup 事業者健診 opt-in module。
-    # SimulatorConfig.modules["health_checkup"]=True かつ country=JP のときのみ発火。
-    # POST_RECORDS order=70 で、他 POST_RECORDS enricher(nursing 20 /
-    # immunization 30 / family_history 40 / code_status 50 / care_level 60)の
-    # あとに走らせる。40 歳以上のうち決定的 30% サブセットに対して
-    # CHECKUP encounter + 法定健診 5 項目 + HEALTH_CHECKUP_REPORT stub を追加。
+    # JP employer-provided health-checkup (事業者健診) opt-in module.
+    # Only fires when SimulatorConfig.modules["health_checkup"] == True and
+    # country == "JP". Registered as POST_RECORDS order=70 so it runs after
+    # the other POST_RECORDS enrichers (nursing 20 / immunization 30 /
+    # family_history 40 / code_status 50 / care_level 60). For a
+    # deterministic 30 % subset of adults (age >= 40) it adds one CHECKUP
+    # encounter plus the five statutorily required checkup measurements
+    # (BMI / SBP / DBP / HbA1c / LDL) and a HEALTH_CHECKUP_REPORT stub.
     from clinosim.modules.health_checkup import enrich_health_checkup
 
     def _health_checkup_enabled(c: Any) -> bool:
-        # None-safe(care_level pattern):test_registry_helpers の
-        # run_stage(ctx.config=None)を通すため getattr fallback を使う。
+        # None-safe (care_level pattern): use getattr fallback so that
+        # test_registry_helpers.run_stage(ctx.config=None) still passes.
         country = getattr(c, "country", "") if c is not None else ""
         if not is_jp(country):
             return False

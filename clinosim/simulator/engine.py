@@ -55,7 +55,7 @@ from clinosim.types.encounter import EncounterType
 from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
 from clinosim.types.patient import PatientProfile
 
-# F1 (session 49): `generate_healthcare_calendar` emits several distinct
+# F1: `generate_healthcare_calendar` emits several distinct
 # screening kinds under the same `event_type == "health_screening"` (see the
 # ev_key comment in the P4 calendar loop below). Each needs its own visit
 # reason text so two screenings landing on the same calendar date don't
@@ -95,7 +95,7 @@ def run_beta(
         config = SimulatorConfig()
 
     rng = np.random.default_rng(config.random_seed)
-    # F1 (session 49): P1/P2/P3/P4/P4' below derive per-key sub-seeds from
+    # F1: P1/P2/P3/P4/P4' below derive per-key sub-seeds from
     # master_seed instead of consuming the shared `rng` stream, so that
     # cursor movement (snapshot_date change) cannot shift RNG state for
     # entities that are unaffected by the cursor (cross-cursor determinism).
@@ -180,7 +180,7 @@ def run_beta(
     # Run life events
     start_y, start_m = int(config.time_range[0][:4]), int(config.time_range[0][5:7])
     end_y, end_m = int(config.time_range[1][:4]), int(config.time_range[1][5:7])
-    # F1 (session 49): keep the *uncapped* end alongside the snapshot-capped one.
+    # F1: keep the *uncapped* end alongside the snapshot-capped one.
     # `end_y, end_m` below get capped by snapshot_date and are correctly used as
     # the P1 month-loop bound (fewer months generated for an earlier cursor is
     # intended snapshot semantics). But the P4' ED slot phase uses `end_y, end_m`
@@ -229,7 +229,7 @@ def run_beta(
         hospital=len(hospital_events),
     )
 
-    # F4 (session 49): load a previous-snapshot cache, if given and valid. Only
+    # F4: load a previous-snapshot cache, if given and valid. Only
     # the primary admission loop below (known_disease/mixed via `_simulate_patient`
     # and unknown-condition via `_simulate_unknown_condition`) consults this cache —
     # it is the single most expensive per-event computation (full daily-loop
@@ -237,7 +237,7 @@ def run_beta(
     # cache-hit admission's OWN record is byte-identical to what a fresh
     # simulation of that same event would produce. This does NOT extend to every
     # downstream side effect of skipping `_simulate_patient`, however — see
-    # `clinosim/simulator/memoize.py` module docstring ("既知の限界 2 件") for two
+    # `clinosim/simulator/memoize.py` module docstring ("known limitations") for two
     # confirmed classes of shared-mutable-state divergence a cache hit can cause
     # for OTHER admissions processed later in the same run (implied-chronic
     # accretion on the shared activated `PatientProfile`, and `HospitalState`
@@ -601,7 +601,7 @@ def run_beta(
             continue
         patient = _activate_cached(person)
 
-        # F1 (session 49): fold disease_id into the key. `generate_healthcare_calendar`
+        # F1: fold disease_id into the key. `generate_healthcare_calendar`
         # can schedule more than one "health_screening"-type event for the same
         # person (annual_health_screening / colonoscopy_screening /
         # mammography_screening all share event_type="health_screening") — if two
@@ -643,7 +643,7 @@ def run_beta(
                 config=config,
             )
         elif event.event_type == "health_screening":
-            # F1 (session 49): visit_reason must vary by disease_id — see the
+            # F1: visit_reason must vary by disease_id — see the
             # ev_key comment above. Previously every health_screening dispatch
             # (annual / colonoscopy / mammography) got the identical hardcoded
             # "Annual health screening" text regardless of which screening
@@ -750,7 +750,7 @@ def run_beta(
 
     # Post-records enrichers (AD-56) — opt-in modules that read/extend finished records
     # (e.g. billing, devices, care-coordination write to CIFPatientRecord.extensions).
-    # RM-3 (session 42): pass roster so immunization enricher can populate
+    # RM-3: pass roster so immunization enricher can populate
     # ImmunizationRecord.administered_by from the nurse pool.
     run_stage(
         POST_RECORDS,
