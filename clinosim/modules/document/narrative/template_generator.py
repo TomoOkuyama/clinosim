@@ -1,10 +1,10 @@
-"""Template-based narrative generator (Tier 1 #3 α-min-1 PR1 Task 6).
+"""Template-based narrative generator for clinical document narratives.
 
 Stage 1 default generator producing deterministic narrative text from CIF
 + disease YAML + reference data. No LLM dependency. Dispatches by
 DocumentTypeSpec.format_type to one of 3 renderers.
 
-Multi-day fallback chain (Task 4 lesson):
+Multi-day fallback chain for text resolution:
   1. disease_protocol.narrative.physical_exam_findings[archetype][day_N]
   2. reference_data findings[disease_id][archetype][day_N]
   3. same chain at prior days (N-1, N-2, ..., 0)
@@ -20,7 +20,7 @@ discharge_instructions), the target_lang key is used directly. This is
 preferable to fabricating English text for JP-clinical-context disease YAMLs.
 
 Jinja2-like substitution: all template substitution is via Python
-str.format_map() with named placeholders. For α-min-1, templates that
+str.format_map() with named placeholders. Templates that
 require computed values (e.g. "{onset_days_ago}日前より") use a fixed
 reasonable default (3 days) when onset cannot be derived from CIF without
 complex date arithmetic.
@@ -65,7 +65,7 @@ def _render_home_med_name(m: Any) -> str:
 
 
 def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext | None = None) -> str:
-    """AD-65 Bug A fix: locale-aware field access.
+    """Locale-aware field access fix for multi-language templates. locale-aware field access.
 
     Reads `<key_base>_<lang>` from tmpl (attribute or dict access), returning
     an empty string + a warning log on missing. The silent ja fallback that
@@ -73,10 +73,10 @@ def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext |
     retired: a structurally empty section is preferable to silent locale
     contamination.
 
-    β-JP-1 chain 1a: when ``ctx`` is provided, ``{placeholder}`` tokens in the
+    When ``ctx`` is provided when ``ctx`` is provided, ``{placeholder}`` tokens in the
     template text are substituted via ``_fill_template_placeholders`` (the
     encounter YAML narrative templates carry them; they never reached output
-    before chain 1a wired ctx.encounter_protocol).
+    before context wired ctx.encounter_protocol).
     """
     if tmpl is None:
         return ""
@@ -100,8 +100,8 @@ def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext |
 # locale generic phrase.
 _KNOWN_PLACEHOLDERS = frozenset({"onset_days", "chief_complaint_ja", "chief_complaint_en"})
 
-# β-JP-1 chain 1b T4: numeric vitals placeholders resolved from ctx.vitals
-# (wired in chain 1a). Placeholder name → structural-CIF vital_signs field.
+# Numeric vitals placeholders are resolved from ctx.vitals. numeric vitals placeholders resolved from ctx.vitals
+# .. Placeholder name → structural-CIF vital_signs field.
 # YAML inventory today (grep over encounter reference_data): {sbp} {dbp}
 # {hr} {temp}; {spo2}/{rr} are covered ahead of authoring. A placeholder is
 # "known" only when a non-null reading exists for the stub's day — otherwise
@@ -128,7 +128,7 @@ def _resolve_vital_placeholders(ctx: NarrativeContext, wanted: set[str]) -> dict
 
     Readings are ranked by day distance to (admission date + ctx.day_index),
     ties broken by original list order (structural CIF vital_signs order is
-    chronological + deterministic — AD-16, no RNG). Per placeholder, the
+    chronological + deterministic — deterministic seeding, no RNG). Per placeholder, the
     nearest reading with a non-null value wins; unresolvable placeholders are
     simply absent from the result (caller falls back whole-section).
     """
@@ -183,21 +183,21 @@ def _resolve_vital_placeholders(ctx: NarrativeContext, wanted: set[str]) -> dict
 
 
 def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> str:
-    """Substitute `{placeholder}` tokens in encounter-template text (chain 1a).
+    """Substitute `{placeholder}` tokens in encounter-template text.
 
     Known placeholders:
-      - ``{onset_days}`` → fixed default 3 (α-min-1 convention, see module
+      - ``{onset_days}`` → fixed default 3 ( see module
         docstring: computed values use a fixed reasonable default until they
         can be derived from CIF).
       - ``{chief_complaint_ja}`` / ``{chief_complaint_en}`` → the encounter
         protocol's own ``chief_complaint`` multi-language dict.
       - ``{sbp}`` / ``{dbp}`` / ``{hr}`` / ``{temp}`` / ``{spo2}`` / ``{rr}``
-        (chain 1b T4) → nearest non-null reading in ``ctx.vitals`` for the
+        (vital signs resolution) → nearest non-null reading in ``ctx.vitals`` for the
         stub's day (``_resolve_vital_placeholders``).
 
     adv-1 I-2: if the text carries ANY placeholder outside the known set —
     including a vitals placeholder with NO resolvable reading — the WHOLE
-    text falls back to the locale generic phrase (pre-chain-1a parity). The
+    text falls back to the locale generic phrase .. The
     earlier per-placeholder generic substitution produced broken sentences
     ("BP No special findings/No special findings mmHg").
     """
@@ -237,8 +237,9 @@ def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> 
 _GENERIC_FALLBACK_JA = "特記事項なし"
 _GENERIC_FALLBACK_EN = "No special findings"
 
-# session 59 #286: `_build_discharge_details` の JP/EN disposition label map。
-# module-scope 定数(function 内では N806 lint violation)。
+# JP/EN disposition-label map for `_build_discharge_details`. Kept at
+# module scope because the equivalent function-local ``UPPER_CASE`` binding
+# would trigger the N806 lint rule.
 _JA_DISPO_LABEL: dict[str, str] = {
     "home": "自宅退院",
     "hosp": "他院転院",
@@ -258,19 +259,19 @@ _GENERIC_ASSESSMENT_EN = "Clinical assessment ongoing"
 _GENERIC_PLAN_JA = "治療継続"
 _GENERIC_PLAN_EN = "Continue current management"
 
-# session 53 (#149): English HPI onset phrases per severity — disease YAML
-# `hpi_template.onset_pattern` is Japanese-only, so EN locale must synthesize
-# its own text rather than fall back to the Japanese source (which caused US
-# Composition resources to leak CJK into `.section[].text.div`). Per-disease
-# English wording quality is deferred to β-JP-1 LLM narrative pass; these
-# generic phrases are clinically neutral and locale-appropriate.
+# English HPI onset phrases per severity — the disease YAML
+# `hpi_template.onset_pattern` is Japanese-only, so the EN locale must
+# synthesize its own text rather than fall back to the Japanese source
+# (which would leak CJK into US Composition `.section[].text.div`).
+# Per-disease English wording quality is deferred to the LLM narrative
+# pass; these generic phrases are clinically neutral and locale-appropriate.
 _HPI_ONSET_EN: dict[str, str] = {
     "mild": "Patient reports gradual onset of symptoms over the preceding days.",
     "moderate": "Patient reports symptoms developing over several days with progressive worsening.",
     "severe": "Patient reports rapid symptom worsening prompting today's presentation.",
 }
 
-# α-min-2: Nursing section fallback phrases
+# Nursing section fallback phrases
 _NURSING_HISTORY_FALLBACK_JA = "入院目的・既往歴：特記事項なし"
 _NURSING_HISTORY_FALLBACK_EN = "Nursing history: no significant findings"
 _ADL_FALLBACK_JA = "ADL：自立（問題なし）"
@@ -280,7 +281,7 @@ _RISK_FALLBACK_EN = "Fall / pressure ulcer risk: assessment pending"
 _NURSING_DX_FALLBACK_JA = "看護診断：特記事項なし"
 _NURSING_DX_FALLBACK_EN = "Nursing diagnosis: no significant findings"
 
-# chain 2: ADMISSION_CARE_PLAN fallback phrases
+# ADMISSION_CARE_PLAN (Phase 2) fallback phrases
 _ACP_WARD_ROOM_FALLBACK_JA = "病棟・病室：未定"
 _ACP_WARD_ROOM_FALLBACK_EN = "Ward/Room: not yet assigned"
 _ACP_OTHER_STAFF_FALLBACK_JA = "担当なし"
@@ -294,7 +295,7 @@ _ACP_NUTRITION_NO_EN = "Special nutritional management required: No"
 _ACP_OTHER_PLANS_JA = "その他：看護計画・リハビリテーション等の計画については看護記録を参照。"
 _ACP_OTHER_PLANS_EN = "Other: see nursing documentation for the nursing care plan and rehabilitation plan."
 
-# chain 2: NUTRITION_CARE_PLAN fallback phrases
+# NUTRITION_CARE_PLAN (Phase 2) fallback phrases
 _NCP_DIETITIAN_FALLBACK_JA = "担当なし"
 _NCP_DIETITIAN_FALLBACK_EN = "No dietitian assigned"
 _NCP_ASSESSMENT_FALLBACK_JA = "栄養状態の評価と課題：特記事項なし"
@@ -314,7 +315,7 @@ _NCP_REASSESSMENT_FALLBACK_EN = "Nutrition status reassessment: planned approxim
 _NCP_DISCHARGE_EVAL_FALLBACK_JA = "退院時及び終了時の総合的評価：退院時に評価予定"
 _NCP_DISCHARGE_EVAL_FALLBACK_EN = "Comprehensive evaluation at discharge: pending, to be assessed at discharge"
 
-# chain 2: REHABILITATION_PLAN fallback phrases
+# REHABILITATION_PLAN (Phase 2) fallback phrases
 _RP_TEAM_FALLBACK_JA = "リハビリ実施なし"
 _RP_TEAM_FALLBACK_EN = "No rehabilitation therapy on record"
 _RP_THERAPIST_FALLBACK_JA = "担当者未定"
@@ -373,9 +374,9 @@ _PATIENT_EDUCATION_FALLBACK_EN = "Patient education: discharge instructions prov
 _DISCHARGE_READINESS_FALLBACK_JA = "退院準備：退院基準を満たす"
 _DISCHARGE_READINESS_FALLBACK_EN = "Discharge readiness: criteria met"
 
-# α-min-3: nursing shift labels, keyed by the neutral shift key stored in
+# Nursing shift labels, keyed by the neutral shift key stored in
 # structural CIF (ClinicalDocument.shift → NarrativeContext.shift). Labels are
-# resolved here at render time by language (AD-30 spirit — never baked into
+# resolved here at render time by language .
 # CIF). Keys must cover engine.SHIFT_SCHEDULE exactly (guarded by
 # tests/unit/modules/document/narrative/test_template_generator_3shift.py).
 _SHIFT_LABELS_JA: dict[str, str] = {
@@ -389,7 +390,7 @@ _SHIFT_LABELS_EN: dict[str, str] = {
     "evening": "evening",
 }
 
-# α-min-2: ED section fallback phrases
+# ED section fallback phrases
 _ED_WORKUP_FALLBACK_JA = "検査・処置：特記事項なし"
 _ED_WORKUP_FALLBACK_EN = "ED workup: no significant findings"
 _DISPOSITION_FALLBACK_JA = "帰宅または入院加療"
@@ -397,7 +398,7 @@ _DISPOSITION_FALLBACK_EN = "Disposition: to be determined"
 _TRIAGE_FALLBACK_JA = "トリアージ情報：未記録"
 _TRIAGE_FALLBACK_EN = "Triage information: not recorded"
 
-# α-min-2: Arrival mode display
+# Arrival mode display
 _ARRIVAL_MODE_JA: dict[str, str] = {
     "ambulance": "救急車搬送",
     "walk-in": "自来院（Walk-in）",
@@ -479,7 +480,7 @@ class TemplateNarrativeGenerator:
     def _render_free_text(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
         """Build free-text narrative, dispatching on ctx.document_type.
 
-        α-min-2 new types dispatch to specialized renderers; everything else
+        New types dispatch to specialized renderers; everything else
         falls through to the existing PROGRESS_NOTE SOAP renderer.
         """
         if ctx.document_type == DocumentType.NURSING_SHIFT_NOTE:
@@ -495,11 +496,11 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         soap_labels = _SOAP_JA if is_ja else _SOAP_EN
 
-        # session 53 (#149 sibling): daily_trajectory / physical_exam_findings
-        # values (disease YAML + reference_data) are JP-only strings. EN locale
-        # must not read the JP source directly — instead synthesize generic
-        # English SOAP text. Per-archetype English content is deferred to
-        # β-JP-1 LLM narrative pass.
+        # daily_trajectory / physical_exam_findings values (disease YAML +
+        # reference_data) are JP-only strings. The EN locale must not read
+        # the JP source directly — instead synthesize generic English SOAP
+        # text. Per-archetype English content is deferred to the LLM
+        # narrative pass.
         if not is_ja:
             facts.append("generic:progress_note_soap_en")
             subjective = _GENERIC_FALLBACK_EN
@@ -553,7 +554,7 @@ class TemplateNarrativeGenerator:
         )
 
     # ─────────────────────────────────────────────────────────────────
-    # Renderer: COMPOSITION (ADMISSION_HP, DISCHARGE_SUMMARY + α-min-2)
+    # Renderer: COMPOSITION (ADMISSION_HP, DISCHARGE_SUMMARY)
     # ─────────────────────────────────────────────────────────────────
 
     def _render_composition_sections(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
@@ -562,7 +563,7 @@ class TemplateNarrativeGenerator:
         sections: dict[str, str] = {}
 
         section_builders = {
-            # α-min-1 sections
+            # Stage 1 sections
             "chief_complaint": self._build_chief_complaint,
             "hpi": self._build_hpi,
             "past_medical_history": self._build_past_medical_history,
@@ -578,28 +579,28 @@ class TemplateNarrativeGenerator:
             "discharge_medications": self._build_discharge_medications,
             "discharge_instructions": self._build_discharge_instructions,
             "follow_up": self._build_follow_up,
-            # α-min-2: ADMISSION_NURSING_ASSESSMENT sections
+            # ADMISSION_NURSING_ASSESSMENT sections
             "nursing_history": self._build_nursing_history,
             "adl_assessment": self._build_adl_assessment,
             "risk_assessments": self._build_risk_assessments,
             "nursing_diagnosis": self._build_nursing_diagnosis,
             "care_plan": self._build_care_plan,
-            # α-min-2: NURSING_DISCHARGE_SUMMARY sections
+            # NURSING_DISCHARGE_SUMMARY sections
             "admission_status": self._build_nursing_admission_status,
             "nursing_interventions_provided": self._build_nursing_interventions_provided,
             "patient_education": self._build_patient_education,
             "discharge_readiness": self._build_discharge_readiness,
-            # α-min-2: OUTPATIENT_SOAP sections (reads encounter_protocol.narrative)
+            # OUTPATIENT_SOAP sections (reads encounter_protocol.narrative)
             "subjective": self._build_outpatient_subjective,
             "objective": self._build_outpatient_objective,
             "assessment": self._build_outpatient_assessment,
             "plan": self._build_outpatient_plan,
-            # α-min-2: ED_NOTE sections
+            # ED_NOTE sections
             "triage_details": self._build_triage_details,
             "physical_exam": self._build_ed_physical_exam,
             "ed_workup": self._build_ed_workup,
             "disposition": self._build_ed_disposition,
-            # chain 2: ADMISSION_CARE_PLAN sections (LOINC 18776-5)
+            # ADMISSION_CARE_PLAN sections (LOINC 18776-5)
             "ward_and_room": self._build_acp_ward_and_room,
             "other_staff": self._build_acp_other_staff,
             "diagnosis": self._build_acp_diagnosis,
@@ -610,7 +611,7 @@ class TemplateNarrativeGenerator:
             "estimated_los": self._build_acp_estimated_los,
             "special_nutrition_management": self._build_acp_special_nutrition_management,
             "other_plans": self._build_acp_other_plans,
-            # chain 2: NUTRITION_CARE_PLAN sections (LOINC 80791-7)
+            # NUTRITION_CARE_PLAN sections (LOINC 80791-7)
             "ward_and_physician": self._build_ncp_ward_and_physician,
             "dietitian": self._build_ncp_dietitian,
             "nutrition_risk": self._build_ncp_nutrition_risk,
@@ -628,21 +629,21 @@ class TemplateNarrativeGenerator:
             "admission_details": self._build_admission_details,
             "admission_diagnoses": self._build_admission_diagnoses,
             "present_illness": self._build_present_illness,
-            # Session 59 #286: JP-CLINS eDS discharge-side section builder.
-            # The other 4 discharge-side keys (hospital_course /
-            # discharge_diagnoses / discharge_medications /
-            # discharge_instructions)は上の共通 α-min-1 entry を再利用。
+            # JP-CLINS eDS discharge-side section builder. The other 4
+            # discharge-side keys (hospital_course / discharge_diagnoses /
+            # discharge_medications / discharge_instructions) reuse the
+            # shared stage 1 entries above.
             "discharge_details": self._build_discharge_details,
-            # P2-13 PR2b: JP-CLINS 診療情報提供書 sections (JP only)
+            # P2-13 PR2b: JP-CLINS referral sections (JP only)
             "referring_institution": self._build_referring_institution,
             "referral_destination": self._build_referral_destination,
             "referral_purpose": self._build_referral_purpose,
             "diagnoses_and_complaint": self._build_diagnoses_and_complaint,
             "present_illness_ref": self._build_present_illness_ref,
-            # P2-13 PR3: JP-eCheckup 健診結果報告書 sections (JP only, opt-in)
+            # P2-13 PR3: JP-eCheckup checkup report sections (JP only, opt-in)
             "checkup_lab_results": self._build_checkup_lab_results,
             "checkup_questionnaire": self._build_checkup_questionnaire,
-            # chain 2: REHABILITATION_PLAN sections (LOINC 34823-5)
+            # REHABILITATION_PLAN sections (LOINC 34823-5)
             "patient_and_diagnosis": self._build_rp_patient_and_diagnosis,
             "rehab_team": self._build_rp_rehab_team,
             "functional_status": self._build_rp_functional_status,
@@ -654,8 +655,8 @@ class TemplateNarrativeGenerator:
             "explanation_consent": self._build_rp_explanation_consent,
         }
 
-        # P2-13 PR2a (session 47): use JP-specific section list when country=JP
-        # so JP-CLINS Composition emit finds the 5 required sections
+        # P2-13 PR2a: use the JP-specific section list when country=JP so
+        # JP-CLINS Composition emit finds the 5 required sections
         # (admission_reason / admission_details / admission_diagnoses /
         # chief_complaint / present_illness) instead of the US 6-section set.
         section_list = spec.composition_sections_for(ctx.locale.upper())
@@ -681,10 +682,10 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
 
     def _render_structured_form(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
-        """QUESTIONNAIRE_RESPONSE infrastructure stub for α-min-1.
+        """QUESTIONNAIRE_RESPONSE infrastructure stub (not yet implemented).
 
         Returns empty structured dict with metadata indicating stub stage.
-        β-JP-1 phase will implement the full form structure.
+        (Not yet implemented).
         """
         return NarrativeOutput(
             structured={},
@@ -712,7 +713,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         fallback = "発熱・全身倦怠感" if is_ja else "Chief complaint not specified"
 
-        # α-min-2: ED_NOTE reads from ed_note_template
+        # ED_NOTE reads from ed_note_template
         if ctx.document_type == DocumentType.ED_NOTE:
             ed_tmpl = self._get_ed_note_template(ctx)
             if ed_tmpl is not None:
@@ -756,7 +757,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         fallback = f"{ctx.severity}の症状で受診。" if is_ja else f"Patient presented with {ctx.severity} symptoms."
 
-        # α-min-2: ED_NOTE reads from ed_note_template
+        # ED_NOTE reads from ed_note_template
         if ctx.document_type == DocumentType.ED_NOTE:
             ed_tmpl = self._get_ed_note_template(ctx)
             if ed_tmpl is not None:
@@ -775,13 +776,14 @@ class TemplateNarrativeGenerator:
         if hpi_tmpl is None:
             return fallback, facts
 
-        # session 53 (#149): US locale leak fix. `hpi_template.onset_pattern`
-        # and `trigger_options` in disease YAMLs are JP-only strings. Previously
-        # EN locale emitted the JP text (tagged `:ja_only_fallback`), which
-        # surfaced as CJK in US Composition `.section[].text.div`. Now EN
-        # locale synthesizes a locale-neutral English phrase per severity and
-        # skips `trigger_options` entirely (per-disease English wording is
-        # deferred to β-JP-1 LLM narrative pass — a functional fallback beats
+        # US-locale leak fix. `hpi_template.onset_pattern` and
+        # `trigger_options` in disease YAMLs are JP-only strings. The EN
+        # locale previously emitted the JP text (tagged
+        # `:ja_only_fallback`), which surfaced as CJK in US Composition
+        # `.section[].text.div`. The EN locale now synthesizes a
+        # locale-neutral English phrase per severity and skips
+        # `trigger_options` entirely (per-disease English wording is
+        # deferred to the LLM narrative pass — a functional fallback beats
         # a locale leak).
         if not is_ja:
             onset_text_en = _HPI_ONSET_EN.get(ctx.severity) or _HPI_ONSET_EN["moderate"]
@@ -858,7 +860,7 @@ class TemplateNarrativeGenerator:
     def _build_allergies(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build allergies section from ctx.allergies.
 
-        Resolves display via code_lookup (AD-30 — CIF stores allergen_code
+        Resolves display via code_lookup ( — CIF stores allergen_code
         only, not display text; this mirrors _build_discharge_diagnoses'
         code_lookup pattern in this same file).
         """
@@ -925,7 +927,7 @@ class TemplateNarrativeGenerator:
         return "; ".join(parts) if parts else fallback, facts
 
     def _build_family_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build family history — generic placeholder for α-min-1."""
+        """Build family history — generic placeholder (not yet implemented)."""
         lang = ctx.target_lang
         is_ja = lang == "ja"
         text = "特記家族歴なし" if is_ja else "No significant family history"
@@ -937,11 +939,11 @@ class TemplateNarrativeGenerator:
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
-        # session 53 (#149 sibling): physical_exam_findings values (disease YAML
-        # + reference_data) are JP-only strings. Previously EN locale emitted
-        # them with a `:ja_only_fallback` tag, leaking CJK into US narratives.
-        # Now EN locale skips the JP source entirely and uses a generic
-        # placeholder; per-disease English content is deferred to β-JP-1 LLM
+        # physical_exam_findings values (disease YAML + reference_data)
+        # are JP-only strings. The EN locale previously emitted them with
+        # a `:ja_only_fallback` tag, leaking CJK into US narratives. The
+        # EN locale now skips the JP source entirely and uses a generic
+        # placeholder; per-disease English content is deferred to the LLM
         # narrative pass.
         if not is_ja:
             facts.append("generic:physical_exam_en")
@@ -963,11 +965,12 @@ class TemplateNarrativeGenerator:
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
-        # session 53 (#149 sibling): daily_trajectory values (disease YAML) are
-        # JP-only strings. Previously EN locale emitted them with a
-        # `:ja_only_fallback` tag, leaking CJK into US narratives. Now EN
-        # locale skips the JP source and uses generic English assessment /
-        # plan phrases; per-archetype English wording is deferred to β-JP-1.
+        # daily_trajectory values (disease YAML) are JP-only strings. The
+        # EN locale previously emitted them with a `:ja_only_fallback`
+        # tag, leaking CJK into US narratives. The EN locale now skips
+        # the JP source and uses generic English assessment / plan
+        # phrases; per-archetype English wording is deferred to the LLM
+        # narrative pass.
         if not is_ja:
             facts.append("generic:daily_trajectory_en")
             text = f"Assessment: {_GENERIC_ASSESSMENT_EN}. Plan: {_GENERIC_PLAN_EN}."
@@ -1002,17 +1005,18 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     # ─────────────────────────────────────────────────────────────────
-    # P2-13 PR2a:JP-CLINS 退院時サマリー用 section builder 群(JP-only)
-    # country=JP かつ doc_type=discharge_summary の場合に消費される。
-    # US path は composition_sections_for("US") で従来 6-section を返す。
-    # 各 builder は共通 signature を保持し ctx.target_lang で分岐する。
+    # P2-13 PR2a: JP-CLINS discharge-summary section builders (JP-only).
+    # Consumed when country=JP and doc_type=discharge_summary. The US
+    # path returns the original 6-section list via
+    # composition_sections_for("US"). Each builder keeps the common
+    # signature and branches internally on ctx.target_lang.
     # ─────────────────────────────────────────────────────────────────
 
     def _build_admission_reason(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """312 入院理由セクション:入院理由の一言記述。
 
-        主入院診断の display を clinosim.codes.lookup で resolve(AD-30)。
-        取得できない場合は主訴に fallback。
+        Resolve primary admission diagnosis display via clinosim.codes.lookup.
+        Falls back to chief complaint if code cannot be resolved.
         """
         from clinosim.codes import lookup as code_lookup
 
@@ -1055,7 +1059,7 @@ class TemplateNarrativeGenerator:
         via_ed = bool(_o(enc, "via_emergency", False)) if enc is not None else False
         facts.append("ctx.encounter.admission_datetime")
 
-        # 入院日時を YYYY-MM-DD 部分のみに整形
+        # Format admission datetime to YYYY-MM-DD only
         adm_date = ""
         if adm_dt:
             adm_date = str(adm_dt).split("T")[0]
@@ -1083,11 +1087,12 @@ class TemplateNarrativeGenerator:
     def _build_discharge_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """324 退院時詳細セクション:退院日・退院病棟・退院時転帰(JP-only)。
 
-        session 59 #286:eDS spec の 5 discharge-side 必須 section の 1 つ。
-        session 58 Chain #9 で slice code だけ emit していたが narrative
-        content が unset で `text.div SHALL have non-whitespace content`
-        (FHIR R4 `txt-2`)違反を 130+ /fullset 起こしていた。ここでは
-        `_build_admission_details` と対称な template を用意。
+        One of the 5 discharge-side mandatory sections in the eDS spec.
+        An earlier state emitted only the slice code, leaving the
+        narrative content unset — that violated `text.div SHALL have
+        non-whitespace content` (FHIR R4 `txt-2`) on 130+ resources per
+        fullset. This template mirrors `_build_admission_details`
+        symmetrically to close that gap.
         """
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
@@ -1096,8 +1101,9 @@ class TemplateNarrativeGenerator:
         ward = _o(enc, "ward", "") if enc is not None else ""
         disposition = _o(enc, "discharge_disposition", "") if enc is not None else ""
         facts.append("ctx.encounter.discharge_datetime")
-        # 転帰 → 日本語表現(JP-CLINS spec 準拠 code は使わず narrative 用短形)。
-        # `_JA_DISPO_LABEL` / `_EN_DISPO_LABEL` は module-scope 定数(冒頭定義)。
+        # Disposition maps to Japanese display text (narrative short form, not
+        # JP-CLINS spec codes). _JA_DISPO_LABEL and _EN_DISPO_LABEL are
+        # module-scope constants (defined at file top).
 
         dis_date = ""
         if dis_dt:
@@ -1164,13 +1170,14 @@ class TemplateNarrativeGenerator:
         """360 現病歴セクション:現病歴の短文記述。
 
         退院時サマリー用は ADMISSION_HP と同じ disease_protocol の HPI
-        template を再利用する。時制の言い換え(述懐調)は β-JP-1 で
+        reuses this template. Tense variation (narrative tone) will be
         LLM 差替時に調整予定。
         """
         hpi_text, facts = self._build_hpi(ctx)
         is_ja = ctx.target_lang == "ja"
-        # HPI は既に時系列 onset 記述として書かれているため構造変更不要。
-        # β-JP-1 で LLM narrative 差替時に文体を統一する。
+        # HPI is already structured as a chronological onset narrative, so
+        # no structural changes are needed. Text style harmonization will be
+        # deferred to the LLM narrative pass when applicable.
         if not hpi_text:
             hpi_text = (
                 f"{ctx.severity}の症状で受診し入院となった。"
@@ -1180,14 +1187,16 @@ class TemplateNarrativeGenerator:
         return hpi_text, facts
 
     # ─────────────────────────────────────────────────────────────────
-    # P2-13 PR2b:JP-CLINS 診療情報提供書用 section builder 群(JP-only)
+    # P2-13 PR2b: JP-CLINS referral (referral letter) section
+    # builders. JP-only.
     # ─────────────────────────────────────────────────────────────────
 
     def _build_referring_institution(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """920 紹介元情報セクション:紹介元(送信元)医療機関の記載。
 
         clinosim は単一病院を simulate するため、紹介元は常に当院固定。
-        β-JP-1 で hospital_config から表示名を動的取得する余地を残す。
+        Dynamic facility name retrieval from hospital_config is deferred
+        to the LLM narrative pass for future enhancement.
         """
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
@@ -1300,23 +1309,24 @@ class TemplateNarrativeGenerator:
         return hpi_text, facts
 
     # ─────────────────────────────────────────────────────────────────
-    # P2-13 PR3:JP-eCheckup 健診結果報告書用 section builder 群(JP-only、opt-in)
-    # 事業者健診(労安衛法定健診)の 2 必須 section を対象。
+    # P2-13 PR3: JP-eCheckup checkup report (health-checkup report)
+    # section builders. JP-only, opt-in. Covers the 2 mandatory sections
+    # of the 事業者健診 (statutory occupational-health checkup).
     # ─────────────────────────────────────────────────────────────────
 
     def _build_checkup_lab_results(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """01031 事業者健診検査結果セクション:法定健診項目の判定文。
 
-        sub-PR-B(session 47):ctx.lab_results から健診 5 項目の実測値を
-        拾い、法定健診の基準に基づき A/B/C/D 判定を組み立てる。lab_results
-        が空(または一部欠損)の場合は該当項目を「未測定」と記す。総合
-        判定は各項目の最悪判定を返す。将来:HDL / TC / TG や AST / ALT
-        を追加する sub-PR で拡張余地あり。
+        sub-PR-B: ctx.lab_results から健診 5 項目の実測値を拾い、法定健診の
+        基準に基づき A/B/C/D 判定を組み立てる。lab_results が空(または一部
+        欠損)の場合は該当項目を「未測定」と記す。総合判定は各項目の最悪判定
+        を返す。将来:HDL / TC / TG や AST / ALT を追加する sub-PR で拡張
+        余地あり。
         """
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
 
-        # 5 項目の実測値を lab_results から拾う(LOINC key)
+        # Extract 5 measured values from lab_results keyed by LOINC code
         results_by_loinc: dict[str, float | None] = {}
         for r in ctx.lab_results or []:
             loinc = _o(r, "lab_name", "")
@@ -1325,7 +1335,8 @@ class TemplateNarrativeGenerator:
                 results_by_loinc[loinc] = val
                 facts.append(f"ctx.lab_results[{loinc}]")
 
-        # 各項目の判定を返す helper(A=正常、B=境界、C=要指導、D=要精査)
+        # Helper returns assessment per item (A=normal, B=borderline,
+        # C=guidance needed, D=detailed testing needed)
         def _judge_bmi(v: float | None) -> tuple[str, str]:
             if v is None:
                 return ("未測定", "A")
@@ -1371,7 +1382,7 @@ class TemplateNarrativeGenerator:
         hba1c_desc, hba1c_grade = _judge_hba1c(results_by_loinc.get("4548-4"))
         ldl_desc, ldl_grade = _judge_ldl(results_by_loinc.get("18262-6"))
 
-        # 総合判定 = 各項目の最悪 grade(A<B<C<D)
+        # Overall assessment = worst grade across all items (A<B<C<D)
         grades = [bmi_grade, bp_grade, hba1c_grade, ldl_grade]
         overall = max(grades, key=lambda g: "ABCD".index(g))
         overall_note = {
@@ -1402,7 +1413,7 @@ class TemplateNarrativeGenerator:
     def _build_checkup_questionnaire(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """01032 事業者健診問診結果セクション:PatientProfile 依存の個別問診記録。
 
-        sub-PR-B(session 47):ctx.patient から以下を反映:
+        sub-PR-B: ctx.patient から以下を反映:
           - 既往歴:chronic_conditions(code → 日本語 display)
           - 服薬:current_medications
           - 生活習慣:smoking_status / alcohol_use
@@ -1416,7 +1427,8 @@ class TemplateNarrativeGenerator:
         is_ja = ctx.target_lang == "ja"
         patient = ctx.patient
 
-        # 既往歴(chronic_conditions)を code → 日本語 display に変換
+        # Convert past medical history (chronic_conditions) codes to
+        # Japanese display text
         chronic = _o(patient, "chronic_conditions", []) or []
         history_lines: list[str] = []
         for cond in chronic:
@@ -1424,7 +1436,8 @@ class TemplateNarrativeGenerator:
             system = _o(cond, "system", "icd-10-cm") or "icd-10-cm"
             if not code:
                 continue
-            # JP は icd-10 権威、US は icd-10-cm(spec §Diagnosis code coverage)
+            # JP uses icd-10 authority; US uses icd-10-cm (per spec
+            # §Diagnosis code coverage)
             resolved_system = system_key_for("diagnosis", "JP") if is_ja else system
             display = code_lookup(resolved_system, code, ctx.target_lang)
             if display and display != code:
@@ -1435,7 +1448,8 @@ class TemplateNarrativeGenerator:
             facts.append("ctx.patient.chronic_conditions")
         history_text = "\n".join(history_lines) if history_lines else ("特記事項なし" if is_ja else "None noted")
 
-        # 服薬(#452 PR 1: current_medications は HomeMedication または dict / str 混在の list)
+        # Current medications: list may contain HomeMedication objects or
+        # mixed dict/str entries
         current_meds = _o(patient, "current_medications", []) or []
         if current_meds:
             facts.append("ctx.patient.current_medications")
@@ -1463,7 +1477,7 @@ class TemplateNarrativeGenerator:
             "heavy": "多量飲酒",
         }.get(alcohol, f"{alcohol}(区分未定義)")
 
-        # 判定:慢性疾患保有時は経過観察を要す
+        # Assessment: follow-up required when chronic conditions are present
         needs_followup = len(chronic) > 0
         assessment_ja = (
             "既往に慢性疾患あり、かかりつけ医での継続経過観察を要す。" if needs_followup else "経過観察不要。"
@@ -1513,9 +1527,9 @@ class TemplateNarrativeGenerator:
     def _build_discharge_diagnoses(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build discharge_diagnoses from ctx.diagnoses.
 
-        β-JP-1 chain 1a: ctx.diagnoses is now wired (clinical_diagnosis), so
+        When ``ctx`` is provided ctx.diagnoses is now wired (clinical_diagnosis), so
         this section resolves display text at render time via
-        ``clinosim.codes.lookup`` (AD-30 — CIF stores codes only; a bare
+        ``clinosim.codes.lookup`` (CIF stores codes only; a bare
         "I63.9" in a JP narrative fails the JP language gate). Format:
         ``<display>（<code>）`` (ja) / ``<display> (<code>)`` (en); when the
         code has no authoritative entry, ``lookup`` returns the code itself
@@ -1563,7 +1577,7 @@ class TemplateNarrativeGenerator:
         never ctx.medications (MAR), whose in-hospital entries (ICU drips,
         protocol-prefixed orders) previously leaked into this section.
         Protocol prefixes ("DVT_prophylaxis:", "antipyretic:", ...) are
-        stripped via the shared AD-50 helper (same normalization as the FHIR
+        stripped via the shared normalization helper (same normalization as the FHIR
         medication builders).
         """
         facts: list[str] = []
@@ -1621,7 +1635,7 @@ class TemplateNarrativeGenerator:
         return text, ["discharge_instructions.follow_up"]
 
     # ─────────────────────────────────────────────────────────────────
-    # α-min-2: Free-text renderers (NURSING_SHIFT_NOTE, ED_TRIAGE_NOTE)
+    # Free-text renderers (NURSING_SHIFT_NOTE, ED_TRIAGE_NOTE)
     # ─────────────────────────────────────────────────────────────────
 
     def _render_nursing_shift_note_text(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
@@ -1630,14 +1644,14 @@ class TemplateNarrativeGenerator:
         Includes: day/shift info, primary_nurse_id (graceful when absent),
         and a generic per-shift status summary.
 
-        α-min-3: when ``ctx.shift`` carries a neutral shift key
+        When ``ctx.shift`` carries a neutral shift key
         ("night"/"day"/"evening" from a daily_3shift stub), the localized
         shift label (en: night/day/evening, ja: 深夜/日勤/準夜) is resolved
         here at render time and included in the header, so the 3 per-day
         notes differ at least by the shift label. ``ctx.shift == ""``
-        (legacy callers) keeps the pre-α-min-3 header unchanged.
+        (legacy callers) keeps the previous header unchanged.
 
-        EN locale note: nursing shift data is JP-primary in α-min-2. EN locale
+        EN locale note: nursing shift data is JP-primary in stage 2. EN locale
         produces an English summary using the same CIF fields.
         """
         facts: list[str] = []
@@ -1760,7 +1774,7 @@ class TemplateNarrativeGenerator:
         )
 
     # ─────────────────────────────────────────────────────────────────
-    # α-min-2: ADMISSION_NURSING_ASSESSMENT section builders
+    # ADMISSION_NURSING_ASSESSMENT section builders
     # ─────────────────────────────────────────────────────────────────
 
     def _build_nursing_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -1783,31 +1797,31 @@ class TemplateNarrativeGenerator:
         return f"{nurse_part}{base}", facts
 
     def _build_adl_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build adl_assessment — generic placeholder for α-min-2."""
+        """Build adl_assessment — generic placeholder."""
         lang = ctx.target_lang
         is_ja = lang == "ja"
         return _ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN, []
 
     def _build_risk_assessments(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build risk_assessments — generic placeholder for α-min-2."""
+        """Build risk_assessments — generic placeholder."""
         lang = ctx.target_lang
         is_ja = lang == "ja"
         return _RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN, []
 
     def _build_nursing_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build nursing_diagnosis — generic placeholder for α-min-2."""
+        """Build nursing_diagnosis — generic placeholder."""
         lang = ctx.target_lang
         is_ja = lang == "ja"
         return _NURSING_DX_FALLBACK_JA if is_ja else _NURSING_DX_FALLBACK_EN, []
 
     def _build_care_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build care_plan — generic placeholder for α-min-2."""
+        """Build care_plan — generic placeholder."""
         lang = ctx.target_lang
         is_ja = lang == "ja"
         return _CARE_PLAN_FALLBACK_JA if is_ja else _CARE_PLAN_FALLBACK_EN, []
 
     # ─────────────────────────────────────────────────────────────────
-    # chain 2: ADMISSION_CARE_PLAN section builders (入院診療計画書, LOINC 18776-5)
+    # ADMISSION_CARE_PLAN (Phase 2) section builders (入院診療計画書, LOINC 18776-5)
     #
     # MHLW form 別紙２ (10 core fields, verified 2026-07-03 — design spec §2).
     # JP-only doc type (countries_supported=[jp]); both language branches are
@@ -1832,7 +1846,8 @@ class TemplateNarrativeGenerator:
         return f"Ward: {ward or 'TBD'}, Room: {bed or 'TBD'}", facts
 
     def _build_acp_other_staff(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """主治医以外の担当者名 — Encounter.primary_nurse_id (same field AD-64 CareTeam uses)."""
+        """Healthcare staff names other than attending physician — mapped to
+        Encounter.primary_nurse_id (shares field with CareTeam)."""
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
         nurse_id = str(_o(ctx.encounter, "primary_nurse_id", "") or "")
@@ -1970,7 +1985,7 @@ class TemplateNarrativeGenerator:
         return (_ACP_OTHER_PLANS_JA if is_ja else _ACP_OTHER_PLANS_EN), []
 
     # ─────────────────────────────────────────────────────────────────
-    # chain 2: NUTRITION_CARE_PLAN section builders (栄養管理計画書, LOINC 80791-7)
+    # NUTRITION_CARE_PLAN (Phase 2) section builders (栄養管理計画書, LOINC 80791-7)
     #
     # MHLW form 別紙23 (verified 2026-07-03 — design spec §2). JP-only,
     # LOS>7-gated. Only 3 of 12 sections are data-driven (ward_and_physician /
@@ -2086,7 +2101,7 @@ class TemplateNarrativeGenerator:
         return (_NCP_DISCHARGE_EVAL_FALLBACK_JA if is_ja else _NCP_DISCHARGE_EVAL_FALLBACK_EN), []
 
     # ─────────────────────────────────────────────────────────────────
-    # chain 2: REHABILITATION_PLAN sections (LOINC 34823-5)
+    # REHABILITATION_PLAN sections (LOINC 34823-5)
     # ─────────────────────────────────────────────────────────────────
 
     def _build_rp_patient_and_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -2145,8 +2160,8 @@ class TemplateNarrativeGenerator:
         """基本動作 — day_post_op から phase (early/mid/late) を再導出。
         generate_rehab_sessions (modules/procedure/engine.py) が内部で使う閾値
         (<=3 early, <=14 mid, else late) と同一 — RehabSession に phase フィールド
-        はないため再計算する。AD-30: RehabSession.activities の生英語文は使わない
-        (design spec §4)。"""
+        is absent, so recalculation is required. RehabSession.activities raw English
+        text is not used (per design spec §4)。"""
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
         sessions = ctx.rehab_sessions or []
@@ -2213,7 +2228,7 @@ class TemplateNarrativeGenerator:
         return (_RP_EXPLANATION_FALLBACK_JA if is_ja else _RP_EXPLANATION_FALLBACK_EN), []
 
     # ─────────────────────────────────────────────────────────────────
-    # α-min-2: NURSING_DISCHARGE_SUMMARY section builders
+    # NURSING_DISCHARGE_SUMMARY section builders
     # ─────────────────────────────────────────────────────────────────
 
     def _build_nursing_admission_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -2233,25 +2248,25 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     def _build_nursing_interventions_provided(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build nursing_interventions_provided — generic placeholder for α-min-2."""
+        """Build nursing_interventions_provided — generic placeholder."""
         lang = ctx.target_lang
         is_ja = lang == "ja"
         return _INTERVENTIONS_FALLBACK_JA if is_ja else _INTERVENTIONS_FALLBACK_EN, []
 
     def _build_patient_education(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build patient_education — generic placeholder for α-min-2."""
+        """Build patient_education — generic placeholder."""
         lang = ctx.target_lang
         is_ja = lang == "ja"
         return _PATIENT_EDUCATION_FALLBACK_JA if is_ja else _PATIENT_EDUCATION_FALLBACK_EN, []
 
     def _build_discharge_readiness(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build discharge_readiness — generic placeholder for α-min-2."""
+        """Build discharge_readiness — generic placeholder."""
         lang = ctx.target_lang
         is_ja = lang == "ja"
         return _DISCHARGE_READINESS_FALLBACK_JA if is_ja else _DISCHARGE_READINESS_FALLBACK_EN, []
 
     # ─────────────────────────────────────────────────────────────────
-    # α-min-2: OUTPATIENT_SOAP section builders
+    # OUTPATIENT_SOAP section builders
     # Reads from encounter_protocol.narrative.outpatient_soap_template via
     # _pick_localized(soap, "<field>", ctx.target_lang) (AD-65 Bug A fix).
     # A missing "<field>_en" (currently the case for all encounter YAMLs —

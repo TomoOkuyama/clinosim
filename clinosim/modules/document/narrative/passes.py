@@ -3,9 +3,9 @@
 Reads structural CIF, builds per-encounter NarrativeContext, runs the
 generator, writes cif/narratives/<version>/documents/<enc>/<doc_type>.json.
 
-Walk order contract: (doc_type, language) group serial — β-JP-1
-LLMNarrativePass inherits this base and gains Bedrock prompt cache
-friendliness automatically.
+Walk order contract: (doc_type, language) group serial. LLMNarrativePass
+inherits this base and gains Bedrock prompt cache friendliness
+automatically.
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ def _parse_dt(value: Any) -> datetime | None:
 class NarrativePass(ABC):
     """Stage 2 base class: read structural CIF → write narrative-tree CIF.
 
-    Walk order is (spec, language, patient) — β-JP-1 LLMNarrativePass groups
+    Walk order is (spec, language, patient) — LLMNarrativePass groups
     by (doc_type, language) to maximize Bedrock prompt cache hits.
 
     N-1 (N-chain): the content generator is constructor-injected as a
@@ -80,9 +80,9 @@ class NarrativePass(ABC):
         self.tasks_filter = set(tasks) if tasks else None
         self.rng_seed = rng_seed
         self.generator = generator
-        # β-JP-1 chain 1b T3: optional regex over patient filename stem OR
-        # patient_id — remote per-patient iteration support. Compiled here so
-        # an invalid regex fails loud at construction, not mid-walk.
+        # Optional regex over patient filename stem OR patient_id — remote
+        # per-patient iteration support. Compiled here so an invalid regex
+        # fails loud at construction, not mid-walk.
         self.patient_filter = patient_filter or ""
         self._patient_filter_re: re.Pattern[str] | None = re.compile(patient_filter) if patient_filter else None
 
@@ -117,16 +117,15 @@ class NarrativePass(ABC):
                     ctx = self._build_context(patient_dict, encounter_dict, spec, language)
                     encounter_id = encounter_dict.get("encounter_id", "")
                     for stub in stubs:
-                        # α-min-3: per-stub shift key (daily_3shift stubs carry
+                        # Per-stub shift key (daily_3shift stubs carry
                         # "night"/"day"/"evening"; all other stubs ""). ctx is
                         # shared across this patient's stubs, so set per stub
                         # before generating — the renderer resolves the
-                        # localized label from this neutral key (AD-30 spirit).
+                        # localized label from this neutral key.
                         ctx.shift = str(stub.get("shift", "") or "")
-                        # β-JP-1 chain 1a: per-stub hospital day (mirrors the
-                        # ctx.shift pattern) — daily notes previously all
-                        # rendered as day 0 because ctx was built once per
-                        # patient with day_index=0.
+                        # Per-stub hospital day (mirrors the ctx.shift pattern).
+                        # Daily notes previously all rendered as day 0 because
+                        # ctx was built once per patient with day_index=0.
                         ctx.day_index = self._stub_day_index(stub, encounter_dict)
                         output = self._generate(ctx, spec)
                         wrapper = self._output_to_wrapper(output, generator=self._generator_name())
@@ -155,7 +154,7 @@ class NarrativePass(ABC):
         return manifest
 
     def _apply_patient_filter(self, structural_dir: str, patient_files: list[str]) -> list[str]:
-        """T3: keep files whose stem OR patient_id matches ``patient_filter``.
+        """Keep files whose stem OR patient_id matches ``patient_filter``.
 
         One extra JSON read per patient, only when a filter is set (the
         default None path costs nothing). Order is preserved (sorted input →
@@ -194,7 +193,8 @@ class NarrativePass(ABC):
         return {}
 
     def _languages_for_spec(self, spec: DocumentTypeSpec) -> list[str]:
-        # US → en, JP → ja. β-JP-1 で bilingual 可能に拡張。
+        # US → en, JP → ja. Kept as a hook so future bilingual output can
+        # yield multiple language codes per spec.
         return [resolve_lang(self.country)]
 
     def _spec_applies(self, spec: DocumentTypeSpec, patient_dict: dict[str, Any]) -> bool:
@@ -216,12 +216,13 @@ class NarrativePass(ABC):
     ) -> NarrativeContext:
         """Assemble the per-patient NarrativeContext from real structural CIF keys.
 
-        β-JP-1 chain 1a (spec §2b): every field is wired to the actual
-        structural JSON schema (``vital_signs`` / ``medication_administrations``
-        + ``discharge_prescription`` / ``clinical_diagnosis`` /
+        Every field is wired to the actual structural JSON schema
+        (``vital_signs`` / ``medication_administrations`` +
+        ``discharge_prescription`` / ``clinical_diagnosis`` /
         ``patient.allergies`` / ``encounter.severity`` /
-        ``encounter.clinical_course_archetype``). Pre-1a JSON without the new
-        Stage 1 fields degrades to the old defaults (""/[]/None) — never raise.
+        ``encounter.clinical_course_archetype``). Older CIF JSON without
+        these fields degrades to the historical defaults (""/[]/None) —
+        never raise.
 
         ``day_index`` is a per-stub value: ``run()`` overrides it per stub
         (mirroring ``ctx.shift``) via ``_stub_day_index``; the value set here
@@ -276,13 +277,13 @@ class NarrativePass(ABC):
         ``session_date`` field is a ``datetime``) to JSON, turning the value
         into an ISO string — same lossy round trip that ``_parse_dt`` above
         already handles for ``admission_datetime``/``discharge_datetime``.
-        The chain 2 rehabilitation_plan section builders
+        The rehabilitation_plan section builders
         (``_build_rp_session_frequency`` / ``_build_rp_functional_status`` /
         ``_build_rp_basic_movement``) call ``.date()`` / compare via
         ``min``/``max`` on this field — a raw string round-trips fine through
-        dict access but breaks those calls (found by the chain 2 Task 4
-        full-chain integration test, which is the first test to exercise the
-        real structural-CIF JSON path rather than an in-memory fixture).
+        dict access but breaks those calls (first surfaced by the full-chain
+        integration test that exercised the real structural-CIF JSON path
+        rather than an in-memory fixture).
         """
         parsed_sessions = []
         for session in raw:
@@ -328,7 +329,7 @@ class NarrativePass(ABC):
         ``ground_truth_diseases[0]`` with ``condition_type="ed_visit"`` (both
         EMERGENCY and outpatient-typed encounter-YAML visits go through it).
         Outpatient chronic/post-discharge follow-ups store ICD codes instead —
-        not recoverable; encounter_protocol stays None there (spec §3 TODO).
+        not recoverable; encounter_protocol stays None there.
         """
         if str(_o(condition_event, "condition_type", "") or "") != "ed_visit":
             return None
@@ -520,7 +521,7 @@ class TemplateNarrativePass(NarrativePass):
 
 
 class LLMNarrativePass(NarrativePass):
-    """Stage 2 LLM-backed narrative pass (N-1b, N-chain 2026-07-02).
+    """Stage 2 LLM-backed narrative pass (N-1b, N-chain).
 
     Wraps ``LLMNarrativeGenerator`` (template base + per-section LLM
     replacement per ``DocumentTypeSpec.stage2_strategy``) around the base
@@ -564,7 +565,7 @@ class LLMNarrativePass(NarrativePass):
         )
 
     def run(self) -> NarrativeVersionManifest:
-        """Base walk + loud all-fallback detection (I-2, N-chain adv-1).
+        """Base walk + loud all-fallback detection (I-2).
 
         A dead provider (e.g. Ollama server down) must not pass silently:
         when at least one processed doc was template_seed-eligible and ZERO

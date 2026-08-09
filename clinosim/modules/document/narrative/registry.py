@@ -1,7 +1,7 @@
 """DocumentTypeSpec registry (α-min-1 PR1).
 
-Source = document_type_specs.yaml。countries_supported field で locale gating
-(AD-55 PR3b-1 supplement pattern)。
+Source = document_type_specs.yaml. The ``countries_supported`` field on
+each entry drives locale gating (AD-55 PR3b-1 supplement pattern).
 """
 
 from __future__ import annotations
@@ -81,9 +81,9 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset(
         DocumentType.ADMISSION_CARE_PLAN,
         DocumentType.NUTRITION_CARE_PLAN,
         DocumentType.REHABILITATION_PLAN,
-        # P2-13 PR2b (session 47): JP-CLINS 診療情報提供書
+        # P2-13 PR2b: JP-CLINS 診療情報提供書 (referral letter)
         DocumentType.REFERRAL_NOTE,
-        # P2-13 PR3 (session 47): JP-eCheckup 健診結果報告書(opt-in)
+        # P2-13 PR3: JP-eCheckup 健診結果報告書 (health checkup report, opt-in)
         DocumentType.HEALTH_CHECKUP_REPORT,
     }
 )
