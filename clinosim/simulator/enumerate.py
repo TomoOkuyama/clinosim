@@ -338,7 +338,7 @@ def expand_cases(
                                 country=country,
                             )
                         )
-                # Complications axis (Option A, session 63): add one extra
+                # Complications axis (Option A): add one extra
                 # case per (disease × complication) with severity + archetype
                 # at their canonical defaults. This exercises the
                 # `ForcedScenario.complications` code path (inpatient.py:
@@ -628,7 +628,7 @@ def run_enumeration(plan: EnumerationPlan) -> tuple[Any, EnumerationManifest]:
             protocol = load_encounter_condition(case.scenario_id)
             age = int(rng.integers(30, 85))
             sex = str(rng.choice(["M", "F"]))
-            # Issue #351 (session 63): populate family/given so the emitted
+            # Issue #351: populate family/given so the emitted
             # Patient.name carries non-empty strings on JP output. Without
             # this, the encounter-axis Patient resources emit
             # `family=""`, `given=[""]` with an iso21090 IDE representation
