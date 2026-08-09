@@ -38,7 +38,7 @@ from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_da
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
 
 
-# C1-16 (session 41 cycle 1): FHIR R4 ServiceRequest.intent values are
+# C1-16: FHIR R4 ServiceRequest.intent values are
 # proposal / plan / directive / order / original-order / reflex-order /
 # filler-order / instance-order / option. clinosim's Order.clinical_intent
 # carries provenance hints (populated by simulator/*.py). Map only the
@@ -232,7 +232,7 @@ def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
     JSON-deserialized dicts (production CIF path via json.load).
     """
     orders: list[Any] = ctx.record.get("orders", []) or []
-    # C4-23 (session 43 cycle 4): SR.requester fallback to encounter attending
+    # C4-23: SR.requester fallback to encounter attending
     # (was 2% missing requester). Same pattern as C4-17 / C4-22. Applied to
     # dict-shaped orders only (test-path dataclasses already carry ordered_by).
     _attending_by_enc: dict[str, str] = {}
@@ -548,7 +548,7 @@ def _build_standalone_sr(o: Any, lang: str, country: str) -> dict[str, Any]:
             resolved_code = us_resolved
             used_loinc_fallback = True
 
-    # C5-01 (session 43 cycle 5): also treat display_name as a panel key.
+    # C5-01: also treat display_name as a panel key.
     # Orders emitted at panel granularity (order.display_name == "CBC" /
     # "ABG" / "BMP") have no JLAC10 code — JLAC10 vocabulary is analyte-
     # only. Fall back to the panel's LOINC. Fixes 12,604 SRs emitting
@@ -659,11 +659,11 @@ def _build_sr_skeleton(
             }
         ],
         "priority": priority,
-        # CO-4 (session 42 cycle 3): route SR.code.system through
+        # CO-4: route SR.code.system through
         # system_key_for("lab", country) so JP emits JLAC10 URI, not the
         # hardcoded loinc.org. This was cycle-2's C2-04 root cause — JLAC10
         # codes were labeled with LOINC system URI (spec violation).
-        # C5-01 (session 43 cycle 5): the caller may override the code system
+        # C5-01: the caller may override the code system
         # when a JLAC10 fallback to LOINC is needed (panel-level orders, or
         # analytes missing from the JLAC10 mapping).
         # feedback fix (2026-07-16, PR-H): skip coding[] when loinc_code is

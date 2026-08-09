@@ -46,7 +46,7 @@ _VERIFICATION_STATUS_SYSTEM = get_system_uri("hl7-allergyintolerance-verificatio
 _VALID_CATEGORIES = {"medication", "food", "environment", "biologic"}
 
 
-# Session 58 Issue #263: JP Core `JP_AllergyIntolerance_VS` binds
+# Issue #263: JP Core `JP_AllergyIntolerance_VS` binds
 # `AllergyIntolerance.code` to a required CodeSystem set that includes only
 # the JFAGY family — SNOMED is NOT admissible on this binding, producing 40
 # v4 errors on the 3 medication allergen codes emitted at cohort scale
@@ -66,7 +66,7 @@ _VALID_CATEGORIES = {"medication", "food", "environment", "biologic"}
 # URIs verified against
 # `tx-server-build/terminology/fhir-server/jpfhir-terminology#2.2606.0/package/
 # CodeSystem-jp-jfagy{food,medicationallergenycm,nonfoodnonmedicationallergen}-cs.json`
-# (session 51 rule: spec fixedUri direct quotation).
+# (rule: spec fixedUri direct quotation).
 _JP_JFAGY_FOOD_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS"
 _JP_JFAGY_MEDICATION_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
 _JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
@@ -114,7 +114,7 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
     if not allergies:
         return []
     lang = resolve_lang(ctx.country)
-    # C3-06/07 (session 42 cycle 3): AllergyIntolerance.recorder = attending
+    # C3-06/07: AllergyIntolerance.recorder = attending
     # physician of first encounter. recordedDate = first encounter admission
     # date when allergy has no onset_date (a chart-registration proxy).
     encounters = _o(ctx.record, "encounters", []) or []
@@ -159,7 +159,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     category = category_raw if category_raw in _VALID_CATEGORIES else "medication"
     criticality = _o(allergy, "criticality", "low") or "low"
     verification_status = _o(allergy, "verification_status", "confirmed") or "confirmed"
-    # C1-17 (session 41 cycle 1): read clinical_status from CIF (defaults to
+    # C1-17: read clinical_status from CIF (defaults to
     # "active" when the record predates the field addition).
     clinical_status = _o(allergy, "clinical_status", "active") or "active"
     onset_date = _o(allergy, "onset_date", None)
@@ -178,12 +178,12 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
             "code": allergen_code,
             "display": resolved_display,
         }
-        # Session 58 Issue #263: JP Core `JP_AllergyIntolerance_VS` requires
+        # Issue #263: JP Core `JP_AllergyIntolerance_VS` requires
         # a coding from one of the JFAGY CodeSystems. On JP output, emit the
         # JFAGY generic category coding as primary (satisfies the VS
         # binding).
         #
-        # Session 59 #293: HAPI validator flags every non-VS SNOMED coding
+        # #293:HAPI validator flags every non-VS SNOMED coding
         # as a separate error even when JFAGY primary is present (60+ VS
         # binding + 32+ Wrong Display errors, all against the SNOMED
         # secondary). The JFAGY generic category is authoritative for the
@@ -202,14 +202,14 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         else:
             code["coding"] = [snomed_coding]
 
-    # C5-24 (session 43 cycle 5): AllergyIntolerance status displays now
+    # C5-24: AllergyIntolerance status displays now
     # locale-aware. Was hard-coded "en" — JP output leaked English displays.
     ver_display = code_lookup("hl7-allergyintolerance-verification", verification_status, lang)
     clin_display = code_lookup("hl7-allergyintolerance-clinical", clinical_status, lang)
     res: dict[str, Any] = {
         "resourceType": "AllergyIntolerance",
         "id": f"{ALLERGY_ID_PREFIX}{patient_id}-{allergy_id}",
-        # Session 46 chain #2: JP Core AllergyIntolerance profile.
+        # chain #2: JP Core AllergyIntolerance profile.
         # lang == "ja" is the JP-country signal in this builder's caller chain
         # (BundleContext resolves lang from country in _bb_allergy_intolerances).
         **(
@@ -235,7 +235,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
                 }
             ],
         },
-        # C5-14 (session 43 cycle 5): AllergyIntolerance.type (0..1) —
+        # C5-14: AllergyIntolerance.type (0..1) —
         # `allergy` for immune-mediated hypersensitivity, `intolerance` for
         # non-immune adverse reactions. FHIR R4 required-binding to
         # http://hl7.org/fhir/allergy-intolerance-type. Default to "allergy"
@@ -251,12 +251,12 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
 
     if onset_date is not None:
         res["onsetDateTime"] = to_fhir_datetime(onset_date)
-        # C3-07 (session 42 cycle 3): recordedDate defaults to onsetDateTime
+        # C3-07: recordedDate defaults to onsetDateTime
         # when a distinct recording time is not tracked in CIF. FHIR R4 R0..1
         # recommends this for chart traceability.
         res["recordedDate"] = res["onsetDateTime"]
     else:
-        # C3-07 partial (session 42 cycle 3): even without onset_date,
+        # C3-07 partial: even without onset_date,
         # patient-lifetime allergies are considered recorded at time of first
         # noticing. Use patient date-of-birth + 20 years as a placeholder
         # (adult typical allergy discovery age).

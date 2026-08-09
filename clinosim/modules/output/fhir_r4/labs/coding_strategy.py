@@ -1,6 +1,6 @@
 """Lab-Observation code.coding[] strategy dispatch (JP-CLINS migration).
 
-Migration chain (session 67 memo):
+Migration chain (memo):
 
 - **PR 1 (this file)** — introduce ``LabCodingKind`` enum + strategy
   protocol + 5 concrete strategies, refactor
@@ -11,7 +11,7 @@ Migration chain (session 67 memo):
   emit exactly. No new coding kind is activated.
 - **PR 2** — pkg installer + shared eCS SD loader (factors the axis
   runtime extractor). Enables the CoreLabo classification lookup.
-- **PR 3** — implement ``CoreLaboStrategy`` real emit (session 67 memo
+- **PR 3** — implement ``CoreLaboStrategy`` real emit (memo
   §H.3 rev: 998-preferred code selection + material match + specimen
   back-derivation) + ``UncodedStrategy`` activation + LocalCode slice
   emit + display sanitization. Replaces the ``_classify_analyte``
@@ -66,7 +66,7 @@ from clinosim.modules._shared import is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.labs.coding_package import LabCodeCandidate
 
 # --------------------------------------------------------------------------- #
-# JP-CLINS LocalCode display / code sanitization (session 67 memo 2026-07-26).
+# JP-CLINS LocalCode display / code sanitization (memo 2026-07-26).
 #
 # JP-CLINS spec prose (not encoded as FHIR constraints, so no validator
 # catches violations):
@@ -358,8 +358,7 @@ class UncodedStrategy:
 
         code = sanitized ASCII form of lab_name; display = sanitized
         Japanese name from ``_UNCODED_ANALYTE_JA_DISPLAY``. Applying
-        display sanitize here (not in loader) matches session 67
-        boundary: loader supplies raw text, strategy applies user-
+        display sanitize here (not in loader) matches        boundary: loader supplies raw text, strategy applies user-
         facing rules per slot."""
         from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
 
@@ -407,7 +406,7 @@ class InfectionLaboStrategy:
 class CoreLaboStrategy:
     """CoreLabo JLAC10 slice — PR 3b real emit.
 
-    Session 67 memo §H.3 rev + user judgment (Option B, 2026-07-26):
+    memo §H.3 rev + user judgment (Option B, 2026-07-26):
     - method priority: ``998`` (method-agnostic, "測定法問わず" — the
       most honest choice given clinosim does not simulate specific
       measurement methods) → fallback ``999`` (other) → fallback any
@@ -418,7 +417,7 @@ class CoreLaboStrategy:
       blood) so the rule is vacuous
     - specimen back-derivation: the chosen code's material segment IS
       the JP_ObservationSampleMaterialCodeJLAC10_CS code (1-1 mapping,
-      verified session 67 2026-07-26 — no translation table needed)
+      verified 2026-07-26 — no translation table needed)
 
     Also carries the LOINC secondary co-emission from ``LegacyJSLMStrategy``
     to preserve the JP dual-coding invariant (JLAC primary + LOINC
@@ -459,7 +458,7 @@ class CoreLaboStrategy:
 
         chosen = _pick_corelabo_code(slice_info.codes)
         # Primary CoreLabo coding — Fixed display MUST come from the SD,
-        # NOT designation_ja (session 67 dual-slot rule: coding.display =
+        # NOT designation_ja (dual-slot rule: coding.display =
         # canonical Fixed value, JP text goes into LocalCode display /
         # code.text via PR 3c).
         primary: dict[str, Any] = {
@@ -518,13 +517,13 @@ class CoreLaboStrategy:
 
 
 def _pick_corelabo_code(codes: tuple[LabCodeCandidate, ...]) -> LabCodeCandidate:
-    """Session 67 memo §H.3 rev + user Option B judgment (2026-07-26).
+    """memo §H.3 rev + user Option B judgment (2026-07-26).
 
     1. Filter to ``method='998'`` (method-agnostic, the honest default
        for synthetic data that does not simulate specific methods).
        Fallback to ``method='999'`` (other) if no 998 exists;
        final fallback to any code (should not trigger — all 20
-       CoreLabo analytes have 998 codes per session 67 pre-cover).
+       CoreLabo analytes have 998 codes per pre-cover).
     2. Among the filtered candidates, pick the numerically-largest
        material code (Option B — for chemistry this resolves to 023
        血清 which matches standard Japanese lab practice).
@@ -543,8 +542,7 @@ def _pick_corelabo_code(codes: tuple[LabCodeCandidate, ...]) -> LabCodeCandidate
 # --------------------------------------------------------------------------- #
 # Classifier — clinosim analyte-name → coding kind (clinosim IP).
 #
-# This is the ONLY place clinosim-side mapping lives (per session 67
-# memo license boundary: SD/CS-derived data stays in
+# This is the ONLY place clinosim-side mapping lives (per# memo license boundary: SD/CS-derived data stays in
 # ``lab_coding_package``; clinosim's own analyte name → SD slice_name
 # lookup stays here, commit-safe).
 #
@@ -665,12 +663,12 @@ _STRATEGIES: dict[LabCodingKind, LabCodingStrategy] = {
 def select_lab_coding_strategy(lab_name: str, country: str) -> LabCodingStrategy:
     """Look up the strategy for this (analyte, country) pair.
 
-    **PR 3c bridge** (session 67 2026-07-26, migration complete): US →
+    **PR 3c bridge** (2026-07-26, migration complete): US →
     LegacyLOINC, JP → consult ``_classify_analyte``. CoreLabo →
     ``CoreLaboStrategy`` (real 17-digit + Fixed display + LocalCode).
     Uncoded → ``UncodedStrategy`` (spec-pinned Uncoded slice + LOINC
     secondary + LocalCode). Unmapped-JP falls to ``UncodedStrategy``
-    too (safe default per session 67 memo, JP LegacyJSLM path is
+    too (safe default per memo, JP LegacyJSLM path is
     effectively retired for classified analytes).
 
     LegacyJSLM remains registered as a defensive strategy for both

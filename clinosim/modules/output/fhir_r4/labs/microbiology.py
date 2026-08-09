@@ -29,10 +29,9 @@ MB_DR_ID_PREFIX = "dr-mb-"
 
 # JP Core DiagnosticReport_Microbiology profile constants (spec-pinned from
 # fhir-jp-validator/jp_core/package/
-# StructureDefinition-jp-diagnosticreport-microbiology.json). Session 46
-# chain #2 originally routed microbiology DRs through
+# StructureDefinition-jp-diagnosticreport-microbiology.json).# chain #2 originally routed microbiology DRs through
 # `JP_DiagnosticReport_LabResult` because Microbiology profile constraints
-# had not been surveyed; session 57 verifies Microbiology's actual profile
+# had not been surveyed; verifies Microbiology's actual profile
 # requirements are compatible with clinosim's existing MB emission shape and
 # switches meta.profile accordingly. The Microbiology profile requires:
 #   * `category:first.coding.code` fixedCode = `LP7819-8` on LOINC
@@ -144,7 +143,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             specimen["type"] = {"coding": [micro_coding("snomed-ct", mb["specimen_snomed"], lang)]}
         if mb.get("collected_datetime"):
             specimen["collection"] = {"collectedDateTime": mb["collected_datetime"]}
-        # CY8-09 fix (session 48 cycle 8): Specimen.receivedTime = 検体到着時刻。
+        # CY8-09 fix: Specimen.receivedTime = 検体到着時刻。
         # 実運用では採取から 30-60 分後にラボ受領。reported_datetime が無ければ
         # collected + 45 min 相当を近似で使う(検体運搬時間 median)。
         if mb.get("reported_datetime"):
@@ -198,7 +197,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         culture_code_value, code_system = resolve_culture_code(
             mb.get("specimen", ""), mb.get("test_loinc", ""), ctx.country
         )
-        # #321 session 61:JP_Observation_LabResult は code.text min=1 を要求。
+        # #321 JP_Observation_LabResult は code.text min=1 を要求。
         # coding が存在する場合も text を必ず併記(coding display を text に
         # コピー、無ければ "Culture" fallback)。
         if culture_code_value:
@@ -222,7 +221,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         org_obs: dict[str, Any] = {
             "resourceType": "Observation",
             "id": org_id,
-            # Session 46 chain #2: JP Core Observation_LabResult profile.
+            # chain #2: JP Core Observation_LabResult profile.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"]}}
                 if is_jp(ctx.country)
@@ -242,7 +241,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         if mb.get("reported_datetime"):
             org_obs["effectiveDateTime"] = mb["reported_datetime"]
         if mb.get("growth") and mb.get("organism_snomed"):
-            # #321 session 61:JP_Observation_LabResult_eCS profile は
+            # #321 JP_Observation_LabResult_eCS profile は
             # valueCodeableConcept.coding.display min=1 を要求(v6.1 で
             # 162 件 error)。SNOMED CT は English-only CS(tx-server の
             # JA display 未収録)のため JP output でも "en" で lookup する
@@ -266,7 +265,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             sus_id = f"{MB_SUS_ID_PREFIX}{base}-{j}"
             antibiotic_loinc = sus.get("antibiotic_loinc", "")
             sus_code_value, sus_code_system = resolve_susceptibility_code(antibiotic_loinc, ctx.country)
-            # #321 session 61:JP_Observation_LabResult code.text min=1 満たす。
+            # #321 JP_Observation_LabResult code.text min=1 満たす。
             _sus_c = micro_coding(sus_code_system, sus_code_value, lang)
             _sus_code_text = _sus_c.get("display") or ("感受性試験" if lang == "ja" else "Antimicrobial susceptibility")
             # 同 profile の valueCodeableConcept.coding.display min=1 満たす
@@ -280,7 +279,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             sus_obs: dict[str, Any] = {
                 "resourceType": "Observation",
                 "id": sus_id,
-                # Session 46 chain #2: JP Core Observation_LabResult profile.
+                # chain #2: JP Core Observation_LabResult profile.
                 **(
                     {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"]}}
                     if is_jp(ctx.country)
@@ -306,15 +305,15 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 sus_obs["identifier"] = hai_identifier
             if enc_ref:
                 sus_obs["encounter"] = enc_ref
-            # C1-13 (session 41 cycle 1): pin effectiveDateTime to match the
+            # C1-13: pin effectiveDateTime to match the
             # organism observation above (both belong to the same reported result).
             if mb.get("reported_datetime"):
                 sus_obs["effectiveDateTime"] = mb["reported_datetime"]
             out.append(sus_obs)
             result_refs.append({"reference": f"Observation/{sus_id}"})
 
-        # Session 57 chain B: for JP output, the microbiology DR routes through
-        # JP_DiagnosticReport_Microbiology (session 46 chain #2 originally used
+        # chain B: for JP output, the microbiology DR routes through
+        # JP_DiagnosticReport_Microbiology (chain #2 originally used
         # LabResult without verifying Microbiology-specific constraints; spec
         # `StructureDefinition-jp-diagnosticreport-microbiology.json` requires
         # `code.coding` to contain a patternCodeableConcept for

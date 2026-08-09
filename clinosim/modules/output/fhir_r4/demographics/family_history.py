@@ -65,7 +65,7 @@ def _resolve_family_history_code(code: str, country: str) -> str:
     personal-history Z-code targets (Z86.*, Z87.*, Z82.*) which encode "patient's
     own past" semantics — inappropriate for a relative. In those cases the
     original code passes through and resolves in ``codes/data`` directly.
-    Session 40 fix: keeps E11 → E11.9 and I64 → I63.9 corrections while
+    fix: keeps E11 → E11.9 and I64 → I63.9 corrections while
     preserving the pre-fix semantic for I63 (relative's cerebral infarction).
     """
     mapped = map_diagnosis_code(code, country)
@@ -99,7 +99,7 @@ def _bb_family_history(ctx: BundleContext) -> list[dict]:
             "relationship": _build_relationship_codeable(rel, disp, lang),
             "deceasedBoolean": bool(_get(fam, "deceased", False)),
         }
-        # Apply the locale diagnosis map (session 40 fix): family_history condition
+        # Apply the locale diagnosis map (fix): family_history condition
         # codes are internal WHO / category codes (e.g. E11 = "Type 2 diabetes mellitus"
         # header, I64 = WHO-only Stroke NOS). For US, non-billable / WHO-only codes
         # must fold to a billable CM leaf (E11 → E11.9, I64 → I63.9); for JP, the map
@@ -113,7 +113,7 @@ def _bb_family_history(ctx: BundleContext) -> list[dict]:
         # relative," not the patient's personal history. Fall back to the original
         # code when the map target is a Z-code so the display resolves to the
         # actual disease (I63 → "Cerebral infarction").
-        # C5-15 (session 43 cycle 5): FamilyMemberHistory.condition[].onsetString.
+        # C5-15: FamilyMemberHistory.condition[].onsetString.
         # CIF family_history has no per-condition onset data (relatives are
         # patient-reported). Emit an "詳細不明" / "unknown" onsetString so the
         # field is populated per JP Core FamilyMemberHistory recommendation.

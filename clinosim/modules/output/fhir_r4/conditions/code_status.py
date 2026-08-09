@@ -32,7 +32,7 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
     obs: dict[str, Any] = {
         "resourceType": "Observation",
         "id": f"codestatus-{enc or ctx.patient_id}",
-        # Session 46 chain #2: JP Core Observation_Common profile.
+        # chain #2: JP Core Observation_Common profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
             if is_jp(ctx.country)
