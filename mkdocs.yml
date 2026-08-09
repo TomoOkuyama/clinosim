@@ -132,6 +132,7 @@ nav:
       - Project concept & design: design-guides/project-concept-and-design.md
       - Data generation walkthrough: design-guides/data-generation-walkthrough.md
       - Implementation rules: design-guides/implementation-rules.md
+      - Documentation + code-quality policy: design-guides/documentation-and-code-quality-policy.md
       - FHIR data generation logic: design-guides/fhir-data-generation-logic.md
       - Data model conventions: design-guides/data-model-and-completeness-conventions.md
   - Reference:

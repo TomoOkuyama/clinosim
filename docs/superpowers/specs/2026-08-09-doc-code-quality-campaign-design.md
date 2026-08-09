@@ -1,7 +1,7 @@
 # Documentation + Code-Quality Campaign — Design Spec
 
 **Date**: 2026-08-09
-**Status**: Draft — pending maintainer review
+**Status**: Approved and active (policy extracted to `docs/design-guides/documentation-and-code-quality-policy.md`)
 **Owner**: Repository maintainers
 **Related tracker**: (to be filed) `[META] Documentation + code-quality campaign`
 
@@ -44,11 +44,10 @@ adding, modifying, or reviewing code and documentation.** These rules
 outlive this campaign. Once the campaign lands, the same rules govern
 every subsequent PR.
 
-This section is the canonical statement of the policy. When Issue #2
-of the campaign is complete, this policy will be extracted into
-`docs/design-guides/documentation-and-code-quality-policy.md` and
-referenced from `AGENTS.md` and `CONTRIBUTING.md`. Until then, this
-spec is the single source of truth.
+**Canonical location**: [`docs/design-guides/documentation-and-code-quality-policy.md`](../../design-guides/documentation-and-code-quality-policy.md).
+That document is the current source of truth. This section of the spec is
+kept for historical context — the policy text below matches what was
+extracted into the canonical location, and any future edits happen there.
 
 ### 2.1 Documentation language
 
