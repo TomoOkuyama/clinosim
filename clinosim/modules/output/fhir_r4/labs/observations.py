@@ -16,6 +16,12 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
+from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
+    BP_DIASTOLIC,
+    BP_SYSTOLIC,
+    STANDALONE_VITAL_SIGNS,
+    BloodPressureComponentReferenceRange,
+)
 from clinosim.modules.output.fhir_r4.labs.coding_strategy import select_lab_coding_strategy
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import lab_obs_id
 from clinosim.modules.output.fhir_r4.labs.service_request import build_panel_counter, order_to_sr_id
@@ -221,14 +227,8 @@ def _build_lab_observation(
 
 
 def _build_bp_component(
-    loinc: str,
-    display_en: str,
-    display_ja: str,
+    spec: BloodPressureComponentReferenceRange,
     value: float,
-    normal_low: float,
-    normal_high: float,
-    crit_low: float,
-    crit_high: float,
     country: str,
 ) -> dict[str, Any]:
     """Build one `component[]` entry inside the BP-panel Observation (#210).
@@ -239,24 +239,24 @@ def _build_bp_component(
     interpretation ranges match the pre-#210 per-Observation shape so
     downstream flag semantics stay identical.
     """
-    display = display_ja if is_jp(country) else display_en
+    display = spec.display_ja if is_jp(country) else spec.display_en
     unit = "mm[Hg]"
     interp_code = "N"
     interp_display = "Normal"
-    if value <= crit_low:
+    if value <= spec.critical_low:
         interp_code, interp_display = "LL", "Critical low"
-    elif value >= crit_high:
+    elif value >= spec.critical_high:
         interp_code, interp_display = "HH", "Critical high"
-    elif value < normal_low:
+    elif value < spec.normal_low:
         interp_code, interp_display = "L", "Low"
-    elif value > normal_high:
+    elif value > spec.normal_high:
         interp_code, interp_display = "H", "High"
 
     normal_text = "成人正常範囲" if is_jp(country) else "Normal adult range"
     crit_text = "パニック値" if is_jp(country) else "Critical range"
     return {
         "code": {
-            "coding": [{"system": get_system_uri("loinc"), "code": loinc, "display": display}],
+            "coding": [{"system": get_system_uri("loinc"), "code": spec.loinc, "display": display}],
             "text": display,
         },
         "valueQuantity": {
@@ -267,8 +267,8 @@ def _build_bp_component(
         },
         "referenceRange": [
             {
-                "low": {"value": normal_low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
-                "high": {"value": normal_high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "low": {"value": spec.normal_low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "high": {"value": spec.normal_high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
                 "type": {
                     "coding": [
                         {
@@ -281,8 +281,8 @@ def _build_bp_component(
                 "text": normal_text,
             },
             {
-                "low": {"value": crit_low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
-                "high": {"value": crit_high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "low": {"value": spec.critical_low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "high": {"value": spec.critical_high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
                 "type": {
                     "coding": [
                         {
@@ -330,25 +330,25 @@ def _build_vital_observations(
     """
     entries = []
 
-    # (field, loinc, display_en, display_ja, unit, low, high, critical_low, critical_high, time_offset_sec)
-    # crit_high=None means no upper critical bound (e.g., SpO2 cannot be critically high)
-    # time_offset: per-field realistic delay within a vital-sign set
-    # BP/HR measured simultaneously (same device cycle), Temp added later, RR counted last
+    # Vital-sign reference/critical ranges live in `_reference_ranges.py`
+    # (Issue #637 PR-C); iterate the canonical `STANDALONE_VITAL_SIGNS`
+    # tuple whose element order matches the pre-refactor `_vital_map`.
     #
     # NOTE: `systolic_bp` / `diastolic_bp` used to appear here as separate
     # Observations; they are now consolidated into a single BP panel
     # Observation emitted at the end of this function (see #210). Reference
     # ranges for the components live in the panel's per-component
     # `referenceRange[]` block, matching the FHIR base "bp" profile shape.
-    _vital_map = [
-        ("heart_rate", "8867-4", "Heart rate", "脈拍", "/min", 60, 100, 40, 130, 0),
-        ("spo2", "2708-6", "Oxygen saturation", "酸素飽和度", "%", 95, 100, 88, None, 5),
-        ("temperature_celsius", "8310-5", "Body temperature", "体温", "Cel", 36.0, 37.5, 35.0, 39.5, 30),
-        ("respiratory_rate", "9279-1", "Respiratory rate", "呼吸数", "/min", 12, 20, 8, 30, 60),
-    ]
-
-    for field, loinc, display_en, display_ja, unit, low, high, crit_low, crit_high, offset_sec in _vital_map:
-        display = display_ja if is_jp(country) else display_en
+    for spec in STANDALONE_VITAL_SIGNS:
+        field = spec.field
+        loinc = spec.loinc
+        unit = spec.unit
+        low = spec.normal_low
+        high = spec.normal_high
+        crit_low = spec.critical_low
+        crit_high = spec.critical_high
+        offset_sec = spec.time_offset_sec
+        display = spec.display_ja if is_jp(country) else spec.display_en
         value = vs.get(field)
         if value is None:
             continue
@@ -516,28 +516,8 @@ def _build_vital_observations(
             },
             "subject": {"reference": f"Patient/{patient_id}"},
             "component": [
-                _build_bp_component(
-                    loinc="8480-6",
-                    display_en="Systolic blood pressure",
-                    display_ja="収縮期血圧",
-                    value=sbp,
-                    normal_low=90,
-                    normal_high=140,
-                    crit_low=80,
-                    crit_high=200,
-                    country=country,
-                ),
-                _build_bp_component(
-                    loinc="8462-4",
-                    display_en="Diastolic blood pressure",
-                    display_ja="拡張期血圧",
-                    value=dbp,
-                    normal_low=60,
-                    normal_high=90,
-                    crit_low=50,
-                    crit_high=120,
-                    country=country,
-                ),
+                _build_bp_component(BP_SYSTOLIC, sbp, country),
+                _build_bp_component(BP_DIASTOLIC, dbp, country),
             ],
         }
         # Timestamp — BP + HR share the same measurement cycle (offset 0)
