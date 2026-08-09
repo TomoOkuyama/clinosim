@@ -22,7 +22,9 @@ If you're going to work on the code, please also read:
   (Base vs Module classification, enricher stages, registry usage, PR
   verification via `clinosim audit run`).
 - [`DESIGN.md`](DESIGN.md) — 55+ architecture decision records.
-- [`CLAUDE.md`](CLAUDE.md) — repo-wide conventions and invariants.
+- [`AGENTS.md`](AGENTS.md) — repo-wide conventions and invariants
+  (canonical AI-agent instructions per the [AGENTS.md convention](https://agentmd.dev);
+  `CLAUDE.md` is a thin pointer to this file).
 - [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md)
   — boilerplate for a new module directory.
 - [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md)

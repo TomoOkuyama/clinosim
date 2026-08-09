@@ -27,29 +27,20 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 | Module author HOW-TO + PR verification guide | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
 | New module template (boilerplate) | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
 | Roadmap | [`docs/roadmap.md`](docs/roadmap.md) (GitHub Issues board) |
-| ★ Next-session resume prompt(cold-start 必読) | 最新の `docs/history/session-prompts/session-NN-resume-prompt.md`(`ls docs/history/session-prompts/session-*-resume-prompt.md \| sort -V \| tail -1` で解決)|
 | ★ Audit-cycle workflow + by-design exclusion registry | [`docs/audit-cycles/README.md`](docs/audit-cycles/README.md) + [`docs/audit-cycles/by-design-registry.md`](docs/audit-cycles/by-design-registry.md) |
 
 ## Language conventions
 
 - **Code**: Python 3.11+
-- **Code comments and docstrings (default)**: English
-- **JP-only code comments and docstrings** (session 47 rule): Japanese. JP-only means: JP-CLINS builder / JP section renderer / `_build_jp_clins_*` / `_JP_CLINS_*` maps / `codes/data/jpfhir-*.yaml` and other JP-locale-specific YAML / test docstrings of JP-only paths. Common dispatch/framework code that is *called for* JP but is locale-neutral in its own body (e.g. `_apply_jp_clins_profile`, `_referral_note_fires`, `_build_composition` dispatcher) keeps English.
-**Documentation naming rule (unified)**:
-- **Default language: English.** Every `*.md` file without a language suffix
-  is English (root READMEs, module READMEs, DESIGN.md, `docs/roadmap.md`, spec.md,
-  `docs/**`, and so on).
-- **Japanese variants**: name the file with a `.ja.md` suffix
-  (e.g. `README.ja.md`, `DESIGN.ja.md`, `modules/hai/README.ja.md`).
-- **No other language-mixing suffix conventions** are introduced.
-
-Contributors reading a path can tell the language from the suffix alone,
-and the shared repo defaults to English for international collaboration.
-
-Follow-up work: some existing module READMEs still contain Japanese
-content without a `.ja.md` suffix and will be migrated in follow-up PRs
-(one module at a time — see `#166`).
-- **Communication with user**: Japanese
+- **Documentation and comment language pairing**: follow
+  [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md)
+  §2.4 (documentation-file language pairing) and §4 (source-code
+  comments — English default; Japanese only for JP-Core / JP-CLINS
+  profile invariants, JLAC10 / JJ1017 / MEDIS code-system specifics,
+  and verbatim quotes from Japanese authoritative sources). That
+  policy is the canonical rule for every contributor; AGENTS.md does
+  not duplicate it.
+- **Communication with user**: Japanese.
 
 ### Canonical vocabulary (Issue #565)
 
@@ -115,12 +106,12 @@ old name; those are being cleaned up module-by-module (see linked issues).
 - **CIF stores codes only, not display text** (AD-30) — `ClinicalDiagnosis.admission_diagnosis_code` + `_system`, no `_name`. Display is resolved at output time via `clinosim.codes`.
 - **Code is the truth** — Internal test names (e.g., `"WBC"`) are mapped to standard codes (LOINC) via `locale/<country>/code_mapping_*.yaml`. Display text comes from `clinosim/codes/data/<system>.yaml`.
 
-### Two-pass CIF generation invariant(AD-65, 2026-07-02, session 28)
+### Two-pass CIF generation invariant (AD-65, 2026-07-02)
 
 - **CIF は structural + narrative の 2 層 file 分離**:`cif/structural/patients/<enc>.json`
   (構造化データ、Stage 1 で immutable)と `cif/narratives/<version>/documents/<enc>/<doc>.json`
   (narrative、Stage 2 で version 化可能)を **必ず file-level 分離**。inline 混在禁止。
-  session 25/26/27 で drift した過去実装から復元、SPEC.md `Stage 2: Narrative Generation`
+  過去実装から drift した状態を復元、SPEC.md `Stage 2: Narrative Generation`
   節が canonical。
 - **`document_enricher`(POST_ENCOUNTER)は `ClinicalDocument` stub のみ生成**:metadata +
   author + encounter binding + `narrative=None`。narrative content(text / sections /
@@ -130,7 +121,7 @@ old name; those are being cleaned up module-by-module (see linked issues).
   medications + scenario_spine を input として narrative を導出 →
   `narratives/<version>/documents/<enc>/<doc>.json` 書出。simulation loop 中の
   narrative content 生成禁止。α-min-1 Task 15 で SPEC.md 元設計から drift、
-  AD-65(session 28)で復元。
+  AD-65 で復元。
 - **`NarrativePass` walk 順序は (doc_type, language) group 単位**:同 prompt prefix を
   共有する batch 単位で patient を逐次処理 → Bedrock prompt cache(5 分 TTL)hit rate
   最大化。LLMNarrativePass(β-JP-1)は同 base class を継承 = drop-in で cache-friendly。
@@ -140,7 +131,7 @@ old name; those are being cleaned up module-by-module (see linked issues).
   が structural + narrative を merge して `doc.narrative` を fill、builders は
   wrapper 経由のみ。
 
-### Canonical patient profile fixture library (AD-66, 2026-07-03, session 30)
+### Canonical patient profile fixture library (AD-66, 2026-07-03)
 
 - **AD-66 Rule 1**: Profile YAML changes MUST regenerate golden + commit both together。
   `tests/fixtures/patient_profiles/<name>.yaml` を編集したら必ず `clinosim
@@ -250,32 +241,23 @@ old name; those are being cleaned up module-by-module (see linked issues).
 - `pytest -x` — full suite (234 tests; unit+integration ~2 min, e2e golden ~8 min)
 - Always run unit tests before committing.
 
-## Development workflow — Issue → PR → Merge(★ session 52 末以降 必須)
+## Development workflow — Issue → PR → Merge
 
-複数人メンテを想定し、**master への直接 push 禁止**。fix / feature は
-以下の手順で必ず PR/Merge 経由:
+**Master への直接 push 禁止**。fix / feature は必ず PR/Merge 経由。
+The full contributor workflow (fork + branch, DCO signoff, tests, CI
+gates, merge policy) lives in
+[`CONTRIBUTING.md`](CONTRIBUTING.md#workflow) — read that first.
 
-1. **Issue 起票** — 修正対象を GitHub Issue で定義(bug report / feature
-   / chain 単位)。既存 iris4h-ai HAPI feedback や GitHub Issues (see `docs/roadmap.md`) の記載事項は
-   Issue にコピーし tracker 化。
-2. **Feature branch 作成** — `git checkout -b <type>/<short-slug>`
-   (例:`fix/mypy-numpy-shim`、`feat/valueset-p1-8`)。
-3. **Commit + Push to feature branch** — commit meta は従来通り
-   `Co-Authored-By` + `Claude-Session` を付ける。
-4. **PR 作成** — `gh pr create` で対象 Issue link + 変更概要 + 検証
-   結果(unit / mypy / ruff / reproduce)を body に記す。CI 全 job
-   (Unit / Reproducibility / Build / Integration / Lint / Type check)
-   PASS を merge blocker とする。
-5. **Adversarial review**(推奨、大 chain のみ)— `/code-review` 等で
-   PR に対する追加 review、必要に応じて fix commit を追加。
-6. **Merge to master** — CI 全 green + review 完了後、`gh pr merge
-   --squash --delete-branch`(基本 squash、multi-commit chain の履歴
-   保存が必要な場合は `--merge`)。
-7. **Issue close** — merge SHA を Issue に post、close。
+AGENTS-specific additions on top of the contributor workflow:
 
-**scope-discipline**: 1 PR = 1 論点(silent-drop fix / lint sweep 等の
-横断作業は別 PR に分割)。session 内で複数 chain を進める場合、
-chain 毎に別ブランチ + 別 PR。
+- **Commit trailers**: keep `Co-Authored-By: <agent-model>` +
+  `Claude-Session: <url>` alongside the DCO `Signed-off-by:` so
+  agent-authored commits stay attributable.
+- **Adversarial review** (recommended for large chains): run
+  `/code-review` on the PR and add fix commits before merging.
+- **scope-discipline**: 1 PR = 1 論点 (silent-drop fix / lint sweep 等の
+  横断作業は別 PR に分割)。複数 chain を進める場合、chain 毎に別ブランチ +
+  別 PR。
 
 ### ★ CI 待ちで手を止めない — 別 Issue を別ブランチで並行して進める
 
@@ -341,7 +323,7 @@ merge 時の HEAD が同一であること**を確認する。
 - **referenceRange + interpretation**: Both MUST be present for numerical observations and MUST be consistent (FHIR R5 Note 5). Lab interpretation recomputed from value vs referenceRange.
 - **JP localization**: All `display`, `text`, `name` fields must use Japanese when `country="JP"`. Use `_localize_display()` for enum values. Drug/procedure names via `code_lookup()` or `_localize_drug_name()`.
 - **US output**: Must be 100% English. No Japanese characters in any field.
-- **JP Core / JP-CLINS profile URI・slice system URI は必ず spec の `fixedUri` を直接引用**(session 50 adv-1 教訓)。JP Core StructureDefinition JSON(`iris4h-ai/jp_core/package/StructureDefinition-*.json` or `jpfhir.jp` の該当 spec ファイル)の `Element.system.fixedUri` / `Element.fixedUri` を **grep で直接取得**して使う。**推測 URI・plausible naming に基づく URI 命名 禁止** — spec と不一致だと HAPI validator が silent-no-op(見た目に URI があるので通ってしまうが profile slice discriminator が match せず validation error は消えない)。新規に JP Core slice 対応する pull request は、`tests/unit/output/test_fhir_jp_core_p14_slices.py` のように **URI を module-level 定数として pin する test を必ず追加**(regression 防衛)。同じ規則が JP-eCheckup / JP-CLINS / SS-MIX2 の profile URI にも適用。
+- **JP Core / JP-CLINS profile URI・slice system URI は必ず spec の `fixedUri` を直接引用**。JP Core StructureDefinition JSON(`iris4h-ai/jp_core/package/StructureDefinition-*.json` or `jpfhir.jp` の該当 spec ファイル)の `Element.system.fixedUri` / `Element.fixedUri` を **grep で直接取得**して使う。**推測 URI・plausible naming に基づく URI 命名 禁止** — spec と不一致だと HAPI validator が silent-no-op(見た目に URI があるので通ってしまうが profile slice discriminator が match せず validation error は消えない)。新規に JP Core slice 対応する pull request は、`tests/unit/output/test_fhir_jp_core_p14_slices.py` のように **URI を module-level 定数として pin する test を必ず追加**(regression 防衛)。同じ規則が JP-eCheckup / JP-CLINS / SS-MIX2 の profile URI にも適用。
 
 ## Enrichment architecture (narrative prompts)
 
@@ -371,7 +353,7 @@ merge 時の HEAD が同一であること**を確認する。
 
 **Tier 1 #2 Imaging chain α-min complete** (2026-06-30, AD-62) — `modules/imaging/` always-on POST_ENCOUNTER Module (order=90) emits `ImagingStudyRecord` into `extensions["imaging"]`. 4 FHIR resources per imaging encounter: `ImagingStudy` (urn:dicom:uid, DCM modality, multi-series), `Endpoint` (WADO-RS placeholder), radiology `DiagnosticReport` (findings + impression in `text.div` + `conclusion`), `ServiceRequest` (imaging category). Polymorphic `_fhir_service_request` dispatches LAB + IMAGING. 15-check `lift_firing_proof` (AD-60). Disease YAMLs: `bacterial_pneumonia.yaml` (CR CXR) + `hemorrhagic_stroke.yaml` (CT head). JP locale: 100% ja displays (modality/bodySite/DR.code/conclusion). Production cohort: US p=10k + JP p=5k. Bug found+fixed: `_simulate_unknown_condition` was not setting `encounter_id` on orders before returning `CIFPatientRecord` — added encounter_id backfill loop (mirrors `simulate_inpatient:361-363`).
 
-**FHIR completeness chain complete** (2026-07-06, session 38, AD-67/68/69) — a 9-chain effort
+**FHIR completeness chain complete** (2026-07-06, AD-67/68/69) — a 9-chain effort
 to eliminate "incomplete FHIR element states", organized in a dedicated fix-point registry
 (`docs/design-notes/2026-07-06-fix-point-registry.md`, kept separate from this TODO) under a
 3-class definition: **C1 silent-drop** / **C2 degenerate** / **C3 missing-structure**. Landed:
