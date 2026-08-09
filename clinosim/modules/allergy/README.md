@@ -1,45 +1,64 @@
-# allergy module
+# `clinosim.modules.allergy` — patient allergy generation
 
-## 役割
+## Purpose
 
-Tier 1 #3 α-min-1 always-on Module (AD-55 Base)。`PatientProfile.allergies`
-を populate (POST_POPULATION enricher、prevalence-calibrated sampling)。
+Assigns allergy records (drug allergies, food allergies, environmental
+allergies) to patients at population-generation time, and emits the
+`Allergy` and `AllergyReaction` dataclasses that the FHIR
+`AllergyIntolerance` builder consumes.
 
-## サンプリング設計
+## Scope
 
-2段階サンプリング (baseline calibration: activator path 15.3% 一致):
+- **In scope**: per-patient allergy sampling from country-appropriate
+  prevalence tables, reaction-severity assignment (mild / moderate /
+  severe / anaphylactic), reaction manifestations (rash / bronchospasm
+  / anaphylaxis / etc.), coded-allergen selection (RxNorm for US
+  drugs, SNOMED for food / environment).
+- **Out of scope**: drug-allergy interaction with prescribing (in
+  [`clinosim.modules.order`](../order/README.md)), FHIR serialisation
+  (in [`clinosim.modules.output`](../output/README.md)), reaction-
+  event generation during simulation.
 
-1. **patient-level overall gate**: `OVERALL_ALLERGY_PREVALENCE = 0.15` bernoulli
-   (85% の患者は no allergy)
-2. **gate 成立 patient のみ**: `CATEGORY_WEIGHTS = {medication: 0.50, food: 0.25, environment: 0.25}`
-   で category を選択 → category 内 uniform でアレルゲン 1 件を選択
+## Public API
 
-`allergens.yaml` の `prevalence.adult` フィールドは documentation 目的
-(category-level base rate 参考)。actual sampling は overall_prob で gate される設計。
+```python
+from clinosim.modules.allergy import (
+    assign_allergies,            # (patient, country, rng) -> list[Allergy]
+)
+```
 
 ## Dependencies
 
-- `clinosim/types/allergy.py` — `Allergy` + `AllergyReaction` dataclass
-- `clinosim/simulator/seeding.py` — `ENRICHER_SEED_OFFSETS["allergy"] = 0x414C` ("AL")
+- `clinosim.types.allergy` — `Allergy`, `AllergyReaction`.
+- `clinosim.types.patient` — `PatientProfile.allergies`.
+- `clinosim.codes` (via FHIR builder) — RxNorm / SNOMED display
+  lookup.
 
-## Reference data
+## Constants and configuration
 
-- `reference_data/allergens.yaml` — 3 category (medication / food / environment)
-  allergen catalog with prevalence + criticality + common reactions
+- Allergy-prevalence tables (per age band × sex × country) live in
+  `reference_data/*.yaml`.
+- Reaction-manifestation catalogues use SNOMED CT for cross-country
+  interoperability.
 
-## エンリッチャー登録
+## Directory contents
 
-`clinosim/simulator/enrichers.py` に POST_POPULATION order=10 で登録。
-Identity (order=10, name="identity") とのタイブレークは名前順 ("allergy" < "identity")
-で allergy が先に実行される。
+```
+clinosim/modules/allergy/
+  __init__.py           public API
+  engine.py             allergy assignment logic
+  audit.py              per-module audit spec
+  reference_data/       allergy-prevalence YAMLs
+```
 
-## Consumers (予定)
+## Testing
 
-- `clinosim/modules/output/_fhir_allergy_intolerance.py` — AllergyIntolerance FHIR resource (Task 3 以降)
-- `clinosim/modules/document/` — NarrativeContext.allergies に渡し narrative 内で言及 (後続 Phase)
+```bash
+pytest tests/unit -k allergy -q
+```
 
-## 関連
+## Ownership
 
-- Spec: `docs/history/specs-archive/2026-07-01-tier1-3-document-density-alpha-min-1-design.md`
-- Master plan: `docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md`
-- Task brief: `.superpowers/sdd/task-2-brief.md`
+`maintainers@` — see [`CONTRIBUTING.md`](../../../CONTRIBUTING.md).
+
+Japanese counterpart: [`README.ja.md`](README.ja.md).
