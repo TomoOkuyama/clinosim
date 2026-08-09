@@ -1,7 +1,7 @@
 """``clinosim eval`` — public evaluation framework for generated cohorts.
 
 Distinct from ``clinosim audit`` which is the internal per-Module PR gate
-(``docs/CONTRIBUTING-modules.md`` "PR 検証ガイド"). ``eval`` scores an
+(``docs/CONTRIBUTING-modules.md`` "PR verification guide"). ``eval`` scores an
 already-generated cohort against three axes — **structural**,
 **clinical**, **locale** — producing a numeric score per axis plus a
 list of violations, so downstream researchers / ML engineers can grade

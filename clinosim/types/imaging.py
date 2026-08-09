@@ -20,17 +20,17 @@ class ImagingSeries:
     2 series under the same Study.
     """
 
-    series_uid: str = ""  # DICOM Series UID(後付け実 PACS 統合点)
+    series_uid: str = ""  # DICOM Series UID (integration point for a real PACS later).
     series_number: int = 1
     modality_code: str = ""  # DCM modality(CR/CT/MR/US/NM...)
     body_site_snomed: str = ""
-    description: str = ""  # "PA view" / "axial 5mm" 等
-    instance_count: int = 0  # DICOM instance 数(placeholder)
+    description: str = ""  # e.g. "PA view" / "axial 5mm".
+    instance_count: int = 0  # Number of DICOM instances (placeholder).
 
 
 @dataclass
 class RadiologyReport:
-    """Radiology DiagnosticReport content (template-driven, Tier 1 #5 LLM 統合点).
+    """Radiology DiagnosticReport content (template-driven; LLM integration point).
 
     findings_text + impression_text both populated from impression_templates.yaml.
     findings_codes is a forward-compat slot (PR1 leaves empty; future NLP/IE
@@ -40,11 +40,11 @@ class RadiologyReport:
 
     report_id: str = ""  # "imgrpt-{enc}-{n}"
     status: str = "final"  # FHIR registered/preliminary/final/amended
-    findings_text: str = ""  # 構造化 findings narrative (en)
+    findings_text: str = ""  # Structured findings narrative (English).
     findings_text_ja: str = ""  # ja copy for JP cohort (Task 6 FHIR builder picks by lang)
     impression_text: str = ""  # clinical impression / conclusion (en)
     impression_text_ja: str = ""  # ja copy for JP cohort (Task 6 FHIR builder picks by lang)
-    findings_codes: list[str] = field(default_factory=list)  # 任意 SNOMED finding codes
+    findings_codes: list[str] = field(default_factory=list)  # Optional SNOMED finding codes.
 
 
 @dataclass
@@ -57,10 +57,10 @@ class ImagingStudyRecord:
     """
 
     study_id: str = ""  # "imgst-{enc}-{n}"
-    study_instance_uid: str = ""  # DICOM Study UID(後付け実 PACS lookup key)
+    study_instance_uid: str = ""  # DICOM Study UID (lookup key for a real PACS later).
     encounter_id: str = ""
     patient_id: str = ""
-    order_id: str = ""  # source Order.order_id(basedOn 解決)
+    order_id: str = ""  # Source Order.order_id (resolves `basedOn`).
 
     status: str = "available"  # FHIR ImagingStudy.status
     started_datetime: datetime | None = None

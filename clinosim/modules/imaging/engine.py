@@ -29,11 +29,11 @@ SUPPORTED_MODALITIES: frozenset[str] = frozenset(
     {
         "CR",
         "CT",
-        # CO-1 continuation (session 43): MR + US added — modalities.yaml carries
+        # CO-1 continuation: MR + US added — modalities.yaml carries
         # matching entries with DICOM code + display_en/ja.
         "MR",
         "US",
-        # Session 52 fix 4: XA (X-Ray Angiography — coronary angiography orders) +
+        # fix 4: XA (X-Ray Angiography — coronary angiography orders) +
         # ECG (electrocardiography — DICOM waveform modality; ED/cardiac workup
         # orders classified OrderType.IMAGING). Both are standard DICOM PS3.3
         # modality values; without them these orders stub-fell with no modality.
@@ -42,10 +42,10 @@ SUPPORTED_MODALITIES: frozenset[str] = frozenset(
     }
 )
 
-# Canonical body site set. CO-1 continuation (session 43): expanded from
+# Canonical body site set. CO-1 continuation: expanded from
 # {chest, head} to 10 sites, each with SNOMED code + procedure_codes
 # verified via NLM Clinical Table Search Service + AMA CPT 2024 + MHLW
-# 診療報酬点数表 令和6年.
+# Source: JP 診療報酬点数表 令和6年 (JP procedure-reimbursement master, Reiwa 6).
 SUPPORTED_BODY_SITES: frozenset[str] = frozenset(
     {
         "chest",
@@ -62,9 +62,9 @@ SUPPORTED_BODY_SITES: frozenset[str] = frozenset(
 )
 
 # Canonical disease set with imaging coverage.
-# RM-5 (session 42, cycle-3 tail): expanded to include sepsis / heart failure /
+# RM-5 (cycle-3 tail): expanded to include sepsis / heart failure /
 # acute MI — all commonly workup with CXR.
-# CO-1 continuation (session 43): expanded to 26 additional diseases with
+# CO-1 continuation: expanded to 26 additional diseases with
 # clinically-warranted imaging orders (see disease/*.yaml `imaging_orders`
 # blocks and impression_templates.yaml for the paired coverage).
 SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset(
@@ -75,7 +75,7 @@ SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset(
         "sepsis",
         "heart_failure_exacerbation",
         "acute_mi",
-        # CO-1 continuation additions (session 43):
+        # CO-1 continuation additions:
         "acute_appendicitis",
         "acute_cholecystitis",
         "acute_kidney_injury",
@@ -288,7 +288,7 @@ def _resolve_imaging_procedure_code_key(
 ) -> str:
     """Resolve (modality, body_site, views, contrast) → procedure_codes key.
 
-    CO-1 continuation (session 43): expanded from PR1 chest+head scope to
+    CO-1 continuation: expanded from PR1 chest+head scope to
     10 body sites × CR/CT/MR/US modalities. Mapping picks the closest
     procedure_codes entry defined in body_sites.yaml.
     """
@@ -477,10 +477,12 @@ def imaging_enricher(ctx: Any) -> None:
 
     for record in ctx.records:
         orders = _o(record, "orders", []) or []
-        # session 48 cycle 8 拡張 (case D CIF-VS-FHIR-01):
-        # gate から imaging_body_site_code / imaging_modality 必須要件を撤去。
-        # metadata なし Order は loop 内で display_name → infer or stub fallback。
-        # これで全 imaging Order が ImagingStudy に mapping、silent-drop 消滅。
+        # Case-D fix (CIF-VS-FHIR-01): removed the requirement that
+        # ``imaging_body_site_code`` / ``imaging_modality`` be present
+        # at the gate. Orders without metadata are handled inside the
+        # loop by ``display_name`` inference or a stub fallback, so
+        # every imaging order maps to an ``ImagingStudy`` and no
+        # silent drop occurs.
         imaging_orders = [
             o
             for o in orders
@@ -506,8 +508,9 @@ def imaging_enricher(ctx: Any) -> None:
             modality: str = _o(order, "imaging_modality", "") or ""
             body_site_snomed: str = _o(order, "imaging_body_site_code", "") or ""
             views: list[str] = list(_o(order, "imaging_views", []) or [])
-            # 案 D case D fix: metadata 未 populate なら display_name から infer。
-            # 失敗すれば stub_only=True で最小 ImagingStudy を emit(下方)。
+            # Case-D fix: infer metadata from ``display_name`` when the
+            # order lacks it. On failure, emit a minimal ImagingStudy
+            # with ``stub_only=True`` (see below).
             stub_only = False
             if not (modality and body_site_snomed):
                 inferred = infer_imaging_metadata(_o(order, "display_name", "") or "")
@@ -520,9 +523,11 @@ def imaging_enricher(ctx: Any) -> None:
                     stub_only = True
             body_site_key = _body_site_key_from_snomed(body_site_snomed) if body_site_snomed else ""
 
-            # case D fix: inferred metadata が modalities.yaml validation を通らない
-            # 場合(例:US + chest = Echocardiogram、modalities.yaml では US body_site
-            # に chest が未登録)は stub 落ちさせる。
+            # Case-D fix: if the inferred metadata fails
+            # ``modalities.yaml`` validation (e.g. ``US`` + ``chest`` =
+            # Echocardiogram, but ``modalities.yaml`` does not register
+            # ``chest`` under the ``US`` body_site), fall through to
+            # the stub.
             if not stub_only and modality and body_site_key:
                 try:
                     _test_series = _expand_views_to_series(modality, body_site_key, views, rng)
@@ -531,7 +536,8 @@ def imaging_enricher(ctx: Any) -> None:
 
             # stub-only path: build minimum spec-valid ImagingStudy (no series /
             # modality unknown / description = display_name)。JP Core ImagingStudy
-            # は series / modality を required にしていないため spec 適合。
+            # FHIR R4 ImagingStudy does not require ``series`` or ``modality``,
+            # so a stub with neither is still spec-compliant.
             if stub_only:
                 encounter_id_stub: str = _o(order, "encounter_id", "") or ""
                 stub_uid = _study_uid_from(sub_seed, "study")
@@ -543,12 +549,12 @@ def imaging_enricher(ctx: Any) -> None:
                     order_id=order_id,
                     status="available",
                     started_datetime=_o(order, "ordered_datetime"),
-                    modality_code="",  # inference 失敗
+                    modality_code="",  # Inference failed.
                     body_site_snomed="",
-                    series=[],  # 0 series = FHIR R4 ImagingStudy 適合
-                    endpoint_id="",  # PACS 参照無し
+                    series=[],  # 0 series is spec-valid for FHIR R4 ImagingStudy.
+                    endpoint_id="",  # No PACS reference.
                     contrast=False,
-                    report=None,  # radiology report は生成しない
+                    report=None,  # No radiology report generated.
                 )
                 studies.append(stub_study)
                 continue
@@ -567,9 +573,11 @@ def imaging_enricher(ctx: Any) -> None:
             abnormal_rate: dict[str, float] = spec_meta.get("abnormal_rate_by_severity", {})
             contrast: bool = bool(spec_meta.get("contrast", False))
 
-            # case D fix: template lookup が失敗した場合(disease_id 空 + 未登録
-            # modality_body_site 組合わせ、ED / unknown_condition path)は
-            # study のみ emit(report=None)、silent-drop よりは意味を保つ。
+            # Case-D fix: if the template lookup fails (empty
+            # disease_id + an unregistered modality_body_site
+            # combination — e.g. the ED / unknown_condition path), emit
+            # the study only (``report=None``); that preserves meaning
+            # better than a silent drop.
             try:
                 _variant, template = _select_report_template(
                     disease_id,
@@ -590,7 +598,7 @@ def imaging_enricher(ctx: Any) -> None:
                     # findings_codes: forward-compat slot — PR1 leaves empty.
                 )
             except ValueError:
-                # template 未登録 → report=None、study はそのまま emit
+                # Template unregistered → report=None; the study is still emitted.
                 encounter_id = _o(order, "encounter_id", "") or ""
                 report = None
 

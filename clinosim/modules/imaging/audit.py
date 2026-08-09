@@ -74,7 +74,7 @@ def _build_imaging_proof() -> dict[str, Any]:
     order_id = "o-cxr-proof"
 
     study = ImagingStudyRecord(
-        study_id=f"{IMAGING_STUDY_ID_PREFIX}enc-proof-0",  # session 51
+        study_id=f"{IMAGING_STUDY_ID_PREFIX}enc-proof-0",  #
         study_instance_uid=study_uid,
         encounter_id="enc-proof",
         patient_id="pt-proof",
@@ -95,7 +95,7 @@ def _build_imaging_proof() -> dict[str, Any]:
         ],
         endpoint_id=endpoint_id,
         report=RadiologyReport(
-            report_id=f"{RADIOLOGY_REPORT_ID_PREFIX}enc-proof-0",  # session 51
+            report_id=f"{RADIOLOGY_REPORT_ID_PREFIX}enc-proof-0",  #
             status="final",
             findings_text="No acute cardiopulmonary process.",
             impression_text="Clear lungs bilaterally.",
@@ -209,9 +209,9 @@ def _build_imaging_proof() -> dict[str, Any]:
                 "51185008",
             ),
             (
-                "findings_codes empty -> conclusionCode = Normal SNOMED default (CY8-14 session 48)",
-                # findings_codes 空でも normal/abnormal default emit されるように改修。
-                # conclusionCode は必ず 1 件、code = 17621005 (Normal) or 263654008 (Abnormal)。
+                "findings_codes empty -> conclusionCode = Normal SNOMED default (CY8-14)",
+                # Refactored so a normal/abnormal default is emitted even when findings_codes is empty.
+                # conclusionCode always has exactly one entry: code = 17621005 (Normal) or 263654008 (Abnormal).
                 dr.get("conclusionCode", [{}])[0].get("coding", [{}])[0].get("code") in ("17621005", "263654008"),
                 True,
             ),
