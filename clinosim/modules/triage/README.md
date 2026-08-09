@@ -1,27 +1,68 @@
-# triage module
+# `clinosim.modules.triage` — ED triage assignment
 
-## 役割
+## Purpose
 
-Tier 1 #3 α-min-2 always-on Module(AD-55、POST_ENCOUNTER order=93)。
-ED encounter で JTAS(JP)/ ESI(US)level + arrival_mode + acuity_score を
-sampling、`EncounterRecord.triage_data` に populate。
+Always-on Module (AD-55, Tier 1 #3, POST_ENCOUNTER order 93) that
+assigns an ED triage level, arrival mode, and acuity score to every ED
+encounter and writes them to `EncounterRecord.triage_data`.
+
+Country-appropriate levels: **JTAS** (Japan Triage and Acuity Scale)
+for JP, **ESI** (Emergency Severity Index) for US.
+
+## Scope
+
+- **In scope**: JTAS 1-5 / ESI 1-5 assignment based on presenting
+  complaint + physiology state, arrival-mode sampling (walk-in / EMS
+  / private transport), acuity-score derivation for triage-response
+  narrative.
+- **Out of scope**: ED disposition decisions (in
+  [`clinosim/simulator/emergency.py`](../../simulator/README.md)),
+  triage-nurse identity (in
+  [`clinosim/modules/staff/`](../staff/README.md)), FHIR
+  `RiskAssessment` serialisation (in
+  [`clinosim/modules/output/`](../output/README.md)).
+
+## Public API
+
+```python
+from clinosim.modules.triage import (
+    assign_triage,               # (encounter, protocol, patient, rng) -> TriageData
+    enrich_triage,               # AD-56 post_records enricher entry
+)
+```
 
 ## Dependencies
 
-- `clinosim/types/triage.py` — `TriageData` dataclass
-- `clinosim/simulator/seeding.py` — `ENRICHER_SEED_OFFSETS["triage"] = 0x5452`
-- `clinosim/modules/_shared.py` — `normalize_probabilities`
+- `clinosim.types.triage` — `TriageData`, `TriageLevel`.
+- `clinosim.types.encounter` — `Encounter`, `EncounterType.EMERGENCY`.
+- `clinosim.modules.encounter` — ED encounter protocol reference data
+  (`common_triage_levels`).
 
-## Reference data
+## Constants and configuration
 
-- `reference_data/triage_protocols.yaml` — JTAS + ESI 5-level 定義、arrival_modes、severity_to_triage_distribution、arrival_mode_severity_multipliers
+- Level distributions and arrival-mode probabilities live inline in
+  `engine.py` and are flagged for extraction in
+  [`docs/reviews/2026-08-09-constants-audit.md`](../../../docs/reviews/2026-08-09-constants-audit.md).
+- Country dispatches on `SimulatorConfig.country`.
 
-## Consumers
+## Directory contents
 
-- `clinosim/modules/document/` — ED_TRIAGE_NOTE narrative で triage_data 参照
-- `clinosim/modules/output/_fhir_documents.py` — ED_TRIAGE_NOTE の content に serialize
+```
+clinosim/modules/triage/
+  __init__.py           public API
+  engine.py             triage assignment logic
+  enricher.py           AD-56 post_records enricher (enrich_triage)
+  audit.py              per-module audit spec
+```
 
-## 関連
+## Testing
 
-- Spec: `docs/history/specs-archive/2026-07-01-tier1-3-document-density-alpha-min-2-design.md`
-- Master plan: `docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md`
+```bash
+pytest tests/unit -k triage -q
+```
+
+## Ownership
+
+`maintainers@` — see [`CONTRIBUTING.md`](../../../CONTRIBUTING.md).
+
+Japanese counterpart: [`README.ja.md`](README.ja.md).
