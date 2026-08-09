@@ -148,10 +148,10 @@ def load_expectations(path: str | Path) -> dict[str, Any]:
             )
         if not isinstance(sections, dict) or not sections:
             raise ValueError(f"{p.name}[{doc_key}]: must be a non-empty section mapping")
-        # P2-13 PR2a (session 47): allow both US and JP-CLINS section keys
-        # so a single expectations file can carry per-country checks. The
-        # spec accessor returns the JP list when composition_sections_jp is
-        # populated; we union both to accept any valid section key.
+        # P2-13 PR2a: allow both US and JP-CLINS section keys so a single
+        # expectations file can carry per-country checks. The spec accessor
+        # returns the JP list when composition_sections_jp is populated; we
+        # union both to accept any valid section key.
         allowed_sections = (
             set(spec.composition_sections) | set(spec.composition_sections_for("JP")) | {TEXT_SECTION_KEY}
         )
@@ -373,10 +373,10 @@ def _check_structure(
     """Axis 1 (per-document part): section key set + non-empty content."""
     sections = narrative.get("sections") or {}
     if spec.format_type == FormatType.COMPOSITION:
-        # P2-13 PR2a (session 47): a doc may follow either the US
-        # composition_sections list or, when country=JP, the JP-CLINS
-        # composition_sections_jp list. Both are registry-valid — flag drift
-        # only when the actual set matches NEITHER country variant.
+        # P2-13 PR2a: a doc may follow either the US composition_sections
+        # list or, when country=JP, the JP-CLINS composition_sections_jp
+        # list. Both are registry-valid — flag drift only when the actual
+        # set matches NEITHER country variant.
         us_expected = set(spec.composition_sections)
         jp_expected = set(spec.composition_sections_for("JP"))
         actual = set(sections)
@@ -543,8 +543,8 @@ def _check_expectations(
 ) -> int:
     """Axes 4+5: required/forbidden phrases + numeric facts. Returns mock skips."""
     skipped = 0
-    # P2-13 PR2a (session 47): union of US + JP LLM-enabled sections so the
-    # mock exemption fires regardless of which locale variant produced the
+    # P2-13 PR2a: union of US + JP LLM-enabled sections so the mock
+    # exemption fires regardless of which locale variant produced the
     # section keys under check.
     llm_enabled = set(spec.llm_enabled_sections) | set(spec.llm_enabled_sections_jp)
     for section_key, entry in doc_expectations.items():

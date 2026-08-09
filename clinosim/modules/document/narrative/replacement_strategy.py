@@ -136,9 +136,9 @@ def _apply_template_seed_strategy(
     # Copy sections so we don't mutate the template output in place
     new_sections = dict(template_output.sections)
 
-    # P2-13 PR2a (session 47): pick the country-aware LLM-enabled list, then
-    # intersect with actually-produced sections. The country-aware call
-    # avoids returning US-only section names for a JP document; the intersect
+    # P2-13 PR2a: pick the country-aware LLM-enabled list, then intersect
+    # with actually-produced sections. The country-aware call avoids
+    # returning US-only section names for a JP document; the intersect
     # keeps us safe if the spec ever lists a section that the template
     # generator did not emit (defensive against ghost sections).
     country = ctx.locale.upper() if getattr(ctx, "locale", None) else "US"
