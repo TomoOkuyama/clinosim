@@ -1,7 +1,8 @@
-"""Document CIF dataclasses(Tier 1 #3 α-min-1 PR1).
+"""Document CIF dataclasses.
 
-NarrativeContext は全 narrative 生成の統一 input、全 generator(template / LLM)
-が同 schema で受け取り、NarrativeOutput を返す。
+``NarrativeContext`` is the single input shape consumed by every
+narrative generator (template + LLM); every generator receives it and
+returns a ``NarrativeOutput``.
 """
 
 from __future__ import annotations
@@ -18,37 +19,37 @@ class FormatType(StrEnum):
 
     FREE_TEXT = "free_text"  # → DocumentReference (text content)
     COMPOSITION = "composition"  # → Composition (section structure)
-    QUESTIONNAIRE_RESPONSE = "questionnaire_response"  # → QuestionnaireResponse(β-JP-1 で active)
+    QUESTIONNAIRE_RESPONSE = "questionnaire_response"  # → QuestionnaireResponse (JP path active).
 
 
 class DocumentType(StrEnum):
     """Document types.
 
-    α-min-1 scope: ADMISSION_HP + PROGRESS_NOTE + DISCHARGE_SUMMARY.
-    α-min-2 scope: +6 nursing/outpatient/ED entries below.
-    後続 phase で enum 値追加(β-JP-1 で JP 厚労省必須 doc)。
+    Initial scope: ``ADMISSION_HP`` + ``PROGRESS_NOTE`` +
+    ``DISCHARGE_SUMMARY``. Expanded to cover nursing / outpatient / ED
+    document types and JP-specific mandated documents from 厚生労働省.
     """
 
-    # α-min-1 scope(既存)
+    # Core hospital documents.
     ADMISSION_HP = "admission_hp"  # LOINC 34117-2
     PROGRESS_NOTE = "progress_note"  # LOINC 11506-3
     DISCHARGE_SUMMARY = "discharge_summary"  # LOINC 18842-5
-    # α-min-2 scope(new)
-    ADMISSION_NURSING_ASSESSMENT = "admission_nursing_assessment"  # LOINC 78390-2 (verified 2026-07)
-    NURSING_SHIFT_NOTE = "nursing_shift_note"  # LOINC 34746-8 (verified 2026-07)
-    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"  # LOINC 34745-0 (verified 2026-07)
-    OUTPATIENT_SOAP = "outpatient_soap"  # LOINC 34131-3 (verified 2026-07)
-    ED_NOTE = "ed_note"  # LOINC 34878-9 (verified 2026-07)
-    ED_TRIAGE_NOTE = "ed_triage_note"  # LOINC 54094-8 (verified 2026-07)
-    # β-JP-1 chain 2 (厚労省4帳票, first sub-project)
-    ADMISSION_CARE_PLAN = "admission_care_plan"  # LOINC 18776-5 (verified 2026-07-03)
-    NUTRITION_CARE_PLAN = "nutrition_care_plan"  # LOINC 80791-7 (verified 2026-07-03)
-    # β-JP-1 chain 2 (厚労省4帳票, third and final sub-project)
-    REHABILITATION_PLAN = "rehabilitation_plan"  # LOINC 34823-5 (verified 2026-07-04)
-    # P2-13 PR2b (session 47) JP-CLINS 診療情報提供書 — LOINC 57133-1
-    REFERRAL_NOTE = "referral_note"  # LOINC 57133-1 (JP-CLINS v1.12.0)
-    # P2-13 PR3 (session 47) JP-eCheckup General 健診結果報告書 — LOINC 53576-5(opt-in)
-    HEALTH_CHECKUP_REPORT = "health_checkup_report"  # LOINC 53576-5 (JP-eCheckup v1.7.0)
+    # Nursing / outpatient / ED documents.
+    ADMISSION_NURSING_ASSESSMENT = "admission_nursing_assessment"  # LOINC 78390-2
+    NURSING_SHIFT_NOTE = "nursing_shift_note"  # LOINC 34746-8
+    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"  # LOINC 34745-0
+    OUTPATIENT_SOAP = "outpatient_soap"  # LOINC 34131-3
+    ED_NOTE = "ed_note"  # LOINC 34878-9
+    ED_TRIAGE_NOTE = "ed_triage_note"  # LOINC 54094-8
+    # JP-mandated documents (厚生労働省 4帳票 — first two of the four).
+    ADMISSION_CARE_PLAN = "admission_care_plan"  # LOINC 18776-5
+    NUTRITION_CARE_PLAN = "nutrition_care_plan"  # LOINC 80791-7
+    # JP-mandated (厚生労働省 4帳票 — final of the four).
+    REHABILITATION_PLAN = "rehabilitation_plan"  # LOINC 34823-5
+    # JP-CLINS 診療情報提供書 (referral note) — LOINC 57133-1 (JP-CLINS v1.12.0).
+    REFERRAL_NOTE = "referral_note"
+    # JP-eCheckup 健診結果報告書 (health-checkup report) — LOINC 53576-5 (JP-eCheckup v1.7.0, opt-in).
+    HEALTH_CHECKUP_REPORT = "health_checkup_report"
 
 
 @dataclass(frozen=True)
@@ -80,48 +81,52 @@ class DocumentTypeSpec:
     """Encounter types this spec applies to.
 
     Empty tuple (default) = no restriction; matches all encounter types (backwards-compat for
-    α-min-1 specs like ADMISSION_HP / PROGRESS_NOTE / DISCHARGE_SUMMARY).
+    specs like ADMISSION_HP / PROGRESS_NOTE / DISCHARGE_SUMMARY).
     Non-empty = explicit allowlist; values must be lowercase (e.g. 'inpatient', 'outpatient',
     'emergency'). Populated by Task 9 for the 6 new encounter-scoped document types.
     """
 
     composition_sections_jp: tuple[str, ...] = field(default_factory=tuple)
-    """JP-CLINS 準拠の section 一覧(P2-13 PR2a、session 47)。
+    """JP-CLINS-compliant section list.
 
-    空 tuple(既定)= JP override なし、``composition_sections`` を使用。
-    非空 = country=JP の場合に ``composition_sections`` を置換する。
-    ここに書く section キー自体は英語 snake_case で narrative renderer が
-    消費する識別子。FHIR 側の番号 code(jp-codeSystem-clins-document-section)
-    への変換は Composition builder 側で行う。
+    Empty tuple (default) means no JP-specific override; the
+    country-neutral ``composition_sections`` is used. When non-empty,
+    this replaces ``composition_sections`` for ``country == "JP"``. The
+    section keys themselves are English snake_case identifiers that the
+    narrative renderer consumes; conversion to the FHIR numeric section
+    codes (``jp-codeSystem-clins-document-section``) happens inside the
+    Composition builder.
     """
 
     llm_enabled_sections_jp: tuple[str, ...] = field(default_factory=tuple)
-    """JP-CLINS 固有の LLM 差替対象 section(P2-13 PR2a、session 47)。
+    """JP-CLINS-specific LLM-replacement sections.
 
-    空(既定)= ``llm_enabled_sections`` に fall through。
-    非空 = country=JP の場合に ``llm_enabled_sections`` を置換する。
-    US locale の llm_enabled_sections(US-only section 名を含む)と独立に
-    JP section の LLM 差替候補を宣言できるようにするための field。
+    Empty tuple (default) means fall through to
+    ``llm_enabled_sections``. Non-empty replaces it for ``country ==
+    "JP"``. Keeping a JP-specific field lets JP LLM-replacement
+    candidates be declared independently of the US-side list (which may
+    contain US-only section names).
     """
 
     def composition_sections_for(self, country: str) -> tuple[str, ...]:
-        """指定 country の section 一覧を返す。
+        """Return the section list for ``country``.
 
-        JP-CLINS v1.12.0 は退院時サマリーで従来の英語 6-section とは
-        異なる構造を要求するため、``composition_sections_jp`` が populate
-        されており country=JP のときは JP 固有 list を優先する。それ以外は
-        country-neutral な ``composition_sections`` をそのまま返す。
+        JP-CLINS v1.12.0 requires a different discharge-summary
+        structure than the traditional English six-section layout. When
+        ``composition_sections_jp`` is populated and ``country == "JP"``,
+        the JP-specific list is preferred. Otherwise the
+        country-neutral ``composition_sections`` is returned as-is.
         """
         if is_jp(country) and self.composition_sections_jp:
             return self.composition_sections_jp
         return self.composition_sections
 
     def llm_enabled_sections_for(self, country: str) -> tuple[str, ...]:
-        """指定 country の LLM 差替対象 section 一覧を返す。
+        """Return the LLM-replacement section list for ``country``.
 
-        JP path は ``llm_enabled_sections_jp`` が populate されていれば
-        それを、無ければ ``llm_enabled_sections`` を返す。US path は
-        常に ``llm_enabled_sections`` を返す。
+        The JP path returns ``llm_enabled_sections_jp`` when it is
+        populated, otherwise falls back to ``llm_enabled_sections``.
+        The US path always returns ``llm_enabled_sections``.
         """
         if is_jp(country) and self.llm_enabled_sections_jp:
             return self.llm_enabled_sections_jp
@@ -130,16 +135,17 @@ class DocumentTypeSpec:
 
 @dataclass
 class NarrativeContext:
-    """全 narrative 生成の統一 input(CIF → ctx factory が組み立てる)。
+    """Single input shape consumed by every narrative generator (built from CIF by a ctx factory).
 
-    Generator(template / LLM)は本 dataclass のみ参照、結果を NarrativeOutput
-    で返す。NarrativeOutput.facts_used で使用 CIF field を tracking。
+    Both template and LLM generators read only this dataclass and
+    return a ``NarrativeOutput``. ``NarrativeOutput.facts_used`` tracks
+    which CIF fields were consumed.
     """
 
-    # === Patient 軸 ===
-    patient: Any  # PatientProfile(避循環 import 用 Any)
+    # === Patient axis ===
+    patient: Any  # PatientProfile (typed as Any to avoid a circular import).
 
-    # === Encounter 軸 ===
+    # === Encounter axis ===
     encounter: Any  # EncounterRecord
     encounter_type: Any  # EncounterType enum
 
@@ -150,10 +156,10 @@ class NarrativeContext:
     # === Scenario flow ===
     clinical_course_archetype: str
     severity: str
-    day_index: int  # 入院 day 0 = admission
+    day_index: int  # Day 0 = admission.
     los_days: int
 
-    # === 生成済 clinical data ===
+    # === Generated clinical data ===
     vitals: list[Any]  # list[VitalSignRecord]
     lab_results: list[Any]  # list[OrderResult]
     medications: list[Any]  # list[MedicationAdministration]
@@ -177,14 +183,14 @@ class NarrativeContext:
     # the generator resolves the localized label at render time (AD-30 spirit).
     shift: str = ""
 
-    # === β-JP-1 chain 1a adv-1 (I-1): discharge prescription, separated ===
+    # === chain 1a adv-1 (I-1): discharge prescription, separated ===
     # Normalized discharge_prescription.items ({"drug_name", "dose"} per
     # entry). ONLY source for the discharge_medications narrative section —
     # ctx.medications above stays MAR-only (in-hospital administrations) so
     # ICU drips / protocol orders never leak into discharge medication lists.
     discharge_medications: list[Any] = field(default_factory=list)
 
-    # === β-JP-1 chain 2 (rehabilitation_plan, 2026-07-04) ===
+    # === chain 2 (rehabilitation_plan, 2026-07-04) ===
     # list[RehabSession] (clinosim/types/procedure.py) — unfiltered, mirrors the
     # existing `procedures` field's record-wide (not per-encounter) scope.
     rehab_sessions: list[Any] = field(default_factory=list)
@@ -192,7 +198,7 @@ class NarrativeContext:
 
 @dataclass
 class NarrativeOutput:
-    """Generator 戻り値、emit builder の入力。
+    """Return value of a generator; input to the emit builder.
 
     ★ Invariant: ``sections[key]`` is authoritative per section (LLM-replaced
     when applicable); ``raw_text`` is the unmodified template base for FREE_TEXT
@@ -238,7 +244,7 @@ class SectionFacts:
 
 @dataclass
 class SemanticCheckFinding:
-    """One semantic-check violation (β-JP-1 chain 1b T2).
+    """One semantic-check violation (chain 1b T2).
 
     ``axis`` ∈ {"structure", "facts", "forbidden_pattern", "phrase",
     "numeric"} — the 5 check axes. Expectations-YAML schema problems are

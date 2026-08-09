@@ -7,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-# Session 52: exclude `PatientProfile` from `import *` so it does not collide
+#: exclude `PatientProfile` from `import *` so it does not collide
 # with the dataclass of the same name in `types/patient.py` (used at runtime
 # by simulator/inpatient/outpatient/emergency). Direct `from clinosim.types.
 # config import PatientProfile` sites (cli.py + tests) keep working — only
@@ -106,7 +106,7 @@ class PatientProfile(BaseModel):
     """Canonical patient scenario fixture for narrative regression testing (α-min-2c, AD-66).
 
     Loaded from tests/fixtures/patient_profiles/<name>.yaml. Transformed to
-    ForcedScenario at CLI dispatch via .to_forced_scenario(). β-JP-1 extends
+    ForcedScenario at CLI dispatch via .to_forced_scenario(). extends
     with LLM-specific fields (llm_seed, expected_sections, ...).
     """
 
@@ -132,7 +132,7 @@ class PatientProfile(BaseModel):
     # CLI built SimulatorConfig without time_range), so declaring them defeated
     # the extra=forbid typo defense: a profile author setting them got a silent
     # no-op (PR-90 class). extra=forbid now rejects them loudly at load time.
-    # β-JP-1 should re-add them together WITH actual consumption.
+    # should re-add them together WITH actual consumption.
 
     # Documentation
     description: str = ""

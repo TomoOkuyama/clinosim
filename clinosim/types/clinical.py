@@ -151,25 +151,29 @@ class ClinicalDocument:
     period_start: str = ""
     period_end: str = ""
     language: str = "en"
-    # Issue #343 (session 63): FHIR R4 Attachment.contentType の required
-    # binding は IANA Media Types (urn:ietf:bcp:13) で、bare mime type のみ
-    # 収録(HTTP Content-Type header の charset parameter は含まない)。
-    # 従来 "text/plain; charset=utf-8" が MimeType VS 外で v14gen (2026-07-21)
-    # で 23,600 件 error 発火 → bare "text/plain" へ訂正。UTF-8 は FHIR 全体
-    # の default 前提で semantic loss なし。
+    # Issue #343: FHIR R4 ``Attachment.contentType`` has a required
+    # binding to IANA Media Types (``urn:ietf:bcp:13``), which lists
+    # bare MIME types only (no ``charset`` parameter from the HTTP
+    # ``Content-Type`` header). A previous value of ``"text/plain;
+    # charset=utf-8"`` fell outside the MimeType value set and
+    # produced 23,600 validator errors in v14gen (2026-07-21). The
+    # value is now the bare ``"text/plain"``; UTF-8 is the FHIR-wide
+    # default so no semantic loss.
     content_type: str = "text/plain"
     format_type: str = ""
-    # α-min-3: neutral nursing shift key ("night" / "day" / "evening") for
-    # daily_3shift documents; "" for all other frequencies. Metadata only —
-    # localized labels (日勤/準夜/深夜) are resolved at Stage 2 render time
-    # by language (AD-30 spirit: no display text in structural CIF).
+    # Neutral nursing shift key ("night" / "day" / "evening") for
+    # ``daily_3shift`` documents; empty string for all other
+    # frequencies. Metadata only — localised labels (日勤 / 準夜 /
+    # 深夜 in JP) are resolved by the narrative generator at render
+    # time (AD-30 spirit: no display text in structural CIF).
     shift: str = ""
-    # P2-13 PR3 sub-PR-D(session 47):JP-eCheckup 健診種別。
-    # HEALTH_CHECKUP_REPORT stub 以外は "" のまま。値:
-    #   "occupational"   → 事業者健診(section 01031/01032)
-    #   "specific"       → 特定健診(section 01011/01012)
-    #   "regional_union" → 広域連合健診(section 01021/01022)
-    # health_checkup enricher が患者年齢から決定的に選択する。
+    # JP-eCheckup health-checkup category. Empty string for every
+    # document type except ``HEALTH_CHECKUP_REPORT`` stubs. Values:
+    #   ``"occupational"``   → 事業者健診 (sections 01031 / 01032)
+    #   ``"specific"``       → 特定健診 (sections 01011 / 01012)
+    #   ``"regional_union"`` → 広域連合健診 (sections 01021 / 01022)
+    # Selected deterministically by the ``health_checkup`` enricher
+    # from the patient's age.
     checkup_type: str = ""
     narrative: ClinicalDocumentNarrative | None = None
 
@@ -188,12 +192,12 @@ class NarrativeVersionManifest:
     doc_types_enabled: list[str]
     languages_used: list[str]
     llm_cost_report: dict
-    # β-JP-1 chain 1b T3: regex passed via `narrate --patient-filter` ("" =
+    # chain 1b T3: regex passed via `narrate --patient-filter` ("" =
     # full cohort). Recorded so a partial version is self-describing —
     # `regenerate-goldens` refuses filters, and consumers can detect that a
     # version does not cover the whole cohort.
     patient_filter: str = ""
-    # β-JP-1 chain 1b adv-1 I-1: True ⇔ patient_filter was set for this run.
+    # chain 1b adv-1 I-1: True ⇔ patient_filter was set for this run.
     # Cheap partial-version detection for downstream consumers (export
     # guards, tooling) without inspecting the regex string.
     partial: bool = False

@@ -13,13 +13,18 @@ _LOINC_SYSTEM = "http://loinc.org"
 # --------------------------------------------------------------------------- #
 # JLAC10 identification set — used by `_jp_jlac10_or_loinc_on_lab`.
 #
-# JP-CLINS-defined JLAC10 系 CS (B1 で確立、`jp_clins_defined_system_uris()`
-# 経由) ∪ 旧 JSLM canonical OID (`urn:oid:1.2.392.200119.4.1005`) の**和集合**。
+# **Union** of two JLAC10-family CodeSystems:
+#   1. The JP-CLINS-defined JLAC10 URIs exposed by
+#      ``jp_clins_defined_system_uris()``.
+#   2. The legacy JSLM canonical OID
+#      ``urn:oid:1.2.392.200119.4.1005``.
 #
-# 旧 JSLM OID は「まだ JLAC10 を名乗る正当な出所」で、除去対象ではない (微生物
-# `mb-org-*` / `mb-sus-*` 系 53 件が旧 OID で 5 桁 JLAC10 を emit、LOINC を
-# 併走しない = T67-M1 の JP-CLINS 化が未着手のため正当な emit)。B2 2026-07-26
-# で置換ではなく和集合に整理。
+# The legacy JSLM OID is still a legitimate JLAC10-labelled source
+# and is not being removed: 53 microbiology entries
+# (``mb-org-*`` / ``mb-sus-*``) emit five-digit JLAC10 under the
+# legacy OID without a paired LOINC because T67-M1 has not yet been
+# migrated to JP-CLINS. The B2 2026-07-26 clean-up therefore
+# produced a union rather than a replacement.
 _LEGACY_JLAC10_OID = "urn:oid:1.2.392.200119.4.1005"
 _JLAC10_SYSTEM_URIS: frozenset[str] = jp_clins_defined_system_uris() | frozenset({_LEGACY_JLAC10_OID})
 
@@ -27,16 +32,18 @@ _JLAC10_SYSTEM_URIS: frozenset[str] = jp_clins_defined_system_uris() | frozenset
 # JP medication CodeSystem URI set — used by `_jp_yj_code_on_medications` and
 # `_check_medication_lab_coherence_warfarin` (clinical.py).
 #
-# emit 側 (`_fhir_medications.py:_resolve_jp_drug_system_uri`) は code format
-# ごとに 5 URI に dispatch する:
-#   - YJ (12桁)  → capstandard URI
-#   - HOT7 (7桁) → MEDIS HOT7 URI
-#   - HOT9 (9桁) → MEDIS HOT9 URI
-#   - HOT13 (13桁) → MEDIS HOT13 URI
+# The emit side
+# (``clinosim/modules/output/fhir_r4/medications/medications.py:_resolve_jp_drug_system_uri``)
+# dispatches to five URIs by drug-code format:
+#   - YJ (12 digits)   → ``capstandard`` URI
+#   - HOT7 (7 digits)  → MEDIS HOT7 URI
+#   - HOT9 (9 digits)  → MEDIS HOT9 URI
+#   - HOT13 (13 digits) → MEDIS HOT13 URI
 #   - nocoded    → JP-CLINS eCS Nocoded URI
-# eval axis は同 5 URI を canonical registry (`codes/loader.py::_BUILTIN_URIS`
-# + `codes/data/yj.yaml`) から取得。B2 2026-07-26 で hardcoded `.74` prefix
-# を registry accessor 経由に置換。
+# The eval axis obtains the same five URIs from the canonical
+# registry (``codes/loader.py::_BUILTIN_URIS`` + ``codes/data/yj.yaml``).
+# The B2 2026-07-26 clean-up replaced a hard-coded ``.74`` prefix
+# check with the registry accessor.
 _JP_MEDICATION_SYSTEM_KEYS = ("yj", "hot7", "hot9", "hot13", "medication-nocoded")
 _JP_MEDICATION_SYSTEM_URIS: frozenset[str] = frozenset(get_system_uri(k) for k in _JP_MEDICATION_SYSTEM_KEYS)
 

@@ -12,45 +12,61 @@ from clinosim.eval.engine import EvalCheck, Outcome, Severity
 
 # JP medication CodeSystem URI set — mirrors locale.py `_JP_MEDICATION_SYSTEM_URIS`.
 # canonical single source of truth = `codes/loader.py::_BUILTIN_URIS` + `codes/data/yj.yaml`.
-# 用途: warfarin 患者検出 (`_check_medication_lab_coherence_warfarin`) で JP path の
-# `MedicationRequest.medicationCodeableConcept.coding[*].system` を判定する際、
-# emit 側 (`_fhir_medications.py:_resolve_jp_drug_system_uri`) が code format ごとに
-# dispatch する 5 URI (yj / hot7 / hot9 / hot13 / medication-nocoded) 全てを認識。
-# B2 2026-07-26 で旧 hardcoded `urn:oid:1.2.392.100495.20.2.74` prefix 判定を置換
-# (旧 OID は JP Core NamingSystem 上 HOT9 alias で YJ の canonical ではない、YJ
-# code は capstandard URI で emit されるため旧判定は silent broken だった)。
+# Used by ``_check_medication_lab_coherence_warfarin`` for warfarin-
+# patient detection on the JP path when inspecting
+# ``MedicationRequest.medicationCodeableConcept.coding[*].system``.
+# The emit side
+# (``clinosim/modules/output/fhir_r4/medications/medications.py:_resolve_jp_drug_system_uri``)
+# dispatches to five URIs by drug-code format (yj / hot7 / hot9 /
+# hot13 / medication-nocoded), and this set recognises all of them.
+# Replaces a previously hard-coded
+# ``urn:oid:1.2.392.100495.20.2.74`` prefix check: that OID is only
+# the HOT9 alias in the JP Core NamingSystem, not the YJ canonical,
+# so the previous check was silent-broken for YJ codes emitted at
+# the ``capstandard`` URI.
 _JP_MEDICATION_SYSTEM_KEYS = ("yj", "hot7", "hot9", "hot13", "medication-nocoded")
 _JP_MEDICATION_SYSTEM_URIS: frozenset[str] = frozenset(get_system_uri(k) for k in _JP_MEDICATION_SYSTEM_KEYS)
 
 # Physiological plausibility bounds — **unit-aware** (B3 2026-07-26 fix).
 #
-# 旧実装は `{LOINC: (lo, hi, unit_hint)}` の 1 単位 bounds で、`unit_hint` は
-# 判定に使われず (単位無視の数値比較のみ)。emit unit と bounds unit が違うと
-# 系統的な偽 FAIL を生む silent bug。実測 (JP p=300 seed=300 post-B2 cohort):
-#   6690-2 (WBC) emit `/uL` × 584 vs bounds `10^9/L` prefix (500 上限) →
-#     584 件が偽 FAIL (WBC 4720-17522 /uL は臨床的に正常範囲)。
-# ★ 監督必須要件: 境界広げて 584 件を隠すのは禁止。単位無視の数値比較を
-#   やめるのが本質。単位対応した bounds を定義し、emit unit と一致した
-#   bounds のみで判定。不明な単位は fail-safe skip (誤 FAIL を生まない、
-#   ただし新しい unit 混入は unknown_units 数として EvalCheck.detail に
-#   surface して silent 化を防ぐ)。
+# The previous implementation used a single-unit
+# ``{LOINC: (lo, hi, unit_hint)}`` bounds map. ``unit_hint`` was not
+# consulted at check time (the comparison ignored units entirely), so
+# any mismatch between the emitted unit and the bounds unit produced
+# a systematic false FAIL — a silent bug. Empirical example (JP
+# p=300 seed=300 cohort): WBC (LOINC 6690-2) is emitted in ``/uL``
+# 584 times, but the bounds were defined for ``10^9/L`` with an upper
+# limit of 500, so 584 records failed spuriously (WBC 4720–17522 /uL
+# is clinically normal).
 #
-# 出典:
-#   - WBC: LOINC 6690-2 canonical unit `10*9/L` (UCUM)、臨床慣行 US=10^9/L、
-#     JP=/uL。1 x 10^9/L = 1000 /uL。bounds 上限 500 x 10^9/L = 500_000 /uL。
-#   - K: LOINC 2823-3、mmol/L = mEq/L (1 価イオン)、bounds [0, 10] 共通。
-#   - Na: LOINC 2951-2、同上。
-#   - Cre / Glucose / Hb / Bili: 単一単位 (mg/dL / g/dL) のみ実測、alias なし。
-#   - PT-INR: 単位無し (`{INR}` unitless UCUM)、数値そのまま判定。
+# **Requirement**: do NOT hide the 584 records by widening the
+# bounds. The fix is to stop comparing values across incompatible
+# units. Bounds are now unit-aware — only the bounds whose unit
+# matches the emitted unit are consulted. Unknown units are
+# fail-safe-skipped (no false FAIL), but their appearance is surfaced
+# on ``EvalCheck.detail.unknown_units_by_loinc`` so a new-unit
+# infiltration is not silenced.
+#
+# Sources:
+#   - WBC: LOINC 6690-2. Canonical unit ``10*9/L`` (UCUM); clinical
+#     convention US = ``10^9/L``, JP = ``/uL``. 1 × 10^9/L = 1000 /uL,
+#     so the upper bound of 500 × 10^9/L equals 500,000 /uL.
+#   - K: LOINC 2823-3. ``mmol/L`` = ``mEq/L`` (monovalent ion);
+#     shared bounds ``[0, 10]``.
+#   - Na: LOINC 2951-2. Same relation as K.
+#   - Cre / Glucose / Hb / Bili: only one unit observed
+#     (``mg/dL`` / ``g/dL``); no alias.
+#   - PT-INR: unit-less (``{INR}`` in UCUM); value taken as-is.
 _LAB_BOUNDS_BY_UNIT: dict[str, dict[str, tuple[float, float]]] = {
     # LOINC → {unit_string: (min, max)}
-    # unit_string は `valueQuantity.unit` (human-readable) or `.code` (UCUM) の
-    # いずれかにマッチすればよい (判定 site で両方チェック、順序は unit → code)。
+    # ``unit_string`` matches either ``valueQuantity.unit`` (human-readable)
+    # or ``.code`` (UCUM); the check site tries both in the order ``unit``
+    # then ``code``.
     "6690-2": {  # WBC
         "/uL": (0.0, 500_000.0),
         "/μL": (0.0, 500_000.0),
         "10^9/L": (0.0, 500.0),
-        "10*9/L": (0.0, 500.0),  # UCUM 正式表記
+        "10*9/L": (0.0, 500.0),  # UCUM canonical form.
     },
     "718-7": {"g/dL": (0.0, 25.0)},  # Hemoglobin
     "2160-0": {"mg/dL": (0.0, 30.0)},  # Serum creatinine
@@ -208,10 +224,12 @@ def _check_lab_values_physiological_range(cohort: Cohort, country: str) -> EvalC
     of 10^30 or negative creatinine is a defect.
 
     B3 2026-07-26: unit-aware bounds — emit `valueQuantity.unit` (fallback
-    `.code`) と ``_LAB_BOUNDS_BY_UNIT[loinc]`` の key が一致する場合のみ
-    bounds を適用。単位不明の場合は fail-safe skip (誤 FAIL を生まない)
-    し、``detail.unknown_units_by_loinc`` に surface して silent 化を防ぐ
-    (新しい unit が emit 側で導入されたら EvalCheck detail で気付ける)。
+    ``.code``) matches a key in ``_LAB_BOUNDS_BY_UNIT[loinc]`` the
+    bounds are applied. Unknown units are fail-safe-skipped (no
+    false FAIL) and surfaced on ``detail.unknown_units_by_loinc`` so
+    silence is prevented
+    (when a new unit is introduced on the emit side, the addition
+    surfaces via ``EvalCheck.detail``).
     """
     out_of_range: dict[str, int] = {}
     unknown_units: dict[str, dict[str, int]] = {}
@@ -228,10 +246,10 @@ def _check_lab_values_physiological_range(cohort: Cohort, country: str) -> EvalC
         unit_str = vq.get("unit") or ""
         unit_code = vq.get("code") or ""
         bounds_by_unit = _LAB_BOUNDS_BY_UNIT[loinc_code]
-        # unit → code の順で探す (unit 側は human-readable, code は UCUM canonical)
+        # Try ``unit`` before ``code`` (``unit`` is human-readable; ``code`` is UCUM canonical).
         bounds = bounds_by_unit.get(unit_str) or bounds_by_unit.get(unit_code)
         if bounds is None:
-            # 未知の単位 = 判定不能 (fail-safe skip)、ただし surface する。
+            # Unknown unit = cannot judge (fail-safe skip); surface it instead.
             key = unit_str or unit_code or "<empty>"
             unknown_units.setdefault(loinc_code, {}).setdefault(key, 0)
             unknown_units[loinc_code][key] += 1

@@ -1,12 +1,12 @@
-"""Imaging module (Tier 1 #2 always-on Module, AD-55 PR3b-1 supplement pattern).
+"""Imaging module (always-on, AD-55 supplement pattern).
 
-Always enabled (near-essential clinical cascade — disease YAML imaging_orders[]
-発火 disease のみ extensions["imaging"] が populate されるので、無発火 disease では
-clean no-op)。
+Always enabled (near-essential clinical cascade). Only diseases whose
+YAML declares ``imaging_orders[]`` populate ``extensions["imaging"]``;
+diseases that do not trigger imaging are a clean no-op.
 
 Public exports:
-- ImagingStudyRecord / ImagingSeries / RadiologyReport (CIF types) — re-export
-  from clinosim.types.imaging.
+- ``ImagingStudyRecord`` / ``ImagingSeries`` / ``RadiologyReport`` (CIF
+  types) — re-exported from ``clinosim.types.imaging``.
 """
 
 from __future__ import annotations

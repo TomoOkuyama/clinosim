@@ -1,17 +1,23 @@
-"""display_name → imaging metadata inference (case D, session 48 cycle 8 拡張).
+"""``display_name`` → imaging-metadata inference (case D).
 
-`place_imaging_orders()` 以外の call site(ED workflow / legacy admission /
-treatment_mods / unknown_condition path)は Order.display_name のみ populate し
-`imaging_modality` / `imaging_body_site_code` / `imaging_views` を空にする。
-これらの Order が silent-drop されないよう、display_name から canonical
-metadata を whitelist regex で推論する。
+Call sites other than ``place_imaging_orders()`` (ED workflow, legacy
+admission, ``treatment_mods``, ``unknown_condition`` path) populate
+only ``Order.display_name`` and leave ``imaging_modality`` /
+``imaging_body_site_code`` / ``imaging_views`` empty. To prevent those
+orders from silent-dropping, this module infers canonical metadata
+from ``display_name`` using a whitelist of regex patterns.
 
-**方針**:
-- **whitelist only, guess 禁止** — pattern match しない display_name は None を返し
-  enricher 側で text-only stub を emit(silent-drop よりは意味を保つ)
-- **JP + EN 両対応** — 命名規則が両言語混在の実 EHR に整合
-- 返り値の body_site は body_sites.yaml の key、modality は modalities.yaml の
-  DCM code(CR/CT/MR/US/NM/PT/XA など)
+**Policy**:
+
+- **Whitelist only — no guessing.** If no pattern matches, return
+  ``None``; the enricher then emits a text-only stub, which preserves
+  meaning better than a silent drop.
+- **JP + EN both accepted** — real-world EHRs mix the two naming
+  conventions.
+- The ``body_site`` in the return value is a key from
+  ``body_sites.yaml``; the ``modality`` is the DCM code from
+  ``modalities.yaml`` (``CR`` / ``CT`` / ``MR`` / ``US`` / ``NM`` /
+  ``PT`` / ``XA`` and so on).
 """
 
 from __future__ import annotations
@@ -20,12 +26,13 @@ import re
 
 from clinosim.modules.imaging.engine import load_body_sites, load_modalities
 
-# (regex, modality DCM code, body_site key, default views)
-# body_site key は body_sites.yaml のキー(chest/head/abdomen/... 等)
-# views は modalities.yaml default_views_by_body_site を上書き可能
-# 区切りは space / hyphen / underscore すべて許容(_ は inpatient/emergency
-# simulator が Chest_Xray_PA 形式で order を作るため)。
-_SEP = r"[\s\-_]*"  # 区切り任意
+# Tuple layout: ``(regex, modality DCM code, body_site key, default views)``.
+# ``body_site`` key is a key of ``body_sites.yaml`` (``chest`` / ``head``
+# / ``abdomen`` / ...). ``views`` overrides
+# ``modalities.yaml.default_views_by_body_site``. Separators accept
+# space / hyphen / underscore (underscore because the inpatient +
+# emergency simulator builds orders in the ``Chest_Xray_PA`` form).
+_SEP = r"[\s\-_]*"  # Separator (any)
 _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     # ---- CR / plain X-ray ----
     (
@@ -55,18 +62,19 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     (rf"股関節{_SEP}x{_SEP}(?:線|p)", "CR", "hip", ["AP"]),
     (rf"leg{_SEP}x{_SEP}?ray|lower{_SEP}extremity{_SEP}x{_SEP}?ray", "CR", "leg", ["AP"]),
     (rf"下肢{_SEP}x{_SEP}(?:線|p)", "CR", "leg", ["AP"]),
-    # ankle / knee / foot / shoulder は leg 相当(下肢 or 骨・軟部)に集約
-    # (専用 body_site 未定義、CIF-VS-FHIR-01 fix scope 外)
+    # ankle / knee / foot / shoulder are folded into ``leg`` (i.e.
+    # 下肢 / 骨・軟部). No dedicated body_site is defined yet — that
+    # is out of scope for the current CIF-VS-FHIR-01 fix.
     (rf"ankle{_SEP}x{_SEP}?ray|foot{_SEP}x{_SEP}?ray|knee{_SEP}x{_SEP}?ray", "CR", "leg", ["AP"]),
     (
         rf"shoulder{_SEP}x{_SEP}?ray(?:{_SEP}ap)?(?:{_SEP}lateral)?(?:{_SEP}post{_SEP}reduction)?",
         "CR",
         "hand",
         ["AP"],
-    ),  # 上肢 body_site 未定義、hand を暫定用
+    ),  # No upper-limb (上肢) body_site defined yet — folded into ``hand`` provisionally.
     (rf"spine{_SEP}x{_SEP}?ray|(?:lumbar|cervical|thoracic){_SEP}(?:spine{_SEP})?x{_SEP}?ray", "CR", "spine", ["AP"]),
     (rf"脊椎{_SEP}x{_SEP}(?:線|p)|(?:腰椎|頸椎|胸椎){_SEP}x{_SEP}(?:線|p)", "CR", "spine", ["AP"]),
-    # freetext fallback: "Xray Affected Area" 等 → chest 暫定
+    # Freetext fallback: "Xray Affected Area" and similar map to chest provisionally.
     (rf"xray{_SEP}affected{_SEP}area", "CR", "chest", ["AP"]),
     # ---- CT ----
     (rf"(?:head|brain|cranial){_SEP}ct|ct{_SEP}(?:head|brain)(?:{_SEP}noncontrast|{_SEP}stat)?", "CT", "head", []),
@@ -97,40 +105,50 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     (rf"腹部{_SEP}(?:超音波|エコー|us)", "US", "abdomen", []),
     (rf"(?:kidney|renal){_SEP}(?:ultrasound|us)", "US", "kidney", []),
     (rf"腎{_SEP}(?:超音波|エコー|us)", "US", "kidney", []),
-    # Carotid → 頸部血管、body_site 未定義のため spine に集約(頸部 spine 相当)
+    # Carotid → cervical vasculature; folded into ``spine`` because no
+    # dedicated body_site exists for it (cervical spine is the closest match).
     (rf"carotid{_SEP}(?:ultrasound|us)", "US", "spine", []),
-    # Echocardiogram(TTE)は心臓 US → heart body_site 未定義のため chest に集約
+    # Echocardiogram (TTE) is a cardiac US. Folded into ``chest``
+    # because no ``heart`` body_site is defined.
     (rf"echocardiog(?:ram|raphy)(?:{_SEP}(?:tte|complete|bedside))?", "US", "chest", []),
-    # 下肢静脈エコー(DVT workup)— US leg は doppler views 登録済
+    # Lower-extremity venous US (DVT workup); ``US`` + ``leg`` has
+    # Doppler views registered.
     (
         rf"lower{_SEP}extremity{_SEP}venous{_SEP}(?:ultrasound|us)|下肢{_SEP}静脈{_SEP}(?:超音波|エコー)",
         "US",
         "leg",
         [],
     ),
-    # ---- XA / angiography(session 52 fix 4)----
-    # 冠動脈造影 → XA。heart body_site 未定義のため chest に集約(echo と同精度)
+    # ---- XA / angiography ----
+    # Coronary angiography → XA. Folded into ``chest`` (same precision
+    # as the echocardiogram folding) because no ``heart`` body_site is defined.
     (rf"coronary{_SEP}angio(?:graphy|gram)|冠動脈{_SEP}造影", "XA", "chest", []),
-    # CT pulmonary angiography(PE workup)は CT + chest
+    # CT pulmonary angiography (PE workup) → CT + chest.
     (rf"ct{_SEP}pulmonary{_SEP}angio(?:graphy|gram)|ctpa|肺動脈{_SEP}ct", "CT", "chest", []),
-    # ---- ECG(session 52 fix 4)----
-    # ED / cardiac workup が OrderType.IMAGING で発行する心電図 order。
-    # DICOM waveform modality "ECG"、body_site は chest 集約(echo と同精度)。
-    # \b は "_" を境界と見なさないため anchored 形("ECG" / "ECG_12lead" /
-    # "ECG_12lead_stat" 等、ecg/ekg で始まる display name 全般)
+    # ---- ECG ----
+    # Electrocardiogram orders that the ED / cardiac workup places via
+    # ``OrderType.IMAGING``. DICOM waveform modality ``ECG``; the
+    # body_site is folded into ``chest`` (same precision as echo). The
+    # anchored regex form matches any display_name that starts with
+    # ``ecg`` or ``ekg`` (e.g. ``ECG`` / ``ECG_12lead`` /
+    # ``ECG_12lead_stat``) because ``\b`` does not treat ``_`` as a
+    # boundary.
     (r"^(?:ecg|ekg)(?:[\s\-_].*)?$|心電図", "ECG", "chest", []),
 ]
 
 
 def infer_imaging_metadata(display_name: str) -> dict | None:
-    """display_name から (modality, body_site_snomed, views) を推論。
+    """Infer ``(modality, body_site_snomed, views)`` from ``display_name``.
 
-    見つからなければ ``None`` を返す(caller は text-only stub emit を選ぶ)。
+    Returns ``None`` when no whitelist entry matches, in which case the
+    caller emits a text-only stub instead.
 
     Returns:
-        ``{"modality": str, "body_site_snomed": str, "views": list[str]}`` の
-        dict、または ``None``。いずれかの key が空 str/list なら partial
-        match(caller 責任で判断)。
+        A dict of the shape
+        ``{"modality": str, "body_site_snomed": str, "views": list[str]}``,
+        or ``None``. An empty string / empty list in one of the keys
+        indicates a partial match; the caller decides what to do with
+        it.
     """
     if not display_name:
         return None
@@ -142,11 +160,11 @@ def infer_imaging_metadata(display_name: str) -> dict | None:
         if re.search(pattern, txt, flags=re.IGNORECASE):
             bs = body_sites.get(body_key)
             if not bs:
-                continue  # body_sites.yaml に無い key = ロード時に validation 失敗しているはず
+                continue  # Key missing from body_sites.yaml — should have failed at load-time validation.
             snomed = bs.get("snomed", "")
             if not snomed:
                 continue
-            # views が空なら modalities の default で補完
+            # Fall back to the modality's default views when none supplied.
             if not views:
                 default_views = (
                     (modalities.get(modality, {}) or {}).get("default_views_by_body_site", {}).get(body_key, [])

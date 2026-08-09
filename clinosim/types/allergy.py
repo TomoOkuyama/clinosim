@@ -1,7 +1,8 @@
-"""Allergy CIF dataclasses(Tier 1 #3 α-min-1 PR1).
+"""Allergy CIF dataclasses.
 
-PatientProfile.allergies に格納、FHIR AllergyIntolerance への mapping は
-clinosim/modules/output/_fhir_allergy_intolerance.py で。
+Stored on ``PatientProfile.allergies``. The FHIR
+``AllergyIntolerance`` mapping lives in
+``clinosim/modules/output/fhir_r4/conditions/allergy.py``.
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ class Allergy:
     category: str = ""  # "medication" / "food" / "environment"
     criticality: str = "low"  # low / high / unable-to-assess
     verification_status: str = "confirmed"  # confirmed / unconfirmed / refuted
-    # C1-17 (session 41 cycle 1): clinicalStatus per FHIR R4 AllergyIntolerance.
+    # C1-17 (cycle 1): clinicalStatus per FHIR R4 AllergyIntolerance.
     # active (currently reactive) / inactive / resolved (childhood outgrown).
     clinical_status: str = "active"
     onset_date: date | None = None
