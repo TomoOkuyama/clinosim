@@ -11,6 +11,23 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
+from clinosim.modules.physiology._coupling_coefficients import (
+    AFIB_CARDIAC_COUPLING,
+    ASTHMA_PH_COUPLING,
+    CIRRHOSIS_COAGULATION_COUPLING,
+    CIRRHOSIS_HEPATIC_COUPLING,
+    CIRRHOSIS_SODIUM_COUPLING,
+    CKD_RENAL_COUPLING,
+    CKD_SEVERE_ANEMIA_BUMP,
+    CKD_SEVERE_PH_COUPLING,
+    CKD_SEVERE_THRESHOLD,
+    COPD_PH_COUPLING,
+    HF_CARDIAC_COUPLING,
+    HF_SEVERE_THRESHOLD,
+    HF_SEVERE_VOLUME_COUPLING,
+    HF_SODIUM_COUPLING,
+    IHD_CARDIAC_COUPLING,
+)
 from clinosim.modules.physiology.dehydration_thresholds import (
     BUN_ELEVATION_THRESHOLD,
     HYPERNATREMIA_THRESHOLD,
@@ -46,37 +63,31 @@ def initialize_state(
         s = c.severity_score
         code = c.code.upper()
         if code.startswith("N18"):  # CKD
-            # Coefficient 0.9 (not 0.5): severity_score now tracks the sampled
-            # KDIGO G1-G5 stage (activator.py), so severe stages (G4/G5,
-            # s>=0.7) must be able to push renal_function down near its 0.05
-            # floor — a 0.5 coefficient could only ever halve renal_reserve,
-            # capping generated creatinine at G3-equivalent regardless of
-            # stage (2026-06-20 realism audit finding).
-            state.renal_function *= 1.0 - s * 0.9
-            if s > 0.5:
-                state.anemia_level += 0.15
-                state.ph_status -= s * 0.1
+            state.renal_function *= 1.0 - s * CKD_RENAL_COUPLING
+            if s > CKD_SEVERE_THRESHOLD:
+                state.anemia_level += CKD_SEVERE_ANEMIA_BUMP
+                state.ph_status -= s * CKD_SEVERE_PH_COUPLING
         elif code.startswith("I50"):  # Heart failure
-            state.cardiac_function *= 1.0 - s * 0.4
-            if s > 0.3:
-                state.volume_status += s * 0.3
-            state.sodium_status -= s * 0.30  # dilutional hyponatremia
+            state.cardiac_function *= 1.0 - s * HF_CARDIAC_COUPLING
+            if s > HF_SEVERE_THRESHOLD:
+                state.volume_status += s * HF_SEVERE_VOLUME_COUPLING
+            state.sodium_status -= s * HF_SODIUM_COUPLING  # dilutional hyponatremia
         elif code.startswith("K74"):  # Cirrhosis
-            state.hepatic_function *= 1.0 - s * 0.5
-            state.coagulation_status += s * 0.2
-            state.sodium_status -= s * 0.40  # dilutional hyponatremia
+            state.hepatic_function *= 1.0 - s * CIRRHOSIS_HEPATIC_COUPLING
+            state.coagulation_status += s * CIRRHOSIS_COAGULATION_COUPLING
+            state.sodium_status -= s * CIRRHOSIS_SODIUM_COUPLING  # dilutional hyponatremia
         elif code.startswith("J44"):  # COPD
-            state.ph_status -= s * 0.05
+            state.ph_status -= s * COPD_PH_COUPLING
             state.respiratory_fraction = 1.0  # chronic CO2 retention → respiratory axis
         elif code.startswith("I25"):  # Ischemic heart disease
-            state.cardiac_function *= 1.0 - s * 0.2
+            state.cardiac_function *= 1.0 - s * IHD_CARDIAC_COUPLING
         elif code.startswith("I48"):  # Atrial fibrillation
-            state.cardiac_function *= 1.0 - s * 0.1
+            state.cardiac_function *= 1.0 - s * AFIB_CARDIAC_COUPLING
         elif code.startswith("E03"):  # Hypothyroidism
             # Mild baseline bradycardia effect (reflected in vitals)
             pass
         elif code.startswith("J45"):  # Asthma
-            state.ph_status -= s * 0.02  # mild respiratory effect
+            state.ph_status -= s * ASTHMA_PH_COUPLING  # mild respiratory effect
             state.respiratory_fraction = 1.0  # bronchospasm → respiratory axis
         elif code.startswith(("E11", "E10")):  # Diabetes — chronic glycemic control axis
             gc = getattr(c, "glycemic_control", None)
