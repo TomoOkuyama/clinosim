@@ -11,6 +11,13 @@ from pathlib import Path
 import yaml
 
 from clinosim.codes import lookup
+from clinosim.modules.diagnosis._diagnosis_thresholds import (
+    DEFAULT_CONFIRMATION_THRESHOLD,
+    ELDERLY_HF_PRIOR_AGE_THRESHOLD,
+    ELDERLY_HF_PRIOR_MULTIPLIER,
+    NEUTRAL_LIKELIHOOD_RATIO,
+    WORKING_DIAGNOSIS_MIN_PROB,
+)
 from clinosim.modules.diagnosis.nonspecific_codes import UNRESOLVED_DIAGNOSIS_ICD
 from clinosim.types.diagnosis import DiagnosisCandidate, DifferentialDiagnosis
 
@@ -74,8 +81,8 @@ def initialize_differential(
     for dx in differential_list:
         prior = dx["prior"]
         # Age adjustment: elderly → higher probability of HF overlap
-        if age >= 75 and dx["disease"] == "heart_failure":
-            prior *= 1.5
+        if age >= ELDERLY_HF_PRIOR_AGE_THRESHOLD and dx["disease"] == "heart_failure":
+            prior *= ELDERLY_HF_PRIOR_MULTIPLIER
         candidates.append(
             DiagnosisCandidate(
                 disease_code=dx["disease"],
@@ -93,7 +100,7 @@ def initialize_differential(
     candidates.sort(key=lambda c: -c.probability)
 
     diff = DifferentialDiagnosis(candidates=candidates)
-    if candidates[0].probability > 0.5:
+    if candidates[0].probability > WORKING_DIAGNOSIS_MIN_PROB:
         diff.working_diagnosis = candidates[0].disease_code
     return diff
 
@@ -101,7 +108,7 @@ def initialize_differential(
 def update_differential(
     diff: DifferentialDiagnosis,
     findings: list[tuple[str, bool]],
-    confirmation_threshold: float = 0.90,
+    confirmation_threshold: float = DEFAULT_CONFIRMATION_THRESHOLD,
     protocol_lr_table: dict | None = None,
 ) -> DifferentialDiagnosis:
     """Update differential with new findings via Bayesian update.
@@ -123,9 +130,9 @@ def update_differential(
             if dx in lr_entry:
                 dx_lr = lr_entry[dx]
                 if is_positive:
-                    lr = dx_lr.get("pos", dx_lr.get("positive_LR", 1.0))
+                    lr = dx_lr.get("pos", dx_lr.get("positive_LR", NEUTRAL_LIKELIHOOD_RATIO))
                 else:
-                    lr = dx_lr.get("neg", dx_lr.get("negative_LR", 1.0))
+                    lr = dx_lr.get("neg", dx_lr.get("negative_LR", NEUTRAL_LIKELIHOOD_RATIO))
                 candidate.probability *= lr
                 candidate.evidence.append(f"{finding_name}: {'(+)' if is_positive else '(-)'} LR={lr}")
 
@@ -143,7 +150,7 @@ def update_differential(
     if top.probability >= confirmation_threshold:
         diff.confirmed = True
         diff.working_diagnosis = top.disease_code
-    elif top.probability >= 0.5:
+    elif top.probability >= WORKING_DIAGNOSIS_MIN_PROB:
         diff.working_diagnosis = top.disease_code
 
     return diff
