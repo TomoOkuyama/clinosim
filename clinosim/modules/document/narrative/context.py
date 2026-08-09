@@ -23,8 +23,9 @@ def build_narrative_context(
 ) -> NarrativeContext:
     """CIF record + encounter → NarrativeContext.
 
-    Generator (template / LLM) は本 ctx のみ参照。day_index で daily generation
-    の段階を渡す (progress note は 0..LOS、H&P = 0、Discharge = LOS-1)。
+    Downstream generators (template / LLM) read this ctx and nothing else.
+    ``day_index`` conveys the stage within a daily generation cycle
+    (progress note runs 0..LOS, H&P = 0, discharge = LOS-1).
     """
     lang = resolve_lang(country)
     locale = country.lower()
