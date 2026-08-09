@@ -166,13 +166,19 @@ Bare `MAGIC_NUMBER = 42` without a docstring is a review-blocker.
 
 - CI runs `ruff` with F401 (unused import) and F841 (unused local) as
   errors. This is baseline.
-- On every major release cycle (or at least every six months), maintainers
-  run `vulture` at a confidence threshold of 80% or higher, review the
-  results, and either delete dead symbols or add them to a by-design
-  exclusion registry (`.vulture-whitelist.py` or equivalent) with a
-  one-line comment explaining why the symbol looks unused but must be kept
-  (e.g. plugin entry-point, reflected access, public API kept for backward
-  compatibility).
+- CI also runs `vulture` at 60 % confidence against a project-level
+  by-design whitelist ([`.vulture-whitelist.py`](../../.vulture-whitelist.py))
+  on every PR (`vulture dead-code` job — merge-blocking). Any new finding
+  not covered by an existing whitelist entry fails the job.
+- The whitelist is categorised. When adding a new entry, place it under
+  the correct category (dataclass / Pydantic fields; Protocol / ABC
+  signatures; test-only public API; test-referenced constants;
+  attributes set by one module and read by another; delete candidates
+  pending removal). See the file header for full category definitions.
+- The 60 % threshold was chosen after reconnaissance: at 80 % the tree
+  yields only a single finding (ruff F401 already sweeps the
+  unused-imports class that dominates the 80–99 % band), so 60 % is the
+  useful signal band for this codebase.
 - When removing dead code, prefer full deletion. Do not leave "removed by
   X" placeholder comments — the commit history is the authoritative
   record.
