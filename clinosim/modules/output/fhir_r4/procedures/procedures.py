@@ -99,7 +99,7 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     resource: dict[str, Any] = {
         "resourceType": "Procedure",
         "id": resource_id,
-        # Session 46 chain #2: JP Core Procedure profile.
+        # Chain #2: JP Core Procedure profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}}
             if is_jp(country)
@@ -126,11 +126,12 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
             ],
         }
 
-    # Session 52 fix: route through to_fhir_datetime so performedPeriod /
+    # Route through to_fhir_datetime so performedPeriod /
     # performedDateTime carry the FHIR R4-required TZ suffix (JST +09:00
     # for JP, per FB-F1 helper). Previously raw strings bypassed the
-    # helper — only site left after session 48 sweep, source of the
-    # iris4h-ai HAPI validator "日付/TZ 不備 262件 Procedure" finding.
+    # helper — this was the last site left after a broader sweep, and
+    # was the source of the iris4h-ai HAPI validator "日付/TZ 不備 262件
+    # Procedure" finding.
     _start_fhir = to_fhir_datetime(start)
     _end_fhir = to_fhir_datetime(end)
     if _start_fhir and _end_fhir and _start_fhir != _end_fhir:
