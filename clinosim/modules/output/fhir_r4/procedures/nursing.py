@@ -40,7 +40,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
     lang = resolve_lang(ctx.country)
     subject: dict[str, Any] = {"reference": f"Patient/{ctx.patient_id}"}
     enc_ref: dict[str, Any] | None = {"reference": f"Encounter/{enc}"} if enc else None
-    # RM-1 (session 42): primary_nurse_id as fallback performer for
+    # RM-1: primary_nurse_id as fallback performer for
     # nursing-observation Observations whose source record lacks a
     # measured_by field (nursing risk / ADL / intake-output).
     encounters = ctx.record.get("encounters", []) or []
@@ -50,14 +50,14 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
     def _obs_base(obs_id: str, effective: str | None, performer_id: str = "") -> dict[str, Any]:
         """Return the shared skeleton of a survey Observation.
 
-        RM-1 (session 42, cycle 3 tail): performer forwarded when known
+        RM-1 (cycle 3 tail): performer forwarded when known
         (nursing assessments carry `measured_by` on the source vital or a
         parallel CIF field on assessments themselves).
         """
         resource: dict[str, Any] = {
             "resourceType": "Observation",
             "id": obs_id,
-            # Session 46 chain #2: JP Core Observation_Common profile.
+            # Chain #2: JP Core Observation_Common profile.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
                 if is_jp(ctx.country)
@@ -84,13 +84,13 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         news2 = vs.get("news2_score")
         if news2 is not None:
             obs = _obs_base(f"news2-{enc or ctx.patient_id}-{i}", effective, performer_id)
-            # Session 58 Issue #269: NEWS2 does NOT have a canonical LOINC
+            # Issue #269: NEWS2 does NOT have a canonical LOINC
             # 2.82 code — the previously-used `90557-9` is not in LOINC
             # (the closest entry `90557-0` is unrelated sleep-study data).
             # Emit under a clinosim-owned `nursing-scores` CS instead so
             # validators can either resolve or accept it as a locally-defined
-            # coding. Session 42 comment that claimed LOINC coverage was
-            # incorrect.
+            # coding. Any earlier comment that claimed LOINC coverage
+            # here was incorrect.
             _news2_display = code_lookup("clinosim-nursing-scores", "NEWS2", lang) or "NEWS2"
             obs["code"] = {
                 "coding": [
