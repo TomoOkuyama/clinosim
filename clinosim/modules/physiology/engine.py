@@ -33,9 +33,20 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     ALBUMIN_FLOOR,
     ALBUMIN_HEPATIC_SCALE,
     ALBUMIN_INFLAMMATION_SCALE,
+    ALT_BASELINE_U_L,
+    ALT_HEPATIC_SCALE,
+    AST_BASELINE_U_L,
+    AST_HEPATIC_SCALE,
+    BNP_BASELINE_PG_ML,
+    BNP_CARDIAC_EXP_SCALE,
+    BNP_VOLUME_CARDIAC_EXP_SCALE,
     BUN_BASE_MG_DL,
     BUN_RENAL_FLOOR,
     BUN_VOLUME_LIFT_SCALE,
+    CK_MB_ACS_INJURY_SQ_SCALE,
+    CK_MB_BASELINE_NG_ML,
+    CK_MB_TYPE2_CAP,
+    CK_MB_TYPE2_INJURY_CUBE_SCALE,
     CREATININE_BASE_FEMALE,
     CREATININE_BASE_MALE,
     CREATININE_LOW_RENAL_SLOPE,
@@ -50,11 +61,23 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     POTASSIUM_MAX_MEQ_L,
     POTASSIUM_MIN_MEQ_L,
     POTASSIUM_RENAL_SCALE,
+    PT_INR_BASELINE,
+    PT_INR_COAGULATION_SCALE,
+    PT_INR_HEPATIC_SCALE,
+    PT_INR_WARFARIN_BASE_GAIN,
+    PT_INR_WARFARIN_TARGET_CENTER,
     SODIUM_BASE_MEQ_L,
     SODIUM_MAX_MEQ_L,
     SODIUM_MIN_MEQ_L,
     SODIUM_RENAL_PENALTY,
     SODIUM_STATUS_SCALE,
+    T_BIL_BASELINE_MG_DL,
+    T_BIL_HEPATIC_SCALE,
+    TROPONIN_ACS_INJURY_SQ_SCALE,
+    TROPONIN_BASELINE_NG_ML,
+    TROPONIN_RENAL_LIFT_SCALE,
+    TROPONIN_TYPE2_CAP,
+    TROPONIN_TYPE2_INJURY_CUBE_SCALE,
     WBC_BASE,
     WBC_HIGH_INFLAMMATION_LEUKOPENIA_SCALE,
     WBC_HIGH_INFLAMMATION_THRESHOLD,
@@ -550,7 +573,10 @@ def derive_lab_values(
     # cutoff. Trade-off vs prior calibration: HF cohort BNP median halves — the
     # prior 800-1500 range was above typical HF-exacerbation clinical values;
     # ~500 is more representative of the moderate HF band.
-    labs["BNP"] = 15.0 * math.exp((1 - cardiac) * 2.0 + max(0.0, state.volume_status) * (1 - cardiac) * 5.0)
+    labs["BNP"] = BNP_BASELINE_PG_ML * math.exp(
+        (1 - cardiac) * BNP_CARDIAC_EXP_SCALE
+        + max(0.0, state.volume_status) * (1 - cardiac) * BNP_VOLUME_CARDIAC_EXP_SCALE
+    )
     # Cardiac injury markers. Normal heart (cardiac≈1.0) stays negative so troponin
     # rule-outs in non-cardiac disease read normal; acute injury (MI: cardiac 0.3–0.5)
     # elevates strongly. Steep (^4) so only meaningful dysfunction lifts troponin.
@@ -559,19 +585,21 @@ def derive_lab_values(
     # MILD, capped type-2/demand elevation; only true myocardial necrosis (ACS, flagged by
     # the disease scenario) releases MI-level troponin. Renal impairment reduces clearance →
     # chronic mild elevation (CKD confounder). Keeps non-cardiac labs clinically coherent.
-    renal_tnt = (1 - renal) * 0.10
-    tnt = 0.01 + min(injury**3 * 8.0, 3.0) + renal_tnt  # type-2 (mild, ≲3 ng/mL)
-    ckmb = 0.5 + min(injury**3 * 5.0, 3.0)
+    renal_tnt = (1 - renal) * TROPONIN_RENAL_LIFT_SCALE
+    tnt = (
+        TROPONIN_BASELINE_NG_ML + min(injury**3 * TROPONIN_TYPE2_INJURY_CUBE_SCALE, TROPONIN_TYPE2_CAP) + renal_tnt
+    )  # type-2 (mild, ≲3 ng/mL)
+    ckmb = CK_MB_BASELINE_NG_ML + min(injury**3 * CK_MB_TYPE2_INJURY_CUBE_SCALE, CK_MB_TYPE2_CAP)
     if myocardial_injury:  # ACS → primary necrosis
-        tnt += injury**2 * 120.0
-        ckmb += injury**2 * 60.0
+        tnt += injury**2 * TROPONIN_ACS_INJURY_SQ_SCALE
+        ckmb += injury**2 * CK_MB_ACS_INJURY_SQ_SCALE
     labs["Troponin_I"] = tnt  # ng/mL (normal < 0.04; ACS ~10–100)
     labs["CK_MB"] = ckmb  # ng/mL (normal < 5)
 
     # --- Hepatic ---
-    labs["AST"] = 25 + (1 - hepatic) * 500
-    labs["ALT"] = 20 + (1 - hepatic) * 400
-    labs["T_Bil"] = 0.8 + (1 - hepatic) * 15
+    labs["AST"] = AST_BASELINE_U_L + (1 - hepatic) * AST_HEPATIC_SCALE
+    labs["ALT"] = ALT_BASELINE_U_L + (1 - hepatic) * ALT_HEPATIC_SCALE
+    labs["T_Bil"] = T_BIL_BASELINE_MG_DL + (1 - hepatic) * T_BIL_HEPATIC_SCALE
     # PT_INR: hepatic (cirrhosis factor depletion) + coagulation_status (DIC
     # consumption) drive baseline; therapeutic warfarin overrides to target
     # the 2.0-3.0 clinical band. AC + comorbidity (DIC, cirrhosis) compounds
@@ -580,9 +608,11 @@ def derive_lab_values(
     # BNP-pattern surgical (AD-57): state untouched, formula-only change.
     # Phase 2b (2026-06-24): on_warfarin sourced from
     # medication_flags_from_context (sibling of scenario_flags_from_protocol).
-    base_inr = 1.0 + (1 - hepatic) * 2.0 + state.coagulation_status * 1.5
+    base_inr = (
+        PT_INR_BASELINE + (1 - hepatic) * PT_INR_HEPATIC_SCALE + state.coagulation_status * PT_INR_COAGULATION_SCALE
+    )
     if on_warfarin:
-        labs["PT_INR"] = 2.5 + (base_inr - 1.0) * 0.5
+        labs["PT_INR"] = PT_INR_WARFARIN_TARGET_CENTER + (base_inr - PT_INR_BASELINE) * PT_INR_WARFARIN_BASE_GAIN
     else:
         labs["PT_INR"] = base_inr
 

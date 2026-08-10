@@ -1,11 +1,15 @@
-"""Lab-value derivation formula constants — inflammation + renal panels (Issue #637).
+"""Lab-value derivation formula constants (Issue #637).
 
 Extracts the previously-inline scalars from
 :func:`clinosim.modules.physiology.engine.derive_lab_values` per
-policy §5. This file covers the **inflammation** (CRP, WBC, PCT,
-Albumin) and **renal** (Creatinine, BUN, eGFR, K, Na) sections. The
-remaining sections (cardiac, hepatic, anemia, coagulation, blood gas,
-electrolytes, glucose) are deferred to sibling sub-PRs.
+policy §5. Grown in phases across sub-PRs of C2:
+
+* **C2a** — inflammation (CRP, WBC, PCT, Albumin) + renal
+  (Creatinine, BUN, eGFR, K, Na).
+* **C2b** — cardiac (BNP, Troponin, CK_MB) + hepatic (AST, ALT,
+  T_Bil, PT_INR).
+* Remaining sections (anemia, coagulation, blood gas, electrolytes,
+  glucose) deferred to C2c / C2d sibling sub-PRs.
 
 Every constant is a formula coefficient — clinically motivated (JCCLS
 reference-range centers, KDIGO CKD staging, ADA hyperkalemia bands)
@@ -22,6 +26,29 @@ does exactly.
 from __future__ import annotations
 
 __all__ = [
+    "ALT_BASELINE_U_L",
+    "ALT_HEPATIC_SCALE",
+    "AST_BASELINE_U_L",
+    "AST_HEPATIC_SCALE",
+    "BNP_BASELINE_PG_ML",
+    "BNP_CARDIAC_EXP_SCALE",
+    "BNP_VOLUME_CARDIAC_EXP_SCALE",
+    "CK_MB_ACS_INJURY_SQ_SCALE",
+    "CK_MB_BASELINE_NG_ML",
+    "CK_MB_TYPE2_CAP",
+    "CK_MB_TYPE2_INJURY_CUBE_SCALE",
+    "PT_INR_BASELINE",
+    "PT_INR_COAGULATION_SCALE",
+    "PT_INR_HEPATIC_SCALE",
+    "PT_INR_WARFARIN_BASE_GAIN",
+    "PT_INR_WARFARIN_TARGET_CENTER",
+    "TROPONIN_ACS_INJURY_SQ_SCALE",
+    "TROPONIN_BASELINE_NG_ML",
+    "TROPONIN_RENAL_LIFT_SCALE",
+    "TROPONIN_TYPE2_CAP",
+    "TROPONIN_TYPE2_INJURY_CUBE_SCALE",
+    "T_BIL_BASELINE_MG_DL",
+    "T_BIL_HEPATIC_SCALE",
     "ALBUMIN_BASELINE",
     "ALBUMIN_FLOOR",
     "ALBUMIN_HEPATIC_SCALE",
@@ -269,3 +296,159 @@ symptomatic hyponatremia clinical floor."""
 SODIUM_MAX_MEQ_L: float = 160.0
 """Physiological maximum serum sodium (mEq/L) — matches severe
 symptomatic hypernatremia clinical ceiling."""
+
+
+# ---------------------------------------------------------------------------
+# BNP — cardiac + volume-cardiac exponential model
+# ---------------------------------------------------------------------------
+
+BNP_BASELINE_PG_ML: float = 15.0
+"""Baseline BNP (pg/mL) at ``cardiac_function == 1.0`` and no volume
+overload.
+
+Issue #430 calibration (down from prior 30.0): 15 pg/mL centers healthy
+volunteers within the JP JCCLS reference range (M < 18.4, F < 22.9).
+Prior 30.0 exceeded the healthy upper bound at cardiac=1.0, forcing
+healthy patients into a systematically elevated BNP."""
+
+BNP_CARDIAC_EXP_SCALE: float = 2.0
+"""Exponent scale for cardiac-dysfunction contribution:
+``BNP = base * exp((1 - cardiac) * scale + volume_term)``.
+
+Empirical tuning for the synthetic simulator: 2.0 places uncomplicated
+MI (cardiac ~0.19) at BNP ~75 pg/mL (below HF rule-out 100)."""
+
+BNP_VOLUME_CARDIAC_EXP_SCALE: float = 5.0
+"""Exponent scale for the volume-cardiac coupled term:
+``+ max(0, volume) * (1 - cardiac) * scale``.
+
+Empirical tuning for the synthetic simulator: 5.0 places HF
+exacerbation (cardiac ~0.27, volume ~0.56) at BNP ~500 pg/mL
+(moderate HF band). Non-cardiac fluid overload in a preserved heart
+stays low because the term is gated by cardiac dysfunction."""
+
+
+# ---------------------------------------------------------------------------
+# Troponin_I — type-2 (mild) + ACS (primary necrosis) branches
+# ---------------------------------------------------------------------------
+
+TROPONIN_BASELINE_NG_ML: float = 0.01
+"""Baseline serum troponin I (ng/mL) at zero cardiac injury — well
+below the ACS rule-out (0.04 ng/mL) and matching healthy reference."""
+
+TROPONIN_TYPE2_INJURY_CUBE_SCALE: float = 8.0
+"""Cubic scale for type-2 (demand-ischemia) troponin elevation:
+``tnt += min(injury**3 * 8.0, cap)``.
+
+Empirical tuning for the synthetic simulator: cubic gain restricts
+elevation to meaningful dysfunction only (~cardiac < 0.6 starts
+lifting), matching type-2 MI clinical patterns."""
+
+TROPONIN_TYPE2_CAP: float = 3.0
+"""Cap on type-2 troponin elevation (ng/mL).
+
+Empirical tuning for the synthetic simulator: 3.0 ng/mL is the upper
+end of the "mild elevation" band typical of non-necrosis dysfunction
+(sepsis, PE, AF, stroke). ACS elevations must go through the primary-
+necrosis branch below."""
+
+TROPONIN_RENAL_LIFT_SCALE: float = 0.10
+"""Additional troponin (ng/mL per unit ``(1 - renal_function)``)
+reflecting reduced renal clearance in CKD — chronic mild elevation
+that clinicians recognize as a CKD confounder."""
+
+TROPONIN_ACS_INJURY_SQ_SCALE: float = 120.0
+"""Squared scale for ACS primary-necrosis troponin release, applied
+only when the scenario flag ``myocardial_injury`` is set:
+``tnt += injury**2 * 120.0``.
+
+Empirical tuning for the synthetic simulator: 120 lands ACS troponin
+in the clinical 10-100 ng/mL band for cardiac dysfunction in the
+0.3-0.5 range."""
+
+
+# ---------------------------------------------------------------------------
+# CK_MB — mirrors the troponin pattern (type-2 + ACS)
+# ---------------------------------------------------------------------------
+
+CK_MB_BASELINE_NG_ML: float = 0.5
+"""Baseline CK-MB (ng/mL) at zero cardiac injury — below the normal-
+range upper bound (5 ng/mL)."""
+
+CK_MB_TYPE2_INJURY_CUBE_SCALE: float = 5.0
+"""Cubic scale for type-2 CK-MB elevation (matches
+:data:`TROPONIN_TYPE2_INJURY_CUBE_SCALE` pattern with different
+magnitude)."""
+
+CK_MB_TYPE2_CAP: float = 3.0
+"""Cap on type-2 CK-MB elevation (ng/mL)."""
+
+CK_MB_ACS_INJURY_SQ_SCALE: float = 60.0
+"""Squared scale for ACS primary-necrosis CK-MB release (matches
+:data:`TROPONIN_ACS_INJURY_SQ_SCALE` pattern at half the magnitude —
+consistent with the CK-MB-to-troponin ratio in acute MI)."""
+
+
+# ---------------------------------------------------------------------------
+# Hepatic panel — AST + ALT + T_Bil
+# ---------------------------------------------------------------------------
+
+AST_BASELINE_U_L: int = 25
+"""Baseline AST (U/L) at full hepatic function — mid-range of the
+JCCLS healthy adult reference (10-40)."""
+
+AST_HEPATIC_SCALE: int = 500
+"""AST elevation (U/L per unit ``(1 - hepatic_function)``) —
+peak ~525 U/L at hepatic=0 matches the acute-hepatitis / severe-
+liver-injury clinical range."""
+
+ALT_BASELINE_U_L: int = 20
+"""Baseline ALT (U/L) at full hepatic function — mid-range of the
+JCCLS healthy adult reference (7-45)."""
+
+ALT_HEPATIC_SCALE: int = 400
+"""ALT elevation (U/L per unit ``(1 - hepatic_function)``) — slightly
+lower ceiling than AST reflecting the observed AST:ALT ratio > 1 in
+severe liver injury."""
+
+T_BIL_BASELINE_MG_DL: float = 0.8
+"""Baseline total bilirubin (mg/dL) at full hepatic function —
+mid-range of the JCCLS healthy adult reference (0.3-1.2)."""
+
+T_BIL_HEPATIC_SCALE: int = 15
+"""Total bilirubin elevation (mg/dL per unit ``(1 - hepatic_function)``)
+— peak ~15.8 mg/dL at hepatic=0 matches decompensated cirrhosis /
+severe cholestasis."""
+
+
+# ---------------------------------------------------------------------------
+# PT_INR — hepatic + coagulation + warfarin therapeutic overlay
+# ---------------------------------------------------------------------------
+
+PT_INR_BASELINE: float = 1.0
+"""Baseline PT-INR at full hepatic function and no coagulation
+disturbance — matches the healthy reference."""
+
+PT_INR_HEPATIC_SCALE: float = 2.0
+"""INR elevation per unit ``(1 - hepatic_function)`` — reflects
+depletion of vitamin-K-dependent clotting factors in cirrhosis /
+acute liver failure."""
+
+PT_INR_COAGULATION_SCALE: float = 1.5
+"""INR elevation per unit ``coagulation_status`` — reflects DIC-driven
+consumptive coagulopathy."""
+
+PT_INR_WARFARIN_TARGET_CENTER: float = 2.5
+"""Therapeutic INR target center for warfarin patients — mid-range of
+the clinical 2.0-3.0 band for most indications (atrial fibrillation,
+mechanical valve exceptions handled elsewhere)."""
+
+PT_INR_WARFARIN_BASE_GAIN: float = 0.5
+"""Gain factor applied to the base-INR perturbation for warfarin
+patients: ``INR = 2.5 + (base_inr - 1.0) * 0.5``.
+
+Empirical tuning for the synthetic simulator: 0.5 halves the
+comorbidity-driven perturbation on top of the therapeutic center —
+reflects that anticoagulation is titrated to keep INR in the
+therapeutic range even in patients with concurrent hepatic /
+coagulation issues, but not perfectly."""
