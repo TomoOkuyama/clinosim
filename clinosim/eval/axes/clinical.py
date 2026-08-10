@@ -204,6 +204,31 @@ _COHERENCE_PASS_MAX = 0.05
 _COHERENCE_WARN_MAX = 0.25
 
 
+# Age bounds used by ``_check_age_condition_consistency``. Empirical
+# tuning for the synthetic simulator, chosen to leave a WHO/CDC-adjacent
+# "adolescent" grey zone (12–18) where neither adult-only nor peds-only
+# ICD prefixes may fire — clinosim currently does not model diseases
+# with pediatric ICD prefixes, but the zone keeps the check
+# symmetrically safe if that changes.
+_PEDIATRIC_AGE_CEILING: int = 12  # age < this ⇒ patient counted as pediatric
+_ADULT_AGE_FLOOR: int = 18  # age > this ⇒ patient counted as adult
+
+# ICD-10 (US) / ICD-10 (JP) prefixes for conditions that are strictly
+# adult-onset — clinosim never generates these for pediatric patients.
+# Prefix-matched against ``Condition.code.coding[].code`` in the age /
+# condition consistency check. Extracted from inline literal so the
+# vocabulary sits at module scope alongside the other clinical-axis
+# thresholds.
+_ADULT_ONLY_ICD_PREFIXES: frozenset[str] = frozenset({"I10", "I25", "I48", "I50", "E11", "N18", "N40", "F03"})
+
+# Truncation limits for ``EvalCheck.detail.problems_sample`` — the
+# report keeps a bounded slice so a large cohort does not blow up the
+# JSON payload. 20 for the age-condition check (which also breaks the
+# scan early once it has 20 problems); 10 elsewhere.
+_AGE_CONDITION_PROBLEM_LIMIT: int = 20
+_PROBLEM_SAMPLE_LIMIT: int = 10
+
+
 def run(cohort: Cohort, country: str) -> list[EvalCheck]:
     return [
         _check_lab_values_physiological_range(cohort, country),
@@ -302,8 +327,6 @@ def _check_age_condition_consistency(cohort: Cohort, country: str) -> EvalCheck:
     # first-encounter reference.
     ages_by_patient = _patient_ages(cohort, country)
 
-    # These ICD-10-CM (US) / ICD-10 (JP) codes are strictly adult-onset.
-    adult_only_prefixes = {"I10", "I25", "I48", "I50", "E11", "N18", "N40", "F03"}
     peds_only_prefixes: set[str] = set()  # Reserved — clinosim does not model peds diseases yet.
 
     problems: list[str] = []
@@ -315,15 +338,15 @@ def _check_age_condition_consistency(cohort: Cohort, country: str) -> EvalCheck:
         codes = (row.get("code") or {}).get("coding") or []
         for c in codes:
             code = c.get("code", "")
-            for prefix in adult_only_prefixes:
-                if code.startswith(prefix) and age < 12:
+            for prefix in _ADULT_ONLY_ICD_PREFIXES:
+                if code.startswith(prefix) and age < _PEDIATRIC_AGE_CEILING:
                     problems.append(f"pediatric patient (age {age}) with {code}")
                     break
             for prefix in peds_only_prefixes:
-                if code.startswith(prefix) and age > 18:
+                if code.startswith(prefix) and age > _ADULT_AGE_FLOOR:
                     problems.append(f"adult patient (age {age}) with peds-only {code}")
                     break
-        if len(problems) > 20:
+        if len(problems) > _AGE_CONDITION_PROBLEM_LIMIT:
             break
 
     if not problems:
@@ -338,7 +361,7 @@ def _check_age_condition_consistency(cohort: Cohort, country: str) -> EvalCheck:
         outcome=Outcome.FAIL,
         severity=Severity.MAJOR,
         message=f"{len(problems)} age-condition mismatch(es)",
-        detail={"problems_sample": problems[:20]},
+        detail={"problems_sample": problems[:_AGE_CONDITION_PROBLEM_LIMIT]},
     )
 
 
@@ -367,7 +390,7 @@ def _check_medication_date_sanity(cohort: Cohort, country: str) -> EvalCheck:
         outcome=Outcome.FAIL,
         severity=Severity.MAJOR,
         message=f"{len(problems)} MedicationRequest date sanity violation(s)",
-        detail={"problems_sample": problems[:10]},
+        detail={"problems_sample": problems[:_PROBLEM_SAMPLE_LIMIT]},
     )
 
 
@@ -394,7 +417,7 @@ def _check_encounter_temporal_ordering(cohort: Cohort, country: str) -> EvalChec
         outcome=Outcome.FAIL,
         severity=Severity.MAJOR,
         message=f"{len(problems)} Encounter(s) with reversed period",
-        detail={"problems_sample": problems[:10]},
+        detail={"problems_sample": problems[:_PROBLEM_SAMPLE_LIMIT]},
     )
 
 
@@ -423,7 +446,7 @@ def _check_condition_encounter_link(cohort: Cohort, country: str) -> EvalCheck:
         outcome=Outcome.FAIL,
         severity=Severity.MINOR,
         message=f"{len(problems)} Condition.encounter reference(s) unresolved",
-        detail={"problems_sample": problems[:10]},
+        detail={"problems_sample": problems[:_PROBLEM_SAMPLE_LIMIT]},
     )
 
 
