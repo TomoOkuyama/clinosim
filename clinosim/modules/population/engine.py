@@ -36,6 +36,36 @@ from clinosim.modules.population._population_thresholds import (
     SMOKING_FALLBACK_LABELS,
     SMOKING_FALLBACK_PROBS,
 )
+from clinosim.modules.population._population_workflow_thresholds import (
+    CHRONIC_VISITS_MAX_PER_YEAR,
+    COLONOSCOPY_MIN_AGE,
+    COLONOSCOPY_PROBABILITY,
+    DIABETIC_RETINOPATHY_ICD10_CODE,
+    DIABETIC_RETINOPATHY_PROBABILITY,
+    EVENT_DAY_JITTER_END_EXCLUSIVE,
+    EVENT_DAY_JITTER_START,
+    EVENT_MID_OF_MONTH_DAY,
+    FLU_VAX_ADULT_AGE_THRESHOLD,
+    FLU_VAX_COMORBIDITY_MIN,
+    FLU_VAX_MONTHS,
+    FLU_VAX_PROBABILITY,
+    HEALTH_SCREENING_MIN_AGE,
+    HEALTH_SCREENING_MONTH_END_EXCLUSIVE,
+    HEALTH_SCREENING_MONTH_START,
+    MAMMOGRAPHY_MIN_AGE,
+    MAMMOGRAPHY_PROBABILITY,
+    MIXED_CONDITIONS_MIN_AGE_DEFAULT,
+    MIXED_CONDITIONS_MIN_CHRONIC_DEFAULT,
+    MIXED_CONDITIONS_PROBABILITY_DEFAULT,
+    OCCUPATION_MISMATCH_FALLBACK_MULTIPLIER,
+    PRIOR_HOSPITALIZATION_RECURRENCE_MULTIPLIER,
+    UNKNOWN_CONDITION_AGE_FACTOR_DEFAULT,
+    UNKNOWN_CONDITION_BASE_RATE_DEFAULT,
+    UNKNOWN_CONDITION_MIN_AGE_DEFAULT,
+    UNKNOWN_CONDITION_PATTERNS_FALLBACK,
+    UNKNOWN_CONDITION_SEVERITY_BETA_ALPHA,
+    UNKNOWN_CONDITION_SEVERITY_BETA_BETA,
+)
 from clinosim.types.population import HospitalizationSummary, LifeEvent, PersonRecord
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
@@ -336,7 +366,7 @@ def generate_monthly_events(
 ) -> list[LifeEvent]:
     """Generate life events for one month across the population. All Phase 1 diseases."""
     events: list[LifeEvent] = []
-    event_date = date(year, month, 15)
+    event_date = date(year, month, EVENT_MID_OF_MONTH_DAY)
 
     # Load country-specific epidemiology from locale
     if demo is None:
@@ -392,14 +422,14 @@ def generate_monthly_events(
             if hasattr(person, "hospitalization_history"):
                 prior_same = [h for h in person.hospitalization_history if h.disease_id == disease_id]
                 if prior_same:
-                    rate *= 1.5  # 50% higher recurrence after prior episode
+                    rate *= PRIOR_HOSPITALIZATION_RECURRENCE_MULTIPLIER
 
             # Occupation-based risk multiplier (work-related injuries etc.)
             occ_mults = demo.get("occupation_risk_multipliers", {}).get(disease_id, {})
             if occ_mults and hasattr(person, "occupation"):
                 # Default 0.2 for non-matching occupations: some residual risk
                 # (e.g., office worker helping in warehouse, domestic accident)
-                occ_mult = occ_mults.get(person.occupation, 0.2)
+                occ_mult = occ_mults.get(person.occupation, OCCUPATION_MISMATCH_FALLBACK_MULTIPLIER)
                 rate *= float(occ_mult)
 
             # Lifestyle risk multipliers (smoking + BMI) — per-disease application
@@ -438,7 +468,8 @@ def generate_monthly_events(
                 LifeEvent(
                     person_id=person.person_id,
                     event_type=event_type,
-                    timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
+                    timestamp=event_date
+                    + timedelta(days=int(rng.integers(EVENT_DAY_JITTER_START, EVENT_DAY_JITTER_END_EXCLUSIVE))),
                     severity=severity,
                     disease_id=disease_id,
                     requires_hospital=requires_hospital,
@@ -448,28 +479,23 @@ def generate_monthly_events(
 
         # --- Unknown-cause conditions ---
         unknown_cfg = demo.get("unknown_conditions", {})
-        unknown_min_age = unknown_cfg.get("min_age", 40)
-        unknown_base_rate = unknown_cfg.get("base_rate", 0.00008)
-        unknown_age_factor = unknown_cfg.get("age_factor", 0.005)
-        unknown_patterns = unknown_cfg.get(
-            "patterns",
-            [
-                "fever_unknown",
-                "weight_loss_unexplained",
-                "malaise_fatigue",
-                "elevated_inflammatory_markers",
-            ],
-        )
+        unknown_min_age = unknown_cfg.get("min_age", UNKNOWN_CONDITION_MIN_AGE_DEFAULT)
+        unknown_base_rate = unknown_cfg.get("base_rate", UNKNOWN_CONDITION_BASE_RATE_DEFAULT)
+        unknown_age_factor = unknown_cfg.get("age_factor", UNKNOWN_CONDITION_AGE_FACTOR_DEFAULT)
+        unknown_patterns = unknown_cfg.get("patterns", UNKNOWN_CONDITION_PATTERNS_FALLBACK)
         if person.age >= unknown_min_age:
             unknown_rate = unknown_base_rate * (1.0 + (person.age - unknown_min_age) * unknown_age_factor)
             if rng.random() < unknown_rate:
                 pattern = str(rng.choice(unknown_patterns))
-                unk_severity = float(rng.beta(2, 3))
+                unk_severity = float(
+                    rng.beta(UNKNOWN_CONDITION_SEVERITY_BETA_ALPHA, UNKNOWN_CONDITION_SEVERITY_BETA_BETA)
+                )
                 events.append(
                     LifeEvent(
                         person_id=person.person_id,
                         event_type="unknown_condition",
-                        timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
+                        timestamp=event_date
+                        + timedelta(days=int(rng.integers(EVENT_DAY_JITTER_START, EVENT_DAY_JITTER_END_EXCLUSIVE))),
                         severity=unk_severity,
                         disease_id=f"unknown_{pattern}",
                         requires_hospital=unk_severity > person.care_seeking_threshold,
@@ -479,9 +505,9 @@ def generate_monthly_events(
 
     # --- Post-processing: upgrade some known_disease events to mixed ---
     mixed_cfg = demo.get("mixed_conditions", {})
-    mixed_min_age = mixed_cfg.get("min_age", 70)
-    mixed_min_chronic = mixed_cfg.get("min_chronic_conditions", 2)
-    mixed_probability = mixed_cfg.get("probability", 0.18)
+    mixed_min_age = mixed_cfg.get("min_age", MIXED_CONDITIONS_MIN_AGE_DEFAULT)
+    mixed_min_chronic = mixed_cfg.get("min_chronic_conditions", MIXED_CONDITIONS_MIN_CHRONIC_DEFAULT)
+    mixed_probability = mixed_cfg.get("probability", MIXED_CONDITIONS_PROBABILITY_DEFAULT)
     for event in events:
         if event.condition_type == "known_disease" and event.requires_hospital:
             evt_person = registry.persons.get(event.person_id)
@@ -681,7 +707,7 @@ def generate_healthcare_calendar(
         # Use shortest interval as visit frequency (covers all conditions)
         shortest_interval = min(spec.get("follow_up_interval_months", 3) for _, spec in conditions_with_spec)
         # Cap: max 6 visits/year for chronic management
-        max_visits = min(12 // shortest_interval, 6)
+        max_visits = min(12 // shortest_interval, CHRONIC_VISITS_MAX_PER_YEAR)
         primary_code = conditions_with_spec[0][0]  # main condition for the visit
 
         month = int(prng.integers(1, min(shortest_interval + 1, 4)))
@@ -704,8 +730,8 @@ def generate_healthcare_calendar(
             visit_count += 1
 
         # --- Annual health screening (age 40+) ---
-        if person.age >= 40:
-            screening_month = int(prng.integers(4, 11))
+        if person.age >= HEALTH_SCREENING_MIN_AGE:
+            screening_month = int(prng.integers(HEALTH_SCREENING_MONTH_START, HEALTH_SCREENING_MONTH_END_EXCLUSIVE))
             screening_date = date(year, screening_month, int(prng.integers(1, 28)))
             events.append(
                 LifeEvent(
@@ -721,9 +747,9 @@ def generate_healthcare_calendar(
             )
 
         # --- Flu vaccination (age 65+ or chronic conditions, Oct-Dec) ---
-        if person.age >= 65 or len(person.chronic_conditions) >= 2:
-            if prng.random() < 0.5:  # ~50% vaccination rate
-                vax_month = int(prng.choice([10, 11, 12]))
+        if person.age >= FLU_VAX_ADULT_AGE_THRESHOLD or len(person.chronic_conditions) >= FLU_VAX_COMORBIDITY_MIN:
+            if prng.random() < FLU_VAX_PROBABILITY:
+                vax_month = int(prng.choice(FLU_VAX_MONTHS))
                 events.append(
                     LifeEvent(
                         person_id=person.person_id,
@@ -738,7 +764,7 @@ def generate_healthcare_calendar(
                 )
 
         # --- Colonoscopy screening (age 50+, every 10 years → ~10% per year) ---
-        if person.age >= 50 and prng.random() < 0.08:
+        if person.age >= COLONOSCOPY_MIN_AGE and prng.random() < COLONOSCOPY_PROBABILITY:
             events.append(
                 LifeEvent(
                     person_id=person.person_id,
@@ -753,7 +779,7 @@ def generate_healthcare_calendar(
             )
 
         # --- Mammography screening (women 40+, annual → ~60% participation) ---
-        if person.sex == "F" and person.age >= 40 and prng.random() < 0.4:
+        if person.sex == "F" and person.age >= MAMMOGRAPHY_MIN_AGE and prng.random() < MAMMOGRAPHY_PROBABILITY:
             events.append(
                 LifeEvent(
                     person_id=person.person_id,
@@ -768,7 +794,10 @@ def generate_healthcare_calendar(
             )
 
         # --- Diabetic retinopathy screening (DM patients, annual) ---
-        if "E11.9" in person.chronic_conditions and prng.random() < 0.6:
+        if (
+            DIABETIC_RETINOPATHY_ICD10_CODE in person.chronic_conditions
+            and prng.random() < DIABETIC_RETINOPATHY_PROBABILITY
+        ):
             events.append(
                 LifeEvent(
                     person_id=person.person_id,
