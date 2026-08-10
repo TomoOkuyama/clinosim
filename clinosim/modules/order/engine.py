@@ -61,6 +61,12 @@ from clinosim.modules.order._lab_result_timing import (
     WEEKEND_NON_URGENT_ADDITIONAL_MULTIPLIER,
     WEEKEND_STAFFING_MULTIPLIER,
 )
+from clinosim.modules.order._state_delay_thresholds import (
+    NONRESULT_ORDER_TRIVIAL_OFFSET_MIN,
+    STATE_DELAY_FLOOR_MIN,
+    STATE_DELAY_JITTER_MEAN,
+    STATE_DELAY_JITTER_STD,
+)
 from clinosim.modules.order.panel_grouping import classify_lab_specs, load_panel_definitions
 from clinosim.modules.order.treatment_classifier import classify_inpatient_supportive
 from clinosim.types.encounter import Order, OrderStatus, OrderType
@@ -692,7 +698,7 @@ def calculate_result_time_from_state(
             resource = "xray"  # default imaging
     else:
         # Medication, diet, etc. — no result time needed
-        return ordered + timedelta(minutes=5)
+        return ordered + timedelta(minutes=NONRESULT_ORDER_TRIVIAL_OFFSET_MIN)
 
     # Update hospital state for current time
     hospital_state.update_for_time(ordered, hospital_ops)
@@ -701,14 +707,14 @@ def calculate_result_time_from_state(
     delay = hospital_state.calculate_delay(resource, order.urgency, hospital_ops)
 
     # Add randomness (±20%)
-    delay *= float(1.0 + rng.normal(0, 0.2))
-    delay = max(10.0, delay)
+    delay *= float(1.0 + rng.normal(STATE_DELAY_JITTER_MEAN, STATE_DELAY_JITTER_STD))
+    delay = max(STATE_DELAY_FLOOR_MIN, delay)
 
     # Night deferral for non-stat
     hour = ordered.hour
-    if (hour >= 22 or hour < 6) and order.urgency != "stat":
-        next_morning = ordered.replace(hour=6, minute=30, second=0)
-        if hour >= 22:
+    if (hour >= NIGHT_HOUR_START or hour < NIGHT_HOUR_END) and order.urgency != "stat":
+        next_morning = ordered.replace(hour=NIGHT_MORNING_START_HOUR, minute=NIGHT_MORNING_START_MINUTE, second=0)
+        if hour >= NIGHT_HOUR_START:
             next_morning += timedelta(days=1)
         delay = max(delay, (next_morning - ordered).total_seconds() / 60)
 
