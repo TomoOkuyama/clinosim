@@ -14,6 +14,28 @@ import numpy as np
 from clinosim.modules._shared import is_jp, normalize_probabilities
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.disease.severity import sample_severity
+from clinosim.modules.population._population_thresholds import (
+    ALCOHOL_FALLBACK_LABELS,
+    ALCOHOL_FALLBACK_PROBS,
+    BMI_CLAMP_DEFAULT,
+    BMI_MEAN_FEMALE_DEFAULT,
+    BMI_MEAN_MALE_DEFAULT,
+    BMI_OBESE_THRESHOLD,
+    BMI_OVERWEIGHT_THRESHOLD,
+    BMI_STD_DEFAULT,
+    CARE_SEEKING_CLAMP_MAX,
+    CARE_SEEKING_CLAMP_MIN,
+    CARE_SEEKING_THRESHOLD_MEAN_DEFAULT,
+    CARE_SEEKING_THRESHOLD_SD_DEFAULT,
+    HEIGHT_MEAN_FEMALE_CM_DEFAULT,
+    HEIGHT_MEAN_MALE_CM_DEFAULT,
+    HEIGHT_SHRINKAGE_AGE_THRESHOLD,
+    HEIGHT_SHRINKAGE_PER_DECADE_CM_DEFAULT,
+    HEIGHT_STD_CM_DEFAULT,
+    MOBILE_PHONE_MIN_AGE,
+    SMOKING_FALLBACK_LABELS,
+    SMOKING_FALLBACK_PROBS,
+)
 from clinosim.types.population import HospitalizationSummary, LifeEvent, PersonRecord
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
@@ -151,17 +173,21 @@ def generate_population(
             ht_cfg = phys.get("height_cm") or {}
             sex_key = "male" if sex == "M" else "female"
 
-            bmi_mean = (bmi_cfg.get(sex_key) or {}).get("mean", 23.5 if sex == "M" else 22.0)
-            bmi_std = (bmi_cfg.get(sex_key) or {}).get("std", 3.5)
-            bmi_clamp = bmi_cfg.get("clamp", [15.0, 45.0])
+            bmi_mean = (bmi_cfg.get(sex_key) or {}).get(
+                "mean", BMI_MEAN_MALE_DEFAULT if sex == "M" else BMI_MEAN_FEMALE_DEFAULT
+            )
+            bmi_std = (bmi_cfg.get(sex_key) or {}).get("std", BMI_STD_DEFAULT)
+            bmi_clamp = bmi_cfg.get("clamp", BMI_CLAMP_DEFAULT)
             bmi = float(np.clip(rng.normal(bmi_mean, bmi_std), bmi_clamp[0], bmi_clamp[1]))
 
-            ht_mean = (ht_cfg.get(sex_key) or {}).get("mean", 170.0 if sex == "M" else 157.5)
-            ht_std = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
-            shrink = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
+            ht_mean = (ht_cfg.get(sex_key) or {}).get(
+                "mean", HEIGHT_MEAN_MALE_CM_DEFAULT if sex == "M" else HEIGHT_MEAN_FEMALE_CM_DEFAULT
+            )
+            ht_std = (ht_cfg.get(sex_key) or {}).get("std", HEIGHT_STD_CM_DEFAULT)
+            shrink = ht_cfg.get("shrinkage_per_decade_after_60", HEIGHT_SHRINKAGE_PER_DECADE_CM_DEFAULT)
             height = float(rng.normal(ht_mean, ht_std))
-            if age > 60:
-                height -= (age - 60) / 10 * shrink
+            if age > HEIGHT_SHRINKAGE_AGE_THRESHOLD:
+                height -= (age - HEIGHT_SHRINKAGE_AGE_THRESHOLD) / 10 * shrink
 
             # Lifestyle: smoking and alcohol (sex-specific distributions).
             # NOTE (Issue #360 G7): a minor-age gate on smoking/alcohol was
@@ -184,7 +210,7 @@ def generate_population(
                 sp = normalize_probabilities([smoking_dist[k] for k in sk], fallback="raise")
                 smoking_status = str(rng.choice(sk, p=sp))
             else:
-                smoking_status = str(rng.choice(["never", "former", "current"], p=[0.55, 0.30, 0.15]))
+                smoking_status = str(rng.choice(SMOKING_FALLBACK_LABELS, p=SMOKING_FALLBACK_PROBS))
 
             alcohol_dist = (lifestyle.get("alcohol") or {}).get(sex_key, {})
             if alcohol_dist:
@@ -192,7 +218,7 @@ def generate_population(
                 ap = normalize_probabilities([alcohol_dist[k] for k in ak], fallback="raise")
                 alcohol_use = str(rng.choice(ak, p=ap))
             else:
-                alcohol_use = str(rng.choice(["none", "social", "heavy"], p=[0.60, 0.30, 0.10]))
+                alcohol_use = str(rng.choice(ALCOHOL_FALLBACK_LABELS, p=ALCOHOL_FALLBACK_PROBS))
 
             # Given name (sex-appropriate)
             given = _sample_given_name(name_data, sex, rng)
@@ -224,13 +250,16 @@ def generate_population(
             comorbidity_cfg = demo.get("comorbidity_correlations") or {}
             lifestyle_mults = demo.get("lifestyle_risk_multipliers") or {}
             bmi_cfg_lm = lifestyle_mults.get("bmi") or {}
-            bmi_thresholds = bmi_cfg_lm.get("thresholds") or {"overweight": 25.0, "obese": 30.0}
+            bmi_thresholds = bmi_cfg_lm.get("thresholds") or {
+                "overweight": BMI_OVERWEIGHT_THRESHOLD,
+                "obese": BMI_OBESE_THRESHOLD,
+            }
             smoking_cfg_lm = lifestyle_mults.get("smoking") or {}
 
             bmi_cat: str | None = None
-            if bmi >= bmi_thresholds.get("obese", 30.0):
+            if bmi >= bmi_thresholds.get("obese", BMI_OBESE_THRESHOLD):
                 bmi_cat = "obese"
-            elif bmi >= bmi_thresholds.get("overweight", 25.0):
+            elif bmi >= bmi_thresholds.get("overweight", BMI_OVERWEIGHT_THRESHOLD):
                 bmi_cat = "overweight"
 
             conditions: list[str] = []
@@ -258,13 +287,13 @@ def generate_population(
             # RM-7e: care-seeking threshold from locale
             # (JP: 20% reflects 健診 culture; US: 30% baseline).
             _cs = demo.get("care_seeking") or {}
-            _cs_mean = float(_cs.get("threshold_mean", 0.30))
-            _cs_sd = float(_cs.get("threshold_sd", 0.12))
+            _cs_mean = float(_cs.get("threshold_mean", CARE_SEEKING_THRESHOLD_MEAN_DEFAULT))
+            _cs_sd = float(_cs.get("threshold_sd", CARE_SEEKING_THRESHOLD_SD_DEFAULT))
             threshold = float(rng.normal(_cs_mean, _cs_sd))
-            threshold = max(0.05, min(0.90, threshold))
+            threshold = max(CARE_SEEKING_CLAMP_MIN, min(CARE_SEEKING_CLAMP_MAX, threshold))
 
             # Phone: generate mobile for adults
-            mobile = _generate_phone(addr_data, "mobile", rng) if age >= 15 else ""
+            mobile = _generate_phone(addr_data, "mobile", rng) if age >= MOBILE_PHONE_MIN_AGE else ""
 
             person = PersonRecord(
                 person_id=pid,
@@ -281,7 +310,7 @@ def generate_population(
                 city=hh_addr.get("city", ""),
                 address_line=hh_addr.get("line", ""),
                 phone_home=hh_phone_home if has_landline else "",
-                phone_mobile=mobile if age >= 15 else "",
+                phone_mobile=mobile if age >= MOBILE_PHONE_MIN_AGE else "",
                 chronic_conditions=conditions,
                 occupation=_sample_occupation(demo, age, sex, rng),
                 bmi=bmi,
@@ -324,12 +353,15 @@ def generate_monthly_events(
         lifestyle_lm = demo.get("lifestyle_risk_multipliers") or {}
         smoking_lm = lifestyle_lm.get("smoking") or {}
         bmi_lm_cfg = lifestyle_lm.get("bmi") or {}
-        bmi_thresh_lm = bmi_lm_cfg.get("thresholds") or {"overweight": 25.0, "obese": 30.0}
+        bmi_thresh_lm = bmi_lm_cfg.get("thresholds") or {
+            "overweight": BMI_OVERWEIGHT_THRESHOLD,
+            "obese": BMI_OBESE_THRESHOLD,
+        }
 
         bmi_cat_lm: str | None = None
-        if person.bmi >= float(bmi_thresh_lm.get("obese", 30.0)):
+        if person.bmi >= float(bmi_thresh_lm.get("obese", BMI_OBESE_THRESHOLD)):
             bmi_cat_lm = "obese"
-        elif person.bmi >= float(bmi_thresh_lm.get("overweight", 25.0)):
+        elif person.bmi >= float(bmi_thresh_lm.get("overweight", BMI_OVERWEIGHT_THRESHOLD)):
             bmi_cat_lm = "overweight"
 
         # --- Data-driven disease event generation ---
