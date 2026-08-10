@@ -47,10 +47,23 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     BUN_BASE_MG_DL,
     BUN_RENAL_FLOOR,
     BUN_VOLUME_LIFT_SCALE,
+    CA_BASELINE_MG_DL,
+    CA_CLAMP_MAX,
+    CA_CLAMP_MIN,
+    CA_HEPATIC_SCALE,
+    CA_INFLAMMATION_SCALE,
+    CA_RENAL_SCALE,
+    CA_SODIUM_LIFT,
     CK_MB_ACS_INJURY_SQ_SCALE,
     CK_MB_BASELINE_NG_ML,
     CK_MB_TYPE2_CAP,
     CK_MB_TYPE2_INJURY_CUBE_SCALE,
+    CL_BASELINE_MEQ_L,
+    CL_CLAMP_MAX,
+    CL_CLAMP_MIN,
+    CL_HCO3_DEFICIT_REFERENCE,
+    CL_NON_AG_FRACTION_MAX,
+    CL_SODIUM_LINKAGE_SCALE,
     CREATININE_BASE_FEMALE,
     CREATININE_BASE_MALE,
     CREATININE_LOW_RENAL_SLOPE,
@@ -71,18 +84,55 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     FIBRINOGEN_INFLAMMATION_SCALE,
     FIBRINOGEN_PHYSIOLOGIC_MAX,
     FIBRINOGEN_PHYSIOLOGIC_MIN,
+    GLU_CLAMP_MAX,
+    GLU_CLAMP_MIN,
+    GLU_HYPERGLYCEMIA_SCALE,
+    GLU_HYPOGLYCEMIA_SCALE,
+    GLU_NONDM_BASELINE_MG_DL,
+    GLU_POSTPRANDIAL_BREAKFAST_HOUR_MAX,
+    GLU_POSTPRANDIAL_BREAKFAST_HOUR_MIN,
+    GLU_POSTPRANDIAL_BREAKFAST_LIFT,
+    GLU_POSTPRANDIAL_DINNER_HOUR_MAX,
+    GLU_POSTPRANDIAL_DINNER_HOUR_MIN,
+    GLU_POSTPRANDIAL_DINNER_LIFT,
+    GLU_POSTPRANDIAL_LUNCH_HOUR_MAX,
+    GLU_POSTPRANDIAL_LUNCH_HOUR_MIN,
+    GLU_POSTPRANDIAL_LUNCH_LIFT,
+    GLU_STRESS_INFLAMMATION_LIFT,
     HB_ANEMIA_SCALE,
     HB_BASELINE_FEMALE_G_DL,
     HB_BASELINE_MALE_G_DL,
     HB_FLOOR_G_DL,
+    HBA1C_NONDM_AGE_MIN,
+    HBA1C_NONDM_AGE_SCALE_LAB,
+    HCO3_BASELINE_MEQ_L,
+    HCO3_CLAMP_MAX,
+    HCO3_CLAMP_MIN,
+    HCO3_METABOLIC_GAIN,
+    HCO3_RENAL_COMPENSATION_RATIO,
     HCT_HB_RATIO,
     LACTATE_BASELINE_MMOL_L,
     LACTATE_PERFUSION_SCALE,
+    PCO2_BASELINE_MMHG,
+    PCO2_CLAMP_MAX,
+    PCO2_CLAMP_MIN,
+    PCO2_RESPIRATORY_GAIN,
+    PCO2_WINTERS_COMPENSATION_RATIO,
+    PCO2_WINTERS_HCO3_COEFF,
+    PCO2_WINTERS_INTERCEPT,
     PCT_BASE_NG_ML,
     PCT_INFLAMMATION_EXPONENT_SCALE,
+    PH_CLAMP_MAX,
+    PH_CLAMP_MIN,
+    PH_HENDERSON_HASSELBALCH_CONSTANT,
+    PH_HENDERSON_PCO2_COEFF,
     PLT_BASELINE,
     PLT_COAGULATION_SCALE,
     PLT_FLOOR,
+    PO2_BASELINE_MMHG,
+    PO2_CLAMP_MAX,
+    PO2_CLAMP_MIN,
+    PO2_INFLAMMATION_SCALE,
     POTASSIUM_ACIDOSIS_SCALE,
     POTASSIUM_BASE_MEQ_L,
     POTASSIUM_MAX_MEQ_L,
@@ -109,6 +159,9 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     TROPONIN_TYPE2_CAP,
     TROPONIN_TYPE2_INJURY_CUBE_SCALE,
     WBC_BASE,
+    WBC_CIRCADIAN_AMPLITUDE,
+    WBC_CIRCADIAN_HOUR_OFFSET,
+    WBC_CIRCADIAN_HOUR_PERIOD,
     WBC_HIGH_INFLAMMATION_LEUKOPENIA_SCALE,
     WBC_HIGH_INFLAMMATION_THRESHOLD,
     WBC_INFLAMMATION_SCALE,
@@ -757,23 +810,27 @@ def derive_lab_values(
     # (10-15). 31 lands moderate DKA at HCO3 ~13 (mid-band) and severe DKA at <10,
     # while CKD chronic (ph_status~-0.10) drops only from 21.6 to 20.9. state is
     # unchanged. Spec: docs/history/specs-archive/2026-06-22-aki-dka-surgical-calibration-design.md
-    hco3 = 24.0 + ph * mf * 31.0  # metabolic load drives bicarbonate
-    pco2 = 40.0 - ph * rf * 40.0  # respiratory load drives CO2 (acidosis → retention)
+    hco3 = HCO3_BASELINE_MEQ_L + ph * mf * HCO3_METABOLIC_GAIN  # metabolic load drives bicarbonate
+    pco2 = PCO2_BASELINE_MMHG - ph * rf * PCO2_RESPIRATORY_GAIN  # respiratory load drives CO2 (acidosis → retention)
     if mf > 0.0 and ph != 0.0:
         # Respiratory compensation for a metabolic disturbance (Winter's formula, ~80%).
-        winters_pco2 = 1.5 * hco3 + 8.0
-        pco2 += 0.8 * (winters_pco2 - 40.0)
+        winters_pco2 = PCO2_WINTERS_HCO3_COEFF * hco3 + PCO2_WINTERS_INTERCEPT
+        pco2 += PCO2_WINTERS_COMPENSATION_RATIO * (winters_pco2 - PCO2_BASELINE_MMHG)
     if rf > 0.0 and ph != 0.0:
         # Renal (metabolic) compensation for a respiratory disturbance (~0.35 mEq/mmHg).
-        hco3 += 0.35 * (pco2 - 40.0)
-    pco2 = clamp(pco2, 15.0, 90.0)
-    hco3 = clamp(hco3, 5.0, 45.0)
+        hco3 += HCO3_RENAL_COMPENSATION_RATIO * (pco2 - PCO2_BASELINE_MMHG)
+    pco2 = clamp(pco2, PCO2_CLAMP_MIN, PCO2_CLAMP_MAX)
+    hco3 = clamp(hco3, HCO3_CLAMP_MIN, HCO3_CLAMP_MAX)
     labs["HCO3"] = hco3
     labs["pCO2"] = pco2
-    labs["pH"] = clamp(6.1 + math.log10(hco3 / (0.03 * pco2)), 6.80, 7.70)
+    labs["pH"] = clamp(
+        PH_HENDERSON_HASSELBALCH_CONSTANT + math.log10(hco3 / (PH_HENDERSON_PCO2_COEFF * pco2)),
+        PH_CLAMP_MIN,
+        PH_CLAMP_MAX,
+    )
     # pO2: reduced by pulmonary involvement (inflammation as a lung-injury proxy until a
     # dedicated respiratory/oxygenation state variable exists — AD-57 follow-up).
-    labs["pO2"] = clamp(95.0 - infl * 45.0, 45.0, 105.0)  # mm[Hg]
+    labs["pO2"] = clamp(PO2_BASELINE_MMHG - infl * PO2_INFLAMMATION_SCALE, PO2_CLAMP_MIN, PO2_CLAMP_MAX)  # mm[Hg]
 
     # --- Electrolytes: Cl and Ca complete BMP canonical 8 ---
     # Cl reflects (a) Na linkage (electroneutrality) and (b) HCO3 reciprocity:
@@ -782,23 +839,23 @@ def derive_lab_values(
     # unmeasured anion (ketone/lactate/SO4/PO4) absorbs it and Cl stays near
     # normal. The anion_gap_status axis routes between the two regimes. The
     # axis does NOT mutate ph/HCO3/pCO2 or feed back into any state variable.
-    base_cl = 103.0 + state.sodium_status * 9.0
-    hco3_deficit = max(0.0, 24.0 - labs["HCO3"])
-    non_ag_fraction = clamp(1.0 - state.anion_gap_status, 0.0, 1.5)
-    labs["Cl"] = clamp(base_cl + hco3_deficit * non_ag_fraction, 80.0, 125.0)
+    base_cl = CL_BASELINE_MEQ_L + state.sodium_status * CL_SODIUM_LINKAGE_SCALE
+    hco3_deficit = max(0.0, CL_HCO3_DEFICIT_REFERENCE - labs["HCO3"])
+    non_ag_fraction = clamp(1.0 - state.anion_gap_status, 0.0, CL_NON_AG_FRACTION_MAX)
+    labs["Cl"] = clamp(base_cl + hco3_deficit * non_ag_fraction, CL_CLAMP_MIN, CL_CLAMP_MAX)
     # Total Ca — the lab-standard report (JCCLS 3H030 / LOINC 17861-6).
     # Corrected Ca and ionized Ca (iCa) are physician-side computations from a
     # second sample and out of scope here (Phase 2). Multi-axis linear coupling:
     # sepsis (inflammation), CKD (renal), liver failure (hepatic) drop Ca;
     # mild dehydration (high Na) lifts it slightly.
     ca = (
-        9.5
-        - state.inflammation_level * 0.8
-        - (1.0 - state.renal_function) * 0.7
-        - (1.0 - state.hepatic_function) * 0.4
-        + state.sodium_status * 0.3
+        CA_BASELINE_MG_DL
+        - state.inflammation_level * CA_INFLAMMATION_SCALE
+        - (1.0 - state.renal_function) * CA_RENAL_SCALE
+        - (1.0 - state.hepatic_function) * CA_HEPATIC_SCALE
+        + state.sodium_status * CA_SODIUM_LIFT
     )
-    labs["Ca"] = clamp(ca, 5.5, 13.0)
+    labs["Ca"] = clamp(ca, CA_CLAMP_MIN, CA_CLAMP_MAX)
 
     # --- Glucose (chronic diabetes baseline + acute glycemic state + diurnal variation) ---
     is_diabetic = has_diabetes or state.glycemic_control is not None
@@ -806,36 +863,38 @@ def derive_lab_values(
     if is_diabetic:
         base_glu = GLU_DM_BEST + (1.0 - clamp(gc, 0.0, 1.0)) * GLU_DM_SPAN
     else:
-        base_glu = 95.0
+        base_glu = GLU_NONDM_BASELINE_MG_DL
     # Acute glycemic drive (DKA/HHS push glucose_status up; insulin therapy lowers it).
     gs = state.glucose_status
     if gs >= 0:
-        base_glu += gs * 500.0  # hyperglycemia: gs 0.6 ≈ +300 (DKA 300–500 range)
+        base_glu += gs * GLU_HYPERGLYCEMIA_SCALE  # hyperglycemia: gs 0.6 ≈ +300 (DKA 300-500 range)
     else:
-        base_glu += gs * 55.0  # hypoglycemia: gs -0.5 ≈ -27
+        base_glu += gs * GLU_HYPOGLYCEMIA_SCALE  # hypoglycemia: gs -0.5 ≈ -27
     labs["Glucose"] = base_glu
-    labs["Glucose"] += infl * 50  # stress hyperglycemia
+    labs["Glucose"] += infl * GLU_STRESS_INFLAMMATION_LIFT  # stress hyperglycemia
     # Postprandial rise: meals ~8h, 12h, 18h → peak 1-2h after
     # Fasting (early morning 04-07): lowest
     postprandial = 0.0
-    if 9 <= hour <= 10:  # post-breakfast
-        postprandial = 25.0
-    elif 13 <= hour <= 14:  # post-lunch
-        postprandial = 20.0
-    elif 19 <= hour <= 20:  # post-dinner
-        postprandial = 20.0
+    if GLU_POSTPRANDIAL_BREAKFAST_HOUR_MIN <= hour <= GLU_POSTPRANDIAL_BREAKFAST_HOUR_MAX:  # post-breakfast
+        postprandial = GLU_POSTPRANDIAL_BREAKFAST_LIFT
+    elif GLU_POSTPRANDIAL_LUNCH_HOUR_MIN <= hour <= GLU_POSTPRANDIAL_LUNCH_HOUR_MAX:  # post-lunch
+        postprandial = GLU_POSTPRANDIAL_LUNCH_LIFT
+    elif GLU_POSTPRANDIAL_DINNER_HOUR_MIN <= hour <= GLU_POSTPRANDIAL_DINNER_HOUR_MAX:  # post-dinner
+        postprandial = GLU_POSTPRANDIAL_DINNER_LIFT
     labs["Glucose"] += postprandial
-    labs["Glucose"] = clamp(labs["Glucose"], 40.0, 1200.0)  # physiological bounds
+    labs["Glucose"] = clamp(labs["Glucose"], GLU_CLAMP_MIN, GLU_CLAMP_MAX)  # physiological bounds
 
     # --- HbA1c (chronic glycemic control; ~3-month average, control-driven) ---
     if is_diabetic:
         labs["HbA1c"] = hba1c_from_glycemic_control(gc)
     else:
-        labs["HbA1c"] = HBA1C_NONDM_BASE + max(0, age - 40) * 0.003  # mild age term
+        labs["HbA1c"] = HBA1C_NONDM_BASE + max(0, age - HBA1C_NONDM_AGE_MIN) * HBA1C_NONDM_AGE_SCALE_LAB
 
     # --- WBC diurnal variation (±10%, afternoon slightly higher) ---
     # Nadir ~04:00, peak ~16:00
-    wbc_circadian = 1.0 + 0.10 * (-math.cos((hour - 4) * math.pi / 12))
+    wbc_circadian = 1.0 + WBC_CIRCADIAN_AMPLITUDE * (
+        -math.cos((hour - WBC_CIRCADIAN_HOUR_OFFSET) * math.pi / WBC_CIRCADIAN_HOUR_PERIOD)
+    )
     labs["WBC"] *= wbc_circadian
 
     return labs

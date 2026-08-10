@@ -10,8 +10,11 @@ policy §5. Grown in phases across sub-PRs of C2:
   T_Bil, PT_INR).
 * **C2c** — anemia (Hb, Hct, Plt) + coagulation (APTT, PT,
   Fibrinogen, D-dimer) + perfusion (Lactate).
-* Remaining sections (blood gas, electrolytes, glucose, WBC
-  circadian) deferred to C2d.
+* **C2d** — blood gas (HCO3, pCO2, pH, pO2) + electrolytes (Cl, Ca)
+  + glucose (base + hyperglycemia + hypoglycemia + stress +
+  postprandial + clamp) + non-DM HbA1c age term + WBC circadian.
+
+With C2d, the ``derive_lab_values`` extraction is complete.
 
 Every constant is a formula coefficient — clinically motivated (JCCLS
 reference-range centers, KDIGO CKD staging, ADA hyperkalemia bands)
@@ -28,6 +31,59 @@ does exactly.
 from __future__ import annotations
 
 __all__ = [
+    "CA_BASELINE_MG_DL",
+    "CA_CLAMP_MAX",
+    "CA_CLAMP_MIN",
+    "CA_HEPATIC_SCALE",
+    "CA_INFLAMMATION_SCALE",
+    "CA_RENAL_SCALE",
+    "CA_SODIUM_LIFT",
+    "CL_BASELINE_MEQ_L",
+    "CL_CLAMP_MAX",
+    "CL_CLAMP_MIN",
+    "CL_HCO3_DEFICIT_REFERENCE",
+    "CL_NON_AG_FRACTION_MAX",
+    "CL_SODIUM_LINKAGE_SCALE",
+    "GLU_CLAMP_MAX",
+    "GLU_CLAMP_MIN",
+    "GLU_HYPERGLYCEMIA_SCALE",
+    "GLU_HYPOGLYCEMIA_SCALE",
+    "GLU_NONDM_BASELINE_MG_DL",
+    "GLU_POSTPRANDIAL_BREAKFAST_HOUR_MAX",
+    "GLU_POSTPRANDIAL_BREAKFAST_HOUR_MIN",
+    "GLU_POSTPRANDIAL_BREAKFAST_LIFT",
+    "GLU_POSTPRANDIAL_DINNER_HOUR_MAX",
+    "GLU_POSTPRANDIAL_DINNER_HOUR_MIN",
+    "GLU_POSTPRANDIAL_DINNER_LIFT",
+    "GLU_POSTPRANDIAL_LUNCH_HOUR_MAX",
+    "GLU_POSTPRANDIAL_LUNCH_HOUR_MIN",
+    "GLU_POSTPRANDIAL_LUNCH_LIFT",
+    "GLU_STRESS_INFLAMMATION_LIFT",
+    "HBA1C_NONDM_AGE_MIN",
+    "HBA1C_NONDM_AGE_SCALE_LAB",
+    "HCO3_BASELINE_MEQ_L",
+    "HCO3_CLAMP_MAX",
+    "HCO3_CLAMP_MIN",
+    "HCO3_METABOLIC_GAIN",
+    "HCO3_RENAL_COMPENSATION_RATIO",
+    "PCO2_BASELINE_MMHG",
+    "PCO2_CLAMP_MAX",
+    "PCO2_CLAMP_MIN",
+    "PCO2_RESPIRATORY_GAIN",
+    "PCO2_WINTERS_COMPENSATION_RATIO",
+    "PCO2_WINTERS_HCO3_COEFF",
+    "PCO2_WINTERS_INTERCEPT",
+    "PH_CLAMP_MAX",
+    "PH_CLAMP_MIN",
+    "PH_HENDERSON_HASSELBALCH_CONSTANT",
+    "PH_HENDERSON_PCO2_COEFF",
+    "PO2_BASELINE_MMHG",
+    "PO2_CLAMP_MAX",
+    "PO2_CLAMP_MIN",
+    "PO2_INFLAMMATION_SCALE",
+    "WBC_CIRCADIAN_AMPLITUDE",
+    "WBC_CIRCADIAN_HOUR_OFFSET",
+    "WBC_CIRCADIAN_HOUR_PERIOD",
     "APTT_BASELINE_SEC",
     "APTT_COAGULATION_SCALE",
     "APTT_PHYSIOLOGIC_MAX_SEC",
@@ -650,3 +706,261 @@ LACTATE_PERFUSION_SCALE: int = 12
 Empirical tuning for the synthetic simulator: at perfusion_status
 = 0, lactate rises to 13 mmol/L (extreme lactic acidosis / shock),
 matching the septic-shock / cardiogenic-shock clinical range."""
+
+
+# ---------------------------------------------------------------------------
+# Blood gas — HCO3 + pCO2 + pH + pO2 (two-axis Henderson-Hasselbalch)
+# ---------------------------------------------------------------------------
+
+HCO3_BASELINE_MEQ_L: float = 24.0
+"""Baseline serum HCO3 (mEq/L) at zero acid-base disturbance — matches
+the healthy reference (22-26)."""
+
+HCO3_METABOLIC_GAIN: float = 31.0
+"""Metabolic-axis gain: HCO3 = 24 + ph_status * metabolic_fraction * 31.
+
+BNP-pattern surgical calibration (2026-06-22): 31 lands moderate DKA
+(ph_status=-0.35) at HCO3 ~13 (ADA moderate mid-band) and severe DKA
+at <10; CKD chronic (ph_status~-0.10) drops only from 21.6 to 20.9.
+Prior gain 24 left DKA-moderate at HCO3 ~15.6, outside the ADA band."""
+
+HCO3_CLAMP_MIN: float = 5.0
+"""Physiologic minimum HCO3 (mEq/L) — matches severe DKA / uremic
+acidosis floor."""
+
+HCO3_CLAMP_MAX: float = 45.0
+"""Physiologic maximum HCO3 (mEq/L) — matches severe chronic-respiratory
+compensation ceiling (COPD retainer)."""
+
+PCO2_BASELINE_MMHG: float = 40.0
+"""Baseline arterial pCO2 (mmHg) at zero acid-base disturbance —
+matches the healthy reference (35-45)."""
+
+PCO2_RESPIRATORY_GAIN: float = 40.0
+"""Respiratory-axis gain: pCO2 = 40 - ph_status * respiratory_fraction * 40.
+
+Empirical tuning for the synthetic simulator: at ph_status=-1.0 (extreme
+respiratory acidosis) on the respiratory axis, pCO2 = 40 + 40 = 80
+mmHg (severe CO2 retention)."""
+
+PCO2_WINTERS_HCO3_COEFF: float = 1.5
+"""Winter's formula HCO3 coefficient: expected pCO2 = 1.5 * HCO3 + 8.
+
+Standard clinical formula for calculating the expected respiratory
+compensation to metabolic acidosis."""
+
+PCO2_WINTERS_INTERCEPT: float = 8.0
+"""Winter's formula intercept (see :data:`PCO2_WINTERS_HCO3_COEFF`)."""
+
+PCO2_WINTERS_COMPENSATION_RATIO: float = 0.8
+"""Ratio of the ~full Winters' compensation actually applied to pCO2.
+
+Empirical tuning for the synthetic simulator: 0.8 (~80% of ideal
+compensation) reflects that real-world compensation is imperfect,
+so the model doesn't produce textbook-perfect Winters formula results."""
+
+HCO3_RENAL_COMPENSATION_RATIO: float = 0.35
+"""Renal (metabolic) compensation ratio for a respiratory disturbance:
+HCO3 += 0.35 * (pCO2 - 40).
+
+Standard clinical value (~0.35 mEq/mmHg for chronic respiratory
+disturbance)."""
+
+PCO2_CLAMP_MIN: float = 15.0
+"""Physiologic minimum pCO2 (mmHg) — matches severe hyperventilation
+floor (compensated metabolic acidosis)."""
+
+PCO2_CLAMP_MAX: float = 90.0
+"""Physiologic maximum pCO2 (mmHg) — matches severe hypoventilation
+ceiling."""
+
+PH_HENDERSON_HASSELBALCH_CONSTANT: float = 6.1
+"""Henderson-Hasselbalch pKa constant for the bicarbonate buffer
+system: pH = 6.1 + log10(HCO3 / (0.03 * pCO2))."""
+
+PH_HENDERSON_PCO2_COEFF: float = 0.03
+"""Henderson-Hasselbalch pCO2 coefficient (converts pCO2 mmHg to
+carbonic acid mEq/L via the CO2 solubility factor)."""
+
+PH_CLAMP_MIN: float = 6.80
+"""Physiologic minimum pH — matches severe acidemia lower bound."""
+
+PH_CLAMP_MAX: float = 7.70
+"""Physiologic maximum pH — matches severe alkalemia upper bound."""
+
+PO2_BASELINE_MMHG: float = 95.0
+"""Baseline arterial pO2 (mmHg) at zero pulmonary involvement —
+matches healthy young-adult resting sea-level."""
+
+PO2_INFLAMMATION_SCALE: float = 45.0
+"""pO2 drop (mmHg per unit inflammation) — reflects pulmonary
+involvement (inflammation as a lung-injury proxy until a dedicated
+respiratory/oxygenation state variable exists)."""
+
+PO2_CLAMP_MIN: float = 45.0
+"""Physiologic minimum pO2 (mmHg) — matches severe hypoxemia floor
+before mechanical ventilation is initiated."""
+
+PO2_CLAMP_MAX: float = 105.0
+"""Physiologic maximum pO2 (mmHg) — matches supplemental-O2-boosted
+ceiling in ambient conditions."""
+
+
+# ---------------------------------------------------------------------------
+# Electrolytes — Cl (BMP anion gap) + Ca (total)
+# ---------------------------------------------------------------------------
+
+CL_BASELINE_MEQ_L: float = 103.0
+"""Baseline serum chloride (mEq/L) — matches healthy reference (98-107)."""
+
+CL_SODIUM_LINKAGE_SCALE: float = 9.0
+"""Cl shift per unit ``sodium_status`` — electroneutrality linkage
+between Na and Cl."""
+
+CL_HCO3_DEFICIT_REFERENCE: float = 24.0
+"""HCO3 reference used to compute the deficit term:
+``hco3_deficit = max(0, 24 - labs["HCO3"])`` — matches
+:data:`HCO3_BASELINE_MEQ_L`."""
+
+CL_NON_AG_FRACTION_MAX: float = 1.5
+"""Maximum non-anion-gap fraction clamp: ``clamp(1 - anion_gap_status,
+0, 1.5)``.
+
+The 1.5 upper bound allows the non-AG absorption to slightly exceed
+the ideal 1:1 for cases where the axis dips below zero (hypochloremic
+alkalosis compensation)."""
+
+CL_CLAMP_MIN: float = 80.0
+"""Physiologic minimum serum Cl (mEq/L)."""
+
+CL_CLAMP_MAX: float = 125.0
+"""Physiologic maximum serum Cl (mEq/L) — hyperchloremic acidosis
+ceiling."""
+
+CA_BASELINE_MG_DL: float = 9.5
+"""Baseline total serum calcium (mg/dL) — mid-range of healthy adult
+reference (8.5-10.5)."""
+
+CA_INFLAMMATION_SCALE: float = 0.8
+"""Ca drop (mg/dL per unit inflammation) — reflects sepsis-associated
+hypocalcemia."""
+
+CA_RENAL_SCALE: float = 0.7
+"""Ca drop (mg/dL per unit ``(1 - renal_function)``) — reflects CKD-
+associated hypocalcemia (impaired 1,25-D synthesis)."""
+
+CA_HEPATIC_SCALE: float = 0.4
+"""Ca drop (mg/dL per unit ``(1 - hepatic_function)``) — reflects
+liver-failure hypocalcemia (impaired albumin synthesis → reduced
+protein-bound Ca fraction)."""
+
+CA_SODIUM_LIFT: float = 0.3
+"""Ca lift (mg/dL per unit ``sodium_status``) — mild dehydration
+concentrates serum Ca."""
+
+CA_CLAMP_MIN: float = 5.5
+"""Physiologic minimum serum Ca (mg/dL) — matches severe symptomatic
+hypocalcemia floor (tetany, seizures)."""
+
+CA_CLAMP_MAX: float = 13.0
+"""Physiologic maximum serum Ca (mg/dL) — matches severe hypercalcemia
+ceiling."""
+
+
+# ---------------------------------------------------------------------------
+# Glucose (inline scalars — module-level GLU_DM_* / GLYCEMIC_CONTROL_DEFAULT
+# stay in engine.py because they are consumed by other modules via re-import)
+# ---------------------------------------------------------------------------
+
+GLU_NONDM_BASELINE_MG_DL: float = 95.0
+"""Non-diabetic fasting glucose baseline (mg/dL) — mid-range of healthy
+adult fasting reference (70-99, ADA prediabetes cutoff 100)."""
+
+GLU_HYPERGLYCEMIA_SCALE: float = 500.0
+"""Glucose lift per unit positive ``glucose_status``.
+
+Empirical tuning for the synthetic simulator: glucose_status = 0.6
+gives +300 mg/dL, matching the DKA 300-500 mg/dL clinical range."""
+
+GLU_HYPOGLYCEMIA_SCALE: float = 55.0
+"""Glucose drop per unit negative ``glucose_status``.
+
+Empirical tuning for the synthetic simulator: glucose_status = -0.5
+gives -27 mg/dL, matching insulin-therapy-induced hypoglycemia."""
+
+GLU_STRESS_INFLAMMATION_LIFT: int = 50
+"""Glucose lift (mg/dL per unit inflammation) — stress-hyperglycemia
+from cortisol / catecholamine surge."""
+
+GLU_POSTPRANDIAL_BREAKFAST_LIFT: float = 25.0
+"""Post-breakfast glucose lift (mg/dL, ~1-2 h post-meal peak)."""
+
+GLU_POSTPRANDIAL_LUNCH_LIFT: float = 20.0
+"""Post-lunch glucose lift (mg/dL)."""
+
+GLU_POSTPRANDIAL_DINNER_LIFT: float = 20.0
+"""Post-dinner glucose lift (mg/dL) — same magnitude as lunch."""
+
+GLU_POSTPRANDIAL_BREAKFAST_HOUR_MIN: int = 9
+"""First hour of the post-breakfast peak window (inclusive)."""
+
+GLU_POSTPRANDIAL_BREAKFAST_HOUR_MAX: int = 10
+"""Last hour of the post-breakfast peak window (inclusive)."""
+
+GLU_POSTPRANDIAL_LUNCH_HOUR_MIN: int = 13
+"""First hour of the post-lunch peak window (inclusive)."""
+
+GLU_POSTPRANDIAL_LUNCH_HOUR_MAX: int = 14
+"""Last hour of the post-lunch peak window (inclusive)."""
+
+GLU_POSTPRANDIAL_DINNER_HOUR_MIN: int = 19
+"""First hour of the post-dinner peak window (inclusive)."""
+
+GLU_POSTPRANDIAL_DINNER_HOUR_MAX: int = 20
+"""Last hour of the post-dinner peak window (inclusive)."""
+
+GLU_CLAMP_MIN: float = 40.0
+"""Physiologic minimum serum glucose (mg/dL) — matches severe
+hypoglycemia floor requiring urgent D50 infusion."""
+
+GLU_CLAMP_MAX: float = 1200.0
+"""Physiologic maximum serum glucose (mg/dL) — matches severe HHS /
+DKA ceiling before hyperosmolar coma."""
+
+
+# ---------------------------------------------------------------------------
+# HbA1c non-diabetic age term
+# ---------------------------------------------------------------------------
+
+HBA1C_NONDM_AGE_MIN: int = 40
+"""Age (years) above which the age-dependent non-DM HbA1c drift
+begins."""
+
+HBA1C_NONDM_AGE_SCALE_LAB: float = 0.003
+"""HbA1c drift (%/year) past :data:`HBA1C_NONDM_AGE_MIN` for
+non-diabetic patients.
+
+Consistent with the age-dependent HbA1c drift documented in
+population studies (~0.03 %/decade). Named ``_LAB`` to disambiguate
+from the ``HBA1C_NONDM_AGE_SCALE`` in ``health_checkup/_checkup_thresholds.py``
+(same numeric value, distinct semantic scope)."""
+
+
+# ---------------------------------------------------------------------------
+# WBC diurnal variation
+# ---------------------------------------------------------------------------
+
+WBC_CIRCADIAN_AMPLITUDE: float = 0.10
+"""Amplitude of the diurnal WBC variation (fractional multiplier).
+
+Empirical tuning for the synthetic simulator: ±10% around the mean
+matches the observed WBC circadian pattern (nadir ~04:00, peak
+~16:00)."""
+
+WBC_CIRCADIAN_HOUR_OFFSET: int = 4
+"""Hour of the day used as the cosine offset — places WBC nadir at
+04:00."""
+
+WBC_CIRCADIAN_HOUR_PERIOD: int = 12
+"""Hour period used as the divisor in the circadian cosine (12-hour
+period matches the diurnal cycle)."""
