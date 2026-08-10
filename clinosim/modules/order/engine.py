@@ -17,6 +17,30 @@ from clinosim.modules.imaging.engine import (
     load_body_sites,
     load_modalities,
 )
+from clinosim.modules.order._imaging_result_timing import (
+    IMAGING_MIN_TOTAL_DELAY_MIN,
+    IMAGING_NIGHT_HOUR_END,
+    IMAGING_NIGHT_HOUR_START,
+    IMAGING_NIGHT_MORNING_TARGET_HOUR,
+    IMAGING_WEEKEND_MRI_MONDAY_DEFER_MIN,
+    IMAGING_WEEKEND_MULTIPLIER,
+    ROUTINE_CT_SCHEDULE_MEAN_MIN,
+    ROUTINE_CT_SCHEDULE_STD_MIN,
+    ROUTINE_ECHO_US_SCHEDULE_MEAN_MIN,
+    ROUTINE_ECHO_US_SCHEDULE_STD_MIN,
+    ROUTINE_MRI_SCHEDULE_MEAN_MIN,
+    ROUTINE_MRI_SCHEDULE_STD_MIN,
+    ROUTINE_REPORT_MEAN_MIN,
+    ROUTINE_REPORT_STD_MIN,
+    ROUTINE_XRAY_SCHEDULE_MEAN_MIN,
+    ROUTINE_XRAY_SCHEDULE_STD_MIN,
+    STAT_CT_MRI_SCHEDULE_MEAN_MIN,
+    STAT_CT_MRI_SCHEDULE_STD_MIN,
+    STAT_REPORT_MEAN_MIN,
+    STAT_REPORT_STD_MIN,
+    STAT_XRAY_SCHEDULE_MEAN_MIN,
+    STAT_XRAY_SCHEDULE_STD_MIN,
+)
 from clinosim.modules.order._lab_result_timing import (
     CONGESTION_EXTRA_MEAN_MIN,
     CONGESTION_PROBABILITY,
@@ -592,36 +616,39 @@ def calculate_imaging_result_time(
     # Scheduling delay (time from order to exam start)
     if order.urgency == "stat":
         if "CT" in imaging_name or "MRI" in imaging_name:
-            schedule_delay = float(rng.normal(60, 20))  # stat CT: ~1h
+            schedule_delay = float(rng.normal(STAT_CT_MRI_SCHEDULE_MEAN_MIN, STAT_CT_MRI_SCHEDULE_STD_MIN))
         else:
-            schedule_delay = float(rng.normal(30, 10))  # stat X-ray: ~30min
+            schedule_delay = float(rng.normal(STAT_XRAY_SCHEDULE_MEAN_MIN, STAT_XRAY_SCHEDULE_STD_MIN))
     else:
         if "MRI" in imaging_name:
-            schedule_delay = float(rng.normal(24 * 60, 8 * 60))  # routine MRI: 1-2 days
+            schedule_delay = float(rng.normal(ROUTINE_MRI_SCHEDULE_MEAN_MIN, ROUTINE_MRI_SCHEDULE_STD_MIN))
         elif "CT" in imaging_name:
-            schedule_delay = float(rng.normal(4 * 60, 2 * 60))  # routine CT: 2-6h
+            schedule_delay = float(rng.normal(ROUTINE_CT_SCHEDULE_MEAN_MIN, ROUTINE_CT_SCHEDULE_STD_MIN))
         elif "ECHO" in imaging_name or "ULTRASOUND" in imaging_name:
-            schedule_delay = float(rng.normal(3 * 60, 60))  # echo/US: 2-4h
+            schedule_delay = float(rng.normal(ROUTINE_ECHO_US_SCHEDULE_MEAN_MIN, ROUTINE_ECHO_US_SCHEDULE_STD_MIN))
         else:
-            schedule_delay = float(rng.normal(60, 30))  # X-ray: ~1h
+            schedule_delay = float(rng.normal(ROUTINE_XRAY_SCHEDULE_MEAN_MIN, ROUTINE_XRAY_SCHEDULE_STD_MIN))
 
     # Weekend: scheduling takes longer
     if weekday >= 5:
-        schedule_delay *= 1.5
+        schedule_delay *= IMAGING_WEEKEND_MULTIPLIER
         if "MRI" in imaging_name and order.urgency != "stat":
-            schedule_delay += 24 * 60  # MRI may defer to Monday
+            schedule_delay += IMAGING_WEEKEND_MRI_MONDAY_DEFER_MIN
 
     # Night: non-urgent deferred to morning
-    if (hour >= 22 or hour < 6) and order.urgency != "stat":
-        schedule_delay += (6 - hour if hour < 6 else 30 - hour) * 60
+    if (hour >= IMAGING_NIGHT_HOUR_START or hour < IMAGING_NIGHT_HOUR_END) and order.urgency != "stat":
+        if hour < IMAGING_NIGHT_HOUR_END:
+            schedule_delay += (IMAGING_NIGHT_MORNING_TARGET_HOUR - hour) * 60
+        else:
+            schedule_delay += (IMAGING_NIGHT_MORNING_TARGET_HOUR + 24 - hour) * 60
 
     # Reporting delay (radiologist reads and writes report)
     if order.urgency == "stat":
-        report_delay = float(rng.normal(30, 10))  # stat: ~30min
+        report_delay = float(rng.normal(STAT_REPORT_MEAN_MIN, STAT_REPORT_STD_MIN))
     else:
-        report_delay = float(rng.normal(4 * 60, 2 * 60))  # routine: 2-6h
+        report_delay = float(rng.normal(ROUTINE_REPORT_MEAN_MIN, ROUTINE_REPORT_STD_MIN))
 
-    total_delay = max(15, schedule_delay + report_delay)
+    total_delay = max(IMAGING_MIN_TOTAL_DELAY_MIN, schedule_delay + report_delay)
     return ordered + timedelta(minutes=total_delay)
 
 
