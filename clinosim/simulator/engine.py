@@ -32,6 +32,17 @@ from clinosim.seeding import (
     derive_phase_rng,
 )
 from clinosim.simulator import log as sim_log
+from clinosim.simulator._forced_scenario_thresholds import (
+    FORCED_SCENARIO_AGE_MAX_EXCLUSIVE,
+    FORCED_SCENARIO_AGE_MIN,
+    FORCED_SCENARIO_DEFAULT_AGE,
+    FORCED_SCENARIO_DEFAULT_SEVERITY,
+    FORCED_SCENARIO_DEFAULT_SEX,
+    FORCED_SCENARIO_EVENT_DATE,
+    FORCED_SCENARIO_REFERENCE_YEAR,
+    FORCED_SCENARIO_SEVERITY_FRACTION_FALLBACK,
+    FORCED_SCENARIO_SEVERITY_FRACTIONS,
+)
 from clinosim.simulator._scheduling_thresholds import (
     ED_DAY_MAX_EXCLUSIVE,
     ED_DAY_MIN,
@@ -852,10 +863,10 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
     for i in range(scenario.count):
         # Create patient (from overrides or random)
         if scenario.patient_overrides:
-            age = scenario.patient_overrides.get("age", 72)
-            sex = scenario.patient_overrides.get("sex", "F")
+            age = scenario.patient_overrides.get("age", FORCED_SCENARIO_DEFAULT_AGE)
+            sex = scenario.patient_overrides.get("sex", FORCED_SCENARIO_DEFAULT_SEX)
         else:
-            age = int(rng.integers(55, 95))
+            age = int(rng.integers(FORCED_SCENARIO_AGE_MIN, FORCED_SCENARIO_AGE_MAX_EXCLUSIVE))
             sex = str(rng.choice(["M", "F"]))
 
         # Create a minimal PersonRecord for activation
@@ -864,7 +875,7 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
             household_id=f"HH-FORCED-{i + 1:04d}",
             age=age,
             sex=sex,
-            date_of_birth=date(2024 - age, 1, 1),
+            date_of_birth=date(FORCED_SCENARIO_REFERENCE_YEAR - age, 1, 1),
             family_name="テスト" if is_jp(config.country) else "Test",
             given_name=f"患者{i + 1}" if is_jp(config.country) else f"Patient{i + 1}",
             chronic_conditions=scenario.patient_overrides.get("chronic_conditions", []),
@@ -872,14 +883,14 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
         patient = activate_patient(person, rng, _demo)
 
         # Force severity and archetype
-        severity = scenario.severity or "moderate"
+        severity = scenario.severity or FORCED_SCENARIO_DEFAULT_SEVERITY
 
         # Create life event
         event = LifeEvent(
             person_id=patient.patient_id,
             event_type="forced",
-            timestamp=date(2024, 6, 15),
-            severity={"mild": 0.2, "moderate": 0.5, "severe": 0.8}.get(severity, 0.5),
+            timestamp=FORCED_SCENARIO_EVENT_DATE,
+            severity=FORCED_SCENARIO_SEVERITY_FRACTIONS.get(severity, FORCED_SCENARIO_SEVERITY_FRACTION_FALLBACK),
             disease_id=scenario.disease_id,
             requires_hospital=True,
             condition_type="known_disease",
