@@ -35,6 +35,10 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     ALBUMIN_INFLAMMATION_SCALE,
     ALT_BASELINE_U_L,
     ALT_HEPATIC_SCALE,
+    APTT_BASELINE_SEC,
+    APTT_COAGULATION_SCALE,
+    APTT_PHYSIOLOGIC_MAX_SEC,
+    APTT_PHYSIOLOGIC_MIN_SEC,
     AST_BASELINE_U_L,
     AST_HEPATIC_SCALE,
     BNP_BASELINE_PG_ML,
@@ -53,9 +57,32 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     CREATININE_LOW_RENAL_THRESHOLD,
     CRP_BASE_MG_L,
     CRP_INFLAMMATION_SCALE,
+    D_DIMER_AGE_ADJUST_MIN_AGE,
+    D_DIMER_AGE_ADJUST_SCALE,
+    D_DIMER_BASELINE,
+    D_DIMER_COAGULATION_SCALE,
+    D_DIMER_INFLAMMATION_SCALE,
+    D_DIMER_PHYSIOLOGIC_MAX,
+    D_DIMER_PHYSIOLOGIC_MIN,
+    D_DIMER_VTE_LIFT,
     EGFR_RENAL_SCALE,
+    FIBRINOGEN_BASELINE_MG_DL,
+    FIBRINOGEN_COAGULATION_CONSUMPTION_SCALE,
+    FIBRINOGEN_INFLAMMATION_SCALE,
+    FIBRINOGEN_PHYSIOLOGIC_MAX,
+    FIBRINOGEN_PHYSIOLOGIC_MIN,
+    HB_ANEMIA_SCALE,
+    HB_BASELINE_FEMALE_G_DL,
+    HB_BASELINE_MALE_G_DL,
+    HB_FLOOR_G_DL,
+    HCT_HB_RATIO,
+    LACTATE_BASELINE_MMOL_L,
+    LACTATE_PERFUSION_SCALE,
     PCT_BASE_NG_ML,
     PCT_INFLAMMATION_EXPONENT_SCALE,
+    PLT_BASELINE,
+    PLT_COAGULATION_SCALE,
+    PLT_FLOOR,
     POTASSIUM_ACIDOSIS_SCALE,
     POTASSIUM_BASE_MEQ_L,
     POTASSIUM_MAX_MEQ_L,
@@ -66,6 +93,9 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     PT_INR_HEPATIC_SCALE,
     PT_INR_WARFARIN_BASE_GAIN,
     PT_INR_WARFARIN_TARGET_CENTER,
+    PT_ISI_FALLBACK_NORMAL_SEC,
+    PT_PHYSIOLOGIC_MAX_SEC,
+    PT_PHYSIOLOGIC_MIN_SEC,
     SODIUM_BASE_MEQ_L,
     SODIUM_MAX_MEQ_L,
     SODIUM_MIN_MEQ_L,
@@ -617,10 +647,10 @@ def derive_lab_values(
         labs["PT_INR"] = base_inr
 
     # --- Anemia ---
-    base_hb = 15.0 if sex == "M" else 13.0
-    labs["Hb"] = max(3.0, base_hb * (1 - anemia * 0.7))
-    labs["Hct"] = labs["Hb"] * 3.0
-    labs["Plt"] = max(20, 250 - state.coagulation_status * 200)
+    base_hb = HB_BASELINE_MALE_G_DL if sex == "M" else HB_BASELINE_FEMALE_G_DL
+    labs["Hb"] = max(HB_FLOOR_G_DL, base_hb * (1 - anemia * HB_ANEMIA_SCALE))
+    labs["Hct"] = labs["Hb"] * HCT_HB_RATIO
+    labs["Plt"] = max(PLT_FLOOR, PLT_BASELINE - state.coagulation_status * PLT_COAGULATION_SCALE)
 
     # --- Coagulation panel (LOINC 24373-3 components + Fibrinogen adjunct) ---
     # APTT (activated partial thromboplastin time, seconds). Normal 25-35;
@@ -628,13 +658,17 @@ def derive_lab_values(
     # DIC + hepatic factor depletion already aggregated upstream by
     # apply_coupling_rules. State-unchanged formula per AD-57 BNP-pattern
     # surgical; no new PhysiologicalState field.
-    labs["APTT"] = clamp(30.0 + state.coagulation_status * 55.0, 20.0, 150.0)
+    labs["APTT"] = clamp(
+        APTT_BASELINE_SEC + state.coagulation_status * APTT_COAGULATION_SCALE,
+        APTT_PHYSIOLOGIC_MIN_SEC,
+        APTT_PHYSIOLOGIC_MAX_SEC,
+    )
 
     # PT (prothrombin time, seconds). Mathematically tied to PT_INR via
     # INR = (PT / normal_PT)^ISI; with ISI ≈ 1.0 and normal_PT ≈ 12 s,
     # PT ≈ 12 * PT_INR. Derived FROM PT_INR (not in parallel) so the two
     # never numerically disagree.
-    labs["PT"] = clamp(12.0 * labs["PT_INR"], 9.0, 90.0)
+    labs["PT"] = clamp(PT_ISI_FALLBACK_NORMAL_SEC * labs["PT_INR"], PT_PHYSIOLOGIC_MIN_SEC, PT_PHYSIOLOGIC_MAX_SEC)
 
     # Fibrinogen (mg/dL). Biphasic: acute-phase reactant (inflammation ↑↑)
     # AND consumed in DIC (coagulation_status ↑↑). Healthy baseline 200-400.
@@ -645,9 +679,11 @@ def derive_lab_values(
     # Panel-external: LOINC 24373-3 Coag panel covers PT/PT_INR/APTT only;
     # Fibrinogen 3255-7 emits as an individual Observation.
     labs["Fibrinogen"] = clamp(
-        300.0 + infl * 250.0 - state.coagulation_status * 280.0,
-        50.0,
-        800.0,
+        FIBRINOGEN_BASELINE_MG_DL
+        + infl * FIBRINOGEN_INFLAMMATION_SCALE
+        - state.coagulation_status * FIBRINOGEN_COAGULATION_CONSUMPTION_SCALE,
+        FIBRINOGEN_PHYSIOLOGIC_MIN,
+        FIBRINOGEN_PHYSIOLOGIC_MAX,
     )
 
     # D-dimer (ug/mL FEU). Baseline 0.3 + age-adjustment (well-documented
@@ -658,12 +694,18 @@ def derive_lab_values(
     # Clamp floor 0.15 (laboratory detection floor), ceiling 20 (assay
     # upper limit). AD-57 BNP-pattern surgical: scenario flag is the
     # input, no state mutation, no master-RNG draw.
-    age_factor = max(0.0, age - 50) * 0.005
-    d_dimer = 0.3 + age_factor + infl * 0.5 + state.coagulation_status * 1.5 + (4.0 if causes_vte else 0.0)
-    labs["D_dimer"] = clamp(d_dimer, 0.15, 20.0)
+    age_factor = max(0.0, age - D_DIMER_AGE_ADJUST_MIN_AGE) * D_DIMER_AGE_ADJUST_SCALE
+    d_dimer = (
+        D_DIMER_BASELINE
+        + age_factor
+        + infl * D_DIMER_INFLAMMATION_SCALE
+        + state.coagulation_status * D_DIMER_COAGULATION_SCALE
+        + (D_DIMER_VTE_LIFT if causes_vte else 0.0)
+    )
+    labs["D_dimer"] = clamp(d_dimer, D_DIMER_PHYSIOLOGIC_MIN, D_DIMER_PHYSIOLOGIC_MAX)
 
     # --- Perfusion ---
-    labs["Lactate"] = 1.0 + (1 - perfusion) * 12
+    labs["Lactate"] = LACTATE_BASELINE_MMOL_L + (1 - perfusion) * LACTATE_PERFUSION_SCALE
 
     # --- pH / Blood gas (two-axis: metabolic HCO3 + respiratory pCO2, AD-57) ---
     # `ph` is the acid-base disturbance magnitude (neg = acidemia); respiratory_fraction
