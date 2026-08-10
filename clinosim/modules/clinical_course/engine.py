@@ -26,6 +26,40 @@ from clinosim.modules.clinical_course._archetype_modifiers import (
     TRAJECTORY_NOISE_FLOOR,
     TRAJECTORY_NOISE_PROP_SCALE,
 )
+from clinosim.modules.clinical_course._clinical_course_thresholds import (
+    ANEMIA_RECOVERY_ACCEL_MIN_DAY,
+    ANEMIA_RECOVERY_ACCEL_RATE,
+    ANEMIA_RECOVERY_BASE_RATE,
+    ANEMIA_RECOVERY_STEADY_MIN_DAY,
+    ANEMIA_RECOVERY_STEADY_RATE,
+    BUMP_DAY_PROBABILITY,
+    BUMP_DAY_STD,
+    DIAGNOSIS_CONFIDENCE_THRESHOLD_BASE,
+    DIAGNOSIS_CONFIDENCE_THRESHOLD_DIFFICULTY_SCALE,
+    DIAGNOSIS_CORRECT_HIGH_CONF_BASE,
+    DIAGNOSIS_CORRECT_HIGH_CONF_SCALE,
+    DIAGNOSIS_CORRECT_LOW_CONF_BASE,
+    DIAGNOSIS_CORRECT_LOW_CONF_SCALE,
+    DIAGNOSIS_DIFFICULTY_DEFAULT,
+    DIAGNOSIS_EFFECTIVENESS_MAX,
+    DIAGNOSIS_EMPIRIC_BASE,
+    DIAGNOSIS_EMPIRIC_DIFFICULTY_SCALE,
+    DIAGNOSIS_EMPIRIC_FLOOR,
+    DIAGNOSIS_FULL_EFFECTIVE_THRESHOLD,
+    DIAGNOSIS_WRONG_BASE,
+    DIAGNOSIS_WRONG_DIFFICULTY_SCALE,
+    DIAGNOSIS_WRONG_FLOOR,
+    NATURAL_RECOVERY_BASE_RATE,
+    NATURAL_RECOVERY_LATE_DECAY_FACTOR,
+    NATURAL_RECOVERY_LATE_MIN_DAY,
+    NATURAL_RECOVERY_MID_DECAY_FACTOR,
+    NATURAL_RECOVERY_MID_MIN_DAY,
+    NATURAL_RECOVERY_SEVERITY_MILD,
+    NATURAL_RECOVERY_SEVERITY_MODERATE,
+    NATURAL_RECOVERY_SEVERITY_MULT_FALLBACK,
+    NATURAL_RECOVERY_SEVERITY_SEVERE,
+    VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY,
+)
 from clinosim.modules.disease.severity import _evaluate_condition as _severity_condition
 from clinosim.modules.physiology.engine import canonical_state_vars
 from clinosim.types.clinical import StateChangeDirective
@@ -398,8 +432,8 @@ def get_daily_directive(
             if rng is not None:
                 prop_noise = float(rng.normal(0, abs(delta) * TRAJECTORY_NOISE_PROP_SCALE + TRAJECTORY_NOISE_FLOOR))
                 # Occasional larger perturbation (~10% chance of a "bump day")
-                if rng.random() < 0.10:
-                    bump = float(rng.normal(0, 0.008))
+                if rng.random() < BUMP_DAY_PROBABILITY:
+                    bump = float(rng.normal(0, BUMP_DAY_STD))
                     if var_name == "inflammation_level":
                         bump = abs(bump)  # inflammation bumps upward
                     prop_noise += bump
@@ -552,7 +586,7 @@ def compute_diagnosis_effectiveness(
     ground_truth_disease: str,
     diagnosis_confidence: float,
     day: int,
-    diagnostic_difficulty: float = 0.3,
+    diagnostic_difficulty: float = DIAGNOSIS_DIFFICULTY_DEFAULT,
 ) -> float:
     """Compute treatment effectiveness based on diagnosis accuracy.
 
@@ -565,7 +599,10 @@ def compute_diagnosis_effectiveness(
     """
     if working_diagnosis is None:
         # Empiric therapy — less effective for harder-to-diagnose conditions
-        return max(0.15, 0.4 - diagnostic_difficulty * 0.2)
+        return max(
+            DIAGNOSIS_EMPIRIC_FLOOR,
+            DIAGNOSIS_EMPIRIC_BASE - diagnostic_difficulty * DIAGNOSIS_EMPIRIC_DIFFICULTY_SCALE,
+        )
 
     wd = working_diagnosis.lower().replace(" ", "_")
     gt = ground_truth_disease.lower().replace(" ", "_")
@@ -573,13 +610,25 @@ def compute_diagnosis_effectiveness(
     if wd == gt or gt in wd or wd in gt:
         # Correct diagnosis — effectiveness scales with confidence
         # Harder diseases need higher confidence for full effect
-        confidence_threshold = 0.3 + diagnostic_difficulty * 0.3
+        confidence_threshold = (
+            DIAGNOSIS_CONFIDENCE_THRESHOLD_BASE
+            + diagnostic_difficulty * DIAGNOSIS_CONFIDENCE_THRESHOLD_DIFFICULTY_SCALE
+        )
         if diagnosis_confidence >= confidence_threshold:
-            return min(1.0, 0.6 + diagnosis_confidence * 0.4)
-        return min(1.0, 0.4 + diagnosis_confidence * 0.5)
+            return min(
+                DIAGNOSIS_EFFECTIVENESS_MAX,
+                DIAGNOSIS_CORRECT_HIGH_CONF_BASE + diagnosis_confidence * DIAGNOSIS_CORRECT_HIGH_CONF_SCALE,
+            )
+        return min(
+            DIAGNOSIS_EFFECTIVENESS_MAX,
+            DIAGNOSIS_CORRECT_LOW_CONF_BASE + diagnosis_confidence * DIAGNOSIS_CORRECT_LOW_CONF_SCALE,
+        )
 
     # Wrong diagnosis — harder diseases fare worse with wrong treatment
-    return max(0.05, 0.2 - diagnostic_difficulty * 0.1)
+    return max(
+        DIAGNOSIS_WRONG_FLOOR,
+        DIAGNOSIS_WRONG_BASE - diagnostic_difficulty * DIAGNOSIS_WRONG_DIFFICULTY_SCALE,
+    )
 
 
 def apply_diagnosis_modifier(
@@ -589,7 +638,7 @@ def apply_diagnosis_modifier(
     current_ph: float = 0.0,
 ) -> StateChangeDirective:
     """Dampen recovery deltas when treatment is ineffective."""
-    if effectiveness >= 0.99:
+    if effectiveness >= DIAGNOSIS_FULL_EFFECTIVE_THRESHOLD:
         return directive
 
     modified_changes: dict[str, float] = {}
@@ -644,28 +693,32 @@ def natural_recovery_directive(
     Models the body's innate healing — immune response, homeostatic regulation.
     """
     immune = getattr(profile, "immune_reactivity", 0.5)
-    severity_scale = {"mild": 1.2, "moderate": 1.0, "severe": 0.6}.get(severity, 1.0)
-    base = 0.01 * immune * severity_scale
+    severity_scale = {
+        "mild": NATURAL_RECOVERY_SEVERITY_MILD,
+        "moderate": NATURAL_RECOVERY_SEVERITY_MODERATE,
+        "severe": NATURAL_RECOVERY_SEVERITY_SEVERE,
+    }.get(severity, NATURAL_RECOVERY_SEVERITY_MULT_FALLBACK)
+    base = NATURAL_RECOVERY_BASE_RATE * immune * severity_scale
 
     # Natural recovery diminishes over time (acute phase response fades)
-    if day > 7:
-        base *= 0.7
-    if day > 14:
-        base *= 0.5
+    if day > NATURAL_RECOVERY_MID_MIN_DAY:
+        base *= NATURAL_RECOVERY_MID_DECAY_FACTOR
+    if day > NATURAL_RECOVERY_LATE_MIN_DAY:
+        base *= NATURAL_RECOVERY_LATE_DECAY_FACTOR
 
     # Anemia recovery: bone marrow erythropoiesis (~0.02/day = ~1 g/dL Hgb/week)
     # Accelerates slightly after day 3 (reticulocyte response peaks day 3-5)
-    anemia_recovery = 0.015 * severity_scale
-    if day >= 3:
-        anemia_recovery = 0.025 * severity_scale
-    if day >= 7:
-        anemia_recovery = 0.02 * severity_scale  # steady-state production
+    anemia_recovery = ANEMIA_RECOVERY_BASE_RATE * severity_scale
+    if day >= ANEMIA_RECOVERY_ACCEL_MIN_DAY:
+        anemia_recovery = ANEMIA_RECOVERY_ACCEL_RATE * severity_scale
+    if day >= ANEMIA_RECOVERY_STEADY_MIN_DAY:
+        anemia_recovery = ANEMIA_RECOVERY_STEADY_RATE * severity_scale  # steady-state production
 
     return StateChangeDirective(
         source="natural_recovery",
         changes={
             "inflammation_level": -base,
-            "volume_status": -0.005 * severity_scale,  # toward 0
+            "volume_status": -VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY * severity_scale,  # toward 0
             "anemia_level": -anemia_recovery,  # bone marrow erythropoiesis
         },
         reason=f"Natural recovery (immune={immune:.2f}, severity={severity})",
