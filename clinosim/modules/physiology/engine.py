@@ -28,6 +28,33 @@ from clinosim.modules.physiology._coupling_coefficients import (
     HF_SODIUM_COUPLING,
     IHD_CARDIAC_COUPLING,
 )
+from clinosim.modules.physiology._state_coupling_thresholds import (
+    COAG_DIC_INFLAMMATION_SCALE,
+    COAG_DIC_INFLAMMATION_THRESHOLD,
+    COAG_HEPATIC_DYSFUNCTION_SCALE,
+    COAG_HEPATIC_DYSFUNCTION_THRESHOLD,
+    COUPLING_ANEMIA_ACTIVE_MIN,
+    COUPLING_ANEMIA_INFLAMMATION_RESOLVING_THRESHOLD,
+    COUPLING_ANEMIA_INFLAMMATION_SCALE,
+    COUPLING_ANEMIA_INFLAMMATION_THRESHOLD,
+    COUPLING_ANEMIA_RECOVERY_RATE,
+    HYPERNATREMIA_SODIUM_SCALE,
+    PERFUSION_CARDIAC_BASE_OFFSET,
+    PERFUSION_CARDIAC_SCALE,
+    PH_COMBINED_ACID_SCALE,
+    PH_LACTIC_ACID_PERFUSION_SCALE,
+    PH_LACTIC_ACID_PERFUSION_THRESHOLD,
+    PH_RENAL_ACID_RENAL_SCALE,
+    PH_RENAL_ACID_RENAL_THRESHOLD,
+    PRERENAL_HIT_PERFUSION_SCALE,
+    PRERENAL_HIT_PERFUSION_THRESHOLD,
+    RENAL_FUNCTION_FLOOR,
+    VOLUME_HYPERVOLEMIA_CARDIAC_DYSFUNCTION_THRESHOLD,
+    VOLUME_HYPERVOLEMIA_PERFUSION_PENALTY,
+    VOLUME_HYPERVOLEMIA_THRESHOLD,
+    VOLUME_HYPOVOLEMIA_PERFUSION_SCALE,
+    VOLUME_HYPOVOLEMIA_THRESHOLD,
+)
 from clinosim.modules.physiology.dehydration_thresholds import (
     BUN_ELEVATION_THRESHOLD,
     HYPERNATREMIA_THRESHOLD,
@@ -196,46 +223,65 @@ def apply_coupling_rules(state: PhysiologicalState) -> None:
     """Apply physiological coupling between state variables. Order matters."""
     # Perfusion depends on cardiac + volume
     volume_effect = 0.0
-    if state.volume_status < -0.5:
-        volume_effect = state.volume_status * 0.3
-    elif state.volume_status > 0.5 and state.cardiac_function < 0.5:
-        volume_effect = -0.1
-    state.perfusion_status = clamp(state.cardiac_function * 0.8 + 0.2 + volume_effect, 0.0, 1.0)
+    if state.volume_status < VOLUME_HYPOVOLEMIA_THRESHOLD:
+        volume_effect = state.volume_status * VOLUME_HYPOVOLEMIA_PERFUSION_SCALE
+    elif (
+        state.volume_status > VOLUME_HYPERVOLEMIA_THRESHOLD
+        and state.cardiac_function < VOLUME_HYPERVOLEMIA_CARDIAC_DYSFUNCTION_THRESHOLD
+    ):
+        volume_effect = VOLUME_HYPERVOLEMIA_PERFUSION_PENALTY
+    state.perfusion_status = clamp(
+        state.cardiac_function * PERFUSION_CARDIAC_SCALE + PERFUSION_CARDIAC_BASE_OFFSET + volume_effect, 0.0, 1.0
+    )
 
     # Renal depends on perfusion (pre-renal)
-    if state.perfusion_status < 0.5:
-        hit = (0.5 - state.perfusion_status) * 0.3
-        state.renal_function = clamp(state.renal_function - hit, 0.05, 1.0)
+    if state.perfusion_status < PRERENAL_HIT_PERFUSION_THRESHOLD:
+        hit = (PRERENAL_HIT_PERFUSION_THRESHOLD - state.perfusion_status) * PRERENAL_HIT_PERFUSION_SCALE
+        state.renal_function = clamp(state.renal_function - hit, RENAL_FUNCTION_FLOOR, 1.0)
 
     # pH depends on renal + perfusion
     renal_acid = 0.0
-    if state.renal_function < 0.3:
-        renal_acid = -(0.3 - state.renal_function) * 0.5
+    if state.renal_function < PH_RENAL_ACID_RENAL_THRESHOLD:
+        renal_acid = -(PH_RENAL_ACID_RENAL_THRESHOLD - state.renal_function) * PH_RENAL_ACID_RENAL_SCALE
     lactic_acid = 0.0
-    if state.perfusion_status < 0.4:
-        lactic_acid = -(0.4 - state.perfusion_status) * 0.6
-    state.ph_status = clamp(state.ph_status + (renal_acid + lactic_acid) * 0.1, -1.0, 1.0)
+    if state.perfusion_status < PH_LACTIC_ACID_PERFUSION_THRESHOLD:
+        lactic_acid = -(PH_LACTIC_ACID_PERFUSION_THRESHOLD - state.perfusion_status) * PH_LACTIC_ACID_PERFUSION_SCALE
+    state.ph_status = clamp(state.ph_status + (renal_acid + lactic_acid) * PH_COMBINED_ACID_SCALE, -1.0, 1.0)
 
     # Coagulation worsens with severe inflammation (DIC)
-    if state.inflammation_level > 0.7:
-        dic = (state.inflammation_level - 0.7) * 0.15
+    if state.inflammation_level > COAG_DIC_INFLAMMATION_THRESHOLD:
+        dic = (state.inflammation_level - COAG_DIC_INFLAMMATION_THRESHOLD) * COAG_DIC_INFLAMMATION_SCALE
         state.coagulation_status = clamp(state.coagulation_status + dic, 0.0, 1.0)
 
     # Hepatic dysfunction worsens coagulation
-    if state.hepatic_function < 0.4:
-        state.coagulation_status = clamp(state.coagulation_status + (0.4 - state.hepatic_function) * 0.1, 0.0, 1.0)
+    if state.hepatic_function < COAG_HEPATIC_DYSFUNCTION_THRESHOLD:
+        state.coagulation_status = clamp(
+            state.coagulation_status
+            + (COAG_HEPATIC_DYSFUNCTION_THRESHOLD - state.hepatic_function) * COAG_HEPATIC_DYSFUNCTION_SCALE,
+            0.0,
+            1.0,
+        )
 
     # Chronic inflammation causes anemia (very slow)
-    if state.inflammation_level > 0.5:
-        state.anemia_level = clamp(state.anemia_level + (state.inflammation_level - 0.5) * 0.005, 0.0, 1.0)
+    if state.inflammation_level > COUPLING_ANEMIA_INFLAMMATION_THRESHOLD:
+        state.anemia_level = clamp(
+            state.anemia_level
+            + (state.inflammation_level - COUPLING_ANEMIA_INFLAMMATION_THRESHOLD) * COUPLING_ANEMIA_INFLAMMATION_SCALE,
+            0.0,
+            1.0,
+        )
     # Resolving inflammation allows anemia to recover (bone marrow de-suppression)
-    elif state.inflammation_level < 0.2 and state.anemia_level > 0.05:
-        state.anemia_level = clamp(state.anemia_level - 0.005, 0.0, 1.0)
+    elif (
+        state.inflammation_level < COUPLING_ANEMIA_INFLAMMATION_RESOLVING_THRESHOLD
+        and state.anemia_level > COUPLING_ANEMIA_ACTIVE_MIN
+    ):
+        state.anemia_level = clamp(state.anemia_level - COUPLING_ANEMIA_RECOVERY_RATE, 0.0, 1.0)
 
     # Dehydration (free-water deficit) concentrates serum sodium -> hypernatremia.
     if state.volume_status < HYPERNATREMIA_THRESHOLD:
         state.sodium_status = clamp(
-            state.sodium_status + (abs(state.volume_status) - abs(HYPERNATREMIA_THRESHOLD)) * 1.2,
+            state.sodium_status
+            + (abs(state.volume_status) - abs(HYPERNATREMIA_THRESHOLD)) * HYPERNATREMIA_SODIUM_SCALE,
             -1.0,
             1.0,
         )
