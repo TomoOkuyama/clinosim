@@ -14,6 +14,26 @@ import numpy as np
 from clinosim.modules._shared import is_jp, normalize_probabilities
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.disease.severity import sample_severity
+from clinosim.modules.population._household_thresholds import (
+    AVG_HOUSEHOLD_SIZE_DEFAULT,
+    BLOOD_TYPE_DEFAULT_DISTRIBUTION,
+    HOUSEHOLD_LANDLINE_PROBABILITY_DEFAULT,
+    HOUSEHOLD_SIZE_WEIGHTED_CHOICES,
+    JP_ADDRESS_APARTMENT_PROBABILITY_DEFAULT,
+    JP_ADDRESS_BANCHI_MAX_EXCLUSIVE,
+    JP_ADDRESS_BANCHI_MIN,
+    JP_ADDRESS_CHOME_MAX_EXCLUSIVE,
+    JP_ADDRESS_CHOME_MIN,
+    JP_ADDRESS_GO_MAX_EXCLUSIVE,
+    JP_ADDRESS_GO_MIN,
+    SEX_RATIO_MALE_DEFAULT,
+    US_ADDRESS_APARTMENT_NUMBER_MAX_EXCLUSIVE,
+    US_ADDRESS_APARTMENT_NUMBER_MIN,
+    US_ADDRESS_APARTMENT_PROBABILITY_DEFAULT,
+    US_ADDRESS_STREET_NUMBER_MAX_EXCLUSIVE,
+    US_ADDRESS_STREET_NUMBER_MIN,
+    WIFE_KEEPS_MAIDEN_PROBABILITY_DEFAULT,
+)
 from clinosim.modules.population._population_thresholds import (
     ALCOHOL_FALLBACK_LABELS,
     ALCOHOL_FALLBACK_PROBS,
@@ -149,7 +169,7 @@ def generate_population(
     registry = PopulationRegistry()
     if demo is None:
         demo = _load_demographics(country)
-    avg_household_size = demo.get("average_household_size", 2.5)
+    avg_household_size = demo.get("average_household_size", AVG_HOUSEHOLD_SIZE_DEFAULT)
     n_households = int(size / avg_household_size)
     chronic_data = _parse_chronic_prevalence(demo)
 
@@ -169,7 +189,9 @@ def generate_population(
         # Generate household address (shared by all members)
         hh_addr = _generate_household_address(addr_data, rng)
         hh_phone_home = _generate_phone(addr_data, "landline", rng)
-        has_landline = rng.random() < addr_data.get("contact_rules", {}).get("household_has_landline_probability", 0.5)
+        has_landline = rng.random() < addr_data.get("contact_rules", {}).get(
+            "household_has_landline_probability", HOUSEHOLD_LANDLINE_PROBABILITY_DEFAULT
+        )
 
         # Household family name — rule depends on country
         # "shared": all members share one surname (JP, CN traditional)
@@ -178,7 +200,7 @@ def generate_population(
         household_surname = _sample_surname(name_data, rng)
 
         # Household size: 1-4 (weighted)
-        hh_size = int(rng.choice([1, 2, 2, 3, 3, 4]))
+        hh_size = int(rng.choice(HOUSEHOLD_SIZE_WEIGHTED_CHOICES))
 
         for m_idx in range(hh_size):
             if person_count >= size:
@@ -192,7 +214,7 @@ def generate_population(
             age = int(rng.integers(age_band[0], age_band[1] + 1))
 
             # Sex ratio from YAML (default 0.49 male)
-            male_prob = (demo.get("sex_ratio") or {}).get("male", 0.49)
+            male_prob = (demo.get("sex_ratio") or {}).get("male", SEX_RATIO_MALE_DEFAULT)
             sex = "M" if rng.random() < male_prob else "F"
             dob = date(base_year - age, int(rng.integers(1, 13)), int(rng.integers(1, 29)))
             blood_type = _sample_blood_type(demo, rng)
@@ -259,7 +281,7 @@ def generate_population(
                 member_surname = household_surname
             elif surname_rule == "mostly_shared":
                 # First member sets surname; spouse may keep maiden with some probability
-                maiden_prob = naming_rules.get("wife_keeps_maiden_probability", 0.20)
+                maiden_prob = naming_rules.get("wife_keeps_maiden_probability", WIFE_KEEPS_MAIDEN_PROBABILITY_DEFAULT)
                 if m_idx == 0:
                     member_surname = household_surname
                 elif m_idx == 1 and sex == "F" and rng.random() < maiden_prob:
@@ -564,7 +586,7 @@ def _sample_blood_type(demo: dict, rng: np.random.Generator) -> str:
     to handle floating-point summation artifacts (e.g., 0.40+0.30+0.20+0.10
     sums to 0.9999999999999999 in float64, not exactly 1.0).
     """
-    bt = demo.get("blood_type", {"O": 0.44, "A": 0.42, "B": 0.10, "AB": 0.04})
+    bt = demo.get("blood_type", BLOOD_TYPE_DEFAULT_DISTRIBUTION)
     keys = list(bt.keys())
     weights = normalize_probabilities([bt[k] for k in keys], fallback="raise")
     idx = int(rng.choice(len(keys), p=weights))
@@ -832,11 +854,11 @@ def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> di
     if is_jp(country):
         towns = addr_data.get("towns", ["本町"])
         town = str(rng.choice(towns))
-        chome = int(rng.integers(1, 6))
-        banchi = int(rng.integers(1, 30))
-        go = int(rng.integers(1, 15))
+        chome = int(rng.integers(JP_ADDRESS_CHOME_MIN, JP_ADDRESS_CHOME_MAX_EXCLUSIVE))
+        banchi = int(rng.integers(JP_ADDRESS_BANCHI_MIN, JP_ADDRESS_BANCHI_MAX_EXCLUSIVE))
+        go = int(rng.integers(JP_ADDRESS_GO_MIN, JP_ADDRESS_GO_MAX_EXCLUSIVE))
         line = f"{town}{chome}丁目{banchi}-{go}"
-        if rng.random() < addr_data.get("apartment_probability", 0.6):
+        if rng.random() < addr_data.get("apartment_probability", JP_ADDRESS_APARTMENT_PROBABILITY_DEFAULT):
             apt_names = addr_data.get("apartment_names", ["マンション"])
             apt = str(rng.choice(apt_names))
             room = int(rng.integers(101, 1205))
@@ -844,10 +866,10 @@ def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> di
     else:
         streets = addr_data.get("street_names", ["Main St"])
         street = str(rng.choice(streets))
-        num = int(rng.integers(1, 500))
+        num = int(rng.integers(US_ADDRESS_STREET_NUMBER_MIN, US_ADDRESS_STREET_NUMBER_MAX_EXCLUSIVE))
         line = f"{num} {street}"
-        if rng.random() < addr_data.get("apartment_probability", 0.35):
-            apt_num = int(rng.integers(1, 13))
+        if rng.random() < addr_data.get("apartment_probability", US_ADDRESS_APARTMENT_PROBABILITY_DEFAULT):
+            apt_num = int(rng.integers(US_ADDRESS_APARTMENT_NUMBER_MIN, US_ADDRESS_APARTMENT_NUMBER_MAX_EXCLUSIVE))
             line += f", Apt {apt_num}"
 
     return {"postal_code": postal_code, "state": state, "city": city, "line": line}
