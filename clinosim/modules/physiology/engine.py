@@ -141,6 +141,43 @@ from clinosim.modules.physiology._state_coupling_thresholds import (
     VOLUME_HYPOVOLEMIA_PERFUSION_SCALE,
     VOLUME_HYPOVOLEMIA_THRESHOLD,
 )
+from clinosim.modules.physiology._vital_signs_thresholds import (
+    BP_DBP_CLAMP_MAX,
+    BP_DBP_CLAMP_MIN,
+    BP_DBP_DISTRIBUTIVE_RATIO,
+    BP_DBP_PERFUSION_SCALE,
+    BP_DBP_VOLUME_SCALE,
+    BP_SBP_CLAMP_MAX,
+    BP_SBP_CLAMP_MIN,
+    BP_SBP_PERFUSION_SCALE,
+    BP_SBP_VOLUME_SCALE,
+    DISTRIBUTIVE_SBP_COEFF,
+    DISTRIBUTIVE_THRESHOLD,
+    HR_ANEMIA_SCALE,
+    HR_CLAMP_MAX,
+    HR_CLAMP_MIN,
+    HR_FEVER_REFERENCE_TEMP_C,
+    HR_PERFUSION_SCALE,
+    HR_TEMPERATURE_SCALE,
+    RR_CLAMP_MAX,
+    RR_CLAMP_MIN,
+    RR_INFLAMMATION_SCALE,
+    RR_PH_ACIDOSIS_SCALE,
+    RR_VOLUME_OVERLOAD_SCALE,
+    RR_VOLUME_OVERLOAD_THRESHOLD,
+    SPO2_CLAMP_MAX,
+    SPO2_CLAMP_MIN,
+    SPO2_INFLAMMATION_SCALE,
+    SPO2_INFLAMMATION_THRESHOLD,
+    SPO2_VOLUME_OVERLOAD_SCALE,
+    SPO2_VOLUME_OVERLOAD_THRESHOLD,
+    TEMPERATURE_CIRCADIAN_HOUR_OFFSET,
+    TEMPERATURE_CIRCADIAN_HOUR_PERIOD,
+    TEMPERATURE_CIRCADIAN_SCALE,
+    TEMPERATURE_CLAMP_MAX,
+    TEMPERATURE_CLAMP_MIN,
+    TEMPERATURE_INFLAMMATION_SCALE,
+)
 from clinosim.modules.physiology.dehydration_thresholds import (
     BUN_ELEVATION_THRESHOLD,
     HYPERNATREMIA_THRESHOLD,
@@ -808,13 +845,6 @@ def derive_lab_values(
 # Vital signs derivation
 # ---------------------------------------------------------------------------
 
-# Distributive (vasodilatory) shock hypotension, applied at vitals-derivation only
-# (does not mutate perfusion_status). Inflammation above the threshold lowers SBP
-# linearly (mmHg per unit inflammation above threshold); DBP drops at 0.6x.
-# Coefficient fixed by generation audit (sepsis SBP<90 target ~15-25%).
-DISTRIBUTIVE_THRESHOLD = 0.7
-DISTRIBUTIVE_SBP_COEFF = 60.0
-
 
 def derive_vital_signs(
     state: PhysiologicalState,
@@ -828,16 +858,18 @@ def derive_vital_signs(
 
     # Temperature: inflammation + circadian
     hour = timestamp.hour
-    circadian = 0.3 * (-math.cos((hour - 4) * math.pi / 12))
-    temperature = baseline.temperature + infl * 3.0 + circadian
-    temperature = clamp(temperature, 35.0, 42.0)
+    circadian = TEMPERATURE_CIRCADIAN_SCALE * (
+        -math.cos((hour - TEMPERATURE_CIRCADIAN_HOUR_OFFSET) * math.pi / TEMPERATURE_CIRCADIAN_HOUR_PERIOD)
+    )
+    temperature = baseline.temperature + infl * TEMPERATURE_INFLAMMATION_SCALE + circadian
+    temperature = clamp(temperature, TEMPERATURE_CLAMP_MIN, TEMPERATURE_CLAMP_MAX)
 
     # Heart rate
-    temp_effect = max(0, (temperature - 37.0)) * 10
-    perfusion_effect = max(0, (1.0 - perf)) * 40
-    anemia_effect = state.anemia_level * 15
+    temp_effect = max(0, (temperature - HR_FEVER_REFERENCE_TEMP_C)) * HR_TEMPERATURE_SCALE
+    perfusion_effect = max(0, (1.0 - perf)) * HR_PERFUSION_SCALE
+    anemia_effect = state.anemia_level * HR_ANEMIA_SCALE
     hr = baseline.heart_rate + temp_effect + perfusion_effect + anemia_effect
-    hr = clamp(hr, 40, 180)
+    hr = clamp(hr, HR_CLAMP_MIN, HR_CLAMP_MAX)
 
     # Blood pressure
     # Distributive (vasodilatory) hypotension: severe systemic inflammation lowers
@@ -846,26 +878,33 @@ def derive_vital_signs(
     # complication / LOS / mortality RNG); that keeps the master stream stable while
     # still producing hypotension coherent with the already-elevated sepsis labs.
     distributive_drop = max(0.0, infl - DISTRIBUTIVE_THRESHOLD) * DISTRIBUTIVE_SBP_COEFF
-    sbp: float = baseline.systolic_bp + vol * 15 - (1 - perf) * 40 - distributive_drop
-    sbp = clamp(sbp, 60, 220)
-    dbp: float = baseline.diastolic_bp + vol * 8 - (1 - perf) * 20 - distributive_drop * 0.6
-    dbp = clamp(dbp, 30, 130)
+    sbp: float = (
+        baseline.systolic_bp + vol * BP_SBP_VOLUME_SCALE - (1 - perf) * BP_SBP_PERFUSION_SCALE - distributive_drop
+    )
+    sbp = clamp(sbp, BP_SBP_CLAMP_MIN, BP_SBP_CLAMP_MAX)
+    dbp: float = (
+        baseline.diastolic_bp
+        + vol * BP_DBP_VOLUME_SCALE
+        - (1 - perf) * BP_DBP_PERFUSION_SCALE
+        - distributive_drop * BP_DBP_DISTRIBUTIVE_RATIO
+    )
+    dbp = clamp(dbp, BP_DBP_CLAMP_MIN, BP_DBP_CLAMP_MAX)
 
     # Respiratory rate
     rr: float = baseline.respiratory_rate
-    rr += max(0, -state.ph_status) * 10
-    rr += infl * 4
-    if vol > 0.5:
-        rr += (vol - 0.5) * 8
-    rr = clamp(rr, 8, 45)
+    rr += max(0, -state.ph_status) * RR_PH_ACIDOSIS_SCALE
+    rr += infl * RR_INFLAMMATION_SCALE
+    if vol > RR_VOLUME_OVERLOAD_THRESHOLD:
+        rr += (vol - RR_VOLUME_OVERLOAD_THRESHOLD) * RR_VOLUME_OVERLOAD_SCALE
+    rr = clamp(rr, RR_CLAMP_MIN, RR_CLAMP_MAX)
 
     # SpO2
     spo2 = baseline.spo2
-    if infl > 0.3:
-        spo2 -= (infl - 0.3) * 10
-    if vol > 0.3:
-        spo2 -= (vol - 0.3) * 5
-    spo2 = clamp(spo2, 60, 100)
+    if infl > SPO2_INFLAMMATION_THRESHOLD:
+        spo2 -= (infl - SPO2_INFLAMMATION_THRESHOLD) * SPO2_INFLAMMATION_SCALE
+    if vol > SPO2_VOLUME_OVERLOAD_THRESHOLD:
+        spo2 -= (vol - SPO2_VOLUME_OVERLOAD_THRESHOLD) * SPO2_VOLUME_OVERLOAD_SCALE
+    spo2 = clamp(spo2, SPO2_CLAMP_MIN, SPO2_CLAMP_MAX)
 
     return {
         "temperature": round(temperature, 1),
