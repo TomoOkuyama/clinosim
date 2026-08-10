@@ -318,6 +318,18 @@ _FALLBACK_PROBABILITIES = {
 }
 
 
+def _apply_severity_multiplier(probs: dict[str, float], archetype: str, multiplier: float) -> None:
+    """Multiply an archetype's probability by ``multiplier`` in place.
+
+    When ``probs`` lacks ``archetype`` (the YAML-driven curator may
+    supply only a subset), the baseline is sourced from
+    :data:`_FALLBACK_PROBABILITIES` so the six severity branches share
+    a single source of truth for the pre-multiplier baseline instead
+    of re-typing 0.05 / 0.02 / 0.55 inline.
+    """
+    probs[archetype] = probs.get(archetype, _FALLBACK_PROBABILITIES[archetype]) * multiplier
+
+
 def select_archetype(
     severity: str,
     profile: PatientPhysiologicalProfile,
@@ -341,15 +353,19 @@ def select_archetype(
     else:
         probs = dict(_FALLBACK_PROBABILITIES)
 
-    # Severity modifiers
+    # Severity modifiers — source the per-archetype fallback baseline
+    # from ``_FALLBACK_PROBABILITIES`` (single source of truth) instead
+    # of re-typing 0.05 / 0.02 / 0.55 inline; the values must stay
+    # equal by construction but hardcoding them a second time invited
+    # silent drift if the fallback dict was ever re-tuned.
     if severity == "severe":
-        probs["gradual_deterioration"] = probs.get("gradual_deterioration", 0.05) * SEVERE_GRADUAL_DETERIORATION_MULT
-        probs["sudden_deterioration"] = probs.get("sudden_deterioration", 0.02) * SEVERE_SUDDEN_DETERIORATION_MULT
-        probs["smooth_recovery"] = probs.get("smooth_recovery", 0.55) * SEVERE_SMOOTH_RECOVERY_MULT
+        _apply_severity_multiplier(probs, "gradual_deterioration", SEVERE_GRADUAL_DETERIORATION_MULT)
+        _apply_severity_multiplier(probs, "sudden_deterioration", SEVERE_SUDDEN_DETERIORATION_MULT)
+        _apply_severity_multiplier(probs, "smooth_recovery", SEVERE_SMOOTH_RECOVERY_MULT)
     elif severity == "mild":
-        probs["smooth_recovery"] = probs.get("smooth_recovery", 0.55) * MILD_SMOOTH_RECOVERY_MULT
-        probs["gradual_deterioration"] = probs.get("gradual_deterioration", 0.05) * MILD_GRADUAL_DETERIORATION_MULT
-        probs["sudden_deterioration"] = probs.get("sudden_deterioration", 0.02) * MILD_SUDDEN_DETERIORATION_MULT
+        _apply_severity_multiplier(probs, "smooth_recovery", MILD_SMOOTH_RECOVERY_MULT)
+        _apply_severity_multiplier(probs, "gradual_deterioration", MILD_GRADUAL_DETERIORATION_MULT)
+        _apply_severity_multiplier(probs, "sudden_deterioration", MILD_SUDDEN_DETERIORATION_MULT)
 
     # Patient risk-factor modifiers from the disease YAML (FP-YAML-2b), replacing the
     # former hardcoded immune_reactivity / treatment_sensitivity heuristics with the
