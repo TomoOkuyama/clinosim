@@ -12,6 +12,71 @@ import numpy as np
 
 from clinosim.locale.loader import load_names
 from clinosim.modules._shared import is_jp, normalize_probabilities, resolve_lang
+from clinosim.modules.patient._patient_activator_thresholds import (
+    AGE_PENALTY_HEPATIC_RATIO,
+    AGE_PENALTY_MIN_AGE,
+    AGE_PENALTY_SCALE,
+    BASELINE_DBP_AGE_REFERENCE,
+    BASELINE_DBP_AGE_SCALE,
+    BASELINE_DBP_BASE,
+    BASELINE_DBP_SAMPLE_SD,
+    BASELINE_HR_BASE_FEMALE,
+    BASELINE_HR_BASE_MALE,
+    BASELINE_HR_SAMPLE_SD,
+    BASELINE_RR_MEAN,
+    BASELINE_RR_SD,
+    BASELINE_SBP_AGE_REFERENCE,
+    BASELINE_SBP_AGE_SCALE,
+    BASELINE_SBP_BASE,
+    BASELINE_SBP_SAMPLE_SD,
+    BASELINE_SPO2_CEILING,
+    BASELINE_SPO2_MEAN,
+    BASELINE_SPO2_SD,
+    BASELINE_TEMPERATURE_MEAN,
+    BASELINE_TEMPERATURE_SD,
+    CHRONIC_CONTROLLED_PROBABILITY,
+    CHRONIC_ONSET_DAY_MAX_EXCLUSIVE,
+    CHRONIC_ONSET_DAY_MIN,
+    CHRONIC_ONSET_MONTH_MAX_EXCLUSIVE,
+    CHRONIC_ONSET_MONTH_MIN,
+    CHRONIC_ONSET_YEAR_FLOOR,
+    CHRONIC_ONSET_YEAR_MAX_EXCLUSIVE,
+    CHRONIC_ONSET_YEAR_MIN,
+    CHRONIC_ONSET_YEAR_REFERENCE,
+    CHRONIC_SEVERITY_MILD_PROBABILITY,
+    DELIRIUM_BETA_PARAMS,
+    DELIRIUM_DEMENTIA_PREMIUM,
+    DELIRIUM_ELDERLY_AGE_THRESHOLD,
+    DELIRIUM_ELDERLY_PREMIUM,
+    DELIRIUM_PARKINSON_PREMIUM,
+    DRUG_METABOLISM_JP_PROBS,
+    DRUG_METABOLISM_LABELS,
+    DRUG_METABOLISM_US_PROBS,
+    DVT_BETA_PARAMS,
+    DVT_ELDERLY_AGE_THRESHOLD,
+    DVT_ELDERLY_PREMIUM,
+    E03_HR_REDUCTION_MAX_EXCLUSIVE,
+    E03_HR_REDUCTION_MIN,
+    GENERIC_SEVERITY_UNIFORM_MAX,
+    GENERIC_SEVERITY_UNIFORM_MIN,
+    I10_DBP_BASE_LIFT,
+    I10_DBP_SEVERITY_SCALE,
+    I10_DEFAULT_SEVERITY,
+    I10_SBP_BASE_LIFT,
+    I10_SBP_SEVERITY_SCALE,
+    I48_HR_LIFT_MAX_EXCLUSIVE,
+    I48_HR_LIFT_MIN,
+    IMMUNE_REACTIVITY_BETA_PARAMS,
+    J44_SPO2_LIMIT_MEAN,
+    J44_SPO2_LIMIT_SD,
+    J45_RR_LIFT_MAX_EXCLUSIVE,
+    J45_RR_LIFT_MIN,
+    RESERVE_FLOOR,
+    SYMPTOM_REPORTING_BIAS_MEAN,
+    SYMPTOM_REPORTING_BIAS_SD,
+    TREATMENT_SENSITIVITY_MEAN,
+    TREATMENT_SENSITIVITY_SD,
+)
 from clinosim.modules.patient._severity_activation import (
     I10_STAGE_WEIGHTS,
     I10_STAGES,
@@ -170,35 +235,41 @@ def activate_patient(
     country = demo.get("_country", "US") if isinstance(demo, dict) else "US"
 
     # Physiological profile
-    age_penalty = max(0, (age - 40) * 0.005)
+    age_penalty = max(0, (age - AGE_PENALTY_MIN_AGE) * AGE_PENALTY_SCALE)
     profile = PatientPhysiologicalProfile(
-        immune_reactivity=float(rng.beta(5, 5)),
+        immune_reactivity=float(rng.beta(*IMMUNE_REACTIVITY_BETA_PARAMS)),
         drug_metabolism_rate=str(
             rng.choice(
-                ["poor", "normal", "rapid", "ultra_rapid"],
-                p=[0.15, 0.65, 0.15, 0.05] if is_jp(country) else [0.07, 0.70, 0.15, 0.08],
+                DRUG_METABOLISM_LABELS,
+                p=DRUG_METABOLISM_JP_PROBS if is_jp(country) else DRUG_METABOLISM_US_PROBS,
             )
         ),
-        renal_reserve=max(0.1, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
-        cardiac_reserve=max(0.1, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
-        hepatic_reserve=max(0.1, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty * 0.7),
-        treatment_sensitivity=float(rng.normal(1.0, 0.15)),
-        symptom_reporting_bias=float(rng.normal(1.0, 0.25)),
-        delirium_susceptibility=float(rng.beta(2, 8))
-        + (0.15 if age >= 75 else 0)
-        + (0.25 if "F00" in person.chronic_conditions else 0)
-        + (0.10 if "G20" in person.chronic_conditions else 0),
-        dvt_susceptibility=float(rng.beta(2, 8)) + (0.10 if age >= 70 else 0),
+        renal_reserve=max(RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
+        cardiac_reserve=max(RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
+        hepatic_reserve=max(
+            RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty * AGE_PENALTY_HEPATIC_RATIO
+        ),
+        treatment_sensitivity=float(rng.normal(TREATMENT_SENSITIVITY_MEAN, TREATMENT_SENSITIVITY_SD)),
+        symptom_reporting_bias=float(rng.normal(SYMPTOM_REPORTING_BIAS_MEAN, SYMPTOM_REPORTING_BIAS_SD)),
+        delirium_susceptibility=float(rng.beta(*DELIRIUM_BETA_PARAMS))
+        + (DELIRIUM_ELDERLY_PREMIUM if age >= DELIRIUM_ELDERLY_AGE_THRESHOLD else 0)
+        + (DELIRIUM_DEMENTIA_PREMIUM if "F00" in person.chronic_conditions else 0)
+        + (DELIRIUM_PARKINSON_PREMIUM if "G20" in person.chronic_conditions else 0),
+        dvt_susceptibility=float(rng.beta(*DVT_BETA_PARAMS))
+        + (DVT_ELDERLY_PREMIUM if age >= DVT_ELDERLY_AGE_THRESHOLD else 0),
     )
 
     # Chronic conditions (expand from ICD codes)
     conditions = []
     for code in person.chronic_conditions:
         # Random onset year (1-15 yrs ago) and random month/day
-        onset_year = max(1950, 2024 - int(rng.integers(1, 15)))
-        onset_month = int(rng.integers(1, 13))
-        onset_day = int(rng.integers(1, 29))
-        sev = "mild" if rng.random() < 0.6 else "moderate"
+        onset_year = max(
+            CHRONIC_ONSET_YEAR_FLOOR,
+            CHRONIC_ONSET_YEAR_REFERENCE - int(rng.integers(CHRONIC_ONSET_YEAR_MIN, CHRONIC_ONSET_YEAR_MAX_EXCLUSIVE)),
+        )
+        onset_month = int(rng.integers(CHRONIC_ONSET_MONTH_MIN, CHRONIC_ONSET_MONTH_MAX_EXCLUSIVE))
+        onset_day = int(rng.integers(CHRONIC_ONSET_DAY_MIN, CHRONIC_ONSET_DAY_MAX_EXCLUSIVE))
+        sev = "mild" if rng.random() < CHRONIC_SEVERITY_MILD_PROBABILITY else "moderate"
         # Stage by ICD code. For diabetes (E11/E10) the stage HbA1c, the lab HbA1c, and the
         # Glucose baseline all derive from one continuous glycemic_control axis. We reuse the
         # single float draw that _generate_stage's E11 branch used to consume (now reinterpreted
@@ -219,8 +290,8 @@ def activate_patient(
         # still consumed (value discarded) so the RNG stream position for
         # every other condition/patient is unperturbed (AD-16), matching the
         # diabetes gc_draw precedent above.
-        controlled_flag = rng.random() < 0.7
-        generic_severity_score = float(rng.uniform(0.1, 0.4))
+        controlled_flag = rng.random() < CHRONIC_CONTROLLED_PROBABILITY
+        generic_severity_score = float(rng.uniform(GENERIC_SEVERITY_UNIFORM_MIN, GENERIC_SEVERITY_UNIFORM_MAX))
         # Graded-stage conditions derive severity_score from the sampled
         # stage instead of the generic uniform(0.1, 0.4) shared by other
         # chronic conditions. N18's stage text carries a "CKD " display
@@ -254,15 +325,16 @@ def activate_patient(
         allergies = []
 
     # Baseline vitals
-    hr_base = 72 if sex == "M" else 78
-    sbp_base = 110 + max(0, (age - 30)) * 0.5
+    hr_base = BASELINE_HR_BASE_MALE if sex == "M" else BASELINE_HR_BASE_FEMALE
+    sbp_base = BASELINE_SBP_BASE + max(0, (age - BASELINE_SBP_AGE_REFERENCE)) * BASELINE_SBP_AGE_SCALE
+    dbp_base = BASELINE_DBP_BASE + max(0, (age - BASELINE_DBP_AGE_REFERENCE)) * BASELINE_DBP_AGE_SCALE
     vitals = BaselineVitals(
-        temperature=round(float(rng.normal(36.4, 0.2)), 1),
-        heart_rate=int(rng.normal(hr_base, 8)),
-        systolic_bp=int(rng.normal(sbp_base, 10)),
-        diastolic_bp=int(rng.normal(70 + max(0, (age - 30)) * 0.2, 7)),
-        respiratory_rate=int(rng.normal(16, 2)),
-        spo2=round(float(min(99, rng.normal(97.5, 1.0))), 1),
+        temperature=round(float(rng.normal(BASELINE_TEMPERATURE_MEAN, BASELINE_TEMPERATURE_SD)), 1),
+        heart_rate=int(rng.normal(hr_base, BASELINE_HR_SAMPLE_SD)),
+        systolic_bp=int(rng.normal(sbp_base, BASELINE_SBP_SAMPLE_SD)),
+        diastolic_bp=int(rng.normal(dbp_base, BASELINE_DBP_SAMPLE_SD)),
+        respiratory_rate=int(rng.normal(BASELINE_RR_MEAN, BASELINE_RR_SD)),
+        spo2=round(float(min(BASELINE_SPO2_CEILING, rng.normal(BASELINE_SPO2_MEAN, BASELINE_SPO2_SD))), 1),
     )
 
     # Chronic condition adjustments to baseline vitals
@@ -271,17 +343,17 @@ def activate_patient(
     # now a real physiological consumer rather than a no-op. No new rng draw.
     _severity_by_code = {c.code: c.severity_score for c in conditions}
     if "I10" in person.chronic_conditions:
-        _i10_sev = _severity_by_code.get("I10", 0.30)
-        vitals.systolic_bp += int(round(8 + _i10_sev * 20))
-        vitals.diastolic_bp += int(round(4 + _i10_sev * 10))
+        _i10_sev = _severity_by_code.get("I10", I10_DEFAULT_SEVERITY)
+        vitals.systolic_bp += int(round(I10_SBP_BASE_LIFT + _i10_sev * I10_SBP_SEVERITY_SCALE))
+        vitals.diastolic_bp += int(round(I10_DBP_BASE_LIFT + _i10_sev * I10_DBP_SEVERITY_SCALE))
     if "I48" in person.chronic_conditions:
-        vitals.heart_rate += int(rng.integers(5, 20))  # irregularly irregular
+        vitals.heart_rate += int(rng.integers(I48_HR_LIFT_MIN, I48_HR_LIFT_MAX_EXCLUSIVE))  # irregularly irregular
     if "J44" in person.chronic_conditions:
-        vitals.spo2 = round(min(vitals.spo2, float(rng.normal(94, 1.5))), 1)
+        vitals.spo2 = round(min(vitals.spo2, float(rng.normal(J44_SPO2_LIMIT_MEAN, J44_SPO2_LIMIT_SD))), 1)
     if "J45" in person.chronic_conditions:
-        vitals.respiratory_rate += int(rng.integers(0, 3))
+        vitals.respiratory_rate += int(rng.integers(J45_RR_LIFT_MIN, J45_RR_LIFT_MAX_EXCLUSIVE))
     if "E03" in person.chronic_conditions:
-        vitals.heart_rate -= int(rng.integers(3, 8))  # bradycardia tendency
+        vitals.heart_rate -= int(rng.integers(E03_HR_REDUCTION_MIN, E03_HR_REDUCTION_MAX_EXCLUSIVE))
 
     # Build PersonName from Layer 1 data
     if is_jp(country):
