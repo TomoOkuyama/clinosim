@@ -18,6 +18,52 @@ import numpy as np
 
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.population.engine import LifeEvent
+from clinosim.simulator._discharge_gate_thresholds import (
+    DISCHARGE_ANEMIA_MAX,
+    DISCHARGE_JP_INFLAMMATION_MAX,
+    DISCHARGE_JP_PERFUSION_MIN,
+    DISCHARGE_JP_PH_ABS_MAX,
+    DISCHARGE_JP_RENAL_MIN,
+    DISCHARGE_JP_VOLUME_ABS_MAX,
+    DISCHARGE_US_INFLAMMATION_MAX,
+    DISCHARGE_US_PERFUSION_MIN,
+    DISCHARGE_US_PH_ABS_MAX,
+    DISCHARGE_US_RENAL_MIN,
+    DISCHARGE_US_VOLUME_ABS_MAX,
+    MORTALITY_AGE_OLD_MULTIPLIER,
+    MORTALITY_AGE_OLD_THRESHOLD,
+    MORTALITY_AGE_OLDEST_MULTIPLIER,
+    MORTALITY_AGE_OLDEST_THRESHOLD,
+    MORTALITY_DAILY_MODERATE_RATE,
+    MORTALITY_DAILY_RATE_FALLBACK,
+    MORTALITY_DAILY_SEVERE_RATE,
+    MORTALITY_DAY_EARLY_END,
+    MORTALITY_DAY_EARLY_START,
+    MORTALITY_DAY_EARLY_WEIGHT,
+    MORTALITY_DAY_LATE_START,
+    MORTALITY_DAY_LATE_WEIGHT,
+    MORTALITY_DAY_MID_WEIGHT,
+    MORTALITY_DEFAULT_AGE,
+    MORTALITY_INDIVIDUAL_MOD_CAP,
+    MORTALITY_LOW_PERFUSION_MULTIPLIER,
+    MORTALITY_LOW_PERFUSION_THRESHOLD,
+    MORTALITY_YAML_AGE85_MULTIPLIER,
+    READMISSION_AGE_OLDER_MULTIPLIER,
+    READMISSION_AGE_OLDER_THRESHOLD,
+    READMISSION_AGE_OLDEST_MULTIPLIER,
+    READMISSION_AGE_OLDEST_THRESHOLD,
+    READMISSION_BASE_RATE_DEFAULT,
+    READMISSION_CHRONIC_ADDITIONAL_PER_CONDITION,
+    READMISSION_DAYS_MAX_EXCLUSIVE,
+    READMISSION_DAYS_MIN,
+    READMISSION_FINAL_INFLAMMATION_MULTIPLIER,
+    READMISSION_FINAL_INFLAMMATION_THRESHOLD,
+    READMISSION_MISSED_DIAGNOSIS_MULTIPLIER,
+    READMISSION_ORIGINAL_SEVERITY_FALLBACK,
+    READMISSION_RATE_CAP_MULTIPLIER,
+    READMISSION_SEVERITY_LIFT_MAX,
+    READMISSION_SEVERITY_LIFT_MIN,
+)
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.output import CIFPatientRecord
 
@@ -39,30 +85,30 @@ def _evaluate_readmission(
         return None
 
     benchmarks = protocol.outcome_benchmarks.get(country_key, {})
-    base_rate = benchmarks.get("thirty_day_readmission", 0.15)
+    base_rate = benchmarks.get("thirty_day_readmission", READMISSION_BASE_RATE_DEFAULT)
 
     rate = base_rate
     modifier = 1.0
 
     if record.physiological_states:
         final_infl = record.physiological_states[-1].inflammation_level
-        if final_infl > 0.15:
-            modifier *= 1.15
+        if final_infl > READMISSION_FINAL_INFLAMMATION_THRESHOLD:
+            modifier *= READMISSION_FINAL_INFLAMMATION_MULTIPLIER
 
     age = record.patient.age
-    if age >= 80:
-        modifier *= 1.1
-    elif age >= 70:
-        modifier *= 1.05
+    if age >= READMISSION_AGE_OLDEST_THRESHOLD:
+        modifier *= READMISSION_AGE_OLDEST_MULTIPLIER
+    elif age >= READMISSION_AGE_OLDER_THRESHOLD:
+        modifier *= READMISSION_AGE_OLDER_MULTIPLIER
 
     n_chronic = len(record.patient.chronic_conditions)
-    modifier += n_chronic * 0.01
+    modifier += n_chronic * READMISSION_CHRONIC_ADDITIONAL_PER_CONDITION
 
     if record.clinical_diagnosis.missed_diagnoses:
-        modifier *= 1.2
+        modifier *= READMISSION_MISSED_DIAGNOSIS_MULTIPLIER
 
     rate = base_rate * modifier
-    rate = min(rate, base_rate * 1.5)
+    rate = min(rate, base_rate * READMISSION_RATE_CAP_MULTIPLIER)
 
     if rng.random() >= rate:
         return None
@@ -76,13 +122,15 @@ def _evaluate_readmission(
     if not discharge_date:
         return None
 
-    readmit_days = int(rng.integers(2, 28))
+    readmit_days = int(rng.integers(READMISSION_DAYS_MIN, READMISSION_DAYS_MAX_EXCLUSIVE))
     readmit_date = discharge_date + timedelta(days=readmit_days)
 
-    original_severity = 0.5
+    original_severity = READMISSION_ORIGINAL_SEVERITY_FALLBACK
     if record.physiological_states:
         original_severity = record.physiological_states[0].inflammation_level
-    readmit_severity = min(1.0, original_severity + float(rng.uniform(0.05, 0.15)))
+    readmit_severity = min(
+        1.0, original_severity + float(rng.uniform(READMISSION_SEVERITY_LIFT_MIN, READMISSION_SEVERITY_LIFT_MAX))
+    )
 
     return LifeEvent(
         person_id=person.person_id,
@@ -112,23 +160,23 @@ def _check_discharge_ready(
     """
     # anemia_level < 0.60 ≈ Hgb > 7.0 g/dL for females and > 8.7 for males —
     # no patient should be discharged with Hgb below transfusion trigger.
-    anemia_ok = state.anemia_level < 0.60
+    anemia_ok = state.anemia_level < DISCHARGE_ANEMIA_MAX
 
     if country_key == "us":
         return (
-            state.inflammation_level < 0.10
-            and state.perfusion_status > 0.7
-            and state.renal_function > 0.5
-            and abs(state.volume_status) < 0.3
-            and abs(state.ph_status) < 0.2
+            state.inflammation_level < DISCHARGE_US_INFLAMMATION_MAX
+            and state.perfusion_status > DISCHARGE_US_PERFUSION_MIN
+            and state.renal_function > DISCHARGE_US_RENAL_MIN
+            and abs(state.volume_status) < DISCHARGE_US_VOLUME_ABS_MAX
+            and abs(state.ph_status) < DISCHARGE_US_PH_ABS_MAX
             and anemia_ok
         )
     return (
-        state.inflammation_level < 0.05
-        and state.perfusion_status > 0.8
-        and state.renal_function > 0.6
-        and abs(state.volume_status) < 0.2
-        and abs(state.ph_status) < 0.15
+        state.inflammation_level < DISCHARGE_JP_INFLAMMATION_MAX
+        and state.perfusion_status > DISCHARGE_JP_PERFUSION_MIN
+        and state.renal_function > DISCHARGE_JP_RENAL_MIN
+        and abs(state.volume_status) < DISCHARGE_JP_VOLUME_ABS_MAX
+        and abs(state.ph_status) < DISCHARGE_JP_PH_ABS_MAX
         and anemia_ok
     )
 
@@ -148,17 +196,29 @@ def _evaluate_mortality(
     it is used as the total in-hospital mortality rate and spread across LOS.
     """
     if disease_mortality_rate > 0:
-        day_weight = 1.5 if 2 <= day <= 7 else (0.5 if day > 14 else 1.0)
+        if MORTALITY_DAY_EARLY_START <= day <= MORTALITY_DAY_EARLY_END:
+            day_weight = MORTALITY_DAY_EARLY_WEIGHT
+        elif day > MORTALITY_DAY_LATE_START:
+            day_weight = MORTALITY_DAY_LATE_WEIGHT
+        else:
+            day_weight = MORTALITY_DAY_MID_WEIGHT
         daily_base = disease_mortality_rate / max(target_los, 1) * day_weight
-        age = patient.age if hasattr(patient, "age") else 70
+        age = patient.age if hasattr(patient, "age") else MORTALITY_DEFAULT_AGE
         individual_mod = 1.0
-        if age >= 85:
-            individual_mod *= 1.2
-        if state.perfusion_status < 0.3:
-            individual_mod *= 1.3
-        individual_mod = min(individual_mod, 1.8)
+        if age >= MORTALITY_AGE_OLDEST_THRESHOLD:
+            individual_mod *= MORTALITY_YAML_AGE85_MULTIPLIER
+        if state.perfusion_status < MORTALITY_LOW_PERFUSION_THRESHOLD:
+            individual_mod *= MORTALITY_LOW_PERFUSION_MULTIPLIER
+        individual_mod = min(individual_mod, MORTALITY_INDIVIDUAL_MOD_CAP)
         return bool(rng.random() < daily_base * individual_mod)
-    daily_base = {"severe": 0.003, "moderate": 0.0005}.get(severity, 0.0001)
-    age = patient.age if hasattr(patient, "age") else 70
-    age_mult = 1.5 if age >= 85 else (1.2 if age >= 80 else 1.0)
+    daily_base = {"severe": MORTALITY_DAILY_SEVERE_RATE, "moderate": MORTALITY_DAILY_MODERATE_RATE}.get(
+        severity, MORTALITY_DAILY_RATE_FALLBACK
+    )
+    age = patient.age if hasattr(patient, "age") else MORTALITY_DEFAULT_AGE
+    if age >= MORTALITY_AGE_OLDEST_THRESHOLD:
+        age_mult = MORTALITY_AGE_OLDEST_MULTIPLIER
+    elif age >= MORTALITY_AGE_OLD_THRESHOLD:
+        age_mult = MORTALITY_AGE_OLD_MULTIPLIER
+    else:
+        age_mult = 1.0
     return bool(rng.random() < daily_base * age_mult)
