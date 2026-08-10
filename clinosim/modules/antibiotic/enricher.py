@@ -26,6 +26,10 @@ from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import get_or_create_container
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
+from clinosim.modules.antibiotic._narrow_dose_defaults import (
+    DEFAULT_NARROW_REGIMEN,
+    NARROW_DOSE_DEFAULTS,
+)
 from clinosim.modules.antibiotic.engine import (
     ABX_ORDER_REQ_PREFIX,
     ABX_REGIMEN_ID_PREFIX,
@@ -150,21 +154,13 @@ def _mark_order_stopped(record, regimen: AntibioticRegimen) -> None:
 
 
 def _narrow_dose_frequency(drug_key: str) -> tuple[str, str]:
-    """Default narrow-target dose + frequency. Simplified per PR3b-1 (no eGFR
-    adjustment; future PR). Frequencies match hai_empirical.yaml conventions."""
-    table = {
-        "vancomycin": ("1g", "q12h"),
-        "cefazolin": ("1g", "q8h"),
-        "ceftriaxone": ("1g", "q24h"),
-        "cefepime": ("1g", "q8h"),
-        "piperacillin_tazobactam": ("3.375g", "q6h"),
-        "meropenem": ("1g", "q8h"),
-        "ciprofloxacin": ("400mg", "q12h"),
-        "trimethoprim_sulfamethoxazole": ("160mg", "q12h"),
-        "ampicillin": ("2g", "q6h"),
-        "gentamicin": ("80mg", "q8h"),
-    }
-    return table.get(drug_key, ("1g", "q12h"))
+    """Default narrow-target dose + frequency.
+
+    Simplified per PR3b-1 (no eGFR adjustment; future PR). Frequencies
+    match ``hai_empirical.yaml`` conventions. The drug table and
+    fallback are single-sourced in ``_narrow_dose_defaults.py``.
+    """
+    return NARROW_DOSE_DEFAULTS.get(drug_key, DEFAULT_NARROW_REGIMEN)
 
 
 def _apply_pass2(rec, snapshot: datetime) -> None:
