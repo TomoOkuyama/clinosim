@@ -32,6 +32,20 @@ from clinosim.seeding import (
     derive_phase_rng,
 )
 from clinosim.simulator import log as sim_log
+from clinosim.simulator._scheduling_thresholds import (
+    ED_DAY_MAX_EXCLUSIVE,
+    ED_DAY_MIN,
+    ED_FAVORED_HOURS,
+    ED_MINUTE_JITTER_MAX_EXCLUSIVE,
+    ED_MINUTE_JITTER_MIN,
+    ED_OCCUPATION_MISMATCH_FALLBACK,
+    ED_RATE_PER_ADMITTED_DEFAULT,
+    OUTPATIENT_CALENDAR_VISIT_HOUR,
+    OUTPATIENT_LABS_ANNUAL_PROBABILITY,
+    OUTPATIENT_LABS_QUARTERLY_PROBABILITY,
+    OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE,
+    OUTPATIENT_MINUTE_JITTER_MIN,
+)
 from clinosim.simulator.emergency import _simulate_ed_visit
 from clinosim.simulator.enrichers import (
     POST_POPULATION,
@@ -616,7 +630,11 @@ def run_beta(
         ev_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, ev_key)
 
         visit_time = datetime(
-            event.timestamp.year, event.timestamp.month, event.timestamp.day, 10, int(ev_rng.integers(0, 45))
+            event.timestamp.year,
+            event.timestamp.month,
+            event.timestamp.day,
+            OUTPATIENT_CALENDAR_VISIT_HOUR,
+            int(ev_rng.integers(OUTPATIENT_MINUTE_JITTER_MIN, OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE)),
         )
 
         if event.event_type == "chronic_visit":
@@ -624,10 +642,10 @@ def run_beta(
             # Merge optional labs: quarterly (25% each visit) and annual (8% each visit)
             visit_labs = list(spec.get("labs", []))
             for lab in spec.get("labs_quarterly", []):
-                if ev_rng.random() < 0.25 and lab not in visit_labs:
+                if ev_rng.random() < OUTPATIENT_LABS_QUARTERLY_PROBABILITY and lab not in visit_labs:
                     visit_labs.append(lab)
             for lab in spec.get("labs_annual", []):
-                if ev_rng.random() < 0.08 and lab not in visit_labs:
+                if ev_rng.random() < OUTPATIENT_LABS_ANNUAL_PROBABILITY and lab not in visit_labs:
                     visit_labs.append(lab)
             merged_spec = dict(spec)
             merged_spec["labs"] = visit_labs
@@ -683,7 +701,7 @@ def run_beta(
         (name, spec) for name, spec in all_enc_conditions.items() if spec.get("encounter_type") == "emergency"
     ]
     ed_demo = demo.get("ed_visit_not_admitted", {})
-    ed_rate = ed_demo.get("rate_per_admitted", 3.0)
+    ed_rate = ed_demo.get("rate_per_admitted", ED_RATE_PER_ADMITTED_DEFAULT)
     n_ed = int(len(inpatient_records) * ed_rate)
     if ed_conditions and n_ed > 0:
         for slot in range(n_ed):
@@ -716,7 +734,7 @@ def run_beta(
                 occ_mults = occ_mult_table.get(name, {})
                 if occ_mults:
                     # Work-related condition — use 0.05 default for non-matching occupations
-                    occ_mod = occ_mults.get(occupation, 0.05)
+                    occ_mod = occ_mults.get(occupation, ED_OCCUPATION_MISMATCH_FALLBACK)
                 else:
                     occ_mod = 1.0
                 ed_probs.append(base_p * seasonal_mod * occ_mod)
@@ -728,9 +746,15 @@ def run_beta(
             cond_name, cond = ed_conditions[cond_idx]
             # Use the same month that seasonal modifiers were calculated for
             ed_year = start_y + (start_m - 1 + month_offset) // 12
-            ed_day = int(slot_rng.integers(1, 28))
-            ed_hour = int(slot_rng.choice([9, 10, 14, 15, 19, 20, 21, 22]))
-            ed_time = datetime(ed_year, visit_month, ed_day, ed_hour, int(slot_rng.integers(0, 60)))
+            ed_day = int(slot_rng.integers(ED_DAY_MIN, ED_DAY_MAX_EXCLUSIVE))
+            ed_hour = int(slot_rng.choice(ED_FAVORED_HOURS))
+            ed_time = datetime(
+                ed_year,
+                visit_month,
+                ed_day,
+                ed_hour,
+                int(slot_rng.integers(ED_MINUTE_JITTER_MIN, ED_MINUTE_JITTER_MAX_EXCLUSIVE)),
+            )
             # Skip ED visits past snapshot date
             if snapshot_dt and ed_time > snapshot_dt:
                 continue
