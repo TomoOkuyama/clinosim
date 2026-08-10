@@ -128,6 +128,35 @@ from clinosim.simulator._oxygen_therapy_thresholds import (
     O2_SEVERE_FLOW_LPM_MAX,
     O2_SEVERE_FLOW_LPM_MIN,
 )
+from clinosim.simulator._vitals_schedule_thresholds import (
+    VITALS_ACUITY_INFLAMMATION_UNSTABLE_THRESHOLD,
+    VITALS_ACUITY_PERFUSION_CRITICAL_THRESHOLD,
+    VITALS_ACUITY_PERFUSION_UNSTABLE_THRESHOLD,
+    VITALS_BID_STABLE_HOURS,
+    VITALS_BID_STABLE_INFLAMMATION_MAX,
+    VITALS_BID_STABLE_MIN_DAY,
+    VITALS_CRITICAL_DAY_MAX,
+    VITALS_EARLY_DAY_MAX,
+    VITALS_FULL_JITTER_MIN_SD,
+    VITALS_IMPROVING_NOTE_INFLAMMATION_MAX,
+    VITALS_IMPROVING_NOTE_MIN_DAY,
+    VITALS_MONITOR_HOURS_END_EXCLUSIVE,
+    VITALS_MONITOR_HOURS_START,
+    VITALS_MONITOR_HOURS_STEP,
+    VITALS_MONITOR_JITTER_MIN_SD,
+    VITALS_PAIN_EARLY_DAY_LIFT,
+    VITALS_PAIN_INFLAMMATION_SCALE,
+    VITALS_PAIN_MAX,
+    VITALS_PAIN_MIN,
+    VITALS_PAIN_NOISE_SD,
+    VITALS_Q2H_HOURS_END_EXCLUSIVE,
+    VITALS_Q2H_HOURS_START,
+    VITALS_Q2H_HOURS_STEP,
+    VITALS_Q4H_HOURS,
+    VITALS_Q6H_HOURS,
+    VITALS_SPO2_LOW_NOTE_THRESHOLD,
+    VITALS_TID_HOURS,
+)
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
     ADLAssessment,
@@ -315,7 +344,10 @@ def _generate_vitals(
     - Within-set time offsets (BP/HR same moment, Temp ±30s, RR ±60s)
     """
     vitals: list[VitalSignRecord] = []
-    is_unstable = state.perfusion_status < 0.5 or state.inflammation_level > 0.5
+    is_unstable = (
+        state.perfusion_status < VITALS_ACUITY_PERFUSION_UNSTABLE_THRESHOLD
+        or state.inflammation_level > VITALS_ACUITY_INFLAMMATION_UNSTABLE_THRESHOLD
+    )
     is_respiratory = disease_id in _RESPIRATORY_DISEASES or disease_id == "heart_failure_exacerbation"
 
     # Routine full-vitals schedule by acuity
@@ -323,17 +355,20 @@ def _generate_vitals(
     # hematoma, severe trauma): q1-2h. Set defined in
     # `clinosim.modules.disease.acuity.CRITICAL_MONITORING_DISEASES` — Issue
     # #563 added `subdural_hematoma` to close the drift with EMERGENCY_PRIORITY.
-    is_critical = state.perfusion_status < 0.3 or disease_id in CRITICAL_MONITORING_DISEASES
-    if is_critical and day <= 2:
-        full_hours = list(range(0, 24, 2))  # q2h (12 sets/day)
+    is_critical = (
+        state.perfusion_status < VITALS_ACUITY_PERFUSION_CRITICAL_THRESHOLD
+        or disease_id in CRITICAL_MONITORING_DISEASES
+    )
+    if is_critical and day <= VITALS_CRITICAL_DAY_MAX:
+        full_hours = list(range(VITALS_Q2H_HOURS_START, VITALS_Q2H_HOURS_END_EXCLUSIVE, VITALS_Q2H_HOURS_STEP))
     elif is_unstable:
-        full_hours = [2, 6, 10, 14, 18, 22]  # q4h (6 sets/day)
-    elif day <= 2:
-        full_hours = [0, 6, 12, 18]  # q6h
-    elif state.inflammation_level < 0.1 and day >= 7:
-        full_hours = [6, 18]  # bid (stable, late stay)
+        full_hours = list(VITALS_Q4H_HOURS)
+    elif day <= VITALS_EARLY_DAY_MAX:
+        full_hours = list(VITALS_Q6H_HOURS)
+    elif state.inflammation_level < VITALS_BID_STABLE_INFLAMMATION_MAX and day >= VITALS_BID_STABLE_MIN_DAY:
+        full_hours = list(VITALS_BID_STABLE_HOURS)
     else:
-        full_hours = [6, 14, 22]  # tid
+        full_hours = list(VITALS_TID_HOURS)
 
     def _emit(time: datetime, *, fields: set[str], raw: dict, note: str = "") -> None:
         """Emit a VitalSignRecord with only the specified fields populated."""
@@ -344,10 +379,10 @@ def _generate_vitals(
         # Pain only with full set
         pain = None
         if "pain" in fields:
-            base_pain = state.inflammation_level * 4
-            if day <= 2:
-                base_pain += 2
-            pain = int(max(0, min(10, rng.normal(base_pain, 1.5))))
+            base_pain = state.inflammation_level * VITALS_PAIN_INFLAMMATION_SCALE
+            if day <= VITALS_EARLY_DAY_MAX:
+                base_pain += VITALS_PAIN_EARLY_DAY_LIFT
+            pain = int(max(VITALS_PAIN_MIN, min(VITALS_PAIN_MAX, rng.normal(base_pain, VITALS_PAIN_NOISE_SD))))
         vitals.append(
             VitalSignRecord(
                 timestamp=time,
@@ -376,15 +411,15 @@ def _generate_vitals(
         if vit_time < admission_time:
             continue
         raw = _make_raw(state, patient, vit_time, rng)
-        actual_time = vit_time + timedelta(minutes=float(rng.normal(0, 10)))
+        actual_time = vit_time + timedelta(minutes=float(rng.normal(0, VITALS_FULL_JITTER_MIN_SD)))
 
         # CIF stores English nursing notes (AD-30). JP translation at FHIR output.
         note_parts = []
         if raw["temperature"] >= FEVER_THRESHOLD_C:
             note_parts.append("febrile")
-        if raw["spo2"] < 93:
+        if raw["spo2"] < VITALS_SPO2_LOW_NOTE_THRESHOLD:
             note_parts.append("SpO2 low, O2 adjusted")
-        if state.inflammation_level < 0.1 and day >= 3:
+        if state.inflammation_level < VITALS_IMPROVING_NOTE_INFLAMMATION_MAX and day >= VITALS_IMPROVING_NOTE_MIN_DAY:
             note_parts.append("improving, appetite good")
         if day == 0 and hour == full_hours[0]:
             note_parts.append("admission assessment completed")
@@ -408,14 +443,18 @@ def _generate_vitals(
     if is_unstable or is_respiratory:
         full_hour_set = set(full_hours)
         # Pick hours not already covered by full vitals
-        monitor_hours = [h for h in range(1, 24, 2) if h not in full_hour_set]
+        monitor_hours = [
+            h
+            for h in range(VITALS_MONITOR_HOURS_START, VITALS_MONITOR_HOURS_END_EXCLUSIVE, VITALS_MONITOR_HOURS_STEP)
+            if h not in full_hour_set
+        ]
         for hour in monitor_hours:
             mon_time = datetime(admission_time.year, admission_time.month, admission_time.day, hour, 0) + timedelta(
                 days=day
             )  # noqa: E501
             if mon_time < admission_time:
                 continue
-            mon_time += timedelta(minutes=float(rng.normal(0, 5)))
+            mon_time += timedelta(minutes=float(rng.normal(0, VITALS_MONITOR_JITTER_MIN_SD)))
             raw = _make_raw(state, patient, mon_time, rng)
             _emit(mon_time, fields={"hr", "spo2"}, raw=raw, note="continuous monitor")
 
