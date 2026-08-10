@@ -64,6 +64,57 @@ from clinosim.modules.observation.vitals_thresholds import (
     HIGH_FEVER_RECHECK_C,
 )
 from clinosim.modules.physiology.engine import derive_observed_vitals
+from clinosim.simulator._adl_thresholds import (
+    ADL_ASSESSMENT_INTERVAL_DAYS,
+    ADL_BARTHEL_MAX,
+    ADL_BARTHEL_MIN,
+    ADL_BARTHEL_NOISE_SD,
+    ADL_COMP_BATHING_MAX,
+    ADL_COMP_BLADDER_MAX,
+    ADL_COMP_BOWEL_MAX,
+    ADL_COMP_DRESSING_MAX,
+    ADL_COMP_FEEDING_MAX,
+    ADL_COMP_GROOMING_MAX,
+    ADL_COMP_MOBILITY_MAX,
+    ADL_COMP_STAIRS_MAX,
+    ADL_COMP_TOILET_MAX,
+    ADL_COMP_TRANSFERS_MAX,
+    ADL_DAY0_ACUTE_PENALTY,
+    ADL_INFLAMMATION_PENALTY_SCALE,
+    ADL_OLDER_AGE_PENALTY,
+    ADL_OLDER_AGE_THRESHOLD,
+    ADL_OLDEST_AGE_PENALTY,
+    ADL_OLDEST_AGE_THRESHOLD,
+    ADL_PERFUSION_PENALTY_SCALE,
+    ADL_RATIO_OFFSET_BLADDER,
+    ADL_RATIO_OFFSET_BOWEL,
+    ADL_RATIO_OFFSET_FEEDING,
+    ADL_RATIO_OFFSET_GROOMING,
+    ADL_RATIO_OFFSET_STAIRS_DEFICIT,
+    ADL_RECOVERY_MAX_TOTAL,
+    ADL_RECOVERY_PER_DAY,
+    ADL_RENAL_PENALTY_SCALE,
+)
+from clinosim.simulator._loc_thresholds import (
+    LOC_MODERATE_HYPOPERFUSION_THRESHOLD,
+    LOC_MODERATE_V_OVER_P_PROBABILITY,
+    LOC_NEURO_EARLY_DAY_MAX,
+    LOC_NEURO_EARLY_WEIGHTS_AVP,
+    LOC_NEURO_MILD_HYPOPERFUSION_THRESHOLD,
+    LOC_NEURO_MILD_V_OVER_A_PROBABILITY,
+    LOC_REFRACTORY_SHOCK_THRESHOLD,
+    LOC_REFRACTORY_U_OVER_P_PROBABILITY,
+)
+from clinosim.simulator._oxygen_therapy_thresholds import (
+    O2_MILD_FLOW_LPM_MAX,
+    O2_MILD_FLOW_LPM_MIN,
+    O2_MODERATE_FLOW_LPM_MAX,
+    O2_MODERATE_FLOW_LPM_MIN,
+    O2_NASAL_CANNULA_FLOW_MAX_LPM,
+    O2_NON_REBREATHER_FLOW_MIN_LPM,
+    O2_SEVERE_FLOW_LPM_MAX,
+    O2_SEVERE_FLOW_LPM_MIN,
+)
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
     ADLAssessment,
@@ -98,48 +149,48 @@ def _generate_adl_assessment(
 ) -> ADLAssessment | None:
     """Generate ADL (Barthel Index) assessment. Done on admission, weekly, and discharge."""
     # ADL assessed on admission (day 0), weekly (day 7, 14...), and approaching discharge
-    if day != 0 and day % 7 != 0:
+    if day != 0 and day % ADL_ASSESSMENT_INTERVAL_DAYS != 0:
         return None
 
     # Base score depends on age and clinical state
     age = patient.age
-    base = 100
-    if age >= 85:
-        base -= 20
-    elif age >= 75:
-        base -= 10
+    base = ADL_BARTHEL_MAX
+    if age >= ADL_OLDEST_AGE_THRESHOLD:
+        base -= ADL_OLDEST_AGE_PENALTY
+    elif age >= ADL_OLDER_AGE_THRESHOLD:
+        base -= ADL_OLDER_AGE_PENALTY
 
     # Acute illness reduces ADL
-    infl_penalty = int(state.inflammation_level * 30)
-    perf_penalty = int((1.0 - state.perfusion_status) * 20)
-    renal_penalty = int((1.0 - state.renal_function) * 10)
+    infl_penalty = int(state.inflammation_level * ADL_INFLAMMATION_PENALTY_SCALE)
+    perf_penalty = int((1.0 - state.perfusion_status) * ADL_PERFUSION_PENALTY_SCALE)
+    renal_penalty = int((1.0 - state.renal_function) * ADL_RENAL_PENALTY_SCALE)
 
     # Day 0: worst ADL (acute admission)
     if day == 0:
-        total = max(0, base - infl_penalty - perf_penalty - renal_penalty - 15)
+        total = max(ADL_BARTHEL_MIN, base - infl_penalty - perf_penalty - renal_penalty - ADL_DAY0_ACUTE_PENALTY)
     else:
         # Gradual recovery
-        recovery = min(day * 3, 30)  # up to +30 over time
-        total = max(0, min(100, base - infl_penalty - perf_penalty + recovery))
+        recovery = min(day * ADL_RECOVERY_PER_DAY, ADL_RECOVERY_MAX_TOTAL)
+        total = max(ADL_BARTHEL_MIN, min(ADL_BARTHEL_MAX, base - infl_penalty - perf_penalty + recovery))
 
-    total = int(rng.normal(total, 5))
-    total = max(0, min(100, total))
+    total = int(rng.normal(total, ADL_BARTHEL_NOISE_SD))
+    total = max(ADL_BARTHEL_MIN, min(ADL_BARTHEL_MAX, total))
 
     # Distribute across components proportionally
-    ratio = total / 100.0
+    ratio = total / ADL_BARTHEL_MAX
     return ADLAssessment(
         date=(admission_time + timedelta(days=day)).date(),
         barthel_score=total,
-        feeding=int(10 * min(1, ratio + 0.1)),
-        bathing=int(5 * ratio),
-        grooming=int(5 * min(1, ratio + 0.1)),
-        dressing=int(10 * ratio),
-        bowel_control=int(10 * min(1, ratio + 0.2)),
-        bladder_control=int(10 * min(1, ratio + 0.15)),
-        toilet_use=int(10 * ratio),
-        transfers=int(15 * ratio),
-        mobility=int(15 * ratio),
-        stairs=int(10 * max(0, ratio - 0.2)),
+        feeding=int(ADL_COMP_FEEDING_MAX * min(1, ratio + ADL_RATIO_OFFSET_FEEDING)),
+        bathing=int(ADL_COMP_BATHING_MAX * ratio),
+        grooming=int(ADL_COMP_GROOMING_MAX * min(1, ratio + ADL_RATIO_OFFSET_GROOMING)),
+        dressing=int(ADL_COMP_DRESSING_MAX * ratio),
+        bowel_control=int(ADL_COMP_BOWEL_MAX * min(1, ratio + ADL_RATIO_OFFSET_BOWEL)),
+        bladder_control=int(ADL_COMP_BLADDER_MAX * min(1, ratio + ADL_RATIO_OFFSET_BLADDER)),
+        toilet_use=int(ADL_COMP_TOILET_MAX * ratio),
+        transfers=int(ADL_COMP_TRANSFERS_MAX * ratio),
+        mobility=int(ADL_COMP_MOBILITY_MAX * ratio),
+        stairs=int(ADL_COMP_STAIRS_MAX * max(0, ratio - ADL_RATIO_OFFSET_STAIRS_DEFICIT)),
     )
 
 
@@ -206,29 +257,29 @@ def _o2_for(spo2, disease_id, rng):
     if not needs:
         return False, None, ""
     if spo2 < SPO2_SEVERE_HYPOXEMIA:
-        flow = float(rng.uniform(6, 10))
-        device = "non-rebreather" if flow >= 8 else "simple_mask"
+        flow = float(rng.uniform(O2_SEVERE_FLOW_LPM_MIN, O2_SEVERE_FLOW_LPM_MAX))
+        device = "non-rebreather" if flow >= O2_NON_REBREATHER_FLOW_MIN_LPM else "simple_mask"
     elif spo2 < SPO2_HYPOXEMIA_TRIGGER:
-        flow = float(rng.uniform(2, 5))
-        device = "nasal_cannula" if flow <= 4 else "simple_mask"
+        flow = float(rng.uniform(O2_MODERATE_FLOW_LPM_MIN, O2_MODERATE_FLOW_LPM_MAX))
+        device = "nasal_cannula" if flow <= O2_NASAL_CANNULA_FLOW_MAX_LPM else "simple_mask"
     else:
-        flow = float(rng.uniform(1, 3))
+        flow = float(rng.uniform(O2_MILD_FLOW_LPM_MIN, O2_MILD_FLOW_LPM_MAX))
         device = "nasal_cannula"
     return True, flow, device
 
 
 def _loc_for(state, disease_id, day, rng):
     """Infer AVPU consciousness level."""
-    if state.perfusion_status < 0.2:
+    if state.perfusion_status < LOC_REFRACTORY_SHOCK_THRESHOLD:
         # Refractory shock / severe neuro insult — matches the sepsis.yaml
         # severe-septic-shock complication threshold (perfusion_status < 0.2).
-        return "U" if rng.random() < 0.5 else "P"
-    if state.perfusion_status < 0.4:
-        return "V" if rng.random() < 0.7 else "P"
-    if state.perfusion_status < 0.6 and disease_id in _NEURO_DISEASES:
-        return "V" if rng.random() < 0.5 else "A"
-    if disease_id in NEURO_LOC_MONITORING_DISEASES and day <= 2:
-        return str(rng.choice(["A", "V", "P"], p=[0.4, 0.4, 0.2]))
+        return "U" if rng.random() < LOC_REFRACTORY_U_OVER_P_PROBABILITY else "P"
+    if state.perfusion_status < LOC_MODERATE_HYPOPERFUSION_THRESHOLD:
+        return "V" if rng.random() < LOC_MODERATE_V_OVER_P_PROBABILITY else "P"
+    if state.perfusion_status < LOC_NEURO_MILD_HYPOPERFUSION_THRESHOLD and disease_id in _NEURO_DISEASES:
+        return "V" if rng.random() < LOC_NEURO_MILD_V_OVER_A_PROBABILITY else "A"
+    if disease_id in NEURO_LOC_MONITORING_DISEASES and day <= LOC_NEURO_EARLY_DAY_MAX:
+        return str(rng.choice(["A", "V", "P"], p=LOC_NEURO_EARLY_WEIGHTS_AVP))
     return "A"
 
 
