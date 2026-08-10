@@ -95,6 +95,19 @@ from clinosim.simulator._adl_thresholds import (
     ADL_RECOVERY_PER_DAY,
     ADL_RENAL_PENALTY_SCALE,
 )
+from clinosim.simulator._daily_io_thresholds import (
+    IO_EARLY_DAY_THRESHOLD,
+    IO_ORAL_DAY0_MEAN_ML,
+    IO_ORAL_DAY0_STD_ML,
+    IO_ORAL_POOR_APPETITE_MEAN_ML,
+    IO_ORAL_POOR_APPETITE_STD_ML,
+    IO_ORAL_RECOVERING_MEAN_ML,
+    IO_ORAL_RECOVERING_STD_ML,
+    IO_POOR_APPETITE_INFLAMMATION_THRESHOLD,
+    IO_URINE_BASE_ML_PER_UNIT_RENAL,
+    IO_URINE_SD_FLOOR_ML,
+    IO_URINE_SD_RATIO,
+)
 from clinosim.simulator._loc_thresholds import (
     LOC_MODERATE_HYPOPERFUSION_THRESHOLD,
     LOC_MODERATE_V_OVER_P_PROBABILITY,
@@ -203,7 +216,7 @@ def _generate_daily_io(
 ) -> IntakeOutputRecord:
     """Generate daily intake/output record."""
     # IV fluid: higher in early days, less as patient improves
-    if day <= 2:
+    if day <= IO_EARLY_DAY_THRESHOLD:
         iv = int(rng.normal(AGGRESSIVE_IV_ML, AGGRESSIVE_IV_SD))  # aggressive hydration
     elif state.volume_status < DEHYDRATION_IV_TRIGGER:
         iv = int(rng.normal(DEHYDRATION_IV_ML, DEHYDRATION_IV_SD))  # dehydrated
@@ -212,15 +225,15 @@ def _generate_daily_io(
 
     # Oral intake: improves as patient recovers
     if day == 0:
-        oral = int(rng.normal(200, 100))  # NPO or minimal
-    elif state.inflammation_level > 0.3:
-        oral = int(rng.normal(500, 200))  # poor appetite
+        oral = int(rng.normal(IO_ORAL_DAY0_MEAN_ML, IO_ORAL_DAY0_STD_ML))  # NPO or minimal
+    elif state.inflammation_level > IO_POOR_APPETITE_INFLAMMATION_THRESHOLD:
+        oral = int(rng.normal(IO_ORAL_POOR_APPETITE_MEAN_ML, IO_ORAL_POOR_APPETITE_STD_ML))  # poor appetite
     else:
-        oral = int(rng.normal(1200, 300))  # recovering
+        oral = int(rng.normal(IO_ORAL_RECOVERING_MEAN_ML, IO_ORAL_RECOVERING_STD_ML))  # recovering
 
     # Urine output: correlates with renal function and hydration
-    base_urine = 1500 * state.renal_function
-    urine_sd = max(100, base_urine * 0.2)  # SD proportional to base
+    base_urine = IO_URINE_BASE_ML_PER_UNIT_RENAL * state.renal_function
+    urine_sd = max(IO_URINE_SD_FLOOR_ML, base_urine * IO_URINE_SD_RATIO)  # SD proportional to base
     urine = int(max(ANURIA_FLOOR_ML, rng.normal(base_urine, urine_sd)))  # min 50ml (anuria threshold)
 
     # Drain (post-surgical only, simplified)
