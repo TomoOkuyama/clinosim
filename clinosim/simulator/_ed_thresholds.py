@@ -66,7 +66,7 @@ basic labs; the other 40 % are triaged-and-discharged without lab
 draw. Matches the ED-throughput audit's expected lab-order rate for
 low-acuity presentations."""
 
-DEFAULT_TRIAGE_LAB_PANEL: tuple[dict[str, float], ...] = (
+DEFAULT_TRIAGE_LAB_PANEL: tuple[dict[str, str | float], ...] = (
     {"test": "WBC", "probability": 1.0},
     {"test": "CRP", "probability": 1.0},
     {"test": "Creatinine", "probability": 1.0},
