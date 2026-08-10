@@ -14,6 +14,34 @@ import numpy as np
 
 from clinosim.modules._shared import is_jp
 from clinosim.modules.disease.acuity import NEURO_LOC_MONITORING_DISEASES
+from clinosim.modules.procedure._bedside_thresholds import (
+    BEDSIDE_DURATION_MEAN_MIN,
+    BEDSIDE_DURATION_MIN_MIN,
+    BEDSIDE_DURATION_STD_MIN,
+    BEDSIDE_HOURS_OFFSET_EXPONENTIAL_MEAN,
+    BEDSIDE_HOURS_OFFSET_MIN,
+    BEDSIDE_SEVERITY_MILD_MULTIPLIER,
+    BEDSIDE_SEVERITY_MODERATE_MULTIPLIER,
+    BEDSIDE_SEVERITY_MULTIPLIER_FALLBACK,
+    BEDSIDE_SEVERITY_SEVERE_MULTIPLIER,
+)
+from clinosim.modules.procedure._rehab_thresholds import (
+    REHAB_IMPROVED_MIN_POD,
+    REHAB_JP_SESSION_DURATION_MIN,
+    REHAB_PAIN_BASE_SCORE,
+    REHAB_PAIN_DECAY_PER_POD,
+    REHAB_PAIN_FAIR_PARTICIPATION_THRESHOLD,
+    REHAB_PAIN_MAX_SCORE,
+    REHAB_PAIN_MIN_SCORE,
+    REHAB_PAIN_STD,
+    REHAB_PHASE_EARLY_MAX_POD,
+    REHAB_PHASE_MID_MAX_POD,
+    REHAB_REFUSAL_PROBABILITY,
+    REHAB_SESSION_START_HOUR,
+    REHAB_SKIP_DAY_PROBABILITY,
+    REHAB_START_POD,
+    REHAB_US_SESSION_DURATION_MIN,
+)
 from clinosim.modules.procedure._surgery_thresholds import (
     ASA_AGE_HIGH_THRESHOLD,
     ASA_AGE_LOW_THRESHOLD,
@@ -431,7 +459,11 @@ def generate_bedside_procedures(
     Uses rule-based matching: disease_id is matched against _PROCEDURE_RULES,
     and each candidate procedure fires with its probability, scaled by severity.
     """
-    severity_mult = {"severe": 1.3, "moderate": 1.0, "mild": 0.5}.get(severity, 1.0)
+    severity_mult = {
+        "severe": BEDSIDE_SEVERITY_SEVERE_MULTIPLIER,
+        "moderate": BEDSIDE_SEVERITY_MODERATE_MULTIPLIER,
+        "mild": BEDSIDE_SEVERITY_MILD_MULTIPLIER,
+    }.get(severity, BEDSIDE_SEVERITY_MULTIPLIER_FALLBACK)
     proc_lookup = {p[0]: p for p in _BEDSIDE_PROCEDURES}
 
     triggered: dict[str, float] = {}  # procedure_type → max probability
@@ -464,9 +496,9 @@ def generate_bedside_procedures(
         # Names not stored — FHIR adapter resolves via code_lookup (AD-30)
 
         # Timing: most bedside procedures happen within first 24h
-        hours_offset = max(0.5, float(rng.exponential(6)))  # median ~6h post-admission
+        hours_offset = max(BEDSIDE_HOURS_OFFSET_MIN, float(rng.exponential(BEDSIDE_HOURS_OFFSET_EXPONENTIAL_MEAN)))
         proc_time = admission_time + timedelta(hours=hours_offset)
-        duration = int(max(10, rng.normal(30, 10)))
+        duration = int(max(BEDSIDE_DURATION_MIN_MIN, rng.normal(BEDSIDE_DURATION_MEAN_MIN, BEDSIDE_DURATION_STD_MIN)))
 
         meta = _PROCEDURE_METADATA.get(proc_type)
         record = ProcedureRecord(
@@ -506,8 +538,8 @@ def generate_rehab_sessions(
     sessions: list[RehabSession] = []
 
     # Rehab starts POD 1 (day after surgery)
-    start_day = 1
-    duration = 40 if is_jp(country) else 30
+    start_day = REHAB_START_POD
+    duration = REHAB_JP_SESSION_DURATION_MIN if is_jp(country) else REHAB_US_SESSION_DURATION_MIN
 
     activities_by_phase = {
         "early": ["bed exercises", "sitting up", "standing with assist"],
@@ -517,13 +549,13 @@ def generate_rehab_sessions(
 
     for day_offset in range(start_day, total_days):
         # Skip some days randomly (weekend reduction, patient fatigue)
-        if rng.random() < 0.1:
+        if rng.random() < REHAB_SKIP_DAY_PROBABILITY:
             continue
 
         # Determine phase
-        if day_offset <= 3:
+        if day_offset <= REHAB_PHASE_EARLY_MAX_POD:
             phase = "early"
-        elif day_offset <= 14:
+        elif day_offset <= REHAB_PHASE_MID_MAX_POD:
             phase = "mid"
         else:
             phase = "late"
@@ -532,15 +564,23 @@ def generate_rehab_sessions(
             rng.choice(activities_by_phase[phase], size=min(3, len(activities_by_phase[phase])), replace=False)
         )  # noqa: E501
 
-        pain = int(max(0, min(10, rng.normal(4 - day_offset * 0.1, 1.5))))
+        pain = int(
+            max(
+                REHAB_PAIN_MIN_SCORE,
+                min(
+                    REHAB_PAIN_MAX_SCORE,
+                    rng.normal(REHAB_PAIN_BASE_SCORE - day_offset * REHAB_PAIN_DECAY_PER_POD, REHAB_PAIN_STD),
+                ),
+            )
+        )
 
         participation = "good"
-        if pain > 6:
+        if pain > REHAB_PAIN_FAIR_PARTICIPATION_THRESHOLD:
             participation = "fair"
-        if rng.random() < 0.05:
+        if rng.random() < REHAB_REFUSAL_PROBABILITY:
             participation = "refused"
 
-        progress = "improved" if day_offset > 3 else "stable"
+        progress = "improved" if day_offset > REHAB_IMPROVED_MIN_POD else "stable"
         if participation == "refused":
             progress = "unable_to_assess"
 
@@ -549,7 +589,7 @@ def generate_rehab_sessions(
             patient_id=patient_id,
             encounter_id=encounter_id,
             therapy_type="PT",
-            session_date=surgery_date + timedelta(days=day_offset, hours=10),
+            session_date=surgery_date + timedelta(days=day_offset, hours=REHAB_SESSION_START_HOUR),
             duration_minutes=duration,
             day_post_op=day_offset,
             activities=activities,
