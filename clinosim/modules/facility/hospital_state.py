@@ -14,6 +14,33 @@ from typing import Any
 
 import yaml
 
+from clinosim.modules.facility._hospital_state_thresholds import (
+    DELAY_CONGESTION_CAP,
+    DELAY_CONGESTION_UTILIZATION_FLOOR,
+    DELAY_MAX_DELAY_ROUTINE_MIN,
+    DELAY_MAX_DELAY_STAT_MIN,
+    DELAY_QUEUE_UTILIZATION_CEILING,
+    DELAY_QUEUE_UTILIZATION_FLOOR,
+    DELAY_STAFF_CAP,
+    DELAY_STAFF_FLOOR,
+    FALLBACK_BASE_ROUTINE_MIN,
+    FALLBACK_BASE_STAT_MIN,
+    FALLBACK_LAB_STAFF,
+    FALLBACK_NURSING_STAFF,
+    FALLBACK_OR_STAFF,
+    FALLBACK_PHARMACY_STAFF,
+    FALLBACK_QUEUE_UTILIZATION,
+    FALLBACK_RADIOLOGY_STAFF,
+    FALLBACK_REPORTING_ROUTINE_MIN,
+    FALLBACK_REPORTING_STAT_MIN,
+    FALLBACK_RESOURCE_CAPACITY,
+    FALLBACK_WEEKEND_MODIFIER,
+    SHIFT_DAY_END_HOUR_EXCLUSIVE,
+    SHIFT_DAY_START_HOUR,
+    SHIFT_EVENING_START_HOUR,
+    WEEKEND_WEEKDAY_MIN,
+)
+
 # See clinosim/types/clinical.py for rationale (determinism chain, 2026-07-04).
 _UNSET_DATETIME = datetime(1970, 1, 1)
 
@@ -54,23 +81,23 @@ class HospitalState:
 
         # Determine shift
         staffing = hospital_ops.get("staffing", {})
-        if 8 <= hour < 16:
+        if SHIFT_DAY_START_HOUR <= hour < SHIFT_DAY_END_HOUR_EXCLUSIVE:
             shift = staffing.get("day", {})
-        elif 16 <= hour or hour < 0:
+        elif SHIFT_EVENING_START_HOUR <= hour or hour < 0:
             shift = staffing.get("evening", {})
         else:
             shift = staffing.get("night", {})
 
         # Apply staffing
-        self.lab_staff = shift.get("lab_staff", 0.5)
-        self.radiology_staff = shift.get("radiology_staff", 0.5)
-        self.nursing_staff = shift.get("nursing_staff", 0.5)
-        self.pharmacy_staff = shift.get("pharmacy_staff", 0.0)
-        self.or_staff = shift.get("or_staff", 0.1)
+        self.lab_staff = shift.get("lab_staff", FALLBACK_LAB_STAFF)
+        self.radiology_staff = shift.get("radiology_staff", FALLBACK_RADIOLOGY_STAFF)
+        self.nursing_staff = shift.get("nursing_staff", FALLBACK_NURSING_STAFF)
+        self.pharmacy_staff = shift.get("pharmacy_staff", FALLBACK_PHARMACY_STAFF)
+        self.or_staff = shift.get("or_staff", FALLBACK_OR_STAFF)
 
         # Weekend modifier
-        if weekday >= 5:
-            modifier = staffing.get("weekend_modifier", 0.6)
+        if weekday >= WEEKEND_WEEKDAY_MIN:
+            modifier = staffing.get("weekend_modifier", FALLBACK_WEEKEND_MODIFIER)
             self.lab_staff *= modifier
             self.radiology_staff *= modifier
             self.pharmacy_staff *= modifier
@@ -99,7 +126,14 @@ class HospitalState:
                 delta_key = f"{key}_delta"
                 if delta_key in pattern:
                     current = getattr(self, key)
-                    setattr(self, key, min(0.95, max(0.0, current + pattern[delta_key])))
+                    setattr(
+                        self,
+                        key,
+                        min(
+                            DELAY_QUEUE_UTILIZATION_CEILING,
+                            max(DELAY_QUEUE_UTILIZATION_FLOOR, current + pattern[delta_key]),
+                        ),
+                    )
 
     def calculate_delay(
         self,
@@ -116,9 +150,9 @@ class HospitalState:
 
         # Base processing time
         if urgency == "stat":
-            base = float(base_times.get(f"{resource}_stat", base_times.get(resource, 20)))
+            base = float(base_times.get(f"{resource}_stat", base_times.get(resource, FALLBACK_BASE_STAT_MIN)))
         else:
-            base = float(base_times.get(f"{resource}_routine", base_times.get(resource, 45)))
+            base = float(base_times.get(f"{resource}_routine", base_times.get(resource, FALLBACK_BASE_ROUTINE_MIN)))
 
         # Queue utilization
         queue_attr = f"{resource}_queue"
@@ -129,11 +163,11 @@ class HospitalState:
         elif resource == "or":
             queue_attr = "or_queue"
 
-        utilization = getattr(self, queue_attr, 0.1)
-        utilization = min(0.95, max(0.0, utilization))
+        utilization = getattr(self, queue_attr, FALLBACK_QUEUE_UTILIZATION)
+        utilization = min(DELAY_QUEUE_UTILIZATION_CEILING, max(DELAY_QUEUE_UTILIZATION_FLOOR, utilization))
 
         # Queueing theory: M/M/1 delay factor
-        congestion_factor = 1.0 / max(0.05, 1.0 - utilization)
+        congestion_factor = 1.0 / max(DELAY_CONGESTION_UTILIZATION_FLOOR, 1.0 - utilization)
 
         # Staff factor
         if resource in ("ct", "mri", "xray", "ultrasound"):
@@ -144,26 +178,26 @@ class HospitalState:
             staff = self.or_staff
         else:
             staff = 1.0
-        staff_factor = 1.0 / max(0.1, staff)
+        staff_factor = 1.0 / max(DELAY_STAFF_FLOOR, staff)
 
         # Cap factors to avoid pathological multiplication
         # When congestion + staff factors compound, delays can blow up
-        congestion_factor = min(congestion_factor, 5.0)  # max 5x slowdown from congestion
-        staff_factor = min(staff_factor, 4.0)  # max 4x slowdown from staffing (matches night-shift reality)
+        congestion_factor = min(congestion_factor, DELAY_CONGESTION_CAP)
+        staff_factor = min(staff_factor, DELAY_STAFF_CAP)
 
         # Reporting time (for imaging)
         reporting = 0.0
         if resource in ("ct", "mri", "xray", "ultrasound"):
             if urgency == "stat":
-                reporting = float(report_times.get("stat", 15))
+                reporting = float(report_times.get("stat", FALLBACK_REPORTING_STAT_MIN))
             else:
-                reporting = float(report_times.get("routine", 120))
+                reporting = float(report_times.get("routine", FALLBACK_REPORTING_ROUTINE_MIN))
             reporting *= staff_factor  # less staff → slower reporting
 
         delay = base * congestion_factor * staff_factor + reporting
 
         # Hard cap: stat results within 4h, routine within 12h
-        max_delay = 240.0 if urgency == "stat" else 720.0  # minutes
+        max_delay = DELAY_MAX_DELAY_STAT_MIN if urgency == "stat" else DELAY_MAX_DELAY_ROUTINE_MIN
         return min(delay, max_delay)
 
     def add_to_queue(self, resource: str, hospital_ops: dict[str, Any]) -> None:
@@ -178,11 +212,11 @@ class HospitalState:
             "or": "operating_rooms",
         }
         cap_key = cap_map.get(resource, resource)
-        cap = capacity.get(cap_key, 5)
+        cap = capacity.get(cap_key, FALLBACK_RESOURCE_CAPACITY)
         queue_attr = f"{resource}_queue"
         if hasattr(self, queue_attr):
             current = getattr(self, queue_attr)
-            setattr(self, queue_attr, min(0.95, current + 1.0 / cap))
+            setattr(self, queue_attr, min(DELAY_QUEUE_UTILIZATION_CEILING, current + 1.0 / cap))
 
     def release_from_queue(self, resource: str, hospital_ops: dict[str, Any]) -> None:
         """Record that a resource is freed."""
@@ -196,11 +230,11 @@ class HospitalState:
             "or": "operating_rooms",
         }
         cap_key = cap_map.get(resource, resource)
-        cap = capacity.get(cap_key, 5)
+        cap = capacity.get(cap_key, FALLBACK_RESOURCE_CAPACITY)
         queue_attr = f"{resource}_queue"
         if hasattr(self, queue_attr):
             current = getattr(self, queue_attr)
-            setattr(self, queue_attr, max(0.0, current - 1.0 / cap))
+            setattr(self, queue_attr, max(DELAY_QUEUE_UTILIZATION_FLOOR, current - 1.0 / cap))
 
 
 @lru_cache(maxsize=1)
