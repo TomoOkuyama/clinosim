@@ -17,6 +17,26 @@ from clinosim.modules.imaging.engine import (
     load_body_sites,
     load_modalities,
 )
+from clinosim.modules.order._lab_result_timing import (
+    CONGESTION_EXTRA_MEAN_MIN,
+    CONGESTION_PROBABILITY,
+    EVENING_HOUR_END,
+    EVENING_HOUR_START,
+    EVENING_STAFFING_MULTIPLIER,
+    LAB_RESULT_MIN_DELAY_MIN,
+    NIGHT_HOUR_END,
+    NIGHT_HOUR_START,
+    NIGHT_MORNING_START_HOUR,
+    NIGHT_MORNING_START_MINUTE,
+    POST_NIGHT_ADDITIONAL_MEAN_MIN,
+    POST_NIGHT_ADDITIONAL_STD_MIN,
+    ROUTINE_LAB_BASE_MEAN_MIN,
+    ROUTINE_LAB_BASE_STD_MIN,
+    STAT_LAB_BASE_MEAN_MIN,
+    STAT_LAB_BASE_STD_MIN,
+    WEEKEND_NON_URGENT_ADDITIONAL_MULTIPLIER,
+    WEEKEND_STAFFING_MULTIPLIER,
+)
 from clinosim.modules.order.panel_grouping import classify_lab_specs, load_panel_definitions
 from clinosim.modules.order.treatment_classifier import classify_inpatient_supportive
 from clinosim.types.encounter import Order, OrderStatus, OrderType
@@ -518,37 +538,39 @@ def calculate_lab_result_time(
     """
     base_delay_minutes: float
     if order.urgency == "stat":
-        base_delay_minutes = float(rng.normal(45, 15))
+        base_delay_minutes = float(rng.normal(STAT_LAB_BASE_MEAN_MIN, STAT_LAB_BASE_STD_MIN))
     else:
-        base_delay_minutes = float(rng.normal(120, 30))
+        base_delay_minutes = float(rng.normal(ROUTINE_LAB_BASE_MEAN_MIN, ROUTINE_LAB_BASE_STD_MIN))
 
     ordered = order.ordered_datetime
     hour = ordered.hour
     weekday = ordered.weekday()  # 0=Mon, 6=Sun
 
     # Night: defer routine to morning
-    if (hour >= 22 or hour < 6) and order.urgency != "stat":
-        next_morning = ordered.replace(hour=6, minute=30, second=0)
-        if hour >= 22:
+    if (hour >= NIGHT_HOUR_START or hour < NIGHT_HOUR_END) and order.urgency != "stat":
+        next_morning = ordered.replace(hour=NIGHT_MORNING_START_HOUR, minute=NIGHT_MORNING_START_MINUTE, second=0)
+        if hour >= NIGHT_HOUR_START:
             next_morning += timedelta(days=1)
-        return next_morning + timedelta(minutes=float(rng.normal(90, 30)))
+        return next_morning + timedelta(
+            minutes=float(rng.normal(POST_NIGHT_ADDITIONAL_MEAN_MIN, POST_NIGHT_ADDITIONAL_STD_MIN))
+        )
 
     # Weekend delay: lab staff reduced, processing slower
     if weekday >= 5:  # Saturday/Sunday
-        base_delay_minutes *= 1.5
+        base_delay_minutes *= WEEKEND_STAFFING_MULTIPLIER
         if order.urgency != "stat":
-            base_delay_minutes *= 1.3  # non-urgent even slower on weekends
+            base_delay_minutes *= WEEKEND_NON_URGENT_ADDITIONAL_MULTIPLIER
 
     # Random congestion: ~15% chance of significant delay (equipment busy, batch processing)
-    if rng.random() < 0.15:
-        congestion_extra = float(rng.exponential(30))  # 0-90 min extra
+    if rng.random() < CONGESTION_PROBABILITY:
+        congestion_extra = float(rng.exponential(CONGESTION_EXTRA_MEAN_MIN))
         base_delay_minutes += congestion_extra
 
-    # Evening (17-22): reduced staff, slight delay
-    if 17 <= hour < 22:
-        base_delay_minutes *= 1.2
+    # Evening: reduced staff, slight delay
+    if EVENING_HOUR_START <= hour < EVENING_HOUR_END:
+        base_delay_minutes *= EVENING_STAFFING_MULTIPLIER
 
-    delay = max(15.0, base_delay_minutes)
+    delay = max(LAB_RESULT_MIN_DELAY_MIN, base_delay_minutes)
     return ordered + timedelta(minutes=delay)
 
 
