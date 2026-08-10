@@ -8,8 +8,10 @@ policy §5. Grown in phases across sub-PRs of C2:
   (Creatinine, BUN, eGFR, K, Na).
 * **C2b** — cardiac (BNP, Troponin, CK_MB) + hepatic (AST, ALT,
   T_Bil, PT_INR).
-* Remaining sections (anemia, coagulation, blood gas, electrolytes,
-  glucose) deferred to C2c / C2d sibling sub-PRs.
+* **C2c** — anemia (Hb, Hct, Plt) + coagulation (APTT, PT,
+  Fibrinogen, D-dimer) + perfusion (Lactate).
+* Remaining sections (blood gas, electrolytes, glucose, WBC
+  circadian) deferred to C2d.
 
 Every constant is a formula coefficient — clinically motivated (JCCLS
 reference-range centers, KDIGO CKD staging, ADA hyperkalemia bands)
@@ -26,6 +28,36 @@ does exactly.
 from __future__ import annotations
 
 __all__ = [
+    "APTT_BASELINE_SEC",
+    "APTT_COAGULATION_SCALE",
+    "APTT_PHYSIOLOGIC_MAX_SEC",
+    "APTT_PHYSIOLOGIC_MIN_SEC",
+    "D_DIMER_AGE_ADJUST_MIN_AGE",
+    "D_DIMER_AGE_ADJUST_SCALE",
+    "D_DIMER_BASELINE",
+    "D_DIMER_COAGULATION_SCALE",
+    "D_DIMER_INFLAMMATION_SCALE",
+    "D_DIMER_PHYSIOLOGIC_MAX",
+    "D_DIMER_PHYSIOLOGIC_MIN",
+    "D_DIMER_VTE_LIFT",
+    "FIBRINOGEN_BASELINE_MG_DL",
+    "FIBRINOGEN_COAGULATION_CONSUMPTION_SCALE",
+    "FIBRINOGEN_INFLAMMATION_SCALE",
+    "FIBRINOGEN_PHYSIOLOGIC_MAX",
+    "FIBRINOGEN_PHYSIOLOGIC_MIN",
+    "HB_ANEMIA_SCALE",
+    "HB_BASELINE_FEMALE_G_DL",
+    "HB_BASELINE_MALE_G_DL",
+    "HB_FLOOR_G_DL",
+    "HCT_HB_RATIO",
+    "LACTATE_BASELINE_MMOL_L",
+    "LACTATE_PERFUSION_SCALE",
+    "PLT_BASELINE",
+    "PLT_COAGULATION_SCALE",
+    "PLT_FLOOR",
+    "PT_ISI_FALLBACK_NORMAL_SEC",
+    "PT_PHYSIOLOGIC_MAX_SEC",
+    "PT_PHYSIOLOGIC_MIN_SEC",
     "ALT_BASELINE_U_L",
     "ALT_HEPATIC_SCALE",
     "AST_BASELINE_U_L",
@@ -452,3 +484,169 @@ comorbidity-driven perturbation on top of the therapeutic center —
 reflects that anticoagulation is titrated to keep INR in the
 therapeutic range even in patients with concurrent hepatic /
 coagulation issues, but not perfectly."""
+
+
+# ---------------------------------------------------------------------------
+# Anemia panel — Hb + Hct + Plt
+# ---------------------------------------------------------------------------
+
+HB_BASELINE_MALE_G_DL: float = 15.0
+"""Baseline hemoglobin (g/dL) for adult males — mid-range of the
+WHO / JCCLS healthy adult reference (13-17)."""
+
+HB_BASELINE_FEMALE_G_DL: float = 13.0
+"""Baseline hemoglobin (g/dL) for adult females — mid-range of the
+WHO / JCCLS healthy adult reference (12-15)."""
+
+HB_ANEMIA_SCALE: float = 0.7
+"""Multiplicative scale on ``(1 - anemia_level * 0.7)`` — at
+``anemia_level = 1.0``, Hb drops to 30% of baseline (~4.5 g/dL M /
+~3.9 g/dL F), matching severe anemia clinical ranges."""
+
+HB_FLOOR_G_DL: float = 3.0
+"""Physiologic minimum hemoglobin (g/dL) — matches the transfusion-
+imminent clinical floor."""
+
+HCT_HB_RATIO: float = 3.0
+"""Hematocrit-to-hemoglobin ratio (Hct % = Hb g/dL × 3.0).
+
+Empirical clinical rule (roughly Hb × 3 ≈ Hct % over the normal
+physiologic range) — matches the bedside-conversion convention used
+by clinicians."""
+
+PLT_BASELINE: int = 250
+"""Baseline platelet count (×10³/μL) — mid-range of the JCCLS
+healthy adult reference (150-350)."""
+
+PLT_COAGULATION_SCALE: int = 200
+"""Platelet consumption per unit ``coagulation_status``.
+
+Empirical tuning for the synthetic simulator: at coagulation_status
+= 1.0 (full DIC), Plt drops to ~50 (severe thrombocytopenia), matching
+the DIC clinical range."""
+
+PLT_FLOOR: int = 20
+"""Physiologic minimum platelet count (×10³/μL) — critical
+thrombocytopenia floor requiring urgent transfusion."""
+
+
+# ---------------------------------------------------------------------------
+# Coagulation panel — APTT + PT + Fibrinogen + D-dimer
+# ---------------------------------------------------------------------------
+
+APTT_BASELINE_SEC: float = 30.0
+"""Baseline APTT (seconds) at zero coagulation disturbance — mid-range
+of the healthy adult reference (25-35 sec)."""
+
+APTT_COAGULATION_SCALE: float = 55.0
+"""APTT prolongation (seconds) per unit ``coagulation_status``.
+
+Empirical tuning for the synthetic simulator: at coagulation_status
+= 1.0 (full DIC), APTT rises to 85 sec (severe intrinsic-pathway
+disturbance), matching the DIC 60-100+ sec clinical range."""
+
+APTT_PHYSIOLOGIC_MIN_SEC: float = 20.0
+"""Physiologic minimum APTT (seconds) — matches the hypercoagulability
+floor observed in some inflammatory states."""
+
+APTT_PHYSIOLOGIC_MAX_SEC: float = 150.0
+"""Physiologic maximum APTT (seconds) — beyond this, samples are
+typically reported as "unclottable" clinically."""
+
+PT_ISI_FALLBACK_NORMAL_SEC: float = 12.0
+"""Reference normal-PT (seconds) with ISI ≈ 1.0.
+
+PT is derived from PT_INR via ``PT ≈ 12 * PT_INR`` — the standard
+laboratory relationship (INR = (PT / normal_PT)^ISI). Chosen for
+consistency: PT and PT_INR then never numerically disagree."""
+
+PT_PHYSIOLOGIC_MIN_SEC: float = 9.0
+"""Physiologic minimum PT (seconds) — matches the hypercoagulability
+floor and healthy adult reference lower bound."""
+
+PT_PHYSIOLOGIC_MAX_SEC: float = 90.0
+"""Physiologic maximum PT (seconds) — samples beyond this are
+typically reported as "unclottable" clinically."""
+
+FIBRINOGEN_BASELINE_MG_DL: float = 300.0
+"""Baseline fibrinogen (mg/dL) at zero inflammation and no DIC
+consumption — mid-range of the healthy adult reference (200-400)."""
+
+FIBRINOGEN_INFLAMMATION_SCALE: float = 250.0
+"""Fibrinogen acute-phase lift per unit inflammation.
+
+Empirical tuning for the synthetic simulator: at inflammation = 1.0,
+fibrinogen rises to ~550 mg/dL — matches the sepsis-without-DIC
+acute-phase clinical pattern."""
+
+FIBRINOGEN_COAGULATION_CONSUMPTION_SCALE: float = 280.0
+"""Fibrinogen consumption per unit ``coagulation_status`` (DIC).
+
+Empirical tuning for the synthetic simulator: at full inflammation
+(+250) AND full DIC (-280), net = 270 mg/dL (below the
+DIC-trending 350 mg/dL clinical alarm), matching the clinical
+"fibrinogen falling despite acute-phase surge" DIC signal."""
+
+FIBRINOGEN_PHYSIOLOGIC_MIN: float = 50.0
+"""Physiologic minimum fibrinogen (mg/dL) — laboratory detection
+floor; clinically < 100 indicates severe consumptive coagulopathy."""
+
+FIBRINOGEN_PHYSIOLOGIC_MAX: float = 800.0
+"""Physiologic maximum fibrinogen (mg/dL) — beyond acute-phase
+expectations in severe inflammation."""
+
+D_DIMER_BASELINE: float = 0.3
+"""Baseline D-dimer (ug/mL FEU) at zero contributing factors — matches
+the healthy young-adult reference lower bound."""
+
+D_DIMER_AGE_ADJUST_MIN_AGE: int = 50
+"""Minimum patient age at which the age-adjusted D-dimer term begins
+contributing.
+
+The age-adjusted formula ``+0.005/year above 50`` is a well-documented
+D-dimer aging convention (baseline drifts upward ~0.05 ug/mL per
+decade past 50)."""
+
+D_DIMER_AGE_ADJUST_SCALE: float = 0.005
+"""Age-scaling of the D-dimer age-adjust term (ug/mL per year past
+:data:`D_DIMER_AGE_ADJUST_MIN_AGE`)."""
+
+D_DIMER_INFLAMMATION_SCALE: float = 0.5
+"""D-dimer inflammation contribution (ug/mL per unit inflammation) —
+modest, non-VTE-specific lift matching sepsis / non-VTE inflammation
+patterns."""
+
+D_DIMER_COAGULATION_SCALE: float = 1.5
+"""D-dimer contribution per unit ``coagulation_status`` (DIC /
+fibrinolysis) — larger than the inflammation contribution."""
+
+D_DIMER_VTE_LIFT: float = 4.0
+"""D-dimer lift (ug/mL) applied when ``causes_vte`` scenario flag is
+set (PE / DVT / embolic stroke).
+
+Empirical tuning for the synthetic simulator: 4.0 ug/mL pushes
+D-dimer to the clinically-positive 5-20 ug/mL band for VTE cases
+after inflammation + coagulation contributions."""
+
+D_DIMER_PHYSIOLOGIC_MIN: float = 0.15
+"""Physiologic minimum D-dimer (ug/mL) — laboratory detection floor."""
+
+D_DIMER_PHYSIOLOGIC_MAX: float = 20.0
+"""Physiologic maximum D-dimer (ug/mL) — assay upper limit; values
+higher are typically reported as ">20"."""
+
+
+# ---------------------------------------------------------------------------
+# Perfusion — Lactate
+# ---------------------------------------------------------------------------
+
+LACTATE_BASELINE_MMOL_L: float = 1.0
+"""Baseline lactate (mmol/L) at full perfusion — matches the healthy
+adult reference upper bound (< 2.0)."""
+
+LACTATE_PERFUSION_SCALE: int = 12
+"""Lactate lift (mmol/L per unit ``(1 - perfusion_status)``).
+
+Empirical tuning for the synthetic simulator: at perfusion_status
+= 0, lactate rises to 13 mmol/L (extreme lactic acidosis / shock),
+matching the septic-shock / cardiogenic-shock clinical range."""
