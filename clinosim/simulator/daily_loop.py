@@ -45,6 +45,31 @@ from clinosim.modules.staff.engine import (
     StaffRoster,
     assign_staff,
 )
+from clinosim.simulator._daily_loop_thresholds import (
+    ARCHETYPE_DAY_SHIFT_PROBABILITY,
+    DIET_CLEAR_LIQUID_INFLAMMATION_THRESHOLD,
+    DIET_SOFT_INFLAMMATION_THRESHOLD,
+    LAB_EARLY_MORNING_HOUR,
+    LAB_EARLY_MORNING_MIN_END_EXCLUSIVE,
+    LAB_EARLY_MORNING_MIN_START,
+    LAB_EARLY_MORNING_PROBABILITY,
+    LAB_FREQ_MULT_LATE_STAY_STABLE,
+    LAB_FREQ_MULT_NEAR_DISCHARGE,
+    LAB_FREQ_MULT_SEVERITY_FALLBACK,
+    LAB_FREQ_MULT_SEVERITY_MILD,
+    LAB_FREQ_MULT_SEVERITY_MODERATE,
+    LAB_FREQ_MULT_SEVERITY_SEVERE,
+    LAB_FREQ_MULT_WEEKEND,
+    LAB_LATE_STAY_INFLAMMATION_MAX,
+    LAB_LATE_STAY_MIN_DAY,
+    LAB_MIN_END_EXCLUSIVE,
+    LAB_MIN_START,
+    LAB_MORNING_HOUR,
+    LAB_NEAR_DISCHARGE_DAY_OFFSET,
+    LAB_NEAR_DISCHARGE_INFLAMMATION_MAX,
+    TREATMENT_ESCALATION_DAY,
+    TREATMENT_ESCALATION_INFLAMMATION_MIN,
+)
 from clinosim.simulator.helpers import _check_discharge_ready, _evaluate_mortality
 from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline
 from clinosim.simulator.medication_pipeline import _generate_mar, _place_chronic_monitoring_orders
@@ -159,11 +184,11 @@ def _run_daily_loop(
         # Daily lab orders (from Day 1) with context-dependent frequency
         if day >= 1:
             # Morning lab draw: 05:30-07:00 with jitter
-            lab_hour = 6
-            lab_min = int(rng.integers(0, 45))  # 06:00-06:45
-            if rng.random() < 0.2:
-                lab_hour = 5
-                lab_min = int(rng.integers(30, 60))  # 05:30-06:00
+            lab_hour = LAB_MORNING_HOUR
+            lab_min = int(rng.integers(LAB_MIN_START, LAB_MIN_END_EXCLUSIVE))
+            if rng.random() < LAB_EARLY_MORNING_PROBABILITY:
+                lab_hour = LAB_EARLY_MORNING_HOUR
+                lab_min = int(rng.integers(LAB_EARLY_MORNING_MIN_START, LAB_EARLY_MORNING_MIN_END_EXCLUSIVE))
             lab_time = datetime(
                 admission_time.year,
                 admission_time.month,
@@ -175,17 +200,24 @@ def _run_daily_loop(
             # Context-dependent lab frequency modulation
             freq_mod = healthcare.lab_frequency_multiplier
             # Severity: severe patients get more frequent labs, mild get fewer
-            severity_mult = {"severe": 1.3, "moderate": 1.0, "mild": 0.6}.get(severity, 1.0)
+            severity_mult = {
+                "severe": LAB_FREQ_MULT_SEVERITY_SEVERE,
+                "moderate": LAB_FREQ_MULT_SEVERITY_MODERATE,
+                "mild": LAB_FREQ_MULT_SEVERITY_MILD,
+            }.get(severity, LAB_FREQ_MULT_SEVERITY_FALLBACK)
             freq_mod *= severity_mult
             # Near discharge: reduce routine labs
-            if day >= target_los - 2 and state.inflammation_level < 0.1:
-                freq_mod *= 0.5
+            if (
+                day >= target_los - LAB_NEAR_DISCHARGE_DAY_OFFSET
+                and state.inflammation_level < LAB_NEAR_DISCHARGE_INFLAMMATION_MAX
+            ):
+                freq_mod *= LAB_FREQ_MULT_NEAR_DISCHARGE
             # Weekend: reduce non-urgent labs
             if lab_time.weekday() >= 5:  # Saturday/Sunday
-                freq_mod *= 0.7
+                freq_mod *= LAB_FREQ_MULT_WEEKEND
             # Stable patient: reduce after first week
-            if day >= 7 and state.inflammation_level < 0.15:
-                freq_mod *= 0.8
+            if day >= LAB_LATE_STAY_MIN_DAY and state.inflammation_level < LAB_LATE_STAY_INFLAMMATION_MAX:
+                freq_mod *= LAB_FREQ_MULT_LATE_STAY_STABLE
 
             daily_orders = place_daily_lab_orders(
                 protocol.model_dump(),
@@ -337,7 +369,7 @@ def _run_daily_loop(
         day_key = f"day_{day}"
         # Also check adjacent days (in case the modification fires ±1 day early/late)
         day_keys_to_check = [day_key]
-        if rng.random() < 0.3:  # 30% chance of ±1 day shift
+        if rng.random() < ARCHETYPE_DAY_SHIFT_PROBABILITY:  # ±1 day jitter for realism
             shift = int(rng.choice([-1, 1]))
             alt_key = f"day_{day + shift}"
             if alt_key in order_mods and day_key not in order_mods:
@@ -461,7 +493,7 @@ def _run_daily_loop(
                     # Skip entries with neither drug nor procedure
 
         # Treatment escalation: if inflammation not improving by day 3, escalate
-        if day == 3 and state.inflammation_level > 0.3:
+        if day == TREATMENT_ESCALATION_DAY and state.inflammation_level > TREATMENT_ESCALATION_INFLAMMATION_MIN:
             escalation_drugs = protocol.drugs.get("escalation", {}).get(country_key, [])
             if isinstance(escalation_drugs, dict):
                 escalation_drugs = [escalation_drugs]
@@ -508,9 +540,9 @@ def _run_daily_loop(
         # Diet order (only when diet changes: NPO → clear liquid → soft → regular)
         if day == 0:
             diet = "NPO"
-        elif day == 1 and state.inflammation_level > 0.3:
+        elif day == 1 and state.inflammation_level > DIET_CLEAR_LIQUID_INFLAMMATION_THRESHOLD:
             diet = "clear_liquid"
-        elif state.inflammation_level > 0.2:
+        elif state.inflammation_level > DIET_SOFT_INFLAMMATION_THRESHOLD:
             diet = "soft_diet"
         else:
             diet = "regular_diet"
