@@ -20,6 +20,14 @@ from clinosim.modules.staff.engine import (
     StaffRoster,
     assign_staff,
 )
+from clinosim.simulator._outpatient_thresholds import (
+    OUTPATIENT_LAB_ORDER_OFFSET_MIN,
+    OUTPATIENT_LAB_RESULT_OFFSET_HOURS,
+    OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
+    OUTPATIENT_VISIT_DURATION_MAX_MIN,
+    OUTPATIENT_VISIT_DURATION_MIN_MIN,
+    OUTPATIENT_VITALS_OFFSET_MIN,
+)
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.encounter import (
     EncounterStatus,
@@ -94,7 +102,9 @@ def _simulate_outpatient_visit(
             encounter.chief_complaint_ja = _chief_ja
     encounter.encounter_type = EncounterType.OUTPATIENT
     encounter.status = EncounterStatus.COMPLETED
-    encounter.discharge_datetime = visit_date + timedelta(minutes=int(rng.integers(15, 45)))
+    encounter.discharge_datetime = visit_date + timedelta(
+        minutes=int(rng.integers(OUTPATIENT_VISIT_DURATION_MIN_MIN, OUTPATIENT_VISIT_DURATION_MAX_MIN))
+    )
 
     staff = assign_staff("rounds", "internal_medicine", roster, rng)
     encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
@@ -141,7 +151,7 @@ def _simulate_outpatient_visit(
     baseline = patient.baseline_vitals
     _state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
     _state.timestamp = visit_date
-    vit_time = visit_date + timedelta(minutes=5)
+    vit_time = visit_date + timedelta(minutes=OUTPATIENT_VITALS_OFFSET_MIN)
     raw = derive_observed_vitals(_state, baseline, vit_time, rng)
     opd_nurse_id = assign_staff("medication_administration", "primary_care", roster, rng).get("administering_nurse", "")
     vitals.append(
@@ -209,7 +219,7 @@ def _simulate_outpatient_visit(
             display_name=test_name,
             urgency="routine",
             clinical_intent=f"Outpatient follow-up: {test_name}",
-            ordered_datetime=visit_date + timedelta(minutes=10),
+            ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         )
@@ -220,7 +230,7 @@ def _simulate_outpatient_visit(
         observed = generate_lab_result(canon, true_val, lab_rng)
         flag = determine_flag(canon, observed, sex=patient.sex, country=country)
         result = OrderResult(
-            result_datetime=visit_date + timedelta(hours=2),
+            result_datetime=visit_date + timedelta(hours=OUTPATIENT_LAB_RESULT_OFFSET_HOURS),
             performed_by=lab_tech_id,
             lab_name=canon,
             value=observed,
@@ -259,7 +269,7 @@ def _simulate_outpatient_visit(
                     "dose": med.dose,
                     "route": med.route,
                     "frequency": med.frequency,
-                    "duration_days": 30,
+                    "duration_days": OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
                 }
                 for med in patient.current_medications
             ],
