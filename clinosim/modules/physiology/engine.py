@@ -28,6 +28,39 @@ from clinosim.modules.physiology._coupling_coefficients import (
     HF_SODIUM_COUPLING,
     IHD_CARDIAC_COUPLING,
 )
+from clinosim.modules.physiology._lab_derivation_thresholds import (
+    ALBUMIN_BASELINE,
+    ALBUMIN_FLOOR,
+    ALBUMIN_HEPATIC_SCALE,
+    ALBUMIN_INFLAMMATION_SCALE,
+    BUN_BASE_MG_DL,
+    BUN_RENAL_FLOOR,
+    BUN_VOLUME_LIFT_SCALE,
+    CREATININE_BASE_FEMALE,
+    CREATININE_BASE_MALE,
+    CREATININE_LOW_RENAL_SLOPE,
+    CREATININE_LOW_RENAL_THRESHOLD,
+    CRP_BASE_MG_L,
+    CRP_INFLAMMATION_SCALE,
+    EGFR_RENAL_SCALE,
+    PCT_BASE_NG_ML,
+    PCT_INFLAMMATION_EXPONENT_SCALE,
+    POTASSIUM_ACIDOSIS_SCALE,
+    POTASSIUM_BASE_MEQ_L,
+    POTASSIUM_MAX_MEQ_L,
+    POTASSIUM_MIN_MEQ_L,
+    POTASSIUM_RENAL_SCALE,
+    SODIUM_BASE_MEQ_L,
+    SODIUM_MAX_MEQ_L,
+    SODIUM_MIN_MEQ_L,
+    SODIUM_RENAL_PENALTY,
+    SODIUM_STATUS_SCALE,
+    WBC_BASE,
+    WBC_HIGH_INFLAMMATION_LEUKOPENIA_SCALE,
+    WBC_HIGH_INFLAMMATION_THRESHOLD,
+    WBC_INFLAMMATION_SCALE,
+    WBC_LEUKOPENIA_FLOOR,
+)
 from clinosim.modules.physiology._state_coupling_thresholds import (
     COAG_DIC_INFLAMMATION_SCALE,
     COAG_DIC_INFLAMMATION_THRESHOLD,
@@ -423,16 +456,24 @@ def derive_lab_values(
     # as part of the sepsis-cascade extension.
     effective_infl = min(1.0, infl + hai_inflammation_lift)
     # CRP: effective_infl 0→0.3, 0.4→26, 0.6→87, 0.75→169, 1.0→400 mg/L
-    labs["CRP"] = 0.3 + 400 * effective_infl**3
-    if effective_infl < 0.8:
-        labs["WBC"] = 7000 + effective_infl * 12000
+    labs["CRP"] = CRP_BASE_MG_L + CRP_INFLAMMATION_SCALE * effective_infl**3
+    if effective_infl < WBC_HIGH_INFLAMMATION_THRESHOLD:
+        labs["WBC"] = WBC_BASE + effective_infl * WBC_INFLAMMATION_SCALE
     else:
-        labs["WBC"] = max(1500, 7000 + 0.8 * 12000 - (effective_infl - 0.8) * 30000)
-    labs["PCT"] = 0.03 * math.exp(infl * 7)
+        labs["WBC"] = max(
+            WBC_LEUKOPENIA_FLOOR,
+            WBC_BASE
+            + WBC_HIGH_INFLAMMATION_THRESHOLD * WBC_INFLAMMATION_SCALE
+            - (effective_infl - WBC_HIGH_INFLAMMATION_THRESHOLD) * WBC_HIGH_INFLAMMATION_LEUKOPENIA_SCALE,
+        )
+    labs["PCT"] = PCT_BASE_NG_ML * math.exp(infl * PCT_INFLAMMATION_EXPONENT_SCALE)
     # Alb baseline calibrated so the healthy-cohort median lands on the JCCLS
     # reference-range center (4.6 g/dL). See the calibration note at
     # base_cr below for the derivation and design implications. Issue #416.
-    labs["Albumin"] = max(1.0, 4.69375 - infl * 2.0 - (1 - hepatic) * 1.5)
+    labs["Albumin"] = max(
+        ALBUMIN_FLOOR,
+        ALBUMIN_BASELINE - infl * ALBUMIN_INFLAMMATION_SCALE - (1 - hepatic) * ALBUMIN_HEPATIC_SCALE,
+    )
 
     # --- Renal ---
     # base_cr calibration (Issue #416):
@@ -459,8 +500,8 @@ def derive_lab_values(
     #   Applied only to analytes whose healthy-young in-band ratio fell below
     #   95% on the legacy math (Cre / Alb here; K was 99.07% and needs no
     #   change). Not a blanket refactor.
-    base_cr = 0.80625 if sex == "M" else 0.5859375
-    if renal > 0.5:
+    base_cr = CREATININE_BASE_MALE if sex == "M" else CREATININE_BASE_FEMALE
+    if renal > CREATININE_LOW_RENAL_THRESHOLD:
         labs["Creatinine"] = base_cr / renal
     else:
         # Low-renal slope, BNP-pattern surgical calibration (2026-06-22). The
@@ -469,18 +510,25 @@ def derive_lab_values(
         # (renal~0.3) admit Cr (~2.5-3). 6.5 lands severe AKI at Cr ~5 and
         # CKD3 at Cr ~3, leaving state and clinical_course untouched (avoids
         # the master-RNG cascade documented in spec 2026-06-22-aki-dka-...).
-        labs["Creatinine"] = base_cr / 0.5 + (0.5 - renal) * 6.5
-    labs["BUN"] = 15.0 / max(renal, 0.1)
+        labs["Creatinine"] = (
+            base_cr / CREATININE_LOW_RENAL_THRESHOLD
+            + (CREATININE_LOW_RENAL_THRESHOLD - renal) * CREATININE_LOW_RENAL_SLOPE
+        )
+    labs["BUN"] = BUN_BASE_MG_DL / max(renal, BUN_RENAL_FLOOR)
     if state.volume_status < BUN_ELEVATION_THRESHOLD:
-        labs["BUN"] *= 1.0 + abs(state.volume_status) * 0.5
-    labs["eGFR"] = renal * 120
+        labs["BUN"] *= 1.0 + abs(state.volume_status) * BUN_VOLUME_LIFT_SCALE
+    labs["eGFR"] = renal * EGFR_RENAL_SCALE
     # K: renal failure causes hyperkalemia, but not as aggressively as before
     # renal 1.0→K 4.0, renal 0.3→K 5.4, renal 0.1→K 6.0, acidosis adds
-    labs["K"] = clamp(4.0 + (1 - renal) * 2.2 + max(0, -ph) * 0.8, 2.5, 8.0)
+    labs["K"] = clamp(
+        POTASSIUM_BASE_MEQ_L + (1 - renal) * POTASSIUM_RENAL_SCALE + max(0, -ph) * POTASSIUM_ACIDOSIS_SCALE,
+        POTASSIUM_MIN_MEQ_L,
+        POTASSIUM_MAX_MEQ_L,
+    )
     # Na driven by the dysnatremia axis (chronic HF/cirrhosis hypo, dehydration hyper, SIADH).
     # The old volume term is subsumed by the volume->sodium coupling (apply_coupling_rules).
-    labs["Na"] = 140.0 + state.sodium_status * 14.0 - (1 - renal) * 3.0
-    labs["Na"] = clamp(labs["Na"], 120, 160)
+    labs["Na"] = SODIUM_BASE_MEQ_L + state.sodium_status * SODIUM_STATUS_SCALE - (1 - renal) * SODIUM_RENAL_PENALTY
+    labs["Na"] = clamp(labs["Na"], SODIUM_MIN_MEQ_L, SODIUM_MAX_MEQ_L)
 
     # --- Cardiac ---
     # BNP reflects ventricular wall stress = volume/pressure load ON a stressed ventricle.
