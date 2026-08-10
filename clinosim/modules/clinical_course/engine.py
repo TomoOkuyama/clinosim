@@ -32,8 +32,14 @@ from clinosim.modules.clinical_course._clinical_course_thresholds import (
     ANEMIA_RECOVERY_BASE_RATE,
     ANEMIA_RECOVERY_STEADY_MIN_DAY,
     ANEMIA_RECOVERY_STEADY_RATE,
+    ARCHETYPE_PROBABILITY_DEFAULT,
+    ARCHETYPE_WEIGHT_FLOOR,
     BUMP_DAY_PROBABILITY,
     BUMP_DAY_STD,
+    COMPLICATION_ONSET_RANGE_DEFAULT,
+    COMPLICATION_PROBABILITY_GIVEN_PARENT_DEFAULT,
+    COMPLICATION_PROBABILITY_PER_DAY_DEFAULT,
+    COMPLICATION_RISK_MULTIPLIER_DEFAULT,
     DIAGNOSIS_CONFIDENCE_THRESHOLD_BASE,
     DIAGNOSIS_CONFIDENCE_THRESHOLD_DIFFICULTY_SCALE,
     DIAGNOSIS_CORRECT_HIGH_CONF_BASE,
@@ -331,7 +337,7 @@ def select_archetype(
     """
     # Get probabilities from YAML or fallback
     if protocol_archetypes:
-        probs = {name: a.get("probability", 0.1) for name, a in protocol_archetypes.items()}
+        probs = {name: a.get("probability", ARCHETYPE_PROBABILITY_DEFAULT) for name, a in protocol_archetypes.items()}
     else:
         probs = dict(_FALLBACK_PROBABILITIES)
 
@@ -353,7 +359,7 @@ def select_archetype(
 
     # Normalize
     names = list(probs.keys())
-    weights = normalize_probabilities([max(0.001, probs[n]) for n in names], fallback="raise")
+    weights = normalize_probabilities([max(ARCHETYPE_WEIGHT_FLOOR, probs[n]) for n in names], fallback="raise")
 
     return str(rng.choice(names, p=weights))
 
@@ -469,7 +475,7 @@ def evaluate_complications(
             continue  # already active
 
         # Check onset window
-        onset_range = comp.get("onset_day_range", [0, 30])
+        onset_range = comp.get("onset_day_range", COMPLICATION_ONSET_RANGE_DEFAULT)
         if not (onset_range[0] <= day <= onset_range[1]):
             continue
 
@@ -480,14 +486,14 @@ def evaluate_complications(
 
         # Calculate probability
         if parent:
-            prob = comp.get("probability_given_parent", 0.1)
+            prob = comp.get("probability_given_parent", COMPLICATION_PROBABILITY_GIVEN_PARENT_DEFAULT)
         else:
-            prob = comp.get("probability_per_day", 0.01)
+            prob = comp.get("probability_per_day", COMPLICATION_PROBABILITY_PER_DAY_DEFAULT)
 
         # Apply risk factors
         for rf in comp.get("risk_factors", []):
             condition = rf.get("condition", "")
-            mult = rf.get("multiplier", 1.0)
+            mult = rf.get("multiplier", COMPLICATION_RISK_MULTIPLIER_DEFAULT)
             if _evaluate_risk_condition(condition, state, patient, day, severity):
                 prob *= mult
 

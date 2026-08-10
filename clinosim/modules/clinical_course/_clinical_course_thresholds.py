@@ -29,8 +29,14 @@ __all__ = [
     "ANEMIA_RECOVERY_BASE_RATE",
     "ANEMIA_RECOVERY_STEADY_MIN_DAY",
     "ANEMIA_RECOVERY_STEADY_RATE",
+    "ARCHETYPE_PROBABILITY_DEFAULT",
+    "ARCHETYPE_WEIGHT_FLOOR",
     "BUMP_DAY_PROBABILITY",
     "BUMP_DAY_STD",
+    "COMPLICATION_ONSET_RANGE_DEFAULT",
+    "COMPLICATION_PROBABILITY_GIVEN_PARENT_DEFAULT",
+    "COMPLICATION_PROBABILITY_PER_DAY_DEFAULT",
+    "COMPLICATION_RISK_MULTIPLIER_DEFAULT",
     "DIAGNOSIS_CORRECT_HIGH_CONF_BASE",
     "DIAGNOSIS_CORRECT_HIGH_CONF_SCALE",
     "DIAGNOSIS_CORRECT_LOW_CONF_BASE",
@@ -273,3 +279,65 @@ settles to steady-state erythropoiesis."""
 ANEMIA_RECOVERY_STEADY_RATE: float = 0.02
 """Anemia-recovery rate on PODs 7+ at ``severity_scale = 1.0`` —
 sustained-production rate (~1 g/dL Hgb/week)."""
+
+
+# ---------------------------------------------------------------------------
+# Archetype selection — YAML fallback defaults
+# ---------------------------------------------------------------------------
+
+ARCHETYPE_PROBABILITY_DEFAULT: float = 0.1
+"""Default probability assigned to a YAML-defined course archetype that
+omits the ``probability`` field.
+
+Empirical tuning for the synthetic simulator: 0.1 is a modest weight
+that keeps an unspecified archetype in the mix without dominating the
+distribution — YAML curators should set an explicit probability but
+this floor prevents a missing field from silently disabling the
+archetype."""
+
+ARCHETYPE_WEIGHT_FLOOR: float = 0.001
+"""Minimum per-archetype weight before ``normalize_probabilities``.
+
+Empirical tuning for the synthetic simulator: 0.001 keeps any
+archetype that a severity/risk modifier drove to zero or negative
+still selectable (with vanishing probability) rather than removing it
+from ``np.random.choice`` entirely — preserves the fail-loud property
+that every disease-listed archetype remains a possible outcome."""
+
+
+# ---------------------------------------------------------------------------
+# Complication evaluation — YAML fallback defaults
+# ---------------------------------------------------------------------------
+
+COMPLICATION_ONSET_RANGE_DEFAULT: tuple[int, int] = (0, 30)
+"""Default post-admission day range within which a complication may
+trigger when the YAML complication entry omits ``onset_day_range``.
+
+Empirical tuning for the synthetic simulator: (0, 30) covers the
+first admission month — long enough for both early (POD 0-7) and
+late (POD 14-30) complications to fire while keeping the window
+finite so a missing field doesn't accidentally leave the complication
+armed for the whole admission."""
+
+COMPLICATION_PROBABILITY_GIVEN_PARENT_DEFAULT: float = 0.1
+"""Default per-day probability for a cascade complication (one whose
+``parent_complication`` is already active) when the YAML entry omits
+``probability_given_parent``.
+
+Empirical tuning for the synthetic simulator: 10%/day given an active
+parent is meaningful but not certain — reflects that most parent
+complications don't inevitably cascade even when they do enable the
+child."""
+
+COMPLICATION_PROBABILITY_PER_DAY_DEFAULT: float = 0.01
+"""Default per-day probability for a root complication (no parent
+required) when the YAML entry omits ``probability_per_day``.
+
+Empirical tuning for the synthetic simulator: 1%/day gives roughly a
+25% chance over a 4-week admission — a plausible base rate for an
+unspecified complication before risk-factor multipliers apply."""
+
+COMPLICATION_RISK_MULTIPLIER_DEFAULT: float = 1.0
+"""Default multiplier for a complication risk factor that omits
+``multiplier`` — 1.0 is a no-op so an under-specified risk factor
+neither raises nor lowers the base probability."""
