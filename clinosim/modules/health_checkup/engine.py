@@ -30,6 +30,47 @@ import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
+from clinosim.modules.health_checkup._checkup_thresholds import (
+    BMI_INTERPRET_HIGH_THRESHOLD,
+    BMI_INTERPRET_REFERENCE_RANGE,
+    BMI_MEASUREMENT_NOISE_SD,
+    BMI_PHYSIOLOGIC_MAX,
+    BMI_PHYSIOLOGIC_MIN,
+    BMI_PROFILE_FALLBACK,
+    DBP_INTERPRET_HIGH_THRESHOLD,
+    DBP_INTERPRET_REFERENCE_RANGE,
+    DBP_MEASUREMENT_NOISE_SD,
+    DBP_PHYSIOLOGIC_MAX,
+    DBP_PHYSIOLOGIC_MIN,
+    DBP_VITALS_FALLBACK,
+    HBA1C_DM_MEASUREMENT_NOISE_SD,
+    HBA1C_DM_PHYSIOLOGIC_MAX,
+    HBA1C_DM_PHYSIOLOGIC_MIN,
+    HBA1C_GC_FALLBACK,
+    HBA1C_INTERPRET_HIGH_THRESHOLD,
+    HBA1C_INTERPRET_REFERENCE_RANGE,
+    HBA1C_NONDM_AGE_SCALE,
+    HBA1C_NONDM_MEASUREMENT_NOISE_SD,
+    HBA1C_NONDM_PHYSIOLOGIC_MAX,
+    HBA1C_NONDM_PHYSIOLOGIC_MIN,
+    LDL_AGE_SCALE_FEMALE,
+    LDL_AGE_SCALE_MALE,
+    LDL_BASE_FEMALE,
+    LDL_BASE_MALE,
+    LDL_DYSLIPIDEMIA_LIFT,
+    LDL_INTERPRET_HIGH_THRESHOLD,
+    LDL_INTERPRET_REFERENCE_RANGE,
+    LDL_MEASUREMENT_NOISE_SD,
+    LDL_PHYSIOLOGIC_MAX,
+    LDL_PHYSIOLOGIC_MIN,
+    LDL_STATIN_REDUCTION,
+    SBP_INTERPRET_HIGH_THRESHOLD,
+    SBP_INTERPRET_REFERENCE_RANGE,
+    SBP_MEASUREMENT_NOISE_SD,
+    SBP_PHYSIOLOGIC_MAX,
+    SBP_PHYSIOLOGIC_MIN,
+    SBP_VITALS_FALLBACK,
+)
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.clinical import ClinicalDocument
 from clinosim.types.encounter import (
@@ -121,15 +162,15 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
     meds = _o(patient, "current_medications", []) or []
 
     # BMI:profile が持つ値に測定日変動を足す(patient.bmi は生成時決定)
-    bmi_base = float(_o(patient, "bmi", 22.5) or 22.5)
-    bmi = float(np.clip(bmi_base + rng.normal(0.0, 0.3), 10.0, 60.0))
+    bmi_base = float(_o(patient, "bmi", BMI_PROFILE_FALLBACK) or BMI_PROFILE_FALLBACK)
+    bmi = float(np.clip(bmi_base + rng.normal(0.0, BMI_MEASUREMENT_NOISE_SD), BMI_PHYSIOLOGIC_MIN, BMI_PHYSIOLOGIC_MAX))
 
     # SBP/DBP:baseline_vitals が HT stage(FP-I10)を反映済み
     bv = _o(patient, "baseline_vitals", None)
-    sbp_base = float(_o(bv, "systolic_bp", 120) if bv is not None else 120)
-    dbp_base = float(_o(bv, "diastolic_bp", 75) if bv is not None else 75)
-    sbp = float(np.clip(sbp_base + rng.normal(0.0, 5.0), 80.0, 220.0))
-    dbp = float(np.clip(dbp_base + rng.normal(0.0, 3.5), 40.0, 140.0))
+    sbp_base = float(_o(bv, "systolic_bp", SBP_VITALS_FALLBACK) if bv is not None else SBP_VITALS_FALLBACK)
+    dbp_base = float(_o(bv, "diastolic_bp", DBP_VITALS_FALLBACK) if bv is not None else DBP_VITALS_FALLBACK)
+    sbp = float(np.clip(sbp_base + rng.normal(0.0, SBP_MEASUREMENT_NOISE_SD), SBP_PHYSIOLOGIC_MIN, SBP_PHYSIOLOGIC_MAX))
+    dbp = float(np.clip(dbp_base + rng.normal(0.0, DBP_MEASUREMENT_NOISE_SD), DBP_PHYSIOLOGIC_MIN, DBP_PHYSIOLOGIC_MAX))
 
     # HbA1c:DM 有無で分岐
     dm_condition = None
@@ -142,31 +183,43 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
     if dm_condition is not None:
         gc = _o(dm_condition, "glycemic_control", None)
         if gc is None:
-            gc = 0.5  # 未設定時は中央値
+            gc = HBA1C_GC_FALLBACK  # 未設定時は中央値
         hba1c_true = hba1c_from_glycemic_control(float(gc))
-        hba1c = float(np.clip(hba1c_true + rng.normal(0.0, 0.15), 4.0, 15.0))
+        hba1c = float(
+            np.clip(
+                hba1c_true + rng.normal(0.0, HBA1C_DM_MEASUREMENT_NOISE_SD),
+                HBA1C_DM_PHYSIOLOGIC_MIN,
+                HBA1C_DM_PHYSIOLOGIC_MAX,
+            )
+        )
     else:
-        hba1c_base = HBA1C_NONDM_BASE + max(0, age - 40) * 0.003
-        hba1c = float(np.clip(hba1c_base + rng.normal(0.0, 0.12), 4.0, 7.0))
+        hba1c_base = HBA1C_NONDM_BASE + max(0, age - 40) * HBA1C_NONDM_AGE_SCALE
+        hba1c = float(
+            np.clip(
+                hba1c_base + rng.normal(0.0, HBA1C_NONDM_MEASUREMENT_NOISE_SD),
+                HBA1C_NONDM_PHYSIOLOGIC_MIN,
+                HBA1C_NONDM_PHYSIOLOGIC_MAX,
+            )
+        )
 
     # LDL:年齢/性別 baseline + E78 modifier + statin 逆補正
     # baseline は Framingham + JP 特定健診公表統計に基づく大まかな中央値
     if sex == "F":
-        ldl_base = 105.0 + max(0, age - 40) * 0.7  # 女性は加齢で上昇強め(閉経後)
+        ldl_base = LDL_BASE_FEMALE + max(0, age - 40) * LDL_AGE_SCALE_FEMALE  # 女性は加齢で上昇強め(閉経後)
     else:
-        ldl_base = 115.0 + max(0, age - 40) * 0.3
+        ldl_base = LDL_BASE_MALE + max(0, age - 40) * LDL_AGE_SCALE_MALE
     has_dyslipidemia = any(
         (_o(c, "code", "") or "").split(".")[0] == "E78" or (_o(c, "code", "") or "") in _DYSLIPIDEMIA_CODES
         for c in chronic
     )
     if has_dyslipidemia:
-        ldl_base += 40.0  # 未治療脂質異常症の相対上昇
+        ldl_base += LDL_DYSLIPIDEMIA_LIFT  # 未治療脂質異常症の相対上昇
     # スタチン系薬(-statin 末尾)服用で薬理制御。
     # Issue #452 PR 3: read `m.drug_name` directly (readers migrated off the __str__ shim).
     on_statin = any(m.drug_name.lower().endswith("statin") for m in meds)
     if on_statin:
-        ldl_base -= 30.0
-    ldl = float(np.clip(ldl_base + rng.normal(0.0, 10.0), 40.0, 300.0))
+        ldl_base -= LDL_STATIN_REDUCTION
+    ldl = float(np.clip(ldl_base + rng.normal(0.0, LDL_MEASUREMENT_NOISE_SD), LDL_PHYSIOLOGIC_MIN, LDL_PHYSIOLOGIC_MAX))
 
     return {"bmi": bmi, "sbp": sbp, "dbp": dbp, "hba1c": hba1c, "ldl": ldl}
 
@@ -237,15 +290,15 @@ def _interp_for(loinc: str, value: float) -> tuple[str, str]:
     実運用されないが将来のため保持)。BP は SBP と DBP を独立に扱う。
     """
     if loinc == "39156-5":  # BMI
-        return ("H" if value >= 25.0 else "N", "18.5-24.9 kg/m2")
+        return ("H" if value >= BMI_INTERPRET_HIGH_THRESHOLD else "N", BMI_INTERPRET_REFERENCE_RANGE)
     if loinc == "8480-6":  # SBP
-        return ("H" if value >= 130.0 else "N", "<130 mmHg")
+        return ("H" if value >= SBP_INTERPRET_HIGH_THRESHOLD else "N", SBP_INTERPRET_REFERENCE_RANGE)
     if loinc == "8462-4":  # DBP
-        return ("H" if value >= 85.0 else "N", "<85 mmHg")
+        return ("H" if value >= DBP_INTERPRET_HIGH_THRESHOLD else "N", DBP_INTERPRET_REFERENCE_RANGE)
     if loinc == "4548-4":  # HbA1c
-        return ("H" if value >= 5.6 else "N", "<5.6 %")
+        return ("H" if value >= HBA1C_INTERPRET_HIGH_THRESHOLD else "N", HBA1C_INTERPRET_REFERENCE_RANGE)
     if loinc == "18262-6":  # LDL
-        return ("H" if value >= 120.0 else "N", "<120 mg/dL")
+        return ("H" if value >= LDL_INTERPRET_HIGH_THRESHOLD else "N", LDL_INTERPRET_REFERENCE_RANGE)
     return ("N", "")
 
 
