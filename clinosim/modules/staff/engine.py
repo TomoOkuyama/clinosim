@@ -10,6 +10,53 @@ import numpy as np
 
 from clinosim.locale.loader import load_names
 from clinosim.modules._shared import is_jp
+from clinosim.modules.staff._staff_thresholds import (
+    ALLIED_HEALTH_QUALIFICATION_YEAR_END_EXCLUSIVE,
+    ALLIED_HEALTH_QUALIFICATION_YEAR_START,
+    DEFAULT_DOCTORS_PER_DEPT,
+    DEFAULT_INPATIENT_BEDS,
+    DOCTORS_PER_DEPT_FIXED,
+    DOCTORS_PER_ED_BED_DIVISOR,
+    DOCTORS_PER_INTERNAL_MED_BED_DIVISOR,
+    DOCTORS_PER_SURGERY_BED_DIVISOR,
+    ED_OPD_NURSES_PER_AREA,
+    EXTRA_STAFF_ROLES,
+    FALLBACK_BEDS_PER_WARD,
+    JP_PHONE_LINE_MAX_EXCLUSIVE,
+    JP_PHONE_LINE_MIN,
+    JP_PHONE_PREFIX_MAX_EXCLUSIVE,
+    JP_PHONE_PREFIX_MIN,
+    LAB_TECH_COUNT,
+    MIN_BEDS_PER_WARD,
+    MIN_ED_PHYSICIANS,
+    MIN_INTERNAL_MED_PHYSICIANS,
+    MIN_SURGERY_PHYSICIANS,
+    NURSE_FEMALE_RATIO,
+    NURSE_QUALIFICATION_YEAR_END_EXCLUSIVE,
+    NURSE_QUALIFICATION_YEAR_START,
+    NURSES_PER_BED_BUFFER,
+    NURSES_PER_BED_DIVISOR,
+    NURSES_PER_WARD_MIN,
+    PHARMACIST_COUNT,
+    PHARMACIST_QUALIFICATION_YEAR_END_EXCLUSIVE,
+    PHARMACIST_QUALIFICATION_YEAR_START,
+    PHYSICIAN_MALE_RATIO,
+    PHYSICIAN_QUALIFICATION_YEAR_END_EXCLUSIVE,
+    PHYSICIAN_QUALIFICATION_YEAR_START,
+    RADIOLOGIST_COUNT,
+    RADIOLOGIST_QUALIFICATION_YEAR_END_EXCLUSIVE,
+    RADIOLOGIST_QUALIFICATION_YEAR_START,
+    STAFF_ID_FALLBACK_MAX_EXCLUSIVE,
+    STAFF_ID_FALLBACK_MIN,
+    TECH_QUALIFICATION_YEAR_END_EXCLUSIVE,
+    TECH_QUALIFICATION_YEAR_START,
+    US_PHONE_AREA_MAX_EXCLUSIVE,
+    US_PHONE_AREA_MIN,
+    US_PHONE_LINE_MAX_EXCLUSIVE,
+    US_PHONE_LINE_MIN,
+    US_PHONE_PREFIX_MAX_EXCLUSIVE,
+    US_PHONE_PREFIX_MIN,
+)
 from clinosim.types.staff import StaffMember, StaffRoster
 
 __all__ = [
@@ -36,8 +83,15 @@ FALLBACK_TECH_ID: str = "TECH-001"
 def _gen_phone(country: str, rng: np.random.Generator) -> str:
     """Generate a fake work phone number."""
     if is_jp(country):
-        return f"03-{int(rng.integers(3000, 6000))}-{int(rng.integers(1000, 9999))}"
-    return f"({int(rng.integers(200, 999))}) {int(rng.integers(200, 999))}-{int(rng.integers(1000, 9999))}"
+        return (
+            f"03-{int(rng.integers(JP_PHONE_PREFIX_MIN, JP_PHONE_PREFIX_MAX_EXCLUSIVE))}"
+            f"-{int(rng.integers(JP_PHONE_LINE_MIN, JP_PHONE_LINE_MAX_EXCLUSIVE))}"
+        )
+    return (
+        f"({int(rng.integers(US_PHONE_AREA_MIN, US_PHONE_AREA_MAX_EXCLUSIVE))}) "
+        f"{int(rng.integers(US_PHONE_PREFIX_MIN, US_PHONE_PREFIX_MAX_EXCLUSIVE))}"
+        f"-{int(rng.integers(US_PHONE_LINE_MIN, US_PHONE_LINE_MAX_EXCLUSIVE))}"
+    )
 
 
 def _gen_email(staff_id: str) -> str:
@@ -80,11 +134,11 @@ def generate_roster(
     hospital_config = hospital_config or {}
     available = hospital_config.get("available_departments", []) or ["internal_medicine"]
     wards_map = hospital_config.get("wards", {}) or {}
-    beds_total = hospital_config.get("resource_capacity", {}).get("inpatient_beds", 50)
+    beds_total = hospital_config.get("resource_capacity", {}).get("inpatient_beds", DEFAULT_INPATIENT_BEDS)
 
     def _add_physician(dept: str, idx: int, specialty: str = "") -> None:
         prefix = _DEPT_PREFIX.get(dept, dept[:2].upper())
-        sex = "M" if rng.random() < 0.65 else "F"
+        sex = "M" if rng.random() < PHYSICIAN_MALE_RATIO else "F"
         name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"DR-{prefix}-{idx:03d}"
         roster.members.append(
@@ -94,7 +148,9 @@ def generate_roster(
                 role="physician",
                 department=dept,
                 specialty=specialty or dept,
-                qualification_year=int(rng.integers(1985, 2020)),
+                qualification_year=int(
+                    rng.integers(PHYSICIAN_QUALIFICATION_YEAR_START, PHYSICIAN_QUALIFICATION_YEAR_END_EXCLUSIVE)
+                ),
                 sex=sex,
                 phone=_gen_phone(country, rng),
                 email=_gen_email(sid),
@@ -104,7 +160,7 @@ def generate_roster(
 
     def _add_nurse(dept: str, idx: int, ward: str) -> None:
         prefix = _DEPT_PREFIX.get(dept, dept[:2].upper())
-        sex = "F" if rng.random() < 0.85 else "M"
+        sex = "F" if rng.random() < NURSE_FEMALE_RATIO else "M"
         name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"NS-{prefix}-{idx:03d}"
         roster.members.append(
@@ -115,7 +171,9 @@ def generate_roster(
                 department=dept,
                 specialty=dept,
                 ward=ward,
-                qualification_year=int(rng.integers(1995, 2023)),
+                qualification_year=int(
+                    rng.integers(NURSE_QUALIFICATION_YEAR_START, NURSE_QUALIFICATION_YEAR_END_EXCLUSIVE)
+                ),
                 sex=sex,
                 phone=_gen_phone(country, rng),
                 email=_gen_email(sid),
@@ -124,26 +182,19 @@ def generate_roster(
         )
 
     # Physicians per department (scaled with hospital size)
-    # Formula: ~1 doctor per 5 beds minimum, more for internal medicine
-    doctors_per_dept = {
-        "internal_medicine": max(4, beds_total // 8),
-        "cardiology": 2,
-        "pulmonology": 2,
-        "gastroenterology": 2,
-        "nephrology": 1,
-        "endocrinology": 1,
-        "neurology": 2,
-        "general_surgery": max(3, beds_total // 10),
-        "orthopedics": 2,
-        "neurosurgery": 2,
-        "trauma_surgery": 2,
-        "emergency_medicine": max(3, beds_total // 12),
-        "primary_care": 2,
+    # Formula: ~1 doctor per 5 beds minimum, more for internal medicine.
+    # Bed-scaled special cases (IM / general_surgery / ED) are inlined
+    # here; the other fixed-count departments come from DOCTORS_PER_DEPT_FIXED.
+    doctors_per_dept: dict[str, int] = {
+        "internal_medicine": max(MIN_INTERNAL_MED_PHYSICIANS, beds_total // DOCTORS_PER_INTERNAL_MED_BED_DIVISOR),
+        "general_surgery": max(MIN_SURGERY_PHYSICIANS, beds_total // DOCTORS_PER_SURGERY_BED_DIVISOR),
+        "emergency_medicine": max(MIN_ED_PHYSICIANS, beds_total // DOCTORS_PER_ED_BED_DIVISOR),
+        **DOCTORS_PER_DEPT_FIXED,
     }
 
     physician_counters: dict[str, int] = {}
     for dept in available:
-        count = doctors_per_dept.get(dept, 2)
+        count = doctors_per_dept.get(dept, DEFAULT_DOCTORS_PER_DEPT)
         physician_counters[dept] = 0
         for i in range(count):
             physician_counters[dept] += 1
@@ -162,8 +213,12 @@ def generate_roster(
                 inpatient_wards.append((dept, w))
 
     nurse_counters: dict[str, int] = {}
-    beds_per_ward = max(6, beds_total // max(1, len(inpatient_wards))) if inpatient_wards else 10
-    nurses_per_ward = max(6, beds_per_ward // 2 + 3)  # ~1:2 ratio + buffer
+    beds_per_ward = (
+        max(MIN_BEDS_PER_WARD, beds_total // max(1, len(inpatient_wards)))
+        if inpatient_wards
+        else FALLBACK_BEDS_PER_WARD
+    )
+    nurses_per_ward = max(NURSES_PER_WARD_MIN, beds_per_ward // NURSES_PER_BED_DIVISOR + NURSES_PER_BED_BUFFER)
     for dept, ward in inpatient_wards:
         nurse_counters.setdefault(dept, 0)
         for _ in range(nurses_per_ward):
@@ -174,13 +229,13 @@ def generate_roster(
     for area_dept in ("emergency_medicine", "primary_care"):
         if area_dept in available:
             ward = wards_map.get(area_dept, [area_dept[:3].upper()])[0]
-            for _ in range(5):
+            for _ in range(ED_OPD_NURSES_PER_AREA):
                 nurse_counters.setdefault(area_dept, 0)
                 nurse_counters[area_dept] += 1
                 _add_nurse(area_dept, nurse_counters[area_dept], ward)
 
     # Lab technicians (shared service)
-    for i in range(10):
+    for i in range(LAB_TECH_COUNT):
         sex = "F" if i % 2 == 0 else "M"
         name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"TECH-LAB-{i + 1:03d}"
@@ -190,7 +245,9 @@ def generate_roster(
                 name=name,
                 role="lab_technician",
                 department="laboratory",
-                qualification_year=int(rng.integers(2000, 2023)),
+                qualification_year=int(
+                    rng.integers(TECH_QUALIFICATION_YEAR_START, TECH_QUALIFICATION_YEAR_END_EXCLUSIVE)
+                ),
                 sex=sex,
                 phone=_gen_phone(country, rng),
                 email=_gen_email(sid),
@@ -199,7 +256,7 @@ def generate_roster(
         )
 
     # Radiologists
-    for i in range(4):
+    for i in range(RADIOLOGIST_COUNT):
         sex = "M" if i % 2 == 0 else "F"
         name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"DR-RAD-{i + 1:03d}"
@@ -209,7 +266,9 @@ def generate_roster(
                 name=name,
                 role="radiologist",
                 department="radiology",
-                qualification_year=int(rng.integers(1990, 2015)),
+                qualification_year=int(
+                    rng.integers(RADIOLOGIST_QUALIFICATION_YEAR_START, RADIOLOGIST_QUALIFICATION_YEAR_END_EXCLUSIVE)
+                ),
                 sex=sex,
                 phone=_gen_phone(country, rng),
                 email=_gen_email(sid),
@@ -218,7 +277,7 @@ def generate_roster(
         )
 
     # Pharmacists
-    for i in range(8):
+    for i in range(PHARMACIST_COUNT):
         sex = "F" if i % 2 == 0 else "M"
         name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"PH-{i + 1:03d}"
@@ -228,7 +287,9 @@ def generate_roster(
                 name=name,
                 role="pharmacist",
                 department="pharmacy",
-                qualification_year=int(rng.integers(2000, 2023)),
+                qualification_year=int(
+                    rng.integers(PHARMACIST_QUALIFICATION_YEAR_START, PHARMACIST_QUALIFICATION_YEAR_END_EXCLUSIVE)
+                ),
                 sex=sex,
                 phone=_gen_phone(country, rng),
                 email=_gen_email(sid),
@@ -237,20 +298,11 @@ def generate_roster(
         )
 
     # C5-25 (Chain 3): roster expansion — multi-disciplinary staff types
-    # typically present in a JP community hospital of this size. Counts
-    # scaled to a 50-bed inpatient hospital and biased female per JP
-    # allied-health workforce norms (PT/OT/ST/RD ~65% female; MSW ~70%).
-    # Enables β-JP-1 multi-disciplinary CareTeam expansion and
-    # nutrition-order emit paths downstream.
-    _extra_roles: list[tuple[str, str, str, int, float]] = [
-        # (role, id_prefix, department, count, female_ratio)
-        ("physical_therapist", "PT", "rehabilitation", 4, 0.55),
-        ("occupational_therapist", "OT", "rehabilitation", 2, 0.65),
-        ("speech_therapist", "ST", "rehabilitation", 2, 0.75),
-        ("medical_social_worker", "MSW", "medical_social_work", 2, 0.70),
-        ("dietitian", "RD", "nutrition", 3, 0.90),
-    ]
-    for role, prefix, dept, count, female_ratio in _extra_roles:
+    # typically present in a JP community hospital of this size. Enables
+    # β-JP-1 multi-disciplinary CareTeam expansion and nutrition-order
+    # emit paths downstream. Table + rationale live in
+    # ``_staff_thresholds.EXTRA_STAFF_ROLES``.
+    for role, prefix, dept, count, female_ratio in EXTRA_STAFF_ROLES:
         for i in range(count):
             sex = "F" if rng.random() < female_ratio else "M"
             name, name_kana = _generate_name_pair(sex, country, rng)
@@ -261,7 +313,12 @@ def generate_roster(
                     name=name,
                     role=role,
                     department=dept,
-                    qualification_year=int(rng.integers(2005, 2023)),
+                    qualification_year=int(
+                        rng.integers(
+                            ALLIED_HEALTH_QUALIFICATION_YEAR_START,
+                            ALLIED_HEALTH_QUALIFICATION_YEAR_END_EXCLUSIVE,
+                        )
+                    ),
                     sex=sex,
                     phone=_gen_phone(country, rng),
                     email=_gen_email(sid),
@@ -342,7 +399,7 @@ def _generate_name_pair(sex: str, country: str, rng: np.random.Generator) -> tup
     givens = names_data.get(given_key, [])
 
     if not surnames or not givens:
-        return f"Staff-{rng.integers(1000, 9999)}", ""
+        return f"Staff-{rng.integers(STAFF_ID_FALLBACK_MIN, STAFF_ID_FALLBACK_MAX_EXCLUSIVE)}", ""
 
     # Preserve existing RNG stream ordering: rng.choice on the kanji list
     # (as before), then look up the kana column via the same index. Keeping
