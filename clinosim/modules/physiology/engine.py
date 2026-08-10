@@ -168,6 +168,7 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     WBC_LEUKOPENIA_FLOOR,
 )
 from clinosim.modules.physiology._state_coupling_thresholds import (
+    CARDIAC_FUNCTION_FLOOR,
     COAG_DIC_INFLAMMATION_SCALE,
     COAG_DIC_INFLAMMATION_THRESHOLD,
     COAG_HEPATIC_DYSFUNCTION_SCALE,
@@ -177,6 +178,7 @@ from clinosim.modules.physiology._state_coupling_thresholds import (
     COUPLING_ANEMIA_INFLAMMATION_SCALE,
     COUPLING_ANEMIA_INFLAMMATION_THRESHOLD,
     COUPLING_ANEMIA_RECOVERY_RATE,
+    HEPATIC_FUNCTION_FLOOR,
     HYPERNATREMIA_SODIUM_SCALE,
     PERFUSION_CARDIAC_BASE_OFFSET,
     PERFUSION_CARDIAC_SCALE,
@@ -298,12 +300,14 @@ def initialize_state(
                 state.glycemic_control = gc
 
     # Perfusion tracks cardiac
-    state.perfusion_status = clamp(state.cardiac_function * 0.8 + 0.2, 0.0, 1.0)
+    state.perfusion_status = clamp(
+        state.cardiac_function * PERFUSION_CARDIAC_SCALE + PERFUSION_CARDIAC_BASE_OFFSET, 0.0, 1.0
+    )
 
     # Clamp all
-    state.renal_function = clamp(state.renal_function, 0.05, 1.0)
-    state.cardiac_function = clamp(state.cardiac_function, 0.05, 1.0)
-    state.hepatic_function = clamp(state.hepatic_function, 0.05, 1.0)
+    state.renal_function = clamp(state.renal_function, RENAL_FUNCTION_FLOOR, 1.0)
+    state.cardiac_function = clamp(state.cardiac_function, CARDIAC_FUNCTION_FLOOR, 1.0)
+    state.hepatic_function = clamp(state.hepatic_function, HEPATIC_FUNCTION_FLOOR, 1.0)
     state.sodium_status = clamp(state.sodium_status, -1.0, 1.0)
 
     return state

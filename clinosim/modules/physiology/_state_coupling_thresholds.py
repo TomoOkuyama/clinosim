@@ -22,6 +22,8 @@ is guaranteed as long as arithmetic order is preserved.
 from __future__ import annotations
 
 __all__ = [
+    "CARDIAC_FUNCTION_FLOOR",
+    "HEPATIC_FUNCTION_FLOOR",
     "COAG_DIC_INFLAMMATION_SCALE",
     "COAG_DIC_INFLAMMATION_THRESHOLD",
     "COAG_HEPATIC_DYSFUNCTION_SCALE",
@@ -118,6 +120,20 @@ Empirical tuning for the synthetic simulator: 0.05 (5 %) prevents
 pre-renal decline from producing zero renal function in a single day,
 even in extreme shock — matches the observation that acute kidney
 injury still preserves some baseline nephron activity."""
+
+CARDIAC_FUNCTION_FLOOR: float = 0.05
+"""Minimum ``cardiac_function`` value after initialize_state clamping.
+
+Same 0.05 (5%) floor rationale as :data:`RENAL_FUNCTION_FLOOR` —
+prevents chronic conditions from initializing cardiac reserve to
+zero, matching the observation that even severe cardiac dysfunction
+preserves some baseline contractile activity."""
+
+HEPATIC_FUNCTION_FLOOR: float = 0.05
+"""Minimum ``hepatic_function`` value after initialize_state clamping.
+
+Same 0.05 (5%) floor rationale — cirrhosis patients retain some
+baseline synthetic function even in decompensated disease."""
 
 
 # ---------------------------------------------------------------------------
