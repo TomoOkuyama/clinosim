@@ -154,7 +154,23 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     stay on the JP Core profile only); for MedicationRequest, only resources that
     can actually satisfy the eCS constraints (see
     `_medication_request_satisfies_ecs`).
+
+    Issue #743: any resource that receives the eCS profile URL also gets the
+    JP-CLINS institutional-attribution extensions (`JP_eCS_InstitutionNumber`
+    + `JP_eCS_Department`), which are must-support on Condition,
+    AllergyIntolerance, MedicationRequest per the eCS SDs. Attaching the
+    extensions in the same hook that adds the profile URL keeps the
+    "profile assertion must follow data completeness" invariant true by
+    construction — the two moves are strictly paired.
+
+    The Department extension context excludes Patient (Patient emits its own
+    profile URL inline and calls the InstitutionNumber attach separately in
+    `demographics/patient.py`). Observation is in extension scope but is
+    covered in a follow-up (this hook currently attaches extensions only
+    for Condition / AllergyIntolerance / MedicationRequest).
     """
+    from clinosim.modules.output.fhir_r4.lib.common import attach_ecs_institutional_extensions
+
     rt = resource.get("resourceType", "")
     profiles = _JP_CLINS_PROFILES.get(rt)
     if not profiles:
@@ -168,6 +184,11 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     for url in profiles:
         if url not in profs:
             profs.append(url)
+    # Issue #743: extensions for the 3 profiles where the eCS SDs mandate
+    # them as must-support. Skip Observation (follow-up) and Procedure
+    # (extension SD context does not list Procedure).
+    if rt in ("Condition", "AllergyIntolerance", "MedicationRequest"):
+        attach_ecs_institutional_extensions(resource, "JP", include_department=True)
 
 
 def _medication_request_satisfies_ecs(resource: dict) -> bool:
