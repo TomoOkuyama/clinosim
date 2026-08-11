@@ -486,6 +486,17 @@ codes:
   11331-6:
     en: History of Alcohol use
     ja: 飲酒歴
+  # Issue #733: LOINC observation-identifier for JP 要介護度 (long-term care
+  # need level) social-history Observation. LOINC 80391-6 STATUS=TRIAL; the
+  # German LOINC LONG_COMMON_NAME is "Pflegegrad [Typ]" — Germany's national
+  # LTCI grading equivalent to Japan's 要介護度, confirming this concept
+  # covers LTC-level classification and not only ED triage. Verified via
+  # NLM Clinical Tables + tx.fhir.org/r4 CodeSystem $lookup (2026-08-11).
+  # `ja` intentionally omitted — LOINC does not publish an authoritative
+  # Japanese translation for this code, and populating a locally-invented
+  # display can trip strict validators (mirrors the 11506-3 comment above).
+  80391-6:
+    en: Level of care [Type]
   # ---------------------------------------------------------------------------
   # DiagnosticReport panel grouping codes (2026-06-22)
   # Verified vs Regenstrief LOINC via NLM Clinical Tables API.
