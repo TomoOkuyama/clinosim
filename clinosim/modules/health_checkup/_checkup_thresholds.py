@@ -25,6 +25,8 @@ __all__ = [
     "BMI_PHYSIOLOGIC_MAX",
     "BMI_PHYSIOLOGIC_MIN",
     "BMI_PROFILE_FALLBACK",
+    "CHECKUP_TYPE_REGIONAL_UNION_AGE_MIN",
+    "CHECKUP_TYPE_SPECIFIC_AGE_MIN",
     "DBP_INTERPRET_HIGH_THRESHOLD",
     "DBP_INTERPRET_REFERENCE_RANGE",
     "DBP_MEASUREMENT_NOISE_SD",
@@ -232,3 +234,23 @@ primary-prevention low-risk cohort."""
 
 LDL_INTERPRET_REFERENCE_RANGE: str = "<120 mg/dL"
 """Display string for LDL reference range."""
+
+
+# ---------------------------------------------------------------------------
+# Checkup-type dispatch — JP legal 健診 age boundaries
+# ---------------------------------------------------------------------------
+
+CHECKUP_TYPE_REGIONAL_UNION_AGE_MIN: int = 75
+"""Age at or above which the checkup type is 広域連合健診
+(regional_union) — 後期高齢者医療制度 (JP Late-Elderly Health Care
+System, established 2008 with the 75+ eligibility gate)."""
+
+CHECKUP_TYPE_SPECIFIC_AGE_MIN: int = 65
+"""Age at or above which the checkup type is 特定健診 (specific) —
+metabolic-syndrome-focused checkup mandated by the JP national
+health-insurance system for the 40-74 population. The 65 cutoff
+here is a simplification: MVP dispatch uses age-band-only mapping
+(occupational for 40-64, specific for 65-74, regional_union for
+75+) rather than the more precise "insurance status + occupation"
+lookup. Future PR may refine this to consult the insurance-type
+enrollment field on the patient identity."""
