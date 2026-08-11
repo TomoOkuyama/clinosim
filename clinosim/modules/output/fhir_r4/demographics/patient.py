@@ -297,22 +297,34 @@ def _build_patient(p: dict, country: str) -> dict:
         }
         names.append(kanji_name)
         # Phonetic (kana) entry — emitted only when phonetic pair present.
-        phonetic = name_data.get("phonetic") or {}
+        # Issue #732: population/engine.py emits `PersonName.phonetic` as a
+        # single string "<family-kana> <given-kana>" (see PersonName typed as
+        # `str | None`), so the historical `isinstance(phonetic, dict)` gate
+        # silently skipped 100% of JP Patients — no SYL entry across the
+        # baseline. Accept both shapes so the emit doesn't rely on an upstream
+        # schema unification: dict-form (already correct) OR string-form
+        # (split on whitespace into family + given kana).
+        phonetic = name_data.get("phonetic")
+        kana_family = kana_given = ""
         if isinstance(phonetic, dict):
             kana_family = phonetic.get("family_name", "")
             kana_given = phonetic.get("given_name", "")
-            if kana_family or kana_given:
-                _kana_fam = kana_family or family
-                _kana_giv = kana_given or given
-                names.append(
-                    {
-                        "use": "official",
-                        "text": f"{_kana_fam} {_kana_giv}".strip(),
-                        "family": _kana_fam,
-                        "given": [_kana_giv],
-                        "extension": [{"url": ISO21090_URL, "valueCode": "SYL"}],
-                    }
-                )
+        elif isinstance(phonetic, str) and phonetic.strip():
+            _parts = phonetic.strip().split(None, 1)
+            kana_family = _parts[0] if _parts else ""
+            kana_given = _parts[1] if len(_parts) > 1 else ""
+        if kana_family or kana_given:
+            _kana_fam = kana_family or family
+            _kana_giv = kana_given or given
+            names.append(
+                {
+                    "use": "official",
+                    "text": f"{_kana_fam} {_kana_giv}".strip(),
+                    "family": _kana_fam,
+                    "given": [_kana_giv],
+                    "extension": [{"url": ISO21090_URL, "valueCode": "SYL"}],
+                }
+            )
     else:
         names.append({"use": "official", "family": family, "given": [given]})
     names[0]  # kept for legacy readers below
