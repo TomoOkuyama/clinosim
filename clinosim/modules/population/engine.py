@@ -17,21 +17,31 @@ from clinosim.modules.disease.severity import sample_severity
 from clinosim.modules.population._household_thresholds import (
     AVG_HOUSEHOLD_SIZE_DEFAULT,
     BLOOD_TYPE_DEFAULT_DISTRIBUTION,
+    DOB_DAY_MAX_EXCLUSIVE,
+    DOB_DAY_MIN,
     HOUSEHOLD_LANDLINE_PROBABILITY_DEFAULT,
     HOUSEHOLD_SIZE_WEIGHTED_CHOICES,
     JP_ADDRESS_APARTMENT_PROBABILITY_DEFAULT,
+    JP_ADDRESS_APARTMENT_ROOM_MAX_EXCLUSIVE,
+    JP_ADDRESS_APARTMENT_ROOM_MIN,
     JP_ADDRESS_BANCHI_MAX_EXCLUSIVE,
     JP_ADDRESS_BANCHI_MIN,
     JP_ADDRESS_CHOME_MAX_EXCLUSIVE,
     JP_ADDRESS_CHOME_MIN,
     JP_ADDRESS_GO_MAX_EXCLUSIVE,
     JP_ADDRESS_GO_MIN,
+    JP_PHONE_LANDLINE_NON_TOKYO_EXCHANGE_MAX_EXCLUSIVE,
+    JP_PHONE_LANDLINE_NON_TOKYO_EXCHANGE_MIN,
+    PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE,
+    PHONE_4DIGIT_BLOCK_MIN,
     SEX_RATIO_MALE_DEFAULT,
     US_ADDRESS_APARTMENT_NUMBER_MAX_EXCLUSIVE,
     US_ADDRESS_APARTMENT_NUMBER_MIN,
     US_ADDRESS_APARTMENT_PROBABILITY_DEFAULT,
     US_ADDRESS_STREET_NUMBER_MAX_EXCLUSIVE,
     US_ADDRESS_STREET_NUMBER_MIN,
+    US_PHONE_EXCHANGE_MAX_EXCLUSIVE,
+    US_PHONE_EXCHANGE_MIN,
     WIFE_KEEPS_MAIDEN_PROBABILITY_DEFAULT,
 )
 from clinosim.modules.population._population_thresholds import (
@@ -57,6 +67,7 @@ from clinosim.modules.population._population_thresholds import (
     SMOKING_FALLBACK_PROBS,
 )
 from clinosim.modules.population._population_workflow_thresholds import (
+    CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE,
     CHRONIC_VISITS_MAX_PER_YEAR,
     COLONOSCOPY_MIN_AGE,
     COLONOSCOPY_PROBABILITY,
@@ -65,6 +76,8 @@ from clinosim.modules.population._population_workflow_thresholds import (
     EVENT_DAY_JITTER_END_EXCLUSIVE,
     EVENT_DAY_JITTER_START,
     EVENT_MID_OF_MONTH_DAY,
+    EVENT_RANDOM_DAY_MAX_EXCLUSIVE,
+    EVENT_RANDOM_DAY_MIN,
     FLU_VAX_ADULT_AGE_THRESHOLD,
     FLU_VAX_COMORBIDITY_MIN,
     FLU_VAX_MONTHS,
@@ -79,6 +92,8 @@ from clinosim.modules.population._population_workflow_thresholds import (
     MIXED_CONDITIONS_PROBABILITY_DEFAULT,
     OCCUPATION_MISMATCH_FALLBACK_MULTIPLIER,
     PRIOR_HOSPITALIZATION_RECURRENCE_MULTIPLIER,
+    RANDOM_MONTH_MAX_EXCLUSIVE,
+    RANDOM_MONTH_MIN,
     UNKNOWN_CONDITION_AGE_FACTOR_DEFAULT,
     UNKNOWN_CONDITION_BASE_RATE_DEFAULT,
     UNKNOWN_CONDITION_MIN_AGE_DEFAULT,
@@ -216,7 +231,11 @@ def generate_population(
             # Sex ratio from YAML (default 0.49 male)
             male_prob = (demo.get("sex_ratio") or {}).get("male", SEX_RATIO_MALE_DEFAULT)
             sex = "M" if rng.random() < male_prob else "F"
-            dob = date(base_year - age, int(rng.integers(1, 13)), int(rng.integers(1, 29)))
+            dob = date(
+                base_year - age,
+                int(rng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE)),
+                int(rng.integers(DOB_DAY_MIN, DOB_DAY_MAX_EXCLUSIVE)),
+            )
             blood_type = _sample_blood_type(demo, rng)
 
             # BMI and height from physiology section
@@ -732,10 +751,10 @@ def generate_healthcare_calendar(
         max_visits = min(12 // shortest_interval, CHRONIC_VISITS_MAX_PER_YEAR)
         primary_code = conditions_with_spec[0][0]  # main condition for the visit
 
-        month = int(prng.integers(1, min(shortest_interval + 1, 4)))
+        month = int(prng.integers(1, min(shortest_interval + 1, CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE)))
         visit_count = 0
         while month <= 12 and visit_count < max_visits:
-            visit_date = date(year, month, int(prng.integers(1, 28)))
+            visit_date = date(year, month, int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE)))
             events.append(
                 LifeEvent(
                     person_id=person.person_id,
@@ -754,7 +773,9 @@ def generate_healthcare_calendar(
         # --- Annual health screening (age 40+) ---
         if person.age >= HEALTH_SCREENING_MIN_AGE:
             screening_month = int(prng.integers(HEALTH_SCREENING_MONTH_START, HEALTH_SCREENING_MONTH_END_EXCLUSIVE))
-            screening_date = date(year, screening_month, int(prng.integers(1, 28)))
+            screening_date = date(
+                year, screening_month, int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE))
+            )
             events.append(
                 LifeEvent(
                     person_id=person.person_id,
@@ -776,7 +797,9 @@ def generate_healthcare_calendar(
                     LifeEvent(
                         person_id=person.person_id,
                         event_type="chronic_visit",
-                        timestamp=date(year, vax_month, int(prng.integers(1, 28))),
+                        timestamp=date(
+                            year, vax_month, int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE))
+                        ),
                         severity=0.0,
                         condition_type="screening",
                         disease_id="flu_vaccination",
@@ -791,7 +814,11 @@ def generate_healthcare_calendar(
                 LifeEvent(
                     person_id=person.person_id,
                     event_type="health_screening",
-                    timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
+                    timestamp=date(
+                        year,
+                        int(prng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE)),
+                        int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE)),
+                    ),
                     severity=0.0,
                     condition_type="screening",
                     disease_id="colonoscopy_screening",
@@ -806,7 +833,11 @@ def generate_healthcare_calendar(
                 LifeEvent(
                     person_id=person.person_id,
                     event_type="health_screening",
-                    timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
+                    timestamp=date(
+                        year,
+                        int(prng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE)),
+                        int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE)),
+                    ),
                     severity=0.0,
                     condition_type="screening",
                     disease_id="mammography_screening",
@@ -824,7 +855,11 @@ def generate_healthcare_calendar(
                 LifeEvent(
                     person_id=person.person_id,
                     event_type="chronic_visit",
-                    timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
+                    timestamp=date(
+                        year,
+                        int(prng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE)),
+                        int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE)),
+                    ),
                     severity=0.0,
                     condition_type="screening",
                     disease_id="diabetic_retinopathy_screening",
@@ -861,7 +896,7 @@ def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> di
         if rng.random() < addr_data.get("apartment_probability", JP_ADDRESS_APARTMENT_PROBABILITY_DEFAULT):
             apt_names = addr_data.get("apartment_names", ["マンション"])
             apt = str(rng.choice(apt_names))
-            room = int(rng.integers(101, 1205))
+            room = int(rng.integers(JP_ADDRESS_APARTMENT_ROOM_MIN, JP_ADDRESS_APARTMENT_ROOM_MAX_EXCLUSIVE))
             line += f" {apt}{room}"
     else:
         streets = addr_data.get("street_names", ["Main St"])
@@ -884,19 +919,25 @@ def _generate_phone(addr_data: dict, phone_type: str, rng: np.random.Generator) 
         if phone_type == "mobile":
             prefixes = phone_cfg.get("mobile_prefix", ["090"])
             prefix = str(rng.choice(prefixes))
-            mid = f"{int(rng.integers(1000, 9999)):04d}"
-            last = f"{int(rng.integers(1000, 9999)):04d}"
+            mid = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
+            last = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
             return f"{prefix}-{mid}-{last}"
         else:
             areas = phone_cfg.get("area_codes_landline", ["03"])
             area = str(rng.choice(areas))
             if area == "03":
-                exchange = f"{int(rng.integers(1000, 9999)):04d}"
-                number = f"{int(rng.integers(1000, 9999)):04d}"
+                exchange = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
+                number = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
                 return f"{area}-{exchange}-{number}"
             else:
-                exchange = f"{int(rng.integers(100, 999)):03d}"
-                number = f"{int(rng.integers(1000, 9999)):04d}"
+                exchange_int = int(
+                    rng.integers(
+                        JP_PHONE_LANDLINE_NON_TOKYO_EXCHANGE_MIN,
+                        JP_PHONE_LANDLINE_NON_TOKYO_EXCHANGE_MAX_EXCLUSIVE,
+                    )
+                )
+                exchange = f"{exchange_int:03d}"
+                number = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
                 return f"{area}-{exchange}-{number}"
     else:
         if phone_type == "mobile":
@@ -904,6 +945,6 @@ def _generate_phone(addr_data: dict, phone_type: str, rng: np.random.Generator) 
         else:
             areas = phone_cfg.get("area_codes", ["617"])
         area = str(rng.choice(areas))
-        exchange = f"{int(rng.integers(200, 999)):03d}"
-        number = f"{int(rng.integers(1000, 9999)):04d}"
+        exchange = f"{int(rng.integers(US_PHONE_EXCHANGE_MIN, US_PHONE_EXCHANGE_MAX_EXCLUSIVE)):03d}"
+        number = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
         return f"({area}) {exchange}-{number}"
