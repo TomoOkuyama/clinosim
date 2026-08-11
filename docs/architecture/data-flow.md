@@ -49,3 +49,9 @@ flowchart TD
 - This produces a realistic EHR snapshot **including currently admitted patients** (e.g., 50-bed × 60% occupancy ≈ 30 in-progress encounters)
 
 ---
+
+## End-to-end pipeline diagram
+
+![clinosim end-to-end pipeline: population generation → physiology + encounter simulation → enricher stages → CIF → format adapters → NDJSON output](../assets/pipeline.svg)
+
+For a step-by-step walkthrough see [`../design-guides/data-generation-walkthrough.md`](../design-guides/data-generation-walkthrough.md).

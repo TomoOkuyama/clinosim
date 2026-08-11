@@ -127,6 +127,8 @@ nav:
   - Getting started:
       - Installation: getting-started/installation.md
       - Quick start: getting-started/quick-start.md
+      - Your first cohort: getting-started/first-cohort.md
+      - Configuration: getting-started/configuration.md
       - Versioning & releases: getting-started/versioning.md
   - Concepts:
       - Project concept & design: design-guides/project-concept-and-design.md
