@@ -205,7 +205,12 @@ OUTPATIENT_RX_ID_PREFIX = "rxopd-"
 # `unit` is the Japanese character, `code` is the UCUM token. Putting "d" in `unit`
 # is a fixed-value violation that survives dropping the eCS profile, because JP Core
 # pins the same string.
-_SUPPLY_DURATION_UNIT = "日"
+#
+# US locale has NO fixed-value constraint (JP profiles never bind US resources), so
+# `unit` gets the UCUM Latin token `d` to match `code` — the JP character in a US
+# resource leaks Japanese-language text into English output (Issue #730).
+_SUPPLY_DURATION_UNIT_JP = "日"
+_SUPPLY_DURATION_UNIT_US = "d"
 _SUPPLY_DURATION_CODE = "d"
 
 
@@ -948,7 +953,7 @@ def _build_discharge_medication_request(
     if duration_days is not None:
         dispense["expectedSupplyDuration"] = {
             "value": duration_days,
-            "unit": _SUPPLY_DURATION_UNIT,
+            "unit": _SUPPLY_DURATION_UNIT_JP if country_code == "JP" else _SUPPLY_DURATION_UNIT_US,
             "system": get_system_uri("ucum"),
             "code": _SUPPLY_DURATION_CODE,
         }
