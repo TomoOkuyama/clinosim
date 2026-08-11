@@ -36,6 +36,10 @@ __all__ = [
     "HR_FEVER_REFERENCE_TEMP_C",
     "HR_PERFUSION_SCALE",
     "HR_TEMPERATURE_SCALE",
+    "OBSERVED_SPO2_CLAMP_MAX",
+    "OBSERVED_SPO2_CLAMP_MIN",
+    "OBSERVED_TEMPERATURE_NOISE_SD",
+    "OBSERVED_VITALS_NOISE_SD_DEFAULT",
     "RR_CLAMP_MAX",
     "RR_CLAMP_MIN",
     "RR_INFLAMMATION_SCALE",
@@ -243,3 +247,34 @@ requiring immediate intervention."""
 
 SPO2_CLAMP_MAX: int = 100
 """Physiologic maximum SpO2 (%) — saturation cannot exceed 100%."""
+
+
+# ---------------------------------------------------------------------------
+# Observed-vitals measurement noise + SpO2 physiologic re-clamp
+# (``derive_observed_vitals`` — device / observer variation on top of the
+# hidden physiologic state)
+# ---------------------------------------------------------------------------
+
+OBSERVED_TEMPERATURE_NOISE_SD: float = 0.5
+"""Measurement noise SD (°C) applied to observed temperature — the
+smaller noise reflects the higher precision of clinical thermometry
+vs cuff-based BP or manual RR counting.
+
+Empirical tuning for the synthetic simulator."""
+
+OBSERVED_VITALS_NOISE_SD_DEFAULT: float = 2.0
+"""Measurement noise SD applied to observed BP / HR / RR / SpO2 —
+larger than the temperature SD because cuff-BP, palpated HR, and
+counted RR carry more observer-driven variance.
+
+Units are per-vital: mmHg for BP, bpm for HR, breaths/min for RR,
+% for SpO2. Empirical tuning for the synthetic simulator."""
+
+OBSERVED_SPO2_CLAMP_MIN: float = 60.0
+"""Physiologic SpO2 (%) lower re-clamp applied AFTER the observation
+noise draw — real pulse oximeters saturate around 60% (values below
+are non-clinical / device-artifact territory)."""
+
+OBSERVED_SPO2_CLAMP_MAX: float = 100.0
+"""Physiologic SpO2 (%) upper re-clamp applied AFTER the observation
+noise draw — SpO2 cannot exceed 100% by definition."""
