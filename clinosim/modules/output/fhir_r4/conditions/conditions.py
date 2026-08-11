@@ -98,6 +98,57 @@ _CONDITION_BODY_SITE: dict[str, dict[str, str]] = {
 }
 
 
+# Issue #744: JP-CLINS eCS DiagnosisType extension family.
+#
+# Spec: `StructureDefinition-jp-ecs-diagnosisType.json`
+# - URL: http://jpfhir.jp/fhir/eCS/Extension/StructureDefinition/JP_eCS_DiagnosisType
+# - Context: Condition only
+# - value[x]: CodeableConcept, binding = http://hl7.org/fhir/ValueSet/ex-diagnosistype|4.0.1
+#
+# The value-set is the FHIR-standard ex-diagnosistype (Diagnosis Type) — code
+# system `http://terminology.hl7.org/CodeSystem/ex-diagnosistype`. JP publishes a
+# display overlay CS at
+# `http://jpfhir.jp/core/terminology/CodeSystemJPDisplay/ex-diagnosistype`
+# which reuses the FHIR codes verbatim, so only the FHIR system URI needs to
+# be emitted for terminology conformance.
+#
+# clinosim maps its two Condition emit paths as follows:
+# - encounter-diagnosis (per-encounter reason for visit) → `principal`
+# - chronic (problem-list-item, patient-level)         → `clinical`
+_JP_ECS_DIAGNOSIS_TYPE_EXT_URL = "http://jpfhir.jp/fhir/eCS/Extension/StructureDefinition/JP_eCS_DiagnosisType"
+_EX_DIAGNOSISTYPE_SYSTEM = "http://terminology.hl7.org/CodeSystem/ex-diagnosistype"
+
+# Kept minimal: only the two codes clinosim currently emits. Adding more
+# (differential / admitting / discharge / laboratory / radiology / …) is a
+# targeted extension, not fabrication — every value in `ex-diagnosistype` is
+# spec-defined.
+_DIAGNOSIS_TYPE_DISPLAY_EN = {
+    "principal": "Principal Diagnosis",
+    "clinical": "Clinical Diagnosis",
+}
+
+
+def _ecs_diagnosis_type_extension(code: str) -> dict:
+    """Return the `JP_eCS_DiagnosisType` extension for a Condition (Issue #744).
+
+    `code` is one of the FHIR standard `ex-diagnosistype` codes
+    (see `_DIAGNOSIS_TYPE_DISPLAY_EN`). Caller gates on JP.
+    """
+    display = _DIAGNOSIS_TYPE_DISPLAY_EN.get(code, code)
+    return {
+        "url": _JP_ECS_DIAGNOSIS_TYPE_EXT_URL,
+        "valueCodeableConcept": {
+            "coding": [
+                {
+                    "system": _EX_DIAGNOSISTYPE_SYSTEM,
+                    "code": code,
+                    "display": display,
+                }
+            ]
+        },
+    }
+
+
 def _bodysite_for(code: str, country: str) -> dict | None:
     """CY8-23 helper:ICD code prefix から SNOMED bodySite CodeableConcept を返す。"""
     if not code:
@@ -246,6 +297,13 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "code": build_diagnosis_codeable_concept(map_diagnosis_code(dx_code, country), icd_system_key, country),
             "subject": {"reference": f"Patient/{patient_id}"},
         }
+        # Issue #744: JP_Condition_eCS must-support `extension:eCS_DiagnosisType`
+        # (spec binding: http://hl7.org/fhir/ValueSet/ex-diagnosistype|4.0.1).
+        # Encounter-diagnosis Condition is the reason-for-visit → `principal`
+        # (matches the FHIR-standard code and the JP display CS
+        # `http://jpfhir.jp/core/terminology/CodeSystemJPDisplay/ex-diagnosistype`).
+        if is_jp(country_code):
+            cond.setdefault("extension", []).append(_ecs_diagnosis_type_extension("principal"))
 
         if severity:
             cond["severity"] = severity_coding(severity, country)
@@ -390,6 +448,10 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 if is_jp(country_code)
                 else {}
             ),
+            # Issue #744: chronic condition → `clinical` (general clinical
+            # finding, not the encounter's reason). Same extension family as
+            # the encounter-diagnosis path above.
+            **({"extension": [_ecs_diagnosis_type_extension("clinical")]} if is_jp(country_code) else {}),
             # C2-02/03: use _coding_with_display so the
             # chronic-condition path also emits displays (was raw code).
             "clinicalStatus": {
