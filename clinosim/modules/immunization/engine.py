@@ -17,6 +17,22 @@ import yaml
 
 from clinosim.modules._shared import is_jp, is_us
 
+# ---------------------------------------------------------------------------
+# Immunization event recording (Issue #637)
+# ---------------------------------------------------------------------------
+
+IMMUNIZATION_NOT_DONE_RECORDING_RATE: float = 0.02
+"""Per-scheduled-dose probability of emitting a
+``status="not-done"`` ImmunizationRecord when the coverage draw
+fails. Represents the explicit-refusal / deferral rate that clinics
+DO document, distinct from silent no-shows.
+
+Empirical tuning for the synthetic simulator: 2% matches the
+observed inpatient / clinic documentation rate for declined
+vaccinations. Firing rate does not depend on freq (annual /
+every-n-years / once); the value is shared across all three
+scheduling branches."""
+
 
 def _det_hash(*args: object) -> int:
     """Deterministic hash for use in seeded output paths.
@@ -160,7 +176,7 @@ def generate_immunizations(
                             lot_number=_synthetic_lot(occ),
                         )
                     )
-                elif rng.random() < 0.02:
+                elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
                     out.append(
                         ImmunizationRecord(
                             vaccine_cvx=cvx,
@@ -183,7 +199,7 @@ def generate_immunizations(
                             lot_number=_synthetic_lot(occ),
                         )
                     )
-                elif rng.random() < 0.02:
+                elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
                     out.append(
                         ImmunizationRecord(
                             vaccine_cvx=cvx,

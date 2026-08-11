@@ -51,6 +51,16 @@ import yaml
 
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.modules.observation.engine import determine_flag, round_to_precision
+from clinosim.modules.physiology._lab_derivation_thresholds import (
+    WBC_BASE,
+    WBC_CIRCADIAN_AMPLITUDE,
+    WBC_CIRCADIAN_HOUR_OFFSET,
+    WBC_CIRCADIAN_HOUR_PERIOD,
+    WBC_HIGH_INFLAMMATION_LEUKOPENIA_SCALE,
+    WBC_HIGH_INFLAMMATION_THRESHOLD,
+    WBC_INFLAMMATION_SCALE,
+    WBC_LEUKOPENIA_FLOOR,
+)
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -106,16 +116,25 @@ def load_hai_lab_lift_config() -> tuple[float, dict[str, float]]:
 
 def _wbc_pre_circadian(infl: float) -> float:
     """WBC formula from physiology.engine.derive_lab_values BEFORE the
-    diurnal circadian factor is applied. Kept in lockstep with the source.
+    diurnal circadian factor is applied. Kept in lockstep with the source
+    by importing the same constants (Issue #637 DRY sweep).
     """
-    if infl < 0.8:
-        return 7000 + infl * 12000
-    return max(1500, 7000 + 0.8 * 12000 - (infl - 0.8) * 30000)
+    if infl < WBC_HIGH_INFLAMMATION_THRESHOLD:
+        return WBC_BASE + infl * WBC_INFLAMMATION_SCALE
+    return max(
+        WBC_LEUKOPENIA_FLOOR,
+        WBC_BASE
+        + WBC_HIGH_INFLAMMATION_THRESHOLD * WBC_INFLAMMATION_SCALE
+        - (infl - WBC_HIGH_INFLAMMATION_THRESHOLD) * WBC_HIGH_INFLAMMATION_LEUKOPENIA_SCALE,
+    )
 
 
 def _circadian_wbc(hour: int) -> float:
-    """Daily-loop WBC circadian factor; nadir ~04:00, peak ~16:00."""
-    return 1.0 + 0.10 * (-math.cos((hour - 4) * math.pi / 12))
+    """Daily-loop WBC circadian factor; nadir ~04:00, peak ~16:00.
+    Constants shared with physiology.engine.derive_lab_values."""
+    return 1.0 + WBC_CIRCADIAN_AMPLITUDE * (
+        -math.cos((hour - WBC_CIRCADIAN_HOUR_OFFSET) * math.pi / WBC_CIRCADIAN_HOUR_PERIOD)
+    )
 
 
 def _hai_lift_delta(
