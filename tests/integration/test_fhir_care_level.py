@@ -34,5 +34,17 @@ def test_care_level_observation():
     assert o["id"] == "carelevel-p1"
 
 
+def test_care_level_observation_code_has_loinc():
+    # Issue #733: Observation.code must carry a LOINC coding, not text-only.
+    o = _bb_care_level(_ctx("care3"))[0]
+    codings = o["code"].get("coding", [])
+    assert len(codings) == 1, "expected exactly one LOINC coding"
+    c = codings[0]
+    assert c["system"] == "http://loinc.org"
+    assert c["code"] == "80391-6"
+    assert c["display"] == "Level of care [Type]"
+    assert o["code"]["text"] == "要介護度"
+
+
 def test_empty_when_no_care_level():
     assert _bb_care_level(_ctx("")) == []

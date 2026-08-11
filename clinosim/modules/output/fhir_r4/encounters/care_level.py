@@ -15,6 +15,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import get_system_uri
+from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import _sdoh_effective_datetime
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -22,6 +24,10 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     _social_category,
     _value,
 )
+
+# Issue #733: LOINC observation-identifier for the care-level Observation.
+# Selection rationale is in clinosim/codes/data/loinc.yaml (entry 80391-6).
+_CARE_LEVEL_LOINC = "80391-6"
 
 
 def _bb_care_level(ctx: BundleContext) -> list[dict]:
@@ -47,7 +53,16 @@ def _bb_care_level(ctx: BundleContext) -> list[dict]:
         ),
         "status": "final",
         "category": _social_category(ctx.country),
-        "code": {"text": text},
+        "code": {
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": _CARE_LEVEL_LOINC,
+                    "display": code_lookup("loinc", _CARE_LEVEL_LOINC, "en"),
+                }
+            ],
+            "text": text,
+        },
         "subject": {"reference": f"Patient/{ctx.patient_id}"},
         "valueCodeableConcept": _value("jp-care-level", code, lang),
     }
