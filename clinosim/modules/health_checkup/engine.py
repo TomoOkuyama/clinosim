@@ -37,6 +37,8 @@ from clinosim.modules.health_checkup._checkup_thresholds import (
     BMI_PHYSIOLOGIC_MAX,
     BMI_PHYSIOLOGIC_MIN,
     BMI_PROFILE_FALLBACK,
+    CHECKUP_TYPE_REGIONAL_UNION_AGE_MIN,
+    CHECKUP_TYPE_SPECIFIC_AGE_MIN,
     DBP_INTERPRET_HIGH_THRESHOLD,
     DBP_INTERPRET_REFERENCE_RANGE,
     DBP_MEASUREMENT_NOISE_SD,
@@ -101,9 +103,9 @@ HEALTH_CHECKUP_MIN_AGE = 40
 # 年齢帯単一 dispatch で単純化する。将来 sub-PR で保険種別 / 就業状態を
 # 参照した精緻化余地あり。
 def _pick_checkup_type(age: int) -> str:
-    if age >= 75:
+    if age >= CHECKUP_TYPE_REGIONAL_UNION_AGE_MIN:
         return "regional_union"
-    if age >= 65:
+    if age >= CHECKUP_TYPE_SPECIFIC_AGE_MIN:
         return "specific"
     return "occupational"
 

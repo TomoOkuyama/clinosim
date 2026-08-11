@@ -214,6 +214,10 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     HR_FEVER_REFERENCE_TEMP_C,
     HR_PERFUSION_SCALE,
     HR_TEMPERATURE_SCALE,
+    OBSERVED_SPO2_CLAMP_MAX,
+    OBSERVED_SPO2_CLAMP_MIN,
+    OBSERVED_TEMPERATURE_NOISE_SD,
+    OBSERVED_VITALS_NOISE_SD_DEFAULT,
     RR_CLAMP_MAX,
     RR_CLAMP_MIN,
     RR_INFLAMMATION_SCALE,
@@ -993,9 +997,10 @@ def derive_observed_vitals(
     """
     raw = derive_vital_signs(state, baseline, timestamp)
     for key in raw:
-        raw[key] += float(rng.normal(0, 0.5 if key == "temperature" else 2))
+        noise_sd = OBSERVED_TEMPERATURE_NOISE_SD if key == "temperature" else OBSERVED_VITALS_NOISE_SD_DEFAULT
+        raw[key] += float(rng.normal(0, noise_sd))
         if key == "spo2":
-            raw[key] = min(100.0, max(60.0, raw[key]))
+            raw[key] = min(OBSERVED_SPO2_CLAMP_MAX, max(OBSERVED_SPO2_CLAMP_MIN, raw[key]))
     return raw
 
 
