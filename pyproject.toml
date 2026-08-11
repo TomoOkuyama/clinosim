@@ -49,7 +49,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/TomoOkuyama/clinosim"
-Documentation = "https://github.com/TomoOkuyama/clinosim#readme"
+Documentation = "https://tomookuyama.github.io/clinosim/"
 Source = "https://github.com/TomoOkuyama/clinosim"
 Issues = "https://github.com/TomoOkuyama/clinosim/issues"
 Changelog = "https://github.com/TomoOkuyama/clinosim/blob/master/CHANGELOG.md"

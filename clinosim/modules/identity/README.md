@@ -33,6 +33,11 @@ Providers are chosen by country. Each provider implements
 `build_identifiers`; new countries add a new provider file under
 `providers/`.
 
+> **Note:** `providers/` intentionally has no dedicated README. The
+> country-plugin dispatch pattern and the `build_identifiers`
+> contract are documented in the paragraph above; a per-directory
+> README would duplicate that content.
+
 ## Structural typing
 
 `ResidentLike` is a `typing.Protocol` in `base.py` that describes the
