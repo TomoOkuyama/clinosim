@@ -54,6 +54,23 @@ from clinosim.modules.staff.engine import (
     StaffRoster,
     assign_staff,
 )
+from clinosim.simulator._unknown_condition_thresholds import (
+    UNK_ADMISSION_HOUR_MAX_EXCLUSIVE,
+    UNK_ADMISSION_HOUR_MIN,
+    UNK_ADMISSION_INFLAMMATION_LIFT_MAX,
+    UNK_ADMISSION_INFLAMMATION_LIFT_MIN,
+    UNK_AUTOIMMUNE_WORKUP_DAY,
+    UNK_DAILY_INFLAMMATION_WALK_SD,
+    UNK_DAILY_LAB_HOUR,
+    UNK_DISCHARGE_HOUR,
+    UNK_EXPANDED_IMAGING_HOUR,
+    UNK_INFECTION_TUMOR_WORKUP_DAY,
+    UNK_PARTIAL_RESOLUTION_PROBABILITY,
+    UNK_SUPPORTIVE_MED_PLACEMENT_MIN,
+    UNK_TARGET_LOS_MAX_EXCLUSIVE,
+    UNK_TARGET_LOS_MIN,
+    UNK_WARD_CAPACITY_DEFAULT,
+)
 from clinosim.simulator.helpers import pick_ward, resolve_department
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
@@ -95,10 +112,16 @@ def _simulate_unknown_condition(
     from clinosim.simulator.vitals_pipeline import _generate_vitals
 
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
-    state.inflammation_level += float(rng.uniform(0.10, 0.30))
+    state.inflammation_level += float(
+        rng.uniform(UNK_ADMISSION_INFLAMMATION_LIFT_MIN, UNK_ADMISSION_INFLAMMATION_LIFT_MAX)
+    )
 
     admission_time = datetime(
-        event.timestamp.year, event.timestamp.month, event.timestamp.day, int(rng.integers(8, 22)), 0
+        event.timestamp.year,
+        event.timestamp.month,
+        event.timestamp.day,
+        int(rng.integers(UNK_ADMISSION_HOUR_MIN, UNK_ADMISSION_HOUR_MAX_EXCLUSIVE)),
+        0,
     )
     state.timestamp = admission_time
     complaint = event.disease_id.replace("unknown_", "").replace("_", " ")
@@ -109,11 +132,13 @@ def _simulate_unknown_condition(
     attending_id = assign_staff("admission", department, roster, rng).get("attending_physician", FALLBACK_PHYSICIAN_ID)
     encounter.attending_physician_id = attending_id
     encounter.ward_id = pick_ward(department, hospital_ops, rng)
-    ward_cap = (hospital_ops or {}).get("ward_capacity", {}).get(encounter.ward_id, 10)
+    ward_cap = (hospital_ops or {}).get("ward_capacity", {}).get(encounter.ward_id, UNK_WARD_CAPACITY_DEFAULT)
     bed_idx = int(rng.integers(1, ward_cap + 1))
     encounter.bed_number = f"{encounter.ward_id}-{bed_idx:02d}"
 
-    target_los = int(rng.integers(7, 14))  # unknown conditions: longer workup
+    target_los = int(
+        rng.integers(UNK_TARGET_LOS_MIN, UNK_TARGET_LOS_MAX_EXCLUSIVE)
+    )  # unknown conditions: longer workup
     all_vitals: list[VitalSignRecord] = []
     all_orders: list[Order] = []
     all_lab_results: list[OrderResult] = []
@@ -187,7 +212,7 @@ def _simulate_unknown_condition(
                 display_name=med["drug"],
                 urgency="routine",
                 clinical_intent=f"Unknown {complaint}: {med['intent']}",
-                ordered_datetime=admission_time + timedelta(minutes=30),
+                ordered_datetime=admission_time + timedelta(minutes=UNK_SUPPORTIVE_MED_PLACEMENT_MIN),
                 ordered_by=attending_id,
                 status=OrderStatus.PLACED,
             )
@@ -196,7 +221,7 @@ def _simulate_unknown_condition(
 
     for day in range(target_los):
         # State: slow random walk (no clear trajectory)
-        state.inflammation_level += float(rng.normal(0, 0.02))
+        state.inflammation_level += float(rng.normal(0, UNK_DAILY_INFLAMMATION_WALK_SD))
         state.inflammation_level = max(0.0, min(1.0, state.inflammation_level))
         state_history.append(deepcopy(state))
 
@@ -204,9 +229,9 @@ def _simulate_unknown_condition(
         if day >= 1:
             daily_labs = ["CRP", "WBC", "Creatinine"]
             # Additional workup on specific days
-            if day == 2:
+            if day == UNK_INFECTION_TUMOR_WORKUP_DAY:
                 daily_labs.extend(["Ferritin", "LDH", "PCT"])  # infection/tumor markers
-            if day == 4:
+            if day == UNK_AUTOIMMUNE_WORKUP_DAY:
                 daily_labs.extend(["ANA", "RF"])  # autoimmune screening
                 # Additional imaging
                 all_orders.append(
@@ -217,14 +242,15 @@ def _simulate_unknown_condition(
                         display_name="CT_chest_with_contrast",
                         urgency="routine",
                         clinical_intent="Day 4: expanded imaging for unknown fever",
-                        ordered_datetime=admission_time + timedelta(days=4, hours=10),
+                        ordered_datetime=admission_time
+                        + timedelta(days=UNK_AUTOIMMUNE_WORKUP_DAY, hours=UNK_EXPANDED_IMAGING_HOUR),
                         ordered_by=attending_id,
                         status=OrderStatus.PLACED,
                     )
                 )
 
             for i, lab_name in enumerate(daily_labs):
-                lab_time = admission_time + timedelta(days=day, hours=6)
+                lab_time = admission_time + timedelta(days=day, hours=UNK_DAILY_LAB_HOUR)
                 all_orders.append(
                     Order(
                         order_id=f"ORD-{encounter.encounter_id}-D{day}-L{i:02d}",
@@ -295,11 +321,11 @@ def _simulate_unknown_condition(
         )  # noqa: E501
 
     encounter.status = EncounterStatus.COMPLETED
-    encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=14)
+    encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=UNK_DISCHARGE_HOUR)
 
     # ~50% of unknown conditions get partially resolved during stay
     # (workup finds something, but not a definitive diagnosis)
-    if rng.random() < 0.5:
+    if rng.random() < UNK_PARTIAL_RESOLUTION_PROBABILITY:
         discharge_code = "R50.9" if "fever" in event.disease_id else "R53.1"
         "Unresolved " + complaint
     else:
