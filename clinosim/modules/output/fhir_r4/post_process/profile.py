@@ -65,6 +65,14 @@ _JP_CORE_PROFILES: dict[str, list[str]] = {
     # AD-62 — endoscopy is out of scope), so only the radiology profile is
     # attached.
     "ImagingStudy": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_ImagingStudy_Radiology"],
+    # Issue #745 (Wave 3): add JP Core parents for Device / DeviceUseStatement
+    # so their JP-CLINS eCS profiles (`JP_Device_eCS` / `JP_DeviceUseStatement_eCS`)
+    # have their `baseDefinition` chain intact. Neither eCS profile adds any
+    # must-support beyond the FHIR-R4 base, so declaring both is safe (no
+    # data-completeness risk per `[★★★★ Profile assertion は data-completeness
+    # verify 後]`).
+    "Device": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Device"],
+    "DeviceUseStatement": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DeviceUseStatement"],
 }
 
 
@@ -142,7 +150,34 @@ _JP_CLINS_PROFILES: dict[str, list[str]] = {
     "Procedure": [
         "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS",
     ],
+    # Issue #745 (Wave 3): four additional eCS profiles whose must-support
+    # requirements are either zero (DocumentReference / Device /
+    # DeviceUseStatement) or satisfiable by a single deterministic field
+    # (Immunization → meta.lastUpdated, handled in the emit branch below).
+    # Encounter_eCS (64 MS) and FamilyMemberHistory_eCS (26 MS incl. many
+    # per-encounter fields at 0% coverage) are deferred to follow-up per the
+    # memory rule `[★★★★ Profile assertion は data-completeness verify 後]`.
+    "DocumentReference": [
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_DocumentReference_eCS",
+    ],
+    "Immunization": [
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Immunization_eCS",
+    ],
+    "Device": [
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Device_eCS",
+    ],
+    "DeviceUseStatement": [
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_DeviceUseStatement_eCS",
+    ],
 }
+
+# Static deterministic placeholder for `meta.lastUpdated` used to satisfy the
+# JP-CLINS eCS must-support requirement on resources whose CIF source data
+# carries no timestamp. Mirrors the pattern already used in
+# `demographics/patient.py:370` and `encounters/facility.py:91`. Real-world
+# lastUpdated is server-provided; clinosim's simulator has no such notion, so
+# a fixed value keeps reproducibility byte-clean while satisfying min=1.
+_JP_ECS_LAST_UPDATED_PLACEHOLDER = "2026-01-01T00:00:00+09:00"
 
 
 def _apply_jp_clins_profile(resource: dict) -> None:
@@ -189,6 +224,16 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     # (extension SD context does not list Procedure).
     if rt in ("Condition", "AllergyIntolerance", "MedicationRequest"):
         attach_ecs_institutional_extensions(resource, "JP", include_department=True)
+    # Issue #745: `JP_Immunization_eCS` mandates `meta.lastUpdated` (min=1,
+    # must-support); the emit path never populated it. Fill the same
+    # deterministic placeholder pattern used by patient.py + facility.py
+    # only when the eCS profile URL is actually being added — the two
+    # moves are paired (declare eCS ↔ satisfy its must-support). The
+    # other three new eCS profiles (DocumentReference / Device /
+    # DeviceUseStatement) carry zero must-supports so no field emit is
+    # needed.
+    if rt == "Immunization" and not meta.get("lastUpdated"):
+        meta["lastUpdated"] = _JP_ECS_LAST_UPDATED_PLACEHOLDER
 
 
 def _medication_request_satisfies_ecs(resource: dict) -> bool:
