@@ -27,6 +27,7 @@ constants.
 from __future__ import annotations
 
 __all__ = [
+    "CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE",
     "CHRONIC_VISITS_MAX_PER_YEAR",
     "COLONOSCOPY_MIN_AGE",
     "COLONOSCOPY_PROBABILITY",
@@ -35,6 +36,8 @@ __all__ = [
     "EVENT_DAY_JITTER_END_EXCLUSIVE",
     "EVENT_DAY_JITTER_START",
     "EVENT_MID_OF_MONTH_DAY",
+    "EVENT_RANDOM_DAY_MAX_EXCLUSIVE",
+    "EVENT_RANDOM_DAY_MIN",
     "FLU_VAX_ADULT_AGE_THRESHOLD",
     "FLU_VAX_COMORBIDITY_MIN",
     "FLU_VAX_MONTHS",
@@ -49,6 +52,8 @@ __all__ = [
     "MIXED_CONDITIONS_PROBABILITY_DEFAULT",
     "OCCUPATION_MISMATCH_FALLBACK_MULTIPLIER",
     "PRIOR_HOSPITALIZATION_RECURRENCE_MULTIPLIER",
+    "RANDOM_MONTH_MAX_EXCLUSIVE",
+    "RANDOM_MONTH_MIN",
     "UNKNOWN_CONDITION_AGE_FACTOR_DEFAULT",
     "UNKNOWN_CONDITION_BASE_RATE_DEFAULT",
     "UNKNOWN_CONDITION_MIN_AGE_DEFAULT",
@@ -327,3 +332,40 @@ Empirical tuning for the synthetic simulator: 60% approximates the
 observed annual ophthalmology-screening uptake among diabetic patients
 (ADA / JDS both recommend annual screening; real-world adherence is
 around 50-70%)."""
+
+
+# ---------------------------------------------------------------------------
+# Random calendar-date generation (used across chronic-visit + screening
+# + vaccination + DOB paths)
+# ---------------------------------------------------------------------------
+
+RANDOM_MONTH_MIN: int = 1
+"""Inclusive lower bound of the random-month draw
+(``rng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE)``).
+Also used by :func:`clinosim.modules.population.engine.generate_population`
+to sample a random birth-month for each synthetic person."""
+
+RANDOM_MONTH_MAX_EXCLUSIVE: int = 13
+"""Exclusive upper bound of the random-month draw. Combined with
+:data:`RANDOM_MONTH_MIN` yields months 1-12."""
+
+EVENT_RANDOM_DAY_MIN: int = 1
+"""Inclusive lower bound of the random day-of-month draw for scheduled
+calendar events (screenings, vaccinations, chronic follow-ups)."""
+
+EVENT_RANDOM_DAY_MAX_EXCLUSIVE: int = 28
+"""Exclusive upper bound of the random day-of-month draw. Combined
+with :data:`EVENT_RANDOM_DAY_MIN` yields days 1-27 — deliberately
+conservative to keep event dates away from the month-end + Feb-29
+boundary (avoids ``ValueError: day is out of range for month`` when
+sampling in February)."""
+
+CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE: int = 4
+"""Exclusive upper bound of the initial-visit month draw for chronic
+follow-ups. When the follow-up interval is 3+ months, the first
+visit lands in months 1-3 (Jan-Mar) — later visits stride by
+``shortest_interval`` from there.
+
+Empirical tuning for the synthetic simulator: capping the first
+visit at Q1 gives every chronic patient at least 3-4 visits per
+year regardless of the shortest configured interval."""
