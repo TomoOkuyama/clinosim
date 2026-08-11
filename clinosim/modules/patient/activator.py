@@ -57,8 +57,17 @@ from clinosim.modules.patient._patient_activator_thresholds import (
     DVT_ELDERLY_PREMIUM,
     E03_HR_REDUCTION_MAX_EXCLUSIVE,
     E03_HR_REDUCTION_MIN,
+    EMERGENCY_CONTACT_ELDERLY_AGE_MIN,
+    EMERGENCY_CONTACT_RELATIONS_ADULT,
+    EMERGENCY_CONTACT_RELATIONS_ELDERLY,
+    EMERGENCY_CONTACT_WEIGHTS_ADULT,
+    EMERGENCY_CONTACT_WEIGHTS_ELDERLY,
+    EMPLOYMENT_RETIREMENT_AGE_MIN,
     GENERIC_SEVERITY_UNIFORM_MAX,
     GENERIC_SEVERITY_UNIFORM_MIN,
+    HEALTH_LITERACY_MEAN,
+    HEALTH_LITERACY_ROUND_DIGITS,
+    HEALTH_LITERACY_SD,
     I10_DBP_BASE_LIFT,
     I10_DBP_SEVERITY_SCALE,
     I10_DEFAULT_SEVERITY,
@@ -71,6 +80,19 @@ from clinosim.modules.patient._patient_activator_thresholds import (
     J44_SPO2_LIMIT_SD,
     J45_RR_LIFT_MAX_EXCLUSIVE,
     J45_RR_LIFT_MIN,
+    MARITAL_STATUS_ADULT_AGE_MIN,
+    MARITAL_STATUS_ELDERLY_CODES,
+    MARITAL_STATUS_ELDERLY_WEIGHTS,
+    MARITAL_STATUS_LATE_ADULT_AGE_MAX_EXCLUSIVE,
+    MARITAL_STATUS_LATE_ADULT_CODES,
+    MARITAL_STATUS_LATE_ADULT_WEIGHTS,
+    MARITAL_STATUS_MID_ADULT_AGE_MAX_EXCLUSIVE,
+    MARITAL_STATUS_MID_ADULT_CODES,
+    MARITAL_STATUS_MID_ADULT_WEIGHTS,
+    MARITAL_STATUS_MINOR_CODE,
+    MARITAL_STATUS_YOUNG_ADULT_AGE_MAX_EXCLUSIVE,
+    MARITAL_STATUS_YOUNG_ADULT_CODES,
+    MARITAL_STATUS_YOUNG_ADULT_WEIGHTS,
     RESERVE_FLOOR,
     SYMPTOM_REPORTING_BIAS_MEAN,
     SYMPTOM_REPORTING_BIAS_SD,
@@ -396,13 +418,13 @@ def activate_patient(
     emergency_name = ""
     emergency_phone = ""
     emergency_rel = ""
-    if age >= 18:
+    if age >= MARITAL_STATUS_ADULT_AGE_MIN:
         # Reuse home phone as a household contact for spouse/family
         emergency_phone = phone_home or phone_mobile
-        if age >= 75:
-            emergency_rel = str(rng.choice(["child", "spouse", "sibling"], p=[0.6, 0.25, 0.15]))
+        if age >= EMERGENCY_CONTACT_ELDERLY_AGE_MIN:
+            emergency_rel = str(rng.choice(EMERGENCY_CONTACT_RELATIONS_ELDERLY, p=EMERGENCY_CONTACT_WEIGHTS_ELDERLY))
         else:
-            emergency_rel = str(rng.choice(["spouse", "parent", "sibling", "child"], p=[0.55, 0.20, 0.15, 0.10]))
+            emergency_rel = str(rng.choice(EMERGENCY_CONTACT_RELATIONS_ADULT, p=EMERGENCY_CONTACT_WEIGHTS_ADULT))
         # Generate a realistic person name for the emergency contact.
         # Spouse/sibling/parent/child typically shares family name (Japan);
         # opposite sex for spouse, random for others.
@@ -437,16 +459,16 @@ def activate_patient(
     )
 
     # Marital status (HL7 v3-MaritalStatus codes)
-    if age < 18:
-        marital_status = "S"  # Never married
-    elif age < 30:
-        marital_status = str(rng.choice(["S", "M"], p=[0.65, 0.35]))
-    elif age < 50:
-        marital_status = str(rng.choice(["S", "M", "D"], p=[0.20, 0.70, 0.10]))
-    elif age < 70:
-        marital_status = str(rng.choice(["M", "D", "W", "S"], p=[0.65, 0.15, 0.10, 0.10]))
+    if age < MARITAL_STATUS_ADULT_AGE_MIN:
+        marital_status = MARITAL_STATUS_MINOR_CODE  # Never married
+    elif age < MARITAL_STATUS_YOUNG_ADULT_AGE_MAX_EXCLUSIVE:
+        marital_status = str(rng.choice(MARITAL_STATUS_YOUNG_ADULT_CODES, p=MARITAL_STATUS_YOUNG_ADULT_WEIGHTS))
+    elif age < MARITAL_STATUS_MID_ADULT_AGE_MAX_EXCLUSIVE:
+        marital_status = str(rng.choice(MARITAL_STATUS_MID_ADULT_CODES, p=MARITAL_STATUS_MID_ADULT_WEIGHTS))
+    elif age < MARITAL_STATUS_LATE_ADULT_AGE_MAX_EXCLUSIVE:
+        marital_status = str(rng.choice(MARITAL_STATUS_LATE_ADULT_CODES, p=MARITAL_STATUS_LATE_ADULT_WEIGHTS))
     else:
-        marital_status = str(rng.choice(["M", "W", "D", "S"], p=[0.50, 0.35, 0.10, 0.05]))
+        marital_status = str(rng.choice(MARITAL_STATUS_ELDERLY_CODES, p=MARITAL_STATUS_ELDERLY_WEIGHTS))
 
     # Preferred language (BCP-47)
     preferred_language = "ja-JP" if is_jp(country) else "en-US"
@@ -494,10 +516,12 @@ def activate_patient(
         contact=contact,
         marital_status=marital_status,
         preferred_language=preferred_language,
-        employment_status="retired" if age >= 65 else "employed",
+        employment_status="retired" if age >= EMPLOYMENT_RETIREMENT_AGE_MIN else "employed",
         occupation=getattr(person, "occupation", "other"),
         insurance_type=insurance_type,
-        health_literacy=round(float(rng.normal(0.6, 0.15)), 2),
+        health_literacy=round(
+            float(rng.normal(HEALTH_LITERACY_MEAN, HEALTH_LITERACY_SD)), HEALTH_LITERACY_ROUND_DIGITS
+        ),
         chronic_conditions=conditions,
         allergies=allergies,
         current_medications=current_meds,
