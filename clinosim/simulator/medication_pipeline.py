@@ -33,6 +33,15 @@ from clinosim.modules.physiology.renal_thresholds import (
     METFORMIN_RENAL_RESERVE_THRESHOLD,
 )
 from clinosim.modules.staff.engine import FALLBACK_NURSE_ID, StaffRoster, assign_staff
+from clinosim.simulator._mar_thresholds import (
+    MAR_ANTIHYPERTENSIVE_HOLD_SBP_THRESHOLD,
+    MAR_JITTER_MEAN_MIN,
+    MAR_JITTER_STD_MIN,
+    MAR_PATIENT_REFUSAL_PROBABILITY,
+    MAR_STAT_DUPLICATE_AVOIDANCE_WINDOW_SEC,
+    MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE,
+    MAR_STAT_FIRST_DOSE_DELAY_MIN,
+)
 from clinosim.simulator.helpers import _determine_route
 from clinosim.types.encounter import (
     MedicationAdministration,
@@ -327,7 +336,9 @@ def _generate_mar(
         # respected. Subsequent doses continue on the scheduled q6/8h grid.
         stat_first_dose_time = None
         if day == 0 and str(getattr(order, "urgency", "")).lower() == "stat":
-            stat_first_dose_time = admission_time + timedelta(minutes=int(rng.integers(30, 61)))
+            stat_first_dose_time = admission_time + timedelta(
+                minutes=int(rng.integers(MAR_STAT_FIRST_DOSE_DELAY_MIN, MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE))
+            )
 
         scheduled_times = []
         if stat_first_dose_time is not None:
@@ -342,7 +353,10 @@ def _generate_mar(
                 continue
             # Skip the scheduled-grid slot if it is within 90min of the STAT
             # ad-hoc dose to avoid a double administration back-to-back.
-            if stat_first_dose_time is not None and abs((scheduled - stat_first_dose_time).total_seconds()) < 5400:
+            if (
+                stat_first_dose_time is not None
+                and abs((scheduled - stat_first_dose_time).total_seconds()) < MAR_STAT_DUPLICATE_AVOIDANCE_WINDOW_SEC
+            ):
                 continue
             scheduled_times.append(scheduled)
 
@@ -353,15 +367,19 @@ def _generate_mar(
 
             # Hold conditions (clinical)
             if "antihypertensive" in drug_name.lower() and hasattr(patient, "baseline_vitals"):
-                if patient.baseline_vitals.systolic_bp < 90:
-                    status, hold_reason = "held", "SBP < 90"
+                if patient.baseline_vitals.systolic_bp < MAR_ANTIHYPERTENSIVE_HOLD_SBP_THRESHOLD:
+                    status, hold_reason = "held", f"SBP < {MAR_ANTIHYPERTENSIVE_HOLD_SBP_THRESHOLD}"
 
             # Patient refusal (~1.5%)
-            if rng.random() < 0.015:
+            if rng.random() < MAR_PATIENT_REFUSAL_PROBABILITY:
                 status = "refused"
 
             # Jitter
-            actual = scheduled + timedelta(minutes=float(rng.normal(5, 10))) if status == "given" else None
+            actual = (
+                scheduled + timedelta(minutes=float(rng.normal(MAR_JITTER_MEAN_MIN, MAR_JITTER_STD_MIN)))
+                if status == "given"
+                else None
+            )
 
             # Build dose text from structured fields if available, else fall back to display_name
             if order.dose_quantity is not None and order.dose_unit:
