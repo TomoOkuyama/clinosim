@@ -136,17 +136,19 @@ def test_jp_clins_referral_composition_chain9_pattern_top_level():
     assert coding["display"] == _JP_ER_CATEGORY_DISPLAY_JA == "他科コンサルト"
 
     # 3. author min=2 — Practitioner + Organization
-    # #330 session 61:eReferral profile author targetProfile は
-    # JP_Organization_eCS 準拠を要求。hospital-main-ecs へ pin。
+    # #330 session 61: eReferral profile author targetProfile は
+    # JP_Organization_eCS 準拠を要求。Issue #746 で hospital-main 自身が
+    # 両 profile を宣言するよう unify したため、参照先は hospital-main。
     authors = comp.get("author", [])
     assert len(authors) >= 2
     refs = [str(a.get("reference", "")) for a in authors]
     assert any(r.startswith("Practitioner/") for r in refs)
-    assert "Organization/hospital-main-ecs" in refs
-    assert "Organization/hospital-main" not in refs
+    assert "Organization/hospital-main" in refs
+    assert "Organization/hospital-main-ecs" not in refs
 
-    # #330:Composition.custodian も同 spec で eCS 準拠必須。
-    assert comp.get("custodian", {}).get("reference") == "Organization/hospital-main-ecs"
+    # #330: Composition.custodian も同 spec で eCS 準拠必須。unify 済
+    # hospital-main を参照。
+    assert comp.get("custodian", {}).get("reference") == "Organization/hospital-main"
 
     # 4. meta.lastUpdated
     assert comp["meta"]["lastUpdated"] == "2026-01-20T10:00:00"
@@ -176,13 +178,14 @@ def test_jp_clins_referral_composition_from_to_section_entries():
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     top_by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}
-    # #313 session 61:eReferral slice discriminator は eCS profile 要求。
-    # 従来 hospital-main は JP Core profile のみで slice fail、eCS 別
-    # Organization `hospital-main-ecs` を facility bundle で emit + 参照。
-    # 920 紹介元 entry
-    assert top_by_code["920"].get("entry") == [{"reference": "Organization/hospital-main-ecs"}]
-    # 910 紹介先 entry
-    assert top_by_code["910"].get("entry") == [{"reference": "Organization/hospital-main-ecs"}]
+    # #313: eReferral slice discriminator (type: profile, path: resolve())
+    # は eCS profile 準拠を要求。Issue #746 で hospital-main 自身が
+    # JP_Organization + JP_Organization_eCS を両宣言するよう unify した
+    # ため、resolve() が eCS profile を発見して slice validation は成立
+    # する。920 紹介元 / 910 紹介先 entry ともに unified hospital-main を
+    # 参照。
+    assert top_by_code["920"].get("entry") == [{"reference": "Organization/hospital-main"}]
+    assert top_by_code["910"].get("entry") == [{"reference": "Organization/hospital-main"}]
 
 
 @pytest.mark.unit
