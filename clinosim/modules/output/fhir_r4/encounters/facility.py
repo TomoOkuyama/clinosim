@@ -26,19 +26,42 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     beds = hospital_config.get("resource_capacity", {}).get("inpatient_beds", 0)
 
     # Root hospital Organization
-    # C3-17: JP Core Organization profile also on
-    # facility-bundle entries (adapter's post-hook doesn't touch the
-    # separate facility bundle).
-    _jp_org_profile = (
-        {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"]}}
-        if is_jp(country)
-        else {}
-    )
+    #
+    # C3-17: emits JP Core `JP_Organization` on JP output (adapter's post-hook
+    # doesn't touch the separate facility bundle).
+    #
+    # Issue #746: previously emitted a SECOND Organization with id
+    # `hospital-main-ecs` for JP output, carrying the `JP_Organization_eCS`
+    # profile + its 6 required fields, purely so that JP-CLINS eReferral /
+    # eDischargeSummary slice discriminators (type: profile, path: resolve())
+    # would find an eCS-conformant target. The result was two Organization
+    # resources for the same 総合病院 (id + id-ecs), which the eval axis
+    # flagged as 1/17 (5.9%) eCS declaration coverage — an inconsistency
+    # artefact of the two-Organization workaround.
+    #
+    # Merged approach: JP output emits ONE `hospital-main` Organization
+    # declaring both `JP_Organization` AND `JP_Organization_eCS` profiles,
+    # with the eCS-required fields populated inline. `Organization.partOf`
+    # is spec-optional (min=0 in the base + `min=-` in the eCS differential,
+    # which does not raise it), so a root hospital omits it — self-partOf
+    # would be invalid. The 6 references from `documents/composition.py`
+    # that previously pointed to `hospital-main-ecs` now resolve to the
+    # same unified `hospital-main` resource.
+    #
+    # eCS-required fields sourced from
+    # `StructureDefinition-JP-Organization-eCS.json` (min=1 or MS):
+    #   - meta.profile / meta.lastUpdated
+    #   - identifier:medicalInstitutionCode (system fixedUri +
+    #     10-digit medical-institution-code, placeholder "1300000000" since
+    #     hospital_config carries no institutional-code field)
+    #   - type.coding.system + code (unchanged — same "prov" already used)
+    #   - name / telecom.value / address.text
+    # telecom.use / address.use required binding: "home" is forbidden by
+    # the spec; "work" is used.
     hosp_name = "総合病院" if is_jp(country) else "Community Hospital"
-    root_org = {
+    root_org: dict = {
         "resourceType": "Organization",
         "id": "hospital-main",
-        **_jp_org_profile,
         "active": True,
         "type": [
             {
@@ -54,71 +77,31 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         "name": hosp_name,
         "alias": [f"{beds}-bed hospital"] if beds else [],
     }
-    entries.append(entry(root_org))
-
-    # #313 JP-CLINS eReferral の 920/910 section entry
-    # (referralFromOrganization / referralToOrganization slice)は
-    # `JP_Organization_eCS` profile 準拠の Organization を discriminator
-    # (type: profile, path: resolve())で要求。hospital-main は JP Core
-    # のみで eCS 未準拠のため slice validation が fail していた(v6.1 で
-    # 42 件 error)。
-    #
-    # eCS 別 id `hospital-main-ecs` を JP output に限定して追加 emit し、
-    # eReferral entries の参照先を新 id に切替(`_fhir_composition.py`)。
-    # US output には eCS profile 概念が無いので emit しない(is_jp gate)。
-    #
-    # spec 準拠フィールド(`StructureDefinition-JP-Organization-eCS.json`
-    # 権威直接確認、min=1 の 8 field 全て):
-    #   - meta.profile / meta.lastUpdated
-    #   - identifier:medicalInstitutionCode(system fixedUri +
-    #     10桁 medical-institution-code、hospital_config に無いため
-    #     placeholder "1300000000" — 東京都・番地全 0 の合成 code)
-    #   - type.coding.system + code(既存 hospital-main と同 "prov")
-    #   - name / telecom.value / address.text / partOf.reference
-    # telecom.use / address.use は required binding("home" 禁止、"work" 使用)。
-    #
-    # meta.lastUpdated は determinism 維持のため config 派生 or static
-    # placeholder(現状 hospital_config に無いので固定 epoch を使用)。
     if is_jp(country):
-        root_org_ecs = {
-            "resourceType": "Organization",
-            "id": "hospital-main-ecs",
-            "meta": {
-                "profile": ["http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Organization_eCS"],
-                # Static placeholder for determinism (hospital_config に
-                # last_updated field 未定義)。実データ提供時に config か
-                # ら派生可能。
-                "lastUpdated": "2026-01-01T00:00:00+09:00",
-            },
-            "identifier": [
-                {
-                    "use": "official",
-                    # spec fixedUri:StructureDefinition-JP-Organization-
-                    # eCS.json の identifier:medicalInstitutionCode.system.
-                    "system": "http://jpfhir.jp/fhir/core/IdSystem/insurance-medical-institution-no",
-                    "value": "1300000000",  # placeholder 10-digit
-                }
+        # Static lastUpdated for determinism — hospital_config has no
+        # last_updated field yet. Swap for a config-derived value when
+        # institutional metadata lands.
+        root_org["meta"] = {
+            "profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization",
+                "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Organization_eCS",
             ],
-            "active": True,
-            "type": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-organization-type"),
-                            "code": "prov",
-                            "display": _localize_display("Healthcare Provider", country, _ORG_TYPE_DISPLAY_JA),
-                        }
-                    ],
-                }
-            ],
-            "name": hosp_name,
-            # telecom.use / address.use は required binding、"home" 禁止
-            # (spec 明記)。"work" 使用。
-            "telecom": [{"system": "phone", "value": "03-0000-0000", "use": "work"}],
-            "address": [{"use": "work", "text": "東京都"}],
-            "partOf": {"reference": "Organization/hospital-main"},
+            "lastUpdated": "2026-01-01T00:00:00+09:00",
         }
-        entries.append(entry(root_org_ecs))
+        root_org["identifier"] = [
+            {
+                "use": "official",
+                # spec fixedUri: identifier:medicalInstitutionCode.system on
+                # JP_Organization_eCS. Placeholder 10-digit value stands in
+                # for a real MHLW-assigned code until hospital_config
+                # carries one.
+                "system": "http://jpfhir.jp/fhir/core/IdSystem/insurance-medical-institution-no",
+                "value": "1300000000",
+            }
+        ]
+        root_org["telecom"] = [{"system": "phone", "value": "03-0000-0000", "use": "work"}]
+        root_org["address"] = [{"use": "work", "text": "東京都"}]
+    entries.append(entry(root_org))
 
     # Main-building Location — referenced by PractitionerRole.location fallback
     # (CY8-07) for staff without a ward assignment. fix 2: the
@@ -182,12 +165,19 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     entries.append(entry(pump_device))
 
     # Department Organizations (one per available_department)
+    # Department orgs use base JP_Organization only (JP output) — they are
+    # not JP-CLINS eCS institutions, only intra-hospital sub-organizations.
+    _dept_jp_profile = (
+        {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"]}}
+        if is_jp(country)
+        else {}
+    )
     for dept in available:
         display = _dept_display(dept, country)
         dept_org = {
             "resourceType": "Organization",
             "id": f"dept-{dept.replace('_', '-')}",
-            **_jp_org_profile,
+            **_dept_jp_profile,
             "active": True,
             "type": [
                 {

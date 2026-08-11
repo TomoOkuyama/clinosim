@@ -720,21 +720,21 @@ def _build_jp_clins_discharge_summary_composition(
     # Organization reference.
     #
     # #330 eDS profile の Composition.author target は
-    # JP_Organization_eCS 準拠を要求(spec verified)。従来 hospital-main
-    # (JP Core only)を参照していたため sticky include validation で
-    # profile mismatch。#329 で追加した hospital-main-ecs(eCS profile)
-    # へ切替。同 issue で custodian も eCS 対応(下記)。
+    # JP_Organization_eCS 準拠を要求(spec verified)。Issue #746 の unify
+    # 以後、`hospital-main` 自身が JP_Organization + JP_Organization_eCS を
+    # 両宣言するため参照先を hospital-main に戻す(以前は
+    # `hospital-main-ecs` 別 id を使う workaround で slice validation を
+    # 通していたが、単一 org 案で自然解決)。
     authors = comp.setdefault("author", [])
     if not isinstance(authors, list):
         authors = []
         comp["author"] = authors
     if not any(isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/") for a in authors):
-        authors.append({"reference": "Organization/hospital-main-ecs"})
+        authors.append({"reference": "Organization/hospital-main"})
 
     # #330 eDS profile の Composition.custodian target は
-    # JP_Organization_eCS 準拠を要求。generic builder は hospital-main を
-    # set しているのでここで override。
-    comp["custodian"] = {"reference": "Organization/hospital-main-ecs"}
+    # JP_Organization_eCS 準拠を要求。unify 済 hospital-main を参照。
+    comp["custodian"] = {"reference": "Organization/hospital-main"}
 
     # (Chain #9) section tree — 300 parent + 10 required child sections.
     # yaml carries `構造情報セクション` (long form, matches spec `patternString`);
@@ -846,14 +846,14 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
 # (reference integrity は保たれる;data-shape trade-off)。
 # module-scope 定数(function 内では N806 lint violation)。
 #
-# #313 従来 hospital-main(JP Core profile)を参照していたが
-# eReferral profile の 920/910 section entry slice は discriminator
-# (type: profile, path: resolve())で `JP_Organization_eCS` profile 準拠
-# の Organization を要求する。v6.1 で 42 件 slice validation error 発火。
-# `_fhir_facility.py` が emit する eCS 別 id `hospital-main-ecs` を参照
-# するよう更新。JP output 限定(US 側では eReferral 自体を emit しない
-# ので影響なし)。
-_JP_ER_REFERRAL_ORG_REF: list[dict[str, str]] = [{"reference": "Organization/hospital-main-ecs"}]
+# #313 の origin: eReferral 920/910 section entry slice は
+# discriminator (type: profile, path: resolve()) で `JP_Organization_eCS`
+# profile 準拠の Organization を要求する。以前は eCS 別 id
+# `hospital-main-ecs` を追加 emit して参照していたが、Issue #746 で
+# `hospital-main` 自身が JP_Organization + JP_Organization_eCS を両宣言
+# するよう unify 済 — resolve() 後の profile 集合に eCS が含まれるため
+# slice validation は成立する。
+_JP_ER_REFERRAL_ORG_REF: list[dict[str, str]] = [{"reference": "Organization/hospital-main"}]
 _JP_ER_TOP_LEVEL_ENTRY: dict[str, list[dict[str, str]]] = {
     "920": _JP_ER_REFERRAL_ORG_REF,  # referralFromOrganization
     "910": _JP_ER_REFERRAL_ORG_REF,  # referralToOrganization
@@ -943,20 +943,20 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
     # Practitioner を author[0] に置くので Organization reference を追加。
     #
     # #330 eReferral profile の Composition.author target は
-    # JP_Organization_eCS 準拠を要求(spec verified)。従来 hospital-main
-    # (JP Core only)を参照していたため sticky include validation で
-    # profile mismatch。#329 で追加した hospital-main-ecs へ切替。
+    # JP_Organization_eCS 準拠を要求(spec verified)。Issue #746 の unify
+    # 以後、`hospital-main` 自身が JP_Organization + JP_Organization_eCS を
+    # 両宣言するため参照先を hospital-main に戻す。
     authors = comp.setdefault("author", [])
     if not isinstance(authors, list):
         authors = []
         comp["author"] = authors
     if not any(isinstance(a, dict) and str(a.get("reference", "")).startswith("Organization/") for a in authors):
-        authors.append({"reference": "Organization/hospital-main-ecs"})
+        authors.append({"reference": "Organization/hospital-main"})
 
     # #330 eReferral profile の Composition.custodian target
-    # も JP_Organization_eCS 準拠を要求(spec verified)。generic builder
-    # の hospital-main override。
-    comp["custodian"] = {"reference": "Organization/hospital-main-ecs"}
+    # も JP_Organization_eCS 準拠を要求(spec verified)。unify 済
+    # hospital-main を参照。
+    comp["custodian"] = {"reference": "Organization/hospital-main"}
 
     # #289:Composition.event.code min=1(coding は不要、text で満たす)。
     # generic builder が既に event[0]{period,detail} を set 済のため、既存

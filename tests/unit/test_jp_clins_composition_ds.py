@@ -362,14 +362,16 @@ def test_jp_clins_composition_entry_omitted_when_ids_missing():
 def test_jp_clins_composition_custodian_emitted():
     """Chain #9 follow-up (#267): `Composition.custodian` min=1.
 
-    #330 session 61:eDS profile の custodian targetProfile は
-    JP_Organization_eCS 準拠を要求。hospital-main-ecs へ pin。
+    #330 session 61: eDS profile の custodian targetProfile は
+    JP_Organization_eCS 準拠を要求。Issue #746 で `hospital-main` 自身が
+    JP_Organization + JP_Organization_eCS を両宣言するよう unify したため、
+    参照先は hospital-main (以前は workaround の hospital-main-ecs)。
     """
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
-    assert comp["custodian"]["reference"] == "Organization/hospital-main-ecs"
+    assert comp["custodian"]["reference"] == "Organization/hospital-main"
 
 
 @pytest.mark.unit
@@ -391,8 +393,11 @@ def test_jp_clins_composition_event_period_populated():
 def test_jp_clins_composition_author_has_organization():
     """Chain #9: `Composition.author` min=2 — practitioner + facility organization.
 
-    #330 session 61:eDS profile の author targetProfile は
-    JP_Organization_eCS 準拠を要求。Organization ref は hospital-main-ecs へ pin。
+    #330 session 61: eDS profile の author targetProfile は
+    JP_Organization_eCS 準拠を要求。Issue #746 で `hospital-main` 自身が
+    両 profile を宣言するよう unify したため、参照先は hospital-main。
+    Slice discriminator `resolve()` は resolved resource の meta.profile
+    に eCS が含まれれば pass。
     """
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
@@ -402,9 +407,9 @@ def test_jp_clins_composition_author_has_organization():
     assert len(authors) >= 2
     refs = [a.get("reference", "") for a in authors]
     assert any(r.startswith("Practitioner/") for r in refs)
-    # #330: Organization ref must be eCS variant, not hospital-main
-    assert "Organization/hospital-main-ecs" in refs
-    assert "Organization/hospital-main" not in refs
+    # Issue #746: Organization ref is now the unified hospital-main
+    assert "Organization/hospital-main" in refs
+    assert "Organization/hospital-main-ecs" not in refs
 
 
 @pytest.mark.unit
