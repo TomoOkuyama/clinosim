@@ -47,8 +47,14 @@ from clinosim.modules.staff.engine import (
 from clinosim.simulator._stay_thresholds import (
     ELECTIVE_SURGERY_ADMISSION_HOUR_WEIGHTS,
     ELECTIVE_SURGERY_ADMISSION_HOURS,
+    EMERGENCY_ADMISSION_HOUR_MAX_EXCLUSIVE,
     EMERGENCY_ADMISSION_SEVERITY_THRESHOLD,
+    INPATIENT_WARD_CAPACITY_DEFAULT,
     MIXED_CASE_MISSED_SECONDARY_DX_PROB,
+    PLANNED_DISCHARGE_HOUR_MAX,
+    PLANNED_DISCHARGE_HOUR_MEAN,
+    PLANNED_DISCHARGE_HOUR_MIN,
+    PLANNED_DISCHARGE_HOUR_STD,
     READMISSION_INFLAMMATION_FLOOR,
     READMISSION_RENAL_CEILING,
     TRANSFUSION_ANEMIA_LIFT,
@@ -219,7 +225,7 @@ def _simulate_patient(
         adm_hour = int(rng.choice(ELECTIVE_SURGERY_ADMISSION_HOURS, p=ELECTIVE_SURGERY_ADMISSION_HOUR_WEIGHTS))
     elif event.severity > EMERGENCY_ADMISSION_SEVERITY_THRESHOLD:
         # Emergency: any hour, peak in evening (ED presentation)
-        adm_hour = int(rng.choice(24))
+        adm_hour = int(rng.choice(EMERGENCY_ADMISSION_HOUR_MAX_EXCLUSIVE))
     else:
         # Urgent: daytime bias
         adm_hour = int(rng.normal(URGENT_ADMISSION_HOUR_MEAN, URGENT_ADMISSION_HOUR_STD))
@@ -258,7 +264,7 @@ def _simulate_patient(
     # Ward assignment from hospital config
     encounter.ward_id = pick_ward(department, hospital_ops, rng)
     # Bed number from hospital ward_capacity (valid range for this ward)
-    ward_cap = (hospital_ops or {}).get("ward_capacity", {}).get(encounter.ward_id, 10)
+    ward_cap = (hospital_ops or {}).get("ward_capacity", {}).get(encounter.ward_id, INPATIENT_WARD_CAPACITY_DEFAULT)
     bed_idx = int(rng.integers(1, ward_cap + 1))
     encounter.bed_number = f"{encounter.ward_id}-{bed_idx:02d}"
 
@@ -528,8 +534,8 @@ def _simulate_patient(
 
     # Discharge time: daytime (09-16) for planned discharge, any time for death
     # Clinical convention: discharges happen during daytime business hours
-    dc_hour = 0 if death_occurred else int(rng.normal(11, 1.5))
-    dc_hour = max(9, min(16, dc_hour)) if not death_occurred else 0
+    dc_hour = 0 if death_occurred else int(rng.normal(PLANNED_DISCHARGE_HOUR_MEAN, PLANNED_DISCHARGE_HOUR_STD))
+    dc_hour = max(PLANNED_DISCHARGE_HOUR_MIN, min(PLANNED_DISCHARGE_HOUR_MAX, dc_hour)) if not death_occurred else 0
     planned_discharge = _planned_discharge_datetime(admission_time, actual_los, dc_hour)
 
     # Snapshot truncation: if planned discharge is after snapshot date,
