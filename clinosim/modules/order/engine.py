@@ -61,6 +61,18 @@ from clinosim.modules.order._lab_result_timing import (
     WEEKEND_NON_URGENT_ADDITIONAL_MULTIPLIER,
     WEEKEND_STAFFING_MULTIPLIER,
 )
+from clinosim.modules.order._order_placement_timing import (
+    ADMISSION_IMAGING_PLACEMENT_MEAN_MIN,
+    ADMISSION_IMAGING_PLACEMENT_STD_MIN,
+    ADMISSION_LAB_PLACEMENT_MEAN_MIN,
+    ADMISSION_LAB_PLACEMENT_STD_MIN,
+    ADMISSION_MED_PLACEMENT_MEAN_MIN,
+    ADMISSION_MED_PLACEMENT_STD_MIN,
+    ADMISSION_SUPPORTIVE_PLACEMENT_MEAN_MIN,
+    ADMISSION_SUPPORTIVE_PLACEMENT_STD_MIN,
+    DAILY_IMAGING_PLACEMENT_MEAN_MIN,
+    DAILY_IMAGING_PLACEMENT_STD_MIN,
+)
 from clinosim.modules.order._state_delay_thresholds import (
     NONRESULT_ORDER_TRIVIAL_OFFSET_MIN,
     STATE_DELAY_FLOOR_MIN,
@@ -158,7 +170,10 @@ def place_imaging_orders(
             raise ValueError(f"body_sites.yaml[{body_site_key}].procedure_codes['{code_key}'] not found")
 
         sequence_counter["I"] = sequence_counter.get("I", 0) + 1
-        ordered_dt = admission_dt + timedelta(days=day_index, minutes=int(rng.normal(15, 5)))
+        ordered_dt = admission_dt + timedelta(
+            days=day_index,
+            minutes=int(rng.normal(DAILY_IMAGING_PLACEMENT_MEAN_MIN, DAILY_IMAGING_PLACEMENT_STD_MIN)),
+        )
         order = Order(
             order_id=f"ORD-{encounter_id}-I{sequence_counter['I']:02d}",
             encounter_id=encounter_id,
@@ -346,7 +361,9 @@ def place_admission_orders(
     order_seq = 0
     for panel_name in sorted(panel_groups.keys()):
         members = panel_groups[panel_name]
-        panel_time = admission_time + timedelta(minutes=int(rng.normal(5, 3)))
+        panel_time = admission_time + timedelta(
+            minutes=int(rng.normal(ADMISSION_LAB_PLACEMENT_MEAN_MIN, ADMISSION_LAB_PLACEMENT_STD_MIN))
+        )
         for lab_spec in members:
             orders.append(
                 _build_lab_order(
@@ -370,7 +387,8 @@ def place_admission_orders(
                 encounter_id=encounter_id,
                 patient_id=patient_id,
                 lab_spec=lab_spec,
-                ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(5, 3))),
+                ordered_datetime=admission_time
+                + timedelta(minutes=int(rng.normal(ADMISSION_LAB_PLACEMENT_MEAN_MIN, ADMISSION_LAB_PLACEMENT_STD_MIN))),
                 ordered_by=ordered_by,
                 panel_key="",
                 clinical_intent=f"Admission workup: {lab_spec['test']}",
@@ -398,7 +416,8 @@ def place_admission_orders(
             display_name=drug_name,
             urgency="stat",
             clinical_intent=f"First-line treatment: {drug_name}",
-            ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(30, 10))),
+            ordered_datetime=admission_time
+            + timedelta(minutes=int(rng.normal(ADMISSION_MED_PLACEMENT_MEAN_MIN, ADMISSION_MED_PLACEMENT_STD_MIN))),
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,
             dose_quantity=parsed.get("dose_quantity"),
@@ -435,7 +454,10 @@ def place_admission_orders(
             display_name=f"{sup['type']}: {detail_raw}",
             urgency="routine",
             clinical_intent=f"Supportive: {sup['type']}",
-            ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(45, 15))),
+            ordered_datetime=admission_time
+            + timedelta(
+                minutes=int(rng.normal(ADMISSION_SUPPORTIVE_PLACEMENT_MEAN_MIN, ADMISSION_SUPPORTIVE_PLACEMENT_STD_MIN))
+            ),
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,
         )
@@ -456,7 +478,10 @@ def place_admission_orders(
             display_name=img_spec.get("test", "Imaging"),
             urgency=img_spec.get("urgency", "stat"),
             clinical_intent=f"Admission imaging: {img_spec.get('test', '')}",
-            ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(20, 8))),
+            ordered_datetime=admission_time
+            + timedelta(
+                minutes=int(rng.normal(ADMISSION_IMAGING_PLACEMENT_MEAN_MIN, ADMISSION_IMAGING_PLACEMENT_STD_MIN))
+            ),
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,
         )
