@@ -40,8 +40,8 @@ def _is_sepsis_encounter(rec: dict) -> bool:
     return code.startswith("A41") or code == "R65.20" or code == "R65.21"
 
 
-def _first_window_lactate(rec: dict, hours: int = 6) -> float | None:
-    """入院後 `hours` 時間以内の Lactate 最大値。無ければ None。"""
+def _first_window_lactate(rec: dict) -> float | None:
+    """Lactate 最大値。無ければ None。"""
     labs = rec.get("lab_results", []) or []
     # lab_name の内部 key はテストごとに snomed/loinc の場合あり — internal key で判定
     lactate_values = [
