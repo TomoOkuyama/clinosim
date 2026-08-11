@@ -65,6 +65,8 @@ Full reference: [Evaluation](../eval.md).
 
 ## Next steps
 
+- **Read a physiology-driven lab value in the output** — [Your first cohort — reading the FHIR output](first-cohort.md)
+- **Full CLI reference and env vars** — [Configuration](configuration.md)
 - **Understand the model** — [Concepts / Data generation walkthrough](../design-guides/data-generation-walkthrough.md)
 - **Extend a disease YAML** — [Adding a module](../CONTRIBUTING-modules.md)
 - **Verify reproducibility on your machine** — [Reproducibility](../development/reproducibility.md)

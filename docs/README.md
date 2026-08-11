@@ -13,6 +13,10 @@ Start here if you're evaluating or using clinosim:
 
 - **[getting-started/](getting-started/)** — installation, first cohort
   generation, and the 30-second smoke test.
+- **[getting-started/configuration.md](getting-started/configuration.md)** —
+  full CLI-flag and environment-variable reference.
+- **[getting-started/first-cohort.md](getting-started/first-cohort.md)** —
+  reading the FHIR output, a physiology-driven PT-INR walkthrough.
 - **[index.md](index.md)** — top-level project overview (mirrors the
   landing page of the docs site).
 - **[eval.md](eval.md)** — the `clinosim eval` framework: what it scores

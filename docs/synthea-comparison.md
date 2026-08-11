@@ -2,19 +2,37 @@
 
 [Synthea](https://synthetichealth.github.io/synthea/) (MITRE's state-
 transition synthetic health record generator) and clinosim tackle the
-same problem from different angles — see the top-level
-[README comparison table](https://github.com/TomoOkuyama/clinosim#how-clinosim-compares-to-synthea)
-for the design difference summary.
-
-This page shows how to score them on the **same** evaluation axes so
-you can compare the two side by side quantitatively. clinosim ships an
-adapter that fans Synthea's per-patient Bundle output into the
-per-`ResourceType` NDJSON layout `clinosim eval` expects.
+same problem from different angles. This page starts with the design
+differences ([Feature comparison](#feature-comparison), [When to use
+which](#when-to-use-which)) and then shows how to score both tools on
+the **same** evaluation axes so you can compare them side by side
+quantitatively. clinosim ships an adapter that fans Synthea's
+per-patient Bundle output into the per-`ResourceType` NDJSON layout
+`clinosim eval` expects.
 
 !!! note "Synthea is an optional dependency"
     Nothing in clinosim imports or depends on Synthea at runtime. Java
     (11+) is only needed while you generate a Synthea cohort. Once the
     output exists on disk, everything below is pure Python.
+
+## Feature comparison
+
+| Dimension | clinosim | Synthea |
+|---|---|---|
+| Modeling approach | Physiology-driven forward simulation (13-var hidden state per patient) | State-transition modules per condition |
+| Coherence between labs / vitals | Guaranteed by shared physiological state | Independent per module |
+| Native FHIR R4 output | Bulk Data Access NDJSON, one file per ResourceType | FHIR R4 JSON per patient |
+| JP Core profile compliance | 16 resource types | Not a design goal |
+| Multi-locale (US + JP) | Both first-class; JP names, addresses, insurance, JLAC10, MHLW YJ | US-first; internationalization via community modules |
+| Determinism guarantee | Byte-identical output within a MINOR release for the same seed | Deterministic per-run seed |
+| Extension model | YAML-driven (edit a file, no code) | Java module (`.json` state machines + code) |
+| Runtime | Python 3.11+ | Java 11+ |
+| License | MIT | Apache 2.0 |
+
+## When to use which
+
+- **clinosim** — you need clinically coherent labs / vitals, JP output, or want to iterate on disease definitions without touching Java code.
+- **Synthea** — you need a broad US population with well-established disease modules and a mature downstream tooling ecosystem.
 
 ## 1 — Generate a Synthea cohort
 
