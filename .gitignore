@@ -93,3 +93,9 @@ TODO.md
 # a fresh runner directory; contributors keep the artifact locally without
 # committing it. Sibling to the existing session-local ignore convention.
 site/
+
+# Baseline cohorts generated for local data-quality / clinical-coherence
+# analysis. Deterministic per (country, population, seed, dates), so any
+# session can regenerate — no need to version, and dropping 500-patient
+# JP + US cohorts here would be tens of MB per commit.
+/baseline/

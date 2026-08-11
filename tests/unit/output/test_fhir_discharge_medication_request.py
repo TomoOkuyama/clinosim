@@ -133,8 +133,8 @@ def test_open_ended_or_unusable_duration_yields_no_element(raw: object) -> None:
 
 
 @pytest.mark.parametrize(("raw", "expected"), [(7, 7), (30, 30), ("28", 28), (365.0, 365)])
-def test_positive_duration_is_emitted_with_spec_fixed_values(raw: object, expected: int) -> None:
-    r = _build({**_DISCHARGE_ITEM, "duration_days": raw})
+def test_positive_duration_jp_is_emitted_with_spec_fixed_values(raw: object, expected: int) -> None:
+    r = _build({**_DISCHARGE_ITEM, "duration_days": raw}, country="JP")
     assert r["dispenseRequest"]["expectedSupplyDuration"] == {
         "value": expected,
         "unit": "日",
@@ -143,12 +143,26 @@ def test_positive_duration_is_emitted_with_spec_fixed_values(raw: object, expect
     }
 
 
-def test_supply_duration_unit_is_the_japanese_character_not_the_ucum_token() -> None:
+def test_supply_duration_unit_jp_is_the_japanese_character_not_the_ucum_token() -> None:
     """Regression pin: `unit` is `日` (fixedString in JP Core AND eCS), `code` is `d`."""
-    esd = _build(_DISCHARGE_ITEM)["dispenseRequest"]["expectedSupplyDuration"]
+    esd = _build(_DISCHARGE_ITEM, country="JP")["dispenseRequest"]["expectedSupplyDuration"]
     assert esd["unit"] == "日"
     assert esd["code"] == "d"
     assert esd["unit"] != esd["code"]
+
+
+def test_supply_duration_unit_us_matches_ucum_code_no_japanese_leakage() -> None:
+    """Issue #730: US MedicationRequests must not carry the JP fixedString `"日"` in `unit`.
+
+    JP profiles pin `unit == "日"` as a fixedString, but that constraint applies only
+    to JP-declared MedicationRequests; a US resource has no such binding, and emitting
+    the Japanese character in an English cohort leaks locale-inappropriate text
+    (5271/5603 = 94% of US baseline MedicationRequests exhibited this pre-fix).
+    """
+    esd = _build(_DISCHARGE_ITEM, country="US")["dispenseRequest"]["expectedSupplyDuration"]
+    assert esd["unit"] == "d", "US locale must emit UCUM Latin display, not the JP fixed value"
+    assert esd["unit"] == esd["code"], "US .unit mirrors .code so downstream consumers get consistent text"
+    assert "日" not in esd["unit"], "no CJK leakage into US output"
 
 
 def test_no_refill_count_is_invented() -> None:
