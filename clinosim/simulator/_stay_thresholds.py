@@ -41,11 +41,19 @@ __all__ = [
     # Admission-hour distributions
     "ELECTIVE_SURGERY_ADMISSION_HOURS",
     "ELECTIVE_SURGERY_ADMISSION_HOUR_WEIGHTS",
+    "EMERGENCY_ADMISSION_HOUR_MAX_EXCLUSIVE",
     "EMERGENCY_ADMISSION_SEVERITY_THRESHOLD",
     "URGENT_ADMISSION_HOUR_MEAN",
     "URGENT_ADMISSION_HOUR_STD",
     "URGENT_ADMISSION_HOUR_MIN",
     "URGENT_ADMISSION_HOUR_MAX",
+    # Ward capacity default
+    "INPATIENT_WARD_CAPACITY_DEFAULT",
+    # Discharge-hour distribution
+    "PLANNED_DISCHARGE_HOUR_MAX",
+    "PLANNED_DISCHARGE_HOUR_MEAN",
+    "PLANNED_DISCHARGE_HOUR_MIN",
+    "PLANNED_DISCHARGE_HOUR_STD",
     # Readmission state carry-over
     "READMISSION_INFLAMMATION_FLOOR",
     "READMISSION_RENAL_CEILING",
@@ -162,3 +170,50 @@ on the primary presentation and under-diagnose comorbid acute issues
 (the ~30 % missed-diagnosis rate is consistent with published
 inpatient diagnostic-accuracy audits for secondary conditions).
 Empirical tuning for the synthetic simulator."""
+
+
+# ---------------------------------------------------------------------------
+# Emergency-admission uniform hour draw
+# ---------------------------------------------------------------------------
+
+EMERGENCY_ADMISSION_HOUR_MAX_EXCLUSIVE: int = 24
+"""Exclusive upper bound of the emergency-admission hour draw
+(``rng.choice(24)`` = uniform 0-23). Represents "any hour of day" —
+emergency admissions can occur around the clock. Named explicitly so
+the intent ("all 24 hours are eligible") is readable at the call
+site."""
+
+
+# ---------------------------------------------------------------------------
+# Ward capacity default
+# ---------------------------------------------------------------------------
+
+INPATIENT_WARD_CAPACITY_DEFAULT: int = 10
+"""Fallback ward capacity used only for bed-number generation when
+``hospital_ops.ward_capacity`` does not list the assigned ward. Does
+not affect the actual bed allocation, only the printed bed number's
+digit range. Matches the same fallback used in
+:mod:`clinosim.simulator._unknown_condition_thresholds`."""
+
+
+# ---------------------------------------------------------------------------
+# Planned-discharge hour distribution (daytime business hours)
+# ---------------------------------------------------------------------------
+
+PLANNED_DISCHARGE_HOUR_MEAN: float = 11.0
+"""Mean hour of the planned-discharge draw (``rng.normal``). 11 AM
+matches typical post-morning-rounds discharge planning — orders
+finalized, family notified, transportation arranged."""
+
+PLANNED_DISCHARGE_HOUR_STD: float = 1.5
+"""Standard deviation of the planned-discharge hour draw. 1.5 hours
+keeps most discharges within ±2 hours of the 11 AM mean."""
+
+PLANNED_DISCHARGE_HOUR_MIN: int = 9
+"""Inclusive lower clamp for the planned-discharge hour. Discharges
+before 9 AM are clinically atypical (rounds haven't finished)."""
+
+PLANNED_DISCHARGE_HOUR_MAX: int = 16
+"""Inclusive upper clamp for the planned-discharge hour. Discharges
+after 4 PM shift into evening / next-day territory that this
+day-shift pattern does not model."""
