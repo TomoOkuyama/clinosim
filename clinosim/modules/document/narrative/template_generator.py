@@ -37,6 +37,22 @@ from clinosim.codes import system_key_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.disease.localization import target_los_config
+from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
+    NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE,
+    NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE,
+    NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE,
+    NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD,
+    NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD,
+    NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD,
+    NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD,
+    NARRATIVE_HBA1C_BORDERLINE_THRESHOLD,
+    NARRATIVE_HBA1C_DIABETES_THRESHOLD,
+    NARRATIVE_LDL_BORDERLINE_THRESHOLD,
+    NARRATIVE_LDL_ELEVATED_THRESHOLD,
+    NARRATIVE_LDL_HIGH_THRESHOLD,
+    NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT,
+    NUTRITION_PROTEIN_G_PER_KG_MIDPOINT,
+)
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
@@ -1340,40 +1356,40 @@ class TemplateNarrativeGenerator:
         def _judge_bmi(v: float | None) -> tuple[str, str]:
             if v is None:
                 return ("未測定", "A")
-            if v < 18.5:
+            if v < NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE:
                 return (f"{v:.1f}(低体重)", "B")
-            if v < 25.0:
+            if v < NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE:
                 return (f"{v:.1f}(標準)", "A")
-            if v < 30.0:
+            if v < NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE:
                 return (f"{v:.1f}(肥満 1 度)", "B")
             return (f"{v:.1f}(肥満 2 度以上)", "C")
 
         def _judge_bp(sys_v: float | None, dia_v: float | None) -> tuple[str, str]:
             if sys_v is None or dia_v is None:
                 return ("未測定", "A")
-            if sys_v >= 140 or dia_v >= 90:
+            if sys_v >= NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD or dia_v >= NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD:
                 return (f"{sys_v:.0f}/{dia_v:.0f} mmHg(高血圧)", "D")
-            if sys_v >= 130 or dia_v >= 85:
+            if sys_v >= NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD or dia_v >= NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD:
                 return (f"{sys_v:.0f}/{dia_v:.0f} mmHg(高値注意)", "B")
             return (f"{sys_v:.0f}/{dia_v:.0f} mmHg(基準内)", "A")
 
         def _judge_hba1c(v: float | None) -> tuple[str, str]:
             if v is None:
                 return ("未測定", "A")
-            if v >= 6.5:
+            if v >= NARRATIVE_HBA1C_DIABETES_THRESHOLD:
                 return (f"{v:.1f}%(糖尿病型)", "D")
-            if v >= 5.6:
+            if v >= NARRATIVE_HBA1C_BORDERLINE_THRESHOLD:
                 return (f"{v:.1f}%(境界)", "B")
             return (f"{v:.1f}%(基準内)", "A")
 
         def _judge_ldl(v: float | None) -> tuple[str, str]:
             if v is None:
                 return ("未測定", "A")
-            if v >= 160:
+            if v >= NARRATIVE_LDL_HIGH_THRESHOLD:
                 return (f"{v:.0f} mg/dL(高 LDL 血症)", "D")
-            if v >= 140:
+            if v >= NARRATIVE_LDL_BORDERLINE_THRESHOLD:
                 return (f"{v:.0f} mg/dL(境界域)", "C")
-            if v >= 120:
+            if v >= NARRATIVE_LDL_ELEVATED_THRESHOLD:
                 return (f"{v:.0f} mg/dL(高値注意)", "B")
             return (f"{v:.0f} mg/dL(基準内)", "A")
 
@@ -2028,9 +2044,9 @@ class TemplateNarrativeGenerator:
             return fallback, facts
         facts.append("patient.bmi")
         bmi_r = round(float(bmi), 1)
-        if bmi_r < 18.5:
+        if bmi_r < NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE:
             return (f"低栄養リスク：高（BMI {bmi_r}）" if is_ja else f"Malnutrition risk: high (BMI {bmi_r})"), facts
-        if bmi_r > 25:
+        if bmi_r > NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE:
             return (f"過栄養傾向（BMI {bmi_r}）" if is_ja else f"Overnutrition tendency (BMI {bmi_r})"), facts
         return (
             f"低栄養リスク：低（BMI {bmi_r}、リスクなし）"
@@ -2060,8 +2076,8 @@ class TemplateNarrativeGenerator:
             fallback = "栄養補給量：算出データなし" if is_ja else "Nutrition supply: no data to compute"
             return fallback, facts
         facts.append("patient.weight_kg")
-        energy = round(float(weight) * 27.5)
-        protein = round(float(weight) * 1.1, 1)
+        energy = round(float(weight) * NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT)
+        protein = round(float(weight) * NUTRITION_PROTEIN_G_PER_KG_MIDPOINT, 1)
         if is_ja:
             return (f"エネルギー：{energy}kcal／日　たんぱく質：{protein}g／日　補給方法：経口"), facts
         return (f"Energy: {energy} kcal/day, Protein: {protein} g/day, Route: oral"), facts
