@@ -508,6 +508,14 @@ def _build_patient(p: dict, country: str) -> dict:
                 ]
             resource["contact"] = [ec]
 
+    # Issue #743: JP_Patient_eCS declares `JP_eCS_InstitutionNumber` as
+    # must-support (the Department extension context excludes Patient).
+    # Attach here (inline) because Patient's eCS profile URL is set
+    # directly on this builder, not via `_apply_jp_clins_profile` post-hook.
+    from clinosim.modules.output.fhir_r4.lib.common import attach_ecs_institutional_extensions
+
+    attach_ecs_institutional_extensions(resource, country, include_department=False)
+
     return resource
 
 
