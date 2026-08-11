@@ -357,8 +357,13 @@ def test_clinical_lab_outside_window_does_not_count(tmp_path: Path) -> None:
 
 @pytest.mark.unit
 def test_clinical_warfarin_subtherapeutic_inr_is_flagged(tmp_path: Path) -> None:
-    """Warfarin MedicationRequest exists; PT-INR reading on same day is
-    1.0 (subtherapeutic) → violation."""
+    """Warfarin MedicationRequest exists; PT-INR reading past the induction
+    window is 1.0 (subtherapeutic) → violation.
+
+    Issue #737: readings inside the 5-day induction window are excluded
+    from the axis; the reading here is on day 10 of therapy so the
+    subtherapeutic value is a maintenance-phase failure, not induction.
+    """
     _write_ndjson(
         tmp_path,
         "Patient",
@@ -389,7 +394,7 @@ def test_clinical_warfarin_subtherapeutic_inr_is_flagged(tmp_path: Path) -> None
                 "resourceType": "Observation",
                 "id": "o1",
                 "subject": {"reference": "Patient/p1"},
-                "effectiveDateTime": "2026-05-02T09:00:00Z",  # day after warfarin start
+                "effectiveDateTime": "2026-05-11T09:00:00Z",  # day 10 — past induction
                 "code": {"coding": [{"system": "http://loinc.org", "code": "6301-6"}]},
                 "valueQuantity": {"value": 1.0},
             },
@@ -405,8 +410,65 @@ def test_clinical_warfarin_subtherapeutic_inr_is_flagged(tmp_path: Path) -> None
 
 
 @pytest.mark.unit
+def test_clinical_warfarin_induction_period_reading_is_excluded(tmp_path: Path) -> None:
+    """Issue #737: a subtherapeutic INR taken within 5 days of warfarin
+    start is clinically correct (induction period) and MUST be excluded
+    from the eligible count — not counted as a violation.
+
+    Setup: one warfarin patient, one PT-INR reading on day 3 with value
+    1.4 (clearly subtherapeutic, but clinically appropriate for
+    induction). Expected: outcome NA (no eligible readings after
+    induction filter), NOT FAIL.
+    """
+    _write_ndjson(
+        tmp_path,
+        "Patient",
+        [{"resourceType": "Patient", "id": "p1", "identifier": [{"value": "x"}]}],
+    )
+    _write_ndjson(
+        tmp_path,
+        "MedicationRequest",
+        [
+            {
+                "resourceType": "MedicationRequest",
+                "id": "mr1",
+                "subject": {"reference": "Patient/p1"},
+                "authoredOn": "2026-05-01",
+                "medicationCodeableConcept": {
+                    "coding": [{"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289"}]
+                },
+            }
+        ],
+    )
+    _write_ndjson(
+        tmp_path,
+        "Observation",
+        [
+            {
+                "resourceType": "Observation",
+                "id": "o1",
+                "subject": {"reference": "Patient/p1"},
+                "effectiveDateTime": "2026-05-04T09:00:00Z",  # day 3 — inside induction
+                "code": {"coding": [{"system": "http://loinc.org", "code": "6301-6"}]},
+                "valueQuantity": {"value": 1.4},
+            }
+        ],
+    )
+    from clinosim.audit.types import Cohort
+    from clinosim.eval.axes import clinical
+
+    checks = clinical.run(Cohort.open(tmp_path), "")
+    warf = next(c for c in checks if c.name == "medication_lab_coherence_warfarin")
+    assert warf.outcome is Outcome.NA, "induction-period readings must be excluded, leaving zero eligible"
+
+
+@pytest.mark.unit
 def test_clinical_warfarin_therapeutic_inr_passes(tmp_path: Path) -> None:
-    """Warfarin MedicationRequest + PT-INR 2.7 (in-band) → PASS."""
+    """Warfarin MedicationRequest + PT-INR 2.7 (in-band) past induction → PASS.
+
+    Issue #737: reading is on day 8 (past the 5-day induction window),
+    so it counts toward the eligible / non-violation total.
+    """
     _write_ndjson(
         tmp_path,
         "Patient",
@@ -437,7 +499,7 @@ def test_clinical_warfarin_therapeutic_inr_passes(tmp_path: Path) -> None:
                 "resourceType": "Observation",
                 "id": "o1",
                 "subject": {"reference": "Patient/p1"},
-                "effectiveDateTime": "2026-05-05T09:00:00Z",
+                "effectiveDateTime": "2026-05-09T09:00:00Z",  # day 8 — past induction
                 "code": {"coding": [{"system": "http://loinc.org", "code": "6301-6"}]},
                 "valueQuantity": {"value": 2.7},
             },
