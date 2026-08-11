@@ -195,6 +195,21 @@ _WARFARIN_YJ_PREFIX = "3332001"
 _PT_INR_LOINC = "6301-6"
 _WARFARIN_THERAPEUTIC_BAND = (2.0, 3.5)
 
+# Issue #737: Warfarin induction period. INR climbs from baseline ~1.0 to
+# therapeutic range over 3-5 days as vitamin-K-dependent clotting factors
+# (II, VII, IX, X) are depleted. Real-world clinical practice measures INR
+# daily during induction but does not expect the therapeutic band until
+# loading is achieved. Skipping the induction window keeps this axis a
+# signal for **maintenance-phase** deviations only, matching how
+# clinicians reason about "warfarin monitoring coherence".
+#
+# 5 days is the conservative upper bound of typical loading — an
+# uncomplicated patient reaches therapeutic INR in 3-5 days; a slow
+# metaboliser can take 7-10 days but is still legitimately within
+# induction. Widening the window trades off against maintenance-phase
+# coverage — 5 days is a defensible middle ground.
+_WARFARIN_INDUCTION_DAYS = 5
+
 
 # Violation-rate thresholds for the aggregated coherence score.
 # See P1-9 plan: PASS ≤ 5%, WARN 5-25%, FAIL > 25%. Rates below the PASS
@@ -592,8 +607,18 @@ def _check_condition_lab_coherence(cohort: Cohort, country: str) -> EvalCheck:
 
 def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> EvalCheck:
     """Warfarin patients should sit in the 2.0-3.5 PT-INR therapeutic band.
-    PT-INR draws made on the same day or later than the earliest active
-    warfarin MedicationRequest are considered eligible."""
+
+    PT-INR draws made after warfarin loading (`_WARFARIN_INDUCTION_DAYS`
+    days past the earliest active warfarin MedicationRequest) are
+    considered eligible. Draws inside the induction window are excluded:
+    a subtherapeutic value on day 1-5 of warfarin is clinically correct
+    (INR climbs from baseline ~1.0 over 3-5 days as vitamin-K-dependent
+    clotting factors deplete) and would only inflate the false-positive
+    rate. Issue #737 (Baseline Analysis session 88g) documented this
+    over-strict axis behaviour on the JP baseline where 6/38 flagged
+    readings were all in the 1.2-1.6 range within 3 days of warfarin
+    start.
+    """
     # Find patients on warfarin. Match by RxNorm (US) or YJ prefix (JP).
     warfarin_start_by_patient: dict[str, date | None] = {}
     for row in _read(cohort, country, "MedicationRequest"):
@@ -639,6 +664,12 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
         start = warfarin_start_by_patient[pid]
         eff = _parse_date(row.get("effectiveDateTime", ""))
         if start and eff and eff < start:
+            continue
+        # Issue #737: exclude readings inside the induction window. This
+        # window is short enough (5 days) that a maintenance patient with
+        # a persistent adherence problem still contributes to the
+        # violation count via readings on day 6+.
+        if start and eff and (eff - start) < timedelta(days=_WARFARIN_INDUCTION_DAYS):
             continue
         vq = row.get("valueQuantity") or {}
         val = vq.get("value")
