@@ -11,13 +11,13 @@
       
       
       
-        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/reference/code-systems/">
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/getting-started/first-cohort/">
       
       
-        <link rel="prev" href="../datasets-full/">
+        <link rel="prev" href="../quick-start/">
       
       
-        <link rel="next" href="../hospital-configuration/">
+        <link rel="next" href="../configuration/">
       
       
         
@@ -28,7 +28,7 @@
     
     
       
-        <title>Code systems - clinosim</title>
+        <title>Your first cohort - clinosim</title>
       
     
     
@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#code-systems-authoritative-sources" class="md-skip">
+        <a href="#your-first-cohort-reading-the-fhir-output" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Code systems
+              Your first cohort
             
           </span>
         </div>
@@ -239,11 +239,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../getting-started/installation/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../installation/" class="md-tabs__link">
           
   
   
@@ -283,13 +285,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../cli/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../reference/cli/" class="md-tabs__link">
           
   
   
@@ -473,8 +473,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -492,21 +494,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -524,7 +527,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -542,7 +545,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/installation/" class="md-nav__link">
+      <a href="../installation/" class="md-nav__link">
         
   
   
@@ -570,7 +573,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/quick-start/" class="md-nav__link">
+      <a href="../quick-start/" class="md-nav__link">
         
   
   
@@ -595,10 +598,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../getting-started/first-cohort/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Your first cohort
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -614,6 +644,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#generate-the-jp-warfarin-cohort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate the JP warfarin cohort
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-to-look-in-the-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where to look in the output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -626,7 +720,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/configuration/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
@@ -654,7 +748,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/versioning/" class="md-nav__link">
+      <a href="../versioning/" class="md-nav__link">
         
   
   
@@ -929,10 +1023,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -968,22 +1060,21 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
             
   
   
@@ -1001,7 +1092,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1019,7 +1110,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../cli/" class="md-nav__link">
+      <a href="../../reference/cli/" class="md-nav__link">
         
   
   
@@ -1047,7 +1138,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../output-formats/" class="md-nav__link">
+      <a href="../../reference/output-formats/" class="md-nav__link">
         
   
   
@@ -1075,7 +1166,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../llm-integration/" class="md-nav__link">
+      <a href="../../reference/llm-integration/" class="md-nav__link">
         
   
   
@@ -1103,7 +1194,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../datasets/" class="md-nav__link">
+      <a href="../../reference/datasets/" class="md-nav__link">
         
   
   
@@ -1131,7 +1222,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../datasets-full/" class="md-nav__link">
+      <a href="../../reference/datasets-full/" class="md-nav__link">
         
   
   
@@ -1156,37 +1247,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Code systems
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../reference/code-systems/" class="md-nav__link">
         
   
   
@@ -1202,37 +1266,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#using-code-systems-fhir-observation-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Using Code Systems (FHIR Observation example)
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1245,7 +1278,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../hospital-configuration/" class="md-nav__link">
+      <a href="../../reference/hospital-configuration/" class="md-nav__link">
         
   
   
@@ -1273,7 +1306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../extension-guide/" class="md-nav__link">
+      <a href="../../reference/extension-guide/" class="md-nav__link">
         
   
   
@@ -1301,7 +1334,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../multi-country/" class="md-nav__link">
+      <a href="../../reference/multi-country/" class="md-nav__link">
         
   
   
@@ -1385,7 +1418,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../modules/" class="md-nav__link">
+      <a href="../../reference/modules/" class="md-nav__link">
         
   
   
@@ -1413,7 +1446,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../design/" class="md-nav__link">
+      <a href="../../reference/design/" class="md-nav__link">
         
   
   
@@ -1441,7 +1474,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../scenario-flags/" class="md-nav__link">
+      <a href="../../reference/scenario-flags/" class="md-nav__link">
         
   
   
@@ -2271,10 +2304,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#using-code-systems-fhir-observation-example" class="md-nav__link">
+  <a href="#generate-the-jp-warfarin-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Using Code Systems (FHIR Observation example)
+        Generate the JP warfarin cohort
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-to-look-in-the-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where to look in the output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next steps
       
     </span>
   </a>
@@ -2298,7 +2364,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/reference/code-systems.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/getting-started/first-cohort.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2306,139 +2372,85 @@
   
 
 
-<!-- Extracted from `README.md` (Issue #568 PR A2). Update the pointer in README when this file's heading changes. -->
-
-<h1 id="code-systems-authoritative-sources">Code Systems &amp; Authoritative Sources<a class="headerlink" href="#code-systems-authoritative-sources" title="Permanent link">&para;</a></h1>
-<p><code>clinosim/codes/</code> centralizes international standard code systems, all with English display (Japanese is optional).</p>
-<table>
-<thead>
-<tr>
-<th>Key</th>
-<th>Name</th>
-<th>Use</th>
-<th>Authoritative Source</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>icd-10-cm</code></td>
-<td>ICD-10-CM</td>
-<td>US diagnoses</td>
-<td><a href="https://www.cms.gov/medicare/coding-billing/icd-10-codes">CMS</a></td>
-</tr>
-<tr>
-<td><code>icd-10</code></td>
-<td>WHO ICD-10</td>
-<td>JP diagnoses</td>
-<td><a href="https://icd.who.int/browse10/">WHO</a></td>
-</tr>
-<tr>
-<td><code>loinc</code></td>
-<td>LOINC</td>
-<td>Lab tests, vitals, clinical document types</td>
-<td><a href="https://loinc.org/">Regenstrief</a></td>
-</tr>
-<tr>
-<td><code>snomed-ct</code></td>
-<td>SNOMED CT (subset)</td>
-<td>Procedure category, performer role, body site, outcome, complication</td>
-<td><a href="https://www.snomed.org/">SNOMED International</a></td>
-</tr>
-<tr>
-<td><code>jlac10</code></td>
-<td>JLAC10</td>
-<td>JP lab codes</td>
-<td><a href="https://www.jccls.org/">JCCLS</a></td>
-</tr>
-<tr>
-<td><code>rxnorm</code></td>
-<td>RxNorm</td>
-<td>US drugs</td>
-<td><a href="https://www.nlm.nih.gov/research/umls/rxnorm/">NLM</a></td>
-</tr>
-<tr>
-<td><code>yj</code></td>
-<td>YJ codes</td>
-<td>JP drugs</td>
-<td>MHLW Drug Price Standards</td>
-</tr>
-<tr>
-<td><code>cpt</code></td>
-<td>CPT</td>
-<td>US procedures</td>
-<td><a href="https://www.ama-assn.org/practice-management/cpt">AMA</a></td>
-</tr>
-<tr>
-<td><code>k-codes</code></td>
-<td>K codes</td>
-<td>JP reimbursement procedures</td>
-<td>MHLW Medical Fee Schedule</td>
-</tr>
-</tbody>
-</table>
-<p>Clinical document types use the following LOINC codes:</p>
-<table>
-<thead>
-<tr>
-<th>Document</th>
-<th>LOINC</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>History and physical note</td>
-<td><code>34117-2</code></td>
-<td>Generated at admission</td>
-</tr>
-<tr>
-<td>Progress note</td>
-<td><code>11506-3</code></td>
-<td>Reserved for future Tier C scope</td>
-</tr>
-<tr>
-<td>Discharge summary note</td>
-<td><code>18842-5</code></td>
-<td>Generated at discharge</td>
-</tr>
-<tr>
-<td>Death note</td>
-<td><code>69730-0</code></td>
-<td>Generated when <code>deceased=true</code></td>
-</tr>
-<tr>
-<td>Surgical operation note</td>
-<td><code>11504-8</code></td>
-<td>Generated per surgical procedure</td>
-</tr>
-<tr>
-<td>Procedure note</td>
-<td><code>28570-0</code></td>
-<td>Generated per invasive bedside procedure</td>
-</tr>
-</tbody>
-</table>
-<h3 id="using-code-systems-fhir-observation-example">Using Code Systems (FHIR Observation example)<a class="headerlink" href="#using-code-systems-fhir-observation-example" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">lookup</span><span class="p">,</span> <span class="n">get_system_uri</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># CIF data is code-only</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">crp_code</span> <span class="o">=</span> <span class="s2">&quot;1988-5&quot;</span>  <span class="c1"># LOINC</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Build FHIR Observation</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">obs</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="s2">&quot;resourceType&quot;</span><span class="p">:</span> <span class="s2">&quot;Observation&quot;</span><span class="p">,</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        <span class="s2">&quot;coding&quot;</span><span class="p">:</span> <span class="p">[{</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>            <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="n">get_system_uri</span><span class="p">(</span><span class="s2">&quot;loinc&quot;</span><span class="p">),</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>            <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="n">crp_code</span><span class="p">,</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>            <span class="s2">&quot;display&quot;</span><span class="p">:</span> <span class="n">lookup</span><span class="p">(</span><span class="s2">&quot;loinc&quot;</span><span class="p">,</span> <span class="n">crp_code</span><span class="p">,</span> <span class="s2">&quot;en&quot;</span><span class="p">),</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="p">}],</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="p">},</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="s2">&quot;valueQuantity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mf">38.2</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;mg/L&quot;</span><span class="p">},</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="p">}</span>
+<h1 id="your-first-cohort-reading-the-fhir-output">Your first cohort — reading the FHIR output<a class="headerlink" href="#your-first-cohort-reading-the-fhir-output" title="Permanent link">&para;</a></h1>
+<p>This walkthrough shows what one physiology-driven lab value looks like in clinosim's FHIR R4 output. It follows on from <a href="../quick-start/"><code>quick-start.md</code></a>.</p>
+<h2 id="generate-the-jp-warfarin-cohort">Generate the JP warfarin cohort<a class="headerlink" href="#generate-the-jp-warfarin-cohort" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">100</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>--output<span class="w"> </span>./out-jp<span class="w"> </span>--format<span class="w"> </span>fhir-r4
 </span></code></pre></div>
-<p>See <code>clinosim/codes/README.md</code> for details.</p>
-<hr />
+<p>Pick a patient on chronic warfarin for atrial fibrillation. Their <code>Observation.ndjson</code> will contain a PT-INR entry like:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;resourceType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Observation&quot;</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;lab-enc-jp-042-15-pt-inr&quot;</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&quot;meta&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;profile&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="s2">&quot;http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult&quot;</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="p">]},</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;final&quot;</span><span class="p">,</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;coding&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;system&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;urn:oid:1.2.392.200119.4.504&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2B160000002327101&quot;</span><span class="p">,</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="nt">&quot;display&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PT-INR&quot;</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;system&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://loinc.org&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;6301-6&quot;</span><span class="p">,</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">&quot;display&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;INR in Platelet poor plasma by Coagulation assay&quot;</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="p">]},</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="nt">&quot;subject&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;reference&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Patient/jp-042&quot;</span><span class="p">},</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="nt">&quot;effectiveDateTime&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-04-15T08:00:00+09:00&quot;</span><span class="p">,</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="nt">&quot;valueQuantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.7</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{INR}&quot;</span><span class="p">,</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="nt">&quot;system&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://unitsofmeasure.org&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{INR}&quot;</span><span class="p">},</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="nt">&quot;referenceRange&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="nt">&quot;low&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="p">},</span><span class="w"> </span><span class="nt">&quot;high&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.0</span><span class="p">},</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">    </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Warfarin therapeutic (AF stroke prevention)&quot;</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="p">}],</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="nt">&quot;interpretation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;coding&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="nt">&quot;system&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation&quot;</span><span class="p">,</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">    </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;N&quot;</span><span class="p">,</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">    </span><span class="nt">&quot;display&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Normal&quot;</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">  </span><span class="p">}]}]</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="why-this-matters">Why this matters<a class="headerlink" href="#why-this-matters" title="Permanent link">&para;</a></h2>
+<p>Notice: the INR value <code>2.7</code> was not sampled from a "PT-INR normal range". The physiology engine detected warfarin from the chronic-medication list, placed this patient in the 2.0 – 3.0 therapeutic band, and picked the reference range and interpretation to match.</p>
+<ul>
+<li>Change the seed → a different but still-therapeutic value.</li>
+<li>Remove the warfarin → a normal (~1.0) INR next run.</li>
+</ul>
+<p>That is what "clinical coherence by construction" means in practice.</p>
+<h2 id="where-to-look-in-the-output">Where to look in the output<a class="headerlink" href="#where-to-look-in-the-output" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contains</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Patient.ndjson</code></td>
+<td>Demographics, identifiers, insurance</td>
+</tr>
+<tr>
+<td><code>Encounter.ndjson</code></td>
+<td>Admissions, discharges, encounter periods</td>
+</tr>
+<tr>
+<td><code>Observation.ndjson</code></td>
+<td>Labs, vitals — including the PT-INR shown above</td>
+</tr>
+<tr>
+<td><code>MedicationRequest.ndjson</code></td>
+<td>Warfarin order that drove the INR band</td>
+</tr>
+<tr>
+<td><code>Condition.ndjson</code></td>
+<td>Atrial fibrillation as the reason for warfarin</td>
+</tr>
+</tbody>
+</table>
+<h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Full CLI reference: <a href="../configuration/"><code>configuration.md</code></a>.</li>
+<li>Architecture behind the physiology model: <a href="../../architecture/"><code>../architecture/README.md</code></a>.</li>
+<li>Public cohort scoring gate: <a href="../../eval/"><code>../eval.md</code></a>.</li>
+</ul>
 
 
 
@@ -2474,7 +2486,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../datasets-full/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Datasets (full)">
+          <a href="../quick-start/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quick start">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2484,20 +2496,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Datasets (full)
+                Quick start
               </div>
             </div>
           </a>
         
         
           
-          <a href="../hospital-configuration/" class="md-footer__link md-footer__link--next" aria-label="Next: Hospital configuration">
+          <a href="../configuration/" class="md-footer__link md-footer__link--next" aria-label="Next: Configuration">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Hospital configuration
+                Configuration
               </div>
             </div>
             <div class="md-footer__button md-icon">

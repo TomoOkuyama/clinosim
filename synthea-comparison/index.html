@@ -484,6 +484,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -574,6 +578,62 @@
     
   
     Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/first-cohort/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Your first cohort
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
   
 
     
@@ -1706,6 +1766,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#feature-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature comparison
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-which" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use which
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#1-generate-a-synthea-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2305,6 +2387,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#feature-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature comparison
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-which" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use which
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#1-generate-a-synthea-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2437,19 +2541,81 @@
 <h1 id="comparing-clinosim-and-synthea-with-clinosim-eval">Comparing clinosim and Synthea with <code>clinosim eval</code><a class="headerlink" href="#comparing-clinosim-and-synthea-with-clinosim-eval" title="Permanent link">&para;</a></h1>
 <p><a href="https://synthetichealth.github.io/synthea/">Synthea</a> (MITRE's state-
 transition synthetic health record generator) and clinosim tackle the
-same problem from different angles — see the top-level
-<a href="https://github.com/TomoOkuyama/clinosim#how-clinosim-compares-to-synthea">README comparison table</a>
-for the design difference summary.</p>
-<p>This page shows how to score them on the <strong>same</strong> evaluation axes so
-you can compare the two side by side quantitatively. clinosim ships an
-adapter that fans Synthea's per-patient Bundle output into the
-per-<code>ResourceType</code> NDJSON layout <code>clinosim eval</code> expects.</p>
+same problem from different angles. This page starts with the design
+differences (<a href="#feature-comparison">Feature comparison</a>, <a href="#when-to-use-which">When to use
+which</a>) and then shows how to score both tools on
+the <strong>same</strong> evaluation axes so you can compare them side by side
+quantitatively. clinosim ships an adapter that fans Synthea's
+per-patient Bundle output into the per-<code>ResourceType</code> NDJSON layout
+<code>clinosim eval</code> expects.</p>
 <div class="admonition note">
 <p class="admonition-title">Synthea is an optional dependency</p>
 <p>Nothing in clinosim imports or depends on Synthea at runtime. Java
 (11+) is only needed while you generate a Synthea cohort. Once the
 output exists on disk, everything below is pure Python.</p>
 </div>
+<h2 id="feature-comparison">Feature comparison<a class="headerlink" href="#feature-comparison" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>clinosim</th>
+<th>Synthea</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Modeling approach</td>
+<td>Physiology-driven forward simulation (13-var hidden state per patient)</td>
+<td>State-transition modules per condition</td>
+</tr>
+<tr>
+<td>Coherence between labs / vitals</td>
+<td>Guaranteed by shared physiological state</td>
+<td>Independent per module</td>
+</tr>
+<tr>
+<td>Native FHIR R4 output</td>
+<td>Bulk Data Access NDJSON, one file per ResourceType</td>
+<td>FHIR R4 JSON per patient</td>
+</tr>
+<tr>
+<td>JP Core profile compliance</td>
+<td>16 resource types</td>
+<td>Not a design goal</td>
+</tr>
+<tr>
+<td>Multi-locale (US + JP)</td>
+<td>Both first-class; JP names, addresses, insurance, JLAC10, MHLW YJ</td>
+<td>US-first; internationalization via community modules</td>
+</tr>
+<tr>
+<td>Determinism guarantee</td>
+<td>Byte-identical output within a MINOR release for the same seed</td>
+<td>Deterministic per-run seed</td>
+</tr>
+<tr>
+<td>Extension model</td>
+<td>YAML-driven (edit a file, no code)</td>
+<td>Java module (<code>.json</code> state machines + code)</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>Python 3.11+</td>
+<td>Java 11+</td>
+</tr>
+<tr>
+<td>License</td>
+<td>MIT</td>
+<td>Apache 2.0</td>
+</tr>
+</tbody>
+</table>
+<h2 id="when-to-use-which">When to use which<a class="headerlink" href="#when-to-use-which" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>clinosim</strong> — you need clinically coherent labs / vitals, JP output, or want to iterate on disease definitions without touching Java code.</li>
+<li><strong>Synthea</strong> — you need a broad US population with well-established disease modules and a mature downstream tooling ecosystem.</li>
+</ul>
 <h2 id="1-generate-a-synthea-cohort">1 — Generate a Synthea cohort<a class="headerlink" href="#1-generate-a-synthea-cohort" title="Permanent link">&para;</a></h2>
 <p>Synthea is Java-based. Two easy ways to run it:</p>
 <h3 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h3>

@@ -11,13 +11,13 @@
       
       
       
-        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/reference/code-systems/">
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/getting-started/configuration/">
       
       
-        <link rel="prev" href="../datasets-full/">
+        <link rel="prev" href="../first-cohort/">
       
       
-        <link rel="next" href="../hospital-configuration/">
+        <link rel="next" href="../versioning/">
       
       
         
@@ -28,7 +28,7 @@
     
     
       
-        <title>Code systems - clinosim</title>
+        <title>Configuration - clinosim</title>
       
     
     
@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#code-systems-authoritative-sources" class="md-skip">
+        <a href="#configuration" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Code systems
+              Configuration
             
           </span>
         </div>
@@ -239,11 +239,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../getting-started/installation/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../installation/" class="md-tabs__link">
           
   
   
@@ -283,13 +285,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../cli/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../reference/cli/" class="md-tabs__link">
           
   
   
@@ -473,8 +473,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -492,21 +494,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -524,7 +527,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -542,7 +545,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/installation/" class="md-nav__link">
+      <a href="../installation/" class="md-nav__link">
         
   
   
@@ -570,7 +573,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/quick-start/" class="md-nav__link">
+      <a href="../quick-start/" class="md-nav__link">
         
   
   
@@ -598,7 +601,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/first-cohort/" class="md-nav__link">
+      <a href="../first-cohort/" class="md-nav__link">
         
   
   
@@ -623,10 +626,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../getting-started/configuration/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -642,6 +672,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#key-cli-flags-clinosim-simulate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key CLI flags (clinosim simulate)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#named-preset-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Named-preset datasets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hospital-config-override" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hospital-config override
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -654,7 +748,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/versioning/" class="md-nav__link">
+      <a href="../versioning/" class="md-nav__link">
         
   
   
@@ -929,10 +1023,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -968,22 +1060,21 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
             
   
   
@@ -1001,7 +1092,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1019,7 +1110,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../cli/" class="md-nav__link">
+      <a href="../../reference/cli/" class="md-nav__link">
         
   
   
@@ -1047,7 +1138,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../output-formats/" class="md-nav__link">
+      <a href="../../reference/output-formats/" class="md-nav__link">
         
   
   
@@ -1075,7 +1166,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../llm-integration/" class="md-nav__link">
+      <a href="../../reference/llm-integration/" class="md-nav__link">
         
   
   
@@ -1103,7 +1194,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../datasets/" class="md-nav__link">
+      <a href="../../reference/datasets/" class="md-nav__link">
         
   
   
@@ -1131,7 +1222,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../datasets-full/" class="md-nav__link">
+      <a href="../../reference/datasets-full/" class="md-nav__link">
         
   
   
@@ -1156,37 +1247,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Code systems
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../reference/code-systems/" class="md-nav__link">
         
   
   
@@ -1202,37 +1266,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#using-code-systems-fhir-observation-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Using Code Systems (FHIR Observation example)
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1245,7 +1278,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../hospital-configuration/" class="md-nav__link">
+      <a href="../../reference/hospital-configuration/" class="md-nav__link">
         
   
   
@@ -1273,7 +1306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../extension-guide/" class="md-nav__link">
+      <a href="../../reference/extension-guide/" class="md-nav__link">
         
   
   
@@ -1301,7 +1334,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../multi-country/" class="md-nav__link">
+      <a href="../../reference/multi-country/" class="md-nav__link">
         
   
   
@@ -1385,7 +1418,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../modules/" class="md-nav__link">
+      <a href="../../reference/modules/" class="md-nav__link">
         
   
   
@@ -1413,7 +1446,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../design/" class="md-nav__link">
+      <a href="../../reference/design/" class="md-nav__link">
         
   
   
@@ -1441,7 +1474,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../scenario-flags/" class="md-nav__link">
+      <a href="../../reference/scenario-flags/" class="md-nav__link">
         
   
   
@@ -2271,10 +2304,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#using-code-systems-fhir-observation-example" class="md-nav__link">
+  <a href="#key-cli-flags-clinosim-simulate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Using Code Systems (FHIR Observation example)
+        Key CLI flags (clinosim simulate)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#named-preset-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Named-preset datasets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hospital-config-override" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hospital-config override
       
     </span>
   </a>
@@ -2298,7 +2364,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/reference/code-systems.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/getting-started/configuration.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2306,139 +2372,84 @@
   
 
 
-<!-- Extracted from `README.md` (Issue #568 PR A2). Update the pointer in README when this file's heading changes. -->
-
-<h1 id="code-systems-authoritative-sources">Code Systems &amp; Authoritative Sources<a class="headerlink" href="#code-systems-authoritative-sources" title="Permanent link">&para;</a></h1>
-<p><code>clinosim/codes/</code> centralizes international standard code systems, all with English display (Japanese is optional).</p>
+<h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
+<p>Runtime configuration is loaded from <code>clinosim/config/*.yaml</code>. The tables below list the most-used CLI flags and environment variables. For the definitive machine-readable list, run <code>clinosim simulate --help</code>.</p>
+<h2 id="key-cli-flags-clinosim-simulate">Key CLI flags (<code>clinosim simulate</code>)<a class="headerlink" href="#key-cli-flags-clinosim-simulate" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Key</th>
-<th>Name</th>
-<th>Use</th>
-<th>Authoritative Source</th>
+<th>Flag</th>
+<th>Default</th>
+<th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>icd-10-cm</code></td>
-<td>ICD-10-CM</td>
-<td>US diagnoses</td>
-<td><a href="https://www.cms.gov/medicare/coding-billing/icd-10-codes">CMS</a></td>
+<td><code>--country {US,JP}</code></td>
+<td><code>US</code></td>
+<td>Locale — controls names / addresses / insurance / code systems</td>
 </tr>
 <tr>
-<td><code>icd-10</code></td>
-<td>WHO ICD-10</td>
-<td>JP diagnoses</td>
-<td><a href="https://icd.who.int/browse10/">WHO</a></td>
+<td><code>--population N</code></td>
+<td>catchment default from hospital config</td>
+<td>Population size (persons)</td>
 </tr>
 <tr>
-<td><code>loinc</code></td>
-<td>LOINC</td>
-<td>Lab tests, vitals, clinical document types</td>
-<td><a href="https://loinc.org/">Regenstrief</a></td>
+<td><code>--seed N</code></td>
+<td><code>42</code></td>
+<td>Deterministic seed (AD-16 invariant)</td>
 </tr>
 <tr>
-<td><code>snomed-ct</code></td>
-<td>SNOMED CT (subset)</td>
-<td>Procedure category, performer role, body site, outcome, complication</td>
-<td><a href="https://www.snomed.org/">SNOMED International</a></td>
+<td><code>--start YYYY-MM-DD</code> / <code>--end YYYY-MM-DD</code></td>
+<td>past 1 year ending today</td>
+<td>Simulation window</td>
 </tr>
 <tr>
-<td><code>jlac10</code></td>
-<td>JLAC10</td>
-<td>JP lab codes</td>
-<td><a href="https://www.jccls.org/">JCCLS</a></td>
+<td><code>--output PATH</code></td>
+<td><code>./output</code></td>
+<td>Output directory</td>
 </tr>
 <tr>
-<td><code>rxnorm</code></td>
-<td>RxNorm</td>
-<td>US drugs</td>
-<td><a href="https://www.nlm.nih.gov/research/umls/rxnorm/">NLM</a></td>
+<td><code>--format {cif,fhir-r4,csv}</code></td>
+<td><code>cif</code></td>
+<td>One or more output formats</td>
 </tr>
 <tr>
-<td><code>yj</code></td>
-<td>YJ codes</td>
-<td>JP drugs</td>
-<td>MHLW Drug Price Standards</td>
-</tr>
-<tr>
-<td><code>cpt</code></td>
-<td>CPT</td>
-<td>US procedures</td>
-<td><a href="https://www.ama-assn.org/practice-management/cpt">AMA</a></td>
-</tr>
-<tr>
-<td><code>k-codes</code></td>
-<td>K codes</td>
-<td>JP reimbursement procedures</td>
-<td>MHLW Medical Fee Schedule</td>
+<td><code>--hospital-config PATH</code></td>
+<td><code>hospital_operations.yaml</code></td>
+<td>Hospital-shape override YAML</td>
 </tr>
 </tbody>
 </table>
-<p>Clinical document types use the following LOINC codes:</p>
+<h2 id="key-environment-variables">Key environment variables<a class="headerlink" href="#key-environment-variables" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Document</th>
-<th>LOINC</th>
-<th>Notes</th>
+<th>Variable</th>
+<th>Default</th>
+<th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>History and physical note</td>
-<td><code>34117-2</code></td>
-<td>Generated at admission</td>
+<td><code>CLINOSIM_JP_CLINS_PKG_DIR</code></td>
+<td>unset</td>
+<td>Path to the JP-CLINS package directory (required for JP-CLINS lab-compliance gate; see <a href="../../jp-clins/"><code>jp-clins.md</code></a>)</td>
 </tr>
 <tr>
-<td>Progress note</td>
-<td><code>11506-3</code></td>
-<td>Reserved for future Tier C scope</td>
-</tr>
-<tr>
-<td>Discharge summary note</td>
-<td><code>18842-5</code></td>
-<td>Generated at discharge</td>
-</tr>
-<tr>
-<td>Death note</td>
-<td><code>69730-0</code></td>
-<td>Generated when <code>deceased=true</code></td>
-</tr>
-<tr>
-<td>Surgical operation note</td>
-<td><code>11504-8</code></td>
-<td>Generated per surgical procedure</td>
-</tr>
-<tr>
-<td>Procedure note</td>
-<td><code>28570-0</code></td>
-<td>Generated per invasive bedside procedure</td>
+<td><code>AWS_REGION</code>, <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code></td>
+<td>AWS default chain</td>
+<td>Only needed for AWS Bedrock narrative provider (<code>--provider bedrock</code>)</td>
 </tr>
 </tbody>
 </table>
-<h3 id="using-code-systems-fhir-observation-example">Using Code Systems (FHIR Observation example)<a class="headerlink" href="#using-code-systems-fhir-observation-example" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">lookup</span><span class="p">,</span> <span class="n">get_system_uri</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># CIF data is code-only</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">crp_code</span> <span class="o">=</span> <span class="s2">&quot;1988-5&quot;</span>  <span class="c1"># LOINC</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Build FHIR Observation</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">obs</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="s2">&quot;resourceType&quot;</span><span class="p">:</span> <span class="s2">&quot;Observation&quot;</span><span class="p">,</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        <span class="s2">&quot;coding&quot;</span><span class="p">:</span> <span class="p">[{</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>            <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="n">get_system_uri</span><span class="p">(</span><span class="s2">&quot;loinc&quot;</span><span class="p">),</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>            <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="n">crp_code</span><span class="p">,</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>            <span class="s2">&quot;display&quot;</span><span class="p">:</span> <span class="n">lookup</span><span class="p">(</span><span class="s2">&quot;loinc&quot;</span><span class="p">,</span> <span class="n">crp_code</span><span class="p">,</span> <span class="s2">&quot;en&quot;</span><span class="p">),</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="p">}],</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="p">},</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="s2">&quot;valueQuantity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mf">38.2</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;mg/L&quot;</span><span class="p">},</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="p">}</span>
+<h2 id="named-preset-datasets">Named-preset datasets<a class="headerlink" href="#named-preset-datasets" title="Permanent link">&para;</a></h2>
+<p>Reproducible releases via preset config bundles:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>list<span class="w">                           </span><span class="c1"># show available presets</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./jp-100-out
 </span></code></pre></div>
-<p>See <code>clinosim/codes/README.md</code> for details.</p>
-<hr />
+<h2 id="hospital-config-override">Hospital-config override<a class="headerlink" href="#hospital-config-override" title="Permanent link">&para;</a></h2>
+<p>The default hospital shape (bed count, ward mix, staff roster) is loaded from <code>hospital_operations.yaml</code>. To use a custom shape, pass <code>--hospital-config path/to/your.yaml</code>. See <a href="../../architecture/module-architecture/"><code>../architecture/module-architecture.md</code></a> for the schema.</p>
 
 
 
@@ -2474,7 +2485,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../datasets-full/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Datasets (full)">
+          <a href="../first-cohort/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Your first cohort">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2484,20 +2495,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Datasets (full)
+                Your first cohort
               </div>
             </div>
           </a>
         
         
           
-          <a href="../hospital-configuration/" class="md-footer__link md-footer__link--next" aria-label="Next: Hospital configuration">
+          <a href="../versioning/" class="md-footer__link md-footer__link--next" aria-label="Next: Versioning &amp; releases">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Hospital configuration
+                Versioning & releases
               </div>
             </div>
             <div class="md-footer__button md-icon">
