@@ -60,6 +60,11 @@ enrollments = provider.assign_household(household, rng, config)
 identity = provider.assign_personal(person, household_ctx, rng, config)
 ```
 
+> **注:** `providers/` には意図的に専用 README を置いていません。国別
+> プラグインのディスパッチパターンと provider 契約 (registry / assign_*
+> API) は上記コードで既に説明済みで、ファイル単位 README を追加すると
+> 重複になります。
+
 ## データ構造
 
 `clinosim.types.identity` を参照 (型はモジュール内に定義しない — プロジェクト規約)。
