@@ -15,6 +15,21 @@ _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 _LOCALE = _HERE.parents[1] / "locale"
 
+# ---------------------------------------------------------------------------
+# Sibling generation (Issue #637)
+# ---------------------------------------------------------------------------
+
+SIBLING_COUNT_OPTIONS: tuple[int, ...] = (0, 1, 2)
+"""Candidate sibling counts sampled by ``rng.choice`` — paired with
+YAML-driven ``_sib_probs`` by position. The 0-2 range keeps synthetic
+families realistically small (matches OECD 2020 average children-per-
+household distributions for US + JP)."""
+
+SIBLING_SEX_MALE_PROBABILITY: float = 0.5
+"""Probability that a sampled sibling is male — even split by design
+(no bias toward one sex, matches observed newborn sex-ratio-at-birth
+to two decimal places)."""
+
 
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
@@ -98,10 +113,10 @@ def generate_family_history(
         out.append(_relative(prev, conditions, patient_codes, rel, sex, age, deceased, rng))
 
     _sib_probs = normalize_probabilities(ref["sibling_count_weights"], fallback="raise")
-    n_sib = int(rng.choice([0, 1, 2], p=_sib_probs))
+    n_sib = int(rng.choice(SIBLING_COUNT_OPTIONS, p=_sib_probs))
     so = ref["sibling_age_offset"]
     for _ in range(n_sib):
-        sex = "male" if rng.random() < 0.5 else "female"
+        sex = "male" if rng.random() < SIBLING_SEX_MALE_PROBABILITY else "female"
         age = max(0, patient_age + int(rng.integers(so["min"], so["max"] + 1)))
         out.append(_relative(prev, conditions, patient_codes, "NSIB", sex, age, False, rng))
     return out
