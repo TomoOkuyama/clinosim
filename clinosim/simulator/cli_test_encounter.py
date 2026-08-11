@@ -19,6 +19,43 @@ from clinosim.simulator.emergency import _simulate_ed_visit
 from clinosim.types.config import SimulatorConfig
 from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
 
+# ---------------------------------------------------------------------------
+# Test-encounter default sampling ranges (Issue #637)
+# Pinned so `clinosim test-encounter` output is reproducible across time —
+# a floating today() would silently shift patient ages and visit dates on
+# every rerun and break the CLI's smoke-test golden-comparison contract.
+# ---------------------------------------------------------------------------
+
+TEST_ENCOUNTER_AGE_MIN: int = 30
+"""Inclusive lower bound of the ``--age``-fallback random age draw for
+``clinosim test-encounter``. 30 skips pediatric edge cases (which the
+simulator does not model) while keeping the young-adult presentation
+in range."""
+
+TEST_ENCOUNTER_AGE_MAX_EXCLUSIVE: int = 85
+"""Exclusive upper bound of the ``--age``-fallback random age draw
+(yields ages 30-84)."""
+
+TEST_ENCOUNTER_REFERENCE_YEAR: int = 2024
+"""Reference year for the synthetic visit datetime — pinned for
+reproducibility across time."""
+
+TEST_ENCOUNTER_REFERENCE_MONTH: int = 6
+"""Reference month for the synthetic visit datetime (mid-year, June)."""
+
+TEST_ENCOUNTER_REFERENCE_DAY: int = 15
+"""Reference day-of-month for the synthetic visit datetime (mid-month)
+— places the timestamp far from any month/quarter/year boundary that
+could interact with seasonal or calendar-based enrichers."""
+
+TEST_ENCOUNTER_VISIT_HOUR_MIN: int = 8
+"""Inclusive lower bound of the visit-hour draw (8 AM). Matches
+typical clinic opening / ED daytime peak."""
+
+TEST_ENCOUNTER_VISIT_HOUR_MAX_EXCLUSIVE: int = 20
+"""Exclusive upper bound of the visit-hour draw (8 PM). Yields
+hours 8-19."""
+
 
 def _run_test_encounter(args: Any) -> None:
     """test-encounter dispatch (AD-65 Phase 4 / Task 17).
@@ -62,7 +99,7 @@ def _run_test_encounter_debug(args: Any) -> None:
     _demo = _ld(args.country)
     for i in range(args.count):
         # Create patient
-        age = args.age or int(rng.integers(30, 85))
+        age = args.age or int(rng.integers(TEST_ENCOUNTER_AGE_MIN, TEST_ENCOUNTER_AGE_MAX_EXCLUSIVE))
         sex = args.sex or str(rng.choice(["M", "F"]))
         person = PersonRecord(
             person_id=f"TEST-{i + 1:04d}",
@@ -73,7 +110,13 @@ def _run_test_encounter_debug(args: Any) -> None:
         )
         patient = activate_patient(person, rng, _demo)
 
-        visit_time = datetime(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
+        visit_time = datetime(
+            TEST_ENCOUNTER_REFERENCE_YEAR,
+            TEST_ENCOUNTER_REFERENCE_MONTH,
+            TEST_ENCOUNTER_REFERENCE_DAY,
+            int(rng.integers(TEST_ENCOUNTER_VISIT_HOUR_MIN, TEST_ENCOUNTER_VISIT_HOUR_MAX_EXCLUSIVE)),
+            int(rng.integers(0, 60)),
+        )
         record = _simulate_ed_visit(patient, protocol, visit_time, roster, rng, country=args.country)
 
         _print_debug_record(record, i + 1)
@@ -136,7 +179,7 @@ def _run_test_encounter_generate(args: Any) -> None:
     records: list[CIFPatientRecord] = []
     for i in range(args.count):
         # Create patient
-        age = args.age or int(rng.integers(30, 85))
+        age = args.age or int(rng.integers(TEST_ENCOUNTER_AGE_MIN, TEST_ENCOUNTER_AGE_MAX_EXCLUSIVE))
         sex = args.sex or str(rng.choice(["M", "F"]))
         person = PersonRecord(
             person_id=f"TEST-{i + 1:04d}",
@@ -147,7 +190,13 @@ def _run_test_encounter_generate(args: Any) -> None:
         )
         patient = activate_patient(person, rng, _demo)
 
-        visit_time = datetime(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
+        visit_time = datetime(
+            TEST_ENCOUNTER_REFERENCE_YEAR,
+            TEST_ENCOUNTER_REFERENCE_MONTH,
+            TEST_ENCOUNTER_REFERENCE_DAY,
+            int(rng.integers(TEST_ENCOUNTER_VISIT_HOUR_MIN, TEST_ENCOUNTER_VISIT_HOUR_MAX_EXCLUSIVE)),
+            int(rng.integers(0, 60)),
+        )
         record = _simulate_ed_visit(
             patient,
             protocol,

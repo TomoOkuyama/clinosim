@@ -24,6 +24,29 @@ SUPPORTED_ALLERGEN_CATEGORIES: frozenset[str] = frozenset({"medication", "food",
 OVERALL_ALLERGY_PREVALENCE = 0.15  # baseline calibrated (see brief Step 4)
 CATEGORY_WEIGHTS = {"medication": 0.50, "food": 0.25, "environment": 0.25}
 
+# ---------------------------------------------------------------------------
+# Clinical + verification status distribution (Issue #637)
+# Empirical tuning for the synthetic simulator, matched to observed EHR
+# allergy-status distributions: ~85% active + confirmed, ~5% resolved
+# (childhood food allergies outgrown), ~10% active + unconfirmed
+# (patient-reported, not challenge-verified).
+# ---------------------------------------------------------------------------
+
+ALLERGY_FOOD_RESOLVED_MAX_EXCLUSIVE: float = 0.05
+"""Probability draw cutoff below which a food-category allergy is
+coded as ``clinical="resolved"`` + ``verification="confirmed"``.
+Only fires for the food category — non-food allergies almost never
+resolve at the population level, so the "resolved" bucket is
+food-only by design."""
+
+ALLERGY_UNCONFIRMED_MAX_EXCLUSIVE: float = 0.15
+"""Cumulative probability draw cutoff (checked as ``elif`` after the
+food-resolved branch) below which the allergy is coded as
+``clinical="active"`` + ``verification="unconfirmed"``. Since the
+first 5% is claimed by the food-resolved branch, this yields ~10%
+unconfirmed across categories (5-15 %). Above this cutoff (the
+remaining 85%) allergies are coded as active + confirmed."""
+
 
 def _code_in_data(system: str, code: str) -> bool:
     """Direct membership check in codes/data/<system>.yaml.
@@ -156,9 +179,9 @@ def allergy_enricher(ctx: Any) -> None:
         # for food category), ~10% unconfirmed (patient-reported not verified
         # by challenge). Draws follow the existing category rng stream (AD-16).
         _stat_draw = float(rng.random())
-        if _stat_draw < 0.05 and category == "food":
+        if _stat_draw < ALLERGY_FOOD_RESOLVED_MAX_EXCLUSIVE and category == "food":
             _clin_stat, _ver_stat = "resolved", "confirmed"
-        elif _stat_draw < 0.15:
+        elif _stat_draw < ALLERGY_UNCONFIRMED_MAX_EXCLUSIVE:
             _clin_stat, _ver_stat = "active", "unconfirmed"
         else:
             _clin_stat, _ver_stat = "active", "confirmed"
