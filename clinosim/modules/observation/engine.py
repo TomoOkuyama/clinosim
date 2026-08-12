@@ -287,6 +287,25 @@ def get_lab_unit(lab_name: str) -> str:
     return LAB_UNITS.get(lab_name, "")
 
 
+def clamp_to_physiologic_limits(lab_name: str, value: float) -> float:
+    """Clip an observed lab value to the analyte's PHYSIOLOGIC_LIMITS band.
+
+    Issue #735: pre-analytical perturbations (measurement noise,
+    hemolysis, etc.) can push observed values past life-incompatible
+    extremes on top of an already-clamped physiology-derived true value.
+    Apply this after any perturbation that scales / adds noise to a lab
+    value so a K > 10 mmol/L or CRP > 663 mg/L never reaches downstream
+    output. Analytes without an entry in PHYSIOLOGIC_LIMITS are passed
+    through, only the negative-value floor is enforced (mirrors the old
+    apply_realistic_variability fallback).
+    """
+    limit = PHYSIOLOGIC_LIMITS.get(lab_name)
+    if limit is not None:
+        lo, hi = limit
+        return float(min(max(value, lo), hi))
+    return max(0.0, value)
+
+
 def apply_realistic_variability(
     lab_name: str,
     true_value: float,
@@ -303,14 +322,7 @@ def apply_realistic_variability(
     analytical_noise = rng.normal(0, true_value * cva)
 
     observed = true_value + bio_noise + analytical_noise
-
-    # Re-clamp post-noise to analyte-specific physiologic bounds so measurement
-    # noise on large true values cannot produce life-incompatible observations.
-    limit = PHYSIOLOGIC_LIMITS.get(lab_name)
-    if limit is not None:
-        lo, hi = limit
-        return float(min(max(observed, lo), hi))
-    return max(0.0, observed)
+    return clamp_to_physiologic_limits(lab_name, observed)
 
 
 def round_to_precision(lab_name: str, value: float) -> float:
