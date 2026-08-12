@@ -1,0 +1,18 @@
+# Pediatric encounter schedule (Issue #760 META).
+#
+# Schema (per encounter entry under `encounters:`):
+#   <canonical encounter-type key>:
+#     age_min:         <int, inclusive>
+#     age_max:         <int, inclusive>
+#     visits_per_year: <list[int], sampled uniformly per patient per year>
+#     encounter_type:  "outpatient" | "emergency" | "inpatient"
+#     disease_id:      <string — reused by engine.py dispatch to identify the visit>
+#     visit_reason:    <string — human-readable, emitted as the encounter's chief_complaint>
+#
+# Foundation pass (pass 1) ships with `encounters:` intentionally empty —
+# the module scaffold is wired in but produces zero events, so cohort
+# output is byte-identical to pre-module runs. Pass 2 adds well-child
+# and immunization; pass 3+ add pediatric acute and adolescent
+# behavioural. See `README.md` for the roadmap.
+
+encounters: {}
