@@ -894,6 +894,19 @@ def generate_healthcare_calendar(
                 )
             )
 
+        # --- Pediatric encounters (Issue #760 foundation) ---
+        # No-op when `pediatric_schedule.yaml` `encounters:` block is empty
+        # (foundation default) — the generator returns [] without consuming
+        # any rng, so cohort output stays byte-identical to pre-module runs.
+        # Pass 2 will register well-child / immunization entries; the
+        # generator then draws from `prng` per matching pediatric patient.
+        # Positioned at the end of the per-person loop so consumption from
+        # `prng` (once entries are added) has no downstream effect on this
+        # person's other draws.
+        from clinosim.modules.pediatric.calendar import generate_pediatric_events
+
+        events.extend(generate_pediatric_events(person, year, prng))
+
     return events
 
 
