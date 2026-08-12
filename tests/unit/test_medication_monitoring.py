@@ -43,6 +43,20 @@ class TestMappingLoader:
         assert tsh["loinc"] == "3016-3"
         assert tsh.get("rationale")
 
+    def test_ships_dm_meds_hba1c_pairs(self):
+        # #757 pass 3b — both Metformin and Insulin trigger HbA1c monitoring.
+        mapping = load_medication_monitoring()
+        assert "Metformin" in mapping
+        assert "Insulin" in mapping
+        met_labs = [m["lab"] for m in mapping["Metformin"]["monitoring"]]
+        ins_labs = [m["lab"] for m in mapping["Insulin"]["monitoring"]]
+        assert "HbA1c" in met_labs
+        assert "HbA1c" in ins_labs
+        met_hba1c = next(m for m in mapping["Metformin"]["monitoring"] if m["lab"] == "HbA1c")
+        assert met_hba1c["loinc"] == "4548-4"
+        # Insulin aliases cover the SC sliding-scale variant used by chronic_medications.yaml.
+        assert "sliding scale insulin" in [a.lower() for a in mapping["Insulin"]["aliases"]]
+
 
 class TestMatchDrugs:
     def setup_method(self):
@@ -70,6 +84,20 @@ class TestMatchDrugs:
         meds = [self._hm("Warfarin 3mg"), self._hm("Levothyroxine 50mcg")]
         assert set(match_drugs(meds, self.mapping)) == {"Warfarin", "Levothyroxine"}
 
+    def test_matches_metformin(self):
+        # #757 pass 3b — Metformin from chronic_medications.yaml E11.9 block.
+        assert match_drugs([self._hm("Metformin 500mg PO bid")], self.mapping) == ["Metformin"]
+
+    def test_matches_sliding_scale_insulin_via_insulin_alias(self):
+        # #757 pass 3b — SC sliding-scale insulin is the E11.9 second-line drug.
+        assert match_drugs([self._hm("Sliding scale insulin")], self.mapping) == ["Insulin"]
+
+    def test_dm_patient_on_metformin_and_insulin_matches_both(self):
+        # Patient on both DM drugs → both entries fire but the enricher
+        # dedups on analyte name so only one HbA1c injection happens.
+        meds = [self._hm("Metformin 500mg"), self._hm("Sliding scale insulin")]
+        assert set(match_drugs(meds, self.mapping)) == {"Metformin", "Insulin"}
+
     def test_no_match_returns_empty(self):
         assert match_drugs([self._hm("Aspirin 81mg")], self.mapping) == []
 
@@ -90,6 +118,9 @@ def _build_record(
     patient_id: str = "POP-000042",
     on_warfarin: bool = True,
     on_levothyroxine: bool = False,
+    on_metformin: bool = False,
+    on_insulin: bool = False,
+    has_dm: bool = False,
     encounter_type: EncounterType = EncounterType.OUTPATIENT,
     existing_orders: list[Order] | None = None,
 ) -> Any:
@@ -99,12 +130,19 @@ def _build_record(
         meds.append(HomeMedication(drug_name="Warfarin 3mg", route="PO"))
     if on_levothyroxine:
         meds.append(HomeMedication(drug_name="Levothyroxine 50mcg", route="PO"))
+    if on_metformin:
+        meds.append(HomeMedication(drug_name="Metformin 500mg", route="PO"))
+    if on_insulin:
+        meds.append(HomeMedication(drug_name="Sliding scale insulin", route="SC"))
+    chronic: list[Any] = []
+    if has_dm:
+        chronic.append(SimpleNamespace(code="E11.9"))
     patient = SimpleNamespace(
         patient_id=patient_id,
         sex="M",
         age=72,
         current_medications=meds,
-        chronic_conditions=[],
+        chronic_conditions=chronic,
     )
     encounter = SimpleNamespace(
         encounter_id=f"ENC-{patient_id}-001",
@@ -234,6 +272,28 @@ class TestEnricher:
         analytes = {o.display_name for o in rec.orders}
         assert analytes == {"PT_INR", "TSH"}
         assert len(rec.lab_results) == 2
+
+    def test_injects_hba1c_for_dm_patient_on_metformin(self):
+        # #757 pass 3b — DM patient on Metformin gets HbA1c.
+        rec = _build_record(on_warfarin=False, on_metformin=True, has_dm=True)
+        enrich_medication_monitoring(_build_ctx([rec]))
+        assert len(rec.orders) == 1
+        order = rec.orders[0]
+        assert order.display_name == "HbA1c"
+        assert order.order_code == "4548-4"
+        assert "Metformin" in order.clinical_intent
+        assert order.result is not None
+        # DM patients emit physiology-modeled HbA1c 5-14% range depending on glycemic control.
+        assert 4.0 <= float(order.result.value) <= 15.0
+        assert order.result.unit == "%"
+
+    def test_dedup_hba1c_when_patient_on_both_metformin_and_insulin(self):
+        # #757 pass 3b — Metformin + Insulin both map to HbA1c; dedup ensures
+        # only ONE HbA1c injection, not two.
+        rec = _build_record(on_warfarin=False, on_metformin=True, on_insulin=True, has_dm=True)
+        enrich_medication_monitoring(_build_ctx([rec]))
+        analytes = [o.display_name for o in rec.orders]
+        assert analytes.count("HbA1c") == 1, f"expected 1 HbA1c injection, got {analytes}"
 
     def test_no_op_when_master_rng_untouched(self):
         # RNG-preservation invariant: an enricher run must never advance the
