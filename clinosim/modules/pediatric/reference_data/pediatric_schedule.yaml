@@ -48,3 +48,44 @@ encounters:
     encounter_type: outpatient
     disease_id: well_child_school
     visit_reason: "Well-child visit — school-age / adolescent annual"
+
+  # ---- Immunization visits (#760 pass 3) ----
+  # CDC / AAP recommended childhood immunization schedule (2024). Many
+  # vaccines are co-administered AT well-child visits, but a fraction
+  # occur as standalone catch-up / school-based / travel-related visits.
+  # Modelled conservatively — the counts here represent visits distinct
+  # from `well_child_*` entries above (which themselves ARE where the
+  # majority of infant vaccinations happen). Standalone counts:
+  #
+  #   Infant (0-1yo) — 3 visits: catch-up / hospital-based supplement to
+  #     the well-child series (Hep B birth dose, RSV/nirsevimab season
+  #     visit, catch-up MMR/varicella at 12mo when well-child slot
+  #     already-used).
+  #   Kindergarten entry (4-6yo) — 1 visit: school-entry boosters
+  #     (DTaP, IPV, MMR, varicella).
+  #   Adolescent (11-13yo) — 1 visit: Tdap + HPV series + MCV4
+  #     (routinely a separate school-nurse or pediatrician visit,
+  #     distinct from the age-12 well-child physical).
+  immunization_infant:
+    age_min: 0
+    age_max: 1
+    visits_per_year: [2, 3]
+    encounter_type: outpatient
+    disease_id: immunization_infant
+    visit_reason: "Immunization visit — infant catch-up / hospital-supplement"
+
+  immunization_kindergarten:
+    age_min: 4
+    age_max: 6
+    visits_per_year: [1]
+    encounter_type: outpatient
+    disease_id: immunization_kindergarten
+    visit_reason: "Immunization visit — kindergarten entry boosters (DTaP / IPV / MMR / varicella)"
+
+  immunization_adolescent:
+    age_min: 11
+    age_max: 13
+    visits_per_year: [1]
+    encounter_type: outpatient
+    disease_id: immunization_adolescent
+    visit_reason: "Immunization visit — adolescent bundle (Tdap / HPV / MCV4)"

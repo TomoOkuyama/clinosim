@@ -26,6 +26,20 @@ class TestLoadPediatricSchedule:
         assert schedule["well_child_infant"]["age_max"] == 1
         assert schedule["well_child_school"]["age_max"] == 18
 
+    def test_shipped_schedule_has_immunization_entries(self):
+        # #760 pass 3 — immunization visits at 3 age bands (infant
+        # catch-up, kindergarten entry, adolescent bundle).
+        schedule = load_pediatric_schedule()
+        assert set(schedule) >= {
+            "immunization_infant",
+            "immunization_kindergarten",
+            "immunization_adolescent",
+        }
+        assert schedule["immunization_kindergarten"]["age_min"] == 4
+        assert schedule["immunization_kindergarten"]["age_max"] == 6
+        assert schedule["immunization_adolescent"]["age_min"] == 11
+        assert schedule["immunization_adolescent"]["age_max"] == 13
+
     def test_valid_entry_round_trips(self, tmp_path):
         p = tmp_path / "schedule.yaml"
         p.write_text(
@@ -185,23 +199,34 @@ class TestGeneratePediatricEvents:
         assert [e.timestamp for e in ev_a] == [e.timestamp for e in ev_b]
         assert [e.disease_id for e in ev_a] == [e.disease_id for e in ev_b]
 
-    def test_yaml_shipped_file_produces_well_child_events_for_pediatric_ages(self):
-        # #760 pass 2 — shipped YAML activates well-child visits.
-        # Infants get 6-8 visits, ages 2-4 get 2-3, ages 5-18 get 1;
-        # adults (age >= 19) get zero.
+    def test_yaml_shipped_file_produces_pediatric_events_across_bands(self):
+        # #760 passes 2 + 3 — shipped YAML activates well-child + immunization
+        # entries at multiple age bands. Adults (age >= 19) still get zero.
         rng = np.random.default_rng(0)
-        # Infant: 6-8 well-child visits.
+        # Infant 0-1yo — well_child_infant (6-8) + immunization_infant (2-3).
         infant_events = generate_pediatric_events(self._person(0), 2025, rng)
-        assert 6 <= len(infant_events) <= 8
-        assert all(e.disease_id == "well_child_infant" for e in infant_events)
-        # Early childhood: 2-3 well-child visits.
+        infant_ids = {e.disease_id for e in infant_events}
+        assert "well_child_infant" in infant_ids
+        assert "immunization_infant" in infant_ids
+        # Early childhood 2-4 — well_child_early only (immunization gap 2-3).
         early_events = generate_pediatric_events(self._person(3), 2025, np.random.default_rng(0))
-        assert 2 <= len(early_events) <= 3
-        assert all(e.disease_id == "well_child_early" for e in early_events)
-        # School-age: 1 visit.
-        school_events = generate_pediatric_events(self._person(10), 2025, np.random.default_rng(0))
-        assert len(school_events) == 1
-        assert school_events[0].disease_id == "well_child_school"
+        assert {e.disease_id for e in early_events} == {"well_child_early"}
+        # Kindergarten 4-6 — both well_child_school AND immunization_kindergarten.
+        kg_events = generate_pediatric_events(self._person(5), 2025, np.random.default_rng(0))
+        kg_ids = {e.disease_id for e in kg_events}
+        assert "well_child_school" in kg_ids
+        assert "immunization_kindergarten" in kg_ids
+        # School-age 7-10 — well_child_school only.
+        school_events = generate_pediatric_events(self._person(8), 2025, np.random.default_rng(0))
+        assert {e.disease_id for e in school_events} == {"well_child_school"}
+        # Adolescent 11-13 — well_child_school + immunization_adolescent.
+        adol_events = generate_pediatric_events(self._person(12), 2025, np.random.default_rng(0))
+        adol_ids = {e.disease_id for e in adol_events}
+        assert "well_child_school" in adol_ids
+        assert "immunization_adolescent" in adol_ids
+        # Late adolescent 14-18 — well_child_school only.
+        late_events = generate_pediatric_events(self._person(17), 2025, np.random.default_rng(0))
+        assert {e.disease_id for e in late_events} == {"well_child_school"}
         # Adult: zero events (out of every age band).
         assert generate_pediatric_events(self._person(40), 2025, np.random.default_rng(0)) == []
         assert generate_pediatric_events(self._person(90), 2025, np.random.default_rng(0)) == []
