@@ -62,10 +62,18 @@ chronic_prevalence:
     "40-59": 0.20
     "60-69": 0.50
     "70-99": 0.65
-  E11.9:    # Type 2 DM — MHLW: 60+ 20%, 70+ 22%
-    "40-59": 0.08
-    "60-69": 0.18
-    "70-99": 0.22
+  # Issue #739: E11.9 and N18 base rates were double-amplified by the
+  # multiplicative comorbidity+lifestyle+hospital-selection pipeline,
+  # producing cohort prevalence 2.3-2.9× real-world (T2DM 25.4% vs 11%,
+  # CKD 31.7% vs 12%). Reduce base ~0.5× so post-amplification cohort
+  # prevalence stays within ±50% of the hospital-user target (T2DM ~15-20%,
+  # CKD ~15-18%). Source citations retained inline for each band.
+  # base × comorbidity × lifestyle = per-patient sampling probability
+  # (see clinosim/modules/population/engine.py:344-358).
+  E11.9:    # Type 2 DM — MHLW 2019 general 11%; hospital target ~15-20%
+    "40-59": 0.04
+    "60-69": 0.09
+    "70-99": 0.11
   E78:      # Dyslipidemia — MHLW/JAS: 60+ 40%, 70+ 45%
     "40-59": 0.15
     "60-69": 0.40
@@ -73,9 +81,9 @@ chronic_prevalence:
   J44:      # COPD — MHLW: 40+ 5%, 60+ 10%
     "40-59": 0.03
     "60-99": 0.10
-  N18:      # CKD — MHLW: 60+ 15%, 70+ 25% (higher than earlier estimate)
-    "60-69": 0.12
-    "70-99": 0.25
+  N18:      # CKD — JSN 2018 general 12%; hospital target ~15-18% (reduced ~0.5×)
+    "60-69": 0.06
+    "70-99": 0.12
   I50:      # Heart failure — JCS 統計 65+ 3%, 75+ 8%
     "65-74": 0.03
     "75-99": 0.08

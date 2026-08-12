@@ -28,14 +28,22 @@ blood_type:
 # Format: ICD-10 code -> {age_range: prevalence}
 # Source: CDC, AHA, NHANES
 chronic_prevalence:
-  I10:      # Hypertension — CDC ~47% of adults
+  I10:      # Hypertension — CDC ~48% of adults; cohort target ~65% (Medicare-user)
     "40-99": 0.33
-  E11.9:    # Type 2 DM — CDC ~11% of adults
-    "40-99": 0.12
-  E78:      # Dyslipidemia — CDC high cholesterol
+  # Issue #739: T2DM and COPD base rates were double-amplified by the multiplicative
+  # comorbidity+obesity+hospital-selection pipeline, producing cohort prevalence
+  # 3-4× real-world. Reduce base so that after the ~4.5× (T2DM) / ~3× (COPD)
+  # empirical amplification the observed cohort prevalence stays within ±50% of
+  # the Medicare-user target (T2DM ~20-30%, COPD ~10-15%). Source citations:
+  # CDC National Diabetes Statistics Report 2022 (general 14%), CDC BRFSS 2019
+  # (general 6%). The base_prev × comorbidity_mult × lifestyle_mult product is
+  # the actual per-patient sampling probability — see population/engine.py:344-358.
+  E11.9:    # Type 2 DM — CDC general 14%; cohort target 20-30% (Medicare-user)
+    "40-99": 0.05
+  E78:      # Dyslipidemia — CDC high cholesterol ~40%; cohort target ~55% (Medicare)
     "40-99": 0.28
-  J44:      # COPD — CDC ~6% of adults
-    "40-99": 0.06
+  J44:      # COPD — CDC ~6% general; cohort target ~10-15% (Medicare-user)
+    "40-99": 0.03
   N18:      # CKD — CDC ~14% of adults, higher in elderly
     "60-99": 0.10
   I50:      # Heart failure
