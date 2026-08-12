@@ -57,6 +57,26 @@ class TestMappingLoader:
         # Insulin aliases cover the SC sliding-scale variant used by chronic_medications.yaml.
         assert "sliding scale insulin" in [a.lower() for a in mapping["Insulin"]["aliases"]]
 
+    def test_ships_statin_lft_pair(self):
+        # #757 pass 5 — Atorvastatin (and statin aliases) → AST + ALT.
+        mapping = load_medication_monitoring()
+        assert "Atorvastatin" in mapping
+        labs = [m["lab"] for m in mapping["Atorvastatin"]["monitoring"]]
+        assert "AST" in labs
+        assert "ALT" in labs
+        # Aliases cover other common statins used in the wider chronic-medication tree.
+        assert "simvastatin" in [a.lower() for a in mapping["Atorvastatin"]["aliases"]]
+
+    def test_ships_arb_renal_safety_pair(self):
+        # #757 pass 6 — Candesartan (and ARB aliases) → K + Creatinine.
+        mapping = load_medication_monitoring()
+        assert "Candesartan" in mapping
+        labs = [m["lab"] for m in mapping["Candesartan"]["monitoring"]]
+        assert "K" in labs
+        assert "Creatinine" in labs
+        # Aliases cover the ARB drug family.
+        assert "losartan" in [a.lower() for a in mapping["Candesartan"]["aliases"]]
+
 
 class TestMatchDrugs:
     def setup_method(self):
@@ -294,6 +314,49 @@ class TestEnricher:
         enrich_medication_monitoring(_build_ctx([rec]))
         analytes = [o.display_name for o in rec.orders]
         assert analytes.count("HbA1c") == 1, f"expected 1 HbA1c injection, got {analytes}"
+
+    def test_injects_both_lfts_for_statin_patient(self):
+        # #757 pass 5 — Atorvastatin patient must receive BOTH AST and ALT
+        # (multi-lab-per-drug schema, first use case for the pattern).
+        meds = [HomeMedication(drug_name="Atorvastatin 10mg", route="PO")]
+        patient = SimpleNamespace(
+            patient_id="POP-STATIN-1",
+            sex="M",
+            age=65,
+            current_medications=meds,
+            chronic_conditions=[],
+        )
+        encounter = SimpleNamespace(
+            encounter_id="ENC-STATIN-1",
+            encounter_type=EncounterType.OUTPATIENT,
+            admission_datetime=datetime(2025, 4, 1, 9, 0),
+            attending_physician_id="STAFF-DOC-2",
+        )
+        rec = SimpleNamespace(patient=patient, encounters=[encounter], orders=[], lab_results=[])
+        enrich_medication_monitoring(_build_ctx([rec]))
+        analytes = {o.display_name for o in rec.orders}
+        assert analytes == {"AST", "ALT"}, f"expected both AST and ALT, got {analytes}"
+
+    def test_injects_both_k_and_creatinine_for_arb_patient(self):
+        # #757 pass 6 — Candesartan patient must receive BOTH K and Creatinine.
+        meds = [HomeMedication(drug_name="Candesartan 8mg", route="PO")]
+        patient = SimpleNamespace(
+            patient_id="POP-ARB-1",
+            sex="F",
+            age=70,
+            current_medications=meds,
+            chronic_conditions=[],
+        )
+        encounter = SimpleNamespace(
+            encounter_id="ENC-ARB-1",
+            encounter_type=EncounterType.OUTPATIENT,
+            admission_datetime=datetime(2025, 4, 1, 9, 0),
+            attending_physician_id="STAFF-DOC-3",
+        )
+        rec = SimpleNamespace(patient=patient, encounters=[encounter], orders=[], lab_results=[])
+        enrich_medication_monitoring(_build_ctx([rec]))
+        analytes = {o.display_name for o in rec.orders}
+        assert analytes == {"K", "Creatinine"}, f"expected both K and Creatinine, got {analytes}"
 
     def test_no_op_when_master_rng_untouched(self):
         # RNG-preservation invariant: an enricher run must never advance the

@@ -55,3 +55,38 @@ mappings:
       - lab: HbA1c
         loinc: "4548-4"
         rationale: "Chronic glycemic control monitoring on insulin — HbA1c target <7% (ADA/JDS individualized). Guideline: every 3-6 months on stable therapy, every 3 months during titration."
+
+  # Statin hepatotoxicity monitoring (Issue #757 pass 5). AST + ALT baseline
+  # + as-clinically-indicated per ACC/AHA/JAS lipid guidelines — routine
+  # frequency is on the low side of the META scope, but baseline coverage
+  # analysis showed only 58-60% of statin patients emit LFTs today (via
+  # incidental disease-YAML fires), so the enricher closes the remaining
+  # gap. AST + ALT are both physiology-modeled in
+  # observation/engine.py (BIOLOGICAL_CV 0.120 / 0.195 respectively).
+  Atorvastatin:
+    aliases: ["アトルバスタチン", "lipitor", "simvastatin", "rosuvastatin", "pravastatin", "シンバスタチン", "ロスバスタチン", "プラバスタチン"]
+    monitoring:
+      - lab: AST
+        loinc: "1920-8"
+        rationale: "Statin hepatotoxicity monitoring — AST/ALT baseline + as clinically indicated (myalgia, muscle-weakness). ACC/AHA 2018 + JAS 2022 guideline."
+      - lab: ALT
+        loinc: "1742-6"
+        rationale: "Statin hepatotoxicity monitoring — companion to AST. Discontinue if AST/ALT > 3× upper limit of normal."
+
+  # ACE-i / ARB / thiazide diuretic renal-safety monitoring (Issue #757 pass 6).
+  # K + Creatinine 1-2 weeks after start, then every 6-12 months on stable
+  # therapy. Baseline coverage analysis: 50-74% of ARB patients emit K/Cr
+  # today (via HF/AKI/sepsis disease-YAML incidental fires); enricher closes
+  # the remainder. Both physiology-modeled — Creatinine tracks renal_function,
+  # K tracks renal_function + acidosis (see physiology/engine.py:673-678).
+  # `Cr` alias covered because the mapping enricher matches on Order's
+  # display_name (which we emit as the YAML `lab` value, `Creatinine`).
+  Candesartan:
+    aliases: ["カンデサルタン", "losartan", "valsartan", "olmesartan", "telmisartan", "ロサルタン", "バルサルタン", "オルメサルタン"]
+    monitoring:
+      - lab: K
+        loinc: "2823-3"
+        rationale: "ARB/ACE-i renal-safety monitoring — K rise reflects RAAS blockade + reduced aldosterone-driven K excretion. Hold if K > 5.5 mmol/L or Cr rises > 30% baseline."
+      - lab: Creatinine
+        loinc: "2160-0"
+        rationale: "ARB/ACE-i renal-safety monitoring — companion to K. Expected 10-20% Cr rise at start (efferent arteriolar vasodilation); > 30% requires dose reduction."
