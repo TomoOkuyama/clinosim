@@ -33,3 +33,25 @@ mappings:
       - lab: TSH
         loinc: "3016-3"
         rationale: "Thyroid replacement titration — TSH target 0.5-4.0 mIU/L (broader in older adults). ATA / JES guideline: 6-8 weeks after any dose change, then every 6-12 months once stable."
+
+  # DM oral hypoglycemics + insulins — both trigger the same HbA1c monitoring.
+  # Kept as two separate entries (not merged as aliases) because they are
+  # semantically distinct drug classes with their own aliases; a future PR that
+  # introduces a `drug_class:` bundling schema can collapse them if the pattern
+  # scales beyond DM. Note: HbA1c is physiology-modeled and derived from
+  # glycemic_control when has_diabetes=True (see physiology/engine.py:895), so
+  # DM patients emit realistic values (6-10% range typical); non-DM patients
+  # accidentally on a DM drug would emit the ~5.5% age-adjusted non-DM baseline.
+  Metformin:
+    aliases: ["メトホルミン"]
+    monitoring:
+      - lab: HbA1c
+        loinc: "4548-4"
+        rationale: "Chronic glycemic control monitoring — HbA1c target <7% (ADA/JDS individualized). Guideline: every 3-6 months on stable therapy, every 3 months during titration."
+
+  Insulin:
+    aliases: ["インスリン", "sliding scale insulin", "insulin glargine", "insulin lispro", "insulin aspart", "regular insulin", "スライディングスケール インスリン"]
+    monitoring:
+      - lab: HbA1c
+        loinc: "4548-4"
+        rationale: "Chronic glycemic control monitoring on insulin — HbA1c target <7% (ADA/JDS individualized). Guideline: every 3-6 months on stable therapy, every 3 months during titration."
