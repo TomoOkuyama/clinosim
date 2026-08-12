@@ -122,9 +122,16 @@ _HEALTH_SCREENING_VISIT_REASON = {
 def _pediatric_visit_reason(disease_id: str) -> str:
     """Look up the visit_reason for a `pediatric_visit` LifeEvent from the schedule YAML.
 
-    Falls back to a generic label if the id is not in the schedule (e.g., if a
-    LifeEvent was authored by an out-of-tree tool). Loaded lazily to avoid
-    import-time cost when the module is unused. Issue #760 pass 2.
+    The schedule is keyed by encounter-key (e.g., ``well_child_infant``,
+    ``pediatric_uri_young``); multiple encounter-keys may share the same
+    ``disease_id`` (for example, ``pediatric_uri_young`` / ``pediatric_uri_school``
+    / ``pediatric_uri_adolescent`` are three age-band-specific
+    frequencies for the same clinical concept ``pediatric_uri``). Look
+    up by direct key match first, then by ``disease_id`` scan across all
+    entries so both shapes resolve. Falls back to a generic label if the
+    id is in neither position (e.g., LifeEvent authored by an out-of-tree
+    tool). Issue #760 pass 2 introduced this helper; pass 4 extended the
+    lookup to handle multi-band entries.
     """
     from clinosim.modules.pediatric.calendar import load_pediatric_schedule
 
@@ -132,6 +139,12 @@ def _pediatric_visit_reason(disease_id: str) -> str:
     entry = schedule.get(disease_id)
     if entry and entry.get("visit_reason"):
         return str(entry["visit_reason"])
+    # Fallback: multiple entries can share the same disease_id; return
+    # the first match found (age-band-specific visit_reason wording is
+    # a stylistic choice; the underlying clinical concept is the same).
+    for candidate_entry in schedule.values():
+        if candidate_entry.get("disease_id") == disease_id and candidate_entry.get("visit_reason"):
+            return str(candidate_entry["visit_reason"])
     return f"Pediatric visit: {disease_id}"
 
 
