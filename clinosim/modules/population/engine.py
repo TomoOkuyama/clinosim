@@ -228,8 +228,12 @@ def generate_population(
             age_band = _sample_age_band(demo, rng)
             age = int(rng.integers(age_band[0], age_band[1] + 1))
 
-            # Sex ratio from YAML (default 0.49 male)
-            male_prob = (demo.get("sex_ratio") or {}).get("male", SEX_RATIO_MALE_DEFAULT)
+            # Sex ratio from YAML — supports optional age-conditional band
+            # lookup so cohorts can reproduce the elderly-female skew produced
+            # by female longevity (Issue #741). When the demographics YAML
+            # omits `sex_ratio.age_conditional`, this collapses to the
+            # existing single-probability behaviour (RNG-shape neutral).
+            male_prob = _sex_ratio_male_probability(demo, age)
             sex = "M" if rng.random() < male_prob else "F"
             dob = date(
                 base_year - age,
@@ -596,6 +600,28 @@ def _sample_age_band(demo: dict, rng: np.random.Generator) -> tuple[int, int]:
     bands, probs = _parse_age_distribution(demo)
     idx = int(rng.choice(len(bands), p=normalize_probabilities(probs, fallback="raise")))
     return bands[idx]
+
+
+def _sex_ratio_male_probability(demo: dict, age: int) -> float:
+    """Return P(male) for a person of the given age, per the demographics YAML.
+
+    Lookup order (Issue #741):
+      1. ``sex_ratio.age_conditional[<band>]`` where <band> covers ``age``
+      2. ``sex_ratio.male`` (top-level fallback)
+      3. ``SEX_RATIO_MALE_DEFAULT`` (constant)
+
+    Bands are inclusive ranges declared as ``"lo-hi"`` strings. The block
+    is optional; locales that omit it collapse to the single-probability
+    behaviour (RNG-shape neutral — the caller still issues one
+    ``rng.random()`` per person regardless of which branch resolves).
+    """
+    sr = demo.get("sex_ratio") or {}
+    age_cond = sr.get("age_conditional") or {}
+    for band_str, prob in age_cond.items():
+        lo_s, hi_s = str(band_str).split("-")
+        if int(lo_s) <= age <= int(hi_s):
+            return float(prob)
+    return float(sr.get("male", SEX_RATIO_MALE_DEFAULT))
 
 
 def _sample_blood_type(demo: dict, rng: np.random.Generator) -> str:

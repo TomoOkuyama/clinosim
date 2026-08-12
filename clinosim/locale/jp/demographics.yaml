@@ -16,6 +16,32 @@ age_distribution:
   "75-84": 0.10
   "85-99": 0.05
 
+# Sex ratio — P(male) at each age band.
+# Issue #741: real Japan shows a strong female skew in the elderly due to
+# female longevity (~6 years). Without age-conditional sampling the cohort
+# stays ~50/50 across all ages and mis-models the elderly F/M distribution.
+# Source: 総務省統計局 人口推計 2020 年 10 月 1 日
+# (https://www.stat.go.jp/data/jinsui/2020np/).
+#
+#   Age band | Male 千人 | Female 千人 | F/M   | P(male) = 1 / (1 + F/M)
+#   0-59     | (weighted avg, births slightly male-skewed) | ~1.00        | 0.510
+#   60-69    |     8,265 |       8,619 | 1.04  | 0.490
+#   70-79    |     6,890 |       8,231 | 1.20  | 0.455
+#   80-89    |     3,145 |       5,082 | 1.62  | 0.382
+#   90-99    |       465 |       1,568 | 3.37  | 0.229
+#
+# `male` (top-level fallback) stays at 0.49 so callers not looking up the
+# age-conditional block get the previous behaviour (RNG-shape neutral —
+# same rng.random() call, only the probability changes).
+sex_ratio:
+  male: 0.49
+  age_conditional:
+    "0-59":  0.510
+    "60-69": 0.490
+    "70-79": 0.455
+    "80-89": 0.382
+    "90-99": 0.229
+
 # Blood type distribution
 # Source: Japanese Red Cross (Japan-specific)
 blood_type:
