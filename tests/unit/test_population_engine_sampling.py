@@ -48,3 +48,64 @@ def test_sample_blood_type_raises_on_zero_sum():
     rng = np.random.default_rng(0)
     with pytest.raises(ValueError, match="non-positive sum"):
         _sample_blood_type(demo, rng)
+
+
+# --- Issue #741: age-conditional sex_ratio ---------------------------------
+
+
+def test_sex_ratio_male_probability_age_conditional_lookup():
+    from clinosim.modules.population.engine import _sex_ratio_male_probability
+
+    demo = {
+        "sex_ratio": {
+            "male": 0.49,
+            "age_conditional": {
+                "0-59": 0.510,
+                "60-69": 0.490,
+                "70-79": 0.455,
+                "80-89": 0.382,
+                "90-99": 0.229,
+            },
+        }
+    }
+    assert _sex_ratio_male_probability(demo, 30) == 0.510
+    assert _sex_ratio_male_probability(demo, 65) == 0.490
+    assert _sex_ratio_male_probability(demo, 75) == 0.455
+    assert _sex_ratio_male_probability(demo, 85) == 0.382
+    assert _sex_ratio_male_probability(demo, 95) == 0.229
+
+
+def test_sex_ratio_male_probability_boundary_ages():
+    from clinosim.modules.population.engine import _sex_ratio_male_probability
+
+    demo = {"sex_ratio": {"age_conditional": {"0-59": 0.510, "60-99": 0.400}}}
+    # Boundary at 59 → 0-59 band; 60 → 60-99 band.
+    assert _sex_ratio_male_probability(demo, 0) == 0.510
+    assert _sex_ratio_male_probability(demo, 59) == 0.510
+    assert _sex_ratio_male_probability(demo, 60) == 0.400
+    assert _sex_ratio_male_probability(demo, 99) == 0.400
+
+
+def test_sex_ratio_male_probability_falls_back_to_flat_male():
+    from clinosim.modules.population.engine import _sex_ratio_male_probability
+
+    demo = {"sex_ratio": {"male": 0.42}}  # no age_conditional
+    assert _sex_ratio_male_probability(demo, 40) == 0.42
+    assert _sex_ratio_male_probability(demo, 90) == 0.42
+
+
+def test_sex_ratio_male_probability_falls_back_to_default_when_yaml_missing():
+    from clinosim.modules.population._household_thresholds import SEX_RATIO_MALE_DEFAULT
+    from clinosim.modules.population.engine import _sex_ratio_male_probability
+
+    assert _sex_ratio_male_probability({}, 40) == SEX_RATIO_MALE_DEFAULT
+    # Empty age_conditional block also falls through to the single-male fallback.
+    assert _sex_ratio_male_probability({"sex_ratio": {"male": 0.47, "age_conditional": {}}}, 40) == 0.47
+
+
+def test_sex_ratio_age_conditional_out_of_range_falls_back():
+    from clinosim.modules.population.engine import _sex_ratio_male_probability
+
+    demo = {"sex_ratio": {"male": 0.49, "age_conditional": {"0-89": 0.500}}}
+    # 90 is outside any declared band → falls back to top-level `male`.
+    assert _sex_ratio_male_probability(demo, 90) == 0.49
