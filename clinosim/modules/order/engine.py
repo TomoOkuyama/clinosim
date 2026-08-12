@@ -688,6 +688,56 @@ def calculate_imaging_result_time(
 # ============================================================
 
 
+def order_resource_type(order: Order) -> str | None:
+    """Map an Order to its hospital-state resource key ("lab" / "ct" / "mri" / …).
+
+    Returns None for orders that do not consume a scheduled resource
+    (medication, diet, other) — those neither `update_for_time` nor
+    `add_to_queue` in the cold path. Single source of truth so both the
+    cold path (`calculate_result_time_from_state`) and the F4 cache-hit
+    queue-replay path (`replay_order_to_state`) classify orders the same
+    way (Issue #761).
+    """
+    order_type = order.order_type.value
+    if order_type == "lab":
+        return "lab"
+    if order_type == "imaging":
+        name_upper = order.display_name.upper()
+        if "MRI" in name_upper:
+            return "mri"
+        if "CT" in name_upper:
+            return "ct"
+        if "XRAY" in name_upper or "X-RAY" in name_upper or "CHEST" in name_upper:
+            return "xray"
+        if "ECHO" in name_upper or "ULTRA" in name_upper:
+            return "ultrasound"
+        return "xray"  # default imaging
+    return None
+
+
+def replay_order_to_state(order: Order, hospital_state: Any, hospital_ops: dict) -> None:
+    """Apply an already-resulted order's hospital-state side effects.
+
+    Mirrors the two state mutations `calculate_result_time_from_state`
+    performs (`hospital_state.update_for_time(order.ordered_datetime, …)`
+    followed by `hospital_state.add_to_queue(resource, …)`), without the
+    RNG-driven delay calculation. Used by the F4 cache-hit path
+    (`clinosim/simulator/engine.py`) to replay the queue increments a
+    cached admission's orders would have produced on the cold path, so
+    later unrelated admissions in the same run see the same hospital
+    congestion state (Issue #761). No-op for orders with no resource
+    (medication / diet / other) and when `hospital_state` is None
+    (legacy path).
+    """
+    if hospital_state is None:
+        return
+    resource = order_resource_type(order)
+    if resource is None:
+        return
+    hospital_state.update_for_time(order.ordered_datetime, hospital_ops)
+    hospital_state.add_to_queue(resource, hospital_ops)
+
+
 def calculate_result_time_from_state(
     order: Order,
     hospital_state: Any,
@@ -703,25 +753,8 @@ def calculate_result_time_from_state(
         return calculate_lab_result_time(order, rng)
 
     ordered = order.ordered_datetime
-
-    # Determine resource type
-    order_type = order.order_type.value
-    name_upper = order.display_name.upper()
-
-    if order_type == "lab":
-        resource = "lab"
-    elif order_type == "imaging":
-        if "MRI" in name_upper:
-            resource = "mri"
-        elif "CT" in name_upper:
-            resource = "ct"
-        elif "XRAY" in name_upper or "X-RAY" in name_upper or "CHEST" in name_upper:
-            resource = "xray"
-        elif "ECHO" in name_upper or "ULTRA" in name_upper:
-            resource = "ultrasound"
-        else:
-            resource = "xray"  # default imaging
-    else:
+    resource = order_resource_type(order)
+    if resource is None:
         # Medication, diet, etc. — no result time needed
         return ordered + timedelta(minutes=NONRESULT_ORDER_TRIVIAL_OFFSET_MIN)
 
