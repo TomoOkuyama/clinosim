@@ -31,6 +31,18 @@ class TestMappingLoader:
         assert pt_inr["loinc"] == "6301-6"
         assert pt_inr.get("rationale")
 
+    def test_ships_levothyroxine_pair(self):
+        # #757 pass 3a
+        mapping = load_medication_monitoring()
+        assert "Levothyroxine" in mapping
+        levo = mapping["Levothyroxine"]
+        assert "レボチロキシン" in levo.get("aliases", [])
+        monitoring = levo["monitoring"]
+        assert len(monitoring) >= 1
+        tsh = next(m for m in monitoring if m["lab"] == "TSH")
+        assert tsh["loinc"] == "3016-3"
+        assert tsh.get("rationale")
+
 
 class TestMatchDrugs:
     def setup_method(self):
@@ -47,6 +59,16 @@ class TestMatchDrugs:
 
     def test_matches_coumadin_alias(self):
         assert match_drugs([self._hm("Coumadin 5mg PO daily")], self.mapping) == ["Warfarin"]
+
+    def test_matches_levothyroxine_english(self):
+        assert match_drugs([self._hm("Levothyroxine 50mcg PO daily")], self.mapping) == ["Levothyroxine"]
+
+    def test_matches_levothyroxine_japanese_alias(self):
+        assert match_drugs([self._hm("レボチロキシン 50mcg")], self.mapping) == ["Levothyroxine"]
+
+    def test_matches_multiple_drugs_when_patient_on_both(self):
+        meds = [self._hm("Warfarin 3mg"), self._hm("Levothyroxine 50mcg")]
+        assert set(match_drugs(meds, self.mapping)) == {"Warfarin", "Levothyroxine"}
 
     def test_no_match_returns_empty(self):
         assert match_drugs([self._hm("Aspirin 81mg")], self.mapping) == []
@@ -67,11 +89,16 @@ def _build_record(
     *,
     patient_id: str = "POP-000042",
     on_warfarin: bool = True,
+    on_levothyroxine: bool = False,
     encounter_type: EncounterType = EncounterType.OUTPATIENT,
     existing_orders: list[Order] | None = None,
 ) -> Any:
     """Assemble a minimal record + patient + encounter shape the enricher can walk."""
-    meds = [HomeMedication(drug_name="Warfarin 3mg", route="PO")] if on_warfarin else []
+    meds: list[HomeMedication] = []
+    if on_warfarin:
+        meds.append(HomeMedication(drug_name="Warfarin 3mg", route="PO"))
+    if on_levothyroxine:
+        meds.append(HomeMedication(drug_name="Levothyroxine 50mcg", route="PO"))
     patient = SimpleNamespace(
         patient_id=patient_id,
         sex="M",
@@ -182,6 +209,31 @@ class TestEnricher:
         enrich_medication_monitoring(_build_ctx([rec]))
         assert rec.orders == []
         assert rec.lab_results == []
+
+    def test_injects_tsh_for_levothyroxine_outpatient(self):
+        # #757 pass 3a — TSH is not physiology-modeled; verifies BASELINE_LAB_NORMALS
+        # fallback kicks in so we don't skip the injection on `true_value is None`.
+        rec = _build_record(on_warfarin=False, on_levothyroxine=True)
+        enrich_medication_monitoring(_build_ctx([rec]))
+        assert len(rec.orders) == 1
+        order = rec.orders[0]
+        assert order.display_name == "TSH"
+        assert order.order_code == "3016-3"
+        assert "Levothyroxine" in order.clinical_intent
+        assert order.status == OrderStatus.RESULTED
+        assert order.result is not None
+        # Normal reference-range emit with light noise; allow 0.5-5.5 (well within
+        # the physiologic 3.0-18.0 limits but around the 2.5 mIU/L baseline center).
+        assert 0.5 <= float(order.result.value) <= 5.5
+        assert order.result.lab_name == "TSH"
+        assert order.result.unit == "m[IU]/L"
+
+    def test_injects_both_labs_when_patient_on_warfarin_and_levothyroxine(self):
+        rec = _build_record(on_warfarin=True, on_levothyroxine=True)
+        enrich_medication_monitoring(_build_ctx([rec]))
+        analytes = {o.display_name for o in rec.orders}
+        assert analytes == {"PT_INR", "TSH"}
+        assert len(rec.lab_results) == 2
 
     def test_no_op_when_master_rng_untouched(self):
         # RNG-preservation invariant: an enricher run must never advance the
