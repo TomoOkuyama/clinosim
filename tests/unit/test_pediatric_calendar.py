@@ -16,10 +16,15 @@ pytestmark = pytest.mark.unit
 
 
 class TestLoadPediatricSchedule:
-    def test_shipped_schedule_is_empty_in_foundation(self):
-        # #760 pass 1 — foundation ships with `encounters:` intentionally
-        # empty so the module is byte-diff neutral until pass 2 fills it.
-        assert load_pediatric_schedule() == {}
+    def test_shipped_schedule_has_well_child_entries(self):
+        # #760 pass 2 — well-child ships as the first registered
+        # encounter-type family. Pass 1 shipped an empty schedule; this
+        # test replaces the pass-1 empty-assertion.
+        schedule = load_pediatric_schedule()
+        assert set(schedule) >= {"well_child_infant", "well_child_early", "well_child_school"}
+        assert schedule["well_child_infant"]["age_min"] == 0
+        assert schedule["well_child_infant"]["age_max"] == 1
+        assert schedule["well_child_school"]["age_max"] == 18
 
     def test_valid_entry_round_trips(self, tmp_path):
         p = tmp_path / "schedule.yaml"
@@ -180,9 +185,23 @@ class TestGeneratePediatricEvents:
         assert [e.timestamp for e in ev_a] == [e.timestamp for e in ev_b]
         assert [e.disease_id for e in ev_a] == [e.disease_id for e in ev_b]
 
-    def test_yaml_shipped_file_produces_no_events_for_any_age(self):
-        # Integration invariant: iterate a few ages, confirm no events
-        # emerge from the shipped (empty) YAML.
+    def test_yaml_shipped_file_produces_well_child_events_for_pediatric_ages(self):
+        # #760 pass 2 — shipped YAML activates well-child visits.
+        # Infants get 6-8 visits, ages 2-4 get 2-3, ages 5-18 get 1;
+        # adults (age >= 19) get zero.
         rng = np.random.default_rng(0)
-        for age in (0, 3, 10, 17, 40, 90):
-            assert generate_pediatric_events(self._person(age), 2025, rng) == []
+        # Infant: 6-8 well-child visits.
+        infant_events = generate_pediatric_events(self._person(0), 2025, rng)
+        assert 6 <= len(infant_events) <= 8
+        assert all(e.disease_id == "well_child_infant" for e in infant_events)
+        # Early childhood: 2-3 well-child visits.
+        early_events = generate_pediatric_events(self._person(3), 2025, np.random.default_rng(0))
+        assert 2 <= len(early_events) <= 3
+        assert all(e.disease_id == "well_child_early" for e in early_events)
+        # School-age: 1 visit.
+        school_events = generate_pediatric_events(self._person(10), 2025, np.random.default_rng(0))
+        assert len(school_events) == 1
+        assert school_events[0].disease_id == "well_child_school"
+        # Adult: zero events (out of every age band).
+        assert generate_pediatric_events(self._person(40), 2025, np.random.default_rng(0)) == []
+        assert generate_pediatric_events(self._person(90), 2025, np.random.default_rng(0)) == []

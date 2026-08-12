@@ -119,6 +119,22 @@ _HEALTH_SCREENING_VISIT_REASON = {
 }
 
 
+def _pediatric_visit_reason(disease_id: str) -> str:
+    """Look up the visit_reason for a `pediatric_visit` LifeEvent from the schedule YAML.
+
+    Falls back to a generic label if the id is not in the schedule (e.g., if a
+    LifeEvent was authored by an out-of-tree tool). Loaded lazily to avoid
+    import-time cost when the module is unused. Issue #760 pass 2.
+    """
+    from clinosim.modules.pediatric.calendar import load_pediatric_schedule
+
+    schedule = load_pediatric_schedule()
+    entry = schedule.get(disease_id)
+    if entry and entry.get("visit_reason"):
+        return str(entry["visit_reason"])
+    return f"Pediatric visit: {disease_id}"
+
+
 # ============================================================
 # Main entry point
 # ============================================================
@@ -705,6 +721,27 @@ def run_beta(
                 ev_rng,
                 chronic_code=event.disease_id,
                 followup_spec=merged_spec,
+                country=config.country,
+                config=config,
+            )
+        elif event.event_type == "pediatric_visit":
+            # Issue #760 pass 2: well-child visit dispatch. No labs (pediatric
+            # well-visits focus on growth-chart vitals + development screen +
+            # vaccinations rather than lab draws before school age).
+            # `_simulate_outpatient_visit` uses visit_type to select the
+            # vitals-set (temp / hr / weight for pediatric, no labs), and the
+            # visit_reason is looked up from `pediatric_schedule.yaml`.
+            opd_record = _simulate_outpatient_visit(
+                patient,
+                "pediatric_visit",
+                visit_time,
+                roster,
+                ev_rng,
+                chronic_code=event.disease_id or "pediatric_visit",
+                followup_spec={
+                    "labs": [],
+                    "visit_reason": _pediatric_visit_reason(event.disease_id),
+                },
                 country=config.country,
                 config=config,
             )

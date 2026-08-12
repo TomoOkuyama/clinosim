@@ -15,4 +15,36 @@
 # and immunization; pass 3+ add pediatric acute and adolescent
 # behavioural. See `README.md` for the roadmap.
 
-encounters: {}
+encounters:
+  # Well-child visits per AAP / Bright Futures 2023 periodicity schedule.
+  # Ages 0-1 (infants) receive 8 well-child visits per AAP schedule
+  # (newborn, 1mo, 2mo, 4mo, 6mo, 9mo, 12mo, 15mo) — cohort emit is
+  # slightly narrower (6-8) to allow inter-patient variance and account
+  # for late enrollment / catch-up variability.
+  well_child_infant:
+    age_min: 0
+    age_max: 1
+    visits_per_year: [6, 7, 8]
+    encounter_type: outpatient
+    disease_id: well_child_infant
+    visit_reason: "Well-child visit — infant"
+
+  # Ages 2-4 (early childhood): 2-3 visits/yr per AAP (18mo, 24mo, 30mo,
+  # 3yr, 4yr — annualized 2-3/yr in this age band).
+  well_child_early:
+    age_min: 2
+    age_max: 4
+    visits_per_year: [2, 3]
+    encounter_type: outpatient
+    disease_id: well_child_early
+    visit_reason: "Well-child visit — early childhood"
+
+  # Ages 5-18 (school-age + adolescent): 1 well-child visit / annual
+  # physical per AAP + AAP Bright Futures for older children.
+  well_child_school:
+    age_min: 5
+    age_max: 18
+    visits_per_year: [1]
+    encounter_type: outpatient
+    disease_id: well_child_school
+    visit_reason: "Well-child visit — school-age / adolescent annual"
