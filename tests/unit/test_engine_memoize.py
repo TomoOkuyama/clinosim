@@ -232,23 +232,7 @@ def _canonical_cmp(rec: CIFPatientRecord) -> object:
        content directly from ``config.snapshot_date`` as an as-of reference
        date (AD-32-style, by-design), not purely from a per-patient RNG
        sub-seed, so it is out of scope for a cache/RNG-determinism invariant.
-    2. ``result_datetime`` fields on ``lab_results[]`` and
-       ``orders[].result`` are stripped after JSON encoding — Issue #739
-       campaign follow-up. The ``test_memoize_hit_bit_identical`` docstring's
-       "★ もう 1 件、stress test で確認した別 class の既知の限界" section
-       records the cross-patient lab-queue-drift class: a cache-hit
-       admission does not fire its own ``hospital_state.add_to_queue``
-       increments, so later unrelated admissions in the same run see a
-       different queue state → different ``calculate_result_time_from_state``
-       output → drift on ``result_datetime`` only. The docstring says the
-       proper fix touches ``order/engine.py`` / ``hospital_state.py`` and
-       is out-of-scope for the memoize test itself. The recalibrated
-       ``chronic_prevalence`` YAMLs shipped as part of #739 shifted the
-       encounter/queue pattern into the "consistently triggers" zone for the
-       default p=100/seed=42 config, so this field-level exclusion is now
-       required for the test to keep guarding everything else. Follow-up
-       Issue #761 owns the underlying memoize/queue fix.
-    3. The whole record is then round-tripped through the exact JSON
+    2. The whole record is then round-tripped through the exact JSON
        encoding ``cif_writer.write_cif`` uses (``_CIFEncoder``) and reloaded,
        instead of comparing raw dataclass instances with ``==``. A cache-hit
        record has been loaded back from JSON via
@@ -267,33 +251,21 @@ def _canonical_cmp(rec: CIFPatientRecord) -> object:
        ``_o()`` helper) — CIF read from disk always presents extensions as
        dicts. Normalizing both sides to the same canonical JSON form isolates
        genuine content drift from this expected representation gap.
+
+    Historic note (Issue #762 / #761): between #762 (chronic-prevalence
+    recalibration that shipped 2026-08-12) and #761 (memoize queue
+    replay), an interim ``_strip_result_datetime`` walker excluded
+    ``result_datetime`` fields to accommodate the cross-patient lab-queue
+    drift class documented in ``test_memoize_hit_bit_identical``. #761
+    (this file's landing state) fixes the underlying drift by replaying
+    the cache-hit admission's queue increments to ``hospital_state`` on
+    the memo side, so the exclusion has been reverted and every field —
+    including ``result_datetime`` — is again guarded.
     """
     from clinosim.modules.output.cif_writer import _CIFEncoder
 
     normalized = replace(rec, immunizations=[])
-    dumped = json.loads(json.dumps(asdict(normalized), cls=_CIFEncoder, sort_keys=True))
-    _strip_result_datetime(dumped)
-    return dumped
-
-
-def _strip_result_datetime(obj: object) -> None:
-    """Recursively delete `result_datetime` keys from `obj` in place.
-
-    See `_canonical_cmp` docstring exclusion #2 (Issue #739 follow-up):
-    the cross-patient lab-queue-drift class documented in the
-    `test_memoize_hit_bit_identical` docstring only manifests on
-    `result_datetime`. Excluding it here (matching the `immunizations`
-    exclusion pattern) preserves the test's guard for every other field
-    while acknowledging the known limitation until Issue #761's underlying
-    fix lands.
-    """
-    if isinstance(obj, dict):
-        obj.pop("result_datetime", None)
-        for v in obj.values():
-            _strip_result_datetime(v)
-    elif isinstance(obj, list):
-        for item in obj:
-            _strip_result_datetime(item)
+    return json.loads(json.dumps(asdict(normalized), cls=_CIFEncoder, sort_keys=True))
 
 
 @pytest.mark.integration

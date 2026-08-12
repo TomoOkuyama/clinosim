@@ -6,6 +6,7 @@ import sys
 import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -14,6 +15,7 @@ from clinosim.locale.loader import load_demographics
 from clinosim.modules._shared import is_jp
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.healthcare_system.loader import load_healthcare_config
+from clinosim.modules.order.engine import replay_order_to_state
 from clinosim.modules.patient.activator import activate_patient
 from clinosim.modules.population.engine import (
     LifeEvent,
@@ -79,6 +81,31 @@ from clinosim.types.config import ForcedScenario, SimulatorConfig
 from clinosim.types.encounter import EncounterType
 from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
 from clinosim.types.patient import PatientProfile
+
+
+def _replay_cached_admission_queue(
+    record: CIFPatientRecord | None,
+    hospital_state: Any,
+    hospital_ops: dict,
+) -> None:
+    """Apply a cache-hit admission's lab/imaging queue increments to hospital_state.
+
+    Issue #761: on the cold path, each order in `_simulate_patient` calls
+    `calculate_result_time_from_state` → `hospital_state.add_to_queue`,
+    so later unrelated admissions see the accumulated congestion. A cache
+    hit skips `_simulate_patient` entirely, dropping those increments —
+    so `result_datetime` on later cold-simulated admissions drifts from
+    the cold-only run. This helper replays the two state mutations
+    (`update_for_time` + `add_to_queue`) for every lab/imaging order in
+    the cached record so the queue accumulates identically across cold
+    and memo runs. No-op when the record is None or hospital_state is
+    None (legacy path).
+    """
+    if record is None or hospital_state is None:
+        return
+    for order in record.orders:
+        replay_order_to_state(order, hospital_state, hospital_ops)
+
 
 # F1: `generate_healthcare_calendar` emits several distinct
 # screening kinds under the same `event_type == "health_screening"` (see the
@@ -414,6 +441,11 @@ def run_beta(
             record: CIFPatientRecord | None
             if cache_key in prev_admission_cache:
                 record = prev_admission_cache[cache_key]
+                # Issue #761: replay lab/imaging queue increments so later
+                # unrelated admissions see the same congestion state as they
+                # would on the cold path (the cache-hit admission never
+                # entered `calculate_result_time_from_state`).
+                _replay_cached_admission_queue(record, hospital_state, hospital_ops)
             else:
                 record = _simulate_unknown_condition(
                     patient,
@@ -446,6 +478,11 @@ def run_beta(
 
         if cache_key in prev_admission_cache:
             record = prev_admission_cache[cache_key]
+            # Issue #761: replay lab/imaging queue increments so later
+            # unrelated admissions see the same congestion state as they
+            # would on the cold path (the cache-hit admission never
+            # entered `calculate_result_time_from_state`).
+            _replay_cached_admission_queue(record, hospital_state, hospital_ops)
         else:
             record = _simulate_patient(
                 patient,
