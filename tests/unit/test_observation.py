@@ -8,6 +8,7 @@ from clinosim.modules.observation.engine import (
     BIOLOGICAL_CV,
     PHYSIOLOGIC_LIMITS,
     apply_realistic_variability,
+    clamp_to_physiologic_limits,
     determine_flag,
     round_to_precision,
 )
@@ -50,6 +51,32 @@ class TestVariability:
         results = [apply_realistic_variability("K", 4.2, rng) for _ in range(100)]
         assert min(results) != max(results)
         assert all(PHYSIOLOGIC_LIMITS["K"][0] <= r <= PHYSIOLOGIC_LIMITS["K"][1] for r in results)
+
+
+@pytest.mark.unit
+class TestClampToPhysiologicLimits:
+    # Issue #735: hemolysis lift on K/LDH previously bypassed PHYSIOLOGIC_LIMITS
+    # in lab_pipeline.py, producing K > 10 mmol/L on HF encounters. This
+    # helper is the shared clip callers now apply after any perturbation.
+    def test_clamps_above_upper(self):
+        # K 12 mmol/L (post-hemolysis) must clip to K upper limit 8.5.
+        assert clamp_to_physiologic_limits("K", 12.0) == PHYSIOLOGIC_LIMITS["K"][1]
+
+    def test_clamps_below_lower(self):
+        assert clamp_to_physiologic_limits("K", 1.0) == PHYSIOLOGIC_LIMITS["K"][0]
+
+    def test_passthrough_within_range(self):
+        assert clamp_to_physiologic_limits("K", 5.5) == 5.5
+
+    def test_unlisted_analyte_only_negative_floor(self):
+        # No PHYSIOLOGIC_LIMITS entry → max(0, value).
+        assert clamp_to_physiologic_limits("NoSuchLab", 42.0) == 42.0
+        assert clamp_to_physiologic_limits("NoSuchLab", -3.0) == 0.0
+
+    def test_hemolysis_max_lift_on_ceiling_true_value(self):
+        # true K 8.0 * hemolysis lift ceiling 1.8 = 14.4 mmol/L
+        # (life-incompatible). Clamp brings it back to 8.5.
+        assert clamp_to_physiologic_limits("K", 8.0 * 1.8) == 8.5
 
 
 @pytest.mark.unit
