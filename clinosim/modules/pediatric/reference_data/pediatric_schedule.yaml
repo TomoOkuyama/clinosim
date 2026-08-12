@@ -89,3 +89,57 @@ encounters:
     encounter_type: outpatient
     disease_id: immunization_adolescent
     visit_reason: "Immunization visit — adolescent bundle (Tdap / HPV / MCV4)"
+
+  # ---- Pediatric acute presentations (#760 pass 4) ----
+  # Ambulatory-visit-generating pediatric acute illnesses. The
+  # `visits_per_year` list approximates a probability distribution — the
+  # generator uniformly samples one entry, so `[0, 0, 1]` means 33% chance
+  # of one visit that year, 67% chance of zero. Frequencies calibrated to
+  # published pediatric primary-care utilization (AAP practice patterns,
+  # CDC ambulatory-care data 2019 — pre-COVID baseline). Real-world
+  # counts include lots of self-limiting URI that never reach a clinician
+  # (parental judgment); these entries represent care-seeking encounters.
+  #
+  # NOTE: modelled as outpatient visits, not ED / inpatient. Bronchiolitis
+  # severe enough to hospitalize is a small minority; the majority of
+  # bronchiolitis / otitis / URI care is ambulatory. Follow-up work can
+  # add an emergency variant when the ED cohort grows.
+  pediatric_bronchiolitis:
+    age_min: 0
+    age_max: 2
+    visits_per_year: [0, 0, 0, 1]
+    encounter_type: outpatient
+    disease_id: pediatric_bronchiolitis
+    visit_reason: "Acute bronchiolitis — outpatient management"
+
+  pediatric_otitis_media_early:
+    age_min: 0
+    age_max: 5
+    visits_per_year: [0, 1, 1, 2]
+    encounter_type: outpatient
+    disease_id: pediatric_otitis_media
+    visit_reason: "Acute otitis media — outpatient antibiotic management"
+
+  pediatric_uri_young:
+    age_min: 0
+    age_max: 5
+    visits_per_year: [1, 2, 2, 3]
+    encounter_type: outpatient
+    disease_id: pediatric_uri
+    visit_reason: "Upper respiratory infection with fever — outpatient supportive care"
+
+  pediatric_uri_school:
+    age_min: 6
+    age_max: 12
+    visits_per_year: [0, 1, 1, 2]
+    encounter_type: outpatient
+    disease_id: pediatric_uri
+    visit_reason: "Upper respiratory infection with fever — school-age outpatient visit"
+
+  pediatric_uri_adolescent:
+    age_min: 13
+    age_max: 18
+    visits_per_year: [0, 0, 1]
+    encounter_type: outpatient
+    disease_id: pediatric_uri
+    visit_reason: "Upper respiratory infection with fever — adolescent outpatient visit"
