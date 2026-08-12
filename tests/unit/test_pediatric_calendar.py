@@ -58,6 +58,22 @@ class TestLoadPediatricSchedule:
         assert schedule["pediatric_uri_school"]["age_max"] == 12
         assert schedule["pediatric_uri_adolescent"]["age_min"] == 13
 
+    def test_shipped_schedule_has_injury_and_behavioural_entries(self):
+        # #760 pass 5 (final) — injury (5-18) + adolescent behavioural (12-18).
+        schedule = load_pediatric_schedule()
+        assert set(schedule) >= {
+            "pediatric_injury_school",
+            "pediatric_injury_adolescent",
+            "pediatric_behavioural_adolescent",
+        }
+        # Injury covers 5-18 across two bands (5-12 school, 13-18 adolescent).
+        assert schedule["pediatric_injury_school"]["age_min"] == 5
+        assert schedule["pediatric_injury_school"]["age_max"] == 12
+        assert schedule["pediatric_injury_adolescent"]["age_min"] == 13
+        # Behavioural fires 12-18 only.
+        assert schedule["pediatric_behavioural_adolescent"]["age_min"] == 12
+        assert schedule["pediatric_behavioural_adolescent"]["age_max"] == 18
+
     def test_valid_entry_round_trips(self, tmp_path):
         p = tmp_path / "schedule.yaml"
         p.write_text(
@@ -242,21 +258,31 @@ class TestGeneratePediatricEvents:
         kg_ids = {e.disease_id for e in kg_events}
         assert "well_child_school" in kg_ids
         assert "immunization_kindergarten" in kg_ids
-        # School-age 8 — well_child_school guaranteed; URI possible.
+        # School-age 8 — well_child_school guaranteed; URI + injury possible.
         school_events = generate_pediatric_events(self._person(8), 2025, np.random.default_rng(0))
         school_ids = {e.disease_id for e in school_events}
         assert "well_child_school" in school_ids
-        assert school_ids.issubset({"well_child_school", "pediatric_uri"})
-        # Adolescent 12 — well_child_school + immunization_adolescent guaranteed.
+        assert school_ids.issubset({"well_child_school", "pediatric_uri", "pediatric_injury"})
+        # Adolescent 12 — well_child_school + immunization_adolescent guaranteed;
+        # URI + injury + behavioural possible (pass 5).
         adol_events = generate_pediatric_events(self._person(12), 2025, np.random.default_rng(0))
         adol_ids = {e.disease_id for e in adol_events}
         assert "well_child_school" in adol_ids
         assert "immunization_adolescent" in adol_ids
-        # Late adolescent 17 — well_child_school guaranteed; URI possible.
+        assert adol_ids.issubset(
+            {
+                "well_child_school",
+                "immunization_adolescent",
+                "pediatric_uri",
+                "pediatric_injury",
+                "pediatric_behavioural",
+            }
+        )
+        # Late adolescent 17 — well_child_school guaranteed; URI + injury + behavioural possible.
         late_events = generate_pediatric_events(self._person(17), 2025, np.random.default_rng(0))
         late_ids = {e.disease_id for e in late_events}
         assert "well_child_school" in late_ids
-        assert late_ids.issubset({"well_child_school", "pediatric_uri"})
+        assert late_ids.issubset({"well_child_school", "pediatric_uri", "pediatric_injury", "pediatric_behavioural"})
         # Adult: zero events (out of every age band).
         assert generate_pediatric_events(self._person(40), 2025, np.random.default_rng(0)) == []
         assert generate_pediatric_events(self._person(90), 2025, np.random.default_rng(0)) == []

@@ -143,3 +143,41 @@ encounters:
     encounter_type: outpatient
     disease_id: pediatric_uri
     visit_reason: "Upper respiratory infection with fever — adolescent outpatient visit"
+
+  # ---- Injury (#760 pass 5) ----
+  # Ambulatory injury encounters (playground / bicycle / MVA passenger,
+  # sports). ED / inpatient injury variants are out of scope for this
+  # pass (the adult trauma encounter engine already emits severe MVA
+  # etc. — see demographics.yaml disease_incidence). AAP well-child
+  # anticipatory-guidance sections list injury as the leading cause of
+  # ambulatory care encounters for ages 5-18 outside routine visits.
+  pediatric_injury_school:
+    age_min: 5
+    age_max: 12
+    visits_per_year: [0, 0, 1]
+    encounter_type: outpatient
+    disease_id: pediatric_injury
+    visit_reason: "Minor injury — playground / bicycle fall, outpatient management"
+
+  pediatric_injury_adolescent:
+    age_min: 13
+    age_max: 18
+    visits_per_year: [0, 0, 0, 1]
+    encounter_type: outpatient
+    disease_id: pediatric_injury
+    visit_reason: "Sports-related injury or minor trauma — adolescent outpatient visit"
+
+  # ---- Adolescent behavioural health (#760 pass 5) ----
+  # AAP Bright Futures 2023 includes annual behavioural / mental health
+  # screening for adolescents 12+, with a fraction converting to
+  # a dedicated follow-up visit when screening flags anxiety / depression /
+  # ADHD. Modelled as low-frequency: ~1 in 4 adolescents per year has
+  # a behavioural-health-labelled ambulatory encounter distinct from the
+  # annual well-child physical (CDC BRFSS + MEPS ambulatory-care data).
+  pediatric_behavioural_adolescent:
+    age_min: 12
+    age_max: 18
+    visits_per_year: [0, 0, 0, 1]
+    encounter_type: outpatient
+    disease_id: pediatric_behavioural
+    visit_reason: "Adolescent behavioural / mental health follow-up (anxiety / mood / ADHD screening positive)"
