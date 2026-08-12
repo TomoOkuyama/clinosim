@@ -11,14 +11,21 @@ No state module or ``cursor.json`` is needed. The cache directory is the
 previous snapshot's output directory itself; only a single
 ``_cache_manifest.json`` file coexists alongside it.
 
-**Two known limitations** were confirmed under stress test at
-implementation time (p=300-1000, multiple seeds). Both require touching
-files outside the cache-hit path insertion range
-(``clinosim/simulator/engine.py`` admission loop only) — specifically
-``clinosim/simulator/inpatient.py``, ``clinosim/modules/order/engine.py``,
-and ``clinosim/modules/facility/hospital_state.py``. They are recorded
+**One known limitation** remains after Issue #761's cache-hit queue
+replay landed. It requires touching ``clinosim/simulator/inpatient.py``,
+which is outside the cache-hit path insertion range
+(``clinosim/simulator/engine.py`` admission loop only), and is recorded
 here as follow-up backlog rather than fixed inline because the required
-fixes fall outside this module's scope.
+fix falls outside this module's scope.
+
+(A second limitation, cross-patient ``result_datetime`` drift from
+uncounted ``hospital_state`` queue increments on cache-hit admissions,
+was fixed in Issue #761 by replaying each cached admission's lab /
+imaging orders through ``replay_order_to_state`` on the memo side —
+see ``clinosim/simulator/engine.py::_replay_cached_admission_queue``.
+That limitation is no longer active; historical detail is preserved at
+the bottom of this docstring for context and for the corresponding note
+in ``test_memoize_hit_bit_identical``.)
 
 1. **``_IMPLIED_CHRONIC_BY_DISEASE`` accretion**
    (``inpatient.py:493``). When ``_simulate_patient`` sees an admission
@@ -78,25 +85,30 @@ fixes fall outside this module's scope.
    previous CIF's ``_deactivate_to_layer1`` Layer 2 restore on the memo
    side; that has been captured on Issue #440 as Phase 2.
 
-2. **``HospitalState`` resource-queue congestion**
-   (``clinosim/modules/order/engine.py``:``calculate_result_time_from_state``
-   → ``hospital_state.add_to_queue``). The result turnaround for a lab
-   or imaging order depends on the *cumulative, shared* congestion
-   state ``hospital_state.lab_queue`` / ``ct_queue`` etc. A cache-hit
-   admission never produces the queue increments its lab / imaging
-   orders would have produced, so the ``result_datetime`` of unrelated
-   admissions later in the same run (not even necessarily the same
-   patient) can drift compared with the cold run. Stress test at
-   p=300-1000 across multiple seeds reproduces the drift; the magnitude
-   is on the order of tens of minutes, and dates and clinical content
-   are unaffected. Unlike limitation 1 this cannot be caught by a
-   per-patient exclusion because it propagates across patients. The
-   admission-loop-only cache scope in this module does not address it;
-   a permanent fix requires either making ``hospital_state`` queues
-   purely time-based (no cumulative dependency) or replaying the
-   cache-hit admission's queue increments on the memo side. Recorded
-   on ``TODO.md`` as backlog for whichever future PR touches
-   ``hospital_state.py`` or ``order/engine.py``.
+Historic — fixed by Issue #761
+------------------------------
+
+**``HospitalState`` resource-queue congestion**
+(``clinosim/modules/order/engine.py``:``calculate_result_time_from_state``
+→ ``hospital_state.add_to_queue``). The result turnaround for a lab or
+imaging order depends on the *cumulative, shared* congestion state
+``hospital_state.lab_queue`` / ``ct_queue`` etc. A cache-hit admission
+never produced the queue increments its lab / imaging orders would have
+produced, so the ``result_datetime`` of unrelated admissions later in
+the same run (not even necessarily the same patient) drifted from the
+cold run. Stress test at p=300-1000 across multiple seeds reproduced
+the drift on the order of tens of minutes (dates and clinical content
+unaffected). #762's chronic-prevalence recalibration shifted the
+default ``test_memoize_hit_bit_identical`` config (p=100 / seed=42 /
+1 mo advance) into the "consistently triggers" zone and forced the
+interim ``_strip_result_datetime`` workaround in ``_canonical_cmp``.
+Issue #761's fix reverted the workaround: the cache-hit branches in
+``clinosim/simulator/engine.py`` now call
+``_replay_cached_admission_queue``, which iterates the loaded record's
+``orders`` and applies ``update_for_time`` + ``add_to_queue`` for each
+lab / imaging order via ``clinosim/modules/order/engine.py::``
+``replay_order_to_state``. Zero RNG draws are added on the memo path,
+and cold and memo runs now produce bit-identical ``result_datetime``.
 """
 
 from __future__ import annotations
