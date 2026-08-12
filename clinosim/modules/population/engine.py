@@ -762,6 +762,17 @@ def generate_healthcare_calendar(
         if not person.is_alive:
             continue
 
+        # --- Pediatric encounters (Issue #760) ---
+        # Placed BEFORE the `if not conditions_with_spec: continue` gate so
+        # pediatric patients (who typically carry no chronic conditions in
+        # `followup_data`) still receive their well-child / immunization
+        # visits. Byte-diff neutral when the schedule is empty (foundation
+        # pass 1 invariant, still exercised by
+        # test_empty_schedule_returns_no_events_and_does_not_consume_rng).
+        from clinosim.modules.pediatric.calendar import generate_pediatric_events
+
+        events.extend(generate_pediatric_events(person, year, prng))
+
         # --- Chronic disease visits ---
         # Group conditions into combined visits (real patients see one doctor
         # for multiple conditions in a single visit)
@@ -893,19 +904,6 @@ def generate_healthcare_calendar(
                     protocol_source="encounter:diabetic_retinopathy_screening",
                 )
             )
-
-        # --- Pediatric encounters (Issue #760 foundation) ---
-        # No-op when `pediatric_schedule.yaml` `encounters:` block is empty
-        # (foundation default) — the generator returns [] without consuming
-        # any rng, so cohort output stays byte-identical to pre-module runs.
-        # Pass 2 will register well-child / immunization entries; the
-        # generator then draws from `prng` per matching pediatric patient.
-        # Positioned at the end of the per-person loop so consumption from
-        # `prng` (once entries are added) has no downstream effect on this
-        # person's other draws.
-        from clinosim.modules.pediatric.calendar import generate_pediatric_events
-
-        events.extend(generate_pediatric_events(person, year, prng))
 
     return events
 
