@@ -36,6 +36,7 @@ import numpy as np
 
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
+    clamp_to_physiologic_limits,
     determine_flag,
     generate_lab_result,
     get_lab_unit,
@@ -101,9 +102,14 @@ def _run_lab_result_pipeline(
                 order.status = OrderStatus.CANCELLED
                 continue  # specimen lost/rejected
             if canon in HEMOLYSIS_PRONE_LABS and lab_rng.random() < HEMOLYSIS_RATE:
-                # Hemolyzed sample → falsely elevated K/LDH, flagged
+                # Hemolyzed sample → falsely elevated K/LDH, flagged.
+                # Issue #735: clamp to PHYSIOLOGIC_LIMITS so the falsely-lifted
+                # value stays within a survivable band (e.g. K ≤ 8.5 mmol/L,
+                # matching real clinical lab behavior of rejecting samples that
+                # would report life-incompatible K).
                 result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, lab_rng)
                 hemolyzed_val = true_labs[canon] * float(lab_rng.uniform(*HEMOLYSIS_LIFT_RANGE))
+                hemolyzed_val = clamp_to_physiologic_limits(canon, hemolyzed_val)
                 lab_tech = assign_staff("lab_result", "", roster, lab_rng).get(
                     "performing_technician", FALLBACK_TECH_ID
                 )
@@ -164,7 +170,9 @@ def _run_lab_result_pipeline(
                 sub_rng,
             ).get("performing_technician", FALLBACK_TECH_ID)
             if canon in HEMOLYSIS_PRONE_LABS and sub_rng.random() < HEMOLYSIS_RATE:
+                # Issue #735: same PHYSIOLOGIC_LIMITS clamp as Pass 1 above.
                 hemolyzed_val = true_labs[canon] * float(sub_rng.uniform(*HEMOLYSIS_LIFT_RANGE))
+                hemolyzed_val = clamp_to_physiologic_limits(canon, hemolyzed_val)
                 child.result = OrderResult(
                     result_datetime=result_time,
                     performed_by=lab_tech,
