@@ -137,6 +137,11 @@ def _simulate_outpatient_visit(
         fields = profile_by_chronic[chronic_code]
     elif visit_type == "health_screening":
         fields = {"temp", "hr", "bp", "rr", "spo2"}
+    elif visit_type == "pediatric_visit":
+        # #760 pass 2 — well-child visits measure growth-chart vitals
+        # (temperature + heart rate; weight/height are typed elsewhere on
+        # the patient record). No spo2 / bp / rr in a well-child visit.
+        fields = {"temp", "hr"}
     else:
         fields = {"hr", "bp"}
 
