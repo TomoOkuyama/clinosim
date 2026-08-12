@@ -26,3 +26,10 @@ mappings:
       - lab: PT_INR
         loinc: "6301-6"
         rationale: "Anticoagulation therapeutic monitoring — INR target 2.0-3.0 (or 2.5-3.5 for mechanical valves)."
+
+  Levothyroxine:
+    aliases: ["レボチロキシン", "synthroid", "levoxyl", "レボチロキシンナトリウム"]
+    monitoring:
+      - lab: TSH
+        loinc: "3016-3"
+        rationale: "Thyroid replacement titration — TSH target 0.5-4.0 mIU/L (broader in older adults). ATA / JES guideline: 6-8 weeks after any dose change, then every 6-12 months once stable."

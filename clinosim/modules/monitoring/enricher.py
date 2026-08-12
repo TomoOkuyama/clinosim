@@ -154,15 +154,22 @@ def _existing_analytes(record: Any) -> set[str]:
 
 
 def _derive_true_labs_for_patient(patient: Any, matched_drugs: list[str]) -> dict[str, float]:
-    """Physiology-derived lab true-values with the appropriate medication flags on.
+    """Physiology-derived lab true-values with the appropriate medication flags on,
+    merged with the BASELINE_LAB_NORMALS reference-normal fallback.
 
     Delegates to ``physiology.engine.derive_lab_values`` and
     ``medication_flags_from_context`` so the emitted PT_INR (warfarin case)
     lands in the therapeutic 2.0-3.0 band exactly as it would for a
-    warfarin patient on a sepsis / AF encounter. Physiological state is
-    the patient's baseline snapshot when present, else a default
-    healthy state — matches the outpatient enricher pattern.
+    warfarin patient on a sepsis / AF encounter. Analytes that physiology
+    does not model (e.g. TSH — no ``on_levothyroxine`` flag exists yet)
+    fall through to ``BASELINE_LAB_NORMALS`` — matches the outpatient
+    call site pattern (``simulator/outpatient.py``:229 uses the same
+    ``true_labs.get(canon, baseline_values.get(canon, 1.0))`` chain).
+    Physiological state is the default-constructed healthy state; the
+    enricher's job is a baseline monitoring lab, not an acute-illness
+    reflection.
     """
+    from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
     from clinosim.modules.physiology.engine import (
         derive_lab_values,
         medication_flags_from_context,
@@ -171,10 +178,6 @@ def _derive_true_labs_for_patient(patient: Any, matched_drugs: list[str]) -> dic
     from clinosim.types.clinical import PhysiologicalState
 
     state = PhysiologicalState()
-    # Prefer the earliest physiological snapshot when the record carries one;
-    # falls back to the default-constructed state for records that don't (e.g.
-    # outpatient-only cohorts). This is deliberate — the enricher's job is a
-    # baseline monitoring lab, not to reflect an acute-illness state.
     flags = {
         **scenario_flags_from_protocol(None),
         **medication_flags_from_context(patient),
@@ -182,7 +185,13 @@ def _derive_true_labs_for_patient(patient: Any, matched_drugs: list[str]) -> dic
     sex = getattr(patient, "sex", "M") or "M"
     age = int(getattr(patient, "age", 0) or 0)
     has_dm = any("E11" in (getattr(c, "code", "") or "") for c in getattr(patient, "chronic_conditions", []) or [])
-    return derive_lab_values(state, sex=sex, age=age, has_diabetes=has_dm, **flags)
+    labs = dict(derive_lab_values(state, sex=sex, age=age, has_diabetes=has_dm, **flags))
+    # Merge baseline normals for analytes physiology does not model (e.g. TSH,
+    # LDL, HDL, TG, TC, ESR, Ca). Physiology values win when both exist so a
+    # medication_flags-driven value (like warfarin PT_INR) is never overwritten.
+    for lab_name, ref_val in BASELINE_LAB_NORMALS.items():
+        labs.setdefault(lab_name, ref_val)
+    return labs
 
 
 def _inject_one_lab(
