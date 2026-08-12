@@ -1,0 +1,28 @@
+# Chronic-medication → standard-of-care monitoring lab mapping (Issue #757).
+#
+# Schema (per drug entry):
+#   <Drug canonical name>:
+#     aliases:        [<optional additional names, case-insensitive substring match>]
+#     monitoring:
+#       - lab:        <internal analyte name — matches clinosim/modules/observation/engine.py>
+#         loinc:      "<LOINC code — emitted as Order.display and Observation.code.coding>"
+#         rationale:  "<one-sentence clinical justification>"
+#
+# The enricher (`clinosim/modules/monitoring/enricher.py`) matches the drug name
+# and every alias against each entry in `patient.current_medications` via
+# case-insensitive substring — the same pattern used by
+# `physiology.engine._WARFARIN_NAMES` — so "Warfarin 3mg PO" and "ワルファリン"
+# both match the Warfarin entry.
+#
+# Adding a new drug → labs pair is a pure YAML edit; no code change required.
+# Frequency / scheduling knobs (daily vs monthly, induction vs maintenance)
+# are NOT in the schema yet — pass 2 of Issue #757 ships one injection per
+# eligible encounter. Follow-up PRs will introduce `frequency:` handling.
+
+mappings:
+  Warfarin:
+    aliases: ["ワルファリン", "coumadin"]
+    monitoring:
+      - lab: PT_INR
+        loinc: "6301-6"
+        rationale: "Anticoagulation therapeutic monitoring — INR target 2.0-3.0 (or 2.5-3.5 for mechanical valves)."

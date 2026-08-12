@@ -210,6 +210,27 @@ def register_builtin_enrichers() -> None:
         )
     )
 
+    # Chronic-medication-driven monitoring labs (Issue #757 pass 2).
+    # Reads each patient's current_medications, matches against
+    # medication_monitoring.yaml, and injects the standard-of-care
+    # monitoring lab (Warfarin → PT-INR in this pass) into the first
+    # outpatient encounter (else first encounter). Skips analytes the
+    # record already has an order/result for so disease-YAML flows
+    # (sepsis PT-INR, PE PT-INR) are not double-counted. Country-agnostic.
+    # Order 65 runs after care_level (60) — no dependency, just sequenced
+    # deterministically among the POST_RECORDS enrichers.
+    from clinosim.modules.monitoring.enricher import enrich_medication_monitoring
+
+    register_enricher(
+        Enricher(
+            name="medication_monitoring",
+            stage=POST_RECORDS,
+            order=65,
+            enabled=lambda c: True,
+            run=enrich_medication_monitoring,
+        )
+    )
+
     # ICU device placement (AD-55 Module, PR-A): CVC + indwelling catheter +
     # ventilator on inpatient encounters where the patient transferred to ICU.
     # Phase 2 hai enricher will consume extensions["device"]. Always-on.
