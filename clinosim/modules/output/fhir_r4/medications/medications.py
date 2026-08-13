@@ -539,9 +539,20 @@ def _resolve_medication_concept(
                 code_value = drug_codes[cand]
                 break
     drug_system_key = system_key_for("drug", country_code)
-    display = code_lookup(drug_system_key, code_value, lang) if code_value else drug_name
+    # Issue #775: `medicationCodeableConcept.text` must carry the CLEAN drug
+    # name only — dose / route / frequency / duration / prn conditions belong
+    # in `dosageInstruction`. `base_name` above already resolved to the
+    # `drug_codes` key that matched (or the first whitespace token when no
+    # code hit), which is the drug name without usage tokens. Localizing it
+    # gives the JP display; on US it passes through unchanged.
+    # `display` on `coding[]` still prefers whatever `code_lookup` returns
+    # for the code (typically a canonical product name like an RxNorm SCD or
+    # a YJ product string) — that string is spec-compliant even if it
+    # includes product-level strength, per the Issue #775 policy.
+    clean_drug_name = _localize_drug_name(base_name, country) if base_name else drug_name
+    display = code_lookup(drug_system_key, code_value, lang) if code_value else clean_drug_name
     if display == code_value:
-        display = drug_name
+        display = clean_drug_name
     # F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch。
     # US は従来通り RxNorm URI。
     if is_jp(country_code) and drug_system_key == "yj" and code_value:
@@ -549,7 +560,7 @@ def _resolve_medication_concept(
     else:
         code_system = get_system_uri(drug_system_key)
 
-    med_concept: dict[str, Any] = {"text": drug_name}
+    med_concept: dict[str, Any] = {"text": clean_drug_name}
     # #283 JP 出力で YJ system emit する場合、tx-server が
     # verify できない code(fragment 外)は nocoded fallback にダウングレード。
     # HAPI validator の VS binding error(594 件 v5)を解消しつつ薬剤名は
@@ -1059,7 +1070,10 @@ def _build_medication_admin(
     else:
         code_system = get_system_uri(drug_system_key)
 
-    med_concept: dict[str, Any] = {"text": drug_name}
+    # Issue #775: MAR also emits clean drug name in medicationCodeableConcept.text
+    # (dose/route/freq belong in `dosage` below). Same rationale as MR builder.
+    clean_drug_name = _localize_drug_name(base_name, country) if base_name else drug_name
+    med_concept: dict[str, Any] = {"text": clean_drug_name}
     # #283 MR builder と同 gate — tx-server 未収録 JP YJ code は
     # nocoded fallback にダウングレード(薬剤名は text field で保持)。
     # #283:downgrade は YJ-code URI 経由の code だけ対象。同 drug_system_key
