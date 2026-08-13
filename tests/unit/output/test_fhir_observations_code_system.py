@@ -125,3 +125,50 @@ def test_us_unmapped_lab_still_loinc():
     coding = obs[0]["code"]["coding"][0]
     assert coding["system"] == get_system_uri("loinc")
     assert coding["code"] == "99999-9"
+
+
+# Issue #777: code.text should carry a human-readable primary label
+# (LocalCode_CS display), not the standard-code display (English abbreviation).
+
+
+def test_jp_lab_code_text_uses_localcode_display_when_present():
+    """JP CoreLabo path: LocalCode_CS coding carries a JA display ("AST(GOT)").
+    That display should be picked for `code.text`, not the CoreLabo display
+    "AST" (English abbreviation).
+    """
+    from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
+
+    if not load_lab_coding_package().is_available():
+        pytest.skip("JP-CLINS pkg not installed — LocalCode emission requires the pkg")
+    t = datetime(2026, 7, 4, 8, 0)
+    o = _make_lab_order("O-AST", "AST", "1920-8", 45.0, t)
+    ctx = _make_ctx([o], "JP")
+    obs = _bb_labs(ctx)
+    code = obs[0]["code"]
+    codings = code["coding"]
+    # Find the LocalCode_CS coding (last coding in the CoreLabo strategy)
+    localcode = next((c for c in codings if "LocalCode_CS" in c.get("system", "")), None)
+    assert localcode is not None, f"Expected LocalCode_CS coding, got: {[c['system'] for c in codings]}"
+    assert code["text"] == localcode["display"], (
+        f"code.text should mirror LocalCode display (JA primary label); "
+        f"got text={code['text']!r} vs localcode display={localcode['display']!r}"
+    )
+    # Confirm the JA "括弧" or JA-inclusive shape present (e.g. "AST(GOT)")
+    assert "(" in code["text"] or any(ord(ch) > 127 for ch in code["text"]), (
+        f"code.text should be human-readable (parenthesized or JA), got: {code['text']!r}"
+    )
+
+
+def test_us_lab_code_text_unchanged_by_localcode_fix():
+    """US path does not emit LocalCode; the fallback to codings[0].display
+    is preserved (pre-fix behaviour)."""
+    t = datetime(2026, 7, 4, 8, 0)
+    o = _make_lab_order("O-AST", "AST", "1920-8", 45.0, t)
+    ctx = _make_ctx([o], "US")
+    obs = _bb_labs(ctx)
+    code = obs[0]["code"]
+    codings = code["coding"]
+    # No LocalCode on US path
+    assert not any("LocalCode_CS" in c.get("system", "") for c in codings)
+    # text falls back to codings[0]["display"]
+    assert code["text"] == codings[0]["display"]
