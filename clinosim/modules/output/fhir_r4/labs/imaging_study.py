@@ -180,6 +180,16 @@ def _build_imaging_study(
             _proc = (body_sites[_bs_key].get("procedure_codes") or {}).get(_ck, {})
             _proc_loinc = _proc.get("loinc", "")
             _proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
+            # Issue #779: ImagingStudy.description = clinical procedure name.
+            # Pre-fix behaviour: 0/90 studies (JP p=500) had a populated
+            # description; consumer viewers could only fall back to DICOM
+            # modality codes to label the study. `_proc_display` here is the
+            # authored language-scoped procedure name from body_sites.yaml
+            # (`display_ja` / `display_en`) — the same string that
+            # DiagnosticReport.code.text carries — so populating it makes the
+            # two resources internally consistent.
+            if _proc_display:
+                res["description"] = _proc_display
             if _proc_loinc:
                 # #319 JP output は procedureCode 要素を完全省略。
                 # JP_ImagingStudy_Radiology profile は procedureCode binding
