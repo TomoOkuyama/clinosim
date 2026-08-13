@@ -69,7 +69,42 @@ _JP_CLINS_MEDICATION_USAGE_UNCODED_CS = "http://jpfhir.jp/fhir/clins/CodeSystem/
 _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE = "0X0XXXXXXXXX0000"
 
 
-_JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY = "ダミー用法コード"
+# Issue #782 (part of META #774): consumer viewer からの指摘で "ダミー" 表現の
+# display を factual な placeholder に変更。JP-CLINS 1.12.0 example fixture
+# (`MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json`) は
+# `"ダミー用法コード"` を使うが、consumer 側で raw FHIR を露出する場面
+# (デモ・スクリーンショット) で「ダミー」文字が信頼を損ねる。code は spec の
+# `0X0XXXXXXXXX0000` を維持し display のみ「用法未指定」に置換 (factual、
+# JP-CLINS の profile validation は display に制約を持たず spec 準拠を維持)。
+_JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY = "用法未指定"
+
+
+def _derive_usage_display_from_timing(repeat: Any) -> str:
+    """Derive a human-readable JA usage description from `timing.repeat` when
+    possible; returns `""` on any missing/unrecognized shape.
+
+    Examples::
+
+        {"frequency": 1, "period": 1, "periodUnit": "d"} → "1日1回"
+        {"frequency": 3, "period": 1, "periodUnit": "d"} → "1日3回"
+        {"frequency": 1, "period": 6, "periodUnit": "h"} → "6時間ごと"
+        {"frequency": 1, "period": 8, "periodUnit": "h"} → "8時間ごと"
+
+    Anything else (e.g. weekly cadence, missing fields) returns `""` and the
+    caller falls back to `_JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY`.
+    """
+    if not isinstance(repeat, dict):
+        return ""
+    freq = repeat.get("frequency")
+    period = repeat.get("period")
+    unit = repeat.get("periodUnit", "")
+    if not isinstance(freq, int) or not isinstance(period, (int, float)):
+        return ""
+    if unit == "d" and period == 1 and freq >= 1:
+        return f"1日{int(freq)}回"
+    if unit == "h" and freq == 1 and period >= 1:
+        return f"{int(period)}時間ごと"
+    return ""
 
 
 # JP_MedicationDosage_eCS declares Dosage.extension:periodOfUse as min=1
@@ -329,11 +364,17 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                 for c in codings
             )
             if not already_valid:
+                # Issue #782: prefer a derived usage description (`1日3回`,
+                # `8時間ごと`) over the neutral placeholder when timing.repeat
+                # carries a recognizable cadence — this gives consumers a
+                # meaningful display without changing the JP-CLINS-required
+                # `code` value.
+                _derived = _derive_usage_display_from_timing(timing.get("repeat"))
                 codings.append(
                     {
                         "system": _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,
                         "code": _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE,
-                        "display": _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,
+                        "display": _derived or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,
                     }
                 )
         # DO NOT fill timing.code.text with dosage text. Timing.code is a
