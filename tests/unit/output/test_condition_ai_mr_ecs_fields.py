@@ -279,6 +279,100 @@ def test_copy_display_no_match_no_change():
     assert "display" not in codings[1]
 
 
+# ---------------------------------------------------------------------------
+# Issue #778 / P1-4: preserve builder MR.status intent when eCS pin overrides
+# ---------------------------------------------------------------------------
+
+
+def test_jp_mr_preserves_active_status_as_extension_and_note_when_pinned():
+    """Issue #778: JP eCS pins MR.status='completed', but the builder's
+    original status intent (e.g. 'active' for an ongoing home-med) is
+    preserved via Extension + note so consumers can recover the real state."""
+    r: dict = {
+        "resourceType": "MedicationRequest",
+        "id": "mr-hm-1",
+        "status": "active",  # builder-set: ongoing home medication
+        "intent": "instance-order",
+    }
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    assert r["status"] == "completed"  # eCS pin applied
+    exts = r.get("extension", [])
+    effective_ext = next(
+        (e for e in exts if e.get("url") == "urn:clinosim:medicationrequest-effective-status"),
+        None,
+    )
+    assert effective_ext is not None, "extension must preserve builder status"
+    assert effective_ext["valueCode"] == "active"
+    notes = r.get("note", [])
+    assert notes, "note[] must explain the pin override"
+    assert "active" in notes[0]["text"]
+    assert "eCS" in notes[0]["text"]
+
+
+def test_jp_mr_preserves_stopped_status_when_pinned():
+    """Same preservation for a discontinued regimen (status='stopped')."""
+    r: dict = {
+        "resourceType": "MedicationRequest",
+        "id": "mr-stop-1",
+        "status": "stopped",
+        "intent": "order",
+    }
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    assert r["status"] == "completed"
+    exts = r.get("extension", [])
+    effective = next(e for e in exts if e.get("url") == "urn:clinosim:medicationrequest-effective-status")
+    assert effective["valueCode"] == "stopped"
+
+
+def test_jp_mr_no_extension_when_builder_status_already_completed():
+    """If builder already set status='completed', the pin is a no-op and no
+    extension/note is added (avoids noise on normal cases)."""
+    r: dict = {
+        "resourceType": "MedicationRequest",
+        "id": "mr-done-1",
+        "status": "completed",
+        "intent": "order",
+    }
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    assert r["status"] == "completed"
+    exts = r.get("extension", [])
+    assert not any(e.get("url") == "urn:clinosim:medicationrequest-effective-status" for e in exts)
+    assert "note" not in r or not r["note"]
+
+
+def test_us_mr_status_untouched_no_extension():
+    """US path: no eCS pin, no extension needed. status stays as builder set it."""
+    r: dict = {
+        "resourceType": "MedicationRequest",
+        "id": "mr-us-1",
+        "status": "active",
+        "intent": "order",
+    }
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
+    assert r["status"] == "active"  # unchanged on US
+    assert "extension" not in r or not any(
+        e.get("url") == "urn:clinosim:medicationrequest-effective-status" for e in r.get("extension", [])
+    )
+
+
+def test_jp_mr_effective_status_idempotent_across_double_pass():
+    """Walker is idempotent: applying twice produces the same extension /
+    note count (no duplicates)."""
+    r: dict = {
+        "resourceType": "MedicationRequest",
+        "id": "mr-x",
+        "status": "active",
+        "intent": "instance-order",
+    }
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    # For second pass: builder status appears completed, so no add
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    exts = [e for e in r.get("extension", []) if e.get("url") == "urn:clinosim:medicationrequest-effective-status"]
+    assert len(exts) == 1
+    notes = r.get("note", [])
+    assert len(notes) == 1
+
+
 def test_populate_status_coding_display_unknown_code_untouched():
     """A code not in the display map is left alone (no fabrication)."""
     cd: dict = {"coding": [{"system": "hl7-cs", "code": "unknown-code-xyz"}]}
