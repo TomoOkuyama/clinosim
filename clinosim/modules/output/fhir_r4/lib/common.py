@@ -858,7 +858,13 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
                 "doseQuantity": build_ucum_quantity(dose_qty, dose_unit),
             }
         ]
-        parts.append(f"{dose_qty}{dose_unit}")
+        # Issue #781: `dosageInstruction[].text` is human-readable, so drop
+        # the trailing `.0` on integer-valued dose floats (`4mg` not `4.0mg`).
+        # `doseQuantity.value` is unaffected — it is a JSON number and both
+        # `4.0` and `4` serialize the same. `text` is the only site where
+        # `.0` leaks into the rendered UI.
+        _dose_txt = f"{int(dose_qty)}" if isinstance(dose_qty, float) and dose_qty.is_integer() else f"{dose_qty}"
+        parts.append(f"{_dose_txt}{dose_unit}")
 
     # Route
     if route_concept:
