@@ -603,9 +603,45 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # `tx-server-build/.../clinical-information-sharing#1.12.0/package/
     # StructureDefinition-JP-MedicationRequest-eCS.json`. Enforced only on
     # JP output; US path keeps the original semantics.
+    #
+    # Issue #778 (part of #774): when the builder-set status is not
+    # "completed" (e.g. "active" for an ongoing home-medication or
+    # "stopped" for a discontinued regimen), the eCS pin overrides real
+    # semantics. Consumers viewing JP FHIR see every MedicationRequest as
+    # "completed" — including the in-progress inpatient's chronic meds.
+    #
+    # The pin is spec-required and cannot be dropped without triggering
+    # eCS validation errors. Instead we preserve the builder's original
+    # status intent via TWO complementary channels so consumers can
+    # recover it:
+    #   (a) `Extension[url=urn:clinosim:medicationrequest-effective-status]
+    #        .valueCode` — machine-readable, structured
+    #   (b) `note[].text` — human-readable natural language explanation
+    #
+    # `dispenseRequest.validityPeriod.end` absence already signals ongoing
+    # to structured consumers, but neither channel is prominent enough to
+    # override the visible `status` field on a naive UI. Prior status text
+    # is added below when it differs from "completed".
     if rt == "MedicationRequest" and is_jp(country):
+        _pre_pin_status = resource.get("status", "")
         resource["status"] = "completed"
         resource["intent"] = "order"
+        if _pre_pin_status and _pre_pin_status != "completed":
+            _ext_list = resource.setdefault("extension", [])
+            _ext_url = "urn:clinosim:medicationrequest-effective-status"
+            if isinstance(_ext_list, list) and not any(
+                isinstance(e, dict) and e.get("url") == _ext_url for e in _ext_list
+            ):
+                _ext_list.append({"url": _ext_url, "valueCode": _pre_pin_status})
+            _notes = resource.setdefault("note", [])
+            _note_text = (
+                f"実効ステータス: {_pre_pin_status}（JP-CLINS eCS 準拠のため MedicationRequest.status は "
+                f'"completed" に固定されているが、この処方の実際の運用状態は "{_pre_pin_status}" である）'
+            )
+            if isinstance(_notes, list) and not any(
+                isinstance(n, dict) and n.get("text") == _note_text for n in _notes
+            ):
+                _notes.append({"text": _note_text})
         sub = resource.get("substitution")
         if isinstance(sub, dict) and "allowedBoolean" in sub:
             allowed_bool = bool(sub.pop("allowedBoolean"))
