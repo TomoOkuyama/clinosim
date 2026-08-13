@@ -224,3 +224,105 @@ def test_medication_administration_us_keeps_rxnorm() -> None:
     if coding_list:
         # US の code_yj は US では resolve されない可能性あるが、emit された場合 RxNorm URI
         assert coding_list[0]["system"] == get_system_uri("rxnorm")
+
+
+# Issue #775 — medicationCodeableConcept.text は製剤名のみ、
+# dose / route / frequency / duration / conditional expression の混入禁止。
+
+
+def _build_mr_from_display(display_name: str, country: str = "JP") -> dict[str, Any]:
+    """Helper: build MR from a raw disease-YAML `display_name` (drug + dose + usage)."""
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_request
+
+    order = {
+        "order_id": "ORD-text-cleanup",
+        "display_name": display_name,
+        "order_type": "medication",
+        "order_code": "",
+        "ordered_datetime": "2026-06-01T09:00:00",
+        "clinical_intent": "test",
+    }
+    return _build_medication_request(
+        order,
+        patient_id="pt1",
+        country=country,
+        encounter_id="enc1",
+        primary_dx_code="",
+    )
+
+
+@pytest.mark.parametrize(
+    "display_name,expected_text",
+    [
+        # dose のみ
+        ("Ondansetron 4mg", "オンダンセトロン"),
+        # dose + route + freq
+        ("Meropenem 1g IV q8h", "メロペネム"),
+        # dose + route + freq + duration
+        ("Prednisolone 40mg PO qd x5 days", "プレドニゾロン"),
+        # dose + route + freq + prn + condition
+        ("Acetaminophen 500mg PO q6h prn temp >= 38.5", "アセトアミノフェン"),
+        # dose + route
+        ("Mannitol 200mL IV q8h", "マンニトール"),
+    ],
+)
+def test_mr_text_excludes_dose_and_usage_jp(display_name: str, expected_text: str) -> None:
+    """Issue #775: `medicationCodeableConcept.text` は clean drug name のみ。
+    dose / route / freq / duration / condition tokens は含まない。"""
+    mr = _build_mr_from_display(display_name, country="JP")
+    text = mr["medicationCodeableConcept"]["text"]
+    assert text == expected_text, f"expected clean name only, got: {text!r}"
+
+
+@pytest.mark.parametrize(
+    "display_name,expected_text",
+    [
+        ("Ondansetron 4mg", "Ondansetron"),
+        ("Meropenem 1g IV q8h", "Meropenem"),
+        ("Prednisolone 40mg PO qd x5 days", "Prednisolone"),
+    ],
+)
+def test_mr_text_excludes_dose_and_usage_us(display_name: str, expected_text: str) -> None:
+    """Issue #775 US 側:同 policy を US で確認(dose/usage 混入禁止)。"""
+    mr = _build_mr_from_display(display_name, country="US")
+    text = mr["medicationCodeableConcept"]["text"]
+    assert text == expected_text, f"expected clean name only, got: {text!r}"
+
+
+def test_mar_text_excludes_dose_and_usage_jp() -> None:
+    """MedicationAdministration も同 policy(text = 製剤名のみ)。"""
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_admin
+
+    mar = {
+        "mar_id": "MAR-x",
+        "drug_name": "Ondansetron 4mg",
+        "code_yj": "",
+        "administration_datetime": "2026-06-01T10:00:00",
+        "dose": "4mg PO qd",
+        "route": "oral",
+        "status": "given",
+    }
+    ma = _build_medication_admin(mar, patient_id="pt1", index=1, country="JP", encounter_id="enc1")
+    assert ma["medicationCodeableConcept"]["text"] == "オンダンセトロン"
+
+
+def test_mr_text_falls_back_to_full_name_when_no_match() -> None:
+    """drug_codes 未登録の drug — base_name (先頭 token) を localize したものを text に
+    使う。dose は落ちる。"""
+    mr = _build_mr_from_display("UnknownDrug 10mg", country="JP")
+    text = mr["medicationCodeableConcept"]["text"]
+    # 先頭 token = "UnknownDrug"(_localize_drug_name は unknown token を素通し)
+    assert text == "UnknownDrug"
+
+
+def test_mr_text_multi_word_drug_name_preserved() -> None:
+    """ "Normal saline" 型の multi-word drug 名は longest-match で全体が base_name。
+    dose "500mL" は落ちる。"""
+    mr = _build_mr_from_display("Normal saline 500mL IV", country="JP")
+    text = mr["medicationCodeableConcept"]["text"]
+    # Normal saline が drug_codes に登録されていれば "生理食塩水" 相当が返る。
+    # 未登録なら "Normal" 単独が base_name になり localize される。
+    # いずれにせよ "500mL" / "IV" は含まれてはいけない。
+    assert "500mL" not in text
+    assert " IV" not in text
+    assert "500" not in text
