@@ -147,6 +147,59 @@ def test_timing_code_text_not_populated_even_with_no_dosage_text():
     assert "text" not in r["dosageInstruction"][0]["timing"]["code"]
 
 
+def test_timing_code_display_derives_from_timing_repeat_daily():
+    """Issue #782 (part of #774): when `timing.repeat` carries a per-day
+    cadence, the walker uses it as the coding display (`1日3回`) instead
+    of the neutral placeholder."""
+    r = {
+        "resourceType": "MedicationRequest",
+        "id": "mr1",
+        "dosageInstruction": [
+            {
+                "text": "x",
+                "timing": {"repeat": {"frequency": 3, "period": 1, "periodUnit": "d"}},
+            }
+        ],
+    }
+    _populate_jp_medication_dosage_ecs_fields(r)
+    codings = r["dosageInstruction"][0]["timing"]["code"]["coding"]
+    assert codings[0]["display"] == "1日3回"
+    # code / system unchanged (spec-required dummy uncoded value)
+    assert codings[0]["code"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE
+    assert codings[0]["system"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_CS
+
+
+def test_timing_code_display_derives_hourly_cadence():
+    """`{frequency: 1, period: 6, periodUnit: 'h'}` → `6時間ごと`."""
+    r = {
+        "resourceType": "MedicationRequest",
+        "id": "mr1",
+        "dosageInstruction": [
+            {
+                "text": "x",
+                "timing": {"repeat": {"frequency": 1, "period": 6, "periodUnit": "h"}},
+            }
+        ],
+    }
+    _populate_jp_medication_dosage_ecs_fields(r)
+    assert r["dosageInstruction"][0]["timing"]["code"]["coding"][0]["display"] == "6時間ごと"
+
+
+def test_timing_code_display_falls_back_to_neutral_placeholder_when_no_repeat():
+    """Issue #782: with no recognizable timing.repeat, the walker uses
+    a factual placeholder (`用法未指定`) — NOT the pre-fix `ダミー用法コード`
+    which leaked "dummy" wording into consumer-facing raw FHIR views."""
+    r = {
+        "resourceType": "MedicationRequest",
+        "id": "mr1",
+        "dosageInstruction": [{"text": "x"}],  # no timing.repeat
+    }
+    _populate_jp_medication_dosage_ecs_fields(r)
+    coding = r["dosageInstruction"][0]["timing"]["code"]["coding"][0]
+    assert coding["display"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
+    assert "ダミー" not in coding["display"], "Fix must remove 'ダミー' wording from consumer-visible display"
+
+
 def test_timing_code_preserves_pre_existing_mhlw_coding():
     """If a builder already emits an MHLW ePrescription coding, R5020 is
     satisfied and the walker must NOT add a duplicate dummy coding
