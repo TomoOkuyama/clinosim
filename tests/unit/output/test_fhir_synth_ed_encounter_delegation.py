@@ -136,6 +136,37 @@ def test_synth_ed_admit_source_uses_registry_display(country: str, lang: str) ->
     assert admit_source_display == expected
 
 
+def test_synth_ed_reason_code_text_is_ja_on_jp_when_imp_has_chief_complaint_ja() -> None:
+    """Issue #776: synth-ED bridge Encounter must propagate `chief_complaint_ja`
+    from the parent IMP encounter so JP `reasonCode.text` renders in Japanese.
+
+    Pre-fix behaviour: `_make_synth_ed_enc_dict` copied only the English
+    `chief_complaint` and dropped the JA sibling, so the ED reasonCode.text
+    fell back to the English canonical string on JP output (14/54 EMER
+    encounters in JP p=500 seed 42 baseline).
+    """
+    ctx = _make_ctx("JP")
+    # augment IMP encounter with chief_complaint_ja (mimics inpatient.py:246)
+    ctx.record["encounters"][0]["chief_complaint_ja"] = "胸痛"
+    synth_ed = _synth_ed_resource(_bb_encounters(ctx))
+    rc = synth_ed.get("reasonCode", [])
+    assert rc, "synth-ED must emit reasonCode when parent IMP has a chief_complaint"
+    assert rc[0]["text"] == "胸痛"
+
+
+def test_synth_ed_reason_code_text_falls_back_to_en_when_no_ja() -> None:
+    """When the parent IMP has only English chief_complaint (no JA), the
+    synth-ED bridge falls back to English on JP output — pre-existing
+    behaviour, preserved so the Issue #776 fix is additive."""
+    ctx = _make_ctx("JP")
+    # Ensure no chief_complaint_ja on IMP
+    ctx.record["encounters"][0].pop("chief_complaint_ja", None)
+    synth_ed = _synth_ed_resource(_bb_encounters(ctx))
+    rc = synth_ed.get("reasonCode", [])
+    assert rc, "synth-ED must still emit reasonCode with English fallback"
+    assert rc[0]["text"] == "Chest pain"
+
+
 @pytest.mark.parametrize("country", ["JP", "US"])
 def test_synth_ed_participant_has_canonical_type(country: str) -> None:
     """Full delegation proof: ``participant[0].type[]`` comes from

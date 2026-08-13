@@ -228,6 +228,17 @@ def _make_synth_ed_enc_dict(
     _chief = (
         imp_enc.get("chief_complaint", "") if isinstance(imp_enc, dict) else getattr(imp_enc, "chief_complaint", "")
     )
+    # Issue #776: also propagate `chief_complaint_ja` so the JP `reasonCode.text`
+    # fallback (encounter.py:307) renders in Japanese. `inpatient.py:246`
+    # populates the JA field on IMP encounters from the disease protocol,
+    # but the synth-ED bridge previously dropped it and every EMER
+    # reasonCode.text fell back to English on JP output (14/54 in
+    # JP p=500 seed 42 baseline).
+    _chief_ja = (
+        imp_enc.get("chief_complaint_ja", "")
+        if isinstance(imp_enc, dict)
+        else getattr(imp_enc, "chief_complaint_ja", "")
+    )
     return {
         "encounter_id": partof_id,
         "encounter_type": "emergency",
@@ -238,6 +249,7 @@ def _make_synth_ed_enc_dict(
         "discharge_datetime": _ed_end_str,
         "attending_physician_id": _att,
         "chief_complaint": _chief,
+        "chief_complaint_ja": _chief_ja,
         "department_id": "",
     }
 
