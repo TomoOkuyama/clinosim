@@ -247,6 +247,13 @@ def build_dr_resource(
     panel = panels[group.panel_name]
     lang = resolve_lang(country)
     display = _codes_lookup("loinc", panel["loinc"], lang) or panel["display"]
+    # Issue #783: `code.text` = JA primary label on JP output (panel `display_ja`
+    # in `lab_panel_groups.yaml`), English `display` on US. Prior emit left
+    # `code.text` unset entirely — consumers saw only the LOINC code string
+    # and could not distinguish CBC vs Coag vs LFT DRs at a glance
+    # (95.8% of JP DR had null `.text` in baseline).
+    display_ja = panel.get("display_ja") or ""
+    text_display = display_ja if is_jp(country) and display_ja else panel["display"]
 
     res: dict[str, object] = {
         "resourceType": "DiagnosticReport",
@@ -291,6 +298,7 @@ def build_dr_resource(
                     "display": display,
                 }
             ],
+            "text": text_display,
         },
         "subject": {"reference": f"Patient/{patient_id}"},
         "encounter": {"reference": f"Encounter/{encounter_id}"},
@@ -338,20 +346,16 @@ def build_dr_resource(
             ],
         }
     ]
-    # CY6-20 (Chain-6): DR.conclusion for lab panel. Encloses a locale-aware
-    # one-line summary indicating the number of analytes included and
-    # deferring to per-Observation interpretation for abnormal detail.
-    # Real clinical reports carry a similar summary line ("All values within
-    # reference range" / "See individual results" — clinosim goes with the
-    # latter because per-analyte interpretation is already carried on each
-    # linked Observation).
-    _n_obs = len(group.obs_refs)
-    if lang == "ja":
-        res["conclusion"] = f"{display}({_n_obs}項目):個別検査値および解釈は関連 Observation を参照。"
-    else:
-        res["conclusion"] = (
-            f"{display} ({_n_obs} analytes) — see linked Observation resources for per-analyte values and interpretation."  # noqa: E501
-        )
+    # Issue #784 (part of #774): the pre-fix path emitted a static template
+    # sentence ("XX パネル(N項目):個別検査値および解釈は関連 Observation を
+    # 参照。") on every lab DR. It carried no clinical interpretation, and the
+    # `.result[]` array already makes the analyte references machine- and
+    # human-explorable. Emitting a summary-line only when it says something
+    # meaningful (aggregated interpretation from per-Observation flags is a
+    # separate enricher scope, tracked as follow-up) is honest; the static
+    # template just added noise. Omit `conclusion` from the panel DR
+    # (radiology DR still emits `conclusion = impression_text` below —
+    # unchanged, that field carries real content).
     # C5-20 (Chain 3): presentedForm — text-plain rendered summary of the
     # panel report (patient-facing form). Header + observation count is
     # sufficient without inflating the attachment with per-analyte lines;

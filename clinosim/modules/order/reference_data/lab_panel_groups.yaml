@@ -11,12 +11,14 @@ panels:
   ABG:
     loinc: "24338-6"
     display: "Gas panel - Arterial blood"
+    display_ja: "動脈血ガス分析"  # Issue #783: JP primary label for code.text
     components: [pH, pCO2, pO2, HCO3]
     min_components: 3
 
   CBC:
     loinc: "58410-2"
     display: "Complete blood count (hemogram) panel - Blood by Automated count"
+    display_ja: "血算 (CBC)"
     components: [WBC, Hb, Hct, Plt]
     # canonical N − 1 rule: CBC has 4 canonical components; one specimen-
     # handling anomaly (an individual stat draw failing for an unrelated
@@ -28,6 +30,7 @@ panels:
   BMP:
     loinc: "51990-0"
     display: "Basic metabolic 2000 panel - Serum or Plasma"
+    display_ja: "生化学基本パネル (BMP)"
     components: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
     # canonical N − 1 rule (PR #75): BMP has 8 listed components and as of
     # the Cl/Ca physiology PR (2026-06-23), derive_lab_values produces all
@@ -38,6 +41,7 @@ panels:
   LFT:
     loinc: "24325-3"
     display: "Hepatic function 2000 panel - Serum or Plasma"
+    display_ja: "肝機能検査 (LFT)"
     components: [AST, ALT, ALP, T_Bil, Albumin, TP, GGT, LDH]
     # AST + ALT pair is the standard "liver check" — threshold 2 matches both
     # full and mini-LFT orders.
@@ -46,12 +50,14 @@ panels:
   Lipid:
     loinc: "57698-3"
     display: "Lipid panel with direct LDL - Serum or Plasma"
+    display_ja: "脂質検査 (Lipid Panel)"
     components: [TC, LDL, HDL, TG]
     min_components: 2
 
   Coag:
     loinc: "14979-9"
     display: "aPTT in Platelet poor plasma by Coagulation assay"
+    display_ja: "凝固検査 (PT/APTT)"
     # session 59 #276:従来 24373-3 を "aPTT+PT/INR panel" として使用して
     # いたが LOINC 24373-3 の LONG_COMMON_NAME は "Ferritin [Mass/volume]
     # in Blood" で完全に別の analyte(semantic-mismatch)。aPTT のみを
@@ -70,6 +76,7 @@ panels:
   UA:
     loinc: "24356-8"
     display: "Urinalysis complete panel - Urine"
+    display_ja: "尿検査 (Urinalysis)"
     components: [Urine_pH, Urine_specific_gravity, Urine_protein, Urine_glucose, Urine_ketones, Urine_blood, Urine_nitrite, Urine_leukocyte_esterase]
     min_components: 3
     skip_if_no_components_present: true
@@ -81,6 +88,7 @@ panels:
   Checkup:
     loinc: "55418-8"
     display: "Weight and height panel"
+    display_ja: "健康診断パネル"
     # 内部名(order.order_code)= LOINC そのものなので直付 match
     components: ["39156-5", "8480-6", "8462-4", "4548-4", "18262-6"]
     min_components: 3
