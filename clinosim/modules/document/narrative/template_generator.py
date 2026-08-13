@@ -2319,27 +2319,76 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     def _build_outpatient_objective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build SOAP objective from outpatient_soap_template.objective_<lang>."""
+        """Build SOAP objective from outpatient_soap_template.objective_<lang>.
+
+        Issue #780 (part of #774): when the encounter protocol has no
+        `outpatient_soap_template`, or the field is empty, derive an
+        objective line from the encounter's measured vitals rather than
+        falling through to a static "特記事項なし" placeholder — this makes
+        the O section carry real per-encounter data (BP / HR / SpO2 / RR
+        vary across visits) instead of every SOAP note reading identically.
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
 
         soap = self._get_soap_template(ctx)
-        if soap is None:
-            return fallback, facts
+        if soap is not None:
+            text = _pick_localized(soap, "objective", lang, ctx)
+            if text:
+                facts.append(f"encounter_protocol.narrative.outpatient_soap_template.objective_{lang}")
+                return text, facts
 
-        text = _pick_localized(soap, "objective", lang, ctx)
-        if not text:
-            return fallback, facts
+        # #780 patient-state fallback: assemble a factual O line from ctx.vitals.
+        vital_line = self._compose_vital_signs_line(ctx)
+        if vital_line:
+            facts.append("ctx.vitals")
+            return vital_line, facts
 
-        facts.append(f"encounter_protocol.narrative.outpatient_soap_template.objective_{lang}")
-        return text, facts
+        return fallback, facts
+
+    def _compose_vital_signs_line(self, ctx: NarrativeContext) -> str:
+        """Compose a single-line JA/EN vital-signs summary from ctx.vitals[0]
+        (encounter has 1 outpatient vitals record per visit — see outpatient.py
+        line 162+). Returns "" when no vitals are recorded.
+        """
+        vitals = list(ctx.vitals or [])
+        if not vitals:
+            return ""
+        v = vitals[0]
+        parts: list[str] = []
+        _sbp = _o(v, "systolic_bp", None)
+        _dbp = _o(v, "diastolic_bp", None)
+        if _sbp and _dbp:
+            parts.append(f"BP {int(_sbp)}/{int(_dbp)} mmHg")
+        _hr = _o(v, "heart_rate", None)
+        if _hr:
+            unit_ja = "回/分"
+            unit_en = "bpm"
+            parts.append(f"HR {int(_hr)} {unit_ja if ctx.target_lang == 'ja' else unit_en}")
+        _rr = _o(v, "respiratory_rate", None)
+        if _rr:
+            unit_ja = "回/分"
+            unit_en = "/min"
+            parts.append(f"RR {int(_rr)} {unit_ja if ctx.target_lang == 'ja' else unit_en}")
+        _spo2 = _o(v, "spo2", None)
+        if _spo2:
+            parts.append(f"SpO2 {_spo2:.0f}%")
+        _temp = _o(v, "temperature_celsius", None)
+        if _temp:
+            parts.append(f"T {_temp:.1f}°C")
+        if not parts:
+            return ""
+        return ", ".join(parts)
 
     def _build_outpatient_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build SOAP assessment from outpatient_soap_template.assessment_<lang>.
 
         Also handles ED_NOTE context (falls back to generic if no encounter_protocol).
+
+        Issue #780: when no template is available, list active chronic conditions
+        so the A section reflects the patient's real problem list.
         """
         facts: list[str] = []
         lang = ctx.target_lang
@@ -2353,33 +2402,103 @@ class TemplateNarrativeGenerator:
 
         fallback = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
         soap = self._get_soap_template(ctx)
-        if soap is None:
-            return fallback, facts
+        if soap is not None:
+            text = _pick_localized(soap, "assessment", lang, ctx)
+            if text:
+                facts.append(f"encounter_protocol.narrative.outpatient_soap_template.assessment_{lang}")
+                return text, facts
 
-        text = _pick_localized(soap, "assessment", lang, ctx)
-        if not text:
-            return fallback, facts
+        # #780 patient-state fallback: build A line from chronic conditions.
+        chronic_line = self._compose_chronic_condition_line(ctx)
+        if chronic_line:
+            facts.append("ctx.patient.chronic_conditions")
+            return chronic_line, facts
 
-        facts.append(f"encounter_protocol.narrative.outpatient_soap_template.assessment_{lang}")
-        return text, facts
+        return fallback, facts
+
+    def _compose_chronic_condition_line(self, ctx: NarrativeContext) -> str:
+        """List the patient's active chronic conditions in a short JA/EN line
+        for the SOAP Assessment section (Issue #780 fallback)."""
+        patient = ctx.patient
+        conditions = _o(patient, "chronic_conditions", []) or []
+        if not conditions:
+            return ""
+        # Resolve each condition to a language-appropriate label. `code` is
+        # ICD-10 (JP) or ICD-10-CM (US) — use the shared codes registry to
+        # pick a JA display when available; fall back to the code itself.
+        from clinosim.codes import lookup as _code_lookup
+
+        lang = ctx.target_lang
+        labels: list[str] = []
+        for c in conditions:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            if not code:
+                continue
+            disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+            disp = _code_lookup(disp_key, code, lang) or code
+            labels.append(disp)
+        if not labels:
+            return ""
+        if lang == "ja":
+            return "既往症フォローアップ: " + "、".join(labels)
+        return "Chronic-condition follow-up: " + ", ".join(labels)
 
     def _build_outpatient_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build SOAP plan from outpatient_soap_template.plan_<lang>."""
+        """Build SOAP plan from outpatient_soap_template.plan_<lang>.
+
+        Issue #780: when no template is available, summarize current medications
+        so the P section reflects the patient's active regimen.
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         fallback = _GENERIC_PLAN_JA if is_ja else _GENERIC_PLAN_EN
 
         soap = self._get_soap_template(ctx)
-        if soap is None:
-            return fallback, facts
+        if soap is not None:
+            text = _pick_localized(soap, "plan", lang, ctx)
+            if text:
+                facts.append(f"encounter_protocol.narrative.outpatient_soap_template.plan_{lang}")
+                return text, facts
 
-        text = _pick_localized(soap, "plan", lang, ctx)
-        if not text:
-            return fallback, facts
+        # #780 patient-state fallback: list current medications for continuation.
+        med_line = self._compose_current_medications_line(ctx)
+        if med_line:
+            facts.append("ctx.patient.current_medications")
+            return med_line, facts
 
-        facts.append(f"encounter_protocol.narrative.outpatient_soap_template.plan_{lang}")
-        return text, facts
+        return fallback, facts
+
+    def _compose_current_medications_line(self, ctx: NarrativeContext) -> str:
+        """List the patient's current medications for the Plan section.
+
+        Reads from `ctx.patient.current_medications` (chronic Rx list, populated
+        by the population enricher). Returns "" when the list is empty.
+        """
+        patient = ctx.patient
+        meds = _o(patient, "current_medications", []) or []
+        if not meds:
+            return ""
+        names: list[str] = []
+        for m in meds:
+            n = _o(m, "drug_name", "") if not isinstance(m, str) else m
+            if n:
+                names.append(str(n))
+        if not names:
+            return ""
+        # Truncate long lists for readability (SOAP plan is a one-liner)
+        shown = names[:5]
+        joiner_ja = "、"
+        joiner_en = ", "
+        joiner = joiner_ja if ctx.target_lang == "ja" else joiner_en
+        head = joiner.join(shown)
+        if len(names) > 5:
+            more_ja = f"（他 {len(names) - 5} 剤）"
+            more_en = f" (and {len(names) - 5} others)"
+            head += more_ja if ctx.target_lang == "ja" else more_en
+        if ctx.target_lang == "ja":
+            return f"継続処方: {head}"
+        return f"Continue current medications: {head}"
 
     # ─────────────────────────────────────────────────────────────────
     # α-min-2: ED_NOTE section builders
