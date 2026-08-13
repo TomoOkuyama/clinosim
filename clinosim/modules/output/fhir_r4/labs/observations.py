@@ -77,7 +77,18 @@ def _build_lab_observation(
     _localcode = _strategy.emit_localcode_coding(**_strategy_kwargs)
     if _localcode is not None:
         codings.append(_localcode)
-    display_name = codings[0]["display"]
+    # Issue #777: `code.text` should carry a human-readable primary label,
+    # not the standard-code display (which for CoreLabo_CS is an English
+    # abbreviation like "AST" / "Na"). The LocalCode_CS coding is authored
+    # specifically for display (e.g. "AST(GOT)" / "ナトリウム(Na)") and is
+    # the JP Core / JP-CLINS convention: `.text` reflects the LocalCode's
+    # display when present, otherwise falls through to the first coding's
+    # display (pre-fix behaviour preserved for cohorts / countries without
+    # a LocalCode coding).
+    if _localcode is not None and _localcode.get("display"):
+        display_name = _localcode["display"]
+    else:
+        display_name = codings[0]["display"]
     code_value = codings[0]["code"]
 
     # encounter_id must be non-empty: the production path always provides ctx.primary_enc_id,
