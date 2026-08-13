@@ -124,6 +124,43 @@ def test_jp_locale_resolves_modality_and_body_site_ja():
     assert "胸部" in r["series"][0]["bodySite"]["display"]
 
 
+def test_description_populated_from_procedure_code_display_us() -> None:
+    """Issue #779: `ImagingStudy.description` is populated from the resolved
+    LOINC procedure display (US), so a consumer can identify the study
+    without reading the DICOM modality code.
+    """
+    ctx = _make_ctx([_sample_study()], country="us")
+    r = _bb_imaging_studies(ctx)[0]
+    assert r.get("description"), f"description should be populated (Issue #779), got: {r.get('description')!r}"
+    # CR + chest → EN procedure display should include chest / X-ray shape
+    assert any(kw in r["description"].lower() for kw in ("chest", "x-ray", "cxr", "radiograph")), (
+        f"CR chest study description should reference chest/x-ray; got: {r['description']!r}"
+    )
+
+
+def test_description_populated_from_procedure_code_display_jp() -> None:
+    """Issue #779: JP path also populates description (using display_ja)."""
+    ctx = _make_ctx([_sample_study()], country="jp")
+    r = _bb_imaging_studies(ctx)[0]
+    assert r.get("description"), f"description should be populated on JP (Issue #779), got: {r.get('description')!r}"
+    # JP display should include JA chars (胸部 / X線 / 撮影 いずれか)
+    assert any(kw in r["description"] for kw in ("胸部", "X線", "撮影", "レントゲン")), (
+        f"CR chest JP description should include JA procedure terms; got: {r['description']!r}"
+    )
+
+
+def test_description_absent_when_body_site_missing() -> None:
+    """Issue #779 fallback safety: stub study without body_site cannot resolve
+    a procedure display → `description` stays absent (no fabrication)."""
+    study = _sample_study()
+    study.body_site_snomed = ""
+    for s in study.series:
+        s.body_site_snomed = ""
+    ctx = _make_ctx([study], country="us")
+    r = _bb_imaging_studies(ctx)[0]
+    assert "description" not in r
+
+
 def test_emits_imaging_study_from_dict_path():
     """Production CIF is json.load() -> dict; verify _o() dict-access path."""
     study_dict = {
