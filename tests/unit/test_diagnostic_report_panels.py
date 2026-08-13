@@ -399,6 +399,72 @@ class TestPanelYAMLs:
         assert "24373-3" in text  # kept in comment documenting the substitution
         assert "Fibrinogen" in text  # documents why it's NOT in Coag components
 
+    def test_dr_code_text_populated_with_jp_label_on_jp(self):
+        """Issue #783 (part of #774): `DiagnosticReport.code.text` = the
+        panel's JA primary label on JP output. Pre-fix this field was unset
+        on 95.8% of DRs — consumers saw only the LOINC code string and could
+        not distinguish CBC vs Coag vs LFT reports at a glance."""
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
+
+        group = _GroupedPanel(
+            panel_name="CBC",
+            bucket="2026-05-12",
+            obs_refs=["lab-ENC-001-0000"],
+        )
+        r = build_dr_resource(
+            group,
+            patient_id="P",
+            encounter_id="ENC-001",
+            country="JP",
+            performer_ref=None,
+            issued=None,
+            seq=0,
+        )
+        assert r["code"]["text"] == "血算 (CBC)"
+
+    def test_dr_code_text_uses_english_display_on_us(self):
+        """Issue #783: US output uses the panel's English `display` for `.text`
+        (JP `display_ja` is JP-only)."""
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
+
+        group = _GroupedPanel(panel_name="LFT", bucket="2026-05-12", obs_refs=["lab-ENC-001-0000"])
+        r = build_dr_resource(
+            group,
+            patient_id="P",
+            encounter_id="ENC-001",
+            country="US",
+            performer_ref=None,
+            issued=None,
+            seq=0,
+        )
+        # US uses English display from panel definition
+        assert r["code"]["text"] == "Hepatic function 2000 panel - Serum or Plasma"
+
+    def test_dr_code_text_populated_for_all_panels(self):
+        """Issue #783: every panel must have `code.text` populated (no more
+        95.8% null rate). Exercise all panel names to lock this in."""
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
+        from clinosim.modules.order.panel_grouping import load_panel_definitions
+
+        for panel_name, panel in load_panel_definitions().items():
+            group = _GroupedPanel(
+                panel_name=panel_name,
+                bucket="2026-05-12",
+                obs_refs=["lab-ENC-001-0000"],
+            )
+            r = build_dr_resource(
+                group,
+                patient_id="P",
+                encounter_id="ENC-001",
+                country="JP",
+                performer_ref=None,
+                issued=None,
+                seq=0,
+            )
+            assert r["code"].get("text"), f"panel={panel_name} produced empty code.text"
+            # Every JP-shipped panel now carries a display_ja
+            assert panel.get("display_ja"), f"panel={panel_name} missing display_ja"
+
     def test_lab_panels_yaml_header_does_not_cite_clca_silent_drop(self):
         """I3: stale 'e.g. Cl/Ca in BMP today' comment is removed (PR #78
         added Cl/Ca derives; the example is now misleading)."""
