@@ -39,6 +39,7 @@ __all__ = [
     "EVENT_RANDOM_DAY_MAX_EXCLUSIVE",
     "EVENT_RANDOM_DAY_MIN",
     "FLU_VAX_ADULT_AGE_THRESHOLD",
+    "LEGAL_ADULT_AGE",
     "FLU_VAX_COMORBIDITY_MIN",
     "FLU_VAX_MONTHS",
     "FLU_VAX_PROBABILITY",
@@ -251,6 +252,25 @@ based on age alone (younger adults must also carry chronic
 conditions — see :data:`FLU_VAX_COMORBIDITY_MIN`).
 
 65 matches the CDC and JP MHLW routine-flu-vaccination age floor."""
+
+
+LEGAL_ADULT_AGE: int = 20
+"""Age at or above which lifestyle sampling for smoking/alcohol
+becomes clinically meaningful. Below this the population enricher
+overrides `smoking_status = "never"` / `alcohol_use = "none"` even
+if the demographics distribution would otherwise sample "current" /
+"social" — a 10-year-old marked as an occasional drinker is
+clinically implausible and consumer-visible.
+
+The RNG draw is still consumed (result is discarded after the
+override) so the F4 memoize test (`test_engine_memoize.py::
+test_memoize_hit_bit_identical`) stays byte-identical across
+cold vs cache-hit runs — the sub-RNG cursor is unshifted.
+
+Value 20 aligns with the JP MHLW legal drinking + smoking age
+and matches the `occupation` gate used elsewhere in the population
+enricher (adolescents get `"high_school_student"` occupation, not
+adult occupations)."""
 
 FLU_VAX_COMORBIDITY_MIN: int = 2
 """Minimum number of chronic conditions at which a person below the
