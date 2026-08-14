@@ -309,6 +309,20 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
             if current_loinc != _HOSPITAL_COURSE_LOINC:
                 enc_to_free_text[enc] = doc_id
 
+    # Pre-compute encounter_id → primary Condition id so JP-CLINS eDS
+    # `diagnosesOnDischargeSection.entry` slice resolves to the correct
+    # Condition. For chronic-primary encounters that resolves to
+    # `cond-chronic-{patient}-{i:02d}` (the encounter-specific
+    # `cond-{enc}-primary` is no longer emitted — session 88j Condition
+    # dedup).
+    from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
+
+    enc_to_primary_cond: dict[str, str] = {}
+    for _enc in ctx.record.get("encounters", []) or []:
+        _eid = _o(_enc, "encounter_id", "") or ""
+        if _eid:
+            enc_to_primary_cond[_eid] = primary_condition_ref(ctx.record, ctx.patient_id, _eid)
+
     out: list[dict[str, Any]] = []
     for doc in raw_docs:
         if _o(doc, "format_type", "") != "composition":
@@ -321,7 +335,7 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
             )
             continue
         sections = _o(narrative, "sections", {}) or {}
-        out.append(_build_composition(doc, sections, lang, enc_to_free_text))
+        out.append(_build_composition(doc, sections, lang, enc_to_free_text, enc_to_primary_cond))
     return out
 
 
@@ -330,6 +344,7 @@ def _build_composition(
     sections: dict[str, str],
     lang: str,
     enc_to_free_text: dict[str, str] | None = None,
+    enc_to_primary_cond: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Build one FHIR R4 Composition resource from a ClinicalDocument + its sections.
 
@@ -342,7 +357,9 @@ def _build_composition(
     if lang == "ja":
         loinc = _o(doc, "loinc_code", "")
         if loinc == "18842-5":
-            return _build_jp_clins_discharge_summary_composition(doc, sections, lang, enc_to_free_text or {})
+            return _build_jp_clins_discharge_summary_composition(
+                doc, sections, lang, enc_to_free_text or {}, enc_to_primary_cond or {}
+            )
         if loinc == "57133-1":
             return _build_jp_clins_referral_note_composition(doc, sections, lang)
         # P2-13 PR3:JP-eCheckup General
@@ -629,8 +646,12 @@ _JP_DS_SECTION_ENTRY_REFERENCES: dict[str, tuple[str, str]] = {
     "admission_details": ("Encounter", "Encounter/{encounter_id}"),
     # detailsOnDischargeSection.entry min=1 max=1 → JP_Encounter
     "discharge_details": ("Encounter", "Encounter/{encounter_id}"),
-    # diagnosesOnDischargeSection.entry min=1 → JP_Condition (primary dx)
-    "discharge_diagnoses": ("Condition", "Condition/cond-{encounter_id}-primary"),
+    # diagnosesOnDischargeSection.entry min=1 → JP_Condition (primary dx).
+    # `{primary_cond_id}` is resolved by `_bb_compositions` via
+    # `primary_condition_ref` so chronic-primary encounters point at the
+    # patient-scoped chronic Condition instead of a suppressed
+    # `cond-{enc}-primary` (session 88j Condition dedup).
+    "discharge_diagnoses": ("Condition", "Condition/{primary_cond_id}"),
     # #278:hospitalCourseSection.entry min=1 → JP_DocumentReference
     # 同一 encounter の progress note(LOINC 11506-3)or hospital course
     # note(LOINC 8648-8)などの free-text DocumentReference id を precompute
@@ -646,6 +667,7 @@ def _build_jp_clins_discharge_summary_composition(
     sections: dict[str, str],
     lang: str,
     enc_to_free_text: dict[str, str] | None = None,
+    enc_to_primary_cond: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """JP-CLINS eDischargeSummary v1.12.0 準拠 Composition を emit する。
 
@@ -749,7 +771,20 @@ def _build_jp_clins_discharge_summary_composition(
     # `free_text_doc_id` を空文字で埋め、下の never-fabricate guard で drop。
     _enc_id = _o(doc, "encounter_id", "") or ""
     _free_text_doc_id = (enc_to_free_text or {}).get(_enc_id, "")
-    _entry_ctx = {"encounter_id": _enc_id, "free_text_doc_id": _free_text_doc_id}
+    # Fall back to the encounter-scoped `cond-{enc}-primary` id when no map
+    # was passed (unit tests exercise the builder directly). The real caller
+    # (`_bb_compositions`) always supplies the map so chronic-primary
+    # encounters resolve to the patient-scoped chronic Condition.
+    _primary_cond_id = ""
+    if enc_to_primary_cond:
+        _primary_cond_id = enc_to_primary_cond.get(_enc_id, "")
+    if not _primary_cond_id and _enc_id:
+        _primary_cond_id = f"cond-{_enc_id}-primary"
+    _entry_ctx = {
+        "encounter_id": _enc_id,
+        "free_text_doc_id": _free_text_doc_id,
+        "primary_cond_id": _primary_cond_id,
+    }
 
     child_sections: list[dict[str, Any]] = []
     for key, code in _JP_DS_SECTION_CODE.items():

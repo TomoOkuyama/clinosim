@@ -75,6 +75,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 
 # SNOMED CT concept for oxygen therapy — well-established procedure code
@@ -315,7 +316,10 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
         }
         if enc_id:
             procedure["encounter"] = {"reference": f"Encounter/{enc_id}"}
-            procedure["reasonReference"] = [{"reference": f"Condition/cond-{enc_id}-primary"}]
+            # Chronic-primary encounters resolve to the patient-scoped chronic
+            # Condition; acute-primary encounters keep the encounter-scoped id.
+            _primary_ref = primary_condition_ref(ctx.record, ctx.patient_id, enc_id)
+            procedure["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
 
         performer_ref = ordered_by or enc_att_idx.get(enc_id, "")
         if performer_ref:
