@@ -36,6 +36,24 @@ def _is_microbiology_obs(resource: dict) -> bool:
     return resource.get("id", "").startswith(_MB_ID_PREFIXES)
 
 
+_BLOOD_TYPE_ID_PREFIXES = ("blood-abo-", "blood-rh-")
+
+
+def _is_blood_type_obs(resource: dict) -> bool:
+    """Return True if the Observation is a patient-level blood-type record
+    (`blood-abo-*` / `blood-rh-*`) emitted by
+    `clinosim/modules/output/fhir_r4/labs/blood_type.py`.
+
+    Blood-type Observations carry the LAB category (they are laboratory
+    tests) but are emitted per patient without a companion ServiceRequest —
+    the ABO/RhD "Type & Screen" is anchored to the patient's earliest
+    encounter admission datetime rather than an explicit Order, matching
+    how hospital EHRs store persistent blood-type records. Excluded here
+    so the basedOn coverage invariant continues to apply to the
+    order-derived lab pipeline (the invariant's original scope)."""
+    return resource.get("id", "").startswith(_BLOOD_TYPE_ID_PREFIXES)
+
+
 @pytest.mark.integration
 def test_lab_observation_basedon_coverage_us():
     """100% of non-microbiology LAB Observations carry basedOn referencing an existing SR.
@@ -49,7 +67,7 @@ def test_lab_observation_basedon_coverage_us():
 
         sr_ids = {r["id"] for r in load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))}
         obs = load_ndjson(find_ndjson(out, "Observation.ndjson"))
-        lab_obs = [o for o in obs if _is_lab_category(o) and not _is_microbiology_obs(o)]
+        lab_obs = [o for o in obs if _is_lab_category(o) and not _is_microbiology_obs(o) and not _is_blood_type_obs(o)]
 
         missing = [o["id"] for o in lab_obs if not o.get("basedOn")]
         dangling: list[str] = []

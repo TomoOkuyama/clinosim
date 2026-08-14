@@ -49,7 +49,8 @@ class PersonRecord:
     family_name: str = ""
     given_name: str = ""
     phonetic: str | None = None
-    blood_type: str = "A"
+    blood_type: str = "A"  # "A" | "B" | "O" | "AB"
+    rh_factor: str = "+"  # "+" | "-" (RhD status)
     # Address and contact (shared at household level)
     postal_code: str = ""
     state: str = ""

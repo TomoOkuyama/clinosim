@@ -508,7 +508,7 @@ def activate_patient(
         sex=sex,
         date_of_birth=person.date_of_birth,
         blood_type=person.blood_type,
-        rh_factor="+",
+        rh_factor=person.rh_factor,
         height_cm=round(height, 1),
         weight_kg=round(weight, 1),
         bmi=round(bmi, 1),
