@@ -443,8 +443,8 @@ class TestPanelYAMLs:
     def test_dr_code_text_populated_for_all_panels(self):
         """Issue #783: every panel must have `code.text` populated (no more
         95.8% null rate). Exercise all panel names to lock this in."""
-        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
         from clinosim.modules.order.panel_grouping import load_panel_definitions
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
 
         for panel_name, panel in load_panel_definitions().items():
             group = _GroupedPanel(
