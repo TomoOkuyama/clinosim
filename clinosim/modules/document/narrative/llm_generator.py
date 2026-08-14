@@ -93,7 +93,11 @@ class LLMNarrativeGenerator:
 
         # "llm" only when the spec actually routes sections to the LLM —
         # template_only / empty llm_enabled_sections stay "template".
-        llm_eligible = spec.stage2_strategy == "template_seed" and bool(spec.llm_enabled_sections)
+        # Session-88j: template_seed_bundle is the new bundle-per-doc
+        # variant of template_seed and counts the same way.
+        llm_eligible = spec.stage2_strategy in ("template_seed", "template_seed_bundle") and bool(
+            spec.llm_enabled_sections
+        )
         if llm_eligible:
             self.eligible_docs += 1
 

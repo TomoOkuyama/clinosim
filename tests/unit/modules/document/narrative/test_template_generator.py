@@ -347,6 +347,35 @@ def test_progress_note_day_0_contains_assessment() -> None:
     )
 
 
+def test_progress_note_emits_sections_and_rejoin_metadata() -> None:
+    """Session-88j Tier 1: `_render_progress_note_text` populates
+    `sections` (subjective/objective/assessment/plan) alongside `raw_text`
+    so the section-level LLM strategy can operate on this FREE_TEXT doc.
+    `metadata.raw_text_rejoin` carries the ordered (label, section_key)
+    pairs the strategy dispatcher uses to rebuild `raw_text` after LLM.
+    """
+    protocol = load_disease_protocol("bacterial_pneumonia")
+    spec = _get_spec(DocumentType.PROGRESS_NOTE)
+    ctx = _make_ctx(
+        document_type=DocumentType.PROGRESS_NOTE,
+        day_index=0,
+        disease_protocol=protocol,
+        archetype="smooth_recovery",
+    )
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, spec)
+
+    assert set(out.sections.keys()) == {"subjective", "objective", "assessment", "plan"}
+    rejoin = out.metadata.get("raw_text_rejoin")
+    assert rejoin is not None
+    assert rejoin["separator"] == "\n"
+    order_keys = [k for _, k in rejoin["order"]]
+    assert order_keys == ["subjective", "objective", "assessment", "plan"]
+    # raw_text = template's own join of the sections
+    for label, key in rejoin["order"]:
+        assert f"{label} {out.sections[key]}" in out.raw_text
+
+
 def test_progress_note_day_3_from_disease_yaml() -> None:
     """PROGRESS_NOTE at day_1 uses daily_trajectory.day_1.
 

@@ -39,6 +39,9 @@ def _write_fixture(
     hp_sections: dict[str, str] | None = None,
     hp_facts: list[str] | None = None,
     pn_text: str = "S: stable. O: afebrile. A: improving. P: continue.",
+    # Session-88j Tier 1: progress_note is now LLM-eligible (template_seed).
+    # `_check_facts` requires facts_used non-empty on LLM-enabled types, so
+    # default the fixture to a minimal traceable fact rather than [].
     pn_facts: list[str] | None = None,
     skip_narrative_for: set[str] | None = None,
     orphan_file: bool = False,
@@ -98,7 +101,7 @@ def _write_fixture(
                     "doc-sc-pn",
                     {},
                     pn_text,
-                    pn_facts if pn_facts is not None else [],
+                    pn_facts if pn_facts is not None else ["ctx.day_index"],
                 )
             )
         )
@@ -203,8 +206,48 @@ def test_facts_empty_on_llm_enabled_doc_fails(tmp_path: Path) -> None:
 
 
 def test_facts_empty_on_template_only_doc_tolerated(tmp_path: Path) -> None:
-    cif_dir = _write_fixture(tmp_path, pn_facts=[])
-    report = check_narratives(cif_dir, VERSION)
+    """empty facts_used is tolerated as an INFO counter (not a finding) when
+    the document's DocumentTypeSpec has NO LLM-enabled sections. Session 88j
+    Tier 1 uplift moved progress_note and admission_hp into LLM-eligible
+    territory, so this test writes a custom nursing_shift_note (still
+    template_only post-88j) to exercise the tolerated path."""
+    # Build a minimal fixture with a single nursing_shift_note stub (still
+    # template_only). Reuses the same on-disk layout _write_fixture builds.
+    cif_dir = tmp_path / "cif"
+    structural = cif_dir / "structural" / "patients"
+    structural.mkdir(parents=True)
+    narr_docs = cif_dir / "narratives" / VERSION / "documents" / ENC_ID
+    narr_docs.mkdir(parents=True)
+    (structural / "p1.json").write_text(
+        json.dumps(
+            {
+                "patient": {"patient_id": "PT-SC-1"},
+                "encounters": [{"encounter_id": ENC_ID, "encounter_type": "inpatient"}],
+                "documents": [{"document_id": "doc-sc-ns", "task_type": "nursing_shift_note"}],
+            }
+        )
+    )
+    (narr_docs / "doc-sc-ns.json").write_text(
+        json.dumps(
+            {
+                "document_id": "doc-sc-ns",
+                "encounter_id": ENC_ID,
+                "narrative": {
+                    "text": "Shift change: patient stable.",
+                    "sections": {},
+                    "structured": {},
+                    "generator": "template",
+                    "generator_metadata": {"generator": "template", "lang": "en"},
+                    "generated_at": "2020-01-01T00:00:42Z",
+                    "facts_used": [],  # legitimately empty for template-only
+                },
+            }
+        )
+    )
+    (cif_dir / "narratives" / VERSION / "manifest.json").write_text(
+        json.dumps({"version_id": VERSION, "generator": "template", "languages_used": ["en"]})
+    )
+    report = check_narratives(str(cif_dir), VERSION)
     assert not [f for f in report.findings if f.axis == "facts"]
     assert report.info["empty_facts_template_only_docs"] == 1
 

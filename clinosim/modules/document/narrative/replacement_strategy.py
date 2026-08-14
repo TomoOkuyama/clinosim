@@ -8,6 +8,12 @@ Maps DocumentTypeSpec.stage2_strategy to per-section replacement logic:
   §1.3 decision #13). The LLM receives a prompt that includes the existing
   template-generated text so it can improve upon it rather than generating
   from scratch.
+- ``"template_seed_bundle"`` → session-88j Tier 1 uplift. Bundle every
+  llm_enabled_sections seed into ONE LLM call (per document, not per section).
+  Preserves internal narrative consistency (S↔A↔P coherence, one physician's
+  voice) and drops request count to ~1/N compared with per-section. On JSON
+  parse failure the caller falls back to per-section replacement so quality
+  never regresses to template.
 - Unknown strategy → safe default (return template output).
 
 N-2 (N-chain, 2026-07-02): all LLM calls go through
@@ -81,6 +87,17 @@ def apply_replacement_strategy(
         return template_output
     elif spec.stage2_strategy == "template_seed":
         return _apply_template_seed_strategy(
+            template_output,
+            ctx,
+            spec,
+            llm,
+            task_type=task_type,
+            language=language,
+            cache_get=cache_get,
+            cache_put=cache_put,
+        )
+    elif spec.stage2_strategy == "template_seed_bundle":
+        return _apply_template_seed_bundle_strategy(
             template_output,
             ctx,
             spec,
@@ -199,10 +216,245 @@ def _apply_template_seed_strategy(
 
         new_sections[section] = generated
 
+    # FREE_TEXT rejoin (session-88j Tier 1 uplift for progress_note): when
+    # the template stored ordered (label, key) pairs in
+    # `metadata["raw_text_rejoin"]` — meaning the LLM-eligible sections
+    # feed a flat `raw_text` payload rather than a Composition — rebuild
+    # `raw_text` from the possibly-replaced sections so the DocumentReference
+    # emit path (which reads `raw_text`) sees the LLM content. Composition
+    # documents leave this metadata absent and keep the template raw_text
+    # untouched (composition FHIR builders read `sections`).
+    new_metadata = dict(template_output.metadata)
+    new_raw_text = template_output.raw_text
+    _rejoin = new_metadata.get("raw_text_rejoin")
+    if _rejoin and llm_sections:
+        sep = _rejoin.get("separator", "\n")
+        order = _rejoin.get("order", [])
+        rebuilt_parts: list[str] = []
+        for label, key in order:
+            body = new_sections.get(key, "")
+            rebuilt_parts.append(f"{label} {body}" if label else body)
+        new_raw_text = sep.join(rebuilt_parts)
+
     return NarrativeOutput(
-        raw_text=template_output.raw_text,
+        raw_text=new_raw_text,
         sections=new_sections,
         structured=template_output.structured,
-        metadata=dict(template_output.metadata),
+        metadata=new_metadata,
         facts_used=list(template_output.facts_used),
     )
+
+
+def _apply_template_seed_bundle_strategy(
+    template_output: NarrativeOutput,
+    ctx: NarrativeContext,
+    spec: DocumentTypeSpec,
+    llm: LLMService,
+    *,
+    task_type: LLMTaskType,
+    language: str,
+    cache_get: Callable[[str], str | None] | None,
+    cache_put: Callable[[str, str], None] | None,
+) -> NarrativeOutput:
+    """Bundle every LLM-eligible section into ONE LLM call per document.
+
+    Contract:
+    - Prompt: renders `sections_json_block` (target sections + seeds) and
+      `context_json_block` (all other template sections, read-only) so the
+      LLM sees the numbers / findings it must NOT contradict.
+    - LLM response: JSON `{section_name: rewritten_text, ...}`. On JSON
+      parse failure (invalid JSON, missing keys, unexpected keys), the
+      strategy falls back to per-section replacement via
+      `_apply_template_seed_strategy` so quality never regresses to
+      pure template silently.
+    - Cache: layer-1 cache key includes a hash of the FULL bundle seed
+      map so identical (disease, day, severity, demographics bucket,
+      bundle-seed-hash) tuples across patients share one entry.
+    - FREE_TEXT rejoin: same post-hook as per-section — if the template
+      set `metadata["raw_text_rejoin"]`, rebuild `raw_text` from the
+      possibly-replaced sections.
+    """
+    import json as _json
+    import logging as _logging
+
+    _logger = _logging.getLogger(__name__)
+
+    country = ctx.locale.upper() if getattr(ctx, "locale", None) else "US"
+    llm_sections = [s for s in spec.llm_enabled_sections_for(country) if s in template_output.sections]
+    new_sections = dict(template_output.sections)
+    new_metadata = dict(template_output.metadata)
+
+    if not llm_sections:
+        # Empty bundle → nothing to do. Return template output unchanged.
+        return template_output
+
+    # Layer-1 cache: bundle-scoped key.
+    demo_bucket = demographics_bucket(ctx.patient)
+    disease_id = ""
+    if ctx.disease_protocol is not None:
+        disease_id = getattr(ctx.disease_protocol, "disease_id", "") or ""
+
+    # Bundle seed hash covers the ordered (section, seed_text) tuples so
+    # differing seeds never collide, while identical bundles share one entry.
+    bundle_seed_pairs = tuple((s, new_sections.get(s, "")) for s in llm_sections)
+    bundle_seed_repr = "\n".join(f"{s}\x00{t}" for s, t in bundle_seed_pairs)
+    bundle_key_section = "bundle:" + "+".join(llm_sections)
+    c_key = cache_key(
+        disease=disease_id,
+        archetype=ctx.clinical_course_archetype,
+        day_index=ctx.day_index,
+        severity=ctx.severity,
+        demographics_bucket=demo_bucket,
+        lang=ctx.target_lang,
+        section=bundle_key_section,
+        seed_hash=template_seed_hash(bundle_seed_repr),
+    )
+
+    parsed_bundle: dict[str, str] | None = None
+    if cache_get is not None:
+        cached = cache_get(c_key)
+        if cached is not None:
+            try:
+                parsed_bundle = _parse_bundle_response(cached, llm_sections)
+            except ValueError:
+                parsed_bundle = None
+
+    if parsed_bundle is None:
+        # Build the prompt: target sections + context sections + output schema.
+        sections_json_block = _json.dumps(
+            {s: new_sections.get(s, "") for s in llm_sections}, ensure_ascii=False, indent=2
+        )
+        sections_json_block = f"Target sections (seeds to rewrite):\n{sections_json_block}"
+
+        context_sections = {
+            s: new_sections.get(s, "") for s in template_output.sections.keys() if s not in llm_sections
+        }
+        if context_sections:
+            context_json_block = "Context sections (reference only — do NOT modify):\n" + _json.dumps(
+                context_sections, ensure_ascii=False, indent=2
+            )
+        else:
+            context_json_block = "Context sections: (none — every template section is being rewritten)"
+
+        output_schema_block = _json.dumps(
+            {s: "<rewritten section body>" for s in llm_sections}, ensure_ascii=False, indent=2
+        )
+
+        prompt_spec = llm.prompt_registry.get("narrative_seed_bundle", language)
+        system_prompt, user_prompt = prompt_spec.render(
+            {
+                "document_type": spec.type_key,
+                "severity": ctx.severity,
+                "day_index": ctx.day_index,
+                "sections_json_block": sections_json_block,
+                "context_json_block": context_json_block,
+                "output_schema_block": output_schema_block,
+            }
+        )
+        response = llm.complete_prompt(
+            system_prompt,
+            user_prompt,
+            language=language,
+            task_type=task_type,
+            max_tokens=prompt_spec.max_tokens,
+            temperature=prompt_spec.temperature,
+        )
+        raw_response = response.text or ""
+
+        try:
+            parsed_bundle = _parse_bundle_response(raw_response, llm_sections)
+        except ValueError as exc:
+            _logger.warning(
+                "template_seed_bundle: JSON parse failed for %s (%s) — falling back to per-section",
+                spec.type_key,
+                exc,
+            )
+            # Safety net: retry via per-section strategy so we never
+            # silently regress to pure template on parse issues.
+            return _apply_template_seed_strategy(
+                template_output,
+                ctx,
+                spec,
+                llm,
+                task_type=task_type,
+                language=language,
+                cache_get=cache_get,
+                cache_put=cache_put,
+            )
+
+        # Store the RAW response (not the parsed dict) so the cache-hit
+        # path can re-parse. This keeps the cache format simple + text-only.
+        if cache_put is not None:
+            cache_put(c_key, raw_response)
+
+    for section in llm_sections:
+        # `_parse_bundle_response` guarantees every requested section key
+        # is present (validation happens inside parse); safe direct index.
+        new_sections[section] = parsed_bundle[section]
+
+    # FREE_TEXT rejoin — same as per-section path.
+    new_raw_text = template_output.raw_text
+    _rejoin = new_metadata.get("raw_text_rejoin")
+    if _rejoin:
+        sep = _rejoin.get("separator", "\n")
+        order = _rejoin.get("order", [])
+        rebuilt_parts: list[str] = []
+        for label, key in order:
+            body = new_sections.get(key, "")
+            rebuilt_parts.append(f"{label} {body}" if label else body)
+        new_raw_text = sep.join(rebuilt_parts)
+
+    return NarrativeOutput(
+        raw_text=new_raw_text,
+        sections=new_sections,
+        structured=template_output.structured,
+        metadata=new_metadata,
+        facts_used=list(template_output.facts_used),
+    )
+
+
+def _parse_bundle_response(raw: str, expected_keys: list[str]) -> dict[str, str]:
+    """Parse a bundle LLM response into a {section: text} dict.
+
+    Accepts:
+    - Bare JSON object (per prompt contract).
+    - JSON wrapped in ``` fences (defensive — some providers add them
+      despite the prompt asking not to).
+
+    Validates that every `expected_keys` entry is present with a non-empty
+    string value. Raises `ValueError` on any deviation so the caller can
+    fall back to per-section replacement.
+    """
+    import json as _json
+    import re as _re
+
+    if not raw or not raw.strip():
+        raise ValueError("empty response")
+
+    text = raw.strip()
+    # Strip ```json ... ``` fences if the model ignored the "no fences" rule.
+    fence = _re.match(r"^```(?:json)?\s*(.*?)\s*```\s*$", text, _re.DOTALL)
+    if fence:
+        text = fence.group(1).strip()
+
+    try:
+        obj = _json.loads(text)
+    except _json.JSONDecodeError as exc:
+        raise ValueError(f"invalid JSON: {exc}") from exc
+
+    if not isinstance(obj, dict):
+        raise ValueError(f"expected JSON object, got {type(obj).__name__}")
+
+    missing = [k for k in expected_keys if k not in obj]
+    if missing:
+        raise ValueError(f"missing required section keys: {missing}")
+
+    result: dict[str, str] = {}
+    for k in expected_keys:
+        v = obj[k]
+        if not isinstance(v, str):
+            raise ValueError(f"section {k!r} value must be a string, got {type(v).__name__}")
+        if not v.strip():
+            raise ValueError(f"section {k!r} value is empty")
+        result[k] = v
+    return result

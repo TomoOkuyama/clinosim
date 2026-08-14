@@ -340,3 +340,296 @@ def test_local_llm_provider_protocol_deleted() -> None:
     import clinosim.modules.document.narrative.replacement_strategy as mod
 
     assert not hasattr(mod, "LLMProvider")
+
+
+# ─────────────────────────────────────────────────────────────────
+# Session-88j Tier 1: free_text raw_text rejoin after LLM replacement
+# (progress_note pattern — DocumentReference emit reads raw_text)
+# ─────────────────────────────────────────────────────────────────
+
+
+def _free_text_spec() -> DocumentTypeSpec:
+    """FREE_TEXT spec mirroring the progress_note post-88j shape."""
+    return DocumentTypeSpec(
+        type_key="progress_note",
+        loinc_code="11506-3",
+        format_type=FormatType.FREE_TEXT,
+        countries_supported=("jp", "us"),
+        generation_frequency="daily",
+        composition_sections=("subjective", "objective", "assessment", "plan"),
+        stage2_strategy="template_seed",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+
+
+def _free_text_template_output() -> NarrativeOutput:
+    """Template output shaped like `_render_progress_note_text`: sections +
+    raw_text + `raw_text_rejoin` metadata."""
+    sections = {
+        "subjective": "患者は倦怠感の訴えあり",
+        "objective": "T 37.2 / HR 78 / SpO2 96",
+        "assessment": "感染性肺炎の増悪傾向なし",
+        "plan": "同治療継続",
+    }
+    labels = [
+        ("S（主観）", "subjective"),
+        ("O（客観）", "objective"),
+        ("A（評価）", "assessment"),
+        ("P（計画）", "plan"),
+    ]
+    raw_text = "\n".join(f"{label} {sections[key]}" for label, key in labels)
+    return NarrativeOutput(
+        raw_text=raw_text,
+        sections=sections,
+        metadata={
+            "generator": "template",
+            "lang": "ja",
+            "raw_text_rejoin": {"separator": "\n", "order": labels},
+        },
+        facts_used=["ctx.day_index"],
+    )
+
+
+def test_free_text_template_seed_rebuilds_raw_text_with_llm_sections() -> None:
+    """FREE_TEXT + template_seed: `raw_text` is rebuilt from the possibly-
+    replaced sections using the renderer-set label order. The LLM-eligible
+    sections carry `[Mock LLM response ...]` while `objective` stays as
+    the template original."""
+    spec = _free_text_spec()
+    template_output = _free_text_template_output()
+    ctx = _make_ctx()
+    provider = MockProvider()
+
+    result = _apply(template_output, ctx, spec, _mock_llm(provider))
+
+    # 3 LLM calls, one per llm_enabled_sections entry
+    assert provider.call_count == 3
+    # LLM-replaced sections reflected in raw_text
+    assert result.sections["subjective"].startswith("[Mock LLM response")
+    assert result.sections["assessment"].startswith("[Mock LLM response")
+    assert result.sections["plan"].startswith("[Mock LLM response")
+    # objective stays templated
+    assert result.sections["objective"] == "T 37.2 / HR 78 / SpO2 96"
+    # raw_text now reflects the LLM sections + template objective, preserving
+    # the S / O / A / P label order
+    assert result.raw_text.startswith("S（主観） [Mock LLM response")
+    assert "O（客観） T 37.2" in result.raw_text  # unchanged objective
+    assert "A（評価） [Mock LLM response" in result.raw_text
+    assert "P（計画） [Mock LLM response" in result.raw_text
+    # Section order preserved
+    s_pos = result.raw_text.index("S（主観）")
+    o_pos = result.raw_text.index("O（客観）")
+    a_pos = result.raw_text.index("A（評価）")
+    p_pos = result.raw_text.index("P（計画）")
+    assert s_pos < o_pos < a_pos < p_pos
+
+
+def test_free_text_template_seed_no_rebuild_when_no_llm_sections() -> None:
+    """When `llm_enabled_sections` is empty the raw_text stays as the
+    template original — no LLM call, no rejoin (safe no-op)."""
+    spec = DocumentTypeSpec(
+        type_key="progress_note",
+        loinc_code="11506-3",
+        format_type=FormatType.FREE_TEXT,
+        countries_supported=("jp", "us"),
+        generation_frequency="daily",
+        composition_sections=("subjective", "objective", "assessment", "plan"),
+        stage2_strategy="template_seed",
+        llm_enabled_sections=(),  # dead wiring — nothing to replace
+    )
+    template_output = _free_text_template_output()
+    ctx = _make_ctx()
+    provider = MockProvider()
+
+    result = _apply(template_output, ctx, spec, _mock_llm(provider))
+
+    assert provider.call_count == 0
+    assert result.raw_text == template_output.raw_text  # untouched
+
+
+# ─────────────────────────────────────────────────────────────────
+# Session-88j Tier 1: template_seed_bundle strategy (1 call per doc)
+# ─────────────────────────────────────────────────────────────────
+
+
+def _bundle_spec(
+    llm_enabled_sections: tuple[str, ...] = ("subjective", "assessment", "plan"),
+    format_type: FormatType = FormatType.COMPOSITION,
+    type_key: str = "outpatient_soap",
+    composition_sections: tuple[str, ...] = ("subjective", "objective", "assessment", "plan"),
+) -> DocumentTypeSpec:
+    return DocumentTypeSpec(
+        type_key=type_key,
+        loinc_code="34131-3",
+        format_type=format_type,
+        countries_supported=("jp", "us"),
+        generation_frequency="encounter_once",
+        composition_sections=composition_sections,
+        stage2_strategy="template_seed_bundle",
+        llm_enabled_sections=llm_enabled_sections,
+    )
+
+
+def _bundle_template_output() -> NarrativeOutput:
+    return NarrativeOutput(
+        sections={
+            "subjective": "S seed",
+            "objective": "T 37.2 / HR 78 / SpO2 96",
+            "assessment": "A seed",
+            "plan": "P seed",
+        },
+        metadata={"generator": "template", "lang": "en"},
+        facts_used=["ctx.day_index"],
+    )
+
+
+def test_bundle_strategy_makes_one_llm_call_per_document() -> None:
+    """template_seed_bundle: even with 3 LLM-eligible sections, only ONE
+    LLM call fires (per-doc bundle) instead of 3 per-section."""
+    spec = _bundle_spec()
+    provider = MockProvider()
+    ctx = _make_ctx()
+
+    result = _apply(_bundle_template_output(), ctx, spec, _mock_llm(provider))
+
+    assert provider.call_count == 1  # single bundle call
+    # All 3 target sections replaced
+    for section in ("subjective", "assessment", "plan"):
+        assert "[Mock LLM response" in result.sections[section]
+    # `objective` (not in llm_enabled_sections) stays templated
+    assert result.sections["objective"] == "T 37.2 / HR 78 / SpO2 96"
+
+
+def test_bundle_strategy_prompt_includes_target_and_context_sections() -> None:
+    """Bundle prompt carries: target sections (seeds) + context sections
+    (read-only structured data the LLM must not contradict)."""
+    spec = _bundle_spec()
+    provider = MockProvider()
+    ctx = _make_ctx()
+
+    _apply(_bundle_template_output(), ctx, spec, _mock_llm(provider))
+
+    prompt = provider.last_prompt
+    # Target sections included with seeds
+    assert '"subjective": "S seed"' in prompt
+    assert '"assessment": "A seed"' in prompt
+    assert '"plan": "P seed"' in prompt
+    # Context includes the untouched structured section (Objective)
+    assert '"objective": "T 37.2 / HR 78 / SpO2 96"' in prompt
+    # Contract keywords
+    assert "Context sections" in prompt or "reference only" in prompt.lower()
+
+
+def test_bundle_strategy_falls_back_to_per_section_on_bad_json() -> None:
+    """If the provider returns non-JSON (contract violation), the strategy
+    falls back to per-section replacement so quality never regresses to
+    template silently."""
+
+    class _NonJsonProvider(MockProvider):
+        def complete(self, prompt, **kw):  # type: ignore[override]
+            self.call_count += 1
+            # Ignore the bundle contract — return bare text.
+            from clinosim.modules.llm_service.providers.base import ProviderResponse
+
+            return ProviderResponse(
+                text="Not a JSON object — plain narrative reply.",
+                input_tokens=10,
+                output_tokens=10,
+                model="mock",
+                latency_ms=0,
+            )
+
+    spec = _bundle_spec()
+    provider = _NonJsonProvider()
+    ctx = _make_ctx()
+
+    result = _apply(_bundle_template_output(), ctx, spec, _mock_llm(provider))
+
+    # 1 bundle call + N per-section retries = 4 total (bundle fell back)
+    assert provider.call_count == 1 + len(spec.llm_enabled_sections)
+    # Sections still populated via per-section fallback
+    for section in ("subjective", "assessment", "plan"):
+        assert "Not a JSON" in result.sections[section] or "reply" in result.sections[section]
+
+
+def test_bundle_strategy_free_text_rebuilds_raw_text() -> None:
+    """FREE_TEXT bundle (progress_note): after one bundle call replaces
+    the S/A/P sections, `raw_text` is rebuilt from sections using the
+    template's `raw_text_rejoin` metadata."""
+    spec = _bundle_spec(
+        format_type=FormatType.FREE_TEXT,
+        type_key="progress_note",
+    )
+    labels = [("S:", "subjective"), ("O:", "objective"), ("A:", "assessment"), ("P:", "plan")]
+    sections = {
+        "subjective": "S seed",
+        "objective": "T 37.2",
+        "assessment": "A seed",
+        "plan": "P seed",
+    }
+    template_output = NarrativeOutput(
+        raw_text="\n".join(f"{label} {sections[key]}" for label, key in labels),
+        sections=sections,
+        metadata={
+            "generator": "template",
+            "lang": "en",
+            "raw_text_rejoin": {"separator": "\n", "order": labels},
+        },
+        facts_used=["ctx.day_index"],
+    )
+    provider = MockProvider()
+    ctx = _make_ctx()
+
+    result = _apply(template_output, ctx, spec, _mock_llm(provider))
+
+    assert provider.call_count == 1
+    # raw_text rebuilt with LLM sections + template objective
+    assert result.raw_text.startswith("S: [Mock LLM response")
+    assert "O: T 37.2" in result.raw_text
+    assert "A: [Mock LLM response" in result.raw_text
+    assert "P: [Mock LLM response" in result.raw_text
+
+
+def test_bundle_strategy_cache_hit_reuses_bundle_across_patients() -> None:
+    """Bundle cache key hashes ALL seed sections together so identical
+    (disease, day, severity, bundle-seeds) tuples across patients share
+    ONE LLM call."""
+    from clinosim.modules.document.narrative.cache import NarrativeCache
+
+    cache = NarrativeCache()
+    spec = _bundle_spec()
+    provider = MockProvider()
+    llm = _mock_llm(provider)
+
+    ctx_a = _make_ctx()
+    ctx_a.patient = {"age": 55, "sex": "M"}
+    ctx_b = _make_ctx()
+    ctx_b.patient = {"age": 57, "sex": "M"}  # same 50s-M bucket
+
+    shared = {
+        "subjective": "identical S seed",
+        "objective": "T 37.2",
+        "assessment": "identical A seed",
+        "plan": "identical P seed",
+    }
+    o_a = NarrativeOutput(sections=dict(shared), metadata={}, facts_used=[])
+    o_b = NarrativeOutput(sections=dict(shared), metadata={}, facts_used=[])
+
+    _apply(o_a, ctx_a, spec, llm, cache_get=cache.get, cache_put=cache.put)
+    _apply(o_b, ctx_b, spec, llm, cache_get=cache.get, cache_put=cache.put)
+
+    # Second doc hits the cache — total LLM calls stays at 1
+    assert provider.call_count == 1
+
+
+def test_bundle_strategy_empty_llm_sections_returns_template_unchanged() -> None:
+    """Empty llm_enabled_sections (validator-invalid production-side, but
+    defensively supported): no LLM call, template output returned."""
+    spec = _bundle_spec(llm_enabled_sections=())
+    provider = MockProvider()
+    ctx = _make_ctx()
+
+    result = _apply(_bundle_template_output(), ctx, spec, _mock_llm(provider))
+
+    assert provider.call_count == 0
+    assert result.sections == _bundle_template_output().sections

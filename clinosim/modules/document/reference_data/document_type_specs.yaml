@@ -24,7 +24,7 @@ specs:
       - family_history
       - physical_examination
       - assessment_and_plan
-    stage2_strategy: template_seed
+    stage2_strategy: template_seed_bundle
     llm_enabled_sections: [hpi, assessment_and_plan]
 
   progress_note:
@@ -33,8 +33,21 @@ specs:
     countries_supported: [us, jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
     generation_frequency: daily
-    stage2_strategy: template_only
-    llm_enabled_sections: []
+    # Session-88j Tier 1 uplift (importance score 9, 7,764 docs on JP
+    # p=10000): progress_note is FREE_TEXT (DocumentReference emit), but
+    # `_render_progress_note_text` also populates `sections` +
+    # `metadata.raw_text_rejoin` so the section-level LLM strategy can
+    # operate here just like on Composition docs. The strategy dispatcher
+    # rebuilds `raw_text` from the possibly-replaced sections after LLM.
+    # `objective` stays templated — physical exam / vitals findings are
+    # structured, not narrative.
+    composition_sections:
+      - subjective
+      - objective
+      - assessment
+      - plan
+    stage2_strategy: template_seed_bundle
+    llm_enabled_sections: [subjective, assessment, plan]
 
   discharge_summary:
     loinc_code: "18842-5"
@@ -69,7 +82,7 @@ specs:
       - discharge_diagnoses
       - discharge_medications
       - discharge_instructions
-    stage2_strategy: template_seed
+    stage2_strategy: template_seed_bundle
     llm_enabled_sections: [hospital_course, discharge_instructions]
     # β-JP-1 seam:JP-CLINS の 5 section 中、現病歴(present_illness / 360)
     # のみ narrative 量が大きく LLM 差替の意義がある。他 4 section
@@ -134,8 +147,12 @@ specs:
       - objective
       - assessment
       - plan
-    stage2_strategy: template_only
-    llm_enabled_sections: []
+    # Session-88j Tier 1 narrative uplift (importance score 9): the S/A/P
+    # sections carry patient-voice + judgement + treatment reasoning that
+    # benefit most from LLM rewrite. Objective stays templated — it renders
+    # structured vitals / exam findings that should stay deterministic.
+    stage2_strategy: template_seed_bundle
+    llm_enabled_sections: [subjective, assessment, plan]
 
   ed_note:
     loinc_code: "34878-9"
@@ -151,8 +168,13 @@ specs:
       - ed_workup
       - assessment
       - disposition
-    stage2_strategy: template_only
-    llm_enabled_sections: []
+    # Session-88j Tier 1 uplift (score 9): narrative-heavy sections =
+    # HPI (patient history), assessment (ED physician clinical reasoning),
+    # disposition (decision text). chief_complaint is a short label,
+    # triage_details / physical_exam / ed_workup are structured
+    # data (JTAS category, vitals, order list) — kept templated.
+    stage2_strategy: template_seed_bundle
+    llm_enabled_sections: [hpi, assessment, disposition]
 
   ed_triage_note:
     loinc_code: "54094-8"

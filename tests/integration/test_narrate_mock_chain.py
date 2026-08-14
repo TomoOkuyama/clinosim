@@ -25,7 +25,21 @@ import pytest
 LLM_SEED_SECTIONS = {
     "admission_hp": {"hpi", "assessment_and_plan"},
     "discharge_summary": {"hospital_course", "discharge_instructions"},
+    # Session-88j Tier 1 uplift: 3 new doc types are LLM-eligible via the
+    # `template_seed_bundle` strategy. progress_note is FREE_TEXT — its
+    # `raw_text` is REBUILT from the LLM-replaced sections (rejoin post-
+    # hook), so unlike composition docs the `text` field legitimately
+    # drifts and the byte-identity assertion below must be relaxed for it.
+    "progress_note": {"subjective", "assessment", "plan"},
+    "outpatient_soap": {"subjective", "assessment", "plan"},
+    "ed_note": {"hpi", "assessment", "disposition"},
 }
+
+# FREE_TEXT doc types whose `text` field is rebuilt from the possibly-
+# replaced sections after LLM (session-88j progress_note pattern). For
+# these the `new["text"] == tpl["text"]` byte-identity assertion is not
+# expected to hold.
+FREE_TEXT_REJOIN_TASKS = {"progress_note"}
 
 
 def _run_cli(*argv: str) -> subprocess.CompletedProcess:
@@ -107,7 +121,8 @@ def test_narrate_mock_over_generated_cif() -> None:
             new = llm[key]["narrative"]
             task_type = task_types[tpl_payload["document_id"]]
             seed_sections = LLM_SEED_SECTIONS.get(task_type)
-            assert new["text"] == tpl["text"], f"raw_text drifted: {key}"
+            if task_type not in FREE_TEXT_REJOIN_TASKS:
+                assert new["text"] == tpl["text"], f"raw_text drifted: {key}"
             assert new["facts_used"] == tpl["facts_used"], f"facts_used drifted: {key}"
             if seed_sections is None:
                 # template_only spec: sections byte-identical

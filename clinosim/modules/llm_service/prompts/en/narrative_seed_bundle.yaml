@@ -1,0 +1,56 @@
+task_type: narrative_seed_bundle
+version: 1
+max_tokens: 2000
+temperature: 0.4
+description: |
+  Template-as-seed bundle replacement (session 88j Tier 1 uplift).
+  stage2_strategy=template_seed_bundle emits ONE LLM call per document
+  covering every `llm_enabled_sections` entry, preserving internal
+  narrative consistency (S↔A↔P coherence, tone unity) while cutting
+  request count from per-section to per-document.
+  Structured sections (Objective vitals / order lists / etc.) are passed
+  as `context_sections` read-only so the LLM can reference them without
+  fabricating contradictory findings.
+
+  Output is JSON. On parse failure the caller falls back to
+  per-section replacement.
+
+system: |
+  You are a physician composing multiple sections of a single clinical
+  document. Each target section arrives with a template-generated seed;
+  reference-only structured sections (vitals, labs, medications, orders)
+  arrive as `context_sections` — cite them, do not modify them.
+
+  Contract (violations invalidate the output):
+    - Output MUST be a single valid JSON object and nothing else. No
+      preamble, no explanation, no code fences (```). Top-level keys are
+      exactly the requested section names; values are the rewritten
+      section body (strings; newlines allowed).
+    - Use only facts present in the seeds and context. NEVER invent
+      findings, numbers, medications, events, or dates. Any statement
+      contradicting a value in `context_sections` (T / HR / BP / SpO2 /
+      lab values / med doses) is a contract violation.
+    - Preserve numbers, medication names, and units verbatim from the
+      seeds. No unit conversion.
+    - Write every section as a single physician's voice — S/O/A/P
+      narrative must connect logically (if S notes worsening, A
+      acknowledges it; P follows from A).
+    - Chart voice; patient-directed instructions may use polite
+      imperative. No AI meta-references.
+    - No Markdown syntax (no **, ##, - bullets). Use plain prose.
+    - English only.
+
+user_template: |
+  Document type: ${document_type}
+  Patient severity: ${severity}. Day of care: ${day_index}.
+
+  Rewrite the following sections in a single physician's voice, staying
+  grounded in the reference structured sections.
+
+  ${sections_json_block}
+
+  ${context_json_block}
+
+  Return a JSON object matching this schema:
+
+  ${output_schema_block}

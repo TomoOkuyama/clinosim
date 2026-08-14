@@ -60,6 +60,12 @@ STAGE2_STRATEGIES: frozenset[str] = frozenset(
     {
         "template_only",
         "template_seed",
+        # Session 88j Tier 1 uplift: bundle every `llm_enabled_sections`
+        # entry into ONE LLM call per document so cache keys are still
+        # bucket-level (disease/day/severity) but request count drops from
+        # per-section to per-document, and generated sections share one
+        # narrative voice (internal S↔A↔P consistency preserved).
+        "template_seed_bundle",
     }
 )
 
@@ -153,8 +159,8 @@ def _validate_document_type_specs(data: dict[str, Any]) -> None:
                 f"return template output (LLM path no-op). "
                 f"Allowed: {sorted(STAGE2_STRATEGIES)}"
             )
-        # Layer 9: template_seed coherence
-        if strategy == "template_seed":
+        # Layer 9: template_seed / template_seed_bundle coherence
+        if strategy in ("template_seed", "template_seed_bundle"):
             llm_sections = tuple(entry.get("llm_enabled_sections") or ())
             if not llm_sections:
                 raise ValueError(
@@ -162,14 +168,30 @@ def _validate_document_type_specs(data: dict[str, Any]) -> None:
                     f"requires a non-empty llm_enabled_sections list (empty list = "
                     f"dead LLM wiring)"
                 )
-            if entry["format_type"] != "composition":
+            # template_seed operates on the per-section seed produced by the
+            # template. Composition documents produce this naturally. Free-
+            # text documents (e.g. progress_note) may also participate when
+            # their template renderer populates `sections` alongside `raw_text`
+            # AND declares `composition_sections` here so `llm_enabled_sections`
+            # can be validated against a known set (session-88j Tier 1 uplift).
+            # The FREE_TEXT `_apply_template_seed_strategy` post-hook rebuilds
+            # `raw_text` from the possibly-replaced sections via the
+            # renderer-set `raw_text_rejoin` metadata.
+            format_type = entry["format_type"]
+            if format_type not in ("composition", "free_text"):
                 raise ValueError(
                     f"document_type_specs.yaml[{key}]: stage2_strategy=template_seed "
-                    f"requires format_type=composition — "
-                    f"{entry['format_type']!r} renderers emit no sections, so "
-                    f"per-section seed replacement has nothing to seed from"
+                    f"requires format_type in (composition, free_text) — "
+                    f"{format_type!r} renderers emit no sections, so per-section "
+                    f"seed replacement has nothing to seed from"
                 )
             declared = set(entry.get("composition_sections") or ())
+            if not declared:
+                raise ValueError(
+                    f"document_type_specs.yaml[{key}]: stage2_strategy=template_seed "
+                    f"requires composition_sections to declare the seed slot names — "
+                    f"llm_enabled_sections cannot be validated against an empty set"
+                )
             unknown = set(llm_sections) - declared
             if unknown:
                 raise ValueError(
