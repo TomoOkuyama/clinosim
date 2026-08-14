@@ -173,12 +173,73 @@ def test_no_emission_when_no_on_o2_vitals():
     assert resources == []
 
 
-def test_no_emission_when_no_o2_orders():
-    """No oxygen orders → no oxygen procedures emitted."""
+def test_procedure_emitted_from_vitals_only_when_no_o2_order():
+    """Session 88j coverage fix: encounters with on-O2 vitals but no explicit
+    O2 Order still emit a Procedure derived from vitals alone. This closes
+    the ~34% coverage gap where non-respiratory disease patients (stroke,
+    DKA, pyelonephritis, …) receive supplemental O2 via SpO2-driven vitals
+    but the disease-YAML supportive_care never placed an O2 Order."""
     record = _record_with_o2_session()
     record["orders"] = []
+    record["encounters"][0]["attending_physician_id"] = "DR-IM-777"
+    ctx = _ctx(record)
+    resources = _bb_oxygen_therapy(ctx)
+    assert len(resources) == 1
+    p = resources[0]
+    # Start = first on-O2 vital (no order to compare against)
+    assert p["performedPeriod"]["start"].startswith("2025-06-21T18:22:00")
+    # SNOMED coding still present
+    assert p["code"]["coding"][0]["code"] == "57485005"
+    # No SpO2 target note (no Order carried one)
+    assert "note" not in p
+    # Performer falls back to encounter attending
+    assert p["performer"] == [{"actor": {"reference": "Practitioner/DR-IM-777"}}]
+    # Procedure id derived from encounter (no order_id available)
+    assert p["id"] == "proc-o2-ENC-1"
+    # Device still emitted from vitals
+    assert p["usedCode"][0]["coding"][0]["code"] == "336623009"
+
+
+def test_no_emission_when_no_on_o2_vitals_and_no_order():
+    """Neither Order nor on-O2 vitals → nothing to emit."""
+    record = _record_with_o2_session()
+    record["orders"] = []
+    for v in record["vital_signs"]:
+        v["on_supplemental_oxygen"] = False
     ctx = _ctx(record)
     assert _bb_oxygen_therapy(ctx) == []
+
+
+def test_vitals_only_omits_performer_when_no_attending():
+    """Vitals-only path with no attending_physician_id on the encounter →
+    Procedure emitted without a performer element (not a fabricated one)."""
+    record = _record_with_o2_session()
+    record["orders"] = []
+    # encounter has no attending_physician_id set
+    ctx = _ctx(record)
+    p = _bb_oxygen_therapy(ctx)[0]
+    assert "performer" not in p
+
+
+def test_multiple_orders_per_encounter_deduplicated():
+    """If two O2 Orders exist on the same encounter (theoretical titration
+    scenario), only one Procedure is emitted with the earliest ordered_dt."""
+    record = _record_with_o2_session()
+    record["orders"].append(
+        {
+            "order_id": "ORD-ENC-1-ADM-S01",
+            "encounter_id": "ENC-1",
+            "order_type": "procedure",
+            "display_name": "O2: Simple mask SpO2 >= 92%",
+            "ordered_datetime": "2025-06-25T09:00:00",
+            "ordered_by": "DR-IM-002",
+        }
+    )
+    ctx = _ctx(record)
+    resources = _bb_oxygen_therapy(ctx)
+    assert len(resources) == 1
+    # earliest Order's ordered_by wins for performer attribution
+    assert resources[0]["performer"] == [{"actor": {"reference": "Practitioner/DR-IM-001"}}]
 
 
 def test_procedure_encounter_reference_and_reason():
