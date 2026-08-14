@@ -1,0 +1,66 @@
+# clinosim LLM Service Configuration — Sakura Cloud GPU (Ollama)
+#
+# 高火力 VRT (L40S 48GB) 上に Ollama を常駐させ、ローカル workstation から
+# SSH tunnel 経由で narrate を回す構成。データ主権要件を守りつつ、AWS
+# Bedrock 依存を排したい場合の選択肢。
+#
+# Design: docs/design-notes/2026-08-15-sakura-gpu-ollama-narrative.md
+# HOW-TO: docs/sakura_gpu_setup.md
+#
+# Prerequisites:
+#   - Sakura GPU VM (is1a, 高火力 VRT L40S 推奨) に Ollama + Qwen 3 32B
+#     が pull 済み。設置手順は docs/sakura_gpu_setup.md 参照。
+#   - Ollama は 127.0.0.1:11434 loopback bind 必須 (パケットフィルタは
+#     22/tcp のみ許可、11434 は絶対に外部公開しない)。
+#   - Local から SSH tunnel:
+#       ssh -i ~/.ssh/sakura.pem -L 11434:127.0.0.1:11434 \
+#           -N ubuntu@<sakura-ip> &
+#   - `pip install httpx` (clinosim 標準依存に含まれる)。
+#
+# Usage:
+#   clinosim narrate \
+#       --cif-dir ./output/cif \
+#       --llm-config clinosim/config/llm_service.sakura.yaml \
+#       --version-id sakura_qwen3_32b_v1 \
+#       --country JP \
+#       --set-current
+
+# JUDGMENT は Bedrock 版と同じく template のまま (Stage 1 の deterministic
+# 前提を崩さない)。Sakura Ollama は NARRATIVE 生成のみに使用する。
+judgment:
+  mode: "template"
+  provider: ""
+
+narrative:
+  mode: "llm"
+  provider: "ollama"
+  ollama:
+    # SSH tunnel 経由でローカルの 11434 に転送されている前提。
+    # 直接 sakura VM の public IP を書かない (loopback bind + tunnel が
+    # 医療情報 3 省 2 ガイドライン相当の閉域運用の要)。
+    endpoint: "http://localhost:11434"
+    # モデル tag は Ollama library の release ごとに変わりうる。
+    # 現行推奨: Qwen 3 32B dense、4-bit 量子化 (~20GB VRAM)。
+    # 品質評価の代替候補は model_map の large 側に置いて `--llm-config` の
+    # override or model_map の書換で切替可能。
+    model: "qwen3:32b-q4_K_M"
+  model_map:
+    # bundle strategy の narrative_seed_bundle は max_tokens=2000 で
+    # medium tier を想定。small/medium/large 全て同一モデルで開始し、
+    # 品質評価後にサイズ別モデル (Swallow 70B 等) へ切替する。
+    small: "qwen3:32b-q4_K_M"
+    medium: "qwen3:32b-q4_K_M"
+    large: "qwen3:32b-q4_K_M"
+  timeout_seconds: 180  # 32B q4 で概ね 5-15 sec/call、余裕を持たせる
+  retry_attempts: 2
+  retry_backoff_seconds: 2
+
+# Prompt template overrides (optional) — 通常は不要 (default で bundle 対応)
+prompts:
+  registry_path: null  # null → clinosim/modules/llm_service/prompts
+
+# SHA256 disk cache は必須 (再実行時のコスト・時間を 1/10 に)
+cache:
+  enabled: true
+  directory: "./.llm_cache/sakura"
+  max_entries: 100000
