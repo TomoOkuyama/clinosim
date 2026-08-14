@@ -398,6 +398,9 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     # 同一 order の MedicationRequest / MedicationAdministration は同じ
     # order_id → order_in_rp map を使うため両者の紐付けが取れる。
     _order_in_rp_by_oid = build_order_in_rp_map(ctx.record.get("orders", []) or [])
+    # Chronic codes for primary-condition-ref resolution (chronic-primary
+    # encounters resolve reasonReference to the patient-scoped chronic).
+    _chronic_codes = _extract_chronic_codes(ctx.patient_data or {})
     for order in ctx.record.get("orders", []):
         if order.get("order_type") == "medication":
             if not (order.get("display_name") or "").strip():
@@ -419,8 +422,27 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
                     encounter_type=primary_enc_type,
                     rp_number="1",
                     order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
+                    chronic_condition_codes=_chronic_codes,
                 )
             )
+    return out
+
+
+def _extract_chronic_codes(patient_data: dict) -> list[str]:
+    """Return the ordered list of chronic-condition ICD codes for a patient.
+
+    Order matters — `primary_condition_ref_from_codes` uses the list index
+    as the chronic Condition's suffix (`cond-chronic-{pat}-{i:02d}`), which
+    must line up with `_build_conditions`' own iteration.
+    """
+    out: list[str] = []
+    for _c in (patient_data or {}).get("chronic_conditions", []) or []:
+        if isinstance(_c, str):
+            out.append(_c)
+        elif isinstance(_c, dict):
+            out.append(_c.get("code", ""))
+        else:
+            out.append(getattr(_c, "code", ""))
     return out
 
 
@@ -547,6 +569,7 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
     # slice orderInRp。同 order_id を参照する MedicationRequest と同じ
     # 番号にするため、`build_order_in_rp_map` の同一ロジックで再構築。
     _order_in_rp_by_oid = build_order_in_rp_map(ctx.record.get("orders", []) or [])
+    _chronic_codes = _extract_chronic_codes(ctx.patient_data or {})
     for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
         if not (mar.get("drug_name") or "").strip():
             continue
@@ -565,6 +588,7 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             primary_dx_code=ctx.primary_dx_code,
             rp_number="1",
             order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
+            chronic_condition_codes=_chronic_codes,
         )
         _req = _resource.get("request") if isinstance(_resource, dict) else None
         if _req and isinstance(_req, dict):
@@ -603,7 +627,9 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
                 proc = dict(proc)
                 proc["primary_surgeon_id"] = _att
         _enriched.append(proc)
-    out = [_build_procedure(proc, ctx.patient_id, i, ctx.country) for i, proc in enumerate(_enriched)]
+    out = [
+        _build_procedure(proc, ctx.patient_id, i, ctx.country, record=ctx.record) for i, proc in enumerate(_enriched)
+    ]
     # RM-6c: emit Procedure resources from PROCEDURE-type Orders
     # too. These are procedure/device items (compression device, splint, etc.)
     # that used to leak through the MedicationRequest path — RM-6a/b routed
@@ -671,7 +697,12 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         if enc_id:
             procedure_res["encounter"] = {"reference": f"Encounter/{enc_id}"}
             # CY7-17 (Chain-7): reasonReference to encounter primary Condition.
-            procedure_res["reasonReference"] = [{"reference": f"Condition/cond-{enc_id}-primary"}]
+            # Chronic-primary encounters resolve to the patient-scoped chronic
+            # Condition; acute-primary encounters keep the encounter-scoped id.
+            from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
+
+            _primary_ref = primary_condition_ref(ctx.record, ctx.patient_id, enc_id)
+            procedure_res["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
         if ordered_dt:
             procedure_res["performedDateTime"] = str(ordered_dt)
         if ordered_by:
