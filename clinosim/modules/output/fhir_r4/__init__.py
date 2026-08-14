@@ -89,6 +89,7 @@ from clinosim.modules.output.fhir_r4.procedures.device import (
 )
 from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations
 from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
+from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import _bb_oxygen_therapy
 from clinosim.simulator import log as sim_log
 
 # FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding
@@ -380,6 +381,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_discharge_medication_requests,  # Issue #445: discharge / outpatient-renewal prescriptions
     _bb_medication_admins,
     _bb_procedures,
+    _bb_oxygen_therapy,
     _bb_practitioners,
     _bb_nursing_observations,
     _bb_immunizations,

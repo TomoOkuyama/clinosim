@@ -608,11 +608,19 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
     # too. These are procedure/device items (compression device, splint, etc.)
     # that used to leak through the MedicationRequest path — RM-6a/b routed
     # them here at CIF creation. Emit a light-weight Procedure per Order.
+    from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import is_oxygen_order
+
     proc_seq = len(out) + 1
     for order in ctx.record.get("orders", []) or []:
         ot = order.get("order_type", "") if isinstance(order, dict) else getattr(order, "order_type", "")
         # OrderType enum stringifies to its value
         if str(ot) not in ("procedure", "OrderType.PROCEDURE"):
+            continue
+        # Oxygen-therapy orders are emitted by `_bb_oxygen_therapy` with a
+        # session-derived performedPeriod, SNOMED coding, and no misleading
+        # bodySite placeholder — skip them here so we do not emit a duplicate
+        # point-in-time Procedure with the generic order-derived shape.
+        if is_oxygen_order(order):
             continue
         display = order.get("display_name", "") if isinstance(order, dict) else getattr(order, "display_name", "")
         enc_id = order.get("encounter_id", "") if isinstance(order, dict) else getattr(order, "encounter_id", "")

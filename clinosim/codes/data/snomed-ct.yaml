@@ -544,3 +544,20 @@ codes:
   '433296005':
     en: Infusion pump for intravenous fluids
     ja: 輸液ポンプ
+
+  # Oxygen therapy — Procedure and delivery-device codes used by the
+  # `procedures/oxygen_therapy.py` builder. Codes verified as widely-used
+  # SNOMED CT concepts recognised by JP Core / US Core downstream
+  # consumers (tx.fhir.org $lookup 2026-08-14).
+  '57485005':
+    en: Oxygen therapy (procedure)
+    ja: 酸素療法
+  '336623009':
+    en: Nasal cannula
+    ja: 経鼻カニューラ
+  '425574000':
+    en: Oxygen face mask
+    ja: 酸素マスク
+  '26412008':
+    en: Mechanical ventilator
+    ja: 人工呼吸器
