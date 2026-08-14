@@ -20,7 +20,13 @@ from clinosim.modules.output.fhir_r4.lib.common import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name, _procedure_display
 
 
-def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> dict:
+def _build_procedure(
+    proc: dict,
+    patient_id: str,
+    index: int,
+    country: str,
+    record: dict | None = None,
+) -> dict:
     """Build FHIR Procedure resource."""
     code_system_key = system_key_for("procedure", country)
     code_system = get_system_uri(code_system_key)
@@ -181,9 +187,17 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
         # recorder (default to surgeon when available)
         resource["recorder"] = {"reference": f"Practitioner/{surgeon_id or anes_id}"}
 
-    # reasonReference — link to encounter's primary Condition
+    # reasonReference — link to encounter's primary Condition. Chronic-
+    # primary encounters resolve to the patient-scoped chronic Condition;
+    # acute-primary encounters keep the encounter-scoped id.
     if enc_id:
-        resource["reasonReference"] = [{"reference": f"Condition/cond-{enc_id}-primary"}]
+        if record is not None:
+            from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
+
+            _primary_ref = primary_condition_ref(record, patient_id, enc_id)
+        else:
+            _primary_ref = f"cond-{enc_id}-primary"
+        resource["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
     # CY7-17 (Chain-7): Procedure.reasonCode fallback — text-only citing the
     # encounter's primary diagnosis when the CIF procedure record doesn't
     # carry an explicit reason. FHIR R4 Procedure.reasonCode 0..*.

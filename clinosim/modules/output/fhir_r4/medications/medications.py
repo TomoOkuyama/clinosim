@@ -617,6 +617,7 @@ def _build_medication_request(
     encounter_type: str = "",
     rp_number: str = "1",
     order_in_rp: str = "1",
+    chronic_condition_codes: list[str] | None = None,
 ) -> dict:
     """Build FHIR MedicationRequest resource.
 
@@ -790,10 +791,16 @@ def _build_medication_request(
     if dosage:
         resource["dosageInstruction"] = [dosage]
 
-    # Reason reference (link to primary diagnosis Condition)
+    # Reason reference (link to primary diagnosis Condition). Chronic-primary
+    # encounters resolve to the patient-scoped chronic Condition; acute
+    # ones keep the encounter-scoped id.
     reason = order.get("reason_condition", "") or primary_dx_code
     if reason:
-        cond_ref = f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary"
+        from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+            primary_condition_ref_from_codes,
+        )
+
+        cond_ref = primary_condition_ref_from_codes(primary_dx_code, chronic_condition_codes, patient_id, encounter_id)
         resource["reasonReference"] = [
             {
                 "reference": f"Condition/{cond_ref}",
@@ -1015,6 +1022,7 @@ def _build_medication_admin(
     primary_dx_code: str = "",
     rp_number: str = "1",
     order_in_rp: str = "1",
+    chronic_condition_codes: list[str] | None = None,
 ) -> dict:
     """Build FHIR MedicationAdministration resource.
 
@@ -1213,9 +1221,15 @@ def _build_medication_admin(
     if "dose" in dosage or "rateQuantity" in dosage:
         resource["dosage"] = dosage
 
-    # Reason reference (link to primary diagnosis)
+    # Reason reference (link to primary diagnosis). Chronic-primary
+    # encounters resolve to the patient-scoped chronic Condition; acute
+    # ones keep the encounter-scoped id.
     if primary_dx_code:
-        cond_ref = f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary"
+        from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+            primary_condition_ref_from_codes,
+        )
+
+        cond_ref = primary_condition_ref_from_codes(primary_dx_code, chronic_condition_codes, patient_id, encounter_id)
         resource["reasonReference"] = [
             {
                 "reference": f"Condition/{cond_ref}",

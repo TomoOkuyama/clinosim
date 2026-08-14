@@ -15,6 +15,9 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+    primary_condition_ref_from_codes,
+)
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
     make_participant,
@@ -318,13 +321,14 @@ def _build_encounter(
         if _reason_code:
             rc["coding"] = [_coding_with_display(_reason_system, _reason_code, lang)]
         resource["reasonCode"] = [rc]
-        # reasonReference: link to primary Condition (if dx exists)
+        # reasonReference: link to primary Condition (if dx exists).
+        # Chronic-primary encounters resolve to the patient-scoped chronic
+        # Condition; acute-primary encounters keep the encounter-scoped id.
         if primary_dx_code:
-            resource["reasonReference"] = [
-                {
-                    "reference": f"Condition/cond-{encounter_id}-primary",
-                }
-            ]
+            _primary_ref = primary_condition_ref_from_codes(
+                primary_dx_code, chronic_condition_codes, patient_id, encounter_id
+            )
+            resource["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
 
     # Participant: attending, admitter, discharger
     participants: list[dict[str, Any]] = []
@@ -359,9 +363,10 @@ def _build_encounter(
         )
 
         _dd_display = _localize_display("Discharge diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA)
+        _dd_ref = primary_condition_ref_from_codes(primary_dx_code, chronic_condition_codes, patient_id, encounter_id)
         diagnosis_list: list[dict[str, Any]] = [
             {
-                "condition": {"reference": f"Condition/cond-{encounter_id}-primary"},
+                "condition": {"reference": f"Condition/{_dd_ref}"},
                 "use": {
                     "coding": [
                         {

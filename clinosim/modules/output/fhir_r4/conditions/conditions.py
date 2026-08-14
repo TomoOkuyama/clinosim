@@ -11,6 +11,9 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+    is_chronic_primary as _encounter_primary_is_chronic,
+)
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
     build_diagnosis_codeable_concept,
@@ -227,7 +230,15 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
     # --- Primary diagnosis (encounter diagnosis) ---
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
-    if dx_code:
+    # Chronic-primary suppression: when this encounter's primary dx merges
+    # into a chronic problem (HTN follow-up, HF exacerbation, DM control,
+    # …), skip the encounter-primary Condition emission. The chronic
+    # Condition below already carries the disease info, and
+    # `Encounter.diagnosis[].use=DD` expresses the encounter-role — the
+    # duplicate `cond-{enc}-primary` was drifting ICD granularity (I50 vs
+    # I50.9) and inflating the Condition table by ~encounter_count for
+    # polymorbid patients.
+    if dx_code and not _encounter_primary_is_chronic(record):
         base_code = dx_code.split(".")[0]
         seen_codes.add(base_code)
 
