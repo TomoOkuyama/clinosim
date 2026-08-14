@@ -103,16 +103,28 @@ def test_bmi_generated_from_physiology_yaml():
 
 
 def test_smoking_status_sex_differentiated():
-    """Smoking status must use sex-specific distribution from YAML."""
+    """Smoking status must use sex-specific distribution from YAML for adults.
+
+    Minors (age < LEGAL_ADULT_AGE) are unconditionally overridden to
+    "never" — see :mod:`clinosim.modules.population.engine` and its
+    partner test :mod:`test_population_minor_smoking_alcohol_gate` — so
+    the sex-differentiated assertion applies only to adults."""
+    from clinosim.modules.population._population_workflow_thresholds import LEGAL_ADULT_AGE
+
     rng = np.random.default_rng(42)
     demo = _us_demo_minimal()
-    # males forced to current, females forced to never
+    # males forced to current, females forced to never (adults only)
     registry = generate_population(size=100, country="US", rng=rng, demo=demo)
     for p in registry.persons.values():
+        if p.age < LEGAL_ADULT_AGE:
+            assert p.smoking_status == "never", (
+                f"minor age={p.age} must be 'never' (age gate), got {p.smoking_status!r}"
+            )
+            continue
         if p.sex == "M":
-            assert p.smoking_status == "current", "Male should be current smoker per demo"
+            assert p.smoking_status == "current", "Male adult should be current smoker per demo"
         else:
-            assert p.smoking_status == "never", "Female should be never-smoker per demo"
+            assert p.smoking_status == "never", "Female adult should be never-smoker per demo"
 
 
 def test_comorbidity_correlation_raises_prevalence():

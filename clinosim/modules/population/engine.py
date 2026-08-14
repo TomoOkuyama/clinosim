@@ -85,6 +85,7 @@ from clinosim.modules.population._population_workflow_thresholds import (
     HEALTH_SCREENING_MIN_AGE,
     HEALTH_SCREENING_MONTH_END_EXCLUSIVE,
     HEALTH_SCREENING_MONTH_START,
+    LEGAL_ADULT_AGE,
     MAMMOGRAPHY_MIN_AGE,
     MAMMOGRAPHY_PROBABILITY,
     MIXED_CONDITIONS_MIN_AGE_DEFAULT,
@@ -265,19 +266,18 @@ def generate_population(
                 height -= (age - HEIGHT_SHRINKAGE_AGE_THRESHOLD) / 10 * shrink
 
             # Lifestyle: smoking and alcohol (sex-specific distributions).
-            # NOTE (Issue #360 G7): a minor-age gate on smoking/alcohol was
-            # attempted in this PR but reverted after tripping the F4 memoize
-            # test (``tests/unit/test_engine_memoize.py::test_memoize_hit_
-            # bit_identical``). The test compares cold vs cache-hit runs at
-            # a shifted snapshot date; overriding smoking_status/alcohol_use
-            # for age <= 19 causes a person on the age-19/20 boundary to
-            # differ between cursors (cached "never" vs freshly-sampled
-            # "current"), and the cascade reaches downstream disease
-            # incidence multipliers → lab_results diverge → memo drift.
-            # This PR ships only the occupation fix (which affects display
-            # only, no downstream causation). The smoking/alcohol age gate
-            # will be revisited alongside the cross-cursor person-age drift
-            # follow-up mentioned in the F4 memoize test docstring.
+            #
+            # 未成年 override: `rng.choice` は age に関係なく必ず consume する
+            # (RNG cursor 保持 = memoize/F4 determinism を破らない)、その上で
+            # サンプル結果を捨てて minors (age < LEGAL_ADULT_AGE) は
+            # smoking="never" / alcohol="none" に上書き。JP 法定年齢 20+ = 飲
+            # 酒・喫煙可能。米国は 21 だが、population module 全体 (occupation
+            # 判定等) が 20+ を成人閾値としているので JP/US 共通 20 で運用。
+            #
+            # Issue #360 G7 で reverted された「sampling 自体を skip」は
+            # RNG cursor を shift させて F4 memoize を破ったが、今回の
+            # 「consume してから override」は cursor が variant-invariant なの
+            # で cold vs cache-hit も byte-identical に保たれる。
             lifestyle = demo.get("lifestyle_distribution") or {}
             smoking_dist = (lifestyle.get("smoking") or {}).get(sex_key, {})
             if smoking_dist:
@@ -286,6 +286,8 @@ def generate_population(
                 smoking_status = str(rng.choice(sk, p=sp))
             else:
                 smoking_status = str(rng.choice(SMOKING_FALLBACK_LABELS, p=SMOKING_FALLBACK_PROBS))
+            if age < LEGAL_ADULT_AGE:
+                smoking_status = "never"
 
             alcohol_dist = (lifestyle.get("alcohol") or {}).get(sex_key, {})
             if alcohol_dist:
@@ -294,6 +296,8 @@ def generate_population(
                 alcohol_use = str(rng.choice(ak, p=ap))
             else:
                 alcohol_use = str(rng.choice(ALCOHOL_FALLBACK_LABELS, p=ALCOHOL_FALLBACK_PROBS))
+            if age < LEGAL_ADULT_AGE:
+                alcohol_use = "none"
 
             # Given name (sex-appropriate)
             given = _sample_given_name(name_data, sex, rng)
