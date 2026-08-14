@@ -37,7 +37,25 @@ class MockProvider:
 
         # Produce a stable, prompt-aware stub so tests can assert routing worked.
         snippet = prompt.strip().splitlines()[0] if prompt.strip() else ""
-        body = f"[Mock LLM response #{self.call_count}]\nModel: {self.last_model}\nFirst prompt line: {snippet[:120]}"
+        # Session-88j bundle strategy: when the prompt asks for a JSON
+        # object with a specific schema (session-88j narrative_seed_bundle
+        # rendered `output_schema_block` as a JSON snippet), emit a
+        # matching JSON object so `_parse_bundle_response` succeeds without
+        # falling back to per-section. Detects the schema by looking for
+        # the literal `<rewritten section body>` placeholder the prompt
+        # emits for every requested section key.
+        placeholder = "<rewritten section body>"
+        if placeholder in prompt:
+            import json as _json
+            import re as _re
+
+            keys = _re.findall(rf'"([^"]+)":\s*"{_re.escape(placeholder)}"', prompt)
+            obj = {k: f"[Mock LLM response #{self.call_count} — {k}]" for k in keys}
+            body = _json.dumps(obj, ensure_ascii=False)
+        else:
+            body = (
+                f"[Mock LLM response #{self.call_count}]\nModel: {self.last_model}\nFirst prompt line: {snippet[:120]}"
+            )
         return ProviderResponse(
             text=body,
             input_tokens=max(1, len(prompt.split())),

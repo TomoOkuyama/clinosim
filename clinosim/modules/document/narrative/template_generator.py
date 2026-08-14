@@ -548,16 +548,21 @@ class TemplateNarrativeGenerator:
             if phys_summary:
                 objective = f"{objective}。{phys_summary}"
 
-        # Build SOAP note
+        # Build SOAP note. Also populate `sections` so the section-level LLM
+        # replacement pipeline can operate on progress_note (session 88j
+        # Tier 1 uplift). `raw_text_rejoin` metadata carries the label /
+        # section pairs so `_apply_template_seed_strategy` can rebuild
+        # `raw_text` from the possibly-replaced sections for FREE_TEXT
+        # documents (DocumentReference emit reads `raw_text`, not sections).
         sep = "\n"
-        raw_text = sep.join(
-            [
-                f"{soap_labels[0]} {subjective}",
-                f"{soap_labels[1]} {objective}",
-                f"{soap_labels[2]} {assessment}",
-                f"{soap_labels[3]} {plan}",
-            ]
-        )
+        section_order = [
+            (soap_labels[0], "subjective", subjective),
+            (soap_labels[1], "objective", objective),
+            (soap_labels[2], "assessment", assessment),
+            (soap_labels[3], "plan", plan),
+        ]
+        sections = {key: body for _, key, body in section_order}
+        raw_text = sep.join(f"{label} {body}" for label, _, body in section_order)
 
         # Always add at least ctx reference
         facts.append("ctx.day_index")
@@ -565,7 +570,18 @@ class TemplateNarrativeGenerator:
 
         return NarrativeOutput(
             raw_text=raw_text,
-            metadata={"generator": "template", "lang": lang, "day_index": ctx.day_index},
+            sections=sections,
+            metadata={
+                "generator": "template",
+                "lang": lang,
+                "day_index": ctx.day_index,
+                "raw_text_rejoin": {
+                    "separator": sep,
+                    # ordered list of (label, section_key) so the post-LLM
+                    # rejoin preserves S / O / A / P sequence + labels.
+                    "order": [(label, key) for label, key, _ in section_order],
+                },
+            },
             facts_used=facts,
         )
 

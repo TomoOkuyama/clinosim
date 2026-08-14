@@ -121,11 +121,20 @@ def test_llm_pass_replaces_only_llm_enabled_sections(tmp_path, tmp_path_factory)
     assert llm["facts_used"] == tpl["facts_used"]
     assert llm["generator"] == "llm-mock"
 
-    # template_only spec (progress_note): content identical, no LLM injection
+    # Session-88j Tier 1: progress_note is now template_seed too (FREE_TEXT
+    # with `raw_text_rejoin` post-hook). The 3 llm_enabled_sections
+    # (subjective / assessment / plan) get replaced; `objective` stays
+    # template; `text` is rebuilt from the possibly-replaced sections so
+    # the DocumentReference emit path sees the LLM content.
     tpl_pn = json.loads((tmp2 / "narratives/template/documents/ENC-1/doc-2.json").read_text())["narrative"]
     llm_pn = json.loads((tmp_path / "narratives/llmtest/documents/ENC-1/doc-2.json").read_text())["narrative"]
-    assert llm_pn["text"] == tpl_pn["text"]
-    assert llm_pn["sections"] == tpl_pn["sections"]
+    for section in ("subjective", "assessment", "plan"):
+        assert llm_pn["sections"][section].startswith("[Mock LLM response"), section
+    # objective retains template content
+    assert llm_pn["sections"]["objective"] == tpl_pn["sections"]["objective"]
+    # raw text now differs from the template (LLM sections rewrote it)
+    assert llm_pn["text"] != tpl_pn["text"]
+    assert "[Mock LLM response" in llm_pn["text"]
 
 
 @pytest.mark.unit
@@ -171,16 +180,18 @@ def test_llm_pass_manifest_exposes_generator_fallback_when_provider_down(tmp_pat
     manifest = LLMNarrativePass(cif_dir=str(tmp_path), llm=_raising_llm(), version_id="llmdown", country="US").run()
 
     report = manifest.llm_cost_report
-    # admission_hp is the only template_seed-eligible doc in the fixture
+    # Session-88j Tier 1: both admission_hp AND progress_note are now
+    # template_seed-eligible in the fixture, so provider-down fallback
+    # fires on both docs.
     assert report["generator_llm_docs"] == 0
-    assert report["generator_fallback_docs"] == 1
+    assert report["generator_fallback_docs"] == 2
     assert report["generator_fallback_reasons"]
     # Loud stderr WARNING: eligible docs > 0 and every LLM call failed
     err = capsys.readouterr().err
     assert "WARNING" in err
     # Persisted in manifest.json too
     m = json.loads((tmp_path / "narratives/llmdown/manifest.json").read_text())
-    assert m["llm_cost_report"]["generator_fallback_docs"] == 1
+    assert m["llm_cost_report"]["generator_fallback_docs"] == 2
 
 
 @pytest.mark.unit

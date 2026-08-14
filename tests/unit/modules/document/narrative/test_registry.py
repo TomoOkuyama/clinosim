@@ -478,18 +478,34 @@ def test_load_raises_on_llm_enabled_section_not_in_composition_sections() -> Non
         reg_module._validate_document_type_specs(data)
 
 
-def test_load_raises_on_template_seed_with_free_text_format() -> None:
-    """Layer 9: free_text renderers emit NO sections (raw_text only) — the
-    per-section seed replacement has nothing to seed from, so template_seed
-    on a non-composition spec is forbidden at load time.
+def test_load_raises_on_template_seed_free_text_without_composition_sections() -> None:
+    """Layer 9: `template_seed` on FREE_TEXT is permitted (session-88j Tier 1)
+    ONLY when composition_sections declares the seed slot names. Free_text
+    docs without declared sections still fail (nothing to validate
+    `llm_enabled_sections` against — hallucination risk).
     """
     import clinosim.modules.document.narrative.registry as reg_module
 
     data = _load_production_yaml()
+    # Start from progress_note (production progress_note already declares
+    # composition_sections after the 88j uplift). Strip those to reproduce
+    # the "seedless free_text" mistake.
+    data["specs"]["progress_note"]["composition_sections"] = []
     data["specs"]["progress_note"]["stage2_strategy"] = "template_seed"
     data["specs"]["progress_note"]["llm_enabled_sections"] = ["subjective"]
-    with pytest.raises(ValueError, match="composition"):
+    with pytest.raises(ValueError, match="composition_sections"):
         reg_module._validate_document_type_specs(data)
+
+
+def test_load_permits_template_seed_free_text_with_composition_sections() -> None:
+    """Positive counterpart: FREE_TEXT + template_seed loads cleanly when
+    composition_sections declares the seed slots (progress_note as
+    shipped after the 88j uplift)."""
+    import clinosim.modules.document.narrative.registry as reg_module
+
+    data = _load_production_yaml()
+    # Production data already has this shape post-88j; validator must accept.
+    reg_module._validate_document_type_specs(data)
 
 
 # === chain 2: admission_care_plan (LOINC 18776-5) ===
