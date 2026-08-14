@@ -9,16 +9,30 @@ single point-in-time Procedure (`performedDateTime`) loses the clinically
 important duration — a consumer sees the placement instant but cannot
 answer "when did we stop O2?".
 
-## FHIR shape emitted
+## Emission model — encounter-centric, Order optional
 
-Per encounter with an oxygen-therapy Order **and** matching on-O2 vitals,
-one **Procedure** resource is emitted:
+Coverage rule (from consumer feedback session 88j):
+**every encounter with `on_supplemental_oxygen=True` vitals emits one
+Procedure**, regardless of whether an explicit O2 Order was placed in the
+disease-YAML `supportive_care` section.
+
+Historical shape of the CIF: only the 9 respiratory / cardiac diseases whose
+YAML included `{type: "O2", …}` produced an O2 Order. The vitals pipeline
+(`simulator/vitals_pipeline.py::_o2_for`) independently places any inpatient
+on supplemental O2 when SpO2 drops below the hypoxemia threshold — so
+patients with pyelonephritis, stroke, DKA, hip fracture, influenza, etc.
+receive supplemental O2 in the vitals record without an accompanying Order.
+Restricting Procedure emission to encounters with an O2 Order missed ~34%
+of these episodes.
+
+Per encounter with on-O2 vitals, one **Procedure** resource is emitted:
 
 - `code.coding` = SNOMED CT 57485005 "Oxygen therapy (procedure)".
 - `code.text` = clean localised label ("酸素投与" / "Oxygen therapy") —
   the SpO2 target no longer contaminates this field (moved to `note[]`).
 - `performedPeriod` = derived session start/end (see below).
-- `note[]` = SpO2 target (if the Order display carried one).
+- `note[]` = SpO2 target — only when an Order exists and its display
+  carried one. Vitals-only emissions omit `note[]`.
 - `usedCode[]` = SNOMED coding of the delivery device (nasal cannula /
   simple mask / …) derived from the vitals `oxygen_delivery_device` mode.
   `usedCode` is `CodeableConcept` and does not require a matching Device
@@ -29,8 +43,9 @@ one **Procedure** resource is emitted:
 
 Session boundaries come from `ctx.record.vital_signs`:
 
-- start: `min(order.ordered_datetime, first on-O2 vital)` (on-O2 measurement
-  can precede formal order entry — pick the earlier).
+- start: `min(order.ordered_datetime, first on-O2 vital)` when an Order
+  exists (on-O2 measurement can precede formal order entry — pick the
+  earlier); otherwise just `first on-O2 vital`.
 - end: last vital where `on_supplemental_oxygen=True`; if the last recorded
   vital of the encounter is still on O2, the encounter discharge datetime
   is used as the end proxy (patient still on O2 at discharge / snapshot).
@@ -38,6 +53,10 @@ Session boundaries come from `ctx.record.vital_signs`:
 If no on-O2 vitals exist for the encounter (the order was placed but the
 patient never went on supplemental O2 per vitals), the Procedure is
 skipped — no fabrication.
+
+Performer attribution: `Order.ordered_by` when an Order exists (physician
+who placed the order); otherwise the encounter's `attending_physician_id`
+(the physician responsible for the episode of care); otherwise omitted.
 
 DeviceUseStatement is deferred as future work: DUS.device is `1..1
 Reference(Device)`, which requires either a per-patient Device resource
@@ -49,7 +68,7 @@ need — DUS is added value, not the primary fix.
 
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
 from typing import Any
 
 from clinosim.codes import get_system_uri
@@ -110,7 +129,7 @@ def _pick_device_mode(vitals_on_o2: list[Any]) -> str:
 
 
 def _oxygen_session_period(
-    order: Any,
+    order: Any | None,
     encounter_id: str,
     encounter_end: str,
     vitals: list[Any],
@@ -118,11 +137,15 @@ def _oxygen_session_period(
     """Return (start_iso, end_iso, device_mode) for the O2 session, or None
     when the encounter has no on-supplemental-oxygen vitals.
 
-    Single session per Order — the simulator does not currently model
+    `order` is optional — when None, the session start is the first on-O2
+    vital timestamp; when present, the earlier of `order.ordered_datetime`
+    and the first on-O2 vital is used.
+
+    Single session per encounter — the simulator does not currently model
     discontinue+restart. If future disease YAMLs express interrupted O2
     courses, this helper is the seam that would split them.
     """
-    ordered_dt = str(_o(order, "ordered_datetime", "") or "")
+    ordered_dt = str(_o(order, "ordered_datetime", "") or "") if order is not None else ""
     vitals_here = [v for v in vitals if str(_o(v, "encounter_id", "") or "") == encounter_id]
     if not vitals_here:
         # Vitals sometimes don't carry encounter_id — fall back to all vitals
@@ -139,7 +162,10 @@ def _oxygen_session_period(
     first_on = ts_sorted[0] if ts_sorted else ""
     last_on = ts_sorted[-1] if ts_sorted else ""
 
-    start = min(ordered_dt, first_on) if ordered_dt and first_on else (ordered_dt or first_on)
+    if ordered_dt and first_on:
+        start = min(ordered_dt, first_on)
+    else:
+        start = ordered_dt or first_on
 
     all_ts = sorted(_ts(v) for v in vitals_here if _ts(v))
     last_recorded = all_ts[-1] if all_ts else ""
@@ -163,22 +189,77 @@ def _encounter_end_index(ctx: BundleContext) -> dict[str, str]:
     return idx
 
 
+def _encounter_attending_index(ctx: BundleContext) -> dict[str, str]:
+    """Return a map `encounter_id -> attending_physician_id` for performer
+    fallback when no O2 Order is present."""
+    idx: dict[str, str] = {}
+    for e in ctx.record.get("encounters", []) or []:
+        eid = _o(e, "encounter_id", "") or ""
+        att = _o(e, "attending_physician_id", "") or ""
+        if eid and att:
+            idx[eid] = str(att)
+    return idx
+
+
 def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
-    """Emit Procedure resources for oxygen-therapy sessions."""
-    orders = ctx.record.get("orders", []) or []
-    o2_orders = [o for o in orders if is_oxygen_order(o)]
-    if not o2_orders:
+    """Emit Procedure resources for oxygen-therapy sessions.
+
+    Encounter-centric: emits one Procedure per encounter that has any
+    `on_supplemental_oxygen=True` vitals. When an O2 Order (display_name
+    starts with "O2:") is present for that encounter, it enriches the
+    Procedure with ordered_datetime (for session start), ordered_by (for
+    performer), and the SpO2 target note. Otherwise the Procedure is
+    derived purely from vitals + encounter attending.
+    """
+    vitals = ctx.record.get("vital_signs", []) or []
+
+    # Early-out: no on-O2 vitals anywhere → nothing to emit. Cheap short-
+    # circuit before we walk encounters and index orders.
+    if not any(bool(_o(v, "on_supplemental_oxygen", False)) for v in vitals):
         return []
 
-    vitals = ctx.record.get("vital_signs", []) or []
+    # Iterate over encounters (not vitals). CIF vital_signs records do NOT
+    # carry `encounter_id` — they are implicitly scoped to the enclosing
+    # per-encounter CIF file. `_oxygen_session_period` already handles that
+    # by falling back to all vitals when the encounter-id filter yields
+    # nothing.
+    encounters = ctx.record.get("encounters", []) or []
+    if not encounters:
+        return []
+
+    # Index O2 Orders by encounter_id — one per encounter in practice; if
+    # multiple exist, the earliest ordered_datetime wins so the Procedure
+    # start reflects the first orderable event.
+    orders = ctx.record.get("orders", []) or []
+    o2_orders_by_enc: dict[str, list[Any]] = defaultdict(list)
+    for o in orders:
+        if is_oxygen_order(o):
+            eid = str(_o(o, "encounter_id", "") or "")
+            if eid:
+                o2_orders_by_enc[eid].append(o)
+
     enc_end_idx = _encounter_end_index(ctx)
+    enc_att_idx = _encounter_attending_index(ctx)
     lang = resolve_lang(ctx.country)
     is_jp_out = is_jp(ctx.country)
     proc_display = code_lookup("snomed-ct", _SNOMED_OXYGEN_THERAPY, lang) or "Oxygen therapy"
 
     out: list[dict] = []
-    for order in o2_orders:
-        enc_id = str(_o(order, "encounter_id", "") or "")
+    # Iterate encounters in the record's own order so resource output is
+    # stable and matches the order they were admitted / discharged in.
+    for encounter in encounters:
+        enc_id = str(_o(encounter, "encounter_id", "") or "")
+        if not enc_id:
+            continue
+        orders_here = o2_orders_by_enc.get(enc_id, [])
+        # Pick the earliest-ordered O2 Order (if any) so session start
+        # reflects the first documented orderable event.
+        order = min(
+            orders_here,
+            key=lambda o: str(_o(o, "ordered_datetime", "") or ""),
+            default=None,
+        )
+
         session = _oxygen_session_period(order, enc_id, enc_end_idx.get(enc_id, ""), vitals)
         if not session:
             continue
@@ -186,12 +267,17 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
         if not start or not end or start == end:
             continue
 
-        order_id = str(_o(order, "order_id", "") or "")
-        ordered_by = str(_o(order, "ordered_by", "") or "")
-        display_name = str(_o(order, "display_name", "") or "")
-        target_note = _oxygen_target_note(display_name)
+        order_id = str(_o(order, "order_id", "") or "") if order is not None else ""
+        ordered_by = str(_o(order, "ordered_by", "") or "") if order is not None else ""
+        display_name = str(_o(order, "display_name", "") or "") if order is not None else ""
+        target_note = _oxygen_target_note(display_name) if display_name else ""
 
-        proc_id = f"proc-o2-{order_id}" if order_id else f"proc-o2-{ctx.patient_id}-{len(out) + 1:04d}"
+        if order_id:
+            proc_id = f"proc-o2-{order_id}"
+        elif enc_id:
+            proc_id = f"proc-o2-{enc_id}"
+        else:
+            proc_id = f"proc-o2-{ctx.patient_id}-{len(out) + 1:04d}"
 
         procedure: dict[str, Any] = {
             "resourceType": "Procedure",
@@ -230,8 +316,10 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
         if enc_id:
             procedure["encounter"] = {"reference": f"Encounter/{enc_id}"}
             procedure["reasonReference"] = [{"reference": f"Condition/cond-{enc_id}-primary"}]
-        if ordered_by:
-            procedure["performer"] = [{"actor": {"reference": f"Practitioner/{ordered_by}"}}]
+
+        performer_ref = ordered_by or enc_att_idx.get(enc_id, "")
+        if performer_ref:
+            procedure["performer"] = [{"actor": {"reference": f"Practitioner/{performer_ref}"}}]
         notes: list[dict[str, str]] = []
         if target_note:
             notes.append({"text": f"投与目標: {target_note}" if is_jp_out else f"Target: {target_note}"})
