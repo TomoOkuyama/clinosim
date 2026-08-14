@@ -384,6 +384,7 @@ def generate_population(
                 given_name=given.get("kanji", given.get("name", "")),
                 phonetic=f"{member_surname.get('kana', '')} {given.get('kana', '')}".strip() or None,
                 blood_type=blood_type,
+                rh_factor=_derive_rh_factor(pid, country),
                 postal_code=hh_addr.get("postal_code", ""),
                 state=hh_addr.get("state", ""),
                 city=hh_addr.get("city", ""),
@@ -626,6 +627,41 @@ def _sex_ratio_male_probability(demo: dict, age: int) -> float:
         if int(lo_s) <= age <= int(hi_s):
             return float(prob)
     return float(sr.get("male", SEX_RATIO_MALE_DEFAULT))
+
+
+# RhD prevalence — Rh-positive fraction by country. Derived via a stable
+# hash of person_id (not the master RNG) so adding this field does not
+# shift downstream RNG cursor and existing memoize snapshots stay valid.
+# Real-world prevalence: JP ≈ 99.5% Rh-positive (Rh-negative is a
+# clinically relevant rarity requiring anti-D IgG on pregnancy /
+# transfusion). US ≈ 85% Rh-positive (higher Rh- fraction due to European
+# ancestry mix). WHO / JP 日赤 published figures.
+_RH_POSITIVE_FRACTION: dict[str, float] = {
+    "JP": 0.995,
+    "US": 0.85,
+}
+
+
+def _derive_rh_factor(person_id: str, country: str) -> str:
+    """Return "+" (RhD positive) or "-" (negative), derived from a stable
+    hash of ``person_id`` so the choice is deterministic per person AND
+    does not consume the master RNG (memoize / F4 byte-identical guarantee
+    preserved when this field was added post-facto).
+
+    Country selects the Rh-positive fraction: JP 99.5%, US 85%.
+    Unknown countries fall through to JP default (conservative — Rh-
+    negative is the clinically-actionable state; over-emitting Rh+ is
+    a lower-cost failure mode for a synthetic dataset).
+    """
+    import hashlib
+
+    frac = _RH_POSITIVE_FRACTION.get("US" if country.upper() == "US" else "JP", 0.995)
+    # 16-bit deterministic quantile from a stable hash. Salt with "rh"
+    # so this derivation is independent from any other person_id-hashed
+    # value future code might add.
+    h = hashlib.sha256(f"{person_id}|rh".encode()).digest()
+    quantile = int.from_bytes(h[:2], "big") / 65535.0
+    return "+" if quantile < frac else "-"
 
 
 def _sample_blood_type(demo: dict, rng: np.random.Generator) -> str:

@@ -417,16 +417,17 @@ def _build_patient(p: dict, country: str) -> dict:
     else:
         resource["deceasedBoolean"] = False
 
-    # Blood type: v3 fix - JP Core (as of jpfhir.jp.core#1.2.0)
+    # Blood type: v3 fix — JP Core (as of jpfhir.jp.core#1.2.0)
     # does not define a `JP_Patient_BloodTypeCode` Extension, and neither
     # FHIR core nor US Core specifies a Patient-level BloodType extension.
     # The URL we used to emit was fabricated; v3 validation flagged all
     # 580 JP Patients with an unknown-extension warning (580 resources /
-    # ext URL). Since the correct FHIR pattern is a separate Observation
-    # (LOINC 883-9 "ABO group [Type] in Blood") and clinosim's CIF does
-    # not yet have a BloodType Observation emit path, omit the extension
-    # entirely. Follow-up chain will add the Observation representation.
-    _ = p.get("blood_type")  # explicit no-op: blood type stays in CIF, not FHIR
+    # ext URL). The follow-up chain now emits blood type as two
+    # laboratory Observations per patient (LOINC 883-9 ABO group +
+    # LOINC 10331-7 Rh group, SNOMED CT valueCodeableConcept) via
+    # `_bb_blood_type` (`labs/blood_type.py`); the Patient resource
+    # stays free of a fabricated extension.
+    _ = p.get("blood_type")  # explicit no-op: blood type is emitted as Observation, not on Patient
 
     # Address
     addr = p.get("address")

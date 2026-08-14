@@ -561,3 +561,26 @@ codes:
   '26412008':
     en: Mechanical ventilator
     ja: 人工呼吸器
+
+  # Blood group findings (ABO + RhD) — used by blood-type Observation
+  # emit path (LOINC 883-9 for ABO, 10331-7 for Rh). Codes are the
+  # widely-used SNOMED CT "finding" concepts recognized by JP Core /
+  # US Core downstream consumers.
+  '112144000':
+    en: Blood group A
+    ja: A型
+  '165743006':
+    en: Blood group B
+    ja: B型
+  '165744000':
+    en: Blood group O
+    ja: O型
+  '165742001':
+    en: Blood group AB
+    ja: AB型
+  '165747007':
+    en: Rh positive
+    ja: Rh陽性
+  '165748002':
+    en: Rh negative
+    ja: Rh陰性
