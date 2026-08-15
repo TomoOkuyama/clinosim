@@ -359,10 +359,12 @@ def _apply_template_seed_bundle_strategy(
         # facts + the prompt's per-doc-type persona / format spec.
         # Template seed content is still used as fallback via the
         # per-section strategy on JSON parse failure.
-        sections_json_block = (
-            "Target sections (generate fresh narrative for each — do NOT copy any template wording; sections MUST be grounded in the context_sections facts below):\n"
-            + _json.dumps(list(llm_sections), ensure_ascii=False, indent=2)
+        _sections_hdr = (
+            "Target sections (generate fresh narrative for each — do NOT copy any "
+            "template wording; sections MUST be grounded in the context_sections "
+            "facts below):\n"
         )
+        sections_json_block = _sections_hdr + _json.dumps(list(llm_sections), ensure_ascii=False, indent=2)
         if context_sections:
             context_json_block = "Context sections (reference only — do NOT modify):\n" + _json.dumps(
                 context_sections, ensure_ascii=False, indent=2
