@@ -33,6 +33,7 @@ import string
 from datetime import datetime, timedelta
 from typing import Any
 
+from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
@@ -857,13 +858,33 @@ class TemplateNarrativeGenerator:
             return none_text, facts
 
         facts.append("ctx.patient.chronic_conditions")
-        # Each condition: use code field (display resolved at output time; CIF rule)
+        # Session-88j v3-review fix: resolve ICD code → localised disease
+        # display via code_lookup ("icd-10" for JP-native codes / "icd-10-cm"
+        # US). Previously the PMH section rendered raw codes ("J45 (Moderate
+        # persistent); I10 (Stage 1); …") which read as a coding sheet
+        # rather than a clinical PMH. LOOKUP failure falls back to the raw
+        # code so the field is never empty.
+        icd_system = "icd-10" if is_ja else "icd-10-cm"
         lines = []
         for cond in conditions:
             code = _o(cond, "code", "")
             stage = _o(cond, "stage", "")
-            if code:
-                lines.append(f"{code}{' (' + stage + ')' if stage else ''}")
+            if not code:
+                continue
+            display = code_lookup(icd_system, code, lang) or code
+            if display == code:
+                # Try 3-char parent (E11.9 → E11) — many mappings live only
+                # at the category level.
+                base = code.split(".")[0]
+                if base != code:
+                    display = code_lookup(icd_system, base, lang) or code
+            annotation = f" ({stage})" if stage else ""
+            if display and display != code:
+                # Format: "気管支喘息 (Moderate persistent) [J45]" — code
+                # trailing for traceability, humans read the display first.
+                lines.append(f"{display}{annotation} [{code}]")
+            else:
+                lines.append(f"{code}{annotation}")
         if lines:
             return "; ".join(lines), facts
         return none_text, facts

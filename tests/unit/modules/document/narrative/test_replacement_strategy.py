@@ -500,9 +500,17 @@ def test_bundle_strategy_makes_one_llm_call_per_document() -> None:
     assert result.sections["objective"] == "T 37.2 / HR 78 / SpO2 96"
 
 
-def test_bundle_strategy_prompt_includes_target_and_context_sections() -> None:
-    """Bundle prompt carries: target sections (seeds) + context sections
-    (read-only structured data the LLM must not contradict)."""
+def test_bundle_strategy_prompt_lists_target_names_and_context_sections() -> None:
+    """Bundle prompt carries target section NAMES (context-driven mode —
+    template seeds are NOT leaked as a rewrite anchor) plus context
+    sections with the structured facts the LLM must not contradict.
+
+    Post-88j-v4 shift (Q): the prompt no longer includes template
+    section bodies as "seeds". Instead the LLM is instructed to
+    generate fresh narrative for each named section from the context
+    facts. This test locks in that the prompt lists the section names
+    and preserves the context section reveal.
+    """
     spec = _bundle_spec()
     provider = MockProvider()
     ctx = _make_ctx()
@@ -510,11 +518,15 @@ def test_bundle_strategy_prompt_includes_target_and_context_sections() -> None:
     _apply(_bundle_template_output(), ctx, spec, _mock_llm(provider))
 
     prompt = provider.last_prompt
-    # Target sections included with seeds
-    assert '"subjective": "S seed"' in prompt
-    assert '"assessment": "A seed"' in prompt
-    assert '"plan": "P seed"' in prompt
-    # Context includes the untouched structured section (Objective)
+    # Target section names listed (as a JSON list, not name→seed dict).
+    assert '"subjective"' in prompt
+    assert '"assessment"' in prompt
+    assert '"plan"' in prompt
+    # Template seed text is NOT leaked into the target-sections block.
+    assert '"S seed"' not in prompt
+    assert '"A seed"' not in prompt
+    assert '"P seed"' not in prompt
+    # Context still includes the untouched structured section (Objective).
     assert '"objective": "T 37.2 / HR 78 / SpO2 96"' in prompt
     # Contract keywords
     assert "Context sections" in prompt or "reference only" in prompt.lower()

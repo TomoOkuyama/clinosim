@@ -37,6 +37,7 @@ Two cache layers (complementary, NOT duplicates):
 
 from __future__ import annotations
 
+import time as _time
 from collections.abc import Callable
 
 from clinosim.modules.document.narrative.cache import (
@@ -294,10 +295,35 @@ def _apply_template_seed_bundle_strategy(
     if ctx.disease_protocol is not None:
         disease_id = getattr(ctx.disease_protocol, "disease_id", "") or ""
 
-    # Bundle seed hash covers the ordered (section, seed_text) tuples so
-    # differing seeds never collide, while identical bundles share one entry.
-    bundle_seed_pairs = tuple((s, new_sections.get(s, "")) for s in llm_sections)
-    bundle_seed_repr = "\n".join(f"{s}\x00{t}" for s, t in bundle_seed_pairs)
+    # Build context UP-FRONT so the cache key can include it. Without this,
+    # two encounters with identical seed sections but different
+    # per-encounter context (today's vitals, active_meds, stay_progress)
+    # would share a cache entry — the LLM output from encounter 1 would be
+    # re-used verbatim on encounter 2 with the wrong facts.
+    #
+    # Symptom of that pre-fix bug (outpatient_soap POP-000002 v3): visit 2
+    # with BP 151/73 kept saying "BP 152/76" (visit 1's cached value) in
+    # the assessment.
+    context_sections = {s: new_sections.get(s, "") for s in template_output.sections.keys() if s not in llm_sections}
+    # v5 dedup: pass the template section names so `_build_extra_context`
+    # can skip fields the template already covers (avoids
+    # `past_medical_history` template + `chronic_conditions` extra
+    # duplicate, `medications_at_home` + `home_medications` duplicate,
+    # etc.). Template narrative renderer wins on overlap.
+    _extra = _build_extra_context(ctx, spec, template_section_names=set(context_sections.keys()))
+    for k, v in _extra.items():
+        if k not in context_sections and v:
+            context_sections[k] = v
+
+    # Cache key hashes (a) the ORDERED list of LLM section names being
+    # generated and (b) the FULL context sections (template siblings +
+    # CIF-derived enrichment). The template seed is no longer part of the
+    # prompt (session-88j v4 shift to context-driven generation), so it's
+    # excluded from the cache key too — cache hit ↔ "same section list +
+    # same context" which is precisely what the prompt sees.
+    ctx_repr = "\n".join(f"{k}\x00{v}" for k, v in sorted(context_sections.items()))
+    sections_repr = "|".join(llm_sections)
+    hash_input = sections_repr + "\x01" + ctx_repr
     bundle_key_section = "bundle:" + "+".join(llm_sections)
     c_key = cache_key(
         disease=disease_id,
@@ -307,7 +333,7 @@ def _apply_template_seed_bundle_strategy(
         demographics_bucket=demo_bucket,
         lang=ctx.target_lang,
         section=bundle_key_section,
-        seed_hash=template_seed_hash(bundle_seed_repr),
+        seed_hash=template_seed_hash(hash_input),
     )
 
     parsed_bundle: dict[str, str] | None = None
@@ -320,15 +346,23 @@ def _apply_template_seed_bundle_strategy(
                 parsed_bundle = None
 
     if parsed_bundle is None:
-        # Build the prompt: target sections + context sections + output schema.
-        sections_json_block = _json.dumps(
-            {s: new_sections.get(s, "") for s in llm_sections}, ensure_ascii=False, indent=2
+        # Build the prompt: target section NAMES (context-driven mode; no
+        # template seed leaked as anchor) + context sections + output schema.
+        #
+        # Session-88j v4-review shift (Q): the template output for LLM-
+        # eligible sections is no longer passed as a rewrite seed. Reason:
+        # template phrasing (e.g. 「経過観察を継続」) anchors the LLM into
+        # generic language and defeats the per-doc-type focus/format
+        # instructions. context_sections already carries the CIF facts
+        # (chronic list, today's vitals, active meds, scenario, stay
+        # progress); the LLM must generate fresh narrative bound by those
+        # facts + the prompt's per-doc-type persona / format spec.
+        # Template seed content is still used as fallback via the
+        # per-section strategy on JSON parse failure.
+        sections_json_block = (
+            "Target sections (generate fresh narrative for each — do NOT copy any template wording; sections MUST be grounded in the context_sections facts below):\n"
+            + _json.dumps(list(llm_sections), ensure_ascii=False, indent=2)
         )
-        sections_json_block = f"Target sections (seeds to rewrite):\n{sections_json_block}"
-
-        context_sections = {
-            s: new_sections.get(s, "") for s in template_output.sections.keys() if s not in llm_sections
-        }
         if context_sections:
             context_json_block = "Context sections (reference only — do NOT modify):\n" + _json.dumps(
                 context_sections, ensure_ascii=False, indent=2
@@ -341,6 +375,12 @@ def _apply_template_seed_bundle_strategy(
         )
 
         prompt_spec = llm.prompt_registry.get("narrative_seed_bundle", language)
+        # Session-88j: the bundle prompts are authored in English (instruction-
+        # following is more reliable than in the target locale), and the
+        # OUTPUT language is switched via ${target_language}. Keep the
+        # `language` argument to prompt_registry.get unchanged so the same
+        # spec is used for JP/EN routes.
+        _lang_name = "Japanese" if str(language).lower().startswith("ja") else "English"
         system_prompt, user_prompt = prompt_spec.render(
             {
                 "document_type": spec.type_key,
@@ -349,8 +389,10 @@ def _apply_template_seed_bundle_strategy(
                 "sections_json_block": sections_json_block,
                 "context_json_block": context_json_block,
                 "output_schema_block": output_schema_block,
+                "target_language": _lang_name,
             }
         )
+        _t0 = _time.perf_counter()
         response = llm.complete_prompt(
             system_prompt,
             user_prompt,
@@ -359,7 +401,26 @@ def _apply_template_seed_bundle_strategy(
             max_tokens=prompt_spec.max_tokens,
             temperature=prompt_spec.temperature,
         )
+        _dur_ms = int((_time.perf_counter() - _t0) * 1000)
         raw_response = response.text or ""
+        # Per-call throughput logger (session-88j v6-review): logs each
+        # bundle call's doc_type / input tokens / output tokens / wall ms
+        # so a live `tail -f` on the pass log can compute rolling
+        # tok/s without waiting for the final manifest. INFO level to
+        # keep default runs quiet unless caller enables INFO on this
+        # module. Zero cost when disabled.
+        _in = getattr(response, "input_tokens", 0) or 0
+        _out = getattr(response, "output_tokens", 0) or 0
+        _tps = (_out / (_dur_ms / 1000)) if _dur_ms else 0
+        _logger.info(
+            "bundle_call doc_type=%s lang=%s dur_ms=%d in_tok=%d out_tok=%d out_tps=%.1f",
+            spec.type_key,
+            language,
+            _dur_ms,
+            _in,
+            _out,
+            _tps,
+        )
 
         try:
             parsed_bundle = _parse_bundle_response(raw_response, llm_sections)
@@ -458,3 +519,285 @@ def _parse_bundle_response(raw: str, expected_keys: list[str]) -> dict[str, str]
             raise ValueError(f"section {k!r} value is empty")
         result[k] = v
     return result
+
+
+# ─────────────────────────────────────────────────────────────────
+# Session-88j v3: per-doc-type CIF context enrichment
+# ─────────────────────────────────────────────────────────────────
+
+
+def _get(obj, key, default=None):
+    """dict / dataclass agnostic getter (mirrors `_shared.get_attr_or_key`)."""
+    if obj is None:
+        return default
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
+
+def _build_extra_context(
+    ctx: NarrativeContext,
+    spec: DocumentTypeSpec,
+    template_section_names: set[str] | None = None,
+) -> dict[str, str]:
+    """Return per-doc-type structured facts to include in the LLM prompt
+    context, in addition to the sibling template sections.
+
+    `template_section_names` (v5 dedup): set of template section names
+    already going into `context_sections`. Extras that would duplicate
+    those sections (chronic_conditions ↔ past_medical_history,
+    home_medications ↔ medications_at_home, today_vitals_summary ↔
+    objective, etc.) are skipped — template narrative wins on overlap.
+
+    Values are JSON-serialised strings so the prompt payload stays a
+    flat dict of readable snippets. Kept small (< 400 tokens total per
+    call) to preserve cache hit rate and speed.
+    """
+    doc_type = getattr(spec, "type_key", "")
+    tmpl = template_section_names or set()
+    extra: dict[str, str] = {}
+
+    # ---- Universal: cache-bucket demographic + chronic list ---------
+    # patient_bucket uses the CACHE-BUCKET granularity (decade + sex)
+    # rather than exact age. Preserves cross-patient cache reuse.
+    p = ctx.patient
+    if p is not None:
+        from clinosim.modules.document.narrative.cache import demographics_bucket as _dbucket
+
+        bucket = _dbucket(p)
+        if bucket and bucket != "unknown-unknown":
+            extra["patient_bucket"] = bucket
+        # chronic_conditions: skip when template already renders it as
+        # `past_medical_history` (admission_hp only; other doc-types
+        # don't get PMH from template so extras carry the chronic list).
+        if "past_medical_history" not in tmpl:
+            chronic = _get(p, "chronic_conditions", []) or []
+            rendered = _render_chronic_list(chronic)
+            if rendered:
+                extra["chronic_conditions"] = rendered
+
+    # ---- Scenario / trajectory (session-88j v3) --------------------
+    # CIF was built around disease_protocol × archetype. Exposing the
+    # scenario tag + phase lets the LLM colour the note by phase.
+    disease_id = ""
+    if ctx.disease_protocol is not None:
+        disease_id = getattr(ctx.disease_protocol, "disease_id", "") or ""
+    scenario_bits = []
+    if disease_id:
+        scenario_bits.append(f"disease={disease_id}")
+    if ctx.clinical_course_archetype:
+        scenario_bits.append(f"archetype={ctx.clinical_course_archetype}")
+    if ctx.severity:
+        scenario_bits.append(f"severity={ctx.severity}")
+    if scenario_bits:
+        extra["clinical_scenario"] = " / ".join(scenario_bits)
+    if ctx.los_days and ctx.los_days > 0:
+        phase = _stay_phase(ctx.day_index, ctx.los_days)
+        extra["stay_progress"] = f"day {ctx.day_index} of expected {ctx.los_days} ({phase})"
+
+    enc = ctx.encounter
+    if enc is not None:
+        # primary_encounter_reason: skip when template already carries
+        # `chief_complaint` (admission_hp / discharge_summary / ed_note).
+        if "chief_complaint" not in tmpl:
+            primary_dx = _get(enc, "primary_diagnosis") or _get(enc, "primary_dx") or _get(enc, "chief_complaint")
+            if primary_dx:
+                extra["primary_encounter_reason"] = str(primary_dx)[:200]
+        # admission_datetime: skip when template already carries
+        # `admission_details` (discharge_summary).
+        if "admission_details" not in tmpl:
+            adm = _get(enc, "admission_datetime") or _get(enc, "admission_date")
+            if adm:
+                extra["admission_datetime"] = str(adm)[:20]
+        los = ctx.los_days
+        if los and los > 0:
+            extra["length_of_stay_days"] = str(los)
+
+    # ---- Doc-type-specific ----
+    if doc_type in ("progress_note", "nursing_shift_note"):
+        # Day-N context: today's vital snapshot + active meds
+        # todays_vitals_summary skipped only when template's objective
+        # already renders vitals (empirically progress_note's objective
+        # is exam narrative not vitals — so keep the vitals summary).
+        today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index)
+        if today_vitals:
+            extra["todays_vitals_summary"] = today_vitals
+        active_meds = _render_active_meds(ctx.medications, ctx.day_index)
+        if active_meds:
+            extra["active_medications_today"] = active_meds
+    elif doc_type == "admission_hp":
+        # home_medications: skip when template renders medications_at_home.
+        if "medications_at_home" not in tmpl:
+            home_meds = _get(p, "current_medications", []) or _get(p, "medications", []) or []
+            med_names = _render_med_names(home_meds)
+            if med_names:
+                extra["home_medications"] = med_names
+    elif doc_type == "discharge_summary":
+        # discharge_medications_list: skip when template renders it.
+        if "discharge_medications" not in tmpl:
+            dmed = ctx.discharge_medications or []
+            dmed_names = _render_med_names(dmed)
+            if dmed_names:
+                extra["discharge_medications_list"] = dmed_names
+        outcome = _get(enc, "discharge_disposition") or _get(enc, "discharge_status")
+        if outcome:
+            extra["discharge_outcome"] = str(outcome)[:120]
+    elif doc_type == "outpatient_soap":
+        # home_medications always useful (outpatient template has no
+        # medications section). today_vitals_summary: skip when
+        # template's `objective` already contains today's vitals numeric
+        # summary (outpatient_soap.objective renders BP/HR/RR/SpO2/T
+        # verbatim from vitals — same info).
+        home_meds = _get(p, "current_medications", []) or _get(p, "medications", []) or []
+        med_names = _render_med_names(home_meds)
+        if med_names:
+            extra["home_medications"] = med_names
+        if "objective" not in tmpl:
+            today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index)
+            if today_vitals:
+                extra["today_vitals_summary"] = today_vitals
+    elif doc_type == "ed_note":
+        # chief_complaint_verbatim: skip when template renders
+        # chief_complaint (which it does — always in ed_note).
+        if "chief_complaint" not in tmpl:
+            chief = _get(enc, "chief_complaint")
+            if chief:
+                extra["chief_complaint_verbatim"] = str(chief)[:200]
+        arrival = _get(enc, "arrival_mode") or _get(enc, "admit_source")
+        if arrival:
+            extra["arrival_mode"] = str(arrival)
+        # initial_vitals: physical_exam template is narrative not
+        # numeric, so numeric arrival vitals are complementary — keep.
+        first_vitals = _render_first_vitals(ctx.vitals)
+        if first_vitals:
+            extra["initial_vitals"] = first_vitals
+
+    return extra
+
+
+def _render_chronic_list(chronic: list) -> str:
+    """chronic_conditions [{'code','severity','stage','onset_date'}, ...] →
+    short comma-separated string."""
+    parts = []
+    for c in (chronic or [])[:15]:
+        if isinstance(c, str):
+            parts.append(c)
+            continue
+        code = _get(c, "code", "") or ""
+        stage = _get(c, "stage", "") or ""
+        sev = _get(c, "severity", "") or ""
+        detail = ""
+        if stage and sev:
+            detail = f" ({stage}, {sev})"
+        elif stage:
+            detail = f" ({stage})"
+        elif sev:
+            detail = f" ({sev})"
+        if code:
+            parts.append(f"{code}{detail}")
+    return "; ".join(parts) if parts else ""
+
+
+def _render_vitals_for_day(vitals: list, day_index: int) -> str:
+    """Filter vitals to today (± the day_index if `day` present on record)
+    and pick a summary of key numeric fields. Falls back to first vital
+    when no explicit day tag."""
+    picks: list[str] = []
+    max_pick = 3
+    for v in vitals or []:
+        d = _get(v, "day")
+        if d is not None and d != day_index:
+            continue
+        systolic = _get(v, "systolic_bp")
+        diastolic = _get(v, "diastolic_bp")
+        hr = _get(v, "heart_rate")
+        temp = _get(v, "temperature_celsius")
+        rr = _get(v, "respiratory_rate")
+        spo2 = _get(v, "spo2")
+        bits = []
+        if temp:
+            bits.append(f"T {temp}°C")
+        if hr:
+            bits.append(f"HR {hr}")
+        if systolic and diastolic:
+            bits.append(f"BP {systolic}/{diastolic}")
+        if rr:
+            bits.append(f"RR {rr}")
+        if spo2:
+            bits.append(f"SpO2 {spo2}%")
+        if bits:
+            ts = _get(v, "timestamp", "")
+            picks.append((str(ts)[:19] + " " if ts else "") + " / ".join(bits))
+        if len(picks) >= max_pick:
+            break
+    return "; ".join(picks) if picks else ""
+
+
+def _render_first_vitals(vitals: list) -> str:
+    """First-recorded vitals (arrival vitals for ED)."""
+    for v in vitals or []:
+        systolic = _get(v, "systolic_bp")
+        hr = _get(v, "heart_rate")
+        temp = _get(v, "temperature_celsius")
+        spo2 = _get(v, "spo2")
+        bits = []
+        if temp:
+            bits.append(f"T {temp}°C")
+        if hr:
+            bits.append(f"HR {hr}")
+        if systolic:
+            diastolic = _get(v, "diastolic_bp")
+            bits.append(f"BP {systolic}/{diastolic}" if diastolic else f"BP {systolic}")
+        if spo2:
+            bits.append(f"SpO2 {spo2}%")
+        if bits:
+            return " / ".join(bits)
+    return ""
+
+
+def _render_med_names(meds: list) -> str:
+    """List of medication display names, deduplicated, comma-joined."""
+    names: list[str] = []
+    seen = set()
+    for m in meds or []:
+        name = _get(m, "name") or _get(m, "display_name") or _get(m, "drug_name") or _get(m, "medication")
+        if isinstance(m, str):
+            name = m
+        if name and name not in seen:
+            names.append(str(name)[:60])
+            seen.add(name)
+        if len(names) >= 12:
+            break
+    return "; ".join(names) if names else ""
+
+
+def _render_active_meds(admins: list, day_index: int) -> str:
+    """MedicationAdministration records active on the given day. Short list
+    of unique drug names given today (progress_note context)."""
+    names: list[str] = []
+    seen = set()
+    for m in admins or []:
+        d = _get(m, "day")
+        if d is not None and d != day_index:
+            continue
+        name = _get(m, "drug_name") or _get(m, "medication") or _get(m, "name")
+        if name and name not in seen:
+            names.append(str(name)[:60])
+            seen.add(name)
+        if len(names) >= 12:
+            break
+    return "; ".join(names) if names else ""
+
+
+def _stay_phase(day_index: int, los_days: int) -> str:
+    """Bucket day-of-stay into phase label the LLM can key off in prose."""
+    if los_days <= 1:
+        return "single-day encounter"
+    frac = (day_index + 1) / max(los_days, 1)
+    if frac <= 0.34:
+        return "early / acute phase"
+    if frac <= 0.66:
+        return "middle / stabilisation phase"
+    if frac < 1.0:
+        return "late / pre-discharge phase"
+    return "discharge day"
