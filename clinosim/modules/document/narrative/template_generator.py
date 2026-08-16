@@ -450,9 +450,13 @@ _SMOKING_EN: dict[str, str] = {
 }
 
 # Alcohol use labels
+# v6 (2026-08-16): `social` is a first-class token emitted by the
+# population layer alongside none/heavy; without an explicit mapping it
+# was falling back to "unknown", erasing information from JP narratives.
 _ALCOHOL_JA: dict[str, str] = {
     "none": "飲酒なし",
     "occasional": "機会飲酒",
+    "social": "社交的飲酒",
     "moderate": "適度な飲酒",
     "heavy": "多量飲酒",
     "unknown": "飲酒状況不明",
@@ -460,14 +464,129 @@ _ALCOHOL_JA: dict[str, str] = {
 _ALCOHOL_EN: dict[str, str] = {
     "none": "Non-drinker",
     "occasional": "Occasional drinker",
+    "social": "Social drinker",
     "moderate": "Moderate drinker",
     "heavy": "Heavy drinker",
     "unknown": "Alcohol use unknown",
 }
 
+# Occupation labels (v6, 2026-08-16). Population layer emits raw
+# English tokens (retired, office, manufacturing, …); v5
+# `_build_social_history` pasted them verbatim into JP narratives, so
+# 96-yo 女性 の 職業 が 「retired」 と英字で残っていた。These maps close
+# the gap. `_OCCUPATION_*.get(k, k)` — unmapped values fall back to the
+# raw token so unknown occupations still render (defensive default).
+_OCCUPATION_JA: dict[str, str] = {
+    "retired": "退職",
+    "office": "事務職",
+    "manufacturing": "製造業",
+    "service": "サービス業",
+    "transportation": "運輸業",
+    "education": "教育関係",
+    "healthcare": "医療従事者",
+    "student": "学生",
+    "middle_school_student": "中学生",
+    "elementary_student": "小学生",
+    "preschool": "未就学児",
+    "infant": "乳幼児",
+    "other": "その他",
+    "unemployed": "無職",
+    "homemaker": "主婦",
+}
+_OCCUPATION_EN: dict[str, str] = {
+    "retired": "Retired",
+    "office": "Office worker",
+    "manufacturing": "Manufacturing",
+    "service": "Service industry",
+    "transportation": "Transportation",
+    "education": "Education",
+    "healthcare": "Healthcare",
+    "student": "Student",
+    "middle_school_student": "Middle-school student",
+    "elementary_student": "Elementary-school student",
+    "preschool": "Preschool child",
+    "infant": "Infant",
+    "other": "Other",
+    "unemployed": "Unemployed",
+    "homemaker": "Homemaker",
+}
+
 # SOAP section labels per locale
 _SOAP_JA = ("S（主観）", "O（客観）", "A（評価）", "P（計画）")
 _SOAP_EN = ("S:", "O:", "A:", "P:")
+
+
+def _filter_vitals_for_day(vitals: list, day_index: int, encounter: Any) -> list:
+    """Return vitals belonging to day ``day_index`` of the stay.
+
+    v6 (2026-08-16): CIF vital_signs records store ISO ``timestamp`` but
+    ``day`` is typically None. The naive day-field filter therefore let
+    admission-day vitals leak into every day's context, producing "T=38.1°C
+    repeated for 15 consecutive progress notes" hallucinations (POP-000075).
+
+    Resolution order:
+      1. If any record has an explicit ``day`` field, match on it.
+      2. Otherwise derive a day offset from ``timestamp`` minus
+         encounter.admission_datetime.
+      3. If neither exists, fall back to the first record (initial vitals).
+    """
+    vitals = list(vitals or [])
+    if not vitals:
+        return []
+    # 1. Explicit day field
+    tagged = [v for v in vitals if _o(v, "day", None) == day_index]
+    if tagged:
+        return tagged
+    any_tagged = any(_o(v, "day", None) is not None for v in vitals)
+    if any_tagged:
+        # Some records have day, none matched → this day has none.
+        return []
+    # 2. Timestamp fallback
+    adm_raw = _o(encounter, "admission_datetime", None) if encounter is not None else None
+    adm_dt = _parse_iso_datetime(adm_raw)
+    if adm_dt is None:
+        # Use earliest timestamp as day-0 anchor
+        candidates = [_parse_iso_datetime(_o(v, "timestamp", None)) for v in vitals]
+        candidates = [c for c in candidates if c is not None]
+        if candidates:
+            adm_dt = min(candidates)
+    if adm_dt is None:
+        return vitals[:1]
+    picks: list = []
+    for v in vitals:
+        ts = _parse_iso_datetime(_o(v, "timestamp", None))
+        if ts is None:
+            continue
+        offset = (ts - adm_dt).days
+        if offset == day_index:
+            picks.append(v)
+    if picks:
+        return picks
+    return vitals[:1]
+
+
+def _parse_iso_datetime(raw: Any) -> datetime | None:
+    """Best-effort parse of an ISO 8601 datetime string / datetime object."""
+    if raw is None:
+        return None
+    if isinstance(raw, datetime):
+        return raw
+    if not isinstance(raw, str):
+        return None
+    s = raw.strip()
+    if not s:
+        return None
+    # Python's fromisoformat handles the common cases; tolerate trailing Z.
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(s)
+    except ValueError:
+        # Fall back to date-only strings
+        try:
+            return datetime.fromisoformat(s[:10])
+        except ValueError:
+            return None
 
 
 class TemplateNarrativeGenerator:
@@ -980,7 +1099,12 @@ class TemplateNarrativeGenerator:
             parts.append(f"{key}: {alcohol_text}")
         if occupation:
             key = "職業" if is_ja else "Occupation"
-            parts.append(f"{key}: {occupation}")
+            # v6 (2026-08-16): localize occupation token; fall back to
+            # raw when unmapped so a novel population value still renders
+            # (rather than being dropped silently).
+            occ_map = _OCCUPATION_JA if is_ja else _OCCUPATION_EN
+            occ_text = occ_map.get(occupation, occupation)
+            parts.append(f"{key}: {occ_text}")
 
         facts.append("ctx.patient.smoking_status")
         facts.append("ctx.patient.alcohol_use")
@@ -2471,18 +2595,19 @@ class TemplateNarrativeGenerator:
 
     def _compose_today_vitals_line(self, ctx: NarrativeContext) -> str:
         """Compose today's numeric vital-signs summary for inpatient
-        progress_note objective. Filters ``ctx.vitals`` by ``day == ctx.day_index``
-        (falls back to first if no day tag). v6 blocker fix — v5 progress_note
-        objective ignored per-day vitals and repeated a static disease YAML line.
+        progress_note objective. Filters ``ctx.vitals`` by day, using the
+        explicit ``day`` field when present and falling back to a
+        timestamp-derived day offset against ``ctx.encounter.admission_datetime``
+        when the field is None (which it always is in current CIF fullsets
+        — 346-record admissions store only ISO ``timestamp``, no day tag,
+        so the original day-field filter yielded EVERY vital on every
+        day and the LLM saw the same T=38.1°C repeated for 15
+        consecutive progress notes).
+
+        Fallback chain: day-field match → timestamp-derived day →
+        first record (initial admission vitals).
         """
-        picks = []
-        for v in ctx.vitals or []:
-            d = _o(v, "day", None)
-            if d is not None and d != ctx.day_index:
-                continue
-            picks.append(v)
-        if not picks:
-            picks = list(ctx.vitals or [])[:1]
+        picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
         if not picks:
             return ""
         v = picks[0]

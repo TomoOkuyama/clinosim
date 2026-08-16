@@ -87,6 +87,13 @@ system: |
        at least the H/L-flagged values (name + value + flag) and their
        clinical interpretation. Do NOT write "labs stable" if a flag
        is present.
+  7. **Supplemental oxygen consistency** (v6).
+     - When `context_sections.supplemental_oxygen_today` is present,
+       the narrative MUST NOT claim "on room air", "no oxygen therapy",
+       or "酸素投与なし". If the assessment references SpO2, it MUST
+       state the oxygen delivery (device + flow rate). Writing "SpO2 X%
+       で安定" while ignoring active O2 therapy is a documented
+       self-contradiction.
 
   Natural narrative variance is allowed for realism: patient-voice
   phrasing for symptoms already in the record, generic medical

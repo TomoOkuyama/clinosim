@@ -45,8 +45,33 @@ from clinosim.modules.document.narrative.cache import (
     demographics_bucket,
     template_seed_hash,
 )
+from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
 from clinosim.modules.llm_service.engine import LLMService, LLMTaskType
 from clinosim.types.document import DocumentTypeSpec, NarrativeContext, NarrativeOutput
+
+# v6 (2026-08-16): payload-level localization maps. Values that reach
+# the LLM prompt as bare English tokens (encounter_type enum,
+# discharge_disposition code) confuse JA narrative generation — LLM saw
+# "inpatient" for an outpatient encounter and wrote 「緊急入院」.
+_ENCOUNTER_TYPE_JA: dict[str, str] = {
+    "outpatient": "外来",
+    "inpatient": "入院",
+    "emergency": "救急",
+    "icu": "ICU",
+    "day_surgery": "日帰り手術",
+    "rehab_inpatient": "回復期リハビリ入院",
+    "prenatal_visit": "妊婦健診",
+    "delivery": "分娩",
+    "nicu": "NICU",
+    "checkup": "健康診断",
+}
+_DISPOSITION_JA: dict[str, str] = {
+    "home": "自宅退院",
+    "hosp": "他院転院",
+    "other-hcf": "他施設転院",
+    "snf": "施設退院",
+    "exp": "死亡退院",
+}
 
 
 def apply_replacement_strategy(
@@ -604,9 +629,15 @@ def _build_extra_context(
     # LLM had no signal to distinguish. Cheap universal field.
     if getattr(ctx, "encounter_type", None) is not None:
         et = ctx.encounter_type
-        et_label = getattr(et, "value", None) or getattr(et, "name", None) or str(et)
-        if et_label and et_label not in ("None", ""):
-            extra["encounter_type"] = str(et_label)[:40]
+        et_raw = getattr(et, "value", None) or getattr(et, "name", None) or str(et)
+        if et_raw and et_raw not in ("None", ""):
+            et_raw = str(et_raw).lower()
+            # v6 localization: prompt payload should not leak raw English
+            # enum tokens into JA narrative generation.
+            if ctx.target_lang == "ja":
+                extra["encounter_type"] = _ENCOUNTER_TYPE_JA.get(et_raw, et_raw)[:40]
+            else:
+                extra["encounter_type"] = et_raw[:40]
 
     enc = ctx.encounter
     if enc is not None:
@@ -642,7 +673,7 @@ def _build_extra_context(
         # todays_vitals_summary skipped only when template's objective
         # already renders vitals (empirically progress_note's objective
         # is exam narrative not vitals — so keep the vitals summary).
-        today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index)
+        today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index, enc)
         if today_vitals:
             extra["todays_vitals_summary"] = today_vitals
         active_meds = _render_active_meds(ctx.medications, ctx.day_index)
@@ -654,6 +685,11 @@ def _build_extra_context(
         abnormal_today = _render_abnormal_labs(ctx.lab_results, day_index=ctx.day_index)
         if abnormal_today:
             extra["abnormal_labs_today"] = abnormal_today
+        # v6 blocker fix: supplemental oxygen flag. Prevents "SpO2 89%
+        # だが酸素投与なしで安定" self-contradiction (POP-000075 doc-06).
+        o2_today = _render_supplemental_oxygen_today(ctx.vitals, ctx.day_index, enc)
+        if o2_today:
+            extra["supplemental_oxygen_today"] = o2_today
     elif doc_type == "admission_hp":
         # home_medications: skip when template renders medications_at_home.
         if "medications_at_home" not in tmpl:
@@ -670,7 +706,13 @@ def _build_extra_context(
                 extra["discharge_medications_list"] = dmed_names
         outcome = _get(enc, "discharge_disposition") or _get(enc, "discharge_status")
         if outcome:
-            extra["discharge_outcome"] = str(outcome)[:120]
+            outcome_raw = str(outcome)[:120]
+            # v6 localization: `home` → `自宅退院` for JA prompts. LLM
+            # was pasting the raw disposition code into JA hospital_course.
+            if ctx.target_lang == "ja":
+                extra["discharge_outcome"] = _DISPOSITION_JA.get(outcome_raw, outcome_raw)
+            else:
+                extra["discharge_outcome"] = outcome_raw
         # v6 blocker fix: hospital_course was collapsing to a 1-liner
         # template because LLM had nothing specific to work with.
         # Feed the whole-stay lab/procedure/vitals-extremes summary.
@@ -694,7 +736,7 @@ def _build_extra_context(
         if med_names:
             extra["home_medications"] = med_names
         if "objective" not in tmpl:
-            today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index)
+            today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index, enc)
             if today_vitals:
                 extra["today_vitals_summary"] = today_vitals
         # v6: same lab flag injection as progress_note — outpatient
@@ -744,16 +786,19 @@ def _render_chronic_list(chronic: list) -> str:
     return "; ".join(parts) if parts else ""
 
 
-def _render_vitals_for_day(vitals: list, day_index: int) -> str:
-    """Filter vitals to today (± the day_index if `day` present on record)
-    and pick a summary of key numeric fields. Falls back to first vital
-    when no explicit day tag."""
+def _render_vitals_for_day(vitals: list, day_index: int, encounter: object | None = None) -> str:
+    """Filter vitals to today and pick a summary of key numeric fields.
+
+    v6 (2026-08-16): Uses the shared ``_filter_vitals_for_day`` helper,
+    which honours the explicit ``day`` field when present and falls
+    back to a timestamp-derived day offset otherwise. The v5 filter
+    (day-field only) let admission-day vitals leak into every day's
+    context because current CIF vitals leave ``day = None``.
+    """
+    filtered = _filter_vitals_for_day(vitals, day_index, encounter)
     picks: list[str] = []
     max_pick = 3
-    for v in vitals or []:
-        d = _get(v, "day")
-        if d is not None and d != day_index:
-            continue
+    for v in filtered:
         systolic = _get(v, "systolic_bp")
         diastolic = _get(v, "diastolic_bp")
         hr = _get(v, "heart_rate")
@@ -777,6 +822,32 @@ def _render_vitals_for_day(vitals: list, day_index: int) -> str:
         if len(picks) >= max_pick:
             break
     return "; ".join(picks) if picks else ""
+
+
+def _render_supplemental_oxygen_today(vitals: list, day_index: int, encounter: object | None) -> str:
+    """If any vital today records supplemental oxygen, return a short
+    descriptor for the LLM prompt (device + flow rate).
+
+    v6 (2026-08-16): v5 context omitted this flag entirely — the LLM
+    wrote "SpO2 89% だが酸素投与なしで安定" (POP-000075 doc-06)
+    contradicting the on_supplemental_oxygen=True field on that day's
+    vitals. Feeding the flag lets the prompt's Hard Rules keep the
+    narrative consistent with the recorded therapy.
+    """
+    filtered = _filter_vitals_for_day(vitals, day_index, encounter)
+    for v in filtered:
+        if not _get(v, "on_supplemental_oxygen"):
+            continue
+        device = _get(v, "oxygen_delivery_device") or "supplemental O2"
+        flow = _get(v, "oxygen_flow_rate_lpm")
+        if flow is not None:
+            try:
+                flow_val = float(flow)
+                return f"{device} {flow_val:g} L/min"
+            except (TypeError, ValueError):
+                pass
+        return str(device)
+    return ""
 
 
 def _render_first_vitals(vitals: list) -> str:
