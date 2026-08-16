@@ -71,3 +71,73 @@ def test_narrative_context_default_constructible():
     )
     assert ctx.clinical_course_archetype == "uncomplicated_improvement"
     assert ctx.locale == "jp"
+
+
+def test_llm_enabled_sections_for_jp_unions_with_universal():
+    """v7 (2026-08-16 pm): llm_enabled_sections_jp is ADDITIVE.
+
+    The prior implementation returned llm_enabled_sections_jp
+    verbatim when populated, silently dropping the universal sections
+    (hospital_course, discharge_instructions) from LLM replacement for
+    JP discharge_summary. That regressed 11/11 v8 hospital_course outputs
+    to raw template text (see v8 review). This test locks in the
+    union semantics.
+    """
+    from clinosim.types.document import DocumentTypeSpec
+
+    spec = DocumentTypeSpec(
+        type_key="discharge_summary",
+        loinc_code="18842-5",
+        format_type=FormatType.COMPOSITION,
+        countries_supported=("us", "jp"),
+        generation_frequency="discharge_once",
+        composition_sections=("hospital_course", "discharge_instructions"),
+        llm_enabled_sections=("hospital_course", "discharge_instructions"),
+        llm_enabled_sections_jp=("present_illness",),
+    )
+    us_list = spec.llm_enabled_sections_for("US")
+    jp_list = spec.llm_enabled_sections_for("JP")
+    assert us_list == ("hospital_course", "discharge_instructions")
+    # JP MUST retain both universal sections AND add present_illness.
+    assert set(jp_list) == {"hospital_course", "discharge_instructions", "present_illness"}
+    # Universal sections MUST appear first (insertion order preserved).
+    assert jp_list[0] == "hospital_course"
+    assert jp_list[1] == "discharge_instructions"
+    assert jp_list[-1] == "present_illness"
+
+
+def test_llm_enabled_sections_for_jp_empty_extra_returns_universal():
+    """When llm_enabled_sections_jp is empty (the common case for
+    non-discharge doc_types), JP returns the universal list unchanged."""
+    from clinosim.types.document import DocumentTypeSpec
+
+    spec = DocumentTypeSpec(
+        type_key="admission_hp",
+        loinc_code="34117-2",
+        format_type=FormatType.COMPOSITION,
+        countries_supported=("us", "jp"),
+        generation_frequency="admission_once",
+        composition_sections=("hpi", "assessment_and_plan"),
+        llm_enabled_sections=("hpi", "assessment_and_plan"),
+        llm_enabled_sections_jp=(),
+    )
+    assert spec.llm_enabled_sections_for("US") == ("hpi", "assessment_and_plan")
+    assert spec.llm_enabled_sections_for("JP") == ("hpi", "assessment_and_plan")
+
+
+def test_llm_enabled_sections_for_dedups_overlap():
+    """Defensive: if a section appears in both lists (edge case),
+    dedup preserves first-occurrence order."""
+    from clinosim.types.document import DocumentTypeSpec
+
+    spec = DocumentTypeSpec(
+        type_key="dummy",
+        loinc_code="x",
+        format_type=FormatType.COMPOSITION,
+        countries_supported=("jp",),
+        generation_frequency="once",
+        composition_sections=("a", "b"),
+        llm_enabled_sections=("a", "b"),
+        llm_enabled_sections_jp=("b", "c"),
+    )
+    assert spec.llm_enabled_sections_for("JP") == ("a", "b", "c")

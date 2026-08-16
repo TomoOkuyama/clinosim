@@ -1,11 +1,29 @@
 task_type: narrative_seed_bundle
-version: 6
+version: 7
 max_tokens: 2000
 temperature: 0.3
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
   Per-document-type persona, format, and section focus specifications.
+
+  v7 changes (2026-08-16 pm, v8 review follow-up):
+    - Rule 5 (complications) hardened: EVERY progress_note whose
+      stay_progress.day is at or after the complication onset MUST
+      mention it in the assessment. v6 saw progress notes drop
+      complications entirely once past the onset day (POP-000061
+      delirium mentioned in only 4/16 progress notes).
+    - New Rule 8: `stay_progress` day number is authoritative. Do NOT
+      write "入院初日" or "hospital day 1" on day 2+ (v8 review found
+      POP-000094-195 doc-02 & doc-03 both said "入院初日で"). If
+      stay_progress says "day N", the narrative day header MUST match.
+    - JP delirium terminology: use "せん妄" (JP medical standard),
+      NEVER "谵妄" (Chinese) or "デリリア" (English transliteration).
+    - hospital_course guidance restated: MUST integrate
+      `abnormal_labs_during_stay`, `key_procedures_performed`,
+      `vitals_range_during_stay` when present (v6 rule kept as-is; v6
+      code bug in llm_enabled_sections_for suppressed the rule from
+      firing for JP records — that bug is now fixed).
 
   v6 changes (2026-08-16, inpatient blocker fix):
     - Added Hard Rule 5: complications_during_stay MUST be surfaced when
@@ -94,6 +112,19 @@ system: |
        state the oxygen delivery (device + flow rate). Writing "SpO2 X%
        で安定" while ignoring active O2 therapy is a documented
        self-contradiction.
+  8. **Day-of-stay authority** (v7, 2026-08-16 pm).
+     - `context_sections.stay_progress` (e.g. "day 3 of expected 10
+       (mid)") is the sole authority for the current hospital day. Do
+       NOT write "入院初日" / "hospital day 1" / "on admission" on any
+       day other than day 0. The narrative day reference MUST match
+       the stay_progress value. v6 progress notes for POP-000094-195
+       doc-02 & doc-03 both opened with "入院初日で" — that is a fabrication.
+  9. **JP terminology fidelity** (v7).
+     - For delirium, always write "せん妄" (Japanese medical standard).
+       Do NOT emit the Chinese-script "谵妄" or the transliteration
+       "デリリア". Applies to admission_hp assessment_and_plan,
+       progress_note assessment, and discharge_summary
+       hospital_course.
 
   Natural narrative variance is allowed for realism: patient-voice
   phrasing for symptoms already in the record, generic medical
@@ -216,6 +247,13 @@ system: |
     `context_sections.complications_during_stay` includes a complication
     that occurred at or before this day's index, it MUST be acknowledged
     in the assessment.
+    **v7 clarification (2026-08-16 pm)**: this includes EVERY day at or
+    after the complication onset day — not only the onset day itself.
+    Once a complication has fired (pneumothorax, DVT, delirium, PE,
+    aspiration pneumonia, etc.), subsequent progress notes MUST
+    reference the ongoing management, resolution status, or explicit
+    mention that the complication is still being observed. Silent
+    omission on later days is a documentation gap.
   - **plan**: today's concrete adjustments only. Use headings for
     subsections. Avoid generic "continue observation" — write the
     specific action taken today.

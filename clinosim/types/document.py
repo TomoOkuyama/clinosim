@@ -124,12 +124,23 @@ class DocumentTypeSpec:
     def llm_enabled_sections_for(self, country: str) -> tuple[str, ...]:
         """Return the LLM-replacement section list for ``country``.
 
-        The JP path returns ``llm_enabled_sections_jp`` when it is
-        populated, otherwise falls back to ``llm_enabled_sections``.
-        The US path always returns ``llm_enabled_sections``.
+        v6 (2026-08-16): ``llm_enabled_sections_jp`` is ADDITIVE — the
+        JP path returns the UNION of ``llm_enabled_sections`` (universal)
+        and ``llm_enabled_sections_jp`` (JP-only extra sections, e.g.
+        JP-CLINS eDS ``present_illness``). Earlier revisions REPLACED
+        the universal list with the JP list, silently dropping
+        ``hospital_course`` and ``discharge_instructions`` from LLM
+        replacement for JP discharge_summary — producing the "identical
+        template hospital_course across 11 patients" symptom the v8
+        review flagged. The US path always returns
+        ``llm_enabled_sections`` unchanged.
         """
         if is_jp(country) and self.llm_enabled_sections_jp:
-            return self.llm_enabled_sections_jp
+            merged: list[str] = list(self.llm_enabled_sections)
+            for s in self.llm_enabled_sections_jp:
+                if s not in merged:
+                    merged.append(s)
+            return tuple(merged)
         return self.llm_enabled_sections
 
 

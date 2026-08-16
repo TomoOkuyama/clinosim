@@ -1712,10 +1712,22 @@ class TemplateNarrativeGenerator:
         los = ctx.los_days or 1
         parts: list[str] = []
 
-        # Sentence 1: header (LOS + primary reason if present)
+        # Sentence 1: header (LOS + primary reason if present).
+        # v7 (2026-08-16 pm): prefer localized fields; skip when JP
+        # data only carries the English string ("Dyspnea on exertion,
+        # orthopnea, lower extremity edema" leaked into JP discharge
+        # summaries in v8). LLM enrichment fills in the reason when
+        # the strategy dispatches through it.
         primary_reason = None
         if ctx.encounter is not None:
-            primary_reason = _o(ctx.encounter, "primary_diagnosis", None) or _o(ctx.encounter, "chief_complaint", None)
+            if is_ja:
+                primary_reason = _o(ctx.encounter, "primary_diagnosis_ja", None) or _o(
+                    ctx.encounter, "chief_complaint_ja", None
+                )
+            else:
+                primary_reason = _o(ctx.encounter, "primary_diagnosis", None) or _o(
+                    ctx.encounter, "chief_complaint", None
+                )
         if is_ja:
             head = f"入院期間 {los} 日間"
             if primary_reason:
@@ -1756,13 +1768,14 @@ class TemplateNarrativeGenerator:
             else:
                 parts.append(f"Key procedures: {', '.join(proc_names)}.")
 
-        # Sentence 4: neutral closer — LLM will replace this whole seed
-        # anyway; kept short so template fallback still reads coherent.
-        if is_ja:
-            parts.append("治療経過は臨床経過（アーキタイプ）に沿って推移した。")
-        else:
-            parts.append("Clinical course evolved consistent with the recorded trajectory archetype.")
-
+        # v7 (2026-08-16 pm): closer removed. v6 emitted
+        # "治療経過は臨床経過（アーキタイプ）に沿って推移した。" in
+        # every JP discharge_summary because the JP-only
+        # llm_enabled_sections_jp bug (see DocumentTypeSpec) dropped
+        # hospital_course from LLM replacement — so the template seed
+        # became the final output and the internal "アーキタイプ" token
+        # leaked to every one of 11 patients. Both the union-semantics
+        # fix in DocumentTypeSpec and this closer removal are needed.
         facts.append("ctx.los_days")
         return " ".join(parts), facts
 
@@ -1837,9 +1850,18 @@ class TemplateNarrativeGenerator:
         for med in meds:
             drug = _o(med, "drug_name", "") or ""
             drug, _protocol_category = strip_protocol_prefix(drug)
-            if not drug or drug in seen:
+            if not drug:
                 continue
-            seen.add(drug)
+            # v7 (2026-08-16 pm): dedup by case-insensitive drug name
+            # (kept combo vs mono distinct — "Amoxicillin/Clavulanate"
+            # and "Amoxicillin" are pharmacologically different, so
+            # collapsing them would be data loss). Fixes only the
+            # exact-duplicate variant seen in POP-000075 v8 output
+            # ("Amoxicillin" listed twice with identical dose+route+freq).
+            norm_key = str(drug).lower().strip()
+            if norm_key in seen:
+                continue
+            seen.add(norm_key)
             # v6 blocker fix (2026-08-16): PrescriptionRecord.items carry
             # dose / route / frequency / days_supply. v5 emitted names
             # only, violating the LLM prompt's REQUIRED specificity spec
