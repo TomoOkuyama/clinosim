@@ -195,6 +195,15 @@ class NarrativeContext:
     # existing `procedures` field's record-wide (not per-encounter) scope.
     rehab_sessions: list[Any] = field(default_factory=list)
 
+    # === session-88j v6 (2026-08-16, inpatient blocker fix) ===
+    # Complication tokens fired by the daily loop (e.g. "pneumothorax",
+    # "aspiration_pneumonia"). Sourced from record.complications_occurred.
+    # v5 dropped these entirely — inpatient discharge_summary /
+    # progress_note / admission_hp had no way to surface a pneumothorax
+    # that actually happened. Consumed by _build_extra_context to feed
+    # the LLM prompt.
+    complications_occurred: list[str] = field(default_factory=list)
+
 
 @dataclass
 class NarrativeOutput:

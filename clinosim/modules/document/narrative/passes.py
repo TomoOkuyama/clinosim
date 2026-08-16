@@ -257,6 +257,7 @@ class NarrativePass(ABC):
             document_type=DocumentType(spec.type_key),
             target_lang=language,
             locale="jp" if is_jp(self.country) else "us",
+            complications_occurred=list(patient_dict.get("complications_occurred", []) or []),
         )
         ctx.narrative_spine = build_narrative_spine(
             disease_protocol,

@@ -540,6 +540,16 @@ class TemplateNarrativeGenerator:
             assessment = traj.get("assessment") or _generic_a
             plan = traj.get("plan") or _generic_p
 
+            # v6 blocker fix (2026-08-16): prepend today's numeric vitals
+            # snapshot to `objective` for inpatient progress_note. `objective`
+            # is by-design non-LLM (see progress_note spec), so the template
+            # itself must carry per-day BP/HR/RR/SpO2/T; otherwise it collapses
+            # to a static disease_YAML string across all days of a stay.
+            today_vitals_line = self._compose_today_vitals_line(ctx)
+            if today_vitals_line:
+                facts.append("ctx.vitals.today")
+                objective = f"{today_vitals_line}。{objective}"
+
             # Add physical exam findings to the objective section (JP only,
             # EN skips to prevent CJK leak — sibling of _build_physical_examination fix)
             phys_exam = self._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
@@ -1560,22 +1570,77 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     def _build_hospital_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build hospital_course — 1-3 sentence summary across all days."""
+        """Build hospital_course template seed.
+
+        v6 blocker fix (2026-08-16): v5 returned a single hardcoded
+        sentence ("入院 N 日間の治療を経て経過良好。症状は改善し退院となった。"),
+        producing 11/11 identical outputs across a p=100 run because
+        the LLM had a bland seed AND no factual anchor from context.
+        This version enumerates the concrete facts (complications,
+        procedures, key med classes) so both the template fallback and
+        the LLM prompt see per-patient specificity. The LLM still
+        composes the final prose.
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
         los = ctx.los_days or 1
+        parts: list[str] = []
 
+        # Sentence 1: header (LOS + primary reason if present)
+        primary_reason = None
+        if ctx.encounter is not None:
+            primary_reason = _o(ctx.encounter, "primary_diagnosis", None) or _o(ctx.encounter, "chief_complaint", None)
         if is_ja:
-            text = f"入院 {los} 日間の治療を経て経過良好。症状は改善し退院となった。"
+            head = f"入院期間 {los} 日間"
+            if primary_reason:
+                head += f"（主病名/主訴: {str(primary_reason)[:80]}）"
+            parts.append(head + "。")
         else:
-            text = (
-                f"The patient was hospitalized for {los} days. "
-                "Clinical course was favorable with improvement in presenting symptoms."
-            )
+            head = f"Length of stay: {los} days"
+            if primary_reason:
+                head += f" (primary reason: {str(primary_reason)[:80]})"
+            parts.append(head + ".")
 
-        return text, facts
+        # Sentence 2: complications (blocker 1 — MUST be surfaced)
+        comps = list(getattr(ctx, "complications_occurred", []) or [])
+        if comps:
+            facts.append("ctx.complications_occurred")
+            if is_ja:
+                parts.append(f"経過中の合併症: {'、'.join(str(c) for c in comps[:6])}。")
+            else:
+                parts.append(f"Complications during stay: {', '.join(str(c) for c in comps[:6])}.")
+
+        # Sentence 3: key procedures performed
+        proc_names: list[str] = []
+        seen: set[str] = set()
+        for pr in ctx.procedures or []:
+            nm = _o(pr, "procedure_name", None) or _o(pr, "name", None) or _o(pr, "display_name", None)
+            if not nm:
+                continue
+            if nm in seen:
+                continue
+            seen.add(nm)
+            proc_names.append(str(nm))
+            if len(proc_names) >= 6:
+                break
+        if proc_names:
+            facts.append("ctx.procedures")
+            if is_ja:
+                parts.append(f"主な処置・手技: {'、'.join(proc_names)}。")
+            else:
+                parts.append(f"Key procedures: {', '.join(proc_names)}.")
+
+        # Sentence 4: neutral closer — LLM will replace this whole seed
+        # anyway; kept short so template fallback still reads coherent.
+        if is_ja:
+            parts.append("治療経過は臨床経過（アーキタイプ）に沿って推移した。")
+        else:
+            parts.append("Clinical course evolved consistent with the recorded trajectory archetype.")
+
+        facts.append("ctx.los_days")
+        return " ".join(parts), facts
 
     def _build_discharge_diagnoses(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build discharge_diagnoses from ctx.diagnoses.
@@ -1644,16 +1709,35 @@ class TemplateNarrativeGenerator:
 
         facts.append("ctx.discharge_medications")
         seen: set[str] = set()
-        drug_names = []
+        lines: list[str] = []
         for med in meds:
             drug = _o(med, "drug_name", "") or ""
             drug, _protocol_category = strip_protocol_prefix(drug)
-            if drug and drug not in seen:
-                seen.add(drug)
-                drug_names.append(drug)
+            if not drug or drug in seen:
+                continue
+            seen.add(drug)
+            # v6 blocker fix (2026-08-16): PrescriptionRecord.items carry
+            # dose / route / frequency / days_supply. v5 emitted names
+            # only, violating the LLM prompt's REQUIRED specificity spec
+            # and leaving discharge_medications indistinguishable across
+            # patients. Format: "<drug> <dose> <route> <freq> x<days>d".
+            dose = _o(med, "dose", "") or ""
+            route = _o(med, "route", "") or ""
+            freq = _o(med, "frequency", "") or ""
+            days = _o(med, "days_supply", None)
+            bits: list[str] = [str(drug)]
+            if dose:
+                bits.append(str(dose))
+            if route:
+                bits.append(str(route))
+            if freq:
+                bits.append(str(freq))
+            if days:
+                bits.append(f"x{days}日分" if is_ja else f"x{days}d")
+            lines.append(" ".join(bits))
 
-        if drug_names:
-            return "; ".join(drug_names), facts
+        if lines:
+            return "; ".join(lines), facts
         return none_text, facts
 
     def _build_discharge_instructions(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -2384,6 +2468,42 @@ class TemplateNarrativeGenerator:
             return vital_line, facts
 
         return fallback, facts
+
+    def _compose_today_vitals_line(self, ctx: NarrativeContext) -> str:
+        """Compose today's numeric vital-signs summary for inpatient
+        progress_note objective. Filters ``ctx.vitals`` by ``day == ctx.day_index``
+        (falls back to first if no day tag). v6 blocker fix — v5 progress_note
+        objective ignored per-day vitals and repeated a static disease YAML line.
+        """
+        picks = []
+        for v in ctx.vitals or []:
+            d = _o(v, "day", None)
+            if d is not None and d != ctx.day_index:
+                continue
+            picks.append(v)
+        if not picks:
+            picks = list(ctx.vitals or [])[:1]
+        if not picks:
+            return ""
+        v = picks[0]
+        parts: list[str] = []
+        _sbp = _o(v, "systolic_bp", None)
+        _dbp = _o(v, "diastolic_bp", None)
+        if _sbp and _dbp:
+            parts.append(f"BP {int(_sbp)}/{int(_dbp)} mmHg")
+        _hr = _o(v, "heart_rate", None)
+        if _hr:
+            parts.append(f"HR {int(_hr)} 回/分" if ctx.target_lang == "ja" else f"HR {int(_hr)} bpm")
+        _rr = _o(v, "respiratory_rate", None)
+        if _rr:
+            parts.append(f"RR {int(_rr)} 回/分" if ctx.target_lang == "ja" else f"RR {int(_rr)} /min")
+        _spo2 = _o(v, "spo2", None)
+        if _spo2:
+            parts.append(f"SpO2 {_spo2:.0f}%")
+        _temp = _o(v, "temperature_celsius", None)
+        if _temp:
+            parts.append(f"T {_temp:.1f}°C")
+        return ", ".join(parts) if parts else ""
 
     def _compose_vital_signs_line(self, ctx: NarrativeContext) -> str:
         """Compose a single-line JA/EN vital-signs summary from ctx.vitals[0]

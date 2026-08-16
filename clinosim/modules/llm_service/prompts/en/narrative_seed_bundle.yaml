@@ -1,11 +1,26 @@
 task_type: narrative_seed_bundle
-version: 5
+version: 6
 max_tokens: 2000
 temperature: 0.3
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
   Per-document-type persona, format, and section focus specifications.
+
+  v6 changes (2026-08-16, inpatient blocker fix):
+    - Added Hard Rule 5: complications_during_stay MUST be surfaced when
+      present. v5 dropped complications entirely (pneumothorax etc.
+      never appeared in admission_hp/progress_note/discharge_summary
+      even when CIF fired them).
+    - Added Hard Rule 6: abnormal_labs_today / abnormal_labs_during_stay
+      MUST be integrated into assessment when present with the flagged
+      value. v5 assessment ignored AST H, PT_INR H, Cr H etc.
+    - Extended per-doc-type instructions: discharge_summary
+      hospital_course MUST enumerate phases with complications + key
+      procedures + med adjustments; progress_note assessment MUST cite
+      today's abnormal labs when present.
+    - Archetype-specific expected shape hardened: added "monotonic
+      improvement is NOT acceptable for deterioration archetypes" rule.
 
   v5 changes (2026-08-15, dedup pass):
     - Removed obsolete "if the seed is empty" instruction in progress_note
@@ -58,6 +73,20 @@ system: |
      - "Improved from yesterday" is only allowed if context
        (stay_progress + today's vitals + scenario archetype) supports
        it. Otherwise use a neutral phrase (e.g. 「著変なし」 / "no change").
+  5. **Complications MUST be surfaced** (v6, 2026-08-16).
+     - When `context_sections.complications_during_stay` is present, the
+       narrative MUST explicitly mention every listed complication (in
+       admission_hp assessment_and_plan, in the progress_note of the
+       day the complication fired, and in discharge_summary
+       hospital_course). Silent omission is a hallucination of the
+       inverse (implying no complication occurred).
+  6. **Abnormal labs MUST enter assessment** (v6).
+     - When `context_sections.abnormal_labs_today` (progress_note,
+       outpatient_soap) or `abnormal_labs_during_stay`
+       (discharge_summary) is present, the assessment section MUST cite
+       at least the H/L-flagged values (name + value + flag) and their
+       clinical interpretation. Do NOT write "labs stable" if a flag
+       is present.
 
   Natural narrative variance is allowed for realism: patient-voice
   phrasing for symptoms already in the record, generic medical
@@ -92,6 +121,14 @@ system: |
     this archetype; mid-course notes should acknowledge a transient
     worsening or team re-evaluation.
   - `complicated_delayed`: setbacks with workup escalation.
+
+  **v6 hard constraint on trajectory prose**: for
+  `sudden_deterioration`, `gradual_deterioration`, `complicated_delayed`,
+  and `dip_then_recovery`, monotonic improvement wording ("改善傾向",
+  "経過良好", "monotonically improving") across every day is a
+  fabrication and is NOT acceptable. If context (complications_during_stay,
+  today's vitals, stay_progress phase) shows worsening or a setback,
+  the day's assessment MUST reflect it.
 
   === Localization ===
 
@@ -139,6 +176,18 @@ system: |
   - Purpose: summary for the post-discharge outpatient team / referring MD.
   - **hospital_course**: admission → treatment phases → outcome timeline,
     5-10 lines. Phase-level (acute / stable / discharge prep), not daily.
+    **REQUIRED enumeration (v6, 2026-08-16)**: MUST explicitly cover, in
+    prose:
+      1. Every complication in `context_sections.complications_during_stay`
+         (which phase it fired in, how it was managed).
+      2. Every procedure in `context_sections.key_procedures_performed`
+         (indication, response).
+      3. Vitals extremes from `vitals_range_during_stay` when
+         non-trivial (peak T, lowest SpO2, sBP swing).
+      4. Every H/L lab in `abnormal_labs_during_stay` that guided a
+         treatment decision.
+    Generic prose like "経過良好、症状は改善し退院となった" alone is
+    unacceptable — it must be grounded in the enumerated facts above.
   - **discharge_instructions**: patient-directed voice (JA: です・ます調;
     EN: direct instructions). Four headings: Medications / Follow-up
     appointments / Daily activities / When to seek care.
@@ -154,6 +203,12 @@ system: |
   - **assessment**: 1-3 lines. Interpret the change from yesterday and
     its cause. Do NOT re-present the primary diagnosis or full
     differential (that belongs in admission_hp).
+    **v6 requirement**: if `context_sections.abnormal_labs_today` is
+    present, at least one flagged value (name + value + flag) MUST be
+    cited with clinical interpretation. If
+    `context_sections.complications_during_stay` includes a complication
+    that occurred at or before this day's index, it MUST be acknowledged
+    in the assessment.
   - **plan**: today's concrete adjustments only. Use headings for
     subsections. Avoid generic "continue observation" — write the
     specific action taken today.

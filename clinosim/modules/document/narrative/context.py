@@ -51,4 +51,5 @@ def build_narrative_context(
         document_type=document_type,
         target_lang=lang,
         locale=locale,
+        complications_occurred=list(_o(record, "complications_occurred", []) or []),
     )

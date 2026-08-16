@@ -597,6 +597,17 @@ def _build_extra_context(
         phase = _stay_phase(ctx.day_index, ctx.los_days)
         extra["stay_progress"] = f"day {ctx.day_index} of expected {ctx.los_days} ({phase})"
 
+    # v6 blocker fix (2026-08-16): encounter_type disambiguates outpatient
+    # vs inpatient. v5 progress_note vs outpatient_soap prompts diverged
+    # by doc_type only — an outpatient SOAP whose chief_complaint was
+    # 'follow-up for colonoscopy' was narrated as "緊急入院" because the
+    # LLM had no signal to distinguish. Cheap universal field.
+    if getattr(ctx, "encounter_type", None) is not None:
+        et = ctx.encounter_type
+        et_label = getattr(et, "value", None) or getattr(et, "name", None) or str(et)
+        if et_label and et_label not in ("None", ""):
+            extra["encounter_type"] = str(et_label)[:40]
+
     enc = ctx.encounter
     if enc is not None:
         # primary_encounter_reason: skip when template already carries
@@ -615,6 +626,16 @@ def _build_extra_context(
         if los and los > 0:
             extra["length_of_stay_days"] = str(los)
 
+    # ---- v6 inpatient blocker fix (2026-08-16) ---------------------
+    # Complications from daily loop (pneumothorax, aspiration_pneumonia,
+    # …). Universal — every inpatient doc that references the stay MUST
+    # be able to mention them. v5 dropped these entirely so
+    # discharge_summary / progress_note / admission_hp appeared bland
+    # and clinically hollow.
+    complications = list(getattr(ctx, "complications_occurred", []) or [])
+    if complications:
+        extra["complications_during_stay"] = "; ".join(str(c) for c in complications[:10])
+
     # ---- Doc-type-specific ----
     if doc_type in ("progress_note", "nursing_shift_note"):
         # Day-N context: today's vital snapshot + active meds
@@ -627,6 +648,12 @@ def _build_extra_context(
         active_meds = _render_active_meds(ctx.medications, ctx.day_index)
         if active_meds:
             extra["active_medications_today"] = active_meds
+        # v6 blocker fix: today's abnormal labs (H/L flag). Assessment
+        # is LLM-generated for progress_note but v5 context omitted lab
+        # H/L flags → LLM never mentioned them.
+        abnormal_today = _render_abnormal_labs(ctx.lab_results, day_index=ctx.day_index)
+        if abnormal_today:
+            extra["abnormal_labs_today"] = abnormal_today
     elif doc_type == "admission_hp":
         # home_medications: skip when template renders medications_at_home.
         if "medications_at_home" not in tmpl:
@@ -644,6 +671,18 @@ def _build_extra_context(
         outcome = _get(enc, "discharge_disposition") or _get(enc, "discharge_status")
         if outcome:
             extra["discharge_outcome"] = str(outcome)[:120]
+        # v6 blocker fix: hospital_course was collapsing to a 1-liner
+        # template because LLM had nothing specific to work with.
+        # Feed the whole-stay lab/procedure/vitals-extremes summary.
+        abnormal_stay = _render_abnormal_labs(ctx.lab_results, day_index=None)
+        if abnormal_stay:
+            extra["abnormal_labs_during_stay"] = abnormal_stay
+        key_procs = _render_key_procedures(ctx.procedures)
+        if key_procs:
+            extra["key_procedures_performed"] = key_procs
+        vitals_range = _render_vitals_range(ctx.vitals)
+        if vitals_range:
+            extra["vitals_range_during_stay"] = vitals_range
     elif doc_type == "outpatient_soap":
         # home_medications always useful (outpatient template has no
         # medications section). today_vitals_summary: skip when
@@ -658,6 +697,11 @@ def _build_extra_context(
             today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index)
             if today_vitals:
                 extra["today_vitals_summary"] = today_vitals
+        # v6: same lab flag injection as progress_note — outpatient
+        # assessment was ignoring AST H, PT_INR H, Cr H etc.
+        abnormal_today = _render_abnormal_labs(ctx.lab_results, day_index=None)
+        if abnormal_today:
+            extra["abnormal_labs_today"] = abnormal_today
     elif doc_type == "ed_note":
         # chief_complaint_verbatim: skip when template renders
         # chief_complaint (which it does — always in ed_note).
@@ -789,6 +833,92 @@ def _render_active_meds(admins: list, day_index: int) -> str:
         if len(names) >= 12:
             break
     return "; ".join(names) if names else ""
+
+
+def _render_abnormal_labs(lab_results: list, day_index: int | None) -> str:
+    """H/L/critical flagged labs, formatted for LLM injection.
+
+    v6 blocker fix: v5 context omitted lab flags entirely so LLM
+    assessments ignored AST H, PT_INR H, Cr H etc. When ``day_index``
+    is None, returns ALL abnormal labs across the stay
+    (discharge_summary use); otherwise filters to that day
+    (progress_note use).
+    """
+    picks: list[str] = []
+    max_pick = 8
+    for lab in lab_results or []:
+        flag = _get(lab, "flag")
+        if not flag:
+            continue
+        d = _get(lab, "day")
+        if day_index is not None and d is not None and d != day_index:
+            continue
+        name = _get(lab, "lab_name") or _get(lab, "name") or ""
+        val = _get(lab, "value")
+        unit = _get(lab, "unit") or ""
+        if not name or val is None:
+            continue
+        val_str = f"{val}"
+        parts = f"{name} {val_str}"
+        if unit:
+            parts += f" {unit}"
+        parts += f" [{flag}]"
+        picks.append(parts)
+        if len(picks) >= max_pick:
+            break
+    return "; ".join(picks) if picks else ""
+
+
+def _render_key_procedures(procedures: list) -> str:
+    """List procedures performed during the stay for discharge_summary
+    hospital_course context (v6 fix: LLM had no procedure facts to
+    reference, producing generic "経過良好" summaries)."""
+    names: list[str] = []
+    seen: set[str] = set()
+    for pr in procedures or []:
+        name = _get(pr, "procedure_name") or _get(pr, "name") or _get(pr, "display_name")
+        if not name:
+            code = _get(pr, "code") or _get(pr, "procedure_code")
+            name = str(code) if code else None
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        d = _get(pr, "day")
+        if d is not None:
+            names.append(f"{name} (day {d})")
+        else:
+            names.append(str(name))
+        if len(names) >= 8:
+            break
+    return "; ".join(names) if names else ""
+
+
+def _render_vitals_range(vitals: list) -> str:
+    """Min/max range of key vitals across the whole stay (BP, HR, T, SpO2).
+    Feeds discharge_summary hospital_course so the LLM can say "T peaked
+    at 39.1 on D3" instead of generic "経過良好"."""
+    if not vitals:
+        return ""
+    fields = ("systolic_bp", "heart_rate", "temperature_celsius", "spo2")
+    minmax: dict[str, tuple[float, float]] = {}
+    for v in vitals:
+        for f in fields:
+            val = _get(v, f)
+            if val is None:
+                continue
+            try:
+                num = float(val)
+            except (TypeError, ValueError):
+                continue
+            lo, hi = minmax.get(f, (num, num))
+            minmax[f] = (min(lo, num), max(hi, num))
+    if not minmax:
+        return ""
+    labels = {"systolic_bp": "sBP", "heart_rate": "HR", "temperature_celsius": "T", "spo2": "SpO2"}
+    parts = []
+    for f, (lo, hi) in minmax.items():
+        parts.append(f"{labels[f]} {lo:g}-{hi:g}")
+    return " / ".join(parts)
 
 
 def _stay_phase(day_index: int, los_days: int) -> str:
