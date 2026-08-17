@@ -1,0 +1,159 @@
+# Chronic-disease outpatient SOAP template registry (v9, 2026-08-17).
+#
+# Purpose: chronic conditions in this simulator are represented as ICD-10
+# codes on ``patient.chronic_conditions`` — they do NOT have per-disease
+# YAML files under ``modules/disease/reference_data/`` (which are only for
+# acute inpatient conditions). The v10 density audit found 132/375
+# outpatient encounters were chronic follow-ups ("血圧管理・処方薬の
+# 見直し", "脂質管理・スタチン療法のモニタリング" etc.) with no
+# matching encounter YAML or disease YAML, falling through to the raw
+# patient-state fallback engine.
+#
+# This registry closes the gap: template_generator's
+# ``_get_soap_template()`` consults this file after encounter_protocol
+# and disease_protocol lookups, keyed by the patient's primary chronic
+# ICD prefix. Each entry provides the same OutpatientSoapTemplate
+# shape (subjective_ja / objective_ja / assessment_ja / plan_ja) that
+# the encounter-side YAMLs use, so the downstream template engine
+# handles them uniformly.
+#
+# Design notes:
+#   - Content is a SEED — Template engine still composes CIF-derived
+#     content (vitals, labs, meds) as a wrapper. The seed provides
+#     disease-specific phrasing that would otherwise require LLM.
+#   - Placeholders {vital_line}, {chronic_labels}, {continue_meds},
+#     {today_finding} are substituted by the template engine at render
+#     time. Unknown placeholders are left in the text (defensive default).
+#   - Selection: use the FIRST chronic condition whose code prefix
+#     matches. Order in ``patient.chronic_conditions`` reflects clinical
+#     priority (primary condition first).
+#   - Additional chronic ICDs beyond the ones listed here fall through
+#     to the engine fallback (still adequate post-v9 P1b).
+
+# ── I10: Essential hypertension ───────────────────────────────────
+I10:
+  subjective_ja: |
+    血圧手帳を持参、家庭血圧の記録を確認。降圧薬の副作用は認めず、
+    自覚症状は特記事項なし。
+  objective_ja: |
+    診察室血圧を測定、家庭血圧との整合性を確認。{vital_line}
+  assessment_ja: |
+    本態性高血圧のフォローアップ。目標 130/80 mmHg 未満を基準に評価。
+  plan_ja: |
+    降圧薬継続、家庭血圧測定継続を指導。減塩・適度な運動・体重管理を再確認。
+    次回外来は 4-6 週後に予定。
+
+# ── E11: Type 2 diabetes mellitus ─────────────────────────────────
+E11:
+  subjective_ja: |
+    血糖自己測定 (SMBG) 記録を確認。低血糖エピソード、多尿・口渇の
+    有無を聴取。食事・運動療法の遵守状況を確認。
+  objective_ja: |
+    体重測定、下肢浮腫の有無を確認。{vital_line}
+  assessment_ja: |
+    2 型糖尿病のフォローアップ。HbA1c 目標 7.0% 未満を基準に評価。
+    合併症 (網膜症・腎症・神経障害) スクリーニングを継続。
+  plan_ja: |
+    経口血糖降下薬継続、必要に応じて用量調整を検討。食事・運動療法を
+    再指導。眼科・腎機能検査は年 1 回。次回外来は 1-2 か月後。
+
+# ── E78: Dyslipidemia ─────────────────────────────────────────────
+E78:
+  subjective_ja: |
+    スタチン内服の副作用 (筋痛・肝機能異常) の有無を聴取。食事・運動
+    習慣の確認。
+  objective_ja: |
+    体重・BMI 測定、心血管イベントリスクを再評価。{vital_line}
+  assessment_ja: |
+    脂質異常症のフォローアップ。LDL 目標値を心血管リスク層別で評価。
+  plan_ja: |
+    スタチン継続、必要に応じて用量調整。食事療法 (飽和脂肪酸・糖質制限)
+    と運動療法を再指導。次回外来は 3 か月後、AST・ALT・CK・脂質パネル
+    を採血。
+
+# ── N18: Chronic kidney disease ───────────────────────────────────
+N18:
+  subjective_ja: |
+    浮腫、倦怠感、食欲不振の有無を聴取。塩分・蛋白制限の遵守状況を確認。
+  objective_ja: |
+    体重測定、下肢浮腫・血圧を評価。{vital_line}
+  assessment_ja: |
+    慢性腎臓病のフォローアップ。eGFR・尿蛋白の推移を評価。腎機能悪化
+    速度と合併症 (貧血・電解質・二次性副甲状腺機能亢進症) を継続監視。
+  plan_ja: |
+    RAS 阻害薬・ACEI/ARB 継続、腎機能に応じて用量調整。蛋白制限
+    (0.6-0.8 g/kg/日)、塩分制限 (6 g/日未満) を再指導。次回外来は
+    1-3 か月後、Cr・eGFR・尿蛋白・電解質採血。
+
+# ── I50 / I11.0: Chronic heart failure ────────────────────────────
+I50:
+  subjective_ja: |
+    労作時息切れ、下肢浮腫、体重増加の有無を聴取。水分・塩分制限、
+    体重毎日測定の遵守を確認。
+  objective_ja: |
+    体重測定、下肢浮腫・頸静脈怒張・肺音を確認。{vital_line}
+  assessment_ja: |
+    慢性心不全のフォローアップ。NYHA class・BNP/NT-proBNP 推移を評価。
+    増悪リスクを継続監視。
+  plan_ja: |
+    利尿薬・β遮断薬・RAS 阻害薬継続、症状に応じて調整。塩分制限
+    (6 g/日未満)、水分制限、体重毎日測定を再指導。次回外来は 2-4 週後。
+
+# ── I25: Chronic ischemic heart disease ───────────────────────────
+I25:
+  subjective_ja: |
+    胸痛、労作時息切れ、動悸の有無を聴取。ニトログリセリンの使用頻度・
+    効果を確認。
+  objective_ja: |
+    心音・肺音を確認、下肢浮腫を評価。{vital_line}
+  assessment_ja: |
+    慢性虚血性心疾患のフォローアップ。CCS class・症状増悪の有無を評価。
+    抗血小板・スタチン療法を継続。
+  plan_ja: |
+    アスピリン・スタチン継続、必要に応じて用量調整。労作時症状に対する
+    生活指導 (無理な負荷回避) を再確認。次回外来は 3 か月後、脂質パネル・
+    心電図を評価。
+
+# ── J44: COPD (stable) ────────────────────────────────────────────
+J44:
+  subjective_ja: |
+    咳嗽・喀痰・労作時息切れの有無、増悪エピソードの回数を聴取。
+    吸入器手技の確認。
+  objective_ja: |
+    呼吸音、SpO2 を確認。喫煙状況を再確認。{vital_line}
+  assessment_ja: |
+    COPD (安定期) のフォローアップ。CAT score・mMRC dyspnea scale で
+    症状評価。増悪頻度から治療強度を判断。
+  plan_ja: |
+    LABA/LAMA 吸入継続、必要に応じて ICS 追加を検討。禁煙指導、呼吸
+    リハビリ継続を確認。インフルエンザ・肺炎球菌ワクチンを勧奨。
+    次回外来は 3 か月後、スパイロメトリを年 1 回。
+
+# ── J45: Asthma (stable follow-up) ────────────────────────────────
+J45:
+  subjective_ja: |
+    喘鳴・咳嗽・夜間覚醒の有無、SABA 使用頻度を聴取。トリガー
+    (アレルゲン・運動・気温変化) 曝露を確認。
+  objective_ja: |
+    肺音、SpO2 を確認。吸入手技を再チェック。{vital_line}
+  assessment_ja: |
+    気管支喘息のフォローアップ。ACT score / 症状頻度で コントロール
+    状況を評価。
+  plan_ja: |
+    ICS/LABA 継続、必要に応じてステップアップ・ダウンを検討。
+    アレルゲン回避・生活指導。ピークフローメーター使用を継続。
+    次回外来は 3 か月後。
+
+# ── K21: GERD / functional GI disorders ───────────────────────────
+K21:
+  subjective_ja: |
+    胸やけ・呑酸・咽喉違和感の有無を聴取。食事内容・飲酒・喫煙、
+    体位 (就寝時の頭部挙上) を確認。
+  objective_ja: |
+    上腹部圧痛の有無を確認。{vital_line}
+  assessment_ja: |
+    GERD のフォローアップ。症状頻度、PPI 効果を評価。上部消化管
+    内視鏡は必要に応じて 1-2 年ごと。
+  plan_ja: |
+    PPI 継続、症状増悪時は用量調整を検討。生活指導 (少食頻回、就寝
+    2 時間前までに食事終了、頭部挙上)。次回外来は 3-6 か月後。

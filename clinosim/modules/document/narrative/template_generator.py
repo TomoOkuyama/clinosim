@@ -3168,14 +3168,43 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
 
     def _get_soap_template(self, ctx: NarrativeContext) -> Any | None:
-        """Extract outpatient_soap_template from encounter_protocol (or None)."""
+        """Extract outpatient_soap_template.
+
+        v9 (2026-08-17): resolution chain
+          1. encounter_protocol.narrative.outpatient_soap_template
+             (encounter-specific — screening / vaccination / referral etc.)
+          2. disease_protocol.narrative.outpatient_soap_template
+             (acute disease follow-up — v9 new layer)
+          3. chronic_soap_templates.yaml lookup by primary chronic ICD
+             (v9 new layer — closes the "chronic follow-up" gap for
+             hypertension / DM / CKD / etc. which have no per-disease YAML)
+          4. None → caller falls through to patient-state engine
+        """
         ep = ctx.encounter_protocol
-        if ep is None:
-            return None
-        narrative = _o(ep, "narrative", None)
-        if narrative is None:
-            return None
-        return _o(narrative, "outpatient_soap_template", None)
+        if ep is not None:
+            narrative = _o(ep, "narrative", None)
+            if narrative is not None:
+                tmpl = _o(narrative, "outpatient_soap_template", None)
+                if tmpl is not None:
+                    return tmpl
+        # L2: disease-side (acute follow-up)
+        dp = ctx.disease_protocol
+        if dp is not None:
+            narrative = _o(dp, "narrative", None)
+            if narrative is not None:
+                tmpl = _o(narrative, "outpatient_soap_template", None)
+                if tmpl is not None:
+                    return tmpl
+        # L3: chronic-condition registry (v9 new)
+        from clinosim.modules.document.narrative._chronic_soap import resolve_chronic_soap
+
+        patient = ctx.patient
+        if patient is not None:
+            conds = _o(patient, "chronic_conditions", []) or []
+            chronic_tmpl = resolve_chronic_soap(conds)
+            if chronic_tmpl is not None:
+                return chronic_tmpl
+        return None
 
     def _build_outpatient_subjective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build SOAP subjective from outpatient_soap_template.subjective_<lang>.
