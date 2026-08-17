@@ -21,7 +21,7 @@
 #   - Content is a SEED — Template engine still composes CIF-derived
 #     content (vitals, labs, meds) as a wrapper. The seed provides
 #     disease-specific phrasing that would otherwise require LLM.
-#   - Placeholders {vital_line}, {chronic_labels}, {continue_meds},
+#   - Placeholders , {chronic_labels}, {continue_meds},
 #     {today_finding} are substituted by the template engine at render
 #     time. Unknown placeholders are left in the text (defensive default).
 #   - Selection: use the FIRST chronic condition whose code prefix
@@ -36,7 +36,7 @@ I10:
     血圧手帳を持参、家庭血圧の記録を確認。降圧薬の副作用は認めず、
     自覚症状は特記事項なし。
   objective_ja: |
-    診察室血圧を測定、家庭血圧との整合性を確認。{vital_line}
+    診察室血圧を測定、家庭血圧との整合性を確認。
   assessment_ja: |
     本態性高血圧のフォローアップ。目標 130/80 mmHg 未満を基準に評価。
   plan_ja: |
@@ -49,7 +49,7 @@ E11:
     血糖自己測定 (SMBG) 記録を確認。低血糖エピソード、多尿・口渇の
     有無を聴取。食事・運動療法の遵守状況を確認。
   objective_ja: |
-    体重測定、下肢浮腫の有無を確認。{vital_line}
+    体重測定、下肢浮腫の有無を確認。
   assessment_ja: |
     2 型糖尿病のフォローアップ。HbA1c 目標 7.0% 未満を基準に評価。
     合併症 (網膜症・腎症・神経障害) スクリーニングを継続。
@@ -63,7 +63,7 @@ E78:
     スタチン内服の副作用 (筋痛・肝機能異常) の有無を聴取。食事・運動
     習慣の確認。
   objective_ja: |
-    体重・BMI 測定、心血管イベントリスクを再評価。{vital_line}
+    体重・BMI 測定、心血管イベントリスクを再評価。
   assessment_ja: |
     脂質異常症のフォローアップ。LDL 目標値を心血管リスク層別で評価。
   plan_ja: |
@@ -76,7 +76,7 @@ N18:
   subjective_ja: |
     浮腫、倦怠感、食欲不振の有無を聴取。塩分・蛋白制限の遵守状況を確認。
   objective_ja: |
-    体重測定、下肢浮腫・血圧を評価。{vital_line}
+    体重測定、下肢浮腫・血圧を評価。
   assessment_ja: |
     慢性腎臓病のフォローアップ。eGFR・尿蛋白の推移を評価。腎機能悪化
     速度と合併症 (貧血・電解質・二次性副甲状腺機能亢進症) を継続監視。
@@ -91,7 +91,7 @@ I50:
     労作時息切れ、下肢浮腫、体重増加の有無を聴取。水分・塩分制限、
     体重毎日測定の遵守を確認。
   objective_ja: |
-    体重測定、下肢浮腫・頸静脈怒張・肺音を確認。{vital_line}
+    体重測定、下肢浮腫・頸静脈怒張・肺音を確認。
   assessment_ja: |
     慢性心不全のフォローアップ。NYHA class・BNP/NT-proBNP 推移を評価。
     増悪リスクを継続監視。
@@ -105,7 +105,7 @@ I25:
     胸痛、労作時息切れ、動悸の有無を聴取。ニトログリセリンの使用頻度・
     効果を確認。
   objective_ja: |
-    心音・肺音を確認、下肢浮腫を評価。{vital_line}
+    心音・肺音を確認、下肢浮腫を評価。
   assessment_ja: |
     慢性虚血性心疾患のフォローアップ。CCS class・症状増悪の有無を評価。
     抗血小板・スタチン療法を継続。
@@ -120,7 +120,7 @@ J44:
     咳嗽・喀痰・労作時息切れの有無、増悪エピソードの回数を聴取。
     吸入器手技の確認。
   objective_ja: |
-    呼吸音、SpO2 を確認。喫煙状況を再確認。{vital_line}
+    呼吸音、SpO2 を確認。喫煙状況を再確認。
   assessment_ja: |
     COPD (安定期) のフォローアップ。CAT score・mMRC dyspnea scale で
     症状評価。増悪頻度から治療強度を判断。
@@ -135,7 +135,7 @@ J45:
     喘鳴・咳嗽・夜間覚醒の有無、SABA 使用頻度を聴取。トリガー
     (アレルゲン・運動・気温変化) 曝露を確認。
   objective_ja: |
-    肺音、SpO2 を確認。吸入手技を再チェック。{vital_line}
+    肺音、SpO2 を確認。吸入手技を再チェック。
   assessment_ja: |
     気管支喘息のフォローアップ。ACT score / 症状頻度で コントロール
     状況を評価。
@@ -150,7 +150,7 @@ K21:
     胸やけ・呑酸・咽喉違和感の有無を聴取。食事内容・飲酒・喫煙、
     体位 (就寝時の頭部挙上) を確認。
   objective_ja: |
-    上腹部圧痛の有無を確認。{vital_line}
+    上腹部圧痛の有無を確認。
   assessment_ja: |
     GERD のフォローアップ。症状頻度、PPI 効果を評価。上部消化管
     内視鏡は必要に応じて 1-2 年ごと。

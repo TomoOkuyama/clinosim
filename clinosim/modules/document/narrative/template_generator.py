@@ -2066,11 +2066,20 @@ class TemplateNarrativeGenerator:
             # only, violating the LLM prompt's REQUIRED specificity spec
             # and leaving discharge_medications indistinguishable across
             # patients. Format: "<drug> <dose> <route> <freq> x<days>d".
+            # v9 (2026-08-17 evening): apply JA katakana localization to
+            # drug_name. v11 review found 9/11 discharge_summary carried
+            # English drug tokens ("Furosemide 20mg PO daily") because
+            # this builder never routed through _localize_drug_name.
+            display = str(drug)
+            if is_ja:
+                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+                display = _localize_drug_name(display, "JP")
             dose = _o(med, "dose", "") or ""
             route = _o(med, "route", "") or ""
             freq = _o(med, "frequency", "") or ""
             days = _o(med, "days_supply", None)
-            bits: list[str] = [str(drug)]
+            bits: list[str] = [display]
             if dose:
                 bits.append(str(dose))
             if route:
@@ -2457,6 +2466,12 @@ class TemplateNarrativeGenerator:
             )
         if morse is not None:
             lvl = fall_lvl or ("low" if morse < 25 else "moderate" if morse < 45 else "high")
+            # v9 (2026-08-17 evening) FIX: fall_risk_level raw enum
+            # ("low"/"moderate"/"high") was leaking into JA narrative;
+            # localize to Japanese standard nursing terminology.
+            if is_ja:
+                _fall_ja = {"low": "低リスク", "moderate": "中等度リスク", "high": "高リスク"}
+                lvl = _fall_ja.get(str(lvl).lower(), lvl)
             parts.append(f"転倒リスク (Morse {morse}): {lvl}" if is_ja else f"Fall (Morse {morse}): {lvl}")
         if not parts:
             return (_RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN), facts
@@ -3149,7 +3164,12 @@ class TemplateNarrativeGenerator:
                 facts.append("ctx.nursing_risk_assessments[-1]")
                 bits = []
                 if fall:
-                    bits.append(f"転倒 {fall}" if is_ja else f"fall {fall}")
+                    # v9 evening: localize fall_risk_level enum for JA
+                    fall_disp = fall
+                    if is_ja:
+                        _fall_ja = {"low": "低リスク", "moderate": "中等度リスク", "high": "高リスク"}
+                        fall_disp = _fall_ja.get(str(fall).lower(), fall)
+                    bits.append(f"転倒 {fall_disp}" if is_ja else f"fall {fall}")
                 if braden is not None:
                     bits.append(f"Braden {braden}")
                 parts.append(("、".join(bits) if is_ja else ", ".join(bits)))
@@ -3223,21 +3243,38 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
 
-        # 1. Explicit encounter-YAML template
-        soap = self._get_soap_template(ctx)
-        if soap is not None:
-            text = _pick_localized(soap, "subjective", lang, ctx)
-            if text:
-                facts.append(f"encounter_protocol.narrative.outpatient_soap_template.subjective_{lang}")
-                return text, facts
-
-        # 2. CIF-composed subjective (v9 density fix)
+        # v9 (2026-08-17 evening) FIX: v11 review found 28 encounters had
+        # identical stereotype subjective because the chronic SOAP
+        # registry supplied a fixed template and the CIF-composed
+        # per-patient content was skipped. Now: always append the
+        # per-patient composition (age / sex / CC / chronic) even when
+        # a template exists, so the reader sees encounter-specific
+        # variation on top of the disease-class seed.
         composed = self._compose_outpatient_subjective_from_state(ctx)
+        soap = self._get_soap_template(ctx)
+        template_prose = ""
+        if soap is not None:
+            template_prose = _pick_localized(soap, "subjective", lang, ctx)
+            if template_prose == fallback:
+                template_prose = ""
+        if composed and template_prose:
+            facts.extend(
+                [
+                    f"outpatient_soap_template.subjective_{lang}",
+                    "ctx.patient.demographics",
+                    "ctx.encounter.chief_complaint",
+                    "ctx.patient.chronic_conditions",
+                ]
+            )
+            return f"{composed} {template_prose.strip()}", facts
         if composed:
             facts.extend(
                 ["ctx.patient.demographics", "ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"]
             )
             return composed, facts
+        if template_prose:
+            facts.append(f"outpatient_soap_template.subjective_{lang}")
+            return template_prose.strip(), facts
 
         return fallback, facts
 
@@ -3307,33 +3344,47 @@ class TemplateNarrativeGenerator:
         return text
 
     def _build_outpatient_objective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build SOAP objective from outpatient_soap_template.objective_<lang>.
+        """Build SOAP objective — CIF vitals ALWAYS appear; template is a seed.
 
-        Issue #780 (part of #774): when the encounter protocol has no
-        `outpatient_soap_template`, or the field is empty, derive an
-        objective line from the encounter's measured vitals rather than
-        falling through to a static "特記事項なし" placeholder — this makes
-        the O section carry real per-encounter data (BP / HR / SpO2 / RR
-        vary across visits) instead of every SOAP note reading identically.
+        v9 (2026-08-17 evening) FIX: v11 review found 82% of outpatient
+        objective sections were "特記事項なし" because the chronic SOAP
+        registry supplied templates with `{vital_line}` placeholders that
+        _pick_localized couldn't resolve, and the whole section fell back
+        to the generic phrase. The registry has been simplified (no
+        placeholders) and this builder now:
+          1. Composes the CIF vitals line (BP/HR/RR/SpO2/T) as the primary content
+          2. Appends the encounter/disease/chronic-registry template text
+             as clinical context prose when available
+          3. Falls back to vitals-only when no template exists
+          4. Only returns the generic 「特記事項なし」 when BOTH template
+             text AND vitals are absent (rare — every outpatient encounter
+             records at least BP+HR)
         """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
 
+        vital_line = self._compose_vital_signs_line(ctx)
+        template_prose = ""
         soap = self._get_soap_template(ctx)
         if soap is not None:
-            text = _pick_localized(soap, "objective", lang, ctx)
-            if text:
-                facts.append(f"encounter_protocol.narrative.outpatient_soap_template.objective_{lang}")
-                return text, facts
+            template_prose = _pick_localized(soap, "objective", lang, ctx)
+            if template_prose == fallback:
+                # _fill_template_placeholders returned the fallback marker
+                # (unresolvable placeholder); treat as empty so vitals alone
+                # supply the section.
+                template_prose = ""
 
-        # #780 patient-state fallback: assemble a factual O line from ctx.vitals.
-        vital_line = self._compose_vital_signs_line(ctx)
+        if vital_line and template_prose:
+            facts.extend(["ctx.vitals", "outpatient_soap_template.objective"])
+            return f"{vital_line}。{template_prose.strip()}", facts
         if vital_line:
             facts.append("ctx.vitals")
             return vital_line, facts
-
+        if template_prose:
+            facts.append("outpatient_soap_template.objective")
+            return template_prose.strip(), facts
         return fallback, facts
 
     def _compose_progress_subjective_from_state(self, ctx: NarrativeContext) -> str:
