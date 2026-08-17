@@ -215,6 +215,17 @@ class NarrativeContext:
     # the LLM prompt.
     complications_occurred: list[str] = field(default_factory=list)
 
+    # === v9 (2026-08-17) nursing density fix ===
+    # ADL / risk / intake-output snapshots consumed by nursing template
+    # builders (`_build_adl_assessment`, `_build_risk_assessments`,
+    # `_build_nursing_history` etc.). Sourced from
+    # record.adl_assessments / record.nursing_risk_assessments /
+    # record.intake_output_records. Empty list is the safe default —
+    # template falls through to a hedged phrase rather than fabricating.
+    adl_assessments: list[Any] = field(default_factory=list)
+    nursing_risk_assessments: list[Any] = field(default_factory=list)
+    intake_output_records: list[Any] = field(default_factory=list)
+
 
 @dataclass
 class NarrativeOutput:

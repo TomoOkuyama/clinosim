@@ -2160,21 +2160,98 @@ class TemplateNarrativeGenerator:
             else:
                 nurse_line = f"Nurse: {nurse_id}"
 
+        # v9 (2026-08-17) density fix: replace 「バイタルサイン安定 / 特記事項なし」
+        # boilerplate with CIF-sourced per-shift narrative (today's vitals,
+        # supplemental O2 flag, active meds, ADL trend, risk flags).
+        picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
+        v = picks[0] if picks else None
+
+        status_bits: list[str] = []
+        if v is not None:
+            temp = _o(v, "temperature_celsius", None)
+            spo2 = _o(v, "spo2", None)
+            sbp = _o(v, "systolic_bp", None)
+            dbp = _o(v, "diastolic_bp", None)
+            hr = _o(v, "heart_rate", None)
+            on_o2 = _o(v, "on_supplemental_oxygen", False)
+            device = _o(v, "oxygen_delivery_device", None)
+            flow = _o(v, "oxygen_flow_rate_lpm", None)
+            vital_line_parts: list[str] = []
+            if sbp and dbp:
+                vital_line_parts.append(f"BP {int(sbp)}/{int(dbp)}")
+            if hr:
+                vital_line_parts.append(f"HR {int(hr)}")
+            if spo2:
+                vital_line_parts.append(f"SpO2 {int(float(spo2))}%")
+            if temp:
+                vital_line_parts.append(f"T {float(temp):.1f}°C")
+            if vital_line_parts:
+                status_bits.append(", ".join(vital_line_parts))
+            if on_o2:
+                if device and flow is not None:
+                    try:
+                        status_bits.append(
+                            f"{device} {float(flow):g} L/min"
+                            if not is_ja
+                            else f"酸素投与: {device} {float(flow):g} L/min"
+                        )
+                    except (TypeError, ValueError):
+                        status_bits.append(f"酸素投与: {device}" if is_ja else f"O2: {device}")
+                else:
+                    status_bits.append("酸素投与継続中" if is_ja else "supplemental O2")
+            facts.append("ctx.vitals.today")
+
+        # Today's meds (limit 3 for shift-note brevity)
+        med_names: list[str] = []
+        seen: set[str] = set()
+        for m in (ctx.medications or [])[:12]:
+            d = _o(m, "day", None)
+            if d is not None and d != ctx.day_index:
+                continue
+            n = _o(m, "drug_name", None) or _o(m, "medication", None)
+            if not n or n in seen:
+                continue
+            seen.add(n)
+            if is_ja:
+                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+                med_names.append(_localize_drug_name(str(n), "JP"))
+            else:
+                med_names.append(str(n))
+            if len(med_names) >= 3:
+                break
+
+        # Risk flag today
+        risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        risk_bit = ""
+        if risks:
+            latest = risks[-1]
+            fall = _o(latest, "fall_risk_level", None)
+            if fall and str(fall).lower() in ("high", "moderate"):
+                risk_bit = f"転倒リスク {fall}、ベッド柵設置。" if is_ja else f"Fall risk {fall}; bed rails in place. "
+                facts.append("ctx.nursing_risk_assessments[-1]")
+
         if is_ja:
             title = f"【看護記録({shift_label})】" if shift_label else "【看護記録】"
             header = f"{title} 入院 {day_num} 日目 / 入院予定 {los} 日間"
-            status = "患者状態：バイタルサイン安定。観察・ケア継続。"
-            observations = "特記事項：特記事項なし。"
+            status = "患者状態: " + ("、".join(status_bits) + "。" if status_bits else "バイタル記録なし。")
+            meds_line = ("投薬継続: " + "、".join(med_names) + "。") if med_names else ""
+            observations = risk_bit or "観察・ケア継続、特記事項なし。"
         else:
             title = f"[Nursing Shift Note - {shift_label} shift]" if shift_label else "[Nursing Shift Note]"
             header = f"{title} Day {day_num} / LOS {los} days"
-            status = "Patient status: vital signs stable. Observation and care ongoing."
-            observations = "Notes: no significant findings."
+            status = "Patient status: " + ("; ".join(status_bits) + "." if status_bits else "no vital record.")
+            meds_line = ("Meds administered: " + ", ".join(med_names) + ".") if med_names else ""
+            observations = risk_bit or "Observation and care ongoing, no significant findings."
 
         lines = [header]
         if nurse_line:
             lines.append(nurse_line)
-        lines.extend([status, observations])
+        lines.append(status)
+        if meds_line:
+            lines.append(meds_line)
+            facts.append("ctx.medications.today")
+        lines.append(observations)
         raw_text = "\n".join(lines)
 
         facts.append("ctx.day_index")
@@ -2260,47 +2337,221 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
 
     def _build_nursing_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build nursing_history — admission reason + primary_nurse_id."""
+        """Build nursing_history from CIF (primary nurse + admission reason
+        + chronic conditions + allergy summary). v9 density fix — v8
+        emitted only a nurse id + generic fallback (~30 chars)."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
+        parts: list[str] = []
         nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
         if nurse_id:
             facts.append("encounter.primary_nurse_id")
-            if is_ja:
-                nurse_part = f"担当看護師: {nurse_id}。"
-            else:
-                nurse_part = f"Assigned nurse: {nurse_id}. "
-        else:
-            nurse_part = ""
+            parts.append(f"担当看護師: {nurse_id}。" if is_ja else f"Assigned nurse: {nurse_id}. ")
+        cc = ""
+        if ctx.encounter is not None:
+            cc = (
+                _o(ctx.encounter, "chief_complaint_ja" if is_ja else "chief_complaint_en", None)
+                or _o(ctx.encounter, "chief_complaint", None)
+                or ""
+            )
+        if cc:
+            parts.append(f"入院目的: {cc}。" if is_ja else f"Admission reason: {cc}. ")
+        # Chronic summary
+        from clinosim.codes import lookup as _code_lookup
 
-        base = _NURSING_HISTORY_FALLBACK_JA if is_ja else _NURSING_HISTORY_FALLBACK_EN
-        return f"{nurse_part}{base}", facts
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        labels: list[str] = []
+        for c in conds[:4]:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            if not code:
+                continue
+            key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+            labels.append(_code_lookup(key, code, ctx.target_lang) or code)
+        if labels:
+            parts.append(
+                ("既往: " if is_ja else "PMH: ")
+                + ("、".join(labels) if is_ja else ", ".join(labels))
+                + ("。" if is_ja else ".")
+            )
+        # Allergy
+        allergies = ctx.allergies or []
+        if allergies:
+            first_allergen = _o(allergies[0], "substance", None) or _o(allergies[0], "name", None) or ""
+            if first_allergen:
+                parts.append(f"アレルギー: {first_allergen}。" if is_ja else f"Allergy: {first_allergen}. ")
+        if len(parts) <= 1:
+            parts.append(_NURSING_HISTORY_FALLBACK_JA if is_ja else _NURSING_HISTORY_FALLBACK_EN)
+        facts.extend(["ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"])
+        return "".join(parts), facts
 
     def _build_adl_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build adl_assessment — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN, []
+        """Build adl_assessment from CIF adl_assessments (Barthel Index).
+        v9 density fix — v8 emitted 12-char "ADL：自立（問題なし）"."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        adls = list(getattr(ctx, "adl_assessments", None) or [])
+        if not adls:
+            return (_ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN), facts
+        latest = adls[-1]
+        barthel = _o(latest, "barthel_score", None)
+        if barthel is None:
+            return (_ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN), facts
+        facts.append("ctx.adl_assessments[-1]")
+        # Barthel band interpretation (standard)
+        if barthel >= 91:
+            band = "自立" if is_ja else "independent"
+        elif barthel >= 61:
+            band = "軽度介助" if is_ja else "minimal assistance"
+        elif barthel >= 41:
+            band = "中等度介助" if is_ja else "moderate assistance"
+        elif barthel >= 21:
+            band = "重度介助" if is_ja else "severe dependence"
+        else:
+            band = "全介助" if is_ja else "total care"
+        detail_parts = []
+        for k, ja_label in [("feeding", "食事"), ("bathing", "入浴"), ("mobility", "移動"), ("toilet_use", "排泄")]:
+            v = _o(latest, k, None)
+            if v is not None:
+                detail_parts.append(f"{ja_label}{v}" if is_ja else f"{k}={v}")
+        detail = (
+            "（" + "、".join(detail_parts) + "）"
+            if is_ja and detail_parts
+            else (" (" + ", ".join(detail_parts) + ")" if detail_parts else "")
+        )
+        if is_ja:
+            return f"Barthel Index {barthel}/100 → {band}{detail}", facts
+        return f"Barthel Index {barthel}/100 → {band}{detail}", facts
 
     def _build_risk_assessments(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build risk_assessments — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN, []
+        """Build risk_assessments from CIF (Braden + Morse). v9 density
+        fix — v8 emitted 12-char placeholder."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        if not risks:
+            return (_RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN), facts
+        latest = risks[-1]
+        braden = _o(latest, "braden_total", None)
+        morse = _o(latest, "morse_total", None)
+        fall_lvl = _o(latest, "fall_risk_level", None)
+        facts.append("ctx.nursing_risk_assessments[-1]")
+        parts: list[str] = []
+        if braden is not None:
+            # Braden risk bands: >18 low / 15-18 mild / 13-14 moderate / 10-12 high / ≤9 severe
+            if braden >= 19:
+                bband = "低リスク" if is_ja else "low"
+            elif braden >= 15:
+                bband = "軽度リスク" if is_ja else "mild"
+            elif braden >= 13:
+                bband = "中等度リスク" if is_ja else "moderate"
+            elif braden >= 10:
+                bband = "高リスク" if is_ja else "high"
+            else:
+                bband = "重度リスク" if is_ja else "severe"
+            parts.append(
+                f"褥瘡リスク (Braden {braden}/23): {bband}"
+                if is_ja
+                else f"Pressure-ulcer (Braden {braden}/23): {bband}"
+            )
+        if morse is not None:
+            lvl = fall_lvl or ("low" if morse < 25 else "moderate" if morse < 45 else "high")
+            parts.append(f"転倒リスク (Morse {morse}): {lvl}" if is_ja else f"Fall (Morse {morse}): {lvl}")
+        if not parts:
+            return (_RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN), facts
+        return ("。".join(parts) + "。") if is_ja else (". ".join(parts) + "."), facts
 
     def _build_nursing_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build nursing_diagnosis — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _NURSING_DX_FALLBACK_JA if is_ja else _NURSING_DX_FALLBACK_EN, []
+        """Build nursing_diagnosis from CIF chronic conditions + risk data.
+        v9 density fix — v8 emitted 11-char placeholder."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        dx_labels: list[str] = []
+        # Convert chronic condition into NANDA-like nursing diagnosis phrase
+        # (light-weight mapping; disease code → nursing focus, not clinical dx)
+        chronic_to_ndx = {
+            "I10": "血圧管理不足のリスク" if is_ja else "risk for inadequate BP control",
+            "I50": "体液貯留・活動耐性低下" if is_ja else "fluid retention / activity intolerance",
+            "E11": "血糖コントロール変動" if is_ja else "unstable glycemic control",
+            "N18": "腎機能低下・電解質異常のリスク" if is_ja else "renal impairment / electrolyte imbalance risk",
+            "J45": "気道クリアランス不十分のリスク" if is_ja else "risk for ineffective airway clearance",
+            "J44": "ガス交換障害のリスク" if is_ja else "risk for impaired gas exchange",
+        }
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        for c in conds[:5]:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            prefix = code.split(".")[0].upper() if code else ""
+            ndx = chronic_to_ndx.get(prefix)
+            if ndx:
+                dx_labels.append(ndx)
+        # Risk-derived NDx
+        risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        if risks:
+            latest = risks[-1]
+            fall = _o(latest, "fall_risk_level", None)
+            if fall and str(fall).lower() in ("high", "moderate"):
+                dx_labels.append("転倒リスク" if is_ja else "fall risk")
+            braden = _o(latest, "braden_total", None)
+            if braden is not None and braden <= 14:
+                dx_labels.append("褥瘡リスク" if is_ja else "pressure-ulcer risk")
+        if dx_labels:
+            facts.extend(["ctx.patient.chronic_conditions", "ctx.nursing_risk_assessments"])
+            head = "看護診断: " if is_ja else "Nursing diagnoses: "
+            sep = "、" if is_ja else ", "
+            return head + sep.join(dx_labels) + ("。" if is_ja else "."), facts
+        return (_NURSING_DX_FALLBACK_JA if is_ja else _NURSING_DX_FALLBACK_EN), facts
 
     def _build_care_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build care_plan — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _CARE_PLAN_FALLBACK_JA if is_ja else _CARE_PLAN_FALLBACK_EN, []
+        """Build care_plan from CIF-derived nursing diagnoses (mirror of
+        _build_nursing_diagnosis interventions). v9 density fix."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        actions: list[str] = []
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        # Map chronic → nursing action (light-weight)
+        chronic_to_action = {
+            "I10": "血圧を朝夕測定、目標未達時は担当医へ報告"
+            if is_ja
+            else "monitor BP AM/PM, escalate to MD if goal not met",
+            "I50": "体重・浮腫を毎日測定、水分制限指導"
+            if is_ja
+            else "daily weight + edema check, fluid restriction education",
+            "E11": "血糖モニタ、低血糖症状観察" if is_ja else "glucose monitoring, hypoglycemia surveillance",
+            "N18": "尿量・浮腫観察、電解質モニタ" if is_ja else "urine output + edema + electrolyte monitoring",
+            "J45": "呼吸音聴診、SpO2 継続モニタ、吸入指導"
+            if is_ja
+            else "auscultation, continuous SpO2, inhaler teaching",
+            "J44": "呼吸パターン観察、酸素投与量調整" if is_ja else "respiratory pattern check, O2 titration",
+        }
+        for c in conds[:4]:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            prefix = code.split(".")[0].upper() if code else ""
+            act = chronic_to_action.get(prefix)
+            if act:
+                actions.append(act)
+        # Add risk-driven actions
+        risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        if risks:
+            latest = risks[-1]
+            if str(_o(latest, "fall_risk_level", "") or "").lower() in ("high", "moderate"):
+                actions.append(
+                    "転倒予防: ベッド柵設置、ナースコール手元"
+                    if is_ja
+                    else "fall precautions: bed rails, call bell within reach"
+                )
+            if (_o(latest, "braden_total", 25) or 25) <= 14:
+                actions.append(
+                    "褥瘡予防: 2時間毎体位変換、圧再分散マットレス"
+                    if is_ja
+                    else "PU prevention: q2h turning, pressure-redistributing mattress"
+                )
+        if actions:
+            facts.extend(["ctx.patient.chronic_conditions", "ctx.nursing_risk_assessments"])
+            head = "看護計画: " if is_ja else "Care plan: "
+            sep = "、" if is_ja else "; "
+            return head + sep.join(actions) + ("。" if is_ja else "."), facts
+        return (_CARE_PLAN_FALLBACK_JA if is_ja else _CARE_PLAN_FALLBACK_EN), facts
 
     # ─────────────────────────────────────────────────────────────────
     # ADMISSION_CARE_PLAN (Phase 2) section builders (入院診療計画書, LOINC 18776-5)
@@ -2521,9 +2772,58 @@ class TemplateNarrativeGenerator:
         ), facts
 
     def _build_ncp_nutrition_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """栄養状態の評価と課題 — MVP fixed fallback."""
+        """栄養状態の評価と課題 — v9 density fix: compose from BMI +
+        chronic disease + ADL (Barthel) rather than MVP placeholder."""
+        facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
-        return (_NCP_ASSESSMENT_FALLBACK_JA if is_ja else _NCP_ASSESSMENT_FALLBACK_EN), []
+        patient = ctx.patient
+        if patient is None:
+            return (_NCP_ASSESSMENT_FALLBACK_JA if is_ja else _NCP_ASSESSMENT_FALLBACK_EN), facts
+        parts: list[str] = []
+        weight = _o(patient, "weight_kg", None)
+        height = _o(patient, "height_cm", None)
+        if weight and height:
+            try:
+                bmi = float(weight) / ((float(height) / 100) ** 2)
+                facts.append("patient.weight_kg+height_cm")
+                if bmi < 18.5:
+                    band = "低体重" if is_ja else "underweight"
+                elif bmi < 25:
+                    band = "普通" if is_ja else "normal"
+                elif bmi < 30:
+                    band = "過体重" if is_ja else "overweight"
+                else:
+                    band = "肥満" if is_ja else "obese"
+                parts.append(f"BMI {bmi:.1f} ({band})")
+            except (TypeError, ValueError, ZeroDivisionError):
+                pass
+        # Nutrition-relevant chronic diseases
+        conds = _o(patient, "chronic_conditions", []) or []
+        codes = {(_o(c, "code", "") or (c if isinstance(c, str) else "")).split(".")[0].upper() for c in conds}
+        risk_conds = []
+        risk_map = {
+            "E11": "糖尿病栄養管理" if is_ja else "diabetic diet",
+            "N18": "CKD 蛋白制限" if is_ja else "CKD protein restriction",
+            "I50": "心不全水分・塩分制限" if is_ja else "HF fluid/salt restriction",
+            "K70": "肝機能考慮" if is_ja else "hepatic diet",
+        }
+        for k, label in risk_map.items():
+            if k in codes:
+                risk_conds.append(label)
+        if risk_conds:
+            facts.append("ctx.patient.chronic_conditions")
+            parts.append(("要注意: " + "、".join(risk_conds)) if is_ja else ("Special: " + ", ".join(risk_conds)))
+        # ADL
+        adls = list(getattr(ctx, "adl_assessments", None) or [])
+        if adls:
+            b = _o(adls[-1], "barthel_score", None)
+            if b is not None and b < 60:
+                parts.append("摂食動作に介助必要" if is_ja else "feeding assistance required")
+                facts.append("ctx.adl_assessments[-1]")
+        if not parts:
+            return (_NCP_ASSESSMENT_FALLBACK_JA if is_ja else _NCP_ASSESSMENT_FALLBACK_EN), facts
+        head = "栄養状態評価: " if is_ja else "Nutrition assessment: "
+        return head + ("、".join(parts) + "。" if is_ja else "; ".join(parts) + "."), facts
 
     def _build_ncp_nutrition_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養管理計画 目標 — MVP fixed fallback."""
@@ -2566,9 +2866,30 @@ class TemplateNarrativeGenerator:
         return (_NCP_COUNSELING_FALLBACK_JA if is_ja else _NCP_COUNSELING_FALLBACK_EN), []
 
     def _build_ncp_other_issues(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """その他栄養管理上解決すべき課題 — MVP fixed fallback."""
+        """その他栄養管理上解決すべき課題 — v9 density fix: derive from
+        allergies + high-risk chronic combo. Falls back to placeholder
+        when CIF has no relevant markers."""
+        facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
-        return (_NCP_OTHER_ISSUES_FALLBACK_JA if is_ja else _NCP_OTHER_ISSUES_FALLBACK_EN), []
+        parts: list[str] = []
+        # Food allergies (subset)
+        for a in (ctx.allergies or [])[:3]:
+            substance = _o(a, "substance", None) or _o(a, "name", None) or ""
+            if substance:
+                parts.append(f"アレルギー配慮: {substance}" if is_ja else f"Allergy avoidance: {substance}")
+        if parts:
+            facts.append("ctx.allergies")
+        # Combined chronic (DM+CKD) — polyrestrictive diet
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        codes = {(_o(c, "code", "") or (c if isinstance(c, str) else "")).split(".")[0].upper() for c in conds}
+        if "E11" in codes and "N18" in codes:
+            parts.append("DM+CKD 併存で複合栄養制限要" if is_ja else "DM+CKD requires combined dietary restriction")
+            facts.append("ctx.patient.chronic_conditions")
+        if not parts:
+            return (_NCP_OTHER_ISSUES_FALLBACK_JA if is_ja else _NCP_OTHER_ISSUES_FALLBACK_EN), facts
+        return ("その他: " if is_ja else "Other: ") + (
+            "、".join(parts) + "。" if is_ja else "; ".join(parts) + "."
+        ), facts
 
     def _build_ncp_reassessment_timing(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養状態の再評価の時期 — MVP fixed fallback."""
@@ -2714,38 +3035,128 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
 
     def _build_nursing_admission_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build admission_status for NURSING_DISCHARGE_SUMMARY."""
+        """Build admission_status for NURSING_DISCHARGE_SUMMARY. v9 density fix:
+        include admission reason + complications summary."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-
         los = ctx.los_days or 1
         facts.append("ctx.los_days")
-
+        cc = ""
+        if ctx.encounter is not None:
+            cc = (
+                _o(ctx.encounter, "chief_complaint_ja" if is_ja else "chief_complaint_en", None)
+                or _o(ctx.encounter, "chief_complaint", None)
+                or ""
+            )
+        comps = list(getattr(ctx, "complications_occurred", []) or [])
+        parts: list[str] = []
         if is_ja:
-            text = f"入院期間: {los} 日間。入院目的達成後、退院となった。"
+            parts.append(f"入院期間: {los}日間。")
+            if cc:
+                parts.append(f"入院理由: {cc}。")
+            if comps:
+                parts.append(f"経過中の合併症: {'、'.join(str(c) for c in comps[:3])}。")
+                facts.append("ctx.complications_occurred")
+            parts.append("退院基準を満たし退院となった。")
         else:
-            text = f"Hospital stay: {los} days. Discharge criteria met."
-
-        return text, facts
+            parts.append(f"Hospital stay: {los} days. ")
+            if cc:
+                parts.append(f"Admission reason: {cc}. ")
+            if comps:
+                parts.append(f"Complications: {', '.join(str(c) for c in comps[:3])}. ")
+                facts.append("ctx.complications_occurred")
+            parts.append("Discharge criteria met.")
+        return "".join(parts), facts
 
     def _build_nursing_interventions_provided(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build nursing_interventions_provided — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _INTERVENTIONS_FALLBACK_JA if is_ja else _INTERVENTIONS_FALLBACK_EN, []
+        """Build nursing_interventions_provided from CIF procedures / MAR /
+        intake-output totals. v9 density fix — v8 emitted 15-char placeholder."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        parts: list[str] = []
+        procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:5]]
+        procs = [p for p in procs if p]
+        if procs:
+            facts.append("ctx.procedures")
+            parts.append(
+                ("実施処置: " if is_ja else "Procedures: ")
+                + ("、".join(str(p) for p in procs) if is_ja else ", ".join(str(p) for p in procs))
+            )
+        # Intake/output totals
+        io = list(getattr(ctx, "intake_output_records", None) or [])
+        if io:
+            total_in = sum(
+                _o(r, "intake_iv_ml", 0) + _o(r, "intake_oral_ml", 0) + _o(r, "intake_other_ml", 0) for r in io
+            )
+            total_out = sum(
+                _o(r, "output_urine_ml", 0) + _o(r, "output_drain_ml", 0) + _o(r, "output_other_ml", 0) for r in io
+            )
+            facts.append("ctx.intake_output_records")
+            if is_ja:
+                parts.append(f"入院期間合計 IN {total_in} mL / OUT {total_out} mL (差 {total_in - total_out:+} mL)")
+            else:
+                parts.append(f"Cumulative IN {total_in} mL / OUT {total_out} mL (net {total_in - total_out:+} mL)")
+        if parts:
+            return ("。".join(parts) + "。") if is_ja else ("; ".join(parts) + "."), facts
+        return (_INTERVENTIONS_FALLBACK_JA if is_ja else _INTERVENTIONS_FALLBACK_EN), facts
 
     def _build_patient_education(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build patient_education — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _PATIENT_EDUCATION_FALLBACK_JA if is_ja else _PATIENT_EDUCATION_FALLBACK_EN, []
+        """Build patient_education from chronic conditions + discharge Rx.
+        v9 density fix — pull disease-specific self-care topics."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        edu_by_code = {
+            "I10": "血圧測定と減塩指導" if is_ja else "home BP monitoring + low-salt diet",
+            "I50": "水分・塩分制限、体重毎日測定" if is_ja else "fluid/salt restriction, daily weight",
+            "E11": "血糖自己測定、低血糖対応" if is_ja else "SMBG + hypoglycemia response",
+            "N18": "腎機能保護、蛋白制限" if is_ja else "renoprotective + protein restriction",
+            "J45": "吸入器手技、増悪サイン認識" if is_ja else "inhaler technique + exacerbation triggers",
+            "J44": "禁煙、呼吸リハビリ継続" if is_ja else "smoking cessation + pulmonary rehab continuation",
+        }
+        topics: list[str] = []
+        for c in conds[:4]:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            t = edu_by_code.get(code.split(".")[0].upper() if code else "")
+            if t:
+                topics.append(t)
+        if not topics:
+            return (_PATIENT_EDUCATION_FALLBACK_JA if is_ja else _PATIENT_EDUCATION_FALLBACK_EN), facts
+        facts.append("ctx.patient.chronic_conditions")
+        head = "患者教育: " if is_ja else "Patient education: "
+        sep = "、" if is_ja else "; "
+        return head + sep.join(topics) + ("。" if is_ja else "."), facts
 
     def _build_discharge_readiness(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build discharge_readiness — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _DISCHARGE_READINESS_FALLBACK_JA if is_ja else _DISCHARGE_READINESS_FALLBACK_EN, []
+        """Build discharge_readiness from latest ADL + risk. v9 density fix."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        adls = list(getattr(ctx, "adl_assessments", None) or [])
+        risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        parts: list[str] = []
+        if adls:
+            latest = adls[-1]
+            barthel = _o(latest, "barthel_score", None)
+            if barthel is not None:
+                facts.append("ctx.adl_assessments[-1]")
+                parts.append((f"退院時 Barthel {barthel}/100" if is_ja else f"Discharge Barthel {barthel}/100"))
+        if risks:
+            latest = risks[-1]
+            fall = _o(latest, "fall_risk_level", None)
+            braden = _o(latest, "braden_total", None)
+            if fall or braden is not None:
+                facts.append("ctx.nursing_risk_assessments[-1]")
+                bits = []
+                if fall:
+                    bits.append(f"転倒 {fall}" if is_ja else f"fall {fall}")
+                if braden is not None:
+                    bits.append(f"Braden {braden}")
+                parts.append(("、".join(bits) if is_ja else ", ".join(bits)))
+        if parts:
+            head = "退院準備: " if is_ja else "Discharge readiness: "
+            return head + ("、".join(parts) if is_ja else "; ".join(parts)) + ("。" if is_ja else "."), facts
+        return (_DISCHARGE_READINESS_FALLBACK_JA if is_ja else _DISCHARGE_READINESS_FALLBACK_EN), facts
 
     # ─────────────────────────────────────────────────────────────────
     # OUTPATIENT_SOAP section builders
