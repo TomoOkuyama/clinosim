@@ -49,6 +49,16 @@ from clinosim.modules.document.narrative.template_generator import _filter_vital
 from clinosim.modules.llm_service.engine import LLMService, LLMTaskType
 from clinosim.types.document import DocumentTypeSpec, NarrativeContext, NarrativeOutput
 
+
+# v8 (2026-08-17): lazy accessor for _localize_drug_name to avoid the
+# document→output→document circular import at module load. The
+# localization helper only depends on a small YAML at first-call time.
+def _load_drug_localizer():  # pragma: no cover — trivial thunk
+    from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name as _f
+
+    return _f
+
+
 # v6 (2026-08-16): payload-level localization maps. Values that reach
 # the LLM prompt as bare English tokens (encounter_type enum,
 # discharge_disposition code) confuse JA narrative generation — LLM saw
@@ -622,6 +632,18 @@ def _build_extra_context(
         phase = _stay_phase(ctx.day_index, ctx.los_days)
         extra["stay_progress"] = f"day {ctx.day_index} of expected {ctx.los_days} ({phase})"
 
+    # v7 fix (2026-08-17): explicit 1-indexed hospital day label. v6
+    # passed only day_index (0-indexed) and the LLM systematically
+    # misread day_index=1 as "入院初日" (v9 review: 11/11 doc-03 all
+    # wrote "入院初日で" on day 1). Injecting the ready-to-use JA/EN
+    # phrase eliminates the interpretation gap.
+    if ctx.los_days and ctx.los_days > 0:
+        hd = ctx.day_index + 1  # 1-indexed
+        if ctx.target_lang == "ja":
+            extra["hospital_day_label"] = "入院初日" if ctx.day_index == 0 else f"入院{hd}日目"
+        else:
+            extra["hospital_day_label"] = "hospital day 1 (admission)" if ctx.day_index == 0 else f"hospital day {hd}"
+
     # v6 blocker fix (2026-08-16): encounter_type disambiguates outpatient
     # vs inpatient. v5 progress_note vs outpatient_soap prompts diverged
     # by doc_type only — an outpatient SOAP whose chief_complaint was
@@ -676,7 +698,7 @@ def _build_extra_context(
         today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index, enc)
         if today_vitals:
             extra["todays_vitals_summary"] = today_vitals
-        active_meds = _render_active_meds(ctx.medications, ctx.day_index)
+        active_meds = _render_active_meds(ctx.medications, ctx.day_index, lang=ctx.target_lang)
         if active_meds:
             extra["active_medications_today"] = active_meds
         # v6 blocker fix: today's abnormal labs (H/L flag). Assessment
@@ -694,14 +716,14 @@ def _build_extra_context(
         # home_medications: skip when template renders medications_at_home.
         if "medications_at_home" not in tmpl:
             home_meds = _get(p, "current_medications", []) or _get(p, "medications", []) or []
-            med_names = _render_med_names(home_meds)
+            med_names = _render_med_names(home_meds, lang=ctx.target_lang)
             if med_names:
                 extra["home_medications"] = med_names
     elif doc_type == "discharge_summary":
         # discharge_medications_list: skip when template renders it.
         if "discharge_medications" not in tmpl:
             dmed = ctx.discharge_medications or []
-            dmed_names = _render_med_names(dmed)
+            dmed_names = _render_med_names(dmed, lang=ctx.target_lang)
             if dmed_names:
                 extra["discharge_medications_list"] = dmed_names
         outcome = _get(enc, "discharge_disposition") or _get(enc, "discharge_status")
@@ -872,35 +894,54 @@ def _render_first_vitals(vitals: list) -> str:
     return ""
 
 
-def _render_med_names(meds: list) -> str:
-    """List of medication display names, deduplicated, comma-joined."""
+def _render_med_names(meds: list, lang: str = "en") -> str:
+    """List of medication display names, deduplicated, comma-joined.
+
+    v7 (2026-08-17): when ``lang == "ja"``, resolves each drug name
+    against the shared ``drug_names_ja.yaml`` dictionary (same source
+    the FHIR emit uses). v6 fed raw English drug names into the JA
+    prompt, so the LLM invented katakana approximations (アトロバスタチン
+    ← Atorvastatin, エンラプリル ← Enalapril, カルベドロール ←
+    Carvedilol, アモロジピン ← Amlodipine, ウァルファリン ← Warfarin —
+    36 doc affected in v9 review). Feeding the canonical katakana
+    upfront eliminates the transliteration guess.
+    """
     names: list[str] = []
-    seen = set()
+    seen: set[str] = set()
+    country = "JP" if lang == "ja" else "US"
     for m in meds or []:
         name = _get(m, "name") or _get(m, "display_name") or _get(m, "drug_name") or _get(m, "medication")
         if isinstance(m, str):
             name = m
-        if name and name not in seen:
-            names.append(str(name)[:60])
-            seen.add(name)
+        if not name:
+            continue
+        localized = _load_drug_localizer()(str(name), country)
+        if localized and localized not in seen:
+            names.append(localized[:60])
+            seen.add(localized)
         if len(names) >= 12:
             break
     return "; ".join(names) if names else ""
 
 
-def _render_active_meds(admins: list, day_index: int) -> str:
+def _render_active_meds(admins: list, day_index: int, lang: str = "en") -> str:
     """MedicationAdministration records active on the given day. Short list
-    of unique drug names given today (progress_note context)."""
+    of unique drug names given today (progress_note context). v7: same
+    JA localization as ``_render_med_names``."""
     names: list[str] = []
-    seen = set()
+    seen: set[str] = set()
+    country = "JP" if lang == "ja" else "US"
     for m in admins or []:
         d = _get(m, "day")
         if d is not None and d != day_index:
             continue
         name = _get(m, "drug_name") or _get(m, "medication") or _get(m, "name")
-        if name and name not in seen:
-            names.append(str(name)[:60])
-            seen.add(name)
+        if not name:
+            continue
+        localized = _load_drug_localizer()(str(name), country)
+        if localized and localized not in seen:
+            names.append(localized[:60])
+            seen.add(localized)
         if len(names) >= 12:
             break
     return "; ".join(names) if names else ""

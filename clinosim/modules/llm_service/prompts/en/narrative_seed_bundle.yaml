@@ -1,11 +1,30 @@
 task_type: narrative_seed_bundle
-version: 7
+version: 8
 max_tokens: 2000
 temperature: 0.3
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
   Per-document-type persona, format, and section focus specifications.
+
+  v8 changes (2026-08-17, v9 review follow-up):
+    - Rule 8 rewritten to consume the new ready-to-use
+      `hospital_day_label` context field (「入院初日」for day 0,
+      「入院N日目」for day 1+). v7 shipped a day_index integer alone,
+      leaving the "1-index vs 0-index" interpretation to the LLM which
+      systematically failed (11/11 doc-03 progress notes wrote
+      「入院初日で」 on day 1). Verbatim-copy instruction closes the gap.
+    - Rule 10 (new): drug names MUST be copied verbatim from
+      `context_sections` (active_medications_today /
+      discharge_medications_list / home_medications). Canonical
+      katakana is pre-resolved by the emitter; the LLM MUST NOT invent
+      alternative transliterations. v7 saw アトロバスタチン / エンラプリル
+      / カルベドロール / アモロジピン / ウァルファリン typos in 36 doc.
+    - Rule 11 (new): never write vague temporal placeholders like
+      "日数不明", "date unknown", "at some point during the stay".
+      When onset day is not available in context, write "入院中に" /
+      "during the stay" and stop there. v7 saw POP-000094-195
+      discharge_summary say「入院中日数不明の時期にせん妄が発生し」.
 
   v7 changes (2026-08-16 pm, v8 review follow-up):
     - Rule 5 (complications) hardened: EVERY progress_note whose
@@ -112,19 +131,44 @@ system: |
        state the oxygen delivery (device + flow rate). Writing "SpO2 X%
        で安定" while ignoring active O2 therapy is a documented
        self-contradiction.
-  8. **Day-of-stay authority** (v7, 2026-08-16 pm).
-     - `context_sections.stay_progress` (e.g. "day 3 of expected 10
-       (mid)") is the sole authority for the current hospital day. Do
-       NOT write "入院初日" / "hospital day 1" / "on admission" on any
-       day other than day 0. The narrative day reference MUST match
-       the stay_progress value. v6 progress notes for POP-000094-195
-       doc-02 & doc-03 both opened with "入院初日で" — that is a fabrication.
+  8. **Day-of-stay authority** (v8 rewrite — READY-TO-COPY LABEL).
+     - `context_sections.hospital_day_label` is the ONE authoritative
+       phrase for the current hospital day. Use it VERBATIM whenever
+       the narrative refers to "today's hospital day":
+         - day 0  → 「入院初日」/ "hospital day 1 (admission)"
+         - day 1  → 「入院2日目」/ "hospital day 2"
+         - day N  → 「入院{N+1}日目」/ "hospital day {N+1}"
+     - Do NOT reword. Do NOT compute your own day number from
+       stay_progress. Copying the pre-computed label removes the
+       systematic v7 failure where day_index=1 was written as
+       「入院初日」 in all 11 doc-03 progress notes (v9 review B2 = 0%
+       compliance without this label).
   9. **JP terminology fidelity** (v7).
      - For delirium, always write "せん妄" (Japanese medical standard).
        Do NOT emit the Chinese-script "谵妄" or the transliteration
        "デリリア". Applies to admission_hp assessment_and_plan,
        progress_note assessment, and discharge_summary
        hospital_course.
+  10. **Drug-name verbatim rule** (v8, 2026-08-17).
+     - Copy every drug name VERBATIM from
+       `context_sections.active_medications_today` /
+       `context_sections.home_medications` /
+       `context_sections.discharge_medications_list`. Canonical
+       Japanese katakana is pre-resolved by the emitter. Do NOT
+       transliterate / re-katakanize / abbreviate. Examples of v7
+       hallucinated forms that MUST NOT appear:
+         "アトロバスタチン" → correct 「アトルバスタチン」(Atorvastatin)
+         "エンラプリル"     → correct 「エナラプリル」  (Enalapril)
+         "カルベドロール"   → correct 「カルベジロール」(Carvedilol)
+         "アモロジピン"     → correct 「アムロジピン」  (Amlodipine)
+         "ウァルファリン"   → correct 「ワルファリン」  (Warfarin)
+       When context lists "アムロジピン 5mg" you write exactly that.
+  11. **No vague temporal placeholders** (v8).
+     - Do NOT write "日数不明", "date unknown", "at some point during
+       the stay", or any phrase that admits the writer does not know
+       when. When a complication onset day is not available in
+       context, write "入院中に" / "during the stay" and stop —
+       ambiguous placeholders reveal the model, not the clinician.
 
   Natural narrative variance is allowed for realism: patient-voice
   phrasing for symptoms already in the record, generic medical

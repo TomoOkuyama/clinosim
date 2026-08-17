@@ -759,6 +759,74 @@ def test_build_extra_context_abnormal_labs_today_filters_by_flag() -> None:
     assert "ALT 25" not in labs
 
 
+def test_build_extra_context_hospital_day_label_admission_day() -> None:
+    """v8 (2026-08-17): day 0 → 「入院初日」verbatim label."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 0
+    ctx.target_lang = "ja"
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert extra.get("hospital_day_label") == "入院初日"
+
+
+def test_build_extra_context_hospital_day_label_day_two() -> None:
+    """v8: day 1 → 「入院2日目」 (1-indexed). Prevents the v7 systematic
+    "入院初日で" failure across all day-1 progress notes."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 1
+    ctx.target_lang = "ja"
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert extra.get("hospital_day_label") == "入院2日目"
+
+
+def test_build_extra_context_hospital_day_label_en() -> None:
+    """EN locale: matching phrase in English."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 4
+    ctx.target_lang = "en"
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert extra.get("hospital_day_label") == "hospital day 5"
+
+
+def test_render_med_names_localizes_katakana_for_ja() -> None:
+    """v8 (2026-08-17): Feeding canonical katakana prevents the LLM
+    from inventing incorrect transliterations (アトロバスタチン etc.)."""
+    from clinosim.modules.document.narrative.replacement_strategy import _render_med_names
+
+    meds = [
+        {"drug_name": "Atorvastatin"},
+        {"drug_name": "Amlodipine"},
+        {"drug_name": "Enalapril"},
+    ]
+    ja = _render_med_names(meds, lang="ja")
+    assert "アトルバスタチン" in ja
+    assert "アムロジピン" in ja
+    assert "エナラプリル" in ja
+    # No English tokens should leak
+    assert "Atorvastatin" not in ja
+    # EN path unchanged
+    en = _render_med_names(meds, lang="en")
+    assert "Atorvastatin" in en
+    assert "Amlodipine" in en
+
+
 def test_build_extra_context_discharge_summary_enrichment() -> None:
     """v6: discharge_summary MUST receive complications_during_stay,
     abnormal_labs_during_stay, key_procedures_performed, and
