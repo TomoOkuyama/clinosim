@@ -2466,7 +2466,7 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
 <h2 id="2">2. パケットフィルタ (最重要セキュリティ設定)<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 22/tcp (SSH) のみ許可、11434 は絶対に開けない</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>usacloud<span class="w"> </span>packet-filter<span class="w"> </span>create<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>--name<span class="o">=</span>clinosim-gpu-pf<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span>--description<span class="o">=</span><span class="s2">&quot;clinosim GPU VM: SSH only&quot;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span>--description<span class="o">=</span><span class="s2">"clinosim GPU VM: SSH only"</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>usacloud<span class="w"> </span>packet-filter-rule<span class="w"> </span>add<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>--packet-filter<span class="o">=</span>clinosim-gpu-pf<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span>--protocol<span class="o">=</span>tcp<span class="w"> </span>--destination-port<span class="o">=</span><span class="m">22</span><span class="w"> </span>--action<span class="o">=</span>allow
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># エフェメラル戻り (SSH 応答等)</span>
@@ -2496,7 +2496,7 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>edit<span class="w"> </span>ollama
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># エディタで以下を追記して保存:</span>
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1">#   [Service]</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1">#   Environment=&quot;OLLAMA_HOST=127.0.0.1:11434&quot;</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1">#   Environment="OLLAMA_HOST=127.0.0.1:11434"</span>
 </span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
 </span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>ollama
 </span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>ollama<span class="w">   </span><span class="c1"># active (running) 確認</span>
@@ -2515,7 +2515,7 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
 </span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># ollama pull qwen3:30b-a3b-q4_K_M          # ~18 GB、MoE 高速</span>
 </span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># 動作確認</span>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>ollama<span class="w"> </span>run<span class="w"> </span>qwen3:32b-q4_K_M<span class="w"> </span><span class="s2">&quot;1 行で: 患者は倦怠感を訴える&quot;</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>ollama<span class="w"> </span>run<span class="w"> </span>qwen3:32b-q4_K_M<span class="w"> </span><span class="s2">"1 行で: 患者は倦怠感を訴える"</span>
 </span></code></pre></div>
 <p><strong>モデル tag は Ollama library の release ごとに変わる</strong>。上記が pull
 できない場合は <code>ollama search qwen3</code> で最新 tag を確認。</p>

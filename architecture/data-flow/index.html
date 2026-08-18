@@ -2333,23 +2333,23 @@
 <h1 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h1>
 <p>clinosim implements a three-stage pipeline. Each stage is self-contained, has a well-defined input and output on disk, and can be run independently of the others.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>flowchart TD
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    subgraph stage1[&quot;Stage 1 — clinosim simulate&quot;]
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        pop[&quot;population engine&lt;br/&gt;Catchment (household-based)&lt;br/&gt;PersonRecord (Layer 1)&lt;br/&gt;Monthly LifeEvent&quot;]
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        act[&quot;patient activator&lt;br/&gt;Layer 1 → Layer 2&quot;]
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        enc[&quot;encounter creation&lt;br/&gt;disease YAML → department&lt;br/&gt;staff / ward / bed / OR&quot;]
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        loop[&quot;daily simulation loop&lt;br/&gt;clinical_course → physiology&lt;br/&gt;→ orders → diagnosis&lt;br/&gt;→ procedure + MAR&lt;br/&gt;→ discharge readiness?&quot;]
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        cif_s[&quot;CIF structural/&lt;br/&gt;immutable, one JSON per encounter&quot;]
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    subgraph stage1["Stage 1 — clinosim simulate"]
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        pop["population engine&lt;br/&gt;Catchment (household-based)&lt;br/&gt;PersonRecord (Layer 1)&lt;br/&gt;Monthly LifeEvent"]
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        act["patient activator&lt;br/&gt;Layer 1 → Layer 2"]
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        enc["encounter creation&lt;br/&gt;disease YAML → department&lt;br/&gt;staff / ward / bed / OR"]
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        loop["daily simulation loop&lt;br/&gt;clinical_course → physiology&lt;br/&gt;→ orders → diagnosis&lt;br/&gt;→ procedure + MAR&lt;br/&gt;→ discharge readiness?"]
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        cif_s["CIF structural/&lt;br/&gt;immutable, one JSON per encounter"]
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        pop --&gt; act --&gt; enc --&gt; loop --&gt; cif_s
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    end
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    subgraph stage2[&quot;Stage 2 — clinosim narrate (DEPRECATED)&quot;]
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        gen2[&quot;document_enricher (document module)&lt;br/&gt;Stage 1 built-in: DR + Composition + ClinicalImpression&lt;br/&gt;template-based, fully deterministic&quot;]
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        llm2[&quot;LLM narrative deferred to β-JP-1 chain&lt;br/&gt;(narrate subcommand removed)&quot;]
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    subgraph stage2["Stage 2 — clinosim narrate (DEPRECATED)"]
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        gen2["document_enricher (document module)&lt;br/&gt;Stage 1 built-in: DR + Composition + ClinicalImpression&lt;br/&gt;template-based, fully deterministic"]
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        llm2["LLM narrative deferred to β-JP-1 chain&lt;br/&gt;(narrate subcommand removed)"]
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    end
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    subgraph stage3[&quot;Stage 3 — clinosim export-fhir&quot;]
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        adapter[&quot;fhir_r4_adapter (+ per-theme _fhir_* builders)&lt;br/&gt;structural → 16 FHIR resource types&lt;br/&gt;narratives → DocumentReference (base64)&lt;br/&gt;display text via clinosim.codes&quot;]
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        fhir[&quot;output/fhir_r4/&lt;br/&gt;HL7 Bulk Data NDJSON + manifest.json&quot;]
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    subgraph stage3["Stage 3 — clinosim export-fhir"]
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        adapter["fhir_r4_adapter (+ per-theme _fhir_* builders)&lt;br/&gt;structural → 16 FHIR resource types&lt;br/&gt;narratives → DocumentReference (base64)&lt;br/&gt;display text via clinosim.codes"]
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        fhir["output/fhir_r4/&lt;br/&gt;HL7 Bulk Data NDJSON + manifest.json"]
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        adapter --&gt; fhir
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    end
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
