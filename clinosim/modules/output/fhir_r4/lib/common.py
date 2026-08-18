@@ -921,6 +921,14 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     # takes precedence over the derived phrase.
     _authored_instr = str(order.get("patient_instruction", "") or "")
     _derived_instr = ""
+    # Also derive from freq_per_day when the raw freq label is absent —
+    # this covers the "dose+freq_per_day-only" order shape used by the
+    # discharge_prescription pipeline where `frequency` is left empty
+    # (v14 review found 15 MR under this shape had text="…1日1回" but
+    # `patientInstruction` empty).
+    if not freq and freq_per_day:
+        _pd_to_key = {1: "qd", 2: "bid", 3: "tid", 4: "qid", 6: "q4h", 8: "q3h", 12: "q2h"}
+        freq = _pd_to_key.get(int(freq_per_day), "")
     if freq:
         _flow_instr = freq.lower().strip()
         _flow_instr_orig = str(freq).strip()  # JA has no case

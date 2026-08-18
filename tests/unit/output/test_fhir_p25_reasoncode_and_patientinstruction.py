@@ -194,3 +194,14 @@ def test_procedure_reasoncode_english_display():
     assert rc and rc[0]["coding"][0]["code"] == "I25.1"
     # display resolved (or code fallback)
     assert rc[0]["coding"][0].get("display")
+
+
+def test_patient_instruction_derives_from_freq_per_day_when_freq_empty():
+    """session-88j Bug-2 follow-up-2: some orders carry only
+    `frequency_per_day` (integer) without a raw `frequency` string —
+    derive PI from the integer via the pd→key map (1=qd, 2=bid, …).
+    """
+    order = {"dose_quantity": 20, "dose_unit": "mg", "route": "oral", "frequency_per_day": 1}
+    dosage = build_dosage_instruction(order, country="jp")
+    assert dosage is not None
+    assert dosage.get("patientInstruction") == "毎日1回、指示された時間帯に内服してください"
