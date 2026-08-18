@@ -942,10 +942,32 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
                 "prn": "頓用（必要時）",
                 "as needed": "頓用（必要時）",
                 "when required": "頓用（必要時）",
-                # session-88j v14 review — CIF orders carry JA freq strings
-                # like "1日1回" / "1日2回" (12% of MedicationRequest fell
-                # into this bucket with an empty `patientInstruction`).
-                # Emit an actionable JA phrase.
+                # session-88j v14 review — CIF Order.frequency is the primary
+                # source (dosage.text carries the derived JA "1日1回" only
+                # after `_derive_usage_display_from_timing` post-processing).
+                # Map the primary EN freq strings so patientInstruction is
+                # populated at emit time.
+                "qd": "毎日1回、指示された時間帯に内服してください",
+                "q24h": "毎日1回、指示された時間帯に内服してください",
+                "once daily": "毎日1回、指示された時間帯に内服してください",
+                "daily": "毎日1回、指示された時間帯に内服してください",
+                "1x/day": "毎日1回、指示された時間帯に内服してください",
+                "bid": "毎日2回、朝・夕の指示された時間帯に内服してください",
+                "q12h": "12時間ごとに内服してください",
+                "twice daily": "毎日2回、朝・夕の指示された時間帯に内服してください",
+                "2x/day": "毎日2回、朝・夕の指示された時間帯に内服してください",
+                "tid": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
+                "q8h": "8時間ごとに内服してください",
+                "three times daily": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
+                "3x/day": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
+                "qid": "毎日4回、指示された時間帯に内服してください",
+                "q6h": "6時間ごとに内服してください",
+                "four times daily": "毎日4回、指示された時間帯に内服してください",
+                "4x/day": "毎日4回、指示された時間帯に内服してください",
+                "q4h": "4時間ごとに内服してください",
+                "q3h": "3時間ごとに内服してください",
+                "q2h": "2時間ごとに内服してください",
+                # And the derived JA display forms (for callers that pass those).
                 "1日1回": "毎日1回、指示された時間帯に内服してください",
                 "1日2回": "毎日2回、朝・夕の指示された時間帯に内服してください",
                 "1日3回": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",

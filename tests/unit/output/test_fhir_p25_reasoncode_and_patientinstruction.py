@@ -49,13 +49,22 @@ def test_patient_instruction_pc_ja():
     assert dosage["patientInstruction"] == "食後"
 
 
-def test_patient_instruction_omitted_for_en_qd_in_ja_context():
-    """EN abbreviation `qd` alone (no JA equivalent in this map) stays
-    without patientInstruction under JA locale — the freq is already
-    conveyed through timing.repeat."""
-    order = {"dose_quantity": 10, "dose_unit": "mg", "route": "oral", "frequency": "qd"}
-    dosage = build_dosage_instruction(order, country="jp")
-    assert "patientInstruction" not in dosage
+def test_patient_instruction_en_freq_qd_derives_ja_phrase():
+    """session-88j Bug-2 fix follow-up: CIF Order.frequency uses EN
+    abbreviations (qd, bid, tid, qid) — the DERIVED display 「1日1回」
+    only appears in dosage.text after post-processing. Map at emit
+    time so patientInstruction is populated for these primary keys."""
+    for freq, expected in [
+        ("qd", "毎日1回、指示された時間帯に内服してください"),
+        ("bid", "毎日2回、朝・夕の指示された時間帯に内服してください"),
+        ("tid", "毎日3回、朝・昼・夕の指示された時間帯に内服してください"),
+        ("qid", "毎日4回、指示された時間帯に内服してください"),
+        ("q6h", "6時間ごとに内服してください"),
+    ]:
+        order = {"dose_quantity": 10, "dose_unit": "mg", "route": "oral", "frequency": freq}
+        dosage = build_dosage_instruction(order, country="jp")
+        assert dosage is not None
+        assert dosage.get("patientInstruction") == expected, f"freq={freq}: got {dosage.get('patientInstruction')}"
 
 
 def test_patient_instruction_ja_freq_1nichi_1kai():
