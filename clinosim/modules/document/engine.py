@@ -60,7 +60,7 @@ from functools import lru_cache
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
@@ -607,24 +607,38 @@ def document_enricher(ctx: Any) -> None:
                     # (encounter still open; prior days remain "completed").
                     last_day_of_in_progress = is_in_progress and (day == los_days - 1)
                     # Phase hint (deterministic by day-index vs LOS).
+                    # session-88j P1-12: also set LOINC visit-type code per
+                    # phase so ClinicalImpression.code is no longer null.
                     if los_days <= 2:
                         _phase = "brief admission"
                         _phase_ja = "短期入院"
+                        _code_loinc = "34117-2"
+                        _code_loinc_display = "入院時記録" if is_jp(country) else "History and physical note"
                     elif day == 0:
                         _phase = "admission workup"
                         _phase_ja = "入院時精査"
+                        _code_loinc = "34117-2"
+                        _code_loinc_display = "入院時記録" if is_jp(country) else "History and physical note"
                     elif day == los_days - 1:
                         _phase = "pre-discharge review"
                         _phase_ja = "退院前評価"
+                        _code_loinc = "18842-5"
+                        _code_loinc_display = "退院時サマリー" if is_jp(country) else "Discharge summary"
                     elif day < los_days / 3:
                         _phase = "acute phase"
                         _phase_ja = "急性期"
+                        _code_loinc = "11506-3"
+                        _code_loinc_display = "経過記録" if is_jp(country) else "Progress note"
                     elif day < 2 * los_days / 3:
                         _phase = "stabilisation"
                         _phase_ja = "安定期"
+                        _code_loinc = "11506-3"
+                        _code_loinc_display = "経過記録" if is_jp(country) else "Progress note"
                     else:
                         _phase = "recovery"
                         _phase_ja = "回復期"
+                        _code_loinc = "11506-3"
+                        _code_loinc_display = "経過記録" if is_jp(country) else "Progress note"
                     _dx_part = f" for {_disease_id}" if _disease_id else ""
                     _sev_part = f" ({_severity})" if _severity else ""
                     description = (
@@ -652,6 +666,8 @@ def document_enricher(ctx: Any) -> None:
                             description_ja=description_ja,
                             practitioner_id=attending_id,
                             is_in_progress=last_day_of_in_progress,
+                            code_loinc=_code_loinc,
+                            code_loinc_display=_code_loinc_display,
                         )
                     )
 

@@ -269,3 +269,65 @@ def test_id_with_prefix_not_doubled():
     r = _bb_clinical_impressions(ctx)[0]
     assert r["id"] == "ci-enc1-0"
     assert not r["id"].startswith("ci-ci-")
+
+
+# --- session-88j P1-12: LOINC visit-type code emit ---
+
+
+def test_code_loinc_emit_admission_h_and_p():
+    """code_loinc=34117-2 → ClinicalImpression.code populated with LOINC + text."""
+    imp = _sample_impression_dataclass()
+    imp.code_loinc = "34117-2"
+    imp.code_loinc_display = "入院時記録"
+    ctx = _make_ctx([imp], country="jp")
+    r = _bb_clinical_impressions(ctx)[0]
+    assert "code" in r
+    coding = r["code"]["coding"][0]
+    assert coding["system"] == "http://loinc.org"
+    assert coding["code"] == "34117-2"
+    assert coding["display"] == "入院時記録"
+    assert r["code"]["text"] == "入院時記録"
+
+
+def test_code_loinc_emit_progress_note_en():
+    """Progress note (11506-3) with English display."""
+    d = _sample_impression_dict()
+    d["code_loinc"] = "11506-3"
+    d["code_loinc_display"] = "Progress note"
+    ctx = _make_ctx([d], country="us")
+    r = _bb_clinical_impressions(ctx)[0]
+    assert r["code"]["coding"][0]["code"] == "11506-3"
+    assert r["code"]["coding"][0]["display"] == "Progress note"
+    assert r["code"]["text"] == "Progress note"
+
+
+def test_code_loinc_emit_discharge_summary():
+    """Discharge summary (18842-5)."""
+    imp = _sample_impression_dataclass()
+    imp.code_loinc = "18842-5"
+    imp.code_loinc_display = "退院時サマリー"
+    ctx = _make_ctx([imp], country="jp")
+    r = _bb_clinical_impressions(ctx)[0]
+    assert r["code"]["coding"][0]["code"] == "18842-5"
+    assert r["code"]["text"] == "退院時サマリー"
+
+
+def test_code_loinc_absent_omits_code_field():
+    """Backwards compat: empty code_loinc ⇒ builder omits `code`."""
+    imp = _sample_impression_dataclass()
+    # code_loinc defaults to "" — do not set
+    ctx = _make_ctx([imp])
+    r = _bb_clinical_impressions(ctx)[0]
+    assert "code" not in r
+
+
+def test_code_loinc_without_display_still_emits_coding():
+    """code_loinc set but display empty → coding.display omitted, no text."""
+    d = _sample_impression_dict()
+    d["code_loinc"] = "11506-3"
+    # code_loinc_display intentionally left blank
+    ctx = _make_ctx([d])
+    r = _bb_clinical_impressions(ctx)[0]
+    assert r["code"]["coding"][0]["code"] == "11506-3"
+    assert "display" not in r["code"]["coding"][0]
+    assert "text" not in r["code"]
