@@ -1316,10 +1316,21 @@ class TemplateNarrativeGenerator:
         if cc:
             parts.append(f"主訴「{cc}」で入院。")
         # Severity + disease
+        # session-88j P1-12/Bug-3: JA output must not leak raw EN severity
+        # (mild / moderate / severe / critical) into 「病態: X (Y)」. v14
+        # review found 8/1084 admission_hp narratives with EN severity.
+        # Localize severity for JA locale via the shared JA severity map.
         if ctx.disease_protocol is not None:
             disease = _o(ctx.disease_protocol, "disease_id", None)
             if disease:
-                parts.append(f"病態: {disease} ({ctx.severity})。")
+                _sev = str(ctx.severity or "")
+                if _sev and ctx.target_lang == "ja":
+                    from clinosim.modules.document.narrative.replacement_strategy import (
+                        _localize_severity_ja,
+                    )
+
+                    _sev = _localize_severity_ja(_sev)
+                parts.append(f"病態: {disease} ({_sev})。")
         # Chronic backdrop
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
         if conds:

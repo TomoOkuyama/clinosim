@@ -49,12 +49,41 @@ def test_patient_instruction_pc_ja():
     assert dosage["patientInstruction"] == "食後"
 
 
-def test_patient_instruction_omitted_for_plain_daily():
-    """Plain daily / qd / bid / tid don't get an extra patientInstruction
-    line (the structured timing.repeat + freq label already communicate)."""
+def test_patient_instruction_omitted_for_en_qd_in_ja_context():
+    """EN abbreviation `qd` alone (no JA equivalent in this map) stays
+    without patientInstruction under JA locale — the freq is already
+    conveyed through timing.repeat."""
     order = {"dose_quantity": 10, "dose_unit": "mg", "route": "oral", "frequency": "qd"}
     dosage = build_dosage_instruction(order, country="jp")
     assert "patientInstruction" not in dosage
+
+
+def test_patient_instruction_ja_freq_1nichi_1kai():
+    """session-88j Bug-2 fix: CIF's native JA freq strings (「1日1回」/「1日2回」/…)
+    were not recognized by the EN-only derivation map, so 12% of
+    MedicationRequest fell into a bucket with an empty patientInstruction.
+    Verify the JA freq keys now produce an actionable JA phrase."""
+    for freq, expected in [
+        ("1日1回", "毎日1回、指示された時間帯に内服してください"),
+        ("1日2回", "毎日2回、朝・夕の指示された時間帯に内服してください"),
+        ("1日3回", "毎日3回、朝・昼・夕の指示された時間帯に内服してください"),
+        ("頓服", "症状のある時にのみ服用してください"),
+        ("頓用", "症状のある時にのみ服用してください"),
+        ("6時間ごと", "6時間ごとに内服してください"),
+    ]:
+        order = {"dose_quantity": 10, "dose_unit": "mg", "route": "oral", "frequency": freq}
+        dosage = build_dosage_instruction(order, country="jp")
+        assert dosage is not None
+        assert dosage.get("patientInstruction") == expected, f"freq={freq}: got {dosage.get('patientInstruction')}"
+
+
+def test_patient_instruction_ja_freq_ignored_under_en():
+    """JA freq strings should not derive an EN instruction (they only
+    exist as JA in this map)."""
+    order = {"dose_quantity": 10, "dose_unit": "mg", "route": "oral", "frequency": "1日1回"}
+    dosage = build_dosage_instruction(order, country="us")
+    # No derivation for JA-only key under EN — behavior unchanged.
+    assert "patientInstruction" not in (dosage or {})
 
 
 def test_patient_instruction_authored_beats_derived():

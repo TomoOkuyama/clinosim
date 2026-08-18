@@ -923,8 +923,10 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     _derived_instr = ""
     if freq:
         _flow_instr = freq.lower().strip()
+        _flow_instr_orig = str(freq).strip()  # JA has no case
         if is_jp(country):
             _instr_ja = {
+                # EN abbreviations (kept for interop when CIF passes en-freq)
                 "qhs": "就寝前",
                 "bedtime": "就寝前",
                 "at bedtime": "就寝前",
@@ -940,8 +942,22 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
                 "prn": "頓用（必要時）",
                 "as needed": "頓用（必要時）",
                 "when required": "頓用（必要時）",
+                # session-88j v14 review — CIF orders carry JA freq strings
+                # like "1日1回" / "1日2回" (12% of MedicationRequest fell
+                # into this bucket with an empty `patientInstruction`).
+                # Emit an actionable JA phrase.
+                "1日1回": "毎日1回、指示された時間帯に内服してください",
+                "1日2回": "毎日2回、朝・夕の指示された時間帯に内服してください",
+                "1日3回": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
+                "1日4回": "毎日4回、指示された時間帯に内服してください",
+                "6時間ごと": "6時間ごとに内服してください",
+                "8時間ごと": "8時間ごとに内服してください",
+                "12時間ごと": "12時間ごとに内服してください",
+                "頓服": "症状のある時にのみ服用してください",
+                "頓用": "症状のある時にのみ服用してください",
             }
-            _derived_instr = _instr_ja.get(_flow_instr, "")
+            # Prefer JA-key lookup (case preserved), fall back to lowercased for EN.
+            _derived_instr = _instr_ja.get(_flow_instr_orig, "") or _instr_ja.get(_flow_instr, "")
         else:
             _instr_en = {
                 "qhs": "at bedtime",
