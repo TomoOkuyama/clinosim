@@ -180,7 +180,15 @@ class TestEnricherInferencePath:
         assert s.modality_code == ""
         assert s.body_site_snomed == ""
         assert s.series == []
-        assert s.report is None
+        # P1-11 (session 88j): stub_only path now emits a generic
+        # negative-findings RadiologyReport instead of None so
+        # ``_bb_diagnostic_reports`` produces a matching DR (RAD).
+        # Prior contract (``report is None``) silent-dropped these
+        # studies from the DR pipeline.
+        assert s.report is not None
+        assert s.report.status == "final"
+        assert s.report.findings_text
+        assert s.report.impression_text
         # 空でもいい:study_id, encounter_id, patient_id, order_id は populated
         assert s.encounter_id == "ENC-1"
         assert s.order_id == "ORD-2"

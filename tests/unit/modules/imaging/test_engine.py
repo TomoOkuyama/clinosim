@@ -166,6 +166,103 @@ def test_enricher_ct_head_emits_axial_series_with_instance_range():
     assert 180 <= series.instance_count <= 280
 
 
+def test_stub_only_path_emits_generic_negative_report():
+    """P1-11 (session 88j): orders whose modality/body-site inference fails
+    fall into the stub_only path. Prior to the fix these studies had
+    ``report=None`` and were silent-dropped by ``_bb_diagnostic_reports``
+    (``if report:`` gate); 2,559/2,559 studies in JP p=10000 output had
+    zero corresponding DR (RAD). The fix populates a generic negative-
+    findings RadiologyReport so every ImagingStudy carries a report.
+    """
+    unin_order = Order(
+        order_id="ORD-unin-01",
+        encounter_id="enc1",
+        patient_id="pt1",
+        order_type=OrderType.IMAGING,
+        order_code="XX-UNK",
+        display_name="Nonsense unrelated imaging label",  # inference will miss
+        urgency="routine",
+        clinical_intent="",
+        ordered_datetime=datetime(2026, 6, 30, 8, 30),
+        status=OrderStatus.PLACED,
+        # imaging_modality + imaging_body_site_code intentionally absent
+    )
+    record = SimpleNamespace(
+        patient_id="pt1", orders=[unin_order], extensions={}, disease_id="bacterial_pneumonia", severity="moderate"
+    )
+    ctx = _make_ctx(record)
+    imaging_enricher(ctx)
+    studies = record.extensions.get("imaging", [])
+    assert len(studies) == 1, "stub-only study must still be emitted"
+    s = studies[0]
+    # stub path leaves modality/body_site empty (inference failed)
+    assert s.modality_code == ""
+    assert s.body_site_snomed == ""
+    assert s.series == []
+    # New contract: report is populated with a generic negative-findings
+    # RadiologyReport (never None), so consumers see a matching DR (RAD).
+    assert s.report is not None, "stub-only path must emit generic radiology report (P1-11)"
+    assert s.report.status == "final"
+    assert s.report.findings_text  # non-empty EN
+    assert s.report.findings_text_ja  # non-empty JA
+    assert s.report.impression_text
+    assert s.report.impression_text_ja
+    # No acuity claim beyond "no acute findings" — factual only.
+    assert "acute" in s.report.impression_text.lower()
+    assert "急性期" in s.report.impression_text_ja
+
+
+def test_template_lookup_valueerror_emits_generic_negative_report():
+    """P1-11 (session 88j): unregistered ``disease_id × modality_body_site``
+    hits ``_select_report_template``'s forward-coverage ValueError guard.
+    Prior behaviour set ``report=None`` (silent drop of DR (RAD)); fix
+    populates the same generic negative-findings report used by the
+    stub_only path.
+    """
+    # unknown_condition + CR chest is intentionally NOT in
+    # impression_templates.yaml → _select_report_template raises ValueError.
+    order = _make_cr_chest_order(order_id="ORD-unreg-01")
+    record = SimpleNamespace(
+        patient_id="pt1",
+        orders=[order],
+        extensions={},
+        disease_id="unknown_condition_no_template",
+        severity="moderate",
+    )
+    ctx = _make_ctx(record)
+    imaging_enricher(ctx)
+    studies = record.extensions.get("imaging", [])
+    assert len(studies) == 1
+    s = studies[0]
+    # Modality/body_site are populated (inference succeeded) but the
+    # template lookup missed → we still get a generic report.
+    assert s.modality_code == "CR"
+    assert s.body_site_snomed == "51185008"
+    assert s.report is not None, "template-missing path must emit generic radiology report (P1-11)"
+    assert s.report.status == "final"
+    assert s.report.findings_text
+    assert s.report.findings_text_ja
+    assert s.report.impression_text
+    assert s.report.impression_text_ja
+
+
+def test_generic_negative_report_content_is_stable():
+    """P1-11: the fallback text is a fixed constant, not sampled from a
+    template pool — determinism check keeps it in sync between the two
+    fallback paths."""
+    from clinosim.modules.imaging.engine import _build_generic_negative_report
+
+    r1 = _build_generic_negative_report("enc1", 1)
+    r2 = _build_generic_negative_report("enc2", 2)
+    assert r1.findings_text == r2.findings_text
+    assert r1.impression_text == r2.impression_text
+    assert r1.findings_text_ja == r2.findings_text_ja
+    assert r1.impression_text_ja == r2.impression_text_ja
+    # ids differ (per-encounter/per-order suffix)
+    assert r1.report_id != r2.report_id
+    assert r1.report_id == "imgrpt-enc1-1"
+
+
 def test_enricher_infers_imaging_metadata_from_legacy_orders():
     """Legacy IMAGING orders without imaging_body_site_code/imaging_modality
     are now imputed via inference module (session 48 CIF-VS-FHIR-01 fix).
