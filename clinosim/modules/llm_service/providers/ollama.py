@@ -19,6 +19,12 @@ class OllamaProvider:
         config = config or {}
         self.base_url = config.get("endpoint", "http://localhost:11434")
         self.default_model = config.get("model", "llama3.1:8b")
+        # Ollama 0.3+ `think` request option — controls Qwen3 / DeepSeek R1
+        # reasoning mode. `false` = suppress internal step-by-step reasoning
+        # (essential for the narrative_seed_bundle strategy which asks for
+        # structured JSON — reasoning inflates latency 5-10× for no gain).
+        # None = don't pass the field (Ollama default: model-specific).
+        self.think = config.get("think", None)
 
     def complete(
         self,
@@ -45,6 +51,12 @@ class OllamaProvider:
             payload["system"] = system_prompt
         if stop_sequences:
             payload["options"]["stop"] = stop_sequences
+        # Ollama 0.3+ `think` request-level option. When `False`, the
+        # reasoning-capable model (Qwen 3 / DeepSeek R1) skips internal
+        # step-by-step thinking. Critical for the bundle strategy which
+        # asks for JSON — thinking inflates latency 5-10× otherwise.
+        if self.think is not None:
+            payload["think"] = self.think
 
         try:
             response = httpx.post(

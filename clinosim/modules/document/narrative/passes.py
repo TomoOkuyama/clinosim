@@ -73,6 +73,7 @@ class NarrativePass(ABC):
         *,
         generator: NarrativeGenerator,
         patient_filter: str | None = None,
+        concurrency: int = 1,
     ):
         self.cif_dir = cif_dir
         self.version_id = version_id
@@ -85,6 +86,11 @@ class NarrativePass(ABC):
         # fails loud at construction, not mid-walk.
         self.patient_filter = patient_filter or ""
         self._patient_filter_re: re.Pattern[str] | None = re.compile(patient_filter) if patient_filter else None
+        # N narrate worker threads to run generator.generate() concurrently.
+        # concurrency=1 (default) preserves the original sequential walk
+        # byte-for-byte; concurrency>1 requires thread-safe caches +
+        # generator counters (both provisioned in the s88j vLLM chain).
+        self.concurrency = max(1, int(concurrency))
 
     def run(self) -> NarrativeVersionManifest:
         specs = specs_for_country(self.country)
@@ -103,36 +109,82 @@ class NarrativePass(ABC):
         patient_files = sorted(f for f in os.listdir(structural_dir) if f.endswith(".json"))
         if self._patient_filter_re is not None:
             patient_files = self._apply_patient_filter(structural_dir, patient_files)
-        for spec in specs:
-            for language in self._languages_for_spec(spec):
-                for pf in patient_files:
-                    with open(os.path.join(structural_dir, pf)) as f:
-                        patient_dict = json.load(f)
-                    if not self._spec_applies(spec, patient_dict):
-                        continue
-                    encounter_dict = (patient_dict.get("encounters") or [{}])[0]
-                    stubs = self._find_matching_stubs(patient_dict, spec)
-                    if not stubs:
-                        continue
-                    ctx = self._build_context(patient_dict, encounter_dict, spec, language)
-                    encounter_id = encounter_dict.get("encounter_id", "")
-                    for stub in stubs:
-                        # Per-stub shift key (daily_3shift stubs carry
-                        # "night"/"day"/"evening"; all other stubs ""). ctx is
-                        # shared across this patient's stubs, so set per stub
-                        # before generating — the renderer resolves the
-                        # localized label from this neutral key.
-                        ctx.shift = str(stub.get("shift", "") or "")
-                        # Per-stub hospital day (mirrors the ctx.shift pattern).
-                        # Daily notes previously all rendered as day 0 because
-                        # ctx was built once per patient with day_index=0.
-                        ctx.day_index = self._stub_day_index(stub, encounter_dict)
-                        output = self._generate(ctx, spec)
-                        wrapper = self._output_to_wrapper(output, generator=self._generator_name())
-                        self._write(narrative_dir, encounter_id, stub, wrapper, spec)
-                        doc_counts[spec.type_key] = doc_counts.get(spec.type_key, 0) + 1
-                        languages_used.add(language)
-                        encounters_touched.add(encounter_id)
+
+        # Build the ordered work list. Each unit = (spec, language, pf).
+        # Preserving this order (sorted patient_files, spec order, language
+        # order) guarantees deterministic aggregate metrics regardless of
+        # concurrency: sequential run and concurrency=N run produce the
+        # same manifest counts and the same on-disk document files, because
+        # each unit writes to a unique file path and generator counters are
+        # lock-guarded.
+        units = [
+            (spec, language, pf)
+            for spec in specs
+            for language in self._languages_for_spec(spec)
+            for pf in patient_files
+        ]
+
+        def _run_unit(unit: tuple) -> list[dict[str, Any]]:
+            """Process one (spec, language, patient) unit sequentially.
+
+            Called serially in the concurrency=1 path and by worker
+            threads in the concurrency>1 path. Each unit owns its own
+            ctx (built inside), so ctx.shift / ctx.day_index mutations
+            never race across threads.
+            """
+            spec, language, pf = unit
+            with open(os.path.join(structural_dir, pf)) as f:
+                patient_dict = json.load(f)
+            if not self._spec_applies(spec, patient_dict):
+                return []
+            encounter_dict = (patient_dict.get("encounters") or [{}])[0]
+            stubs = self._find_matching_stubs(patient_dict, spec)
+            if not stubs:
+                return []
+            ctx = self._build_context(patient_dict, encounter_dict, spec, language)
+            encounter_id = encounter_dict.get("encounter_id", "")
+            results: list[dict[str, Any]] = []
+            for stub in stubs:
+                # Per-stub shift key (daily_3shift stubs carry
+                # "night"/"day"/"evening"; all other stubs ""). ctx is
+                # per-unit (not shared across threads) so this mutation
+                # is thread-local.
+                ctx.shift = str(stub.get("shift", "") or "")
+                # Per-stub hospital day (mirrors the ctx.shift pattern).
+                # Daily notes previously all rendered as day 0 because
+                # ctx was built once per patient with day_index=0.
+                ctx.day_index = self._stub_day_index(stub, encounter_dict)
+                output = self._generate(ctx, spec)
+                wrapper = self._output_to_wrapper(output, generator=self._generator_name())
+                results.append(
+                    {
+                        "spec_key": spec.type_key,
+                        "language": language,
+                        "encounter_id": encounter_id,
+                        "stub": stub,
+                        "wrapper": wrapper,
+                        "spec": spec,
+                    }
+                )
+            return results
+
+        # Dispatch: serial or parallel. In both cases we consume results
+        # in unit-input order (pool.map preserves order) so counters and
+        # write order are byte-identical to the pre-concurrency baseline.
+        if self.concurrency <= 1:
+            unit_results = [_run_unit(u) for u in units]
+        else:
+            from concurrent.futures import ThreadPoolExecutor
+
+            with ThreadPoolExecutor(max_workers=self.concurrency) as pool:
+                unit_results = list(pool.map(_run_unit, units))
+
+        for results in unit_results:
+            for r in results:
+                self._write(narrative_dir, r["encounter_id"], r["stub"], r["wrapper"], r["spec"])
+                doc_counts[r["spec_key"]] = doc_counts.get(r["spec_key"], 0) + 1
+                languages_used.add(r["language"])
+                encounters_touched.add(r["encounter_id"])
 
         manifest = NarrativeVersionManifest(
             version_id=self.version_id,
@@ -257,6 +309,10 @@ class NarrativePass(ABC):
             document_type=DocumentType(spec.type_key),
             target_lang=language,
             locale="jp" if is_jp(self.country) else "us",
+            complications_occurred=list(patient_dict.get("complications_occurred", []) or []),
+            adl_assessments=list(patient_dict.get("adl_assessments", []) or []),
+            nursing_risk_assessments=list(patient_dict.get("nursing_risk_assessments", []) or []),
+            intake_output_records=list(patient_dict.get("intake_output_records", []) or []),
         )
         ctx.narrative_spine = build_narrative_spine(
             disease_protocol,
@@ -500,6 +556,7 @@ class TemplateNarrativePass(NarrativePass):
         rng_seed: int = 42,
         generator: NarrativeGenerator | None = None,
         patient_filter: str | None = None,
+        concurrency: int = 1,
     ):
         # F-5 adv-1: `self._rng` was allocated here from rng_seed but never
         # consumed — TemplateNarrativeGenerator is deterministic modulo
@@ -514,6 +571,7 @@ class TemplateNarrativePass(NarrativePass):
             rng_seed,
             generator=generator if generator is not None else TemplateNarrativeGenerator(),
             patient_filter=patient_filter,
+            concurrency=concurrency,
         )
 
     def _generator_name(self) -> str:
@@ -544,6 +602,7 @@ class LLMNarrativePass(NarrativePass):
         tasks: list[str] | None = None,
         rng_seed: int = 42,
         patient_filter: str | None = None,
+        concurrency: int = 1,
     ):
         from clinosim.modules.document.narrative.cache import NarrativeCache
         from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
@@ -562,6 +621,7 @@ class LLMNarrativePass(NarrativePass):
             rng_seed,
             generator=self._llm_generator,
             patient_filter=patient_filter,
+            concurrency=concurrency,
         )
 
     def run(self) -> NarrativeVersionManifest:

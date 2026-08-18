@@ -220,6 +220,75 @@ def parse_lab_obs_id(obs_id: str, encounter_id: str) -> int | None:
         return None
 
 
+def _build_lab_panel_conclusion(
+    group: _GroupedPanel,
+    orders: list[Any],
+    encounter_id: str,
+    lang: str,
+) -> str:
+    """Compose a fact-only ``DiagnosticReport.conclusion`` for a lab panel.
+
+    P1-10 (session-88j META #774 follow-up): PR #791 removed the static
+    template sentence ("XX パネル(N項目):個別検査値および解釈は関連
+    Observation を参照。") because it added zero clinical information and
+    read as an assertion the report never made. The follow-up requirement
+    is a *fact-only* aggregation of the contributing Observations' values
+    + flags — no interpretation, no clinical judgement, no counsel. That
+    keeps the field useful for list-view consumers (who cannot cheaply
+    walk ``.result[]``) without introducing unattributed clinical claims
+    (audit paper §4.4 A9).
+
+    Format: ``"{lab_name} {value} {unit} [{flag}]"`` per Observation,
+    joined by ``、`` (JA) / ``, `` (EN). When any Observation carries a
+    flag, a trailing ``"参照範囲外: {names}"`` / ``"Out of reference
+    range: {names}"`` sentence lists the flagged analyte names. Returns
+    ``""`` when no contributing Observation carries a usable
+    (name + value) pair, so the caller can skip emit rather than write
+    an empty string.
+    """
+    parts: list[str] = []
+    flagged: list[str] = []
+    for obs_id in group.obs_refs:
+        idx = parse_lab_obs_id(obs_id, encounter_id)
+        if idx is None or idx >= len(orders):
+            continue
+        order = orders[idx]
+        result = _o(order, "result")
+        if result is None:
+            continue
+        lab_name = _o(result, "lab_name") or _o(order, "display_name") or ""
+        value = _o(result, "value")
+        if not lab_name or value is None:
+            continue
+        unit = _o(result, "unit") or ""
+        flag = _o(result, "flag") or ""
+        # Format the value: drop a trailing ".0" for integer-valued floats
+        # (matches the human convention used elsewhere in the emitter and
+        # keeps "4mg" over "4.0mg").
+        if isinstance(value, float) and value.is_integer():
+            value_str = str(int(value))
+        else:
+            value_str = str(value)
+        bits = [lab_name, value_str]
+        if unit:
+            bits.append(unit)
+        segment = " ".join(bits)
+        if flag:
+            segment = f"{segment} [{flag}]"
+            flagged.append(lab_name)
+        parts.append(segment)
+    if not parts:
+        return ""
+    joiner = "、" if lang == "ja" else ", "
+    body = joiner.join(parts)
+    if flagged:
+        if lang == "ja":
+            body = f"{body}。参照範囲外: {joiner.join(flagged)}"
+        else:
+            body = f"{body}. Out of reference range: {joiner.join(flagged)}"
+    return body
+
+
 def build_dr_resource(
     group: _GroupedPanel,
     patient_id: str,
@@ -228,6 +297,7 @@ def build_dr_resource(
     performer_ref: str | None,
     issued: str | None,
     seq: int,
+    orders: list[Any] | None = None,
 ) -> dict:
     """Build a single FHIR DiagnosticReport resource for a grouped panel.
 
@@ -348,14 +418,20 @@ def build_dr_resource(
     ]
     # Issue #784 (part of #774): the pre-fix path emitted a static template
     # sentence ("XX パネル(N項目):個別検査値および解釈は関連 Observation を
-    # 参照。") on every lab DR. It carried no clinical interpretation, and the
-    # `.result[]` array already makes the analyte references machine- and
-    # human-explorable. Emitting a summary-line only when it says something
-    # meaningful (aggregated interpretation from per-Observation flags is a
-    # separate enricher scope, tracked as follow-up) is honest; the static
-    # template just added noise. Omit `conclusion` from the panel DR
-    # (radiology DR still emits `conclusion = impression_text` below —
-    # unchanged, that field carries real content).
+    # 参照。") on every lab DR — no clinical value, silently asserting a
+    # summary the report never made.
+    # P1-10 (session-88j META #774 follow-up): compose ``conclusion`` from
+    # the contributing Observations' values + flags. Fact-only aggregation
+    # (no interpretation, no counsel — audit paper §4.4 A9) so list-view
+    # consumers can identify + triage the report without walking
+    # ``.result[]`` themselves. When ``orders`` is not provided (callers
+    # that pre-date the P1-10 signature bump), we still fall through to
+    # the "no conclusion" behaviour PR #791 established — safer than
+    # crashing an emit path.
+    if orders is not None:
+        _conclusion = _build_lab_panel_conclusion(group, orders, encounter_id, lang)
+        if _conclusion:
+            res["conclusion"] = _conclusion
     # C5-20 (Chain 3): presentedForm — text-plain rendered summary of the
     # panel report (patient-facing form). Header + observation count is
     # sufficient without inflating the attachment with per-analyte lines;
@@ -468,6 +544,7 @@ def build_lab_panel_reports(ctx) -> list[dict]:
             performer_ref=_lab_performer_ref or None,
             issued=None,
             seq=seq,
+            orders=orders,
         )
         # basedOn: look up contributing orders via the obs_id index embedded in
         # each obs_ref ("lab-{enc_id}-{idx:04d}").  This handles both panel orders

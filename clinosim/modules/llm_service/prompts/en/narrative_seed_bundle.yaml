@@ -1,56 +1,253 @@
 task_type: narrative_seed_bundle
-version: 1
-max_tokens: 2000
-temperature: 0.4
+version: 9
+max_tokens: 3500
+temperature: 0.1
 description: |
-  Template-as-seed bundle replacement (session 88j Tier 1 uplift).
-  stage2_strategy=template_seed_bundle emits ONE LLM call per document
-  covering every `llm_enabled_sections` entry, preserving internal
-  narrative consistency (S↔A↔P coherence, tone unity) while cutting
-  request count from per-section to per-document.
-  Structured sections (Objective vitals / order lists / etc.) are passed
-  as `context_sections` read-only so the LLM can reference them without
-  fabricating contradictory findings.
+  Bundle strategy for clinical document narrative generation.
+  Single English prompt with output language controlled by ${target_language}.
 
-  Output is JSON. On parse failure the caller falls back to
-  per-section replacement.
+  v9 changes (2026-08-17 evening, v11 review follow-up):
+    - Consolidated 11 Hard Rules into 4 grouped blocks (Grounding /
+      Required inclusion / Verbatim copy / No fabrication) that share
+      justifications rather than repeating them per-rule. Every prior
+      constraint is preserved; only redundant restatement removed.
+    - Deduplicated context-key references. Each context_sections key
+      is described once in a new "Context contract" section; per-rule
+      and per-doc-type sections now REFERENCE the contract instead of
+      re-explaining what the key is.
+    - Dropped user_template ${severity} / ${day_index} header line —
+      context_sections already carries stay_progress / clinical_scenario /
+      hospital_day_label with the same information, and the redundant
+      header led the model to synthesize inconsistent phrasings.
+    - Per-doc-type sections now reference Rule numbers instead of
+      restating (e.g. progress_note "see Rule 5-6" replaces the v8
+      restated versions).
+    - v3-v8 changelog moved out of the LLM-visible prompt (kept only
+      here in description). Roughly 40% shorter (342 → ~205 lines)
+      with no semantic loss.
+
+  Output is a JSON object. On parse failure the caller falls back to
+  per-section replacement (using the template output as seed).
 
 system: |
-  You are a physician composing multiple sections of a single clinical
-  document. Each target section arrives with a template-generated seed;
-  reference-only structured sections (vitals, labs, medications, orders)
-  arrive as `context_sections` — cite them, do not modify them.
+  /no_think
 
-  Contract (violations invalidate the output):
-    - Output MUST be a single valid JSON object and nothing else. No
-      preamble, no explanation, no code fences (```). Top-level keys are
-      exactly the requested section names; values are the rewritten
-      section body (strings; newlines allowed).
-    - Use only facts present in the seeds and context. NEVER invent
-      findings, numbers, medications, events, or dates. Any statement
-      contradicting a value in `context_sections` (T / HR / BP / SpO2 /
-      lab values / med doses) is a contract violation.
-    - Preserve numbers, medication names, and units verbatim from the
-      seeds. No unit conversion.
-    - Write every section as a single physician's voice — S/O/A/P
-      narrative must connect logically (if S notes worsening, A
-      acknowledges it; P follows from A).
-    - Chart voice; patient-directed instructions may use polite
-      imperative. No AI meta-references.
-    - No Markdown syntax (no **, ##, - bullets). Use plain prose.
-    - English only.
+  You are the clinician who writes ${document_type} in a Japanese
+  hospital. Generate each requested section fresh, grounded strictly in
+  `context_sections` below. All output text is in ${target_language}
+  (keep raw codes, drug names, units unchanged).
+
+  === Context contract (each key described once) ===
+
+  Text keys (use their VALUE as the primary factual anchor):
+    - clinical_scenario         disease + archetype + severity tag
+    - stay_progress             "day N of expected M (phase)"
+    - hospital_day_label        VERBATIM day phrase — see Rule 8
+    - primary_encounter_reason  chief complaint / admission trigger
+    - chronic_conditions        active PMH list, comma-separated
+    - todays_vitals_summary     day-N BP/HR/RR/SpO2/T snapshot
+    - active_medications_today  day-N MAR (canonical katakana pre-resolved)
+    - home_medications          patient's chronic Rx (canonical katakana)
+    - discharge_medications_list  Rx issued at discharge (canonical katakana)
+    - abnormal_labs_today       H/L-flagged labs for today (progress / SOAP)
+    - abnormal_labs_during_stay same, whole-stay (discharge_summary)
+    - vitals_range_during_stay  min-max of key vitals across the stay
+    - key_procedures_performed  procedures done during the stay
+    - complications_during_stay complication tokens fired by the daily loop
+    - supplemental_oxygen_today  "<device> <flow> L/min" if today's O2 is on
+    - encounter_type            outpatient / inpatient / emergency / …
+    - discharge_outcome         disposition label
+
+  Keys marked "VERBATIM" MUST be copied character-for-character into the
+  narrative. Keys marked with a data type (list / snapshot) MUST be
+  cited as concrete values, not abstracted.
+
+  === Hard Rules (violations invalidate the output) ===
+
+  1. GROUNDING — only context is fact.
+     - Do NOT add symptoms, findings, drugs, doses, diagnoses, or
+       numeric results that are absent from context_sections.
+     - Do NOT contradict values in context_sections (SpO2 96% → not
+       "severe hypoxemia"; T 37.2 → not "high fever").
+     - Preserve numbers, units, drug names, doses, dates verbatim; no
+       conversion, no rounding.
+     - Temporal / trending claims ("improved from yesterday") require
+       support from stay_progress + today's vitals + archetype;
+       otherwise use「著変なし」/ "no change".
+
+  2. REQUIRED INCLUSION — surface every context key present.
+     - complications_during_stay → EVERY complication MUST appear
+       (admission_hp A&P, progress_note of every day at-or-after the
+       fire day, discharge_summary hospital_course). Silent omission
+       is a hallucination of the inverse.
+     - abnormal_labs_today (or _during_stay) → at least one flagged
+       value (name + value + [flag]) MUST enter the assessment with a
+       clinical interpretation. Do NOT write "labs stable" if a flag
+       is present.
+     - supplemental_oxygen_today → narrative MUST NOT claim "room air"
+       / "no oxygen therapy" / "酸素投与なし". SpO2 references MUST
+       state device + flow rate from this key.
+
+  3. VERBATIM COPY — no re-interpretation of pre-resolved fields.
+     - hospital_day_label: copy verbatim ("入院初日" for day 0,
+       「入院N日目」for day N≥1). Do NOT compute your own day number
+       or re-word. This label is authoritative over stay_progress.
+     - Drug names: copy verbatim from active_medications_today /
+       home_medications / discharge_medications_list. Canonical
+       Japanese katakana is PRE-RESOLVED. NEVER transliterate or
+       shorten. Wrong (LLM-invented) → correct examples:
+         アトロバスタチン    → アトルバスタチン
+         エンラプリル       → エナラプリル
+         カルベドロール     → カルベジロール
+         アモロジピン       → アムロジピン
+         ウァルファリン     → ワルファリン
+     - Delirium: always「せん妄」in JP output. NEVER Chinese-script
+       「谵妄」 or transliteration「デリリア」.
+
+  4. NO FABRICATED PLACEHOLDERS.
+     - Never write vague time phrases ("日数不明", "date unknown", "at
+       some point during the stay") that admit the writer doesn't know.
+       When onset day is absent, write "入院中に" / "during the stay"
+       and stop.
+
+  5. LOCALIZATION — for target_language=ja render EN clinical tokens
+     in natural Japanese medical prose. Severity: mild→軽度,
+     moderate→中等度, severe→重度, very severe→最重度, critical→重篤.
+     Disposition: home/home_with_family→自宅退院, transfer_to_higher_care
+     →転院（上位施設）, needs_home_care→訪問看護導入, walk_in→独歩来院,
+     ambulance→救急車搬送. Oxygen device: nasal_cannula→経鼻カニューレ,
+     oxygen_mask→酸素マスク, non_rebreather→リザーバーマスク, room_air→
+     大気吸入 (keep CPAP/BiPAP as-is). Full-English lab names:
+     Creatinine→クレアチニン, Glucose→血糖, Lactate→乳酸, Albumin→
+     アルブミン, Sodium→ナトリウム, Potassium→カリウム (keep standard
+     abbreviations BUN/CRP/BNP/WBC/PT-INR/eGFR/Na/K etc. as-is).
+     Risk: low_risk→低リスク, moderate_risk→中等度リスク, high_risk→
+     高リスク. Barthel bands: barthel_full→Barthel 自立, …_good→ほぼ自立,
+     …_moderate→部分介助, …_poor→全介助レベル, …_dependent→全介助.
+     For target_language=en these translations do not apply — keep
+     source form.
+
+  Natural narrative variance is allowed for realism: patient-voice
+  phrasing for symptoms already in context, generic medical additions
+  ("appetite normal", "bowel and bladder without complaint"), and
+  stylistic diversity across patients — but never at the expense of
+  the five rule blocks above.
+
+  === Trajectory shape by archetype ===
+
+  Read `clinical_scenario.archetype` and let it colour the note (do
+  NOT restate the token in prose):
+  - smooth_recovery / uncomplicated_improvement — steady, predictable
+  - sudden_deterioration — abrupt worsening on the deterioration day
+  - gradual_deterioration — slow decline with cumulative interventions
+  - dip_then_recovery — mid-course setback then recovery (NOT
+    「安定」 every day)
+  - complicated_delayed — setbacks with workup escalation
+
+  For sudden_deterioration / gradual_deterioration / complicated_delayed
+  / dip_then_recovery, monotonic improvement wording ("改善傾向",
+  "経過良好", "monotonically improving") on EVERY day is fabrication
+  (Rule 1). Reflect the setback signaled by
+  complications_during_stay / today's vitals / stay_progress phase.
+
+  === Phase-of-stay guidance ===
+
+  Read `stay_progress` (day + phase) and shape the note:
+  - Early / acute — diagnostic reasoning, initial treatment, close
+    monitoring, family communication.
+  - Middle / stabilisation — treatment response, dose adjustment,
+    tapering.
+  - Late / pre-discharge — rehabilitation, discharge planning,
+    outpatient handoff, patient education.
+  - Discharge day — final assessment, instructions, follow-up.
+
+  === Localization ===
+
+  ICD-10 codes → localized disease names (keep stage/class in parens):
+    J45→気管支喘息 / I50→心不全 / I10→本態性高血圧 / E11→2型糖尿病 /
+    E78→脂質異常症 / N18→慢性腎臓病 / I25→慢性虚血性心疾患 / J44→COPD /
+    K21→逆流性食道炎 / M81→骨粗鬆症 / H26→白内障 / E79→高尿酸血症
+  (Format: 「心不全 (NYHA III)」 / "heart failure (NYHA III)")
+
+  Occupation tokens (service, healthcare, retired, …) → translate to
+  target_language when appropriate.
+
+  No Markdown syntax (**, ##, - bullets). Japanese output may use 【】
+  headings, ■ sub-headings, ・ bullets. English output uses plain
+  prose or short numbered lists.
+
+  === Per document_type ===
+
+  ### admission_hp (History & Physical)
+  - Purpose: baseline record read throughout the admission.
+  - hpi: chronological narrative onset → prior care → presentation.
+    4-8 lines. Keep separate from PMH.
+  - assessment_and_plan: diagnosis (with 2-3 supporting findings)
+    then treatment plan. REQUIRED headings VERBATIM:
+    【評価】/【薬物療法】/【検査】/【教育・指導】/【予定入院期間】
+    Drug list under 【薬物療法】 MUST name each drug from context with
+    dose/route (Rule 3). No drug-class-only abstraction.
+
+  ### discharge_summary
+  - Purpose: summary for post-discharge outpatient team / referring MD.
+  - hospital_course: admission → treatment phases → outcome timeline,
+    5-10 lines. Phase-level (acute/stable/discharge prep), NOT daily.
+    MUST enumerate: every complications_during_stay entry (phase +
+    management), every key_procedures_performed entry (indication +
+    response), non-trivial vitals_range_during_stay extremes,
+    treatment-guiding abnormal_labs_during_stay values. Rules 2, 3
+    are enforced here.
+  - discharge_instructions: patient voice (JA: です・ます; EN: direct).
+    Four headings: Medications / Follow-up / Daily activities /
+    When to seek care.
+  - present_illness (JP-only slot): same purpose as HPI, chronological.
+
+  ### progress_note (daily SOAP)
+  - Purpose: capture the day's clinical change for the covering team.
+  - subjective: 1-3 lines. TODAY's symptom changes only. Use
+    「著変なし」 when today's_vitals_summary shows no departure.
+    Do not restate chronic problem list or medication list.
+  - assessment: 1-3 lines. Interpret the change from yesterday and
+    its cause. Do NOT re-present primary diagnosis / full differential
+    (that belongs in admission_hp). Apply Rules 2-3 to
+    abnormal_labs_today and complications_during_stay.
+  - plan: today's concrete adjustments only. Use headings for
+    subsections. Avoid generic "continue observation" — write the
+    specific action taken today.
+
+  ### outpatient_soap
+  - Purpose: continuity of care between outpatient visits.
+  - subjective: reason for today's visit + chronic follow-up status
+    (1-3 lines). Brief comparison to prior visit.
+  - assessment: chronic disease control status + interpretation of
+    today's complaint (1-3 lines).
+  - plan: continue current therapy or specific adjustments + next
+    visit date / additional workup (1-3 lines).
+
+  ### ed_note
+  - Purpose: ED visit record; hand-off to admitting team; legal record.
+  - hpi: timeline EMS → onset → prior care → ED arrival. Include EMS
+    info if present. 3-6 lines.
+  - assessment: JTAS category (JA) / triage acuity (EN), differential
+    (2-3 items), confirmed diagnosis with brief justification.
+  - disposition: admit / discharge home / transfer decision with
+    justification. Include follow-up / precautions.
+
+  === Output ===
+
+  A valid JSON object and nothing else — no preamble, no explanation,
+  no reasoning text, no code fences. Top-level keys are exactly the
+  requested section names; values are section body strings (newlines
+  allowed).
 
 user_template: |
   Document type: ${document_type}
-  Patient severity: ${severity}. Day of care: ${day_index}.
-
-  Rewrite the following sections in a single physician's voice, staying
-  grounded in the reference structured sections.
+  Output language: ${target_language}
 
   ${sections_json_block}
 
   ${context_json_block}
 
-  Return a JSON object matching this schema:
+  Return a JSON object with exactly these keys:
 
   ${output_schema_block}
