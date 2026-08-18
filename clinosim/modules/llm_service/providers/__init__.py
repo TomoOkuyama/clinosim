@@ -9,6 +9,7 @@ from .base import LLMProvider, ProviderResponse
 from .bedrock import BedrockProvider
 from .mock import MockProvider
 from .ollama import OllamaProvider
+from .vllm import VLLMProvider
 
 __all__ = [
     "LLMProvider",
@@ -16,6 +17,7 @@ __all__ = [
     "OllamaProvider",
     "MockProvider",
     "BedrockProvider",
+    "VLLMProvider",
     "build_provider",
     "register_provider",
 ]
@@ -26,8 +28,10 @@ _REGISTRY: dict[str, Callable[[dict[str, Any]], Any]] = {
     "ollama": lambda cfg: OllamaProvider(cfg),
     "bedrock": lambda cfg: BedrockProvider(cfg),
     "mock": lambda cfg: MockProvider(cfg),
-    # "anthropic_direct" and "openai_compatible" can be added later
-    # by registering builders via register_provider() from user code.
+    "vllm": lambda cfg: VLLMProvider(cfg),
+    "openai_compatible": lambda cfg: VLLMProvider(cfg),
+    # "anthropic_direct" can be added later by registering builders via
+    # register_provider() from user code.
 }
 
 
