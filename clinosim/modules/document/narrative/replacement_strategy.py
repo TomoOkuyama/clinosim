@@ -81,7 +81,172 @@ _DISPOSITION_JA: dict[str, str] = {
     "other-hcf": "他施設転院",
     "snf": "施設退院",
     "exp": "死亡退院",
+    # session-88j Phase B: CIF/CDA enum names that reach the LLM
+    "home_with_family": "自宅退院",
+    "home_alone": "自宅退院（独居）",
+    "independent_home": "独居自宅退院",
+    "discharge_to_home": "自宅退院",
+    "transfer_to_higher_care": "転院（上位施設）",
+    "discharge_to_snf": "介護保険施設入所",
+    "needs_snf": "介護保険施設入所",
+    "needs_home_care": "訪問看護導入",
+    "needs_rehab": "リハビリ転院",
+    "discharge_to_rehab": "リハビリ転院",
+    "deceased": "死亡退院",
 }
+
+# session-88j Phase B: natural Japanese equivalents for enum-style
+# clinical labels that would otherwise leak into JA narratives as raw
+# English tokens (v14 review found 165 unique EN tokens; the largest
+# offenders were mild/moderate → 634+442 mentions, nasal_cannula → 155,
+# raw drug names). Each map is checked case-insensitively via
+# _lookup_ja_label().
+_SEVERITY_JA: dict[str, str] = {
+    "mild": "軽度",
+    "moderate": "中等度",
+    "severe": "重度",
+    "very severe": "最重度",
+    "very_severe": "最重度",
+    "critical": "重篤",
+}
+_OXYGEN_DEVICE_JA: dict[str, str] = {
+    "nasal_cannula": "経鼻カニューレ",
+    "oxygen_mask": "酸素マスク",
+    "simple_mask": "酸素マスク",
+    "non_rebreather": "リザーバーマスク",
+    "reservoir_mask": "リザーバーマスク",
+    "venturi": "ベンチュリーマスク",
+    "venturi_mask": "ベンチュリーマスク",
+    "high_flow_nc": "ハイフローネーザル",
+    "high_flow_nasal_cannula": "ハイフローネーザル",
+    "mechanical_ventilation": "人工呼吸器",
+    "invasive_mechanical_ventilation": "人工呼吸器",
+    "room_air": "大気吸入",
+    "supplemental o2": "酸素投与",  # generic fallback
+    # NIV modes commonly used as-is in Japanese practice
+    "cpap": "CPAP",
+    "bipap": "BiPAP",
+    "niv": "NIV",
+}
+_ARRIVAL_MODE_JA: dict[str, str] = {
+    "walk_in": "独歩来院",
+    "walk-in": "独歩来院",
+    "walkin": "独歩来院",
+    "self": "独歩来院",
+    "ambulance": "救急車搬送",
+    "ems": "救急車搬送",
+    "helicopter": "ヘリ搬送",
+    "transfer": "転院搬送",
+    "public": "公共交通機関来院",
+    "private": "自家用車来院",
+}
+_RISK_LEVEL_JA: dict[str, str] = {
+    "low": "低リスク",
+    "low_risk": "低リスク",
+    "moderate": "中等度リスク",
+    "moderate_risk": "中等度リスク",
+    "medium": "中等度リスク",
+    "medium_risk": "中等度リスク",
+    "high": "高リスク",
+    "high_risk": "高リスク",
+    "very_high": "非常に高リスク",
+    "very_high_risk": "非常に高リスク",
+}
+_BARTHEL_BAND_JA: dict[str, str] = {
+    "barthel_full": "Barthel 自立",
+    "barthel_good": "Barthel ほぼ自立",
+    "barthel_moderate": "Barthel 部分介助",
+    "barthel_poor": "Barthel 全介助レベル",
+    "barthel_dependent": "Barthel 全介助",
+    "full": "自立",
+    "good": "ほぼ自立",
+    "moderate_dependence": "部分介助",
+    "severe_dependence": "全介助レベル",
+    "total_dependence": "全介助",
+}
+# Long-form English lab names → natural Japanese. Universally-accepted
+# short abbreviations (BUN, CRP, BNP, WBC, HbA1c, eGFR, Cr, Na, K, Cl,
+# Ca, Mg, P, etc.) are DELIBERATELY OMITTED — they are standard in
+# Japanese practice and translating them would harm readability.
+_LAB_NAME_JA: dict[str, str] = {
+    "creatinine": "クレアチニン",
+    "glucose": "血糖",
+    "lactate": "乳酸",
+    "albumin": "アルブミン",
+    "sodium": "ナトリウム",
+    "potassium": "カリウム",
+    "chloride": "クロール",
+    "calcium": "カルシウム",
+    "magnesium": "マグネシウム",
+    "phosphorus": "リン",
+    "phosphate": "リン",
+    "bilirubin": "ビリルビン",
+    "total bilirubin": "総ビリルビン",
+    "direct bilirubin": "直接ビリルビン",
+    "urea": "尿素",
+    "urea nitrogen": "尿素窒素",
+    "hemoglobin": "ヘモグロビン",
+    "hematocrit": "ヘマトクリット",
+    "platelet": "血小板",
+    "platelets": "血小板",
+    "white blood cell": "白血球",
+    "red blood cell": "赤血球",
+    "cholesterol": "コレステロール",
+    "triglyceride": "トリグリセリド",
+    "triglycerides": "トリグリセリド",
+    "protein": "蛋白",
+    "total protein": "総蛋白",
+    "iron": "鉄",
+    "ferritin": "フェリチン",
+    "amylase": "アミラーゼ",
+    "lipase": "リパーゼ",
+    "troponin": "トロポニン",
+    "troponin i": "トロポニンI",
+    "troponin t": "トロポニンT",
+}
+
+
+def _lookup_ja_label(raw: str, table: dict[str, str]) -> str:
+    """Case-insensitive lookup returning the JA label, or the raw
+    input if no mapping exists (safe fallback — never drops content).
+    """
+    if not raw:
+        return raw
+    key = str(raw).strip().lower()
+    return table.get(key, str(raw))
+
+
+def _localize_severity_ja(sev: str) -> str:
+    """mild → 軽度 (etc). Safe fallback returns input verbatim."""
+    return _lookup_ja_label(sev, _SEVERITY_JA)
+
+
+def _localize_oxygen_device_ja(device: str) -> str:
+    """nasal_cannula → 経鼻カニューレ (etc)."""
+    return _lookup_ja_label(device, _OXYGEN_DEVICE_JA)
+
+
+def _localize_arrival_mode_ja(mode: str) -> str:
+    """walk_in → 独歩来院 (etc)."""
+    return _lookup_ja_label(mode, _ARRIVAL_MODE_JA)
+
+
+def _localize_risk_level_ja(level: str) -> str:
+    """moderate_risk → 中等度リスク (etc)."""
+    return _lookup_ja_label(level, _RISK_LEVEL_JA)
+
+
+def _localize_barthel_band_ja(band: str) -> str:
+    """barthel_full → Barthel 自立 (etc)."""
+    return _lookup_ja_label(band, _BARTHEL_BAND_JA)
+
+
+def _localize_lab_name_ja(name: str) -> str:
+    """Creatinine → クレアチニン. Keeps abbreviations (BUN, CRP, WBC)
+    as-is since they are Japanese medical standard."""
+    if not name:
+        return name
+    return _lookup_ja_label(name, _LAB_NAME_JA)
 
 
 def apply_replacement_strategy(
@@ -609,7 +774,7 @@ def _build_extra_context(
         # don't get PMH from template so extras carry the chronic list).
         if "past_medical_history" not in tmpl:
             chronic = _get(p, "chronic_conditions", []) or []
-            rendered = _render_chronic_list(chronic)
+            rendered = _render_chronic_list(chronic, lang=ctx.target_lang)
             if rendered:
                 extra["chronic_conditions"] = rendered
 
@@ -625,7 +790,11 @@ def _build_extra_context(
     if ctx.clinical_course_archetype:
         scenario_bits.append(f"archetype={ctx.clinical_course_archetype}")
     if ctx.severity:
-        scenario_bits.append(f"severity={ctx.severity}")
+        # session-88j Phase B: severity token (mild/moderate/severe)
+        # leaks into JA narratives verbatim (v14 review: 634 mild + 442
+        # moderate mentions across 1,386 doc). Localize for JA prompts.
+        sev_label = _localize_severity_ja(str(ctx.severity)) if ctx.target_lang == "ja" else ctx.severity
+        scenario_bits.append(f"severity={sev_label}")
     if scenario_bits:
         extra["clinical_scenario"] = " / ".join(scenario_bits)
     if ctx.los_days and ctx.los_days > 0:
@@ -704,12 +873,12 @@ def _build_extra_context(
         # v6 blocker fix: today's abnormal labs (H/L flag). Assessment
         # is LLM-generated for progress_note but v5 context omitted lab
         # H/L flags → LLM never mentioned them.
-        abnormal_today = _render_abnormal_labs(ctx.lab_results, day_index=ctx.day_index)
+        abnormal_today = _render_abnormal_labs(ctx.lab_results, day_index=ctx.day_index, lang=ctx.target_lang)
         if abnormal_today:
             extra["abnormal_labs_today"] = abnormal_today
         # v6 blocker fix: supplemental oxygen flag. Prevents "SpO2 89%
         # だが酸素投与なしで安定" self-contradiction (POP-000075 doc-06).
-        o2_today = _render_supplemental_oxygen_today(ctx.vitals, ctx.day_index, enc)
+        o2_today = _render_supplemental_oxygen_today(ctx.vitals, ctx.day_index, enc, lang=ctx.target_lang)
         if o2_today:
             extra["supplemental_oxygen_today"] = o2_today
     elif doc_type == "admission_hp":
@@ -731,14 +900,17 @@ def _build_extra_context(
             outcome_raw = str(outcome)[:120]
             # v6 localization: `home` → `自宅退院` for JA prompts. LLM
             # was pasting the raw disposition code into JA hospital_course.
+            # session-88j Phase B: case-insensitive lookup so CIF enums
+            # like transfer_to_higher_care / home_with_family / needs_snf
+            # are recognized alongside the legacy short codes.
             if ctx.target_lang == "ja":
-                extra["discharge_outcome"] = _DISPOSITION_JA.get(outcome_raw, outcome_raw)
+                extra["discharge_outcome"] = _lookup_ja_label(outcome_raw, _DISPOSITION_JA)
             else:
                 extra["discharge_outcome"] = outcome_raw
         # v6 blocker fix: hospital_course was collapsing to a 1-liner
         # template because LLM had nothing specific to work with.
         # Feed the whole-stay lab/procedure/vitals-extremes summary.
-        abnormal_stay = _render_abnormal_labs(ctx.lab_results, day_index=None)
+        abnormal_stay = _render_abnormal_labs(ctx.lab_results, day_index=None, lang=ctx.target_lang)
         if abnormal_stay:
             extra["abnormal_labs_during_stay"] = abnormal_stay
         key_procs = _render_key_procedures(ctx.procedures)
@@ -754,7 +926,12 @@ def _build_extra_context(
         # summary (outpatient_soap.objective renders BP/HR/RR/SpO2/T
         # verbatim from vitals — same info).
         home_meds = _get(p, "current_medications", []) or _get(p, "medications", []) or []
-        med_names = _render_med_names(home_meds)
+        # session-88j Phase B fix: outpatient_soap home_medications was
+        # rendering EN drug names (Amlodipine / Atorvastatin / …) because
+        # _render_med_names defaulted to lang="en" here (bug from PR
+        # that added JA drug localization elsewhere — 78+75+44+41 EN
+        # drug mentions in v14 review traced to this single line).
+        med_names = _render_med_names(home_meds, lang=ctx.target_lang)
         if med_names:
             extra["home_medications"] = med_names
         if "objective" not in tmpl:
@@ -763,7 +940,7 @@ def _build_extra_context(
                 extra["today_vitals_summary"] = today_vitals
         # v6: same lab flag injection as progress_note — outpatient
         # assessment was ignoring AST H, PT_INR H, Cr H etc.
-        abnormal_today = _render_abnormal_labs(ctx.lab_results, day_index=None)
+        abnormal_today = _render_abnormal_labs(ctx.lab_results, day_index=None, lang=ctx.target_lang)
         if abnormal_today:
             extra["abnormal_labs_today"] = abnormal_today
     elif doc_type == "ed_note":
@@ -775,7 +952,12 @@ def _build_extra_context(
                 extra["chief_complaint_verbatim"] = str(chief)[:200]
         arrival = _get(enc, "arrival_mode") or _get(enc, "admit_source")
         if arrival:
-            extra["arrival_mode"] = str(arrival)
+            # session-88j Phase B: raw arrival_mode enum (walk_in /
+            # ambulance) leaks into JA ed_note otherwise. Localize.
+            if ctx.target_lang == "ja":
+                extra["arrival_mode"] = _localize_arrival_mode_ja(str(arrival))
+            else:
+                extra["arrival_mode"] = str(arrival)
         # initial_vitals: physical_exam template is narrative not
         # numeric, so numeric arrival vitals are complementary — keep.
         first_vitals = _render_first_vitals(ctx.vitals)
@@ -785,9 +967,16 @@ def _build_extra_context(
     return extra
 
 
-def _render_chronic_list(chronic: list) -> str:
+def _render_chronic_list(chronic: list, lang: str = "en") -> str:
     """chronic_conditions [{'code','severity','stage','onset_date'}, ...] →
-    short comma-separated string."""
+    short comma-separated string.
+
+    session-88j Phase B: when ``lang == "ja"`` translates the severity
+    token (mild/moderate/severe → 軽度/中等度/重度) inline so downstream
+    LLM verbatim-copy behaviour lands natural Japanese instead of raw
+    English tokens. Stage codes ("Stage 1", "G3b", "NYHA II") are
+    intentionally kept as-is since those are the JA medical standard.
+    """
     parts = []
     for c in (chronic or [])[:15]:
         if isinstance(c, str):
@@ -796,6 +985,8 @@ def _render_chronic_list(chronic: list) -> str:
         code = _get(c, "code", "") or ""
         stage = _get(c, "stage", "") or ""
         sev = _get(c, "severity", "") or ""
+        if sev and lang == "ja":
+            sev = _localize_severity_ja(sev)
         detail = ""
         if stage and sev:
             detail = f" ({stage}, {sev})"
@@ -846,7 +1037,7 @@ def _render_vitals_for_day(vitals: list, day_index: int, encounter: object | Non
     return "; ".join(picks) if picks else ""
 
 
-def _render_supplemental_oxygen_today(vitals: list, day_index: int, encounter: object | None) -> str:
+def _render_supplemental_oxygen_today(vitals: list, day_index: int, encounter: object | None, lang: str = "en") -> str:
     """If any vital today records supplemental oxygen, return a short
     descriptor for the LLM prompt (device + flow rate).
 
@@ -855,20 +1046,26 @@ def _render_supplemental_oxygen_today(vitals: list, day_index: int, encounter: o
     contradicting the on_supplemental_oxygen=True field on that day's
     vitals. Feeding the flag lets the prompt's Hard Rules keep the
     narrative consistent with the recorded therapy.
+
+    session-88j Phase B: when ``lang == "ja"`` localizes the device
+    label (nasal_cannula → 経鼻カニューレ, oxygen_mask → 酸素マスク,
+    etc.) so JA narratives no longer leak raw snake_case tokens
+    (v14 review: 155 mentions).
     """
     filtered = _filter_vitals_for_day(vitals, day_index, encounter)
     for v in filtered:
         if not _get(v, "on_supplemental_oxygen"):
             continue
         device = _get(v, "oxygen_delivery_device") or "supplemental O2"
+        device_str = _localize_oxygen_device_ja(str(device)) if lang == "ja" else str(device)
         flow = _get(v, "oxygen_flow_rate_lpm")
         if flow is not None:
             try:
                 flow_val = float(flow)
-                return f"{device} {flow_val:g} L/min"
+                return f"{device_str} {flow_val:g} L/min"
             except (TypeError, ValueError):
                 pass
-        return str(device)
+        return device_str
     return ""
 
 
@@ -947,7 +1144,7 @@ def _render_active_meds(admins: list, day_index: int, lang: str = "en") -> str:
     return "; ".join(names) if names else ""
 
 
-def _render_abnormal_labs(lab_results: list, day_index: int | None) -> str:
+def _render_abnormal_labs(lab_results: list, day_index: int | None, lang: str = "en") -> str:
     """H/L/critical flagged labs, formatted for LLM injection.
 
     v6 blocker fix: v5 context omitted lab flags entirely so LLM
@@ -955,6 +1152,13 @@ def _render_abnormal_labs(lab_results: list, day_index: int | None) -> str:
     is None, returns ALL abnormal labs across the stay
     (discharge_summary use); otherwise filters to that day
     (progress_note use).
+
+    session-88j Phase B: when ``lang == "ja"`` translates full-English
+    lab names (Creatinine, Glucose, Lactate, Albumin, Sodium/Potassium,
+    …) to natural Japanese (クレアチニン, 血糖, 乳酸, アルブミン, ナトリウム,
+    …). Standard abbreviations (BUN, CRP, BNP, WBC, HbA1c, eGFR, Cr,
+    Na, K, PT-INR, …) are kept as-is since those are Japanese medical
+    convention.
     """
     picks: list[str] = []
     max_pick = 8
@@ -970,6 +1174,8 @@ def _render_abnormal_labs(lab_results: list, day_index: int | None) -> str:
         unit = _get(lab, "unit") or ""
         if not name or val is None:
             continue
+        if lang == "ja":
+            name = _localize_lab_name_ja(str(name))
         val_str = f"{val}"
         parts = f"{name} {val_str}"
         if unit:

@@ -1330,7 +1330,7 @@ class TemplateNarrativeGenerator:
                 _code_lookup(key, _o(c, "code", "") or "", ctx.target_lang) or (_o(c, "code", "") or "")
                 for c in conds[:4]
             ]
-            labels = [l for l in labels if l]
+            labels = [lbl for lbl in labels if lbl]
             if labels:
                 parts.append(f"併存疾患: {'、'.join(labels)}。")
         if not parts:
@@ -3155,7 +3155,7 @@ class TemplateNarrativeGenerator:
             barthel = _o(latest, "barthel_score", None)
             if barthel is not None:
                 facts.append("ctx.adl_assessments[-1]")
-                parts.append((f"退院時 Barthel {barthel}/100" if is_ja else f"Discharge Barthel {barthel}/100"))
+                parts.append(f"退院時 Barthel {barthel}/100" if is_ja else f"Discharge Barthel {barthel}/100")
         if risks:
             latest = risks[-1]
             fall = _o(latest, "fall_risk_level", None)
@@ -3172,7 +3172,7 @@ class TemplateNarrativeGenerator:
                     bits.append(f"転倒 {fall_disp}" if is_ja else f"fall {fall}")
                 if braden is not None:
                     bits.append(f"Braden {braden}")
-                parts.append(("、".join(bits) if is_ja else ", ".join(bits)))
+                parts.append("、".join(bits) if is_ja else ", ".join(bits))
         if parts:
             head = "退院準備: " if is_ja else "Discharge readiness: "
             return head + ("、".join(parts) if is_ja else "; ".join(parts)) + ("。" if is_ja else "."), facts

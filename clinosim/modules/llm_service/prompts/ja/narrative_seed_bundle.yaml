@@ -1,7 +1,7 @@
 task_type: narrative_seed_bundle
 version: 9
-max_tokens: 2000
-temperature: 0.3
+max_tokens: 3500
+temperature: 0.1
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
@@ -110,11 +110,82 @@ system: |
        When onset day is absent, write "入院中に" / "during the stay"
        and stop.
 
+  5. LOCALIZATION — for target_language=ja, render EN clinical tokens
+     as natural Japanese medical prose. Do NOT paste raw English enum
+     tokens or full English words when a canonical Japanese term
+     exists. The tables below are the ONLY authorized JP renderings —
+     do NOT invent variants.
+
+     A. Severity labels (mild/moderate/severe) — always translate:
+        mild        → 軽度
+        moderate    → 中等度
+        severe      → 重度
+        very severe → 最重度
+        critical    → 重篤
+       Example: "本態性高血圧 (Stage 1, mild)" → 「本態性高血圧 (Stage 1, 軽度)」
+
+     B. Discharge disposition / arrival mode — translate the label:
+        home / home_with_family / home_alone → 自宅退院
+        transfer_to_higher_care              → 転院（上位施設）
+        discharge_to_snf / needs_snf         → 介護保険施設入所
+        needs_home_care                       → 訪問看護導入
+        needs_rehab / discharge_to_rehab     → リハビリ転院
+        independent_home                     → 独居自宅退院
+        deceased                              → 死亡退院
+        walk_in / walk-in                    → 独歩来院
+        ambulance                             → 救急車搬送
+        helicopter                            → ヘリ搬送
+        transfer                              → 転院搬送
+
+     C. Oxygen delivery device (from supplemental_oxygen_today):
+        nasal_cannula → 経鼻カニューレ
+        oxygen_mask    → 酸素マスク
+        non_rebreather / reservoir_mask → リザーバーマスク
+        venturi        → ベンチュリーマスク
+        high_flow_nc   → ハイフローネーザル
+        room_air       → 大気吸入
+       Keep CPAP / BiPAP as-is (英字が日本でも標準).
+
+     D. Common English lab / observation NAMES — translate the name,
+        keep numeric value + unit verbatim:
+        Creatinine → クレアチニン       Glucose  → 血糖
+        Lactate    → 乳酸             Albumin  → アルブミン
+        Sodium     → ナトリウム        Potassium → カリウム
+        Chloride   → クロール          Calcium  → カルシウム
+        Magnesium  → マグネシウム       Phosphorus → リン
+        Bilirubin  → ビリルビン         Urea      → 尿素
+       KEEP as-is (国際標準略号として日本でも標準):
+        BUN, CRP, BNP, NT-proBNP, PCT, WBC, RBC, Hb, Hct, MCV, PT,
+        INR, PT-INR, PT_INR, APTT, HbA1c, LDL, HDL, TG, T-Bil, D-Bil,
+        AST, ALT, ALP, γ-GTP, LDH, eGFR, Cr, SpO2, PaO2, PaCO2, pH,
+        HCO3, Na, K, Cl, Ca, Mg, P.
+
+     E. Risk / assessment enum:
+        low_risk / low       → 低リスク
+        moderate_risk        → 中等度リスク
+        high_risk            → 高リスク
+        barthel_full         → Barthel 自立
+        barthel_good         → Barthel ほぼ自立
+        barthel_moderate     → Barthel 部分介助
+        barthel_poor         → Barthel 全介助レベル
+        barthel_dependent    → Barthel 全介助
+
+     F. Drug names — the pre-resolved context list is already katakana
+        (Rule 3). Do NOT retransliterate. If EN slips through from
+        context (rare), transliterate to Japanese katakana convention
+        (Amlodipine→アムロジピン, Enalapril→エナラプリル, etc.).
+
+     Rule 5 applies to every free-prose section (subjective /
+     assessment / plan / hpi / hospital_course / present_illness /
+     etc.). Structured list-style keys (past_medical_history,
+     medications_at_home, discharge_medications) already come
+     pre-localized from context — copy verbatim there.
+
   Natural narrative variance is allowed for realism: patient-voice
   phrasing for symptoms already in context, generic medical additions
   ("appetite normal", "bowel and bladder without complaint"), and
   stylistic diversity across patients — but never at the expense of
-  the four rule blocks above.
+  the five rule blocks above.
 
   === Trajectory shape by archetype ===
 

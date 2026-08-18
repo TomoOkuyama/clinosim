@@ -1,7 +1,7 @@
 task_type: narrative_seed_bundle
 version: 9
-max_tokens: 2000
-temperature: 0.3
+max_tokens: 3500
+temperature: 0.1
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
@@ -110,11 +110,28 @@ system: |
        When onset day is absent, write "入院中に" / "during the stay"
        and stop.
 
+  5. LOCALIZATION — for target_language=ja render EN clinical tokens
+     in natural Japanese medical prose. Severity: mild→軽度,
+     moderate→中等度, severe→重度, very severe→最重度, critical→重篤.
+     Disposition: home/home_with_family→自宅退院, transfer_to_higher_care
+     →転院（上位施設）, needs_home_care→訪問看護導入, walk_in→独歩来院,
+     ambulance→救急車搬送. Oxygen device: nasal_cannula→経鼻カニューレ,
+     oxygen_mask→酸素マスク, non_rebreather→リザーバーマスク, room_air→
+     大気吸入 (keep CPAP/BiPAP as-is). Full-English lab names:
+     Creatinine→クレアチニン, Glucose→血糖, Lactate→乳酸, Albumin→
+     アルブミン, Sodium→ナトリウム, Potassium→カリウム (keep standard
+     abbreviations BUN/CRP/BNP/WBC/PT-INR/eGFR/Na/K etc. as-is).
+     Risk: low_risk→低リスク, moderate_risk→中等度リスク, high_risk→
+     高リスク. Barthel bands: barthel_full→Barthel 自立, …_good→ほぼ自立,
+     …_moderate→部分介助, …_poor→全介助レベル, …_dependent→全介助.
+     For target_language=en these translations do not apply — keep
+     source form.
+
   Natural narrative variance is allowed for realism: patient-voice
   phrasing for symptoms already in context, generic medical additions
   ("appetite normal", "bowel and bladder without complaint"), and
   stylistic diversity across patients — but never at the expense of
-  the four rule blocks above.
+  the five rule blocks above.
 
   === Trajectory shape by archetype ===
 
