@@ -68,7 +68,9 @@ need — DUS is added value, not the primary fix.
 
 from __future__ import annotations
 
+import logging
 from collections import Counter, defaultdict
+from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.codes import get_system_uri
@@ -77,6 +79,18 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+
+logger = logging.getLogger(__name__)
+
+# session-88j P1-8: dwell time applied when an encounter has only a single
+# on-O2 vital timestamp (start == end after `_oxygen_session_period`).
+# Previously the caller silently `continue`d such encounters, losing every
+# short-observation O2 session — for real p=200 seed=300 JP cohorts these
+# accounted for a small but non-zero slice of on-O2 encounters. We fill
+# `end = start + 15 min` (mid-value of a typical hourly vitals sweep
+# window) and annotate the Procedure `note[]` so the estimate is explicit
+# and never confused with a recorded stop time.
+_SINGLE_TIMESTAMP_DWELL = timedelta(minutes=15)
 
 # SNOMED CT concept for oxygen therapy — well-established procedure code
 # recognised by JP Core / US Core consumers. Registered in
@@ -127,6 +141,31 @@ def _pick_device_mode(vitals_on_o2: list[Any]) -> str:
     if not devs:
         return ""
     return Counter(devs).most_common(1)[0][0]
+
+
+def _fill_single_timestamp_end(ts: str) -> str:
+    """Add ``_SINGLE_TIMESTAMP_DWELL`` to ``ts`` and return the ISO string.
+
+    Returns the input verbatim if the timestamp cannot be parsed — the caller
+    treats that as an unfillable session and drops it (logged with reason
+    ``same_ts_unparseable``). Accepts either naive or timezone-aware ISO 8601
+    inputs; the offset (or lack of one) is preserved so downstream
+    ``to_fhir_datetime`` treats the filled end identically to the original
+    start.
+    """
+    if not ts:
+        return ts
+    try:
+        # datetime.fromisoformat handles both naive ("2025-06-21T18:11:00")
+        # and offset-aware ("2025-06-21T18:11:00+09:00") variants used by CIF.
+        parsed = datetime.fromisoformat(ts)
+    except ValueError:
+        return ts
+    filled = parsed + _SINGLE_TIMESTAMP_DWELL
+    # Preserve the original suffix shape — isoformat drops microseconds
+    # when they are zero (matching the input format). This keeps
+    # to_fhir_datetime idempotent regardless of tz-awareness.
+    return filled.isoformat()
 
 
 def _oxygen_session_period(
@@ -263,10 +302,52 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
 
         session = _oxygen_session_period(order, enc_id, enc_end_idx.get(enc_id, ""), vitals)
         if not session:
+            # Observable drop reason: no on-O2 vitals for this encounter.
+            logger.info(
+                "oxygen_therapy: skipped encounter=%s reason=no_on_o2_vitals patient=%s",
+                enc_id,
+                ctx.patient_id,
+            )
             continue
         start, end, device_mode = session
-        if not start or not end or start == end:
+        session_filled_from_single_ts = False
+        if not start:
+            logger.info(
+                "oxygen_therapy: skipped encounter=%s reason=start_missing patient=%s",
+                enc_id,
+                ctx.patient_id,
+            )
             continue
+        if not end:
+            logger.info(
+                "oxygen_therapy: skipped encounter=%s reason=end_missing patient=%s",
+                enc_id,
+                ctx.patient_id,
+            )
+            continue
+        if start == end:
+            # session-88j P1-8: previously skipped. Now fill a short dwell
+            # window so short-observation O2 episodes still produce a
+            # Procedure with `performedPeriod` and are annotated so the
+            # estimate is auditable.
+            filled_end = _fill_single_timestamp_end(end)
+            if filled_end and filled_end != end:
+                end = filled_end
+                session_filled_from_single_ts = True
+                logger.info(
+                    "oxygen_therapy: same_ts_filled encounter=%s patient=%s dwell_minutes=%d",
+                    enc_id,
+                    ctx.patient_id,
+                    int(_SINGLE_TIMESTAMP_DWELL.total_seconds() // 60),
+                )
+            else:
+                logger.info(
+                    "oxygen_therapy: skipped encounter=%s reason=same_ts_unparseable patient=%s ts=%s",
+                    enc_id,
+                    ctx.patient_id,
+                    start,
+                )
+                continue
 
         order_id = str(_o(order, "order_id", "") or "") if order is not None else ""
         ordered_by = str(_o(order, "ordered_by", "") or "") if order is not None else ""
@@ -327,6 +408,15 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
         notes: list[dict[str, str]] = []
         if target_note:
             notes.append({"text": f"投与目標: {target_note}" if is_jp_out else f"Target: {target_note}"})
+        if session_filled_from_single_ts:
+            # session-88j P1-8: mark filled sessions so consumers can tell
+            # a recorded stop time from an estimated one.
+            _fill_note = (
+                "単一測定時点のみに基づく推定 (dwell 15 分)"
+                if is_jp_out
+                else "Estimated from a single on-O2 measurement (15 min dwell)"
+            )
+            notes.append({"text": _fill_note})
         if notes:
             procedure["note"] = notes
         # Procedure.usedCode carries the delivery device concept without
