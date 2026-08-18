@@ -913,6 +913,50 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
             dosage["asNeededBoolean"] = True
         parts.append(freq)
 
+    # session-88j P2-5b: Dosage.patientInstruction — derived from
+    # frequency label (qhs → 就寝前, ac → 食前, pc → 食後, prn → 頓用) so
+    # consumers get an actionable Japanese instruction rather than the
+    # bare structured timing.repeat. Explicit CIF-authored
+    # `patient_instruction` on the Order (Issue #476 opt-in pattern)
+    # takes precedence over the derived phrase.
+    _authored_instr = str(order.get("patient_instruction", "") or "")
+    _derived_instr = ""
+    if freq:
+        _flow_instr = freq.lower().strip()
+        if is_jp(country):
+            _instr_ja = {
+                "qhs": "就寝前",
+                "bedtime": "就寝前",
+                "at bedtime": "就寝前",
+                "hs": "就寝前",
+                "ac": "食前",
+                "before meal": "食前",
+                "before meals": "食前",
+                "pc": "食後",
+                "after meal": "食後",
+                "after meals": "食後",
+                "qam": "朝食後",
+                "qpm": "夕食後",
+                "prn": "頓用（必要時）",
+                "as needed": "頓用（必要時）",
+                "when required": "頓用（必要時）",
+            }
+            _derived_instr = _instr_ja.get(_flow_instr, "")
+        else:
+            _instr_en = {
+                "qhs": "at bedtime",
+                "bedtime": "at bedtime",
+                "hs": "at bedtime",
+                "ac": "before meals",
+                "pc": "after meals",
+                "prn": "as needed",
+                "as needed": "as needed",
+            }
+            _derived_instr = _instr_en.get(_flow_instr, "")
+    final_instr = _authored_instr or _derived_instr
+    if final_instr:
+        dosage["patientInstruction"] = final_instr
+
     # Text summary
     # Issue #476: when the disease author provided an explicit country-scoped
     # instruction, it wins over the auto-derived summary. This is intentional:
