@@ -44,6 +44,11 @@ narrative:
     # 品質評価の代替候補は model_map の large 側に置いて `--llm-config` の
     # override or model_map の書換で切替可能。
     model: "qwen3:32b-q4_K_M"
+    # Ollama 0.3+ `think` request-level option。Qwen 3 は capabilities に
+    # "thinking" を持つが、bundle strategy の JSON 出力用途では step-by-step
+    # reasoning は不要。false にすると latency が 5-10× 改善する
+    # (実測: V100 32GB で ~24 sec/call → ~3-5 sec/call)。
+    think: false
   model_map:
     # bundle strategy の narrative_seed_bundle は max_tokens=2000 で
     # medium tier を想定。small/medium/large 全て同一モデルで開始し、

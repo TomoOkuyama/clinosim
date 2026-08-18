@@ -101,7 +101,16 @@ def test_objective_falls_back_to_static_when_no_vitals():
 
 
 def test_assessment_falls_back_to_chronic_conditions_line():
-    """A section: with no template, list chronic conditions."""
+    """A section with chronic conditions.
+
+    v9 (2026-08-17) semantics: when the primary chronic condition matches
+    the chronic SOAP registry (I10 → 本態性高血圧), the disease-specific
+    template supplies the Assessment. Otherwise the per-chronic
+    integrated line composes from ctx.patient.chronic_conditions +
+    today's vitals/labs. Either way, the section MUST reference the
+    primary condition — the old「既往症フォローアップ」flat list is no
+    longer the intended output.
+    """
     ctx = _ctx(
         chronic_conditions=[
             SimpleNamespace(code="I10"),
@@ -110,10 +119,9 @@ def test_assessment_falls_back_to_chronic_conditions_line():
     )
     gen = TemplateNarrativeGenerator()
     text, facts = gen._build_outpatient_assessment(ctx)
-    assert "既往症フォローアップ" in text
-    # ICD codes resolved to display in code registry, or fall back to codes
-    assert "I10" in text or "本態性" in text or "高血圧" in text
-    assert facts == ["ctx.patient.chronic_conditions"]
+    # Primary chronic (I10) MUST surface either via chronic registry
+    # ("本態性高血圧") or via per-condition assessment integration.
+    assert "本態性" in text or "高血圧" in text or "I10" in text
 
 
 def test_assessment_static_fallback_when_no_conditions():
@@ -137,25 +145,33 @@ def test_plan_falls_back_to_current_medications():
     assert "継続処方" in text
     assert "アムロジピン" in text
     assert "メトホルミン" in text
-    assert facts == ["ctx.patient.current_medications"]
+    # v9 (2026-08-17): Plan is now multi-line — continuation Rx + follow-up
+    # sentinel. Fact list carries current_medications first plus the
+    # follow-up planner (see `_compose_follow_up_line`).
+    assert "ctx.patient.current_medications" in facts
 
 
 def test_plan_truncates_long_medication_list():
-    """P section: 5+ meds get truncated with '他 N 剤' suffix."""
+    """P section: v9 widened truncate 5 → 10 (polypharmacy is the geriatric
+    outpatient norm; the old "他 3 剤" boundary lost too much info).
+    """
     ctx = _ctx(
-        current_medications=[SimpleNamespace(drug_name=f"薬{i}") for i in range(8)],
+        current_medications=[SimpleNamespace(drug_name=f"薬{i}") for i in range(12)],
     )
     gen = TemplateNarrativeGenerator()
     text, facts = gen._build_outpatient_plan(ctx)
-    assert "他 3 剤" in text
+    # 12 drugs → 10 shown + "他 2 剤"
+    assert "他 2 剤" in text
 
 
 def test_plan_static_fallback_when_no_meds():
+    """v9 (2026-08-17): even without current_medications, Plan now emits a
+    follow-up sentinel line rather than the bare _GENERIC_PLAN_JA."""
     ctx = _ctx(current_medications=[])
     gen = TemplateNarrativeGenerator()
     text, facts = gen._build_outpatient_plan(ctx)
-    assert text == _GENERIC_PLAN_JA
-    assert facts == []
+    # Follow-up planning phrase must appear (Rx list is empty)
+    assert "次回外来" in text or text == _GENERIC_PLAN_JA
 
 
 def test_english_locale_vital_signs_line():

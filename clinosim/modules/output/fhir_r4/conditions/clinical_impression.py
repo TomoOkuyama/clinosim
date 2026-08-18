@@ -85,6 +85,27 @@ def _build_clinical_impression(imp: Any, patient_id: str, country: str = "US") -
         res["encounter"] = {"reference": f"Encounter/{encounter_id}"}
     if effective_dt:
         res["effectiveDateTime"] = effective_dt
+
+    # session-88j P1-12: LOINC visit-type code (34117-2 admission H&P /
+    # 11506-3 progress note / 18842-5 discharge summary). Populated by
+    # document/engine.py per encounter phase. If absent, `code` is
+    # omitted (backwards-compatible with pre-P1-12 CIF records).
+    code_loinc = _o(imp, "code_loinc", "") or ""
+    code_loinc_display = _o(imp, "code_loinc_display", "") or ""
+    if code_loinc:
+        code_dict: dict[str, Any] = {
+            "coding": [
+                {
+                    "system": "http://loinc.org",
+                    "code": code_loinc,
+                    **({"display": code_loinc_display} if code_loinc_display else {}),
+                }
+            ],
+        }
+        if code_loinc_display:
+            code_dict["text"] = code_loinc_display
+        res["code"] = code_dict
+
     if description:
         res["description"] = description
     if summary:

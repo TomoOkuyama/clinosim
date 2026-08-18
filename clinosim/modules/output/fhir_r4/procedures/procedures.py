@@ -198,15 +198,37 @@ def _build_procedure(
         else:
             _primary_ref = f"cond-{enc_id}-primary"
         resource["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
-    # CY7-17 (Chain-7): Procedure.reasonCode fallback — text-only citing the
-    # encounter's primary diagnosis when the CIF procedure record doesn't
-    # carry an explicit reason. FHIR R4 Procedure.reasonCode 0..*.
+    # session-88j P2-5a: Procedure.reasonCode with real ICD-10 coding from
+    # the encounter's clinical_diagnosis (was text-only generic template
+    # "入院時診断に基づく処置" for all procedures — v14 review flagged as
+    # uninformative). Preserves the existing text as fallback + as .text
+    # alongside the coding for consumers that fall back to text.
+    # CY7-17 (Chain-7): base fallback wording kept identical for
+    # backwards compatibility of CY7-17 assertions.
     if not resource.get("reasonCode"):
-        resource["reasonCode"] = [
-            {
-                "text": "入院時診断に基づく処置" if is_jp(country) else "Procedure indicated by encounter diagnosis",
-            }
-        ]
+        _dx = (record or {}).get("clinical_diagnosis", {}) or {}
+        _dx_code = _dx.get("discharge_diagnosis_code") or _dx.get("admission_diagnosis_code", "") or ""
+        _dx_display = _dx.get("discharge_diagnosis_display") or _dx.get("admission_diagnosis_display", "") or ""
+        _generic_text = "入院時診断に基づく処置" if is_jp(country) else "Procedure indicated by encounter diagnosis"
+        if _dx_code:
+            # Use country-scoped ICD-10 system key (JP=icd-10-mhlw, US=icd-10-cm)
+            # to stay consistent with Condition.code system emission.
+            _icd_key = system_key_for("diagnosis", country)
+            _display = _dx_display or (code_lookup(_icd_key, _dx_code, lang) or _dx_code)
+            resource["reasonCode"] = [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri(_icd_key),
+                            "code": _dx_code,
+                            "display": _display,
+                        }
+                    ],
+                    "text": _display or _generic_text,
+                }
+            ]
+        else:
+            resource["reasonCode"] = [{"text": _generic_text}]
 
     # bodySite (SNOMED)
     body_site_code = proc.get("body_site_code", "")

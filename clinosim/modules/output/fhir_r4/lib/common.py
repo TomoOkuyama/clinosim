@@ -913,6 +913,96 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
             dosage["asNeededBoolean"] = True
         parts.append(freq)
 
+    # session-88j P2-5b: Dosage.patientInstruction — derived from
+    # frequency label (qhs → 就寝前, ac → 食前, pc → 食後, prn → 頓用) so
+    # consumers get an actionable Japanese instruction rather than the
+    # bare structured timing.repeat. Explicit CIF-authored
+    # `patient_instruction` on the Order (Issue #476 opt-in pattern)
+    # takes precedence over the derived phrase.
+    _authored_instr = str(order.get("patient_instruction", "") or "")
+    _derived_instr = ""
+    # Also derive from freq_per_day when the raw freq label is absent —
+    # this covers the "dose+freq_per_day-only" order shape used by the
+    # discharge_prescription pipeline where `frequency` is left empty
+    # (v14 review found 15 MR under this shape had text="…1日1回" but
+    # `patientInstruction` empty).
+    if not freq and freq_per_day:
+        _pd_to_key = {1: "qd", 2: "bid", 3: "tid", 4: "qid", 6: "q4h", 8: "q3h", 12: "q2h"}
+        freq = _pd_to_key.get(int(freq_per_day), "")
+    if freq:
+        _flow_instr = freq.lower().strip()
+        _flow_instr_orig = str(freq).strip()  # JA has no case
+        if is_jp(country):
+            _instr_ja = {
+                # EN abbreviations (kept for interop when CIF passes en-freq)
+                "qhs": "就寝前",
+                "bedtime": "就寝前",
+                "at bedtime": "就寝前",
+                "hs": "就寝前",
+                "ac": "食前",
+                "before meal": "食前",
+                "before meals": "食前",
+                "pc": "食後",
+                "after meal": "食後",
+                "after meals": "食後",
+                "qam": "朝食後",
+                "qpm": "夕食後",
+                "prn": "頓用（必要時）",
+                "as needed": "頓用（必要時）",
+                "when required": "頓用（必要時）",
+                # session-88j v14 review — CIF Order.frequency is the primary
+                # source (dosage.text carries the derived JA "1日1回" only
+                # after `_derive_usage_display_from_timing` post-processing).
+                # Map the primary EN freq strings so patientInstruction is
+                # populated at emit time.
+                "qd": "毎日1回、指示された時間帯に内服してください",
+                "q24h": "毎日1回、指示された時間帯に内服してください",
+                "once daily": "毎日1回、指示された時間帯に内服してください",
+                "daily": "毎日1回、指示された時間帯に内服してください",
+                "1x/day": "毎日1回、指示された時間帯に内服してください",
+                "bid": "毎日2回、朝・夕の指示された時間帯に内服してください",
+                "q12h": "12時間ごとに内服してください",
+                "twice daily": "毎日2回、朝・夕の指示された時間帯に内服してください",
+                "2x/day": "毎日2回、朝・夕の指示された時間帯に内服してください",
+                "tid": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
+                "q8h": "8時間ごとに内服してください",
+                "three times daily": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
+                "3x/day": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
+                "qid": "毎日4回、指示された時間帯に内服してください",
+                "q6h": "6時間ごとに内服してください",
+                "four times daily": "毎日4回、指示された時間帯に内服してください",
+                "4x/day": "毎日4回、指示された時間帯に内服してください",
+                "q4h": "4時間ごとに内服してください",
+                "q3h": "3時間ごとに内服してください",
+                "q2h": "2時間ごとに内服してください",
+                # And the derived JA display forms (for callers that pass those).
+                "1日1回": "毎日1回、指示された時間帯に内服してください",
+                "1日2回": "毎日2回、朝・夕の指示された時間帯に内服してください",
+                "1日3回": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
+                "1日4回": "毎日4回、指示された時間帯に内服してください",
+                "6時間ごと": "6時間ごとに内服してください",
+                "8時間ごと": "8時間ごとに内服してください",
+                "12時間ごと": "12時間ごとに内服してください",
+                "頓服": "症状のある時にのみ服用してください",
+                "頓用": "症状のある時にのみ服用してください",
+            }
+            # Prefer JA-key lookup (case preserved), fall back to lowercased for EN.
+            _derived_instr = _instr_ja.get(_flow_instr_orig, "") or _instr_ja.get(_flow_instr, "")
+        else:
+            _instr_en = {
+                "qhs": "at bedtime",
+                "bedtime": "at bedtime",
+                "hs": "at bedtime",
+                "ac": "before meals",
+                "pc": "after meals",
+                "prn": "as needed",
+                "as needed": "as needed",
+            }
+            _derived_instr = _instr_en.get(_flow_instr, "")
+    final_instr = _authored_instr or _derived_instr
+    if final_instr:
+        dosage["patientInstruction"] = final_instr
+
     # Text summary
     # Issue #476: when the disease author provided an explicit country-scoped
     # instruction, it wins over the auto-derived summary. This is intentional:

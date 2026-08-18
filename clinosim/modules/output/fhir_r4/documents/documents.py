@@ -271,6 +271,18 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
         ],
     }
 
+    # session-88j P2-4: DocumentReference.description — first non-empty
+    # line of the narrative body (≤100 chars). Consumers list documents
+    # by (type + date + description); with description=null they see only
+    # type+date and cannot distinguish sibling documents of the same
+    # type (e.g. three progress notes on the same admission day). The
+    # attachment.data (base64) still carries the full body verbatim;
+    # description is purely a list-view identification aid, so a
+    # deterministic first-line snippet is sufficient — no interpretation.
+    _first_line = next((_ln.strip() for _ln in text.splitlines() if _ln.strip()), "")
+    if _first_line:
+        resource["description"] = _first_line[:100]
+
     # Author (Practitioner reference)
     author_id = _o(doc, "author_practitioner_id", "")
     if author_id:

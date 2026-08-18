@@ -614,3 +614,84 @@ def test_social_history_section_includes_smoking() -> None:
     # smoking_status = "former" should appear as "元喫煙者" or similar
     has_smoking = "喫煙" in social_text or "smoking" in social_text.lower()
     assert has_smoking, f"smoking status not found in social_history: {social_text!r}"
+
+
+# ─────────────────────────────────────────────────────────────────
+# 14. v6 (2026-08-16) — localization + per-day vitals
+# ─────────────────────────────────────────────────────────────────
+
+
+def test_social_history_localizes_occupation_ja() -> None:
+    """v6: occupation `retired` MUST render as `退職` in JA (was leaking
+    raw English into 96-yo 女性 の 職業 line)."""
+    spec = _get_spec(DocumentType.ADMISSION_HP)
+    ctx = _make_ctx(document_type=DocumentType.ADMISSION_HP, target_lang="ja")
+    ctx.patient.occupation = "retired"
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, spec)
+    social_text = out.sections.get("social_history", "")
+    assert "退職" in social_text
+    assert "retired" not in social_text.lower()
+
+
+def test_social_history_localizes_alcohol_social_ja() -> None:
+    """v6: alcohol_use `social` MUST render as `社交的飲酒` in JA
+    (was falling back to `飲酒状況不明` — information loss)."""
+    spec = _get_spec(DocumentType.ADMISSION_HP)
+    ctx = _make_ctx(document_type=DocumentType.ADMISSION_HP, target_lang="ja")
+    ctx.patient.alcohol_use = "social"
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, spec)
+    social_text = out.sections.get("social_history", "")
+    assert "社交的飲酒" in social_text
+    assert "飲酒状況不明" not in social_text
+
+
+def test_social_history_unmapped_occupation_falls_through() -> None:
+    """Defensive default: unmapped occupations render the raw token
+    (rather than being silently dropped) so novel population values
+    surface for follow-up curation."""
+    spec = _get_spec(DocumentType.ADMISSION_HP)
+    ctx = _make_ctx(document_type=DocumentType.ADMISSION_HP, target_lang="ja")
+    ctx.patient.occupation = "space_pilot"
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, spec)
+    social_text = out.sections.get("social_history", "")
+    assert "space_pilot" in social_text
+
+
+def test_filter_vitals_for_day_uses_timestamp_when_day_field_missing() -> None:
+    """v6 root-cause fix for POP-000075 "T=38.1°C 15日連続同一値" bug.
+
+    Current CIF vitals leave ``day=None``; the day filter must fall
+    back to a timestamp-derived offset against admission_datetime.
+    """
+    from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
+
+    encounter = SimpleNamespace(admission_datetime=datetime(2026, 3, 28, 0, 0))
+    vitals = [
+        SimpleNamespace(timestamp="2026-03-28T02:01:00", temperature_celsius=38.0, day=None),
+        SimpleNamespace(timestamp="2026-03-29T02:01:00", temperature_celsius=37.5, day=None),
+        SimpleNamespace(timestamp="2026-03-30T02:01:00", temperature_celsius=37.0, day=None),
+    ]
+    day0 = _filter_vitals_for_day(vitals, 0, encounter)
+    day1 = _filter_vitals_for_day(vitals, 1, encounter)
+    day2 = _filter_vitals_for_day(vitals, 2, encounter)
+    assert len(day0) == 1 and day0[0].temperature_celsius == 38.0
+    assert len(day1) == 1 and day1[0].temperature_celsius == 37.5
+    assert len(day2) == 1 and day2[0].temperature_celsius == 37.0
+
+
+def test_filter_vitals_for_day_honours_explicit_day_field() -> None:
+    """When any vital carries an explicit day field, the timestamp
+    fallback MUST NOT kick in (day-tagged data is authoritative)."""
+    from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
+
+    vitals = [
+        SimpleNamespace(day=0, timestamp=None, temperature_celsius=38.0),
+        SimpleNamespace(day=1, timestamp=None, temperature_celsius=37.5),
+    ]
+    assert _filter_vitals_for_day(vitals, 0, None)[0].temperature_celsius == 38.0
+    assert _filter_vitals_for_day(vitals, 1, None)[0].temperature_celsius == 37.5
+    # No day-2 tagged; must return [] not fall back to first
+    assert _filter_vitals_for_day(vitals, 2, None) == []

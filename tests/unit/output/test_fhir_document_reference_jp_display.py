@@ -130,3 +130,62 @@ def test_attachment_data_still_base64_encoded_regardless_of_locale() -> None:
     assert res is not None
     data_b64 = res["content"][0]["attachment"]["data"]
     assert base64.b64decode(data_b64).decode("utf-8") == "Hello 日本"
+
+
+# === session-88j P2-4: DocumentReference.description snippet ===
+
+
+def test_description_populated_with_first_non_empty_line() -> None:
+    """P2-4: description carries the first non-empty line of the narrative
+    body so consumers can distinguish sibling documents of the same type
+    in list views (before this fix, `.description` was null on every
+    DocumentReference and the UI could show only type + date)."""
+    body = "本日、経過安定。バイタルサイン正常。\n次行は無視される。"
+    res = _build_dref_from_clinical_doc(_doc_stub("11506-3"), _narr(body), patient_id="pt-1", country="JP")
+    assert res is not None
+    assert res.get("description") == "本日、経過安定。バイタルサイン正常。"
+
+
+def test_description_capped_at_100_chars() -> None:
+    """P2-4: description is a list-view snippet, not the full body — must
+    not exceed 100 chars (attachment.data still carries the full text)."""
+    long_line = "あ" * 200  # 200-char Japanese
+    res = _build_dref_from_clinical_doc(_doc_stub("11506-3"), _narr(long_line), patient_id="pt-1", country="JP")
+    assert res is not None
+    assert len(res["description"]) == 100
+    assert res["description"] == "あ" * 100
+
+
+def test_description_skips_leading_blank_lines() -> None:
+    """P2-4: leading blank / whitespace-only lines don't become the
+    description — the first line with content wins."""
+    body = "\n\n   \n実際の記録内容はここから始まる。\n他行。"
+    res = _build_dref_from_clinical_doc(_doc_stub("11506-3"), _narr(body), patient_id="pt-1", country="JP")
+    assert res is not None
+    assert res["description"] == "実際の記録内容はここから始まる。"
+
+
+def test_description_omitted_when_body_is_whitespace_only() -> None:
+    """P2-4: an all-whitespace body should not emit a stub description.
+    (In practice the outer builder short-circuits to None on empty text,
+    so this pins the invariant that we never emit `description: ""`.)"""
+    # A body with only whitespace triggers the outer `if not text: return None`
+    # guard, so the resource itself is None — description never appears.
+    res = _build_dref_from_clinical_doc(_doc_stub("11506-3"), _narr("   \n\n   "), patient_id="pt-1", country="JP")
+    # Either None (short-circuit) or a resource whose description is absent —
+    # both are acceptable; the invariant is that we never emit a blank string.
+    if res is not None:
+        assert "description" not in res or res["description"]
+
+
+def test_description_attachment_data_independence() -> None:
+    """P2-4: the full body still lives verbatim in attachment.data
+    (base64) — description is additive, not a replacement."""
+    body = "先頭行の要約。\n二行目以降に本文の詳細が続く。\n三行目もある。"
+    res = _build_dref_from_clinical_doc(_doc_stub("11506-3"), _narr(body), patient_id="pt-1", country="JP")
+    assert res is not None
+    # description has only the first line
+    assert res["description"] == "先頭行の要約。"
+    # attachment.data still carries the full body
+    decoded = base64.b64decode(res["content"][0]["attachment"]["data"]).decode("utf-8")
+    assert decoded == body

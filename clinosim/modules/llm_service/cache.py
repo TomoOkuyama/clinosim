@@ -22,6 +22,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import tempfile
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +32,12 @@ from .providers.base import ProviderResponse
 
 
 class PromptCache:
-    """Content-addressed disk cache for LLM responses."""
+    """Content-addressed disk cache for LLM responses.
+
+    Thread-safe: internal counters guarded by a Lock, disk writes are
+    atomic (temp file + rename) so concurrent readers never see torn
+    JSON. Safe to share one PromptCache across N narrate worker threads.
+    """
 
     def __init__(
         self,
@@ -43,6 +51,7 @@ class PromptCache:
         self.misses = 0
         self.writes = 0
         self.dir: Path | None = Path(cache_dir) if cache_dir else None
+        self._lock = threading.Lock()
         if self.enabled and self.dir:
             self.dir.mkdir(parents=True, exist_ok=True)
 
@@ -67,14 +76,17 @@ class PromptCache:
         key = self._hash(system, user, model)
         path = self._path_for(key)
         if not path.exists():
-            self.misses += 1
+            with self._lock:
+                self.misses += 1
             return None
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
-            self.misses += 1
+            with self._lock:
+                self.misses += 1
             return None
-        self.hits += 1
+        with self._lock:
+            self.hits += 1
         return ProviderResponse(
             text=data.get("text", ""),
             input_tokens=int(data.get("input_tokens", 0)),
@@ -98,16 +110,28 @@ class PromptCache:
             "latency_ms": response.latency_ms,
             "metadata": response.metadata or {},
         }
-        path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2),
+        # Atomic write: temp file in same dir + os.replace so concurrent
+        # get() either sees the previous JSON or the new one, never a
+        # torn write.
+        with tempfile.NamedTemporaryFile(
+            "w",
             encoding="utf-8",
-        )
-        self.writes += 1
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as tf:
+            json.dump(payload, tf, ensure_ascii=False, indent=2)
+            tmp_path = tf.name
+        os.replace(tmp_path, path)
+        with self._lock:
+            self.writes += 1
 
     def stats(self) -> dict[str, int]:
-        return {
-            "hits": self.hits,
-            "misses": self.misses,
-            "writes": self.writes,
-            "enabled": 1 if self.enabled else 0,
-        }
+        with self._lock:
+            return {
+                "hits": self.hits,
+                "misses": self.misses,
+                "writes": self.writes,
+                "enabled": 1 if self.enabled else 0,
+            }

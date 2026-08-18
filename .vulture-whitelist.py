@@ -390,6 +390,19 @@ _.ABX_NARROW_SUFFIX  # modules/antibiotic/engine.py:52 (tests/unit/test_antibiot
 _.ICD_COUGH  # modules/diagnosis/nonspecific_codes.py:33 (tests/unit/simulator/test_r05_cough_not_wrong_diagnosis.py)
 _.ARCHETYPE_EXPRESSION_VARS  # modules/clinical_course/engine.py:86 (tests/unit/modules/clinical_course/test_archetype_modifiers.py)
 
+# session-88j: hedging helpers only called from tests today (template
+# generator will consume them in a follow-up PR when the hedging
+# language layer is wired end-to-end into the composer).
+_.hedged_phrase  # modules/document/narrative/_hedging.py:34 (tests/unit/modules/document/narrative/test_hedging.py imports)
+_.has_topic  # modules/document/narrative/_hedging.py:87 (same test file)
+
+# session-88j Phase B: JA localizer helpers exported for future use —
+# risk-level / Barthel-band tokens appear in narrative context payloads
+# but no code path renders them yet. Tests pin the mapping so a future
+# consumer inherits an already-validated behavior.
+_._localize_risk_level_ja  # modules/document/narrative/replacement_strategy.py:234 (tests/unit/test_narrate_context_localization_ja.py imports)
+_._localize_barthel_band_ja  # modules/document/narrative/replacement_strategy.py:239 (same test file)
+
 
 # =============================================================================
 # Category E — Attributes set by simulator, read by output / eval layer

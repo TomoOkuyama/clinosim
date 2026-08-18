@@ -478,3 +478,147 @@ class TestPanelYAMLs:
         # example. After PR #78 (Cl/Ca added) that example is no longer
         # accurate; UA's urine analytes are the only remaining silent-drops.
         assert "Cl/Ca in BMP today" not in text
+
+
+def _order_with_result(lab_name, when, idx, *, value, unit="", flag=""):
+    """Richer order helper for P1-10 conclusion tests (value/unit/flag)."""
+    result = {"lab_name": lab_name, "value": value, "result_datetime": when}
+    if unit:
+        result["unit"] = unit
+    if flag:
+        result["flag"] = flag
+    return {
+        "order_type": "lab",
+        "order_code": lab_name,
+        "display_name": lab_name,
+        "result": result,
+    }
+
+
+@pytest.mark.unit
+class TestPanelConclusion:
+    """P1-10 session-88j META #774 follow-up.
+
+    ``build_dr_resource`` populates ``conclusion`` from the contributing
+    Observations' values + flags — fact-only aggregation, no clinical
+    interpretation. Legacy callers that omit ``orders`` fall through to
+    the PR #791 baseline (no conclusion emitted) so pre-P1-10 tests keep
+    passing untouched.
+    """
+
+    def _group(self):
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel
+
+        return _GroupedPanel(
+            panel_name="LFT",
+            bucket="2026-05-12",
+            obs_refs=[
+                "lab-ENC-001-0000",
+                "lab-ENC-001-0001",
+                "lab-ENC-001-0002",
+                "lab-ENC-001-0003",
+            ],
+        )
+
+    def _orders_lft(self):
+        return [
+            _order_with_result("AST", "2026-05-12T14:28:38", 0, value=84.0, unit="U/L", flag="H"),
+            _order_with_result("ALT", "2026-05-12T14:28:38", 1, value=52.0, unit="U/L"),
+            _order_with_result("ALP", "2026-05-12T14:28:38", 2, value=92, unit="U/L"),
+            _order_with_result("T-Bil", "2026-05-12T14:28:38", 3, value=0.9, unit="mg/dL"),
+        ]
+
+    def test_conclusion_ja_lists_values_and_flags(self):
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import build_dr_resource
+
+        r = build_dr_resource(
+            self._group(),
+            patient_id="POP-000002",
+            encounter_id="ENC-001",
+            country="JP",
+            performer_ref=None,
+            issued=None,
+            seq=0,
+            orders=self._orders_lft(),
+        )
+        assert "conclusion" in r
+        c = r["conclusion"]
+        assert "AST 84 U/L [H]" in c
+        assert "ALT 52 U/L" in c
+        assert "ALP 92 U/L" in c
+        assert "T-Bil 0.9 mg/dL" in c
+        assert "、" in c
+        assert "参照範囲外: AST" in c
+        for forbidden in ("経過観察", "薬剤性", "疑い", "考慮"):
+            assert forbidden not in c, f"unattributed clinical claim leaked: {forbidden!r}"
+
+    def test_conclusion_en_uses_comma_joiner_and_out_of_range(self):
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import build_dr_resource
+
+        r = build_dr_resource(
+            self._group(),
+            patient_id="POP-000002",
+            encounter_id="ENC-001",
+            country="US",
+            performer_ref=None,
+            issued=None,
+            seq=0,
+            orders=self._orders_lft(),
+        )
+        c = r["conclusion"]
+        assert "AST 84 U/L [H]" in c
+        assert ", " in c and "、" not in c
+        assert "Out of reference range: AST" in c
+
+    def test_conclusion_no_flagged_analytes_omits_range_sentence(self):
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
+
+        g = _GroupedPanel(
+            panel_name="CBC",
+            bucket="2026-05-12",
+            obs_refs=["lab-ENC-001-0000", "lab-ENC-001-0001"],
+        )
+        orders = [
+            _order_with_result("WBC", "2026-05-12T14:28:38", 0, value=6.5, unit="10*3/uL"),
+            _order_with_result("Hb", "2026-05-12T14:28:38", 1, value=13.2, unit="g/dL"),
+        ]
+        r = build_dr_resource(g, "P", "ENC-001", "JP", None, None, 0, orders=orders)
+        c = r["conclusion"]
+        assert "WBC 6.5 10*3/uL" in c and "Hb 13.2 g/dL" in c
+        assert "参照範囲外" not in c
+        assert "Out of reference range" not in c
+
+    def test_conclusion_abg_mixed_flags_lists_each_flagged_name(self):
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
+
+        g = _GroupedPanel(
+            panel_name="ABG",
+            bucket="2026-05-12",
+            obs_refs=["lab-ENC-001-0000", "lab-ENC-001-0001", "lab-ENC-001-0002"],
+        )
+        orders = [
+            _order_with_result("pH", "2026-05-12T14:28:38", 0, value=7.32, flag="L"),
+            _order_with_result("PaCO2", "2026-05-12T14:28:38", 1, value=48, unit="mmHg", flag="H"),
+            _order_with_result("HCO3", "2026-05-12T14:28:38", 2, value=22, unit="mmol/L"),
+        ]
+        r = build_dr_resource(g, "P", "ENC-001", "US", None, None, 0, orders=orders)
+        c = r["conclusion"]
+        assert "pH 7.32 [L]" in c
+        assert "PaCO2 48 mmHg [H]" in c
+        assert "HCO3 22 mmol/L" in c
+        assert "Out of reference range: pH, PaCO2" in c
+
+    def test_missing_orders_arg_omits_conclusion_backwards_compat(self):
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
+
+        g = _GroupedPanel(panel_name="CBC", bucket="2026-05-12", obs_refs=["lab-ENC-001-0000"])
+        r = build_dr_resource(g, "P", "ENC-001", "JP", None, None, 0)
+        assert "conclusion" not in r
+
+    def test_empty_orders_or_missing_result_omits_conclusion(self):
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
+
+        g = _GroupedPanel(panel_name="CBC", bucket="2026-05-12", obs_refs=["lab-ENC-001-0000"])
+        orders = [{"order_type": "lab", "display_name": "WBC", "result": None}]
+        r = build_dr_resource(g, "P", "ENC-001", "JP", None, None, 0, orders=orders)
+        assert "conclusion" not in r

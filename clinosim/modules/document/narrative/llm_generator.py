@@ -19,6 +19,7 @@ opt-in is the explicit CLI choice ``narrate --provider bedrock|ollama|mock``
 from __future__ import annotations
 
 import logging
+import threading
 
 from clinosim.modules.document.narrative.cache import NarrativeCache
 from clinosim.modules.document.narrative.replacement_strategy import (
@@ -80,11 +81,16 @@ class LLMNarrativeGenerator:
         self.eligible_docs = 0
         self.fallback_docs = 0
         self.fallback_reasons: list[str] = []
+        # Counters are read/written from N narrate worker threads when
+        # concurrency > 1; wrap increments/appends in a Lock so the
+        # manifest stats reflect the true count, not a torn one.
+        self._counters_lock = threading.Lock()
 
     def _record_fallback(self, reason: str) -> None:
-        self.fallback_docs += 1
-        if len(self.fallback_reasons) < self._MAX_FALLBACK_REASONS and reason not in self.fallback_reasons:
-            self.fallback_reasons.append(reason)
+        with self._counters_lock:
+            self.fallback_docs += 1
+            if len(self.fallback_reasons) < self._MAX_FALLBACK_REASONS and reason not in self.fallback_reasons:
+                self.fallback_reasons.append(reason)
 
     def generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
         """Produce NarrativeOutput, optionally with LLM-enhanced sections."""
@@ -99,7 +105,8 @@ class LLMNarrativeGenerator:
             spec.llm_enabled_sections
         )
         if llm_eligible:
-            self.eligible_docs += 1
+            with self._counters_lock:
+                self.eligible_docs += 1
 
         # Path 1: LLM not configured → template fallback + WARN
         if self.llm is None:
@@ -129,7 +136,8 @@ class LLMNarrativeGenerator:
             )
             llm_output.metadata["generator"] = "llm" if llm_eligible else "template"
             if llm_eligible:
-                self.llm_docs += 1
+                with self._counters_lock:
+                    self.llm_docs += 1
             return llm_output
         except Exception as exc:
             # Path 3: strategy failed → template fallback + WARN

@@ -1,7 +1,7 @@
 task_type: narrative_seed
 version: 2
-max_tokens: 800
-temperature: 0.4
+max_tokens: 1500
+temperature: 0.1
 description: |
   Template-as-seed section 置換(Idea D、Tier 1 #3 master plan §3)。
   stage2_strategy=template_seed の DocumentTypeSpec に対して

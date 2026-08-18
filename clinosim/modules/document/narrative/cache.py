@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key
@@ -101,6 +102,12 @@ def demographics_bucket(patient: Any) -> str:
 class NarrativeCache:
     """In-memory cache for LLM-generated narrative sections.
 
+    Thread-safe: reads and writes are guarded by a Lock so N narrate
+    worker threads can share one cache instance. A concurrent put/put
+    race on the same key resolves to whichever thread wins the lock last;
+    because the value under a key is deterministic (same clinical bucket
+    → same generated text), either winner is equivalent for quality.
+
     No eviction policy: entries accumulate for the lifetime of the process
     (session cache). Call ``clear()`` between simulation runs if memory is a
     concern or when forcing a full regeneration.
@@ -108,21 +115,26 @@ class NarrativeCache:
 
     def __init__(self) -> None:
         self._store: dict[str, str] = {}
+        self._lock = threading.Lock()
 
     def get(self, key: str) -> str | None:
         """Return cached value for key, or None on cache miss."""
-        return self._store.get(key)
+        with self._lock:
+            return self._store.get(key)
 
     def put(self, key: str, value: str) -> None:
         """Store value under key."""
-        self._store[key] = value
+        with self._lock:
+            self._store[key] = value
 
     def clear(self) -> None:
         """Flush all cached values."""
-        self._store.clear()
+        with self._lock:
+            self._store.clear()
 
     def __len__(self) -> int:
-        return len(self._store)
+        with self._lock:
+            return len(self._store)
 
 
 # Module-level default cache shared across the process; tests can instantiate

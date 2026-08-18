@@ -227,3 +227,12 @@ class ClinicalImpressionRecord:
     # encounter. All prior days remain "completed" (clinical picture was fully documented).
     # Drives ClinicalImpression.status "in-progress" vs "completed" in _fhir_clinical_impression.py.
     is_in_progress: bool = False
+    # session-88j P1-12: LOINC visit-type code for
+    # ClinicalImpression.code (was null for 7,764/7,764 in v14 review).
+    # Populated by document/engine.py per encounter phase:
+    #   brief admission / admission workup → 34117-2 (H&P)
+    #   pre-discharge review               → 18842-5 (Discharge summary)
+    #   progress days                      → 11506-3 (Progress note)
+    # Empty string ⇒ builder omits `code` (backwards compatible).
+    code_loinc: str = ""
+    code_loinc_display: str = ""  # human-readable JP/EN label for the LOINC code

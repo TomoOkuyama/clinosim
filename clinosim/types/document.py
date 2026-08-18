@@ -124,12 +124,23 @@ class DocumentTypeSpec:
     def llm_enabled_sections_for(self, country: str) -> tuple[str, ...]:
         """Return the LLM-replacement section list for ``country``.
 
-        The JP path returns ``llm_enabled_sections_jp`` when it is
-        populated, otherwise falls back to ``llm_enabled_sections``.
-        The US path always returns ``llm_enabled_sections``.
+        v6 (2026-08-16): ``llm_enabled_sections_jp`` is ADDITIVE — the
+        JP path returns the UNION of ``llm_enabled_sections`` (universal)
+        and ``llm_enabled_sections_jp`` (JP-only extra sections, e.g.
+        JP-CLINS eDS ``present_illness``). Earlier revisions REPLACED
+        the universal list with the JP list, silently dropping
+        ``hospital_course`` and ``discharge_instructions`` from LLM
+        replacement for JP discharge_summary — producing the "identical
+        template hospital_course across 11 patients" symptom the v8
+        review flagged. The US path always returns
+        ``llm_enabled_sections`` unchanged.
         """
         if is_jp(country) and self.llm_enabled_sections_jp:
-            return self.llm_enabled_sections_jp
+            merged: list[str] = list(self.llm_enabled_sections)
+            for s in self.llm_enabled_sections_jp:
+                if s not in merged:
+                    merged.append(s)
+            return tuple(merged)
         return self.llm_enabled_sections
 
 
@@ -194,6 +205,26 @@ class NarrativeContext:
     # list[RehabSession] (clinosim/types/procedure.py) — unfiltered, mirrors the
     # existing `procedures` field's record-wide (not per-encounter) scope.
     rehab_sessions: list[Any] = field(default_factory=list)
+
+    # === session-88j v6 (2026-08-16, inpatient blocker fix) ===
+    # Complication tokens fired by the daily loop (e.g. "pneumothorax",
+    # "aspiration_pneumonia"). Sourced from record.complications_occurred.
+    # v5 dropped these entirely — inpatient discharge_summary /
+    # progress_note / admission_hp had no way to surface a pneumothorax
+    # that actually happened. Consumed by _build_extra_context to feed
+    # the LLM prompt.
+    complications_occurred: list[str] = field(default_factory=list)
+
+    # === v9 (2026-08-17) nursing density fix ===
+    # ADL / risk / intake-output snapshots consumed by nursing template
+    # builders (`_build_adl_assessment`, `_build_risk_assessments`,
+    # `_build_nursing_history` etc.). Sourced from
+    # record.adl_assessments / record.nursing_risk_assessments /
+    # record.intake_output_records. Empty list is the safe default —
+    # template falls through to a hedged phrase rather than fabricating.
+    adl_assessments: list[Any] = field(default_factory=list)
+    nursing_risk_assessments: list[Any] = field(default_factory=list)
+    intake_output_records: list[Any] = field(default_factory=list)
 
 
 @dataclass

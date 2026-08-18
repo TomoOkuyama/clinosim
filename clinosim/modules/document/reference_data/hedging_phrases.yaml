@@ -1,0 +1,131 @@
+# Hedging phrase registry — narrative template density improvement (2026-08-17).
+#
+# Purpose: enforce the design principle "Template = adequate density on its
+# own, LLM = optional quality enhancement". When a narrative section needs
+# to reference SCENARIO-derived information (未確定情報 — expected symptoms
+# / typical trajectory / differential diagnoses etc.) that is NOT backed by
+# a confirmed CIF record (measured labs / actual medications / observed
+# events), the text MUST be softened to avoid asserting scenario as fact.
+#
+# Consumed by ``_hedged_phrase(topic, confirmed, ctx)`` in template_generator.py.
+# The helper looks up ``topic`` and picks a phrase list keyed on
+# ``confirmed`` (bool). Phrases contain a single ``{value}`` placeholder
+# that receives the localized noun.
+#
+# Design contract:
+#   - CONFIRMED branch  → 断定形 ("患者は{value}を訴える。")
+#   - UNCONFIRMED branch → 不在の明示 / possibility phrasing
+#                          ("本疾患で典型的な{value}は本日訴えなし。"
+#                           "The typical {value} for this condition was
+#                           not endorsed today.")
+#
+# Adding a new topic:
+#   1. Pick a stable key (snake_case, e.g. `chest_pain`, `dyspnea`)
+#   2. Provide `confirmed` and `unconfirmed` lists in both `ja` and `en`
+#   3. Every phrase MUST carry exactly one `{value}` placeholder
+#   4. Optional: `neutral` list for cases where the topic is neither
+#      confirmed nor unconfirmed (used e.g. for "sedation status TBD")
+
+# ── Symptom-class hedging ─────────────────────────────────────────
+symptom:
+  confirmed:
+    ja:
+      - "{value}の訴えあり。"
+      - "{value}を主訴として来院。"
+      - "本日は{value}が持続。"
+    en:
+      - "{value} reported."
+      - "Presenting with {value}."
+      - "{value} persists today."
+  unconfirmed:
+    ja:
+      - "本疾患で典型的な{value}は本日訴えなし。"
+      - "{value}等の可能性を考慮すべきだが、現時点で明確な訴えなし。"
+      - "{value}の記録はなく、次回受診時に確認予定。"
+    en:
+      - "Typical {value} for this condition was not endorsed today."
+      - "{value} is a consideration but no clear complaint currently."
+      - "{value} was not documented; will reassess at follow-up."
+
+# ── Trajectory / archetype hedging ────────────────────────────────
+trajectory:
+  confirmed:
+    ja:
+      - "経過は{value}を辿っている。"
+      - "現在の経過は{value}と一致する。"
+    en:
+      - "Clinical course is following a {value} pattern."
+      - "Present course is consistent with {value}."
+  unconfirmed:
+    ja:
+      - "{value}の想定にあり、本日時点では逸脱所見なし。"
+      - "typical {value} pattern が想定されるが、確定所見は経過観察を要す。"
+    en:
+      - "The {value} trajectory is expected; no deviation observed today."
+      - "A typical {value} pattern is anticipated, pending further observation."
+
+# ── Lab / imaging-finding hedging ─────────────────────────────────
+lab_finding:
+  confirmed:
+    ja:
+      - "検査で{value}を認める。"
+      - "本日の検査結果: {value}。"
+    en:
+      - "Lab results show {value}."
+      - "Today's workup: {value}."
+  unconfirmed:
+    ja:
+      - "本疾患で{value}が想定されるが、確認のため追加検査を予定。"
+      - "{value}の可能性を考慮し、経過フォロー中。"
+    en:
+      - "{value} would be expected for this condition; additional workup planned."
+      - "{value} is a consideration; monitoring in progress."
+
+# ── Treatment / plan hedging ──────────────────────────────────────
+treatment:
+  confirmed:
+    ja:
+      - "{value}を継続。"
+      - "本日{value}を実施。"
+    en:
+      - "{value} continued."
+      - "{value} administered today."
+  unconfirmed:
+    ja:
+      - "{value}の適応を検討中。"
+      - "{value}は必要に応じて追加を予定。"
+    en:
+      - "{value} is under consideration."
+      - "{value} may be added as clinically indicated."
+
+# ── Complication hedging (post-event assertion vs anticipation) ──
+complication:
+  confirmed:
+    ja:
+      - "経過中に{value}を合併。"
+      - "{value}が発生し、対応中。"
+    en:
+      - "{value} complicated the course."
+      - "{value} developed and is being managed."
+  unconfirmed:
+    ja:
+      - "本疾患では{value}のリスクを認識し、モニタリング中。"
+      - "{value}の兆候は現時点で認めない。"
+    en:
+      - "{value} is a recognized risk of this condition; under monitoring."
+      - "No signs of {value} noted at this time."
+
+# ── Chronic-condition status ──────────────────────────────────────
+chronic_status:
+  confirmed:
+    ja:
+      - "{value}は本日の測定値で {control} と評価される。"
+      - "{value}のコントロールは {control}。"
+    en:
+      - "{value} appears {control} based on today's measurements."
+      - "{value} control status: {control}."
+  unconfirmed:
+    ja:
+      - "{value}のコントロール状況は本日測定値のみでは断定困難、追加評価要。"
+    en:
+      - "{value} control cannot be assessed on today's measurements alone; further evaluation planned."

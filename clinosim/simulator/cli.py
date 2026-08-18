@@ -239,12 +239,15 @@ def main() -> None:
     nr.add_argument(
         "--provider",
         default="template",
-        choices=["template", "bedrock", "ollama", "mock"],
+        choices=["template", "bedrock", "ollama", "mock", "vllm", "openai_compatible"],
         help=(
             "Narrative generator: 'template' (default, deterministic) or an "
             "LLM provider run through LLMNarrativePass — 'bedrock' / 'ollama' "
-            "(configured via config/llm_service*.yaml or --llm-config) or "
-            "'mock' (deterministic MockProvider, dev/test only)"
+            "/ 'vllm' (OpenAI-compatible /v1/chat/completions, incl. SGLang "
+            "and any OpenAI-compatible server) / 'openai_compatible' (alias "
+            "for 'vllm') / 'mock' (deterministic MockProvider, dev/test only). "
+            "All non-template providers are configured via "
+            "config/llm_service*.yaml or --llm-config"
         ),
     )
     nr.add_argument(
@@ -297,6 +300,19 @@ def main() -> None:
             "manifest.json reflects only the last run. Without this flag a "
             "filtered write into a non-empty version is refused "
             "(chain 1b adv-1 I-1)"
+        ),
+    )
+    nr.add_argument(
+        "--concurrency",
+        type=int,
+        default=1,
+        help=(
+            "Number of narrate worker threads. Default 1 (sequential, "
+            "byte-identical to the pre-concurrency baseline). Higher values "
+            "let a batching LLM backend (e.g. vLLM continuous batching) "
+            "absorb N in-flight generate() calls per LLM server — set to "
+            "match the server's --max-num-seqs (or a fraction of it). "
+            "Requires thread-safe provider (Ollama/vLLM/Mock are)."
         ),
     )
 

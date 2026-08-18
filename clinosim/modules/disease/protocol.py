@@ -436,11 +436,23 @@ class NarrativeSpec(BaseModel):
     Consumed by TemplateNarrativeGenerator (Task 6) to produce per-disease
     clinical narratives rather than generic boilerplate.
     ``physical_exam_findings`` maps:  archetype_name → day_str → PhysicalExamDayFindings
+
+    v9 (2026-08-17): added ``outpatient_soap_template`` for chronic-disease
+    follow-up encounters. Complements the existing encounter-side template
+    (populated on ~17 encounter YAMLs covering screening / vaccination /
+    referral). Density audit found 132/375 v10 outpatient encounters were
+    "血圧管理・処方薬の見直し" style chronic follow-ups matching NO
+    encounter YAML — they now route through the disease-side template
+    when their primary chronic condition maps to a disease with this
+    field populated. Uses the same OutpatientSoapTemplate shape as
+    encounter side so the routing chain (encounter → disease → engine
+    fallback) can consume either uniformly.
     """
 
     hpi_template: HpiTemplate = Field(default_factory=HpiTemplate)
     physical_exam_findings: dict[str, dict[str, PhysicalExamDayFindings]] = Field(default_factory=dict)
     discharge_instructions: DischargeInstructions = Field(default_factory=DischargeInstructions)
+    outpatient_soap_template: Any | None = None  # OutpatientSoapTemplate shape (deferred import to avoid cycle)
 
 
 class DailyTrajectoryEntry(BaseModel):

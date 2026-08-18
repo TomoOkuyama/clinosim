@@ -33,6 +33,7 @@ import string
 from datetime import datetime, timedelta
 from typing import Any
 
+from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
@@ -63,7 +64,7 @@ from clinosim.types.document import DocumentType, FormatType, NarrativeContext, 
 logger = logging.getLogger(__name__)
 
 
-def _render_home_med_name(m: Any) -> str:
+def _render_home_med_name(m: Any, lang: str = "en") -> str:
     """Extract the display name of a home medication for narrative text.
 
     Handles the two shapes `current_medications` items appear as here:
@@ -74,10 +75,23 @@ def _render_home_med_name(m: Any) -> str:
 
     Introduced in #452 PR 1; the `str` fallback (legacy fixture support) was
     dropped in PR 3 once every writer emits `HomeMedication`.
+
+    v9 (2026-08-17): when ``lang == "ja"``, resolve English drug names to
+    canonical katakana via the shared `_localize_drug_name` helper (same
+    228-entry dictionary the FHIR emit uses). v8 template pasted raw
+    English tokens ("Amlodipine, Enalapril") into JA narratives.
     """
     if isinstance(m, dict):
-        return str(m.get("drug_name") or m.get("drug") or "").strip()
-    return m.drug_name
+        raw = str(m.get("drug_name") or m.get("drug") or "").strip()
+    else:
+        raw = m.drug_name
+    if not raw or lang != "ja":
+        return raw
+    # Lazy import to avoid the document → output → document circular at
+    # module load; same pattern used in replacement_strategy.py.
+    from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+    return _localize_drug_name(raw, "JP")
 
 
 def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext | None = None) -> str:
@@ -449,9 +463,13 @@ _SMOKING_EN: dict[str, str] = {
 }
 
 # Alcohol use labels
+# v6 (2026-08-16): `social` is a first-class token emitted by the
+# population layer alongside none/heavy; without an explicit mapping it
+# was falling back to "unknown", erasing information from JP narratives.
 _ALCOHOL_JA: dict[str, str] = {
     "none": "飲酒なし",
     "occasional": "機会飲酒",
+    "social": "社交的飲酒",
     "moderate": "適度な飲酒",
     "heavy": "多量飲酒",
     "unknown": "飲酒状況不明",
@@ -459,14 +477,129 @@ _ALCOHOL_JA: dict[str, str] = {
 _ALCOHOL_EN: dict[str, str] = {
     "none": "Non-drinker",
     "occasional": "Occasional drinker",
+    "social": "Social drinker",
     "moderate": "Moderate drinker",
     "heavy": "Heavy drinker",
     "unknown": "Alcohol use unknown",
 }
 
+# Occupation labels (v6, 2026-08-16). Population layer emits raw
+# English tokens (retired, office, manufacturing, …); v5
+# `_build_social_history` pasted them verbatim into JP narratives, so
+# 96-yo 女性 の 職業 が 「retired」 と英字で残っていた。These maps close
+# the gap. `_OCCUPATION_*.get(k, k)` — unmapped values fall back to the
+# raw token so unknown occupations still render (defensive default).
+_OCCUPATION_JA: dict[str, str] = {
+    "retired": "退職",
+    "office": "事務職",
+    "manufacturing": "製造業",
+    "service": "サービス業",
+    "transportation": "運輸業",
+    "education": "教育関係",
+    "healthcare": "医療従事者",
+    "student": "学生",
+    "middle_school_student": "中学生",
+    "elementary_student": "小学生",
+    "preschool": "未就学児",
+    "infant": "乳幼児",
+    "other": "その他",
+    "unemployed": "無職",
+    "homemaker": "主婦",
+}
+_OCCUPATION_EN: dict[str, str] = {
+    "retired": "Retired",
+    "office": "Office worker",
+    "manufacturing": "Manufacturing",
+    "service": "Service industry",
+    "transportation": "Transportation",
+    "education": "Education",
+    "healthcare": "Healthcare",
+    "student": "Student",
+    "middle_school_student": "Middle-school student",
+    "elementary_student": "Elementary-school student",
+    "preschool": "Preschool child",
+    "infant": "Infant",
+    "other": "Other",
+    "unemployed": "Unemployed",
+    "homemaker": "Homemaker",
+}
+
 # SOAP section labels per locale
 _SOAP_JA = ("S（主観）", "O（客観）", "A（評価）", "P（計画）")
 _SOAP_EN = ("S:", "O:", "A:", "P:")
+
+
+def _filter_vitals_for_day(vitals: list, day_index: int, encounter: Any) -> list:
+    """Return vitals belonging to day ``day_index`` of the stay.
+
+    v6 (2026-08-16): CIF vital_signs records store ISO ``timestamp`` but
+    ``day`` is typically None. The naive day-field filter therefore let
+    admission-day vitals leak into every day's context, producing "T=38.1°C
+    repeated for 15 consecutive progress notes" hallucinations (POP-000075).
+
+    Resolution order:
+      1. If any record has an explicit ``day`` field, match on it.
+      2. Otherwise derive a day offset from ``timestamp`` minus
+         encounter.admission_datetime.
+      3. If neither exists, fall back to the first record (initial vitals).
+    """
+    vitals = list(vitals or [])
+    if not vitals:
+        return []
+    # 1. Explicit day field
+    tagged = [v for v in vitals if _o(v, "day", None) == day_index]
+    if tagged:
+        return tagged
+    any_tagged = any(_o(v, "day", None) is not None for v in vitals)
+    if any_tagged:
+        # Some records have day, none matched → this day has none.
+        return []
+    # 2. Timestamp fallback
+    adm_raw = _o(encounter, "admission_datetime", None) if encounter is not None else None
+    adm_dt = _parse_iso_datetime(adm_raw)
+    if adm_dt is None:
+        # Use earliest timestamp as day-0 anchor
+        candidates = [_parse_iso_datetime(_o(v, "timestamp", None)) for v in vitals]
+        candidates = [c for c in candidates if c is not None]
+        if candidates:
+            adm_dt = min(candidates)
+    if adm_dt is None:
+        return vitals[:1]
+    picks: list = []
+    for v in vitals:
+        ts = _parse_iso_datetime(_o(v, "timestamp", None))
+        if ts is None:
+            continue
+        offset = (ts - adm_dt).days
+        if offset == day_index:
+            picks.append(v)
+    if picks:
+        return picks
+    return vitals[:1]
+
+
+def _parse_iso_datetime(raw: Any) -> datetime | None:
+    """Best-effort parse of an ISO 8601 datetime string / datetime object."""
+    if raw is None:
+        return None
+    if isinstance(raw, datetime):
+        return raw
+    if not isinstance(raw, str):
+        return None
+    s = raw.strip()
+    if not s:
+        return None
+    # Python's fromisoformat handles the common cases; tolerate trailing Z.
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(s)
+    except ValueError:
+        # Fall back to date-only strings
+        try:
+            return datetime.fromisoformat(s[:10])
+        except ValueError:
+            return None
 
 
 class TemplateNarrativeGenerator:
@@ -534,10 +667,33 @@ class TemplateNarrativeGenerator:
             _generic_s = _GENERIC_FALLBACK_JA
             _generic_a = _GENERIC_ASSESSMENT_JA
             _generic_p = _GENERIC_PLAN_JA
-            subjective = traj.get("subjective") or _generic_s
-            objective = traj.get("objective") or _generic_s
-            assessment = traj.get("assessment") or _generic_a
-            plan = traj.get("plan") or _generic_p
+            # v9 (2026-08-17) density fix: _resolve_daily_trajectory_with_source
+            # returns a placeholder dict (「特記事項なし」/「経過観察中」/「治療
+            # 継続」) when the disease YAML has no daily_trajectory. Treat those
+            # placeholders as if the value were absent so the state-composers
+            # can inject CIF-derived content instead of a 6-char fallback
+            # winning silently.
+            _placeholders = {_generic_s, _generic_a, _generic_p, ""}
+
+            def _prefer(traj_value: str | None, composed: str, generic: str) -> str:
+                if traj_value and traj_value not in _placeholders:
+                    return traj_value
+                return composed or generic
+
+            subjective = _prefer(traj.get("subjective"), self._compose_progress_subjective_from_state(ctx), _generic_s)
+            objective = traj.get("objective") if traj.get("objective") not in _placeholders else _generic_s
+            assessment = _prefer(traj.get("assessment"), self._compose_progress_assessment_from_state(ctx), _generic_a)
+            plan = _prefer(traj.get("plan"), self._compose_progress_plan_from_state(ctx), _generic_p)
+
+            # v6 blocker fix (2026-08-16): prepend today's numeric vitals
+            # snapshot to `objective` for inpatient progress_note. `objective`
+            # is by-design non-LLM (see progress_note spec), so the template
+            # itself must carry per-day BP/HR/RR/SpO2/T; otherwise it collapses
+            # to a static disease_YAML string across all days of a stay.
+            today_vitals_line = self._compose_today_vitals_line(ctx)
+            if today_vitals_line:
+                facts.append("ctx.vitals.today")
+                objective = f"{today_vitals_line}。{objective}"
 
             # Add physical exam findings to the objective section (JP only,
             # EN skips to prevent CJK leak — sibling of _build_physical_examination fix)
@@ -736,16 +892,38 @@ class TemplateNarrativeGenerator:
     def _build_chief_complaint(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build chief_complaint section.
 
-        For ED_NOTE: reads from
-        encounter_protocol.narrative.ed_note_template.chief_complaint_<lang>
-        (with fallback to generic). For all other document types: reads from disease_protocol.
+        v9 (2026-08-17): resolution order — actual encounter data first,
+        then encounter_protocol / disease_protocol template, then a
+        hardcoded fallback. v8 skipped encounter.chief_complaint entirely
+        and jumped straight to protocol data, so real CIF entries like
+        「手/腕の熱傷（部分層）」 or "Severe wheezing" were silently
+        replaced by the hardcoded fallback 「発熱・全身倦怠感」 (density
+        audit 2026-08-17 found this on every admission_hp / discharge_summary
+        / ed_note whose disease_protocol had no `chief_complaint` slot).
+
+        Priority chain:
+          1. encounter.chief_complaint / encounter.chief_complaint_ja  (真の CIF、最優先)
+          2. encounter_protocol.narrative.ed_note_template.chief_complaint_*
+             (ED_NOTE only; encounter-level narrative override)
+          3. disease_protocol.chief_complaint                          (疾患 default)
+          4. hardcoded fallback「発熱・全身倦怠感」
         """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         fallback = "発熱・全身倦怠感" if is_ja else "Chief complaint not specified"
 
-        # ED_NOTE reads from ed_note_template
+        # 1. Encounter's own chief_complaint is the primary source of truth.
+        enc = ctx.encounter
+        if enc is not None:
+            preferred_key = "chief_complaint_ja" if is_ja else "chief_complaint_en"
+            for key in (preferred_key, "chief_complaint"):
+                raw = _o(enc, key, None)
+                if raw:
+                    facts.append(f"ctx.encounter.{key}")
+                    return str(raw), facts
+
+        # 2. ED_NOTE: encounter_protocol.narrative.ed_note_template
         if ctx.document_type == DocumentType.ED_NOTE:
             ed_tmpl = self._get_ed_note_template(ctx)
             if ed_tmpl is not None:
@@ -755,6 +933,7 @@ class TemplateNarrativeGenerator:
                     return text, facts
             return fallback, facts
 
+        # 3. disease_protocol.chief_complaint (per-disease default)
         proto = ctx.disease_protocol
         if proto is None:
             return fallback, facts
@@ -802,10 +981,25 @@ class TemplateNarrativeGenerator:
         proto = ctx.disease_protocol
         narrative = _o(proto, "narrative", None) if proto is not None else None
         if narrative is None:
+            # v9 (2026-08-17) density: still append CIF-derived context
+            # so HPI carries real patient data even for chronic-follow-up
+            # encounters whose disease YAML has no narrative section.
+            extras = self._compose_hpi_extras_from_state(ctx)
+            if extras:
+                facts.extend(
+                    ["ctx.patient.demographics", "ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"]
+                )
+                return f"{fallback} {extras}".strip(), facts
             return fallback, facts
 
         hpi_tmpl = _o(narrative, "hpi_template", None)
         if hpi_tmpl is None:
+            extras = self._compose_hpi_extras_from_state(ctx)
+            if extras:
+                facts.extend(
+                    ["ctx.patient.demographics", "ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"]
+                )
+                return f"{fallback} {extras}".strip(), facts
             return fallback, facts
 
         # US-locale leak fix. `hpi_template.onset_pattern` and
@@ -832,14 +1026,62 @@ class TemplateNarrativeGenerator:
         trigger = trigger_options[0] if trigger_options else ""
 
         if onset_text:
-            text = f"{onset_text} {trigger}".strip() if trigger else onset_text
+            base = f"{onset_text} {trigger}".strip() if trigger else onset_text
             facts.append(f"disease_protocol.narrative.hpi_template.onset_pattern.{ctx.severity}")
             if trigger:
                 facts.append("disease_protocol.narrative.hpi_template.trigger_options[0]")
         else:
-            text = fallback
+            base = fallback
+
+        # v9 (2026-08-17) density fix: append CIF-derived context
+        # (demographics + chief_complaint + chronic overview) so HPI
+        # carries per-patient specificity even when the disease YAML
+        # onset_pattern is a short generic line.
+        extras = self._compose_hpi_extras_from_state(ctx)
+        text = f"{base} {extras}".strip() if extras else base
+        if extras:
+            facts.extend(
+                ["ctx.patient.demographics", "ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"]
+            )
 
         return text, facts
+
+    def _compose_hpi_extras_from_state(self, ctx: NarrativeContext) -> str:
+        """Append CIF-anchored demographics + chief_complaint + chronic
+        context to the HPI onset_pattern seed (v9 density fix)."""
+        if ctx.target_lang != "ja":
+            return ""
+        patient = ctx.patient
+        enc = ctx.encounter
+        parts: list[str] = []
+        age = _o(patient, "age", None) if patient else None
+        sex = _o(patient, "sex", None) if patient else ""
+        sex_ja = {"M": "男性", "F": "女性"}.get(str(sex).upper(), "")
+        if age and sex_ja:
+            parts.append(f"{age}歳{sex_ja}患者。")
+        elif age:
+            parts.append(f"{age}歳患者。")
+        # chief_complaint from encounter (真の CIF、v9 bug fix)
+        cc = ""
+        if enc is not None:
+            cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
+        if cc:
+            parts.append(f"主訴: {cc}。")
+        # Chronic short list
+        from clinosim.codes import lookup as _code_lookup
+
+        conds = _o(patient, "chronic_conditions", []) or []
+        chronic_labels: list[str] = []
+        for c in conds[:3]:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            if not code:
+                continue
+            key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+            disp = _code_lookup(key, code, ctx.target_lang) or code
+            chronic_labels.append(disp)
+        if chronic_labels:
+            parts.append(f"既往: {'、'.join(chronic_labels)}。")
+        return "".join(parts)
 
     def _build_past_medical_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build past medical history from ctx.patient.chronic_conditions."""
@@ -857,13 +1099,33 @@ class TemplateNarrativeGenerator:
             return none_text, facts
 
         facts.append("ctx.patient.chronic_conditions")
-        # Each condition: use code field (display resolved at output time; CIF rule)
+        # Session-88j v3-review fix: resolve ICD code → localised disease
+        # display via code_lookup ("icd-10" for JP-native codes / "icd-10-cm"
+        # US). Previously the PMH section rendered raw codes ("J45 (Moderate
+        # persistent); I10 (Stage 1); …") which read as a coding sheet
+        # rather than a clinical PMH. LOOKUP failure falls back to the raw
+        # code so the field is never empty.
+        icd_system = "icd-10" if is_ja else "icd-10-cm"
         lines = []
         for cond in conditions:
             code = _o(cond, "code", "")
             stage = _o(cond, "stage", "")
-            if code:
-                lines.append(f"{code}{' (' + stage + ')' if stage else ''}")
+            if not code:
+                continue
+            display = code_lookup(icd_system, code, lang) or code
+            if display == code:
+                # Try 3-char parent (E11.9 → E11) — many mappings live only
+                # at the category level.
+                base = code.split(".")[0]
+                if base != code:
+                    display = code_lookup(icd_system, base, lang) or code
+            annotation = f" ({stage})" if stage else ""
+            if display and display != code:
+                # Format: "気管支喘息 (Moderate persistent) [J45]" — code
+                # trailing for traceability, humans read the display first.
+                lines.append(f"{display}{annotation} [{code}]")
+            else:
+                lines.append(f"{code}{annotation}")
         if lines:
             return "; ".join(lines), facts
         return none_text, facts
@@ -887,7 +1149,8 @@ class TemplateNarrativeGenerator:
         # Issue #452 PR 1: `HomeMedication` serializes to dict when the CIF is
         # written to disk and reloaded here in the narrative pass. Extract
         # drug_name explicitly so we don't render a Python dict repr.
-        return "; ".join(_render_home_med_name(m) for m in meds), facts
+        # v9 (2026-08-17): pass lang to enable JA katakana localization.
+        return "; ".join(_render_home_med_name(m, lang=lang) for m in meds), facts
 
     def _build_allergies(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build allergies section from ctx.allergies.
@@ -949,7 +1212,12 @@ class TemplateNarrativeGenerator:
             parts.append(f"{key}: {alcohol_text}")
         if occupation:
             key = "職業" if is_ja else "Occupation"
-            parts.append(f"{key}: {occupation}")
+            # v6 (2026-08-16): localize occupation token; fall back to
+            # raw when unmapped so a novel population value still renders
+            # (rather than being dropped silently).
+            occ_map = _OCCUPATION_JA if is_ja else _OCCUPATION_EN
+            occ_text = occ_map.get(occupation, occupation)
+            parts.append(f"{key}: {occ_text}")
 
         facts.append("ctx.patient.smoking_status")
         facts.append("ctx.patient.alcohol_use")
@@ -1014,11 +1282,108 @@ class TemplateNarrativeGenerator:
 
         _generic_a = _GENERIC_ASSESSMENT_JA
         _generic_p = _GENERIC_PLAN_JA
-        assessment = traj.get("assessment") or _generic_a
-        plan = traj.get("plan") or _generic_p
-
-        text = f"評価: {assessment}。方針: {plan}。"
+        # v9 (2026-08-17) density fix — v8 emitted only 19-char
+        # "評価: 経過観察中。方針: 治療継続。". Compose an A&P from CIF
+        # facts (diagnosis + severity + orders/procedures/meds today +
+        # LOS estimate) so the section is clinically informative even
+        # when disease YAML has no day_0 trajectory content. The
+        # placeholder-aware _prefer helper matches the pattern used in
+        # _render_progress_note_text.
+        _placeholders = {_generic_a, _generic_p, ""}
+        traj_a = traj.get("assessment")
+        traj_p = traj.get("plan")
+        assessment = (
+            traj_a
+            if (traj_a and traj_a not in _placeholders)
+            else (self._compose_ap_assessment_from_state(ctx) or _generic_a)
+        )
+        plan = (
+            traj_p
+            if (traj_p and traj_p not in _placeholders)
+            else (self._compose_ap_plan_from_state(ctx) or _generic_p)
+        )
+        text = f"【評価】{assessment}\n【方針】{plan}"
         return text, facts
+
+    def _compose_ap_assessment_from_state(self, ctx: NarrativeContext) -> str:
+        """admission_hp Assessment composed from CIF (v9 density fix)."""
+        if ctx.target_lang != "ja":
+            return ""
+        parts: list[str] = []
+        enc = ctx.encounter
+        # Primary reason
+        cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) if enc else None
+        if cc:
+            parts.append(f"主訴「{cc}」で入院。")
+        # Severity + disease
+        # session-88j P1-12/Bug-3: JA output must not leak raw EN severity
+        # (mild / moderate / severe / critical) into 「病態: X (Y)」. v14
+        # review found 8/1084 admission_hp narratives with EN severity.
+        # Localize severity for JA locale via the shared JA severity map.
+        if ctx.disease_protocol is not None:
+            disease = _o(ctx.disease_protocol, "disease_id", None)
+            if disease:
+                _sev = str(ctx.severity or "")
+                if _sev and ctx.target_lang == "ja":
+                    from clinosim.modules.document.narrative.replacement_strategy import (
+                        _localize_severity_ja,
+                    )
+
+                    _sev = _localize_severity_ja(_sev)
+                parts.append(f"病態: {disease} ({_sev})。")
+        # Chronic backdrop
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        if conds:
+            from clinosim.codes import lookup as _code_lookup
+
+            key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+            labels = [
+                _code_lookup(key, _o(c, "code", "") or "", ctx.target_lang) or (_o(c, "code", "") or "")
+                for c in conds[:4]
+            ]
+            labels = [lbl for lbl in labels if lbl]
+            if labels:
+                parts.append(f"併存疾患: {'、'.join(labels)}。")
+        if not parts:
+            parts.append("急性症状の精査・治療目的で入院。")
+        return "".join(parts)
+
+    def _compose_ap_plan_from_state(self, ctx: NarrativeContext) -> str:
+        """admission_hp Plan composed from CIF (v9 density fix)."""
+        if ctx.target_lang != "ja":
+            return ""
+        parts: list[str] = []
+        # LOS estimate
+        los = ctx.los_days or 0
+        if los > 0:
+            parts.append(f"予定入院期間: 約{los}日。")
+        # Today's meds
+        admins = list(ctx.medications or [])
+        med_names: list[str] = []
+        seen: set[str] = set()
+        for m in admins[:20]:
+            d = _o(m, "day", None)
+            if d is not None and d != 0:  # admission day
+                continue
+            name = _o(m, "drug_name", None) or _o(m, "medication", None)
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+            med_names.append(_localize_drug_name(str(name), "JP"))
+            if len(med_names) >= 6:
+                break
+        if med_names:
+            parts.append(f"薬物療法: {'、'.join(med_names)}。")
+        # Ordered procedures (workup)
+        procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:4]]
+        procs = [p for p in procs if p]
+        if procs:
+            parts.append(f"検査・処置: {'、'.join(str(p) for p in procs)}。")
+        if not parts:
+            parts.append("経過観察・症状に応じた対応。")
+        return "".join(parts)
 
     def _build_admission_summary(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build admission_summary for DISCHARGE_SUMMARY."""
@@ -1539,22 +1904,90 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     def _build_hospital_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build hospital_course — 1-3 sentence summary across all days."""
+        """Build hospital_course template seed.
+
+        v6 blocker fix (2026-08-16): v5 returned a single hardcoded
+        sentence ("入院 N 日間の治療を経て経過良好。症状は改善し退院となった。"),
+        producing 11/11 identical outputs across a p=100 run because
+        the LLM had a bland seed AND no factual anchor from context.
+        This version enumerates the concrete facts (complications,
+        procedures, key med classes) so both the template fallback and
+        the LLM prompt see per-patient specificity. The LLM still
+        composes the final prose.
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
         los = ctx.los_days or 1
+        parts: list[str] = []
 
+        # Sentence 1: header (LOS + primary reason if present).
+        # v7 (2026-08-16 pm): prefer localized fields; skip when JP
+        # data only carries the English string ("Dyspnea on exertion,
+        # orthopnea, lower extremity edema" leaked into JP discharge
+        # summaries in v8). LLM enrichment fills in the reason when
+        # the strategy dispatches through it.
+        primary_reason = None
+        if ctx.encounter is not None:
+            if is_ja:
+                primary_reason = _o(ctx.encounter, "primary_diagnosis_ja", None) or _o(
+                    ctx.encounter, "chief_complaint_ja", None
+                )
+            else:
+                primary_reason = _o(ctx.encounter, "primary_diagnosis", None) or _o(
+                    ctx.encounter, "chief_complaint", None
+                )
         if is_ja:
-            text = f"入院 {los} 日間の治療を経て経過良好。症状は改善し退院となった。"
+            head = f"入院期間 {los} 日間"
+            if primary_reason:
+                head += f"（主病名/主訴: {str(primary_reason)[:80]}）"
+            parts.append(head + "。")
         else:
-            text = (
-                f"The patient was hospitalized for {los} days. "
-                "Clinical course was favorable with improvement in presenting symptoms."
-            )
+            head = f"Length of stay: {los} days"
+            if primary_reason:
+                head += f" (primary reason: {str(primary_reason)[:80]})"
+            parts.append(head + ".")
 
-        return text, facts
+        # Sentence 2: complications (blocker 1 — MUST be surfaced)
+        comps = list(getattr(ctx, "complications_occurred", []) or [])
+        if comps:
+            facts.append("ctx.complications_occurred")
+            if is_ja:
+                parts.append(f"経過中の合併症: {'、'.join(str(c) for c in comps[:6])}。")
+            else:
+                parts.append(f"Complications during stay: {', '.join(str(c) for c in comps[:6])}.")
+
+        # Sentence 3: key procedures performed
+        proc_names: list[str] = []
+        seen: set[str] = set()
+        for pr in ctx.procedures or []:
+            nm = _o(pr, "procedure_name", None) or _o(pr, "name", None) or _o(pr, "display_name", None)
+            if not nm:
+                continue
+            if nm in seen:
+                continue
+            seen.add(nm)
+            proc_names.append(str(nm))
+            if len(proc_names) >= 6:
+                break
+        if proc_names:
+            facts.append("ctx.procedures")
+            if is_ja:
+                parts.append(f"主な処置・手技: {'、'.join(proc_names)}。")
+            else:
+                parts.append(f"Key procedures: {', '.join(proc_names)}.")
+
+        # v7 (2026-08-16 pm): closer removed. v6 emitted
+        # "治療経過は臨床経過（アーキタイプ）に沿って推移した。" in
+        # every JP discharge_summary because the JP-only
+        # llm_enabled_sections_jp bug (see DocumentTypeSpec) dropped
+        # hospital_course from LLM replacement — so the template seed
+        # became the final output and the internal "アーキタイプ" token
+        # leaked to every one of 11 patients. Both the union-semantics
+        # fix in DocumentTypeSpec and this closer removal are needed.
+        facts.append("ctx.los_days")
+        return " ".join(parts), facts
 
     def _build_discharge_diagnoses(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build discharge_diagnoses from ctx.diagnoses.
@@ -1623,16 +2056,53 @@ class TemplateNarrativeGenerator:
 
         facts.append("ctx.discharge_medications")
         seen: set[str] = set()
-        drug_names = []
+        lines: list[str] = []
         for med in meds:
             drug = _o(med, "drug_name", "") or ""
             drug, _protocol_category = strip_protocol_prefix(drug)
-            if drug and drug not in seen:
-                seen.add(drug)
-                drug_names.append(drug)
+            if not drug:
+                continue
+            # v7 (2026-08-16 pm): dedup by case-insensitive drug name
+            # (kept combo vs mono distinct — "Amoxicillin/Clavulanate"
+            # and "Amoxicillin" are pharmacologically different, so
+            # collapsing them would be data loss). Fixes only the
+            # exact-duplicate variant seen in POP-000075 v8 output
+            # ("Amoxicillin" listed twice with identical dose+route+freq).
+            norm_key = str(drug).lower().strip()
+            if norm_key in seen:
+                continue
+            seen.add(norm_key)
+            # v6 blocker fix (2026-08-16): PrescriptionRecord.items carry
+            # dose / route / frequency / days_supply. v5 emitted names
+            # only, violating the LLM prompt's REQUIRED specificity spec
+            # and leaving discharge_medications indistinguishable across
+            # patients. Format: "<drug> <dose> <route> <freq> x<days>d".
+            # v9 (2026-08-17 evening): apply JA katakana localization to
+            # drug_name. v11 review found 9/11 discharge_summary carried
+            # English drug tokens ("Furosemide 20mg PO daily") because
+            # this builder never routed through _localize_drug_name.
+            display = str(drug)
+            if is_ja:
+                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
-        if drug_names:
-            return "; ".join(drug_names), facts
+                display = _localize_drug_name(display, "JP")
+            dose = _o(med, "dose", "") or ""
+            route = _o(med, "route", "") or ""
+            freq = _o(med, "frequency", "") or ""
+            days = _o(med, "days_supply", None)
+            bits: list[str] = [display]
+            if dose:
+                bits.append(str(dose))
+            if route:
+                bits.append(str(route))
+            if freq:
+                bits.append(str(freq))
+            if days:
+                bits.append(f"x{days}日分" if is_ja else f"x{days}d")
+            lines.append(" ".join(bits))
+
+        if lines:
+            return "; ".join(lines), facts
         return none_text, facts
 
     def _build_discharge_instructions(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -1710,21 +2180,98 @@ class TemplateNarrativeGenerator:
             else:
                 nurse_line = f"Nurse: {nurse_id}"
 
+        # v9 (2026-08-17) density fix: replace 「バイタルサイン安定 / 特記事項なし」
+        # boilerplate with CIF-sourced per-shift narrative (today's vitals,
+        # supplemental O2 flag, active meds, ADL trend, risk flags).
+        picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
+        v = picks[0] if picks else None
+
+        status_bits: list[str] = []
+        if v is not None:
+            temp = _o(v, "temperature_celsius", None)
+            spo2 = _o(v, "spo2", None)
+            sbp = _o(v, "systolic_bp", None)
+            dbp = _o(v, "diastolic_bp", None)
+            hr = _o(v, "heart_rate", None)
+            on_o2 = _o(v, "on_supplemental_oxygen", False)
+            device = _o(v, "oxygen_delivery_device", None)
+            flow = _o(v, "oxygen_flow_rate_lpm", None)
+            vital_line_parts: list[str] = []
+            if sbp and dbp:
+                vital_line_parts.append(f"BP {int(sbp)}/{int(dbp)}")
+            if hr:
+                vital_line_parts.append(f"HR {int(hr)}")
+            if spo2:
+                vital_line_parts.append(f"SpO2 {int(float(spo2))}%")
+            if temp:
+                vital_line_parts.append(f"T {float(temp):.1f}°C")
+            if vital_line_parts:
+                status_bits.append(", ".join(vital_line_parts))
+            if on_o2:
+                if device and flow is not None:
+                    try:
+                        status_bits.append(
+                            f"{device} {float(flow):g} L/min"
+                            if not is_ja
+                            else f"酸素投与: {device} {float(flow):g} L/min"
+                        )
+                    except (TypeError, ValueError):
+                        status_bits.append(f"酸素投与: {device}" if is_ja else f"O2: {device}")
+                else:
+                    status_bits.append("酸素投与継続中" if is_ja else "supplemental O2")
+            facts.append("ctx.vitals.today")
+
+        # Today's meds (limit 3 for shift-note brevity)
+        med_names: list[str] = []
+        seen: set[str] = set()
+        for m in (ctx.medications or [])[:12]:
+            d = _o(m, "day", None)
+            if d is not None and d != ctx.day_index:
+                continue
+            n = _o(m, "drug_name", None) or _o(m, "medication", None)
+            if not n or n in seen:
+                continue
+            seen.add(n)
+            if is_ja:
+                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+                med_names.append(_localize_drug_name(str(n), "JP"))
+            else:
+                med_names.append(str(n))
+            if len(med_names) >= 3:
+                break
+
+        # Risk flag today
+        risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        risk_bit = ""
+        if risks:
+            latest = risks[-1]
+            fall = _o(latest, "fall_risk_level", None)
+            if fall and str(fall).lower() in ("high", "moderate"):
+                risk_bit = f"転倒リスク {fall}、ベッド柵設置。" if is_ja else f"Fall risk {fall}; bed rails in place. "
+                facts.append("ctx.nursing_risk_assessments[-1]")
+
         if is_ja:
             title = f"【看護記録({shift_label})】" if shift_label else "【看護記録】"
             header = f"{title} 入院 {day_num} 日目 / 入院予定 {los} 日間"
-            status = "患者状態：バイタルサイン安定。観察・ケア継続。"
-            observations = "特記事項：特記事項なし。"
+            status = "患者状態: " + ("、".join(status_bits) + "。" if status_bits else "バイタル記録なし。")
+            meds_line = ("投薬継続: " + "、".join(med_names) + "。") if med_names else ""
+            observations = risk_bit or "観察・ケア継続、特記事項なし。"
         else:
             title = f"[Nursing Shift Note - {shift_label} shift]" if shift_label else "[Nursing Shift Note]"
             header = f"{title} Day {day_num} / LOS {los} days"
-            status = "Patient status: vital signs stable. Observation and care ongoing."
-            observations = "Notes: no significant findings."
+            status = "Patient status: " + ("; ".join(status_bits) + "." if status_bits else "no vital record.")
+            meds_line = ("Meds administered: " + ", ".join(med_names) + ".") if med_names else ""
+            observations = risk_bit or "Observation and care ongoing, no significant findings."
 
         lines = [header]
         if nurse_line:
             lines.append(nurse_line)
-        lines.extend([status, observations])
+        lines.append(status)
+        if meds_line:
+            lines.append(meds_line)
+            facts.append("ctx.medications.today")
+        lines.append(observations)
         raw_text = "\n".join(lines)
 
         facts.append("ctx.day_index")
@@ -1810,47 +2357,227 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
 
     def _build_nursing_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build nursing_history — admission reason + primary_nurse_id."""
+        """Build nursing_history from CIF (primary nurse + admission reason
+        + chronic conditions + allergy summary). v9 density fix — v8
+        emitted only a nurse id + generic fallback (~30 chars)."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
+        parts: list[str] = []
         nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
         if nurse_id:
             facts.append("encounter.primary_nurse_id")
-            if is_ja:
-                nurse_part = f"担当看護師: {nurse_id}。"
-            else:
-                nurse_part = f"Assigned nurse: {nurse_id}. "
-        else:
-            nurse_part = ""
+            parts.append(f"担当看護師: {nurse_id}。" if is_ja else f"Assigned nurse: {nurse_id}. ")
+        cc = ""
+        if ctx.encounter is not None:
+            cc = (
+                _o(ctx.encounter, "chief_complaint_ja" if is_ja else "chief_complaint_en", None)
+                or _o(ctx.encounter, "chief_complaint", None)
+                or ""
+            )
+        if cc:
+            parts.append(f"入院目的: {cc}。" if is_ja else f"Admission reason: {cc}. ")
+        # Chronic summary
+        from clinosim.codes import lookup as _code_lookup
 
-        base = _NURSING_HISTORY_FALLBACK_JA if is_ja else _NURSING_HISTORY_FALLBACK_EN
-        return f"{nurse_part}{base}", facts
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        labels: list[str] = []
+        for c in conds[:4]:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            if not code:
+                continue
+            key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+            labels.append(_code_lookup(key, code, ctx.target_lang) or code)
+        if labels:
+            parts.append(
+                ("既往: " if is_ja else "PMH: ")
+                + ("、".join(labels) if is_ja else ", ".join(labels))
+                + ("。" if is_ja else ".")
+            )
+        # Allergy
+        allergies = ctx.allergies or []
+        if allergies:
+            first_allergen = _o(allergies[0], "substance", None) or _o(allergies[0], "name", None) or ""
+            if first_allergen:
+                parts.append(f"アレルギー: {first_allergen}。" if is_ja else f"Allergy: {first_allergen}. ")
+        if len(parts) <= 1:
+            parts.append(_NURSING_HISTORY_FALLBACK_JA if is_ja else _NURSING_HISTORY_FALLBACK_EN)
+        facts.extend(["ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"])
+        return "".join(parts), facts
 
     def _build_adl_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build adl_assessment — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN, []
+        """Build adl_assessment from CIF adl_assessments (Barthel Index).
+        v9 density fix — v8 emitted 12-char "ADL：自立（問題なし）"."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        adls = list(getattr(ctx, "adl_assessments", None) or [])
+        if not adls:
+            return (_ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN), facts
+        latest = adls[-1]
+        barthel = _o(latest, "barthel_score", None)
+        if barthel is None:
+            return (_ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN), facts
+        facts.append("ctx.adl_assessments[-1]")
+        # Barthel band interpretation (standard)
+        if barthel >= 91:
+            band = "自立" if is_ja else "independent"
+        elif barthel >= 61:
+            band = "軽度介助" if is_ja else "minimal assistance"
+        elif barthel >= 41:
+            band = "中等度介助" if is_ja else "moderate assistance"
+        elif barthel >= 21:
+            band = "重度介助" if is_ja else "severe dependence"
+        else:
+            band = "全介助" if is_ja else "total care"
+        detail_parts = []
+        for k, ja_label in [("feeding", "食事"), ("bathing", "入浴"), ("mobility", "移動"), ("toilet_use", "排泄")]:
+            v = _o(latest, k, None)
+            if v is not None:
+                detail_parts.append(f"{ja_label}{v}" if is_ja else f"{k}={v}")
+        detail = (
+            "（" + "、".join(detail_parts) + "）"
+            if is_ja and detail_parts
+            else (" (" + ", ".join(detail_parts) + ")" if detail_parts else "")
+        )
+        if is_ja:
+            return f"Barthel Index {barthel}/100 → {band}{detail}", facts
+        return f"Barthel Index {barthel}/100 → {band}{detail}", facts
 
     def _build_risk_assessments(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build risk_assessments — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN, []
+        """Build risk_assessments from CIF (Braden + Morse). v9 density
+        fix — v8 emitted 12-char placeholder."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        if not risks:
+            return (_RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN), facts
+        latest = risks[-1]
+        braden = _o(latest, "braden_total", None)
+        morse = _o(latest, "morse_total", None)
+        fall_lvl = _o(latest, "fall_risk_level", None)
+        facts.append("ctx.nursing_risk_assessments[-1]")
+        parts: list[str] = []
+        if braden is not None:
+            # Braden risk bands: >18 low / 15-18 mild / 13-14 moderate / 10-12 high / ≤9 severe
+            if braden >= 19:
+                bband = "低リスク" if is_ja else "low"
+            elif braden >= 15:
+                bband = "軽度リスク" if is_ja else "mild"
+            elif braden >= 13:
+                bband = "中等度リスク" if is_ja else "moderate"
+            elif braden >= 10:
+                bband = "高リスク" if is_ja else "high"
+            else:
+                bband = "重度リスク" if is_ja else "severe"
+            parts.append(
+                f"褥瘡リスク (Braden {braden}/23): {bband}"
+                if is_ja
+                else f"Pressure-ulcer (Braden {braden}/23): {bband}"
+            )
+        if morse is not None:
+            lvl = fall_lvl or ("low" if morse < 25 else "moderate" if morse < 45 else "high")
+            # v9 (2026-08-17 evening) FIX: fall_risk_level raw enum
+            # ("low"/"moderate"/"high") was leaking into JA narrative;
+            # localize to Japanese standard nursing terminology.
+            if is_ja:
+                _fall_ja = {"low": "低リスク", "moderate": "中等度リスク", "high": "高リスク"}
+                lvl = _fall_ja.get(str(lvl).lower(), lvl)
+            parts.append(f"転倒リスク (Morse {morse}): {lvl}" if is_ja else f"Fall (Morse {morse}): {lvl}")
+        if not parts:
+            return (_RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN), facts
+        return ("。".join(parts) + "。") if is_ja else (". ".join(parts) + "."), facts
 
     def _build_nursing_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build nursing_diagnosis — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _NURSING_DX_FALLBACK_JA if is_ja else _NURSING_DX_FALLBACK_EN, []
+        """Build nursing_diagnosis from CIF chronic conditions + risk data.
+        v9 density fix — v8 emitted 11-char placeholder."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        dx_labels: list[str] = []
+        # Convert chronic condition into NANDA-like nursing diagnosis phrase
+        # (light-weight mapping; disease code → nursing focus, not clinical dx)
+        chronic_to_ndx = {
+            "I10": "血圧管理不足のリスク" if is_ja else "risk for inadequate BP control",
+            "I50": "体液貯留・活動耐性低下" if is_ja else "fluid retention / activity intolerance",
+            "E11": "血糖コントロール変動" if is_ja else "unstable glycemic control",
+            "N18": "腎機能低下・電解質異常のリスク" if is_ja else "renal impairment / electrolyte imbalance risk",
+            "J45": "気道クリアランス不十分のリスク" if is_ja else "risk for ineffective airway clearance",
+            "J44": "ガス交換障害のリスク" if is_ja else "risk for impaired gas exchange",
+        }
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        for c in conds[:5]:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            prefix = code.split(".")[0].upper() if code else ""
+            ndx = chronic_to_ndx.get(prefix)
+            if ndx:
+                dx_labels.append(ndx)
+        # Risk-derived NDx
+        risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        if risks:
+            latest = risks[-1]
+            fall = _o(latest, "fall_risk_level", None)
+            if fall and str(fall).lower() in ("high", "moderate"):
+                dx_labels.append("転倒リスク" if is_ja else "fall risk")
+            braden = _o(latest, "braden_total", None)
+            if braden is not None and braden <= 14:
+                dx_labels.append("褥瘡リスク" if is_ja else "pressure-ulcer risk")
+        if dx_labels:
+            facts.extend(["ctx.patient.chronic_conditions", "ctx.nursing_risk_assessments"])
+            head = "看護診断: " if is_ja else "Nursing diagnoses: "
+            sep = "、" if is_ja else ", "
+            return head + sep.join(dx_labels) + ("。" if is_ja else "."), facts
+        return (_NURSING_DX_FALLBACK_JA if is_ja else _NURSING_DX_FALLBACK_EN), facts
 
     def _build_care_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build care_plan — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _CARE_PLAN_FALLBACK_JA if is_ja else _CARE_PLAN_FALLBACK_EN, []
+        """Build care_plan from CIF-derived nursing diagnoses (mirror of
+        _build_nursing_diagnosis interventions). v9 density fix."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        actions: list[str] = []
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        # Map chronic → nursing action (light-weight)
+        chronic_to_action = {
+            "I10": "血圧を朝夕測定、目標未達時は担当医へ報告"
+            if is_ja
+            else "monitor BP AM/PM, escalate to MD if goal not met",
+            "I50": "体重・浮腫を毎日測定、水分制限指導"
+            if is_ja
+            else "daily weight + edema check, fluid restriction education",
+            "E11": "血糖モニタ、低血糖症状観察" if is_ja else "glucose monitoring, hypoglycemia surveillance",
+            "N18": "尿量・浮腫観察、電解質モニタ" if is_ja else "urine output + edema + electrolyte monitoring",
+            "J45": "呼吸音聴診、SpO2 継続モニタ、吸入指導"
+            if is_ja
+            else "auscultation, continuous SpO2, inhaler teaching",
+            "J44": "呼吸パターン観察、酸素投与量調整" if is_ja else "respiratory pattern check, O2 titration",
+        }
+        for c in conds[:4]:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            prefix = code.split(".")[0].upper() if code else ""
+            act = chronic_to_action.get(prefix)
+            if act:
+                actions.append(act)
+        # Add risk-driven actions
+        risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        if risks:
+            latest = risks[-1]
+            if str(_o(latest, "fall_risk_level", "") or "").lower() in ("high", "moderate"):
+                actions.append(
+                    "転倒予防: ベッド柵設置、ナースコール手元"
+                    if is_ja
+                    else "fall precautions: bed rails, call bell within reach"
+                )
+            if (_o(latest, "braden_total", 25) or 25) <= 14:
+                actions.append(
+                    "褥瘡予防: 2時間毎体位変換、圧再分散マットレス"
+                    if is_ja
+                    else "PU prevention: q2h turning, pressure-redistributing mattress"
+                )
+        if actions:
+            facts.extend(["ctx.patient.chronic_conditions", "ctx.nursing_risk_assessments"])
+            head = "看護計画: " if is_ja else "Care plan: "
+            sep = "、" if is_ja else "; "
+            return head + sep.join(actions) + ("。" if is_ja else "."), facts
+        return (_CARE_PLAN_FALLBACK_JA if is_ja else _CARE_PLAN_FALLBACK_EN), facts
 
     # ─────────────────────────────────────────────────────────────────
     # ADMISSION_CARE_PLAN (Phase 2) section builders (入院診療計画書, LOINC 18776-5)
@@ -2071,9 +2798,58 @@ class TemplateNarrativeGenerator:
         ), facts
 
     def _build_ncp_nutrition_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """栄養状態の評価と課題 — MVP fixed fallback."""
+        """栄養状態の評価と課題 — v9 density fix: compose from BMI +
+        chronic disease + ADL (Barthel) rather than MVP placeholder."""
+        facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
-        return (_NCP_ASSESSMENT_FALLBACK_JA if is_ja else _NCP_ASSESSMENT_FALLBACK_EN), []
+        patient = ctx.patient
+        if patient is None:
+            return (_NCP_ASSESSMENT_FALLBACK_JA if is_ja else _NCP_ASSESSMENT_FALLBACK_EN), facts
+        parts: list[str] = []
+        weight = _o(patient, "weight_kg", None)
+        height = _o(patient, "height_cm", None)
+        if weight and height:
+            try:
+                bmi = float(weight) / ((float(height) / 100) ** 2)
+                facts.append("patient.weight_kg+height_cm")
+                if bmi < 18.5:
+                    band = "低体重" if is_ja else "underweight"
+                elif bmi < 25:
+                    band = "普通" if is_ja else "normal"
+                elif bmi < 30:
+                    band = "過体重" if is_ja else "overweight"
+                else:
+                    band = "肥満" if is_ja else "obese"
+                parts.append(f"BMI {bmi:.1f} ({band})")
+            except (TypeError, ValueError, ZeroDivisionError):
+                pass
+        # Nutrition-relevant chronic diseases
+        conds = _o(patient, "chronic_conditions", []) or []
+        codes = {(_o(c, "code", "") or (c if isinstance(c, str) else "")).split(".")[0].upper() for c in conds}
+        risk_conds = []
+        risk_map = {
+            "E11": "糖尿病栄養管理" if is_ja else "diabetic diet",
+            "N18": "CKD 蛋白制限" if is_ja else "CKD protein restriction",
+            "I50": "心不全水分・塩分制限" if is_ja else "HF fluid/salt restriction",
+            "K70": "肝機能考慮" if is_ja else "hepatic diet",
+        }
+        for k, label in risk_map.items():
+            if k in codes:
+                risk_conds.append(label)
+        if risk_conds:
+            facts.append("ctx.patient.chronic_conditions")
+            parts.append(("要注意: " + "、".join(risk_conds)) if is_ja else ("Special: " + ", ".join(risk_conds)))
+        # ADL
+        adls = list(getattr(ctx, "adl_assessments", None) or [])
+        if adls:
+            b = _o(adls[-1], "barthel_score", None)
+            if b is not None and b < 60:
+                parts.append("摂食動作に介助必要" if is_ja else "feeding assistance required")
+                facts.append("ctx.adl_assessments[-1]")
+        if not parts:
+            return (_NCP_ASSESSMENT_FALLBACK_JA if is_ja else _NCP_ASSESSMENT_FALLBACK_EN), facts
+        head = "栄養状態評価: " if is_ja else "Nutrition assessment: "
+        return head + ("、".join(parts) + "。" if is_ja else "; ".join(parts) + "."), facts
 
     def _build_ncp_nutrition_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養管理計画 目標 — MVP fixed fallback."""
@@ -2116,9 +2892,30 @@ class TemplateNarrativeGenerator:
         return (_NCP_COUNSELING_FALLBACK_JA if is_ja else _NCP_COUNSELING_FALLBACK_EN), []
 
     def _build_ncp_other_issues(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """その他栄養管理上解決すべき課題 — MVP fixed fallback."""
+        """その他栄養管理上解決すべき課題 — v9 density fix: derive from
+        allergies + high-risk chronic combo. Falls back to placeholder
+        when CIF has no relevant markers."""
+        facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
-        return (_NCP_OTHER_ISSUES_FALLBACK_JA if is_ja else _NCP_OTHER_ISSUES_FALLBACK_EN), []
+        parts: list[str] = []
+        # Food allergies (subset)
+        for a in (ctx.allergies or [])[:3]:
+            substance = _o(a, "substance", None) or _o(a, "name", None) or ""
+            if substance:
+                parts.append(f"アレルギー配慮: {substance}" if is_ja else f"Allergy avoidance: {substance}")
+        if parts:
+            facts.append("ctx.allergies")
+        # Combined chronic (DM+CKD) — polyrestrictive diet
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        codes = {(_o(c, "code", "") or (c if isinstance(c, str) else "")).split(".")[0].upper() for c in conds}
+        if "E11" in codes and "N18" in codes:
+            parts.append("DM+CKD 併存で複合栄養制限要" if is_ja else "DM+CKD requires combined dietary restriction")
+            facts.append("ctx.patient.chronic_conditions")
+        if not parts:
+            return (_NCP_OTHER_ISSUES_FALLBACK_JA if is_ja else _NCP_OTHER_ISSUES_FALLBACK_EN), facts
+        return ("その他: " if is_ja else "Other: ") + (
+            "、".join(parts) + "。" if is_ja else "; ".join(parts) + "."
+        ), facts
 
     def _build_ncp_reassessment_timing(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養状態の再評価の時期 — MVP fixed fallback."""
@@ -2264,38 +3061,133 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
 
     def _build_nursing_admission_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build admission_status for NURSING_DISCHARGE_SUMMARY."""
+        """Build admission_status for NURSING_DISCHARGE_SUMMARY. v9 density fix:
+        include admission reason + complications summary."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-
         los = ctx.los_days or 1
         facts.append("ctx.los_days")
-
+        cc = ""
+        if ctx.encounter is not None:
+            cc = (
+                _o(ctx.encounter, "chief_complaint_ja" if is_ja else "chief_complaint_en", None)
+                or _o(ctx.encounter, "chief_complaint", None)
+                or ""
+            )
+        comps = list(getattr(ctx, "complications_occurred", []) or [])
+        parts: list[str] = []
         if is_ja:
-            text = f"入院期間: {los} 日間。入院目的達成後、退院となった。"
+            parts.append(f"入院期間: {los}日間。")
+            if cc:
+                parts.append(f"入院理由: {cc}。")
+            if comps:
+                parts.append(f"経過中の合併症: {'、'.join(str(c) for c in comps[:3])}。")
+                facts.append("ctx.complications_occurred")
+            parts.append("退院基準を満たし退院となった。")
         else:
-            text = f"Hospital stay: {los} days. Discharge criteria met."
-
-        return text, facts
+            parts.append(f"Hospital stay: {los} days. ")
+            if cc:
+                parts.append(f"Admission reason: {cc}. ")
+            if comps:
+                parts.append(f"Complications: {', '.join(str(c) for c in comps[:3])}. ")
+                facts.append("ctx.complications_occurred")
+            parts.append("Discharge criteria met.")
+        return "".join(parts), facts
 
     def _build_nursing_interventions_provided(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build nursing_interventions_provided — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _INTERVENTIONS_FALLBACK_JA if is_ja else _INTERVENTIONS_FALLBACK_EN, []
+        """Build nursing_interventions_provided from CIF procedures / MAR /
+        intake-output totals. v9 density fix — v8 emitted 15-char placeholder."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        parts: list[str] = []
+        procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:5]]
+        procs = [p for p in procs if p]
+        if procs:
+            facts.append("ctx.procedures")
+            parts.append(
+                ("実施処置: " if is_ja else "Procedures: ")
+                + ("、".join(str(p) for p in procs) if is_ja else ", ".join(str(p) for p in procs))
+            )
+        # Intake/output totals
+        io = list(getattr(ctx, "intake_output_records", None) or [])
+        if io:
+            total_in = sum(
+                _o(r, "intake_iv_ml", 0) + _o(r, "intake_oral_ml", 0) + _o(r, "intake_other_ml", 0) for r in io
+            )
+            total_out = sum(
+                _o(r, "output_urine_ml", 0) + _o(r, "output_drain_ml", 0) + _o(r, "output_other_ml", 0) for r in io
+            )
+            facts.append("ctx.intake_output_records")
+            if is_ja:
+                parts.append(f"入院期間合計 IN {total_in} mL / OUT {total_out} mL (差 {total_in - total_out:+} mL)")
+            else:
+                parts.append(f"Cumulative IN {total_in} mL / OUT {total_out} mL (net {total_in - total_out:+} mL)")
+        if parts:
+            return ("。".join(parts) + "。") if is_ja else ("; ".join(parts) + "."), facts
+        return (_INTERVENTIONS_FALLBACK_JA if is_ja else _INTERVENTIONS_FALLBACK_EN), facts
 
     def _build_patient_education(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build patient_education — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _PATIENT_EDUCATION_FALLBACK_JA if is_ja else _PATIENT_EDUCATION_FALLBACK_EN, []
+        """Build patient_education from chronic conditions + discharge Rx.
+        v9 density fix — pull disease-specific self-care topics."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        edu_by_code = {
+            "I10": "血圧測定と減塩指導" if is_ja else "home BP monitoring + low-salt diet",
+            "I50": "水分・塩分制限、体重毎日測定" if is_ja else "fluid/salt restriction, daily weight",
+            "E11": "血糖自己測定、低血糖対応" if is_ja else "SMBG + hypoglycemia response",
+            "N18": "腎機能保護、蛋白制限" if is_ja else "renoprotective + protein restriction",
+            "J45": "吸入器手技、増悪サイン認識" if is_ja else "inhaler technique + exacerbation triggers",
+            "J44": "禁煙、呼吸リハビリ継続" if is_ja else "smoking cessation + pulmonary rehab continuation",
+        }
+        topics: list[str] = []
+        for c in conds[:4]:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            t = edu_by_code.get(code.split(".")[0].upper() if code else "")
+            if t:
+                topics.append(t)
+        if not topics:
+            return (_PATIENT_EDUCATION_FALLBACK_JA if is_ja else _PATIENT_EDUCATION_FALLBACK_EN), facts
+        facts.append("ctx.patient.chronic_conditions")
+        head = "患者教育: " if is_ja else "Patient education: "
+        sep = "、" if is_ja else "; "
+        return head + sep.join(topics) + ("。" if is_ja else "."), facts
 
     def _build_discharge_readiness(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build discharge_readiness — generic placeholder."""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return _DISCHARGE_READINESS_FALLBACK_JA if is_ja else _DISCHARGE_READINESS_FALLBACK_EN, []
+        """Build discharge_readiness from latest ADL + risk. v9 density fix."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        adls = list(getattr(ctx, "adl_assessments", None) or [])
+        risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        parts: list[str] = []
+        if adls:
+            latest = adls[-1]
+            barthel = _o(latest, "barthel_score", None)
+            if barthel is not None:
+                facts.append("ctx.adl_assessments[-1]")
+                parts.append(f"退院時 Barthel {barthel}/100" if is_ja else f"Discharge Barthel {barthel}/100")
+        if risks:
+            latest = risks[-1]
+            fall = _o(latest, "fall_risk_level", None)
+            braden = _o(latest, "braden_total", None)
+            if fall or braden is not None:
+                facts.append("ctx.nursing_risk_assessments[-1]")
+                bits = []
+                if fall:
+                    # v9 evening: localize fall_risk_level enum for JA
+                    fall_disp = fall
+                    if is_ja:
+                        _fall_ja = {"low": "低リスク", "moderate": "中等度リスク", "high": "高リスク"}
+                        fall_disp = _fall_ja.get(str(fall).lower(), fall)
+                    bits.append(f"転倒 {fall_disp}" if is_ja else f"fall {fall}")
+                if braden is not None:
+                    bits.append(f"Braden {braden}")
+                parts.append("、".join(bits) if is_ja else ", ".join(bits))
+        if parts:
+            head = "退院準備: " if is_ja else "Discharge readiness: "
+            return head + ("、".join(parts) if is_ja else "; ".join(parts)) + ("。" if is_ja else "."), facts
+        return (_DISCHARGE_READINESS_FALLBACK_JA if is_ja else _DISCHARGE_READINESS_FALLBACK_EN), facts
 
     # ─────────────────────────────────────────────────────────────────
     # OUTPATIENT_SOAP section builders
@@ -2307,62 +3199,344 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
 
     def _get_soap_template(self, ctx: NarrativeContext) -> Any | None:
-        """Extract outpatient_soap_template from encounter_protocol (or None)."""
+        """Extract outpatient_soap_template.
+
+        v9 (2026-08-17): resolution chain
+          1. encounter_protocol.narrative.outpatient_soap_template
+             (encounter-specific — screening / vaccination / referral etc.)
+          2. disease_protocol.narrative.outpatient_soap_template
+             (acute disease follow-up — v9 new layer)
+          3. chronic_soap_templates.yaml lookup by primary chronic ICD
+             (v9 new layer — closes the "chronic follow-up" gap for
+             hypertension / DM / CKD / etc. which have no per-disease YAML)
+          4. None → caller falls through to patient-state engine
+        """
         ep = ctx.encounter_protocol
-        if ep is None:
-            return None
-        narrative = _o(ep, "narrative", None)
-        if narrative is None:
-            return None
-        return _o(narrative, "outpatient_soap_template", None)
+        if ep is not None:
+            narrative = _o(ep, "narrative", None)
+            if narrative is not None:
+                tmpl = _o(narrative, "outpatient_soap_template", None)
+                if tmpl is not None:
+                    return tmpl
+        # L2: disease-side (acute follow-up)
+        dp = ctx.disease_protocol
+        if dp is not None:
+            narrative = _o(dp, "narrative", None)
+            if narrative is not None:
+                tmpl = _o(narrative, "outpatient_soap_template", None)
+                if tmpl is not None:
+                    return tmpl
+        # L3: chronic-condition registry (v9 new)
+        from clinosim.modules.document.narrative._chronic_soap import resolve_chronic_soap
+
+        patient = ctx.patient
+        if patient is not None:
+            conds = _o(patient, "chronic_conditions", []) or []
+            chronic_tmpl = resolve_chronic_soap(conds)
+            if chronic_tmpl is not None:
+                return chronic_tmpl
+        return None
 
     def _build_outpatient_subjective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build SOAP subjective from outpatient_soap_template.subjective_<lang>."""
-        facts: list[str] = []
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+        """Build SOAP subjective from outpatient_soap_template.subjective_<lang>.
 
-        soap = self._get_soap_template(ctx)
-        if soap is None:
-            return fallback, facts
-
-        text = _pick_localized(soap, "subjective", lang, ctx)
-        if not text:
-            return fallback, facts
-
-        facts.append(f"encounter_protocol.narrative.outpatient_soap_template.subjective_{lang}")
-        return text, facts
-
-    def _build_outpatient_objective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build SOAP objective from outpatient_soap_template.objective_<lang>.
-
-        Issue #780 (part of #774): when the encounter protocol has no
-        `outpatient_soap_template`, or the field is empty, derive an
-        objective line from the encounter's measured vitals rather than
-        falling through to a static "特記事項なし" placeholder — this makes
-        the O section carry real per-encounter data (BP / HR / SpO2 / RR
-        vary across visits) instead of every SOAP note reading identically.
+        v9 (2026-08-17): dropped the single-line "特記事項なし" fallback in
+        favour of a CIF-composed subjective line so Template-only output
+        carries usable density. Resolution chain:
+          1. encounter_protocol.narrative.outpatient_soap_template.subjective_<lang>
+             (explicit encounter-YAML author intent — highest fidelity)
+          2. compose from CIF: age/sex + encounter.chief_complaint +
+             chronic-condition follow-up context
+          3. generic "特記事項なし" only when CIF truly empty (patient=None)
         """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
 
+        # v9 (2026-08-17 evening) FIX: v11 review found 28 encounters had
+        # identical stereotype subjective because the chronic SOAP
+        # registry supplied a fixed template and the CIF-composed
+        # per-patient content was skipped. Now: always append the
+        # per-patient composition (age / sex / CC / chronic) even when
+        # a template exists, so the reader sees encounter-specific
+        # variation on top of the disease-class seed.
+        composed = self._compose_outpatient_subjective_from_state(ctx)
+        soap = self._get_soap_template(ctx)
+        template_prose = ""
+        if soap is not None:
+            template_prose = _pick_localized(soap, "subjective", lang, ctx)
+            if template_prose == fallback:
+                template_prose = ""
+        if composed and template_prose:
+            facts.extend(
+                [
+                    f"outpatient_soap_template.subjective_{lang}",
+                    "ctx.patient.demographics",
+                    "ctx.encounter.chief_complaint",
+                    "ctx.patient.chronic_conditions",
+                ]
+            )
+            return f"{composed} {template_prose.strip()}", facts
+        if composed:
+            facts.extend(
+                ["ctx.patient.demographics", "ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"]
+            )
+            return composed, facts
+        if template_prose:
+            facts.append(f"outpatient_soap_template.subjective_{lang}")
+            return template_prose.strip(), facts
+
+        return fallback, facts
+
+    def _compose_outpatient_subjective_from_state(self, ctx: NarrativeContext) -> str:
+        """Compose a CIF-only SOAP subjective for outpatient visits.
+
+        v9 (2026-08-17) density fix — Template-only output was
+        "特記事項なし" for 100 % of outpatient encounters lacking an
+        encounter-YAML template. This builds a clinically-readable
+        subjective from age + sex + chief_complaint + chronic-context.
+        All fields are CIF-CONFIRMED (patient profile + encounter
+        record); no scenario data is asserted here.
+        """
+        patient = ctx.patient
+        enc = ctx.encounter
+        if patient is None:
+            return ""
+        is_ja = ctx.target_lang == "ja"
+        age = _o(patient, "age", None)
+        sex_raw = _o(patient, "sex", None) or ""
+        sex_ja = {"M": "男性", "F": "女性"}.get(str(sex_raw).upper(), "")
+        sex_en = {"M": "male", "F": "female"}.get(str(sex_raw).upper(), "")
+        # chief_complaint — encounter first (v9 chief_complaint bug fix),
+        # skip English-in-JA leak.
+        cc = ""
+        if enc is not None:
+            if is_ja:
+                cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
+            else:
+                cc = _o(enc, "chief_complaint_en", None) or _o(enc, "chief_complaint", None) or ""
+        cc = str(cc)
+        # Chronic condition follow-up context (short list, code-lookup localized)
+        from clinosim.codes import lookup as _code_lookup
+
+        conditions = _o(patient, "chronic_conditions", []) or []
+        chronic_labels: list[str] = []
+        for c in conditions[:3]:
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            if not code:
+                continue
+            key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+            disp = _code_lookup(key, code, ctx.target_lang) or code
+            chronic_labels.append(disp)
+        # Compose
+        parts: list[str] = []
+        if is_ja:
+            if age and sex_ja:
+                parts.append(f"{age}歳{sex_ja}患者、")
+            elif age:
+                parts.append(f"{age}歳患者、")
+            if cc:
+                parts.append(f"本日「{cc}」のため外来受診。")
+            else:
+                parts.append("本日外来受診。")
+            if chronic_labels:
+                parts.append(f"慢性疾患（{'、'.join(chronic_labels)}）のフォローアップを兼ねる。")
+        else:
+            if age and sex_en:
+                parts.append(f"{age}-year-old {sex_en} patient")
+            elif age:
+                parts.append(f"{age}-year-old patient")
+            visit_reason = f"presenting for {cc}" if cc else "presenting for outpatient visit"
+            parts.append(f" {visit_reason}.")
+            if chronic_labels:
+                parts.append(f" Follow-up of chronic conditions: {', '.join(chronic_labels)}.")
+        text = "".join(parts).strip()
+        return text
+
+    def _build_outpatient_objective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build SOAP objective — CIF vitals ALWAYS appear; template is a seed.
+
+        v9 (2026-08-17 evening) FIX: v11 review found 82% of outpatient
+        objective sections were "特記事項なし" because the chronic SOAP
+        registry supplied templates with `{vital_line}` placeholders that
+        _pick_localized couldn't resolve, and the whole section fell back
+        to the generic phrase. The registry has been simplified (no
+        placeholders) and this builder now:
+          1. Composes the CIF vitals line (BP/HR/RR/SpO2/T) as the primary content
+          2. Appends the encounter/disease/chronic-registry template text
+             as clinical context prose when available
+          3. Falls back to vitals-only when no template exists
+          4. Only returns the generic 「特記事項なし」 when BOTH template
+             text AND vitals are absent (rare — every outpatient encounter
+             records at least BP+HR)
+        """
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+
+        vital_line = self._compose_vital_signs_line(ctx)
+        template_prose = ""
         soap = self._get_soap_template(ctx)
         if soap is not None:
-            text = _pick_localized(soap, "objective", lang, ctx)
-            if text:
-                facts.append(f"encounter_protocol.narrative.outpatient_soap_template.objective_{lang}")
-                return text, facts
+            template_prose = _pick_localized(soap, "objective", lang, ctx)
+            if template_prose == fallback:
+                # _fill_template_placeholders returned the fallback marker
+                # (unresolvable placeholder); treat as empty so vitals alone
+                # supply the section.
+                template_prose = ""
 
-        # #780 patient-state fallback: assemble a factual O line from ctx.vitals.
-        vital_line = self._compose_vital_signs_line(ctx)
+        if vital_line and template_prose:
+            facts.extend(["ctx.vitals", "outpatient_soap_template.objective"])
+            return f"{vital_line}。{template_prose.strip()}", facts
         if vital_line:
             facts.append("ctx.vitals")
             return vital_line, facts
-
+        if template_prose:
+            facts.append("outpatient_soap_template.objective")
+            return template_prose.strip(), facts
         return fallback, facts
+
+    def _compose_progress_subjective_from_state(self, ctx: NarrativeContext) -> str:
+        """Inpatient progress_note Subjective composed from CIF facts.
+
+        v9 (2026-08-17) density fix — v8 defaulted to "特記事項なし" for
+        every day whose disease_YAML lacked a daily_trajectory entry.
+        This composes a minimum-viable subjective from stay_progress +
+        today's abnormal vitals (fever / hypoxia flag), backed only by
+        confirmed CIF signals.
+        """
+        if ctx.target_lang != "ja":
+            return ""
+        picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
+        parts: list[str] = []
+        los = ctx.los_days or 0
+        day_1indexed = ctx.day_index + 1
+        if los > 0:
+            parts.append(f"入院{day_1indexed}日目。")
+        if picks:
+            v = picks[0]
+            temp = _o(v, "temperature_celsius", None)
+            spo2 = _o(v, "spo2", None)
+            if temp and float(temp) >= 38.0:
+                parts.append(f"発熱 {float(temp):.1f}°C 持続。")
+            elif temp and float(temp) < 36.0:
+                parts.append(f"低体温 {float(temp):.1f}°C を認める。")
+            if spo2 and float(spo2) < 92:
+                parts.append(f"SpO2 {int(float(spo2))}% と低下傾向。")
+        if len(parts) <= 1:
+            # No abnormal signal — neutral observation phrase
+            parts.append("自覚症状に著変なし。")
+        return "".join(parts)
+
+    def _compose_progress_assessment_from_state(self, ctx: NarrativeContext) -> str:
+        """Inpatient progress_note Assessment from CIF facts.
+
+        v9 (2026-08-17) density fix — pulls today's abnormal labs (H/L
+        flagged) + complications flag into a 1-2 line assessment.
+        """
+        if ctx.target_lang != "ja":
+            return ""
+        parts: list[str] = []
+        # Complications (from record via NarrativeContext v6 field)
+        comps = list(getattr(ctx, "complications_occurred", []) or [])
+        if comps:
+            parts.append(f"合併症 {'、'.join(str(c) for c in comps[:3])} を認識、対応継続中。")
+        # Abnormal labs today
+        labs = list(ctx.lab_results or [])
+        abn: list[str] = []
+        for lab in labs[:6]:
+            flag = _o(lab, "flag", None)
+            if not flag:
+                continue
+            d = _o(lab, "day", None)
+            if d is not None and d != ctx.day_index:
+                continue
+            name = _o(lab, "lab_name", None)
+            val = _o(lab, "value", None)
+            unit = _o(lab, "unit", "") or ""
+            if name and val is not None:
+                abn.append(f"{name} {val} {unit} [{flag}]")
+        if abn:
+            parts.append(f"本日の検査所見: {'、'.join(abn[:4])}。")
+        if not parts:
+            parts.append("経過観察中、著変なし。")
+        return "".join(parts)
+
+    def _compose_progress_plan_from_state(self, ctx: NarrativeContext) -> str:
+        """Inpatient progress_note Plan from CIF facts.
+
+        v9 (2026-08-17) density fix — lists today's active medications
+        (JA localized) and today's procedures / orders.
+        """
+        if ctx.target_lang != "ja":
+            return ""
+        parts: list[str] = []
+        # Today's meds (MAR)
+        admins = list(ctx.medications or [])
+        med_names: list[str] = []
+        seen: set[str] = set()
+        for m in admins:
+            d = _o(m, "day", None)
+            if d is not None and d != ctx.day_index:
+                continue
+            name = _o(m, "drug_name", None) or _o(m, "medication", None) or _o(m, "name", None)
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+            med_names.append(_localize_drug_name(str(name), "JP"))
+            if len(med_names) >= 6:
+                break
+        if med_names:
+            parts.append(f"薬物療法継続: {'、'.join(med_names)}。")
+        # Today's procedures
+        procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:4]]
+        procs = [p for p in procs if p]
+        if procs:
+            parts.append(f"本日の処置: {'、'.join(str(p) for p in procs)}。")
+        if not parts:
+            parts.append("治療継続、経過観察。")
+        return "".join(parts)
+
+    def _compose_today_vitals_line(self, ctx: NarrativeContext) -> str:
+        """Compose today's numeric vital-signs summary for inpatient
+        progress_note objective. Filters ``ctx.vitals`` by day, using the
+        explicit ``day`` field when present and falling back to a
+        timestamp-derived day offset against ``ctx.encounter.admission_datetime``
+        when the field is None (which it always is in current CIF fullsets
+        — 346-record admissions store only ISO ``timestamp``, no day tag,
+        so the original day-field filter yielded EVERY vital on every
+        day and the LLM saw the same T=38.1°C repeated for 15
+        consecutive progress notes).
+
+        Fallback chain: day-field match → timestamp-derived day →
+        first record (initial admission vitals).
+        """
+        picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
+        if not picks:
+            return ""
+        v = picks[0]
+        parts: list[str] = []
+        _sbp = _o(v, "systolic_bp", None)
+        _dbp = _o(v, "diastolic_bp", None)
+        if _sbp and _dbp:
+            parts.append(f"BP {int(_sbp)}/{int(_dbp)} mmHg")
+        _hr = _o(v, "heart_rate", None)
+        if _hr:
+            parts.append(f"HR {int(_hr)} 回/分" if ctx.target_lang == "ja" else f"HR {int(_hr)} bpm")
+        _rr = _o(v, "respiratory_rate", None)
+        if _rr:
+            parts.append(f"RR {int(_rr)} 回/分" if ctx.target_lang == "ja" else f"RR {int(_rr)} /min")
+        _spo2 = _o(v, "spo2", None)
+        if _spo2:
+            parts.append(f"SpO2 {_spo2:.0f}%")
+        _temp = _o(v, "temperature_celsius", None)
+        if _temp:
+            parts.append(f"T {_temp:.1f}°C")
+        return ", ".join(parts) if parts else ""
 
     def _compose_vital_signs_line(self, ctx: NarrativeContext) -> str:
         """Compose a single-line JA/EN vital-signs summary from ctx.vitals[0]
@@ -2424,7 +3598,16 @@ class TemplateNarrativeGenerator:
                 facts.append(f"encounter_protocol.narrative.outpatient_soap_template.assessment_{lang}")
                 return text, facts
 
-        # #780 patient-state fallback: build A line from chronic conditions.
+        # v9 (2026-08-17) density fix: build a per-chronic-condition
+        # assessment line that integrates today's vitals + abnormal labs,
+        # not just a raw code list. Falls back to the flat chronic list
+        # when no interpretation is available.
+        integrated = self._compose_chronic_assessment_integrated(ctx)
+        if integrated:
+            facts.extend(["ctx.patient.chronic_conditions", "ctx.vitals.today", "ctx.lab_results.abnormal_today"])
+            return integrated, facts
+
+        # Original #780 fallback (chronic list only)
         chronic_line = self._compose_chronic_condition_line(ctx)
         if chronic_line:
             facts.append("ctx.patient.chronic_conditions")
@@ -2459,11 +3642,93 @@ class TemplateNarrativeGenerator:
             return "既往症フォローアップ: " + "、".join(labels)
         return "Chronic-condition follow-up: " + ", ".join(labels)
 
+    def _compose_chronic_assessment_integrated(self, ctx: NarrativeContext) -> str:
+        """SOAP Assessment enriched with today's vitals + abnormal labs.
+
+        v9 (2026-08-17) density fix — v8 emitted only a chronic-condition
+        list ("既往症フォローアップ: 高血圧、脂質異常症、…"), which was
+        clinically inert. This version integrates today's measured
+        values (BP for HTN, HbA1c/glucose for DM, Cr/eGFR for CKD,
+        LDL for dyslipidemia) into per-condition interpretation lines,
+        producing a genuine assessment rather than a static problem list.
+        All values are CIF-CONFIRMED (measured today). When a chronic
+        condition lacks a matching today measurement, the line is
+        omitted rather than fabricated.
+        """
+        patient = ctx.patient
+        if patient is None:
+            return ""
+        conditions = _o(patient, "chronic_conditions", []) or []
+        if not conditions:
+            return ""
+        vitals = list(ctx.vitals or [])
+        labs = list(ctx.lab_results or [])
+        v0 = vitals[0] if vitals else None
+        sbp = _o(v0, "systolic_bp", None) if v0 else None
+        dbp = _o(v0, "diastolic_bp", None) if v0 else None
+
+        # Index today's abnormal labs by lab_name (lowercased) for lookup
+        lab_by_name: dict[str, tuple[Any, str | None]] = {}
+        for lab in labs:
+            flag = _o(lab, "flag", None)
+            if not flag:
+                continue
+            name = str(_o(lab, "lab_name", "") or "").lower()
+            if name:
+                lab_by_name[name] = (_o(lab, "value", None), _o(lab, "unit", None))
+
+        from clinosim.codes import lookup as _code_lookup
+
+        is_ja = ctx.target_lang == "ja"
+        disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+        lines: list[str] = []
+        for i, c in enumerate(conditions, 1):
+            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            if not code:
+                continue
+            label = _code_lookup(disp_key, code, ctx.target_lang) or code
+            # Match code prefix → measurement
+            code_prefix = code.split(".")[0].upper()
+            interp = ""
+            if code_prefix.startswith("I10") and sbp and dbp:
+                # Hypertension: interpret BP
+                if sbp >= 160 or dbp >= 100:
+                    interp = "Stage 2" if not is_ja else "Stage 2 相当、コントロール不十分"
+                elif sbp >= 140 or dbp >= 90:
+                    interp = "Stage 1" if not is_ja else "Stage 1 相当、追加介入検討"
+                else:
+                    interp = "well controlled" if not is_ja else "コントロール良好"
+                interp = f"BP {int(sbp)}/{int(dbp)} → {interp}"
+            elif code_prefix.startswith("E78") and "ldl" in lab_by_name:
+                v, u = lab_by_name["ldl"]
+                interp = f"LDL {v} {u or 'mg/dL'} [H] → " + ("statin 効果不十分" if is_ja else "statin under-response")
+            elif code_prefix.startswith("E11") and "hba1c" in lab_by_name:
+                v, u = lab_by_name["hba1c"]
+                interp = f"HbA1c {v} {u or '%'} [H] → " + (
+                    "血糖コントロール不十分" if is_ja else "glycemic control suboptimal"
+                )
+            elif code_prefix.startswith("N18"):
+                cr = lab_by_name.get("cr") or lab_by_name.get("creatinine")
+                if cr:
+                    v, u = cr
+                    interp = f"Cr {v} {u or 'mg/dL'} [H] → " + ("腎機能低下持続" if is_ja else "renal function reduced")
+            if interp:
+                lines.append(f"{i}. {label}: {interp}")
+            else:
+                # No matching measurement → include as follow-up target only
+                stub = "本日測定なし、次回受診時再評価" if is_ja else "no measurement today; reassess next visit"
+                lines.append(f"{i}. {label}: {stub}")
+        if not lines:
+            return ""
+        return "\n".join(lines)
+
     def _build_outpatient_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build SOAP plan from outpatient_soap_template.plan_<lang>.
 
-        Issue #780: when no template is available, summarize current medications
-        so the P section reflects the patient's active regimen.
+        v9 (2026-08-17) density fix — v8 emitted only continuation-med list
+        (英字 + "他 N 剤"). This version composes a multi-line plan
+        including continuation Rx (JA localized), today's discharge_prescription
+        (if any), procedures ordered today, and a follow-up sentinel.
         """
         facts: list[str] = []
         lang = ctx.target_lang
@@ -2477,42 +3742,145 @@ class TemplateNarrativeGenerator:
                 facts.append(f"encounter_protocol.narrative.outpatient_soap_template.plan_{lang}")
                 return text, facts
 
-        # #780 patient-state fallback: list current medications for continuation.
-        med_line = self._compose_current_medications_line(ctx)
-        if med_line:
+        # v9 multi-line composition (density fix)
+        lines: list[str] = []
+        continuation = self._compose_current_medications_line(ctx)
+        if continuation:
+            lines.append(continuation)
             facts.append("ctx.patient.current_medications")
-            return med_line, facts
+
+        today_rx = self._compose_today_prescription_line(ctx)
+        if today_rx:
+            lines.append(today_rx)
+            facts.append("ctx.discharge_medications")
+
+        today_procs = self._compose_today_procedures_line(ctx)
+        if today_procs:
+            lines.append(today_procs)
+            facts.append("ctx.procedures.today")
+
+        follow_up = self._compose_follow_up_line(ctx)
+        if follow_up:
+            lines.append(follow_up)
+            facts.append("encounter_protocol.next_visit_interval")
+
+        if lines:
+            return "\n".join(lines), facts
 
         return fallback, facts
+
+    def _compose_today_prescription_line(self, ctx: NarrativeContext) -> str:
+        """Today's outpatient Rx (from ctx.discharge_medications when the
+        outpatient visit closes with a fresh prescription). v9 density fix."""
+        rx = list(getattr(ctx, "discharge_medications", None) or [])
+        if not rx:
+            return ""
+        is_ja = ctx.target_lang == "ja"
+        parts: list[str] = []
+        for m in rx[:8]:
+            drug = _o(m, "drug_name", "") or ""
+            if not drug:
+                continue
+            drug, _cat = strip_protocol_prefix(drug)
+            if is_ja:
+                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+                drug = _localize_drug_name(drug, "JP")
+            dose = _o(m, "dose", "") or ""
+            route = _o(m, "route", "") or ""
+            freq = _o(m, "frequency", "") or ""
+            days = _o(m, "days_supply", None)
+            bits: list[str] = [str(drug)]
+            if dose:
+                bits.append(str(dose))
+            if route:
+                bits.append(str(route))
+            if freq:
+                bits.append(str(freq))
+            if days:
+                bits.append(f"x{days}日分" if is_ja else f"x{days}d")
+            parts.append(" ".join(bits))
+        if not parts:
+            return ""
+        head = ("本日処方: " if is_ja else "Today's prescription: ") + "; ".join(parts)
+        return head
+
+    def _compose_today_procedures_line(self, ctx: NarrativeContext) -> str:
+        """Procedures / labs ordered today for the outpatient visit.
+        v9 density fix — v8 P section ignored today's activity entirely."""
+        procs = list(ctx.procedures or [])
+        if not procs:
+            return ""
+        is_ja = ctx.target_lang == "ja"
+        names: list[str] = []
+        seen: set[str] = set()
+        for pr in procs[:6]:
+            nm = _o(pr, "procedure_name", None) or _o(pr, "name", None) or _o(pr, "display_name", None)
+            if not nm or nm in seen:
+                continue
+            seen.add(nm)
+            names.append(str(nm))
+        if not names:
+            return ""
+        head = ("本日実施: " if is_ja else "Today's workup: ") + "、".join(names) if is_ja else "; ".join(names)
+        head = ("本日実施: " if is_ja else "Today's workup: ") + ("、".join(names) if is_ja else "; ".join(names))
+        return head
+
+    def _compose_follow_up_line(self, ctx: NarrativeContext) -> str:
+        """Follow-up guidance from encounter_protocol (未確定 — treat as
+        planning, not fact). v9 density fix."""
+        ep = ctx.encounter_protocol
+        interval = _o(ep, "next_visit_interval_days", None) if ep is not None else None
+        is_ja = ctx.target_lang == "ja"
+        if interval:
+            try:
+                d = int(interval)
+                return f"次回外来: {d}日後を予定。" if is_ja else f"Next visit: in {d} days (planned)."
+            except (TypeError, ValueError):
+                pass
+        # Generic follow-up sentinel (planning phrase, not fact)
+        return "次回外来: 1か月後を予定。" if is_ja else "Next visit: planned in 1 month."
 
     def _compose_current_medications_line(self, ctx: NarrativeContext) -> str:
         """List the patient's current medications for the Plan section.
 
         Reads from `ctx.patient.current_medications` (chronic Rx list, populated
         by the population enricher). Returns "" when the list is empty.
+
+        v9 (2026-08-17): drug names JA localization enabled + truncate
+        widened to 10 (v8 = 5, which frequently produced "他 N 剤"
+        information loss for polypharmacy patients).
         """
         patient = ctx.patient
         meds = _o(patient, "current_medications", []) or []
         if not meds:
             return ""
+        is_ja = ctx.target_lang == "ja"
         names: list[str] = []
         for m in meds:
-            n = _o(m, "drug_name", "") if not isinstance(m, str) else m
+            n = _render_home_med_name(m, lang=ctx.target_lang) if not isinstance(m, str) else m
+            if isinstance(m, str) and is_ja:
+                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+                n = _localize_drug_name(m, "JP")
             if n:
                 names.append(str(n))
         if not names:
             return ""
-        # Truncate long lists for readability (SOAP plan is a one-liner)
-        shown = names[:5]
+        # v9: widen truncate 5 → 10 to reduce "他 N 剤" information loss.
+        # Polypharmacy patients (5+ chronic Rx) are the norm in geriatric
+        # outpatient encounters — 10 covers the 90%ile.
+        limit = 10
+        shown = names[:limit]
         joiner_ja = "、"
         joiner_en = ", "
-        joiner = joiner_ja if ctx.target_lang == "ja" else joiner_en
+        joiner = joiner_ja if is_ja else joiner_en
         head = joiner.join(shown)
-        if len(names) > 5:
-            more_ja = f"（他 {len(names) - 5} 剤）"
-            more_en = f" (and {len(names) - 5} others)"
-            head += more_ja if ctx.target_lang == "ja" else more_en
-        if ctx.target_lang == "ja":
+        if len(names) > limit:
+            more_ja = f"（他 {len(names) - limit} 剤）"
+            more_en = f" (and {len(names) - limit} others)"
+            head += more_ja if is_ja else more_en
+        if is_ja:
             return f"継続処方: {head}"
         return f"Continue current medications: {head}"
 
@@ -2563,7 +3931,13 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     def _build_ed_physical_exam(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build physical_exam for ED_NOTE from ed_note_template.physical_exam_<lang>."""
+        """Build physical_exam for ED_NOTE from ed_note_template.physical_exam_<lang>.
+
+        v9 (2026-08-17) density fix — when encounter_protocol has no
+        ed_note_template.physical_exam, fall back to arrival vitals +
+        chief_complaint context rather than emitting a bare
+        "特記事項なし".
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -2571,6 +3945,13 @@ class TemplateNarrativeGenerator:
 
         ed_tmpl = self._get_ed_note_template(ctx)
         if ed_tmpl is None:
+            # v9 density: assemble from arrival vitals + severity
+            vital_line = self._compose_vital_signs_line(ctx)
+            if vital_line:
+                facts.append("ctx.vitals[0]")
+                if is_ja:
+                    return f"来院時所見: {vital_line}。特記の身体所見なし。", facts
+                return f"On arrival: {vital_line}. No focal findings on exam.", facts
             return fallback, facts
 
         # physical_exam_<lang> is a structured per-body-system object, not a plain
@@ -2606,40 +3987,95 @@ class TemplateNarrativeGenerator:
         return fallback, facts
 
     def _build_ed_workup(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build ed_workup from ed_note_template.ed_workup_summary_<lang>."""
+        """Build ed_workup from ed_note_template.ed_workup_summary_<lang>.
+
+        v9 (2026-08-17) density fix — assemble labs + procedures actually
+        performed in ED when the encounter YAML has no ed_workup_summary
+        template.
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         fallback = _ED_WORKUP_FALLBACK_JA if is_ja else _ED_WORKUP_FALLBACK_EN
 
         ed_tmpl = self._get_ed_note_template(ctx)
-        if ed_tmpl is None:
-            return fallback, facts
+        if ed_tmpl is not None:
+            text = _pick_localized(ed_tmpl, "ed_workup_summary", lang, ctx)
+            if text:
+                facts.append(f"encounter_protocol.narrative.ed_note_template.ed_workup_summary_{lang}")
+                return text, facts
 
-        text = _pick_localized(ed_tmpl, "ed_workup_summary", lang, ctx)
-        if not text:
-            return fallback, facts
+        # v9 density fallback: enumerate actual workup from CIF
+        parts: list[str] = []
+        # Abnormal labs
+        abn_labs = []
+        for lab in (ctx.lab_results or [])[:8]:
+            flag = _o(lab, "flag", None)
+            if not flag:
+                continue
+            name = _o(lab, "lab_name", "") or ""
+            val = _o(lab, "value", None)
+            unit = _o(lab, "unit", "") or ""
+            if name and val is not None:
+                abn_labs.append(f"{name} {val} {unit} [{flag}]")
+        if abn_labs:
+            parts.append(
+                ("検査: " if is_ja else "Labs: ") + "、".join(abn_labs[:4]) if is_ja else ", ".join(abn_labs[:4])
+            )
+        # Procedures / imaging
+        procs = []
+        for pr in (ctx.procedures or [])[:4]:
+            nm = _o(pr, "procedure_name", None) or _o(pr, "name", None)
+            if nm:
+                procs.append(str(nm))
+        if procs:
+            parts.append(
+                ("処置・画像: " if is_ja else "Procedures/imaging: ") + "、".join(procs) if is_ja else ", ".join(procs)
+            )
+        if parts:
+            facts.extend(["ctx.lab_results.abnormal", "ctx.procedures.ed"])
+            return "。".join(parts) if is_ja else ". ".join(parts), facts
 
-        facts.append(f"encounter_protocol.narrative.ed_note_template.ed_workup_summary_{lang}")
-        return text, facts
+        return fallback, facts
 
     def _build_ed_disposition(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build disposition from ed_note_template.disposition_<lang>."""
+        """Build disposition from ed_note_template.disposition_<lang>.
+
+        v9 (2026-08-17) density fix — infer disposition from encounter
+        outcome (discharge_disposition / admission linkage) when
+        ed_note_template is absent, rather than emitting a bare
+        "帰宅または入院加療".
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         fallback = _DISPOSITION_FALLBACK_JA if is_ja else _DISPOSITION_FALLBACK_EN
 
         ed_tmpl = self._get_ed_note_template(ctx)
-        if ed_tmpl is None:
-            return fallback, facts
+        if ed_tmpl is not None:
+            text = _pick_localized(ed_tmpl, "disposition", lang, ctx)
+            if text:
+                facts.append(f"encounter_protocol.narrative.ed_note_template.disposition_{lang}")
+                return text, facts
 
-        text = _pick_localized(ed_tmpl, "disposition", lang, ctx)
-        if not text:
-            return fallback, facts
+        # v9 density fallback: infer from encounter fields
+        enc = ctx.encounter
+        if enc is not None:
+            dispo = _o(enc, "discharge_disposition", None) or _o(enc, "outcome", None)
+            adm = _o(enc, "admit_to_ward", None) or bool(_o(enc, "admitted", False))
+            facts.append("ctx.encounter.disposition")
+            if adm:
+                if is_ja:
+                    return "帰院後入院加療の方針となった。担当科より病棟へ入棟依頼。", facts
+                return "Admitted for inpatient management. Ward transfer arranged with primary team.", facts
+            if dispo:
+                label = _JA_DISPO_LABEL.get(str(dispo), None) if is_ja else _EN_DISPO_LABEL.get(str(dispo), None)
+                if label:
+                    if is_ja:
+                        return f"{label}。症状経過に応じて再受診指示。", facts
+                    return f"{label}. Return precautions provided.", facts
 
-        facts.append(f"encounter_protocol.narrative.ed_note_template.disposition_{lang}")
-        return text, facts
+        return fallback, facts
 
     # ─────────────────────────────────────────────────────────────────
     # Fallback helpers

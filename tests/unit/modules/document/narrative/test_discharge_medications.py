@@ -119,7 +119,12 @@ def _ctx(lang: str = "en") -> NarrativeContext:
 
 
 def test_discharge_medications_section_renders_rx_items_only():
-    """MI case: 3 rx drugs only — no ICU drips, no MAR leakage."""
+    """MI case: 3 rx drugs only — no ICU drips, no MAR leakage.
+
+    v6 (2026-08-16): output includes dose per item (previously names
+    only). Prompt v6 requires drug-level specificity in discharge
+    summaries, so the template seed carries it too.
+    """
     ctx = _ctx()
     ctx.discharge_medications = [
         {"drug_name": "Aspirin", "dose": "100mg"},
@@ -128,9 +133,21 @@ def test_discharge_medications_section_renders_rx_items_only():
     ]
     gen = TemplateNarrativeGenerator()
     text, facts = gen._build_discharge_medications(ctx)
-    assert text == "Aspirin; Ticagrelor; Atorvastatin"
+    assert text == "Aspirin 100mg; Ticagrelor 90mg; Atorvastatin 40mg"
     assert "drip" not in text
     assert "ctx.discharge_medications" in facts
+
+
+def test_discharge_medications_section_renders_route_and_frequency_when_present():
+    """v6 (2026-08-16): PrescriptionRecord.items may carry dose / route /
+    frequency / days_supply — all should appear in the seed."""
+    ctx = _ctx()
+    ctx.discharge_medications = [
+        {"drug_name": "Furosemide", "dose": "40mg", "route": "PO", "frequency": "daily", "days_supply": 30},
+    ]
+    gen = TemplateNarrativeGenerator()
+    text, _ = gen._build_discharge_medications(ctx)
+    assert text == "Furosemide 40mg PO daily x30d"
 
 
 def test_discharge_medications_section_strips_protocol_prefix():

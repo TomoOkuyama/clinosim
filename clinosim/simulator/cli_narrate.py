@@ -79,6 +79,7 @@ def _run_narrate(args: Any) -> None:
                 file=sys.stderr,
             )
 
+    concurrency = int(getattr(args, "concurrency", 1) or 1)
     pass_impl: TemplateNarrativePass | LLMNarrativePass
     if args.provider == "template":
         pass_impl = TemplateNarrativePass(
@@ -88,6 +89,7 @@ def _run_narrate(args: Any) -> None:
             tasks=tasks,
             rng_seed=args.seed,
             patient_filter=args.patient_filter,
+            concurrency=concurrency,
         )
     else:
         llm = _build_llm_service_for_narrate(args.provider, args.llm_config)
@@ -99,6 +101,7 @@ def _run_narrate(args: Any) -> None:
             tasks=tasks,
             rng_seed=args.seed,
             patient_filter=args.patient_filter,
+            concurrency=concurrency,
         )
 
     manifest = pass_impl.run()

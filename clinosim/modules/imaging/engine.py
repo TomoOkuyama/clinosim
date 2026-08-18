@@ -452,6 +452,40 @@ def _select_report_template(
     return variant, bucket[variant]
 
 
+#: Generic negative-findings radiology report content. Emitted whenever
+#: the per-disease impression_templates.yaml lookup misses (stub_only /
+#: template-lookup ValueError) so every ImagingStudy carries a report and
+#: `_bb_diagnostic_reports` does not silent-drop the RAD DR (P1-11
+#: consumer-side coverage fix, session 88j — 2,559 studies with 0 DR
+#: (RAD) in production output). Facts-only: no acuity claim beyond "no
+#: acute abnormal findings", no anatomic assumptions.
+_GENERIC_NEG_FINDINGS_JA = "特記すべき異常所見なし。"
+_GENERIC_NEG_FINDINGS_EN = "No acute abnormal findings within the imaged field."
+_GENERIC_NEG_IMPRESSION_JA = "今回撮像範囲内に急性期異常所見を認めず。"
+_GENERIC_NEG_IMPRESSION_EN = "No acute abnormal findings within the imaged range."
+
+
+def _build_generic_negative_report(encounter_id: str, idx: int) -> RadiologyReport:
+    """Radiology fallback report used by both stub_only and
+    template-lookup ValueError paths (P1-11).
+
+    Content is deliberately generic (chest / abdomen / head are not
+    distinguished) since these paths hit precisely when we do not know
+    the modality × body_site well enough to pick a template. Emitting
+    "no acute findings" carries the same clinical meaning ("negative
+    read within the acquired field") that a template's normal variant
+    would — the diff is only that we cannot cite the anatomy back.
+    """
+    return RadiologyReport(
+        report_id=f"{RADIOLOGY_REPORT_ID_PREFIX}{encounter_id}-{idx}",
+        status="final",
+        findings_text=_GENERIC_NEG_FINDINGS_EN,
+        findings_text_ja=_GENERIC_NEG_FINDINGS_JA,
+        impression_text=_GENERIC_NEG_IMPRESSION_EN,
+        impression_text_ja=_GENERIC_NEG_IMPRESSION_JA,
+    )
+
+
 def imaging_enricher(ctx: Any) -> None:
     """POST_ENCOUNTER enricher: Order(IMAGING) → ImagingStudyRecord in extensions['imaging'].
 
@@ -554,7 +588,12 @@ def imaging_enricher(ctx: Any) -> None:
                     series=[],  # 0 series is spec-valid for FHIR R4 ImagingStudy.
                     endpoint_id="",  # No PACS reference.
                     contrast=False,
-                    report=None,  # No radiology report generated.
+                    # P1-11 (session 88j): emit generic negative-findings
+                    # report instead of None so consumers get a RAD DR
+                    # for every ImagingStudy. Prior behaviour left
+                    # 2,559/2,559 studies without a report in JP p=10000
+                    # cohorts (0.0% coverage).
+                    report=_build_generic_negative_report(encounter_id_stub, idx),
                 )
                 studies.append(stub_study)
                 continue
@@ -598,9 +637,14 @@ def imaging_enricher(ctx: Any) -> None:
                     # findings_codes: forward-compat slot — PR1 leaves empty.
                 )
             except ValueError:
-                # Template unregistered → report=None; the study is still emitted.
+                # Template unregistered → P1-11 (session 88j): emit
+                # generic negative-findings report instead of None so
+                # the ED / unknown_condition path still gets a RAD DR.
+                # Prior behaviour silent-dropped these studies from the
+                # DR (RAD) pipeline via _bb_diagnostic_reports's
+                # ``if report:`` gate.
                 encounter_id = _o(order, "encounter_id", "") or ""
-                report = None
+                report = _build_generic_negative_report(encounter_id, idx)
 
             study = ImagingStudyRecord(
                 study_id=f"{IMAGING_STUDY_ID_PREFIX}{encounter_id}-{idx}",

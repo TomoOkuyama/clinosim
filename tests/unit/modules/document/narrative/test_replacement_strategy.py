@@ -500,9 +500,17 @@ def test_bundle_strategy_makes_one_llm_call_per_document() -> None:
     assert result.sections["objective"] == "T 37.2 / HR 78 / SpO2 96"
 
 
-def test_bundle_strategy_prompt_includes_target_and_context_sections() -> None:
-    """Bundle prompt carries: target sections (seeds) + context sections
-    (read-only structured data the LLM must not contradict)."""
+def test_bundle_strategy_prompt_lists_target_names_and_context_sections() -> None:
+    """Bundle prompt carries target section NAMES (context-driven mode —
+    template seeds are NOT leaked as a rewrite anchor) plus context
+    sections with the structured facts the LLM must not contradict.
+
+    Post-88j-v4 shift (Q): the prompt no longer includes template
+    section bodies as "seeds". Instead the LLM is instructed to
+    generate fresh narrative for each named section from the context
+    facts. This test locks in that the prompt lists the section names
+    and preserves the context section reveal.
+    """
     spec = _bundle_spec()
     provider = MockProvider()
     ctx = _make_ctx()
@@ -510,11 +518,15 @@ def test_bundle_strategy_prompt_includes_target_and_context_sections() -> None:
     _apply(_bundle_template_output(), ctx, spec, _mock_llm(provider))
 
     prompt = provider.last_prompt
-    # Target sections included with seeds
-    assert '"subjective": "S seed"' in prompt
-    assert '"assessment": "A seed"' in prompt
-    assert '"plan": "P seed"' in prompt
-    # Context includes the untouched structured section (Objective)
+    # Target section names listed (as a JSON list, not name→seed dict).
+    assert '"subjective"' in prompt
+    assert '"assessment"' in prompt
+    assert '"plan"' in prompt
+    # Template seed text is NOT leaked into the target-sections block.
+    assert '"S seed"' not in prompt
+    assert '"A seed"' not in prompt
+    assert '"P seed"' not in prompt
+    # Context still includes the untouched structured section (Objective).
     assert '"objective": "T 37.2 / HR 78 / SpO2 96"' in prompt
     # Contract keywords
     assert "Context sections" in prompt or "reference only" in prompt.lower()
@@ -633,3 +645,215 @@ def test_bundle_strategy_empty_llm_sections_returns_template_unchanged() -> None
 
     assert provider.call_count == 0
     assert result.sections == _bundle_template_output().sections
+
+
+# ─────────────────────────────────────────────────────────────────
+# v6 (2026-08-16) — inpatient blocker fix context enrichment
+# ─────────────────────────────────────────────────────────────────
+
+
+def _admission_spec():
+    return _bundle_spec(
+        type_key="admission_hp",
+        llm_enabled_sections=("hpi", "assessment_and_plan"),
+    )
+
+
+def test_build_extra_context_surfaces_complications() -> None:
+    """v6: complications_during_stay MUST appear when
+    NarrativeContext.complications_occurred is non-empty."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.complications_occurred = ["pneumothorax", "aspiration_pneumonia"]
+    extra = _build_extra_context(ctx, _admission_spec(), template_section_names=set())
+    assert "complications_during_stay" in extra
+    assert "pneumothorax" in extra["complications_during_stay"]
+    assert "aspiration_pneumonia" in extra["complications_during_stay"]
+
+
+def test_build_extra_context_omits_complications_when_empty() -> None:
+    """Empty complications_occurred → key omitted (kept payload small)."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.complications_occurred = []
+    extra = _build_extra_context(ctx, _admission_spec(), template_section_names=set())
+    assert "complications_during_stay" not in extra
+
+
+def test_build_extra_context_localizes_encounter_type_ja() -> None:
+    """v6 localization: encounter_type raw enum → JA label for
+    target_lang=ja. Fixes POP-000094 (外来 narrated as 「緊急入院」)."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.encounter_type = SimpleNamespace(value="outpatient")
+    ctx.target_lang = "ja"
+    extra = _build_extra_context(ctx, _admission_spec(), template_section_names=set())
+    assert extra.get("encounter_type") == "外来"
+
+
+def test_build_extra_context_keeps_encounter_type_raw_for_en() -> None:
+    """Non-JA locales receive the raw lowercased enum value."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.encounter_type = SimpleNamespace(value="outpatient")
+    ctx.target_lang = "en"
+    extra = _build_extra_context(ctx, _admission_spec(), template_section_names=set())
+    assert extra.get("encounter_type") == "outpatient"
+
+
+def test_build_extra_context_supplemental_oxygen_flag() -> None:
+    """v6: supplemental_oxygen_today MUST surface when today's vitals
+    record on_supplemental_oxygen=True. Prevents "SpO2 89% だが酸素投与
+    なしで安定" self-contradiction (POP-000075 doc-06)."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.document_type = DocumentType.PROGRESS_NOTE
+    ctx.encounter = SimpleNamespace(admission_datetime="2026-03-28T00:00:00")
+    ctx.vitals = [
+        SimpleNamespace(
+            timestamp="2026-03-28T10:00:00",
+            on_supplemental_oxygen=True,
+            oxygen_delivery_device="nasal cannula",
+            oxygen_flow_rate_lpm=2.0,
+            day=None,
+            spo2=89.0,
+        )
+    ]
+    ctx.day_index = 0
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert extra.get("supplemental_oxygen_today", "").startswith("nasal cannula")
+    assert "L/min" in extra["supplemental_oxygen_today"]
+
+
+def test_build_extra_context_abnormal_labs_today_filters_by_flag() -> None:
+    """Only H/L/critical-flagged labs are surfaced — stable results are
+    intentionally omitted to keep the payload focused."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.document_type = DocumentType.PROGRESS_NOTE
+    ctx.day_index = 0
+    ctx.lab_results = [
+        SimpleNamespace(lab_name="AST", value=180, unit="U/L", flag="H", day=0),
+        SimpleNamespace(lab_name="ALT", value=25, unit="U/L", flag=None, day=0),
+        SimpleNamespace(lab_name="Cr", value=2.4, unit="mg/dL", flag="H", day=0),
+    ]
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    labs = extra.get("abnormal_labs_today", "")
+    assert "AST" in labs and "[H]" in labs
+    assert "Cr" in labs
+    # unflagged ALT is intentionally excluded
+    assert "ALT 25" not in labs
+
+
+def test_build_extra_context_hospital_day_label_admission_day() -> None:
+    """v8 (2026-08-17): day 0 → 「入院初日」verbatim label."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 0
+    ctx.target_lang = "ja"
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert extra.get("hospital_day_label") == "入院初日"
+
+
+def test_build_extra_context_hospital_day_label_day_two() -> None:
+    """v8: day 1 → 「入院2日目」 (1-indexed). Prevents the v7 systematic
+    "入院初日で" failure across all day-1 progress notes."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 1
+    ctx.target_lang = "ja"
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert extra.get("hospital_day_label") == "入院2日目"
+
+
+def test_build_extra_context_hospital_day_label_en() -> None:
+    """EN locale: matching phrase in English."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 4
+    ctx.target_lang = "en"
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert extra.get("hospital_day_label") == "hospital day 5"
+
+
+def test_render_med_names_localizes_katakana_for_ja() -> None:
+    """v8 (2026-08-17): Feeding canonical katakana prevents the LLM
+    from inventing incorrect transliterations (アトロバスタチン etc.)."""
+    from clinosim.modules.document.narrative.replacement_strategy import _render_med_names
+
+    meds = [
+        {"drug_name": "Atorvastatin"},
+        {"drug_name": "Amlodipine"},
+        {"drug_name": "Enalapril"},
+    ]
+    ja = _render_med_names(meds, lang="ja")
+    assert "アトルバスタチン" in ja
+    assert "アムロジピン" in ja
+    assert "エナラプリル" in ja
+    # No English tokens should leak
+    assert "Atorvastatin" not in ja
+    # EN path unchanged
+    en = _render_med_names(meds, lang="en")
+    assert "Atorvastatin" in en
+    assert "Amlodipine" in en
+
+
+def test_build_extra_context_discharge_summary_enrichment() -> None:
+    """v6: discharge_summary MUST receive complications_during_stay,
+    abnormal_labs_during_stay, key_procedures_performed, and
+    vitals_range_during_stay so LLM has per-patient facts to compose
+    hospital_course from."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.document_type = DocumentType.DISCHARGE_SUMMARY
+    ctx.complications_occurred = ["pneumothorax"]
+    ctx.procedures = [SimpleNamespace(procedure_name="chest tube insertion", day=3)]
+    ctx.lab_results = [SimpleNamespace(lab_name="WBC", value=18.2, unit="10^9/L", flag="H", day=1)]
+    ctx.vitals = [
+        SimpleNamespace(
+            temperature_celsius=39.2, systolic_bp=90, spo2=88, heart_rate=120, day=None, timestamp="2026-03-28T00:00:00"
+        ),
+        SimpleNamespace(
+            temperature_celsius=36.9, systolic_bp=120, spo2=97, heart_rate=76, day=None, timestamp="2026-04-05T00:00:00"
+        ),
+    ]
+    spec = _bundle_spec(
+        type_key="discharge_summary",
+        llm_enabled_sections=("hospital_course", "discharge_instructions"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert "pneumothorax" in extra.get("complications_during_stay", "")
+    assert "chest tube" in extra.get("key_procedures_performed", "").lower()
+    assert "WBC" in extra.get("abnormal_labs_during_stay", "")
+    range_line = extra.get("vitals_range_during_stay", "")
+    assert "sBP" in range_line and "T" in range_line and "SpO2" in range_line
