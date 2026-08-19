@@ -55,6 +55,9 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     entry,
 )
 from clinosim.modules.output.fhir_r4.lib.generator_metadata import write_generator_metadata as _write_generator_metadata
+from clinosim.modules.output.fhir_r4.lib.ed_reattribution import (
+    reattribute_encounter_to_ed_bridge as _reattribute_encounter_to_ed_bridge,
+)
 from clinosim.modules.output.fhir_r4.lib.inline_bb import (
     _bb_conditions,
     _bb_coverage,
@@ -543,6 +546,13 @@ def _build_bundle(
             # feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource, country)
+            # N-3 fix (2026-08-19): route ED-attributable resources from
+            # the IMP encounter to the ``-ED`` bridge Encounter so the
+            # CY7-05 synth bridge no longer carries zero child resources.
+            # Doc-type trigger (ED_NOTE 34878-9 / ED_TRIAGE_NOTE 54094-8)
+            # is active today; timestamp trigger is future-proof for when
+            # the simulator emits ED-window vitals / meds / procedures.
+            _reattribute_encounter_to_ed_bridge(resource, ctx)
             entries.append(entry(resource))
 
     return {
