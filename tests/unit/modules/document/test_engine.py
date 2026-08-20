@@ -344,3 +344,121 @@ def test_nursing_loincs_derived_from_yaml() -> None:
     assert _load_nursing_loincs() == NURSING_LOINCS
     # 3 distinct nursing document types → 3 distinct LOINC codes.
     assert len(NURSING_LOINCS) == 3
+
+
+# ─── N-3 Phase B: ED-companion doc dispatch for via-ED IMP encounters ──────
+
+
+def _make_via_ed_imp(imp_id: str = "enc-imp-1") -> SimpleNamespace:
+    """Build an IMP encounter whose admit_source is EMD (via ED)."""
+    return SimpleNamespace(
+        encounter_id=imp_id,
+        encounter_type="inpatient",
+        status="completed",
+        admission_datetime=ADMISSION_DT,
+        discharge_datetime=LOS_5_DT,
+        attending_physician_id="dr1",
+        admit_source="emd",
+    )
+
+
+def test_via_ed_imp_emits_ed_note_stub_targeting_ed_bridge() -> None:
+    """N-3 Phase B: an IMP with `admit_source=EMD` gets ED_NOTE stubs
+    added to its documents list, targeting the ``{IMP_id}-ED`` bridge."""
+    record = _make_record(_make_via_ed_imp())
+    ctx = _make_ctx(record)
+    document_enricher(ctx)
+
+    ed_notes = [d for d in record.documents if d.task_type == "ed_note"]
+    assert len(ed_notes) == 1
+    stub = ed_notes[0]
+    assert stub.encounter_id == "enc-imp-1-ED"
+    assert stub.loinc_code == "34878-9"
+    assert stub.document_id.startswith(f"{DOC_REFERENCE_ID_PREFIX}enc-imp-1-ED-")
+
+
+def test_via_ed_imp_emits_ed_triage_note_stub_targeting_ed_bridge() -> None:
+    """ED_TRIAGE_NOTE parallel to ED_NOTE."""
+    record = _make_record(_make_via_ed_imp())
+    ctx = _make_ctx(record)
+    document_enricher(ctx)
+
+    triage = [d for d in record.documents if d.task_type == "ed_triage_note"]
+    assert len(triage) == 1
+    assert triage[0].encounter_id == "enc-imp-1-ED"
+    assert triage[0].loinc_code == "54094-8"
+
+
+def test_via_ed_imp_ed_stub_period_is_within_synth_bridge_window() -> None:
+    """ED stub period must fall inside the synth Encounter.period
+    ([admission-3.5h, admission]) so FHIR-side attribution is coherent."""
+    record = _make_record(_make_via_ed_imp())
+    ctx = _make_ctx(record)
+    document_enricher(ctx)
+
+    ed_notes = [d for d in record.documents if d.task_type == "ed_note"]
+    assert ed_notes
+    stub = ed_notes[0]
+    period_start = datetime.fromisoformat(stub.period_start)
+    period_end = datetime.fromisoformat(stub.period_end)
+    # ED window edges match _make_synth_ed_enc_dict.
+    assert period_start == ADMISSION_DT - timedelta(hours=3, minutes=30)
+    assert period_end == ADMISSION_DT
+
+
+def test_non_ed_imp_does_not_emit_ed_companion_stubs() -> None:
+    """IMP with `admit_source != emd` gets NO ED companion stubs (no -ED
+    bridge exists on the FHIR side for direct admissions)."""
+    encounter = _make_encounter()  # default: no admit_source (not EMD)
+    record = _make_record(encounter)
+    ctx = _make_ctx(record)
+    document_enricher(ctx)
+
+    ed_notes = [d for d in record.documents if d.task_type == "ed_note"]
+    triage = [d for d in record.documents if d.task_type == "ed_triage_note"]
+    assert not ed_notes
+    assert not triage
+
+
+def test_standalone_emergency_encounter_still_emits_own_ed_note() -> None:
+    """Pre-existing behavior guard: a standalone EMER encounter (not IMP,
+    dispatched via triage_enricher + document_enricher on the EMER path)
+    is NOT touched by the Phase B branch — its ED_NOTE points at the
+    EMER encounter itself, not at a `-ED` suffix."""
+    emer_encounter = SimpleNamespace(
+        encounter_id="enc-emer-1",
+        encounter_type="emergency",
+        status="completed",
+        admission_datetime=ADMISSION_DT,
+        discharge_datetime=ADMISSION_DT + timedelta(hours=3),
+        attending_physician_id="dr1",
+        admit_source="outp",  # standalone ED (walk-in)
+    )
+    record = _make_record(emer_encounter)
+    ctx = _make_ctx(record)
+    document_enricher(ctx)
+
+    ed_notes = [d for d in record.documents if d.task_type == "ed_note"]
+    assert len(ed_notes) == 1
+    # attached to the EMER encounter directly, no -ED suffix
+    assert ed_notes[0].encounter_id == "enc-emer-1"
+
+
+def test_via_ed_imp_still_emits_normal_inpatient_docs() -> None:
+    """Regression guard: adding ED companion stubs must not suppress the
+    IMP encounter's own admission_hp / progress_note / discharge_summary."""
+    record = _make_record(_make_via_ed_imp())
+    ctx = _make_ctx(record)
+    document_enricher(ctx)
+
+    task_counts = {}
+    for d in record.documents:
+        task_counts[d.task_type] = task_counts.get(d.task_type, 0) + 1
+    # Normal inpatient specs still fired against the IMP encounter.
+    assert task_counts.get("admission_hp", 0) == 1
+    assert task_counts.get("discharge_summary", 0) == 1
+    # LOS=5 days → 5 progress notes.
+    assert task_counts.get("progress_note", 0) == 5
+    # Plus the two ED companion stubs.
+    assert task_counts.get("ed_note", 0) == 1
+    assert task_counts.get("ed_triage_note", 0) == 1
