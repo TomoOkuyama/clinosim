@@ -1,93 +1,166 @@
-# clinosim.modules.identity — 住民識別子・保険付番 (country-pluggable)
+# `clinosim.modules.identity` — 住民識別子・保険番号付与
 
-> Status: **Phase 1 完了** (AD-54)。骨格 + JP 付番 + population 統合 + FHIR `Coverage`(JP Core 準拠)+ 個人番号 chokepoint。
-> Phase 2 以降(期間付き履歴・75歳移行・就労遷移)は `TODO.md` 参照。
+## 概要
 
-## 目的
+[`clinosim.modules.population`](../population/README.md) が生成する全
+住民に対し、POST_POPULATION パスで `IdentityTimeline` (national
+identity + insurance enrollment) を付与する。国別の番号生成規則は
+`IdentityProvider` Protocol の背後に隠蔽され、新国追加は provider
+ファイル + locale YAML の 2 点セットで完了する (engine 側の変更不要、
+AD-54)。
 
-住民 (Layer 1) に対し、**国別の識別子・保険資格**を付番する単一モジュール。
+## Scope
 
-- **被保険者番号 (member id) / 保険者番号 (insurer number) / 記号 (group symbol) / 枝番 (branch number)** を生成
-- 日本では **マイナンバーカード保有 / マイナ保険証登録**の状態 (日付付きフラグ) も保持
-- 12 桁の **個人番号 (national_id)** は Layer 1 のシミュレーション属性としてのみ保持し、**臨床出力 (FHIR/CSV) には出さない** (法制度上、医療機関は個人番号を保持しない)
+- **In scope**: 世帯単位の保険番号付与 (共有 記号 / member id +
+  member 個別 枝番) と個人 national identity (JP マイナンバー式
+  個人番号 + マイナ保険証 保有)、および card 保有に世帯内 相関を
+  与える per-household 潜在変数の共有 draw。
+- **現在有効な provider は JP のみ**。US provider は Phase-1 stub
+  (`assign_household → {}`、`assign_personal → NationalIdentity(country="US")`)
+  で、US 保険サンプリングは Phase-4 migration まで
+  [`clinosim.modules.patient.activator`](../patient/README.md) に
+  残っている。enricher は `enabled=lambda c: is_jp(c.country) and
+  c.jp_insurance_numbers` のため、US または JP 番号付与オフ時は
+  no-op。
+- **Out of scope**: 姓名 / 住所 / 生年月日 生成
+  ([`clinosim.modules.population`](../population/README.md) +
+  [`clinosim/locale/<country>/`](../../locale/))、
+  医療者 ID ([`clinosim.modules.staff`](../staff/README.md))、
+  FHIR serialization ([`clinosim.modules.output`](../output/README.md))。
 
-`disease` / `encounter` の「YAML を足すだけで追加、エンジン無改変」と同じ思想で、
-**プロバイダ実装 + `locale/<cc>/identity.yaml` を足すだけで国を追加**できる。
-
-## 設計原則
-
-| # | 原則 | 説明 |
-|---|---|---|
-| 1 | **Country-pluggable** | `registry` が `country → IdentityProvider` を解決。新国はプロバイダ + YAML 追加のみ |
-| 2 | **付番は別パス・専用サブシード** | 人口生成完了後に独立 Generator で付番し、既存乱数列・golden を壊さない (AD-16) |
-| 3 | **個人番号は非出力 (privacy chokepoint)** | `national_id` は CIF に持てるが、出力アダプタは既定で機微フィールドを出さない |
-| 4 | **保険資格は期間付き履歴** | enrollment は `valid_from`/`valid_to` を持ち、各受診は受診日に有効な資格を参照 (FHIR `Coverage.period`) |
-| 5 | **記号の共有粒度を制度どおり** | 社保=事業所単位、国保=世帯単位、後期高齢=個人単位 |
-
-## Dependencies
-
-このモジュールが依存してよいもの (モジュール独立性ルール):
-
-- `clinosim/types/` — `NationalIdentity` / `InsuranceEnrollment` / `IdentityTimeline` (types/identity.py)
-- `clinosim/locale/` — `locale/<cc>/identity.yaml` (付番率・保険者代表セット・法別番号)
-- `clinosim/codes/` — FHIR system URI (`get_system_uri`)
-
-## Consumers
-
-このモジュールに依存するもの:
-
-| Caller | How | Impact |
-|---|---|---|
-| `simulator/enrichers.py` | `--jp-insurance` 有効時に identity enricher 登録(opt-in、JP only) | optional (JP) |
-| `modules/identity/assign.py` | 同 module 内 + provider 実装 | core |
-| `modules/identity/registry.py` | country-pluggable provider registry | core |
-| `modules/identity/providers/jp.py` | JP 保険番号 + マイナンバー生成 (provider 実装) | core |
-| `modules/identity/__init__.py` | public API re-export | infrastructure |
-| `modules/population/engine.py` (README cross-ref) | 人口生成後の別パスで `assign_*()` を呼び `PersonRecord` に格納 | core |
-| `modules/patient/activator.py` (README cross-ref) | `PatientProfile` へ引き継ぎ、受診日で有効資格を選択 | core |
-| `modules/output/` (FHIR) | `InsuranceEnrollment` から `Coverage` + 保険者 Organization を生成 | medium (FHIR Coverage builder) |
-| `tests/unit/test_identity.py` | provider + assign + registry unit tests | guard |
-
-## API リファレンス
+## Public API
 
 ```python
-from clinosim.modules.identity import get_provider
-
-provider = get_provider("JP")
-# 世帯単位で付番 (記号共有・枝番で個人区別・被扶養者を世帯主に紐付け)
-enrollments = provider.assign_household(household, rng, config)
-# 個人単位の属性 (カード保有 / マイナ保険証登録フラグ等)
-identity = provider.assign_personal(person, household_ctx, rng, config)
+from clinosim.modules.identity import (
+    assign_identities,           # (registry, country, master_seed) -> None (mutate)
+    get_provider,                # (country) -> IdentityProvider (JP or US)
+)
 ```
 
-> **注:** `providers/` には意図的に専用 README を置いていません。国別
-> プラグインのディスパッチパターンと provider 契約 (registry / assign_*
-> API) は上記コードで既に説明済みで、ファイル単位 README を追加すると
-> 重複になります。
+拡張の seam となる Protocol 型は 2 つ:
 
-## データ構造
+- `ResidentLike` (`base.py`) — provider が必要とする構造的最小
+  (`person_id`, `household_id`, `age`, `sex`, `date_of_birth`,
+  `occupation`)。本モジュールが `clinosim.modules.population` を
+  import しないためだけに存在する。
+- `IdentityProvider` (`base.py`) — 国別番号付与契約:
+  `assign_household(members, rng, config)` は
+  `{person_id: InsuranceEnrollment}` map を返し、
+  `assign_personal(member, household_latent, rng, config)` は
+  member 個別の `NationalIdentity` を返す。
 
-`clinosim.types.identity` を参照 (型はモジュール内に定義しない — プロジェクト規約)。
+`providers/` に専用 README を置いていない — country-plugin dispatch
+パターンと `IdentityProvider` 契約は上で網羅しており、per-directory
+README は重複するだけになる。
 
-- `NationalIdentity` — `national_id` (非出力), `has_id_card`, `id_card_linked_to_insurance`
-- `InsuranceEnrollment` — `insurer_number`, `member_id`, `group_symbol`, `branch_number`, `category`, `valid_from`, `valid_to`, `system_uri`
-- `IdentityTimeline` — `enrollments: list[InsuranceEnrollment]`, `card_acquired_on`, `insurance_linked_on`, `national_id`
+## 決定論
 
-## 生成オプション
+- サブ seed オフセット `540_054` (decimal、grandfathered — identity
+  seed は hex-ASCII 命名規約制定より前に確定していたため、cross-cursor
+  byte-identity 保全のためそのままにしてある)。
+  [`clinosim/seeding.py`](../../seeding.py) の
+  `ENRICHER_SEED_OFFSETS["identity"]` に登録済み。
+- run あたり RNG 1 つ: `master_seed + ENRICHER_SEED_OFFSETS["identity"]`
+  (単純加算、`derive_sub_seed` は不使用) を世帯順に消費。患者主 RNG
+  列は乱さない (AD-16)。
+- 世帯単位で `rng.standard_normal()` を 1 回だけ draw し、
+  `household_latent` として全 member に配布。JP の Gaussian-copula
+  card 保有モデルはこれで marginal 年齢帯別レートを厳密に保ちつつ
+  世帯内相関を生む。
 
-被保険者番号 (FHIR Coverage) の付与は **JP 指定時のみ**有効で、include/exclude を選べる:
+## 依存
+
+- `clinosim.modules._shared` — `is_jp`, `is_us` (canonical 国 predicate)。
+- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`。
+- `clinosim.types` — `IdentityTimeline`, `NationalIdentity`,
+  `InsuranceEnrollment` (`clinosim.types` から import)。
+- `clinosim.locale.loader` — `load_identity_config(country)`
+  (`clinosim/locale/<country>/identity.yaml` を load)。
+- `numpy` — `np.random.Generator`, `standard_normal`。
+- **非依存**: `clinosim.modules.population` (`ResidentLike` で
+  structural typing)。
+
+## 定数と設定
+
+- Registry (`registry.py`): `_SUPPORTED = {"JP", "US"}`。それ以外の国
+  → `get_provider` が `ValueError`。`is_jp` / `is_us` を必ず使い、
+  `country == "JP"` の直比較は FP-UNIFY-4 anti-pattern (小文字
+  `"jp"` を弾いてしまう)。
+- Locale YAML: [`clinosim/locale/jp/identity.yaml`](../../locale/jp/identity.yaml)
+  — マイナンバー card 保有・マイナ保険証 登録の年齢帯レート、
+  保険 scheme 分布、Gaussian-copula 世帯内相関の `household_icc`。
+  **US YAML は現状存在しない** (Phase 1); enricher 側の早期 return
+  が config 不在ケースを処理する。
+- 番号生成 (`generators.py`):
+  - `my_number(rng)` — 12 桁 個人番号 + 有効 check digit。
+    公式は `11 - ((Σ P_n·Q_n) mod 11)`、remainder が 0 or 1 のとき
+    check digit は `0`。
+  - `insurer_number(houbetsu, prefecture, serial, *, national=False)`
+    — 8 桁 保険者番号 (社保 / 後期高齢者) または 6 桁 (国保)、
+    末尾 mod-10 check digit を `mod10_check_digit` で付与。
+  - `mod10_check_digit(body)` — modulus-10 (右から weights
+    2, 1, 2, 1、積の桁を和加算)。公式仕様との突合は `# TODO: verify`
+    保留。
+  - `numeric_id(rng, width)` — zero-pad 済み random numeric ID。
+  - `branch_number(index)` — 2 桁 枝番 (被保険者 record 内個人番号)。
+
+## ディレクトリ構造
+
+```
+clinosim/modules/identity/
+  __init__.py                     公開 API (get_provider + assign_identities)
+  assign.py                       assign_identities POST_POPULATION パス
+  base.py                         ResidentLike + IdentityProvider Protocol
+  generators.py                   my_number / mod10 / insurer_number / …
+  registry.py                     国 → provider dispatch (JP / US)
+  providers/
+    __init__.py                   JPIdentityProvider + USIdentityProvider 再 export
+    jp.py                         JP 番号規則 + card 保有 copula
+    us.py                         Phase-1 stub (空 enrollment + US country tag)
+```
+
+**`enricher.py` / `audit.py` / `reference_data/` は存在しない** —
+reference data は `clinosim/locale/jp/identity.yaml`、enricher entry
+は `assign.py` の `assign_identities`。
+
+## Enricher 配線
+
+[`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) の
+`register_builtin_enrichers` で登録:
+
+- `name="identity"`, `stage=POST_POPULATION`, `order=10`,
+  `enabled=lambda c: is_jp(c.country) and c.jp_insurance_numbers`。
+- POST_POPULATION パスの序盤 (後続 POST_POPULATION enricher より
+  前) に実行。
+- `run` lambda は `ctx.population`, `ctx.config.country`,
+  `ctx.master_seed` を渡す — enricher は stateless。
+
+## Output surface (consumers)
+
+| Consumer | 場所 | 役割 |
+|---|---|---|
+| Enricher registry | [`clinosim/simulator/enrichers.py:136-146`](../../simulator/enrichers.py) | POST_POPULATION order=10 登録。 |
+| `PersonRecord.identity` field | [`clinosim/types/population.py:78`](../../types/population.py) | 下流 code は本パス実行後に `person.identity.national` / `person.identity.enrollments` を読む。 |
+| FHIR `Patient` / `Coverage` builder | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | `Patient` にマイナンバー式 identifier、`Coverage` に JP 保険証情報を emit。 |
+
+## テスト
 
 ```bash
-# 付与あり (既定)
-clinosim generate --country JP --format cif fhir -o out/
-# 付与なし
-clinosim generate --country JP --no-jp-insurance --format cif fhir -o out/
+pytest tests/unit -k identity -q         # provider + generator + assign_identities
+pytest tests/e2e -k identity_jp -q       # JP locale end-to-end
 ```
 
-- API: `SimulatorConfig(country="JP", jp_insurance_numbers=False)`
-- 非 JP (US 等) では本オプションは無視される (付番自体が走らない)
-- `off` の場合、`IdentityTimeline` は生成されず Coverage も出力されない
+個別ファイル:
 
-## ロードマップ
+- [`tests/unit/test_identity.py`](../../../tests/unit/test_identity.py)
+  — provider dispatch、`assign_identities` の冪等性 + 決定論、
+  番号生成の check digit 検証。
+- [`tests/e2e/test_identity_jp.py`](../../../tests/e2e/test_identity_jp.py)
+  — JP cohort end-to-end (世帯共有、card 保有率、保険者分布)。
 
-`TODO.md` の v0.3 / AD-54 を参照 (P1〜P4)。
+## Ownership
+
+`maintainers@` — 詳細は
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+
+英語版: [`README.md`](README.md)。
