@@ -575,6 +575,55 @@ def document_enricher(ctx: Any) -> None:
                     )
                     doc_seq += 1
 
+            # ── Phase B (N-3): ED-companion doc dispatch for via-ED IMPs ─────
+            # When an IMP encounter carries `admit_source=EMD`, the FHIR
+            # adapter synthesizes a bridge Encounter with id ``{IMP}-ED``
+            # (see _make_synth_ed_enc_dict) so `Encounter.partOf` resolves.
+            # Dispatch encounter_once ED-only specs (救急科記録 34878-9 /
+            # トリアージ記録 54094-8) targeting that bridge id, so the
+            # -ED Encounter carries the clinical documents that describe
+            # the ED-phase activity of a via-ED admission. Without this,
+            # the -ED bridge appears as an empty shell in the FHIR export.
+            #
+            # Stubs are attached to the IMP record (record.documents list)
+            # per the CY7-05 contract — no new entry in `record.encounters`
+            # to preserve the encounters[0] singleton assumption. The
+            # narrative pass reads all stubs for the patient regardless of
+            # encounter_id, so these -ED-targeted stubs get filled by the
+            # existing ed_note / ed_triage_note template pipeline.
+            _admit_source_val = _o(encounter, "admit_source", None)
+            _is_via_ed = str(_admit_source_val) == "emd" or str(_admit_source_val).lower().endswith(".emd")
+            if _is_via_ed and enc_type_val == "inpatient":
+                _ed_enc_id = f"{encounter_id}-ED"
+                # Mid-ED-window authored time (matches synth Encounter.period
+                # [admission-3.5h, admission] set in _make_synth_ed_enc_dict).
+                _ed_authored_dt = admission_dt - timedelta(hours=2)
+                _ed_period_start_dt = admission_dt - timedelta(hours=3, minutes=30)
+                _ed_period_end_dt = admission_dt
+                _ed_specs = [
+                    s
+                    for s in specs_for_encounter_type("emergency")
+                    if s.type_key in country_spec_keys and s.generation_frequency == "encounter_once"
+                ]
+                for spec in _ed_specs:
+                    documents.append(
+                        ClinicalDocument(
+                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{_ed_enc_id}-{doc_seq:02d}",
+                            task_type=spec.type_key,
+                            loinc_code=spec.loinc_code,
+                            patient_id=pid,
+                            encounter_id=_ed_enc_id,
+                            author_practitioner_id=_pick_document_author(spec, encounter),
+                            authored_datetime=_ed_authored_dt.isoformat(),
+                            period_start=_ed_period_start_dt.isoformat(),
+                            period_end=_ed_period_end_dt.isoformat(),
+                            language=lang,
+                            format_type=spec.format_type.value,
+                            narrative=None,
+                        )
+                    )
+                    doc_seq += 1
+
             # ── ClinicalImpression generation (inpatient types only; spec §3.3) ─
             if emit_ci:
                 # C4-11: richer template description.

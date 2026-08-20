@@ -257,7 +257,20 @@ class NarrativePass(ABC):
         # write_cif serializes EncounterType as a plain string ("inpatient");
         # some test fixtures use the pre-serialization enum shape {"value": "inpatient"}.
         enc_type = raw.get("value", "") if isinstance(raw, dict) else raw
-        return enc_type in allowed
+        if enc_type in allowed:
+            return True
+        # N-3 Phase B: an IMP record can carry ED-companion stubs
+        # (encounter_id=`{IMP}-ED`, spec.type_key = ed_note / ed_triage_note)
+        # dispatched by document_enricher for via-ED admissions. Those stubs
+        # exist on an `inpatient` patient_dict but their spec is
+        # `encounter_types_supported=[emergency]`. Fall back to a per-stub
+        # existence check so the narrate pass processes them instead of
+        # silently dropping every ED-companion doc as `spec does not apply`.
+        docs = patient_dict.get("documents") or []
+        for d in docs:
+            if d.get("task_type") == spec.type_key:
+                return True
+        return False
 
     def _build_context(
         self,

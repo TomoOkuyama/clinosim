@@ -312,10 +312,20 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             chronic_condition_codes=_chronic_codes,
             record_orders=ctx.record.get("orders", []),
         )
-        # Only add ED→IMP partOf if _build_encounter didn't already set one
-        # (readmission takes precedence — same field, different semantics).
-        if _partof_id and "partOf" not in _resource:
-            _resource["partOf"] = {"reference": f"Encounter/{_partof_id}"}
+        # ED bridge Encounter emit (CY7-05 + N-3 refinement):
+        # - Always emit the synth `-ED` companion Encounter when the IMP
+        #   carries an `admit_source_encounter_id`, so Phase B document
+        #   stubs (ED_NOTE / ED_TRIAGE_NOTE with encounter_id=`{IMP}-ED`)
+        #   never reference a nonexistent Encounter.
+        # - Only set the ED→IMP partOf on the IMP resource itself if
+        #   `_build_encounter` did NOT already set one for readmission
+        #   linkage (readmission takes precedence — same field, different
+        #   semantics). This preserves the readmission chain while still
+        #   materializing the bridge Encounter (fixes the readmission×EMD
+        #   dangling-reference case, ~13% of via-ED IMPs in p=10000).
+        if _partof_id:
+            if "partOf" not in _resource:
+                _resource["partOf"] = {"reference": f"Encounter/{_partof_id}"}
             # CY7-05 synth-ED bridge Encounter: delegate to canonical
             # `_build_encounter` so localization / CS-registry lookups
             # are single-source-of-truth (Issue #546, spec DD1).
