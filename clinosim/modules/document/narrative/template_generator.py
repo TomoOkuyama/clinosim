@@ -559,8 +559,9 @@ def _filter_vitals_for_day(vitals: list, day_index: int, encounter: Any) -> list
     adm_dt = _parse_iso_datetime(adm_raw)
     if adm_dt is None:
         # Use earliest timestamp as day-0 anchor
-        candidates = [_parse_iso_datetime(_o(v, "timestamp", None)) for v in vitals]
-        candidates = [c for c in candidates if c is not None]
+        candidates: list[datetime] = [
+            c for c in (_parse_iso_datetime(_o(v, "timestamp", None)) for v in vitals) if c is not None
+        ]
         if candidates:
             adm_dt = min(candidates)
     if adm_dt is None:
@@ -681,7 +682,8 @@ class TemplateNarrativeGenerator:
                 return composed or generic
 
             subjective = _prefer(traj.get("subjective"), self._compose_progress_subjective_from_state(ctx), _generic_s)
-            objective = traj.get("objective") if traj.get("objective") not in _placeholders else _generic_s
+            _obj_raw = traj.get("objective")
+            objective = _obj_raw if (_obj_raw and _obj_raw not in _placeholders) else _generic_s
             assessment = _prefer(traj.get("assessment"), self._compose_progress_assessment_from_state(ctx), _generic_a)
             plan = _prefer(traj.get("plan"), self._compose_progress_plan_from_state(ctx), _generic_p)
 
