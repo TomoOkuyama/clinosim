@@ -1,10 +1,22 @@
 task_type: narrative_seed_bundle
-version: 9
+version: 11
 max_tokens: 3500
 temperature: 0.1
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
+
+  v11 changes (2026-08-20, prompt-level hard-guard for EN lab names):
+    - Rule 5 D expanded with FORBIDDEN vs REQUIRED examples for the
+      most-leaked lab names (Albumin, Creatinine, Glucose, Total
+      bilirubin). Verified against the p=10000 s500 N-3 dataset:
+      1,063 EN lab hits across 900 new ED_NOTE narratives with v9's
+      short table; v11 doubles the coverage and adds an explicit
+      rule-of-thumb (FULL word → JA, abbreviation → keep) plus a
+      note that a deterministic post-processor enforces the rule at
+      the caller side (`_localize_lab_names_in_sections_ja` in
+      replacement_strategy.py) so a slipped EN name is silently
+      rewritten to the canonical JA form even if the LLM misses it.
 
   v9 changes (2026-08-17 evening, v11 review follow-up):
     - Consolidated 11 Hard Rules into 4 grouped blocks (Grounding /
@@ -147,18 +159,43 @@ system: |
        Keep CPAP / BiPAP as-is (英字が日本でも標準).
 
      D. Common English lab / observation NAMES — translate the name,
-        keep numeric value + unit verbatim:
-        Creatinine → クレアチニン       Glucose  → 血糖
-        Lactate    → 乳酸             Albumin  → アルブミン
-        Sodium     → ナトリウム        Potassium → カリウム
-        Chloride   → クロール          Calcium  → カルシウム
-        Magnesium  → マグネシウム       Phosphorus → リン
-        Bilirubin  → ビリルビン         Urea      → 尿素
+        keep numeric value + unit verbatim. This applies EVEN when the
+        source context passes the value with an English name — you MUST
+        rewrite the name for JA output.
+        FORBIDDEN (WRONG) → REQUIRED (CORRECT):
+          "Albumin 4.0 g/dL"    → 「アルブミン 4.0 g/dL」
+          "Creatinine 1.2 mg/dL" → 「クレアチニン 1.2 mg/dL」
+          "Glucose 180 mg/dL"    → 「血糖 180 mg/dL」
+          "Total bilirubin 3.0"  → 「総ビリルビン 3.0」
+        Full-word translations (mandatory in JA free-prose):
+          Creatinine → クレアチニン       Glucose  → 血糖
+          Lactate    → 乳酸             Albumin  → アルブミン
+          Sodium     → ナトリウム        Potassium → カリウム
+          Chloride   → クロール          Calcium  → カルシウム
+          Magnesium  → マグネシウム       Phosphorus → リン
+          Bilirubin  → ビリルビン         Urea      → 尿素
+          Total bilirubin → 総ビリルビン  Direct bilirubin → 直接ビリルビン
+          Urea nitrogen → 尿素窒素       Total protein → 総蛋白
+          Hemoglobin → ヘモグロビン       Hematocrit → ヘマトクリット
+          White blood cell → 白血球       Red blood cell → 赤血球
+          Platelet(s) → 血小板           Cholesterol → コレステロール
+          Triglyceride(s) → トリグリセリド  Protein → 蛋白
+          Iron → 鉄                      Ferritin → フェリチン
+          Amylase → アミラーゼ            Lipase → リパーゼ
+          Troponin → トロポニン           Troponin I → トロポニンI
+          Troponin T → トロポニンT
        KEEP as-is (国際標準略号として日本でも標準):
         BUN, CRP, BNP, NT-proBNP, PCT, WBC, RBC, Hb, Hct, MCV, PT,
         INR, PT-INR, PT_INR, APTT, HbA1c, LDL, HDL, TG, T-Bil, D-Bil,
         AST, ALT, ALP, γ-GTP, LDH, eGFR, Cr, SpO2, PaO2, PaCO2, pH,
         HCO3, Na, K, Cl, Ca, Mg, P.
+       Rule of thumb: if it is a FULL English word (mixed case letters,
+       not an abbreviation), translate to the JA form above. If it is
+       an all-caps or short abbreviation (2-6 letters), keep as-is.
+       The output is post-processed to enforce this rule; any leaked
+       full-word EN name will be rewritten to the canonical JA form
+       automatically. Follow the rule anyway so the LLM's own output
+       reads correctly.
 
      E. Risk / assessment enum:
         low_risk / low       → 低リスク

@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 9
+version: 11
 max_tokens: 3500
 temperature: 0.1
 description: |
@@ -117,10 +117,23 @@ system: |
      →転院（上位施設）, needs_home_care→訪問看護導入, walk_in→独歩来院,
      ambulance→救急車搬送. Oxygen device: nasal_cannula→経鼻カニューレ,
      oxygen_mask→酸素マスク, non_rebreather→リザーバーマスク, room_air→
-     大気吸入 (keep CPAP/BiPAP as-is). Full-English lab names:
+     大気吸入 (keep CPAP/BiPAP as-is). Full-English lab names MUST be
+     translated (v11 hard-guard, verified against p=10000 s500):
      Creatinine→クレアチニン, Glucose→血糖, Lactate→乳酸, Albumin→
-     アルブミン, Sodium→ナトリウム, Potassium→カリウム (keep standard
-     abbreviations BUN/CRP/BNP/WBC/PT-INR/eGFR/Na/K etc. as-is).
+     アルブミン, Sodium→ナトリウム, Potassium→カリウム, Bilirubin→
+     ビリルビン, Total bilirubin→総ビリルビン, Direct bilirubin→
+     直接ビリルビン, Urea nitrogen→尿素窒素, Hemoglobin→ヘモグロビン,
+     Hematocrit→ヘマトクリット, White blood cell→白血球, Red blood cell
+     →赤血球, Platelet(s)→血小板, Cholesterol→コレステロール,
+     Triglyceride(s)→トリグリセリド, Total protein→総蛋白,
+     Iron→鉄, Ferritin→フェリチン, Amylase→アミラーゼ, Lipase→リパーゼ,
+     Troponin(I/T)→トロポニン(I/T) (keep standard abbreviations
+     BUN/CRP/BNP/WBC/PT-INR/eGFR/AST/ALT/ALP/LDH/Na/K/Cl/Ca/Mg/P
+     etc. as-is). FORBIDDEN (WRONG) → REQUIRED (CORRECT):
+     "Albumin 4.0 g/dL" → 「アルブミン 4.0 g/dL」.
+     Post-processor rewrites any leaked EN name automatically, but
+     the LLM should still emit the JA form so its own output reads
+     correctly.
      Risk: low_risk→低リスク, moderate_risk→中等度リスク, high_risk→
      高リスク. Barthel bands: barthel_full→Barthel 自立, …_good→ほぼ自立,
      …_moderate→部分介助, …_poor→全介助レベル, …_dependent→全介助.
