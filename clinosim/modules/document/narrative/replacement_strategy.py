@@ -37,6 +37,7 @@ Two cache layers (complementary, NOT duplicates):
 
 from __future__ import annotations
 
+import re
 import time as _time
 from collections.abc import Callable
 
@@ -249,6 +250,51 @@ def _localize_lab_name_ja(name: str) -> str:
     return _lookup_ja_label(name, _LAB_NAME_JA)
 
 
+# --- prompt v11: post-processor hard-guard for EN lab names in JA text ------
+# LLM occasionally emits full-English lab names verbatim in JA narrative
+# output even after Rule 5 D of the prompt asks for canonical Japanese
+# translations (Albumin 4.0 g/dL, Creatinine 1.2 mg/dL, …). Verified in
+# the p=10000 s500 N-3 dataset: 1,063 EN lab hits across 900 new ED_NOTE
+# narratives (~1.2 hits/doc). Prompt Rule 5 D is a soft guardrail — the
+# hard guard below is a deterministic post-processor that walks the LLM
+# output and swaps EN lab NAMES for canonical JA katakana, preserving
+# numeric value + unit verbatim. Standard abbreviations (BUN, CRP, BNP,
+# WBC, HbA1c, eGFR, Cr, PT-INR, …) are kept as-is per _LAB_NAME_JA's
+# deliberate omission comment above.
+# Compound names ("Total bilirubin", "Direct bilirubin", "Total protein",
+# "Urea nitrogen", "White blood cell", "Red blood cell", "Troponin I/T")
+# are matched BEFORE their single-word bases via longest-first ordering.
+_LAB_TERMS_LONGEST_FIRST = sorted(_LAB_NAME_JA.keys(), key=len, reverse=True)
+_LAB_NAME_PATTERN_JA = re.compile(
+    r"\b(" + "|".join(re.escape(k) for k in _LAB_TERMS_LONGEST_FIRST) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def _localize_lab_names_in_text_ja(text: str) -> str:
+    """Post-process narrative text: substitute English lab names with
+    canonical Japanese katakana. Deterministic; safe on non-JA text
+    (only substitutes strings that appear in the JA table). Preserves
+    the surrounding text verbatim — only the matched lab-name token is
+    replaced.
+    """
+    if not text:
+        return text
+
+    def _repl(m: re.Match) -> str:
+        return _LAB_NAME_JA.get(m.group(1).lower(), m.group(1))
+
+    return _LAB_NAME_PATTERN_JA.sub(_repl, text)
+
+
+def _localize_lab_names_in_sections_ja(sections: dict[str, str]) -> dict[str, str]:
+    """Apply the text-level lab-name post-processor to every section
+    value. Returns a NEW dict; leaves the input untouched so caller
+    replacement is explicit at the call site.
+    """
+    return {k: _localize_lab_names_in_text_ja(v) for k, v in sections.items()}
+
+
 def apply_replacement_strategy(
     template_output: NarrativeOutput,
     ctx: NarrativeContext,
@@ -416,6 +462,11 @@ def _apply_template_seed_strategy(
             cache_put(c_key, generated)
 
         new_sections[section] = generated
+
+    # prompt v11 hard-guard: JA post-processor for EN lab names — see the
+    # matching invocation + comment in `_apply_template_seed_bundle_strategy`.
+    if language == "ja":
+        new_sections = _localize_lab_names_in_sections_ja(new_sections)
 
     # FREE_TEXT rejoin (session-88j Tier 1 uplift for progress_note): when
     # the template stored ordered (label, key) pairs in
@@ -654,6 +705,17 @@ def _apply_template_seed_bundle_strategy(
         # `_parse_bundle_response` guarantees every requested section key
         # is present (validation happens inside parse); safe direct index.
         new_sections[section] = parsed_bundle[section]
+
+    # prompt v11 hard-guard (2026-08-20): deterministic post-processor
+    # substitutes English lab names (Albumin, Creatinine, Glucose, …)
+    # for canonical Japanese katakana in every JA output section. Rule 5 D
+    # of the prompt asks the LLM to translate these, but empirical
+    # verification (p=10000 s500 N-3 dataset) found 1,063 EN lab hits
+    # across 900 new ED_NOTE narratives — the prompt is a soft guardrail
+    # only. Standard abbreviations (BUN/CRP/BNP/WBC/HbA1c/eGFR/Cr/PT-INR
+    # etc.) are preserved as-is per _LAB_NAME_JA's deliberate omission.
+    if language == "ja":
+        new_sections = _localize_lab_names_in_sections_ja(new_sections)
 
     # FREE_TEXT rejoin — same as per-section path.
     new_raw_text = template_output.raw_text

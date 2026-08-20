@@ -622,3 +622,63 @@ class TestPanelConclusion:
         orders = [{"order_type": "lab", "display_name": "WBC", "result": None}]
         r = build_dr_resource(g, "P", "ENC-001", "JP", None, None, 0, orders=orders)
         assert "conclusion" not in r
+
+    # prompt-v11 source-side counterpart: EN lab NAMES (Albumin,
+    # Creatinine, …) MUST render in canonical JA katakana on JP output.
+    # Verified against the p=10000 s500 iris4h-ai deployment where 2,178
+    # DR.conclusion EN lab hits leaked from this exact aggregation path.
+    def test_conclusion_ja_localizes_full_english_lab_names(self):
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
+
+        g = _GroupedPanel(
+            panel_name="BMP",
+            bucket="2026-05-12",
+            obs_refs=["lab-ENC-001-0000", "lab-ENC-001-0001", "lab-ENC-001-0002"],
+        )
+        orders = [
+            _order_with_result("Albumin", "2026-05-12T14:28:38", 0, value=4.0, unit="g/dL", flag="L"),
+            _order_with_result("Creatinine", "2026-05-12T14:28:38", 1, value=1.2, unit="mg/dL", flag="H"),
+            _order_with_result("Glucose", "2026-05-12T14:28:38", 2, value=180, unit="mg/dL"),
+        ]
+        r = build_dr_resource(g, "P", "ENC-001", "JP", None, None, 0, orders=orders)
+        c = r["conclusion"]
+        assert "アルブミン 4 g/dL [L]" in c
+        assert "クレアチニン 1.2 mg/dL [H]" in c
+        assert "血糖 180 mg/dL" in c
+        # EN forms must NOT appear
+        for en_name in ("Albumin", "Creatinine", "Glucose"):
+            assert en_name not in c, f"EN lab name leaked: {en_name!r}"
+        # Flagged list also uses the JA form
+        assert "参照範囲外: アルブミン、クレアチニン" in c
+
+    def test_conclusion_us_keeps_english_lab_names(self):
+        """Sanity: US output MUST keep EN names — no accidental localization."""
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
+
+        g = _GroupedPanel(panel_name="BMP", bucket="2026-05-12", obs_refs=["lab-ENC-001-0000"])
+        orders = [_order_with_result("Albumin", "2026-05-12T14:28:38", 0, value=4.0, unit="g/dL")]
+        r = build_dr_resource(g, "P", "ENC-001", "US", None, None, 0, orders=orders)
+        assert "Albumin 4 g/dL" in r["conclusion"]
+
+    def test_conclusion_ja_preserves_medical_abbreviations(self):
+        """BUN / CRP / BNP / HbA1c / Na / K etc. are JA medical standard —
+        NOT touched by the localization even on JP output. Regression
+        guard for the widened v11 coverage list."""
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
+
+        g = _GroupedPanel(
+            panel_name="BMP",
+            bucket="2026-05-12",
+            obs_refs=[f"lab-ENC-001-{i:04d}" for i in range(5)],
+        )
+        orders = [
+            _order_with_result("BUN", "2026-05-12T14:28:38", 0, value=15, unit="mg/dL"),
+            _order_with_result("CRP", "2026-05-12T14:28:38", 1, value=0.4, unit="mg/dL"),
+            _order_with_result("BNP", "2026-05-12T14:28:38", 2, value=25, unit="pg/mL"),
+            _order_with_result("HbA1c", "2026-05-12T14:28:38", 3, value=5.6, unit="%"),
+            _order_with_result("Na", "2026-05-12T14:28:38", 4, value=140, unit="mmol/L"),
+        ]
+        r = build_dr_resource(g, "P", "ENC-001", "JP", None, None, 0, orders=orders)
+        c = r["conclusion"]
+        for abbrev in ("BUN 15", "CRP 0.4", "BNP 25", "HbA1c 5.6", "Na 140"):
+            assert abbrev in c, f"expected abbreviation {abbrev!r} preserved"
