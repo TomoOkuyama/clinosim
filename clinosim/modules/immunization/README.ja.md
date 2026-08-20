@@ -1,257 +1,161 @@
-# clinosim.modules.immunization — Immunization History Module
+# `clinosim.modules.immunization` — 成人ワクチン接種歴合成
 
-## 目的
+## 概要
 
-患者の成人ワクチン接種歴を生成する **AD-55 Base enricher**。
-常時有効 (always-on) で全患者に適用される。
+国別 (CVX ベース) の接種スケジュール (最低年齢、プログラム開始日、頻度、
+月、EHR 保持期間、年齢 × 性別 coverage) を元に、患者ごとの成人接種歴を
+生成し `CIFPatientRecord.immunizations` に格納する AD-55 Base
+(always-on) モジュール。下流の FHIR + CSV adapter が `Immunization`
+リソースと `immunizations.csv` を出力する。実 EHR 挙動に合わせ、
+一部のスケジュール接種は明示的な拒否 (`status="not-done"`) として記録される。
 
-- ワクチンコード (CVX) は `clinosim/codes/data/cvx.yaml` (CDC 照合済み)
-- 接種スケジュールは `clinosim/locale/<country>/immunization_schedule.yaml` (locale 依存)
-- 生成ロジックは `engine.py` の純粋関数。副作用なし
+## Scope
 
-## 提供ワクチン
+- **In scope**: schedule エントリごとの `annual` / `every_n_years` /
+  `once` サンプリング、年齢 × 性別 coverage lookup、決定論的な接種日
+  配置 (annual → `season_month`、every_n_years → `interval_years`
+  step、once → 資格期間内で uniform)、`IMMUNIZATION_NOT_DONE_RECORDING_RATE`
+  レートでの拒否記録、合成 lot number 生成 (構造 placeholder、
+  正式 batch ではない)、閏日 (Feb 29) 生まれの非閏年 Feb 28 clamp、
+  任意 `history_years` の EHR 保持期間 (flu → 10 y 等)。
+- **Out of scope**: 小児接種歴の遡及モデリング、副反応 / 副作用生成、
+  接種目的の encounter 生成 (現状 first-class encounter ではない)、
+  FHIR / CSV serialization ([`clinosim.modules.output`](../output/README.md))、
+  CVX の表示テキスト
+  ([`clinosim/codes/data/cvx.yaml`](../../codes/data/cvx.yaml))。
 
-### US (ACIP adult schedule)
+## Public API
 
-| ワクチン | CVX | 対象 | 接種頻度 | 提供開始 | 接種率出典 |
-|---|---|---|---|---|---|
-| Influenza | 150 | 18 歳以上 | 毎年 10 月 | 2000-01-01 | CDC FluVaxView |
-| COVID-19 mRNA (Pfizer季節性) | 309 | 18 歳以上 | 1 回 | 2020-12-14 | CDC MMWR |
-| PPSV23 肺炎球菌 | 33 | 65 歳以上 | 1 回 | 2000-01-01 | CDC MMWR |
-| Tdap | 115 | 18 歳以上 | 10 年毎 | 2005-06-01 | CDC MMWR |
-| 帯状疱疹 RZV (Shingrix) | 187 | 50 歳以上 | 1 回 | 2017-10-20 | CDC MMWR |
-
-### JP (厚労省 定期接種 schedule)
-
-| ワクチン | CVX | 対象 | 接種頻度 | 提供開始 | 接種率出典 |
-|---|---|---|---|---|---|
-| Influenza | 150 | 18 歳以上 | 毎年 11 月 | 2000-01-01 | MHLW 接種率統計 |
-| COVID-19 mRNA (Pfizer季節性) | 309 | 18 歳以上 | 1 回 | 2021-02-17 | MHLW 接種率統計 |
-| PPSV23 肺炎球菌 | 33 | 65 歳以上 | 1 回 | 2014-10-01 | MHLW 接種率統計 |
-
-## データ駆動設計
-
-### CVX コード (`clinosim/codes/data/cvx.yaml`)
-
-CDC IIS (Immunization Information Systems) の公式 CVX リストを出典とする。
-FHIR system URI: `http://hl7.org/fhir/sid/cvx`。
-
-全 10 コード (150 / 33 / 133 / 215 / 216 / 115 / 113 / 187 / 309 / 312) を
-2026-06 に CDC CVX ダウンロードリストで照合。`en` + `ja` 両エントリ付与済み。
-
-### スケジュール YAML (`clinosim/locale/<country>/immunization_schedule.yaml`)
-
-各ワクチンエントリのキー:
-
-| キー | 説明 |
-|---|---|
-| `cvx` | CDC CVX コード (文字列) |
-| `min_age` | 接種資格の最低年齢 |
-| `frequency` | `"annual"` / `"once"` / `"every_n_years"` |
-| `interval_years` | `every_n_years` 時のみ。接種間隔 (年) |
-| `season_month` | `annual` 時のみ。接種月 (integer) |
-| `available_from` | ワクチンプログラム提供開始日 (YYYY-MM-DD) |
-| `coverage_by_age_sex` | 年齢帯×性別の接種率 (0–1)。例: `"18-49": {M: 0.32, F: 0.38}` |
-
-`coverage_by_age_sex` は接種率のモデリングパラメータ。
-接種率は `_coverage(cov, age, sex)` がバンドマッチで返す。
-
-## Enricher 実行
-
-### AD-56 post_records
-
-`enricher.py` が `simulator/enrichers.py` の `register_builtin_enrichers()` に登録されており、
-`POST_RECORDS` ステージ (order=30) で実行される。
+`__init__.py` は空。呼び出し側は engine + enricher から直接 import:
 
 ```python
-Enricher(
-    name="immunization",
-    stage=POST_RECORDS,
-    order=30,
-    enabled=lambda c: True,   # always-on (Base)
-    run=enrich_immunizations,
+from clinosim.modules.immunization.engine import (
+    generate_immunizations,          # (patient, schedule, as_of, rng, nurse_ids=None)
+                                     #   -> list[ImmunizationRecord] (接種日昇順)
+    load_schedule,                   # (country) -> {vaccine_name: {cvx, min_age, frequency, ...}}
+    IMMUNIZATION_NOT_DONE_RECORDING_RATE,  # 0.02
 )
+from clinosim.modules.immunization.enricher import enrich_immunizations
 ```
 
-### 決定論的サブシード (AD-16)
+`load_schedule` は unsupported country に対して `{}` を返す
+(2026-07-02 grand-design 契約)。enricher は空 map で no-op。
 
-メインランダムストリームを汚染しないよう、`hashlib.sha256` ベースの専用サブシードを使用する。
+## 決定論
 
-```python
-from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+- サブ seed オフセット `0x494D` (`"IM"`)。
+  [`clinosim/seeding.py`](../../seeding.py) の
+  `ENRICHER_SEED_OFFSETS["immunization"]` に登録済み。
+- 患者単位 RNG:
+  `derive_sub_seed(master_seed, offset, patient_id)`。患者主 RNG 列は
+  消費しない。
+- **Lot number は SHA-256 で決定論化 (Python builtin `hash()` は使わない)**。
+  Python 標準の文字列ハッシュは interpreter 起動ごとに salt される
+  (`PYTHONHASHSEED`) ため、同一 seed でも lot number が run 間で変わる
+  drift があった。P1-7 が `reproduce.sh` の determinism gate で検出、
+  `engine.py` の `_det_hash` が現在 lot number 生成を担当。
+- 担当看護師 (`administered_by`) の割り当ては
+  `nurse_ids[sum(ord(c) for c in patient_id) % len(nurse_ids)]` で
+  決定論的に選出 (RM-3、実 JP practice に整合)。
 
-rng = np.random.default_rng(
-    derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["immunization"], patient_id)
-)
-```
+## Snapshot (AD-32)
 
-オフセット定数(`0x494D` = "IM")は `ENRICHER_SEED_OFFSETS` 中央 registry で管理(PR1 2026-06-24 foundation refactor)。重複は import 時 assert で検出。
+`as_of = ctx.config.snapshot_date` があればその日、なければレコード内
+最終 encounter の入院日。`occurrence_date > as_of` は skip し、
+in-progress snapshot でのバックデート出力を防ぐ。
 
-患者 ID をキーとして患者ごとに独立した `numpy.random.Generator` を生成するため、
-既存の labs / vitals / 診断 / 看護データは byte 不変。
+## 依存
 
-### Snapshot セマンティクス (AD-32)
+- `clinosim.modules._shared` — `is_us` / `is_jp`,
+  `get_attr_or_key` / `set_attr_or_key`。
+- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
+- `clinosim.types.encounter` — `ImmunizationRecord`
+  (`generate_immunizations` 内で遅延 import)。
+- `clinosim.codes` (間接、FHIR builder 経由) — CVX 表示 lookup。
+- `numpy` — coverage サンプリングの `np.random.Generator`。
+- `hashlib.sha256` — `_det_hash` 経由、lot number 決定論化。
 
-`as_of` = `config.snapshot_date` があればその日、なければ最新入院日。
-`occurrence_date <= as_of` となる接種のみ生成する。
+他の `clinosim.modules.*` には依存しない。
 
-## API
+## 定数と設定
 
-### `load_schedule(country: str) -> dict`
-
-`clinosim/locale/<country>/immunization_schedule.yaml` を読み込み `vaccines` dict を返す。
-`@lru_cache(maxsize=4)` でキャッシュ済み (I/O 最小化)。`country` は `"US"` / `"JP"` 等。
-
-```python
-from clinosim.modules.immunization.engine import load_schedule
-schedule = load_schedule("JP")
-# {"influenza": {"cvx": "150", "min_age": 18, ...}, ...}
-```
-
-### `generate_immunizations(patient, schedule, as_of, rng) -> list[ImmunizationRecord]`
-
-純粋関数。患者の生年月日・年齢・性別と schedule から `ImmunizationRecord` のリストを返す。
-接種日昇順にソート済み。Feb-29 生まれは非閏年で Feb-28 に安全にクランプ。
-
-```python
-from clinosim.modules.immunization.engine import generate_immunizations
-import numpy as np
-from datetime import date
-
-records = generate_immunizations(patient, schedule, date(2025, 1, 1), np.random.default_rng(42))
-# [ImmunizationRecord(vaccine_cvx="150", occurrence_date=date(2020, 10, 1), ...),
-#  ImmunizationRecord(vaccine_cvx="309", occurrence_date=date(2021, 5, 12), ...)]
-```
-
-### `enrich_immunizations(ctx) -> None`
-
-Enricher エントリポイント。`ctx.records` の各患者に `immunizations` リストをセットする。
-
-## CIF 表現
-
-`CIFPatientRecord.immunizations: list[ImmunizationRecord]` に格納される。
-
-**`ImmunizationRecord`** (`clinosim/types/encounter.py`):
-
-```python
-@dataclass
-class ImmunizationRecord:
-    vaccine_cvx:     str        # CVX コード (例: "150")
-    occurrence_date: date       # 接種日
-    status:          str = "completed"
-    primary_source:  bool = True
-    dose_number:     int | None = None
-```
-
-CIF はコードのみ保持 (AD-30)。display text は出力時に `clinosim.codes.lookup("cvx", code, lang)` で解決する。
-
-## FHIR 出力
-
-`_bb_immunizations(ctx)` が `_BUNDLE_BUILDERS` に登録されており、
-FHIR R4 `Immunization` リソースを生成する。
-
-| フィールド | 値 |
-|---|---|
-| `resourceType` | `"Immunization"` |
-| `id` | `imm-{patient_id}-{index}` |
-| `status` | `"completed"` |
-| `vaccineCode.coding[0].system` | `http://hl7.org/fhir/sid/cvx` |
-| `vaccineCode.coding[0].code` | CVX コード (例: `"150"`) |
-| `vaccineCode.coding[0].display` | 言語別 display (`lookup("cvx", code, "ja"|"en")`) |
-| `vaccineCode.text` | 同上 |
-| `patient.reference` | `Patient/{patient_id}` |
-| `occurrenceDateTime` | ISO 8601 日付 (YYYY-MM-DD) |
-| `primarySource` | `true` |
-
-US 出力は英語のみ (Japanese 文字列なし)。JP 出力は `ja` display を使用。
-
-## CSV 出力
-
-`immunizations.csv` に出力。
-
-| カラム | 説明 |
-|---|---|
-| `patient_id` | 患者 ID |
-| `vaccine_cvx` | CVX コード |
-| `occurrence_date` | 接種日 (YYYY-MM-DD) |
-| `status` | `"completed"` 固定 |
-| `dose_number` | 接種回数 (現在 null) |
-
-## 権威出典
-
-| データ | 出典 |
-|---|---|
-| **CVX コード** | [CDC IIS CVX list](https://www2.cdc.gov/vaccines/iis/iisstandards/vaccines.asp?rpt=cvx) — 2026-06 照合 |
-| **US 接種率** | CDC FluVaxView / MMWR (概数モデリングパラメータ) |
-| **JP 接種率** | MHLW 接種率統計 (概数モデリングパラメータ) |
-| **US スケジュール** | CDC ACIP adult immunization schedule |
-| **JP スケジュール** | 厚労省 定期接種スケジュール (MHLW) |
-| **FHIR system URI** | HL7 FHIR R4 `http://hl7.org/fhir/sid/cvx` |
+- module レベル定数 (`engine.py`):
+  - `IMMUNIZATION_NOT_DONE_RECORDING_RATE = 0.02` — coverage draw
+    失敗時に `status="not-done"` を明示記録する per-scheduled-dose
+    確率。silent no-show と区別された、記録された拒否 / 延期を表す。
+    3 つの frequency ブランチすべてで同一値を適用。
+- Locale schedule (本 module に `reference_data/` は無い):
+  - [`clinosim/locale/us/immunization_schedule.yaml`](../../locale/us/immunization_schedule.yaml)
+    — CDC ACIP adult schedule。現状 5 ワクチン (Influenza,
+    COVID-19 mRNA, PPSV23, Tdap, RZV Shingrix)。
+  - [`clinosim/locale/jp/immunization_schedule.yaml`](../../locale/jp/immunization_schedule.yaml)
+    — MHLW 定期接種 schedule。現状 3 ワクチン (Influenza,
+    COVID-19 mRNA, PPSV23)。
+- Schedule エントリ shape:
+  | キー | 意味 |
+  |---|---|
+  | `cvx` | CDC CVX コード (文字列)。 |
+  | `min_age` | 接種資格の最低年齢。 |
+  | `frequency` | `"annual"` / `"once"` / `"every_n_years"`。 |
+  | `interval_years` | `every_n_years` 時のみ。年間隔。 |
+  | `season_month` | `annual` 時のみ。接種月 (integer)。 |
+  | `available_from` | プログラム開始日 (`YYYY-MM-DD`)。 |
+  | `history_years` | 任意。EHR 保持期間 (flu → 10 y 等)。 |
+  | `coverage_by_age_sex` | `{"age_band": {sex: rate}}` (0-1)。 |
+- CVX コード表:
+  [`clinosim/codes/data/cvx.yaml`](../../codes/data/cvx.yaml)
+  — CDC IIS CVX リスト (2026-06) と 10 コード照合済み。
+  FHIR system URI: `http://hl7.org/fhir/sid/cvx`。
 
 ## ディレクトリ構造
 
 ```
 clinosim/modules/immunization/
-├── __init__.py
-├── engine.py       # 純粋関数 (load_schedule / generate_immunizations)
-├── enricher.py     # AD-56 post_records enricher + 専用サブシード
-└── README.md
+  __init__.py                     空 (Public API 節参照)
+  engine.py                       generate_immunizations + load_schedule + helpers
+  enricher.py                     POST_RECORDS enrichment (患者単位サブ RNG)
 ```
 
-関連ファイル:
+**`reference_data/` ディレクトリと `audit.py` は存在しない** — 国別
+データは `clinosim/locale/` 配下にあり、`ModuleAuditSpec` は登録して
+いない。検証は下記 test で担保。
 
-```
-clinosim/codes/data/cvx.yaml                    # CVX コード定義 (10 コード)
-clinosim/locale/us/immunization_schedule.yaml   # US スケジュール (5 ワクチン)
-clinosim/locale/jp/immunization_schedule.yaml   # JP スケジュール (3 ワクチン)
-clinosim/types/encounter.py                     # ImmunizationRecord dataclass
-clinosim/simulator/enrichers.py                 # enricher 登録
-clinosim/modules/output/fhir_r4_adapter.py      # _bb_immunizations
-clinosim/modules/output/csv_adapter.py          # immunizations.csv
-```
+## Enricher 配線
 
-## 依存関係
+[`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) の
+`register_builtin_enrichers` で登録:
 
-本モジュールが依存するもの:
+- `name="immunization"`, `stage=POST_RECORDS`, `order=30`,
+  `enabled=lambda c: True`。
+- `nursing` (order 20) の後、`family_history` (order 40) の前に実行。
 
-| 依存先 | 用途 |
-|---|---|
-| `clinosim/types/encounter.py` | `ImmunizationRecord` dataclass |
-| `clinosim/codes/` | CVX コード lookup / system URI |
-| `clinosim/locale/<country>/immunization_schedule.yaml` | 国別スケジュール |
-| `numpy` | `random.Generator` によるカバレッジサンプリング |
-| `hashlib` | 決定論的サブシード生成 |
+## Output surface (consumers)
 
-## Consumers
-
-このモジュールに依存するもの:
-
-| Caller | How | Impact |
+| Consumer | 場所 | 役割 |
 |---|---|---|
-| `simulator/enrichers.py` | `POST_RECORDS` 段階での enricher 登録 | core (enricher registry) |
-| `modules/immunization/enricher.py` | 同 module 内の enricher 実装 | core |
-| `modules/output/_fhir_observations.py` (or future `_fhir_immunization.py` after PR3 split) | `_bb_immunizations` で FHIR Immunization 生成 | medium (FHIR builder) |
-| `modules/output/csv_adapter.py` (cross-ref) | `immunizations.csv` 書き出し | medium |
-| `tests/integration/test_immunization_enricher.py` | enricher integration test | guard |
-| `tests/unit/test_immunization.py` | engine unit tests | guard |
+| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L327` 付近, `L417` 付近) | `record["immunizations"]` から `immunizations.csv` を書き出し。 |
+| FHIR `Immunization` builder | [`clinosim/modules/output/fhir_r4/procedures/immunization.py`](../output/fhir_r4/procedures/immunization.py) | 記録ごとに FHIR R4 `Immunization` を 1 件出力。id `imm-{patient_id}-{index}`、`vaccineCode` = CVX + locale 表示、`occurrenceDateTime` = 接種日、`primarySource = true`、`administered_by` が非空なら `performer` に反映、`_synthetic_lot` を `lotNumber` に emit。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py:162`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
 
 ## テスト
 
 ```bash
-# unit テスト
-pytest tests/unit/test_immunization.py -v
+pytest tests/unit -k immunization -q         # engine
+pytest tests/integration -k immunization -q  # enricher + FHIR 出力
 ```
 
-## 実装状況
+個別ファイル:
 
-- [x] CVX コード (10 コード、CDC 照合済み)
-- [x] US adult schedule (5 ワクチン、available_from + coverage_by_age_sex)
-- [x] JP adult schedule (3 ワクチン、available_from + coverage_by_age_sex)
-- [x] 生成ロジック (`annual` / `once` / `every_n_years`、Feb-29 DOB 対応)
-- [x] AD-56 Base enricher (POST_RECORDS order=30、dedicated hashlib sub-seed)
-- [x] AD-32 snapshot (occurrence_date ≤ as_of)
-- [x] CIF: `ImmunizationRecord` (vaccine_cvx / occurrence_date / status / primary_source)
-- [x] FHIR R4 Immunization (CVX vaccineCode、US/JP 多言語 display)
-- [x] CSV: `immunizations.csv`
-- [ ] dose_number (series tracking: Shingrix 2-dose, mRNA primary series)
-- [ ] 小児接種歴の遡及モデリング
+- [`tests/unit/test_immunization.py`](../../../tests/unit/test_immunization.py)
+  — engine サンプリング / lot-number 決定論。
+- [`tests/integration/test_immunization_enricher.py`](../../../tests/integration/test_immunization_enricher.py)
+  — enricher 決定論 + 看護師 roster 割り当て。
+- [`tests/integration/test_fhir_immunization.py`](../../../tests/integration/test_fhir_immunization.py)
+  — `Immunization` 出力の end-to-end。
+
+## Ownership
+
+`maintainers@` — 詳細は
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+
+英語版: [`README.md`](README.md)。
