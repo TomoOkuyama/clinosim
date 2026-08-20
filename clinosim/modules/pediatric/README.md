@@ -1,86 +1,126 @@
-# clinosim.modules.pediatric
+# `clinosim.modules.pediatric` — pediatric encounter emission
 
-Age-band-driven pediatric encounter emission (Issue [#760](https://github.com/TomoOkuyama/clinosim/issues/760) META). Fills the gap
-identified by [#740](https://github.com/TomoOkuyama/clinosim/issues/740):
-the cohort's under-20 patient share (5% in the US baseline) reflects
-"who reached an encounter" rather than the sampled demographics — and
-pediatric persons rarely reach the encounter gate because the disease /
-incidence YAMLs have very low rates for pediatric-eligible conditions.
+## Purpose
 
-The population-sampler weights were confirmed correct
-(`age_distribution` matches US Census 2020); the fix belongs at the
-**encounter-emission layer**. This module adds pediatric encounter types
-the simulator does not currently produce (well-child, immunization,
-pediatric acute, adolescent behavioural), each backed by a per-age-band
-frequency table.
+Emits pediatric encounters (well-child visits, immunization visits,
+pediatric acute, adolescent behavioural) into a person's yearly
+healthcare calendar based on their age. Addresses Issue #760 META:
+the population sampler correctly matches US Census under-20 age
+weights, but adults dominate the emitted cohort because the
+adult-oriented disease incidence YAMLs rarely fire for pediatric
+patients. This module fills the gap at the **encounter-emission
+layer** by adding a per-age-band pediatric visit schedule.
 
-## Foundation (pass 1 — the state shipped in this file)
+## Scope
 
-- Module scaffold + YAML loader + integration point in
-  `clinosim/modules/population/engine.py::generate_healthcare_calendar`.
-- **Byte-diff neutral**: with no encounter types registered in
-  `reference_data/pediatric_schedule.yaml`, no events are emitted and
-  cohort output is bit-identical to pre-module runs.
+- **In scope**: loading the pediatric encounter registry YAML,
+  validating its schema at load time, and generating `LifeEvent`
+  records for a given (person, year) pair using a caller-supplied
+  per-person sub-RNG. Currently registered encounter families:
+  well-child (infant / early / school), immunization (infant /
+  kindergarten / adolescent), pediatric acute (bronchiolitis,
+  otitis media, URI × 3 age bands), pediatric injury (school /
+  adolescent), pediatric behavioural (adolescent).
+- **Out of scope**: neonatal ICU-level physiology (separate campaign),
+  the adult encounter engine itself (this module plugs in via the
+  existing population calendar loop), disease specifications for
+  the emitted `disease_id` values (each maps to its own YAML under
+  [`clinosim.modules.disease`](../disease/README.md)).
 
-## Follow-up passes
+## Public API
 
-Per META [#760](https://github.com/TomoOkuyama/clinosim/issues/760):
+`__init__.py` is a doc string only. Consumers import the two
+functions directly from `calendar`:
 
-- **Pass 2** — well-child visits (0-18, 1/yr routine + 6-8/yr infants per AAP schedule).
-- **Pass 3** — immunization visits (0-18, ~5 in year-1 + 1-2/yr thereafter).
-- **Pass 4** — pediatric acute (bronchiolitis / pneumonia / otitis media / URI fever).
-- **Pass 5** — injury (playground / MVA passenger, age 5-18) + adolescent behavioural health (12-18).
-
-Each pass is a pure YAML edit under the schema documented below and one
-follow-up regen check for the cohort delta.
-
-## YAML schema (evolving; empty in this pass)
-
-`reference_data/pediatric_schedule.yaml`:
-
-```yaml
-encounters:
-  well_child_infant:                       # canonical encounter-type key
-    age_min: 0                             # inclusive (years)
-    age_max: 1                             # inclusive
-    visits_per_year: [6, 7, 8]             # sampled uniformly per year per patient
-    encounter_type: "outpatient"           # dispatch key for engine.py
-    disease_id: "well_child_infant"        # follows the health_screening dispatch pattern
-    visit_reason: "Well-child visit — infant"
+```python
+from clinosim.modules.pediatric.calendar import (
+    load_pediatric_schedule,     # (path=None) -> {encounter_key: entry_dict}
+    generate_pediatric_events,   # (person, year, prng, schedule=None) -> list[LifeEvent]
+)
 ```
 
-Empty top-level `encounters:` block → no events emitted (foundation
-default). Adding entries triggers per-patient event generation in
-`calendar.generate_pediatric_events`.
+`load_pediatric_schedule` validates the file at load time and raises
+`ValueError` on any schema violation (missing required field,
+non-list `visits_per_year`, `age_min > age_max`, non-dict `encounters`
+top-level). `generate_pediatric_events` no-ops when the schedule is
+empty or the person's age falls outside every entry's band.
 
-## RNG isolation
+## Determinism
 
-`generate_pediatric_events(person, year, prng)` accepts a per-person
-sub-RNG spawned in the caller (`generate_healthcare_calendar`'s existing
-per-person `prng.spawn(1)[0]` pattern), so master RNG is untouched and
-adding encounter types shifts only the affected pediatric patients'
-downstream stream position — not unrelated adults.
+- The module uses **no master RNG**. `generate_pediatric_events`
+  accepts a caller-supplied `prng` (the per-person spawned
+  `np.random.Generator` already used by
+  `generate_healthcare_calendar`), so YAML edits shift only the
+  affected pediatric patients' downstream stream position — never
+  unrelated adults.
+- `load_pediatric_schedule` intentionally has **no `@lru_cache`** —
+  it stays hot-reload friendly for tests. Callers that care about
+  repeated cost can cache the result themselves.
 
-## Success criteria (per META #760, when to close)
+## Dependencies
 
-- Emitted US cohort age distribution ≥12% under-20 (currently 5%),
-  matching NAMCS 2016 ambulatory-visit distribution.
-- `Patient.birthDate` demographic realism preserved (no change to
-  `demographics.yaml age_distribution`).
-- Well-child + immunization encounter counts non-zero for every
-  pediatric patient (0-18).
+- `numpy` — `np.random.Generator` (`prng.choice`, `prng.integers`).
+- `yaml` — YAML parser.
+- `clinosim.modules.population.engine` — `LifeEvent` (imported
+  lazily inside `generate_pediatric_events`).
+- No dependency on any other `clinosim.modules.*` at import time.
 
-## Tests
+## Constants and configuration
 
-`tests/unit/test_pediatric_calendar.py` covers: YAML loader validation
-(empty schema round-trips, malformed entries fail loud), event
-generation is a no-op when the schema is empty, event count matches
-schema when a mapping is present (pass 2+ will extend this).
+[`reference_data/pediatric_schedule.yaml`](reference_data/pediatric_schedule.yaml)
+carries every registered encounter under a single `encounters:` map.
+Each entry:
 
-## Non-goals (per META #760)
+| Key | Meaning |
+|---|---|
+| `age_min` | Inclusive lower bound (years). |
+| `age_max` | Inclusive upper bound (years). |
+| `visits_per_year` | Non-empty `list[int]` — uniformly sampled per patient per year to give inter-patient variance. |
+| `encounter_type` | `"outpatient"` / `"emergency"` / `"inpatient"` — dispatch key for the engine. |
+| `disease_id` | Reused by the engine's dispatch to identify the visit's clinical protocol. |
+| `visit_reason` | Human-readable, emitted as the encounter's chief complaint. |
 
-- Modeling neonatal ICU-level physiology (separate high-fidelity campaign).
-- Perfect real-world pediatric care-utilization fidelity (goal is ±50%,
-  not ±5%; simulator is synthetic).
-- Restructuring the adult encounter engine — pediatric emission plugs
-  into the existing engine's calendar loop.
+Extending the schedule is a **pure YAML edit** — no code changes
+required. Adding a bad entry surfaces at load time as `ValueError`.
+
+## Directory contents
+
+```
+clinosim/modules/pediatric/
+  __init__.py                     package docstring only
+  calendar.py                     load_pediatric_schedule + generate_pediatric_events
+  reference_data/
+    pediatric_schedule.yaml       registered encounter entries
+```
+
+The module has **no `engine.py`, no `enricher.py`, and no `audit.py`**.
+It is not registered with `register_builtin_enrichers` and has no
+seed offset in `ENRICHER_SEED_OFFSETS` — it hooks into the population
+calendar loop instead.
+
+## Wiring
+
+Integration lives in
+[`clinosim/modules/population/engine.py`](../population/engine.py)
+(`~L807-815`):
+`generate_healthcare_calendar` calls `generate_pediatric_events` with
+the per-person spawned `prng`, and the returned `LifeEvent` list is
+merged into the calendar `events` list. The rest of the pipeline
+treats pediatric events like any other calendar event.
+
+## Testing
+
+```bash
+pytest tests/unit/test_pediatric_calendar.py -q
+```
+
+Covers: loader schema validation (empty schedule round-trips,
+malformed entries fail loud) and `generate_pediatric_events` behaviour
+(no-op on empty schedule, correct event count when the schedule has
+matching entries).
+
+## Ownership
+
+`maintainers@` — see [`CONTRIBUTING.md`](../../../CONTRIBUTING.md).
+
+Japanese counterpart: [`README.ja.md`](README.ja.md).
