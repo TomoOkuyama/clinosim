@@ -46,8 +46,9 @@ read-only by every consumer — do not mutate the shared instance.
 
 ## Determinism
 
-The module makes no random draws; the loaded config is a pure
-function of the country string (plus the on-disk YAML).
+Not applicable — the module makes no random draws. The loaded config
+is a pure function of the country string (plus the on-disk YAML),
+and the returned Pydantic model is shared read-only.
 
 ## Dependencies
 
@@ -104,9 +105,12 @@ and no `reference_data/`** — its entire runtime surface is
 
 ## Enricher wiring
 
-Not applicable — this is a loader, not an enricher. It is not
-registered with `register_builtin_enrichers` and has no seed offset
-in `ENRICHER_SEED_OFFSETS`.
+Not applicable — this module is a country-config loader, not an
+enricher. It is not registered with `register_builtin_enrichers`
+and has no seed offset in `ENRICHER_SEED_OFFSETS`. The simulator
+boot path calls `load_healthcare_config` directly once per run and
+the resulting `HealthcareSystemConfig` propagates through
+`SimulatorConfig` to every downstream module.
 
 ## Output surfaces (consumers)
 

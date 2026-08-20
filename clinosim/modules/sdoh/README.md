@@ -45,6 +45,14 @@ data = load_social_history()
 are free. It is the module's only public export (re-exported through
 `__init__.py`).
 
+## Determinism
+
+Not applicable — this module makes no random draws. Its only public
+function is a cached YAML loader; the smoking / alcohol assignment
+that determines which enum ends up on `PatientProfile` runs in
+[`clinosim.modules.patient`](../patient/README.md) and is seeded
+there.
+
 ## Dependencies
 
 - `yaml` — YAML parser for the reference file.
@@ -81,9 +89,20 @@ clinosim/modules/sdoh/
 ```
 
 The module has **no `enricher.py`, no `audit.py`, and no seed
-offset** in `ENRICHER_SEED_OFFSETS`. It is not registered with
-`register_builtin_enrichers`. Verification lives in the unit +
+offset** in `ENRICHER_SEED_OFFSETS`. Verification lives in the unit +
 integration tests below.
+
+## Enricher wiring
+
+Not applicable — this module is a data-only reference variant. It is
+not registered with `register_builtin_enrichers` and has no seed
+offset in `ENRICHER_SEED_OFFSETS`. Attribute assignment for
+`smoking_status` / `alcohol_use` happens at patient activation via
+[`clinosim.modules.patient.activator`](../patient/README.md) reading
+[`clinosim/locale/{us,jp}/demographics.yaml`](../../locale/), and the
+FHIR emission runs off the resulting `PatientProfile` fields — this
+module only provides the enum → SNOMED + LOINC table those consumers
+resolve against.
 
 ## Extending
 

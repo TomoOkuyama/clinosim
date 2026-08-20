@@ -44,8 +44,9 @@ cfg = load_healthcare_config("JP")
 
 ## 決定論
 
-本モジュールは乱数を引かない。load される config は country 文字列
-(と on-disk YAML) の純粋関数。
+該当なし — 本モジュールは乱数を引かない。load される config は
+country 文字列 (と on-disk YAML) の純粋関数で、返却される Pydantic
+モデルは共有 read-only。
 
 ## 依存
 
@@ -98,9 +99,11 @@ clinosim/modules/healthcare_system/
 
 ## Enricher 配線
 
-該当なし — 本モジュールは loader であり enricher ではない。
-`register_builtin_enrichers` にも登録なく、`ENRICHER_SEED_OFFSETS`
-にも seed 未登録。
+該当なし — 本モジュールは国 config loader であり enricher ではない。
+`register_builtin_enrichers` に登録なく、`ENRICHER_SEED_OFFSETS`
+にも seed 未登録。simulator boot 経路が run あたり 1 回
+`load_healthcare_config` を直接呼び、返却の `HealthcareSystemConfig`
+が `SimulatorConfig` 経由で全下流モジュールに伝播する。
 
 ## Output surface (consumers)
 

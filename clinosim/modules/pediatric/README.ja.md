@@ -94,7 +94,11 @@ clinosim/modules/pediatric/
 `register_builtin_enrichers` にも登録なく `ENRICHER_SEED_OFFSETS`
 にも seed 未登録 — population calendar loop に hook する形態。
 
-## 配線
+## Enricher 配線
+
+該当なし — 本モジュールは population calendar loop に直接 hook する
+形態で、enricher 登録は行わない。`register_builtin_enrichers` に
+登録なく、`ENRICHER_SEED_OFFSETS` にも seed 未登録。
 
 Integration は
 [`clinosim/modules/population/engine.py`](../population/engine.py)
@@ -103,6 +107,13 @@ Integration は
 渡して `generate_pediatric_events` を呼び、返却 `LifeEvent` list を
 calendar `events` list に merge する。以降のパイプラインは
 pediatric event を他の calendar event と同等に扱う。
+
+## Output surface (consumers)
+
+| Consumer | 場所 | 役割 |
+|---|---|---|
+| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`L807-815` 付近、`generate_healthcare_calendar` 内) | (person, year) ごとに `generate_pediatric_events(person, year, prng)` を呼び、返却 `LifeEvent` を calendar `events` list に追加。 |
+| Encounter engine dispatch | [`clinosim.modules.encounter`](../encounter/README.md) | encounter build 時に `LifeEvent.encounter_type` / `disease_id` / `protocol_source` (prefix `"pediatric:"`) を読んで pediatric 訪問を識別する。 |
 
 ## テスト
 

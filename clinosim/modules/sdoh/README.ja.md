@@ -44,6 +44,14 @@ data = load_social_history()
 `load_social_history` は `@lru_cache(maxsize=1)` 付きで反復呼び出し
 コストゼロ。`__init__.py` が再 export する本モジュール唯一の公開 API。
 
+## 決定論
+
+該当なし — 本モジュールは乱数を引かない。公開関数は cache 付き YAML
+loader 1 つのみで、`PatientProfile` に載る smoking / alcohol enum
+の割り当ては
+[`clinosim.modules.patient`](../patient/README.md) 側で行われ、
+seed もそちら側で管理される。
+
 ## 依存
 
 - `yaml` — reference file の YAML パーサ。
@@ -79,8 +87,18 @@ clinosim/modules/sdoh/
 ```
 
 **`enricher.py` / `audit.py` は存在せず、`ENRICHER_SEED_OFFSETS`
-にも seed 登録なし**。`register_builtin_enrichers` にも登録されていない。
-検証は下記 unit + integration test で担保。
+にも seed 登録なし**。検証は下記 unit + integration test で担保。
+
+## Enricher 配線
+
+該当なし — 本モジュールは data-only reference variant。
+`register_builtin_enrichers` に登録なく、`ENRICHER_SEED_OFFSETS`
+にも seed 登録なし。`smoking_status` / `alcohol_use` の属性割り当ては
+[`clinosim.modules.patient.activator`](../patient/README.md) が
+[`clinosim/locale/{us,jp}/demographics.yaml`](../../locale/) を
+読んで行い、FHIR 出力は結果として設定される `PatientProfile` field
+から走る — 本モジュールは consumer が解決する enum → SNOMED + LOINC
+表のみを提供する。
 
 ## 拡張
 

@@ -98,7 +98,12 @@ It is not registered with `register_builtin_enrichers` and has no
 seed offset in `ENRICHER_SEED_OFFSETS` — it hooks into the population
 calendar loop instead.
 
-## Wiring
+## Enricher wiring
+
+Not applicable — this module hooks into the population calendar loop
+directly instead of registering an enricher. It has no entry in
+`register_builtin_enrichers` and no seed offset in
+`ENRICHER_SEED_OFFSETS`.
 
 Integration lives in
 [`clinosim/modules/population/engine.py`](../population/engine.py)
@@ -107,6 +112,13 @@ Integration lives in
 the per-person spawned `prng`, and the returned `LifeEvent` list is
 merged into the calendar `events` list. The rest of the pipeline
 treats pediatric events like any other calendar event.
+
+## Output surfaces (consumers)
+
+| Consumer | Where | Role |
+|---|---|---|
+| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`~L807-815`, inside `generate_healthcare_calendar`) | Calls `generate_pediatric_events(person, year, prng)` per (person, year) and extends the calendar's `events` list with the returned `LifeEvent` records. |
+| Encounter engine dispatch | [`clinosim.modules.encounter`](../encounter/README.md) | Reads `LifeEvent.encounter_type` / `disease_id` / `protocol_source` (prefix `"pediatric:"`) to identify pediatric visits at encounter build time. |
 
 ## Testing
 
