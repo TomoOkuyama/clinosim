@@ -52,6 +52,7 @@ def resolve_chronic_soap(chronic_conditions: list[Any] | None) -> dict[str, str]
         return None
     registry = _load_registry()
     for c in chronic_conditions:
+        code: str | None
         if isinstance(c, str):
             code = c
         else:
