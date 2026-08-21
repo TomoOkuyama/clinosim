@@ -724,6 +724,22 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
                     ]
                 }
             )
+        # Issue #815 (P1-11): also add the FHIR-standard v2-0074 "RAD"
+        # category tag so `GET /DiagnosticReport?category=RAD` returns
+        # radiology reports on JP output. LP29684-5 (LOINC "放射線") and
+        # DICOM modality remain (JP-CLINS #218 profile requirement); RAD
+        # is added as a third coding for cross-system consumer queries.
+        _jp_dr_category.append(
+            {
+                "coding": [
+                    {
+                        "system": V2_0074_SYSTEM,
+                        "code": RADIOLOGY_CATEGORY_V2_0074,
+                        "display": "Radiology",
+                    }
+                ]
+            }
+        )
         _report_disp = _JP_DR_RADIOLOGY_REPORT_DISPLAY_JA if lang == "ja" else _JP_DR_RADIOLOGY_REPORT_DISPLAY_EN
         _jp_code_coding.append(
             {
