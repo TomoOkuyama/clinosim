@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import re
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
 from clinosim.modules._shared import get_attr_or_key, is_jp
@@ -717,16 +717,35 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
             procedure_res["performedDateTime"] = str(ordered_dt)
         if ordered_by:
             procedure_res["performer"] = [{"actor": {"reference": f"Practitioner/{ordered_by}"}}]
-        # CY7-17 (Chain-7): text-only reasonCode fallback for treatment-side
-        # Procedures (splint/bandage/wound-care/etc.) — same rationale as
-        # _fhir_procedures._build_procedure text-only fallback.
-        procedure_res["reasonCode"] = [
-            {
-                "text": "入院時診断に基づく処置"
-                if is_jp(ctx.country)
-                else "Procedure indicated by encounter diagnosis",  # noqa: E501
-            }
-        ]
+        # Issue #816 (P2-5): populate reasonCode with real ICD-10 coding
+        # from encounter's clinical_diagnosis (same treatment session-88j P2-5a
+        # gave to the CIF-procedures path in procedures.py). Order-derived
+        # Procedures (splint/bandage/wound-care/O2/etc.) previously
+        # emitted a hardcoded generic text — 48% of all Procedures fell
+        # here and consumer views could not distinguish the indication.
+        _dx = (ctx.record or {}).get("clinical_diagnosis", {}) or {}
+        _dx_code = _dx.get("discharge_diagnosis_code") or _dx.get("admission_diagnosis_code", "") or ""
+        _dx_display = _dx.get("discharge_diagnosis_display") or _dx.get("admission_diagnosis_display", "") or ""
+        _generic_reason_text = (
+            "入院時診断に基づく処置" if is_jp(ctx.country) else "Procedure indicated by encounter diagnosis"
+        )
+        if _dx_code:
+            _icd_key = system_key_for("diagnosis", ctx.country)
+            _reason_display = _dx_display or (code_lookup(_icd_key, _dx_code, _lang) or _dx_code)
+            procedure_res["reasonCode"] = [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri(_icd_key),
+                            "code": _dx_code,
+                            "display": _reason_display,
+                        }
+                    ],
+                    "text": _reason_display or _generic_reason_text,
+                }
+            ]
+        else:
+            procedure_res["reasonCode"] = [{"text": _generic_reason_text}]
         # CY7-18 (Chain-7): text-only bodySite fallback for order-derived
         # Procedures — the Order carries display_name but not a SNOMED site
         # code, so text is defensible.
