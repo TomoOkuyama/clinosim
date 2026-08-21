@@ -574,6 +574,25 @@ def imaging_enricher(ctx: Any) -> None:
             # so a stub with neither is still spec-compliant.
             if stub_only:
                 encounter_id_stub: str = _o(order, "encounter_id", "") or ""
+                # Issue #822 (N-9) dedup: if a prior stub-only study in the
+                # same encounter already covers this (started_datetime,
+                # display_name) tuple, skip this order. Real clinical
+                # practice does not repeat an identical uncharacterised
+                # imaging at the same timestamp; the second order is an
+                # upstream order-engine artefact (same generic imaging
+                # placed twice on the same encounter minute).
+                _stub_display = _o(order, "display_name", "") or ""
+                _stub_started = _o(order, "ordered_datetime")
+                _dup = any(
+                    (not prev.series)
+                    and prev.encounter_id == encounter_id_stub
+                    and prev.started_datetime == _stub_started
+                    and prev.description == _stub_display
+                    for prev in studies
+                )
+                if _dup:
+                    continue
+
                 stub_uid = _study_uid_from(sub_seed, "study")
                 stub_study = ImagingStudyRecord(
                     study_id=f"{IMAGING_STUDY_ID_PREFIX}{encounter_id_stub}-{idx}",
@@ -582,7 +601,7 @@ def imaging_enricher(ctx: Any) -> None:
                     patient_id=_o(order, "patient_id", "") or "",
                     order_id=order_id,
                     status="available",
-                    started_datetime=_o(order, "ordered_datetime"),
+                    started_datetime=_stub_started,
                     modality_code="",  # Inference failed.
                     body_site_snomed="",
                     series=[],  # 0 series is spec-valid for FHIR R4 ImagingStudy.
@@ -594,6 +613,13 @@ def imaging_enricher(ctx: Any) -> None:
                     # 2,559/2,559 studies without a report in JP p=10000
                     # cohorts (0.0% coverage).
                     report=_build_generic_negative_report(encounter_id_stub, idx),
+                    # Issue #822 (N-9): carry the order's display_name so
+                    # FHIR ImagingStudy.description is informative even
+                    # when metadata inference failed. Reader UIs default
+                    # empty description to the generic "画像検査"
+                    # placeholder — populating it here removes both the
+                    # placeholder and the visual duplication cue.
+                    description=_stub_display,
                 )
                 studies.append(stub_study)
                 continue
