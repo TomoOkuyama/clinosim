@@ -123,11 +123,15 @@ def test_inpatient_encounter_los1_gets_5_documents() -> None:
     assert len(docs) == 5, f"Expected 5 documents for LOS=1 inpatient (Issue #337), got {len(docs)}: {task_types}"
 
 
-def test_inpatient_encounter_los3_gets_16_documents() -> None:
-    """Inpatient LOS=3 → 16 documents: H&P + PN×3 + DS + nursing admission + shift×9 + nursing DS.
+def test_inpatient_encounter_los3_gets_14_documents_after_arrival_gate() -> None:
+    """Inpatient LOS=3 → 14 documents after Issue #820 (N-6) arrival gate.
 
     α-min-3: nursing_shift_note is `daily_3shift` (3 notes per LOS day:
-    night/day/evening) → 3 days × 3 shifts = 9 shift notes.
+    night/day/evening). Fixture admission is 10:00 → Day 0 skips 00:00
+    + 08:00 shifts (pre-arrival) and keeps only 16:00. Total shift notes
+    = 1 (Day 0) + 3 (Day 1) + 3 (Day 2) = 7 (was 9 before the gate).
+    Overall doc count = H&P + PN×3 + DS + nursing admission + shift×7
+    + nursing DS = 14 (was 16).
     """
     encounter = _make_encounter(enc_type="inpatient", discharge_dt=LOS_3_DT)
     record = _make_record(encounter)
@@ -141,9 +145,11 @@ def test_inpatient_encounter_los3_gets_16_documents() -> None:
     assert task_types.count("progress_note") == 3
     assert task_types.count("discharge_summary") == 1
     assert task_types.count("admission_nursing_assessment") == 1
-    assert task_types.count("nursing_shift_note") == 9
+    assert task_types.count("nursing_shift_note") == 7
     assert task_types.count("nursing_discharge_summary") == 1
-    assert len(docs) == 16, f"Expected 16 documents for LOS=3 inpatient, got {len(docs)}: {task_types}"
+    assert len(docs) == 14, (
+        f"Expected 14 documents for LOS=3 inpatient after Issue #820 gate, got {len(docs)}: {task_types}"
+    )
 
 
 def test_outpatient_encounter_gets_only_outpatient_soap() -> None:

@@ -608,8 +608,14 @@ def _proof_nursing_shift_3_per_day() -> dict[str, Any]:
                 "encounter_id": "enc-3shift-proof",
                 "encounter_type": "inpatient",
                 "status": "completed",
-                "admission_datetime": datetime(2026, 7, 1, 10, 0),
-                "discharge_datetime": datetime(2026, 7, 4, 10, 0),
+                # Admission at 00:00 keeps the count invariant of the
+                # Issue #820 (N-6) arrival-gate that skips Day-0 pre-arrival
+                # shifts — this proof is about dispatch firing at all, not
+                # about the gate. A 10:00 admission would drop Day 0 to
+                # only the 16:00 shift, changing count from 9 to 7 without
+                # exercising the dispatch differently.
+                "admission_datetime": datetime(2026, 7, 1, 0, 0),
+                "discharge_datetime": datetime(2026, 7, 4, 0, 0),
                 "attending_physician_id": "dr-3shift-proof",
                 "primary_nurse_id": "ns-3shift-proof",
             }
