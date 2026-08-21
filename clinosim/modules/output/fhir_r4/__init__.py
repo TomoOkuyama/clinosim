@@ -54,10 +54,10 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     entry,
 )
-from clinosim.modules.output.fhir_r4.lib.generator_metadata import write_generator_metadata as _write_generator_metadata
 from clinosim.modules.output.fhir_r4.lib.ed_reattribution import (
     reattribute_encounter_to_ed_bridge as _reattribute_encounter_to_ed_bridge,
 )
+from clinosim.modules.output.fhir_r4.lib.generator_metadata import write_generator_metadata as _write_generator_metadata
 from clinosim.modules.output.fhir_r4.lib.inline_bb import (
     _bb_conditions,
     _bb_coverage,
