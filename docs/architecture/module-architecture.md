@@ -2,19 +2,18 @@
 
 # Module Architecture
 
+> **Note:** the folder map below sketches the conceptual layout; specific
+> code counts and file lists are point-in-time snapshots. Refer to the
+> canonical module list and count in
+> [`../../MODULES.md`](../../MODULES.md) and current per-system code counts
+> in [`../../clinosim/codes/README.md`](../../clinosim/codes/README.md).
+
 ```
 clinosim/
 ├── codes/                    # ★ International code systems + multilingual display (locale-independent)
-│   ├── data/
-│   │   ├── icd-10-cm.yaml    # 234 codes
-│   │   ├── icd-10.yaml       # 133 (WHO ICD-10, JP)
-│   │   ├── loinc.yaml        # 65
-│   │   ├── jlac10.yaml       # 30
-│   │   ├── rxnorm.yaml       # 68
-│   │   ├── yj.yaml           # 39
-│   │   ├── cpt.yaml          # 31
-│   │   ├── k-codes.yaml      # 25
-│   │   └── snomed-ct.yaml    # 31 (subset: procedure structural fields)
+│   ├── data/                 # 32 YAML (icd-10-cm / icd-10 / loinc / jlac10 /
+│   │                         #          rxnorm / yj / cpt / k-codes / snomed-ct /
+│   │                         #          hot7 / cvx / HL7 terminology / JP-CLINS eCS ...)
 │   └── loader.py             # lookup(system, code, lang) API
 │
 ├── locale/                   # Country/culture-specific data
@@ -33,22 +32,24 @@ clinosim/
 ├── config/                   # Hospital configuration YAMLs
 │   ├── hospital_operations.yaml  # 50-bed community hospital (default)
 │   ├── hospital_small.yaml       # 10-bed clinic
-│   ├── hospital_large.yaml       # large hospital
+│   ├── hospital_large.yaml       # 200-bed regional hospital
 │   ├── llm_service.yaml          # LLM (local Ollama default)
-│   └── llm_service.cloud.yaml    # Anthropic API
+│   ├── llm_service.bedrock.yaml  # AWS Bedrock
+│   ├── llm_service.cloud.yaml    # Anthropic API
+│   └── llm_service.sakura.yaml   # Sakura Cloud Ollama
 │
 ├── types/                    # Data type definitions (Pydantic / dataclass)
 │   ├── config.py             # SimulatorConfig
 │   ├── patient.py            # PatientProfile, ChronicCondition
-│   ├── clinical.py           # PhysiologicalState, ClinicalDiagnosis
+│   ├── clinical.py           # PhysiologicalState (14 variables), ClinicalDiagnosis
 │   ├── encounter.py          # Encounter, Order, VitalSignRecord, MAR
 │   ├── identity.py           # NationalIdentity, InsuranceEnrollment, IdentityTimeline
 │   └── output.py             # CIFDataset, CIFPatientRecord, CIFMetadata
 │
-├── modules/                  # Functional modules (each with README)
-│   ├── disease/              # 32 disease YAML protocols
+├── modules/                  # Functional modules (33 packages, each with README)
+│   ├── disease/              # disease YAML protocols
 │   ├── encounter/            # 46 ED/outpatient condition YAMLs
-│   ├── physiology/           # 12-state model + lab/vital derivation
+│   ├── physiology/           # 14-state model + lab/vital derivation
 │   ├── clinical_course/      # 6 archetypes + complications + diagnosis feedback
 │   ├── diagnosis/            # Bayesian differential (LR table)
 │   ├── observation/          # 3-layer lab noise + flagging
@@ -90,7 +91,7 @@ clinosim/
 │   ├── emergency.py          # ED visit
 │   ├── outpatient.py         # Outpatient visit
 │   ├── helpers.py            # Ward/department resolver, mortality, etc.
-│   └── cli.py                # CLI entry point (generate, narrate, export-fhir, ...)
+│   └── cli.py                # CLI entry point (simulate/generate, narrate, export-fhir, ...)
 │
 └── tests/
     ├── unit/                 # Module unit tests (234 tests total across suites)
