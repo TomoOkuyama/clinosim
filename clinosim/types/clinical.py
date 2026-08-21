@@ -214,7 +214,11 @@ class ClinicalImpressionRecord:
 
     impression_id: str = ""  # "ci-{enc}-{day}"
     encounter_id: str = ""
-    date: date = field(default_factory=lambda: _UNSET_DATE)
+    # Issue #821 (N-7): allow datetime so ClinicalImpression.effectiveDateTime
+    # can carry time-of-day. `date` is still accepted for backwards compat
+    # (audit path synthetic records) and downgrades to date-only in the FHIR
+    # builder's `to_fhir_datetime()`.
+    date: date | datetime = field(default_factory=lambda: _UNSET_DATE)
     day_index: int = 0
     description: str = ""  # 英語版短い要約(AD-30: CIF は EN が canonical)
     description_ja: str = ""  # 日本語版(JP output で ClinicalImpression.description に注入)
