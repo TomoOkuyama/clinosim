@@ -1,18 +1,22 @@
-# Design Guides — 新規モジュール著者のための読書パス
+# Design Guides — reading path for new module authors
 
-clinosim にモジュールを追加する新規開発者/実装 AI 向けの索引です。以下の順に読んでください。
-(0)〜(4) は全員必読、(5)〜(7) は触る領域に応じて読みます。
+An index for the new contributor (human or AI) adding a module to
+clinosim. Read the entries below in the order shown. (0) – (4) are
+mandatory for everyone; (5) – (8) apply only when you are touching
+that specific surface.
 
-| # | ドキュメント | いつ読むか |
+| # | Document | When to read |
 |---|---|---|
-| 0a | [`project-concept-and-design.md`](project-concept-and-design.md) | **一番最初**。プロジェクトのコンセプト(9 要求)・パイプライン全体像・ナラティブ 2 層設計・現在地とロードマップのキャッチアップ |
-| 0b | [`implementation-rules.md`](implementation-rules.md) | **コードを書く前に必ず**。全実装者が守る不変則の蒸留版(workflow 規律 / 決定性 / canonical helpers / silent-no-op 防御 / 検証 gate) |
-| 0c | [`data-generation-walkthrough.md`](data-generation-walkthrough.md) | **コンセプトの次に**。「1 件の患者データがどう生まれるか」を population → イベント → 受診シミュレーション → CIF → FHIR まで実ファイル/関数名つきで end-to-end に追う。3 段 CLI・enricher・拡張の入口も。新規貢献者のオンボーディング用 |
-| 1 | [`MODULES.md`](../../MODULES.md) | 全 33 module(`clinosim/modules/` 配下の package)の俯瞰・依存関係・データフローを 1 ページで把握する |
-| 2 | [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) | 実装前に。Base/Module 判定、正準 layout、loader / sub-seed / registry / 検証 (byte-diff vs DQR) の実践 playbook |
-| 3 | [`.github/TEMPLATE_MODULE_README.md`](../../.github/TEMPLATE_MODULE_README.md) | モジュールの skeleton を作るとき。README + パス定数などの boilerplate をここからコピーする |
-| 4 | [`DESIGN.md`](../../DESIGN.md) の curated ADR | 設計判断の背景が必要なとき。まず AD-16 / AD-17 / AD-25 / AD-30 / AD-55 / AD-56 / AD-59 / AD-60 / AD-65 の 9 つ(一言サマリは CONTRIBUTING-modules.md「最初に読む ADR」参照)|
-| 5 | [`clinosim/modules/output/SPEC.md`](../../clinosim/modules/output/SPEC.md) | 臨床文書 / narrative を触るときのみ。two-pass CIF(structural + narrative 分離、AD-65)の canonical spec |
-| 6 | [`docs/design-guides/fhir-data-generation-logic.md`](fhir-data-generation-logic.md) | FHIR builder(`_fhir_*.py`、Layer 4)を追加・拡張するときのみ。code_lookup / URI / multilingual / anti-patterns |
-| 7 | [`SCENARIO_FLAGS.md`](../../SCENARIO_FLAGS.md) | lab 値や scenario / medication flag(`causes_X` / `on_warfarin`)を触るときのみ。flag の一覧と追加手順 |
-| 8 | [`data-model-and-completeness-conventions.md`](data-model-and-completeness-conventions.md) | FHIR completeness fix-point(重症度統合 / 孤児 YAML キー / `extra="forbid"` / I10 stage / person.age / course_archetypes)を実装するときのみ。C1/C2/C3 不完全状態の禁止規約と as-of-age パターン。台帳 = `docs/design-notes/2026-07-06-fix-point-registry.md` |
+| 0a | [`project-concept-and-design.md`](project-concept-and-design.md) | **First.** Project concept (the 9 requirements), the end-to-end pipeline, the two-layer narrative design, current state and roadmap catch-up. |
+| 0b | [`implementation-rules.md`](implementation-rules.md) | **Before writing any code.** The distilled invariants every implementer must obey — workflow discipline, determinism, canonical helpers, silent-no-op defense, verification gates. |
+| 0c | [`data-generation-walkthrough.md`](data-generation-walkthrough.md) | **After the concept doc.** How one patient record is born: population → life events → encounter simulation → CIF → FHIR, walked end-to-end with actual file and function names. Covers the three-stage CLI, enrichers, and extension entry points. Onboarding material for new contributors. |
+| 1 | [`MODULES.md`](../../MODULES.md) | Overview of all 33 modules (`clinosim/modules/` packages), their dependency graph, and data flow, on a single page. |
+| 2 | [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) | Before implementation. The practical playbook — Base / Module classification, canonical layout, loader / sub-seed / registry usage, verification triage (byte-diff vs. 3-axis DQR). |
+| 3 | [`.github/TEMPLATE_MODULE_README.md`](../../.github/TEMPLATE_MODULE_README.md) | When creating a new module skeleton. Copy the README and path-constants boilerplate from here. |
+| 4 | Curated ADRs in [`DESIGN.md`](../../DESIGN.md) | When you need the reasoning behind a design decision. Start with the 9 core ADRs — AD-16, AD-17, AD-25, AD-30, AD-55, AD-56, AD-59, AD-60, AD-65 (one-line summaries in the "最初に読む ADR" table of `CONTRIBUTING-modules.md`). |
+| 5 | [`clinosim/modules/output/SPEC.md`](../../clinosim/modules/output/SPEC.md) | Only when you touch clinical documents or narratives. The canonical spec for two-pass CIF (structural + narrative separation, AD-65). |
+| 6 | [`docs/design-guides/fhir-data-generation-logic.md`](fhir-data-generation-logic.md) | Only when you add or extend a FHIR builder (`_fhir_*.py`, Layer 4). Covers `code_lookup`, URIs, multilingual display, and the anti-patterns. |
+| 7 | [`SCENARIO_FLAGS.md`](../../SCENARIO_FLAGS.md) | Only when you touch lab values or scenario / medication flags (`causes_X`, `on_warfarin`). Lists every flag and the procedure to add one. |
+| 8 | [`data-model-and-completeness-conventions.md`](data-model-and-completeness-conventions.md) | Only when you implement a FHIR completeness fix-point (severity unification, orphan YAML keys, `extra="forbid"`, I10 stage, `person.age`, `course_archetypes`). Documents the prohibitions on C1 / C2 / C3 incompleteness and the as-of-age pattern. The registry lives at `docs/design-notes/2026-07-06-fix-point-registry.md`. |
+
+Japanese counterpart: [`README.ja.md`](README.ja.md).
