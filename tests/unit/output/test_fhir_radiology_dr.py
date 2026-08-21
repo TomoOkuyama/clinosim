@@ -309,17 +309,24 @@ def test_jp_radiology_dr_uses_radiology_profile_not_common():
     assert "JP_DiagnosticReport_Common" not in "|".join(profs)
 
 
-def test_jp_radiology_dr_category_two_slices_loinc_and_dicom():
-    """#218:spec `category:first` = LOINC LP29684-5, `category:second` = DICOM modality。"""
+def test_jp_radiology_dr_category_three_slices_loinc_dicom_v2_0074_rad():
+    """#218 spec: `category:first` = LOINC LP29684-5, `category:second` = DICOM modality.
+
+    Issue #815 (P1-11): `category:third` = v2-0074 "RAD" so consumer queries
+    `GET /DiagnosticReport?category=RAD` return radiology reports on JP output.
+    LOINC + DICOM stay as-is (JP-CLINS profile requirement); RAD is additive.
+    """
     from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
         _JP_DR_DICOM_MODALITY_SYSTEM,
         _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE,
+        RADIOLOGY_CATEGORY_V2_0074,
+        V2_0074_SYSTEM,
     )
 
     ctx = _make_ctx([_sample_study()], country="jp")
     dr = _rad_drs(ctx)[0]
     cats = dr.get("category", [])
-    assert len(cats) == 2, cats
+    assert len(cats) == 3, cats
     # first = LOINC LP29684-5
     first = cats[0]["coding"][0]
     assert first["system"] == "http://loinc.org"
@@ -328,6 +335,10 @@ def test_jp_radiology_dr_category_two_slices_loinc_and_dicom():
     second = cats[1]["coding"][0]
     assert second["system"] == _JP_DR_DICOM_MODALITY_SYSTEM
     assert second["code"] == "CR"
+    # third = v2-0074 RAD (Issue #815)
+    third = cats[2]["coding"][0]
+    assert third["system"] == V2_0074_SYSTEM
+    assert third["code"] == RADIOLOGY_CATEGORY_V2_0074 == "RAD"
 
 
 def test_jp_radiology_dr_code_coding_prepends_document_codes_18748_4():
