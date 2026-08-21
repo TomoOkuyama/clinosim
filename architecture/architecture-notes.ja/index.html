@@ -1,0 +1,3947 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Population-driven, physiology-based synthetic Electronic Health Record generator (FHIR R4). Multi-country (US + JP), JP Core profile compliance, YAML-driven disease extension.
+">
+      
+      
+      
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/architecture/architecture-notes.ja/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Architecture notes.ja - clinosim</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#61-コードシステムモジュール-clinosimcodes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            clinosim
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture notes.ja
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../design-guides/project-concept-and-design/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../CONTRIBUTING-modules/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../governance/contributing/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Governance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    clinosim
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/first-cohort/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Your first cohort
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning & releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/project-concept-and-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project concept & design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/data-generation-walkthrough/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data generation walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/implementation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/documentation-and-code-quality-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation + code-quality policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/fhir-data-generation-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FHIR data generation logic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design-guides/data-model-and-completeness-conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data model conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/output-formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/llm-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/datasets-full/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/code-systems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code systems
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/hospital-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hospital configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/extension-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extension guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/multi-country/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-country
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../eval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../eval-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/scenario-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../module-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../module-dependency-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module dependency graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING-modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../clinical_documents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical documents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../synthea-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare to Synthea
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fhir-server-ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load into a FHIR server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bedrock_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bedrock LLM setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/publishing-to-pypi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing to PyPI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Governance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#61-コードシステムモジュール-clinosimcodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 コードシステムモジュール (clinosim/codes/)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.1 コードシステムモジュール (clinosim/codes/)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#問題" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#決定-ad-30ad-33ad-35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定 (AD-30、AD-33、AD-35)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#スキーマ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        スキーマ
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#原則" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        原則
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cif-への影響" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CIF への影響
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migration-後の-locale-モジュール" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        migration 後の locale モジュール
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#62-fhir-bulk-data-export-ndjson-ad-31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 FHIR Bulk Data Export NDJSON (AD-31)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.2 FHIR Bulk Data Export NDJSON (AD-31)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#問題_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#決定-ad-31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定 (AD-31)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resource-id-一意性" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource id 一意性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manifest-形式" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manifest 形式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#サイズ影響" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        サイズ影響
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#63-snapshot-日付セマンティクス-ad-32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Snapshot 日付セマンティクス (AD-32)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.3 Snapshot 日付セマンティクス (AD-32)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#問題_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#決定-ad-32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定 (AD-32)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#結果" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        結果
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#64-hospital-設定駆動レイアウト-ad-34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Hospital 設定駆動レイアウト (AD-34)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.4 Hospital 設定駆動レイアウト (AD-34)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#問題_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#決定-ad-34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定 (AD-34)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#波及効果" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        波及効果
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#65-モジュール一覧の更新" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 モジュール一覧の更新
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#66-現実的な-vital-sign-測定パターン" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.6 現実的な vital sign 測定パターン
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.6 現実的な vital sign 測定パターン">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#問題_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#決定" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#67-news2--早期警戒-vital-データ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.7 NEWS2 / 早期警戒 vital データ
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#68-更新-adr-一覧-part-6-追加分" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.8 更新 ADR 一覧 (Part 6 追加分)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#69-resident-identifier--保険番号-ad-54" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.9 Resident identifier &amp; 保険番号 (AD-54)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.9 Resident identifier &amp; 保険番号 (AD-54)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#問題_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#主要ドメイン事実-設計を駆動" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        主要ドメイン事実 (設計を駆動)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#決定_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#デフォルト-localejpidentityyaml--調査済provisional-なら--todo-verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        デフォルト (locale/jp/identity.yaml — 調査済、provisional なら # TODO: verify)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#フェーズ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        フェーズ
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#610-ehr-データ-enrichment-分割--base-vs-module-ad-55" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.10 EHR データ enrichment 分割 — Base vs Module (AD-55)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.10 EHR データ enrichment 分割 — Base vs Module (AD-55)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#原則_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        原則
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#スコープガード-enrichment-研究から-carry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        スコープガード (enrichment 研究から carry)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#分類" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        分類
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#611-拡張性基盤--phase-0-ad-56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.11 拡張性基盤 — Phase 0 (AD-56)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.11 拡張性基盤 — Phase 0 (AD-56)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#問題_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#決定--ad-55-enrichment-作業の-前-にこれらの-enabler-refactor-を実施" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定 — AD-55 enrichment 作業の 前 にこれらの enabler refactor を実施
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#制約" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        制約
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-fhir-documentreference-経由の臨床文書" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. FHIR DocumentReference 経由の臨床文書
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. FHIR DocumentReference 経由の臨床文書">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#問題_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#決定-ad-36ad-37ad-38" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定 (AD-36、AD-37、AD-38)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#保存形式-narrative-cif" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        保存形式: narrative CIF
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fhir-documentreference-マッピング" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FHIR DocumentReference マッピング
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-llm-サービスアーキテクチャ-プラガブルプロバイダ--yaml-プロンプト" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. LLM サービスアーキテクチャ: プラガブルプロバイダ + YAML プロンプト
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. LLM サービスアーキテクチャ: プラガブルプロバイダ + YAML プロンプト">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#問題_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#決定-ad-39ad-40ad-41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定 (AD-39、AD-40、AD-41)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#データモデル-llmservicegenerate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        データモデル: LLMService.generate
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/architecture/architecture-notes.ja.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+  <h1>Architecture notes.ja</h1>
+
+<h2 id="61-コードシステムモジュール-clinosimcodes">6.1 コードシステムモジュール (<code>clinosim/codes/</code>)<a class="headerlink" href="#61-コードシステムモジュール-clinosimcodes" title="Permanent link">&para;</a></h2>
+<h3 id="問題">問題<a class="headerlink" href="#問題" title="Permanent link">&para;</a></h3>
+<p>当初 terminology ファイル (例: ICD コード → 表示名) は
+<code>clinosim/locale/jp/terminology_diagnosis.yaml</code> 等のパスに配置され
+ていた。これは 2 つの問題を生んだ:</p>
+<ol>
+<li><strong>誤分類</strong>: ICD-10-CM は国際標準であり文化固有データセットで
+   はない。<code>locale/jp/</code> に置くと locale-scoped 所有を示唆するが、
+   実際には翻訳されているだけで同一のコード値である。</li>
+<li><strong>翻訳重複</strong>: JP と US をサポートすると同一 ICD コードが 2 つ
+   のファイルに個別エントリを持つ。片方を更新して他方を更新し忘
+   れると mismatch につながる。</li>
+<li><strong>CIF 冗長性</strong>: <code>ClinicalDiagnosis</code> は
+   <code>discharge_diagnosis_code</code> と <code>discharge_diagnosis_name</code> の両方
+   を保存していた。name は code + locale の派生物だが、別々に保存
+   されているため drift の余地があった。</li>
+</ol>
+<h3 id="決定-ad-30ad-33ad-35">決定 (AD-30、AD-33、AD-35)<a class="headerlink" href="#決定-ad-30ad-33ad-35" title="Permanent link">&para;</a></h3>
+<p><strong>locale-independent</strong> で臨床コードシステムの single source of
+truth となる新規 <code>clinosim/codes/</code> モジュールを作成する。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>clinosim/codes/
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── __init__.py          # public API
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── loader.py            # lookup() with language fallback
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── README.md            # module documentation
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>└── data/
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    ├── icd-10-cm.yaml   # 224 コード、全て EN、多くは JA
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    ├── icd-10.yaml      # WHO 版 (110 コード)
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    ├── loinc.yaml       # 59 コード
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    ├── jlac10.yaml      # 30 コード
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    ├── rxnorm.yaml      # 68 コード
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    ├── yj.yaml          # 39 コード
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ├── cpt.yaml         # 25 コード
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    └── k-codes.yaml     # 2 コード
+</span></code></pre></div>
+<h3 id="スキーマ">スキーマ<a class="headerlink" href="#スキーマ" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"ICD-10-CM"</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">uri</span><span class="p">:</span><span class="w"> </span><span class="s">"http://hl7.org/fhir/sid/icd-10-cm"</span><span class="w">   </span><span class="c1"># FHIR canonical system URI</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"2024"</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"..."</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nt">codes</span><span class="p">:</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">N10</span><span class="p">:</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nt">en</span><span class="p">:</span><span class="w"> </span><span class="s">"Acute</span><span class="nv"> </span><span class="s">tubulo-interstitial</span><span class="nv"> </span><span class="s">nephritis"</span><span class="w">   </span><span class="c1"># REQUIRED</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">ja</span><span class="p">:</span><span class="w"> </span><span class="s">"急性腎盂腎炎"</span><span class="w">                          </span><span class="c1"># optional</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="nt">J18.9</span><span class="p">:</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="nt">en</span><span class="p">:</span><span class="w"> </span><span class="s">"Pneumonia,</span><span class="nv"> </span><span class="s">unspecified</span><span class="nv"> </span><span class="s">organism"</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nt">ja</span><span class="p">:</span><span class="w"> </span><span class="s">"肺炎，詳細不明"</span>
+</span></code></pre></div>
+<h3 id="原則">原則<a class="headerlink" href="#原則" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>English-first</strong>: 全コードは <code>en</code> field を必須とする。他言語
+   は任意の翻訳属性。ローダーは要求された言語が存在しなければ英語
+   に、次にコード自身にフォールバックする。</p>
+</li>
+<li>
+<p><strong>権威ある情報源</strong>: コード値と英語テキストは CMS (ICD-10-CM)、
+   NLM (RxNorm)、Regenstrief (LOINC)、AMA (CPT)、WHO (ICD-10)、
+   JCCLS (JLAC10)、MHLW (YJ コード、K コード) の公式定義に従う。</p>
+</li>
+<li>
+<p><strong>Locale-independent</strong>: <code>codes/</code> は <code>locale/</code> と同レベルであり、
+   その <strong>中には</strong> 置かない。コードシステムは国際標準。</p>
+</li>
+<li>
+<p><strong>単一 lookup API</strong>:
+   <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">lookup</span><span class="p">,</span> <span class="n">get_system_uri</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">lookup</span><span class="p">(</span><span class="s2">"icd-10-cm"</span><span class="p">,</span> <span class="s2">"N10"</span><span class="p">,</span> <span class="s2">"en"</span><span class="p">)</span>  <span class="c1"># → "Acute tubulo-interstitial nephritis"</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">lookup</span><span class="p">(</span><span class="s2">"icd-10-cm"</span><span class="p">,</span> <span class="s2">"N10"</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>  <span class="c1"># → "急性腎盂腎炎"</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">get_system_uri</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">)</span>           <span class="c1"># → "http://loinc.org"</span>
+</span></code></pre></div></p>
+</li>
+</ol>
+<h3 id="cif-への影響">CIF への影響<a class="headerlink" href="#cif-への影響" title="Permanent link">&para;</a></h3>
+<p><code>ClinicalDiagnosis</code> は簡素化 — <code>*_name</code> field を除去、<code>*_system</code>
+を追加:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Before</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nd">@dataclass</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">ClinicalDiagnosis</span><span class="p">:</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">admission_diagnosis_code</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">admission_diagnosis_name</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># ← 除去</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">discharge_diagnosis_code</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">discharge_diagnosis_name</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># ← 除去</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># After</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="nd">@dataclass</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="k">class</span><span class="w"> </span><span class="nc">ClinicalDiagnosis</span><span class="p">:</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="n">admission_diagnosis_code</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="n">admission_diagnosis_system</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"icd-10-cm"</span>   <span class="c1"># ← 追加</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    <span class="n">discharge_diagnosis_code</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>    <span class="n">discharge_diagnosis_system</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"icd-10-cm"</span>   <span class="c1"># ← 追加</span>
+</span></code></pre></div>
+<p><code>ChronicCondition.name</code> も同様に除去された。表示テキストは出力
+時に FHIR / CSV / narrative の adapter が <code>clinosim.codes.lookup()</code>
+を呼んで解決するようになった。</p>
+<h3 id="migration-後の-locale-モジュール">migration 後の locale モジュール<a class="headerlink" href="#migration-後の-locale-モジュール" title="Permanent link">&para;</a></h3>
+<p><code>clinosim/locale/</code> は <strong>文化 / 国依存</strong> データのみを含む:</p>
+<ul>
+<li><code>names.yaml</code> — 氏名生成 (JP は漢字 + 読み、US は given/family)</li>
+<li><code>addresses.yaml</code> — 47 都道府県 / 50 州 + 郵便番号パターン</li>
+<li><code>demographics.yaml</code> — 人口年齢分布、疾患 incidence</li>
+<li><code>formatting.yaml</code> — 日付と単位のフォーマット規則</li>
+<li><code>reference_range_lab.yaml</code> — JCCLS / Tietz 検査基準範囲</li>
+<li><code>code_mapping_*.yaml</code> — 内部検査名 → 標準コード (内部名 "WBC"
+  は clinosim 実装詳細で標準ではないため、ここに残る)</li>
+</ul>
+<p>古い <code>terminology_*.yaml</code> ファイルは削除された。</p>
+<hr />
+<h2 id="62-fhir-bulk-data-export-ndjson-ad-31">6.2 FHIR Bulk Data Export NDJSON (AD-31)<a class="headerlink" href="#62-fhir-bulk-data-export-ndjson-ad-31" title="Permanent link">&para;</a></h2>
+<h3 id="問題_1">問題<a class="headerlink" href="#問題_1" title="Permanent link">&para;</a></h3>
+<p>元の FHIR R4 adapter は encounter ごとに 1 つの Bundle JSON ファ
+イル (<code>ENC-POP-XXXXXX-NNNNNN.json</code>) を書いていた。動作はするが
+欠点があった:</p>
+<ol>
+<li><strong>ファイル爆発</strong>: 60k 医療圏病院で 153,530 ファイル</li>
+<li><strong>wrapping オーバーヘッド</strong>: 各 Bundle が冗長な
+   <code>Bundle.entry[]</code> wrapper を持つ</li>
+<li><strong>Resource id 重複</strong>: vital sign ID が患者 encounter 間で衝突</li>
+<li><strong>標準形式でない</strong>: 実 EHR ベンダー (Epic、Cerner) は per-patient
+   bundle ではなく FHIR Bulk Data Access spec (resource type ごとの
+   NDJSON) 経由で export する</li>
+</ol>
+<h3 id="決定-ad-31">決定 (AD-31)<a class="headerlink" href="#決定-ad-31" title="Permanent link">&para;</a></h3>
+<p>per-encounter Bundle 出力を HL7 FHIR Bulk Data Access 準拠の
+NDJSON に置き換える:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>output/fhir_r4/
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── manifest.json                           # Bulk Data manifest
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>├── _facility.json                          # Org + Location master Bundle
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>├── Patient.ndjson                          # 1 患者 1 行
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>├── Encounter.ndjson                        # 1 encounter 1 行
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>├── Observation.ndjson                      # labs + vitals (LOINC)
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>├── Condition.ndjson                        # ICD-10-CM
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>├── MedicationRequest.ndjson                # RxNorm
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>├── MedicationAdministration.ndjson         # MAR
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>├── Procedure.ndjson                        # CPT
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>├── AllergyIntolerance.ndjson               # 患者レベル
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>├── Practitioner.ndjson                     # スタッフマスタ
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>├── PractitionerRole.ndjson                 # 専門科 + 病棟
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>├── Organization.ndjson                     # 病院 + 診療科
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>└── Location.ndjson                         # 病棟 + ベッド
+</span></code></pre></div>
+<h3 id="resource-id-一意性">Resource id 一意性<a class="headerlink" href="#resource-id-一意性" title="Permanent link">&para;</a></h3>
+<p>critical な FHIR R4 不変条件: <code>Resource.id</code> はその resource type
+内で一意でなければならない。古い per-encounter Bundle 方式は各
+Bundle が自己完結だったため違反を隠していた。NDJSON に集約されると
+衝突が可視化された。</p>
+<p><code>encounter_id</code> を resource id に含めることで修正:</p>
+<ul>
+<li>Lab obs: <code>lab-{encounter_id}-{seq}</code> (<code>lab-{patient_id}-{seq}</code> から)</li>
+<li>Vital obs: <code>vs-{encounter_id}-{seq}-{field}</code></li>
+<li>MAR: <code>mar-{encounter_id}-{seq}</code></li>
+<li>MedRequest: <code>{encounter_id}-{order_id}</code> (プレフィックス付き)</li>
+<li>Procedure: <code>{encounter_id}-{procedure_id}</code> (プレフィックス付き)</li>
+<li>Condition (encounter dx): <code>cond-{encounter_id}-primary</code></li>
+<li>Condition (chronic): <code>cond-{encounter_id}-chronic-{idx}</code></li>
+</ul>
+<p>患者レベル resource (Patient、Practitioner、AllergyIntolerance)
+は再 emit ではなく NDJSON writer 内で重複排除される。</p>
+<h3 id="manifest-形式">Manifest 形式<a class="headerlink" href="#manifest-形式" title="Permanent link">&para;</a></h3>
+<p><a href="https://hl7.org/fhir/uv/bulkdata/">HL7 FHIR Bulk Data Access spec</a>
+に従う:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">"transactionTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-04-08T17:30:00"</span><span class="p">,</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">"request"</span><span class="p">:</span><span class="w"> </span><span class="s2">"clinosim generate (country=US)"</span><span class="p">,</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">"requiresAccessToken"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Patient"</span><span class="p">,</span><span class="w"> </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Patient.ndjson"</span><span class="p">},</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Encounter"</span><span class="p">,</span><span class="w"> </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Encounter.ndjson"</span><span class="p">},</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="err">...</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="p">],</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>この形式は Bulk Data export を期待する任意の FHIR クライアント
+(Epic や Cerner の統合ツール含む) が consume 可能。</p>
+<h3 id="サイズ影響">サイズ影響<a class="headerlink" href="#サイズ影響" title="Permanent link">&para;</a></h3>
+<p>US 50 床病院、catchment 30k、1 年:
+- 旧形式: 153,530 ファイル、合計 5.7 GB
+- 新形式: 13 ファイル、合計 1.3 GB (JSON wrapping 除去で -77%
+  サイズ削減)</p>
+<hr />
+<h2 id="63-snapshot-日付セマンティクス-ad-32">6.3 Snapshot 日付セマンティクス (AD-32)<a class="headerlink" href="#63-snapshot-日付セマンティクス-ad-32" title="Permanent link">&para;</a></h2>
+<h3 id="問題_2">問題<a class="headerlink" href="#問題_2" title="Permanent link">&para;</a></h3>
+<p>シミュレータはシミュレーション期間内に発生する全 encounter を完了
+まで生成していた (全 encounter が <code>discharge_datetime</code> を持つ)。
+これは「全患者退院済」データセットを生成し、現在入院中の患者を
+含む実 EHR snapshot を反映しなかった。</p>
+<p>現在入院中の患者向け可視化ツールや AI モデル (例: NEWS2 alert
+system) にとってこれは大きなギャップだった。</p>
+<h3 id="決定-ad-32">決定 (AD-32)<a class="headerlink" href="#決定-ad-32" title="Permanent link">&para;</a></h3>
+<p><strong>snapshot 日付</strong> セマンティクスを導入:</p>
+<ul>
+<li><code>--end YYYY-MM-DD</code> フラグ = snapshot 日付 (デフォルトは今日)</li>
+<li><code>--start YYYY-MM-DD</code> デフォルトは <code>--end - 1 年</code></li>
+<li>snapshot 日付以降のライフイベント生成なし</li>
+<li><code>discharge_datetime</code> が snapshot 日付以降になる入院患者は切り
+  詰められる:</li>
+<li><code>Encounter.status = "in-progress"</code></li>
+<li><code>discharge_datetime = None</code></li>
+<li><code>discharge_disposition = ""</code></li>
+<li><code>discharging_physician_id = ""</code></li>
+<li>Lab/vital/order/MAR レコードは snapshot 日以下にフィルタ</li>
+<li>退院処方は発行されない</li>
+<li>Primary <code>Condition.clinicalStatus = "active"</code> (完了したものは
+  <code>resolved</code> に対して) — in-progress encounter 用</li>
+<li>死亡はこのルールから免除 (死亡患者は常に <code>dischargeDisposition = "exp"</code>
+  で「completed」)</li>
+</ul>
+<h3 id="結果">結果<a class="headerlink" href="#結果" title="Permanent link">&para;</a></h3>
+<p>平均 LOS 5 日、~3 入院/日 の典型的 50 床病院は、任意時点で ~15
+in-progress encounter (~30% 稼働率) を produce する。より高い
+catchment と長い LOS では現実的な 80% ベッド稼働率に近づく。</p>
+<p>これにより以下のリアルな EHR snapshot 生成が可能になる:
+- NEWS2 / 早期警戒 alert system
+- ベッド管理 dashboard
+- リアルタイム臨床意思決定支援訓練データ</p>
+<hr />
+<h2 id="64-hospital-設定駆動レイアウト-ad-34">6.4 Hospital 設定駆動レイアウト (AD-34)<a class="headerlink" href="#64-hospital-設定駆動レイアウト-ad-34" title="Permanent link">&para;</a></h2>
+<h3 id="問題_3">問題<a class="headerlink" href="#問題_3" title="Permanent link">&para;</a></h3>
+<p>病院の物理レイアウト (どの診療科が存在するか、どの病棟がどの
+専門科に属するか、病棟あたり何ベッドか) は hardcode またはランダム
+割り当てだった。これは以下を生んだ:</p>
+<ol>
+<li><strong>不整合な FHIR データ</strong>: encounter が存在しない病棟にいると
+   主張</li>
+<li><strong>スタッフ不整合</strong>: PractitionerRole の専門科が Encounter
+   serviceType と一致しない</li>
+<li><strong>ベッド容量モデルなし</strong>: 稼働率制限を強制する方法がない</li>
+</ol>
+<h3 id="決定-ad-34">決定 (AD-34)<a class="headerlink" href="#決定-ad-34" title="Permanent link">&para;</a></h3>
+<p>Hospital 設定 YAML が完全な物理・組織レイアウトを定義:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># clinosim/config/hospital_operations.yaml (50 床病院)</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nt">recommended_population</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60000</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nt">available_departments</span><span class="p">:</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">internal_medicine</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cardiology</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gastroenterology</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">general_surgery</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orthopedics</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">emergency_medicine</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">primary_care</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="nt">department_rollup</span><span class="p">:</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">  </span><span class="nt">pulmonology</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">internal_medicine</span><span class="w">    </span><span class="c1"># 疾患 YAML は pulmonology、病院は IM</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">  </span><span class="nt">neurology</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">internal_medicine</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">  </span><span class="nt">neurosurgery</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">general_surgery</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">  </span><span class="nt">trauma_surgery</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">general_surgery</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="nt">wards</span><span class="p">:</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">  </span><span class="nt">internal_medicine</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"4E"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"4W"</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">  </span><span class="nt">cardiology</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"5E"</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">  </span><span class="nt">gastroenterology</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"5W"</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">  </span><span class="nt">general_surgery</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"3E"</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">  </span><span class="nt">orthopedics</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"3W"</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">  </span><span class="nt">emergency_medicine</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"ER"</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">  </span><span class="nt">primary_care</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"OPD"</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="nt">ward_capacity</span><span class="p">:</span>
+</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">  </span><span class="s">"4E"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</span><span id="__span-6-30"><a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">  </span><span class="s">"4W"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</span><span id="__span-6-31"><a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">  </span><span class="s">"5E"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+</span><span id="__span-6-32"><a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">  </span><span class="s">"5W"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+</span><span id="__span-6-33"><a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">  </span><span class="s">"3E"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+</span><span id="__span-6-34"><a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="w">  </span><span class="s">"3W"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
+</span></code></pre></div>
+<h3 id="波及効果">波及効果<a class="headerlink" href="#波及効果" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>疾患 → 診療科 解決</strong>: <code>disease.department</code> は <code>department_rollup</code>
+   経由で <code>available_departments</code> の 1 つに roll-up される。
+   pulmonology を持たない病院の pulmonology 疾患は
+   <code>internal_medicine</code> にルーティングされる。</p>
+</li>
+<li>
+<p><strong>スタッフ生成</strong>: <code>generate_roster()</code> は <code>available_departments</code>
+   に対してのみ医師を作成する。看護師は <code>wards</code> に分散配置
+   (<code>ward_capacity</code> に比例して各病棟は ~6 名の看護師を持つ)。</p>
+</li>
+<li>
+<p><strong>ベッド割当</strong>: encounter が作成されると <code>bed_number</code> は
+   <code>1..ward_capacity[ward_id]</code> からサンプリング。「601-3」のよう
+   なランダムベッド番号はもうない。</p>
+</li>
+<li>
+<p><strong>FHIR Location リソース</strong>: <code>_facility.json</code> は病棟ごとに 1
+   <code>Location</code> (physicalType=wa) とベッドごとに 1 (physicalType=bd、
+   病棟の <code>partOf</code>) を含む。Encounter はベッド Location を参照
+   し、それが <code>partOf</code> 経由で病棟を参照。</p>
+</li>
+<li>
+<p><strong>PractitionerRole.location</strong>: 看護師は roster エントリで病棟に
+   割り当てられ、PractitionerRole.location reference に反映される。</p>
+</li>
+</ol>
+<p>これにより病院テンプレート (<code>hospital_operations.yaml</code> for 50 床、
+<code>hospital_small.yaml</code> for 10 床) は単なるサイズラベルではなく、
+本当に異なる病院になった。</p>
+<hr />
+<h2 id="65-モジュール一覧の更新">6.5 モジュール一覧の更新<a class="headerlink" href="#65-モジュール一覧の更新" title="Permanent link">&para;</a></h2>
+<p>現行モジュール数は v0.1-alpha を超えて成長した:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>clinosim/
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── codes/                  ★ NEW (AD-30、AD-33、AD-35)
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├── locale/
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├── config/
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├── types/
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>├── modules/
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│   ├── disease/            (32 疾患 YAML)
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│   ├── encounter/          (46 ED/外来 YAML)
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│   ├── physiology/
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│   ├── clinical_course/
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>│   ├── diagnosis/
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>│   ├── observation/
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>│   ├── order/
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>│   ├── procedure/          ★ NEW (以前空、現在 15 ベッドサイド手技)
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>│   ├── population/
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>│   ├── patient/
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>│   ├── staff/              (AD-34 以降 ward-aware)
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>│   ├── facility/           ★ NEW README (M/M/1 待ち行列)
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>│   ├── healthcare_system/
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>│   ├── output/             (AD-31 以降 Bulk Data NDJSON)
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>│   ├── llm_service/
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>│   └── validator/
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>└── simulator/              (オーケストレーション: engine、inpatient、emergency、outpatient)
+</span></code></pre></div>
+<p>各モジュールは API リファレンスと設計ノート付きの独自 README.md
+を持つ。</p>
+<hr />
+<h2 id="66-現実的な-vital-sign-測定パターン">6.6 現実的な vital sign 測定パターン<a class="headerlink" href="#66-現実的な-vital-sign-測定パターン" title="Permanent link">&para;</a></h2>
+<h3 id="問題_4">問題<a class="headerlink" href="#問題_4" title="Permanent link">&para;</a></h3>
+<p>初期実装は全 6 つの vital sign (T、HR、BP、RR、SpO2) を各測定時刻
+に同一タイムスタンプで生成していた。これは非現実的だった:</p>
+<ul>
+<li>外来 HTN 訪問: BP と HR のみ測定 (全 6 つではない)</li>
+<li>連続モニタリング: HR と SpO2 は 1-2h 毎、フル vitals は q6h のみ</li>
+<li>全 6 field が同一タイムスタンプというのは妥当性を欠く</li>
+</ul>
+<h3 id="決定">決定<a class="headerlink" href="#決定" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>入院</strong>: acuity に基づく定期フル vitals (q4h–q8h) と、不安定 /
+   呼吸器疾患患者向け連続モニタリング (HR + SpO2 のみ 2h 毎)、
+   加えてイベント駆動再測定 (発熱後の T-only 再測定) を分離。</p>
+</li>
+<li>
+<p><strong>外来</strong>: 訪問タイプと慢性疾患による vital subset:</p>
+</li>
+<li>HTN/DM/IHD フォローアップ: BP + HR</li>
+<li>HF: BP + HR + 体重 + SpO2</li>
+<li>COPD: BP + HR + SpO2 + RR</li>
+<li>
+<p>定期健診: フル</p>
+</li>
+<li>
+<p><strong>field 別タイムスタンプオフセット</strong> (FHIR adapter 内):</p>
+</li>
+<li>HR / BP 同時 (同じデバイスサイクル)</li>
+<li>SpO2: +5s</li>
+<li>体温: +30s</li>
+<li>RR: +60s</li>
+</ol>
+<p>これは NEWS2 互換の vital データを臨床的に妥当な形で produce する。</p>
+<hr />
+<h2 id="67-news2--早期警戒-vital-データ">6.7 NEWS2 / 早期警戒 vital データ<a class="headerlink" href="#67-news2--早期警戒-vital-データ" title="Permanent link">&para;</a></h2>
+<p>NEWS2 (National Early Warning Score 2) alert system をサポート
+するため、vitals は以下を含むようになった:</p>
+<ul>
+<li><strong>AVPU 意識レベル</strong> (Alert / Voice / Pain / Unresponsive)</li>
+<li>LOINC コード 80288-4</li>
+<li>SNOMED concept value (Alert は 248234008 等)</li>
+<li>
+<p><code>state.perfusion_status</code> と疾患タイプから推論</p>
+</li>
+<li>
+<p><strong>補助酸素流量</strong> (L/min)</p>
+</li>
+<li>LOINC コード 3151-8</li>
+<li>酸素供給デバイス (nasal_cannula、simple_mask、non-rebreather)
+    を含む</li>
+<li>SpO2 &lt; 92 または呼吸器疾患に基づいてアクティブ化</li>
+</ul>
+<p>これら 2 つの追加 Observation type は該当時に標準 vitals とともに
+emit される。NEWS2 スコアは任意の in-progress encounter の最新
+observation から計算可能。</p>
+<hr />
+<h2 id="68-更新-adr-一覧-part-6-追加分">6.8 更新 ADR 一覧 (Part 6 追加分)<a class="headerlink" href="#68-更新-adr-一覧-part-6-追加分" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>ADR</th>
+<th>日付</th>
+<th>タイトル</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AD-28</td>
+<td>2026-04-06</td>
+<td>診断 vs ground truth 分離 (ConditionEvent vs ClinicalDiagnosis)</td>
+</tr>
+<tr>
+<td>AD-29</td>
+<td>2026-04-06</td>
+<td>尤度比 (Bayesian update) による診断精度</td>
+</tr>
+<tr>
+<td>AD-30</td>
+<td>2026-04-08</td>
+<td>Code が唯一の真実: CIF はコードのみ保持、表示テキストを持たない</td>
+</tr>
+<tr>
+<td>AD-31</td>
+<td>2026-04-08</td>
+<td>FHIR Bulk Data Export NDJSON (encounter ごとの Bundle を置換)</td>
+</tr>
+<tr>
+<td>AD-32</td>
+<td>2026-04-08</td>
+<td>進行中 encounter を含む snapshot 日付セマンティクス</td>
+</tr>
+<tr>
+<td>AD-33</td>
+<td>2026-04-08</td>
+<td>Code system の英語第一原則</td>
+</tr>
+<tr>
+<td>AD-34</td>
+<td>2026-04-08</td>
+<td>Hospital 設定駆動の物理レイアウト (診療科、病棟、ベッド)</td>
+</tr>
+<tr>
+<td>AD-35</td>
+<td>2026-04-08</td>
+<td>codes モジュールを locale から分離 (国際標準)</td>
+</tr>
+<tr>
+<td>AD-36</td>
+<td>2026-04-09</td>
+<td>SNOMED CT による FHIR Procedure 構造化フィールド (category、performer.function、bodySite、outcome、complication)</td>
+</tr>
+<tr>
+<td>AD-37</td>
+<td>2026-04-09</td>
+<td>3 段の明示的 CLI: generate → narrate → export-fhir</td>
+</tr>
+<tr>
+<td>AD-38</td>
+<td>2026-04-09</td>
+<td>臨床文書を FHIR DocumentReference として (Tier A+B スコープ、LOINC コード)</td>
+</tr>
+<tr>
+<td>AD-39</td>
+<td>2026-04-09</td>
+<td>LLM プロバイダプラグイン registry + YAML 駆動 factory</td>
+</tr>
+<tr>
+<td>AD-40</td>
+<td>2026-04-09</td>
+<td>プロンプトテンプレートを言語別 YAML ファイルとして外部化</td>
+</tr>
+<tr>
+<td>AD-41</td>
+<td>2026-04-09</td>
+<td>LLM 応答の SHA256 ディスク cache (再現性 + コスト制御)</td>
+</tr>
+<tr>
+<td>AD-42</td>
+<td>2026-04-13</td>
+<td>日本 locale 用のコード側単位変換 (CRP mg/L → mg/dL を extractor/generator で、LLM プロンプトではなく)</td>
+</tr>
+<tr>
+<td>AD-43</td>
+<td>2026-04-13</td>
+<td>日本語 narrative プロンプト品質規則 (「医師」接尾辞、【】 節見出し、markdown なし)</td>
+</tr>
+<tr>
+<td>AD-44</td>
+<td>2026-04-15</td>
+<td>Enrichment は言語中立 (英語構造化データ; LLM が出力時に翻訳)</td>
+</tr>
+<tr>
+<td>AD-45</td>
+<td>2026-04-15</td>
+<td>Patient/PersonRecord の職業フィールド (12 カテゴリ; 労災傷病発生率を駆動)</td>
+</tr>
+<tr>
+<td>AD-46</td>
+<td>2026-04-16</td>
+<td>多言語 FHIR coding (Condition/Procedure は dual coding を emit: primary + 相互運用言語)</td>
+</tr>
+<tr>
+<td>AD-47</td>
+<td>2026-04-16</td>
+<td>FHIR Observation referenceRange + interpretation の整合性 (FHIR R5 Note 5)</td>
+</tr>
+<tr>
+<td>AD-48</td>
+<td>2026-04-16</td>
+<td>procedure_name を CIF から削除 (display は code_lookup 経由で出力時解決、AD-30 に厳密準拠)</td>
+</tr>
+<tr>
+<td>AD-49</td>
+<td>2026-04-18</td>
+<td>Condition code.text に臨床略号 (_CONDITION_SHORT_NAME: COPD、CHF、CKD、DM、AF; coding[].display は公式 ICD 名を維持)</td>
+</tr>
+<tr>
+<td>AD-50</td>
+<td>2026-04-18</td>
+<td>Medication プロトコル prefix stripping (_strip_protocol_prefix が DVT_prophylaxis:、antipyretic: を medicationCodeableConcept.text から除去)</td>
+</tr>
+<tr>
+<td>AD-51</td>
+<td>2026-04-10</td>
+<td>疾患プロトコルの YAML 駆動 medication_holds (simulator 内の hardcoded disease_id リストを置換)</td>
+</tr>
+<tr>
+<td>AD-52</td>
+<td>2026-04-10</td>
+<td>Hospital 設定の国別 recommended_population (50 床で US: 40K、JP: 10K)</td>
+</tr>
+<tr>
+<td>AD-53</td>
+<td>2026-04-10</td>
+<td>Narrative プロンプトでのスタッフ名前解決 (hospital.json roster → display 名)</td>
+</tr>
+<tr>
+<td>AD-54</td>
+<td>2026-06-15</td>
+<td>国プラグイン可能な住民識別子 &amp; 保険番号モジュール (<code>modules/identity/</code>)</td>
+</tr>
+<tr>
+<td>AD-55</td>
+<td>2026-06-15</td>
+<td>EHR データ enrichment 分割: near-essential データは Base (always-on、core 拡張)、専門的 / optional データは opt-in モジュール。<strong>2026-06-25 PR3b-1 補足</strong> — 第 3 カテゴリが正式追加: <strong>always-on Module = near-essential 臨床カスケード</strong>。省略すると臨床的に不整合な状態 (例: <code>HAI 発生かつ抗生剤治療なし</code>) を生じ CLAUDE.md 臨床整合性原則に反するモジュール。これらは <code>enabled=lambda c: True</code> で登録され、上流の <code>extensions[X]</code> スロットが空のときのみ no-op となる。例: <code>device</code> (PR-A)、<code>hai</code> (PR-B)、<code>antibiotic</code> (PR3b-1)。真に optional なデータ (例: JP <code>identity</code> — JP 保険番号が必要な場合のみ) 向けの <strong>opt-in パターン</strong> および core レコード型の typed フィールドを使う元の <strong>Base パターン</strong> とは区別される。新モジュール追加時の選定規則: 上流カスケードから常に期待されるデータなら always-on、simulator レベルの設定フラグ (国、地域、業務取極め) に依存するなら opt-in、ほぼ普遍的に emit される FHIR resource 型を拡張するなら Base typed-field を優先。<strong>2026-06-26 PR3b-2 = HAI 培養 S/I/R 感受性チェイン</strong>: Phase 3b シリーズの 2 番目。<code>modules/hai/_append_hai_culture()</code> を <code>load_hai_antibiogram()</code> (<code>modules/hai/__init__</code> の新 export) を使った antibiogram 駆動感受性サンプリングに拡張。データソース: <code>reference_data/hai_antibiogram.yaml</code> (CDC NHSN AR 2018-2020)、形式 <code>{hai_type: {organism_snomed: {antibiotic_key: [S, I, R]}}}</code>、import 時に <code>HAI_TYPES</code> + <code>hai_organisms.yaml</code> + <code>ANTIBIOTIC_LOINC_LOOKUP</code> に対して検証。RNG は既存の HAI per-patient sub-rng を使用 (新 RNG stream なし; AD-16 維持)。Forward-compat: <code>MicrobiologyResult.hai_event_id</code> backref (培養を PR3b-3 クロスリファレンス用に HAIEvent へリンク) と <code>AntibioticRegimen.discontinuation_datetime</code> (PR3b-3 de-escalation 用予約) を typed フィールドとして追加。<code>ANTIBIOTIC_DRUGS</code> を tuple → <code>dict[str, dict[str, str]]</code> にリファクタし <code>ANTIBIOTIC_LOINC_LOOKUP</code> を新 LOINC-lookup 相方として追加。LOINC orphan 修正: <code>microbiology.yaml</code> の <code>ciprofloxacin: "18879-7"</code> は実際は Cefepime だった → <code>18906-8</code> に訂正 (NLM 検証済); <code>loinc.yaml</code> 相方修正で Ciprofloxacin <code>18879-7</code> を正しいラベルで追加 + Cefepime <code>18906-8</code>。<code>simulator/engine.py</code> の <code>run_forced</code> は <code>force_hai_event is not None</code> のとき <code>config.forced_scenarios</code> へ <code>scenario</code> を注入するよう変更、Task 6 で発見された silent-no-op ギャップを閉じた。DQR: <code>docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md</code>。</td>
+</tr>
+<tr>
+<td>AD-56</td>
+<td>2026-06-15</td>
+<td>拡張性基盤 (Phase 0): FHIR resource-builder registry、simulator enricher registry、モジュール用 CIF extensions スロット、config モジュール有効化マップ。<strong>PR1 2026-06-24 foundation refactor</strong> で <code>clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS</code> を全 enricher sub-seed オフセットの中央 registry として追加 (7 モジュール: identity + microbiology は decimals として grandfathered; immunization / code_status / family_history / care_level / nursing は 16-bit hex ASCII 慣習を使用)。モジュールレベル assert が偶発的重複オフセットを import 時に catch。新 enricher はここに登録し <code>ENRICHER_SEED_OFFSETS["my_module"]</code> 経由で import。CLAUDE.md「AD-55 enricher patterns」節 + <code>docs/CONTRIBUTING-modules.md</code> の contributor プレイブック参照。<strong>PR2 2026-06-24 G2 SDOH integrity refactor</strong> で「データ専用モジュール (variant)」パターン (<code>modules/sdoh/</code> — reference データ + loader のみ、enricher なし / ENRICHER_SEED_OFFSETS エントリなし — <code>clinosim/codes/</code> が既存の先例) を確立。また <code>_fhir_sdoh.py</code> を単一責務分離のため <code>_fhir_smoking_alcohol.py</code> + <code>_fhir_care_level.py</code> に分割し、将来の SDOH builder 再利用のため <code>_social_category</code> / <code>_value</code> helper を <code>_fhir_common.py</code> に昇格。<strong>PR_docs 2026-06-24 包括的ドキュメント更新</strong> で <code>MODULES.md</code> (22 モジュール inventory + 依存ツリー + 典型的呼び出しチェーン付きの top-level モジュールマップ)、<code>SCENARIO_FLAGS.md</code> (<code>derive_lab_values</code> を通じてルーティングされる scenario + medication フラグの中央参照)、<code>.github/TEMPLATE_MODULE_README.md</code> (標準化モジュール README テンプレート)、および全 22 モジュール README への「Consumers」節 (逆依存可視化用) を追加。<code>docs/CONTRIBUTING-modules.md</code> に PR 検証ガイド (byte-diff vs 3-axis DQR 判定マトリクス; プロジェクトの TRUE 目標は FHIR R4 + JP Core 準拠 + 臨床整合性 + JP language 品質、byte-diff は refactor-PR 手法のみ) を拡張し、元の G4 typed-field-vs-extensions 判定ツリーを吸収。<strong>PR3 2026-06-24 G3 Observation-family split</strong> (foundation refactor シリーズの最終構造ピース) で <code>_fhir_observations.py</code> (727 行 / 31 KB) 内の 4 つの無関係 builder を PR2 の先例に沿った 3 つの新テーマ別ファイルに抽出: <code>_fhir_microbiology.py</code> (Specimen + Observation + DiagnosticReport)、<code>_fhir_nursing.py</code> (NEWS2/GCS/Braden/Morse/Barthel/I&amp;O サーベイ Observation)、<code>_fhir_immunization.py</code> (CVX Immunization)。残余 <code>_fhir_observations.py</code> (~380 行) は canonical な数値 Observation builder となる (lab helper + vital builder)。純粋機械的リファクタ — US p=2000 + JP p=2000、seed=42 の全 33 NDJSON ファイル (US 16 + JP 17) が master と byte-identical。device + HAI 特徴 builder が multi-theme blob を継承せずクリーンなテーマ別ファイル (<code>_fhir_device.py</code> / <code>_fhir_hai.py</code>) に landing する道筋を開いた。<strong>PR-A device module 2026-06-24</strong> で device + HAI 4-PR シリーズの Phase 1 を追加: <code>modules/device/</code> (AD-55 Module post_records enricher、inpatient ICU encounter に対し state-based 配置基準で CVC + 留置カテーテル + 人工呼吸器を emit)、<code>_fhir_device.py</code> builder ファイル (Device + DeviceUseStatement)、<code>clinosim/types/device.py</code> (<code>extensions["device"]</code> 配下の <code>DeviceRecord</code> dataclass)、<code>ENRICHER_SEED_OFFSETS["device"] = 0x4445</code>。SNOMED CT コード (<code>52124006</code> CVC / <code>23973005</code> 留置尿カテーテル / <code>706172005</code> Ventilator) は tx.fhir.org <code>$expand</code> テキスト検索で検証; spec の暫定 <code>467021000</code> は検証済 <code>23973005</code> に置換 (PR #80 LOINC <code>2B010</code> 捏造前例を適用)。3-axis DQR PASS at US p=10000 + JP p=5000: それぞれ 353 + 20 device、全構造チェック 100%、line-days は妥当なバンド内。byte-diff 補足で既存 NDJSON への回帰ゼロを確認 (AD-16 invariant)。Phase 2 PR-B (<code>modules/hai</code>) は <code>extensions["device"]</code> を消費して CLABSI/CAUTI/VAP onset サンプリングを行う。<strong>PR-B hai module 2026-06-24</strong> で device + HAI 4-PR シリーズの Phase 2 を追加: <code>modules/hai/</code> (AD-55 Module post_records enricher order=80、PR-A <code>extensions["device"]</code> line-days を消費し CDC NHSN baseline per-line-day リスクレート 0.0010/0.0014/0.0015 で CLABSI/CAUTI/VAP onset をサンプリング)、<code>_fhir_hai.py</code> builder (HAI Condition のみ — 培養は既存 <code>_fhir_microbiology.py</code> builder 経由で <code>record.microbiology.append(...)</code> で emit、新規配線ゼロ)、<code>clinosim/types/hai.py</code> (<code>extensions["hai"]</code> 配下の <code>HAIEvent</code> dataclass)、<code>ENRICHER_SEED_OFFSETS["hai"] = 0x4841</code>。コード検証: 3 ICD-10-CM (T80.211A / T83.511A / J95.851) を NLM API で; 3 WHO ICD-10 (T80.2 / T83.5 / J95.8); 3 HAI SNOMED (736442006 CLABSI / 68566005 UTI generic / 429271009 VAP — spec の暫定 433142000 + 425500004 は SNOMED CT International に存在せず、$expand 検証済の置換)。3-axis DQR PASS at US p=10000 + JP p=5000: US 4 HAI (3 CAUTI + 1 VAP) は expected ~3.2 の Poisson 2σ 内; JP 0 HAI は許容可能な rare-event。cross-module enricher 消費パターンの最初のクリーンな例。<strong>Phase 3a 2026-06-25 POST_ENCOUNTER stage</strong> で <code>clinosim/simulator/enrichers.py</code> に第 3 の enricher stage (<code>POST_POPULATION</code> および <code>POST_RECORDS</code> と並ぶ) を導入: <strong>encounter ごとに、日次ループ完了直後、ただし encounter simulator 内</strong> で実行される。<code>device</code> (order=70) と <code>hai</code> (order=80) を <code>POST_RECORDS</code> から <code>POST_ENCOUNTER</code> に移行、これは彼らのサンプリングが日次ループ後にしか分からない完全な clinical course アウトカム (<code>record.icu_transferred</code>、GCS、perfusion) に依存し、彼らの出力 (HAI event) が同 encounter の後処理から可視である必要があるため。AD-55 Module 分類は <strong>「encounter-bound Module」</strong> (device/hai — POST_ENCOUNTER) と <strong>「cross-record Module」</strong> (nursing/immunization/family_history/code_status/care_level/sdoh — POST_RECORDS) を区別するようになった。Phase 3a はさらに <code>clinosim/modules/hai/lab_lift.apply_hai_lab_lift</code> を追加、これは日次ループ後に <code>extensions["hai"]</code> を walk し per-day state_history snapshot を使って既存の WBC + CRP <code>obs.value</code> に forward-delta lift を追加; 元の noise + circadian を保持しつつ deterministic HAI 炎症効果を注入。byte-diff PASS: US p=2000 + JP p=2000 で全 37 NDJSON ファイル byte-identical (HAI はこのサイズでは Poisson rare-event); lift は p=10000 DQR で expected 臨床相対デルタで発火。forward-delta パターンは Phase 3b (antibiotic-day decay) と Phase 3c (Lactate / Plt / Temp / SBP sepsis cascade) で再利用可能。</td>
+</tr>
+<tr>
+<td>AD-57</td>
+<td>2026-06-16</td>
+<td>検査 / vital 生成を venue (inpatient/ED/outpatient) 横断で 1 つの生理駆動サービスに統一 (計画); hardcoded ED/outpatient baseline を置換。<strong>Phase 3a 2026-06-25 forward-delta 拡張</strong> — <code>modules/hai/lab_lift.apply_hai_lab_lift</code> が BNP パターン surgical 式アプローチの 4 例目 (BNP 壁ストレス、D-dimer Phase 2a、PT_INR Phase 2b の後): <code>state</code> を mutate したり <code>derive_lab_values</code> を影響日で再実行するのではなく、encounter 後ステップが per-day state_history snapshot に対して <code>delta = derive(state_snap, lift&gt;0) - derive(state_snap, lift=0)</code> を計算し既存 <code>obs.value</code> に delta を追加、元の noise + circadian を保持。同 forward-delta パターンで Phase 3b/c sepsis cascade (Lactate / Plt / Temp / SBP) と antibiotic-day decay を future-proof 化。</td>
+</tr>
+<tr>
+<td>AD-58</td>
+<td>2026-06-17</td>
+<td><strong>出力形式アダプタ registry。</strong> CIF→形式アダプタは <code>register_output_adapter</code> (<code>clinosim/modules/output/adapter.py</code>) 経由で自己登録; CLI は registry 駆動 (<code>available_formats()</code> / <code>get_adapter()</code>)。形式追加 (SS-MIX、FHIR R3、HL7 v2) = <code>OutputAdapter</code> (<code>format_id</code>/<code>description</code>/<code>subdir</code>/<code>convert</code>) を 1 つ追加 — CLI や core の編集なし。組み込み CSV/FHIR-R4 は薄いラッパー (出力不変)。アダプタは CIF + <code>clinosim.codes</code> + <code>clinosim.locale</code> (AD-17/AD-25) にのみ依存。進化パス: 外部プラグインパッケージ用の setuptools entry-point 発見。</td>
+</tr>
+<tr>
+<td>AD-59</td>
+<td>2026-06-23</td>
+<td><strong>Per-order lab RNG 分離。</strong> すべての lab order — panel children も個別スカラ order も — specimen-rejection / hemolysis / technician-assignment / observation-noise RNG を patient-scoped master RNG からではなく per-order sub-stream から draw する。Panel children は <code>panel_specimen_seed(parent_order_id)</code> を使用 (「parent order 1 つに検体 1 つ」をモデル化); 個別 non-panel order は <code>individual_lab_seed(order_id)</code> を使用 (order 1 つに検体 1 つ)。両者とも <code>clinosim/simulator/seeding.py</code> に存在。維持される構造的性質: 疾患 / encounter YAML の <code>{test:"X"}</code> 行を編集、または <code>derive_lab_values</code> を新しい分析対象を produce するよう拡張しても、無関係患者の cohort を master stream 経由で <strong>shift できない</strong> — <code>inpatient.py</code> Pass 1、<code>emergency.py</code>、<code>outpatient.py</code> の全 lab path で AD-16 が要求するものを完遂。段階的に確立: PR #74 で panel children 用の <code>panel_specimen_seed</code> を導入; PR #78 で残りの個別 lab path 用に <code>individual_lab_seed</code> を追加; Coag panel PR (2026-06-24) がこの分離を通じて新しい分析対象 (APTT / PT / Fibrinogen) を追加する最初のフォローアップ — master @ p=2000 seed=42 vs byte-diff で US と JP 両方で無関係 NDJSON にゼロ shift を確認。Phase 2a (2026-06-24、D-dimer + <code>causes_vte</code>) は 2 番目のフォローアップ: byte-diff で 9 個の無関係 NDJSON にゼロ shift を再確認、加えて同 PR で全 <code>derive_lab_values</code> scenario-flag read を中央化する <code>scenario_flags_from_protocol(protocol)</code> helper を導入し、将来のフラグが 1 つの helper 編集で全 <code>derive_lab_values</code> call site (inpatient Pass-1 + lagged + emergency + outpatient) に到達するようにした。Phase 2b (2026-06-24、<code>on_warfarin</code> PT_INR 治療域オーバーライド) は flag-helper パターンを兄弟の <code>medication_flags_from_context(patient, medication_orders, admission_date, current_day)</code> で拡張、これは慢性 + 入院中のワルファリン使用を RNG draw なしで検出 — AD-59 分離を保持しつつ再利用可能パターンとして薬剤 → lab カップリングを追加 (将来: ステロイド → glucose、利尿薬 → K、抗生剤 → CRP)。Call site は <code>{**scenario_flags, **medication_flags}</code> で両 helper dict をマージし、フラグ追加を 1-edit-safe に保つ (J5-prevention を拡張)。master @ p=2000 seed=42 vs byte-diff で 9 個の NDJSON のうち 8 個が sha256-identical; Observation のみ変化 (同カウント、warfarin-detected 患者のみ PT_INR/PT 値 shift)。Integration guards: <code>tests/integration/test_individual_lab_isolation.py</code> (analyte) + <code>tests/integration/test_medication_flags_isolation.py</code> (medication flag)。</td>
+</tr>
+<tr>
+<td>AD-60</td>
+<td>2026-06-25</td>
+<td><strong>clinosim 監査フレームワーク。</strong> <code>clinosim/audit/</code> パッケージ + CLI サブコマンド (<code>clinosim audit run/smoke/list</code>) として構築された統一検証ゲート。従来の 3-axis DQR スクラッチパッドスクリプトを吸収し、PR-90 クラスのバグ (case-mismatch silent no-op、test 緑 + byte-diff PASS + DQR cohort PASS が成立したまま production で Phase 3a HAI lift 全体が no-op となった) を catch するために設計された第 4 の <strong>silent_no_op</strong> axis (canonical-constants クロスチェック + lift-firing 証明) を追加。アーキテクチャ: <code>clinosim/audit/registry.py</code> (ModuleAuditSpec dataclass + register_audit_module + discover) + <code>clinosim/audit/engine.py</code> (AuditEngine が module × axis マトリクスを orchestrate) + <code>clinosim/audit/axes/</code> (4 axes: structural / clinical / jp_language / silent_no_op) + <code>clinosim/audit/reporter.py</code> (Markdown)。Per-Module チェックは <code>clinosim/modules/&lt;name&gt;/audit.py</code> に存在し、発見時に register_audit_module(spec) を副作用 import; 新 Module は <code>structural_obs_codes</code>、<code>clinical_acceptance</code>、<code>canonical_constants</code> + <code>yaml_keys_to_validate</code>、<code>lift_firing_proof</code> を宣言することで 4 axes 全てを無料で得る。Phase 1 は <code>modules/hai/audit.py</code> のみ ship (scratchpad/phase3a_lift_fired_proof.py の吸収点)。master @ p=2000 seed=42 vs byte-diff で 37/37 NDJSON byte-IDENTICAL を確認 — 監査フレームワークは生成出力の純粋な read-only 消費者、simulation-path import は漏れず AD-16 維持。初回セルフ監査ベースラインレポート: <code>docs/reviews/2026-06-25-clinosim-audit-baseline.md</code>。byte-diff は refactor-PR 手法として分離維持; 監査フレームワークは新機能 / リアリズム PR 用。<code>docs/CONTRIBUTING-modules.md</code> の「PR 検証ガイド」の判定マトリクス参照。<strong>2026-06-25 PR3b-1 = 第 2 の per-Module プラグイン</strong>: <code>modules/antibiotic/audit.py</code> が <code>hai</code> に続く 2 番目の具体プラグインを追加。その <code>lift_firing_proof</code> は合成 CAUTI HAIEvent に対し実際の enricher path (<code>enrich_antibiotic</code>) を駆動し、Ceftriaxone q24h × 7d デルタ (1 regimen、1 MedicationRequest、7 MAR、first/last が期待日時に一致) の closed-form を assert。<code>clinosim audit list</code> は 2 モジュールを同 4-axis マトリクスで報告し、フレームワークの再現性を確認。<strong>2026-06-26 PR3b-2 監査フレームワーク拡張</strong>: <code>modules/antibiotic/audit.py</code> を以下で拡張: (1) 構造 axis Observation.code カバレッジ用に 8 感受性 LOINC の <code>_ABX_LOINCS</code> frozenset; (2) <code>_NHSN_RESISTANCE_BANDS</code> メタデータ (CLABSI MRSA 40-55%、CAUTI ESBL 12-22%、VAP MRSA 30-45%) と <code>HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE = 0.05</code> — PR3b-3 (2026-06-27、per-(hai_type, antibiotic) R-rate ゲート + per-HAI cohort empty-rate ゲート + per-hai_type narrow-rate ゲート、rare-event 安全のため各 <code>n&lt;30 → WARN</code>) で clinical axis の active enforcement に配線; <strong>PR3b-3 D1+D2 (2026-06-29、PR #112) がチェーンを完了</strong>、<code>_organism_per_encounter</code> (per-(hai_type, organism, antibiotic) R-rate フィルタ) と <code>_panel_eligible_organisms</code> (<code>load_hai_antibiogram()</code> キー経由の panel-eligible empty-rate 分母 — E.faecalis / C.albicans を自動除外) を追加し、両 <code># TODO(post-PR3b-3)</code> マーカーを削除; (3) PR-94 <code>equality_checks</code> フォーマットを使った <code>antibiogram_firing_proof</code> — 合成 CLABSI S. aureus レコードに対し <code>_append_hai_culture()</code> を駆動し <code>ANTIBIOTIC_LOINC_LOOKUP["vancomycin"]</code> 経由 (LOINC hardcode なし) で Vancomycin 感受性 = S を assert、感受性チェーンで同じ silent-no-op クラスのバグを閉じる。</td>
+</tr>
+<tr>
+<td>AD-62</td>
+<td>2026-06-30</td>
+<td><strong>メタデータのみの Imaging チェーンと WADO-RS プレースホルダ。</strong></td>
+</tr>
+<tr>
+<td>AD-63</td>
+<td>2026-07-01</td>
+<td><strong>Document narrative + structured event density 基盤。2 つの新 always-on Module (allergy = POST_POPULATION order=10 / document = POST_ENCOUNTER order=95)、3 FHIR builder (DocumentReference / Composition / ClinicalImpression)、17 チェックの lift_firing_proof。Stage 1 document-density ギャップを解消 (DR 0→23,760、Comp 0→9,275、CI 0→23,760 US p=10k)。</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>番号ギャップ AD-1、AD-2、AD-12、AD-14、AD-15、AD-27 は予約 / 撤回済 — ship された決定に一切割当てられていない。AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69 はこのコンパクトなテーブルではなく <a href="../adr-history.ja/"><code>adr-history.ja.md</code></a> の独自 <code>### AD-6N</code> セクションでドキュメント化。AD-67 (severity single source of truth)、AD-68 (archetype_modifiers wiring)、AD-69 (DiseaseProtocol extra="forbid") は 2026-07-06 の FHIR-completeness chain — <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> 参照。</em></p>
+<hr />
+<h2 id="69-resident-identifier--保険番号-ad-54">6.9 Resident identifier &amp; 保険番号 (AD-54)<a class="headerlink" href="#69-resident-identifier--保険番号-ad-54" title="Permanent link">&para;</a></h2>
+<h3 id="問題_5">問題<a class="headerlink" href="#問題_5" title="Permanent link">&para;</a></h3>
+<p>Layer-1 の住民と Layer-2 の患者は内部 MRN 以外の payer identity を
+持たなかった。現実的な EHR / claims データは患者の <strong>保険加入</strong>
+(被保険者番号 / member id、保険者番号 / insurer number、記号 /
+group symbol、枝番 / branch number) と、日本の場合はマイナンバー
+カード / マイナ保険証状態を要求する。これらは <strong>国固有</strong>、
+<strong>世帯相関</strong>、<strong>時間変化</strong> するため hardcode 不可能。</p>
+<h3 id="主要ドメイン事実-設計を駆動">主要ドメイン事実 (設計を駆動)<a class="headerlink" href="#主要ドメイン事実-設計を駆動" title="Permanent link">&para;</a></h3>
+<ul>
+<li>12 桁マイナンバー (個人番号) は法律により <strong>臨床 EHR に保存
+  されない</strong> (番号使用は社会保障 / 税 / 災害に限定)。マイナ保険証
+  提示時も、プロバイダは <strong>保険資格</strong> を受信し、生の個人番号は
+  決して受信しない。→ マイナンバーは Layer-1 シミュレーション属性
+  のみで、臨床出力 (FHIR/CSV) は emit してはならない。</li>
+<li>EHR / claims 識別子は <strong>被保険者番号 + 保険者番号</strong> であり、
+  FHIR では <code>Patient.identifier</code> slice ではなく <strong><code>Coverage</code></strong>
+  リソース (<code>subscriberId</code>、<code>payor</code> → insurer Organization) として
+  表現する (JP Core の設計と一致)。</li>
+<li><strong>JP Core Coverage マッピング (jpfhir.jp/fhir/core に対して
+    検証済):</strong> 記号 / 番号 / 枝番 →
+    <code>JP_Coverage_InsuredPersonSymbol</code> /
+    <code>…InsuredPersonNumber</code> / <code>…InsuredPersonSubNumber</code> extension
+    (valueString); <code>subscriberId</code> = <code>記号:番号</code>; <code>dependent</code> =
+    枝番; <code>identifier.value</code> = <code>保険者番号:記号:番号:枝番</code>
+    (system <code>JP_Insurance_memberID</code>); <code>payor</code> →
+    <code>jp-insurer-number-namingsystem</code> identifier (= 保険者番号)
+    を持つ Organization。必須: <code>status</code>、<code>beneficiary</code> (1..1)、
+    <code>payor</code> (1..*)。canonical URI は
+    <code>locale/jp/identity.yaml:fhir_coverage</code> に保存。</li>
+<li><strong>FHIR 準拠詳細:</strong> payor Organization は <code>type</code> coding
+    <code>organization-type#pay</code> と <code>locale/jp/identity.yaml:payers</code>
+    から解決される実 insurer <strong>name</strong> を持つ (number → name at
+    output; AD-30 — display text は決して CIF に保存されない)。
+    <code>Coverage.relationship</code> = <code>self</code> (subscriber) / <code>other</code>
+    (被扶養者)。<code>Coverage.type</code> はテキストのみの CodeableConcept
+    (日本語 scheme ラベル; コード捏造なし)。代表的な payer は
+    有効な検証番号 / check digit を持つ。US export は
+    <code>Coverage</code> を <strong>emit しない</strong> (JP 保険 leak なし)。</li>
+<li>記号共有粒度は scheme により異なる: 社保 (被用者) は <strong>雇用主
+  (事業所) レベル</strong> で記号を共有; 国保は <strong>世帯レベル</strong> で共有;
+  後期高齢者 (75+) は <strong>個人単位</strong>。</li>
+<li>長期患者の「マイナンバー割当」は <strong>資格検証方式</strong> (紙 → オン
+  ライン) を変えるが <strong>被保険者番号</strong> は変えない。時間とともに
+  実際に変化するデータは <strong>payer</strong> (転職 / 退職、および決定的な
+  <strong>75 歳 → 後期高齢者</strong> 移行)。したがって保険は <strong>period-bounded
+  加入履歴</strong> としてモデル化され、各 encounter はその日付に有効な
+  加入を参照する (<code>Coverage.period</code>)。</li>
+</ul>
+<h3 id="決定_1">決定<a class="headerlink" href="#決定_1" title="Permanent link">&para;</a></h3>
+<p>新規リーフモジュール <code>clinosim/modules/identity/</code> が numbering を
+所有:</p>
+<ul>
+<li><code>base.py</code> — <code>IdentityProvider</code> Protocol (国プラガブル seam;
+  インターフェースのみ)</li>
+<li><code>registry.py</code> — <code>country → provider</code> 解決 (<code>healthcare_system</code>
+  を mirror)</li>
+<li><code>generators.py</code> — check-digit 番号生成器 (国共通純粋関数)</li>
+<li><code>providers/jp.py</code> — JP ルール (雇用主レベル 記号、社保 / 国保
+  / 後期高齢者、枝番、カード / 保険証 dated flag、75 歳移行)</li>
+<li><code>providers/us.py</code> — 薄い (既存 <code>_sample_insurance</code> 挙動保持)</li>
+</ul>
+<p>国追加 = 新規 <code>providers/&lt;cc&gt;.py</code> + <code>locale/&lt;cc&gt;/identity.yaml</code>;
+engine 変更なし (disease/encounter YAML と同じ思想)。</p>
+<p><strong>決定性 (AD-16):</strong> numbering は <strong>population 生成後の separate
+pass</strong> として実行、<strong>専用 sub-seed Generator</strong> を使用するため
+既存の random stream (と golden ファイル) は無傷。</p>
+<p><strong>プライバシーチョークポイント:</strong> <code>national_id</code> は将来のマイナ
+ワークフロー拡張性のために CIF/<code>PersonRecord</code> に存在しうるが、
+出力アダプタは <strong>sensitive-field default-exclude</strong> ポリシーを持つ
+— FHIR/CSV は明示的に opt-in しない限り決して <code>national_id</code> を
+emit しない。</p>
+<h3 id="デフォルト-localejpidentityyaml--調査済provisional-なら--todo-verify">デフォルト (locale/jp/identity.yaml — 調査済、provisional なら <code># TODO: verify</code>)<a class="headerlink" href="#デフォルト-localejpidentityyaml--調査済provisional-なら--todo-verify" title="Permanent link">&para;</a></h3>
+<ul>
+<li>マイナンバーカード保有率 (年齢帯): 0–14 ≈0.70、15–49 ≈0.77、
+  50s ≈0.82、60s ≈0.90、70s ≈0.91 (ピーク)、80+ ≈0.72 (総務省
+  / デジタル庁 2025)</li>
+<li>マイナ保険証登録率: より低く、同年齢形状 (ピーク 60–70s)</li>
+<li>世帯内相関は <code>household_icc</code> (marginal card rate を保存する
+  Gaussian-copula)</li>
+<li><strong>被用者保険 vs 国保 は職業駆動</strong>: 世帯で最も雇用可能性の高い
+  労働年齢メンバーが <code>employee_probability_by_occupation</code> 経由で
+  被保険者になる (他は被扶養者)。新出 &lt;75 分割が ≈ 73:27 (MHLW
+  医療保険基礎資料) になるよう calibrate、<code>insurance_category_distribution</code>
+  を fallback として。</li>
+<li><strong>マイナ保険証 marginal</strong>: registration は <code>ins_rate/card_rate</code>
+  レートでカード保有に条件付き、population linked marginal =
+  configured <code>ins_rate</code> となる。</li>
+<li><strong><code>insurance_type</code> 統一</strong>: JP について、<code>PatientProfile.insurance_type</code>
+  は加入 <code>category</code> から設定される (single source of truth →
+  一貫した CSV/Coverage; 以前は空だった)。</li>
+</ul>
+<h3 id="フェーズ">フェーズ<a class="headerlink" href="#フェーズ" title="Permanent link">&para;</a></h3>
+<ol>
+<li>モジュールスケルトン + JP numbering + snapshot 単一加入 +
+   Coverage + payor Org</li>
+<li>Period-bounded 加入履歴 + 75 歳移行 + <code>Coverage.period</code></li>
+<li>雇用移行 (軽い確率的) + カード / 保険証日付 + 検証方式</li>
+<li>US 互換テスト + docs/ADR 最終化</li>
+</ol>
+<hr />
+<h2 id="610-ehr-データ-enrichment-分割--base-vs-module-ad-55">6.10 EHR データ enrichment 分割 — Base vs Module (AD-55)<a class="headerlink" href="#610-ehr-データ-enrichment-分割--base-vs-module-ad-55" title="Permanent link">&para;</a></h2>
+<h3 id="原則_1">原則<a class="headerlink" href="#原則_1" title="Permanent link">&para;</a></h3>
+<p>EHR データクラスを追加するとき (Synthea / USCDI v5 / MIMIC-IV に
+対してベンチマーク):</p>
+<ul>
+<li><strong>Base</strong> — 現実的 EHR が本質的に <em>常に</em> 保持するデータ (かつ
+  既存の physiology / clinical-course state から安価に導出可能)。
+  <strong>毎回の実行</strong> で <strong>既存コア</strong> (<code>types/</code>、<code>population</code>、
+  <code>observation</code>、<code>simulator/*</code>、<code>output</code>) を拡張することにより
+  生成。新規 opt-in モジュールなし、フラグなし。</li>
+<li><strong>Module</strong> — 専門化または optional データ。<strong><code>clinosim/modules/</code>
+  配下の opt-in プラガブルモジュール</strong> として実装 (<code>identity</code> と
+  同じパターン: 独自 README + Dependencies、<code>types/</code> の型、CIF
+  を読む <code>output</code> モジュール内で FHIR ビルド、専用 sub-seed、CLI
+  フラグ / config でゲート)。<strong>テーマごとに 1 モジュール</strong> (例:
+  billing、devices、care-coordination) — 既存の one-theme-per-
+  module レイアウトと一致し、catch-all「extras」モジュールは決して
+  作らない。</li>
+</ul>
+<p>過度なモジュール化を避ける: 小さな near-universal <em>属性</em> (family
+history、code status、拡張 SDOH) は独自モジュールではなく Base の
+patient/encounter field に配置する。</p>
+<h3 id="スコープガード-enrichment-研究から-carry">スコープガード (enrichment 研究から carry)<a class="headerlink" href="#スコープガード-enrichment-研究から-carry" title="Permanent link">&para;</a></h3>
+<p>画像 / モダリティ依存データは <strong>スコープ外</strong> (CT/MRI/X-ray/US、
+echo、ECG tracing、endoscopy 所見、spirometry、pathology)。Lab /
+ベッドサイド / 事務データはスコープ内 (clinosim は既に生理から
+lab を導出するので、同じことが microbiology、血液ガス、心臓
+マーカー、看護 flowsheet にも適用される)。</p>
+<h3 id="分類">分類<a class="headerlink" href="#分類" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Data</th>
+<th>Lives in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base</td>
+<td>Microbiology + susceptibility; lactate / ABG / cardiac markers; <code>DiagnosticReport</code> grouping; 看護 flowsheet (I/O、NEWS2、pain、GCS、Braden); immunization 履歴; family history; code status / advance directive; 拡張 SDOH (JP 要介護度含む)</td>
+<td>core: <code>types</code>、<code>population</code>、<code>observation</code>、<code>simulator</code>、<code>output</code></td>
+</tr>
+<tr>
+<td>Module</td>
+<td>Billing (<code>modules/billing/</code> — JP DPC / US Claim+EOB); Devices + HAI (<code>modules/device/</code> — CLABSI/CAUTI/VAP); Care coordination (<code>modules/care_coordination/</code> — CarePlan/CareTeam/Goal)</td>
+<td>テーマごとに 1 opt-in モジュール</td>
+</tr>
+</tbody>
+</table>
+<p>段階的実装計画は <a href="docs/roadmap.md"><code>docs/roadmap.md</code></a> 参照 (GitHub
+Issues board を指す)。</p>
+<hr />
+<h2 id="611-拡張性基盤--phase-0-ad-56">6.11 拡張性基盤 — Phase 0 (AD-56)<a class="headerlink" href="#611-拡張性基盤--phase-0-ad-56" title="Permanent link">&para;</a></h2>
+<h3 id="問題_6">問題<a class="headerlink" href="#問題_6" title="Permanent link">&para;</a></h3>
+<p>新規 FHIR resource type または opt-in モジュール追加は現在
+いくつかの中央ホットスポットの編集を要求するため、AD-55 ロード
+マップ (8 Base item + 3 module) は同じモノリスを繰り返し触ることに
+なる:</p>
+<ul>
+<li><code>output/fhir_r4_adapter.py</code> <code>_build_bundle()</code> (~3,000 行
+  ファイル) — 新 resource は 1 関数に手で append + dedup set
+  にも追加。</li>
+<li><code>simulator/engine.py</code> <code>run_beta()</code> — 各 post-population pass が
+  インライン化 (例: <code>if config.jp_insurance_numbers: assign_identities(...)</code>)、
+  order-sensitive。</li>
+<li><code>types/output.py</code> <code>CIFPatientRecord</code> — 固定 dataclass; 新データ
+  クラスごとに field 追加。</li>
+<li><code>types/config.py</code> <code>SimulatorConfig</code> — opt-in モジュールごとに 1
+  ブール。</li>
+</ul>
+<h3 id="決定--ad-55-enrichment-作業の-前-にこれらの-enabler-refactor-を実施">決定 — AD-55 enrichment 作業の <em>前</em> にこれらの enabler refactor を実施<a class="headerlink" href="#決定--ad-55-enrichment-作業の-前-にこれらの-enabler-refactor-を実施" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>FHIR resource-builder registry。</strong> <code>(record, ctx) -&gt; list[resource]</code>
+   のビルダー registry; コアループが反復して emit。各ビルダーは
+   dedup 挙動 (患者レベル vs per-encounter) を宣言。新 resource
+   = ビルダー登録 (ドメインと co-locate) — <code>_build_bundle</code> 編集
+   なし。</li>
+<li><strong>Simulator enricher registry。</strong> Post-population pass は
+   <code>name</code> / <code>order</code> / <code>enabled(config)</code> / <code>run(...)</code> で登録;
+   <code>run_beta</code> は宣言順で反復。新 module = enricher 登録 —
+   <code>run_beta</code> 編集なし。<strong>Order は明示的で固定、決定論 (AD-16)
+   を保存するため。</strong></li>
+<li><strong>CIF extensions slot。</strong> <code>CIFPatientRecord.extensions: dict[str, Any]</code>
+   を追加。<strong>Base</strong> データは typed field を保持 (Base <em>は</em> core);
+   <strong>Module</strong> は <code>extensions[&lt;module&gt;]</code> に書き込み、決して core
+   type を編集しない — module 独立性が型レベルで強制 (AD-55 と
+   一致)。</li>
+<li><strong>Config モジュール有効化マップ。</strong> <code>SimulatorConfig.modules: dict[str, bool]</code></li>
+<li><code>module_enabled(name)</code> ヘルパー; <code>jp_insurance_numbers</code> は
+   後方互換 alias として保持。Per-module 構造化 config (例:
+   billing 国別オプション) は独自ブロックに配置。</li>
+</ol>
+<p>Secondary: <code>observation</code> lab カタログ (CV / precision / units) を
+YAML に外部化 (microbiology Base item と並行して完了)。CSV
+アダプタ registry は <strong>deferred</strong> (低レバレッジ — 新テーブルは
+~3 行)。</p>
+<h3 id="制約">制約<a class="headerlink" href="#制約" title="Permanent link">&para;</a></h3>
+<p>これらは動作するコードを refactor する。回帰は既存 golden / e2e
+suite と決定論 (AD-16) でゲート: resource emission 順序または
+RNG draw 順序の変更は同等であることが証明されなければならず、
+真の回帰であってはならない。</p>
+<hr />
+<h2 id="7-fhir-documentreference-経由の臨床文書">7. FHIR DocumentReference 経由の臨床文書<a class="headerlink" href="#7-fhir-documentreference-経由の臨床文書" title="Permanent link">&para;</a></h2>
+<h3 id="問題_7">問題<a class="headerlink" href="#問題_7" title="Permanent link">&para;</a></h3>
+<p>Milestone 1 (2026-04-09 初期) 前、clinosim は narrative 臨床文書を
+first-class FHIR リソースとして produce する方法を持たなかった。
+レガシー <code>narrative_generator</code> は <code>cif/narratives/&lt;version&gt;/patients/*.json</code>
+配下に緩い JSON ファイルを書いていたが、これらは FHIR Bulk Data
+export に到達しなかった。下流 consumer は patient、encounter、
+observation、procedure リソースを持つが、退院サマリなし、手術記録
+なし、admission H&amp;P なし — 臨床医が患者の物語を read / review する
+のに実際に使う文書がなかった。</p>
+<p>このギャップは以下をブロックした:
+- 再入院予測とアウトカム研究 (退院サマリは主要データソース)
+- 死亡レビュー (死亡記録は全入院死亡の法的文書)
+- 手術品質分析 (手術記録は CMS §482.51 で必須)
+- DocumentReference リソースとして臨床ノートを期待する NLP/LLM
+  訓練パイプライン</p>
+<h3 id="決定-ad-36ad-37ad-38">決定 (AD-36、AD-37、AD-38)<a class="headerlink" href="#決定-ad-36ad-37ad-38" title="Permanent link">&para;</a></h3>
+<p><strong>AD-36 — FHIR Procedure が SNOMED CT 経由で構造 field を取得。</strong>
+各 <code>Procedure.ndjson</code> エントリは以下を含むようになった:
+- <code>category</code> — SNOMED 387713003 (surgical) / 103693007
+  (diagnostic) / 277132007 (therapeutic)
+- <code>performer[].function</code> — SNOMED 304292004 (surgeon) / 158967008
+  (anaesthetist)
+- <code>recorder</code> — Practitioner 参照 (デフォルトは surgeon)
+- <code>reasonReference</code> — encounter の primary Condition へリンク
+- <code>bodySite</code> — SNOMED anatomy コード
+- <code>location</code> — 手術室 Location 参照 (手術のみ)
+- <code>outcome</code> — SNOMED 385669000 (successful) / 385670004 (partial)
+  / 385671000 (unsuccessful)
+- <code>complication</code> — <code>ProcedureRecord.intraop_complications</code> から
+  マップされた SNOMED コード</p>
+<p><code>clinosim/codes/data/snomed-ct.yaml</code> はこれらの field に必要な
+最小 SNOMED サブセットを含み、English-first 原則 (AD-33) に従う。</p>
+<p><strong>AD-37 — 3 つの明示的 CLI ステージ: <code>generate</code> → <code>narrate</code> → <code>export-fhir</code>。</strong>
+Stage 1 (<code>generate</code>) は構造化 CIF を produce。Stage 2 (<code>narrate</code>)
+は既存 CIF から臨床文書を生成し <code>cif/narratives/&lt;version&gt;/documents/</code>
+に書き出す。Stage 3 (<code>export-fhir</code>) は CIF (と任意で narrative
+version) を読み、narrative version が提供された場合は
+<code>DocumentReference.ndjson</code> を含む FHIR NDJSON ファイルを emit。</p>
+<p>理由:
+- <strong>再現性 (AD-16)</strong> — Stage 1 は seed から決定的。Stage 2 は
+  prompt cache (AD-41) 経由で再現性を持つ。Stage 3 は CIF の
+  純関数。
+- <strong>コスト隔離</strong> — Stage 2 は有料 LLM API を呼び出しうる唯一の
+  stage。LLM (例: Bedrock) にネットワークアクセスできないホスト
+  (例: 到達できないラップトップ) では、Stage 2 のみのために CIF
+  ディレクトリを EC2 インスタンスに送り、Stage 3 のために戻す
+  ことができる。
+- <strong>実験</strong> — 同一構造化 CIF からの複数 narrative version が共存
+  し比較可能 (template vs Ollama vs Bedrock、英語 vs 日本語、
+  prompt version 1 vs 2)。
+- <strong>CIF は single source of truth を維持 (AD-17、AD-30)</strong> —
+  structural/ は immutable、narratives/ は置換可能層。</p>
+<p><strong>AD-38 — FHIR DocumentReference としての臨床文書 (Tier A+B scope)。</strong>
+clinosim はこれらの文書を out of the box で produce:</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>文書</th>
+<th>LOINC</th>
+<th>encounter あたり数</th>
+<th>正当化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>退院サマリ</td>
+<td>18842-5</td>
+<td>入院あたり 1</td>
+<td>CMS §482.24 で全退院に必須</td>
+</tr>
+<tr>
+<td>A</td>
+<td>死亡記録</td>
+<td>69730-0</td>
+<td>死亡あたり 1</td>
+<td>法的文書; M&amp;M レビュー</td>
+</tr>
+<tr>
+<td>A</td>
+<td>手術記録</td>
+<td>11504-8</td>
+<td>手術手技あたり 1</td>
+<td>CMS §482.51 で必須</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Admission H&amp;P</td>
+<td>34117-2</td>
+<td>入院あたり 1</td>
+<td>標準 US 入院文書</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Procedure Note</td>
+<td>28570-0</td>
+<td>入院あたり 0..N</td>
+<td>臨床的に有意な侵襲的ベッドサイド手技のみ</td>
+</tr>
+</tbody>
+</table>
+<p>Procedure Note スコープは正式なノートを要求する <strong>8 つの侵襲的
+ベッドサイド手技</strong> に制限: <code>central_line</code>、<code>lumbar_puncture</code>、
+<code>thoracentesis</code>、<code>paracentesis</code>、<code>chest_tube</code>、<code>intubation</code>、
+<code>bronchoscopy</code>、<code>cardioversion</code>。低複雑度ベッドサイド手技 (尿カテ
+ーテル、NG チューブ、心エコー、輸血、透析、動脈ライン、創傷
+debridement) は看護または補助レコードに文書化され、独立した
+DocumentReference を produce しない。</p>
+<p>Progress Note (LOINC 11506-3) は <strong>将来の Tier C スコープ用に予約</strong>、
+なぜなら実世界の progress note は構造化 vitals/labs/MAR データと
+~80% 重複し、全入院日で生成すると最小限の追加研究価値のために
+token コストを 1 桁膨張させる。</p>
+<h3 id="保存形式-narrative-cif">保存形式: narrative CIF<a class="headerlink" href="#保存形式-narrative-cif" title="Permanent link">&para;</a></h3>
+<p>新しい型 <code>ClinicalDocument</code> (<code>clinosim/types/clinical.py</code>) が 1
+臨床文書を表現する。以下の下に文書あたり 1 JSON ファイルとして
+書かれる:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>cif/narratives/&lt;version_id&gt;/documents/&lt;encounter_id&gt;/&lt;task_type&gt;[_suffix].json
+</span></code></pre></div>
+<p>各ファイルは以下を含む:
+- <strong>Identity</strong> — document_id、task_type、LOINC コード
+- <strong>References</strong> — patient_id、encounter_id、author_practitioner_id、
+  related_procedure_id
+- <strong>Timing</strong> — authored_datetime、period_start、period_end
+- <strong>Content</strong> — language、content_type、text
+- <strong>Provenance</strong> — text_source (llm/template/cache/none)、
+  llm_model、llm_provider、input/output tokens、prompt_version、
+  cache_hit、generated_at、fallback_reason</p>
+<p>document_generator は各 encounter に対して決定的な事実リストを
+(<code>hospital_course_extractor</code> 経由で) 抽出し、それらを <code>${variables}</code>
+として LLM prompt に渡す。これは LLM を honest に保つ: それは事実
+を捏造するのではなく narrate する。</p>
+<h3 id="fhir-documentreference-マッピング">FHIR DocumentReference マッピング<a class="headerlink" href="#fhir-documentreference-マッピング" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>DocumentReference.id          = &lt;document_id&gt;
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  .status                     = "current"
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>  .docStatus                  = "final" (template fallback には "preliminary")
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>  .type.coding                = LOINC コード + display (clinosim.codes 経由で解決)
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>  .category                   = us-core-documentreference-category: clinical-note
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>  .subject                    = Patient/&lt;patient_id&gt;
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>  .date                       = authored_datetime
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>  .author                     = Practitioner/&lt;author_practitioner_id&gt;
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>  .content[0].attachment
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>      .contentType            = text/plain; charset=utf-8
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>      .language               = en | ja
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>      .data                   = base64(text)
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>      .size                   = バイト長
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>      .hash                   = base64(sha1(text))
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>  .context.encounter          = Encounter/&lt;encounter_id&gt;
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>  .context.period             = { start, end }
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>  .context.related            = Procedure/&lt;related_procedure_id&gt;  (operative/procedure)
+</span></code></pre></div>
+<p>空文書 (Stage 2 テキストなしの Stage 1 stub) は <strong>emit されない</strong>
+— 空 attachment データ付き DocumentReference は下流 consumer に
+無用で、<code>clinical-note</code> category attachment が示唆する FHIR
+profile に違反する。</p>
+<hr />
+<h2 id="8-llm-サービスアーキテクチャ-プラガブルプロバイダ--yaml-プロンプト">8. LLM サービスアーキテクチャ: プラガブルプロバイダ + YAML プロンプト<a class="headerlink" href="#8-llm-サービスアーキテクチャ-プラガブルプロバイダ--yaml-プロンプト" title="Permanent link">&para;</a></h2>
+<h3 id="問題_8">問題<a class="headerlink" href="#問題_8" title="Permanent link">&para;</a></h3>
+<p>Milestone 0 の <code>llm_service</code> はローカル Ollama のみをサポートし、
+全プロンプトが <code>engine._build_prompt()</code> にハードコードされていた。
+新プロバイダ追加は <code>engine.py</code> 編集を要求し、新言語追加は Python
+コード編集を要求し、新文書型追加は両方を要求した。Bedrock は
+一切実装されていなかった。レスポンス cache なしで、Stage 2 の
+再実行は常に LLM を再呼び出しした。</p>
+<h3 id="決定-ad-39ad-40ad-41">決定 (AD-39、AD-40、AD-41)<a class="headerlink" href="#決定-ad-39ad-40ad-41" title="Permanent link">&para;</a></h3>
+<p><strong>AD-39 — LLM プロバイダプラグイン registry。</strong>
+プロバイダは <code>clinosim/modules/llm_service/providers/</code> にサブ
+パッケージとして存在する。各プロバイダは <code>LLMProvider</code> Protocol
+を実装する (構造的型付け、継承なし):</p>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LLMProvider</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">max_tokens</span><span class="p">,</span> <span class="n">system_prompt</span><span class="p">,</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>                 <span class="n">temperature</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">stop_sequences</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ProviderResponse</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span> <span class="o">...</span>
+</span></code></pre></div>
+<p><code>providers/__init__.py</code> の registry はプロバイダキー (<code>ollama</code>、
+<code>bedrock</code>、<code>mock</code>、<code>local</code>) をビルダー callable にマップする。
+サードパーティコードは <code>register_provider(name, builder)</code> 経由で
+clinosim ソースを触らずに registry を拡張可能。</p>
+<p>新しい <code>factory.build_from_config_file(path)</code> は
+<code>llm_service.yaml</code> を読み、<code>judgment:</code> と <code>narrative:</code> セクション
+用に適切なプロバイダをビルドし、完全に配線された <code>LLMService</code> を
+返す。Bedrock プロバイダは <code>boto3</code> を遅延 import するので、
+Bedrock を使わないユーザは install する必要がない。</p>
+<p><strong>AD-40 — 言語別 YAML ファイルとしてのプロンプトテンプレート。</strong>
+プロンプトは <code>clinosim/modules/llm_service/prompts/&lt;language&gt;/&lt;task_type&gt;.yaml</code>
+配下に存在:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">task_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">discharge_summary</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nt">max_tokens</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2000</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.4</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="nt">system</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="no">You are an attending physician writing a comprehensive discharge summary ...</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="nt">user_template</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">  </span><span class="no">Patient: ${age}yo ${sex}</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">  </span><span class="no">Admission date: ${admission_date}</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">  </span><span class="no">...</span>
+</span></code></pre></div>
+<p><code>PromptRegistry.get(task_type, language)</code> は spec を lazy にロード
++ cache する。レンダリングは Python 標準ライブラリの
+<code>string.Template</code> を使用 (外部依存ゼロ)、user template には
+<code>substitute()</code> (missing key で raise — fail loud)、system prompt
+には <code>safe_substitute()</code> (自然言語コンテンツに偶発的な <code>${...}</code>
+シーケンスが含まれうる)。</p>
+<p>言語 fallback は codes モジュールの挙動を mirror: <code>ja/&lt;task&gt;.yaml</code>
+が missing なら registry は <code>en/&lt;task&gt;.yaml</code> にフォールバックし、
+PromptSpec の <code>language</code> field 経由でログ。</p>
+<p>理由:
+- <strong>臨床医編集可能</strong> — 非プログラマが Python コードに触らず
+  prompt 品質を改善可能。
+- <strong>言語追加はフォルダで、PR レビューではない</strong> — ドイツ語追加
+  は <code>prompts/de/*.yaml</code> 作成のみ、engine 変更なし。
+- <strong>バージョニング + A/B テスト</strong> — <code>version:</code> field は各生成
+  文書に記録され、再現性と制御された rollout を可能にする。
+- <strong>JUDGMENT English-only 不変条件 (AD-13)</strong> は yaml-tree レベル
+  で強制: 英語プロンプトのみを judgment task 配下に配置。</p>
+<p><strong>AD-41 — LLM レスポンス用 SHA256 disk cache。</strong>
+<code>clinosim/modules/llm_service/cache.py</code> の <code>PromptCache</code> は
+cached レスポンスあたり 1 JSON ファイルを保存、
+<code>SHA256(system || user || model)</code> でキー付け。エントリは成功した
+プロバイダ呼び出し後に <code>LLMService._llm_generate</code> により書かれ、
+cache が有効なとき全プロバイダ呼び出し前に read される。</p>
+<p>理由:
+- <strong>再現性 (AD-16)</strong> — 同一入力と同一 seed での Stage 2 再実行
+  は byte-identical 出力を produce。
+- <strong>コスト制御</strong> — Bedrock Claude Sonnet の 5,000 患者データ
+  セット実行は 1 実行あたり $1–5 のオーダー; cache hit で
+  再実行が無料。
+- <strong>部分再実行復旧</strong> — Stage 2 が中断された場合、まだ cache
+  されていない文書についてのみ LLM を再呼び出しして再開。</p>
+<p>Cache 位置はデフォルトで <code>&lt;cif&gt;/narratives/&lt;version&gt;/cache/</code> また
+は YAML config の明示的 <code>cache.directory</code>。Cache は template と
+mock モードで無効化。</p>
+<h3 id="データモデル-llmservicegenerate">データモデル: LLMService.generate<a class="headerlink" href="#データモデル-llmservicegenerate" title="Permanent link">&para;</a></h3>
+<p><code>LLMService.generate(task_type, event, variables=None)</code> は全モジュ
+ール用の単一エントリポイント。<code>variables</code> は PromptRegistry に
+ルーティングする新パラメータ; None のとき、レガシー <code>_build_prompt</code>
+hardcoded path を使用 (admission H&amp;P / 退院サマリテンプレート
+コードとの後方互換性のため保持)。</p>
+<p>返される <code>LLMResponse</code> は現在以下を carry:
+- <code>source</code> — <code>llm</code> | <code>template</code> | <code>cache</code> | <code>none</code>
+- <code>input_tokens</code> / <code>output_tokens</code>
+- <code>prompt_version</code> — PromptSpec から
+- <code>cache_hit</code> — <code>PromptCache</code> から serve されたとき True
+- <code>fallback_reason</code> — テンプレート fallback 時に短いエラータグ
+  で populate
+- <code>provider</code> — provenance 用の configured プロバイダキー
+  (例: <code>bedrock</code>)</p>
+<p>これら全ては <code>ClinicalDocument.generation</code> ブロックに記録され、
+narrative CIF manifest に伝播、per-document コスト分析と audit を
+可能にする。</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/TomoOkuyama/clinosim" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

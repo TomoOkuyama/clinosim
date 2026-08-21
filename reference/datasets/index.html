@@ -2293,9 +2293,9 @@ Data Access NDJSON, one file per ResourceType).</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>list<span class="w">                          </span><span class="c1"># enumerate available presets</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./jp-100-out
 </span></code></pre></div>
-<p>That's a thin wrapper over <code>clinosim generate</code> — the equivalent long
+<p>That's a thin wrapper over <code>clinosim simulate</code> — the equivalent long
 form is:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">100</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span>--start<span class="w"> </span><span class="m">2026</span>-01-01<span class="w"> </span>--end<span class="w"> </span><span class="m">2026</span>-03-31<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span>--output<span class="w"> </span>./jp-100-out<span class="w"> </span>--format<span class="w"> </span>fhir
@@ -2314,7 +2314,7 @@ attach pre-built dataset tarballs to the GitHub Release page:</p>
 </span></code></pre></div>
 <p>Between releases, use <code>clinosim dataset build</code> locally — output is
 guaranteed byte-identical.</p>
-<h2 id="ethics-disclaimers">Ethics &amp; disclaimers<a class="headerlink" href="#ethics-disclaimers" title="Permanent link">&para;</a></h2>
+<h2 id="ethics--disclaimers">Ethics &amp; disclaimers<a class="headerlink" href="#ethics--disclaimers" title="Permanent link">&para;</a></h2>
 <p>Every dataset shipped here is <strong>fully synthetic</strong>. clinosim does not
 ingest, reference, or reproduce any real patient data, PHI, or PII.
 The output is <strong>not intended for clinical use</strong> and must not be relied

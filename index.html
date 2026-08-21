@@ -2408,8 +2408,9 @@ any diagnostic, therapeutic, or care decision.</p>
 <h2 id="what-is-clinosim">What is clinosim?<a class="headerlink" href="#what-is-clinosim" title="Permanent link">&para;</a></h2>
 <p>Most synthetic-EHR tools produce records by sampling from disease
 distributions. <strong>clinosim runs the disease.</strong> Every patient carries a
-hidden 13-variable physiological state, and every lab / vital /
-medication is derived from that state.</p>
+hidden 14-variable physiological state
+(<code>clinosim/types/clinical.py::PhysiologicalState</code>), and every lab /
+vital / medication is derived from that state.</p>
 <p>Three concrete differentiators:</p>
 <ul>
 <li><strong>Clinical coherence by construction.</strong> Not a post-hoc filter — the

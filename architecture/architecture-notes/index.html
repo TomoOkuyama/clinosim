@@ -2507,7 +2507,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#67-news2-early-warning-vital-data" class="md-nav__link">
+  <a href="#67-news2--early-warning-vital-data" class="md-nav__link">
     <span class="md-ellipsis">
       
         6.7 NEWS2 / early warning vital data
@@ -2529,7 +2529,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#69-resident-identifier-insurance-numbering-ad-54" class="md-nav__link">
+  <a href="#69-resident-identifier--insurance-numbering-ad-54" class="md-nav__link">
     <span class="md-ellipsis">
       
         6.9 Resident identifier &amp; insurance numbering (AD-54)
@@ -2574,7 +2574,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#defaults-localejpidentityyaml-researched-todo-verify-where-provisional" class="md-nav__link">
+  <a href="#defaults-localejpidentityyaml--researched--todo-verify-where-provisional" class="md-nav__link">
     <span class="md-ellipsis">
       
         Defaults (locale/jp/identity.yaml — researched, # TODO: verify where provisional)
@@ -2601,7 +2601,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#610-ehr-data-enrichment-split-base-vs-module-ad-55" class="md-nav__link">
+  <a href="#610-ehr-data-enrichment-split--base-vs-module-ad-55" class="md-nav__link">
     <span class="md-ellipsis">
       
         6.10 EHR data enrichment split — Base vs Module (AD-55)
@@ -2651,7 +2651,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#611-extensibility-foundation-phase-0-ad-56" class="md-nav__link">
+  <a href="#611-extensibility-foundation--phase-0-ad-56" class="md-nav__link">
     <span class="md-ellipsis">
       
         6.11 Extensibility foundation — Phase 0 (AD-56)
@@ -2674,7 +2674,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#decision-do-these-enabling-refactors-before-the-ad-55-enrichment-work" class="md-nav__link">
+  <a href="#decision--do-these-enabling-refactors-before-the-ad-55-enrichment-work" class="md-nav__link">
     <span class="md-ellipsis">
       
         Decision — do these enabling refactors before the AD-55 enrichment work
@@ -2762,7 +2762,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8-llm-service-architecture-pluggable-providers-yaml-prompts" class="md-nav__link">
+  <a href="#8-llm-service-architecture-pluggable-providers--yaml-prompts" class="md-nav__link">
     <span class="md-ellipsis">
       
         8. LLM service architecture: pluggable providers + YAML prompts
@@ -3187,7 +3187,7 @@ measurement time, with the same timestamp. This was unrealistic:</p>
 </ol>
 <p>This produces NEWS2-compatible vital data while remaining clinically plausible.</p>
 <hr />
-<h2 id="67-news2-early-warning-vital-data">6.7 NEWS2 / early warning vital data<a class="headerlink" href="#67-news2-early-warning-vital-data" title="Permanent link">&para;</a></h2>
+<h2 id="67-news2--early-warning-vital-data">6.7 NEWS2 / early warning vital data<a class="headerlink" href="#67-news2--early-warning-vital-data" title="Permanent link">&para;</a></h2>
 <p>To support NEWS2 (National Early Warning Score 2) alert systems, vitals now include:</p>
 <ul>
 <li><strong>AVPU consciousness level</strong> (Alert / Voice / Pain / Unresponsive)</li>
@@ -3396,7 +3396,7 @@ observations.</p>
 </table>
 <p><em>Numbering gaps AD-1, AD-2, AD-12, AD-14, AD-15, AD-27 are reserved/withdrawn — never assigned to a shipped decision. AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69 are documented in their own <code>### AD-6N</code> sections below rather than in this compact table. AD-67 (severity single source of truth), AD-68 (archetype_modifiers wiring), AD-69 (DiseaseProtocol extra="forbid") are the 2026-07-06 FHIR-completeness chain — see <code>docs/design-notes/2026-07-06-fix-point-registry.md</code>.</em></p>
 <hr />
-<h2 id="69-resident-identifier-insurance-numbering-ad-54">6.9 Resident identifier &amp; insurance numbering (AD-54)<a class="headerlink" href="#69-resident-identifier-insurance-numbering-ad-54" title="Permanent link">&para;</a></h2>
+<h2 id="69-resident-identifier--insurance-numbering-ad-54">6.9 Resident identifier &amp; insurance numbering (AD-54)<a class="headerlink" href="#69-resident-identifier--insurance-numbering-ad-54" title="Permanent link">&para;</a></h2>
 <h3 id="problem_5">Problem<a class="headerlink" href="#problem_5" title="Permanent link">&para;</a></h3>
 <p>Layer-1 residents and Layer-2 patients carried no payer identity beyond an
 internal MRN. Realistic EHR/claims data requires the patient's <strong>insurance
@@ -3458,7 +3458,7 @@ stream (and golden files) are untouched.</p>
 マイナ-workflow extensibility, but output adapters carry a <strong>sensitive-field
 default-exclude</strong> policy — FHIR/CSV never emit <code>national_id</code> unless explicitly
 opted in.</p>
-<h3 id="defaults-localejpidentityyaml-researched-todo-verify-where-provisional">Defaults (locale/jp/identity.yaml — researched, <code># TODO: verify</code> where provisional)<a class="headerlink" href="#defaults-localejpidentityyaml-researched-todo-verify-where-provisional" title="Permanent link">&para;</a></h3>
+<h3 id="defaults-localejpidentityyaml--researched--todo-verify-where-provisional">Defaults (locale/jp/identity.yaml — researched, <code># TODO: verify</code> where provisional)<a class="headerlink" href="#defaults-localejpidentityyaml--researched--todo-verify-where-provisional" title="Permanent link">&para;</a></h3>
 <ul>
 <li>マイナンバーカード保有率 (age-banded): 0–14 ≈0.70, 15–49 ≈0.77, 50s ≈0.82,
   60s ≈0.90, 70s ≈0.91 (peak), 80+ ≈0.72 (総務省/デジタル庁 2025)</li>
@@ -3481,7 +3481,7 @@ opted in.</p>
 <li>US compat tests + docs/ADR finalize</li>
 </ol>
 <hr />
-<h2 id="610-ehr-data-enrichment-split-base-vs-module-ad-55">6.10 EHR data enrichment split — Base vs Module (AD-55)<a class="headerlink" href="#610-ehr-data-enrichment-split-base-vs-module-ad-55" title="Permanent link">&para;</a></h2>
+<h2 id="610-ehr-data-enrichment-split--base-vs-module-ad-55">6.10 EHR data enrichment split — Base vs Module (AD-55)<a class="headerlink" href="#610-ehr-data-enrichment-split--base-vs-module-ad-55" title="Permanent link">&para;</a></h2>
 <h3 id="principle">Principle<a class="headerlink" href="#principle" title="Permanent link">&para;</a></h3>
 <p>When adding EHR data classes (benchmarked against Synthea / USCDI v5 / MIMIC-IV):</p>
 <ul>
@@ -3527,7 +3527,7 @@ microbiology, blood gas, cardiac markers, nursing flowsheets).</p>
 </table>
 <p>See <a href="docs/roadmap.md"><code>docs/roadmap.md</code></a> — which points at the GitHub Issues board — for the phased implementation plan.</p>
 <hr />
-<h2 id="611-extensibility-foundation-phase-0-ad-56">6.11 Extensibility foundation — Phase 0 (AD-56)<a class="headerlink" href="#611-extensibility-foundation-phase-0-ad-56" title="Permanent link">&para;</a></h2>
+<h2 id="611-extensibility-foundation--phase-0-ad-56">6.11 Extensibility foundation — Phase 0 (AD-56)<a class="headerlink" href="#611-extensibility-foundation--phase-0-ad-56" title="Permanent link">&para;</a></h2>
 <h3 id="problem_6">Problem<a class="headerlink" href="#problem_6" title="Permanent link">&para;</a></h3>
 <p>Adding a new FHIR resource type or opt-in module currently requires editing several
 central hot spots, so the AD-55 roadmap (8 Base items + 3 modules) would touch the same
@@ -3540,7 +3540,7 @@ monoliths repeatedly:</p>
 <li><code>types/output.py</code> <code>CIFPatientRecord</code> — fixed dataclass; every new data class adds a field.</li>
 <li><code>types/config.py</code> <code>SimulatorConfig</code> — one boolean per opt-in module.</li>
 </ul>
-<h3 id="decision-do-these-enabling-refactors-before-the-ad-55-enrichment-work">Decision — do these enabling refactors <em>before</em> the AD-55 enrichment work<a class="headerlink" href="#decision-do-these-enabling-refactors-before-the-ad-55-enrichment-work" title="Permanent link">&para;</a></h3>
+<h3 id="decision--do-these-enabling-refactors-before-the-ad-55-enrichment-work">Decision — do these enabling refactors <em>before</em> the AD-55 enrichment work<a class="headerlink" href="#decision--do-these-enabling-refactors-before-the-ad-55-enrichment-work" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>FHIR resource-builder registry.</strong> A registry of builders <code>(record, ctx) -&gt; list[resource]</code>;
    the core loop iterates and emits. Each builder declares its dedup behaviour
@@ -3707,7 +3707,7 @@ LLM prompt. This keeps the LLM honest: it narrates facts rather than inventing t
 DocumentReference with empty attachment data is useless to downstream consumers and
 would violate the FHIR profile implied by attaching a <code>clinical-note</code> category.</p>
 <hr />
-<h2 id="8-llm-service-architecture-pluggable-providers-yaml-prompts">8. LLM service architecture: pluggable providers + YAML prompts<a class="headerlink" href="#8-llm-service-architecture-pluggable-providers-yaml-prompts" title="Permanent link">&para;</a></h2>
+<h2 id="8-llm-service-architecture-pluggable-providers--yaml-prompts">8. LLM service architecture: pluggable providers + YAML prompts<a class="headerlink" href="#8-llm-service-architecture-pluggable-providers--yaml-prompts" title="Permanent link">&para;</a></h2>
 <h3 id="problem_8">Problem<a class="headerlink" href="#problem_8" title="Permanent link">&para;</a></h3>
 <p>The Milestone 0 <code>llm_service</code> supported only local Ollama and had all prompts hardcoded
 in <code>engine._build_prompt()</code>. Adding a new provider required editing <code>engine.py</code>, adding

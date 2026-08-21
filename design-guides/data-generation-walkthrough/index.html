@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#data-generation-walkthrough" class="md-skip">
+        <a href="#data-generation-walkthrough--how-a-patient-record-is-born" class="md-skip">
           Skip to content
         </a>
       
@@ -848,10 +848,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#0-3-cli-3" class="md-nav__link">
+  <a href="#0-three-stage-cli--three-artefacts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        0. 3 段 CLI = 3 つの成果物
+        0. Three-stage CLI = three artefacts
       
     </span>
   </a>
@@ -859,22 +859,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1-stage-1-generate-cif" class="md-nav__link">
+  <a href="#1-stage-1--simulate-population--events--encounter-simulation--cif" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Stage 1 = generate:人口 → イベント → 受診シミュレーション → CIF
+        1. Stage 1 = simulate: population → events → encounter simulation → CIF
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Stage 1 = generate:人口 → イベント → 受診シミュレーション → CIF">
+    <nav class="md-nav" aria-label="1. Stage 1 = simulate: population → events → encounter simulation → CIF">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1a-layer-1-modulespopulation" class="md-nav__link">
+  <a href="#1a-population-generation-layer-1--modulespopulation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1a. 人口生成(Layer 1)— modules/population
+        1a. Population generation (Layer 1) — modules/population
       
     </span>
   </a>
@@ -882,10 +882,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1b-generate_monthly_events" class="md-nav__link">
+  <a href="#1b-life-event-firing--generate_monthly_events" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1b. ライフイベント発火 — generate_monthly_events
+        1b. Life-event firing — generate_monthly_events
       
     </span>
   </a>
@@ -893,10 +893,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1c-hydrate-modulespatient" class="md-nav__link">
+  <a href="#1c-patient-hydration--modulespatient" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1c. 患者の hydrate — modules/patient
+        1c. Patient hydration — modules/patient
       
     </span>
   </a>
@@ -904,10 +904,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1d-daily-loop-simulatorinpatientpy" class="md-nav__link">
+  <a href="#1d-encounter-simulation-daily-loop--simulatorinpatientpy-and-siblings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1d. 受診シミュレーション(daily loop)— simulator/inpatient.py ほか
+        1d. Encounter simulation (daily loop) — simulator/inpatient.py and siblings
       
     </span>
   </a>
@@ -915,10 +915,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1e-enricher-simulatorenricherspy" class="md-nav__link">
+  <a href="#1e-enrichers-module-extensions--simulatorenricherspy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1e. Enricher(モジュール拡張)— simulator/enrichers.py
+        1e. Enrichers (module extensions) — simulator/enrichers.py
       
     </span>
   </a>
@@ -926,10 +926,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1f-cif" class="md-nav__link">
+  <a href="#1f-writing-cif" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1f. CIF 書き出し
+        1f. Writing CIF
       
     </span>
   </a>
@@ -942,10 +942,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-stage-2-narrate" class="md-nav__link">
+  <a href="#2-stage-2--narrate-narrative-generation-the-swappable-layer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Stage 2 = narrate:ナラティブ生成(差し替え可能層)
+        2. Stage 2 = narrate: narrative generation (the swappable layer)
       
     </span>
   </a>
@@ -953,10 +953,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-stage-3-export-fhircif-fhir-r4" class="md-nav__link">
+  <a href="#3-stage-3--export-fhir-cif--fhir-r4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Stage 3 = export-fhir:CIF → FHIR R4
+        3. Stage 3 = export-fhir: CIF → FHIR R4
       
     </span>
   </a>
@@ -964,10 +964,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-1" class="md-nav__link">
+  <a href="#4-trace-one-inpatient-concrete-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. 1 人の入院患者を追う(具体トレース)
+        4. Trace one inpatient (concrete example)
       
     </span>
   </a>
@@ -975,10 +975,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5" class="md-nav__link">
+  <a href="#5-where-to-enter-when-adding--fixing-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. データを増やす/直すときの入口
+        5. Where to enter when adding / fixing data
       
     </span>
   </a>
@@ -986,10 +986,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6" class="md-nav__link">
+  <a href="#6-why-this-shape-the-design-spine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. なぜこの形か(設計の背骨)
+        6. Why this shape (the design spine)
       
     </span>
   </a>
@@ -2409,10 +2409,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#0-3-cli-3" class="md-nav__link">
+  <a href="#0-three-stage-cli--three-artefacts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        0. 3 段 CLI = 3 つの成果物
+        0. Three-stage CLI = three artefacts
       
     </span>
   </a>
@@ -2420,22 +2420,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1-stage-1-generate-cif" class="md-nav__link">
+  <a href="#1-stage-1--simulate-population--events--encounter-simulation--cif" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Stage 1 = generate:人口 → イベント → 受診シミュレーション → CIF
+        1. Stage 1 = simulate: population → events → encounter simulation → CIF
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Stage 1 = generate:人口 → イベント → 受診シミュレーション → CIF">
+    <nav class="md-nav" aria-label="1. Stage 1 = simulate: population → events → encounter simulation → CIF">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1a-layer-1-modulespopulation" class="md-nav__link">
+  <a href="#1a-population-generation-layer-1--modulespopulation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1a. 人口生成(Layer 1)— modules/population
+        1a. Population generation (Layer 1) — modules/population
       
     </span>
   </a>
@@ -2443,10 +2443,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1b-generate_monthly_events" class="md-nav__link">
+  <a href="#1b-life-event-firing--generate_monthly_events" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1b. ライフイベント発火 — generate_monthly_events
+        1b. Life-event firing — generate_monthly_events
       
     </span>
   </a>
@@ -2454,10 +2454,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1c-hydrate-modulespatient" class="md-nav__link">
+  <a href="#1c-patient-hydration--modulespatient" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1c. 患者の hydrate — modules/patient
+        1c. Patient hydration — modules/patient
       
     </span>
   </a>
@@ -2465,10 +2465,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1d-daily-loop-simulatorinpatientpy" class="md-nav__link">
+  <a href="#1d-encounter-simulation-daily-loop--simulatorinpatientpy-and-siblings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1d. 受診シミュレーション(daily loop)— simulator/inpatient.py ほか
+        1d. Encounter simulation (daily loop) — simulator/inpatient.py and siblings
       
     </span>
   </a>
@@ -2476,10 +2476,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1e-enricher-simulatorenricherspy" class="md-nav__link">
+  <a href="#1e-enrichers-module-extensions--simulatorenricherspy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1e. Enricher(モジュール拡張)— simulator/enrichers.py
+        1e. Enrichers (module extensions) — simulator/enrichers.py
       
     </span>
   </a>
@@ -2487,10 +2487,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1f-cif" class="md-nav__link">
+  <a href="#1f-writing-cif" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1f. CIF 書き出し
+        1f. Writing CIF
       
     </span>
   </a>
@@ -2503,10 +2503,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-stage-2-narrate" class="md-nav__link">
+  <a href="#2-stage-2--narrate-narrative-generation-the-swappable-layer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Stage 2 = narrate:ナラティブ生成(差し替え可能層)
+        2. Stage 2 = narrate: narrative generation (the swappable layer)
       
     </span>
   </a>
@@ -2514,10 +2514,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-stage-3-export-fhircif-fhir-r4" class="md-nav__link">
+  <a href="#3-stage-3--export-fhir-cif--fhir-r4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Stage 3 = export-fhir:CIF → FHIR R4
+        3. Stage 3 = export-fhir: CIF → FHIR R4
       
     </span>
   </a>
@@ -2525,10 +2525,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-1" class="md-nav__link">
+  <a href="#4-trace-one-inpatient-concrete-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. 1 人の入院患者を追う(具体トレース)
+        4. Trace one inpatient (concrete example)
       
     </span>
   </a>
@@ -2536,10 +2536,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5" class="md-nav__link">
+  <a href="#5-where-to-enter-when-adding--fixing-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. データを増やす/直すときの入口
+        5. Where to enter when adding / fixing data
       
     </span>
   </a>
@@ -2547,10 +2547,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6" class="md-nav__link">
+  <a href="#6-why-this-shape-the-design-spine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. なぜこの形か(設計の背骨)
+        6. Why this shape (the design spine)
       
     </span>
   </a>
@@ -2582,229 +2582,306 @@
   
 
 
-<h1 id="data-generation-walkthrough">Data Generation Walkthrough — 「データはどう生まれるか」<a class="headerlink" href="#data-generation-walkthrough" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> Active(2026-07-06、session 38 で確立)
-<strong>Audience:</strong> clinosim に初めて触れる開発者/実装 AI。<strong>このプロジェクトが 1 件の患者データを
-どう組み立てるか</strong>を、実際のファイル名・関数名・データ構造つきで end-to-end に追う。
-<strong>読む順:</strong> <code>README.md</code>(索引)→ <code>project-concept-and-design.md</code>(コンセプト)→ <strong>本書</strong>
-→ <code>implementation-rules.md</code>(不変則)。詳細な HOW-TO は <code>../CONTRIBUTING-modules.md</code>。</p>
+<h1 id="data-generation-walkthrough--how-a-patient-record-is-born">Data Generation Walkthrough — "how a patient record is born"<a class="headerlink" href="#data-generation-walkthrough--how-a-patient-record-is-born" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> Active (2026-07-06, established in session 38).
+<strong>Audience:</strong> developers and implementation agents new to clinosim.
+Traces <strong>how the project assembles one patient record</strong> end-to-end
+with actual file names, function names, and data structures.
+<strong>Reading order:</strong> <code>README.md</code> (index) →
+<code>project-concept-and-design.md</code> (concept) → <strong>this document</strong> →
+<code>implementation-rules.md</code> (invariants). Detailed HOW-TO lives in
+<code>../CONTRIBUTING-modules.md</code>.</p>
 <blockquote>
-<p>ひとことで言うと: <strong>人口を作り → その人口から病院受診イベントを発火させ → 受診ごとに生理・
-検査・処置・文書を日次シミュレーションして中間表現 CIF に書き → CIF から FHIR を組む。</strong>
-乱数は全て seed 由来で決定的(同 seed = 同一出力)。</p>
+<p>In one sentence: <strong>build a population → fire hospital-visit events
+from that population → simulate physiology, labs, procedures, and
+documents daily per visit into the intermediate representation
+CIF → build FHIR from CIF.</strong>
+Every random draw is seed-derived and deterministic (same seed =
+identical output).</p>
 </blockquote>
 <hr />
-<h2 id="0-3-cli-3">0. 3 段 CLI = 3 つの成果物<a class="headerlink" href="#0-3-cli-3" title="Permanent link">&para;</a></h2>
-<p>データ生成は 3 つの独立した CLI ステージに分かれる(AD-37)。各ステージは前段の成果物だけを読む。</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>clinosim generate      →  CIF(構造化)      cif/structural/patients/&lt;enc&gt;.json
+<h2 id="0-three-stage-cli--three-artefacts">0. Three-stage CLI = three artefacts<a class="headerlink" href="#0-three-stage-cli--three-artefacts" title="Permanent link">&para;</a></h2>
+<p>Data generation splits into three independent CLI stages (AD-37).
+Each stage reads only the previous stage's artefact.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>clinosim simulate      →  CIF (structural)   cif/structural/patients/&lt;enc&gt;.json
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        ↓                                    + cif/hospital.json / metadata.json
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>clinosim narrate       →  CIF(ナラティブ)  cif/narratives/&lt;version&gt;/documents/&lt;enc&gt;/&lt;doc&gt;.json
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>clinosim narrate       →  CIF (narrative)    cif/narratives/&lt;version&gt;/documents/&lt;enc&gt;/&lt;doc&gt;.json
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        ↓
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>clinosim export-fhir   →  FHIR R4 NDJSON     fhir_r4/&lt;ResourceType&gt;.ndjson + manifest.json
 </span></code></pre></div>
 <ul>
-<li><strong>なぜ 3 段か</strong>: ナラティブ(問診・経過記録の自然文)を <strong>後から差し替え可能</strong>にするため。
-  最初は template でナラティブを作り、後で <code>narrate --provider bedrock</code> で LLM 再生成 →
-  <code>export-fhir --narrative-version &lt;id&gt;</code> で FHIR を作り直す、が独立に回る(コンセプト要求 6)。</li>
-<li><strong>CIF がシミュレーションの唯一の出力</strong>(AD-17)。FHIR/CSV adapter は CIF だけを読み、
-  シミュレーション内部には触れない。</li>
-<li>他の subcommand: <code>test-disease &lt;id&gt;</code>(1 疾患を単体生成してデバッグ表示)/ <code>test-encounter</code>
-  / <code>audit run</code>(4 軸検証)/ <code>validate</code> / <code>regenerate-goldens</code> / <code>check-narratives</code> /
-  <code>list-diseases</code>。</li>
+<li><strong>Why three stages</strong>: to make the narrative (natural-language
+  interviews and progress notes) <strong>swappable after the fact</strong>. You
+  can build narratives with the template first, later regenerate
+  with <code>narrate --provider bedrock</code>, then rebuild FHIR with
+  <code>export-fhir --narrative-version &lt;id&gt;</code> — each step runs
+  independently (requirement 6).</li>
+<li><strong>CIF is the sole simulation output</strong> (AD-17). FHIR / CSV adapters
+  read only from CIF and never touch simulation internals.</li>
+<li>Other subcommands: <code>test-disease &lt;id&gt;</code> (single-disease debug
+  generation with printed output) / <code>test-encounter</code> / <code>audit run</code>
+  (4-axis verification) / <code>validate</code> / <code>regenerate-goldens</code> /
+  <code>check-narratives</code> / <code>list-diseases</code>.</li>
+<li><code>clinosim generate</code> remains as a deprecated alias for
+  <code>clinosim simulate</code>.</li>
 </ul>
 <hr />
-<h2 id="1-stage-1-generate-cif">1. Stage 1 = <code>generate</code>:人口 → イベント → 受診シミュレーション → CIF<a class="headerlink" href="#1-stage-1-generate-cif" title="Permanent link">&para;</a></h2>
-<p>エントリは <code>clinosim/simulator/engine.py:run_beta()</code>。以下の順に進む。</p>
-<h3 id="1a-layer-1-modulespopulation">1a. 人口生成(Layer 1)— <code>modules/population</code><a class="headerlink" href="#1a-layer-1-modulespopulation" title="Permanent link">&para;</a></h3>
-<p><code>generate_population(size, country, rng)</code>(<code>population/engine.py</code>)が <strong>医療圏の住民集団</strong>を
-世帯単位で作る。各 <code>PersonRecord</code>(<code>types/population.py</code>)は軽量:年齢・性別・住所・
-<strong>慢性疾患(ICD コードのリスト)</strong>・BMI・喫煙/飲酒・受診閾値など。疫学データ(年齢分布・
-慢性疾患有病率・疾患発生率)は全て <code>locale/&lt;country&gt;/demographics.yaml</code> から読む(コードに疫学値を
-ハードコードしない)。</p>
-<h3 id="1b-generate_monthly_events">1b. ライフイベント発火 — <code>generate_monthly_events</code><a class="headerlink" href="#1b-generate_monthly_events" title="Permanent link">&para;</a></h3>
-<p><code>run_beta</code> は <code>time_range</code>(既定 1 年)を <strong>年 × 月ループ</strong>で回し、各月
-<code>generate_monthly_events(registry, year, month, rng, country)</code> を呼ぶ。住民ごとに疾患 incidence
-(発生率 × 年齢 × 季節性 × 生活習慣リスク)を評価し、<code>rng.random() &lt; rate</code> で疾患発症を判定。
-発症したら:</p>
+<h2 id="1-stage-1--simulate-population--events--encounter-simulation--cif">1. Stage 1 = <code>simulate</code>: population → events → encounter simulation → CIF<a class="headerlink" href="#1-stage-1--simulate-population--events--encounter-simulation--cif" title="Permanent link">&para;</a></h2>
+<p>Entry point: <code>clinosim/simulator/engine.py:run_beta()</code>. It advances
+through the following steps.</p>
+<h3 id="1a-population-generation-layer-1--modulespopulation">1a. Population generation (Layer 1) — <code>modules/population</code><a class="headerlink" href="#1a-population-generation-layer-1--modulespopulation" title="Permanent link">&para;</a></h3>
+<p><code>generate_population(size, country, rng)</code> (<code>population/engine.py</code>)
+builds the <strong>catchment area's residents</strong> in household units. Each
+<code>PersonRecord</code> (<code>types/population.py</code>) is lightweight: age, sex,
+address, <strong>chronic conditions (a list of ICD codes)</strong>, BMI,
+smoking / alcohol, care-seeking thresholds. The epidemiological data
+(age distribution, chronic-condition prevalence, disease incidence
+rate) is read from <code>locale/&lt;country&gt;/demographics.yaml</code> (no
+epidemiology values hard-coded in code).</p>
+<h3 id="1b-life-event-firing--generate_monthly_events">1b. Life-event firing — <code>generate_monthly_events</code><a class="headerlink" href="#1b-life-event-firing--generate_monthly_events" title="Permanent link">&para;</a></h3>
+<p><code>run_beta</code> cycles the <code>time_range</code> (default 1 year) through a
+<strong>year × month loop</strong>, calling
+<code>generate_monthly_events(registry, year, month, rng, country)</code>
+each month. For each resident, it evaluates disease incidence (rate
+× age × seasonality × lifestyle risk) and decides disease onset via
+<code>rng.random() &lt; rate</code>. On onset:</p>
 <ul>
-<li><strong>重症度</strong>を <code>disease.severity.sample_severity(load_disease_protocol(disease_id), person, rng)</code>
-  で決定(AD-67)。疾患 YAML の <code>severity.distribution × modifiers</code>(年齢・併存症で補正)から
-  カテゴリを引き、連続 score も返す。← <strong>重症度の唯一の source は疾患 YAML</strong>(旧 <code>severity_beta</code> は撤廃)。</li>
-<li><strong>入院要否</strong>を連続 score と受診閾値で判定(<code>severity &gt; care_seeking_threshold</code>)。</li>
-<li><code>LifeEvent</code>(person_id / disease_id / timestamp / severity / requires_hospital)を生成。</li>
+<li><strong>Severity</strong> is decided by
+  <code>disease.severity.sample_severity(load_disease_protocol(disease_id), person, rng)</code>
+  (AD-67). The disease YAML's <code>severity.distribution × modifiers</code>
+  (adjusted for age and comorbidity) yields a category and a
+  continuous score. ← <strong>The single source of severity is the
+  disease YAML</strong> (the old <code>severity_beta</code> has been removed).</li>
+<li><strong>Whether hospitalisation is required</strong> is decided from the
+  continuous score and the care-seeking threshold
+  (<code>severity &gt; care_seeking_threshold</code>).</li>
+<li>Emits a <code>LifeEvent</code> (<code>person_id</code> / <code>disease_id</code> / <code>timestamp</code> /
+  <code>severity</code> / <code>requires_hospital</code>).</li>
 </ul>
-<p>「患者は population から生まれる」— どの患者も最初は住民で、イベントが閾値を超えて初めて
-hospital encounter に変換される。これにより疫学が人口レベルで正しくスケールする。</p>
-<h3 id="1c-hydrate-modulespatient">1c. 患者の hydrate — <code>modules/patient</code><a class="headerlink" href="#1c-hydrate-modulespatient" title="Permanent link">&para;</a></h3>
-<p>入院/受診が確定した住民は <code>activate_patient(person, rng, demo)</code>(<code>patient/activator.py</code>)で
-Layer 1 → Layer 2 <code>PatientProfile</code> に厚くなる:身長/体重、<strong>慢性疾患の staging</strong>
-(<code>_generate_stage</code>:CKD G3a / NYHA II / 高血圧 Stage 2 …)、<strong>ステージ由来の生理パラメータ</strong>
-(<code>STAGE_SEVERITY</code> が stage → severity_score、それが baseline vitals や physiology を駆動 —
-例:高血圧 Stage 2 → 高い baseline 血圧、FP-I10)、常用薬、アレルギー、baseline vitals。</p>
-<h3 id="1d-daily-loop-simulatorinpatientpy">1d. 受診シミュレーション(daily loop)— <code>simulator/inpatient.py</code> ほか<a class="headerlink" href="#1d-daily-loop-simulatorinpatientpy" title="Permanent link">&para;</a></h3>
-<p>受診タイプ別に分岐:
-- <strong>入院</strong>: <code>inpatient.py:_simulate_patient()</code> → <code>_run_daily_loop()</code>。
-- <strong>ED</strong>: <code>emergency.py</code>。<strong>外来</strong>: <code>outpatient.py</code>。</p>
-<p>入院の 1 日ループがデータの中心。おおまかに:</p>
+<p>"Patients are born from the population" — every patient starts as a
+resident and becomes a hospital encounter only when an event
+crosses the threshold. This is what keeps epidemiology correctly
+scaled at the population level.</p>
+<h3 id="1c-patient-hydration--modulespatient">1c. Patient hydration — <code>modules/patient</code><a class="headerlink" href="#1c-patient-hydration--modulespatient" title="Permanent link">&para;</a></h3>
+<p>Residents whose hospitalisation / visit fires are thickened by
+<code>activate_patient(person, rng, demo)</code>
+(<code>patient/activator.py</code>) from Layer 1 into Layer 2 <code>PatientProfile</code>:
+height / weight, <strong>chronic-condition staging</strong> (<code>_generate_stage</code>:
+CKD G3a, NYHA II, hypertension stage 2, …), <strong>stage-derived
+physiology parameters</strong> (<code>STAGE_SEVERITY</code> maps stage → severity_score,
+which drives baseline vitals and physiology — e.g. hypertension
+stage 2 → high baseline blood pressure, FP-I10), routine
+medications, allergies, baseline vitals.</p>
+<h3 id="1d-encounter-simulation-daily-loop--simulatorinpatientpy-and-siblings">1d. Encounter simulation (daily loop) — <code>simulator/inpatient.py</code> and siblings<a class="headerlink" href="#1d-encounter-simulation-daily-loop--simulatorinpatientpy-and-siblings" title="Permanent link">&para;</a></h3>
+<p>Dispatch by visit type:
+- <strong>Inpatient</strong>: <code>inpatient.py:_simulate_patient()</code> →
+  <code>_run_daily_loop()</code>.
+- <strong>ED</strong>: <code>emergency.py</code>. <strong>Outpatient</strong>: <code>outpatient.py</code>.</p>
+<p>The inpatient daily loop is the heart of the data. Roughly:</p>
 <ol>
-<li><strong>重症度 → コース選択</strong>: <code>event.severity</code>(連続 score)を <code>category_from_score</code> で
-   mild/moderate/severe に。<code>select_archetype(severity, profile, rng, protocol_archetypes=…,
-   protocol_modifiers=…, patient=…)</code>(<code>clinical_course/engine.py</code>)が疾患 YAML の
-   <code>course_archetypes</code>(6 正準アーキタイプの確率 + 患者リスク因子 <code>archetype_modifiers</code> 補正、
-   AD-68)から <strong>その患者の経過アーキタイプ</strong>を 1 つ引く(smooth_recovery / dip_then_recovery /
-   … / sudden_deterioration)。</li>
-<li><strong>初期生理状態</strong>: <code>apply_disease_onset(state, severity, protocol.initial_state_impact, …)</code> で
-   疾患の onset を physiology 状態(inflammation_level / volume_status / perfusion_status /
-   renal_function / cardiac_function …)に反映。</li>
-<li><strong>日次で状態を進める</strong>: <code>get_daily_directive(archetype, day, …)</code> がアーキタイプの
-   <code>trajectory</code>(状態変数ごとの日次デルタ)を補間して状態を更新。</li>
-<li><strong>合併症</strong>: <code>evaluate_complications(day, state, patient, protocol.complications, …, severity=…)</code>
-   が疾患 YAML の <code>complications</code>(発生率・リスク因子・state_impact・actions)を評価。
-   <code>actions: ["icu_transfer"]</code> を含む合併症が発火すると ICU 転送。</li>
-<li><strong>オーダ/検査/バイタル/投薬</strong>: physiology 状態から <code>derive_lab_values</code>(30+ analyte)で検査値、
-   vitals、<code>place_admission_orders</code> / <code>place_daily_lab_orders</code>(panel-aware)/ 画像
-   (<code>place_imaging_orders</code>)/ MAR を生成。</li>
-<li><strong>退院/死亡</strong>: LOS(疾患 YAML <code>target_los</code>)と <code>outcome_benchmarks</code>(死亡率)で決定。
-   <code>--end</code>(snapshot)以降は in-progress 扱い(AD-32)。</li>
+<li><strong>Severity → course selection</strong>: <code>event.severity</code> (continuous
+   score) becomes mild / moderate / severe via <code>category_from_score</code>.
+   <code>select_archetype(severity, profile, rng, protocol_archetypes=…,
+   protocol_modifiers=…, patient=…)</code>
+   (<code>clinical_course/engine.py</code>) draws <strong>that patient's course
+   archetype</strong> (smooth_recovery / dip_then_recovery / … /
+   sudden_deterioration) from the disease YAML's <code>course_archetypes</code>
+   (probabilities over the 6 canonical archetypes + adjustments
+   from <code>archetype_modifiers</code> based on patient risk factors,
+   AD-68).</li>
+<li><strong>Initial physiological state</strong>: <code>apply_disease_onset(state,
+   severity, protocol.initial_state_impact, …)</code> reflects the
+   disease onset into the physiology state
+   (<code>inflammation_level</code> / <code>volume_status</code> / <code>perfusion_status</code> /
+   <code>renal_function</code> / <code>cardiac_function</code> / …).</li>
+<li><strong>Advance state daily</strong>: <code>get_daily_directive(archetype, day, …)</code>
+   interpolates the archetype's <code>trajectory</code> (per-state-variable
+   daily deltas) and updates the state.</li>
+<li><strong>Complications</strong>: <code>evaluate_complications(day, state, patient,
+   protocol.complications, …, severity=…)</code> evaluates the disease
+   YAML's <code>complications</code> (incidence, risk factors, state_impact,
+   actions). A complication whose <code>actions</code> include
+   <code>["icu_transfer"]</code> fires and triggers ICU transfer.</li>
+<li><strong>Orders / labs / vitals / meds</strong>: physiology state drives
+   <code>derive_lab_values</code> (30+ analytes) for lab values, vitals, and
+   <code>place_admission_orders</code> / <code>place_daily_lab_orders</code>
+   (panel-aware) / imaging (<code>place_imaging_orders</code>) / MAR
+   generation.</li>
+<li><strong>Discharge / death</strong>: decided by LOS (disease YAML
+   <code>target_los</code>) and <code>outcome_benchmarks</code> (mortality). Past <code>--end</code>
+   (snapshot) is treated as in-progress (AD-32).</li>
 </ol>
-<p>結果は 1 患者 = 1 <code>CIFPatientRecord</code>。<strong>scenario / severity / course / complications / labs は
-すべて疾患 YAML 駆動</strong>で、engine コードに臨床値をハードコードしない。</p>
-<h3 id="1e-enricher-simulatorenricherspy">1e. Enricher(モジュール拡張)— <code>simulator/enrichers.py</code><a class="headerlink" href="#1e-enricher-simulatorenricherspy" title="Permanent link">&para;</a></h3>
-<p>Base の受診シミュレーションの前後に、<strong>opt-in / always-on モジュール</strong>が 3 ステージで走る:</p>
+<p>Result: 1 patient = 1 <code>CIFPatientRecord</code>. <strong>Scenario / severity /
+course / complications / labs are all disease-YAML driven</strong> — the
+engine code hard-codes no clinical values.</p>
+<h3 id="1e-enrichers-module-extensions--simulatorenricherspy">1e. Enrichers (module extensions) — <code>simulator/enrichers.py</code><a class="headerlink" href="#1e-enrichers-module-extensions--simulatorenricherspy" title="Permanent link">&para;</a></h3>
+<p>Around the Base encounter simulation, <strong>opt-in / always-on
+modules</strong> run in three stages:</p>
 <ul>
-<li><strong>POST_POPULATION</strong>(人口生成後・シミュレーション前): 例 identity(JP マイナンバー/保険)。</li>
-<li><strong>POST_ENCOUNTER</strong>(1 受診の daily loop 完了直後、encounter simulator の内側): 臨床カスケード。
-  順序固定 <code>device(70) → hai(80) → antibiotic(85) → imaging(90) → triage(93) →
-  nursing_assignment(94) → document(95)</code>。前段の <code>extensions[X]</code> を読んで次段が動く
-  (device なしに HAI なし等)。</li>
-<li><strong>POST_RECORDS</strong>(全患者シミュレーション後): cross-record。nursing flowsheet / immunization /
-  family_history / code_status / care_level。</li>
+<li><strong>POST_POPULATION</strong> (after population generation, before
+  simulation): e.g. <code>identity</code> (JP My Number / insurance).</li>
+<li><strong>POST_ENCOUNTER</strong> (right after one visit's daily loop, inside
+  the encounter simulator): the clinical cascade. Order is fixed:
+  <code>device(70) → hai(80) → antibiotic(85) → imaging(90) →
+  triage(93) → nursing_assignment(94) → document(95)</code>. Later
+  stages read <code>extensions[X]</code> written by earlier ones (no HAI
+  without a device, etc.).</li>
+<li><strong>POST_RECORDS</strong> (after all patients are simulated): cross-record.
+  <code>nursing flowsheet</code> / <code>immunization</code> / <code>family_history</code> /
+  <code>code_status</code> / <code>care_level</code>.</li>
 </ul>
-<p>モジュールは <code>CIFPatientRecord.extensions[&lt;module&gt;]</code> にだけ書く(コア型への typed field 追加は
-Base のみ)。新モジュール追加 = enricher を registry 登録するだけ(dispatch 本体は編集しない、AD-56)。</p>
-<h3 id="1f-cif">1f. CIF 書き出し<a class="headerlink" href="#1f-cif" title="Permanent link">&para;</a></h3>
-<p>各患者の構造化データを <code>cif/structural/patients/&lt;encounter_id&gt;.json</code> に immutable で書く。
-この時点で <code>document</code> モジュールは <code>ClinicalDocument</code> の <strong>stub のみ</strong>(metadata + author +
-encounter binding、<code>narrative=None</code>)を作る。実際の自然文は Stage 2 で入る(AD-65)。</p>
+<p>Modules write only into <code>CIFPatientRecord.extensions[&lt;module&gt;]</code>
+(new typed fields on core types are Base-only). Adding a module =
+registering the enricher in the registry (the dispatch body is
+never edited — AD-56).</p>
+<h3 id="1f-writing-cif">1f. Writing CIF<a class="headerlink" href="#1f-writing-cif" title="Permanent link">&para;</a></h3>
+<p>Each patient's structural data is written immutably to
+<code>cif/structural/patients/&lt;encounter_id&gt;.json</code>. At this point the
+<code>document</code> module has emitted <strong>only the <code>ClinicalDocument</code> stub</strong>
+(metadata + author + encounter binding, <code>narrative=None</code>). The
+actual free text arrives in Stage 2 (AD-65).</p>
 <hr />
-<h2 id="2-stage-2-narrate">2. Stage 2 = <code>narrate</code>:ナラティブ生成(差し替え可能層)<a class="headerlink" href="#2-stage-2-narrate" title="Permanent link">&para;</a></h2>
-<p><code>narrate --provider template|mock|ollama|bedrock --version-id &lt;id&gt;</code> が
-<code>cif/narratives/&lt;version&gt;/documents/&lt;enc&gt;/&lt;doc&gt;.json</code> を書く。</p>
+<h2 id="2-stage-2--narrate-narrative-generation-the-swappable-layer">2. Stage 2 = <code>narrate</code>: narrative generation (the swappable layer)<a class="headerlink" href="#2-stage-2--narrate-narrative-generation-the-swappable-layer" title="Permanent link">&para;</a></h2>
+<p><code>narrate --provider template|mock|ollama|bedrock --version-id &lt;id&gt;</code>
+writes <code>cif/narratives/&lt;version&gt;/documents/&lt;enc&gt;/&lt;doc&gt;.json</code>.</p>
 <ul>
-<li><code>NarrativePass</code>(<code>document/narrative/passes.py</code>、ABC)が structural CIF を読み、患者 profile /
-  labs / conditions / medications / scenario spine を入力に narrative を導出。</li>
-<li><strong>walk 順序 = (doc_type, language) group 単位</strong>で、同 prompt prefix を共有する batch を逐次処理
-  → LLM prompt cache hit 率最大化(変更禁止)。</li>
-<li>template と LLM で <strong>同一 base class</strong>。LLM 経路は <code>LLMService.complete_prompt()</code> が唯一の
-  LLM 呼び出し口(AD-11)、prompt は <code>llm_service/prompts/{en,ja}/*.yaml</code>。</li>
-<li>version 化されるので、後で別バージョンを作って FHIR を作り直せる。</li>
+<li><code>NarrativePass</code> (<code>document/narrative/passes.py</code>, an ABC) reads
+  structural CIF and derives the narrative from patient profile /
+  labs / conditions / medications / scenario spine as input.</li>
+<li><strong>Walk order = <code>(doc_type, language)</code> groups</strong> — the same
+  prompt-prefix batches are processed sequentially → LLM prompt-
+  cache hit rate is maximised (do not change).</li>
+<li>Template and LLM share the <strong>same base class</strong>. The LLM path has
+  <code>LLMService.complete_prompt()</code> as its sole LLM call site (AD-11);
+  prompts live in <code>llm_service/prompts/{en,ja}/*.yaml</code>.</li>
+<li>Because it is versioned, you can create another version later and
+  rebuild FHIR with it.</li>
 </ul>
 <hr />
-<h2 id="3-stage-3-export-fhircif-fhir-r4">3. Stage 3 = <code>export-fhir</code>:CIF → FHIR R4<a class="headerlink" href="#3-stage-3-export-fhircif-fhir-r4" title="Permanent link">&para;</a></h2>
-<p><code>export-fhir --narrative-version &lt;id&gt;</code> が <code>CIFReader</code> で structural + narrative を merge し、
-<code>_fhir_*</code> builder 群(<code>modules/output/</code>)が FHIR resource を組む。</p>
+<h2 id="3-stage-3--export-fhir-cif--fhir-r4">3. Stage 3 = <code>export-fhir</code>: CIF → FHIR R4<a class="headerlink" href="#3-stage-3--export-fhir-cif--fhir-r4" title="Permanent link">&para;</a></h2>
+<p><code>export-fhir --narrative-version &lt;id&gt;</code> merges structural + narrative
+via <code>CIFReader</code>, and the <code>_fhir_*</code> builders (<code>modules/output/</code>)
+assemble FHIR resources.</p>
 <ul>
-<li><strong>Bulk Data Access</strong>(AD-31): resource type ごとに 1 NDJSON + <code>manifest.json</code>。Bundle でラップしない。</li>
-<li>builder は <strong>CIF を読むだけ</strong>。display は <code>code_lookup(system, code, lang)</code>、URI は
-  <code>get_system_uri</code>、国→コード体系は <code>system_key_for</code> で解決(ハードコード禁止)。</li>
-<li>FHIR resource を足す = <code>register_bundle_builder</code> で builder を登録(AD-56、dispatch は編集しない)。</li>
-<li>出力形式を足す = <code>register_output_adapter</code>(CSV が実例)。</li>
+<li><strong>Bulk Data Access</strong> (AD-31): 1 NDJSON per resource type +
+  <code>manifest.json</code>. Not wrapped in a Bundle.</li>
+<li>Builders <strong>read CIF only</strong>. Display is resolved via
+  <code>code_lookup(system, code, lang)</code>; URIs via <code>get_system_uri</code>;
+  country → code system via <code>system_key_for</code> (hard-coding
+  forbidden).</li>
+<li>Adding a FHIR resource = register a builder with
+  <code>register_bundle_builder</code> (AD-56 — do not edit the dispatch).</li>
+<li>Adding an output format = <code>register_output_adapter</code> (CSV is the
+  reference implementation).</li>
 </ul>
-<p>現在 25+ resource type(Patient / Encounter / Condition / Observation / MedicationRequest /
-MedicationAdministration / Procedure / DiagnosticReport / ServiceRequest / ImagingStudy /
-DocumentReference / Composition / ClinicalImpression / CareTeam / AllergyIntolerance /
-Immunization / FamilyMemberHistory / Coverage / Device / Specimen / Organization / Location /
-Practitioner / PractitionerRole / Endpoint …)。</p>
+<p>Currently 25+ resource types (Patient / Encounter / Condition /
+Observation / MedicationRequest / MedicationAdministration /
+Procedure / DiagnosticReport / ServiceRequest / ImagingStudy /
+DocumentReference / Composition / ClinicalImpression / CareTeam /
+AllergyIntolerance / Immunization / FamilyMemberHistory / Coverage
+/ Device / Specimen / Organization / Location / Practitioner /
+PractitionerRole / Endpoint / …).</p>
 <hr />
-<h2 id="4-1">4. 1 人の入院患者を追う(具体トレース)<a class="headerlink" href="#4-1" title="Permanent link">&para;</a></h2>
+<h2 id="4-trace-one-inpatient-concrete-example">4. Trace one inpatient (concrete example)<a class="headerlink" href="#4-trace-one-inpatient-concrete-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>run_beta(config)                                   # simulator/engine.py
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a> └ generate_population(40000, "US", rng)            # 医療圏 40k 人
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>     → PersonRecord(age=78, chronic=["I10","N18"])  # 高血圧+CKD の 78 歳
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a> └ generate_monthly_events(...) 各月                 # population/engine.py
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>     → incidence 評価 → acute_mi 発症
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>     → sample_severity(acute_mi protocol, person)   # 疾患YAML分布×modifiers(高齢→severe寄り)
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a> └ generate_population(40000, "US", rng)            # 40k people in a catchment
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>     → PersonRecord(age=78, chronic=["I10","N18"])  # a 78-year-old with hypertension + CKD
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a> └ generate_monthly_events(...) each month          # population/engine.py
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>     → incidence evaluation → acute_mi onset
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>     → sample_severity(acute_mi protocol, person)   # disease YAML distribution × modifiers (elderly → skew to severe)
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        = ("severe", 0.82)
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>     → requires_hospital = 0.82 &gt; threshold = True
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>     → LifeEvent(acute_mi, severe, requires_hospital)
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a> └ activate_patient(person)                          # patient/activator.py
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>     → PatientProfile(stage: "CKD G3a"/"HT Stage 2", baseline BP ↑ by stage)
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>     → PatientProfile(stage: "CKD G3a" / "HT Stage 2", baseline BP ↑ by stage)
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a> └ _simulate_patient(event)                          # inpatient.py
 </span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>     → category_from_score(0.82) = "severe"
 </span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>     → select_archetype("severe", …, acute_mi.course_archetypes, .archetype_modifiers)
 </span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        = "dip_then_recovery"
 </span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>     → apply_disease_onset(state, "severe", acute_mi.initial_state_impact)
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>     └ _run_daily_loop(...)  各日                     # 日次で状態→検査/vitals/orders/MAR
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>         → derive_lab_values(...)  troponin↑ CK-MB↑ Cr↑(CKD baseline)
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>         → evaluate_complications(...)  # acute_mi.complications
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>         → POST_ENCOUNTER enrichers: device→hai→antibiotic→imaging→triage→nursing→document
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>     └ _run_daily_loop(...)  per day                 # state → labs / vitals / orders / MAR daily
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>         → derive_lab_values(...)  troponin ↑ CK-MB ↑ Cr ↑ (CKD baseline)
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>         → evaluate_complications(...)               # acute_mi.complications
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>         → POST_ENCOUNTER enrichers: device → hai → antibiotic → imaging → triage → nursing → document
 </span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>     → CIFPatientRecord(orders, labs, vitals, mar, documents(stub), extensions{...})
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a> └ cif/structural/patients/ENC-....json 書き出し
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a> └ write cif/structural/patients/ENC-....json
 </span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>--- narrate ---
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a> └ TemplateNarrativePass  → cif/narratives/template/documents/ENC-.../hp.json (H&amp;P 本文)
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a> └ TemplateNarrativePass  → cif/narratives/template/documents/ENC-.../hp.json (H&amp;P body)
 </span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>--- export-fhir ---
 </span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a> └ _fhir_conditions → Condition(acute_mi I21, stage "CKD G3a" …)
 </span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>    _fhir_observations → Observation(troponin, Cr, …)
-</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    _fhir_medications → MedicationRequest/Administration
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    _fhir_medications → MedicationRequest / Administration
 </span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    … → fhir_r4/*.ndjson
 </span></code></pre></div>
 <hr />
-<h2 id="5">5. データを増やす/直すときの入口<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<h2 id="5-where-to-enter-when-adding--fixing-data">5. Where to enter when adding / fixing data<a class="headerlink" href="#5-where-to-enter-when-adding--fixing-data" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>やりたいこと</th>
-<th>どこを触るか</th>
+<th>What you want to do</th>
+<th>Where to touch</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>新しい疾患</td>
-<td><code>modules/disease/reference_data/&lt;id&gt;.yaml</code> を追加(既存疾患を雛形に)+ 発生率を locale に + 診断コードを <code>codes/data/</code> に登録。engine コード変更不要。<code>CONTRIBUTING-modules.md</code></td>
+<td>New disease</td>
+<td>Add <code>modules/disease/reference_data/&lt;id&gt;.yaml</code> (use an existing disease as template) + incidence entry in locale + register diagnosis codes in <code>codes/data/</code>. No engine code change. See <code>CONTRIBUTING-modules.md</code>.</td>
 </tr>
 <tr>
-<td>新しい ED/外来条件</td>
+<td>New ED / outpatient condition</td>
 <td><code>modules/encounter/reference_data/&lt;id&gt;.yaml</code></td>
 </tr>
 <tr>
-<td>新しい検査値 analyte</td>
-<td><code>derive_lab_values</code>(observation)+ code_mapping + <code>codes/data/loinc.yaml</code></td>
+<td>New lab-value analyte</td>
+<td><code>derive_lab_values</code> (observation) + code_mapping + <code>codes/data/loinc.yaml</code></td>
 </tr>
 <tr>
-<td>新しい FHIR resource</td>
-<td><code>_fhir_&lt;topic&gt;.py</code> builder + <code>register_bundle_builder</code>(§3)</td>
+<td>New FHIR resource</td>
+<td><code>_fhir_&lt;topic&gt;.py</code> builder + <code>register_bundle_builder</code> (§3)</td>
 </tr>
 <tr>
-<td>新しい出力形式</td>
+<td>New output format</td>
 <td><code>OutputAdapter</code> + <code>register_output_adapter</code></td>
 </tr>
 <tr>
-<td>新しいデータ種(モジュール)</td>
-<td><code>modules/&lt;name&gt;/</code> + enricher 登録(§1e)+ <code>extensions[&lt;name&gt;]</code> に書く</td>
+<td>New data kind (module)</td>
+<td><code>modules/&lt;name&gt;/</code> + enricher registration (§1e) + write into <code>extensions[&lt;name&gt;]</code></td>
 </tr>
 <tr>
-<td>コード → 表示名</td>
-<td><code>codes/data/&lt;system&gt;.yaml</code>(EN 必須、JA 任意)。<code>code_lookup</code> で解決</td>
+<td>Code → display name</td>
+<td><code>codes/data/&lt;system&gt;.yaml</code> (<code>en</code> required, <code>ja</code> optional). Resolve via <code>code_lookup</code>.</td>
 </tr>
 </tbody>
 </table>
-<p><strong>必ず守る不変則</strong>(詳細 <code>implementation-rules.md</code>):決定性(全乱数 seed 由来)/ CIF は code のみ
-(display は出力時解決)/ 疾患 YAML の未知キーは <code>extra="forbid"</code> で load 時 raise / 重症度・
-course・complications は疾患 YAML 駆動 / silent-no-op 防御(canonical constants + <code>_validate_*</code> +
-completeness 不変則 test)。</p>
+<p><strong>Invariants you must obey</strong> (see <code>implementation-rules.md</code> for
+detail): determinism (every RNG is seed-derived) / CIF holds codes
+only (display resolved at output time) / unknown keys in disease
+YAML raise at load time via <code>extra="forbid"</code> / severity, course,
+complications are disease-YAML driven / silent-no-op defense
+(canonical constants + <code>_validate_*</code> + completeness-invariant
+tests).</p>
 <hr />
-<h2 id="6">6. なぜこの形か(設計の背骨)<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<h2 id="6-why-this-shape-the-design-spine">6. Why this shape (the design spine)<a class="headerlink" href="#6-why-this-shape-the-design-spine" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>population-driven</strong>: 疫学を人口レベルで正しくスケールさせ、再入院や外来フォローを同一 person_id で
-  追跡するため。</li>
-<li><strong>YAML 駆動</strong>: 臨床値を Python に埋めず、疾患/検査/locale/コードを YAML 定義にすることで、
-  「モジュール/疾患を足すだけ」で新データを生成できる(コンセプト要求 4・8)。</li>
-<li><strong>CIF 2 層 + 3 段 CLI</strong>: ナラティブ品質を後から独立に上げられる(template → LLM)ため(要求 5・6)。</li>
-<li><strong>決定性</strong>: 同 seed = byte 同一。refactor の byte-diff 検証と regression golden が成立する。</li>
-<li><strong>silent-no-op 防御</strong>: 「動いているように見えて実は発火していない」バグ(PR-90/J5/C-1)が
-  このプロジェクト最大の敵。canonical constants・fail-loud validation・発火 counter・completeness
-  不変則 test の多層で防ぐ(<code>implementation-rules.md</code> §9)。
-</content></li>
+<li><strong>Population-driven</strong>: to scale epidemiology correctly at the
+  population level and to track readmissions / outpatient follow-up
+  under the same <code>person_id</code>.</li>
+<li><strong>YAML-driven</strong>: instead of embedding clinical values in Python,
+  disease / lab / locale / code definitions live in YAML so that
+  "just add a module or a disease" produces new data (requirements
+  4 and 8).</li>
+<li><strong>CIF two layers + three-stage CLI</strong>: narrative quality can be
+  improved independently after the fact (template → LLM), fulfilling
+  requirements 5 and 6.</li>
+<li><strong>Determinism</strong>: same seed = byte-identical output. Refactor
+  byte-diff verification and regression goldens depend on it.</li>
+<li><strong>Silent-no-op defense</strong>: "it looks like it ran but actually did
+  not fire" (PR-90 / J5 / C-1) is the biggest enemy of this
+  project. Multi-layer protection through canonical constants,
+  fail-loud validation, firing counters, and completeness-
+  invariant tests (<code>implementation-rules.md</code> §9).</li>
 </ul>
+<p>Japanese counterpart: <a href="../data-generation-walkthrough.ja/"><code>data-generation-walkthrough.ja.md</code></a>.</p>
 
 
 

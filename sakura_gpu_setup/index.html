@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sakura-cloud-gpu-ollama-setup-for-stage-2" class="md-skip">
+        <a href="#sakura-cloud-gpu--ollama-setup-for-stage-2" class="md-skip">
           Skip to content
         </a>
       
@@ -2226,7 +2226,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2" class="md-nav__link">
+  <a href="#2-パケットフィルタ-最重要セキュリティ設定" class="md-nav__link">
     <span class="md-ellipsis">
       
         2. パケットフィルタ (最重要セキュリティ設定)
@@ -2237,7 +2237,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-nvidia-driver-cuda" class="md-nav__link">
+  <a href="#3-nvidia-driver--cuda" class="md-nav__link">
     <span class="md-ellipsis">
       
         3. NVIDIA driver + CUDA
@@ -2248,7 +2248,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-install-ollama-loopback-bind" class="md-nav__link">
+  <a href="#4-install-ollama--loopback-bind" class="md-nav__link">
     <span class="md-ellipsis">
       
         4. Install Ollama + loopback bind
@@ -2292,7 +2292,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8" class="md-nav__link">
+  <a href="#8-停止-課金対策" class="md-nav__link">
     <span class="md-ellipsis">
       
         8. 停止 (課金対策)
@@ -2303,7 +2303,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#運用上の注意" class="md-nav__link">
     <span class="md-ellipsis">
       
         運用上の注意
@@ -2315,7 +2315,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#プロンプトログの取扱" class="md-nav__link">
     <span class="md-ellipsis">
       
         プロンプトログの取扱
@@ -2326,7 +2326,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#品質評価とモデル切替" class="md-nav__link">
     <span class="md-ellipsis">
       
         品質評価とモデル切替
@@ -2337,7 +2337,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#コスト目安" class="md-nav__link">
     <span class="md-ellipsis">
       
         コスト目安
@@ -2348,7 +2348,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cache" class="md-nav__link">
+  <a href="#cache-運用" class="md-nav__link">
     <span class="md-ellipsis">
       
         Cache 運用
@@ -2399,7 +2399,7 @@
   
 
 
-<h1 id="sakura-cloud-gpu-ollama-setup-for-stage-2">Sakura Cloud GPU + Ollama setup for Stage 2<a class="headerlink" href="#sakura-cloud-gpu-ollama-setup-for-stage-2" title="Permanent link">&para;</a></h1>
+<h1 id="sakura-cloud-gpu--ollama-setup-for-stage-2">Sakura Cloud GPU + Ollama setup for Stage 2<a class="headerlink" href="#sakura-cloud-gpu--ollama-setup-for-stage-2" title="Permanent link">&para;</a></h1>
 <p>This guide shows how to run clinosim's Stage 2 (<code>narrate</code>) against a
 <strong>self-hosted Ollama server</strong> on さくらのクラウド 高火力 VRT (L40S 48GB
 GPU VM). Companion to <code>docs/bedrock_setup.md</code> (AWS Bedrock ルート) —
@@ -2463,7 +2463,7 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
 <li>アーカイブ ID はゾーン &amp; リリースごとに変わる。名前指定 (<code>--disk-
   source-archive-name-selectors=Ubuntu 22.04</code>) が安定。</li>
 </ul>
-<h2 id="2">2. パケットフィルタ (最重要セキュリティ設定)<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<h2 id="2-パケットフィルタ-最重要セキュリティ設定">2. パケットフィルタ (最重要セキュリティ設定)<a class="headerlink" href="#2-パケットフィルタ-最重要セキュリティ設定" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 22/tcp (SSH) のみ許可、11434 は絶対に開けない</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>usacloud<span class="w"> </span>packet-filter<span class="w"> </span>create<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>--name<span class="o">=</span>clinosim-gpu-pf<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span>--description<span class="o">=</span><span class="s2">"clinosim GPU VM: SSH only"</span>
@@ -2481,7 +2481,7 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
 <p>Ollama の 11434 は SSH tunnel 越しでしか届かない。<strong>直接公開したら患者
 データが露出する可能性がある</strong>ので、この設定は skip しない。</p>
 <hr />
-<h2 id="3-nvidia-driver-cuda">3. NVIDIA driver + CUDA<a class="headerlink" href="#3-nvidia-driver-cuda" title="Permanent link">&para;</a></h2>
+<h2 id="3-nvidia-driver--cuda">3. NVIDIA driver + CUDA<a class="headerlink" href="#3-nvidia-driver--cuda" title="Permanent link">&para;</a></h2>
 <p>VM に SSH 接続 (<code>ssh -i ~/.ssh/sakura.pem ubuntu@&lt;sakura-ip&gt;</code>) 後:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>nvidia-driver-550
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>sudo<span class="w"> </span>reboot
@@ -2489,7 +2489,7 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>nvidia-smi<span class="w">   </span><span class="c1"># L40S + 48GB VRAM の認識確認</span>
 </span></code></pre></div>
 <hr />
-<h2 id="4-install-ollama-loopback-bind">4. Install Ollama + loopback bind<a class="headerlink" href="#4-install-ollama-loopback-bind" title="Permanent link">&para;</a></h2>
+<h2 id="4-install-ollama--loopback-bind">4. Install Ollama + loopback bind<a class="headerlink" href="#4-install-ollama--loopback-bind" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://ollama.com/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># systemd override で 127.0.0.1 バインド (デフォルトは 0.0.0.0)</span>
@@ -2534,7 +2534,7 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
 <hr />
 <h2 id="7-run-clinosim-narrate-against-sakura-ollama">7. Run <code>clinosim narrate</code> against Sakura Ollama<a class="headerlink" href="#7-run-clinosim-narrate-against-sakura-ollama" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># ミニマル smoke (JP p=1) — VM 1 回起動して SSH tunnel 常駐前提で ~1 min</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>clinosim<span class="w"> </span>generate<span class="w"> </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">1</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">1</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>-o<span class="w"> </span>/tmp/sakura-smoke
 </span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span>--cif-dir<span class="w"> </span>/tmp/sakura-smoke/cif<span class="w"> </span><span class="se">\</span>
@@ -2544,7 +2544,7 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
 </span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span>--set-current
 </span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
 </span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1"># 中規模 (p=100) — 品質評価 + 速度実測</span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>clinosim<span class="w"> </span>generate<span class="w"> </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">100</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">100</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span>-o<span class="w"> </span>/tmp/sakura-eval100
 </span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span>--cif-dir<span class="w"> </span>/tmp/sakura-eval100/cif<span class="w"> </span><span class="se">\</span>
@@ -2558,7 +2558,7 @@ manifest.json の <code>llm_cost_report.generator_llm_docs</code> が期待数�
 <code>generator_fallback_docs</code> が 0 なら bundle strategy の JSON parse は
 成功している。</p>
 <hr />
-<h2 id="8">8. 停止 (課金対策)<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<h2 id="8-停止-課金対策">8. 停止 (課金対策)<a class="headerlink" href="#8-停止-課金対策" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># 未使用時は VM shutdown で課金停止 (削除ではないので再起動時に model の</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1"># 再 pull 不要)</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>usacloud<span class="w"> </span>server<span class="w"> </span>shutdown<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>clinosim-gpu-l40s
@@ -2570,8 +2570,8 @@ manifest.json の <code>llm_cost_report.generator_llm_docs</code> が期待数�
 <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>usacloud<span class="w"> </span>server<span class="w"> </span>delete<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>--with-disks<span class="w"> </span>clinosim-gpu-l40s
 </span></code></pre></div>
 <hr />
-<h2 id="_1">運用上の注意<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<h3 id="_2">プロンプトログの取扱<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h2 id="運用上の注意">運用上の注意<a class="headerlink" href="#運用上の注意" title="Permanent link">&para;</a></h2>
+<h3 id="プロンプトログの取扱">プロンプトログの取扱<a class="headerlink" href="#プロンプトログの取扱" title="Permanent link">&para;</a></h3>
 <p>Ollama process log には prompt 生データ (患者情報を含む narrative seed
 + context) が残る。医療情報 3 省 2 ガイドライン相当の運用を想定するな
 ら:</p>
@@ -2582,7 +2582,7 @@ manifest.json の <code>llm_cost_report.generator_llm_docs</code> が期待数�
   で明示的に purge</li>
 <li>Ollama の debug ログを OFF (<code>OLLAMA_DEBUG=0</code> — デフォルト)</li>
 </ul>
-<h3 id="_3">品質評価とモデル切替<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h3 id="品質評価とモデル切替">品質評価とモデル切替<a class="headerlink" href="#品質評価とモデル切替" title="Permanent link">&para;</a></h3>
 <p>初回は Qwen 3 32B (<code>qwen3:32b-q4_K_M</code>) で確定。narrative の日本語医療
 語彙が不十分と判断した場合、以下の順で試す:</p>
 <ol>
@@ -2593,7 +2593,7 @@ manifest.json の <code>llm_cost_report.generator_llm_docs</code> が期待数�
 <li><strong>Qwen 3 30B-A3B (MoE)</strong> — 高速だが品質は 32B dense より劣る可能性
    あり。速度優先の運用に。</li>
 </ol>
-<h3 id="_4">コスト目安<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<h3 id="コスト目安">コスト目安<a class="headerlink" href="#コスト目安" title="Permanent link">&para;</a></h3>
 <ul>
 <li>L40S 時間貸し: <strong>~500-700 円/h</strong> (Sakura の現行料金要確認)</li>
 <li>検証時 (p=10000, cold, Layer 2 cache miss): 4-8h × 700 = <strong>~2,800-
@@ -2601,7 +2601,7 @@ manifest.json の <code>llm_cost_report.generator_llm_docs</code> が期待数�
 <li>実運用 (cache 効いた再実行): 1-2h × 700 = <strong>~700-1,400 円/回</strong></li>
 <li>未使用時 shutdown で課金停止 (時間課金)</li>
 </ul>
-<h3 id="cache">Cache 運用<a class="headerlink" href="#cache" title="Permanent link">&para;</a></h3>
+<h3 id="cache-運用">Cache 運用<a class="headerlink" href="#cache-運用" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Layer 2 (disk PromptCache、<code>./.llm_cache/sakura/</code>) は<strong>必ず有効化</strong>。
   cold と warm でコストが 1 桁変わる。</li>

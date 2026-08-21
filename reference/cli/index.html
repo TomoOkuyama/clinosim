@@ -1079,7 +1079,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#clinosim-simulate-stage-1-structural-simulation" class="md-nav__link">
+  <a href="#clinosim-simulate--stage-1-structural-simulation" class="md-nav__link">
     <span class="md-ellipsis">
       
         clinosim simulate — Stage 1 (structural simulation)
@@ -1090,10 +1090,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#clinosim-narrate-stage-2-clinical-documents-deprecated" class="md-nav__link">
+  <a href="#clinosim-narrate--stage-2-clinical-documents" class="md-nav__link">
     <span class="md-ellipsis">
       
-        clinosim narrate — Stage 2 (clinical documents) [DEPRECATED]
+        clinosim narrate — Stage 2 (clinical documents)
       
     </span>
   </a>
@@ -1101,7 +1101,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#clinosim-export-fhir-stage-3-fhir-r4-ndjson" class="md-nav__link">
+  <a href="#clinosim-export-fhir--stage-3-fhir-r4-ndjson" class="md-nav__link">
     <span class="md-ellipsis">
       
         clinosim export-fhir — Stage 3 (FHIR R4 NDJSON)
@@ -2348,7 +2348,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#clinosim-simulate-stage-1-structural-simulation" class="md-nav__link">
+  <a href="#clinosim-simulate--stage-1-structural-simulation" class="md-nav__link">
     <span class="md-ellipsis">
       
         clinosim simulate — Stage 1 (structural simulation)
@@ -2359,10 +2359,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#clinosim-narrate-stage-2-clinical-documents-deprecated" class="md-nav__link">
+  <a href="#clinosim-narrate--stage-2-clinical-documents" class="md-nav__link">
     <span class="md-ellipsis">
       
-        clinosim narrate — Stage 2 (clinical documents) [DEPRECATED]
+        clinosim narrate — Stage 2 (clinical documents)
       
     </span>
   </a>
@@ -2370,7 +2370,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#clinosim-export-fhir-stage-3-fhir-r4-ndjson" class="md-nav__link">
+  <a href="#clinosim-export-fhir--stage-3-fhir-r4-ndjson" class="md-nav__link">
     <span class="md-ellipsis">
       
         clinosim export-fhir — Stage 3 (FHIR R4 NDJSON)
@@ -2463,14 +2463,14 @@
 <!-- Extracted from `README.md` (Issue #568 PR A). Update the pointer in README when this file's heading changes. -->
 
 <h1 id="cli-reference">CLI Reference<a class="headerlink" href="#cli-reference" title="Permanent link">&para;</a></h1>
-<p>clinosim is organized as three independent stages. You can run them as a single pipeline with <code>clinosim simulate</code>, or run each stage separately for reproducibility, remote execution (e.g. Bedrock on EC2), or iterative narrative experiments.</p>
+<p>clinosim is organized as three independent stages. <code>clinosim simulate</code> runs Stage 1; Stages 2 and 3 can be composed with it via <code>--narrative</code> and <code>--format fhir</code>, or run separately for reproducibility, remote execution (e.g. Bedrock on EC2), or iterative narrative experiments. <code>clinosim generate</code> remains as a deprecated alias for <code>simulate</code>.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌────────────────┐  ┌────────────────┐  ┌──────────────────┐
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│ generate       │→ │ narrate        │→ │ export-fhir      │
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│ simulate       │→ │ narrate        │→ │ export-fhir      │
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│ (Stage 1)      │  │ (Stage 2)      │  │ (Stage 3)        │
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│ structured CIF │  │ narrative CIF  │  │ FHIR R4 NDJSON   │
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>└────────────────┘  └────────────────┘  └──────────────────┘
 </span></code></pre></div>
-<h3 id="clinosim-simulate-stage-1-structural-simulation"><code>clinosim simulate</code> — Stage 1 (structural simulation)<a class="headerlink" href="#clinosim-simulate-stage-1-structural-simulation" title="Permanent link">&para;</a></h3>
+<h3 id="clinosim-simulate--stage-1-structural-simulation"><code>clinosim simulate</code> — Stage 1 (structural simulation)<a class="headerlink" href="#clinosim-simulate--stage-1-structural-simulation" title="Permanent link">&para;</a></h3>
 <p>Population-driven simulation. Produces the structural CIF and optionally runs Stage &#8532; in one command.</p>
 <table>
 <thead>
@@ -2543,13 +2543,14 @@
 </tr>
 </tbody>
 </table>
-<h3 id="clinosim-narrate-stage-2-clinical-documents-deprecated"><code>clinosim narrate</code> — Stage 2 (clinical documents) <strong>[DEPRECATED]</strong><a class="headerlink" href="#clinosim-narrate-stage-2-clinical-documents-deprecated" title="Permanent link">&para;</a></h3>
+<h3 id="clinosim-narrate--stage-2-clinical-documents"><code>clinosim narrate</code> — Stage 2 (clinical documents)<a class="headerlink" href="#clinosim-narrate--stage-2-clinical-documents" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>Deprecated (Task 15, 2026-07-01)</strong>: <code>clinosim narrate</code> is no longer functional.
-DocumentReference resources are now generated automatically during simulation
-by the <code>document_enricher</code> module (Stage 1). Run <code>clinosim simulate --format fhir-r4</code>
-to get DocumentReferences without a separate narrate step.
-Stage 2 LLM provider integration is deferred to the β-JP-1 chain (see <a href="../../roadmap/">../roadmap.md</a>).</p>
+<p><strong>Note</strong>: template-mode DocumentReferences are also emitted automatically
+during Stage 1 by the <code>document_enricher</code> module, so <code>clinosim simulate
+--format fhir-r4</code> produces a valid FHIR bundle with <code>docStatus="preliminary"</code>
+documents even without a separate <code>narrate</code> step. Running <code>narrate</code> afterwards
+upgrades those to <code>docStatus="final"</code> with LLM-generated text (or leaves them
+as <code>preliminary</code> in template mode).</p>
 </blockquote>
 <p>Reads an existing CIF directory and generates clinical documents via the LLM service. Writes a new narrative version to <code>&lt;cif&gt;/narratives/&lt;version_id&gt;/</code>.</p>
 <table>
@@ -2632,7 +2633,7 @@ Stage 2 LLM provider integration is deferred to the β-JP-1 chain (see <a href="
 </tbody>
 </table>
 <p>See <a href="../../clinical_documents/">../clinical_documents.md</a> for details.</p>
-<h3 id="clinosim-export-fhir-stage-3-fhir-r4-ndjson"><code>clinosim export-fhir</code> — Stage 3 (FHIR R4 NDJSON)<a class="headerlink" href="#clinosim-export-fhir-stage-3-fhir-r4-ndjson" title="Permanent link">&para;</a></h3>
+<h3 id="clinosim-export-fhir--stage-3-fhir-r4-ndjson"><code>clinosim export-fhir</code> — Stage 3 (FHIR R4 NDJSON)<a class="headerlink" href="#clinosim-export-fhir--stage-3-fhir-r4-ndjson" title="Permanent link">&para;</a></h3>
 <p>Reads an existing CIF directory and writes FHIR R4 Bulk Data NDJSON files.
 DocumentReference resources are emitted from <code>record.documents</code> (Stage 1 enricher output).</p>
 <table>
@@ -2673,7 +2674,7 @@ DocumentReference resources are emitted from <code>record.documents</code> (Stag
 <h3 id="clinosim-validate"><code>clinosim validate</code><a class="headerlink" href="#clinosim-validate" title="Permanent link">&para;</a></h3>
 <p>Quality check generated data against published benchmarks.</p>
 <h3 id="clinosim-list-diseases"><code>clinosim list-diseases</code><a class="headerlink" href="#clinosim-list-diseases" title="Permanent link">&para;</a></h3>
-<p>Show all 32 diseases + 46 encounter conditions.</p>
+<p>Show all 32 diseases (<code>clinosim/modules/disease/reference_data/*.yaml</code>) + 46 encounter conditions (<code>clinosim/modules/encounter/reference_data/*.yaml</code>).</p>
 <h3 id="typical-workflows">Typical workflows<a class="headerlink" href="#typical-workflows" title="Permanent link">&para;</a></h3>
 <p><strong>Local template-only run (no LLM, deterministic):</strong>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US

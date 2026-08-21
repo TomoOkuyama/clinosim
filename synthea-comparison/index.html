@@ -1788,7 +1788,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1-generate-a-synthea-cohort" class="md-nav__link">
+  <a href="#1--generate-a-synthea-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
         1 — Generate a Synthea cohort
@@ -1827,7 +1827,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-score-the-synthea-cohort-with-clinosim-eval" class="md-nav__link">
+  <a href="#2--score-the-synthea-cohort-with-clinosim-eval" class="md-nav__link">
     <span class="md-ellipsis">
       
         2 — Score the Synthea cohort with clinosim eval
@@ -1838,7 +1838,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-score-the-equivalent-clinosim-cohort" class="md-nav__link">
+  <a href="#3--score-the-equivalent-clinosim-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
         3 — Score the equivalent clinosim cohort
@@ -1849,7 +1849,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-compare-axis-by-axis" class="md-nav__link">
+  <a href="#4--compare-axis-by-axis" class="md-nav__link">
     <span class="md-ellipsis">
       
         4 — Compare axis by axis
@@ -2409,7 +2409,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1-generate-a-synthea-cohort" class="md-nav__link">
+  <a href="#1--generate-a-synthea-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
         1 — Generate a Synthea cohort
@@ -2448,7 +2448,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-score-the-synthea-cohort-with-clinosim-eval" class="md-nav__link">
+  <a href="#2--score-the-synthea-cohort-with-clinosim-eval" class="md-nav__link">
     <span class="md-ellipsis">
       
         2 — Score the Synthea cohort with clinosim eval
@@ -2459,7 +2459,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-score-the-equivalent-clinosim-cohort" class="md-nav__link">
+  <a href="#3--score-the-equivalent-clinosim-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
         3 — Score the equivalent clinosim cohort
@@ -2470,7 +2470,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-compare-axis-by-axis" class="md-nav__link">
+  <a href="#4--compare-axis-by-axis" class="md-nav__link">
     <span class="md-ellipsis">
       
         4 — Compare axis by axis
@@ -2566,7 +2566,7 @@ output exists on disk, everything below is pure Python.</p>
 <tbody>
 <tr>
 <td>Modeling approach</td>
-<td>Physiology-driven forward simulation (13-var hidden state per patient)</td>
+<td>Physiology-driven forward simulation (14-var hidden state per patient)</td>
 <td>State-transition modules per condition</td>
 </tr>
 <tr>
@@ -2616,7 +2616,7 @@ output exists on disk, everything below is pure Python.</p>
 <li><strong>clinosim</strong> — you need clinically coherent labs / vitals, JP output, or want to iterate on disease definitions without touching Java code.</li>
 <li><strong>Synthea</strong> — you need a broad US population with well-established disease modules and a mature downstream tooling ecosystem.</li>
 </ul>
-<h2 id="1-generate-a-synthea-cohort">1 — Generate a Synthea cohort<a class="headerlink" href="#1-generate-a-synthea-cohort" title="Permanent link">&para;</a></h2>
+<h2 id="1--generate-a-synthea-cohort">1 — Generate a Synthea cohort<a class="headerlink" href="#1--generate-a-synthea-cohort" title="Permanent link">&para;</a></h2>
 <p>Synthea is Java-based. Two easy ways to run it:</p>
 <h3 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>./synthea-out
@@ -2643,7 +2643,7 @@ Patient / Encounter / Observation / ...).</p>
 </span></code></pre></div>
 <p>Refer to the <a href="https://github.com/synthetichealth/synthea/wiki">Synthea wiki</a>
 for population size / state / config options.</p>
-<h2 id="2-score-the-synthea-cohort-with-clinosim-eval">2 — Score the Synthea cohort with <code>clinosim eval</code><a class="headerlink" href="#2-score-the-synthea-cohort-with-clinosim-eval" title="Permanent link">&para;</a></h2>
+<h2 id="2--score-the-synthea-cohort-with-clinosim-eval">2 — Score the Synthea cohort with <code>clinosim eval</code><a class="headerlink" href="#2--score-the-synthea-cohort-with-clinosim-eval" title="Permanent link">&para;</a></h2>
 <p>Point <code>clinosim eval</code> at Synthea's <code>fhir/</code> output — the layout is
 auto-detected and the Bundle files are normalized into
 <code>fhir_r4/&lt;ResourceType&gt;.ndjson</code> alongside it:</p>
@@ -2662,7 +2662,7 @@ subsequent <code>eval</code> runs against the same input reuse the on-disk
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>--json<span class="w"> </span>synthea-eval.json<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>--md<span class="w"> </span>synthea-eval.md
 </span></code></pre></div>
-<h2 id="3-score-the-equivalent-clinosim-cohort">3 — Score the equivalent clinosim cohort<a class="headerlink" href="#3-score-the-equivalent-clinosim-cohort" title="Permanent link">&para;</a></h2>
+<h2 id="3--score-the-equivalent-clinosim-cohort">3 — Score the equivalent clinosim cohort<a class="headerlink" href="#3--score-the-equivalent-clinosim-cohort" title="Permanent link">&para;</a></h2>
 <p>Generate a comparable clinosim cohort — the <code>us-100</code> preset ships with
 the same size / country / duration ballpark:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>us-100<span class="w"> </span>--output<span class="w"> </span>./clinosim-out
@@ -2670,7 +2670,7 @@ the same size / country / duration ballpark:</p>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span>--json<span class="w"> </span>clinosim-eval.json<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span>--md<span class="w"> </span>clinosim-eval.md
 </span></code></pre></div>
-<h2 id="4-compare-axis-by-axis">4 — Compare axis by axis<a class="headerlink" href="#4-compare-axis-by-axis" title="Permanent link">&para;</a></h2>
+<h2 id="4--compare-axis-by-axis">4 — Compare axis by axis<a class="headerlink" href="#4--compare-axis-by-axis" title="Permanent link">&para;</a></h2>
 <p>Diff the two JSON reports on the axes you care about:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python3<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;'PY'</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="s">import json</span>

@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#data-model-completeness-conventions" class="md-skip">
+        <a href="#data-model--completeness-conventions--cross-session-compliance-rules" class="md-skip">
           Skip to content
         </a>
       
@@ -960,10 +960,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#0" class="md-nav__link">
+  <a href="#0-read-first-prerequisites" class="md-nav__link">
     <span class="md-ellipsis">
       
-        0. まず読む(前提)
+        0. Read first (prerequisites)
       
     </span>
   </a>
@@ -971,10 +971,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1-fhir-completeness-contract" class="md-nav__link">
+  <a href="#1-fhir-completeness-contract-the-projects-new-first-principle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. FHIR Completeness Contract(このプロジェクトの新しい第一原理)
+        1. FHIR Completeness Contract (the project's new first principle)
       
     </span>
   </a>
@@ -982,22 +982,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-yaml-c1" class="md-nav__link">
+  <a href="#2-yaml-key-lifecycle-rules-c1-defense" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. YAML キーのライフサイクル規約(C1 対策)
+        2. YAML key lifecycle rules (C1 defense)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. YAML キーのライフサイクル規約(C1 対策)">
+    <nav class="md-nav" aria-label="2. YAML key lifecycle rules (C1 defense)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#21-yaml-ship" class="md-nav__link">
+  <a href="#21-do-not-ship-a-yaml-key-that-is-never-read" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.1 「読まれない YAML キーを ship しない」
+        2.1 "Do not ship a YAML key that is never read"
       
     </span>
   </a>
@@ -1005,10 +1005,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#22-extraforbid-yaml-loaded-pydantic" class="md-nav__link">
+  <a href="#22-make-extraforbid-the-default-for-yaml-loaded-pydantic-models" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.2 extra="forbid" を YAML-loaded Pydantic モデルの既定にする
+        2.2 Make extra="forbid" the default for YAML-loaded Pydantic models
       
     </span>
   </a>
@@ -1016,10 +1016,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#23-dict" class="md-nav__link">
+  <a href="#23-defend-the-raw-dict-path-too" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.3 モデルを通さない生 dict 経路にも防御を効かせる
+        2.3 Defend the raw-dict path too
       
     </span>
   </a>
@@ -1027,10 +1027,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#24" class="md-nav__link">
+  <a href="#24-record-intent-even-when-deleting-a-key" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.4 キーを削除するときも意図を記録
+        2.4 Record intent even when deleting a key
       
     </span>
   </a>
@@ -1043,10 +1043,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-single-source-of-truth-fp-sev-model-ad-67" class="md-nav__link">
+  <a href="#3-severity-single-source-of-truth-rules-fp-sev-model--finalised-in-ad-67" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. 重症度 single-source-of-truth 規約(FP-SEV-MODEL / AD-67 で確定)
+        3. Severity single-source-of-truth rules (FP-SEV-MODEL / finalised in AD-67)
       
     </span>
   </a>
@@ -1054,22 +1054,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-c2" class="md-nav__link">
+  <a href="#4-do-not-create-generated-but-non-functional-c2-defense" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. 「生成したが機能しない」を作らない(C2 対策)
+        4. Do not create "generated but non-functional" (C2 defense)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="4. 「生成したが機能しない」を作らない(C2 対策)">
+    <nav class="md-nav" aria-label="4. Do not create &#34;generated but non-functional&#34; (C2 defense)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#41-stage-severity" class="md-nav__link">
+  <a href="#41-wire-stage--severity-together-with-the-physiology-consumer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.1 stage / severity は生理消費者とセットで配線
+        4.1 Wire stage / severity together with the physiology consumer
       
     </span>
   </a>
@@ -1077,10 +1077,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#42-as-of-age-fp-age" class="md-nav__link">
+  <a href="#42-the-as-of-age-pattern-fp-age-reference-implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.2 as-of-age パターン(FP-AGE の参照実装)
+        4.2 The as-of-age pattern (FP-AGE reference implementation)
       
     </span>
   </a>
@@ -1088,10 +1088,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#43-fhir-code" class="md-nav__link">
+  <a href="#43-do-not-overload-the-wrong-fhir-code" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.3 FHIR の code は退化流用しない
+        4.3 Do not overload the wrong FHIR code
       
     </span>
   </a>
@@ -1104,22 +1104,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-clinical-authoring-c3" class="md-nav__link">
+  <a href="#5-clinical-authoring-rules-c3-defense" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. clinical authoring 規約(C3 対策)
+        5. Clinical authoring rules (C3 defense)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="5. clinical authoring 規約(C3 対策)">
+    <nav class="md-nav" aria-label="5. Clinical authoring rules (C3 defense)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#51-course_archetypes-complications" class="md-nav__link">
+  <a href="#51-think-of-course_archetypes-and-complications-together" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5.1 course_archetypes と complications はセットで考える
+        5.1 Think of course_archetypes and complications together
       
     </span>
   </a>
@@ -1127,10 +1127,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#52-authoring-per-disease" class="md-nav__link">
+  <a href="#52-per-disease-verification-for-disease-authoring" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5.2 疾患 authoring の per-disease 検証
+        5.2 Per-disease verification for disease authoring
       
     </span>
   </a>
@@ -1143,10 +1143,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-completeness-fix" class="md-nav__link">
+  <a href="#6-implementation-session-checklist-completeness-fix-specific" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. 実装セッションのチェックリスト(completeness fix 固有)
+        6. Implementation-session checklist (completeness-fix specific)
       
     </span>
   </a>
@@ -1154,10 +1154,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-fix" class="md-nav__link">
+  <a href="#7-i--o-interface-at-a-glance-the-boundaries-this-fix-set-touches" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. 入出力インターフェース早見(このfix群が触る境界)
+        7. I / O interface at a glance (the boundaries this fix set touches)
       
     </span>
   </a>
@@ -2465,10 +2465,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#0" class="md-nav__link">
+  <a href="#0-read-first-prerequisites" class="md-nav__link">
     <span class="md-ellipsis">
       
-        0. まず読む(前提)
+        0. Read first (prerequisites)
       
     </span>
   </a>
@@ -2476,10 +2476,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1-fhir-completeness-contract" class="md-nav__link">
+  <a href="#1-fhir-completeness-contract-the-projects-new-first-principle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. FHIR Completeness Contract(このプロジェクトの新しい第一原理)
+        1. FHIR Completeness Contract (the project's new first principle)
       
     </span>
   </a>
@@ -2487,22 +2487,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-yaml-c1" class="md-nav__link">
+  <a href="#2-yaml-key-lifecycle-rules-c1-defense" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. YAML キーのライフサイクル規約(C1 対策)
+        2. YAML key lifecycle rules (C1 defense)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. YAML キーのライフサイクル規約(C1 対策)">
+    <nav class="md-nav" aria-label="2. YAML key lifecycle rules (C1 defense)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#21-yaml-ship" class="md-nav__link">
+  <a href="#21-do-not-ship-a-yaml-key-that-is-never-read" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.1 「読まれない YAML キーを ship しない」
+        2.1 "Do not ship a YAML key that is never read"
       
     </span>
   </a>
@@ -2510,10 +2510,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#22-extraforbid-yaml-loaded-pydantic" class="md-nav__link">
+  <a href="#22-make-extraforbid-the-default-for-yaml-loaded-pydantic-models" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.2 extra="forbid" を YAML-loaded Pydantic モデルの既定にする
+        2.2 Make extra="forbid" the default for YAML-loaded Pydantic models
       
     </span>
   </a>
@@ -2521,10 +2521,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#23-dict" class="md-nav__link">
+  <a href="#23-defend-the-raw-dict-path-too" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.3 モデルを通さない生 dict 経路にも防御を効かせる
+        2.3 Defend the raw-dict path too
       
     </span>
   </a>
@@ -2532,10 +2532,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#24" class="md-nav__link">
+  <a href="#24-record-intent-even-when-deleting-a-key" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.4 キーを削除するときも意図を記録
+        2.4 Record intent even when deleting a key
       
     </span>
   </a>
@@ -2548,10 +2548,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-single-source-of-truth-fp-sev-model-ad-67" class="md-nav__link">
+  <a href="#3-severity-single-source-of-truth-rules-fp-sev-model--finalised-in-ad-67" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. 重症度 single-source-of-truth 規約(FP-SEV-MODEL / AD-67 で確定)
+        3. Severity single-source-of-truth rules (FP-SEV-MODEL / finalised in AD-67)
       
     </span>
   </a>
@@ -2559,22 +2559,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-c2" class="md-nav__link">
+  <a href="#4-do-not-create-generated-but-non-functional-c2-defense" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. 「生成したが機能しない」を作らない(C2 対策)
+        4. Do not create "generated but non-functional" (C2 defense)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="4. 「生成したが機能しない」を作らない(C2 対策)">
+    <nav class="md-nav" aria-label="4. Do not create &#34;generated but non-functional&#34; (C2 defense)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#41-stage-severity" class="md-nav__link">
+  <a href="#41-wire-stage--severity-together-with-the-physiology-consumer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.1 stage / severity は生理消費者とセットで配線
+        4.1 Wire stage / severity together with the physiology consumer
       
     </span>
   </a>
@@ -2582,10 +2582,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#42-as-of-age-fp-age" class="md-nav__link">
+  <a href="#42-the-as-of-age-pattern-fp-age-reference-implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.2 as-of-age パターン(FP-AGE の参照実装)
+        4.2 The as-of-age pattern (FP-AGE reference implementation)
       
     </span>
   </a>
@@ -2593,10 +2593,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#43-fhir-code" class="md-nav__link">
+  <a href="#43-do-not-overload-the-wrong-fhir-code" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.3 FHIR の code は退化流用しない
+        4.3 Do not overload the wrong FHIR code
       
     </span>
   </a>
@@ -2609,22 +2609,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-clinical-authoring-c3" class="md-nav__link">
+  <a href="#5-clinical-authoring-rules-c3-defense" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. clinical authoring 規約(C3 対策)
+        5. Clinical authoring rules (C3 defense)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="5. clinical authoring 規約(C3 対策)">
+    <nav class="md-nav" aria-label="5. Clinical authoring rules (C3 defense)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#51-course_archetypes-complications" class="md-nav__link">
+  <a href="#51-think-of-course_archetypes-and-complications-together" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5.1 course_archetypes と complications はセットで考える
+        5.1 Think of course_archetypes and complications together
       
     </span>
   </a>
@@ -2632,10 +2632,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#52-authoring-per-disease" class="md-nav__link">
+  <a href="#52-per-disease-verification-for-disease-authoring" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5.2 疾患 authoring の per-disease 検証
+        5.2 Per-disease verification for disease authoring
       
     </span>
   </a>
@@ -2648,10 +2648,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-completeness-fix" class="md-nav__link">
+  <a href="#6-implementation-session-checklist-completeness-fix-specific" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. 実装セッションのチェックリスト(completeness fix 固有)
+        6. Implementation-session checklist (completeness-fix specific)
       
     </span>
   </a>
@@ -2659,10 +2659,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-fix" class="md-nav__link">
+  <a href="#7-i--o-interface-at-a-glance-the-boundaries-this-fix-set-touches" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. 入出力インターフェース早見(このfix群が触る境界)
+        7. I / O interface at a glance (the boundaries this fix set touches)
       
     </span>
   </a>
@@ -2694,169 +2694,232 @@
   
 
 
-<h1 id="data-model-completeness-conventions">Data-Model &amp; Completeness Conventions — 別セッション遵守規約<a class="headerlink" href="#data-model-completeness-conventions" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> Active(2026-07-06、session 38 で確立)
-<strong>Audience:</strong> FHIR completeness fix-point registry(<code>docs/design-notes/2026-07-06-fix-point-registry.md</code>)の
-各 chain を実装するセッション/実装 AI。
-<strong>位置づけ:</strong> 既存の <a href="../implementation-rules/"><code>implementation-rules.md</code></a>(全域の不変則)と
-<a href="../fhir-data-generation-logic/"><code>fhir-data-generation-logic.md</code></a>(Layer 4)の<strong>補遺</strong>。ここには
-completeness 修正に固有の新規約だけを書く — 既存規約は<strong>再掲せず cross-link</strong>する(重複はこの
-プロジェクト自身の禁則)。迷ったら判断 4 軸:<strong>データ品質 / 臨床整合性 / メンテ性 / コンセプト適切性</strong>。</p>
+<h1 id="data-model--completeness-conventions--cross-session-compliance-rules">Data-Model &amp; Completeness Conventions — cross-session compliance rules<a class="headerlink" href="#data-model--completeness-conventions--cross-session-compliance-rules" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> Active (2026-07-06, established in session 38).
+<strong>Audience:</strong> any session or implementation agent working on one of
+the chains in the FHIR completeness fix-point registry
+(<code>docs/design-notes/2026-07-06-fix-point-registry.md</code>).
+<strong>Positioning:</strong> a supplement to
+<a href="../implementation-rules/"><code>implementation-rules.md</code></a> (whole-project
+invariants) and
+<a href="../fhir-data-generation-logic/"><code>fhir-data-generation-logic.md</code></a>
+(Layer 4). This file adds only the rules that are specific to
+completeness fixes — existing rules are <strong>not restated; they are
+cross-linked</strong> (duplication is against this project's own conventions).
+When in doubt, apply the four judgment axes: <strong>data quality,
+clinical coherence, maintainability, conceptual fit</strong>.</p>
 <hr />
-<h2 id="0">0. まず読む(前提)<a class="headerlink" href="#0" title="Permanent link">&para;</a></h2>
+<h2 id="0-read-first-prerequisites">0. Read first (prerequisites)<a class="headerlink" href="#0-read-first-prerequisites" title="Permanent link">&para;</a></h2>
 <ol>
-<li><a href="../implementation-rules/"><code>implementation-rules.md</code></a> — 全域の不変則(canonical helpers / 決定性 /
-   silent-no-op 防御 / 検証 gate)。<strong>本補遺の規約はこれを上書きしない、追加する。</strong></li>
-<li><a href="../../design-notes/2026-07-06-fhir-completeness-and-data-model-unification/"><code>../design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md</code></a> — 考察・ゴール(なぜこの規約が要るか)。</li>
-<li><code>docs/design-notes/2026-07-06-fix-point-registry.md</code> — 着手する FP の Status/依存/検証。</li>
+<li><a href="../implementation-rules/"><code>implementation-rules.md</code></a> — the
+   whole-project invariants (canonical helpers, determinism,
+   silent-no-op defense, verification gates). <strong>The rules in this
+   supplement do not override them; they add to them.</strong></li>
+<li><a href="../../design-notes/2026-07-06-fhir-completeness-and-data-model-unification/"><code>../design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md</code></a> — background and goals (why this convention set is needed).</li>
+<li><code>docs/design-notes/2026-07-06-fix-point-registry.md</code> — status,
+   dependencies, and verification steps for the FP you are about to
+   tackle.</li>
 </ol>
 <hr />
-<h2 id="1-fhir-completeness-contract">1. FHIR Completeness Contract(このプロジェクトの新しい第一原理)<a class="headerlink" href="#1-fhir-completeness-contract" title="Permanent link">&para;</a></h2>
-<p><strong>「著者が YAML に書いた臨床意図は、必ず FHIR 出力に到達する」</strong>を不変則に格上げする。
-不完全状態を 3 クラスで定義(考察 §1)、いずれも新規混入禁止:</p>
+<h2 id="1-fhir-completeness-contract-the-projects-new-first-principle">1. FHIR Completeness Contract (the project's new first principle)<a class="headerlink" href="#1-fhir-completeness-contract-the-projects-new-first-principle" title="Permanent link">&para;</a></h2>
+<p>Promote <strong>"the clinical intent an author wrote in a YAML file must
+reach the FHIR output"</strong> to an invariant. Three classes of
+incompleteness are defined (background doc §1); none may be
+introduced anew:</p>
 <ul>
-<li><strong>C1 Silent-drop 禁止</strong>: YAML キーが読まれず default に化ける / 破棄されることを許さない。</li>
-<li><strong>C2 Degenerate 禁止</strong>: FHIR 要素が no-op / placeholder / 全患者同一の退化値を持つことを許さない。</li>
-<li><strong>C3 Missing-structure 禁止</strong>: 疾患/encounter が期待する resource / event の欠落を許さない。</li>
+<li><strong>C1 Silent-drop forbidden.</strong> A YAML key that is silently defaulted
+  or discarded before being read is disallowed.</li>
+<li><strong>C2 Degenerate forbidden.</strong> A FHIR element that ships as a no-op,
+  a placeholder, or a value identical across every patient is
+  disallowed.</li>
+<li><strong>C3 Missing-structure forbidden.</strong> A resource or event expected by
+  the disease / encounter definition and not emitted is disallowed.</li>
 </ul>
-<p>新機能・修正が新たな C1/C2/C3 を作らないことを、実装者は自分で証明する(§5 チェックリスト)。</p>
+<p>Every new feature or fix must prove for itself that it introduces no
+new C1 / C2 / C3 (see the §5 checklist).</p>
 <hr />
-<h2 id="2-yaml-c1">2. YAML キーのライフサイクル規約(C1 対策)<a class="headerlink" href="#2-yaml-c1" title="Permanent link">&para;</a></h2>
-<h3 id="21-yaml-ship">2.1 「読まれない YAML キーを ship しない」<a class="headerlink" href="#21-yaml-ship" title="Permanent link">&para;</a></h3>
-<p>新しい YAML キーを追加したら、<strong>同一 PR 内で消費コードを配線するか、追加しない</strong>。
-<code>implementation-rules.md</code> §9-5「aspirational scaffold 禁止」の YAML 版。</p>
-<h3 id="22-extraforbid-yaml-loaded-pydantic">2.2 <code>extra="forbid"</code> を YAML-loaded Pydantic モデルの既定にする<a class="headerlink" href="#22-extraforbid-yaml-loaded-pydantic" title="Permanent link">&para;</a></h3>
+<h2 id="2-yaml-key-lifecycle-rules-c1-defense">2. YAML key lifecycle rules (C1 defense)<a class="headerlink" href="#2-yaml-key-lifecycle-rules-c1-defense" title="Permanent link">&para;</a></h2>
+<h3 id="21-do-not-ship-a-yaml-key-that-is-never-read">2.1 "Do not ship a YAML key that is never read"<a class="headerlink" href="#21-do-not-ship-a-yaml-key-that-is-never-read" title="Permanent link">&para;</a></h3>
+<p>When you add a new YAML key, either wire the consumer code in the
+<strong>same PR</strong> or do not add the key. This is the YAML analogue of
+<code>implementation-rules.md</code> §9-5 "no aspirational scaffolding".</p>
+<h3 id="22-make-extraforbid-the-default-for-yaml-loaded-pydantic-models">2.2 Make <code>extra="forbid"</code> the default for YAML-loaded Pydantic models<a class="headerlink" href="#22-make-extraforbid-the-default-for-yaml-loaded-pydantic-models" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>PatientProfile</code>(<code>config.py:101</code>)が前例。新しい YAML-loaded <code>BaseModel</code> は
-  <code>model_config = ConfigDict(extra="forbid")</code> を<strong>最初から</strong>付ける。</li>
-<li>既存の <code>extra="ignore"</code>(= silent-drop)を持つモデルは撤廃対象(FP-YAML-3 が <code>DiseaseProtocol</code> を移行)。</li>
-<li><code>extra="allow"</code>(<code>EncounterConditionProtocol</code>)+ 生 dict 返しは「意図的無検証」だが、この経路も
-  将来 canonical constants 照合(<code>SUPPORTED_*</code> 差分検出、<code>implementation-rules.md</code> §9-2)で塞ぐのが望ましい。</li>
+<li><code>PatientProfile</code> (<code>config.py:101</code>) is the reference. Every new
+  YAML-loaded <code>BaseModel</code> gets <code>model_config = ConfigDict(extra="forbid")</code>
+  <strong>from the start</strong>.</li>
+<li>Existing models with <code>extra="ignore"</code> (i.e. silent-drop) are
+  scheduled for removal (FP-YAML-3 migrates <code>DiseaseProtocol</code>).</li>
+<li><code>extra="allow"</code> (as in <code>EncounterConditionProtocol</code>) combined with
+  raw-dict returns is "deliberately unvalidated", but that path
+  should also be closed in the future by cross-checking against
+  canonical constants (<code>SUPPORTED_*</code> diff detection,
+  <code>implementation-rules.md</code> §9-2).</li>
 </ul>
-<h3 id="23-dict">2.3 モデルを通さない生 dict 経路にも防御を効かせる<a class="headerlink" href="#23-dict" title="Permanent link">&para;</a></h3>
-<p>疾患 YAML には 2 経路がある:(A) <code>DiseaseProtocol(**data)</code> 属性アクセス、(B) <code>order/engine.py</code> の
-生 dict <code>.get()</code>。<strong><code>extra="forbid"</code> は経路 A のみ守る。</strong>経路 B は owner module の accessor 経由に寄せ、
-未知キーを load 時に fail-loud にする(FP-YAML-3)。「片方の経路だけ守った」は J5 class(1 venue のみ配線)の再来。</p>
-<h3 id="24">2.4 キーを削除するときも意図を記録<a class="headerlink" href="#24" title="Permanent link">&para;</a></h3>
-<p>孤児キーが臨床文献引用(TIMI / ACC-AHA / Tokyo Guidelines 等)を含む場合、削除前に commit message
-または DESIGN.md に「なぜ配線せず削除したか」を残す。データ資産の意図の消失を防ぐ。</p>
+<h3 id="23-defend-the-raw-dict-path-too">2.3 Defend the raw-dict path too<a class="headerlink" href="#23-defend-the-raw-dict-path-too" title="Permanent link">&para;</a></h3>
+<p>Disease YAML has two access routes: (A) <code>DiseaseProtocol(**data)</code>
+attribute access and (B) raw-dict <code>.get()</code> calls in
+<code>order/engine.py</code>. <strong><code>extra="forbid"</code> only defends route A.</strong> Route
+B must be funnelled through the owner module's accessor so that
+unknown keys fail loudly at load time (FP-YAML-3). "Only one route
+defended" is the J5 class regression (a single-venue wiring) all
+over again.</p>
+<h3 id="24-record-intent-even-when-deleting-a-key">2.4 Record intent even when deleting a key<a class="headerlink" href="#24-record-intent-even-when-deleting-a-key" title="Permanent link">&para;</a></h3>
+<p>If an orphan key cites clinical literature (TIMI, ACC-AHA, Tokyo
+Guidelines, etc.), record "why we deleted rather than wired" in the
+commit message or in <code>DESIGN.md</code> before removing it. Do not let the
+intent behind the data asset disappear.</p>
 <hr />
-<h2 id="3-single-source-of-truth-fp-sev-model-ad-67">3. 重症度 single-source-of-truth 規約(FP-SEV-MODEL / AD-67 で確定)<a class="headerlink" href="#3-single-source-of-truth-fp-sev-model-ad-67" title="Permanent link">&para;</a></h2>
+<h2 id="3-severity-single-source-of-truth-rules-fp-sev-model--finalised-in-ad-67">3. Severity single-source-of-truth rules (FP-SEV-MODEL / finalised in AD-67)<a class="headerlink" href="#3-severity-single-source-of-truth-rules-fp-sev-model--finalised-in-ad-67" title="Permanent link">&para;</a></h2>
 <ul>
-<li>重症度の canonical source は <strong>疾患 YAML <code>severity.distribution</code> × <code>modifiers</code></strong>。owner は
-  <code>clinosim/modules/disease/severity.py</code>。locale <code>severity_beta</code> / <code>severity_minimum</code> は撤廃済 —
-  <strong>復活禁止</strong>(<code>test_completeness_invariants.py</code> が reader 0 を強制)。</li>
-<li>サンプリングは <code>sample_severity(protocol, person, rng) -&gt; (category, score)</code>(入院、連続 score も返す)
-  / <code>sample_severity_category(distribution, modifiers, person, rng, minimum) -&gt; category</code>(ED 共用)。
-  カテゴリ↔score 境界は <code>SEVERITY_SCORE_RANGES</code> + <code>category_from_score</code> が<strong>唯一定義</strong>。</li>
-<li><strong>禁止</strong>: call-site の 0.3/0.7 ハードコード閾値(<code>category_from_score</code> を使う)。下限を 2 箇所で持つこと
-  (<code>minimum_severity</code> に一元化、<code>sample_severity</code> 内で clamp)。</li>
-<li>入院(<code>population/engine</code>→<code>inpatient</code>)と ED(<code>emergency</code>)は同じプリミティブに載せる。</li>
-<li>modifier condition は person 由来(EVALUABLE)と疾患内在(RESERVED_INTRINSIC、現状 skip)に分離、
-  未知 condition は load 時 <code>_validate_severity_block</code> で raise。</li>
+<li>The canonical source of severity is the <strong>disease YAML
+  <code>severity.distribution</code> × <code>modifiers</code></strong>. The owner is
+  <code>clinosim/modules/disease/severity.py</code>. The locale-side
+  <code>severity_beta</code> / <code>severity_minimum</code> have been removed —
+  <strong>do not resurrect them</strong> (<code>test_completeness_invariants.py</code>
+  enforces zero readers).</li>
+<li>Sampling uses <code>sample_severity(protocol, person, rng) -&gt; (category, score)</code>
+  (inpatient — also returns the continuous score) and
+  <code>sample_severity_category(distribution, modifiers, person, rng, minimum) -&gt; category</code>
+  (ED shared). The category ↔ score boundaries are <strong>defined once</strong>
+  in <code>SEVERITY_SCORE_RANGES</code> + <code>category_from_score</code>.</li>
+<li><strong>Forbidden</strong>: hard-coded 0.3 / 0.7 thresholds at call sites
+  (<code>category_from_score</code> is the single source). Do not carry the
+  minimum in two places (unify in <code>minimum_severity</code> and clamp
+  inside <code>sample_severity</code>).</li>
+<li>Inpatient (<code>population/engine</code> → <code>inpatient</code>) and ED
+  (<code>emergency</code>) ride the same primitive.</li>
+<li>Modifier conditions split into person-derived (EVALUABLE) and
+  disease-intrinsic (RESERVED_INTRINSIC, currently skipped). An
+  unknown condition raises at load time via
+  <code>_validate_severity_block</code>.</li>
 </ul>
 <hr />
-<h2 id="4-c2">4. 「生成したが機能しない」を作らない(C2 対策)<a class="headerlink" href="#4-c2" title="Permanent link">&para;</a></h2>
-<h3 id="41-stage-severity">4.1 stage / severity は生理消費者とセットで配線<a class="headerlink" href="#41-stage-severity" title="Permanent link">&para;</a></h3>
-<p>graded-stage 疾患(CKD/HF/COPD/asthma/IHD は session 37 で配線済、I10 は未 = FP-I10)は、
-<code>STAGE_SEVERITY</code> エントリ<strong>単独追加を禁止</strong>。必ず (1) stage → severity_score マッピング、
-(2) <code>physiology/engine.py:initialize_state</code> の消費分岐、(3) vitals/labs/処方への波及、
-(4) FHIR resource の適切な code、まで一貫させる。「誰も読まない severity_score」は C2。</p>
-<h3 id="42-as-of-age-fp-age">4.2 as-of-age パターン(FP-AGE の参照実装)<a class="headerlink" href="#42-as-of-age-fp-age" title="Permanent link">&para;</a></h3>
-<p>時間依存の属性(age など)を複数年シミュレーションで正しく表示・計算するには、<code>immunization/
-engine.py:36-39 _age_on(dob, on, fallback)</code> を <code>_shared</code> へ昇格した <strong>as-of 日付関数</strong>を使う。
-call-site は event 日(<code>event.timestamp</code>)を渡す。</p>
+<h2 id="4-do-not-create-generated-but-non-functional-c2-defense">4. Do not create "generated but non-functional" (C2 defense)<a class="headerlink" href="#4-do-not-create-generated-but-non-functional-c2-defense" title="Permanent link">&para;</a></h2>
+<h3 id="41-wire-stage--severity-together-with-the-physiology-consumer">4.1 Wire stage / severity together with the physiology consumer<a class="headerlink" href="#41-wire-stage--severity-together-with-the-physiology-consumer" title="Permanent link">&para;</a></h3>
+<p>Graded-stage diseases (CKD / HF / COPD / asthma / IHD wired in
+session 37; I10 not yet = FP-I10) <strong>may not</strong> add a
+<code>STAGE_SEVERITY</code> entry alone. You must land all four together:
+(1) the stage → severity_score mapping,
+(2) the <code>physiology/engine.py:initialize_state</code> consumer branch,
+(3) the ripple through vitals / labs / prescriptions,
+(4) the appropriate FHIR resource code.
+"A severity_score no one reads" is C2.</p>
+<h3 id="42-the-as-of-age-pattern-fp-age-reference-implementation">4.2 The as-of-age pattern (FP-AGE reference implementation)<a class="headerlink" href="#42-the-as-of-age-pattern-fp-age-reference-implementation" title="Permanent link">&para;</a></h3>
+<p>To render or compute time-dependent attributes (like age) correctly
+across a multi-year simulation, use the <strong>as-of-date function</strong>
+promoted from <code>immunization/engine.py:36-39 _age_on(dob, on, fallback)</code>
+into <code>_shared</code>. The call site passes the event date
+(<code>event.timestamp</code>).</p>
 <ul>
-<li><strong>seed 経路を変えない群</strong>(出力/narrative/LLM/labs)= as-of 化しても golden は表示値のみ差分 → 低リスク。</li>
-<li><strong>seed 経路を変える群</strong>(incidence 判定 = rng 分岐が変わる)= golden 全再生成 + AD 追記が必須 → 別フェーズ。</li>
-<li>生成スナップショット時点で確定してよい群(identity / 世帯 / 身長 shrinkage)は as-of 化しない。</li>
+<li><strong>Group that does not touch the seed path</strong> (output / narrative /
+  LLM / labs): as-of-ifying only produces a display-value diff in
+  the goldens → low risk.</li>
+<li><strong>Group that touches the seed path</strong> (incidence decisions — RNG
+  branches change): full golden regeneration + an ADR note is
+  mandatory → separate phase.</li>
+<li>Groups that legitimately freeze at snapshot time (identity /
+  household / height shrinkage) are not as-of-ified.</li>
 </ul>
-<p><strong>この「seed 経路を変えるか否かで 2 フェーズに割る」判断は、決定論に触る全修正に一般化して適用する。</strong></p>
-<h3 id="43-fhir-code">4.3 FHIR の code は退化流用しない<a class="headerlink" href="#43-fhir-code" title="Permanent link">&para;</a></h3>
-<p><code>Condition.stage</code> の SNOMED type に "Tumor stage finding"(385356007)を高血圧へ流用するような
-「近いから使う」を禁止。適切なコードが codes YAML に無ければ authoritative source(NLM/WHO)で
-検証して追加(<code>implementation-rules.md</code> §6、捏造禁止)。</p>
+<p><strong>Generalise this "does it touch the seed path?" two-phase split to
+every determinism-touching change.</strong></p>
+<h3 id="43-do-not-overload-the-wrong-fhir-code">4.3 Do not overload the wrong FHIR code<a class="headerlink" href="#43-do-not-overload-the-wrong-fhir-code" title="Permanent link">&para;</a></h3>
+<p>Forbidden: reusing a <code>Condition.stage</code> SNOMED type — for example,
+"Tumor stage finding" (385356007) — for hypertension because "it's
+close enough". If the correct code is not in the codes YAML, verify
+against an authoritative source (NLM / WHO) and add it
+(<code>implementation-rules.md</code> §6 — no fabrication).</p>
 <hr />
-<h2 id="5-clinical-authoring-c3">5. clinical authoring 規約(C3 対策)<a class="headerlink" href="#5-clinical-authoring-c3" title="Permanent link">&para;</a></h2>
-<h3 id="51-course_archetypes-complications">5.1 course_archetypes と complications はセットで考える<a class="headerlink" href="#51-course_archetypes-complications" title="Permanent link">&para;</a></h3>
-<p>急性期疾患に course_archetypes を追加するとき、悪化 event(ICU 転送・DVT・せん妄・SSI)の源は
-<code>complications:</code> ブロックである(course archetype は trajectory 形状、complications は離散 event)。
-外傷/術後系は fallback trajectory(炎症性内科向けチューニング)が臨床不整合なので、<strong>course_archetypes
-より先に/併せて complications</strong> を書く。テンプレート = <code>bacterial_pneumonia.yaml:581-655</code>。</p>
-<h3 id="52-authoring-per-disease">5.2 疾患 authoring の per-disease 検証<a class="headerlink" href="#52-authoring-per-disease" title="Permanent link">&para;</a></h3>
-<p>新しい course_archetypes / complications を書いたら、その疾患の cohort を生成し (a) 悪化コースが
-非ゼロ率で発火、(b) 悪化日の追加 Observation / narrative が実出力に現れることを grep(test green
-だけでは C3 を検出できない、<code>implementation-rules.md</code> §8「実出力 grep」)。</p>
+<h2 id="5-clinical-authoring-rules-c3-defense">5. Clinical authoring rules (C3 defense)<a class="headerlink" href="#5-clinical-authoring-rules-c3-defense" title="Permanent link">&para;</a></h2>
+<h3 id="51-think-of-course_archetypes-and-complications-together">5.1 Think of <code>course_archetypes</code> and <code>complications</code> together<a class="headerlink" href="#51-think-of-course_archetypes-and-complications-together" title="Permanent link">&para;</a></h3>
+<p>When adding <code>course_archetypes</code> to an acute disease, the source of
+worsening events (ICU transfer, DVT, delirium, SSI) is the
+<code>complications:</code> block (course archetype = trajectory shape,
+complications = discrete events). Trauma / post-op diseases have a
+fallback trajectory tuned for inflammatory internal medicine that
+is clinically incoherent for them, so write <strong><code>complications</code>
+first, or together with <code>course_archetypes</code></strong> — never after. Template:
+<code>bacterial_pneumonia.yaml:581-655</code>.</p>
+<h3 id="52-per-disease-verification-for-disease-authoring">5.2 Per-disease verification for disease authoring<a class="headerlink" href="#52-per-disease-verification-for-disease-authoring" title="Permanent link">&para;</a></h3>
+<p>Once you write new <code>course_archetypes</code> / <code>complications</code>, generate
+that disease's cohort and grep the real output for
+(a) worsening courses firing at non-zero rate and (b) the additional
+Observation / narrative appearing on worsening days. Green tests
+alone cannot catch C3 (<code>implementation-rules.md</code> §8 "grep real
+output").</p>
 <hr />
-<h2 id="6-completeness-fix">6. 実装セッションのチェックリスト(completeness fix 固有)<a class="headerlink" href="#6-completeness-fix" title="Permanent link">&para;</a></h2>
-<p><code>implementation-rules.md</code> §0 の chain workflow に加えて:</p>
+<h2 id="6-implementation-session-checklist-completeness-fix-specific">6. Implementation-session checklist (completeness-fix specific)<a class="headerlink" href="#6-implementation-session-checklist-completeness-fix-specific" title="Permanent link">&para;</a></h2>
+<p>In addition to the chain workflow in <code>implementation-rules.md</code> §0:</p>
 <ol>
-<li><strong>着手前</strong>: registry の該当 FP の Status/依存を確認。依存 FP が未 DONE なら順序を守る
-   (特に FP-YAML-1 → 2 → 3、FP-SEV-MODEL → archetype_modifiers/I10)。</li>
-<li><strong>C1 チェック</strong>: 触った YAML の全キーが消費されているか(経路 A/B 両方)。<code>extra="forbid"</code> を
-   入れた/入っているモデルで全既存 YAML が load 成功するか。</li>
-<li><strong>C2 チェック</strong>: 追加した FHIR 要素が cohort 内で非退化(患者間で分散、default fall-back でない)か。</li>
-<li><strong>C3 チェック</strong>: 疾患/encounter が期待する resource が実出力に出るか(grep)。</li>
-<li><strong>決定論</strong>: seed 経路を変えるか判定 → byte 保存 refactor か golden 再生成 new-feature かを宣言。</li>
-<li><strong>DONE 時</strong>: registry の Status を DONE に更新 + PR/commit を追記。gate(FP-COMPLETENESS-GATE)が
-   既に存在するなら audit completeness 軸を green に。</li>
+<li><strong>Before starting</strong>: confirm the FP's Status and dependencies in
+   the registry. If a dependency FP is not DONE, respect the order
+   (especially FP-YAML-1 → 2 → 3, and FP-SEV-MODEL →
+   archetype_modifiers / I10).</li>
+<li><strong>C1 check</strong>: every key in the YAMLs you touched is consumed
+   (both routes A and B). Every existing YAML still loads under a
+   model you added or enabled <code>extra="forbid"</code> on.</li>
+<li><strong>C2 check</strong>: the FHIR element you added is non-degenerate in
+   the cohort (distributed across patients, not a default fallback).</li>
+<li><strong>C3 check</strong>: the resource that the disease / encounter expects
+   actually shows up in the real output (grep).</li>
+<li><strong>Determinism</strong>: decide whether you touched the seed path →
+   declare "byte-preserving refactor" or "new-feature with golden
+   regeneration".</li>
+<li><strong>On DONE</strong>: update the registry's Status to DONE + append the
+   PR / commit. If the completeness gate (FP-COMPLETENESS-GATE)
+   already exists, get the audit completeness axis to green.</li>
 </ol>
 <hr />
-<h2 id="7-fix">7. 入出力インターフェース早見(このfix群が触る境界)<a class="headerlink" href="#7-fix" title="Permanent link">&para;</a></h2>
+<h2 id="7-i--o-interface-at-a-glance-the-boundaries-this-fix-set-touches">7. I / O interface at a glance (the boundaries this fix set touches)<a class="headerlink" href="#7-i--o-interface-at-a-glance-the-boundaries-this-fix-set-touches" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>境界</th>
-<th>入力</th>
-<th>出力</th>
-<th>canonical seam</th>
+<th>Boundary</th>
+<th>Input</th>
+<th>Output</th>
+<th>Canonical seam</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>疾患 YAML → simulation</td>
+<td>Disease YAML → simulation</td>
 <td><code>reference_data/*.yaml</code></td>
-<td><code>DiseaseProtocol</code>(属性)/ 生 dict(order)</td>
-<td><code>load_disease_protocol</code>(A)/ owner accessor(B、FP-YAML-3 で整備)</td>
+<td><code>DiseaseProtocol</code> (attribute) / raw dict (order)</td>
+<td><code>load_disease_protocol</code> (A) / owner accessor (B, cleaned up in FP-YAML-3)</td>
 </tr>
 <tr>
-<td>severity 決定</td>
-<td><code>event.severity</code>(float)/ protocol 分布</td>
+<td>Severity decision</td>
+<td><code>event.severity</code> (float) / protocol distribution</td>
 <td><code>"mild|moderate|severe"</code> + score</td>
-<td><code>severity_from_protocol</code>(FP-SEV-MODEL で新設)</td>
+<td><code>severity_from_protocol</code> (added in FP-SEV-MODEL)</td>
 </tr>
 <tr>
-<td>age 参照</td>
-<td><code>dob</code> + event 日</td>
-<td>as-of age(int)</td>
-<td><code>_age_on</code>(FP-AGE で <code>_shared</code> 昇格)</td>
+<td>Age reference</td>
+<td><code>dob</code> + event date</td>
+<td>as-of age (int)</td>
+<td><code>_age_on</code> (promoted to <code>_shared</code> in FP-AGE)</td>
 </tr>
 <tr>
 <td>code → display</td>
-<td>(system, code, lang)</td>
-<td>display 文字列</td>
-<td><code>code_lookup</code> / <code>system_key_for</code>(既存)</td>
+<td><code>(system, code, lang)</code></td>
+<td>display string</td>
+<td><code>code_lookup</code> / <code>system_key_for</code> (existing)</td>
 </tr>
 <tr>
 <td>CIF → FHIR</td>
 <td>structural + narrative CIF</td>
 <td>FHIR R4 NDJSON</td>
-<td><code>_fhir_*</code> builders(registry 登録、既存)</td>
+<td><code>_fhir_*</code> builders (registry-registered, existing)</td>
 </tr>
 <tr>
-<td>completeness 検証</td>
+<td>Completeness verification</td>
 <td>cohort NDJSON</td>
 <td>AxisResult</td>
-<td><code>clinosim/audit/axes/completeness.py</code>(FP-COMPLETENESS-GATE で新設)</td>
-</tr>
-<tr>
-<td></content></td>
-<td></td>
-<td></td>
-<td></td>
+<td><code>clinosim/audit/axes/completeness.py</code> (added in FP-COMPLETENESS-GATE)</td>
 </tr>
 </tbody>
 </table>
+<p>Japanese counterpart: <a href="../data-model-and-completeness-conventions.ja/"><code>data-model-and-completeness-conventions.ja.md</code></a>.</p>
 
 
 

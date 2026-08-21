@@ -2455,7 +2455,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#judgment-tasks-always-english-efficient-tokens-high-quality" class="md-nav__link">
+  <a href="#judgment-tasks-always-english--efficient-tokens-high-quality" class="md-nav__link">
     <span class="md-ellipsis">
       
         JUDGMENT tasks (always English — efficient tokens, high quality)
@@ -2466,7 +2466,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#narrative-tasks-output-in-japanese-larger-token-budget-for-natural-text" class="md-nav__link">
+  <a href="#narrative-tasks-output-in-japanese--larger-token-budget-for-natural-text" class="md-nav__link">
     <span class="md-ellipsis">
       
         NARRATIVE tasks (output in Japanese — larger token budget for natural text)
@@ -2549,7 +2549,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#challenge-deterministic-simulation-non-deterministic-llm" class="md-nav__link">
+  <a href="#challenge-deterministic-simulation--non-deterministic-llm" class="md-nav__link">
     <span class="md-ellipsis">
       
         Challenge: deterministic simulation + non-deterministic LLM
@@ -2560,7 +2560,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#solution-hierarchical-seed-llm-cache-separation" class="md-nav__link">
+  <a href="#solution-hierarchical-seed--llm-cache-separation" class="md-nav__link">
     <span class="md-ellipsis">
       
         Solution: hierarchical seed + LLM cache separation
@@ -2643,7 +2643,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#level-3-end-to-end-golden-file-tests-full-simulation-slow" class="md-nav__link">
+  <a href="#level-3-end-to-end--golden-file-tests-full-simulation-slow" class="md-nav__link">
     <span class="md-ellipsis">
       
         Level 3: End-to-end / golden file tests (full simulation, slow)
@@ -2704,7 +2704,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuration-preset-override" class="md-nav__link">
+  <a href="#configuration-preset--override" class="md-nav__link">
     <span class="md-ellipsis">
       
         Configuration preset + override
@@ -3086,7 +3086,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#data-flow-population-driven-simulation" class="md-nav__link">
+  <a href="#data-flow--population-driven-simulation" class="md-nav__link">
     <span class="md-ellipsis">
       
         Data flow — Population-driven simulation
@@ -3532,7 +3532,7 @@ Present generated records alongside real (anonymized) records to clinicians. If 
 </ul>
 <h3 id="token-budget-per-patient">Token budget per patient<a class="headerlink" href="#token-budget-per-patient" title="Permanent link">&para;</a></h3>
 <p>For a typical 14-day pneumonia inpatient stay (Japan):</p>
-<h4 id="judgment-tasks-always-english-efficient-tokens-high-quality">JUDGMENT tasks (always English — efficient tokens, high quality)<a class="headerlink" href="#judgment-tasks-always-english-efficient-tokens-high-quality" title="Permanent link">&para;</a></h4>
+<h4 id="judgment-tasks-always-english--efficient-tokens-high-quality">JUDGMENT tasks (always English — efficient tokens, high quality)<a class="headerlink" href="#judgment-tasks-always-english--efficient-tokens-high-quality" title="Permanent link">&para;</a></h4>
 <table>
 <thead>
 <tr>
@@ -3579,7 +3579,7 @@ Present generated records alongside real (anonymized) records to clinicians. If 
 </tr>
 </tbody>
 </table>
-<h4 id="narrative-tasks-output-in-japanese-larger-token-budget-for-natural-text">NARRATIVE tasks (output in Japanese — larger token budget for natural text)<a class="headerlink" href="#narrative-tasks-output-in-japanese-larger-token-budget-for-natural-text" title="Permanent link">&para;</a></h4>
+<h4 id="narrative-tasks-output-in-japanese--larger-token-budget-for-natural-text">NARRATIVE tasks (output in Japanese — larger token budget for natural text)<a class="headerlink" href="#narrative-tasks-output-in-japanese--larger-token-budget-for-natural-text" title="Permanent link">&para;</a></h4>
 <table>
 <thead>
 <tr>
@@ -3817,9 +3817,9 @@ Present generated records alongside real (anonymized) records to clinicians. If 
 </table>
 <h3 id="reproducibility-and-seed-management">Reproducibility and seed management<a class="headerlink" href="#reproducibility-and-seed-management" title="Permanent link">&para;</a></h3>
 <p>Reproducibility is essential for debugging, validation, and scientific use. Same configuration + same seed must produce identical results.</p>
-<h4 id="challenge-deterministic-simulation-non-deterministic-llm">Challenge: deterministic simulation + non-deterministic LLM<a class="headerlink" href="#challenge-deterministic-simulation-non-deterministic-llm" title="Permanent link">&para;</a></h4>
+<h4 id="challenge-deterministic-simulation--non-deterministic-llm">Challenge: deterministic simulation + non-deterministic LLM<a class="headerlink" href="#challenge-deterministic-simulation--non-deterministic-llm" title="Permanent link">&para;</a></h4>
 <p>The simulation engine (population, physiology, disease, order timing, etc.) is fully deterministic given a seed. But LLM calls introduce non-determinism (even with temperature=0, outputs may vary across API calls).</p>
-<h4 id="solution-hierarchical-seed-llm-cache-separation">Solution: hierarchical seed + LLM cache separation<a class="headerlink" href="#solution-hierarchical-seed-llm-cache-separation" title="Permanent link">&para;</a></h4>
+<h4 id="solution-hierarchical-seed--llm-cache-separation">Solution: hierarchical seed + LLM cache separation<a class="headerlink" href="#solution-hierarchical-seed--llm-cache-separation" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SeedManager</span><span class="p">:</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="sd">"""Manages reproducible random number generation across all modules."""</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
@@ -3959,7 +3959,7 @@ Present generated records alongside real (anonymized) records to clinicians. If 
 </span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>    # verify: PatientProfile has all required fields,
 </span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>    # family history matches household members' conditions
 </span></code></pre></div>
-<h4 id="level-3-end-to-end-golden-file-tests-full-simulation-slow">Level 3: End-to-end / golden file tests (full simulation, slow)<a class="headerlink" href="#level-3-end-to-end-golden-file-tests-full-simulation-slow" title="Permanent link">&para;</a></h4>
+<h4 id="level-3-end-to-end--golden-file-tests-full-simulation-slow">Level 3: End-to-end / golden file tests (full simulation, slow)<a class="headerlink" href="#level-3-end-to-end--golden-file-tests-full-simulation-slow" title="Permanent link">&para;</a></h4>
 <p>Run a complete simulation with a fixed seed and compare against stored "golden" CIF.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>tests/e2e/
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>  test_golden_1patient.py
@@ -4035,7 +4035,7 @@ Present generated records alongside real (anonymized) records to clinicians. If 
 - IDE autocompletion and type checking
 - Same models serve as both validation AND the runtime type</p>
 <p><strong>Decision: Use Pydantic BaseModel for all config types. Use @dataclass for runtime-only types that aren't loaded from YAML.</strong></p>
-<h4 id="configuration-preset-override">Configuration preset + override<a class="headerlink" href="#configuration-preset-override" title="Permanent link">&para;</a></h4>
+<h4 id="configuration-preset--override">Configuration preset + override<a class="headerlink" href="#configuration-preset--override" title="Permanent link">&para;</a></h4>
 <p>Users should be able to start with a single preset and override specific values:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SimulatorConfig</span><span class="p">:</span>
 </span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>    <span class="nd">@classmethod</span>
@@ -4691,7 +4691,7 @@ State changes occur without a clear disease mechanism.
 </span></code></pre></div>
 <hr />
 <h2 id="5-inter-module-interface-conventions">5. Inter-Module Interface Conventions<a class="headerlink" href="#5-inter-module-interface-conventions" title="Permanent link">&para;</a></h2>
-<h3 id="data-flow-population-driven-simulation">Data flow — Population-driven simulation<a class="headerlink" href="#data-flow-population-driven-simulation" title="Permanent link">&para;</a></h3>
+<h3 id="data-flow--population-driven-simulation">Data flow — Population-driven simulation<a class="headerlink" href="#data-flow--population-driven-simulation" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>┌─── World Setup (once) ──────────────────────────────────┐
 </span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>│                                                          │
 </span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>│  healthcare_system ──→ facility ──→ staff (roster)       │
@@ -4844,7 +4844,7 @@ State changes occur without a clear disease mechanism.
 </tbody>
 </table>
 <hr />
-<h1 id="part-6-architecture-updates-v01-beta-2026-04-08">Part 6 — Architecture Updates (v0.1-beta, 2026-04-08)<a class="headerlink" href="#part-6-architecture-updates-v01-beta-2026-04-08" title="Permanent link">&para;</a></h1>
+<h1 id="part-6--architecture-updates-v01-beta-2026-04-08">Part 6 — Architecture Updates (v0.1-beta, 2026-04-08)<a class="headerlink" href="#part-6--architecture-updates-v01-beta-2026-04-08" title="Permanent link">&para;</a></h1>
 <p>This part documents major architectural decisions made after the initial v0.1-alpha
 foundation. They are integrated into the live codebase but recorded here as ADRs for
 historical reference.</p>

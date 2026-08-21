@@ -1,0 +1,2870 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Population-driven, physiology-based synthetic Electronic Health Record generator (FHIR R4). Multi-country (US + JP), JP Core profile compliance, YAML-driven disease extension.
+">
+      
+      
+      
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/jp-clins.ja/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>JP-CLINS プロファイル対応 - clinosim</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#jp-clins-プロファイル対応" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            clinosim
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              JP-CLINS プロファイル対応
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../design-guides/project-concept-and-design/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../CONTRIBUTING-modules/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../roadmap/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../governance/contributing/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Governance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    clinosim
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/first-cohort/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Your first cohort
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning & releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/project-concept-and-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project concept & design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/data-generation-walkthrough/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data generation walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/implementation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/documentation-and-code-quality-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation + code-quality policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/fhir-data-generation-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FHIR data generation logic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/data-model-and-completeness-conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data model conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/output-formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/llm-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/datasets-full/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/code-systems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code systems
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/hospital-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hospital configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/extension-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extension guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/multi-country/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-country
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eval-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/scenario-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../architecture/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/module-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/data-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/module-dependency-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module dependency graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRIBUTING-modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clinical_documents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical documents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synthea-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare to Synthea
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fhir-server-ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load into a FHIR server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bedrock_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bedrock LLM setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/publishing-to-pypi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing to PyPI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Governance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#スコープ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        スコープ
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="スコープ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#6-情報項目--5-プロファイル-pr1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6 情報項目 / 5 プロファイル (PR1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#例" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        例
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jp-clins-退院時サマリー-composition-pr2a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP-CLINS 退院時サマリー Composition (PR2a)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jp-clins-診療情報提供書-composition-pr2b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP-CLINS 診療情報提供書 Composition (PR2b)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jp-echeckup-健診結果報告書-composition-pr3opt-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentreference-wrapper-sub-pr-esession-48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DocumentReference wrapper (sub-PR-E、session 48)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jp-fhir-validator-bridge-pr3-sub-pr-csession-48-高度化" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP FHIR Validator Bridge (PR3 sub-PR-C、session 48 高度化)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JP FHIR Validator Bridge (PR3 sub-PR-C、session 48 高度化)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pin-ファイル-session-48-追加" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pin ファイル (session 48 追加)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#初回-pin-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        初回 pin bootstrap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-実行" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local 実行
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#検証対象-mvp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        検証対象 (MVP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ci-実行-auto-fail-gatesession-48-高度化" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI 実行 (auto-fail gate、session 48 高度化)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#将来の高度化余地" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        将来の高度化余地
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#再現性" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        再現性
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pr1-対象外" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PR1 対象外
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deferred-improvement-candidates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deferred improvement candidates
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/jp-clins.ja.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="jp-clins-プロファイル対応">JP-CLINS プロファイル対応<a class="headerlink" href="#jp-clins-プロファイル対応" title="Permanent link">&para;</a></h1>
+<p>clinosim は <code>country=JP</code> コホートに対し <strong>JP-CLINS (電子カルテ情報
+共有サービス) プロファイル URL</strong> 付きの FHIR R4 リソースを emit
+します。本ドキュメントは PR1 で有効化された 6 情報項目を対象とし
+ます; 3 種類の Composition (退院時サマリー / 診療情報提供書 / opt-in
+健康診断結果報告書) は PR2 と PR3 で追加されます。</p>
+<p>jpfhir.jp JP-CLINS <strong>v1.12.0</strong> (2026-02-16) に対して検証済。
+<a href="https://jpfhir.jp/fhir/clins/igv1/artifacts.html">https://jpfhir.jp/fhir/clins/igv1/artifacts.html</a> 参照。</p>
+<h2 id="スコープ">スコープ<a class="headerlink" href="#スコープ" title="Permanent link">&para;</a></h2>
+<p>急性期病院 EHR/EMR データ生成、<code>country=JP</code>。</p>
+<h3 id="6-情報項目--5-プロファイル-pr1">6 情報項目 / 5 プロファイル (PR1)<a class="headerlink" href="#6-情報項目--5-プロファイル-pr1" title="Permanent link">&para;</a></h3>
+<p>JP-CLINS v1.12.0 は「6 情報項目」ドメイン概念をカバーする
+<strong>5 StructureDefinition プロファイル</strong> を公開しています — 傷病名と
+感染症は同じ <code>JP_Condition_eCS</code> プロファイルを共有 (別個の感染症
+プロファイルなし)、DiagnosticReport は JP-CLINS スコープに <strong>含まれ
+ない</strong> (検査結果は Observation.LabResult としてのみ emit)。</p>
+<p>country=JP コホートの各リソース型は、既存の JP Core プロファイルと
+ともに <code>meta.profile[]</code> に JP-CLINS eCS プロファイル URL を保持:</p>
+<table>
+<thead>
+<tr>
+<th>情報</th>
+<th>Resource</th>
+<th>JP-CLINS プロファイル URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>傷病名 + 感染症</td>
+<td>Condition</td>
+<td><code>.../JP_Condition_eCS</code></td>
+</tr>
+<tr>
+<td>アレルギー</td>
+<td>AllergyIntolerance</td>
+<td><code>.../JP_AllergyIntolerance_eCS</code></td>
+</tr>
+<tr>
+<td>検査</td>
+<td>Observation (category=laboratory)</td>
+<td><code>.../JP_Observation_LabResult_eCS</code></td>
+</tr>
+<tr>
+<td>処方</td>
+<td>MedicationRequest</td>
+<td><code>.../JP_MedicationRequest_eCS</code></td>
+</tr>
+<tr>
+<td>処置</td>
+<td>Procedure</td>
+<td><code>.../JP_Procedure_eCS</code></td>
+</tr>
+</tbody>
+</table>
+<p>URL ルート: <code>http://jpfhir.jp/fhir/eCS/StructureDefinition/</code></p>
+<p><strong>フィルタ:</strong></p>
+<ul>
+<li>Observation: <code>category.coding[].code == "laboratory"</code> の場合のみ —
+  vital sign は JP Core プロファイルのみ保持。</li>
+</ul>
+<p><strong>JP-CLINS v1.12.0 対象外</strong> (JP Core プロファイルのみで emit、
+JP-CLINS URL 非追加):</p>
+<ul>
+<li>DiagnosticReport (全 category)</li>
+<li>Observation vital-signs / social-history / survey / imaging</li>
+<li>Encounter / Patient / Organization / Practitioner / Coverage /
+  Immunization / FamilyMemberHistory 等 (JP Core が適用基底)</li>
+</ul>
+<h2 id="例">例<a class="headerlink" href="#例" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"resourceType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MedicationRequest"</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">"profile"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="s2">"http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="s2">"http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS"</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="p">]</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nt">"medicationCodeableConcept"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">"coding"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"urn:oid:1.2.392.100495.20.1.72"</span><span class="p">,</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"6113005F1023"</span><span class="p">,</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"セフトリアキソンナトリウム注1g"</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="p">}]</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="jp-clins-退院時サマリー-composition-pr2a">JP-CLINS 退院時サマリー Composition (PR2a)<a class="headerlink" href="#jp-clins-退院時サマリー-composition-pr2a" title="Permanent link">&para;</a></h2>
+<p><code>country=JP</code> の inpatient / icu / rehab_inpatient 退院エンカウンター
+全てに対し、clinosim は <code>JP_Composition_eDischargeSummary</code> (v1.12.0)
+準拠の Composition リソースを emit:</p>
+<ul>
+<li><code>Composition.meta.profile</code> に
+  <code>http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary</code>
+  を含める</li>
+<li><code>Composition.type.coding[0].system</code> =
+  <code>http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes</code>、
+  code = <code>18842-5</code>、display = <code>退院時サマリー</code>。LOINC coding は US
+  ツール互換用に secondary エントリとして保持。</li>
+<li><code>Composition.section</code> は 1 つの nested tree:</li>
+<li><strong>300</strong> 構造情報セクション<ul>
+<li><strong>312</strong> 入院理由セクション</li>
+<li><strong>322</strong> 入院時詳細セクション</li>
+<li><strong>342</strong> 入院時診断セクション</li>
+<li><strong>352</strong> 主訴セクション</li>
+<li><strong>360</strong> 現病歴セクション</li>
+</ul>
+</li>
+<li><code>section.code.system</code> =
+  <code>http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section</code></li>
+<li><code>section.text.div</code> はテンプレート narrative パスにより日本語で
+  生成。β-JP-1 で任意に LLM 生成コンテンツに置換可能 (drop-in seam)。</li>
+</ul>
+<p><strong>US パスは不変。</strong> 英語 6 セクション退院サマリー Composition
+(<code>admission_summary</code> / <code>hospital_course</code> / <code>discharge_diagnoses</code> /
+<code>discharge_medications</code> / <code>discharge_instructions</code> / <code>follow_up</code>、
+LOINC-only type coding、JP-CLINS URL なし) は <code>country=US</code> で不変
+emit。</p>
+<p><strong>多 locale 分離。</strong> US NDJSON 出力には JP CodeSystem URI、
+<code>http://jpfhir.jp/fhir/*</code> URL prefix、日本語テキストは一切含まれない。
+統合テスト
+<code>tests/integration/test_jp_clins_composition_ds_end_to_end.py::test_us_p50_has_no_japanese_language_leakage</code>
+が全 US NDJSON ファイルを byte-by-byte で JP シグナルをスキャン — この
+check が本 PR で修正された既存の <code>_build_reference_range</code> JP Core
+extension leak を浮上させた。</p>
+<h2 id="jp-clins-診療情報提供書-composition-pr2b">JP-CLINS 診療情報提供書 Composition (PR2b)<a class="headerlink" href="#jp-clins-診療情報提供書-composition-pr2b" title="Permanent link">&para;</a></h2>
+<p><code>country=JP</code> の inpatient / icu / rehab_inpatient 退院エンカウンター
+の決定的 20% サブセットに対し、clinosim は
+<code>JP_Composition_eReferral</code> (v1.12.0) 準拠の <strong>診療情報提供書
+(referral note)</strong> Composition を emit:</p>
+<ul>
+<li>Emission 率: 20% (実務急性期病院ベンチマーク)。
+  <code>(encounter_id, patient_id)</code> の安定 hash で制御 (同 seed → 同一
+  referral-note 発行サブセット、新規 RNG allocation なし)。</li>
+<li><code>Composition.meta.profile</code> に
+  <code>http://jpfhir.jp/fhir/eReferral/StructureDefinition/JP_Composition_eReferral</code>
+  を含める</li>
+<li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 57133-1,
+  display: 診療情報提供書}</code>。LOINC coding は secondary。</li>
+<li><code>Composition.section</code> は 2 レベル tree:</li>
+<li>Top-level: <strong>920</strong> 紹介元 / <strong>910</strong> 紹介先 / <strong>300</strong> 構造情報</li>
+<li>300 の下: <strong>950</strong> 紹介目的 / <strong>340</strong> 傷病名・主訴 /
+    <strong>360</strong> 現病歴</li>
+</ul>
+<p>シミュレーション近似:
+- <strong>紹介元</strong> = 当院 (clinosim は単一施設をシミュレート)。
+- <strong>紹介先</strong> = "他院" (汎用プレースホルダ; clinosim は施設間紹介先を
+  モデル化しない — 将来作業として妥当な受入病院の小プールからサンプ
+  リング可能)。
+- <strong>紹介目的</strong> = <code>encounter_id</code> ハッシュに基づく <code>{継続加療 / 精査
+  依頼 / 他科紹介 / リハビリテーション継続}</code> の決定的選択。
+- <strong>傷病名・主訴</strong> = エンカウンター診断リスト (code + 日本語 display)
+  と疾患 YAML の chief complaint を結合。
+- <strong>現病歴</strong> = <code>disease_protocol.narrative.hpi_template</code> 由来の HPI
+  (退院時サマリーの present_illness セクションと同ソース)。</p>
+<p><strong>US パス</strong>: 診療情報提供書は <code>country=US</code> で emit しない
+(<code>countries_supported: [jp]</code>)。US 臨床実践では通常の紹介状を使用し、
+JP-CLINS eReferral プロファイルは使わない。</p>
+<h2 id="jp-echeckup-健診結果報告書-composition-pr3opt-in">JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)<a class="headerlink" href="#jp-echeckup-健診結果報告書-composition-pr3opt-in" title="Permanent link">&para;</a></h2>
+<p><code>country=JP</code> かつ <code>SimulatorConfig.modules["health_checkup"]=True</code> の
+場合、健診エンカウンターに対し <strong>健診結果報告書 (health checkup
+report)</strong> Composition を <code>JP_Composition_eCheckupGeneral</code>
+(JP-eCheckup General v1.7.0) 準拠で emit。急性期病院想定を維持する
+ため <strong>default off</strong>。</p>
+<p>Note: 健診 IG は JP-CLINS と別に発行 (JP-eCheckup General v1.7.0、
+2026-02-16)。canonical URL は <code>/fhir/eCheckup/</code> 配下で、CodeSystem
+も別 (section-code は 5 桁数値、JP-CLINS の 3 桁とは異なる)。</p>
+<ul>
+<li><code>Composition.meta.profile</code> =
+  <code>http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral</code></li>
+<li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 53576-5,
+  display: 検診・健診報告書}</code>。LOINC coding も secondary で併存。</li>
+<li><code>Composition.section</code> は flat 2 個 (nesting なし):</li>
+<li><strong>01031</strong> 事業者健診検査結果セクション</li>
+<li><strong>01032</strong> 事業者健診問診結果セクション</li>
+<li><code>section.code.system</code> =
+  <code>http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code</code></li>
+</ul>
+<p><strong>対象範囲 (scope)</strong>:
+- 3 健診種別すべて対応 (sub-PR-D、session 47):
+  - <strong>事業者健診</strong> (occupational、40-64 歳): section 01031 + 01032
+  - <strong>特定健診</strong> (specific、65-74 歳): section 01011 + 01012
+  - <strong>広域連合健診</strong> (regional_union、75 歳以上): section 01021 + 01022</p>
+<p>種別選定は <code>_pick_checkup_type(age)</code> による age-based 決定的マッピ
+  ング。MVP は年齢帯単一 dispatch (実務では 40-64 歳の保険加入者は
+  特定健診対象になる場合もあるが、simulation では単純化)。将来:
+  保険種別 / 就業状態を参照した精緻化余地あり。ClinicalDocument に
+  <code>checkup_type: str</code> field を追加 (sub-PR-D)、Composition builder
+  が dispatch。
+- section content は個別化済 (sub-PR-B、session 47):
+  - <strong>01031 検査結果</strong>: record.lab_results から 5 項目 (BMI /
+    収縮期 BP / 拡張期 BP / HbA1c / LDL) の実測値を拾い、法定健診
+    基準で A/B/C/D 判定を組み立てる。総合判定は各項目の最悪 grade。
+  - <strong>01032 問診結果</strong>: PatientProfile 参照で個別化
+    (chronic_conditions → 既往歴、current_medications → 服薬、
+    smoking_status/alcohol_use → 生活習慣)。慢性疾患保有時は
+    「継続経過観察を要す」判定。
+- <strong>健診 encounter 生成 module</strong> (sub-PR-A、session 47 で追加):
+  <code>clinosim/modules/health_checkup/</code> の POST_RECORDS enricher が
+  <code>SimulatorConfig.modules["health_checkup"]=True</code> + country=JP 時に
+  発火。40 歳以上の成人患者から SHA-256 hash-based 決定的 30% サブ
+  セットを選び、各患者に 1 CHECKUP encounter (1 日完結) + 法定健診
+  5 項目 ObservationRecord + HEALTH_CHECKUP_REPORT stub を追加する。
+  narrative content は Stage 2 の TemplateNarrativePass が populate、
+  FHIR emit は <code>_build_jp_eCheckup_general_composition</code> が担う。
+- <strong>法定健診 5 項目の実測値個別化 (sub-PR-B 高度化、session 48)</strong>:
+  かつては固定値 (BMI 22.5 / SBP 118 / DBP 76 / HbA1c 5.4 /
+  LDL 118) だったが、<code>_derive_checkup_values(patient, rng)</code> が
+  PatientProfile と chronic_conditions を反映するよう改修:
+  - <strong>BMI</strong> = <code>patient.bmi</code> + 測定日変動 (sd 0.3 kg/m²)
+  - <strong>SBP/DBP</strong> = <code>patient.baseline_vitals</code> を base に日間変動
+    (sd 5.0/3.5 mmHg)。高血圧 (I10) は FP-I10 (session 38) で
+    baseline_vitals に反映済み
+  - <strong>HbA1c</strong> = 糖尿病 (E10/E11) 保有時は
+    <code>hba1c_from_glycemic_control</code> を reuse (physiology 経路と一貫)、
+    非 DM は <code>HBA1C_NONDM_BASE</code> + 年齢係数 0.003 + noise
+  - <strong>LDL</strong> = 年齢/性別 baseline + 脂質異常症 (E78) で +40 mg/dL +
+    スタチン系薬 (<code>-statin</code> 末尾) で -30 mg/dL
+  - RNG は <code>ENRICHER_SEED_OFFSETS["health_checkup"] = 0x4843</code> から
+    <code>derive_sub_seed(master, offset, patient_id)</code> で per-patient に
+    確定。同 seed + 同 patient で byte-identical (AD-16 準拠)
+  - <code>OrderResult.interpretation</code> ("N"/"H") と <code>reference_range</code> も
+    LOINC 別に <code>_interp_for</code> で付与、"H" フラグは renderer の
+    A/B/C/D 判定と整合</p>
+<p><strong>US path</strong>: 健診 opt-in flag は US では発火しない
+(<code>countries_supported: [jp]</code> により spec 側で JP に限定)。</p>
+<h3 id="documentreference-wrapper-sub-pr-esession-48">DocumentReference wrapper (sub-PR-E、session 48)<a class="headerlink" href="#documentreference-wrapper-sub-pr-esession-48" title="Permanent link">&para;</a></h3>
+<p>HEALTH_CHECKUP_REPORT の Composition と併存する DocumentReference
+を追加発行:</p>
+<ul>
+<li><strong>対象</strong>: <code>ClinicalDocument.task_type == "health_checkup_report"</code>
+  かつ <code>format_type == "composition"</code> (discharge_summary /
+  referral_note は emit しない)</li>
+<li><strong>id 命名</strong>: <code>drf-&lt;document_id&gt;</code> (Composition の id と衝突しない
+  prefix)</li>
+<li><strong>参照</strong>: <code>relatesTo=[{code:"transforms", target: Composition/&lt;id&gt;}]</code></li>
+<li><strong>content</strong>: narrative.text (空なら sections 値 join) を base64
+  で添付</li>
+<li><strong>category</strong>: JP-eCheckup doc-typecodes <code>eCheckupGeneral</code> (健診
+  結果報告書)</li>
+<li><strong>encounter context</strong>: <code>Encounter/CHK-&lt;pid&gt;-&lt;seq&gt;</code> に紐付け</li>
+<li><strong>custodian</strong>: <code>Organization/hospital-main</code></li>
+<li><strong>byte-diff invariant</strong>: JP かつ opt-in 有効時のみ emit、
+  reproduce.sh の default runs は影響なし (既に確認済み)</li>
+</ul>
+<p>実 EHR 交換シナリオ: Composition = 構造化 (section で保持)、
+DocumentReference = portable な wrapper。事業所 ⇄ 保険者 ⇄ 実施機関
+間の交換で DocumentReference を使うことが多いため、両者併存が
+JP-eCheckup interchange の標準形。</p>
+<h2 id="jp-fhir-validator-bridge-pr3-sub-pr-csession-48-高度化">JP FHIR Validator Bridge (PR3 sub-PR-C、session 48 高度化)<a class="headerlink" href="#jp-fhir-validator-bridge-pr3-sub-pr-csession-48-高度化" title="Permanent link">&para;</a></h2>
+<p>session 47 で <code>scripts/validate_jp.sh</code> と
+<code>.github/workflows/jp-validate.yml</code> を追加、session 48 で <strong>SHA256
+pin + auto-fail gate 化</strong> に高度化しました。<strong>JP 出力を HL7 公式
+FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証</strong> し、
+pin mismatch や validation failure で CI が自動 fail します。</p>
+<h3 id="pin-ファイル-session-48-追加">Pin ファイル (session 48 追加)<a class="headerlink" href="#pin-ファイル-session-48-追加" title="Permanent link">&para;</a></h3>
+<p><code>.github/jp-validator-pins.env</code> に validator と IG package の
+バージョン / SHA256 が集約:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>VALIDATOR_VERSION=6.4.3
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>VALIDATOR_SHA256=
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>JP_CORE_PACKAGE_ID=jp-core.r4
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>JP_CORE_PACKAGE_VERSION=1.1.7
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>JP_CORE_PACKAGE_URL=
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>JP_CORE_PACKAGE_SHA256=
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>JP_CLINS_PACKAGE_URL=
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>JP_CLINS_PACKAGE_SHA256=
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>JP_ECHECKUP_PACKAGE_URL=
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>JP_ECHECKUP_PACKAGE_SHA256=
+</span></code></pre></div>
+<ul>
+<li>SHA256 空欄 + STRICT モード = fail (bootstrap 指示メッセージを出力)</li>
+<li>SHA256 記入済 = 実測との一致確認 → mismatch で fail</li>
+</ul>
+<h3 id="初回-pin-bootstrap">初回 pin bootstrap<a class="headerlink" href="#初回-pin-bootstrap" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bash<span class="w"> </span>scripts/pin_jp_validator.sh
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>diff<span class="w"> </span>.github/jp-validator-pins.env<span class="w">  </span><span class="c1"># ← 差分確認</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"chore(jp-validate): pin validator + IG SHA256"</span>
+</span></code></pre></div>
+<p><code>PIN_FILE=&lt;path&gt;</code> / <code>DRY_RUN=1</code> で挙動を上書き可能。</p>
+<h3 id="local-実行">Local 実行<a class="headerlink" href="#local-実行" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># サンプル抽出のみ (validator jar 未指定なら skip)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./scripts/validate_jp.sh
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># 実際の validator 実行 + pin gate (要 Java 11+)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nv">VALIDATOR_JAR</span><span class="o">=</span>/path/to/validator_cli.jar<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nv">CLINOSIM_JP_VAL_PINS</span><span class="o">=</span>.github/jp-validator-pins.env<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nv">CLINOSIM_JP_VAL_STRICT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>./scripts/validate_jp.sh
+</span></code></pre></div>
+<p>環境変数:
+- <code>VALIDATOR_JAR</code> (必須): HL7 公式 validator jar のパス。
+- <code>CLINOSIM_JP_VAL_PINS</code>: pin file 参照 (未指定なら IG resolve は
+  skip)。
+- <code>CLINOSIM_JP_VAL_STRICT</code>: <code>1</code> で SHA256 mismatch / sample 0 抽出
+  → exit 1。
+- <code>CLINOSIM_JP_VAL_POPULATION</code>: default 10
+- <code>CLINOSIM_JP_VAL_SEED</code>: default 42
+- <code>CLINOSIM_JP_VAL_END</code>: default 2026-06-30
+- <code>CLINOSIM_JP_VAL_HEALTH</code>: default "1" (health_checkup opt-in)</p>
+<h3 id="検証対象-mvp">検証対象 (MVP)<a class="headerlink" href="#検証対象-mvp" title="Permanent link">&para;</a></h3>
+<p>小規模 JP コホート生成後、以下 profile 対応 resource から代表 1 件
+を抽出して検証:</p>
+<ul>
+<li><code>JP_Condition_eCS</code></li>
+<li><code>JP_AllergyIntolerance_eCS</code></li>
+<li><code>JP_Observation_LabResult_eCS</code> (laboratory category)</li>
+<li><code>JP_MedicationRequest_eCS</code></li>
+<li><code>JP_Procedure_eCS</code></li>
+<li><code>JP_Composition_eDischargeSummary</code></li>
+<li><code>JP_Composition_eReferral</code></li>
+<li><code>JP_Composition_eCheckupGeneral</code> (health_checkup opt-in 時)</li>
+</ul>
+<h3 id="ci-実行-auto-fail-gatesession-48-高度化">CI 実行 (auto-fail gate、session 48 高度化)<a class="headerlink" href="#ci-実行-auto-fail-gatesession-48-高度化" title="Permanent link">&para;</a></h3>
+<p><code>.github/workflows/jp-validate.yml</code>:</p>
+<ul>
+<li><strong>workflow_dispatch</strong>: <code>run_validator=true</code> (default) +
+  <code>strict_pins=true</code> (default) → SHA256 mismatch / validator FAIL /
+  sample 0 抽出のいずれかで <strong>job が自動 fail</strong></li>
+<li><strong>PR label</strong>: <code>jp-validate</code> ラベルを付けた PR で自動実行 (default
+  STRICT)</li>
+</ul>
+<p>CI 時間の浪費を防ぐため、通常の PR CI パイプラインには組み込まず、
+必要時のみ手動 or label で回す設計です。</p>
+<h3 id="将来の高度化余地">将来の高度化余地<a class="headerlink" href="#将来の高度化余地" title="Permanent link">&para;</a></h3>
+<ul>
+<li>全 resource 検証 (現状 profile あたり 1 サンプルのみ)</li>
+<li>packages.fhir.org 登録前の JP-CLINS / JP-eCheckup の direct .tgz
+  URL 確定と <code>_PACKAGE_URL</code> フィールドへの反映</li>
+<li>JP profile violation の granular reporting (現状は tail 5 行のみ)</li>
+</ul>
+<h2 id="再現性">再現性<a class="headerlink" href="#再現性" title="Permanent link">&para;</a></h2>
+<p>本レイヤは決定的 — <code>scripts/reproduce.sh</code> は country=JP 出力が
+独立実行間でバイト同一のまま継続 pass。</p>
+<h2 id="pr1-対象外">PR1 対象外<a class="headerlink" href="#pr1-対象外" title="Permanent link">&para;</a></h2>
+<p>spec §1.3 (<code>docs/history/specs-archive/2026-07-12-p2-13-jp-clins-design.md</code>)
+参照:</p>
+<ul>
+<li>3 種類の Composition (退院時サマリー / 診療情報提供書 / 健康診断
+  結果報告書) — PR2 + PR3</li>
+<li>健診 encounter 生成 — PR3 opt-in</li>
+<li>機関間連携 workflow simulation — non-goal</li>
+</ul>
+<h2 id="deferred-improvement-candidates">Deferred improvement candidates<a class="headerlink" href="#deferred-improvement-candidates" title="Permanent link">&para;</a></h2>
+<p>Session 47 preflight review で浮上した将来 PR で再訪する価値のある
+3 項目。session 88k 時点の状況:</p>
+<ul>
+<li>✅ CLI 動詞 <code>generate</code> → <code>simulate</code> リネーム + deprecation alias —
+  landed; <code>clinosim/simulator/cli.py</code> で <code>generate</code> は alias として
+  残存。</li>
+<li>✅ <code>_JP_CORE_PROFILES</code> shape 統一 (<code>dict[str, str]</code> →
+  <code>dict[str, list[str]]</code>) — landed; JP-CLINS eCS profile dispatch と
+  ともに <code>clinosim/modules/output/fhir_r4_adapter.py</code> に反映。</li>
+<li>⏳ CIF <code>orders</code> リスト分割 <code>medication_orders</code> / <code>lab_orders</code>
+  (FHIR resource-type 分離との整合) — 未着手; 候補として継続。</li>
+</ul>
+<p>各々は小規模独立リファクタ — P2-13 に折り込むより自身の PR として
+届ける方が適切。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/TomoOkuyama/clinosim" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -2007,7 +2007,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#path-a-pypi-trusted-publisher-recommended-no-secret" class="md-nav__link">
+  <a href="#path-a--pypi-trusted-publisher-recommended-no-secret" class="md-nav__link">
     <span class="md-ellipsis">
       
         Path A — PyPI Trusted Publisher (recommended, no secret)
@@ -2046,7 +2046,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#path-b-api-token-simpler-uses-a-secret" class="md-nav__link">
+  <a href="#path-b--api-token-simpler-uses-a-secret" class="md-nav__link">
     <span class="md-ellipsis">
       
         Path B — API token (simpler, uses a secret)
@@ -2360,7 +2360,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#path-a-pypi-trusted-publisher-recommended-no-secret" class="md-nav__link">
+  <a href="#path-a--pypi-trusted-publisher-recommended-no-secret" class="md-nav__link">
     <span class="md-ellipsis">
       
         Path A — PyPI Trusted Publisher (recommended, no secret)
@@ -2399,7 +2399,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#path-b-api-token-simpler-uses-a-secret" class="md-nav__link">
+  <a href="#path-b--api-token-simpler-uses-a-secret" class="md-nav__link">
     <span class="md-ellipsis">
       
         Path B — API token (simpler, uses a secret)
@@ -2490,7 +2490,7 @@ and creates a GitHub Release on every <code>v*.*.*</code> tag push, but the actu
 upload step is intentionally commented out until a maintainer configures a
 publishing credential.</p>
 <p>Two supported paths — pick one and edit <code>release.yml</code> per the inline comments.</p>
-<h2 id="path-a-pypi-trusted-publisher-recommended-no-secret">Path A — PyPI Trusted Publisher (recommended, no secret)<a class="headerlink" href="#path-a-pypi-trusted-publisher-recommended-no-secret" title="Permanent link">&para;</a></h2>
+<h2 id="path-a--pypi-trusted-publisher-recommended-no-secret">Path A — PyPI Trusted Publisher (recommended, no secret)<a class="headerlink" href="#path-a--pypi-trusted-publisher-recommended-no-secret" title="Permanent link">&para;</a></h2>
 <p>PyPI trusted publishing uses GitHub OIDC to authenticate the workflow directly
 against PyPI, so no long-lived token needs to be stored as a repository secret.
 This is the modern PyPI-recommended path.</p>
@@ -2516,7 +2516,7 @@ This is the modern PyPI-recommended path.</p>
 <li>Cut a pre-release tag (e.g., <code>v0.2.0rc1</code>), push, watch the release job</li>
 <li>On success, <code>pip install clinosim==0.2.0rc1</code> should work</li>
 </ul>
-<h2 id="path-b-api-token-simpler-uses-a-secret">Path B — API token (simpler, uses a secret)<a class="headerlink" href="#path-b-api-token-simpler-uses-a-secret" title="Permanent link">&para;</a></h2>
+<h2 id="path-b--api-token-simpler-uses-a-secret">Path B — API token (simpler, uses a secret)<a class="headerlink" href="#path-b--api-token-simpler-uses-a-secret" title="Permanent link">&para;</a></h2>
 <p>If trusted publishing is unavailable in the target org, fall back to an API
 token stored as a repository secret.</p>
 <h3 id="one-time-setup">One-time setup<a class="headerlink" href="#one-time-setup" title="Permanent link">&para;</a></h3>

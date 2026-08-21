@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#clinosim-eval-public-evaluation-framework" class="md-skip">
+        <a href="#clinosim-eval--public-evaluation-framework" class="md-skip">
           Skip to content
         </a>
       
@@ -1376,7 +1376,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#locale-language-code-system" class="md-nav__link">
+  <a href="#locale-language--code-system" class="md-nav__link">
     <span class="md-ellipsis">
       
         Locale (language + code system)
@@ -2410,7 +2410,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#locale-language-code-system" class="md-nav__link">
+  <a href="#locale-language--code-system" class="md-nav__link">
     <span class="md-ellipsis">
       
         Locale (language + code system)
@@ -2494,7 +2494,7 @@
   
 
 
-<h1 id="clinosim-eval-public-evaluation-framework"><code>clinosim eval</code> — public evaluation framework<a class="headerlink" href="#clinosim-eval-public-evaluation-framework" title="Permanent link">&para;</a></h1>
+<h1 id="clinosim-eval--public-evaluation-framework"><code>clinosim eval</code> — public evaluation framework<a class="headerlink" href="#clinosim-eval--public-evaluation-framework" title="Permanent link">&para;</a></h1>
 <p><code>clinosim eval</code> scores a generated cohort against three axes —
 <strong>structural</strong>, <strong>clinical</strong>, <strong>locale</strong> — and emits a JSON + Markdown
 report with per-check outcomes, an axis score (0–100), and an overall
@@ -2555,8 +2555,11 @@ score.</p>
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  --strict               Exit 1 if any axis reports a FAIL check
 </span></code></pre></div>
 <h2 id="axes">Axes<a class="headerlink" href="#axes" title="Permanent link">&para;</a></h2>
-<p>Each axis holds <strong>5 checks</strong> (MVP). More checks land through issues
-tagged <code>good first issue</code> on GitHub.</p>
+<p>Structural + locale hold 5 checks each; clinical holds 7 (5 MVP +
+2 coherence, added in P1-9). More checks land through issues tagged
+<code>good first issue</code> on GitHub. A country-specific axis
+(<code>jp_clins_lab_compliance</code>) activates for JP cohorts only — see
+<a href="../clinosim/eval/README.md"><code>clinosim.eval</code></a> for the full axis list.</p>
 <h3 id="structural-fhir-compliance">Structural (FHIR compliance)<a class="headerlink" href="#structural-fhir-compliance" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2641,7 +2644,7 @@ tagged <code>good first issue</code> on GitHub.</p>
 </tr>
 </tbody>
 </table>
-<h3 id="locale-language-code-system">Locale (language + code system)<a class="headerlink" href="#locale-language-code-system" title="Permanent link">&para;</a></h3>
+<h3 id="locale-language--code-system">Locale (language + code system)<a class="headerlink" href="#locale-language--code-system" title="Permanent link">&para;</a></h3>
 <p>Dispatched by cohort country (auto-detected from Patient.address.country
 or JP Core meta.profile presence).</p>
 <p><strong>JP checks:</strong></p>

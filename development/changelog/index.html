@@ -2343,7 +2343,7 @@ byte output but must document the change here.</p>
   <code>_BUNDLE_BUILDERS</code> registry stays with <code>_build_bundle</code> in the
   adapter.</li>
 </ul>
-<h3 id="fixed-session-82-subsumed-under-added-changed-above">Fixed (session 82 — subsumed under Added / Changed above)<a class="headerlink" href="#fixed-session-82-subsumed-under-added-changed-above" title="Permanent link">&para;</a></h3>
+<h3 id="fixed-session-82--subsumed-under-added--changed-above">Fixed (session 82 — subsumed under Added / Changed above)<a class="headerlink" href="#fixed-session-82--subsumed-under-added--changed-above" title="Permanent link">&para;</a></h3>
 <p>Detailed defect-fix notes for the three Issue tickets (#460 / #439 / #433)
 are recorded in the corresponding PR bodies (#521 / #522 / #523). All
 three preserve deterministic output for pre-existing cohorts — byte-diff
@@ -2491,7 +2491,7 @@ regression).</p>
 <li><code>README.ja.md</code> translation of the new sections is intentionally
   deferred to a separate PR (scope discipline).</li>
 </ul>
-<h2 id="020-2026-07-12">[0.2.0] - 2026-07-12<a class="headerlink" href="#020-2026-07-12" title="Permanent link">&para;</a></h2>
+<h2 id="020---2026-07-12">[0.2.0] - 2026-07-12<a class="headerlink" href="#020---2026-07-12" title="Permanent link">&para;</a></h2>
 <p>Initial public v0.2 baseline release. Bundles the physiology-driven
 generator (session-16-through-46 development) with the packaging /
 distribution work that makes it installable.</p>
@@ -2511,7 +2511,7 @@ distribution work that makes it installable.</p>
   Migration: <code>pip install -e ".[dev]"</code> (developers) or
   <code>pip install clinosim</code> (users, once on PyPI).</li>
 </ul>
-<h3 id="packaging-distribution">Packaging &amp; Distribution<a class="headerlink" href="#packaging-distribution" title="Permanent link">&para;</a></h3>
+<h3 id="packaging--distribution">Packaging &amp; Distribution<a class="headerlink" href="#packaging--distribution" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>pyproject.toml</code>: switch to <code>dynamic = ["version"]</code> sourced from
   <code>clinosim/__init__.py::__version__</code> (single source of truth).</li>
@@ -2563,7 +2563,7 @@ distribution work that makes it installable.</p>
   unrelated patients' cohorts.</li>
 <li>Verified across seed=42/100/200/300/400 in session 45's 5-seed chain.</li>
 </ul>
-<h3 id="ci-automation">CI / Automation<a class="headerlink" href="#ci-automation" title="Permanent link">&para;</a></h3>
+<h3 id="ci--automation">CI / Automation<a class="headerlink" href="#ci--automation" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>GitHub Actions CI</strong> (<code>.github/workflows/ci.yml</code>) — runs on every
   push to <code>master</code> and every PR. Hard gates: unit tests on Python 3.11</li>

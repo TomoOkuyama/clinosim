@@ -1816,7 +1816,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#option-a-local-hapi-fhir-docker" class="md-nav__link">
+  <a href="#option-a--local-hapi-fhir-docker" class="md-nav__link">
     <span class="md-ellipsis">
       
         Option A — Local HAPI FHIR (Docker)
@@ -1866,7 +1866,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#option-b-other-fhir-r4-servers" class="md-nav__link">
+  <a href="#option-b--other-fhir-r4-servers" class="md-nav__link">
     <span class="md-ellipsis">
       
         Option B — Other FHIR R4 servers
@@ -2437,7 +2437,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#option-a-local-hapi-fhir-docker" class="md-nav__link">
+  <a href="#option-a--local-hapi-fhir-docker" class="md-nav__link">
     <span class="md-ellipsis">
       
         Option A — Local HAPI FHIR (Docker)
@@ -2487,7 +2487,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#option-b-other-fhir-r4-servers" class="md-nav__link">
+  <a href="#option-b--other-fhir-r4-servers" class="md-nav__link">
     <span class="md-ellipsis">
       
         Option B — Other FHIR R4 servers
@@ -2630,7 +2630,7 @@ server should accept the same input.</p>
 </span></code></pre></div>
 <p>Each <code>.ndjson</code> is one FHIR resource per line. <code>manifest.json</code> is the
 Bulk Data descriptor pointing at those files.</p>
-<h2 id="option-a-local-hapi-fhir-docker">Option A — Local HAPI FHIR (Docker)<a class="headerlink" href="#option-a-local-hapi-fhir-docker" title="Permanent link">&para;</a></h2>
+<h2 id="option-a--local-hapi-fhir-docker">Option A — Local HAPI FHIR (Docker)<a class="headerlink" href="#option-a--local-hapi-fhir-docker" title="Permanent link">&para;</a></h2>
 <h3 id="1-start-the-server">1. Start the server<a class="headerlink" href="#1-start-the-server" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--name<span class="w"> </span>hapi-fhir<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span>-p<span class="w"> </span><span class="m">8080</span>:8080<span class="w"> </span><span class="se">\</span>
@@ -2725,7 +2725,7 @@ poll until the import completes:</p>
 </span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">BASE</span><span class="si">}</span><span class="s2">/Patient?_count=1"</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.entry[0].resource.meta.profile'</span>
 </span></code></pre></div>
-<h2 id="option-b-other-fhir-r4-servers">Option B — Other FHIR R4 servers<a class="headerlink" href="#option-b-other-fhir-r4-servers" title="Permanent link">&para;</a></h2>
+<h2 id="option-b--other-fhir-r4-servers">Option B — Other FHIR R4 servers<a class="headerlink" href="#option-b--other-fhir-r4-servers" title="Permanent link">&para;</a></h2>
 <p>Any server that supports the FHIR R4 Bulk Data Access
 <a href="https://hl7.org/fhir/uv/bulkdata/OperationDefinition-import.html"><code>$import</code></a>
 operation accepts the same NDJSON payload. Examples include:</p>

@@ -2342,9 +2342,9 @@
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        pop --&gt; act --&gt; enc --&gt; loop --&gt; cif_s
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    end
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    subgraph stage2["Stage 2 — clinosim narrate (DEPRECATED)"]
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    subgraph stage2["Stage 2 — clinosim narrate"]
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        gen2["document_enricher (document module)&lt;br/&gt;Stage 1 built-in: DR + Composition + ClinicalImpression&lt;br/&gt;template-based, fully deterministic"]
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        llm2["LLM narrative deferred to β-JP-1 chain&lt;br/&gt;(narrate subcommand removed)"]
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        llm2["clinosim narrate (cli_narrate.py)&lt;br/&gt;optional LLM narrative pass over structural CIF&lt;br/&gt;emits cif/narratives/&amp;lt;version&amp;gt;/"]
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    end
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    subgraph stage3["Stage 3 — clinosim export-fhir"]
@@ -2358,9 +2358,9 @@
 <p><strong>Why three stages?</strong></p>
 <ul>
 <li><strong>Reproducibility</strong> — Stage 1 is fully deterministic from a seed (includes built-in document enricher). Stage 3 is a pure function of CIF.</li>
-<li><strong>Extensibility</strong> — Stage 2 LLM narrative integration (Ollama / Bedrock) is deferred to the β-JP-1 chain; the architecture is preserved for future wiring.</li>
-<li><strong>Cost control</strong> — When LLM narratives land, Stage 2 will be the only stage that may call a paid LLM API. Bedrock runs can be isolated to a single EC2 invocation.</li>
-<li><strong>Remote execution</strong> — Future Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock), while Stage 1 and Stage 3 stay local.</li>
+<li><strong>Extensibility</strong> — Stage 2 (<code>clinosim narrate</code>) is optional and wires in LLM narrative providers (local Ollama, AWS Bedrock, Sakura Cloud Ollama) over the same structural CIF. Skipping it still produces valid FHIR (template-mode <code>docStatus="preliminary"</code>).</li>
+<li><strong>Cost control</strong> — Stage 2 is the only stage that may call a paid LLM API. Bedrock / Sakura runs can be isolated to a single remote invocation.</li>
+<li><strong>Remote execution</strong> — Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock, Sakura Cloud for Ollama), while Stage 1 and Stage 3 stay local.</li>
 </ul>
 <h3 id="snapshot-semantics">Snapshot Semantics<a class="headerlink" href="#snapshot-semantics" title="Permanent link">&para;</a></h3>
 <ul>
