@@ -1,279 +1,182 @@
-# clinosim.modules.staff — 医療従事者ロスター生成・割り当て
+# `clinosim.modules.staff` — 病院スタッフ roster 生成 + イベント割当
 
-## 目的
+## 概要
 
-病院の **医療スタッフ名簿 (roster)** を生成し、 臨床イベント (入院、回診、採血、画像読影、投薬等) に適切なスタッフを割り当てる。
+シミュレータ内 病院の practitioner roster (医師、看護師、検査技師、
+放射線科医、薬剤師、多職種 allied-health) を病院の部門レイアウト +
+病床数に応じて scale して生成し、臨床イベント (入院、回診、退院、
+検査採取、検査結果、画像読影、投薬) に per-encounter でスタッフを
+dispatch する。生成される `StaffRoster` は、simulator が encounter
+builder および FHIR `Practitioner` / `PractitionerRole` 出力に渡す
+staff identity の単一情報源。
 
-CIF / FHIR の各 Resource には `performer` / `attending_physician` / `administering_nurse` 等の担当者参照が必要であり、 staff モジュールはその参照可能な ID とメタデータ (名前・所属・専門科・連絡先) を提供する。
+## Scope
 
-特徴:
+- **In scope**: `hospital_config`
+  (`available_departments`, `wards`, `resource_capacity.inpatient_beds`)
+  からの roster 構築、部門別医師数 (内科 / 一般外科 / 救急は
+  bed-scale 公式、その他は固定; 詳細は
+  [`_staff_thresholds.py`](_staff_thresholds.py) の divisor + min 表
+  を参照)、病棟別看護師数、ED / OPD 看護師プール、検査技師 /
+  放射線科医 / 薬剤師 固定数、追加 allied-health 職種
+  (β-JP-1 CareTeam 拡張の C5-25 Chain 3)、国別姓名 (JP は kanji +
+  kana pair) と電話 / メール生成、`assign_staff` の event-type →
+  staff-role dispatch。
+- **In scope (fallback ID)**: `FALLBACK_PHYSICIAN_ID = "DR-001"`、
+  `FALLBACK_NURSE_ID = "NS-001"`、`FALLBACK_TECH_ID = "TECH-001"`
+  (Issue #562) — roster が空 (test fixture / smoke run) のときのみ
+  使う grep-alignable sentinel。production 経路では fallback
+  `dict.get` が発火する時点で必ず本物 ID が用意されている。
+- **Out of scope**: 患者 identifier
+  ([`clinosim.modules.identity`](../identity/README.md))、病院 /
+  病棟 / ベッド在庫
+  ([`clinosim.modules.facility`](../facility/README.md))、看護
+  アセスメント scaffolding
+  ([`clinosim.modules.nursing`](../nursing/README.md))、入院
+  encounter への主担当看護師割当 (これは
+  [`clinosim.modules.nursing.engine.nursing_enricher`](../nursing/README.md)
+  で走り、**本モジュール**の roster から選ぶ)、FHIR 出力
+  ([`clinosim.modules.output`](../output/README.md))。
 
-- **Department-aware**: hospital config の `available_departments` に合わせて医師数を配分
-- **Ward-aware**: 看護師は病棟単位で配置 (1 看護師: 2 床を基準)
-- **Locale-aware**: 国別の names.yaml から姓名をサンプル (日本語は姓・名の順、 英語は名・姓)
-- **Role-based assignment**: `assign_staff()` がイベント種別と科から適切な role を選出
-
-## 設計原則
-
-| # | 原則 | 説明 |
-|---|---|---|
-| 1 | **Hospital config ベース** | 部門数・病床・病棟は hospital_config (hospital_small.yaml 等) に従う |
-| 2 | **科別 ID prefix** | `DR-IM-001` (内科)、 `DR-CA-003` (循環器)、 `NS-OR-012` (整形外科看護師) |
-| 3 | **1 医師 : 5 床** 以上 (department 別) | 内科は 8 床に 1 人等、 dept ごとに heuristic 設定 |
-| 4 | **1 看護師 : 2 床** + バッファ | `nurses_per_ward = max(6, beds_per_ward // 2 + 3)` |
-| 5 | **性別バイアス** | 医師 M:F = 65:35、 看護師 M:F = 15:85 (統計的現実への一次近似) |
-| 6 | **Fallback chain** | `assign_staff()` は dept 一致 → specialty 一致 → 任意の role の順 |
-
-## API リファレンス
-
-### `generate_roster(hospital_scale, country, rng, hospital_config=None) -> StaffRoster`
-
-病院規模と国に応じた完全な staff roster を生成する。
+## Public API
 
 ```python
-from clinosim.modules.staff.engine import generate_roster
-import numpy as np
-
-rng = np.random.default_rng(42)
-roster = generate_roster(
-    hospital_scale="medium",
-    country="JP",
-    rng=rng,
-    hospital_config=load_hospital_config("hospital_medium.yaml"),
+from clinosim.modules.staff import (
+    StaffMember,                       # dataclass (types.staff から再 export)
+    StaffRoster,                       # dataclass (types.staff から再 export)
+    generate_roster,                   # (hospital_scale, country, rng, hospital_config=None) -> StaffRoster
+    assign_staff,                      # (event_type, department, roster, rng) -> {role_in_event: staff_id}
 )
-print(f"Total staff: {len(roster.members)}")
-print(f"Physicians: {len(roster.get_by_role('physician'))}")
+from clinosim.modules.staff.engine import (
+    FALLBACK_PHYSICIAN_ID,             # "DR-001"
+    FALLBACK_NURSE_ID,                 # "NS-001"
+    FALLBACK_TECH_ID,                  # "TECH-001"
+)
 ```
 
-**生成ロジック**:
+`assign_staff` は `match event_type` で dispatch:
 
-1. `hospital_config.available_departments` から対象科を取得 (デフォルト `["internal_medicine"]`)
-2. `hospital_config.wards` から病棟マップを取得
-3. `hospital_config.resource_capacity.inpatient_beds` から総病床
-4. **医師** を科ごとに配分:
-   ```python
-   doctors_per_dept = {
-       "internal_medicine":  max(4, beds_total // 8),
-       "cardiology":         2,
-       "pulmonology":        2,
-       "gastroenterology":   2,
-       "nephrology":         1,
-       "endocrinology":      1,
-       "neurology":          2,
-       "general_surgery":    max(3, beds_total // 10),
-       "orthopedics":        2,
-       "neurosurgery":       2,
-       "trauma_surgery":     2,
-       "emergency_medicine": max(3, beds_total // 12),
-       "primary_care":       2,
-   }
-   ```
-5. **看護師** を病棟 (dept × ward) 毎に配置。 `beds_per_ward ≒ beds_total / n_wards`、 `nurses_per_ward ≒ max(6, beds_per_ward//2 + 3)`
-6. **ED / OPD 看護師**: emergency_medicine / primary_care は各 5 名共通配置
-7. **共通サービス**: 臨床検査技師 10 名、 放射線科医 4 名、 薬剤師 8 名
+- `"admission" | "rounds" | "discharge"` → attending physician
+  (specialty マッチ、失敗時 graceful fallback) + primary nurse。
+- `"lab_collection" | "lab_result"` → performing technician。
+- `"imaging_interpretation"` → interpreting radiologist。
+- `"medication_administration"` → 発注部門所属の administering nurse。
 
-### `assign_staff(event_type, department, roster, rng) -> dict[str, str]`
+`StaffRoster.get_by_role(role, department=None)` は module 内部で
+使う主要 lookup 形状。
 
-臨床イベントに対し `{role_in_event: staff_id}` 辞書を返す。
+## 決定論
 
-```python
-from clinosim.modules.staff.engine import assign_staff
+- **`ENRICHER_SEED_OFFSETS` にサブ seed 未登録**。本モジュールは
+  enricher を登録せず、encounter simulator から imperative に呼び
+  出される。RNG は呼び出し側が握る。
+- caller 責務: `generate_roster` / `assign_staff` は渡された `rng`
+  に対して純粋。encounter simulator (`inpatient.py`, `outpatient.py`,
+  `lab_pipeline.py`) は各々自前のサブ RNG (例: 入院割当用の
+  per-encounter seed) を導出してから `assign_staff` を呼ぶため、
+  per-event dispatch は再現可能かつ主 clinical stream を乱さない。
 
-assignments = assign_staff("admission", "pulmonology", roster, rng)
-# → {"attending_physician": "DR-PU-003", "primary_nurse": "NS-PU-012"}
+## 依存
 
-assignments = assign_staff("lab_collection", "", roster, rng)
-# → {"performing_technician": "TECH-LAB-005"}
+- `clinosim.modules._shared` — `is_jp` (国別電話フォーマット + JP
+  kana name の dispatch)。
+- `clinosim.modules.staff._staff_thresholds` — 全 threshold 表
+  (divisor / min / count / qualification-year 範囲 / phone 桁範囲 /
+  追加 staff roster)。
+- `clinosim.locale.loader` — `load_names(country)` で姓 / 名 pool。
+- `clinosim.types.staff` — `StaffMember`, `StaffRoster`。
+- `numpy` — `np.random.Generator`。
+- 他の `clinosim.modules.*` には依存しない。
+
+## 定数と設定
+
+- **Threshold 表**: [`_staff_thresholds.py`](_staff_thresholds.py)
+  — magic number をすべて名付けて docstring 付与済 (Issue #562 sweep)。
+  含まれるもの:
+  - 医師 per-bed divisor (`DOCTORS_PER_INTERNAL_MED_BED_DIVISOR`、
+    `DOCTORS_PER_SURGERY_BED_DIVISOR`、
+    `DOCTORS_PER_ED_BED_DIVISOR`) と min
+    (`MIN_INTERNAL_MED_PHYSICIANS`、`MIN_SURGERY_PHYSICIANS`、
+    `MIN_ED_PHYSICIANS`); その他部門は `DOCTORS_PER_DEPT_FIXED`。
+  - 看護 scaling: `NURSES_PER_BED_DIVISOR`、`NURSES_PER_BED_BUFFER`、
+    `NURSES_PER_WARD_MIN`、`MIN_BEDS_PER_WARD`、
+    `FALLBACK_BEDS_PER_WARD`、`ED_OPD_NURSES_PER_AREA`。
+  - 補助職 count: `LAB_TECH_COUNT`、`RADIOLOGIST_COUNT`、
+    `PHARMACIST_COUNT`。
+  - 職種別資格年範囲
+    (`{PHYSICIAN,NURSE,PHARMACIST,RADIOLOGIST,TECH,ALLIED_HEALTH}_QUALIFICATION_YEAR_{START,END_EXCLUSIVE}`)。
+  - 性比: `PHYSICIAN_MALE_RATIO`、`NURSE_FEMALE_RATIO`。
+  - 電話桁範囲 (`JP_PHONE_*`, `US_PHONE_*`)。
+  - `STAFF_ID_FALLBACK_{MIN,MAX_EXCLUSIVE}` — locale name pool が
+    空の場合の missing-name fallback (`Staff-{n}` id)。
+  - `EXTRA_STAFF_ROLES` — C5-25 Chain 3 の allied-health 拡張を
+    表す `(role, id_prefix, dept, count, female_ratio)` の tuple。
+- **部門 → staff-ID prefix** (`engine.py` の `_DEPT_PREFIX`):
+  `internal_medicine → "IM"`, `cardiology → "CA"`,
+  `pulmonology → "PU"`, `gastroenterology → "GI"`,
+  `nephrology → "NE"`, `endocrinology → "EN"`, `neurology → "NR"`,
+  `general_surgery → "GS"`, `orthopedics → "OR"`,
+  `neurosurgery → "NS"`, `trauma_surgery → "TS"`,
+  `emergency_medicine → "EM"`, `primary_care → "PC"`,
+  `obstetrics_gynecology → "OB"`, `pediatrics → "PD"`。未知部門は
+  `dept[:2].upper()` に fallback。
+- **JP 姓名 pair** (`_generate_name_pair`): `(kanji, kana)` を返す
+  ため `StaffMember.name_phonetic` に kana を populate でき、
+  JP Core Practitioner の `HumanName` SYL エントリを埋められる
+  (C2-19 継続)。非 JP は `(name, "")`。
+
+## ディレクトリ構造
+
+```
+clinosim/modules/staff/
+  __init__.py                     public API (StaffMember, StaffRoster, generate_roster, assign_staff)
+  engine.py                       roster 生成 + assign_staff dispatch + name / phone / email helper
+  _staff_thresholds.py            named threshold 定数 (Issue #562)
+  SPEC.md                         v1+ 設計参考 (役職 / lifecycle / 資格 — runtime data ではない)
 ```
 
-**イベント種別と割り当てロール**:
+**`enricher.py` / `audit.py` / `reference_data/` は存在しない**。
 
-| event_type | 割り当て role | ソース |
+## Enricher 配線
+
+該当なし — 本モジュールは `register_builtin_enrichers` に登録なく、
+`ENRICHER_SEED_OFFSETS` にも seed 未登録。roster は CLI / encounter
+simulator が run あたり 1 回構築し、`assign_staff` は下記 encounter
+経路から imperative に呼ばれる。
+
+## Output surface (consumers)
+
+| Consumer | 場所 | 役割 |
 |---|---|---|
-| `admission` / `rounds` / `discharge` | `attending_physician`, `primary_nurse` | 科一致 → specialty 一致 → 任意の医師 |
-| `lab_collection` / `lab_result` | `performing_technician` | 臨床検査技師 |
-| `imaging_interpretation` | `interpreting_radiologist` | 放射線科医 |
-| `medication_administration` | `administering_nurse` | 科一致の看護師、 なければ任意 |
-
-## データ構造
-
-`StaffMember` / `StaffRoster` は `clinosim.types.staff` に定義 (全共有型は `clinosim/types/`)。
-`clinosim.modules.staff` と `clinosim.modules.staff.engine` から re-export される。
-
-### `StaffMember`
-
-```python
-@dataclass
-class StaffMember:
-    staff_id: str           # "DR-IM-001", "NS-OR-012", "TECH-LAB-005"
-    name: str               # "山田 太郎" (JP) or "John Smith" (US)
-    role: str               # "physician" | "nurse" | "lab_technician" |
-                            # "radiologist" | "pharmacist"
-    department: str         # "internal_medicine", "cardiology", ...
-    specialty: str = ""     # 通常は department と同じ
-    qualification_year: int = 2010
-    sex: str = ""           # "M" | "F"
-    phone: str = ""         # 内線・業務携帯
-    email: str = ""         # "dr-im-001@hospital.example.org"
-    ward: str = ""          # 看護師の主担当病棟 (例: "3E")
-```
-
-### `StaffRoster`
-
-```python
-@dataclass
-class StaffRoster:
-    members: list[StaffMember]
-
-    def get_by_role(self, role: str, department: str = "") -> list[StaffMember]:
-        """role 一致 + (dept 指定があれば一致) のメンバー"""
-
-    def get_by_id(self, staff_id: str) -> StaffMember | None:
-        """staff_id で 1 件検索 (線形走査)"""
-```
-
-### 科コード prefix
-
-Staff ID 可読性のための prefix 対応表 (`_DEPT_PREFIX`):
-
-| department | prefix |
-|---|---|
-| internal_medicine | IM |
-| cardiology | CA |
-| pulmonology | PU |
-| gastroenterology | GI |
-| nephrology | NE |
-| endocrinology | EN |
-| neurology | NR |
-| general_surgery | GS |
-| orthopedics | OR |
-| neurosurgery | NS |
-| trauma_surgery | TS |
-| emergency_medicine | EM |
-| primary_care | PC |
-| obstetrics_gynecology | OB |
-| pediatrics | PD |
-
-例: `DR-CA-002` = 循環器科 2 人目の医師、 `NS-OR-015` = 整形外科 15 人目の看護師、 `TECH-LAB-003` = 検査技師 3 人目。
-
-## 使用例: 入院時のスタッフ割り当て
-
-```python
-from clinosim.modules.staff.engine import generate_roster, assign_staff
-import numpy as np
-
-rng = np.random.default_rng(42)
-
-# 1. Once per hospital setup
-hospital_config = {
-    "available_departments": ["internal_medicine", "cardiology", "pulmonology",
-                              "general_surgery", "orthopedics", "emergency_medicine"],
-    "wards": {
-        "internal_medicine": ["3W", "4W"],
-        "cardiology": ["CCU", "5E"],
-        "pulmonology": ["4E"],
-        "orthopedics": ["6W"],
-        "emergency_medicine": ["ER"],
-    },
-    "resource_capacity": {"inpatient_beds": 200},
-}
-roster = generate_roster("medium", "US", rng, hospital_config)
-
-# 2. On admission
-encounter_department = "pulmonology"  # 肺炎症例
-assignments = assign_staff("admission", encounter_department, roster, rng)
-# {"attending_physician": "DR-PU-001", "primary_nurse": "NS-PU-008"}
-
-# 3. Look up details
-attending = roster.get_by_id(assignments["attending_physician"])
-print(f"{attending.name} ({attending.specialty}), since {attending.qualification_year}")
-# → "Michael Johnson (pulmonology), since 1998"
-
-# 4. For each lab order
-lab_staff = assign_staff("lab_collection", "", roster, rng)
-# {"performing_technician": "TECH-LAB-007"}
-
-# 5. For each imaging order
-img_staff = assign_staff("imaging_interpretation", "", roster, rng)
-# {"interpreting_radiologist": "DR-RAD-002"}
-```
-
-## 依存関係
-
-- `clinosim.locale.loader.load_names` — 国別名前データ
-- `numpy` — RNG, weighted choice
-- `hospital_config` (dict) — 呼び出し側から注入 (ward マップ、 部門リスト、 病床数)
-
-**他モジュールへの依存なし** (staff は独立したサービス)。
-
-## 拡張方法
-
-### 新しい科を追加する
-
-1. `_DEPT_PREFIX` に科名 → 2 文字 prefix を追加
-2. 必要なら `doctors_per_dept` 辞書に heuristic 数を追加 (無ければデフォルト 2 名)
-3. hospital_config の `available_departments` と `wards` に追加
-4. **コード変更は prefix 登録のみ** — 医師・看護師生成は既存フローが対応
-
-### 新しいイベントタイプを追加する
-
-`assign_staff()` の `match event_type:` に新しい case を追加:
-
-```python
-case "physiotherapy":
-    pts = roster.get_by_role("physiotherapist")
-    if pts:
-        assignments["performing_therapist"] = rng.choice(pts).staff_id
-```
-
-新しい role を使う場合は `generate_roster()` に生成ロジックも追加。
-
-## Consumers
-
-このモジュールに依存するもの:
-
-| Caller | How | Impact |
-|---|---|---|
-| `simulator/engine.py` | hospital startup 時に `generate_roster()` を呼出、各 simulation で参照 | core (主 simulation loop) |
-| `simulator/inpatient.py` | admission / discharge / round 等で `assign_staff()` を呼出 | core |
-| `simulator/emergency.py` | ED visit で staff assignment | core |
-| `simulator/outpatient.py` | outpatient visit で staff assignment | core |
-| `simulator/cli.py` | CLI 起動時の roster orchestration | core |
-| `modules/staff/__init__.py` | public API re-export | infrastructure |
-| `tests/unit/test_staff_types.py` | StaffRoster / StaffMember type tests | guard |
+| Encounter builder (inpatient) | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) (`L45` 付近, `L260` 付近) | `assign_staff("admission", department, roster, rng)` で attending + primary nurse を選出。 |
+| Encounter builder (outpatient) | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py) (`L21`, `L109`, `L161`, `L177` 付近) | 回診 / 投薬 / 検査採取の割当。 |
+| Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) (`L51`, `L113`, `L131`, `L166` 付近) | `assign_staff("lab_result", …)` で performing / result 技師を選出、roster 空時は `FALLBACK_TECH_ID`。 |
+| CLI single-encounter driver | [`clinosim/simulator/cli_test_encounter.py`](../../simulator/cli_test_encounter.py) (`L16`, `L80` 付近) | smoke run で `generate_roster("medium", country, rng)` を呼ぶ。 |
+| Nursing 主担当看護師 enricher | [`clinosim/modules/nursing/engine.py`](../nursing/engine.py) | `roster.get_by_role("nurse")` で主担当看護師を選出 (本モジュール生成 roster を transit 消費)。 |
+| FHIR `Practitioner` + `PractitionerRole` builder | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | `StaffMember` field を `Practitioner` (name / kana / telecom / qualification) と `PractitionerRole` (department / specialty) に emit。 |
 
 ## テスト
 
 ```bash
-source .venv/bin/activate && python -m pytest tests/unit/test_staff.py -v
+pytest tests/unit -k staff -q      # types + fallback 定数
 ```
 
-カバー範囲: ロスター生成 (scale 別)、 科別配分、 ward 配置、 assign_staff の fallback chain、 国別名前生成。
+個別ファイル:
 
-## 修正ガイド
+- [`tests/unit/test_staff_types.py`](../../../tests/unit/test_staff_types.py)
+  — `StaffMember` / `StaffRoster` dataclass shape。
+- [`tests/unit/modules/test_staff_fallback_constants.py`](../../../tests/unit/modules/test_staff_fallback_constants.py)
+  — `FALLBACK_*` 定数 + module-level 命名 (Issue #562)。
 
-### スタッフ名とFHIR出力の関係
+**coverage gap**: roster 生成と `assign_staff` dispatch に専用 unit
+test は無く、integration / e2e で間接カバーされている。`generate_roster`
+(scale 不変量、ID 一意性、追加 role 混入) と `assign_staff` (event-type
+別 dispatch、empty roster fallback) に対する専用 unit test file の追加は
+低コストの follow-up。
 
-- CIF `hospital.json` にスタッフロスター (staff_id, name, department) が格納される
-- ナラティブ生成時: `document_enricher` (Task 8) が hospital_course_extractor 経由で staff_id を実名に変換
-  - JP: `佐伯 紬医師` (family given + 「医師」suffix)
-  - US: `Dr. Smith`
-- FHIR: `Practitioner.ndjson` にスタッフリソースとして出力
+## Ownership
 
-### 関連モジュール
+`maintainers@` — 詳細は
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
 
-| モジュール | 関係 |
-|---|---|
-| `locale` | `names.yaml` からスタッフ名を生成 (国別 surname/given) |
-| `hospital_config` | `available_departments` でどの科のスタッフを生成するか決定 |
-| `modules/document/engine.py` | document_enricher で staff_id → name 変換 (Task 15 で document_generator.py から移行) |
-| `output/fhir_r4_adapter` | Practitioner + PractitionerRole FHIR リソース |
-
-### 新しい診療科のスタッフを追加する
-
-1. `engine.py` の `_DEPT_PREFIX` dict に追加（例: `"neurosurgery": "NS"`）— **Python コード変更が必要**
-2. `hospital_operations.yaml` の `available_departments` に追加
-3. `locale/shared/department_display.yaml` に表示名（`en` / `ja`）を追加
-4. `clinosim generate` を実行するとロスターに新科のスタッフが自動生成される
-
-`_DEPT_PREFIX` は `engine.py` 冒頭付近の dict 定義。各科の staff_id prefix (例: `DR-IM-001`) を決める。
+英語版: [`README.md`](README.md)。

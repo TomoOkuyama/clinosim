@@ -6,7 +6,7 @@ Provides the **single source of truth for clinical code systems** in
 clinosim.
 
 CIF (Clinosim Intermediate Format) stores codes only; display text is
-resolved at output time through this module. That gives us:
+resolved at output time through this module. That gives:
 
 - One code = one entry + multi-language display attributes (English,
   Japanese, …)
@@ -16,57 +16,189 @@ resolved at output time through this module. That gives us:
 - Clean separation between locale-independent international standards
   and locale-specific data (which lives under `clinosim/locale/`)
 
+## Scope
+
+- **In scope**: unified lookup for every clinical code system clinosim
+  emits, multi-language display resolution, canonical FHIR system-URI
+  mapping (~55 URIs registered in `_BUILTIN_URIS`), curated code data
+  YAMLs, HL7 v2/v3 vocabulary StrEnums for the Encounter resource,
+  authoritative-source JSON fragments captured for reproducibility
+  (see `authoritative/`).
+- **Out of scope**: locale-scoped data such as names, addresses,
+  formatting rules (those live in `clinosim/locale/`), disease /
+  observation / medication content (in `clinosim/modules/*/`), the
+  CIF data schema itself (in `clinosim/types/`).
+
+## Public API
+
+```python
+from clinosim.codes import (
+    lookup,             # (system, code, lang="en") -> str
+    get_display,        # (system, code, country="US") -> str
+    get_system_uri,     # (system) -> str
+    system_key_for,     # (kind, country) -> str  (e.g. ("diagnosis","JP")→"icd-10-mhlw")
+    CodeSystem,         # dataclass: key, name, uri, version, codes
+)
+```
+
+Additional loader-level helpers, not re-exported at package level but
+importable from `clinosim.codes.loader`:
+
+```python
+from clinosim.codes.loader import is_japanese_only_display_system
+```
+
+HL7 vocabulary StrEnums for the Encounter resource (Issue #562) —
+importable from `clinosim.codes.hl7_encounter`:
+
+```python
+from clinosim.codes.hl7_encounter import (
+    AdmitSource,          # http://terminology.hl7.org/CodeSystem/admit-source
+    DischargeDisposition, # http://terminology.hl7.org/CodeSystem/discharge-disposition
+    ActPriority,          # http://terminology.hl7.org/CodeSystem/v3-ActPriority
+)
+```
+
+`StrEnum` inherits from `str`, so
+`encounter.admit_source = AdmitSource.EMD` stays wire-compatible with
+the pre-refactor `str` typing (comparisons `== "emd"` continue to
+work).
+
+## Determinism
+
+Not applicable — the package is pure lookup. `_load_system` is
+`@lru_cache`-decorated so a given system key resolves to the identical
+`CodeSystem` instance on every call. Given the same YAML on disk, the
+same `(system, code, lang)` triple always resolves to the same string.
+
+## Dependencies
+
+- `pyyaml` for YAML loading.
+- Standard library `pathlib`, `functools`, `dataclasses`, `enum`.
+- **No dependency on other `clinosim.*` packages.**
+
+## Constants and configuration
+
+- **`_DATA_DIR`** = `Path(__file__).parent / "data"` — where the
+  per-system YAML files live.
+- **`_BUILTIN_URIS`** — ~55 short-key → canonical URI mappings for
+  every code system clinosim emits (ICD variants, LOINC, SNOMED CT,
+  RxNorm, JLAC10, YJ, HOT7/9/13, K-codes, JP-Core NamingSystems, HL7
+  v2/v3/FHIR terminology CodeSystems, JP-CLINS eCS Nocoded, clinosim-
+  owned CodeSystems for gap-filling — see the block-level comments in
+  `loader.py` for rationale per URI).
+- **`_SYSTEM_DATA_ALIASES`** — Issue #350 mechanism for two keys that
+  share the same code data but need distinct canonical URIs (concrete
+  case: `icd-10-mhlw` aliases to `icd-10` code data with the JP
+  MHLW-2013 registry URI).
+- **Language fallback chain** — requested lang → `en` → first
+  available language → the code itself.
+- **Code lookup fallback chain** — exact match → base code (strip
+  trailing subcode) → sub-code prefix scan → the code itself.
+
+## Directory contents
+
+```
+clinosim/codes/
+  __init__.py                     public API (5 exports)
+  loader.py                       CodeSystem dataclass, lookup /
+                                  get_display / get_system_uri /
+                                  system_key_for, _BUILTIN_URIS,
+                                  _SYSTEM_DATA_ALIASES
+  hl7_encounter.py                AdmitSource / DischargeDisposition /
+                                  ActPriority StrEnums
+  data/                           32 curated code YAMLs (see full list
+                                  in "Supported code systems" below)
+  authoritative/                  authoritative-source JSON fragments
+                                  captured for reproducibility
+                                  (icd10_who_tx.json, loinc_2_82_tx.json,
+                                  yj_tx_fragment.json,
+                                  yj_tx_valid_codes.json + README)
+```
+
+## Testing
+
+```bash
+pytest tests/unit -k codes -q
+```
+
+Approximately 45 test files reference `clinosim.codes`, covering the
+fallback chain, system-URI resolution, `system_key_for` country
+dispatch, JP-only-display detection, and per-system data-shape
+invariants.
+
+## Ownership
+
+`maintainers@` — see [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
+
+Japanese counterpart: [`README.ja.md`](README.ja.md).
+
+---
+
 ## Design principles
 
 | # | Principle | Description |
 |---|---|---|
 | 1 | **English is the primary data** | Every code must carry an `en` field. Other languages are translation options. |
-| 2 | **Authoritative source alignment** | Code values and English display follow the latest release of the official body (CMS, NLM, AMA, WHO, …). |
+| 2 | **Authoritative source alignment** | Code values and English display follow the latest release of the official body (CMS, NLM, AMA, WHO, MHLW, MEDIS, JCCLS, …). |
 | 3 | **Locale-independent** | Code systems are international. `clinosim/locale/` holds only culture-dependent data (names, addresses, …). |
 | 4 | **Code is the truth** | CIF stores only `code` + `system`. Display is derived (looked up at output time). |
 | 5 | **Fallback chain** | Requested language → English → the code itself (always returns something). |
+| 6 | **Alias, don't duplicate** | Two systems that share code data but need distinct canonical URIs use `_SYSTEM_DATA_ALIASES` instead of duplicated YAMLs. |
 
-## Directory layout
+## Supported code systems
 
-```
-clinosim/codes/
-├── __init__.py            # public API (lookup, get_system_uri, get_display)
-├── loader.py              # YAML loader + lookup functions
-├── README.md              # this file
-├── README.ja.md           # Japanese companion
-└── data/
-    ├── icd-10-cm.yaml     # ICD-10-CM (US diagnoses)
-    ├── icd-10.yaml        # WHO ICD-10 (JP diagnoses)
-    ├── loinc.yaml         # LOINC (labs, vitals)
-    ├── jlac10.yaml        # JLAC10 (JP labs)
-    ├── rxnorm.yaml        # RxNorm (US medications)
-    ├── yj.yaml            # YJ codes (JP medications)
-    ├── cpt.yaml           # CPT (US procedures)
-    └── k-codes.yaml       # K codes (JP reimbursement procedures)
-```
+### Core clinical registries (with curated data)
 
-## Supported code systems + authoritative sources
-
-| Key | Name | FHIR system URI | Source | Purpose |
+| Key | Name | FHIR system URI | Codes | Source |
 |---|---|---|---|---|
-| `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | [CMS / NCHS](https://www.cms.gov/medicare/coding-billing/icd-10-codes) | US diagnoses + problem list |
-| `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | [WHO ICD-10](https://icd.who.int/browse10/) | WHO international + JP diagnoses |
-| `loinc` | LOINC | `http://loinc.org` | [Regenstrief LOINC](https://loinc.org/) | Labs, vitals, observations |
-| `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | [JCCLS](https://www.jccls.org/) | JP clinical-lab codes |
-| `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | [NLM RxNorm](https://www.nlm.nih.gov/research/umls/rxnorm/) | US medications (generic + brand) |
-| `yj` | YJ code | `urn:oid:1.2.392.100495.20.2.74` | [MHLW YJ code (drug pricing)](https://www.mhlw.go.jp/topics/2018/04/dl/yakkasanteibasis.pdf) | JP medications |
-| `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | [AMA CPT](https://www.ama-assn.org/practice-management/cpt) | US procedures |
-| `k-codes` | K codes | `urn:oid:1.2.392.200119.4.401` | [MHLW reimbursement schedule](https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000188411.html) | JP reimbursement procedures |
+| `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | 357 | CMS / NCHS |
+| `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | 320 | WHO ICD-10 |
+| `icd-10-mhlw` | JP MHLW ICD-10 (2013 registry) | `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full` | (aliased to icd-10) | MHLW / JP-Core |
+| `loinc` | LOINC | `http://loinc.org` | 153 | Regenstrief LOINC |
+| `snomed-ct` | SNOMED CT | `http://snomed.info/sct` | 147 | IHTSDO |
+| `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | 45 | JCCLS |
+| `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | 82 | NLM RxNorm |
+| `yj` | YJ code | `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` | 59 | JP Core / capstandard |
+| `hot7` | HOT7 (JP MEDIS) | `http://medis.or.jp/CodeSystem/master-HOT7` | 106 | MEDIS |
+| `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | 31 | AMA CPT |
+| `k-codes` | K codes | `urn:oid:1.2.392.200119.4.401` | 25 | MHLW reimbursement schedule |
+| `cvx` | CVX (vaccine codes) | `http://hl7.org/fhir/sid/cvx` | 10 | CDC |
 
-Additional system URIs registered in the loader (referenceable but not
-backed by a YAML file):
+### HL7 terminology CodeSystems (data-backed)
 
-| Key | URI | Purpose |
-|---|---|---|
-| `snomed-ct` | `http://snomed.info/sct` | SNOMED CT clinical findings (future) |
-| `ucum` | `http://unitsofmeasure.org` | Units of measure |
-| `hl7-v3-actcode` | `http://terminology.hl7.org/CodeSystem/v3-ActCode` | HL7 v3 act code |
-| `hl7-v3-maritalstatus` | `http://terminology.hl7.org/CodeSystem/v3-MaritalStatus` | Marital status |
+| Key | Codes |
+|---|---|
+| `hl7-condition-clinical`, `hl7-condition-ver-status` | 6 + 6 |
+| `hl7-admit-source`, `hl7-discharge-disposition` | 3 + 2 |
+| `hl7-allergyintolerance-clinical`, `hl7-allergyintolerance-verification` | 3 + 4 |
+| `hl7-observation-interpretation` | 3 |
+| `hl7-practitioner-role`, `hl7-subscriber-relationship` | 6 + 7 |
+| `hl7-v3-actreason`, `hl7-v3-administrativegender`, `hl7-v3-maritalstatus` | 4 + 3 + 6 |
+| `hl7-endpoint-connection-type`, `hl7-endpoint-payload-type` | 1 + 1 |
+
+### JP-specific gap-fill and structural CodeSystems
+
+| Key | Codes |
+|---|---|
+| `jp-care-level` | 8 |
+| `jpfhir-doc-section` | 42 |
+| `jpfhir-doc-typecodes` | 5 |
+| `jpfhir-eCheckup-section` | 7 |
+| `condition-short-name` | 42 |
+| `clinosim-nursing-scores` | 1 |
+| `bcp-47-language` | 2 |
+
+### URI-only registrations (no YAML data)
+
+`_BUILTIN_URIS` also registers URIs for systems that clinosim references
+but does not need to display strings from — HOT9, HOT13, medication-nocoded,
+UCUM, additional HL7 v2 / v3 / terminology systems (v2-0092, v2-0131,
+v2-0203, v2-0360, service-type, referencerange-meaning, organization-type,
+condition-category, location-physical-type, RoleCode, ParticipationType,
+ActCode, ObservationCategory, DiagnosticServiceSection), US Core
+documentreference-category. Use `get_system_uri()` to resolve; `lookup()`
+falls back to returning the code itself.
 
 ## YAML schema
 
@@ -84,102 +216,27 @@ codes:
   J18.9:
     en: "Pneumonia, unspecified organism"
     ja: "肺炎，詳細不明"
-  # ...
 ```
 
 ### Schema rules
 
-- If `metadata.uri` is missing the loader infers it from the key
-  (`icd-10-cm` → CMS URI, …).
-- Every entry under `codes` must include at least `en`.
-- Additional languages use ISO 639-1 two-letter codes (`ja`, `de`, `fr`,
-  `zh`, …).
-- Code values are strings and preserve the source formatting: ICD
-  uses `J18.9`, LOINC uses `1988-5`, RxNorm uses `309090`.
-
-## API reference
-
-### `lookup(system: str, code: str, lang: str = "en") -> str`
-
-Returns the display text for a code in the requested language.
-
-**Resolution order**:
-
-1. Exact match (e.g., `J18.9`).
-2. Base code (e.g., `J18.9` → `J18`).
-3. Sub-code prefix (e.g., `I63` → `I63.9`).
-4. The code itself (fallback).
-
-**Language fallback**: requested lang → `en` → first available
-language → the code itself.
-
-```python
-from clinosim.codes import lookup
-
-lookup("icd-10-cm", "N10", "en")
-# → "Acute tubulo-interstitial nephritis"
-
-lookup("icd-10-cm", "N10", "ja")
-# → "急性腎盂腎炎"
-
-lookup("icd-10-cm", "I63", "en")  # base code
-# → "Cerebral infarction, unspecified"  (resolved via sub-code)
-
-lookup("icd-10-cm", "X99.99", "ja")  # does not exist
-# → "X99.99"  (fallback to code itself)
-```
-
-### `get_display(system: str, code: str, country: str = "US") -> str`
-
-Convenience helper that picks the language from country
-(`US` → `en`, `JP` → `ja`).
-
-```python
-from clinosim.codes import get_display
-
-get_display("icd-10-cm", "N10", "JP")
-# → "急性腎盂腎炎"
-```
-
-### `get_system_uri(system: str) -> str`
-
-Returns the FHIR canonical system URI from the short key.
-
-```python
-from clinosim.codes import get_system_uri
-
-get_system_uri("icd-10-cm")
-# → "http://hl7.org/fhir/sid/icd-10-cm"
-
-get_system_uri("loinc")
-# → "http://loinc.org"
-```
-
-### `CodeSystem` (dataclass)
-
-```python
-@dataclass
-class CodeSystem:
-    key: str                              # short key (e.g., "icd-10-cm")
-    name: str                             # human-readable name
-    uri: str                              # FHIR system URI
-    version: str                          # edition
-    codes: dict[str, dict[str, str]]      # code → {lang: display}
-```
+- If `metadata.uri` is missing the loader falls back to
+  `_BUILTIN_URIS[key]`.
+- Every entry under `codes` must include at least `en` (or `ja` for
+  JP-only display systems — see
+  `is_japanese_only_display_system`).
+- Additional languages use ISO 639-1 two-letter codes (`ja`, `de`,
+  `fr`, `zh`, …).
+- Code values are strings and preserve source formatting: ICD uses
+  `J18.9`, LOINC uses `1988-5`, RxNorm uses `309090`.
 
 ## Example: FHIR Observation output
 
 ```python
 from clinosim.codes import get_system_uri, lookup
 
-# CIF data (codes only)
-lab_result = {
-    "code": "1988-5",       # LOINC: CRP
-    "value": 38.2,
-    "unit": "mg/L",
-}
+lab_result = {"code": "1988-5", "value": 38.2, "unit": "mg/L"}
 
-# Build FHIR Observation
 obs = {
     "resourceType": "Observation",
     "code": {
@@ -190,71 +247,23 @@ obs = {
         }],
         "text": lookup("loinc", lab_result["code"], "en"),
     },
-    "valueQuantity": {
-        "value": lab_result["value"],
-        "unit": lab_result["unit"],
-    },
+    "valueQuantity": {"value": lab_result["value"], "unit": lab_result["unit"]},
 }
 ```
 
-Same data yields the Japanese display in the JP locale:
-
-```python
-display_ja = lookup("loinc", "1988-5", "ja")
-# → "C反応性蛋白"
-```
-
-## Relationship to the CIF data model
-
-CIF (`clinosim/types/`) holds **only the code and the system key**:
-
-```python
-@dataclass
-class ClinicalDiagnosis:
-    admission_diagnosis_code: str = ""              # e.g., "N10"
-    admission_diagnosis_system: str = "icd-10-cm"   # code-system key
-    discharge_diagnosis_code: str = ""
-    discharge_diagnosis_system: str = "icd-10-cm"
-    # display text is not stored (looked up at output time)
-
-
-@dataclass
-class ChronicCondition:
-    code: str = ""
-    system: str = "icd-10-cm"
-```
-
-The FHIR R4 adapter
-(`clinosim/modules/output/fhir_r4_adapter.py`) resolves display at
-output time:
-
-```python
-display = code_lookup(
-    record["clinical_diagnosis"]["discharge_diagnosis_system"],
-    record["clinical_diagnosis"]["discharge_diagnosis_code"],
-    lang="en" if country == "US" else "ja",
-)
-```
-
-## Extension
+## Extending
 
 ### Add a new code
 
-Edit the matching `data/<system>.yaml`:
+Edit the matching `data/<system>.yaml`, sorted freely (loader looks
+up by dict key; alphabetical is recommended for readability):
 
 ```yaml
 codes:
-  J18.9:
-    en: "Pneumonia, unspecified organism"
-    ja: "肺炎，詳細不明"
-  # existing entries…
-  J45.901:                              # new entry
+  J45.901:
     en: "Unspecified asthma with (acute) exacerbation"
     ja: "喘息急性増悪"
 ```
-
-Sort order is free (the loader looks up by dict key). Alphabetical
-order is recommended for readability.
 
 ### Add a new code system
 
@@ -266,45 +275,18 @@ order is recommended for readability.
 
 ### Add a new language
 
-Add a new language key to each `codes` entry:
+Add a new language key to each entry:
 
 ```yaml
 codes:
   N10:
     en: "Acute tubulo-interstitial nephritis"
     ja: "急性腎盂腎炎"
-    de: "Akute tubulointerstitielle Nephritis"   # new
+    de: "Akute tubulointerstitielle Nephritis"
 ```
 
-Call site:
-
-```python
-lookup("icd-10-cm", "N10", "de")
-# → "Akute tubulointerstitielle Nephritis"
-```
-
-Codes that lack the requested language fall back to English:
-
-```python
-lookup("icd-10-cm", "Z99.2", "de")
-# → "Dependence on renal dialysis"  (no de → en fallback)
-```
-
-## Coverage
-
-| Code system | Codes | Languages | Coverage focus |
-|---|---|---|---|
-| icd-10-cm | 234 | en, ja | Every disease clinosim generates + common Z-codes / ED symptoms |
-| icd-10 | 133 | en, ja | WHO ICD-10 base codes (JP-compatible) |
-| loinc | 65 | en, ja | Vitals + core hematology/chemistry + coagulation + cardiac markers |
-| jlac10 | 30 | en, ja | JP clinical-lab standard codes (JCCLS common reference intervals) |
-| rxnorm | 68 | en, ja | Antibiotics / anticoagulants / cardiovascular / emergency drugs |
-| yj | 39 | en, ja | JP medications (major prescriptions) |
-| cpt | 31 | en, ja | Major surgical procedures + bedside procedures + imaging |
-| k-codes | 25 | en, ja | JP reimbursement procedures (K codes) |
-| snomed-ct | 31 | en, ja | Procedure-structured fields (category, performer role, body site, outcome, complication) |
-
-Total: **656 codes** (at time of writing).
+Codes that lack the requested language fall back to English via the
+lookup fallback chain documented under "Constants and configuration".
 
 ## Boundary against the `locale` module
 
@@ -312,49 +294,64 @@ Total: **656 codes** (at time of writing).
 |---|---|---|
 | **Responsibility** | International code systems + multi-language display | Culture- and country-dependent data |
 | **Locale-scoped?** | No (all languages in one file) | Yes (`jp/`, `us/`, …) |
-| **Typical data** | ICD/LOINC/RxNorm, … | Names, addresses, phone formats, reference intervals |
+| **Typical data** | ICD / LOINC / RxNorm / SNOMED CT / HL7 vocabularies, … | Names, addresses, phone formats, reference intervals |
 | **Held by CIF** | Code value + system key | Concrete fields (Address, PersonName, …) |
 
 `locale/<country>/code_mapping_*.yaml` still exists — it maps
-simulator-internal test names (e.g., `"WBC"`) to standard codes
-(`"6690-2"`). Display-text resolution is delegated to this module.
+simulator-internal test names (e.g. `"WBC"`) to standard codes (e.g.
+`"6690-2"`). Display-text resolution is delegated to `clinosim.codes`.
 
 ## Licensing and provenance
 
 Each code system follows its own upstream license:
 
-- **ICD-10-CM**: public domain (CMS)
-- **WHO ICD-10**: WHO terms of use
+- **ICD-10-CM**: public domain (CMS).
+- **WHO ICD-10**: WHO terms of use.
 - **LOINC**: LOINC License (free commercial use, redistribution
-  permitted)
-- **RxNorm**: NLM Open Use (public domain)
-- **JLAC10**: published by JCCLS
-- **CPT**: AMA copyright — clinosim ships only a minimal educational /
-  research subset
-- **YJ code**: MHLW open data
-- **K codes**: MHLW reimbursement schedule
+  permitted).
+- **RxNorm**: NLM Open Use (public domain).
+- **SNOMED CT**: SNOMED International terms; clinosim ships only a
+  small curated subset that appears in generated data.
+- **JLAC10**: published by JCCLS.
+- **CPT**: AMA copyright — clinosim ships only a minimal educational
+  / research subset.
+- **YJ code**: MHLW open data.
+- **K codes**: MHLW reimbursement schedule.
+- **HL7 terminology (v2 / v3 / condition-clinical / …)**: HL7 IPR
+  policy — CC BY-SA 4.0 for HL7 terminology CodeSystems.
+- **JP Core / JP-CLINS eCS**: MHLW / JAMI open publications.
 
 `codes/data/` extracts only the subset needed to drive clinosim's
 synthetic-data generation. For commercial EHR integration, pull the
-full, current release from the upstream authority.
+full current release from the upstream authority.
 
 **The subset must exhaustively cover "codes that can appear in the
 output."** For diagnosis codes,
-`tests/unit/test_diagnosis_code_coverage.py` guards the invariant that
-"every `icd_codes` entry across all diseases/encounters and every
-target of the diagnosis map resolves exactly against the code data".
-When adding a new outpatient / disease scenario, adding the referenced
-ICD codes here is mandatory (see the "Diagnosis code coverage" note in
-CLAUDE.md); otherwise the FHIR Condition display falls back to an
-approximate prefix match.
+`tests/unit/test_diagnosis_code_coverage.py` guards the invariant
+that "every `icd_codes` entry across all diseases / encounters and
+every target of the diagnosis map resolves exactly against the code
+data". When adding a new outpatient / disease scenario, adding the
+referenced ICD codes here is mandatory (see the "Diagnosis code
+coverage" note in AGENTS.md); otherwise the FHIR Condition display
+falls back to an approximate prefix match.
+
+`authoritative/` captures raw JSON fragments pulled from tx.fhir.org
+and MHLW registries at documented points in time — these are the
+byte-exact provenance for the curated subset and are what regression
+tests diff against.
 
 ## Update policy
 
-- ICD-10-CM: CMS ships a new edition every October 1 → clinosim tracks.
-- LOINC: released every six months (June / December) → we absorb major
-  changes.
-- RxNorm: weekly updates every Monday → we track a stable release once
-  a year.
-- WHO ICD-10: seldom updated (current release is 2019).
-- Internal short keys are stable. Any YAML structural change is a major
-  version bump.
+- **ICD-10-CM**: CMS ships a new edition every October 1 → clinosim
+  tracks.
+- **LOINC**: released every six months (June / December) → we absorb
+  major changes.
+- **SNOMED CT**: international release monthly → we track a stable
+  release once a year.
+- **RxNorm**: weekly updates every Monday → we track a stable release
+  once a year.
+- **WHO ICD-10**: seldom updated (current release is 2019).
+- **JP Core / JP-CLINS eCS**: track the version pinned in
+  `iris4h-ai/jp_core/package/` and MHLW registry entries.
+- Internal short keys are stable. Any YAML structural change is a
+  major version bump.

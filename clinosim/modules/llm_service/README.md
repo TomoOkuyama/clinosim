@@ -1,123 +1,192 @@
-# `clinosim.modules.llm_service` — LLM provider integration for narrative generation
+# `clinosim.modules.llm_service` — single LLM gateway (AD-11)
 
 ## Purpose
 
-Provides the LLM-provider abstraction used by
-[`clinosim.modules.document.narrative`](../document/narrative/README.md)
-for the LLM-backed narrative pipeline (AD-11 opt-in). Handles provider
-selection, prompt caching, cost accounting, and structured-output
-parsing.
+The single gateway every other module uses for LLM calls (AD-11 —
+"LLM calls only via `llm_service`", AD-24). Provider SDKs
+(Ollama / Bedrock / Anthropic / vLLM / mock) are **never** called
+directly by any other module. Owns task-type enums, prompt
+construction, response validation, prompt caching, and provider
+selection.
 
 ## Scope
 
-- **In scope**: `LLMService` orchestrator, provider registry,
-  concrete providers (Mock / AWS Bedrock / Ollama / OpenAI-compatible),
-  layer-2 persistent `PromptCache`, per-run cost accounting, prompt
-  registry, response-format handling.
-- **Out of scope**: the narrative-text templates themselves (in
-  [`clinosim/modules/document/narrative/`](../document/narrative/README.md)),
-  section-level replacement strategy (also in the narrative
-  subpackage), any non-narrative use of LLMs (the module is scoped to
-  narrative generation).
+- **In scope**: `LLMService` (top-level orchestrator, sync +
+  concurrency-safe call surface); `LLMTaskType` /
+  `LLMTaskCategory` (StrEnum task inventory);
+  `TASK_CATEGORY` (task → category map); `DOCUMENT_LOINC` /
+  `loinc_for(task_type)` (LOINC code per document-generation task);
+  `PatientSummary` + `ClinicalEventData` (input DTOs);
+  `LLMResponse` + `LLMCompletionError`; document-task validation
+  (`_validate_document_task_sync`); per-task prompt builders
+  (`_build_prompt` dispatch + language-specific
+  `_jp_chief_complaint`, `_en_chief_complaint`, `_progress_note`,
+  `_discharge_summary`, `_admission_hp`, `_diagnostic_reasoning`,
+  `_treatment_decision`, `_death_summary_template`,
+  `_operative_note_template`, `_procedure_note_template`);
+  `PromptRegistry` + `PromptSpec` (per-task prompt manifest);
+  `PromptCache` (SHA-256 keyed disk cache for reproducibility +
+  Stage 2 re-run economy); `build_from_config` +
+  `build_from_config_file` factory; the six providers under
+  `providers/`.
+- **Out of scope**: narrative-content assembly / template rendering
+  ([`clinosim.modules.document.narrative`](../document/narrative/README.md)
+  owns the two-pass narrative generation and imports `LLMService`);
+  cost tracking / accounting; FHIR emission
+  ([`clinosim.modules.output`](../output/README.md)).
 
 ## Public API
 
+Every downstream module imports from the package root; the six
+symbols below are the entire public surface:
+
 ```python
 from clinosim.modules.llm_service import (
-    LLMService,                  # orchestrator (from_config, complete_prompt, cost_report)
-    Provider,                    # ABC (health_check, list_models, complete)
-    LLMResponse,                 # dataclass (text, tokens, cost, cache_hit, fallback_reason)
+    # Core
+    LLMService,                  # top-level gateway (sync + concurrency-safe)
+    LLMTaskType,                 # StrEnum task inventory (per document + reasoning task)
+    LLMTaskCategory,             # StrEnum {"document", "reasoning", …}
+    LLMResponse,                 # normalised response dataclass
+    LLMCompletionError,          # RuntimeError subclass
+
+    # Task metadata
+    TASK_CATEGORY,               # {LLMTaskType: LLMTaskCategory}
+    DOCUMENT_LOINC,              # {LLMTaskType: LOINC code}
+    loinc_for,                   # (task_type) -> LOINC | None
+
+    # Input DTOs
+    PatientSummary,
+    ClinicalEventData,
+
+    # Factory + registry
+    build_from_config,           # (config_dict) -> LLMService
+    build_from_config_file,      # (path) -> LLMService
+    PromptRegistry,
+    PromptSpec,
+    PromptCache,
+
+    # Provider surface (see providers/README.md)
+    LLMProvider,                 # Protocol
+    ProviderResponse,            # dataclass
+    MockProvider,                # deterministic fixture for tests
 )
-from clinosim.modules.llm_service.factory import build_from_config_file
 ```
 
-CLI wiring is in `clinosim.simulator.cli_narrate` which calls
-`factory.build_from_config_file`.
+## Determinism
 
-## Providers
-
-| Provider | File | Purpose |
-|---|---|---|
-| Mock | `providers/mock.py` | Deterministic canned responses for tests and offline dev. |
-| AWS Bedrock | `providers/bedrock.py` | Anthropic Claude on AWS Bedrock. |
-| Ollama | `providers/ollama.py` | Local self-hosted models via Ollama. |
-| OpenAI-compatible | `providers/openai.py` | Any endpoint speaking the OpenAI Chat Completions API. |
-
-Adding a new provider:
-
-1. Create `providers/<name>.py` implementing the `Provider` ABC
-   (`health_check`, `list_models`, `complete`).
-2. Register it in `providers/__init__.py`.
-3. Add a corresponding config YAML at
-   `clinosim/config/llm_service.<name>.yaml`.
-4. Add unit tests.
-
-## Prompt layout
-
-Prompts live under `prompts/`, split by language:
-
-```
-prompts/
-  en/                     English prompt templates
-    <section>.jinja
-  ja/                     Japanese prompt templates
-    <section>.jinja
-```
-
-Templates are jinja-style with `{{variable}}` placeholders. The
-`PromptRegistry` (`prompt_registry.py`) loads them lazily; use its
-`.has(name)` probe before invoking to decide whether the section is
-LLM-eligible for the given language.
+- The `LLMService.complete(...)` path is deterministic when
+  `PromptCache` is enabled AND the underlying provider is either
+  `MockProvider` or a real provider with `temperature=0`. Cache
+  keys are `sha256(prompt + task_type + model + temperature + …)`
+  so the cache is content-addressed.
+- Concurrency safety: `LLMService` uses a lock around each provider
+  call to avoid interleaving prompt / response state; the
+  `tests/unit/test_narrate_concurrency_byte_identity.py` test pins
+  the byte-identity contract across single-thread and 4-thread
+  narrate runs.
+- Stage 2 re-run economy: after a failed narrate, identical prompts
+  do not re-invoke the LLM — `PromptCache` returns the prior JSON
+  entry. See [`cache.py`](cache.py) for the on-disk layout
+  (`<cache_dir>/<sha256_prefix>/<sha256>.json`).
 
 ## Dependencies
 
-- `clinosim.types.config` — LLM-service config models.
-- `pyyaml` — config-file loading.
-- `httpx` — HTTP transport for Bedrock / Ollama / OpenAI-compatible.
-- No dependency on `clinosim.modules.document.*` (one-way boundary).
+- `clinosim.modules.llm_service.providers` — the `LLMProvider`
+  Protocol + five concrete providers (bedrock / ollama / vllm /
+  anthropic / mock).
+- Provider SDKs (loaded lazily by each provider file, not by
+  `llm_service` itself): `boto3` (bedrock), `httpx` (ollama +
+  vllm + anthropic).
+- `hashlib.sha256` — cache key derivation.
+- `yaml` — config-file loader in `factory.py`.
+- No dependency on any other `clinosim.modules.*` (this module is
+  a leaf that every other module may depend on).
 
 ## Constants and configuration
 
-- Cost accounting per provider (`fallback_on_budget_exceeded`,
-  `max_tokens_per_run`, `timeout_seconds`) — see
-  `clinosim/types/config.py`.
-- Cache tuning (`cache_enabled`, `cache_max_entries`,
-  `cache_persist_to_disk`) — same location.
-- Runtime provider selection is CLI-only (`narrate --provider`); no
-  environment-variable gate.
-- Default configs at:
-  - `clinosim/config/llm_service.yaml`
-  - `clinosim/config/llm_service.bedrock.yaml`
-  - `clinosim/config/llm_service.cloud.yaml`
+- **`LLMTaskType`** (StrEnum) — the full enumerated task inventory
+  (each document type: `progress_note`, `admission_hp`,
+  `discharge_summary`, `death_summary`, `operative_note`,
+  `procedure_note`, `chief_complaint_jp`, `chief_complaint_en`,
+  plus reasoning tasks like `diagnostic_reasoning`,
+  `treatment_decision`).
+- **`TASK_CATEGORY`** — `{LLMTaskType: LLMTaskCategory}` mapping so
+  a caller can gate on category (document vs reasoning) without
+  hard-coding a task list.
+- **`DOCUMENT_LOINC`** — LOINC code per document-generation task,
+  used by FHIR builders through `loinc_for(task_type)` so a new
+  document type registers its LOINC once and every consumer looks
+  it up from the same map.
+- **Prompt manifest**: [`prompts/{en,ja}/`](prompts/) — per-language
+  prompt files loaded by `PromptRegistry`. Adding a new language
+  is a matter of adding the folder + `PromptSpec` entries; no
+  engine code change.
+- **Config schema** (consumed by `build_from_config`):
+  see `LLMProviderConfig` in
+  [`clinosim/types/config.py`](../../types/config.py) —
+  `provider` (`"bedrock_gateway" | "anthropic_direct" |
+  "openai_compatible" | "local" | "none"`), `mode` (`"llm" |
+  "template" | "none"`), `model_map` (`small` / `medium` /
+  `large` → actual model IDs), per-provider config dict.
 
 ## Directory contents
 
 ```
 clinosim/modules/llm_service/
-  __init__.py               public API
-  engine.py                 LLMService orchestrator
-  factory.py                build_from_config_file (CLI hook)
-  prompt_registry.py        PromptRegistry (loader + has() probe)
-  providers/
-    __init__.py             provider registry
-    base.py                 Provider ABC (health_check, list_models, complete)
-    mock.py                 MockProvider
-    bedrock.py              AWS Bedrock provider
-    ollama.py               local Ollama provider
-    openai.py               OpenAI-compatible provider
+  __init__.py                    public API surface (17 symbols)
+  engine.py                      LLMService + task enums + prompt builders (900 LOC)
+  factory.py                     build_from_config + build_from_config_file
+  prompt_registry.py             PromptRegistry + PromptSpec
+  cache.py                       PromptCache (SHA-256 keyed disk cache)
   prompts/
-    en/                     English prompt templates
-    ja/                     Japanese prompt templates
+    en/                          English prompt manifest
+    ja/                          Japanese prompt manifest
+  providers/                     LLMProvider Protocol + 5 concrete providers (bedrock/ollama/vllm/anthropic/mock)
+  SPEC.md                        extended design reference (not runtime)
 ```
+
+The module has **no `audit.py`, no `enricher.py`, no
+`reference_data/`**.
+
+## Enricher wiring
+
+Not applicable — this module is a leaf library called from the
+narrative and CLI paths. It is not registered with
+`register_builtin_enrichers` and has no seed offset in
+`ENRICHER_SEED_OFFSETS`.
+
+## Output surfaces (consumers)
+
+| Consumer | Where | Role |
+|---|---|---|
+| Narrative pass | [`clinosim/modules/document/narrative/llm_generator.py`](../document/narrative/llm_generator.py), [`replacement_strategy.py`](../document/narrative/replacement_strategy.py), [`passes.py`](../document/narrative/passes.py) | Stage 2 narrative generation calls `LLMService.complete(...)` per document type. |
+| CLI `narrate` subcommand | [`clinosim/simulator/cli_narrate.py`](../../simulator/cli_narrate.py) | Boot: builds `LLMService` from `--llm-config`, invokes `NarrativePass`, wires `PromptCache`. |
 
 ## Testing
 
 ```bash
-pytest tests/unit -k llm_service -q
-pytest tests/integration -k llm -q
+pytest tests/unit -k "llm" -q
 ```
 
-Integration tests use the Mock provider so no network is required.
+Individual files:
+
+- [`tests/unit/test_llm_service.py`](../../../tests/unit/test_llm_service.py)
+  — `LLMService.complete` orchestration.
+- [`tests/unit/test_llm_service_complete_prompt.py`](../../../tests/unit/test_llm_service_complete_prompt.py)
+  — prompt-builder dispatch per task-type.
+- [`tests/unit/test_llm_task_enum_sync.py`](../../../tests/unit/test_llm_task_enum_sync.py)
+  — `LLMTaskType` ↔ `TASK_CATEGORY` ↔ `DOCUMENT_LOINC` coverage
+  invariants.
+- [`tests/unit/test_llm_narrative_pass.py`](../../../tests/unit/test_llm_narrative_pass.py)
+  — narrative-pass integration through `LLMService`.
+- [`tests/unit/test_narrate_concurrency_byte_identity.py`](../../../tests/unit/test_narrate_concurrency_byte_identity.py)
+  — concurrency safety (1-thread vs 4-thread narrate produces
+  identical output).
+- [`tests/unit/test_clinical_documents.py`](../../../tests/unit/test_clinical_documents.py)
+  — cross-module document emission guards.
+- Fixture packs under [`tests/fixtures/patient_profiles/`](../../../tests/fixtures/patient_profiles/)
+  — `*.llm-expectations.yaml` + `*.llm-mock.golden.json` per-profile
+  golden narratives used by the mock provider.
 
 ## Ownership
 

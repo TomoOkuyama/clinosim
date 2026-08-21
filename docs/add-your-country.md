@@ -138,7 +138,7 @@ After creating the country folder:
       `clinosim/codes/data/` fails
       `pytest tests/unit/test_diagnosis_code_coverage.py` — expected. Register
       the code in the appropriate `codes/data/*.yaml` per
-      "Diagnosis code coverage" section of `CLAUDE.md`.
+      "Diagnosis code coverage" section of `AGENTS.md`.
 
 ## Common pitfalls
 
@@ -161,7 +161,7 @@ After creating the country folder:
 
 - Overall project concept: [`docs/design-guides/project-concept-and-design.md`](design-guides/project-concept-and-design.md)
 - Locale module reference: [`clinosim/locale/README.md`](../clinosim/locale/README.md)
-- Diagnosis code coverage rules: [`CLAUDE.md`](../CLAUDE.md) §"Diagnosis code coverage"
+- Diagnosis code coverage rules: [`AGENTS.md`](../AGENTS.md) §"Diagnosis code coverage"
 - Reproducibility invariant: [`docs/development/reproducibility.md`](development/reproducibility.md)
 
 ## Scaffold template

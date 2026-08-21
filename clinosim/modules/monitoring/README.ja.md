@@ -1,78 +1,146 @@
-# clinosim.modules.monitoring (日本語)
+# `clinosim.modules.monitoring` — 慢性薬駆動 monitoring lab pipeline
 
-慢性薬剤に対応する標準的モニタリング検査を自動注入するパイプライン。
-`POST_RECORDS` enricher で各患者の `current_medications` を走査し、薬剤ごとに
-定められた検査 (例: ワルファリン → PT-INR) を既存 encounter に注入する。
-[Issue #736](https://github.com/TomoOkuyama/clinosim/issues/736) で顕在化した
-「慢性薬剤起点のモニタリング検査が emit されない」ギャップを METAで
-[#757](https://github.com/TomoOkuyama/clinosim/issues/757) として集約し、
-その pass 2 (warfarin/INR) の実装。
+## 概要
 
-導入前の simulator は以下 3 経路のみで lab order を生成:
+慢性薬が要求する standard-of-care monitoring lab (代表例:
+Warfarin → PT-INR) を、POST_RECORDS 時点で患者の encounter に注入し、
+Issue #736 で顕在化し META Issue #757 で追跡されているアーキテクチャ
+ギャップを埋める。本モジュール以前、simulator の lab 発注源は
+disease YAML の `laboratory` block、per-encounter admission /
+discharge protocol、および antibiotic 起点 order の 3 系統だけで、
+`patient.current_medications` を参照するものが無かった。結果として
+外来 HTN follow-up のみを持つ warfarin 患者は PT-INR を一度も
+持たなかった。
 
-1. 疾患 YAML の `laboratory` block — encounter × disease 単位
-2. 入院 / 退院 protocol
-3. 抗菌薬 / 手技 モジュール
+## Scope
 
-いずれも `patient.current_medications` を参照しないため、warfarin 服用中で
-sepsis / MI / AF が起きた患者は「その疾患 YAML が偶然 PT-INR を発火した場合のみ」
-INR を得た。外来 HTN follow-up だけの warfarin 患者は INR ゼロ (p=500 seed 42 で
-warfarin 6 名 中 0 名が INR あり)。
+- **In scope**: POST_RECORDS 時点で各患者の `current_medications` を
+  読み、`medication_monitoring.yaml` の drug + alias に対して
+  case-insensitive 部分一致で match し、適格 encounter 1 件あたり
+  monitoring lab を 1 件注入 (MVP scope — 頻度 / cadence
+  スケジューリングは META #757 の後続 PR で対応)、per-encounter
+  dedup により disease YAML flow (sepsis / PE / GI bleed) が正当に
+  同 analyte を発注しているケースを尊重して二重発行しない。
+- **Out of scope**: 慢性薬付与
+  ([`clinosim.modules.patient`](../patient/README.md) activator)、
+  disease YAML lab order
+  ([`clinosim.modules.order`](../order/README.md))、lab 値そのもの
+  の導出
+  ([`clinosim.modules.observation`](../observation/README.md))、
+  FHIR emission
+  ([`clinosim.modules.output`](../output/README.md))、
+  頻度 scheduling (daily vs monthly、induction vs maintenance) —
+  META #757 pass 3+ 予定。
 
-## パイプライン
+## Public API
 
-`enrich_medication_monitoring` (POST_RECORDS) は全 encounter record 構築後に走り、
-各患者 record に対して以下を実施:
+`__init__.py` は package docstring のみ。呼び出し側は submodule から
+直接 import:
 
-1. mapping YAML の薬剤名を `current_medications` list と大小無視で substring match
-   (英名 + 日本名 + 商品名バリエーションをカバー、`physiology.engine._WARFARIN_NAMES`
-   と同じ pattern)。
-2. 一致薬剤ごとに定義されたモニタリング検査を `_inject_monitoring_lab` で
-   1 つ以上の適合 encounter に注入 (MVP は「record 内で最初の外来 encounter、
-   無ければ最初の encounter」)。頻度スケジュール実装は follow-up PR。
-3. record が既に該当検査の order/lab_result を持っていれば skip
-   (疾患 YAML が emit した PT-INR 等を二重計上しない)。
-4. lab 値は `physiology.engine.derive_lab_values` に該当薬剤 flag (warfarin なら
-   `on_warfarin=True`) を渡して導出、`apply_realistic_variability` で
-   共有ノイズ + 生理限界 clamp を通過させる。
-
-## RNG 独立性
-
-Enricher 内の乱数 (ノイズ + micro-jitter) は
-`np.random.default_rng(derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["medication_monitoring"], patient_id))`
-から取得。他 enricher (care_level, family_history, ...) と同じ pattern で
-master RNG は触らず、`medication_monitoring.yaml` 編集は該当患者以外の
-record に影響しない。
-
-## Mapping YAML
-
-`reference_data/medication_monitoring.yaml`。schema:
-
-```yaml
-mappings:
-  Warfarin:                                    # 薬剤名 (current_medications と大小無視 substring match)
-    aliases: ["ワルファリン", "coumadin"]      # 別名 (任意)
-    monitoring:
-      - lab: PT_INR                             # 内部 analyte 名 (observation/engine.py と一致)
-        loinc: "6301-6"                         # 発 Order display 用の observation code
-        rationale: "Anticoagulation therapeutic monitoring — INR target 2.0-3.0."
+```python
+from clinosim.modules.monitoring.enricher import enrich_medication_monitoring
+from clinosim.modules.monitoring.mapping import (
+    load_medication_monitoring,      # () -> {drug_name: {aliases, monitoring: [...]}}
+    match_drugs,                     # (current_medications) -> list[matched drug entry]
+)
 ```
 
-新規 drug → lab pair 追加は YAML 単独編集で完結。META #757 が挙げた頻度制御
-(daily vs monthly、導入期 vs 維持期) は schema に未実装 — pass 2 (この PR) は
-#736 の即時ギャップ解消を目的に「1 encounter 1 発」の MVP を出荷。
-`frequency: {induction: "1-3d", maintenance: "monthly"}` 対応は follow-up。
+## 決定論
+
+- サブ seed オフセット `0x4D4D` (`"MM"`) —
+  [`clinosim/seeding.py`](../../seeding.py) の
+  `ENRICHER_SEED_OFFSETS["medication_monitoring"]` に登録済み。
+- 患者単位サブ RNG:
+  `derive_sub_seed(master_seed, offset, patient_id)` — master RNG
+  未消費 (care_level / family_history pattern に一致)。
+- per-lab noise draw は `individual_lab_seed(order_id)`
+  ([`clinosim/seeding.py`](../../seeding.py)) — `outpatient.py`,
+  `inpatient.py` Pass 1 と同じ AD-59 per-order 分離。
+- 合成 order id は content 由来 (`<encounter_id>-MED-MON-<idx>`)
+  なので同 seed の repeated run で安定。
+
+## 依存
+
+- `clinosim.modules._shared` — `get_attr_or_key`。
+- `clinosim.modules.observation.engine` — `canonical_lab_name`,
+  `generate_lab_result`, `get_lab_unit`, `determine_flag` (単一の
+  lab-emission surface)。
+- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`,
+  `individual_lab_seed`。
+- `clinosim.types.encounter` — `EncounterType`, `Order`,
+  `OrderResult`, `OrderStatus`。
+- `yaml`, `numpy`。
+
+## 定数と設定
+
+- [`reference_data/medication_monitoring.yaml`](reference_data/medication_monitoring.yaml)
+  — drug → labs mapping。各 entry:
+  ```yaml
+  <Drug canonical name>:
+    aliases:        [<optional case-insensitive 部分一致>]
+    monitoring:
+      - lab:        <observation engine 内部 analyte 名>
+        loinc:      "<LOINC code>"
+        rationale:  "<1 文の臨床根拠>"
+  ```
+  alias は case-insensitive 部分一致で `physiology.engine._WARFARIN_NAMES`
+  と同じ pattern を踏襲 — `"Warfarin 3mg PO"`, `"ワルファリン"`,
+  `"WARFARIN"` はすべて Warfarin entry と match する。
+- Loader は [`mapping.py`](mapping.py) — 意図的に cache-less
+  (小 file、POST_RECORDS pass あたり 1 回のみ呼ばれる)、Pydantic を
+  使わず plain dict に parse (sibling `sdoh.load_social_history`
+  loader style)。必須 key 欠落は fail-loud — YAML typo は load 時に
+  顕在化し「drug never matched」の silent 症状にならない。
+
+## ディレクトリ構造
+
+```
+clinosim/modules/monitoring/
+  __init__.py                        package docstring のみ
+  enricher.py                        enrich_medication_monitoring (POST_RECORDS)
+  mapping.py                         load_medication_monitoring + match_drugs
+  reference_data/
+    medication_monitoring.yaml       drug → monitoring-labs mapping
+```
+
+**`engine.py` / `audit.py` は存在しない** — enricher entry は
+`enricher.py`、mapping helper は `mapping.py`。
+
+## Enricher 配線
+
+[`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
+(`L213-231` 付近) で登録:
+
+- `name="medication_monitoring"`, `stage=POST_RECORDS`, `order=65`,
+  `enabled=lambda c: True`。
+- `care_level` (order=60) の後、`health_checkup` (order=70) の前に
+  実行 — 全 cross-record enricher が record shape を populate した後、
+  JP-only opt-in の `health_checkup` が CHECKUP encounter を追加する
+  前に走る。
+
+## Output surface (consumers)
+
+| Consumer | 場所 | 役割 |
+|---|---|---|
+| Enricher registry | [`clinosim/simulator/enrichers.py:226`](../../simulator/enrichers.py) | POST_RECORDS order=65 登録。 |
+| Observation engine | [`clinosim/modules/observation/engine.py`](../observation/engine.py) | `generate_lab_result` + `determine_flag` + `get_lab_unit` が emit lab 値を生成。 |
+| 下流 FHIR + CSV | (生成される `Order` / `OrderResult` 経由) | 注入 order が標準 lab-emission path を流れる。 |
 
 ## テスト
 
-`tests/unit/test_medication_monitoring.py` で以下をカバー: mapping loader
-round-trip、alias 一致、非 warfarin 患者で no-op、同 seed 反復実行で決定論的、
-既存 PT-INR order との重複回避。
+```bash
+pytest tests/unit -k medication_monitoring -q
+```
 
-## Non-goal (META #757 に準ずる)
+個別ファイル:
 
-- モニタリング guideline を網羅しない (`medication_monitoring.yaml` に載る pair
-  のみ、long tail は範囲外)。
-- 投与量調整 causal loop (INR が warfarin 用量調整 → 次の INR)。simulator は
-  観測を emit するのみで治療応答は modelしない。
-- 実世界頻度への完全一致は非目標 (目標 ±50%、simulator は合成データ)。
+- [`tests/unit/test_medication_monitoring.py`](../../../tests/unit/test_medication_monitoring.py)
+  — mapping load、drug matching (case + JA)、per-encounter dedup、
+  決定論。
+
+## Ownership
+
+`maintainers@` — 詳細は
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+
+英語版: [`README.md`](README.md)。

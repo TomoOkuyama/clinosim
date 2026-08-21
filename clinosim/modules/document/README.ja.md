@@ -1,198 +1,202 @@
-# document モジュール
+# `clinosim.modules.document` — 臨床文書 stub + ClinicalImpression
 
-## 役割
+## 概要
 
-Tier 1 #3 α-min-1 の Always-on Module (AD-55 near-essential cascade)。
-入院・外来・救急 encounter ごとに臨床 narrative (入院時記録 / 経過記録 / 退院サマリ) を生成し、
-FHIR `DocumentReference` / `Composition` として emit する。
+Tier 1 #3 α-min-1 always-on AD-55 module。POST_ENCOUNTER enricher
+(`document_enricher`) が **stub の `ClinicalDocument` record**
+(admission H&P / progress note / discharge summary /
+operative note / procedure note / referral note / nurse note /
+ED_NOTE / ED_TRIAGE_NOTE / HEALTH_CHECKUP_REPORT 等) と、
+inpatient / ICU / rehab encounter に対する `ClinicalImpression`
+日次 record を emit する。各 stub は `narrative=None`。narrative content
+は 2-pass の [`narrative`](narrative/README.md) subpackage が Stage 2
+pass で populate する (AD-65)。全 consumer が import する canonical
+FHIR resource ID prefix も所有する。
 
-α-min-1 段階では骨格 (DocumentTypeSpec registry + NarrativeContext factory) を提供。
-Task 6+ で template generator、Task 8 で POST_ENCOUNTER enricher、Task 9 で FHIR builder を追加する。
+## Scope
 
-## Dependencies
+- **In scope**: `document_enricher` (POST_ENCOUNTER order=95、
+  always-on)、`DocumentTypeSpec` と spec loader / filter
+  ([`narrative/registry`](narrative/registry.py) 由来)、
+  `clinosim.types.document` からの document-type + format-type
+  再 export、canonical ID prefix 定数 (`DOC_REFERENCE_ID_PREFIX =
+  "doc-"`, `COMPOSITION_ID_PREFIX = "comp-"`, `ALLERGY_ID_PREFIX =
+  "allergy-"`, `CLINICAL_IMPRESSION_ID_PREFIX = "ci-"`)、
+  `NURSING_LOINCS` frozenset (AD-65 Bug B — 看護師 author の文書は
+  `attending_physician_id` ではなく `encounter.primary_nurse_id` に
+  dispatch)、reference data loader
+  ([`reference_data_loaders.py`](reference_data_loaders.py) —
+  `load_physical_exam_findings`, `load_discharge_instructions` に
+  6-layer validator)、per-encounter document-type dispatch
+  (`_pick_document_author`, `_referral_note_fires`,
+  `_enc_type_value`, `_enc_status_value`, `_compute_los_days`,
+  `_make_doc_stub`)。
+- **In scope (audit)**: [`audit.py`](audit.py) — 5 番目の
+  per-module AD-60 plug-in (hai / antibiotic / order / imaging の次)。
+  49-check `lift_firing_proof` が canonical 定数
+  (`DOC_REFERENCE_ID_PREFIX` / `COMPOSITION_ID_PREFIX` /
+  `ALLERGY_ID_PREFIX` / `CLINICAL_IMPRESSION_ID_PREFIX` /
+  `CARE_TEAM_ID_PREFIX`)、emission count、ID-prefix invariant、
+  CIF → FHIR no-drop matrix (Section 3.4)、LOINC 54094-8 dispatch
+  gate、AD-65 Bug A の `us_admission_hp_zero_ja_chars` invariant、
+  α-min-3 の 3-shift 拡張を guard。`clinical_acceptance` は
+  per-encounter doc count + ClinicalImpression 日次 emission +
+  AllergyIntolerance 分布 + CareTeam / triage / nursing / outpatient
+  / ED の per-encounter target (計 13 key) をカバー。
+- **Out of scope**: narrative content 組立 / template rendering
+  ([`narrative`](narrative/README.md) subpackage が Stage 2 pass と
+  LLM/template dispatch を所有)、LLM gateway
+  ([`llm_service`](../llm_service/README.md))、FHIR
+  `DocumentReference` / `Composition` / `ClinicalImpression` /
+  `CareTeam` emission
+  ([`output/fhir_r4/documents/`](../output/fhir_r4/documents/README.md))。
 
-- `clinosim/types/document.py` — `DocumentType` / `FormatType` / `DocumentTypeSpec` /
-  `NarrativeContext` / `NarrativeOutput` / `NarrativeGenerator` Protocol(N-chain で
-  `DocumentTypeSpec` と generator 契約を types へ移設。`narrative/registry.py` は
-  loader + 後方互換 re-export)
-- `clinosim/types/allergy.py` — `Allergy` (NarrativeContext.allergies)
-- `clinosim/modules/_shared.py` — `get_attr_or_key` (dual-access helper for dict / dataclass)
-- `clinosim/modules/disease/` — `load_disease_protocol`(β-JP-1 chain 1a:
-  `NarrativePass._build_context` が `condition_event.condition_type == "known_disease"` の
-  patient の disease_protocol を解決。lru_cache 済 / shared instance は read-only)
-- `clinosim/modules/encounter/` — `load_encounter_condition`(β-JP-1 chain 1a:
-  `condition_type == "ed_visit"` の encounter_protocol 解決。未知 id は WARN + None fallback)
-- `clinosim/modules/llm_service/` — `LLMService.complete_prompt`(AD-11 経由の LLM 呼出し。
-  `LLMNarrativeGenerator` / `apply_replacement_strategy` / `LLMNarrativePass` のみが使用、
-  template 経路は依存しない)
+## Public API
 
-## Reference data
+```python
+from clinosim.modules.document import (
+    # 型 (clinosim.types.document から再 export)
+    DocumentType,
+    FormatType,
+    NarrativeContext,
+    NarrativeOutput,
 
-| ファイル | 説明 |
-|---|---|
-| `reference_data/document_type_specs.yaml` | 3 文書種別の LOINC コード・表示名・セクション構成・生成戦略 |
+    # Registry
+    DocumentTypeSpec,
+    load_document_type_specs,       # () -> list[DocumentTypeSpec]
+    specs_for_country,              # (country) -> list[DocumentTypeSpec]
+    specs_for_encounter_type,       # (encounter_type) -> list[DocumentTypeSpec]
 
-α-min-1 scope = `ADMISSION_HP` / `PROGRESS_NOTE` / `DISCHARGE_SUMMARY` の 3 種。本 chain では追加禁止 (scope discipline)。
+    # Reference-data loader
+    load_physical_exam_findings,    # () -> dict (@lru_cache, 6-layer validated)
+    load_discharge_instructions,    # () -> dict (@lru_cache, 6-layer validated)
 
-## generation_frequency 値(canonical allowlist = `registry.GENERATION_FREQUENCIES`)
+    # Canonical ID prefix
+    DOC_REFERENCE_ID_PREFIX,        # "doc-"
+    COMPOSITION_ID_PREFIX,          # "comp-"
+    ALLERGY_ID_PREFIX,              # "allergy-"
+    CLINICAL_IMPRESSION_ID_PREFIX,  # "ci-"
 
-| 値 | 発行 cadence | 使用 doc type |
-|---|---|---|
-| `admission_once` | day 0 に 1 通 | ADMISSION_HP / ADMISSION_NURSING_ASSESSMENT |
-| `daily` | LOS 日ごとに 1 通(LOS=1 skip) | PROGRESS_NOTE |
-| `daily_3shift` | LOS 日ごとに 3 通(深夜 00:00 / 日勤 08:00 / 準夜 16:00、`engine.SHIFT_SCHEDULE`。LOS=1 skip、AD-32 同様)| NURSING_SHIFT_NOTE(α-min-3) |
-| `discharge_once` | 最終日に 1 通(in-progress は AD-32 で skip) | DISCHARGE_SUMMARY / NURSING_DISCHARGE_SUMMARY |
-| `encounter_once` | day 0 に 1 通(外来/ED 単回受診) | OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE |
-
-未知の値は `registry._validate_document_type_specs` Layer 7 が YAML load 時に fail-loud
-(engine dispatch は if/elif のため、allowlist なしでは typo が silent-no-op になる — PR-90 class)。
-`daily_3shift` の stub は neutral shift key(`ClinicalDocument.shift` = night/day/evening)を保持し、
-localized label(en: night/day/evening、ja: 深夜/日勤/準夜)は Stage 2 render 時に解決(AD-30 spirit)。
-
-## Canonical ID-prefix constants
-
-| 定数 | 値 | 対応 FHIR resource |
-|---|---|---|
-| `DOC_REFERENCE_ID_PREFIX` | `"doc-"` | `DocumentReference.id` |
-| `COMPOSITION_ID_PREFIX` | `"comp-"` | `Composition.id` |
-| `ALLERGY_ID_PREFIX` | `"allergy-"` | 参照先 `AllergyIntolerance.id` |
-| `CLINICAL_IMPRESSION_ID_PREFIX` | `"ci-"` | `ClinicalImpression.id` |
-
-FHIR builder (Task 9) はこれらをインポートして使用する。
-
-## Consumers
-
-- Task 6 narrative generator: `build_narrative_context()` で `NarrativeContext` を受け取り `NarrativeOutput` を返す
-- Task 8 enricher: `load_document_type_specs()` + `specs_for_country()` で生成対象文書を決定
-- Task 9 FHIR builder: ID-prefix 定数でリソース ID を構築
-
-## Architecture: Two-Pass Generation (AD-65)
-
-clinosim narrative generation は structural CIF と narrative CIF の **物理ファイル分離** により、
-narrative version を独立に差し替え可能 にする (Stage 1 immutable + Stage 2 versioned)。
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│ clinosim generate ...                                            │
-│                                                                  │
-│  Stage 1: Simulate + write structural CIF                        │
-│  ──────────────────────────────────────                          │
-│  simulator/run_beta                                              │
-│    └─ per patient: inpatient/emergency/outpatient simulate       │
-│       └─ run_stage(POST_ENCOUNTER)                               │
-│           └─ document_enricher(★ AD-65 revised)                 │
-│               → append ClinicalDocument STUB(metadata + author + │
-│                 encounter_id + narrative=None) to record.documents│
-│           └─ triage_enricher / nursing_enricher(unchanged)       │
-│  write_cif(dataset, cif_dir)                                     │
-│    → cif/structural/patients/<enc_id>.json                       │
-│                                                                  │
-│  Stage 2: Template narrative pass(★ new, can be re-run)         │
-│  ──────────────────────────────────────                          │
-│  TemplateNarrativePass.run(cif_dir, version_id="template")       │
-│    ├─ scan structural CIF                                        │
-│    ├─ collect (doc_stub, structural_ctx) pairs                   │
-│    ├─ group by (doc_type, language) for Bedrock-cache            │
-│    ├─ for each group:                                            │
-│    │    for each patient:                                        │
-│    │       build NarrativeContext(patient + encounter + labs +   │
-│    │                              conditions + medications + ...)│
-│    │       TemplateNarrativeGenerator.generate(ctx, spec)        │
-│    │       → NarrativeOutput(raw_text, sections, facts_used)     │
-│    │    write cif/narratives/template/documents/<enc>/<doc>.json │
-│    └─ write cif/narratives/template/manifest.json                │
-│    write cif/narratives/current_version.txt = "template"         │
-│                                                                  │
-│  Stage 3: FHIR export                                            │
-│  ─────────────────                                               │
-│  get_adapter("fhir-r4").convert(cif_dir, output_dir, ctx)        │
-│    ├─ CIFReader(cif_dir, narrative_version="current")           │
-│    │    → merge structural + narrative → CIFPatientRecord        │
-│    ├─ _bb_compositions(ctx)     [reads doc.narrative.sections]   │
-│    ├─ _bb_document_references() [reads doc.narrative.text]       │
-│    └─ writes fhir_r4/*.ndjson + manifest.json                    │
-└──────────────────────────────────────────────────────────────────┘
-
-LLM opt-in (N-chain wired; prompt quality tuning = β-JP-1):
-┌──────────────────────────────────────────────────────────────────┐
-│ clinosim narrate --cif-dir ./output/cif --provider bedrock      │
-│                  --version-id "sonnet4-2026-07-02"               │
-│                  [--llm-config config/llm_service.bedrock.yaml]  │
-│   → LLMNarrativePass.run(...) — drop-in on NarrativePass base   │
-│      generator = LLMNarrativeGenerator(template base +           │
-│        LLMService.complete_prompt + NarrativeCache)              │
-│   → cif/narratives/sonnet4-2026-07-02/documents/<enc>/<doc>.json│
-│   → manifest.llm_cost_report = LLMService.cost_report()          │
-│   (--provider ollama = config/llm_service.yaml、                 │
-│    --provider mock = MockProvider dev/test 用・network 不要)     │
-│                                                                  │
-│ clinosim export-fhir --cif-dir ./output/cif                      │
-│                      --narrative-version sonnet4-2026-07-02      │
-│   → 同 structural CIF + 選択 narrative version で再 emit         │
-└──────────────────────────────────────────────────────────────────┘
+    # Author dispatch
+    NURSING_LOINCS,                 # frozenset (AD-65 Bug B)
+)
+from clinosim.modules.document.engine import document_enricher
 ```
 
-### Key invariants
+## 決定論
 
-- `document_enricher` (Stage 1) は `ClinicalDocument` stub のみ生成。`narrative` field は `None` に固定。
-  narrative content の populate 禁止（Stage 2 差替時 silent-no-op risk）。
-- `NarrativePass.run()` (Stage 2) は structural CIF を read → patient profile + labs + conditions +
-  medications + scenario_spine を input として narrative を導出 → `narratives/<version>/documents/<enc>/<doc>.json` 書出。
-- walk 順序 = `(doc_type, language)` group 単位 serial(Bedrock prompt cache 5 分 TTL の hit rate 最大化)。
-  `NarrativePass` base class で契約確定 → β-JP-1 の LLMNarrativePass が drop-in。
-- FHIR builders は `doc.narrative.sections` / `doc.narrative.text` 経由のみ。ClinicalDocument flat field
-  (`doc.text` / `doc.sections`) は AD-65 で削除。
+- サブ seed オフセット `0x444F` (`"DO"`, Tier 1 #3 α-min-1 PR1) —
+  [`clinosim/seeding.py`](../../seeding.py) の
+  `ENRICHER_SEED_OFFSETS["document"]` に登録済み。
+- Per-encounter サブ RNG:
+  `derive_sub_seed(master_seed, offset, encounter_id)` — 患者主
+  RNG 未消費 (AD-16)。
+- 2-pass 契約 (AD-65): `document_enricher` は `narrative=None` の
+  stub を生成する。同 simulation pass で narrative を populate すると
+  Stage 2 differ が silent no-op になる。契約は
+  `test_narrative_populates_only_stage2` で guard。
 
-## Unified narrative interface (N-chain, 2026-07-02)
+## 依存
 
-Stage 2 は単一契約 `NarrativeGenerator` Protocol(`clinosim/types/document.py`:
-`generate(ctx, spec) -> NarrativeOutput`)に統一。`NarrativePass` base が generator を
-constructor injection で保持し、walk order / CIF I/O と content 生成を分離する。
+- `clinosim.modules._shared` — `get_attr_or_key`,
+  `set_attr_or_key`, `is_jp`。
+- `clinosim.modules.document.narrative.registry` — spec loader +
+  filter。
+- `clinosim.modules.document.reference_data_loaders` — physical
+  exam finding + discharge instruction。
+- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
+- `clinosim.audit.registry` (`audit.py` 経由) — AD-60 audit 登録。
+- `clinosim.types.document` — `DocumentType`, `FormatType`,
+  `NarrativeContext`, `NarrativeOutput`。
+- `clinosim.types.clinical` — `ClinicalDocument`,
+  `ClinicalDocumentNarrative`。
+- `clinosim.types.encounter` — encounter 型 + `primary_nurse_id`
+  / `attending_physician_id` field。
+- `yaml`, `numpy`。
 
-| 部品 | 役割 |
-|---|---|
-| `TemplateNarrativePass` | default。`TemplateNarrativeGenerator`(決定的、LLM 依存なし) |
-| `LLMNarrativePass` | `LLMNarrativeGenerator`(template base + section 置換)。`narrate --provider bedrock\|ollama\|mock` |
-| `LLMNarrativeGenerator` | 3 経路: llm=None → template_fallback WARN / llm 構成済 → `apply_replacement_strategy` / 例外 → template_fallback WARN |
-| `apply_replacement_strategy` | `stage2_strategy` dispatch。`template_seed` は `llm_enabled_sections` のみ `LLMService.complete_prompt` で置換(prompt = `prompts/{en,ja}/narrative_seed.yaml`) |
-| cache 2 層 | layer 1 = `NarrativeCache`(in-memory、臨床 context key、cross-patient 再利用)/ layer 2 = `PromptCache`(disk、prompt-hash key、`LLMService` 内) |
+## 定数と設定
 
-- LLM 呼出しは `LLMService.complete_prompt` 1 本(AD-11)。retry / PromptCache / token
-  集計は service 側、template fallback は generator 側の責務。
-- `CLINOSIM_NARRATIVE_LLM` env gate は削除済 — opt-in は CLI `--provider` の明示選択のみ。
-- chain 1b(2026-07-03)で追加: `<profile>.llm-<tag>.golden.json`(`regenerate-goldens
-  --provider mock|bedrock|ollama --model-tag <tag>`; llm-mock leg は `pytest -m regression`
-  で byte-diff)+ `clinosim check-narratives`(`narrative/semantic_check.py`、実 LLM 出力の
-  5 軸 semantic gate)+ `narrate --patient-filter <regex>`(リモート反復チューニング、
-  manifest に記録、regenerate-goldens は拒否)。リモート実行手順 =
-  `docs/design-notes/2026-07-03-remote-llm-narrative-workflow.md`。
-- 残 β-JP-1 scope: bedrock/ollama 実プロンプト品質チューニング(リモート)。
-  Longitudinal chart summary は後期 phase。
+- **Canonical ID prefix** (writer 所有、全 FHIR builder が import):
+  `DOC_REFERENCE_ID_PREFIX`, `COMPOSITION_ID_PREFIX`,
+  `ALLERGY_ID_PREFIX`, `CLINICAL_IMPRESSION_ID_PREFIX`。
+  `_fhir_patient.py` は `allergy-{patient_id}-{index:02d}` を inline
+  で書き込んでいるが、本 prefix 定数は Task 9 FHIR builder のために
+  canonicalise する (concern logged。統一は追跡中)。
+- **`NURSING_LOINCS`** (frozenset、`engine.py` の
+  `_load_nursing_loincs` 経由で load) — 看護師 author 文書の LOINC
+  code。`_pick_document_author` は文書 LOINC が本集合に含まれるとき
+  `encounter.primary_nurse_id` に dispatch、含まれない場合は
+  `attending_physician_id` (AD-65 Bug B fix)。
+- **Document-type spec**
+  ([`reference_data/document_type_specs.yaml`](reference_data/document_type_specs.yaml))
+  — 文書種別ごとの registry entry。LOINC、`format_type`
+  (`"free_text"` / `"composition"`)、`encounter_types_supported`
+  allowlist (AD-64 α-min-2 — 空 tuple は「全 encounter type と一致」
+  を意味するため、inpatient 限定文書の spec は必ず
+  `[inpatient, icu, rehab_inpatient]` を明示して outpatient / ED へ
+  leak しないようにする)、国 gate、author-role hint を保持。
+- **6-layer reference-data validator** (Task 5 pattern) —
+  `_validate_physical_exam_findings` と
+  `_validate_discharge_instructions` が empty-top / missing-key /
+  per-bucket / required-key / pre-use 順序 / per-entry required-field
+  を検査。YAML typo は import 時に raise。
+- **Chronic SOAP + hedging** reference YAML
+  (`chronic_soap_templates.yaml`, `hedging_phrases.yaml`) は
+  [`narrative`](narrative/README.md) 側 submodule から read されるが、
+  本 package の `reference_data/` に配置されている。
 
-## Bug Fix Log (AD-65 Chain)
+## ディレクトリ構造
 
-### Bug A: US H&P Japanese Contamination
+```
+clinosim/modules/document/
+  __init__.py                        公開 API + canonical ID prefix
+  engine.py                          document_enricher + doc-stub helper + NURSING_LOINCS
+  reference_data_loaders.py          load_physical_exam_findings + load_discharge_instructions (6-layer)
+  audit.py                           AD-60 audit plug-in #5 — 49-check lift_firing_proof
+  reference_data/
+    document_type_specs.yaml         文書種別 registry
+    physical_exam_findings.yaml      per-disease PE 所見 (baseline + override)
+    discharge_instructions.yaml      per-disease 退院指示
+    chronic_soap_templates.yaml      慢性疾患 SOAP note template
+    hedging_phrases.yaml             narrative hedging phrase pool
+  narrative/                         narrative subpackage (Stage 2 pipeline) — narrative/README.md 参照
+```
 
-**現象**: US p=10k cohort の全 ADMISSION_HP の HPI + Physical Examination section が日本語で emit (4,507 doc)。
+## Enricher 配線
 
-**根因**: `narrative/template_generator.py` の複数 builder が `_ja` field を unconditional access。
-Disease YAML の narrative field(hpi_en / physical_examination_en)が未 populate → ja fallback → US cohort silently ja 化。
+[`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
+(`L340-348` 付近) で登録:
 
-**修正**: `_pick_localized(tmpl, key_base, lang) -> str` helper で lang dispatch、片方 missing なら explicit warn log + empty string。
-全 32 disease YAML の narrative field audit + missing en 補填。
+- `name="document"`, `stage=POST_ENCOUNTER`, `order=95`,
+  `enabled=lambda c: True`。POST_ENCOUNTER 最後 (imaging=90、
+  triage=93、nursing_assignment=94 の後) に走り、全上流 extension
+  slot を消費できる。
+- `audit.py` は import 時に AD-60 audit framework に登録される。
 
-### Bug B: Nurse Notes に Physician が author
+## Output surface (consumers)
 
-**現象**: LOINC 34746-8 (NURSING_SHIFT_NOTE) + 78390-2 (ADMISSION_NURSING_ASSESSMENT) +
-34119-8 (NURSING_DISCHARGE_SUMMARY) 全て `author = attending_physician_id` (23,279 doc)。
-primary_nurse_id 無視 → α-min-2 nursing_assignment enricher との author mismatch。
+| Consumer | 場所 | 役割 |
+|---|---|---|
+| Enricher registry | [`clinosim/simulator/enrichers.py:344`](../../simulator/enrichers.py) | POST_ENCOUNTER order=95 登録。 |
+| Audit registry | [`clinosim/modules/document/audit.py`](audit.py) | AD-60 audit plug-in — 49-check lift_firing_proof + clinical_acceptance。 |
+| Narrative Stage 2 | [`clinosim/modules/document/narrative/passes.py`](narrative/passes.py) | 本モジュールが emit した全 stub に `narrative.sections` を populate。 |
+| FHIR document builder | [`clinosim/modules/output/fhir_r4/documents/`](../output/fhir_r4/documents/README.md) | stub + populate 済み narrative から `DocumentReference` / `Composition` / `ClinicalImpression` を emit。 |
 
-**修正**: `_pick_document_author(spec, encounter) -> str` helper で nursing LOINC 判定 → nursing 時は
-primary_nurse_id 優先。4 branch 内の hardcoded attending_id 直接使用を全て helper 経由に置換。
+## テスト
 
-## 関連
+```bash
+pytest tests/unit -k "document" -q
+pytest tests/integration -k "document_chain" -q
+clinosim audit run -d <cohort_dir> --module document
+```
 
-- 設計: `docs/history/specs-archive/2026-07-02-tier1-3-narrative-stage2-architecture-design.md` (AD-65)
-- 仕様: `docs/spec/tier1-document-density-alpha-min-1-spec.md`
-- マスタープラン: `docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md`
-- DESIGN.md (AD-55, AD-62, AD-63, AD-65)
+Coverage は大量 — `tests/unit -k document` で per-spec / per-encounter
+/ per-country test を検索、end-to-end CIF → FHIR chain guard は
+`tests/integration/test_document_chain.py`。
+
+## Ownership
+
+`maintainers@` — 詳細は
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+
+英語版: [`README.md`](README.md)。

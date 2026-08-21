@@ -2,11 +2,11 @@
 
 # CLI Reference
 
-clinosim is organized as three independent stages. You can run them as a single pipeline with `clinosim simulate`, or run each stage separately for reproducibility, remote execution (e.g. Bedrock on EC2), or iterative narrative experiments.
+clinosim is organized as three independent stages. `clinosim simulate` runs Stage 1; Stages 2 and 3 can be composed with it via `--narrative` and `--format fhir`, or run separately for reproducibility, remote execution (e.g. Bedrock on EC2), or iterative narrative experiments. `clinosim generate` remains as a deprecated alias for `simulate`.
 
 ```
 ┌────────────────┐  ┌────────────────┐  ┌──────────────────┐
-│ generate       │→ │ narrate        │→ │ export-fhir      │
+│ simulate       │→ │ narrate        │→ │ export-fhir      │
 │ (Stage 1)      │  │ (Stage 2)      │  │ (Stage 3)        │
 │ structured CIF │  │ narrative CIF  │  │ FHIR R4 NDJSON   │
 └────────────────┘  └────────────────┘  └──────────────────┘
@@ -31,13 +31,14 @@ Population-driven simulation. Produces the structural CIF and optionally runs St
 | `--narrative-version ID` | auto | Narrative version id used when exporting FHIR |
 | `--narrative-model NAME` | `qwen:7b` | Legacy Ollama model name (ignored if `--llm-config` is set) |
 
-### `clinosim narrate` — Stage 2 (clinical documents) **[DEPRECATED]**
+### `clinosim narrate` — Stage 2 (clinical documents)
 
-> **Deprecated (Task 15, 2026-07-01)**: `clinosim narrate` is no longer functional.
-> DocumentReference resources are now generated automatically during simulation
-> by the `document_enricher` module (Stage 1). Run `clinosim simulate --format fhir-r4`
-> to get DocumentReferences without a separate narrate step.
-> Stage 2 LLM provider integration is deferred to the β-JP-1 chain (see [../roadmap.md](../roadmap.md)).
+> **Note**: template-mode DocumentReferences are also emitted automatically
+> during Stage 1 by the `document_enricher` module, so `clinosim simulate
+> --format fhir-r4` produces a valid FHIR bundle with `docStatus="preliminary"`
+> documents even without a separate `narrate` step. Running `narrate` afterwards
+> upgrades those to `docStatus="final"` with LLM-generated text (or leaves them
+> as `preliminary` in template mode).
 
 Reads an existing CIF directory and generates clinical documents via the LLM service. Writes a new narrative version to `<cif>/narratives/<version_id>/`.
 
@@ -95,7 +96,7 @@ Quality check generated data against published benchmarks.
 
 ### `clinosim list-diseases`
 
-Show all 32 diseases + 46 encounter conditions.
+Show all 32 diseases (`clinosim/modules/disease/reference_data/*.yaml`) + 46 encounter conditions (`clinosim/modules/encounter/reference_data/*.yaml`).
 
 ### Typical workflows
 

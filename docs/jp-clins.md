@@ -282,10 +282,10 @@ See spec §1.3 in `docs/history/specs-archive/2026-07-12-p2-13-jp-clins-design.m
 
 ## Deferred improvement candidates
 
-Session 47 preflight review surfaced three items worth revisiting in future PRs:
+Session 47 preflight review surfaced three items worth revisiting in future PRs. Status as of session 88k:
 
-- CIF `orders` list split into `medication_orders` / `lab_orders` (matches FHIR resource type separation)
-- CLI verb `generate` → `simulate` rename with a deprecation alias (semantically more accurate for a physiology-driven simulator)
-- `_JP_CORE_PROFILES` shape unification from `dict[str, str]` to `dict[str, list[str]]` (matches JP-CLINS shape)
+- ✅ CLI verb `generate` → `simulate` rename with a deprecation alias — landed; `generate` remains as an alias in `clinosim/simulator/cli.py`.
+- ✅ `_JP_CORE_PROFILES` shape unification from `dict[str, str]` to `dict[str, list[str]]` — landed alongside the JP-CLINS eCS profile dispatch in `clinosim/modules/output/fhir_r4_adapter.py`.
+- ⏳ CIF `orders` list split into `medication_orders` / `lab_orders` (matches FHIR resource-type separation) — not landed; still a candidate.
 
 Each is a small, independent refactor — best delivered as its own PR rather than folded into P2-13.

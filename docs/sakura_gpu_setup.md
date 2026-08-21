@@ -172,7 +172,7 @@ trouble: `curl: (52) Empty reply from server` → Ollama が 0.0.0.0 バイ
 
 ```bash
 # ミニマル smoke (JP p=1) — VM 1 回起動して SSH tunnel 常駐前提で ~1 min
-clinosim generate --country JP --population 1 --seed 42 --format cif \
+clinosim simulate --country JP --population 1 --seed 42 --format cif \
     -o /tmp/sakura-smoke
 clinosim narrate \
     --cif-dir /tmp/sakura-smoke/cif \
@@ -182,7 +182,7 @@ clinosim narrate \
     --set-current
 
 # 中規模 (p=100) — 品質評価 + 速度実測
-clinosim generate --country JP --population 100 --seed 42 --format cif \
+clinosim simulate --country JP --population 100 --seed 42 --format cif \
     -o /tmp/sakura-eval100
 clinosim narrate \
     --cif-dir /tmp/sakura-eval100/cif \

@@ -1,69 +1,162 @@
-# family_history モジュール
-
-第1度近親(母/父/兄弟姉妹)の疾患 family history を合成し、FHIR `FamilyMemberHistory`
-+ CSV `family_history.csv` として出力する AD-55 Base(always-on)モジュール。
+# `clinosim.modules.family_history` — 第 1 度近親の家族歴合成
 
 ## 概要
 
-患者ごとに近親を生成し、各近親に **locale 別有病率 × 遺伝倍率** で疾患を割り当てる。
-本人が同じ疾患(base ICD)を持つ場合に近親の有病率を引き上げる(遺伝クラスタリング)。
+患者ごとに第 1 度近親 (母 / 父 / 兄弟姉妹 0-2 人) を合成し、
+`base_prevalence(疾患, 近親性別, 近親年齢帯) × heritability(疾患)`
+(本人が同じ ICD ベースコードを持つ場合) で疾患を割り当てる AD-55 Base
+(always-on) モジュール。結果を `CIFPatientRecord.family_history`
+(typed field) に格納し、下流の FHIR + CSV adapter が
+`FamilyMemberHistory` リソースと `family_history.csv` を出力する。
 
-```
-P(近親が疾患C) = base_prevalence(C, 近親sex, 近親age帯) × heritability(C)  # 本人がCを持つとき
-```
+## Scope
 
-- 続柄: 母(MTH)/父(FTH)/兄弟姉妹(NSIB, 0-2人)。HL7 v3-RoleCode。
-- 疾患: 心血管代謝系(E11/I10/I25/I63/I64/E78)+ 主要がん(C50乳/C18大腸/C34肺/C61前立腺)。
-- 性別制限: 前立腺=男性のみ、乳がん=女性のみ。
-- 近親年齢は本人年齢から導出(親 +25-35歳、兄弟姉妹 ±12歳)。親は高齢で deceased あり得る。
+- **In scope**: 母 + 父 + 兄弟姉妹 0-2 人。近親年齢は本人年齢から導出
+  (親は設定可能なオフセット加算、兄弟姉妹は ± オフセット)、親の死亡は
+  年齢に応じ確率上昇。疾患ごとに locale prevalence × heritability boost。
+- **モデル対象疾患**: 心血管代謝系 (`E11` 糖尿病、`I10` 高血圧、
+  `I25` 虚血性心疾患、`I63`/`I64` 脳卒中、`E78` 脂質異常症) + 主要がん
+  (`C50` 乳、`C18` 大腸、`C34` 肺、`C61` 前立腺)。ICD-10 base コードのみ
+  保持し、表示は下流で lookup 解決 (AD-30)。
+- **性別制限**: 前立腺は男性近親のみ、乳がんは女性近親のみ
+  (reference YAML の per-condition `sex` フィールドで強制)。
+- **Out of scope**: 家族歴を本人の疾患サンプリングに逆流させる処理
+  (Phase 2+ で
+  [`clinosim.modules.population`](../population/README.md) の
+  risk-factor logic 想定)、FHIR / CSV serialization
+  ([`clinosim.modules.output`](../output/README.md))、ICD-10 や
+  HL7 v3-RoleCode の表示テキスト ([`clinosim/codes/`](../../codes/))。
 
-コードのみ保持(AD-30)。表示は出力時に `codes.lookup` で解決。
+## Public API
 
-## データファイル
-
-- `reference_data/family_history.yaml` — **country-neutral な生物学**: 続柄表示、遺伝倍率、
-  性別制限、兄弟姉妹数分布、近親年齢オフセット、親死亡確率パラメータ。
-- `clinosim/locale/{us,jp}/family_history_prevalence.yaml` — **国別 base 有病率**
-  (疾患 × 性別 × 年齢帯)。疫学的な近似値(コードではなく rate)。
-
-## API
+`__init__.py` は空。呼び出し側は engine + enricher から直接 import:
 
 ```python
-generate_family_history(patient_age: int, patient_conditions: list, country: str,
-                        rng: np.random.Generator) -> list[FamilyMemberHistoryRecord]
+from clinosim.modules.family_history.engine import (
+    generate_family_history,     # (patient_age, patient_conditions, country, rng)
+                                 #   -> list[FamilyMemberHistoryRecord]
+    load_reference,              # -> 生物学 (relationships / heritability / offsets)
+    load_prevalence,             # (country) -> {icd_code: {age_band: {sex: rate}}}
+    SIBLING_COUNT_OPTIONS,       # (0, 1, 2)
+    SIBLING_SEX_MALE_PROBABILITY, # 0.5
+)
+from clinosim.modules.family_history.enricher import enrich_family_history
 ```
-`patient_conditions` は str / dict(`code`) / オブジェクト(`.code`)を受容。決定的。
 
-## 配線
+`generate_family_history` は `patient_conditions` として `str` /
+`dict` (`{"code": ...}`) / オブジェクト (`.code`) を受容。engine が
+uppercase + `.` 分割で ICD ベースを抽出する。与えられた `rng` に対し決定的。
 
-- **Enricher**(`simulator/enrichers.py`、stage=`post_records`、order=40、always-on):
-  `enrich_family_history`。**person_id 由来の独立サブシード**
-  (`derive_sub_seed(master, 0x4648, person_id)`)で encounter 間安定 & 主乱数列不変(AD-16)。
-  `CIFPatientRecord.family_history`(typed field、Base)に格納。
-- **FHIR**: `modules/output/_fhir_family_history.py` の `_bb_family_history` を
-  `_BUNDLE_BUILDERS` に登録(AD-56)。患者単位 id(`fmh-{pid}-NN`)で write 時 de-dup。
-- **CSV**: `csv_adapter.py` が `family_history.csv` を出力(患者単位 de-dup)。
+## 決定論
+
+- サブ seed オフセット `0x4648` (`"FH"`)。
+  [`clinosim/seeding.py`](../../seeding.py) の
+  `ENRICHER_SEED_OFFSETS["family_history"]` に登録済み。
+- 患者単位 RNG:
+  `derive_sub_seed(master_seed, offset, patient_id)` — 同一患者は
+  すべての encounter で同じ家族を合成し、患者主 RNG 列を消費しない。
 
 ## 依存
 
-`types/family_history`、`codes`(ICD/v3-RoleCode 表示)、`locale`(有病率)、
-`simulator/seeding`(`derive_sub_seed`)。
+- `clinosim.modules._shared` — `is_us` / `is_jp`、
+  `normalize_probabilities` (`fallback="raise"`)、
+  `get_attr_or_key` / `set_attr_or_key`。
+- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
+- `clinosim.types.family_history` — `FamilyMemberHistoryRecord`。
+- `clinosim.codes` (間接、FHIR builder 経由) — ICD-10 と
+  HL7 v3-RoleCode の表示 lookup。
+- 他の `clinosim.modules.*` には依存しない。
 
-## Consumers
+## 定数と設定
 
-このモジュールに依存するもの:
+- [`reference_data/family_history.yaml`](reference_data/family_history.yaml)
+  — country-neutral な生物学:
+  - `relationships` — `MTH` / `FTH` / `NSIB` の v3-RoleCode エントリと
+    per-code の EN + JA 表示。**JA 正規表示はコード個別**
+    (MTH は `"母"`、FTH は `"父"`、NSIB は `"natural sibling"` /
+    `"実兄弟姉妹"`) であり、**兄弟コードから推測してはならない**
+    — file 冒頭コメント (Issue #369、v23 regression) が PR #372 の
+    drift を詳述している。
+  - `conditions` — ICD ごとの `{sex, heritability}`。
+  - `sibling_count_weights` — `SIBLING_COUNT_OPTIONS = (0, 1, 2)` に
+    対応する 3 要素 weight。
+  - `parent_age_offset` / `sibling_age_offset` — `{min, max}` 範囲
+    (`rng.integers` に渡す)。
+  - `parent_deceased_base_age` / `parent_deceased_span` /
+    `parent_deceased_max` — 親の死亡確率式。
+- [`clinosim/locale/us/family_history_prevalence.yaml`](../../locale/us/family_history_prevalence.yaml)
+  および
+  [`clinosim/locale/jp/family_history_prevalence.yaml`](../../locale/jp/family_history_prevalence.yaml)
+  — `{icd_code: {age_band: {female: rate, male: rate}}}`。
+  `load_prevalence` は unsupported country に対し `{}` を返し
+  (2026-07-02 grand-design 契約)、engine は空 map を「全員 unaffected」
+  として扱う。
+- module レベル定数 (`engine.py`):
+  - `SIBLING_COUNT_OPTIONS = (0, 1, 2)` — OECD 2020 の平均
+    children-per-household (US + JP) 分布に整合。
+  - `SIBLING_SEX_MALE_PROBABILITY = 0.5` — 出生時 sex ratio に
+    小数第 2 位まで一致。
 
-| Caller | How | Impact |
+## ディレクトリ構造
+
+```
+clinosim/modules/family_history/
+  __init__.py                     空 (Public API 節参照)
+  engine.py                       generate_family_history + サンプリング helper
+  enricher.py                     POST_RECORDS enrichment (患者単位サブ RNG)
+  reference_data/
+    family_history.yaml           country-neutral な生物学
+```
+
+**`audit.py` は存在しない** — `ModuleAuditSpec` は登録していない。
+検証は下記 unit + integration test で担保。
+
+## Enricher 配線
+
+[`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) の
+`register_builtin_enrichers` で登録:
+
+- `name="family_history"`, `stage=POST_RECORDS`, `order=40`,
+  `enabled=lambda c: True`。
+- `immunization` (order 30) の後、`code_status` (order 50) の前に実行。
+
+## Output surface (consumers)
+
+| Consumer | 場所 | 役割 |
 |---|---|---|
-| `simulator/enrichers.py` | `register_builtin_enrichers()` で post_records enricher 登録 | core (enricher registry) |
-| `modules/family_history/enricher.py` | 同 module 内の enricher 実装 | core |
-| `modules/output/_fhir_family_history.py` | FamilyMemberHistory リソース生成で family_history データ + reference 関数を参照 | medium (FHIR builder) |
-| `tests/integration/test_family_history_enricher.py` | enricher integration test | guard |
-| `tests/unit/test_family_history_engine.py` | engine unit tests | guard |
+| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L341` 付近, `L418` 付近) | `record["family_history"]` から `family_history.csv` を書き出し (患者単位)。 |
+| FHIR `FamilyMemberHistory` builder | [`clinosim/modules/output/fhir_r4/demographics/family_history.py`](../output/fhir_r4/demographics/family_history.py) | 近親ごとに `FamilyMemberHistory` を 1 件出力。id は `fmh-{patient_id}-NN` で write 時 de-dup。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py:175`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
 
-## 検証
+## テスト
 
-- 決定論: 同一 seed の US 生成で **byte-diff は新規 `FamilyMemberHistory.ndjson` のみ**、
-  既存 NDJSON 全 byte 一致(主乱数列不変を実証)。
-- 監査(US 3000): 近親 2.79/患者、疾患 1.79/近親、性別制限違反 0、DM患者の~66%にDM親
-  (遺伝倍率が機能)。
+```bash
+pytest tests/unit -k family_history -q         # engine, data, codes, csv, relationship
+pytest tests/integration -k family_history -q  # enricher + FHIR 出力
+```
+
+個別ファイル:
+
+- [`tests/unit/test_family_history_engine.py`](../../../tests/unit/test_family_history_engine.py)
+  — サンプリング決定論 + 性別 / 年齢 filter。
+- [`tests/unit/test_family_history_data.py`](../../../tests/unit/test_family_history_data.py)
+  — reference YAML shape。
+- [`tests/unit/test_family_history_codes.py`](../../../tests/unit/test_family_history_codes.py)
+  — ICD-10 + v3-RoleCode の authoritative 検証。
+- [`tests/unit/test_family_history_csv.py`](../../../tests/unit/test_family_history_csv.py)
+  — CSV 行出力。
+- [`tests/unit/test_fhir_family_history_code_resolution.py`](../../../tests/unit/test_fhir_family_history_code_resolution.py)
+  — FHIR builder のコード → 表示解決。
+- [`tests/unit/output/test_fhir_family_history_relationship.py`](../../../tests/unit/output/test_fhir_family_history_relationship.py)
+  — per-code EN / JA 表示 integrity (Issue #369 の guard)。
+- [`tests/integration/test_family_history_enricher.py`](../../../tests/integration/test_family_history_enricher.py)
+  — enricher 決定論 + heritability boost。
+- [`tests/integration/test_fhir_family_history.py`](../../../tests/integration/test_fhir_family_history.py)
+  — `FamilyMemberHistory` 出力の end-to-end。
+
+## Ownership
+
+`maintainers@` — 詳細は
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+
+英語版: [`README.md`](README.md)。

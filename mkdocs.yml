@@ -60,6 +60,13 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
+      # Unicode-aware slugifier so Japanese headings produce anchors
+      # like `1-ドキュメント言語` (matches JA TOC links) instead of `_1`.
+      # Default mkdocs slugifier strips non-ASCII characters, which
+      # would break every JA-authored TOC linking to JP-headed sections.
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
   - pymdownx.betterem
   - pymdownx.caret
   - pymdownx.highlight:

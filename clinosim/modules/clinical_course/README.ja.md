@@ -1,338 +1,155 @@
-# clinosim.modules.clinical_course — 臨床経過エンジン
+# `clinosim.modules.clinical_course` — trajectory archetype + 日次 directive engine
 
-## 目的
+## 概要
 
-入院から退院 (または死亡) までの **疾患の時間的進展 (trajectory)** をモデリングする。
+日 scale の臨床 trajectory を所有する: 入院時に disease YAML の
+`course_archetypes` (例 `smooth_recovery`, `gradual_deterioration`,
+`sudden_deterioration`, `treatment_resistant`) から 1 つを選出し、
+[`clinosim.modules.physiology`](../physiology/README.md) が state
+vector に適用する日次 `StateChangeDirective` を評価し、疾患スコープの
+リスク条件による合併症を評価し、診断有効度の feedback で trajectory
+を補正する。`physiology` が「現時点 state の意味」を決めるのに対し、
+`clinical_course` は「翌日以降 state をどう動かすか」を決める。
 
-physiology モジュールが「現在の状態」を保持するのに対し、 clinical_course は「次の1日に状態をどう動かすか」 (`StateChangeDirective`) を生成する。 これにより:
+## Scope
 
-- 同じ疾患でも患者ごとに異なる経過 (smooth recovery / treatment resistant / sudden deterioration)
-- 年齢・免疫反応性・治療感受性などの個人差が時間軸に反映される
-- 診断の正誤が治療効果に反映され、誤診が CRP の遷延等の足跡として残る
-- 合併症 (DVT、AKI、譫妄等) が確率的に発生し、カスケードする
-- 治療と独立した自然回復 (innate immune response) も組み込まれる
+- **In scope**: `select_archetype` (YAML archetype 確率 + 重症度 tier
+  multiplier + per-disease `archetype_modifiers` の患者リスク調整 +
+  age / immune-reactivity / treatment-sensitivity の速度係数、
+  すべて `normalize_probabilities(fallback="raise")` を通して正規化);
+  `get_daily_directive` (age スケールの trajectory 補間 + 免疫反応性
+  による amplitude modulation); `evaluate_complications` (archetype
+  ごとのリスク条件、`_evaluate_risk_condition` DSL で慢性疾患 / 年齢
+  / lab トリガーを評価); `compute_diagnosis_effectiveness` +
+  `apply_diagnosis_modifier` (診断駆動の補正を trajectory に戻す);
+  `natural_recovery_directive` (fallback); disease YAML の
+  `course_archetypes` / `archetype_modifiers` に対する import 時
+  validator。
+- **Out of scope**: state vector 意味論 + coupling
+  ([`clinosim.modules.physiology`](../physiology/README.md))、disease
+  YAML schema 本体
+  ([`clinosim.modules.disease`](../disease/README.md))、encounter
+  timeline ([`clinosim.modules.encounter`](../encounter/README.md))、
+  日次 loop mechanics
+  ([`clinosim.simulator.daily_loop`](../../simulator/daily_loop.py))。
 
-## 設計原則
+## Public API
 
-| # | 原則 | 説明 |
-|---|---|---|
-| 1 | **YAML 駆動 + フォールバック** | 各疾患の trajectory は disease YAML の `course_archetypes` に定義。未定義時は組み込み fallback を使用 |
-| 2 | **6 アーキタイプ** | smooth_recovery / dip_then_recovery / plateau_then_recovery / treatment_resistant / gradual_deterioration / sudden_deterioration |
-| 3 | **個人差の3経路** | (a) Amplitude: immune_reactivity, (b) Speed: 年齢×treatment_sensitivity, (c) Timing: effective day shift, (d) 日次ノイズ |
-| 4 | **State directive のみ生成** | physiology の状態を直接書き換えず、 `StateChangeDirective` を返す。実際の適用は physiology.update() |
-| 5 | **診断フィードバック** | 誤診時は recovery delta が dampening される (apply_diagnosis_modifier) |
-| 6 | **線形補間** | trajectory は離散的な day point の dict。 中間日は線形補間で計算 |
-
-## アーキタイプ一覧
-
-| Name | 既定 prob | パターン |
-|---|---|---|
-| `smooth_recovery` | 55% | Day 1-2 から着実な改善 |
-| `dip_then_recovery` | 20% | Day 1-3 に悪化、その後 gradual 改善 |
-| `plateau_then_recovery` | 10% | 3-5 日変化なし、 その後改善 |
-| `treatment_resistant` | 8% | 一次治療無効、 Day 3-5 で変更必要 |
-| `gradual_deterioration` | 5% | 緩徐な悪化 → ICU |
-| `sudden_deterioration` | 2% | Day 2 に sepsis/PE などで急変 |
-
-確率は disease YAML の `course_archetypes.<name>.probability` で上書き可能。 **すべての確率はランタイムで正規化されるため合計 1.0 である必要はない**。
-
-## API リファレンス
-
-### `select_archetype(severity, profile, rng, protocol_archetypes=None, protocol_modifiers=None, patient=None) -> str`
-
-患者ごとに 1 つのアーキタイプを選択する。 入院時に1度だけ呼ぶ。`protocol_modifiers`
-(疾患 YAML の `archetype_modifiers`)で患者リスク因子(年齢・免疫・併存症)による
-確率補正を適用する(FP-YAML-2b, AD-68)。named 条件の評価は `disease.severity._evaluate_condition`
-を再利用するため、本モジュールは **`disease`(severity)に依存**する。
-
-```python
-from clinosim.modules.clinical_course.engine import select_archetype
-import numpy as np
-
-rng = np.random.default_rng(42)
-archetype = select_archetype(
-    severity="moderate",
-    profile=patient.physiological_profile,
-    rng=rng,
-    protocol_archetypes=disease_yaml["course_archetypes"],
-)
-# → "smooth_recovery"
-```
-
-**Severity modifier**:
-- `severe`: gradual/sudden_deterioration ×2.0、smooth_recovery ×0.6
-- `mild`: smooth_recovery ×1.3、deterioration 系 ×0.3
-
-**Profile modifier**:
-- `immune_reactivity < 0.3` (免疫低下): treatment_resistant +0.10
-- `treatment_sensitivity > 1.2`: smooth_recovery +0.10
-
-### `get_daily_directive(archetype_name, day, profile, protocol_archetypes=None, age=70, rng=None) -> StateChangeDirective`
-
-指定日における state 変化指示を返す。 シミュレーションループから日次で呼ばれる。
-
-```python
-from clinosim.modules.clinical_course.engine import get_daily_directive
-
-directive = get_daily_directive(
-    archetype_name="smooth_recovery",
-    day=3,
-    profile=patient.physiological_profile,
-    protocol_archetypes=disease_yaml["course_archetypes"],
-    age=patient.age,
-    rng=rng,
-)
-# directive.changes = {
-#     "inflammation_level": -0.08,
-#     "volume_status":      0.02,
-#     ...
-# }
-```
-
-**個人差変調 (4 つの軸)**:
-
-1. **Amplitude (振幅)** — `immune_reactivity / 0.5` で `inflammation_level` の delta をスケール
-2. **Speed (速度)** — 年齢ベースの `speed_factor`:
-   - age < 50: 1.2x、age 50-70: 1.0x、age 70-80: 0.85x、age 80-90: 0.7x、age 90+: 0.55x
-3. **Timing (時間軸 stretch)** — `effective_day = day * speed_factor`
-4. **Noise (生物学的揺らぎ)** — 比例ノイズ + 約 10% の確率で "bump day" (CRP の Day 4 上振れ等を再現)
-
-### `evaluate_complications(day, state, patient, complications, active_complications, rng) -> list[dict]`
-
-合併症の発症判定を行う。 disease YAML の `complications` リストを反復し、 確率的に発症した合併症を返す。
-
-```python
-from clinosim.modules.clinical_course.engine import evaluate_complications
-
-triggered = evaluate_complications(
-    day=hospital_day,
-    state=current_state,
-    patient=patient,
-    complications=disease_yaml["complications"],
-    active_complications=active_set,  # mutated
-    rng=rng,
-)
-# triggered = [{"name": "AKI", "state_impact": {...}, "actions": [...]}, ...]
-```
-
-**判定フロー**:
-
-1. 既に active なら skip
-2. `onset_day_range: [start, end]` 内でなければ skip
-3. **カスケード合併症**: `parent_complication` が active でなければ skip
-4. 確率: `probability_per_day` (独立) または `probability_given_parent` (カスケード)
-5. **risk factor 評価**: 各 condition (例 `"age_over_75"`, `"renal_function < 0.4"`) が真なら multiplier を乗算
-6. `rng.random() < prob` なら発症、 `active_complications` に追加
-
-サポートする risk factor 文字列:
-- `age_over_<N>` — 患者年齢
-- `renal_function < <X>` / `volume_status < <X>` / `perfusion_status < <X>`
-- `delirium_susceptibility > <X>`
-- `immobility_days > <N>`
-
-### `compute_diagnosis_effectiveness(working_diagnosis, ground_truth_disease, diagnosis_confidence, day, diagnostic_difficulty=0.3) -> float`
-
-診断の正確さに基づく治療効果スコア (0.0-1.0) を返す。
-
-```python
-from clinosim.modules.clinical_course.engine import compute_diagnosis_effectiveness
-
-eff = compute_diagnosis_effectiveness(
-    working_diagnosis="bacterial_pneumonia",
-    ground_truth_disease="bacterial_pneumonia",
-    diagnosis_confidence=0.85,
-    day=2,
-    diagnostic_difficulty=0.30,  # 肺炎は中程度
-)
-# → 0.94 (correct dx + high confidence)
-```
-
-| 状況 | 戻り値 |
-|---|---|
-| 診断未定 (empiric therapy) | `0.4 - difficulty * 0.2` (0.15 〜 0.4) |
-| 正診 + confidence ≥ threshold | `0.6 + confidence * 0.4` (最大 1.0) |
-| 正診 + confidence 低 | `0.4 + confidence * 0.5` |
-| 誤診 | `0.2 - difficulty * 0.1` (0.05 〜 0.2) |
-
-`diagnostic_difficulty` は disease YAML の `diagnostic` セクションから読み込む:
-- 0.05: 大腿骨頸部骨折 (X-ray で即確定)
-- 0.25: UTI (尿検査 + 培養)
-- 0.30: 肺炎 (CXR + 培養)
-- 0.35: 心不全増悪 (BNP は有用だが肺炎と重複)
-- 0.40: COPD 増悪 (肺炎・心不全と重複)
-
-### `apply_diagnosis_modifier(directive, effectiveness, current_volume=0.0, current_ph=0.0) -> StateChangeDirective`
-
-`compute_diagnosis_effectiveness` の結果を directive に適用する。 **改善方向 (recovery) の delta のみ** ダンプし、 deterioration 方向はそのまま。
-
-```python
-from clinosim.modules.clinical_course.engine import apply_diagnosis_modifier
-
-modified = apply_diagnosis_modifier(directive, effectiveness=0.3,
-                                    current_volume=state.volume_status)
-# 誤診の場合、 inflammation_level の負の delta (CRP 低下) が 0.3 倍に dampening
-```
-
-改善方向の判定 (`_is_improvement`):
-- **負の delta が改善**: `inflammation_level`, `anemia_level`, `coagulation_status`
-- **正の delta が改善**: `renal_function`, `cardiac_function`, `hepatic_function`, `perfusion_status`
-- **0 に近づくのが改善**: `volume_status`, `ph_status` (current の符号で判定)
-
-### `natural_recovery_directive(day, disease_id, severity, profile) -> StateChangeDirective`
-
-治療と独立した自然治癒 (innate immune response、 homeostasis) を表現する小さな directive。
-
-```python
-from clinosim.modules.clinical_course.engine import natural_recovery_directive
-
-natural = natural_recovery_directive(
-    day=5, disease_id="bacterial_pneumonia",
-    severity="moderate", profile=patient.physiological_profile,
-)
-# → StateChangeDirective(source="natural_recovery", changes={
-#     "inflammation_level": -0.005, "volume_status": -0.005})
-```
-
-- 基準値: `0.01 * immune_reactivity * severity_scale`
-- severity_scale: mild=1.2, moderate=1.0, severe=0.6
-- Day 7 以降 ×0.7、 Day 14 以降 ×0.5 (acute phase response が薄れる)
-
-## データ構造
-
-### YAML スキーマ (`course_archetypes`)
-
-```yaml
-course_archetypes:
-  smooth_recovery:
-    probability: 0.55
-    trajectory:
-      inflammation_level: {0: 0.05, 1: -0.02, 3: -0.08, 7: -0.06, 14: -0.02}
-      volume_status:      {0: 0.02, 3: 0.02, 7: 0.01}
-      renal_function:     {0: 0.00, 5: 0.01}
-  sudden_deterioration:
-    probability: 0.02
-    trajectory:
-      inflammation_level: {0: 0.05, 2: 0.30, 5: -0.05}
-      perfusion_status:   {0: 0.00, 2: -0.30, 5: 0.05}
-```
-
-各 trajectory key は **その日の daily delta** (state は physiology.update() で 1 日分積算される)。 定義されていない日は線形補間。
-
-### 合併症 YAML スキーマ
-
-```yaml
-complications:
-  - name: "AKI"
-    onset_day_range: [1, 7]
-    probability_per_day: 0.03
-    risk_factors:
-      - condition: "age_over_75"
-        multiplier: 2.0
-      - condition: "perfusion_status < 0.5"
-        multiplier: 3.0
-    state_impact:
-      renal_function: -0.15
-    actions: ["nephrology_consult", "iv_fluids"]
-  - name: "septic_shock"
-    parent_complication: "AKI"     # cascade
-    probability_given_parent: 0.10
-    onset_day_range: [2, 10]
-```
-
-## 使用例: 1 日のシミュレーションループ
+`__init__.py` は空。呼び出し側は `engine.py` から直接 import:
 
 ```python
 from clinosim.modules.clinical_course.engine import (
-    select_archetype, get_daily_directive,
-    compute_diagnosis_effectiveness, apply_diagnosis_modifier,
-    natural_recovery_directive, evaluate_complications,
+    select_archetype,                # (severity, profile, rng, protocol_archetypes=None, protocol_modifiers=None, patient=None) -> archetype_name
+    get_daily_directive,             # (archetype_name, day, profile, protocol_archetypes=None, age=70, rng=None) -> StateChangeDirective
+    evaluate_complications,          # (archetype_name, day, patient, protocol_archetypes, rng) -> list[complication]
+    compute_diagnosis_effectiveness, # (encounter, ...) -> effectiveness score
+    apply_diagnosis_modifier,        # (directive, effectiveness, ...) -> StateChangeDirective
+    natural_recovery_directive,      # archetype lookup 失敗時の fallback directive
 )
-from clinosim.modules.physiology.engine import update
-
-# Once per admission
-archetype = select_archetype(severity, patient.profile, rng, disease_yaml["course_archetypes"])
-
-# Daily loop
-for day in range(0, los_days):
-    # 1. Disease progression directive
-    directive = get_daily_directive(archetype, day, patient.profile,
-                                     disease_yaml["course_archetypes"],
-                                     age=patient.age, rng=rng)
-
-    # 2. Apply diagnosis-treatment feedback
-    eff = compute_diagnosis_effectiveness(
-        diff.working_diagnosis, ground_truth_disease,
-        diff.candidates[0].probability, day,
-        diagnostic_difficulty=disease_yaml["diagnostic"]["difficulty"],
-    )
-    directive = apply_diagnosis_modifier(directive, eff,
-                                          current_volume=state.volume_status)
-
-    # 3. Add natural recovery
-    natural = natural_recovery_directive(day, disease_id, severity, patient.profile)
-    for var, delta in natural.changes.items():
-        directive.changes[var] = directive.changes.get(var, 0.0) + delta
-
-    # 4. Apply to physiological state
-    state = update(state, directive, time_step=timedelta(days=1))
-
-    # 5. Evaluate complications
-    triggered = evaluate_complications(day, state, patient,
-                                        disease_yaml["complications"],
-                                        active_complications, rng)
-    for comp in triggered:
-        # apply state_impact, queue actions
-        ...
 ```
 
-## 依存関係
+## 決定論
 
-- `clinosim.types.clinical` — `StateChangeDirective`
-- `clinosim.types.patient` — `PatientPhysiologicalProfile`
+- `ENRICHER_SEED_OFFSETS` にサブ seed 未登録。全 entry は caller が
+  渡す `rng` に対して pure。encounter simulator (`inpatient.py`) が
+  呼び出し前に per-encounter サブ RNG を導出する。
+- Archetype 選出は `rng.choice(names, p=weights)` を
+  `normalize_probabilities(fallback="raise")` 経由で使う — 総和 0 の
+  weight は silent bias にならず raise する。
+- 日次 directive 補間は `(archetype, day, age, immune_reactivity)` に
+  対して決定論的。`rng` 引数は optional で、`sudden_deterioration`
+  等の意図的な確率事件でのみ消費される。
+
+## 依存
+
 - `clinosim.modules._shared` — `normalize_probabilities`
-- `numpy` — 確率的選択
+  (`fallback="raise"`)。
+- `clinosim.modules.clinical_course._archetype_modifiers` —
+  archetype / 重症度別 multiplier 定数 (Issue #637 refactor)。
+- `clinosim.modules.clinical_course._clinical_course_thresholds` —
+  `_archetype_modifiers.py` に含まれない残余 threshold
+  (Issue #637 refactor)。
+- `clinosim.types.clinical` — `StateChangeDirective`,
+  `PatientPhysiologicalProfile`。
+- `numpy` — `np.random.Generator`。
 
-**他の domain module への依存なし** (physiology の状態を直接読み書きしない、 directive ベースで疎結合。`_shared` は infra ヘルパーであり domain module ではない)。
+## 定数と設定
 
-## Consumers
+- **Fallback archetype 表** (`engine.py`): `_FALLBACK_PROBABILITIES`
+  は disease YAML が `course_archetypes` を持たないときの baseline
+  確率の単一情報源。重症度 multiplier logic は baseline をここから
+  引き、inline 再入力しない — fallback dict 再調整時の drift risk
+  排除。
+- **Archetype-shape modifier** ([`_archetype_modifiers.py`](_archetype_modifiers.py)、
+  Issue #637):
+  - `SEVERE_{GRADUAL,SUDDEN}_DETERIORATION_MULT`,
+    `SEVERE_SMOOTH_RECOVERY_MULT`,
+    `MILD_{SMOOTH_RECOVERY,GRADUAL_DETERIORATION,SUDDEN_DETERIORATION}_MULT`
+    — fallback baseline (もしくは YAML 供給 baseline) の上に適用する
+    severity tier multiplier。
+  - `AGE_SPEED_FACTOR_BANDS`, `AGE_SPEED_FACTORS` — 年齢帯別
+    回復速度係数。
+  - `AGED_DETERIORATION_AMPLIFIER_BASE` — 高齢者の deterioration
+    amplifier baseline。
+  - `ARCHETYPE_PROBABILITY_DEFAULT`, `ARCHETYPE_WEIGHT_FLOOR` —
+    archetype 確率欠落時の default と floor。
+- **残余 threshold** ([`_clinical_course_thresholds.py`](_clinical_course_thresholds.py)、
+  Issue #637): `evaluate_complications`,
+  `compute_diagnosis_effectiveness`, `_interpolate` から
+  archetype-modifier に収まらない定数を lift。
+- **Load 時 validator** (`_validate_course_archetypes` +
+  `_validate_archetype_modifiers`) は disease YAML が未知 archetype
+  名を参照する / modifier の `condition` 文字列が壊れているケースを
+  fail-loud に検出 — silent-no-op 防御。
 
-このモジュールに依存するもの:
-
-| Caller | How | Impact |
-|---|---|---|
-| `simulator/inpatient.py` | daily cycle で archetype 駆動の状態進行を `update_state()` 経由で適用 | core (主 simulation loop) |
-| `tests/integration/test_clinical_pipeline.py` | 臨床 pipeline integration test | guard |
-| `tests/unit/test_clinical_course.py` | archetype + directive logic unit tests | guard |
-| `tests/unit/test_diagnosis_feedback.py` | diagnosis feedback loop test | guard |
-
-## 修正ガイド
-
-### よくある修正シナリオ
-
-| やりたいこと | 修正場所 | 影響範囲 |
-|---|---|---|
-| 新しいアーキタイプを追加 | `select_archetype()` の case 追加 + 対応 trajectory 関数 | 全新疾患がこのアーキタイプを選択可能に |
-| 合併症の発火条件を変更 | `evaluate_complications()` | physiology state 推移、LOS に影響 |
-| 自然回復速度を調整 | `natural_recovery_directive()` | 退院タイミングに影響 |
-| 治療効果を変更 | `treatment_response_directive()` | 検査値推移に影響 |
-| 新しい state 変数への対応 | `for var_name in [...]` リストに追加 | physiology モジュール変更と同時に行う |
-
-### 関連モジュール
+## ディレクトリ構造
 
 ```
-disease YAML (course_archetypes)
-  ↓ archetype → trajectory
-clinical_course.get_daily_directive()
-  ↓ StateChangeDirective
-physiology.update(state, directive)
-  ↓ updated PhysiologicalState
-observation / order → CIF → FHIR
+clinosim/modules/clinical_course/
+  __init__.py                        空
+  engine.py                          select_archetype / get_daily_directive / evaluate_complications / 診断 feedback
+  _archetype_modifiers.py            重症度 + 年齢 multiplier 定数 (Issue #637)
+  _clinical_course_thresholds.py     残余 threshold 定数 (Issue #637)
+  SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 
-### テスト
+**`enricher.py` / `audit.py` / `reference_data/` は存在しない** —
+archetype データは disease YAML
+(`clinosim/modules/disease/reference_data/*.yaml`) に在る。
+
+## Enricher 配線
+
+該当なし — 本モジュールは encounter simulator が imperative に呼び出す
+形態で、`register_builtin_enrichers` に登録されない。
+`ENRICHER_SEED_OFFSETS` にも seed 未登録。
+
+## Output surface (consumers)
+
+| Consumer | 場所 | 役割 |
+|---|---|---|
+| Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) (`L12`, `L252` 付近) | 入院時に `select_archetype` を呼び、結果を `encounter.clinical_course_archetype` に書き込む。 |
+| Daily loop | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) (`L21` 付近) | 入院日ごとに `get_daily_directive` + `evaluate_complications` を呼び、directive を `physiology.update` に渡す。 |
+| Disease-protocol integration | [`clinosim/modules/disease/protocol.py`](../disease/protocol.py) | YAML `archetype_modifiers.condition` token 解決を load 時に cross-validate。 |
+
+## テスト
 
 ```bash
-source .venv/bin/activate && python -m pytest tests/unit/test_clinical_course.py -v
+pytest tests/unit -k "clinical_course or diagnosis_feedback" -q
 ```
 
-カバー範囲: archetype 選択、 daily directive、 線形補間、 severity/profile modifier、 診断フィードバック、 自然回復、 合併症カスケード。
+個別ファイル:
+
+- [`tests/unit/test_clinical_course.py`](../../../tests/unit/test_clinical_course.py)
+  — `select_archetype` 分布 + `get_daily_directive` 決定論。
+- [`tests/unit/test_diagnosis_feedback.py`](../../../tests/unit/test_diagnosis_feedback.py)
+  — `compute_diagnosis_effectiveness` + `apply_diagnosis_modifier`
+  補正。
+- [`tests/unit/modules/clinical_course/`](../../../tests/unit/modules/clinical_course/)
+  — module-scoped unit test。
+
+## Ownership
+
+`maintainers@` — 詳細は
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+
+英語版: [`README.md`](README.md)。
