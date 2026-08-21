@@ -157,13 +157,19 @@ LLM 層 (選択的、コンテキスト、高価)
 
 ### モジュール別 LLM 呼び出しポイント
 
-主要モジュールの LLM 呼び出しポイント (要約: patient chief
-complaint、diagnosis 差分更新、treatment 選択理由、encounter
-admission H&P / progress note / discharge summary / consultation
-note、nursing shift assessment、procedure operative note、
-validator consistency review、population care-seeking decision)。
-各呼び出しポイントは (in → out) token 予算と model tier を持つ。
-詳細は英語版 §2「LLM invocation points per module」表参照。
+| モジュール | 呼び出しポイント | LLM の役割 | ルールベース維持部分 | Model tier | Context (in → out token) |
+|---|---|---|---|---|---|
+| **patient** | Chief complaint 生成 | 症状から自然言語 chief complaint | 症状選定と重症度 | Small | ~500 → 200 |
+| **diagnosis** | 各判断点での差分更新 | Assessment 節の臨床推論 narrative | 確率計算 (Bayesian update)、LR 適用 | Medium | ~1,500 → 800 |
+| **treatment** | 治療選択 / 変更判断 | 臨床 context 付き治療選択理由 | 薬剤選択ロジック、用量計算、相互作用チェック | Medium | ~1,200 → 600 |
+| **encounter** | Admission H&P | 構造化データからフル History & Physical 文書 | データ収集自体 | Large | ~2,500 → 4,000 |
+| **encounter** | Progress notes (キー日) | 臨床推論付き日次 SOAP note | Vitals / labs (構造化データとして挿入) | Medium | ~1,500 → 1,500 |
+| **encounter** | 退院サマリ | 包括的退院文書 | 退院基準評価、タイミング | Large | ~4,000 → 5,000 |
+| **encounter** | Consultation note | 専門科応答 (専門分野に適した言語で) | Consultation リクエストのルーティング | Medium | ~1,500 → 2,000 |
+| **nursing** | シフトアセスメントノート | 構造化アセスメントからの看護 narrative | アセスメントデータ収集、vital sign 値 | Small | ~800 → 500 |
+| **procedure** | Operative note | フル手術記録 | タイミング、チーム、合併症判定 | Large | ~2,000 → 3,000 |
+| **validator** | 臨床整合性レビュー | 完全患者レコードの非妥当性レビュー | 変化率制限、相互排他 (ルールベース) | Large | ~6,000 → 1,500 |
+| **population** | 受診決定 (エッジケース) | 患者の意思決定推論をシミュレート | 明確ケースは閾値ベース判断 | Small | ~500 → 200 |
 
 **日本語 token 数注記:** 日本語テキストは tokenizer 特性により
 同じセマンティック内容に対して英語より 1.5–2 倍多い token を必要
@@ -319,7 +325,51 @@ class NarrativeGenerator:
 - **スケール見積 (JP)**: 100 患者 ~$46、1,000 患者 ~$460 (cache
   ~50% hit で半分)。
 
-詳細な内訳表は英語版 §「Token budget per patient」参照。
+#### JUDGMENT タスク (常に英語 — 効率的 token、高品質)
+
+| タスク | 回数 | Input | Output | 合計 | Model |
+|---|---|---|---|---|---|
+| 診断推論 | 3 | 800 × 3 | 400 × 3 | 3,600 | Medium |
+| 治療判断 | 2 | 700 × 2 | 300 × 2 | 2,000 | Medium |
+| 整合性レビュー | 1 | 4,000 | 1,000 | 5,000 | Large |
+| **Judgment 小計** | **6** | **7,400** | **2,200** | **10,600** | |
+
+#### NARRATIVE タスク (日本語出力 — 自然テキストのためより大きな token 予算)
+
+| タスク | 回数 | Input (en) | Output (ja) | 合計 | Model |
+|---|---|---|---|---|---|
+| Chief complaint | 1 | 500 | 200 | 700 | Small |
+| Admission H&P | 1 | 2,000 | 4,000 | 6,000 | Large |
+| Progress notes (キー日) | 4 | 1,200 × 4 | 1,500 × 4 | 10,800 | Medium |
+| 退院サマリ | 1 | 3,000 | 5,000 | 8,000 | Large |
+| 看護ノート (キーシフト) | 4 | 600 × 4 | 500 × 4 | 4,400 | Small |
+| **Narrative 小計** | **11** | **12,300** | **17,200** | **29,900** | |
+
+#### 合算
+
+| | JP 患者 | US 患者 (全英語) |
+|---|---|---|
+| Judgment tasks | 10,600 | 10,600 (同) |
+| Narrative tasks | 29,900 | ~20,000 (英語出力は ~30% 少ない token) |
+| **患者あたり合計** | **~40,500** | **~30,600** |
+| **LLM 呼び出し数** | **17** | **17** |
+
+#### 患者あたりコスト目安 (Bedrock 価格 2025)
+
+| Model tier | 呼び出し数 | JP 患者コスト | US 患者コスト |
+|---|---|---|---|
+| Small (Haiku) | 5 | ~$0.003 | ~$0.002 |
+| Medium (Sonnet) | 9 | ~$0.06 | ~$0.05 |
+| Large (Opus) | 3 | ~$0.40 | ~$0.30 |
+| **合計** | **17** | **~$0.46** | **~$0.35** |
+
+#### スケール見積 (JP 患者)
+
+| 患者数 | 合計 token | 概算コスト | Cache (~50% hit) 適用時 |
+|---|---|---|---|
+| 10 | ~405K | ~$4.60 | ~$2.50 |
+| 100 | ~4.05M | ~$46 | ~$25 |
+| 1,000 | ~40.5M | ~$460 | ~$250 |
 
 #### 予算制御
 設定された予算上限に達すると、llm_service は残り呼び出しに対して
@@ -360,7 +410,27 @@ class NarrativeGenerator:
 #### 解決: 階層 seed + LLM cache 分離
 
 `SeedManager` は各モジュールに master seed から派生する決定的
-sub-seed を割り当てる。詳細は英語版のコード例参照。
+sub-seed を割り当てる。
+
+```python
+class SeedManager:
+    """全モジュールの再現可能な乱数生成を管理する。"""
+
+    def __init__(self, master_seed: int):
+        self.master_seed = master_seed
+        self.rng = numpy.random.default_rng(master_seed)
+        self._module_seeds = {}
+
+    def get_module_seed(self, module_name: str) -> int:
+        """各モジュールは master seed から派生する決定的 sub-seed を得る。"""
+        if module_name not in self._module_seeds:
+            self._module_seeds[module_name] = self.rng.integers(0, 2**32)
+        return self._module_seeds[module_name]
+
+    def get_patient_seed(self, patient_id: str) -> int:
+        """各患者はそのシミュレーション用の決定的 sub-seed を得る。"""
+        return hash((self.master_seed, patient_id)) % (2**32)
+```
 
 #### 再現性レベル
 
@@ -526,8 +596,42 @@ LLM 呼び出しは支配的ボトルネック (~500ms–5s 各)。Mode 1 では
 
 **戦略: 呼び出しレベルではなく患者レベルで async。**
 
-詳細な `asyncio.Semaphore` 実装は英語版 §「Async LLM calls」参照。
-各プロバイダは `complete_async` メソッドをサポート。
+```python
+# simulator main loop 内:
+async def run_async(self) -> SimulationResult:
+    # 集団と setup は逐次
+    population = self.population_module.generate()
+    events = list(self.population_module.generate_all_events(population))
+
+    # 患者シミュレーションは並行 (bounded concurrency)
+    semaphore = asyncio.Semaphore(self.config.max_concurrent_patients)  # default: 10
+
+    async def simulate_one(event):
+        async with semaphore:
+            return await self._simulate_hospital_visit_async(event, population)
+
+    tasks = [simulate_one(e) for e in events if e.requires_hospital_visit]
+    records = await asyncio.gather(*tasks)
+
+    return SimulationResult(records=records, population=population)
+```
+
+llm_service レベルでは、プロバイダが async をサポート:
+
+```python
+class LLMProvider(ABC):
+    @abstractmethod
+    def complete(self, prompt, model, max_tokens) -> ProviderResponse: ...
+
+    @abstractmethod
+    async def complete_async(self, prompt, model, max_tokens) -> ProviderResponse: ...
+
+class BedrockGatewayProvider(LLMProvider):
+    async def complete_async(self, prompt, model, max_tokens) -> ProviderResponse:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{self.gateway_url}/v1/complete", json={...})
+            return ProviderResponse(**response.json())
+```
 
 **v0.1-alpha**: 同期のみ (シンプル実装)。
 **v0.1**: async サポート追加。同期は fallback として引き続き利用
@@ -1014,7 +1118,46 @@ Layer 2 → Layer 1 (更新履歴付き)。NO なら人は Layer 1 に留まる
 (病院データ生成なし)。Mode 2 では: ベッド競合、OR
 スケジューリング、スタッフワークロード、キュー追加。
 
-詳細な ASCII 図は英語版 §「Data flow」参照。
+```
+┌─── World Setup (一度) ───────────────────────────────────┐
+│                                                          │
+│  healthcare_system ──→ facility ──→ staff (roster)       │
+│          │                                               │
+│          └──→ population (catchment area 生成)           │
+│                  │                                       │
+│                  ├── households                          │
+│                  └── person registry (Layer 1)           │
+└──────────────────────────────────────────────────────────┘
+
+┌─── Time シミュレーション (連続) ────────────────────────────────────────┐
+│                                                                          │
+│  population ──→ ライフイベント (疾患発症、事故、加齢、…)                │
+│       │              │                                                   │
+│       │         受診決定                                                 │
+│       │              │                                                   │
+│       │         ┌────┴─── YES: 病院訪問 ────────┐                       │
+│       │         │                                 │                      │
+│       │    patient (Layer 1 → Layer 2 アクティブ化) │                    │
+│       │         │                                 │                      │
+│       │    encounter ──→ clinical_course ──→ observation ──→ validator   │
+│       │         │              ↑                  ↑              │       │
+│       │      order ←─── diagnosis            treatment          │       │
+│       │         │              │                  │              │       │
+│       │      procedure     nursing               │              │       │
+│       │         │              │                  │              │       │
+│       │         └── staff (イベントごとに割当) ───┘              │       │
+│       │                                                          │       │
+│       │    disease (プロトコル) ──────────────────────────────────┘       │
+│       │                                                                  │
+│       │    ──→ output (FHIR / CSV)                                      │
+│       │                                                                  │
+│       │    ──→ 退院 ──→ Layer 2 → Layer 1 (更新履歴付き)                │
+│       │                                                                  │
+│       └── NO: 人は Layer 1 に留まる (病院データ生成なし)                │
+│                                                                          │
+│  Mode 2 では追加: ベッド競合、OR スケジューリング、スタッフ負荷、キュー │
+└──────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Interface 設計原則
 
