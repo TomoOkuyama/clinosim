@@ -94,7 +94,7 @@ clinosim/
 │   └── cli.py                # CLI entry point (simulate/generate, narrate, export-fhir, ...)
 │
 └── tests/
-    ├── unit/                 # Module unit tests (234 tests total across suites)
+    ├── unit/                 # Module unit tests
     ├── integration/          # Cross-module integration tests
     └── e2e/                  # E2E + golden file tests
 ```
