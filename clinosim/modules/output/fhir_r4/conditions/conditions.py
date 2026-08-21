@@ -21,6 +21,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     map_diagnosis_code,
     severity_coding,
     to_fhir_date,
+    to_fhir_datetime,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _CATEGORY_DISPLAY_JA,
@@ -367,12 +368,17 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 ]
 
         if chronic_onset:
-            # Chronic primary: onset is the disease onset date; recordedDate is the visit.
+            # Chronic primary: onset is the disease onset date (typically month-year
+            # granularity; keep as date-only). recordedDate is the visit — use full
+            # datetime from admission so time-series UIs sort correctly.
             cond["onsetDateTime"] = to_fhir_date(chronic_onset)
             if admission_dt:
-                cond["recordedDate"] = to_fhir_date(admission_dt)
+                cond["recordedDate"] = to_fhir_datetime(admission_dt)
         elif admission_dt:
-            cond["onsetDateTime"] = to_fhir_date(admission_dt)
+            # Encounter-diagnosis onset = admission time (full datetime). Issue #821
+            # (N-7): consumer time-series UIs sort by these fields and were
+            # broken by date-only precision.
+            cond["onsetDateTime"] = to_fhir_datetime(admission_dt)
             cond["recordedDate"] = cond["onsetDateTime"]
 
         if encounters:
@@ -410,7 +416,8 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             _dd = _enc0.get("discharge_datetime", "")
             _est = _enc0.get("status", "")
             if _dd and _est in ("completed", "finished"):
-                cond["abatementDateTime"] = to_fhir_date(_dd)
+                # Issue #821 (N-7): abatement is the discharge time (full datetime).
+                cond["abatementDateTime"] = to_fhir_datetime(_dd)
 
         # CY8-23 fix:Condition.bodySite — 解剖学的部位。
         # 15 疾患 prefix に対して SNOMED body structure を emit(非部位性は無し)。
@@ -546,9 +553,9 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         else:
             cond["recorder"] = {"reference": "Practitioner/DR-IM-001"}
             cond["asserter"] = {"reference": "Practitioner/DR-IM-001"}
-        # recordedDate: use admission date or onset, whichever is available
+        # recordedDate: use admission datetime (full time) so time-series UIs sort correctly (Issue #821 / N-7).
         if admission_dt:
-            cond["recordedDate"] = to_fhir_date(admission_dt)
+            cond["recordedDate"] = to_fhir_datetime(admission_dt)
 
         # CY8-23 fix (chronic path): SNOMED bodySite for anatomically-localizable
         # chronic conditions(e.g. J44 COPD → 肺, I50 心不全 → 心臓)。

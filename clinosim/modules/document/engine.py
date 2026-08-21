@@ -709,7 +709,13 @@ def document_enricher(ctx: Any) -> None:
                         ClinicalImpressionRecord(
                             impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
                             encounter_id=encounter_id,
-                            date=day_dt.date(),
+                            # Issue #821 (N-7): preserve the full datetime so
+                            # ClinicalImpression.effectiveDateTime carries time-of-day.
+                            # `day_dt` already includes admission_dt's HH:MM offset by
+                            # `timedelta(days=day)`; `.date()` was stripping it and
+                            # forcing date-only precision downstream, breaking
+                            # consumer time-series sort.
+                            date=day_dt,
                             day_index=day,
                             description=description,
                             description_ja=description_ja,
