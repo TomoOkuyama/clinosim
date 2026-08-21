@@ -141,10 +141,23 @@ def test_progress_and_shift_note_per_encounter_los_invariant() -> None:
                 assert cnt["progress"] == los, (
                     f"{eid} LOS={los}: expected {los} PROGRESS_NOTE (1 per LOS day), got {cnt['progress']}"
                 )
-                assert cnt["shift"] == 3 * los, (
-                    f"{eid} LOS={los}: expected {3 * los} NURSING_SHIFT_NOTE "
-                    f"(3 per LOS day: night 00:00 / day 08:00 / evening 16:00), "
-                    f"got {cnt['shift']}"
+                # Issue #820 (N-6) arrival-gate: on Day 0 the shift dt
+                # is skipped when it predates admission_dt (a 10:12 arrival
+                # cannot have a 00:00 or 08:00 shift note). Count how many
+                # of the three shifts (00:00 / 08:00 / 16:00) fall strictly
+                # before `admit_dt` — that's how many Day-0 shift notes the
+                # engine drops. Day 1..N-1 are unaffected.
+                skipped_day0 = sum(
+                    1
+                    for shift_hour in (0, 8, 16)
+                    if admit_dt.replace(hour=shift_hour, minute=0, second=0, microsecond=0) < admit_dt
+                )
+                expected_shift = 3 * los - skipped_day0
+                assert cnt["shift"] == expected_shift, (
+                    f"{eid} LOS={los} admit_hour={admit_dt.hour}:{admit_dt.minute:02d}: "
+                    f"expected {expected_shift} NURSING_SHIFT_NOTE "
+                    f"(3/day × {los} days − {skipped_day0} pre-arrival Day-0 shifts, "
+                    f"Issue #820/N-6 gate), got {cnt['shift']}"
                 )
                 checked_los_ge_2 += 1
             else:
@@ -203,8 +216,11 @@ def _run_stage1_and_stage2(tmp: str, country: str) -> dict[str, dict]:
     document_enricher(ctx)
 
     shift_stubs = [d for d in record.documents if d.task_type == "nursing_shift_note"]
-    assert len(shift_stubs) == 6, (  # LOS=2 days × 3 shifts
-        f"Expected 6 shift-note stubs for LOS=2, got {len(shift_stubs)}"
+    # Issue #820 (N-6) arrival-gate: fixture admission 14:30 on Day 0
+    # → 00:00 + 08:00 shifts skipped (pre-arrival), 16:00 kept.
+    # Day 1 keeps full triplet. Total = 1 + 3 = 4 (was 6 pre-gate).
+    assert len(shift_stubs) == 4, (
+        f"Expected 4 shift-note stubs for LOS=2 (Issue #820/N-6 gate: 3×2 − 2 Day-0 skips), got {len(shift_stubs)}"
     )
 
     dataset = CIFDataset(
