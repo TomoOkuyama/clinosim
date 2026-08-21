@@ -73,3 +73,9 @@ class ImagingStudyRecord:
 
     contrast: bool = False  # True = contrast-enhanced CT (propagated from Order.imaging_spec_meta)
     report: RadiologyReport | None = None  # snapshot mid-study = None
+    # Issue #822 (N-9): Order-level display for stub-only studies (where the
+    # normal metadata-inference path fails so `_proc_display` is not
+    # resolvable). Populated in the enricher's stub-only branch from
+    # order.display_name; FHIR emit uses it as the informative
+    # `ImagingStudy.description` fallback instead of an empty field.
+    description: str = ""

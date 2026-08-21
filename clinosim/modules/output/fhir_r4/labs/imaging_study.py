@@ -226,6 +226,18 @@ def _build_imaging_study(
                     ]
         except ValueError:
             pass  # unknown combination, procedureCode omitted (forward-compat)
+
+    # Issue #822 (N-9) fallback: stub-only studies (metadata inference
+    # failed → no body_sites lookup possible) still need an informative
+    # description so consumer UIs don't default it to the generic
+    # "画像検査" placeholder that reads as duplication. The enricher
+    # populates `study.description` from `order.display_name` in the
+    # stub-only branch specifically for this purpose. Only applies when
+    # the primary body_sites lookup did not already set description.
+    if "description" not in res:
+        _stub_desc = _o(study, "description", "") or ""
+        if _stub_desc:
+            res["description"] = _stub_desc
     return res
 
 
