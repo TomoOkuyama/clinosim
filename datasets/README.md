@@ -25,11 +25,11 @@ clinosim dataset list                          # enumerate available presets
 clinosim dataset build jp-100 --output ./jp-100-out
 ```
 
-That's a thin wrapper over `clinosim generate` — the equivalent long
+That's a thin wrapper over `clinosim simulate` — the equivalent long
 form is:
 
 ```bash
-clinosim generate \
+clinosim simulate \
     --country JP --population 100 --seed 42 \
     --start 2026-01-01 --end 2026-03-31 \
     --output ./jp-100-out --format fhir
