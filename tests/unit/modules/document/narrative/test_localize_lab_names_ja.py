@@ -21,7 +21,6 @@ from clinosim.modules.document.narrative.replacement_strategy import (
     _localize_lab_names_in_text_ja,
 )
 
-
 # ---- single-word lab names → JA -----------------------------------------
 
 
@@ -89,7 +88,7 @@ def test_ast_alt_preserved():
     assert _localize_lab_names_in_text_ja("AST 67 U/L [H], ALT 62 U/L [H]") == "AST 67 U/L [H], ALT 62 U/L [H]"
 
 
-def test_hbA1c_preserved():
+def test_hba1c_preserved():
     assert _localize_lab_names_in_text_ja("HbA1c 7.2 %") == "HbA1c 7.2 %"
 
 
