@@ -184,10 +184,12 @@ def test_document_enricher_emits_clinical_impressions_daily() -> None:
     assert impressions[4].day_index == 4
     assert impressions[4].impression_id == f"{CLINICAL_IMPRESSION_ID_PREFIX}enc1-4"
 
-    # Dates are sequential from admission
+    # Dates are sequential from admission — Issue #821 (N-7): the engine now
+    # preserves the full datetime (admission time-of-day + N days) so
+    # ClinicalImpression.effectiveDateTime carries time-of-day precision.
     for i, imp in enumerate(impressions):
-        expected_date = ADMISSION_DT.date() + timedelta(days=i)
-        assert imp.date == expected_date
+        expected_dt = ADMISSION_DT + timedelta(days=i)
+        assert imp.date == expected_dt
 
 
 def test_document_enricher_skips_cancelled_encounter() -> None:

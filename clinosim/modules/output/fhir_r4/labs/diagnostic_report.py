@@ -95,6 +95,11 @@ class _GroupedPanel(NamedTuple):
     panel_name: str
     bucket: str  # "YYYY-MM-DD" (day-resolution; see group_lab_orders)
     obs_refs: list[str]  # Observation ids in YAML-component order
+    # Issue #821 (N-7): representative full datetime for DR.effectiveDateTime.
+    # Uses the max (latest) result_datetime among the component observations
+    # in this bucket — i.e., the report is "effective as of" when the last
+    # analyte was resulted. Fallback: bucket + T00:00 (date-only precision).
+    effective_datetime: str = ""
 
 
 def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel]:
@@ -127,6 +132,9 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
     # in a day (e.g. serial Cr) accumulates multiple refs; the first uncomsumed
     # ref per panel-component is used (see consume loop below).
     by_bucket: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
+    # Issue #821 (N-7): track the max (latest) full result_datetime per bucket
+    # so DR.effectiveDateTime can carry time precision (was date-only bucket).
+    bucket_max_dt: dict[str, str] = {}
     for idx, order in enumerate(orders):
         ot = _o(order, "order_type")
         if ot not in (OrderType.LAB, "lab"):
@@ -136,7 +144,8 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
             continue
         # result_datetime may be a datetime object (dataclass) or ISO string (dict).
         dt_raw = _o(result, "result_datetime")
-        when = str(dt_raw)[:10] if dt_raw else ""
+        dt_full = str(dt_raw) if dt_raw else ""
+        when = dt_full[:10]
         if len(when) < 10:
             continue
         lab_name = _o(result, "lab_name") or _o(order, "display_name") or ""
@@ -144,6 +153,12 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
             continue
         obs_id = lab_obs_id(encounter_id, idx)
         by_bucket[when][lab_name].append(obs_id)
+        # Track max full datetime per bucket. String compare is safe here since
+        # `dt_full` is a normalized ISO-8601 form (both dataclass str() and
+        # JSON-dict str values sort chronologically as strings).
+        prev = bucket_max_dt.get(when, "")
+        if dt_full > prev:
+            bucket_max_dt[when] = dt_full
 
     groups: list[_GroupedPanel] = []
     for bucket in sorted(by_bucket.keys()):
@@ -176,6 +191,7 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
                     panel_name=panel_name,
                     bucket=bucket,
                     obs_refs=obs_refs,
+                    effective_datetime=bucket_max_dt.get(bucket, ""),
                 )
             )
     return groups
@@ -385,8 +401,11 @@ def build_dr_resource(
         },
         "subject": {"reference": f"Patient/{patient_id}"},
         "encounter": {"reference": f"Encounter/{encounter_id}"},
-        # group.bucket is YYYY-MM-DD; FHIR R4 dateTime allows date-only precision.
-        "effectiveDateTime": group.bucket,
+        # Issue #821 (N-7): DR.effectiveDateTime carries the latest component
+        # result_datetime (full precision) so consumer time-series UIs sort
+        # correctly. Falls back to date-only bucket when no full datetime is
+        # available (defensive; group_lab_orders always populates it).
+        "effectiveDateTime": group.effective_datetime or group.bucket,
         "result": [{"reference": f"Observation/{ref}"} for ref in group.obs_refs],
     }
     # CY8-16 fix: lab DR.issued default = effectiveDateTime。

@@ -80,8 +80,11 @@ def test_outpatient_acute_primary_stays_resolved_with_visit_onset() -> None:
     primary = _by_id_suffix(conds, "enc-2-primary")
     assert primary is not None
     assert _status(primary) == "resolved"
-    assert primary["onsetDateTime"] == "2026-05-01"
-    assert primary["recordedDate"] == "2026-05-01"
+    # Issue #821 (N-7): encounter-diagnosis onset/recordedDate now carry the
+    # full admission datetime (was date-only, breaking time-series sort).
+    # Builder appends JST as its default; post-process rewrites per country.
+    assert primary["onsetDateTime"] == "2026-05-01T10:00:00+09:00"
+    assert primary["recordedDate"] == "2026-05-01T10:00:00+09:00"
 
 
 def test_chronic_primary_with_finer_encounter_code_still_merges() -> None:
