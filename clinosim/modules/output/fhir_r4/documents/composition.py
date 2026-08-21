@@ -45,12 +45,13 @@ Canonical constant ownership:
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
 
@@ -72,6 +73,70 @@ _PROGRESS_NOTE_LOINC = "11506-3"
 # `hl7.fhir.r4.core#4.0.1/package/StructureDefinition-clinicaldocument.json` の
 # `url` field。JP-CLINS profile 未対応 LOINC の Composition 明示宣言に使用。
 _CLINICALDOCUMENT_PROFILE = "http://hl7.org/fhir/StructureDefinition/clinicaldocument"
+
+
+# Issue #819 (N-5): Practitioner staff-id regex — matches the canonical
+# clinosim ID format `<ROLE-2>-<DEPT-2>-<NNN>` (e.g. `DR-CA-002`, `NS-OR-004`).
+# Used by `_localize_practitioner_ids_in_text` to substitute raw IDs in
+# narrative section text with the practitioner's real name + role suffix
+# (looked up in `ctx.roster_map`).
+_STAFF_ID_RE = re.compile(r"\b([A-Z]{2})-[A-Z]{2}-\d{3}\b")
+
+# Role suffix map by staff-id prefix. Consumer narrative rendering guide:
+# a Practitioner id prefix like `DR-*` renders with a "医師" suffix in JP
+# and "physician" in EN; nurse ids (`NS-*` / `CN-*`) render with "看護師"
+# etc. Prefixes not listed here render name-only (no suffix) so unknown
+# staff roles do not silently fabricate a role.
+_STAFF_ROLE_SUFFIX_JA: dict[str, str] = {
+    "DR": "医師",
+    "NS": "看護師",
+    "CN": "看護師",  # certified nurse
+    "RT": "呼吸療法士",
+    "PT": "理学療法士",
+    "OT": "作業療法士",
+    "ST": "言語聴覚士",
+    "PH": "薬剤師",
+}
+_STAFF_ROLE_SUFFIX_EN: dict[str, str] = {
+    "DR": "physician",
+    "NS": "nurse",
+    "CN": "nurse",
+    "RT": "respiratory therapist",
+    "PT": "physical therapist",
+    "OT": "occupational therapist",
+    "ST": "speech therapist",
+    "PH": "pharmacist",
+}
+
+
+def _localize_practitioner_ids_in_text(text: str, roster_map: dict[str, dict], country: str) -> str:
+    """Substitute raw Practitioner staff ids (`DR-CA-002` etc.) with the
+    practitioner's name + a role-suffix (`加瀬 幸男 医師`) using ``roster_map``.
+
+    Idempotent when the same staff id appears multiple times in one text.
+    Falls through unchanged for ids not found in ``roster_map`` — never
+    fabricates a name for an unknown id. This is what fixes Issue #819
+    (N-5): before this walker, narrative sections leaked raw ids into
+    ``Composition.section[].text.div``.
+    """
+    if not text or not roster_map:
+        return text
+    suffix_map = _STAFF_ROLE_SUFFIX_JA if is_jp(country) else _STAFF_ROLE_SUFFIX_EN
+
+    def _sub(m: re.Match) -> str:
+        sid = m.group(0)
+        prefix = m.group(1)
+        staff = roster_map.get(sid) or {}
+        name = staff.get("name") or ""
+        if not name:
+            return sid  # unknown → leave as-is
+        suffix = suffix_map.get(prefix, "")
+        if suffix:
+            sep = "" if is_jp(country) else " "
+            return f"{name}{sep}{suffix}" if is_jp(country) else f"{name} ({suffix})"
+        return name
+
+    return _STAFF_ID_RE.sub(_sub, text)
 
 
 # C2-27: map section titles (as produced by document
@@ -335,7 +400,16 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
             )
             continue
         sections = _o(narrative, "sections", {}) or {}
-        out.append(_build_composition(doc, sections, lang, enc_to_free_text, enc_to_primary_cond))
+        out.append(
+            _build_composition(
+                doc,
+                sections,
+                lang,
+                enc_to_free_text,
+                enc_to_primary_cond,
+                roster_map=ctx.roster_map,
+            )
+        )
     return out
 
 
@@ -345,6 +419,8 @@ def _build_composition(
     lang: str,
     enc_to_free_text: dict[str, str] | None = None,
     enc_to_primary_cond: dict[str, str] | None = None,
+    *,
+    roster_map: dict[str, dict] | None = None,
 ) -> dict[str, Any]:
     """Build one FHIR R4 Composition resource from a ClinicalDocument + its sections.
 
@@ -358,13 +434,13 @@ def _build_composition(
         loinc = _o(doc, "loinc_code", "")
         if loinc == "18842-5":
             return _build_jp_clins_discharge_summary_composition(
-                doc, sections, lang, enc_to_free_text or {}, enc_to_primary_cond or {}
+                doc, sections, lang, enc_to_free_text or {}, enc_to_primary_cond or {}, roster_map=roster_map
             )
         if loinc == "57133-1":
-            return _build_jp_clins_referral_note_composition(doc, sections, lang)
+            return _build_jp_clins_referral_note_composition(doc, sections, lang, roster_map=roster_map)
         # P2-13 PR3:JP-eCheckup General
         if loinc == "53576-5":
-            return _build_jp_eCheckup_general_composition(doc, sections, lang)
+            return _build_jp_eCheckup_general_composition(doc, sections, lang, roster_map=roster_map)
         # Issue #340:JP-CLINS profile が存在しない JP path
         # Composition (rehabilitation_plan LOINC 34823-5、admission_hp
         # 34117-2、ED / outpatient SOAP、nursing docs 等) に HL7 FHIR R4
@@ -390,21 +466,38 @@ def _build_composition(
         # JP-CLINS eDS / eReferral / eCheckup の baseDefinition は Composition
         # 直下(clinicaldocument 経由でない)ため、それらの dispatch path は
         # 変更せず(既存 profile は追加の意味を提供済み)。
-        comp = _build_composition_generic(doc, sections, lang)
+        comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map)
         profs = comp.setdefault("meta", {}).setdefault("profile", [])
         if _CLINICALDOCUMENT_PROFILE not in profs:
             profs.append(_CLINICALDOCUMENT_PROFILE)
         return comp
-    return _build_composition_generic(doc, sections, lang)
+    return _build_composition_generic(doc, sections, lang, roster_map=roster_map)
 
 
-def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
+def _build_composition_generic(
+    doc: Any,
+    sections: dict[str, str],
+    lang: str,
+    *,
+    roster_map: dict[str, dict] | None = None,
+) -> dict[str, Any]:
     """Locale-neutral Composition builder — used by non-JP-CLINS paths.
 
     ``sections`` is the already-resolved ``doc["narrative"]["sections"]`` dict
     (extracted by ``_bb_compositions`` so this function stays narrative-shape
     agnostic and testable in isolation).
+
+    Issue #819 (N-5): ``roster_map`` (from ``BundleContext.roster_map``) is
+    used to substitute raw Practitioner staff-ids (``DR-CA-002`` etc.) in
+    section text with the practitioner's real name + role suffix. When
+    ``None`` (legacy callers / unit tests), section text is unchanged
+    — same behavior as before this Issue.
     """
+    # Bind to a local so the inner `for section_title, section_text` loop
+    # (added earlier) can reference `_roster_map` uniformly across the JP
+    # eDS / eReferral / eCheckup variants that also call this function
+    # via `_build_composition_generic(...)`.
+    _roster_map = roster_map or {}
     loinc_code = _o(doc, "loinc_code", "")
     loinc_display = code_lookup("loinc", loinc_code, lang) if loinc_code else ""
 
@@ -515,11 +608,18 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
     # docs where the language field is unset.
     _doc_lang = _o(doc, "language", "") or "en"
     for section_title, section_text in sections.items():
+        # Issue #819 (N-5): resolve raw Practitioner staff ids to real
+        # names before HTML-escaping the section text. See
+        # `_localize_practitioner_ids_in_text` docstring; idempotent
+        # for unknown ids. Country is derived from doc lang: "ja" → "jp",
+        # everything else → "us" (US path is FHIR-standard EN suffix).
+        _country_for_names = "jp" if _doc_lang == "ja" else "us"
+        _resolved_text = _localize_practitioner_ids_in_text(section_text, _roster_map or {}, _country_for_names)
         entry: dict[str, Any] = {
             "title": _localize_section_title(section_title, _doc_lang),
             "text": {
                 "status": "generated",
-                "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{_escape_html(section_text)}</div>",
+                "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{_escape_html(_resolved_text)}</div>",
             },
         }
         loinc_section = _SECTION_LOINC.get(section_title)
@@ -668,6 +768,8 @@ def _build_jp_clins_discharge_summary_composition(
     lang: str,
     enc_to_free_text: dict[str, str] | None = None,
     enc_to_primary_cond: dict[str, str] | None = None,
+    *,
+    roster_map: dict[str, dict] | None = None,
 ) -> dict[str, Any]:
     """JP-CLINS eDischargeSummary v1.12.0 準拠 Composition を emit する。
 
@@ -684,7 +786,7 @@ def _build_jp_clins_discharge_summary_composition(
     # 共通 field(id / subject / date / author / encounter / attester /
     # custodian / confidentiality 等)は汎用 builder を再利用し、type と
     # section のみ上書きする。
-    comp = _build_composition_generic(doc, sections, lang)
+    comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map)
 
     # meta.profile 追加(既に含まれていれば skip)
     meta = comp.setdefault("meta", {})
@@ -910,7 +1012,13 @@ _JP_ER_CATEGORY_DISPLAY_JA = "他科コンサルト"
 _JP_ER_EVENT_CODE_TEXT_JA = "診療情報提供書発行"
 
 
-def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
+def _build_jp_clins_referral_note_composition(
+    doc: Any,
+    sections: dict[str, str],
+    lang: str,
+    *,
+    roster_map: dict[str, dict] | None = None,
+) -> dict[str, Any]:
     """JP-CLINS eReferral v1.12.0 準拠 Composition を emit する。
 
     汎用 Composition builder との差分:
@@ -924,7 +1032,7 @@ def _build_jp_clins_referral_note_composition(doc: Any, sections: dict[str, str]
         (URL: `http://jpfhir.jp/fhir/clins/CodeSystem/document-section`)固定。
       - #289:eDS Chain #9 の 5 top-level 制約を eReferral にも適用。
     """
-    comp = _build_composition_generic(doc, sections, lang)
+    comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map)
 
     # meta.profile 追加(既に含まれていれば skip)
     meta = comp.setdefault("meta", {})
@@ -1112,7 +1220,13 @@ _JP_ECHECKUP_SECTION_CODE_MATRIX: dict[str, dict[str, str]] = {
 _JP_ECHECKUP_SECTION_CODE: dict[str, str] = _JP_ECHECKUP_SECTION_CODE_MATRIX["occupational"]
 
 
-def _build_jp_eCheckup_general_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
+def _build_jp_eCheckup_general_composition(
+    doc: Any,
+    sections: dict[str, str],
+    lang: str,
+    *,
+    roster_map: dict[str, dict] | None = None,
+) -> dict[str, Any]:
     """JP-eCheckup General v1.7.0 準拠 Composition を emit する(JP-only、opt-in)。
 
     汎用 Composition builder との差分:
@@ -1121,7 +1235,7 @@ def _build_jp_eCheckup_general_composition(doc: Any, sections: dict[str, str], l
       - section は flat 2 個(事業者健診の必須 2 section:01031 検査結果、
         01032 問診結果)。section.code.system は eCheckup 固有 CodeSystem。
     """
-    comp = _build_composition_generic(doc, sections, lang)
+    comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map)
 
     # meta.profile 追加
     meta = comp.setdefault("meta", {})
