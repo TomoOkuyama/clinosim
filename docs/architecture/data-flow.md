@@ -15,9 +15,9 @@ flowchart TD
         pop --> act --> enc --> loop --> cif_s
     end
 
-    subgraph stage2["Stage 2 — clinosim narrate (DEPRECATED)"]
+    subgraph stage2["Stage 2 — clinosim narrate"]
         gen2["document_enricher (document module)<br/>Stage 1 built-in: DR + Composition + ClinicalImpression<br/>template-based, fully deterministic"]
-        llm2["LLM narrative deferred to β-JP-1 chain<br/>(narrate subcommand removed)"]
+        llm2["clinosim narrate (cli_narrate.py)<br/>optional LLM narrative pass over structural CIF<br/>emits cif/narratives/&lt;version&gt;/"]
     end
 
     subgraph stage3["Stage 3 — clinosim export-fhir"]
@@ -32,9 +32,9 @@ flowchart TD
 **Why three stages?**
 
 - **Reproducibility** — Stage 1 is fully deterministic from a seed (includes built-in document enricher). Stage 3 is a pure function of CIF.
-- **Extensibility** — Stage 2 LLM narrative integration (Ollama / Bedrock) is deferred to the β-JP-1 chain; the architecture is preserved for future wiring.
-- **Cost control** — When LLM narratives land, Stage 2 will be the only stage that may call a paid LLM API. Bedrock runs can be isolated to a single EC2 invocation.
-- **Remote execution** — Future Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock), while Stage 1 and Stage 3 stay local.
+- **Extensibility** — Stage 2 (`clinosim narrate`) is optional and wires in LLM narrative providers (local Ollama, AWS Bedrock, Sakura Cloud Ollama) over the same structural CIF. Skipping it still produces valid FHIR (template-mode `docStatus="preliminary"`).
+- **Cost control** — Stage 2 is the only stage that may call a paid LLM API. Bedrock / Sakura runs can be isolated to a single remote invocation.
+- **Remote execution** — Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock, Sakura Cloud for Ollama), while Stage 1 and Stage 3 stay local.
 
 ### Snapshot Semantics
 

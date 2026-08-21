@@ -1,205 +1,283 @@
-# clinosim Implementation Rules — 実装モデル必読の不変則集
+# clinosim Implementation Rules — invariants every implementer must know
 
-**Status:** Active(2026-07-03、session 32 で確立)
-**Audience:** clinosim のコードを書く・直す全ての実装者/実装 AI(Opus 4.7 等)。
-**位置づけ:** CLAUDE.md(全文)と `docs/CONTRIBUTING-modules.md`(詳細 HOW-TO)の**蒸留版**。
-ここに書かれた規則は例外なく適用される。詳細・根拠・精密な手順は各リンク先が正。
-迷ったら判断 4 軸:**データ品質 / 臨床整合性 / メンテ性(責任分解点)/ コンセプト適切性**。
+**Status:** Active (2026-07-03, established in session 32).
+**Audience:** every implementer or implementation agent (Opus 4.7,
+etc.) writing or modifying clinosim code.
+**Positioning:** the **distilled version** of CLAUDE.md (full text)
+and `docs/CONTRIBUTING-modules.md` (detailed HOW-TO). The rules
+below apply without exception. Details, rationale, and precise
+procedures live in the linked documents. When in doubt, apply the
+four judgment axes: **data quality, clinical coherence,
+maintainability (responsibility-decomposition points), conceptual
+fit**.
 
 ---
 
-## 0. Workflow 規律(コードを書く前に)
+## 0. Workflow discipline (before you write any code)
 
-1. **Chain workflow(確立済、逸脱禁止)**: recon → design spec commit
-   (`docs/history/specs-archive/`)→ TDD 実装(test first)→ 独立検証 → PR →
-   compact adversarial review(5-lens、finding は実証必須)→ fix → 全 suite green → merge。
-2. **Scope discipline(★★★)**: spec 確定後の scope 拡大禁止。scope 外の発見は
-   「データ品質/臨床整合性に必須」の場合のみ対応、それ以外は **TODO.md に formal entry 化**
-   (文脈・file:line・修正案つき)。
-3. **着手前 status audit**: TODO/ドキュメントの記述を鵜呑みにせず、**実装前に実測で検証**
-   (実例: α-min-3 の「CRITICAL 配線 gap」は 2 世代前に解決済みだった。cohort 出力を
-   数えるだけで 1 PR 分の無駄を回避)。
-4. **観測前に語らない**: ツール結果を見る前に「成功した」と書かない。検証は実行結果
-   (test 出力・実 cohort の grep・sha256)で示す。
-5. **Commit 規約**: `feat(<chain>): ...` / `fix(<chain> adv-1): ...` / `refactor: ...` /
-   `docs: ...`。task 単位でコミット。push と PR 作成は検証 green 後。
+1. **Chain workflow (established, do not deviate)**: recon → design
+   spec commit (`docs/history/specs-archive/`) → TDD implementation
+   (test first) → independent verification → PR → compact
+   adversarial review (5-lens, findings must be evidenced) → fix →
+   whole suite green → merge.
+2. **Scope discipline (★★★)**: no scope expansion after the spec is
+   finalised. Findings outside scope are addressed only when they
+   are "essential to data quality or clinical coherence"; otherwise
+   they become **formal entries in `TODO.md`** (with context, file:
+   line, and a fix proposal).
+3. **Pre-work status audit**: do not take TODO / doc claims at face
+   value; **verify empirically before implementing** (a concrete
+   example: the α-min-3 "CRITICAL wiring gap" turned out to have
+   been resolved two generations back. Counting the cohort output
+   avoided a whole PR of wasted work).
+4. **Do not narrate before observing**: never write "success" before
+   you see the tool result. Show verification via execution output
+   (test output, real-cohort grep, sha256).
+5. **Commit conventions**: `feat(<chain>): ...` / `fix(<chain>
+   adv-1): ...` / `refactor: ...` / `docs: ...`. Commit per task.
+   Push and open the PR after verification is green.
 
-## 1. コーディング標準
+## 1. Coding standards
 
-- Python 3.11+ / ruff / mypy strict / line length 100。
-- **コード内コメント・docstring は英語**。ユーザー向け docs は各ファイルの既存言語に従う
-  (CONTRIBUTING と design-guides は日本語+英語技術用語)。
-- **型は `clinosim/types/` にのみ定義**(module コード内での dataclass/BaseModel 新設禁止。
-  YAML config = Pydantic BaseModel(AD-18)、runtime = `@dataclass`)。
-- **Public API = module `__init__.py` で export したものだけ**。
-- コメントは「コードが示せない制約」だけを書く。変更の経緯説明・自明な説明は書かない。
+- Python 3.11+ / ruff / mypy strict / line length 100.
+- **In-code comments and docstrings are English.** User-facing docs
+  follow each file's declared language (CONTRIBUTING and
+  design-guides mix Japanese with English technical terms).
+- **Types live only in `clinosim/types/`.** Defining a new dataclass
+  or BaseModel inside module code is forbidden (YAML config =
+  Pydantic BaseModel (AD-18); runtime = `@dataclass`).
+- **Public API = only what a module's `__init__.py` exports.**
+- Comments describe only "constraints the code cannot show". Do not
+  write change history or self-evident explanations.
 
-## 2. アーキテクチャ不変則(データフロー)
+## 2. Architectural invariants (data flow)
 
-| 不変則 | 内容 |
+| Invariant | Content |
 |---|---|
-| AD-17 | **CIF がシミュレーションの唯一の出力**。format adapter(FHIR/CSV)は CIF だけを読む |
-| AD-30 | **CIF は code のみ、display text 禁止**。表示解決は出力時に `clinosim.codes.lookup()` |
-| AD-65 | **structural / narrative の 2 層 file 分離**。Stage 1 は `ClinicalDocument` stub のみ(narrative=None)、narrative は post-simulation の `NarrativePass` が `narratives/<version>/` に書く。inline 混在禁止 |
-| AD-31 | FHIR は Bulk Data NDJSON(resource id は type 内 globally unique、reference は同 export 内で解決) |
-| AD-32 | `--end` = snapshot date。それ以降の event 生成禁止、in-progress encounter semantics 遵守 |
-| AD-55/56 | module は `CIFPatientRecord.extensions[<module>]` に書く(typed field 追加は Base のみ)。拡張は 3 registry(`register_bundle_builder` / `register_output_adapter` / `register_enricher`)経由 — dispatch 本体を編集しない |
-| AD-11 | **LLM 呼出しは `llm_service` 経由のみ**。narrative 層からは `LLMService.complete_prompt()` が唯一の seam。provider SDK の直接 import 禁止 |
+| AD-17 | **CIF is the sole simulation output.** Format adapters (FHIR / CSV) read only from CIF. |
+| AD-30 | **CIF holds codes only; no display text.** Display is resolved at output time via `clinosim.codes.lookup()`. |
+| AD-65 | **Two-file separation: structural / narrative.** Stage 1 emits only the `ClinicalDocument` stub (`narrative=None`); the post-simulation `NarrativePass` writes into `narratives/<version>/`. Mixing narrative inline is forbidden. |
+| AD-31 | FHIR is Bulk Data NDJSON (resource id is globally unique within its type; references resolve within one export). |
+| AD-32 | `--end` = snapshot date. No event generation past that date; honour the in-progress-encounter semantics. |
+| AD-55 / AD-56 | Modules write into `CIFPatientRecord.extensions[<module>]` (new typed fields on core types are Base-only). Extension goes through three registries (`register_bundle_builder` / `register_output_adapter` / `register_enricher`); the dispatch body itself is never edited. |
+| AD-11 | **LLM calls go through `llm_service` only.** From the narrative layer, `LLMService.complete_prompt()` is the sole seam. Directly importing a provider SDK is forbidden. |
 
-## 3. 決定性(AD-16 / AD-59)— 絶対規則
+## 3. Determinism (AD-16 / AD-59) — absolute rules
 
-- `random.random()` 禁止。RNG は必ず sub-seed 由来の `numpy.random.Generator`
-  (`simulator/seeding.py`: `derive_sub_seed` + `ENRICHER_SEED_OFFSETS` 登録、
-  lab は `panel_specimen_seed` / `individual_lab_seed`)。
-- **`datetime.now()` / `date.today()` を生成経路に書かない**(既存の残存は determinism
-  chain の TODO — 増やすのは禁止)。narrative の時刻は `_deterministic_timestamp` 系。
-- **`@lru_cache` 済み loader の戻り値は shared instance — mutate 絶対禁止**
-  (`load_disease_protocol` / `load_encounter_condition` / `load_healthcare_config` /
-  `load_hospital_operations` / ほか全 cached loader)。
-- enricher の実行順序(stage + order)を変えない。新 enricher は
-  `simulator/enrichers.py:register_builtin_enrichers` に登録。
-- `NarrativePass` の walk 順序((doc_type, language)→ sorted patients)は
-  prompt-cache 最適化のため**変更禁止**。
+- `random.random()` is forbidden. The RNG must always derive from a
+  sub-seed of `numpy.random.Generator` (`simulator/seeding.py`:
+  `derive_sub_seed` + registration under `ENRICHER_SEED_OFFSETS`;
+  labs use `panel_specimen_seed` / `individual_lab_seed`).
+- **`datetime.now()` / `date.today()` do not appear on the
+  generation path.** (The remaining occurrences are TODOs in the
+  determinism chain — adding more is forbidden.) Narrative
+  timestamps use the `_deterministic_timestamp` family.
+- **The return value of an `@lru_cache`d loader is a shared
+  instance — never mutate it** (`load_disease_protocol` /
+  `load_encounter_condition` / `load_healthcare_config` /
+  `load_hospital_operations` / every other cached loader).
+- Do not change enricher execution order (`stage` + `order`). Register
+  a new enricher in `simulator/enrichers.py:register_builtin_enrichers`.
+- The `NarrativePass` walk order (`(doc_type, language) → sorted
+  patients`) is optimised for the prompt cache; **do not change it**.
 
-## 4. Canonical single-source helpers(再実装・inline 化 絶対禁止)
+## 4. Canonical single-source helpers (re-implementation and inlining absolutely forbidden)
 
-同じロジックが 2 箇所以上 = 違反。以下は必ず import して使う:
+The same logic in two or more places is a violation. Always import
+and use the helpers below:
 
-| 用途 | Helper(定義場所) |
+| Purpose | Helper (definition site) |
 |---|---|
-| JP 判定 / 表示言語 | `is_jp(country)` / `is_us(country)` / `resolve_lang(country)`(`modules/_shared.py`)。`country == "JP"` 等の手書き比較禁止 |
-| 国→コード体系選択 | `system_key_for(kind, country)`(`clinosim.codes`)。jlac10/loinc 等の inline 分岐禁止 |
-| system URI | `get_system_uri(key)`(`clinosim.codes`)。URI 文字列 hardcode 禁止 |
-| code→display | `code_lookup(system, code, lang)`。display 文字列 hardcode 禁止 |
-| dict/dataclass 双対 read | `get_attr_or_key`(`_shared.py`)/ FHIR builder では `_o()`。`isinstance(x, dict)` 分岐の新設禁止。**cache key・比較・分岐などデータを読む全経路に適用**(C-1 教訓: `getattr` を dict に使い cohort 全体が同一 cache entry を共有した) |
-| dict/dataclass 双対 write | `set_attr_or_key(obj, name, value)`(単一フィールド代入)/ `get_or_create_container(obj, name, factory)`(ネストしたコンテナを取得 or 生成して直接 mutate)。`isinstance(rec, dict): rec["x"]=v else: rec.x=v` 分岐の新設禁止(session 37 dual-access sweep) |
-| 確率ベクトル | `normalize_probabilities(p, fallback="raise")`(`_shared.py`)を YAML 由来の全 `rng.choice(p=)` に |
-| lab order 分類 | `classify_lab_specs`(`order/panel_grouping.py`) |
-| scenario/medication flags | `scenario_flags_from_protocol` + `medication_flags_from_context` を **merge して `**flags` 渡し**。named-arg 追加禁止(J5 教訓) |
-| **重症度サンプリング** | `sample_severity(protocol, person, rng)` / `sample_severity_category(...)` / `category_from_score(score)`(`disease/severity.py`、AD-67)。重症度は疾患 YAML `severity.distribution × modifiers` が canonical。locale `severity_beta`/`severity_minimum` は撤廃済 — 復活禁止。0.3/0.7 のカテゴリ↔score 境界を call-site に hardcode 禁止(`SEVERITY_SCORE_RANGES` が唯一定義) |
-| **JP Core / JP-CLINS profile URI**(session 50 adv-1 教訓) | spec の `StructureDefinition-*.json` の `Element.system.fixedUri` / `Element.fixedUri` を直接引用。**推測禁止**。session 50 で `_JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/observation-category"`(推測)としてしまい、実 spec は `http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS` で不一致 → HAPI validator が silent-no-op、2.47M records の profile slice compliance fix が完全に無効化された。手順:①`iris4h-ai/jp_core/package/StructureDefinition-*.json`(or jpfhir.jp fetch)を `grep -A2 fixedUri` で該当 slice の system URI を確認、②module-level 定数として定義、③**`tests/unit/output/test_fhir_jp_core_p14_slices.py` のように URI を pin する unit test を必ず追加**(推測 URI 差し戻し規制)。同じ規則が JP-eCheckup / SS-MIX2 の profile URI にも適用。
-| imaging orders | `place_imaging_orders`(`order/engine.py`) |
-| 薬剤 protocol prefix 除去 | `strip_protocol_prefix`(`_shared.py`。FHIR と narrative の共用) |
-| LOS 計算 | `document/engine._compute_los_days`(in-progress proxy 込み) |
-| locale 表示テーブル | `locale/loader.py` の cached loaders(`load_med_terms_ja` 等)。Layer 4 での raw YAML open 禁止 |
+| JP / US decision / display language | `is_jp(country)` / `is_us(country)` / `resolve_lang(country)` (`modules/_shared.py`). Hand-written `country == "JP"` comparisons are forbidden. |
+| Country → code-system selection | `system_key_for(kind, country)` (`clinosim.codes`). Inline jlac10 / loinc branching is forbidden. |
+| System URI | `get_system_uri(key)` (`clinosim.codes`). Hard-coding URI strings is forbidden. |
+| code → display | `code_lookup(system, code, lang)`. Hard-coding display strings is forbidden. |
+| Dict / dataclass dual read | `get_attr_or_key` (`_shared.py`) / `_o()` in FHIR builders. Adding new `isinstance(x, dict)` branches is forbidden. **Applies to every read path — cache keys, comparisons, branching** (lesson from C-1: `getattr` was used on a dict, so the whole cohort shared a single cache entry). |
+| Dict / dataclass dual write | `set_attr_or_key(obj, name, value)` (single-field assignment) / `get_or_create_container(obj, name, factory)` (obtain-or-create a nested container and mutate directly). Adding new `isinstance(rec, dict): rec["x"]=v else: rec.x=v` branches is forbidden (session 37 dual-access sweep). |
+| Probability vectors | `normalize_probabilities(p, fallback="raise")` (`_shared.py`) on every YAML-sourced `rng.choice(p=)`. |
+| Lab-order classification | `classify_lab_specs` (`order/panel_grouping.py`). |
+| Scenario / medication flags | Merge `scenario_flags_from_protocol` + `medication_flags_from_context` and pass **`**flags`**. Adding named-arg parameters is forbidden (J5 lesson). |
+| **Severity sampling** | `sample_severity(protocol, person, rng)` / `sample_severity_category(...)` / `category_from_score(score)` (`disease/severity.py`, AD-67). Severity's canonical source is disease-YAML `severity.distribution × modifiers`. The locale-side `severity_beta` / `severity_minimum` have been removed — do not resurrect. Hard-coding the 0.3 / 0.7 category-↔-score boundaries at call sites is forbidden (`SEVERITY_SCORE_RANGES` is the single definition). |
+| **JP Core / JP-CLINS profile URIs** (lesson from session 50 adv-1) | Quote the `Element.system.fixedUri` / `Element.fixedUri` in the spec's `StructureDefinition-*.json` directly. **Do not guess.** In session 50 we set `_JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/observation-category"` (a guess); the real spec is `http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS`, so the URIs mismatched → the HAPI validator silent-no-op'd, invalidating a profile-slice-compliance fix over 2.47M records completely. Procedure: (1) `grep -A2 fixedUri` the relevant `StructureDefinition-*.json` under `iris4h-ai/jp_core/package/` (or a jpfhir.jp fetch) to find the slice's system URI, (2) define it as a module-level constant, (3) **always add a unit test that pins the URI, as in `tests/unit/output/test_fhir_jp_core_p14_slices.py`** (the guess-URI regression guard). The same rule applies to JP-eCheckup / SS-MIX2 profile URIs. |
+| Imaging orders | `place_imaging_orders` (`order/engine.py`). |
+| Drug protocol prefix stripping | `strip_protocol_prefix` (`_shared.py`; shared between FHIR and narrative). |
+| LOS computation | `document/engine._compute_los_days` (including the in-progress proxy). |
+| Locale display tables | The cached loaders in `locale/loader.py` (`load_med_terms_ja`, etc.). Opening raw YAML in Layer 4 is forbidden. |
 
-新しい共通処理が 2 module に必要になったら `_shared.py` か owner module に 1 箇所定義し
-双方 import。**第三の消費者が現れても import、再定義しない。**
+If the same shared logic is needed in a second module, define it
+once in `_shared.py` or the owner module and import from both.
+**When a third consumer appears, import it — do not redefine.**
 
-## 5. Loader / reference data 規約
+## 5. Loader / reference-data conventions
 
-- Path 定数正規形: `_HERE = Path(__file__).resolve().parent` / `_REF_DIR = _HERE /
-  "reference_data"` / `_LOCALE = _HERE.parents[1] / "locale"`。fragile な
-  `.parent.parent.parent` 禁止。他 module の reference_data への直接 path 禁止
-  (owner module に accessor を作る。例: `observation.microbiology.antibiotic_loinc_lookup`)。
-- `@lru_cache`: no-param → maxsize=1、`(country)` → 2。hand-rolled sentinel cache 禁止。
-- **import/load 時 fail-loud validation(`_validate_*`)必須**: 外部 ID(SNOMED/LOINC/ICD/
-  drug key)・確率重み・enum 値(`generation_frequency` / `stage2_strategy` 等)を参照する
-  YAML は、canonical 集合との照合で未知キー・矛盾を **load 時に raise**。
-  `dict.get()` の silent fall-through 禁止。
-- aggregate loader(glob して全件 load)は **owner module に置く**(simulator 側から
-  他 module の dir を glob しない)。
-- **YAML-loaded Pydantic model は `extra="forbid"`**(AD-69)。`DiseaseProtocol` /
-  `PatientProfile` は導入済。新しい top-level YAML キーは **model field を足してから**追加
-  (足さないと load で raise = author-time silent-drop 防御)。`DiseaseProtocol` の raw-dict
-  消費経路(`order/engine.py`)は forbid の保護外なので、そちらで読むキーも model に宣言する。
-- **FHIR completeness 3 不変則**(AD-67/68/69、`data-model-and-completeness-conventions.md`):
-  ①**C1** 読まれない YAML キーを ship しない(forbid + 消費配線)②**C2** 生成した要素は必ず
-  下流消費者を持つ — 特に **graded-stage 疾患(`_generate_stage`)は必ず `STAGE_SEVERITY` に
-  entry を持つ**(I10-class no-op の再発防止、`test_completeness_invariants.py` が強制)
-  ③**C3** 急性疾患は `course_archetypes` + `complications` を author(fallback は感染チューニング
-  で外傷/循環器に不整合)。regression ガード = `tests/unit/test_completeness_invariants.py`。
+- Canonical path constants: `_HERE = Path(__file__).resolve().parent`
+  / `_REF_DIR = _HERE / "reference_data"` / `_LOCALE = _HERE.parents[1] / "locale"`.
+  Fragile `.parent.parent.parent` is forbidden. Directly pathing
+  into another module's `reference_data` is forbidden (create an
+  accessor on the owner module — e.g.
+  `observation.microbiology.antibiotic_loinc_lookup`).
+- `@lru_cache`: no-param → `maxsize=1`; `(country)` → 2. Hand-rolled
+  sentinel caches are forbidden.
+- **Fail-loud validation at import / load time (`_validate_*`) is
+  mandatory.** A YAML that references external IDs (SNOMED, LOINC,
+  ICD, drug key), probability weights, or enum values
+  (`generation_frequency`, `stage2_strategy`, etc.) must **raise at
+  load time** on unknown keys or contradictions detected against
+  the canonical set. Silent fall-through via `dict.get()` is
+  forbidden.
+- Put aggregate loaders (glob everything and load) **on the owner
+  module** (do not glob other-module directories from the
+  simulator).
+- **YAML-loaded Pydantic models use `extra="forbid"`** (AD-69).
+  `DiseaseProtocol` / `PatientProfile` already do. When you add a
+  new top-level YAML key, **add the model field first** (skipping
+  this causes a raise at load time = the author-time silent-drop
+  defense). `DiseaseProtocol`'s raw-dict consumption path
+  (`order/engine.py`) is outside `forbid`'s protection, so declare
+  the keys it reads on the model too.
+- **The three FHIR completeness invariants** (AD-67 / 68 / 69,
+  `data-model-and-completeness-conventions.md`):
+  (1) **C1**: do not ship YAML keys that are not read (`forbid` +
+  wired consumer);
+  (2) **C2**: an element you generate must have a downstream
+  consumer — in particular, **graded-stage diseases
+  (`_generate_stage`) must have an entry in `STAGE_SEVERITY`** (the
+  I10-class no-op prevention, enforced by
+  `test_completeness_invariants.py`);
+  (3) **C3**: acute diseases author `course_archetypes` +
+  `complications` (the fallback is tuned for infection and is
+  clinically incoherent for trauma / cardiology). Regression
+  guard: `tests/unit/test_completeness_invariants.py`.
 
-## 6. codes / locale / 多言語
+## 6. codes / locale / multilingual
 
-- `codes/data/*.yaml` は **`en` 必須**、出典は authoritative(CMS/NLM/WHO/JCCLS/MHLW)。
-  **コードの捏造絶対禁止** — 新 code は NLM API / WHO browser で検証してから登録。
-- 診断コード追加時は「Diagnosis code coverage」手順(CLAUDE.md)に従い
-  `pytest tests/unit/test_diagnosis_code_coverage.py` green を確認。
-- **JP 出力は全 display/text/name が日本語、US 出力は日本語文字 0**(既知の例外 =
-  `KNOWN_JA_ONLY_FALLBACK_SECTIONS`。勝手に拡げない)。緊急番号等の locale 依存表現に注意
-  (実例: en テキストに「Call 119」が混入 → guard test あり)。
-- Condition/Procedure 等は dual coding(local primary + interop)。数値 Observation は
-  referenceRange + interpretation を両方 emit し出力時に再計算。
+- `codes/data/*.yaml`: **`en` is required**; sources are
+  authoritative (CMS / NLM / WHO / JCCLS / MHLW). **Absolutely no
+  fabrication of codes** — verify a new code against the NLM API /
+  WHO browser before registering.
+- When adding a diagnosis code, follow the "Diagnosis code
+  coverage" procedure (CLAUDE.md) and confirm
+  `pytest tests/unit/test_diagnosis_code_coverage.py` is green.
+- **JP output: every display / text / name is Japanese; US output:
+  zero Japanese characters.** (The known exception is
+  `KNOWN_JA_ONLY_FALLBACK_SECTIONS`; do not widen it on your own.)
+  Watch for locale-dependent expressions in emergency numbers, etc.
+  (a real example: "Call 119" leaked into English text — a guard
+  test now protects against it).
+- Condition / Procedure carry dual coding (local primary +
+  interop). Numeric Observation emits both `referenceRange` and
+  `interpretation`, and they are recomputed at output time.
 
-## 6.5 共通ロジック所在マップ(4 横断ロジック)
+## 6.5 Cross-cutting-logic location map (4 axes)
 
-新規セッションが「◯◯のロジックはどこで、どの入口で書くか」を即引くための一覧。各ロジックは
-**単一の canonical 入口**を持ち、call-site で再実装しない(§4 の原則の適用)。
+A one-page lookup for a new session asking "where does X live and
+what is the entry point?". Each cross-cutting axis has a **single
+canonical entry point** and is not re-implemented at call sites
+(the §4 principle applied).
 
-| 横断ロジック | canonical 入口(owner) | 規約 / データ源 |
+| Cross-cutting axis | Canonical entry (owner) | Convention / data source |
 |---|---|---|
-| **データ参照**(YAML/参照データの load) | 各 module の `load_X()`(`@lru_cache` + `_HERE/_REF_DIR/_LOCALE` path 定数 + import 時 `_validate_X`)。他 module の reference_data は owner の accessor 経由(§5) | Layer 1 = `modules/*/reference_data/`・`locale/`・`config/`。cached loader の戻り値は shared read-only(mutate 禁止) |
-| **データ生成**(乱数・生理・重症度) | 乱数 = `derive_sub_seed` + `ENRICHER_SEED_OFFSETS`(lab は `panel_specimen_seed`/`individual_lab_seed`)。重症度 = `disease.severity.sample_severity`。course = `clinical_course.select_archetype`。生理 = `physiology.engine`(initialize_state / derive_lab_values) | 全乱数 seed 由来で決定的(AD-16)。臨床値は疾患/検査 YAML 駆動、Python にハードコードしない。`rng.choice(p=)` は `normalize_probabilities(p, fallback="raise")` 経由 |
-| **コードマッピング**(内部名→標準コード→表示) | 内部名→標準コード = `locale/<country>/code_mapping_*.yaml`。国→コード体系 = `system_key_for(kind, country)`。code→display = `code_lookup(system, code, lang)`。system URI = `get_system_uri(key)` | `codes/data/*.yaml`(EN 必須、国際標準、locale 非依存)。display 文字列・URI・コードの hardcode/捏造禁止。CIF は code のみ(AD-30) |
-| **多言語対応**(i18n) | 国判定 = `is_jp`/`is_us`、表示言語 = `resolve_lang(country)`。表示解決 = `code_lookup(..., lang)` / `_localize_display`。JP 固定ラベルは `_fhir_localization` 辞書 | 変換は language-neutral(AD-44):enrichment は英語構造化データを産み、LLM が翻訳。**JP 出力は全 display 日本語 / US 出力は日本語 0**(audit の jp_language 軸が強制) |
+| **Data reference** (YAML / reference-data load) | Each module's `load_X()` (`@lru_cache` + `_HERE / _REF_DIR / _LOCALE` path constants + `_validate_X` at import). Reach other-module `reference_data` through the owner's accessor only (§5). | Layer 1 = `modules/*/reference_data/` / `locale/` / `config/`. A cached loader's return value is a shared read-only object (mutation forbidden). |
+| **Data generation** (RNG / physiology / severity) | RNG = `derive_sub_seed` + `ENRICHER_SEED_OFFSETS` (labs = `panel_specimen_seed` / `individual_lab_seed`). Severity = `disease.severity.sample_severity`. Course = `clinical_course.select_archetype`. Physiology = `physiology.engine` (`initialize_state` / `derive_lab_values`). | Every RNG is seed-derived and deterministic (AD-16). Clinical values are driven from disease / lab YAML — never hard-coded in Python. `rng.choice(p=)` goes through `normalize_probabilities(p, fallback="raise")`. |
+| **Code mapping** (internal name → standard code → display) | Internal name → standard code = `locale/<country>/code_mapping_*.yaml`. Country → code system = `system_key_for(kind, country)`. code → display = `code_lookup(system, code, lang)`. System URI = `get_system_uri(key)`. | `codes/data/*.yaml` (`en` required, international standards, locale-independent). Hard-coding or fabricating display strings / URIs / codes is forbidden. CIF holds codes only (AD-30). |
+| **Multilingual** (i18n) | Country decision = `is_jp` / `is_us`; display language = `resolve_lang(country)`. Display resolution = `code_lookup(..., lang)` / `_localize_display`. JP fixed labels: `_fhir_localization` dictionary. | Conversion is language-neutral (AD-44): enrichment produces English structured data; the LLM handles translation. **JP output: every display Japanese; US output: zero Japanese** (enforced by the audit's jp_language axis). |
 
-これらが「統一されているか」の判定は `data-model-and-completeness-conventions.md`(重症度)+ 本書 §4
-(canonical helpers)+ audit の silent_no_op 軸。実装の end-to-end 像は
-`data-generation-walkthrough.md`。
+The judgment of "is this unified?" runs through
+`data-model-and-completeness-conventions.md` (severity) + §4 of
+this document (canonical helpers) + the audit's silent_no_op axis.
+The end-to-end implementation picture is in
+`data-generation-walkthrough.md`.
 
-## 7. Narrative 層(Stage 2)規約
+## 7. Narrative layer (Stage 2) conventions
 
-- Generator 契約 = `NarrativeGenerator` Protocol(`types/document.py`)。
-  `NarrativePass` へは **constructor 注入**(hardcode 禁止)。
-- LLM 経路: `LLMNarrativeGenerator` → `apply_replacement_strategy` →
-  `LLMService.complete_prompt()`。fallback は generator の責務(complete_prompt は raise)。
-- **prompt は `llm_service/prompts/{en,ja}/*.yaml` のみ**(AD-40)。Python 内での
-  prompt 文字列組立て禁止。
-- `DocumentTypeSpec` は YAML(`document_type_specs.yaml`)+ registry validation
-  (frequency / stage2_strategy / llm_enabled_sections ⊆ composition_sections)。
-- **partial version guard**: `--patient-filter` 実行は current を default で更新しない・
-  既存 version への上書きは `--merge-into-version` opt-in。`regenerate-goldens` に
-  filter を渡すことは永久に禁止。
-- 実 LLM 出力の gate は `check-narratives`(semantic check 5 軸)。byte-diff は
-  template / mock にのみ適用。
+- Generator contract = the `NarrativeGenerator` Protocol
+  (`types/document.py`). Injection into `NarrativePass` is
+  **constructor-based** (hard-coding is forbidden).
+- LLM path: `LLMNarrativeGenerator` → `apply_replacement_strategy`
+  → `LLMService.complete_prompt()`. Fallback is the generator's
+  responsibility (`complete_prompt` raises).
+- **Prompts live only in `llm_service/prompts/{en,ja}/*.yaml`**
+  (AD-40). Assembling prompt strings inside Python is forbidden.
+- `DocumentTypeSpec` is YAML (`document_type_specs.yaml`) + registry
+  validation (`frequency` / `stage2_strategy` /
+  `llm_enabled_sections ⊆ composition_sections`).
+- **Partial-version guard**: a `--patient-filter` run does not
+  update `current` by default; overwriting an existing version
+  requires `--merge-into-version` opt-in. Passing a filter to
+  `regenerate-goldens` is forbidden forever.
+- The gate for real LLM output is `check-narratives` (a 5-axis
+  semantic check). Byte-diff applies only to template / mock.
 
-## 8. Golden / テスト / 検証 gate
+## 8. Golden / test / verification gates
 
-- markers: `pytest -m unit`(~15s)/ `integration`(~12min)/ `e2e`(~4min)/
-  `regression`(opt-in、goldens byte-diff。template 6 + llm-mock 6)。
-- **AD-66 Rule 1**: profile YAML か生成ロジックを変えたら `regenerate-goldens` +
-  **YAML と golden を同一 commit**。
-- **AD-66 Rule 2 + 臨床内容レビュー**: golden diff は「期待した種類の変化か」の categorize
-  だけでなく**中身の臨床妥当性まで読む**(実例: 死亡退院患者に ICU 昇圧剤 drip が
-  退院処方として golden に焼き込まれていた)。
-- **byte-diff の使い分け**: refactor PR = byte-identical 必須(FHIR NDJSON + narratives の
-  sha256 比較。CIF structural は既知 wall-clock 2 フィールドのみ許容)。new-feature PR =
-  byte-diff intentionally broken、gate は audit + goldens + 実出力検証。
-- **実出力 grep を verification に含める**: wiring/context 変更は下流 renderer の実出力を
-  実 cohort で grep(破綻文・placeholder 残骸・locale 混入の検出)。test green だけでは不十分。
-- `clinosim audit run -d <cohort>`(AD-60 4 軸)= 新機能 PR の一次 gate。
+- Markers: `pytest -m unit` (~15 s) / `integration` (~12 min) /
+  `e2e` (~4 min) / `regression` (opt-in; goldens byte-diff —
+  template ×6 + llm-mock ×6).
+- **AD-66 Rule 1**: whenever profile YAML or generation logic
+  changes, run `regenerate-goldens` and **commit the YAML and
+  goldens together**.
+- **AD-66 Rule 2 + clinical-content review**: golden diffs are
+  reviewed not only by categorising "is this the expected kind of
+  change?" but by **reading the content for clinical validity** (a
+  real example: a golden for a deceased-discharge patient had ICU
+  vasopressor drips baked in as discharge prescriptions).
+- **Byte-diff usage**: refactor PR = byte-identical required (FHIR
+  NDJSON + narratives sha256 match. CIF structural allows only the
+  known 2 wall-clock fields). New-feature PR = byte-diff
+  intentionally broken; the gate becomes audit + goldens + real-
+  output verification.
+- **Include real-output grep in verification**: wiring / context
+  changes must be verified by grepping a downstream renderer's real
+  output over a real cohort (to catch broken sentences, placeholder
+  residue, locale leakage). Green tests are not enough.
+- `clinosim audit run -d <cohort>` (AD-60, the 4-axis audit) is the
+  primary gate for new-feature PRs.
 
-## 9. Silent-no-op 防御(PR-90 class)チェックリスト
+## 9. Silent-no-op defense (the PR-90 class) checklist
 
-新機能・修正が「実際に発火している」ことを構造的に証明する:
+Structurally prove that a new feature or fix "actually fires":
 
-1. **canonical constants** を単一定義し writer/reader 双方が import(ID prefix、URI、
-   `HAI_TYPES` 等)。
-2. **import/load 時 cross-validation** で typo・欠落を fail-loud に。
-3. audit `lift_firing_proof` に equality_checks(発火証明)を追加。
-4. **"fired" counter / 観測可能性**: fallback や skip は counter + manifest/stderr で可視化
-  (例: `generator_fallback_docs`、eligible>0 かつ fired=0 で WARN)。
-5. **aspirational scaffold 禁止**: 登録したが未消費のコード(seed offset、config field、
-   strategy 値)は **wire するか削除**。「後で使う」で ship しない。
-6. 既知の named precedents(再発防止の合言葉):
-   **J5**(flag が 1 venue でしか読まれない)/ **PR-90**(YAML キー大文字小文字不一致で
-   lift 全体が無音 no-op)/ **C-1**(dict に getattr で cache key 退化)/
-   **Call 119 / ICU drip**(golden に臨床誤りが焼き込み)/ **stale TODO**(実測せず着手)。
+1. **Canonical constants** are defined once and imported by both
+   writer and reader (ID prefixes, URIs, `HAI_TYPES`, etc.).
+2. **Cross-validation at import / load time** turns typos and
+   omissions into fail-loud errors.
+3. Add equality_checks (firing proofs) to the audit's
+   `lift_firing_proof`.
+4. **"Fired" counters / observability**: fallbacks and skips are
+   surfaced via counters + `manifest` / stderr (e.g.
+   `generator_fallback_docs`; WARN when `eligible > 0` and `fired
+   == 0`).
+5. **No aspirational scaffolding**: registered-but-unconsumed code
+   (a seed offset, a config field, a strategy value) must be
+   **wired or removed**. Do not ship it "for later".
+6. Named precedents (mnemonic phrases to prevent recurrence):
+   **J5** (a flag read in one venue only) / **PR-90** (a case-
+   sensitivity mismatch on a YAML key silently no-op'd the whole
+   lift) / **C-1** (`getattr` on a dict → degenerate cache key) /
+   **Call 119 / ICU drip** (clinical errors baked into a golden) /
+   **stale TODO** (starting work without measuring).
 
-## 10. FHIR builder(Layer 4)の要点
+## 10. FHIR builder (Layer 4) headlines
 
-詳細 = [`fhir-data-generation-logic.md`](fhir-data-generation-logic.md)。最低限:
-CIF は read-only / display・URI・ID prefix は canonical source から / builder 登録は
-registry 経由 / dict+dataclass 両 path のテスト必須 / reference integrity(dangling 禁止)。
+Detail: [`fhir-data-generation-logic.md`](fhir-data-generation-logic.md).
+Bare minimum: CIF is read-only; display / URI / ID prefixes come
+from a canonical source; builder registration goes through the
+registry; both dict and dataclass paths must be tested; reference
+integrity must hold (no dangling references).
 
 ---
 
-## 読む順序(新規参加の実装 AI 向け)
+## Reading order (for a new implementation agent)
 
-1. 本書(不変則)
-2. [`README.md`](README.md)(読了パス)→ `MODULES.md`(全体地図)
-3. `docs/CONTRIBUTING-modules.md`(Layers 1-3 詳細 HOW-TO)
-4. `fhir-data-generation-logic.md`(Layer 4、builder を書くとき)
-5. `clinosim/modules/output/SPEC.md`(two-pass narrative、Stage 2 を触るとき)
-6. 直近の chain 文脈: `.session-resume-prompt.md` + `TODO.md` 各 deferred section
+1. This document (invariants).
+2. [`README.md`](README.md) (reading path) → `MODULES.md` (project
+   map).
+3. `docs/CONTRIBUTING-modules.md` (Layers 1-3 detailed HOW-TO).
+4. `fhir-data-generation-logic.md` (Layer 4, when writing a
+   builder).
+5. `clinosim/modules/output/SPEC.md` (two-pass narrative — when you
+   touch Stage 2).
+6. The most recent chain context: `.session-resume-prompt.md` +
+   each `deferred` section of `TODO.md`.
+
+Japanese counterpart: [`implementation-rules.ja.md`](implementation-rules.ja.md).

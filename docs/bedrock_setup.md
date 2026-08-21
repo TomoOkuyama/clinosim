@@ -5,8 +5,8 @@ against **AWS Bedrock** from an EC2 instance.
 
 Why this split?
 
-- Stage 1 (`generate`) is deterministic, CPU-bound, and needs no network access.
-  Run it anywhere.
+- Stage 1 (`simulate`, formerly `generate` — still available as a deprecated alias)
+  is deterministic, CPU-bound, and needs no network access. Run it anywhere.
 - Stage 2 (`narrate`) is the only stage that calls a paid LLM API. If your
   workstation cannot reach Bedrock (corporate proxy, VPN, sovereignty
   constraints), ship the CIF directory to an EC2 instance and run Stage 2 there.
@@ -18,7 +18,7 @@ Why this split?
 │  local laptop  │                │  EC2 instance     │
 │                │                │                   │
 │ clinosim       │   scp / s3     │ clinosim          │
-│   generate  ───┼───────────────▶│   narrate         │
+│   simulate  ───┼───────────────▶│   narrate         │
 │                │                │   (Bedrock)       │
 │ clinosim       │◀───────────────┤                   │
 │   export-fhir  │   scp / s3     │                   │

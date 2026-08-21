@@ -1,337 +1,147 @@
-# clinosim.modules.diagnosis — Bayesian 鑑別診断エンジン
+# `clinosim.modules.diagnosis` — Bayesian 鑑別診断 engine
 
-## 目的
+## 概要
 
-入院時に候補疾患リスト (differential) を生成し、 検査結果 (findings) が得られるたびに **likelihood ratio (LR)** を使って Bayesian update を行い、 確率分布を更新する。 また、 confidence に応じて ICD コードが「非特異 → 特異」へと段階的に進展する。
+encounter timeline 上で Bayesian 差別診断を維持する: disease YAML の
+prior から per-encounter 差別を初期化、新規 lab / vital / imaging
+結果ごとに候補確率を likelihood-ratio Bayesian 更新、
+current working / confirmed / discharge の診断コードを解決する。
+Issue #551 で 6 sites に散在していた非特異 / fallback ICD-10 コードの
+named canonical 定数も所有する。
 
-これにより:
+## Scope
 
-- 誤診 (working diagnosis が ground truth と異なる) が確率的に発生し、 経過に反映される
-- 診断コードが臨床の実際に即して時間的に変化する (admission → intermediate → discharge で精緻化)
-- clinical_course モジュールの diagnosis feedback と連動し、 誤診が recovery 速度の dampening として現れる
-- 臨床検査の効果が LR を通して定量的にモデル化される
+- **In scope**: `initialize_differential` (disease protocol の
+  `differential` block から seed); `update_differential` (新規
+  observation ごとの likelihood-ratio update); `get_current_diagnosis_code`
+  (最高確率候補を返す。working-diagnosis 閾値を超える候補が無い場合は
+  `UNRESOLVED_DIAGNOSIS_ICD` sentinel); named 非特異 / fallback コード
+  (`UNRESOLVED_DIAGNOSIS_ICD = "R69"`, `ICD_COUGH = "R05"`、
+  R50.9 / R53.1 / R68.8 / Z09 の拡張スロット)。
+- **Out of scope**: disease protocol 定義
+  ([`clinosim.modules.disease`](../disease/README.md))、ICD /
+  SNOMED registry ([`clinosim/codes/`](../../codes/))、FHIR
+  `Condition` / `ClinicalImpression` emission
+  ([`clinosim.modules.output`](../output/README.md))、diagnosis の
+  trajectory feedback (それは
+  [`clinosim.modules.clinical_course`](../clinical_course/README.md)
+  で走る)。
 
-## 設計原則
+## Public API
 
-| # | 原則 | 説明 |
-|---|---|---|
-| 1 | **Priors は疾患毎** | reference_data/builtin_differentials.yaml の differentials[disease_id] に 28 疾患の鑑別リストを定義 |
-| 2 | **LR による Bayesian update** | 各 finding は `{"pos": LR+, "neg": LR-}` を持つ。 正規化で確率化 |
-| 3 | **Confirmation threshold** | top 候補の確率が threshold (既定 0.90) を超えると confirmed |
-| 4 | **Working vs confirmed** | top > 0.5 で working、 > threshold で confirmed |
-| 5 | **段階的 ICD コード進展** | builtin_differentials.yaml の diagnosis_progression で confidence 閾値ごとに ICD code を変化 (display は codes.lookup で解決) |
-| 6 | **Protocol YAML 優先** | disease YAML の `diagnostic.differential` / `lr_table` / `diagnosis_progression` があればそれを使用 |
-
-## API リファレンス
-
-### `initialize_differential(disease_id="bacterial_pneumonia", age=70, protocol_diagnostic=None) -> DifferentialDiagnosis`
-
-入院時の鑑別リストを生成する。
-
-```python
-from clinosim.modules.diagnosis.engine import initialize_differential
-
-diff = initialize_differential(
-    disease_id="bacterial_pneumonia",
-    age=patient.age,
-    protocol_diagnostic=disease_yaml.get("diagnostic"),
-)
-# diff.candidates = [
-#     DiagnosisCandidate("bacterial_pneumonia", "J18.9", "Bacterial pneumonia", 0.45),
-#     DiagnosisCandidate("viral_pneumonia", "J12.9", "Viral pneumonia", 0.15),
-#     ...
-# ]
-```
-
-**Age adjustment**: `age >= 75` の場合、 候補に `heart_failure` があれば prior ×1.5 (高齢者は HF overlap しやすい)。
-
-**Working diagnosis の即時設定**: top candidate の確率が 0.5 を超えていれば即座に `working_diagnosis` に設定 (明確な典型症例)。
-
-### `update_differential(diff, findings, confirmation_threshold=0.90, protocol_lr_table=None) -> DifferentialDiagnosis`
-
-新しい検査結果を differential に反映する。
-
-```python
-from clinosim.modules.diagnosis.engine import update_differential
-
-findings = [
-    ("chest_xray_consolidation", True),   # 陽性
-    ("procalcitonin_elevated", True),
-    ("wbc_elevated", True),
-]
-diff = update_differential(diff, findings, confirmation_threshold=0.90)
-```
-
-**アルゴリズム**:
-
-```
-for each (finding, is_positive):
-    lr_entry = LR_TABLE[finding]
-    for each candidate:
-        lr = lr_entry[candidate.disease_code]["pos" if is_positive else "neg"]
-        candidate.probability *= lr
-# Normalize to sum = 1.0
-# Sort by probability desc
-# If top.probability >= confirmation_threshold: diff.confirmed = True
-# Elif top.probability >= 0.5: diff.working_diagnosis = top
-```
-
-`candidate.evidence` に `"chest_xray_consolidation: (+) LR=8.0"` のような履歴を追加していく。
-
-**具体例** (肺炎の鑑別):
-```
-初期 prior: bacterial_pneumonia=0.45, viral_pneumonia=0.30, heart_failure=0.25
-
-Finding 1: "chest_xray_consolidation" (+)
-  LR+ for bacterial_pneumonia = 8.0 → 0.45 × 8.0 = 3.60
-  LR+ for viral_pneumonia     = 3.0 → 0.30 × 3.0 = 0.90
-  LR+ for heart_failure       = 0.5 → 0.25 × 0.5 = 0.125
-  正規化: 3.60+0.90+0.125 = 4.625
-  → bacterial=0.778, viral=0.195, HF=0.027
-
-Finding 2: "procalcitonin_elevated" (+)
-  LR+ for bacterial = 5.0 → 0.778 × 5.0 = 3.89
-  LR+ for viral     = 1.2 → 0.195 × 1.2 = 0.234
-  LR+ for HF        = 0.8 → 0.027 × 0.8 = 0.022
-  正規化: → bacterial=0.938 (>0.90 threshold → 確定診断)
-```
-
-LR 値の目安: LR+ > 10 = 強い陽性根拠, 5-10 = 中程度, 2-5 = 弱い。 LR- < 0.1 = 強い除外。
-
-### `get_current_diagnosis_code(diff, protocol_progression=None) -> tuple[str, str]`
-
-現時点での confidence に対応する (ICD code, display name) を返す。
-
-```python
-from clinosim.modules.diagnosis.engine import get_current_diagnosis_code
-
-code, name = get_current_diagnosis_code(diff, protocol_progression=disease_yaml.get("diagnostic", {}).get("diagnosis_progression"))
-# confidence 0.45 → ("J18.9", "Pneumonia, unspecified")
-# confidence 0.75 → ("J18.1", "Lobar pneumonia, unspecified")
-# confidence 0.95 → ("J13",   "Pneumonia due to Streptococcus pneumoniae")
-```
-
-**Fallback chain**:
-1. `working_diagnosis` が設定されていればそれを target にする
-2. 無ければ top candidate の `disease_code`
-3. `DIAGNOSIS_PROGRESSION[target]` を探して、 confidence が閾値を超えた最上位の code を返す
-4. 何も無ければ top candidate の `icd_code`
-5. 最終フォールバック: `("R69", "Illness, unspecified")`
-
-## データ構造
-
-### `DiagnosisCandidate`
-
-```python
-@dataclass
-class DiagnosisCandidate:
-    disease_code: str       # 内部キー "bacterial_pneumonia"
-    icd_code: str           # ICD-10 "J18.9"
-    display_name: str       # "Bacterial pneumonia"
-    probability: float      # 0.0-1.0 (リスト全体で正規化)
-    evidence: list[str]     # Bayesian update 履歴
-```
-
-### `DifferentialDiagnosis`
-
-```python
-@dataclass
-class DifferentialDiagnosis:
-    candidates: list[DiagnosisCandidate]  # probability desc でソート
-    working_diagnosis: str | None = None  # top > 0.5 で設定される disease_code
-    confirmed: bool = False               # top >= threshold で True
-    timestamp: datetime
-
-    @property
-    def top_candidate(self) -> DiagnosisCandidate | None: ...
-```
-
-### `DIFFERENTIALS` (組み込み priors)
-
-`reference_data/builtin_differentials.yaml` から読み込まれる。エントリに `name` フィールドは不要で、表示名は `clinosim.codes.lookup()` で解決する。
-
-```yaml
-# reference_data/builtin_differentials.yaml (抜粋)
-differentials:
-  bacterial_pneumonia:
-    - {disease: bacterial_pneumonia, icd: J18.9, prior: 0.45}
-    - {disease: viral_pneumonia,     icd: J12.9, prior: 0.15}
-    - {disease: influenza,           icd: J11.1, prior: 0.10}
-    - {disease: heart_failure,       icd: I50.9, prior: 0.10}
-    - {disease: pulmonary_embolism,  icd: I26.9, prior: 0.05}
-    # ...
-  heart_failure_exacerbation:
-    # ...
-  # ... 26 疾患定義
-```
-
-カバーする疾患 (抜粋): bacterial_pneumonia, heart_failure_exacerbation, hip_fracture, urinary_tract_infection, copd_exacerbation, sepsis, cerebral_infarction, acute_mi, gi_bleeding, diabetic_ketoacidosis, ileus, acute_pancreatitis, acute_appendicitis, pulmonary_embolism, acute_cholecystitis, atrial_fibrillation_rvr, cellulitis, acute_kidney_injury, liver_cirrhosis_decompensated, aspiration_pneumonia, influenza, asthma_exacerbation, hemorrhagic_stroke, vertebral_compression_fracture, deep_vein_thrombosis, 外傷系 (traffic_accident_severe, wrist_fracture_surgical, subdural_hematoma)。
-
-> ⚠️ **診断コードカバレッジ (必読)**: `DIFFERENTIALS` の `icd` と `LR_TABLE`/`DIAGNOSIS_PROGRESSION`
-> の ICD コードは、disease/encounter YAML に次ぐ**第3の emittable Condition コード源**。
-> これらを追加/変更したら、`codes/data/{icd-10-cm,icd-10}.yaml` への収載(US billable / JP は WHO
-> 3-4桁、権威照合・捏造禁止)が必須。`tests/unit/test_diagnosis_code_coverage.py` が3源すべてを
-> 横断ガードする(`ALL_EMITTABLE`)。詳細は ルート `CLAUDE.md`「Diagnosis code coverage」。
->
-> **解消済 (2026-06)**: `DIFFERENTIALS` 表と `DIAGNOSIS_PROGRESSION` は
-> `reference_data/builtin_differentials.yaml` に外部化された。表示 `name` フィールドは廃止され、
-> 表示名は `clinosim.codes.lookup()` で解決する。
-
-### `LR_TABLE` (組み込み likelihood ratios)
-
-```python
-LR_TABLE = {
-    "chest_xray_consolidation": {
-        "bacterial_pneumonia": {"pos": 8.0, "neg": 0.3},
-        "viral_pneumonia":     {"pos": 2.0, "neg": 0.7},
-        "heart_failure":       {"pos": 0.5, "neg": 1.1},
-    },
-    "procalcitonin_elevated": {
-        "bacterial_pneumonia": {"pos": 6.0, "neg": 0.15},
-        "viral_pneumonia":     {"pos": 0.3, "neg": 2.0},
-    },
-    "crp_above_100": {
-        "bacterial_pneumonia": {"pos": 3.5, "neg": 0.4},
-        "viral_pneumonia":     {"pos": 0.5, "neg": 1.5},
-    },
-    "wbc_elevated": {
-        "bacterial_pneumonia": {"pos": 2.5, "neg": 0.6},
-        "viral_pneumonia":     {"pos": 0.5, "neg": 1.3},
-    },
-}
-```
-
-Disease YAML の `diagnostic.lr_table` があればそれが優先。 フォーマットは同一 (`positive_LR` / `negative_LR` という長い別名もサポート)。
-
-### `DIAGNOSIS_PROGRESSION`
-
-`[threshold, icd_code]` の 2 要素リストを disease_code 毎に定義。表示名は `clinosim.codes.lookup()` で解決する。
-YAML では `reference_data/builtin_differentials.yaml` の `diagnosis_progression` セクションで管理される。
-
-```yaml
-# reference_data/builtin_differentials.yaml (抜粋)
-diagnosis_progression:
-  bacterial_pneumonia:
-    - [0.0, "J18.9"]
-    - [0.7, "J18.1"]
-    - [0.9, "J13"]
-  sepsis:
-    - [0.0, "A41.9"]
-    - [0.7, "R65.20"]
-    - [0.9, "R65.21"]
-  # ...
-```
-
-Threshold に `confidence >= threshold` を満たす **最上位** の行が採用される。
-
-## 使用例: 肺炎患者の診断進展
+`__init__.py` は空。呼び出し側は 2 submodule から直接 import:
 
 ```python
 from clinosim.modules.diagnosis.engine import (
-    initialize_differential, update_differential, get_current_diagnosis_code,
+    initialize_differential,         # (encounter, protocol) -> DifferentialDiagnosis
+    update_differential,             # (diff, observation, ...) -> None
+    get_current_diagnosis_code,      # (diff) -> ICD-10 code str
 )
-
-# Day 0: 入院時
-diff = initialize_differential("bacterial_pneumonia", age=72)
-code_0, name_0 = get_current_diagnosis_code(diff)
-# → ("J18.9", "Pneumonia, unspecified") — 典型例なので既に working
-print(f"Admission: {code_0} — confidence={diff.candidates[0].probability:.2f}")
-
-# Day 0: CXR 結果到着
-diff = update_differential(diff, [("chest_xray_consolidation", True)])
-code_1, _ = get_current_diagnosis_code(diff)
-# confidence ≈ 0.78 → ("J18.1", "Lobar pneumonia")
-
-# Day 1: PCT と WBC 結果
-diff = update_differential(diff, [
-    ("procalcitonin_elevated", True),
-    ("wbc_elevated", True),
-])
-code_2, name_2 = get_current_diagnosis_code(diff)
-# confidence ≈ 0.96 → diff.confirmed = True → ("J13", "Pneumonia due to S. pneumoniae")
-print(f"Day 1: {code_2} — confirmed={diff.confirmed}")
-
-# Day 5: 退院診断として clinical_diagnosis に格納
-ClinicalDiagnosis(
-    admission_diagnosis_code=code_0,   # J18.9
-    discharge_diagnosis_code=code_2,   # J13
+from clinosim.modules.diagnosis.nonspecific_codes import (
+    UNRESOLVED_DIAGNOSIS_ICD,        # "R69"
+    ICD_COUGH,                       # "R05" — 実症状、決して wrong-dx sentinel ではない
+)
+from clinosim.modules.diagnosis._diagnosis_thresholds import (
+    WORKING_DIAGNOSIS_MIN_PROB,      # 0.5 — "more likely than not" cutoff
+    # …confirmed-diagnosis cutoff + age prior + neutral LR fallback…
 )
 ```
 
-## Disease YAML との連携
+## 決定論
 
-各 disease YAML は optional に `diagnostic` セクションを持てる:
+該当なし — 本モジュールは乱数を引かない。差別初期化と Bayesian
+update は observation 列 + prior 確率の純粋関数。
+`get_current_diagnosis_code` は差別 map の決定論的 argmax。
 
-```yaml
-diagnostic:
-  difficulty: 0.30                    # clinical_course が使う
-  differential:
-    - {disease: bacterial_pneumonia, icd: J18.9, name: Bacterial pneumonia, prior: 0.50}
-    - {disease: heart_failure, icd: I50.9, name: Heart failure, prior: 0.15}
-    ...
-  lr_table:
-    chest_xray_consolidation:
-      bacterial_pneumonia: {pos: 10.0, neg: 0.2}
-    ...
-  diagnosis_progression:
-    bacterial_pneumonia:
-      - [0.0, "J18.9", "Pneumonia, unspecified"]
-      - [0.7, "J18.1", "Lobar pneumonia"]
-      - [0.9, "J13",   "Streptococcal pneumonia"]
+## 依存
+
+- `clinosim.modules._shared` — `get_attr_or_key`。
+- `clinosim.modules.diagnosis._diagnosis_thresholds` — 全 working /
+  confirmed cutoff、age-prior 調整、neutral-LR fallback
+  (Issue #637)。
+- `clinosim.modules.diagnosis.nonspecific_codes` — Issue #551 の
+  named fallback / 非特異 ICD-10 定数。
+- `clinosim.types.diagnosis` — `DifferentialDiagnosis`,
+  `DifferentialCandidate`。
+- `yaml`。
+
+## 定数と設定
+
+- **Threshold** ([`_diagnosis_thresholds.py`](_diagnosis_thresholds.py)、
+  Issue #637 sweep):
+  - Family 1 — working / confirmed cutoff
+    (`WORKING_DIAGNOSIS_MIN_PROB = 0.5` — "more likely than not"、
+    confirmed cutoff は差別を凍結する上位閾値)。
+  - Family 2 — 年齢別 prior 調整 (高齢患者は年齢関連条件に prior
+    lift)。
+  - Family 3 — 欠落 likelihood-ratio entry の neutral fallback
+    (`dict.get(default=1.0)` に埋没しないよう grep 可能に extract)。
+- **非特異コード** ([`nonspecific_codes.py`](nonspecific_codes.py)、
+  Issue #551): ICD-10 タイトルを verbatim 引用した named 定数 —
+  rename は silent drift ではなく `ImportError` を発生させる。
+  file docstring が `R05` (咳) と `R69` (原因不明の症状) の
+  混同で正当な咳症状が silent に「誤診」扱いされていた過去問題を
+  詳述している。
+- **Reference data**:
+  [`reference_data/builtin_differentials.yaml`](reference_data/builtin_differentials.yaml)
+  — 主訴 pattern をキーとした built-in 差別ライブラリ (disease YAML
+  が `differential` block を持たないときの fallback)。
+
+## ディレクトリ構造
+
+```
+clinosim/modules/diagnosis/
+  __init__.py                    空
+  engine.py                      initialize_differential + update_differential + get_current_diagnosis_code
+  nonspecific_codes.py           Issue #551 named ICD-10 fallback 定数
+  _diagnosis_thresholds.py       working / confirmed cutoff + age prior + neutral LR fallback (Issue #637)
+  reference_data/
+    builtin_differentials.yaml   built-in 差別ライブラリ
+  SPEC.md                        拡張設計参考 (runtime data ではない)
 ```
 
-Protocol が提供されればそれが優先、 無ければ built-in を使う (loader は `protocol_diagnostic`, `protocol_lr_table`, `protocol_progression` 引数で注入)。
+**`enricher.py` / `audit.py` は存在しない**。
 
-## 依存関係
+## Enricher 配線
 
-- 標準ライブラリ (`dataclasses`, `datetime`)
-- `clinosim.codes` — `lookup()` による診断コード表示名解決
-- `PyYAML` — `reference_data/builtin_differentials.yaml` 読み込み
+該当なし — 本モジュールは encounter simulator が imperative に呼ぶ。
+`register_builtin_enrichers` に登録なく、`ENRICHER_SEED_OFFSETS` にも
+seed 未登録。
 
-## Consumers
+## Output surface (consumers)
 
-このモジュールに依存するもの:
-
-| Caller | How | Impact |
+| Consumer | 場所 | 役割 |
 |---|---|---|
-| `simulator/inpatient.py` | working diagnosis 推論 + discharge diagnosis 決定で diagnosis engine を呼出 | core (主 simulation loop) |
-| `tests/integration/test_clinical_pipeline.py` | 臨床 pipeline integration test | guard |
-| `tests/unit/test_diagnosis.py` | engine unit tests | guard |
+| Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | 入院時に `initialize_differential`、退院時に `get_current_diagnosis_code`。 |
+| Daily loop | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) | 新規 observation ごとに `update_differential`。 |
+| Wall-clock sentinel test | [`tests/unit/test_wallclock_sentinel_defaults.py`](../../../tests/unit/test_wallclock_sentinel_defaults.py) | `DifferentialDiagnosis` sentinel default を import。 |
 
 ## テスト
 
 ```bash
-source .venv/bin/activate && python -m pytest tests/unit/test_diagnosis.py -v
+pytest tests/unit -k "diagnosis or r05_cough" -q
 ```
 
-カバー範囲: 初期化、 Bayesian update、 confirmation、 negative findings、 code progression、 正規化、 age adjustment。
+個別ファイル:
 
-## 権威ソース
+- [`tests/unit/test_diagnosis.py`](../../../tests/unit/test_diagnosis.py)
+  — `initialize_differential` + `update_differential` 挙動。
+- [`tests/unit/test_diagnosis_code_coverage.py`](../../../tests/unit/test_diagnosis_code_coverage.py)
+  — 差別 ICD code coverage。
+- [`tests/unit/test_diagnosis_code_mapping.py`](../../../tests/unit/test_diagnosis_code_mapping.py)
+  — code → display mapping。
+- [`tests/unit/test_diagnosis_feedback.py`](../../../tests/unit/test_diagnosis_feedback.py)
+  — [`clinosim.modules.clinical_course`](../clinical_course/README.md)
+  への diagnosis feedback (cross-module integration)。
+- [`tests/unit/test_types_diagnosis.py`](../../../tests/unit/test_types_diagnosis.py)
+  — dataclass shape。
+- [`tests/unit/simulator/test_r05_cough_not_wrong_diagnosis.py`](../../../tests/unit/simulator/test_r05_cough_not_wrong_diagnosis.py)
+  — Issue #551 guard: `R05` (咳) が古い sentinel との単純比較で
+  誤診扱いされないことを保証。
 
-- LR 値の典型レンジは下記の文献を参照:
-  - Metlay JP et al., JAMA 1997 (pneumonia physical exam LR)
-  - Schuetz P et al., Cochrane Database 2017 (procalcitonin for bacterial infection)
-  - McGee S, *Evidence-Based Physical Diagnosis*, 4th ed (clinical finding LRs)
-- ICD-10-CM コードは CMS 公式 (`clinosim.codes` モジュール参照)
+## Ownership
 
-## 修正ガイド
+`maintainers@` — 詳細は
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
 
-### 新しい疾患の診断ロジックを追加する
-
-1. disease YAML の `diagnostic` セクションに `differential`, `likelihood_ratios`, `confirmation_threshold` を記述
-2. コード変更不要（YAML 駆動）
-
-### 関連モジュール
-
-| モジュール | 関係 |
-|---|---|
-| `disease` | 鑑別診断リスト・LR テーブルのソース (YAML) |
-| `clinical_course` | 診断フィードバック (`diagnosis_correct` → treatment_sensitivity) |
-| `output` | `clinical_diagnosis.admission_diagnosis_code` → FHIR Condition (code_lookup で表示名解決) |
-| `codes` | ICD-10-CM/ICD-10 コード辞書 — 新コード追加時は `codes/data/icd-10-cm.yaml` + `icd-10.yaml` の両方に EN/JA で追加 |
-
-### ICD コード追加時の注意
-
-- `icd-10-cm.yaml` (US 主体) と `icd-10.yaml` (JP 主体) の **両方** に追加すること
-- 各エントリに `en` (必須) + `ja` (JP 出力用) フィールド
-- `_CONDITION_SHORT_NAME` (fhir_r4_adapter.py) に臨床略語があれば追加 (COPD, CHF 等)
+英語版: [`README.md`](README.md)。

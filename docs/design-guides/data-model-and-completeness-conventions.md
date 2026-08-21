@@ -1,151 +1,220 @@
-# Data-Model & Completeness Conventions — 別セッション遵守規約
+# Data-Model & Completeness Conventions — cross-session compliance rules
 
-**Status:** Active(2026-07-06、session 38 で確立)
-**Audience:** FHIR completeness fix-point registry(`docs/design-notes/2026-07-06-fix-point-registry.md`)の
-各 chain を実装するセッション/実装 AI。
-**位置づけ:** 既存の [`implementation-rules.md`](implementation-rules.md)(全域の不変則)と
-[`fhir-data-generation-logic.md`](fhir-data-generation-logic.md)(Layer 4)の**補遺**。ここには
-completeness 修正に固有の新規約だけを書く — 既存規約は**再掲せず cross-link**する(重複はこの
-プロジェクト自身の禁則)。迷ったら判断 4 軸:**データ品質 / 臨床整合性 / メンテ性 / コンセプト適切性**。
-
----
-
-## 0. まず読む(前提)
-
-1. [`implementation-rules.md`](implementation-rules.md) — 全域の不変則(canonical helpers / 決定性 /
-   silent-no-op 防御 / 検証 gate)。**本補遺の規約はこれを上書きしない、追加する。**
-2. [`../design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md`](../design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md) — 考察・ゴール(なぜこの規約が要るか)。
-3. `docs/design-notes/2026-07-06-fix-point-registry.md` — 着手する FP の Status/依存/検証。
+**Status:** Active (2026-07-06, established in session 38).
+**Audience:** any session or implementation agent working on one of
+the chains in the FHIR completeness fix-point registry
+(`docs/design-notes/2026-07-06-fix-point-registry.md`).
+**Positioning:** a supplement to
+[`implementation-rules.md`](implementation-rules.md) (whole-project
+invariants) and
+[`fhir-data-generation-logic.md`](fhir-data-generation-logic.md)
+(Layer 4). This file adds only the rules that are specific to
+completeness fixes — existing rules are **not restated; they are
+cross-linked** (duplication is against this project's own conventions).
+When in doubt, apply the four judgment axes: **data quality,
+clinical coherence, maintainability, conceptual fit**.
 
 ---
 
-## 1. FHIR Completeness Contract(このプロジェクトの新しい第一原理)
+## 0. Read first (prerequisites)
 
-**「著者が YAML に書いた臨床意図は、必ず FHIR 出力に到達する」**を不変則に格上げする。
-不完全状態を 3 クラスで定義(考察 §1)、いずれも新規混入禁止:
-
-- **C1 Silent-drop 禁止**: YAML キーが読まれず default に化ける / 破棄されることを許さない。
-- **C2 Degenerate 禁止**: FHIR 要素が no-op / placeholder / 全患者同一の退化値を持つことを許さない。
-- **C3 Missing-structure 禁止**: 疾患/encounter が期待する resource / event の欠落を許さない。
-
-新機能・修正が新たな C1/C2/C3 を作らないことを、実装者は自分で証明する(§5 チェックリスト)。
-
----
-
-## 2. YAML キーのライフサイクル規約(C1 対策)
-
-### 2.1 「読まれない YAML キーを ship しない」
-
-新しい YAML キーを追加したら、**同一 PR 内で消費コードを配線するか、追加しない**。
-`implementation-rules.md` §9-5「aspirational scaffold 禁止」の YAML 版。
-
-### 2.2 `extra="forbid"` を YAML-loaded Pydantic モデルの既定にする
-
-- `PatientProfile`(`config.py:101`)が前例。新しい YAML-loaded `BaseModel` は
-  `model_config = ConfigDict(extra="forbid")` を**最初から**付ける。
-- 既存の `extra="ignore"`(= silent-drop)を持つモデルは撤廃対象(FP-YAML-3 が `DiseaseProtocol` を移行)。
-- `extra="allow"`(`EncounterConditionProtocol`)+ 生 dict 返しは「意図的無検証」だが、この経路も
-  将来 canonical constants 照合(`SUPPORTED_*` 差分検出、`implementation-rules.md` §9-2)で塞ぐのが望ましい。
-
-### 2.3 モデルを通さない生 dict 経路にも防御を効かせる
-
-疾患 YAML には 2 経路がある:(A) `DiseaseProtocol(**data)` 属性アクセス、(B) `order/engine.py` の
-生 dict `.get()`。**`extra="forbid"` は経路 A のみ守る。**経路 B は owner module の accessor 経由に寄せ、
-未知キーを load 時に fail-loud にする(FP-YAML-3)。「片方の経路だけ守った」は J5 class(1 venue のみ配線)の再来。
-
-### 2.4 キーを削除するときも意図を記録
-
-孤児キーが臨床文献引用(TIMI / ACC-AHA / Tokyo Guidelines 等)を含む場合、削除前に commit message
-または DESIGN.md に「なぜ配線せず削除したか」を残す。データ資産の意図の消失を防ぐ。
+1. [`implementation-rules.md`](implementation-rules.md) — the
+   whole-project invariants (canonical helpers, determinism,
+   silent-no-op defense, verification gates). **The rules in this
+   supplement do not override them; they add to them.**
+2. [`../design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md`](../design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md) — background and goals (why this convention set is needed).
+3. `docs/design-notes/2026-07-06-fix-point-registry.md` — status,
+   dependencies, and verification steps for the FP you are about to
+   tackle.
 
 ---
 
-## 3. 重症度 single-source-of-truth 規約(FP-SEV-MODEL / AD-67 で確定)
+## 1. FHIR Completeness Contract (the project's new first principle)
 
-- 重症度の canonical source は **疾患 YAML `severity.distribution` × `modifiers`**。owner は
-  `clinosim/modules/disease/severity.py`。locale `severity_beta` / `severity_minimum` は撤廃済 —
-  **復活禁止**(`test_completeness_invariants.py` が reader 0 を強制)。
-- サンプリングは `sample_severity(protocol, person, rng) -> (category, score)`(入院、連続 score も返す)
-  / `sample_severity_category(distribution, modifiers, person, rng, minimum) -> category`(ED 共用)。
-  カテゴリ↔score 境界は `SEVERITY_SCORE_RANGES` + `category_from_score` が**唯一定義**。
-- **禁止**: call-site の 0.3/0.7 ハードコード閾値(`category_from_score` を使う)。下限を 2 箇所で持つこと
-  (`minimum_severity` に一元化、`sample_severity` 内で clamp)。
-- 入院(`population/engine`→`inpatient`)と ED(`emergency`)は同じプリミティブに載せる。
-- modifier condition は person 由来(EVALUABLE)と疾患内在(RESERVED_INTRINSIC、現状 skip)に分離、
-  未知 condition は load 時 `_validate_severity_block` で raise。
+Promote **"the clinical intent an author wrote in a YAML file must
+reach the FHIR output"** to an invariant. Three classes of
+incompleteness are defined (background doc §1); none may be
+introduced anew:
 
----
+- **C1 Silent-drop forbidden.** A YAML key that is silently defaulted
+  or discarded before being read is disallowed.
+- **C2 Degenerate forbidden.** A FHIR element that ships as a no-op,
+  a placeholder, or a value identical across every patient is
+  disallowed.
+- **C3 Missing-structure forbidden.** A resource or event expected by
+  the disease / encounter definition and not emitted is disallowed.
 
-## 4. 「生成したが機能しない」を作らない(C2 対策)
-
-### 4.1 stage / severity は生理消費者とセットで配線
-
-graded-stage 疾患(CKD/HF/COPD/asthma/IHD は session 37 で配線済、I10 は未 = FP-I10)は、
-`STAGE_SEVERITY` エントリ**単独追加を禁止**。必ず (1) stage → severity_score マッピング、
-(2) `physiology/engine.py:initialize_state` の消費分岐、(3) vitals/labs/処方への波及、
-(4) FHIR resource の適切な code、まで一貫させる。「誰も読まない severity_score」は C2。
-
-### 4.2 as-of-age パターン(FP-AGE の参照実装)
-
-時間依存の属性(age など)を複数年シミュレーションで正しく表示・計算するには、`immunization/
-engine.py:36-39 _age_on(dob, on, fallback)` を `_shared` へ昇格した **as-of 日付関数**を使う。
-call-site は event 日(`event.timestamp`)を渡す。
-
-- **seed 経路を変えない群**(出力/narrative/LLM/labs)= as-of 化しても golden は表示値のみ差分 → 低リスク。
-- **seed 経路を変える群**(incidence 判定 = rng 分岐が変わる)= golden 全再生成 + AD 追記が必須 → 別フェーズ。
-- 生成スナップショット時点で確定してよい群(identity / 世帯 / 身長 shrinkage)は as-of 化しない。
-
-**この「seed 経路を変えるか否かで 2 フェーズに割る」判断は、決定論に触る全修正に一般化して適用する。**
-
-### 4.3 FHIR の code は退化流用しない
-
-`Condition.stage` の SNOMED type に "Tumor stage finding"(385356007)を高血圧へ流用するような
-「近いから使う」を禁止。適切なコードが codes YAML に無ければ authoritative source(NLM/WHO)で
-検証して追加(`implementation-rules.md` §6、捏造禁止)。
+Every new feature or fix must prove for itself that it introduces no
+new C1 / C2 / C3 (see the §5 checklist).
 
 ---
 
-## 5. clinical authoring 規約(C3 対策)
+## 2. YAML key lifecycle rules (C1 defense)
 
-### 5.1 course_archetypes と complications はセットで考える
+### 2.1 "Do not ship a YAML key that is never read"
 
-急性期疾患に course_archetypes を追加するとき、悪化 event(ICU 転送・DVT・せん妄・SSI)の源は
-`complications:` ブロックである(course archetype は trajectory 形状、complications は離散 event)。
-外傷/術後系は fallback trajectory(炎症性内科向けチューニング)が臨床不整合なので、**course_archetypes
-より先に/併せて complications** を書く。テンプレート = `bacterial_pneumonia.yaml:581-655`。
+When you add a new YAML key, either wire the consumer code in the
+**same PR** or do not add the key. This is the YAML analogue of
+`implementation-rules.md` §9-5 "no aspirational scaffolding".
 
-### 5.2 疾患 authoring の per-disease 検証
+### 2.2 Make `extra="forbid"` the default for YAML-loaded Pydantic models
 
-新しい course_archetypes / complications を書いたら、その疾患の cohort を生成し (a) 悪化コースが
-非ゼロ率で発火、(b) 悪化日の追加 Observation / narrative が実出力に現れることを grep(test green
-だけでは C3 を検出できない、`implementation-rules.md` §8「実出力 grep」)。
+- `PatientProfile` (`config.py:101`) is the reference. Every new
+  YAML-loaded `BaseModel` gets `model_config = ConfigDict(extra="forbid")`
+  **from the start**.
+- Existing models with `extra="ignore"` (i.e. silent-drop) are
+  scheduled for removal (FP-YAML-3 migrates `DiseaseProtocol`).
+- `extra="allow"` (as in `EncounterConditionProtocol`) combined with
+  raw-dict returns is "deliberately unvalidated", but that path
+  should also be closed in the future by cross-checking against
+  canonical constants (`SUPPORTED_*` diff detection,
+  `implementation-rules.md` §9-2).
+
+### 2.3 Defend the raw-dict path too
+
+Disease YAML has two access routes: (A) `DiseaseProtocol(**data)`
+attribute access and (B) raw-dict `.get()` calls in
+`order/engine.py`. **`extra="forbid"` only defends route A.** Route
+B must be funnelled through the owner module's accessor so that
+unknown keys fail loudly at load time (FP-YAML-3). "Only one route
+defended" is the J5 class regression (a single-venue wiring) all
+over again.
+
+### 2.4 Record intent even when deleting a key
+
+If an orphan key cites clinical literature (TIMI, ACC-AHA, Tokyo
+Guidelines, etc.), record "why we deleted rather than wired" in the
+commit message or in `DESIGN.md` before removing it. Do not let the
+intent behind the data asset disappear.
 
 ---
 
-## 6. 実装セッションのチェックリスト(completeness fix 固有)
+## 3. Severity single-source-of-truth rules (FP-SEV-MODEL / finalised in AD-67)
 
-`implementation-rules.md` §0 の chain workflow に加えて:
-
-1. **着手前**: registry の該当 FP の Status/依存を確認。依存 FP が未 DONE なら順序を守る
-   (特に FP-YAML-1 → 2 → 3、FP-SEV-MODEL → archetype_modifiers/I10)。
-2. **C1 チェック**: 触った YAML の全キーが消費されているか(経路 A/B 両方)。`extra="forbid"` を
-   入れた/入っているモデルで全既存 YAML が load 成功するか。
-3. **C2 チェック**: 追加した FHIR 要素が cohort 内で非退化(患者間で分散、default fall-back でない)か。
-4. **C3 チェック**: 疾患/encounter が期待する resource が実出力に出るか(grep)。
-5. **決定論**: seed 経路を変えるか判定 → byte 保存 refactor か golden 再生成 new-feature かを宣言。
-6. **DONE 時**: registry の Status を DONE に更新 + PR/commit を追記。gate(FP-COMPLETENESS-GATE)が
-   既に存在するなら audit completeness 軸を green に。
+- The canonical source of severity is the **disease YAML
+  `severity.distribution` × `modifiers`**. The owner is
+  `clinosim/modules/disease/severity.py`. The locale-side
+  `severity_beta` / `severity_minimum` have been removed —
+  **do not resurrect them** (`test_completeness_invariants.py`
+  enforces zero readers).
+- Sampling uses `sample_severity(protocol, person, rng) -> (category, score)`
+  (inpatient — also returns the continuous score) and
+  `sample_severity_category(distribution, modifiers, person, rng, minimum) -> category`
+  (ED shared). The category ↔ score boundaries are **defined once**
+  in `SEVERITY_SCORE_RANGES` + `category_from_score`.
+- **Forbidden**: hard-coded 0.3 / 0.7 thresholds at call sites
+  (`category_from_score` is the single source). Do not carry the
+  minimum in two places (unify in `minimum_severity` and clamp
+  inside `sample_severity`).
+- Inpatient (`population/engine` → `inpatient`) and ED
+  (`emergency`) ride the same primitive.
+- Modifier conditions split into person-derived (EVALUABLE) and
+  disease-intrinsic (RESERVED_INTRINSIC, currently skipped). An
+  unknown condition raises at load time via
+  `_validate_severity_block`.
 
 ---
 
-## 7. 入出力インターフェース早見(このfix群が触る境界)
+## 4. Do not create "generated but non-functional" (C2 defense)
 
-| 境界 | 入力 | 出力 | canonical seam |
+### 4.1 Wire stage / severity together with the physiology consumer
+
+Graded-stage diseases (CKD / HF / COPD / asthma / IHD wired in
+session 37; I10 not yet = FP-I10) **may not** add a
+`STAGE_SEVERITY` entry alone. You must land all four together:
+(1) the stage → severity_score mapping,
+(2) the `physiology/engine.py:initialize_state` consumer branch,
+(3) the ripple through vitals / labs / prescriptions,
+(4) the appropriate FHIR resource code.
+"A severity_score no one reads" is C2.
+
+### 4.2 The as-of-age pattern (FP-AGE reference implementation)
+
+To render or compute time-dependent attributes (like age) correctly
+across a multi-year simulation, use the **as-of-date function**
+promoted from `immunization/engine.py:36-39 _age_on(dob, on, fallback)`
+into `_shared`. The call site passes the event date
+(`event.timestamp`).
+
+- **Group that does not touch the seed path** (output / narrative /
+  LLM / labs): as-of-ifying only produces a display-value diff in
+  the goldens → low risk.
+- **Group that touches the seed path** (incidence decisions — RNG
+  branches change): full golden regeneration + an ADR note is
+  mandatory → separate phase.
+- Groups that legitimately freeze at snapshot time (identity /
+  household / height shrinkage) are not as-of-ified.
+
+**Generalise this "does it touch the seed path?" two-phase split to
+every determinism-touching change.**
+
+### 4.3 Do not overload the wrong FHIR code
+
+Forbidden: reusing a `Condition.stage` SNOMED type — for example,
+"Tumor stage finding" (385356007) — for hypertension because "it's
+close enough". If the correct code is not in the codes YAML, verify
+against an authoritative source (NLM / WHO) and add it
+(`implementation-rules.md` §6 — no fabrication).
+
+---
+
+## 5. Clinical authoring rules (C3 defense)
+
+### 5.1 Think of `course_archetypes` and `complications` together
+
+When adding `course_archetypes` to an acute disease, the source of
+worsening events (ICU transfer, DVT, delirium, SSI) is the
+`complications:` block (course archetype = trajectory shape,
+complications = discrete events). Trauma / post-op diseases have a
+fallback trajectory tuned for inflammatory internal medicine that
+is clinically incoherent for them, so write **`complications`
+first, or together with `course_archetypes`** — never after. Template:
+`bacterial_pneumonia.yaml:581-655`.
+
+### 5.2 Per-disease verification for disease authoring
+
+Once you write new `course_archetypes` / `complications`, generate
+that disease's cohort and grep the real output for
+(a) worsening courses firing at non-zero rate and (b) the additional
+Observation / narrative appearing on worsening days. Green tests
+alone cannot catch C3 (`implementation-rules.md` §8 "grep real
+output").
+
+---
+
+## 6. Implementation-session checklist (completeness-fix specific)
+
+In addition to the chain workflow in `implementation-rules.md` §0:
+
+1. **Before starting**: confirm the FP's Status and dependencies in
+   the registry. If a dependency FP is not DONE, respect the order
+   (especially FP-YAML-1 → 2 → 3, and FP-SEV-MODEL →
+   archetype_modifiers / I10).
+2. **C1 check**: every key in the YAMLs you touched is consumed
+   (both routes A and B). Every existing YAML still loads under a
+   model you added or enabled `extra="forbid"` on.
+3. **C2 check**: the FHIR element you added is non-degenerate in
+   the cohort (distributed across patients, not a default fallback).
+4. **C3 check**: the resource that the disease / encounter expects
+   actually shows up in the real output (grep).
+5. **Determinism**: decide whether you touched the seed path →
+   declare "byte-preserving refactor" or "new-feature with golden
+   regeneration".
+6. **On DONE**: update the registry's Status to DONE + append the
+   PR / commit. If the completeness gate (FP-COMPLETENESS-GATE)
+   already exists, get the audit completeness axis to green.
+
+---
+
+## 7. I / O interface at a glance (the boundaries this fix set touches)
+
+| Boundary | Input | Output | Canonical seam |
 |---|---|---|---|
-| 疾患 YAML → simulation | `reference_data/*.yaml` | `DiseaseProtocol`(属性)/ 生 dict(order) | `load_disease_protocol`(A)/ owner accessor(B、FP-YAML-3 で整備) |
-| severity 決定 | `event.severity`(float)/ protocol 分布 | `"mild|moderate|severe"` + score | `severity_from_protocol`(FP-SEV-MODEL で新設) |
-| age 参照 | `dob` + event 日 | as-of age(int) | `_age_on`(FP-AGE で `_shared` 昇格) |
-| code → display | (system, code, lang) | display 文字列 | `code_lookup` / `system_key_for`(既存) |
-| CIF → FHIR | structural + narrative CIF | FHIR R4 NDJSON | `_fhir_*` builders(registry 登録、既存) |
-| completeness 検証 | cohort NDJSON | AxisResult | `clinosim/audit/axes/completeness.py`(FP-COMPLETENESS-GATE で新設) |
-</content>
+| Disease YAML → simulation | `reference_data/*.yaml` | `DiseaseProtocol` (attribute) / raw dict (order) | `load_disease_protocol` (A) / owner accessor (B, cleaned up in FP-YAML-3) |
+| Severity decision | `event.severity` (float) / protocol distribution | `"mild|moderate|severe"` + score | `severity_from_protocol` (added in FP-SEV-MODEL) |
+| Age reference | `dob` + event date | as-of age (int) | `_age_on` (promoted to `_shared` in FP-AGE) |
+| code → display | `(system, code, lang)` | display string | `code_lookup` / `system_key_for` (existing) |
+| CIF → FHIR | structural + narrative CIF | FHIR R4 NDJSON | `_fhir_*` builders (registry-registered, existing) |
+| Completeness verification | cohort NDJSON | AxisResult | `clinosim/audit/axes/completeness.py` (added in FP-COMPLETENESS-GATE) |
+
+Japanese counterpart: [`data-model-and-completeness-conventions.ja.md`](data-model-and-completeness-conventions.ja.md).

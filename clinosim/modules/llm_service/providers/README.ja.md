@@ -1,113 +1,130 @@
-# `clinosim.modules.llm_service.providers` — LLM プロバイダ プラグイン registry
+# `clinosim.modules.llm_service.providers` — LLM provider プラグイン registry
 
-## 目的
+## 概要
 
-[`clinosim.modules.llm_service`](../README.ja.md) が narrative 生成で
-ディスパッチする backend 群。全プロバイダは
-[`LLMProvider` Protocol](base.py) を実装するため、`LLMService` は
-config のみで backend を差し替え可能 (AD-11 / AD-24)。
+[`clinosim.modules.llm_service`](../README.md) が dispatch する具体的
+LLM backend 群。各 provider は `LLMProvider` Protocol を実装しており
+`LLMService` は config だけで backend を差し替えられる (AD-11 /
+AD-24)。親パッケージが orchestration (prompt cache、cost accounting、
+task-type dispatch) を所有、本 subpackage は実装 + registry を所有する。
 
-親パッケージがオーケストレーション (prompt cache、cost accounting、
-fallback 順、response-format 処理) を担い、本サブパッケージは
-プロバイダ実装と、config 名 → インスタンス化子への registry を担う。
+## Scope
 
-## スコープ
+- **In scope**: `LLMProvider` Protocol (`base.py`)、`ProviderResponse`
+  dataclass、bundle されている 5 provider 実装 (`mock`、
+  `ollama` + `local` alias、`bedrock`、`vllm` + `openai_compatible`
+  alias)、`_REGISTRY` mapping、plug-in 面
+  (`register_provider` + `build_provider`)。
+- **Out of scope**: prompt template、response caching、task-type
+  dispatch、LOINC mapping — 全て
+  [`clinosim.modules.llm_service`](../README.md) 上位。
 
-- **In scope**: `LLMProvider` Protocol、`ProviderResponse` dataclass、
-  同梱 4 プロバイダ (`mock`, `ollama`, `bedrock`, および `ollama` の
-  alias である `local`)、`_REGISTRY` / `register_provider` /
-  `build_provider` のプラグイン surface。
-- **Out of scope**: prompt テンプレート、layer-2 ディスクキャッシュ、
-  per-run コスト集約 — これらは
-  [`clinosim.modules.llm_service`](../README.ja.md) 側。
-
-## 同梱プロバイダ
-
-| ファイル | 登録名 | 役割 |
-| --- | --- | --- |
-| `mock.py` | `mock` | 決定論的な固定応答を返す。テスト・テンプレート抜きの dry-run 用。ネットワーク I/O なし。`call_count` / `last_prompt` / `last_model` を記録しアサーション可能。 |
-| `ollama.py` | `ollama`, `local` | [Ollama](https://ollama.com/) HTTP API 経由でローカル self-hosted モデルを呼ぶ。開発時のデフォルト。config: `endpoint` (デフォルト `http://localhost:11434`)、`model` (デフォルト `llama3.1:8b`)。 |
-| `bedrock.py` | `bedrock` | AWS Bedrock を Converse API 経由で呼ぶ (Claude / Llama / Mistral を uniform)。`boto3` は遅延 import — Bedrock を使わないホストで AWS SDK を要求しない。config: `region`, `profile` (または AWS のデフォルト認証チェーン)、`model_id`、クロスリージョン inference profile 用の任意 `inference_profile_arn`。 |
-
-全プロバイダで共有するインターフェイス + レスポンス型:
-
-- `base.LLMProvider` — `@runtime_checkable` Protocol。
-  `complete(prompt, model, max_tokens, system_prompt, temperature, stop_sequences)`
-  1 メソッド。実装はエラー時に例外送出、呼び出し側 (`LLMService`)
-  が retry / fallback / コスト集計を担う。
-- `base.ProviderResponse` — 統一 dataclass: `text`, `input_tokens`,
-  `output_tokens`, `model`, `latency_ms`, `metadata` (stop 理由 /
-  safety フラグ / コスト見積など、プロバイダ固有の任意フィールド)。
-
-## Registry API
-
-Registry は config 名 → builder callable (config `dict` を受け取り
-プロバイダインスタンスを返す) のマップ:
+## Public API
 
 ```python
-_REGISTRY: dict[str, Callable[[dict[str, Any]], Any]] = {
-    "local":   lambda cfg: OllamaProvider(cfg),
-    "ollama":  lambda cfg: OllamaProvider(cfg),
-    "bedrock": lambda cfg: BedrockProvider(cfg),
-    "mock":    lambda cfg: MockProvider(cfg),
-}
-```
-
-`build_provider(provider_name, provider_config)` を `LLMService` が
-起動時に呼ぶ。未登録名は現在の登録集合を列挙した `ValueError` を送出。
-
-## 独自プロバイダの追加 (ship your own)
-
-third-party やユーザーコードは、同梱 `__init__.py` を編集せず実行時に
-registry を拡張できる:
-
-```python
-from typing import Any
 from clinosim.modules.llm_service.providers import (
-    ProviderResponse,
-    register_provider,
+    LLMProvider,             # Protocol
+    ProviderResponse,        # dataclass (text, input_tokens, output_tokens, model, latency_ms, metadata)
+    MockProvider,            # 決定論的、I/O 無し (test + template-free dry run)
+    OllamaProvider,          # local self-hosted model (HTTP API)
+    BedrockProvider,         # AWS Bedrock Converse API 経由
+    VLLMProvider,            # vLLM + 任意の OpenAI-compatible endpoint
+    build_provider,          # (provider_name, provider_config) -> provider instance
+    register_provider,       # (name, builder_callable) -> None (third-party 拡張)
 )
-
-
-class MyCustomProvider:
-    """base.LLMProvider Protocol を満たすクラスならば ABC 継承不要 (structural typing)。"""
-
-    def __init__(self, config: dict[str, Any] | None = None):
-        self.config = config or {}
-
-    def complete(
-        self,
-        prompt: str,
-        model: str | None = None,
-        max_tokens: int = 1000,
-        system_prompt: str = "",
-        temperature: float = 0.4,
-        stop_sequences: list[str] | None = None,
-    ) -> ProviderResponse:
-        # ...backend を呼び、ProviderResponse を返す
-        return ProviderResponse(text="...", output_tokens=42, model=model or "mine")
-
-
-register_provider("my_custom", lambda cfg: MyCustomProvider(cfg))
 ```
 
-登録後は同梱プロバイダと全く同じ形で `LLMService` config から選択可能:
+Registry (`__init__.py` の `_REGISTRY`) が config section 名 →
+provider builder を map:
 
-```yaml
-# clinosim/config/llm_service.my_custom.yaml
-provider: my_custom
-provider_config:
-  api_key_env: MY_CUSTOM_API_KEY
-  # ...
+| Config 名 | Builder |
+|---|---|
+| `mock` | `MockProvider(cfg)` |
+| `ollama` | `OllamaProvider(cfg)` |
+| `local` | `OllamaProvider(cfg)` (alias) |
+| `bedrock` | `BedrockProvider(cfg)` |
+| `vllm` | `VLLMProvider(cfg)` |
+| `openai_compatible` | `VLLMProvider(cfg)` (alias) |
+
+`anthropic_direct` は bundle されていない — third-party code が
+`register_provider("anthropic_direct", builder)` で登録できる。
+
+## 決定論
+
+- `MockProvider` は完全決定論的 (prompt hash / manifest lookup に
+  基づく canned text を返す)。`call_count`、`last_prompt`、`last_model`
+  を記録し test が assert できる。
+- 3 network provider は設定 `temperature=0` かつ backend が同 model
+  version を serve するときのみ決定論的。親層の `PromptCache` は
+  content-addressed なので、両条件が揃えば再実行間の byte-identity を
+  cache 経由で復元する。
+
+## 依存
+
+- `base.py` + `mock.py` + `__init__.py` は標準ライブラリのみ。
+- `boto3` — `bedrock.py` で lazy import
+  (`BedrockProvider.__init__` 内で `import boto3`)。Bedrock を使わない
+  host では clinosim boot に AWS SDK が要らない。
+- `httpx` — `ollama.py` + `vllm.py` の HTTP 呼び出しに必須。
+- 他の `clinosim.modules.*` に依存しない。`llm_service` 上位にも
+  依存しない (pure implementation 層)。
+
+## 定数と設定
+
+- **`LLMProvider` Protocol** (`base.py`) — `@runtime_checkable`、
+  method 1 つ `complete(prompt, model, max_tokens, system_prompt,
+  temperature, stop_sequences) -> ProviderResponse`。実装は error 時に
+  raise、caller (`LLMService`) が retry / fallback / cost tally を扱う。
+- **`ProviderResponse` field** — `text`, `input_tokens`,
+  `output_tokens`, `model`, `latency_ms`, `metadata`
+  (`dict[str, Any] | None`、provider 固有 field 例: stop reason、
+  safety flag、cost 見積り)。
+- **Provider 別 config shape** — 各 provider の `__init__(cfg: dict)`
+  が消費する config key を docstring で示す。詳細は `bedrock.py`,
+  `ollama.py`, `vllm.py`, `mock.py` を参照。
+
+## ディレクトリ構造
+
+```
+clinosim/modules/llm_service/providers/
+  __init__.py                    registry + build_provider + register_provider
+  base.py                        LLMProvider Protocol + ProviderResponse
+  mock.py                        MockProvider — 決定論的、I/O 無し
+  ollama.py                      OllamaProvider — local Ollama HTTP API
+  bedrock.py                     BedrockProvider — AWS Bedrock Converse API (lazy boto3)
+  vllm.py                        VLLMProvider — vLLM + 任意の OpenAI-compatible endpoint
 ```
 
-Protocol は structural (`@runtime_checkable`) なので `LLMProvider` を
-継承する必要はなく、メソッドシグネチャ一致で十分。
+**`audit.py` / `enricher.py` / `reference_data/` は存在しない** —
+data (prompt + config) は上位 `clinosim.modules.llm_service` にある。
 
-## 相互参照
+## Enricher 配線
 
-- 親オーケストレータ: [`clinosim.modules.llm_service`](../README.ja.md)
-- Narrative の消費者:
-  [`clinosim.modules.document.narrative`](../../document/narrative/README.ja.md)
-- AWS Bedrock セットアップ手順: [`docs/bedrock_setup.md`](../../../../docs/bedrock_setup.md) (英語)
-- プロバイダ config ファイル: `clinosim/config/llm_service.<name>.yaml`
+該当なし — leaf library の subpackage。`register_builtin_enrichers`
+に登録なく seed offset も無い。
+
+## Output surface (consumers)
+
+| Consumer | 場所 | 役割 |
+|---|---|---|
+| `LLMService` 構築 | [`clinosim/modules/llm_service/factory.py`](../factory.py) | `_build_provider_from_section` → `build_provider(name, cfg)`。 |
+| Package 再 export | [`clinosim/modules/llm_service/__init__.py`](../__init__.py) | `LLMProvider`, `ProviderResponse`, `MockProvider` が親 package root で再 export。 |
+| Third-party 拡張 | (user code) | `register_provider(name, builder)` で本 file を編集せず custom provider を追加できる。 |
+
+## テスト
+
+Provider 固有の unit test は `tests/unit/` 配下の `llm_service` test
+と同居し、多くは `MockProvider` を直接 instantiate して I/O-free に
+保たれる。network provider (Bedrock / Ollama / vLLM) 別の専用 test
+file は無く、`--llm-config` を差し替えた narrative pass 経由で
+end-to-end に動作を確認する。
+
+**coverage gap**: provider 別 unit test (config parsing、error
+translation、retry 意味論) は低コストの follow-up。
+
+## Ownership
+
+`maintainers@` — 詳細は
+[`CONTRIBUTING.md`](../../../../CONTRIBUTING.md)。
+
+英語版: [`README.md`](README.md)。

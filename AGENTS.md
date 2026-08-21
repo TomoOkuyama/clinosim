@@ -34,7 +34,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - **Code**: Python 3.11+
 - **Documentation and comment language pairing**: follow
   [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md)
-  §2.4 (documentation-file language pairing) and §4 (source-code
+  §1 (documentation-file language pairing) and §4 (source-code
   comments — English default; Japanese only for JP-Core / JP-CLINS
   profile invariants, JLAC10 / JJ1017 / MEDIS code-system specifics,
   and verbatim quotes from Japanese authoritative sources). That

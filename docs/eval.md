@@ -41,8 +41,11 @@ clinosim eval
 
 ## Axes
 
-Each axis holds **5 checks** (MVP). More checks land through issues
-tagged `good first issue` on GitHub.
+Structural + locale hold 5 checks each; clinical holds 7 (5 MVP +
+2 coherence, added in P1-9). More checks land through issues tagged
+`good first issue` on GitHub. A country-specific axis
+(`jp_clins_lab_compliance`) activates for JP cohorts only — see
+[`clinosim.eval`](../clinosim/eval/README.md) for the full axis list.
 
 ### Structural (FHIR compliance)
 

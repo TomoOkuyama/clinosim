@@ -1,176 +1,244 @@
-# clinosim Project Concept & Design — キャッチアップ文書
+# clinosim Project Concept & Design — catch-up doc
 
-**Status:** Active(2026-07-03、session 32 で確立)
-**Audience:** 新規参加の開発者/実装 AI(Opus 4.7 等)が最初に読む「このプロジェクトは
-何で、どう作られているか」の全体像。規則集は
-[`implementation-rules.md`](implementation-rules.md)、詳細アーキテクチャは `DESIGN.md`(ADR 全集)。
+**Status:** Active (2026-07-03, established in session 32).
+**Audience:** any new developer or implementation agent (Opus 4.7,
+etc.) reading their first "what is this project and how is it built"
+overview. The rulebook lives in
+[`implementation-rules.md`](implementation-rules.md); the detailed
+architecture lives in `DESIGN.md` (the full ADR set).
 
 ---
 
-## 1. プロジェクトコンセプト(ゴール)
+## 1. Project concept (the goal)
 
-**clinosim は高品質な EHR/EMR サンプルデータセットの生成器**である。
-評価軸は常に **データ品質・臨床的整合性・データのリアリティ**。
+**clinosim is a high-quality generator of EHR / EMR sample datasets.**
+Every judgment axis is **data quality, clinical coherence, and
+realism of the data.**
 
-ユーザー要求として確定している 9 項目(2026-07-02 グランドデザインレビューで検証済):
+The 9 confirmed user requirements (verified at the 2026-07-02 grand
+design review):
 
-1. 高品質な EHR/EMR データセット生成がゴール(研究・開発・製品デモ用のサンプルデータ)
-2. 出力は多フォーマット構想、**まず FHIR R4**(Bulk Data NDJSON)。将来 SS-MIX2 / CSV / HL7 v2
-3. **人口動態 → 外来/疾患シナリオ → 病院訪問イベント発火 → 検査/問診/処置 →
-   コンディション変化** という event-driven の forward simulation でデータが生まれる
-4. メインパイプライン + モジュール構成。**モジュール責任分解を明確に**、モジュール追加
-   だけで新しい種類のデータを生成できる
-5. 中間表現 **CIF**(Clinical Intermediate Format)は **構造化 CIF + ナラティブ CIF の 2 層**。
-   両方から FHIR を生成する
-6. **ナラティブは差し替え可能**: template 生成 → 後から Bedrock / local LLM で再生成 →
-   FHIR 再作成、が独立に回せる(narrative の version 化)
-7. ナラティブは情報タイプ別 prompt を持ち、患者 profile / シナリオ / 構造化 CIF を入力と
-   する**統一インターフェース**経由で生成する
-8. **データドリブン**: バイタル値・コード等の静的定義を Python 内に書かない(YAML 駆動)
-9. **多国対応**: US default + JP 実装済。国固有情報(マイナンバー、保険、診療慣習)は
-   YAML/JSON で定義し、他国も追加可能な構造
+1. High-quality EHR / EMR dataset generation is the goal (sample
+   data for research, development, product demos).
+2. Output is multi-format by design, **FHIR R4 first** (Bulk Data
+   NDJSON). Future: SS-MIX2 / CSV / HL7 v2.
+3. Data is born from an event-driven **forward simulation**:
+   demographics → outpatient / disease scenario firing → hospital
+   visit event firing → labs / interview / procedure → condition
+   change.
+4. Main pipeline + module composition. **Module responsibilities
+   are clearly decomposed** so that adding a module alone can
+   generate a new kind of data.
+5. The intermediate representation **CIF** (Clinical Intermediate
+   Format) is a **two-layer split: structural CIF + narrative CIF**.
+   FHIR is generated from both.
+6. **Narrative is swappable**: template generation → later regenerate
+   with Bedrock / local LLM → regenerate FHIR — each stage runs
+   independently (narrative is versioned).
+7. Narrative has a per-information-type prompt and is generated
+   through a **unified interface** whose input is patient profile /
+   scenario / structural CIF.
+8. **Data-driven**: static definitions (vital-sign values, codes,
+   etc.) are not written in Python — they live in YAML.
+9. **Multi-country**: US default + JP already implemented. Country-
+   specific information (My Number, insurance, care conventions) is
+   defined in YAML / JSON so that other countries can be added
+   through the same shape.
 
-## 2. パイプライン全体像
+## 2. Pipeline overview
 
 ```
- population(人口動態・世帯)                        Layer 0-1: reference YAML
-   └→ scenario 発火(disease 32種 / encounter 46種)   (disease/encounter protocols,
-        └→ encounter simulation(inpatient/ED/outpatient) locale, codes)
-             ├ physiology state 遷移(daily loop)
+ population (demographics / households)                   Layer 0-1: reference YAML
+   └→ scenario firing (32 diseases / 46 encounters)         (disease / encounter protocols,
+        └→ encounter simulation (inpatient / ED / outpatient) locale, codes)
+             ├ physiology-state transition (daily loop)
              ├ orders / labs / vitals / MAR / procedures
-             ├ POST_ENCOUNTER enrichers(device→hai→antibiotic→imaging→triage→nursing→document)
-             └→ POST_RECORDS enrichers(nursing flowsheet, immunization, …)
+             ├ POST_ENCOUNTER enrichers (device → hai → antibiotic → imaging → triage → nursing → document)
+             └→ POST_RECORDS enrichers (nursing flowsheet, immunization, …)
    ↓
- ★ CIF(唯一のシミュレーション出力、AD-17)
-   ├ cif/structural/patients/<enc>.json   … Stage 1、構造化データ、immutable
-   └ cif/narratives/<version>/documents/… … Stage 2、narrative、version 差替え可能(AD-65)
+ ★ CIF (the sole simulation output, AD-17)
+   ├ cif/structural/patients/<enc>.json   … Stage 1, structural, immutable
+   └ cif/narratives/<version>/documents/… … Stage 2, narrative, versioned + swappable (AD-65)
    ↓
- format adapters(CIF だけを読む)
-   ├ FHIR R4 NDJSON(_fhir_* builder 群、registry 登録制)← 現在の主出力
-   └ CSV / (将来: SS-MIX2, HL7 v2)
+ format adapters (read only from CIF)
+   ├ FHIR R4 NDJSON (the _fhir_* builders, registry-registered) ← the current primary output
+   └ CSV / (future: SS-MIX2, HL7 v2)
 ```
 
-- **CLI 3-stage(AD-37)**: `clinosim simulate`(→ structural CIF)→ `clinosim narrate
-  --provider template|mock|ollama|bedrock`(→ narratives/<version>/)→
-  `clinosim export-fhir --narrative-version X`。これがコンセプト 6(差し替え)の実体。
-- **決定性(AD-16)**: 全乱数は階層 sub-seed。同 seed = byte 同一出力(wall-clock は
-  determinism chain で全除去済、session 34)。
-- **★ この図の詳細版**(実ファイル/関数名つきの end-to-end トレース)=
-  [`data-generation-walkthrough.md`](data-generation-walkthrough.md)。新規貢献者はまず本節で
-  全体像を掴み、walkthrough で 1 患者の生成を具体的に追う。
+- **Three-stage CLI (AD-37)**: `clinosim simulate` (→ structural CIF)
+  → `clinosim narrate --provider template|mock|ollama|bedrock` (→
+  `narratives/<version>/`) → `clinosim export-fhir --narrative-version X`.
+  That is the concrete embodiment of requirement 6 (swappability).
+- **Determinism (AD-16)**: every random draw comes from a hierarchical
+  sub-seed. Same seed = byte-identical output (wall-clock reads were
+  eliminated project-wide in the determinism chain, session 34).
+- **★ For the detailed version of this diagram** (an end-to-end
+  trace with actual file and function names), see
+  [`data-generation-walkthrough.md`](data-generation-walkthrough.md).
+  New contributors should grasp the overview here first, then follow
+  the walkthrough to trace one patient's generation concretely.
 
-## 3. レイヤと責任分解
+## 3. Layers and responsibility split
 
-| Layer | 内容 | 場所 |
+| Layer | Contents | Location |
 |---|---|---|
-| 0 | 国際コード体系(LOINC/ICD/RxNorm/JLAC10…、EN-first) | `clinosim/codes/` |
-| 1 | 参照データ YAML(疾患・検査・locale・病院設定) | `modules/*/reference_data/`, `locale/`, `config/` |
-| 2 | loader(cached + fail-loud validation) | 各 module 内 |
-| 3 | CIF 生成(simulator + 30 modules) | `simulator/`, `modules/` |
-| 4 | 出力 adapter(FHIR builders ほか) | `modules/output/` |
+| 0 | International code systems (LOINC / ICD / RxNorm / JLAC10 …, EN-first) | `clinosim/codes/` |
+| 1 | Reference-data YAML (disease / lab / locale / hospital config) | `modules/*/reference_data/`, `locale/`, `config/` |
+| 2 | Loader (cached + fail-loud validation) | inside each module |
+| 3 | CIF generation (simulator + 33 modules) | `simulator/`, `modules/` |
+| 4 | Output adapter (FHIR builders and others) | `modules/output/` |
 
-- **module は 30 個**(`MODULES.md` が地図)。always-on(臨床カスケード上必須:device →
-  hai → antibiotic / imaging / document / triage / nursing_assignment 等)と opt-in がある。
-- module 間依存は README の Dependencies 宣言 + `types/` / `codes/` / `locale/` のみ。
-  CIF への書込みは `extensions[<module>]`(typed field 追加は Base のみ)。
-- **拡張は 3 つの registry**(AD-56/58): FHIR resource 追加 = `register_bundle_builder`、
-  出力 format 追加 = `register_output_adapter`、生成 pass 追加 = `register_enricher`。
-  dispatch 本体は編集しない。
+- **33 modules** (see `MODULES.md` for the map). They split into
+  always-on (mandatory in the clinical cascade: device → hai →
+  antibiotic / imaging / document / triage / nursing_assignment,
+  etc.) and opt-in.
+- Inter-module dependencies are limited to those declared in a
+  module's README `Dependencies` block plus `types/` / `codes/` /
+  `locale/`. Writes into CIF go through `extensions[<module>]` (a
+  new typed field on a core type is Base-only).
+- **Extension goes through three registries** (AD-56 / AD-58):
+  adding a FHIR resource = `register_bundle_builder`; adding an
+  output format = `register_output_adapter`; adding a generation
+  pass = `register_enricher`. The dispatch body itself is never
+  edited.
 
-## 4. ナラティブ生成の設計(コンセプト 5-7 の実体)
+## 4. Narrative generation design (the concrete form of requirements 5–7)
 
 ```
- Stage 1(simulation 内, document module):
-   ClinicalDocument stub のみ生成(metadata + author + encounter binding, narrative=None)
+ Stage 1 (inside simulation, document module):
+   Emits only the ClinicalDocument stub (metadata + author + encounter
+   binding, narrative=None).
 
- Stage 2(post-simulation, narrate CLI):
-   NarrativePass(ABC; walk = (doc_type, language) → sorted patients = LLM cache 最適)
+ Stage 2 (post-simulation, narrate CLI):
+   NarrativePass (ABC; walk = (doc_type, language) → patients in sorted
+   order = optimal for the LLM cache)
      ├ TemplateNarrativePass … generator = TemplateNarrativeGenerator
      └ LLMNarrativePass      … generator = LLMNarrativeGenerator
            └ apply_replacement_strategy(spec.stage2_strategy)
-                ├ template_only  → template 出力そのまま
-                └ template_seed  → spec.llm_enabled_sections の section だけ
-                                   template 文を seed に LLM が書換え(戦略 D+B)
-                     └ LLMService.complete_prompt()  ← LLM 呼出しの唯一の seam(AD-11)
-                          ├ prompt: llm_service/prompts/{en,ja}/*.yaml(AD-40)
-                          ├ retry + PromptCache(disk, prompt-hash)
-                          └ NarrativeCache(in-memory, 臨床キー+seed hash)
+                ├ template_only  → template output as-is
+                └ template_seed  → only the section listed in
+                                   spec.llm_enabled_sections; the
+                                   template text is the seed the LLM
+                                   rewrites (strategy D+B)
+                     └ LLMService.complete_prompt()  ← the sole seam
+                                                       for LLM calls
+                                                       (AD-11)
+                          ├ prompt: llm_service/prompts/{en,ja}/*.yaml (AD-40)
+                          ├ retry + PromptCache (disk, prompt-hash)
+                          └ NarrativeCache (in-memory, clinical-key + seed hash)
 ```
 
-- **入力の統一 IF** = `NarrativeContext`(patient / encounter / labs / vitals / meds /
-  diagnoses / disease_protocol / severity / archetype / day_index / narrative_spine /
-  materialized_facts)。Stage 2 が structural CIF から組み立てる(chain 1a で実 schema 配線済)。
-- **generator 契約** = `NarrativeGenerator` Protocol(`types/document.py`)、Pass へ注入。
-- **document type** は `document_type_specs.yaml`(YAML 駆動、LOINC / sections /
-  encounter_types_supported / generation_frequency / stage2_strategy)。現在 9 doc type
-  (H&P、progress、discharge、看護 3 種(3 交代 shift note 含む)、外来 SOAP、ED 2 種)。
-- **検証**: template/mock = golden byte-diff(AD-66)。実 LLM = `check-narratives`
-  (semantic check 5 軸: 構造 / facts_used / 禁止 pattern / 期待 phrase / 数値)。
-- **実 LLM 生成は別サーバで実行する運用**(2026-07-03 決定)。手順書 =
-  `docs/design-notes/2026-07-03-remote-llm-narrative-workflow.md`。
+- **Unified input IF** = `NarrativeContext` (patient / encounter /
+  labs / vitals / meds / diagnoses / disease_protocol / severity /
+  archetype / day_index / narrative_spine / materialized_facts).
+  Stage 2 assembles it from structural CIF (real schema wired
+  during chain 1a).
+- **Generator contract** = the `NarrativeGenerator` Protocol
+  (`types/document.py`), injected into the Pass.
+- **Document type** is defined in `document_type_specs.yaml`
+  (YAML-driven: LOINC / sections / encounter_types_supported /
+  generation_frequency / stage2_strategy). Currently 9 doc types
+  (H&P, progress, discharge, three nursing types including the
+  3-shift shift note, outpatient SOAP, two ED types).
+- **Verification**: template / mock = golden byte-diff (AD-66).
+  Real LLM = `check-narratives` (a 5-axis semantic check: structure
+  / facts_used / prohibited patterns / expected phrases / numbers).
+- **Real LLM generation runs on a separate server** as an operational
+  decision (2026-07-03). Runbook =
+  `docs/design-notes/2026-07-03-remote-llm-narrative-workflow.md`.
 
-## 5. 多国対応の設計(コンセプト 9)
+## 5. Multi-country design (requirement 9)
 
-- `codes/`(国際標準、locale 非依存、EN 必須)と `locale/<country>/`(名前・住所・
-  基準値・code_mapping)を厳密分離(AD-35)。
-- CIF は言語中立(code のみ、AD-30)。表示は出力時に `code_lookup(system, code, lang)`。
-- 国判定は `is_jp()` / `resolve_lang()`、国→コード体系は `system_key_for()`(単一 source)。
-- JP 固有: 保険/マイナンバー(identity module, opt-in)、要介護度、JLAC10/YJ/K-code、
-  JP Core 準拠 FHIR。**US 出力に日本語 0 / JP 出力は全 display 日本語**が監査される。
-- 新しい国 = locale dir + codes への言語キー追加 + demographics YAML で追加可能な構造。
+- Strict separation between `codes/` (international standards,
+  locale-independent, EN required) and `locale/<country>/` (names /
+  addresses / reference intervals / code_mapping) — AD-35.
+- CIF is language-neutral (codes only, AD-30). Display is resolved
+  at output time via `code_lookup(system, code, lang)`.
+- Country dispatch goes through `is_jp()` / `resolve_lang()`;
+  country → code-system dispatch through `system_key_for()` (single
+  source).
+- JP-specific: insurance / My Number (identity module, opt-in),
+  long-term-care level, JLAC10 / YJ / K-code, JP-Core-compliant
+  FHIR. The audit enforces **zero Japanese in US output; every JP
+  display in Japanese for JP output**.
+- Adding a new country = locale directory + language key added to
+  the codes YAMLs + demographics YAML — that is the shape of the
+  extension surface.
 
-## 6. 品質保証の仕組み(このプロジェクトの特徴)
+## 6. Quality-assurance machinery (the project's defining feature)
 
-| 仕組み | 役割 |
+| Mechanism | Role |
 |---|---|
-| `pytest -m unit / integration / e2e` | 通常のテスト 3 層(1000+ / 264 / 35) |
-| `pytest -m regression`(opt-in) | 6 canonical patient profile の narrative goldens byte-diff(template + llm-mock、AD-66) |
-| byte-diff | refactor PR の gate(FHIR NDJSON + narratives sha256 一致) |
-| `clinosim audit run`(AD-60) | 4 軸監査: structural / clinical / jp_language / **silent_no_op**(lift_firing_proof = 「機能が実際に発火した」証明) |
-| `check-narratives` | 実 LLM narrative の semantic gate |
-| adversarial review | PR ごとに 5-lens レビュー(finding は実証必須)→ fix → merge の chain 文化 |
+| `pytest -m unit / integration / e2e` | Three ordinary test tiers (1000+ / 264 / 35) |
+| `pytest -m regression` (opt-in) | Narrative goldens byte-diff for the 6 canonical patient profiles (template + llm-mock, AD-66) |
+| byte-diff | The merge gate for refactor PRs (FHIR NDJSON + narratives sha256 match) |
+| `clinosim audit run` (AD-60) | 4-axis audit: structural / clinical / jp_language / **silent_no_op** (`lift_firing_proof` = proof that the feature actually fired) |
+| `check-narratives` | The semantic gate for real LLM narratives |
+| Adversarial review | Per-PR 5-lens review (findings must be evidenced) → fix → merge chain culture |
 
-**silent-no-op(動いているように見えて実は発火していない)がこのプロジェクト最大の敵**。
-歴史的事故(PR-90 / J5 / C-1)から fail-loud validation・canonical constants・発火 counter
-の 3 層防御が全域に張られている。詳細 = `implementation-rules.md` §9。
+**Silent-no-op — "it looks like it ran but it did not fire" — is the
+biggest enemy of this project.** Historical incidents (PR-90 / J5 /
+C-1) drove a three-layer defense across the codebase: fail-loud
+validation, canonical constants, and firing counters. Details:
+`implementation-rules.md` §9.
 
-## 7. 現在地とロードマップ(2026-07-06 時点)
+## 7. Current state and roadmap (as of 2026-07-06)
 
-- **version**: v0.2。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。
-  32 疾患 + 46 外来/ED 条件、30 modules、FHIR R4 で 25+ resource type を emit。
-- **β-JP-1 chain 2(厚労省帳票)は完了**(session 33-36): 入院診療計画書 / 看護必要度
-  A・B・C 項目評価票(公式には「D 表」という帳票は存在しない、名称は session 36 で訂正
-  済み)/ 栄養管理計画書 / リハビリテーション実施計画書 の 4/4 文書が完了。
-- **共通ロジック統一・determinism chain・AD-30 chain・display-dict → codes YAML 移行は完了**
-  (session 31-37): narrative IF 統一(N-chain)、context 配線、LLM golden + semantic
-  check、wall-clock 全除去、display-in-CIF 残骸除去、8 codes YAML 新設 + dual-access
-  write-side 統一(`set_attr_or_key` / `get_or_create_container`)。
-- **★ FHIR completeness chain 完了**(session 38、AD-67/68/69): 「最終 FHIR 出力の不完全
-  状態(C1 silent-drop / C2 degenerate / C3 missing-structure)をゼロにする」ゴールの下、
-  9 チェーンを消化。重症度 single source(疾患YAML canonical、`disease/severity.py`、
-  `severity_beta` 撤廃)/ `archetype_modifiers` 配線 / `DiseaseProtocol` `extra="forbid"` /
-  `diagnostic_difficulty` silent-drop 修正 / I10 stage→BP 生理消費 / HF+subdural
-  course_archetypes+complications / completeness 不変則 gate。追跡台帳 =
-  `docs/design-notes/2026-07-06-fix-point-registry.md`、規約 =
-  `docs/design-guides/data-model-and-completeness-conventions.md`。
-- **現在フェーズ**: β-JP-1 の主要 chain + FHIR completeness の C1/C2/C3 主要部が完了。
-  次候補は β-2(手術/麻酔記録等、着手前 brainstorming 必須・規模大)、または completeness の
-  残(FP-AGE person.age 複数年 / FP-ARCH-2/3 残 7 trauma 疾患 course_archetypes / 横断
-  follow-up)。詳細は fix-point registry と `TODO.md` の各 deferred section。
-- **その後の chain**(優先順、`docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md` §4
-  ただし上記完了分は本節が最新): β-2(手術/麻酔)→ γ/δ/ε → SS-MIX2。
-- **deferred の正**: `TODO.md` の各 "deferred" section(chain ごとに文脈付き entry あり)。
-  作業開始前に `.session-resume-prompt.md`(最新セッションの引き継ぎ)を必ず読む。
+- **Version**: v0.2. Production cohorts of US p=10k / JP p=5k
+  generate with all audit axes PASS. 32 diseases + 46 outpatient /
+  ED conditions, 33 modules, 25+ FHIR R4 resource types emitted.
+- **β-JP-1 chain 2 (MHLW forms) is complete** (sessions 33-36): the
+  4-of-4 documents — inpatient care plan / nursing-need A, B, C
+  evaluation forms (there is officially no "D table" form; the
+  wording was corrected in session 36) / nutrition-management plan
+  / rehabilitation-implementation plan — have all landed.
+- **Shared-logic unification, determinism chain, AD-30 chain, and
+  display-dict → codes-YAML migration are complete** (sessions
+  31-37): unified narrative IF (N-chain), context wiring, LLM
+  goldens + semantic check, elimination of every wall-clock read,
+  removal of display-in-CIF vestiges, 8 new codes YAMLs + dual-
+  access write-side unification (`set_attr_or_key` /
+  `get_or_create_container`).
+- **★ FHIR completeness chain complete** (session 38, AD-67 / 68 /
+  69): under the goal of "drive the number of incompleteness states
+  in the final FHIR output (C1 silent-drop / C2 degenerate / C3
+  missing-structure) to zero", 9 chains were digested — severity
+  single source (disease YAML canonical, `disease/severity.py`,
+  `severity_beta` removed) / `archetype_modifiers` wired /
+  `DiseaseProtocol` `extra="forbid"` / `diagnostic_difficulty`
+  silent-drop fix / I10 stage → BP physiology consumption / HF +
+  subdural `course_archetypes` + `complications` / a completeness-
+  invariant gate. Tracking ledger =
+  `docs/design-notes/2026-07-06-fix-point-registry.md`; conventions
+  = `docs/design-guides/data-model-and-completeness-conventions.md`.
+- **Current phase**: the main chains of β-JP-1 and the core C1 / C2
+  / C3 of FHIR completeness are done. Next candidates are β-2
+  (surgical / anaesthetic records — brainstorming required before
+  starting, large in scope) or the remaining completeness work
+  (FP-AGE `person.age` multi-year / FP-ARCH-2 / 3 with the 7
+  remaining trauma disease `course_archetypes` / cross-cutting
+  follow-up). Details live in the fix-point registry and in the
+  various deferred sections of `TODO.md`.
+- **Subsequent chains** (in priority order per
+  `docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md`
+  §4, though the completed parts above take precedence): β-2
+  (surgical / anaesthetic) → γ / δ / ε → SS-MIX2.
+- **The canonical source for deferred items**: the "deferred"
+  sections inside `TODO.md` (each has context-carrying entries per
+  chain). Before starting work, always read
+  `.session-resume-prompt.md` (the latest session hand-off).
 
-## 8. 用語ミニ辞書
+## 8. Glossary
 
-| 用語 | 意味 |
+| Term | Meaning |
 |---|---|
-| CIF | Clinical Intermediate Format。シミュレーションの唯一の出力(structural + narrative 2 層) |
-| chain | 1 テーマの作業単位(spec → 実装 → adv review → merge、通常 1 PR) |
-| adv-1 / 5-lens | merge 前の adversarial review(silent-no-op / data unification / FHIR·JP Core / determinism / spec 整合の 5 観点) |
-| golden | canonical patient profile の期待出力 JSON(byte-diff regression 用) |
-| DQR | Data Quality Review(構造/臨床整合/JP 言語の 3 軸レビュー文書、`docs/reviews/`) |
-| lift_firing_proof | audit の silent_no_op 軸で「機能が発火した」ことを等式で証明する仕組み |
-| PR-90 / J5 / C-1 | 歴史的 silent-no-op 事故の名前(implementation-rules.md §9 参照) |
-| scenario spine / facts | narrative 生成用に structural CIF から抽出した事実タグ群(hallucination 防止の基礎) |
+| CIF | Clinical Intermediate Format. The sole simulation output (two layers: structural + narrative). |
+| Chain | A one-theme unit of work (spec → implementation → adv review → merge, usually one PR). |
+| adv-1 / 5-lens | Pre-merge adversarial review (silent-no-op / data unification / FHIR·JP Core / determinism / spec-alignment — the 5 viewpoints). |
+| Golden | The expected-output JSON for a canonical patient profile (for byte-diff regression). |
+| DQR | Data Quality Review (a 3-axis structural / clinical-coherence / JP-language review document under `docs/reviews/`). |
+| lift_firing_proof | The mechanism in the audit's silent_no_op axis that proves "the feature actually fired" as an equality. |
+| PR-90 / J5 / C-1 | Names of historical silent-no-op incidents (see `implementation-rules.md` §9). |
+| Scenario spine / facts | The set of fact tags extracted from structural CIF for narrative generation (the basis of hallucination prevention). |
+
+Japanese counterpart: [`project-concept-and-design.ja.md`](project-concept-and-design.ja.md).

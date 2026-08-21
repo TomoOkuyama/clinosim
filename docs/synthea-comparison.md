@@ -19,7 +19,7 @@ per-patient Bundle output into the per-`ResourceType` NDJSON layout
 
 | Dimension | clinosim | Synthea |
 |---|---|---|
-| Modeling approach | Physiology-driven forward simulation (13-var hidden state per patient) | State-transition modules per condition |
+| Modeling approach | Physiology-driven forward simulation (14-var hidden state per patient) | State-transition modules per condition |
 | Coherence between labs / vitals | Guaranteed by shared physiological state | Independent per module |
 | Native FHIR R4 output | Bulk Data Access NDJSON, one file per ResourceType | FHIR R4 JSON per patient |
 | JP Core profile compliance | 16 resource types | Not a design goal |

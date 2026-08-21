@@ -1,65 +1,198 @@
-# clinosim.codes — Clinical Code Systems Module
+# `clinosim.codes` — 臨床コードシステム
 
 ## 目的
 
-clinosim における **臨床コード体系の単一情報源 (Single Source of Truth)** を提供する。
+clinosim における **臨床コードシステムの単一情報源** を提供します。
 
-CIF (Clinosim Intermediate Format) はコードのみを保持し、 表示用テキスト (display) は出力時に本モジュール経由で取得する。 これにより:
+CIF (Clinosim Intermediate Format) はコードのみを保持し、表示テキス
+トは出力時に本モジュールで解決します。これにより:
 
-- 1コード = 1エントリ + 多言語表示属性 (英語、日本語、他)
-- FHIR / HL7 v2 / CDA / CSV など複数の出力形式が同じ用語ソースを参照
-- 翻訳の不一致を構造的に防止
-- 国際標準 (locale 非依存) と locale 固有データ (`clinosim/locale/`) の責務分離
+- 1 コード = 1 エントリ + 多言語表示属性 (英語 / 日本語 / …)
+- FHIR / HL7 v2 / CDA / CSV 出力形式が同一の terminology 源を参照
+- 翻訳ドリフトを構造的に防止
+- 国際標準 (locale 非依存) と culture 依存データ (`clinosim/locale/`)
+  の分離を担保
+
+## スコープ
+
+- **In scope**: clinosim が出力する全臨床コードシステムの統一 lookup、
+  多言語表示解決、canonical FHIR system-URI マッピング
+  (`_BUILTIN_URIS` に約 55 URI 登録)、curated コードデータ YAML、
+  Encounter リソース向け HL7 v2/v3 語彙 StrEnum、再現性のために
+  キャプチャした authoritative-source JSON 断片 (`authoritative/`)。
+- **Out of scope**: locale-scoped データ (氏名 / 住所 / フォーマット
+  規則 — `clinosim/locale/`)、疾患 / 観察 / 薬剤コンテンツ
+  (`clinosim/modules/*/`)、CIF データスキーマ自体 (`clinosim/types/`)。
+
+## 公開 API
+
+```python
+from clinosim.codes import (
+    lookup,             # (system, code, lang="en") -> str
+    get_display,        # (system, code, country="US") -> str
+    get_system_uri,     # (system) -> str
+    system_key_for,     # (kind, country) -> str  (例: ("diagnosis","JP")→"icd-10-mhlw")
+    CodeSystem,         # dataclass: key / name / uri / version / codes
+)
+```
+
+パッケージレベル未再エクスポートだが `clinosim.codes.loader` から
+import 可能なローダー層ヘルパー:
+
+```python
+from clinosim.codes.loader import is_japanese_only_display_system
+```
+
+Encounter リソース向け HL7 語彙 StrEnum (Issue #562) —
+`clinosim.codes.hl7_encounter` から import:
+
+```python
+from clinosim.codes.hl7_encounter import (
+    AdmitSource,          # http://terminology.hl7.org/CodeSystem/admit-source
+    DischargeDisposition, # http://terminology.hl7.org/CodeSystem/discharge-disposition
+    ActPriority,          # http://terminology.hl7.org/CodeSystem/v3-ActPriority
+)
+```
+
+`StrEnum` は `str` を継承するので、
+`encounter.admit_source = AdmitSource.EMD` はリファクタ前の `str`
+型と wire 互換 (`== "emd"` 比較も継続動作)。
+
+## 決定性
+
+該当なし — 本パッケージは純粋な lookup。`_load_system` は
+`@lru_cache` 装飾済で、あるシステムキーは呼び出し毎に同一
+`CodeSystem` インスタンスに解決。同一の YAML on-disk が与えられれば、
+同じ `(system, code, lang)` 3 つ組は常に同じ文字列に解決します。
+
+## 依存
+
+- `pyyaml` — YAML ロード用。
+- 標準ライブラリ `pathlib` / `functools` / `dataclasses` / `enum`。
+- **他の `clinosim.*` パッケージへの依存なし。**
+
+## 定数と設定
+
+- **`_DATA_DIR`** = `Path(__file__).parent / "data"` — per-system
+  YAML ファイル配置場所。
+- **`_BUILTIN_URIS`** — clinosim が出力する全コードシステムの
+  short-key → canonical URI マッピング (約 55: ICD variants / LOINC /
+  SNOMED CT / RxNorm / JLAC10 / YJ / HOT7/9/13 / K-codes / JP-Core
+  NamingSystem / HL7 v2/v3/FHIR terminology CodeSystem / JP-CLINS eCS
+  Nocoded / gap-fill 用の clinosim-owned CodeSystem — URI ごとの
+  根拠は `loader.py` のブロックレベルコメント参照)。
+- **`_SYSTEM_DATA_ALIASES`** — Issue #350 メカニズム。同一コードデータ
+  を共有するが distinct な canonical URI を必要とする 2 キー用
+  (具体例: `icd-10-mhlw` は `icd-10` コードデータへ alias + JP
+  MHLW-2013 registry URI)。
+- **言語フォールバックチェーン** — 要求 lang → `en` → 最初に利用
+  可能な言語 → コード自身。
+- **コード lookup フォールバックチェーン** — 完全一致 → 基底コード
+  (末尾サブコード除去) → サブコードプレフィックススキャン → コード
+  自身。
+
+## ディレクトリ構成
+
+```
+clinosim/codes/
+  __init__.py                     公開 API (5 export)
+  loader.py                       CodeSystem dataclass、lookup /
+                                  get_display / get_system_uri /
+                                  system_key_for、_BUILTIN_URIS、
+                                  _SYSTEM_DATA_ALIASES
+  hl7_encounter.py                AdmitSource / DischargeDisposition /
+                                  ActPriority StrEnum
+  data/                           curated コード YAML 32 件 (全リストは
+                                  下の「対応コードシステム」参照)
+  authoritative/                  再現性のためにキャプチャした
+                                  authoritative-source JSON 断片
+                                  (icd10_who_tx.json、loinc_2_82_tx.json、
+                                  yj_tx_fragment.json、
+                                  yj_tx_valid_codes.json + README)
+```
+
+## テスト
+
+```bash
+pytest tests/unit -k codes -q
+```
+
+`clinosim.codes` を参照するテストファイルは約 45。フォールバック
+チェーン、システム URI 解決、`system_key_for` 国別 dispatch、
+JP-only-display 検出、システム別データ形状不変条件を網羅。
+
+## オーナー
+
+`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.md) 参照。
+
+英語版: [`README.md`](README.md)。
+
+---
 
 ## 設計原則
 
 | # | 原則 | 説明 |
 |---|---|---|
-| 1 | **英語は一次データ** | 全コードに `en` フィールド必須。日本語等は翻訳オプション |
-| 2 | **権威ソースに準拠** | コード値・英語表記は公式機関 (CMS, NLM, AMA, WHO 等) の最新版に従う |
-| 3 | **Locale 非依存** | コード体系は国際標準。`clinosim/locale/` には人名・住所等の文化依存データのみ |
-| 4 | **Code is the truth** | CIF は コード + system のみ保持。display は派生 (出力時 lookup) |
-| 5 | **Fallback chain** | 要求言語 → 英語 → コード自体 (常に何か返す) |
+| 1 | **英語がプライマリデータ** | 各コードは `en` フィールド必須。他言語は翻訳オプション。 |
+| 2 | **権威ある情報源との整合** | コード値と英語表示は公式団体 (CMS / NLM / AMA / WHO / MHLW / MEDIS / JCCLS …) の最新リリースに追従。 |
+| 3 | **locale 非依存** | コードシステムは国際標準。`clinosim/locale/` には culture 依存データのみ (氏名 / 住所 …)。 |
+| 4 | **コードが真実** | CIF は `code` + `system` のみ保持。表示は導出 (出力時に検索)。 |
+| 5 | **フォールバックチェーン** | 要求言語 → 英語 → コード自身 (必ず何かを返す)。 |
+| 6 | **alias、duplicate しない** | 同一コードデータを共有し distinct canonical URI が必要な 2 システムは `_SYSTEM_DATA_ALIASES` で処理し YAML を duplicate しない。 |
 
-## ディレクトリ構造
+## 対応コードシステム
 
-```
-clinosim/codes/
-├── __init__.py            # public API (lookup, get_system_uri, get_display)
-├── loader.py              # YAML ローダー + lookup 関数
-├── README.md              # 本ドキュメント
-└── data/
-    ├── icd-10-cm.yaml     # ICD-10-CM (US 診断)
-    ├── icd-10.yaml        # WHO ICD-10 (JP 診断)
-    ├── loinc.yaml         # LOINC (検査・バイタル)
-    ├── jlac10.yaml        # JLAC10 (JP 検査)
-    ├── rxnorm.yaml        # RxNorm (US 医薬品)
-    ├── yj.yaml            # YJ コード (JP 医薬品)
-    ├── cpt.yaml           # CPT (US 手技)
-    └── k-codes.yaml       # K コード (JP 診療報酬手技)
-```
+### コア臨床レジストリ (curated data 付き)
 
-## サポートしているコード体系と権威ソース
-
-| Key | 名称 | FHIR System URI | 権威ソース | 用途 |
+| キー | 名称 | FHIR system URI | コード数 | 情報源 |
 |---|---|---|---|---|
-| `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | [CMS / NCHS](https://www.cms.gov/medicare/coding-billing/icd-10-codes) | US 診断・問題リスト |
-| `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | [WHO ICD-10](https://icd.who.int/browse10/) | WHO 国際版・JP 診断 |
-| `loinc` | LOINC | `http://loinc.org` | [Regenstrief LOINC](https://loinc.org/) | 検査・バイタル・観察 |
-| `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | [日本臨床検査標準協議会 JCCLS](https://www.jccls.org/) | JP 臨床検査コード |
-| `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | [NLM RxNorm](https://www.nlm.nih.gov/research/umls/rxnorm/) | US 医薬品 (一般名 / ブランド名) |
-| `yj` | YJ コード | `urn:oid:1.2.392.100495.20.2.74` | [医薬品 YJ コード (薬価基準)](https://www.mhlw.go.jp/topics/2018/04/dl/yakkasanteibasis.pdf) | JP 医薬品 |
-| `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | [AMA CPT](https://www.ama-assn.org/practice-management/cpt) | US 診療手技 |
-| `k-codes` | K コード | `urn:oid:1.2.392.200119.4.401` | [診療報酬点数表 (厚生労働省)](https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000188411.html) | JP 診療報酬手技 |
+| `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | 357 | CMS / NCHS |
+| `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | 320 | WHO ICD-10 |
+| `icd-10-mhlw` | JP MHLW ICD-10 (2013 registry) | `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full` | (icd-10 に alias) | MHLW / JP-Core |
+| `loinc` | LOINC | `http://loinc.org` | 153 | Regenstrief LOINC |
+| `snomed-ct` | SNOMED CT | `http://snomed.info/sct` | 147 | IHTSDO |
+| `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | 45 | JCCLS |
+| `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | 82 | NLM RxNorm |
+| `yj` | YJ code | `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` | 59 | JP Core / capstandard |
+| `hot7` | HOT7 (JP MEDIS) | `http://medis.or.jp/CodeSystem/master-HOT7` | 106 | MEDIS |
+| `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | 31 | AMA CPT |
+| `k-codes` | K codes | `urn:oid:1.2.392.200119.4.401` | 25 | MHLW 診療報酬 |
+| `cvx` | CVX (ワクチンコード) | `http://hl7.org/fhir/sid/cvx` | 10 | CDC |
 
-加えて、loader にビルトイン定義された参照可能な system URI:
+### HL7 terminology CodeSystem (データ付き)
 
-| Key | URI | 用途 |
-|---|---|---|
-| `snomed-ct` | `http://snomed.info/sct` | SNOMED CT 臨床所見 (将来拡張) |
-| `ucum` | `http://unitsofmeasure.org` | 単位 |
-| `hl7-v3-actcode` | `http://terminology.hl7.org/CodeSystem/v3-ActCode` | HL7 v3 行為コード |
-| `hl7-v3-maritalstatus` | `http://terminology.hl7.org/CodeSystem/v3-MaritalStatus` | 婚姻状態 |
+| キー | コード数 |
+|---|---|
+| `hl7-condition-clinical` / `hl7-condition-ver-status` | 6 + 6 |
+| `hl7-admit-source` / `hl7-discharge-disposition` | 3 + 2 |
+| `hl7-allergyintolerance-clinical` / `hl7-allergyintolerance-verification` | 3 + 4 |
+| `hl7-observation-interpretation` | 3 |
+| `hl7-practitioner-role` / `hl7-subscriber-relationship` | 6 + 7 |
+| `hl7-v3-actreason` / `hl7-v3-administrativegender` / `hl7-v3-maritalstatus` | 4 + 3 + 6 |
+| `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` | 1 + 1 |
+
+### JP 固有 gap-fill および構造 CodeSystem
+
+| キー | コード数 |
+|---|---|
+| `jp-care-level` | 8 |
+| `jpfhir-doc-section` | 42 |
+| `jpfhir-doc-typecodes` | 5 |
+| `jpfhir-eCheckup-section` | 7 |
+| `condition-short-name` | 42 |
+| `clinosim-nursing-scores` | 1 |
+| `bcp-47-language` | 2 |
+
+### URI のみ登録 (YAML データなし)
+
+`_BUILTIN_URIS` には、clinosim が参照するが文字列表示は不要な
+システムの URI も登録されています — HOT9、HOT13、medication-nocoded、
+UCUM、HL7 v2 / v3 / terminology 追加系 (v2-0092、v2-0131、v2-0203、
+v2-0360、service-type、referencerange-meaning、organization-type、
+condition-category、location-physical-type、RoleCode、
+ParticipationType、ActCode、ObservationCategory、
+DiagnosticServiceSection)、US Core documentreference-category。
+解決は `get_system_uri()`、`lookup()` はコード自身にフォールバック。
 
 ## YAML スキーマ
 
@@ -67,107 +200,36 @@ clinosim/codes/
 metadata:
   name: "ICD-10-CM"                              # 人間可読名
   uri: "http://hl7.org/fhir/sid/icd-10-cm"       # FHIR canonical URI
-  version: "2024"                                # 版・年度
+  version: "2024"                                # 版 / 年
   description: "International Classification..." # 説明
 
 codes:
-  N10:                                            # コード値 (string key)
+  N10:                                            # コード値 (文字列キー)
     en: "Acute tubulo-interstitial nephritis"   # 英語表示 (必須)
     ja: "急性腎盂腎炎"                          # 日本語表示 (オプション)
   J18.9:
     en: "Pneumonia, unspecified organism"
     ja: "肺炎，詳細不明"
-  # ...
 ```
 
 ### スキーマ規則
 
-- `metadata.uri` が無い場合、loader はキーから推測 (icd-10-cm → CMS URI 等)
-- `codes` の各エントリは少なくとも `en` を持つこと
-- 追加言語は ISO 639-1 二文字コード (`ja`, `de`, `fr`, `zh` 等)
-- コード値は文字列。 ICD では `J18.9`, LOINC では `1988-5`, RxNorm では `309090` のように元の表記を維持
+- `metadata.uri` 欠如時はローダーが `_BUILTIN_URIS[key]` にフォール
+  バック。
+- `codes` 配下の各エントリは最低 `en` を含める必要あり (JP-only
+  display system — `is_japanese_only_display_system` — の場合は
+  `ja`)。
+- 追加言語は ISO 639-1 の 2 文字コード (`ja` / `de` / `fr` / `zh` …)。
+- コード値は文字列で情報源のフォーマットを維持: ICD は `J18.9`、
+  LOINC は `1988-5`、RxNorm は `309090`。
 
-## API リファレンス
-
-### `lookup(system: str, code: str, lang: str = "en") -> str`
-
-コードに対応する display text を指定言語で取得する。
-
-**Resolution order**:
-
-1. 完全一致 (例: `J18.9`)
-2. ベースコード (例: `J18.9` → `J18`)
-3. サブコード前方一致 (例: `I63` → `I63.9`)
-4. コード自体 (フォールバック)
-
-**言語フォールバック**: 要求 lang → `en` → 最初に見つかった言語 → コード自体
-
-```python
-from clinosim.codes import lookup
-
-lookup("icd-10-cm", "N10", "en")
-# → "Acute tubulo-interstitial nephritis"
-
-lookup("icd-10-cm", "N10", "ja")
-# → "急性腎盂腎炎"
-
-lookup("icd-10-cm", "I63", "en")  # base code
-# → "Cerebral infarction, unspecified"  (sub-code から解決)
-
-lookup("icd-10-cm", "X99.99", "ja")  # 存在しない
-# → "X99.99"  (fallback to code itself)
-```
-
-### `get_display(system: str, code: str, country: str = "US") -> str`
-
-国コードから言語を自動選択するヘルパー (`US` → `en`, `JP` → `ja`)。
-
-```python
-from clinosim.codes import get_display
-
-get_display("icd-10-cm", "N10", "JP")
-# → "急性腎盂腎炎"
-```
-
-### `get_system_uri(system: str) -> str`
-
-短縮キーから FHIR canonical system URI を取得。
-
-```python
-from clinosim.codes import get_system_uri
-
-get_system_uri("icd-10-cm")
-# → "http://hl7.org/fhir/sid/icd-10-cm"
-
-get_system_uri("loinc")
-# → "http://loinc.org"
-```
-
-### `CodeSystem` (dataclass)
-
-```python
-@dataclass
-class CodeSystem:
-    key: str                              # 短縮キー (e.g., "icd-10-cm")
-    name: str                             # 人間可読名
-    uri: str                              # FHIR system URI
-    version: str                          # 版
-    codes: dict[str, dict[str, str]]      # code → {lang: display}
-```
-
-## 使用例: FHIR Observation 出力
+## 例: FHIR Observation 出力
 
 ```python
 from clinosim.codes import get_system_uri, lookup
 
-# CIF データ (codes only)
-lab_result = {
-    "code": "1988-5",       # LOINC: CRP
-    "value": 38.2,
-    "unit": "mg/L",
-}
+lab_result = {"code": "1988-5", "value": 38.2, "unit": "mg/L"}
 
-# FHIR Observation 構築
 obs = {
     "resourceType": "Observation",
     "code": {
@@ -178,153 +240,104 @@ obs = {
         }],
         "text": lookup("loinc", lab_result["code"], "en"),
     },
-    "valueQuantity": {
-        "value": lab_result["value"],
-        "unit": lab_result["unit"],
-    },
+    "valueQuantity": {"value": lab_result["value"], "unit": lab_result["unit"]},
 }
 ```
 
-JP locale なら同じデータから日本語表示を取得:
+## Extending
 
-```python
-display_ja = lookup("loinc", "1988-5", "ja")
-# → "C反応性蛋白"
-```
+### コード追加
 
-## CIF データモデルとの関係
-
-CIF (`clinosim/types/`) は **コードと system キーのみ** を保持する:
-
-```python
-@dataclass
-class ClinicalDiagnosis:
-    admission_diagnosis_code: str = ""              # 例: "N10"
-    admission_diagnosis_system: str = "icd-10-cm"   # コード体系キー
-    discharge_diagnosis_code: str = ""
-    discharge_diagnosis_system: str = "icd-10-cm"
-    # display text は保持しない (出力時 lookup)
-
-
-@dataclass
-class ChronicCondition:
-    code: str = ""
-    system: str = "icd-10-cm"
-```
-
-FHIR R4 アダプタ (`clinosim/modules/output/fhir_r4_adapter.py`) は出力時に:
-
-```python
-display = code_lookup(
-    record["clinical_diagnosis"]["discharge_diagnosis_system"],
-    record["clinical_diagnosis"]["discharge_diagnosis_code"],
-    lang="en" if country == "US" else "ja",
-)
-```
-
-## 拡張方法
-
-### 新しいコードを追加する
-
-該当する `data/<system>.yaml` を編集:
+該当 `data/<system>.yaml` を編集 (ローダーは dict key で検索するので
+順序は自由。可読性のためアルファベット順推奨):
 
 ```yaml
 codes:
-  J18.9:
-    en: "Pneumonia, unspecified organism"
-    ja: "肺炎，詳細不明"
-  # 既存エントリ...
-  J45.901:                              # 新規追加
+  J45.901:
     en: "Unspecified asthma with (acute) exacerbation"
     ja: "喘息急性増悪"
 ```
 
-エントリのソート順は任意 (loader はキーで dict 検索)。 可読性のためアルファベット順を推奨。
+### 新規コードシステム追加
 
-### 新しいコード体系を追加する
+1. `data/<new-system>.yaml` を作成 (上記スキーマ)。
+2. 任意で short key → URI マッピングを `loader.py::_BUILTIN_URIS`
+   に登録。
+3. ファイルを配置するだけでローダーが自動検出
+   (`@lru_cache(maxsize=32)`)。
 
-1. `data/<new-system>.yaml` を作成 (上記スキーマに従う)
-2. `loader.py` の `_BUILTIN_URIS` に短縮キー → URI を追加 (オプション)
-3. ファイルを置くだけで自動的に loader が検出 (`@lru_cache(maxsize=32)`)
+### 新規言語追加
 
-### 新しい言語を追加する
-
-各 `codes` エントリに新しい言語キーを追加:
+各エントリに新言語キーを追加:
 
 ```yaml
 codes:
   N10:
     en: "Acute tubulo-interstitial nephritis"
     ja: "急性腎盂腎炎"
-    de: "Akute tubulointerstitielle Nephritis"   # 新規追加
+    de: "Akute tubulointerstitielle Nephritis"
 ```
 
-呼び出し側:
+要求言語を持たないコードは「定数と設定」記載の lookup フォール
+バックチェーン経由で英語にフォールバック。
 
-```python
-lookup("icd-10-cm", "N10", "de")
-# → "Akute tubulointerstitielle Nephritis"
-```
-
-ある言語が無いコードは英語にフォールバック:
-
-```python
-lookup("icd-10-cm", "Z99.2", "de")
-# → "Dependence on renal dialysis"  (de 未定義 → en fallback)
-```
-
-## カバレッジ
-
-|Code system | Codes | Languages | Coverage focus |
-|---|---|---|---|
-| icd-10-cm | 234 | en, ja | clinosim で生成される全疾患 + よく使う Z-codes / ED 症状 |
-| icd-10 | 133 | en, ja | WHO ICD-10 ベースコード (JP 互換) |
-| loinc | 65 | en, ja | バイタル + 主要血液生化学 + 凝固 + 心臓マーカー |
-| jlac10 | 30 | en, ja | JP 検査標準コード (JCCLS 共用基準範囲対応) |
-| rxnorm | 68 | en, ja | 抗菌薬・抗凝固・循環器・救急薬等 |
-| yj | 39 | en, ja | JP 医薬品 (主要処方薬) |
-| cpt | 31 | en, ja | 主要外科手技 + ベッドサイド処置 + 画像 |
-| k-codes | 25 | en, ja | JP 診療報酬手技 (K コード) |
-| snomed-ct | 31 | en, ja | 手技構造化フィールド (category, performer role, body site, outcome, complication) |
-
-合計: **656 codes** (執筆時点)
-
-## locale モジュールとの境界
+## `locale` モジュールとの境界
 
 | | `clinosim.codes` | `clinosim.locale` |
 |---|---|---|
-| **責務** | 国際標準コード体系 + 多言語表示 | 文化・国依存のデータ |
-| **Locale-scoped?** | No (1ファイルに全言語) | Yes (`jp/`, `us/` 等) |
-| **典型データ** | ICD/LOINC/RxNorm 等 | 人名、住所、電話フォーマット、基準範囲 |
-| **CIF が直接持つ** | コード値 + system キー | 個々のフィールド (Address、PersonName 等) |
+| **責務** | 国際コードシステム + 多言語表示 | culture / 国依存データ |
+| **locale scoped?** | いいえ (全言語 1 ファイル) | はい (`jp/` / `us/` …) |
+| **典型データ** | ICD / LOINC / RxNorm / SNOMED CT / HL7 語彙 … | 氏名、住所、電話フォーマット、reference range |
+| **CIF が保持** | コード値 + system key | 具体的フィールド (Address / PersonName …) |
 
-`locale/<country>/code_mapping_*.yaml` は引き続き存在し、 シミュレータ内部の test name (例: `"WBC"`) → 標準コード (`"6690-2"`) のマッピングを担う。 表示テキストの解決は本モジュールへ委譲。
+`locale/<country>/code_mapping_*.yaml` も引き続き存在します — シミュ
+レータ内部のテスト名 (例: `"WBC"`) を標準コード (例: `"6690-2"`) に
+マップ。表示テキスト解決は `clinosim.codes` に委譲。
 
 ## ライセンスと出典
 
-各コード体系は元の権威ソースのライセンスに従う:
+各コードシステムは自身の上流ライセンスに従います:
 
-- **ICD-10-CM**: パブリックドメイン (CMS)
-- **WHO ICD-10**: WHO の利用規約に従う
-- **LOINC**: LOINC License (商用利用無料、再配布可)
-- **RxNorm**: NLM Open Use (パブリックドメイン)
-- **JLAC10**: JCCLS が公開
-- **CPT**: AMA Copyright (clinosim では教育・研究目的の最小サブセットのみ収載)
-- **YJ コード**: 厚生労働省 公開データ
-- **K コード**: 厚生労働省 診療報酬点数表
+- **ICD-10-CM**: パブリックドメイン (CMS)。
+- **WHO ICD-10**: WHO 使用条件。
+- **LOINC**: LOINC License (商用利用無料、再配布可)。
+- **RxNorm**: NLM Open Use (パブリックドメイン)。
+- **SNOMED CT**: SNOMED International 条件。clinosim は生成データ
+  に出現する小規模 curated subset のみを同梱。
+- **JLAC10**: JCCLS 発行。
+- **CPT**: AMA copyright — clinosim は教育・研究用の最小 subset のみ
+  同梱。
+- **YJ code**: MHLW open data。
+- **K codes**: MHLW 診療報酬体系。
+- **HL7 terminology (v2 / v3 / condition-clinical / …)**: HL7 IPR
+  policy — HL7 terminology CodeSystem は CC BY-SA 4.0。
+- **JP Core / JP-CLINS eCS**: MHLW / JAMI 公開資料。
 
-clinosim の codes/data/ には各レジストリから clinosim の合成データ生成に必要なサブセットのみを抽出して収載している。 商用 EHR に組み込む場合は元の権威ソースから完全な最新版を取得することを推奨。
+`codes/data/` は clinosim の合成データ生成を駆動するのに必要な subset
+のみを抽出。商用 EHR 統合には、上流当局から最新版フルセットを取得
+してください。
 
-**サブセットは「出力されうるコード」を漏れなく覆うこと。** 診断コードについては
-`tests/unit/test_diagnosis_code_coverage.py` が「全 disease/encounter の `icd_codes` と
-診断マップのターゲットが code-data に exact 解決する」不変条件を回帰ガードする。新しい
-外来/疾患シナリオを追加する際は、参照する ICD コードの収載も必須(CLAUDE.md「Diagnosis
-code coverage」参照)。未収載だと FHIR Condition の display が近似 prefix fallback になる。
+**subset は「出力に現れうるコード」を網羅する必要があります。**
+診断コードについては
+`tests/unit/test_diagnosis_code_coverage.py` が「全疾患 / エンカウン
+ターの `icd_codes` エントリと診断マップの全ターゲットがコードデータ
+に対して完全一致で解決すること」の不変条件を守ります。新規外来 /
+疾患シナリオ追加時は、参照される ICD コードをここに追加することが
+必須 (AGENTS.md「Diagnosis code coverage」参照)。さもなくば FHIR
+Condition display が近似 prefix マッチにフォールバック。
+
+`authoritative/` は tx.fhir.org と MHLW registry から特定時点で取得
+した raw JSON 断片 — curated subset のバイト完全な出典であり、
+回帰テストの diff 対象。
 
 ## 更新ポリシー
 
-- ICD-10-CM: 毎年 10 月 1 日に CMS が新版発表 → clinosim も追従
-- LOINC: 半年毎 (6月・12月) → 主要変更を反映
-- RxNorm: 毎週月曜更新 → 安定版を年1回程度反映
-- WHO ICD-10: 滅多に更新されない (現行版は 2019)
-- 内部キー (短縮名) は安定。yaml 構造変更時はメジャーバージョン更新
+- **ICD-10-CM**: CMS が毎年 10 月 1 日に新版リリース → clinosim
+  追従。
+- **LOINC**: 半年ごと (6 月 / 12 月) → 大幅変更を取り込み。
+- **SNOMED CT**: 国際リリース月次 → 年 1 回安定版を追従。
+- **RxNorm**: 週次更新 (毎週月曜) → 年 1 回安定版を追従。
+- **WHO ICD-10**: 更新まれ (現行 2019)。
+- **JP Core / JP-CLINS eCS**: `iris4h-ai/jp_core/package/` に pin
+  された版と MHLW registry エントリに追従。
+- 内部 short key は安定。YAML 構造変更は major version bump。
