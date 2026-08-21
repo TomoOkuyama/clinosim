@@ -1,71 +1,137 @@
-# コントリビューターガイド: モジュール/プラグインの追加
+# Contributor Guide: adding a module / plug-in
 
-このドキュメントは、新しいコントリビューターが clinosim に **モジュール/プラグインを追加し、データを生成し、どのデータ/コードを使うかを正しく選択する** ための実践 playbook です。アーキテクチャ原則 (ADR) は `DESIGN.md`、規約の総覧は `AGENTS.md` を参照してください。本書はそれらと重複せず、**HOW-TO** に集中します。
+This document is the practical playbook for a new contributor to
+**add a module / plug-in to clinosim, generate data, and correctly
+choose which data or code to use**. Architectural principles (ADRs)
+live in `DESIGN.md`; the overview of the conventions lives in
+`AGENTS.md`. This document does not duplicate them — it concentrates
+on **HOW-TO**.
 
-> **本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心** です。**FHIR builder layer(Layer 4 = `_fhir_*.py`)を追加・拡張する場合は** [`docs/design-guides/fhir-data-generation-logic.md`](design-guides/fhir-data-generation-logic.md) を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。
+> **This document is centred on the CIF-generation layer** (Layers
+> 1-3 = reference YAML, loader, CIF-generation module). **To add or
+> extend a FHIR builder (Layer 4 = `_fhir_*.py`)**, see
+> [`docs/design-guides/fhir-data-generation-logic.md`](design-guides/fhir-data-generation-logic.md)
+> (BundleContext / code_lookup / multilingual display / identifier-
+> system conventions / register_bundle_builder).
 
-> **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 30 module(counting rule: `clinosim/modules/` 配下の package 数。`_shared.py` 等の非 package ファイルは含まない)の俯瞰は [`MODULES.md`](../MODULES.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は [`docs/design-guides/README.md`](design-guides/README.md) を参照。
+> **When creating a new module**: start by copying
+> [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md).
+> For an overview of all 33 modules (counting rule: packages under
+> `clinosim/modules/`; non-package files such as `_shared.py` are
+> excluded), see [`MODULES.md`](../MODULES.md). For picking the PR
+> verification approach, see the "PR verification guide: byte-diff
+> vs. 3-axis DQR" section below. For the whole reading order, see
+> [`docs/design-guides/README.md`](design-guides/README.md).
 
-実コードの正本パス:
+Canonical source-code paths:
 - Enricher registry: `clinosim/simulator/enrichers.py`
-- Output adapter registry: `clinosim/modules/output/adapter.py`
-- FHIR bundle builder registry: `clinosim/modules/output/fhir_r4_adapter.py`
-- 共有型: `clinosim/types/`
-- コードシステム: `clinosim/codes/`
-- locale データ: `clinosim/locale/`
+- Output-adapter registry: `clinosim/modules/output/adapter.py`
+- FHIR bundle-builder registry: `clinosim/modules/output/fhir_r4_adapter.py`
+- Shared types: `clinosim/types/`
+- Code systems: `clinosim/codes/`
+- Locale data: `clinosim/locale/`
 
-## 最初に読む ADR(curated、全文は `DESIGN.md`)
+## First ADRs to read (curated; full set in `DESIGN.md`)
 
-`DESIGN.md` には 55+ の ADR があるが、新規 module 著者が最初に把握すべきは以下の 9 つ:
+`DESIGN.md` contains 55+ ADRs, but a new module author should grasp
+these 9 first:
 
-| ADR | 一言サマリ |
+| ADR | One-line summary |
 |---|---|
-| AD-16 | 決定論: 同 seed + 同 config = byte-identical な structural 出力。全乱数は sub-seed 由来の `numpy.random.Generator`(`random.random()` 禁止) |
-| AD-17 | CIF が唯一の simulation 出力。format adapter(FHIR/CSV)は CIF だけを読む — simulation 内部に触れない |
-| AD-25 | CIF は language-neutral。localization(用語翻訳・単位・整形)は出力時に行う(CIF 生成時の国別データは氏名のみ) |
-| AD-30 | Code is the truth: CIF は code のみ保持、display text は出力時に `code_lookup()` で解決 |
-| AD-55 | データ追加の 3 分類: Base(always-on、core 型拡張)/ opt-in Module / always-on Module(near-essential clinical cascade) |
-| AD-56 | 拡張は registry 経由(`register_bundle_builder` / `register_output_adapter` / `register_enricher`)。core dispatch を編集しない |
-| AD-59 | per-order lab RNG isolation: YAML の lab order 編集が無関係患者の cohort を shift させない(`panel_specimen_seed` / `individual_lab_seed`) |
-| AD-60 | `clinosim audit run` = 新機能 PR の統一 verification gate(structural / clinical / jp_language / silent_no_op の 4 軸) |
-| AD-65 | two-pass CIF: structural(Stage 1、immutable)と narrative(Stage 2、versioned)を file-level 分離。canonical spec = [`clinosim/modules/output/SPEC.md`](../clinosim/modules/output/SPEC.md) |
+| AD-16 | Determinism: same seed + same config = byte-identical structural output. Every RNG must derive from a sub-seed of `numpy.random.Generator` (`random.random()` is forbidden). |
+| AD-17 | CIF is the sole simulation output. Format adapters (FHIR / CSV) read only from CIF — they do not touch simulation internals. |
+| AD-25 | CIF is language-neutral. Localization (term translation, units, formatting) happens at output time (the only country-specific data at CIF-generation time is names). |
+| AD-30 | Code is the truth: CIF holds codes only; display text is resolved at output time via `code_lookup()`. |
+| AD-55 | The three classes of data addition: Base (always-on, extends core types) / opt-in Module / always-on Module (near-essential clinical cascade). |
+| AD-56 | Extension goes through the registries (`register_bundle_builder` / `register_output_adapter` / `register_enricher`). Never edit the core dispatch. |
+| AD-59 | Per-order lab RNG isolation: a YAML lab-order edit must not shift unrelated patients' cohorts (`panel_specimen_seed` / `individual_lab_seed`). |
+| AD-60 | `clinosim audit run` = the unified verification gate for new-feature PRs (4 axes: structural / clinical / jp_language / silent_no_op). |
+| AD-65 | Two-pass CIF: structural (Stage 1, immutable) and narrative (Stage 2, versioned) are separated at file level. Canonical spec = [`clinosim/modules/output/SPEC.md`](../clinosim/modules/output/SPEC.md). |
 
 ---
 
-## 判断: Base か Module か
+## Decision: Base or Module?
 
-新しいデータ/機能を追加するとき、最初に **Base (always-on, core を拡張)** か **opt-in Module (`SimulatorConfig.modules` + `config.module_enabled()` でゲート)** か **always-on Module = near-essential clinical cascade**(AD-55 PR3b-1 supplement、2026-06-25 追加: 上流 `extensions[X]` の存在を前提に clinically coherent な拡張を不可避的に出すモジュール。例 `device`/`hai`/`antibiotic`/`imaging`)を決めます (AD-55)。
+When adding new data or a new feature, first decide between **Base
+(always-on, extends the core)**, **opt-in Module (gated by
+`SimulatorConfig.modules` + `config.module_enabled()`)**, and
+**always-on Module = near-essential clinical cascade** (added
+2026-06-25 as AD-55 PR3b-1 supplement: a module that inevitably
+emits a clinically-coherent extension on top of an upstream
+`extensions[X]` — e.g. `device` / `hai` / `antibiotic` / `imaging`)
+(AD-55).
 
-**always-on Module 先例 (2026-07-01 時点):**(Tier 1 #3 系列の全体 roadmap = [`docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md`](design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md))
-- `device` (PR-A): ICU デバイス配置 (POST_ENCOUNTER order=70)
-- `hai` (PR-B): CDC NHSN HAI サンプリング (POST_ENCOUNTER order=80)。`extensions["device"]` の存在を前提。
-- `antibiotic` (PR3b-1): HAI 経験的抗菌薬 (POST_ENCOUNTER order=85)。`extensions["hai"]` の存在を前提。
-- `imaging` (Tier 1 #2, AD-62): 画像診断メタデータチェーン (POST_ENCOUNTER order=90)。disease YAML の `imaging_orders` が存在する encounter でのみ `extensions["imaging"]` を生成し、ImagingStudy + Endpoint + 放射線科 DR + imaging SR を emit する。upstream extensions に依存しない (device/hai とは独立)。
-- `allergy` (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-coded スキーマ upgrade (POST_RECORDS order=65)。`PersonRecord.allergies: list[Allergy] | None` に 15% prevalence で allergy サンプリングし、`_fhir_allergy_intolerance.py` builder が emit。activator.py inline sampling を置換。
-- `document` (Tier 1 #3, AD-63): Stage 1 テンプレート起動の臨床文書 emit (POST_ENCOUNTER order=95)。`extensions["document"]` + `extensions["clinical_impressions"]` に ClinicalDocument / ClinicalImpressionRecord を書き込み、3 FHIR builder (`_fhir_document_reference.py` / `_fhir_composition.py` / `_fhir_clinical_impression.py`) が emit。`enabled=lambda c: True`、upstream `extensions["allergy"]` に依存しない(患者アレルギー情報はビルダーが `patient.allergies` を直接参照)。
-- `triage` (Tier 1 #3 α-min-2, AD-64): ED encounter の triage level (JTAS/JP・ESI/US) + arrival_mode + acuity_score を sample (POST_ENCOUNTER order=93)。`EncounterRecord.triage_data` に書き込み、`document_enricher` が `ED_TRIAGE_NOTE` (LOINC 54094-8) dispatch に使用。`enabled=lambda c: True`、ED-only (非 ED encounter は no-op early return)。
-- `nursing_assignment` (Tier 1 #3 α-min-2, AD-64): 入院/ICU/rehab encounter に primary nurse を assign (POST_ENCOUNTER order=94)。`EncounterRecord.primary_nurse_id` に書き込み、`_fhir_care_team.py` builder が CareTeam.participant[1] に使用。`enabled=lambda c: True`。**注意**: このモジュールは `modules/nursing/` ディレクトリだが POST_ENCOUNTER 担当の nursing_enricher 関数(primary nurse 割当)。同ディレクトリには POST_RECORDS の nursing flowsheet 担当 enricher (NEWS2/GCS/Braden/Morse) も存在する。混同注意。
+**Always-on Module precedents (as of 2026-07-01):** (The Tier 1 #3
+roadmap = [`docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md`](design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md).)
+- `device` (PR-A): ICU device placement (POST_ENCOUNTER order=70).
+- `hai` (PR-B): CDC NHSN HAI sampling (POST_ENCOUNTER order=80).
+  Requires `extensions["device"]`.
+- `antibiotic` (PR3b-1): empirical antibiotics for HAI
+  (POST_ENCOUNTER order=85). Requires `extensions["hai"]`.
+- `imaging` (Tier 1 #2, AD-62): imaging metadata chain
+  (POST_ENCOUNTER order=90). Generates `extensions["imaging"]`
+  only for encounters whose disease YAML declares `imaging_orders`;
+  emits ImagingStudy + Endpoint + radiology DR + imaging SR. Does
+  not depend on upstream extensions (independent from device / hai).
+- `allergy` (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-
+  coded schema upgrade (POST_RECORDS order=65). Samples allergies at
+  a 15 % prevalence into `PersonRecord.allergies: list[Allergy] | None`;
+  `_fhir_allergy_intolerance.py` emits them. Replaces the inline
+  sampling in `activator.py`.
+- `document` (Tier 1 #3, AD-63): template-driven clinical-document
+  emission from Stage 1 (POST_ENCOUNTER order=95). Writes
+  `ClinicalDocument` / `ClinicalImpressionRecord` into
+  `extensions["document"]` + `extensions["clinical_impressions"]`;
+  three FHIR builders emit them
+  (`_fhir_document_reference.py` /
+  `_fhir_composition.py` /
+  `_fhir_clinical_impression.py`). `enabled=lambda c: True`; does
+  not depend on `extensions["allergy"]` (the builder reads
+  `patient.allergies` directly for allergy info).
+- `triage` (Tier 1 #3 α-min-2, AD-64): samples ED encounter's
+  triage level (JTAS / JP, ESI / US) + arrival_mode +
+  acuity_score (POST_ENCOUNTER order=93). Writes to
+  `EncounterRecord.triage_data`; `document_enricher` uses it to
+  dispatch `ED_TRIAGE_NOTE` (LOINC 54094-8). `enabled=lambda c: True`,
+  ED-only (non-ED encounters no-op early return).
+- `nursing_assignment` (Tier 1 #3 α-min-2, AD-64): assigns a primary
+  nurse to inpatient / ICU / rehab encounters (POST_ENCOUNTER
+  order=94). Writes to `EncounterRecord.primary_nurse_id`;
+  `_fhir_care_team.py` uses it for `CareTeam.participant[1]`.
+  `enabled=lambda c: True`. **Note**: this module lives in the
+  `modules/nursing/` directory but is the POST_ENCOUNTER `nursing_enricher`
+  function (primary-nurse assignment). The same directory also holds
+  the POST_RECORDS enricher responsible for the nursing flowsheet
+  (NEWS2 / GCS / Braden / Morse). Do not confuse them.
 
-### 決定チェックリスト
+### Decision checklist
 
-以下にすべて Yes なら **Base**。1 つでも No 寄りなら **opt-in Module**。
+If the answer is Yes to all of these, it is **Base**. If even one
+leans No, it is an **opt-in Module**.
 
-1. ほぼすべての EHR で必須のデータか? (例: 入院基本情報、vital、検査結果)
-2. 国/テーマに依存せず、ほぼ全 encounter に存在するか?
-3. CIF の core 型 (`CIFPatientRecord` / `CIFDataset`) に typed field として常時持たせるべきか?
+1. Is this data essential to almost every EHR? (e.g. admission
+   basics, vitals, lab results.)
+2. Does it exist in almost every encounter regardless of country /
+   theme?
+3. Should it live as a typed field on the CIF core type
+   (`CIFPatientRecord` / `CIFDataset`) permanently?
 
-逆に、以下に当てはまるなら **opt-in Module**:
+Conversely, an **opt-in Module** if any of these apply:
 
-- 特定テーマ 1 つに閉じている (`identity` = 在留番号/保険番号, `immunization` = 予防接種)
-- 特定国でのみ意味がある (JP 保険番号など) / ユーザーが OFF にしたい可能性がある
-- core 型を汚さず `CIFPatientRecord.extensions[<module>]` に書ける
+- Scoped to a single theme (`identity` = residence / insurance
+  number, `immunization` = vaccination).
+- Only meaningful in a specific country (JP insurance numbers, etc.)
+  or a user might reasonably want to turn it off.
+- Can be written into `CIFPatientRecord.extensions[<module>]` without
+  polluting the core type.
 
-### ゲートの実装 (opt-in の場合)
+### Gate implementation (for opt-in)
 
-opt-in module は `Enricher.enabled` で gate します。`config.module_enabled(name, default=...)` を使うのが正しい作法です (AD-56)。
+An opt-in module is gated via `Enricher.enabled`. The correct idiom
+is `config.module_enabled(name, default=...)` (AD-56).
 
 ```python
-# clinosim/simulator/enrichers.py の register_builtin_enrichers() 内
+# in register_builtin_enrichers() in clinosim/simulator/enrichers.py
 register_enricher(Enricher(
     name="immunization",
     stage=POST_RECORDS,
@@ -75,11 +141,18 @@ register_enricher(Enricher(
 ))
 ```
 
-> **注意 (EXT-5):** 現状 `module_enabled()` は production で未配線で、`modules` dict は dead key になっています。新規 module は上記のように `module_enabled` 経由で gate し、advertised な AD-56 ゲートを実際に有効化してください。`default=True` を保てば既存 golden は不変です。
+> **Note (EXT-5):** `module_enabled()` is currently not wired in
+> production; the `modules` dict is a dead key. New modules should
+> gate via `module_enabled` as shown above so the advertised AD-56
+> gate is actually active. Keeping `default=True` preserves the
+> existing goldens.
 
-### locale 依存の signature 規約
+### Locale-dependent signature convention
 
-locale 別データ(国別 prevalence、reference range、code mapping 等)をロードする関数は、**`country: str` パラメータを必ず受け取り**、対象外の国では `{}` / `""` 等の no-op 値を早期 return します:
+A function that loads locale-specific data (per-country prevalence,
+reference ranges, code mappings, etc.) **must take a `country: str`
+parameter** and return a no-op value (`{}` / `""` etc.) early for
+unsupported countries:
 
 ```python
 from functools import lru_cache
@@ -89,51 +162,74 @@ from clinosim.modules._shared import is_jp
 @lru_cache(maxsize=2)
 def load_rates(country: str = "JP") -> dict:
     """Load rates for ``country``. Returns {} for unsupported countries."""
-    if not is_jp(country):        # 国判定は必ず is_jp() 経由(下記「共有ヘルパ」参照)
+    if not is_jp(country):        # always decide country through is_jp() (see "shared helpers" below)
         return {}
     with open(_LOCALE / "jp" / "...") as f:
         return yaml.safe_load(f)
 ```
 
-理由 — モジュールが現状 1 国対応(例: care_level は JP 専用)であっても、signature を統一しておけば将来 US 対応を追加する際に caller の API を変えずに済みます。`_LOCALE / "jp" / ...` のように country 引数なしでハードコードするのは consistency bug です。
+Rationale — even when a module currently supports only one country
+(e.g. `care_level` is JP-only), unifying the signature lets a future
+US addition land without changing caller APIs. Hard-coding
+`_LOCALE / "jp" / ...` without a country argument is a consistency
+bug.
 
-`@lru_cache(maxsize=...)` を併用して反復ロードを避ける(他モジュール — immunization / family_history / code_status — もこのパターン)。
+Combine with `@lru_cache(maxsize=...)` to avoid repeated loads (the
+other modules — immunization / family_history / code_status — use
+this same pattern).
 
 ---
 
-## モジュールの構造
+## Module structure
 
-各モジュールは `clinosim/modules/<name>/` 配下の 1 パッケージで、**他モジュールへの依存は README の Dependencies に明記したものだけ** に限定します。
+Each module is a single package under `clinosim/modules/<name>/`.
+**Its dependencies on other modules are limited to those declared
+under `## Dependencies` in the README.**
 
-### 正準レイアウト (canonical layout)
+### Canonical layout
 
 ```
 clinosim/modules/<name>/
-  __init__.py            <- public API を __all__ で re-export (空にしない)
-  engine.py              <- pure-function 群。cross-module import を持たない
-  protocol.py            <- (任意) YAML を Pydantic で validate して load
-  reference_data/*.yaml  <- データ駆動の定義 (Pydantic で検証)
-  README.md              <- 日本語 + 英語技術用語。## Dependencies を持つ
+  __init__.py            <- re-export the public API via __all__ (do not leave empty)
+  engine.py              <- pure-function set. No cross-module imports.
+  protocol.py            <- (optional) Pydantic-validated YAML loader
+  reference_data/*.yaml  <- data-driven definitions (validated by Pydantic)
+  README.md              <- Japanese + English technical terms. Must have ## Dependencies.
 ```
 
-### 共有ヘルパは `clinosim/modules/_shared.py` に集約する
+### Shared helpers go into `clinosim/modules/_shared.py`
 
-複数 enricher で同じ helper を持つ場合(例: `get_attr_or_key(obj, name, default)` で dict / dataclass 両対応の属性アクセス)、各モジュールに local 定義を書かず **`clinosim/modules/_shared.py`** に置きます。新規モジュールも以下のように import します:
+When multiple enrichers need the same helper (e.g. `get_attr_or_key(obj, name, default)`
+for dict / dataclass dual attribute access), do not write a local
+definition inside each module — put it in **`clinosim/modules/_shared.py`**.
+New modules import it as:
 
 ```python
 from clinosim.modules._shared import get_attr_or_key as _get
 ```
 
-`as _get` alias で短い local 名を維持し、call site の可読性も保ちます。新しい cross-module helper を追加する場合は **2 モジュール以上で実需が生じたタイミング**で `_shared.py` に昇格させます(YAGNI — 1 モジュールしか使わないなら local 定義のまま)。
+The `as _get` alias keeps a short local name and preserves call-site
+readability. Promote a new cross-module helper into `_shared.py`
+only **at the point a second module actually needs it** (YAGNI — if
+only one module uses it, leave it local).
 
-現在 `_shared.py` に集約されている helper(PR-A 2026-06-26 で `normalize_probabilities` 追加、共通ロジック統一 2026-07-02 で `is_jp` / `resolve_lang` 追加):
+The helpers currently in `_shared.py` (`normalize_probabilities`
+added in PR-A 2026-06-26; `is_jp` / `resolve_lang` added by the
+2026-07-02 shared-logic unification):
 
-- `get_attr_or_key(obj, name, default)` — dict/dataclass 両対応の属性アクセス
-- `normalize_probabilities(probs, fallback="uniform") -> np.ndarray` — 確率配列を 1.0 へ正規化(下記「確率サンプリング規約」参照)
-- `is_jp(country) -> bool` — **JP 判定の唯一の正準 idiom**(case-insensitive + strip 正規化)
-- `resolve_lang(country) -> str` — **display 言語選択の唯一の正準 idiom**(JP → `"ja"`、その他 → `"en"`)
+- `get_attr_or_key(obj, name, default)` — dict / dataclass dual
+  attribute access.
+- `normalize_probabilities(probs, fallback="uniform") -> np.ndarray`
+  — normalises a probability array to 1.0 (see "Probability-sampling
+  convention" below).
+- `is_jp(country) -> bool` — **the sole canonical idiom for the JP
+  decision** (case-insensitive + strip normalisation).
+- `resolve_lang(country) -> str` — **the sole canonical idiom for
+  display-language selection** (JP → `"ja"`, else → `"en"`).
 
-**JP-gating / 言語選択の必須 idiom(2026-07-02)** — 国判定と display 言語選択は必ず `is_jp(country)` / `resolve_lang(country)` を使うこと:
+**Mandatory idiom for JP-gating / language selection (2026-07-02)** —
+country decisions and display-language selection must go through
+`is_jp(country)` / `resolve_lang(country)`:
 
 ```python
 from clinosim.modules._shared import is_jp, resolve_lang
@@ -143,52 +239,113 @@ if is_jp(ctx.country):
 lang = resolve_lang(ctx.country)   # "ja" / "en"
 ```
 
-> **アンチパターン:** hand-rolled な国判定の変種(`country == "JP"` / `country.lower() == "jp"` / `str(country).upper() == "JP"` / `lang = "ja" if country == "JP" else "en"`)を新規に書かない。共通ロジック統一前は 5 種類の divergent idiom が混在し、大文字小文字の扱い差で JP gating が silent に外れる PR-90 class risk があった。`is_jp` / `resolve_lang` が単一の正規化点。
+> **Anti-pattern:** do not write new hand-rolled country-decision
+> variants (`country == "JP"` / `country.lower() == "jp"` /
+> `str(country).upper() == "JP"` /
+> `lang = "ja" if country == "JP" else "en"`). Before the shared-
+> logic unification 5 divergent idioms coexisted, and case-handling
+> differences could silently disable JP gating — a PR-90-class risk.
+> `is_jp` / `resolve_lang` are the single normalisation point.
 
-### パス定数の正規形(PR-A 2026-06-26 で確立)
+### Canonical form of path constants (established in PR-A 2026-06-26)
 
-モジュールが reference_data や locale データを読み込むときの**正規パターン**:
+The **canonical pattern** for how a module loads reference_data or
+locale data:
 
 ```python
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
-_REF_DIR = _HERE / "reference_data"        # reference_data/ を持つなら
-_LOCALE = _HERE.parents[1] / "locale"      # clinosim/locale/ を参照するなら
+_REF_DIR = _HERE / "reference_data"        # if the module owns reference_data/
+_LOCALE = _HERE.parents[1] / "locale"      # if the module reads clinosim/locale/
 ```
 
-call site では `_REF_DIR / "X.yaml"` / `_LOCALE / country / "X.yaml"` で path を組み立て、`Path(__file__).parent / ...` の inline を避けます。理由:
+At call sites, assemble paths as `_REF_DIR / "X.yaml"` /
+`_LOCALE / country / "X.yaml"`, avoiding inline `Path(__file__).parent / ...`.
+Reasons:
 
-- `_HERE` を起点にすると `parents[N]` の `N` が module の深さに依存しないので **fragile な `.parents[2]` 問題**(immunization の旧パターン)が避けられます。
-- 命名統一(`_REFERENCE_DATA_DIR` / `_DATA` / `_HAI_REF_DIR` のような揺れを廃止)で grep / refactor が容易。
-- データ専用 module variant も同じ`_HERE` + `_REF_DIR` を採用。
+- Anchoring on `_HERE` decouples `parents[N]` from the module's
+  depth in the tree, avoiding the **fragile `.parents[2]` problem**
+  (the old pattern in `immunization`).
+- Unified naming (retiring the drift of
+  `_REFERENCE_DATA_DIR` / `_DATA` / `_HAI_REF_DIR`) makes grep /
+  refactor easy.
+- Data-only module variants also adopt the same `_HERE` + `_REF_DIR`.
 
-### `@lru_cache` の `maxsize` 規約(PR-A 2026-06-26 で確立)
+### `@lru_cache` `maxsize` convention (established in PR-A 2026-06-26)
 
-| loader の signature | `maxsize` |
+| Loader signature | `maxsize` |
 |---|---|
-| `load_X() -> dict`(no parameter) | `1` |
-| `load_X(country: str) -> dict` | `2`(US + JP) |
-| `load_X(country: str, language: str)` | `4`(将来の多言語拡張用、現在は未使用) |
+| `load_X() -> dict` (no parameter) | `1` |
+| `load_X(country: str) -> dict` | `2` (US + JP) |
+| `load_X(country: str, language: str)` | `4` (for future multilingual expansion; currently unused) |
 
-`maxsize` は eviction policy にしか効きませんが、**意図を読みやすくする load-bearing な signal** です。`maxsize=4` を country-only loader に付けるとレビュアーが「将来 4 国対応?」と誤解します。
+`maxsize` only affects the eviction policy, but it is a
+**load-bearing signal that makes intent legible**. Placing
+`maxsize=4` on a country-only loader misleads reviewers into
+thinking "planning for 4 countries?".
 
-**PR-B1 (2026-06-27) + adversarial fix で完成**: 残存していた hand-rolled cache pattern(`global X; if X is None: ... else return X` を **6 loader**で使用)を撤廃し、全 module の loader が `@lru_cache` 標準。touch 対象は `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions` / `clinosim/simulator/helpers.py:_load_all_disease_protocols` / `clinosim/modules/output/_fhir_diagnostic_report.py:load_panel_groups` / `clinosim/modules/output/_fhir_localization.py` の `_load_med_terms_ja` + `_load_drug_names_ja` + `_load_department_display`。新規 module で global mutable `_cache` 変数を導入することは禁止(`test_*` で `load_X.cache_clear()` を使う標準テスト pattern と相反するため)。同 PR で `clinosim/simulator/helpers.py:_load_all_disease_protocols` の `try/except pass` silent skip も削除済(silent-no-op 防御強化、PR #102 silent-no-op 防御 3 層との整合)。**brainstorming Step 1 での sweep grep は `grep -i "cache\|state\|memo"` 等の意味フィルタを使わず、`grep -E "^_[A-Za-z_]+: *.+ *= *None"` の generic sentinel pattern を必ず使うこと**(PR-B1 adversarial review 教訓: 意味フィルタが `_drug_names_ja` 等の cache を false-negative)。
+**Completed in PR-B1 (2026-06-27) + adversarial fix**: the residual
+hand-rolled cache pattern (`global X; if X is None: ... else return X`
+used in **6 loaders**) was retired, and every module's loader now
+uses `@lru_cache` as the standard. Touch targets were
+`clinosim/modules/encounter/protocol.py:load_all_encounter_conditions` /
+`clinosim/simulator/helpers.py:_load_all_disease_protocols` /
+`clinosim/modules/output/_fhir_diagnostic_report.py:load_panel_groups` /
+`clinosim/modules/output/_fhir_localization.py`'s `_load_med_terms_ja`
++ `_load_drug_names_ja` + `_load_department_display`. Introducing a
+global mutable `_cache` variable in a new module is forbidden (it
+conflicts with the standard test pattern that uses
+`load_X.cache_clear()` in `test_*` fixtures). The same PR also
+removed the `try/except pass` silent-skip in
+`clinosim/simulator/helpers.py:_load_all_disease_protocols`
+(strengthening silent-no-op defense in line with the PR #102 three-
+layer defense). **In the Step-1 brainstorming sweep, do not filter
+grep by meaning like `grep -i "cache\|state\|memo"` — always use the
+generic sentinel pattern `grep -E "^_[A-Za-z_]+: *.+ *= *None"`**
+(PR-B1 adversarial-review lesson: the meaning filter produced a
+false negative on caches like `_drug_names_ja`).
 
-**共通ロジック統一 (2026-07-02) で protocol / config loader も `@lru_cache` 化済**: `load_disease_protocol(disease_id)`(maxsize=64)/ `load_encounter_condition(condition_id)`(maxsize=64)/ `load_healthcare_config(country)`(maxsize=2)/ `load_hospital_operations()`(maxsize=1)。
+**Shared-logic unification (2026-07-02) also `@lru_cache`d the
+protocol / config loaders**:
+`load_disease_protocol(disease_id)` (`maxsize=64`) /
+`load_encounter_condition(condition_id)` (`maxsize=64`) /
+`load_healthcare_config(country)` (`maxsize=2`) /
+`load_hospital_operations()` (`maxsize=1`).
 
-> **必須ルール: cached loader の戻り値は共有 instance — 絶対に mutate しない。** `@lru_cache` 付き loader が返す dict / Pydantic model は全 caller 間で同一 object を共有する(Pydantic model は default で mutable、dict は当然 mutable)。caller が field を書き換えると同 process の他の全 caller に silent に伝播する = PR-90 class の隠れ状態バグ。read-only で扱い、変更が必要なら caller 側で `copy.deepcopy(data)` / `model.model_copy(deep=True)` してから触ること。
+> **Mandatory rule: a cached loader's return value is a shared
+> instance — never mutate it.** The dict / Pydantic model returned
+> from an `@lru_cache`d loader is a single object shared across all
+> callers (Pydantic models are mutable by default; dicts are of
+> course mutable). If a caller rewrites a field, the change silently
+> propagates to every other caller in the same process — a PR-90-
+> class hidden-state bug. Treat as read-only. If mutation is needed,
+> the caller must `copy.deepcopy(data)` / `model.model_copy(deep=True)`
+> first.
 
-### Aggregate loader は owner module に置く(2026-07-02)
+### Aggregate loaders live on the owner module (2026-07-02)
 
-他 module の `reference_data/` を glob / 走査する aggregate loader を simulator 等の外部 package に書かない。**reference_data の layout と validation は owner module の責務**(責任分解点)であり、外部 package が path 構造を知っていると layout 変更時に silent break する。
+Do not write an aggregate loader that globs / walks another module's
+`reference_data/` from an external package such as the simulator.
+**The layout and validation of `reference_data` is the owner
+module's responsibility** (responsibility-decomposition point); if
+an external package knows the path structure, a layout change breaks
+things silently.
 
-- 正準例: `load_all_disease_protocols()` は `clinosim/modules/disease/protocol.py`(owner)に定義。`clinosim/simulator/helpers.py:_load_all_disease_protocols` は同 lru_cache object の thin re-export alias で、既存 caller と `.cache_clear()` テスト pattern を不変に保つ。
-- 同様に、他 module の YAML を直接 path join で読むのも禁止 — owner module の public accessor を使う(例: `modules/antibiotic` は `microbiology.yaml` を直接読まず `clinosim.modules.observation.microbiology.antibiotic_loinc_lookup()` を import する)。
+- Canonical example: `load_all_disease_protocols()` is defined on
+  `clinosim/modules/disease/protocol.py` (owner).
+  `clinosim/simulator/helpers.py:_load_all_disease_protocols` is a
+  thin re-export alias of the same `lru_cache` object, so existing
+  callers and the `.cache_clear()` test pattern remain unchanged.
+- Likewise, reading another module's YAML by direct path join is
+  forbidden — use the owner module's public accessor (e.g. `modules/antibiotic`
+  does not read `microbiology.yaml` directly; it imports
+  `clinosim.modules.observation.microbiology.antibiotic_loinc_lookup()`).
 
-### 確率サンプリング規約(PR-A 2026-06-26 で確立)
+### Probability-sampling convention (established in PR-A 2026-06-26)
 
-`rng.choice(items, p=weights)` を呼ぶ前に **必ず `normalize_probabilities()` でラップ**します:
+Wrap every `rng.choice(items, p=weights)` call in
+`normalize_probabilities()`:
 
 ```python
 from clinosim.modules._shared import normalize_probabilities
@@ -197,276 +354,502 @@ probs = normalize_probabilities(weights)   # idempotent on already-normalized ar
 idx = int(rng.choice(len(items), p=probs))
 ```
 
-理由:`numpy.random.Generator.choice` は `p=` を**自動正規化しません**(sum ≠ 1.0 で `ValueError`)。YAML を手作業で正規化していると、編集ミスで sum が崩れた瞬間に silent regression / runtime crash になります。`normalize_probabilities` は
+Reason: `numpy.random.Generator.choice` **does not auto-normalise**
+`p=` (a sum ≠ 1.0 raises `ValueError`). If the YAML is normalised
+by hand, an editing mistake that breaks the sum causes either a
+silent regression or a runtime crash. `normalize_probabilities` behaves
+as follows:
 
-- すでに正規化済みなら `np.asarray(probs, dtype=float)` と byte-identical(byte-diff invariant 保持)
-- 非正規化なら正規化
-- sum=0 なら uniform fallback(`fallback="raise"` で `ValueError` も可)
-- 負の重みは `ValueError`
+- If already normalised: byte-identical with `np.asarray(probs, dtype=float)`
+  (byte-diff invariant preserved).
+- If not normalised: normalises.
+- If `sum == 0`: falls back to uniform (`fallback="raise"` also
+  available to raise `ValueError`).
+- Negative weights raise `ValueError`.
 
-の挙動。inline literal(`p=[0.6, 0.4]` 等)は正規化済が自明なので migration 不要です。
+Inline literals (e.g. `p=[0.6, 0.4]`) are trivially normalised and
+do not need migration.
 
-### Import 時 cross-validation(canonical-constants gate)
+### Import-time cross-validation (canonical-constants gate)
 
-YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュールは、**load 時に canonical 集合へ cross-check** し、未知のキーは `ValueError` で loud-fail します(silent-no-op の構造的防御 — PR-90 教訓)。先例:
+A module whose YAML data embeds external IDs (SNOMED / LOINC /
+antibiotic key, etc.) **cross-checks against the canonical set at
+load time** and loud-fails on unknown keys via `ValueError` (a
+structural defense against silent-no-op — the PR-90 lesson).
+Precedents:
 
-- `clinosim/modules/hai/__init__.py:load_hai_antibiogram` — `HAI_TYPES` × `hai_organisms.yaml` SNOMED × `ANTIBIOTIC_LOINC_LOOKUP` の 3-way 検証
-- `clinosim/modules/observation/microbiology.py:_validate_microbiology` — organism antibiogram key を `antibiotics` set と照合(PR-A 2026-06-26 で silent skip から ValueError へ移行、Fix #100/#101 で 7 cross-refs に拡張)
-- `clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands` — `_NHSN_RESISTANCE_BANDS` の cohort/antibiotic を canonical に対し検証
-- `clinosim/modules/hai/engine.py:_validate_hai_organisms` — `hai_organisms.yaml` を `HAI_TYPES` × SNOMED non-empty × non-negative weight × non-zero-sum で検証(本 PR 2026-06-27)
-- `clinosim/locale/loader.py:_validate_demographics` / `_validate_names` / `_validate_addresses` — `demographics.yaml` の lifestyle_distribution + `names.yaml` の surnames/given_names + `addresses.yaml` の cities を、各 weight の非負 + sum > 0 で検証(本 PR 2026-06-27、4 主要 loader 完備)
-- `clinosim/modules/antibiotic/engine.py:_validate_narrow_ladder` — `narrow_ladder.yaml` を **4-way 検証**: `HAI_TYPES` × `hai_antibiogram.yaml` (forward + reverse-coverage) × `ANTIBIOTIC_DRUGS` + 空コンテナ(top-level / drug list)拒否(PR3b-3 + adversarial-2 stage-3、reverse-coverage は新組織追加時の silent-no-op 防御)
-- `clinosim/modules/antibiotic/audit.py:_validate_narrow_rate_bands` — `_NARROW_RATE_BANDS` cohort string format (per-hai_type のみ、no slash) + 必須 key + [0, 1] 範囲 + 空 list 拒否(PR3b-3 adversarial-1 / 2、cohort string typo 防御)
-- `clinosim/modules/hai/engine.py:_validate_hai_rates` — `per_day_risk ∈ [0, 1]` + `source_device_type ∈ load_devices_config()["devices"]` (HAI sibling sweep 2026-06-29)
-- `clinosim/modules/hai/engine.py:_validate_hai_codes` — `icd10_us_billable` / `icd10_jp_who` / `snomed` を `_code_in_data()` で authoritative cs.codes 直接 membership 検証(HAI sibling sweep 2026-06-29)
-- `clinosim/modules/hai/engine.py:_validate_hai_specimens` — `specimen_snomed` / `test_loinc` を `_code_in_data()` で authoritative 検証(HAI sibling sweep 2026-06-29)
-- `clinosim/modules/hai/lab_lift.py:_validate_hai_lab_lift_config` — `ramp_peak_days > 0` + lift values ∈ [0, 1] + HAI_TYPES forward-coverage(HAI sibling sweep 2026-06-29、inline check から refactor)
+- `clinosim/modules/hai/__init__.py:load_hai_antibiogram` — 3-way
+  validation of `HAI_TYPES` × `hai_organisms.yaml` SNOMED ×
+  `ANTIBIOTIC_LOINC_LOOKUP`.
+- `clinosim/modules/observation/microbiology.py:_validate_microbiology`
+  — cross-checks the organism antibiogram key against the
+  `antibiotics` set (migrated from silent skip to `ValueError` in
+  PR-A 2026-06-26; expanded to 7 cross-refs by Fix #100 / #101).
+- `clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands`
+  — validates the cohort / antibiotic in `_NHSN_RESISTANCE_BANDS`
+  against the canonical set.
+- `clinosim/modules/hai/engine.py:_validate_hai_organisms` —
+  validates `hai_organisms.yaml` on `HAI_TYPES` × SNOMED-non-empty
+  × non-negative-weight × non-zero-sum (this PR 2026-06-27).
+- `clinosim/locale/loader.py:_validate_demographics` /
+  `_validate_names` / `_validate_addresses` — validate
+  `demographics.yaml`'s `lifestyle_distribution`, `names.yaml`'s
+  `surnames` / `given_names`, and `addresses.yaml`'s `cities` on
+  non-negative weight + sum > 0 (this PR 2026-06-27; the 4 main
+  loaders are now complete).
+- `clinosim/modules/antibiotic/engine.py:_validate_narrow_ladder` —
+  **4-way validation** of `narrow_ladder.yaml`: `HAI_TYPES` ×
+  `hai_antibiogram.yaml` (forward + reverse-coverage) ×
+  `ANTIBIOTIC_DRUGS` + empty-container rejection (top-level / drug
+  list) (PR3b-3 + adversarial-2 stage-3; reverse-coverage is a
+  silent-no-op defense for when a new organism is added).
+- `clinosim/modules/antibiotic/audit.py:_validate_narrow_rate_bands`
+  — cohort-string-format check on `_NARROW_RATE_BANDS`
+  (per-hai_type only, no slash) + required keys + range [0, 1] +
+  empty-list rejection (PR3b-3 adversarial-1 / 2; a cohort-string-
+  typo defense).
+- `clinosim/modules/hai/engine.py:_validate_hai_rates` —
+  `per_day_risk ∈ [0, 1]` + `source_device_type ∈ load_devices_config()["devices"]`
+  (HAI sibling sweep 2026-06-29).
+- `clinosim/modules/hai/engine.py:_validate_hai_codes` —
+  `icd10_us_billable` / `icd10_jp_who` / `snomed` verified for
+  membership directly against authoritative `cs.codes` via
+  `_code_in_data()` (HAI sibling sweep 2026-06-29).
+- `clinosim/modules/hai/engine.py:_validate_hai_specimens` —
+  `specimen_snomed` / `test_loinc` authoritatively verified via
+  `_code_in_data()` (HAI sibling sweep 2026-06-29).
+- `clinosim/modules/hai/lab_lift.py:_validate_hai_lab_lift_config`
+  — `ramp_peak_days > 0` + lift values ∈ [0, 1] + HAI_TYPES
+  forward-coverage (HAI sibling sweep 2026-06-29; refactored from
+  an inline check).
 
-新規 module で外部 ID 参照 YAML または確率重み YAML を作る場合は同パターンを必須化してください(`_validate_X(data)` を `load_X` 内で wire、`fallback="raise"` と組み合わせて後方防御も同時に確保)。**Reverse-coverage**(canonical set ⊆ data set)も忘れずに wire — adv-1 stage-2 sibling sweep で発覚した通り、forward-only validation は新 canonical 追加時の silent-no-op を防げない。
+When a new module creates an external-ID-referencing YAML or a
+probability-weight YAML, adopt the same pattern (wire `_validate_X(data)`
+inside `load_X`; combine with `fallback="raise"` for symmetric
+downstream defense). Do not forget **reverse-coverage** (canonical
+set ⊆ data set) either — as revealed by the adv-1 stage-2 sibling
+sweep, forward-only validation cannot prevent silent-no-op when a
+new canonical entry is added.
 
-### Per-dimensional cohort filter(PR3b-3 D1+D2, 2026-06-29)
+### Per-dimensional cohort filter (PR3b-3 D1+D2, 2026-06-29)
 
-監査 clinical-axis の gate が per-(dim1, dim2, ...) cohort の threshold で calibrate されているが gate filter が dimension を捨てている場合、production scale で threshold の意味が崩壊する(現状は n<30 WARN guard でマスクされる)。例: PR3b-3 D1 は band `clabsi/3092008/cefazolin`(S.aureus only)を `hai_type` only で filter していた = S.aureus + S.epidermidis + E.coli 混在計測。D2 は empty-rate threshold(5%)が NHSN panel-eligible denominator 想定なのに全 HAI cohort denominator で計測 = E.faecalis / C.albicans no-panel が分子・分母 inflate。
+When an audit clinical-axis gate is calibrated on a per-(dim1, dim2, …)
+cohort threshold but the gate filter drops a dimension, the threshold's
+meaning breaks at production scale (currently masked by the n<30
+WARN guard). Example: PR3b-3 D1 filtered the band
+`clabsi/3092008/cefazolin` (S. aureus only) by `hai_type` alone —
+i.e. mixed S. aureus + S. epidermidis + E. coli measurement. D2's
+empty-rate threshold (5 %) assumed an NHSN-panel-eligible
+denominator, but was measured on the full HAI cohort denominator —
+i.e. E. faecalis / C. albicans no-panel inflated both numerator and
+denominator.
 
-**新ルール**: 監査 gate を実装するとき、band cohort key の各 dimension を gate filter が消費しているか確認する。消費していない dimension は cohort key から除くか、その dimension の lookup map を build して filter に組込む。**lookup map は (country, audit-run) 内で 1 回 build して複数 gate で再利用**(D1 R-rate + D2 empty-rate が `_organism_per_encounter` を共有する pattern が precedent)。
+**New rule**: when implementing an audit gate, verify that the gate
+filter consumes every dimension of the band cohort key. Either drop
+an unconsumed dimension from the cohort key, or build a lookup map
+for that dimension and incorporate it into the filter. **Build the
+lookup map once per (country, audit-run) and reuse it across
+multiple gates** (the D1 R-rate + D2 empty-rate sharing
+`_organism_per_encounter` is the precedent).
 
-- 先例: `clinosim/audit/axes/clinical.py:_organism_per_encounter` — `Observation.ndjson` mb-org-* を 1 pass 走査して `{enc_id: {organism_snomed, ...}}` を build、D1 + D2 で再利用
-- 先例: `clinosim/audit/axes/clinical.py:_panel_eligible_organisms` — `load_hai_antibiogram()` keys から panel-eligible set を derive(no-panel は hard-coded list でなく antibiogram 不在で auto-exclude)
+- Precedent: `clinosim/audit/axes/clinical.py:_organism_per_encounter`
+  — one-pass walk of `Observation.ndjson mb-org-*` builds
+  `{enc_id: {organism_snomed, ...}}`, reused by D1 + D2.
+- Precedent: `clinosim/audit/axes/clinical.py:_panel_eligible_organisms`
+  — derives the panel-eligible set from `load_hai_antibiogram()`
+  keys (no-panel is auto-excluded by antibiogram absence, not a
+  hard-coded list).
 
-### Validator ordering & reverse-staleness(PR3b-3 chain stage-2/3, 2026-06-29)
+### Validator ordering & reverse staleness (PR3b-3 chain stage-2/3, 2026-06-29)
 
-監査 module の `audit.py` が canonical-constants validator + reverse-coverage validator を定義する場合、以下 3 原則を守ること:
+When an audit module's `audit.py` defines canonical-constants
+validators + reverse-coverage validators, obey these 3 principles:
 
-1. **All validators MUST run BEFORE `register_audit_module`**: validator が失敗したときに stale spec が registry に入らないことを保証する。先例 `clinosim/modules/antibiotic/audit.py:656-658` で `_validate_narrow_rate_bands` + `_validate_nhsn_resistance_bands` + `_validate_narrow_ladder_at_import` が全て register の前に invoked。
-2. **Forward-coverage + reverse-coverage の対称性**: band 集合が "every (dim1, dim2) in canonical YAML が covered or explicitly exempt" を要求する場合(reverse)、同じ集合に "every canonical HAI_TYPE has at least one band"(forward)も要求する。両方 missing → 新 dimension 追加時の silent-no-op risk。先例 `_validate_narrow_rate_bands`(forward)+ `_validate_nhsn_resistance_bands`(reverse + forward via band)。
-3. **Reverse-coverage の staleness check**: exempt list を持つ validator は「exempt 中の entry が現 YAML データに本当に存在するか」も check。dropping an organism from YAML が stale exempt を残す silent risk を防ぐ。先例 `_validate_nhsn_resistance_bands` の `_NHSN_REVERSE_COVERAGE_EXEMPT` staleness ループ。
+1. **All validators MUST run BEFORE `register_audit_module`**: this
+   guarantees a stale spec never enters the registry on validator
+   failure. Precedent
+   `clinosim/modules/antibiotic/audit.py:656-658`, where
+   `_validate_narrow_rate_bands` + `_validate_nhsn_resistance_bands`
+   + `_validate_narrow_ladder_at_import` are all invoked before
+   `register`.
+2. **Symmetry of forward-coverage + reverse-coverage**: when a band
+   set requires "every (dim1, dim2) in the canonical YAML is covered
+   or explicitly exempt" (reverse), require also "every canonical
+   HAI_TYPE has at least one band" (forward) on the same set.
+   Missing either → silent-no-op risk when a new dimension is
+   added. Precedent `_validate_narrow_rate_bands` (forward) +
+   `_validate_nhsn_resistance_bands` (reverse + forward via band).
+3. **Reverse-coverage staleness check**: a validator that owns an
+   exempt list should also check "does every exempt entry actually
+   exist in the current YAML data?". This prevents a silent risk
+   where dropping an organism from YAML leaves a stale exempt.
+   Precedent: the `_NHSN_REVERSE_COVERAGE_EXEMPT` staleness loop in
+   `_validate_nhsn_resistance_bands`.
 
-regression test pattern:`inspect.getsource()` で source 内 `_validate_*()` 呼び出し position が `register_audit_module(` よりも小さいことを assert(`tests/integration/test_antibiotic_audit.py:test_validators_run_before_register_audit_module` precedent)。
+Regression-test pattern: assert with `inspect.getsource()` that
+each `_validate_*()` call in the source appears at a position less
+than `register_audit_module(` (precedent
+`tests/integration/test_antibiotic_audit.py:test_validators_run_before_register_audit_module`).
 
-### Cross-module canonical URI constants(PR3b-5, 2026-06-29)
+### Cross-module canonical URI constants (PR3b-5, 2026-06-29)
 
-FHIR builder と audit reader が共有する canonical URI(system / identifier
-URI 等)を hard-coded literal で書かないこと。**writer 側 module(`clinosim/modules/output/_fhir_*.py`)に module-level 定数として定義 + reader 側がそれを import する pattern**を踏襲。rename 時に reader 側で ImportError が triggered され、silent-no-op skip を防御する(同パターン:`MB_ORG_ID_PREFIX` PR #113 / `ABX_ORDER_ID_PREFIX` PR #114 / `HAI_EVENT_ID_SYSTEM` PR3b-5)。
+Do not hard-code canonical URIs (system / identifier URIs, etc.)
+shared between a FHIR builder and an audit reader as string
+literals. **Adopt the pattern: define at the writer-side module
+(`clinosim/modules/output/_fhir_*.py`) as a module-level constant
++ have the reader side import it**. On rename, the reader triggers
+`ImportError`, defending against silent-no-op skip (same pattern:
+`MB_ORG_ID_PREFIX` PR #113 / `ABX_ORDER_ID_PREFIX` PR #114 /
+`HAI_EVENT_ID_SYSTEM` PR3b-5).
 
-定数命名規約:
-- ID prefix:`<BUILDER_PREFIX>_<RESOURCE>_ID_PREFIX = "..."`(例 `MB_ORG_ID_PREFIX`)
-- system URI(canonical):`<DOMAIN>_<CONCEPT>_SYSTEM = "..."`(例 `HAI_EVENT_ID_SYSTEM`)
-- 内部 URI には **urn-form** を使用:`urn:clinosim:identifier:<purpose>`(identifier system 用、例 `HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"`)または `urn:clinosim:<resource>:<concept>`(その他 resource 用、例 `_fhir_practitioner.py` の `"urn:clinosim:staff"`)。pr117-adv-1 で http-form と urn-form が両方混在していた状態を urn-form に統一(JP Core / US Core / HL7 IG に登録ない内部 concept のみ urn-form を許容)
+Constant-naming convention:
+- ID prefix: `<BUILDER_PREFIX>_<RESOURCE>_ID_PREFIX = "..."` (e.g.
+  `MB_ORG_ID_PREFIX`).
+- System URI (canonical): `<DOMAIN>_<CONCEPT>_SYSTEM = "..."` (e.g.
+  `HAI_EVENT_ID_SYSTEM`).
+- For internal URIs, use the **urn form**:
+  `urn:clinosim:identifier:<purpose>` (for `identifier.system`; e.g.
+  `HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"`) or
+  `urn:clinosim:<resource>:<concept>` (for other resources; e.g.
+  `"urn:clinosim:staff"` in `_fhir_practitioner.py`). In pr117-adv-1
+  the coexisting mix of http-form and urn-form was unified to the
+  urn form (the urn form is allowed only for internal concepts that
+  have no registered URI in JP Core / US Core / an HL7 IG).
 
-contract test pattern:`assert clinical_axis.CONSTANT is mb_builder.CONSTANT`(同一 object identity 確認、import path 一致を pin)。先例 `tests/unit/test_clinical_axis_per_organism.py:test_hai_event_id_system_canonical_constant_shared`。
+Contract-test pattern: `assert clinical_axis.CONSTANT is mb_builder.CONSTANT`
+(pinning identical object identity and matching import path).
+Precedent
+`tests/unit/test_clinical_axis_per_organism.py:test_hai_event_id_system_canonical_constant_shared`.
 
-### データ専用モジュール (variant)
+### Data-only modules (variant)
 
-`modules/sdoh/` のように、**reference データ + loader のみ** を持ち、generation / assignment logic を持たないモジュール variant も認められます (PR2 2026-06-24 で確立)。`clinosim/codes/` が同パターンの先例です。
+A module variant that carries **only reference data + a loader** —
+with no generation / assignment logic — like `modules/sdoh/`, is
+also permitted (established by PR2 2026-06-24). `clinosim/codes/`
+is the precedent for the same pattern.
 
-判定基準:
-- データは存在するが、generation / assignment は別の場所 (patient activator / FHIR output builder / 他モジュール enricher) で行われる
-- 複数の consumer から参照される共通参照データを集約したい
-- 将来同テーマのデータ拡張余地が高い
+Criteria:
+- The data exists, but generation / assignment happens elsewhere
+  (patient activator, FHIR output builder, another module's
+  enricher).
+- Multiple consumers need to share a common reference-data source.
+- The theme has strong room for future data expansion.
 
-レイアウト:
+Layout:
 
 ```
 clinosim/modules/<name>/
-  __init__.py            <- public API (loader 関数を export)
-  engine.py              <- @lru_cache 付き loader のみ (assignment 関数なし OK)
-  reference_data/*.yaml  <- データ駆動の定義
-  README.md              <- 他モジュールと同型
+  __init__.py            <- public API (export the loader function)
+  engine.py              <- @lru_cache-wrapped loader only (no assignment function OK)
+  reference_data/*.yaml  <- data-driven definitions
+  README.md              <- same shape as other modules
 ```
 
-enricher.py は **不要** (post_records enricher の登録なし)。`ENRICHER_SEED_OFFSETS` への登録も **不要** (RNG draw なし)。
+`enricher.py` is **not needed** (no post_records enricher
+registration). Registration in `ENRICHER_SEED_OFFSETS` is also
+**not needed** (no RNG draw).
 
-### canonical な「pure-function engine」(MOD-13 が手本)
+### Canonical "pure-function engine" (MOD-13 is the reference)
 
-`observation/engine.py` は **cross-module import がゼロ** で、physiology 値・reference range などすべての文脈を関数引数で受け取ります。新規 engine はこれを手本にしてください。
+`observation/engine.py` has **zero cross-module imports** and takes
+all context — physiology values, reference ranges, etc. — as
+function arguments. Use it as the reference for new engines.
 
 ```python
-# 良い例: 文脈は引数で受ける。clinosim.modules.* を import しない
+# Good: take context as arguments. Do not import clinosim.modules.*
 def generate_lab_result(canon: str, true_value: float, rng: np.random.Generator,
                         reference_ranges: dict | None = None) -> float:
     ...
 ```
 
-### 型は `clinosim/types/` に置く (engine 内に定義しない)
+### Types live in `clinosim/types/` (not defined inside the engine)
 
-**共有 runtime 型はモジュール内に定義してはいけません** (AGENTS.md: "All types defined in `clinosim/types/`")。
+**Shared runtime types must not be defined inside a module** (per
+AGENTS.md: "All types defined in `clinosim/types/`").
 
-- `@dataclass` → runtime 型 (例: `clinosim/types/patient.py`, `encounter.py`, `output.py`)
-- Pydantic `BaseModel` → YAML-loaded config 型 (AD-18, 例: `clinosim/types/config.py`)
+- `@dataclass` → runtime types (e.g. `clinosim/types/patient.py`,
+  `encounter.py`, `output.py`).
+- Pydantic `BaseModel` → YAML-loaded config types (AD-18; e.g.
+  `clinosim/types/config.py`).
 
-> **既知の負債 (MOD-2..6, TYP-2):** `PersonRecord`/`LifeEvent`/`HospitalizationSummary` (population/engine.py)、`StaffMember`/`StaffRoster` (staff/engine.py)、`ProcedureRecord`/`RehabSession` (procedure/engine.py)、`HospitalState` (facility/hospital_state.py)、`DiseaseProtocol` (disease/protocol.py) は engine 内に残っています。**新規型はこの轍を踏まず最初から `clinosim/types/<name>.py` に定義し、`clinosim/types/__init__.py` に `__all__` で export** してください。loader 関数 (`load_disease_protocol` 等) は module 側に残し、型を types から import します。
+> **Known debt (MOD-2..6, TYP-2):** `PersonRecord` / `LifeEvent` /
+> `HospitalizationSummary` (population/engine.py), `StaffMember` /
+> `StaffRoster` (staff/engine.py), `ProcedureRecord` /
+> `RehabSession` (procedure/engine.py), `HospitalState`
+> (facility/hospital_state.py), and `DiseaseProtocol`
+> (disease/protocol.py) still live in engines. **Do not repeat that
+> mistake — define new types under `clinosim/types/<name>.py` from
+> the start and export them from `clinosim/types/__init__.py` via
+> `__all__`.** Loader functions (`load_disease_protocol`, etc.)
+> stay on the module side, and the types are imported from `types`.
 
-### YAML は Pydantic で validate する
+### YAML is validated with Pydantic
 
-`disease/protocol.py` が正しい手本です。`DiseaseProtocol(BaseModel)` を `load_disease_protocol()` で `model_validate()` します。
+`disease/protocol.py` is the correct reference:
+`DiseaseProtocol(BaseModel)` is loaded via
+`load_disease_protocol()` with `model_validate()`.
 
-> **アンチパターン (ENC-1):** `encounter/protocol.py` は 46 YAML を `dict[str,Any]` のまま返し、`except Exception: pass` でパースエラーを握り潰しています。**新規 YAML protocol は必ず Pydantic でラップ** し、`extra="allow"` で段階導入してください。bare `except` 禁止。
+> **Anti-pattern (ENC-1):** `encounter/protocol.py` returns 46
+> YAMLs as bare `dict[str, Any]` and swallows parse errors with
+> `except Exception: pass`. **Wrap every new YAML protocol in
+> Pydantic** and adopt gradually via `extra="allow"`. `bare
+> except` is forbidden.
 
-### `__init__.py` で public API を明示する
+### Publish the public API via `__init__.py`
 
-> **既知の負債 (MOD-1, TYP-1):** 18 モジュール中 17 の `__init__.py` が空 (0 byte) で、caller が `from clinosim.modules.population.engine import LifeEvent` のように内部に直接到達しています。`identity/__init__.py` のみが正しく `__all__` で export しています。**新規モジュールは `__init__.py` に public surface を re-export** し、caller は `.engine` ではなく `from clinosim.modules.<name> import X` を使ってください。
+> **Known debt (MOD-1, TYP-1):** 17 of 18 module `__init__.py`
+> files are empty (0 bytes), and callers reach internals directly
+> (`from clinosim.modules.population.engine import LifeEvent`).
+> Only `identity/__init__.py` correctly exports via `__all__`.
+> **New modules re-export the public surface from `__init__.py`**
+> and callers use `from clinosim.modules.<name> import X` rather
+> than `.engine`.
 
-### README に `## Dependencies` を書く
+### Write `## Dependencies` in the README
 
-許可された依存先 (`clinosim/types/`, `clinosim/codes/`, `clinosim/locale/`, README に列挙した他モジュール) を `## Dependencies` (英語見出し、`identity/README.md` に合わせる) で明記します。
+Declare permitted dependencies (`clinosim/types/`, `clinosim/codes/`,
+`clinosim/locale/`, and any other modules explicitly listed in the
+README) under `## Dependencies` (English heading, matching
+`identity/README.md`).
 
 ---
 
-## データ生成の作法
+## Data-generation conventions
 
-### 決定論コントラクト (AD-16 / AD-17)
+### Determinism contract (AD-16 / AD-17)
 
-- **CIF が唯一の simulation 出力** (AD-17)。venue simulator は `return CIFPatientRecord(...)` で record を **返す** だけ。共有コレクションへ直接書いたり output adapter を呼んだりしない (DET-7 が手本: `inpatient.py:402` 等が return-based)。
-- **`random.random()` / stdlib `random` 禁止** (AD-16, DET-8)。必ず引数で渡された `np.random.Generator` を使う。module-level の可変 global state も禁止。
-  - **違反例 (DET-4):** `_generate_vitals._prev_diet` のように関数オブジェクト属性へ状態を溜めると、`FORCED-0001` 等の決定論 ID を共有する複数テスト呼び出しで stale 状態を読みます。状態は呼び出しスコープの local 変数に閉じること。
+- **CIF is the sole simulation output** (AD-17). A venue simulator
+  only **returns** a record via `return CIFPatientRecord(...)`. It
+  does not write into a shared collection directly, nor call an
+  output adapter (DET-7 reference: `inpatient.py:402` and similar
+  return-based flows).
+- **`random.random()` / stdlib `random` are forbidden** (AD-16,
+  DET-8). Always use the `np.random.Generator` passed as an argument.
+  Module-level mutable global state is also forbidden.
+  - **Violation example (DET-4):** storing state on a function
+    object attribute (`_generate_vitals._prev_diet`) causes multiple
+    test invocations that share a deterministic id like `FORCED-0001`
+    to read stale state. Keep state in call-scope local variables.
 
-### PR 検証ガイド: byte-diff vs 3-axis DQR
+### PR verification guide: byte-diff vs. 3-axis DQR
 
-**真の goal**: CIF データを **FHIR R4 + JP Core 準拠** の正確な出力に変換すること + 臨床的整合性 + JP localization 品質。
+**The true goal**: convert CIF data into accurate **FHIR R4 +
+JP-Core-compliant** output + preserve clinical coherence + preserve
+JP-localization quality.
 
-PR の性質によって適切な検証手段が異なります:
+Different PR shapes call for different verification approaches:
 
-| PR の性質 | 検証手段 | 何を保証するか |
+| PR shape | Verification | What it guarantees |
 |---|---|---|
-| **Pure mechanical refactor** (例: 内部構造整理、helper 共通化、registry 中央化、ファイル分割) | **byte-diff** — master と branch で同 seed/設定で生成した 11 NDJSON が sha256 IDENTICAL | refactor 前後で **出力が一切変わっていない** = no-regression gate |
-| **新機能 / リアリティ改善** (例: 新 analyte 追加、scenario flag 追加、medication coupling 追加、新疾患追加) | **`clinosim audit run`** — 4 軸 (structural / clinical / jp_language / silent_no_op) を一括検証。Module 著者は `clinosim/modules/<name>/audit.py` に `ModuleAuditSpec` を register する。レポートは `docs/reviews/<date>-<topic>-audit.md` に保存 | **FHIR R4 / JP Core 適合性 + 臨床整合性 + JP language 品質 + silent-no-op gate** (PR-90 class of bug 再発防止) = goal achievement gate |
-| **Pure docs update** (例: README 更新、新 doc 作成) | regression check (テスト緑) + manual link review | code 変更がないこと |
-| **混合** (refactor + 小さな behavior change) | byte-diff で意図的変化のみあることを確認 + DQR で goal 維持を確認 | 両方 |
+| **Pure mechanical refactor** (e.g. internal restructure, helper unification, registry centralisation, file split) | **byte-diff** — the 11 NDJSONs generated at the same seed / config on master and branch are sha256 IDENTICAL | **The output has not changed at all** before / after the refactor — a no-regression gate. |
+| **New feature / realism improvement** (e.g. new analyte, new scenario flag, new medication coupling, new disease) | **`clinosim audit run`** — a 4-axis (structural / clinical / jp_language / silent_no_op) batch check. The module author registers a `ModuleAuditSpec` in `clinosim/modules/<name>/audit.py`. Save the report as `docs/reviews/<date>-<topic>-audit.md`. | **FHIR R4 / JP Core compliance + clinical coherence + JP-language quality + silent-no-op gate** (prevents recurrence of PR-90-class bugs) — a goal-achievement gate. |
+| **Pure docs update** (e.g. README update, new doc) | Regression check (tests green) + manual link review. | No code has changed. |
+| **Mixed** (refactor + a small behavior change) | Confirm via byte-diff that only intended changes exist + confirm the goal is preserved via DQR. | Both. |
 
-**byte-diff は手段、3-axis DQR が真の goal テスト**:
+**byte-diff is a means; the 3-axis DQR is the true goal test.**
 
-- refactor PR で byte-diff を使うのは「behavior 変えていない」を mechanical に確認する shortcut。output が変わると refactor の主張が嘘になるため。
-- 新機能 PR では byte-diff は **完全一致でなくて OK** (意図的に変わる)。3-axis DQR が真のゴール — FHIR/JP Core 規格適合性、臨床的妥当性 (warfarin patient の INR 2-3 等)、JP localization 品質 (display 文字列、JLAC10 ja の権威出典準拠) — を verify する。
-- 例: Phase 2a (D-dimer / causes_vte) は新機能なので、9 NDJSON は byte-identical で残り 2 つ (Observation / DR) が意図的に変化。3-axis DQR で PE/DVT/CI 患者の D-dimer が VTE-positive 帯にあるか + JLAC10 2B140 ja JCCLS 公式日本語名であるか等を verify。
+- Using byte-diff on a refactor PR is a mechanical shortcut for
+  "no behavior change". If the output changes, the refactor claim
+  is a lie.
+- On a new-feature PR, byte-diff **may deliberately not be
+  identical**. The 3-axis DQR verifies the real goal — FHIR / JP-
+  Core spec compliance, clinical validity (e.g. INR 2-3 in a
+  warfarin patient), JP-localization quality (display strings,
+  JLAC10 `ja` conforming to authoritative sources).
+- Example: Phase 2a (D-dimer / causes_vte) is a new feature, so 9
+  NDJSONs are byte-identical and the remaining 2 (Observation /
+  DR) change intentionally. The 3-axis DQR verifies whether the D-
+  dimer of PE / DVT / CI patients sits in the VTE-positive band, and
+  whether the JLAC10 2B140 `ja` matches the JCCLS official Japanese
+  name, etc.
 
-#### byte-diff の実施手順
+#### byte-diff procedure
 
-1. master HEAD で `python -m clinosim.simulator.cli generate -p 2000 -s 42 --country US --format fhir-r4 -o scratchpad/<topic>_byte_diff/master/us` (JP も同様)
-2. branch HEAD で同じコマンドを `scratchpad/<topic>_byte_diff/branch/us` に出力
-3. sha256 比較スクリプトを実行 (PR1/PR2 の `scratchpad/refactor_pr*_byte_diff/compare.py` を template として参照)
-4. 全 11 NDJSON が IDENTICAL であることを確認 (refactor PR の gate)
-5. 結果を `scratchpad/<topic>_byte_diff_results.md` に書き、PR 本体に commit
+1. On master HEAD run
+   `python -m clinosim.simulator.cli generate -p 2000 -s 42 --country US --format fhir-r4 -o scratchpad/<topic>_byte_diff/master/us`
+   (and the same for JP).
+2. On branch HEAD run the same command into
+   `scratchpad/<topic>_byte_diff/branch/us`.
+3. Run the sha256-comparison script (use
+   `scratchpad/refactor_pr*_byte_diff/compare.py` from PR1 / PR2 as
+   a template).
+4. Confirm all 11 NDJSONs are IDENTICAL (the refactor-PR gate).
+5. Save the results as `scratchpad/<topic>_byte_diff_results.md`
+   and commit them into the PR.
 
-#### 3-axis DQR の実施手順
+#### 3-axis DQR procedure
 
-1. US p≥10000 + JP p≥5000 で生成 (大規模 cohort で cohort-emergent 現象を捕捉)
-2. 3 軸監査スクリプトを実行 (Phase 2a/2b の `scratchpad/phase2*_dqr/dqr_audit.py` を template として参照):
-   - **構造**: refRange 100%, interpretation 100%, display≠code 100%, id 重複 0
-   - **臨床**: 期待される疾患ごとの lab 値域 (DKA HCO3 / ACS Troponin / VTE D-dimer / AF chronic INR therapeutic 等)
-   - **JP language**: US 日本語混入 0、JP display 文字列が JCCLS-JSLM / MHLW 等の権威出典準拠
-3. 全 axes PASS を確認
-4. 結果を `docs/reviews/<date>-<topic>-data-quality-review.md` に書き、PR 本体に commit
+1. Generate at US p≥10000 + JP p≥5000 (a large cohort to catch
+   cohort-emergent phenomena).
+2. Run the 3-axis audit script (use
+   `scratchpad/phase2*_dqr/dqr_audit.py` from Phase 2a / 2b as a
+   template):
+   - **Structural**: `refRange` 100 %, `interpretation` 100 %,
+     `display ≠ code` 100 %, zero id duplicates.
+   - **Clinical**: expected per-disease lab-value ranges (DKA HCO3
+     / ACS Troponin / VTE D-dimer / AF chronic INR therapeutic,
+     etc.).
+   - **JP language**: zero Japanese leakage into US, JP display
+     strings conforming to authoritative sources (JCCLS-JSLM /
+     MHLW etc.).
+3. Confirm every axis PASSes.
+4. Save the results as `docs/reviews/<date>-<topic>-data-quality-review.md`
+   and commit them into the PR.
 
-### physiology state から導出する
+### Derive from physiological state
 
-可能な限り、lab/vital は患者の physiology state (true value) から導出します。生成 chain は次に funnel させてください:
+Whenever possible, derive labs / vitals from the patient's
+physiological state (`true_value`). Funnel the generation chain
+through:
 
 ```
 order → canonical_lab_name → generate_lab_result(true_value, rng) → determine_flag(canon, observed, sex, reference_ranges)
 ```
 
-疾患・薬剤が特定 lab を lift する場合は `derive_lab_values` の scenario flag(`causes_X`)/ medication flag(`on_warfarin` 等)を使います — flag の一覧・追加手順・J5-pattern 防止の設計は [`SCENARIO_FLAGS.md`](../SCENARIO_FLAGS.md) を参照。
+When a disease or a drug lifts a specific lab, use `derive_lab_values`'s
+scenario flags (`causes_X`) or medication flags (`on_warfarin`,
+etc.) — see [`SCENARIO_FLAGS.md`](../SCENARIO_FLAGS.md) for the flag
+list, addition procedure, and the design that prevents the J5
+pattern.
 
-> **注意 (OBS-3):** `determine_flag()` には locale reference range を渡してください。現状 call site (`inpatient.py:604`, `outpatient.py:178`, `emergency.py:146` 等) が `reference_ranges=` を渡さず、JP 出力で interpretation が US default で計算される不整合があります。新規 call は `reference_ranges=load_reference_ranges(country).get("ranges", {})` を渡すこと。
+> **Note (OBS-3):** pass the locale reference range into
+> `determine_flag()`. The current call sites (`inpatient.py:604`,
+> `outpatient.py:178`, `emergency.py:146`, etc.) do not pass
+> `reference_ranges=`, so interpretation on JP output is computed
+> against the US default — an inconsistency. New calls must pass
+> `reference_ranges=load_reference_ranges(country).get("ranges", {})`.
 >
-> **注意 (DET-6):** fallback baseline lab 値を venue ごとに別定義しないこと (`outpatient.py` の WBC 6500 と `emergency.py` の WBC 7500 が乖離)。observation/engine.py 側の単一定数を import してください。
+> **Note (DET-6):** do not define fallback baseline lab values
+> per-venue (WBC 6500 in `outpatient.py` diverging from WBC 7500 in
+> `emergency.py`). Import the single constant on the
+> `observation/engine.py` side.
 
-### sub-seed 導出ルール (コピーすべき正確なパターン)
+### Sub-seed derivation rules (the exact pattern to copy)
 
-各 enricher/module は **master seed から自分専用の sub-stream を導出** し、メイン random stream には触れません。derive 式は `clinosim/simulator/seeding.py:derive_sub_seed(master, module_offset, key)` に集約済 (AD-16 / AD-59)。
+Each enricher / module **derives its own sub-stream from the master
+seed** and never touches the main random stream. The derivation
+formula is centralised in
+`clinosim/simulator/seeding.py:derive_sub_seed(master, module_offset, key)`
+(AD-16 / AD-59).
 
 ```python
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
-# 患者/encounter ごとに fresh な Generator を作る
+# a fresh Generator per patient / encounter
 rng = np.random.default_rng(
     derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["my_module"], patient_id)
 )
 ```
 
-`key` には patient_id / household_id / encounter_id など **per-entity な一意キー** を必ず混ぜます (DET-3: identity module は integer-only の sub-seed で per-patient keying を欠く既知の不整合)。
+`key` must always mix in a **per-entity unique key** such as
+patient_id / household_id / encounter_id (DET-3: the identity module
+has a known inconsistency where the sub-seed is integer-only and
+lacks per-patient keying).
 
-**新モジュールのオフセット登録**: モジュール作成時、sub-seed の数値オフセットを **`clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS`** に登録します。convention は **16-bit hex ASCII (2 文字)** — モジュール名から覚えやすい 2 文字を選ぶ:
+**Registering a new module's offset**: when creating a module,
+register the sub-seed numeric offset in
+**`clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS`**. The
+convention is **16-bit hex ASCII (2 characters)** — pick two
+letters mnemonic for the module name:
 
 ```python
 ENRICHER_SEED_OFFSETS = {
-    "identity":       540_054,    # 例外: legacy decimal (grandfathered)
-    "microbiology":   770_077,    # 例外: legacy decimal (grandfathered)
+    "identity":       540_054,    # exception: legacy decimal (grandfathered)
+    "microbiology":   770_077,    # exception: legacy decimal (grandfathered)
     "immunization":   0x494D,     # "IM"
     "code_status":    0x4353,     # "CS"
     "family_history": 0x4648,     # "FH"
     "care_level":     0x434C,     # "CL"
     "nursing":        0x4E55,     # "NU"
-    # 新モジュール例: "device" = 0x4456 ("DV"), "hai" = 0x4841 ("HA")
+    # New module examples: "device" = 0x4456 ("DV"), "hai" = 0x4841 ("HA")
 }
 ```
 
-モジュール側はローカル定数を持たず、registry から import します。dict 末尾の `assert len(set(...values())) == len(...)` が重複オフセットを import 時に検出します(誤って既存モジュールの RNG ストリームを汚染するのを構造的に防ぐ)。
+Modules do not carry a local constant — they import from the
+registry. The `assert len(set(...values())) == len(...)` at the end
+of the dict detects duplicate offsets at import time (structurally
+preventing accidental contamination of an existing module's RNG
+stream).
 
-### CIF への書き込み: Base か extensions か (decision tree)
+### Writing into CIF: Base or extensions (decision tree)
 
-判定フロー:
+Decision flow:
 
-1. **すべての EHR で必須のデータか?**
-   - YES → 質問 2 へ
-   - NO  → `extensions["module_name"]` (opt-in module data)
-2. **将来削除しないコアフィールドか?**
-   - YES → 質問 3 へ
-   - NO  → `extensions`
-3. **複数モジュール / FHIR builder が参照するか?**
-   - YES → `CIFPatientRecord` typed field
-   - NO  → `extensions`
+1. **Is this data essential to every EHR?**
+   - YES → question 2.
+   - NO  → `extensions["module_name"]` (opt-in module data).
+2. **Is it a core field that will never be removed?**
+   - YES → question 3.
+   - NO  → `extensions`.
+3. **Do multiple modules / FHIR builders reference it?**
+   - YES → `CIFPatientRecord` typed field.
+   - NO  → `extensions`.
 
-決定 matrix:
+Decision matrix:
 
-| 軸 | typed field | extensions |
+| Axis | Typed field | `extensions` |
 |---|---|---|
 | Always-on Base data | ✓ | |
 | Opt-in module data | | ✓ |
-| 共通 core EHR field | ✓ | |
+| Shared core EHR field | ✓ | |
 | Theme-specific | | ✓ |
-| 例 | `immunizations` / `family_history` / `code_status` / `care_level` | `nursing` extensions (always-on だが specialized) |
-| Persistence | `asdict` で完全シリアライズ | dict、explicit シリアライズ |
+| Examples | `immunizations` / `family_history` / `code_status` / `care_level` | `nursing` extensions (always-on but specialised) |
+| Persistence | Fully serialised by `asdict` | dict, explicitly serialised |
 
-**例外明文化 (TYP-4)**: always-on の Base enricher で typed field を使ってよい (例 `nursing_risk_assessments`)。**新規 opt-in module は必ず `extensions[<module>]` を使う**。
+**Exception clarified (TYP-4)**: an always-on Base enricher may use
+a typed field (e.g. `nursing_risk_assessments`). **A new opt-in
+module must always use `extensions[<module>]`.**
 
-> **PR2 教訓 (data-only variant)**: `modules/sdoh/` のような data-only module variant は **データを CIF に書かない** — patient activator が `PatientProfile.smoking_status` 等の既存 field を更新するため、本質的に Base data。新モジュールで CIF 書き込みが不要なら、この判定フローはスキップ。
+> **PR2 lesson (data-only variant)**: a data-only module variant
+> like `modules/sdoh/` **does not write into CIF** — the patient
+> activator updates existing fields like
+> `PatientProfile.smoking_status`, so it is essentially Base data.
+> If a new module does not need to write into CIF, skip this
+> decision flow entirely.
 
 ```python
-# opt-in module enricher 内
+# inside an opt-in module enricher
 rec.extensions["my_module"] = [asdict(r) for r in my_records]
 
-# always-on Base enricher 内 (例外: TYP-4)
+# inside an always-on Base enricher (exception: TYP-4)
 rec.my_typed_field = [asdict(r) for r in my_records]
 ```
 
 ---
 
-## 拡張点の使い方
+## Using the extension points
 
-**3 つの registry はいずれも core dispatch を編集せず、登録だけで拡張** します。core を直接編集してはいけません。
+**All three registries extend by registration only — never edit the
+core dispatch.**
 
-### A. FHIR リソースを追加する (`register_bundle_builder`, AD-56)
+### A. Add a FHIR resource (`register_bundle_builder`, AD-56)
 
-`_build_bundle()` を編集しない。builder は `(ctx: BundleContext) -> list[dict]` の pure 関数で raw resource を返します (Bundle entry でラップしない — registry が `_entry()` で一律ラップする)。
+Do not edit `_build_bundle()`. A builder is a pure function
+`(ctx: BundleContext) -> list[dict]` that returns raw resources (do
+not wrap in a Bundle entry — the registry uniformly wraps them via
+`_entry()`).
 
 ```python
 # clinosim/modules/output/fhir_r4_adapter.py
 def _bb_my_resource(ctx: BundleContext) -> list[dict]:
     # ctx fields: record, country, roster_map, hospital_config, patient_data,
     #             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...
-    if ctx.country != "JP":          # 国 gate は builder 内で行う
+    if ctx.country != "JP":          # country gating happens inside the builder
         return []
     return [{"resourceType": "...", "id": f"...-{ctx.primary_enc_id}", ...}]
 
 register_bundle_builder(_bb_my_resource)
 ```
 
-- 命名は `_bb_*` prefix で統一 (EXT-6: `_build_nursing_observations` 等は旧式)。
-- `Resource.id` は型内で globally unique に。encounter-scoped id (`lab-{encounter_id}-...`) を使う (FA-7)。
-- **double-wrap 注意 (FA-3):** builder は raw resource dict を返す。`_entry()` を builder 内で呼ばない。
+- Naming is unified with the `_bb_*` prefix (EXT-6:
+  `_build_nursing_observations` etc. are legacy).
+- `Resource.id` must be globally unique within its type. Use
+  encounter-scoped ids (`lab-{encounter_id}-...`) — FA-7.
+- **Double-wrap caveat (FA-3):** the builder returns a raw resource
+  dict. Do not call `_entry()` inside the builder.
 
-**Canonical example — `_bb_service_requests` (PR1, 2026-06-29, `_fhir_service_request.py`):**
+**Canonical example — `_bb_service_requests` (PR1, 2026-06-29,
+`_fhir_service_request.py`):**
 
 ```python
 # clinosim/modules/output/_fhir_service_request.py
@@ -486,23 +869,31 @@ register_bundle_builder(_bb_service_requests)
 ```
 
 Key patterns illustrated:
-- `ctx.record` is the `CIFPatientRecord` (dict in production JSON path, dataclass in tests).
-  Always access fields via `_o(order, "field_name", default)` (`get_attr_or_key` wrapper, see
-  `clinosim/modules/_shared.py`) to support both paths — unit tests may pass dataclass
-  instances while the production path deserializes to dict.
-- Panel grouping logic lives in `clinosim/modules/order/panel_grouping.py:classify_lab_specs`.
-  Never inline a panel-detection if/elif in the builder. [AD-61]
-- Both dict-path and dataclass-path MUST be covered by tests: a subprocess integration smoke
-  test exercises the production dict path (see `tests/integration/test_service_request.py`).
+- `ctx.record` is the `CIFPatientRecord` (a dict on the production
+  JSON path, a dataclass in tests). Always access fields via
+  `_o(order, "field_name", default)` (the `get_attr_or_key` wrapper —
+  see `clinosim/modules/_shared.py`) to support both paths — unit
+  tests may pass dataclass instances while the production path
+  deserialises to dict.
+- Panel-grouping logic lives in
+  `clinosim/modules/order/panel_grouping.py:classify_lab_specs`.
+  Never inline a panel-detection if/elif inside a builder. [AD-61]
+- Both dict-path and dataclass-path MUST be covered by tests: a
+  subprocess integration smoke test exercises the production dict
+  path (see `tests/integration/test_service_request.py`).
 
-See [`clinosim/modules/output/_fhir_service_request.py`](../clinosim/modules/output/_fhir_service_request.py) for the full implementation.
+See [`clinosim/modules/output/_fhir_service_request.py`](../clinosim/modules/output/_fhir_service_request.py)
+for the full implementation.
 
-### B. 出力フォーマットを追加する (`register_output_adapter`, AD-58)
+### B. Add an output format (`register_output_adapter`, AD-58)
 
-CLI の `--format` dispatch を編集しない。`OutputAdapter` Protocol を満たすクラスを `adapters_builtin.py` パターンで登録します。adapter は **CIF + `clinosim.codes` + `clinosim.locale` のみ** に依存できます。
+Do not edit the CLI `--format` dispatch. Register a class that
+satisfies the `OutputAdapter` Protocol, following the
+`adapters_builtin.py` pattern. An adapter may depend **only on CIF
++ `clinosim.codes` + `clinosim.locale`**.
 
 ```python
-# clinosim/modules/output/adapter.py の Protocol:
+# clinosim/modules/output/adapter.py Protocol:
 #   format_id: str / description: str / subdir: str
 #   def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -> None
 class MyFormatAdapter:
@@ -512,27 +903,31 @@ class MyFormatAdapter:
 
     def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -> None:
         from clinosim.modules.output.my_converter import convert_cif_to_myformat
-        convert_cif_to_myformat(cif_dir, out_dir, country=ctx.country)  # ctx.country を渡す
+        convert_cif_to_myformat(cif_dir, out_dir, country=ctx.country)  # pass ctx.country
 
 register_output_adapter(MyFormatAdapter())
 ```
 
-builtin は `_ensure_builtins()` が `adapters_builtin` を import して self-register します。新規 builtin はそこに `register_output_adapter(...)` を追加してください。
+For built-in adapters, `_ensure_builtins()` imports `adapters_builtin`
+which self-registers. Add `register_output_adapter(...)` there for
+a new built-in.
 
-> **注意 (FA-9):** `ctx.country` を必ず使う。CSV adapter は現状 `ctx.country` を捨てている既知の負債があります。
+> **Note (FA-9):** always use `ctx.country`. The CSV adapter has a
+> known debt of dropping `ctx.country`.
 
-### C. post-pass を追加する (Enricher, AD-56)
+### C. Add a post-pass (Enricher, AD-56)
 
-`run_beta` にインライン化しない。`Enricher` を `register_builtin_enrichers()` (`enrichers.py`) で登録します。
+Do not inline into `run_beta`. Register the `Enricher` in
+`register_builtin_enrichers()` (`enrichers.py`).
 
 ```python
 # clinosim/simulator/enrichers.py
-@dataclass  # 実体は既存の Enricher dataclass
+@dataclass  # the actual definition is the existing Enricher dataclass
 # Enricher(name, stage, run: Callable[[EnricherContext], None], order=100, enabled=lambda c: True)
 
 def run_my_pass(ctx: EnricherContext) -> None:
     # ctx fields: config, master_seed, population, records
-    rng_seed = _sub_seed(ctx.master_seed, "my-pass")  # 自前 sub-seed (メイン stream に触れない)
+    rng_seed = _sub_seed(ctx.master_seed, "my-pass")  # own sub-seed (do not touch the main stream)
     for rec in ctx.records:
         rec.extensions["my_module"] = ...
 
@@ -540,109 +935,195 @@ register_enricher(Enricher(
     name="my_module",
     stage=POST_RECORDS,                 # or POST_POPULATION
     run=run_my_pass,
-    order=300,                          # 昇順実行。order は固定 = 決定論
+    order=300,                          # ascending execution. Fixed order = determinism.
     enabled=lambda c: c.module_enabled("my_module", default=True),
 ))
 ```
 
-- stage は `POST_POPULATION` (population 生成後/simulation 前、`ctx.population` を mutate) または `POST_RECORDS` (record 生成後、`ctx.records` を読み/extend)。
-- registry は name で idempotent。order 整数が実行順 = 決定論を支配します。
+- `stage` is `POST_POPULATION` (after population generation, before
+  simulation — mutates `ctx.population`) or `POST_RECORDS` (after
+  record generation — reads / extends `ctx.records`).
+- The registry is idempotent by name. The integer `order` controls
+  execution order = governs determinism.
 
 ---
 
-## 何のデータ/コードを使うか
+## What data / code to use
 
-### codes と locale の分離
+### Codes vs. locale separation
 
-- **`clinosim/codes/`** = 国際標準コードシステム (locale 非依存, EN-first)。`icd-10-cm.yaml`, `icd-10.yaml`, `loinc.yaml`, `rxnorm.yaml`, `yj.yaml`, `cpt.yaml`, `k-codes.yaml`, `cvx.yaml` 等。
-- **`clinosim/locale/`** = 国/文化依存データのみ (氏名, 住所, reference range, `code_mapping_*`)。terminology は codes/ へ移行済み (CODES-2)。**locale に display text を置かない。**
+- **`clinosim/codes/`** = international standard code systems
+  (locale-independent, EN-first): `icd-10-cm.yaml`, `icd-10.yaml`,
+  `loinc.yaml`, `rxnorm.yaml`, `yj.yaml`, `cpt.yaml`, `k-codes.yaml`,
+  `cvx.yaml`, etc.
+- **`clinosim/locale/`** = country / culture-dependent data only
+  (names, addresses, reference ranges, `code_mapping_*`).
+  Terminology has moved into `codes/` (CODES-2). **Do not put
+  display text in locale.**
 
-### display は `lookup()` で解決する (AD-30)
+### Resolve display via `lookup()` (AD-30)
 
-CIF は **コードのみ** 保持。display は出力時に解決します。
+CIF holds **codes only**. Display is resolved at output time.
 
 ```python
 from clinosim.codes import lookup as code_lookup
-name = code_lookup("icd-10-cm", "I50.9", "en")  # 見つからなければ code 自身/EN fallback
+name = code_lookup("icd-10-cm", "I50.9", "en")  # returns code itself / EN fallback on miss
 ```
 
-> **アンチパターン (DUP-3, FA-4, DIAG-1):** `CONDITION_NAMES` (patient/activator.py) のような display dict を新設しない。`csv_adapter.py` / `narrative_generator.py` の `admission_diagnosis_name` 等は CIF に存在しない ghost field で常に空。新規コードは `code_lookup(system, code, lang)` を使う。
+> **Anti-pattern (DUP-3, FA-4, DIAG-1):** do not create a new
+> display dict like `CONDITION_NAMES` (patient/activator.py). Fields
+> like `admission_diagnosis_name` in `csv_adapter.py` /
+> `narrative_generator.py` are ghost fields absent from CIF and
+> always empty. Use `code_lookup(system, code, lang)` for new code.
 
-### URI は `get_system_uri()` で解決する
+### Resolve URI via `get_system_uri()`
 
 ```python
 from clinosim.codes import get_system_uri
-uri = get_system_uri("snomed-ct")  # FHIR system URI を文字列リテラルで書かない
+uri = get_system_uri("snomed-ct")  # do not embed FHIR system URIs as string literals
 ```
 
-> **アンチパターン (URI-1, CODES-4, FA-2):** SNOMED/LOINC/UCUM/HL7 URI を生文字列で埋め込まない (現状 fhir_r4_adapter.py に多数残存)。新規キーは `codes/loader.py` の `_BUILTIN_URIS` に正準 HL7 URI を登録してから `get_system_uri()` を使う。
+> **Anti-pattern (URI-1, CODES-4, FA-2):** do not embed
+> SNOMED / LOINC / UCUM / HL7 URIs as raw strings (many remnants
+> still in `fhir_r4_adapter.py`). Register a new key's canonical
+> HL7 URI in `_BUILTIN_URIS` in `codes/loader.py` before using
+> `get_system_uri()`.
 
-### 国→コード体系の選択は `system_key_for()`(2026-07-02)
+### Country → code-system selection via `system_key_for()` (2026-07-02)
 
-「JP は JLAC10 / ICD-10 (WHO) / YJ / K-codes、それ以外は LOINC / ICD-10-CM / RxNorm / CPT」という国→code system 選択は、必ず `clinosim.codes.system_key_for(kind, country)` を使います(single source of truth):
+The "JP uses JLAC10 / ICD-10 (WHO) / YJ / K-codes, everything else
+uses LOINC / ICD-10-CM / RxNorm / CPT" mapping must always go
+through `clinosim.codes.system_key_for(kind, country)` (single
+source of truth):
 
 ```python
 from clinosim.codes import system_key_for
 
-system = system_key_for("lab", country)        # JP → "jlac10", 他 → "loinc"
-system = system_key_for("diagnosis", country)  # JP → "icd-10", 他 → "icd-10-cm"
-system = system_key_for("drug", country)       # JP → "yj",     他 → "rxnorm"
-system = system_key_for("procedure", country)  # JP → "k-codes", 他 → "cpt"
+system = system_key_for("lab", country)        # JP → "jlac10", else → "loinc"
+system = system_key_for("diagnosis", country)  # JP → "icd-10", else → "icd-10-cm"
+system = system_key_for("drug", country)       # JP → "yj",     else → "rxnorm"
+system = system_key_for("procedure", country)  # JP → "k-codes", else → "cpt"
 ```
 
-- `kind` は `"lab"` / `"diagnosis"` / `"drug"` / `"procedure"` の 4 種。未知の kind は `KeyError` で fail-loud(silent fallback しない)。
-- `country` は case-insensitive(内部で JP 判定を正規化)。
+- `kind` is one of `"lab"` / `"diagnosis"` / `"drug"` /
+  `"procedure"`. An unknown `kind` raises `KeyError` fail-loud (no
+  silent fallback).
+- `country` is case-insensitive (JP decision is normalised
+  internally).
 
-> **アンチパターン:** `"jlac10" if country == "JP" else "loinc"` のような inline 分岐を builder / simulator の call site に書かない。共通ロジック統一前は同じ選択が複数箇所に inline され、新 code system 追加時に一部 call site だけ更新漏れする J5-pattern risk があった。
+> **Anti-pattern:** do not write inline branching like
+> `"jlac10" if country == "JP" else "loinc"` at builder / simulator
+> call sites. Before the shared-logic unification, the same choice
+> was inlined in many places, creating a J5-pattern risk where
+> only some call sites were updated when a new code system was
+> added.
 
-### internal-name → 標準コードは `code_mapping`
+### Internal-name → standard code = `code_mapping`
 
-内部テスト名 (`"WBC"`) → 標準コードは `locale/<country>/code_mapping_*.yaml` で解決します (`load_code_mapping()`)。YAML を直 `yaml.safe_load` せず canonical loader を通すこと (LOC-1)。
+Resolve internal test names (`"WBC"`) → standard code via
+`locale/<country>/code_mapping_*.yaml` (`load_code_mapping()`).
+Route through the canonical loader — do not `yaml.safe_load` the
+YAML directly (LOC-1).
 
-### locale の shared データも canonical loader を通す(2026-07-02 拡充)
+### The locale's shared data also goes through a canonical loader (expanded 2026-07-02)
 
-`clinosim/locale/loader.py` には shared locale データの cached loader が揃っています。**canonical loader が存在する YAML を module 内 / FHIR builder 内で raw `yaml.safe_load` するのは禁止**(共通ロジック統一 2026-07-02 で `_fhir_localization.py` と `patient/activator.py` の inline 読み込みを全て loader 経由に移行済):
+`clinosim/locale/loader.py` provides cached loaders for the shared
+locale data. **When a canonical loader exists for a YAML, raw
+`yaml.safe_load` inside a module or a FHIR builder is forbidden**
+(the 2026-07-02 shared-logic unification migrated the inline reads
+in `_fhir_localization.py` and `patient/activator.py` to the
+loaders):
 
-- `load_med_terms_ja()` — JP 薬剤用語テーブル(categories + terms、YAML 順序保持 = 置換 order-sensitive)
-- `load_drug_names_ja()` — 英→日 薬剤名 mapping(key は lowercase 正規化済)
-- `load_department_display()` — 診療科 display テーブル(`{key: {en, ja}}`)
-- `load_chronic_medications()` — 慢性疾患→常用薬(patient activator が消費)
+- `load_med_terms_ja()` — JP medical-terms table (categories +
+  terms; preserves YAML order = order-sensitive substitution).
+- `load_drug_names_ja()` — EN → JA drug-name mapping (keys are
+  lowercase-normalised).
+- `load_department_display()` — department display table
+  (`{key: {en, ja}}`).
+- `load_chronic_medications()` — chronic-condition → routine
+  medications (consumed by the patient activator).
 
-いずれも `@lru_cache(maxsize=1)` — 戻り値は共有 instance なので mutate 禁止(上記「`@lru_cache` の `maxsize` 規約」の必須ルール参照)。新しい shared locale YAML を追加する場合も同様に `locale/loader.py` に cached loader を定義し、consumer はそれを import します。
+All are `@lru_cache(maxsize=1)` — the return value is a shared
+instance, so mutation is forbidden (see the mandatory rule under
+"`@lru_cache` `maxsize` convention"). When you add a new shared
+locale YAML, define its cached loader in `locale/loader.py`
+similarly, and have consumers import it.
 
-### 権威出典 / English-first / コード coverage
+### Authoritative sources / English-first / code coverage
 
-- **権威出典のみ:** CMS (ICD-10-CM), NLM (RxNorm, ICD-10-CM API `clinicaltables.nlm.nih.gov/api/icd10cm`), WHO (ICD-10, `icd.who.int/browse10`), Regenstrief (LOINC), AMA (CPT), JCCLS/JSLM (JLAC10), MHLW (YJ, K codes)。**コードを fabricate しない** (CODES-7: RxNorm CUI 18631 を 2 薬で共有した fabricated display が実例)。
-- **English-first:** `codes/data/*.yaml` の全エントリに `en` 必須、他言語 (`ja` 等) は任意 (CODES-1)。
-- **emittable な診断コードは全て登録:** disease の `icd_codes` (primary + variants)、encounter の `icd10_code`、`builtin_differentials.yaml` の `differentials[*].icd` + `diagnosis_progression`。US billable は `icd-10-cm.yaml`、非 billable は `code_mapping_diagnosis/us.yaml` で billable leaf へ。JP は WHO 3-4 桁を `icd-10.yaml` に (CM 粒度は `code_mapping_diagnosis/jp.yaml` で WHO 親へ畳む)。追加後は必ず:
+- **Authoritative sources only:** CMS (ICD-10-CM), NLM (RxNorm,
+  ICD-10-CM API `clinicaltables.nlm.nih.gov/api/icd10cm`), WHO
+  (ICD-10, `icd.who.int/browse10`), Regenstrief (LOINC), AMA
+  (CPT), JCCLS / JSLM (JLAC10), MHLW (YJ, K codes). **Do not
+  fabricate codes** (CODES-7: sharing a fabricated display for
+  RxNorm CUI 18631 across 2 drugs is a real case).
+- **English-first:** every entry in `codes/data/*.yaml` requires
+  `en`; other languages (`ja`, etc.) are optional (CODES-1).
+- **Every emittable diagnosis code must be registered:** disease
+  `icd_codes` (primary + variants), encounter `icd10_code`,
+  `builtin_differentials.yaml` `differentials[*].icd` +
+  `diagnosis_progression`. US billable in `icd-10-cm.yaml`;
+  non-billable in `code_mapping_diagnosis/us.yaml` folded to a
+  billable leaf. JP puts WHO 3-4 digit codes into `icd-10.yaml`
+  (CM-grained codes fold into WHO parents via
+  `code_mapping_diagnosis/jp.yaml`). After addition, always run:
 
 ```bash
 pytest tests/unit/test_diagnosis_code_coverage.py
 ```
 
-> RxNorm/YJ/CPT/K-codes/CVX には同等の coverage test がまだありません (CODES-6)。drug/procedure コードを追加したら手動で mapping → codes の存在を確認してください。
+> There is no equivalent coverage test yet for RxNorm / YJ / CPT /
+> K-codes / CVX (CODES-6). After adding a drug / procedure code,
+> manually verify that the mapping → codes existence chain resolves.
 
 ---
 
-## 追加時チェックリスト
+## Checklist when adding
 
-順番に実行:
+Execute in order:
 
-1. **対象モジュールの `README.md` を読む** (Dependencies と既存 API を把握)。
-2. **共有型を `clinosim/types/<name>.py` に定義** し `types/__init__.py` に `__all__` で export (engine 内に定義しない)。`@dataclass` = runtime, Pydantic = config (AD-18)。
-3. **データ駆動なら `reference_data/*.yaml` + Pydantic 検証** (`model_validate`)。bare `except` 禁止。
-4. **決定論 sub-seed** を式どおりに導出 (per-entity key を混ぜる)。`random.random()` / global state 禁止。
-5. **適切な registry で登録:** FHIR → `register_bundle_builder`、出力形式 → `register_output_adapter`、post-pass → `register_enricher`。core dispatch / `_build_bundle` / `run_beta` / CLI `--format` を編集しない。
-6. **コード coverage:** 新規/変更コードを権威出典で照合 → `codes/data/<system>.yaml` (`en` 必須) または `code_mapping_*` に登録 → `pytest tests/unit/test_diagnosis_code_coverage.py`。
-7. **README / types を更新** (API・データ構造が変わったら)。`README.md` の依存グラフで downstream 影響を確認。
-8. **`pytest -x -q`** (unit 必須、commit 前)。出力に影響しうるなら `pytest -m e2e` で golden を確認。
-9. **生成された CIF + FHIR を臨床的整合性で監査** (lab/vital が physiology と整合、診断コードが正しく解決、JP 出力に英語が混入しないか、URI/reference 整合)。
+1. **Read the target module's `README.md`** (grasp Dependencies
+   and existing API).
+2. **Define shared types in `clinosim/types/<name>.py`** and
+   export them from `types/__init__.py` via `__all__` (do not
+   define types inside the engine). `@dataclass` = runtime,
+   Pydantic = config (AD-18).
+3. **If data-driven, `reference_data/*.yaml` + Pydantic
+   validation** (`model_validate`). `bare except` is forbidden.
+4. **Derive the deterministic sub-seed** with the exact formula
+   (mix in a per-entity key). `random.random()` / global state is
+   forbidden.
+5. **Register at the correct registry**: FHIR →
+   `register_bundle_builder`; output format →
+   `register_output_adapter`; post-pass → `register_enricher`. Do
+   not edit the core dispatch / `_build_bundle` / `run_beta` /
+   CLI `--format`.
+6. **Code coverage:** cross-check the new / changed codes against
+   an authoritative source → register in
+   `codes/data/<system>.yaml` (`en` required) or `code_mapping_*`
+   → run `pytest tests/unit/test_diagnosis_code_coverage.py`.
+7. **Update the README / types** (when API / data structures
+   change). Confirm downstream impact via the README's dependency
+   graph.
+8. **`pytest -x -q`** (unit is mandatory before commit). If output
+   may be affected, verify goldens via `pytest -m e2e`.
+9. **Audit the generated CIF + FHIR for clinical coherence**
+   (labs / vitals consistent with physiology; diagnosis codes
+   resolve correctly; no English leakage in JP output; URI /
+   reference integrity).
 
 ---
 
 ## Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)
 
-The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 structural + auto Stage 2 template narratives) + dev facility (`test-disease --format`, `narrate` verb) enables fast iteration on different change types. Use this matrix to select the fastest workflow for your change. Canonical spec for the two-pass structural/narrative CIF separation = [`clinosim/modules/output/SPEC.md`](../clinosim/modules/output/SPEC.md) § "Stage 2: Narrative Generation".
+The two-pass CIF generation architecture (`clinosim simulate` →
+Stage 1 structural + auto Stage 2 template narratives) plus the dev
+facility (`test-disease --format`, `narrate` verb) enables fast
+iteration on different change types. Use this matrix to select the
+fastest workflow for your change. The canonical spec for the two-
+pass structural / narrative CIF separation is
+[`clinosim/modules/output/SPEC.md`](../clinosim/modules/output/SPEC.md)
+§ "Stage 2: Narrative Generation".
 
 ### Change types and iteration time
 
@@ -763,31 +1244,51 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
 
 - **Seed pinning:** All structural + narrative generation uses deterministic seed (default 42). Use `--seed N` to reproduce exact cohort across runs.
 - **Narrative version pointer:** `cif/narratives/current_version.txt` tracks active narrative version. Export defaults to `current`, or specify `--narrative-version <id>`.
-- **Backwards compat:** Old CIF without narrative dir → `export-fhir` emits empty narrative and warns. `test-disease --format cif` writes structural CIF only (no narrative, consistent with `generate` Stage 1 output).
+- **Backwards compat:** Old CIF without narrative dir → `export-fhir` emits empty narrative and warns. `test-disease --format cif` writes structural CIF only (no narrative, consistent with `simulate` Stage 1 output).
 
 ---
 
-## よくある落とし穴
+## Common pitfalls
 
 **Do**
-- engine は pure function、文脈は引数で渡す (`observation/engine.py` が手本)。
-- 型は `clinosim/types/`、display は `code_lookup()`、URI は `get_system_uri()`。
-- 国判定は `is_jp()`、display 言語は `resolve_lang()`、国→code system 選択は `system_key_for()`(hand-rolled な `country == "JP"` 変種 / inline 分岐を書かない)。
-- cached loader の戻り値は read-only 扱い(共有 instance — mutate 禁止)。
-- venue simulator は `CIFPatientRecord` を **return**、opt-in は `extensions[<module>]` に書く。
-- sub-seed に per-entity key を混ぜ、各 entity ごとに fresh な `default_rng` を作る。
-- YAML は Pydantic で validate、canonical loader (`locale/loader.py`, `codes/loader.py`) を通す。
+- Engines are pure functions; context is passed as arguments
+  (`observation/engine.py` is the reference).
+- Types live in `clinosim/types/`; display via `code_lookup()`; URI
+  via `get_system_uri()`.
+- Country decisions via `is_jp()`; display language via
+  `resolve_lang()`; country → code-system selection via
+  `system_key_for()` (do not write hand-rolled `country == "JP"`
+  variants or inline branching).
+- Treat cached loader return values as read-only (shared instance —
+  mutation forbidden).
+- Venue simulators **return** `CIFPatientRecord`; opt-in modules
+  write into `extensions[<module>]`.
+- Mix a per-entity key into the sub-seed and construct a fresh
+  `default_rng` per entity.
+- Validate YAML with Pydantic; route through the canonical loaders
+  (`locale/loader.py`, `codes/loader.py`).
 
 **Don't**
-- ❌ CIF に display text を保存しない (codes のみ。AD-30)。
-- ❌ FHIR system URI / 診断 display を生文字列でハードコードしない (URI-1, MOD-11, DUP-1/2/3, FA-2/4/8)。
-- ❌ `random.random()` / stdlib `random` / module-level 可変 global を使わない (AD-16; DET-4 の `_prev_diet` が反面教師)。
-- ❌ core dispatch (`_build_bundle`, `run_beta`, CLI `--format`) を編集しない — registry で拡張する。
-- ❌ 共有型を engine 内に定義しない (MOD-2..6)。`__init__.py` を空のままにせず public API を export する (MOD-1/TYP-1)。
-- ❌ private 関数 (`_sample_given_name` 等) を他モジュールから import しない (MOD-7/TYP-5) — locale の public utility に昇格させる。
-- ❌ コードを fabricate しない / `except Exception: pass` で YAML エラーを握り潰さない (CODES-7, ENC-1)。
-- ❌ `ctx.country` を捨てない (FA-9)。`determine_flag()` に locale reference range を渡し忘れない (OBS-3)。
-- ❌ venue ごとに baseline 値や lookup table を別定義して乖離させない (DET-6, DUP-1)。
+- ❌ Do not save display text into CIF (codes only — AD-30).
+- ❌ Do not hard-code FHIR system URIs / diagnosis displays as raw
+  strings (URI-1, MOD-11, DUP-1 / 2 / 3, FA-2 / 4 / 8).
+- ❌ Do not use `random.random()` / stdlib `random` / module-level
+  mutable globals (AD-16; DET-4's `_prev_diet` is a cautionary
+  case).
+- ❌ Do not edit the core dispatch (`_build_bundle`, `run_beta`,
+  CLI `--format`) — extend via the registry.
+- ❌ Do not define shared types inside an engine (MOD-2..6). Do not
+  leave `__init__.py` empty — export the public API
+  (MOD-1 / TYP-1).
+- ❌ Do not import private functions (`_sample_given_name` etc.)
+  from another module (MOD-7 / TYP-5) — promote them to the
+  locale's public utility.
+- ❌ Do not fabricate codes; do not swallow YAML errors with
+  `except Exception: pass` (CODES-7, ENC-1).
+- ❌ Do not drop `ctx.country` (FA-9). Do not forget to pass the
+  locale reference range into `determine_flag()` (OBS-3).
+- ❌ Do not define per-venue baseline values or lookup tables that
+  drift (DET-6, DUP-1).
 
 ## Adding a new patient profile fixture (AD-66)
 
@@ -804,3 +1305,5 @@ Quick summary:
 **AD-66 policy** (see `AGENTS.md` for canonical wording):
 - Profile YAML changes MUST regenerate golden + commit both together
 - Unexpected `git diff` on goldens after intentional template changes = regression suspicion
+
+Japanese counterpart: [`CONTRIBUTING-modules.ja.md`](CONTRIBUTING-modules.ja.md).
