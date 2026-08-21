@@ -31,7 +31,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
-from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # type: ignore[attr-defined]
     RADIOLOGY_CATEGORY_V2_0074,
     RADIOLOGY_REPORT_ID_PREFIX,
     V2_0074_SYSTEM,
@@ -71,9 +71,14 @@ def _build_imaging_report_composition(
     study: Any,
     report: Any,
     ctx: BundleContext,
-    seq: int,
+    seq: str,
 ) -> dict[str, Any]:
-    """Build one Composition resource for a single ImagingStudy + RadiologyReport."""
+    """Build one Composition resource for a single ImagingStudy + RadiologyReport.
+
+    ``seq`` is passed as a string to match the ``imgrpt-<enc>-<n>`` DR id
+    suffix — this keeps DR ↔ Composition id parity even when the sequence
+    would produce a non-integer suffix (e.g. legacy `imgrpt-<enc>-a`).
+    """
     country = ctx.country
     _is_jp = is_jp(country)
 
@@ -84,14 +89,14 @@ def _build_imaging_report_composition(
 
     # Author: reader-radiologist not on report; fall back to the encounter's
     # attending physician via roster_map (mirrors radiology DR fallback).
-    attending_id = ""
+    attending_id: str = ""
     for enc in ctx.record.get("encounters", []) or []:
         eid = _o(enc, "encounter_id", "")
         if eid == encounter_id:
             attending_id = _o(enc, "attending_physician_id", "") or ""
             break
-    if not attending_id:
-        attending_id = ctx.roster_map and next(
+    if not attending_id and ctx.roster_map:
+        attending_id = next(
             (s.get("staff_id", "") for s in ctx.roster_map.values() if s.get("role") == "physician"),
             "",
         )
