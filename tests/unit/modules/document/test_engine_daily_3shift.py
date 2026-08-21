@@ -99,24 +99,43 @@ def test_shift_schedule_is_canonical_3_shifts_chronological() -> None:
 # ─── daily_3shift emission ───────────────────────────────────────────────────
 
 
-def test_los3_emits_9_nursing_shift_notes() -> None:
-    """LOS=3 inpatient → 3 shifts × 3 days = 9 nursing_shift_note stubs."""
+def test_los3_emits_7_nursing_shift_notes_after_arrival_gate() -> None:
+    """LOS=3 inpatient, admission 10:00 → Day 0 skips 00:00 + 08:00 shifts
+    (pre-arrival, Issue #820/N-6); keeps 16:00. Day 1 + Day 2 = full 3 shifts.
+    Total: 1 + 3 + 3 = 7 (was 9 before the gate was added)."""
     record = _make_record(_make_encounter(discharge_dt=LOS_3_DT))
     document_enricher(_make_ctx(record))
     notes = _shift_notes(record)
-    assert len(notes) == 9, f"Expected 9 shift notes for LOS=3, got {len(notes)}"
+    assert len(notes) == 7, f"Expected 7 shift notes for LOS=3 (Issue #820 gate), got {len(notes)}"
 
 
-def test_shift_note_count_is_3x_progress_note_count() -> None:
-    """nursing_shift_note (daily_3shift) == 3 × progress_note (daily), same skip rules."""
+def test_no_shift_note_precedes_admission_time() -> None:
+    """Issue #820 (N-6): no nursing shift note may be authored before the
+    encounter's admission_datetime. Real practice: if arrival is 10:12, the
+    00:00 and 08:00 shift on the admission day did not happen."""
+    record = _make_record(_make_encounter(discharge_dt=LOS_3_DT))
+    document_enricher(_make_ctx(record))
+    for doc in _shift_notes(record):
+        authored = datetime.fromisoformat(doc.authored_datetime)
+        assert authored >= ADMISSION_DT, (
+            f"Shift note authored at {authored} predates admission {ADMISSION_DT} — "
+            f"Issue #820 (N-6) arrival-gate regressed."
+        )
+
+
+def test_shift_note_count_is_3x_progress_note_count_minus_arrival_gate() -> None:
+    """Structural relationship: 3 × progress_note MINUS the Day-0 pre-arrival
+    shifts skipped by the Issue #820 gate. For ADMISSION_DT 10:00 → 2 shifts
+    dropped (00:00, 08:00), so shift_count = 3 × progress_count − 2."""
     record = _make_record(_make_encounter(discharge_dt=LOS_3_DT))
     document_enricher(_make_ctx(record))
     progress = [d for d in record.documents if d.task_type == "progress_note"]
-    assert len(_shift_notes(record)) == 3 * len(progress)
+    assert len(_shift_notes(record)) == 3 * len(progress) - 2
 
 
-def test_shift_keys_complete_per_day() -> None:
-    """Each LOS day carries exactly one night + one day + one evening note."""
+def test_shift_keys_complete_after_arrival_day() -> None:
+    """After Issue #820 gate: Day 0 (arrival day) may carry a partial set;
+    every subsequent LOS day carries the full chronological triplet."""
     record = _make_record(_make_encounter(discharge_dt=LOS_3_DT))
     document_enricher(_make_ctx(record))
     by_date: dict[str, list[str]] = {}
@@ -124,17 +143,23 @@ def test_shift_keys_complete_per_day() -> None:
         authored = datetime.fromisoformat(doc.authored_datetime)
         by_date.setdefault(authored.date().isoformat(), []).append(doc.shift)
     assert len(by_date) == 3, f"Expected notes on 3 distinct dates, got {sorted(by_date)}"
-    for day, shifts in by_date.items():
-        assert shifts == ["night", "day", "evening"], (
-            f"Day {day}: expected chronological [night, day, evening], got {shifts}"
+    dates_sorted = sorted(by_date.keys())
+    # Day 0 (arrival at 10:00): 00:00 + 08:00 skipped, only "evening" remains.
+    assert by_date[dates_sorted[0]] == ["evening"]
+    # Day 1 and Day 2 have full triplet.
+    for day in dates_sorted[1:]:
+        assert by_date[day] == ["night", "day", "evening"], (
+            f"Day {day}: expected chronological [night, day, evening], got {by_date[day]}"
         )
 
 
-def test_authored_datetime_uses_shift_hour_offsets() -> None:
-    """authored_datetime = calendar day date + 00:00 / 08:00 / 16:00 (not admission time)."""
+def test_authored_datetime_uses_shift_hour_offsets_post_arrival() -> None:
+    """authored_datetime = calendar day date + 00:00 / 08:00 / 16:00 (not admission time).
+    Issue #820 gate skips Day-0 shifts before admission, so only 16:00 fires on Day 0."""
     record = _make_record(_make_encounter(discharge_dt=LOS_3_DT))
     document_enricher(_make_ctx(record))
     hours = {datetime.fromisoformat(d.authored_datetime).hour for d in _shift_notes(record)}
+    # Day 1 + Day 2 give all 3 hours; Day 0 contributes only 16.
     assert hours == {0, 8, 16}, f"Expected shift hours {{0, 8, 16}}, got {hours}"
     minutes = {datetime.fromisoformat(d.authored_datetime).minute for d in _shift_notes(record)}
     assert minutes == {0}, f"Shift note minutes must be 00, got {minutes}"
@@ -205,11 +230,14 @@ def test_in_progress_encounter_uses_los_proxy() -> None:
 
     physiological_states has one entry per day + admission state; len=4 → 3 days,
     same proxy the `daily` branch uses via _compute_los_days.
+
+    Issue #820 (N-6): Day 0 shifts before admission_dt (10:00) are skipped
+    (00:00 + 08:00), so total is 1 (Day 0 evening) + 3 + 3 = 7 (was 9).
     """
     record = _make_record(_make_encounter(discharge_dt=None, status="in_progress"))
     record.physiological_states = [SimpleNamespace()] * 4  # admission + 3 days
     document_enricher(_make_ctx(record))
-    assert len(_shift_notes(record)) == 9
+    assert len(_shift_notes(record)) == 7
 
 
 def test_cancelled_encounter_emits_no_shift_notes() -> None:

@@ -452,6 +452,14 @@ def document_enricher(ctx: Any) -> None:
                         day_date = (admission_dt + timedelta(days=day)).date()
                         for shift_key, shift_hour in SHIFT_SCHEDULE:
                             shift_dt = datetime.combine(day_date, time(hour=shift_hour))
+                            # Issue #820 (N-6): Day 0 shifts before arrival
+                            # cannot exist in real practice — a 10:12 arrival
+                            # has no 00:00 / 08:00 nursing record for the
+                            # admission day. Skip any shift_dt that predates
+                            # the actual admission_dt. Day 1+ never triggers
+                            # this (admission_dt < day_date's 00:00 shift).
+                            if shift_dt < admission_dt:
+                                continue
                             documents.append(
                                 ClinicalDocument(
                                     document_id=(f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}-{shift_key}"),
