@@ -32,7 +32,7 @@
 
 - 使用予定モデルに対しターゲットリージョンで **Bedrock model access
   approved** な AWS アカウント
-  ([Request model access](#1-request-bedrock-model-access) 参照)。
+  ([Bedrock model access をリクエスト](#1-bedrock-model-access-をリクエスト) 参照)。
 - Linux 稼働の EC2 インスタンス (Amazon Linux 2023 / Ubuntu 22.04 /
   同等)。
 - インスタンスに Python 3.11+。

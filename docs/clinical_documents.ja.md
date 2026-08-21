@@ -12,8 +12,8 @@ NDJSON エクスポート内の FHIR R4 `DocumentReference` リソースとし�
 - [エンドツーエンドワークフロー](#workflow)
 - [プロンプトテンプレートの記述と編集](#prompts)
 - [プロブナンスと再現性](#provenance)
-- [新規文書種別の追加](#adding-a-new-document-type)
-- [新規言語の追加](#adding-a-new-language)
+- [新規文書種別の追加](#新規文書種別の追加)
+- [新規言語の追加](#新規言語の追加)
 
 ---
 
