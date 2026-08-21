@@ -33,6 +33,7 @@ from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (
 from clinosim.modules.output.fhir_r4.documents.composition import _bb_compositions
 from clinosim.modules.output.fhir_r4.documents.document_reference_checkup import _bb_document_references_checkup
 from clinosim.modules.output.fhir_r4.documents.documents import _bb_document_references
+from clinosim.modules.output.fhir_r4.documents.imaging_report import _bb_imaging_report_compositions
 from clinosim.modules.output.fhir_r4.encounters.care_level import _bb_care_level
 from clinosim.modules.output.fhir_r4.encounters.care_team import _bb_care_teams
 from clinosim.modules.output.fhir_r4.encounters.endpoint import _bb_endpoints
@@ -401,6 +402,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_document_references,  # Task 10: DocumentReference from record.documents (free_text, §2.2)
     _bb_compositions,  # Task 9: Composition (section-structured H&P / Discharge)
     _bb_document_references_checkup,  # P2-13 PR3 sub-PR-E: DocumentReference wrapper for HEALTH_CHECKUP_REPORT  # noqa: E501
+    _bb_imaging_report_compositions,  # Issue #818 (N-4): section-structured 画像検査報告書 per RadiologyReport
 ]
 
 
