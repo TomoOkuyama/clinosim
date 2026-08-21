@@ -19,8 +19,9 @@ data from a virtual hospital.
 
 Most synthetic-EHR tools produce records by sampling from disease
 distributions. **clinosim runs the disease.** Every patient carries a
-hidden 13-variable physiological state, and every lab / vital /
-medication is derived from that state.
+hidden 14-variable physiological state
+(`clinosim/types/clinical.py::PhysiologicalState`), and every lab /
+vital / medication is derived from that state.
 
 Three concrete differentiators:
 
