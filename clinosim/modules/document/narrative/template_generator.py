@@ -64,6 +64,65 @@ from clinosim.types.document import DocumentType, FormatType, NarrativeContext, 
 logger = logging.getLogger(__name__)
 
 
+# Issue #819 follow-up: staff-id → name + role suffix resolution for
+# narrative templates. Used by the small number of builders that inject
+# `nurse_id` / `physician_id` verbatim into the narrative text seen by
+# the LLM. Without this the LLM saw raw ids (`DR-CA-002`, `NS-OR-004`)
+# and preserved them into its output — my PR #828 caught them at
+# Composition FHIR-emit time but DocumentReference attachments
+# (Progress Notes, Nursing Records, ED Notes) were untouched, producing
+# a 68% staff-id leak in the deployed cohort.
+_STAFF_ROLE_SUFFIX_JA: dict[str, str] = {
+    "DR": "医師",
+    "NS": "看護師",
+    "CN": "看護師",
+    "RT": "呼吸療法士",
+    "PT": "理学療法士",
+    "OT": "作業療法士",
+    "ST": "言語聴覚士",
+    "PH": "薬剤師",
+}
+_STAFF_ROLE_SUFFIX_EN: dict[str, str] = {
+    "DR": "physician",
+    "NS": "nurse",
+    "CN": "nurse",
+    "RT": "respiratory therapist",
+    "PT": "physical therapist",
+    "OT": "occupational therapist",
+    "ST": "speech therapist",
+    "PH": "pharmacist",
+}
+
+
+def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict], is_ja: bool) -> str:
+    """Return `<name>` + role suffix from ``roster_map``, or the raw
+    ``staff_id`` when the id is not resolvable.
+
+    Never fabricates a name for an unknown id (mirrors the same rule as
+    the sibling FHIR-emit walker `_localize_practitioner_ids_in_text`
+    in `composition.py`).
+
+    Examples::
+
+        _resolve_staff_name("NS-OR-004", roster, is_ja=True)  → "小松 凜 看護師"
+        _resolve_staff_name("DR-CA-002", roster, is_ja=False) → "加瀬 幸男 (physician)"
+        _resolve_staff_name("XYZ-999", {}, is_ja=True)        → "XYZ-999"
+    """
+    if not staff_id:
+        return staff_id
+    staff = roster_map.get(staff_id) if roster_map else None
+    if not staff:
+        return staff_id
+    name = staff.get("name") or ""
+    if not name:
+        return staff_id
+    prefix = staff_id.split("-", 1)[0] if "-" in staff_id else ""
+    suffix = (_STAFF_ROLE_SUFFIX_JA if is_ja else _STAFF_ROLE_SUFFIX_EN).get(prefix, "")
+    if not suffix:
+        return name
+    return f"{name} {suffix}" if is_ja else f"{name} ({suffix})"
+
+
 def _render_home_med_name(m: Any, lang: str = "en") -> str:
     """Extract the display name of a home medication for narrative text.
 
@@ -2177,10 +2236,11 @@ class TemplateNarrativeGenerator:
         nurse_line = ""
         if nurse_id:
             facts.append("encounter.primary_nurse_id")
+            nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, is_ja)
             if is_ja:
-                nurse_line = f"担当看護師: {nurse_id}"
+                nurse_line = f"担当看護師: {nurse_disp}"
             else:
-                nurse_line = f"Nurse: {nurse_id}"
+                nurse_line = f"Nurse: {nurse_disp}"
 
         # v9 (2026-08-17) density fix: replace 「バイタルサイン安定 / 特記事項なし」
         # boilerplate with CIF-sourced per-shift narrative (today's vitals,
@@ -2370,7 +2430,8 @@ class TemplateNarrativeGenerator:
         nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
         if nurse_id:
             facts.append("encounter.primary_nurse_id")
-            parts.append(f"担当看護師: {nurse_id}。" if is_ja else f"Assigned nurse: {nurse_id}. ")
+            nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, is_ja)
+            parts.append(f"担当看護師: {nurse_disp}。" if is_ja else f"Assigned nurse: {nurse_disp}. ")
         cc = ""
         if ctx.encounter is not None:
             cc = (
@@ -2615,7 +2676,8 @@ class TemplateNarrativeGenerator:
         if not nurse_id:
             return (_ACP_OTHER_STAFF_FALLBACK_JA if is_ja else _ACP_OTHER_STAFF_FALLBACK_EN), facts
         facts.append("encounter.primary_nurse_id")
-        return (f"担当看護師：{nurse_id}" if is_ja else f"Assigned nurse: {nurse_id}"), facts
+        nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, is_ja)
+        return (f"担当看護師：{nurse_disp}" if is_ja else f"Assigned nurse: {nurse_disp}"), facts
 
     def _build_acp_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """病名（他に考え得る病名）— ctx.diagnoses, admission code preferred
@@ -2768,7 +2830,9 @@ class TemplateNarrativeGenerator:
         if physician:
             facts.append("encounter.attending_physician_id")
         ward_disp = ward or ("未定" if is_ja else "TBD")
-        physician_disp = physician or ("未定" if is_ja else "TBD")
+        physician_disp = (
+            _resolve_staff_name(physician, ctx.roster_map, is_ja) if physician else ("未定" if is_ja else "TBD")
+        )
         if is_ja:
             return f"病棟：{ward_disp}　担当医師：{physician_disp}", facts
         return f"Ward: {ward_disp}, Attending physician: {physician_disp}", facts

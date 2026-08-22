@@ -226,6 +226,18 @@ class NarrativeContext:
     nursing_risk_assessments: list[Any] = field(default_factory=list)
     intake_output_records: list[Any] = field(default_factory=list)
 
+    # === Issue #819 follow-up: staff-name resolution at template time ===
+    # Map of `staff_id → staff dict (from hospital.json)`. Populated by
+    # `build_narrative_context` when the caller provides the hospital
+    # roster. Template renderers use this to substitute raw practitioner
+    # ids (`DR-CA-002`, `NS-OR-004`) with the practitioner's actual
+    # name + role suffix (`加瀬 幸男 医師`) so the LLM never sees the
+    # raw id — this fixes the 68% staff-id leak in DocumentReference
+    # narratives (only Composition was covered by the post-hoc
+    # `_localize_practitioner_ids_in_text` walker in PR #828).
+    # Empty dict = no resolution attempted, template falls back to raw id.
+    roster_map: dict[str, dict] = field(default_factory=dict)
+
 
 @dataclass
 class NarrativeOutput:

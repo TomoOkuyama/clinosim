@@ -91,6 +91,38 @@ class NarrativePass(ABC):
         # byte-for-byte; concurrency>1 requires thread-safe caches +
         # generator counters (both provisioned in the s88j vLLM chain).
         self.concurrency = max(1, int(concurrency))
+        # Issue #819 follow-up: load hospital roster so template
+        # renderers can substitute raw staff-ids (`DR-CA-002`) with the
+        # practitioner's actual name + role suffix (`加瀬 幸男 医師`)
+        # BEFORE the text reaches the LLM. Without this the LLM saw raw
+        # ids in the template narrative and preserved them into the
+        # output — my PR #828 caught them at Composition FHIR-emit time
+        # but DocumentReference attachments (Progress Notes, Nursing
+        # Records, ED Notes etc.) were untouched (68% leak in the
+        # deploy). Loading here (once per pass) keeps the per-doc
+        # ctx construction O(1) lookup.
+        self.roster_map: dict[str, dict] = self._load_roster()
+
+    def _load_roster(self) -> dict[str, dict]:
+        """Read ``hospital.json`` and return ``{staff_id: staff_dict}``.
+
+        Silent empty dict when hospital.json is missing or malformed —
+        template renderers then fall back to raw ids (pre-fix behaviour).
+        Never raises: narrative generation must not fail because the
+        roster file is absent (unit tests, offline runs).
+        """
+        import json as _json
+        import os as _os
+
+        path = _os.path.join(self.cif_dir, "hospital.json")
+        if not _os.path.exists(path):
+            return {}
+        try:
+            with open(path) as fh:
+                d = _json.load(fh)
+            return {s.get("staff_id", ""): s for s in (d.get("staff") or []) if s.get("staff_id")}
+        except Exception:  # noqa: BLE001 — narrative must not fail on roster load
+            return {}
 
     def run(self) -> NarrativeVersionManifest:
         specs = specs_for_country(self.country)
@@ -326,6 +358,10 @@ class NarrativePass(ABC):
             adl_assessments=list(patient_dict.get("adl_assessments", []) or []),
             nursing_risk_assessments=list(patient_dict.get("nursing_risk_assessments", []) or []),
             intake_output_records=list(patient_dict.get("intake_output_records", []) or []),
+            # Issue #819 follow-up: propagate the pass-level roster so
+            # template renderers can substitute staff-ids → names before
+            # the text reaches the LLM.
+            roster_map=self.roster_map,
         )
         ctx.narrative_spine = build_narrative_spine(
             disease_protocol,
