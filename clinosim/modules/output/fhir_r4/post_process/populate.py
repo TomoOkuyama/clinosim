@@ -277,13 +277,63 @@ _HOURLY_CADENCE_MHLW_CODE: dict[int, tuple[str, str]] = {
 }
 
 # Non-oral route markers — these drugs' timing.code must NOT emit an
-# MHLW `MedicationUsage_ePrescription` code because that CS has no
-# injection entries (0 codes in the `3*` family). Emitting an oral
-# meal-context code would be wrong (the drug is not swallowed at
-# breakfast). Falls back to the dummy `0X0XXXXXXXXX0000` (spec-legit
-# per JP-CLINS fixture — R5020 satisfied).
+# MHLW `MedicationUsage_ePrescription` code with an oral prefix
+# (`10*` = 内服/服用).
+#
+# The CS has separate code families for some non-oral routes (11* 舌下,
+# 12* バッカル, 13* 口腔内塗布, 2A* 貼付, 2B* 塗布, 2H* 点眼, …), but
+# the emit path only covers 10* oral meal-context codes. Emitting an
+# oral code for any non-oral route is semantically wrong ("furosemide
+# IV to be swallowed after breakfast"), so we return None and let the
+# dummy `0X0XXXXXXXXX0000` fallback kick in (spec-legit per JP-CLINS
+# fixture — R5020 satisfied).
+#
+# Injection routes (3* family) have 0 CS entries at all — even a
+# family-specific resolver would still emit dummy.
+#
+# When adding topical / sublingual / etc. per-route mapping tables in
+# the future, remove those markers from this set and add the matching
+# family-specific resolver above.
 _NON_ORAL_ROUTE_MARKERS: frozenset[str] = frozenset(
-    {"静注", "皮下注", "筋注", "IV", "SC", "IM", "静脈内", "点滴", "経静脈"}
+    {
+        # Injection (0 CS entries — never mappable)
+        "静注",
+        "皮下注",
+        "筋注",
+        "IV",
+        "SC",
+        "IM",
+        "静脈内",
+        "点滴",
+        "経静脈",
+        # Inhalation — MHLW CS has no inhalation-specific family
+        "吸入",
+        "ネブライザー",
+        "経鼻吸入",
+        # Sublingual — CS has 11* family (9 codes) but we do not emit them
+        "舌下",
+        # Rectal / suppository — CS has 2R* / 2S* families
+        "直腸",
+        "座剤",
+        "経直腸",
+        # Topical — CS has 2B* / 2A* / etc. families
+        "塗布",
+        "貼付",
+        "経皮",
+        # Ophthalmic / nasal / otic — CS has 2H* / 2J* / 2K* families
+        "点眼",
+        "点鼻",
+        "点耳",
+        # Enteral / gastric / oral topical (not swallowed)
+        "経腸",
+        "経管",
+        "胃管",
+        "経鼻胃管",
+        "口腔内塗布",
+        # Vaginal / urethral
+        "膣",
+        "尿道",
+    }
 )
 
 
