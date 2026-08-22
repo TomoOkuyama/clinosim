@@ -2246,6 +2246,11 @@ byte 出力を変更してよいが、変更内容は英語版 CHANGELOG に記�
 JP 表示テキスト方針変更、JP 保険番号 opt-in 挙動変更等) が発生した
 場合は本 file に該当 entry のみ日本語で追記する運用です。</p>
 <p>英語版: <a href="../../CHANGELOG.md"><code>CHANGELOG.md (English)</code></a>。</p>
+<h2 id="030---2026-08-22-jp-load-bearing-追記">[0.3.0] - 2026-08-22 (JP load-bearing 追記)<a class="headerlink" href="#030---2026-08-22-jp-load-bearing-追記" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>JP-CLINS MedicationRequest <code>timing.code</code> を MHLW <code>MedicationUsage_ePrescription</code> 実 code 化</strong>: 従来 100% dummy <code>0X0XXXXXXXXX0000</code> だったが、薬剤クラス + freq + route heuristic により <strong>85.86% の dosage に実 MHLW code</strong> を付与 (statin→就寝前、PPI→朝食前、biguanide→朝夕食後、抗生剤→毎食後 等)。route filter (<code>_NON_ORAL_ROUTE_MARKERS</code>) により <strong>oral code は <code>route=経口</code> の record のみに emit</strong>、意味的に正しくない oral code emit を排除。残 14.14% dummy は MHLW oral CS 未収載 route (吸入/静注/皮下注/筋注/舌下/直腸 等)、spec-legit の JP-CLINS uncoded fallback。</li>
+<li><strong>narrative text 内の JP 生 token localization</strong>: <code>staff_id</code> (<code>DR-CA-002</code> → <code>加瀬 幸男 医師</code>)、<code>severity</code> (<code>mild</code> → <code>軽度</code>)、<code>oxygen_device</code> (<code>nasal_cannula</code> → <code>経鼻カニューレ</code>)、<code>fall_risk_level</code> (<code>high</code> → <code>高リスク</code>) をすべて template 層で source-fix (LLM が verbatim preserve するので template で resolve すれば FHIR emit にも反映)。従前の Composition post-hoc walker (<code>_localize_practitioner_ids_in_text</code>) は defence-in-depth として維持。</li>
+</ul>
 
 
 
