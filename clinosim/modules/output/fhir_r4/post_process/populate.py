@@ -224,30 +224,118 @@ _FREQ_CONTEXT_TO_MHLW_CODE: dict[tuple[int, str], tuple[str, str]] = {
 }
 
 
+# Drug → typical daily-freq inference. Used when the dosage carries no
+# `timing.repeat.frequency` at all (a substantial subset of the CIF —
+# especially inpatient continuation orders and discharge prescriptions
+# where the timing structure isn't populated). Every entry is a
+# clinical convention with a well-defined typical schedule; anything
+# with genuinely variable dosing is intentionally excluded so the
+# resolver falls back to dummy rather than fabricating.
+#
+# QD-only drugs — no clinical BID/TID variant in JA outpatient practice.
+_DRUG_IMPLIED_FREQ_QD: set[str] = {
+    # Statins — always QD
+    "アトルバスタチン",
+    "ロスバスタチン",
+    "プラバスタチン",
+    "ピタバスタチン",
+    "シンバスタチン",
+    # PPIs — usually QD (BID for erosive esophagitis is out of scope)
+    "ランソプラゾール",
+    "オメプラゾール",
+    "ラベプラゾール",
+    "エソメプラゾール",
+    "ボノプラザン",
+    # Bisphosphonates — weekly/daily variants both use "morning empty stomach", QD baseline
+    "アレンドロネート",
+    "リセドロネート",
+    "ミノドロン酸",
+    # Diuretics — QD baseline
+    "フロセミド",
+    "ヒドロクロロチアジド",
+    "スピロノラクトン",
+    "トラセミド",
+    # Antihypertensives (once-daily long-acting)
+    "アムロジピン",
+    "カンデサルタン",
+    "オルメサルタン",
+    "テルミサルタン",
+    "エナラプリル",
+    "リシノプリル",
+    "タムスロシン",
+    "シロドシン",
+    # Anticoagulant / antiplatelet — QD
+    "アスピリン",
+    "クロピドグレル",
+    "ワルファリン",
+    "リバーロキサバン",
+    # Corticosteroids (chronic maintenance) — QD morning
+    "プレドニゾロン",
+    "メチルプレドニゾロン",
+    # Endocrine
+    "レボチロキシン",
+    "ビタミンD",
+    "アルファカルシドール",
+}
+
+# BID-typical drugs
+_DRUG_IMPLIED_FREQ_BID: set[str] = {
+    "メトホルミン",  # BID with meals (JA clinical convention)
+    "カルベジロール",
+    "ビソプロロール",
+    "エプレレノン",
+}
+
+
 def _resolve_mhlw_usage_code(
     drug_text: str, freq: int | None, period: int | None, period_unit: str
 ) -> tuple[str, str] | None:
     """Return (MHLW code, display) or None when the (drug, cadence) tuple
     does not map to a coded entry.
 
+    Resolution order:
+        1. Real cadence (freq / period=1 / periodUnit=d) — use as-is.
+        2. Missing cadence + drug in `_DRUG_IMPLIED_FREQ_*` — infer freq
+           from the drug's clinical convention (statins→QD, biguanides
+           →BID, etc.).
+        3. Otherwise → None (caller falls back to dummy).
+
     Not deterministic-per-encounter (returns identical outputs for the
     same input); intended to be a pure lookup called from
     `_populate_jp_medication_dosage_ecs_fields`.
     """
-    if not isinstance(freq, int) or not isinstance(period, (int, float)) or period_unit != "d" or period != 1:
-        return None  # Non-daily cadence (`8時間ごと` etc.) — no clean spec code.
-    if freq not in _DEFAULT_MEAL_CONTEXT_BY_FREQ:
-        return None
+    # Path 1: cadence available and daily
+    has_daily_cadence = (
+        isinstance(freq, int)
+        and isinstance(period, (int, float))
+        and period_unit == "d"
+        and period == 1
+        and freq in _DEFAULT_MEAL_CONTEXT_BY_FREQ
+    )
+    # Path 2: cadence missing → infer from drug's clinical convention.
+    # Explicit non-daily cadences (hourly etc.) are rejected — do NOT
+    # promote them to daily inference (that would drop information).
+    if not has_daily_cadence:
+        cadence_present = (isinstance(freq, int) and freq > 0) or isinstance(period, (int, float)) or bool(period_unit)
+        if cadence_present:
+            return None  # explicit non-daily cadence — no clean spec code
+        if drug_text in _DRUG_IMPLIED_FREQ_QD:
+            freq = 1
+        elif drug_text in _DRUG_IMPLIED_FREQ_BID:
+            freq = 2
+        else:
+            return None
+
     ctx: str | None = None
     if freq == 1:
         ctx = _DRUG_QD_MEAL_CONTEXT.get(drug_text)
     elif freq == 2:
         ctx = _DRUG_BID_MEAL_CONTEXT.get(drug_text)
     if not ctx:
-        ctx = _DEFAULT_MEAL_CONTEXT_BY_FREQ.get(freq)
+        ctx = _DEFAULT_MEAL_CONTEXT_BY_FREQ.get(freq)  # type: ignore[arg-type]
     if not ctx:
         return None
-    return _FREQ_CONTEXT_TO_MHLW_CODE.get((freq, ctx))
+    return _FREQ_CONTEXT_TO_MHLW_CODE.get((freq, ctx))  # type: ignore[arg-type]
 
 
 # JP_MedicationDosage_eCS `Dosage.doseAndRate.type` min=1.
