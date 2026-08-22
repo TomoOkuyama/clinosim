@@ -173,11 +173,13 @@ _DRUG_QD_MEAL_CONTEXT: dict[str, str] = {
     "リシノプリル": "朝食後",
     "タムスロシン": "朝食後",
     "シロドシン": "朝食後",
-    # Anticoagulant / antiplatelet — 朝食後
+    # Anticoagulant / antiplatelet QD — 朝食後 (ワルファリン → 夕食後
+    # per JA clinical convention)
     "アスピリン": "朝食後",
     "クロピドグレル": "朝食後",
     "ワルファリン": "夕食後",
     "リバーロキサバン": "朝食後",
+    "エドキサバン": "朝食後",  # DOAC QD
     # Corticosteroids — 朝食後 (mimic diurnal cortisol)
     "プレドニゾロン": "朝食後",
     "メチルプレドニゾロン": "朝食後",
@@ -185,6 +187,16 @@ _DRUG_QD_MEAL_CONTEXT: dict[str, str] = {
     "レボチロキシン": "朝食前",
     "ビタミンD": "朝食後",
     "アルファカルシドール": "朝食後",
+    "ビタミンK": "朝食後",
+    "Calcium/Vitamin": "朝食後",
+    # Inhaled bronchodilators — QD morning
+    "チオトロピウム": "朝食後",  # LAMA (Spiriva) — 1× 朝の吸入
+    # AChE inhibitors (Alzheimer's) — QD morning
+    "ドネペジル": "朝食後",
+    # Basal insulin — QD 就寝前
+    "インスリングラルギン": "就寝前",
+    # Fluoroquinolones — QD (usually 朝食後)
+    "レボフロキサシン": "朝食後",
 }
 
 # BID (1日2回, frequency=2 period=1 periodUnit=d)
@@ -196,6 +208,28 @@ _DRUG_BID_MEAL_CONTEXT: dict[str, str] = {
     "ビソプロロール": "朝夕食後",
     # Additional cardio
     "エプレレノン": "朝夕食後",
+    # COX-2 NSAIDs — BID with meals (GI protection)
+    "セレコキシブ": "朝夕食後",
+    # DOAC BID
+    "アピキサバン": "朝夕食後",
+    # Antiviral (5-day course, BID)
+    "オセルタミビル": "朝夕食後",
+    # ICS/LABA inhalers — BID 朝夕
+    "フルチカゾン/サルメテロール": "朝夕食後",
+    "ICS/LABA": "朝夕食後",
+}
+
+# TID-typical drugs — every meal (毎食後)
+_DRUG_TID_MEAL_CONTEXT: dict[str, str] = {
+    # Antibiotics — TID with meals for GI tolerance
+    "アモキシシリン": "朝昼夕食後",
+    "アモキシシリン/クラブラン酸": "朝昼夕食後",
+    "Cefcapene": "朝昼夕食後",
+    # Parkinson's L-DOPA — TID (often before meals to avoid protein
+    # competition, but simplified to after-meal for JA convention)
+    "レボドパ/カルビドパ": "朝昼夕食後",
+    # Sodium bicarbonate — TID (uric acid regulation / acidosis)
+    "炭酸水素ナトリウム": "朝昼夕食後",
 }
 
 # Default (unmapped drug) meal-context per frequency. Every FHIR
@@ -269,6 +303,7 @@ _DRUG_IMPLIED_FREQ_QD: set[str] = {
     "クロピドグレル",
     "ワルファリン",
     "リバーロキサバン",
+    "エドキサバン",  # DOAC QD
     # Corticosteroids (chronic maintenance) — QD morning
     "プレドニゾロン",
     "メチルプレドニゾロン",
@@ -276,6 +311,16 @@ _DRUG_IMPLIED_FREQ_QD: set[str] = {
     "レボチロキシン",
     "ビタミンD",
     "アルファカルシドール",
+    "ビタミンK",
+    "Calcium/Vitamin",
+    # Inhaled bronchodilators (maintenance) — QD morning
+    "チオトロピウム",  # LAMA
+    # AChE inhibitors (Alzheimer's) — QD morning
+    "ドネペジル",
+    # Basal insulin — QD bedtime
+    "インスリングラルギン",
+    # Fluoroquinolone antibiotic — QD
+    "レボフロキサシン",
 }
 
 # BID-typical drugs
@@ -284,6 +329,41 @@ _DRUG_IMPLIED_FREQ_BID: set[str] = {
     "カルベジロール",
     "ビソプロロール",
     "エプレレノン",
+    # COX-2 NSAID
+    "セレコキシブ",
+    # DOAC BID
+    "アピキサバン",
+    # Antiviral (5-day course, BID)
+    "オセルタミビル",
+    # ICS/LABA maintenance inhalers
+    "フルチカゾン/サルメテロール",
+    "ICS/LABA",
+}
+
+# TID-typical drugs (毎食後 with meals)
+_DRUG_IMPLIED_FREQ_TID: set[str] = {
+    # Antibiotics — TID with meals
+    "アモキシシリン",
+    "アモキシシリン/クラブラン酸",
+    "Cefcapene",
+    # Parkinson's L-DOPA — TID
+    "レボドパ/カルビドパ",
+    # Sodium bicarbonate — TID (uric acid regulation / acidosis)
+    "炭酸水素ナトリウム",
+}
+
+# PRN (as-needed) drug → condition-based MHLW code map. These drugs
+# have no scheduled cadence in clinosim; their clinical indication is
+# a well-defined trigger the MHLW CS carries a dedicated code for.
+# Emits directly, bypassing the (freq, meal-context) table.
+#
+# Codes verified against `jpfhir-terminology#2.2606.0` CS.
+_DRUG_PRN_MHLW_CODE: dict[str, tuple[str, str]] = {
+    # Bronchodilator inhaler — used for 喘鳴 (wheeze) / 喘息発作
+    "サルブタモール": ("1050220000000000", "喘息発作時　服用"),
+    # Analgesic / antipyretic PRN — アセトアミノフェン's most common
+    # single indication is 発熱 in the JA outpatient convention.
+    "アセトアミノフェン": ("1050710000000000", "発熱時　服用"),
 }
 
 
@@ -304,6 +384,12 @@ def _resolve_mhlw_usage_code(
     same input); intended to be a pure lookup called from
     `_populate_jp_medication_dosage_ecs_fields`.
     """
+    # PRN condition-based codes bypass the (freq, meal-context) table
+    # entirely (an as-needed dose has a trigger condition, not a
+    # cadence). Check first so drug identity wins over any freq hint.
+    if drug_text in _DRUG_PRN_MHLW_CODE:
+        return _DRUG_PRN_MHLW_CODE[drug_text]
+
     # Path 1: cadence available and daily
     has_daily_cadence = (
         isinstance(freq, int)
@@ -323,6 +409,8 @@ def _resolve_mhlw_usage_code(
             freq = 1
         elif drug_text in _DRUG_IMPLIED_FREQ_BID:
             freq = 2
+        elif drug_text in _DRUG_IMPLIED_FREQ_TID:
+            freq = 3
         else:
             return None
 
@@ -331,6 +419,8 @@ def _resolve_mhlw_usage_code(
         ctx = _DRUG_QD_MEAL_CONTEXT.get(drug_text)
     elif freq == 2:
         ctx = _DRUG_BID_MEAL_CONTEXT.get(drug_text)
+    elif freq == 3:
+        ctx = _DRUG_TID_MEAL_CONTEXT.get(drug_text)
     if not ctx:
         ctx = _DEFAULT_MEAL_CONTEXT_BY_FREQ.get(freq)  # type: ignore[arg-type]
     if not ctx:
