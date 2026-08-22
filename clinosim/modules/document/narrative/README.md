@@ -150,6 +150,43 @@ from clinosim.modules.document.narrative.semantic_check import check_narratives
   `[inpatient, icu, rehab_inpatient]` explicitly to prevent
   outpatient / ED leakage.
 
+## Template-time value resolution (Issue #819 chain, PRs #828/#831/#832/#833)
+
+The template layer feeds the LLM. Any raw enum, staff-id, or
+untranslated token that appears in the template output is preserved
+verbatim by the LLM (the prompt requires it), so those tokens end up
+in the deployed FHIR narrative unless the template resolves them
+first. Two symmetric defenses coexist:
+
+- **Source fix (preferred, template layer)** — the template rewrites
+  raw values BEFORE the LLM sees them.
+  - `NarrativeContext.roster_map` (added PR #831) is `{staff_id:
+    staff_dict}` loaded from `hospital.json` by
+    `NarrativePass._load_roster()` and threaded into every ctx.
+    `template_generator._resolve_staff_name(staff_id, roster_map,
+    is_ja)` maps `DR-CA-002` → `加瀬 幸男 医師` (JA) / `加瀬 幸男
+    (physician)` (EN). Falls back to the raw id when unknown — never
+    fabricates. 4 template call-sites use it (nursing shift note,
+    progress-note nurse line, ACP other-staff, NCP ward/physician).
+  - JA enum localization uses helpers on
+    `replacement_strategy.py`:
+    `_localize_severity_ja` (mild → 軽度; PR #832),
+    `_localize_oxygen_device_ja` (nasal_cannula → 経鼻カニューレ),
+    inline `_fall_ja` (high → 高リスク). Call-sites are the small
+    number of `_build_*` functions that would otherwise embed the
+    raw enum in JA text (PR #833 closed the last two in
+    `_build_nursing_shift_status`).
+- **Backstop (post-hoc walker)** — `_localize_practitioner_ids_in_text`
+  in `output/fhir_r4/documents/composition.py` (PR #828). Regex-
+  substitutes any surviving staff-id in `Composition.section[].text.div`
+  at FHIR-emit time. Kept as defence-in-depth for pathways that
+  bypass the template layer (e.g. LLM output that drifted from
+  verbatim-preservation).
+
+Add a new resolver / localizer at both layers when a new raw token
+class shows up in the deploy — the template fix eliminates the leak
+at the source, the walker catches drift.
+
 ## Directory contents
 
 ```
