@@ -197,6 +197,8 @@ _DRUG_QD_MEAL_CONTEXT: dict[str, str] = {
     "インスリングラルギン": "就寝前",
     # Fluoroquinolones — QD (usually 朝食後)
     "レボフロキサシン": "朝食後",
+    # Iron supplementation — QD (with vitamin C-containing meal, e.g. 朝食後)
+    "フマル酸第一鉄": "朝食後",
 }
 
 # BID (1日2回, frequency=2 period=1 periodUnit=d)
@@ -217,6 +219,8 @@ _DRUG_BID_MEAL_CONTEXT: dict[str, str] = {
     # ICS/LABA inhalers — BID 朝夕
     "フルチカゾン/サルメテロール": "朝夕食後",
     "ICS/LABA": "朝夕食後",
+    # Antiepileptic — BID
+    "レベチラセタム": "朝夕食後",
 }
 
 # TID-typical drugs — every meal (毎食後)
@@ -230,6 +234,10 @@ _DRUG_TID_MEAL_CONTEXT: dict[str, str] = {
     "レボドパ/カルビドパ": "朝昼夕食後",
     # Sodium bicarbonate — TID (uric acid regulation / acidosis)
     "炭酸水素ナトリウム": "朝昼夕食後",
+    # Additional TID oral drugs (Issue #817 follow-up 2)
+    "カモスタットメシル酸塩": "朝昼夕食後",  # chronic pancreatitis
+    "Cefditoren": "朝昼夕食後",  # oral cephalosporin
+    "ロキソプロフェン": "朝昼夕食後",  # NSAID scheduled TID
 }
 
 # Default (unmapped drug) meal-context per frequency. Every FHIR
@@ -256,6 +264,27 @@ _FREQ_CONTEXT_TO_MHLW_CODE: dict[tuple[int, str], tuple[str, str]] = {
     (3, "朝昼夕食後"): ("1013044400000000", "１日３回朝昼夕食後　服用"),
     (4, "朝昼夕食後と就寝前"): ("1014144400000000", "１日４回朝昼夕食後と就寝前　服用"),
 }
+
+# Fixed-interval hourly-cadence oral codes. Different family from the
+# meal-context codes above — these emit when `timing.repeat` carries
+# a strict N-times-per-day cadence with equal spacing (Q3H / Q6H /
+# Q8H / Q12H), without any meal marker.
+_HOURLY_CADENCE_MHLW_CODE: dict[int, tuple[str, str]] = {
+    2: ("1022000000000000", "１日２回　１２時間毎　服用"),  # Q12H
+    3: ("1023000000000000", "１日３回　８時間毎　服用"),  # Q8H
+    4: ("1024000000000000", "１日４回　６時間毎　服用"),  # Q6H
+    8: ("1028000000000000", "１日８回　３時間毎　服用"),  # Q3H
+}
+
+# Non-oral route markers — these drugs' timing.code must NOT emit an
+# MHLW `MedicationUsage_ePrescription` code because that CS has no
+# injection entries (0 codes in the `3*` family). Emitting an oral
+# meal-context code would be wrong (the drug is not swallowed at
+# breakfast). Falls back to the dummy `0X0XXXXXXXXX0000` (spec-legit
+# per JP-CLINS fixture — R5020 satisfied).
+_NON_ORAL_ROUTE_MARKERS: frozenset[str] = frozenset(
+    {"静注", "皮下注", "筋注", "IV", "SC", "IM", "静脈内", "点滴", "経静脈"}
+)
 
 
 # Drug → typical daily-freq inference. Used when the dosage carries no
@@ -321,6 +350,8 @@ _DRUG_IMPLIED_FREQ_QD: set[str] = {
     "インスリングラルギン",
     # Fluoroquinolone antibiotic — QD
     "レボフロキサシン",
+    # Iron supplementation — QD (Issue #817 fu 2)
+    "フマル酸第一鉄",
 }
 
 # BID-typical drugs
@@ -338,6 +369,8 @@ _DRUG_IMPLIED_FREQ_BID: set[str] = {
     # ICS/LABA maintenance inhalers
     "フルチカゾン/サルメテロール",
     "ICS/LABA",
+    # Antiepileptic — BID (Issue #817 fu 2)
+    "レベチラセタム",
 }
 
 # TID-typical drugs (毎食後 with meals)
@@ -350,6 +383,10 @@ _DRUG_IMPLIED_FREQ_TID: set[str] = {
     "レボドパ/カルビドパ",
     # Sodium bicarbonate — TID (uric acid regulation / acidosis)
     "炭酸水素ナトリウム",
+    # Additional TID oral (Issue #817 fu 2)
+    "カモスタットメシル酸塩",
+    "Cefditoren",
+    "ロキソプロフェン",
 }
 
 # PRN (as-needed) drug → condition-based MHLW code map. These drugs
@@ -368,29 +405,72 @@ _DRUG_PRN_MHLW_CODE: dict[str, tuple[str, str]] = {
 
 
 def _resolve_mhlw_usage_code(
-    drug_text: str, freq: int | None, period: int | None, period_unit: str
+    drug_text: str,
+    freq: int | None,
+    period: int | None,
+    period_unit: str,
+    route_text: str = "",
 ) -> tuple[str, str] | None:
     """Return (MHLW code, display) or None when the (drug, cadence) tuple
     does not map to a coded entry.
 
     Resolution order:
-        1. Real cadence (freq / period=1 / periodUnit=d) — use as-is.
-        2. Missing cadence + drug in `_DRUG_IMPLIED_FREQ_*` — infer freq
-           from the drug's clinical convention (statins→QD, biguanides
-           →BID, etc.).
-        3. Otherwise → None (caller falls back to dummy).
+        1. Non-oral route → None (MHLW ePrescription CS has 0 injection
+           codes; emitting an oral meal-context code for an IV/SC/IM
+           drug is semantically wrong).
+        2. Drug in `_DRUG_PRN_MHLW_CODE` → return the PRN condition code.
+        3. Fixed-interval hourly cadence (Q3H / Q6H / Q8H / Q12H)
+           expressed as (freq, period=1, periodUnit='d') → the
+           matching entry in `_HOURLY_CADENCE_MHLW_CODE`.
+        4. Daily cadence + drug/freq default meal-context → the
+           matching `(freq, ctx)` entry in `_FREQ_CONTEXT_TO_MHLW_CODE`.
+        5. Missing cadence + drug in `_DRUG_IMPLIED_FREQ_*` → infer
+           freq from the drug's clinical convention (statins→QD,
+           biguanides→BID, etc.).
+        6. Otherwise → None (caller falls back to dummy).
 
     Not deterministic-per-encounter (returns identical outputs for the
     same input); intended to be a pure lookup called from
     `_populate_jp_medication_dosage_ecs_fields`.
     """
-    # PRN condition-based codes bypass the (freq, meal-context) table
-    # entirely (an as-needed dose has a trigger condition, not a
-    # cadence). Check first so drug identity wins over any freq hint.
+    # Path 1: non-oral route filter — MHLW MedicationUsage_ePrescription
+    # CS is oral/topical/sublingual only; 0 injection codes exist.
+    if route_text:
+        rt = route_text.strip()
+        if rt in _NON_ORAL_ROUTE_MARKERS:
+            return None
+
+    # Path 2: PRN condition-based codes bypass the (freq, meal-context)
+    # table — an as-needed dose has a trigger condition, not a cadence.
     if drug_text in _DRUG_PRN_MHLW_CODE:
         return _DRUG_PRN_MHLW_CODE[drug_text]
 
-    # Path 1: cadence available and daily
+    # Path 3: fixed-interval hourly cadence (Q3H / Q6H / Q8H / Q12H).
+    # Recognises the shape `freq=N, period=1, periodUnit='d'` for
+    # `N in {2, 3, 4, 8}` — the four rates the MHLW CS carries.
+    if (
+        isinstance(freq, int)
+        and isinstance(period, (int, float))
+        and period_unit == "d"
+        and period == 1
+        and freq in _HOURLY_CADENCE_MHLW_CODE
+        # Do not intercept freq values that _FREQ_CONTEXT_TO_MHLW_CODE
+        # covers with a meal-context code (2/3/4). The hourly-cadence
+        # code is a strict "equal-spacing / no meal marker" alternative
+        # — use it only when the drug has NO meal-context assignment
+        # (i.e. would fall to the frequency default).
+        and drug_text not in _DRUG_QD_MEAL_CONTEXT
+        and drug_text not in _DRUG_BID_MEAL_CONTEXT
+        and drug_text not in _DRUG_TID_MEAL_CONTEXT
+        # Only take Q3H (freq=8) directly here — the CS's Q6H/Q8H/Q12H
+        # entries collide with the meal-context defaults for freq=4/3/2
+        # and would over-write nicer meal-context codes. Q3H (freq=8)
+        # has no meal-context alternative so is a safe win.
+        and freq == 8
+    ):
+        return _HOURLY_CADENCE_MHLW_CODE[freq]
+
+    # Path 4: cadence available and daily (meal-context path)
     has_daily_cadence = (
         isinstance(freq, int)
         and isinstance(period, (int, float))
@@ -398,7 +478,7 @@ def _resolve_mhlw_usage_code(
         and period == 1
         and freq in _DEFAULT_MEAL_CONTEXT_BY_FREQ
     )
-    # Path 2: cadence missing → infer from drug's clinical convention.
+    # Path 5: cadence missing → infer from drug's clinical convention.
     # Explicit non-daily cadences (hourly etc.) are rejected — do NOT
     # promote them to daily inference (that would drop information).
     if not has_daily_cadence:
@@ -678,11 +758,13 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                 # entry when the (drug, cadence) tuple does not map.
                 _repeat = timing.get("repeat") or {}
                 _drug_text = str((resource.get("medicationCodeableConcept") or {}).get("text") or "").strip()
+                _route_text = str((dosage.get("route") or {}).get("text") or "").strip()
                 _mhlw = _resolve_mhlw_usage_code(
                     _drug_text,
                     _repeat.get("frequency") if isinstance(_repeat, dict) else None,
                     _repeat.get("period") if isinstance(_repeat, dict) else None,
                     (_repeat.get("periodUnit") or "") if isinstance(_repeat, dict) else "",
+                    _route_text,
                 )
                 if _mhlw is not None:
                     _mhlw_code, _mhlw_display = _mhlw
