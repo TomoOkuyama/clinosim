@@ -106,6 +106,28 @@ SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset(
 )
 
 
+def _canonicalize_display(name: str) -> str:
+    """Normalize an imaging display_name for cross-order duplicate detection.
+
+    Cosmetic differences (`Chest_Xray_PA_Lateral` vs `Chest X-ray PA and
+    Lateral`) should not be treated as different orders when they land on
+    the same encounter minute. Compares case-, separator- and
+    whitespace-insensitively; strips a small connective-word set so
+    `PA and Lateral` matches `PA Lateral`.
+
+    Not a general text normaliser — scope is the dedup key for
+    ``_bb_imaging_studies`` only (Issue #822 N-9 follow-up).
+    """
+    if not name:
+        return ""
+    s = str(name).lower().replace("_", " ").replace("-", " ")
+    # Drop connective words that authors alternate between (e.g. `PA and
+    # Lateral` vs `PA Lateral`), but keep clinically meaningful terms.
+    _skip = {"and", "of", "with", "for"}
+    tokens = [t for t in s.split() if t and t not in _skip]
+    return " ".join(tokens)
+
+
 def _validate_modalities(data: dict[str, Any]) -> None:
     """Fail-loud validation of modalities.yaml (silent-no-op defense Layer 3-6)."""
     if not data:
@@ -568,30 +590,34 @@ def imaging_enricher(ctx: Any) -> None:
                 except (ValueError, KeyError):
                     stub_only = True
 
+            # Issue #822 (N-9) dedup — applies to BOTH stub-only and
+            # non-stub paths (follow-up: the original PR #825 only wired
+            # the stub-only branch, so non-stub cosmetic duplicates like
+            # `Chest_Xray_PA_Lateral` + `Chest X-ray PA and Lateral`
+            # ordered at the same minute both emitted). Skip this order
+            # if a prior study in the same encounter already covers this
+            # (started_datetime, canonicalized display_name) tuple.
+            # Canonicalization = lowercase + strip + `_`/`-`→space +
+            # collapsed whitespace, so cosmetic variants of the same
+            # test name normalize to the same key.
+            _stub_display = _o(order, "display_name", "") or ""
+            _stub_started = _o(order, "ordered_datetime")
+            _canon = _canonicalize_display(_stub_display)
+            _dup = any(
+                prev.encounter_id == (_o(order, "encounter_id", "") or "")
+                and prev.started_datetime == _stub_started
+                and _canonicalize_display(prev.description) == _canon
+                for prev in studies
+            )
+            if _dup:
+                continue
+
             # stub-only path: build minimum spec-valid ImagingStudy (no series /
             # modality unknown / description = display_name)。JP Core ImagingStudy
             # FHIR R4 ImagingStudy does not require ``series`` or ``modality``,
             # so a stub with neither is still spec-compliant.
             if stub_only:
                 encounter_id_stub: str = _o(order, "encounter_id", "") or ""
-                # Issue #822 (N-9) dedup: if a prior stub-only study in the
-                # same encounter already covers this (started_datetime,
-                # display_name) tuple, skip this order. Real clinical
-                # practice does not repeat an identical uncharacterised
-                # imaging at the same timestamp; the second order is an
-                # upstream order-engine artefact (same generic imaging
-                # placed twice on the same encounter minute).
-                _stub_display = _o(order, "display_name", "") or ""
-                _stub_started = _o(order, "ordered_datetime")
-                _dup = any(
-                    (not prev.series)
-                    and prev.encounter_id == encounter_id_stub
-                    and prev.started_datetime == _stub_started
-                    and prev.description == _stub_display
-                    for prev in studies
-                )
-                if _dup:
-                    continue
 
                 stub_uid = _study_uid_from(sub_seed, "study")
                 stub_study = ImagingStudyRecord(
@@ -672,6 +698,16 @@ def imaging_enricher(ctx: Any) -> None:
                 encounter_id = _o(order, "encounter_id", "") or ""
                 report = _build_generic_negative_report(encounter_id, idx)
 
+            # Issue #822 follow-up: non-stub studies were the majority of
+            # the 916 / 4863 (18.8%) empty-description hits in the deployed
+            # cohort — PR #825 only wired the stub-only branch.
+            # emit-time (imaging_study.py) prefers the body_sites-driven
+            # `_proc_display` when the (modality, body_site, contrast)
+            # tuple matches a `procedure_codes` entry, and falls back to
+            # `study.description` otherwise. Populating it from
+            # `order.display_name` here mirrors the stub-only fallback so
+            # the emit is never empty even when the primary lookup misses.
+            _non_stub_display = _o(order, "display_name", "") or ""
             study = ImagingStudyRecord(
                 study_id=f"{IMAGING_STUDY_ID_PREFIX}{encounter_id}-{idx}",
                 study_instance_uid=study_uid,
@@ -686,6 +722,7 @@ def imaging_enricher(ctx: Any) -> None:
                 endpoint_id=f"{ENDPOINT_ID_PREFIX}{study_uid}",
                 contrast=contrast,
                 report=report,
+                description=_non_stub_display,
             )
             studies.append(study)
 
