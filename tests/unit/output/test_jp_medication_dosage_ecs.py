@@ -147,10 +147,13 @@ def test_timing_code_text_not_populated_even_with_no_dosage_text():
     assert "text" not in r["dosageInstruction"][0]["timing"]["code"]
 
 
-def test_timing_code_display_derives_from_timing_repeat_daily():
-    """Issue #782 (part of #774): when `timing.repeat` carries a per-day
-    cadence, the walker uses it as the coding display (`1日3回`) instead
-    of the neutral placeholder."""
+def test_timing_code_daily_cadence_resolves_to_mhlw_code():
+    """Issue #817 (supersedes #782 dummy fallback): daily-cadence dosages
+    that pass through the drug-name + frequency heuristic emit a real
+    MHLW `MedicationUsage_ePrescription` code. With no
+    `medicationCodeableConcept.text` the resolver still hits the
+    frequency-default meal-context (`朝昼夕食後` for TID) and picks the
+    canonical spec code + display."""
     r = {
         "resourceType": "MedicationRequest",
         "id": "mr1",
@@ -163,10 +166,50 @@ def test_timing_code_display_derives_from_timing_repeat_daily():
     }
     _populate_jp_medication_dosage_ecs_fields(r)
     codings = r["dosageInstruction"][0]["timing"]["code"]["coding"]
-    assert codings[0]["display"] == "1日3回"
-    # code / system unchanged (spec-required dummy uncoded value)
-    assert codings[0]["code"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE
-    assert codings[0]["system"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_CS
+    # Real MHLW code + JA display (default meal-context = 朝昼夕食後)
+    assert codings[0]["code"] == "1013044400000000"
+    assert codings[0]["display"] == "１日３回朝昼夕食後　服用"
+    assert codings[0]["system"].endswith("/MedicationUsage_ePrescription")
+
+
+def test_timing_code_statin_qd_resolves_to_bedtime_mhlw_code():
+    """Issue #817: drug-specific meal-context override wins over the
+    frequency default. Statin QD → 就寝前 → MHLW `1011100000000000`."""
+    r = {
+        "resourceType": "MedicationRequest",
+        "id": "mr-statin",
+        "medicationCodeableConcept": {"text": "アトルバスタチン"},
+        "dosageInstruction": [
+            {
+                "text": "1 tab qhs",
+                "timing": {"repeat": {"frequency": 1, "period": 1, "periodUnit": "d"}},
+            }
+        ],
+    }
+    _populate_jp_medication_dosage_ecs_fields(r)
+    coding = r["dosageInstruction"][0]["timing"]["code"]["coding"][0]
+    assert coding["code"] == "1011100000000000"
+    assert coding["display"] == "１日１回就寝前　服用"
+
+
+def test_timing_code_hourly_cadence_falls_back_to_dummy():
+    """Issue #817: only daily cadences map to MHLW codes (the CS has no
+    pure-hourly entries). Hourly cadence continues to emit the JP-CLINS
+    dummy code with the derived `Nh時間ごと` display."""
+    r = {
+        "resourceType": "MedicationRequest",
+        "id": "mr-hourly",
+        "dosageInstruction": [
+            {
+                "text": "q6h",
+                "timing": {"repeat": {"frequency": 1, "period": 6, "periodUnit": "h"}},
+            }
+        ],
+    }
+    _populate_jp_medication_dosage_ecs_fields(r)
+    coding = r["dosageInstruction"][0]["timing"]["code"]["coding"][0]
+    assert coding["code"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE
+    assert coding["display"] == "6時間ごと"
 
 
 def test_timing_code_display_derives_hourly_cadence():

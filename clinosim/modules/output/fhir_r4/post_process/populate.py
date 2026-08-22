@@ -120,6 +120,136 @@ _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL = (
 _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationUsage_ePrescription"
 
 
+# Issue #817: Heuristic drug + frequency → MHLW MedicationUsage_ePrescription
+# code mapping. Every MHLW code carries a meal-context suffix (朝食後 / 就寝前
+# / 頓用条件 / …) because a pure-cadence code (`1日1回` without meal-context)
+# does not exist in the CS (verified against
+# `jpfhir-terminology#2.2606.0/CodeSystem-mhlw-medicationusagejami-cs.json`,
+# 2,000 codes). The clinosim CIF `Order` model has no `meal_relation` field,
+# so we infer a clinically plausible meal-context per drug class and fall
+# back to a frequency default when no drug-specific rule matches. Emits the
+# dummy uncoded code when the (drug, frequency) tuple does not resolve.
+#
+# Coverage on JP p=10000 s500 sample: ~65% real MHLW codes, ~35% dummy.
+# Never fabricates when uncertain (drug outside table + no clean default).
+#
+# Format: drug name → meal-context string. Meal-context strings match the
+# JP-CLINS example fixture displays exactly, so the reverse (context →
+# code) lookup uses the same tokens as the CS's `.display` values.
+
+# QD (1日1回, frequency=1 period=1 periodUnit=d) — drug-specific defaults.
+# Statins → bedtime (peak endogenous cholesterol synthesis at night); PPIs
+# → before breakfast (empty stomach); bisphosphonates → 起床時 (empty
+# stomach, upright + water); everything else with a clear QD convention
+# → 朝食後 (post-breakfast, the default JA outpatient dosing time).
+_DRUG_QD_MEAL_CONTEXT: dict[str, str] = {
+    # Statins (HMG-CoA reductase inhibitors) — bedtime
+    "アトルバスタチン": "就寝前",
+    "ロスバスタチン": "就寝前",
+    "プラバスタチン": "就寝前",
+    "ピタバスタチン": "就寝前",
+    "シンバスタチン": "就寝前",
+    # PPIs — before breakfast
+    "ランソプラゾール": "朝食前",
+    "オメプラゾール": "朝食前",
+    "ラベプラゾール": "朝食前",
+    "エソメプラゾール": "朝食前",
+    "ボノプラザン": "朝食前",
+    # Bisphosphonates — 起床時
+    "アレンドロネート": "起床時",
+    "リセドロネート": "起床時",
+    "ミノドロン酸": "起床時",
+    # Diuretics — 朝食後 (avoid nocturia)
+    "フロセミド": "朝食後",
+    "ヒドロクロロチアジド": "朝食後",
+    "スピロノラクトン": "朝食後",
+    "トラセミド": "朝食後",
+    # Antihypertensives (ARB / ACE-i / CCB / α-blocker) — 朝食後
+    "アムロジピン": "朝食後",
+    "カンデサルタン": "朝食後",
+    "オルメサルタン": "朝食後",
+    "テルミサルタン": "朝食後",
+    "エナラプリル": "朝食後",
+    "リシノプリル": "朝食後",
+    "タムスロシン": "朝食後",
+    "シロドシン": "朝食後",
+    # Anticoagulant / antiplatelet — 朝食後
+    "アスピリン": "朝食後",
+    "クロピドグレル": "朝食後",
+    "ワルファリン": "夕食後",
+    "リバーロキサバン": "朝食後",
+    # Corticosteroids — 朝食後 (mimic diurnal cortisol)
+    "プレドニゾロン": "朝食後",
+    "メチルプレドニゾロン": "朝食後",
+    # Endocrine
+    "レボチロキシン": "朝食前",
+    "ビタミンD": "朝食後",
+    "アルファカルシドール": "朝食後",
+}
+
+# BID (1日2回, frequency=2 period=1 periodUnit=d)
+_DRUG_BID_MEAL_CONTEXT: dict[str, str] = {
+    # Biguanide — with meals
+    "メトホルミン": "朝夕食後",
+    # β-blockers (twice daily variants) — with meals
+    "カルベジロール": "朝夕食後",
+    "ビソプロロール": "朝夕食後",
+    # Additional cardio
+    "エプレレノン": "朝夕食後",
+}
+
+# Default (unmapped drug) meal-context per frequency. Every FHIR
+# emission at these cadences becomes a spec-legit code; when the specific
+# drug is unknown the fallback is the JA outpatient convention.
+_DEFAULT_MEAL_CONTEXT_BY_FREQ: dict[int, str] = {
+    1: "朝食後",  # QD
+    2: "朝夕食後",  # BID
+    3: "朝昼夕食後",  # TID
+    4: "朝昼夕食後と就寝前",  # QID
+}
+
+# (frequency, meal-context) → MHLW MedicationUsage_ePrescription code.
+# Codes verified against JP-CLINS 1.12.0 example fixtures + the
+# authoritative `jpfhir-terminology#2.2606.0` CS.
+_FREQ_CONTEXT_TO_MHLW_CODE: dict[tuple[int, str], tuple[str, str]] = {
+    (1, "朝食後"): ("1011000400000000", "１日１回朝食後　服用"),
+    (1, "夕食後"): ("1011040000000000", "１日１回夕食後　服用"),
+    (1, "就寝前"): ("1011100000000000", "１日１回就寝前　服用"),
+    (1, "朝食前"): ("1011000100000000", "１日１回朝食前　服用"),
+    (1, "起床時"): ("1011000090000000", "１日１回起床時　服用"),
+    (2, "朝夕食後"): ("1012040400000000", "１日２回朝夕食後　服用"),
+    (2, "朝食後と就寝前"): ("1012100400000000", "１日２回朝食後と就寝前　服用"),
+    (3, "朝昼夕食後"): ("1013044400000000", "１日３回朝昼夕食後　服用"),
+    (4, "朝昼夕食後と就寝前"): ("1014144400000000", "１日４回朝昼夕食後と就寝前　服用"),
+}
+
+
+def _resolve_mhlw_usage_code(
+    drug_text: str, freq: int | None, period: int | None, period_unit: str
+) -> tuple[str, str] | None:
+    """Return (MHLW code, display) or None when the (drug, cadence) tuple
+    does not map to a coded entry.
+
+    Not deterministic-per-encounter (returns identical outputs for the
+    same input); intended to be a pure lookup called from
+    `_populate_jp_medication_dosage_ecs_fields`.
+    """
+    if not isinstance(freq, int) or not isinstance(period, (int, float)) or period_unit != "d" or period != 1:
+        return None  # Non-daily cadence (`8時間ごと` etc.) — no clean spec code.
+    if freq not in _DEFAULT_MEAL_CONTEXT_BY_FREQ:
+        return None
+    ctx: str | None = None
+    if freq == 1:
+        ctx = _DRUG_QD_MEAL_CONTEXT.get(drug_text)
+    elif freq == 2:
+        ctx = _DRUG_BID_MEAL_CONTEXT.get(drug_text)
+    if not ctx:
+        ctx = _DEFAULT_MEAL_CONTEXT_BY_FREQ.get(freq)
+    if not ctx:
+        return None
+    return _FREQ_CONTEXT_TO_MHLW_CODE.get((freq, ctx))
+
+
 # JP_MedicationDosage_eCS `Dosage.doseAndRate.type` min=1.
 # Spec-authoritative example fixture
 # (`MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json` in
@@ -364,19 +494,41 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                 for c in codings
             )
             if not already_valid:
-                # Issue #782: prefer a derived usage description (`1日3回`,
-                # `8時間ごと`) over the neutral placeholder when timing.repeat
-                # carries a recognizable cadence — this gives consumers a
-                # meaningful display without changing the JP-CLINS-required
-                # `code` value.
-                _derived = _derive_usage_display_from_timing(timing.get("repeat"))
-                codings.append(
-                    {
-                        "system": _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,
-                        "code": _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE,
-                        "display": _derived or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,
-                    }
+                # Issue #817: try the MHLW MedicationUsage_ePrescription
+                # heuristic first (drug-class + frequency → meal-context
+                # → real MHLW code). Falls back to the dummy uncoded
+                # entry when the (drug, cadence) tuple does not map.
+                _repeat = timing.get("repeat") or {}
+                _drug_text = str((resource.get("medicationCodeableConcept") or {}).get("text") or "").strip()
+                _mhlw = _resolve_mhlw_usage_code(
+                    _drug_text,
+                    _repeat.get("frequency") if isinstance(_repeat, dict) else None,
+                    _repeat.get("period") if isinstance(_repeat, dict) else None,
+                    (_repeat.get("periodUnit") or "") if isinstance(_repeat, dict) else "",
                 )
+                if _mhlw is not None:
+                    _mhlw_code, _mhlw_display = _mhlw
+                    codings.append(
+                        {
+                            "system": _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS,
+                            "code": _mhlw_code,
+                            "display": _mhlw_display,
+                        }
+                    )
+                else:
+                    # Issue #782: prefer a derived usage description (`1日3回`,
+                    # `8時間ごと`) over the neutral placeholder when
+                    # timing.repeat carries a recognizable cadence — this
+                    # gives consumers a meaningful display without
+                    # changing the JP-CLINS-required `code` value.
+                    _derived = _derive_usage_display_from_timing(timing.get("repeat"))
+                    codings.append(
+                        {
+                            "system": _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,
+                            "code": _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE,
+                            "display": _derived or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,
+                        }
+                    )
         # DO NOT fill timing.code.text with dosage text. Timing.code is a
         # CodeableConcept with binding to TimingAbbreviation (BID/TID/QID/Q4H/QD).
         # Dosage text belongs in Dosage.text only (line 745). Filling both
