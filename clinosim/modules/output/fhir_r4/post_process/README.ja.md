@@ -44,17 +44,32 @@ cross-resource fixup を適用できる。
     MedicationUsage uncoded fallback
     (`_JP_CLINS_MEDICATION_USAGE_UNCODED_CS`、code
     `"0X0XXXXXXXXX0000"`、display `"用法未指定"`)は
-    `_resolve_mhlw_usage_code(drug_text, freq, period, period_unit)`
-    (Issue #817 / PR #836/#837/#838) が (drug, cadence) tuple を
-    実 `MedicationUsage_ePrescription` code に mapping できない
-    場合の fallback のみ。resolver は薬剤クラス + freq heuristic
-    (statin→QD-就寝前、PPI→QD-朝食前、bisphosphonate→QD-起床時、
-    ワルファリン→QD-夕食後、biguanide→BID-朝夕食後、抗生剤→TID-
-    朝昼夕食後 等) と PRN 条件コード (アセトアミノフェン→発熱時、
-    サルブタモール→喘息発作時) を適用し、JP p=10000 s500 sample で
-    実 code coverage ~97.6% を達成。残 ~2.4% dummy は hourly cadence
-    (Q6H / Q8H — MHLW CS に pure-hourly code 無し) + IV 静注薬
-    (生理食塩液等)、period-of-use
+    `_resolve_mhlw_usage_code(drug_text, freq, period, period_unit,
+    route_text)` (Issue #817 / PR #836/#837/#838/#840/#841) が
+    (drug, cadence, route) tuple を実
+    `MedicationUsage_ePrescription` code に mapping できない場合の
+    fallback。resolver の dispatch 順序:
+    (1) **route filter** — 非経口 route (`_NON_ORAL_ROUTE_MARKERS`:
+    静注/皮下注/筋注/吸入/舌下/貼付/塗布/点眼/直腸/経腸/etc.) は
+    MHLW oral CS に該当 family 無しのため常に dummy 返却、
+    (2) **PRN 条件 code** (アセトアミノフェン→発熱時、サルブタモール
+    →喘息発作時) を `_DRUG_PRN_MHLW_CODE` から、
+    (3) **固定時間間隔** (Q3H → 1028… のみ、他 hourly は
+    meal-context code と衝突) を `_HOURLY_CADENCE_MHLW_CODE` から、
+    (4) **日次 cadence + 薬剤別 meal-context** heuristic (statin→QD-
+    就寝前、PPI→QD-朝食前、bisphosphonate→QD-起床時、ワルファリン→
+    QD-夕食後、biguanide→BID-朝夕食後、抗生剤→TID-朝昼夕食後 等) を
+    `_FREQ_CONTEXT_TO_MHLW_CODE` から、(5) **cadence 欠落時の薬剤別
+    想定 freq** を `_DRUG_IMPLIED_FREQ_{QD,BID,TID}` set から適用。
+    JP p=10000 s500 sample で実 code coverage ~85.9% (**100%
+    clinically correct** — MHLW oral code は `route.text=="経口"` の
+    record のみに emit) を達成。残 ~14.1% dummy は MHLW CS 未収載
+    route (吸入 10,175 / 静注 3,022 / 皮下注 2,675 / etc.) で spec-
+    legit。前 wave (PR #836/#837/#838 = route filter 前) は ~97.6%
+    coverage と報告したが、その内 ~13,796 records に semantic error
+    (IV/吸入 drug に oral 服用 code 付与) を含んでいた。現在の低い
+    numeric coverage は **semantic correctness win** で regression
+    ではない、period-of-use
     extension URL (`_JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL`)、
     UCUM day code (`_UCUM_SYSTEM_URI`, `_UCUM_DAY_CODE = "d"`,
     `_UCUM_DAY_UNIT_JA = "日"`)、JP resource-instance identifier
