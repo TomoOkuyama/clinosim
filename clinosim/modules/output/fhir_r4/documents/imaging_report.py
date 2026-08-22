@@ -20,7 +20,7 @@ Composition shape (mirrors JP-CLINS eDS / eReferral layout):
   ``_build_radiology_dr``.
 
 The Composition id follows the pattern
-``comp-imgrpt-{encounter_id}-{n}`` — parallels the imaging DR's
+``comp-{encounter_id}-imgrpt-{n}`` — parallels the imaging DR's
 ``imgrpt-{encounter_id}-{n}`` prefix for easy cross-reference.
 """
 
@@ -58,7 +58,15 @@ _LP29684_5_DISPLAY_EN = "Radiology"
 _SECTION_FINDINGS_LOINC = "18782-3"  # LOINC "Study observation"
 _SECTION_IMPRESSION_LOINC = "19005-8"  # LOINC "Radiology imaging study impression"
 
-_COMPOSITION_ID_PREFIX = "comp-imgrpt-"
+# Issue #818 follow-up: id-shape must interleave with the other
+# Composition ids (`comp-<encounter>-<seq>`) so that any consumer
+# alphabetic-sort default-paginated query (`_count=500` etc.) returns a
+# representative mix rather than 0 imgrpt records because
+# `comp-imgrpt-…` sorts after every `comp-ENC-…`. Encounter goes first
+# so all Compositions for one encounter cluster together in the sort;
+# the trailing `imgrpt-<seq>` differentiates from the encounter's other
+# document Compositions.
+_COMPOSITION_ID_PATTERN = "comp-{encounter_id}-imgrpt-{seq}"
 
 # JP-CLINS Composition profile — reuse the eDischargeSummary shape for
 # `meta.profile` optional interop; not strictly required by JP-CLINS
@@ -153,7 +161,7 @@ def _build_imaging_report_composition(
 
     resource: dict[str, Any] = {
         "resourceType": "Composition",
-        "id": f"{_COMPOSITION_ID_PREFIX}{encounter_id}-{seq}",
+        "id": _COMPOSITION_ID_PATTERN.format(encounter_id=encounter_id, seq=seq),
         "status": "final",
         "type": {
             "coding": [
