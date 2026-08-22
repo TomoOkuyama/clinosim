@@ -2290,15 +2290,23 @@ class TemplateNarrativeGenerator:
             if vital_line_parts:
                 status_bits.append(", ".join(vital_line_parts))
             if on_o2:
+                if is_ja:
+                    from clinosim.modules.document.narrative.replacement_strategy import (
+                        _localize_oxygen_device_ja,
+                    )
+
+                    device_disp = _localize_oxygen_device_ja(str(device or ""))
+                else:
+                    device_disp = str(device or "")
                 if device and flow is not None:
                     try:
                         status_bits.append(
-                            f"{device} {float(flow):g} L/min"
+                            f"{device_disp} {float(flow):g} L/min"
                             if not is_ja
-                            else f"酸素投与: {device} {float(flow):g} L/min"
+                            else f"酸素投与: {device_disp} {float(flow):g} L/min"
                         )
                     except (TypeError, ValueError):
-                        status_bits.append(f"酸素投与: {device}" if is_ja else f"O2: {device}")
+                        status_bits.append(f"酸素投与: {device_disp}" if is_ja else f"O2: {device_disp}")
                 else:
                     status_bits.append("酸素投与継続中" if is_ja else "supplemental O2")
             facts.append("ctx.vitals.today")
@@ -2330,7 +2338,19 @@ class TemplateNarrativeGenerator:
             latest = risks[-1]
             fall = _o(latest, "fall_risk_level", None)
             if fall and str(fall).lower() in ("high", "moderate"):
-                risk_bit = f"転倒リスク {fall}、ベッド柵設置。" if is_ja else f"Fall risk {fall}; bed rails in place. "
+                # JA: localize enum ("high"/"moderate") so the LLM
+                # doesn't inherit the EN token into its shift-note.
+                # Same map as `_build_risk_assessments` line ~2567.
+                if is_ja:
+                    _fall_ja = {"low": "低リスク", "moderate": "中等度リスク", "high": "高リスク"}
+                    fall_disp = _fall_ja.get(str(fall).lower(), str(fall))
+                else:
+                    fall_disp = str(fall)
+                risk_bit = (
+                    f"転倒リスク {fall_disp}、ベッド柵設置。"
+                    if is_ja
+                    else f"Fall risk {fall_disp}; bed rails in place. "
+                )
                 facts.append("ctx.nursing_risk_assessments[-1]")
 
         if is_ja:
