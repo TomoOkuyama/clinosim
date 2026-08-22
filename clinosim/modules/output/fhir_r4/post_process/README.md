@@ -42,7 +42,18 @@ apply cross-resource fixups that a single builder cannot.
     display `"製剤量"`), medication usage ePrescription
     (`_JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS`), MedicationUsage
     uncoded fallback (`_JP_CLINS_MEDICATION_USAGE_UNCODED_CS` with
-    code `"0X0XXXXXXXXX0000"`, display `"用法未指定"`),
+    code `"0X0XXXXXXXXX0000"`, display `"用法未指定"`) — used only when
+    `_resolve_mhlw_usage_code(drug_text, freq, period, period_unit)`
+    (Issue #817, PRs #836/#837/#838) cannot map the (drug, cadence)
+    tuple to a real `MedicationUsage_ePrescription` code; that
+    resolver applies a drug-class + frequency heuristic (statins→QD-
+    就寝前, PPIs→QD-朝食前, bisphosphonates→QD-起床時, ワルファリン
+    →QD-夕食後, biguanides→BID-朝夕食後, antibiotics→TID-朝昼夕食後
+    …) plus PRN condition codes (アセトアミノフェン→発熱時、
+    サルブタモール→喘息発作時), giving ~97.6% real-code coverage on
+    the JP p=10000 s500 sample; the remaining ~2.4% dummy is
+    hourly cadence (Q6H / Q8H — MHLW CS has no pure-hourly code) +
+    IV parenteral drugs (生理食塩液 etc.),
     period-of-use extension URL (`_JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL`),
     UCUM day code (`_UCUM_SYSTEM_URI`, `_UCUM_DAY_CODE = "d"`,
     `_UCUM_DAY_UNIT_JA = "日"`), and the JP resource-instance
