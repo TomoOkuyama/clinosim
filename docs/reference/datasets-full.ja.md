@@ -26,7 +26,7 @@ Hub に push 可能。Zenodo integration (`.zenodo.json` at repo root)
 正確な clinosim バージョンの DOI を引用してください。
 
 **次のリリースサイクル** 以降、release ワークフローは全 4 プリセット
-をビルドし GitHub Release アセットとして attach。現行 v0.2.0
+をビルドし GitHub Release アセットとして attach。現行 v0.3.0
 release はインフラのみを同梱 — ローカル再現には
 `clinosim dataset build` を使用。
 

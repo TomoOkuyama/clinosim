@@ -27,7 +27,7 @@ clinosim version you built the data with.
 
 Starting with the **next release cycle**, the release workflow builds
 all four presets and attaches them as GitHub Release assets. The
-current v0.2.0 release ships the infrastructure only — use
+current v0.3.0 release ships the infrastructure only — use
 `clinosim dataset build` to reproduce locally.
 
 To load a dataset into a FHIR server (HAPI FHIR, etc.), see
