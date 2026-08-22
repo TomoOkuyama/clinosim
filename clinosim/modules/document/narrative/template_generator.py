@@ -1027,7 +1027,19 @@ class TemplateNarrativeGenerator:
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        fallback = f"{ctx.severity}の症状で受診。" if is_ja else f"Patient presented with {ctx.severity} symptoms."
+        # JA: localize severity token (mild/moderate/... → 軽度/中等度/...)
+        # so the LLM doesn't inherit the EN token into its output — same
+        # rule as `_build_admission_hp_condition` line ~1393. EN branch
+        # keeps the raw token because it is already valid English.
+        if is_ja:
+            from clinosim.modules.document.narrative.replacement_strategy import (
+                _localize_severity_ja,
+            )
+
+            _sev_disp = _localize_severity_ja(str(ctx.severity or ""))
+            fallback = f"{_sev_disp}の症状で受診。"
+        else:
+            fallback = f"Patient presented with {ctx.severity} symptoms."
 
         # ED_NOTE reads from ed_note_template
         if ctx.document_type == DocumentType.ED_NOTE:
@@ -1637,11 +1649,15 @@ class TemplateNarrativeGenerator:
         # no structural changes are needed. Text style harmonization will be
         # deferred to the LLM narrative pass when applicable.
         if not hpi_text:
-            hpi_text = (
-                f"{ctx.severity}の症状で受診し入院となった。"
-                if is_ja
-                else f"Patient presented with {ctx.severity} symptoms leading to admission."
-            )
+            if is_ja:
+                from clinosim.modules.document.narrative.replacement_strategy import (
+                    _localize_severity_ja,
+                )
+
+                _sev_disp = _localize_severity_ja(str(ctx.severity or ""))
+                hpi_text = f"{_sev_disp}の症状で受診し入院となった。"
+            else:
+                hpi_text = f"Patient presented with {ctx.severity} symptoms leading to admission."
         return hpi_text, facts
 
     # ─────────────────────────────────────────────────────────────────
@@ -1759,11 +1775,15 @@ class TemplateNarrativeGenerator:
         hpi_text, facts = self._build_hpi(ctx)
         is_ja = ctx.target_lang == "ja"
         if not hpi_text:
-            hpi_text = (
-                f"{ctx.severity}の症状で受診し入院となった。"
-                if is_ja
-                else f"Patient presented with {ctx.severity} symptoms."
-            )
+            if is_ja:
+                from clinosim.modules.document.narrative.replacement_strategy import (
+                    _localize_severity_ja,
+                )
+
+                _sev_disp = _localize_severity_ja(str(ctx.severity or ""))
+                hpi_text = f"{_sev_disp}の症状で受診し入院となった。"
+            else:
+                hpi_text = f"Patient presented with {ctx.severity} symptoms."
         return hpi_text, facts
 
     # ─────────────────────────────────────────────────────────────────
