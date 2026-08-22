@@ -20,6 +20,7 @@ def build_narrative_context(
     clinical_course_archetype: str = "uncomplicated_improvement",
     severity: str = "moderate",
     los_days: int = 1,
+    roster_map: dict[str, dict] | None = None,
 ) -> NarrativeContext:
     """CIF record + encounter → NarrativeContext.
 
@@ -55,4 +56,10 @@ def build_narrative_context(
         adl_assessments=list(_o(record, "adl_assessments", []) or []),
         nursing_risk_assessments=list(_o(record, "nursing_risk_assessments", []) or []),
         intake_output_records=list(_o(record, "intake_output_records", []) or []),
+        # Issue #819 follow-up: staff-name resolution at template time.
+        # `roster_map` is `{staff_id: staff_dict}` from hospital.json.
+        # Empty when the caller has no roster (unit tests, offline
+        # narrative regen without a hospital.json) — template renderers
+        # fall back to raw ids in that case.
+        roster_map=roster_map or {},
     )
