@@ -142,6 +142,39 @@ from clinosim.modules.document.narrative.semantic_check import check_narratives
   `[inpatient, icu, rehab_inpatient]` を明示して outpatient / ED
   leak を防ぐ。
 
+## テンプレート時の値解決 (Issue #819 chain, PR #828/#831/#832/#833)
+
+Template 層が LLM に入力を渡す。生の enum・staff-id・未翻訳
+token が template 出力に混入すると LLM は verbatim rule に従って
+そのまま保存 → deploy FHIR 内 narrative に残留。以下 2 層で対応:
+
+- **源泉修正 (推奨、template 層)** — LLM が見る前に template 側で
+  値を書き換える。
+  - `NarrativeContext.roster_map` (PR #831 追加) は `hospital.json`
+    から `NarrativePass._load_roster()` が読み込んだ
+    `{staff_id: staff_dict}` を各 ctx に伝播。
+    `template_generator._resolve_staff_name(staff_id, roster_map,
+    is_ja)` が `DR-CA-002` → `加瀬 幸男 医師` (JA) / `加瀬 幸男
+    (physician)` (EN) に解決。unknown id は生 id fallback、決して
+    fabricate しない。4 テンプレート call-site が利用中 (看護記録、
+    progress note の nurse line、ACP other-staff、NCP ward/physician)。
+  - JA enum の localization は `replacement_strategy.py` の helper
+    経由: `_localize_severity_ja` (mild → 軽度; PR #832)、
+    `_localize_oxygen_device_ja` (nasal_cannula → 経鼻カニューレ)、
+    inline `_fall_ja` (high → 高リスク)。JA 文脈で生 enum を埋め
+    込んでいた `_build_*` 関数群が呼び出す (PR #833 で
+    `_build_nursing_shift_status` の最後 2 site を close)。
+- **後段 backstop (post-hoc walker)** —
+  `output/fhir_r4/documents/composition.py` の
+  `_localize_practitioner_ids_in_text` (PR #828)。
+  FHIR emit 時に `Composition.section[].text.div` 内の残 staff-id を
+  regex 置換。template 層を bypass する経路 (LLM が verbatim
+  preservation から drift 等) の defence-in-depth として維持。
+
+deploy に新たな生 token class が現れたら、両層に resolver /
+localizer を追加する — template 修正で source を塞ぎ、walker で
+drift を検出する二重体制。
+
 ## ディレクトリ構造
 
 ```

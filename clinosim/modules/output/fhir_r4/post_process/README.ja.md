@@ -43,7 +43,18 @@ cross-resource fixup を適用できる。
     (`_JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS`)、
     MedicationUsage uncoded fallback
     (`_JP_CLINS_MEDICATION_USAGE_UNCODED_CS`、code
-    `"0X0XXXXXXXXX0000"`、display `"用法未指定"`)、period-of-use
+    `"0X0XXXXXXXXX0000"`、display `"用法未指定"`)は
+    `_resolve_mhlw_usage_code(drug_text, freq, period, period_unit)`
+    (Issue #817 / PR #836/#837/#838) が (drug, cadence) tuple を
+    実 `MedicationUsage_ePrescription` code に mapping できない
+    場合の fallback のみ。resolver は薬剤クラス + freq heuristic
+    (statin→QD-就寝前、PPI→QD-朝食前、bisphosphonate→QD-起床時、
+    ワルファリン→QD-夕食後、biguanide→BID-朝夕食後、抗生剤→TID-
+    朝昼夕食後 等) と PRN 条件コード (アセトアミノフェン→発熱時、
+    サルブタモール→喘息発作時) を適用し、JP p=10000 s500 sample で
+    実 code coverage ~97.6% を達成。残 ~2.4% dummy は hourly cadence
+    (Q6H / Q8H — MHLW CS に pure-hourly code 無し) + IV 静注薬
+    (生理食塩液等)、period-of-use
     extension URL (`_JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL`)、
     UCUM day code (`_UCUM_SYSTEM_URI`, `_UCUM_DAY_CODE = "d"`,
     `_UCUM_DAY_UNIT_JA = "日"`)、JP resource-instance identifier
