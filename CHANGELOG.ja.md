@@ -28,3 +28,8 @@ JP 表示テキスト方針変更、JP 保険番号 opt-in 挙動変更等) が�
 場合は本 file に該当 entry のみ日本語で追記する運用です。
 
 英語版: [`CHANGELOG.md (English)`](CHANGELOG.md)。
+
+## [0.3.0] - 2026-08-22 (JP load-bearing 追記)
+
+- **JP-CLINS MedicationRequest `timing.code` を MHLW `MedicationUsage_ePrescription` 実 code 化**: 従来 100% dummy `0X0XXXXXXXXX0000` だったが、薬剤クラス + freq + route heuristic により **85.86% の dosage に実 MHLW code** を付与 (statin→就寝前、PPI→朝食前、biguanide→朝夕食後、抗生剤→毎食後 等)。route filter (`_NON_ORAL_ROUTE_MARKERS`) により **oral code は `route=経口` の record のみに emit**、意味的に正しくない oral code emit を排除。残 14.14% dummy は MHLW oral CS 未収載 route (吸入/静注/皮下注/筋注/舌下/直腸 等)、spec-legit の JP-CLINS uncoded fallback。
+- **narrative text 内の JP 生 token localization**: `staff_id` (`DR-CA-002` → `加瀬 幸男 医師`)、`severity` (`mild` → `軽度`)、`oxygen_device` (`nasal_cannula` → `経鼻カニューレ`)、`fall_risk_level` (`high` → `高リスク`) をすべて template 層で source-fix (LLM が verbatim preserve するので template で resolve すれば FHIR emit にも反映)。従前の Composition post-hoc walker (`_localize_practitioner_ids_in_text`) は defence-in-depth として維持。
