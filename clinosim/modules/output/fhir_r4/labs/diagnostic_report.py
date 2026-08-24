@@ -237,12 +237,111 @@ def parse_lab_obs_id(obs_id: str, encounter_id: str) -> int | None:
         return None
 
 
+# HL7 v3 ObservationInterpretation abnormal group (per issue #846). Values
+# collected from ``OrderResult.flag`` that mark a value as out of reference
+# range — any one of these on a panel component makes the whole panel DR
+# Abnormal for ``conclusionCode`` purposes.
+_ABNORMAL_LAB_FLAGS: frozenset[str] = frozenset({"H", "L", "HH", "LL", "A", "AA", "HU", "LU"})
+
+
+# Radiology impression phrases that explicitly commit the report to Normal
+# regardless of the abnormal-keyword vocabulary that may follow. Read
+# BEFORE the abnormal-keyword search so a negation ("認めず" — "not
+# found") is never overridden by the negated abnormality it excludes.
+# Issue #846 fu: 2,857 imaging DR carried an Abnormal verdict on an
+# impression such as "急性期異常所見を認めず" because the prior
+# substring search matched "異常" and "認め" without noticing the
+# negation. Case-insensitive on the ASCII patterns.
+_IMAGING_NORMAL_IMPRESSION_PATTERNS: tuple[str, ...] = (
+    "認めず",
+    "認めない",
+    "指摘し得ず",
+    "指摘できず",
+    "指摘できない",
+    "所見なし",
+    "異常なし",
+    "問題なし",
+    "正常",
+    "no acute",
+    "no evidence of",
+    "negative for",
+    "unremarkable",
+    "within normal limits",
+    "normal study",
+)
+
+
+# Radiology impression phrases that flag the report as Abnormal. Consulted
+# only after the negation gate above has been checked, so a "no acute
+# consolidation" impression is not mis-classified because of the
+# "consolidation" substring.
+_IMAGING_ABNORMAL_IMPRESSION_PATTERNS: tuple[str, ...] = (
+    "異常",
+    "認め",
+    "所見あり",
+    "疑い",
+    "陽性",
+    "骨折",
+    "梗塞",
+    "出血",
+    "結節",
+    "腫瘤",
+    "腫大",
+    "浸潤",
+    "肥大",
+    "abnormal",
+    "consolidation",
+    "fracture",
+    "mass",
+    "hemorrhage",
+    "infarct",
+    "opacity",
+    "effusion",
+    "nodule",
+)
+
+
+def _derive_imaging_conclusion_code(impression_text: str, lang: str) -> dict:
+    """Return the ``conclusionCode`` coding entry for a radiology DR.
+
+    Empty / whitespace-only impression → Normal (nothing said, nothing
+    to flag). Negation phrase present → Normal (radiologist committed to
+    the negative reading). Abnormal-keyword present → Abnormal.
+    Otherwise → Normal (default). Consult negation FIRST so
+    "no acute consolidation" is not mis-classified because of the
+    ``consolidation`` substring.
+    """
+    text = (impression_text or "").strip()
+    if not text:
+        code = "17621005"
+    else:
+        low = text.lower()
+        if any(p in text if not p.isascii() else p in low for p in _IMAGING_NORMAL_IMPRESSION_PATTERNS):
+            code = "17621005"
+        elif any(p in text if not p.isascii() else p in low for p in _IMAGING_ABNORMAL_IMPRESSION_PATTERNS):
+            code = "263654008"
+        else:
+            code = "17621005"
+    is_abnormal = code == "263654008"
+    return {
+        "coding": [
+            {
+                "system": "http://snomed.info/sct",
+                "code": code,
+                "display": ("異常所見" if lang == "ja" else "Abnormal")
+                if is_abnormal
+                else ("異常なし" if lang == "ja" else "Normal"),
+            }
+        ]
+    }
+
+
 def _build_lab_panel_conclusion(
     group: _GroupedPanel,
     orders: list[Any],
     encounter_id: str,
     lang: str,
-) -> str:
+) -> tuple[str, bool]:
     """Compose a fact-only ``DiagnosticReport.conclusion`` for a lab panel.
 
     P1-10 (session-88j META #774 follow-up): PR #791 removed the static
@@ -262,9 +361,17 @@ def _build_lab_panel_conclusion(
     ``""`` when no contributing Observation carries a usable
     (name + value) pair, so the caller can skip emit rather than write
     an empty string.
+
+    Returns ``(text, has_abnormal)``. ``has_abnormal`` is True iff any
+    contributing Observation's ``result.flag`` names an abnormal
+    interpretation (``_ABNORMAL_LAB_FLAGS``). Issue #846: the caller
+    uses this same signal to set ``DiagnosticReport.conclusionCode``,
+    keeping the code and the text derived from a single walk — they
+    can never disagree within a single resource.
     """
     parts: list[str] = []
     flagged: list[str] = []
+    has_abnormal = False
     for obs_id in group.obs_refs:
         idx = parse_lab_obs_id(obs_id, encounter_id)
         if idx is None or idx >= len(orders):
@@ -305,9 +412,11 @@ def _build_lab_panel_conclusion(
         if flag:
             segment = f"{segment} [{flag}]"
             flagged.append(lab_name)
+            if flag.upper() in _ABNORMAL_LAB_FLAGS:
+                has_abnormal = True
         parts.append(segment)
     if not parts:
-        return ""
+        return ("", False)
     joiner = "、" if lang == "ja" else ", "
     body = joiner.join(parts)
     if flagged:
@@ -315,7 +424,7 @@ def _build_lab_panel_conclusion(
             body = f"{body}。参照範囲外: {joiner.join(flagged)}"
         else:
             body = f"{body}. Out of reference range: {joiner.join(flagged)}"
-    return body
+    return (body, has_abnormal)
 
 
 def build_dr_resource(
@@ -431,23 +540,6 @@ def build_dr_resource(
         # hospital-main で fallback emit(CY6-03 の 100% 発火を維持)。
         res["performer"] = [{"reference": "Organization/hospital-main"}]
         res["resultsInterpreter"] = [{"reference": "Organization/hospital-main"}]
-    # CY8-14 fix: DR.conclusionCode = 解釈カテゴリ code。
-    # 全 Observation.interpretation を集計し、H/L があれば "abnormal"、
-    # 全 N なら "normal"。SNOMED 17621005 (Normal) / 263654008 (Abnormal)。
-    _abnormal = getattr(group, "any_abnormal", False)
-    res["conclusionCode"] = [
-        {
-            "coding": [
-                {
-                    "system": "http://snomed.info/sct",
-                    "code": "263654008" if _abnormal else "17621005",
-                    "display": ("異常所見" if lang == "ja" else "Abnormal")
-                    if _abnormal
-                    else ("異常なし" if lang == "ja" else "Normal"),
-                }
-            ],
-        }
-    ]
     # Issue #784 (part of #774): the pre-fix path emitted a static template
     # sentence ("XX パネル(N項目):個別検査値および解釈は関連 Observation を
     # 参照。") on every lab DR — no clinical value, silently asserting a
@@ -460,10 +552,34 @@ def build_dr_resource(
     # that pre-date the P1-10 signature bump), we still fall through to
     # the "no conclusion" behaviour PR #791 established — safer than
     # crashing an emit path.
+    #
+    # Issue #846: DR.conclusionCode (SNOMED 17621005 Normal / 263654008
+    # Abnormal) is derived from the SAME single walk that composes
+    # ``.conclusion`` — ``_build_lab_panel_conclusion`` returns
+    # ``(text, has_abnormal)`` where ``has_abnormal`` is True iff any
+    # contributing Observation carries an abnormal HL7 v3 flag
+    # (``_ABNORMAL_LAB_FLAGS``). Reusing one walk guarantees the code
+    # and the text of a single resource cannot disagree. When ``orders``
+    # is not available (legacy callers), we omit ``conclusionCode``
+    # rather than emit a value we cannot back with the resource's own
+    # data (cardinality is 0..*).
     if orders is not None:
-        _conclusion = _build_lab_panel_conclusion(group, orders, encounter_id, lang)
+        _conclusion, _abnormal = _build_lab_panel_conclusion(group, orders, encounter_id, lang)
         if _conclusion:
             res["conclusion"] = _conclusion
+        res["conclusionCode"] = [
+            {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "263654008" if _abnormal else "17621005",
+                        "display": ("異常所見" if lang == "ja" else "Abnormal")
+                        if _abnormal
+                        else ("異常なし" if lang == "ja" else "Normal"),
+                    }
+                ],
+            }
+        ]
     # C5-20 (Chain 3): presentedForm — text-plain rendered summary of the
     # panel report (patient-facing form). Header + observation count is
     # sufficient without inflating the attachment with per-analyte lines;
@@ -828,33 +944,25 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     # conclusionCode: emit only when findings_codes is populated (PR1 default: empty → skipped).
     # CY8-14 fix: findings_codes 空でも normal/abnormal SNOMED を
     # default emit。従来 0/imaging DR。radiology impression の存否で分岐。
+    #
+    # Issue #846 fu: the empty-findings_codes fallback previously flipped
+    # ``impression_text`` to Abnormal via a naive substring search that
+    # ignored negation — "急性期異常所見を認めず" ("no acute abnormal
+    # findings") matched both "異常" and "認め" and read as Abnormal
+    # even though the impression explicitly excludes abnormality.
+    # Result: 2,857 imaging DR in the JP p=10000 s500 sample carried a
+    # 263654008 verdict while impression text stated the opposite.
+    # Fix: check normal-phrasing patterns FIRST — any radiologist
+    # negation phrase (認めず / 認めない / no acute / negative /
+    # unremarkable / 正常) commits the report to Normal regardless of
+    # the abnormal-keyword vocabulary that follows.
     findings_codes = _o(report, "findings_codes", []) or []
     if findings_codes:
         dr["conclusionCode"] = [
             {"coding": [{"system": get_system_uri("snomed-ct"), "code": code}]} for code in findings_codes
         ]
     else:
-        _has_abnormal = bool(impression_text) and (
-            "異常" in impression_text
-            or "abnormal" in impression_text.lower()
-            or "認め" in impression_text
-            or "consolidation" in impression_text.lower()
-            or "fracture" in impression_text.lower()
-            or "骨折" in impression_text
-        )
-        dr["conclusionCode"] = [
-            {
-                "coding": [
-                    {
-                        "system": "http://snomed.info/sct",
-                        "code": "263654008" if _has_abnormal else "17621005",
-                        "display": ("異常所見" if lang == "ja" else "Abnormal")
-                        if _has_abnormal
-                        else ("異常なし" if lang == "ja" else "Normal"),
-                    }
-                ],
-            }
-        ]
+        dr["conclusionCode"] = [_derive_imaging_conclusion_code(impression_text, lang)]
     # C5-20 (Chain 3): presentedForm — findings + impression as text/plain
     # (mirrors text.div content, formatted for direct patient reading).
     _title_en = f"Radiology Report: {proc_display}" if proc_display else "Radiology Report"
