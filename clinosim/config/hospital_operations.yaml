@@ -49,6 +49,18 @@ department_rollup:
   trauma_surgery: general_surgery
   cardiovascular_surgery: general_surgery
   vascular_surgery: general_surgery
+  # Outpatient-only specialties this hospital does not staff — well-child
+  # visits, immunizations, mammography screening etc. attach to
+  # `primary_care` (OPD front-desk) rather than falling through to
+  # internal_medicine (which is the general fallback for unmapped
+  # specialties). Consumed by
+  # `simulator/outpatient_dept.resolve_outpatient_department` for
+  # follow-up visits; other callers of `resolve_department` never pass
+  # these names, so behavior for inpatient/unknown_condition is
+  # unchanged.
+  pediatrics: primary_care
+  obgyn: primary_care
+  dermatology: primary_care
 
 # Ward layout — which ward(s) each department uses + bed count per ward
 wards:

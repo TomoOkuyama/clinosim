@@ -76,6 +76,7 @@ from clinosim.simulator.helpers import (
 )
 from clinosim.simulator.inpatient import _simulate_patient
 from clinosim.simulator.outpatient import _simulate_outpatient_visit
+from clinosim.simulator.outpatient_dept import resolve_outpatient_department
 from clinosim.simulator.unknown_condition import _simulate_unknown_condition
 from clinosim.types.config import ForcedScenario, SimulatorConfig
 from clinosim.types.encounter import EncounterType
@@ -656,6 +657,11 @@ def run_beta(
             continue
         opd_key = f"{pid}|post_discharge|{followup_date.isoformat()}"
         opd_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, opd_key)
+        # Continuity of care: the post-discharge follow-up attaches to the
+        # same service line as the inpatient stay (a trauma / surgical /
+        # cardiology / GI patient is followed up by the same specialty,
+        # not general internal medicine).
+        opd_dept = resolve_outpatient_department("post_discharge", disease_id, enc.department_id, hospital_ops)
         opd_record = _simulate_outpatient_visit(
             _activate_cached(person),
             "post_discharge",
@@ -666,6 +672,7 @@ def run_beta(
             post_discharge_disease=disease_id,
             country=config.country,
             config=config,
+            department_id=opd_dept,
         )
         patient_records.append(opd_record)
 
@@ -726,6 +733,7 @@ def run_beta(
                     visit_labs.append(lab)
             merged_spec = dict(spec)
             merged_spec["labs"] = visit_labs
+            chronic_dept = resolve_outpatient_department("chronic_followup", event.disease_id, None, hospital_ops)
             opd_record = _simulate_outpatient_visit(
                 patient,
                 "chronic_followup",
@@ -736,6 +744,7 @@ def run_beta(
                 followup_spec=merged_spec,
                 country=config.country,
                 config=config,
+                department_id=chronic_dept,
             )
         elif event.event_type == "pediatric_visit":
             # Issue #760 pass 2: well-child visit dispatch. No labs (pediatric
@@ -744,6 +753,7 @@ def run_beta(
             # `_simulate_outpatient_visit` uses visit_type to select the
             # vitals-set (temp / hr / weight for pediatric, no labs), and the
             # visit_reason is looked up from `pediatric_schedule.yaml`.
+            pedi_dept = resolve_outpatient_department("pediatric_visit", event.disease_id, None, hospital_ops)
             opd_record = _simulate_outpatient_visit(
                 patient,
                 "pediatric_visit",
@@ -757,6 +767,7 @@ def run_beta(
                 },
                 country=config.country,
                 config=config,
+                department_id=pedi_dept,
             )
         elif event.event_type == "health_screening":
             # F1: visit_reason must vary by disease_id — see the
@@ -768,6 +779,9 @@ def run_beta(
             # single patient's mammography + annual checkup landing on the
             # same date.
             screening_reason = _HEALTH_SCREENING_VISIT_REASON.get(event.disease_id, "Annual health screening")
+            screening_dept = resolve_outpatient_department(
+                "health_screening", event.disease_id or "annual_health_screening", None, hospital_ops
+            )
             opd_record = _simulate_outpatient_visit(
                 patient,
                 "health_screening",
@@ -781,6 +795,7 @@ def run_beta(
                 },
                 country=config.country,
                 config=config,
+                department_id=screening_dept,
             )
         else:
             continue
