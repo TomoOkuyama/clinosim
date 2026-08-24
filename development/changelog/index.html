@@ -2256,7 +2256,52 @@ start, end, population)</code> tuple, output NDJSON must be byte-identical acros
 PATCH-only releases within the same MINOR line. MINOR releases may change
 byte output but must document the change here.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
-<p><em>Nothing yet — next changes land here.</em></p>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Outpatient follow-up department is now resolved per visit</strong> (this PR).
+  <code>outpatient.py::_simulate_outpatient_visit</code> used to hard-code
+  <code>department_id="internal_medicine"</code> and <code>assign_staff("rounds",
+  "internal_medicine", ...)</code> for every outpatient follow-up encounter it
+  produced, sending 100 % of them into 内科 regardless of the
+  underlying inpatient service (for post-discharge visits) or the
+  chronic condition being followed. A new resolver
+  <code>simulator/outpatient_dept.py::resolve_outpatient_department(visit_type,
+  code, prior_department_id, hospital_ops)</code> composes two layers: a
+  disease/screening → clinical specialty map (chronic IHD/AFib/HF →
+  cardiology; chronic gastro codes → gastroenterology; M81 osteoporosis
+  → orthopedics; colonoscopy_screening → gastroenterology; well-child /
+  mammography / annual health check / immunization → primary_care;
+  everything else, incl. HTN/DM/COPD/CKD, → internal_medicine per
+  Japanese primary-care realism) and the existing
+  <code>hospital_ops.resolve_department</code> (which consults
+  <code>hospital_operations.yaml::department_rollup</code> — extended here with
+  <code>pediatrics: primary_care</code>, <code>obgyn: primary_care</code>, <code>dermatology:
+  primary_care</code> so OPD-only specialties that this small community
+  hospital does not staff land in 総合診療外来 rather than falling
+  through to 内科). Post-discharge follow-ups short-circuit both stages
+  and inherit the prior inpatient encounter's <code>department_id</code>
+  (continuity of care — a trauma / surgical / cardiology / GI patient
+  is followed up by the same service, not general internal medicine).
+  Callers in <code>engine.py</code> (post-discharge / chronic-visit / pediatric-
+  visit / health-screening dispatches) now compute the department via
+  the resolver and pass it explicitly. Measured on the JP p=10000 s500
+  sample: <strong>265 / 775 (34.2%) post-discharge follow-ups</strong> were going to
+  internal_medicine when the inpatient stay had been in
+  cardiology/orthopedics/gastroenterology/general_surgery, and
+  <strong>15,316 chronic + screening encounters</strong> were mis-routed
+  (cardiac chronic to internal_medicine, colonoscopy to internal_medicine,
+  screening / well-child / immunization to internal_medicine instead of
+  primary_care). New: <code>tests/unit/test_outpatient_dept_resolver.py</code>
+  (22 tests) covers post-discharge inheritance, chronic specialty
+  routing, screening dispatch, small-clinic rollup fallback, and
+  null-config safety. NB: because <code>assign_staff("rounds", dept, ...)</code>
+  now picks from a different roster pool for the newly-routed visits,
+  the RNG stream inside each affected outpatient encounter shifts
+  (per-encounter phase RNG — no cross-encounter contamination), so
+  regenerated snapshots will differ byte-for-byte from prior 0.3.0
+  output for outpatient follow-up records; inpatient / ED / narrative
+  paths are unchanged.</li>
+</ul>
 <h2 id="030---2026-08-22">[0.3.0] - 2026-08-22<a class="headerlink" href="#030---2026-08-22" title="Permanent link">&para;</a></h2>
 <h3 id="added-session-88k">Added (session 88k)<a class="headerlink" href="#added-session-88k" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2483,7 +2528,7 @@ regression).</p>
   patterns. <strong>This is the first phase of a three-phase architectural refactor to
   eliminate compound-key id encoding across all resource types.</strong></li>
 </ul>
-<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Immunization <code>lot_number</code> was non-deterministic across runs.</strong>
   <code>clinosim/modules/immunization/engine.py</code> used Python's builtin
