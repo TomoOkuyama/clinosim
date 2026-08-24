@@ -84,6 +84,175 @@ from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
 from clinosim.types.patient import PatientProfile
 
 
+def _find_active_inpatient_record(
+    patient_records: list[CIFPatientRecord],
+    person_id: str,
+    event_time: datetime,
+) -> CIFPatientRecord | None:
+    """Return the patient's currently-active inpatient record at ``event_time``.
+
+    Issue #848: the population life-event stream can fire a new disease
+    event for a person who is still admitted for an earlier event
+    (POP-000170 developed acute coronary syndrome on day 37 of a 46-day
+    pancreatitis admission). Prior behavior: a wholly separate inpatient
+    encounter got created for the new event, and the two admissions
+    coexisted in the CIF (17 cross-department overlaps + 8 same-department
+    overlaps in the JP p=10000 s500 sample) — physically impossible in
+    a single 50-bed hospital.
+
+    A record is "active" when its lead encounter is an inpatient stay,
+    ``admission_datetime <= event_time``, and ``discharge_datetime`` is
+    absent (still admitted at snapshot) or strictly after ``event_time``.
+    Returns the most-recently-admitted such record if several match
+    (typically only one for a given moment).
+    """
+    active: CIFPatientRecord | None = None
+    best_admit: datetime | None = None
+    for record in patient_records:
+        if record.patient.patient_id != person_id:
+            continue
+        if not record.encounters:
+            continue
+        enc = record.encounters[0]
+        if enc.encounter_type != EncounterType.INPATIENT:
+            continue
+        if enc.admission_datetime is None or enc.admission_datetime > event_time:
+            continue
+        if enc.discharge_datetime is not None and enc.discharge_datetime <= event_time:
+            continue
+        if best_admit is None or enc.admission_datetime > best_admit:
+            best_admit = enc.admission_datetime
+            active = record
+    return active
+
+
+def _find_overlapping_inpatient_record(
+    patient_records: list[CIFPatientRecord],
+    person_id: str,
+    event_time: datetime,
+    estimated_los_days: int = 30,
+) -> CIFPatientRecord | None:
+    """Return any patient inpatient record whose stay would overlap a new admission.
+
+    Issue #848 fu: ``_find_active_inpatient_record`` is a point-in-time
+    check — "is the patient admitted RIGHT NOW at event_time?" That is
+    the correct gate for the main inpatient dispatch loop, which
+    processes life events chronologically (no later admission exists in
+    ``patient_records`` yet). The readmission dispatch runs AFTER the
+    main loop, so ``patient_records`` at that point contains life-event
+    admissions whose start is AFTER the readmission's scheduled admit
+    time — the point-check misses the overlap because the later
+    admission isn't "active" at event_time yet.
+
+    This function checks period-overlap: if any existing inpatient
+    encounter's ``[admission, discharge]`` intersects
+    ``[event_time, event_time + estimated_los_days]``, return it. The
+    30-day default LOS estimate is intentionally generous — median
+    inpatient LOS in the sim is ~14 days, so the window covers the
+    long-tail admissions without pulling in unrelated future
+    encounters. Returns the earliest-admitting overlap so a
+    complication merges into the earlier stay rather than a later one.
+    """
+    est_discharge = event_time + timedelta(days=estimated_los_days)
+    best: CIFPatientRecord | None = None
+    best_admit: datetime | None = None
+    for record in patient_records:
+        if record.patient.patient_id != person_id:
+            continue
+        if not record.encounters:
+            continue
+        enc = record.encounters[0]
+        if enc.encounter_type != EncounterType.INPATIENT:
+            continue
+        if enc.admission_datetime is None:
+            continue
+        rec_end = enc.discharge_datetime
+        if rec_end is not None and rec_end <= event_time:
+            continue  # existing ended strictly before our start
+        if enc.admission_datetime >= est_discharge:
+            continue  # existing starts at or after our estimated end
+        if best_admit is None or enc.admission_datetime < best_admit:
+            best_admit = enc.admission_datetime
+            best = record
+    return best
+
+
+def _merge_disease_into_active_encounter(
+    active_record: CIFPatientRecord,
+    disease_id: str,
+    event_time: datetime,
+) -> None:
+    """Merge a new-disease life event into an already-admitted patient's record.
+
+    Issue #848 full-C: rather than opening a second concurrent encounter
+    (physically impossible in one hospital), a new-disease event that
+    fires while the patient is admitted is recorded as an in-hospital
+    complication on the existing encounter — this is what real EHR
+    practice does (cardiology consult / CCU transfer on the same
+    encounter). Data captured:
+
+    - ``complications_occurred``: the new disease id is appended
+      (idempotent — no duplicates).
+    - ``condition_event.condition_type``: promoted to ``"mixed"`` when it
+      was any of the single-condition types (``known_disease``,
+      ``unknown``, ``ed_visit``); ``post_discharge_followup`` and
+      ``chronic_followup`` are outpatient labels and are not overwritten
+      here (defensive — the caller gates on inpatient records only).
+    - ``condition_event.ground_truth_diseases``: appended (idempotent).
+    - ``clinical_diagnosis.working_diagnoses``: a
+      ``{disease_id, onset_day, onset_datetime}`` entry is appended so
+      downstream FHIR emit can render the new diagnosis as a secondary
+      Condition timestamped at the intra-admission onset (not the
+      admission date).
+
+    Order/lab/vital simulation for the complication is deliberately not
+    invoked here — the simulator's per-disease protocol is designed
+    around an isolated admission (discharge date, LOS pacing, etc.) and
+    cannot be dropped into the middle of another admission's timeline
+    without a substantial refactor of ``_simulate_patient``. Recording
+    the complication as a diagnostic fact + a working-diagnosis entry
+    preserves the clinical signal (this patient developed X on day N)
+    without fabricating a treatment timeline that would not agree with
+    the pre-simulated existing admission's flow. Full order/lab
+    simulation for in-hospital complications is a future enhancement
+    (tracked in the follow-up section of the #848 discussion).
+    """
+    if not active_record.encounters:
+        return
+    admit_dt = active_record.encounters[0].admission_datetime
+    onset_day = (event_time.date() - admit_dt.date()).days if admit_dt else 0
+    # Clamp: when the readmission dispatch's period-overlap gate merges an
+    # earlier-scheduled readmission (event_time) into a later-admitting
+    # life-event encounter (admit_dt), event_time is BEFORE admit_dt →
+    # onset_day would be negative. Semantically this maps to "this
+    # disease was already active at admission" (the readmission would
+    # have been the actual admit trigger absent the merge), so record
+    # onset as day-0 rather than a nonsensical negative day.
+    if onset_day < 0:
+        onset_day = 0
+
+    if disease_id not in active_record.complications_occurred:
+        active_record.complications_occurred.append(disease_id)
+
+    ce = active_record.condition_event
+    if ce is not None:
+        if ce.condition_type in ("known_disease", "unknown", "ed_visit"):
+            ce.condition_type = "mixed"
+        if disease_id not in ce.ground_truth_diseases:
+            ce.ground_truth_diseases.append(disease_id)
+
+    cd = active_record.clinical_diagnosis
+    if cd is not None and isinstance(cd.working_diagnoses, list):
+        cd.working_diagnoses.append(
+            {
+                "disease_id": disease_id,
+                "onset_day": onset_day,
+                "onset_datetime": event_time.isoformat(),
+                "source": "in_hospital_complication",
+            }
+        )
+
+
 def _replay_cached_admission_queue(
     record: CIFPatientRecord | None,
     hospital_state: Any,
@@ -460,6 +629,24 @@ def run_beta(
         patient = _activate_cached(person)
         disease_id = event.disease_id
 
+        # Issue #848: if the patient is currently admitted for an earlier
+        # event, this new life event fired *inside* the ongoing
+        # hospitalization. Rather than opening a physically-impossible
+        # second concurrent encounter, merge the disease into the active
+        # record as an in-hospital complication (mirror of what real EHR
+        # practice does — cardiology consult / CCU transfer on the same
+        # encounter). Skips subsequent per-event scaffolding (rng derive,
+        # bed increment, cache lookup, _simulate_patient) because no new
+        # encounter is created for this event.
+        _active = _find_active_inpatient_record(patient_records, event.person_id, event_time)
+        if _active is not None:
+            _merge_disease_into_active_encounter(_active, disease_id, event_time)
+            # Undo the bed_occupancy / concurrent_patients increments this
+            # loop iteration applied above — no new admission was created.
+            hospital_state.bed_occupancy = max(0.0, hospital_state.bed_occupancy - 1.0 / beds_total)
+            concurrent_patients = max(0, concurrent_patients - 1)
+            continue
+
         event_key = f"{event.person_id}|{event.timestamp.isoformat()}|{disease_id}"
         event_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, event_key)
         # F4: content-derived cache key — identical shape to `event_key` above,
@@ -595,6 +782,25 @@ def run_beta(
             continue
         protocol = protocols.get(re_event.disease_id)
         if not protocol:
+            continue
+        # Issue #848: same-patient overlap can also arise when a
+        # readmission fires while the patient is still admitted from
+        # the previous stay (e.g. a heart-failure exacerbation
+        # readmission scheduled 8 days after discharge, but the initial
+        # admission had not actually discharged yet in the cursor
+        # window). Route through the in-hospital complication merge
+        # here too so the readmission dispatch cannot open a physically
+        # concurrent second encounter.
+        _re_event_time = datetime(re_event.timestamp.year, re_event.timestamp.month, re_event.timestamp.day, 12, 0)
+        # Readmission dispatch uses period-overlap (not point-in-time)
+        # because it runs AFTER the main inpatient loop — patient_records
+        # already contains later life-event admissions whose start is
+        # after the readmission's scheduled admit time but whose period
+        # overlaps ours. See ``_find_overlapping_inpatient_record`` for
+        # rationale.
+        _re_overlap = _find_overlapping_inpatient_record(patient_records, re_event.person_id, _re_event_time)
+        if _re_overlap is not None:
+            _merge_disease_into_active_encounter(_re_overlap, re_event.disease_id, _re_event_time)
             continue
         patient = _activate_cached(person)
         re_sim_key = f"{re_event.person_id}|{re_event.timestamp.isoformat()}|readmission"

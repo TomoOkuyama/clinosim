@@ -355,6 +355,13 @@ class NarrativePass(ABC):
             target_lang=language,
             locale="jp" if is_jp(self.country) else "us",
             complications_occurred=list(patient_dict.get("complications_occurred", []) or []),
+            # Issue #848: intra-admission new-disease working diagnoses
+            # (populated by engine._merge_disease_into_active_encounter
+            # when a life event fires for an already-admitted patient).
+            # Consumed by template renderers to emit onset-day-aware
+            # complication phrases; LLM narrative passes surface the same
+            # onset-day context in the prompt via _build_extra_context.
+            working_diagnoses=list((clinical_diagnosis or {}).get("working_diagnoses", []) or []),
             adl_assessments=list(patient_dict.get("adl_assessments", []) or []),
             nursing_risk_assessments=list(patient_dict.get("nursing_risk_assessments", []) or []),
             intake_output_records=list(patient_dict.get("intake_output_records", []) or []),
