@@ -18,7 +18,51 @@ byte output but must document the change here.
 
 ## [Unreleased]
 
-_Nothing yet — next changes land here._
+### Fixed
+
+- **Outpatient follow-up department is now resolved per visit** (this PR).
+  `outpatient.py::_simulate_outpatient_visit` used to hard-code
+  `department_id="internal_medicine"` and `assign_staff("rounds",
+  "internal_medicine", ...)` for every outpatient follow-up encounter it
+  produced, sending 100 % of them into 内科 regardless of the
+  underlying inpatient service (for post-discharge visits) or the
+  chronic condition being followed. A new resolver
+  `simulator/outpatient_dept.py::resolve_outpatient_department(visit_type,
+  code, prior_department_id, hospital_ops)` composes two layers: a
+  disease/screening → clinical specialty map (chronic IHD/AFib/HF →
+  cardiology; chronic gastro codes → gastroenterology; M81 osteoporosis
+  → orthopedics; colonoscopy_screening → gastroenterology; well-child /
+  mammography / annual health check / immunization → primary_care;
+  everything else, incl. HTN/DM/COPD/CKD, → internal_medicine per
+  Japanese primary-care realism) and the existing
+  `hospital_ops.resolve_department` (which consults
+  `hospital_operations.yaml::department_rollup` — extended here with
+  `pediatrics: primary_care`, `obgyn: primary_care`, `dermatology:
+  primary_care` so OPD-only specialties that this small community
+  hospital does not staff land in 総合診療外来 rather than falling
+  through to 内科). Post-discharge follow-ups short-circuit both stages
+  and inherit the prior inpatient encounter's `department_id`
+  (continuity of care — a trauma / surgical / cardiology / GI patient
+  is followed up by the same service, not general internal medicine).
+  Callers in `engine.py` (post-discharge / chronic-visit / pediatric-
+  visit / health-screening dispatches) now compute the department via
+  the resolver and pass it explicitly. Measured on the JP p=10000 s500
+  sample: **265 / 775 (34.2%) post-discharge follow-ups** were going to
+  internal_medicine when the inpatient stay had been in
+  cardiology/orthopedics/gastroenterology/general_surgery, and
+  **15,316 chronic + screening encounters** were mis-routed
+  (cardiac chronic to internal_medicine, colonoscopy to internal_medicine,
+  screening / well-child / immunization to internal_medicine instead of
+  primary_care). New: `tests/unit/test_outpatient_dept_resolver.py`
+  (22 tests) covers post-discharge inheritance, chronic specialty
+  routing, screening dispatch, small-clinic rollup fallback, and
+  null-config safety. NB: because `assign_staff("rounds", dept, ...)`
+  now picks from a different roster pool for the newly-routed visits,
+  the RNG stream inside each affected outpatient encounter shifts
+  (per-encounter phase RNG — no cross-encounter contamination), so
+  regenerated snapshots will differ byte-for-byte from prior 0.3.0
+  output for outpatient follow-up records; inpatient / ED / narrative
+  paths are unchanged.
 
 ## [0.3.0] - 2026-08-22
 

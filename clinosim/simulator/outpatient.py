@@ -54,10 +54,19 @@ def _simulate_outpatient_visit(
     post_discharge_disease: str = "",
     country: str = "US",
     config: object | None = None,
+    department_id: str = "internal_medicine",
 ) -> CIFPatientRecord:
     """Simulate a single outpatient visit (chronic follow-up or post-discharge).
 
     Generates: 1 encounter, 0-3 lab orders, 1 vital sign set, prescription renewal.
+
+    ``department_id`` is the resolved available-hospital department this
+    follow-up attaches to; callers should compute it via
+    ``simulator.outpatient_dept.resolve_outpatient_department`` so that
+    post-discharge visits inherit the prior inpatient service, chronic
+    cardiac follow-ups land in cardiology, colonoscopy screening in
+    gastroenterology, etc. The ``"internal_medicine"`` default preserves
+    legacy behavior for callers that have not yet been migrated.
     """
     from clinosim.locale.text import resolve_text
 
@@ -90,6 +99,7 @@ def _simulate_outpatient_visit(
         patient.patient_id,
         visit_date,
         chief_complaint=chief,
+        department_id=department_id,
         visit_number=0,  # constant — id disambiguated by patient_id + visit_date hash (F1)
     )
     # Issue #360 G1 (iris4h-ai 2026-07-22): store JP chief_complaint alongside
@@ -106,7 +116,7 @@ def _simulate_outpatient_visit(
         minutes=int(rng.integers(OUTPATIENT_VISIT_DURATION_MIN_MIN, OUTPATIENT_VISIT_DURATION_MAX_MIN))
     )
 
-    staff = assign_staff("rounds", "internal_medicine", roster, rng)
+    staff = assign_staff("rounds", department_id, roster, rng)
     encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
 
     orders: list[Order] = []
