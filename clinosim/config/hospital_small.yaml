@@ -29,6 +29,12 @@ department_rollup:
   orthopedics: internal_medicine
   neurosurgery: internal_medicine
   trauma_surgery: internal_medicine
+  # Outpatient-only specialties → primary_care (OPD front-desk).
+  # Consumed by simulator/outpatient_dept for follow-up visits (well-
+  # child, immunization, mammography screening).
+  pediatrics: primary_care
+  obgyn: primary_care
+  dermatology: primary_care
 
 wards:
   internal_medicine: ["1F"]              # single ward
