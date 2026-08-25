@@ -1,23 +1,25 @@
 """Issue #349 Phase 1b: antibiotic MedicationRequest opaque id + identifier round-trip.
 
-Pins the FHIR-emission behavior introduced by Phase 1b:
+Pins the FHIR-emission behavior introduced by Phase 1b (PR #357):
 
 * Antibiotic MR (``Order.order_id`` starts with ``ABX_ORDER_ID_PREFIX``
   = ``"req-abx-"``) has an opaque ``.id`` shaped ``mr-{12 hex}``.
 * The original compound structural key is preserved in ``identifier[]``
   under the ``MEDICATION_REQUEST_KEY_SYSTEM`` URI for round-trip.
-* Non-antibiotic MRs are unchanged (Phase 3 sibling-sweep will extend the
-  pattern to other resource kinds).
 * Antibiotic ``MedicationAdministration.request.reference`` resolves via
-  the same :func:`_resolve_antibiotic_mr_id` derivation so cross-resource
+  the same :func:`_resolve_mr_id` derivation so cross-resource
   reference-integrity is preserved.
 * JP-antibiotic MR carries all three identifier slices simultaneously:
   the Phase 1b structural key + the session-49 JP Core ``rpNumber`` +
   ``orderInRp``.
 * The audit-side helper ``_medication_request_structural_key`` recovers
-  the compound key from ``identifier[]`` and returns ``""`` for
-  non-antibiotic rows so the narrow-rate gate's ``continue`` branch fires
-  naturally instead of silently including them.
+  the compound key from ``identifier[]``.
+
+Non-antibiotic MR behavior is now identical (opaque .id + identifier
+round-trip) — the widened contract is pinned in the sibling file
+``test_fhir_medication_non_hai_opaque_id.py`` (Issue #853). Post-Issue-#853
+the resolver is ``_resolve_mr_id`` (was ``_resolve_antibiotic_mr_id`` when
+only antibiotic paths were opaque).
 """
 
 from __future__ import annotations
@@ -32,7 +34,7 @@ from clinosim.modules.output.fhir_r4.medications.medications import (
     MEDICATION_REQUEST_KEY_SYSTEM,
     _build_medication_admin,
     _build_medication_request,
-    _resolve_antibiotic_mr_id,
+    _resolve_mr_id,
 )
 
 pytestmark = pytest.mark.unit
@@ -67,44 +69,37 @@ def _non_abx_order() -> dict[str, Any]:
     }
 
 
-# === _resolve_antibiotic_mr_id ===
+# === _resolve_mr_id (antibiotic path) ===
 
 
-def test_resolve_antibiotic_mr_id_returns_opaque_for_antibiotic_prefix() -> None:
-    mr_id = _resolve_antibiotic_mr_id(_ANTIBIOTIC_ORDER_ID)
+def test_resolve_mr_id_returns_opaque_for_antibiotic_prefix() -> None:
+    mr_id = _resolve_mr_id(_ANTIBIOTIC_ORDER_ID)
     assert _OPAQUE_MR_ID_PATTERN.match(mr_id), f"expected mr-{{12 hex}}, got {mr_id!r}"
 
 
-def test_resolve_antibiotic_mr_id_returns_input_for_non_antibiotic() -> None:
-    """Phase 3 sibling-sweep will extend the opaque pattern; until then
-    non-antibiotic order ids pass through unchanged so byte-diff is
-    confined to antibiotic MRs."""
-    assert _resolve_antibiotic_mr_id(_NON_ANTIBIOTIC_ORDER_ID) == _NON_ANTIBIOTIC_ORDER_ID
-
-
-def test_resolve_antibiotic_mr_id_is_deterministic() -> None:
+def test_resolve_mr_id_is_deterministic() -> None:
     """Cross-resource reference-integrity depends on same-input → same-output.
     MAR.request.reference and MR.id must resolve to the same opaque value
     from the same structural key."""
-    a = _resolve_antibiotic_mr_id(_ANTIBIOTIC_ORDER_ID)
-    b = _resolve_antibiotic_mr_id(_ANTIBIOTIC_ORDER_ID)
+    a = _resolve_mr_id(_ANTIBIOTIC_ORDER_ID)
+    b = _resolve_mr_id(_ANTIBIOTIC_ORDER_ID)
     assert a == b
 
 
-def test_resolve_antibiotic_mr_id_distinguishes_empirical_vs_narrowed() -> None:
+def test_resolve_mr_id_distinguishes_empirical_vs_narrowed() -> None:
     """Empirical and narrowed regimens differ by the ``-n`` suffix in the
     structural key; their opaque ids must therefore differ so downstream
     consumers can tell them apart."""
-    empirical = _resolve_antibiotic_mr_id(_ANTIBIOTIC_ORDER_ID)
-    narrowed = _resolve_antibiotic_mr_id(_ANTIBIOTIC_ORDER_ID_NARROWED)
+    empirical = _resolve_mr_id(_ANTIBIOTIC_ORDER_ID)
+    narrowed = _resolve_mr_id(_ANTIBIOTIC_ORDER_ID_NARROWED)
     assert empirical != narrowed
 
 
-def test_resolve_antibiotic_mr_id_output_stays_well_under_fhir_limit() -> None:
+def test_resolve_mr_id_output_stays_well_under_fhir_limit() -> None:
     """The failure Issue #349 exists to eliminate: FHIR R4's 64-char
     Resource.id limit as a semantic constraint. Even with the longest
     realistic antibiotic structural key the opaque id is 15 chars."""
-    result = _resolve_antibiotic_mr_id(_ANTIBIOTIC_ORDER_ID_NARROWED)
+    result = _resolve_mr_id(_ANTIBIOTIC_ORDER_ID_NARROWED)
     assert len(result) == 15  # "mr-" (3) + 12 hex
     assert len(result) < 64
 
@@ -162,32 +157,14 @@ def test_antibiotic_mr_identifier_round_trip_jp_has_all_three_slices() -> None:
     assert idents[2]["value"] == "2"
 
 
-# === _build_medication_request (non-antibiotic path — unchanged) ===
-
-
-def test_non_antibiotic_mr_id_unchanged_us() -> None:
-    """Non-antibiotic MRs stay on the compound-id-as-key convention until
-    Phase 3 sibling-sweep. Confining byte-diff to antibiotic MRs keeps the
-    Phase 1b PR scope tight."""
-    mr = _build_medication_request(_non_abx_order(), patient_id="pt1", country="US")
-    assert mr["id"] == _NON_ANTIBIOTIC_ORDER_ID
-
-
-def test_non_antibiotic_mr_has_no_structural_key_identifier_us() -> None:
-    """Only antibiotic MRs get the Phase 1b structural-key round-trip; US
-    non-antibiotic MRs have no identifier[] at all (JP still gets the JP
-    Core slices)."""
-    mr = _build_medication_request(_non_abx_order(), patient_id="pt1", country="US")
-    assert "identifier" not in mr
-
-
-def test_non_antibiotic_mr_jp_has_only_jp_core_slices() -> None:
-    mr = _build_medication_request(_non_abx_order(), patient_id="pt1", country="JP")
-    idents = mr["identifier"]
-    systems = [i["system"] for i in idents]
-    assert MEDICATION_REQUEST_KEY_SYSTEM not in systems
-    assert "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber" in systems
-    assert "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex" in systems
+# === _build_medication_request (non-antibiotic path) ===
+#
+# Post-Issue-#853: non-antibiotic MRs share the antibiotic MR contract (opaque
+# .id + structural-key identifier round-trip). Coverage for that widened
+# behavior lives in the sibling file ``test_fhir_medication_non_hai_opaque_id.py``
+# — the 3 pre-#853 tests here that asserted "non-antibiotic MR unchanged" have
+# been removed rather than inverted (their inversions duplicate the sibling
+# file's coverage).
 
 
 # === MAR.request.reference cross-resource integrity ===
@@ -222,11 +199,9 @@ def test_antibiotic_mar_request_reference_uses_opaque_mr_id() -> None:
     assert mar["request"]["reference"] == f"MedicationRequest/{mr['id']}"
 
 
-def test_non_antibiotic_mar_request_reference_unchanged() -> None:
-    """Non-antibiotic MAR reference stays on the compound-key convention
-    (mirrors the non-antibiotic MR.id staying unchanged in Phase 1b)."""
-    mar = _build_medication_admin(_non_abx_mar(), patient_id="pt1", index=0, country="US")
-    assert mar["request"]["reference"] == f"MedicationRequest/{_NON_ANTIBIOTIC_ORDER_ID}"
+# Post-Issue-#853: non-antibiotic MAR reference also resolves to the opaque
+# MedicationRequest/mr-<12hex> id (same widened contract). Coverage lives in
+# the sibling file ``test_fhir_medication_non_hai_opaque_id.py``.
 
 
 # === Audit gate: _medication_request_structural_key ===
@@ -243,15 +218,19 @@ def test_audit_gate_recovers_structural_key_from_antibiotic_mr() -> None:
     assert _medication_request_structural_key(mr) == _ANTIBIOTIC_ORDER_ID
 
 
-def test_audit_gate_returns_empty_for_non_antibiotic_mr() -> None:
-    """Non-antibiotic MRs have no structural-key identifier (until Phase 3
-    sweep). The helper returns ``""`` so the caller's
-    ``ABX_ORDER_ID_PREFIX in structural_key`` check naturally excludes
-    them via ``continue`` — same shape as the pre-Phase-1b gate."""
+def test_audit_gate_still_excludes_non_antibiotic_via_prefix_check() -> None:
+    """Post-Issue-#853: every MR now carries a structural-key identifier
+    (the ``""`` empty return is unreachable for a normally-emitted MR).
+    The audit gate's ``ABX_ORDER_ID_PREFIX not in structural_key`` check
+    still correctly skips non-antibiotic MRs — non-antibiotic order_ids
+    (``ORD-ENC-POP-...``) do not contain the ``req-abx-`` prefix, so the
+    caller's continue-branch fires exactly as before."""
     from clinosim.audit.axes.clinical import _medication_request_structural_key
 
     mr = _build_medication_request(_non_abx_order(), patient_id="pt1", country="US")
-    assert _medication_request_structural_key(mr) == ""
+    key = _medication_request_structural_key(mr)
+    assert key == _NON_ANTIBIOTIC_ORDER_ID
+    assert ABX_ORDER_ID_PREFIX not in key
 
 
 def test_audit_gate_returns_empty_for_missing_identifier_list() -> None:

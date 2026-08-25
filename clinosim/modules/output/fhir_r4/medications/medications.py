@@ -22,7 +22,6 @@ from clinosim.modules._shared import (
     is_jp,
     resolve_lang,
 )
-from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.modules.output.fhir_r4.lib.common import (
     _parse_dose_for_mar,
     build_dosage_instruction,
@@ -214,20 +213,46 @@ _SUPPLY_DURATION_UNIT_US = "d"
 _SUPPLY_DURATION_CODE = "d"
 
 
-def _resolve_antibiotic_mr_id(order_id: str) -> str:
-    """Return the FHIR MedicationRequest.id for an antibiotic Order.
+def _resolve_mr_id(order_id: str) -> str:
+    """Return the FHIR MedicationRequest.id for a CIF Order (Issue #853).
 
-    For antibiotic orders (structural key starts with ``ABX_ORDER_ID_PREFIX``
-    = ``"req-abx-"``), returns the opaque `mr-{hash}` id derived from the
-    compound Order.order_id. For non-antibiotic orders returns the order_id
-    unchanged (Phase 3 sibling-sweep will extend the opaque pattern to other
-    resource kinds). Central helper so the MR builder and every cross-
-    reference site (MAR.request.reference, future basedOn[]) resolve the
-    same opaque value from the same structural key — determinism preserved.
+    Widened from Phase-1b's ``_resolve_antibiotic_mr_id`` (PR #357) — every
+    non-empty ``Order.order_id`` now maps to the same
+    ``mr-{sha256(order_id)[:12]}`` opaque shape. The compound structural key
+    is preserved in ``MedicationRequest.identifier[]`` via
+    :func:`_build_medication_request_identifiers` for round-trip. Cross-reference
+    sites (``MedicationAdministration.request.reference``, discharge-Rx / outpatient-Rx
+    builders) all go through this single helper so ``.id`` derivations stay
+    byte-consistent across resources that reference the same order.
+
+    Empty ``order_id`` raises ``ValueError`` via
+    :func:`clinosim.modules.output.fhir_r4.lib.ids.derive_opaque_id`.
     """
-    if order_id.startswith(ABX_ORDER_ID_PREFIX):
-        return derive_opaque_id("mr-", order_id)
-    return order_id
+    return derive_opaque_id("mr-", order_id)
+
+
+def _resolve_dc_rx_id(structural_key: str) -> str:
+    """Return the FHIR MedicationRequest.id for a discharge-Rx entry (Issue #853).
+
+    Shape: ``rxdc-{sha256(structural_key)[:12]}``. The 5-char prefix keeps a
+    take-home script written at inpatient discharge distinguishable from an
+    outpatient chronic renewal (Issue #445 intent) even after both ids become
+    opaque under Issue #853. The compound structural key
+    (``{encounter_id}-{seq:02d}``) is preserved in
+    ``MedicationRequest.identifier[]`` via
+    :func:`_build_medication_request_identifiers` for round-trip.
+    """
+    return derive_opaque_id(DISCHARGE_RX_ID_PREFIX, structural_key)
+
+
+def _resolve_opd_rx_id(structural_key: str) -> str:
+    """Return the FHIR MedicationRequest.id for an outpatient-Rx entry (Issue #853).
+
+    Shape: ``rxopd-{sha256(structural_key)[:12]}``. Companion to
+    :func:`_resolve_dc_rx_id` — see Issue #445 for why the two prefixes stay
+    distinguishable.
+    """
+    return derive_opaque_id(OUTPATIENT_RX_ID_PREFIX, structural_key)
 
 
 def _build_medication_request_meta(
@@ -260,7 +285,6 @@ def _build_medication_request_meta(
 
 def _build_medication_request_identifiers(
     structural_key: str,
-    is_antibiotic_mr: bool,
     country_code: str,
     rp_number: str,
     order_in_rp: str,
@@ -269,19 +293,21 @@ def _build_medication_request_identifiers(
 
     Two concerns coexist:
 
-    * Antibiotic MR (Issue #349 Phase 1b): the structural key preserved via
-      :func:`wrap_as_identifier` so consumers can recover parent HAI +
-      drug + intent from the (now opaque) Resource.id.
+    * Structural-key round-trip (Issue #349 Phase 1b + Issue #853):
+      preserved via :func:`wrap_as_identifier` under
+      :data:`MEDICATION_REQUEST_KEY_SYSTEM` so consumers can recover the
+      compound Order.order_id from the (now opaque) Resource.id. Post-#853
+      this fires unconditionally — Phase-1b (PR #357) gated it on
+      antibiotic-only; Issue #853 widened it to every MR path.
     * JP Core MR (P1-4): mhlw ``rpNumber`` + ``orderInRp``
       slices required by JP_MedicationRequest profile.
 
-    Returns ``{"identifier": [...]}`` when at least one entry exists,
-    otherwise ``{}`` (so ``**splat`` into the resource dict is a no-op for
-    US non-antibiotic MRs).
+    Returns ``{"identifier": [...]}``; the structural-key entry always
+    contributes at least one entry so this helper never returns ``{}``.
     """
-    entries: list[dict[str, str]] = []
-    if is_antibiotic_mr:
-        entries.append(wrap_as_identifier(structural_key, MEDICATION_REQUEST_KEY_SYSTEM))
+    entries: list[dict[str, str]] = [
+        wrap_as_identifier(structural_key, MEDICATION_REQUEST_KEY_SYSTEM),
+    ]
     if is_jp(country_code):
         entries.extend(
             [
@@ -295,7 +321,7 @@ def _build_medication_request_identifiers(
                 },
             ]
         )
-    return {"identifier": entries} if entries else {}
+    return {"identifier": entries}
 
 
 # iris4h-ai feedback F-1: MedicationRequest / MedicationAdministration
@@ -665,14 +691,14 @@ def _build_medication_request(
     #
     # Issue #349 Phase 1b: antibiotic MedicationRequest だけは
     # opaque id `mr-{sha256(order_id)[:12]}` に切替。structural key(元の
-    # compound `req-abx-hai-...-{drug}-{intent}`)は identifier[] に
-    # round-trip 保存。PR #348 の tactical fix(-narrowed → -n)で 64-char
-    # 逸脱は塞いだが、compound-id-as-key pattern そのものが root cause —
-    # FHIR R4 の Resource.id は opaque logical identifier という intent に
-    # 沿わせる。非 antibiotic MR は phase 3 sibling-sweep まで unchanged。
+    # compound Order.order_id)は identifier[] に round-trip 保存。PR #348 の
+    # tactical fix(-narrowed → -n)で 64-char 逸脱は塞いだが、compound-id-
+    # as-key pattern そのものが root cause — FHIR R4 の Resource.id は
+    # opaque logical identifier という intent に沿わせる。Phase 1b (PR #357)
+    # では antibiotic 限定だったが、Issue #853 で非 HAI 全 MR + MA cross-ref
+    # に拡張(_resolve_mr_id は unconditional opaque)。
     _structural_key = order.get("order_id") or str(uuid.uuid4())
-    _is_antibiotic_mr = _structural_key.startswith(ABX_ORDER_ID_PREFIX)
-    resource_id = _resolve_antibiotic_mr_id(_structural_key)
+    resource_id = _resolve_mr_id(_structural_key)
 
     # C2-14: MR.intent context-aware — mirrors C1-16 which
     # applied the same idea to ServiceRequest. Chronic-management refills →
@@ -722,6 +748,9 @@ def _build_medication_request(
     # the STOP intent survives only via F3 (``note[].text`` below,
     # which the eCS profile does not restrict). On US, both F1' and
     # F3 survive.
+    # STOP-marker check remains on the structural key (not resource_id) — the
+    # opaque id has no substring recoverability. This uses the raw compound key
+    # that was hashed to derive resource_id.
     _is_stop_order = MED_STOP_ORDER_ID_MARKER in _structural_key
     if _is_stop_order:
         status_val = "stopped"
@@ -736,12 +765,11 @@ def _build_medication_request(
         # の StructureDefinition から取得(mhlw/IdSystem/Medication-RPGroupNumber
         # + MedicationAdministrationIndex)。
         #
-        # Issue #349 Phase 1b: antibiotic MR は opaque `.id` の
-        # 逆引き用 structural-key identifier を先頭に追加。JP-only の
-        # rpNumber / orderInRp slice との共存は list 連結で実現。
+        # Issue #349 Phase 1b + Issue #853: MR は opaque `.id` の
+        # 逆引き用 structural-key identifier を先頭に追加(全 MR 対象)。
+        # JP-only の rpNumber / orderInRp slice との共存は list 連結で実現。
         **_build_medication_request_identifiers(
             _structural_key,
-            _is_antibiotic_mr,
             country_code,
             rp_number,
             order_in_rp,
@@ -933,8 +961,14 @@ def _build_discharge_medication_request(
     country_code = "JP" if is_jp(country) else "US"
     med_concept, rate_adjustment_note = _resolve_medication_concept(drug_name, "", country)
 
-    prefix = DISCHARGE_RX_ID_PREFIX if encounter_type == "inpatient" else OUTPATIENT_RX_ID_PREFIX
-    resource_id = f"{prefix}{encounter_id}-{seq:02d}"
+    # Issue #853: opaque id. Structural key = same compound the pre-#853 id
+    # encoded (``{encounter_id}-{seq:02d}``) so downstream consumers can
+    # recover it from identifier[] (Task 2 unconditional round-trip). Prefix
+    # retained (rxdc- vs rxopd-) so a discharge script and an outpatient
+    # renewal stay visually distinguishable in the URL — Issue #445 intent.
+    _structural_key = f"{encounter_id}-{seq:02d}"
+    _resolve = _resolve_dc_rx_id if encounter_type == "inpatient" else _resolve_opd_rx_id
+    resource_id = _resolve(_structural_key)
 
     # A take-home script is "on" once written; the JP walker overwrites both fields to
     # the eCS patternCodes (`completed` / `order`) so these values only reach US output.
@@ -942,9 +976,11 @@ def _build_discharge_medication_request(
         "resourceType": "MedicationRequest",
         "id": resource_id,
         **_build_medication_request_meta(country_code, ""),
+        # Round-trip the compound structural key (NOT resource_id — the digest
+        # is one-way). Consumers recover ``{encounter_id}-{seq:02d}`` from
+        # identifier[] under MEDICATION_REQUEST_KEY_SYSTEM.
         **_build_medication_request_identifiers(
-            resource_id,
-            False,
+            _structural_key,
             country_code,
             "1",
             str(seq),
@@ -1215,14 +1251,15 @@ def _build_medication_admin(
     # double-prefix と同一 class の reference-integrity fix)。CI で 890
     # dangling references を surface。
     #
-    # Issue #349 Phase 1b: antibiotic MR は opaque id に切替
-    # したため、antibiotic MAR の request.reference も同じ derive_opaque_id
-    # を経由して opaque id へ resolve する。`_resolve_antibiotic_mr_id`
-    # helper が deterministic なので同じ structural key → 同じ opaque id
-    # で reference-integrity 保持。非 antibiotic MAR は unchanged。
+    # Issue #349 Phase 1b + Issue #853: すべての MR は opaque id に切替
+    # したため、MAR の request.reference も同じ derive_opaque_id を経由して
+    # opaque id へ resolve する。`_resolve_mr_id` helper が deterministic
+    # なので同じ structural key → 同じ opaque id で reference-integrity 保持。
+    # Phase 1b (PR #357) では antibiotic 限定だったが、Issue #853 で非 HAI
+    # 全 MR (108k + 359k MA) に拡張。
     mar_order_id = mar.get("order_id", "")
     if mar_order_id:
-        _mr_id = _resolve_antibiotic_mr_id(mar_order_id)
+        _mr_id = _resolve_mr_id(mar_order_id)
         resource["request"] = {"reference": f"MedicationRequest/{_mr_id}"}
 
     if mar.get("administered_by"):
