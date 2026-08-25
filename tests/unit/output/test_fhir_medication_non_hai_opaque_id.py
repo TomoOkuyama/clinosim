@@ -57,3 +57,52 @@ def test_resolve_mr_id_still_opaque_for_antibiotic_prefix() -> None:
     """
     result = _resolve_mr_id("req-abx-hai-ENC-POP-000905-266868769799-vap-0-cft")
     assert _OPAQUE_MR_ID_PATTERN.match(result)
+
+
+# === _build_medication_request (non-HAI full-emit path) ===
+
+from clinosim.modules.output.fhir_r4.medications.medications import (  # noqa: E402
+    MEDICATION_REQUEST_KEY_SYSTEM,
+    _build_medication_request,
+)
+
+
+def _non_hai_order(order_id: str = _NON_ANTIBIOTIC_ORDER_ID) -> dict:
+    """Minimal Order fixture that exercises the non-HAI MR emit path."""
+    return {
+        "order_id": order_id,
+        "display_name": "Aminophylline 250mg IV q6h",
+        "order_type": "medication",
+        "order_code": "",
+        "ordered_datetime": "2026-02-14T10:00:00",
+        "clinical_intent": "Escalation day 3: Aminophylline (no improvement)",
+    }
+
+
+def test_non_hai_mr_id_is_opaque_us() -> None:
+    """The full MR emit path (not just the resolver) produces the opaque id."""
+    mr = _build_medication_request(_non_hai_order(), patient_id="pt1", country="US")
+    assert _OPAQUE_MR_ID_PATTERN.match(mr["id"]), f"got {mr['id']!r}"
+
+
+def test_non_hai_mr_id_is_opaque_jp() -> None:
+    mr = _build_medication_request(_non_hai_order(), patient_id="pt1", country="JP")
+    assert _OPAQUE_MR_ID_PATTERN.match(mr["id"]), f"got {mr['id']!r}"
+
+
+def test_non_hai_mr_us_carries_structural_key_identifier() -> None:
+    """Post-Issue-#853: even US non-HAI MR gets the structural-key round-trip."""
+    mr = _build_medication_request(_non_hai_order(), patient_id="pt1", country="US")
+    idents = mr.get("identifier") or []
+    structural = [i for i in idents if i.get("system") == MEDICATION_REQUEST_KEY_SYSTEM]
+    assert len(structural) == 1, f"expected 1 structural-key ident, got {structural!r}"
+    assert structural[0]["value"] == _NON_ANTIBIOTIC_ORDER_ID
+
+
+def test_non_hai_mr_jp_carries_structural_key_alongside_jp_core_slices() -> None:
+    """JP non-HAI MR: structural-key + rpNumber + orderInRp all coexist."""
+    mr = _build_medication_request(_non_hai_order(), patient_id="pt1", country="JP")
+    systems = [i.get("system") for i in mr.get("identifier") or []]
+    assert MEDICATION_REQUEST_KEY_SYSTEM in systems
+    assert "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber" in systems
+    assert "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex" in systems

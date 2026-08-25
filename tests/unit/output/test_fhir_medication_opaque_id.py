@@ -218,15 +218,19 @@ def test_audit_gate_recovers_structural_key_from_antibiotic_mr() -> None:
     assert _medication_request_structural_key(mr) == _ANTIBIOTIC_ORDER_ID
 
 
-def test_audit_gate_returns_empty_for_non_antibiotic_mr() -> None:
-    """Non-antibiotic MRs have no structural-key identifier (until Phase 3
-    sweep). The helper returns ``""`` so the caller's
-    ``ABX_ORDER_ID_PREFIX in structural_key`` check naturally excludes
-    them via ``continue`` — same shape as the pre-Phase-1b gate."""
+def test_audit_gate_still_excludes_non_antibiotic_via_prefix_check() -> None:
+    """Post-Issue-#853: every MR now carries a structural-key identifier
+    (the ``""`` empty return is unreachable for a normally-emitted MR).
+    The audit gate's ``ABX_ORDER_ID_PREFIX not in structural_key`` check
+    still correctly skips non-antibiotic MRs — non-antibiotic order_ids
+    (``ORD-ENC-POP-...``) do not contain the ``req-abx-`` prefix, so the
+    caller's continue-branch fires exactly as before."""
     from clinosim.audit.axes.clinical import _medication_request_structural_key
 
     mr = _build_medication_request(_non_abx_order(), patient_id="pt1", country="US")
-    assert _medication_request_structural_key(mr) == ""
+    key = _medication_request_structural_key(mr)
+    assert key == _NON_ANTIBIOTIC_ORDER_ID
+    assert ABX_ORDER_ID_PREFIX not in key
 
 
 def test_audit_gate_returns_empty_for_missing_identifier_list() -> None:

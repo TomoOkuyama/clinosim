@@ -262,7 +262,6 @@ def _build_medication_request_meta(
 
 def _build_medication_request_identifiers(
     structural_key: str,
-    is_antibiotic_mr: bool,
     country_code: str,
     rp_number: str,
     order_in_rp: str,
@@ -271,19 +270,21 @@ def _build_medication_request_identifiers(
 
     Two concerns coexist:
 
-    * Antibiotic MR (Issue #349 Phase 1b): the structural key preserved via
-      :func:`wrap_as_identifier` so consumers can recover parent HAI +
-      drug + intent from the (now opaque) Resource.id.
+    * Structural-key round-trip (Issue #349 Phase 1b + Issue #853):
+      preserved via :func:`wrap_as_identifier` under
+      :data:`MEDICATION_REQUEST_KEY_SYSTEM` so consumers can recover the
+      compound Order.order_id from the (now opaque) Resource.id. Post-#853
+      this fires unconditionally — Phase-1b (PR #357) gated it on
+      antibiotic-only; Issue #853 widened it to every MR path.
     * JP Core MR (P1-4): mhlw ``rpNumber`` + ``orderInRp``
       slices required by JP_MedicationRequest profile.
 
-    Returns ``{"identifier": [...]}`` when at least one entry exists,
-    otherwise ``{}`` (so ``**splat`` into the resource dict is a no-op for
-    US non-antibiotic MRs).
+    Returns ``{"identifier": [...]}``; the structural-key entry always
+    contributes at least one entry so this helper never returns ``{}``.
     """
-    entries: list[dict[str, str]] = []
-    if is_antibiotic_mr:
-        entries.append(wrap_as_identifier(structural_key, MEDICATION_REQUEST_KEY_SYSTEM))
+    entries: list[dict[str, str]] = [
+        wrap_as_identifier(structural_key, MEDICATION_REQUEST_KEY_SYSTEM),
+    ]
     if is_jp(country_code):
         entries.extend(
             [
@@ -297,7 +298,7 @@ def _build_medication_request_identifiers(
                 },
             ]
         )
-    return {"identifier": entries} if entries else {}
+    return {"identifier": entries}
 
 
 # iris4h-ai feedback F-1: MedicationRequest / MedicationAdministration
@@ -667,13 +668,13 @@ def _build_medication_request(
     #
     # Issue #349 Phase 1b: antibiotic MedicationRequest だけは
     # opaque id `mr-{sha256(order_id)[:12]}` に切替。structural key(元の
-    # compound `req-abx-hai-...-{drug}-{intent}`)は identifier[] に
-    # round-trip 保存。PR #348 の tactical fix(-narrowed → -n)で 64-char
-    # 逸脱は塞いだが、compound-id-as-key pattern そのものが root cause —
-    # FHIR R4 の Resource.id は opaque logical identifier という intent に
-    # 沿わせる。非 antibiotic MR は phase 3 sibling-sweep まで unchanged。
+    # compound Order.order_id)は identifier[] に round-trip 保存。PR #348 の
+    # tactical fix(-narrowed → -n)で 64-char 逸脱は塞いだが、compound-id-
+    # as-key pattern そのものが root cause — FHIR R4 の Resource.id は
+    # opaque logical identifier という intent に沿わせる。Phase 1b (PR #357)
+    # では antibiotic 限定だったが、Issue #853 で非 HAI 全 MR + MA cross-ref
+    # に拡張(_resolve_mr_id は unconditional opaque)。
     _structural_key = order.get("order_id") or str(uuid.uuid4())
-    _is_antibiotic_mr = _structural_key.startswith(ABX_ORDER_ID_PREFIX)
     resource_id = _resolve_mr_id(_structural_key)
 
     # C2-14: MR.intent context-aware — mirrors C1-16 which
@@ -724,6 +725,9 @@ def _build_medication_request(
     # the STOP intent survives only via F3 (``note[].text`` below,
     # which the eCS profile does not restrict). On US, both F1' and
     # F3 survive.
+    # STOP-marker check remains on the structural key (not resource_id) — the
+    # opaque id has no substring recoverability. This uses the raw compound key
+    # that was hashed to derive resource_id.
     _is_stop_order = MED_STOP_ORDER_ID_MARKER in _structural_key
     if _is_stop_order:
         status_val = "stopped"
@@ -738,12 +742,11 @@ def _build_medication_request(
         # の StructureDefinition から取得(mhlw/IdSystem/Medication-RPGroupNumber
         # + MedicationAdministrationIndex)。
         #
-        # Issue #349 Phase 1b: antibiotic MR は opaque `.id` の
-        # 逆引き用 structural-key identifier を先頭に追加。JP-only の
-        # rpNumber / orderInRp slice との共存は list 連結で実現。
+        # Issue #349 Phase 1b + Issue #853: MR は opaque `.id` の
+        # 逆引き用 structural-key identifier を先頭に追加(全 MR 対象)。
+        # JP-only の rpNumber / orderInRp slice との共存は list 連結で実現。
         **_build_medication_request_identifiers(
             _structural_key,
-            _is_antibiotic_mr,
             country_code,
             rp_number,
             order_in_rp,
@@ -946,7 +949,6 @@ def _build_discharge_medication_request(
         **_build_medication_request_meta(country_code, ""),
         **_build_medication_request_identifiers(
             resource_id,
-            False,
             country_code,
             "1",
             str(seq),

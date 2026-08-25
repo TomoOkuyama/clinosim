@@ -117,8 +117,13 @@ def test_builder_emits_rp_slices_but_not_request_identifier() -> None:
 
 
 def test_us_output_has_no_jp_identifier_slices() -> None:
+    """Post-Issue-#853: identifier[] is present on every MR (structural-key
+    round-trip), but the two JP-Core-only slices (rpNumber, orderInRp) must
+    still stay out of US output."""
     r = _build(_DISCHARGE_ITEM, country="US")
-    assert "identifier" not in r
+    systems = [i.get("system") for i in r.get("identifier", [])]
+    assert "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber" not in systems
+    assert "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex" not in systems
 
 
 # --------------------------------------------------------------------------- supply duration
