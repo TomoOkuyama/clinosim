@@ -502,9 +502,12 @@ def _resolve_medication_concept(
     # when the disease YAML already supplies an authoritative `code_yj` /
     # `code_rxnorm` (Order.order_code is set at place_admission_orders time).
     code_value = order_code or ""
+    # Hoisted (Issue #852 follow-up): tokens are needed by BOTH the
+    # code_mapping lookup (when order_code is empty) AND the JA multi-
+    # word extension below (which must run regardless of order_code).
+    normalized = drug_name_clean.replace("_", " ") if drug_name_clean else ""
+    tokens = normalized.split(" ") if normalized else []
     if not code_value and drug_name_clean:
-        normalized = drug_name_clean.replace("_", " ")
-        tokens = normalized.split(" ")
         for n_tokens in range(len(tokens), 0, -1):
             candidate = " ".join(tokens[:n_tokens])
             if candidate in drug_codes:
@@ -525,21 +528,23 @@ def _resolve_medication_concept(
                     break
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
-        # Issue #852: even when no ``drug_codes`` entry matched (base_name
-        # therefore stayed at the first whitespace token), the JA drug-
-        # name mapping may still have a multi-word key for this drug
-        # (``Cefcapene pivoxil`` / ``Magnesium sulfate`` / ``Regular
-        # insulin`` / ``ICS/LABA inhaler`` / …). Extend base_name to the
-        # longest multi-word prefix that has a JA-dict entry so ``.text``
-        # localization can hit it. Only prefixes that BEGIN with the
-        # already-chosen ``base_name`` token are considered — this keeps
-        # dose / route / frequency tails from being folded into
-        # ``base_name`` (the Issue #775 invariant that ``.text`` must
-        # not carry dose text).
+    # Issue #852: extend base_name to the longest multi-word prefix that has
+    # a JA-dict entry (``Cefcapene pivoxil`` / ``Magnesium Sulfate`` /
+    # ``Regular insulin`` / ``ICS/LABA inhaler`` / …), so ``.text``
+    # localization hits multi-word product-family names. Only prefixes that
+    # BEGIN with the already-chosen ``base_name`` token are considered —
+    # this keeps dose / route / frequency tails from being folded into
+    # ``base_name`` (the Issue #775 invariant that ``.text`` must not carry
+    # dose text). Runs unconditionally on any drug_name_clean — must NOT be
+    # gated on ``code_value`` being empty, because disease-YAML-supplied
+    # Order.order_code (e.g. Magnesium Sulfate = MHLW HOT7 2355002) sets
+    # ``code_value`` up front and would otherwise skip the extension,
+    # leaving ``.text`` as the single-token "Magnesium".
+    if tokens:
         from clinosim.locale.loader import load_drug_names_ja as _load_ja_dict
 
         _ja_dict = _load_ja_dict()
-        _first_token = tokens[0] if tokens else ""
+        _first_token = tokens[0]
         for n_tokens in range(len(tokens), 1, -1):
             candidate = " ".join(tokens[:n_tokens])
             if candidate.lower() in _ja_dict and _first_token and candidate.startswith(_first_token):
@@ -1062,9 +1067,12 @@ def _build_medication_admin(
     # CO-8 (Chain 4 2026-07-11): normalize underscores + honor MAR.code_yj
     # if downstream ever propagates the Order's code (see _build_medication_request).
     code_value = mar.get("code_yj", "") or ""
+    # Hoisted (Issue #852 follow-up): tokens are needed by BOTH the
+    # code_mapping lookup and the JA multi-word extension below (which
+    # must run regardless of code_value — see MR builder for full rationale).
+    normalized = drug_name_clean.replace("_", " ") if drug_name_clean else ""
+    tokens = normalized.split(" ") if normalized else []
     if not code_value and drug_name_clean:
-        normalized = drug_name_clean.replace("_", " ")
-        tokens = normalized.split(" ")
         for n_tokens in range(len(tokens), 0, -1):
             candidate = " ".join(tokens[:n_tokens])
             if candidate in drug_codes:
@@ -1081,17 +1089,18 @@ def _build_medication_admin(
                     break
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
-        # Issue #852: extend base_name to the longest multi-word prefix
-        # that has a JA-dict entry so ``.text`` localization can hit
-        # multi-word product-family names even when no ``drug_codes``
-        # entry matched. Same discipline as the MR builder: only
-        # prefixes that begin with the already-chosen ``base_name``
-        # token are considered so dose / route / freq tails do not leak
-        # into ``.text`` (Issue #775 invariant).
+    # Issue #852: extend base_name to the longest multi-word prefix that has
+    # a JA-dict entry so ``.text`` localization hits multi-word product-family
+    # names even when Order.order_code was pre-set from the disease YAML
+    # (Magnesium Sulfate = MHLW HOT7 2355002 etc.) and the code_mapping block
+    # above was skipped. Only prefixes that BEGIN with the already-chosen
+    # ``base_name`` token are considered so dose / route / freq tails do not
+    # leak into ``.text`` (Issue #775 invariant).
+    if tokens:
         from clinosim.locale.loader import load_drug_names_ja as _load_ja_dict
 
         _ja_dict = _load_ja_dict()
-        _first_token = tokens[0] if tokens else ""
+        _first_token = tokens[0]
         for n_tokens in range(len(tokens), 1, -1):
             candidate = " ".join(tokens[:n_tokens])
             if candidate.lower() in _ja_dict and _first_token and candidate.startswith(_first_token):
