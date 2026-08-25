@@ -162,7 +162,7 @@ from clinosim.modules.output.fhir_r4.medications.medications import (  # noqa: F
     _build_discharge_medication_request,
     _build_medication_admin,
     _build_medication_request,
-    _resolve_antibiotic_mr_id,
+    _resolve_mr_id,
 )
 from clinosim.modules.output.fhir_r4.procedures.device import (  # noqa: F401
     _bb_device,
@@ -560,16 +560,17 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             if not (order.get("display_name") or "").strip():
                 continue
             _base_oid = order.get("order_id", "") or ""
-            # Issue #738: mirror the MR builder's exact id construction
-            # (`resource_id = _resolve_antibiotic_mr_id(order.get("order_id"))`
-            # at medications.py:636). The pre-#738 code prepended
-            # `{encounter_id}-` to build `_mr_id`, matching a stale double-prefix
-            # format the MR builder had already dropped (see medications.py
-            # 622-625 comment). The mismatch made 100% of MAR.request.reference
-            # look "dangling" to the strip check below, so the walker popped
-            # every reference and the shipped MAR-MR audit-trail link went from
-            # deterministic-but-scoped to completely missing.
-            _mr_id = _resolve_antibiotic_mr_id(_base_oid) if _base_oid else ""
+            # Issue #738 + #853: mirror the MR builder's exact id construction
+            # (`resource_id = _resolve_mr_id(order.get("order_id"))` at
+            # medications.py:_build_medication_request). The pre-#738 code
+            # prepended `{encounter_id}-` to build `_mr_id`, matching a stale
+            # double-prefix format the MR builder had already dropped. The
+            # mismatch made 100% of MAR.request.reference look "dangling" to
+            # the strip check below, so the walker popped every reference and
+            # the shipped MAR-MR audit-trail link went from deterministic-but-
+            # scoped to completely missing. Post-#853: `_resolve_mr_id` is the
+            # widened, unconditional-opaque form (was `_resolve_antibiotic_mr_id`).
+            _mr_id = _resolve_mr_id(_base_oid) if _base_oid else ""
             if _mr_id:
                 _mr_ids.add(_mr_id)
             _oc = order.get("order_code", "") or ""

@@ -79,17 +79,30 @@ def _build(item: dict, **kw: object) -> dict:
 
 
 def test_inpatient_and_outpatient_get_distinct_id_prefixes() -> None:
-    """A take-home script at discharge and an outpatient renewal must be distinguishable."""
+    """A take-home script at discharge and an outpatient renewal must be distinguishable.
+
+    Post-Issue-#853: ids are opaque (rxdc-<12hex> vs rxopd-<12hex>). Assert
+    the prefix survives and the opaque digests differ (different prefix hashes
+    to different digests even for the same structural key).
+    """
     inp = _build(_DISCHARGE_ITEM, encounter_type="inpatient")
     out = _build(_DISCHARGE_ITEM, encounter_type="outpatient")
-    assert inp["id"] == f"{DISCHARGE_RX_ID_PREFIX}ENC-1-01"
-    assert out["id"] == f"{OUTPATIENT_RX_ID_PREFIX}ENC-1-01"
+    assert inp["id"].startswith(DISCHARGE_RX_ID_PREFIX)
+    assert out["id"].startswith(OUTPATIENT_RX_ID_PREFIX)
     assert inp["id"] != out["id"]
 
 
 def test_seq_drives_both_id_suffix_and_order_in_rp() -> None:
+    """Post-Issue-#853: id no longer visibly contains seq (opaque), but the
+    structural-key round-trip in identifier[] does, and orderInRp is unchanged.
+    """
     r = _build(_DISCHARGE_ITEM, seq=4)
-    assert r["id"].endswith("-04")
+    # Opaque id no longer ends with "-04"; check the structural-key identifier instead.
+    from clinosim.modules.output.fhir_r4.medications.medications import MEDICATION_REQUEST_KEY_SYSTEM
+
+    struct_key = [i for i in r["identifier"] if i["system"] == MEDICATION_REQUEST_KEY_SYSTEM]
+    assert len(struct_key) == 1
+    assert struct_key[0]["value"].endswith("-04")
     order_in_rp = [i for i in r["identifier"] if i["system"] == _ORDER_IN_RP_SYSTEM]
     assert order_in_rp == [{"system": _ORDER_IN_RP_SYSTEM, "value": "4"}]
 
@@ -117,8 +130,13 @@ def test_builder_emits_rp_slices_but_not_request_identifier() -> None:
 
 
 def test_us_output_has_no_jp_identifier_slices() -> None:
+    """Post-Issue-#853: identifier[] is present on every MR (structural-key
+    round-trip), but the two JP-Core-only slices (rpNumber, orderInRp) must
+    still stay out of US output."""
     r = _build(_DISCHARGE_ITEM, country="US")
-    assert "identifier" not in r
+    systems = [i.get("system") for i in r.get("identifier", [])]
+    assert "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber" not in systems
+    assert "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex" not in systems
 
 
 # --------------------------------------------------------------------------- supply duration
