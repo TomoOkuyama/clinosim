@@ -918,7 +918,31 @@ def _build_extra_context(
     # and clinically hollow.
     complications = list(getattr(ctx, "complications_occurred", []) or [])
     if complications:
-        extra["complications_during_stay"] = "; ".join(str(c) for c in complications[:10])
+        # Issue #848: when the complication is an in-hospital new-disease
+        # event (from engine._merge_disease_into_active_encounter), the
+        # matching ``working_diagnoses`` entry carries an ``onset_day``.
+        # Surface that timing to the LLM prompt so the generated
+        # narrative can say "入院第30日目に急性心筋梗塞を発症" instead of
+        # listing the disease as if it had been an admission-day finding.
+        _wds = list(getattr(ctx, "working_diagnoses", []) or [])
+        _onset_by_disease = {
+            str(wd.get("disease_id", "")): wd.get("onset_day")
+            for wd in _wds
+            if isinstance(wd, dict) and wd.get("onset_day") is not None
+        }
+        _phrases = []
+        for c in complications[:10]:
+            cid = str(c)
+            onset = _onset_by_disease.get(cid)
+            if onset is not None and int(onset) > 0:
+                _phrases.append(f"{cid} (hospital-day {int(onset)} onset)")
+            else:
+                _phrases.append(cid)
+        extra["complications_during_stay"] = "; ".join(_phrases)
+        if _onset_by_disease:
+            extra["in_hospital_new_diagnoses"] = "; ".join(
+                f"{did} on hospital day {int(od)}" for did, od in _onset_by_disease.items() if od
+            )
 
     # ---- Doc-type-specific ----
     if doc_type in ("progress_note", "nursing_shift_note"):

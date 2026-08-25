@@ -53,6 +53,11 @@ def build_narrative_context(
         target_lang=lang,
         locale=locale,
         complications_occurred=list(_o(record, "complications_occurred", []) or []),
+        # Issue #848: intra-admission new-disease diagnoses from
+        # ``engine._merge_disease_into_active_encounter``. Extracted from
+        # ``record.clinical_diagnosis.working_diagnoses`` (populated only
+        # for encounters that had an in-hospital complication event).
+        working_diagnoses=list(_o(_o(record, "clinical_diagnosis", None), "working_diagnoses", []) or []),
         adl_assessments=list(_o(record, "adl_assessments", []) or []),
         nursing_risk_assessments=list(_o(record, "nursing_risk_assessments", []) or []),
         intake_output_records=list(_o(record, "intake_output_records", []) or []),

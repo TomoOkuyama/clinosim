@@ -2031,13 +2031,36 @@ class TemplateNarrativeGenerator:
             parts.append(head + ".")
 
         # Sentence 2: complications (blocker 1 — MUST be surfaced)
+        # Issue #848: when a working_diagnoses entry carries an
+        # onset_day, prefer the "入院第N日発症" / "developed on hospital
+        # day N" rendering — the intra-admission timing is the clinical
+        # signal that separates a new-disease event (MI on day 30) from a
+        # protocol-standard complication of the primary disease (AKI in
+        # sepsis). Falls back to the plain "経過中の合併症" phrasing when
+        # no onset day is known (legacy complications_occurred entries).
         comps = list(getattr(ctx, "complications_occurred", []) or [])
+        wds = list(getattr(ctx, "working_diagnoses", []) or [])
+        wd_by_disease = {str(wd.get("disease_id", "")): wd for wd in wds if isinstance(wd, dict)}
         if comps:
             facts.append("ctx.complications_occurred")
+            phrases: list[str] = []
+            for c in comps[:6]:
+                cid = str(c)
+                wd = wd_by_disease.get(cid)
+                onset_day = wd.get("onset_day") if wd else None
+                if onset_day is not None and int(onset_day) > 0:
+                    if is_ja:
+                        phrases.append(f"入院第{int(onset_day)}日目 {cid}")
+                    else:
+                        phrases.append(f"{cid} (onset day {int(onset_day)})")
+                else:
+                    phrases.append(cid)
+            if wds:
+                facts.append("ctx.working_diagnoses")
             if is_ja:
-                parts.append(f"経過中の合併症: {'、'.join(str(c) for c in comps[:6])}。")
+                parts.append(f"経過中の合併症: {'、'.join(phrases)}。")
             else:
-                parts.append(f"Complications during stay: {', '.join(str(c) for c in comps[:6])}.")
+                parts.append(f"Complications during stay: {', '.join(phrases)}.")
 
         # Sentence 3: key procedures performed
         proc_names: list[str] = []
