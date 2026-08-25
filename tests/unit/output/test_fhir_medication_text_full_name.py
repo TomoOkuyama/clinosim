@@ -22,7 +22,6 @@ from __future__ import annotations
 from clinosim.locale.loader import load_drug_names_ja
 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
-
 # --- localizer resolves the multi-word product-family names ---
 
 

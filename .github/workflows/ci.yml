@@ -142,7 +142,7 @@ jobs:
       - name: Install pinned ruff
         # Match the version pinned in the informational Quality job so
         # findings reproduce byte-identically across the two jobs.
-        run: pip install "ruff==0.16.0"
+        run: pip install "ruff==0.16.3"
       - name: ruff check --select F401,F841 clinosim/ tests/
         run: ruff check --select F401,F841 clinosim/ tests/
 
@@ -195,7 +195,7 @@ jobs:
         # Exact-pinned (session 73 Issue #449): CI and local envs must resolve
         # to the same ruff version so lint failures reproduce byte-identically
         # across machines. Bumping this line = intentional lint-config change.
-        run: pip install "ruff==0.16.0"
+        run: pip install "ruff==0.16.3"
       - name: ruff check
         run: ruff check clinosim/ tests/
       - name: ruff format --check
