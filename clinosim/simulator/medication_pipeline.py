@@ -344,6 +344,36 @@ def _generate_mar(
         if stat_first_dose_time is not None:
             scheduled_times.append(stat_first_dose_time)
 
+        # Issue #850: on day 0, when the patient is admitted AFTER every
+        # scheduled-hour slot for the day (patient admitted at 16:43 to
+        # an IV order whose slots are [0, 8, 16]; or admitted at 09:02
+        # to an Enoxaparin SC daily order whose only slot is [8]),
+        # every day-0 slot fails the ``scheduled < admission_time``
+        # guard below and the order gets ZERO MA on day 0. A short LOS
+        # then discharges the patient before day 1's first slot fires,
+        # leaving a completed MedicationRequest with no
+        # MedicationAdministration (3 such orphans in the JP p=10000
+        # s500 sample). Add an ad-hoc first dose at
+        # ``admission_time + jitter`` (same shape as the STAT first-dose
+        # path above but for routine day-0 orders) so every placed
+        # medication order gets at least one administration on day 0.
+        # Guarded on ``stat_first_dose_time is None`` so STAT orders
+        # keep their bundle-mandated 30-60min first dose window
+        # unchanged.
+        if day == 0 and admin_hours and stat_first_dose_time is None:
+            day0_slots = [
+                datetime(admission_time.year, admission_time.month, admission_time.day, h, 0) for h in admin_hours
+            ]
+            if all(s < admission_time for s in day0_slots):
+                scheduled_times.append(
+                    admission_time
+                    + timedelta(
+                        minutes=int(
+                            rng.integers(MAR_STAT_FIRST_DOSE_DELAY_MIN, MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE)
+                        )
+                    )
+                )
+
         for hour in admin_hours:
             scheduled = datetime(admission_time.year, admission_time.month, admission_time.day, hour, 0) + timedelta(
                 days=day
