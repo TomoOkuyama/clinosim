@@ -215,6 +215,21 @@ class NarrativeContext:
     # the LLM prompt.
     complications_occurred: list[str] = field(default_factory=list)
 
+    # === Issue #848 (in-hospital new-disease complication) ===
+    # Working diagnoses arising DURING the admission. Populated by
+    # ``engine._merge_disease_into_active_encounter`` when a life event
+    # for a new disease fires while the patient is still admitted for an
+    # earlier event — the second disease is recorded here rather than
+    # opening a physically-impossible concurrent inpatient encounter.
+    # Each entry is a dict with keys ``disease_id`` (str), ``onset_day``
+    # (int, days since admission), ``onset_datetime`` (ISO-8601 str), and
+    # ``source`` (str, currently always ``"in_hospital_complication"``).
+    # Template renderers consult this alongside ``complications_occurred``
+    # to render onset-day-aware phrases (e.g. "入院第30日目に急性心筋梗塞を
+    # 発症"), and FHIR emit can use it to timestamp the secondary
+    # Condition at intra-admission onset rather than at admission.
+    working_diagnoses: list[dict] = field(default_factory=list)
+
     # === v9 (2026-08-17) nursing density fix ===
     # ADL / risk / intake-output snapshots consumed by nursing template
     # builders (`_build_adl_assessment`, `_build_risk_assessments`,
