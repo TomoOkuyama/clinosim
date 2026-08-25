@@ -525,6 +525,26 @@ def _resolve_medication_concept(
                     break
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
+        # Issue #852: even when no ``drug_codes`` entry matched (base_name
+        # therefore stayed at the first whitespace token), the JA drug-
+        # name mapping may still have a multi-word key for this drug
+        # (``Cefcapene pivoxil`` / ``Magnesium sulfate`` / ``Regular
+        # insulin`` / ``ICS/LABA inhaler`` / …). Extend base_name to the
+        # longest multi-word prefix that has a JA-dict entry so ``.text``
+        # localization can hit it. Only prefixes that BEGIN with the
+        # already-chosen ``base_name`` token are considered — this keeps
+        # dose / route / frequency tails from being folded into
+        # ``base_name`` (the Issue #775 invariant that ``.text`` must
+        # not carry dose text).
+        from clinosim.locale.loader import load_drug_names_ja as _load_ja_dict
+
+        _ja_dict = _load_ja_dict()
+        _first_token = tokens[0] if tokens else ""
+        for n_tokens in range(len(tokens), 1, -1):
+            candidate = " ".join(tokens[:n_tokens])
+            if candidate.lower() in _ja_dict and _first_token and candidate.startswith(_first_token):
+                base_name = candidate
+                break
     # C6-C7 residual sweep: fallback to `protocol_category` (the "TYPE:" prefix
     # stripped by `strip_protocol_prefix`, e.g. "lactulose:" / "antibiotic:" /
     # "antipyretic:"). Supportive Orders carry the drug identity in the type
@@ -542,13 +562,10 @@ def _resolve_medication_concept(
     # Issue #775: `medicationCodeableConcept.text` must carry the CLEAN drug
     # name only — dose / route / frequency / duration / prn conditions belong
     # in `dosageInstruction`. `base_name` above already resolved to the
-    # `drug_codes` key that matched (or the first whitespace token when no
-    # code hit), which is the drug name without usage tokens. Localizing it
-    # gives the JP display; on US it passes through unchanged.
-    # `display` on `coding[]` still prefers whatever `code_lookup` returns
-    # for the code (typically a canonical product name like an RxNorm SCD or
-    # a YJ product string) — that string is spec-compliant even if it
-    # includes product-level strength, per the Issue #775 policy.
+    # `drug_codes` key that matched (or, per the Issue #852 extension
+    # below the loop, the longest multi-word JA-dict-mappable prefix).
+    # It is the drug name without usage tokens, which is what
+    # ``.text`` requires.
     clean_drug_name = _localize_drug_name(base_name, country) if base_name else drug_name
     display = code_lookup(drug_system_key, code_value, lang) if code_value else clean_drug_name
     if display == code_value:
@@ -1063,6 +1080,22 @@ def _build_medication_admin(
                     break
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
+        # Issue #852: extend base_name to the longest multi-word prefix
+        # that has a JA-dict entry so ``.text`` localization can hit
+        # multi-word product-family names even when no ``drug_codes``
+        # entry matched. Same discipline as the MR builder: only
+        # prefixes that begin with the already-chosen ``base_name``
+        # token are considered so dose / route / freq tails do not leak
+        # into ``.text`` (Issue #775 invariant).
+        from clinosim.locale.loader import load_drug_names_ja as _load_ja_dict
+
+        _ja_dict = _load_ja_dict()
+        _first_token = tokens[0] if tokens else ""
+        for n_tokens in range(len(tokens), 1, -1):
+            candidate = " ".join(tokens[:n_tokens])
+            if candidate.lower() in _ja_dict and _first_token and candidate.startswith(_first_token):
+                base_name = candidate
+                break
     # C6-C7 residual sweep: same protocol_category fallback as MR builder.
     if not code_value and protocol_category:
         _pc = protocol_category.strip().lower().replace("_", " ").rstrip(":")
@@ -1080,6 +1113,9 @@ def _build_medication_admin(
 
     # Issue #775: MAR also emits clean drug name in medicationCodeableConcept.text
     # (dose/route/freq belong in `dosage` below). Same rationale as MR builder.
+    # ``base_name`` above resolved to the ``drug_codes`` key that matched, or,
+    # per the Issue #852 extension, the longest multi-word JA-dict-mappable
+    # prefix — either way the value is dose-free and safe for ``.text``.
     clean_drug_name = _localize_drug_name(base_name, country) if base_name else drug_name
     med_concept: dict[str, Any] = {"text": clean_drug_name}
     # #283 MR builder と同 gate — tx-server 未収録 JP YJ code は

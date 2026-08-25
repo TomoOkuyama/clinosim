@@ -270,6 +270,14 @@ Ofloxacin ophthalmic: "オフロキサシン点眼"
 Foreign body removal with 25G needle: "25G針による異物除去"
 Rust ring removal with burr: "バーによる錆輪除去"
 
+# --- Combination inhalers / 配合吸入剤 (Issue #852) ---
+# `ICS/LABA inhaler` appears verbatim in asthma_exacerbation.yaml as the
+# regimen order. Map both the full multi-word form and the "ICS/LABA"
+# short form so any downstream text that carries the short form still
+# localizes correctly.
+"ICS/LABA inhaler": "吸入ステロイド／β2刺激薬配合吸入剤"
+"ICS/LABA": "吸入ステロイド／β2刺激薬配合"
+
 # --- Allergens / アレルゲン ---
 Penicillin: "ペニシリン"
 Cephalosporin: "セフェム系抗菌薬"
