@@ -580,6 +580,12 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
     # 番号にするため、`build_order_in_rp_map` の同一ロジックで再構築。
     _order_in_rp_by_oid = build_order_in_rp_map(ctx.record.get("orders", []) or [])
     _chronic_codes = _extract_chronic_codes(ctx.patient_data or {})
+    # Issue #851: build order_id → parent Order lookup once so the MAR
+    # builder can backfill dosage.text / dosage.route from the parent
+    # Order's structured fields when the MA record itself carries only
+    # a drug-name fallback in `dose` (continue-home-med / sliding-scale
+    # / PRN paths where MA generation had no explicit dose to record).
+    _order_by_oid = {o.get("order_id"): o for o in (ctx.record.get("orders") or []) if o.get("order_id")}
     for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
         if not (mar.get("drug_name") or "").strip():
             continue
@@ -599,6 +605,7 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             rp_number="1",
             order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
             chronic_condition_codes=_chronic_codes,
+            parent_order=_order_by_oid.get(_oid),
         )
         _req = _resource.get("request") if isinstance(_resource, dict) else None
         if _req and isinstance(_req, dict):
