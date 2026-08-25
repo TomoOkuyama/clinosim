@@ -214,20 +214,22 @@ _SUPPLY_DURATION_UNIT_US = "d"
 _SUPPLY_DURATION_CODE = "d"
 
 
-def _resolve_antibiotic_mr_id(order_id: str) -> str:
-    """Return the FHIR MedicationRequest.id for an antibiotic Order.
+def _resolve_mr_id(order_id: str) -> str:
+    """Return the FHIR MedicationRequest.id for a CIF Order (Issue #853).
 
-    For antibiotic orders (structural key starts with ``ABX_ORDER_ID_PREFIX``
-    = ``"req-abx-"``), returns the opaque `mr-{hash}` id derived from the
-    compound Order.order_id. For non-antibiotic orders returns the order_id
-    unchanged (Phase 3 sibling-sweep will extend the opaque pattern to other
-    resource kinds). Central helper so the MR builder and every cross-
-    reference site (MAR.request.reference, future basedOn[]) resolve the
-    same opaque value from the same structural key — determinism preserved.
+    Widened from Phase-1b's ``_resolve_antibiotic_mr_id`` (PR #357) — every
+    non-empty ``Order.order_id`` now maps to the same
+    ``mr-{sha256(order_id)[:12]}`` opaque shape. The compound structural key
+    is preserved in ``MedicationRequest.identifier[]`` via
+    :func:`_build_medication_request_identifiers` for round-trip. Cross-reference
+    sites (``MedicationAdministration.request.reference``, discharge-Rx / outpatient-Rx
+    builders) all go through this single helper so ``.id`` derivations stay
+    byte-consistent across resources that reference the same order.
+
+    Empty ``order_id`` raises ``ValueError`` via
+    :func:`clinosim.modules.output.fhir_r4.lib.ids.derive_opaque_id`.
     """
-    if order_id.startswith(ABX_ORDER_ID_PREFIX):
-        return derive_opaque_id("mr-", order_id)
-    return order_id
+    return derive_opaque_id("mr-", order_id)
 
 
 def _build_medication_request_meta(
@@ -672,7 +674,7 @@ def _build_medication_request(
     # 沿わせる。非 antibiotic MR は phase 3 sibling-sweep まで unchanged。
     _structural_key = order.get("order_id") or str(uuid.uuid4())
     _is_antibiotic_mr = _structural_key.startswith(ABX_ORDER_ID_PREFIX)
-    resource_id = _resolve_antibiotic_mr_id(_structural_key)
+    resource_id = _resolve_mr_id(_structural_key)
 
     # C2-14: MR.intent context-aware — mirrors C1-16 which
     # applied the same idea to ServiceRequest. Chronic-management refills →
@@ -1215,14 +1217,15 @@ def _build_medication_admin(
     # double-prefix と同一 class の reference-integrity fix)。CI で 890
     # dangling references を surface。
     #
-    # Issue #349 Phase 1b: antibiotic MR は opaque id に切替
-    # したため、antibiotic MAR の request.reference も同じ derive_opaque_id
-    # を経由して opaque id へ resolve する。`_resolve_antibiotic_mr_id`
-    # helper が deterministic なので同じ structural key → 同じ opaque id
-    # で reference-integrity 保持。非 antibiotic MAR は unchanged。
+    # Issue #349 Phase 1b + Issue #853: すべての MR は opaque id に切替
+    # したため、MAR の request.reference も同じ derive_opaque_id を経由して
+    # opaque id へ resolve する。`_resolve_mr_id` helper が deterministic
+    # なので同じ structural key → 同じ opaque id で reference-integrity 保持。
+    # Phase 1b (PR #357) では antibiotic 限定だったが、Issue #853 で非 HAI
+    # 全 MR (108k + 359k MA) に拡張。
     mar_order_id = mar.get("order_id", "")
     if mar_order_id:
-        _mr_id = _resolve_antibiotic_mr_id(mar_order_id)
+        _mr_id = _resolve_mr_id(mar_order_id)
         resource["request"] = {"reference": f"MedicationRequest/{_mr_id}"}
 
     if mar.get("administered_by"):
