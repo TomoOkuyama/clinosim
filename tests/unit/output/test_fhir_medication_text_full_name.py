@@ -22,7 +22,6 @@ from __future__ import annotations
 from clinosim.locale.loader import load_drug_names_ja
 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
-
 # --- localizer resolves the multi-word product-family names ---
 
 
@@ -124,3 +123,75 @@ def test_mr_medicationCodeableConcept_text_us_passes_through():
 
     concept, _ = _resolve_medication_concept("Cefcapene pivoxil", order_code="", country="US")
     assert concept["text"] == "Cefcapene pivoxil"
+
+
+# --- regression: Issue #852 fix must fire even when Order.order_code is pre-set ---
+#
+# Prior to this regression pass, the JA multi-word extension was nested
+# inside ``if not code_value and drug_name_clean:``; when disease YAMLs
+# supplied ``Order.order_code`` up front (Magnesium Sulfate = MHLW HOT7
+# 2355002, Normal saline / Regular insulin / Potassium chloride /
+# Lactated Ringer / Hypertonic Saline / Unfractionated Heparin similarly
+# pre-coded), the outer block was skipped and the extension never ran —
+# ``.text`` fell back to the first whitespace token (``Magnesium`` /
+# ``Regular`` / …) even though the JA dict had a multi-word entry.
+# JP p=10000 s500 sample: 6,327 records (165 MR + 6,162 MA) leaked.
+
+
+def test_mr_text_with_preset_order_code_full_display_magnesium():
+    """Order.display_name='Magnesium Sulfate 2g IV over 20min' + order_code='2355002'
+    → .text='硫酸マグネシウム' (not 'Magnesium').
+
+    Reproduces the JP p=10000 s500 regression the fix targets: disease-YAML-supplied
+    MHLW HOT7 code makes code_value truthy up front; the JA multi-word extension
+    must run regardless.
+    """
+    from clinosim.modules.output.fhir_r4.medications.medications import _resolve_medication_concept
+
+    concept, _ = _resolve_medication_concept("Magnesium Sulfate 2g IV over 20min", order_code="2355002", country="JP")
+    assert concept["text"] == "硫酸マグネシウム", f"got {concept['text']!r}"
+
+
+def test_mr_text_with_preset_order_code_normal_saline():
+    """Normal saline with pre-set order_code must still localize."""
+    from clinosim.modules.output.fhir_r4.medications.medications import _resolve_medication_concept
+
+    concept, _ = _resolve_medication_concept("Normal saline 500mL IV", order_code="3319400A2039", country="JP")
+    assert concept["text"] == "生理食塩液"
+
+
+def test_mr_text_with_preset_order_code_regular_insulin():
+    from clinosim.modules.output.fhir_r4.medications.medications import _resolve_medication_concept
+
+    concept, _ = _resolve_medication_concept("Regular insulin sliding scale", order_code="2492400A", country="JP")
+    assert concept["text"] == "レギュラーインスリン"
+
+
+def test_mr_text_with_preset_order_code_unfractionated_heparin():
+    from clinosim.modules.output.fhir_r4.medications.medications import _resolve_medication_concept
+
+    concept, _ = _resolve_medication_concept(
+        "Unfractionated Heparin 5000IU IV bolus", order_code="3334401A", country="JP"
+    )
+    assert concept["text"] == "未分画ヘパリン"
+
+
+def test_ma_text_with_preset_code_yj_magnesium():
+    """MedicationAdministration path — same regression, MA builder site."""
+    from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_admin
+
+    mar = {
+        "order_id": "ORD-TEST-001",
+        "drug_name": "Magnesium Sulfate 2g IV over 20min",
+        "code_yj": "2355002",
+        "scheduled_datetime": "2026-01-01T10:00:00",
+        "actual_datetime": "2026-01-01T10:05:00",
+        "status": "given",
+        "dose": "2.0g DAILY",
+        "route": "IV",
+        "administered_by": "NS-IM-001",
+    }
+    result = _build_medication_admin(mar, patient_id="POP-TEST", index=0, country="JP", encounter_id="ENC-TEST")
+    assert result["medicationCodeableConcept"]["text"] == "硫酸マグネシウム", (
+        f"got {result['medicationCodeableConcept']['text']!r}"
+    )
