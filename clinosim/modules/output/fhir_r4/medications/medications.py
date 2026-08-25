@@ -1040,6 +1040,7 @@ def _build_medication_admin(
     rp_number: str = "1",
     order_in_rp: str = "1",
     chronic_condition_codes: list[str] | None = None,
+    parent_order: dict | None = None,
 ) -> dict:
     """Build FHIR MedicationAdministration resource.
 
@@ -1219,8 +1220,47 @@ def _build_medication_admin(
         resource["performer"] = [{"actor": {"reference": f"Practitioner/{mar['administered_by']}"}}]
 
     # Dosage with structured dose + route
-    dose_text = mar.get("dose", "") or drug_name
-    dose_str = mar.get("dose", "")
+    #
+    # Issue #851: 23,543 (6.56 %) MedicationAdministration records
+    # shipped without any `.dosage` element because ``mar.dose`` was
+    # empty (or a fallback to ``drug_name``) so ``_parse_dose_for_mar``
+    # yielded no structured dose_quantity, and the FHIR R4 mad-1
+    # gate (SHOULD dose or rate exist when dosage is present) dropped
+    # the whole element — losing the free-text description AND the
+    # route that the parent MedicationRequest correctly carried. Fix:
+    # backfill from ``parent_order`` when the MA fields are missing so
+    # dosage.text, dosage.route, dosage.dose (numeric when available),
+    # and the frequency-derived timing are all populated. Also relax
+    # the mad-1 emit gate so text+route alone can carry the dosage
+    # element for continue-home-med / sliding-scale / PRN orders where
+    # no structured dose exists at either MA or MR level (the emitted
+    # dosage is still meaningful for eMAR rendering; mad-1 is SHOULD
+    # in R4).
+    _mar_dose_raw = str(mar.get("dose", "") or "").strip()
+    _mar_dose_is_drug_name = _mar_dose_raw == drug_name_raw or _mar_dose_raw == drug_name_clean
+    if not _mar_dose_raw or _mar_dose_is_drug_name:
+        # Backfill: use parent Order.dose_quantity/unit if we have them,
+        # else derive from route + frequency as a route-aware summary.
+        _po = parent_order or {}
+        _pd_qty = _po.get("dose_quantity")
+        _pd_unit = _po.get("dose_unit", "") or ""
+        _pd_freq = _po.get("frequency", "") or ""
+        _pd_route = _po.get("route", "") or mar.get("route", "") or ""
+        _text_parts: list[str] = []
+        if _pd_qty is not None and _pd_unit:
+            _q_txt = f"{int(_pd_qty)}" if isinstance(_pd_qty, float) and _pd_qty.is_integer() else str(_pd_qty)
+            _text_parts.append(f"{_q_txt}{_pd_unit}")
+        if _pd_route:
+            _text_parts.append(_pd_route)
+        if _pd_freq:
+            _text_parts.append(_pd_freq)
+        dose_text = " ".join(_text_parts) if _text_parts else _mar_dose_raw
+        # Parse the composed text so `_parse_dose_for_mar` can extract
+        # numeric dose + unit when available (same path as before).
+        dose_str = dose_text
+    else:
+        dose_text = _mar_dose_raw
+        dose_str = _mar_dose_raw
     parsed = _parse_dose_for_mar(dose_str or drug_name)
     # attach any rate-adjustment note peeled off drug_name to dose_text
     # so continuous-infusion titration intent surfaces in the dosage record.
@@ -1247,14 +1287,30 @@ def _build_medication_admin(
     if route_concept:
         dosage["route"] = route_concept
     # v3 (Chain-11, v3 feedback §保留 3 真因判明): FHIR R4
-    # `mad-1` requires `dosage.dose.exists() or dosage.rate.exists()` when a
+    # `mad-1` says `dosage.dose.exists() or dosage.rate.exists()` when a
     # dosage element is present. Sliding-scale insulin / PRN / infusion
     # bolus orders that only carry a `dosage.text` (no parsable numeric
-    # dose) tripped 3,005 MedicationAdministration resources. Drop the
-    # dosage element entirely when neither `dose` nor `rateQuantity` is
-    # populated — CIF still carries the free-text order description via
-    # the Order's `dose` field for downstream consumers.
-    if "dose" in dosage or "rateQuantity" in dosage:
+    # dose) tripped 3,005 MedicationAdministration resources in the
+    # original Chain-11 report.
+    #
+    # Issue #851 update: mad-1 is SHOULD (not SHALL) in FHIR R4, and
+    # dropping the entire dosage element loses the parent order's route
+    # and free-text description as well — 23,543 (6.56 %) MAs in the JP
+    # p=10000 s500 sample shipped without ANY dosage element for
+    # exactly this reason. The eMAR-rendering need (what was
+    # administered and how) outweighs the mad-1 preference; emit the
+    # dosage element when it carries at least a route or a meaningful
+    # non-empty text, and keep the original ``dose | rate`` gate as an
+    # OR-clause so structured-dose paths are unchanged. Text that
+    # merely repeats the drug name is treated as empty (avoid
+    # ``.dosage.text = <drug name>`` shadow of ``medicationCodeableConcept.text``).
+    _dosage_text_val = str(dosage.get("text") or "").strip()
+    _text_meaningful = bool(_dosage_text_val) and _dosage_text_val not in (
+        drug_name_raw,
+        drug_name_clean,
+        drug_name,
+    )
+    if "dose" in dosage or "rateQuantity" in dosage or dosage.get("route") or _text_meaningful:
         resource["dosage"] = dosage
 
     # Reason reference (link to primary diagnosis). Chronic-primary
