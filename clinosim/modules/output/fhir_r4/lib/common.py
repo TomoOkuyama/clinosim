@@ -801,6 +801,146 @@ def _validate_route_maps() -> None:
 _validate_route_maps()
 
 
+# Issue #848: `Dosage.patientInstruction` template families, keyed by
+# clinical administration route. Prior emit used a single oral-specific
+# template ("毎日1回、指示された時間帯に内服してください") for every route
+# — 33% of populated PI on the JP p=10000 s500 sample carried a
+# non-oral route while asserting "内服" in the same resource (saline
+# 100% wrong at 838 records). Each entry below produces the correct
+# JA phrase for its route family; unknown routes yield None so
+# `patientInstruction` is omitted (FHIR cardinality 0..1) rather than
+# emitted with a value contradicting the resource's own `route.text`.
+#
+# Route markers are matched against the localized ``route`` string
+# (``route.text`` after ``build_route_concept`` — Japanese for JP
+# output). Matching is substring-based so composite tokens like
+# "IV drip" / "点滴静注" both resolve to the parenteral verb.
+_PI_ROUTE_FAMILIES_JA: tuple[tuple[tuple[str, ...], str], ...] = (
+    # Parenteral (nurse-administered under physician orders)
+    (
+        (
+            "静注",
+            "点滴",
+            "皮下注",
+            "皮下",
+            "筋注",
+            "筋肉内",
+            "静脈",
+            "IV",
+            "IV DRIP",
+            "DRIP",
+            "IM",
+            "SC",
+            "SQ",
+            "SUBCUT",
+            "SUBCUTANEOUS",
+            "INTRAMUSCULAR",
+            "INTRAVENOUS",
+            "INFUSION",
+        ),
+        "医師の指示のもと、看護師が投与します",
+    ),
+    # Inhalation
+    (
+        ("吸入", "ネブライザー", "ネブライザ", "INH", "INHALATION", "INHALE", "NEB", "NEBULIZER"),
+        "指示された方法で吸入してください",
+    ),
+    # Sublingual (patient-administered but under-tongue, not swallowed)
+    (("舌下", "SL", "SUBLINGUAL"), "指示された時に舌下に投与してください"),
+    # Rectal
+    (("直腸", "坐薬", "座薬", "PR", "RECTAL", "SUPPOSITORY"), "指示された時間に直腸内に挿入してください"),
+    # Transdermal patch
+    (("貼付", "パッチ", "TRANSDERMAL", "PATCH", "TDS"), "指示された部位に貼付してください"),
+    # Topical ointment / cream / external
+    (("塗布", "外用", "軟膏", "TOPICAL", "TOP", "OINTMENT", "CREAM"), "指示された部位に塗布してください"),
+    # Eye drop
+    (("点眼", "OPHTH", "OPHTHALMIC", "EYE"), "指示された時間に点眼してください"),
+    # Nasal drop / spray
+    (("点鼻", "NASAL", "NAS"), "指示された時間に点鼻してください"),
+    # Enteral / NG / gastrostomy tube (not oral swallowing, but does go through GI)
+    (("経腸", "経管", "NG", "NASOGASTRIC", "PEG", "ENTERAL"), "看護師が経管より投与します"),
+    # Oral (swallowed) — last so more-specific markers above win first
+    (("経口", "内服", "PO", "ORAL", "BY MOUTH"), "毎日{freq_ph}指示された時間帯に内服してください"),
+)
+
+
+# Interval-based frequency labels → JA phrase (no `毎日` prefix). These
+# are route-independent when composed with the appropriate verb, so we
+# check them BEFORE the route dispatch and append the route verb
+# afterwards.
+_INTERVAL_FREQ_PREFIX_JA: dict[str, str] = {
+    "6時間ごと": "6時間ごとに",
+    "8時間ごと": "8時間ごとに",
+    "12時間ごと": "12時間ごとに",
+    "q2h": "2時間ごとに",
+    "q3h": "3時間ごとに",
+    "q4h": "4時間ごとに",
+    "q6h": "6時間ごとに",
+    "q8h": "8時間ごとに",
+    "q12h": "12時間ごとに",
+}
+
+
+def _resolve_patient_instruction_ja(route: str, freq: str, freq_per_day: int | None) -> str:
+    """Return a route-appropriate JA ``patientInstruction`` string.
+
+    Issue #848: chooses the phrasing template from
+    ``_PI_ROUTE_FAMILIES_JA`` based on the localized route string, then
+    composes a frequency phrase for oral routes. Returns ``""`` when
+    the route family is unknown — the caller drops
+    ``patientInstruction`` rather than emit a template that would
+    contradict the resource's own ``route.text``.
+    """
+    route_txt = (route or "").strip()
+    if not route_txt:
+        return ""
+    freq_orig = str(freq or "").strip()
+    freq_key = freq_orig.lower()
+    # Resolve freq → per-day integer for both EN and JA labels.
+    pd = freq_per_day
+    if pd is None:
+        if freq_key in ("qd", "q24h", "once daily", "daily", "1x/day") or freq_orig == "1日1回":
+            pd = 1
+        elif freq_key in ("bid", "q12h", "twice daily", "2x/day") or freq_orig == "1日2回":
+            pd = 2
+        elif freq_key in ("tid", "q8h", "three times daily", "3x/day") or freq_orig == "1日3回":
+            pd = 3
+        elif freq_key in ("qid", "q6h", "four times daily", "4x/day") or freq_orig == "1日4回":
+            pd = 4
+
+    # Interval-based labels (q2h/q3h/…/6時間ごと/…) — carry their own JA
+    # prefix, not a `毎日N回、` prefix. Look up by both the raw label and
+    # its lowercased form.
+    interval_prefix = _INTERVAL_FREQ_PREFIX_JA.get(freq_orig) or _INTERVAL_FREQ_PREFIX_JA.get(freq_key)
+
+    for markers, template in _PI_ROUTE_FAMILIES_JA:
+        if any(m in route_txt for m in markers) or route_txt.upper() in [m.upper() for m in markers]:
+            if "{freq_ph}" not in template:
+                return template
+            # Oral: compose the freq prefix + verb.
+            if interval_prefix:
+                return f"{interval_prefix}内服してください"
+            if pd == 1:
+                phrase = "1回、"
+            elif pd == 2:
+                phrase = "2回、朝・夕の"
+            elif pd == 3:
+                phrase = "3回、朝・昼・夕の"
+            elif pd == 4:
+                phrase = "4回、"
+            elif pd:
+                phrase = f"{pd}回、"
+            else:
+                phrase = ""
+            if phrase:
+                return template.replace("{freq_ph}", phrase)
+            # Neither pd-based nor interval-based freq matched — emit the
+            # generic oral instruction rather than nothing (route IS oral,
+            # so telling the patient to take it orally is not misleading).
+            return "指示された時間帯に内服してください"
+    return ""
+
+
 def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any] | None:
     """Build FHIR Dosage from structured order fields."""
     dose_qty = order.get("dose_quantity")
@@ -913,12 +1053,22 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
             dosage["asNeededBoolean"] = True
         parts.append(freq)
 
-    # session-88j P2-5b: Dosage.patientInstruction — derived from
-    # frequency label (qhs → 就寝前, ac → 食前, pc → 食後, prn → 頓用) so
-    # consumers get an actionable Japanese instruction rather than the
-    # bare structured timing.repeat. Explicit CIF-authored
-    # `patient_instruction` on the Order (Issue #476 opt-in pattern)
-    # takes precedence over the derived phrase.
+    # Dosage.patientInstruction — Issue #848 fix (route-aware).
+    # Prior emit derived the phrase from the frequency label alone and
+    # every generated JA template ended in "内服してください" ("take
+    # orally") — so a saline IV drip (route.text="静注") shipped with
+    # PI="毎日1回、指示された時間帯に内服してください" and the two
+    # fields in the same resource disagreed on the route. Fix:
+    # `_resolve_patient_instruction_ja` picks the phrasing template from
+    # the ROUTE first (parenteral / inhalation / rectal / patch /
+    # topical / eye drop / oral / …), then folds in the frequency
+    # phrase only for oral. Non-JA callers keep the smaller
+    # freq-timing-only map (qhs → "at bedtime" etc.) — the issue
+    # measured the mismatch on JA output only.
+    #
+    # Explicit CIF-authored `patient_instruction` on the Order (Issue
+    # #476 opt-in pattern) still takes precedence over the derived
+    # phrase.
     _authored_instr = str(order.get("patient_instruction", "") or "")
     _derived_instr = ""
     # Also derive from freq_per_day when the raw freq label is absent —
@@ -929,76 +1079,46 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     if not freq and freq_per_day:
         _pd_to_key = {1: "qd", 2: "bid", 3: "tid", 4: "qid", 6: "q4h", 8: "q3h", 12: "q2h"}
         freq = _pd_to_key.get(int(freq_per_day), "")
-    if freq:
+    if is_jp(country):
+        # Timing-only labels (qhs / ac / pc / qam / qpm / prn) have no
+        # route dependency — they describe WHEN, not HOW. Handle those
+        # first before falling through to the route-based composer.
+        _timing_only_ja = {
+            "qhs": "就寝前",
+            "bedtime": "就寝前",
+            "at bedtime": "就寝前",
+            "hs": "就寝前",
+            "ac": "食前",
+            "before meal": "食前",
+            "before meals": "食前",
+            "pc": "食後",
+            "after meal": "食後",
+            "after meals": "食後",
+            "qam": "朝食後",
+            "qpm": "夕食後",
+            "prn": "頓用（必要時）",
+            "as needed": "頓用（必要時）",
+            "when required": "頓用（必要時）",
+            "頓服": "症状のある時にのみ服用してください",
+            "頓用": "症状のある時にのみ服用してください",
+        }
+        _flow_instr = (freq or "").lower().strip()
+        _flow_instr_orig = str(freq or "").strip()
+        _derived_instr = _timing_only_ja.get(_flow_instr_orig) or _timing_only_ja.get(_flow_instr, "")
+        if not _derived_instr:
+            _derived_instr = _resolve_patient_instruction_ja(route, freq, freq_per_day)
+    elif freq:
         _flow_instr = freq.lower().strip()
-        _flow_instr_orig = str(freq).strip()  # JA has no case
-        if is_jp(country):
-            _instr_ja = {
-                # EN abbreviations (kept for interop when CIF passes en-freq)
-                "qhs": "就寝前",
-                "bedtime": "就寝前",
-                "at bedtime": "就寝前",
-                "hs": "就寝前",
-                "ac": "食前",
-                "before meal": "食前",
-                "before meals": "食前",
-                "pc": "食後",
-                "after meal": "食後",
-                "after meals": "食後",
-                "qam": "朝食後",
-                "qpm": "夕食後",
-                "prn": "頓用（必要時）",
-                "as needed": "頓用（必要時）",
-                "when required": "頓用（必要時）",
-                # session-88j v14 review — CIF Order.frequency is the primary
-                # source (dosage.text carries the derived JA "1日1回" only
-                # after `_derive_usage_display_from_timing` post-processing).
-                # Map the primary EN freq strings so patientInstruction is
-                # populated at emit time.
-                "qd": "毎日1回、指示された時間帯に内服してください",
-                "q24h": "毎日1回、指示された時間帯に内服してください",
-                "once daily": "毎日1回、指示された時間帯に内服してください",
-                "daily": "毎日1回、指示された時間帯に内服してください",
-                "1x/day": "毎日1回、指示された時間帯に内服してください",
-                "bid": "毎日2回、朝・夕の指示された時間帯に内服してください",
-                "q12h": "12時間ごとに内服してください",
-                "twice daily": "毎日2回、朝・夕の指示された時間帯に内服してください",
-                "2x/day": "毎日2回、朝・夕の指示された時間帯に内服してください",
-                "tid": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
-                "q8h": "8時間ごとに内服してください",
-                "three times daily": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
-                "3x/day": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
-                "qid": "毎日4回、指示された時間帯に内服してください",
-                "q6h": "6時間ごとに内服してください",
-                "four times daily": "毎日4回、指示された時間帯に内服してください",
-                "4x/day": "毎日4回、指示された時間帯に内服してください",
-                "q4h": "4時間ごとに内服してください",
-                "q3h": "3時間ごとに内服してください",
-                "q2h": "2時間ごとに内服してください",
-                # And the derived JA display forms (for callers that pass those).
-                "1日1回": "毎日1回、指示された時間帯に内服してください",
-                "1日2回": "毎日2回、朝・夕の指示された時間帯に内服してください",
-                "1日3回": "毎日3回、朝・昼・夕の指示された時間帯に内服してください",
-                "1日4回": "毎日4回、指示された時間帯に内服してください",
-                "6時間ごと": "6時間ごとに内服してください",
-                "8時間ごと": "8時間ごとに内服してください",
-                "12時間ごと": "12時間ごとに内服してください",
-                "頓服": "症状のある時にのみ服用してください",
-                "頓用": "症状のある時にのみ服用してください",
-            }
-            # Prefer JA-key lookup (case preserved), fall back to lowercased for EN.
-            _derived_instr = _instr_ja.get(_flow_instr_orig, "") or _instr_ja.get(_flow_instr, "")
-        else:
-            _instr_en = {
-                "qhs": "at bedtime",
-                "bedtime": "at bedtime",
-                "hs": "at bedtime",
-                "ac": "before meals",
-                "pc": "after meals",
-                "prn": "as needed",
-                "as needed": "as needed",
-            }
-            _derived_instr = _instr_en.get(_flow_instr, "")
+        _instr_en = {
+            "qhs": "at bedtime",
+            "bedtime": "at bedtime",
+            "hs": "at bedtime",
+            "ac": "before meals",
+            "pc": "after meals",
+            "prn": "as needed",
+            "as needed": "as needed",
+        }
+        _derived_instr = _instr_en.get(_flow_instr, "")
     final_instr = _authored_instr or _derived_instr
     if final_instr:
         dosage["patientInstruction"] = final_instr
