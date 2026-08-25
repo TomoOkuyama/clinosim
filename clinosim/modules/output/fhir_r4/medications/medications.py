@@ -232,6 +232,30 @@ def _resolve_mr_id(order_id: str) -> str:
     return derive_opaque_id("mr-", order_id)
 
 
+def _resolve_dc_rx_id(structural_key: str) -> str:
+    """Return the FHIR MedicationRequest.id for a discharge-Rx entry (Issue #853).
+
+    Shape: ``rxdc-{sha256(structural_key)[:12]}``. The 5-char prefix keeps a
+    take-home script written at inpatient discharge distinguishable from an
+    outpatient chronic renewal (Issue #445 intent) even after both ids become
+    opaque under Issue #853. The compound structural key
+    (``{encounter_id}-{seq:02d}``) is preserved in
+    ``MedicationRequest.identifier[]`` via
+    :func:`_build_medication_request_identifiers` for round-trip.
+    """
+    return derive_opaque_id(DISCHARGE_RX_ID_PREFIX, structural_key)
+
+
+def _resolve_opd_rx_id(structural_key: str) -> str:
+    """Return the FHIR MedicationRequest.id for an outpatient-Rx entry (Issue #853).
+
+    Shape: ``rxopd-{sha256(structural_key)[:12]}``. Companion to
+    :func:`_resolve_dc_rx_id` — see Issue #445 for why the two prefixes stay
+    distinguishable.
+    """
+    return derive_opaque_id(OUTPATIENT_RX_ID_PREFIX, structural_key)
+
+
 def _build_medication_request_meta(
     country_code: str,
     medication_intent: str,
@@ -938,8 +962,14 @@ def _build_discharge_medication_request(
     country_code = "JP" if is_jp(country) else "US"
     med_concept, rate_adjustment_note = _resolve_medication_concept(drug_name, "", country)
 
-    prefix = DISCHARGE_RX_ID_PREFIX if encounter_type == "inpatient" else OUTPATIENT_RX_ID_PREFIX
-    resource_id = f"{prefix}{encounter_id}-{seq:02d}"
+    # Issue #853: opaque id. Structural key = same compound the pre-#853 id
+    # encoded (``{encounter_id}-{seq:02d}``) so downstream consumers can
+    # recover it from identifier[] (Task 2 unconditional round-trip). Prefix
+    # retained (rxdc- vs rxopd-) so a discharge script and an outpatient
+    # renewal stay visually distinguishable in the URL — Issue #445 intent.
+    _structural_key = f"{encounter_id}-{seq:02d}"
+    _resolve = _resolve_dc_rx_id if encounter_type == "inpatient" else _resolve_opd_rx_id
+    resource_id = _resolve(_structural_key)
 
     # A take-home script is "on" once written; the JP walker overwrites both fields to
     # the eCS patternCodes (`completed` / `order`) so these values only reach US output.
@@ -947,8 +977,11 @@ def _build_discharge_medication_request(
         "resourceType": "MedicationRequest",
         "id": resource_id,
         **_build_medication_request_meta(country_code, ""),
+        # Round-trip the compound structural key (NOT resource_id — the digest
+        # is one-way). Consumers recover ``{encounter_id}-{seq:02d}`` from
+        # identifier[] under MEDICATION_REQUEST_KEY_SYSTEM.
         **_build_medication_request_identifiers(
-            resource_id,
+            _structural_key,
             country_code,
             "1",
             str(seq),

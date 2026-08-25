@@ -106,3 +106,36 @@ def test_non_hai_mr_jp_carries_structural_key_alongside_jp_core_slices() -> None
     assert MEDICATION_REQUEST_KEY_SYSTEM in systems
     assert "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber" in systems
     assert "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex" in systems
+
+
+# === discharge-Rx / outpatient-Rx opaque id (Issue #853 Task 4) ===
+
+from clinosim.modules.output.fhir_r4.medications.medications import (  # noqa: E402
+    _resolve_dc_rx_id,
+    _resolve_opd_rx_id,
+)
+
+_OPAQUE_DC_RX_PATTERN = re.compile(r"^rxdc-[0-9a-f]{12}$")
+_OPAQUE_OPD_RX_PATTERN = re.compile(r"^rxopd-[0-9a-f]{12}$")
+
+
+def test_resolve_dc_rx_id_returns_opaque() -> None:
+    """Discharge-Rx opaque id: `rxdc-` (5 char) + 12-hex digest."""
+    result = _resolve_dc_rx_id("ENC-POP-000058-281217974268-01")
+    assert _OPAQUE_DC_RX_PATTERN.match(result), f"got {result!r}"
+
+
+def test_resolve_opd_rx_id_returns_opaque() -> None:
+    """Outpatient-Rx opaque id: `rxopd-` (6 char) + 12-hex digest."""
+    result = _resolve_opd_rx_id("ENC-POP-000058-281217974268-01")
+    assert _OPAQUE_OPD_RX_PATTERN.match(result), f"got {result!r}"
+
+
+def test_dc_rx_and_opd_rx_ids_differ_for_same_structural_key() -> None:
+    """The prefix distinguishes discharge-Rx from outpatient-Rx even for identical structural keys.
+
+    Consumers rely on this distinction (Issue #445 intent).
+    """
+    a = _resolve_dc_rx_id("ENC-POP-000058-281217974268-01")
+    b = _resolve_opd_rx_id("ENC-POP-000058-281217974268-01")
+    assert a != b
