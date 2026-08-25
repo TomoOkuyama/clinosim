@@ -22,7 +22,6 @@ from clinosim.modules._shared import (
     is_jp,
     resolve_lang,
 )
-from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.modules.output.fhir_r4.lib.common import (
     _parse_dose_for_mar,
     build_dosage_instruction,
