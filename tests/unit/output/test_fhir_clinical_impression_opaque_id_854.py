@@ -26,7 +26,6 @@ from clinosim.modules.output.fhir_r4.conditions.clinical_impression import (
     CLINICAL_IMPRESSION_KEY_SYSTEM,
     _bb_clinical_impressions,
     _resolve_clinical_impression_id,
-    clinical_impression_id_for_cif_id,
 )
 
 pytestmark = pytest.mark.unit
@@ -52,18 +51,6 @@ def test_resolve_ci_id_deterministic() -> None:
 
 def test_ci_key_system_uri() -> None:
     assert CLINICAL_IMPRESSION_KEY_SYSTEM == "urn:clinosim:identifier:clinical-impression-key"
-
-
-def test_convenience_wrapper_strips_prefix() -> None:
-    from_cif = clinical_impression_id_for_cif_id("ci-enc1-0")
-    from_stripped = _resolve_clinical_impression_id("enc1-0")
-    assert from_cif == from_stripped
-
-
-def test_convenience_wrapper_idempotent_on_stripped_key() -> None:
-    from_cif = clinical_impression_id_for_cif_id("enc1-0")
-    from_stripped = _resolve_clinical_impression_id("enc1-0")
-    assert from_cif == from_stripped
 
 
 # === Emit path ===

@@ -49,16 +49,6 @@ def _resolve_clinical_impression_id(structural_key: str) -> str:
     return derive_opaque_id(CLINICAL_IMPRESSION_ID_PREFIX, structural_key)
 
 
-def clinical_impression_id_for_cif_id(cif_impression_id: str) -> str:
-    """Convenience wrapper: opaque CI id from the CIF ``impression_id``."""
-    key = (
-        cif_impression_id.removeprefix(CLINICAL_IMPRESSION_ID_PREFIX)
-        if cif_impression_id.startswith(CLINICAL_IMPRESSION_ID_PREFIX)
-        else cif_impression_id
-    )
-    return _resolve_clinical_impression_id(key)
-
-
 __all__ = [
     "CLINICAL_IMPRESSION_ID_PREFIX",
     "_bb_clinical_impressions",
