@@ -109,11 +109,31 @@ def test_radiology_dr_count_equals_imaging_study_count() -> None:
         drs = load_ndjson(find_ndjson(out, "DiagnosticReport.ndjson"))
         rad_drs = [r for r in drs if r.get("id", "").startswith("imgrpt-")]
         assert rad_drs, "no radiology DiagnosticReport emitted at all"
+        # Issue #854 Bucket B (PR-diagnostic-report): DR.id is opaque
+        # (`imgrpt-<12hex>`); the shared ``{encounter_id}-{idx}`` suffix
+        # now lives on ``DR.identifier[]`` under
+        # ``RADIOLOGY_DR_KEY_SYSTEM``. ImagingStudy.id stays on the
+        # pre-#854 compound (`imgst-{encounter_id}-{idx}`) until
+        # PR-imaging-study migrates it, so the join happens on the
+        # structural-key value.
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import RADIOLOGY_DR_KEY_SYSTEM
+
         study_suffixes = {s["id"].removeprefix("imgst-") for s in studies}
-        dr_suffixes = [r["id"].removeprefix("imgrpt-") for r in rad_drs]
+
+        def _dr_structural(r: dict) -> str:
+            for i in r.get("identifier", []):
+                if i.get("system") == RADIOLOGY_DR_KEY_SYSTEM:
+                    return i.get("value", "")
+            return ""
+
+        dr_suffixes = [_dr_structural(r) for r in rad_drs]
+        assert all(dr_suffixes), (
+            f"{sum(1 for s in dr_suffixes if not s)} radiology DR(s) missing RADIOLOGY_DR_KEY_SYSTEM identifier"
+        )
         orphans = [sfx for sfx in dr_suffixes if sfx not in study_suffixes]
         assert not orphans, f"{len(orphans)} radiology DRs without matching ImagingStudy: {orphans[:5]}"
-        assert len(dr_suffixes) == len(set(dr_suffixes)), "duplicate radiology DR ids — 1:1 injectivity broken"
+        dr_ids = [r["id"] for r in rad_drs]
+        assert len(dr_ids) == len(set(dr_ids)), "duplicate radiology DR ids — 1:1 injectivity broken"
         assert len(rad_drs) <= len(studies)
 
 
