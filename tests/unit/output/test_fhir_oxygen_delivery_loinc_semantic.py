@@ -46,9 +46,7 @@ def _o2_obs_with_device(country: str) -> dict:
     # Observation by its LOINC code (3151-8) instead — semantic and
     # forward-compatible.
     return next(
-        e["resource"]
-        for e in entries
-        if e["resource"].get("code", {}).get("coding", [{}])[0].get("code") == "3151-8"
+        e["resource"] for e in entries if e["resource"].get("code", {}).get("coding", [{}])[0].get("code") == "3151-8"
     )
 
 
