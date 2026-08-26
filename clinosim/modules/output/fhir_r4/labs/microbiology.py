@@ -22,6 +22,10 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     wrap_as_identifier,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
+from clinosim.modules.output.fhir_r4.post_process.specimen import (
+    SPECIMEN_KEY_SYSTEM,
+    _resolve_specimen_id,
+)
 
 # Canonical id prefixes for microbiology resources. Imported by readers
 # (e.g. clinosim.audit.axes.clinical._organism_per_encounter) to avoid the
@@ -169,13 +173,25 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
 
     for i, mb in enumerate(cultures):
         base = f"{ctx.primary_enc_id or ctx.patient_id}-{i}"
-        spec_id = f"{MB_SPECIMEN_ID_PREFIX}{base}"
+        # Issue #854 Bucket B (PR-specimen): opaque Specimen.id.
+        # Structural key = pre-#854 id body (without ``spec-`` prefix) =
+        # ``{enc or patient_id}-{i}``; identifier round-trip carries it
+        # under :data:`SPECIMEN_KEY_SYSTEM`.
+        _spec_structural_key = base
+        spec_id = _resolve_specimen_id(_spec_structural_key)
+        _spec_identifier = wrap_as_identifier(_spec_structural_key, SPECIMEN_KEY_SYSTEM)
         # PR3b-5: build identifier list once per culture; empty when not HAI.
         hai_event_id = mb.get("hai_event_id", "")
         hai_identifier = [{"system": HAI_EVENT_ID_SYSTEM, "value": hai_event_id}] if hai_event_id else []
-        specimen: dict[str, Any] = {"resourceType": "Specimen", "id": spec_id, "subject": subject}
-        if hai_identifier:
-            specimen["identifier"] = hai_identifier
+        specimen: dict[str, Any] = {
+            "resourceType": "Specimen",
+            "id": spec_id,
+            # Structural-key identifier always present; HAI identifier
+            # prepended when present so PR3b-5 audit reader still finds
+            # it via HAI_EVENT_ID_SYSTEM.
+            "identifier": [*hai_identifier, _spec_identifier],
+            "subject": subject,
+        }
         if mb.get("specimen_snomed"):
             specimen["type"] = {"coding": [micro_coding("snomed-ct", mb["specimen_snomed"], lang)]}
         if mb.get("collected_datetime"):

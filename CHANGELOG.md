@@ -51,6 +51,26 @@ byte output but must document the change here.
   211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
   at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
   #863 / #867 / #868 / #869 / #878 opaque-id pattern.)
+- `Specimen.id` now emits opaque `spec-<12hex>` (17 chars, fixed) instead
+  of the pre-#854 compounds `spec-{enc or patient_id}-{i}` (microbiology
+  cultures) and `spec-lab-{obs_id_body}` (companion post-process). Both
+  producers — `labs/microbiology.py::_bb_microbiology` and
+  `post_process/specimen.py::_build_companion_specimen` — funnel through
+  a shared `_resolve_specimen_id` resolver. New PUBLIC constant
+  `SPECIMEN_KEY_SYSTEM = "urn:clinosim:identifier:specimen-key"` carries
+  the pre-#854 structural key on `Specimen.identifier[]` for round-trip
+  (existing `urn:clinosim:specimen-id` clinosim-internal identifier
+  preserved alongside; existing `urn:clinosim:identifier:hai-event-id`
+  HAI identifier on microbiology Specimens preserved). Cross-references
+  (`Observation.specimen`, `DiagnosticReport.specimen[]`) receive
+  `spec_id` via variable propagation from the emit site, so
+  reference-integrity is preserved by construction — no cross-ref site
+  needs touching. Byte-output changes on the Specimen NDJSON slice
+  (~4,271 records on p=200 JP sample, ~243,803 records on JP p=10000 s500
+  per Issue #854); MINOR bump still batched at v0.5.0. This is the first
+  per-type PR of Bucket B. (Issue #854 Bucket B — PR-specimen; continues
+  PR #857 / #863 / #867 / #868 / #869 / #878 / #879 / #880 / #881
+  opaque-id pattern.)
 - Microbiology `mb-org-*` (organism isolate) and `mb-sus-*` (per-antibiotic
   susceptibility) `Observation.id` now emit opaque `mb-org-<12hex>` /
   `mb-sus-<12hex>` (19 chars each, fixed) instead of the pre-#854 compounds
