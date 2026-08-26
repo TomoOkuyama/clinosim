@@ -41,16 +41,67 @@ from clinosim.modules.imaging.engine import (  # canonical owners; re-exported b
 )
 from clinosim.modules.output.fhir_r4.labs.service_request import _resolve_service_request_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
 
 # Writer-owned constant — DICOM/FHIR standard URI for DICOM Study UID.
 DICOM_UID_SYSTEM = "urn:dicom:uid"
 
+
+# === Issue #854 Bucket B (PR-imaging-study): opaque ImagingStudy.id ===
+# Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
+# #880 / #881 / #882 / #883 / #884. The CIF-side `study.study_id`
+# retains the pre-#854 shape `imgst-{encounter_id}-{idx}` (referenced
+# elsewhere via `f"ImagingStudy/{study_id}"`, and by the parallel
+# `report.report_id = imgrpt-{encounter_id}-{idx}` for 1:1 pairing with
+# radiology DR); the FHIR-side ImagingStudy.id becomes opaque per Issue
+# #854. Structural key = pre-#854 body without the `imgst-` prefix,
+# preserved on `identifier[]` for round-trip.
+IMAGING_STUDY_KEY_SYSTEM = structural_key_system("imaging-study-key")
+
+
+def _resolve_imaging_study_id(structural_key: str) -> str:
+    """Return the opaque FHIR ImagingStudy.id from a structural key.
+
+    Shape: ``imgst-{sha256(structural_key)[:12]}`` = 18 chars, fixed.
+
+    Structural key = CIF-side ``study_id`` stripped of its ``imgst-``
+    prefix (i.e. ``{encounter_id}-{idx}``). Every ImagingStudy
+    reference site (``DR.imagingStudy[]``, ``DR.media[].link``) that
+    used to inline ``f"ImagingStudy/{study_id}"`` now derives the id
+    via this resolver so byte-consistency is preserved by construction.
+    """
+    return derive_opaque_id(IMAGING_STUDY_ID_PREFIX, structural_key)
+
+
+def imaging_study_id_for_cif_study_id(cif_study_id: str) -> str:
+    """Convenience wrapper: opaque ImagingStudy.id from CIF-side ``study_id``.
+
+    Every consumer that has a CIF ``study_id`` (which is
+    ``imgst-{enc}-{idx}``) can call this to obtain the FHIR
+    ImagingStudy.id — the CIF prefix is stripped, then the body is
+    hashed under the same ``imgst-`` prefix.
+    """
+    key = (
+        cif_study_id.removeprefix(IMAGING_STUDY_ID_PREFIX)
+        if cif_study_id.startswith(IMAGING_STUDY_ID_PREFIX)
+        else cif_study_id
+    )
+    return _resolve_imaging_study_id(key)
+
+
 # Re-export so readers can import from this module or the canonical owner.
 __all__ = [
     "IMAGING_STUDY_ID_PREFIX",
+    "IMAGING_STUDY_KEY_SYSTEM",
     "ENDPOINT_ID_PREFIX",
     "DICOM_UID_SYSTEM",
     "_bb_imaging_studies",
+    "_resolve_imaging_study_id",
+    "imaging_study_id_for_cif_study_id",
 ]
 
 
@@ -123,15 +174,26 @@ def _build_imaging_study(
             }
         ]
 
+    # Issue #854 Bucket B (PR-imaging-study): opaque ImagingStudy.id.
+    # Strip the CIF `imgst-` prefix from `study.study_id` to obtain the
+    # structural key, then hash. The pre-existing DICOM_UID_SYSTEM
+    # identifier stays first; the structural-key round-trip identifier
+    # is appended so consumers can recover the CIF study_id verbatim.
+    _cif_study_id = _o(study, "study_id", "") or ""
+    _study_structural_key = (
+        _cif_study_id.removeprefix(IMAGING_STUDY_ID_PREFIX)
+        if _cif_study_id.startswith(IMAGING_STUDY_ID_PREFIX)
+        else _cif_study_id
+    )
     res: dict[str, Any] = {
         "resourceType": "ImagingStudy",
-        # study_id (engine.py) は既に IMAGING_STUDY_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。  # noqa: E501
-        "id": _o(study, "study_id", ""),
+        "id": _resolve_imaging_study_id(_study_structural_key),
         "identifier": [
             {
                 "system": DICOM_UID_SYSTEM,
                 "value": f"urn:oid:{_o(study, 'study_instance_uid', '')}",
-            }
+            },
+            wrap_as_identifier(_study_structural_key, IMAGING_STUDY_KEY_SYSTEM),
         ],
         "status": _o(study, "status", "available"),
         "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
