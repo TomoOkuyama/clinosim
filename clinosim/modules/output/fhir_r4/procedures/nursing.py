@@ -20,6 +20,92 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     survey_category,
     to_fhir_datetime,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+# === Issue #854 Bucket A row 4 (PR-obs-vs): opaque scoring Observation.id ===
+# GCS and NEWS2 vital-derived scoring Observations. Same pattern as
+# PR #357 / #863 / #867 / #868 / #869 / #878 (lab Observation) / this-PR
+# (vs-* vitals). Each scoring family owns its own PUBLIC key-system URI
+# so downstream consumers can distinguish gcs / news2 identifiers at a
+# glance; a single generic ``score-observation-key`` would collapse the
+# semantic distinction that today's ``gcs-`` / ``news2-`` prefixes carry.
+#
+# Structural key = pre-#854 id body (without ``gcs-`` / ``news2-`` prefix):
+#     ``{enc or patient_id}-{i}``
+# where ``i`` is the 0-based index in the ``vital_signs`` list.
+#
+# Braden / Morse / Barthel / intake / urine / output scoring
+# Observations emitted below stay on their pre-#854 compound id in this
+# PR — they land in the follow-on PR-obs-standalone (Issue #854 Bucket A
+# row 4 continuation) so this PR's diff stays reviewable.
+GCS_SCORE_ID_PREFIX = "gcs-"
+NEWS2_SCORE_ID_PREFIX = "news2-"
+GCS_SCORE_KEY_SYSTEM = structural_key_system("gcs-score-observation-key")
+NEWS2_SCORE_KEY_SYSTEM = structural_key_system("news2-score-observation-key")
+
+
+def _resolve_gcs_score_id(structural_key: str) -> str:
+    """Return the FHIR Observation.id for a GCS scoring observation.
+
+    Shape: ``gcs-{sha256(structural_key)[:12]}`` = 16 chars, fixed.
+    See :data:`GCS_SCORE_KEY_SYSTEM` for the round-trip identifier.
+    """
+    return derive_opaque_id(GCS_SCORE_ID_PREFIX, structural_key)
+
+
+def _resolve_news2_score_id(structural_key: str) -> str:
+    """Return the FHIR Observation.id for a NEWS2 scoring observation.
+
+    Shape: ``news2-{sha256(structural_key)[:12]}`` = 18 chars, fixed.
+    See :data:`NEWS2_SCORE_KEY_SYSTEM` for the round-trip identifier.
+    """
+    return derive_opaque_id(NEWS2_SCORE_ID_PREFIX, structural_key)
+
+
+# === Issue #854 Bucket A row 4 (PR-obs-standalone): remaining nursing families ===
+# Each family follows the same pattern as gcs / news2 above (PR-obs-vs).
+# Structural key = pre-#854 id body (without prefix): ``{enc or patient_id}-{i}``.
+BRADEN_SCORE_ID_PREFIX = "braden-"
+MORSE_SCORE_ID_PREFIX = "morse-"
+BARTHEL_SCORE_ID_PREFIX = "barthel-"
+INTAKE_OBSERVATION_ID_PREFIX = "intake-"
+URINE_OUTPUT_OBSERVATION_ID_PREFIX = "urine-"
+OUTPUT_OBSERVATION_ID_PREFIX = "output-"
+
+BRADEN_SCORE_KEY_SYSTEM = structural_key_system("braden-score-observation-key")
+MORSE_SCORE_KEY_SYSTEM = structural_key_system("morse-score-observation-key")
+BARTHEL_SCORE_KEY_SYSTEM = structural_key_system("barthel-score-observation-key")
+INTAKE_OBSERVATION_KEY_SYSTEM = structural_key_system("intake-observation-key")
+URINE_OUTPUT_OBSERVATION_KEY_SYSTEM = structural_key_system("urine-output-observation-key")
+OUTPUT_OBSERVATION_KEY_SYSTEM = structural_key_system("fluid-output-observation-key")
+
+
+def _resolve_braden_score_id(structural_key: str) -> str:
+    return derive_opaque_id(BRADEN_SCORE_ID_PREFIX, structural_key)
+
+
+def _resolve_morse_score_id(structural_key: str) -> str:
+    return derive_opaque_id(MORSE_SCORE_ID_PREFIX, structural_key)
+
+
+def _resolve_barthel_score_id(structural_key: str) -> str:
+    return derive_opaque_id(BARTHEL_SCORE_ID_PREFIX, structural_key)
+
+
+def _resolve_intake_observation_id(structural_key: str) -> str:
+    return derive_opaque_id(INTAKE_OBSERVATION_ID_PREFIX, structural_key)
+
+
+def _resolve_urine_output_observation_id(structural_key: str) -> str:
+    return derive_opaque_id(URINE_OUTPUT_OBSERVATION_ID_PREFIX, structural_key)
+
+
+def _resolve_output_observation_id(structural_key: str) -> str:
+    return derive_opaque_id(OUTPUT_OBSERVATION_ID_PREFIX, structural_key)
 
 
 def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
@@ -83,7 +169,10 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         performer_id = vs.get("measured_by", "") or ""
         news2 = vs.get("news2_score")
         if news2 is not None:
-            obs = _obs_base(f"news2-{enc or ctx.patient_id}-{i}", effective, performer_id)
+            # Issue #854 Bucket A row 4 (PR-obs-vs): opaque NEWS2 Observation.id.
+            _news2_structural_key = f"{enc or ctx.patient_id}-{i}"
+            obs = _obs_base(_resolve_news2_score_id(_news2_structural_key), effective, performer_id)
+            obs["identifier"] = [wrap_as_identifier(_news2_structural_key, NEWS2_SCORE_KEY_SYSTEM)]
             # Issue #269: NEWS2 does NOT have a canonical LOINC
             # 2.82 code — the previously-used `90557-9` is not in LOINC
             # (the closest entry `90557-0` is unrelated sleep-study data).
@@ -107,7 +196,10 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
 
         gcs = vs.get("gcs_score")
         if gcs is not None:
-            obs = _obs_base(f"gcs-{enc or ctx.patient_id}-{i}", effective, performer_id)
+            # Issue #854 Bucket A row 4 (PR-obs-vs): opaque GCS Observation.id.
+            _gcs_structural_key = f"{enc or ctx.patient_id}-{i}"
+            obs = _obs_base(_resolve_gcs_score_id(_gcs_structural_key), effective, performer_id)
+            obs["identifier"] = [wrap_as_identifier(_gcs_structural_key, GCS_SCORE_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("9269-2", lang)],
                 "text": code_lookup("loinc", "9269-2", lang) or "Glasgow coma score total",
@@ -122,7 +214,9 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
 
         braden = nra.get("braden_total")
         if braden is not None:
-            obs = _obs_base(f"braden-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
+            _braden_key = f"{enc or ctx.patient_id}-{i}"
+            obs = _obs_base(_resolve_braden_score_id(_braden_key), effective, default_nurse_id)
+            obs["identifier"] = [wrap_as_identifier(_braden_key, BRADEN_SCORE_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("38227-5", lang)],
                 "text": code_lookup("loinc", "38227-5", lang) or "Braden scale total score",
@@ -132,7 +226,9 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
 
         morse = nra.get("morse_total")
         if morse is not None:
-            obs = _obs_base(f"morse-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
+            _morse_key = f"{enc or ctx.patient_id}-{i}"
+            obs = _obs_base(_resolve_morse_score_id(_morse_key), effective, default_nurse_id)
+            obs["identifier"] = [wrap_as_identifier(_morse_key, MORSE_SCORE_KEY_SYSTEM)]
             morse_text = code_lookup("loinc", "59460-6", lang) or "Fall risk total [Morse Fall Scale]"
             obs["code"] = {
                 "coding": [loinc_coding("59460-6", lang)],
@@ -172,7 +268,9 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
 
         barthel = adl.get("barthel_score")
         if barthel is not None:
-            obs = _obs_base(f"barthel-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
+            _barthel_key = f"{enc or ctx.patient_id}-{i}"
+            obs = _obs_base(_resolve_barthel_score_id(_barthel_key), effective, default_nurse_id)
+            obs["identifier"] = [wrap_as_identifier(_barthel_key, BARTHEL_SCORE_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("96761-2", lang)],
                 "text": code_lookup("loinc", "96761-2", lang) or "Total score Barthel Index",
@@ -191,7 +289,9 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         other_in_ml = io.get("intake_other_ml") or 0
         intake_total = iv_ml + oral_ml + other_in_ml
         if intake_total > 0:
-            obs = _obs_base(f"intake-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
+            _intake_key = f"{enc or ctx.patient_id}-{i}"
+            obs = _obs_base(_resolve_intake_observation_id(_intake_key), effective, default_nurse_id)
+            obs["identifier"] = [wrap_as_identifier(_intake_key, INTAKE_OBSERVATION_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("9108-2", lang)],
                 "text": code_lookup("loinc", "9108-2", lang) or "Fluid intake total 24 hour",
@@ -207,7 +307,9 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         # Urine output 24h (component; LOINC 9192-6)
         urine_ml = io.get("output_urine_ml")
         if urine_ml is not None:
-            obs = _obs_base(f"urine-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
+            _urine_key = f"{enc or ctx.patient_id}-{i}"
+            obs = _obs_base(_resolve_urine_output_observation_id(_urine_key), effective, default_nurse_id)
+            obs["identifier"] = [wrap_as_identifier(_urine_key, URINE_OUTPUT_OBSERVATION_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("9192-6", lang)],
                 "text": code_lookup("loinc", "9192-6", lang) or "Urine output 24 hour",
@@ -225,7 +327,9 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         other_out_ml = io.get("output_other_ml") or 0
         output_total = (urine_ml or 0) + drain_ml + other_out_ml
         if output_total > 0:
-            obs = _obs_base(f"output-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
+            _output_key = f"{enc or ctx.patient_id}-{i}"
+            obs = _obs_base(_resolve_output_observation_id(_output_key), effective, default_nurse_id)
+            obs["identifier"] = [wrap_as_identifier(_output_key, OUTPUT_OBSERVATION_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("9262-7", lang)],
                 "text": code_lookup("loinc", "9262-7", lang) or "Fluid output total 24 hour",

@@ -33,7 +33,13 @@ def test_smoking_observation():
     assert o["code"]["coding"][0]["code"] == "72166-2"
     assert o["category"][0]["coding"][0]["code"] == "social-history"
     assert o["valueCodeableConcept"]["coding"][0]["code"] == "449868002"
-    assert o["id"] == "smoking-p1"
+    # Issue #854 Bucket A row 4 (PR-obs-standalone): opaque id derived from
+    # patient id via the shared resolver.
+    from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (
+        _resolve_smoking_status_id,
+    )
+
+    assert o["id"] == _resolve_smoking_status_id("p1")
 
 
 def test_smoking_empty_when_missing():
@@ -44,7 +50,12 @@ def test_alcohol_observation():
     o = _bb_alcohol_use(_ctx({"alcohol_use": "heavy"}))[0]
     assert o["code"]["coding"][0]["code"] == "11331-6"
     assert o["valueCodeableConcept"]["coding"][0]["code"] == "86933000"
-    assert o["id"] == "alcohol-p1"
+    # Issue #854 Bucket A row 4 (PR-obs-standalone).
+    from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (
+        _resolve_alcohol_use_id,
+    )
+
+    assert o["id"] == _resolve_alcohol_use_id("p1")
 
 
 def test_alcohol_none_still_emitted():

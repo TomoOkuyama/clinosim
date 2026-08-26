@@ -51,6 +51,28 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+# === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque blood-type ids ===
+# ABO / RhD blood-type Observations. Structural key = pre-#854 id body
+# (without ``blood-abo-`` / ``blood-rh-`` prefix) = the patient id.
+BLOOD_ABO_ID_PREFIX = "blood-abo-"
+BLOOD_RH_ID_PREFIX = "blood-rh-"
+BLOOD_ABO_KEY_SYSTEM = structural_key_system("blood-abo-observation-key")
+BLOOD_RH_KEY_SYSTEM = structural_key_system("blood-rh-observation-key")
+
+
+def _resolve_blood_abo_id(structural_key: str) -> str:
+    return derive_opaque_id(BLOOD_ABO_ID_PREFIX, structural_key)
+
+
+def _resolve_blood_rh_id(structural_key: str) -> str:
+    return derive_opaque_id(BLOOD_RH_ID_PREFIX, structural_key)
+
 
 # LOINC codes — spec-authoritative (Regenstrief LOINC 2.77). The display
 # strings are LOINC LONG_COMMON_NAME entries verified against the current
@@ -219,13 +241,15 @@ def _bb_blood_type(ctx: BundleContext) -> list[dict]:
     abo_snomed = _SNOMED_ABO_BY_TYPE.get(abo)
     if abo_snomed:
         abo_text = "ABO血液型" if is_jp_out else "ABO blood group"
+        _abo_structural_key = ctx.patient_id
         o = _build_blood_type_obs(
-            obs_id=f"blood-abo-{ctx.patient_id}",
+            obs_id=_resolve_blood_abo_id(_abo_structural_key),
             country=ctx.country,
             loinc_code=_LOINC_ABO_GROUP,
             loinc_text=abo_text,
             snomed_code=abo_snomed,
         )
+        o["identifier"] = [wrap_as_identifier(_abo_structural_key, BLOOD_ABO_KEY_SYSTEM)]
         o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
         eff = _blood_type_effective_datetime(ctx)
         if eff:
@@ -238,13 +262,15 @@ def _bb_blood_type(ctx: BundleContext) -> list[dict]:
     rh_snomed = _SNOMED_RH_BY_FACTOR.get(rh)
     if rh_snomed:
         rh_text = "Rh血液型" if is_jp_out else "Rh blood group"
+        _rh_structural_key = ctx.patient_id
         o = _build_blood_type_obs(
-            obs_id=f"blood-rh-{ctx.patient_id}",
+            obs_id=_resolve_blood_rh_id(_rh_structural_key),
             country=ctx.country,
             loinc_code=_LOINC_RH_GROUP,
             loinc_text=rh_text,
             snomed_code=rh_snomed,
         )
+        o["identifier"] = [wrap_as_identifier(_rh_structural_key, BLOOD_RH_KEY_SYSTEM)]
         o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
         eff = _blood_type_effective_datetime(ctx)
         if eff:
