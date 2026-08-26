@@ -237,8 +237,36 @@ def _build_imaging_study(
     if "description" not in res:
         _stub_desc = _o(study, "description", "") or ""
         if _stub_desc:
+            # Issue #862: the CIF stub description is an English exam name
+            # (`FAST_Ultrasound`, `ECG_12lead`, `Carotid_ultrasound`, ...)
+            # sourced from disease-YAML `- {test: "..."}` items. On JP output,
+            # 22.4% of ImagingStudy resources (1,060 / 4,735) leaked the raw
+            # English form because `body_sites` lookup was a miss and no
+            # localization applied. Look up the JA form in `drug_names_ja.yaml`
+            # (the shared localization dict — see the "Imaging exam names"
+            # section); normalize `_` → ` ` first to match the space-keyed
+            # yaml entries. Passthrough on US (`lang != "ja"`) and on any
+            # unknown key preserves the original English form.
+            if lang == "ja":
+                _stub_desc = _localize_imaging_exam_name(_stub_desc)
             res["description"] = _stub_desc
     return res
+
+
+def _localize_imaging_exam_name(exam_name: str) -> str:
+    """Return the JA form of an English CIF imaging exam name (Issue #862).
+
+    Normalizes underscores to spaces (matching how the CIF disease-YAML
+    ``- {test: "FAST_Ultrasound"}`` shape maps to the space-keyed
+    ``drug_names_ja.yaml`` entries), then does a case-insensitive exact-match
+    lookup. Unknown keys pass through as-is so the JA-locale surface
+    degrades gracefully to the CIF English name instead of a placeholder.
+    """
+    from clinosim.locale.loader import load_drug_names_ja
+
+    ja_dict = load_drug_names_ja()
+    normalized = exam_name.replace("_", " ")
+    return ja_dict.get(normalized.lower(), exam_name)
 
 
 def _build_series(series: Any, lang: str) -> dict[str, Any]:
