@@ -35,13 +35,34 @@ from typing import Any
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
 
 __all__ = [
     "CARE_TEAM_ID_PREFIX",
+    "CARE_TEAM_KEY_SYSTEM",
     "_bb_care_teams",
+    "_resolve_care_team_id",
 ]
 
 CARE_TEAM_ID_PREFIX = "careteam-"
+
+# === Issue #854 Bucket B (PR-care-team): opaque CareTeam.id ===
+# Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878-#888.
+# Structural key = pre-#854 id body (encounter_id).
+CARE_TEAM_KEY_SYSTEM = structural_key_system("care-team-key")
+
+
+def _resolve_care_team_id(structural_key: str) -> str:
+    """Return the opaque FHIR CareTeam.id from a structural key.
+
+    Shape: ``careteam-{sha256(structural_key)[:12]}`` = 21 chars, fixed.
+    """
+    return derive_opaque_id(CARE_TEAM_ID_PREFIX, structural_key)
+
 
 # CareTeam.category — text-only CodeableConcept.
 #
@@ -167,9 +188,12 @@ def _build_care_team(
             }
         )
 
+    # Issue #854 Bucket B (PR-care-team): opaque CareTeam.id.
+    # Structural key = pre-#854 id body = encounter_id.
     care_team: dict[str, Any] = {
         "resourceType": "CareTeam",
-        "id": f"{CARE_TEAM_ID_PREFIX}{encounter_id}",
+        "id": _resolve_care_team_id(encounter_id),
+        "identifier": [wrap_as_identifier(encounter_id, CARE_TEAM_KEY_SYSTEM)],
         "status": status,
         # v3 fix: text-only CodeableConcept — see the category
         # display resolution above for the rationale (both 735320007 and

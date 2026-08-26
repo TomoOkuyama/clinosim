@@ -107,7 +107,10 @@ def test_care_team_id_uses_canonical_prefix():
     ctx = _make_ctx([_inpatient_enc_dataclass()])
     ct = _bb_care_teams(ctx)[0]
     assert ct["id"].startswith(CARE_TEAM_ID_PREFIX)
-    assert ct["id"] == f"{CARE_TEAM_ID_PREFIX}enc-inpt-1"
+    # Issue #854 Bucket B (PR-care-team): CareTeam.id opaque.
+    from clinosim.modules.output.fhir_r4.encounters.care_team import _resolve_care_team_id
+
+    assert ct["id"] == _resolve_care_team_id("enc-inpt-1")
 
 
 def test_care_team_subject_references_patient():
@@ -322,7 +325,9 @@ def test_dict_path_records_work():
     assert len(results) == 1
     ct = results[0]
     assert ct["resourceType"] == "CareTeam"
-    assert ct["id"] == f"{CARE_TEAM_ID_PREFIX}enc-inpt-2"
+    from clinosim.modules.output.fhir_r4.encounters.care_team import _resolve_care_team_id
+
+    assert ct["id"] == _resolve_care_team_id("enc-inpt-2")
     refs = [p["member"]["reference"] for p in ct["participant"]]
     assert "Practitioner/dr-001" in refs
     assert "Practitioner/nurse-dict-1" in refs
@@ -351,6 +356,8 @@ def test_multiple_encounters_emit_multiple_care_teams():
     ctx = _make_ctx(encs)
     results = _bb_care_teams(ctx)
     assert len(results) == 2
+    from clinosim.modules.output.fhir_r4.encounters.care_team import _resolve_care_team_id
+
     ids = {ct["id"] for ct in results}
-    assert f"{CARE_TEAM_ID_PREFIX}enc-inpt-1" in ids
-    assert f"{CARE_TEAM_ID_PREFIX}enc-outp-1" in ids
+    assert _resolve_care_team_id("enc-inpt-1") in ids
+    assert _resolve_care_team_id("enc-outp-1") in ids
