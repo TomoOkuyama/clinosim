@@ -270,6 +270,17 @@ Ofloxacin ophthalmic: "オフロキサシン点眼"
 Foreign body removal with 25G needle: "25G針による異物除去"
 Rust ring removal with burr: "バーによる錆輪除去"
 
+# --- Procedures (order-derived, Issue #861) / 処置(オーダー由来) ---
+# The 3 order-derived Procedure kinds whose CIF Order.display_name
+# ships as "key: description" and hit the FHIR emit site at
+# clinosim/modules/output/fhir_r4/lib/inline_bb.py:697 without any
+# JA localization prior to this addition. `_localize_drug_name` strips
+# the "key:" prefix and looks up the cleaned form here, so the entries
+# below key on the post-strip form.
+"Graduated compression stocking on unaffected leg": "弾性ストッキング(患側外・段階的圧迫)"
+"Cervical collar until cleared": "頚椎固定(頚椎カラー・画像判定まで)"
+"Emergent dialysis stat": "緊急透析"
+
 # --- Combination inhalers / 配合吸入剤 (Issue #852) ---
 # `ICS/LABA inhaler` appears verbatim in asthma_exacerbation.yaml as the
 # regimen order. Map both the full multi-word form and the "ICS/LABA"
