@@ -214,6 +214,8 @@ def _simulate_ed_visit(
             display_name=test,
             urgency="stat",
             clinical_intent=f"ED workup: {test}",
+            # Issue #871: JA display for JP SR reasonCode.text.
+            clinical_intent_ja=f"救急外来精査: {test}",
             ordered_datetime=visit_time
             + timedelta(minutes=int(lab_rng.normal(ED_LAB_ORDER_OFFSET_MEAN_MIN, ED_LAB_ORDER_OFFSET_STD_MIN))),
             ordered_by=encounter.attending_physician_id,
@@ -248,6 +250,8 @@ def _simulate_ed_visit(
                 display_name=test,
                 urgency="stat",
                 clinical_intent=f"ED imaging: {test}",
+                # Issue #871: JA display for JP SR reasonCode.text.
+                clinical_intent_ja=f"救急外来画像検査: {test}",
                 ordered_datetime=visit_time
                 + timedelta(minutes=int(rng.normal(ED_IMAGING_ORDER_OFFSET_MEAN_MIN, ED_IMAGING_ORDER_OFFSET_STD_MIN))),
                 ordered_by=encounter.attending_physician_id,
@@ -272,6 +276,10 @@ def _simulate_ed_visit(
                 display_name=_tx_name,
                 urgency="stat",
                 clinical_intent=f"ED treatment: {tx.get('intent', _tx_name)}",
+                # Issue #871: JA display for JP SR reasonCode.text. `tx["intent"]`
+                # or `_tx_name` are kept as-is (may be EN or already-JA
+                # depending on the source); the shell is translated.
+                clinical_intent_ja=f"救急外来治療: {tx.get('intent', _tx_name)}",
                 ordered_datetime=visit_time
                 + timedelta(
                     minutes=int(rng.normal(ED_TREATMENT_ORDER_OFFSET_MEAN_MIN, ED_TREATMENT_ORDER_OFFSET_STD_MIN))
