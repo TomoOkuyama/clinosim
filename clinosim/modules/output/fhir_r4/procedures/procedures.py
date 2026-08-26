@@ -17,7 +17,40 @@ from clinosim.codes import (
 )
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name, _procedure_display
+
+# Issue #854 Bucket A: opaque id + identifier[] round-trip for Procedure
+# (same pattern PR #357 established for antibiotic MedicationRequest, PR
+# #863 widened to all MR + MA, and PR #867 applied to Device + DUS). Three
+# emit sites all resolve through the shared helper so ``Procedure.id`` shape
+# is consistent regardless of the source path (CIF procedure record via
+# ``_build_procedure`` here, order-derived via
+# ``inline_bb.py::_bb_procedures``, or O2-therapy via
+# ``oxygen_therapy.py``). PUBLIC constant (no underscore prefix) so
+# downstream readers can import it for identifier[]-based lookup without
+# string-parsing the (now opaque) id.
+PROCEDURE_KEY_SYSTEM = structural_key_system("procedure-key")
+
+
+def _resolve_procedure_id(structural_key: str) -> str:
+    """Return the FHIR Procedure.id for any Procedure emit source (Issue #854).
+
+    Shape: ``proc-{sha256(structural_key)[:12]}`` = 17 chars, fixed. The
+    5-char ``proc-`` prefix retains the pre-#854 human-recognisable identity
+    (a URL like ``/Procedure/proc-<hex>`` reads as a Procedure at a glance)
+    while dropping the compound-key body. The compound structural_key is
+    preserved in ``Procedure.identifier[]`` via :func:`wrap_as_identifier`
+    for round-trip. Callers own the structural_key composition — the three
+    emit paths pass different keys (CIF procedure_id + encounter_id;
+    order_id; O2 order_id / enc_id / patient_id-seq) — but any two calls
+    with the same key produce byte-identical output.
+    """
+    return derive_opaque_id("proc-", structural_key)
 
 
 def _build_procedure(
@@ -37,10 +70,16 @@ def _build_procedure(
     start = proc.get("start_datetime", "")
     end = proc.get("end_datetime", "")
 
-    # Encounter-scoped id to avoid collisions across patient's multiple encounters
+    # Issue #854 Bucket A: compound structural key drives an opaque id.
+    # Structural key = pre-#854 id shape (``{enc_id}-{base_pid}`` or ``base_pid``)
+    # so consumers can recover it verbatim from identifier[] via
+    # PROCEDURE_KEY_SYSTEM. This preserves the encounter-scoping property
+    # (same base_pid across encounters hashes to different opaque ids because
+    # enc_id is part of the key when populated).
     enc_id = proc.get("encounter_id", "")
     base_pid = proc.get("procedure_id") or f"proc-{patient_id}-{index:03d}"
-    resource_id = f"{enc_id}-{base_pid}" if enc_id else base_pid
+    structural_key = f"{enc_id}-{base_pid}" if enc_id else base_pid
+    resource_id = _resolve_procedure_id(structural_key)
 
     # Per AD-30, CIF stores only codes. Displays resolved via code_lookup.
     proc_code_jp = proc.get("procedure_code_jp", "")
@@ -105,6 +144,7 @@ def _build_procedure(
     resource: dict[str, Any] = {
         "resourceType": "Procedure",
         "id": resource_id,
+        "identifier": [wrap_as_identifier(structural_key, PROCEDURE_KEY_SYSTEM)],
         # Chain #2: JP Core Procedure profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}}
