@@ -125,6 +125,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
     strip_protocol_prefix,
     survey_category,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401
     _CATEGORY_DISPLAY_JA,
     _CLASS_DISPLAY_JA,
@@ -170,7 +171,11 @@ from clinosim.modules.output.fhir_r4.procedures.device import (  # noqa: F401
 )
 from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations  # noqa: F401
 from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations  # noqa: F401
-from clinosim.modules.output.fhir_r4.procedures.procedures import _build_procedure  # noqa: F401
+from clinosim.modules.output.fhir_r4.procedures.procedures import (
+    PROCEDURE_KEY_SYSTEM,
+    _build_procedure,  # noqa: F401
+    _resolve_procedure_id,
+)
 
 # FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding
 # (2026-07-17): 812,606 ids across the export violated this spec — `_` in id
@@ -695,9 +700,15 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # and internally chains dosage-abbrev translation (O2 → 酸素投与 etc.).
         # US path unchanged (helper is a no-op for is_us(country)).
         _code_text = _localize_drug_name(display, ctx.country) if display else "Procedure"
+        # Issue #854 Bucket A: opaque Procedure.id via the shared resolver.
+        # Structural key = pre-#854 id body (``proc-order-{order_id}`` or
+        # ``proc-order-{patient_id}-{seq:04d}``) so consumers can recover it
+        # verbatim from identifier[] under PROCEDURE_KEY_SYSTEM.
+        _proc_structural_key = f"proc-order-{order_id}" if order_id else f"proc-order-{ctx.patient_id}-{proc_seq:04d}"
         procedure_res: dict = {
             "resourceType": "Procedure",
-            "id": f"proc-order-{order_id}" if order_id else f"proc-order-{ctx.patient_id}-{proc_seq:04d}",
+            "id": _resolve_procedure_id(_proc_structural_key),
+            "identifier": [wrap_as_identifier(_proc_structural_key, PROCEDURE_KEY_SYSTEM)],
             **_profile,
             "status": "completed",
             "category": {

@@ -79,6 +79,11 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
+from clinosim.modules.output.fhir_r4.procedures.procedures import (
+    PROCEDURE_KEY_SYSTEM,
+    _resolve_procedure_id,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -354,16 +359,23 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
         display_name = str(_o(order, "display_name", "") or "") if order is not None else ""
         target_note = _oxygen_target_note(display_name) if display_name else ""
 
+        # Issue #854 Bucket A: opaque Procedure.id via the shared resolver.
+        # Structural key = pre-#854 id body (``proc-o2-{order_id | enc_id |
+        # patient_id-seq}``) so consumers recover it verbatim from
+        # identifier[] under PROCEDURE_KEY_SYSTEM. The 3-way fallback chain
+        # is preserved as-is; only the .id shape changes.
         if order_id:
-            proc_id = f"proc-o2-{order_id}"
+            proc_structural_key = f"proc-o2-{order_id}"
         elif enc_id:
-            proc_id = f"proc-o2-{enc_id}"
+            proc_structural_key = f"proc-o2-{enc_id}"
         else:
-            proc_id = f"proc-o2-{ctx.patient_id}-{len(out) + 1:04d}"
+            proc_structural_key = f"proc-o2-{ctx.patient_id}-{len(out) + 1:04d}"
+        proc_id = _resolve_procedure_id(proc_structural_key)
 
         procedure: dict[str, Any] = {
             "resourceType": "Procedure",
             "id": proc_id,
+            "identifier": [wrap_as_identifier(proc_structural_key, PROCEDURE_KEY_SYSTEM)],
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}}
                 if is_jp_out

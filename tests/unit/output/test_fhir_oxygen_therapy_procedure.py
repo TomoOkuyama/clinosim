@@ -194,8 +194,17 @@ def test_procedure_emitted_from_vitals_only_when_no_o2_order():
     assert "note" not in p
     # Performer falls back to encounter attending
     assert p["performer"] == [{"actor": {"reference": "Practitioner/DR-IM-777"}}]
-    # Procedure id derived from encounter (no order_id available)
-    assert p["id"] == "proc-o2-ENC-1"
+    # Post-Issue-#854: Procedure.id is opaque (`proc-<12hex>`). The
+    # pre-#854 structural key `proc-o2-ENC-1` is preserved on
+    # identifier[] under the PROCEDURE_KEY_SYSTEM URI so consumers can
+    # still recover the encounter-derivation fact.
+    from clinosim.modules.output.fhir_r4.procedures.procedures import (
+        PROCEDURE_KEY_SYSTEM,
+        _resolve_procedure_id,
+    )
+
+    assert p["id"] == _resolve_procedure_id("proc-o2-ENC-1")
+    assert any(i.get("system") == PROCEDURE_KEY_SYSTEM and i.get("value") == "proc-o2-ENC-1" for i in p["identifier"])
     # Device still emitted from vitals
     assert p["usedCode"][0]["coding"][0]["code"] == "336623009"
 
