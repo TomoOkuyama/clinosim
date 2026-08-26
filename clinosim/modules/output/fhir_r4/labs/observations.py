@@ -23,7 +23,11 @@ from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
     BloodPressureComponentReferenceRange,
 )
 from clinosim.modules.output.fhir_r4.labs.coding_strategy import select_lab_coding_strategy
-from clinosim.modules.output.fhir_r4.labs.diagnostic_report import lab_obs_id
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
+    LAB_OBSERVATION_KEY_SYSTEM,
+    _lab_observation_structural_key,
+    lab_observation_id,
+)
 from clinosim.modules.output.fhir_r4.labs.service_request import build_panel_counter, order_to_sr_id
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
@@ -31,6 +35,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     entry,
     to_fhir_datetime,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _CATEGORY_DISPLAY_JA,
     _INTERPRETATION_DISPLAY_JA,
@@ -91,9 +96,12 @@ def _build_lab_observation(
         display_name = codings[0]["display"]
     code_value = codings[0]["code"]
 
-    # encounter_id must be non-empty: the production path always provides ctx.primary_enc_id,
-    # and the diagnostic-report reader (parse_lab_obs_id) matches on the same encounter_id.
-    # A patient_id fallback would silently break basedOn linkage (PR-90 silent-no-op class).
+    # encounter_id must be non-empty: the production path always provides
+    # ctx.primary_enc_id, and it participates in the opaque-id structural key
+    # (see ``_lab_observation_structural_key``) so the DR.result[] emit site
+    # can recompute the same Observation.id from (enc_id, idx). A patient_id
+    # fallback would silently produce a divergent id and break DR.result[]
+    # linkage (PR-90 silent-no-op class).
     assert encounter_id, (
         "_build_lab_observation: encounter_id must be non-empty. "
         "All call sites pass ctx.primary_enc_id which is validated before the loop."
@@ -114,9 +122,18 @@ def _build_lab_observation(
         _profiles.append("http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult")
     _profiles.extend(_extra_profiles)
 
+    # Issue #854 Bucket A row 4 (PR-obs-lab): opaque Observation.id.
+    # ``lab_observation_id(enc, idx)`` returns ``lab-<12hex>`` — same
+    # resolver called by ``DiagnosticReport.result[]`` emit so the reference
+    # edge stays byte-consistent. The compound structural key
+    # ``{encounter_id}-{idx:04d}`` (pre-#854 id body) is preserved verbatim
+    # on ``identifier[]`` under ``LAB_OBSERVATION_KEY_SYSTEM`` so consumers
+    # can recover the source-path metadata without string-parsing the id.
+    _lab_obs_structural_key = _lab_observation_structural_key(encounter_id, index)
     resource: dict[str, Any] = {
         "resourceType": "Observation",
-        "id": lab_obs_id(encounter_id, index),
+        "id": lab_observation_id(encounter_id, index),
+        "identifier": [wrap_as_identifier(_lab_obs_structural_key, LAB_OBSERVATION_KEY_SYSTEM)],
         # chain #2: JP Core Observation_LabResult profile.
         # feedback FB-F6: 該当 LOINC の standard profile も stack 追加。
         **({"meta": {"profile": _profiles}} if _profiles else {}),
