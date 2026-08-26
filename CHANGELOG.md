@@ -51,6 +51,28 @@ byte output but must document the change here.
   211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
   at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
   #863 / #867 / #868 / #869 / #878 opaque-id pattern.)
+- `Condition.id` now emits opaque `cond-<12hex>` (17 chars, fixed) instead
+  of the pre-#854 compounds `cond-{encounter_id}-primary` (encounter-
+  diagnosis path) and `cond-chronic-{patient_id}-{i:02d}` (chronic
+  problem-list path). New PUBLIC constant `CONDITION_KEY_SYSTEM =
+  "urn:clinosim:identifier:condition-key"` carries the pre-#854
+  structural key on `Condition.identifier[]` for round-trip. Resolver
+  helpers `encounter_primary_condition_id` / `chronic_condition_id` /
+  `_resolve_condition_id` in `conditions/primary_ref.py` — the existing
+  `primary_condition_ref()` / `primary_condition_ref_from_codes()` public
+  helpers now return the opaque id, so every downstream reader that goes
+  through them (Encounter.reasonReference + Encounter.diagnosis[] +
+  Procedure.reasonReference + MedicationRequest.reasonReference +
+  ClinicalImpression.finding[] + Composition.section[].entry via the
+  precomputed enc_to_primary_cond map) inherits opaque cross-refs
+  automatically. Four inline compound builders migrated
+  (procedures.py fallback, encounter.py chronic-fan-out,
+  composition.py unit-test fallback). Byte-output changes on the
+  Condition NDJSON slice + every cascade site (~776 records on p=200 JP,
+  ~39,179 records on JP p=10000 s500); MINOR bump still batched at
+  v0.5.0. Largest single Bucket B PR by touched-file count. (Issue #854
+  Bucket B — PR-condition; continues PR #857 / #863 / #867 / #868 /
+  #869 / #878 / #879 / #880 / #881 / #882 opaque-id pattern.)
 - `Specimen.id` now emits opaque `spec-<12hex>` (17 chars, fixed) instead
   of the pre-#854 compounds `spec-{enc or patient_id}-{i}` (microbiology
   cultures) and `spec-lab-{obs_id_body}` (companion post-process). Both

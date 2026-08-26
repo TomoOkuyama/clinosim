@@ -21,9 +21,22 @@ pytestmark = pytest.mark.unit
 
 
 def _by_id_suffix(conditions: list[dict], needle: str) -> dict | None:
+    """Issue #854 Bucket B (PR-condition): Condition.id is now opaque
+    (`cond-<12hex>`), so substring matching on the id no longer works.
+    Look the resource up via the pre-#854 structural key that the writer
+    now carries on `identifier[]` under `CONDITION_KEY_SYSTEM`. Callers
+    still pass the pre-#854 id-body substring (e.g. `chronic-pat-1-00`
+    or `enc-1-primary`) — the leading `cond-` prefix on the needle is
+    stripped so both old-shape needles (`cond-chronic-...`) and new
+    structural-key needles (`chronic-...`) resolve identically."""
+    from clinosim.modules.output.fhir_r4.conditions.primary_ref import CONDITION_KEY_SYSTEM
+
+    key_needle = needle.removeprefix("cond-")
     for c in conditions:
-        if needle in c["id"]:
-            return c
+        idents = c.get("identifier") or []
+        for i in idents:
+            if i.get("system") == CONDITION_KEY_SYSTEM and key_needle in i.get("value", ""):
+                return c
     return None
 
 

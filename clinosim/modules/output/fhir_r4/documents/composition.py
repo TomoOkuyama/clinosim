@@ -891,15 +891,20 @@ def _build_jp_clins_discharge_summary_composition(
     # `free_text_doc_id` を空文字で埋め、下の never-fabricate guard で drop。
     _enc_id = _o(doc, "encounter_id", "") or ""
     _free_text_doc_id = (enc_to_free_text or {}).get(_enc_id, "")
-    # Fall back to the encounter-scoped `cond-{enc}-primary` id when no map
-    # was passed (unit tests exercise the builder directly). The real caller
-    # (`_bb_compositions`) always supplies the map so chronic-primary
-    # encounters resolve to the patient-scoped chronic Condition.
+    # Fall back to the encounter-scoped opaque Condition.id when no map
+    # was passed (unit tests exercise the builder directly). The real
+    # caller (`_bb_compositions`) always supplies the map so chronic-
+    # primary encounters resolve to the patient-scoped chronic Condition.
+    # Issue #854 Bucket B (PR-condition): route through the shared
+    # resolver so this reference stays byte-consistent with the emit.
+    from clinosim.modules.output.fhir_r4.conditions.primary_ref import encounter_primary_condition_id
+
     _primary_cond_id = ""
     if enc_to_primary_cond:
         _primary_cond_id = enc_to_primary_cond.get(_enc_id, "")
     if not _primary_cond_id and _enc_id:
-        _primary_cond_id = f"cond-{_enc_id}-primary"
+        _fallback_patient_id = _o(doc, "patient_id", "") or ""
+        _primary_cond_id = encounter_primary_condition_id(_fallback_patient_id, _enc_id)
     _entry_ctx = {
         "encounter_id": _enc_id,
         "free_text_doc_id": _free_text_doc_id,
