@@ -180,6 +180,17 @@ class Order:
     display_name: str = ""
     urgency: str = "routine"
     clinical_intent: str = ""
+    # Parallel Japanese display of ``clinical_intent`` (Issue #871). CIF
+    # canonical is EN (``clinical_intent``); downstream parsers keep reading
+    # the EN field verbatim (``medication_pipeline._determine_route`` /
+    # ``_sr_intent_from_clinical_intent`` / ``validator.consistency`` /
+    # ``medications.py`` behavior gates all substring-match against the EN
+    # form). This JA slot is display-only and consumed exclusively by the
+    # FHIR ``ServiceRequest.reasonCode.text`` emitter (JP output) — same
+    # writer/reader split as ``Encounter.chief_complaint`` /
+    # ``Encounter.chief_complaint_ja`` (Issue #360 G1). Empty string means
+    # "no JA authored" and the emit path falls back to ``clinical_intent``.
+    clinical_intent_ja: str = ""
     ordered_datetime: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     ordered_by: str = ""
     status: OrderStatus = OrderStatus.PLACED

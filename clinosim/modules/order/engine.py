@@ -151,6 +151,11 @@ def place_imaging_orders(
         contrast: bool = _s(spec, "contrast", False)
         urgency: str = _s(spec, "urgency", "routine")
         clinical_indication: str = _s(spec, "clinical_indication", "")
+        # Issue #871: JA equivalent of clinical_indication, sourced from
+        # per-disease YAML `imaging_orders[].clinical_indication_ja`. Empty
+        # when the YAML has not yet been authored bilingually — the SR emit
+        # path (`_pick_reason_text`) then falls back to the EN string.
+        clinical_indication_ja: str = _s(spec, "clinical_indication_ja", "")
         abnormal_rate: dict = dict(_s(spec, "abnormal_rate_by_severity", {}))
 
         body_site = body_sites.get(body_site_key)
@@ -183,6 +188,7 @@ def place_imaging_orders(
             display_name=proc["display_en"],
             urgency=urgency,
             clinical_intent=clinical_indication,
+            clinical_intent_ja=clinical_indication_ja,
             ordered_datetime=ordered_dt,
             status=OrderStatus.PLACED,
             imaging_modality=modality_key,
@@ -275,6 +281,7 @@ def _build_lab_order(
     ordered_by: str,
     panel_key: str,
     clinical_intent: str,
+    clinical_intent_ja: str = "",
 ) -> Order:
     """Build a single LAB Order (shared by admission + daily, panel + stand-alone).
 
@@ -282,6 +289,11 @@ def _build_lab_order(
     urgency is honoured uniformly across all four call sites (admission panel,
     admission stand-alone, daily panel, daily stand-alone).  RNG draws happen at
     the call site BEFORE this helper is invoked, so the RNG sequence is unchanged.
+
+    Issue #871: ``clinical_intent_ja`` (default empty) carries the JP display
+    of the intent for consumption by the FHIR ``ServiceRequest.reasonCode.text``
+    emitter. Empty string means "no JA authored" and the emitter falls back
+    to the EN ``clinical_intent``.
     """
     return Order(
         order_id=order_id,
@@ -292,6 +304,7 @@ def _build_lab_order(
         display_name=lab_spec["test"],
         urgency=lab_spec.get("urgency", "routine"),
         clinical_intent=clinical_intent,
+        clinical_intent_ja=clinical_intent_ja,
         ordered_datetime=ordered_datetime,
         ordered_by=ordered_by,
         status=OrderStatus.PLACED,
@@ -375,6 +388,8 @@ def place_admission_orders(
                     ordered_by=ordered_by,
                     panel_key=panel_name,
                     clinical_intent=f"Admission workup: {lab_spec['test']}",
+                    # Issue #871: JA display for JP SR reasonCode.text.
+                    clinical_intent_ja=f"入院時精査: {lab_spec['test']}",
                 )
             )
             order_seq += 1
@@ -392,6 +407,8 @@ def place_admission_orders(
                 ordered_by=ordered_by,
                 panel_key="",
                 clinical_intent=f"Admission workup: {lab_spec['test']}",
+                # Issue #871: JA display for JP SR reasonCode.text.
+                clinical_intent_ja=f"入院時精査: {lab_spec['test']}",
             )
         )
         order_seq += 1
@@ -416,6 +433,11 @@ def place_admission_orders(
             display_name=drug_name,
             urgency="stat",
             clinical_intent=f"First-line treatment: {drug_name}",
+            # Issue #871: JA display for JP SR reasonCode.text. `drug_name`
+            # is preserved as-is (may be EN or already-JA depending on the
+            # disease YAML source); localize_drug_name is a rendering-layer
+            # concern for downstream display.
+            clinical_intent_ja=f"初期治療: {drug_name}",
             ordered_datetime=admission_time
             + timedelta(minutes=int(rng.normal(ADMISSION_MED_PLACEMENT_MEAN_MIN, ADMISSION_MED_PLACEMENT_STD_MIN))),
             ordered_by=ordered_by,
@@ -454,6 +476,8 @@ def place_admission_orders(
             display_name=f"{sup['type']}: {detail_raw}",
             urgency="routine",
             clinical_intent=f"Supportive: {sup['type']}",
+            # Issue #871: JA display for JP SR reasonCode.text.
+            clinical_intent_ja=f"支持療法: {sup['type']}",
             ordered_datetime=admission_time
             + timedelta(
                 minutes=int(rng.normal(ADMISSION_SUPPORTIVE_PLACEMENT_MEAN_MIN, ADMISSION_SUPPORTIVE_PLACEMENT_STD_MIN))
@@ -478,6 +502,8 @@ def place_admission_orders(
             display_name=img_spec.get("test", "Imaging"),
             urgency=img_spec.get("urgency", "stat"),
             clinical_intent=f"Admission imaging: {img_spec.get('test', '')}",
+            # Issue #871: JA display for JP SR reasonCode.text.
+            clinical_intent_ja=f"入院時画像検査: {img_spec.get('test', '')}",
             ordered_datetime=admission_time
             + timedelta(
                 minutes=int(rng.normal(ADMISSION_IMAGING_PLACEMENT_MEAN_MIN, ADMISSION_IMAGING_PLACEMENT_STD_MIN))
@@ -561,6 +587,8 @@ def place_daily_lab_orders(
                     ordered_by=ordered_by,
                     panel_key=panel_name,
                     clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
+                    # Issue #871: JA display for JP SR reasonCode.text.
+                    clinical_intent_ja=f"第{day_number}病日モニタリング: {lab_spec['test']}",
                 )
             )
             order_seq += 1
@@ -576,6 +604,8 @@ def place_daily_lab_orders(
                 ordered_by=ordered_by,
                 panel_key="",
                 clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
+                # Issue #871: JA display for JP SR reasonCode.text.
+                clinical_intent_ja=f"第{day_number}病日モニタリング: {lab_spec['test']}",
             )
         )
         order_seq += 1

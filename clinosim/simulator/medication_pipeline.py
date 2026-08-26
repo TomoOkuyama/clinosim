@@ -125,6 +125,10 @@ def _generate_home_medication_orders(
         drug_lower = drug_name.lower()
         intent_drug = f"{drug_name} {med.dose}".strip() if med.dose else drug_name
         intent = f"Home medication (continue): {intent_drug}"
+        # Issue #871: parallel JA display for JP SR reasonCode.text. `intent_drug`
+        # includes the raw drug name + dose (which may be EN or JA depending on
+        # the source); the shell is translated.
+        intent_ja = f"継続内服: {intent_drug}"
 
         # 1. Protocol-driven disease-specific holds.
         yaml_held = False
@@ -147,6 +151,8 @@ def _generate_home_medication_orders(
                     continue  # held
                 else:
                     intent += " [dose reduced for renal impairment]"
+                    # Issue #871: mirror the annotation on the JA display.
+                    intent_ja += " [腎機能低下のため減量]"
 
         order = Order(
             order_id=f"ORD-{encounter_id}-HM-{med_idx:02d}",
@@ -157,6 +163,8 @@ def _generate_home_medication_orders(
             display_name=drug_name,
             urgency="routine",
             clinical_intent=intent,
+            # Issue #871: JA display for JP SR reasonCode.text.
+            clinical_intent_ja=intent_ja,
             ordered_datetime=admission_time + timedelta(minutes=60),
             ordered_by=attending_id,
             status=OrderStatus.PLACED,
@@ -217,6 +225,11 @@ def _place_chronic_monitoring_orders(
                         display_name=mon["test"],
                         urgency="routine",
                         clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                        # Issue #871: JA display for JP SR reasonCode.text.
+                        # Reads `intent_ja` from the YAML spec; falls back to
+                        # a shell-translated default when the YAML has not
+                        # yet been extended.
+                        clinical_intent_ja=mon.get("intent_ja", f"慢性モニタリング: {mon['test']}"),
                         ordered_datetime=order_time,
                         ordered_by=ordered_by,
                         status=OrderStatus.PLACED,
@@ -246,6 +259,11 @@ def _place_chronic_monitoring_orders(
                         display_name=mon["test"],
                         urgency="routine",
                         clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                        # Issue #871: JA display for JP SR reasonCode.text.
+                        # Reads `intent_ja` from the YAML spec; falls back to
+                        # a shell-translated default when the YAML has not
+                        # yet been extended.
+                        clinical_intent_ja=mon.get("intent_ja", f"慢性モニタリング: {mon['test']}"),
                         ordered_datetime=order_time,
                         ordered_by=ordered_by,
                         status=OrderStatus.PLACED,
@@ -271,6 +289,8 @@ def _place_chronic_monitoring_orders(
                 display_name=mon["test"],
                 urgency="routine",
                 clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                # Issue #871: JA display for JP SR reasonCode.text.
+                clinical_intent_ja=mon.get("intent_ja", f"慢性モニタリング: {mon['test']}"),
                 ordered_datetime=order_time,
                 ordered_by=ordered_by,
                 status=OrderStatus.PLACED,

@@ -172,6 +172,8 @@ def _simulate_unknown_condition(
                 display_name=lab_name,
                 urgency="stat",
                 clinical_intent=f"Unknown {complaint}: initial workup",
+                # Issue #871: JA display for JP SR reasonCode.text.
+                clinical_intent_ja=f"不明疾患 {complaint}: 初期精査",
                 ordered_datetime=admission_time,
                 ordered_by=attending_id,
                 status=OrderStatus.PLACED,
@@ -188,6 +190,8 @@ def _simulate_unknown_condition(
                 display_name=img,
                 urgency="stat" if i == 0 else "urgent",
                 clinical_intent=f"Unknown {complaint}: imaging workup",
+                # Issue #871: JA display for JP SR reasonCode.text.
+                clinical_intent_ja=f"不明疾患 {complaint}: 画像精査",
                 ordered_datetime=admission_time + timedelta(hours=i + 1),
                 ordered_by=attending_id,
                 status=OrderStatus.PLACED,
@@ -212,6 +216,11 @@ def _simulate_unknown_condition(
                 display_name=med["drug"],
                 urgency="routine",
                 clinical_intent=f"Unknown {complaint}: {med['intent']}",
+                # Issue #871: JA display for JP SR reasonCode.text. `med['intent']`
+                # is the free-text EN intent from the local dict — kept as-is,
+                # only the shell is translated (a follow-up PR can extend the
+                # local supportive_meds dict with `intent_ja` slots).
+                clinical_intent_ja=f"不明疾患 {complaint}: {med['intent']}",
                 ordered_datetime=admission_time + timedelta(minutes=UNK_SUPPORTIVE_MED_PLACEMENT_MIN),
                 ordered_by=attending_id,
                 status=OrderStatus.PLACED,
@@ -242,6 +251,8 @@ def _simulate_unknown_condition(
                         display_name="CT_chest_with_contrast",
                         urgency="routine",
                         clinical_intent="Day 4: expanded imaging for unknown fever",
+                        # Issue #871: JA display for JP SR reasonCode.text.
+                        clinical_intent_ja="第4病日: 不明熱の追加画像検査",
                         ordered_datetime=admission_time
                         + timedelta(days=UNK_AUTOIMMUNE_WORKUP_DAY, hours=UNK_EXPANDED_IMAGING_HOUR),
                         ordered_by=attending_id,
@@ -259,6 +270,8 @@ def _simulate_unknown_condition(
                         display_name=lab_name,
                         urgency="routine",
                         clinical_intent=f"Day {day}: monitoring + workup",
+                        # Issue #871: JA display for JP SR reasonCode.text.
+                        clinical_intent_ja=f"第{day}病日: モニタリング + 精査",
                         ordered_datetime=lab_time,
                         ordered_by=attending_id,
                         status=OrderStatus.PLACED,

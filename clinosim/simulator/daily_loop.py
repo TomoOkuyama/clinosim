@@ -314,6 +314,8 @@ def _run_daily_loop(
                             display_name=comp_name,
                             urgency=order.urgency,
                             clinical_intent=order.clinical_intent,
+                            # Issue #871: forward the JA display alongside the EN.
+                            clinical_intent_ja=order.clinical_intent_ja,
                             ordered_datetime=order.ordered_datetime,
                             ordered_by=order.ordered_by,
                             encounter_id=order.encounter_id,
@@ -393,6 +395,10 @@ def _run_daily_loop(
                         display_name=lab_name,
                         urgency="stat",
                         clinical_intent=f"Day {day} {archetype}: additional workup",
+                        # Issue #871: JA display for JP SR reasonCode.text.
+                        # `archetype` is a code identifier (sepsis/ards/etc.) —
+                        # kept as-is; the shell is translated.
+                        clinical_intent_ja=f"第{day}病日 {archetype}: 追加検査",
                         ordered_datetime=admission_time + timedelta(days=day, hours=10),
                         status=OrderStatus.PLACED,
                     )
@@ -407,6 +413,8 @@ def _run_daily_loop(
                         display_name=img_name,
                         urgency="stat",
                         clinical_intent=f"Day {day} {archetype}: additional imaging",
+                        # Issue #871: JA display for JP SR reasonCode.text.
+                        clinical_intent_ja=f"第{day}病日 {archetype}: 追加画像検査",
                         ordered_datetime=admission_time + timedelta(days=day, hours=10),
                         status=OrderStatus.PLACED,
                     )
@@ -434,6 +442,8 @@ def _run_daily_loop(
                         display_name=f"DISCONTINUE: {drug_name}",
                         urgency="routine",
                         clinical_intent=f"Day {day} {archetype}: stop {drug_name}",
+                        # Issue #871: JA display for JP SR reasonCode.text.
+                        clinical_intent_ja=f"第{day}病日 {archetype}: {drug_name} 中止",
                         ordered_datetime=admission_time + timedelta(days=day, hours=10),
                         status=OrderStatus.PLACED,
                     )
@@ -459,9 +469,11 @@ def _run_daily_loop(
                         if _is_medication:
                             _order_id_prefix = f"ORD-{encounter_id}-START-D{day}-{sanitize_id_token(drug, 8)}"
                             _intent = f"Day {day} {archetype}: new medication"
+                            _intent_ja = f"第{day}病日 {archetype}: 新規投薬"
                         else:
                             _order_id_prefix = f"ORD-{encounter_id}-DEV-D{day}-{sanitize_id_token(drug, 8)}"
                             _intent = f"Day {day} {archetype}: device / therapy"
+                            _intent_ja = f"第{day}病日 {archetype}: 器材/治療"
                         all_orders.append(
                             Order(
                                 order_id=_order_id_prefix,
@@ -470,6 +482,8 @@ def _run_daily_loop(
                                 display_name=display,
                                 urgency="urgent",
                                 clinical_intent=_intent,
+                                # Issue #871: JA display for JP SR reasonCode.text.
+                                clinical_intent_ja=_intent_ja,
                                 ordered_datetime=admission_time + timedelta(days=day, hours=10),
                                 status=OrderStatus.PLACED,
                             )
@@ -486,6 +500,8 @@ def _run_daily_loop(
                                 display_name=display,
                                 urgency="urgent",
                                 clinical_intent=f"Day {day} {archetype}: new procedure",
+                                # Issue #871: JA display for JP SR reasonCode.text.
+                                clinical_intent_ja=f"第{day}病日 {archetype}: 新規処置",
                                 ordered_datetime=admission_time + timedelta(days=day, hours=10),
                                 status=OrderStatus.PLACED,
                             )
@@ -519,6 +535,10 @@ def _run_daily_loop(
                         display_name=_esc_display,
                         urgency="urgent",
                         clinical_intent=f"Escalation day {day}: {drug_name} ({indication})",
+                        # Issue #871: JA display for JP SR reasonCode.text.
+                        # `drug_name` and `indication` are kept as-is (may be
+                        # EN or already-JA from disease YAML) — shell translated.
+                        clinical_intent_ja=f"治療エスカレーション第{day}病日: {drug_name} ({indication})",
                         ordered_datetime=admission_time + timedelta(days=day, hours=10),
                         ordered_by=attending_id,
                         status=OrderStatus.PLACED,
@@ -555,6 +575,8 @@ def _run_daily_loop(
                     display_name=diet,
                     urgency="routine",
                     clinical_intent=f"Day {day} diet: {diet}",
+                    # Issue #871: JA display for JP SR reasonCode.text.
+                    clinical_intent_ja=f"第{day}病日 食事: {diet}",
                     ordered_datetime=admission_time + timedelta(days=day, hours=7),
                     ordered_by=attending_id,
                     status=OrderStatus.PLACED,
