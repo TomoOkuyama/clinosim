@@ -26,6 +26,7 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     _bb_diagnostic_reports,
     _escape_html,
 )
+from clinosim.modules.output.fhir_r4.labs.service_request import _resolve_service_request_id
 from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord, RadiologyReport
 
 
@@ -121,7 +122,7 @@ def test_radiology_dr_category_dual_coding():
 def test_radiology_dr_basedon_and_imaging_study_refs():
     ctx = _make_ctx([_sample_study()])
     dr = _rad_drs(ctx)[0]
-    assert dr["basedOn"] == [{"reference": "ServiceRequest/sr-ord1"}]
+    assert dr["basedOn"] == [{"reference": f"ServiceRequest/{_resolve_service_request_id('ord1')}"}]
     assert dr["imagingStudy"] == [{"reference": "ImagingStudy/imgst-enc1-1"}]
 
 

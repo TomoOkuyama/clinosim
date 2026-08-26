@@ -254,7 +254,15 @@ class TestFhirStubImagingStudy:
         # endpoint field は stub では省略(FHIR R4 endpoint は 0..*)
         assert "endpoint" not in r
         # basedOn は SR 参照が必ず emit(consumer が「オーダーはあった」を追跡できる)
-        assert r["basedOn"][0]["reference"] == "ServiceRequest/sr-ORD-2"
+        # Issue #854 Bucket A row 3 (PR #869): SR id = opaque `sr-<12hex>` derived
+        # from structural_key (= order_id for stand-alone imaging SR). Resolve via
+        # helper so this assertion tracks the canonical derivation.
+        from clinosim.modules.output.fhir_r4.labs.service_request import (
+            _resolve_service_request_id,
+        )
+
+        expected_sr_id = _resolve_service_request_id("ORD-2")
+        assert r["basedOn"][0]["reference"] == f"ServiceRequest/{expected_sr_id}"
 
     def test_full_study_unchanged(self):
         from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord

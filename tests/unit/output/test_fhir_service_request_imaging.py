@@ -22,8 +22,8 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (
     IMAGING_CATEGORY_SNOMED,
     IMAGING_CATEGORY_V2_0074,
     LAB_CATEGORY_SNOMED,
-    SR_ID_PREFIX,
     _bb_service_requests,
+    _resolve_service_request_id,
 )
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 
@@ -68,7 +68,7 @@ def test_emits_one_sr_per_imaging_order():
     assert len(resources) == 1
     sr = resources[0]
     assert sr["resourceType"] == "ServiceRequest"
-    assert sr["id"] == f"{SR_ID_PREFIX}ord1"
+    assert sr["id"] == _resolve_service_request_id("ord1")
 
 
 def test_imaging_sr_category_dual_coding():
@@ -199,7 +199,7 @@ def test_imaging_sr_from_dict_path():
     assert len(resources) == 1
     sr = resources[0]
     assert sr["resourceType"] == "ServiceRequest"
-    assert sr["id"] == f"{SR_ID_PREFIX}dict-ord1"
+    assert sr["id"] == _resolve_service_request_id("dict-ord1")
     # category must carry IMAGING codes
     coding = sr["category"][0]["coding"]
     assert any(c["code"] == IMAGING_CATEGORY_SNOMED for c in coding)
