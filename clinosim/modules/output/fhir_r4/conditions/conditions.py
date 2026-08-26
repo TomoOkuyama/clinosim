@@ -12,6 +12,13 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+    CONDITION_KEY_SYSTEM,
+    chronic_condition_id,
+    chronic_condition_key,
+    encounter_primary_condition_id,
+    encounter_primary_condition_key,
+)
+from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     is_chronic_primary as _encounter_primary_is_chronic,
 )
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -23,6 +30,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     to_fhir_date,
     to_fhir_datetime,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _CATEGORY_DISPLAY_JA,
     _localize_display,
@@ -280,9 +288,13 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         else:
             clinical_status = "resolved"
 
+        # Issue #854 Bucket B (PR-condition): opaque Condition.id.
+        # Structural key = pre-#854 id body (without ``cond-`` prefix).
+        _primary_structural_key = encounter_primary_condition_key(patient_id, encounter_id)
         cond: dict[str, Any] = {
             "resourceType": "Condition",
-            "id": f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary",
+            "id": encounter_primary_condition_id(patient_id, encounter_id),
+            "identifier": [wrap_as_identifier(_primary_structural_key, CONDITION_KEY_SYSTEM)],
             # C2-20: JP Core Condition profile.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
@@ -451,14 +463,17 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             continue
         seen_codes.add(base)
 
+        # Issue #854 Bucket B (PR-condition): opaque chronic Condition.id.
+        _chronic_structural_key = chronic_condition_key(patient_id, i)
         cond = {
             "resourceType": "Condition",
-            # C4-02: patient-scoped ID so the adapter's
+            # C4-02: patient-scoped structural key so the adapter's
             # write() dedup collapses per-encounter re-emissions. Was
             # `cond-{encounter_id}-chronic-{i}` which produced N duplicates
             # per patient (N = number of the patient's encounters), driving
             # cycle-3 RM-7 problem-list-item excess to 10x realistic count.
-            "id": f"cond-chronic-{patient_id}-{i:02d}",
+            "id": chronic_condition_id(patient_id, i),
+            "identifier": [wrap_as_identifier(_chronic_structural_key, CONDITION_KEY_SYSTEM)],
             # C2-20: JP Core Condition profile also on chronic-
             # condition path (encounter-dx path handled above).
             **(

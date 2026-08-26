@@ -252,10 +252,14 @@ def test_multiple_orders_per_encounter_deduplicated():
 
 
 def test_procedure_encounter_reference_and_reason():
+    # Issue #854 Bucket B (PR-condition): Condition.id is opaque, derive
+    # expected reference via the shared resolver.
+    from clinosim.modules.output.fhir_r4.conditions.primary_ref import encounter_primary_condition_id
+
     ctx = _ctx(_record_with_o2_session(encounter_id="ENC-XYZ"))
     p = _bb_oxygen_therapy(ctx)[0]
     assert p["encounter"] == {"reference": "Encounter/ENC-XYZ"}
-    assert p["reasonReference"] == [{"reference": "Condition/cond-ENC-XYZ-primary"}]
+    assert p["reasonReference"] == [{"reference": f"Condition/{encounter_primary_condition_id('POP-TEST', 'ENC-XYZ')}"}]
 
 
 def test_procedure_performer_from_order_ordered_by():

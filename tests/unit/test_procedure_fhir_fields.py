@@ -169,8 +169,14 @@ def test_fhir_procedure_has_recorder():
 
 
 def test_fhir_procedure_has_reason_reference():
+    # Issue #854 Bucket B (PR-condition): Condition.id is opaque; derive
+    # expected reference via the shared resolver.
+    from clinosim.modules.output.fhir_r4.conditions.primary_ref import encounter_primary_condition_id
+
     r = _build_procedure(_proc_dict(), "PAT-001", 0, "US")
-    assert r["reasonReference"][0]["reference"] == "Condition/cond-ENC-PAT-001-0001-primary"
+    assert r["reasonReference"][0]["reference"] == (
+        f"Condition/{encounter_primary_condition_id('PAT-001', 'ENC-PAT-001-0001')}"
+    )
 
 
 def test_fhir_procedure_has_body_site():
@@ -259,4 +265,7 @@ def test_bedside_procedure_round_trip_to_fhir(rng):
         "103693007",
         "277132007",
     }
-    assert r["reasonReference"][0]["reference"] == "Condition/cond-ENC-E2E-primary"
+    # Issue #854 Bucket B (PR-condition): Condition.id is opaque.
+    from clinosim.modules.output.fhir_r4.conditions.primary_ref import encounter_primary_condition_id
+
+    assert r["reasonReference"][0]["reference"] == (f"Condition/{encounter_primary_condition_id('PAT-E2E', 'ENC-E2E')}")
