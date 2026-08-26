@@ -51,6 +51,24 @@ byte output but must document the change here.
   211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
   at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
   #863 / #867 / #868 / #869 / #878 opaque-id pattern.)
+- `Composition.id` now emits opaque `comp-<12hex>` (17 chars, fixed)
+  across both emit paths (general via `_build_composition_generic` +
+  radiology via `_build_imaging_report_composition`). New PUBLIC constant
+  `COMPOSITION_KEY_SYSTEM = "urn:clinosim:identifier:composition-key"`
+  documented for downstream consumers; the pre-existing
+  `Composition.identifier.value` slot (single 0..1 per FHIR R4)
+  continues to carry the opaque `.id`. Structural keys:
+    - general: pre-#854 id body (CIF-doc-id body with `doc-` prefix
+      stripped)
+    - radiology imgrpt: `{encounter_id}-imgrpt-{seq}`
+  Cross-reference migrated: `DocumentReference.relatesTo[].target.reference`
+  in the health-checkup DR builder now routes through the shared
+  `_resolve_composition_id` helper. Byte-output changes on the
+  Composition NDJSON slice (~969 records on p=200 JP, ~51,967 records
+  on JP p=10000 s500); MINOR bump still batched at v0.5.0. (Issue #854
+  Bucket B — PR-composition; continues PR #857 / #863 / #867 / #868 /
+  #869 / #878 / #879 / #880 / #881 / #882 / #883 / #884 / #885 / #886
+  opaque-id pattern.)
 - `DocumentReference.id` now emits opaque `doc-<12hex>` (16 chars, fixed)
   instead of the pre-#854 compound `doc-{encounter_id}-{task_type}` set
   on the CIF-side `doc.document_id`. New PUBLIC constant

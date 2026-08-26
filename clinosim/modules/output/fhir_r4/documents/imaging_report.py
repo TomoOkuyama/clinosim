@@ -159,9 +159,16 @@ def _build_imaging_report_composition(
     _title = _IMAGING_REPORT_TITLE_JA if _is_jp else _IMAGING_REPORT_TITLE_EN
     _lp_display = _LP29684_5_DISPLAY_JA if _is_jp else _LP29684_5_DISPLAY_EN
 
+    # Issue #854 Bucket B (PR-composition): opaque Composition.id.
+    # Structural key = pre-#854 id body (without `comp-` prefix) =
+    # `{encounter_id}-imgrpt-{seq}`. The routed derivation ensures the
+    # id stays byte-consistent with the shared resolver.
+    from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
+
+    _comp_structural_key = f"{encounter_id}-imgrpt-{seq}"
     resource: dict[str, Any] = {
         "resourceType": "Composition",
-        "id": _COMPOSITION_ID_PATTERN.format(encounter_id=encounter_id, seq=seq),
+        "id": _resolve_composition_id(_comp_structural_key),
         "status": "final",
         "type": {
             "coding": [
