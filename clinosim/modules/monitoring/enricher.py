@@ -101,7 +101,12 @@ def _inject_for_record(record: Any, mapping: dict, master_seed: int, country: st
 
     injected_count = 0
     for drug in matched_drugs:
-        for lab_spec in mapping[drug].get("monitoring") or []:
+        drug_entry = mapping[drug]
+        # Issue #871: JA display for the drug (used to compose the JP
+        # `Order.clinical_intent_ja` template). Falls back to the canonical
+        # EN drug key when the YAML has no `drug_ja` slot.
+        drug_ja = str(drug_entry.get("drug_ja") or drug)
+        for lab_spec in drug_entry.get("monitoring") or []:
             analyte = canonical_lab_name(str(lab_spec.get("lab") or ""))
             if not analyte or analyte in existing:
                 continue
@@ -113,7 +118,13 @@ def _inject_for_record(record: Any, mapping: dict, master_seed: int, country: st
                 display_name=str(lab_spec.get("lab") or analyte),
                 loinc=str(lab_spec.get("loinc") or ""),
                 rationale=str(lab_spec.get("rationale") or f"{drug} monitoring"),
+                # Issue #871: JA rationale for the JP `reasonCode.text` emit
+                # path. Empty when the YAML has no `rationale_ja` slot yet;
+                # `_inject_one_lab` then leaves `clinical_intent_ja` empty
+                # and the SR emitter falls back to the EN string.
+                rationale_ja=str(lab_spec.get("rationale_ja") or ""),
                 drug=drug,
+                drug_ja=drug_ja,
                 true_value=true_labs.get(analyte),
                 enricher_rng=enricher_rng,
                 country=country,
@@ -203,7 +214,9 @@ def _inject_one_lab(
     display_name: str,
     loinc: str,
     rationale: str,
+    rationale_ja: str,
     drug: str,
+    drug_ja: str,
     true_value: float | None,
     enricher_rng: np.random.Generator,
     country: str,
@@ -231,6 +244,13 @@ def _inject_one_lab(
     observed = generate_lab_result(analyte, float(true_value), lab_rng)
     flag = _determine_flag(analyte, observed, sex=getattr(patient, "sex", "M"), country=country)
 
+    # Issue #871: bilingual `clinical_intent` — EN stays as the CIF canonical
+    # (behavior-parseable form used by `_sr_intent_from_clinical_intent`,
+    # `medication_pipeline._determine_route`, etc.); JA is display-only and
+    # consumed by the JP SR emit path via `_pick_reason_text`. When
+    # `rationale_ja` is empty (YAML not yet migrated), leave the JA slot
+    # empty so the emit path falls back to the EN string.
+    clinical_intent_ja = f"慢性投薬モニタリング ({drug_ja}): {rationale_ja}" if rationale_ja else ""
     order = Order(
         order_id=order_id,
         encounter_id=enc_id,
@@ -240,6 +260,7 @@ def _inject_one_lab(
         display_name=display_name,
         urgency="routine",
         clinical_intent=f"Chronic-medication monitoring ({drug}): {rationale}",
+        clinical_intent_ja=clinical_intent_ja,
         ordered_datetime=ordered_dt,
         ordered_by=getattr(encounter, "attending_physician_id", "") or "",
         status=OrderStatus.RESULTED,

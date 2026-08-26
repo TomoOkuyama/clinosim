@@ -62,6 +62,37 @@ def _sr_intent_from_clinical_intent(clinical_intent: str) -> str:
     return "order"
 
 
+def _pick_reason_text(source: Any, lang: str) -> str:
+    """Return the ``reasonCode.text`` payload preferring the locale-specific
+    ``clinical_intent_ja`` when JP output + populated, else the EN
+    ``clinical_intent`` (Issue #871).
+
+    Rationale:
+    - CIF canonical field ``clinical_intent`` (EN) is behavior-load-bearing:
+      ``_sr_intent_from_clinical_intent`` above, ``medication_pipeline.
+      _determine_route``, ``validator.consistency`` and ``medications.py``
+      substring-match against it. We MUST NOT localize the CIF field.
+    - JP consumers want a Japanese ``reasonCode.text``. The parallel
+      ``clinical_intent_ja`` slot on ``Order`` (see ``types/encounter.py``)
+      carries the display-only JA translation, populated by writers that
+      author the intent template in both languages (e.g.
+      ``monitoring/enricher.py``).
+    - Empty ``clinical_intent_ja`` means "no JA authored" (default for
+      writers that have not migrated yet) → fall back to EN so the JP
+      output still shows something rather than an empty ``reasonCode``.
+      This preserves pre-#871 behavior on any writer path that has not
+      yet been updated.
+
+    Same writer/reader locale-split pattern as
+    ``Encounter.chief_complaint`` / ``chief_complaint_ja`` (Issue #360 G1).
+    """
+    if lang == "ja":
+        ja = _o(source, "clinical_intent_ja", "")
+        if ja:
+            return ja
+    return _o(source, "clinical_intent", "")
+
+
 from clinosim.types.encounter import OrderStatus, OrderType
 
 # === Canonical constants (silent-no-op defense, PR-90 lesson) ===
@@ -543,9 +574,9 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
         # cycle 8 cross-seed verify fix (CY7-01 regression): ordered_by 未設定
         # SR にも hospital-main を performer fallback として emit。
         sr["performer"] = [{"reference": "Organization/hospital-main"}]
-    clinical_intent = _o(order, "clinical_intent", "")
-    if clinical_intent:
-        sr["reasonCode"] = [{"text": clinical_intent}]
+    reason_text = _pick_reason_text(order, lang)
+    if reason_text:
+        sr["reasonCode"] = [{"text": reason_text}]
     return sr
 
 
@@ -771,9 +802,9 @@ def _build_sr_skeleton(
         # cycle 8 cross-seed verify fix (CY7-01 regression): 健診 panel SR 等
         # ordered_by 未指定 SR にも performer を hospital-main で fallback。
         sr["performer"] = [{"reference": "Organization/hospital-main"}]
-    clinical_intent = _o(anchor, "clinical_intent", "")
-    if clinical_intent:
-        sr["reasonCode"] = [{"text": clinical_intent}]
+    reason_text = _pick_reason_text(anchor, lang)
+    if reason_text:
+        sr["reasonCode"] = [{"text": reason_text}]
     # CY7-02 (Chain-7): SR.occurrenceDateTime — when the order should be
     # fulfilled. For labs/imaging the practical answer is "as soon as
     # possible after ordered_datetime" so we set it to authoredOn as a

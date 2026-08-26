@@ -234,6 +234,10 @@ def _simulate_outpatient_visit(
             display_name=test_name,
             urgency="routine",
             clinical_intent=f"Outpatient follow-up: {test_name}",
+            # Issue #871: JA display for the JP `reasonCode.text` emit path.
+            # `test_name` is the analyte name (e.g. "Creatinine") — kept as-is
+            # so consumers can still string-match; the shell is translated.
+            clinical_intent_ja=f"外来フォローアップ: {test_name}",
             ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,

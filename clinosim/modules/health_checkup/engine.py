@@ -480,6 +480,8 @@ def enrich_health_checkup(ctx: Any) -> None:
                     display_name=res.lab_name,
                     urgency="routine",
                     clinical_intent="health_checkup",
+                    # Issue #871: JA display for JP SR reasonCode.text.
+                    clinical_intent_ja="健康診断",
                     ordered_datetime=ordered_dt,
                     ordered_by="",  # 健診は事業所/自治体依頼、実施医師未指定
                     status=OrderStatus.REVIEWED,  # 健診結果まで完了、reviewed 相当

@@ -3,16 +3,23 @@
 # Schema (per drug entry):
 #   <Drug canonical name>:
 #     aliases:        [<optional additional names, case-insensitive substring match>]
+#     drug_ja:        "<Japanese display of the drug — used for reasonCode.text JP>"
 #     monitoring:
 #       - lab:        <internal analyte name — matches clinosim/modules/observation/engine.py>
 #         loinc:      "<LOINC code — emitted as Order.display and Observation.code.coding>"
 #         rationale:  "<one-sentence clinical justification>"
+#         rationale_ja: "<Japanese translation of the rationale — used for reasonCode.text JP>"
 #
 # The enricher (`clinosim/modules/monitoring/enricher.py`) matches the drug name
 # and every alias against each entry in `patient.current_medications` via
 # case-insensitive substring — the same pattern used by
 # `physiology.engine._WARFARIN_NAMES` — so "Warfarin 3mg PO" and "ワルファリン"
 # both match the Warfarin entry.
+#
+# `drug_ja` and `rationale_ja` (Issue #871) are consumed by the FHIR
+# `ServiceRequest.reasonCode.text` JP emit path (via `Order.clinical_intent_ja`).
+# The EN `rationale` remains the CIF canonical and is still emitted on US output
+# and read by behavior parsers (`_sr_intent_from_clinical_intent`, etc.).
 #
 # Adding a new drug → labs pair is a pure YAML edit; no code change required.
 # Frequency / scheduling knobs (daily vs monthly, induction vs maintenance)
@@ -22,17 +29,21 @@
 mappings:
   Warfarin:
     aliases: ["ワルファリン", "coumadin"]
+    drug_ja: "ワルファリン"
     monitoring:
       - lab: PT_INR
         loinc: "6301-6"
         rationale: "Anticoagulation therapeutic monitoring — INR target 2.0-3.0 (or 2.5-3.5 for mechanical valves)."
+        rationale_ja: "抗凝固療法の治療域モニタリング — INR 目標 2.0-3.0 (機械弁は 2.5-3.5)。"
 
   Levothyroxine:
     aliases: ["レボチロキシン", "synthroid", "levoxyl", "レボチロキシンナトリウム"]
+    drug_ja: "レボチロキシン"
     monitoring:
       - lab: TSH
         loinc: "3016-3"
         rationale: "Thyroid replacement titration — TSH target 0.5-4.0 mIU/L (broader in older adults). ATA / JES guideline: 6-8 weeks after any dose change, then every 6-12 months once stable."
+        rationale_ja: "甲状腺補充療法の投与量調整 — TSH 目標 0.5-4.0 mIU/L (高齢者はやや広め)。ATA / JES ガイドライン: 用量変更後 6-8 週で再検、安定後は 6-12 か月毎。"
 
   # DM oral hypoglycemics + insulins — both trigger the same HbA1c monitoring.
   # Kept as two separate entries (not merged as aliases) because they are
@@ -44,17 +55,21 @@ mappings:
   # accidentally on a DM drug would emit the ~5.5% age-adjusted non-DM baseline.
   Metformin:
     aliases: ["メトホルミン"]
+    drug_ja: "メトホルミン"
     monitoring:
       - lab: HbA1c
         loinc: "4548-4"
         rationale: "Chronic glycemic control monitoring — HbA1c target <7% (ADA/JDS individualized). Guideline: every 3-6 months on stable therapy, every 3 months during titration."
+        rationale_ja: "慢性血糖コントロールモニタリング — HbA1c 目標 <7% (ADA/JDS 個別化)。ガイドライン: 安定治療下は 3-6 か月毎、用量調整期は 3 か月毎。"
 
   Insulin:
     aliases: ["インスリン", "sliding scale insulin", "insulin glargine", "insulin lispro", "insulin aspart", "regular insulin", "スライディングスケール インスリン"]
+    drug_ja: "インスリン"
     monitoring:
       - lab: HbA1c
         loinc: "4548-4"
         rationale: "Chronic glycemic control monitoring on insulin — HbA1c target <7% (ADA/JDS individualized). Guideline: every 3-6 months on stable therapy, every 3 months during titration."
+        rationale_ja: "インスリン療法下の慢性血糖コントロールモニタリング — HbA1c 目標 <7% (ADA/JDS 個別化)。ガイドライン: 安定治療下は 3-6 か月毎、用量調整期は 3 か月毎。"
 
   # Statin hepatotoxicity monitoring (Issue #757 pass 5). AST + ALT baseline
   # + as-clinically-indicated per ACC/AHA/JAS lipid guidelines — routine
@@ -65,13 +80,16 @@ mappings:
   # observation/engine.py (BIOLOGICAL_CV 0.120 / 0.195 respectively).
   Atorvastatin:
     aliases: ["アトルバスタチン", "lipitor", "simvastatin", "rosuvastatin", "pravastatin", "シンバスタチン", "ロスバスタチン", "プラバスタチン"]
+    drug_ja: "アトルバスタチン"
     monitoring:
       - lab: AST
         loinc: "1920-8"
         rationale: "Statin hepatotoxicity monitoring — AST/ALT baseline + as clinically indicated (myalgia, muscle-weakness). ACC/AHA 2018 + JAS 2022 guideline."
+        rationale_ja: "スタチン肝毒性モニタリング — AST/ALT はベースライン取得後、筋痛・筋力低下等の臨床所見が出た時に再検。ACC/AHA 2018 + JAS 2022 ガイドライン準拠。"
       - lab: ALT
         loinc: "1742-6"
         rationale: "Statin hepatotoxicity monitoring — companion to AST. Discontinue if AST/ALT > 3× upper limit of normal."
+        rationale_ja: "スタチン肝毒性モニタリング — AST と対で評価。AST/ALT が基準値上限の 3 倍を超えたら中止。"
 
   # ACE-i / ARB / thiazide diuretic renal-safety monitoring (Issue #757 pass 6).
   # K + Creatinine 1-2 weeks after start, then every 6-12 months on stable
@@ -83,10 +101,13 @@ mappings:
   # display_name (which we emit as the YAML `lab` value, `Creatinine`).
   Candesartan:
     aliases: ["カンデサルタン", "losartan", "valsartan", "olmesartan", "telmisartan", "ロサルタン", "バルサルタン", "オルメサルタン"]
+    drug_ja: "カンデサルタン"
     monitoring:
       - lab: K
         loinc: "2823-3"
         rationale: "ARB/ACE-i renal-safety monitoring — K rise reflects RAAS blockade + reduced aldosterone-driven K excretion. Hold if K > 5.5 mmol/L or Cr rises > 30% baseline."
+        rationale_ja: "ARB/ACE-i 腎安全性モニタリング — K 上昇は RAAS 遮断とアルドステロン低下による K 排泄減少を反映。K > 5.5 mmol/L または Cr がベースライン比 30% 以上上昇した場合は中止。"
       - lab: Creatinine
         loinc: "2160-0"
         rationale: "ARB/ACE-i renal-safety monitoring — companion to K. Expected 10-20% Cr rise at start (efferent arteriolar vasodilation); > 30% requires dose reduction."
+        rationale_ja: "ARB/ACE-i 腎安全性モニタリング — K と対で評価。開始時に Cr が 10-20% 上昇するのは輸出細動脈の血管拡張による想定内変化。30% 超は減量が必要。"
