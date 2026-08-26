@@ -117,7 +117,19 @@ def _dr_verdict(dr: dict) -> str | None:
 
 def _cbc_dr(orders: list) -> dict:
     reports = build_lab_panel_reports(_ctx(orders))
-    cbc = [r for r in reports if "cbc" in r.get("id", "").lower()]
+    # Issue #854 Bucket B (PR-diagnostic-report): DR.id is opaque, so
+    # filter by the LAB_PANEL_DR_KEY_SYSTEM identifier structural-key
+    # value (which retains the pre-#854 `{panel}-{enc}-{seq}` shape).
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import LAB_PANEL_DR_KEY_SYSTEM
+
+    cbc = [
+        r
+        for r in reports
+        if any(
+            i.get("system") == LAB_PANEL_DR_KEY_SYSTEM and i.get("value", "").startswith("cbc-")
+            for i in r.get("identifier", [])
+        )
+    ]
     assert len(cbc) == 1, f"expected 1 CBC DR, got {len(cbc)}"
     return cbc[0]
 

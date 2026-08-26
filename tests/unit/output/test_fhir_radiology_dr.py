@@ -105,9 +105,14 @@ def test_emits_one_radiology_dr_per_study_with_report():
 
 
 def test_radiology_dr_id_uses_report_id():
+    """Issue #854 Bucket B (PR-diagnostic-report): DR.id is opaque —
+    derive expected via the shared resolver. Structural key = the CIF
+    `report.report_id` with the `imgrpt-` prefix stripped."""
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _resolve_radiology_dr_id
+
     ctx = _make_ctx([_sample_study()])
     dr = _rad_drs(ctx)[0]
-    assert dr["id"] == f"{RADIOLOGY_DR_ID_PREFIX}enc1-1"
+    assert dr["id"] == _resolve_radiology_dr_id("enc1-1")
 
 
 def test_radiology_dr_category_dual_coding():
@@ -220,8 +225,11 @@ def test_multiple_studies_emit_multiple_drs():
     drs = _rad_drs(ctx)
     assert len(drs) == 2
     ids = {dr["id"] for dr in drs}
-    assert f"{RADIOLOGY_DR_ID_PREFIX}enc1-1" in ids
-    assert f"{RADIOLOGY_DR_ID_PREFIX}enc1-2" in ids
+    # Issue #854 Bucket B (PR-diagnostic-report): DR.id opaque.
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _resolve_radiology_dr_id
+
+    assert _resolve_radiology_dr_id("enc1-1") in ids
+    assert _resolve_radiology_dr_id("enc1-2") in ids
 
 
 # ---------------------------------------------------------------------------
@@ -258,7 +266,9 @@ def test_radiology_dr_from_dict_path():
     assert len(drs) == 1
     dr = drs[0]
     assert dr["resourceType"] == "DiagnosticReport"
-    assert dr["id"] == f"{RADIOLOGY_DR_ID_PREFIX}enc1-1"
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _resolve_radiology_dr_id
+
+    assert dr["id"] == _resolve_radiology_dr_id("enc1-1")
     assert dr["conclusion"] == "Pneumonia."
     assert "consolidation" in dr["text"]["div"]
     cat_coding = dr["category"][0]["coding"]

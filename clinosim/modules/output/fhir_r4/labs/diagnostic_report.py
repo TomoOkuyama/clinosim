@@ -49,6 +49,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
+    wrap_as_identifier,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
 from clinosim.types.encounter import OrderType
@@ -56,7 +57,57 @@ from clinosim.types.encounter import OrderType
 # === Radiology DR constants (Tier 1 #2 PR1) ===
 # RADIOLOGY_REPORT_ID_PREFIX is canonical in imaging/engine.py; this alias
 # provides a stable import path for consumers of _fhir_diagnostic_report.
+# The CIF-side `report.report_id` retains the pre-#854 shape
+# `imgrpt-{encounter_id}-{idx}` (parsed by `documents/imaging_report.py`
+# to extract the composition seq); the FHIR-side DR.id is opaque per
+# Issue #854 (see resolvers below).
 RADIOLOGY_DR_ID_PREFIX = RADIOLOGY_REPORT_ID_PREFIX
+
+
+# === Issue #854 Bucket B (PR-diagnostic-report): opaque DR.id ===
+# Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
+# #880 / #881 / #882 / #883. Three distinct DR emit paths — each
+# preserves its historical prefix so consumers filtering by
+# `.startswith("dr-mb-")` / `.startswith("imgrpt-")` / etc. keep
+# working:
+#
+#   lab-panel DR:    dr-<12hex>       (15 chars, fixed)
+#   microbiology DR: dr-mb-<12hex>    (18 chars, fixed)
+#   radiology DR:    imgrpt-<12hex>   (19 chars, fixed)
+#
+# Structural keys (pre-#854 id body without prefix):
+#   lab-panel:    ``{panel_name_lower}-{encounter_id}-{seq}``
+#   microbiology: ``{enc or patient_id}-{i}`` (i = culture index)
+#   radiology:    ``{encounter_id}-{idx}`` (extracted from the CIF-side
+#                 ``report.report_id`` = ``imgrpt-{encounter_id}-{idx}``
+#                 — the CIF prefix is stripped so downstream consumers
+#                 recover a compact structural key from
+#                 ``identifier[]`` under the resolver's key system).
+#
+# PUBLIC constants so downstream readers (identifier[] lookup, future
+# audit tooling) can import them.
+LAB_PANEL_DR_ID_PREFIX = "dr-"
+MB_DR_ID_PREFIX_FHIR = "dr-mb-"  # aliased on labs/microbiology.py::MB_DR_ID_PREFIX
+LAB_PANEL_DR_KEY_SYSTEM = structural_key_system("lab-panel-diagnostic-report-key")
+MB_DR_KEY_SYSTEM = structural_key_system("mb-diagnostic-report-key")
+RADIOLOGY_DR_KEY_SYSTEM = structural_key_system("radiology-diagnostic-report-key")
+
+
+def _resolve_lab_panel_dr_id(structural_key: str) -> str:
+    """Return the FHIR DR.id for a lab-panel DiagnosticReport."""
+    return derive_opaque_id(LAB_PANEL_DR_ID_PREFIX, structural_key)
+
+
+def _resolve_mb_dr_id(structural_key: str) -> str:
+    """Return the FHIR DR.id for a microbiology DiagnosticReport."""
+    return derive_opaque_id(MB_DR_ID_PREFIX_FHIR, structural_key)
+
+
+def _resolve_radiology_dr_id(structural_key: str) -> str:
+    """Return the FHIR DR.id for a radiology DiagnosticReport."""
+    return derive_opaque_id(RADIOLOGY_DR_ID_PREFIX, structural_key)
+
+
 # SNOMED CT 394914008 "Radiology" — owner: this file (builder that emits radiology DRs).
 RADIOLOGY_CATEGORY_SNOMED = "394914008"
 # HL7 v2-0074 "Radiology" — owner: this file.
@@ -496,9 +547,12 @@ def build_dr_resource(
     display_ja = panel.get("display_ja") or ""
     text_display = display_ja if is_jp(country) and display_ja else panel["display"]
 
+    # Issue #854 Bucket B (PR-diagnostic-report): opaque lab-panel DR.id.
+    _lab_dr_structural_key = f"{group.panel_name.lower()}-{encounter_id}-{seq}"
     res: dict[str, object] = {
         "resourceType": "DiagnosticReport",
-        "id": f"dr-{group.panel_name.lower()}-{encounter_id}-{seq}",
+        "id": _resolve_lab_panel_dr_id(_lab_dr_structural_key),
+        "identifier": [wrap_as_identifier(_lab_dr_structural_key, LAB_PANEL_DR_KEY_SYSTEM)],
         # chain #2: JP Core DiagnosticReport_LabResult profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"]}}
@@ -927,10 +981,20 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         }
     ]
 
+    # Issue #854 Bucket B (PR-diagnostic-report): opaque radiology DR.id.
+    # `rep_id` (CIF) retains the pre-#854 shape `imgrpt-{enc_id}-{idx}`
+    # for `documents/imaging_report.py::seq` parsing; the FHIR DR.id
+    # here is derived by stripping the CIF `imgrpt-` prefix, hashing the
+    # remaining body under the same `imgrpt-` prefix. The `.identifier[]`
+    # entry carries the stripped structural key so consumers can recover
+    # the CIF report_id verbatim from the opaque DR.id.
+    _rad_dr_structural_key = (
+        rep_id.removeprefix(RADIOLOGY_REPORT_ID_PREFIX) if rep_id.startswith(RADIOLOGY_REPORT_ID_PREFIX) else rep_id
+    )
     dr: dict = {
         "resourceType": "DiagnosticReport",
-        # rep_id (engine.py) は既に RADIOLOGY_REPORT_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。  # noqa: E501
-        "id": rep_id,
+        "id": _resolve_radiology_dr_id(_rad_dr_structural_key),
+        "identifier": [wrap_as_identifier(_rad_dr_structural_key, RADIOLOGY_DR_KEY_SYSTEM)],
         # #218:JP Core DiagnosticReport_Radiology profile
         # (was _Common — chain #2 で見落とし、v5 で 499 errors)。
         **({"meta": {"profile": [_JP_DR_RADIOLOGY_PROFILE]}} if _is_jp else {}),

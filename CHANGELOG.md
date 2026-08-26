@@ -51,6 +51,23 @@ byte output but must document the change here.
   211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
   at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
   #863 / #867 / #868 / #869 / #878 opaque-id pattern.)
+- `DiagnosticReport.id` now emits opaque across all 3 emit paths — each
+  family keeps its historical prefix so consumers filtering by
+  `.startswith("dr-mb-")` / `.startswith("imgrpt-")` keep working:
+  lab-panel `dr-<12hex>` (15 chars), microbiology `dr-mb-<12hex>` (18
+  chars), radiology `imgrpt-<12hex>` (19 chars). Three PUBLIC key-system
+  URIs (`urn:clinosim:identifier:lab-panel-diagnostic-report-key` /
+  `mb-diagnostic-report-key` / `radiology-diagnostic-report-key`) carry
+  the pre-#854 compound structural key on `DiagnosticReport.identifier[]`
+  for round-trip. DR is a leaf resource on the p=200 sample (nothing
+  references DR.id back) so no cross-ref cascade guard needed — the
+  `imaging_report.py` Composition builder still uses the CIF-side
+  `report.report_id` (unchanged) for seq extraction. Byte-output changes
+  on the DR NDJSON slice (~715 records on p=200 JP, ~42,514 records on
+  JP p=10000 s500); MINOR bump still batched at v0.5.0. (Issue #854
+  Bucket B — PR-diagnostic-report; continues PR #857 / #863 / #867 /
+  #868 / #869 / #878 / #879 / #880 / #881 / #882 / #883 opaque-id
+  pattern.)
 - `Condition.id` now emits opaque `cond-<12hex>` (17 chars, fixed) instead
   of the pre-#854 compounds `cond-{encounter_id}-primary` (encounter-
   diagnosis path) and `cond-chronic-{patient_id}-{i:02d}` (chronic
