@@ -281,6 +281,52 @@ Rust ring removal with burr: "バーによる錆輪除去"
 "Cervical collar until cleared": "頚椎固定(頚椎カラー・画像判定まで)"
 "Emergent dialysis stat": "緊急透析"
 
+# --- Imaging exam names (Issue #862) / 画像検査名 ---
+# CIF ImagingStudyRecord.description carries English exam names from disease
+# YAMLs (e.g. `traffic_accident_severe.yaml: - {test: "FAST_Ultrasound"}`)
+# that reach the FHIR emit site at labs/imaging_study.py:240 via the
+# stub-only branch (Issue #822 fallback) when body_sites lookup fails —
+# neither `procedureCode[]` nor `coding[]` carries a JA fallback. 34
+# distinct exam names covering 1,060 records (22.4% of ImagingStudy) in
+# JP p=10000 s500. Keys use space form; the CIF value has "_" → space
+# normalization at the emit site (matching `_localize_drug_name`'s
+# step-1 normalization).
+"ECG": "心電図"
+"ECG 12lead": "12誘導心電図"
+"ECG 12lead stat": "12誘導心電図(緊急)"
+"ECG 12lead repeat": "12誘導心電図(反復)"
+"Echocardiogram": "心エコー"
+"Echocardiography": "心エコー"
+"Echocardiography TTE": "経胸壁心エコー"
+"Echocardiography bedside": "ベッドサイド心エコー"
+"Echocardiogram bedside": "ベッドサイド心エコー"
+"TEE": "経食道心エコー"
+"Carotid ultrasound": "頚動脈エコー"
+"Bladder ultrasound": "膀胱超音波検査"
+"Soft tissue ultrasound": "軟部組織超音波"
+"Compression Ultrasound Lower Extremity": "下肢圧迫超音波(DVTスクリーニング)"
+"Repeat compression ultrasound": "下肢圧迫超音波(反復)"
+"FAST Ultrasound": "FAST超音波(外傷救急)"
+"Ankle Xray": "足関節X線"
+"Pelvis Xray": "骨盤X線"
+"Wrist CT": "手関節CT"
+"Hand CT": "手部CT"
+"Cervical Spine CT": "頚椎CT"
+"CT angiography": "CT血管造影"
+"CT angiography repeat": "CT血管造影(反復)"
+"CT Angiography Chest": "胸部CT血管造影"
+"CT Angiography Chest stat": "胸部CT血管造影(緊急)"
+"CT Angiography Head": "頭部CT血管造影"
+"CT Whole Body": "全身CT"
+"CT perfusion": "CTパフュージョン"
+"CT soft tissue with contrast": "軟部組織CT(造影)"
+"Coronary angiography": "冠動脈造影"
+"Coronary angiography repeat": "冠動脈造影(反復)"
+"MRCP": "MRCP(磁気共鳴胆管膵管撮影)"
+"MRI Lumbar": "腰椎MRI"
+"Slit lamp exam": "細隙灯顕微鏡検査"
+"Fluorescein stain": "フルオレセイン染色"
+
 # --- Combination inhalers / 配合吸入剤 (Issue #852) ---
 # `ICS/LABA inhaler` appears verbatim in asthma_exacerbation.yaml as the
 # regimen order. Map both the full multi-word form and the "ICS/LABA"
