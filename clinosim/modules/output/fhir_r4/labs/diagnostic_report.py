@@ -34,6 +34,7 @@ from clinosim.modules.imaging.engine import (
     load_body_sites,
 )
 from clinosim.modules.order.panel_grouping import load_panel_definitions
+from clinosim.modules.output.fhir_r4.labs.imaging_study import imaging_study_id_for_cif_study_id
 from clinosim.modules.output.fhir_r4.labs.service_request import (
     LAB_CATEGORY_V2_0074,
     V2_0074_SYSTEM,
@@ -1011,7 +1012,10 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         # through the same resolver the imaging SR builder uses (structural
         # key = order_id for imaging 1 Order = 1 SR).
         "basedOn": [{"reference": f"ServiceRequest/{_resolve_service_request_id(order_id)}"}],
-        "imagingStudy": [{"reference": f"ImagingStudy/{study_id}"}],
+        # Issue #854 Bucket B (PR-imaging-study): ImagingStudy.id is opaque;
+        # route through the shared resolver so this reference stays
+        # byte-consistent with the ImagingStudy writer.
+        "imagingStudy": [{"reference": f"ImagingStudy/{imaging_study_id_for_cif_study_id(study_id)}"}],
         "conclusion": impression_text,
     }
     # CY6-03 (Chain-6): radiology DR performer — the radiologist who read the
@@ -1041,7 +1045,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     dr["media"] = [
         {
             "comment": "画像は関連 ImagingStudy を参照" if lang == "ja" else "See linked ImagingStudy for image data",
-            "link": {"reference": f"ImagingStudy/{study_id}"},
+            "link": {"reference": f"ImagingStudy/{imaging_study_id_for_cif_study_id(study_id)}"},
         }
     ]
 

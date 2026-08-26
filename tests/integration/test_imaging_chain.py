@@ -109,24 +109,25 @@ def test_radiology_dr_count_equals_imaging_study_count() -> None:
         drs = load_ndjson(find_ndjson(out, "DiagnosticReport.ndjson"))
         rad_drs = [r for r in drs if r.get("id", "").startswith("imgrpt-")]
         assert rad_drs, "no radiology DiagnosticReport emitted at all"
-        # Issue #854 Bucket B (PR-diagnostic-report): DR.id is opaque
-        # (`imgrpt-<12hex>`); the shared ``{encounter_id}-{idx}`` suffix
-        # now lives on ``DR.identifier[]`` under
-        # ``RADIOLOGY_DR_KEY_SYSTEM``. ImagingStudy.id stays on the
-        # pre-#854 compound (`imgst-{encounter_id}-{idx}`) until
-        # PR-imaging-study migrates it, so the join happens on the
-        # structural-key value.
+        # Issue #854 Bucket B (PR-diagnostic-report + PR-imaging-study):
+        # both DR.id and ImagingStudy.id are opaque. The shared
+        # ``{encounter_id}-{idx}`` suffix now lives on both resources'
+        # ``identifier[]`` under their respective KEY_SYSTEM URIs — the
+        # 1:1 join happens on the structural-key value.
         from clinosim.modules.output.fhir_r4.labs.diagnostic_report import RADIOLOGY_DR_KEY_SYSTEM
+        from clinosim.modules.output.fhir_r4.labs.imaging_study import IMAGING_STUDY_KEY_SYSTEM
 
-        study_suffixes = {s["id"].removeprefix("imgst-") for s in studies}
-
-        def _dr_structural(r: dict) -> str:
+        def _identifier_value(r: dict, system: str) -> str:
             for i in r.get("identifier", []):
-                if i.get("system") == RADIOLOGY_DR_KEY_SYSTEM:
+                if i.get("system") == system:
                     return i.get("value", "")
             return ""
 
-        dr_suffixes = [_dr_structural(r) for r in rad_drs]
+        study_suffixes = {_identifier_value(s, IMAGING_STUDY_KEY_SYSTEM) for s in studies}
+        assert all(study_suffixes), (
+            f"{sum(1 for s in study_suffixes if not s)} ImagingStudy(s) missing IMAGING_STUDY_KEY_SYSTEM identifier"
+        )
+        dr_suffixes = [_identifier_value(r, RADIOLOGY_DR_KEY_SYSTEM) for r in rad_drs]
         assert all(dr_suffixes), (
             f"{sum(1 for s in dr_suffixes if not s)} radiology DR(s) missing RADIOLOGY_DR_KEY_SYSTEM identifier"
         )

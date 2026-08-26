@@ -51,6 +51,24 @@ byte output but must document the change here.
   211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
   at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
   #863 / #867 / #868 / #869 / #878 opaque-id pattern.)
+- `ImagingStudy.id` now emits opaque `imgst-<12hex>` (18 chars, fixed)
+  instead of the pre-#854 compound `imgst-{encounter_id}-{idx}` set on
+  the CIF-side `study.study_id`. New PUBLIC constant
+  `IMAGING_STUDY_KEY_SYSTEM = "urn:clinosim:identifier:imaging-study-key"`
+  carries the pre-#854 structural key on `ImagingStudy.identifier[]`
+  alongside the pre-existing `urn:dicom:uid` identifier. Cross-references
+  (`DiagnosticReport.imagingStudy[]`, `DR.media[].link`) migrated to
+  route through the shared `imaging_study_id_for_cif_study_id` helper —
+  every reference site derives the opaque id from the same CIF
+  `study.study_id` the writer uses, byte-consistent by construction.
+  The CIF `study.study_id` field itself is unchanged (`imgst-{enc}-{idx}`),
+  preserving the 1:1 pairing with `report.report_id = imgrpt-{enc}-{idx}`
+  that consumers rely on for radiology-report ↔ study joining. Byte-
+  output changes on the ImagingStudy NDJSON slice + every cross-ref
+  site (~65 records on p=200 JP, ~4,735 records on JP p=10000 s500);
+  MINOR bump still batched at v0.5.0. (Issue #854 Bucket B —
+  PR-imaging-study; continues PR #857 / #863 / #867 / #868 / #869 /
+  #878 / #879 / #880 / #881 / #882 / #883 / #884 opaque-id pattern.)
 - `DiagnosticReport.id` now emits opaque across all 3 emit paths — each
   family keeps its historical prefix so consumers filtering by
   `.startswith("dr-mb-")` / `.startswith("imgrpt-")` keep working:
