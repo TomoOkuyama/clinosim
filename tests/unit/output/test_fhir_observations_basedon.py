@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from clinosim.modules.output.fhir_r4.labs.observations import _bb_labs
+from clinosim.modules.output.fhir_r4.labs.service_request import _resolve_service_request_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
 
@@ -58,7 +59,7 @@ def test_lab_observation_has_basedon_panel():
     assert len(lab_obs) == 4
     for o in lab_obs:
         assert "basedOn" in o
-        assert o["basedOn"] == [{"reference": "ServiceRequest/sr-enc1-CBC-1"}]
+        assert o["basedOn"] == [{"reference": f"ServiceRequest/{_resolve_service_request_id('enc1-CBC-1')}"}]
 
 
 def test_lab_observation_has_basedon_standalone():
@@ -67,7 +68,7 @@ def test_lab_observation_has_basedon_standalone():
     o = _make_lab_order("ORD-pt1-ADM-L05", "", "Troponin_I", 0.05, t)
     ctx = _make_ctx([o])
     obs = _bb_labs(ctx)
-    assert obs[0]["basedOn"] == [{"reference": "ServiceRequest/sr-ORD-pt1-ADM-L05"}]
+    assert obs[0]["basedOn"] == [{"reference": f"ServiceRequest/{_resolve_service_request_id('ORD-pt1-ADM-L05')}"}]
 
 
 # === Production-path dict tests (Fix 2: basedOn now populated for dict orders) ===
@@ -110,7 +111,7 @@ def test_lab_observation_basedon_dict_input_panel():
     assert len(lab_obs) > 0
     for o in lab_obs:
         assert "basedOn" in o, f"basedOn missing from {o.get('id')}"
-        assert o["basedOn"][0]["reference"] == "ServiceRequest/sr-enc1-CBC-1"
+        assert o["basedOn"][0]["reference"] == f"ServiceRequest/{_resolve_service_request_id('enc1-CBC-1')}"
 
 
 def test_lab_observation_basedon_dict_input_standalone():
@@ -119,7 +120,7 @@ def test_lab_observation_basedon_dict_input_standalone():
     ctx = _make_ctx(orders)  # type: ignore[arg-type]
     obs = _bb_labs(ctx)
     assert len(obs) > 0
-    assert obs[0]["basedOn"] == [{"reference": "ServiceRequest/sr-ORD-pt1-ADM-L05"}]
+    assert obs[0]["basedOn"] == [{"reference": f"ServiceRequest/{_resolve_service_request_id('ORD-pt1-ADM-L05')}"}]
 
 
 # === Dataclass/dict filter-condition equivalence (drift-prevention) ===

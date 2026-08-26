@@ -10,6 +10,7 @@ from clinosim.modules.output.fhir_r4.labs.imaging_study import (
     IMAGING_STUDY_ID_PREFIX,
     _bb_imaging_studies,
 )
+from clinosim.modules.output.fhir_r4.labs.service_request import _resolve_service_request_id
 from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord, RadiologyReport
 
 
@@ -90,7 +91,7 @@ def test_emits_one_imaging_study():
 def test_basedon_and_endpoint_refs():
     ctx = _make_ctx([_sample_study()])
     r = _bb_imaging_studies(ctx)[0]
-    assert r["basedOn"] == [{"reference": "ServiceRequest/sr-ord1"}]
+    assert r["basedOn"] == [{"reference": f"ServiceRequest/{_resolve_service_request_id('ord1')}"}]
     assert r["endpoint"] == [{"reference": "Endpoint/endpoint-2.25.42"}]
     assert r["endpoint"][0]["reference"].removeprefix("Endpoint/").startswith(ENDPOINT_ID_PREFIX)
 
@@ -193,5 +194,5 @@ def test_emits_imaging_study_from_dict_path():
     assert r["identifier"][0]["value"] == "urn:oid:2.25.42"
     assert r["series"][0]["uid"] == "2.25.43"
     assert r["series"][0]["description"] == "PA view"
-    assert r["basedOn"] == [{"reference": "ServiceRequest/sr-ord1"}]
+    assert r["basedOn"] == [{"reference": f"ServiceRequest/{_resolve_service_request_id('ord1')}"}]
     assert r["endpoint"] == [{"reference": "Endpoint/endpoint-2.25.42"}]

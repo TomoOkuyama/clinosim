@@ -11,6 +11,7 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (
     V2_0203_SYSTEM,
     _bb_service_requests,
     _build_sr_code_field,
+    _resolve_service_request_id,
     aggregate_panel_status,
     build_panel_counter,
     order_to_sr_id,
@@ -46,7 +47,7 @@ def test_order_to_sr_id_standalone():
     """Stand-alone Order → sr-{order_id}."""
     o = _make_order(order_id="ORD-pt1-ADM-L05", panel_key="")
     counter = build_panel_counter([o])
-    assert order_to_sr_id(o, counter) == "sr-ORD-pt1-ADM-L05"
+    assert order_to_sr_id(o, counter) == _resolve_service_request_id("ORD-pt1-ADM-L05")
 
 
 def test_order_to_sr_id_panel():
@@ -55,7 +56,7 @@ def test_order_to_sr_id_panel():
     orders = [_make_order(order_id=f"O{i}", panel_key="CBC", encounter_id="enc1", ordered_datetime=t) for i in range(4)]
     counter = build_panel_counter(orders)
     for o in orders:
-        assert order_to_sr_id(o, counter) == "sr-enc1-CBC-1"
+        assert order_to_sr_id(o, counter) == _resolve_service_request_id("enc1-CBC-1")
 
 
 def test_panel_counter_increments_per_panel_instance():
@@ -71,8 +72,8 @@ def test_panel_counter_increments_per_panel_instance():
     # First instance (t1) = 1, second (t2) = 2
     assert counter[("enc1", "CBC", t1)] == 1
     assert counter[("enc1", "CBC", t2)] == 2
-    assert order_to_sr_id(orders[0], counter) == "sr-enc1-CBC-1"
-    assert order_to_sr_id(orders[4], counter) == "sr-enc1-CBC-2"
+    assert order_to_sr_id(orders[0], counter) == _resolve_service_request_id("enc1-CBC-1")
+    assert order_to_sr_id(orders[4], counter) == _resolve_service_request_id("enc1-CBC-2")
 
 
 def test_build_panel_counter_input_order_independent():
@@ -181,7 +182,7 @@ def test_bb_service_requests_panel_emits_single_sr():
     assert len(resources) == 1
     sr = resources[0]
     assert sr["resourceType"] == "ServiceRequest"
-    assert sr["id"] == "sr-enc1-CBC-1"
+    assert sr["id"] == _resolve_service_request_id("enc1-CBC-1")
     assert sr["intent"] == "order"
     assert sr["code"]["text"] == "CBC"
     assert sr["code"]["coding"][0]["code"] == "58410-2"  # CBC LOINC panel code
@@ -194,7 +195,11 @@ def test_bb_service_requests_standalone_emits_one_sr_per_order():
     resources = _bb_service_requests(ctx)
     assert len(resources) == 3
     ids = {r["id"] for r in resources}
-    assert ids == {"sr-ORD-pt1-ADM-L00", "sr-ORD-pt1-ADM-L01", "sr-ORD-pt1-ADM-L02"}
+    assert ids == {
+        _resolve_service_request_id("ORD-pt1-ADM-L00"),
+        _resolve_service_request_id("ORD-pt1-ADM-L01"),
+        _resolve_service_request_id("ORD-pt1-ADM-L02"),
+    }
 
 
 def test_bb_service_requests_identifier_plac():
@@ -295,7 +300,7 @@ def test_bb_service_requests_dict_input_panel():
     resources = _bb_service_requests(ctx)
     assert len(resources) == 1
     assert resources[0]["resourceType"] == "ServiceRequest"
-    assert resources[0]["id"] == "sr-enc1-CBC-1"
+    assert resources[0]["id"] == _resolve_service_request_id("enc1-CBC-1")
     assert resources[0]["code"]["text"] == "CBC"
 
 
@@ -312,7 +317,7 @@ def test_bb_service_requests_dict_input_standalone():
     ctx = _make_ctx(orders)  # type: ignore[arg-type]
     resources = _bb_service_requests(ctx)
     assert len(resources) == 1
-    assert resources[0]["id"] == "sr-ORD-pt1-ADM-L05"
+    assert resources[0]["id"] == _resolve_service_request_id("ORD-pt1-ADM-L05")
 
 
 def test_bb_service_requests_dict_input_authored_on_iso():
