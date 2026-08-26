@@ -91,10 +91,20 @@ def test_rh_observation_shape(rh: str, expected_snomed: str):
 
 def test_two_observations_per_patient():
     """One ABO + one RhD Observation per patient — no more, no less."""
+    from clinosim.modules.output.fhir_r4.labs.blood_type import (
+        _resolve_blood_abo_id,
+        _resolve_blood_rh_id,
+    )
+
     ctx = _ctx({"blood_type": "AB", "rh_factor": "+"})
     resources = _bb_blood_type(ctx)
     assert len(resources) == 2
-    assert {r["id"] for r in resources} == {"blood-abo-POP-000001", "blood-rh-POP-000001"}
+    # Issue #854 Bucket A row 4 (PR-obs-standalone): ids are opaque; expected
+    # values derive from the same resolver the writer uses.
+    assert {r["id"] for r in resources} == {
+        _resolve_blood_abo_id("POP-000001"),
+        _resolve_blood_rh_id("POP-000001"),
+    }
 
 
 def test_effective_datetime_prefers_inpatient_admission():

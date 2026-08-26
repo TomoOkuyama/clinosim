@@ -9,6 +9,20 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.code_status.engine import load_reference
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, survey_category
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+# === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque code-status id ===
+# Structural key = pre-#854 id body: ``{enc or patient_id}``.
+CODE_STATUS_ID_PREFIX = "codestatus-"
+CODE_STATUS_KEY_SYSTEM = structural_key_system("code-status-observation-key")
+
+
+def _resolve_code_status_id(structural_key: str) -> str:
+    return derive_opaque_id(CODE_STATUS_ID_PREFIX, structural_key)
 
 
 def _bb_code_status(ctx: BundleContext) -> list[dict]:
@@ -29,9 +43,11 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
 
     encs = ctx.record.get("encounters") or []
     admit = encs[0].get("admission_datetime") if encs else None
+    _cs_structural_key = enc or ctx.patient_id
     obs: dict[str, Any] = {
         "resourceType": "Observation",
-        "id": f"codestatus-{enc or ctx.patient_id}",
+        "id": _resolve_code_status_id(_cs_structural_key),
+        "identifier": [wrap_as_identifier(_cs_structural_key, CODE_STATUS_KEY_SYSTEM)],
         # chain #2: JP Core Observation_Common profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}

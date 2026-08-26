@@ -24,6 +24,21 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     _social_category,
     _value,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+# === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque care-level id ===
+# Structural key = pre-#854 id body (patient id).
+CARE_LEVEL_ID_PREFIX = "carelevel-"
+CARE_LEVEL_KEY_SYSTEM = structural_key_system("care-level-observation-key")
+
+
+def _resolve_care_level_id(structural_key: str) -> str:
+    return derive_opaque_id(CARE_LEVEL_ID_PREFIX, structural_key)
+
 
 # Issue #733: LOINC observation-identifier for the care-level Observation.
 # Selection rationale is in clinosim/codes/data/loinc.yaml (entry 80391-6).
@@ -42,9 +57,11 @@ def _bb_care_level(ctx: BundleContext) -> list[dict]:
     # pattern from C1-12). Care-level is patient-level SDOH, so tying it to the
     # first encounter is appropriate as a proxy for when the level was recorded.
     effective_dt = _sdoh_effective_datetime(ctx)
+    _cl_structural_key = ctx.patient_id
     o: dict[str, Any] = {
         "resourceType": "Observation",
-        "id": f"carelevel-{ctx.patient_id}",
+        "id": _resolve_care_level_id(_cl_structural_key),
+        "identifier": [wrap_as_identifier(_cl_structural_key, CARE_LEVEL_KEY_SYSTEM)],
         # chain #2: JP Core Observation_Common profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}

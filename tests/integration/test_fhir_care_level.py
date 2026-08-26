@@ -31,7 +31,10 @@ def test_care_level_observation():
     vc = o["valueCodeableConcept"]["coding"][0]
     assert vc["code"] == "care3"
     assert vc["system"].startswith("http")
-    assert o["id"] == "carelevel-p1"
+    # Issue #854 Bucket A row 4 (PR-obs-standalone).
+    from clinosim.modules.output.fhir_r4.encounters.care_level import _resolve_care_level_id
+
+    assert o["id"] == _resolve_care_level_id("p1")
 
 
 def test_care_level_observation_code_has_loinc():

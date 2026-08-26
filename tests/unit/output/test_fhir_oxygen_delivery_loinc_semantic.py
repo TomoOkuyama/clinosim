@@ -41,7 +41,13 @@ def _o2_obs_with_device(country: str) -> dict:
         index=0,
         country=country,
     )
-    return next(e["resource"] for e in entries if e["resource"]["id"].endswith("-o2"))
+    # Issue #854 Bucket A row 4 (PR-obs-vs): vs Observation.id is now opaque
+    # (`vs-<12hex>`) so id-suffix matching no longer works. Identify the O2
+    # Observation by its LOINC code (3151-8) instead — semantic and
+    # forward-compatible.
+    return next(
+        e["resource"] for e in entries if e["resource"].get("code", {}).get("coding", [{}])[0].get("code") == "3151-8"
+    )
 
 
 def test_oxygen_component_code_is_method_of_oxygen_delivery_jp() -> None:

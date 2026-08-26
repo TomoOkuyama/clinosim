@@ -24,7 +24,27 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     _social_category,
     _value,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
 from clinosim.modules.sdoh import load_social_history
+
+# === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque SDOH ids ===
+# Structural key = pre-#854 id body (patient id).
+SMOKING_STATUS_ID_PREFIX = "smoking-"
+ALCOHOL_USE_ID_PREFIX = "alcohol-"
+SMOKING_STATUS_KEY_SYSTEM = structural_key_system("smoking-status-observation-key")
+ALCOHOL_USE_KEY_SYSTEM = structural_key_system("alcohol-use-observation-key")
+
+
+def _resolve_smoking_status_id(structural_key: str) -> str:
+    return derive_opaque_id(SMOKING_STATUS_ID_PREFIX, structural_key)
+
+
+def _resolve_alcohol_use_id(structural_key: str) -> str:
+    return derive_opaque_id(ALCOHOL_USE_ID_PREFIX, structural_key)
 
 
 def _obs(obs_id: str, country: str, loinc: str, loinc_text: str, value_system: str, value_code: str) -> dict[str, Any]:
@@ -108,7 +128,9 @@ def _bb_smoking_status(ctx: BundleContext) -> list[dict]:
     if not entry:
         return []
     text = "喫煙状況" if is_jp(ctx.country) else "Tobacco smoking status"
-    o = _obs(f"smoking-{ctx.patient_id}", ctx.country, data["loinc"], text, "snomed-ct", entry["snomed"])
+    _smoking_key = ctx.patient_id
+    o = _obs(_resolve_smoking_status_id(_smoking_key), ctx.country, data["loinc"], text, "snomed-ct", entry["snomed"])
+    o["identifier"] = [wrap_as_identifier(_smoking_key, SMOKING_STATUS_KEY_SYSTEM)]
     o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
     eff = _sdoh_effective_datetime(ctx)
     if eff:
@@ -126,7 +148,9 @@ def _bb_alcohol_use(ctx: BundleContext) -> list[dict]:
     if not entry:
         return []
     text = "飲酒歴" if is_jp(ctx.country) else "History of alcohol use"
-    o = _obs(f"alcohol-{ctx.patient_id}", ctx.country, data["loinc"], text, "snomed-ct", entry["snomed"])
+    _alcohol_key = ctx.patient_id
+    o = _obs(_resolve_alcohol_use_id(_alcohol_key), ctx.country, data["loinc"], text, "snomed-ct", entry["snomed"])
+    o["identifier"] = [wrap_as_identifier(_alcohol_key, ALCOHOL_USE_KEY_SYSTEM)]
     o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
     eff = _sdoh_effective_datetime(ctx)
     if eff:

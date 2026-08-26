@@ -24,6 +24,11 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     build_telecom,
     to_fhir_date,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _OCCUPATION_DISPLAY_EN,
     _OCCUPATION_DISPLAY_JA,
@@ -32,6 +37,16 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
     _localize_drug_name,
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import _ALLERGEN_RXNORM
+
+# === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque occupation id ===
+# Structural key = pre-#854 id body (patient id).
+OCCUPATION_ID_PREFIX = "occupation-"
+OCCUPATION_KEY_SYSTEM = structural_key_system("occupation-observation-key")
+
+
+def _resolve_occupation_id(structural_key: str) -> str:
+    return derive_opaque_id(OCCUPATION_ID_PREFIX, structural_key)
+
 
 # FHIR R4 standard: payer organization type
 _ORG_TYPE_SYSTEM = get_system_uri("hl7-organization-type")
@@ -540,9 +555,11 @@ def _build_occupation_observation(
         return None
     display_map = _OCCUPATION_DISPLAY_JA if is_jp(country) else _OCCUPATION_DISPLAY_EN
     display = display_map.get(occupation, occupation.title())
+    _occupation_key = patient_id
     return {
         "resourceType": "Observation",
-        "id": f"occupation-{patient_id}",
+        "id": _resolve_occupation_id(_occupation_key),
+        "identifier": [wrap_as_identifier(_occupation_key, OCCUPATION_KEY_SYSTEM)],
         # chain #2: JP Core Observation_Common profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
