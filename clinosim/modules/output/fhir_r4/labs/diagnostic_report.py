@@ -46,6 +46,10 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     build_presented_form,
     to_fhir_datetime,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
 from clinosim.types.encounter import OrderType
 
@@ -94,7 +98,14 @@ def _o(obj: Any, name: str, default: Any = None) -> Any:
 class _GroupedPanel(NamedTuple):
     panel_name: str
     bucket: str  # "YYYY-MM-DD" (day-resolution; see group_lab_orders)
-    obs_refs: list[str]  # Observation ids in YAML-component order
+    # Issue #854 Bucket A row 4 (PR-obs-lab): carry the 0-based order-list
+    # indices of the contributing lab Observations rather than pre-computed
+    # id strings. The opaque Observation.id is derived at emit time via
+    # ``lab_observation_id(enc_id, idx)`` — this keeps the internal group
+    # representation independent of the id-emit format, so a future
+    # format change ripples through a single call site (PR-90 silent-no-op
+    # defense; supersedes the prior lab_obs_id / parse_lab_obs_id pair).
+    obs_idxs: list[int]  # Order-list indices in YAML-component order
     # Issue #821 (N-7): representative full datetime for DR.effectiveDateTime.
     # Uses the max (latest) result_datetime among the component observations
     # in this bucket — i.e., the report is "effective as of" when the last
@@ -128,10 +139,12 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
     """
     panels = load_panel_definitions()
 
-    # Build: bucket -> lab_name -> [obs_ref]. Same analyte drawn multiple times
-    # in a day (e.g. serial Cr) accumulates multiple refs; the first uncomsumed
-    # ref per panel-component is used (see consume loop below).
-    by_bucket: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
+    # Build: bucket -> lab_name -> [order-list idx]. Same analyte drawn
+    # multiple times in a day (e.g. serial Cr) accumulates multiple idxs; the
+    # first unconsumed idx per panel-component is used (see consume loop
+    # below). Issue #854 Bucket A row 4: switched from pre-computed obs_id
+    # strings to raw indices so the id-emit format lives at one point.
+    by_bucket: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
     # Issue #821 (N-7): track the max (latest) full result_datetime per bucket
     # so DR.effectiveDateTime can carry time precision (was date-only bucket).
     bucket_max_dt: dict[str, str] = {}
@@ -151,8 +164,7 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
         lab_name = _o(result, "lab_name") or _o(order, "display_name") or ""
         if not lab_name:
             continue
-        obs_id = lab_obs_id(encounter_id, idx)
-        by_bucket[when][lab_name].append(obs_id)
+        by_bucket[when][lab_name].append(idx)
         # Track max full datetime per bucket. String compare is safe here since
         # `dt_full` is a normalized ISO-8601 form (both dataclass str() and
         # JSON-dict str values sort chronologically as strings).
@@ -162,35 +174,35 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
 
     groups: list[_GroupedPanel] = []
     for bucket in sorted(by_bucket.keys()):
-        consumed: set[str] = set()
+        consumed: set[int] = set()
         for panel_name, panel in panels.items():
             components: list[str] = panel["components"]
             min_required: int = panel["min_components"]
             skip_if_empty: bool = bool(panel.get("skip_if_no_components_present"))
 
             present_count = 0
-            obs_refs: list[str] = []
+            obs_idxs: list[int] = []
             for comp in components:
-                refs = by_bucket[bucket].get(comp, [])
-                for ref in refs:
-                    if ref in consumed:
+                idxs = by_bucket[bucket].get(comp, [])
+                for _idx in idxs:
+                    if _idx in consumed:
                         continue
-                    obs_refs.append(ref)
-                    consumed.add(ref)
+                    obs_idxs.append(_idx)
+                    consumed.add(_idx)
                     present_count += 1
                     break
             if skip_if_empty and present_count == 0:
                 continue
             if present_count < min_required:
-                # Release partially-consumed refs so a later panel can grab them.
-                for ref in obs_refs:
-                    consumed.discard(ref)
+                # Release partially-consumed idxs so a later panel can grab them.
+                for _idx in obs_idxs:
+                    consumed.discard(_idx)
                 continue
             groups.append(
                 _GroupedPanel(
                     panel_name=panel_name,
                     bucket=bucket,
-                    obs_refs=obs_refs,
+                    obs_idxs=obs_idxs,
                     effective_datetime=bucket_max_dt.get(bucket, ""),
                 )
             )
@@ -201,40 +213,62 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
 # FHIR resource construction
 # ----------------------------------------------------------------------------
 
-# Canonical Observation id format shared by writer (_fhir_observations._build_lab_observation)
-# and reader (_sr_ids_for_group).  LOAD-BEARING: changing this format silently breaks
-# basedOn linkage (PR-90 silent-no-op class).  Both public helpers below MUST be
-# used at every write and parse site — never inline the format string.
-# Public (no leading underscore) so _fhir_observations.py can import + use the same
-# canonical format.  Writer/reader shared = PR-90 silent-no-op defense: a future
-# maintainer who changes the format on one side causes an ImportError, not a silent miss.
-OBS_ID_FORMAT = "lab-{enc}-{idx:04d}"
+# === Issue #854 Bucket A row 4 (PR-obs-lab): opaque lab Observation.id ===
+# Same pattern as PR #357 (antibiotic MR) → #863 (all MR + MA) → #867
+# (Device + DUS) → #868 (Procedure) → #869 (ServiceRequest).
+#
+# Structural key = pre-#854 lab obs id body (without ``lab-`` prefix):
+#   ``{encounter_id}-{idx:04d}`` where ``idx`` is the 0-based position in the
+#   full lab-Order list. Kept as the input to ``derive_opaque_id`` so the
+#   opaque id is deterministic per (encounter, order-position).
+#
+# PUBLIC constants so downstream readers (Observation.identifier[]
+# round-trip, DR.result[] cross-ref emit, future audit tooling) can import
+# them for identifier-based lookup without string-parsing the (now opaque)
+# ``.id``.
+LAB_OBSERVATION_ID_PREFIX = "lab-"
+LAB_OBSERVATION_KEY_SYSTEM = structural_key_system("lab-observation-key")
 
 
-def lab_obs_id(encounter_id: str, idx: int) -> str:
-    """Build the canonical Observation id for a lab Order at position *idx*.
+def _lab_observation_structural_key(encounter_id: str, idx: int) -> str:
+    """Compose the structural key that resolves a lab Observation.
 
-    LOAD-BEARING: this format is parsed by parse_lab_obs_id to map a
-    DiagnosticReport's component Observation refs back to the originating
-    Order list index.  Both the writer (_fhir_observations._build_lab_observation)
-    AND the reader (_sr_ids_for_group) MUST call this helper — never inline.
+    Format ``{encounter_id}-{idx:04d}``. Matches the pre-#854 id body
+    (without the ``lab-`` prefix) verbatim so ``identifier[]`` round-trip
+    is human-recognizable to consumers migrating from the compound id.
     """
-    return OBS_ID_FORMAT.format(enc=encounter_id, idx=idx)
+    return f"{encounter_id}-{idx:04d}"
 
 
-def parse_lab_obs_id(obs_id: str, encounter_id: str) -> int | None:
-    """Extract the Order list index from a lab Observation id.
+def _resolve_lab_observation_id(structural_key: str) -> str:
+    """Return the FHIR Observation.id for a lab result (Issue #854 Bucket A row 4).
 
-    Returns None if the obs_id doesn't match the expected format for this
-    encounter (defensive against future format drift).
+    Shape: ``lab-{sha256(structural_key)[:12]}`` = 16 chars, fixed. The
+    ``lab-`` prefix retains the human-recognisable identity (URLs like
+    ``/Observation/lab-<hex>`` read as a lab Observation at a glance) —
+    consistent with the sibling resolvers introduced in PR #863 / #867 /
+    #868 / #869.
+
+    The compound structural key is preserved on
+    ``Observation.identifier[]`` via ``wrap_as_identifier`` under
+    :data:`LAB_OBSERVATION_KEY_SYSTEM` for round-trip. Every cross-reference
+    site (``DiagnosticReport.result[]``) funnels through the sibling
+    :func:`lab_observation_id` (which uses this resolver) so ``.id``
+    derivations stay byte-consistent across every resource that references
+    the same lab observation.
     """
-    prefix = f"lab-{encounter_id}-"
-    if not obs_id.startswith(prefix):
-        return None
-    try:
-        return int(obs_id[len(prefix) :])
-    except ValueError:
-        return None
+    return derive_opaque_id(LAB_OBSERVATION_ID_PREFIX, structural_key)
+
+
+def lab_observation_id(encounter_id: str, idx: int) -> str:
+    """Convenience wrapper: opaque lab Observation.id from (encounter_id, idx).
+
+    Called by both the writer (``observations._build_lab_observation``)
+    AND every reader that needs to construct a DR.result[] reference to
+    a given lab observation. Never inline — a future format change ripples
+    through this one call site (PR-90 silent-no-op defense).
+    """
+    return _resolve_lab_observation_id(_lab_observation_structural_key(encounter_id, idx))
 
 
 # HL7 v3 ObservationInterpretation abnormal group (per issue #846). Values
@@ -372,9 +406,8 @@ def _build_lab_panel_conclusion(
     parts: list[str] = []
     flagged: list[str] = []
     has_abnormal = False
-    for obs_id in group.obs_refs:
-        idx = parse_lab_obs_id(obs_id, encounter_id)
-        if idx is None or idx >= len(orders):
+    for idx in group.obs_idxs:
+        if idx >= len(orders):
             continue
         order = orders[idx]
         result = _o(order, "result")
@@ -515,7 +548,11 @@ def build_dr_resource(
         # correctly. Falls back to date-only bucket when no full datetime is
         # available (defensive; group_lab_orders always populates it).
         "effectiveDateTime": group.effective_datetime or group.bucket,
-        "result": [{"reference": f"Observation/{ref}"} for ref in group.obs_refs],
+        # Issue #854 Bucket A row 4: DR.result[] references funnel through
+        # ``lab_observation_id`` — the same resolver the writer
+        # (``observations._build_lab_observation``) calls at Observation.id
+        # emit time. Never inline the id format string here.
+        "result": [{"reference": f"Observation/{lab_observation_id(encounter_id, idx)}"} for idx in group.obs_idxs],
     }
     # CY8-16 fix: lab DR.issued default = effectiveDateTime。
     # 従来 imaging DR のみ issued が入り lab DR は 0% だった (6.9% overall)。
@@ -601,7 +638,7 @@ def _lab_panel_presented_text(panel: dict, display: str, group: _GroupedPanel, l
     header_en = f"Diagnostic Report: {display}"
     header_ja = f"検査報告書: {display}"
     header = header_ja if lang == "ja" else header_en
-    n_obs = len(group.obs_refs)
+    n_obs = len(group.obs_idxs)
     body_en = f"Report date: {group.bucket}\nObservations included: {n_obs}"
     body_ja = f"報告日: {group.bucket}\n含まれる検査項目数: {n_obs}"
     body = body_ja if lang == "ja" else body_en
@@ -616,24 +653,23 @@ def _sr_ids_for_group(
 ) -> list[str]:
     """Derive ServiceRequest ids for the contributing Orders of a panel group.
 
-    obs_refs in a _GroupedPanel use the format produced by ``lab_obs_id``
-    (``lab-{enc_id}-{idx:04d}``) where ``idx`` is the 0-based position in the
-    full ``orders`` list passed to ``group_lab_orders``.  We parse those indices
-    via ``parse_lab_obs_id`` to look up the exact Order objects, then derive
-    their SR ids deterministically.  This handles both panel orders (panel_key
-    set → SR id = sr-{enc}-{panel}-N) and stand-alone orders (panel_key="" →
-    SR id = sr-{order_id}) without any panel_key filter that would silently miss
-    stand-alone tests grouped into a panel DR.
+    Issue #854 Bucket A row 4: iterates ``group.obs_idxs`` directly (0-based
+    positions in the ``orders`` list passed to ``group_lab_orders``) and
+    looks up the exact Order objects to derive their SR ids deterministically.
+    Handles both panel orders (panel_key set → SR id = ``sr-<12hex>`` derived
+    from ``{enc}-{panel}-N``) and stand-alone orders (panel_key="" → SR id =
+    ``sr-<12hex>`` derived from ``order_id``) without any panel_key filter
+    that would silently miss stand-alone tests grouped into a panel DR.
     """
     contributing: list[Any] = []
-    for obs_id in group.obs_refs:
-        idx = parse_lab_obs_id(obs_id, enc_id)
-        if idx is None or idx >= len(orders):
-            continue  # obs_id doesn't match this encounter or out of range
+    for idx in group.obs_idxs:
+        if idx >= len(orders):
+            continue  # defensive: out-of-range idx from a stale group
         contributing.append(orders[idx])
     assert contributing, (
         f"_sr_ids_for_group: no contributing orders for panel {group.panel_name!r} "
-        f"in encounter {enc_id!r} — obs_id format drift? obs_refs={group.obs_refs!r}"
+        f"in encounter {enc_id!r} — group.obs_idxs={group.obs_idxs!r} vs "
+        f"len(orders)={len(orders)}"
     )
     return sorted({order_to_sr_id(o, panel_counter) for o in contributing})
 
@@ -694,10 +730,11 @@ def build_lab_panel_reports(ctx) -> list[dict]:
             seq=seq,
             orders=orders,
         )
-        # basedOn: look up contributing orders via the obs_id index embedded in
-        # each obs_ref ("lab-{enc_id}-{idx:04d}").  This handles both panel orders
-        # (panel_key set) and stand-alone orders (panel_key="") — either way the
-        # SR id is derived correctly via order_to_sr_id + panel_counter.
+        # basedOn: look up contributing orders via the (now opaque-emitted)
+        # order-list indices carried on ``group.obs_idxs`` (post-#854 Bucket A
+        # row 4). Handles both panel orders (panel_key set) and stand-alone
+        # orders (panel_key="") — either way the SR id is derived via
+        # order_to_sr_id + panel_counter.
         sr_ids = _sr_ids_for_group(g, orders, panel_counter, enc_id)
         report["basedOn"] = [{"reference": f"ServiceRequest/{sid}"} for sid in sr_ids]
         out.append(report)

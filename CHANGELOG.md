@@ -18,7 +18,22 @@ byte output but must document the change here.
 
 ## [Unreleased]
 
-_(no entries yet)_
+### Changed
+
+- Lab `Observation.id` now emits opaque `lab-<12hex>` (16 chars, fixed)
+  instead of the pre-#854 compound `lab-{encounter_id}-{idx:04d}` (~33
+  chars). `DiagnosticReport.result[]` references funnel through the same
+  `lab_observation_id(enc_id, idx)` resolver the writer uses, so
+  reference-integrity is preserved by construction. The pre-#854 compound
+  key is round-tripped on `Observation.identifier[]` under the new
+  `urn:clinosim:identifier:lab-observation-key` system so consumers can
+  recover the source-path metadata without string-parsing the id. Byte-
+  output changes on the lab-`Observation` NDJSON slice (~4,267 records
+  on the p=200 sample, ~243,543 records on the JP p=10000 s500 sample);
+  MINOR bump will be batched with the rest of the Bucket A row 4 sweep
+  (`obs-vs` / `obs-standalone` / `obs-microbiology`) at v0.5.0.
+  (Issue #854 Bucket A row 4 — PR-obs-lab; continues PR #357 / #863 /
+  #867 / #868 / #869 opaque-id pattern.)
 
 ## [0.4.0] - 2026-08-26
 

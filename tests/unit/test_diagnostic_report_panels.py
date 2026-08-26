@@ -2,6 +2,17 @@
 
 import pytest
 
+# Issue #854 Bucket A row 4: Observation.id migrated to opaque
+# ``lab-<12hex>`` shape via ``lab_observation_id(encounter_id, idx)``.
+# Tests that assert DR.result[] cross-refs derive the expected id from
+# the same resolver so writer/reader byte-consistency is enforced here.
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import lab_observation_id
+
+
+def _obs_ref(enc_id: str, idx: int) -> str:
+    """Convenience for DR.result[] reference assertions."""
+    return f"Observation/{lab_observation_id(enc_id, idx)}"
+
 
 @pytest.mark.unit
 class TestLoadPanelGroups:
@@ -68,12 +79,7 @@ class TestGroupLabOrders:
         g = groups[0]
         assert g.panel_name == "CBC"
         assert g.bucket == "2026-05-12"
-        assert g.obs_refs == [
-            "lab-ENC-001-0000",
-            "lab-ENC-001-0001",
-            "lab-ENC-001-0002",
-            "lab-ENC-001-0003",
-        ]
+        assert g.obs_idxs == [0, 1, 2, 3]
 
     def test_below_threshold_yields_no_group(self):
         """A single CBC component (below CBC's min=3 per PR2) yields no DR."""
@@ -122,8 +128,8 @@ class TestGroupLabOrders:
         assert "BMP" in panel_names
         abg = next(g for g in groups if g.panel_name == "ABG")
         bmp = next(g for g in groups if g.panel_name == "BMP")
-        assert "lab-ENC-001-0003" in abg.obs_refs  # HCO3
-        assert "lab-ENC-001-0003" not in bmp.obs_refs
+        assert 3 in abg.obs_idxs  # HCO3
+        assert 3 not in bmp.obs_idxs
 
     def test_solo_lab_yields_no_group(self):
         from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
@@ -184,7 +190,7 @@ class TestGroupLabOrders:
         assert all(g.panel_name != "UA" for g in groups)
 
     def test_components_ordered_by_yaml_definition(self):
-        """obs_refs in the group must follow the YAML's components order so the
+        """obs_idxs in the group must follow the YAML's components order so the
         emitted FHIR result[] is stable across runs."""
         from clinosim.modules.output.fhir_r4.labs.diagnostic_report import group_lab_orders
 
@@ -197,12 +203,8 @@ class TestGroupLabOrders:
         groups = group_lab_orders(orders, "ENC-001")
         assert len(groups) == 1
         g = groups[0]
-        assert g.obs_refs == [
-            "lab-ENC-001-0003",  # WBC (YAML order #1)
-            "lab-ENC-001-0002",  # Hb
-            "lab-ENC-001-0001",  # Hct
-            "lab-ENC-001-0000",  # Plt
-        ]
+        # YAML component order = WBC, Hb, Hct, Plt → maps back to input idx 3,2,1,0.
+        assert g.obs_idxs == [3, 2, 1, 0]
 
 
 @pytest.mark.unit
@@ -213,12 +215,7 @@ class TestBuildDrResource:
         return _GroupedPanel(
             panel_name="CBC",
             bucket="2026-05-12",
-            obs_refs=[
-                "lab-ENC-001-0000",
-                "lab-ENC-001-0001",
-                "lab-ENC-001-0002",
-                "lab-ENC-001-0003",
-            ],
+            obs_idxs=[0, 1, 2, 3],
         )
 
     def test_shape_us(self):
@@ -248,11 +245,13 @@ class TestBuildDrResource:
         # session 48 feedback FB-F1: instant 型に JST TZ 付与
         assert r["issued"] == "2026-05-12T14:28:39+09:00"
         assert r["performer"] == [{"reference": "Practitioner/TECH-LAB-001"}]
+        # DR.result[] must resolve through the same lab_observation_id() the
+        # Observation emit uses (Issue #854 Bucket A row 4 byte-consistency).
         assert r["result"] == [
-            {"reference": "Observation/lab-ENC-001-0000"},
-            {"reference": "Observation/lab-ENC-001-0001"},
-            {"reference": "Observation/lab-ENC-001-0002"},
-            {"reference": "Observation/lab-ENC-001-0003"},
+            {"reference": _obs_ref("ENC-001", 0)},
+            {"reference": _obs_ref("ENC-001", 1)},
+            {"reference": _obs_ref("ENC-001", 2)},
+            {"reference": _obs_ref("ENC-001", 3)},
         ]
 
     def test_shape_jp_uses_japanese_display(self):
@@ -410,7 +409,7 @@ class TestPanelYAMLs:
         group = _GroupedPanel(
             panel_name="CBC",
             bucket="2026-05-12",
-            obs_refs=["lab-ENC-001-0000"],
+            obs_idxs=[0],
         )
         r = build_dr_resource(
             group,
@@ -428,7 +427,7 @@ class TestPanelYAMLs:
         (JP `display_ja` is JP-only)."""
         from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
 
-        group = _GroupedPanel(panel_name="LFT", bucket="2026-05-12", obs_refs=["lab-ENC-001-0000"])
+        group = _GroupedPanel(panel_name="LFT", bucket="2026-05-12", obs_idxs=[0])
         r = build_dr_resource(
             group,
             patient_id="P",
@@ -451,7 +450,7 @@ class TestPanelYAMLs:
             group = _GroupedPanel(
                 panel_name=panel_name,
                 bucket="2026-05-12",
-                obs_refs=["lab-ENC-001-0000"],
+                obs_idxs=[0],
             )
             r = build_dr_resource(
                 group,
@@ -513,12 +512,7 @@ class TestPanelConclusion:
         return _GroupedPanel(
             panel_name="LFT",
             bucket="2026-05-12",
-            obs_refs=[
-                "lab-ENC-001-0000",
-                "lab-ENC-001-0001",
-                "lab-ENC-001-0002",
-                "lab-ENC-001-0003",
-            ],
+            obs_idxs=[0, 1, 2, 3],
         )
 
     def _orders_lft(self):
@@ -577,7 +571,7 @@ class TestPanelConclusion:
         g = _GroupedPanel(
             panel_name="CBC",
             bucket="2026-05-12",
-            obs_refs=["lab-ENC-001-0000", "lab-ENC-001-0001"],
+            obs_idxs=[0, 1],
         )
         orders = [
             _order_with_result("WBC", "2026-05-12T14:28:38", 0, value=6.5, unit="10*3/uL"),
@@ -595,7 +589,7 @@ class TestPanelConclusion:
         g = _GroupedPanel(
             panel_name="ABG",
             bucket="2026-05-12",
-            obs_refs=["lab-ENC-001-0000", "lab-ENC-001-0001", "lab-ENC-001-0002"],
+            obs_idxs=[0, 1, 2],
         )
         orders = [
             _order_with_result("pH", "2026-05-12T14:28:38", 0, value=7.32, flag="L"),
@@ -612,14 +606,14 @@ class TestPanelConclusion:
     def test_missing_orders_arg_omits_conclusion_backwards_compat(self):
         from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
 
-        g = _GroupedPanel(panel_name="CBC", bucket="2026-05-12", obs_refs=["lab-ENC-001-0000"])
+        g = _GroupedPanel(panel_name="CBC", bucket="2026-05-12", obs_idxs=[0])
         r = build_dr_resource(g, "P", "ENC-001", "JP", None, None, 0)
         assert "conclusion" not in r
 
     def test_empty_orders_or_missing_result_omits_conclusion(self):
         from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
 
-        g = _GroupedPanel(panel_name="CBC", bucket="2026-05-12", obs_refs=["lab-ENC-001-0000"])
+        g = _GroupedPanel(panel_name="CBC", bucket="2026-05-12", obs_idxs=[0])
         orders = [{"order_type": "lab", "display_name": "WBC", "result": None}]
         r = build_dr_resource(g, "P", "ENC-001", "JP", None, None, 0, orders=orders)
         assert "conclusion" not in r
@@ -634,7 +628,7 @@ class TestPanelConclusion:
         g = _GroupedPanel(
             panel_name="BMP",
             bucket="2026-05-12",
-            obs_refs=["lab-ENC-001-0000", "lab-ENC-001-0001", "lab-ENC-001-0002"],
+            obs_idxs=[0, 1, 2],
         )
         orders = [
             _order_with_result("Albumin", "2026-05-12T14:28:38", 0, value=4.0, unit="g/dL", flag="L"),
@@ -656,7 +650,7 @@ class TestPanelConclusion:
         """Sanity: US output MUST keep EN names — no accidental localization."""
         from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
 
-        g = _GroupedPanel(panel_name="BMP", bucket="2026-05-12", obs_refs=["lab-ENC-001-0000"])
+        g = _GroupedPanel(panel_name="BMP", bucket="2026-05-12", obs_idxs=[0])
         orders = [_order_with_result("Albumin", "2026-05-12T14:28:38", 0, value=4.0, unit="g/dL")]
         r = build_dr_resource(g, "P", "ENC-001", "US", None, None, 0, orders=orders)
         assert "Albumin 4 g/dL" in r["conclusion"]
@@ -670,7 +664,7 @@ class TestPanelConclusion:
         g = _GroupedPanel(
             panel_name="BMP",
             bucket="2026-05-12",
-            obs_refs=[f"lab-ENC-001-{i:04d}" for i in range(5)],
+            obs_idxs=list(range(5)),
         )
         orders = [
             _order_with_result("BUN", "2026-05-12T14:28:38", 0, value=15, unit="mg/dL"),
