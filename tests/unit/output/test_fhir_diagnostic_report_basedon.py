@@ -103,7 +103,19 @@ def test_diagnostic_report_basedon_single_panel_dataclass():
     orders = _make_panel_orders_dataclass("CBC", _CBC_MEMBERS, _T)
     ctx = _make_ctx(orders)
     reports = build_lab_panel_reports(ctx)
-    cbc_reports = [r for r in reports if "cbc" in r.get("id", "").lower()]
+    # Issue #854 Bucket B (PR-diagnostic-report): DR.id is opaque, so
+    # filter by the LAB_PANEL_DR_KEY_SYSTEM identifier structural-key
+    # value (which retains the pre-#854 `{panel_name_lower}-{enc}-{seq}`
+    # shape). Same call-site semantics.
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import LAB_PANEL_DR_KEY_SYSTEM
+
+    def _has_cbc_key(r: dict) -> bool:
+        return any(
+            i.get("system") == LAB_PANEL_DR_KEY_SYSTEM and i.get("value", "").startswith("cbc-")
+            for i in r.get("identifier", [])
+        )
+
+    cbc_reports = [r for r in reports if _has_cbc_key(r)]
     assert len(cbc_reports) == 1, f"Expected 1 CBC DR, got {len(cbc_reports)}"
     assert "basedOn" in cbc_reports[0], "basedOn missing from CBC DiagnosticReport"
     assert cbc_reports[0]["basedOn"] == [
@@ -129,7 +141,19 @@ def test_diagnostic_report_basedon_single_panel_dict():
     orders = _make_panel_orders_dict("CBC", _CBC_MEMBERS, _T_ISO)
     ctx = _make_ctx(orders)
     reports = build_lab_panel_reports(ctx)
-    cbc_reports = [r for r in reports if "cbc" in r.get("id", "").lower()]
+    # Issue #854 Bucket B (PR-diagnostic-report): DR.id is opaque, so
+    # filter by the LAB_PANEL_DR_KEY_SYSTEM identifier structural-key
+    # value (which retains the pre-#854 `{panel_name_lower}-{enc}-{seq}`
+    # shape). Same call-site semantics.
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import LAB_PANEL_DR_KEY_SYSTEM
+
+    def _has_cbc_key(r: dict) -> bool:
+        return any(
+            i.get("system") == LAB_PANEL_DR_KEY_SYSTEM and i.get("value", "").startswith("cbc-")
+            for i in r.get("identifier", [])
+        )
+
+    cbc_reports = [r for r in reports if _has_cbc_key(r)]
     assert len(cbc_reports) == 1, f"Expected 1 CBC DR, got {len(cbc_reports)}"
     assert "basedOn" in cbc_reports[0], "basedOn missing from CBC DiagnosticReport"
     assert cbc_reports[0]["basedOn"] == [
@@ -222,7 +246,19 @@ def test_diagnostic_report_basedon_multi_day_two_srs_dict():
     orders = _make_panel_orders_dict("CBC", _CBC_MEMBERS, t1) + _make_panel_orders_dict("CBC", _CBC_MEMBERS, t2)
     ctx = _make_ctx(orders)
     reports = build_lab_panel_reports(ctx)
-    cbc_reports = [r for r in reports if "cbc" in r.get("id", "").lower()]
+    # Issue #854 Bucket B (PR-diagnostic-report): DR.id is opaque, so
+    # filter by the LAB_PANEL_DR_KEY_SYSTEM identifier structural-key
+    # value (which retains the pre-#854 `{panel_name_lower}-{enc}-{seq}`
+    # shape). Same call-site semantics.
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import LAB_PANEL_DR_KEY_SYSTEM
+
+    def _has_cbc_key(r: dict) -> bool:
+        return any(
+            i.get("system") == LAB_PANEL_DR_KEY_SYSTEM and i.get("value", "").startswith("cbc-")
+            for i in r.get("identifier", [])
+        )
+
+    cbc_reports = [r for r in reports if _has_cbc_key(r)]
     assert len(cbc_reports) == 2, f"Expected 2 CBC DRs (one per day), got {len(cbc_reports)}"
     # Each report has exactly one basedOn reference
     # Day-1 report references the opaque form of `enc1-CBC-1`; day-2 references `enc1-CBC-2`

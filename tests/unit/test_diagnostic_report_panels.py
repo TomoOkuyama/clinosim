@@ -231,7 +231,11 @@ class TestBuildDrResource:
             seq=0,
         )
         assert r["resourceType"] == "DiagnosticReport"
-        assert r["id"] == "dr-cbc-ENC-001-0"
+        # Issue #854 Bucket B (PR-diagnostic-report): DR.id is opaque —
+        # derive expected via the shared resolver.
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _resolve_lab_panel_dr_id
+
+        assert r["id"] == _resolve_lab_panel_dr_id("cbc-ENC-001-0")
         assert r["status"] == "final"
         cat = r["category"][0]["coding"][0]
         assert cat["code"] == "LAB"
@@ -293,9 +297,21 @@ class TestBuildDrResource:
             issued=None,
             seq=1,
         )
+        # Issue #854 Bucket B (PR-diagnostic-report): DR.id is opaque, so
+        # id-suffix seq matching no longer works. The structural key carried
+        # on `identifier[]` retains the seq component; assert those instead.
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import LAB_PANEL_DR_KEY_SYSTEM
+
         assert r0["id"] != r1["id"]
-        assert r0["id"].endswith("-0")
-        assert r1["id"].endswith("-1")
+
+        def _dr_key_value(r: dict) -> str:
+            for i in r.get("identifier", []):
+                if i.get("system") == LAB_PANEL_DR_KEY_SYSTEM:
+                    return i["value"]
+            raise AssertionError(f"no {LAB_PANEL_DR_KEY_SYSTEM} identifier on {r!r}")
+
+        assert _dr_key_value(r0).endswith("-0")
+        assert _dr_key_value(r1).endswith("-1")
 
 
 @pytest.mark.unit
@@ -336,7 +352,11 @@ class TestBuildLabPanelReports:
         assert len(out) == 1
         r = out[0]
         assert r["resourceType"] == "DiagnosticReport"
-        assert r["id"] == "dr-cbc-ENC-001-0"
+        # Issue #854 Bucket B (PR-diagnostic-report): DR.id is opaque —
+        # derive expected via the shared resolver.
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _resolve_lab_panel_dr_id
+
+        assert r["id"] == _resolve_lab_panel_dr_id("cbc-ENC-001-0")
         assert len(r["result"]) == 4
 
     def test_no_lab_orders_yields_empty_list(self):

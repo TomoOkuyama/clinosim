@@ -15,6 +15,10 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
+    MB_DR_KEY_SYSTEM,
+    _resolve_mb_dr_id,
+)
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, build_presented_form, micro_coding
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -393,9 +397,12 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 **culture_code,
                 "coding": [_jp_doc_coding, *culture_code.get("coding", [])],
             }
+        # Issue #854 Bucket B (PR-diagnostic-report): opaque mb DR.id.
+        _mb_dr_structural_key = base
+        _mb_dr_identifier = wrap_as_identifier(_mb_dr_structural_key, MB_DR_KEY_SYSTEM)
         report: dict[str, Any] = {
             "resourceType": "DiagnosticReport",
-            "id": f"{MB_DR_ID_PREFIX}{base}",
+            "id": _resolve_mb_dr_id(_mb_dr_structural_key),
             **({"meta": {"profile": [JP_MB_DR_PROFILE_URI]}} if is_jp(ctx.country) else {}),
             "status": "final",
             "category": (
@@ -428,8 +435,9 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             "specimen": [{"reference": f"Specimen/{spec_id}"}],
             "result": result_refs,
         }
-        if hai_identifier:
-            report["identifier"] = hai_identifier
+        # Structural-key identifier always present; HAI identifier prepended
+        # when the culture belongs to a HAI event (byte-preserves PR3b-5).
+        report["identifier"] = [*hai_identifier, _mb_dr_identifier]
         if enc_ref:
             report["encounter"] = enc_ref
         if mb.get("reported_datetime"):
