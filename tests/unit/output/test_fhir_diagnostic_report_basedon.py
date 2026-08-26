@@ -9,6 +9,7 @@ regression where one access style works but the other is ignored.
 from datetime import datetime
 
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import build_lab_panel_reports
+from clinosim.modules.output.fhir_r4.labs.service_request import _resolve_service_request_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
 
@@ -105,7 +106,9 @@ def test_diagnostic_report_basedon_single_panel_dataclass():
     cbc_reports = [r for r in reports if "cbc" in r.get("id", "").lower()]
     assert len(cbc_reports) == 1, f"Expected 1 CBC DR, got {len(cbc_reports)}"
     assert "basedOn" in cbc_reports[0], "basedOn missing from CBC DiagnosticReport"
-    assert cbc_reports[0]["basedOn"] == [{"reference": f"ServiceRequest/sr-{_ENC_ID}-CBC-1"}]
+    assert cbc_reports[0]["basedOn"] == [
+        {"reference": f"ServiceRequest/{_resolve_service_request_id(f'{_ENC_ID}-CBC-1')}"}
+    ]
 
 
 def test_diagnostic_report_basedon_present_on_all_panels_dataclass():
@@ -129,7 +132,9 @@ def test_diagnostic_report_basedon_single_panel_dict():
     cbc_reports = [r for r in reports if "cbc" in r.get("id", "").lower()]
     assert len(cbc_reports) == 1, f"Expected 1 CBC DR, got {len(cbc_reports)}"
     assert "basedOn" in cbc_reports[0], "basedOn missing from CBC DiagnosticReport"
-    assert cbc_reports[0]["basedOn"] == [{"reference": f"ServiceRequest/sr-{_ENC_ID}-CBC-1"}]
+    assert cbc_reports[0]["basedOn"] == [
+        {"reference": f"ServiceRequest/{_resolve_service_request_id(f'{_ENC_ID}-CBC-1')}"}
+    ]
 
 
 def test_diagnostic_report_basedon_present_on_all_panels_dict():
@@ -198,12 +203,14 @@ def test_diagnostic_report_basedon_standalone_orders_form_panel():
     cbc_reports = [r for r in reports if r.get("code", {}).get("coding", [{}])[0].get("code") == "58410-2"]
     assert len(cbc_reports) >= 1, "group_lab_orders should detect a CBC panel from stand-alone orders"
     based_on_refs = {e["reference"] for e in cbc_reports[0]["basedOn"]}
-    # Stand-alone orders → sr-{order_id} pattern (not sr-{enc}-CBC-N)
+    # Post-Issue-#854: SR ids are opaque `sr-<12hex>`; structural key for
+    # stand-alone orders = order_id (pre-#854 body). Cross-refs go through
+    # the same resolver so basedOn refs match by construction.
     expected = {
-        "ServiceRequest/sr-ORD-pt1-ADM-L00",
-        "ServiceRequest/sr-ORD-pt1-ADM-L01",
-        "ServiceRequest/sr-ORD-pt1-ADM-L02",
-        "ServiceRequest/sr-ORD-pt1-ADM-L03",
+        f"ServiceRequest/{_resolve_service_request_id('ORD-pt1-ADM-L00')}",
+        f"ServiceRequest/{_resolve_service_request_id('ORD-pt1-ADM-L01')}",
+        f"ServiceRequest/{_resolve_service_request_id('ORD-pt1-ADM-L02')}",
+        f"ServiceRequest/{_resolve_service_request_id('ORD-pt1-ADM-L03')}",
     }
     assert based_on_refs == expected, f"Expected individual-order SR refs for stand-alone orders, got: {based_on_refs}"
 
@@ -218,7 +225,7 @@ def test_diagnostic_report_basedon_multi_day_two_srs_dict():
     cbc_reports = [r for r in reports if "cbc" in r.get("id", "").lower()]
     assert len(cbc_reports) == 2, f"Expected 2 CBC DRs (one per day), got {len(cbc_reports)}"
     # Each report has exactly one basedOn reference
-    # Day-1 report references sr-enc1-CBC-1; day-2 references sr-enc1-CBC-2
+    # Day-1 report references the opaque form of `enc1-CBC-1`; day-2 references `enc1-CBC-2`
     sr_refs = {r["basedOn"][0]["reference"] for r in cbc_reports}
-    assert "ServiceRequest/sr-enc1-CBC-1" in sr_refs
-    assert "ServiceRequest/sr-enc1-CBC-2" in sr_refs
+    assert f"ServiceRequest/{_resolve_service_request_id('enc1-CBC-1')}" in sr_refs
+    assert f"ServiceRequest/{_resolve_service_request_id('enc1-CBC-2')}" in sr_refs

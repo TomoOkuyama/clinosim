@@ -36,8 +36,8 @@ from clinosim.modules.imaging.engine import (
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output.fhir_r4.labs.service_request import (
     LAB_CATEGORY_V2_0074,
-    SR_ID_PREFIX,
     V2_0074_SYSTEM,
+    _resolve_service_request_id,
     build_panel_counter,
     order_to_sr_id,
 )
@@ -906,7 +906,10 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         },
         "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
         "encounter": {"reference": f"Encounter/{_o(study, 'encounter_id', '')}"},
-        "basedOn": [{"reference": f"ServiceRequest/{SR_ID_PREFIX}{order_id}"}],
+        # Issue #854 Bucket A: SR.id is opaque; radiology DR basedOn goes
+        # through the same resolver the imaging SR builder uses (structural
+        # key = order_id for imaging 1 Order = 1 SR).
+        "basedOn": [{"reference": f"ServiceRequest/{_resolve_service_request_id(order_id)}"}],
         "imagingStudy": [{"reference": f"ImagingStudy/{study_id}"}],
         "conclusion": impression_text,
     }

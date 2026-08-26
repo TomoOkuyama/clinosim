@@ -35,6 +35,11 @@ from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
 
 
@@ -61,6 +66,39 @@ from clinosim.types.encounter import OrderStatus, OrderType
 
 # === Canonical constants (silent-no-op defense, PR-90 lesson) ===
 SR_ID_PREFIX = "sr-"
+# Issue #854 Bucket A: opaque id + identifier[] round-trip for ServiceRequest.
+# Same pattern as PR #357 (antibiotic MR) → #863 (all MR + MA) → #867
+# (Device + DUS) → #868 (Procedure). PUBLIC constant so downstream readers
+# (audit, cross-referencing DR/Observation/ImagingStudy emit paths) can
+# import it for identifier[]-based lookup without string-parsing the
+# (now opaque) id.
+SERVICE_REQUEST_KEY_SYSTEM = structural_key_system("service-request-key")
+
+
+def _resolve_service_request_id(structural_key: str) -> str:
+    """Return the FHIR ServiceRequest.id for a CIF Order (Issue #854 Bucket A).
+
+    Shape: ``sr-{sha256(structural_key)[:12]}`` = 15 chars, fixed. The 3-char
+    ``sr-`` prefix retains the human-recognisable identity (URLs like
+    ``/ServiceRequest/sr-<hex>`` read as a ServiceRequest at a glance) and
+    the ``modules/order/audit.py:155`` ``.startswith(SR_ID_PREFIX)`` gate
+    keeps firing correctly.
+
+    Structural key = pre-#854 SR id body (without ``sr-`` prefix):
+    - stand-alone: ``order_id``
+    - panel: ``{encounter_id}-{panel_key}-{index}``
+
+    The compound structural key is preserved on
+    ``ServiceRequest.identifier[]`` via :func:`wrap_as_identifier` under
+    :data:`SERVICE_REQUEST_KEY_SYSTEM` for round-trip. Cross-reference
+    sites (``DiagnosticReport.basedOn[]``, ``Observation.basedOn[]``,
+    ``ImagingStudy.basedOn[]``) all funnel through :func:`order_to_sr_id`
+    (which uses this resolver) so ``.id`` derivations stay byte-consistent
+    across every resource that references the same order.
+    """
+    return derive_opaque_id(SR_ID_PREFIX, structural_key)
+
+
 PLACER_ORDER_NUMBER_SYSTEM = "urn:clinosim:placer-order-number"
 LAB_CATEGORY_SNOMED = "108252007"
 LAB_CATEGORY_V2_0074 = "LAB"
@@ -198,24 +236,45 @@ def build_panel_counter(
     return counter
 
 
-def order_to_sr_id(
+def _order_to_sr_structural_key(
     order: Any,
     panel_counter: dict[tuple[str, str, Any], int],
 ) -> str:
-    """Compute ServiceRequest.id for an Order (deterministic, stateless).
+    """Compute the SR structural key (pre-#854 id body without ``sr-`` prefix).
 
-    Stand-alone: ``sr-{order_id}``.
-    Panel: ``sr-{encounter_id}-{panel_key}-{N}`` where N from panel_counter.
-
-    Accepts both Order dataclass instances and JSON-deserialized dicts.
+    Same 2-branch derivation the pre-#854 ``order_to_sr_id`` used:
+    stand-alone → ``order_id``; panel → ``{encounter_id}-{panel_key}-{N}``.
+    Split out so :func:`order_to_sr_id` (opaque id) and callers that need
+    the compound (identifier[] wrap-site) both consult a single source of
+    truth. Accepts both Order dataclass instances and JSON-deserialized dicts.
     """
     panel_key = _o(order, "panel_key", "")
     if panel_key:
         enc_id = _o(order, "encounter_id", "")
         dt = _o(order, "ordered_datetime")
         idx = panel_counter[(enc_id, panel_key, dt)]
-        return f"{SR_ID_PREFIX}{enc_id}-{panel_key}-{idx}"
-    return f"{SR_ID_PREFIX}{_o(order, 'order_id', '')}"
+        return f"{enc_id}-{panel_key}-{idx}"
+    return _o(order, "order_id", "") or ""
+
+
+def order_to_sr_id(
+    order: Any,
+    panel_counter: dict[tuple[str, str, Any], int],
+) -> str:
+    """Compute the FHIR ServiceRequest.id for an Order (deterministic, stateless).
+
+    Post-Issue-#854: returns ``sr-<12hex>`` (opaque). The pre-#854 compound
+    (``sr-{order_id}`` or ``sr-{encounter_id}-{panel_key}-{N}``) is
+    preserved on the emitted ServiceRequest's ``identifier[]`` under
+    :data:`SERVICE_REQUEST_KEY_SYSTEM` (see :func:`_bb_service_requests`
+    for the wrap-site). Every cross-referencing reader
+    (``DiagnosticReport.basedOn[]``, ``Observation.basedOn[]``,
+    ``ImagingStudy.basedOn[]``) funnels through here so the reference
+    matches the emitted ``.id`` by construction.
+
+    Accepts both Order dataclass instances and JSON-deserialized dicts.
+    """
+    return _resolve_service_request_id(_order_to_sr_structural_key(order, panel_counter))
 
 
 def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
@@ -289,7 +348,7 @@ def _build_lab_service_requests(lab_orders: list[Any], ctx: BundleContext) -> li
     for sr_id, members in sorted(panel_buckets.items()):
         anchor = members[0]
         panel_def = panels[_o(anchor, "panel_key", "")]
-        sr = _build_panel_sr(sr_id, anchor, members, panel_def, lang, country)
+        sr = _build_panel_sr(sr_id, anchor, members, panel_def, lang, country, counter)
         resources.append(sr)
     for o in sorted(standalone_orders, key=lambda x: _o(x, "order_id", "")):
         sr = _build_standalone_sr(o, lang, country)
@@ -345,7 +404,10 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
     # Lazy import avoids circular dependency at module level.
     from clinosim.modules.imaging.engine import load_body_sites
 
-    sr_id = f"{SR_ID_PREFIX}{_o(order, 'order_id', '')}"
+    # Issue #854 Bucket A: opaque SR.id via the shared resolver. Structural
+    # key = pre-#854 id body (``order_id`` for imaging orders — 1 Order = 1 SR).
+    _sr_structural_key = _o(order, "order_id", "")
+    sr_id = _resolve_service_request_id(_sr_structural_key)
     body_sites = load_body_sites()
     body_site_snomed = _o(order, "imaging_body_site_code", "")
     loinc_code = _o(order, "order_code", "")
@@ -405,7 +467,9 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
                 },
                 "system": PLACER_ORDER_NUMBER_SYSTEM,
                 "value": _o(order, "order_id", ""),
-            }
+            },
+            # Issue #854 Bucket A: structural-key round-trip alongside PLAC.
+            wrap_as_identifier(_sr_structural_key, SERVICE_REQUEST_KEY_SYSTEM),
         ],
         "status": _map_order_status_to_sr_status(_o(order, "status")),
         "intent": _sr_intent_from_clinical_intent(_o(order, "clinical_intent", "") or ""),
@@ -492,6 +556,7 @@ def _build_panel_sr(
     panel_def: dict[str, Any],
     lang: str,
     country: str,
+    panel_counter: dict[tuple[str, str, Any], int],
 ) -> dict[str, Any]:
     """Build one ServiceRequest resource for a panel (all members share the SR).
 
@@ -499,7 +564,12 @@ def _build_panel_sr(
     """
     panel_loinc = panel_def["loinc"]
     panel_display = code_lookup("loinc", panel_loinc, lang) or panel_def.get("display", "")
-    placer_value = sr_id[len(SR_ID_PREFIX) :]  # strip "sr-" prefix
+    # Issue #854 Bucket A: sr_id is now opaque (`sr-<12hex>`), so we can't
+    # recover the compound structural key by stripping the prefix. Rebuild
+    # it from the anchor Order (same helper the SR-id derivation uses) so
+    # placer_value stays the human-readable panel key
+    # (``{enc_id}-{panel_key}-{N}``) that hospital ordering systems expect.
+    placer_value = _order_to_sr_structural_key(anchor, panel_counter)
     status = aggregate_panel_status(members)
     return _build_sr_skeleton(
         sr_id=sr_id,
@@ -527,7 +597,9 @@ def _build_standalone_sr(o: Any, lang: str, country: str) -> dict[str, Any]:
     Accepts both Order dataclass instances and JSON-deserialized dicts.
     """
     order_id = _o(o, "order_id", "")
-    sr_id = f"{SR_ID_PREFIX}{order_id}"
+    # Issue #854 Bucket A: opaque SR.id via the shared resolver. Structural
+    # key = pre-#854 id body (``order_id`` for stand-alone lab orders).
+    sr_id = _resolve_service_request_id(order_id)
     placer_value = order_id
     status = aggregate_panel_status([o])
     raw_code = _o(o, "order_code", "")
@@ -635,7 +707,14 @@ def _build_sr_skeleton(
                 },
                 "system": PLACER_ORDER_NUMBER_SYSTEM,
                 "value": placer_value,
-            }
+            },
+            # Issue #854 Bucket A: structural-key round-trip. placer_value
+            # is the pre-#854 SR id body (order_id or {enc}-{panel}-{N}),
+            # so it doubles as the structural key input to
+            # _resolve_service_request_id. Consumers recover the compound
+            # verbatim from this identifier without string-parsing the
+            # (now opaque) .id.
+            wrap_as_identifier(placer_value, SERVICE_REQUEST_KEY_SYSTEM),
         ],
         "status": status,
         "intent": _sr_intent_from_clinical_intent(_o(anchor, "clinical_intent", "") or ""),

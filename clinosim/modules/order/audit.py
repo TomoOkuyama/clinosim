@@ -38,6 +38,7 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (
     LAB_CATEGORY_SNOMED,
     LAB_CATEGORY_V2_0074,
     PLACER_ORDER_NUMBER_SYSTEM,
+    SERVICE_REQUEST_KEY_SYSTEM,
     SR_ID_PREFIX,
     _bb_service_requests,
     build_panel_counter,
@@ -110,12 +111,20 @@ def _build_order_proof() -> dict[str, Any]:
     )
     srs = _bb_service_requests(ctx)
 
-    # Count panel SRs by matching panel-name suffix (e.g. "-CBC-", "-BMP-") rather
-    # than relying on "enc-" prefix in the encounter_id.  Robust to any synthetic
-    # encounter_id string used in tests.
-    panel_sr_ids = {
-        sr["id"] for sr in srs if any(f"-{panel_name}-" in sr.get("id", "") for panel_name in PANEL_PRIORITY_ORDER)
-    }
+    # Count panel SRs via identifier[] round-trip (Issue #854 Bucket A row 3, PR #869).
+    # Post-#869 SR.id is opaque `sr-<12hex>` so panel-name substring is no longer
+    # present in id — the structural_key (`{enc_id}-{panel_key}-{N}`) is preserved on
+    # ServiceRequest.identifier[] under SERVICE_REQUEST_KEY_SYSTEM. Match on that.
+    def _is_panel_sr(sr: dict[str, Any]) -> bool:
+        for ident in sr.get("identifier", []) or []:
+            if ident.get("system") != SERVICE_REQUEST_KEY_SYSTEM:
+                continue
+            value = ident.get("value", "") or ""
+            if any(f"-{panel_name}-" in value for panel_name in PANEL_PRIORITY_ORDER):
+                return True
+        return False
+
+    panel_sr_ids = {sr["id"] for sr in srs if _is_panel_sr(sr)}
 
     return {
         "equality_checks": [

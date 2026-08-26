@@ -39,7 +39,7 @@ from clinosim.modules.imaging.engine import (  # canonical owners; re-exported b
     IMAGING_STUDY_ID_PREFIX,
     load_modalities,
 )
-from clinosim.modules.output.fhir_r4.labs.service_request import SR_ID_PREFIX  # canonical owner
+from clinosim.modules.output.fhir_r4.labs.service_request import _resolve_service_request_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 
 # Writer-owned constant — DICOM/FHIR standard URI for DICOM Study UID.
@@ -132,7 +132,10 @@ def _build_imaging_study(
         "status": _o(study, "status", "available"),
         "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
         "encounter": {"reference": f"Encounter/{_o(study, 'encounter_id', '')}"},
-        "basedOn": [{"reference": f"ServiceRequest/{SR_ID_PREFIX}{_o(study, 'order_id', '')}"}],
+        # Issue #854 Bucket A: SR.id is now opaque, so basedOn goes through
+        # the SAME resolver the SR builder uses (structural key = order_id
+        # for imaging orders — 1 Order = 1 SR).
+        "basedOn": [{"reference": f"ServiceRequest/{_resolve_service_request_id(_o(study, 'order_id', ''))}"}],
         "numberOfSeries": len(series_resources),
         "numberOfInstances": total_instances,
     }
