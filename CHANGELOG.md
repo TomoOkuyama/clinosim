@@ -34,6 +34,23 @@ byte output but must document the change here.
   (`obs-vs` / `obs-standalone` / `obs-microbiology`) at v0.5.0.
   (Issue #854 Bucket A row 4 — PR-obs-lab; continues PR #357 / #863 /
   #867 / #868 / #869 opaque-id pattern.)
+- Vital-sign / GCS / NEWS2 `Observation.id` now emits opaque
+  `vs-<12hex>` (15 chars), `gcs-<12hex>` (16 chars), `news2-<12hex>`
+  (18 chars) instead of the pre-#854 compounds
+  `vs-{enc_or_patient}-{index:04d}-{suffix}` (~33-42 chars),
+  `gcs-{enc_or_patient}-{i}`, `news2-{enc_or_patient}-{i}`. Three new
+  PUBLIC key-system URIs — `urn:clinosim:identifier:vital-sign-observation-key`
+  (one system covers all 4 vs-* emit sites: per-parameter vitals,
+  BP-panel, AVPU `loc`, supplemental-oxygen `o2`),
+  `urn:clinosim:identifier:gcs-score-observation-key`, and
+  `urn:clinosim:identifier:news2-score-observation-key` — carry the
+  pre-#854 compound structural key on `Observation.identifier[]` for
+  round-trip. All three families are stand-alone (no cross-reference
+  cascade). Byte-output changes on ~15,314 vs / 3,989 gcs / 3,989 news2
+  Observation records on the p=200 sample (~827,244 vs + 211,928 gcs +
+  211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
+  at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
+  #863 / #867 / #868 / #869 / #878 opaque-id pattern.)
 
 ## [0.4.0] - 2026-08-26
 

@@ -35,7 +35,11 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     entry,
     to_fhir_datetime,
 )
-from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _CATEGORY_DISPLAY_JA,
     _INTERPRETATION_DISPLAY_JA,
@@ -48,6 +52,47 @@ from clinosim.types.encounter import Order, OrderType
 def _o(order: Any, name: str, default: Any = None) -> Any:
     """Dual-access helper: dataclass attribute OR dict key (production path)."""
     return get_attr_or_key(order, name, default)
+
+
+# === Issue #854 Bucket A row 4 (PR-obs-vs): opaque vital-sign Observation.id ===
+# Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 (lab Observation).
+#
+# vs-* Observations are emitted from 4 distinct code paths in this module —
+# per-parameter vitals (heart rate / temp / spo2 / RR), the BP-panel
+# consolidated Observation, the AVPU "loc" Observation, and the
+# supplemental-oxygen "o2" Observation. All 4 share the same
+# ``{encounter_id or patient_id}-{index:04d}-{suffix}`` structural key
+# body (pre-#854 id without the ``vs-`` prefix) so a single resolver +
+# a single ``VITAL_SIGN_OBSERVATION_KEY_SYSTEM`` cover every emit site.
+#
+# PUBLIC constants so downstream readers (identifier[] round-trip,
+# future audit tooling) can import them for identifier-based lookup
+# without string-parsing the (now opaque) ``.id``.
+VITAL_SIGN_OBSERVATION_ID_PREFIX = "vs-"
+VITAL_SIGN_OBSERVATION_KEY_SYSTEM = structural_key_system("vital-sign-observation-key")
+
+
+def _resolve_vital_sign_observation_id(structural_key: str) -> str:
+    """Return the FHIR Observation.id for a vital-sign observation.
+
+    Shape: ``vs-{sha256(structural_key)[:12]}`` = 15 chars, fixed. The
+    ``vs-`` prefix retains the human-recognisable identity (URLs like
+    ``/Observation/vs-<hex>`` read as a vital-sign Observation at a
+    glance) — consistent with the sibling resolvers introduced in
+    PR #863 / #867 / #868 / #869 / #878.
+
+    Structural key = pre-#854 vs-* id body (without ``vs-`` prefix):
+        ``{encounter_id or patient_id}-{index:04d}-{suffix}``
+    where ``suffix`` is one of ``{sanitize_id_token(field), bp-panel,
+    loc, o2}``. The 4 emit sites in this module all funnel through this
+    resolver so a future format change ripples through a single call
+    site (PR-90 silent-no-op defense).
+
+    The compound structural key is preserved on ``Observation.identifier[]``
+    via :func:`wrap_as_identifier` under
+    :data:`VITAL_SIGN_OBSERVATION_KEY_SYSTEM` for round-trip.
+    """
+    return derive_opaque_id(VITAL_SIGN_OBSERVATION_ID_PREFIX, structural_key)
 
 
 def _build_lab_observation(
@@ -381,13 +426,16 @@ def _build_vital_observations(
         if value is None:
             continue
 
+        # Issue #854 Bucket A row 4 (PR-obs-vs): opaque vital-sign Observation.id.
+        # sanitize_id_token normalizes the vital field name (underscores
+        # forbidden in FHIR R4 ids); ``systolic_bp`` → ``systolic-bp`` etc.
+        # This normalized token participates in the structural key so
+        # equivalent inputs produce equivalent opaque ids.
+        _vs_structural_key = f"{encounter_id or patient_id}-{index:04d}-{sanitize_id_token(field)}"
         obs: dict[str, Any] = {
             "resourceType": "Observation",
-            # fix (iris4h-ai HAPI): vital field names carry
-            # underscores (systolic_bp / oxygen_saturation etc.); FHIR R4
-            # id type forbids '_'. sanitize_id_token routes the fragment
-            # through a single normalization point.
-            "id": f"vs-{encounter_id or patient_id}-{index:04d}-{sanitize_id_token(field)}",
+            "id": _resolve_vital_sign_observation_id(_vs_structural_key),
+            "identifier": [wrap_as_identifier(_vs_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
             # chain #2: JP Core Observation_Common profile for vitals.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
@@ -517,9 +565,11 @@ def _build_vital_observations(
     dbp = vs.get("diastolic_bp")
     if sbp is not None and dbp is not None:
         bp_display = "血圧" if is_jp(country) else "Blood pressure panel"
+        _bp_structural_key = f"{encounter_id or patient_id}-{index:04d}-bp-panel"
         bp_obs: dict[str, Any] = {
             "resourceType": "Observation",
-            "id": f"vs-{encounter_id or patient_id}-{index:04d}-bp-panel",
+            "id": _resolve_vital_sign_observation_id(_bp_structural_key),
+            "identifier": [wrap_as_identifier(_bp_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
                 if is_jp(country)
@@ -577,9 +627,11 @@ def _build_vital_observations(
         loc_display, loc_snomed = loc_display_map.get(loc, ("Alert", "248234008"))
         loc_label_ja = {"A": "意識清明", "V": "呼びかけに反応", "P": "痛み刺激に反応", "U": "無反応"}
         display = loc_label_ja.get(loc, loc_display) if is_jp(country) else loc_display
+        _loc_structural_key = f"{encounter_id or patient_id}-{index:04d}-loc"
         loc_obs: dict[str, Any] = {
             "resourceType": "Observation",
-            "id": f"vs-{encounter_id or patient_id}-{index:04d}-loc",
+            "id": _resolve_vital_sign_observation_id(_loc_structural_key),
+            "identifier": [wrap_as_identifier(_loc_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
             # chain #2: JP Core Observation_Common profile for vitals.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
@@ -650,9 +702,11 @@ def _build_vital_observations(
     if vs.get("on_supplemental_oxygen"):
         flow = vs.get("oxygen_flow_rate_lpm")
         device = vs.get("oxygen_delivery_device", "")
+        _o2_structural_key = f"{encounter_id or patient_id}-{index:04d}-o2"
         o2_obs: dict[str, Any] = {
             "resourceType": "Observation",
-            "id": f"vs-{encounter_id or patient_id}-{index:04d}-o2",
+            "id": _resolve_vital_sign_observation_id(_o2_structural_key),
+            "identifier": [wrap_as_identifier(_o2_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
             # chain #2: JP Core Observation_Common profile for vitals.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}

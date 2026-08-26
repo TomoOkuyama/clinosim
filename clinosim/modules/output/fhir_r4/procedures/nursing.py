@@ -20,6 +20,50 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     survey_category,
     to_fhir_datetime,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+# === Issue #854 Bucket A row 4 (PR-obs-vs): opaque scoring Observation.id ===
+# GCS and NEWS2 vital-derived scoring Observations. Same pattern as
+# PR #357 / #863 / #867 / #868 / #869 / #878 (lab Observation) / this-PR
+# (vs-* vitals). Each scoring family owns its own PUBLIC key-system URI
+# so downstream consumers can distinguish gcs / news2 identifiers at a
+# glance; a single generic ``score-observation-key`` would collapse the
+# semantic distinction that today's ``gcs-`` / ``news2-`` prefixes carry.
+#
+# Structural key = pre-#854 id body (without ``gcs-`` / ``news2-`` prefix):
+#     ``{enc or patient_id}-{i}``
+# where ``i`` is the 0-based index in the ``vital_signs`` list.
+#
+# Braden / Morse / Barthel / intake / urine / output scoring
+# Observations emitted below stay on their pre-#854 compound id in this
+# PR — they land in the follow-on PR-obs-standalone (Issue #854 Bucket A
+# row 4 continuation) so this PR's diff stays reviewable.
+GCS_SCORE_ID_PREFIX = "gcs-"
+NEWS2_SCORE_ID_PREFIX = "news2-"
+GCS_SCORE_KEY_SYSTEM = structural_key_system("gcs-score-observation-key")
+NEWS2_SCORE_KEY_SYSTEM = structural_key_system("news2-score-observation-key")
+
+
+def _resolve_gcs_score_id(structural_key: str) -> str:
+    """Return the FHIR Observation.id for a GCS scoring observation.
+
+    Shape: ``gcs-{sha256(structural_key)[:12]}`` = 16 chars, fixed.
+    See :data:`GCS_SCORE_KEY_SYSTEM` for the round-trip identifier.
+    """
+    return derive_opaque_id(GCS_SCORE_ID_PREFIX, structural_key)
+
+
+def _resolve_news2_score_id(structural_key: str) -> str:
+    """Return the FHIR Observation.id for a NEWS2 scoring observation.
+
+    Shape: ``news2-{sha256(structural_key)[:12]}`` = 18 chars, fixed.
+    See :data:`NEWS2_SCORE_KEY_SYSTEM` for the round-trip identifier.
+    """
+    return derive_opaque_id(NEWS2_SCORE_ID_PREFIX, structural_key)
 
 
 def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
@@ -83,7 +127,10 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         performer_id = vs.get("measured_by", "") or ""
         news2 = vs.get("news2_score")
         if news2 is not None:
-            obs = _obs_base(f"news2-{enc or ctx.patient_id}-{i}", effective, performer_id)
+            # Issue #854 Bucket A row 4 (PR-obs-vs): opaque NEWS2 Observation.id.
+            _news2_structural_key = f"{enc or ctx.patient_id}-{i}"
+            obs = _obs_base(_resolve_news2_score_id(_news2_structural_key), effective, performer_id)
+            obs["identifier"] = [wrap_as_identifier(_news2_structural_key, NEWS2_SCORE_KEY_SYSTEM)]
             # Issue #269: NEWS2 does NOT have a canonical LOINC
             # 2.82 code — the previously-used `90557-9` is not in LOINC
             # (the closest entry `90557-0` is unrelated sleep-study data).
@@ -107,7 +154,10 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
 
         gcs = vs.get("gcs_score")
         if gcs is not None:
-            obs = _obs_base(f"gcs-{enc or ctx.patient_id}-{i}", effective, performer_id)
+            # Issue #854 Bucket A row 4 (PR-obs-vs): opaque GCS Observation.id.
+            _gcs_structural_key = f"{enc or ctx.patient_id}-{i}"
+            obs = _obs_base(_resolve_gcs_score_id(_gcs_structural_key), effective, performer_id)
+            obs["identifier"] = [wrap_as_identifier(_gcs_structural_key, GCS_SCORE_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("9269-2", lang)],
                 "text": code_lookup("loinc", "9269-2", lang) or "Glasgow coma score total",
