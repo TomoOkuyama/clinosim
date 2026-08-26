@@ -52,7 +52,6 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     wrap_as_identifier,
 )
 
-
 # === Issue #854 Bucket B (PR-document-reference): opaque DocumentReference.id ===
 # Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
 # #880 / #881 / #882 / #883 / #884 / #885. The CIF-side
