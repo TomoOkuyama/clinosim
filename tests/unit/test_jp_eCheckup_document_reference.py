@@ -158,10 +158,15 @@ def test_emit_docref_with_composition_relatesto():
     # category = JP-eCheckup
     assert r["category"][0]["coding"][0]["code"] == "eCheckupGeneral"
     # relatesTo transforms → Composition
+    # Issue #854 Bucket B (PR-composition): Composition.id is opaque —
+    # derive expected via the shared resolver (structural key = doc-id
+    # body with `doc-` prefix stripped).
+    from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
+
     assert r["relatesTo"] == [
         {
             "code": "transforms",
-            "target": {"reference": "Composition/doc-CHK-POP-000001-001-01"},
+            "target": {"reference": f"Composition/{_resolve_composition_id('CHK-POP-000001-001-01')}"},
         }
     ]
     # encounter context

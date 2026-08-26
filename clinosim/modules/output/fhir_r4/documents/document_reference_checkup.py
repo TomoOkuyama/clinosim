@@ -32,7 +32,30 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _sha1_b64, to_fhir_instant
+
+
+def _build_relates_to_composition(document_id: str) -> list[dict]:
+    """Return the `relatesTo` block that references the sibling Composition.
+
+    Issue #854 Bucket B (PR-composition): Composition.id is derived
+    from the ClinicalDocument.document_id body (with `doc-` prefix
+    stripped) via `_resolve_composition_id`. This helper mirrors that
+    derivation so the reference lands on the opaque emit output.
+    """
+    enc_part = (
+        document_id.removeprefix(DOC_REFERENCE_ID_PREFIX)
+        if document_id.startswith(DOC_REFERENCE_ID_PREFIX)
+        else document_id
+    )
+    return [
+        {
+            "code": "transforms",
+            "target": {"reference": f"Composition/{_resolve_composition_id(enc_part)}"},
+        }
+    ]
 
 
 def _fhir_instant_or_empty(s: str) -> str:
@@ -177,13 +200,12 @@ def _build_dref(doc: Any, narrative: Any, patient_id: str, country: str) -> dict
             }
         ],
         # 対応する Composition への参照(実 EHR で Composition = 構造化、
-        # DocumentReference = portable な wrapper として運用される二重発行)
-        "relatesTo": [
-            {
-                "code": "transforms",
-                "target": {"reference": f"Composition/{document_id}"},
-            }
-        ],
+        # DocumentReference = portable な wrapper として運用される二重発行)。
+        # Issue #854 Bucket B (PR-composition): Composition.id is opaque
+        # (derived via _resolve_composition_id from the pre-#854 doc-id
+        # body). Route through the same helper so this reference lands
+        # on the writer's opaque emit.
+        "relatesTo": _build_relates_to_composition(document_id),
     }
 
     # encounter context(健診 encounter)
