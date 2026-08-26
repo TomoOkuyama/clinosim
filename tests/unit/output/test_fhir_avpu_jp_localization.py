@@ -27,9 +27,7 @@ def test_avpu_coding_display_localized_for_jp():
     # `loc` Observation by its LOINC code (80288-4) instead — semantic and
     # forward-compatible.
     loc_obs = next(
-        e["resource"]
-        for e in entries
-        if e["resource"].get("code", {}).get("coding", [{}])[0].get("code") == "80288-4"
+        e["resource"] for e in entries if e["resource"].get("code", {}).get("coding", [{}])[0].get("code") == "80288-4"
     )
     coding_display = loc_obs["valueCodeableConcept"]["coding"][0]["display"]
     text = loc_obs["valueCodeableConcept"]["text"]
@@ -49,9 +47,7 @@ def test_avpu_coding_display_stays_english_for_us():
     # `loc` Observation by its LOINC code (80288-4) instead — semantic and
     # forward-compatible.
     loc_obs = next(
-        e["resource"]
-        for e in entries
-        if e["resource"].get("code", {}).get("coding", [{}])[0].get("code") == "80288-4"
+        e["resource"] for e in entries if e["resource"].get("code", {}).get("coding", [{}])[0].get("code") == "80288-4"
     )
     coding_display = loc_obs["valueCodeableConcept"]["coding"][0]["display"]
     assert coding_display == "Unresponsive"
