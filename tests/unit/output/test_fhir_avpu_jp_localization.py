@@ -22,7 +22,15 @@ def test_avpu_coding_display_localized_for_jp():
         index=0,
         country="JP",
     )
-    loc_obs = next(e["resource"] for e in entries if e["resource"]["id"].endswith("-loc"))
+    # Issue #854 Bucket A row 4 (PR-obs-vs): vs Observation.id is now opaque
+    # (`vs-<12hex>`) so id-suffix matching no longer works. Identify the AVPU
+    # `loc` Observation by its LOINC code (80288-4) instead — semantic and
+    # forward-compatible.
+    loc_obs = next(
+        e["resource"]
+        for e in entries
+        if e["resource"].get("code", {}).get("coding", [{}])[0].get("code") == "80288-4"
+    )
     coding_display = loc_obs["valueCodeableConcept"]["coding"][0]["display"]
     text = loc_obs["valueCodeableConcept"]["text"]
     assert coding_display == "無反応"
@@ -36,7 +44,15 @@ def test_avpu_coding_display_stays_english_for_us():
         index=0,
         country="US",
     )
-    loc_obs = next(e["resource"] for e in entries if e["resource"]["id"].endswith("-loc"))
+    # Issue #854 Bucket A row 4 (PR-obs-vs): vs Observation.id is now opaque
+    # (`vs-<12hex>`) so id-suffix matching no longer works. Identify the AVPU
+    # `loc` Observation by its LOINC code (80288-4) instead — semantic and
+    # forward-compatible.
+    loc_obs = next(
+        e["resource"]
+        for e in entries
+        if e["resource"].get("code", {}).get("coding", [{}])[0].get("code") == "80288-4"
+    )
     coding_display = loc_obs["valueCodeableConcept"]["coding"][0]["display"]
     assert coding_display == "Unresponsive"
 
@@ -63,7 +79,15 @@ def test_avpu_observation_code_display_is_fhirserver_canonical():
             index=0,
             country=country,
         )
-        loc_obs = next(e["resource"] for e in entries if e["resource"]["id"].endswith("-loc"))
+        # Issue #854 Bucket A row 4 (PR-obs-vs): vs Observation.id is now opaque
+        # (`vs-<12hex>`) so id-suffix matching no longer works. Identify the
+        # AVPU `loc` Observation by its LOINC code (80288-4) instead —
+        # semantic and forward-compatible.
+        loc_obs = next(
+            e["resource"]
+            for e in entries
+            if e["resource"].get("code", {}).get("coding", [{}])[0].get("code") == "80288-4"
+        )
         code_coding = loc_obs["code"]["coding"][0]
         assert code_coding["code"] == "80288-4"
         assert code_coding["display"] == "Level of consciousness", (
