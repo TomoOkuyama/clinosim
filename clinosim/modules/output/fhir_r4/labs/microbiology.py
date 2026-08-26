@@ -37,7 +37,11 @@ from clinosim.modules.output.fhir_r4.post_process.specimen import (
 # consumers (PR3b-3 stage-1 adversarial finding C4).
 MB_ORG_ID_PREFIX = "mb-org-"
 MB_SUS_ID_PREFIX = "mb-sus-"
-MB_DR_ID_PREFIX = "dr-mb-"
+# `MB_DR_ID_PREFIX` retired in PR-diagnostic-report (#884): the mb DR
+# emit now funnels through `_resolve_mb_dr_id` in
+# `labs/diagnostic_report.py` (canonical owner). Downstream consumers
+# that need the mb DR prefix can import `MB_DR_ID_PREFIX_FHIR` from
+# `labs/diagnostic_report.py`.
 # `MB_SPECIMEN_ID_PREFIX` retired in PR-specimen (#882): the Specimen.id
 # emit now funnels through `SPECIMEN_ID_PREFIX` from
 # `post_process/specimen.py`. Downstream consumers that need to identify a
