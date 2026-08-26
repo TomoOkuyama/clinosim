@@ -26,10 +26,7 @@ import re
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.documents.composition import (
-    COMPOSITION_KEY_SYSTEM,
-    _resolve_composition_id,
-)
+from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
 
 pytestmark = pytest.mark.unit
 
@@ -50,10 +47,6 @@ def test_resolve_composition_id_opaque_shape() -> None:
 def test_resolve_composition_id_deterministic() -> None:
     key = "enc1-hp-1"
     assert _resolve_composition_id(key) == _resolve_composition_id(key)
-
-
-def test_composition_key_system_uri() -> None:
-    assert COMPOSITION_KEY_SYSTEM == "urn:clinosim:identifier:composition-key"
 
 
 def test_general_and_imgrpt_structural_keys_produce_distinct_ids() -> None:

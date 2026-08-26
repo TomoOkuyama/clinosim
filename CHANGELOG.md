@@ -53,11 +53,13 @@ byte output but must document the change here.
   #863 / #867 / #868 / #869 / #878 opaque-id pattern.)
 - `Composition.id` now emits opaque `comp-<12hex>` (17 chars, fixed)
   across both emit paths (general via `_build_composition_generic` +
-  radiology via `_build_imaging_report_composition`). New PUBLIC constant
-  `COMPOSITION_KEY_SYSTEM = "urn:clinosim:identifier:composition-key"`
-  documented for downstream consumers; the pre-existing
-  `Composition.identifier.value` slot (single 0..1 per FHIR R4)
-  continues to carry the opaque `.id`. Structural keys:
+  radiology via `_build_imaging_report_composition`). Composition.identifier
+  is 0..1 in FHIR R4 and JP-CLINS eDS/eReferral pins its `.system` to the
+  JP resource-instance URI, so a structural-key round-trip identifier
+  cannot be attached — callers needing the pre-#854 id must derive it
+  deterministically via `_resolve_composition_id(structural_key)`; the
+  existing single `Composition.identifier.value` slot continues to carry
+  the opaque `.id`. Structural keys:
     - general: pre-#854 id body (CIF-doc-id body with `doc-` prefix
       stripped)
     - radiology imgrpt: `{encounter_id}-imgrpt-{seq}`
