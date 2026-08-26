@@ -97,7 +97,11 @@ def test_composition_id_uses_canonical_prefix_dataclass():
     ctx = _make_ctx([_sample_doc_dataclass()])
     r = _bb_compositions(ctx)[0]
     assert r["id"].startswith(COMPOSITION_ID_PREFIX)
-    assert r["id"] == f"{COMPOSITION_ID_PREFIX}enc1-hp-1"
+    # Issue #854 Bucket B (PR-composition): Composition.id is opaque —
+    # derive expected via the shared resolver.
+    from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
+
+    assert r["id"] == _resolve_composition_id("enc1-hp-1")
 
 
 def test_composition_status_is_final():
@@ -197,7 +201,11 @@ def test_composition_from_dict_path():
     assert len(resources) == 1
     r = resources[0]
     assert r["resourceType"] == "Composition"
-    assert r["id"] == f"{COMPOSITION_ID_PREFIX}enc1-hp-1"
+    # Issue #854 Bucket B (PR-composition): Composition.id is opaque —
+    # derive expected via the shared resolver.
+    from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
+
+    assert r["id"] == _resolve_composition_id("enc1-hp-1")
     assert r["subject"]["reference"] == "Patient/pt1"
     assert r["encounter"]["reference"] == "Encounter/enc1"
     sections = r["section"]
@@ -225,7 +233,9 @@ def test_multiple_docs_only_composition_type_emitted():
     ctx = _make_ctx(docs)
     resources = _bb_compositions(ctx)
     assert len(resources) == 1
-    assert resources[0]["id"] == f"{COMPOSITION_ID_PREFIX}enc-A"
+    from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
+
+    assert resources[0]["id"] == _resolve_composition_id("enc-A")
 
 
 def test_multiple_composition_docs_all_emitted():
@@ -237,9 +247,11 @@ def test_multiple_composition_docs_all_emitted():
     ctx = _make_ctx([doc1, doc2])
     resources = _bb_compositions(ctx)
     assert len(resources) == 2
+    from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
+
     ids = {r["id"] for r in resources}
-    assert f"{COMPOSITION_ID_PREFIX}enc1-hp-1" in ids
-    assert f"{COMPOSITION_ID_PREFIX}enc1-dc-1" in ids
+    assert _resolve_composition_id("enc1-hp-1") in ids
+    assert _resolve_composition_id("enc1-dc-1") in ids
 
 
 # --- JP locale ---
@@ -299,7 +311,9 @@ def test_composition_id_strips_doc_prefix_from_document_id():
     doc["document_id"] = f"{DOC_REFERENCE_ID_PREFIX}enc-test-01"  # production format
     ctx = _make_ctx([doc])
     r = _bb_compositions(ctx)[0]
-    assert r["id"] == f"{COMPOSITION_ID_PREFIX}enc-test-01", (
+    from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
+
+    assert r["id"] == _resolve_composition_id("enc-test-01"), (
         f"Expected 'comp-enc-test-01', got '{r['id']}' — double-prefix defect"
     )
     assert "doc-" not in r["id"], "DOC_REFERENCE_ID_PREFIX leaked into Composition.id"

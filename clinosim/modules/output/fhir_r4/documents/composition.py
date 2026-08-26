@@ -53,6 +53,32 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+)
+
+
+# === Issue #854 Bucket B (PR-composition): opaque Composition.id ===
+# Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
+# #880 / #881 / #882 / #883 / #884 / #885 / #886. Two Composition emit
+# paths:
+#   - general (this file, `_build_composition_generic`): structural key
+#     = pre-#854 id body (`{enc_part}` where enc_part is the CIF-doc-id
+#     body). Post-#854: `comp-<12hex>` (17 chars).
+#   - radiology imgrpt (`documents/imaging_report.py`): structural key
+#     = pre-#854 id body (`{enc}-imgrpt-{seq}`). Post-#854: same shape.
+COMPOSITION_KEY_SYSTEM = structural_key_system("composition-key")
+
+
+def _resolve_composition_id(structural_key: str) -> str:
+    """Return the opaque FHIR Composition.id from a structural key.
+
+    Shape: ``comp-{sha256(structural_key)[:12]}`` = 17 chars, fixed.
+    """
+    return derive_opaque_id(COMPOSITION_ID_PREFIX, structural_key)
+
+
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
 
 logger = logging.getLogger(__name__)
@@ -544,11 +570,16 @@ def _build_composition_generic(
     encounter_id = _o(doc, "encounter_id", "")
     language = _o(doc, "language", "en")
 
-    # Strip DOC_REFERENCE_ID_PREFIX ("doc-") before prepending COMPOSITION_ID_PREFIX
-    # ("comp-") so production ids ("doc-{enc}-{seq}") become "comp-{enc}-{seq}" instead
-    # of "comp-doc-{enc}-{seq}" (double-prefix defect, I-3 fix).
+    # Strip DOC_REFERENCE_ID_PREFIX ("doc-") to obtain the structural key
+    # (pre-#854 id body). Post-#854 the DR.id is opaque `doc-<12hex>`,
+    # so stripping yields `<12hex>` — which is a valid structural-key
+    # input. Post-#886 the DR.id ↔ Composition.id bridge stays stable
+    # because both derivations funnel through their shared resolvers
+    # from the same input.
     enc_part = doc_id[len(DOC_REFERENCE_ID_PREFIX) :] if doc_id.startswith(DOC_REFERENCE_ID_PREFIX) else doc_id
-    comp_id = f"{COMPOSITION_ID_PREFIX}{enc_part}"
+    # Issue #854 Bucket B (PR-composition): opaque Composition.id.
+    comp_id = _resolve_composition_id(enc_part)
+    _comp_structural_key = enc_part
     # C2-34: Composition.identifier (0..1) for cross-system
     # document tracking. (v4 §Composition.identifier URI):
     # JP-CLINS eDS / eReferral profiles fix `Composition.identifier.system`

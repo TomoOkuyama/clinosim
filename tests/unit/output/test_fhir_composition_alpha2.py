@@ -124,8 +124,12 @@ def test_admission_nursing_assessment_id_uses_prefix():
     """Composition.id uses COMPOSITION_ID_PREFIX, stripping doc- prefix."""
     ctx = _make_ctx([_sample_nursing_assessment_dataclass()])
     r = _bb_compositions(ctx)[0]
+    # Issue #854 Bucket B (PR-composition): Composition.id is opaque —
+    # derive expected via the shared resolver.
+    from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
+
     assert r["id"].startswith(COMPOSITION_ID_PREFIX)
-    assert r["id"] == f"{COMPOSITION_ID_PREFIX}enc1-nursing_assessment-1"
+    assert r["id"] == _resolve_composition_id("enc1-nursing_assessment-1")
 
 
 def test_admission_nursing_assessment_dict_path():
