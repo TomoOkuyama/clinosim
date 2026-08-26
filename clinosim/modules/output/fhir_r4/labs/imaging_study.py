@@ -85,7 +85,11 @@ def _bb_imaging_studies(ctx: BundleContext) -> list[dict[str, Any]]:
             # from the Encounter which is already carried on Encounter model.
             _cc = _enc.get("chief_complaint", "") if isinstance(_enc, dict) else getattr(_enc, "chief_complaint", "")
             if _cc:
-                _enc_reason_by_id[_eid] = [{"text": _cc}]
+                # Issue #872: localize the CIF-canonical EN chief-complaint to
+                # JA on JP output. No-op on US output. Unknown-in-dict values
+                # pass through unchanged (preserves the 1,127 already-JA
+                # records from the 2026-08-26 deploy verify).
+                _enc_reason_by_id[_eid] = [{"text": _localize_chief_complaint(_cc, lang)}]
     return [_build_imaging_study(s, lang, _enc_reason_by_id) for s in studies]
 
 
@@ -270,6 +274,67 @@ def _localize_imaging_exam_name(exam_name: str) -> str:
     ja_dict = load_drug_names_ja()
     normalized = exam_name.replace("_", " ")
     return ja_dict.get(normalized.lower(), exam_name)
+
+
+# Issue #872 — chief-complaint text (Encounter.chief_complaint) leaks in English
+# on ImagingStudy.reasonCode.text when the disease-YAML authors chief_complaint
+# as a plain-EN string (no per-language dict). 3,608 / 4,735 ImagingStudy
+# reasonCode.text (76.2 %) shipped as English on JP p=10000 s500 deploy
+# (2026-08-26). This dict covers the 30 distinct EN vignette phrases observed
+# in that deploy. Unknown values pass through unchanged so this is safe against
+# future disease additions.
+#
+# Long-term the disease YAMLs should author `chief_complaint: {en, ja}` (dict
+# form) so `_disease_chief_complaint_ja` populates `Encounter.chief_complaint_ja`
+# and the emit path can prefer it. That is out of scope for this PR — this dict
+# is the pragmatic emit-time bridge until the CIF-side authoring is completed.
+_CHIEF_COMPLAINT_JA: dict[str, str] = {
+    "Sudden onset weakness, speech difficulty, facial droop": "突然発症の脱力・構音障害・顔面麻痺",
+    "Dyspnea on exertion, orthopnea, lower extremity edema": "労作時呼吸困難・起坐呼吸・下腿浮腫",
+    "Worsening dyspnea, increased sputum production, wheezing": "呼吸困難増悪・喀痰増加・喘鳴",
+    "Fever, dysuria, flank pain": "発熱・排尿痛・側腹部痛",
+    "Fever, cough, dyspnea": "発熱・咳嗽・呼吸困難",
+    "Chest pain, diaphoresis, dyspnea": "胸痛・発汗・呼吸困難",
+    "Severe wheezing, dyspnea, use of accessory muscles": "高度喘鳴・呼吸困難・呼吸補助筋使用",
+    "Nausea, vomiting, abdominal pain, polyuria, altered consciousness": "悪心・嘔吐・腹痛・多尿・意識障害",
+    "Hip pain after fall, unable to walk": "転倒後の股関節痛・歩行不能",
+    "High fever, myalgia, cough, fatigue": "高熱・筋肉痛・咳嗽・倦怠感",
+    "Fever, altered mental status, hypotension": "発熱・意識障害・低血圧",
+    "Palpitations, dyspnea, dizziness, chest discomfort": "動悸・呼吸困難・めまい・胸部不快感",
+    "Acute dyspnea, pleuritic chest pain, tachycardia": "急性呼吸困難・胸膜痛・頻脈",
+    "Fall from height at work site, multiple trauma": "作業現場での転落・多発外傷",
+    "Acute back pain after minimal trauma, worse with movement": "軽微外傷後の急性腰背部痛・体動時増悪",
+    "Severe epigastric pain radiating to back, nausea, vomiting": "背部放散性の強い心窩部痛・悪心・嘔吐",
+    "Decreased urine output, edema, nausea, confusion": "尿量減少・浮腫・悪心・意識混濁",
+    "Hematemesis, melena, dizziness, syncope": "吐血・下血・めまい・失神",
+    "Unilateral leg swelling, pain, warmth": "片側下肢腫脹・疼痛・熱感",
+    "Sudden severe headache, vomiting, altered consciousness": "突然の激しい頭痛・嘔吐・意識障害",
+    "Cough, fever, dyspnea after witnessed aspiration event": "誤嚥後の咳嗽・発熱・呼吸困難",
+    "Displaced distal radius fracture requiring ORIF": "ORIFを要する転位型橈骨遠位端骨折",
+    "Right upper quadrant pain, fever, Murphy's sign positive": "右上腹部痛・発熱・Murphy徴候陽性",
+    "Abdominal pain, vomiting, constipation, abdominal distension": "腹痛・嘔吐・便秘・腹部膨満",
+    "Erythema, warmth, swelling of affected limb, fever": "患肢の発赤・熱感・腫脹・発熱",
+    "Major trauma, motor vehicle accident, multiple injuries": "交通事故による重症外傷・多発損傷",
+    "Right lower quadrant pain, nausea, fever": "右下腹部痛・悪心・発熱",
+    "Industrial hand crush injury with possible amputation": "労災による手部挫滅損傷・切断疑い",
+    "Abdominal distension, jaundice, confusion, hematemesis": "腹部膨満・黄疸・意識混濁・吐血",
+    "Altered consciousness after head trauma, progressive deterioration": "頭部外傷後の意識障害・進行性増悪",
+}
+
+
+def _localize_chief_complaint(text: str, lang: str) -> str:
+    """Return the JA form of an English CIF chief-complaint (Issue #872).
+
+    Only invoked on JP output. Case-sensitive exact-match against
+    ``_CHIEF_COMPLAINT_JA``; unknown values pass through unchanged so
+    JA-authored chief complaints (the 1,127 / 4,735 records already in JA
+    per the 2026-08-26 deploy) are preserved as-is, and new EN phrases that
+    the dict does not yet cover degrade gracefully to the CIF text rather
+    than a placeholder. US output is a no-op.
+    """
+    if lang != "ja" or not text:
+        return text
+    return _CHIEF_COMPLAINT_JA.get(text, text)
 
 
 def _build_series(series: Any, lang: str) -> dict[str, Any]:
