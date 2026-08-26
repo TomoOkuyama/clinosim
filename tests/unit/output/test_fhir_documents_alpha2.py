@@ -109,7 +109,12 @@ def test_nursing_shift_note_id_has_doc_prefix():
     ctx = _make_ctx([_sample_shift_note_dataclass()])
     r = _bb_document_references(ctx)[0]
     assert r["id"].startswith(DOC_REFERENCE_ID_PREFIX)
-    assert r["id"] == "doc-enc1-nursing_shift-1"
+    # Issue #854 Bucket B (PR-document-reference): DR.id is opaque.
+    from clinosim.modules.output.fhir_r4.documents.documents import (
+        document_reference_id_for_cif_doc_id,
+    )
+
+    assert r["id"] == document_reference_id_for_cif_doc_id("doc-enc1-nursing_shift-1")
 
 
 def test_nursing_shift_note_subject_and_encounter():
@@ -291,8 +296,12 @@ def test_multiple_nursing_shift_notes_all_emitted():
     resources = _bb_document_references(ctx)
     assert len(resources) == 2
     ids = {r["id"] for r in resources}
-    assert "doc-enc1-nursing_shift-1" in ids
-    assert "doc-enc1-nursing_shift-2" in ids
+    from clinosim.modules.output.fhir_r4.documents.documents import (
+        document_reference_id_for_cif_doc_id,
+    )
+
+    assert document_reference_id_for_cif_doc_id("doc-enc1-nursing_shift-1") in ids
+    assert document_reference_id_for_cif_doc_id("doc-enc1-nursing_shift-2") in ids
 
 
 def test_ed_triage_note_skips_empty_text():

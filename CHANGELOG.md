@@ -51,6 +51,23 @@ byte output but must document the change here.
   211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
   at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
   #863 / #867 / #868 / #869 / #878 opaque-id pattern.)
+- `DocumentReference.id` now emits opaque `doc-<12hex>` (16 chars, fixed)
+  instead of the pre-#854 compound `doc-{encounter_id}-{task_type}` set
+  on the CIF-side `doc.document_id`. New PUBLIC constant
+  `DOCUMENT_REFERENCE_KEY_SYSTEM = "urn:clinosim:identifier:document-reference-key"`
+  carries the pre-#854 structural key on `DocumentReference.identifier[]`
+  alongside the pre-existing `urn:clinosim:documentreference-id`
+  identifier. Cross-references migrated: `DR.relatesTo[].target.reference`
+  (sibling DR chain for `appends`) routes through the new
+  `document_reference_id_for_cif_doc_id` helper; `Composition.section[].entry`
+  populated by `_bb_compositions`' `enc_to_free_text` precomputed map,
+  now stores the OPAQUE id instead of the CIF-doc-id compound. The CIF-
+  side `doc.document_id` field itself is unchanged. Byte-output changes
+  on the DocumentReference NDJSON slice + every cross-ref site (~904
+  records on p=200 JP, ~57,166 records on JP p=10000 s500); MINOR bump
+  still batched at v0.5.0. (Issue #854 Bucket B — PR-document-reference;
+  continues PR #857 / #863 / #867 / #868 / #869 / #878 / #879 / #880 /
+  #881 / #882 / #883 / #884 / #885 opaque-id pattern.)
 - `ImagingStudy.id` now emits opaque `imgst-<12hex>` (18 chars, fixed)
   instead of the pre-#854 compound `imgst-{encounter_id}-{idx}` set on
   the CIF-side `study.study_id`. New PUBLIC constant

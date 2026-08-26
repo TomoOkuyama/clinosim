@@ -268,12 +268,22 @@ def test_jp_clins_composition_hospital_course_entry_from_free_text_map():
     """
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
+    # Issue #854 Bucket B (PR-document-reference): the real caller
+    # (`_bb_compositions`) populates the map with opaque DR ids resolved
+    # via `document_reference_id_for_cif_doc_id`; mirror that here so
+    # this test reflects production behaviour.
+    from clinosim.modules.output.fhir_r4.documents.documents import (
+        document_reference_id_for_cif_doc_id,
+    )
+
     doc = _jp_ds_doc()  # encounter_id = "ENC-001"
-    enc_map = {"ENC-001": "doc-ENC-001-progressnote-01"}
+    _cif_doc_id = "doc-ENC-001-progressnote-01"
+    _opaque_doc_id = document_reference_id_for_cif_doc_id(_cif_doc_id)
+    enc_map = {"ENC-001": _opaque_doc_id}
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja", enc_map)
     children = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
     hcs = children["333"]  # hospitalCourseSection
-    assert hcs.get("entry") == [{"reference": "DocumentReference/doc-ENC-001-progressnote-01"}]
+    assert hcs.get("entry") == [{"reference": f"DocumentReference/{_opaque_doc_id}"}]
 
 
 @pytest.mark.unit
