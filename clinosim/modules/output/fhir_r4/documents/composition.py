@@ -54,10 +54,7 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
-from clinosim.modules.output.fhir_r4.lib.ids import (
-    derive_opaque_id,
-    structural_key_system,
-)
+from clinosim.modules.output.fhir_r4.lib.ids import derive_opaque_id
 
 # === Issue #854 Bucket B (PR-composition): opaque Composition.id ===
 # Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
@@ -68,7 +65,13 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 #     body). Post-#854: `comp-<12hex>` (17 chars).
 #   - radiology imgrpt (`documents/imaging_report.py`): structural key
 #     = pre-#854 id body (`{enc}-imgrpt-{seq}`). Post-#854: same shape.
-COMPOSITION_KEY_SYSTEM = structural_key_system("composition-key")
+#
+# Composition.identifier is 0..1 in FHIR R4 (single-cardinality) and JP-CLINS
+# eDS/eReferral profiles fix its .system to
+# `http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier`, so a
+# separate structural-key identifier cannot be attached — the pre-#854 id
+# body is not preserved on the resource. Callers needing round-trip must
+# derive it deterministically via `_resolve_composition_id(enc_part)`.
 
 
 def _resolve_composition_id(structural_key: str) -> str:
