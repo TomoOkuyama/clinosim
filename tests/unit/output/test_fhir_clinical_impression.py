@@ -100,7 +100,12 @@ def test_clinical_impression_id_uses_prefix():
     r = _bb_clinical_impressions(ctx)[0]
     assert r["id"].startswith(CLINICAL_IMPRESSION_ID_PREFIX)
     # impression_id already has the prefix "ci-enc1-0"
-    assert r["id"] == "ci-enc1-0"
+    # Issue #854 Bucket B (PR-clinical-impression): CI.id opaque.
+    from clinosim.modules.output.fhir_r4.conditions.clinical_impression import (
+        _resolve_clinical_impression_id,
+    )
+
+    assert r["id"] == _resolve_clinical_impression_id("enc1-0")
 
 
 def test_status_is_completed():
@@ -224,7 +229,12 @@ def test_clinical_impression_from_dict_path():
     assert len(resources) == 1
     r = resources[0]
     assert r["resourceType"] == "ClinicalImpression"
-    assert r["id"] == "ci-enc1-0"
+    # Issue #854 Bucket B (PR-clinical-impression): CI.id opaque.
+    from clinosim.modules.output.fhir_r4.conditions.clinical_impression import (
+        _resolve_clinical_impression_id,
+    )
+
+    assert r["id"] == _resolve_clinical_impression_id("enc1-0")
     assert r["status"] == "completed"
     assert r["subject"]["reference"] == "Patient/pt1"
     assert r["encounter"]["reference"] == "Encounter/enc1"
@@ -244,9 +254,13 @@ def test_multiple_impressions_all_emitted():
     ctx = _make_ctx([imp1, imp2])
     resources = _bb_clinical_impressions(ctx)
     assert len(resources) == 2
+    from clinosim.modules.output.fhir_r4.conditions.clinical_impression import (
+        _resolve_clinical_impression_id,
+    )
+
     ids = {r["id"] for r in resources}
-    assert "ci-enc1-0" in ids
-    assert "ci-enc1-1" in ids
+    assert _resolve_clinical_impression_id("enc1-0") in ids
+    assert _resolve_clinical_impression_id("enc1-1") in ids
 
 
 # --- ID prefix handling ---
@@ -258,7 +272,13 @@ def test_id_without_prefix_gets_prefix():
     d["impression_id"] = "enc1-0"  # no prefix
     ctx = _make_ctx([d])
     r = _bb_clinical_impressions(ctx)[0]
-    assert r["id"] == f"{CLINICAL_IMPRESSION_ID_PREFIX}enc1-0"
+    # Issue #854 Bucket B (PR-clinical-impression): both prefixed and
+    # unprefixed CIF ids resolve to the same opaque id (idempotent).
+    from clinosim.modules.output.fhir_r4.conditions.clinical_impression import (
+        _resolve_clinical_impression_id,
+    )
+
+    assert r["id"] == _resolve_clinical_impression_id("enc1-0")
 
 
 def test_id_with_prefix_not_doubled():
@@ -267,7 +287,12 @@ def test_id_with_prefix_not_doubled():
     d["impression_id"] = "ci-enc1-0"  # already prefixed
     ctx = _make_ctx([d])
     r = _bb_clinical_impressions(ctx)[0]
-    assert r["id"] == "ci-enc1-0"
+    # Issue #854 Bucket B (PR-clinical-impression): CI.id opaque.
+    from clinosim.modules.output.fhir_r4.conditions.clinical_impression import (
+        _resolve_clinical_impression_id,
+    )
+
+    assert r["id"] == _resolve_clinical_impression_id("enc1-0")
     assert not r["id"].startswith("ci-ci-")
 
 
