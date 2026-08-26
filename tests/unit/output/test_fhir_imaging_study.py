@@ -190,7 +190,11 @@ def test_emits_imaging_study_from_dict_path():
     resources = _bb_imaging_studies(ctx)
     assert len(resources) == 1
     r = resources[0]
-    assert r["id"] == "imgst-enc1-1"
+    # Issue #854 Bucket B (PR-imaging-study): ImagingStudy.id is opaque —
+    # derive expected via the shared resolver.
+    from clinosim.modules.output.fhir_r4.labs.imaging_study import imaging_study_id_for_cif_study_id
+
+    assert r["id"] == imaging_study_id_for_cif_study_id("imgst-enc1-1")
     assert r["identifier"][0]["value"] == "urn:oid:2.25.42"
     assert r["series"][0]["uid"] == "2.25.43"
     assert r["series"][0]["description"] == "PA view"

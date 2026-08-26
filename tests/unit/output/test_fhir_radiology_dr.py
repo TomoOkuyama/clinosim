@@ -128,7 +128,10 @@ def test_radiology_dr_basedon_and_imaging_study_refs():
     ctx = _make_ctx([_sample_study()])
     dr = _rad_drs(ctx)[0]
     assert dr["basedOn"] == [{"reference": f"ServiceRequest/{_resolve_service_request_id('ord1')}"}]
-    assert dr["imagingStudy"] == [{"reference": "ImagingStudy/imgst-enc1-1"}]
+    # Issue #854 Bucket B (PR-imaging-study): ImagingStudy.id is opaque.
+    from clinosim.modules.output.fhir_r4.labs.imaging_study import imaging_study_id_for_cif_study_id
+
+    assert dr["imagingStudy"] == [{"reference": f"ImagingStudy/{imaging_study_id_for_cif_study_id('imgst-enc1-1')}"}]
 
 
 def test_radiology_dr_conclusion_from_impression_text():
