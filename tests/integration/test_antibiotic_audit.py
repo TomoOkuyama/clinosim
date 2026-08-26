@@ -917,27 +917,60 @@ def test_fhir_microbiology_emits_hai_event_id_identifier() -> None:
     )
     resources = _bb_microbiology(ctx)
 
+    # Issue #854 Bucket A row 4 (PR-obs-microbiology): mb-org / mb-sus ids
+    # are now opaque `mb-org-<12hex>` / `mb-sus-<12hex>`. Identify each
+    # resource via its structural-key identifier value
+    # (`{primary_enc_id}-{i}[-{j}]`), which is unchanged from pre-#854
+    # semantics. `spec-*` and `dr-mb-*` stay on the pre-#854 compound id
+    # until PR-specimen / PR-diagnostic-report migrate them.
+    from clinosim.modules.output.fhir_r4.labs.microbiology import (
+        MB_ORG_KEY_SYSTEM,
+        MB_SUS_KEY_SYSTEM,
+    )
+
+    def _by_structural(prefix: str, key_system: str, structural_value: str) -> dict:
+        for r in resources:
+            if not r.get("id", "").startswith(prefix):
+                continue
+            for i in r.get("identifier", []):
+                if i.get("system") == key_system and i.get("value") == structural_value:
+                    return r
+        raise AssertionError(f"no resource with prefix {prefix!r} + {key_system}={structural_value!r}")
+
     spec_hai = next(r for r in resources if r["resourceType"] == "Specimen" and r["id"] == "spec-E1-0")
     spec_comm = next(r for r in resources if r["resourceType"] == "Specimen" and r["id"] == "spec-E1-1")
-    org_hai = next(r for r in resources if r["id"] == "mb-org-E1-0")
-    org_comm = next(r for r in resources if r["id"] == "mb-org-E1-1")
-    sus_hai = next(r for r in resources if r["id"] == "mb-sus-E1-0-0")
+    org_hai = _by_structural("mb-org-", MB_ORG_KEY_SYSTEM, "E1-0")
+    org_comm = _by_structural("mb-org-", MB_ORG_KEY_SYSTEM, "E1-1")
+    sus_hai = _by_structural("mb-sus-", MB_SUS_KEY_SYSTEM, "E1-0-0")
     dr_hai = next(r for r in resources if r["id"] == "dr-mb-E1-0")
     dr_comm = next(r for r in resources if r["id"] == "dr-mb-E1-1")
 
-    # HAI side: identifier present, system + value correct
-    for res in (spec_hai, org_hai, sus_hai, dr_hai):
+    # HAI side: HAI identifier present + (post-#854 mb-org/sus) structural-
+    # key identifier present on the migrated resources. spec / dr-mb stay
+    # on their pre-#854 shape and carry only the HAI identifier.
+    for res in (spec_hai, dr_hai):
         ident = res.get("identifier") or []
         assert len(ident) == 1, f"{res['id']}: expected 1 identifier, got {ident}"
         assert ident[0]["system"] == HAI_EVENT_ID_SYSTEM, f"{res['id']}: identifier.system mismatch"
         assert ident[0]["value"] == "hai-clabsi-E1-1", f"{res['id']}: identifier.value mismatch"
+    for res in (org_hai, sus_hai):
+        systems = {i["system"] for i in res.get("identifier", [])}
+        assert HAI_EVENT_ID_SYSTEM in systems, f"{res['id']}: HAI identifier missing"
+        hai_idents = [i for i in res["identifier"] if i["system"] == HAI_EVENT_ID_SYSTEM]
+        assert hai_idents[0]["value"] == "hai-clabsi-E1-1"
 
-    # Community side: no identifier field at all (byte-identical pre-PR3b-5)
-    for res in (spec_comm, org_comm, dr_comm):
+    # Community side: no HAI identifier. spec / dr-mb still emit no
+    # identifier at all (byte-identical to pre-PR3b-5 community output);
+    # mb-org still carries its structural-key identifier.
+    for res in (spec_comm, dr_comm):
         assert "identifier" not in res, (
             f"{res['id']}: community culture must NOT emit identifier "
             f"(byte-identical invariant), got {res.get('identifier')!r}"
         )
+    org_comm_systems = {i["system"] for i in org_comm.get("identifier", [])}
+    assert HAI_EVENT_ID_SYSTEM not in org_comm_systems, (
+        f"{org_comm['id']}: community mb-org must NOT carry HAI identifier"
+    )
 
 
 @pytest.mark.integration
