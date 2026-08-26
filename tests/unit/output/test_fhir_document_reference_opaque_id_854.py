@@ -115,7 +115,7 @@ def test_bb_document_references_id_is_opaque_with_identifier() -> None:
     assert key_idents[0]["value"] == "ENC-001-progressnote-01"
 
 
-def test_bb_document_references_masterIdentifier_uses_opaque_id() -> None:
+def test_bb_document_references_master_identifier_uses_opaque_id() -> None:
     ctx = _make_ctx([_minimal_doc()])
     r = _bb_document_references(ctx)[0]
     assert r["masterIdentifier"]["value"] == r["id"]
