@@ -46,6 +46,49 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _sha1_b64, to_fhir_instant
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+
+# === Issue #854 Bucket B (PR-document-reference): opaque DocumentReference.id ===
+# Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
+# #880 / #881 / #882 / #883 / #884 / #885. The CIF-side
+# `doc.document_id` retains the pre-#854 shape
+# `doc-{encounter_id}-{task_type}[-{seq}]` (used elsewhere as the
+# structural bridge to Composition.id and various reference sites);
+# the FHIR-side DocumentReference.id becomes opaque per Issue #854.
+#
+# Structural key = pre-#854 id body without the `doc-` prefix,
+# preserved on `identifier[]` under
+# `DOCUMENT_REFERENCE_KEY_SYSTEM`.
+DOCUMENT_REFERENCE_KEY_SYSTEM = structural_key_system("document-reference-key")
+
+
+def _resolve_document_reference_id(structural_key: str) -> str:
+    """Return the opaque FHIR DocumentReference.id from a structural key.
+
+    Shape: ``doc-{sha256(structural_key)[:12]}`` = 16 chars, fixed.
+    """
+    return derive_opaque_id(DOC_REFERENCE_ID_PREFIX, structural_key)
+
+
+def document_reference_id_for_cif_doc_id(cif_doc_id: str) -> str:
+    """Convenience wrapper: opaque DocumentReference.id from CIF-side ``document_id``.
+
+    Every consumer that has a CIF ``document_id`` (which carries the
+    ``doc-`` prefix) can call this to obtain the FHIR
+    DocumentReference.id — the CIF prefix is stripped, then the body
+    is hashed under the same ``doc-`` prefix.
+    """
+    key = (
+        cif_doc_id.removeprefix(DOC_REFERENCE_ID_PREFIX)
+        if cif_doc_id.startswith(DOC_REFERENCE_ID_PREFIX)
+        else cif_doc_id
+    )
+    return _resolve_document_reference_id(key)
 
 
 def _fhir_instant_or_empty(s: str) -> str:
@@ -102,12 +145,17 @@ def _bb_document_references(ctx: BundleContext) -> list[dict[str, Any]]:
             continue
         resource = _build_dref_from_clinical_doc(doc, narrative, patient_id, country)
         if resource:
-            prior = doc_id_to_prior.get(resource["id"], "")
-            if prior:
+            # Issue #854 Bucket B (PR-document-reference): both the
+            # lookup key AND the prior value are CIF-doc-id (pre-#854
+            # compound). Route both through the shared resolver so the
+            # relatesTo reference lands on the opaque emit output.
+            _cif_doc_id = _o(doc, "document_id", "") or ""
+            prior_cif = doc_id_to_prior.get(_cif_doc_id, "")
+            if prior_cif:
                 resource["relatesTo"] = [
                     {
                         "code": "appends",
-                        "target": {"reference": f"DocumentReference/{prior}"},
+                        "target": {"reference": f"DocumentReference/{document_reference_id_for_cif_doc_id(prior_cif)}"},
                     }
                 ]
             out.append(resource)
@@ -174,9 +222,19 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
     en_display = code_lookup("loinc", loinc_code, "en") or loinc_code
     text_display = code_lookup("loinc", loinc_code, lang) or en_display
 
-    resource_id = _o(doc, "document_id", "") or (
-        f"{DOC_REFERENCE_ID_PREFIX}{_o(doc, 'encounter_id', 'unknown')}-{_o(doc, 'task_type', 'note')}"
+    # Issue #854 Bucket B (PR-document-reference): opaque DocumentReference.id.
+    # Structural key = pre-#854 CIF-doc-id body (with `doc-` prefix stripped)
+    # OR the fallback `{enc}-{task}` shape when CIF doc_id is empty. The
+    # opaque id is derived through the shared resolver; the structural key
+    # is preserved on `identifier[]` under `DOCUMENT_REFERENCE_KEY_SYSTEM`.
+    _cif_doc_id = _o(doc, "document_id", "") or ""
+    _fallback_key = f"{_o(doc, 'encounter_id', 'unknown')}-{_o(doc, 'task_type', 'note')}"
+    _dref_structural_key = (
+        _cif_doc_id.removeprefix(DOC_REFERENCE_ID_PREFIX)
+        if _cif_doc_id.startswith(DOC_REFERENCE_ID_PREFIX)
+        else (_cif_doc_id or _fallback_key)
     )
+    resource_id = _resolve_document_reference_id(_dref_structural_key)
 
     # base64-encode the content
     encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")
@@ -200,7 +258,11 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
             {
                 "system": "urn:clinosim:documentreference-id",
                 "value": resource_id,
-            }
+            },
+            # Issue #854 Bucket B (PR-document-reference): structural-key
+            # round-trip identifier so consumers can recover the pre-#854
+            # doc-id body verbatim from the opaque `.id`.
+            wrap_as_identifier(_dref_structural_key, DOCUMENT_REFERENCE_KEY_SYSTEM),
         ],
         "status": "current",
         # Stage 1 (template) output IS production; "preliminary" would imply draft.

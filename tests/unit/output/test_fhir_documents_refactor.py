@@ -85,7 +85,13 @@ def test_bb_document_references_emits_for_free_text_docs():
     assert len(resources) == 1
     r = resources[0]
     assert r["resourceType"] == "DocumentReference"
-    assert r["id"] == "doc-enc1-progress_note-1"
+    # Issue #854 Bucket B (PR-document-reference): DR.id is opaque —
+    # derive expected via the shared resolver.
+    from clinosim.modules.output.fhir_r4.documents.documents import (
+        document_reference_id_for_cif_doc_id,
+    )
+
+    assert r["id"] == document_reference_id_for_cif_doc_id("doc-enc1-progress_note-1")
     assert r["status"] == "current"
     # type.coding must use LOINC
     coding = r["type"]["coding"][0]
@@ -111,7 +117,13 @@ def test_bb_document_references_dict_path():
     assert len(resources) == 1
     r = resources[0]
     assert r["resourceType"] == "DocumentReference"
-    assert r["id"] == "doc-enc1-progress_note-1"
+    # Issue #854 Bucket B (PR-document-reference): DR.id is opaque —
+    # derive expected via the shared resolver.
+    from clinosim.modules.output.fhir_r4.documents.documents import (
+        document_reference_id_for_cif_doc_id,
+    )
+
+    assert r["id"] == document_reference_id_for_cif_doc_id("doc-enc1-progress_note-1")
     assert r["subject"]["reference"] == "Patient/pt1"
     assert r["context"]["encounter"][0]["reference"] == "Encounter/enc1"
 
@@ -178,8 +190,12 @@ def test_bb_document_references_multiple_free_text_all_emitted():
     resources = _bb_document_references(ctx)
     assert len(resources) == 2
     ids = {r["id"] for r in resources}
-    assert "doc-enc1-progress_note-1" in ids
-    assert "doc-enc1-admission_hp-1" in ids
+    from clinosim.modules.output.fhir_r4.documents.documents import (
+        document_reference_id_for_cif_doc_id,
+    )
+
+    assert document_reference_id_for_cif_doc_id("doc-enc1-progress_note-1") in ids
+    assert document_reference_id_for_cif_doc_id("doc-enc1-admission_hp-1") in ids
 
 
 def test_bb_document_references_mixed_format_only_free_text_emitted():
@@ -193,7 +209,11 @@ def test_bb_document_references_mixed_format_only_free_text_emitted():
     ctx = _make_ctx(docs)
     resources = _bb_document_references(ctx)
     assert len(resources) == 1
-    assert resources[0]["id"] == "doc-enc1-progress_note-1"
+    from clinosim.modules.output.fhir_r4.documents.documents import (
+        document_reference_id_for_cif_doc_id,
+    )
+
+    assert resources[0]["id"] == document_reference_id_for_cif_doc_id("doc-enc1-progress_note-1")
 
 
 def test_bb_document_references_us_display_in_english():

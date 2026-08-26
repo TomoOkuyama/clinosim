@@ -365,7 +365,18 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     # LOINC constants live at module scope (`_HOSPITAL_COURSE_LOINC` /
     # `_PROGRESS_NOTE_LOINC`) — moved out of function body to satisfy
     # N806.
+    # Issue #854 Bucket B (PR-document-reference): the values stored in
+    # `enc_to_free_text` feed the `DocumentReference/{free_text_doc_id}`
+    # template in section entries — they must be the OPAQUE DR ids the
+    # writer emits, not the CIF-side compound. The intermediate `current`
+    # comparisons still key on the CIF `doc.document_id` so priority
+    # logic is unchanged; only the value written into the map is opaque.
+    from clinosim.modules.output.fhir_r4.documents.documents import (
+        document_reference_id_for_cif_doc_id,
+    )
+
     enc_to_free_text: dict[str, str] = {}
+    _enc_to_cif_doc_id: dict[str, str] = {}  # sidecar for priority comparison
     for doc in raw_docs:
         if _o(doc, "format_type", "") != "free_text":
             continue
@@ -374,23 +385,27 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
         if not enc or not doc_id:
             continue
         loinc = _o(doc, "loinc_code", "") or ""
-        current = enc_to_free_text.get(enc, "")
+        current_cif = _enc_to_cif_doc_id.get(enc, "")
+        opaque = document_reference_id_for_cif_doc_id(doc_id)
         # Prefer 8648-8 > 11506-3 > any; last-wins otherwise.
-        if not current:
-            enc_to_free_text[enc] = doc_id
+        if not current_cif:
+            enc_to_free_text[enc] = opaque
+            _enc_to_cif_doc_id[enc] = doc_id
         elif loinc == _HOSPITAL_COURSE_LOINC:
-            enc_to_free_text[enc] = doc_id
+            enc_to_free_text[enc] = opaque
+            _enc_to_cif_doc_id[enc] = doc_id
         # Only overwrite with 11506-3 if current is not already the higher-priority code.
         elif loinc == _PROGRESS_NOTE_LOINC:
-            # Check if current is already 8648-8; look up its LOINC by matching doc_id
+            # Check if current is already 8648-8; look up its LOINC by matching CIF doc_id
             # in raw_docs. Cheap since we've already iterated once — small N per patient.
             current_loinc = ""
             for d2 in raw_docs:
-                if _o(d2, "document_id", "") == current:
+                if _o(d2, "document_id", "") == current_cif:
                     current_loinc = _o(d2, "loinc_code", "") or ""
                     break
             if current_loinc != _HOSPITAL_COURSE_LOINC:
-                enc_to_free_text[enc] = doc_id
+                enc_to_free_text[enc] = opaque
+                _enc_to_cif_doc_id[enc] = doc_id
 
     # Pre-compute encounter_id → primary Condition id so JP-CLINS eDS
     # `diagnosesOnDischargeSection.entry` slice resolves to the correct
