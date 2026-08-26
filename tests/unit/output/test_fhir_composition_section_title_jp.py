@@ -54,10 +54,28 @@ pytestmark = pytest.mark.unit
         ("nutrition_assessment", "栄養評価"),
         ("family_history", "家族歴"),
         ("social_history", "社会歴"),
+        # Issue #870 — ED / inpatient planning sections
+        ("ed_workup", "救急外来での評価"),
+        ("disposition", "転帰"),
+        ("treatment_plan", "治療計画"),
+        ("test_schedule", "検査予定"),
+        ("surgery_schedule", "手術予定"),
+        ("special_nutrition_management", "特別栄養管理"),
+        ("other_plans", "その他の計画"),
+        ("estimated_los", "予定入院期間"),
+        ("discharge_estimate", "退院見込み"),
+        ("explanation_consent", "説明と同意"),
+        # Issue #870 — Rehabilitation plan sections
+        ("session_frequency", "セッション頻度"),
+        ("rehab_team", "リハビリテーションチーム"),
+        ("policy", "方針"),
+        ("goals", "目標"),
+        ("functional_status", "機能状態"),
+        ("basic_movement", "基本動作"),
     ],
 )
 def test_localize_section_title_ja(slug: str, expected: str) -> None:
-    """Every slug flagged by iris4h-ai 2026-07-22 feedback resolves to a
+    """Every slug flagged by iris4h-ai (2026-07-22 + 2026-08-26 feedback) resolves to a
     Japanese clinical-chart display."""
     assert _localize_section_title(slug, "ja") == expected
 
@@ -119,6 +137,38 @@ def test_all_30_iris4h_ai_flagged_slugs_covered() -> None:
     )
 
 
+def test_all_iris4h_ai_2026_08_26_flagged_slugs_covered() -> None:
+    """Coverage guard for Issue #870: every slug flagged in the iris4h-ai
+    2026-08-26 deploy verify (JP p=10000 s500, 11,536 / 221,265 = 5.2%
+    Composition.section.title leaked English snake_case) has an entry in
+    ``_SECTION_TITLE_JA``. Same inventory-guard pattern as the 2026-07-22
+    coverage — protects against a future accidental delete or slug rename."""
+    iris4h_ai_2026_08_26_flagged_slugs = {
+        # ED / inpatient planning (top offenders, ~11,144 / 11,536 = 96.6%)
+        "ed_workup",
+        "disposition",
+        "treatment_plan",
+        "test_schedule",
+        "surgery_schedule",
+        "special_nutrition_management",
+        "other_plans",
+        "estimated_los",
+        "discharge_estimate",
+        "explanation_consent",
+        # Rehabilitation (49 records each)
+        "session_frequency",
+        "rehab_team",
+        "policy",
+        "goals",
+        "functional_status",
+        "basic_movement",
+    }
+    missing = iris4h_ai_2026_08_26_flagged_slugs - _SECTION_TITLE_JA.keys()
+    assert not missing, (
+        f"Slugs flagged by iris4h-ai 2026-08-26 feedback but missing from _SECTION_TITLE_JA: {sorted(missing)}"
+    )
+
+
 # === End-to-end via _build_composition_generic ===
 
 
@@ -157,3 +207,31 @@ def test_en_composition_section_titles_preserve_english_slugs() -> None:
     sections = {"hpi": "History of present illness."}
     res = _build_composition_generic(doc, sections, lang="en")
     assert res["section"][0]["title"] == "hpi"
+
+
+def test_issue_870_ed_and_rehab_sections_localize_ja() -> None:
+    """Issue #870 end-to-end: an ED-note-shaped `sections` dict and a
+    rehab-plan-shaped `sections` dict both yield 100% Japanese section
+    titles after this fix."""
+    ed_sections = {
+        "ed_workup": "ED workup content",
+        "disposition": "Discharge home",
+    }
+    res_ed = _build_composition_generic(_minimal_doc(), ed_sections, lang="ja")
+    assert [s["title"] for s in res_ed["section"]] == ["救急外来での評価", "転帰"]
+
+    rehab_sections = {
+        "goals": "ADL自立",
+        "session_frequency": "週3回",
+        "rehab_team": "PT/OT/ST",
+        "basic_movement": "端座位保持可",
+        "functional_status": "移乗要介助",
+    }
+    res_rehab = _build_composition_generic(_minimal_doc(), rehab_sections, lang="ja")
+    assert [s["title"] for s in res_rehab["section"]] == [
+        "目標",
+        "セッション頻度",
+        "リハビリテーションチーム",
+        "基本動作",
+        "機能状態",
+    ]
