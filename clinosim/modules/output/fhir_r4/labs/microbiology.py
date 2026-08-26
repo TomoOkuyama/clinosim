@@ -33,8 +33,12 @@ from clinosim.modules.output.fhir_r4.post_process.specimen import (
 # consumers (PR3b-3 stage-1 adversarial finding C4).
 MB_ORG_ID_PREFIX = "mb-org-"
 MB_SUS_ID_PREFIX = "mb-sus-"
-MB_SPECIMEN_ID_PREFIX = "spec-"
 MB_DR_ID_PREFIX = "dr-mb-"
+# `MB_SPECIMEN_ID_PREFIX` retired in PR-specimen (#882): the Specimen.id
+# emit now funnels through `SPECIMEN_ID_PREFIX` from
+# `post_process/specimen.py`. Downstream consumers that need to identify a
+# Specimen by id prefix use that constant (or the shared resolver +
+# `SPECIMEN_KEY_SYSTEM` identifier lookup).
 
 # === Issue #854 Bucket A row 4 (PR-obs-microbiology): opaque mb-org / mb-sus ids ===
 # Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 / #880.
