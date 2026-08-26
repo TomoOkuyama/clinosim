@@ -2272,6 +2272,37 @@ byte output but must document the change here.</p>
   (<code>obs-vs</code> / <code>obs-standalone</code> / <code>obs-microbiology</code>) at v0.5.0.
   (Issue #854 Bucket A row 4 — PR-obs-lab; continues PR #357 / #863 /
   #867 / #868 / #869 opaque-id pattern.)</li>
+<li>Vital-sign / GCS / NEWS2 <code>Observation.id</code> now emits opaque
+  <code>vs-&lt;12hex&gt;</code> (15 chars), <code>gcs-&lt;12hex&gt;</code> (16 chars), <code>news2-&lt;12hex&gt;</code>
+  (18 chars) instead of the pre-#854 compounds
+  <code>vs-{enc_or_patient}-{index:04d}-{suffix}</code> (~33-42 chars),
+  <code>gcs-{enc_or_patient}-{i}</code>, <code>news2-{enc_or_patient}-{i}</code>. Three new
+  PUBLIC key-system URIs — <code>urn:clinosim:identifier:vital-sign-observation-key</code>
+  (one system covers all 4 vs-* emit sites: per-parameter vitals,
+  BP-panel, AVPU <code>loc</code>, supplemental-oxygen <code>o2</code>),
+  <code>urn:clinosim:identifier:gcs-score-observation-key</code>, and
+  <code>urn:clinosim:identifier:news2-score-observation-key</code> — carry the
+  pre-#854 compound structural key on <code>Observation.identifier[]</code> for
+  round-trip. All three families are stand-alone (no cross-reference
+  cascade). Byte-output changes on ~15,314 vs / 3,989 gcs / 3,989 news2
+  Observation records on the p=200 sample (~827,244 vs + 211,928 gcs +
+  211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
+  at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
+  #863 / #867 / #868 / #869 / #878 opaque-id pattern.)</li>
+<li>13 stand-alone <code>Observation.id</code> families now emit opaque <code>&lt;prefix&gt;-&lt;12hex&gt;</code>
+  instead of the pre-#854 compounds. Nursing: <code>braden-*</code> / <code>morse-*</code> /
+  <code>barthel-*</code> / <code>intake-*</code> / <code>urine-*</code> / <code>output-*</code>. Demographics + SDOH:
+  <code>blood-abo-*</code> / <code>blood-rh-*</code> / <code>smoking-*</code> / <code>alcohol-*</code> /
+  <code>occupation-*</code>. Encounter + condition: <code>carelevel-*</code> / <code>codestatus-*</code>.
+  Each family owns its own PUBLIC <code>urn:clinosim:identifier:&lt;kind&gt;-observation-key</code>
+  URI carrying the pre-#854 compound structural key on
+  <code>Observation.identifier[]</code> for round-trip. All 13 families are
+  stand-alone (no cross-reference cascade). Byte-output changes on
+  ~5,845 records on the p=200 JP sample (~40k on JP p=10000 s500); MINOR
+  bump still batched at v0.5.0. This closes Bucket A row 4 alongside
+  PR-obs-lab / PR-obs-vs / PR-obs-microbiology. (Issue #854 Bucket A row
+  4 — PR-obs-standalone; continues PR #857 / #863 / #867 / #868 / #869 /
+  #878 / #879 opaque-id pattern.)</li>
 </ul>
 <h2 id="040---2026-08-26">[0.4.0] - 2026-08-26<a class="headerlink" href="#040---2026-08-26" title="Permanent link">&para;</a></h2>
 <p>MINOR bump — 4 opaque-id refactors (Device / DUS / Procedure / ServiceRequest + basedOn cascade)
