@@ -53,11 +53,11 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
 )
-
 
 # === Issue #854 Bucket B (PR-composition): opaque Composition.id ===
 # Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
@@ -78,8 +78,6 @@ def _resolve_composition_id(structural_key: str) -> str:
     """
     return derive_opaque_id(COMPOSITION_ID_PREFIX, structural_key)
 
-
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
 
 logger = logging.getLogger(__name__)
 
