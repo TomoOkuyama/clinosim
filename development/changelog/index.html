@@ -2289,6 +2289,24 @@ byte output but must document the change here.</p>
   211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
   at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
   #863 / #867 / #868 / #869 / #878 opaque-id pattern.)</li>
+<li>Microbiology <code>mb-org-*</code> (organism isolate) and <code>mb-sus-*</code> (per-antibiotic
+  susceptibility) <code>Observation.id</code> now emit opaque <code>mb-org-&lt;12hex&gt;</code> /
+  <code>mb-sus-&lt;12hex&gt;</code> (19 chars each, fixed) instead of the pre-#854 compounds
+  <code>mb-org-{enc or patient_id}-{i}</code> / <code>mb-sus-{enc or patient_id}-{i}-{j}</code>.
+  Two new PUBLIC key-system URIs — <code>urn:clinosim:identifier:mb-organism-observation-key</code>
+  and <code>urn:clinosim:identifier:mb-susceptibility-observation-key</code> — carry
+  the pre-#854 compound structural key on <code>Observation.identifier[]</code> for
+  round-trip. <code>DiagnosticReport.result[]</code> cross-references funnel through
+  the same resolvers so the reference edge stays byte-consistent by
+  construction (same reference-integrity guard as PR #878 lab). The
+  existing <code>HAI_EVENT_ID_SYSTEM</code> identifier is preserved alongside the
+  structural-key identifier (HAI cross-ref audit path still works).
+  Closes Bucket A row 4 for all Observation families (4 PRs total —
+  lab / vs+gcs+news2 / stand-alones / microbiology). Byte-output changes
+  on ~12 records on the p=200 sample (~1k on JP p=10000 s500); MINOR
+  bump still batched at v0.5.0. (Issue #854 Bucket A row 4 —
+  PR-obs-microbiology; continues PR #857 / #863 / #867 / #868 / #869 /
+  #878 / #879 / #880 opaque-id pattern.)</li>
 <li>13 stand-alone <code>Observation.id</code> families now emit opaque <code>&lt;prefix&gt;-&lt;12hex&gt;</code>
   instead of the pre-#854 compounds. Nursing: <code>braden-*</code> / <code>morse-*</code> /
   <code>barthel-*</code> / <code>intake-*</code> / <code>urine-*</code> / <code>output-*</code>. Demographics + SDOH:
