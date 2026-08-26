@@ -78,9 +78,13 @@ def test_pick_specimen_type_urine_from_coding_display():
 
 
 def test_build_companion_specimen_id_derived_from_observation_id():
+    """Issue #854 Bucket B (PR-specimen): id is opaque ``spec-<12hex>`` derived
+    from the parent Observation.id via the shared resolver."""
+    from clinosim.modules.output.fhir_r4.post_process.specimen import _resolve_specimen_id
+
     r = {"resourceType": "Observation", "id": "lab-enc-1-0000", "subject": {"reference": "Patient/pt1"}}
     s = _build_companion_specimen(r, country="US")
-    assert s["id"] == "spec-lab-enc-1-0000"
+    assert s["id"] == _resolve_specimen_id("lab-enc-1-0000")
 
 
 def test_build_companion_specimen_copies_subject():
@@ -143,6 +147,19 @@ def test_build_companion_specimen_status_available():
 
 
 def test_build_companion_specimen_has_identifier():
+    """Issue #854 Bucket B (PR-specimen): identifier[] carries both the
+    pre-#854 clinosim namespace (``urn:clinosim:specimen-id``, value = the
+    opaque id — pre-existing consumers keep working) AND the new
+    ``SPECIMEN_KEY_SYSTEM`` structural-key round-trip."""
+    from clinosim.modules.output.fhir_r4.post_process.specimen import (
+        SPECIMEN_KEY_SYSTEM,
+        _resolve_specimen_id,
+    )
+
     r = {"resourceType": "Observation", "id": "lab-enc-1-0000", "subject": {"reference": "Patient/pt1"}}
     s = _build_companion_specimen(r, country="US")
-    assert s["identifier"] == [{"system": "urn:clinosim:specimen-id", "value": "spec-lab-enc-1-0000"}]
+    expected_id = _resolve_specimen_id("lab-enc-1-0000")
+    assert s["identifier"] == [
+        {"system": "urn:clinosim:specimen-id", "value": expected_id},
+        {"system": SPECIMEN_KEY_SYSTEM, "value": "lab-enc-1-0000"},
+    ]
