@@ -26,6 +26,39 @@ from typing import Any
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.document import CLINICAL_IMPRESSION_ID_PREFIX
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+
+# === Issue #854 Bucket B (PR-clinical-impression): opaque ClinicalImpression.id ===
+# Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
+# #880 / #881 / #882 / #883 / #884 / #885 / #886 / #887. Structural key
+# = pre-#854 id body (with `ci-` prefix stripped) — the CIF-side
+# ``impression.impression_id`` shape is ``ci-{enc}-{day}``.
+CLINICAL_IMPRESSION_KEY_SYSTEM = structural_key_system("clinical-impression-key")
+
+
+def _resolve_clinical_impression_id(structural_key: str) -> str:
+    """Return the opaque FHIR ClinicalImpression.id from a structural key.
+
+    Shape: ``ci-{sha256(structural_key)[:12]}`` = 15 chars, fixed.
+    """
+    return derive_opaque_id(CLINICAL_IMPRESSION_ID_PREFIX, structural_key)
+
+
+def clinical_impression_id_for_cif_id(cif_impression_id: str) -> str:
+    """Convenience wrapper: opaque CI id from the CIF ``impression_id``."""
+    key = (
+        cif_impression_id.removeprefix(CLINICAL_IMPRESSION_ID_PREFIX)
+        if cif_impression_id.startswith(CLINICAL_IMPRESSION_ID_PREFIX)
+        else cif_impression_id
+    )
+    return _resolve_clinical_impression_id(key)
+
+
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 
 __all__ = [
@@ -72,11 +105,17 @@ def _build_clinical_impression(imp: Any, patient_id: str, country: str = "US") -
     # AD-32 snapshot semantics: the last day of an in-progress encounter is "in-progress".
     # All prior days (and all days of completed encounters) are "completed".
     is_in_progress = _o(imp, "is_in_progress", False)
+    # Issue #854 Bucket B (PR-clinical-impression): opaque CI.id.
+    # Structural key = pre-#854 id body (with `ci-` prefix stripped).
+    _ci_structural_key = (
+        impression_id.removeprefix(CLINICAL_IMPRESSION_ID_PREFIX)
+        if impression_id.startswith(CLINICAL_IMPRESSION_ID_PREFIX)
+        else impression_id
+    )
     res: dict[str, Any] = {
         "resourceType": "ClinicalImpression",
-        "id": impression_id
-        if impression_id.startswith(CLINICAL_IMPRESSION_ID_PREFIX)
-        else f"{CLINICAL_IMPRESSION_ID_PREFIX}{impression_id}",  # noqa: E501
+        "id": _resolve_clinical_impression_id(_ci_structural_key),
+        "identifier": [wrap_as_identifier(_ci_structural_key, CLINICAL_IMPRESSION_KEY_SYSTEM)],
         "status": "in-progress" if is_in_progress else "completed",
         "subject": {"reference": f"Patient/{patient_id}"},
     }
