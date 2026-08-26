@@ -44,6 +44,7 @@ def _order(lab_name: str, when: str, idx: int) -> dict:
     """Build a minimal CIF-shaped lab order with one result, for grouping tests."""
     return {
         "order_type": "lab",
+        "order_id": f"ORD-{lab_name}-{idx}",
         "order_code": lab_name,
         "display_name": lab_name,
         "result": {"lab_name": lab_name, "value": 1.0, "result_datetime": when},
