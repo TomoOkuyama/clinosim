@@ -400,10 +400,15 @@ def _build_encounter(
                     continue
                 if _ccode.split(".")[0] == _primary_base:
                     continue  # already emitted as primary rank=1
+                # Issue #854 Bucket B (PR-condition): route through the
+                # shared resolver so this reference stays byte-consistent
+                # with the chronic Condition emit.
+                from clinosim.modules.output.fhir_r4.conditions.primary_ref import chronic_condition_id
+
                 diagnosis_list.append(
                     {
                         "condition": {
-                            "reference": f"Condition/cond-chronic-{patient_id}-{_i:02d}",
+                            "reference": f"Condition/{chronic_condition_id(patient_id, _i)}",
                         },
                         "use": {
                             "coding": [

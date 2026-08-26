@@ -231,12 +231,18 @@ def _build_procedure(
     # primary encounters resolve to the patient-scoped chronic Condition;
     # acute-primary encounters keep the encounter-scoped id.
     if enc_id:
-        if record is not None:
-            from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
+        # Issue #854 Bucket B (PR-condition): route through the shared
+        # resolver so `.reasonReference[]` stays byte-consistent with the
+        # opaque Condition.id emit — no string reconstruction anywhere.
+        from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+            encounter_primary_condition_id,
+            primary_condition_ref,
+        )
 
+        if record is not None:
             _primary_ref = primary_condition_ref(record, patient_id, enc_id)
         else:
-            _primary_ref = f"cond-{enc_id}-primary"
+            _primary_ref = encounter_primary_condition_id(patient_id, enc_id)
         resource["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
     # session-88j P2-5a: Procedure.reasonCode with real ICD-10 coding from
     # the encounter's clinical_diagnosis (was text-only generic template

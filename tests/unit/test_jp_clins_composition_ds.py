@@ -337,8 +337,12 @@ def test_jp_clins_composition_required_entries_reference_correct_resources():
     assert entries[0]["reference"] == "Encounter/ENC-001"
 
     # 344 = diagnosesOnDischarge → Condition
+    # Issue #854 Bucket B (PR-condition): Condition.id is opaque, derive
+    # expected reference via the shared resolver.
+    from clinosim.modules.output.fhir_r4.conditions.primary_ref import encounter_primary_condition_id
+
     entries = children_by_code["344"]["entry"]
-    assert entries[0]["reference"] == "Condition/cond-ENC-001-primary"
+    assert entries[0]["reference"] == f"Condition/{encounter_primary_condition_id('POP-000001', 'ENC-001')}"
 
     # Non-required section: chief_complaint (352) — no entry emitted.
     assert "entry" not in children_by_code["352"]

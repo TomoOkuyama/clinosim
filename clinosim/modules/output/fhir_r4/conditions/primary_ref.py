@@ -33,6 +33,74 @@ the encounter-DD role purely through `Encounter.diagnosis[0].condition + use=DD`
 from __future__ import annotations
 
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+)
+
+# === Issue #854 Bucket B (PR-condition): opaque Condition.id ===
+# Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
+# #880 / #881 / #882. The Condition family has 2 structural-key shapes
+# (both pre-#854 id bodies without the ``cond-`` prefix) — the resolver
+# hashes whichever key the caller composes:
+#   - encounter-primary: ``{encounter_id}-primary`` (or ``{patient_id}-primary``
+#     when the encounter is missing an id — fallback used by outpatient /
+#     partial-record paths).
+#   - chronic: ``chronic-{patient_id}-{idx:02d}`` (patient-scoped so
+#     duplicated per-encounter emits collapse via the write() dedup).
+#
+# PUBLIC constants so downstream readers (Encounter.diagnosis[] walkers,
+# reasonReference readers across MR / Procedure / SR / DR, future audit
+# tooling) can import them for identifier-based lookup without string-
+# parsing the (now opaque) ``.id``.
+CONDITION_ID_PREFIX = "cond-"
+CONDITION_KEY_SYSTEM = structural_key_system("condition-key")
+
+
+def _resolve_condition_id(structural_key: str) -> str:
+    """Return the FHIR Condition.id for a Condition (Issue #854 Bucket B).
+
+    Shape: ``cond-{sha256(structural_key)[:12]}`` = 17 chars, fixed. The
+    ``cond-`` prefix retains the human-recognisable identity (URLs like
+    ``/Condition/cond-<hex>`` read as a Condition at a glance) —
+    consistent with the sibling resolvers introduced in
+    PR #863 / #867 / #868 / #869 / #878 / #879 / #880 / #881 / #882.
+
+    Structural keys (pre-#854 id body without ``cond-`` prefix):
+    - encounter-primary: ``{encounter_id}-primary`` (or
+      ``{patient_id}-primary`` when the encounter has no id).
+    - chronic problem-list: ``chronic-{patient_id}-{idx:02d}``.
+
+    Every cross-reference reader either funnels through
+    :func:`primary_condition_ref` / :func:`primary_condition_ref_from_codes`
+    (which apply this resolver internally) or, when it composes the
+    structural key locally (chronic-list walker, composition builder),
+    calls :func:`chronic_condition_id` / :func:`encounter_primary_condition_id`
+    below — never string-parses the id.
+    """
+    return derive_opaque_id(CONDITION_ID_PREFIX, structural_key)
+
+
+def encounter_primary_condition_key(patient_id: str, encounter_id: str) -> str:
+    """Structural key for an encounter's primary-diagnosis Condition."""
+    if encounter_id:
+        return f"{encounter_id}-primary"
+    return f"{patient_id}-primary"
+
+
+def chronic_condition_key(patient_id: str, idx: int) -> str:
+    """Structural key for the ``idx``-th chronic-condition list entry."""
+    return f"chronic-{patient_id}-{idx:02d}"
+
+
+def encounter_primary_condition_id(patient_id: str, encounter_id: str) -> str:
+    """Return the opaque Condition.id for an encounter's primary diagnosis."""
+    return _resolve_condition_id(encounter_primary_condition_key(patient_id, encounter_id))
+
+
+def chronic_condition_id(patient_id: str, idx: int) -> str:
+    """Return the opaque Condition.id for the ``idx``-th chronic condition."""
+    return _resolve_condition_id(chronic_condition_key(patient_id, idx))
 
 
 def _icd_base(code: str) -> str:
@@ -77,10 +145,8 @@ def primary_condition_ref(record: dict, patient_id: str, encounter_id: str) -> s
     base = _icd_base(str(dx_code))
     idx = _chronic_index_for_primary(record, base)
     if idx is not None:
-        return f"cond-chronic-{patient_id}-{idx:02d}"
-    if encounter_id:
-        return f"cond-{encounter_id}-primary"
-    return f"cond-{patient_id}-primary"
+        return chronic_condition_id(patient_id, idx)
+    return encounter_primary_condition_id(patient_id, encounter_id)
 
 
 def primary_condition_ref_from_codes(
@@ -101,10 +167,8 @@ def primary_condition_ref_from_codes(
     if base and chronic_condition_codes:
         for i, c_code in enumerate(chronic_condition_codes):
             if _icd_base(str(c_code or "")) == base:
-                return f"cond-chronic-{patient_id}-{i:02d}"
-    if encounter_id:
-        return f"cond-{encounter_id}-primary"
-    return f"cond-{patient_id}-primary"
+                return chronic_condition_id(patient_id, i)
+    return encounter_primary_condition_id(patient_id, encounter_id)
 
 
 def is_chronic_primary(record: dict) -> bool:
