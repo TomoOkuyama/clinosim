@@ -51,6 +51,20 @@ byte output but must document the change here.
   211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
   at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
   #863 / #867 / #868 / #869 / #878 opaque-id pattern.)
+- 13 stand-alone `Observation.id` families now emit opaque `<prefix>-<12hex>`
+  instead of the pre-#854 compounds. Nursing: `braden-*` / `morse-*` /
+  `barthel-*` / `intake-*` / `urine-*` / `output-*`. Demographics + SDOH:
+  `blood-abo-*` / `blood-rh-*` / `smoking-*` / `alcohol-*` /
+  `occupation-*`. Encounter + condition: `carelevel-*` / `codestatus-*`.
+  Each family owns its own PUBLIC `urn:clinosim:identifier:<kind>-observation-key`
+  URI carrying the pre-#854 compound structural key on
+  `Observation.identifier[]` for round-trip. All 13 families are
+  stand-alone (no cross-reference cascade). Byte-output changes on
+  ~5,845 records on the p=200 JP sample (~40k on JP p=10000 s500); MINOR
+  bump still batched at v0.5.0. This closes Bucket A row 4 alongside
+  PR-obs-lab / PR-obs-vs / PR-obs-microbiology. (Issue #854 Bucket A row
+  4 — PR-obs-standalone; continues PR #857 / #863 / #867 / #868 / #869 /
+  #878 / #879 opaque-id pattern.)
 
 ## [0.4.0] - 2026-08-26
 
