@@ -16,6 +16,11 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, build_presented_form, micro_coding
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
 
 # Canonical id prefixes for microbiology resources. Imported by readers
@@ -26,6 +31,38 @@ MB_ORG_ID_PREFIX = "mb-org-"
 MB_SUS_ID_PREFIX = "mb-sus-"
 MB_SPECIMEN_ID_PREFIX = "spec-"
 MB_DR_ID_PREFIX = "dr-mb-"
+
+# === Issue #854 Bucket A row 4 (PR-obs-microbiology): opaque mb-org / mb-sus ids ===
+# Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 / #880.
+#
+# mb-org (organism isolate) and mb-sus (per-antibiotic susceptibility)
+# Observations both carry a compound id embedding the encounter + culture
+# index. mb-sus additionally embeds the per-antibiotic index. Post-#854:
+#     mb-org-<12hex> (19 chars, fixed)
+#     mb-sus-<12hex> (19 chars, fixed)
+#
+# Cross-reference: DR.result[] references both by opaque id — funneled
+# through the same resolver so the reference edge stays byte-consistent
+# with the writer by construction (PR-90 silent-no-op defense).
+#
+# Structural keys = pre-#854 id bodies (without prefix):
+#     mb-org: ``{enc or patient_id}-{i}``
+#     mb-sus: ``{enc or patient_id}-{i}-{j}``  where j is the 0-based
+#             index into the per-culture ``susceptibilities`` list.
+#
+# PUBLIC constants so downstream readers (identifier[] round-trip, future
+# audit tooling) can import them.
+MB_ORG_KEY_SYSTEM = structural_key_system("mb-organism-observation-key")
+MB_SUS_KEY_SYSTEM = structural_key_system("mb-susceptibility-observation-key")
+
+
+def _resolve_mb_org_id(structural_key: str) -> str:
+    return derive_opaque_id(MB_ORG_ID_PREFIX, structural_key)
+
+
+def _resolve_mb_sus_id(structural_key: str) -> str:
+    return derive_opaque_id(MB_SUS_ID_PREFIX, structural_key)
+
 
 # JP Core DiagnosticReport_Microbiology profile constants (spec-pinned from
 # fhir-jp-validator/jp_core/package/
@@ -217,7 +254,10 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         _culture_method_text = "培養同定" if lang == "ja" else "Culture and identification"
         _sus_method_text = "感受性試験" if lang == "ja" else "Antimicrobial susceptibility testing"
 
-        org_id = f"{MB_ORG_ID_PREFIX}{base}"
+        # Issue #854 Bucket A row 4 (PR-obs-microbiology): opaque mb-org id.
+        _mb_org_structural_key = base
+        org_id = _resolve_mb_org_id(_mb_org_structural_key)
+        _mb_org_identifier = wrap_as_identifier(_mb_org_structural_key, MB_ORG_KEY_SYSTEM)
         org_obs: dict[str, Any] = {
             "resourceType": "Observation",
             "id": org_id,
@@ -234,8 +274,10 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             "specimen": {"reference": f"Specimen/{spec_id}"},
             "method": {"text": _culture_method_text},
         }
-        if hai_identifier:
-            org_obs["identifier"] = hai_identifier
+        # Structural-key identifier always present (Issue #854); HAI event
+        # identifier prepended when the culture belongs to a HAI event so
+        # PR3b-5's audit reader can still find it via HAI_EVENT_ID_SYSTEM.
+        org_obs["identifier"] = [*hai_identifier, _mb_org_identifier]
         if enc_ref:
             org_obs["encounter"] = enc_ref
         if mb.get("reported_datetime"):
@@ -262,7 +304,10 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
 
         for j, sus in enumerate(mb.get("susceptibilities") or []):
             interp = sus.get("interpretation", "")
-            sus_id = f"{MB_SUS_ID_PREFIX}{base}-{j}"
+            # Issue #854 Bucket A row 4 (PR-obs-microbiology): opaque mb-sus id.
+            _mb_sus_structural_key = f"{base}-{j}"
+            sus_id = _resolve_mb_sus_id(_mb_sus_structural_key)
+            _mb_sus_identifier = wrap_as_identifier(_mb_sus_structural_key, MB_SUS_KEY_SYSTEM)
             antibiotic_loinc = sus.get("antibiotic_loinc", "")
             sus_code_value, sus_code_system = resolve_susceptibility_code(antibiotic_loinc, ctx.country)
             # #321 JP_Observation_LabResult code.text min=1 満たす。
@@ -301,8 +346,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                     ]
                 },
             }
-            if hai_identifier:
-                sus_obs["identifier"] = hai_identifier
+            sus_obs["identifier"] = [*hai_identifier, _mb_sus_identifier]
             if enc_ref:
                 sus_obs["encounter"] = enc_ref
             # C1-13: pin effectiveDateTime to match the
