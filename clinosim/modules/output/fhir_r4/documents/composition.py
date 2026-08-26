@@ -212,6 +212,24 @@ _SECTION_TITLE_JA: dict[str, str] = {
     # Education / assessment
     "patient_education": "患者教育",
     "assessment_and_plan": "評価と計画",
+    # Issue #870 — ED / inpatient planning sections
+    "ed_workup": "救急外来での評価",
+    "disposition": "転帰",
+    "treatment_plan": "治療計画",
+    "test_schedule": "検査予定",
+    "surgery_schedule": "手術予定",
+    "special_nutrition_management": "特別栄養管理",
+    "other_plans": "その他の計画",
+    "estimated_los": "予定入院期間",
+    "discharge_estimate": "退院見込み",
+    "explanation_consent": "説明と同意",
+    # Issue #870 — Rehabilitation plan sections
+    "session_frequency": "セッション頻度",
+    "rehab_team": "リハビリテーションチーム",
+    "policy": "方針",
+    "goals": "目標",
+    "functional_status": "機能状態",
+    "basic_movement": "基本動作",
 }
 
 
