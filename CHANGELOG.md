@@ -18,6 +18,25 @@ byte output but must document the change here.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-27
+
+Issue #854 Bucket A + Bucket B closeout — every per-patient-event FHIR
+`Resource.id` now emits an opaque `sha256`-derived short id, and every
+downstream cross-reference resolves via a shared writer-owned helper. The
+pre-#854 compound key is preserved on each resource's `.identifier[]`
+under a per-kind `urn:clinosim:identifier:{resource}-key` system for
+round-trip. **LEAK ROOT** (`Encounter.id`) migrated — 33 emit sites
+across 22 modules re-routed through the shared `encounter_ref` helper.
+
+Byte-diff across the JP p=10000 s500 sample is comprehensive (every
+resource type that carries a compound-id or an `encounter.reference`);
+determinism holds by construction (SHA-256 is deterministic, same
+`(seed, config)` → identical opaque ids across runs).
+
+Remaining opaque-id work (`Patient.id` + Bucket C patient-scoped
+resources) is deferred to v0.6.0 or later — `Patient.id` requires a
+maintainer design call on external identity.
+
 ### Changed
 
 - **LEAK ROOT** — `Encounter.id` now emits opaque `enc-<12hex>` (16 chars,
