@@ -13,6 +13,27 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     build_diagnosis_codeable_concept,
     map_diagnosis_code,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+# === Issue #854 Bucket C (PR-family-member-history): opaque FMH.id ===
+# Structural key = pre-#854 id body `{patient_id}-{i:02d}` (`fmh-`
+# prefix stripped); post-#854 every `.id` is `fmh-<12hex>` (16 chars,
+# fixed). Stand-alone (no cross-ref cascade). Compound key round-trips
+# on `.identifier[]` under FAMILY_MEMBER_HISTORY_KEY_SYSTEM.
+FAMILY_MEMBER_HISTORY_ID_PREFIX = "fmh-"
+FAMILY_MEMBER_HISTORY_KEY_SYSTEM = structural_key_system("family-member-history-key")
+
+
+def _resolve_family_member_history_id(structural_key: str) -> str:
+    """Return the opaque FHIR FamilyMemberHistory.id from a structural key.
+
+    Shape: ``fmh-{sha256(structural_key)[:12]}`` = 16 chars, fixed.
+    """
+    return derive_opaque_id(FAMILY_MEMBER_HISTORY_ID_PREFIX, structural_key)
 
 
 def _build_relationship_codeable(rel: str, disp: dict[str, str], lang: str) -> dict[str, Any]:
@@ -91,9 +112,11 @@ def _bb_family_history(ctx: BundleContext) -> list[dict]:
     for i, fam in enumerate(fams):
         rel = _get(fam, "relationship", "")
         disp = rel_display.get(rel, {})
+        _fmh_structural_key = f"{ctx.patient_id}-{i:02d}"
         res: dict[str, Any] = {
             "resourceType": "FamilyMemberHistory",
-            "id": f"fmh-{ctx.patient_id}-{i:02d}",
+            "id": _resolve_family_member_history_id(_fmh_structural_key),
+            "identifier": [wrap_as_identifier(_fmh_structural_key, FAMILY_MEMBER_HISTORY_KEY_SYSTEM)],
             "status": "completed",
             "patient": {"reference": f"Patient/{ctx.patient_id}"},
             "relationship": _build_relationship_codeable(rel, disp, lang),
