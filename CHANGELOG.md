@@ -65,7 +65,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   #863 / #867 / #868 / #869 / #878 / #879 / #880 / #881 / #882 / #883 /
   #884 / #885 / #886 / #887 / #888 / #889 / #890 opaque-id pattern.)
 
-## [0.5.0] - 2026-08-27
+## [0.4.1] - 2026-08-27
 
 Issue #854 Bucket A + Bucket B closeout — every per-patient-event FHIR
 `Resource.id` now emits an opaque `sha256`-derived short id, and every
@@ -75,14 +75,23 @@ under a per-kind `urn:clinosim:identifier:{resource}-key` system for
 round-trip. **LEAK ROOT** (`Encounter.id`) migrated — 33 emit sites
 across 22 modules re-routed through the shared `encounter_ref` helper.
 
-Byte-diff across the JP p=10000 s500 sample is comprehensive (every
-resource type that carries a compound-id or an `encounter.reference`);
-determinism holds by construction (SHA-256 is deterministic, same
-`(seed, config)` → identical opaque ids across runs).
+The change is FHIR-emit-only: structured CIF is byte-unchanged and the
+narrative CIF from the previous `narrate` run stays valid. Under the
+CIF↔narrative-CIF-consistency versioning policy (documented above) this
+ships as PATCH.
 
-Remaining opaque-id work (`Patient.id` + Bucket C patient-scoped
-resources) is deferred to v0.6.0 or later — `Patient.id` requires a
-maintainer design call on external identity.
+Byte-diff across the JP p=10000 s500 sample is comprehensive on the FHIR
+side (every resource type that carries a compound-id or an
+`encounter.reference`); determinism holds by construction (SHA-256 is
+deterministic, same `(seed, config)` → identical opaque ids across runs).
+
+Remaining opaque-id work (`Patient.id` — row 18 of the plan) is deferred
+— it requires a maintainer design call on external identity.
+
+Note: this release was initially tagged as v0.5.0 on 2026-08-27 before
+the CIF↔narrative-CIF-consistency versioning policy was formally
+documented. The v0.5.0 tag has been retracted from remote and the
+release renumbered to v0.4.1 to align with the new policy.
 
 ### Changed
 
