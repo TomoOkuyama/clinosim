@@ -4,7 +4,7 @@ All notable changes to **clinosim** are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## Versioning policy (from v0.5.1 onward)
+## Versioning policy (from v0.4.0 onward)
 
 Version numbering is scoped to the **CIF ↔ narrative-CIF consistency
 contract**, since narrative CIF is generated from structured CIF via the
@@ -30,9 +30,12 @@ start, end, population)` tuple, the structured CIF must be byte-identical
 across PATCH-only releases within the same MINOR line. MINOR releases
 may change structured CIF but must document the drift here.
 
-Historical note: v0.5.0 and earlier used a simpler "CIF or FHIR
-byte-output change ⇒ MINOR" rule; version numbers up to v0.5.0 are not
-retroactively renumbered under the new policy.
+Historical note: releases before v0.4.0 used a simpler "CIF or FHIR
+byte-output change ⇒ MINOR" rule and are not retroactively renumbered.
+The initial v0.5.0 tag (2026-08-27, Issue #854 Bucket A+B closeout) was
+cut before this policy was formally documented and has been renumbered
+to v0.4.1 to align with the new policy — the Bucket A+B changes are
+FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
@@ -55,7 +58,7 @@ retroactively renumbered under the new policy.
   AllergyIntolerance (~1k) records on the JP p=10000 s500 sample.
   Structured CIF is byte-unchanged (opaque-id migration is FHIR-emit
   only) and narrative CIF is unaffected, so under the new versioning
-  policy this ships as PATCH at v0.5.1. Row 18 (`Patient.id`) deferred
+  policy this ships as a PATCH bump. Row 18 (`Patient.id`) deferred
   — the external identity contract with downstream consumers
   (iris4h-ai, HAPI validator, integration tests) requires a maintainer
   design decision. (Issue #854 Bucket C rows 14-17; continues PR #857 /
