@@ -1001,10 +1001,24 @@ def _build_discharge_medication_request(
         # Round-trip the compound structural key (NOT resource_id — the digest
         # is one-way). Consumers recover ``{encounter_id}-{seq:02d}`` from
         # identifier[] under MEDICATION_REQUEST_KEY_SYSTEM.
+        #
+        # p=500 review finding (session 89): the inpatient-orders MR
+        # builder (`_bb_medication_requests` in `lib/inline_bb.py`) uses
+        # `rpNumber="1"` with `orderInRp` counting 1..N per encounter.
+        # Prior to this fix, the discharge builder also used
+        # `rpNumber="1"` with its own `seq` counter restarting from 1,
+        # so on an inpatient encounter with both inpatient orders AND a
+        # discharge prescription the two MR sets produced colliding
+        # (rpNumber, orderInRp) pairs (e.g. both an inpatient MR and a
+        # discharge MR would have `(rp=1, orderInRp=3)`), violating the
+        # JP-CLINS `orderInRp` uniqueness expectation. Model the
+        # discharge prescription as a distinct Rp group (`rpNumber=2`)
+        # on inpatient encounters. Outpatient renewal has no inpatient
+        # orders to collide with, so `rpNumber=1` remains correct.
         **_build_medication_request_identifiers(
             _structural_key,
             country_code,
-            "1",
+            "2" if encounter_type == "inpatient" else "1",
             str(seq),
         ),
         "status": "active",

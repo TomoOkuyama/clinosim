@@ -72,6 +72,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   s=42 regen: 4,278 stripped-display section codes, 100% have JP
   `.text`. FHIR-emit-only, structured CIF unchanged, narrative CIF
   unaffected → **PATCH** under the new versioning policy.
+- Discharge MedicationRequest `identifier:rpNumber` is now `"2"` on
+  inpatient encounters (was uniformly `"1"`, colliding with the
+  inpatient-orders MR set that also uses `"1"`). Discovered via
+  post-Issue-#854-close p=500 review: on JP p=500 s=42, 42 (patient,
+  encounter) groups had duplicate `(rpNumber, orderInRp)` pairs because
+  the discharge builder restarted its `orderInRp` counter from `1`
+  while sharing `rpNumber=1` with the inpatient MRs, so an inpatient
+  MR and a discharge MR would both claim `(rp=1, orderInRp=3)`. Model
+  the discharge prescription as a distinct Rp group (`rpNumber=2`) on
+  inpatient encounters — the JP-CLINS `rpNumber` semantic
+  ("処方箋内 RP 番号 / 剤番号") accommodates multiple Rp groups within
+  one prescription. Outpatient renewal has no inpatient orders to
+  collide with, so `rpNumber=1` remains correct there. Verified against
+  JP p=500 s=42 regen: 0 duplicate `(rpNumber, orderInRp)` pairs
+  (previously 42 groups). FHIR-emit-only, structured CIF unchanged,
+  narrative CIF unaffected → **PATCH** under the new versioning policy.
 
 ### Changed
 
