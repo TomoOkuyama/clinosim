@@ -14,6 +14,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, resolve_lang
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -92,7 +93,7 @@ def _bb_device(ctx: BundleContext) -> list[dict]:
                 ],
                 "text": display,
             },
-            "patient": {"reference": f"Patient/{ctx.patient_id}"},
+            "patient": patient_ref(ctx.patient_id),
         }
         out.append(resource)
     return out
@@ -119,7 +120,7 @@ def _bb_device_use(ctx: BundleContext) -> list[dict]:
             "id": _resolve_device_use_statement_id(device_id),
             "identifier": [wrap_as_identifier(device_id, DEVICE_USE_STATEMENT_KEY_SYSTEM)],
             "status": "completed" if removal_date else "active",
-            "subject": {"reference": f"Patient/{ctx.patient_id}"},
+            "subject": patient_ref(ctx.patient_id),
             # Issue #854 Bucket A: device.reference goes through the SAME
             # _resolve_device_id derivation as Device.id so DUS→Device
             # cross-reference stays byte-consistent (pair by construction).

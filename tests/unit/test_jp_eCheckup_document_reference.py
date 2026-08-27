@@ -15,6 +15,7 @@ import base64
 
 import pytest
 
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 
 
@@ -174,7 +175,7 @@ def test_emit_docref_with_composition_relatesto():
     # encounter context
     assert r["context"]["encounter"][0]["reference"] == f"Encounter/{resolve_encounter_id('CHK-POP-000001-001')}"
     # subject
-    assert r["subject"]["reference"] == "Patient/POP-000001"
+    assert r["subject"]["reference"] == f"Patient/{resolve_patient_id('POP-000001')}"
 
 
 @pytest.mark.unit

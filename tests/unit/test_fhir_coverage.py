@@ -9,6 +9,7 @@ import pytest
 from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_coverage_resources,
     _build_patient,
+    resolve_patient_id,
 )
 
 _NATIONAL_ID = "123456789018"
@@ -53,7 +54,7 @@ class TestCoverageBuilder:
     def test_coverage_core_fields(self):
         cov = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP") if r["resourceType"] == "Coverage")
         assert cov["status"] == "active"
-        assert cov["beneficiary"]["reference"] == "Patient/POP-000001"
+        assert cov["beneficiary"]["reference"] == f"Patient/{resolve_patient_id('POP-000001')}"
         assert cov["payor"][0]["reference"] == "Organization/payer-01130012"
         assert cov["subscriberId"] == "1234:12345678"
         assert cov["dependent"] == "01"

@@ -15,6 +15,7 @@ from clinosim.modules.observation.microbiology import (
     generate_microbiology,
     has_microbiology,
 )
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 
 _DT = datetime(2024, 3, 1, 10, 0)
 
@@ -113,7 +114,7 @@ class TestFhirBuilder:
                 assert r["specimen"][0]["reference"] in ids
                 for ref in r["result"]:
                     assert ref["reference"] in ids
-                assert r["subject"]["reference"] == "Patient/POP-1"
+                assert r["subject"]["reference"] == f"Patient/{resolve_patient_id('POP-1')}"
 
     def test_no_growth_uses_value_string(self):
         # cellulitis often no growth; find a no-growth culture deterministically across seeds

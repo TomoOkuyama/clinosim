@@ -8,6 +8,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.code_status.engine import load_reference
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, survey_category
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -58,7 +59,7 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
         "status": "final",
         "category": survey_category(),
         "code": {"coding": [_coding(observable)]},
-        "subject": {"reference": f"Patient/{ctx.patient_id}"},
+        "subject": patient_ref(ctx.patient_id),
         "valueCodeableConcept": {"coding": [_coding(code)]},
     }
     if enc:

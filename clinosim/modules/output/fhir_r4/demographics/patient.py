@@ -38,6 +38,50 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import _ALLERGEN_RXNORM
 
+# === Issue #854 Bucket C row 18 (PR-patient): opaque Patient.id ===
+# Structural key = the CIF ``patient_id`` verbatim (`POP-{n:06d}`, a
+# simulation-generation-artifact slug, not a clinical identifier).
+# Post-#854 every FHIR Patient.id is ``pt-<12hex>`` (15 chars, fixed);
+# `POP-{n}` is preserved on `Patient.identifier[]` under the
+# POPULATION_SLUG_KEY_SYSTEM so consumers who key on the human-readable
+# generation slug (iris4h-ai clinical cockpit, integration tests) can
+# still recover it. Every downstream `f"Patient/{patient_id}"` site is
+# routed through `patient_ref` — never string-format the CIF value
+# directly.
+PATIENT_ID_PREFIX = "pt-"
+POPULATION_SLUG_KEY_SYSTEM = structural_key_system("population-slug")
+
+
+def resolve_patient_id(cif_patient_id: str) -> str:
+    """Return the opaque FHIR Patient.id for a CIF ``patient_id``.
+
+    Shape: ``pt-{sha256(cif_patient_id)[:12]}`` = 15 chars, fixed.
+
+    Empty ``cif_patient_id`` returns an empty string rather than raising —
+    the empty upstream is a data-quality bug the caller should surface,
+    but the FHIR emit layer preserves the pre-#854 behaviour of emitting
+    an empty reference so downstream FHIR-validator gates can flag it as
+    an integrity violation (rule
+    ``feedback_empty_vs_wrong_assertion`` — 空欄は無知).
+    """
+    if not cif_patient_id:
+        return ""
+    return derive_opaque_id(PATIENT_ID_PREFIX, cif_patient_id)
+
+
+def patient_ref(cif_patient_id: str) -> dict[str, str]:
+    """Return a FHIR ``Reference`` dict pointing at the opaque Patient id.
+
+    All emit sites that need ``{"reference": f"Patient/{...}"}`` must
+    route through this helper — never string-format the CIF
+    ``patient_id`` directly into the reference slot. Empty
+    ``cif_patient_id`` yields ``{"reference": "Patient/"}`` — a broken
+    reference matching pre-#854 behaviour so downstream FHIR-integrity
+    audits keep catching it.
+    """
+    return {"reference": f"Patient/{resolve_patient_id(cif_patient_id)}"}
+
+
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque occupation id ===
 # Structural key = pre-#854 id body (patient id).
 OCCUPATION_ID_PREFIX = "occupation-"
@@ -189,8 +233,8 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
             # Person record, we point to the patient themselves (matches
             # subscriberId derivation above and passes FHIR R4 conformance —
             # subscriber is 0..1 Reference to Patient|RelatedPerson).
-            "subscriber": {"reference": f"Patient/{pid}"},
-            "beneficiary": {"reference": f"Patient/{pid}"},
+            "subscriber": patient_ref(pid),
+            "beneficiary": patient_ref(pid),
             "payor": [{"reference": f"Organization/{payer_org_id}"}],
         }
         if cfg.get("profile"):
@@ -371,7 +415,11 @@ def _build_patient(p: dict, country: str) -> dict:
     )
     resource: dict[str, Any] = {
         "resourceType": "Patient",
-        "id": pid,
+        # Issue #854 Bucket C row 18 (PR-patient): opaque `pt-<12hex>` id.
+        # The CIF `patient_id` = ``POP-{n:06d}`` slug is preserved on
+        # `.identifier[]` under POPULATION_SLUG_KEY_SYSTEM for
+        # round-trip / consumer lookup.
+        "id": resolve_patient_id(pid),
         # C2-20: declare JP Core Patient conformance
         # for JP exports. US export intentionally omits — no US Core profile
         # is asserted (a separate roadmap item).
@@ -422,7 +470,12 @@ def _build_patient(p: dict, country: str) -> dict:
                 "system": mrn_system,
                 "value": pid,
                 "assigner": {"reference": "Organization/hospital-main"},
-            }
+            },
+            # Issue #854 PR-patient: preserve the CIF simulation-slug
+            # `POP-{n}` on identifier[] so consumers keyed on the
+            # human-readable generation id can recover it after the
+            # `.id` opaque migration.
+            wrap_as_identifier(pid, POPULATION_SLUG_KEY_SYSTEM),
         ],
         "active": True,
         "name": names,
@@ -596,7 +649,7 @@ def _build_occupation_observation(
             ],
             "text": "職業" if is_jp(country) else "Occupation",
         },
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         "valueCodeableConcept": {
             "coding": [
                 {
@@ -672,6 +725,6 @@ def _build_allergy_intolerance(
         "category": ["medication"],
         "criticality": criticality,
         "code": code,
-        "patient": {"reference": f"Patient/{patient_id}"},
+        "patient": patient_ref(patient_id),
         "reaction": [reaction],
     }
