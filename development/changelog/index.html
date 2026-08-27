@@ -2289,6 +2289,122 @@ byte output but must document the change here.</p>
   211,928 news2 on the JP p=10000 s500 sample); MINOR bump still batched
   at v0.5.0. (Issue #854 Bucket A row 4 — PR-obs-vs; continues PR #857 /
   #863 / #867 / #868 / #869 / #878 opaque-id pattern.)</li>
+<li><code>Composition.id</code> now emits opaque <code>comp-&lt;12hex&gt;</code> (17 chars, fixed)
+  across both emit paths (general via <code>_build_composition_generic</code> +
+  radiology via <code>_build_imaging_report_composition</code>). Composition.identifier
+  is 0..1 in FHIR R4 and JP-CLINS eDS/eReferral pins its <code>.system</code> to the
+  JP resource-instance URI, so a structural-key round-trip identifier
+  cannot be attached — callers needing the pre-#854 id must derive it
+  deterministically via <code>_resolve_composition_id(structural_key)</code>; the
+  existing single <code>Composition.identifier.value</code> slot continues to carry
+  the opaque <code>.id</code>. Structural keys:<ul>
+<li>general: pre-#854 id body (CIF-doc-id body with <code>doc-</code> prefix
+  stripped)</li>
+<li>radiology imgrpt: <code>{encounter_id}-imgrpt-{seq}</code>
+  Cross-reference migrated: <code>DocumentReference.relatesTo[].target.reference</code>
+  in the health-checkup DR builder now routes through the shared
+  <code>_resolve_composition_id</code> helper. Byte-output changes on the
+  Composition NDJSON slice (~969 records on p=200 JP, ~51,967 records
+  on JP p=10000 s500); MINOR bump still batched at v0.5.0. (Issue #854
+  Bucket B — PR-composition; continues PR #857 / #863 / #867 / #868 /
+  #869 / #878 / #879 / #880 / #881 / #882 / #883 / #884 / #885 / #886
+  opaque-id pattern.)</li>
+</ul>
+</li>
+<li><code>DocumentReference.id</code> now emits opaque <code>doc-&lt;12hex&gt;</code> (16 chars, fixed)
+  instead of the pre-#854 compound <code>doc-{encounter_id}-{task_type}</code> set
+  on the CIF-side <code>doc.document_id</code>. New PUBLIC constant
+  <code>DOCUMENT_REFERENCE_KEY_SYSTEM = "urn:clinosim:identifier:document-reference-key"</code>
+  carries the pre-#854 structural key on <code>DocumentReference.identifier[]</code>
+  alongside the pre-existing <code>urn:clinosim:documentreference-id</code>
+  identifier. Cross-references migrated: <code>DR.relatesTo[].target.reference</code>
+  (sibling DR chain for <code>appends</code>) routes through the new
+  <code>document_reference_id_for_cif_doc_id</code> helper; <code>Composition.section[].entry</code>
+  populated by <code>_bb_compositions</code>' <code>enc_to_free_text</code> precomputed map,
+  now stores the OPAQUE id instead of the CIF-doc-id compound. The CIF-
+  side <code>doc.document_id</code> field itself is unchanged. Byte-output changes
+  on the DocumentReference NDJSON slice + every cross-ref site (~904
+  records on p=200 JP, ~57,166 records on JP p=10000 s500); MINOR bump
+  still batched at v0.5.0. (Issue #854 Bucket B — PR-document-reference;
+  continues PR #857 / #863 / #867 / #868 / #869 / #878 / #879 / #880 /
+  #881 / #882 / #883 / #884 / #885 opaque-id pattern.)</li>
+<li><code>ImagingStudy.id</code> now emits opaque <code>imgst-&lt;12hex&gt;</code> (18 chars, fixed)
+  instead of the pre-#854 compound <code>imgst-{encounter_id}-{idx}</code> set on
+  the CIF-side <code>study.study_id</code>. New PUBLIC constant
+  <code>IMAGING_STUDY_KEY_SYSTEM = "urn:clinosim:identifier:imaging-study-key"</code>
+  carries the pre-#854 structural key on <code>ImagingStudy.identifier[]</code>
+  alongside the pre-existing <code>urn:dicom:uid</code> identifier. Cross-references
+  (<code>DiagnosticReport.imagingStudy[]</code>, <code>DR.media[].link</code>) migrated to
+  route through the shared <code>imaging_study_id_for_cif_study_id</code> helper —
+  every reference site derives the opaque id from the same CIF
+  <code>study.study_id</code> the writer uses, byte-consistent by construction.
+  The CIF <code>study.study_id</code> field itself is unchanged (<code>imgst-{enc}-{idx}</code>),
+  preserving the 1:1 pairing with <code>report.report_id = imgrpt-{enc}-{idx}</code>
+  that consumers rely on for radiology-report ↔ study joining. Byte-
+  output changes on the ImagingStudy NDJSON slice + every cross-ref
+  site (~65 records on p=200 JP, ~4,735 records on JP p=10000 s500);
+  MINOR bump still batched at v0.5.0. (Issue #854 Bucket B —
+  PR-imaging-study; continues PR #857 / #863 / #867 / #868 / #869 /
+  #878 / #879 / #880 / #881 / #882 / #883 / #884 opaque-id pattern.)</li>
+<li><code>DiagnosticReport.id</code> now emits opaque across all 3 emit paths — each
+  family keeps its historical prefix so consumers filtering by
+  <code>.startswith("dr-mb-")</code> / <code>.startswith("imgrpt-")</code> keep working:
+  lab-panel <code>dr-&lt;12hex&gt;</code> (15 chars), microbiology <code>dr-mb-&lt;12hex&gt;</code> (18
+  chars), radiology <code>imgrpt-&lt;12hex&gt;</code> (19 chars). Three PUBLIC key-system
+  URIs (<code>urn:clinosim:identifier:lab-panel-diagnostic-report-key</code> /
+  <code>mb-diagnostic-report-key</code> / <code>radiology-diagnostic-report-key</code>) carry
+  the pre-#854 compound structural key on <code>DiagnosticReport.identifier[]</code>
+  for round-trip. DR is a leaf resource on the p=200 sample (nothing
+  references DR.id back) so no cross-ref cascade guard needed — the
+  <code>imaging_report.py</code> Composition builder still uses the CIF-side
+  <code>report.report_id</code> (unchanged) for seq extraction. Byte-output changes
+  on the DR NDJSON slice (~715 records on p=200 JP, ~42,514 records on
+  JP p=10000 s500); MINOR bump still batched at v0.5.0. (Issue #854
+  Bucket B — PR-diagnostic-report; continues PR #857 / #863 / #867 /
+  #868 / #869 / #878 / #879 / #880 / #881 / #882 / #883 opaque-id
+  pattern.)</li>
+<li><code>Condition.id</code> now emits opaque <code>cond-&lt;12hex&gt;</code> (17 chars, fixed) instead
+  of the pre-#854 compounds <code>cond-{encounter_id}-primary</code> (encounter-
+  diagnosis path) and <code>cond-chronic-{patient_id}-{i:02d}</code> (chronic
+  problem-list path). New PUBLIC constant <code>CONDITION_KEY_SYSTEM =
+  "urn:clinosim:identifier:condition-key"</code> carries the pre-#854
+  structural key on <code>Condition.identifier[]</code> for round-trip. Resolver
+  helpers <code>encounter_primary_condition_id</code> / <code>chronic_condition_id</code> /
+  <code>_resolve_condition_id</code> in <code>conditions/primary_ref.py</code> — the existing
+  <code>primary_condition_ref()</code> / <code>primary_condition_ref_from_codes()</code> public
+  helpers now return the opaque id, so every downstream reader that goes
+  through them (Encounter.reasonReference + Encounter.diagnosis[] +
+  Procedure.reasonReference + MedicationRequest.reasonReference +
+  ClinicalImpression.finding[] + Composition.section[].entry via the
+  precomputed enc_to_primary_cond map) inherits opaque cross-refs
+  automatically. Four inline compound builders migrated
+  (procedures.py fallback, encounter.py chronic-fan-out,
+  composition.py unit-test fallback). Byte-output changes on the
+  Condition NDJSON slice + every cascade site (~776 records on p=200 JP,
+  ~39,179 records on JP p=10000 s500); MINOR bump still batched at
+  v0.5.0. Largest single Bucket B PR by touched-file count. (Issue #854
+  Bucket B — PR-condition; continues PR #857 / #863 / #867 / #868 /
+  #869 / #878 / #879 / #880 / #881 / #882 opaque-id pattern.)</li>
+<li><code>Specimen.id</code> now emits opaque <code>spec-&lt;12hex&gt;</code> (17 chars, fixed) instead
+  of the pre-#854 compounds <code>spec-{enc or patient_id}-{i}</code> (microbiology
+  cultures) and <code>spec-lab-{obs_id_body}</code> (companion post-process). Both
+  producers — <code>labs/microbiology.py::_bb_microbiology</code> and
+  <code>post_process/specimen.py::_build_companion_specimen</code> — funnel through
+  a shared <code>_resolve_specimen_id</code> resolver. New PUBLIC constant
+  <code>SPECIMEN_KEY_SYSTEM = "urn:clinosim:identifier:specimen-key"</code> carries
+  the pre-#854 structural key on <code>Specimen.identifier[]</code> for round-trip
+  (existing <code>urn:clinosim:specimen-id</code> clinosim-internal identifier
+  preserved alongside; existing <code>urn:clinosim:identifier:hai-event-id</code>
+  HAI identifier on microbiology Specimens preserved). Cross-references
+  (<code>Observation.specimen</code>, <code>DiagnosticReport.specimen[]</code>) receive
+  <code>spec_id</code> via variable propagation from the emit site, so
+  reference-integrity is preserved by construction — no cross-ref site
+  needs touching. Byte-output changes on the Specimen NDJSON slice
+  (~4,271 records on p=200 JP sample, ~243,803 records on JP p=10000 s500
+  per Issue #854); MINOR bump still batched at v0.5.0. This is the first
+  per-type PR of Bucket B. (Issue #854 Bucket B — PR-specimen; continues
+  PR #857 / #863 / #867 / #868 / #869 / #878 / #879 / #880 / #881
+  opaque-id pattern.)</li>
 <li>Microbiology <code>mb-org-*</code> (organism isolate) and <code>mb-sus-*</code> (per-antibiotic
   susceptibility) <code>Observation.id</code> now emit opaque <code>mb-org-&lt;12hex&gt;</code> /
   <code>mb-sus-&lt;12hex&gt;</code> (19 chars each, fixed) instead of the pre-#854 compounds
