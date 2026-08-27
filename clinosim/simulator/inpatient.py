@@ -626,7 +626,33 @@ def _simulate_patient(
     _SEX_RESTRICTED_ICD = {
         "N40": "M",  # Benign prostatic hyperplasia — male only
     }
+    # p=500 review finding (session 89): the implied-chronic table was
+    # applying age-restricted chronic diseases (COPD, dementia, etc.) to
+    # minors. E.g. a 6-year-old with `bacterial_pneumonia` was picking up
+    # J44 (COPD) as a chronic condition, which is clinically implausible
+    # (COPD is adult-onset). Register a minimum-age gate per code
+    # mirroring `_SEX_RESTRICTED_ICD`. Ages match the demographics.yaml
+    # `chronic_prevalence` lower bound so the implied path matches the
+    # random-assignment path's clinical realism envelope.
+    _AGE_MIN_ICD = {
+        "J44": 40,  # COPD — adult-onset
+        "N18": 60,  # CKD stage 3+ — elderly prevalence
+        "I10": 25,  # Essential hypertension — rare in minors
+        "I25": 40,  # Chronic ischemic heart disease
+        "I48": 40,  # Atrial fibrillation
+        "I50": 40,  # Heart failure
+        "E11": 15,  # Type 2 DM — extremely rare pre-teen
+        "E11.9": 15,
+        "M17": 40,  # Knee OA — degenerative
+        "M81": 50,  # Osteoporosis
+        "F00": 60,  # Dementia (Alzheimer's) — elderly
+        "F03": 60,  # Unspecified dementia
+        "G20": 40,  # Parkinson's — adult-onset
+        "N40": 40,  # BPH — adult male
+        "K74": 30,  # Chronic liver disease/cirrhosis
+    }
     _patient_sex = str(getattr(patient, "sex", "") or "").upper()[:1]
+    _patient_age = int(getattr(patient, "age", 0) or 0)
     _implied = _IMPLIED_CHRONIC_BY_DISEASE.get(disease_id, [])
     if _implied:
         from clinosim.types.patient import ChronicCondition
@@ -639,6 +665,9 @@ def _simulate_patient(
             _sex_req = _SEX_RESTRICTED_ICD.get(_base)
             if _sex_req and _patient_sex and _sex_req != _patient_sex:
                 continue  # skip sex-restricted ICD for the wrong sex
+            _min_age = _AGE_MIN_ICD.get(_base)
+            if _min_age is not None and _patient_age < _min_age:
+                continue  # skip age-restricted ICD for younger patients
             _existing_codes.add(_base)
             patient.chronic_conditions.append(
                 ChronicCondition(
