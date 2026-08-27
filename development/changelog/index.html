@@ -2256,6 +2256,21 @@ start, end, population)</code> tuple, output NDJSON must be byte-identical acros
 PATCH-only releases within the same MINOR line. MINOR releases may change
 byte output but must document the change here.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="050---2026-08-27">[0.5.0] - 2026-08-27<a class="headerlink" href="#050---2026-08-27" title="Permanent link">&para;</a></h2>
+<p>Issue #854 Bucket A + Bucket B closeout — every per-patient-event FHIR
+<code>Resource.id</code> now emits an opaque <code>sha256</code>-derived short id, and every
+downstream cross-reference resolves via a shared writer-owned helper. The
+pre-#854 compound key is preserved on each resource's <code>.identifier[]</code>
+under a per-kind <code>urn:clinosim:identifier:{resource}-key</code> system for
+round-trip. <strong>LEAK ROOT</strong> (<code>Encounter.id</code>) migrated — 33 emit sites
+across 22 modules re-routed through the shared <code>encounter_ref</code> helper.</p>
+<p>Byte-diff across the JP p=10000 s500 sample is comprehensive (every
+resource type that carries a compound-id or an <code>encounter.reference</code>);
+determinism holds by construction (SHA-256 is deterministic, same
+<code>(seed, config)</code> → identical opaque ids across runs).</p>
+<p>Remaining opaque-id work (<code>Patient.id</code> + Bucket C patient-scoped
+resources) is deferred to v0.6.0 or later — <code>Patient.id</code> requires a
+maintainer design call on external identity.</p>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>LEAK ROOT</strong> — <code>Encounter.id</code> now emits opaque <code>enc-&lt;12hex&gt;</code> (16 chars,
