@@ -39,6 +39,24 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- Chronic-condition age gate on implied-chronic assignment
+  (`simulator/inpatient.py::_IMPLIED_CHRONIC_BY_DISEASE`). Discovered
+  via post-Issue-#854-close p=500 review: 6- and 7-year-old male
+  patients were being assigned `J44` (COPD) as a chronic condition
+  because the `bacterial_pneumonia` → COPD implied-chronic path had
+  only a sex gate (`N40` BPH male-only), no age gate. Now every
+  age-restricted ICD code (COPD / CKD / heart failure / dementia /
+  Parkinson's / atrial fibrillation / hypertension / Type 2 DM /
+  osteoporosis / knee OA / BPH / chronic liver disease) has a
+  minimum-age gate mirroring the `demographics.yaml chronic_prevalence`
+  lower bounds. Verified against JP p=500 s=42 regen: 61 minors, 0
+  age-restricted chronic conditions (previously 2 minors had J44 COPD).
+  Structured CIF changes on affected minor records (`chronic_conditions`
+  list); narrative CIF referencing those records will regenerate —
+  **MINOR** bump under the new versioning policy.
+
 ### Changed
 
 - **Issue #854 CLOSE** — `Patient.id` now emits opaque `pt-<12hex>`
