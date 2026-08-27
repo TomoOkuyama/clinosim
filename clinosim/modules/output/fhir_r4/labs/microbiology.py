@@ -158,6 +158,15 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     lang = resolve_lang(ctx.country)
     subject = patient_ref(ctx.patient_id)
     enc_ref = encounter_ref(ctx.primary_enc_id) if ctx.primary_enc_id else None
+    # p=500 review finding (session 89): populate `.text` so the JP
+    # post-process normalizer (`_normalize_jp_observation_category`)
+    # carries a JP-language label forward on mb-org Observations. The
+    # normalizer swaps coding.system to JP_SimpleObservationCategory_CS
+    # (which by design omits `.display`) and copies any `.text` hint from
+    # the original category — without a text hint here, mb-org
+    # Observations end up with a bare `{system, code}` category and no
+    # human-readable label at all.
+    _lab_category_text = "検査" if is_jp(ctx.country) else "Laboratory"
     lab_category = [
         {
             "coding": [
@@ -166,7 +175,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                     "code": "laboratory",
                     "display": "Laboratory",
                 }
-            ]
+            ],
+            "text": _lab_category_text,
         }
     ]
     # CY6-03 (Chain-6): microbiology DR performer — encounter attending

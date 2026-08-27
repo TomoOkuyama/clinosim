@@ -88,6 +88,21 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   JP p=500 s=42 regen: 0 duplicate `(rpNumber, orderInRp)` pairs
   (previously 42 groups). FHIR-emit-only, structured CIF unchanged,
   narrative CIF unaffected → **PATCH** under the new versioning policy.
+- mb-org / mb-sus Observation `.category[].text` is now populated
+  (previously absent, so the JP `_normalize_jp_observation_category`
+  post-process swap left the category with a bare `{system, code}`
+  pair and no user-facing label). Discovered via post-Issue-#854-close
+  p=500 review: 59/87,627 (0.07%) `JP_SimpleObservationCategory_CS`
+  category entries lacked `.text` — all localized to microbiology
+  Observations (mb-org / mb-sus) whose emitter set `coding.display` but
+  omitted the parent CodeableConcept `.text`. Now `microbiology.py`
+  populates `.text` on the lab category with a locale-appropriate
+  label ("検査" on JP, "Laboratory" on US) so the post-process
+  normalizer carries it forward. Verified against JP p=200 s=42 regen:
+  all 46/46 mb-* Observation categories have `.text` (previously all
+  46 lacked it). FHIR-emit-only, structured CIF byte-unchanged,
+  narrative CIF unaffected → **PATCH** under the new versioning
+  policy.
 
 ### Changed
 
