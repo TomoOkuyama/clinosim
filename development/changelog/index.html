@@ -2291,6 +2291,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   Structured CIF changes on affected minor records (<code>chronic_conditions</code>
   list); narrative CIF referencing those records will regenerate —
   <strong>MINOR</strong> bump under the new versioning policy.</li>
+<li><code>Composition.section.code</code> now carries <code>.text</code> alongside the LOINC
+  <code>.coding[].display</code>. Discovered via post-Issue-#854-close p=500
+  review: 11,050 section codes on the JP p=500 s=42 sample had their
+  <code>coding.display</code> (JP) stripped by the
+  <code>_strip_japanese_display_on_english_only_systems</code> post-process
+  walker but no sibling <code>.text</code> on the CodeableConcept, so JP
+  consumers were left with a bare LOINC code and no user-facing
+  label. Fixed at both emit sites:
+  <code>_build_composition_generic</code> (general Composition) and
+  <code>_build_radiology_imaging_report_composition</code> (imaging report
+  Findings / Impression sections). Now the dual-slot pattern
+  (<code>coding.display</code> may be stripped by locale walker; <code>text</code> carries
+  the locale display) holds throughout. Verified against JP p=200
+  s=42 regen: 4,278 stripped-display section codes, 100% have JP
+  <code>.text</code>. FHIR-emit-only, structured CIF unchanged, narrative CIF
+  unaffected → <strong>PATCH</strong> under the new versioning policy.</li>
 </ul>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
