@@ -2,19 +2,37 @@
 
 All notable changes to **clinosim** are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-- **MAJOR** — incompatible API / CIF / FHIR schema changes.
-- **MINOR** — backward-compatible feature additions (new modules, new resource
-  types, additional locale support).
-- **PATCH** — backward-compatible bug fixes, data-quality corrections that do
-  not change the CIF/FHIR schema.
+## Versioning policy (from v0.5.1 onward)
+
+Version numbering is scoped to the **CIF ↔ narrative-CIF consistency
+contract**, since narrative CIF is generated from structured CIF via the
+`narrate` pipeline and downstream consumers key on both together.
+
+- **MINOR bump (`0.n` → `0.(n+1)`)** — the change **breaks CIF ↔
+  narrative-CIF consistency**. An existing narrative CIF is no longer
+  valid against the new structured CIF (schema drift, field
+  add/remove/rename, semantic value change, RNG cascade). A fresh
+  `narrate` run is required to restore consistency.
+- **PATCH bump (`0.n.x` → `0.n.(x+1)`)** — the change **preserves CIF ↔
+  narrative-CIF consistency**. Structured CIF is byte-unchanged (or
+  changes only in fields that the narrative CIF does not surface), so
+  the existing narrative CIF still holds. FHIR-emit-only changes,
+  opaque-id migrations, bug fixes that leave CIF intact, downstream
+  format changes.
+- **MAJOR bump** — reserved for incompatible API changes at the Python
+  module boundary (import path removals, function signature breaks).
+  CIF/FHIR schema changes without API breaks stay at MINOR.
 
 Determinism guarantee: for a given `(seed, hospital_config, country,
-start, end, population)` tuple, output NDJSON must be byte-identical across
-PATCH-only releases within the same MINOR line. MINOR releases may change
-byte output but must document the change here.
+start, end, population)` tuple, the structured CIF must be byte-identical
+across PATCH-only releases within the same MINOR line. MINOR releases
+may change structured CIF but must document the drift here.
+
+Historical note: v0.5.0 and earlier used a simpler "CIF or FHIR
+byte-output change ⇒ MINOR" rule; version numbers up to v0.5.0 are not
+retroactively renumbered under the new policy.
 
 ## [Unreleased]
 
@@ -34,8 +52,10 @@ byte output but must document the change here.
   pre-existing JP member-id composite (`保険者番号:記号:番号:枝番`) —
   both consumers keep working. Byte-output changes on Immunization
   (~29k) / FamilyMemberHistory (~19k) / Coverage (~7k) /
-  AllergyIntolerance (~1k) records on the JP p=10000 s500 sample;
-  MINOR bump will be batched at v0.6.0. Row 18 (`Patient.id`) deferred
+  AllergyIntolerance (~1k) records on the JP p=10000 s500 sample.
+  Structured CIF is byte-unchanged (opaque-id migration is FHIR-emit
+  only) and narrative CIF is unaffected, so under the new versioning
+  policy this ships as PATCH at v0.5.1. Row 18 (`Patient.id`) deferred
   — the external identity contract with downstream consumers
   (iris4h-ai, HAPI validator, integration tests) requires a maintainer
   design decision. (Issue #854 Bucket C rows 14-17; continues PR #857 /
