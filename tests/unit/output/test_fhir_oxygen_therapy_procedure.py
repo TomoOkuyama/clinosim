@@ -20,6 +20,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
     _bb_oxygen_therapy,
     is_oxygen_order,
@@ -258,7 +259,7 @@ def test_procedure_encounter_reference_and_reason():
 
     ctx = _ctx(_record_with_o2_session(encounter_id="ENC-XYZ"))
     p = _bb_oxygen_therapy(ctx)[0]
-    assert p["encounter"] == {"reference": "Encounter/ENC-XYZ"}
+    assert p["encounter"] == {"reference": f"Encounter/{resolve_encounter_id('ENC-XYZ')}"}
     assert p["reasonReference"] == [{"reference": f"Condition/{encounter_primary_condition_id('POP-TEST', 'ENC-XYZ')}"}]
 
 

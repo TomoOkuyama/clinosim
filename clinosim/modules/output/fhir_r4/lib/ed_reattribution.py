@@ -42,6 +42,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
+
 # LOINC codes that semantically belong to the ED stay. Kept as a
 # module-level constant so the two builders that emit these types
 # (composition.py / documents.py) can import the same source of truth
@@ -72,8 +74,12 @@ def reattribute_encounter_to_ed_bridge(resource: dict, ctx: Any) -> None:
     if not _is_ed_by_doc_type(resource):
         return
 
-    imp_ref = f"Encounter/{imp_id}"
-    ed_ref = f"{imp_ref}-ED"
+    # Issue #854 PR-encounter: cross-refs go through the shared resolver
+    # so the "opaque id" invariant holds — the IMP structural key is the
+    # CIF ``encounter_id``, the bridge structural key is ``{IMP_id}-ED``
+    # (built at inline_bb.py:334 via ``_make_synth_ed_enc_dict``).
+    imp_ref = f"Encounter/{resolve_encounter_id(imp_id)}"
+    ed_ref = f"Encounter/{resolve_encounter_id(f'{imp_id}-ED')}"
 
     # Top-level `encounter.reference` (Composition, Observation, Procedure,
     # MedicationRequest, MedicationAdministration, DiagnosticReport,

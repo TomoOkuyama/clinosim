@@ -75,6 +75,7 @@ from clinosim.modules.output.fhir_r4.encounters.care_team import (  # noqa: F401
 from clinosim.modules.output.fhir_r4.encounters.encounter import (  # noqa: F401
     _build_encounter,
     _compute_encounter_length,
+    encounter_ref,
 )
 from clinosim.modules.output.fhir_r4.encounters.endpoint import (  # noqa: F401
     _bb_endpoints,
@@ -330,7 +331,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
         #   dangling-reference case, ~13% of via-ED IMPs in p=10000).
         if _partof_id:
             if "partOf" not in _resource:
-                _resource["partOf"] = {"reference": f"Encounter/{_partof_id}"}
+                _resource["partOf"] = encounter_ref(_partof_id)
             # CY7-05 synth-ED bridge Encounter: delegate to canonical
             # `_build_encounter` so localization / CS-registry lookups
             # are single-source-of-truth (Issue #546, spec DD1).
@@ -724,7 +725,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
             "subject": {"reference": f"Patient/{ctx.patient_id}"},
         }
         if enc_id:
-            procedure_res["encounter"] = {"reference": f"Encounter/{enc_id}"}
+            procedure_res["encounter"] = encounter_ref(enc_id)
             # CY7-17 (Chain-7): reasonReference to encounter primary Condition.
             # Chronic-primary encounters resolve to the patient-scoped chronic
             # Condition; acute-primary encounters keep the encounter-scoped id.

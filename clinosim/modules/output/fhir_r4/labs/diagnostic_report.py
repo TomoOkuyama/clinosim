@@ -34,6 +34,7 @@ from clinosim.modules.imaging.engine import (
     load_body_sites,
 )
 from clinosim.modules.order.panel_grouping import load_panel_definitions
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs.imaging_study import imaging_study_id_for_cif_study_id
 from clinosim.modules.output.fhir_r4.labs.service_request import (
     LAB_CATEGORY_V2_0074,
@@ -597,7 +598,7 @@ def build_dr_resource(
             "text": text_display,
         },
         "subject": {"reference": f"Patient/{patient_id}"},
-        "encounter": {"reference": f"Encounter/{encounter_id}"},
+        "encounter": encounter_ref(encounter_id),
         # Issue #821 (N-7): DR.effectiveDateTime carries the latest component
         # result_datetime (full precision) so consumer time-series UIs sort
         # correctly. Falls back to date-only bucket when no full datetime is
@@ -1007,7 +1008,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
             "text": proc_display,
         },
         "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
-        "encounter": {"reference": f"Encounter/{_o(study, 'encounter_id', '')}"},
+        "encounter": encounter_ref(_o(study, "encounter_id", "")),
         # Issue #854 Bucket A: SR.id is opaque; radiology DR basedOn goes
         # through the same resolver the imaging SR builder uses (structural
         # key = order_id for imaging 1 Order = 1 SR).

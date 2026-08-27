@@ -20,6 +20,29 @@ byte output but must document the change here.
 
 ### Changed
 
+- **LEAK ROOT** — `Encounter.id` now emits opaque `enc-<12hex>` (16 chars,
+  fixed) instead of the pre-#854 shape `ENC-POP-{patient}-{encounter}`
+  (~24-30 chars, plus optional `EMER`/`OP`/`-ED` suffixes). Every
+  downstream cross-reference site (Observation / MedicationRequest /
+  MedicationAdministration / Procedure / DiagnosticReport / ImagingStudy /
+  DocumentReference / Composition / ClinicalImpression / CareTeam /
+  Condition / AllergyIntolerance / Specimen — 33 emit sites across 22
+  modules) now routes through the shared `encounter_ref(cif_encounter_id)`
+  / `resolve_encounter_id(cif_encounter_id)` helpers exported by
+  `clinosim.modules.output.fhir_r4.encounters.encounter`. New PUBLIC
+  constant `ENCOUNTER_KEY_SYSTEM = "urn:clinosim:identifier:encounter-key"`
+  carries the pre-#854 CIF `encounter_id` on `Encounter.identifier[]` for
+  round-trip. Synth-ED bridge encounters (structural key
+  `{IMP_id}-ED`, materialised at `lib/inline_bb.py` when the IMP has
+  `admit_source=EMD`) also flip to opaque; `lib/ed_reattribution.py`
+  computes both IMP and bridge opaque targets via the resolver so the
+  ED→IMP routing walker keeps matching correctly. Byte-output changes on
+  Encounter NDJSON + every downstream slice that carries an
+  `encounter.reference` (~all resource types on JP p=10000 s500); MINOR
+  bump still batched at v0.5.0. (Issue #854 Bucket B — PR-encounter;
+  continues PR #357 / #863 / #867 / #868 / #869 / #878 / #879 / #880 /
+  #881 / #882 / #883 / #884 / #885 / #886 / #887 / #888 / #889 opaque-id
+  pattern.)
 - Lab `Observation.id` now emits opaque `lab-<12hex>` (16 chars, fixed)
   instead of the pre-#854 compound `lab-{encounter_id}-{idx:04d}` (~33
   chars). `DiagnosticReport.result[]` references funnel through the same
