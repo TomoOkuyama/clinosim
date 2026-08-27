@@ -41,6 +41,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
+- `MedicationAdministration.id` now emits opaque `mar-<12hex>` (16
+  chars, fixed) instead of the pre-fix compound
+  `mar-{encounter_id or patient_id}-{index:05d}`. Discovered via the
+  post-Issue-#854-close p=500 review — MA was overlooked in the
+  original sweep. New PUBLIC constants
+  `MEDICATION_ADMINISTRATION_ID_PREFIX = "mar-"` and
+  `MEDICATION_ADMINISTRATION_KEY_SYSTEM = "urn:clinosim:identifier:medication-administration-key"`;
+  the compound structural key round-trips on
+  `MedicationAdministration.identifier[]` alongside any JP-specific
+  `rpNumber` / `orderInRp` identifiers. MA is a leaf in the FHIR
+  reference graph — no other resource type references MA by id — so
+  this is a stand-alone-tail migration with no downstream cascade.
+  Byte-output changes on MA NDJSON only (~20k records on JP p=500
+  s=42 sample, none on other resource types); structured CIF is
+  byte-unchanged and narrative CIF is unaffected — PATCH under the
+  new versioning policy. (Post-#854 remainder.)
 - **Issue #854 CLOSE** — `Patient.id` now emits opaque `pt-<12hex>`
   (15 chars, fixed) instead of the pre-#854 simulation-generation slug
   `POP-{n:06d}`. The `POP-{n}` slug is preserved on
