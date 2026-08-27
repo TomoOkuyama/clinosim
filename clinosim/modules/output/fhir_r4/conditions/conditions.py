@@ -21,6 +21,7 @@ from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     is_chronic_primary as _encounter_primary_is_chronic,
 )
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
     build_diagnosis_codeable_concept,
@@ -394,7 +395,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             cond["recordedDate"] = cond["onsetDateTime"]
 
         if encounters:
-            cond["encounter"] = {"reference": f"Encounter/{encounters[0].get('encounter_id', '')}"}
+            cond["encounter"] = encounter_ref(encounters[0].get("encounter_id", ""))
             # C2-31: Condition.recorder ← attending physician
             # of the encounter. FHIR R4 R0..1; JP Core Condition recommends
             # this reference for chart traceability. Attending is emitted as

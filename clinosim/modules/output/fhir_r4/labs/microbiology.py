@@ -15,6 +15,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     MB_DR_KEY_SYSTEM,
     _resolve_mb_dr_id,
@@ -155,7 +156,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         return []
     lang = resolve_lang(ctx.country)
     subject = {"reference": f"Patient/{ctx.patient_id}"}
-    enc_ref = {"reference": f"Encounter/{ctx.primary_enc_id}"} if ctx.primary_enc_id else None
+    enc_ref = encounter_ref(ctx.primary_enc_id) if ctx.primary_enc_id else None
     lab_category = [
         {
             "coding": [

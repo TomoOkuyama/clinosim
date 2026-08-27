@@ -78,6 +78,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.procedures.procedures import (
@@ -408,7 +409,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
             },
         }
         if enc_id:
-            procedure["encounter"] = {"reference": f"Encounter/{enc_id}"}
+            procedure["encounter"] = encounter_ref(enc_id)
             # Chronic-primary encounters resolve to the patient-scoped chronic
             # Condition; acute-primary encounters keep the encounter-scoped id.
             _primary_ref = primary_condition_ref(ctx.record, ctx.patient_id, enc_id)

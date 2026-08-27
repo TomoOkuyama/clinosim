@@ -34,6 +34,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.order.panel_grouping import load_panel_definitions
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -540,7 +541,7 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
             text=_o(order, "display_name", ""),
         ),
         "subject": {"reference": f"Patient/{patient_id}"},
-        "encounter": {"reference": f"Encounter/{encounter_id_val}"},
+        "encounter": encounter_ref(encounter_id_val),
     }
 
     # bodySite: emit when imaging_body_site_code is populated.
@@ -785,7 +786,7 @@ def _build_sr_skeleton(
             text=loinc_text,
         ),
         "subject": {"reference": f"Patient/{patient_id}"},
-        "encounter": {"reference": f"Encounter/{encounter_id_val}"},
+        "encounter": encounter_ref(encounter_id_val),
     }
     if authored_on:
         sr["authoredOn"] = authored_on

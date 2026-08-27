@@ -8,6 +8,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.code_status.engine import load_reference
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, survey_category
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -61,7 +62,7 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
         "valueCodeableConcept": {"coding": [_coding(code)]},
     }
     if enc:
-        obs["encounter"] = {"reference": f"Encounter/{enc}"}
+        obs["encounter"] = encounter_ref(enc)
     if isinstance(admit, str):
         obs["effectiveDateTime"] = admit
     return [obs]

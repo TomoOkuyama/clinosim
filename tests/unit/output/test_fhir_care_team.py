@@ -9,6 +9,7 @@ from clinosim.modules.output.fhir_r4.encounters.care_team import (
     CARE_TEAM_ID_PREFIX,
     _bb_care_teams,
 )
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.types.encounter import Encounter, EncounterType
 
 # ---------------------------------------------------------------------------
@@ -122,7 +123,7 @@ def test_care_team_subject_references_patient():
 def test_care_team_encounter_reference_populated():
     ctx = _make_ctx([_inpatient_enc_dataclass()])
     ct = _bb_care_teams(ctx)[0]
-    assert ct["encounter"]["reference"] == "Encounter/enc-inpt-1"
+    assert ct["encounter"]["reference"] == f"Encounter/{resolve_encounter_id('enc-inpt-1')}"
 
 
 # ---------------------------------------------------------------------------

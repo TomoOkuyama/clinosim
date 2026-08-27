@@ -6,6 +6,7 @@ import pytest
 # ``lab-<12hex>`` shape via ``lab_observation_id(encounter_id, idx)``.
 # Tests that assert DR.result[] cross-refs derive the expected id from
 # the same resolver so writer/reader byte-consistency is enforced here.
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import lab_observation_id
 
 
@@ -244,7 +245,7 @@ class TestBuildDrResource:
         assert coding["code"] == "58410-2"
         assert "Complete blood count" in coding["display"]
         assert r["subject"] == {"reference": "Patient/POP-000002"}
-        assert r["encounter"] == {"reference": "Encounter/ENC-001"}
+        assert r["encounter"] == {"reference": f"Encounter/{resolve_encounter_id('ENC-001')}"}
         assert r["effectiveDateTime"] == "2026-05-12"
         # session 48 feedback FB-F1: instant 型に JST TZ 付与
         assert r["issued"] == "2026-05-12T14:28:39+09:00"

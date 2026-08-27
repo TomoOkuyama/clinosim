@@ -31,6 +31,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # type: ignore[attr-defined]
     RADIOLOGY_CATEGORY_V2_0074,
     RADIOLOGY_REPORT_ID_PREFIX,
@@ -207,7 +208,7 @@ def _build_imaging_report_composition(
         "title": _title,
     }
     if encounter_id:
-        resource["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        resource["encounter"] = encounter_ref(encounter_id)
     if date_iso:
         resource["date"] = date_iso
     if attending_id:

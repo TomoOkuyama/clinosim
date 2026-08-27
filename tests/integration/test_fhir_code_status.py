@@ -1,6 +1,7 @@
 import pytest
 
 from clinosim.modules.output.fhir_r4.conditions.code_status import _bb_code_status
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
 pytestmark = pytest.mark.integration
@@ -35,7 +36,7 @@ def test_builds_observation():
     assert o["status"] == "final"
     assert o["category"][0]["coding"][0]["code"] == "survey"
     assert o["valueCodeableConcept"]["coding"][0]["code"] == "304253006"
-    assert o["encounter"] == {"reference": "Encounter/enc-1"}
+    assert o["encounter"] == {"reference": f"Encounter/{resolve_encounter_id('enc-1')}"}
 
 
 def test_empty_when_no_code_status():

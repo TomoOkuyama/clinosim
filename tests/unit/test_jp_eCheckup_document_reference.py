@@ -15,6 +15,8 @@ import base64
 
 import pytest
 
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
+
 
 def _make_doc(**overrides):
     from clinosim.types.clinical import ClinicalDocument
@@ -170,7 +172,7 @@ def test_emit_docref_with_composition_relatesto():
         }
     ]
     # encounter context
-    assert r["context"]["encounter"][0]["reference"] == "Encounter/CHK-POP-000001-001"
+    assert r["context"]["encounter"][0]["reference"] == f"Encounter/{resolve_encounter_id('CHK-POP-000001-001')}"
     # subject
     assert r["subject"]["reference"] == "Patient/POP-000001"
 

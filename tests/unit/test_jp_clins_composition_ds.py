@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import pytest
 
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
+
 _PROFILE_URL = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 _DOC_TYPE_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
 _SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
@@ -337,14 +339,14 @@ def test_jp_clins_composition_required_entries_reference_correct_resources():
     # 322 = detailsOnAdmission → Encounter
     entries = children_by_code["322"]["entry"]
     assert len(entries) == 1
-    assert entries[0]["reference"] == "Encounter/ENC-001"
+    assert entries[0]["reference"] == f"Encounter/{resolve_encounter_id('ENC-001')}"
 
     # 333 = hospitalCourse — deferred, no entry emitted (see docstring).
     assert "entry" not in children_by_code["333"]
 
     # 324 = detailsOnDischarge → Encounter
     entries = children_by_code["324"]["entry"]
-    assert entries[0]["reference"] == "Encounter/ENC-001"
+    assert entries[0]["reference"] == f"Encounter/{resolve_encounter_id('ENC-001')}"
 
     # 344 = diagnosesOnDischarge → Condition
     # Issue #854 Bucket B (PR-condition): Condition.id is opaque, derive

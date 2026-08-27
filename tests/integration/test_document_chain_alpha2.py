@@ -78,11 +78,22 @@ def test_alpha2_care_team_count_matches_encounter_count() -> None:
         care_teams = load_ndjson(find_ndjson(out, "CareTeam.ndjson"))
         encounters = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
         assert care_teams, "CareTeam.ndjson is empty — silent-no-op in _bb_care_teams"
+
         # CY7-05 (structural, 2026-07-11): FHIR-emit-only synthetic ED
-        # encounters (id ends with "-ED", used for Encounter.partOf ED→IMP
-        # linkage) don't have CareTeam records because they don't exist in
-        # CIF. Exclude them from the 1:1 count assertion.
-        real_encounter_count = sum(1 for e in encounters if not e.get("id", "").endswith("-ED"))
+        # encounters (structural key ends with "-ED", used for
+        # Encounter.partOf ED→IMP linkage) don't have CareTeam records
+        # because they don't exist in CIF. Exclude them from the 1:1
+        # count assertion. Issue #854 PR-encounter: `.id` is now opaque
+        # so the structural key (on `.identifier[]`) is authoritative.
+        def _is_synth_ed(enc: dict) -> bool:
+            for ident in enc.get("identifier", []) or []:
+                if ident.get("system") == "urn:clinosim:identifier:encounter-key" and (
+                    ident.get("value") or ""
+                ).endswith("-ED"):
+                    return True
+            return False
+
+        real_encounter_count = sum(1 for e in encounters if not _is_synth_ed(e))
         assert len(care_teams) == real_encounter_count, (
             f"CareTeam count {len(care_teams)} != real Encounter count "
             f"{real_encounter_count} (total encounters incl. synth ED: "

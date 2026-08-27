@@ -45,6 +45,7 @@ from clinosim.codes import (
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _sha1_b64, to_fhir_instant
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -356,7 +357,7 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
     # Encounter context
     enc_id = _o(doc, "encounter_id", "")
     if enc_id:
-        context: dict[str, Any] = {"encounter": [{"reference": f"Encounter/{enc_id}"}]}
+        context: dict[str, Any] = {"encounter": [encounter_ref(enc_id)]}
         period_start = _o(doc, "period_start", "")
         period_end = _o(doc, "period_end", "")
         if period_start and period_end:

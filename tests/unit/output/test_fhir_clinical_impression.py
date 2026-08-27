@@ -7,6 +7,7 @@ from types import SimpleNamespace
 
 from clinosim.modules.document import CLINICAL_IMPRESSION_ID_PREFIX
 from clinosim.modules.output.fhir_r4.conditions.clinical_impression import _bb_clinical_impressions
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.types.clinical import ClinicalImpressionRecord
 
 
@@ -123,7 +124,7 @@ def test_subject_patient_ref():
 def test_encounter_ref():
     ctx = _make_ctx([_sample_impression_dataclass()])
     r = _bb_clinical_impressions(ctx)[0]
-    assert r["encounter"]["reference"] == "Encounter/enc1"
+    assert r["encounter"]["reference"] == f"Encounter/{resolve_encounter_id('enc1')}"
 
 
 def test_effective_datetime():
@@ -237,7 +238,7 @@ def test_clinical_impression_from_dict_path():
     assert r["id"] == _resolve_clinical_impression_id("enc1-0")
     assert r["status"] == "completed"
     assert r["subject"]["reference"] == "Patient/pt1"
-    assert r["encounter"]["reference"] == "Encounter/enc1"
+    assert r["encounter"]["reference"] == f"Encounter/{resolve_encounter_id('enc1')}"
     assert r["effectiveDateTime"] == "2026-07-01"
     assert r["description"] == "Day 0: Admitted with pneumonia."
 

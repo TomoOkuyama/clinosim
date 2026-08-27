@@ -32,6 +32,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import ALLERGY_ID_PREFIX
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 
 __all__ = [
@@ -143,7 +144,7 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
         # a specific encounter in real EHRs; clinosim's chart-registration
         # proxy is the first encounter).
         if first_encounter_id:
-            ai["encounter"] = {"reference": f"Encounter/{first_encounter_id}"}
+            ai["encounter"] = encounter_ref(first_encounter_id)
         out.append(ai)
     return out
 
