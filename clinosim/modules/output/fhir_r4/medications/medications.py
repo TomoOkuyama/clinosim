@@ -22,6 +22,7 @@ from clinosim.modules._shared import (
     is_jp,
     resolve_lang,
 )
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     _parse_dose_for_mar,
@@ -778,7 +779,7 @@ def _build_medication_request(
         "status": status_val,
         "intent": intent_val,
         "medicationCodeableConcept": med_concept,
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         "authoredOn": order.get("ordered_datetime", ""),
     }
     # CY6-22 (Chain-6): MedicationRequest.category — HL7 medicationrequest-
@@ -989,7 +990,7 @@ def _build_discharge_medication_request(
         "status": "active",
         "intent": "order",
         "medicationCodeableConcept": med_concept,
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         "authoredOn": authored_on,
     }
     if encounter_id:
@@ -1224,7 +1225,7 @@ def _build_medication_admin(
         ),
         "status": map_mar_status(mar.get("status", "completed")),
         "medicationCodeableConcept": med_concept,
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         "effectiveDateTime": mar.get("actual_datetime") or mar.get("scheduled_datetime", ""),
     }
     # CY6-23 (Chain-6): MedicationAdministration.category — HL7 medication-

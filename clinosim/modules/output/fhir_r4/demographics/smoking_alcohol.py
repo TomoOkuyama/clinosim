@@ -19,6 +19,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _social_category,
@@ -131,7 +132,7 @@ def _bb_smoking_status(ctx: BundleContext) -> list[dict]:
     _smoking_key = ctx.patient_id
     o = _obs(_resolve_smoking_status_id(_smoking_key), ctx.country, data["loinc"], text, "snomed-ct", entry["snomed"])
     o["identifier"] = [wrap_as_identifier(_smoking_key, SMOKING_STATUS_KEY_SYSTEM)]
-    o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
+    o["subject"] = patient_ref(ctx.patient_id)
     eff = _sdoh_effective_datetime(ctx)
     if eff:
         o["effectiveDateTime"] = eff
@@ -151,7 +152,7 @@ def _bb_alcohol_use(ctx: BundleContext) -> list[dict]:
     _alcohol_key = ctx.patient_id
     o = _obs(_resolve_alcohol_use_id(_alcohol_key), ctx.country, data["loinc"], text, "snomed-ct", entry["snomed"])
     o["identifier"] = [wrap_as_identifier(_alcohol_key, ALCOHOL_USE_KEY_SYSTEM)]
-    o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
+    o["subject"] = patient_ref(ctx.patient_id)
     eff = _sdoh_effective_datetime(ctx)
     if eff:
         o["effectiveDateTime"] = eff

@@ -16,6 +16,7 @@ from clinosim.codes import (
     lookup as code_lookup,
 )
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -157,7 +158,7 @@ def _build_procedure(
             "coding": coding_entries,
             "text": primary_display,
         },
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
     }
 
     # category (SNOMED)

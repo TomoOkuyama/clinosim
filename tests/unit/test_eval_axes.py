@@ -20,6 +20,7 @@ from clinosim.eval.engine import (
     Outcome,
     Severity,
 )
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 
 
 def _write_ndjson(dir_: Path, resource_type: str, rows: list[dict]) -> None:
@@ -125,7 +126,11 @@ def test_structural_dangling_reference(tmp_path: Path) -> None:
         tmp_path,
         "Condition",
         [
-            {"resourceType": "Condition", "id": "c1", "subject": {"reference": "Patient/p9-does-not-exist"}},
+            {
+                "resourceType": "Condition",
+                "id": "c1",
+                "subject": {"reference": f"Patient/{resolve_patient_id('p9-does-not-exist')}"},
+            },
         ],
     )
     from clinosim.audit.types import Cohort
@@ -186,7 +191,12 @@ def test_clinical_medication_before_birth_is_flagged(tmp_path: Path) -> None:
         tmp_path,
         "Patient",
         [
-            {"resourceType": "Patient", "id": "p1", "identifier": [{"value": "x"}], "birthDate": "2026-05-01"},
+            {
+                "resourceType": "Patient",
+                "id": resolve_patient_id("p1"),
+                "identifier": [{"value": "x"}],
+                "birthDate": "2026-05-01",
+            },
         ],
     )
     _write_ndjson(
@@ -196,7 +206,7 @@ def test_clinical_medication_before_birth_is_flagged(tmp_path: Path) -> None:
             {
                 "resourceType": "MedicationRequest",
                 "id": "m1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "authoredOn": "2026-01-15",
             },  # BEFORE birth
         ],
@@ -232,7 +242,7 @@ def test_clinical_sepsis_with_normal_lactate_is_flagged(tmp_path: Path) -> None:
             {
                 "resourceType": "Condition",
                 "id": "c1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "onsetDateTime": "2026-05-01T08:00:00Z",
                 "code": {"coding": [{"code": "A41.9"}]},
             },
@@ -246,7 +256,7 @@ def test_clinical_sepsis_with_normal_lactate_is_flagged(tmp_path: Path) -> None:
             {
                 "resourceType": "Observation",
                 "id": "o1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "effectiveDateTime": "2026-05-01T08:30:00Z",
                 "code": {"coding": [{"system": "http://loinc.org", "code": "2524-7"}]},
                 "valueQuantity": {"value": 1.0, "unit": "mmol/L"},
@@ -280,7 +290,7 @@ def test_clinical_sepsis_with_elevated_lactate_passes(tmp_path: Path) -> None:
             {
                 "resourceType": "Condition",
                 "id": "c1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "onsetDateTime": "2026-05-01T08:00:00Z",
                 "code": {"coding": [{"code": "A41.9"}]},
             },
@@ -293,7 +303,7 @@ def test_clinical_sepsis_with_elevated_lactate_passes(tmp_path: Path) -> None:
             {
                 "resourceType": "Observation",
                 "id": "o1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "effectiveDateTime": "2026-05-01T08:30:00Z",
                 "code": {"coding": [{"system": "http://loinc.org", "code": "2524-7"}]},
                 "valueQuantity": {"value": 4.2, "unit": "mmol/L"},
@@ -326,7 +336,7 @@ def test_clinical_lab_outside_window_does_not_count(tmp_path: Path) -> None:
             {
                 "resourceType": "Condition",
                 "id": "c1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "onsetDateTime": "2026-06-01T00:00:00Z",
                 "code": {"coding": [{"code": "A41.9"}]},
             },
@@ -339,7 +349,7 @@ def test_clinical_lab_outside_window_does_not_count(tmp_path: Path) -> None:
             {
                 "resourceType": "Observation",
                 "id": "o1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "effectiveDateTime": "2026-05-01T00:00:00Z",  # 31 days before onset
                 "code": {"coding": [{"system": "http://loinc.org", "code": "2524-7"}]},
                 "valueQuantity": {"value": 1.0},
@@ -378,7 +388,7 @@ def test_clinical_warfarin_subtherapeutic_inr_is_flagged(tmp_path: Path) -> None
             {
                 "resourceType": "MedicationRequest",
                 "id": "mr1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "authoredOn": "2026-05-01",
                 "medicationCodeableConcept": {
                     "coding": [{"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289"}]
@@ -393,7 +403,7 @@ def test_clinical_warfarin_subtherapeutic_inr_is_flagged(tmp_path: Path) -> None
             {
                 "resourceType": "Observation",
                 "id": "o1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "effectiveDateTime": "2026-05-11T09:00:00Z",  # day 10 — past induction
                 "code": {"coding": [{"system": "http://loinc.org", "code": "6301-6"}]},
                 "valueQuantity": {"value": 1.0},
@@ -432,7 +442,7 @@ def test_clinical_warfarin_induction_period_reading_is_excluded(tmp_path: Path) 
             {
                 "resourceType": "MedicationRequest",
                 "id": "mr1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "authoredOn": "2026-05-01",
                 "medicationCodeableConcept": {
                     "coding": [{"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289"}]
@@ -447,7 +457,7 @@ def test_clinical_warfarin_induction_period_reading_is_excluded(tmp_path: Path) 
             {
                 "resourceType": "Observation",
                 "id": "o1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "effectiveDateTime": "2026-05-04T09:00:00Z",  # day 3 — inside induction
                 "code": {"coding": [{"system": "http://loinc.org", "code": "6301-6"}]},
                 "valueQuantity": {"value": 1.4},
@@ -483,7 +493,7 @@ def test_clinical_warfarin_therapeutic_inr_passes(tmp_path: Path) -> None:
             {
                 "resourceType": "MedicationRequest",
                 "id": "mr1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "authoredOn": "2026-05-01",
                 "medicationCodeableConcept": {
                     "coding": [{"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289"}]
@@ -498,7 +508,7 @@ def test_clinical_warfarin_therapeutic_inr_passes(tmp_path: Path) -> None:
             {
                 "resourceType": "Observation",
                 "id": "o1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "effectiveDateTime": "2026-05-09T09:00:00Z",  # day 8 — past induction
                 "code": {"coding": [{"system": "http://loinc.org", "code": "6301-6"}]},
                 "valueQuantity": {"value": 2.7},
@@ -555,7 +565,7 @@ def test_locale_flags_english_leak_on_jp_condition_display(tmp_path: Path) -> No
             {
                 "resourceType": "Condition",
                 "id": "c1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "code": {
                     "text": "Type 2 diabetes",  # English on a JP cohort
                     "coding": [{"code": "E11", "display": "Type 2 diabetes"}],
@@ -587,7 +597,7 @@ def test_locale_us_no_japanese_leakage(tmp_path: Path) -> None:
             {
                 "resourceType": "Condition",
                 "id": "c1",
-                "subject": {"reference": "Patient/p1"},
+                "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
                 "code": {"coding": [{"code": "E11", "display": "2型糖尿病"}]},
             },  # JP leaks into US
         ],

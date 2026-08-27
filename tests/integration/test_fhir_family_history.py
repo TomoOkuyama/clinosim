@@ -1,6 +1,7 @@
 import pytest
 
 from clinosim.modules.output.fhir_r4.demographics.family_history import _bb_family_history
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 
@@ -35,7 +36,7 @@ def test_builds_one_resource_per_relative():
     r0 = res[0]
     assert r0["resourceType"] == "FamilyMemberHistory"
     assert r0["status"] == "completed"
-    assert r0["patient"] == {"reference": "Patient/pat-1"}
+    assert r0["patient"] == {"reference": f"Patient/{resolve_patient_id('pat-1')}"}
     assert r0["relationship"]["coding"][0]["code"] == "MTH"
     assert r0["deceasedBoolean"] is True
     codes = [c["code"]["coding"][0]["code"] for c in r0["condition"]]

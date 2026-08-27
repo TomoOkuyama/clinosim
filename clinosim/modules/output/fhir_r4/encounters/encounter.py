@@ -18,6 +18,7 @@ from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     primary_condition_ref_from_codes,
 )
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
     make_participant,
@@ -151,7 +152,7 @@ def _build_encounter(
             "code": class_code,
             "display": _localize_display(class_display, country, _CLASS_DISPLAY_JA),
         },
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
     }
 
     # Type (SNOMED). C1-05: outpatient AMB no longer

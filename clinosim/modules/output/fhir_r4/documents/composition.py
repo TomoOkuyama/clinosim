@@ -53,6 +53,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref, resolve_encounter_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.lib.ids import derive_opaque_id
@@ -609,7 +610,7 @@ def _build_composition_generic(
             ],
             "text": loinc_display or loinc_code,
         },
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         "date": authored_dt,
         # FHIR R4 Composition.author cardinality 1..*; empty [] is non-conformant.
         # Production fallback: encounter.attending_physician_id is populated to

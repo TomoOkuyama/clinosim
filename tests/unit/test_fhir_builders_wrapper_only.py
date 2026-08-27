@@ -23,7 +23,7 @@ from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
 def _make_ctx(docs: list[dict], country: str = "us") -> BundleContext:
     return BundleContext(
-        record={"documents": docs, "extensions": {}},
+        record={"documents": docs, "extensions": {}, "patient": {"patient_id": "P-1"}},
         country=country,
         roster_map={},
         hospital_config={},

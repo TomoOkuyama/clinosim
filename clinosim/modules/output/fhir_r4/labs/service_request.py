@@ -94,6 +94,7 @@ def _pick_reason_text(source: Any, lang: str) -> str:
     return _o(source, "clinical_intent", "")
 
 
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.types.encounter import OrderStatus, OrderType
 
 # === Canonical constants (silent-no-op defense, PR-90 lesson) ===
@@ -540,7 +541,7 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
             display=loinc_display,
             text=_o(order, "display_name", ""),
         ),
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         "encounter": encounter_ref(encounter_id_val),
     }
 
@@ -785,7 +786,7 @@ def _build_sr_skeleton(
             display=loinc_display,
             text=loinc_text,
         ),
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         "encounter": encounter_ref(encounter_id_val),
     }
     if authored_on:

@@ -129,6 +129,7 @@ def test_ids_unique():
 
 def test_patient_reference():
     """patient.reference must point to the Patient resource."""
+    from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
     from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations
 
     patient_id = "pat-xyz"
@@ -136,9 +137,10 @@ def test_patient_reference():
     resources = _bb_immunizations(ctx)
 
     assert resources
+    expected = f"Patient/{resolve_patient_id(patient_id)}"
     for r in resources:
         ref = r.get("patient", {}).get("reference", "")
-        assert ref == f"Patient/{patient_id}", f"Bad patient ref: {ref!r}"
+        assert ref == expected, f"Bad patient ref: {ref!r}"
 
 
 def test_occurrence_date_present():

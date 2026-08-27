@@ -32,6 +32,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import ALLERGY_ID_PREFIX
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -271,7 +272,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         "category": [category],
         "criticality": criticality,
         "code": code,
-        "patient": {"reference": f"Patient/{patient_id}"},
+        "patient": patient_ref(patient_id),
     }
 
     if onset_date is not None:

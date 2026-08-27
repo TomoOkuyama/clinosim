@@ -50,6 +50,7 @@ from clinosim.modules.output.fhir_r4.demographics.patient import (  # noqa: F401
     _build_patient,
     _identity_cfg,
     _payer_name_map,
+    patient_ref,
 )
 from clinosim.modules.output.fhir_r4.demographics.practitioner import (  # noqa: F401
     _build_practitioner,
@@ -722,7 +723,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
                 ],
             },
             "code": {"text": _code_text},
-            "subject": {"reference": f"Patient/{ctx.patient_id}"},
+            "subject": patient_ref(ctx.patient_id),
         }
         if enc_id:
             procedure_res["encounter"] = encounter_ref(enc_id)
