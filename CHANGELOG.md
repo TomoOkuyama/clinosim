@@ -18,6 +18,30 @@ byte output but must document the change here.
 
 ## [Unreleased]
 
+### Changed
+
+- Bucket C patient-scoped stand-alone `Resource.id` now emits opaque
+  `{prefix}-<12hex>` (fixed length) for all four resource kinds:
+  `Immunization.id` = `imm-<12hex>` (16 chars),
+  `FamilyMemberHistory.id` = `fmh-<12hex>` (16 chars),
+  `Coverage.id` = `cov-<12hex>` (16 chars),
+  `AllergyIntolerance.id` = `allergy-<12hex>` (20 chars). All four are
+  stand-alone in the FHIR reference graph (no downstream cross-ref
+  cascade), so no callers need updating. Structural keys round-trip on
+  each resource's `.identifier[]` under per-kind
+  `urn:clinosim:identifier:{kind}-key` systems. `Coverage.identifier[]`
+  gains the structural-key entry as a second slot alongside the
+  pre-existing JP member-id composite (`保険者番号:記号:番号:枝番`) —
+  both consumers keep working. Byte-output changes on Immunization
+  (~29k) / FamilyMemberHistory (~19k) / Coverage (~7k) /
+  AllergyIntolerance (~1k) records on the JP p=10000 s500 sample;
+  MINOR bump will be batched at v0.6.0. Row 18 (`Patient.id`) deferred
+  — the external identity contract with downstream consumers
+  (iris4h-ai, HAPI validator, integration tests) requires a maintainer
+  design decision. (Issue #854 Bucket C rows 14-17; continues PR #857 /
+  #863 / #867 / #868 / #869 / #878 / #879 / #880 / #881 / #882 / #883 /
+  #884 / #885 / #886 / #887 / #888 / #889 / #890 opaque-id pattern.)
+
 ## [0.5.0] - 2026-08-27
 
 Issue #854 Bucket A + Bucket B closeout — every per-patient-event FHIR
