@@ -8,6 +8,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.family_history.engine import load_reference
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     build_diagnosis_codeable_concept,
@@ -118,7 +119,7 @@ def _bb_family_history(ctx: BundleContext) -> list[dict]:
             "id": _resolve_family_member_history_id(_fmh_structural_key),
             "identifier": [wrap_as_identifier(_fmh_structural_key, FAMILY_MEMBER_HISTORY_KEY_SYSTEM)],
             "status": "completed",
-            "patient": {"reference": f"Patient/{ctx.patient_id}"},
+            "patient": patient_ref(ctx.patient_id),
             "relationship": _build_relationship_codeable(rel, disp, lang),
             "deceasedBoolean": bool(_get(fam, "deceased", False)),
         }

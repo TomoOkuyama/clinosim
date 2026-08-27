@@ -10,6 +10,7 @@ from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import (
     _bb_allergy_intolerances,
     _resolve_allergy_id,
 )
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 from clinosim.types.allergy import Allergy, AllergyReaction
 
 
@@ -164,7 +165,7 @@ def test_code_snomed_allergen():
 def test_patient_reference():
     ctx = _make_ctx([_sample_allergy_dataclass()])
     r = _bb_allergy_intolerances(ctx)[0]
-    assert r["patient"]["reference"] == "Patient/pt1"
+    assert r["patient"]["reference"] == f"Patient/{resolve_patient_id('pt1')}"
 
 
 def test_onset_datetime():

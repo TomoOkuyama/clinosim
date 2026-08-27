@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from types import SimpleNamespace
 
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 from clinosim.modules.output.fhir_r4.encounters.care_team import (
     CARE_TEAM_ID_PREFIX,
     _bb_care_teams,
@@ -117,7 +118,7 @@ def test_care_team_id_uses_canonical_prefix():
 def test_care_team_subject_references_patient():
     ctx = _make_ctx([_inpatient_enc_dataclass()], patient_id="patient-42")
     ct = _bb_care_teams(ctx)[0]
-    assert ct["subject"]["reference"] == "Patient/patient-42"
+    assert ct["subject"]["reference"] == f"Patient/{resolve_patient_id('patient-42')}"
 
 
 def test_care_team_encounter_reference_populated():

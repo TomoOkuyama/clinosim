@@ -41,6 +41,35 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
+- **Issue #854 CLOSE** — `Patient.id` now emits opaque `pt-<12hex>`
+  (15 chars, fixed) instead of the pre-#854 simulation-generation slug
+  `POP-{n:06d}`. The `POP-{n}` slug is preserved on
+  `Patient.identifier[]` under the new PUBLIC
+  `POPULATION_SLUG_KEY_SYSTEM = "urn:clinosim:identifier:population-slug"`
+  so consumers who key on the human-readable generation id (iris4h-ai
+  clinical cockpit, integration tests) can still recover it. 44
+  downstream cross-ref sites across 29 modules (Observation /
+  MedicationRequest / MedicationAdministration / Procedure /
+  DiagnosticReport / ImagingStudy / DocumentReference / Composition /
+  ClinicalImpression / CareTeam / Condition / AllergyIntolerance /
+  Encounter / Immunization / FamilyMemberHistory / Coverage / HAI /
+  blood_type / smoking_alcohol / care_level / inline_bb) route through
+  the shared `patient_ref(cif_patient_id)` helper — never string-format
+  the CIF value directly. Design decision rationale: 4-axis eval (data
+  quality, clinical consistency, module responsibility decomposition,
+  OSS code structure) all favour full opaque; narrative CIF is
+  patient-id-agnostic by design (fact_extractor emits `patient.age` /
+  `patient.sex` / chronic conditions, never patient_id), so no narrate
+  regen is required. External URL contract breakage
+  (`/Patient/POP-000002` → `/Patient/pt-<hex>`) is a consumer/deploy
+  concern (iris4h-ai UI update) tracked separately. Byte-output changes
+  on Patient NDJSON + every downstream slice carrying a
+  `.subject.reference` (~all resource types on JP p=10000 s500 sample);
+  structured CIF unchanged, narrative CIF unaffected — **PATCH** under
+  the new versioning policy. Row 18 CLOSES Issue #854. (Continues
+  PR #857 / #863 / #867 / #868 / #869 / #878 / #879 / #880 / #881 /
+  #882 / #883 / #884 / #885 / #886 / #887 / #888 / #889 / #890 / #892
+  opaque-id pattern.)
 - Bucket C patient-scoped stand-alone `Resource.id` now emits opaque
   `{prefix}-<12hex>` (fixed length) for all four resource kinds:
   `Immunization.id` = `imm-<12hex>` (16 chars),

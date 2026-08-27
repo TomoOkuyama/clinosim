@@ -26,6 +26,7 @@ from typing import Any
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.document import CLINICAL_IMPRESSION_ID_PREFIX
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -106,7 +107,7 @@ def _build_clinical_impression(imp: Any, patient_id: str, country: str = "US") -
         "id": _resolve_clinical_impression_id(_ci_structural_key),
         "identifier": [wrap_as_identifier(_ci_structural_key, CLINICAL_IMPRESSION_KEY_SYSTEM)],
         "status": "in-progress" if is_in_progress else "completed",
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
     }
 
     if encounter_id:

@@ -34,6 +34,7 @@ from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -201,7 +202,7 @@ def _build_care_team(
         # 407484005 unknown in fhirserver's SNOMED loadout).
         "category": [{"text": category_display}],
         "name": f"Care team for encounter {encounter_id}",
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         "encounter": encounter_ref(encounter_id),
         "participant": participants,
         # CY7-24 (Chain-7): CareTeam.managingOrganization — the hospital

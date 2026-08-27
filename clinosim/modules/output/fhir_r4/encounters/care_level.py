@@ -18,6 +18,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import _sdoh_effective_datetime
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
@@ -80,7 +81,7 @@ def _bb_care_level(ctx: BundleContext) -> list[dict]:
             ],
             "text": text,
         },
-        "subject": {"reference": f"Patient/{ctx.patient_id}"},
+        "subject": patient_ref(ctx.patient_id),
         "valueCodeableConcept": _value("jp-care-level", code, lang),
     }
     if effective_dt:

@@ -14,6 +14,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
@@ -125,7 +126,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
     """
     enc = ctx.primary_enc_id
     lang = resolve_lang(ctx.country)
-    subject: dict[str, Any] = {"reference": f"Patient/{ctx.patient_id}"}
+    subject: dict[str, Any] = patient_ref(ctx.patient_id)
     enc_ref: dict[str, Any] | None = encounter_ref(enc) if enc else None
     # RM-1: primary_nurse_id as fallback performer for
     # nursing-observation Observations whose source record lacks a

@@ -35,6 +35,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 from clinosim.modules.output.fhir_r4.labs.microbiology import _bb_microbiology
 from clinosim.modules.output.fhir_r4.post_process.specimen import (
     SPECIMEN_ID_PREFIX,
@@ -82,7 +83,11 @@ def test_specimen_id_prefix_constant() -> None:
 
 def test_companion_specimen_id_is_opaque_with_identifier() -> None:
     """Companion Specimen id resolves from the parent Observation.id."""
-    obs = {"resourceType": "Observation", "id": "lab-a1b2c3d4e5f6", "subject": {"reference": "Patient/pt1"}}
+    obs = {
+        "resourceType": "Observation",
+        "id": "lab-a1b2c3d4e5f6",
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
+    }
     s = _build_companion_specimen(obs, country="US")
     assert _OPAQUE_SPECIMEN_PATTERN.match(s["id"]), f"non-opaque companion Specimen id: {s['id']!r}"
     # Both identifiers present: internal namespace (value = opaque id) +
@@ -96,7 +101,11 @@ def test_companion_specimen_id_is_opaque_with_identifier() -> None:
 
 
 def test_companion_specimen_same_observation_reproduces_same_id() -> None:
-    obs = {"resourceType": "Observation", "id": "lab-abc123", "subject": {"reference": "Patient/pt1"}}
+    obs = {
+        "resourceType": "Observation",
+        "id": "lab-abc123",
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
+    }
     a = _build_companion_specimen(obs, country="JP")
     b = _build_companion_specimen(obs, country="JP")
     assert a["id"] == b["id"]
@@ -208,11 +217,19 @@ def test_all_specimen_ids_from_in_process_emit_are_opaque() -> None:
 
     # Companion emit — fabricate two lab Observations with distinct ids.
     companion_a = _build_companion_specimen(
-        {"resourceType": "Observation", "id": "lab-aaa000000000", "subject": {"reference": "Patient/pt1"}},
+        {
+            "resourceType": "Observation",
+            "id": "lab-aaa000000000",
+            "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
+        },
         country="JP",
     )
     companion_b = _build_companion_specimen(
-        {"resourceType": "Observation", "id": "lab-bbb000000000", "subject": {"reference": "Patient/pt1"}},
+        {
+            "resourceType": "Observation",
+            "id": "lab-bbb000000000",
+            "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
+        },
         country="JP",
     )
     companion_ids = [companion_a["id"], companion_b["id"]]

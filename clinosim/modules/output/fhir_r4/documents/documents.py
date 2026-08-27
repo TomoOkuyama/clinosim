@@ -45,6 +45,7 @@ from clinosim.codes import (
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _sha1_b64, to_fhir_instant
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -303,7 +304,7 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
                 ],
             }
         ],
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         # feedback FB-F1: DocumentReference.date は instant 型 (秒精度+TZ 必須)
         "date": _fhir_instant_or_empty(_o(doc, "authored_datetime", "") or _o(narrative, "generated_at", "")),
         "content": [

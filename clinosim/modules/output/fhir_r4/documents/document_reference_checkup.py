@@ -33,6 +33,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _sha1_b64, to_fhir_instant
@@ -179,7 +180,7 @@ def _build_dref(doc: Any, narrative: Any, patient_id: str, country: str) -> dict
                 ],
             }
         ],
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         "date": _fhir_instant_or_empty(_o(doc, "authored_datetime", "") or _o(narrative, "generated_at", "")),
         "content": [
             {

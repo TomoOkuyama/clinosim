@@ -44,6 +44,7 @@ from clinosim.eval.axes.jp_clins_lab_compliance import (
     _LOCALCODE_SYSTEM,
 )
 from clinosim.eval.engine import EvalEngine, Outcome
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 
 # CoreLabo JLAC10 slice URI (one of the "typed" codings) — pinned as a
 # literal here (not imported) because we deliberately want the axis to
@@ -99,7 +100,7 @@ def _lab_observation(
             }
         ],
         "code": {"coding": codings, "text": analyte_local_display},
-        "subject": {"reference": "Patient/p1"},
+        "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
     }
 
 

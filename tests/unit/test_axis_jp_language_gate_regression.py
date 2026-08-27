@@ -40,6 +40,7 @@ from clinosim.audit.axes.jp_language import (
     run,
 )
 from clinosim.audit.types import Cohort, Severity
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 
 # SNOMED CT — an English canonical CS whose display is EN by design.
 _SNOMED_URI = "http://snomed.info/sct"
@@ -66,7 +67,7 @@ def _medication_administration(*, ma_id: str, dosage_text: str) -> dict:
             ],
             "text": "セファゾリン",  # JP
         },
-        "subject": {"reference": "Patient/p1"},
+        "subject": {"reference": f"Patient/{resolve_patient_id('p1')}"},
         "dosage": {
             "text": dosage_text,
             "route": {

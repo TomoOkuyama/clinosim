@@ -14,6 +14,7 @@ import base64
 from types import SimpleNamespace
 
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 from clinosim.modules.output.fhir_r4.documents.documents import _bb_document_references
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.types.clinical import ClinicalDocument, ClinicalDocumentNarrative
@@ -125,7 +126,7 @@ def test_bb_document_references_dict_path():
     )
 
     assert r["id"] == document_reference_id_for_cif_doc_id("doc-enc1-progress_note-1")
-    assert r["subject"]["reference"] == "Patient/pt1"
+    assert r["subject"]["reference"] == f"Patient/{resolve_patient_id('pt1')}"
     assert r["context"]["encounter"][0]["reference"] == f"Encounter/{resolve_encounter_id('enc1')}"
 
 
@@ -171,7 +172,7 @@ def test_bb_document_references_subject_uses_patient_id():
     """DocumentReference.subject.reference points to the correct patient."""
     ctx = _make_ctx([_sample_doc_dataclass()])
     r = _bb_document_references(ctx)[0]
-    assert r["subject"]["reference"] == "Patient/pt1"
+    assert r["subject"]["reference"] == f"Patient/{resolve_patient_id('pt1')}"
 
 
 def test_bb_document_references_id_matches_doc_reference_prefix():

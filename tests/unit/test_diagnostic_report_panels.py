@@ -2,6 +2,8 @@
 
 import pytest
 
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
+
 # Issue #854 Bucket A row 4: Observation.id migrated to opaque
 # ``lab-<12hex>`` shape via ``lab_observation_id(encounter_id, idx)``.
 # Tests that assert DR.result[] cross-refs derive the expected id from
@@ -244,7 +246,7 @@ class TestBuildDrResource:
         assert coding["system"] == "http://loinc.org"
         assert coding["code"] == "58410-2"
         assert "Complete blood count" in coding["display"]
-        assert r["subject"] == {"reference": "Patient/POP-000002"}
+        assert r["subject"] == {"reference": f"Patient/{resolve_patient_id('POP-000002')}"}
         assert r["encounter"] == {"reference": f"Encounter/{resolve_encounter_id('ENC-001')}"}
         assert r["effectiveDateTime"] == "2026-05-12"
         # session 48 feedback FB-F1: instant 型に JST TZ 付与

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import pytest
 
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 from clinosim.modules.output.fhir_r4.post_process import (
     _build_companion_specimen,
     _lab_observation_needs_specimen,
@@ -82,19 +83,31 @@ def test_build_companion_specimen_id_derived_from_observation_id():
     from the parent Observation.id via the shared resolver."""
     from clinosim.modules.output.fhir_r4.post_process.specimen import _resolve_specimen_id
 
-    r = {"resourceType": "Observation", "id": "lab-enc-1-0000", "subject": {"reference": "Patient/pt1"}}
+    r = {
+        "resourceType": "Observation",
+        "id": "lab-enc-1-0000",
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
+    }
     s = _build_companion_specimen(r, country="US")
     assert s["id"] == _resolve_specimen_id("lab-enc-1-0000")
 
 
 def test_build_companion_specimen_copies_subject():
-    r = {"resourceType": "Observation", "id": "lab-enc-1-0000", "subject": {"reference": "Patient/pt42"}}
+    r = {
+        "resourceType": "Observation",
+        "id": "lab-enc-1-0000",
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt42')}"},
+    }
     s = _build_companion_specimen(r, country="US")
-    assert s["subject"] == {"reference": "Patient/pt42"}
+    assert s["subject"] == {"reference": f"Patient/{resolve_patient_id('pt42')}"}
 
 
 def test_build_companion_specimen_blood_type_us():
-    r = {"resourceType": "Observation", "id": "lab-enc-1-0000", "subject": {"reference": "Patient/pt1"}}
+    r = {
+        "resourceType": "Observation",
+        "id": "lab-enc-1-0000",
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
+    }
     s = _build_companion_specimen(r, country="US")
     coding = s["type"]["coding"][0]
     assert coding["code"] == "119297000"
@@ -104,7 +117,11 @@ def test_build_companion_specimen_blood_type_us():
 
 
 def test_build_companion_specimen_blood_type_jp_localized():
-    r = {"resourceType": "Observation", "id": "lab-enc-1-0000", "subject": {"reference": "Patient/pt1"}}
+    r = {
+        "resourceType": "Observation",
+        "id": "lab-enc-1-0000",
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
+    }
     s = _build_companion_specimen(r, country="JP")
     coding = s["type"]["coding"][0]
     assert coding["code"] == "119297000"
@@ -116,7 +133,7 @@ def test_build_companion_specimen_urine_type():
     r = {
         "resourceType": "Observation",
         "id": "lab-enc-1-9999",
-        "subject": {"reference": "Patient/pt1"},
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
         "code": {"text": "Urinalysis"},
     }
     s = _build_companion_specimen(r, country="US")
@@ -127,7 +144,7 @@ def test_build_companion_specimen_collection_datetime():
     r = {
         "resourceType": "Observation",
         "id": "lab-enc-1-0000",
-        "subject": {"reference": "Patient/pt1"},
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
         "effectiveDateTime": "2026-03-15T12:31:00+09:00",
     }
     s = _build_companion_specimen(r, country="JP")
@@ -135,13 +152,21 @@ def test_build_companion_specimen_collection_datetime():
 
 
 def test_build_companion_specimen_no_datetime_no_collection():
-    r = {"resourceType": "Observation", "id": "lab-enc-1-0000", "subject": {"reference": "Patient/pt1"}}
+    r = {
+        "resourceType": "Observation",
+        "id": "lab-enc-1-0000",
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
+    }
     s = _build_companion_specimen(r, country="US")
     assert "collection" not in s
 
 
 def test_build_companion_specimen_status_available():
-    r = {"resourceType": "Observation", "id": "lab-enc-1-0000", "subject": {"reference": "Patient/pt1"}}
+    r = {
+        "resourceType": "Observation",
+        "id": "lab-enc-1-0000",
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
+    }
     s = _build_companion_specimen(r, country="US")
     assert s["status"] == "available"
 
@@ -156,7 +181,11 @@ def test_build_companion_specimen_has_identifier():
         _resolve_specimen_id,
     )
 
-    r = {"resourceType": "Observation", "id": "lab-enc-1-0000", "subject": {"reference": "Patient/pt1"}}
+    r = {
+        "resourceType": "Observation",
+        "id": "lab-enc-1-0000",
+        "subject": {"reference": f"Patient/{resolve_patient_id('pt1')}"},
+    }
     s = _build_companion_specimen(r, country="US")
     expected_id = _resolve_specimen_id("lab-enc-1-0000")
     assert s["identifier"] == [

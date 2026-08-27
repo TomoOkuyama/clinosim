@@ -78,6 +78,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
@@ -402,7 +403,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
                 ],
                 "text": "酸素投与" if is_jp_out else "Oxygen therapy",
             },
-            "subject": {"reference": f"Patient/{ctx.patient_id}"},
+            "subject": patient_ref(ctx.patient_id),
             "performedPeriod": {
                 "start": to_fhir_datetime(start),
                 "end": to_fhir_datetime(end),

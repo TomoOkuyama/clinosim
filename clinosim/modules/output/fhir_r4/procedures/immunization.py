@@ -15,6 +15,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _coding_with_display,
@@ -87,7 +88,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
             ),
             "status": status,
             "vaccineCode": vaccine_code,
-            "patient": {"reference": f"Patient/{ctx.patient_id}"},
+            "patient": patient_ref(ctx.patient_id),
             "occurrenceDateTime": occ_str,
             # C5-13: Immunization.recorded (0..1) —
             # timestamp of registry entry. Defaults to occurrence_date for

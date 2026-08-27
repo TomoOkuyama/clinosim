@@ -16,6 +16,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
     BP_DIASTOLIC,
@@ -200,7 +201,7 @@ def _build_lab_observation(
             "coding": codings,
             "text": display_name,
         },
-        "subject": {"reference": f"Patient/{patient_id}"},
+        "subject": patient_ref(patient_id),
         "effectiveDateTime": result.get("result_datetime", ""),
     }
 
@@ -460,7 +461,7 @@ def _build_vital_observations(
                 "coding": [{"system": get_system_uri("loinc"), "code": loinc, "display": display}],
                 "text": display,
             },
-            "subject": {"reference": f"Patient/{patient_id}"},
+            "subject": patient_ref(patient_id),
             "valueQuantity": {
                 "value": value,
                 "unit": unit,
@@ -593,7 +594,7 @@ def _build_vital_observations(
                 "coding": [{"system": get_system_uri("loinc"), "code": "85354-9", "display": bp_display}],
                 "text": bp_display,
             },
-            "subject": {"reference": f"Patient/{patient_id}"},
+            "subject": patient_ref(patient_id),
             "component": [
                 _build_bp_component(BP_SYSTOLIC, sbp, country),
                 _build_bp_component(BP_DIASTOLIC, dbp, country),
@@ -676,7 +677,7 @@ def _build_vital_observations(
                 ],
                 "text": "意識レベル (AVPU)" if is_jp(country) else "Level of consciousness (AVPU)",
             },
-            "subject": {"reference": f"Patient/{patient_id}"},
+            "subject": patient_ref(patient_id),
             "valueCodeableConcept": {
                 "coding": [
                     {
@@ -737,7 +738,7 @@ def _build_vital_observations(
                 ],
                 "text": "酸素投与量" if is_jp(country) else "Supplemental oxygen flow rate",
             },
-            "subject": {"reference": f"Patient/{patient_id}"},
+            "subject": patient_ref(patient_id),
         }
         if flow is not None:
             o2_obs["valueQuantity"] = {

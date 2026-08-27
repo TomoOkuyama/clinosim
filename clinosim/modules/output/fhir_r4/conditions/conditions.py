@@ -21,6 +21,7 @@ from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     is_chronic_primary as _encounter_primary_is_chronic,
 )
+from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
@@ -320,7 +321,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 }
             ],
             "code": build_diagnosis_codeable_concept(map_diagnosis_code(dx_code, country), icd_system_key, country),
-            "subject": {"reference": f"Patient/{patient_id}"},
+            "subject": patient_ref(patient_id),
         }
         # Issue #744: JP_Condition_eCS must-support `extension:eCS_DiagnosisType`
         # (spec binding: http://hl7.org/fhir/ValueSet/ex-diagnosistype|4.0.1).
@@ -506,7 +507,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 }
             ],
             "code": build_diagnosis_codeable_concept(map_diagnosis_code(c_code, country), icd_system_key, country),
-            "subject": {"reference": f"Patient/{patient_id}"},
+            "subject": patient_ref(patient_id),
         }
 
         if c_severity:

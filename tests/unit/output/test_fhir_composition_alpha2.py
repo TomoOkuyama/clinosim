@@ -18,6 +18,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from clinosim.modules.document import COMPOSITION_ID_PREFIX
+from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 from clinosim.modules.output.fhir_r4.documents.composition import _bb_compositions
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.types.clinical import ClinicalDocument, ClinicalDocumentNarrative
@@ -141,7 +142,7 @@ def test_admission_nursing_assessment_dict_path():
     r = resources[0]
     assert r["resourceType"] == "Composition"
     assert r["type"]["coding"][0]["code"] == "78390-2"
-    assert r["subject"]["reference"] == "Patient/pt1"
+    assert r["subject"]["reference"] == f"Patient/{resolve_patient_id('pt1')}"
     assert r["encounter"]["reference"] == f"Encounter/{resolve_encounter_id('enc1')}"
     assert len(r["section"]) == 5
 
