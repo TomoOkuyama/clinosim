@@ -119,7 +119,14 @@ def _build_imaging_report_composition(
     impression = (impression_ja if _is_jp and impression_ja else impression_en) or ""
 
     sections: list[dict[str, Any]] = []
+    # p=500 review finding (session 89): LOINC is on the English-only-CS
+    # list, so `_strip_japanese_display_on_english_only_systems` strips
+    # `coding.display` when JP. Populate `.text` on the CodeableConcept
+    # so the dual-slot pattern (coding.display=EN-canonical-or-stripped
+    # + text=locale) holds on the radiology imaging-report Composition
+    # section codes too. See feedback_dual_slot_english_only_cs.
     if findings:
+        _findings_disp = "所見" if _is_jp else "Study observation"
         sections.append(
             {
                 "title": "所見" if _is_jp else "Findings",
@@ -128,9 +135,10 @@ def _build_imaging_report_composition(
                         {
                             "system": get_system_uri("loinc"),
                             "code": _SECTION_FINDINGS_LOINC,
-                            "display": ("所見" if _is_jp else "Study observation"),
+                            "display": _findings_disp,
                         }
-                    ]
+                    ],
+                    "text": _findings_disp,
                 },
                 "text": {
                     "status": "generated",
@@ -139,6 +147,7 @@ def _build_imaging_report_composition(
             }
         )
     if impression:
+        _impression_disp = "印象" if _is_jp else "Radiology imaging study impression"
         sections.append(
             {
                 "title": "印象" if _is_jp else "Impression",
@@ -147,9 +156,10 @@ def _build_imaging_report_composition(
                         {
                             "system": get_system_uri("loinc"),
                             "code": _SECTION_IMPRESSION_LOINC,
-                            "display": ("印象" if _is_jp else "Radiology imaging study impression"),
+                            "display": _impression_disp,
                         }
-                    ]
+                    ],
+                    "text": _impression_disp,
                 },
                 "text": {
                     "status": "generated",

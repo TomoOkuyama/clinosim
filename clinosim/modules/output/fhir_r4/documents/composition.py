@@ -691,14 +691,25 @@ def _build_composition_generic(
         }
         loinc_section = _SECTION_LOINC.get(section_title)
         if loinc_section:
+            _loinc_disp = code_lookup("loinc", loinc_section, _doc_lang) or section_title
+            # p=500 review finding (session 89): LOINC is on the
+            # English-only-CS list, so `_strip_japanese_display_on_english_only_systems`
+            # post-processes `coding.display` away when it contains JP
+            # characters. Without a sibling `text`, JP consumers lose the
+            # human-readable section-code label entirely (bare code
+            # survives, but that is not user-facing). Populate `.text`
+            # with the same localized display so the dual-slot pattern
+            # (coding.display=EN-canonical-or-stripped + text=locale)
+            # holds. See feedback_dual_slot_english_only_cs.
             entry["code"] = {
                 "coding": [
                     {
                         "system": get_system_uri("loinc"),
                         "code": loinc_section,
-                        "display": code_lookup("loinc", loinc_section, _doc_lang) or section_title,
+                        "display": _loinc_disp,
                     }
-                ]
+                ],
+                "text": _loinc_disp,
             }
         section_entries.append(entry)
     if section_entries:
