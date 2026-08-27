@@ -2276,6 +2276,35 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Issue #854 CLOSE</strong> — <code>Patient.id</code> now emits opaque <code>pt-&lt;12hex&gt;</code>
+  (15 chars, fixed) instead of the pre-#854 simulation-generation slug
+  <code>POP-{n:06d}</code>. The <code>POP-{n}</code> slug is preserved on
+  <code>Patient.identifier[]</code> under the new PUBLIC
+  <code>POPULATION_SLUG_KEY_SYSTEM = "urn:clinosim:identifier:population-slug"</code>
+  so consumers who key on the human-readable generation id (iris4h-ai
+  clinical cockpit, integration tests) can still recover it. 44
+  downstream cross-ref sites across 29 modules (Observation /
+  MedicationRequest / MedicationAdministration / Procedure /
+  DiagnosticReport / ImagingStudy / DocumentReference / Composition /
+  ClinicalImpression / CareTeam / Condition / AllergyIntolerance /
+  Encounter / Immunization / FamilyMemberHistory / Coverage / HAI /
+  blood_type / smoking_alcohol / care_level / inline_bb) route through
+  the shared <code>patient_ref(cif_patient_id)</code> helper — never string-format
+  the CIF value directly. Design decision rationale: 4-axis eval (data
+  quality, clinical consistency, module responsibility decomposition,
+  OSS code structure) all favour full opaque; narrative CIF is
+  patient-id-agnostic by design (fact_extractor emits <code>patient.age</code> /
+  <code>patient.sex</code> / chronic conditions, never patient_id), so no narrate
+  regen is required. External URL contract breakage
+  (<code>/Patient/POP-000002</code> → <code>/Patient/pt-&lt;hex&gt;</code>) is a consumer/deploy
+  concern (iris4h-ai UI update) tracked separately. Byte-output changes
+  on Patient NDJSON + every downstream slice carrying a
+  <code>.subject.reference</code> (~all resource types on JP p=10000 s500 sample);
+  structured CIF unchanged, narrative CIF unaffected — <strong>PATCH</strong> under
+  the new versioning policy. Row 18 CLOSES Issue #854. (Continues
+  PR #857 / #863 / #867 / #868 / #869 / #878 / #879 / #880 / #881 /
+  #882 / #883 / #884 / #885 / #886 / #887 / #888 / #889 / #890 / #892
+  opaque-id pattern.)</li>
 <li>Bucket C patient-scoped stand-alone <code>Resource.id</code> now emits opaque
   <code>{prefix}-&lt;12hex&gt;</code> (fixed length) for all four resource kinds:
   <code>Immunization.id</code> = <code>imm-&lt;12hex&gt;</code> (16 chars),
