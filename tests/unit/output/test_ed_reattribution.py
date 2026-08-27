@@ -9,18 +9,27 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.modules.output.fhir_r4.lib.ed_reattribution import (
     reattribute_encounter_to_ed_bridge,
 )
 
+# Issue #854 PR-encounter: cross-refs use the shared opaque resolver.
+# Precompute the two references the walker matches / rewrites so tests
+# work at the emit-format layer.
+_IMP_CIF = "ENC-POP-000001-111"
+_IMP_REF = f"Encounter/{resolve_encounter_id(_IMP_CIF)}"
+_ED_REF = f"Encounter/{resolve_encounter_id(f'{_IMP_CIF}-ED')}"
+_OTHER_REF = f"Encounter/{resolve_encounter_id('OTHER-ENC-999')}"
 
-def _ctx_with_ed_imp(imp_id: str = "ENC-POP-000001-111"):
+
+def _ctx_with_ed_imp(imp_id: str = _IMP_CIF):
     """Minimal ctx whose record has an ED-admitted IMP encounter."""
     record = {"encounters": [{"encounter_id": imp_id, "admit_source": "emd"}]}
     return SimpleNamespace(record=record)
 
 
-def _ctx_without_ed(imp_id: str = "ENC-POP-000001-111"):
+def _ctx_without_ed(imp_id: str = _IMP_CIF):
     record = {"encounters": [{"encounter_id": imp_id, "admit_source": "outp"}]}
     return SimpleNamespace(record=record)
 
@@ -35,10 +44,10 @@ def test_ed_note_composition_rerouted_to_ed_bridge():
         "resourceType": "Composition",
         "id": "comp-1",
         "type": {"coding": [{"system": "http://loinc.org", "code": "34878-9"}]},
-        "encounter": {"reference": "Encounter/ENC-POP-000001-111"},
+        "encounter": {"reference": _IMP_REF},
     }
     reattribute_encounter_to_ed_bridge(resource, ctx)
-    assert resource["encounter"]["reference"] == "Encounter/ENC-POP-000001-111-ED"
+    assert resource["encounter"]["reference"] == _ED_REF
 
 
 def test_ed_triage_documentreference_top_level_encounter_rerouted():
@@ -48,10 +57,10 @@ def test_ed_triage_documentreference_top_level_encounter_rerouted():
         "resourceType": "DocumentReference",
         "id": "doc-1",
         "type": {"coding": [{"system": "http://loinc.org", "code": "54094-8"}]},
-        "encounter": {"reference": "Encounter/ENC-POP-000001-111"},
+        "encounter": {"reference": _IMP_REF},
     }
     reattribute_encounter_to_ed_bridge(resource, ctx)
-    assert resource["encounter"]["reference"] == "Encounter/ENC-POP-000001-111-ED"
+    assert resource["encounter"]["reference"] == _ED_REF
 
 
 def test_ed_triage_documentreference_context_encounter_rerouted():
@@ -65,12 +74,12 @@ def test_ed_triage_documentreference_context_encounter_rerouted():
         "id": "doc-triage",
         "type": {"coding": [{"code": "54094-8"}]},
         "context": {
-            "encounter": [{"reference": "Encounter/ENC-POP-000001-111"}],
+            "encounter": [{"reference": _IMP_REF}],
             "period": {"start": "2026-02-10T06:00:00+09:00"},
         },
     }
     reattribute_encounter_to_ed_bridge(resource, ctx)
-    assert resource["context"]["encounter"][0]["reference"] == "Encounter/ENC-POP-000001-111-ED"
+    assert resource["context"]["encounter"][0]["reference"] == _ED_REF
 
 
 def test_admission_hp_composition_stays_on_imp():
@@ -83,10 +92,10 @@ def test_admission_hp_composition_stays_on_imp():
         "id": "comp-hp",
         "type": {"coding": [{"code": "34117-2"}]},
         "date": "2026-02-10T08:37:00+09:00",
-        "encounter": {"reference": "Encounter/ENC-POP-000001-111"},
+        "encounter": {"reference": _IMP_REF},
     }
     reattribute_encounter_to_ed_bridge(resource, ctx)
-    assert resource["encounter"]["reference"] == "Encounter/ENC-POP-000001-111"
+    assert resource["encounter"]["reference"] == _IMP_REF
 
 
 def test_observation_stays_on_imp_regardless_of_timestamp():
@@ -95,10 +104,10 @@ def test_observation_stays_on_imp_regardless_of_timestamp():
     resource = {
         "resourceType": "Observation",
         "effectiveDateTime": "2026-02-10T06:00:00+09:00",  # would be "in ED window"
-        "encounter": {"reference": "Encounter/ENC-POP-000001-111"},
+        "encounter": {"reference": _IMP_REF},
     }
     reattribute_encounter_to_ed_bridge(resource, ctx)
-    assert resource["encounter"]["reference"] == "Encounter/ENC-POP-000001-111"
+    assert resource["encounter"]["reference"] == _IMP_REF
 
 
 def test_nursing_documentreference_stays_on_imp():
@@ -111,12 +120,12 @@ def test_nursing_documentreference_stays_on_imp():
         "resourceType": "DocumentReference",
         "type": {"coding": [{"code": "34746-8"}]},
         "context": {
-            "encounter": [{"reference": "Encounter/ENC-POP-000001-111"}],
+            "encounter": [{"reference": _IMP_REF}],
             "period": {"start": "2026-02-10T08:00:00+09:00"},
         },
     }
     reattribute_encounter_to_ed_bridge(resource, ctx)
-    assert resource["context"]["encounter"][0]["reference"] == "Encounter/ENC-POP-000001-111"
+    assert resource["context"]["encounter"][0]["reference"] == _IMP_REF
 
 
 # ---- gate conditions ----------------------------------------------------------
@@ -128,11 +137,11 @@ def test_no_op_when_not_ed_admission():
     resource = {
         "resourceType": "Composition",
         "type": {"coding": [{"code": "34878-9"}]},  # would trigger if EMD
-        "encounter": {"reference": "Encounter/ENC-POP-000001-111"},
+        "encounter": {"reference": _IMP_REF},
     }
     reattribute_encounter_to_ed_bridge(resource, ctx)
     # No -ED bridge exists for outpatient admits.
-    assert resource["encounter"]["reference"] == "Encounter/ENC-POP-000001-111"
+    assert resource["encounter"]["reference"] == _IMP_REF
 
 
 def test_no_op_when_no_encounter_field():
@@ -149,10 +158,10 @@ def test_no_op_when_reference_targets_different_encounter():
     resource = {
         "resourceType": "Composition",
         "type": {"coding": [{"code": "34878-9"}]},
-        "encounter": {"reference": "Encounter/OTHER-ENC-999"},
+        "encounter": {"reference": _OTHER_REF},
     }
     reattribute_encounter_to_ed_bridge(resource, ctx)
-    assert resource["encounter"]["reference"] == "Encounter/OTHER-ENC-999"
+    assert resource["encounter"]["reference"] == _OTHER_REF
 
 
 def test_idempotent_on_already_routed_resource():
@@ -161,11 +170,11 @@ def test_idempotent_on_already_routed_resource():
     resource = {
         "resourceType": "Composition",
         "type": {"coding": [{"code": "34878-9"}]},
-        "encounter": {"reference": "Encounter/ENC-POP-000001-111"},
+        "encounter": {"reference": _IMP_REF},
     }
     reattribute_encounter_to_ed_bridge(resource, ctx)
     reattribute_encounter_to_ed_bridge(resource, ctx)
-    assert resource["encounter"]["reference"] == "Encounter/ENC-POP-000001-111-ED"
+    assert resource["encounter"]["reference"] == _ED_REF
 
 
 def test_imp_id_cached_on_ctx():

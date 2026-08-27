@@ -17,6 +17,7 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _coding_with_display,
@@ -89,7 +90,7 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
             ],
             "code": {"coding": coding, "text": icd_disp or snomed_disp},
             "subject": {"reference": f"Patient/{ctx.patient_id}"},
-            "encounter": {"reference": f"Encounter/{enc_id}"},
+            "encounter": encounter_ref(enc_id),
             "onsetDateTime": onset_date,
             # cycle 8 cross-seed verify fix (C6-Cond-ev regression): HAI
             # Condition にも evidence を emit(CY6-19 と同型式)。院内感染は

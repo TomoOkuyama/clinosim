@@ -128,14 +128,16 @@ def test_subject_references_patient():
 
 def test_encounter_reference_present():
     """When primary_enc_id is set, encounter reference must be on each Observation."""
+    from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
     from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 
     ctx = _make_ctx(_record(), country="US", primary_enc_id="enc1")
     obs = _bb_nursing_observations(ctx)
 
+    expected = f"Encounter/{resolve_encounter_id('enc1')}"
     for o in obs:
         enc_ref = o.get("encounter", {}).get("reference", "")
-        assert enc_ref == "Encounter/enc1", f"Observation {o['id']} missing or wrong encounter ref: {enc_ref!r}"
+        assert enc_ref == expected, f"Observation {o['id']} missing or wrong encounter ref: {enc_ref!r}"
 
 
 def test_news2_has_clinosim_custom_coding():

@@ -16,6 +16,7 @@ from clinosim.codes import (
     lookup as code_lookup,
 )
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -186,7 +187,7 @@ def _build_procedure(
         resource["performedDateTime"] = _start_fhir
 
     if proc.get("encounter_id"):
-        resource["encounter"] = {"reference": f"Encounter/{proc['encounter_id']}"}
+        resource["encounter"] = encounter_ref(proc["encounter_id"])
 
     # performer[] with function (surgeon, anesthesiologist)
     performers: list[dict[str, Any]] = []

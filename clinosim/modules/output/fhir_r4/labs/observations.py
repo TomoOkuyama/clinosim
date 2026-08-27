@@ -16,6 +16,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
     BP_DIASTOLIC,
     BP_SYSTOLIC,
@@ -279,7 +280,7 @@ def _build_lab_observation(
     # Encounter reference (use order's encounter_id, fallback to primary)
     enc_ref = order.get("encounter_id", "") or encounter_id
     if enc_ref:
-        resource["encounter"] = {"reference": f"Encounter/{enc_ref}"}
+        resource["encounter"] = encounter_ref(enc_ref)
 
     # Performer (lab technician or ordering physician)
     performer_id = result.get("performed_by", "") or order.get("ordered_by", "")
@@ -482,7 +483,7 @@ def _build_vital_observations(
 
         # Encounter reference
         if encounter_id:
-            obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+            obs["encounter"] = encounter_ref(encounter_id)
 
         # Performer (nurse who measured)
         performer_id = vs.get("measured_by", "")
@@ -609,7 +610,7 @@ def _build_vital_observations(
             except (ValueError, TypeError):
                 bp_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
         if encounter_id:
-            bp_obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+            bp_obs["encounter"] = encounter_ref(encounter_id)
         performer_id = vs.get("measured_by", "")
         if performer_id:
             bp_obs["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
@@ -691,7 +692,7 @@ def _build_vital_observations(
         if timestamp:
             loc_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
         if encounter_id:
-            loc_obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+            loc_obs["encounter"] = encounter_ref(encounter_id)
         # RM-1: forward performer (nurse measured_by) on LOC obs.
         _perf = vs.get("measured_by", "")
         if _perf:
@@ -769,7 +770,7 @@ def _build_vital_observations(
         if timestamp:
             o2_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
         if encounter_id:
-            o2_obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+            o2_obs["encounter"] = encounter_ref(encounter_id)
         # RM-1: forward performer on O2 obs.
         _perf = vs.get("measured_by", "")
         if _perf:

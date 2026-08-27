@@ -22,6 +22,7 @@ from clinosim.modules._shared import (
     is_jp,
     resolve_lang,
 )
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     _parse_dose_for_mar,
     build_dosage_instruction,
@@ -796,7 +797,7 @@ def _build_medication_request(
     # Encounter reference
     enc_ref = order.get("encounter_id", "") or encounter_id
     if enc_ref:
-        resource["encounter"] = {"reference": f"Encounter/{enc_ref}"}
+        resource["encounter"] = encounter_ref(enc_ref)
 
     # Requester (ordering physician)
     if order.get("ordered_by"):
@@ -992,7 +993,7 @@ def _build_discharge_medication_request(
         "authoredOn": authored_on,
     }
     if encounter_id:
-        resource["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        resource["encounter"] = encounter_ref(encounter_id)
     if prescriber_id:
         resource["requester"] = {"reference": f"Practitioner/{prescriber_id}"}
         resource["recorder"] = {"reference": f"Practitioner/{prescriber_id}"}
@@ -1242,7 +1243,7 @@ def _build_medication_admin(
 
     # Encounter context
     if encounter_id:
-        resource["context"] = {"reference": f"Encounter/{encounter_id}"}
+        resource["context"] = encounter_ref(encounter_id)
 
     # Cycle-1 C1-06/C1-07: MAR → MR audit-trail link. The MedicationRequest id
     # fix: MR resource id は order_id 単体(encounter-scoped で

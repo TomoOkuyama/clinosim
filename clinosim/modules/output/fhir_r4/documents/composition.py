@@ -53,6 +53,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref, resolve_encounter_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.lib.ids import derive_opaque_id
 
@@ -630,7 +631,7 @@ def _build_composition_generic(
     }
 
     if encounter_id:
-        res["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        res["encounter"] = encounter_ref(encounter_id)
         # CY7-11 (Chain-7): Composition.event — the clinical event(s) the
         # composition documents. For discharge summary / progress note /
         # H&P etc., this is the encounter the doc summarizes, with the
@@ -642,7 +643,7 @@ def _build_composition_generic(
             _event["period"]["start"] = _period_start
         if _period_end:
             _event["period"]["end"] = _period_end
-        _event["detail"] = [{"reference": f"Encounter/{encounter_id}"}]
+        _event["detail"] = [encounter_ref(encounter_id)]
         if _event["period"]:
             res["event"] = [_event]
 
@@ -952,8 +953,9 @@ def _build_jp_clins_discharge_summary_composition(
     if not _primary_cond_id and _enc_id:
         _fallback_patient_id = _o(doc, "patient_id", "") or ""
         _primary_cond_id = encounter_primary_condition_id(_fallback_patient_id, _enc_id)
+    # Issue #854 PR-encounter: template needs opaque encounter id.
     _entry_ctx = {
-        "encounter_id": _enc_id,
+        "encounter_id": resolve_encounter_id(_enc_id) if _enc_id else "",
         "free_text_doc_id": _free_text_doc_id,
         "primary_cond_id": _primary_cond_id,
     }

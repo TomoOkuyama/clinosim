@@ -29,7 +29,10 @@ from unittest.mock import patch
 import pytest
 
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules.output.fhir_r4.encounters.encounter import _build_encounter
+from clinosim.modules.output.fhir_r4.encounters.encounter import (
+    ENCOUNTER_KEY_SYSTEM,
+    _build_encounter,
+)
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.modules.output.fhir_r4.lib.inline_bb import _bb_encounters
 
@@ -71,11 +74,19 @@ def _make_ctx(country: str) -> BundleContext:
 
 
 def _synth_ed_resource(resources: list[dict]) -> dict:
-    """Return the ED bridge encounter (id ends with ``-ED``) from the list."""
+    """Return the ED bridge encounter from the list.
+
+    Post-Issue #854 PR-encounter the resource `.id` is opaque
+    (`enc-<12hex>`), so the bridge is identified by its structural-key
+    identifier whose value ends with ``-ED``.
+    """
     for r in resources:
-        if r.get("id", "").endswith("-ED"):
-            return r
-    raise AssertionError(f"No synth-ED bridge encounter in resources: {[r.get('id') for r in resources]}")
+        for ident in r.get("identifier", []) or []:
+            if ident.get("system") == ENCOUNTER_KEY_SYSTEM and (ident.get("value") or "").endswith("-ED"):
+                return r
+    raise AssertionError(
+        f"No synth-ED bridge encounter in resources: {[(r.get('id'), r.get('identifier')) for r in resources]}"
+    )
 
 
 @pytest.mark.parametrize("country", ["JP", "US"])

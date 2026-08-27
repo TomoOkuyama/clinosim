@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 from clinosim.modules.document import COMPOSITION_ID_PREFIX
 from clinosim.modules.output.fhir_r4.documents.composition import _bb_compositions
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.types.clinical import ClinicalDocument, ClinicalDocumentNarrative
 
 
@@ -127,7 +128,7 @@ def test_composition_subject_patient_ref():
 def test_composition_encounter_ref():
     ctx = _make_ctx([_sample_doc_dataclass()])
     r = _bb_compositions(ctx)[0]
-    assert r["encounter"]["reference"] == "Encounter/enc1"
+    assert r["encounter"]["reference"] == f"Encounter/{resolve_encounter_id('enc1')}"
 
 
 def test_composition_author_ref():
@@ -207,7 +208,7 @@ def test_composition_from_dict_path():
 
     assert r["id"] == _resolve_composition_id("enc1-hp-1")
     assert r["subject"]["reference"] == "Patient/pt1"
-    assert r["encounter"]["reference"] == "Encounter/enc1"
+    assert r["encounter"]["reference"] == f"Encounter/{resolve_encounter_id('enc1')}"
     sections = r["section"]
     assert any(s["title"] == "History of Present Illness" for s in sections)
 

@@ -24,12 +24,49 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     map_diagnosis_code,
     map_encounter_status,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _CLASS_DISPLAY_JA,
     _dept_display,
     _localize_display,
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import _ENCOUNTER_TYPE_SNOMED_CODE
+
+# === Issue #854 Bucket B (PR-encounter): opaque Encounter.id ===
+# LEAK ROOT of the compound-id anti-pattern — the pre-#854 shape
+# `ENC-POP-{patient}-{encounter}` (plus optional EMER / OP / etc.
+# suffixes) is what every downstream resource string-templated into its
+# `*.encounter.reference` slot. Structural key = the CIF
+# `encounter_id` field verbatim; post-#854 every `.id` becomes
+# `enc-<12hex>` (16 chars, fixed). Every cross-referencer must route
+# through `encounter_ref` / `resolve_encounter_id` — never
+# string-format the CIF value directly.
+ENCOUNTER_ID_PREFIX = "enc-"
+ENCOUNTER_KEY_SYSTEM = structural_key_system("encounter-key")
+
+
+def resolve_encounter_id(cif_encounter_id: str) -> str:
+    """Return the opaque FHIR Encounter.id for a CIF ``encounter_id``.
+
+    Shape: ``enc-{sha256(cif_encounter_id)[:12]}`` = 16 chars, fixed.
+    Deterministic — same CIF id always maps to the same opaque id
+    within and across runs.
+    """
+    return derive_opaque_id(ENCOUNTER_ID_PREFIX, cif_encounter_id)
+
+
+def encounter_ref(cif_encounter_id: str) -> dict[str, str]:
+    """Return a FHIR ``Reference`` dict pointing at the opaque Encounter id.
+
+    All emit sites that need ``{"reference": f"Encounter/{...}"}`` must
+    route through this helper — never string-format the CIF
+    ``encounter_id`` directly into the reference slot.
+    """
+    return {"reference": f"Encounter/{resolve_encounter_id(cif_encounter_id)}"}
 
 
 def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | None:
@@ -97,7 +134,11 @@ def _build_encounter(
 
     resource: dict[str, Any] = {
         "resourceType": "Encounter",
-        "id": encounter_id,
+        # Issue #854 Bucket B (PR-encounter): opaque `enc-<12hex>` id.
+        # Pre-#854 shape (CIF `encounter_id`) is preserved on
+        # `.identifier[]` via ENCOUNTER_KEY_SYSTEM for round-trip.
+        "id": resolve_encounter_id(encounter_id),
+        "identifier": [wrap_as_identifier(encounter_id, ENCOUNTER_KEY_SYSTEM)],
         # C2-20: JP Core Encounter profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"]}}
@@ -604,6 +645,6 @@ def _build_encounter(
     # (v2-0092 "R" = Re-admission)で表現、上の line 435-444 で既に emit
     # 済み。type[] への重複追加は無効な CS binding を生むので撤廃。
     if is_readmission and prior_encounter_id:
-        resource["partOf"] = {"reference": f"Encounter/{prior_encounter_id}"}
+        resource["partOf"] = encounter_ref(prior_encounter_id)
 
     return resource

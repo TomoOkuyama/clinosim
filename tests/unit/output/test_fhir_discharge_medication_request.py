@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import pytest
 
+from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.modules.output.fhir_r4.medications.medications import (
     DISCHARGE_RX_ID_PREFIX,
     OUTPATIENT_RX_ID_PREFIX,
@@ -251,7 +252,7 @@ def test_course_of_therapy_reflects_open_ended_supply() -> None:
 def test_subject_encounter_and_prescriber_references() -> None:
     r = _build(_DISCHARGE_ITEM)
     assert r["subject"] == {"reference": "Patient/POP-000001"}
-    assert r["encounter"] == {"reference": "Encounter/ENC-1"}
+    assert r["encounter"] == {"reference": f"Encounter/{resolve_encounter_id('ENC-1')}"}
     assert r["requester"] == {"reference": "Practitioner/DOC-1"}
     assert r["recorder"] == {"reference": "Practitioner/DOC-1"}
 
