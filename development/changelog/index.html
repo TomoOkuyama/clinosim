@@ -2276,6 +2276,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><code>MedicationAdministration.id</code> now emits opaque <code>mar-&lt;12hex&gt;</code> (16
+  chars, fixed) instead of the pre-fix compound
+  <code>mar-{encounter_id or patient_id}-{index:05d}</code>. Discovered via the
+  post-Issue-#854-close p=500 review — MA was overlooked in the
+  original sweep. New PUBLIC constants
+  <code>MEDICATION_ADMINISTRATION_ID_PREFIX = "mar-"</code> and
+  <code>MEDICATION_ADMINISTRATION_KEY_SYSTEM = "urn:clinosim:identifier:medication-administration-key"</code>;
+  the compound structural key round-trips on
+  <code>MedicationAdministration.identifier[]</code> alongside any JP-specific
+  <code>rpNumber</code> / <code>orderInRp</code> identifiers. MA is a leaf in the FHIR
+  reference graph — no other resource type references MA by id — so
+  this is a stand-alone-tail migration with no downstream cascade.
+  Byte-output changes on MA NDJSON only (~20k records on JP p=500
+  s=42 sample, none on other resource types); structured CIF is
+  byte-unchanged and narrative CIF is unaffected — PATCH under the
+  new versioning policy. (Post-#854 remainder.)</li>
 <li><strong>Issue #854 CLOSE</strong> — <code>Patient.id</code> now emits opaque <code>pt-&lt;12hex&gt;</code>
   (15 chars, fixed) instead of the pre-#854 simulation-generation slug
   <code>POP-{n:06d}</code>. The <code>POP-{n}</code> slug is preserved on
