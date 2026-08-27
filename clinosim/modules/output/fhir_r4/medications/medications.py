@@ -181,6 +181,26 @@ def _derive_mr_category(
 # downstream rather than a silent gate skip.
 MEDICATION_REQUEST_KEY_SYSTEM = structural_key_system("medication-request-key")
 
+# === Issue #854 remainder (PR-medication-administration): opaque MA.id ===
+# Discovered post-#854-close via p=500 review: MedicationAdministration
+# was overlooked in the original sweep. Structural key = pre-#854 id body
+# `{encounter_id or patient_id}-{index:05d}` (`mar-` prefix stripped);
+# post-#854 every `.id` is `mar-<12hex>` (16 chars, fixed). Cross-refs
+# (`.subject`, `.context`, `.request`) already route through the shared
+# resolvers (Patient / Encounter / MR migrated earlier), so this is a
+# stand-alone-tail migration — no downstream cascade needed.
+MEDICATION_ADMINISTRATION_ID_PREFIX = "mar-"
+MEDICATION_ADMINISTRATION_KEY_SYSTEM = structural_key_system("medication-administration-key")
+
+
+def _resolve_ma_id(structural_key: str) -> str:
+    """Return the opaque FHIR MedicationAdministration.id from a structural key.
+
+    Shape: ``mar-{sha256(structural_key)[:12]}`` = 16 chars, fixed.
+    """
+    return derive_opaque_id(MEDICATION_ADMINISTRATION_ID_PREFIX, structural_key)
+
+
 # Issue #445: Resource.id prefixes for prescriptions that come from
 # `CIFPatientRecord.discharge_prescription` rather than from an inpatient Order.
 # Two prefixes, not one, so a consumer can tell a take-home script written at
@@ -1196,33 +1216,37 @@ def _build_medication_admin(
             }
         ]
 
+    # Issue #854 (PR-medication-administration): opaque MA.id + structural
+    # key round-trip. See MEDICATION_ADMINISTRATION_KEY_SYSTEM docstring.
+    _ma_structural_key = f"{encounter_id or patient_id}-{index:05d}"
+    ma_identifiers: list[dict[str, Any]] = [
+        wrap_as_identifier(_ma_structural_key, MEDICATION_ADMINISTRATION_KEY_SYSTEM)
+    ]
+    # clinosim_feedback P1-4: JP_MedicationAdministration.
+    # identifier slice `rpNumber` + `orderInRp`(parent MR と同 URL / 同 値)。
+    if is_jp(country_code):
+        ma_identifiers.extend(
+            [
+                {
+                    "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
+                    "value": rp_number,
+                },
+                {
+                    "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
+                    "value": order_in_rp,
+                },
+            ]
+        )
     resource: dict[str, Any] = {
         "resourceType": "MedicationAdministration",
-        "id": f"mar-{encounter_id or patient_id}-{index:05d}",
+        "id": _resolve_ma_id(_ma_structural_key),
         # chain #2: JP Core MedicationAdministration profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"]}}
             if is_jp(country_code)
             else {}
         ),
-        # clinosim_feedback P1-4: JP_MedicationAdministration.
-        # identifier slice `rpNumber` + `orderInRp`(parent MR と同 URL / 同 値)。
-        **(
-            {
-                "identifier": [
-                    {
-                        "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
-                        "value": rp_number,
-                    },
-                    {
-                        "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
-                        "value": order_in_rp,
-                    },
-                ]
-            }
-            if is_jp(country_code)
-            else {}
-        ),
+        "identifier": ma_identifiers,
         "status": map_mar_status(mar.get("status", "completed")),
         "medicationCodeableConcept": med_concept,
         "subject": patient_ref(patient_id),
