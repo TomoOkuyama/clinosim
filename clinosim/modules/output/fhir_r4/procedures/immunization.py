@@ -20,6 +20,27 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
     to_fhir_datetime,
 )
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+# === Issue #854 Bucket C (PR-immunization): opaque Immunization.id ===
+# Structural key = pre-#854 id body `{patient_id}-{i}` (`imm-` prefix
+# stripped); post-#854 every `.id` is `imm-<12hex>` (16 chars, fixed).
+# Immunization is stand-alone (no cross-ref cascade). The compound key
+# round-trips on `.identifier[]` under IMMUNIZATION_KEY_SYSTEM.
+IMMUNIZATION_ID_PREFIX = "imm-"
+IMMUNIZATION_KEY_SYSTEM = structural_key_system("immunization-key")
+
+
+def _resolve_immunization_id(structural_key: str) -> str:
+    """Return the opaque FHIR Immunization.id from a structural key.
+
+    Shape: ``imm-{sha256(structural_key)[:12]}`` = 16 chars, fixed.
+    """
+    return derive_opaque_id(IMMUNIZATION_ID_PREFIX, structural_key)
 
 
 def _bb_immunizations(ctx: BundleContext) -> list[dict]:
@@ -53,9 +74,11 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
         # occurrence_date may be a date object or ISO string; normalize via FP-UNIFY-2 helper
         occ_str = to_fhir_datetime(occurrence)
 
+        _imm_structural_key = f"{ctx.patient_id}-{i}"
         resource: dict[str, Any] = {
             "resourceType": "Immunization",
-            "id": f"imm-{ctx.patient_id}-{i}",
+            "id": _resolve_immunization_id(_imm_structural_key),
+            "identifier": [wrap_as_identifier(_imm_structural_key, IMMUNIZATION_KEY_SYSTEM)],
             # Chain #2: JP Core Immunization profile.
             **(
                 {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"]}}

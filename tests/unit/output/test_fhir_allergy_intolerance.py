@@ -6,7 +6,10 @@ from datetime import date
 from types import SimpleNamespace
 
 from clinosim.modules.document import ALLERGY_ID_PREFIX
-from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import _bb_allergy_intolerances
+from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import (
+    _bb_allergy_intolerances,
+    _resolve_allergy_id,
+)
 from clinosim.types.allergy import Allergy, AllergyReaction
 
 
@@ -104,7 +107,7 @@ def test_allergy_id_uses_canonical_prefix():
     ctx = _make_ctx([_sample_allergy_dataclass()])
     r = _bb_allergy_intolerances(ctx)[0]
     assert r["id"].startswith(ALLERGY_ID_PREFIX)
-    assert r["id"] == f"{ALLERGY_ID_PREFIX}pt1-a01"
+    assert r["id"] == _resolve_allergy_id("pt1-a01")
 
 
 def test_clinical_status_active():
@@ -194,7 +197,7 @@ def test_allergy_from_dict_path():
     assert len(resources) == 1
     r = resources[0]
     assert r["resourceType"] == "AllergyIntolerance"
-    assert r["id"] == f"{ALLERGY_ID_PREFIX}pt1-a01"
+    assert r["id"] == _resolve_allergy_id("pt1-a01")
     assert r["code"]["coding"][0]["code"] == "387458008"
     assert r["criticality"] == "high"
     assert r["onsetDateTime"] == "2020-03-15"
@@ -389,5 +392,5 @@ def test_multiple_allergies_all_emitted():
     resources = _bb_allergy_intolerances(ctx)
     assert len(resources) == 2
     ids = {r["id"] for r in resources}
-    assert f"{ALLERGY_ID_PREFIX}pt1-a01" in ids
-    assert f"{ALLERGY_ID_PREFIX}pt1-a02" in ids
+    assert _resolve_allergy_id("pt1-a01") in ids
+    assert _resolve_allergy_id("pt1-a02") in ids

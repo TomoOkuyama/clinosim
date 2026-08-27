@@ -34,9 +34,31 @@ from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import ALLERGY_ID_PREFIX
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.ids import (
+    derive_opaque_id,
+    structural_key_system,
+    wrap_as_identifier,
+)
+
+# === Issue #854 Bucket C (PR-allergy-intolerance): opaque AI.id ===
+# Structural key = pre-#854 id body `{patient_id}-{allergy_id}` (`allergy-`
+# prefix stripped); post-#854 every `.id` is `allergy-<12hex>` (20 chars,
+# fixed). Stand-alone (no cross-ref cascade). Compound key round-trips
+# on `.identifier[]` under ALLERGY_KEY_SYSTEM.
+ALLERGY_KEY_SYSTEM = structural_key_system("allergy-intolerance-key")
+
+
+def _resolve_allergy_id(structural_key: str) -> str:
+    """Return the opaque FHIR AllergyIntolerance.id from a structural key.
+
+    Shape: ``allergy-{sha256(structural_key)[:12]}`` = 20 chars, fixed.
+    """
+    return derive_opaque_id(ALLERGY_ID_PREFIX, structural_key)
+
 
 __all__ = [
     "ALLERGY_ID_PREFIX",
+    "ALLERGY_KEY_SYSTEM",
     "_bb_allergy_intolerances",
 ]
 
@@ -207,9 +229,11 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     # locale-aware. Was hard-coded "en" — JP output leaked English displays.
     ver_display = code_lookup("hl7-allergyintolerance-verification", verification_status, lang)
     clin_display = code_lookup("hl7-allergyintolerance-clinical", clinical_status, lang)
+    _ai_structural_key = f"{patient_id}-{allergy_id}"
     res: dict[str, Any] = {
         "resourceType": "AllergyIntolerance",
-        "id": f"{ALLERGY_ID_PREFIX}{patient_id}-{allergy_id}",
+        "id": _resolve_allergy_id(_ai_structural_key),
+        "identifier": [wrap_as_identifier(_ai_structural_key, ALLERGY_KEY_SYSTEM)],
         # chain #2: JP Core AllergyIntolerance profile.
         # lang == "ja" is the JP-country signal in this builder's caller chain
         # (BundleContext resolves lang from country in _bb_allergy_intolerances).

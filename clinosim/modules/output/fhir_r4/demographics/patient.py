@@ -48,6 +48,20 @@ def _resolve_occupation_id(structural_key: str) -> str:
     return derive_opaque_id(OCCUPATION_ID_PREFIX, structural_key)
 
 
+# === Issue #854 Bucket C (PR-coverage): opaque Coverage.id ===
+# Structural key = pre-#854 id body `{patient_id}-{idx}` (`cov-` prefix
+# stripped); post-#854 every `.id` is `cov-<12hex>` (16 chars, fixed).
+# Coverage already carries a member-id identifier[] for the JP insurance
+# number; a second entry under COVERAGE_KEY_SYSTEM round-trips the
+# structural key so consumers keyed on the old id still work.
+COVERAGE_ID_PREFIX = "cov-"
+COVERAGE_KEY_SYSTEM = structural_key_system("coverage-key")
+
+
+def _resolve_coverage_id(structural_key: str) -> str:
+    return derive_opaque_id(COVERAGE_ID_PREFIX, structural_key)
+
+
 # FHIR R4 standard: payer organization type
 _ORG_TYPE_SYSTEM = get_system_uri("hl7-organization-type")
 # FHIR R4 standard: beneficiary's relationship to the policy subscriber
@@ -157,11 +171,15 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
         composite = ":".join([insurer, symbol or "", number, branch or ""])
         subscriber = f"{symbol}:{number}" if symbol else number
 
+        _cov_structural_key = f"{pid}-{idx}"
         coverage: dict[str, Any] = {
             "resourceType": "Coverage",
-            "id": f"cov-{pid}-{idx}",
+            "id": _resolve_coverage_id(_cov_structural_key),
             "extension": extensions,
-            "identifier": [{"system": cfg.get("member_id_system", ""), "value": composite}],
+            "identifier": [
+                {"system": cfg.get("member_id_system", ""), "value": composite},
+                wrap_as_identifier(_cov_structural_key, COVERAGE_KEY_SYSTEM),
+            ],
             "status": "active",
             "subscriberId": subscriber,
             # CY7-13 (Chain-7): Coverage.subscriber — the person carrying the
