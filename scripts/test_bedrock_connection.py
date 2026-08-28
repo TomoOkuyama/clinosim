@@ -46,6 +46,7 @@ def main() -> int:
     print("=" * 60)
     try:
         import boto3
+
         print(f"  OK: boto3 {boto3.__version__}")
     except ImportError:
         print("  FAIL: boto3 not installed")
@@ -87,6 +88,7 @@ def main() -> int:
     print("=" * 60)
     try:
         import time
+
         t0 = time.time()
         resp = client.converse(
             modelId=args.model,
@@ -126,11 +128,13 @@ def main() -> int:
     try:
         from clinosim.modules.llm_service.providers.bedrock import BedrockProvider
 
-        provider = BedrockProvider({
-            "region": args.region,
-            "profile": args.profile,
-            "model_id": args.model,
-        })
+        provider = BedrockProvider(
+            {
+                "region": args.region,
+                "profile": args.profile,
+                "model_id": args.model,
+            }
+        )
         resp = provider.complete(
             prompt="Write a one-sentence discharge summary for a 65yo male admitted for pneumonia, discharged after 7 days.",
             model=args.model,
@@ -158,24 +162,28 @@ def main() -> int:
         )
         from clinosim.modules.llm_service.providers.bedrock import BedrockProvider
 
-        provider = BedrockProvider({
-            "region": args.region,
-            "profile": args.profile,
-            "model_id": args.model,
-        })
+        provider = BedrockProvider(
+            {
+                "region": args.region,
+                "profile": args.profile,
+                "model_id": args.model,
+            }
+        )
         svc = LLMService(
             mode="llm",
             narrative_provider=provider,
             narrative_model_map={"medium": args.model},
             provider_name_narrative="bedrock",
         )
-        ps = PatientSummary(age=72, sex="Male", country="US",
-                            current_diagnosis="Bacterial pneumonia")
+        ps = PatientSummary(age=72, sex="Male", country="US", current_diagnosis="Bacterial pneumonia")
         event = ClinicalEventData(patient_summary=ps, event_data={}, language="en")
         variables = {
-            "age": 72, "sex": "Male",
-            "admission_date": "2026-03-01", "discharge_date": "2026-03-14",
-            "los_days": 14, "disposition": "home",
+            "age": 72,
+            "sex": "Male",
+            "admission_date": "2026-03-01",
+            "discharge_date": "2026-03-14",
+            "los_days": 14,
+            "disposition": "home",
             "attending_physician": "Dr. Smith",
             "chief_complaint": "Fever and productive cough for 3 days",
             "past_medical_history": ["Hypertension", "Type 2 diabetes"],
@@ -207,6 +215,7 @@ def main() -> int:
     except Exception as e:
         print(f"  FAIL: {type(e).__name__}: {e}")
         import traceback
+
         traceback.print_exc()
         ok = False
 

@@ -76,10 +76,12 @@ def main() -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Build Bedrock-backed LLMService
-    provider = BedrockProvider({
-        "region": "us-east-1",
-        "model_id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
-    })
+    provider = BedrockProvider(
+        {
+            "region": "us-east-1",
+            "model_id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+        }
+    )
     llm = LLMService(
         mode="llm",
         narrative_provider=provider,
@@ -162,18 +164,26 @@ def main() -> None:
                 elif doc_type == "death_summary":
                     doc = _build_death_summary(record, encounter, course_bullets, llm, "en", enrichment)
                 elif doc_type == "operative_note":
-                    surgeries = [p for p in record.get("procedures", [])
-                                 if isinstance(p, dict) and p.get("category_code") == _SCT_SURGICAL]
+                    surgeries = [
+                        p
+                        for p in record.get("procedures", [])
+                        if isinstance(p, dict) and p.get("category_code") == _SCT_SURGICAL
+                    ]
                     if surgeries:
-                        doc = _build_operative_note(surgeries[0], record, encounter, llm, "en", index=1, enrichment=enrichment)
+                        doc = _build_operative_note(
+                            surgeries[0], record, encounter, llm, "en", index=1, enrichment=enrichment
+                        )
                     else:
                         out(f"    (no surgical procedure found)")
                         continue
                 elif doc_type == "procedure_note":
-                    invasive = [p for p in record.get("procedures", [])
-                                if isinstance(p, dict)
-                                and p.get("category_code") != _SCT_SURGICAL
-                                and p.get("procedure_type") in _PROCEDURE_NOTE_TYPES]
+                    invasive = [
+                        p
+                        for p in record.get("procedures", [])
+                        if isinstance(p, dict)
+                        and p.get("category_code") != _SCT_SURGICAL
+                        and p.get("procedure_type") in _PROCEDURE_NOTE_TYPES
+                    ]
                     if invasive:
                         doc = _build_procedure_note(invasive[0], record, encounter, llm, "en", enrichment=enrichment)
                     else:
@@ -185,6 +195,7 @@ def main() -> None:
             except Exception as e:
                 out(f"    ERROR: {type(e).__name__}: {e}")
                 import traceback
+
                 out(traceback.format_exc())
                 continue
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Diagnose Bug C: identify whether triage L1/L5 absence is caused by
 upstream severity collapse or YAML distribution narrowness."""
+
 import json
 import subprocess
 import sys
@@ -11,10 +12,23 @@ from pathlib import Path
 def run_cohort(country: str, tmp: Path) -> Path:
     out = tmp / f"{country.lower()}_diag"
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "simulate",
-         "-p", "500", "--country", country, "-o", str(out),
-         "--format", "cif"],
-        capture_output=True, text=True, timeout=900,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "simulate",
+            "-p",
+            "500",
+            "--country",
+            country,
+            "-o",
+            str(out),
+            "--format",
+            "cif",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=900,
     )
     assert r.returncode == 0, r.stderr
     return out
@@ -41,12 +55,13 @@ def analyze(cif_dir: Path):
     print(f"  Triage level distribution: {dict(triage_levels)}")
     # Convert to percentages
     if ed_count > 0:
-        pcts = {k: f"{100*v/ed_count:.1f}%" for k, v in sorted(triage_levels.items())}
+        pcts = {k: f"{100 * v / ed_count:.1f}%" for k, v in sorted(triage_levels.items())}
         print(f"  Triage level percentages: {pcts}")
 
 
 def main():
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         for country in ("US", "JP"):

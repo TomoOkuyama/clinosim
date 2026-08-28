@@ -514,3 +514,9 @@ _.check_name  # modules/validator/consistency.py:25 (part of delete with run_con
 # internally when log/exp/cos/etc are called; vulture does not know this
 # and would delete our determinism precision configuration.
 _.prec  # determinism.py:91 (mpmath state, cross-platform determinism)
+
+# lab_timeseries helpers — consumed via lazy `from clinosim.modules...
+# import` inside `_render_lab_trend_today` / `_render_lab_carry_forward`
+# in `replacement_strategy.py`. Vulture only sees module-top imports.
+_.latest_by_lab_name  # document/narrative/lab_timeseries.py:96
+_.lab_trend  # document/narrative/lab_timeseries.py:188

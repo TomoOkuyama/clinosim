@@ -116,6 +116,47 @@ CIF regenerates.
    Currently deferred; would matter for cross-host byte-identity of
    the specific lab values themselves (not for cohort structure).
 
+## Addendum — session-90 downstream fixes (also in v0.5.0)
+
+Post-narrative-review-of-p=100-JP (LLM narrative sampling with the
+new determinism module active) surfaced three additional gaps that
+were fixed and folded into v0.5.0 alongside the determinism module:
+
+1. **Pediatric `visit_reason` localization** —
+   `clinosim/modules/pediatric/reference_data/pediatric_schedule.yaml`
+   stored 14 `visit_reason` strings as English only; JP cohorts got
+   English `chief_complaint` on every pediatric visit, which then
+   leaked into the template narrative fallback. All 14 migrated to
+   bilingual `{en, ja}` dict format; `_pediatric_visit_reason` now
+   returns the raw dict for `resolve_text(..., country=country)` to
+   locale-pick at the emit site. Smoke: JP p=30 s=42 → **80/80
+   chief_complaint Japanese-only, 0 English leakage**.
+2. **Referral-letter Composition `code.text` "11 missing"** — turned
+   out to be a review-script false positive: the JP-CLINS eReferral SD
+   pins `Composition.section[*].code.text max=0` on the 920/910/300
+   document-section slices, so omitting `.text` is spec-compliant.
+   No code change; scope clarified in the review report.
+3. **Per-day lab filter broken in progress-note narrative** — new
+   `clinosim/modules/document/narrative/lab_timeseries.py` module
+   (17-test-covered pure functions). The old `_render_abnormal_labs`
+   filtered by `lab["day"]`, but CIF `lab_results` carry
+   `result_datetime` only — the filter never fired and every hospital
+   day quoted the day-0 admission labs verbatim (POP-000021 DKA case,
+   12/12 progress notes all citing Glucose 518, pH 7.18, HCO3 10.1).
+   New helpers `day_of_lab`, `labs_measured_on_day`,
+   `latest_by_lab_name`, `lab_trend`. Renderer wire-up adds three
+   context fields — `abnormal_labs_today` (fixed filter),
+   `lab_trend_today` (改善 / 悪化 / 不変 / 初回測定), and
+   `lab_current_state` (carry-forward with `(day N)` suffix for
+   tests not redrawn today). Prompt template (JA + EN) rules pin
+   `lab_trend_today` as the ONLY authorized source of trend claims.
+   Post-fix H100 regen on the DKA case: day-3 progress note now says
+   「血糖値が519.0 mg/dL [critical]と悪化、K 7.0 mmol/L [H*]と悪化、
+   クレアチニン 1.74 mg/dL [H]と不変。1日目の乳酸 4.9 mmol/L [H]、
+   HbA1c 11.5 % [H]、pH 7.18 [L]、pCO2 28.1 mm[Hg] [L]は継続的に異常」
+   — actual day-3 labs with trend words plus carry-forward with day
+   suffix. Full clinical-progression narrative achieved.
+
 ## Lessons learned
 
 - **Transcendentals are the floor for cross-platform bit-identity.**

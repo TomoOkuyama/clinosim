@@ -51,7 +51,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
    required).
 
 Session 89 post-Issue-#854 audit resolutions + session 90 cross-platform
-determinism. See
+determinism + narrative-review follow-ups (pediatric localization,
+per-day lab filter). See
 [`docs/reviews/2026-08-28-session-89-post-p1000-audit.md`](docs/reviews/2026-08-28-session-89-post-p1000-audit.md)
 and
 [`docs/reviews/2026-08-28-cross-platform-determinism.md`](docs/reviews/2026-08-28-cross-platform-determinism.md)
@@ -59,6 +60,28 @@ for the per-finding timelines and technical summaries.
 
 ### Changed
 
+- Progress-note narrative now filters labs to the correct hospital day
+  and adds two new context fields for the LLM. Prior behavior:
+  `_render_abnormal_labs` filtered on `lab["day"]` but CIF lab_results
+  carry only `result_datetime`, so every day's progress note cited the
+  day-0 admission labs verbatim (POP-000021 DKA case: 12 progress notes
+  all quoting Glucose 518 / pH 7.18 / HCO3 10.1 despite CIF showing
+  day-by-day recovery). New `clinosim/modules/document/narrative/lab_timeseries.py`
+  module (5 pure helpers, 17 unit tests) computes day-of-lab from
+  `result_datetime - admission_datetime` and exposes:
+  * `abnormal_labs_today` — today's measured H / L / critical labs
+    (existing key; filter now works)
+  * `lab_trend_today` — per today-measured lab: prior value + flag +
+    direction (改善 / 悪化 / 不変 / 初回測定 in JA; improving /
+    worsening / stable / initial in EN)
+  * `lab_current_state` — carry-forward: abnormal labs from earlier
+    days not redrawn today, cited with `(day N)` suffix
+  Prompt template (JA + EN) rules pin `lab_trend_today` as the ONLY
+  authorized source of trend claims (LLM must not invent trend not
+  listed). H100 post-fix regen on the DKA case confirms day-3
+  progress note now cites day-3 labs with trend words + carry-forward
+  of earlier-day abnormals with proper day suffix. **PATCH** — CIF
+  byte-identical to pre-fix; only narrative rendering changes.
 - Bit-reproducible RNG variates for cross-platform byte-identity.
   ``numpy.random.Generator.beta`` / ``.normal`` / ``.exponential``
   reach ``libm`` for ``log`` / ``exp`` / ``pow`` / ``cos``, and IEEE 754

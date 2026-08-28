@@ -7,6 +7,7 @@ This shim replaces the real stub with ``Any`` so mypy sees ``numpy`` as
 untyped. Remove once mypy backports PEP 695 stub parsing OR the project's
 minimum Python bumps to 3.12.
 """
+
 from typing import Any
 
 def __getattr__(name: str) -> Any: ...

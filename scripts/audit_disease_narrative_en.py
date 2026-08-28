@@ -25,6 +25,7 @@ Covers two YAML sets that carry `<key>_<lang>` narrative fields:
    Bug A gap lives (Task 9 investigation): every encounter YAML has `_ja`
    fields but zero have `_en` peers.
 """
+
 from __future__ import annotations
 
 import sys
@@ -77,9 +78,7 @@ def check_encounter(path: Path) -> list[str]:
 
     soap_tmpl = narrative.get("outpatient_soap_template")
     if isinstance(soap_tmpl, dict):
-        missing.extend(
-            _check_keys(soap_tmpl, OUTPATIENT_SOAP_KEYS, f"{path.name} [outpatient_soap_template]")
-        )
+        missing.extend(_check_keys(soap_tmpl, OUTPATIENT_SOAP_KEYS, f"{path.name} [outpatient_soap_template]"))
 
     return missing
 

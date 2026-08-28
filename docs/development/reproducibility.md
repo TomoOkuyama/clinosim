@@ -47,6 +47,39 @@ Per [AD-16](../reference/design.md):
 - Any commit that touches a seeded code path must be verified via
   `bash scripts/reproduce.sh` before it merges.
 
+## Cross-platform byte-identity (v0.5.0+)
+
+The above invariants get you byte-identical output **within the same
+CPU architecture** (two Mac ARM runs match; two x86 Linux runs match).
+Cross-architecture identity requires an extra guarantee: the
+transcendental functions used inside sampling algorithms must round
+identically on every platform. `numpy.random.Generator.beta` /
+`.normal` / `.exponential` reach the platform `libm` for
+`log` / `exp` / `pow` / `cos`, and IEEE 754 mandates correct rounding
+only for basic arithmetic + `sqrt` — not for transcendentals. Apple
+Silicon and glibc `libm` differ at the last few ULP, and any single
+drift shifts the numpy RNG cursor for every subsequent draw.
+
+Since v0.5.0, clinosim ships `clinosim.determinism` — a bit-reproducible
+drop-in for those three variates on top of two primitives that ARE
+bit-identical everywhere:
+
+- `rng.random()` (pure integer arithmetic in numpy PCG64)
+- `mpmath.{log, exp, cos}` at 128-bit precision (pure Python integer
+  arithmetic)
+
+A tiny proxy wraps every `np.random.default_rng(seed)` at the simulator
+entry points; downstream call sites keep the same `rng.beta(...)`
+API. **No user action is required** — the module is on by default.
+
+Verified against a fresh regen on Mac ARM (macOS 26, Python 3.12.7,
+numpy 2.5.1, mpmath 1.3.0) vs an H100 x86 Ubuntu host (Python 3.12.3,
+numpy 2.5.2, mpmath 1.4.1): US p=100 s=42 → 24/24 files identical, US
+p=500 s=42 → 25/25 files identical. See
+[`docs/reviews/2026-08-28-cross-platform-determinism.md`](../reviews/2026-08-28-cross-platform-determinism.md)
+for the full story (problem statement, root cause, algorithm design,
+verification, lessons).
+
 ## When determinism breaks
 
 If `scripts/reproduce.sh` reports a regression:
