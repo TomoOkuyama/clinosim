@@ -149,11 +149,16 @@ def _order_type_value(o: Any) -> str:
 @pytest.mark.integration
 def test_anticoag_from_admission1_carries_forward_to_admission2_home_meds():
     """Engine-layer gate for A' Phase 1 (Issue #440)."""
-    # Fixed cohort scouted at implementation time to reliably contain the
-    # POP-000257-style fixture. Do NOT tighten seed/config without also
-    # re-verifying the candidate set exists.
+    # Fixed cohort scouted to reliably contain the POP-000257-style fixture.
+    # Do NOT tighten seed/config without also re-verifying the candidate set
+    # exists.
+    #
+    # 2026-08-28 (B-3): the marginal-preserving chronic-condition sampler
+    # reshapes chronic_conditions across the population, so seed=42 lost the
+    # AFib + 2-admission + newly-started-anticoag candidate. Re-scouted to
+    # seed=43 which retains one such patient under the new engine.
     config = SimulatorConfig(
-        random_seed=42,
+        random_seed=43,
         catchment_population=500,
         country="US",
         time_range=("2025-01", "2026-01"),
