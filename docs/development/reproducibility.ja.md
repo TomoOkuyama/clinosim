@@ -48,6 +48,34 @@ diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
 - seeded code path を触る全 commit は merge 前に
   `bash scripts/reproduce.sh` で検証必須。
 
+## クロスプラットフォーム byte-identity (v0.5.0+)
+
+上記不変条件は **同じ CPU アーキテクチャ内** の byte-identity を保証する
+(Mac ARM 2 runs 同一、x86 Linux 2 runs 同一)。**アーキテクチャ跨ぎ** の
+identity には追加保証が必要 — sampling アルゴリズム内部の transcendental
+関数が全プラットフォームで同一に丸められること。`numpy.random.Generator.beta`
+/ `.normal` / `.exponential` は `libm` の `log` / `exp` / `pow` / `cos` を
+経由し、IEEE 754 は基本演算 + `sqrt` に対してのみ正しい丸めを保証する
+— transcendental は対象外。Apple Silicon と glibc の `libm` は末尾数 ULP
+で異なり、この 1 ULP shift が numpy RNG cursor を全下流サンプリングで
+ずらす。
+
+v0.5.0 以降、clinosim は `clinosim.determinism` を提供 — 前述 3 variate の
+bit-identical drop-in で、以下 2 primitive のみに依存する:
+
+- `rng.random()` (numpy PCG64 の整数演算)
+- `mpmath.{log, exp, cos}` at 128-bit precision (pure Python 整数演算)
+
+小さな proxy が simulator entry で `np.random.default_rng(seed)` を wrap
+し、下流 call site は `rng.beta(...)` API のまま。**user 操作不要** —
+module は default で有効。
+
+Mac ARM (macOS 26、Python 3.12.7、numpy 2.5.1、mpmath 1.3.0) vs H100
+x86 Ubuntu (Python 3.12.3、numpy 2.5.2、mpmath 1.4.1) で再生成検証: US
+p=100 s=42 → 24/24 file 一致、US p=500 s=42 → 25/25 file 一致。詳細は
+[`docs/reviews/2026-08-28-cross-platform-determinism.md`](../reviews/2026-08-28-cross-platform-determinism.md)
+を参照。
+
 ## 決定性が壊れたとき
 
 `scripts/reproduce.sh` が回帰を報告したら:
