@@ -40,6 +40,7 @@ from __future__ import annotations
 import re
 import time as _time
 from collections.abc import Callable
+from typing import Any
 
 from clinosim.modules.document.narrative.cache import (
     cache_key,
@@ -956,12 +957,24 @@ def _build_extra_context(
         active_meds = _render_active_meds(ctx.medications, ctx.day_index, lang=ctx.target_lang)
         if active_meds:
             extra["active_medications_today"] = active_meds
-        # v6 blocker fix: today's abnormal labs (H/L flag). Assessment
-        # is LLM-generated for progress_note but v5 context omitted lab
-        # H/L flags → LLM never mentioned them.
-        abnormal_today = _render_abnormal_labs(ctx.lab_results, day_index=ctx.day_index, lang=ctx.target_lang)
+        # Session-90 fix: today's abnormal labs, trend vs prior draw,
+        # and carry-forward "current state" of abnormal tests not
+        # redrawn today. Previously the day-filter was broken (see
+        # `_render_abnormal_labs` docstring) so every day's progress
+        # note quoted the admission labs verbatim.
+        adm_dt = _get(enc, "admission_datetime")
+        abnormal_today = _render_abnormal_labs(
+            ctx.lab_results, day_index=ctx.day_index, lang=ctx.target_lang, admission_datetime=adm_dt
+        )
         if abnormal_today:
             extra["abnormal_labs_today"] = abnormal_today
+        if adm_dt is not None:
+            trend_today = _render_lab_trend_today(ctx.lab_results, ctx.day_index, adm_dt, lang=ctx.target_lang)
+            if trend_today:
+                extra["lab_trend_today"] = trend_today
+            carry_forward = _render_lab_carry_forward(ctx.lab_results, ctx.day_index, adm_dt, lang=ctx.target_lang)
+            if carry_forward:
+                extra["lab_current_state"] = carry_forward
         # v6 blocker fix: supplemental oxygen flag. Prevents "SpO2 89%
         # だが酸素投与なしで安定" self-contradiction (POP-000075 doc-06).
         o2_today = _render_supplemental_oxygen_today(ctx.vitals, ctx.day_index, enc, lang=ctx.target_lang)
@@ -1230,14 +1243,30 @@ def _render_active_meds(admins: list, day_index: int, lang: str = "en") -> str:
     return "; ".join(names) if names else ""
 
 
-def _render_abnormal_labs(lab_results: list, day_index: int | None, lang: str = "en") -> str:
-    """H/L/critical flagged labs, formatted for LLM injection.
+def _render_abnormal_labs(
+    lab_results: list,
+    day_index: int | None,
+    lang: str = "en",
+    admission_datetime: Any = None,
+) -> str:
+    """H / L / critical flagged labs, formatted for LLM injection.
 
     v6 blocker fix: v5 context omitted lab flags entirely so LLM
-    assessments ignored AST H, PT_INR H, Cr H etc. When ``day_index``
-    is None, returns ALL abnormal labs across the stay
-    (discharge_summary use); otherwise filters to that day
-    (progress_note use).
+    assessments ignored AST H, PT_INR H, Cr H etc. Session-90 fix:
+    the day-filter used to compare ``lab["day"]`` — but CIF
+    ``lab_results`` do not carry a ``day`` field (only
+    ``result_datetime``), so the filter never fired and progress notes
+    for every hospital day cited the day-0 admission labs verbatim
+    (POP-000021 DKA case, 12/12 daily notes all quoting Glucose 518,
+    pH 7.18, HCO3 10.1). Now delegates to
+    :mod:`clinosim.modules.document.narrative.lab_timeseries` which
+    computes day from ``result_datetime`` − ``admission_datetime``.
+
+    * ``day_index=None`` (discharge_summary): all abnormal labs.
+    * ``day_index=N`` (progress_note / soap): only labs measured on day N.
+      Requires ``admission_datetime``; if missing, degrades gracefully
+      by returning all abnormal labs (preserves session-88j behaviour
+      for callers that have not yet been migrated).
 
     session-88j Phase B: when ``lang == "ja"`` translates full-English
     lab names (Creatinine, Glucose, Lactate, Albumin, Sodium/Potassium,
@@ -1246,14 +1275,18 @@ def _render_abnormal_labs(lab_results: list, day_index: int | None, lang: str = 
     Na, K, PT-INR, …) are kept as-is since those are Japanese medical
     convention.
     """
+    from clinosim.modules.document.narrative.lab_timeseries import labs_measured_on_day
+
+    if day_index is not None and admission_datetime is not None:
+        source = labs_measured_on_day(lab_results, admission_datetime, day_index)
+    else:
+        source = list(lab_results or [])
+
     picks: list[str] = []
     max_pick = 8
-    for lab in lab_results or []:
+    for lab in source:
         flag = _get(lab, "flag")
         if not flag:
-            continue
-        d = _get(lab, "day")
-        if day_index is not None and d is not None and d != day_index:
             continue
         name = _get(lab, "lab_name") or _get(lab, "name") or ""
         val = _get(lab, "value")
@@ -1271,6 +1304,122 @@ def _render_abnormal_labs(lab_results: list, day_index: int | None, lang: str = 
         if len(picks) >= max_pick:
             break
     return "; ".join(picks) if picks else ""
+
+
+_TREND_LABEL_JA = {
+    "improving": "改善",
+    "worsening": "悪化",
+    "stable": "不変",
+    "initial": "初回測定",
+}
+_TREND_LABEL_EN = {
+    "improving": "improving",
+    "worsening": "worsening",
+    "stable": "stable",
+    "initial": "initial",
+}
+
+
+def _render_lab_trend_today(
+    lab_results: list,
+    day_index: int,
+    admission_datetime: Any,
+    lang: str = "en",
+) -> str:
+    """For each lab measured today, one-line trend vs the closest earlier
+    measurement of the same test. Session-90 addition — enables
+    accurate 改善 / 悪化 / 不変 commentary in progress notes.
+
+    Format (JA)::
+
+        血糖 300 mg/dL [H] (前値 518 [critical] → 改善);
+        HCO3 14.0 mmol/L [L] (前値 10.1 [L] → 改善)
+
+    Format (EN)::
+
+        Glucose 300 mg/dL [H] (prior 518 [critical] → improving);
+        HCO3 14.0 mmol/L [L] (prior 10.1 [L] → improving)
+
+    Skips ``initial`` entries (no prior to trend against; already
+    covered by ``abnormal_labs_today``).
+    """
+    from clinosim.modules.document.narrative.lab_timeseries import lab_trend
+
+    trend_rows = lab_trend(lab_results, admission_datetime, day_index)
+    if not trend_rows:
+        return ""
+    label_map = _TREND_LABEL_JA if lang == "ja" else _TREND_LABEL_EN
+    prior_word = "前値" if lang == "ja" else "prior"
+    parts: list[str] = []
+    for row in trend_rows:
+        if row["direction"] == "initial":
+            continue
+        name = str(row["name"])
+        if lang == "ja":
+            name = _localize_lab_name_ja(name)
+        cur_flag_part = f" [{row['current_flag']}]" if row["current_flag"] else ""
+        prior_flag_part = f" [{row['prior_flag']}]" if row["prior_flag"] else ""
+        parts.append(
+            f"{name} {row['current_value']}{cur_flag_part} "
+            f"({prior_word} {row['prior_value']}{prior_flag_part} → {label_map[row['direction']]})"
+        )
+        if len(parts) >= 8:
+            break
+    return "; ".join(parts)
+
+
+def _render_lab_carry_forward(
+    lab_results: list,
+    day_index: int,
+    admission_datetime: Any,
+    lang: str = "en",
+) -> str:
+    """Latest known abnormal value per lab_name at day ``day_index``,
+    including tests NOT measured today. Session-90 addition —
+    represents the current known state so a progress note can reference
+    yesterday's CRP if CRP was not redrawn today (real-EHR pattern).
+
+    Skips tests measured today (already covered by
+    ``abnormal_labs_today``) and tests without an H / L / critical flag
+    on their latest measurement (LLM does not need to enumerate
+    normalized tests).
+
+    Format (JA)::
+
+        HCO3 14.0 mmol/L [L] (day 5); K 5.5 mmol/L [H] (day 4)
+    """
+    from clinosim.modules.document.narrative.lab_timeseries import (
+        day_of_lab,
+        latest_by_lab_name,
+    )
+
+    latest = latest_by_lab_name(lab_results, admission_datetime, up_to_day=day_index)
+    day_word_prefix = "day " if lang != "ja" else ""
+    day_word_suffix = "" if lang != "ja" else "日目"
+    parts: list[str] = []
+    for name, lab in latest.items():
+        d = day_of_lab(lab, admission_datetime)
+        if d == day_index:
+            continue  # measured today — handled by abnormal_labs_today
+        flag = _get(lab, "flag")
+        if not flag:
+            continue
+        val = _get(lab, "value")
+        unit = _get(lab, "unit") or ""
+        if val is None:
+            continue
+        display_name = _localize_lab_name_ja(str(name)) if lang == "ja" else str(name)
+        # Day is 0-indexed; caller-facing convention is 1-indexed hospital day.
+        display_day = (d + 1) if d is not None else "?"
+        val_str = f"{val}"
+        piece = f"{display_name} {val_str}"
+        if unit:
+            piece += f" {unit}"
+        piece += f" [{flag}] ({day_word_prefix}{display_day}{day_word_suffix})"
+        parts.append(piece)
+        if len(parts) >= 8:
+            break
+    return "; ".join(parts)
 
 
 def _render_key_procedures(procedures: list) -> str:

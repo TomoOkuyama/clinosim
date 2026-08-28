@@ -288,7 +288,7 @@ _HEALTH_SCREENING_VISIT_REASON = {
 }
 
 
-def _pediatric_visit_reason(disease_id: str) -> str:
+def _pediatric_visit_reason(disease_id: str) -> str | dict[str, str]:
     """Look up the visit_reason for a `pediatric_visit` LifeEvent from the schedule YAML.
 
     The schedule is keyed by encounter-key (e.g., ``well_child_infant``,
@@ -301,19 +301,26 @@ def _pediatric_visit_reason(disease_id: str) -> str:
     id is in neither position (e.g., LifeEvent authored by an out-of-tree
     tool). Issue #760 pass 2 introduced this helper; pass 4 extended the
     lookup to handle multi-band entries.
+
+    Returns the raw yaml value — either a plain string or a bilingual
+    ``{en, ja}`` dict — and lets the outpatient emit-site call
+    ``clinosim.locale.text.resolve_text`` with the correct locale (Session
+    90 narrative-review fix: pediatric_schedule.yaml was single-string
+    English, causing JP cohorts to leak English into chief_complaint and
+    into the template narrative fallback SOAP).
     """
     from clinosim.modules.pediatric.calendar import load_pediatric_schedule
 
     schedule = load_pediatric_schedule()
     entry = schedule.get(disease_id)
     if entry and entry.get("visit_reason"):
-        return str(entry["visit_reason"])
+        return entry["visit_reason"]  # may be str or {"en": ..., "ja": ...}
     # Fallback: multiple entries can share the same disease_id; return
     # the first match found (age-band-specific visit_reason wording is
     # a stylistic choice; the underlying clinical concept is the same).
     for candidate_entry in schedule.values():
         if candidate_entry.get("disease_id") == disease_id and candidate_entry.get("visit_reason"):
-            return str(candidate_entry["visit_reason"])
+            return candidate_entry["visit_reason"]
     return f"Pediatric visit: {disease_id}"
 
 
