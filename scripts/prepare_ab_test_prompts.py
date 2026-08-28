@@ -15,6 +15,7 @@ Output structure:
     test_data/ab_test/prompts/<encounter_id>/<task_type>.A.json
     test_data/ab_test/prompts/<encounter_id>/<task_type>.B.json
 """
+
 from __future__ import annotations
 
 import json
@@ -67,13 +68,14 @@ def _load_staff_map(cif_dir: Path) -> dict[str, str]:
     if not hosp.exists():
         return {}
     import json as _json
+
     data = _json.loads(hosp.read_text(encoding="utf-8"))
     staff = {}
     for s in data.get("staff", []):
         sid = s.get("staff_id", "")
         name = s.get("name", "")
         if isinstance(name, dict):
-            name = f'{name.get("family_name","")} {name.get("given_name","")}'.strip()
+            name = f"{name.get('family_name', '')} {name.get('given_name', '')}".strip()
         if sid.startswith("DR-"):
             staff[sid] = f"{name}医師" if name else sid
         elif sid.startswith("NS-"):
@@ -135,10 +137,8 @@ def _build_discharge_summary_vars(record, encounter, language_enrich, staff_map)
     discharge_date = (enc.get("discharge_datetime", "") or "")[:10]
     try:
         from datetime import datetime as _dt
-        los_days = (
-            _dt.fromisoformat(enc["discharge_datetime"])
-            - _dt.fromisoformat(enc["admission_datetime"])
-        ).days
+
+        los_days = (_dt.fromisoformat(enc["discharge_datetime"]) - _dt.fromisoformat(enc["admission_datetime"])).days
     except Exception:
         los_days = 0
     disposition = enc.get("discharge_disposition", "home")
@@ -170,9 +170,7 @@ def main():
     patient_files = sorted((CIF_DIR / "structural" / "patients").glob("*.json"))
     staff_map = _load_staff_map(CIF_DIR)
 
-    registry = PromptRegistry(
-        REPO_ROOT / "clinosim" / "modules" / "llm_service" / "prompts"
-    )
+    registry = PromptRegistry(REPO_ROOT / "clinosim" / "modules" / "llm_service" / "prompts")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     generated = 0
@@ -204,8 +202,7 @@ def main():
                     "task_type": task_name,
                     "variant": variant_label,
                     "description": (
-                        "A=pre-localized JP enrichment" if variant_label == "A"
-                        else "B=English enrichment + JP prompt"
+                        "A=pre-localized JP enrichment" if variant_label == "A" else "B=English enrichment + JP prompt"
                     ),
                     "language_enrichment": lang_enrich,
                     "language_output": "ja",

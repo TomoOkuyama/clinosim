@@ -35,16 +35,8 @@ DEFAULT_SOURCE = (
     / "package"
     / "CodeSystem-jp-medicationcodeyj-cs.json"
 )
-TARGET = (
-    Path(__file__).resolve().parent.parent
-    / "clinosim"
-    / "codes"
-    / "authoritative"
-    / "yj_tx_valid_codes.json"
-)
-CLINOSIM_YJ_YAML = (
-    Path(__file__).resolve().parent.parent / "clinosim" / "codes" / "data" / "yj.yaml"
-)
+TARGET = Path(__file__).resolve().parent.parent / "clinosim" / "codes" / "authoritative" / "yj_tx_valid_codes.json"
+CLINOSIM_YJ_YAML = Path(__file__).resolve().parent.parent / "clinosim" / "codes" / "data" / "yj.yaml"
 
 
 def main() -> None:

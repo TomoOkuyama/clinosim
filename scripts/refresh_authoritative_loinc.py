@@ -145,13 +145,10 @@ def _build_snapshot(source_root: Path, repo_root: Path) -> dict:
             ),
             "fetched_from": "https://github.com/iryohjoho/fhir-jp-validator tx-server-build/loinc-src/",
             "extracted_at": date.today().isoformat(),
-            "clinosim_codes_total": len(clinosim_codes)
-            - len(_KNOWN_GAP_NOT_IN_LOINC_282 & clinosim_codes),
+            "clinosim_codes_total": len(clinosim_codes) - len(_KNOWN_GAP_NOT_IN_LOINC_282 & clinosim_codes),
             "clinosim_codes_in_source": len(concepts),
             "clinosim_codes_missing_from_source": missing,
-            "clinosim_known_gaps_not_in_loinc_2_82": sorted(
-                _KNOWN_GAP_NOT_IN_LOINC_282 & clinosim_codes
-            ),
+            "clinosim_known_gaps_not_in_loinc_2_82": sorted(_KNOWN_GAP_NOT_IN_LOINC_282 & clinosim_codes),
             "note": (
                 "LOINC 2.82 authoritative displays for codes clinosim emits. "
                 "Includes `status` so downstream tests can WARN on non-ACTIVE."
