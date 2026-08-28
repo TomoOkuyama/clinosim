@@ -9,9 +9,8 @@ import os
 from datetime import datetime
 from typing import Any
 
-import numpy as np
-
 from clinosim import __version__ as _clinosim_version
+from clinosim import determinism
 from clinosim.modules.patient.activator import activate_patient
 from clinosim.modules.staff.engine import generate_roster
 from clinosim.simulator.cli_common import _print_debug_record, _print_summary, _run_exports
@@ -76,7 +75,7 @@ def _run_test_encounter_debug(args: Any) -> None:
     from clinosim.modules.encounter.protocol import load_encounter_condition
     from clinosim.modules.population.engine import PersonRecord
 
-    rng = np.random.default_rng(args.seed)
+    rng = determinism.default_rng(args.seed)
     roster = generate_roster("medium", args.country, rng)
 
     # Load protocol
@@ -145,7 +144,7 @@ def _run_test_encounter_generate(args: Any) -> None:
 
     cif_dir = os.path.join(args.output, "cif")
 
-    rng = np.random.default_rng(args.seed)
+    rng = determinism.default_rng(args.seed)
     roster = generate_roster("medium", args.country, rng)
 
     # Load protocol

@@ -5,8 +5,10 @@ seed the *same* way, without touching the main random stream. Each caller passes
 distinct ``module_offset`` (keep offsets unique across callers — guarded by
 ``tests/unit/test_seeding.py``) and a per-entity ``key`` (patient_id / encounter_id / ...).
 
-This module has no clinosim imports on purpose: it sits below every module so any of them
-can use it without creating a dependency cycle.
+This module sits below every domain module so any of them can use it without
+creating a dependency cycle. The single ``from clinosim import determinism``
+import wires ``derive_phase_rng`` into the bit-reproducible RNG proxy — the
+``determinism`` module itself has no ``clinosim.*`` imports, so no cycle.
 """
 
 from __future__ import annotations
@@ -16,6 +18,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy as np
+
+from clinosim import determinism
 
 
 def derive_sub_seed(master_seed: int, module_offset: int, key: str) -> int:
@@ -210,6 +214,5 @@ def derive_phase_rng(master_seed: int, phase_salt: int, key: str) -> np.random.G
     the phase — for example ``event.person_id + timestamp +
     disease_id``.
     """
-    import numpy as np
 
-    return np.random.default_rng(derive_sub_seed(master_seed, phase_salt, key))
+    return determinism.default_rng(derive_sub_seed(master_seed, phase_salt, key))

@@ -509,3 +509,8 @@ _.value_set_url  # fhir_r4/labs/coding_package.py:263
 _.metric  # modules/validator/benchmarks.py:19
 _.deviation_pct  # modules/validator/benchmarks.py:24 (also :35 attribute)
 _.check_name  # modules/validator/consistency.py:25 (part of delete with run_consistency_checks)
+
+# mpmath.mp.prec — module-level side-effect assignment. mpmath reads .prec
+# internally when log/exp/cos/etc are called; vulture does not know this
+# and would delete our determinism precision configuration.
+_.prec  # determinism.py:91 (mpmath state, cross-platform determinism)
