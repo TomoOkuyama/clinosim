@@ -2274,6 +2274,46 @@ cut before this policy was formally documented and has been renumbered
 to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h3 id="docs">Docs<a class="headerlink" href="#docs" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Clarify per-season vs cumulative-record semantics on
+  <code>coverage_by_age_sex</code> in <code>clinosim/locale/{jp,us}/immunization_schedule.yaml</code>
+  and add a "Cumulative record vs per-season" section to
+  <code>modules/immunization/README.md</code> (+ ja). Discovered via post-Issue-#854
+  p=1000 audit: raw "% of 65+ patients with ≥1 Immunization record"
+  hits ~100%, which looked like a bug against MHLW インフルエンザ 65+
+  ~53% (per-season). Per-vaccine per-scheduled-dose measurement on the
+  same sample confirms actuals match config within ±5% (flu M 0.503
+  vs 0.55, F 0.570 vs 0.58, COVID lifetime M 0.906 vs 0.90, F 0.952 vs
+  0.92, PPSV23 M 0.355 vs 0.40, F 0.441 vs 0.42). Aggregate "≥1 record"
+  vs per-season MHLW is an apples-to-oranges error — with
+  <code>history_years=10</code> a moderate per-season rate accumulates to ~1.0
+  over the EHR window, which is the correct behavior for a
+  hospital-attending elderly patient. No code / config value change.
+  → <strong>PATCH</strong> under the versioning policy.</li>
+<li>Clarify hospital-catchment skew on <code>age_distribution</code> in
+  <code>clinosim/locale/{jp,us}/demographics.yaml</code> and add a "Cohort skew vs
+  sampled population" section to <code>modules/population/README.md</code> (+ ja).
+  Discovered via the same p=1000 audit: JP 65+ share in the emitted
+  cohort is 48% vs the <code>age_distribution</code> config target 30% (Census).
+  Root cause is by-design — the <code>age_distribution</code> table is the
+  <strong>sampled population</strong> target (matching each country's Census), then
+  the care-seeking threshold + encounter-emission gate filter out
+  non-visiting persons, so the emitted patient cohort skews
+  elderly-heavy by construction. Against MHLW 患者調査 2020 (65+ ≈ 56%
+  of hospital patients) the emitted cohort is far closer than against
+  Census. Do NOT re-weight <code>age_distribution</code> to make the cohort match
+  Census — that would break the general-population sampling contract
+  depended on by comorbidity / life-expectancy / seasonal-risk
+  calculations. No code / config value change. → <strong>PATCH</strong>.</li>
+<li>Add <code>scripts/audit_realworld_stats_jp.py</code> — JP cohort vs real-world
+  statistics audit with corrected benchmarks (MHLW 患者調査 for age,
+  per-vaccine per-scheduled-dose for immunization, MHLW / JCS / JDS /
+  JSN guideline prevalence for chronic diseases). Replaces the ad-hoc
+  scratchpad script the p=1000 audit used. Registered under
+  "Data-refresh helpers" in <code>scripts/README.md</code>. Diagnostic only; not
+  a hard gate. → <strong>PATCH</strong>.</li>
+</ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Chronic-condition age gate on implied-chronic assignment
