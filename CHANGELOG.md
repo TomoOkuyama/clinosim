@@ -39,6 +39,16 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-28
+
+**MINOR** — B-3 marginal-preserving chronic-condition sampler reshapes
+`chronic_conditions` per patient (Structured CIF change; fresh `narrate`
+required for narrative-CIF consistency under the versioning policy).
+
+Session 89 post-Issue-#854 audit resolutions. See
+[`docs/reviews/2026-08-28-session-89-post-p1000-audit.md`](docs/reviews/2026-08-28-session-89-post-p1000-audit.md)
+for the per-finding timeline and technical summary.
+
 ### Changed
 
 - Population chronic-condition sampling now preserves marginal prevalence
