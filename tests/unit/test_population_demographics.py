@@ -127,56 +127,70 @@ def test_smoking_status_sex_differentiated():
             assert p.smoking_status == "never", "Female adult should be never-smoker per demo"
 
 
-def test_comorbidity_correlation_raises_prevalence():
-    """When I10 is present, E11.9 prevalence should be boosted by comorbidity_correlations."""
-    # Force I10 to always trigger, E11.9 just below threshold without correlation
+def test_comorbidity_correlation_shapes_within_cohort():
+    """B-3 marginal-preserving semantic: a comorbidity multiplier SHAPES which
+    patients get the condition (I10-comorbid patients much more likely than
+    non-comorbid), while the OVERALL marginal stays near the yaml target.
+    Uses partial I10 prevalence (not 100%) so the two sub-cohorts exist."""
     demo = _us_demo_minimal()
     demo["chronic_prevalence"] = {
-        "I10": {"40-99": 1.0},  # always present for age 40+
-        "E11.9": {"40-99": 0.01},  # too low to trigger without boost
+        "I10": {"40-99": 0.40},  # 40% of adults have hypertension
+        "E11.9": {"40-99": 0.05},  # 5% target marginal for T2DM
     }
-    demo["comorbidity_correlations"] = {"I10": {"E11.9": 200.0}}  # 200x boost → should always trigger
+    demo["comorbidity_correlations"] = {"I10": {"E11.9": 6.0}}  # HTN 6x boosts DM within-patient
     rng = np.random.default_rng(42)
-    registry = generate_population(size=200, country="US", rng=rng, demo=demo)
+    registry = generate_population(size=3000, country="US", rng=rng, demo=demo)
     adults = [p for p in registry.persons.values() if 40 <= p.age <= 99]
-    assert len(adults) > 0
-    # All adults have I10; with 200x boost, E11.9 should appear in almost all
-    e11_count = sum(1 for p in adults if "E11.9" in p.chronic_conditions)
-    assert e11_count / len(adults) > 0.95, f"Expected >95% E11.9 with 200x boost, got {e11_count}/{len(adults)}"
+    assert len(adults) >= 1000
+    with_i10 = [p for p in adults if "I10" in p.chronic_conditions]
+    without_i10 = [p for p in adults if "I10" not in p.chronic_conditions]
+    assert len(with_i10) >= 200 and len(without_i10) >= 200
+    # Marginal preserved near target.
+    marginal_e11 = sum(1 for p in adults if "E11.9" in p.chronic_conditions) / len(adults)
+    assert abs(marginal_e11 - 0.05) < 0.03, f"E11.9 marginal {marginal_e11:.3f} vs target 0.05"
+    # Correlation shape: I10-comorbid rate >> non-comorbid rate.
+    p_e11_i10 = sum(1 for p in with_i10 if "E11.9" in p.chronic_conditions) / len(with_i10)
+    p_e11_no_i10 = sum(1 for p in without_i10 if "E11.9" in p.chronic_conditions) / len(without_i10)
+    assert p_e11_i10 > 3 * p_e11_no_i10, (
+        f"E11.9 given I10 ({p_e11_i10:.3f}) should be >3x given no I10 ({p_e11_no_i10:.3f})"
+    )
 
 
-def test_lifestyle_risk_multiplier_raises_chronic_prevalence():
-    """Obese patients (BMI≥30) should have higher E11.9 prevalence than non-obese."""
+def test_lifestyle_risk_multiplier_shapes_within_cohort():
+    """B-3 marginal-preserving semantic: a lifestyle multiplier SHAPES which
+    patients within a mixed BMI cohort get the condition (obese patients much
+    more likely than normal-BMI ones), while the OVERALL marginal stays near
+    the yaml target. Uses a wide BMI distribution so both sub-cohorts exist."""
     demo = _us_demo_minimal()
     demo["chronic_prevalence"] = {"E11.9": {"0-99": 0.10}}
     demo["lifestyle_risk_multipliers"] = {
         "bmi": {
             "thresholds": {"overweight": 25.0, "obese": 30.0},
-            "obese": {"E11.9": 7.0},
+            "obese": {"E11.9": 5.0},
             "overweight": {},
         },
         "smoking": {},
     }
-    # Force all patients to be obese (BMI mean=35, std≈0)
-    demo["physiology"]["bmi"]["male"] = {"mean": 35.0, "std": 0.001}
-    demo["physiology"]["bmi"]["female"] = {"mean": 35.0, "std": 0.001}
+    # Wide BMI distribution — roughly a third obese, a third normal, a third overweight.
+    demo["physiology"]["bmi"]["male"] = {"mean": 28.0, "std": 6.0}
+    demo["physiology"]["bmi"]["female"] = {"mean": 28.0, "std": 6.0}
+    demo["physiology"]["bmi"]["clamp"] = [15.0, 50.0]
 
-    rng_obese = np.random.default_rng(42)
-    registry_obese = generate_population(size=500, country="US", rng=rng_obese, demo=demo)
+    rng = np.random.default_rng(42)
+    registry = generate_population(size=3000, country="US", rng=rng, demo=demo)
+    persons = list(registry.persons.values())
+    assert len(persons) >= 1500
 
-    # Force all patients to be non-obese (BMI mean=22, std≈0)
-    demo2 = _us_demo_minimal()
-    demo2["chronic_prevalence"] = {"E11.9": {"0-99": 0.10}}
-    demo2["lifestyle_risk_multipliers"] = demo["lifestyle_risk_multipliers"]
-    demo2["physiology"]["bmi"]["male"] = {"mean": 22.0, "std": 0.001}
-    demo2["physiology"]["bmi"]["female"] = {"mean": 22.0, "std": 0.001}
-
-    rng_thin = np.random.default_rng(42)
-    registry_thin = generate_population(size=500, country="US", rng=rng_thin, demo=demo2)
-
-    obese_rate = sum(1 for p in registry_obese.persons.values() if "E11.9" in p.chronic_conditions) / 500
-    thin_rate = sum(1 for p in registry_thin.persons.values() if "E11.9" in p.chronic_conditions) / 500
-    assert obese_rate > thin_rate * 2, f"Obese E11.9 rate {obese_rate:.2f} should be >2x thin rate {thin_rate:.2f}"
+    obese = [p for p in persons if p.bmi >= 30.0]
+    normal = [p for p in persons if p.bmi < 25.0]
+    assert len(obese) >= 200 and len(normal) >= 200
+    marginal = sum(1 for p in persons if "E11.9" in p.chronic_conditions) / len(persons)
+    assert abs(marginal - 0.10) < 0.05, f"E11.9 marginal {marginal:.3f} vs target 0.10"
+    obese_rate = sum(1 for p in obese if "E11.9" in p.chronic_conditions) / len(obese)
+    normal_rate = sum(1 for p in normal if "E11.9" in p.chronic_conditions) / len(normal)
+    assert obese_rate > 2 * normal_rate, (
+        f"Obese E11.9 rate {obese_rate:.3f} should be >2x normal-BMI rate {normal_rate:.3f}"
+    )
 
 
 def _make_registry_with_person(age: int, sex: str, smoking: str, bmi: float) -> PopulationRegistry:
@@ -528,6 +542,88 @@ def test_graded_stage_severity_score_deterministic_same_seed(code):
 # _parse_age_distribution (no such guard, raises naturally) and with this
 # project's fail-loud-validation convention for YAML-sourced data.
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Marginal-prevalence-preserving comorbidity/lifestyle composition
+# ---------------------------------------------------------------------------
+# From B-3 (post-Issue-#854 p=1000 audit): `chronic_prevalence[code][band]` in
+# the yaml is now semantically the TARGET MARGINAL prevalence in the emitted
+# cohort. The engine internally rescales the per-patient sampling probability
+# so that comorbidity/lifestyle multipliers shape WHICH patients get the
+# condition, without shifting the overall marginal above the target. See
+# clinosim/modules/population/README.md "Marginal-preserving prevalence".
+
+
+def test_marginal_prevalence_preserved_under_comorbidity_multiplier():
+    """base_prev is a marginal target: even with a huge comorbidity multiplier,
+    the emitted marginal in the whole cohort must stay near base_prev."""
+    demo = _us_demo_minimal()
+    demo["chronic_prevalence"] = {
+        "I10": {"40-99": 0.50},  # 50% marginal target
+        "E11.9": {"40-99": 0.10},  # 10% marginal target
+    }
+    demo["comorbidity_correlations"] = {"I10": {"E11.9": 5.0}}  # I10 patients 5x more likely
+    rng = np.random.default_rng(42)
+    registry = generate_population(size=3000, country="US", rng=rng, demo=demo)
+    adults = [p for p in registry.persons.values() if 40 <= p.age <= 99]
+    assert len(adults) >= 1000
+    i10_rate = sum(1 for p in adults if "I10" in p.chronic_conditions) / len(adults)
+    e11_rate = sum(1 for p in adults if "E11.9" in p.chronic_conditions) / len(adults)
+    # Both marginals should be within ~5% of target (finite-sample stochastic tolerance).
+    assert abs(i10_rate - 0.50) < 0.05, f"I10 marginal {i10_rate:.3f} vs target 0.50"
+    assert abs(e11_rate - 0.10) < 0.05, f"E11.9 marginal {e11_rate:.3f} vs target 0.10 (expected preserved)"
+
+
+def test_correlation_shape_preserved_under_marginal_rescale():
+    """With a comorbidity multiplier the CONDITIONAL P(C|comorbid) should still
+    exceed P(C|not comorbid) even though the marginal is preserved."""
+    demo = _us_demo_minimal()
+    demo["chronic_prevalence"] = {
+        "I10": {"40-99": 0.50},
+        "E11.9": {"40-99": 0.10},
+    }
+    demo["comorbidity_correlations"] = {"I10": {"E11.9": 5.0}}
+    rng = np.random.default_rng(42)
+    registry = generate_population(size=3000, country="US", rng=rng, demo=demo)
+    adults = [p for p in registry.persons.values() if 40 <= p.age <= 99]
+    with_i10 = [p for p in adults if "I10" in p.chronic_conditions]
+    without_i10 = [p for p in adults if "I10" not in p.chronic_conditions]
+    assert len(with_i10) >= 200 and len(without_i10) >= 200
+    p_e11_given_i10 = sum(1 for p in with_i10 if "E11.9" in p.chronic_conditions) / len(with_i10)
+    p_e11_given_no_i10 = sum(1 for p in without_i10 if "E11.9" in p.chronic_conditions) / len(without_i10)
+    # Correlation shape: I10 patients should have >2x the E11.9 rate of non-I10
+    # (multiplier is 5x, actual ratio dilutes toward 5 as target shrinks).
+    assert p_e11_given_i10 > 2 * p_e11_given_no_i10, (
+        f"E11.9 given I10 ({p_e11_given_i10:.3f}) should be >2x given no I10 "
+        f"({p_e11_given_no_i10:.3f}) — correlation shape lost."
+    )
+
+
+def test_marginal_prevalence_preserved_with_lifestyle_multiplier():
+    """Same invariant for lifestyle multipliers: overall marginal stays near target
+    even when a lifestyle risk factor (e.g. obesity) has a large multiplier."""
+    demo = _us_demo_minimal()
+    demo["chronic_prevalence"] = {"E11.9": {"0-99": 0.10}}
+    demo["lifestyle_risk_multipliers"] = {
+        "bmi": {
+            "thresholds": {"overweight": 25.0, "obese": 30.0},
+            "obese": {"E11.9": 5.0},
+            "overweight": {"E11.9": 2.0},
+        },
+        "smoking": {},
+    }
+    # Half obese, half thin (interpolate BMI mean per sex)
+    demo["physiology"]["bmi"]["male"] = {"mean": 32.0, "std": 4.0}
+    demo["physiology"]["bmi"]["female"] = {"mean": 32.0, "std": 4.0}
+    demo["physiology"]["bmi"]["clamp"] = [15.0, 50.0]
+    rng = np.random.default_rng(42)
+    registry = generate_population(size=2000, country="US", rng=rng, demo=demo)
+    persons = list(registry.persons.values())
+    marginal = sum(1 for p in persons if "E11.9" in p.chronic_conditions) / len(persons)
+    assert abs(marginal - 0.10) < 0.05, (
+        f"E11.9 marginal {marginal:.3f} vs target 0.10 — lifestyle multiplier over-amplified."
+    )
 
 
 def test_parse_chronic_prevalence_raises_on_malformed_age_range_key():

@@ -39,6 +39,46 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Changed
+
+- Population chronic-condition sampling now preserves marginal prevalence
+  (B-3). `demographics.yaml → chronic_prevalence[code][band]` is now
+  semantically the target marginal prevalence in the **sampled synthetic
+  population** (the pipeline input; the emitted patient cohort skews
+  sicker via care-seeking + encounter-emission filters and is by design).
+  `clinosim/modules/population/engine.py` rescales per-patient sampling
+  probability by the population-expected compound (comorbidity × BMI ×
+  smoking) multiplier so `E[final_prev] ≈ base_prev` across the age × sex
+  band, while each multiplier still shapes WHICH patients get the
+  condition. Discovered via post-Issue-#854 p=1000 audit: under the old
+  multiplicative pipeline, chronic marginals over-shot targets by 2-5× on
+  cascading-comorbidity codes (JP p=1000 s=42 examples: I25 age 70+ 0.488
+  vs target 0.10, E78 age 70+ 0.824 vs 0.45, mean chronic conditions/
+  patient 3.24 vs MHLW 65+ 2.3). Post-fix regen at JP p=1000 s=42: I25
+  70+ 0.161, E78 70+ 0.520, mean 2.63 — the residual over-shoot is care-
+  seeking filter bias which is by design (hospital-catchment skew).
+  The previous "reduce base_prev" workaround (Issue #739 for
+  E11.9/N18/US T2DM/COPD) was surgical and did not generalize — the
+  new engine handles the systematic case with no per-code manual
+  tuning. New pure helpers on `population/engine.py`:
+  `_target_prev_at_age`, `_bmi_category_probabilities`,
+  `_smoking_status_probabilities`, `_expected_lifestyle_multiplier`,
+  `_expected_comorbidity_multiplier`. No new tunable constants — all
+  inputs come from existing yaml (grand-design principle). The
+  Issue #739 base_prev downscales in `chronic_prevalence` are now
+  over-compensations against the new engine and will be restored to
+  their intended hospital-cohort targets in a follow-up recalibration
+  PR (B-3 phase 2). Structured CIF changes on `chronic_conditions`
+  list per patient, narrative CIF referencing those records will
+  regenerate → **MINOR** bump under the versioning policy.
+- Anticoag-carryforward integration test scouted to seed=43 (was 42).
+  The B-3 marginal-preserving sampler reshapes chronic conditions
+  cohort-wide, so seed=42 no longer contains the required AFib +
+  2-inpatient-admissions + newly-started-anticoag fixture; seed=43
+  retains one such patient. The test's own docstring already
+  authorizes seed migration when the fixture drifts. Fixture-only
+  change; no invariant relaxation.
+
 ### Docs
 
 - Clarify per-season vs cumulative-record semantics on
