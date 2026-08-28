@@ -58,6 +58,32 @@ from clinosim.modules.immunization.enricher import enrich_immunizations
   `nurse_ids[sum(ord(c) for c in patient_id) % len(nurse_ids)]` で
   決定論的に選出 (RM-3、実 JP practice に整合)。
 
+## 累積記録レート vs シーズン単位レート
+
+schedule YAML の `coverage_by_age_sex` は **1 回スケジュール分の接種確率**
+を保持している。annual (flu) の場合は **per-season 接種率** (MHLW 接種率統計
+/ CDC FluVaxView と一致)、`once` の場合は「これまでに接種済み」の生涯到達率。
+
+**集計 audit 値を誤読しないこと。** `history_years=10` により annual flu の
+10 年分が保持されるため、65+ 患者が flu の Immunization を ≥1 件持つ確率は
+per-season 0.55 でも ≈1.0 に達する。COVID と PPSV23 の once 抽選と合わせて、
+「65+ 患者のうち ≥1 Immunization 記録を持つ割合」の集計値は 100% に近づく。
+これは正しい EHR 挙動 — 病院通院中の高齢患者は複数年の接種歴を carrying して
+いるのが実態。
+
+その集計値を per-season 統計 (MHLW インフルエンザ 65+ ~53% 等) と比較する
+のは apples-to-oranges 誤り。正しい audit は per-vaccine, per-scheduled-dose
+レートを比較する:
+
+```python
+# annual: 総接種数 / (対象患者数 × history_years)
+# once:   接種済患者数 / 対象患者数
+```
+
+audit script
+[`scripts/audit_realworld_stats_jp.py`](../../../scripts/audit_realworld_stats_jp.py)
+はこの正しい metric を用いる。
+
 ## Snapshot (AD-32)
 
 `as_of = ctx.config.snapshot_date` があればその日、なければレコード内

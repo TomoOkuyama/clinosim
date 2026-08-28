@@ -4,7 +4,23 @@
 average_household_size: 2.3
 
 # Age distribution (proportional, sums to 1.0)
-# Source: Statistics Bureau of Japan (2020)
+# Source: Statistics Bureau of Japan (2020) — general-population Census.
+#
+# NOTE ON OUTPUT COHORT SKEW:
+# This distribution is the input sampling target for the SYNTHETIC POPULATION,
+# not for the emitted patient cohort. Downstream `care_seeking` threshold +
+# encounter-emission filter drop non-visiting persons, so the observed patient
+# cohort skews elderly-heavy — 65+ share typically ~48-56% of emitted patients
+# vs 30% of the input population. This matches the real hospital-catchment
+# distribution reported in MHLW 患者調査 (Patient Survey) 2020 (65+ ≈ 56% of
+# total hospital patients).
+#
+# Do NOT reweight this table to make the OUTPUT cohort match Census —
+# that would break the general-population sampling contract, which downstream
+# demographics-conditional risk calculations (life expectancy, comorbidity)
+# depend on. If cohort skew audit is desired, compare against MHLW 患者調査
+# (see scripts/audit_realworld_stats_jp.py) rather than 国勢調査.
+# See modules/population/README.md "Cohort skew vs sampled population" note.
 age_distribution:
   "0-14": 0.12
   "15-24": 0.09

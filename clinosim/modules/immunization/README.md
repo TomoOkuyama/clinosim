@@ -66,6 +66,35 @@ grand-design contract) — the enricher's empty-map path is a no-op.
   nurse per patient (RM-3, matches JP practice where nurses
   administer routine vaccines).
 
+## Cumulative record vs per-season semantics
+
+`coverage_by_age_sex` in each schedule YAML holds **per-scheduled-dose**
+probabilities — for annual vaccines that means the **per-season** rate
+(matching MHLW 接種率 / CDC FluVaxView statistics), and for `once`
+vaccines it is the lifetime "ever received" rate.
+
+**Do not misread aggregate audit metrics.** Because `history_years=10`
+retains a decade of annual flu shots, a 65+ patient's probability of
+having ≥1 flu Immunization on record approaches 1.0 even at a
+per-season rate of ~0.55. Combined with the once-in-lifetime COVID and
+PPSV23 draws, aggregate "% of 65+ patients with ≥1 Immunization
+record" approaches 100%. This is the correct EHR behavior — a
+hospital-attending elderly patient realistically has a multi-year
+vaccination history on file.
+
+Comparing that aggregate against a per-season statistic (e.g. MHLW
+インフルエンザ 65+ ~53%) is an apples-to-oranges error. The correct
+audit is the per-vaccine, per-scheduled-dose rate:
+
+```python
+# For annual vaccines: total shots / (n_eligible_patients * history_years)
+# For once vaccines:   n_patients_with_shot / n_eligible_patients
+```
+
+The audit script under
+[`scripts/audit_realworld_stats_jp.py`](../../../scripts/audit_realworld_stats_jp.py)
+uses these correct metrics.
+
 ## Snapshot (AD-32)
 
 `as_of = ctx.config.snapshot_date` when set, otherwise the latest

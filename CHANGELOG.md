@@ -39,6 +39,46 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Docs
+
+- Clarify per-season vs cumulative-record semantics on
+  `coverage_by_age_sex` in `clinosim/locale/{jp,us}/immunization_schedule.yaml`
+  and add a "Cumulative record vs per-season" section to
+  `modules/immunization/README.md` (+ ja). Discovered via post-Issue-#854
+  p=1000 audit: raw "% of 65+ patients with ≥1 Immunization record"
+  hits ~100%, which looked like a bug against MHLW インフルエンザ 65+
+  ~53% (per-season). Per-vaccine per-scheduled-dose measurement on the
+  same sample confirms actuals match config within ±5% (flu M 0.503
+  vs 0.55, F 0.570 vs 0.58, COVID lifetime M 0.906 vs 0.90, F 0.952 vs
+  0.92, PPSV23 M 0.355 vs 0.40, F 0.441 vs 0.42). Aggregate "≥1 record"
+  vs per-season MHLW is an apples-to-oranges error — with
+  `history_years=10` a moderate per-season rate accumulates to ~1.0
+  over the EHR window, which is the correct behavior for a
+  hospital-attending elderly patient. No code / config value change.
+  → **PATCH** under the versioning policy.
+- Clarify hospital-catchment skew on `age_distribution` in
+  `clinosim/locale/{jp,us}/demographics.yaml` and add a "Cohort skew vs
+  sampled population" section to `modules/population/README.md` (+ ja).
+  Discovered via the same p=1000 audit: JP 65+ share in the emitted
+  cohort is 48% vs the `age_distribution` config target 30% (Census).
+  Root cause is by-design — the `age_distribution` table is the
+  **sampled population** target (matching each country's Census), then
+  the care-seeking threshold + encounter-emission gate filter out
+  non-visiting persons, so the emitted patient cohort skews
+  elderly-heavy by construction. Against MHLW 患者調査 2020 (65+ ≈ 56%
+  of hospital patients) the emitted cohort is far closer than against
+  Census. Do NOT re-weight `age_distribution` to make the cohort match
+  Census — that would break the general-population sampling contract
+  depended on by comorbidity / life-expectancy / seasonal-risk
+  calculations. No code / config value change. → **PATCH**.
+- Add `scripts/audit_realworld_stats_jp.py` — JP cohort vs real-world
+  statistics audit with corrected benchmarks (MHLW 患者調査 for age,
+  per-vaccine per-scheduled-dose for immunization, MHLW / JCS / JDS /
+  JSN guideline prevalence for chronic diseases). Replaces the ad-hoc
+  scratchpad script the p=1000 audit used. Registered under
+  "Data-refresh helpers" in `scripts/README.md`. Diagnostic only; not
+  a hard gate. → **PATCH**.
+
 ### Fixed
 
 - Chronic-condition age gate on implied-chronic assignment
