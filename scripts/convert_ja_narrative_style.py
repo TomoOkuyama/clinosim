@@ -13,6 +13,7 @@ Output Japanese EHR style:
     【身体所見】
     ・バイタル：...
 """
+
 from __future__ import annotations
 
 import base64
@@ -24,14 +25,14 @@ from pathlib import Path
 
 
 # Big title on its own line: **XXX**  (no colon)
-_RE_BIG_TITLE = re.compile(r'^\*\*([^*\n]+?)\*\*\s*$', re.MULTILINE)
+_RE_BIG_TITLE = re.compile(r"^\*\*([^*\n]+?)\*\*\s*$", re.MULTILINE)
 # Section header with content: **XXX：** content  or  **XXX:** content
 # Preserve line breaks (use [ \t]* instead of \s*)
-_RE_SECTION = re.compile(r'\*\*([^*\n]+?)[：:]\*\*[ \t]*', re.MULTILINE)
+_RE_SECTION = re.compile(r"\*\*([^*\n]+?)[：:]\*\*[ \t]*", re.MULTILINE)
 # Subheader (remaining bold): **XXX** inline (no colon, not start of line)
-_RE_INLINE_BOLD = re.compile(r'\*\*([^*\n]+?)\*\*')
+_RE_INLINE_BOLD = re.compile(r"\*\*([^*\n]+?)\*\*")
 # Dash bullet at start of line: "- item" or "  - item"
-_RE_DASH_BULLET = re.compile(r'^(\s*)[-–]\s+', re.MULTILINE)
+_RE_DASH_BULLET = re.compile(r"^(\s*)[-–]\s+", re.MULTILINE)
 
 
 def _strip_trailing_colon(m: re.Match) -> str:
@@ -43,13 +44,13 @@ def _strip_trailing_colon(m: re.Match) -> str:
 def convert_text(text: str) -> str:
     """Convert markdown-style narrative to Japanese EHR style."""
     # 1. Section headers FIRST (longer match): **XXX：** content → 【XXX】content
-    text = _RE_SECTION.sub(r'【\1】', text)
+    text = _RE_SECTION.sub(r"【\1】", text)
     # 2. Big titles on their own line: **XXX** → 【XXX】 (strip trailing colon)
     text = _RE_BIG_TITLE.sub(_strip_trailing_colon, text)
     # 3. Remaining inline bold: **XXX** → ■XXX (rare subheaders)
-    text = _RE_INLINE_BOLD.sub(r'■\1', text)
+    text = _RE_INLINE_BOLD.sub(r"■\1", text)
     # 4. Dash bullets → 中黒
-    text = _RE_DASH_BULLET.sub(r'\1・', text)
+    text = _RE_DASH_BULLET.sub(r"\1・", text)
     return text
 
 

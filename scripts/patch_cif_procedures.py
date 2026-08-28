@@ -10,6 +10,7 @@ Mapping sources:
     (procedure.procedure_code_jp / procedure_code_us)
   - Bedside codes: clinosim/modules/procedure/engine.py _BEDSIDE_PROCEDURES
 """
+
 from __future__ import annotations
 
 import json
@@ -26,6 +27,7 @@ sys.path.insert(0, str(REPO))
 def _load_bedside_map() -> dict[str, tuple[str, str]]:
     """Return {K/D/G/J code: (jp_code, us_code)}."""
     from clinosim.modules.procedure.engine import _BEDSIDE_PROCEDURES
+
     out: dict[str, tuple[str, str]] = {}
     for _proc_type, cpt, kcode, *_rest in _BEDSIDE_PROCEDURES:
         out[kcode] = (kcode, cpt)
@@ -36,6 +38,7 @@ def _load_bedside_map() -> dict[str, tuple[str, str]]:
 def _load_disease_surgery_map() -> dict[str, tuple[str, str]]:
     """Return {any_code: (jp_code, us_code)} from disease YAMLs + hardcoded specials."""
     import yaml
+
     out: dict[str, tuple[str, str]] = {}
     dis_dir = REPO / "clinosim" / "modules" / "disease" / "reference_data"
     for f in dis_dir.glob("*.yaml"):
@@ -95,8 +98,7 @@ def patch_cif_tarball(tar_path: Path, out_path: Path) -> dict:
     code_map = _build_code_map()
     print(f"Loaded {len(code_map)} code mappings")
 
-    stats = {"patients_scanned": 0, "procedures_total": 0, "procedures_patched": 0,
-             "unmapped_codes": set()}
+    stats = {"patients_scanned": 0, "procedures_total": 0, "procedures_patched": 0, "unmapped_codes": set()}
 
     with tempfile.TemporaryDirectory() as tmpd:
         workdir = Path(tmpd)

@@ -4,6 +4,7 @@
 Reads prompt JSON files (from prepare_ab_test_prompts.py), calls Bedrock
 directly using the configured provider, writes generated text + metadata.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -85,7 +86,9 @@ def main():
             )
             total_in += resp.input_tokens
             total_out += resp.output_tokens
-            print(f"[{idx}/{len(prompt_files)}] {rel} — in={resp.input_tokens} out={resp.output_tokens} ({elapsed:.1f}s)")
+            print(
+                f"[{idx}/{len(prompt_files)}] {rel} — in={resp.input_tokens} out={resp.output_tokens} ({elapsed:.1f}s)"
+            )
         except Exception as e:
             print(f"[{idx}/{len(prompt_files)}] FAIL: {rel} — {e}")
 
@@ -93,7 +96,7 @@ def main():
     print()
     print(f"=== Summary ===")
     print(f"  Total tokens: in={total_in:,} out={total_out:,}")
-    print(f"  Elapsed: {elapsed/60:.1f} min")
+    print(f"  Elapsed: {elapsed / 60:.1f} min")
 
 
 if __name__ == "__main__":
