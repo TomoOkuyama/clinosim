@@ -50,6 +50,33 @@ from clinosim.modules.allergy.engine import (
 )
 ```
 
+## Scope: AllergyIntolerance ≠ 「何らかのアレルギー疾患」
+
+15% overall gate は **FHIR `AllergyIntolerance` として臨床的に文書化される
+患者比率** をモデル化している — medication (Penicillin / Aspirin / Sulfa
+等)、重症 food (peanut / shellfish / egg / milk)、environmental
+(latex)。実世界 benchmark:
+
+| Reference | Rate | Scope |
+|---|---|---|
+| MHLW アレルギー疾患実態調査 2011 | 30-40% | 花粉症 (J30) や食物不耐 (K90.4) を含む「何らかのアレルギー疾患」 |
+| 薬物アレルギー documented alone | 5-10% | Medication-only、実 EHR |
+| 臨床的に文書化された `AllergyIntolerance` 合算 | 10-20% | 実病院 EHR の典型値 |
+
+**emit rate を 30-40% の「何らかのアレルギー疾患」統計と比較しない
+こと** — scope 誤りになる。花粉症は `Condition` (ICD-10 `J30`) として、
+食物不耐は `Condition` (`K90.4`) として emit される。
+`AllergyIntolerance` は「clinician が反応と共にアレルギー欄に記録した」
+という狭い surface。
+
+15% は実 `AllergyIntolerance` documentation の 10-20% 帯域の中央付近の
+defensible 値で、pre-refactor patient activator baseline (~15.3%) に
+一致させて cohort determinism を保つ選択。
+
+正しい audit metric は
+[`scripts/audit_realworld_stats_jp.py`](../../../scripts/audit_realworld_stats_jp.py)
+を参照 (この benchmark note は audit script 側からも cross-reference される)。
+
 ## 決定論
 
 - サブ seed オフセット `0x414C` (`"AL"`)。

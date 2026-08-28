@@ -51,6 +51,32 @@ from clinosim.modules.allergy.engine import (
 )
 ```
 
+## Scope: AllergyIntolerance ≠ any allergic disease
+
+The 15% overall gate models the fraction of patients with a **clinically
+documented FHIR `AllergyIntolerance` record** — medication (Penicillin
+/ Aspirin / Sulfa / etc.), severe food (peanut / shellfish / egg /
+milk), or environmental (latex). Real-world benchmark:
+
+| Reference | Rate | Scope |
+|---|---|---|
+| MHLW アレルギー疾患実態調査 2011 | 30-40% | ANY allergic disease incl. hay fever (J30) + food intolerance (K90.4) |
+| Drug allergy documented alone | 5-10% | Medication-only, real EHR |
+| Combined clinically documented `AllergyIntolerance` | 10-20% | Typical real hospital EHR |
+
+**Do not compare the emitted rate against the 30-40% general "any
+allergic disease" statistic** — that would be a scope mismatch. Hay
+fever is emitted as `Condition` (ICD-10 `J30`), food intolerance as
+`Condition` (`K90.4`), etc. `AllergyIntolerance` is the narrower "the
+clinician wrote this on the allergy chart with a reaction" surface.
+
+The 15% figure is a defensible middle ground within the 10-20% real
+`AllergyIntolerance` documentation band, chosen to match the pre-refactor
+patient activator baseline (~15.3%) so cohort determinism is preserved.
+
+See [`scripts/audit_realworld_stats_jp.py`](../../../scripts/audit_realworld_stats_jp.py)
+for the correct audit metric (this benchmark note is cross-referenced there).
+
 ## Determinism
 
 - Sub-seed offset `0x414C` (`"AL"`), registered in
