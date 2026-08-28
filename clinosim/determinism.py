@@ -67,7 +67,6 @@ from typing import TYPE_CHECKING
 
 import yaml
 from mpmath import cos as _mp_cos
-from mpmath import exp as _mp_exp
 from mpmath import log as _mp_log
 from mpmath import mp, mpf
 from mpmath import pi as _mp_pi
@@ -102,11 +101,6 @@ def _log(x: float) -> float:
     """``log(x)`` rounded to nearest float64 via mpmath (bit-identical
     across platforms). ``x`` must be positive."""
     return float(_mp_log(mpf(x)))
-
-
-def _exp(x: float) -> float:
-    """``exp(x)`` rounded to nearest float64 via mpmath (bit-identical)."""
-    return float(_mp_exp(mpf(x)))
 
 
 def _cos(x: float) -> float:
