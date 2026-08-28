@@ -39,6 +39,24 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-28
+
+**MINOR** — Two independent MINOR drivers folded into this release:
+
+1. B-3 marginal-preserving chronic-condition sampler reshapes
+   `chronic_conditions` per patient (Structured CIF change; fresh
+   `narrate` required).
+2. Cross-platform bit-reproducible RNG variates for byte-identity
+   between Mac ARM and x86 Linux (RNG shape changes; fresh CIF+narrate
+   required).
+
+Session 89 post-Issue-#854 audit resolutions + session 90 cross-platform
+determinism. See
+[`docs/reviews/2026-08-28-session-89-post-p1000-audit.md`](docs/reviews/2026-08-28-session-89-post-p1000-audit.md)
+and
+[`docs/reviews/2026-08-28-cross-platform-determinism.md`](docs/reviews/2026-08-28-cross-platform-determinism.md)
+for the per-finding timelines and technical summaries.
+
 ### Changed
 
 - Bit-reproducible RNG variates for cross-platform byte-identity.
@@ -60,23 +78,13 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   entry points; downstream call sites see the same Generator API and
   keep the same signatures, so no domain-code edits were needed for
   the ~81 ``rng.{beta,normal,exponential}`` call sites the codebase
-  contains today. RNG shape changes → structured CIF regenerates
-  (algorithms differ from numpy's Cheng / Ziggurat), narrative CIF
-  regenerates alongside → **MINOR** bump under the versioning policy.
-  New dep: ``mpmath>=1.3`` (pure Python, ~200 KB).
-
-## [0.5.0] - 2026-08-28
-
-**MINOR** — B-3 marginal-preserving chronic-condition sampler reshapes
-`chronic_conditions` per patient (Structured CIF change; fresh `narrate`
-required for narrative-CIF consistency under the versioning policy).
-
-Session 89 post-Issue-#854 audit resolutions. See
-[`docs/reviews/2026-08-28-session-89-post-p1000-audit.md`](docs/reviews/2026-08-28-session-89-post-p1000-audit.md)
-for the per-finding timeline and technical summary.
-
-### Changed
-
+  contains today. Cross-platform byte-identity verified against fresh
+  regen on Mac ARM + H100 x86: US p=100 s=42 → 24/24 files identical,
+  US p=500 s=42 → 25/25 files identical. RNG shape changes →
+  structured CIF regenerates (algorithms differ from numpy's Cheng /
+  Ziggurat), narrative CIF regenerates alongside → **MINOR** bump
+  under the versioning policy. New dep: ``mpmath>=1.3`` (pure Python,
+  ~200 KB).
 - Population chronic-condition sampling now preserves marginal prevalence
   (B-3). `demographics.yaml → chronic_prevalence[code][band]` is now
   semantically the target marginal prevalence in the **sampled synthetic

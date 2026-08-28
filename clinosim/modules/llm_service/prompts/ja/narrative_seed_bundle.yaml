@@ -61,7 +61,9 @@ system: |
     - active_medications_today  day-N MAR (canonical katakana pre-resolved)
     - home_medications          patient's chronic Rx (canonical katakana)
     - discharge_medications_list  Rx issued at discharge (canonical katakana)
-    - abnormal_labs_today       H/L-flagged labs for today (progress / SOAP)
+    - abnormal_labs_today       H/L-flagged labs measured TODAY (day N)
+    - lab_trend_today           per-lab-measured-today: 前値 [flag] → 改善/悪化/不変
+    - lab_current_state         carry-forward: abnormal labs NOT redrawn today
     - abnormal_labs_during_stay same, whole-stay (discharge_summary)
     - vitals_range_during_stay  min-max of key vitals across the stay
     - key_procedures_performed  procedures done during the stay
@@ -96,6 +98,18 @@ system: |
        value (name + value + [flag]) MUST enter the assessment with a
        clinical interpretation. Do NOT write "labs stable" if a flag
        is present.
+     - lab_trend_today (progress_note only) → the ONLY authorized source
+       for「改善」「悪化」「不変」labs claims. Copy the direction verbatim
+       (「改善」「悪化」「不変」) — do NOT invent a trend not listed here,
+       and do NOT re-word ("低下傾向" / "上昇" are re-word violations
+       unless lab_trend_today explicitly labels them). If a lab is in
+       abnormal_labs_today but NOT in lab_trend_today it is an initial
+       measurement — narrate as「初回測定」/ "initial measurement" only,
+       no trend claim.
+     - lab_current_state (progress_note only) → tests still abnormal
+       from an earlier day but not redrawn today. Cite them with their
+       (day N) suffix so downstream readers see the ongoing abnormality;
+       do NOT re-date them as today's measurements.
      - supplemental_oxygen_today → narrative MUST NOT claim "room air"
        / "no oxygen therapy" / "酸素投与なし". SpO2 references MUST
        state device + flow rate from this key.

@@ -7,7 +7,12 @@
 #     visits_per_year: <list[int], sampled uniformly per patient per year>
 #     encounter_type:  "outpatient" | "emergency" | "inpatient"
 #     disease_id:      <string — reused by engine.py dispatch to identify the visit>
-#     visit_reason:    <string — human-readable, emitted as the encounter's chief_complaint>
+#     visit_reason:    <bilingual {en, ja} dict OR string — human-readable,
+#                       emitted as the encounter's chief_complaint. Bilingual
+#                       dict lets `clinosim.locale.text.resolve_text` pick the
+#                       matching locale so JP cohorts get 日本語 chief_complaint
+#                       and the JP template narrative fallback does not leak
+#                       English (session 90 narrative review finding).>
 #
 # Foundation pass (pass 1) ships with `encounters:` intentionally empty —
 # the module scaffold is wired in but produces zero events, so cohort
@@ -27,7 +32,9 @@ encounters:
     visits_per_year: [6, 7, 8]
     encounter_type: outpatient
     disease_id: well_child_infant
-    visit_reason: "Well-child visit — infant"
+    visit_reason:
+      en: "Well-child visit — infant"
+      ja: "乳児健診"
 
   # Ages 2-4 (early childhood): 2-3 visits/yr per AAP (18mo, 24mo, 30mo,
   # 3yr, 4yr — annualized 2-3/yr in this age band).
@@ -37,7 +44,9 @@ encounters:
     visits_per_year: [2, 3]
     encounter_type: outpatient
     disease_id: well_child_early
-    visit_reason: "Well-child visit — early childhood"
+    visit_reason:
+      en: "Well-child visit — early childhood"
+      ja: "乳幼児健診 (幼児期)"
 
   # Ages 5-18 (school-age + adolescent): 1 well-child visit / annual
   # physical per AAP + AAP Bright Futures for older children.
@@ -47,7 +56,9 @@ encounters:
     visits_per_year: [1]
     encounter_type: outpatient
     disease_id: well_child_school
-    visit_reason: "Well-child visit — school-age / adolescent annual"
+    visit_reason:
+      en: "Well-child visit — school-age / adolescent annual"
+      ja: "小児・思春期年次健診"
 
   # ---- Immunization visits (#760 pass 3) ----
   # CDC / AAP recommended childhood immunization schedule (2024). Many
@@ -72,7 +83,9 @@ encounters:
     visits_per_year: [2, 3]
     encounter_type: outpatient
     disease_id: immunization_infant
-    visit_reason: "Immunization visit — infant catch-up / hospital-supplement"
+    visit_reason:
+      en: "Immunization visit — infant catch-up / hospital-supplement"
+      ja: "予防接種 (乳児キャッチアップ / 病院補足)"
 
   immunization_kindergarten:
     age_min: 4
@@ -80,7 +93,9 @@ encounters:
     visits_per_year: [1]
     encounter_type: outpatient
     disease_id: immunization_kindergarten
-    visit_reason: "Immunization visit — kindergarten entry boosters (DTaP / IPV / MMR / varicella)"
+    visit_reason:
+      en: "Immunization visit — kindergarten entry boosters (DTaP / IPV / MMR / varicella)"
+      ja: "予防接種 (幼稚園・入園前追加接種: DPT-IPV / MR / 水痘)"
 
   immunization_adolescent:
     age_min: 11
@@ -88,7 +103,9 @@ encounters:
     visits_per_year: [1]
     encounter_type: outpatient
     disease_id: immunization_adolescent
-    visit_reason: "Immunization visit — adolescent bundle (Tdap / HPV / MCV4)"
+    visit_reason:
+      en: "Immunization visit — adolescent bundle (Tdap / HPV / MCV4)"
+      ja: "予防接種 (思春期: DPT / HPV / 髄膜炎菌)"
 
   # ---- Pediatric acute presentations (#760 pass 4) ----
   # Ambulatory-visit-generating pediatric acute illnesses. The
@@ -110,7 +127,9 @@ encounters:
     visits_per_year: [0, 0, 0, 1]
     encounter_type: outpatient
     disease_id: pediatric_bronchiolitis
-    visit_reason: "Acute bronchiolitis — outpatient management"
+    visit_reason:
+      en: "Acute bronchiolitis — outpatient management"
+      ja: "急性細気管支炎 (外来管理)"
 
   pediatric_otitis_media_early:
     age_min: 0
@@ -118,7 +137,9 @@ encounters:
     visits_per_year: [0, 1, 1, 2]
     encounter_type: outpatient
     disease_id: pediatric_otitis_media
-    visit_reason: "Acute otitis media — outpatient antibiotic management"
+    visit_reason:
+      en: "Acute otitis media — outpatient antibiotic management"
+      ja: "急性中耳炎 (外来抗菌薬治療)"
 
   pediatric_uri_young:
     age_min: 0
@@ -126,7 +147,9 @@ encounters:
     visits_per_year: [1, 2, 2, 3]
     encounter_type: outpatient
     disease_id: pediatric_uri
-    visit_reason: "Upper respiratory infection with fever — outpatient supportive care"
+    visit_reason:
+      en: "Upper respiratory infection with fever — outpatient supportive care"
+      ja: "発熱を伴う上気道感染 (外来対症療法)"
 
   pediatric_uri_school:
     age_min: 6
@@ -134,7 +157,9 @@ encounters:
     visits_per_year: [0, 1, 1, 2]
     encounter_type: outpatient
     disease_id: pediatric_uri
-    visit_reason: "Upper respiratory infection with fever — school-age outpatient visit"
+    visit_reason:
+      en: "Upper respiratory infection with fever — school-age outpatient visit"
+      ja: "発熱を伴う上気道感染 (学童期外来受診)"
 
   pediatric_uri_adolescent:
     age_min: 13
@@ -142,7 +167,9 @@ encounters:
     visits_per_year: [0, 0, 1]
     encounter_type: outpatient
     disease_id: pediatric_uri
-    visit_reason: "Upper respiratory infection with fever — adolescent outpatient visit"
+    visit_reason:
+      en: "Upper respiratory infection with fever — adolescent outpatient visit"
+      ja: "発熱を伴う上気道感染 (思春期外来受診)"
 
   # ---- Injury (#760 pass 5) ----
   # Ambulatory injury encounters (playground / bicycle / MVA passenger,
@@ -157,7 +184,9 @@ encounters:
     visits_per_year: [0, 0, 1]
     encounter_type: outpatient
     disease_id: pediatric_injury
-    visit_reason: "Minor injury — playground / bicycle fall, outpatient management"
+    visit_reason:
+      en: "Minor injury — playground / bicycle fall, outpatient management"
+      ja: "軽度外傷 (公園遊具・自転車転倒、外来管理)"
 
   pediatric_injury_adolescent:
     age_min: 13
@@ -165,7 +194,9 @@ encounters:
     visits_per_year: [0, 0, 0, 1]
     encounter_type: outpatient
     disease_id: pediatric_injury
-    visit_reason: "Sports-related injury or minor trauma — adolescent outpatient visit"
+    visit_reason:
+      en: "Sports-related injury or minor trauma — adolescent outpatient visit"
+      ja: "スポーツ関連外傷・軽度外傷 (思春期外来受診)"
 
   # ---- Adolescent behavioural health (#760 pass 5) ----
   # AAP Bright Futures 2023 includes annual behavioural / mental health
@@ -180,4 +211,6 @@ encounters:
     visits_per_year: [0, 0, 0, 1]
     encounter_type: outpatient
     disease_id: pediatric_behavioural
-    visit_reason: "Adolescent behavioural / mental health follow-up (anxiety / mood / ADHD screening positive)"
+    visit_reason:
+      en: "Adolescent behavioural / mental health follow-up (anxiety / mood / ADHD screening positive)"
+      ja: "思春期メンタルヘルスフォローアップ (不安・気分障害・ADHD スクリーニング陽性)"
