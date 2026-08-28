@@ -32,8 +32,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
-
+from clinosim import determinism
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
     clamp_to_physiologic_limits,
@@ -95,7 +94,7 @@ def _run_lab_result_pipeline(
             continue
         canon = canonical_lab_name(order.display_name)
         if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and canon in true_labs:
-            lab_rng = np.random.default_rng(individual_lab_seed(order.order_id))
+            lab_rng = determinism.default_rng(individual_lab_seed(order.order_id))
             # Pre-analytical issues (constants in observation/pre_analytical.py):
             # ~2% specimen rejection, ~3% hemolysis on K/LDH.
             if lab_rng.random() < SPECIMEN_REJECTION_RATE:
@@ -148,7 +147,7 @@ def _run_lab_result_pipeline(
     # are silently skipped — the child stays PLACED with no result, matching
     # the existing behaviour for any individual order that engine cannot result.
     for parent_id, children in panel_children_by_parent.items():
-        sub_rng = np.random.default_rng(panel_specimen_seed(parent_id))
+        sub_rng = determinism.default_rng(panel_specimen_seed(parent_id))
         if sub_rng.random() < SPECIMEN_REJECTION_RATE:
             for child in children:
                 child.status = OrderStatus.CANCELLED
