@@ -2307,6 +2307,37 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   s=42 regen: 4,278 stripped-display section codes, 100% have JP
   <code>.text</code>. FHIR-emit-only, structured CIF unchanged, narrative CIF
   unaffected → <strong>PATCH</strong> under the new versioning policy.</li>
+<li>Discharge MedicationRequest <code>identifier:rpNumber</code> is now <code>"2"</code> on
+  inpatient encounters (was uniformly <code>"1"</code>, colliding with the
+  inpatient-orders MR set that also uses <code>"1"</code>). Discovered via
+  post-Issue-#854-close p=500 review: on JP p=500 s=42, 42 (patient,
+  encounter) groups had duplicate <code>(rpNumber, orderInRp)</code> pairs because
+  the discharge builder restarted its <code>orderInRp</code> counter from <code>1</code>
+  while sharing <code>rpNumber=1</code> with the inpatient MRs, so an inpatient
+  MR and a discharge MR would both claim <code>(rp=1, orderInRp=3)</code>. Model
+  the discharge prescription as a distinct Rp group (<code>rpNumber=2</code>) on
+  inpatient encounters — the JP-CLINS <code>rpNumber</code> semantic
+  ("処方箋内 RP 番号 / 剤番号") accommodates multiple Rp groups within
+  one prescription. Outpatient renewal has no inpatient orders to
+  collide with, so <code>rpNumber=1</code> remains correct there. Verified against
+  JP p=500 s=42 regen: 0 duplicate <code>(rpNumber, orderInRp)</code> pairs
+  (previously 42 groups). FHIR-emit-only, structured CIF unchanged,
+  narrative CIF unaffected → <strong>PATCH</strong> under the new versioning policy.</li>
+<li>mb-org / mb-sus Observation <code>.category[].text</code> is now populated
+  (previously absent, so the JP <code>_normalize_jp_observation_category</code>
+  post-process swap left the category with a bare <code>{system, code}</code>
+  pair and no user-facing label). Discovered via post-Issue-#854-close
+  p=500 review: 59/87,627 (0.07%) <code>JP_SimpleObservationCategory_CS</code>
+  category entries lacked <code>.text</code> — all localized to microbiology
+  Observations (mb-org / mb-sus) whose emitter set <code>coding.display</code> but
+  omitted the parent CodeableConcept <code>.text</code>. Now <code>microbiology.py</code>
+  populates <code>.text</code> on the lab category with a locale-appropriate
+  label ("検査" on JP, "Laboratory" on US) so the post-process
+  normalizer carries it forward. Verified against JP p=200 s=42 regen:
+  all 46/46 mb-* Observation categories have <code>.text</code> (previously all
+  46 lacked it). FHIR-emit-only, structured CIF byte-unchanged,
+  narrative CIF unaffected → <strong>PATCH</strong> under the new versioning
+  policy.</li>
 </ul>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
