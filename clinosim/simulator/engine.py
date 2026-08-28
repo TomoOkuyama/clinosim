@@ -8,9 +8,8 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 from clinosim import __version__ as _clinosim_version
+from clinosim import determinism
 from clinosim.locale.loader import load_demographics
 from clinosim.modules._shared import is_jp
 from clinosim.modules.disease.protocol import load_disease_protocol
@@ -345,7 +344,7 @@ def run_beta(
     if config is None:
         config = SimulatorConfig()
 
-    rng = np.random.default_rng(config.random_seed)
+    rng = determinism.default_rng(config.random_seed)
     # F1: P1/P2/P3/P4/P4' below derive per-key sub-seeds from
     # master_seed instead of consuming the shared `rng` stream, so that
     # cursor movement (snapshot_date change) cannot shift RNG state for
@@ -373,7 +372,7 @@ def run_beta(
     # changes (e.g., adding allied-health roles) don't shift downstream
     # RNG state (population / life events). Mirrors the AD-16 sub-seed
     # pattern used by module enrichers.
-    _roster_rng = np.random.default_rng(config.random_seed ^ 0x524F5354)  # "ROST"
+    _roster_rng = determinism.default_rng(config.random_seed ^ 0x524F5354)  # "ROST"
     roster = generate_roster(config.hospital_scale, config.country, _roster_rng, hospital_config=hospital_ops)
     hospital_state = HospitalState()
 
@@ -1151,7 +1150,7 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
     if scenario.force_hai_event is not None and scenario not in config.forced_scenarios:
         config = config.model_copy(update={"forced_scenarios": [*config.forced_scenarios, scenario]})
 
-    rng = np.random.default_rng(config.random_seed)
+    rng = determinism.default_rng(config.random_seed)
     healthcare = load_healthcare_config(config.country)
     roster = generate_roster(config.hospital_scale, config.country, rng)
     _demo = load_demographics(config.country)

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -226,7 +227,7 @@ def _simulate_outpatient_visit(
         if canon not in _true_labs and canon not in baseline_values:
             continue
         order_id = f"ORD-{encounter.encounter_id}-OPD-L{i:02d}"
-        lab_rng = np.random.default_rng(individual_lab_seed(order_id))
+        lab_rng = determinism.default_rng(individual_lab_seed(order_id))
         order = Order(
             order_id=order_id,
             patient_id=patient.patient_id,

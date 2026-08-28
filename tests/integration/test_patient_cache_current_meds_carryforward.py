@@ -157,8 +157,12 @@ def test_anticoag_from_admission1_carries_forward_to_admission2_home_meds():
     # reshapes chronic_conditions across the population, so seed=42 lost the
     # AFib + 2-admission + newly-started-anticoag candidate. Re-scouted to
     # seed=43 which retains one such patient under the new engine.
+    # 2026-08-28 (cross-platform determinism): the bit-reproducible
+    # Marsaglia-Tsang / Box-Muller variates in ``clinosim.determinism``
+    # consume rng at a different cadence than numpy's Cheng-BB / Ziggurat,
+    # so seed=43 lost the fixture again. Re-scouted to seed=45.
     config = SimulatorConfig(
-        random_seed=43,
+        random_seed=45,
         catchment_population=500,
         country="US",
         time_range=("2025-01", "2026-01"),

@@ -22,6 +22,7 @@ from datetime import datetime
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.physiology.renal_thresholds import DISCHARGE_RENAL_HOLD_THRESHOLD
 from clinosim.types.encounter import PrescriptionRecord
@@ -80,7 +81,7 @@ def build_discharge_rx(
                 "across runs; rng override is intended for test property "
                 "exploration only)."
             )
-        rng = np.random.default_rng(discharge_prescription_seed(patient.patient_id, encounter_id))
+        rng = determinism.default_rng(discharge_prescription_seed(patient.patient_id, encounter_id))
 
     items: list[dict] = []
     seen_dedup_keys: set[str] = set()

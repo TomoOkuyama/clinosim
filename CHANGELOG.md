@@ -39,6 +39,32 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Changed
+
+- Bit-reproducible RNG variates for cross-platform byte-identity.
+  ``numpy.random.Generator.beta`` / ``.normal`` / ``.exponential``
+  reach ``libm`` for ``log`` / ``exp`` / ``pow`` / ``cos``, and IEEE 754
+  mandates correct rounding only for basic arithmetic + ``sqrt`` — not
+  for transcendentals. Apple Silicon and x86 Linux ``libm``
+  implementations differ at the last few ULP, which shifts every
+  downstream ``rng.random()`` cursor. In session s88j-late this drift
+  produced 13-file delta and content differences in every "common"
+  file when regenerating ``p=10000 s=500`` on Mac vs H100.
+  New ``clinosim.determinism`` module reimplements the three variates
+  on top of ``rng.random()`` (pure integer arithmetic — bit-identical
+  across platforms) and ``mpmath`` transcendentals (pure Python integer
+  arithmetic — bit-identical across platforms). Precision constant
+  lives in ``clinosim/config/determinism.yaml`` (grand-design
+  principle: tunables outside code). A tiny ``_DeterministicRngProxy``
+  wraps every ``np.random.default_rng(...)`` at the ten simulator
+  entry points; downstream call sites see the same Generator API and
+  keep the same signatures, so no domain-code edits were needed for
+  the ~81 ``rng.{beta,normal,exponential}`` call sites the codebase
+  contains today. RNG shape changes → structured CIF regenerates
+  (algorithms differ from numpy's Cheng / Ziggurat), narrative CIF
+  regenerates alongside → **MINOR** bump under the versioning policy.
+  New dep: ``mpmath>=1.3`` (pure Python, ~200 KB).
+
 ## [0.5.0] - 2026-08-28
 
 **MINOR** — B-3 marginal-preserving chronic-condition sampler reshapes

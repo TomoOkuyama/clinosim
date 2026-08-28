@@ -1,0 +1,9 @@
+# Determinism module configuration.
+#
+# 128 bits ≈ 38 decimal digits, > 2× the 53-bit float64 significand.
+# This is a bit-reproducibility floor — every reasonable input rounds to
+# the nearest float64 within 0.5 ULP.
+#
+# Do NOT change without re-verifying cross-platform byte-identity of the
+# entire simulator output (see docs/cross-platform-determinism.md).
+mpmath_precision_bits: 128
