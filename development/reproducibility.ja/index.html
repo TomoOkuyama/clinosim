@@ -2248,6 +2248,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#クロスプラットフォーム-byte-identity-v050" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        クロスプラットフォーム byte-identity (v0.5.0+)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#決定性が壊れたとき" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2348,6 +2359,30 @@ diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
 <li>seeded code path を触る全 commit は merge 前に
   <code>bash scripts/reproduce.sh</code> で検証必須。</li>
 </ul>
+<h2 id="クロスプラットフォーム-byte-identity-v050">クロスプラットフォーム byte-identity (v0.5.0+)<a class="headerlink" href="#クロスプラットフォーム-byte-identity-v050" title="Permanent link">&para;</a></h2>
+<p>上記不変条件は <strong>同じ CPU アーキテクチャ内</strong> の byte-identity を保証する
+(Mac ARM 2 runs 同一、x86 Linux 2 runs 同一)。<strong>アーキテクチャ跨ぎ</strong> の
+identity には追加保証が必要 — sampling アルゴリズム内部の transcendental
+関数が全プラットフォームで同一に丸められること。<code>numpy.random.Generator.beta</code>
+/ <code>.normal</code> / <code>.exponential</code> は <code>libm</code> の <code>log</code> / <code>exp</code> / <code>pow</code> / <code>cos</code> を
+経由し、IEEE 754 は基本演算 + <code>sqrt</code> に対してのみ正しい丸めを保証する
+— transcendental は対象外。Apple Silicon と glibc の <code>libm</code> は末尾数 ULP
+で異なり、この 1 ULP shift が numpy RNG cursor を全下流サンプリングで
+ずらす。</p>
+<p>v0.5.0 以降、clinosim は <code>clinosim.determinism</code> を提供 — 前述 3 variate の
+bit-identical drop-in で、以下 2 primitive のみに依存する:</p>
+<ul>
+<li><code>rng.random()</code> (numpy PCG64 の整数演算)</li>
+<li><code>mpmath.{log, exp, cos}</code> at 128-bit precision (pure Python 整数演算)</li>
+</ul>
+<p>小さな proxy が simulator entry で <code>np.random.default_rng(seed)</code> を wrap
+し、下流 call site は <code>rng.beta(...)</code> API のまま。<strong>user 操作不要</strong> —
+module は default で有効。</p>
+<p>Mac ARM (macOS 26、Python 3.12.7、numpy 2.5.1、mpmath 1.3.0) vs H100
+x86 Ubuntu (Python 3.12.3、numpy 2.5.2、mpmath 1.4.1) で再生成検証: US
+p=100 s=42 → 24/24 file 一致、US p=500 s=42 → 25/25 file 一致。詳細は
+<a href="../../reviews/2026-08-28-cross-platform-determinism/"><code>docs/reviews/2026-08-28-cross-platform-determinism.md</code></a>
+を参照。</p>
 <h2 id="決定性が壊れたとき">決定性が壊れたとき<a class="headerlink" href="#決定性が壊れたとき" title="Permanent link">&para;</a></h2>
 <p><code>scripts/reproduce.sh</code> が回帰を報告したら:</p>
 <ol>

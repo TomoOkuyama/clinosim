@@ -2285,13 +2285,36 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
    required).</li>
 </ol>
 <p>Session 89 post-Issue-#854 audit resolutions + session 90 cross-platform
-determinism. See
+determinism + narrative-review follow-ups (pediatric localization,
+per-day lab filter). See
 <a href="../../reviews/2026-08-28-session-89-post-p1000-audit/"><code>docs/reviews/2026-08-28-session-89-post-p1000-audit.md</code></a>
 and
 <a href="../../reviews/2026-08-28-cross-platform-determinism/"><code>docs/reviews/2026-08-28-cross-platform-determinism.md</code></a>
 for the per-finding timelines and technical summaries.</p>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
+<li>Progress-note narrative now filters labs to the correct hospital day
+  and adds two new context fields for the LLM. Prior behavior:
+  <code>_render_abnormal_labs</code> filtered on <code>lab["day"]</code> but CIF lab_results
+  carry only <code>result_datetime</code>, so every day's progress note cited the
+  day-0 admission labs verbatim (POP-000021 DKA case: 12 progress notes
+  all quoting Glucose 518 / pH 7.18 / HCO3 10.1 despite CIF showing
+  day-by-day recovery). New <code>clinosim/modules/document/narrative/lab_timeseries.py</code>
+  module (5 pure helpers, 17 unit tests) computes day-of-lab from
+  <code>result_datetime - admission_datetime</code> and exposes:</li>
+<li><code>abnormal_labs_today</code> — today's measured H / L / critical labs
+    (existing key; filter now works)</li>
+<li><code>lab_trend_today</code> — per today-measured lab: prior value + flag +
+    direction (改善 / 悪化 / 不変 / 初回測定 in JA; improving /
+    worsening / stable / initial in EN)</li>
+<li><code>lab_current_state</code> — carry-forward: abnormal labs from earlier
+    days not redrawn today, cited with <code>(day N)</code> suffix
+  Prompt template (JA + EN) rules pin <code>lab_trend_today</code> as the ONLY
+  authorized source of trend claims (LLM must not invent trend not
+  listed). H100 post-fix regen on the DKA case confirms day-3
+  progress note now cites day-3 labs with trend words + carry-forward
+  of earlier-day abnormals with proper day suffix. <strong>PATCH</strong> — CIF
+  byte-identical to pre-fix; only narrative rendering changes.</li>
 <li>Bit-reproducible RNG variates for cross-platform byte-identity.
   <code>numpy.random.Generator.beta</code> / <code>.normal</code> / <code>.exponential</code>
   reach <code>libm</code> for <code>log</code> / <code>exp</code> / <code>pow</code> / <code>cos</code>, and IEEE 754

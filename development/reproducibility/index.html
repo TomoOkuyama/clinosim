@@ -2023,6 +2023,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cross-platform-byte-identity-v050" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-platform byte-identity (v0.5.0+)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#when-determinism-breaks" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2359,6 +2370,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cross-platform-byte-identity-v050" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-platform byte-identity (v0.5.0+)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#when-determinism-breaks" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2458,6 +2480,35 @@ regression trips the merge gate before code lands.</p>
 <li>Any commit that touches a seeded code path must be verified via
   <code>bash scripts/reproduce.sh</code> before it merges.</li>
 </ul>
+<h2 id="cross-platform-byte-identity-v050">Cross-platform byte-identity (v0.5.0+)<a class="headerlink" href="#cross-platform-byte-identity-v050" title="Permanent link">&para;</a></h2>
+<p>The above invariants get you byte-identical output <strong>within the same
+CPU architecture</strong> (two Mac ARM runs match; two x86 Linux runs match).
+Cross-architecture identity requires an extra guarantee: the
+transcendental functions used inside sampling algorithms must round
+identically on every platform. <code>numpy.random.Generator.beta</code> /
+<code>.normal</code> / <code>.exponential</code> reach the platform <code>libm</code> for
+<code>log</code> / <code>exp</code> / <code>pow</code> / <code>cos</code>, and IEEE 754 mandates correct rounding
+only for basic arithmetic + <code>sqrt</code> — not for transcendentals. Apple
+Silicon and glibc <code>libm</code> differ at the last few ULP, and any single
+drift shifts the numpy RNG cursor for every subsequent draw.</p>
+<p>Since v0.5.0, clinosim ships <code>clinosim.determinism</code> — a bit-reproducible
+drop-in for those three variates on top of two primitives that ARE
+bit-identical everywhere:</p>
+<ul>
+<li><code>rng.random()</code> (pure integer arithmetic in numpy PCG64)</li>
+<li><code>mpmath.{log, exp, cos}</code> at 128-bit precision (pure Python integer
+  arithmetic)</li>
+</ul>
+<p>A tiny proxy wraps every <code>np.random.default_rng(seed)</code> at the simulator
+entry points; downstream call sites keep the same <code>rng.beta(...)</code>
+API. <strong>No user action is required</strong> — the module is on by default.</p>
+<p>Verified against a fresh regen on Mac ARM (macOS 26, Python 3.12.7,
+numpy 2.5.1, mpmath 1.3.0) vs an H100 x86 Ubuntu host (Python 3.12.3,
+numpy 2.5.2, mpmath 1.4.1): US p=100 s=42 → 24/24 files identical, US
+p=500 s=42 → 25/25 files identical. See
+<a href="../../reviews/2026-08-28-cross-platform-determinism/"><code>docs/reviews/2026-08-28-cross-platform-determinism.md</code></a>
+for the full story (problem statement, root cause, algorithm design,
+verification, lessons).</p>
 <h2 id="when-determinism-breaks">When determinism breaks<a class="headerlink" href="#when-determinism-breaks" title="Permanent link">&para;</a></h2>
 <p>If <code>scripts/reproduce.sh</code> reports a regression:</p>
 <ol>
