@@ -83,6 +83,49 @@ demographics 条件付き計算が Census 形状の入力を前提としてい�
 [`scripts/audit_realworld_stats_jp.py`](../../../scripts/audit_realworld_stats_jp.py)
 を参照。
 
+## Marginal-preserving prevalence (B-3)
+
+各 locale の `demographics.yaml` の `chronic_prevalence[code][band]` は
+**sampled synthetic population (パイプライン入力) における target
+marginal prevalence** の意味を持つ。per-patient conditional probability
+ではない。EMIT される患者コホート (下流 care-seeking + encounter emission
+filter 後) は sampled population より sicker 側に skew する — これは意図
+された挙動で、上の "Cohort skew vs sampled population" 節を参照。
+
+engine は各 chronic code を次のように sampling する:
+
+```
+scaled_base = base_prev / E[compound multiplier over (age, sex)]
+final_prev  = min(1, scaled_base * corr_mult(patient) * life_mult(patient))
+```
+
+`E[compound]` は当該 (age × sex) 集団で code に対する fresh draw が体験する
+comorbidity correlation multiplier と lifestyle (BMI + smoking) multiplier
+の population-average 積。BMI × smoking × prior-code sampling の独立性から
+`E[corr_mult(patient) * life_mult(patient)] ≈ E[compound]` が成立するため、
+population marginal は `base_prev` に収束し、multiplier は「どの患者が
+その condition を得るか」の shape 決定にのみ働く。
+
+Helper 関数 (すべて pure、新規 tunable 定数なし。yaml 側の
+`chronic_prevalence` / `comorbidity_correlations` /
+`lifestyle_risk_multipliers` / `physiology.bmi` /
+`lifestyle_distribution.smoking` からのみ導出):
+
+- `_target_prev_at_age(spec, age)` — `age` を含む band を返す、無ければ 0。
+- `_bmi_category_probabilities(demo, sex_key)` — `(mean, std)` の解析的
+  Normal CDF を `overweight` / `obese` 閾値に当てる。
+- `_smoking_status_probabilities(demo, sex_key, age)` — yaml 分布を正規化。
+  `LEGAL_ADULT_AGE` 未満は `{never:1.0}` に固定。
+- `_expected_lifestyle_multiplier(demo, code, sex_key, age)` —
+  `E[bmi_mult] * E[smoking_mult]`。
+- `_expected_comorbidity_multiplier(chronic_data, code, age, sex,
+  comorbidity_cfg)` — `chronic_data` iteration 順の先行 code に対して
+  `Π (1 + P_prior * (m_prior→code - 1))`。
+
+これは以前の「Issue #739 で base_prev を multiplier 圧縮のために逆比例縮小
+する」対症療法 workaround を置き換える。既存の #739 downscale は新エンジン
+下では過補償になるため、follow-up 再校正 PR で revert される (B-3 phase 2)。
+
 ## 決定論
 
 - **`ENRICHER_SEED_OFFSETS` にサブ seed 未登録**。本モジュールは

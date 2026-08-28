@@ -91,6 +91,52 @@ patient survey benchmark, not the general Census.
 See [`scripts/audit_realworld_stats_jp.py`](../../../scripts/audit_realworld_stats_jp.py)
 for the correct comparison metric.
 
+## Marginal-preserving prevalence (B-3)
+
+`chronic_prevalence[code][band]` in each locale's `demographics.yaml` is
+semantically the **target marginal prevalence in the sampled synthetic
+population** (the input to the pipeline), not a per-patient conditional
+probability. The **emitted patient cohort** (after downstream
+care-seeking + encounter-emission filters) skews sicker than the sampled
+population by design — see "Cohort skew vs sampled population" above.
+
+The engine samples each chronic code as:
+
+```
+scaled_base = base_prev / E[compound multiplier over (age, sex)]
+final_prev  = min(1, scaled_base * corr_mult(patient) * life_mult(patient))
+```
+
+where `E[compound]` is the population-expected product of comorbidity
+correlation and lifestyle (BMI + smoking) multipliers a fresh draw for
+this code would experience given the age × sex population. Because
+`E[corr_mult(patient) * life_mult(patient)] ≈ E[compound]` (independence
+of BMI × smoking × prior-code sampling), the population marginal
+converges to `base_prev` while the multipliers still shape WHICH
+patients get the condition.
+
+Helper functions (all pure, no new tunable constants — everything is
+derived from yaml `chronic_prevalence`, `comorbidity_correlations`,
+`lifestyle_risk_multipliers`, `physiology.bmi`, and
+`lifestyle_distribution.smoking`):
+
+- `_target_prev_at_age(spec, age)` — looks up the band that contains
+  `age`; returns 0 if none.
+- `_bmi_category_probabilities(demo, sex_key)` — analytical Normal CDF
+  on `(mean, std)` against the `overweight` / `obese` thresholds.
+- `_smoking_status_probabilities(demo, sex_key, age)` — normalized
+  yaml distribution; forced to `{never:1.0}` under `LEGAL_ADULT_AGE`.
+- `_expected_lifestyle_multiplier(demo, code, sex_key, age)` —
+  `E[bmi_mult] * E[smoking_mult]`.
+- `_expected_comorbidity_multiplier(chronic_data, code, age, sex,
+  comorbidity_cfg)` — `Π (1 + P_prior * (m_prior→code - 1))` over
+  earlier codes in `chronic_data` iteration order.
+
+This replaces the earlier "reduce base_prev to compensate for the
+multiplicative pipeline" Issue #739 workaround. The Issue #739 downscales
+in `chronic_prevalence` are now over-compensations against the new
+engine and will be reverted in a follow-up recalibration PR (B-3 phase 2).
+
 ## Determinism
 
 - **No sub-seed offset in `ENRICHER_SEED_OFFSETS`**. This module is

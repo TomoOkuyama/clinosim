@@ -152,6 +152,133 @@ class ChronicConditionSpec:
     sex: str  # "M", "F", or "" (any)
 
 
+def _target_prev_at_age(spec: ChronicConditionSpec, age: int) -> float:
+    """Return the target marginal prevalence of ``spec`` at ``age``, or 0 if
+    the age falls in no configured band. Age bands are half-open in the yaml
+    convention (both endpoints inclusive)."""
+    for (lo, hi), prev in spec.age_ranges.items():
+        if lo <= age <= hi:
+            return prev
+    return 0.0
+
+
+def _bmi_category_probabilities(demo: dict, sex_key: str) -> dict[str, float]:
+    """Return P(bmi_cat) for cats {'normal', 'overweight', 'obese'} given the
+    physiology.bmi distribution and lifestyle_risk_multipliers.bmi.thresholds
+    in ``demo``. Uses analytical Normal CDF on (mean, std); clamp effects are
+    negligible for typical BMI parameter ranges. Falls back to yaml-declared
+    thresholds; no thresholds hardcoded here."""
+    from math import erf, sqrt
+
+    phys = (demo.get("physiology") or {}).get("bmi") or {}
+    lm_bmi = (demo.get("lifestyle_risk_multipliers") or {}).get("bmi") or {}
+    thresholds = lm_bmi.get("thresholds") or {
+        "overweight": BMI_OVERWEIGHT_THRESHOLD,
+        "obese": BMI_OBESE_THRESHOLD,
+    }
+    mean = float(
+        (phys.get(sex_key) or {}).get("mean", BMI_MEAN_MALE_DEFAULT if sex_key == "male" else BMI_MEAN_FEMALE_DEFAULT)
+    )
+    std = float((phys.get(sex_key) or {}).get("std", BMI_STD_DEFAULT))
+    if std <= 0.0:
+        # Degenerate distribution: every sample equals mean.
+        if mean >= thresholds.get("obese", BMI_OBESE_THRESHOLD):
+            return {"normal": 0.0, "overweight": 0.0, "obese": 1.0}
+        if mean >= thresholds.get("overweight", BMI_OVERWEIGHT_THRESHOLD):
+            return {"normal": 0.0, "overweight": 1.0, "obese": 0.0}
+        return {"normal": 1.0, "overweight": 0.0, "obese": 0.0}
+
+    def _cdf(x: float) -> float:
+        return 0.5 * (1.0 + erf((x - mean) / (std * sqrt(2.0))))
+
+    p_lt_ow = _cdf(float(thresholds.get("overweight", BMI_OVERWEIGHT_THRESHOLD)))
+    p_lt_ob = _cdf(float(thresholds.get("obese", BMI_OBESE_THRESHOLD)))
+    return {
+        "normal": max(0.0, p_lt_ow),
+        "overweight": max(0.0, p_lt_ob - p_lt_ow),
+        "obese": max(0.0, 1.0 - p_lt_ob),
+    }
+
+
+def _smoking_status_probabilities(demo: dict, sex_key: str, age: int) -> dict[str, float]:
+    """Return P(smoking_status) for ``sex_key`` at ``age``. Minors
+    (age < LEGAL_ADULT_AGE) always resolve to smoking='never' because the
+    person loop overrides post-sampling. When the yaml smoking distribution
+    is missing, the module-level SMOKING_FALLBACK constants apply."""
+    if age < LEGAL_ADULT_AGE:
+        return {"never": 1.0, "former": 0.0, "current": 0.0}
+    lifestyle = demo.get("lifestyle_distribution") or {}
+    dist = (lifestyle.get("smoking") or {}).get(sex_key)
+    if not dist:
+        return dict(zip(SMOKING_FALLBACK_LABELS, SMOKING_FALLBACK_PROBS, strict=False))
+    total = sum(float(v) for v in dist.values())
+    if total <= 0:
+        return dict(zip(SMOKING_FALLBACK_LABELS, SMOKING_FALLBACK_PROBS, strict=False))
+    return {k: float(v) / total for k, v in dist.items()}
+
+
+def _expected_lifestyle_multiplier(demo: dict, code: str, sex_key: str, age: int) -> float:
+    """E[lifestyle multiplier for ``code``] across the population BMI × smoking
+    distribution at ``(sex_key, age)``. Composed as E[BMI_mult] × E[smoking_mult]
+    under the independence assumption that BMI and smoking category assignments
+    are independent in the population loop (which they are — separate rng draws
+    from different demo distributions)."""
+    lm = demo.get("lifestyle_risk_multipliers") or {}
+    bmi_cfg = lm.get("bmi") or {}
+    smoking_cfg = lm.get("smoking") or {}
+
+    e_bmi = 1.0
+    if any(bmi_cfg.get(cat) for cat in ("normal", "overweight", "obese")):
+        bmi_probs = _bmi_category_probabilities(demo, sex_key)
+        e_bmi = 0.0
+        for cat, p in bmi_probs.items():
+            m = float((bmi_cfg.get(cat) or {}).get(code, 1.0))
+            e_bmi += p * m
+
+    e_smoking = 1.0
+    if any(smoking_cfg.get(status) for status in ("never", "former", "current")):
+        smoking_probs = _smoking_status_probabilities(demo, sex_key, age)
+        e_smoking = 0.0
+        for status, p in smoking_probs.items():
+            m = float((smoking_cfg.get(status) or {}).get(code, 1.0))
+            e_smoking += p * m
+    return e_bmi * e_smoking
+
+
+def _expected_comorbidity_multiplier(
+    chronic_data: dict[str, ChronicConditionSpec],
+    current_code: str,
+    age: int,
+    sex: str,
+    comorbidity_cfg: dict,
+) -> float:
+    """E[comorbidity correlation multiplier for ``current_code``] given the
+    target marginal prevalences of prior-in-iteration-order chronic codes.
+
+    For each prior_code C' with target marginal P_{C'} in this (age, sex)
+    band and multiplier m_{C' → current_code}:
+        E[factor_{C'}] = 1 + P_{C'} * (m - 1)
+    The compound = Π E[factor_{C'}] over C' preceding current_code in
+    ``chronic_data`` iteration order (which mirrors the yaml order of
+    ``chronic_prevalence``). This is the population-average multiplier a
+    fresh sampling draw for ``current_code`` will experience.
+    """
+    compound = 1.0
+    for prior_code, prior_spec in chronic_data.items():
+        if prior_code == current_code:
+            break
+        if prior_spec.sex and prior_spec.sex != sex:
+            continue
+        m = float((comorbidity_cfg.get(prior_code) or {}).get(current_code, 1.0))
+        if m == 1.0:
+            continue
+        p_prior = _target_prev_at_age(prior_spec, age)
+        if p_prior <= 0.0:
+            continue
+        compound *= 1.0 + p_prior * (m - 1.0)
+    return compound
+
+
 def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
     """Parse chronic_prevalence from demographics YAML into structured dict.
 
@@ -341,6 +468,13 @@ def generate_population(
             elif bmi >= bmi_thresholds.get("overweight", BMI_OVERWEIGHT_THRESHOLD):
                 bmi_cat = "overweight"
 
+            # base_prev in yaml is the TARGET MARGINAL prevalence in the emitted
+            # cohort (B-3). Rescale by the population-expected compound
+            # multiplier so per-patient sampling preserves that marginal while
+            # comorbidity + lifestyle multipliers still shape WHICH patients
+            # get the condition. See population/README.md
+            # "Marginal-preserving prevalence".
+            sex_key = "male" if sex == "M" else "female"
             conditions: list[str] = []
             for code, spec in chronic_data.items():
                 if spec.sex and spec.sex != sex:
@@ -352,13 +486,19 @@ def generate_population(
                     corr_mult = 1.0
                     for existing_code in conditions:
                         corr_mult *= (comorbidity_cfg.get(existing_code) or {}).get(code, 1.0)
-                    # Lifestyle multipliers
+                    # Lifestyle multipliers (per-patient realized values)
                     life_mult = 1.0
                     if bmi_cat:
                         life_mult *= (bmi_cfg_lm.get(bmi_cat) or {}).get(code, 1.0)
                     life_mult *= (smoking_cfg_lm.get(smoking_status) or {}).get(code, 1.0)
-                    # Cap combined prevalence at 1.0
-                    final_prev = min(1.0, base_prev * corr_mult * life_mult)
+                    # Population-expected compound multiplier over (age, sex)
+                    e_corr = _expected_comorbidity_multiplier(chronic_data, code, age, sex, comorbidity_cfg)
+                    e_life = _expected_lifestyle_multiplier(demo, code, sex_key, age)
+                    e_compound = e_corr * e_life
+                    # Rescale base so E[per-patient prob] ≈ base_prev (the target
+                    # marginal). Guard against pathological zero.
+                    scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
+                    final_prev = min(1.0, scaled_base * corr_mult * life_mult)
                     if rng.random() < final_prev:
                         conditions.append(code)
 

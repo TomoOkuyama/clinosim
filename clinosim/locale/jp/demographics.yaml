@@ -70,22 +70,36 @@ blood_type:
 # Format: ICD-10 code -> {age_range: prevalence}
 # Source: MHLW National Health and Nutrition Survey
 chronic_prevalence:
+  # Semantics (B-3, marginal-preserving engine — 2026-08-28):
+  # Each value below is the TARGET MARGINAL PREVALENCE for that code in that
+  # age band in the SAMPLED SYNTHETIC POPULATION (the input to the pipeline,
+  # matching Japanese general-population + hospital-user epi statistics as
+  # cited inline per code). The engine rescales per-patient probability by
+  # the population-expected compound (comorbidity + lifestyle) multiplier so
+  # multipliers still shape WHICH patients get the condition without pushing
+  # the sampled-population marginal above target.
+  #
+  # The EMITTED patient cohort (after care-seeking + encounter-emission
+  # filters) skews sicker than the sampled population — patients with more
+  # chronic conditions are more likely to seek care. That downstream skew is
+  # by design (mirrors real hospital catchment) and is NOT compensated for
+  # here. See clinosim/modules/population/README.md
+  # "Marginal-preserving prevalence" and "Cohort skew vs sampled population".
+  #
   # RM-7c (session 42): age-stratified finer bands where JP epi data shows
   # steep elderly increase — MHLW 国民健康・栄養調査 (令和2年) + JCS/JSH
-  # guideline reviews. Multiple bands compound at population init so late-
-  # elderly patients accumulate more chronic entries.
+  # guideline reviews.
   I10:      # Hypertension — MHLW 令和2 統計 JP adults 60+ ≈ 60%, 70+ ≈ 68%
     "40-59": 0.20
     "60-69": 0.50
     "70-99": 0.65
-  # Issue #739: E11.9 and N18 base rates were double-amplified by the
-  # multiplicative comorbidity+lifestyle+hospital-selection pipeline,
-  # producing cohort prevalence 2.3-2.9× real-world (T2DM 25.4% vs 11%,
-  # CKD 31.7% vs 12%). Reduce base ~0.5× so post-amplification cohort
-  # prevalence stays within ±50% of the hospital-user target (T2DM ~15-20%,
-  # CKD ~15-18%). Source citations retained inline for each band.
-  # base × comorbidity × lifestyle = per-patient sampling probability
-  # (see clinosim/modules/population/engine.py:344-358).
+  # NOTE (B-3 2026-08-28): E11.9 and N18 values below carry an Issue #739
+  # ~0.5× DOWNSCALE that compensated for the OLD multiplicative engine
+  # (which over-amplified marginals 2.3-2.9×). With the new marginal-
+  # preserving engine, the downscale over-compensates and these codes
+  # will UNDER-shoot their intended hospital-user targets (T2DM ~15-20%,
+  # CKD ~15-18%). Restoring these to the hospital targets is deferred to
+  # a follow-up recalibration PR — see B-3 phase 2 in the roadmap.
   E11.9:    # Type 2 DM — MHLW 2019 general 11%; hospital target ~15-20%
     "40-59": 0.04
     "60-69": 0.09
