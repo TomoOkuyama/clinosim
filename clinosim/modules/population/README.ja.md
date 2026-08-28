@@ -55,6 +55,34 @@ pattern)、多数の `_sample_*` helper (`_sample_age_band`,
 `_sex_ratio_male_probability`, `_sample_blood_type`,
 `_sample_surname`, `_sample_given_name`, `_sample_occupation`)。
 
+## Cohort skew vs sampled population
+
+`demographics.yaml → age_distribution` は **合成 general population の入力
+サンプリング target** であり、各国の Census (US Census Bureau 2020 / 総務省
+統計局 2020 国勢調査) に一致させている。**emit される患者コホートの target
+ではない**。
+
+パイプラインは 2 段階で「受診しなかった人」を drop する:
+
+1. **`care_seeking` 閾値**: person 単位 random draw (高齢ほど受診しやすい) —
+   window 内で医療機関に触れなかった person を除外
+2. **Encounter emission gate**: window 内で encounter 数 0 の person は
+   Patient.ndjson から除外
+
+複合効果として、emit される患者は高齢に偏る。JP p=1000 s=42 では 65+ 比率
+実測 ~48% vs サンプリング母集団 30%。これは MHLW 患者調査 2020 (65+ ≈ 56%)
+に近く、国勢調査 (65+ ≈ 30%) とは意図的に離れている。
+
+**`age_distribution` を出力コホート合わせに書き換えないこと。** 一般人口
+サンプリング contract は寿命 / comorbidity 相関 / 季節性発症リスク等の
+demographics 条件付き計算が Census 形状の入力を前提としているため、下流で
+壊れる。コホート skew を audit するなら 患者調査 (病院受診者統計) と比較
+すべきで、国勢調査 (一般人口) ではない。
+
+比較 metric は
+[`scripts/audit_realworld_stats_jp.py`](../../../scripts/audit_realworld_stats_jp.py)
+を参照。
+
 ## 決定論
 
 - **`ENRICHER_SEED_OFFSETS` にサブ seed 未登録**。本モジュールは

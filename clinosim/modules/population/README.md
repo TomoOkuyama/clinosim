@@ -60,6 +60,37 @@ Rh-factor SHA-256 derivation (Issue #795 pattern); the many
 `_sample_blood_type`, `_sample_surname`, `_sample_given_name`,
 `_sample_occupation`).
 
+## Cohort skew vs sampled population
+
+`demographics.yaml → age_distribution` is the **input sampling target**
+for the synthetic general population, matching each country's public
+Census (US Census Bureau 2020 / 総務省統計局 2020 国勢調査). It is
+**not** the target for the emitted patient cohort.
+
+The pipeline drops non-visiting persons at two stages:
+
+1. **`care_seeking` threshold** (per-person random draw, elderly more
+   likely to seek care) — filters out persons who never contact a
+   provider in the simulated window.
+2. **Encounter-emission gate** — persons with zero encounters in the
+   window are excluded from Patient.ndjson output.
+
+The compound effect is an elderly-heavy patient cohort. For JP
+p=1000 s=42 the observed 65+ share is ~48%, compared with 30% in
+the sampled population — matching MHLW 患者調査 2020 (65+ ≈ 56%
+of total hospital patients) far more closely than 国勢調査 (65+ ≈ 30%
+of the general population).
+
+**Do not "correct" `age_distribution`** to make the emitted cohort
+match Census. The general-population sampling contract is depended on
+by demographics-conditional risk calculations (life expectancy,
+comorbidity correlations, seasonal event risk) that expect a Census-
+shaped input. Cohort skew audits should compare against the hospital
+patient survey benchmark, not the general Census.
+
+See [`scripts/audit_realworld_stats_jp.py`](../../../scripts/audit_realworld_stats_jp.py)
+for the correct comparison metric.
+
 ## Determinism
 
 - **No sub-seed offset in `ENRICHER_SEED_OFFSETS`**. This module is

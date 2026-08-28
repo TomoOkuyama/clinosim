@@ -4,7 +4,17 @@
 average_household_size: 2.5
 
 # Age distribution (proportional, sums to 1.0)
-# Source: US Census Bureau 2020
+# Source: US Census Bureau 2020 — general-population Census.
+#
+# NOTE ON OUTPUT COHORT SKEW:
+# This is the input sampling target for the SYNTHETIC POPULATION, not the
+# emitted patient cohort. Downstream care-seeking + encounter-emission
+# filters drop non-visiting persons, so the observed cohort skews
+# elderly-heavy vs the general Census. This mirrors real hospital
+# catchment (Medicare-user cohort). Do NOT reweight this table to make
+# the emitted cohort match Census — the general-population sampling
+# contract is depended on by demographics-conditional risk calculations.
+# See modules/population/README.md "Cohort skew vs sampled population" note.
 age_distribution:
   "0-14": 0.18
   "15-24": 0.13

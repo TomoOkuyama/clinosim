@@ -55,6 +55,7 @@ any regular schedule.
 | [`refresh_authoritative_yj_tx_valid.py`](refresh_authoritative_yj_tx_valid.py) | Same, validating against tx-server |
 | [`convert_ja_narrative_style.py`](convert_ja_narrative_style.py) | One-off stylistic conversion pass (JP narrative corpus) |
 | [`audit_disease_narrative_en.py`](audit_disease_narrative_en.py) | English narrative audit (per-disease coverage) |
+| [`audit_realworld_stats_jp.py`](audit_realworld_stats_jp.py) | JP cohort vs real-world statistics (MHLW 患者調査 / 接種率 / 慢性疾患) audit. Compares per-season for immunization + MHLW 患者調査 for age distribution — NOT general Census. See `modules/immunization/README.md` + `modules/population/README.md` for benchmark rationale. |
 | [`diagnose_triage_severity.py`](diagnose_triage_severity.py) | Triage-severity distribution diagnostic |
 | [`extract_5type_samples.sh`](extract_5type_samples.sh) | Extract 5 document-type sample bundles from a cohort |
 

@@ -1,6 +1,22 @@
 # JP adult immunization schedule.
 # Sources: MHLW 定期接種 schedule; coverage = MHLW 接種率統計 approximate estimates.
 # Verified 2026-06.
+#
+# Semantics of `coverage_by_age_sex`:
+#   annual (flu)       → per-season vaccination rate (matches MHLW 接種率 statistics,
+#                        e.g. インフルエンザ 65+ ~53-58% per season).
+#   once (COVID/PPSV)  → lifetime "have you ever received it" rate.
+#   every_n_years      → per-scheduled-dose rate (each interval).
+#
+# Consequence for EHR-cumulative rates: with history_years=10 for flu, a 65+
+# patient has P(≥1 flu record) = 1 - (1 - 0.55)^10 ≈ 99.97%. Combined with
+# COVID (~0.90) and PPSV23 (~0.40) once-in-lifetime draws, P(≥1 immunization
+# record) approaches 100% for elderly. This is by-design (matches real EHR
+# behavior: a hospital-attending elderly patient typically has a multi-year
+# vaccination history on file). Do NOT re-calibrate coverage_by_age_sex to
+# make cumulative "≥1 record" match a per-season statistic — that would
+# under-represent per-season rates and misalign with MHLW targets.
+# See modules/immunization/README.md "Cumulative record vs per-season" note.
 vaccines:
   influenza:
     cvx: "150"

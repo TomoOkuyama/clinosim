@@ -1,6 +1,21 @@
 # US adult immunization schedule.
 # Sources: CDC ACIP adult immunization schedule; coverage = CDC FluVaxView / MMWR
 # approximate population estimates (modeling parameters, not codes). Verified 2026-06.
+#
+# Semantics of `coverage_by_age_sex`:
+#   annual (flu)        → per-season vaccination rate (matches CDC FluVaxView
+#                         per-season rates, e.g. 65+ ~68-70%).
+#   once (COVID/PPSV23/RZV) → lifetime "have you ever received it" rate.
+#   every_n_years (Tdap 10y) → per-scheduled-dose rate.
+#
+# Consequence for EHR-cumulative rates: with history_years=10 for flu, an
+# elderly patient's P(≥1 flu record) approaches 1.0 even at moderate
+# per-season rates. Combined with the once-in-lifetime draws, P(≥1
+# immunization record) for 65+ approaches 100%. This matches real EHR
+# behavior for hospital-attending elderly patients. Do NOT calibrate
+# coverage to match cumulative "≥1 record" targets — per-season vs
+# cumulative are different measurements.
+# See modules/immunization/README.md "Cumulative record vs per-season" note.
 vaccines:
   influenza:
     cvx: "150"
