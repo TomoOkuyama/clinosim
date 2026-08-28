@@ -4,6 +4,26 @@
 # Sampling: 15% patient overall_prob gate → category-weighted single allergy
 # 6-layer validator is applied in engine.py (_validate_allergens)
 #
+# SCOPE (B-4 2026-08-28): the 15% overall_prob reflects the fraction of
+# patients with a CLINICALLY DOCUMENTED AllergyIntolerance record in an
+# EHR — medication (Penicillin/Aspirin/Sulfa/etc.), severe food (peanut,
+# shellfish, egg), or environmental substance (latex). This is NOT the
+# fraction of the population with ANY allergic disease.
+#
+# Real-world benchmarks:
+#   * MHLW アレルギー疾患実態調査 2011: 30-40% 一般人口が「何らかの
+#     アレルギー疾患」を持つ。この統計は花粉症 (J30) や食物不耐 (K90.4)
+#     を含み、それらは FHIR 上 Condition として emit されるので
+#     AllergyIntolerance の指標としては使えない (apples-to-oranges)。
+#   * 薬物アレルギー documented rate: 5-10% (single item).
+#   * Combined clinically documented AllergyIntolerance in real hospital
+#     EHR: typically 10-20% depending on documentation practice.
+#
+# 15% is a defensible middle ground for "AllergyIntolerance documented".
+# Comparing the emitted rate against the 30-40% ANY-allergy statistic is
+# a scope mismatch — see scripts/audit_realworld_stats_jp.py notes and
+# modules/allergy/README.md "Scope: AllergyIntolerance ≠ any allergic disease".
+#
 # SNOMED CT codes verified via SNOMED International browser
 # (https://browser.ihtsdotools.org/) and tx.fhir.org $lookup, 2026-07-01.
 # Allergen substance codes: SNOMED CT International edition.

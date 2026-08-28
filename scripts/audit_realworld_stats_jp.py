@@ -359,13 +359,20 @@ def audit_immunization(resources: dict, ages_by_pid: dict[str, int], sex_by_pid:
 
 
 def audit_allergy(resources: dict, n: int) -> None:
-    _section("10. Allergy prevalence")
+    _section("10. AllergyIntolerance documentation rate (NOT 'any allergic disease')")
     pts_with = {
         a.get("patient", {}).get("reference", "").replace("Patient/", "")
         for a in resources.get("AllergyIntolerance", [])
     }
-    print(f"  Patients with ≥1 allergy: {len(pts_with)}/{n} ({100 * len(pts_with) / n:.1f}%)")
-    print("  [real: JP アレルギー疾患実態調査 2011 — 何らかのアレルギー 30-40%; 薬物 5-10%]")
+    rate = len(pts_with) / n
+    print(f"  Patients with ≥1 AllergyIntolerance: {len(pts_with)}/{n} ({100 * rate:.1f}%)")
+    print("  [Scope note: AllergyIntolerance is the clinician-recorded allergy chart entry")
+    print("   (medication + severe food + environmental). Hay fever (J30) and food")
+    print("   intolerance (K90.4) emit as Condition, not AllergyIntolerance —")
+    print("   see modules/allergy/README.md 'Scope' section.]")
+    print("  [real: clinically documented AllergyIntolerance in JP EHR ~10-20%;")
+    print("   drug allergy alone 5-10%. Do NOT compare against MHLW 30-40% 'any")
+    print("   allergic disease' — that includes hay fever + food intolerance, out-of-scope.]")
 
 
 def audit_invariants(resources: dict, sex_by_pid: dict[str, str]) -> None:

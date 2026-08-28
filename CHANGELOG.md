@@ -78,6 +78,21 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   scratchpad script the p=1000 audit used. Registered under
   "Data-refresh helpers" in `scripts/README.md`. Diagnostic only; not
   a hard gate. → **PATCH**.
+- Clarify `AllergyIntolerance` scope in
+  `clinosim/modules/allergy/reference_data/allergens.yaml`,
+  `modules/allergy/README.md` (+ ja), and
+  `scripts/audit_realworld_stats_jp.py` (B-4). The 15% overall gate
+  models the fraction of patients with a **clinically documented FHIR
+  `AllergyIntolerance`** (medication + severe food + environmental) —
+  a narrower surface than "any allergic disease". Hay fever (J30) and
+  food intolerance (K90.4) emit as `Condition`, not `AllergyIntolerance`.
+  Post-Issue-#854 p=1000 audit flagged 13.5% actual vs 30-40% (MHLW
+  アレルギー疾患実態調査) as a deviation — that comparison was
+  apples-to-oranges: MHLW 30-40% includes J30 + K90.4 which are
+  out-of-scope for `AllergyIntolerance`. The correct band for clinically
+  documented `AllergyIntolerance` in real hospital EHR is 10-20%, and
+  the current 15% sits comfortably in that range. Documentation-only;
+  no code / config value change. → **PATCH** under the versioning policy.
 
 ### Fixed
 
