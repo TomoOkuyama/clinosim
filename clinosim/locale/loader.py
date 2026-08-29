@@ -294,6 +294,47 @@ def load_chronic_followup() -> dict[str, Any]:
     return _load_yaml(_LOCALE_DIR / "shared" / "chronic_followup.yaml", fallback={})
 
 
+_FALLBACK_ENCOUNTER_DISPOSITION: dict[str, Any] = {
+    "admit_source": {
+        "system_key": "hl7-admit-source",
+        "jp_clins_value_set": "http://jpfhir.jp/fhir/core/ValueSet/JP_AdmitSource_VS",
+        "fallback_code": "other",
+    },
+    "discharge_disposition": {
+        "system_key": "hl7-discharge-disposition",
+        "jp_clins_value_set": "http://jpfhir.jp/fhir/core/ValueSet/JP_DischargeDisposition_VS",
+        "fallback_code": "home",
+        "deceased_code": "exp",
+    },
+}
+
+
+@lru_cache(maxsize=1)
+def load_encounter_disposition_defaults() -> dict[str, Any]:
+    """Load Encounter.hospitalization fallback defaults (Issue #941).
+
+    Single-source-of-truth for the HL7 admit-source / discharge-disposition
+    fallback codes and JP-CLINS ValueSet binding URLs used by the FHIR emit
+    path when the CIF encounter carries no explicit disposition. See
+    ``clinosim/locale/shared/encounter_disposition_defaults.yaml``.
+    """
+    raw = _load_yaml(
+        _LOCALE_DIR / "shared" / "encounter_disposition_defaults.yaml",
+        fallback=_FALLBACK_ENCOUNTER_DISPOSITION,
+    )
+    if not isinstance(raw, dict):
+        return _FALLBACK_ENCOUNTER_DISPOSITION
+    # Fail-soft merge with fallback so a partial yaml still yields a
+    # complete config (each required key has a hardcoded default).
+    merged: dict[str, Any] = {}
+    for slot, defaults in _FALLBACK_ENCOUNTER_DISPOSITION.items():
+        entry = raw.get(slot) or {}
+        if not isinstance(entry, dict):
+            entry = {}
+        merged[slot] = {**defaults, **entry}
+    return merged
+
+
 @lru_cache(maxsize=1)
 def load_med_terms_ja() -> dict[str, dict[str, str]]:
     """Load JP medication-term tables ({"categories": {...}, "terms": {...}}).
