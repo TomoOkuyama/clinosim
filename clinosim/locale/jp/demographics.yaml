@@ -93,27 +93,23 @@ chronic_prevalence:
     "40-59": 0.20
     "60-69": 0.50
     "70-99": 0.65
-  # NOTE (B-3 2026-08-28): E11.9 and N18 values below carry an Issue #739
-  # ~0.5× DOWNSCALE that compensated for the OLD multiplicative engine
-  # (which over-amplified marginals 2.3-2.9×). With the new marginal-
-  # preserving engine, the downscale over-compensates and these codes
-  # will UNDER-shoot their intended hospital-user targets (T2DM ~15-20%,
-  # CKD ~15-18%). Restoring these to the hospital targets is deferred to
-  # a follow-up recalibration PR — see B-3 phase 2 in the roadmap.
+  # NOTE (B-3 phase 2, Issue #919): E11.9 / J44 / N18 restored to hospital-user
+  # targets under the marginal-preserving engine (v0.5.0 / PR #902); the old
+  # Issue #739 ~0.5× downscale is no longer needed and was double-compensating.
   E11.9:    # Type 2 DM — MHLW 2019 general 11%; hospital target ~15-20%
-    "40-59": 0.04
-    "60-69": 0.09
-    "70-99": 0.11
+    "40-59": 0.12
+    "60-69": 0.14
+    "70-99": 0.17
   E78:      # Dyslipidemia — MHLW/JAS: 60+ 40%, 70+ 45%
     "40-59": 0.15
     "60-69": 0.40
     "70-99": 0.45
   J44:      # COPD — MHLW: 40+ 5%, 60+ 10%
-    "40-59": 0.03
-    "60-99": 0.10
-  N18:      # CKD — JSN 2018 general 12%; hospital target ~15-18% (reduced ~0.5×)
-    "60-69": 0.06
-    "70-99": 0.12
+    "40-59": 0.05
+    "60-99": 0.12
+  N18:      # CKD — JSN 2018 general 12%; hospital target ~15-18%
+    "60-69": 0.12
+    "70-99": 0.15
   I50:      # Heart failure — JCS 統計 65+ 3%, 75+ 8%
     "65-74": 0.03
     "75-99": 0.08

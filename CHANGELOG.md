@@ -39,6 +39,19 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Changed
+
+- **MINOR driver** — `chronic_prevalence` yaml values for **E11.9 (T2DM)**,
+  **N18 (CKD)**, and **J44 (COPD)** in both `clinosim/locale/jp/demographics.yaml`
+  and `clinosim/locale/us/demographics.yaml` restored to hospital-user
+  cohort targets. The Issue #739 ~0.5× downscale was double-compensation
+  under the v0.5.0 marginal-preserving engine (#902) and caused the
+  emitted cohort to under-shoot the intended hospital / Medicare-user
+  targets (JP E11.9 70+ 13.27% vs ~20%, N18 60-69 7.26% vs ~15%, etc.).
+  US also restores E78 downscale. YAML-only fix — no code change; the
+  marginal-preserving engine already handles the new base_prev values
+  correctly. B-3 phase 2 completion. Closes #919.
+
 ## [0.5.0] - 2026-08-28
 
 **MINOR** — Two independent MINOR drivers folded into this release:
