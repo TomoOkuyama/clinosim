@@ -7,10 +7,12 @@ modules, so they import no helpers back through the adapter facade.
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.locale.loader import load_practitioner_qualifications
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import _coding_with_display
 from clinosim.modules.output.fhir_r4.lib.localization import _ROLE_PREFIX_MAP_JA
@@ -18,6 +20,106 @@ from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _ROLE_PREFIX_MAP,
     _SPECIALTY_SNOMED,
 )
+
+
+def _license_number(staff_id: str, salt: str, digits: int) -> str:
+    """Derive a deterministic zero-padded license number for a staff_id.
+
+    Issue #962: JP MHLW 免許登録番号 (医籍番号 / 看護師籍登録番号 /
+    薬剤師名簿登録番号 …) is a per-practitioner identifier issued at
+    license grant. clinosim does not simulate license issuance, so we
+    derive a stable synthetic value from ``sha256(salt + staff_id)`` —
+    an RNG-neutral additive field per
+    :file:`feedback_rng_neutral_additive_field.md` — that never consumes
+    the master RNG and thus can be added without shifting downstream
+    determinism.
+    """
+    digest = hashlib.sha256(f"{salt}:{staff_id}".encode()).hexdigest()
+    modulus = 10**digits
+    value = int(digest[:16], 16) % modulus
+    return f"{value:0{digits}d}"
+
+
+def _build_jp_qualifications(staff: dict, staff_id: str) -> list[dict[str, Any]]:
+    """Build JP MHLW-coded ``Practitioner.qualification`` entries (Issue #962).
+
+    Returns:
+        Empty list when the JP qualification yaml is unavailable or the
+        role is unmapped — callers then fall through to the pre-#962
+        v2-0360 / text-only qualification code path so we never regress
+        existing coverage.
+
+        Otherwise a 1- or 2-element list:
+
+        * ``[0]`` — MHLW national license (医師 / 看護師 / 薬剤師 …).
+        * ``[1]`` — physician specialty board (循環器専門医 / …) when the
+          role is physician/radiologist AND the staff's specialty (or
+          department) maps to a board in
+          ``physician_specialty_boards``.
+    """
+    cfg = load_practitioner_qualifications("JP")
+    if not cfg:
+        return []
+    role = staff.get("role", "")
+    qual_codes = cfg.get("qualification_codes", {}) or {}
+    entry = qual_codes.get(role)
+    if not entry:
+        return []
+    system = cfg.get("code_system", "")
+    qual_year = staff.get("qualification_year")
+
+    def _qualification(code: str, display: str) -> dict[str, Any]:
+        q: dict[str, Any] = {
+            "code": {
+                "coding": [{"system": system, "code": code, "display": display}],
+                "text": display,
+            }
+        }
+        if qual_year:
+            q["period"] = {"start": f"{qual_year}-01-01"}
+        return q
+
+    qualifications: list[dict[str, Any]] = [_qualification(entry["code"], entry["display"])]
+
+    # Physician / radiologist specialty board (専門医資格) as qualification[1].
+    if role in ("physician", "radiologist"):
+        specialty = staff.get("specialty", "") or staff.get("department", "")
+        boards = cfg.get("physician_specialty_boards", {}) or {}
+        board = boards.get(specialty) or boards.get(staff.get("department", ""))
+        if board:
+            qualifications.append(_qualification(board["code"], board["display"]))
+    return qualifications
+
+
+def _build_jp_license_identifier(staff: dict, staff_id: str) -> dict[str, Any] | None:
+    """Build the JP MHLW regulatory-license ``identifier`` entry (Issue #962).
+
+    Returns ``None`` when the yaml is unavailable, the role is unmapped
+    (e.g. MSW — not an MHLW-licensed profession in JP), or the config
+    is malformed. The value is the human-readable form
+    ``{prefix}{zero-padded digits}{suffix}`` (e.g. "第012345号") so a
+    reader displaying `.value` directly sees the conventional 医籍番号
+    rendering.
+    """
+    cfg = load_practitioner_qualifications("JP")
+    if not cfg:
+        return None
+    role = staff.get("role", "")
+    lic_map = cfg.get("license_identifiers", {}) or {}
+    lic = lic_map.get(role)
+    if not lic:
+        return None
+    salt = cfg.get("license_identifier_salt", "practitioner-license")
+    digits = int(lic.get("digits", 6))
+    number = _license_number(staff_id, salt, digits)
+    formatted = f"{lic.get('prefix', '')}{number}{lic.get('suffix', '')}"
+    label = lic.get("label", "medical-license")
+    return {
+        "use": "official",
+        "type": {"text": label},
+        "system": lic["system"],
+        "value": formatted,
+    }
 
 
 def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None, country: str = "US") -> dict:
@@ -36,6 +138,14 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
     }
 
     staff = (roster_map or {}).get(staff_id)
+    # Issue #962: JP MHLW 免許登録番号 (医籍番号 / 看護師籍登録番号 /
+    # 薬剤師名簿登録番号 …) as a second identifier entry alongside the
+    # internal staff key. Deterministic per-staff_id (SHA-256 salted),
+    # RNG-neutral (never consumes master RNG). US path unchanged.
+    if staff and is_jp(country):
+        lic_ident = _build_jp_license_identifier(staff, staff_id)
+        if lic_ident:
+            resource["identifier"].append(lic_ident)
     if staff:
         full_name = staff.get("name", "")
         role = staff.get("role", "")
@@ -138,7 +248,23 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             "MA",
             "PHD",  # 学位系
         }
-        qual = (_ROLE_PREFIX_MAP_JA if is_jp(country) else _ROLE_PREFIX_MAP).get(role)
+        # Issue #962: JP-CLINS MHLW-coded qualification (with physician
+        # specialty board as qualification[1]). When the JP yaml is
+        # available AND covers this role, the coded emit replaces the
+        # v0.5.0 text-only fallback for allied-health roles (PH/PT/OT/ST/
+        # RD/MSW/TECH) and lifts physicians from bare `MD` to `MD +
+        # 循環器専門医`. Falls through to the pre-#962 v2-0360 / text-only
+        # path when the yaml is absent or the role is unmapped so we
+        # never regress existing qualification coverage.
+        if is_jp(country):
+            jp_quals = _build_jp_qualifications(staff, staff_id)
+            if jp_quals:
+                resource["qualification"] = jp_quals
+                qual = None
+            else:
+                qual = _ROLE_PREFIX_MAP_JA.get(role)
+        else:
+            qual = _ROLE_PREFIX_MAP.get(role)
         if qual:
             _qual_code = qual["qual_code"]
             _qual_display = qual["qual_display"]

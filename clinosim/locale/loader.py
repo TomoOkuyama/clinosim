@@ -459,6 +459,40 @@ def load_external_organizations(country: str) -> list[dict[str, Any]]:
 
 
 @lru_cache(maxsize=8)
+def load_practitioner_qualifications(country: str) -> dict[str, Any]:
+    """Load JP MHLW national-license qualification + license-number tables
+    (Issue #962).
+
+    Returned shape:
+
+        {
+          "code_system": "urn:oid:...",
+          "license_identifier_salt": "practitioner-license-2026",
+          "qualification_codes": {
+             "physician": {"code": "MedicalDoctor", "display": "医師"},
+             ...
+          },
+          "physician_specialty_boards": {
+             "cardiology": {"code": "CardiologySpecialist",
+                            "display": "循環器専門医"},
+             ...
+          },
+          "license_identifiers": {
+             "physician": {"system": "http://...",
+                            "label": "医籍番号", "prefix": "第",
+                            "suffix": "号", "digits": 6},
+             ...
+          },
+        }
+
+    Empty dict if the file is absent (US, `_template`) — callers then skip
+    the JP-CLINS qualification / license identifier emit and fall back to
+    the existing v2-0360 / text-only qualification path.
+    """
+    return _load_yaml(_country_dir(country) / "practitioner_qualifications.yaml", fallback={})
+
+
+@lru_cache(maxsize=8)
 def load_identity_config(country: str) -> dict[str, Any]:
     """Load resident identifier / insurance numbering config for a country (AD-54).
 
