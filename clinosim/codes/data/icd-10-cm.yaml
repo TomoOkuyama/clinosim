@@ -707,6 +707,21 @@ codes:
   Z23:
     en: Encounter for immunization
     ja: 予防接種
+  Z34:
+    en: "Encounter for supervision of normal pregnancy"
+    ja: "正常妊娠の管理"
+  Z34.90:
+    en: "Encounter for supervision of normal pregnancy, unspecified, unspecified trimester"
+    ja: "正常妊娠の管理、種別・妊娠期詳細不明"
+  Z37:
+    en: "Outcome of delivery"
+    ja: "分娩の転帰"
+  Z37.9:
+    en: "Outcome of delivery, unspecified"
+    ja: "分娩の転帰、詳細不明"
+  Z38:
+    en: "Liveborn infants according to place of birth and type of delivery"
+    ja: "出生児の出生場所および分娩様式別分類"
   Z48.01:
     en: Encounter for change or removal of surgical wound dressing
     ja: 手術創ドレッシング交換・抜去
@@ -939,12 +954,27 @@ codes:
   C18:
     en: "Malignant neoplasm of colon"
     ja: "結腸の悪性新生物"
+  C18.9:
+    en: "Malignant neoplasm of colon, unspecified"
+    ja: "結腸の悪性新生物、詳細不明"
+  C22:
+    en: "Malignant neoplasm of liver and intrahepatic bile ducts"
+    ja: "肝および肝内胆管の悪性新生物"
+  C22.9:
+    en: "Malignant neoplasm of liver, not specified as primary or secondary"
+    ja: "肝の悪性新生物、原発性・続発性の別不明"
   C34:
     en: "Malignant neoplasm of bronchus and lung"
     ja: "気管支および肺の悪性新生物"
+  C34.90:
+    en: "Malignant neoplasm of unspecified part of unspecified bronchus or lung"
+    ja: "気管支・肺の悪性新生物、部位詳細不明"
   C50:
     en: "Malignant neoplasm of breast"
     ja: "乳房の悪性新生物"
+  C50.919:
+    en: "Malignant neoplasm of unspecified site of unspecified female breast"
+    ja: "女性乳房の悪性新生物、部位詳細不明"
   C61:
     en: "Malignant neoplasm of prostate"
     ja: "前立腺の悪性新生物"

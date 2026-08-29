@@ -45,7 +45,10 @@ def test_builds_one_resource_per_relative():
     # child-fallback display ("with ketoacidosis without coma") which was
     # clinically wrong for a family-history-of-DM resource.
     assert "E11.9" in codes
-    assert "C50" in codes
+    # PR #956 (#943 oncology): US ICD-10-CM adds `C50.919` (billable breast-CA
+    # NOS leaf) — the category header `C50` folds to the leaf under the same
+    # session-40 FP-FH-CODE-RESOLUTION mechanism as `E11 → E11.9`.
+    assert any(c.startswith("C50") for c in codes)
 
 
 def test_unique_ids():

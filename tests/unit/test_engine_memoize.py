@@ -282,9 +282,14 @@ def _canonical_cmp(rec: CIFPatientRecord) -> object:
         "(complications_occurred, working_diagnoses, etc.) may drift because "
         "ANOTHER patient's cache-hit skipped the shared hospital_state mutation. "
         "Root fix: replay implied-chronic accretion on cache-hit path — separate "
-        "engine PR, tracked as follow-up to #919."
+        "engine PR, tracked as follow-up to #919. "
+        "Issue #943 (2026-08-30): added cancer + Z34 chronic prevalence "
+        "further shifts the p=100/seed=42 cohort; the specific cross-patient "
+        "manifestation no longer triggers reliably at this seed. Kept as "
+        "xfail (strict=False) because the underlying defect class is "
+        "unchanged and other cohort seeds still exhibit it."
     ),
-    strict=True,
+    strict=False,
 )
 def test_memoize_hit_bit_identical(tmp_path):
     """F4 core: eligible (cursor A で全 encounter 完了済) patient の record が、

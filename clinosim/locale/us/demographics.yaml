@@ -56,7 +56,10 @@ blood_type:
 # and "Cohort skew vs sampled population".
 chronic_prevalence:
   I10:      # Hypertension — CDC ~48% of adults; cohort target ~65% (Medicare-user)
-    "40-99": 0.33
+    # Issue #943 (2026-08-30): rebalanced down (0.33 → 0.22) so I10 does
+    # not over-dominate encounter reasonCode share. Paired with follow-up
+    # interval 1→4 change (see chronic_followup.yaml).
+    "40-99": 0.22
   # NOTE (B-3 phase 2, Issue #919): E11.9 / E78 / J44 / N18 restored to
   # Medicare-user cohort targets under the marginal-preserving engine
   # (v0.5.0 / PR #902); the old Issue #739 ~0.5× downscale is no longer
@@ -97,6 +100,48 @@ chronic_prevalence:
   M17:      # Osteoarthritis — ~15% age 50+, ~30% age 70+
     "50-69": 0.15
     "70-99": 0.30
+
+  # --- Oncology (Issue #943) ------------------------------------------------
+  # Target marginal prevalence for active cancer + on-treatment survivors on
+  # the problem list. Sources: SEER Cancer Statistics 2020 (5yr survivor
+  # prevalence rates), CDC Cancer Registries. Sex-locked codes (C50 female,
+  # C61 male) enforced via clinosim/locale/shared/icd10_sex_restrictions.yaml.
+  # "Chronic" here means persistent problem-list entry with follow-up; true
+  # initial-onset (dx week, first chemo cycle) is out of scope for this pass.
+  C18:      # Colon cancer — SEER incidence 40 per 100k, survivor ~2%
+    "50-69": 0.010
+    "70-99": 0.022
+  C22:      # Liver cancer — SEER lower than JP, but rising with NAFLD/HCV
+    "50-69": 0.004
+    "70-99": 0.010
+  C34:      # Lung cancer — SEER top cause of cancer death; survivor ~1.5%
+    "50-69": 0.008
+    "70-99": 0.018
+  C50:      # Breast cancer — female only; SEER incidence ~130 per 100k, survivor ~3%
+    sex: F
+    "40-59": 0.020
+    "60-99": 0.035
+  C61:      # Prostate cancer — male only; SEER indolent survivor cohort large
+    sex: M
+    "60-69": 0.030
+    "70-99": 0.060
+
+  # --- Obstetrics (Issue #943) ---------------------------------------------
+  # Z34 (supervision of normal pregnancy) modelled as short-window active
+  # marker on childbearing-age women. Rate calibrated to CDC Natality 2020
+  # (~11 births per 1000 total pop, higher than JP; concentrated ages
+  # 20-39). Sex-locked female-only via icd10_sex_restrictions.yaml. See JP
+  # demographics for the shared scope-limitation note (delivery / newborn
+  # / puerperium deferred to a follow-up Issue).
+  Z34:
+    sex: F
+    "20-34": 0.190
+    "35-44": 0.085
+  Z37:      # Outcome of delivery — carried as chronic marker of past birth
+            # (see JP demographics for scope-limitation note).
+    sex: F
+    "25-44": 0.130
+    "45-64": 0.170
 
 # Disease incidence rates per 100,000/year by age group
 # Source: CDC, AHA, AAOS statistics

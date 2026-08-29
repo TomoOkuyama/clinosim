@@ -90,9 +90,15 @@ chronic_prevalence:
   # steep elderly increase — MHLW 国民健康・栄養調査 (令和2年) + JCS/JSH
   # guideline reviews.
   I10:      # Hypertension — MHLW 令和2 統計 JP adults 60+ ≈ 60%, 70+ ≈ 68%
-    "40-59": 0.20
-    "60-69": 0.50
-    "70-99": 0.65
+    # Issue #943 (2026-08-30): rebalanced down (0.20/0.50/0.65 → 0.11/0.30/0.40)
+    # so the sampled cohort matches MHLW patient survey "hypertension as
+    # visit reason" 10-15% band instead of the pre-fix 41% dominance.
+    # (Together with the chronic_followup interval 1→4 change, previous
+    # cohort-target 65% for 70+ hospital-user was over-attributing I10 as
+    # PRIMARY visit reason. New target still hospital-realistic.)
+    "40-59": 0.11
+    "60-69": 0.30
+    "70-99": 0.40
   # NOTE (B-3 phase 2, Issue #919): E11.9 / J44 / N18 restored to hospital-user
   # targets under the marginal-preserving engine (v0.5.0 / PR #902); the old
   # Issue #739 ~0.5× downscale is no longer needed and was double-compensating.
@@ -166,6 +172,63 @@ chronic_prevalence:
   F32:      # Depression — MHLW: adults 5% lifetime, elderly 8%
     "40-64": 0.05
     "65-99": 0.08
+
+  # --- Oncology (Issue #943) ------------------------------------------------
+  # Prevalence figures are TARGET MARGINAL for the sampled population and
+  # represent active cancer + on-treatment survivors carrying the diagnosis
+  # on their problem list. Sources: MHLW 患者調査 2020, 国立がん研究セン
+  # ター がん統計 2020 (age-conditional 5-year survivor prevalence).
+  # Sex-locked codes (C50 female, C61 male) enforced via
+  # clinosim/locale/shared/icd10_sex_restrictions.yaml.
+  # These are "chronic" in the pipeline sense (persistent problem-list
+  # entries with periodic follow-up); actual initial-onset events (dx week,
+  # first chemo cycle) are out of scope for this pass and belong on the
+  # oncology-service roadmap.
+  C18:      # Colon cancer — JP incidence 60-70 per 100k, 5yr survivor ~2%
+    "50-69": 0.010
+    "70-99": 0.025
+  C22:      # Liver / intrahepatic bile duct — JP elevated (HBV/HCV cohort)
+    "50-69": 0.008
+    "70-99": 0.015
+  C34:      # Lung cancer — JP MHLW top cause of cancer death; survivor 5yr ~1.5%
+    "50-69": 0.008
+    "70-99": 0.020
+  C50:      # Breast cancer — female only; JP incidence rising, 5yr survivor ~3%
+    sex: F
+    "40-59": 0.015
+    "60-99": 0.030
+  C61:      # Prostate cancer — male only; JP incidence rising, indolent survivor
+    sex: M
+    "60-69": 0.025
+    "70-99": 0.055
+
+  # --- Obstetrics (Issue #943) ---------------------------------------------
+  # Z34 (encounter for supervision of normal pregnancy) modelled as a
+  # short-window "active-during-sim-window" marker on childbearing-age
+  # women. Rate calibrated to MHLW 人口動態統計 出生率 (~6.4 births per
+  # 1000 total population, concentrated in ages 20-39) so that at any
+  # given ~1yr sim window ~3-4% of eligible women are pregnant.
+  #
+  # SCOPE LIMITATION (documented in PR #943): true delivery+newborn+puerperium
+  # is not yet modelled — a follow-up Issue will introduce a dedicated
+  # obstetric module with mother-baby linked Encounters, Z37/Z38 birth
+  # outcome, and newborn Patient generation.  Adding Z34 as chronic here
+  # gives non-zero obstetric footprint (Conditions, prenatal follow-up
+  # visits, prenatal supplement MedicationRequests) so the "0 obstetric
+  # records" gap is closed even before the full module ships.
+  # Sex-locked female-only via icd10_sex_restrictions.yaml.
+  Z34:
+    sex: F
+    "20-34": 0.180
+    "35-44": 0.080
+  Z37:      # Outcome of delivery — carried as chronic marker of past birth
+            # in women of reproductive-or-post-reproductive age. Signals
+            # obstetric history in the record; interim proxy until the
+            # full obstetric module (delivery Encounter + newborn Patient)
+            # ships as a follow-up Issue.
+    sex: F
+    "25-44": 0.120
+    "45-64": 0.150
 
 # RM-7e (session 42): JP care-seeking threshold lower than US (30%→20%)
 # reflects JP 健診 culture (mandatory annual company + 特定健診 for 40+).

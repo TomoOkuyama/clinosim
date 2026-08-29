@@ -214,3 +214,57 @@ M17:  # Osteoarthritis
     - {test: "Creatinine", frequency: "every_3_days", intent: "Renal function monitoring (if on NSAID)"}
   hold_conditions:
     - {drug: "Celecoxib", condition: "Renal impairment", note: "Hold if renal impairment"}
+
+# --- Oncology chronic medications (Issue #943) ----------------------------
+# Sampled representative regimens per cancer type. Not exhaustive — the
+# aim is closing the "0 chemotherapy MedicationRequest" gap. Follow-up
+# work should introduce full protocol-driven cycle scheduling (FOLFOX
+# infusion days, taxane pre-med, aromatase-inhibitor rotation, etc.).
+C18:  # Colon cancer — oral fluoropyrimidine (Capecitabine, XELOX/XELIRI adjuvant)
+  medications:
+    - {drug: "Capecitabine", drug_ja: "カペシタビン", dose: "1250mg/m2", route: "PO", frequency: "bid", probability: 0.5}
+    - {drug: "Oxaliplatin", drug_ja: "オキサリプラチン", dose: "130mg/m2", route: "IV", frequency: "q3weeks", probability: 0.3}
+  monitoring:
+    - {test: "Creatinine", frequency: "every_3_days", intent: "Chemotherapy renal function monitoring"}
+
+C22:  # Liver cancer — first-line oral TKI or immunotherapy
+  medications:
+    - {drug: "Sorafenib", drug_ja: "ソラフェニブ", dose: "400mg", route: "PO", frequency: "bid", probability: 0.5}
+    - {drug: "Lenvatinib", drug_ja: "レンバチニブ", dose: "12mg", route: "PO", frequency: "daily", probability: 0.3}
+  monitoring:
+    - {test: "AST", frequency: "every_3_days", intent: "TKI hepatotoxicity monitoring"}
+    - {test: "ALT", frequency: "every_3_days", intent: "TKI hepatotoxicity monitoring"}
+
+C34:  # Lung cancer — EGFR-TKI first-line for adeno; platinum doublet otherwise
+  medications:
+    - {drug: "Osimertinib", drug_ja: "オシメルチニブ", dose: "80mg", route: "PO", frequency: "daily", probability: 0.4}
+    - {drug: "Pemetrexed", drug_ja: "ペメトレキセド", dose: "500mg/m2", route: "IV", frequency: "q3weeks", probability: 0.3}
+    - {drug: "Carboplatin", drug_ja: "カルボプラチン", dose: "AUC5", route: "IV", frequency: "q3weeks", probability: 0.2}
+  monitoring:
+    - {test: "Creatinine", frequency: "every_3_days", intent: "Platinum renal function monitoring"}
+
+C50:  # Breast cancer — endocrine therapy (majority ER+); trastuzumab for HER2+
+  medications:
+    - {drug: "Tamoxifen", drug_ja: "タモキシフェン", dose: "20mg", route: "PO", frequency: "daily", probability: 0.4}
+    - {drug: "Anastrozole", drug_ja: "アナストロゾール", dose: "1mg", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug: "Trastuzumab", drug_ja: "トラスツズマブ", dose: "6mg/kg", route: "IV", frequency: "q3weeks", probability: 0.15}
+  monitoring:
+    - {test: "AST", frequency: "every_3_days", intent: "Endocrine therapy hepatic monitoring"}
+
+C61:  # Prostate cancer — androgen deprivation therapy (ADT)
+  medications:
+    - {drug: "Bicalutamide", drug_ja: "ビカルタミド", dose: "80mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Leuprorelin", drug_ja: "リュープロレリン", dose: "3.75mg", route: "SC", frequency: "monthly", probability: 0.35}
+  monitoring:
+    - {test: "AST", frequency: "every_3_days", intent: "Anti-androgen hepatic monitoring"}
+
+# --- Obstetric prenatal supplements (Issue #943) --------------------------
+# Standard prenatal supplement pair — folic acid + iron. Not exhaustive of
+# pregnancy pharmacology; covers the near-universal supplement floor so
+# Z34 patients emit MedicationRequests.
+Z34:  # Encounter for supervision of normal pregnancy
+  medications:
+    - {drug: "Folic acid", drug_ja: "葉酸", dose: "0.4mg", route: "PO", frequency: "daily"}
+    - {drug: "Ferrous fumarate", drug_ja: "フマル酸第一鉄", dose: "50mg", route: "PO", frequency: "daily", probability: 0.6}
+  monitoring:
+    - {test: "Hb", frequency: "monthly", intent: "Prenatal hemoglobin monitoring"}
