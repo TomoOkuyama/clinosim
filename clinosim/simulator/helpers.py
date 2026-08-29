@@ -119,13 +119,16 @@ def _deactivate_to_layer1(
     if dx_code:
         base_code = dx_code.split(".")[0] if "." in dx_code else dx_code
         chronic_prefixes = ("I", "E", "J44", "J45", "N18", "M", "G20", "F00", "K21", "N40")
-        # seed=400 verification finding: N40 (BPH) is anatomically
-        # male-only. Prevent discharge-Dx propagation from attaching a
-        # sex-restricted ICD to the wrong sex.
-        _SEX_RESTRICTED_ICD = {"N40": "M"}
+        # Issue #947: sex-lock table moved to
+        # `clinosim/locale/shared/icd10_sex_restrictions.yaml`. Any
+        # anatomy-locked discharge-Dx (BPH N40, prostatitis N41, female-
+        # pelvic N70–N77, pregnancy O00–O9A, sex-specific malignancies
+        # C50–C63, …) is now blocked from chronic propagation via the
+        # unified `sex_gating.is_sex_locked_for` helper.
+        from clinosim.simulator.sex_gating import is_sex_locked_for
+
         _patient_sex = str(getattr(person, "sex", "") or "").upper()[:1]
-        _sex_req = _SEX_RESTRICTED_ICD.get(base_code)
-        if _sex_req and _patient_sex and _sex_req != _patient_sex:
+        if is_sex_locked_for(dx_code, _patient_sex):
             pass  # skip; wrong sex for this ICD
         elif any(base_code.startswith(p) for p in chronic_prefixes):
             existing_bases = {c.split(".")[0] for c in person.chronic_conditions}
