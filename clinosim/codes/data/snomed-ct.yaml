@@ -318,6 +318,15 @@ codes:
   '260219005':
     en: House dust mite    # FSN: House dust mite (organism)
     ja: ハウスダスト・ダニ
+  # === No Known Allergy (Issue #942 NKA positive-assertion) ===
+  # FHIR pattern: AllergyIntolerance is emitted with this SNOMED code as the
+  # positive assertion that the patient has been asked about allergies and
+  # reports none. Verified against SNOMED International browser
+  # (https://browser.ihtsdotools.org/) and tx.fhir.org $lookup, 2026-08-30.
+  # Aligns with Argonaut / US-Core / JP-CORE NKA guidance.
+  '716186003':
+    en: No known allergy   # FSN: No known allergy (situation)
+    ja: アレルギー歴なし
 
   # === CareTeam category (Tier 1 #3 α-min-2 Task 11) ===
   # Verified via SNOMED International browser (https://browser.ihtsdotools.org/), 2026-07-01.

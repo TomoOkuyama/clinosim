@@ -395,3 +395,60 @@ def test_multiple_allergies_all_emitted():
     ids = {r["id"] for r in resources}
     assert _resolve_allergy_id("pt1-a01") in ids
     assert _resolve_allergy_id("pt1-a02") in ids
+
+
+# --- Issue #942: NKA positive-assertion emit ---
+
+
+def _nka_allergy() -> Allergy:
+    return Allergy(
+        allergy_id="nka",
+        allergen_code="716186003",
+        category="",
+        criticality="unable-to-assess",
+        verification_status="confirmed",
+        clinical_status="resolved",
+        onset_date=None,
+        reactions=[],
+        is_nka=True,
+    )
+
+
+def test_nka_record_emits_snomed_716186003_us():
+    ctx = _make_ctx([_nka_allergy()], country="us")
+    resources = _bb_allergy_intolerances(ctx)
+    assert len(resources) == 1
+    r = resources[0]
+    codings = r["code"]["coding"]
+    assert codings[0]["system"] == "http://snomed.info/sct"
+    assert codings[0]["code"] == "716186003"
+    assert r["code"]["text"] == "No known allergies"
+
+
+def test_nka_record_emits_snomed_716186003_jp_localized():
+    ctx = _make_ctx([_nka_allergy()], country="jp")
+    resources = _bb_allergy_intolerances(ctx)
+    assert len(resources) == 1
+    r = resources[0]
+    # NKA bypasses the JFAGY JP-Core substitution — SNOMED direct on JP.
+    codings = r["code"]["coding"]
+    assert codings[0]["system"] == "http://snomed.info/sct"
+    assert codings[0]["code"] == "716186003"
+    assert r["code"]["text"] == "アレルギー歴なし"
+
+
+def test_nka_record_omits_type_category_criticality():
+    ctx = _make_ctx([_nka_allergy()], country="jp")
+    resources = _bb_allergy_intolerances(ctx)
+    r = resources[0]
+    assert "type" not in r  # neither allergy nor intolerance applies
+    assert "category" not in r  # empty per NKA shape
+    assert "criticality" not in r  # unknown severity of absence
+
+
+def test_nka_record_clinical_and_verification_status():
+    ctx = _make_ctx([_nka_allergy()], country="jp")
+    resources = _bb_allergy_intolerances(ctx)
+    r = resources[0]
+    assert r["clinicalStatus"]["coding"][0]["code"] == "resolved"
+    assert r["verificationStatus"]["coding"][0]["code"] == "confirmed"

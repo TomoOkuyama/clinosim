@@ -33,3 +33,8 @@ class Allergy:
     clinical_status: str = "active"
     onset_date: date | None = None
     reactions: list[AllergyReaction] = field(default_factory=list)
+    # Issue #942: NKA (No Known Allergies) positive-assertion flag.
+    # When True this record represents "patient asked about allergies,
+    # reports none" — allergen_code is the SNOMED NKA code (716186003),
+    # category and reactions are empty, criticality is unknown.
+    is_nka: bool = False

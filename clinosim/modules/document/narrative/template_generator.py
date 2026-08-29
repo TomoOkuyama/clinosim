@@ -1242,9 +1242,21 @@ class TemplateNarrativeGenerator:
         if not allergies:
             return _NKDA_JA if is_ja else _NKDA_EN, facts
 
+        # Issue #942: a cohort of exactly one NKA (No Known Allergies)
+        # positive-assertion record is narratively equivalent to "no known
+        # allergies" — collapse to the NKDA phrasing rather than surfacing
+        # the SNOMED "no known allergy" label verbatim.
+        if len(allergies) == 1 and bool(_o(allergies[0], "is_nka", False)):
+            facts.append("ctx.allergies")
+            return _NKDA_JA if is_ja else _NKDA_EN, facts
+
         facts.append("ctx.allergies")
         parts = []
         for allergy in allergies:
+            # Skip NKA marker records when mixed alongside real allergies
+            # (should not happen with the current enricher, but defensive).
+            if bool(_o(allergy, "is_nka", False)):
+                continue
             allergen_code = _o(allergy, "allergen_code", "") or ""
             display = code_lookup("snomed-ct", allergen_code, lang) if allergen_code else ""
             criticality = _o(allergy, "criticality", "") or ""

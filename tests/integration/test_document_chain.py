@@ -120,8 +120,10 @@ def test_allergy_intolerance_baseline_prevalence() -> None:
 
     Task 15: allergy_enricher (POST_POPULATION) is the sole source; activator
     legacy sampling removed. _bb_allergy_intolerances (Task 9) is the sole FHIR
-    emit path. Expected count ≈ 15% × P (single allergy per patient where gate
-    fires). Assertion range 10–25% allows for n=200 sampling noise.
+    emit path. Post-#942 (NKA + polyallergy): every emitted patient receives
+    at least one AI record (real allergy or NKA positive assertion), so the
+    rate is ≥ 100% of the emitted cohort, plus 3-10% additional from
+    polyallergic patients carrying 2-4 records.
     """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
@@ -133,17 +135,16 @@ def test_allergy_intolerance_baseline_prevalence() -> None:
         if patient_count == 0:
             pytest.skip("No Patient resources emitted")
         rate_pct = ai_count / patient_count * 100
-        # CY7-05 (structural, 2026-07-11): ED encounter synthesis shifted
-        # the cohort by ~0.2%. Session 52 fix 1: rate is the product of TWO
-        # independent samplings — the 15% population gate (n=200, -1.4σ at
-        # seed 42 → 11.5%) and the encounter-emission subset (~65% of
-        # persons; hypergeometric, -2σ at seed 42) — verified mechanically
-        # sound (every gate-firing emitted patient has exactly one AI
-        # resource, zero misses). Range widened to [5-30]; the load-bearing
-        # detections remain "enricher off → 0%" and "double emission → 30%+".
-        assert 5 <= rate_pct <= 30, (
-            f"AllergyIntolerance rate {rate_pct:.1f}% is outside expected 5-30% range "
+        # Issue #942 (2026-08-30): NKA positive assertion + polyallergy.
+        # Every emitted patient carries ≥ 1 AllergyIntolerance record — either
+        # a real allergen (~15% of adults) or an NKA "アレルギー歴なし" record
+        # (SNOMED 716186003). Polyallergic patients add ~3-10% extra records.
+        # Expected floor: 100% (universal NKA coverage). Expected ceiling:
+        # ~115% (polyallergy tail). The load-bearing detections are now
+        # "enricher off → 0%" (regression) and "runaway emission → >150%".
+        assert 95 <= rate_pct <= 150, (
+            f"AllergyIntolerance rate {rate_pct:.1f}% is outside expected 95-150% range "
             f"(ai_count={ai_count}, patients={patient_count}). "
             "Single source: allergy_enricher (POST_POPULATION) + _bb_allergy_intolerances. "
-            "Expected ~15% for n=200 with 15% allergy prevalence."
+            "Post-#942: every patient gets NKA or real allergy; polyallergy adds ~5%."
         )

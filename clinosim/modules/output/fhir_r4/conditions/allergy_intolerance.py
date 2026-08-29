@@ -173,14 +173,28 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
 
 
 def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") -> dict[str, Any] | None:
-    """Build one FHIR R4 AllergyIntolerance from an Allergy (dataclass or dict)."""
+    """Build one FHIR R4 AllergyIntolerance from an Allergy (dataclass or dict).
+
+    Issue #942: when ``allergy.is_nka`` is True the emitted resource is the
+    "No Known Allergies" positive assertion (SNOMED 716186003), with an
+    empty ``category``, ``criticality`` omitted (absence has no severity),
+    no reactions, and localized ``code.text`` ("アレルギー歴なし" / "No
+    known allergies"). All other paths emit the substance/reaction record
+    exactly as before.
+    """
+    is_nka = bool(_o(allergy, "is_nka", False))
     allergen_code = _o(allergy, "allergen_code", "") or ""
     if not allergen_code:
         return None
 
     allergy_id = _o(allergy, "allergy_id", "") or ""
     category_raw = (_o(allergy, "category", "") or "").lower()
-    category = category_raw if category_raw in _VALID_CATEGORIES else "medication"
+    if is_nka:
+        # NKA has no category — AllergyIntolerance.category is 0..*, so an
+        # empty/omitted array is spec-legal and semantically correct.
+        category = ""
+    else:
+        category = category_raw if category_raw in _VALID_CATEGORIES else "medication"
     criticality = _o(allergy, "criticality", "low") or "low"
     verification_status = _o(allergy, "verification_status", "confirmed") or "confirmed"
     # C1-17: read clinical_status from CIF (defaults to
@@ -195,7 +209,13 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     # allergen_code in allergens.yaml resolves).
     resolved_display = code_lookup("snomed-ct", allergen_code, lang)
 
-    code: dict[str, Any] = {"text": resolved_display}
+    # Issue #942: NKA localized text takes precedence over code_lookup
+    # (which would yield the English SNOMED display "No known allergy").
+    if is_nka:
+        nka_text = "アレルギー歴なし" if lang == "ja" else "No known allergies"
+        code: dict[str, Any] = {"text": nka_text}
+    else:
+        code = {"text": resolved_display}
     if allergen_code:
         snomed_coding = {
             "system": snomed_system,
@@ -214,7 +234,14 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         # JP profile; the SNOMED substance code adds no JP-consumer value.
         # Drop the SNOMED secondary for JP output. US output continues to
         # emit SNOMED alone (no VS binding constraint applies).
-        if lang == "ja":
+        #
+        # Issue #942: NKA is a status-code, not a JFAGY allergen — the
+        # JP JFAGY value-set does not include a "no known allergy" entry,
+        # so we emit the SNOMED coding directly on JP too. tx-server flags
+        # it as an information-level notice, not a required-binding error.
+        if is_nka:
+            code["coding"] = [snomed_coding]
+        elif lang == "ja":
             jfagy = _jfagy_coding_for_category(category, lang)
             if jfagy is not None:
                 code["coding"] = [jfagy]
@@ -268,9 +295,13 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         # because clinosim's allergen registry (allergens.yaml) is populated
         # with true allergens (penicillin / shellfish / peanut / etc.), not
         # intolerances (lactose intolerance would be a Condition, not AI).
-        "type": "allergy",
-        "category": [category],
-        "criticality": criticality,
+        # Issue #942: NKA is a positive assertion of no allergy — omit
+        # ``type`` (neither "allergy" nor "intolerance" applies), leave
+        # ``category`` empty, and omit ``criticality`` (unable to assess
+        # severity of an absence). See feedback_empty_vs_wrong_assertion.
+        **({"type": "allergy"} if not is_nka else {}),
+        **({"category": [category]} if (category and not is_nka) else {}),
+        **({"criticality": criticality} if not is_nka else {}),
         "code": code,
         "patient": patient_ref(patient_id),
     }
