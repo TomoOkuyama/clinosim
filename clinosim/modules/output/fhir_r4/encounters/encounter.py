@@ -70,6 +70,44 @@ def encounter_ref(cif_encounter_id: str) -> dict[str, str]:
     return {"reference": f"Encounter/{resolve_encounter_id(cif_encounter_id)}"}
 
 
+def _encounter_disposition_defaults() -> dict[str, Any]:
+    """Return the Issue #941 fallback config (lazy import to avoid the
+    output-layer → locale-layer import cost at module load).
+    """
+    from clinosim.locale.loader import load_encounter_disposition_defaults
+
+    return load_encounter_disposition_defaults()
+
+
+def _build_hosp_concept(system_key: str, code: str, lang: str) -> dict[str, Any]:
+    """Build the ``Encounter.hospitalization`` admitSource /
+    dischargeDisposition CodeableConcept in the dual-slot shape.
+
+    Issue #941: the HL7 admit-source / discharge-disposition CodeSystems
+    are on the "English-only-CS" prefix allowlist consumed by
+    :func:`_strip_japanese_display_on_english_only_systems`. Emitting the
+    JP display on ``coding.display`` alone lets the post-processor strip
+    it, leaving JP consumers with a bare code. This helper always emits
+    the EN canonical display on ``coding.display`` (survives HAPI
+    validation and the strip walker) and pairs it with a locale-resolved
+    ``.text`` slot (the JP label for JP output, EN for US output) so the
+    CodeableConcept always renders a human-readable label.
+    """
+    en_display = code_lookup(system_key, code, "en")
+    localized = code_lookup(system_key, code, lang)
+    coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
+    if en_display and en_display != code:
+        coding["display"] = en_display
+    concept: dict[str, Any] = {"coding": [coding]}
+    # `.text` is the locale-appropriate human-readable label. Only emit
+    # when the lookup produced something meaningful (`localized == code`
+    # means the CS registry has no entry — no `.text` is better than a
+    # bare code duplicate).
+    if localized and localized != code:
+        concept["text"] = localized
+    return concept
+
+
 def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | None:
     """Compute FHIR ``Encounter.length`` from ISO-8601 period bounds.
 
@@ -474,29 +512,28 @@ def _build_encounter(
     # inpatient/emergency admission context (admission/discharge, re-admission
     # flag, etc.); skip for AMB (ambulatory) so we don't emit outp→home rings
     # on every 30-minute outpatient visit.
+    #
+    # Issue #941 (2026-08-30) — dual-slot fix. Pre-fix the CodeableConcept
+    # only had `coding.code` populated; `coding.display` (when set) was in
+    # the JP locale, and the `_strip_japanese_display_on_english_only_systems`
+    # post-processor removed it because the HL7 admit-source /
+    # discharge-disposition CodeSystems are on the English-only prefix
+    # allowlist. Consumers scanning `.text` OR `.coding[0].display` for
+    # populated-ness (a reasonable heuristic) saw 0/703 IMP encounters as
+    # populated. Fix pairs an EN-canonical `coding[0].display` (survives
+    # HAPI validation on the HL7 CS) with a locale-appropriate `.text`
+    # slot per the dual-slot pattern (AGENTS.md /
+    # feedback_dual_slot_english_only_cs.md /
+    # feedback_dual_slot_at_emit_site_not_post_process.md).
     hosp: dict[str, Any] = {}
     _emit_hospitalization = class_code != "AMB"
     _lang = resolve_lang(country)
     if _emit_hospitalization and enc.get("admit_source"):
-        _admit_code = enc["admit_source"]
-        _admit_disp = code_lookup("hl7-admit-source", _admit_code, _lang)
-        _admit_coding: dict[str, Any] = {
-            "system": get_system_uri("hl7-admit-source"),
-            "code": _admit_code,
-        }
-        if _admit_disp and _admit_disp != _admit_code:
-            _admit_coding["display"] = _admit_disp
-        hosp["admitSource"] = {"coding": [_admit_coding]}
+        hosp["admitSource"] = _build_hosp_concept("hl7-admit-source", enc["admit_source"], _lang)
     if _emit_hospitalization and enc.get("discharge_disposition"):
-        _dd_code = enc["discharge_disposition"]
-        _dd_disp = code_lookup("hl7-discharge-disposition", _dd_code, _lang)
-        _dd_coding: dict[str, Any] = {
-            "system": get_system_uri("hl7-discharge-disposition"),
-            "code": _dd_code,
-        }
-        if _dd_disp and _dd_disp != _dd_code:
-            _dd_coding["display"] = _dd_disp
-        hosp["dischargeDisposition"] = {"coding": [_dd_coding]}
+        hosp["dischargeDisposition"] = _build_hosp_concept(
+            "hl7-discharge-disposition", enc["discharge_disposition"], _lang
+        )
     # Re-admission flag (FHIR standard: hospitalization.reAdmission CodeableConcept)
     # Using HL7 v2 table 0092 "Re-admission Indicator" — the canonical source.
     if _emit_hospitalization and is_readmission:
@@ -510,42 +547,32 @@ def _build_encounter(
             ],
             "text": "再入院" if is_jp(country) else "Re-admission",
         }
-    # C2-18: IMP encounters must carry a hospitalization
-    # block. When both admit_source and discharge_disposition are missing
-    # (edge case: 8 encounters in the JP p=10k cohort), fall back to sane
-    # defaults — admit_source=other (unspecified catch-all; authoritative HL7
-    # admit-source CS r4 7.2.0 concepts: hosp-trans/emd/outp/born/gp/mp/
-    # nursing/psych/rehab/other) and discharge_disposition=home when finished.
-    # Issue #332: 従来 "hosp" は authoritative CS 未収録で
-    # v9 rest 2 件 unknown-code error 発火 → "other" へ訂正
-    # (`hosp-trans` は他院転入で specific meaning、不明時 emit は誤情報)。
+    # C2-18: IMP encounters must carry a hospitalization block. When
+    # admit_source is missing, fall back to the yaml-configured default
+    # ("other" — unspecified catch-all). Issue #332 chose "other" over
+    # "hosp-trans" (which has the specific meaning of transfer-from-another-
+    # hospital and would misinform DPC consumers).
+    _defaults = _encounter_disposition_defaults()
     if _emit_hospitalization and not hosp.get("admitSource"):
-        _default_code = "other"
-        _default_disp = code_lookup("hl7-admit-source", _default_code, _lang)
-        _default_coding: dict[str, Any] = {
-            "system": get_system_uri("hl7-admit-source"),
-            "code": _default_code,
-        }
-        if _default_disp and _default_disp != _default_code:
-            _default_coding["display"] = _default_disp
-        hosp["admitSource"] = {"coding": [_default_coding]}
-    # C4-20: CIF encounter status is "completed"
-    # (mapped to FHIR "finished" by map_encounter_status). Prior comparison
-    # to raw "finished" never matched, so 4 IMP encounters retained no
-    # dischargeDisposition. Use both CIF and FHIR values so future refactors
-    # (e.g. status stored in FHIR form) still trigger the fallback.
+        _admit_defaults = _defaults["admit_source"]
+        hosp["admitSource"] = _build_hosp_concept(
+            _admit_defaults["system_key"], _admit_defaults["fallback_code"], _lang
+        )
+    # C4-20: CIF encounter status is "completed" (mapped to FHIR
+    # "finished" by map_encounter_status). Prior comparison to raw
+    # "finished" never matched, so 4 IMP encounters retained no
+    # dischargeDisposition. Use both CIF and FHIR values so future
+    # refactors (e.g. status stored in FHIR form) still trigger the
+    # fallback. Issue #941: also honour `deceased=True` — a deceased
+    # patient's final finished encounter is marked with the
+    # yaml-configured "expired" code so hospital-mortality analytics do
+    # not require a LEFT-JOIN with Patient.deceasedDateTime.
     _cif_status = enc.get("status", "")
     _is_finished = _cif_status in ("completed", "finished")
     if _emit_hospitalization and not hosp.get("dischargeDisposition") and _is_finished:
-        _dd_code = "home"
-        _dd_disp = code_lookup("hl7-discharge-disposition", _dd_code, _lang)
-        _dd_coding = {
-            "system": get_system_uri("hl7-discharge-disposition"),
-            "code": _dd_code,
-        }
-        if _dd_disp and _dd_disp != _dd_code:
-            _dd_coding["display"] = _dd_disp
-        hosp["dischargeDisposition"] = {"coding": [_dd_coding]}
+        _dd_defaults = _defaults["discharge_disposition"]
+        _dd_code = _dd_defaults["deceased_code"] if deceased else _dd_defaults["fallback_code"]
+        hosp["dischargeDisposition"] = _build_hosp_concept(_dd_defaults["system_key"], _dd_code, _lang)
     # CY8-03 fix:Encounter.hospitalization.dietPreference
     # を CIF の DIET Order から derive。IMP/EMER encounter で diet order あれば
     # 一意の diet 種別を text-only CodeableConcept として emit。

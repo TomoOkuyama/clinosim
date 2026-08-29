@@ -48,10 +48,21 @@ def test_admit_source_yaml_has_authoritative_other_fallback() -> None:
 
 
 def test_fhir_encounter_default_admit_source_code_is_other() -> None:
-    src = (_REPO_ROOT / "clinosim" / "modules" / "output" / "fhir_r4" / "encounters" / "encounter.py").read_text()
-    assert '_default_code = "other"' in src, (
-        "Issue #332: _fhir_encounter.py の IMP admit_source fallback は "
-        '"other" を emit すること('
-        '"hosp" は authoritative CS 未収録で validation error 発火)'
+    """Issue #332 + Issue #941: IMP admit_source fallback code is "other"
+    ("hosp" は authoritative CS 未収録で validation error 発火). Post-#941
+    the constant lives in yaml
+    (``clinosim/locale/shared/encounter_disposition_defaults.yaml``) rather
+    than being hardcoded in the emitter, so validate the yaml AND check
+    the runtime loader returns it."""
+    from clinosim.locale.loader import load_encounter_disposition_defaults
+
+    cfg = load_encounter_disposition_defaults()
+    assert cfg["admit_source"]["fallback_code"] == "other", (
+        "Issue #332: admit_source fallback は authoritative 'other' で emit すること"
     )
+    assert cfg["admit_source"]["fallback_code"] != "hosp", "Issue #332: invalid 'hosp' 残存禁止。"
+    # Emit path must route through the yaml loader, not hardcode. Any
+    # residual raw `_default_code = "hosp"` in encounter.py is a
+    # regression.
+    src = (_REPO_ROOT / "clinosim" / "modules" / "output" / "fhir_r4" / "encounters" / "encounter.py").read_text()
     assert '_default_code = "hosp"' not in src, 'Issue #332: 従来の invalid `_default_code = "hosp"` は残存禁止。'
