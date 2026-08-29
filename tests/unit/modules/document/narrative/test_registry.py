@@ -150,6 +150,12 @@ def test_load_raises_on_missing_required_field() -> None:
                 "countries_supported": ["jp"],
                 "generation_frequency": "checkup_once",
             },
+            "death_certificate": {
+                "loinc_code": "64297-5",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "discharge_once_if_deceased",
+            },
         }
     }
     with pytest.raises(ValueError, match="missing countries_supported"):
@@ -240,6 +246,12 @@ def test_load_raises_on_null_entry() -> None:
                 "format_type": "composition",
                 "countries_supported": ["jp"],
                 "generation_frequency": "checkup_once",
+            },
+            "death_certificate": {
+                "loinc_code": "64297-5",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "discharge_once_if_deceased",
             },
         }
     }
@@ -337,6 +349,12 @@ def test_load_raises_on_empty_countries_supported() -> None:
                 "countries_supported": ["jp"],
                 "generation_frequency": "checkup_once",
             },
+            "death_certificate": {
+                "loinc_code": "64297-5",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "discharge_once_if_deceased",
+            },
         }
     }
     with pytest.raises(ValueError, match="countries_supported empty"):
@@ -346,18 +364,16 @@ def test_load_raises_on_empty_countries_supported() -> None:
 # === α-min-2 tests ===
 
 
-def test_load_specs_returns_14_total() -> None:
-    """14 (3 α-min-1 + 6 α-min-2 + 3 chain-2 + PR2b referral + PR3 checkup) specs."""
+def test_load_specs_returns_15_total() -> None:
+    """15 (3 α-min-1 + 6 α-min-2 + 3 chain-2 + PR2b referral + PR3 checkup + Issue #961 death cert) specs."""
     load_document_type_specs.cache_clear()
     specs = load_document_type_specs()
-    assert len(specs) == 14, (
-        f"Expected 14 specs (3 α-min-1 + 6 α-min-2 + 3 chain-2 + referral + checkup), got {len(specs)}"
-    )
+    assert len(specs) == 15, f"Expected 15 specs (adds death_certificate per Issue #961), got {len(specs)}"
 
 
-def test_supported_document_types_covers_14_entries() -> None:
-    """SUPPORTED_DOCUMENT_TYPES frozenset has 14 members after P2-13 PR3."""
-    assert len(SUPPORTED_DOCUMENT_TYPES) == 14
+def test_supported_document_types_covers_15_entries() -> None:
+    """SUPPORTED_DOCUMENT_TYPES frozenset has 15 members after Issue #961 death cert."""
+    assert len(SUPPORTED_DOCUMENT_TYPES) == 15
 
 
 def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> None:
@@ -371,13 +387,13 @@ def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> N
     assert keys == ["outpatient_soap"], f"Expected only outpatient_soap in restricted set, got {keys}"
 
 
-def test_specs_for_encounter_type_inpatient_returns_10_specs() -> None:
+def test_specs_for_encounter_type_inpatient_returns_11_specs() -> None:
     """3 α-min-1 (no restriction, matches all) + 3 nursing specs + admission_care_plan +
-    nutrition_care_plan + rehabilitation_plan (chain 2) + referral_note (P2-13 PR2b)
-    = 10 total for inpatient."""
+    nutrition_care_plan + rehabilitation_plan (chain 2) + referral_note (P2-13 PR2b) +
+    death_certificate (Issue #961) = 11 total for inpatient."""
     load_document_type_specs.cache_clear()
     inpatient_specs = specs_for_encounter_type("inpatient")
-    assert len(inpatient_specs) == 10, f"Expected 10 inpatient specs, got {len(inpatient_specs)}"
+    assert len(inpatient_specs) == 11, f"Expected 11 inpatient specs, got {len(inpatient_specs)}"
 
 
 def test_specs_for_encounter_type_emergency_returns_2_ed_specs() -> None:

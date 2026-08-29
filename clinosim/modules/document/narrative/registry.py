@@ -45,6 +45,7 @@ GENERATION_FREQUENCIES: frozenset[str] = frozenset(
         "daily_3shift",  # α-min-3: 3 nursing notes per LOS day (night/day/evening)
         "discharge_once",
         "discharge_fraction_20pct",  # P2-13 PR2b: JP-CLINS referral_note (20% of discharges)
+        "discharge_once_if_deceased",  # Issue #961: 死亡診断書 (deceased-inpatient-only)
         "encounter_once",
         "checkup_once",  # P2-13 PR3: JP-eCheckup health_checkup_report (opt-in module)
     }
@@ -91,6 +92,8 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset(
         DocumentType.REFERRAL_NOTE,
         # P2-13 PR3: JP-eCheckup 健診結果報告書 (health checkup report, opt-in)
         DocumentType.HEALTH_CHECKUP_REPORT,
+        # Issue #961: 死亡診断書 (death certificate) — 医師法第 20 条 mandate
+        DocumentType.DEATH_CERTIFICATE,
     }
 )
 

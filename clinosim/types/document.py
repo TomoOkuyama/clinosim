@@ -50,6 +50,11 @@ class DocumentType(StrEnum):
     REFERRAL_NOTE = "referral_note"
     # JP-eCheckup 健診結果報告書 (health-checkup report) — LOINC 53576-5 (JP-eCheckup v1.7.0, opt-in).
     HEALTH_CHECKUP_REPORT = "health_checkup_report"
+    # Issue #961: 死亡診断書 (Death certificate) — LOINC 64297-5. Emitted on
+    # every inpatient encounter whose discharge_disposition == "exp".
+    # 医師法第 20 条 mandate; complements the existing 退院時サマリー rather
+    # than replacing it (billing/administrative discharge summary still runs).
+    DEATH_CERTIFICATE = "death_certificate"
 
 
 @dataclass(frozen=True)

@@ -501,6 +501,43 @@ def document_enricher(ctx: Any) -> None:
                     )
                     doc_seq += 1
 
+                elif freq == "discharge_once_if_deceased":
+                    # Issue #961: 死亡診断書 (death certificate) — emit exactly
+                    # one Composition per encounter that ended in death
+                    # (`discharge_disposition == "exp"`, populated by
+                    # inpatient.py:537 when death_occurred). Fires alongside
+                    # `discharge_once` (退院時サマリー), NOT as a replacement —
+                    # 医師法第 20 条 mandates the certificate as a separate
+                    # legal document, and the discharge summary remains
+                    # required for billing/administrative purposes.
+                    #
+                    # AD-32: in-progress encounters cannot certify death
+                    # (no discharge_datetime) — skip so a snapshot-truncated
+                    # patient marked deceased in the future does not get a
+                    # premature certificate.
+                    if is_in_progress:
+                        continue
+                    if _o(encounter, "discharge_disposition", "") != "exp":
+                        continue
+                    end_dt = discharge_dt or admission_dt
+                    documents.append(
+                        ClinicalDocument(
+                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                            task_type=spec.type_key,
+                            loinc_code=spec.loinc_code,
+                            patient_id=pid,
+                            encounter_id=encounter_id,
+                            author_practitioner_id=_pick_document_author(spec, encounter),
+                            authored_datetime=end_dt.isoformat(),
+                            period_start=admission_dt.isoformat(),
+                            period_end=end_dt.isoformat(),
+                            language=lang,
+                            format_type=spec.format_type.value,
+                            narrative=None,
+                        )
+                    )
+                    doc_seq += 1
+
                 elif freq == "discharge_fraction_20pct":
                     # P2-13 PR2b: JP-CLINS 診療情報提供書 fires on
                     # a deterministic 20% subset of inpatient discharges

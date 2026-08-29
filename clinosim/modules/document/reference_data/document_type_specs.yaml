@@ -313,6 +313,51 @@ specs:
   # 対して 1 通発行する。急性期病院想定を維持するため default off。
   # 対象健診種別は労安衛法定健診(事業者健診)= section 01031 検査結果 +
   # 01032 問診結果 を必須 emit。
+  # === Issue #961 (session 90+): 死亡診断書 (Death certificate) ===
+  # LOINC 64297-5 verified 2026-08-30 via loinc.org (LONG_COMMON_NAME
+  # "Death certificate"). JP display 死亡診断書 matches the 厚生労働省
+  # official form title (医師法第 20 条 / 死亡診断書 (死体検案書)).
+  #
+  # 医師法第 20 条 legally requires the attending physician to issue a
+  # 死亡診断書 whenever certifying death; this document is NOT a
+  # replacement for the standard 退院時サマリー (which continues to be
+  # emitted for billing / administrative purposes) — both fire on the
+  # same terminal encounter.
+  #
+  # generation_frequency = discharge_once_if_deceased (new frequency —
+  # engine.py branch): emit exactly one Composition per encounter whose
+  # `discharge_disposition == "exp"` (per HL7 DischargeDisposition
+  # EXP, populated by inpatient.py:537 when death_occurred).
+  # AD-32: same is-in-progress skip as discharge_once — an in-progress
+  # encounter with no discharge_datetime cannot yet be certified as a
+  # death, even for a `deceased=True` patient. Death always coincides
+  # with encounter closure (inpatient.py forces status=COMPLETED and
+  # sets discharge_datetime=deceased datetime), so this gate never
+  # under-fires on real deaths.
+  #
+  # composition_sections match the 医師法第 20 条 legally-defined fields:
+  #   直接死因 (immediate cause) / 直接死因までの期間 / 原死因 (underlying) /
+  #   影響を及ぼした傷病名 (contributing) / 死因の種類 (manner) / 解剖の有無.
+  # Section keys are English snake_case identifiers per the AD-30 CIF-EN
+  # canonical rule; JP display headings live in composition.py's
+  # `_DEATH_CERT_SECTION_TITLE_JA` (dual-slot at emit site per
+  # feedback_dual_slot_at_emit_site_not_post_process).
+  death_certificate:
+    loinc_code: "64297-5"
+    format_type: composition
+    countries_supported: [us, jp]
+    encounter_types_supported: [inpatient, icu, rehab_inpatient]
+    generation_frequency: discharge_once_if_deceased
+    composition_sections:
+      - immediate_cause_of_death
+      - duration_of_immediate_cause
+      - underlying_cause_of_death
+      - contributing_conditions
+      - manner_of_death
+      - autopsy_status
+    stage2_strategy: template_only
+    llm_enabled_sections: []
+
   health_checkup_report:
     loinc_code: "53576-5"
     format_type: composition

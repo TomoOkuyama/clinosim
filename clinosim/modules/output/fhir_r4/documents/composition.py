@@ -264,6 +264,29 @@ _SECTION_TITLE_JA: dict[str, str] = {
     "goals": "目標",
     "functional_status": "機能状態",
     "basic_movement": "基本動作",
+    # Issue #961 — 死亡診断書 (Death certificate) sections. Legal-form
+    # field labels per 医師法第 20 条 / MHLW 死亡診断書 form.
+    "immediate_cause_of_death": "直接死因",
+    "duration_of_immediate_cause": "直接死因までの期間",
+    "underlying_cause_of_death": "原死因",
+    "contributing_conditions": "影響を及ぼした傷病名",
+    "manner_of_death": "死因の種類",
+    "autopsy_status": "解剖の有無",
+}
+
+
+# Issue #961 — English display for 死亡診断書 sections (US locale). Kept
+# as a small local dict rather than adding to _SECTION_LOINC because the
+# section codes below are LOINC 79378-6 (Cause of death) which is not a
+# universal fit for every section — we prefer explicit human-readable
+# titles.
+_DEATH_CERT_SECTION_TITLE_EN: dict[str, str] = {
+    "immediate_cause_of_death": "Immediate cause of death",
+    "duration_of_immediate_cause": "Time from onset of immediate cause to death",
+    "underlying_cause_of_death": "Underlying cause of death",
+    "contributing_conditions": "Contributing conditions",
+    "manner_of_death": "Manner of death",
+    "autopsy_status": "Autopsy performed",
 }
 
 
@@ -279,6 +302,11 @@ def _localize_section_title(section_title: str, lang: str) -> str:
     """
     if lang == "ja":
         return _SECTION_TITLE_JA.get(section_title, section_title)
+    # Issue #961: 死亡診断書 sections get a proper English display in US
+    # locale too — the raw slug (`immediate_cause_of_death`) is not a
+    # human-readable label to a consumer reading the Composition.
+    if section_title in _DEATH_CERT_SECTION_TITLE_EN:
+        return _DEATH_CERT_SECTION_TITLE_EN[section_title]
     return section_title
 
 
@@ -779,6 +807,13 @@ def _build_composition(
         # P2-13 PR3:JP-eCheckup General
         if loinc == "53576-5":
             return _build_jp_eCheckup_general_composition(doc, sections, lang, roster_map=roster_map)
+        # Issue #961:死亡診断書 (Death certificate). Emit under jpfhir
+        # doc-typecodes (per JP dispatch convention for JP-authored
+        # documents) plus a CodeableConcept.text carrying 死亡診断書.
+        if loinc == "64297-5":
+            return _build_jp_death_certificate_composition(
+                doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index
+            )
         # Issue #340:JP-CLINS profile が存在しない JP path
         # Composition (rehabilitation_plan LOINC 34823-5、admission_hp
         # 34117-2、ED / outpatient SOAP、nursing docs 等) に HL7 FHIR R4
@@ -1776,4 +1811,83 @@ def _build_jp_eCheckup_general_composition(
             }
         )
     comp["section"] = section_entries
+    return comp
+
+
+# ============================================================
+# Issue #961: 死亡診断書 (Death certificate) Composition builder
+# ============================================================
+#
+# 医師法第 20 条 mandates that the attending physician issue a 死亡診断書
+# whenever certifying a patient's death. Prior to this issue, all
+# 47/6389 deceased patients in the p=6389 JP dataset were emitted with
+# only the generic 退院時サマリー (LOINC 18842-5) — the same Composition
+# a living patient discharged home receives — so a consumer could not
+# distinguish a death from a routine discharge by Composition.type alone.
+#
+# Design (never-replace, always-alongside): the death certificate fires
+# in ADDITION to the discharge summary, not as a replacement. Both are
+# clinically valid on a death encounter:
+#   - 退院時サマリー drives billing / administrative discharge processing
+#   - 死亡診断書 is the legal certificate of death (医師法第 20 条)
+#
+# For US locale the generic Composition builder is used (LOINC 64297-5
+# directly on Composition.type.coding). For JP the coding is emitted
+# under the JP-CLINS doc-typecodes CS (`jpfhir-doc-typecodes`) with the
+# LOINC code value preserved — same pattern as JP-eCheckup's LOINC
+# 53576-5 coding-under-JP-CS convention. JP-CLINS does NOT ship a
+# StructureDefinition for a death-certificate Composition profile, so no
+# `meta.profile` beyond the HL7 core `clinicaldocument` is asserted; that
+# is honest (per feedback_profile_assertion_requires_data_completeness —
+# do not assert a profile unless the data actually meets its slices).
+
+_DEATH_CERT_TYPE_DISPLAY_JA = "死亡診断書"
+
+
+def _build_jp_death_certificate_composition(
+    doc: Any,
+    sections: dict[str, str],
+    lang: str,
+    *,
+    roster_map: dict[str, dict] | None = None,
+    encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
+) -> dict[str, Any]:
+    """JP 死亡診断書 (Death certificate) Composition builder — Issue #961.
+
+    Differences from the generic builder:
+      - `type.coding[0].system` = jpfhir doc-typecodes (matches how
+        other JP-authored doc types dispatch under the JP CS)
+      - `type.text` and `title` = 死亡診断書
+      - `meta.profile` gains the HL7 core clinicaldocument profile
+        (no JP-CLINS-specific StructureDefinition exists for this
+        Composition type — see module comment)
+    """
+    comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index)
+
+    meta = comp.setdefault("meta", {})
+    profs = meta.setdefault("profile", [])
+    if _CLINICALDOCUMENT_PROFILE not in profs:
+        profs.append(_CLINICALDOCUMENT_PROFILE)
+
+    if not meta.get("lastUpdated"):
+        ts = derive_meta_last_updated(comp, ("date",)) or _o(doc, "authored_datetime", "")
+        if ts:
+            meta["lastUpdated"] = ts
+
+    # Type coding: JP doc-typecodes primary (parallel to eDS / eReferral
+    # dispatch). `code_lookup` returns the localized display from yaml;
+    # fallback to the hardcoded JP display when yaml lookup fails (yaml
+    # is the source of truth per feedback_constants_live_in_external_config).
+    disp = code_lookup("jpfhir-doc-typecodes", "64297-5", lang) or _DEATH_CERT_TYPE_DISPLAY_JA
+    comp["type"] = {
+        "coding": [
+            {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "64297-5", "display": disp},
+        ],
+        # Dual-slot at emit site (feedback_dual_slot_at_emit_site_not_post_process):
+        # `.text` carries the JP display so consumers reading the
+        # CodeableConcept.text see 死亡診断書 even if a post-process walker
+        # ever strips the JP display from a coding under an English-only CS.
+        "text": disp,
+    }
+    comp["title"] = disp
     return comp

@@ -902,6 +902,13 @@ class TemplateNarrativeGenerator:
             "policy": self._build_rp_policy,
             "discharge_estimate": self._build_rp_discharge_estimate,
             "explanation_consent": self._build_rp_explanation_consent,
+            # Issue #961: DEATH_CERTIFICATE sections (LOINC 64297-5).
+            "immediate_cause_of_death": self._build_dc_immediate_cause,
+            "duration_of_immediate_cause": self._build_dc_duration_of_immediate_cause,
+            "underlying_cause_of_death": self._build_dc_underlying_cause,
+            "contributing_conditions": self._build_dc_contributing_conditions,
+            "manner_of_death": self._build_dc_manner_of_death,
+            "autopsy_status": self._build_dc_autopsy_status,
         }
 
         # P2-13 PR2a: use the JP-specific section list when country=JP so
@@ -4383,6 +4390,157 @@ class TemplateNarrativeGenerator:
                         merged[section] = dict(sec_data)
 
         return merged
+
+    # ─────────────────────────────────────────────────────────────────
+    # DEATH_CERTIFICATE sections (LOINC 64297-5) — Issue #961
+    # ─────────────────────────────────────────────────────────────────
+    # 医師法第 20 条 legally-defined fields on the 死亡診断書 form; each
+    # section renders template-only text (stage2_strategy=template_only)
+    # because these fields are structured facts (ICD code, boolean flags,
+    # controlled-vocabulary values) rather than free-form narrative.
+
+    def _dc_resolve_primary_cause(self, ctx: NarrativeContext) -> tuple[str, str, list[str]]:
+        """Resolve (icd_code, localized_display, facts_used) for the primary
+        cause of death.
+
+        Priority chain:
+          1. clinical_diagnosis.discharge_diagnosis_code (the final ICD-10
+             recorded at the terminating encounter — what the physician
+             would enter as 直接死因 on the 死亡診断書).
+          2. clinical_diagnosis.admission_diagnosis_code (fallback for
+             encounters where the discharge dx was never recoded because
+             death happened early in the admission).
+
+        Returns ("", "", []) when neither code is available — the caller
+        renders a never-fabricate fallback phrase.
+        """
+        facts: list[str] = []
+        diagnoses = ctx.diagnoses or []
+        primary = diagnoses[0] if diagnoses else None
+        if primary is None:
+            return "", "", facts
+        code = _o(primary, "discharge_diagnosis_code", "") or _o(primary, "admission_diagnosis_code", "") or ""
+        if not code:
+            return "", "", facts
+        system = (
+            _o(primary, "discharge_diagnosis_system", "")
+            or _o(primary, "admission_diagnosis_system", "")
+            or system_key_for("diagnosis", ctx.locale.upper())
+        )
+        display = code_lookup(system, code, ctx.target_lang) if code else ""
+        facts.append("ctx.diagnoses[0].discharge_diagnosis_code")
+        return code, (display or code), facts
+
+    def _build_dc_immediate_cause(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """直接死因 / Immediate cause of death.
+
+        Sourced from the encounter's final ICD-10 diagnosis. When missing
+        (no clinical_diagnosis on record), emits a never-fabricate marker.
+        """
+        is_ja = ctx.target_lang == "ja"
+        code, display, facts = self._dc_resolve_primary_cause(ctx)
+        if not code:
+            return ("直接死因: 記録なし。" if is_ja else "Immediate cause of death: not documented."), facts
+        if is_ja:
+            return f"直接死因: {display}（{code}）。", facts
+        return f"Immediate cause of death: {display} ({code}).", facts
+
+    def _build_dc_duration_of_immediate_cause(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """直接死因までの期間 / Time from onset of the immediate cause to death.
+
+        Derived from encounter length-of-stay. For chronic conditions the
+        true onset predates admission; this template documents only the
+        observed hospital course and says so explicitly (never fabricate).
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = ["ctx.los_days"]
+        los = ctx.los_days or 0
+        if los <= 0:
+            return (
+                "直接死因までの期間: 入院日と同日に死亡（数時間以内）。"
+                if is_ja
+                else "Time from onset of immediate cause to death: same-day admission (< 24 h)."
+            ), facts
+        if is_ja:
+            return (f"直接死因までの期間: 当該入院期間中 約{los}日（入院前の慢性経過は本記録範囲外）。"), facts
+        return (
+            f"Time from onset of immediate cause to death: approximately {los} days during this admission "
+            f"(prior chronic history not captured in this record)."
+        ), facts
+
+    def _build_dc_underlying_cause(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """原死因 / Underlying cause of death.
+
+        Same code as the immediate cause when the encounter has only a
+        single diagnosis (mirrors how a simple death certificate lists the
+        same ICD-10 on both lines). Uses the ICD-10 chapter root (letter +
+        first two digits) as the underlying-cause bucket when the discharge
+        dx has a decimal specifier.
+        """
+        is_ja = ctx.target_lang == "ja"
+        code, display, facts = self._dc_resolve_primary_cause(ctx)
+        if not code:
+            return ("原死因: 記録なし。" if is_ja else "Underlying cause of death: not documented."), facts
+        chapter = code.split(".")[0] if "." in code else code
+        if is_ja:
+            return f"原死因: {display}（{chapter}）。", facts
+        return f"Underlying cause of death: {display} ({chapter}).", facts
+
+    def _build_dc_contributing_conditions(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """影響を及ぼした傷病名 / Contributing conditions.
+
+        Enumerates chronic conditions on the patient record (up to 5).
+        Returns "該当なし / None" when the patient has no chronic history —
+        never fabricates a comorbidity.
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = []
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        parts: list[str] = []
+        for c in list(conds)[:5]:
+            code_val = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            if not code_val:
+                continue
+            system = _o(c, "system", "") or system_key_for("diagnosis", ctx.locale.upper())
+            display = code_lookup(system, code_val, ctx.target_lang) or code_val
+            parts.append(f"{display}（{code_val}）" if is_ja else f"{display} ({code_val})")
+        if not parts:
+            return ("影響を及ぼした傷病名: 該当なし。" if is_ja else "Contributing conditions: none documented."), facts
+        facts.append("ctx.patient.chronic_conditions")
+        sep = "、" if is_ja else "; "
+        prefix = "影響を及ぼした傷病名: " if is_ja else "Contributing conditions: "
+        suffix = "。" if is_ja else "."
+        return prefix + sep.join(parts) + suffix, facts
+
+    def _build_dc_manner_of_death(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """死因の種類 / Manner of death.
+
+        MHLW 死亡診断書 offers three top-level buckets: 病死及び自然死
+        (natural/disease), 外因死 (external), and 不詳の死 (unknown).
+        clinosim currently models only disease-driven inpatient mortality
+        (no trauma/accident/suicide life events wired in), so the default
+        is 病死及び自然死. Future external_cause markers would extend this
+        builder.
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = []
+        if is_ja:
+            return "死因の種類: 病死及び自然死。", facts
+        return "Manner of death: natural / disease-related.", facts
+
+    def _build_dc_autopsy_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """解剖の有無 / Autopsy status.
+
+        clinosim does not currently simulate autopsy consent or
+        pathological findings; every death is emitted with autopsy=無.
+        This matches the majority of Japanese acute-care deaths and is
+        the honest never-fabricate default.
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = []
+        if is_ja:
+            return "解剖の有無: 無。", facts
+        return "Autopsy performed: no.", facts
 
     # ─────────────────────────────────────────────────────────────────
     # Formatting helpers

@@ -30,3 +30,12 @@ codes:
   "56447-6":
     en: "Plan of care note"
     ja: "計画書"
+  # Issue #961: 死亡診断書 (Death certificate). JP-CLINS doc-typecodes CS does
+  # not define a JP-specific code for death certificates, so we reuse the LOINC
+  # canonical code 64297-5 under this CS URL (same pattern as 53576-5 for
+  # JP-eCheckup, where LOINC is the authoritative code but is emitted under
+  # the JP CS URL to match the profile slice discriminator). JP display uses
+  # the 医師法第 20 条 official form title (see also loinc.yaml).
+  "64297-5":
+    en: "Death certificate"
+    ja: "死亡診断書"
