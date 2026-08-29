@@ -226,6 +226,12 @@ def convert_cif_to_fhir(
     )
     n_resources = 0
     n_patients = 0
+    # Issue #945: per-resource-type tally of entries dropped by the
+    # `_drop_entries_after_snapshot` gate. Accumulated across every
+    # patient bundle in this export; logged once at export end for
+    # maintainer visibility (mirrors the after-death filter's fail-soft
+    # visibility pattern).
+    snapshot_drop_counter: dict[str, int] = {}
     try:
         # Master resources (Organization + Location + Device) — written once.
         # Facility resources bypass `_build_bundle`, so the JP-only post-emit
@@ -289,7 +295,14 @@ def convert_cif_to_fhir(
         # encounter re-emission with encounter-scoped IDs, C4-02).
         for record in reader.iter_patients():
             n_patients += 1
-            bundle = _build_bundle(record, country, roster_map, hospital_config, snapshot_date)
+            bundle = _build_bundle(
+                record,
+                country,
+                roster_map,
+                hospital_config,
+                snapshot_date,
+                snapshot_drop_counter=snapshot_drop_counter,
+            )
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
                 n_resources += 1
@@ -351,6 +364,18 @@ def convert_cif_to_fhir(
             "invalid_fhir_ids",
             counts=dict(invalid_id_counts),
             total=sum(invalid_id_counts.values()),
+        )
+    # Issue #945: surface per-type snapshot-cutoff drops so a maintainer
+    # can see (a) the filter fired, and (b) which builders were emitting
+    # post-snapshot entries. Empty dict → the filter was a no-op (either
+    # `snapshot_date` was absent, or nothing crossed the cutoff).
+    if snapshot_drop_counter:
+        sim_log.info(
+            "fhir_r4_adapter",
+            "snapshot_filter_dropped",
+            snapshot_date=snapshot_date,
+            counts=dict(snapshot_drop_counter),
+            total=sum(snapshot_drop_counter.values()),
         )
     sim_log.info(
         "fhir_r4_adapter",
@@ -470,6 +495,7 @@ def _build_bundle(
     roster_map: dict[str, dict] | None = None,
     hospital_config: dict | None = None,
     snapshot_date: str | None = None,
+    snapshot_drop_counter: dict[str, int] | None = None,
 ) -> dict:
     """Build a FHIR R4 Bundle from a CIF patient record by running the builder registry."""
     if roster_map is None:
@@ -613,6 +639,29 @@ def _build_bundle(
     if _pat_dod_str:
         entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10])
 
+    # Issue #945 (2026-08-30): post-snapshot event gate. Universal
+    # bundle-finalize filter mirroring #928 death filter — for inpatients
+    # whose admission is still open at CIF `snapshot_date`, the generator
+    # pre-emits planned future events (nursing notes, vitals, MAR,
+    # imaging, DR, MR, Composition) with `effectiveDateTime` / `date` /
+    # `started` values AFTER snapshot. v0.5.0 p=10000 counted 4,798 such
+    # entries across 7 resource types (furthest 2026-09-25, 28 days past
+    # snapshot 2026-08-28). Single central cutoff at bundle finalize is
+    # the principled fix — same shape as #928 death gate. Dimensional
+    # resources (Patient, Encounter, Coverage, CareTeam, Practitioner,
+    # PractitionerRole, Organization, Location, Endpoint, Device,
+    # Medication) are always kept: Encounter.period.end and
+    # Coverage.period.end for open admissions legitimately extend past
+    # snapshot; only CHILD event resources are gated. Runs after emit;
+    # RNG-shape neutral (no draws). Falls back to a no-op when
+    # `snapshot_date` is absent (test fixtures / legacy CIF without
+    # metadata).
+    if ctx.snapshot_date:
+        entries, _snap_dropped = _drop_entries_after_snapshot(entries, ctx.snapshot_date)
+        if _snap_dropped and snapshot_drop_counter is not None:
+            for _rt, _cnt in _snap_dropped.items():
+                snapshot_drop_counter[_rt] = snapshot_drop_counter.get(_rt, 0) + _cnt
+
     return {
         "resourceType": "Bundle",
         "id": str(uuid.uuid4()),
@@ -652,6 +701,108 @@ def _dt_fields(resource: dict):
                 v = p.get(k)
                 if isinstance(v, str):
                     yield v
+
+
+# Issue #945: dimensional resources whose timestamps can legitimately
+# extend past `snapshot_date`. Encounter.period.end (open admission) and
+# Coverage.period.end (active insurance card) intentionally reach beyond
+# the cutoff — the #944 fix already flips Coverage.status to reflect
+# this. CareTeam.period tracks the caregiving window and mirrors the
+# encounter. Practitioner / PractitionerRole / Organization / Location /
+# Endpoint / Device / Medication carry no gating timestamp fields but are
+# listed for defense-in-depth against future emitter changes. Patient is
+# kept for parity with #928 (its `deceasedDateTime` / birthDate must
+# survive any date-based gate).
+_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES = frozenset(
+    {
+        "Patient",
+        "Encounter",
+        "Coverage",
+        "CareTeam",
+        "Practitioner",
+        "PractitionerRole",
+        "Organization",
+        "Location",
+        "Endpoint",
+        "Device",
+        "Medication",
+    }
+)
+
+
+def _snapshot_ts_iter(resource: dict):
+    """Yield timestamps used to gate 'is this event after snapshot?'.
+
+    Uses only ``Period.start`` for period fields (an event that STARTED
+    before snapshot is a real historical event whose projected end may
+    legitimately extend into future — see MedicationAdministration
+    effectivePeriod on ongoing infusions). Also walks
+    ``DocumentReference.context.period.start`` because ``date`` may
+    legitimately trail the encounter window.
+    """
+    for k in (
+        "effectiveDateTime",
+        "issued",
+        "authoredOn",
+        "occurrenceDateTime",
+        "recorded",
+        "collectedDateTime",
+        "date",
+        "performedDateTime",
+        "started",
+    ):
+        v = resource.get(k)
+        if isinstance(v, str):
+            yield v
+    for pkey in ("period", "effectivePeriod", "performedPeriod", "occurrencePeriod"):
+        p = resource.get(pkey)
+        if isinstance(p, dict):
+            s = p.get("start")
+            if isinstance(s, str):
+                yield s
+    # DocumentReference.context.period.start (the encounter window the
+    # document belongs to). The reproduction script in Issue #945 walks
+    # this exact field.
+    context = resource.get("context")
+    if isinstance(context, dict):
+        p = context.get("period")
+        if isinstance(p, dict):
+            s = p.get("start")
+            if isinstance(s, str):
+                yield s
+
+
+def _drop_entries_after_snapshot(entries: list[dict], snapshot_iso: str) -> tuple[list[dict], dict[str, int]]:
+    """Filter out bundle entries whose timestamp is after the CIF snapshot_date.
+
+    Issue #945: universal event-cutoff gate applied at bundle-finalize.
+    Mirrors the #928 death filter. Compares only the calendar-date prefix
+    (``YYYY-MM-DD``) so same-day activity survives (inclusive on
+    snapshot). Dimensional resource types listed in
+    :data:`_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES` bypass the filter.
+
+    Returns ``(kept_entries, {resource_type: drop_count})`` so the caller
+    can accumulate per-type drop tallies for logging (visibility for the
+    maintainer; the numbers surface in ``simulator.log`` at export end).
+    """
+    kept: list[dict] = []
+    dropped: dict[str, int] = {}
+    for e in entries:
+        res = e.get("resource", {}) if isinstance(e, dict) else {}
+        rtype = res.get("resourceType", "")
+        if rtype in _POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES:
+            kept.append(e)
+            continue
+        after_snapshot = False
+        for v in _snapshot_ts_iter(res):
+            if v[:10] > snapshot_iso:
+                after_snapshot = True
+                break
+        if after_snapshot:
+            dropped[rtype] = dropped.get(rtype, 0) + 1
+        else:
+            kept.append(e)
+    return kept, dropped
 
 
 def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
