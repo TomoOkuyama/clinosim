@@ -132,3 +132,78 @@ allergens:
           manifestation_display_en: "Allergic rhinitis"
           manifestation_display_ja: "アレルギー性鼻炎"
           severity: mild
+
+# ---------------------------------------------------------------------------
+# Issue #942: NKA (No Known Allergies) positive-assertion representation.
+#
+# Every patient in a JP EHR has an allergy-status field (mandatory bedside
+# safety). Patients without documented allergies MUST be emitted with a
+# positive "No Known Allergies" AllergyIntolerance record, not left silent.
+#
+# SNOMED 716186003 "No known allergy" is the standard code per HL7 Argonaut /
+# US Core / JP Core guidance. See feedback_empty_vs_wrong_assertion.md —
+# absence-of-record and positive-NKA-assertion carry different clinical
+# meanings and must not collapse into the same signal.
+# ---------------------------------------------------------------------------
+nka:
+  allergen_code: "716186003"    # SNOMED CT: No known allergy
+  code_text_ja: "アレルギー歴なし"
+  code_text_en: "No known allergies"
+  clinical_status: "resolved"    # per Issue #942 spec (NKA is not an active problem)
+  verification_status: "confirmed"
+
+# ---------------------------------------------------------------------------
+# Issue #942: Polyallergy sampling (5-10% of adults, higher in elderly).
+#
+# `probability_given_any_allergy` is the CONDITIONAL probability that a
+# patient with ≥1 real allergen carries an additional (2nd/3rd/4th) allergen.
+# Absolute polyallergy rate in the total cohort = overall_allergy_gate (15%)
+# × probability_given_any_allergy × age-share weighting. Target absolute
+# polyallergy rate: 3-5% of all patients (per pharmacy-survey benchmarks
+# cited in Issue #942).
+#
+# Elderly and chronically-ill patients accumulate more allergens over their
+# lifetime; the age-conditional multipliers reflect that shape.
+# ---------------------------------------------------------------------------
+polyallergy:
+  # Base conditional probability that a patient with ≥1 allergen has ≥1 more.
+  # Bucketed by age at simulation time.
+  probability_given_any_allergy:
+    child: 0.10        # < 18
+    adult: 0.25        # 18-64
+    elderly: 0.55      # >= 65
+  # Additive multiplier if the patient carries chronic illness that pushes
+  # them into cancer / immunocompromised territory (many drug exposures →
+  # more sensitizations). Applied on top of the age bucket, capped at 0.85.
+  chronic_ill_bonus: 0.15
+  chronic_ill_conditions:      # ICD-10 prefixes that count as chronic-ill
+    - "C"                      # C00-C99 malignant neoplasms
+    - "N18"                    # CKD (repeat drug exposure)
+    - "D80"                    # immunodeficiency
+    - "D81"
+    - "D82"
+    - "D83"
+    - "D84"
+  # Additional allergen count for polyallergic patients (2/3/4 records total).
+  # Weights sampled discretely; first entry = 1 additional (2 total), etc.
+  additional_count_weights:
+    "1": 0.60   # 2 total records
+    "2": 0.30   # 3 total records
+    "3": 0.10   # 4 total records
+
+# ---------------------------------------------------------------------------
+# Issue #942: Cross-reactivity awareness.
+#
+# When the primary allergen is in `trigger_allergen_codes`, boost the
+# probability of adding another allergen from `co_category` in the polyallergy
+# sampling pass. Real-world example: penicillin → cephalosporin
+# cross-reactivity ~10-20 %. Since clinosim's allergen catalog does not
+# currently list cephalosporin, the boost is applied as a category weight
+# shift (bias next sample toward the same drug class), which mirrors the
+# clinical intuition that a penicillin-allergic patient is more likely to
+# document additional medication allergies than food/environment ones.
+# ---------------------------------------------------------------------------
+cross_reactivity:
+  - trigger_allergen_codes: ["373270004"]   # Penicillin
+    boost_category: "medication"
+    boost_weight_bonus: 0.20                # +20% conditional boost on medication category
