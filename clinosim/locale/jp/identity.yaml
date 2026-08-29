@@ -90,6 +90,27 @@ mynumber_insurance_rate:
 # Real intra-household statistics are sparse; exposed as a tunable parameter.
 household_icc: 0.5
 
+# Fiscal-year boundary for JP 保険証 renewal cycle (Issue #923).
+# JP national/employer/late-elderly insurance rows are re-issued at fiscal-year
+# boundaries (4/1 → 3/31). Coverage.period spans one FY per row, and the sim
+# emits one Coverage per FY covered by the patient's encounter window so no
+# encounter is orphaned outside period (§Issue #923 §Fix 1).
+fiscal_year:
+  start_month: 4
+  start_day: 1
+
+# Age gates for JP mandatory-enrollment categories (Issue #923 §Fix 2).
+# `late_elderly_min_age`: 高齢者の医療の確保に関する法律 §50 — every resident aged ≥75
+#   is auto-enrolled in 後期高齢者医療制度; no other category can hold them.
+# `primary_subscriber_min_age`: minors (<18) cannot legally hold the 被保険者 slot on
+#   an employer-based (被用者保険) policy — they are 被扶養者 or on 国民健康保険.
+# Age is evaluated at each Coverage.period start (April 1 of the row's FY), so
+# a patient who crosses the 75 boundary mid-simulation gets a correctly
+# reassigned 後期高齢者 row from the next FY onward.
+age_gates:
+  late_elderly_min_age: 75
+  primary_subscriber_min_age: 18
+
 # FHIR output mapping — HL7 FHIR JP Core Coverage profile.
 # Verified against jpfhir.jp/fhir/core (Coverage profile + example). Consumed by the
 # FHIR adapter; the identity module itself stays output-agnostic.

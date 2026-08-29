@@ -388,6 +388,60 @@ def audit_invariants(resources: dict, sex_by_pid: dict[str, str]) -> None:
     print(f"  {mark} N40 (BPH) in females: {n40_female}")
 
 
+def audit_coverage_age_gate(resources: dict, ages_by_pid: dict[str, int]) -> None:
+    """Issue #923: check Coverage.type against patient age.
+
+    - Every patient aged ≥ 75 (at snapshot year) must be on 後期高齢者医療制度
+      on every Coverage row (legal requirement — no exceptions).
+    - No minor (< 18) may be booked as 被用者保険（被保険者） (they can only be
+      被扶養者 or on 国民健康保険).
+    - No encounter's start date may fall outside every Coverage.period for the
+      patient (a covered patient must have Coverage on the day of care).
+    """
+    _section("12. Coverage age-gate + period coverage (Issue #923)")
+    covs = resources.get("Coverage", [])
+    covs_by_pid: dict[str, list[dict]] = collections.defaultdict(list)
+    for c in covs:
+        pid = c.get("beneficiary", {}).get("reference", "").replace("Patient/", "")
+        covs_by_pid[pid].append(c)
+
+    older_wrong = 0
+    younger_wrong = 0
+    for pid, age in ages_by_pid.items():
+        for c in covs_by_pid.get(pid, []):
+            label = (c.get("type") or {}).get("text", "")
+            if age >= 75 and "後期" not in label:
+                older_wrong += 1
+            if age < 18 and label == "被用者保険（被保険者）":
+                younger_wrong += 1
+
+    mark = "✅" if older_wrong == 0 else "❌"
+    print(f"  {mark} 75+ patients on non-後期高齢 Coverage rows: {older_wrong}")
+    mark = "✅" if younger_wrong == 0 else "❌"
+    print(f"  {mark} Under-18 patients as 被用者保険（被保険者）: {younger_wrong}")
+
+    # Encounter alignment against Coverage.period
+    encs = resources.get("Encounter", [])
+    encs_by_pid: dict[str, list[str]] = collections.defaultdict(list)
+    for enc in encs:
+        pid = enc.get("subject", {}).get("reference", "").replace("Patient/", "")
+        start = (enc.get("period") or {}).get("start") or ""
+        if start:
+            encs_by_pid[pid].append(str(start)[:10])
+    uncovered = 0
+    total = 0
+    for pid, dates in encs_by_pid.items():
+        periods = [(c["period"]["start"], c["period"]["end"]) for c in covs_by_pid.get(pid, []) if c.get("period")]
+        for d in dates:
+            total += 1
+            if not any(s <= d <= e for s, e in periods):
+                uncovered += 1
+    if total:
+        pct = 100.0 * uncovered / total
+        mark = "✅" if pct < 1.0 else ("⚠️" if pct < 5.0 else "❌")
+        print(f"  {mark} Encounters outside any Coverage.period: {uncovered}/{total} ({pct:.2f}%)")
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -428,6 +482,7 @@ def main() -> int:
     audit_immunization(resources, ages_by_pid, sex_by_pid)
     audit_allergy(resources, n)
     audit_invariants(resources, sex_by_pid)
+    audit_coverage_age_gate(resources, ages_by_pid)
 
     print(f"\n{'=' * 78}\nSUMMARY: ⚠️ = deviation >5%, ❌ = deviation >10%\n{'=' * 78}")
     return 0
