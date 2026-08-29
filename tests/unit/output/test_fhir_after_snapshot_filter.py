@@ -38,7 +38,7 @@ def test_drops_observation_after_snapshot() -> None:
             }
         )
     ]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert kept == []
     assert dropped == {"Observation": 1}
 
@@ -55,7 +55,7 @@ def test_keeps_observation_on_snapshot_day() -> None:
             }
         )
     ]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert len(kept) == 1
     assert dropped == {}
 
@@ -73,7 +73,7 @@ def test_drops_document_reference_by_context_period_start() -> None:
             }
         )
     ]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert kept == []
     assert dropped == {"DocumentReference": 1}
 
@@ -89,7 +89,7 @@ def test_drops_period_start_after_snapshot() -> None:
             }
         )
     ]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert kept == []
     assert dropped == {"MedicationAdministration": 1}
 
@@ -108,7 +108,7 @@ def test_keeps_period_end_after_snapshot_when_start_before() -> None:
             }
         )
     ]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert len(kept) == 1
     assert dropped == {}
 
@@ -128,7 +128,7 @@ def test_encounter_open_admission_never_dropped() -> None:
             }
         )
     ]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert len(kept) == 1
     assert dropped == {}
 
@@ -147,7 +147,7 @@ def test_coverage_period_end_after_snapshot_never_dropped() -> None:
             }
         )
     ]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert len(kept) == 1
     assert dropped == {}
 
@@ -167,7 +167,7 @@ def test_all_seven_leaking_resource_types_drop_in_one_bundle() -> None:
         ("ImagingStudy", {"started": "2026-08-30T22:27:00+09:00"}),
     ]
     entries = [_entry({"resourceType": rt, "id": rt.lower() + "-x", **fields}) for rt, fields in types_and_dt_fields]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert kept == [], f"expected all 7 resources dropped, kept={kept}"
     assert sum(dropped.values()) == 7
     assert set(dropped.keys()) == {rt for rt, _ in types_and_dt_fields}
@@ -191,7 +191,7 @@ def test_no_snapshot_date_is_noop_on_caller() -> None:
             }
         )
     ]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert len(kept) == 1
     assert dropped == {}
 
@@ -201,7 +201,7 @@ def test_resource_with_no_dt_fields_kept() -> None:
     (e.g. a bare Condition with no onset/recorded) survives — nothing
     to compare, filter is silent."""
     entries = [_entry({"resourceType": "Condition", "id": "cond-bare", "code": {"text": "x"}})]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert len(kept) == 1
     assert dropped == {}
 
@@ -229,6 +229,191 @@ def test_allowlist_covers_dimensional_types() -> None:
     assert required.issubset(_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES)
 
 
+def test_scrubber_removes_dr_result_ref_to_dropped_observation() -> None:
+    """Issue #945 follow-up (CI shard 2/3 fail on us-100): a
+    DiagnosticReport whose ``result[]`` references two Observations, one
+    of which is dropped by the snapshot filter, must have that
+    dangling Reference scrubbed. The DR survives (its own timestamp is
+    pre-snapshot) with a `result[]` containing only the surviving
+    Observation's Reference — no stale ``Observation/lab-…`` id left to
+    trip ``reference_integrity``."""
+    entries = [
+        _entry(
+            {
+                "resourceType": "Observation",
+                "id": "obs-past",
+                "effectiveDateTime": "2026-08-20T10:00:00+09:00",
+            }
+        ),
+        _entry(
+            {
+                "resourceType": "Observation",
+                "id": "obs-future",
+                "effectiveDateTime": "2026-09-15T10:00:00+09:00",
+            }
+        ),
+        _entry(
+            {
+                "resourceType": "DiagnosticReport",
+                "id": "dr-mixed",
+                "issued": "2026-08-25T12:00:00+09:00",
+                "result": [
+                    {"reference": "Observation/obs-past"},
+                    {"reference": "Observation/obs-future"},
+                ],
+            }
+        ),
+    ]
+    kept, dropped, scrubbed = _drop_entries_after_snapshot(entries, SNAP)
+    assert dropped == {"Observation": 1}
+    assert scrubbed == 1
+    dr = next(e["resource"] for e in kept if e["resource"]["resourceType"] == "DiagnosticReport")
+    assert dr["result"] == [{"reference": "Observation/obs-past"}]
+
+
+def test_scrubber_cleans_composition_section_entry_recursive() -> None:
+    """Composition sections (and their nested sub-sections) must have
+    dangling entry References scrubbed. Composition itself is kept if
+    its ``date`` is pre-snapshot."""
+    entries = [
+        _entry(
+            {
+                "resourceType": "Observation",
+                "id": "obs-future",
+                "effectiveDateTime": "2026-09-15T10:00:00+09:00",
+            }
+        ),
+        _entry(
+            {
+                "resourceType": "Composition",
+                "id": "comp-1",
+                "date": "2026-08-27T09:00:00+09:00",
+                "section": [
+                    {
+                        "title": "Labs",
+                        "entry": [{"reference": "Observation/obs-future"}],
+                        "section": [
+                            {
+                                "title": "Nested",
+                                "entry": [{"reference": "Observation/obs-future"}],
+                            }
+                        ],
+                    },
+                ],
+            }
+        ),
+    ]
+    kept, dropped, scrubbed = _drop_entries_after_snapshot(entries, SNAP)
+    assert dropped == {"Observation": 1}
+    # One scrub at the top-level section.entry, one at the nested section.entry.
+    assert scrubbed == 2
+    comp = next(e["resource"] for e in kept if e["resource"]["resourceType"] == "Composition")
+    assert comp["section"][0]["entry"] == []
+    assert comp["section"][0]["section"][0]["entry"] == []
+
+
+def test_scrubber_cascade_drops_medadmin_whose_request_is_dropped() -> None:
+    """A MedicationAdministration whose ``.request`` References a
+    MedicationRequest dropped by the snapshot filter is itself dropped
+    (``.request`` is 1..1 — an orphan MAR is a spec violation and
+    would dangle if kept). The cascade drop is counted under
+    ``MedicationAdministration`` in the returned tally."""
+    entries = [
+        _entry(
+            {
+                "resourceType": "MedicationRequest",
+                "id": "mr-future",
+                "authoredOn": "2026-09-01T08:00:00+09:00",
+            }
+        ),
+        _entry(
+            {
+                "resourceType": "MedicationAdministration",
+                "id": "mar-child",
+                # Own timestamp is pre-snapshot — filter first-pass keeps it.
+                "effectiveDateTime": "2026-08-20T08:00:00+09:00",
+                "request": {"reference": "MedicationRequest/mr-future"},
+            }
+        ),
+    ]
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
+    assert kept == []
+    assert dropped == {"MedicationRequest": 1, "MedicationAdministration": 1}
+
+
+def test_scrubber_cascade_drops_propagate_to_dr_result_refs() -> None:
+    """Two-hop cascade: an Observation is dropped by the first-pass
+    filter, and a DiagnosticReport that only referenced that
+    Observation ends up with an empty ``result[]``. The DR itself is
+    kept (empty ``result`` is a structural minimum-cardinality concern,
+    not a reference-integrity one), but any downstream Composition
+    section that referenced the still-surviving DR keeps its
+    Reference — nothing dangles."""
+    entries = [
+        _entry(
+            {
+                "resourceType": "Observation",
+                "id": "obs-future",
+                "effectiveDateTime": "2026-09-15T10:00:00+09:00",
+            }
+        ),
+        _entry(
+            {
+                "resourceType": "DiagnosticReport",
+                "id": "dr-1",
+                "issued": "2026-08-20T12:00:00+09:00",
+                "result": [{"reference": "Observation/obs-future"}],
+            }
+        ),
+        _entry(
+            {
+                "resourceType": "Composition",
+                "id": "comp-1",
+                "date": "2026-08-25T09:00:00+09:00",
+                "section": [{"title": "Reports", "entry": [{"reference": "DiagnosticReport/dr-1"}]}],
+            }
+        ),
+    ]
+    kept, dropped, scrubbed = _drop_entries_after_snapshot(entries, SNAP)
+    assert dropped == {"Observation": 1}
+    assert scrubbed == 1
+    dr = next(e["resource"] for e in kept if e["resource"]["resourceType"] == "DiagnosticReport")
+    assert dr["result"] == []
+    comp = next(e["resource"] for e in kept if e["resource"]["resourceType"] == "Composition")
+    # DR itself was NOT dropped, so its Reference on Composition survives.
+    assert comp["section"][0]["entry"] == [{"reference": "DiagnosticReport/dr-1"}]
+
+
+def test_scrubber_document_reference_context_related() -> None:
+    """DocumentReference.context.related[] is walked and dangling
+    References are removed."""
+    entries = [
+        _entry(
+            {
+                "resourceType": "Observation",
+                "id": "obs-future",
+                "effectiveDateTime": "2026-09-15T10:00:00+09:00",
+            }
+        ),
+        _entry(
+            {
+                "resourceType": "DocumentReference",
+                "id": "doc-1",
+                "date": "2026-08-25T10:00:00+09:00",
+                "context": {
+                    "period": {"start": "2026-08-15T00:00:00+09:00"},
+                    "related": [{"reference": "Observation/obs-future"}],
+                },
+            }
+        ),
+    ]
+    kept, dropped, scrubbed = _drop_entries_after_snapshot(entries, SNAP)
+    assert dropped == {"Observation": 1}
+    assert scrubbed == 1
+    doc = next(e["resource"] for e in kept if e["resource"]["resourceType"] == "DocumentReference")
+    assert doc["context"]["related"] == []
+
+
 def test_mixed_bundle_partial_drop_counter_accurate() -> None:
     """Mixed bundle: 2 Observations (1 past, 1 future), 1 MedAdmin
     (past). Only the future Observation drops; counter reports exactly
@@ -244,7 +429,7 @@ def test_mixed_bundle_partial_drop_counter_accurate() -> None:
             }
         ),
     ]
-    kept, dropped = _drop_entries_after_snapshot(entries, SNAP)
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
     assert len(kept) == 2
     assert {e["resource"]["id"] for e in kept} == {"obs-past", "mar-past"}
     assert dropped == {"Observation": 1}
