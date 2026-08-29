@@ -1101,6 +1101,54 @@ def _build_discharge_medication_request(
         if dose_parts:
             dose_text = " ".join(dose_parts)
             dosage["text"] = _localize_dosage_terms(dose_text) if is_jp(country) else dose_text
+
+    # Issue #920: emit structured `doseAndRate.doseQuantity` + `timing` from
+    # the same fields we already put in `.text`. Pre-fix, 91% of MR carried a
+    # route + free-text dose but no numeric doseQuantity — a JP prescription
+    # without a dose is legally invalid and downstream dispensing / dose-range
+    # safety analytics cannot function against an empty dose. Chronic-care
+    # regimens flow through this discharge/outpatient-renewal builder for
+    # every follow-up visit (~1.5k of 1.7k MR per typical run) so the fix
+    # here is high-leverage. `item.dose` is a language-neutral numeric+unit
+    # string ("5mg", "500mg BID"); `item.frequency` is the separate cadence
+    # field ("daily", "bid"); we route both through `parse_dose_string` /
+    # `_FREQ_PER_DAY` from the order engine so the parsing rules stay
+    # single-sourced with the inpatient path (`build_dosage_instruction` in
+    # lib/common.py). Semantic-correctness rule (feedback_semantic_correctness
+    # _over_coverage): unparseable dose → leave doseQuantity empty; better an
+    # honest 80% coverage than a fabricated 100%.
+    if not authored_text and dose:
+        from clinosim.modules.order.engine import _FREQ_PER_DAY, parse_dose_string
+
+        _parsed = parse_dose_string(dose)
+        _qty = _parsed.get("dose_quantity")
+        _unit = _parsed.get("dose_unit", "")
+        if _qty is not None and _unit:
+            dosage["doseAndRate"] = [{"doseQuantity": build_ucum_quantity(_qty, _unit)}]
+            # IV continuous infusions (e.g. "40mg/h", "0.1U/kg/h continuous")
+            # also need `rateQuantity` — a KCl bolus without rate control is a
+            # documented cause of fatal cardiac arrest, so this is safety-load.
+            _dose_upper = dose.upper()
+            if "/H" in _dose_upper or "CONTINUOUS" in _dose_upper or "DRIP" in _dose_upper:
+                dosage["doseAndRate"][0]["rateQuantity"] = build_ucum_quantity(
+                    _qty,
+                    _unit + "/h",
+                )
+        # Timing: prefer the item's separate `frequency` field (canonical shape
+        # used by chronic-transcribe and outpatient-renewal paths); fall back
+        # to whatever `parse_dose_string` peeled out of the dose string (the
+        # protocol `discharge_oral` shape bakes "20mg PO daily" into `dose`).
+        _freq_raw = str(get_attr_or_key(item, "frequency", "") or "").strip()
+        if not _freq_raw and _parsed.get("frequency"):
+            _freq_raw = str(_parsed["frequency"])
+        _freq_per_day = _parsed.get("frequency_per_day")
+        if _freq_per_day is None and _freq_raw:
+            _freq_per_day = _FREQ_PER_DAY.get(_freq_raw.lower().strip())
+        if _freq_per_day:
+            dosage["timing"] = {"repeat": {"frequency": _freq_per_day, "period": 1, "periodUnit": "d"}}
+        elif _freq_raw and _freq_raw.lower().strip() in ("prn", "as needed", "when required"):
+            dosage["asNeededBoolean"] = True
+
     if dosage:
         resource["dosageInstruction"] = [dosage]
 
