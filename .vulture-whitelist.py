@@ -520,3 +520,9 @@ _.prec  # determinism.py:91 (mpmath state, cross-platform determinism)
 # in `replacement_strategy.py`. Vulture only sees module-top imports.
 _.latest_by_lab_name  # document/narrative/lab_timeseries.py:96
 _.lab_trend  # document/narrative/lab_timeseries.py:188
+
+# load_allergens — public API consumed by tests + README + internal call
+# at engine.py:153; vulture (60% confidence) misses the internal call
+# because #942 refactor also added load_allergen_config as a sibling.
+# Kept as the documented public entrypoint for allergen-catalog loading.
+_.load_allergens  # modules/allergy/engine.py:134

@@ -2,10 +2,18 @@
 # Defines what happens at routine clinic visits for each chronic condition
 
 I10:  # Hypertension
+  # Interval raised from 1 → 4 months (Issue #943, 2026-08-30). Real-world JP
+  # outpatient cadence for stable, well-controlled HTN under monotherapy /
+  # dual therapy is quarterly-or-longer per JSH guidelines; monthly is
+  # reserved for newly-diagnosed / uncontrolled / triple-therapy patients
+  # (a minority). The previous 1-month cadence over-emitted I10 as an
+  # encounter reason (41% share on p=1000 JP; MHLW patient survey shows
+  # real-world 10-15% share). Cascade note: this is an intentional RNG-shape
+  # shift and explains part of the MINOR classification for this PR.
   visit_reason:
     en: "Blood pressure management, medication review"
     ja: "血圧管理・処方薬の見直し"
-  follow_up_interval_months: 1
+  follow_up_interval_months: 4
   labs: []
   labs_annual: [Creatinine, K, Na]
   vitals: [systolic_bp, diastolic_bp, heart_rate]
@@ -130,6 +138,84 @@ G20:  # Parkinson's disease
   vitals: [systolic_bp, heart_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 20
+
+# --- Oncology follow-up (Issue #943) --------------------------------------
+# Cancer follow-up cadence per NCCN / JSCO / JCOG survivorship guidelines
+# (varies by cancer type; 3 months during active surveillance is a common
+# ceiling). Tumor markers listed as labs are aspirational — most are not
+# yet in the reference-range dictionaries; the encounter emits regardless.
+
+C18:  # Colon cancer
+  visit_reason:
+    en: "Colon cancer follow-up, tumor marker (CEA), symptom review"
+    ja: "大腸がん術後・治療後フォローアップ・腫瘍マーカー（CEA）・症状評価"
+  follow_up_interval_months: 3
+  labs: []
+  labs_annual: [CEA, CA19_9]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+C22:  # Liver cancer
+  visit_reason:
+    en: "Hepatocellular carcinoma follow-up, tumor markers (AFP, PIVKA-II)"
+    ja: "肝細胞がんフォローアップ・腫瘍マーカー（AFP, PIVKA-II）・肝機能評価"
+  follow_up_interval_months: 3
+  labs: [AST, ALT]
+  labs_quarterly: [AFP]
+  vitals: [systolic_bp, diastolic_bp, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+C34:  # Lung cancer
+  visit_reason:
+    en: "Lung cancer follow-up, symptom review, imaging surveillance"
+    ja: "肺がんフォローアップ・症状評価・画像経過観察"
+  follow_up_interval_months: 3
+  labs: []
+  labs_quarterly: [CEA]
+  vitals: [systolic_bp, heart_rate, spo2, respiratory_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+C50:  # Breast cancer (female-only per sex-gate)
+  visit_reason:
+    en: "Breast cancer follow-up, tumor marker (CA15-3), hormonal therapy review"
+    ja: "乳がんフォローアップ・腫瘍マーカー（CA15-3）・ホルモン療法評価"
+  follow_up_interval_months: 3
+  labs: []
+  labs_quarterly: [CA15_3]
+  vitals: [systolic_bp, diastolic_bp, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+C61:  # Prostate cancer (male-only per sex-gate)
+  visit_reason:
+    en: "Prostate cancer follow-up, PSA monitoring, androgen deprivation review"
+    ja: "前立腺がんフォローアップ・PSAモニタリング・アンドロゲン除去療法評価"
+  follow_up_interval_months: 3
+  labs: []
+  labs_quarterly: [PSA]
+  vitals: [systolic_bp, diastolic_bp]
+  prescriptions_renewed: true
+  visit_duration_minutes: 15
+
+# --- Obstetric follow-up (Issue #943) -------------------------------------
+# Prenatal visits per ACOG / JSOG guidance (monthly early, more frequent
+# late trimester). We model as monthly across the sim window; a follow-up
+# Issue will introduce trimester-conditional cadence + delivery event +
+# newborn Patient generation.
+
+Z34:  # Encounter for supervision of normal pregnancy (female 20-44 per age/sex gate)
+  visit_reason:
+    en: "Prenatal check-up, fetal wellbeing, maternal vitals"
+    ja: "妊婦健診・胎児健常評価・妊婦バイタルサイン"
+  follow_up_interval_months: 1
+  labs: []
+  labs_quarterly: [Hb, Glucose]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 25
 
 # Disease-specific post-discharge follow-up
 _post_discharge:

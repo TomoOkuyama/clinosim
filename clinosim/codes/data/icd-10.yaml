@@ -419,6 +419,15 @@ codes:
   Z23:
     en: Need for immunization against single bacterial diseases
     ja: 予防接種
+  Z34:
+    en: Encounter for supervision of normal pregnancy
+    ja: 正常妊娠の管理
+  Z37:
+    en: Outcome of delivery
+    ja: 分娩の転帰
+  Z38:
+    en: Liveborn infants according to place of birth
+    ja: 出生児の出生場所別分類
   Z48:
     en: Other surgical follow-up care
     ja: 術後ケア
@@ -824,6 +833,9 @@ codes:
   C18:
     en: "Malignant neoplasm of colon"
     ja: "結腸の悪性新生物＜腫瘍＞"
+  C22:
+    en: "Malignant neoplasm of liver and intrahepatic bile ducts"
+    ja: "肝及び肝内胆管の悪性新生物＜腫瘍＞"
   C34:
     en: "Malignant neoplasm of bronchus and lung"
     ja: "気管支及び肺の悪性新生物＜腫瘍＞"
