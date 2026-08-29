@@ -12,6 +12,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.modules._shared import is_jp
 from clinosim.modules.disease.acuity import NEURO_LOC_MONITORING_DISEASES
 from clinosim.modules.procedure._bedside_thresholds import (
@@ -75,6 +76,7 @@ from clinosim.modules.procedure._surgery_thresholds import (
     US_TIME_TO_SURGERY_MEAN_HOURS,
     US_TIME_TO_SURGERY_STD_HOURS,
 )
+from clinosim.seeding import issue939_procedure_seed
 from clinosim.types.procedure import ProcedureRecord, RehabSession
 
 __all__ = ["ProcedureRecord", "RehabSession"]
@@ -301,6 +303,14 @@ _PROCEDURE_METADATA: dict[str, ProcedureMeta] = {
     "short_arm_splint": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "8205005"),  # wrist
     "reduction_closed": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "8205005"),  # wrist
     "oxygen_therapy": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "39607008"),  # lung
+    # Issue #939: standard-of-care interventions for cardiology / neurosurgery
+    # / GI-obstruction admissions. SNOMED body-site codes verified against
+    # the SNOMED International browser (browser.ihtsdotools.org).
+    "coronary_pci": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "41801008"),  # coronary artery
+    "pacemaker_implant": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "80891009"),  # heart
+    "craniotomy_hematoma_evacuation": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "12738006"),  # brain
+    "ileus_tube_placement": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "26107004"),  # small intestine
+    "bowel_resection": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "30315005"),  # large intestine
 }
 
 
@@ -349,6 +359,37 @@ _BEDSIDE_PROCEDURES: list[tuple[str, str, str, str, str, str]] = [
     ("short_arm_splint", "29075", "", "Short arm splint", "短腕シーネ固定", "none"),
     ("reduction_closed", "25605", "", "Closed reduction of wrist fracture", "手関節骨折徒手整復", "local"),
     ("oxygen_therapy", "94640", "", "Oxygen therapy (nebulizer)", "酸素療法", "none"),
+    # Issue #939: cardiology / neurosurgery / GI-obstruction interventions.
+    # JP codes verified against MHLW 診療報酬点数表 (令和6年度); CPT descriptors
+    # from AMA CPT 2024. Each of these five entries has its dispatch drawn
+    # from a per-encounter sub-RNG (issue939_procedure_seed) so the additive
+    # emissions do NOT cascade the shared patient-scoped stream.
+    ("coronary_pci", "92920", "K546", "Percutaneous coronary intervention (PCI)", "経皮的冠動脈形成術", "local"),
+    (
+        "pacemaker_implant",
+        "33208",
+        "K597",
+        "Permanent pacemaker implantation",
+        "ペースメーカー移植術",
+        "local",
+    ),
+    (
+        "craniotomy_hematoma_evacuation",
+        "61312",
+        "K164-1",
+        "Craniotomy for intracranial hematoma evacuation",
+        "頭蓋内血腫除去術（開頭）",
+        "general",
+    ),
+    (
+        "ileus_tube_placement",
+        "44500",
+        "J034-2",
+        "Long tube (ileus tube) placement for bowel obstruction",
+        "イレウス用ロングチューブ挿入法",
+        "none",
+    ),
+    ("bowel_resection", "44140", "K719", "Colectomy (bowel resection)", "結腸切除術", "general"),
 ]
 
 # Rules: (disease_id or category) → [(procedure_type, probability)]
@@ -445,6 +486,41 @@ _PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
 ]
 
 
+# Issue #939 — cardiology / neurosurgery / GI-obstruction interventions.
+# Kept in a SEPARATE dispatch table (not `_PROCEDURE_RULES`) because these
+# five procedures draw from a per-(encounter, proc_type) sub-RNG
+# (`issue939_procedure_seed`) instead of the shared patient-scoped `rng`.
+# Splitting the tables lets the shared-rng loop stay byte-identical for
+# every disease_id — only the isolated loop below consumes new randomness,
+# and it draws from a stream that no other consumer touches.
+#
+# Baseline probabilities align with the "Expected behavior" section of
+# Issue #939: PCI ~85% of MI, pacemaker ~10% of HFrEF admits, craniotomy
+# ~35% of surgical-candidate ICH, ileus tube ~60% conservative-management,
+# bowel resection ~20% failed-conservative. Tuned probabilities live here
+# rather than in yaml for parity with `_PROCEDURE_RULES`; a future scope
+# item can migrate both tables to a shared per-disease dispatch yaml.
+_ISSUE939_PROCEDURE_RULES: list[tuple[list[str], list[tuple[str, float]]]] = [
+    # Acute MI — primary PCI is standard-of-care for STEMI/NSTEMI.
+    (["acute_mi"], [("coronary_pci", 0.85)]),
+    # Heart failure exacerbation — CRT/pacemaker/ICD implanted in a
+    # minority of HFrEF admits (JCS guideline ~10-15% overall uptake).
+    (["heart_failure_exacerbation"], [("pacemaker_implant", 0.10)]),
+    # Intracerebral / subdural hemorrhage — surgical evacuation for the
+    # portion who meet JSNS criteria (deep/moderate volume + declining LOC).
+    (["hemorrhagic_stroke", "subdural_hematoma"], [("craniotomy_hematoma_evacuation", 0.35)]),
+    # Bowel obstruction / ileus — long tube first-line; resection for
+    # failed conservative management (~20% escalation rate).
+    (["ileus"], [("ileus_tube_placement", 0.60), ("bowel_resection", 0.20)]),
+]
+
+# Procedure types dispatched from `_ISSUE939_PROCEDURE_RULES` — used to guard
+# against accidental duplication into `_PROCEDURE_RULES` in future edits.
+_ISSUE939_PROCEDURE_TYPES: frozenset[str] = frozenset(
+    proc_type for _match, rules in _ISSUE939_PROCEDURE_RULES for proc_type, _prob in rules
+)
+
+
 def generate_bedside_procedures(
     patient_id: str,
     encounter_id: str,
@@ -522,6 +598,62 @@ def generate_bedside_procedures(
         )
         results.append(record)
         proc_idx += 1
+
+    # Issue #939 — isolated sub-RNG loop for cardiology / neurosurgery /
+    # GI-obstruction interventions. Runs AFTER the shared-rng loop so
+    # `proc_idx` continues incrementing (procedure_id uniqueness) but the
+    # per-encounter sub-RNG does not touch the shared patient stream.
+    for disease_match, proc_list in _ISSUE939_PROCEDURE_RULES:
+        if disease_id not in disease_match:
+            continue
+        for proc_type, base_prob in proc_list:
+            sub_rng = determinism.default_rng(issue939_procedure_seed(encounter_id, proc_type))
+            prob = min(1.0, base_prob * severity_mult)
+            if sub_rng.random() >= prob:
+                continue
+            spec = proc_lookup.get(proc_type)
+            if not spec:
+                continue
+
+            _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
+            if is_jp(country) and not kcode:
+                continue
+            code = kcode if is_jp(country) else cpt
+
+            hours_offset = max(
+                BEDSIDE_HOURS_OFFSET_MIN,
+                float(sub_rng.exponential(BEDSIDE_HOURS_OFFSET_EXPONENTIAL_MEAN)),
+            )
+            proc_time = admission_time + timedelta(hours=hours_offset)
+            duration = int(
+                max(
+                    BEDSIDE_DURATION_MIN_MIN,
+                    sub_rng.normal(BEDSIDE_DURATION_MEAN_MIN, BEDSIDE_DURATION_STD_MIN),
+                )
+            )
+
+            meta = _PROCEDURE_METADATA.get(proc_type)
+            record = ProcedureRecord(
+                procedure_id=f"PROC-{patient_id}-{proc_idx + 2:03d}",
+                patient_id=patient_id,
+                encounter_id=encounter_id,
+                procedure_type=proc_type,
+                procedure_code=code,
+                procedure_code_jp=kcode,
+                procedure_code_us=cpt,
+                start_datetime=proc_time,
+                end_datetime=proc_time + timedelta(minutes=duration),
+                duration_minutes=duration,
+                primary_surgeon_id="",
+                anesthesia_type=anesthesia,
+                category_code=meta.category_code if meta else _SCT_CATEGORY_SURGICAL,
+                body_site_code=meta.body_site_code if meta else "",
+                outcome_code=_SCT_OUTCOME_SUCCESS,
+                complication_codes=[],
+                location_id="",
+            )
+            results.append(record)
+            proc_idx += 1
 
     return results
 
