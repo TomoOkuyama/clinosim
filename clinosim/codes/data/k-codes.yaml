@@ -27,6 +27,13 @@ codes:
   K089:
     en: Complex hand surgery (replantation)
     ja: 複雑手指手術・再接着術
+  # Issue #939: neurosurgical hematoma evacuation for acute ICH.
+  # Source: MHLW 診療報酬点数表 (令和6年度) K164 頭蓋内血腫除去術.
+  # K164-1 = 開頭 (craniotomy) — used for acute intracerebral/subdural
+  # hematoma. K164-2 (existing) is 穿頭 (burr hole) for chronic SDH.
+  K164-1:
+    en: Craniotomy for intracranial hematoma evacuation
+    ja: 頭蓋内血腫除去術（開頭）
   K164-2:
     en: Chronic subdural hematoma, burr hole irrigation
     ja: 慢性硬膜下血腫穿孔洗浄術
@@ -39,6 +46,16 @@ codes:
   K0811:
     en: Hemiarthroplasty, femoral head
     ja: 大腿骨頭人工骨頭置換術
+  # Issue #939: percutaneous coronary intervention (PCI) for STEMI/NSTEMI.
+  # Source: MHLW 診療報酬点数表 (令和6年度) K546 経皮的冠動脈形成術.
+  K546:
+    en: Percutaneous coronary intervention (PCI)
+    ja: 経皮的冠動脈形成術
+  # Issue #939: permanent pacemaker implantation for HF / bradyarrhythmia.
+  # Source: MHLW 診療報酬点数表 (令和6年度) K597 ペースメーカー移植術.
+  K597:
+    en: Permanent pacemaker implantation
+    ja: ペースメーカー移植術
   K599:
     en: Electrical cardioversion
     ja: 電気的カルジオバージョン
@@ -48,6 +65,11 @@ codes:
   K672-2:
     en: Laparoscopic cholecystectomy
     ja: 腹腔鏡下胆嚢摘出術
+  # Issue #939: bowel resection for failed conservative ileus / obstruction.
+  # Source: MHLW 診療報酬点数表 (令和6年度) K719 結腸切除術.
+  K719:
+    en: Colectomy (bowel resection)
+    ja: 結腸切除術
   K718-2:
     en: Laparoscopic appendectomy
     ja: 腹腔鏡下虫垂切除術
@@ -96,3 +118,8 @@ codes:
   J044:
     en: Endotracheal intubation
     ja: 気管挿管
+  # Issue #939: long tube (ileus tube) placement for bowel obstruction.
+  # Source: MHLW 診療報酬点数表 (令和6年度) J034-2 イレウス用ロングチューブ挿入法.
+  J034-2:
+    en: Long tube (ileus tube) placement for bowel obstruction
+    ja: イレウス用ロングチューブ挿入法

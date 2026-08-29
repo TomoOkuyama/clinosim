@@ -41,6 +41,36 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
+- **Issue #939 — Procedure catalog gaps for cardiology / neurosurgery /
+  GI-obstruction admissions.** Pre-fix, the Procedure catalog was 65 codes
+  / ~440 records across 40,066 encounters and completely omitted the
+  standard-of-care interventions for four common admission reasons: 0/17
+  MI admits had PCI, 0/101 HF admits had pacemaker/ICD/CRT, 0/6 ICH
+  admits had craniotomy/hematoma-evacuation, 0/9 ileus admits had ileus
+  tube or bowel resection. Root cause: the bedside procedure engine
+  (`clinosim/modules/procedure/engine.py`) held disease → procedure
+  dispatch rules only for orthopedic + general-surgery admissions.
+  Fix: **additive** — five new entries added to `_BEDSIDE_PROCEDURES` +
+  `_PROCEDURE_METADATA` (`coronary_pci`, `pacemaker_implant`,
+  `craniotomy_hematoma_evacuation`, `ileus_tube_placement`,
+  `bowel_resection`) with real MHLW K-codes (K546 経皮的冠動脈形成術,
+  K597 ペースメーカー移植術, K164-1 頭蓋内血腫除去術（開頭）, J034-2
+  イレウス用ロングチューブ挿入法, K719 結腸切除術) added to
+  `clinosim/codes/data/k-codes.yaml` and CPT codes (92920, 33208, 61312,
+  44500, 44140) added to `clinosim/codes/data/cpt.yaml`. Dispatch table
+  `_ISSUE939_PROCEDURE_RULES` maps `acute_mi` → PCI @ 0.85,
+  `heart_failure_exacerbation` → pacemaker @ 0.10, `hemorrhagic_stroke`
+  / `subdural_hematoma` → craniotomy @ 0.35, `ileus` → tube @ 0.60 +
+  resection @ 0.20 (JCS / JSNS baseline uptake). Each dispatch draws
+  from a per-(encounter, proc_type) sub-RNG
+  (`issue939_procedure_seed`) so the additive emissions do NOT cascade
+  the shared patient-scoped rng — every existing lab / imaging /
+  discharge-Rx / memoize consumer keeps its pre-fix byte-shape; only
+  the new Procedure records join the CIF. Consequence: structured CIF
+  gains Procedure rows for the four admission-reason cohorts (rates
+  match spec on the 500-encounter cohort test), so a fresh `narrate`
+  run is required for CIF ↔ narrative-CIF consistency — MINOR (v0.6.0).
+  Closes #939.
 - **MINOR driver** — `chronic_prevalence` yaml values for **E11.9 (T2DM)**,
   **N18 (CKD)**, and **J44 (COPD)** in both `clinosim/locale/jp/demographics.yaml`
   and `clinosim/locale/us/demographics.yaml` restored to hospital-user
