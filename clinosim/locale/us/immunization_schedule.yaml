@@ -21,9 +21,18 @@ vaccines:
     cvx: "150"
     min_age: 18
     frequency: annual
-    season_month: 10
+    season_month: 10   # legacy fallback; seasonal_distribution below takes precedence
     available_from: "2000-01-01"
     history_years: 10   # EHR retains only ~recent flu history (avoids 20+ accumulated shots)
+    # Issue #921: US flu season peaks in Oct-Nov (CDC FluVaxView).
+    # Month strings 9/10/11/12 fall in season-start year, 1/2 roll to next year.
+    seasonal_distribution:
+      "9":  0.10   # September — early campaign start
+      "10": 0.35   # October — peak
+      "11": 0.30   # November — peak continues
+      "12": 0.15   # December — year-end catchup
+      "1":  0.07   # January — late
+      "2":  0.03   # February — very late
     coverage_by_age_sex:
       "18-49": {M: 0.32, F: 0.38}
       "50-64": {M: 0.45, F: 0.50}
@@ -34,6 +43,47 @@ vaccines:
     min_age: 18
     frequency: once
     available_from: "2020-12-14"
+    # Issue #921: US COVID-19 wave epochs (CDC / VAERS).
+    # See JP schedule for detailed algorithm notes.
+    #   2020-12  Pfizer/Moderna EUA
+    #   2021-01  Priority: HCW, LTC residents
+    #   2021-04  All 16+ eligible
+    #   2021-09  Boosters authorized (elderly first)
+    #   2022-09  Bivalent booster (Omicron BA.4/5)
+    #   2023-09  Annual fall vaccine
+    wave_epochs:
+      - name: initial_rollout      # HCW + elderly priority
+        start: "2020-12-14"
+        end: "2021-03-31"
+        age_weight:
+          "18-49": 0.05
+          "50-64": 0.10
+          "65-99": 0.35
+        monthly_curve: {"12": 0.10, "1": 0.25, "2": 0.35, "3": 0.30}
+      - name: broad_primary_series   # All 16+ eligible
+        start: "2021-04-01"
+        end: "2021-09-30"
+        age_weight:
+          "18-49": 0.40
+          "50-64": 0.35
+          "65-99": 0.35
+        monthly_curve: {"4": 0.25, "5": 0.30, "6": 0.20, "7": 0.10, "8": 0.10, "9": 0.05}
+      - name: booster_wave_1         # 3rd dose + bivalent (Omicron)
+        start: "2021-10-01"
+        end: "2023-01-31"
+        age_weight:
+          "18-49": 0.20
+          "50-64": 0.30
+          "65-99": 0.20
+        monthly_curve: {"10": 0.12, "11": 0.14, "12": 0.10, "1": 0.10, "9": 0.20, "2": 0.05, "3": 0.05, "8": 0.05}
+      - name: annual_maintenance     # Annual fall vaccine, 2023+
+        start: "2023-09-01"
+        end: "2028-12-31"
+        age_weight:
+          "18-49": 0.10
+          "50-64": 0.15
+          "65-99": 0.10
+        monthly_curve: {"9": 0.20, "10": 0.35, "11": 0.25, "12": 0.15, "1": 0.05}
     coverage_by_age_sex:
       "18-49": {M: 0.62, F: 0.66}
       "50-64": {M: 0.78, F: 0.80}
