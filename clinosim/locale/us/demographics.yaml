@@ -57,21 +57,18 @@ blood_type:
 chronic_prevalence:
   I10:      # Hypertension — CDC ~48% of adults; cohort target ~65% (Medicare-user)
     "40-99": 0.33
-  # NOTE (B-3 2026-08-28): I10 / E11.9 / E78 / J44 values below carry the
-  # Issue #739 DOWNSCALES that compensated for the OLD multiplicative engine
-  # (which over-amplified marginals 3-4×). With the new marginal-preserving
-  # engine, these downscales over-compensate and these codes will UNDER-shoot
-  # their intended Medicare-user targets. Restoring them to the intended
-  # hospital targets is deferred to a follow-up recalibration PR — see B-3
-  # phase 2 in the roadmap.
-  E11.9:    # Type 2 DM — CDC general 14%; cohort target 20-30% (Medicare-user)
-    "40-99": 0.05
+  # NOTE (B-3 phase 2, Issue #919): E11.9 / E78 / J44 / N18 restored to
+  # Medicare-user cohort targets under the marginal-preserving engine
+  # (v0.5.0 / PR #902); the old Issue #739 ~0.5× downscale is no longer
+  # needed and was double-compensating. I10 kept at 0.33 (already on target).
+  E11.9:    # Type 2 DM — CDC general 14%; cohort target ~20% (Medicare-user)
+    "40-99": 0.16
   E78:      # Dyslipidemia — CDC high cholesterol ~40%; cohort target ~55% (Medicare)
-    "40-99": 0.28
-  J44:      # COPD — CDC ~6% general; cohort target ~10-15% (Medicare-user)
-    "40-99": 0.03
-  N18:      # CKD — CDC ~14% of adults, higher in elderly
-    "60-99": 0.10
+    "40-99": 0.44
+  J44:      # COPD — CDC ~6% general; cohort target ~12% (Medicare-user)
+    "40-99": 0.10
+  N18:      # CKD — CDC ~14% of adults; cohort target ~17% (Medicare-user)
+    "60-99": 0.14
   I50:      # Heart failure
     "65-99": 0.04
   I48:      # Atrial fibrillation — ~2% age 50+, ~10% age 75+
