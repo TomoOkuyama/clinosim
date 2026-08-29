@@ -122,11 +122,45 @@ def _sdoh_performer_ref(ctx: BundleContext) -> str:
     return ""
 
 
+def _social_history_age_gate(topic: str) -> int:
+    """Return the min patient age (in years) at which a social-history
+    Observation for ``topic`` may be emitted (Issue #938).
+
+    ``topic`` is either ``"smoking"`` or ``"alcohol"``. Values live in
+    ``clinosim/modules/sdoh/reference_data/social_history.yaml`` under
+    ``age_gates.{topic}_min_age``. Falls back to ``0`` (no gate) only if
+    the yaml is missing the entry — the yaml ships with defaults so the
+    fallback is a defense-in-depth path, not a supported configuration.
+    """
+    gates = load_social_history().get("age_gates") or {}
+    return int(gates.get(f"{topic}_min_age", 0) or 0)
+
+
+def _patient_age_years(ctx: BundleContext) -> int:
+    """Best-effort patient age in whole years.
+
+    Prefers the ``age`` field written into the CIF ``patient`` block at
+    Layer-2 activation (integer years at generation time). Zero when the
+    field is missing (which does not happen in current pipelines but keeps
+    unit fixtures constructing minimal ``patient_data`` safe).
+    """
+    pd = ctx.patient_data or {}
+    try:
+        return int(pd.get("age") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
 def _bb_smoking_status(ctx: BundleContext) -> list[dict]:
     data = load_social_history()["smoking_status"]
     status = (ctx.patient_data or {}).get("smoking_status", "")
     entry = data["values"].get(status)
     if not entry:
+        return []
+    # Issue #938: skip adult social-history Observation for pediatric
+    # patients. Real EHRs do not populate smoking/alcohol fields on child
+    # visits (USPSTF / MHLW start these assessments in adolescence).
+    if _patient_age_years(ctx) < _social_history_age_gate("smoking"):
         return []
     text = "喫煙状況" if is_jp(ctx.country) else "Tobacco smoking status"
     _smoking_key = ctx.patient_id
@@ -147,6 +181,10 @@ def _bb_alcohol_use(ctx: BundleContext) -> list[dict]:
     use = (ctx.patient_data or {}).get("alcohol_use", "")
     entry = data["values"].get(use)
     if not entry:
+        return []
+    # Issue #938: skip adult social-history Observation for pediatric
+    # patients. Symmetric with the smoking gate above.
+    if _patient_age_years(ctx) < _social_history_age_gate("alcohol"):
         return []
     text = "飲酒歴" if is_jp(ctx.country) else "History of alcohol use"
     _alcohol_key = ctx.patient_id
