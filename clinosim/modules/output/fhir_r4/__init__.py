@@ -41,6 +41,7 @@ from clinosim.modules.output.fhir_r4.encounters.care_level import _bb_care_level
 from clinosim.modules.output.fhir_r4.encounters.care_team import _bb_care_teams
 from clinosim.modules.output.fhir_r4.encounters.endpoint import _bb_endpoints
 from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle
+from clinosim.modules.output.fhir_r4.labs.anthropometrics import _bb_anthropometrics
 from clinosim.modules.output.fhir_r4.labs.blood_type import _bb_blood_type
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _bb_diagnostic_reports
 from clinosim.modules.output.fhir_r4.labs.imaging_study import _bb_imaging_studies
@@ -403,6 +404,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_imaging_studies,  # Imaging: emit after Endpoint (endpoint[] ref resolve)
     _bb_labs,
     _bb_vitals,
+    _bb_anthropometrics,  # Issue #946: height / weight / BMI / head-circ per encounter
     _bb_microbiology,
     _bb_diagnostic_reports,
     _bb_medication_requests,
