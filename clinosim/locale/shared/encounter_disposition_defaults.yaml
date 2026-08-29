@@ -1,0 +1,49 @@
+# Encounter.hospitalization fallback defaults for admitSource /
+# dischargeDisposition. Consumed by the FHIR emit path
+# (clinosim/modules/output/fhir_r4/encounters/encounter.py) when the CIF
+# encounter does not carry an explicit value.
+#
+# Issue #941 (2026-08-30): pre-fix behaviour left the CodeableConcept with
+# only a bare `code` populated. Downstream JP consumers that scan for
+# `.text` (or the JP-visible `coding[0].display` after the "English-only-CS"
+# strip walker) saw the field as empty on 100% of IMP encounters. Fix pairs
+# an EN-canonical `coding[0].display` (survives HAPI validation on the
+# English-only HL7 CodeSystem) with a locale-appropriate CodeableConcept
+# `.text` — the dual-slot pattern documented in AGENTS.md /
+# feedback_dual_slot_english_only_cs.md.
+#
+# The canonical HL7 value sets themselves live at
+# `clinosim/codes/data/hl7-admit-source.yaml` and
+# `clinosim/codes/data/hl7-discharge-disposition.yaml` — this file only
+# pins the fallback selection and the JP-CLINS ValueSet binding URLs so
+# non-engineers can adjust either without touching the emit code.
+
+admit_source:
+  # HL7 CodeSystem key (resolves to
+  # http://terminology.hl7.org/CodeSystem/admit-source via
+  # clinosim.codes.get_system_uri).
+  system_key: "hl7-admit-source"
+  # ValueSet URL bound by JP-CLINS Encounter profile. Informational — the
+  # emit path uses the CodeSystem key above; this URL documents the
+  # authoritative binding target so JP-CLINS validators can trace the
+  # code choice.
+  jp_clins_value_set: "http://jpfhir.jp/fhir/core/ValueSet/JP_AdmitSource_VS"
+  # Fallback code when the CIF carries no explicit admit_source. "other"
+  # is the HL7 admit-source "Other, unspecified" concept — chosen over
+  # "hosp-trans" (has a specific meaning of transfer-from-another-hospital
+  # that would misinform DPC consumers). See Issue #332 for the "hosp" →
+  # "other" migration rationale.
+  fallback_code: "other"
+
+discharge_disposition:
+  system_key: "hl7-discharge-disposition"
+  jp_clins_value_set: "http://jpfhir.jp/fhir/core/ValueSet/JP_DischargeDisposition_VS"
+  # Fallback code for a finished IMP encounter with no explicit
+  # discharge_disposition. "home" (routine home discharge) is the
+  # dominant real-world outcome (60-80% for JP mid-size general
+  # hospitals per MHLW 患者調査).
+  fallback_code: "home"
+  # Code used when the encounter's `deceased` flag is set — the death
+  # signal outranks any pre-populated `home` fallback so hospital-mortality
+  # analytics do not need to LEFT-JOIN Patient.deceasedDateTime.
+  deceased_code: "exp"

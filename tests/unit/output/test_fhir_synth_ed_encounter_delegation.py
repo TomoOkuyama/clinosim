@@ -137,14 +137,21 @@ def test_synth_ed_omits_discharge_disposition(country: str) -> None:
 
 @pytest.mark.parametrize("country,lang", [("JP", "ja"), ("US", "en")])
 def test_synth_ed_admit_source_uses_registry_display(country: str, lang: str) -> None:
-    """Single-source-of-truth: synth-ED's admitSource display equals the
-    CS registry lookup, not a bespoke hardcoded string.
+    """Single-source-of-truth: synth-ED's admitSource CodeableConcept
+    displays match the CS registry lookup, not bespoke hardcoded strings.
+
+    Issue #941 dual-slot: ``coding[0].display`` is always the EN canonical
+    (survives HAPI validation on the English-only HL7 CS and the JP
+    display-strip walker), and ``.text`` is the locale-appropriate label
+    (JP for JP output, EN for US output).
     """
     ctx = _make_ctx(country)
     synth_ed = _synth_ed_resource(_bb_encounters(ctx))
-    admit_source_display = synth_ed["hospitalization"]["admitSource"]["coding"][0]["display"]
-    expected = code_lookup("hl7-admit-source", "outp", lang)
-    assert admit_source_display == expected
+    admit_concept = synth_ed["hospitalization"]["admitSource"]
+    # coding.display is always the EN canonical
+    assert admit_concept["coding"][0]["display"] == code_lookup("hl7-admit-source", "outp", "en")
+    # .text is the locale-resolved label (JP for JP, EN for US)
+    assert admit_concept["text"] == code_lookup("hl7-admit-source", "outp", lang)
 
 
 def test_synth_ed_reason_code_text_is_ja_on_jp_when_imp_has_chief_complaint_ja() -> None:
