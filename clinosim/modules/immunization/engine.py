@@ -93,6 +93,142 @@ def _safe_date(year: int, month: int, day: int) -> date:
         return date(year, month, day - 1)
 
 
+# Issue #921: flu seasons span calendar year boundaries. Months whose integer
+# value is >= _SEASON_ANCHOR_MONTH belong to the season-start calendar year;
+# months < _SEASON_ANCHOR_MONTH roll into the following calendar year.
+# 6 (June) safely separates the northern-hemisphere flu season (Sep-Feb) from
+# its opposite off-season half, so months 6..12 anchor to season_yr and 1..5
+# roll to season_yr+1. Both US and JP flu seasons stay well inside those halves.
+_SEASON_ANCHOR_MONTH = 6
+
+
+def _band_lookup(bands: dict, age: int) -> float:
+    """Look up an age-banded numeric value ("18-49" -> 0.4). Returns 0.0 when
+    ``bands`` is falsy or the age falls outside every band. Used by both
+    coverage_by_age_sex (with a sex-dimension nested) and wave epoch age_weight
+    (flat)."""
+    if not bands:
+        return 0.0
+    for band, val in bands.items():
+        lo, hi = (int(x) for x in band.split("-"))
+        if lo <= age <= hi:
+            return float(val)
+    return 0.0
+
+
+def _pick_flu_month(
+    seasonal_dist: dict[str, float],
+    season_yr: int,
+    start: date,
+    as_of: date,
+    rng: np.random.Generator,
+) -> date | None:
+    """Sample a (year, month) for a flu dose in the flu season anchored at
+    season_yr. Returns a date-of-month-1 or None if no configured month falls
+    within [start, as_of]. See :data:`_SEASON_ANCHOR_MONTH` for the wrap rule.
+
+    Weights are relative — normalized across the surviving candidates so a
+    partly-clipped season still samples from a proper distribution.
+    """
+    candidates: list[tuple[int, int]] = []
+    weights: list[float] = []
+    for m_str, w in seasonal_dist.items():
+        m = int(m_str)
+        yr = season_yr if m >= _SEASON_ANCHOR_MONTH else season_yr + 1
+        first = date(yr, m, 1)
+        last = _safe_date(yr, m, 28)
+        # month is eligible if any day inside it overlaps [start, as_of]
+        if last < start or first > as_of:
+            continue
+        candidates.append((yr, m))
+        weights.append(float(w))
+    if not candidates:
+        return None
+    total = sum(weights)
+    if total <= 0:
+        return None
+    probs = [w / total for w in weights]
+    idx = int(rng.choice(len(candidates), p=probs))
+    yr, m = candidates[idx]
+    return date(yr, m, 1)
+
+
+def _pick_wave_epoch_date(
+    wave_epochs: list[dict],
+    start: date,
+    as_of: date,
+    age_at: int,
+    rng: np.random.Generator,
+) -> date | None:
+    """Sample a date for a once-in-a-lifetime vaccine following a wave-epoch
+    model. Two-stage sampling:
+
+    1. Pick an epoch weighted by ``age_weight[band]``, filtered to epochs whose
+       window intersects [start, as_of].
+    2. Within the sampled epoch enumerate every (year, month) that has a
+       positive ``monthly_curve`` weight AND overlaps the clipped window; pick
+       one weighted by curve, then pick a day uniformly inside the valid range
+       of that month.
+
+    Returns None if no epoch survives filtering (patient window falls entirely
+    outside every epoch, or every eligible epoch has zero age_weight for this
+    band). Callers should skip emission in that case rather than fall through.
+    """
+    # Stage 1: epoch selection.
+    epoch_choices: list[tuple[dict, date, date]] = []
+    epoch_weights: list[float] = []
+    for epoch in wave_epochs:
+        e_start = _parse(epoch["start"])
+        e_end = _parse(epoch["end"])
+        w_start = max(e_start, start)
+        w_end = min(e_end, as_of)
+        if w_start > w_end:
+            continue
+        w = _band_lookup(epoch.get("age_weight", {}), age_at)
+        if w <= 0:
+            continue
+        epoch_choices.append((epoch, w_start, w_end))
+        epoch_weights.append(w)
+    if not epoch_choices:
+        return None
+    total = sum(epoch_weights)
+    probs = [w / total for w in epoch_weights]
+    idx = int(rng.choice(len(epoch_choices), p=probs))
+    epoch, w_start, w_end = epoch_choices[idx]
+
+    # Stage 2: (year, month) within the clipped epoch window.
+    curve = epoch.get("monthly_curve", {}) or {}
+    ym_candidates: list[tuple[date, date]] = []
+    ym_weights: list[float] = []
+    y, m = w_start.year, w_start.month
+    end_y, end_m = w_end.year, w_end.month
+    while (y, m) <= (end_y, end_m):
+        w = float(curve.get(str(m), 0.0))
+        if w > 0:
+            first_valid = max(date(y, m, 1), w_start)
+            last_valid = min(_safe_date(y, m, 28), w_end)
+            if first_valid <= last_valid:
+                ym_candidates.append((first_valid, last_valid))
+                ym_weights.append(w)
+        m += 1
+        if m == 13:
+            m = 1
+            y += 1
+    if not ym_candidates:
+        # No configured month falls within the clipped window; fall back to
+        # uniform placement across the whole window rather than dropping the
+        # dose (an epoch was picked so the patient IS being vaccinated).
+        span = (w_end - w_start).days
+        offset = int(rng.integers(0, span + 1)) if span > 0 else 0
+        return date.fromordinal(w_start.toordinal() + offset)
+    total = sum(ym_weights)
+    probs = [w / total for w in ym_weights]
+    idx = int(rng.choice(len(ym_candidates), p=probs))
+    first_valid, last_valid = ym_candidates[idx]
+    day = int(rng.integers(first_valid.day, last_valid.day + 1))
+    return date(first_valid.year, first_valid.month, day)
+
+
 def generate_immunizations(
     patient, schedule: dict, as_of: date, rng: np.random.Generator, nurse_ids: list[str] | None = None
 ) -> list:
@@ -161,11 +297,29 @@ def generate_immunizations(
             return f"L{_mfr_hash}-{occurrence.year:04d}{occurrence.month:02d}-{batch}"
 
         if freq == "annual":
-            month = int(v.get("season_month", 10))
-            for yr in range(start.year, as_of.year + 1):
-                occ = date(yr, month, 1)
-                if occ < start or occ > as_of:
-                    continue
+            # Issue #921: prefer per-season seasonal_distribution (yaml-driven)
+            # over a single fixed season_month. Iterate season anchor years
+            # covering [start, as_of], where a "season year N" corresponds to
+            # Oct(N)-Feb(N+1). start.year-1 handles patients whose eligibility
+            # window opens in Jan/Feb of the year (they can still take the
+            # tail end of the prior season). as_of.year+1 handles doses that
+            # roll to Jan/Feb after the season anchor, then get filtered
+            # against as_of by _pick_flu_month.
+            seasonal_dist = v.get("seasonal_distribution") or {}
+            default_month = int(v.get("season_month", 10))
+            if seasonal_dist:
+                season_years = range(start.year - 1, as_of.year + 1)
+            else:
+                season_years = range(start.year, as_of.year + 1)
+            for yr in season_years:
+                if seasonal_dist:
+                    occ = _pick_flu_month(seasonal_dist, yr, start, as_of, rng)
+                    if occ is None:
+                        continue
+                else:
+                    occ = date(yr, default_month, 1)
+                    if occ < start or occ > as_of:
+                        continue
                 age_at = _age_on(dob, occ, base_age)
                 if rng.random() < _coverage(cov, age_at, sex):
                     out.append(
@@ -211,10 +365,19 @@ def generate_immunizations(
         else:  # once
             age_at = _age_on(dob, as_of, base_age)
             if rng.random() < _coverage(cov, age_at, sex):
-                # place once at a deterministic point within [start, as_of]
-                span = (as_of - start).days
-                offset = int(rng.integers(0, span + 1)) if span > 0 else 0
-                occ = date.fromordinal(start.toordinal() + offset)
+                # Issue #921: prefer wave_epochs (real-world timeline of the
+                # program) over a uniform draw across the whole span. Falls
+                # back to uniform when yaml declares no epochs (e.g. PPSV23).
+                wave_epochs = v.get("wave_epochs")
+                if wave_epochs:
+                    occ = _pick_wave_epoch_date(wave_epochs, start, as_of, age_at, rng)
+                    if occ is None:
+                        continue
+                else:
+                    # place once at a deterministic point within [start, as_of]
+                    span = (as_of - start).days
+                    offset = int(rng.integers(0, span + 1)) if span > 0 else 0
+                    occ = date.fromordinal(start.toordinal() + offset)
                 out.append(
                     ImmunizationRecord(
                         vaccine_cvx=cvx,

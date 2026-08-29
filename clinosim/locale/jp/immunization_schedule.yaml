@@ -22,9 +22,20 @@ vaccines:
     cvx: "150"
     min_age: 18
     frequency: annual
-    season_month: 11
+    season_month: 11   # legacy fallback; seasonal_distribution below takes precedence
     available_from: "2000-01-01"
     history_years: 10   # EHR retains only ~recent flu history (avoids 20+ accumulated shots)
+    # Issue #921: real JP flu season spans Oct-Feb with November peak
+    # (MHLW インフルエンザワクチン接種状況; JMA seasonal reports).
+    # Weights are relative (normalized per-season internally); month
+    # strings 10/11/12 fall in the season-start calendar year, 1/2
+    # roll into the following calendar year.
+    seasonal_distribution:
+      "10": 0.15   # October — early adopters, 高齢者優先接種開始
+      "11": 0.40   # November — peak, 公衆衛生キャンペーン
+      "12": 0.30   # December — year-end boost, 学校/職域接種
+      "1":  0.10   # January — late catch-up
+      "2":  0.05   # February — very late
     coverage_by_age_sex:
       "18-49": {M: 0.25, F: 0.30}
       "50-64": {M: 0.40, F: 0.44}
@@ -35,6 +46,52 @@ vaccines:
     min_age: 18
     frequency: once
     available_from: "2021-02-17"
+    # Issue #921: real JP COVID-19 rollout (MHLW / VRS) has distinct
+    # wave epochs — uniform month distribution is unphysical. Each
+    # patient's "once" dose is assigned to an epoch weighted by
+    # age_weight[band]; within the epoch, month is sampled from
+    # monthly_curve and day-of-month uniformly.
+    #
+    # Timeline anchors:
+    #   2021-02  Pfizer 特例承認
+    #   2021-04  医療従事者・65歳以上 optimized start (elderly-first)
+    #   2021-07  一般 18-64 broad rollout begins
+    #   2022-01  3回目 (booster) rollout for elderly
+    #   2022-09  Omicron 2価ワクチン (bivalent)
+    #   2023-09  秋開始接種 (annual fall campaign)
+    wave_epochs:
+      - name: initial_rollout        # 医療従事者 + 高齢者優先接種
+        start: "2021-04-01"
+        end: "2021-09-30"
+        age_weight:
+          "18-49": 0.05
+          "50-64": 0.15
+          "65-99": 0.55
+        monthly_curve: {"4": 0.05, "5": 0.20, "6": 0.30, "7": 0.20, "8": 0.15, "9": 0.10}
+      - name: primary_series_ramp    # 一般成人 broad rollout
+        start: "2021-10-01"
+        end: "2022-03-31"
+        age_weight:
+          "18-49": 0.40
+          "50-64": 0.30
+          "65-99": 0.15
+        monthly_curve: {"10": 0.20, "11": 0.30, "12": 0.20, "1": 0.15, "2": 0.10, "3": 0.05}
+      - name: booster_wave_1         # 3回目 + Omicron 2価
+        start: "2022-09-01"
+        end: "2023-01-31"
+        age_weight:
+          "18-49": 0.20
+          "50-64": 0.25
+          "65-99": 0.20
+        monthly_curve: {"9": 0.10, "10": 0.30, "11": 0.30, "12": 0.20, "1": 0.10}
+      - name: annual_maintenance     # 秋開始接種 (fall campaign, 2023+)
+        start: "2023-09-01"
+        end: "2028-12-31"
+        age_weight:
+          "18-49": 0.10
+          "50-64": 0.15
+          "65-99": 0.10
+        monthly_curve: {"9": 0.15, "10": 0.35, "11": 0.30, "12": 0.15, "1": 0.05}
     coverage_by_age_sex:
       "18-49": {M: 0.70, F: 0.74}
       "50-64": {M: 0.82, F: 0.84}
