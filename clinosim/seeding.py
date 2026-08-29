@@ -99,6 +99,28 @@ def discharge_prescription_seed(patient_id: str, encounter_id: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+def ambulatory_visit_length_seed(encounter_id: str) -> int:
+    """Per-encounter deterministic sub-seed in ``[0, 2**32)`` for the
+    outpatient (AMB) encounter length draw (Issue #927).
+
+    Isolating the length draw from the master patient-scoped ``opd_rng``
+    means the switch from a single ``rng.integers(15, 45)`` to a
+    per-visit-type triangular draw does NOT shift any downstream RNG
+    consumer (vitals derivation, lab-tech assignment, prescription
+    sampling all keep their pre-fix byte-shape). The only cascade is
+    the length column itself, which is the intended behavior change.
+
+    Sibling of ``individual_lab_seed`` — same AD-16 rationale, keyed on
+    ``encounter_id`` which is itself derived deterministically from the
+    master seed by the simulator (``create_inpatient_encounter``), so
+    this sub-seed is stable across runs and unique per outpatient
+    encounter without needing the master seed.
+    """
+    salt = "clinosim:ambulatory-visit-length:v1"
+    digest = hashlib.sha256(f"{salt}|{encounter_id}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 def individual_lab_seed(order_id: str) -> int:
     """Per-individual-lab-order deterministic sub-seed in ``[0, 2**32)``.
 

@@ -1,0 +1,43 @@
+# Ambulatory (outpatient) encounter length by visit_type — Issue #927.
+#
+# Distribution shape: triangular(min, mode, max), sampled once per
+# encounter with the sample rounded to an integer minute and clamped
+# to at least 1 min. Rationale for triangular over uniform: real
+# outpatient visits cluster around a modal duration, not a flat
+# plateau (Issue #927 showed the pre-fix flat `randint(15, 45)` was
+# missing the 5-10 min return-visit peak that dominates JP primary
+# care).
+#
+# References:
+#   - 厚生労働省 医科診療報酬点数表 A000 初診料 / A001 再診料
+#   - 患者調査 (Patient Survey) 2020 — outpatient volume by visit purpose
+#   - 特定疾患療養管理料 (chronic-disease management fee) typical slot
+#
+# 再診 (return-visit) short follow-up is the modal JP primary-care
+# outpatient encounter (5-10 min for stable HTN / DL / DM review).
+# 初診 (new-patient consultation) and 特定健診 (annual health
+# screening) intakes take longer (20-45 min).
+
+visit_types:
+  chronic_followup:      # 再診 — 慢性疾患フォローアップ (stable HTN/DM/HL review)
+    min: 5
+    mode: 9
+    max: 20
+  post_discharge:        # 退院後フォロー — moderate review
+    min: 10
+    mode: 18
+    max: 30
+  pediatric_visit:       # 小児科 well-child visit
+    min: 8
+    mode: 12
+    max: 20
+  health_screening:      # 特定健診 / 人間ドック — new-visit-like intake
+    min: 20
+    mode: 30
+    max: 45
+
+# Fallback for any visit_type not enumerated above.
+default:
+  min: 10
+  mode: 15
+  max: 30
