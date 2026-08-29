@@ -397,6 +397,27 @@ def _validate_ambulatory_visit_length(data: dict, country: str) -> None:
 
 
 @lru_cache(maxsize=8)
+def load_external_organizations(country: str) -> list[dict[str, Any]]:
+    """Load the external referring / receiving hospital catalog for a country.
+
+    Issue #924: JP-CLINS 診療情報提供書 (referral letter, LOINC 57133-1)
+    Composition emit needs a pool of external Organizations to reference in
+    the 910 (紹介先) section — previously both 920 and 910 collapsed to
+    ``Organization/hospital-main`` for every referral. Returns the flat
+    ``external_hospitals`` list from ``<country>/external_organizations.yaml``
+    (list of dicts with ``id``, ``name``, ``type``, ``type_code``,
+    ``type_display``, ``address``, ``institution_code``, ``phone``).
+
+    Countries without the file (US today) get an empty list — callers must
+    treat that as "no external-organization catalog available" and fall back
+    to their prior emit behavior.
+    """
+    data = _load_yaml(_country_dir(country) / "external_organizations.yaml", fallback={})
+    entries = data.get("external_hospitals", []) if isinstance(data, dict) else []
+    return list(entries) if isinstance(entries, list) else []
+
+
+@lru_cache(maxsize=8)
 def load_identity_config(country: str) -> dict[str, Any]:
     """Load resident identifier / insurance numbering config for a country (AD-54).
 

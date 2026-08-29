@@ -54,6 +54,11 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
+from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
+    build_external_org_resource,
+    format_referral_destination_text,
+    pick_external_hospital,
+)
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref, resolve_encounter_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.lib.ids import derive_opaque_id
@@ -451,6 +456,12 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
             enc_to_primary_cond[_eid] = primary_condition_ref(ctx.record, ctx.patient_id, _eid)
 
     out: list[dict[str, Any]] = []
+    # Issue #924: track the set of external Organizations sampled by any
+    # emitted JP-CLINS referral letter (LOINC 57133-1) so we can emit them
+    # alongside `Composition.ndjson` — the eReferral 910 slice
+    # discriminator resolves against these Orgs at validation time. We
+    # only emit those that are actually referenced (no orphans).
+    external_org_ids_referenced: set[str] = set()
     for doc in raw_docs:
         if _o(doc, "format_type", "") != "composition":
             continue
@@ -472,6 +483,31 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
                 roster_map=ctx.roster_map,
             )
         )
+        # Track sampled external org for referral letters (JP-only path).
+        # Same seed (patient_id + encounter_id) as the builder, so the id
+        # is byte-identical to the reference the builder wrote.
+        if lang == "ja" and _o(doc, "loinc_code", "") == "57133-1":
+            _pid = _o(doc, "patient_id", "") or ""
+            _eid = _o(doc, "encounter_id", "") or ""
+            _dest = pick_external_hospital(_pid, _eid, country="JP")
+            if _dest:
+                external_org_ids_referenced.add(_dest["id"])
+
+    # Emit Organization resource per referenced external hospital. The
+    # write() dedup helper in the adapter would fold duplicates anyway,
+    # but resolving the catalog entries only for referenced ids keeps
+    # ndjson from carrying orphan rows.
+    if external_org_ids_referenced:
+        from clinosim.locale.loader import load_external_organizations
+
+        catalog_by_id = {e["id"]: e for e in load_external_organizations("JP")}
+        for org_id in sorted(external_org_ids_referenced):
+            entry = catalog_by_id.get(org_id)
+            if entry is None:
+                # Defensive — sampling always returns an entry from the
+                # catalog, so this branch is unreachable in practice.
+                continue
+            out.append(build_external_org_resource(entry))
     return out
 
 
@@ -1062,10 +1098,23 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
 }
 
 # #296:JP-CLINS eReferral の 920(紹介元)/ 910(紹介先)
-# top-level section slice に必須の Organization reference。CIF は destination
-# 別 Organization を model していないため両側 placeholder として emit
-# (reference integrity は保たれる;data-shape trade-off)。
-# module-scope 定数(function 内では N806 lint violation)。
+# top-level section slice に必須の Organization reference。
+#
+# Issue #924 (2026-08-29): 以前は両 section entry を module-scope 定数
+# `Organization/hospital-main` で pin していたため、100 % の referral
+# letter が 紹介元 == 紹介先 == 当院 の self-loop になっていた
+# (narrative の `紹介先:他院` と矛盾)。修正:
+#   - 920 (referralFromOrganization) はそのまま `Organization/hospital-main`
+#     を pin — 当院からの outgoing referral として発火 (retrospective に
+#     全 fire path は discharge 由来 = 100 % outgoing)。
+#   - 910 (referralToOrganization) は
+#     `clinosim/locale/jp/external_organizations.yaml` catalog から
+#     `(patient_id, encounter_id)` sha256 modulo で sample した外部
+#     Organization を参照 (RNG-neutral)。910 の entry / text は builder 内
+#     で per-doc に組み立てる。
+#
+# module-scope 定数 (function 内では N806 lint violation) は 920 の
+# self-pin だけ残る。
 #
 # #313 の origin: eReferral 920/910 section entry slice は
 # discriminator (type: profile, path: resolve()) で `JP_Organization_eCS`
@@ -1073,12 +1122,9 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
 # `hospital-main-ecs` を追加 emit して参照していたが、Issue #746 で
 # `hospital-main` 自身が JP_Organization + JP_Organization_eCS を両宣言
 # するよう unify 済 — resolve() 後の profile 集合に eCS が含まれるため
-# slice validation は成立する。
-_JP_ER_REFERRAL_ORG_REF: list[dict[str, str]] = [{"reference": "Organization/hospital-main"}]
-_JP_ER_TOP_LEVEL_ENTRY: dict[str, list[dict[str, str]]] = {
-    "920": _JP_ER_REFERRAL_ORG_REF,  # referralFromOrganization
-    "910": _JP_ER_REFERRAL_ORG_REF,  # referralToOrganization
-}
+# slice validation は成立する。Issue #924 で追加する外部 Organization
+# 群も同 2 profile を declare する (referral_orgs.build_external_org_resource)。
+_JP_ER_REFERRING_FROM_REF: list[dict[str, str]] = [{"reference": "Organization/hospital-main"}]
 
 
 # #289 sibling of eDS Chain #9:JP-CLINS eReferral は eDS と同
@@ -1240,13 +1286,33 @@ def _build_jp_clins_referral_note_composition(
             section_obj["entry"] = entry_refs
         return section_obj
 
-    # #296:各 top-level section slice の entry(module-scope
-    # 定数 `_JP_ER_REFERRAL_ORG_REF` / `_JP_ER_TOP_LEVEL_ENTRY`、下記
-    # `_JP_REFERRAL_TOP_LEVEL` の直後で定義)。
-    # Top-level 920 + 910
+    # Issue #924: 920 (referralFromOrganization) は当院 pin、910
+    # (referralToOrganization) は外部カタログから
+    # (patient_id, encounter_id) → sha256 modulo で decisions される
+    # 外部 Organization を参照。narrative text も、`他院` placeholder
+    # ではなく実際の facility name を含む sentence で上書き。
+    # catalog 空 (US 等、`external_organizations.yaml` 未配置) の場合は
+    # 従来通り hospital-main を pin (safety fallback) — self-loop 復活を
+    # 覚悟した上での明示的 fallback。
+    pid = _o(doc, "patient_id", "") or ""
+    eid = _o(doc, "encounter_id", "") or ""
+    external_dest = pick_external_hospital(pid, eid, country="JP") if lang == "ja" else None
+
+    top_entry_by_code: dict[str, list[dict[str, str]]] = {
+        "920": _JP_ER_REFERRING_FROM_REF,
+        "910": ([{"reference": f"Organization/{external_dest['id']}"}] if external_dest else _JP_ER_REFERRING_FROM_REF),
+    }
+    top_text_by_key: dict[str, str] = {
+        "referring_institution": sections.get("referring_institution", "") or "",
+        "referral_destination": (
+            format_referral_destination_text(external_dest, lang="ja")
+            if external_dest
+            else (sections.get("referral_destination", "") or "")
+        ),
+    }
     top_sections: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_TOP_LEVEL.items():
-        top_sections.append(_one_section(code, sections.get(key, "") or "", _JP_ER_TOP_LEVEL_ENTRY.get(code)))
+        top_sections.append(_one_section(code, top_text_by_key.get(key, ""), top_entry_by_code.get(code)))
 
     # 300 structural, nesting 950 / 340 / 360
     struct_children: list[dict[str, Any]] = []

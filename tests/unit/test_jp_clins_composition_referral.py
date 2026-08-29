@@ -86,14 +86,22 @@ def test_jp_clins_referral_composition_structural_children():
 @pytest.mark.unit
 def test_jp_clins_referral_composition_section_content():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
+        pick_external_hospital,
+    )
 
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     top_by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}
-    # 920 紹介元
+    # 920 紹介元 — 当院 pin unchanged (outgoing referral)
     assert "当院" in top_by_code["920"]["text"]["div"]
-    # 910 紹介先
-    assert "他院" in top_by_code["910"]["text"]["div"]
+    # Issue #924: 910 紹介先 no longer says `他院`; it names the sampled
+    # external hospital from the JP external-organization catalog. The
+    # sampled entry is deterministic on (patient_id, encounter_id).
+    ext = pick_external_hospital(doc["patient_id"], doc["encounter_id"], country="JP")
+    assert ext is not None
+    assert ext["name"] in top_by_code["910"]["text"]["div"]
+    assert "他院" not in top_by_code["910"]["text"]["div"]
     # 300 structural nested
     structural_by_code = {c["code"]["coding"][0]["code"]: c for c in top_by_code["300"]["section"]}
     assert "継続加療" in structural_by_code["950"]["text"]["div"]
@@ -167,25 +175,36 @@ def test_jp_clins_referral_composition_chain9_pattern_top_level():
 
 @pytest.mark.unit
 def test_jp_clins_referral_composition_from_to_section_entries():
-    """#296:JP-CLINS eReferral は 920(紹介元 = referralFromOrganization)
-    と 910(紹介先 = referralToOrganization)の 2 section slice それぞれに
-    entry: Reference(Organization) min=1 を要求。clinosim は destination
-    別 Organization を model していないため hospital-main を placeholder
-    として両方に pin。reference integrity は facility bundle で保証。
+    """#296 / Issue #924:JP-CLINS eReferral は 920(紹介元 = referralFrom
+    Organization)と 910(紹介先 = referralToOrganization)の 2 section
+    slice それぞれに entry: Reference(Organization) min=1 を要求。
+
+    920 紹介元 は当院 (outgoing referral) — `Organization/hospital-main`
+    に pin。#313 の slice discriminator は eCS profile 準拠 (Issue #746
+    で hospital-main 自身が JP_Organization + JP_Organization_eCS を両
+    宣言) で満たされる。
+
+    Issue #924 fix: 910 紹介先 は
+    ``clinosim/locale/jp/external_organizations.yaml`` catalog から
+    (patient_id, encounter_id) sha256 modulo で決定的に sample した
+    外部 Organization を参照。fix 以前は 920 と同じ hospital-main を
+    pin して 100 % self-loop を作っていた (bug reproducible in the
+    p=1000 audit)。
     """
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
+    from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
+        pick_external_hospital,
+    )
 
     doc = _jp_referral_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     top_by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}
-    # #313: eReferral slice discriminator (type: profile, path: resolve())
-    # は eCS profile 準拠を要求。Issue #746 で hospital-main 自身が
-    # JP_Organization + JP_Organization_eCS を両宣言するよう unify した
-    # ため、resolve() が eCS profile を発見して slice validation は成立
-    # する。920 紹介元 / 910 紹介先 entry ともに unified hospital-main を
-    # 参照。
     assert top_by_code["920"].get("entry") == [{"reference": "Organization/hospital-main"}]
-    assert top_by_code["910"].get("entry") == [{"reference": "Organization/hospital-main"}]
+    ext = pick_external_hospital(doc["patient_id"], doc["encounter_id"], country="JP")
+    assert ext is not None
+    assert top_by_code["910"].get("entry") == [{"reference": f"Organization/{ext['id']}"}]
+    # Anti-regression on the Issue #924 self-loop.
+    assert top_by_code["920"]["entry"] != top_by_code["910"]["entry"]
 
 
 @pytest.mark.unit
@@ -199,6 +218,75 @@ def test_referral_note_fires_deterministic():
     # This just documents that _fires is deterministic (not a probability test)
     outcomes = {_referral_note_fires(f"ENC-{i}", "P1") for i in range(1000)}
     assert outcomes == {True, False}, "fires should hit both branches over 1000 samples"
+
+
+@pytest.mark.unit
+def test_referral_external_org_sampling_is_deterministic_and_stable():
+    """Issue #924: pick_external_hospital must be deterministic across
+    calls and yield distinct catalog rows for distinct
+    (patient_id, encounter_id) pairs — no master-RNG consumption, no
+    call-order sensitivity.
+    """
+    from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
+        pick_external_hospital,
+    )
+
+    # Determinism
+    a1 = pick_external_hospital("POP-000001", "ENC-001", country="JP")
+    a2 = pick_external_hospital("POP-000001", "ENC-001", country="JP")
+    assert a1 is not None and a1["id"] == a2["id"]
+
+    # Coverage: over a synthetic cohort we hit >1 distinct hospital.
+    picks = {pick_external_hospital(f"POP-{i:06d}", f"ENC-{i:04d}", country="JP")["id"] for i in range(200)}
+    assert len(picks) > 1
+
+
+@pytest.mark.unit
+def test_bb_compositions_emits_referenced_external_organizations():
+    """Issue #924: `_bb_compositions` must emit an Organization resource
+    for every external hospital referenced by any 57133-1 referral
+    Composition (deduplicated), and the reference in the Composition's
+    910 section must resolve to that Organization by id. No self-loop
+    (紹介元 != 紹介先).
+    """
+    from types import SimpleNamespace
+
+    from clinosim.modules.output.fhir_r4.documents.composition import _bb_compositions
+
+    doc = _jp_referral_doc()
+    ctx = SimpleNamespace(
+        record={"documents": [doc], "encounters": [], "extensions": {}},
+        country="JP",
+        patient_id=doc["patient_id"],
+        primary_enc_id=doc["encounter_id"],
+        roster_map={},
+        hospital_config={},
+        patient_data={},
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
+        admit_dx_system="icd-10-cm",
+        patient_sex="",
+    )
+    resources = _bb_compositions(ctx)
+    orgs = [r for r in resources if r.get("resourceType") == "Organization"]
+    comps = [r for r in resources if r.get("resourceType") == "Composition"]
+    assert len(comps) == 1
+    assert len(orgs) >= 1
+    ext_ids = {o["id"] for o in orgs}
+    assert all(oid.startswith("ext-hosp-") for oid in ext_ids)
+
+    comp = comps[0]
+    top_by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}
+    from_entry = top_by_code["920"]["entry"][0]["reference"]
+    to_entry = top_by_code["910"]["entry"][0]["reference"]
+    assert from_entry == "Organization/hospital-main"
+    assert to_entry.startswith("Organization/ext-hosp-")
+    # No self-loop.
+    assert from_entry != to_entry
+    # And the referenced external org appears in the emit output.
+    assert to_entry.split("/", 1)[1] in ext_ids
 
 
 @pytest.mark.unit
