@@ -107,3 +107,110 @@ def test_feb29_dob_does_not_crash():
     p = PatientProfile(patient_id="p1", age=80, sex="F", date_of_birth=date(1944, 2, 29))
     recs = generate_immunizations(p, load_schedule("US"), date(2026, 1, 1), np.random.default_rng(3))
     assert all(r.occurrence_date <= date(2026, 1, 1) for r in recs)
+
+
+def test_issue_926_immunization_enricher_caps_as_of_at_date_of_death():
+    """Issue #926: `_as_of` clamps at date_of_death so a deceased patient
+    never receives an immunization after their recorded death.
+
+    Simulates the p=10000 real-world case: patient died 2025-10-05,
+    snapshot date 2026-03-31 — without the cap the flu scheduler would
+    happily emit a 2025-11-01 dose.
+    """
+    from dataclasses import dataclass, field
+
+    from clinosim.modules.immunization.enricher import _as_of
+    from clinosim.types.patient import PatientProfile
+
+    @dataclass
+    class _Cfg:
+        snapshot_date: str = "2026-03-31"
+        country: str = "US"
+
+    @dataclass
+    class _Ctx:
+        config: _Cfg = field(default_factory=_Cfg)
+
+    @dataclass
+    class _Rec:
+        patient: PatientProfile | None = None
+        encounters: list = field(default_factory=list)
+
+    p_alive = PatientProfile(patient_id="alive", age=70, sex="M", date_of_birth=date(1955, 1, 1))
+    p_dead = PatientProfile(
+        patient_id="dead",
+        age=70,
+        sex="M",
+        date_of_birth=date(1955, 1, 1),
+        date_of_death=date(2025, 10, 5),
+    )
+
+    ctx = _Ctx()
+    # Living patient: as_of equals snapshot_date.
+    assert _as_of(ctx, _Rec(patient=p_alive)) == date(2026, 3, 31)
+    # Deceased patient: as_of clamped at date_of_death.
+    assert _as_of(ctx, _Rec(patient=p_dead)) == date(2025, 10, 5)
+
+
+def test_issue_926_no_post_mortem_flu_when_death_precedes_season():
+    """End-to-end enricher path: a patient who died 2025-10-05 must not
+    receive the 2025-11-01 flu shot even at coverage 1.0.
+    """
+    from dataclasses import dataclass, field
+
+    import clinosim.modules.immunization.enricher as mod
+    from clinosim.modules.immunization.enricher import enrich_immunizations
+    from clinosim.types.patient import PatientProfile
+
+    schedule_yaml = {
+        "influenza": {
+            "cvx": "150",
+            "min_age": 6,
+            "frequency": "annual",
+            "season_month": 11,
+            "available_from": "2000-01-01",
+            "history_years": 5,
+            "coverage_by_age_sex": {"6-99": {"M": 1.0, "F": 1.0}},
+        }
+    }
+
+    @dataclass
+    class _Cfg:
+        snapshot_date: str = "2026-03-31"
+        country: str = "US"
+
+    @dataclass
+    class _Rec:
+        patient: PatientProfile | None = None
+        encounters: list = field(default_factory=list)
+        immunizations: list = field(default_factory=list)
+
+    @dataclass
+    class _Ctx:
+        records: list = field(default_factory=list)
+        master_seed: int = 42
+        config: _Cfg = field(default_factory=_Cfg)
+
+    p_dead = PatientProfile(
+        patient_id="dead",
+        age=70,
+        sex="M",
+        date_of_birth=date(1955, 1, 1),
+        date_of_death=date(2025, 10, 5),
+    )
+    rec = _Rec(patient=p_dead)
+    ctx = _Ctx(records=[rec])
+
+    orig_loader = mod.load_schedule
+    try:
+        mod.load_schedule = lambda country: schedule_yaml
+        enrich_immunizations(ctx)
+    finally:
+        mod.load_schedule = orig_loader
+
+    assert all(r.occurrence_date <= date(2025, 10, 5) for r in rec.immunizations), (
+        "no immunization may be dated after the patient's date_of_death"
+    )
+    assert all(r.occurrence_date != date(2025, 11, 1) for r in rec.immunizations), (
+        "the 2025-11-01 flu shot must not fire for a patient who died 2025-10-05"
+    )
