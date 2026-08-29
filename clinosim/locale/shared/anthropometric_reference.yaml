@@ -1,0 +1,174 @@
+# Anthropometric reference values (Issue #946).
+#
+# Height / weight / BMI / head-circumference reference tables used by
+# clinosim/modules/output/fhir_r4/labs/anthropometrics.py to emit body
+# measurement Observations (LOINC 8302-2, 29463-7, 39156-5, 8287-5) on
+# every encounter.
+#
+# Design notes:
+#
+# - **Adults (age >= 18)** — clinosim already samples `PatientProfile.
+#   height_cm` / `.weight_kg` / `.bmi` at Layer 1 (population/engine.py
+#   `_generate_household_members`), using country-specific means from
+#   locale/{us,jp}/demographics.yaml `physiology:` section. The FHIR emit
+#   path uses those stored per-patient values directly; the yaml below
+#   only supplies **clamp bounds** (physiological plausibility) and the
+#   per-encounter weight-drift standard deviation.
+#
+# - **Pediatric (age < 18)** — adult BMI distributions are not
+#   appropriate for children; a per-age-per-sex p50 growth chart is used
+#   to derive height, then weight = BMI(age) × (height / 100)^2. The
+#   tables below carry median (p50) values only — synthetic patients
+#   land on the population median with a small per-encounter noise
+#   applied. Sources:
+#     - WHO Child Growth Standards (< 5 y): median height/weight/head-
+#       circumference by month-of-age × sex. clinosim buckets by whole
+#       year for compactness (mid-year median).
+#     - CDC Growth Charts (2-20 y, US): median stature-for-age and
+#       weight-for-age.
+#     - MHLW 乳幼児身体発育調査 2010 / 平成22年 学校保健統計調査 (JP):
+#       per-age p50 stature, weight, head-circumference. The MHLW ranges
+#       are similar to WHO ± 1-2 cm / kg through school age; a single
+#       JP-specific table is provided below.
+#
+# - **Head circumference** — emitted only for patients aged <= 3 y
+#   (WHO/AAP guidance stops routine head-circ measurement at 3 y unless
+#   there is a specific indication).
+#
+# - **BMI derivation** — always computed at emit time from the emitted
+#   height and weight (Issue #946 acceptance criterion: BMI and its
+#   components must be internally consistent). The stored
+#   `patient.bmi` is used to derive weight for adults so the emitted
+#   triple (height, weight, BMI) remains coherent with the patient
+#   profile.
+
+metadata:
+  name: anthropometric_reference
+  description: Reference height / weight / BMI / head-circumference for FHIR anthropometric Observations.
+  sources:
+    - "WHO Child Growth Standards (0-5 y): https://www.who.int/tools/child-growth-standards"
+    - "CDC Growth Charts (2-20 y, US, 2000): https://www.cdc.gov/growthcharts/cdc_charts.htm"
+    - "MHLW 乳幼児身体発育調査 2010 (JP < 6 y): https://www.mhlw.go.jp/toukei/list/73-22.html"
+    - "文部科学省 学校保健統計調査 令和4年度 (JP 6-17 y): https://www.mext.go.jp/b_menu/toukei/chousa05/hoken/"
+
+# Physiological clamps applied to every emitted value (defence against
+# outlier profiles / floating-point noise). Values outside these bounds
+# clip to the nearest bound rather than emit an implausible datum.
+clamps:
+  height_cm:
+    min: 40.0    # WHO 0-month p3 length
+    max: 210.0   # >>99.9th percentile adult
+  weight_kg:
+    min: 2.0     # ≥ term-neonate low bound
+    max: 200.0   # >>99.9th percentile adult
+  bmi:
+    min: 10.0    # severe wasting bound
+    max: 60.0    # severe obesity bound
+  head_circumference_cm:
+    min: 30.0    # neonate low bound
+    max: 60.0    # adult high bound
+
+# Per-encounter measurement noise (kg for weight, cm for height). Height
+# is fixed per adult patient (SHA256 sub-seed) — no per-encounter noise;
+# weight varies encounter-to-encounter within a plausible weekly-drift
+# range. Standard deviations chosen to reflect real EHR flowsheet noise
+# without crossing clinical grade boundaries.
+per_encounter_noise:
+  weight_kg_sd: 0.6           # ± ~1.2 kg 95% interval — day-to-day fluid shift
+  head_circumference_cm_sd: 0.1  # measurement-technique noise only
+
+# Pediatric growth-chart medians (p50) by age (whole years) and sex.
+# Height in cm, weight in kg, head_circumference_cm optional (present
+# only for ages where the measurement is routinely captured).
+#
+# Adult rows (>= 18) are omitted — the adult path reads from
+# `patient.height_cm` / `patient.bmi` directly.
+pediatric_growth:
+  US:                          # CDC growth charts (2000)
+    male:
+      0:  {height: 74.0,  weight: 9.6,  head_circumference: 46.0}
+      1:  {height: 82.0,  weight: 11.3, head_circumference: 48.0}
+      2:  {height: 91.0,  weight: 13.3, head_circumference: 49.5}
+      3:  {height: 98.0,  weight: 15.3, head_circumference: 50.2}
+      4:  {height: 105.0, weight: 17.5}
+      5:  {height: 112.0, weight: 19.8}
+      6:  {height: 118.0, weight: 22.5}
+      7:  {height: 124.0, weight: 25.5}
+      8:  {height: 130.0, weight: 28.5}
+      9:  {height: 135.0, weight: 32.0}
+      10: {height: 140.0, weight: 35.5}
+      11: {height: 145.0, weight: 40.0}
+      12: {height: 151.0, weight: 45.0}
+      13: {height: 157.0, weight: 51.0}
+      14: {height: 163.0, weight: 57.0}
+      15: {height: 169.0, weight: 62.5}
+      16: {height: 173.0, weight: 67.5}
+      17: {height: 175.0, weight: 71.5}
+    female:
+      0:  {height: 72.0,  weight: 8.9,  head_circumference: 45.0}
+      1:  {height: 80.0,  weight: 10.5, head_circumference: 47.0}
+      2:  {height: 89.5,  weight: 12.5, head_circumference: 48.4}
+      3:  {height: 97.0,  weight: 14.7, head_circumference: 49.2}
+      4:  {height: 104.0, weight: 17.0}
+      5:  {height: 111.0, weight: 19.5}
+      6:  {height: 117.0, weight: 22.0}
+      7:  {height: 123.0, weight: 25.0}
+      8:  {height: 129.0, weight: 28.5}
+      9:  {height: 135.0, weight: 32.5}
+      10: {height: 141.5, weight: 37.5}
+      11: {height: 147.0, weight: 42.5}
+      12: {height: 152.5, weight: 47.5}
+      13: {height: 157.0, weight: 52.0}
+      14: {height: 160.0, weight: 55.5}
+      15: {height: 161.5, weight: 57.5}
+      16: {height: 162.5, weight: 58.5}
+      17: {height: 163.0, weight: 59.5}
+  JP:                          # MHLW / MEXT medians
+    male:
+      0:  {height: 73.0,  weight: 9.0,  head_circumference: 45.9}
+      1:  {height: 81.0,  weight: 10.8, head_circumference: 47.5}
+      2:  {height: 87.5,  weight: 12.0, head_circumference: 48.7}
+      3:  {height: 94.0,  weight: 14.0, head_circumference: 49.6}
+      4:  {height: 101.0, weight: 16.0}
+      5:  {height: 108.0, weight: 18.5}
+      6:  {height: 116.5, weight: 21.4}
+      7:  {height: 122.5, weight: 24.0}
+      8:  {height: 128.1, weight: 27.2}
+      9:  {height: 133.5, weight: 30.7}
+      10: {height: 138.9, weight: 34.4}
+      11: {height: 145.2, weight: 38.7}
+      12: {height: 152.6, weight: 44.1}
+      13: {height: 159.8, weight: 49.2}
+      14: {height: 165.1, weight: 54.1}
+      15: {height: 168.3, weight: 58.9}
+      16: {height: 169.9, weight: 60.7}
+      17: {height: 170.7, weight: 62.5}
+    female:
+      0:  {height: 71.5,  weight: 8.4,  head_circumference: 44.7}
+      1:  {height: 79.5,  weight: 10.2, head_circumference: 46.2}
+      2:  {height: 86.7,  weight: 11.6, head_circumference: 47.6}
+      3:  {height: 93.4,  weight: 13.5, head_circumference: 48.6}
+      4:  {height: 100.0, weight: 15.6}
+      5:  {height: 107.3, weight: 18.0}
+      6:  {height: 115.6, weight: 20.9}
+      7:  {height: 121.5, weight: 23.5}
+      8:  {height: 127.3, weight: 26.4}
+      9:  {height: 133.4, weight: 30.0}
+      10: {height: 140.2, weight: 34.0}
+      11: {height: 146.8, weight: 39.0}
+      12: {height: 151.9, weight: 43.7}
+      13: {height: 154.8, weight: 47.2}
+      14: {height: 156.5, weight: 49.9}
+      15: {height: 157.2, weight: 51.2}
+      16: {height: 157.7, weight: 52.6}
+      17: {height: 158.0, weight: 52.9}
+
+# Age threshold (inclusive) below which head-circumference is routinely
+# measured. WHO / AAP guidance stops routine head-circ at 3 y.
+head_circumference_max_age_years: 3
+
+# Age (inclusive lower bound) at which the adult stored-profile path
+# takes over from the pediatric growth-chart lookup. Below this age,
+# emit uses the pediatric_growth table; at/above this age, emit uses
+# `patient.height_cm` / `patient.weight_kg` / `patient.bmi`.
+adult_path_min_age_years: 18
