@@ -189,8 +189,14 @@ K21:  # GERD
 
 J45:  # Asthma
   medications:
-    - {drug: "Fluticasone/Salmeterol", drug_ja: "フルチカゾン/サルメテロール", dose: "", route: "INH", frequency: "bid"}
-    - {drug: "Salbutamol", drug_ja: "サルブタモール", dose: "", route: "INH", frequency: "prn"}
+    # Issue #920 defensible-dose defaults. Adoair 250 Diskus 添付文書:
+    # フルチカゾンプロピオン酸エステル 250 μg / サルメテロール 50 μg 配合、
+    # 1回1吸入・1日2回 (通常維持量、成人)。The 250μg fluticasone strength is
+    # the reference strength that FHIR consumers use for dispensing.
+    - {drug: "Fluticasone/Salmeterol", drug_ja: "フルチカゾン/サルメテロール", dose: "250mcg", route: "INH", frequency: "bid"}
+    # Salbutamol pMDI (サルタノール / ベネトリン): 1 puff = 100 μg salbutamol、
+    # 発作時 1-2 puff 頓用 (成人)、添付文書: サルタノールインヘラー 100μg.
+    - {drug: "Salbutamol", drug_ja: "サルブタモール", dose: "100mcg", route: "INH", frequency: "prn"}
   monitoring:
     - {test: "SpO2", frequency: "tid", intent: "SpO2 monitoring if respiratory complaint"}
 
