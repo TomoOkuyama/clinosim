@@ -2316,7 +2316,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   US also restores E78 downscale. YAML-only fix — no code change; the
   marginal-preserving engine already handles the new base_prev values
   correctly. B-3 phase 2 completion. Closes #919.</li>
-<li><strong>Issue #927 — Ambulatory (AMB) encounter length by visit type.</strong>
+<li>
+<p><strong>Issue #927 — Ambulatory (AMB) encounter length by visit type.</strong>
   Pre-fix, every outpatient encounter (~37k in JP p=10000) had
   <code>Encounter.length</code> drawn from a uniform <code>rng.integers(15, 45)</code>
   regardless of visit purpose, producing a flat 15-44 min plateau that
@@ -2340,7 +2341,94 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   Consequence: Structured CIF <code>Encounter.length</code> distribution changes
   for outpatient encounters — this is the intended fix; a fresh
   <code>narrate</code> run is required for consistency, so the next release is
-  MINOR (v0.6.0).</li>
+  MINOR (v0.6.0).</p>
+</li>
+<li>
+<p><strong>Issue #926 — Post-mortem event emission gate.</strong> Every FHIR bundle
+  went through a bundle-finalize walk that dropped resources whose
+  timestamps fall after the subject <code>Patient.deceasedDateTime</code>, and
+  <code>Patient.active</code> now flips to <code>false</code> for deceased patients (was
+  <code>true</code> for 5/5 deceased at p=1000 baseline). The immunization
+  enricher additionally clamps <code>_as_of</code> at date_of_death so the
+  annual flu scheduler cannot pick a post-mortem November. The
+  bundle-level filter is belt-and-braces — it walks
+  effectiveDateTime / issued / authoredOn / occurrence / recorded /
+  collected / date / performed / started + Period.start/end mirrors,
+  drops YYYY-MM-DD &gt; deceasedDateTime, and keeps same-day terminal
+  activity (labs, MAR, death certificate). RNG shape is preserved
+  for living patients; deceased-subset immunization records shift
+  slightly because the shortened <code>as_of</code> window changes the number of
+  <code>rng.random()</code> draws inside <code>generate_immunizations</code>. Closes #926.</p>
+</li>
+<li><strong>Issue #921 — Adult vaccine timing seasonality.</strong> Flu was
+  single-month (100% of 22,538 doses in November across 10 seasons)
+  and COVID-19 was uniform-monthly with no wave structure. New
+  yaml-driven <code>seasonal_distribution</code> block per country selects flu
+  month from Oct-Feb (JP, Nov peak) / Sep-Feb (US, Oct-Nov peak); new
+  <code>wave_epochs</code> block per country drives COVID-19 with a two-stage
+  sampler (age-weighted epoch pick → monthly_curve within the clipped
+  epoch window). Both fall back to legacy behavior when yaml is
+  absent (bit-identical for callers without the config). Preserves
+  the #928 death gate via the <code>_as_of</code> clamp. RNG cascade limited to
+  the immunization sub-RNG stream
+  (<code>ENRICHER_SEED_OFFSETS['immunization']</code>); master untouched.
+  Micro-simulation (500 JP patients, 10y): Nov = 40% of flu, COVID
+  wave peaks 2021-06 / 2021-11 / 2022-11 / 2023-11 / 2024-11 with
+  documented gaps. → <strong>PATCH</strong> per commit body. Closes #921.</li>
+<li><strong>Issue #922 — Pediatric over-representation and elderly
+  under-representation.</strong> JP emitted cohort ran 0-14 at 17.42% vs
+  MHLW 患者調査 2020 5.4% target and 65+ at 44.34% vs 56%. Root cause:
+  well-child + immunization pediatric schedule fired 9.56
+  encounters/patient at severity=0.0, bypassing the care-seeking
+  gate. Three composed structural fixes:
+  (1) <code>clinosim/config/pediatric_schedule.yaml</code> well_child_infant
+  [6,7,8] → [3,4,5], well_child_early [2,3] → [1,2],
+  immunization_infant [2,3] → [1,2] toward MHLW 乳幼児健康診査 cadence.
+  (2) New <code>care_seeking.age_conditional</code> block in
+  <code>locale/{jp,us}/demographics.yaml</code> (mirrors the sex_ratio pattern);
+  resolved via <code>_care_seeking_threshold_mean</code> — RNG-shape neutral
+  (only the <code>mean</code> argument to <code>rng.normal(mean, sd)</code> changes).
+  (3) <code>modules/pediatric/calendar.py</code> participation gate at top of
+  <code>generate_pediatric_events</code> — one <code>prng.random()</code> per person-year
+  decides whether the family skips this year's entire schedule.
+  Post-fix p=1000 s=500 audit: 0-14 8.0%, 65+ 50.0%, 75+ 30.6%; all
+  bands 25-84 pass ±3pp vs 患者調査. Cohort-shape RNG cascade →
+  <strong>MINOR</strong> (v0.6.0). Closes #922.</li>
+<li><strong>Issue #947 — Sex-locked ICD-10 dispatch.</strong> Six female patients
+  in the p=6389 v0.5.0 snapshot emitted <code>N41.0</code> (acute prostatitis)
+  from the UTI differential picker. Root cause: two per-file inline
+  <code>_SEX_RESTRICTED_ICD = {"N40": "M"}</code> tables covered exactly BPH;
+  every other anatomy-locked ICD (N41, N70-N77, O00-O9A, C50-C63,
+  etc.) could silently emit onto the opposite-sex patient. Fix — new
+  canonical yaml <code>clinosim/locale/shared/icd10_sex_restrictions.yaml</code></li>
+<li><code>clinosim/simulator/sex_gating.py</code> (loader + two helpers:
+  <code>is_sex_locked_for</code> / <code>pick_sex_compatible_dx_code</code>). The
+  differential picker in <code>modules/diagnosis/engine.py::
+  get_current_diagnosis_code</code> walks the already-probability-sorted
+  candidate list to the next sex-compatible entry — no fresh RNG
+  state consumed, preserving cross-platform bit-reproducibility.
+  Every candidate locked → falls back to <code>UNRESOLVED_DIAGNOSIS_ICD</code>
+  (R69) rather than emit a locked code. Also unifies the two inline
+  tables through the helper. New regression tests at
+  <code>tests/unit/simulator/test_sex_gating.py</code> cover N41.0 on females /
+  O-chapter on males / neutral codes never blocked / unknown sex
+  never blocks. Closes #947.</li>
+<li><strong>Issues #938 + #940 — Age gates for adult social-history and
+  LTCI.</strong> Adult alcohol / smoking Observations and LTCI carelevel
+  Observations previously emitted for every patient regardless of
+  age. New <code>age_gates.{alcohol,smoking}_min_age</code> (default 15 per
+  USPSTF / MHLW 高校 health-checkup) in
+  <code>modules/sdoh/reference_data/social_history.yaml</code> — pediatric rows
+  are now absent (spec-clean, no placeholder). New
+  <code>eligibility_gates</code> in <code>modules/care_level/reference_data/
+  care_level.yaml</code> implements the 介護保険 rules: 第1号被保険者 (universal)
+  age ≥ 65; 第2号被保険者 (requires 相当疾病) age 40-64 with a
+  chronic condition in the F00 / G30 / G20 / J44 / I60-I69 / G12.2 /
+  M80 subset that clinosim actually emits. Eligibility filter runs
+  after the per-patient sub-RNG draw, so RNG shape is unchanged for
+  skipped patients. p=1000 s=500 verification: 0-14 alcohol/smoking
+  0 (was 8), 40-64 carelevel 0 (was ~1-2% category error), 65+
+  carelevel 19 (was universal). Closes #938 + #940.</li>
 </ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2366,6 +2454,262 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   Verified on p=1000 seed 500 (2025-01-01 → 2026-08-31): encounters
   outside any Coverage.period 0/4011 (0.00 %, was ~40 %); minors on
   被保険者 0 (was 157). PATCH-scope — CIF unchanged, FHIR emit only.</li>
+<li><strong>Issue #924 — Referral letter self-loop.</strong> JP-CLINS 診療情報提供書
+  (LOINC 57133-1) previously emitted <code>Organization/hospital-main</code> in
+  BOTH <code>920</code> (紹介元) and <code>910</code> (紹介先) <code>entry.reference</code>, giving a
+  self-loop in 100% of referral Compositions while the narrative
+  asserted <code>紹介先:他院</code>. Fix: new catalog
+  <code>clinosim/locale/jp/external_organizations.yaml</code> (10 plausible 診療所
+  / 病院 / 大学病院) + <code>documents/referral_orgs.py</code> samples an entry from
+  <code>(patient_id, encounter_id)</code> via <code>sha256 % N</code> (RNG-neutral per
+  <code>feedback_rng_neutral_additive_field.md</code>; no master-RNG
+  consumption, stable across processes and platforms). The referral
+  Composition builder overrides <code>910</code>'s entry + narrative with the
+  sampled facility; <code>920</code> still pins hospital-main since all fire
+  paths model outgoing referrals. <code>_bb_compositions</code> appends only the
+  Organizations actually referenced by an emitted letter (orphan
+  catalog entries stay out of ndjson). Verified on JP p=500 s=500:
+  self-loops 8 → 0, distinct 910 destinations 1 → 5, narrative reads
+  e.g. <code>紹介先:佐藤ファミリークリニック。</code>. FHIR-emit-only,
+  byte-identity preserved for non-referral outputs. → <strong>PATCH</strong>.
+  Closes #924.</li>
+<li><strong>Issue #920 — Discharge / outpatient-renewal MedicationRequests
+  missing structured dose.</strong> <code>_build_discharge_medication_request</code>
+  populated <code>dosageInstruction</code> with only <code>route</code> and free-text
+  <code>dose</code>; the structured <code>doseAndRate.doseQuantity</code> was never
+  written, so 91.2% of MedicationRequests (83,506 / 91,532 at
+  p=10000) shipped with no numeric dose — a Japanese prescription
+  without a dose is legally invalid. Fix parses <code>item.dose</code> (e.g.
+  <code>"5mg"</code>) + <code>item.frequency</code> (<code>"bid"</code>) via the same
+  <code>parse_dose_string</code> / <code>_FREQ_PER_DAY</code> helpers the inpatient
+  <code>build_dosage_instruction</code> path uses (single-source parsing).
+  Emits <code>doseAndRate.doseQuantity</code> when parseable, <code>timing.repeat</code>
+  when a frequency is available, and <code>rateQuantity</code> for IV
+  continuous-infusion patterns (<code>"/h"</code>, <code>"continuous"</code>, <code>"drip"</code>);
+  unparseable dose → element omitted rather than fabricated
+  (<code>feedback_semantic_correctness_over_coverage</code>). Two
+  <code>chronic_medications.yaml</code> entries with empty <code>dose</code> from the
+  earlier bare-name migration (#442) restored with 添付文書-cited
+  defaults (Adoair 250 Diskus 1回1吸入 1日2回, サルタノールインヘラー
+  100μg 発作時頓用). JP p=200 s=500 verification: has_dose 8.5% →
+  97.9%; residual 2.1% is genuine no-fixed-dose supportive IV /
+  vaccine / mEq range strings. Closes #920 and closes #910 (subsumed
+  — audit shows anti-thrombotics are already 100% oral in JP output).</li>
+<li><strong>Issue #925 — Composition.section.entry empty.</strong> At v0.5.0 the
+  SOAP-note (34131-3) and JP-CLINS discharge-summary (18842-5)
+  Composition builders emitted <code>section.title</code> / <code>section.code</code> /
+  <code>section.text.div</code> but never populated <code>section.entry[]</code>, so a
+  document-first FHIR consumer had no structured link from a
+  Composition to its underlying MRs / Observations / Procedures /
+  Conditions (37,028 SOAP notes + 668 DS at p=10000). Fix: single
+  <code>_build_encounter_resource_index(entries)</code> walk in
+  <code>documents/composition.py</code> buckets already-emitted resources by
+  <code>(encounter.reference, resourceType)</code>; the index is refreshed in
+  <code>_build_bundle</code> immediately before the first Composition builder
+  fires and threaded through <code>BundleContext.encounter_resource_index</code>.
+  <code>_SECTION_ENTRY_TYPES</code> maps section-title → resourceType-bucket
+  (plan → MR+SR+Procedure, objective → Obs+DR, assessment →
+  Condition, etc.); narrative-only sections (subjective / HPI / chief
+  complaint) stay text-only. JP-CLINS eDS section builder extends
+  <code>_JP_DS_MULTI_ENTRY_TYPES</code> for 342 / 344 / 444 (333 hospital_course
+  intentionally omitted — pinned to <code>JP_DocumentReference</code>).
+  Encounter-id resolution routes CIF ids through
+  <code>resolve_encounter_id</code> before lookup with a fall-through so unit
+  tests pre-keying the index still work. Zero eligible resources →
+  <code>entry</code> omitted rather than <code>entry: []</code>. JP p=500 s=500 verification:
+  34131-3 SOAP 0/1713 → 1713/1713 populated, 18842-5 DS 0/39 → 39/39
+  populated; narrative-only slugs (10164-2 HPI etc.) correctly stay
+  empty per spec. FHIR-emit-only → <strong>PATCH</strong>. Closes #925.</li>
+<li><strong>Issue #944 — Coverage.status vs snapshot_date.</strong> Pre-fix,
+  <code>Coverage.status</code> was hard-coded <code>"active"</code> for every per-FY row,
+  regardless of whether <code>period.end</code> fell before CIF <code>snapshot_date</code>
+  (FHIR R4 requires "cancelled" for expired coverage). New
+  <code>_derive_coverage_status(period_end, snapshot_date)</code> helper:
+  returns <code>"cancelled"</code> iff <code>period.end &lt; snapshot_date</code>; boundary
+  (<code>period.end == snapshot_date</code>) inclusive → still active;
+  <code>snapshot_date is None</code> defaults to <code>"active"</code> (identity-only
+  tests / legacy CIF without metadata — backward compatible).
+  <code>_build_coverage_resources</code> gains an optional <code>snapshot_date</code> arg;
+  <code>BundleContext</code> gains a <code>snapshot_date</code> field populated by
+  <code>convert_cif_to_fhir</code> reading <code>cif/metadata.json</code> (soft-failure).
+  Verification (JP p=1000 s=500, snapshot 2026-03-31): 1016 Coverage
+  → 554 active (FY2025 current) + 462 cancelled (FY2024 expired,
+  previously all falsely active). Zero mismatch between period.end
+  and status. Closes #944 (remaining part after #934 fixed multi-FY</li>
+<li>age-gate portions).</li>
+<li><strong>Issue #941 — Encounter.hospitalization.admitSource +
+  dischargeDisposition dual-slot regression.</strong> Reporter measured
+  0/703 populated IMP encounters, but the emit path DOES set
+  <code>coding.code</code> correctly; the visible failure was that
+  <code>coding.display</code> carried the JP label and the
+  <code>_strip_japanese_display_on_english_only_systems</code> post-processor
+  stripped it (HL7 admit-source / discharge-disposition CodeSystems
+  are on the English-only-CS prefix allowlist), while <code>.text</code> was
+  never populated at emit site. Fix pairs an EN-canonical
+  <code>coding[0].display</code> (survives HAPI validation AND the strip walker)
+  with a locale-resolved <code>.text</code> slot per the dual-slot pattern
+  documented in <code>feedback_dual_slot_at_emit_site_not_post_process</code>.
+  Also honours <code>deceased=True</code> when the CIF-side discharge_disposition
+  is unset — falls back to yaml-configured <code>deceased_code</code> (<code>"exp"</code>)
+  instead of <code>fallback_code</code> (<code>"home"</code>); defence in depth for
+  hospital-mortality analytics. Fallback + deceased codes + JP-CLINS
+  ValueSet binding URLs live in
+  <code>clinosim/locale/shared/encounter_disposition_defaults.yaml</code>.
+  JP p=1000 s=500 verification: admitSource populated 0/87 → 87/87;
+  dischargeDisposition 0/87 → 82/87 (5 in-progress IMPs correctly
+  have no discharge); deaths 5/5 marked <code>exp</code>. Emit-only, no CIF
+  schema addition, no byte-diff on already-populated <code>.text</code> →
+  <strong>PATCH</strong>. Closes #941.</li>
+<li><strong>Issue #945 — Universal post-snapshot event filter.</strong> For
+  inpatients whose admission was still open at CIF <code>snapshot_date</code>,
+  the generator pre-emitted planned future events (nursing notes,
+  vitals, MAR, imaging, DR, MR, Composition) with
+  <code>effectiveDateTime</code> / <code>date</code> / <code>started</code> AFTER snapshot — 4,798
+  leaked event resources at v0.5.0 p=10000, furthest event 28 days
+  past snapshot. New <code>_drop_entries_after_snapshot</code> universal filter
+  placed after the #928 death filter in <code>_build_bundle</code>, walks every
+  non-dimensional bundle entry, extracts every gating timestamp
+  (effectiveDateTime / issued / authoredOn / occurrence / recorded /
+  collected / date / performed / started plus Period.start on period
+  / effectivePeriod / performedPeriod / occurrencePeriod plus
+  DocumentReference.context.period.start), and drops the entry when
+  any YYYY-MM-DD prefix exceeds <code>ctx.snapshot_date</code> (inclusive on
+  snapshot day). <code>_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES</code> whitelists
+  Patient / Encounter / Coverage / CareTeam / Practitioner /
+  PractitionerRole / Organization / Location / Endpoint / Device /
+  Medication — <code>Encounter.period.end</code> for open admissions and
+  <code>Coverage.period.end</code> for active insurance legitimately reach past
+  snapshot (#944 already flips Coverage.status). Uses <code>.start</code> only
+  (not the <code>.end</code> mirror the death filter uses) so an infusion begun
+  before snapshot with a projected end past snapshot survives. A
+  second-pass reference scrubber removes dangling <code>.result[]</code> /
+  <code>.section[*].entry[]</code> / <code>.hasMember[]</code> / <code>.derivedFrom[]</code> /
+  <code>.basedOn[]</code> / <code>.report[]</code> / <code>.context.related[]</code> /
+  <code>MedicationAdministration.request</code> after cascade-drop (fixed-point
+  bounded at 3 passes), closing the 51 dangling references that
+  otherwise broke <code>reference_integrity</code> on US p=100 shards. Per-type
+  drop counts surface via <code>snapshot_filter_dropped</code> in <code>simulator.log</code>.
+  RNG-shape neutral (post-process filter, no draws). JP p=1000 s=500
+  verification: 437 event-typed entries with datetime &gt; snapshot →
+  0; filter log <code>{"ClinicalImpression": 51, "Observation": 182,
+  "DocumentReference": 204}</code>. <strong>PATCH</strong> per commit body. Closes #945.</li>
+<li><strong>Vulture false-positive whitelist for <code>load_allergens</code>.</strong>
+  Vulture (60% confidence) reported <code>load_allergens</code> unused after
+  #942 added a sibling <code>load_allergen_config</code>, splitting the intent
+  path. Both functions are kept (legacy catalog shape vs the new
+  NKA + polyallergy blocks) and <code>load_allergens</code> is called at
+  <code>engine.py:153</code> in <code>allergy_enricher</code>, imported by two unit
+  tests, and documented as public API — whitelist entry added to
+  <code>vulture_whitelist.py</code>.</li>
+</ul>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Issue #946 — Anthropometric vitals (height / weight / BMI /
+  head-circumference).</strong> Pre-fix, not a single body-height /
+  body-weight / BMI / head-circumference Observation was emitted in
+  v0.5.0 (0 records across 6,389 patients / 1,243,667 Observations),
+  breaking BMI analytics, weight-based drug-dose verification,
+  pediatric growth-chart consumers, frailty / sarcopenia assessments,
+  and 栄養管理計画書 Composition consistency. Per encounter now
+  emits four LOINC-coded Observations (<code>category = vital-signs</code>):
+  8302-2 body height (cm), 29463-7 body weight (kg), 39156-5 BMI
+  (kg/m²), 8287-5 head circumference (cm — pediatric only, WHO / AAP
+  routine-measurement cutoff age ≤ 3, tunable in yaml). Adults use
+  fixed <code>patient.height_cm</code> + per-encounter weight drift; pediatric
+  values come from per-age × per-sex p50 medians in
+  <code>clinosim/locale/shared/anthropometric_reference.yaml</code> (WHO /
+  MHLW / MEXT for JP; WHO / CDC for US); BMI is computed at emit
+  time from emitted height and weight so the triple is internally
+  consistent. Per-encounter noise derived via
+  <code>hashlib.sha256(f"{patient_id}|{encounter_id}|&lt;suffix&gt;")</code> →
+  Gaussian quantile through <code>mpmath.erfinv</code> (prec=128) — the same
+  pattern as <code>_derive_rh_factor</code>, RNG-neutral per
+  <code>feedback_rng_neutral_additive_field.md</code> (master stream untouched).
+  All tunables (clamp bounds, pediatric medians, head-circ max age,
+  adult-path threshold, per-encounter noise SDs) live in the
+  anthropometric_reference.yaml. JP p=1000 s=500 verification:
+  8302-2 / 29463-7 / 39156-5 each 3,654 records / 576 patients;
+  8287-5 69 records / 12 pediatric patients (age ≤ 3). BMI
+  consistency spot-check within ±0.1 rounding. Introduces new
+  CIF-independent Observations tied to encounter-time values →
+  <strong>MINOR</strong> (v0.6.0) per <code>feedback_versioning_policy_
+  cif_narrative_consistency</code>. Closes #946.</li>
+<li><strong>Issue #942 — AllergyIntolerance NKA positive assertion +
+  polyallergy.</strong> Pre-fix, 84.9% of patients had zero
+  <code>AllergyIntolerance</code> records (5,424/6,389 at JP p=1000 s=500) and
+  polyallergy was 0% — "absent" was ambiguous between "no known
+  allergy" and "not assessed". Every patient now carries at least
+  one record. NKA emit uses SNOMED <code>716186003</code> "No known allergy"
+  with localized <code>code.text</code> (<code>アレルギー歴なし</code> JP /
+  <code>No known allergies</code> US), <code>clinicalStatus=resolved</code> /
+  <code>verificationStatus=confirmed</code>; <code>type</code> / <code>category</code> /
+  <code>criticality</code> omitted per NKA shape. Bypasses the JFAGY JP-Core
+  substitution — NKA is a status code, not a JFAGY allergen.
+  Polyallergy: age-conditional conditional probability given ≥ 1
+  allergen (child 10% / adult 25% / elderly 55%), +15%
+  chronic-illness bonus (C / N18 / D80-D84), 2-4 records with
+  <code>additional_count_weights</code> (60/30/10). Secondary allergens
+  sampled without replacement from the catalog; penicillin biases
+  next-allergen category weights toward medication (+20%
+  cross-reactivity). All tunables live in
+  <code>allergens.yaml</code> under <code>nka</code> / <code>polyallergy</code> / <code>cross_reactivity</code>
+  blocks (<code>feedback_constants_live_in_external_config</code>). RNG shape:
+  per-patient sub-RNG via <code>derive_sub_seed</code> (SHA256 pattern) —
+  master stream untouched, only the <code>AllergyIntolerance</code> emission
+  stream shifts. Narrative <code>_build_allergies</code> collapses a
+  single-NKA cohort to the NKDA fallback phrasing rather than
+  surfacing "no known allergy" verbatim. p=1000 s=500 verification:
+  0 patients with zero records (was 5,424/6,389), polyallergy 4.17%
+  overall, elderly 5.21% &gt; adult 3.45%. <code>AllergyIntolerance</code> CIF
+  reshapes → narrative regeneration required → <strong>MINOR</strong> (v0.6.0).
+  Two <code>test_document_chain*.py</code> baseline_prevalence expectations
+  widened 5-30 → 95-150 (per-patient rate now ≥ 100%; load-bearing
+  detections preserved). Closes #942.</li>
+<li><strong>Issue #943 — Cancer + obstetric service lines.</strong> Closes the
+  0-emission gap for oncology and obstetrics and dilutes the I10
+  hypertension dominance that skewed the encounter reasonCode
+  distribution to 41%. Oncology: five MHLW / SEER-calibrated cancers
+  added — C18 colon / C22 liver / C34 lung / C50 breast (F-only) /
+  C61 prostate (M-only) — via <code>chronic_prevalence</code> in JP + US
+  <code>demographics.yaml</code> with age gates, quarterly surveillance visits
+  in <code>chronic_followup.yaml</code> with tumor markers, and representative
+  regimens in <code>chronic_medications.yaml</code> (Capecitabine/Oxaliplatin,
+  Sorafenib/Lenvatinib, Osimertinib/Pemetrexed/Carboplatin,
+  Tamoxifen/Anastrozole/Trastuzumab, Bicalutamide/Leuprorelin).
+  C22 added to ICD-10 + ICD-10-CM catalogs. Obstetrics: Z34
+  (supervision, F 20-44 active-pregnancy proxy) + Z37 (delivery
+  outcome marker, F 25-64 past-birth marker); Z34/Z37/Z38 added to
+  ICD-10 catalog, Z34.90/Z37.9 to CM catalog; Z34 monthly prenatal
+  follow-up with folic acid + iron supplements. I10 dilution:
+  <code>chronic_followup</code> interval 1 → 4 months (JSH quarterly cadence
+  for stable HTN); JP prevalence 0.20/0.50/0.65 → 0.11/0.30/0.40
+  by age band; US 0.33 → 0.22. JP p=1000 s=500 verification: cancer
+  Conditions 0 → 46, obstetric Conditions 0 → 33 (Z34: 13, Z37:
+  20), I10 encounter reasonCode share 41% → 24.7%, chemo/prenatal
+  MedicationRequests 0 → 259. Scope limitations tracked in
+  follow-up <strong>Issue #957</strong> (deep chemo cycle scheduling — FOLFOX
+  infusion days, taxane pre-med; delivery Encounter + mother-baby
+  link + newborn Patient generation + Z38 birth event; no radiation-
+  therapy Procedure emission K722/K731; no oncology-specific
+  Composition). RNG cascade across every seed / country (new
+  chronic codes cascade sampling, I10 retuning) → <strong>MINOR</strong>
+  (v0.6.0). <code>test_memoize_hit_bit_identical</code> xfail loosened to
+  <code>strict=False</code> — the specific p=100/s=42 fixture no longer
+  triggers with the shifted cohort; underlying defect class
+  unchanged (other seeds still exhibit it). Fixture updates:
+  <code>test_fhir_family_history</code> accepts any <code>C50*</code> prefix for US
+  billable-leaf resolution (<code>C50.919</code>);
+  <code>test_anticoag_carryforward</code> reseeded 49 → 55 (same maintenance
+  pattern as sessions 42 / 89 B-3 / 90 determinism / #933 restore).
+  Closes #943.</li>
+<li><strong>Anticoag-carryforward integration test scouted to seed=49</strong> (post
+  #933 restore). The B-3 chronic-prevalence restore reshaped the US
+  E11.9 / E78 / J44 / N18 marginals, causing seed=45 to lose the
+  AFib + 2-admission + newly-started-anticoag candidate; seed=49 is
+  the first that retains the fixture (POP-000360). Fixture-only
+  change; same maintenance pattern as the seed=42 → 43 migration in
+  the v0.5.0 release notes. (Later re-scouted to seed=55 in #956;
+  see the Added entry for Issue #943.)</li>
 </ul>
 <h2 id="050---2026-08-28">[0.5.0] - 2026-08-28<a class="headerlink" href="#050---2026-08-28" title="Permanent link">&para;</a></h2>
 <p><strong>MINOR</strong> — Two independent MINOR drivers folded into this release:</p>
@@ -3092,7 +3436,7 @@ regression).</p>
 <li><code>test_data/</code> (5392 files / 200 MB of accumulated LLM narrative eval
   outputs) untracked; <code>.gitignore</code> prevents re-add (PR #529).</li>
 </ul>
-<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Synthea comparison adapter</strong> (P1-10):
   <a href="../../eval/"><code>clinosim eval</code></a> can now score a
@@ -3258,7 +3602,7 @@ distribution work that makes it installable.</p>
 <li>New <code>LICENSE</code> file at repo root (prior state: <code>pyproject.toml</code> declared
   MIT but no LICENSE text shipped).</li>
 </ul>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Population-driven, physiology-based synthetic EHR data simulation
   (13-variable hidden physiological state per patient).</li>
