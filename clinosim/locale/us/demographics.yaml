@@ -477,6 +477,29 @@ lifestyle_risk_multipliers:
       acute_cholecystitis: 2.5
       deep_vein_thrombosis: 1.5
 
+# Care-seeking severity threshold (Issue #922, session 91).
+#
+# Prior to session 91 the US locale had no `care_seeking:` block and
+# silently fell through to the code-level default (0.30 mean, 0.12 SD),
+# so the same pediatric over-emission mechanism documented in JP
+# demographics.yaml applies to US cohorts too. The block is added
+# explicitly here — the flat `threshold_mean: 0.30` matches the previous
+# behaviour for adults (RNG-neutral for 15+), and the `age_conditional`
+# raises the pediatric threshold so US well-child + immunization visits
+# (AAP Bright Futures schedule) do not over-emit children into the
+# hospital-user cohort. The US analog of MHLW 患者調査 for calibration is
+# the CDC NAMCS / NHAMCS ambulatory-care surveys + MEPS
+# hospital-user tables.
+care_seeking:
+  threshold_mean: 0.30
+  threshold_sd: 0.12
+  age_conditional:
+    "0-14":  0.60
+    "15-24": 0.45
+    "25-44": 0.25
+    "45-64": 0.32
+    "65-99": 0.20
+
 # Comorbidity correlations
 # condition_A present -> multiplier on condition_B's prevalence at sampling time
 # Source: Framingham, UKPDS, epidemiological meta-analyses
