@@ -505,8 +505,13 @@ def generate_population(
             # Care seeking threshold (JP: lower = more willing)
             # RM-7e: care-seeking threshold from locale
             # (JP: 20% reflects 健診 culture; US: 30% baseline).
+            # Issue #922 (session 91): the mean is now age-conditional so
+            # the flat threshold is not artificially over-passing pediatric
+            # well-child + immunization visits into the emitted cohort.
+            # RNG-shape neutral — one `rng.normal(mean, sd)` call per person
+            # regardless of which band matches.
             _cs = demo.get("care_seeking") or {}
-            _cs_mean = float(_cs.get("threshold_mean", CARE_SEEKING_THRESHOLD_MEAN_DEFAULT))
+            _cs_mean = _care_seeking_threshold_mean(demo, age)
             _cs_sd = float(_cs.get("threshold_sd", CARE_SEEKING_THRESHOLD_SD_DEFAULT))
             threshold = float(rng.normal(_cs_mean, _cs_sd))
             threshold = max(CARE_SEEKING_CLAMP_MIN, min(CARE_SEEKING_CLAMP_MAX, threshold))
@@ -767,6 +772,37 @@ def _sex_ratio_male_probability(demo: dict, age: int) -> float:
         if int(lo_s) <= age <= int(hi_s):
             return float(prob)
     return float(sr.get("male", SEX_RATIO_MALE_DEFAULT))
+
+
+def _care_seeking_threshold_mean(demo: dict, age: int) -> float:
+    """Return the care-seeking severity-threshold mean for a person of the given age.
+
+    Lookup order (Issue #922):
+      1. ``care_seeking.age_conditional[<band>]`` where <band> covers ``age``
+         (bands are inclusive ``"lo-hi"`` strings; the ``"lo+"`` shorthand
+         is also accepted for readability of open-ended elderly bands)
+      2. ``care_seeking.threshold_mean`` (top-level fallback — the
+         pre-Issue-#922 behaviour)
+      3. ``CARE_SEEKING_THRESHOLD_MEAN_DEFAULT`` (constant)
+
+    RNG-shape neutral — the caller still issues one ``rng.normal(mean, sd)``
+    per person regardless of which branch resolves; only the ``mean``
+    argument changes, so the RNG cursor advances identically for every
+    seed.
+    """
+    cs = demo.get("care_seeking") or {}
+    age_cond = cs.get("age_conditional") or {}
+    for band_str, val in age_cond.items():
+        raw = str(band_str)
+        if raw.endswith("+"):
+            lo_s = raw[:-1]
+            if age >= int(lo_s):
+                return float(val)
+            continue
+        lo_s, hi_s = raw.split("-")
+        if int(lo_s) <= age <= int(hi_s):
+            return float(val)
+    return float(cs.get("threshold_mean", CARE_SEEKING_THRESHOLD_MEAN_DEFAULT))
 
 
 # RhD prevalence — Rh-positive fraction by country. Derived via a stable
