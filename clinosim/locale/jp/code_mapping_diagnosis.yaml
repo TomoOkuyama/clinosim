@@ -25,6 +25,15 @@ J45: "J45"
 N40: "N40"
 M17: "M17"
 
+# --- Oncology / obstetric chronic conditions (identity — WHO ICD-10 category codes; Issue #943) ---
+C18: "C18"        # Colon cancer
+C22: "C22"        # Liver / intrahepatic bile duct cancer
+C34: "C34"        # Bronchus / lung cancer
+C50: "C50"        # Breast cancer (female-only per sex-gate)
+C61: "C61"        # Prostate cancer (male-only per sex-gate)
+Z34: "Z34"        # Encounter for supervision of normal pregnancy (female 15-49 per age/sex gate)
+Z37: "Z37"        # Outcome of delivery — carried as past-birth marker on the problem list
+
 # --- Past acute events carried as chronic background (identity) ---
 I21: "I21"
 I26: "I26"
