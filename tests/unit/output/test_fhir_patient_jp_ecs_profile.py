@@ -105,3 +105,28 @@ def test_us_patient_address_omits_text() -> None:
     p = _build_patient(us_patient, country="US")
     for a in p.get("address", []):
         assert "text" not in a, f"US Patient.address unexpectedly carries text: {a}"
+
+
+def test_issue_926_living_patient_stays_active_true() -> None:
+    """Issue #926: living patients must keep `active=true` (the pre-fix
+    default). The new death gate only flips deceased patients."""
+    p = _build_patient(_sample_p(), country="JP")
+    assert p.get("active") is True, f"living Patient should be active=true, got {p.get('active')}"
+    assert "deceasedDateTime" not in p
+    assert p.get("deceasedBoolean") is False
+
+
+def test_issue_926_deceased_patient_flips_active_false() -> None:
+    """Issue #926: when the CIF marks a patient as deceased
+    (date_of_death or dod), the FHIR Patient MUST carry `active=false`
+    (a deceased record is no longer in active use, per FHIR spec).
+    Baseline v0.5.0 emitted 47/47 deceased Patients with `active=true`
+    — the defect this test locks down.
+    """
+    dead = dict(_sample_p())
+    dead["date_of_death"] = "2025-12-16"
+    p = _build_patient(dead, country="JP")
+    assert p.get("active") is False, f"deceased Patient must have active=false, got {p.get('active')}"
+    assert p.get("deceasedDateTime") == "2025-12-16"
+    # deceasedBoolean must NOT be emitted alongside deceasedDateTime.
+    assert "deceasedBoolean" not in p

@@ -20,6 +20,18 @@ def _as_of(ctx, rec) -> date:
     snap = _get(_get(ctx, "config"), "snapshot_date", None) if _get(ctx, "config") else None
     if snap:
         y, m, d = (int(x) for x in str(snap).split("-"))
+        # Issue #926: cap `as_of` at date_of_death so the immunization
+        # scheduler never emits a vaccine after the patient has died.
+        # Nine of the 47 deceased patients in p=10000 v0.5.0 received
+        # post-mortem flu shots (the flu scheduler picks a fixed month
+        # per year — 11-01 — independent of death status). Clamping
+        # here is the single seam that gates all three frequency
+        # branches (annual / every_n_years / once) in
+        # ``generate_immunizations`` without touching the pure engine.
+        patient = _get(rec, "patient")
+        dod = _get(patient, "date_of_death", None) if patient else None
+        if isinstance(dod, date):
+            return min(date(y, m, d), dod)
         return date(y, m, d)
     # else: latest encounter admission date
     encs = _get(rec, "encounters", []) or []
@@ -29,7 +41,13 @@ def _as_of(ctx, rec) -> date:
         if isinstance(adm, datetime):
             dates.append(adm.date())
     if dates:
-        return max(dates)
+        latest = max(dates)
+        # Issue #926: same cap for the fallback branch.
+        patient = _get(rec, "patient")
+        dod = _get(patient, "date_of_death", None) if patient else None
+        if isinstance(dod, date):
+            return min(latest, dod)
+        return latest
     raise ValueError(
         "immunization _as_of(): no deterministic date reference available — "
         "ctx.config.snapshot_date is unset AND the record has no encounters "
