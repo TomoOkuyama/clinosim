@@ -74,8 +74,36 @@ def generate_pediatric_events(
 
     from clinosim.modules.population.engine import LifeEvent
 
-    events: list[Any] = []
     age = int(getattr(person, "age", 0) or 0)
+    # No pediatric schedule applies for adults; early-return so we don't
+    # touch the per-person rng for out-of-band ages (preserves the
+    # empty-schedule invariant style for the >18 case).
+    if age > 18:
+        return []
+
+    # Issue #922 — care-seeking participation gate.
+    #
+    # Well-child + immunization visits have severity=0.0, so they bypass
+    # the standard `severity > care_seeking_threshold` gate that filters
+    # adult acute events. Without a participation gate, EVERY 0-4 child
+    # accumulates 5-11 preventive encounters/year and clears any
+    # subsequent care-seeking / emit filter, over-representing pediatric
+    # patients in the emitted cohort by ~3× vs MHLW 患者調査 2020.
+    #
+    # The `care_seeking_threshold` on the person represents how motivated
+    # the household is to seek/attend care (locale + age-band tuned via
+    # ``demographics.yaml``'s ``care_seeking.age_conditional`` — Issue
+    # #922). A Bernoulli draw here skips this year's entire pediatric
+    # schedule when the parents are less-engaged, dropping pediatric
+    # patients out of the emitted cohort proportionally to real MHLW /
+    # NAMCS well-child participation attrition (health-literacy gradient
+    # + missed-appointment rate). Draws from the per-person spawned rng,
+    # not the master RNG.
+    threshold = float(getattr(person, "care_seeking_threshold", 0.20) or 0.20)
+    if prng.random() < threshold:
+        return []
+
+    events: list[Any] = []
     for key, entry in schedule.items():
         if age < int(entry["age_min"]) or age > int(entry["age_max"]):
             continue

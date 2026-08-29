@@ -170,9 +170,34 @@ chronic_prevalence:
 # RM-7e (session 42): JP care-seeking threshold lower than US (30%→20%)
 # reflects JP 健診 culture (mandatory annual company + 特定健診 for 40+).
 # Lower threshold = more conditions get documented in EHR problem lists.
+#
+# Issue #922 (session 91): the flat 0.20 threshold combined with the
+# pediatric well-child + immunization schedule (9.56 enc/patient for age
+# 0-4) let ~100% of children pass the care-seeking gate, over-emitting
+# pediatric patients into the cohort by 3.23× vs MHLW 患者調査 2020 and
+# under-emitting 75+ elderly. The `age_conditional` block is looked up
+# first (bands are inclusive `"lo-hi"` strings, RNG-shape neutral — the
+# per-person `rng.normal(mean, sd)` call stays exactly one), with the
+# flat `threshold_mean` retained as a back-compat fallback.
+#
+# Calibration intent (all target MHLW 患者調査 2020 hospital-cohort shape,
+# not Census-2020 general population):
+#   - 0-14  raised because 乳幼児健診 / 学校保健 visits count as 保健 not
+#     医療 in 患者調査; a healthy child on the routine schedule should
+#     NOT be counted as a hospital patient.
+#   - 15-24 slightly raised (学校保健 dominates, low hospital cohort).
+#   - 25-44 slightly lowered — adult primary care is currently under-
+#     represented (25-34 emits at 0.44× MHLW target).
+#   - 45+ keeps the 0.20 baseline that already matched MHLW well.
 care_seeking:
   threshold_mean: 0.20
   threshold_sd: 0.10
+  age_conditional:
+    "0-14":  0.72
+    "15-24": 0.70
+    "25-44": 0.14
+    "45-64": 0.26
+    "65-99": 0.08
 
 # RM-7a (session 42 tune-up): comorbidity_correlations raised from
 # conservative 1.3-1.8 to JCS/JSH real association values (metabolic
