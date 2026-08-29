@@ -105,3 +105,18 @@ codes:
   '61312':
     en: Craniotomy or craniectomy for evacuation of subdural hematoma
     ja: 開頭術または穿頭血腫除去術
+  # Issue #939: procedures paired with the K-codes added for the same fix
+  # (PCI / pacemaker / ileus tube / bowel resection). CPT descriptors from
+  # AMA CPT 2024 (official code set).
+  '92920':
+    en: Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery
+    ja: 経皮的冠動脈形成術（PCI）
+  '33208':
+    en: Insertion of permanent pacemaker with transvenous electrode(s); atrial and ventricular
+    ja: 恒久的ペースメーカー移植術（心房・心室リード）
+  '44500':
+    en: Introduction of long gastrointestinal tube (e.g., Miller-Abbott)
+    ja: イレウス用ロングチューブ挿入
+  '44140':
+    en: Colectomy, partial; with anastomosis
+    ja: 結腸部分切除術（吻合を伴う）

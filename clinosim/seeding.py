@@ -121,6 +121,29 @@ def ambulatory_visit_length_seed(encounter_id: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+def issue939_procedure_seed(encounter_id: str, proc_type: str) -> int:
+    """Per-(encounter, procedure_type) sub-seed for Issue #939 dispatch draws.
+
+    The five procedure types added for Issue #939 (coronary_pci,
+    pacemaker_implant, craniotomy_hematoma_evacuation, ileus_tube_placement,
+    bowel_resection) are dispatched from
+    ``generate_bedside_procedures`` via a dedicated fork of the rule loop
+    that draws from a per-(encounter, proc_type) sub-RNG instead of the
+    shared patient-scoped ``rng``. This guarantees the additive
+    procedure-emission fix does NOT cascade the master stream — every
+    downstream RNG consumer (labs, imaging, discharge Rx, memoize cache)
+    keeps its pre-fix byte-shape.
+
+    Sibling of ``discharge_prescription_seed`` /
+    ``ambulatory_visit_length_seed`` — same AD-16 rationale, keyed on
+    encounter_id (per-admission draws) plus the procedure_type discriminator
+    so each of the five dispatch decisions is independent.
+    """
+    salt = "clinosim:issue939-procedure:v1"
+    digest = hashlib.sha256(f"{salt}|{encounter_id}|{proc_type}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 def individual_lab_seed(order_id: str) -> int:
     """Per-individual-lab-order deterministic sub-seed in ``[0, 2**32)``.
 
