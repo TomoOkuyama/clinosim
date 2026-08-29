@@ -122,6 +122,13 @@ class BundleContext:
     # `None` when the caller has not run the pre-composition indexing pass
     # (unit-tests exercising a single builder in isolation).
     encounter_resource_index: dict[str, dict[str, list[dict[str, str]]]] | None = None
+    # Issue #944: simulation snapshot date (YYYY-MM-DD) from cif/metadata.json,
+    # read once by `convert_cif_to_fhir` and threaded through so
+    # `_build_coverage_resources` can decide Coverage.status per FY row
+    # (active vs cancelled). None when the CIF has no metadata.json
+    # (identity-only tests, non-standard callers) — builders MUST fall
+    # back to their pre-#944 defaults in that case.
+    snapshot_date: str | None = None
 
 
 # Human-readable → UCUM canonical token map (issue #204, 2026-07-17).
