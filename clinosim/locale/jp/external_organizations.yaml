@@ -1,0 +1,154 @@
+# External referring / receiving Japanese hospital catalog (Issue #924).
+#
+# Curated pool of plausible 診療所 / 中規模病院 / 大学病院 that the
+# FHIR referral-letter (診療情報提供書, LOINC 57133-1) Composition
+# builder samples from when populating the 910 (紹介先) section.
+#
+# Prior to this catalog the referral emit path had no external
+# Organization to reference and defaulted both 920 (紹介元) and 910
+# (紹介先) entries at `Organization/hospital-main`, contradicting the
+# narrative text `紹介先:他院` (Issue #924). Entries below become
+# `Organization.ndjson` rows at export time, but only when actually
+# referenced by an emitted referral letter — orphan entries are not
+# emitted.
+#
+# Fields per entry:
+#   id            — stable FHIR Organization.id (deterministic, ext-hosp-*).
+#                   Must be unique across the catalog.
+#   name          — Japanese facility name (Organization.name).
+#   type          — internal facility-class tag; also drives
+#                   type_display when omitted below.
+#   type_code     — HL7 v3 OrganizationType code (always `prov` for
+#                   external independent facilities; `dept` is reserved
+#                   for hospital-internal sub-organizations).
+#   type_display  — 医療機関 / 診療所 / 病院 / 大学病院 label; used both
+#                   for Organization.type coding.display and to render
+#                   the narrative referral destination sentence.
+#   address       — used for Organization.address.text (prefecture + city).
+#     prefecture  — 都道府県 name (used as address text prefix).
+#     city        — 市区町村 name.
+#   institution_code — 10-digit MHLW medical-institution number.
+#                   Placeholder values (not real assignments) but they
+#                   satisfy the JP_Organization_eCS
+#                   `identifier:medicalInstitutionCode` slice.
+#   phone         — Organization.telecom placeholder (03/06/052 area).
+#
+# Design constraints:
+#   * spread across facility types (clinic / community / university)
+#     so referrals are not all to the same class of facility
+#   * spread across prefectures typical of the JP referral network
+#   * plausible Japanese naming (地名 + 内科クリニック / 病院 / 医療
+#     センター / 大学病院) — no real institution names
+#   * order-stable — sampling is a deterministic modulo on this list;
+#     appending is safe, inserting in the middle rotates assignments
+
+external_hospitals:
+  - id: ext-hosp-yamada-clinic
+    name: 山田内科クリニック
+    type: clinic
+    type_code: prov
+    type_display: 診療所
+    address:
+      prefecture: 東京都
+      city: 世田谷区
+    institution_code: "1310000101"
+    phone: "03-3411-0001"
+
+  - id: ext-hosp-tokyo-central
+    name: 東京中央総合病院
+    type: general_hospital
+    type_code: prov
+    type_display: 総合病院
+    address:
+      prefecture: 東京都
+      city: 千代田区
+    institution_code: "1310000102"
+    phone: "03-3211-0002"
+
+  - id: ext-hosp-shinjuku-univ
+    name: 新宿医科大学附属病院
+    type: university_hospital
+    type_code: prov
+    type_display: 大学病院
+    address:
+      prefecture: 東京都
+      city: 新宿区
+    institution_code: "1310000103"
+    phone: "03-3351-0003"
+
+  - id: ext-hosp-yokohama-minato
+    name: 横浜みなと病院
+    type: general_hospital
+    type_code: prov
+    type_display: 病院
+    address:
+      prefecture: 神奈川県
+      city: 横浜市中区
+    institution_code: "1414000104"
+    phone: "045-201-0004"
+
+  - id: ext-hosp-sato-family-clinic
+    name: 佐藤ファミリークリニック
+    type: clinic
+    type_code: prov
+    type_display: 診療所
+    address:
+      prefecture: 神奈川県
+      city: 川崎市高津区
+    institution_code: "1414000105"
+    phone: "044-811-0005"
+
+  - id: ext-hosp-osaka-kita
+    name: 大阪北医療センター
+    type: general_hospital
+    type_code: prov
+    type_display: 医療センター
+    address:
+      prefecture: 大阪府
+      city: 大阪市北区
+    institution_code: "2727000106"
+    phone: "06-6361-0006"
+
+  - id: ext-hosp-kyoto-univ
+    name: 京都府立医科大学附属病院
+    type: university_hospital
+    type_code: prov
+    type_display: 大学病院
+    address:
+      prefecture: 京都府
+      city: 京都市上京区
+    institution_code: "2626000107"
+    phone: "075-251-0007"
+
+  - id: ext-hosp-nagoya-sakae
+    name: 名古屋栄総合病院
+    type: general_hospital
+    type_code: prov
+    type_display: 総合病院
+    address:
+      prefecture: 愛知県
+      city: 名古屋市中区
+    institution_code: "2323000108"
+    phone: "052-241-0008"
+
+  - id: ext-hosp-sapporo-kita
+    name: 札幌北クリニック
+    type: clinic
+    type_code: prov
+    type_display: 診療所
+    address:
+      prefecture: 北海道
+      city: 札幌市北区
+    institution_code: "0101000109"
+    phone: "011-711-0009"
+
+  - id: ext-hosp-fukuoka-hakata
+    name: 福岡博多記念病院
+    type: general_hospital
+    type_code: prov
+    type_display: 病院
+    address:
+      prefecture: 福岡県
+      city: 福岡市博多区
+    institution_code: "4040000110"
+    phone: "092-411-0010"
