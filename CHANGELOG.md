@@ -51,6 +51,31 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   US also restores E78 downscale. YAML-only fix — no code change; the
   marginal-preserving engine already handles the new base_prev values
   correctly. B-3 phase 2 completion. Closes #919.
+- **Issue #927 — Ambulatory (AMB) encounter length by visit type.**
+  Pre-fix, every outpatient encounter (~37k in JP p=10000) had
+  `Encounter.length` drawn from a uniform `rng.integers(15, 45)`
+  regardless of visit purpose, producing a flat 15-44 min plateau that
+  excluded the 5-10 min 再診 (return-visit) peak that dominates JP
+  primary-care volume. Length is now drawn from a per-visit-type
+  triangular distribution whose parameters live in
+  `clinosim/locale/<country>/ambulatory_visit_length.yaml`
+  (grand-design rule: tunable constants live in yaml, not code):
+  JP `chronic_followup` triangular(5, 9, 20) — the 再診 short tail;
+  JP `health_screening` triangular(20, 30, 45) — 特定健診 intake;
+  plus buckets for `post_discharge` and `pediatric_visit` and US
+  equivalents keyed on AHRQ MEPS / CPT E/M reference visit lengths.
+  The sampler routes through the `clinosim.determinism` proxy
+  (cross-platform bit-reproducible) via a per-encounter sub-RNG
+  (`ambulatory_visit_length_seed`), which isolates the length draw
+  from the caller's `opd_rng` — downstream RNG consumers (staff, vitals,
+  labs, prescription sampling) keep their pre-fix byte-shape. The
+  removed constants `OUTPATIENT_VISIT_DURATION_MIN_MIN` and
+  `OUTPATIENT_VISIT_DURATION_MAX_MIN` have no external callers.
+  Home-visit / inpatient / ED length logic is intentionally unchanged.
+  Consequence: Structured CIF `Encounter.length` distribution changes
+  for outpatient encounters — this is the intended fix; a fresh
+  `narrate` run is required for consistency, so the next release is
+  MINOR (v0.6.0).
 
 ## [0.5.0] - 2026-08-28
 

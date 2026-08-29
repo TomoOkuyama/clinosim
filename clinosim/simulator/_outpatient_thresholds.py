@@ -23,8 +23,6 @@ __all__ = [
     "OUTPATIENT_LAB_ORDER_OFFSET_MIN",
     "OUTPATIENT_LAB_RESULT_OFFSET_HOURS",
     "OUTPATIENT_PRESCRIPTION_DURATION_DAYS",
-    "OUTPATIENT_VISIT_DURATION_MAX_MIN",
-    "OUTPATIENT_VISIT_DURATION_MIN_MIN",
     "OUTPATIENT_VITALS_OFFSET_MIN",
 ]
 
@@ -33,23 +31,13 @@ __all__ = [
 # Visit-timing distributions
 # ---------------------------------------------------------------------------
 
-OUTPATIENT_VISIT_DURATION_MIN_MIN: int = 15
-"""Lower bound (minutes) of the outpatient visit duration sampled by
-``rng.integers(min, max)``.
-
-15 minutes matches the standard short primary-care follow-up slot
-(uncomplicated chronic-disease review, single-issue post-discharge
-check). Real-world urgent-care and dedicated follow-up appointments
-typically block a 15-minute room."""
-
-OUTPATIENT_VISIT_DURATION_MAX_MIN: int = 45
-"""Upper bound (minutes, exclusive per ``rng.integers`` convention) of
-the outpatient visit duration.
-
-45 minutes captures the longer end of a routine follow-up — new
-symptom review, medication reconciliation, patient education. Rarely
-exceeded except for annual physicals / new-consult visits which
-outpatient.py does not model separately today."""
+# Issue #927: the pre-fix flat ``rng.integers(15, 45)`` visit-duration
+# constants ``OUTPATIENT_VISIT_DURATION_MIN_MIN`` / ``..._MAX_MIN`` were
+# removed. Length now comes from a per-visit-type triangular
+# distribution whose parameters live in
+# ``locale/<country>/ambulatory_visit_length.yaml`` (grand-design rule:
+# tunable numbers live in yaml, not code). See
+# ``clinosim.simulator.outpatient._sample_ambulatory_visit_length_minutes``.
 
 OUTPATIENT_VITALS_OFFSET_MIN: int = 5
 """Fixed minutes from ``visit_date`` at which outpatient vitals are

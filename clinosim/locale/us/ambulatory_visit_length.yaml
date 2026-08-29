@@ -1,0 +1,42 @@
+# Ambulatory (outpatient) encounter length by visit_type — Issue #927.
+#
+# Distribution shape: triangular(min, mode, max), sampled once per
+# encounter with the sample rounded to an integer minute and clamped
+# to at least 1 min. Rationale for triangular over uniform: real
+# outpatient visits cluster around a modal duration, not a flat
+# plateau (Issue #927).
+#
+# References:
+#   - AHRQ MEPS Household Component — median outpatient visit ~17-20 min
+#   - CPT E/M established-patient 99213 ≈ 15 min typical
+#   - CPT E/M new-patient 99204 ≈ 45 min typical
+#   - CDC NAMCS 2018 — mean ambulatory visit face-time
+#
+# US outpatient visits skew longer than JP (US ~15-20 min median vs
+# JP ~7-10 min for stable chronic-disease follow-up), so mode values
+# are shifted upward, but the qualitative shape (short return / long
+# intake) is the same.
+
+visit_types:
+  chronic_followup:      # Established-patient follow-up (99212/99213)
+    min: 8
+    mode: 15
+    max: 25
+  post_discharge:        # Transitional care management follow-up
+    min: 15
+    mode: 22
+    max: 35
+  pediatric_visit:       # Well-child visit (99392-99395)
+    min: 10
+    mode: 15
+    max: 25
+  health_screening:      # Annual physical / preventive intake (new-visit-like)
+    min: 25
+    mode: 35
+    max: 55
+
+# Fallback for any visit_type not enumerated above.
+default:
+  min: 10
+  mode: 20
+  max: 35

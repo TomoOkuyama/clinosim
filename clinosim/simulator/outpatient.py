@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -9,6 +10,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
+from clinosim.locale.loader import load_ambulatory_visit_length
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
@@ -21,12 +23,11 @@ from clinosim.modules.staff.engine import (
     StaffRoster,
     assign_staff,
 )
+from clinosim.seeding import ambulatory_visit_length_seed
 from clinosim.simulator._outpatient_thresholds import (
     OUTPATIENT_LAB_ORDER_OFFSET_MIN,
     OUTPATIENT_LAB_RESULT_OFFSET_HOURS,
     OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
-    OUTPATIENT_VISIT_DURATION_MAX_MIN,
-    OUTPATIENT_VISIT_DURATION_MIN_MIN,
     OUTPATIENT_VITALS_OFFSET_MIN,
 )
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
@@ -42,6 +43,53 @@ from clinosim.types.encounter import (
 )
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
+
+
+def _sample_ambulatory_visit_length_minutes(
+    visit_type: str,
+    country: str,
+    encounter_id: str,
+) -> int:
+    """Sample an outpatient (AMB) encounter length in minutes (Issue #927).
+
+    Distribution: triangular(min, mode, max), parameters looked up per
+    (country, visit_type) from ``locale/<country>/ambulatory_visit_length.yaml``.
+    Sample is rounded to the nearest integer minute and clamped to at
+    least 1 minute.
+
+    RNG shape guarantee: draws from a per-encounter sub-RNG derived via
+    ``ambulatory_visit_length_seed(encounter_id)`` — the caller's
+    patient-scoped master ``opd_rng`` is NOT consumed here, so this
+    replacement of the former ``rng.integers(15, 45)`` call does not
+    cascade into any downstream RNG consumer (vitals derivation, lab
+    tech assignment, prescription sampling all keep their pre-fix
+    byte-shape). The only intended output-shape change is the
+    Encounter.length column itself.
+
+    Implementation note: triangular inverse-CDF uses one ``rng.random()``
+    plus one ``math.sqrt``. ``math.sqrt`` is IEEE-754 correctly rounded,
+    so the result is bit-identical across CPU architectures without
+    needing an ``mpmath`` shim (see ``clinosim/determinism.py`` docstring
+    for the transcendental-only rationale).
+    """
+    cfg = load_ambulatory_visit_length(country)
+    bucket = cfg.get("visit_types", {}).get(visit_type) or cfg["default"]
+    lo = float(bucket["min"])
+    mode = float(bucket["mode"])
+    hi = float(bucket["max"])
+
+    rng = determinism.default_rng(ambulatory_visit_length_seed(encounter_id))
+    u = float(rng.random())
+    # Triangular inverse CDF (Devroye 1986, ch. IX.1). One rng.random() +
+    # one math.sqrt — no libm transcendentals, so bit-identical across
+    # ARM/x86.
+    fc = (mode - lo) / (hi - lo) if hi > lo else 0.0
+    if u < fc:
+        sample = lo + math.sqrt(u * (hi - lo) * (mode - lo))
+    else:
+        sample = hi - math.sqrt((1.0 - u) * (hi - lo) * (hi - mode))
+    minutes = int(round(sample))
+    return max(1, minutes)
 
 
 def _simulate_outpatient_visit(
@@ -113,8 +161,12 @@ def _simulate_outpatient_visit(
             encounter.chief_complaint_ja = _chief_ja
     encounter.encounter_type = EncounterType.OUTPATIENT
     encounter.status = EncounterStatus.COMPLETED
+    # Issue #927: per-visit-type triangular length. Uses a per-encounter
+    # sub-RNG derived from encounter_id so it does NOT consume the caller's
+    # opd_rng — every downstream draw (staff, vitals, labs, prescription)
+    # keeps its pre-fix byte-shape.
     encounter.discharge_datetime = visit_date + timedelta(
-        minutes=int(rng.integers(OUTPATIENT_VISIT_DURATION_MIN_MIN, OUTPATIENT_VISIT_DURATION_MAX_MIN))
+        minutes=_sample_ambulatory_visit_length_minutes(visit_type, country, encounter.encounter_id)
     )
 
     staff = assign_staff("rounds", department_id, roster, rng)

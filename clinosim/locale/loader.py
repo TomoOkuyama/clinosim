@@ -323,6 +323,79 @@ def load_department_display() -> dict[str, dict[str, str]]:
     return raw.get("departments", {}) or {}
 
 
+@lru_cache(maxsize=2)
+def load_ambulatory_visit_length(country: str) -> dict[str, Any]:
+    """Load per-visit-type ambulatory (outpatient) encounter length distributions.
+
+    Returned shape:
+
+        {
+          "visit_types": {
+             "chronic_followup": {"min": int, "mode": int, "max": int},
+             "post_discharge":   {"min": int, "mode": int, "max": int},
+             "pediatric_visit":  {"min": int, "mode": int, "max": int},
+             "health_screening": {"min": int, "mode": int, "max": int},
+             ...
+          },
+          "default": {"min": int, "mode": int, "max": int},
+        }
+
+    Issue #927: pre-fix outpatient length was a flat ``rng.integers(15, 45)``
+    regardless of visit purpose, which excluded the 5-10 min return-visit
+    peak that dominates JP primary-care volume. This loader is the single
+    source-of-truth for the per-visit-type triangular distributions used
+    by ``clinosim.simulator.outpatient._sample_ambulatory_visit_length_minutes``.
+    """
+    fallback = {
+        "visit_types": {},
+        "default": {"min": 15, "mode": 25, "max": 45},
+    }
+    data = _load_yaml(_country_dir(country) / "ambulatory_visit_length.yaml", fallback=fallback)
+    _validate_ambulatory_visit_length(data, country)
+    return data
+
+
+def _validate_ambulatory_visit_length(data: dict, country: str) -> None:
+    """Fail loud if the yaml is malformed — every distribution must satisfy
+    0 < min <= mode <= max. Triangular sampling silently degenerates when
+    the invariant is violated, so we catch it at import time."""
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"ambulatory_visit_length.yaml ({country}): top-level must be a dict, got {type(data).__name__}"
+        )
+
+    def _check_bucket(name: str, bucket: Any) -> None:
+        if not isinstance(bucket, dict):
+            raise ValueError(
+                f"ambulatory_visit_length.yaml ({country}): {name!r} must be a dict, got {type(bucket).__name__}"
+            )
+        for k in ("min", "mode", "max"):
+            if k not in bucket:
+                raise ValueError(f"ambulatory_visit_length.yaml ({country}): {name!r} missing key {k!r}")
+            v = bucket[k]
+            if not isinstance(v, int | float) or isinstance(v, bool):
+                raise ValueError(f"ambulatory_visit_length.yaml ({country}): {name}.{k}={v!r} must be numeric")
+        lo, mode, hi = float(bucket["min"]), float(bucket["mode"]), float(bucket["max"])
+        if not (0 < lo <= mode <= hi):
+            raise ValueError(
+                f"ambulatory_visit_length.yaml ({country}): {name!r} requires 0 < min ({lo}) <= "
+                f"mode ({mode}) <= max ({hi})"
+            )
+
+    default = data.get("default")
+    if default is None:
+        raise ValueError(f"ambulatory_visit_length.yaml ({country}): missing top-level 'default' block")
+    _check_bucket("default", default)
+
+    visit_types = data.get("visit_types", {}) or {}
+    if not isinstance(visit_types, dict):
+        raise ValueError(
+            f"ambulatory_visit_length.yaml ({country}): 'visit_types' must be a dict, got {type(visit_types).__name__}"
+        )
+    for name, bucket in visit_types.items():
+        _check_bucket(f"visit_types.{name}", bucket)
+
+
 @lru_cache(maxsize=8)
 def load_identity_config(country: str) -> dict[str, Any]:
     """Load resident identifier / insurance numbering config for a country (AD-54).
