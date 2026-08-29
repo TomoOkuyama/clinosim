@@ -438,7 +438,15 @@ def _simulate_patient(
     # Final diagnosis
     protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
     yaml_progression = protocol_diagnostic.get("diagnosis_progression") if protocol_diagnostic else None
-    dx_code, dx_name = get_current_diagnosis_code(differential, protocol_progression=yaml_progression)
+    # Issue #947: sex-gate the differential-final picker. Passing patient.sex
+    # lets `get_current_diagnosis_code` walk to the next-ranked sex-compatible
+    # candidate when the top pick is anatomy-locked to the opposite sex
+    # (e.g. `prostatitis`/N41.0 on a UTI female patient). Non-RNG walk.
+    dx_code, dx_name = get_current_diagnosis_code(
+        differential,
+        protocol_progression=yaml_progression,
+        patient_sex=patient.sex,
+    )
 
     # Diagnosis correctness and missed diagnoses (AD-29)
     missed: list[str] = []
@@ -619,13 +627,14 @@ def _simulate_patient(
         (c.code.split(".")[0] if hasattr(c, "code") else str(c).split(".")[0])
         for c in (getattr(patient, "chronic_conditions", []) or [])
     }
-    # seed=400 verification finding: N40 (BPH) is anatomically
-    # male-only, but the implied-chronic table was applying it sex-blind.
-    # Register sex constraints per code so future additions are safe by
-    # default (single edit point; sibling-sweep-safe pattern).
-    _SEX_RESTRICTED_ICD = {
-        "N40": "M",  # Benign prostatic hyperplasia — male only
-    }
+    # Issue #947: sex-lock table moved to
+    # ``clinosim/locale/shared/icd10_sex_restrictions.yaml`` and consulted
+    # via ``clinosim.simulator.sex_gating.is_sex_locked_for`` — same guard
+    # now covers every anatomy-locked code (N40 BPH, N41 prostatitis,
+    # N70–N77 female PID, O00–O9A pregnancy, C50–C63 sex-specific
+    # malignancies) instead of the pre-fix inline {"N40": "M"}.
+    from clinosim.simulator.sex_gating import is_sex_locked_for
+
     # p=500 review finding (session 89): the implied-chronic table was
     # applying age-restricted chronic diseases (COPD, dementia, etc.) to
     # minors. E.g. a 6-year-old with `bacterial_pneumonia` was picking up
@@ -662,8 +671,10 @@ def _simulate_patient(
             _base = _code.split(".")[0]
             if _base in _existing_codes:
                 continue
-            _sex_req = _SEX_RESTRICTED_ICD.get(_base)
-            if _sex_req and _patient_sex and _sex_req != _patient_sex:
+            # Issue #947: yaml-driven check via `is_sex_locked_for`; covers
+            # every anatomy-locked ICD (not just N40), so future implied-
+            # chronic additions inherit the guard automatically.
+            if is_sex_locked_for(_code, _patient_sex):
                 continue  # skip sex-restricted ICD for the wrong sex
             _min_age = _AGE_MIN_ICD.get(_base)
             if _min_age is not None and _patient_age < _min_age:
