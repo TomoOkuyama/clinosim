@@ -226,6 +226,12 @@ def convert_cif_to_fhir(
     )
     n_resources = 0
     n_patients = 0
+    # Issue #945: per-resource-type tally of entries dropped by the
+    # `_drop_entries_after_snapshot` gate. Accumulated across every
+    # patient bundle in this export; logged once at export end for
+    # maintainer visibility (mirrors the after-death filter's fail-soft
+    # visibility pattern).
+    snapshot_drop_counter: dict[str, int] = {}
     try:
         # Master resources (Organization + Location + Device) — written once.
         # Facility resources bypass `_build_bundle`, so the JP-only post-emit
@@ -289,7 +295,14 @@ def convert_cif_to_fhir(
         # encounter re-emission with encounter-scoped IDs, C4-02).
         for record in reader.iter_patients():
             n_patients += 1
-            bundle = _build_bundle(record, country, roster_map, hospital_config, snapshot_date)
+            bundle = _build_bundle(
+                record,
+                country,
+                roster_map,
+                hospital_config,
+                snapshot_date,
+                snapshot_drop_counter=snapshot_drop_counter,
+            )
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
                 n_resources += 1
@@ -351,6 +364,24 @@ def convert_cif_to_fhir(
             "invalid_fhir_ids",
             counts=dict(invalid_id_counts),
             total=sum(invalid_id_counts.values()),
+        )
+    # Issue #945: surface per-type snapshot-cutoff drops so a maintainer
+    # can see (a) the filter fired, and (b) which builders were emitting
+    # post-snapshot entries. Empty dict → the filter was a no-op (either
+    # `snapshot_date` was absent, or nothing crossed the cutoff).
+    if snapshot_drop_counter:
+        # Split the sentinel scrub tally from the per-type drop counts
+        # so the "counts" and "total" fields reflect only actual
+        # resource drops (mirrors the death-filter log shape).
+        _scrubbed_refs_total = snapshot_drop_counter.get("__scrubbed_refs__", 0)
+        _drop_counts_only = {k: v for k, v in snapshot_drop_counter.items() if not k.startswith("__")}
+        sim_log.info(
+            "fhir_r4_adapter",
+            "snapshot_filter_dropped",
+            snapshot_date=snapshot_date,
+            counts=_drop_counts_only,
+            total=sum(_drop_counts_only.values()),
+            scrubbed_refs=_scrubbed_refs_total,
         )
     sim_log.info(
         "fhir_r4_adapter",
@@ -470,6 +501,7 @@ def _build_bundle(
     roster_map: dict[str, dict] | None = None,
     hospital_config: dict | None = None,
     snapshot_date: str | None = None,
+    snapshot_drop_counter: dict[str, int] | None = None,
 ) -> dict:
     """Build a FHIR R4 Bundle from a CIF patient record by running the builder registry."""
     if roster_map is None:
@@ -613,6 +645,40 @@ def _build_bundle(
     if _pat_dod_str:
         entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10])
 
+    # Issue #945 (2026-08-30): post-snapshot event gate. Universal
+    # bundle-finalize filter mirroring #928 death filter — for inpatients
+    # whose admission is still open at CIF `snapshot_date`, the generator
+    # pre-emits planned future events (nursing notes, vitals, MAR,
+    # imaging, DR, MR, Composition) with `effectiveDateTime` / `date` /
+    # `started` values AFTER snapshot. v0.5.0 p=10000 counted 4,798 such
+    # entries across 7 resource types (furthest 2026-09-25, 28 days past
+    # snapshot 2026-08-28). Single central cutoff at bundle finalize is
+    # the principled fix — same shape as #928 death gate. Dimensional
+    # resources (Patient, Encounter, Coverage, CareTeam, Practitioner,
+    # PractitionerRole, Organization, Location, Endpoint, Device,
+    # Medication) are always kept: Encounter.period.end and
+    # Coverage.period.end for open admissions legitimately extend past
+    # snapshot; only CHILD event resources are gated. Runs after emit;
+    # RNG-shape neutral (no draws). Falls back to a no-op when
+    # `snapshot_date` is absent (test fixtures / legacy CIF without
+    # metadata).
+    if ctx.snapshot_date:
+        entries, _snap_dropped, _snap_scrubbed = _drop_entries_after_snapshot(entries, ctx.snapshot_date)
+        if _snap_dropped and snapshot_drop_counter is not None:
+            for _rt, _cnt in _snap_dropped.items():
+                snapshot_drop_counter[_rt] = snapshot_drop_counter.get(_rt, 0) + _cnt
+        # Issue #945 follow-up: aggregate the reference-scrub count on
+        # the same counter dict under a sentinel key so the maintainer
+        # log at export end can report "scrubbed N references" alongside
+        # the per-type drop breakdown, without needing a second plumbed
+        # counter. The sentinel key starts with "__" so a downstream
+        # iterator that skips leading-underscore keys naturally ignores
+        # it; the export-end log iterates by explicit key access.
+        if _snap_scrubbed and snapshot_drop_counter is not None:
+            snapshot_drop_counter["__scrubbed_refs__"] = (
+                snapshot_drop_counter.get("__scrubbed_refs__", 0) + _snap_scrubbed
+            )
+
     return {
         "resourceType": "Bundle",
         "id": str(uuid.uuid4()),
@@ -652,6 +718,268 @@ def _dt_fields(resource: dict):
                 v = p.get(k)
                 if isinstance(v, str):
                     yield v
+
+
+# Issue #945: dimensional resources whose timestamps can legitimately
+# extend past `snapshot_date`. Encounter.period.end (open admission) and
+# Coverage.period.end (active insurance card) intentionally reach beyond
+# the cutoff — the #944 fix already flips Coverage.status to reflect
+# this. CareTeam.period tracks the caregiving window and mirrors the
+# encounter. Practitioner / PractitionerRole / Organization / Location /
+# Endpoint / Device / Medication carry no gating timestamp fields but are
+# listed for defense-in-depth against future emitter changes. Patient is
+# kept for parity with #928 (its `deceasedDateTime` / birthDate must
+# survive any date-based gate).
+_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES = frozenset(
+    {
+        "Patient",
+        "Encounter",
+        "Coverage",
+        "CareTeam",
+        "Practitioner",
+        "PractitionerRole",
+        "Organization",
+        "Location",
+        "Endpoint",
+        "Device",
+        "Medication",
+    }
+)
+
+
+def _snapshot_ts_iter(resource: dict):
+    """Yield timestamps used to gate 'is this event after snapshot?'.
+
+    Uses only ``Period.start`` for period fields (an event that STARTED
+    before snapshot is a real historical event whose projected end may
+    legitimately extend into future — see MedicationAdministration
+    effectivePeriod on ongoing infusions). Also walks
+    ``DocumentReference.context.period.start`` because ``date`` may
+    legitimately trail the encounter window.
+    """
+    for k in (
+        "effectiveDateTime",
+        "issued",
+        "authoredOn",
+        "occurrenceDateTime",
+        "recorded",
+        "collectedDateTime",
+        "date",
+        "performedDateTime",
+        "started",
+    ):
+        v = resource.get(k)
+        if isinstance(v, str):
+            yield v
+    for pkey in ("period", "effectivePeriod", "performedPeriod", "occurrencePeriod"):
+        p = resource.get(pkey)
+        if isinstance(p, dict):
+            s = p.get("start")
+            if isinstance(s, str):
+                yield s
+    # DocumentReference.context.period.start (the encounter window the
+    # document belongs to). The reproduction script in Issue #945 walks
+    # this exact field.
+    context = resource.get("context")
+    if isinstance(context, dict):
+        p = context.get("period")
+        if isinstance(p, dict):
+            s = p.get("start")
+            if isinstance(s, str):
+                yield s
+
+
+# Issue #945 (follow-up): fields on SURVIVING resources that carry
+# References to potentially-dropped entries. When a snapshot-gated
+# resource is removed, every reference pointing at its id must be
+# scrubbed off the survivors or `reference_integrity` will FAIL with
+# "dangling reference" for e.g. ``Observation/lab-…`` still cited by a
+# ``DiagnosticReport.result[]`` entry. Two shapes:
+#
+#  1. ``_SCRUB_LIST_REF_FIELDS_BY_TYPE`` — a list of References; we drop
+#     the offending items, keep the container even if it becomes empty
+#     (structural minimum-cardinality validation is a separate concern
+#     handled by profile validators, not this filter).
+#  2. ``_CASCADE_SINGLE_REF_BY_TYPE`` — a single Reference whose target
+#     is required for the resource to make sense; if the referent is
+#     dropped, the parent is dropped as well and its id is added to the
+#     drop set so a subsequent pass can scrub any references to IT.
+#
+# Nested Reference lists (``Composition.section[*].entry[]`` and its
+# recursive ``section[*].section[…]``, ``DocumentReference.context.related[]``)
+# are handled by dedicated walkers below.
+_SCRUB_LIST_REF_FIELDS_BY_TYPE: dict[str, tuple[str, ...]] = {
+    "DiagnosticReport": ("result",),
+    "Observation": ("hasMember", "derivedFrom"),
+    "MedicationRequest": ("basedOn",),
+    "ServiceRequest": ("basedOn",),
+    "Procedure": ("report",),
+}
+_CASCADE_SINGLE_REF_BY_TYPE: dict[str, str] = {
+    # Dropping the referenced MedicationRequest orphans the
+    # MedicationAdministration (``.request`` is 1..1 in R4). Cascade the
+    # drop so the MAR does not dangle.
+    "MedicationAdministration": "request",
+}
+
+
+def _scrub_section_entries_recursive(section: dict, dropped_ids: set[str]) -> int:
+    """Walk ``Composition.section[*].entry[]`` (recursively through
+    nested ``section``) and drop Reference items pointing at
+    ``dropped_ids``. Returns the count of references removed."""
+    scrubbed = 0
+    entry_list = section.get("entry")
+    if isinstance(entry_list, list):
+        new_list: list = []
+        for item in entry_list:
+            if isinstance(item, dict):
+                tgt = item.get("reference")
+                if isinstance(tgt, str) and tgt in dropped_ids:
+                    scrubbed += 1
+                    continue
+            new_list.append(item)
+        if len(new_list) != len(entry_list):
+            section["entry"] = new_list
+    for sub in section.get("section", []) or []:
+        if isinstance(sub, dict):
+            scrubbed += _scrub_section_entries_recursive(sub, dropped_ids)
+    return scrubbed
+
+
+def _scrub_refs_one_pass(entries: list[dict], dropped_ids: set[str]) -> tuple[list[dict], int, set[str]]:
+    """One scrubber pass over surviving entries.
+
+    Returns ``(kept, scrubbed_ref_count, cascade_dropped_ids)`` where
+    ``cascade_dropped_ids`` is the set of ``"Type/id"`` strings for
+    resources dropped in this pass because a required single Reference
+    pointed at an already-dropped id. Fixed-point iteration is the
+    caller's responsibility.
+    """
+    scrubbed = 0
+    cascade_dropped: set[str] = set()
+    new_kept: list[dict] = []
+    for e in entries:
+        res = e.get("resource", {}) if isinstance(e, dict) else {}
+        rtype = res.get("resourceType", "")
+        rid = res.get("id", "")
+        # (1) Cascade drop: single Reference whose target is dropped ⇒
+        # parent resource is orphaned and dropped as well.
+        cascade_field = _CASCADE_SINGLE_REF_BY_TYPE.get(rtype)
+        if cascade_field:
+            ref = res.get(cascade_field)
+            if isinstance(ref, dict):
+                tgt = ref.get("reference")
+                if isinstance(tgt, str) and tgt in dropped_ids:
+                    if rid:
+                        cascade_dropped.add(f"{rtype}/{rid}")
+                    continue
+        # (2) List-of-Reference fields on this resource type.
+        for field in _SCRUB_LIST_REF_FIELDS_BY_TYPE.get(rtype, ()):
+            lst = res.get(field)
+            if isinstance(lst, list):
+                new_list: list = []
+                for item in lst:
+                    if isinstance(item, dict):
+                        tgt = item.get("reference")
+                        if isinstance(tgt, str) and tgt in dropped_ids:
+                            scrubbed += 1
+                            continue
+                    new_list.append(item)
+                if len(new_list) != len(lst):
+                    res[field] = new_list
+        # (3) Composition sections (recursive).
+        if rtype == "Composition":
+            for section in res.get("section", []) or []:
+                if isinstance(section, dict):
+                    scrubbed += _scrub_section_entries_recursive(section, dropped_ids)
+        # (4) DocumentReference.context.related[]
+        if rtype == "DocumentReference":
+            context = res.get("context")
+            if isinstance(context, dict):
+                related = context.get("related")
+                if isinstance(related, list):
+                    new_list = []
+                    for item in related:
+                        if isinstance(item, dict):
+                            tgt = item.get("reference")
+                            if isinstance(tgt, str) and tgt in dropped_ids:
+                                scrubbed += 1
+                                continue
+                        new_list.append(item)
+                    if len(new_list) != len(related):
+                        context["related"] = new_list
+        new_kept.append(e)
+    return new_kept, scrubbed, cascade_dropped
+
+
+def _drop_entries_after_snapshot(entries: list[dict], snapshot_iso: str) -> tuple[list[dict], dict[str, int], int]:
+    """Filter out bundle entries whose timestamp is after the CIF snapshot_date.
+
+    Issue #945: universal event-cutoff gate applied at bundle-finalize.
+    Mirrors the #928 death filter. Compares only the calendar-date prefix
+    (``YYYY-MM-DD``) so same-day activity survives (inclusive on
+    snapshot). Dimensional resource types listed in
+    :data:`_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES` bypass the filter.
+
+    Issue #945 follow-up (CI shard 2/3 fail on ``test_eval_preset_end_to_end
+    [us-100]`` → 51 dangling references): the first-pass drop leaves
+    references to the removed ids on surviving parent resources
+    (``DiagnosticReport.result[]``, ``Composition.section[*].entry[]``,
+    ``Observation.hasMember/derivedFrom[]``, ``MedicationAdministration
+    .request`` (cascade), ``MedicationRequest/ServiceRequest.basedOn[]``,
+    ``Procedure.report[]``, ``DocumentReference.context.related[]``),
+    breaking ``reference_integrity``. A second-pass scrubber walks every
+    survivor and removes Reference items whose target is in the drop
+    set; a MedicationAdministration whose ``.request`` points at a
+    dropped MedicationRequest cascade-drops (and joins the drop set so
+    the next iteration scrubs any references to IT). Bounded at 3
+    passes; convergence is expected in ≤ 2 in practice because the
+    generator only emits MedAdmin→MR one hop deep.
+
+    Returns ``(kept_entries, {resource_type: drop_count},
+    scrubbed_ref_count)`` where ``drop_count`` includes cascade drops
+    (so the maintainer log reports the true final tally) and
+    ``scrubbed_ref_count`` is the total number of dangling Reference
+    items removed from survivors.
+    """
+    kept: list[dict] = []
+    dropped: dict[str, int] = {}
+    dropped_ids: set[str] = set()
+    for e in entries:
+        res = e.get("resource", {}) if isinstance(e, dict) else {}
+        rtype = res.get("resourceType", "")
+        rid = res.get("id", "")
+        if rtype in _POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES:
+            kept.append(e)
+            continue
+        after_snapshot = False
+        for v in _snapshot_ts_iter(res):
+            if v[:10] > snapshot_iso:
+                after_snapshot = True
+                break
+        if after_snapshot:
+            dropped[rtype] = dropped.get(rtype, 0) + 1
+            if rid:
+                dropped_ids.add(f"{rtype}/{rid}")
+        else:
+            kept.append(e)
+    # Second-pass reference scrubber — fixed-point iteration bounded at
+    # 3 passes. Each pass may cascade-drop resources whose single required
+    # Reference points at an already-dropped id (MedAdmin.request → MR);
+    # those cascade drops join the drop set so the next pass scrubs any
+    # references to them. Log-and-continue if not converged (unlikely in
+    # practice: the generator's Reference topology is shallow).
+    total_scrubbed = 0
+    for _ in range(3):
+        kept, scrubbed_this_pass, cascade_dropped = _scrub_refs_one_pass(kept, dropped_ids)
+        total_scrubbed += scrubbed_this_pass
+        if not cascade_dropped:
+            break
+        for cid in cascade_dropped:
+            ctype = cid.split("/", 1)[0]
+            dropped[ctype] = dropped.get(ctype, 0) + 1
+            dropped_ids.add(cid)
+    return kept, dropped, total_scrubbed
 
 
 def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
