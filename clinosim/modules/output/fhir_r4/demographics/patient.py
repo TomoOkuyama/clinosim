@@ -339,7 +339,7 @@ def _build_coverage_resources(patient_data: dict, country: str, encounters: list
         if not base_insurer or not number:
             continue
 
-        for fy_idx, (fy_start, fy_end) in enumerate(fy_periods):
+        for fy_start, fy_end in fy_periods:
             # Issue #923 §Fix 2: re-age the category at each FY boundary.
             # Two age checks:
             #  - late_elderly gate uses `fy_end`: if the patient is ≥75 at
