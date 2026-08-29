@@ -2276,6 +2276,36 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Issue #939 — Procedure catalog gaps for cardiology / neurosurgery /
+  GI-obstruction admissions.</strong> Pre-fix, the Procedure catalog was 65 codes
+  / ~440 records across 40,066 encounters and completely omitted the
+  standard-of-care interventions for four common admission reasons: 0/17
+  MI admits had PCI, 0/101 HF admits had pacemaker/ICD/CRT, 0/6 ICH
+  admits had craniotomy/hematoma-evacuation, 0/9 ileus admits had ileus
+  tube or bowel resection. Root cause: the bedside procedure engine
+  (<code>clinosim/modules/procedure/engine.py</code>) held disease → procedure
+  dispatch rules only for orthopedic + general-surgery admissions.
+  Fix: <strong>additive</strong> — five new entries added to <code>_BEDSIDE_PROCEDURES</code> +
+  <code>_PROCEDURE_METADATA</code> (<code>coronary_pci</code>, <code>pacemaker_implant</code>,
+  <code>craniotomy_hematoma_evacuation</code>, <code>ileus_tube_placement</code>,
+  <code>bowel_resection</code>) with real MHLW K-codes (K546 経皮的冠動脈形成術,
+  K597 ペースメーカー移植術, K164-1 頭蓋内血腫除去術（開頭）, J034-2
+  イレウス用ロングチューブ挿入法, K719 結腸切除術) added to
+  <code>clinosim/codes/data/k-codes.yaml</code> and CPT codes (92920, 33208, 61312,
+  44500, 44140) added to <code>clinosim/codes/data/cpt.yaml</code>. Dispatch table
+  <code>_ISSUE939_PROCEDURE_RULES</code> maps <code>acute_mi</code> → PCI @ 0.85,
+  <code>heart_failure_exacerbation</code> → pacemaker @ 0.10, <code>hemorrhagic_stroke</code>
+  / <code>subdural_hematoma</code> → craniotomy @ 0.35, <code>ileus</code> → tube @ 0.60 +
+  resection @ 0.20 (JCS / JSNS baseline uptake). Each dispatch draws
+  from a per-(encounter, proc_type) sub-RNG
+  (<code>issue939_procedure_seed</code>) so the additive emissions do NOT cascade
+  the shared patient-scoped rng — every existing lab / imaging /
+  discharge-Rx / memoize consumer keeps its pre-fix byte-shape; only
+  the new Procedure records join the CIF. Consequence: structured CIF
+  gains Procedure rows for the four admission-reason cohorts (rates
+  match spec on the 500-encounter cohort test), so a fresh <code>narrate</code>
+  run is required for CIF ↔ narrative-CIF consistency — MINOR (v0.6.0).
+  Closes #939.</li>
 <li><strong>MINOR driver</strong> — <code>chronic_prevalence</code> yaml values for <strong>E11.9 (T2DM)</strong>,
   <strong>N18 (CKD)</strong>, and <strong>J44 (COPD)</strong> in both <code>clinosim/locale/jp/demographics.yaml</code>
   and <code>clinosim/locale/us/demographics.yaml</code> restored to hospital-user
