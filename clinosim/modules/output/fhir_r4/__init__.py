@@ -30,7 +30,10 @@ from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (
     _bb_alcohol_use,
     _bb_smoking_status,
 )
-from clinosim.modules.output.fhir_r4.documents.composition import _bb_compositions
+from clinosim.modules.output.fhir_r4.documents.composition import (
+    _bb_compositions,
+    _build_encounter_resource_index,
+)
 from clinosim.modules.output.fhir_r4.documents.document_reference_checkup import _bb_document_references_checkup
 from clinosim.modules.output.fhir_r4.documents.documents import _bb_document_references
 from clinosim.modules.output.fhir_r4.documents.imaging_report import _bb_imaging_report_compositions
@@ -492,7 +495,18 @@ def _build_bundle(
     )
 
     entries: list[dict] = []
+    # Issue #925: the Composition builders populate `section.entry[]` by
+    # looking up the current encounter in an `encounter_id → resourceType
+    # → [Reference]` index built from the entries already accumulated by
+    # earlier builders. The index is refreshed once, immediately before
+    # the first Composition builder runs — subsequent Composition
+    # builders (imaging report) reuse the same view. Refreshing here
+    # (rather than on every builder) keeps the index O(N_entries), not
+    # O(N_entries * N_builders).
+    _composition_builder_names = {"_bb_compositions", "_bb_imaging_report_compositions"}
     for builder in _BUNDLE_BUILDERS:
+        if builder.__name__ in _composition_builder_names and ctx.encounter_resource_index is None:
+            ctx.encounter_resource_index = _build_encounter_resource_index(entries)
         for resource in builder(ctx):
             # C3-11..18: apply JP Core profile URLs at
             # the adapter level so every resource type gains conformance

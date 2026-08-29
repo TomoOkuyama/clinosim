@@ -111,6 +111,17 @@ class BundleContext:
     admit_dx_system: str
     primary_enc_id: str
     patient_sex: str
+    # Issue #925: populated by `_build_bundle` right before the Composition
+    # builders run — index of already-emitted resources bucketed by encounter
+    # id and resourceType. Consumers (`_bb_compositions` +
+    # `_bb_imaging_report_compositions`) use it to populate
+    # `Composition.section[].entry[]` with references to the encounter's
+    # MedicationRequests / Observations / Procedures / Conditions / ServiceRequests
+    # / DiagnosticReports. Shape:
+    #   {encounter_id: {resourceType: [{"reference": "…/id", "display": "…"?}, …]}}
+    # `None` when the caller has not run the pre-composition indexing pass
+    # (unit-tests exercising a single builder in isolation).
+    encounter_resource_index: dict[str, dict[str, list[dict[str, str]]]] | None = None
 
 
 # Human-readable → UCUM canonical token map (issue #204, 2026-07-17).
