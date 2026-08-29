@@ -73,7 +73,7 @@ dev = [
     # `Lint (informational)` job red and masked a real F541 debt until it
     # was cleaned up in PR #448. Bumping this pin is now an intentional,
     # reviewable change; sync with `.github/workflows/ci.yml` in the same PR.
-    "ruff==0.16.3",
+    "ruff==0.16.4",
     "mypy>=1.8",
     "types-PyYAML>=6.0",  # mypy stubs for pyyaml (P0-2, session 46)
     "build>=1.0",         # sdist/wheel build (P0-2, used by CI packaging job)
