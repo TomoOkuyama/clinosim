@@ -159,6 +159,7 @@ def update_differential(
 def get_current_diagnosis_code(
     diff: DifferentialDiagnosis,
     protocol_progression: dict | None = None,
+    patient_sex: str | None = None,
 ) -> tuple[str, str]:
     """Returns (ICD code, display name) based on current confidence.
 
@@ -166,11 +167,59 @@ def get_current_diagnosis_code(
     1. Use working_diagnosis if set (high confidence)
     2. Fall back to top candidate (any confidence)
     3. Last resort: R69 (Illness, unspecified)
+
+    Issue #947 — sex-gated dispatch. When ``patient_sex`` is provided
+    (``"M"`` / ``"F"`` from ``PatientProfile.sex``; ``"male"`` / ``"female"``
+    from FHIR ``Patient.gender`` are also accepted), a candidate whose ICD
+    is anatomy-locked to the opposite sex is skipped in favor of the next
+    ranked sex-compatible candidate. The candidate list is already sorted
+    by probability so this walk consumes no RNG state (safe for cross-
+    platform bit-reproducibility per memory
+    ``feedback_deterministic_rng_proxy_pattern``). Lock list lives at
+    ``clinosim/locale/shared/icd10_sex_restrictions.yaml``.
+
+    Falling back to the top (locked) code would emit an anatomically-
+    impossible Condition — six such records were observed pre-fix
+    (Issue #947). When every candidate is locked (should be rare and
+    signals a wrong-disease dispatch upstream) we still return
+    ``UNRESOLVED_DIAGNOSIS_ICD`` rather than a locked code.
     """
+    # Sex-gate resolution: skip candidates whose ICD is anatomically
+    # inappropriate for the patient's sex, then rebuild the target /
+    # progression lookup on the first sex-compatible candidate.
+    if patient_sex:
+        # Import here to avoid an import cycle at engine load time
+        # (sex_gating lives under clinosim.simulator).
+        from clinosim.simulator.sex_gating import (
+            is_sex_locked_for,
+            pick_sex_compatible_dx_code,
+        )
+    else:
+        is_sex_locked_for = None  # type: ignore[assignment]
+        pick_sex_compatible_dx_code = None  # type: ignore[assignment]
+
     # Determine the target disease — fall back to top candidate if no working dx
     target = diff.working_diagnosis
-    if not target and diff.candidates:
-        target = diff.candidates[0].disease_code
+    target_candidate = None
+    if diff.candidates:
+        # Prefer working_diagnosis if it is itself sex-compatible; otherwise
+        # walk the ranked candidate list to the first sex-compatible one.
+        if target:
+            for c in diff.candidates:
+                if c.disease_code == target:
+                    target_candidate = c
+                    break
+        if patient_sex and target_candidate is not None:
+            if is_sex_locked_for(target_candidate.icd_code, patient_sex):
+                target_candidate = None
+                target = None
+        if target_candidate is None:
+            if patient_sex:
+                target_candidate = pick_sex_compatible_dx_code(diff.candidates, patient_sex)
+            if target_candidate is None:
+                target_candidate = diff.top_candidate
+        if target_candidate is not None:
+            target = target_candidate.disease_code
 
     if not target:
         return UNRESOLVED_DIAGNOSIS_ICD, _display(UNRESOLVED_DIAGNOSIS_ICD)
@@ -183,10 +232,13 @@ def get_current_diagnosis_code(
         progression = DIAGNOSIS_PROGRESSION.get(target)
 
     if not progression:
-        # No progression — fall back to top candidate's icd_code
-        top = diff.top_candidate
-        if top and top.icd_code:
-            return (top.icd_code, _display(top.icd_code))
+        # No progression — fall back to the resolved target candidate's icd_code.
+        if target_candidate and target_candidate.icd_code:
+            if patient_sex and is_sex_locked_for(target_candidate.icd_code, patient_sex):
+                # Extremely rare: caller-provided sex conflicts with EVERY
+                # ranked candidate. Emit unresolved rather than a locked code.
+                return UNRESOLVED_DIAGNOSIS_ICD, _display(UNRESOLVED_DIAGNOSIS_ICD)
+            return (target_candidate.icd_code, _display(target_candidate.icd_code))
         return UNRESOLVED_DIAGNOSIS_ICD, _display(UNRESOLVED_DIAGNOSIS_ICD)
 
     confidence = diff.candidates[0].probability if diff.candidates else 0
@@ -194,4 +246,17 @@ def get_current_diagnosis_code(
     for row in progression:
         if confidence >= row[0]:
             code = row[1]
+    # Progression codes are typically same-disease severity/certainty
+    # variants of the resolved candidate's ICD (e.g. N39.0 → N39.9). If the
+    # progression code is itself sex-locked for this patient, fall back to
+    # the target candidate's own ICD (which was already sex-gated above);
+    # if that is also locked, emit unresolved.
+    if patient_sex and is_sex_locked_for(code, patient_sex):
+        if (
+            target_candidate
+            and target_candidate.icd_code
+            and not is_sex_locked_for(target_candidate.icd_code, patient_sex)
+        ):
+            return (target_candidate.icd_code, _display(target_candidate.icd_code))
+        return UNRESOLVED_DIAGNOSIS_ICD, _display(UNRESOLVED_DIAGNOSIS_ICD)
     return code, _display(code)

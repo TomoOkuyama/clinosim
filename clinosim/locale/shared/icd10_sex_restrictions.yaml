@@ -1,0 +1,190 @@
+# Sex-locked ICD-10 codes — anatomy-appropriate diagnosis dispatch (Issue #947).
+#
+# Scope: every diagnosis-dispatch site in the generator (differential-final
+# picker, implied-chronic table, discharge-Dx → chronic propagation, chronic
+# activator, outpatient chronic-followup dispatch) MUST consult this table
+# before assigning a Condition / Encounter.reasonCode to a patient.
+#
+# Format: base codes (no dot) OR full ICD-10 codes; matcher first tries the
+# exact code, then the base (part before the first dot). Prefixes are NOT
+# supported here — spell out every locked code you actually emit. That keeps
+# the lock explicit (grep-able) and avoids over-locking near-neighbor codes
+# outside the anatomical chapter (e.g. N39.0 acute UTI is NOT sex-locked
+# even though it lives in the same block as N40).
+#
+# Source: ICD-10 Volume 2 (WHO) sex-specific chapter exclusions plus obvious
+# anatomy locks (prostate, testis, ovary, uterus, cervix, breast — female-
+# side only for the interim; the ~1% male breast cancer case is deferred
+# until the generator can model it explicitly).
+#
+# Policy: when a dispatch site (differential, implied-chronic, chronic
+# propagation) picks a code that is locked for the OPPOSITE sex:
+#
+#   * differential picker → walk to the next-ranked sex-compatible candidate
+#     (bounded, non-RNG; the candidate order already carries the probability
+#     ranking so this is a "redraw" that consumes NO fresh RNG state — safe
+#     for cross-platform determinism).
+#   * implied-chronic table + chronic propagation → skip the assignment
+#     (there is no RNG draw at these sites; they iterate a static table).
+#
+# Adding a new entry: (a) put the code here, (b) add a comment naming the
+# anatomy + the sex the code is locked TO (male_only means "emit for males
+# only"; the enforcement point rejects opposite-sex assignment), (c) run
+# the regression test `tests/unit/test_sex_gating.py`. No further code
+# edits — every dispatch site funnels through
+# `clinosim.simulator.sex_gating.is_sex_locked_for`.
+
+male_only:
+  # N40–N51 male-genital-organ diseases (ICD-10 chapter XIV block N40–N51)
+  - "N40"    # Hyperplasia of prostate (BPH)
+  - "N41"    # Inflammatory diseases of prostate (includes N41.0 急性前立腺炎)
+  - "N41.0"  # Acute prostatitis — the specific record cited in Issue #947
+  - "N41.1"  # Chronic prostatitis
+  - "N41.2"  # Abscess of prostate
+  - "N41.3"  # Prostatocystitis
+  - "N41.8"  # Other inflammatory diseases of prostate
+  - "N41.9"  # Inflammatory disease of prostate, unspecified
+  - "N42"    # Other disorders of prostate
+  - "N43"    # Hydrocele and spermatocele
+  - "N44"    # Torsion of testis (ICD-10 2016+; noninflammatory disorders of testis)
+  - "N45"    # Orchitis and epididymitis
+  - "N46"    # Male infertility
+  - "N47"    # Redundant prepuce, phimosis and paraphimosis
+  - "N48"    # Other disorders of penis
+  - "N49"    # Inflammatory disorders of male genital organs, NEC
+  - "N50"    # Other disorders of male genital organs
+  - "N51"    # Disorders of male genital organs in diseases classified elsewhere
+  # C60–C63 malignant neoplasms of male genital organs
+  - "C60"    # Penis
+  - "C61"    # Prostate
+  - "C62"    # Testis
+  - "C63"    # Other and unspecified male genital organs
+
+female_only:
+  # N70–N77 inflammatory diseases of female pelvic organs
+  - "N70"    # Salpingitis and oophoritis
+  - "N71"    # Inflammatory disease of uterus, except cervix
+  - "N72"    # Inflammatory disease of cervix uteri
+  - "N73"    # Other female pelvic inflammatory diseases
+  - "N74"    # Female pelvic inflammatory disorders in diseases classified elsewhere
+  - "N75"    # Diseases of Bartholin's gland
+  - "N76"    # Other inflammation of vagina and vulva
+  - "N77"    # Vulvovaginal ulceration and inflammation in diseases classified elsewhere
+  # N80–N98 non-inflammatory disorders of female genital tract
+  - "N80"    # Endometriosis
+  - "N81"    # Female genital prolapse
+  - "N82"    # Fistulae involving female genital tract
+  - "N83"    # Noninflammatory disorders of ovary, fallopian tube and broad ligament
+  - "N84"    # Polyp of female genital tract
+  - "N85"    # Other noninflammatory disorders of uterus, except cervix
+  - "N86"    # Erosion and ectropion of cervix uteri
+  - "N87"    # Dysplasia of cervix uteri
+  - "N88"    # Other noninflammatory disorders of cervix uteri
+  - "N89"    # Other noninflammatory disorders of vagina
+  - "N90"    # Other noninflammatory disorders of vulva and perineum
+  - "N91"    # Absent, scanty and rare menstruation
+  - "N92"    # Excessive, frequent and irregular menstruation
+  - "N93"    # Other abnormal uterine and vaginal bleeding
+  - "N94"    # Pain and other conditions associated with female genital organs / menstrual cycle
+  - "N95"    # Menopausal and other perimenopausal disorders
+  - "N96"    # Recurrent pregnancy loss
+  - "N97"    # Female infertility
+  - "N98"    # Complications associated with artificial fertilization
+  # O00–O9A pregnancy, childbirth and the puerperium (entire chapter XV)
+  # Enumerated by top-level base code — every O-chapter code is female-only.
+  - "O00"
+  - "O01"
+  - "O02"
+  - "O03"
+  - "O04"
+  - "O07"
+  - "O08"
+  - "O09"
+  - "O10"
+  - "O11"
+  - "O12"
+  - "O13"
+  - "O14"
+  - "O15"
+  - "O16"
+  - "O20"
+  - "O21"
+  - "O22"
+  - "O23"
+  - "O24"
+  - "O25"
+  - "O26"
+  - "O28"
+  - "O29"
+  - "O30"
+  - "O31"
+  - "O32"
+  - "O33"
+  - "O34"
+  - "O35"
+  - "O36"
+  - "O40"
+  - "O41"
+  - "O42"
+  - "O43"
+  - "O44"
+  - "O45"
+  - "O46"
+  - "O47"
+  - "O48"
+  - "O60"
+  - "O61"
+  - "O62"
+  - "O63"
+  - "O64"
+  - "O65"
+  - "O66"
+  - "O67"
+  - "O68"
+  - "O69"
+  - "O70"
+  - "O71"
+  - "O72"
+  - "O73"
+  - "O74"
+  - "O75"
+  - "O80"
+  - "O81"
+  - "O82"
+  - "O83"
+  - "O84"
+  - "O85"
+  - "O86"
+  - "O87"
+  - "O88"
+  - "O89"
+  - "O90"
+  - "O91"
+  - "O92"
+  - "O94"
+  - "O95"
+  - "O96"
+  - "O97"
+  - "O98"
+  - "O99"
+  # C50–C58 malignant neoplasms of breast + female genital organs.
+  # NOTE: C50 (breast) has a ~1% male incidence in the real world. This
+  # generator currently has no male-breast-cancer path, so we lock C50 as
+  # female-only for the interim. Revisit when male-breast-cancer is modeled
+  # explicitly (out of scope for #947).
+  - "C50"    # Malignant neoplasm of breast
+  - "C51"    # Malignant neoplasm of vulva
+  - "C52"    # Malignant neoplasm of vagina
+  - "C53"    # Malignant neoplasm of cervix uteri
+  - "C54"    # Malignant neoplasm of corpus uteri
+  - "C55"    # Malignant neoplasm of uterus, part unspecified
+  - "C56"    # Malignant neoplasm of ovary
+  - "C57"    # Malignant neoplasm of other and unspecified female genital organs
+  - "C58"    # Malignant neoplasm of placenta
+  # Pregnancy/newborn contact codes (Z34/Z37) and the "single liveborn"
+  # mother-side birth-outcome code (Z37) — locked female-only.
+  # Z38 is a NEWBORN's code (assigned to the baby, not the mother). We do
+  # NOT lock Z38 here because the newborn's own sex is independent; if the
+  # generator ever emits Z38 on a mother's record that's a separate bug.
+  - "Z34"    # Encounter for supervision of normal pregnancy
+  - "Z37"    # Outcome of delivery
