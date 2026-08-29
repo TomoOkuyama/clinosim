@@ -199,12 +199,12 @@ def test_alpha2_alpha_min1_resources_preserved() -> None:
         patients = load_ndjson(find_ndjson(out, "Patient.ndjson"))
         if patients:
             rate_pct = len(allergies) / len(patients) * 100
-            # CY7-05 (structural): ED encounter synthesis shifted the cohort
-            # mix. Session 52 fix 1: widened to [5-30] — the observed rate is
-            # the product of two independent samplings (population gate ×
-            # encounter-emission subset), each -1.4σ/-2σ at seed 42; the
-            # mechanism was verified sound (see test_document_chain.py).
-            assert 5 <= rate_pct <= 30, (
-                f"AllergyIntolerance rate {rate_pct:.1f}% outside expected 5-30% range — "
+            # Issue #942 (2026-08-30): NKA positive assertion + polyallergy.
+            # Every emitted patient carries ≥ 1 AllergyIntolerance record
+            # (real allergen or NKA "アレルギー歴なし"). Polyallergic patients
+            # add ~5% extra records. Expected floor 100%, ceiling ~115%.
+            # See test_document_chain.py::test_allergy_intolerance_baseline_prevalence.
+            assert 95 <= rate_pct <= 150, (
+                f"AllergyIntolerance rate {rate_pct:.1f}% outside expected 95-150% range — "
                 f"allergy enricher baseline disrupted (ai={len(allergies)}, p={len(patients)})"
             )
