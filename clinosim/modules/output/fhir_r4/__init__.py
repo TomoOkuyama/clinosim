@@ -157,6 +157,26 @@ def convert_cif_to_fhir(
             roster_map[staff.get("staff_id", "")] = staff
         hospital_config = hospital_data.get("config", {}) or {}
 
+    # Issue #944: read the simulation snapshot date from cif/metadata.json
+    # so per-FY Coverage.status can be derived from period.end vs snapshot
+    # (expired FYs → "cancelled", current FY → "active"). Soft-failure:
+    # missing / malformed metadata just leaves snapshot_date=None and
+    # builders fall back to their pre-#944 default (identity-only tests /
+    # legacy CIF fixtures rely on this).
+    snapshot_date: str | None = None
+    _meta_path = os.path.join(cif_dir, "metadata.json")
+    if os.path.exists(_meta_path):
+        try:
+            with open(_meta_path, encoding="utf-8") as _f:
+                _meta = json.load(_f)
+            _snap = _meta.get("snapshot_date") if isinstance(_meta, dict) else None
+            # CIFMetadata stores YYYY-MM-DD strings; guard against a raw
+            # datetime slipping through and normalize to the first 10 chars.
+            if isinstance(_snap, str) and len(_snap) >= 10:
+                snapshot_date = _snap[:10]
+        except (OSError, json.JSONDecodeError):
+            snapshot_date = None
+
     # Open NDJSON file handles for each resource type
     # Use a writer cache to lazy-create files only for types we encounter
     writers: dict[str, Any] = {}
@@ -268,7 +288,7 @@ def convert_cif_to_fhir(
         # encounter re-emission with encounter-scoped IDs, C4-02).
         for record in reader.iter_patients():
             n_patients += 1
-            bundle = _build_bundle(record, country, roster_map, hospital_config)
+            bundle = _build_bundle(record, country, roster_map, hospital_config, snapshot_date)
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
                 n_resources += 1
@@ -447,6 +467,7 @@ def _build_bundle(
     country: str,
     roster_map: dict[str, dict] | None = None,
     hospital_config: dict | None = None,
+    snapshot_date: str | None = None,
 ) -> dict:
     """Build a FHIR R4 Bundle from a CIF patient record by running the builder registry."""
     if roster_map is None:
@@ -492,6 +513,7 @@ def _build_bundle(
         # encounter (when present) is appended at [1].
         primary_enc_id=encounters[0].get("encounter_id", "") if encounters else "",
         patient_sex=patient_data.get("sex", ""),
+        snapshot_date=snapshot_date,
     )
 
     entries: list[dict] = []

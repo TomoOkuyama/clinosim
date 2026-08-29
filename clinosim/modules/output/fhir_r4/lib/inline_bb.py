@@ -272,7 +272,10 @@ def _bb_coverage(ctx: BundleContext) -> list[dict]:
     # (identity-only tests, non-JP smoke callers).
     _rec = ctx.record if isinstance(ctx.record, dict) else {}
     encounters = _rec.get("encounters") or ctx.patient_data.get("encounters") or []
-    return _build_coverage_resources(ctx.patient_data, ctx.country, encounters)
+    # Issue #944: pass ctx.snapshot_date so Coverage.status is derived from
+    # period.end vs the simulation cutoff (active for current FY, cancelled
+    # for expired FY rows).
+    return _build_coverage_resources(ctx.patient_data, ctx.country, encounters, ctx.snapshot_date)
 
 
 def _bb_encounters(ctx: BundleContext) -> list[dict]:
