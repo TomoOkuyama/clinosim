@@ -376,6 +376,222 @@ _SECTION_LOINC: dict[str, str] = {
 }
 
 
+# === Issue #925: encounter → linked-resource index ===
+#
+# Composition.section[].entry[] is meant to reference the underlying
+# MedicationRequests / Observations / Procedures / Conditions that
+# populate the section's narrative. At v0.5.0 all SOAP-note (34131-3)
+# and discharge-summary (18842-5) section writers left `entry` unset,
+# so document-first consumers had no structured navigation from a
+# note to its prescriptions or labs (37,028 SOAP notes + 668 DS on
+# the JP p=10000 snapshot). The fix populates entries at the emit
+# site (same walk that writes `section.text.div` / `section.code`)
+# from an encounter-scoped index of resources already emitted earlier
+# in the bundle-builder pipeline.
+#
+# `RESOURCE_TYPES_INDEXED` is the fixed set of resource types the
+# index captures — every type that a Composition section is likely to
+# reference. New types can be added by extending this tuple; adding a
+# type that never appears in `_SECTION_ENTRY_TYPES` (below) is dead
+# work but not harmful. Kept as a module-scope tuple so the walker in
+# ``_build_encounter_resource_index`` is O(1) per resource.
+RESOURCE_TYPES_INDEXED = (
+    "MedicationRequest",
+    "Observation",
+    "Procedure",
+    "Condition",
+    "ServiceRequest",
+    "DiagnosticReport",
+)
+
+
+def _resource_display(resource: dict) -> str:
+    """Return a short human-readable label for ``resource`` (for section.entry.display).
+
+    Reads the fields most likely to carry a clinician-facing label —
+    ``medicationCodeableConcept.text``, ``code.text``, first coding's
+    ``display`` — falling back to the empty string when none is
+    populated. The FHIR Reference.display element is 0..1 and purely
+    advisory, so an empty return means the caller emits reference-only.
+    """
+    med = resource.get("medicationCodeableConcept")
+    if isinstance(med, dict):
+        text = med.get("text")
+        if text:
+            return str(text)
+        codings = med.get("coding") or []
+        if codings and isinstance(codings[0], dict):
+            disp = codings[0].get("display")
+            if disp:
+                return str(disp)
+    code = resource.get("code")
+    if isinstance(code, dict):
+        text = code.get("text")
+        if text:
+            return str(text)
+        codings = code.get("coding") or []
+        if codings and isinstance(codings[0], dict):
+            disp = codings[0].get("display")
+            if disp:
+                return str(disp)
+    return ""
+
+
+def _build_encounter_resource_index(
+    entries: list[dict[str, Any]],
+) -> dict[str, dict[str, list[dict[str, str]]]]:
+    """Bucket already-emitted bundle entries by encounter and resourceType.
+
+    Walks the bundle's accumulated entries list and returns
+    ``{encounter_id: {resourceType: [Reference, ...], ...}, ...}``.
+    Only resource types in :data:`RESOURCE_TYPES_INDEXED` are indexed;
+    resources without an ``encounter.reference`` (or with an id that
+    does not match the expected ``Encounter/<id>`` shape) are skipped.
+
+    The returned Reference dicts are ready to drop into
+    ``Composition.section[].entry[]``. When a resource carries a
+    recognisable label, a ``display`` field is populated as a
+    consumer hint (spec-optional).
+
+    Callable independently for unit tests — a synthetic entries list
+    yields a deterministic index without needing a full bundle build.
+    """
+    index: dict[str, dict[str, list[dict[str, str]]]] = {}
+    for e in entries:
+        if not isinstance(e, dict):
+            continue
+        res = e.get("resource")
+        if not isinstance(res, dict):
+            continue
+        rtype = res.get("resourceType")
+        if rtype not in RESOURCE_TYPES_INDEXED:
+            continue
+        enc = res.get("encounter") or {}
+        if not isinstance(enc, dict):
+            continue
+        ref = enc.get("reference", "")
+        if not isinstance(ref, str) or not ref.startswith("Encounter/"):
+            continue
+        enc_id = ref[len("Encounter/") :]
+        rid = res.get("id")
+        if not rid:
+            continue
+        ref_entry: dict[str, str] = {"reference": f"{rtype}/{rid}"}
+        disp = _resource_display(res)
+        if disp:
+            ref_entry["display"] = disp
+        index.setdefault(enc_id, {}).setdefault(rtype, []).append(ref_entry)
+    return index
+
+
+# Section-title → resourceType[] mapping for
+# ``_build_composition_generic`` (SOAP / admission H&P / ED note /
+# nursing / rehab plan / …). Keys are the narrative section-title slugs
+# authored by the template narrative pass (same keys as ``_SECTION_LOINC``
+# below); values are the resourceType buckets whose entries belong in
+# that section per FHIR/JP-CLINS/CCDA guidance. A section title not in
+# this map emits no ``entry`` — the narrative-only sections (subjective /
+# hpi / chief_complaint / present_illness / admission_reason) stay
+# text-only, which is spec-clean (Composition.section.entry is 0..*).
+#
+# Rationale per bucket:
+#  - plan / P: MedicationRequest (Rx written at the visit), ServiceRequest
+#    (labs / imaging / referrals ordered), Procedure (in-visit or planned).
+#  - assessment / A / diagnosis: Condition (the encounter's dx).
+#  - objective / O / physical_exam / triage_details: Observation
+#    (vitals, findings) + DiagnosticReport (labs interpreted here).
+#  - discharge_medications: MedicationRequest (take-home Rx).
+#  - medications_at_home: MedicationRequest (pre-visit / home Rx).
+#  - hospital_course / admission_status: Procedure + Observation.
+#  - ed_workup: ServiceRequest + Observation + DiagnosticReport.
+_SECTION_ENTRY_TYPES: dict[str, tuple[str, ...]] = {
+    # SOAP outpatient / progress notes
+    "subjective": (),
+    "objective": ("Observation", "DiagnosticReport"),
+    "assessment": ("Condition",),
+    "plan": ("MedicationRequest", "ServiceRequest", "Procedure"),
+    # Admission H&P / progress
+    "chief_complaint": (),
+    "hpi": (),
+    "past_medical_history": ("Condition",),
+    "medications_at_home": ("MedicationRequest",),
+    "physical_exam": ("Observation",),
+    "physical_examination": ("Observation",),
+    "triage_details": ("Observation",),
+    # Discharge summary (US path — JP eDS uses `_JP_DS_SECTION_CODE`)
+    "admission_summary": (),
+    "hospital_course": ("Procedure", "Observation"),
+    "discharge_diagnoses": ("Condition",),
+    "discharge_medications": ("MedicationRequest",),
+    "discharge_evaluation": ("Observation",),
+    "discharge_readiness": ("Observation",),
+    # Nursing / rehab
+    "nursing_history": (),
+    "nursing_diagnosis": ("Condition",),
+    "nursing_interventions_provided": ("Procedure",),
+    "admission_status": ("Observation",),
+    "adl_assessment": ("Observation",),
+    "risk_assessments": ("Observation",),
+    "care_plan": ("MedicationRequest", "ServiceRequest", "Procedure"),
+    # Ward-info & plan sections
+    "diagnosis": ("Condition",),
+    # ED / inpatient planning
+    "ed_workup": ("ServiceRequest", "Observation", "DiagnosticReport"),
+    "assessment_and_plan": ("Condition", "MedicationRequest", "ServiceRequest", "Procedure"),
+    "treatment_plan": ("MedicationRequest", "ServiceRequest", "Procedure"),
+    "test_schedule": ("ServiceRequest",),
+    "surgery_schedule": ("Procedure", "ServiceRequest"),
+    "other_plans": ("MedicationRequest", "ServiceRequest", "Procedure"),
+    "follow_up": ("ServiceRequest",),
+    "discharge_instructions": (),
+    # Rehab
+    "functional_status": ("Observation",),
+    "basic_movement": ("Observation",),
+    # Narrative-only remainder (kept explicit so a future author can see
+    # the intent — an unknown key falls through to `()` via `.get(k, ())`).
+}
+
+
+def _derive_section_entries(
+    section_title: str,
+    encounter_id: str,
+    encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None,
+) -> list[dict[str, str]]:
+    """Return ``Composition.section[].entry[]`` for the generic builder.
+
+    Filters the encounter-scoped index by the resource types associated
+    with ``section_title`` in :data:`_SECTION_ENTRY_TYPES`. Returns an
+    empty list (never ``[]`` on the resource) when there is no index,
+    no encounter, or no resources of the eligible types — the caller
+    then omits ``entry`` entirely so `Composition.section.entry` stays
+    absent rather than emitting an empty array.
+
+    ``encounter_id`` may be either a raw CIF encounter id (as carried
+    on ``ClinicalDocument.encounter_id``) or the opaque post-#854
+    ``enc-<12hex>`` form. The index is keyed on the OPAQUE form (built
+    from ``resource.encounter.reference`` on already-emitted entries),
+    so raw CIF ids are transformed via :func:`resolve_encounter_id`
+    before the lookup. Passing a synthetic id that is already opaque
+    round-trips through the resolver unchanged.
+    """
+    if not encounter_id or not encounter_index:
+        return []
+    types = _SECTION_ENTRY_TYPES.get(section_title, ())
+    if not types:
+        return []
+    resolved_enc = resolve_encounter_id(encounter_id)
+    # Fall back to the raw id when it matches directly (unit tests
+    # frequently pass a synthetic literal like `"ENC-001"` and populate
+    # the index with the same literal — the resolver would rewrite it
+    # to an opaque form the test never saw).
+    bucket = encounter_index.get(resolved_enc) or encounter_index.get(encounter_id) or {}
+    out: list[dict[str, str]] = []
+    for rtype in types:
+        for ref in bucket.get(rtype, []):
+            out.append(ref)
+    return out
+
+
 def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     """Emit one Composition per ClinicalDocument with format_type='composition'.
 
@@ -462,6 +678,13 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     # discriminator resolves against these Orgs at validation time. We
     # only emit those that are actually referenced (no orphans).
     external_org_ids_referenced: set[str] = set()
+    # Issue #925: unit tests that fake `ctx` with a `types.SimpleNamespace`
+    # (older test fixtures pre-dating this field) do not carry the
+    # `encounter_resource_index` attribute — fall through to `None` so
+    # those tests exercise the pre-#925 shape (sections without
+    # `entry`). Production `BundleContext.encounter_resource_index`
+    # defaults to `None` too, so this is a no-op on real calls.
+    enc_index = getattr(ctx, "encounter_resource_index", None)
     for doc in raw_docs:
         if _o(doc, "format_type", "") != "composition":
             continue
@@ -481,6 +704,7 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
                 enc_to_free_text,
                 enc_to_primary_cond,
                 roster_map=ctx.roster_map,
+                encounter_index=enc_index,
             )
         )
         # Track sampled external org for referral letters (JP-only path).
@@ -519,6 +743,7 @@ def _build_composition(
     enc_to_primary_cond: dict[str, str] | None = None,
     *,
     roster_map: dict[str, dict] | None = None,
+    encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
     """Build one FHIR R4 Composition resource from a ClinicalDocument + its sections.
 
@@ -527,12 +752,27 @@ def _build_composition(
     PR2b: 57133-1 (referral note) dispatches to the eReferral
     builder. Otherwise the existing generic builder is used (US path
     unchanged).
+
+    Issue #925: ``encounter_index`` — the encounter-scoped resource
+    bucket produced by :func:`_build_encounter_resource_index` — is
+    threaded through so section writers can populate
+    ``section.entry[]`` with references to the MedicationRequests /
+    Observations / Procedures / Conditions belonging to this
+    Composition's encounter. ``None`` when the caller has no index
+    (unit tests calling the builder in isolation) — sections stay
+    text-only.
     """
     if lang == "ja":
         loinc = _o(doc, "loinc_code", "")
         if loinc == "18842-5":
             return _build_jp_clins_discharge_summary_composition(
-                doc, sections, lang, enc_to_free_text or {}, enc_to_primary_cond or {}, roster_map=roster_map
+                doc,
+                sections,
+                lang,
+                enc_to_free_text or {},
+                enc_to_primary_cond or {},
+                roster_map=roster_map,
+                encounter_index=encounter_index,
             )
         if loinc == "57133-1":
             return _build_jp_clins_referral_note_composition(doc, sections, lang, roster_map=roster_map)
@@ -564,12 +804,12 @@ def _build_composition(
         # JP-CLINS eDS / eReferral / eCheckup の baseDefinition は Composition
         # 直下(clinicaldocument 経由でない)ため、それらの dispatch path は
         # 変更せず(既存 profile は追加の意味を提供済み)。
-        comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map)
+        comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index)
         profs = comp.setdefault("meta", {}).setdefault("profile", [])
         if _CLINICALDOCUMENT_PROFILE not in profs:
             profs.append(_CLINICALDOCUMENT_PROFILE)
         return comp
-    return _build_composition_generic(doc, sections, lang, roster_map=roster_map)
+    return _build_composition_generic(doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index)
 
 
 def _build_composition_generic(
@@ -578,6 +818,7 @@ def _build_composition_generic(
     lang: str,
     *,
     roster_map: dict[str, dict] | None = None,
+    encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
     """Locale-neutral Composition builder — used by non-JP-CLINS paths.
 
@@ -590,6 +831,15 @@ def _build_composition_generic(
     section text with the practitioner's real name + role suffix. When
     ``None`` (legacy callers / unit tests), section text is unchanged
     — same behavior as before this Issue.
+
+    Issue #925: ``encounter_index`` — the encounter-scoped resource
+    bucket produced by :func:`_build_encounter_resource_index` — is
+    consulted in the same walk that emits ``section.title`` /
+    ``section.code`` / ``section.text.div`` so ``section.entry[]``
+    stays consistent with the narrative slotting (single-walk pattern
+    per ``feedback_dr_conclusion_code_single_walk``). ``None`` (unit
+    tests) means every section emits without ``entry`` — the previous
+    behaviour, spec-clean under ``Composition.section.entry`` 0..*.
     """
     # Bind to a local so the inner `for section_title, section_text` loop
     # (added earlier) can reference `_roster_map` uniformly across the JP
@@ -747,6 +997,20 @@ def _build_composition_generic(
                 ],
                 "text": _loinc_disp,
             }
+        # Issue #925: populate `section.entry[]` in the SAME walk that
+        # writes `section.text.div` (single-walk pattern per
+        # `feedback_dr_conclusion_code_single_walk`). Empty list means
+        # this section has no eligible resources in the index — omit
+        # `entry` rather than emitting `entry: []` so the spec-optional
+        # cardinality stays absent (FHIR R4 `Composition.section.entry`
+        # is 0..*; an empty array is legal but noisy).
+        _section_entry_refs = _derive_section_entries(
+            section_title,
+            encounter_id,
+            encounter_index,
+        )
+        if _section_entry_refs:
+            entry["entry"] = _section_entry_refs
         section_entries.append(entry)
     if section_entries:
         res["section"] = section_entries
@@ -855,6 +1119,34 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
 # `type.targetProfile` on each `.entry` element (verified against
 # `clinical-information-sharing#1.12.0/package/StructureDefinition-JP-
 # Composition-eDischargeSummary.json`).
+# Issue #925: multi-ref extension to `_JP_DS_SECTION_ENTRY_REFERENCES`.
+# Where the base map holds a single templated Reference per section
+# (Encounter, Condition, DocumentReference), this map lets a section
+# also pull every resource of a given resourceType from the encounter-
+# scoped `BundleContext.encounter_resource_index`. The two are
+# additive: if both apply on a section, the templated ref is emitted
+# first and the multi-ref pass appends non-duplicate additions.
+#
+# Section-key rationale (per JP-CLINS eDS spec + issue #925):
+#  - admission_diagnoses (342): Condition entries for the encounter
+#    (empty in the base map; mirrors 344 for the primary Condition).
+#  - discharge_diagnoses (344): additional Conditions beyond the
+#    primary (comorbidities recorded at discharge).
+#  - discharge_medications (444): every MedicationRequest on the
+#    encounter (inpatient orders finished at discharge + discharge Rx).
+#    Spec `medicationOnDischargeSection.entry` targetProfile is
+#    JP_MedicationRequest_eCS, cardinality 0..* — safe to append.
+#  - hospital_course (333) is INTENTIONALLY omitted from this map:
+#    JP-CLINS eDS constrains `hospitalCourseSection.entry` to
+#    JP_DocumentReference (a single free-text note); adding
+#    Procedure/Observation there would violate the profile slicing.
+_JP_DS_MULTI_ENTRY_TYPES: dict[str, tuple[str, ...]] = {
+    "admission_diagnoses": ("Condition",),
+    "discharge_diagnoses": ("Condition",),
+    "discharge_medications": ("MedicationRequest",),
+}
+
+
 _JP_DS_SECTION_ENTRY_REFERENCES: dict[str, tuple[str, str]] = {
     # detailsOnAdmissionSection.entry min=1 max=1 → JP_Encounter
     "admission_details": ("Encounter", "Encounter/{encounter_id}"),
@@ -884,6 +1176,7 @@ def _build_jp_clins_discharge_summary_composition(
     enc_to_primary_cond: dict[str, str] | None = None,
     *,
     roster_map: dict[str, dict] | None = None,
+    encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
     """JP-CLINS eDischargeSummary v1.12.0 準拠 Composition を emit する。
 
@@ -1054,6 +1347,41 @@ def _build_jp_clins_discharge_summary_composition(
                 ref = ""
             if ref:
                 section_obj["entry"] = [{"reference": ref}]
+        # Issue #925: extend the eDS section entries beyond the fixed
+        # single-ref slices in `_JP_DS_SECTION_ENTRY_REFERENCES`.
+        # `_JP_DS_MULTI_ENTRY_TYPES` maps a section key to the
+        # resourceType bucket in `encounter_resource_index`; when the
+        # bucket has entries we append them (avoiding the primary
+        # Condition ref already emitted above so 344 does not double).
+        # 342 (admission_diagnoses) mirrors 344's primary Condition
+        # when the eDS has no separately-tracked admission Condition
+        # resource — clinosim's `clinical_diagnosis` typically carries
+        # a single primary shared by admission and discharge.
+        _multi_types = _JP_DS_MULTI_ENTRY_TYPES.get(key, ())
+        if _multi_types and encounter_index is not None and _enc_id:
+            _existing_refs = {e.get("reference") for e in section_obj.get("entry", [])}
+            # The index is keyed on OPAQUE encounter ids (built from
+            # `resource.encounter.reference`); `_enc_id` here is the
+            # raw CIF encounter id. Look up under the opaque form
+            # first, with a fall-through to the raw id so unit tests
+            # that pre-key the index with the raw id still resolve.
+            _resolved_enc = resolve_encounter_id(_enc_id)
+            _bucket = encounter_index.get(_resolved_enc) or encounter_index.get(_enc_id) or {}
+            _extra: list[dict[str, str]] = []
+            for _rtype in _multi_types:
+                for _ref_entry in _bucket.get(_rtype, []):
+                    if _ref_entry.get("reference") in _existing_refs:
+                        continue
+                    _extra.append(_ref_entry)
+                    _existing_refs.add(_ref_entry.get("reference"))
+            if _extra:
+                section_obj.setdefault("entry", []).extend(_extra)
+        # 342 (入院時診断) mirrors 344 primary Condition when the index
+        # is not consulted (unit tests) — keeps parity between
+        # admission/discharge dx sections so a document-first consumer
+        # sees a Condition on both slices instead of only 344.
+        if key == "admission_diagnoses" and "entry" not in section_obj and _primary_cond_id:
+            section_obj["entry"] = [{"reference": f"Condition/{_primary_cond_id}"}]
         child_sections.append(section_obj)
     # Parent structuredSection — Chain #9: drop `code.text` (max=0) and use
     # title-short / display-long split.
