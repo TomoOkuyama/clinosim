@@ -391,6 +391,22 @@ codes:
     en: Respiratory rate
     ja: 呼吸数
 
+  # === Anthropometric measurements (Issue #946) ===
+  # LOINC LONG_COMMON_NAME per Regenstrief 2.76; JP displays per JAMI /
+  # jpfhir.jp Observation_Common terminology guidance.
+  8302-2:
+    en: Body height
+    ja: 身長
+  29463-7:
+    en: Body weight
+    ja: 体重
+  8287-5:
+    en: Head Occipital-frontal circumference
+    ja: 頭囲
+  39156-5:
+    en: Body mass index (BMI) [Ratio]
+    ja: BMI
+
   # === Nursing assessment scores (NLM LOINC API verified 2026-06) ===
   9269-2:
     en: Glasgow coma score total
