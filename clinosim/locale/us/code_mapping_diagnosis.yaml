@@ -33,6 +33,18 @@ J45: "J45.909"      # Unspecified asthma, uncomplicated
 N40: "N40.0"        # Benign prostatic hyperplasia without lower urinary tract symptoms
 M17: "M17.9"        # Osteoarthritis of knee, unspecified
 
+# --- Oncology / obstetric chronic conditions (Issue #943) ---
+#     Category codes emitted as billable ICD-10-CM base (category is billable when
+#     the site is unspecified; NLM Clinical Tables verified). Site-specific leaves
+#     (e.g. C18.9) are unnecessary until the generator models subsite anatomy.
+C18: "C18.9"        # Malignant neoplasm of colon, unspecified
+C22: "C22.9"        # Malignant neoplasm of liver, not specified as primary or secondary
+C34: "C34.90"       # Malignant neoplasm of unspecified part of unspecified bronchus or lung
+C50: "C50.919"      # Malignant neoplasm of unspecified site of unspecified female breast
+C61: "C61"          # Malignant neoplasm of prostate (billable as-is)
+Z34: "Z34.90"       # Encounter for supervision of normal pregnancy, unspecified, unspecified trimester
+Z37: "Z37.9"        # Outcome of delivery, unspecified — past-birth marker on the problem list
+
 # --- Past acute events carried as chronic background → "personal history of / old" ---
 I21: "I25.2"        # Old myocardial infarction
 I26: "Z86.711"      # Personal history of pulmonary embolism
