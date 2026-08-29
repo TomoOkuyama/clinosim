@@ -280,7 +280,36 @@ def _payer_name_map(country: str) -> dict[str, str]:
     return out
 
 
-def _build_coverage_resources(patient_data: dict, country: str, encounters: list[dict] | None = None) -> list[dict]:
+def _derive_coverage_status(period_end: str | None, snapshot_date: str | None) -> str:
+    """Return the FHIR R4 ``Coverage.status`` code for a policy period.
+
+    Rule (Issue #944): ``Coverage.status = "active"`` means "currently in
+    effect". A per-FY row whose ``period.end`` is strictly before the
+    simulation snapshot date has, by definition, expired — emit
+    ``"cancelled"`` (the FHIR R4 status value used for a policy that has
+    ended; ``"entered-in-error"`` is reserved for records the emitter
+    knows were wrong).
+
+    Boundary: ``period.end == snapshot_date`` still counts as active
+    (inclusive comparison — the FY endpoint IS the last day of coverage).
+
+    Backward compat: when ``snapshot_date`` is unknown (identity-only
+    tests, callers that don't plumb the CIF metadata through) we default
+    to ``"active"``, preserving the pre-#944 emit for those paths.
+    """
+    if not period_end or not snapshot_date:
+        return "active"
+    # String compare is safe for ISO-8601 YYYY-MM-DD values (lexicographic
+    # order == chronological order); avoids re-parsing on the hot path.
+    return "active" if period_end >= snapshot_date else "cancelled"
+
+
+def _build_coverage_resources(
+    patient_data: dict,
+    country: str,
+    encounters: list[dict] | None = None,
+    snapshot_date: str | None = None,
+) -> list[dict]:
     """Build JP Core Coverage + payor Organization from the patient's insurance enrollment.
 
     Reads CIF data only (no dependency on the identity module — module independence).
@@ -432,6 +461,15 @@ def _build_coverage_resources(patient_data: dict, country: str, encounters: list
             # now hash to distinct ids and coexist as intended; same-FY
             # duplicate records collapse as before.
             _cov_structural_key = f"{pid}-{enr_idx}-fy{fy_start.year}"
+            # Issue #944: derive Coverage.status from period.end vs the
+            # simulation snapshot date. Explicit enrollment valid_to (rare,
+            # Phase 2) still wins over the FY-derived end below — resolve
+            # the effective period.end here so both branches converge.
+            _effective_period_end: str
+            if enr.get("valid_to"):
+                _effective_period_end = str(enr["valid_to"])
+            else:
+                _effective_period_end = fy_end.isoformat()
             coverage: dict[str, Any] = {
                 "resourceType": "Coverage",
                 "id": _resolve_coverage_id(_cov_structural_key),
@@ -440,7 +478,7 @@ def _build_coverage_resources(patient_data: dict, country: str, encounters: list
                     {"system": cfg.get("member_id_system", ""), "value": composite},
                     wrap_as_identifier(_cov_structural_key, COVERAGE_KEY_SYSTEM),
                 ],
-                "status": "active",
+                "status": _derive_coverage_status(_effective_period_end, snapshot_date),
                 "subscriberId": subscriber,
                 # CY7-13 (Chain-7): Coverage.subscriber — the person carrying the
                 # policy. For "self" relationship the subscriber IS the beneficiary

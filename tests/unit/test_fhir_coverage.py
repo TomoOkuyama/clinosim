@@ -154,12 +154,12 @@ def _patient_with_encounters(dob: str, category: str, encounters: list[dict]) ->
     }
 
 
-def _covs(patient: dict, country: str = "JP", encounters=None):
+def _covs(patient: dict, country: str = "JP", encounters=None, snapshot_date: str | None = None):
     from clinosim.modules.output.fhir_r4.demographics.patient import (
         _build_coverage_resources as build,
     )
 
-    return [r for r in build(patient, country, encounters) if r["resourceType"] == "Coverage"]
+    return [r for r in build(patient, country, encounters, snapshot_date) if r["resourceType"] == "Coverage"]
 
 
 @pytest.mark.unit
@@ -293,3 +293,112 @@ class TestIssue923IdentitySampler:
         for e in enrollments.values():
             # Neither child can be marked "employee" (=被保険者).
             assert e.category != "employee"
+
+
+# Issue #944: Coverage.status derived from period.end vs snapshot_date.
+# Pre-#944: every Coverage row was hard-coded "active", regardless of whether
+# its FY window had ended before the simulation cutoff. Post-#944: expired FY
+# rows emit "cancelled"; the current FY (period.end >= snapshot) stays
+# "active"; the FY endpoint itself is inclusive.
+@pytest.mark.unit
+class TestIssue944CoverageStatus:
+    def test_derive_status_helper_expired_row_is_cancelled(self):
+        from clinosim.modules.output.fhir_r4.demographics.patient import (
+            _derive_coverage_status,
+        )
+
+        # FY ends 2025-03-31, snapshot 2026-03-31 → policy has expired.
+        assert _derive_coverage_status("2025-03-31", "2026-03-31") == "cancelled"
+
+    def test_derive_status_helper_current_row_is_active(self):
+        from clinosim.modules.output.fhir_r4.demographics.patient import (
+            _derive_coverage_status,
+        )
+
+        assert _derive_coverage_status("2026-03-31", "2025-06-01") == "active"
+
+    def test_derive_status_helper_boundary_endpoint_inclusive(self):
+        from clinosim.modules.output.fhir_r4.demographics.patient import (
+            _derive_coverage_status,
+        )
+
+        # period.end == snapshot: the FY endpoint IS the last day of
+        # coverage, so the row is still active on the snapshot itself.
+        assert _derive_coverage_status("2026-03-31", "2026-03-31") == "active"
+
+    def test_derive_status_helper_missing_snapshot_defaults_active(self):
+        from clinosim.modules.output.fhir_r4.demographics.patient import (
+            _derive_coverage_status,
+        )
+
+        # Backward compat with identity-only tests that don't plumb
+        # snapshot_date through.
+        assert _derive_coverage_status("2020-01-01", None) == "active"
+        assert _derive_coverage_status(None, "2026-03-31") == "active"
+
+    def test_expired_fy_row_emits_cancelled(self):
+        """A single-FY patient whose FY ended before the snapshot must emit
+        Coverage.status = "cancelled"."""
+        p = _patient_with_encounters(
+            "1985-01-15",
+            "employee",
+            [{"admission_datetime": "2024-05-10T09:00:00"}],  # FY2024 only
+        )
+        # Snapshot in FY2026 — FY2024 (ends 2025-03-31) is expired.
+        covs = _covs(p, snapshot_date="2026-03-31")
+        assert len(covs) == 1
+        assert covs[0]["period"] == {"start": "2024-04-01", "end": "2025-03-31"}
+        assert covs[0]["status"] == "cancelled"
+
+    def test_current_fy_row_emits_active(self):
+        """A single-FY patient whose FY spans the snapshot must emit
+        Coverage.status = "active"."""
+        p = _patient_with_encounters(
+            "1985-01-15",
+            "employee",
+            [{"admission_datetime": "2025-05-01T09:00:00"}],
+        )
+        # Snapshot inside the FY2025 period.
+        covs = _covs(p, snapshot_date="2025-10-01")
+        assert len(covs) == 1
+        assert covs[0]["period"] == {"start": "2025-04-01", "end": "2026-03-31"}
+        assert covs[0]["status"] == "active"
+
+    def test_multi_fy_patient_mixes_cancelled_and_active(self):
+        """Regression: a patient with encounters across multiple FYs must
+        get "cancelled" on the expired FY rows and "active" on the current
+        FY row — never all-"active" (that was the #944 defect)."""
+        p = _patient_with_encounters(
+            "1980-01-01",
+            "employee",
+            [
+                {"admission_datetime": "2024-05-10T09:00:00"},  # FY2024 (expired)
+                {"admission_datetime": "2025-08-20T09:00:00"},  # FY2025 (current)
+                {"admission_datetime": "2026-06-01T09:00:00"},  # FY2026 (future)
+            ],
+        )
+        # Snapshot inside FY2025 — the FY2024 row is expired, FY2025 is
+        # active, FY2026 has not started yet but its period.end
+        # (2027-03-31) is still after the snapshot so it also reads as
+        # active. What must never happen is an expired row still reading
+        # active.
+        covs = _covs(p, snapshot_date="2025-12-31")
+        assert len(covs) == 3
+        status_by_period = {c["period"]["end"]: c["status"] for c in covs}
+        assert status_by_period["2025-03-31"] == "cancelled"
+        assert status_by_period["2026-03-31"] == "active"
+        assert status_by_period["2027-03-31"] == "active"
+
+    def test_snapshot_none_preserves_pre_944_active(self):
+        """Backward compat: callers that don't pass snapshot_date see the
+        pre-#944 unconditional "active" (identity-only tests, non-standard
+        callers). Explicit test so a future refactor cannot silently break
+        the identity-module tests that assert status == "active"."""
+        p = _patient_with_encounters(
+            "1985-01-15",
+            "employee",
+            [{"admission_datetime": "2020-05-10T09:00:00"}],
+        )
+        covs = _covs(p)  # no snapshot_date
+        assert len(covs) == 1
+        assert covs[0]["status"] == "active"
