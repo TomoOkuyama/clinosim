@@ -124,9 +124,17 @@ class JPIdentityProvider:
         Occupation-driven: the working-age member most likely to be an employee becomes
         the 被保険者 (others 被扶養者). Falls back to an age-band distribution when no
         occupation table is configured. Returns (scheme, subscriber_or_None).
+
+        Issue #923 §Fix 2: a minor (<18 by default) cannot legally hold the 被保険者
+        slot. The occupation-driven path already restricts subscribers to `15 <= age <
+        75`, but the fallback path historically picked the oldest non-elderly household
+        member — for all-minor households that produced 157 minors marked 被用者保険
+        （被保険者） at p=10000. When no adult subscriber exists the household falls to
+        国保 (`("national", None)`) so downstream categories become "national".
         """
+        primary_min_age = int(config.get("age_gates", {}).get("primary_subscriber_min_age", 18))
         occ_prob = config.get("employee_probability_by_occupation", {})
-        working = [m for m in non_elderly if 15 <= m.age < 75]
+        working = [m for m in non_elderly if 15 <= m.age < 75 and m.age >= primary_min_age]
         if occ_prob and working:
             default_p = float(config.get("default_employee_probability", 0.0))
 
@@ -136,7 +144,13 @@ class JPIdentityProvider:
             cand = max(working, key=emp_p)
             return ("employee", cand) if rng.random() < emp_p(cand) else ("national", None)
 
-        head = max(non_elderly, key=lambda m: m.age)
+        adults = [m for m in non_elderly if m.age >= primary_min_age]
+        if not adults:
+            # All-minor household: 国保 is the only legal fit (a child cannot be
+            # the primary policyholder; they can only be 被扶養者 on an absent
+            # parent's plan or covered by 国保 through the household).
+            return ("national", None)
+        head = max(adults, key=lambda m: m.age)
         dist = _rate_table_for_age(config.get("insurance_category_distribution", {}), head.age)
         p = float(dist.get("employee", 0.5)) if dist else 0.5
         return ("employee", head) if rng.random() < p else ("national", None)

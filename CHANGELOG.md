@@ -77,6 +77,31 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   `narrate` run is required for consistency, so the next release is
   MINOR (v0.6.0).
 
+### Fixed
+
+- **JP Coverage.period + insurance-type age gate** (Issue #923). Two
+  defects converged into ≥32 % of JP encounters being emitted without a
+  valid Coverage row:
+  - Every `Coverage.period` was a single hard-coded fiscal year
+    (`2025-04-01 .. 2026-03-31`), leaving 32.9 % of encounters (11,908
+    before start + 1,270 after end at p=10000) outside any Coverage.
+  - The identity-driven `Coverage.type.text` sampler had no age gate:
+    142 patients aged ≥ 75 carried non-`後期高齢者医療制度` insurance
+    (`高齢者の医療の確保に関する法律` §50 requires all ≥ 75 residents to
+    enrol in 後期高齢者医療制度), and 157 minors (< 18) were booked as
+    `被用者保険（被保険者）` — a role a child cannot legally hold.
+  Fix: `_build_coverage_resources` now emits **one Coverage row per
+  fiscal year** the patient has encounters in (JP FY = 4/1 → 3/31,
+  boundaries in `locale/jp/identity.yaml::fiscal_year`), with the
+  category re-evaluated per FY: ≥ 75 at period end → `後期高齢者医療制度`
+  (payor swapped to the 後期高齢者 insurer, 1割 copay); < 18 at period
+  start on an employee policy → demoted to `被扶養者`. The JP identity
+  provider (`_sample_scheme`) additionally refuses to nominate a minor
+  as a household subscriber (all-minor households fall back to 国保).
+  Verified on p=1000 seed 500 (2025-01-01 → 2026-08-31): encounters
+  outside any Coverage.period 0/4011 (0.00 %, was ~40 %); minors on
+  被保険者 0 (was 157). PATCH-scope — CIF unchanged, FHIR emit only.
+
 ## [0.5.0] - 2026-08-28
 
 **MINOR** — Two independent MINOR drivers folded into this release:

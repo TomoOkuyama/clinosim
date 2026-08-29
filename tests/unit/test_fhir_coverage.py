@@ -118,3 +118,178 @@ class TestPrivacyChokepoint:
         patient = _build_patient(_PATIENT_JP, "JP")
         blob = json.dumps(coverage, ensure_ascii=False) + json.dumps(patient, ensure_ascii=False)
         assert _NATIONAL_ID not in blob
+
+
+# Issue #923: age-gated Coverage.type + multi-FY Coverage.period.
+def _patient_with_encounters(dob: str, category: str, encounters: list[dict]) -> dict:
+    return {
+        "patient_id": f"POP-DOB-{dob}",
+        "sex": "F",
+        "date_of_birth": dob,
+        "name": {"family_name": "山田", "given_name": "花子"},
+        "encounters": encounters,
+        "identity": {
+            "national": {
+                "country": "JP",
+                "national_id": "",
+                "has_id_card": False,
+                "id_card_linked_to_insurance": False,
+            },
+            "enrollments": [
+                {
+                    "country": "JP",
+                    "category": category,
+                    "insurer_number": "01130012" if category == "employee" else "131011",
+                    "member_id": "12345678",
+                    "group_symbol": "1234" if category == "employee" else None,
+                    "branch_number": "01" if category == "employee" else None,
+                    "valid_from": None,
+                    "valid_to": None,
+                    "system_uri": "",
+                }
+            ],
+            "card_acquired_on": None,
+            "insurance_linked_on": None,
+        },
+    }
+
+
+def _covs(patient: dict, country: str = "JP", encounters=None):
+    from clinosim.modules.output.fhir_r4.demographics.patient import (
+        _build_coverage_resources as build,
+    )
+
+    return [r for r in build(patient, country, encounters) if r["resourceType"] == "Coverage"]
+
+
+@pytest.mark.unit
+class TestIssue923AgeGate:
+    def test_75_plus_patient_gets_koki_koureisha(self):
+        """A patient ≥75 at Coverage.period.start MUST be 後期高齢者医療制度,
+        regardless of what the identity module originally assigned."""
+        p = _patient_with_encounters(
+            "1935-06-01",  # ~90 at 2025
+            "dependent",  # identity said 被扶養者 — wrong for 75+
+            [{"admission_datetime": "2025-06-15T10:00:00"}],
+        )
+        covs = _covs(p)
+        assert len(covs) == 1
+        assert covs[0]["type"]["text"] == "後期高齢者医療制度"
+        # And swapped to the 後期高齢 payer
+        assert covs[0]["payor"][0]["reference"] == "Organization/payer-39130083"
+
+    def test_minor_never_gets_hihokensha(self):
+        """A minor's Coverage.type MUST NOT be 被用者保険（被保険者）; if the
+        underlying enrollment marked them employee, demote to 被扶養者."""
+        p = _patient_with_encounters(
+            "2015-04-01",  # ~10 in FY2025
+            "employee",  # identity mistakenly assigned; must be corrected
+            [{"admission_datetime": "2025-06-15T10:00:00"}],
+        )
+        covs = _covs(p)
+        assert len(covs) == 1
+        assert covs[0]["type"]["text"] != "被用者保険（被保険者）"
+        assert covs[0]["type"]["text"] == "被用者保険（被扶養者）"
+
+    def test_adult_employee_unchanged(self):
+        """Age gates must NOT touch adults with correct enrollment."""
+        p = _patient_with_encounters(
+            "1985-01-15",  # ~40 in FY2025
+            "employee",
+            [{"admission_datetime": "2025-06-15T10:00:00"}],
+        )
+        covs = _covs(p)
+        assert len(covs) == 1
+        assert covs[0]["type"]["text"] == "被用者保険（被保険者）"
+
+
+@pytest.mark.unit
+class TestIssue923MultiFY:
+    def test_coverage_period_spans_all_encounters(self):
+        """Every encounter's admission date must fall inside at least one
+        emitted Coverage.period (0 uncovered rows was the whole point of #923)."""
+        p = _patient_with_encounters(
+            "1980-01-01",
+            "employee",
+            [
+                {"admission_datetime": "2024-05-10T09:00:00"},  # FY2024
+                {"admission_datetime": "2025-08-20T09:00:00"},  # FY2025
+                {"admission_datetime": "2026-06-01T09:00:00"},  # FY2026
+            ],
+        )
+        covs = _covs(p)
+        # 3 fiscal years touched → 3 Coverage rows
+        assert len(covs) == 3
+        periods = [(c["period"]["start"], c["period"]["end"]) for c in covs]
+        assert periods == [
+            ("2024-04-01", "2025-03-31"),
+            ("2025-04-01", "2026-03-31"),
+            ("2026-04-01", "2027-03-31"),
+        ]
+        # Every encounter admission date must fall in ≥1 period.
+        for enc_date in ("2024-05-10", "2025-08-20", "2026-06-01"):
+            assert any(c["period"]["start"] <= enc_date <= c["period"]["end"] for c in covs), (
+                f"encounter {enc_date} outside all Coverage.period rows"
+            )
+
+    def test_ages_across_75_boundary_gets_swapped(self):
+        """A patient turning 75 mid-simulation gets 後期高齢者医療制度 from
+        the FY containing the 75th birthday onward."""
+        p = _patient_with_encounters(
+            # Born 1951-05-01 → age at FY2025 end (2026-03-31) is 74; age at
+            # FY2026 end (2027-03-31) is 75. The late-elderly gate uses the
+            # period-end age so a patient turning 75 in FY2026 promotes only
+            # from FY2026 onward and their FY2025 row stays 国保.
+            "1951-05-01",
+            "national",  # 国保 at generation time
+            [
+                {"admission_datetime": "2025-09-01T09:00:00"},  # FY2025 (age 74)
+                {"admission_datetime": "2026-09-01T09:00:00"},  # FY2026 (age 75)
+            ],
+        )
+        covs = _covs(p)
+        assert len(covs) == 2
+        types = [c["type"]["text"] for c in covs]
+        assert types == ["国民健康保険", "後期高齢者医療制度"]
+
+    def test_single_fy_patient_still_gets_one_row(self):
+        """Single-FY encounters produce a single Coverage row (regression:
+        we didn't multiply rows for the majority case)."""
+        p = _patient_with_encounters(
+            "1985-01-15",
+            "employee",
+            [
+                {"admission_datetime": "2025-05-01T09:00:00"},
+                {"admission_datetime": "2025-11-20T09:00:00"},
+            ],
+        )
+        covs = _covs(p)
+        assert len(covs) == 1
+        assert covs[0]["period"] == {"start": "2025-04-01", "end": "2026-03-31"}
+
+
+@pytest.mark.unit
+class TestIssue923IdentitySampler:
+    def test_all_minor_household_falls_back_to_national(self):
+        """When a household has no adult, JPIdentityProvider must NOT pick a
+        minor as 被保険者 — instead fall back to 国保."""
+        import numpy as np
+
+        from clinosim.locale.loader import load_identity_config
+        from clinosim.modules.identity.providers.jp import JPIdentityProvider
+
+        class _M:
+            def __init__(self, pid, age, occupation="other"):
+                self.person_id = pid
+                self.age = age
+                self.occupation = occupation
+
+        provider = JPIdentityProvider()
+        cfg = load_identity_config("JP")
+        rng = np.random.default_rng(123)
+        # Household of two minors — no adult.
+        members = [_M("m1", 10), _M("m2", 15)]
+        enrollments = provider.assign_household(members, rng, cfg)
+        for e in enrollments.values():
+            # Neither child can be marked "employee" (=被保険者).
+            assert e.category != "employee"

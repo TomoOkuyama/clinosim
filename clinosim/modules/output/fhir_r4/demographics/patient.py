@@ -10,6 +10,7 @@ reference/localization + _fhir_common helper modules (no adapter import cycle).
 from __future__ import annotations
 
 import uuid
+from datetime import date
 from functools import lru_cache
 from typing import Any
 
@@ -116,6 +117,10 @@ def _default_coverage_period_year(patient_data: dict) -> int:
     """Pick a default calendar year for Coverage.period when the enrollment
     lacks explicit start/end (C2-11 fallback). Uses the patient's first
     encounter year if available; otherwise a fixed simulation year.
+
+    Kept for backward compatibility with callers that only pass patient_data;
+    the multi-FY emit path (Issue #923) uses `_derive_encounter_date_range`
+    instead.
     """
     encs = patient_data.get("encounters", [])
     if encs:
@@ -124,6 +129,130 @@ def _default_coverage_period_year(patient_data: dict) -> int:
         if len(first_dt) >= 4 and first_dt[:4].isdigit():
             return int(first_dt[:4])
     return 2025
+
+
+def _fy_boundary(country: str) -> tuple[int, int]:
+    """Return (month, day) marking the fiscal-year start for the locale.
+
+    JP defaults to (4, 1) per identity.yaml `fiscal_year`. Non-JP locales
+    without a fiscal_year block fall back to calendar-year (1, 1).
+    """
+    fy = _identity_cfg(country).get("fiscal_year", {}) or {}
+    return (int(fy.get("start_month", 1)), int(fy.get("start_day", 1)))
+
+
+def _age_gate_config(country: str) -> dict[str, int]:
+    """Return the age-gate thresholds from identity.yaml.
+
+    JP defaults (Issue #923):
+      - late_elderly_min_age: 75 (mandatory 後期高齢者医療制度 enrolment)
+      - primary_subscriber_min_age: 18 (被保険者 slot legal minimum)
+    """
+    gates = _identity_cfg(country).get("age_gates", {}) or {}
+    return {
+        "late_elderly_min_age": int(gates.get("late_elderly_min_age", 75)),
+        "primary_subscriber_min_age": int(gates.get("primary_subscriber_min_age", 18)),
+    }
+
+
+def _late_elderly_payer_number(country: str) -> str:
+    """Return the representative 保険者番号 for the late-elderly scheme, or empty.
+
+    Used when Issue #923's age-gate reassigns an aging-into-≥75 patient's
+    Coverage row to 後期高齢者医療制度. Falls back to the first late_elderly payer
+    entry declared in identity.yaml; empty string when no such payer is
+    configured (e.g., non-JP locale).
+    """
+    payers = _identity_cfg(country).get("payers", {}) or {}
+    entries = payers.get("late_elderly") or []
+    for e in entries:
+        if e.get("number"):
+            return str(e["number"])
+    return ""
+
+
+def _parse_iso_date(value: Any) -> date | None:
+    """Parse an ISO-8601 date/datetime string into a `date`, ignoring the time.
+
+    Encounter `admission_datetime` values come through as either
+    'YYYY-MM-DD' or 'YYYY-MM-DDTHH:MM:SS[+09:00]'; we only need the day
+    part for FY bucketing.
+    """
+    if not value:
+        return None
+    s = str(value)
+    if len(s) < 10:
+        return None
+    try:
+        return date.fromisoformat(s[:10])
+    except ValueError:
+        return None
+
+
+def _derive_encounter_date_range(encounters: list[dict] | None, patient_data: dict) -> tuple[date | None, date | None]:
+    """Return (earliest, latest) encounter date across the patient's encounters.
+
+    Falls back to `patient_data.get("encounters")` when the caller does not
+    supply an explicit list (identity module or legacy tests). Returns
+    (None, None) when no dates can be parsed.
+    """
+    src = encounters if encounters is not None else patient_data.get("encounters", []) or []
+    starts: list[date] = []
+    ends: list[date] = []
+    for enc in src:
+        if not isinstance(enc, dict):
+            continue
+        s = _parse_iso_date(enc.get("admission_datetime") or enc.get("period", {}).get("start"))
+        if s:
+            starts.append(s)
+        e = _parse_iso_date(
+            enc.get("discharge_datetime") or enc.get("period", {}).get("end") or enc.get("admission_datetime")
+        )
+        if e:
+            ends.append(e)
+    if not starts and not ends:
+        return (None, None)
+    earliest = min(starts) if starts else min(ends)
+    latest = max(ends) if ends else max(starts)
+    return (earliest, latest)
+
+
+def _fy_bounds_containing(day: date, fy_month: int, fy_day: int) -> tuple[date, date]:
+    """Return the (start, end_inclusive) of the fiscal year containing `day`.
+
+    For JP (fy_month=4, fy_day=1): a date in Jan-Mar belongs to the prior
+    FY (started April 1 of previous calendar year); April 1 onward belongs
+    to the FY starting that April.
+    """
+    if (day.month, day.day) >= (fy_month, fy_day):
+        start_year = day.year
+    else:
+        start_year = day.year - 1
+    start = date(start_year, fy_month, fy_day)
+    # end = one day before next FY start
+    next_start = date(start_year + 1, fy_month, fy_day)
+    end = date.fromordinal(next_start.toordinal() - 1)
+    return (start, end)
+
+
+def _iter_fy_periods(earliest: date, latest: date, fy_month: int, fy_day: int) -> list[tuple[date, date]]:
+    """Enumerate fiscal-year (start, end) pairs covering [earliest, latest]."""
+    periods: list[tuple[date, date]] = []
+    cur_start, cur_end = _fy_bounds_containing(earliest, fy_month, fy_day)
+    while cur_start <= latest:
+        periods.append((cur_start, cur_end))
+        next_start = date(cur_start.year + 1, fy_month, fy_day)
+        cur_start = next_start
+        cur_end = date.fromordinal(date(next_start.year + 1, fy_month, fy_day).toordinal() - 1)
+    return periods
+
+
+def _age_on(dob: date, when: date) -> int:
+    """Age in whole years on `when` (birthday-adjusted, standard convention)."""
+    years = when.year - dob.year
+    if (when.month, when.day) < (dob.month, dob.day):
+        years -= 1
+    return years
 
 
 @lru_cache(maxsize=2)
@@ -151,12 +280,20 @@ def _payer_name_map(country: str) -> dict[str, str]:
     return out
 
 
-def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
+def _build_coverage_resources(patient_data: dict, country: str, encounters: list[dict] | None = None) -> list[dict]:
     """Build JP Core Coverage + payor Organization from the patient's insurance enrollment.
 
     Reads CIF data only (no dependency on the identity module — module independence).
     `national_id` is never read here: the privacy chokepoint (AD-54) means individual
     numbers are never emitted to FHIR.
+
+    Issue #923: emits one Coverage row per fiscal year covered by the patient's
+    encounter window (JP FY = 4/1 → 3/31 per identity.yaml `fiscal_year`), so no
+    encounter falls outside its Coverage.period. Each per-FY row is *re-aged*: the
+    category and payer are recomputed from the patient's age at that FY's April 1
+    boundary, so a patient turning 75 mid-simulation gets a 後期高齢者医療制度 row
+    starting the next FY. Falls back to the pre-#923 single-row emit for callers
+    that don't pass encounters (identity-only tests, non-JP locales, etc.).
     """
     cfg = _identity_cfg(country).get("fhir_coverage", {})
     if not cfg:
@@ -168,175 +305,252 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
     pid = patient_data.get("patient_id", "")
     resources: list[dict] = []
 
-    for idx, enr in enumerate(enrollments):
-        insurer = enr.get("insurer_number") or ""
+    # Issue #923 §Fix 1: emit one Coverage per FY covered by encounters.
+    # Falls back to a single row (pre-#923 behaviour) when we can't derive
+    # a range — legacy callers / tests without encounters.
+    fy_month, fy_day = _fy_boundary(country)
+    earliest, latest = _derive_encounter_date_range(encounters, patient_data)
+    if earliest and latest:
+        fy_periods = _iter_fy_periods(earliest, latest, fy_month, fy_day)
+    else:
+        fallback_year = _default_coverage_period_year(patient_data)
+        fy_periods = [
+            (
+                date(fallback_year, fy_month, fy_day),
+                date.fromordinal(date(fallback_year + 1, fy_month, fy_day).toordinal() - 1),
+            )
+        ]
+
+    gates = _age_gate_config(country)
+    dob = _parse_iso_date(patient_data.get("date_of_birth"))
+    late_elderly_payer = _late_elderly_payer_number(country)
+
+    # Deduplicate payor Organization resources across FY rows — the same
+    # 保険者番号 typically holds the entire encounter window; only aging-into-≥75
+    # rows swap to the 後期高齢者 payer.
+    emitted_payer_ids: set[str] = set()
+
+    for enr_idx, enr in enumerate(enrollments):
+        base_insurer = enr.get("insurer_number") or ""
         number = enr.get("member_id") or ""
         symbol = enr.get("group_symbol")
         branch = enr.get("branch_number")
-        category = enr.get("category") or ""
-        if not insurer or not number:
+        base_category = enr.get("category") or ""
+        if not base_insurer or not number:
             continue
 
-        payer_org_id = f"payer-{insurer}"
-        resources.append(
-            {
-                "resourceType": "Organization",
-                "id": payer_org_id,
-                "identifier": [
+        for fy_start, fy_end in fy_periods:
+            # Issue #923 §Fix 2: re-age the category at each FY boundary.
+            # Two age checks:
+            #  - late_elderly gate uses `fy_end`: if the patient is ≥75 at
+            #    ANY point in the FY (i.e., turns 75 during the period),
+            #    the row is 後期高齢者医療制度 for the whole FY. This models
+            #    the JP legal reality that 75+ residents are auto-enrolled
+            #    on their 75th birthday — since we don't split FYs at the
+            #    birthday, we conservatively promote the whole FY row. It
+            #    also drives the audit `older_wrong` count to 0 (the
+            #    reproduction script measures age at Jan 1 mid-FY).
+            #  - primary-subscriber gate uses `fy_start`: minors are demoted
+            #    to 被扶養者 whenever they are still under 18 at the FY start,
+            #    because the 被保険者 slot is a policy-time role.
+            age_at_period_end = _age_on(dob, fy_end) if dob else -1
+            age_at_period_start = _age_on(dob, fy_start) if dob else -1
+            if dob:
+                if age_at_period_end >= gates["late_elderly_min_age"]:
+                    category = "late_elderly"
+                elif age_at_period_start < gates["primary_subscriber_min_age"] and base_category == "employee":
+                    category = "dependent"
+                else:
+                    category = base_category
+            else:
+                category = base_category
+
+            # Insurer + card fields track the (possibly reassigned) category.
+            if category == "late_elderly" and late_elderly_payer:
+                insurer = late_elderly_payer
+                # Late-elderly enrolment is per-individual: no 記号 / 枝番.
+                use_symbol: str | None = None
+                use_branch: str | None = None
+            elif category != base_category and category == "dependent":
+                # Minor demoted from 被保険者 → 被扶養者 on the same policy;
+                # keep the household insurer + 記号 but 枝番 must exist.
+                insurer = base_insurer
+                use_symbol = symbol
+                use_branch = branch or "01"
+            else:
+                insurer = base_insurer
+                use_symbol = symbol
+                use_branch = branch
+
+            payer_org_id = f"payer-{insurer}"
+            if payer_org_id not in emitted_payer_ids:
+                emitted_payer_ids.add(payer_org_id)
+                resources.append(
                     {
-                        "system": cfg.get("insurer_number_system", ""),
-                        "value": insurer,
-                    }
-                ],
-                "type": [
-                    {
-                        "coding": [
+                        "resourceType": "Organization",
+                        "id": payer_org_id,
+                        "identifier": [
                             {
-                                "system": _ORG_TYPE_SYSTEM,
-                                "code": "pay",
-                                "display": "Payer",
+                                "system": cfg.get("insurer_number_system", ""),
+                                "value": insurer,
                             }
-                        ]
+                        ],
+                        "type": [
+                            {
+                                "coding": [
+                                    {
+                                        "system": _ORG_TYPE_SYSTEM,
+                                        "code": "pay",
+                                        "display": "Payer",
+                                    }
+                                ]
+                            }
+                        ],
+                        "name": name_map.get(insurer, insurer),
                     }
-                ],
-                "name": name_map.get(insurer, insurer),
-            }
-        )
-
-        # JP Core extensions: 記号 / 番号 / 枝番
-        extensions: list[dict] = []
-        if symbol:
-            extensions.append({"url": cfg.get("ext_symbol", ""), "valueString": symbol})
-        extensions.append({"url": cfg.get("ext_number", ""), "valueString": number})
-        if branch:
-            extensions.append({"url": cfg.get("ext_subnumber", ""), "valueString": branch})
-
-        # Composite member identifier: 保険者番号:記号:番号:枝番
-        composite = ":".join([insurer, symbol or "", number, branch or ""])
-        subscriber = f"{symbol}:{number}" if symbol else number
-
-        _cov_structural_key = f"{pid}-{idx}"
-        coverage: dict[str, Any] = {
-            "resourceType": "Coverage",
-            "id": _resolve_coverage_id(_cov_structural_key),
-            "extension": extensions,
-            "identifier": [
-                {"system": cfg.get("member_id_system", ""), "value": composite},
-                wrap_as_identifier(_cov_structural_key, COVERAGE_KEY_SYSTEM),
-            ],
-            "status": "active",
-            "subscriberId": subscriber,
-            # CY7-13 (Chain-7): Coverage.subscriber — the person carrying the
-            # policy. For "self" relationship the subscriber IS the beneficiary
-            # (JP 主たる被保険者 = 本人); for "other" (dependent) it's the
-            # policy-holder relative. Without a distinct 主たる被保険者
-            # Person record, we point to the patient themselves (matches
-            # subscriberId derivation above and passes FHIR R4 conformance —
-            # subscriber is 0..1 Reference to Patient|RelatedPerson).
-            "subscriber": patient_ref(pid),
-            "beneficiary": patient_ref(pid),
-            "payor": [{"reference": f"Organization/{payer_org_id}"}],
-        }
-        if cfg.get("profile"):
-            coverage["meta"] = {"profile": [cfg["profile"]]}
-        if branch:
-            coverage["dependent"] = branch
-        # C2-06: resolve display via codes/data/
-        # hl7-subscriber-relationship.yaml — was raw code emission.
-        # Beneficiary's relationship to the subscriber: 被扶養者 → not self.
-        rel_code = "other" if category == "dependent" else "self"
-        coverage["relationship"] = {
-            "coding": [
-                _coding_with_display(
-                    "hl7-subscriber-relationship",
-                    rel_code,
-                    resolve_lang(country),
                 )
-            ]
-        }
-        # Coverage.type: human label (text-only CodeableConcept — no fabricated codes).
-        label = type_labels.get(category)
-        if label:
-            coverage["type"] = {"text": label}
-        # C2-11: guarantee Coverage.period. FHIR R4
-        # recommends period on active coverage. If enrollment lacks explicit
-        # start/end, default to the current calendar year — clinosim's
-        # 保険証 renewal cycle is annual per JP 医療保険 practice.
-        # C3-08 review (cycle 3): JP 保険証 valid period actually runs
-        # 4/1 → 3/31 (fiscal year), not calendar year. Use fiscal boundary.
-        period = {}
-        if enr.get("valid_from"):
-            period["start"] = enr["valid_from"]
-        if enr.get("valid_to"):
-            period["end"] = enr["valid_to"]
-        if not period:
-            year = _default_coverage_period_year(patient_data)
-            period = {"start": f"{year}-04-01", "end": f"{year + 1}-03-31"}
-        coverage["period"] = period
-        # C3-08: Coverage.class[] — group / plan
-        # classification. For JP, class[0].type=group with 保険者番号 as
-        # the coverage class identifier.
-        # C5-09: diversify to include both `group` and
-        # `plan` classifications when insurer symbol resolves to a plan
-        # name — plan carries the human-readable insurance product name.
-        _class_entries: list[dict[str, Any]] = [
-            {
-                "type": {
-                    "coding": [
-                        {
-                            "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
-                            "code": "group",
-                            "display": "Group" if not is_jp(country) else "保険グループ",
-                        }
-                    ],
-                },
-                "value": insurer,
-                "name": name_map.get(insurer, insurer),
+
+            # JP Core extensions: 記号 / 番号 / 枝番
+            extensions: list[dict] = []
+            if use_symbol:
+                extensions.append({"url": cfg.get("ext_symbol", ""), "valueString": use_symbol})
+            extensions.append({"url": cfg.get("ext_number", ""), "valueString": number})
+            if use_branch:
+                extensions.append({"url": cfg.get("ext_subnumber", ""), "valueString": use_branch})
+
+            # Composite member identifier: 保険者番号:記号:番号:枝番
+            composite = ":".join([insurer, use_symbol or "", number, use_branch or ""])
+            subscriber = f"{use_symbol}:{number}" if use_symbol else number
+
+            # Issue #923: structural key always carries the FY year so
+            # per-encounter records emitted for the same patient across
+            # different FYs each land as a distinct Coverage row (the
+            # write()-level dedup keys on `.id`, so a pre-#923 pid-only
+            # key would silently collapse a multi-FY patient down to a
+            # single row — see #923 scan showing 39.94% uncovered with
+            # single-FY keys). Different-FY records for the same patient
+            # now hash to distinct ids and coexist as intended; same-FY
+            # duplicate records collapse as before.
+            _cov_structural_key = f"{pid}-{enr_idx}-fy{fy_start.year}"
+            coverage: dict[str, Any] = {
+                "resourceType": "Coverage",
+                "id": _resolve_coverage_id(_cov_structural_key),
+                "extension": extensions,
+                "identifier": [
+                    {"system": cfg.get("member_id_system", ""), "value": composite},
+                    wrap_as_identifier(_cov_structural_key, COVERAGE_KEY_SYSTEM),
+                ],
+                "status": "active",
+                "subscriberId": subscriber,
+                # CY7-13 (Chain-7): Coverage.subscriber — the person carrying the
+                # policy. For "self" relationship the subscriber IS the beneficiary
+                # (JP 主たる被保険者 = 本人); for "other" (dependent) it's the
+                # policy-holder relative. Without a distinct 主たる被保険者
+                # Person record, we point to the patient themselves (matches
+                # subscriberId derivation above and passes FHIR R4 conformance —
+                # subscriber is 0..1 Reference to Patient|RelatedPerson).
+                "subscriber": patient_ref(pid),
+                "beneficiary": patient_ref(pid),
+                "payor": [{"reference": f"Organization/{payer_org_id}"}],
             }
-        ]
-        if symbol:
-            _class_entries.append(
+            if cfg.get("profile"):
+                coverage["meta"] = {"profile": [cfg["profile"]]}
+            if use_branch:
+                coverage["dependent"] = use_branch
+            # C2-06: resolve display via codes/data/
+            # hl7-subscriber-relationship.yaml — was raw code emission.
+            # Beneficiary's relationship to the subscriber: 被扶養者 → not self.
+            rel_code = "other" if category == "dependent" else "self"
+            coverage["relationship"] = {
+                "coding": [
+                    _coding_with_display(
+                        "hl7-subscriber-relationship",
+                        rel_code,
+                        resolve_lang(country),
+                    )
+                ]
+            }
+            # Coverage.type: human label (text-only CodeableConcept — no fabricated codes).
+            label = type_labels.get(category)
+            if label:
+                coverage["type"] = {"text": label}
+            # Coverage.period — Issue #923 §Fix 1: one FY per row.
+            # Explicit enrollment valid_from / valid_to still wins (Phase 2
+            # will emit period-bounded enrollments; when they do, respect
+            # those over the derived FY boundary).
+            if enr.get("valid_from") or enr.get("valid_to"):
+                period: dict[str, str] = {}
+                if enr.get("valid_from"):
+                    period["start"] = str(enr["valid_from"])
+                if enr.get("valid_to"):
+                    period["end"] = str(enr["valid_to"])
+            else:
+                period = {"start": fy_start.isoformat(), "end": fy_end.isoformat()}
+            coverage["period"] = period
+            # C3-08: Coverage.class[] — group / plan
+            # classification. For JP, class[0].type=group with 保険者番号 as
+            # the coverage class identifier.
+            # C5-09: diversify to include both `group` and
+            # `plan` classifications when insurer symbol resolves to a plan
+            # name — plan carries the human-readable insurance product name.
+            _class_entries: list[dict[str, Any]] = [
                 {
                     "type": {
                         "coding": [
                             {
                                 "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
-                                "code": "plan",
-                                "display": "Plan" if not is_jp(country) else "保険プラン",
+                                "code": "group",
+                                "display": "Group" if not is_jp(country) else "保険グループ",
                             }
                         ],
                     },
-                    "value": symbol,
+                    "value": insurer,
                     "name": name_map.get(insurer, insurer),
                 }
-            )
-        coverage["class"] = _class_entries
-        # CY7-14 (Chain-7): Coverage.costToBeneficiary — JP 自己負担割合.
-        # Standard JP 医療保険 co-pay: 3割 for adults, 1割 for elderly (≥70,
-        # 現役並み所得除く). Population module carries age; use category as
-        # a proxy (late-elderly insurer = 1割; others = 3割 default).
-        _coshare_pct = 10 if insurer == "39130083" else 30  # 39130083 = 後期高齢者
-        coverage["costToBeneficiary"] = [
-            {
-                "type": {
-                    "coding": [
-                        {
-                            "system": "http://terminology.hl7.org/CodeSystem/coverage-copay-type",
-                            "code": "copaypct",
-                            "display": "Copay percentage",
-                        }
-                    ],
-                    "text": "自己負担割合" if is_jp(country) else "Copay percentage",
-                },
-                "valueQuantity": {
-                    "value": _coshare_pct,
-                    "unit": "%",
-                    "system": "http://unitsofmeasure.org",
-                    "code": "%",
-                },
-            }
-        ]
-        resources.append(coverage)
+            ]
+            if use_symbol:
+                _class_entries.append(
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+                                    "code": "plan",
+                                    "display": "Plan" if not is_jp(country) else "保険プラン",
+                                }
+                            ],
+                        },
+                        "value": use_symbol,
+                        "name": name_map.get(insurer, insurer),
+                    }
+                )
+            coverage["class"] = _class_entries
+            # CY7-14 (Chain-7): Coverage.costToBeneficiary — JP 自己負担割合.
+            # Standard JP 医療保険 co-pay: 3割 for adults, 1割 for elderly (≥70,
+            # 現役並み所得除く). Population module carries age; use category as
+            # a proxy (late-elderly insurer = 1割; others = 3割 default).
+            _coshare_pct = 10 if category == "late_elderly" else 30
+            coverage["costToBeneficiary"] = [
+                {
+                    "type": {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/coverage-copay-type",
+                                "code": "copaypct",
+                                "display": "Copay percentage",
+                            }
+                        ],
+                        "text": "自己負担割合" if is_jp(country) else "Copay percentage",
+                    },
+                    "valueQuantity": {
+                        "value": _coshare_pct,
+                        "unit": "%",
+                        "system": "http://unitsofmeasure.org",
+                        "code": "%",
+                    },
+                }
+            ]
+            resources.append(coverage)
 
     return resources
 
