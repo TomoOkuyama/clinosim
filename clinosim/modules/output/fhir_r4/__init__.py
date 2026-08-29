@@ -557,12 +557,88 @@ def _build_bundle(
             _reattribute_encounter_to_ed_bridge(resource, ctx)
             entries.append(entry(resource))
 
+    # Issue #926 (2026-08-29): after-death event gate. At v0.5.0 (p=10000)
+    # 1,869 clinical events were emitted with a timestamp after the
+    # subject Patient's deceasedDateTime — 1,859 of them for a single
+    # patient (a full 12-day inpatient episode 7 months post-mortem),
+    # plus 9 post-mortem Immunizations and one Procedure. The immunization
+    # scheduler was patched at source (immunization/enricher._as_of caps
+    # `as_of` at date_of_death), but the giant-case root cause is in a
+    # slow / rare path the p=1000 regression cannot see, so this filter
+    # is the belt-and-braces gate: no bundle entry survives if its own
+    # timestamp is after the patient's death, regardless of what the
+    # generator did. Runs per-record so the patient's own
+    # deceasedDateTime is the local ceiling; the Patient resource itself
+    # (deceasedDateTime is the death event) and administrative post-mortem
+    # resources without any date field are kept unchanged.
+    _pat_dod_str = patient_data.get("date_of_death") or patient_data.get("dod")
+    if _pat_dod_str:
+        entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10])
+
     return {
         "resourceType": "Bundle",
         "id": str(uuid.uuid4()),
         "type": "collection",
         "entry": entries,
     }
+
+
+# Only Patient is unconditionally allowed to keep dateTime fields after
+# death (its `deceasedDateTime` IS the death event). Every other resource
+# type is checked field-by-field via `_dt_fields`: resources with no
+# gating dateTime pass through automatically (nothing to compare), and
+# resources whose fields are all at or before the death date survive.
+_AFTER_DEATH_ALLOWED_RESOURCE_TYPES = frozenset({"Patient"})
+
+
+def _dt_fields(resource: dict):
+    """Yield every ISO datetime string on a FHIR resource that gates 'is this event after death?'."""
+    for k in (
+        "effectiveDateTime",
+        "issued",
+        "authoredOn",
+        "occurrenceDateTime",
+        "recorded",
+        "collectedDateTime",
+        "date",
+        "performedDateTime",
+        "started",
+    ):
+        v = resource.get(k)
+        if isinstance(v, str):
+            yield v
+    for pkey in ("period", "effectivePeriod", "performedPeriod", "occurrencePeriod"):
+        p = resource.get(pkey)
+        if isinstance(p, dict):
+            for k in ("start", "end"):
+                v = p.get(k)
+                if isinstance(v, str):
+                    yield v
+
+
+def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
+    """Filter out bundle entries whose timestamp is after the patient's date of death.
+
+    Issue #926: universal safety gate applied per-record in `_build_bundle`.
+    Compares only the calendar-date prefix (``YYYY-MM-DD``) so same-day
+    activity (final labs, terminal medication administration, death
+    certificate) survives.
+    """
+    kept: list[dict] = []
+    for e in entries:
+        res = e.get("resource", {}) if isinstance(e, dict) else {}
+        rtype = res.get("resourceType", "")
+        if rtype in _AFTER_DEATH_ALLOWED_RESOURCE_TYPES:
+            kept.append(e)
+            continue
+        after_death = False
+        for v in _dt_fields(res):
+            if v[:10] > dod_iso:
+                after_death = True
+                break
+        if not after_death:
+            kept.append(e)
+    return kept
 
 
 # ============================================================

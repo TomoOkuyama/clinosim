@@ -500,6 +500,12 @@ def _build_patient(p: dict, country: str) -> dict:
     _dod = p.get("date_of_death", "") or p.get("dod", "")
     if _dod:
         resource["deceasedDateTime"] = str(_dod)
+        # Issue #926: FHIR `Patient.active` = "Whether this patient's record
+        # is in active use." A deceased patient's record is by definition no
+        # longer in active use. Flip active=false whenever the CIF marks
+        # the patient as deceased (deceasedDateTime is set). Living patients
+        # keep the default active=true set above.
+        resource["active"] = False
     else:
         resource["deceasedBoolean"] = False
 
