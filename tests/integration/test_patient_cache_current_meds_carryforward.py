@@ -161,8 +161,13 @@ def test_anticoag_from_admission1_carries_forward_to_admission2_home_meds():
     # Marsaglia-Tsang / Box-Muller variates in ``clinosim.determinism``
     # consume rng at a different cadence than numpy's Cheng-BB / Ziggurat,
     # so seed=43 lost the fixture again. Re-scouted to seed=45.
+    # 2026-08-29 (#933 B-3 phase 2): restoring the US chronic_prevalence
+    # base_prev to hospital-cohort targets (E11.9/E78/J44/N18) reshapes
+    # the sampled marginals, so seed=45 lost the AFib + 2-admission +
+    # newly-started-anticoag fixture again. Re-scouted to seed=49 (first
+    # non-zero candidate seed in the 45-100 sweep on the post-#933 engine).
     config = SimulatorConfig(
-        random_seed=45,
+        random_seed=49,
         catchment_population=500,
         country="US",
         time_range=("2025-01", "2026-01"),
