@@ -41,6 +41,34 @@ def _age_band(age: int, bands: list[str]) -> str:
     return bands[-1]
 
 
+def patient_qualifies_for_secondary_ltci(chronic_condition_codes: list[str]) -> bool:
+    """Return True when at least one code matches a 第2号被保険者 相当疾病 prefix.
+
+    Called by the care-level enricher for 40-64-year-old patients (Issue
+    #940). Codes are compared by ``startswith`` so ``E11.9`` matches an
+    ``E11`` prefix and ``I63.9`` matches ``I63``. Empty codes and empty
+    prefixes are ignored.
+
+    The prefix list lives in ``reference_data/care_level.yaml`` under
+    ``eligibility_gates.secondary_designated_condition_codes`` — see that
+    file for sourcing and the interim overlap with clinosim's chronic
+    disease catalogue.
+    """
+    prefixes = tuple(
+        p
+        for p in (load_reference().get("eligibility_gates") or {}).get("secondary_designated_condition_codes", [])
+        if p
+    )
+    if not prefixes:
+        return False
+    for code in chronic_condition_codes:
+        if not code:
+            continue
+        if code.startswith(prefixes):
+            return True
+    return False
+
+
 def assign_care_level(age: int, country: str, rng: np.random.Generator) -> str:
     """Return the jp-care-level code (or "" for independent / non-JP). Deterministic."""
     if not is_jp(country):

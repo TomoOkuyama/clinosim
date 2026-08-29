@@ -2,3 +2,55 @@
 # "independent" maps to no Observation (care_level = "").
 levels: ["independent", "support1", "support2", "care1", "care2", "care3", "care4", "care5"]
 age_bands: ["0-64", "65-74", "75-84", "85-120"]
+
+# === Issue #940: 介護保険 eligibility gates ==============================
+# 介護保険 (Long-Term Care Insurance, LTCI) eligibility is defined by age
+# and specific-disease criteria (source: 厚生労働省 介護保険制度):
+#
+#   * 65+  — 第1号被保険者 (primary insured): universally eligible for a
+#     care-need certification. Keep current emission behaviour.
+#   * 40-64 — 第2号被保険者 (secondary insured): eligible ONLY when the
+#     patient has one of 16 designated conditions (相当疾病 / 特定疾病 —
+#     early-onset dementia, ALS, cerebrovascular disease, terminal cancer,
+#     Parkinson-related disorders, etc.). Certification is rare in this band.
+#   * <40  — NOT eligible for LTCI at all. The concept of 要介護度 does
+#     not apply. Emit nothing.
+#
+# Before this gate, the 0-64 weight band in the rate table produced
+# care-level codes for 20 pediatric patients (incl. 3 toddlers 0-5 y) and
+# 48 non-eligible adults 18-64 y at p=6389. The engine still keeps the
+# 0-64 rate row so a future 40-64 designated-condition patient can be
+# assigned a level — the eligibility filter runs on TOP of that draw at
+# the enricher, so the RNG shape is unchanged for skipped patients (per-
+# patient sub-RNG, no cross-patient cascade).
+eligibility_gates:
+  primary_insured_min_age: 65
+  secondary_insured_min_age: 40
+  # ICD-10 code prefixes qualifying a 40-64-year-old as 第2号被保険者
+  # (相当疾病). A patient's `chronic_conditions[].code` (or bare string
+  # code) is compared by startswith against these prefixes so E10 matches
+  # E10.9 etc.
+  #
+  # The full MHLW 16項目 list is broader; this is the subset that appears
+  # (as a chronic condition or a prior-encounter primary diagnosis)
+  # anywhere in clinosim's disease catalogue. Overlap is small: the
+  # chronic list currently includes G20 / F00 / J44 (all rare in the
+  # 40-64 band) and no encounter-side stroke/ALS codes leak into
+  # `chronic_conditions`, so post-fix 40-64 emission stays near zero —
+  # matching the real-world sparse-certification pattern in that age band.
+  # Adding a new chronic disease that maps to a 特定疾病 (e.g. G30
+  # 若年性アルツハイマー) automatically activates its LTCI eligibility here.
+  #
+  # Sources: MHLW 介護保険制度 第2号被保険者 特定疾病 16項目
+  # (https://www.mhlw.go.jp/topics/kaigo/nintei/gaiyo3.html).
+  secondary_designated_condition_codes:
+    - "F00"    # Dementia in Alzheimer disease (initial-onset range)
+    - "G30"    # Alzheimer disease (young-onset for <65)
+    - "G20"    # Parkinson disease
+    - "J44"    # 慢性閉塞性肺疾患 (COPD)
+    - "I60"    # 脳血管疾患 — subarachnoid haemorrhage
+    - "I61"    # 脳血管疾患 — intracerebral haemorrhage
+    - "I63"    # 脳血管疾患 — cerebral infarction
+    - "I69"    # 脳血管疾患 sequelae
+    - "G12.2"  # ALS
+    - "M80"    # Osteoporosis WITH pathological fracture

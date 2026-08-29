@@ -10,6 +10,10 @@ pytestmark = pytest.mark.integration
 
 
 def _ctx(profile, country="US"):
+    # Default to adult age (>= social_history_age_gates min, Issue #938) so
+    # existing tests that only care about Observation shape still see the
+    # Observation emitted. Callers can override by passing `age` in profile.
+    profile = {"age": 50, **profile}
     return BundleContext(
         record={},
         country=country,

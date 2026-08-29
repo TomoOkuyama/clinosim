@@ -235,6 +235,10 @@ def _sdoh_ctx() -> SimpleNamespace:
         hospital_config={},
         patient_data={
             "patient_id": "POP-000002",
+            # >= social_history age_gates (Issue #938) so smoking / alcohol
+            # Observations emit — the tests below assert their id / identifier
+            # shape and would otherwise fail on the age gate returning [].
+            "age": 50,
             "smoking_status": "never",
             "alcohol_use": "social",
             "blood_type": "A",

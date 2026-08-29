@@ -27,3 +27,26 @@ alcohol_use:
     none:   {snomed: "105542008"}   # Current non-drinker of alcohol
     social: {snomed: "28127009"}    # Social drinker
     heavy:  {snomed: "86933000"}    # Heavy drinker
+
+# === Issue #938: pediatric age gate for adult social-history observations ===
+# Every patient carried an alcohol-* + smoking-* Observation regardless of age,
+# so 321 toddlers (0-5) and 553 school-age children (6-12) rendered "非飲酒者"
+# and "喫煙歴なし" as documented assessments — a workflow that does not exist
+# in real pediatric care.
+#
+# In real EHRs adult lifestyle-risk documentation starts in adolescence:
+#   - USPSTF places alcohol / tobacco use screening at >= 11-13
+#   - MHLW pediatric guidance defers formal adult social-history entries to
+#     >= 15 (start of 高校 health-checkup lifecycle)
+# We use age 15 as the cutoff. Below this age, no alcohol-* / smoking-*
+# Observation is emitted (an absent Observation is spec-clean; downstream
+# adult-lifestyle-coverage denominators no longer inflate to 100%).
+#
+# Both codes are gated jointly here (a single "adult social-history age") —
+# splitting into per-topic cutoffs is easy if a future graduated policy
+# wants smoking at 12 and alcohol at 15.
+age_gates:
+  # Minimum patient age at which an alcohol-* Observation may be emitted.
+  alcohol_min_age: 15
+  # Minimum patient age at which a smoking-* Observation may be emitted.
+  smoking_min_age: 15
