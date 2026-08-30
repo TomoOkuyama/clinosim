@@ -1173,15 +1173,6 @@ def _build_discharge_medication_request(
         _unit = _parsed.get("dose_unit", "")
         if _qty is not None and _unit:
             dosage["doseAndRate"] = [{"doseQuantity": build_ucum_quantity(_qty, _unit)}]
-            # IV continuous infusions (e.g. "40mg/h", "0.1U/kg/h continuous")
-            # also need `rateQuantity` — a KCl bolus without rate control is a
-            # documented cause of fatal cardiac arrest, so this is safety-load.
-            _dose_upper = dose.upper()
-            if "/H" in _dose_upper or "CONTINUOUS" in _dose_upper or "DRIP" in _dose_upper:
-                dosage["doseAndRate"][0]["rateQuantity"] = build_ucum_quantity(
-                    _qty,
-                    _unit + "/h",
-                )
         # Timing: prefer the item's separate `frequency` field (canonical shape
         # used by chronic-transcribe and outpatient-renewal paths); fall back
         # to whatever `parse_dose_string` peeled out of the dose string (the
@@ -1196,6 +1187,24 @@ def _build_discharge_medication_request(
             dosage["timing"] = {"repeat": {"frequency": _freq_per_day, "period": 1, "periodUnit": "d"}}
         elif _freq_raw and _freq_raw.lower().strip() in ("prn", "as needed", "when required"):
             dosage["asNeededBoolean"] = True
+
+    # Issue #966: IV-route drugs need an infusion rate (or timing.duration)
+    # in addition to doseQuantity. Superseded the previous ad-hoc
+    # "/H"/"CONTINUOUS"/"DRIP" detection which appended "/h" to the parsed
+    # dose unit — that was correct for a handful of drips but did not fire
+    # for the 421 non-continuous IV orders (antibiotic bolus, PPI infusion,
+    # blood-product transfusion) that make up the bulk of hospital IV MRs.
+    # The new helper resolves per-drug defaults from
+    # `iv_infusion_defaults.yaml` (continuous → rateQuantity; bolus →
+    # timing.repeat.duration in minutes; push → intentional no-op).
+    from clinosim.modules.output.fhir_r4.lib.common import augment_iv_dosage_with_rate as _augment_iv
+
+    _augment_iv(
+        dosage,
+        dose_text=dose or "",
+        route=route,
+        display_name=drug_name or "",
+    )
 
     if dosage:
         resource["dosageInstruction"] = [dosage]

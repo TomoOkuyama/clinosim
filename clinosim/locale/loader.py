@@ -294,6 +294,31 @@ def load_chronic_followup() -> dict[str, Any]:
     return _load_yaml(_LOCALE_DIR / "shared" / "chronic_followup.yaml", fallback={})
 
 
+@lru_cache(maxsize=1)
+def load_iv_infusion_defaults() -> dict[str, Any]:
+    """Load per-drug default IV infusion rate / bolus duration catalog.
+
+    Referenced by ``clinosim.modules.output.fhir_r4.lib.common
+    .resolve_iv_infusion_default`` when emitting ``MedicationRequest
+    .dosageInstruction.doseAndRate.rateQuantity`` (continuous drips) or
+    ``dosageInstruction.timing.repeat.duration`` (intermittent bolus) for
+    IV-route orders — Issue #966.
+
+    Returned shape:
+
+        {
+          "drugs":  {<normalized name>: {"mode": ..., "rate_value": N, ...}},
+          "aliases": {<shorthand>: <catalog key>},
+          "default": {"mode": "bolus", "duration_min": 30},
+        }
+
+    Single source of truth for tunable clinical constants
+    (feedback_constants_live_in_external_config.md); the Python side holds
+    only mode dispatch logic and the fallback default block.
+    """
+    return _load_yaml(_LOCALE_DIR / "shared" / "iv_infusion_defaults.yaml", fallback={})
+
+
 _FALLBACK_ENCOUNTER_DISPOSITION: dict[str, Any] = {
     "admit_source": {
         "system_key": "hl7-admit-source",
