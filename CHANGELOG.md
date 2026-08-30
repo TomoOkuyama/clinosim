@@ -39,6 +39,38 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Issue #912 — Inpatient `Encounter.reasonCode` orphaned from
+  `Encounter.diagnosis[]`.** Pre-fix, 35.7 % (30/84) of IMP encounters
+  at JP p=1000 seed=500 emitted a `reasonCode.text` whose Condition
+  did not exist in the patient's record — `diagnosis[]` linked to a
+  chronic comorbidity or refined discharge Condition instead. Two
+  paths converged:
+  (a) `admission_diagnosis_code` (e.g. `J44.1` COPD急性増悪, `N10`
+  急性腎盂腎炎) drove `reasonCode`, but the encounter-primary
+  Condition was built from `discharge_diagnosis_code` and could carry
+  a different ICD (`N20.0` 腎結石 for the pyelonephritis case);
+  (b) when the discharge dx merged into a chronic problem
+  (`is_chronic_primary` path — COPD-exacerbation admissions whose
+  chronic list contains `J44`), the encounter-primary was suppressed
+  entirely and `diagnosis[]` only carried the chronic (`J44`), while
+  `reasonCode` retained the leaf `J44.1` — never matched. Fix: new
+  `needs_admission_diagnosis_condition` helper in
+  `conditions/primary_ref.py` decides whether the admission dx
+  round-trips via the primary/chronic Conditions; when not,
+  `_build_conditions` emits an extra `Condition` (opaque id derived
+  from `{encounter_id}-admission`, category `encounter-diagnosis`,
+  `text` = leaf-code display so `.text` matches `reasonCode.text`, JP
+  eCS `admitting` diagnosis-type extension) and `_build_encounter`
+  appends a matching `diagnosis[]` entry with `use=AD` at the trailing
+  rank. Both builders route the decision through the same helper so
+  ids stay consistent. Verified on JP p=1000 s=500: mismatched IMP
+  encounters 30 → 0 (35.7 % → 0.0 %). PATCH-scope — CIF unchanged,
+  new FHIR Condition rows only fire for encounters that would
+  otherwise fail the invariant.
+  Closes #912.
+
 ### Added
 
 - **Issue #961 — Death certificate (死亡診断書) Composition for deceased

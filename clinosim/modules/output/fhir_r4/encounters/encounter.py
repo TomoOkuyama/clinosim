@@ -16,6 +16,8 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+    encounter_admission_condition_id,
+    needs_admission_diagnosis_condition,
     primary_condition_ref_from_codes,
 )
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -503,6 +505,40 @@ def _build_encounter(
                     }
                 )
                 _rank += 1
+        else:
+            _rank = 2
+        # Issue #912: enforce the invariant
+        # ``reasonCode ⊆ diagnosis[].condition.code``. When the admission dx
+        # differs from the discharge dx AND from every chronic Condition,
+        # emit a diagnosis[] entry pointing at the admission-diagnosis
+        # Condition (emitted by the sibling conditions builder — same helper
+        # gates both sides so ids stay consistent). Pre-fix 45.4% of IMP
+        # encounters at seed=500 p=1000 had reasonCode text with no matching
+        # Condition in the patient record.
+        _mapped_admit = map_diagnosis_code(admit_dx_code, country) if admit_dx_code else ""
+        _mapped_primary = map_diagnosis_code(primary_dx_code, country) if primary_dx_code else ""
+        _mapped_chronics = [map_diagnosis_code(_c, country) for _c in (chronic_condition_codes or []) if _c]
+        if needs_admission_diagnosis_condition(
+            admit_dx_code, primary_dx_code, chronic_condition_codes
+        ) or needs_admission_diagnosis_condition(_mapped_admit, _mapped_primary, _mapped_chronics):
+            _ad_display = _localize_display("Admission diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA)
+            diagnosis_list.append(
+                {
+                    "condition": {
+                        "reference": (f"Condition/{encounter_admission_condition_id(patient_id, encounter_id)}"),
+                    },
+                    "use": {
+                        "coding": [
+                            {
+                                "system": get_system_uri("hl7-diagnosis-role"),
+                                "code": "AD",
+                                "display": _ad_display,
+                            }
+                        ],
+                    },
+                    "rank": _rank,
+                }
+            )
         resource["diagnosis"] = diagnosis_list
 
     # Hospitalization (admit source / discharge disposition / re-admission).
