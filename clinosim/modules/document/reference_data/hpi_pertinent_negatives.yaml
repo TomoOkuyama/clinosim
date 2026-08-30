@@ -1,0 +1,184 @@
+# Per-disease pertinent-negative pool for HPI enrichment (Issue #984).
+#
+# The HPI section historically emitted only "急性発症 80歳女性患者。主訴: ...。
+# 既往: ...。" (median 23 chars). Real EHR HPI narratives include ROS
+# pertinent negatives ("発熱なし・下痢なし" for DKA, "胸痛なし・片麻痺なし"
+# for PE) that document what was actively asked and ruled out — clinically
+# essential for disposition reasoning.
+#
+# Each disease_id maps to a list of JP negative phrases. The template
+# generator joins the first 2-3 as a "ROS: ..." tail on the HPI. Fallback
+# (missing disease_id) omits the ROS tail rather than fabricating.
+#
+# Design notes:
+#   - Content is disease-specific mnemonics for "what an admitting physician
+#     would explicitly note as negative when working up this diagnosis"
+#   - Kept short so total HPI length stays realistic (target 100-150 chars)
+#   - JP-only. EN locale HPI density is deferred (US locale already emits
+#     locale-neutral English phrases and does not read this file).
+#   - Empty list = no per-disease negatives; template emits nothing.
+
+diabetic_ketoacidosis:
+  - "発熱なし"
+  - "下痢なし"
+  - "胸痛なし"
+
+acute_mi:
+  - "労作時以外の胸痛エピソードなし"
+  - "失神なし"
+  - "動悸持続なし"
+
+heart_failure_exacerbation:
+  - "胸痛なし"
+  - "発熱なし"
+  - "喀血なし"
+
+bacterial_pneumonia:
+  - "喀血なし"
+  - "胸痛なし"
+  - "夜間発汗なし"
+
+aspiration_pneumonia:
+  - "誤嚥自覚なし"
+  - "胸痛なし"
+  - "喀血なし"
+
+copd_exacerbation:
+  - "胸痛なし"
+  - "喀血なし"
+  - "下肢浮腫なし"
+
+asthma_exacerbation:
+  - "胸痛なし"
+  - "発熱なし"
+  - "喀血なし"
+
+pulmonary_embolism:
+  - "胸痛なし"
+  - "片麻痺なし"
+  - "喀血なし"
+
+deep_vein_thrombosis:
+  - "呼吸困難なし"
+  - "胸痛なし"
+  - "外傷の既往なし"
+
+atrial_fibrillation_rvr:
+  - "胸痛なし"
+  - "失神なし"
+  - "呼吸困難なし"
+
+cerebral_infarction:
+  - "頭痛なし"
+  - "痙攣なし"
+  - "外傷なし"
+
+hemorrhagic_stroke:
+  - "外傷なし"
+  - "痙攣なし"
+  - "発熱なし"
+
+subdural_hematoma:
+  - "痙攣なし"
+  - "嘔吐なし"
+  - "発熱なし"
+
+sepsis:
+  - "頭痛なし"
+  - "痙攣なし"
+  - "皮疹なし"
+
+urinary_tract_infection:
+  - "側腹部痛なし"
+  - "血尿なし"
+  - "嘔吐なし"
+
+cellulitis:
+  - "外傷の既往確認"
+  - "発熱なし"
+  - "リンパ節腫脹なし"
+
+gi_bleeding:
+  - "胸痛なし"
+  - "腹痛なし"
+  - "外傷なし"
+
+acute_appendicitis:
+  - "下痢なし"
+  - "血便なし"
+  - "尿路症状なし"
+
+acute_cholecystitis:
+  - "黄疸なし"
+  - "血便なし"
+  - "背部痛なし"
+
+acute_pancreatitis:
+  - "血便なし"
+  - "胸痛なし"
+  - "黄疸なし"
+
+acute_kidney_injury:
+  - "血尿なし"
+  - "浮腫なし"
+  - "発熱なし"
+
+liver_cirrhosis_decompensated:
+  - "胸痛なし"
+  - "発熱なし"
+  - "皮疹なし"
+
+ileus:
+  - "血便なし"
+  - "発熱なし"
+  - "尿路症状なし"
+
+hip_fracture:
+  - "頭部打撲なし"
+  - "意識消失なし"
+  - "胸痛なし"
+
+vertebral_compression_fracture:
+  - "外傷契機なし"
+  - "下肢麻痺なし"
+  - "膀胱直腸障害なし"
+
+wrist_fracture_surgical:
+  - "頭部打撲なし"
+  - "意識消失なし"
+  - "他部位骨折なし"
+
+crush_injury_hand:
+  - "頭部外傷なし"
+  - "他部位外傷なし"
+  - "意識消失なし"
+
+industrial_burn_severe:
+  - "気道熱傷疑いなし"
+  - "頭部外傷なし"
+  - "意識消失なし"
+
+electrical_injury:
+  - "意識消失なし"
+  - "痙攣なし"
+  - "動悸なし"
+
+traffic_accident_severe:
+  - "他部位外傷精査中"
+  - "意識消失なし"
+  - "胸腹部痛なし"
+
+fall_from_height:
+  - "意識消失なし"
+  - "頭部打撲なし"
+  - "胸背部痛精査中"
+
+influenza:
+  - "呼吸困難なし"
+  - "胸痛なし"
+  - "下痢なし"
+
+subarachnoid_hemorrhage:
+  - "外傷なし"
+  - "痙攣なし"
+  - "発熱なし"

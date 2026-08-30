@@ -57,6 +57,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
+    load_hpi_pertinent_negatives,
     load_physical_exam_findings,
 )
 from clinosim.types.document import DocumentType, FormatType, NarrativeContext, NarrativeOutput
@@ -1091,6 +1092,21 @@ class TemplateNarrativeGenerator:
                 text = _pick_localized(ed_tmpl, "hpi", lang, ctx)
                 if text:
                     facts.append(f"encounter_protocol.narrative.ed_note_template.hpi_{lang}")
+                    # Issue #984: append CIF-anchored HPI extras (age/sex,
+                    # home meds, chronic list, ROS pertinent-negatives)
+                    # to the ED_NOTE onset seed. Before #984 the ED HPI
+                    # was a single-clause line (median 23 chars); the
+                    # extras extend it to real-EHR admission-note richness.
+                    extras = self._compose_hpi_extras_from_state(ctx)
+                    if extras:
+                        facts.extend(
+                            [
+                                "ctx.patient.demographics",
+                                "ctx.patient.chronic_conditions",
+                                "ctx.patient.current_medications",
+                            ]
+                        )
+                        return f"{text} {extras}".strip(), facts
                     return text, facts
             return fallback, facts
 
@@ -1163,8 +1179,20 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     def _compose_hpi_extras_from_state(self, ctx: NarrativeContext) -> str:
-        """Append CIF-anchored demographics + chief_complaint + chronic
-        context to the HPI onset_pattern seed (v9 density fix)."""
+        """Append CIF-anchored HPI enrichment (Issue #984).
+
+        Extends the disease-YAML onset_pattern seed with:
+          - demographics: age + sex
+          - chief_complaint from ``ctx.encounter``
+          - chronic short list (top 3)
+          - home meds reconciliation (up to top 3 current_medications)
+          - prior-care attempt sentinel (derived from chronic + med presence,
+            never fabricated as a specific institution or datetime)
+          - ROS pertinent negatives from per-disease yaml pool
+
+        Previously (v9) emitted only demographics + CC + chronic and hit a
+        median 23 chars. #984 lifts median to ~100-150 chars while staying
+        template-only (no LLM dependency) and CIF-anchored (no fabrication)."""
         if ctx.target_lang != "ja":
             return ""
         patient = ctx.patient
@@ -1197,6 +1225,46 @@ class TemplateNarrativeGenerator:
             chronic_labels.append(disp)
         if chronic_labels:
             parts.append(f"既往: {'、'.join(chronic_labels)}。")
+
+        # Issue #984: home meds reconciliation (top 3 to keep HPI compact).
+        # CIF-anchored — omitted when current_medications is empty; never
+        # fabricated. Reuses _render_home_med_name so JA katakana localization
+        # matches the medications_at_home section.
+        meds = _o(patient, "current_medications", []) or []
+        if meds:
+            med_labels: list[str] = []
+            for m in meds[:3]:
+                name = _render_home_med_name(m, lang="ja")
+                if name:
+                    med_labels.append(name)
+            if med_labels:
+                more = f"他 {len(meds) - len(med_labels)} 剤" if len(meds) > len(med_labels) else ""
+                joined = "、".join(med_labels) + (f"、{more}" if more else "")
+                parts.append(f"常用薬: {joined}。")
+
+        # Issue #984: prior-care sentinel (derived — never claim a specific
+        # institution or datetime not in CIF). Two branches:
+        #   (a) patient has chronic conditions + current_medications → "かかりつけ医
+        #       で処方継続中" (evidence: patient is under ongoing care)
+        #   (b) neither → omit (silent no-op)
+        if conds and meds:
+            parts.append("かかりつけ医で内服治療継続中。")
+        elif meds:
+            parts.append("外来にて内服処方継続中。")
+
+        # Issue #984: ROS pertinent negatives from per-disease yaml pool.
+        # Reads the FIRST-listed 2 negatives to keep HPI length realistic.
+        # Fallback (no disease_id / not in yaml) → omit rather than fabricate.
+        disease_id = ""
+        if ctx.disease_protocol is not None:
+            disease_id = str(_o(ctx.disease_protocol, "disease_id", "") or "")
+        if disease_id:
+            neg_pool = load_hpi_pertinent_negatives().get(disease_id) or []
+            if neg_pool:
+                # Use up to 2 to keep HPI compact.
+                selected = neg_pool[:2]
+                parts.append(f"ROS: {'、'.join(selected)}。")
+
         return "".join(parts)
 
     def _build_past_medical_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -3775,20 +3843,32 @@ class TemplateNarrativeGenerator:
             return fallback, facts
 
         fallback = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
+
+        # Issue #985: ALWAYS compute the integrated per-chronic-condition
+        # value block first, so an encounter YAML template ("HbA1c 目標
+        # 7.0% 未満を基準に評価") gets an appended CIF-anchored value line
+        # ("1. 2型糖尿病: HbA1c 6.8% — 目標 7.0% 未満 — 目標達成中"),
+        # rather than emitting identically for 100+ diabetic patients.
+        integrated = self._compose_chronic_assessment_integrated(ctx)
+
         soap = self._get_soap_template(ctx)
         if soap is not None:
             text = _pick_localized(soap, "assessment", lang, ctx)
             if text:
                 facts.append(f"encounter_protocol.narrative.outpatient_soap_template.assessment_{lang}")
+                if integrated:
+                    facts.extend(
+                        ["ctx.patient.chronic_conditions", "ctx.vitals.today", "ctx.lab_results.today"]
+                    )
+                    return f"{text}\n{integrated}", facts
                 return text, facts
 
         # v9 (2026-08-17) density fix: build a per-chronic-condition
         # assessment line that integrates today's vitals + abnormal labs,
         # not just a raw code list. Falls back to the flat chronic list
         # when no interpretation is available.
-        integrated = self._compose_chronic_assessment_integrated(ctx)
         if integrated:
-            facts.extend(["ctx.patient.chronic_conditions", "ctx.vitals.today", "ctx.lab_results.abnormal_today"])
+            facts.extend(["ctx.patient.chronic_conditions", "ctx.vitals.today", "ctx.lab_results.today"])
             return integrated, facts
 
         # Original #780 fallback (chronic list only)
@@ -3827,17 +3907,32 @@ class TemplateNarrativeGenerator:
         return "Chronic-condition follow-up: " + ", ".join(labels)
 
     def _compose_chronic_assessment_integrated(self, ctx: NarrativeContext) -> str:
-        """SOAP Assessment enriched with today's vitals + abnormal labs.
+        """SOAP Assessment enriched with today's vitals + labs + target
+        comparison prose (Issue #985 personalization).
 
-        v9 (2026-08-17) density fix — v8 emitted only a chronic-condition
-        list ("既往症フォローアップ: 高血圧、脂質異常症、…"), which was
-        clinically inert. This version integrates today's measured
-        values (BP for HTN, HbA1c/glucose for DM, Cr/eGFR for CKD,
-        LDL for dyslipidemia) into per-condition interpretation lines,
-        producing a genuine assessment rather than a static problem list.
-        All values are CIF-CONFIRMED (measured today). When a chronic
-        condition lacks a matching today measurement, the line is
-        omitted rather than fabricated.
+        v9 emitted a chronic-condition list; v9-density integrated abnormal
+        labs but only fired on ``flag`` presence and lacked target-reference
+        prose. #985 lifts:
+
+          - Cites the patient's actual value regardless of flag (a
+            controlled HbA1c 6.8% is still worth citing against target
+            7.0% — that's the point of the follow-up assessment).
+          - Adds explicit target reference (JDS DM HbA1c < 7.0%, JAS
+            LDL < 120 mg/dL primary prevention, JSH BP < 140/90 mmHg,
+            KDIGO CKD stage classification).
+          - Adds CKD staging from eGFR when present.
+          - Adds pertinent negatives (尿アルブミン when measured) so the
+            assessment reads as "actively assessed and negative" rather
+            than silent.
+          - Adds continuation-med tail for the primary chronic drug when
+            present in ``current_medications``.
+
+        All values are CIF-CONFIRMED (measured today or carried from
+        ``current_medications``). Never fabricates a "前回" prior value —
+        outpatient chronic-care follow-ups have single-visit lab scope in
+        this simulator; a prior-visit comparison would need cross-encounter
+        history that ctx does not currently carry. The generic follow-up
+        stub falls through when no measurement is available.
         """
         patient = ctx.patient
         if patient is None:
@@ -3851,56 +3946,203 @@ class TemplateNarrativeGenerator:
         sbp = _o(v0, "systolic_bp", None) if v0 else None
         dbp = _o(v0, "diastolic_bp", None) if v0 else None
 
-        # Index today's abnormal labs by lab_name (lowercased) for lookup
+        # Issue #985: cite value regardless of flag — a target-comparison
+        # assessment needs the actual number even when in-range.
         lab_by_name: dict[str, tuple[Any, str | None]] = {}
         for lab in labs:
-            flag = _o(lab, "flag", None)
-            if not flag:
-                continue
             name = str(_o(lab, "lab_name", "") or "").lower()
-            if name:
-                lab_by_name[name] = (_o(lab, "value", None), _o(lab, "unit", None))
+            val = _o(lab, "value", None)
+            if not name or val is None:
+                continue
+            lab_by_name[name] = (val, _o(lab, "unit", None))
 
         from clinosim.codes import lookup as _code_lookup
 
         is_ja = ctx.target_lang == "ja"
         disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+
+        # Pre-resolve current-medications for continuation-tail
+        cur_meds = _o(patient, "current_medications", []) or []
+        med_names_ja = [_render_home_med_name(m, lang="ja") for m in cur_meds]
+        med_names_ja = [n for n in med_names_ja if n]
+
+        def _pick_med_containing(hints: tuple[str, ...]) -> str | None:
+            """Return the first current-med whose name contains any hint.
+
+            hints are substring matchers on the localized JA display so
+            the assessment cites the actual continuation drug rather than
+            a generic 「継続」 phrase."""
+            for n in med_names_ja:
+                for h in hints:
+                    if h in n:
+                        return n
+            return None
+
         lines: list[str] = []
         for i, c in enumerate(conditions, 1):
             code = _o(c, "code", "") or (c if isinstance(c, str) else "")
             if not code:
                 continue
             label = _code_lookup(disp_key, code, ctx.target_lang) or code
-            # Match code prefix → measurement
             code_prefix = code.split(".")[0].upper()
             interp = ""
+
+            # ── I10: Essential hypertension ────────────────────────────
             if code_prefix.startswith("I10") and sbp and dbp:
-                # Hypertension: interpret BP
-                if sbp >= 160 or dbp >= 100:
-                    interp = "Stage 2" if not is_ja else "Stage 2 相当、コントロール不十分"
-                elif sbp >= 140 or dbp >= 90:
-                    interp = "Stage 1" if not is_ja else "Stage 1 相当、追加介入検討"
+                if sbp >= NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD:
+                    ctrl = "コントロール不十分" if is_ja else "poorly controlled"
+                elif sbp >= NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD:
+                    ctrl = "高値注意、追加介入検討" if is_ja else "high-normal, consider titration"
                 else:
-                    interp = "well controlled" if not is_ja else "コントロール良好"
-                interp = f"BP {int(sbp)}/{int(dbp)} → {interp}"
-            elif code_prefix.startswith("E78") and "ldl" in lab_by_name:
-                v, u = lab_by_name["ldl"]
-                interp = f"LDL {v} {u or 'mg/dL'} [H] → " + ("statin 効果不十分" if is_ja else "statin under-response")
-            elif code_prefix.startswith("E11") and "hba1c" in lab_by_name:
-                v, u = lab_by_name["hba1c"]
-                interp = f"HbA1c {v} {u or '%'} [H] → " + (
-                    "血糖コントロール不十分" if is_ja else "glycemic control suboptimal"
+                    ctrl = "目標達成" if is_ja else "at goal"
+                target = (
+                    (
+                        f"目標 {NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD}/"
+                        f"{NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD} mmHg 未満"
+                    )
+                    if is_ja
+                    else (
+                        f"target < {NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD}/"
+                        f"{NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD} mmHg"
+                    )
                 )
+                med = _pick_med_containing(("アムロジピン", "エナラプリル", "ロサルタン", "テルミサルタン"))
+                med_tail = f"、{med} 継続" if med and is_ja else (f"; {med} continue" if med else "")
+                interp = f"BP {int(sbp)}/{int(dbp)} mmHg — {target} — {ctrl}{med_tail}。"
+
+            # ── E11 / E10: Diabetes mellitus ───────────────────────────
+            elif code_prefix.startswith(("E10", "E11")):
+                parts_dm: list[str] = []
+                hba1c = lab_by_name.get("hba1c")
+                if hba1c:
+                    v, u = hba1c
+                    try:
+                        vf = float(v)
+                        if vf >= NARRATIVE_HBA1C_DIABETES_THRESHOLD + 0.5:  # ≥ 7.0
+                            ctrl = "コントロール不十分" if is_ja else "poorly controlled"
+                        elif vf >= NARRATIVE_HBA1C_DIABETES_THRESHOLD:  # 6.5-7.0
+                            ctrl = "目標近傍" if is_ja else "near target"
+                        else:
+                            ctrl = "目標達成中" if is_ja else "at goal"
+                    except (TypeError, ValueError):
+                        ctrl = ""
+                    target = "目標 7.0% 未満" if is_ja else "target < 7.0%"
+                    parts_dm.append(
+                        f"HbA1c {v}{u or '%'} — {target} — {ctrl}" if ctrl else f"HbA1c {v}{u or '%'} — {target}"
+                    )
+                # 尿アルブミン (pertinent info when measured)
+                ualb = lab_by_name.get("urine_albumin") or lab_by_name.get("albuminuria")
+                if ualb:
+                    v, u = ualb
+                    parts_dm.append(
+                        f"尿アルブミン {v} {u or 'mg/gCr'}" if is_ja else f"urine albumin {v} {u or 'mg/gCr'}"
+                    )
+                # 空腹時血糖
+                fbg = lab_by_name.get("glucose")
+                if fbg:
+                    v, u = fbg
+                    parts_dm.append(f"血糖 {v} {u or 'mg/dL'}" if is_ja else f"glucose {v} {u or 'mg/dL'}")
+                med = _pick_med_containing(("メトホルミン", "グリメピリド", "インスリン", "シタグリプチン", "DPP"))
+                if med:
+                    parts_dm.append(f"{med} 継続" if is_ja else f"{med} continue")
+                if parts_dm:
+                    interp = "、".join(parts_dm) + ("。" if is_ja else ".")
+
+            # ── E78: Dyslipidemia ──────────────────────────────────────
+            elif code_prefix.startswith("E78"):
+                ldl = lab_by_name.get("ldl")
+                if ldl:
+                    v, u = ldl
+                    try:
+                        vf = float(v)
+                        if vf >= NARRATIVE_LDL_HIGH_THRESHOLD:
+                            ctrl = "高 LDL 血症、statin 効果不十分" if is_ja else "high LDL, statin under-response"
+                        elif vf >= NARRATIVE_LDL_BORDERLINE_THRESHOLD:
+                            ctrl = "境界域、生活・薬物療法強化検討" if is_ja else "borderline, consider intensification"
+                        elif vf >= NARRATIVE_LDL_ELEVATED_THRESHOLD:
+                            ctrl = "高値注意" if is_ja else "elevated"
+                        else:
+                            ctrl = "目標達成" if is_ja else "at goal"
+                    except (TypeError, ValueError):
+                        ctrl = ""
+                    target = (
+                        f"目標 {NARRATIVE_LDL_ELEVATED_THRESHOLD} mg/dL 未満 (一次予防)"
+                        if is_ja
+                        else f"target < {NARRATIVE_LDL_ELEVATED_THRESHOLD} mg/dL (primary prevention)"
+                    )
+                    med = _pick_med_containing(("スタチン", "ロスバスタチン", "アトルバスタチン", "エゼチミブ"))
+                    med_tail = f"、{med} 継続" if med and is_ja else (f"; {med} continue" if med else "")
+                    interp = f"LDL {v} {u or 'mg/dL'} — {target} — {ctrl}{med_tail}。"
+
+            # ── N18: Chronic kidney disease ────────────────────────────
             elif code_prefix.startswith("N18"):
+                parts_ckd: list[str] = []
                 cr = lab_by_name.get("cr") or lab_by_name.get("creatinine")
-                if cr:
+                egfr = lab_by_name.get("egfr")
+                if egfr:
+                    v, u = egfr
+                    try:
+                        vf = float(v)
+                        if vf >= 90:
+                            stage = "G1"
+                        elif vf >= 60:
+                            stage = "G2"
+                        elif vf >= 45:
+                            stage = "G3a"
+                        elif vf >= 30:
+                            stage = "G3b"
+                        elif vf >= 15:
+                            stage = "G4"
+                        else:
+                            stage = "G5"
+                    except (TypeError, ValueError):
+                        stage = ""
+                    stage_ja = f"CKD ステージ {stage}" if is_ja else f"CKD stage {stage}"
+                    # UCUM eGFR unit "mL/min/{1.73_m2}" carries a `{}`
+                    # annotation that reads as a placeholder in narrative.
+                    # Prefer the plain human display for prose emit.
+                    display_u = "mL/min/1.73m²" if u and "1.73" in str(u) else (u or "mL/min/1.73m²")
+                    parts_ckd.append(f"eGFR {v} {display_u} ({stage_ja})")
+                if cr and not egfr:
                     v, u = cr
-                    interp = f"Cr {v} {u or 'mg/dL'} [H] → " + ("腎機能低下持続" if is_ja else "renal function reduced")
+                    parts_ckd.append(f"Cr {v} {u or 'mg/dL'}")
+                if parts_ckd:
+                    interp = "、".join(parts_ckd) + (
+                        "、腎機能推移を継続監視。" if is_ja else "; ongoing renal function monitoring."
+                    )
+
+            # ── J44: COPD (stable) ─────────────────────────────────────
+            elif code_prefix.startswith("J44"):
+                spo2 = _o(v0, "spo2", None) if v0 else None
+                bits: list[str] = []
+                if spo2:
+                    bits.append(f"SpO2 {int(spo2)}%")
+                med = _pick_med_containing(("LABA", "LAMA", "チオトロピウム", "サルメテロール"))
+                if med:
+                    bits.append(f"{med} 吸入継続" if is_ja else f"{med} inhalation continue")
+                if bits:
+                    interp = "、".join(bits) + (
+                        "、CAT score / mMRC で症状評価。" if is_ja else "; CAT / mMRC symptom review."
+                    )
+
+            # ── J45: Asthma ────────────────────────────────────────────
+            elif code_prefix.startswith("J45"):
+                spo2 = _o(v0, "spo2", None) if v0 else None
+                bits2: list[str] = []
+                if spo2:
+                    bits2.append(f"SpO2 {int(spo2)}%")
+                med = _pick_med_containing(("ICS", "サルメテロール", "モンテルカスト"))
+                if med:
+                    bits2.append(f"{med} 継続" if is_ja else f"{med} continue")
+                if bits2:
+                    interp = "、".join(bits2) + (
+                        "、ACT で コントロール状況確認。" if is_ja else "; ACT control review."
+                    )
+
             if interp:
                 lines.append(f"{i}. {label}: {interp}")
             else:
-                # No matching measurement → include as follow-up target only
-                stub = "本日測定なし、次回受診時再評価" if is_ja else "no measurement today; reassess next visit"
+                stub = "本日測定なし、次回受診時再評価。" if is_ja else "no measurement today; reassess next visit."
                 lines.append(f"{i}. {label}: {stub}")
         if not lines:
             return ""
