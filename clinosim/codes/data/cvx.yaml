@@ -48,3 +48,60 @@ codes:
   "312":
     en: "COVID-19, mRNA, LNP-S, PF, 50 mcg/0.5 mL"
     ja: "COVID-19（mRNA・Moderna季節性, 50mcg/0.5mL）"
+
+  # === Pediatric routine schedule (JP 定期予防接種 + 任意接種) — Issue #917 ===
+  # Verified against CDC IIS CVX list 2026-06.
+  "19":
+    en: "BCG"
+    ja: "BCG（結核）"
+  "20":
+    en: "DTaP"
+    ja: "DTaP（ジフテリア・破傷風・百日咳）"
+  "106":
+    en: "DTaP, 5 pertussis antigens"
+    ja: "DTaP-IPV（四種混合・ジフテリア・破傷風・百日咳・不活化ポリオ）"
+  "158":
+    en: "influenza, injectable, quadrivalent, contains preservative"
+    ja: "インフルエンザ（不活化・4価・小児用）"
+  "03":
+    en: "MMR"
+    ja: "MMR（麻疹・おたふく・風疹）"
+  "04":
+    en: "M/R"
+    ja: "MR（麻疹風疹混合）"
+  "21":
+    en: "varicella"
+    ja: "水痘"
+  "39":
+    en: "Japanese encephalitis SC"
+    ja: "日本脳炎（皮下）"
+  "129":
+    en: "Japanese Encephalitis, unspecified formulation"
+    ja: "日本脳炎（不活化・Vero細胞培養）"
+  "17":
+    en: "Hib, NOS"
+    ja: "Hib（インフルエンザ菌b型）"
+  "118":
+    en: "HPV, bivalent"
+    ja: "HPV（2価, サーバリックス）"
+  "08":
+    en: "Hep B, adolescent or pediatric"
+    ja: "B型肝炎（小児用）"
+  "45":
+    en: "Hep B, NOS"
+    ja: "B型肝炎"
+  "116":
+    en: "rotavirus, pentavalent"
+    ja: "ロタウイルス（5価, RotaTeq）"
+  "119":
+    en: "rotavirus, monovalent"
+    ja: "ロタウイルス（1価, Rotarix）"
+  "07":
+    en: "mumps"
+    ja: "おたふくかぜ（ムンプス）"
+  "88":
+    en: "influenza, NOS"
+    ja: "インフルエンザ（小児・不特定）"
+  "141":
+    en: "Influenza, seasonal, injectable"
+    ja: "インフルエンザ（季節性・注射用）"

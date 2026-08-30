@@ -119,6 +119,15 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
                 "text": "予防接種（定期接種）" if lang == "ja" else "Vaccination (routine)",
             }
         ]
+        # Issue #917: pediatric-series entries carry a dose_number (1..N).
+        # Emit as Immunization.protocolApplied[0].doseNumberPositiveInt so
+        # consumers can distinguish dose 3 of DTaP-IPV from dose 1 of MR
+        # without inferring from the CVX code alone. Adult vaccines
+        # (dose_number=None) omit the field, preserving the existing
+        # single-dose emit shape.
+        dose_num = get_attr_or_key(imm, "dose_number", None)
+        if isinstance(dose_num, int) and dose_num > 0:
+            resource["protocolApplied"] = [{"doseNumberPositiveInt": dose_num}]
         # RM-3: lot_number + administered_by now populated in CIF
         # (nurse roster-based). Emit only when present — no fabrication.
         lot = get_attr_or_key(imm, "lot_number", "") or ""

@@ -7,8 +7,11 @@ with physiological parameters, baseline vitals, and detailed medical history.
 from __future__ import annotations
 
 from datetime import date
+from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
+import yaml
 
 from clinosim.locale.loader import load_names
 from clinosim.modules._shared import is_jp, normalize_probabilities, resolve_lang
@@ -215,6 +218,42 @@ CONDITION_NAMES = {
 }
 
 
+_CHRONIC_ONSET_MIN_AGE_PATH = Path(__file__).resolve().parents[2] / "locale" / "shared" / "chronic_onset_min_age.yaml"
+
+
+@lru_cache(maxsize=1)
+def _chronic_onset_min_age_table() -> tuple[dict[str, int], int]:
+    """Return (codes_dict, default_min_years) from the shared yaml (Issue #968)."""
+    with open(_CHRONIC_ONSET_MIN_AGE_PATH) as f:
+        data = yaml.safe_load(f) or {}
+    codes = {str(k): int(v) for k, v in (data.get("codes") or {}).items()}
+    default = int(data.get("default_min_years", 0))
+    return codes, default
+
+
+def _clamp_chronic_onset(sampled: date, dob: date | None, code: str) -> date:
+    """Clamp a sampled chronic-condition onset date so it never precedes
+    ``dob + min_onset_years[code]`` (Issue #968).
+
+    - When ``dob`` is unknown, returns ``sampled`` unchanged (activator
+      caller guarantees dob is populated for real patients).
+    - The floor for a code without a yaml entry is ``dob + 1 day`` (so the
+      condition can never share a day with birth itself).
+    - Sampled dates after the floor pass through unmodified — the clamp is
+      a floor, not a redistribution, to preserve the RNG cascade (adult
+      distributions are unchanged; only pediatric edge cases move).
+    """
+    if dob is None:
+        return sampled
+    codes, default_years = _chronic_onset_min_age_table()
+    min_years = codes.get(code.split(".")[0], default_years)
+    # Approximate min_years by 365 * min_years days plus a 1-day floor for
+    # the default=0 case so no Condition shares its subject's birth date.
+    floor_days = max(1, int(min_years) * 365)
+    floor = date.fromordinal(dob.toordinal() + floor_days)
+    return floor if sampled < floor else sampled
+
+
 def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
     """Sample insurance type from insurance_distribution age bands."""
     bands = demo.get("insurance_distribution") or []
@@ -323,11 +362,27 @@ def activate_patient(
         if code_base in STAGE_SEVERITY:
             lookup_key = stage.removeprefix("CKD ") if code_base == "N18" else stage
             severity_score = STAGE_SEVERITY[code_base][lookup_key]
+        # Issue #968: clamp the sampled onset so it never precedes the
+        # patient's date_of_birth + per-disease minimum onset age. Prior
+        # to this fix pediatric patients could receive chronic conditions
+        # (notably J45 asthma) with onset dates years before they were
+        # born because the sampler picks an adult-typical "diagnosed
+        # 1-15 years ago" window with no birthDate guard.
+        _sampled_onset = date(onset_year, onset_month, onset_day)
+        _dob = getattr(person, "date_of_birth", None)
+        _clamped = _clamp_chronic_onset(_sampled_onset, _dob, code)
+        # Cap at the reference year so a very-young patient does not get
+        # an onset date far in the future. If the cap would push onset
+        # below dob (patient born after ref_year), keep the birthDate
+        # floor instead — never regress into pre-birth territory.
+        _ref_ceiling = date(CHRONIC_ONSET_YEAR_REFERENCE, 12, 31)
+        if _clamped > _ref_ceiling and _dob is not None and _ref_ceiling >= _dob:
+            _clamped = _ref_ceiling
         conditions.append(
             ChronicCondition(
                 code=code,
                 system="icd-10-cm",
-                onset_date=date(onset_year, onset_month, onset_day),
+                onset_date=_clamped,
                 severity=sev,
                 controlled=controlled_flag,
                 severity_score=severity_score,

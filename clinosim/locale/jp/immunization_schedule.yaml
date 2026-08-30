@@ -103,3 +103,204 @@ vaccines:
     available_from: "2014-10-01"
     coverage_by_age_sex:
       "65-99": {M: 0.40, F: 0.42}
+
+  # === Pediatric routine schedule (定期予防接種 + 任意接種) — Issue #917 ===
+  # Sources: MHLW 予防接種スケジュール (2024) / 日本小児科学会 推奨接種スケジュール.
+  # program_type: mandatory = 定期接種 (95-99% typical coverage) /
+  #               elective  = 任意接種 (30-60% typical coverage).
+  # `pediatric_series` iterates per-dose age windows measured from date_of_birth.
+  # Engine gates each dose against [available_from, as_of] AND against the
+  # patient's birthDate → doses whose target window falls outside the sim's
+  # available range (patient already past the window at sim start, or window
+  # extends past as_of) are skipped without consuming RNG, so adult vaccine
+  # RNG cascade is preserved (per feedback_rng_neutral_additive_field).
+  # Coverage is per-dose, per-sex (routine pediatric coverage is essentially
+  # sex-invariant; sex slot preserves the existing engine's dispatch shape).
+  #
+  # Verified against MHLW 予防接種法施行令 2024, revised 2024-04.
+  pediatric_bcg:
+    cvx: "19"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2000-01-01"
+    doses:
+      - dose_number: 1
+        age_days_min: 152    # 生後 5 か月
+        age_days_max: 213    # 生後 7 か月
+        coverage_by_sex: {M: 0.98, F: 0.98}
+  pediatric_dtap_ipv:
+    cvx: "106"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2012-11-01"    # 四種混合 (DTaP-IPV) 導入
+    doses:
+      - dose_number: 1
+        age_days_min: 90     # 生後 3 か月
+        age_days_max: 120    # 生後 4 か月
+        coverage_by_sex: {M: 0.98, F: 0.98}
+      - dose_number: 2
+        age_days_min: 121    # 生後 4 か月
+        age_days_max: 150    # 生後 5 か月
+        coverage_by_sex: {M: 0.97, F: 0.97}
+      - dose_number: 3
+        age_days_min: 151    # 生後 5 か月
+        age_days_max: 210    # 生後 7 か月
+        coverage_by_sex: {M: 0.96, F: 0.96}
+      - dose_number: 4
+        age_days_min: 365    # 1歳
+        age_days_max: 545    # 1歳半 (18か月)
+        coverage_by_sex: {M: 0.94, F: 0.94}
+  pediatric_mr:
+    cvx: "04"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2000-01-01"
+    doses:
+      - dose_number: 1
+        age_days_min: 365    # 1歳
+        age_days_max: 730    # 2歳
+        coverage_by_sex: {M: 0.97, F: 0.97}
+      - dose_number: 2
+        age_days_min: 1825   # 5歳 (就学前)
+        age_days_max: 2555   # 7歳
+        coverage_by_sex: {M: 0.94, F: 0.94}
+  pediatric_varicella:
+    cvx: "21"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2014-10-01"    # 定期化
+    doses:
+      - dose_number: 1
+        age_days_min: 365    # 1歳
+        age_days_max: 455    # 15か月
+        coverage_by_sex: {M: 0.90, F: 0.90}
+      - dose_number: 2
+        age_days_min: 456    # 15か月+
+        age_days_max: 730    # 2歳
+        coverage_by_sex: {M: 0.86, F: 0.86}
+  pediatric_je:
+    cvx: "129"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2010-04-01"    # 乾燥細胞培養日本脳炎ワクチン 定期接種再開
+    doses:
+      - dose_number: 1
+        age_days_min: 1095   # 3歳
+        age_days_max: 1460   # 4歳
+        coverage_by_sex: {M: 0.90, F: 0.90}
+      - dose_number: 2
+        age_days_min: 1461   # 4歳
+        age_days_max: 1825   # 5歳
+        coverage_by_sex: {M: 0.88, F: 0.88}
+      - dose_number: 3
+        age_days_min: 3285   # 9歳 (追加接種)
+        age_days_max: 3650   # 10歳
+        coverage_by_sex: {M: 0.80, F: 0.80}
+      - dose_number: 4
+        age_days_min: 4380   # 12歳
+        age_days_max: 4745   # 13歳
+        coverage_by_sex: {M: 0.72, F: 0.72}
+  pediatric_hib:
+    cvx: "17"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2013-04-01"    # 定期化
+    doses:
+      - dose_number: 1
+        age_days_min: 60     # 生後 2 か月
+        age_days_max: 90     # 生後 3 か月
+        coverage_by_sex: {M: 0.97, F: 0.97}
+      - dose_number: 2
+        age_days_min: 91
+        age_days_max: 120    # 生後 4 か月
+        coverage_by_sex: {M: 0.96, F: 0.96}
+      - dose_number: 3
+        age_days_min: 121
+        age_days_max: 150    # 生後 5 か月
+        coverage_by_sex: {M: 0.95, F: 0.95}
+      - dose_number: 4
+        age_days_min: 365    # 1歳
+        age_days_max: 525    # 17 か月
+        coverage_by_sex: {M: 0.90, F: 0.90}
+  pediatric_pcv13:
+    cvx: "133"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2013-11-01"    # 小児 PCV13 定期化
+    doses:
+      - dose_number: 1
+        age_days_min: 60
+        age_days_max: 90
+        coverage_by_sex: {M: 0.97, F: 0.97}
+      - dose_number: 2
+        age_days_min: 91
+        age_days_max: 120
+        coverage_by_sex: {M: 0.96, F: 0.96}
+      - dose_number: 3
+        age_days_min: 121
+        age_days_max: 150
+        coverage_by_sex: {M: 0.95, F: 0.95}
+      - dose_number: 4
+        age_days_min: 365
+        age_days_max: 455    # 15 か月
+        coverage_by_sex: {M: 0.92, F: 0.92}
+  pediatric_hepb:
+    cvx: "08"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2016-10-01"    # 定期化 (2016 年 10 月以降出生児対象)
+    doses:
+      - dose_number: 1
+        age_days_min: 60
+        age_days_max: 90
+        coverage_by_sex: {M: 0.95, F: 0.95}
+      - dose_number: 2
+        age_days_min: 91
+        age_days_max: 120
+        coverage_by_sex: {M: 0.94, F: 0.94}
+      - dose_number: 3
+        age_days_min: 210    # 生後 7 か月
+        age_days_max: 270    # 生後 9 か月
+        coverage_by_sex: {M: 0.92, F: 0.92}
+  pediatric_rotavirus:
+    cvx: "119"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2020-10-01"    # 定期化 (2020 年 10 月以降出生児対象)
+    doses:
+      - dose_number: 1
+        age_days_min: 60
+        age_days_max: 90
+        coverage_by_sex: {M: 0.94, F: 0.94}
+      - dose_number: 2
+        age_days_min: 91
+        age_days_max: 150    # 生後 5 か月
+        coverage_by_sex: {M: 0.92, F: 0.92}
+  # === 任意接種 (elective) — lower coverage ===
+  pediatric_mumps:
+    cvx: "07"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: elective
+    available_from: "2000-01-01"
+    doses:
+      - dose_number: 1
+        age_days_min: 365    # 1歳
+        age_days_max: 730    # 2歳
+        coverage_by_sex: {M: 0.35, F: 0.35}
+      - dose_number: 2
+        age_days_min: 1825   # 5歳
+        age_days_max: 2555   # 7歳 (就学前)
+        coverage_by_sex: {M: 0.28, F: 0.28}
+  # NOTE: 小児季節性インフルエンザ (13歳以下 = 年 1-2 回) は
+  # 別途 seasonal-distribution モデルが必要のため今回スコープ外
+  # (既存 annual 分岐は min_age=18 制約)。フォローアップ Issue で追加。
