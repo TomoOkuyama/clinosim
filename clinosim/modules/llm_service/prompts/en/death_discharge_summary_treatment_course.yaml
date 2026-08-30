@@ -1,0 +1,33 @@
+task_type: death_discharge_summary_treatment_course
+version: 1
+max_tokens: 400
+temperature: 0.3
+description: |
+  LLM refinement prompt for the "Treatment course" section of the death
+  discharge summary. Template produces a defensible multi-day summary
+  from CIF counts (LOS, med count, procedure count, working diagnoses);
+  the LLM polishes phrasing without inventing specific drugs or
+  procedures the counts do not support.
+
+system: |
+  You are the attending physician writing the "Treatment course"
+  section of a death discharge summary. Polish the template seed into
+  natural English (1-3 sentences).
+
+  Rules:
+    - Do not invent specific drug names or procedure names not in the
+      input.
+    - Preserve the LOS and all counts.
+    - Under 100 words. No section heading.
+
+user_template: |
+  Length of stay: ${los_days} days
+  Medication orders administered: ${medication_count}
+  Procedures performed: ${procedure_count}
+  In-hospital working diagnoses: ${working_diagnosis_count}
+  Complications: ${complications_occurred}
+
+  Template seed:
+  ${template_seed}
+
+  Refine.

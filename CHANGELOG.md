@@ -39,6 +39,36 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #961 — Death certificate (死亡診断書) Composition for deceased
+  inpatients.** Pre-fix, 47/6,389 deceased patients on the JP p=6,389
+  dataset (`Patient.deceasedDateTime` set) all received the same
+  generic 退院時サマリー Composition as ambulatory discharges — zero
+  死亡診断書 were emitted despite 医師法第 20 条 mandating one for
+  every physician-certified death. Fix: **additive** new
+  `death_certificate` document spec (LOINC 64297-5, verified via
+  loinc.org LONG_COMMON_NAME) with a new `discharge_once_if_deceased`
+  generation frequency that fires whenever
+  `encounter.discharge_disposition == "exp"` (already populated by
+  `inpatient.py:537` when `death_occurred`). Emits **alongside** the
+  existing 退院時サマリー (never replaces it — the discharge summary
+  remains required for billing/administrative discharge processing).
+  Sections cover the 医師法第 20 条 legally-defined fields: 直接死因
+  (immediate cause, sourced from `clinical_diagnosis.discharge_diagnosis_code`),
+  直接死因までの期間, 原死因, 影響を及ぼした傷病名, 死因の種類, 解剖の有無.
+  JP dispatch uses `jpfhir-doc-typecodes` CS with 死亡診断書 title
+  (dual-slot in `.text` per feedback_dual_slot_at_emit_site_not_post_process);
+  US dispatch uses LOINC + "Death certificate" title. Verified on
+  JP p=1000 seed=500 2025-01-01→2026-03-31: 1/1 deceased patient
+  received a death certificate, 0 false positives. Classification:
+  **PATCH** — the fix is a new FHIR Composition emit derived from an
+  existing CIF field (`Encounter.discharge_disposition`); no structured
+  CIF byte drift beyond the additive `ClinicalDocument` stub entries
+  which the narrative CIF ↔ structured CIF contract already covers via
+  the two-pass lifecycle.
+  Author: Claude.
+
 ### Changed
 
 - **Issue #939 — Procedure catalog gaps for cardiology / neurosurgery /

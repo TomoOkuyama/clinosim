@@ -54,8 +54,19 @@ def test_jp_p50_discharge_summary_composition_conforms(tmp_path):
     comp_path = _find_composition(outdir)
     assert comp_path, "Composition.ndjson not found"
     comps = _read_ndjson(comp_path)
-    ds = [c for c in comps if any(cc.get("code") == "18842-5" for cc in c.get("type", {}).get("coding", []))]
-    assert ds, "no discharge summary Composition found in JP cohort"
+    # Issue #961 ext (2026-08-30): 死亡退院サマリー (Death discharge summary,
+    # LOINC 18842-5 with title 死亡退院サマリー) shares the LOINC code but
+    # is intentionally NOT bound to the JP-CLINS eDS profile — section list
+    # differs (see composition.py::_build_death_discharge_summary_composition
+    # module comment). Filter by title to isolate the standard living-
+    # discharge summaries, whose eDS profile invariants are validated here.
+    ds = [
+        c
+        for c in comps
+        if any(cc.get("code") == "18842-5" for cc in c.get("type", {}).get("coding", []))
+        and c.get("title") != "死亡退院サマリー"
+    ]
+    assert ds, "no living-discharge summary Composition found in JP cohort"
 
     for c in ds:
         # profile emitted

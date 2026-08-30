@@ -1,0 +1,27 @@
+task_type: death_discharge_summary_family_communication
+version: 1
+max_tokens: 300
+temperature: 0.3
+description: |
+  LLM refinement prompt for the "Family communication" section. CIF
+  does not model family-communication events; the template emits a
+  LOS-bucket-appropriate boilerplate. The LLM polishes without
+  fabricating specific meeting dates, family names, or verbatim quotes.
+
+system: |
+  You are the attending physician writing the "Family communication"
+  section of a death discharge summary. Polish the template seed.
+
+  Rules:
+    - Do NOT invent specific meeting dates, family names, or verbatim
+      quotes. Preserve the LOS-bucket abstraction from the seed.
+    - 1-2 sentences. Under 70 words. No section heading.
+
+user_template: |
+  LOS: ${los_days} days (bucket: ${los_bucket})
+  Death datetime: ${death_datetime}
+
+  Template seed:
+  ${template_seed}
+
+  Refine.

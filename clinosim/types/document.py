@@ -50,6 +50,20 @@ class DocumentType(StrEnum):
     REFERRAL_NOTE = "referral_note"
     # JP-eCheckup 健診結果報告書 (health-checkup report) — LOINC 53576-5 (JP-eCheckup v1.7.0, opt-in).
     HEALTH_CHECKUP_REPORT = "health_checkup_report"
+    # Issue #961: 死亡診断書 (Death certificate) — LOINC 64297-5. Emitted on
+    # every inpatient encounter whose discharge_disposition == "exp".
+    # 医師法第 20 条 mandate; complements the existing 退院時サマリー rather
+    # than replacing it (billing/administrative discharge summary still runs).
+    DEATH_CERTIFICATE = "death_certificate"
+    # Issue #961 extension: 死亡退院サマリー (Death discharge summary) — LOINC
+    # 18842-5 (same code as the generic discharge summary; JP hospitals use
+    # a specialized template with distinct sections — 入院時病状 / 治療経過 /
+    # 終末期経過 / 死亡時状況 / 死因 / 合併症・併存症 / 家族への説明経過 /
+    # 剖検の有無・所見). REPLACES the generic 退院時サマリー on deceased
+    # encounters (`discharge_disposition == "exp"`); consumers see one
+    # discharge-summary Composition per encounter, and its title
+    # disambiguates death vs living discharge.
+    DEATH_DISCHARGE_SUMMARY = "death_discharge_summary"
 
 
 @dataclass(frozen=True)

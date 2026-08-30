@@ -68,6 +68,11 @@ class LLMTaskType(StrEnum):
     REFERRAL_NOTE = "referral_note"  # LOINC 57133-1
     # P2-13 PR3 JP-eCheckup General 健診結果報告書(opt-in)
     HEALTH_CHECKUP_REPORT = "health_checkup_report"  # LOINC 53576-5
+    # Issue #961 死亡診断書 (Death certificate; 医師法第 20 条 mandate)
+    DEATH_CERTIFICATE = "death_certificate"  # LOINC 64297-5
+    # Issue #961 extension 死亡退院サマリー (Death discharge summary; replaces
+    # generic 退院時サマリー on deceased encounters)
+    DEATH_DISCHARGE_SUMMARY = "death_discharge_summary"  # LOINC 18842-5 (specialized title)
 
 
 TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
@@ -93,6 +98,8 @@ TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
     LLMTaskType.REHABILITATION_PLAN: LLMTaskCategory.NARRATIVE,
     LLMTaskType.REFERRAL_NOTE: LLMTaskCategory.NARRATIVE,
     LLMTaskType.HEALTH_CHECKUP_REPORT: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.DEATH_CERTIFICATE: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.DEATH_DISCHARGE_SUMMARY: LLMTaskCategory.NARRATIVE,
 }
 
 
@@ -122,6 +129,13 @@ DOCUMENT_LOINC: dict[LLMTaskType, str] = {
     LLMTaskType.REHABILITATION_PLAN: "34823-5",  # Physical medicine and rehab Note
     LLMTaskType.REFERRAL_NOTE: "57133-1",  # Referral note (JP-CLINS 診療情報提供書)
     LLMTaskType.HEALTH_CHECKUP_REPORT: "53576-5",  # Health checkup report (JP-eCheckup 検診・健診報告書)
+    LLMTaskType.DEATH_CERTIFICATE: "64297-5",  # Death certificate (医師法第 20 条 mandated 死亡診断書)
+    # LOINC 18842-5 is the international "Discharge summary" code; JP hospitals
+    # use the same code with a specialized template (title = 死亡退院サマリー)
+    # for the deceased-inpatient path. Same code as DISCHARGE_SUMMARY — the
+    # Composition dispatcher (composition.py) branches on `doc.task_type` to
+    # pick the death-variant builder that overrides `type.text` / `title`.
+    LLMTaskType.DEATH_DISCHARGE_SUMMARY: "18842-5",  # Discharge summary (死亡退院サマリー)
 }
 
 

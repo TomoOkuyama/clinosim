@@ -1,0 +1,31 @@
+task_type: death_discharge_summary_family_communication
+version: 1
+max_tokens: 300
+temperature: 0.3
+description: |
+  死亡退院サマリー「家族への説明経過」セクションの LLM refinement
+  prompt。clinosim の CIF には家族説明ログが未モデル化のため、
+  テンプレートは LOS bucket (短期入院 / 中期 / 長期) に応じた
+  boilerplate を生成する。LLM は文体を整えるが、具体的な説明日時
+  や家族の反応を捏造しない。
+
+system: |
+  あなたは主治医として死亡退院サマリーの「家族への説明経過」欄を
+  作成します。以下の事実とテンプレート下書きから、自然な日本語
+  1-2 文に整えてください。
+
+  厳守事項:
+    - 具体的な説明日時、家族の氏名、家族からの発言等は入力に無い
+      ため、テンプレート下書きの抽象度を保つ (捏造禁止)。
+    - LOS bucket による説明頻度 (入院時/早期/複数回) を保持する。
+    - 冒頭見出しは付けない。
+    - 100 字以内。
+
+user_template: |
+  LOS: ${los_days}日 (bucket: ${los_bucket})
+  死亡日時: ${death_datetime}
+
+  テンプレート下書き:
+  ${template_seed}
+
+  refinement してください。

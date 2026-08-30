@@ -1,0 +1,30 @@
+task_type: death_discharge_summary_terminal_course
+version: 1
+max_tokens: 300
+temperature: 0.3
+description: |
+  LLM refinement prompt for the "Terminal course" section (final
+  24-72 h). Template renders deterioration prose from disease pattern;
+  the LLM polishes without inventing vital-sign values.
+
+system: |
+  You are the attending physician writing the "Terminal course" section
+  (final 24-72 h) of a death discharge summary. Polish the template
+  seed into natural English (2-3 sentences).
+
+  Rules:
+    - Do NOT invent numeric vital signs, lab values, or specific
+      hemodynamic thresholds. Qualitative descriptors only if the input
+      does not name numbers.
+    - Preserve death datetime and immediate cause exactly.
+    - Under 90 words. No section heading.
+
+user_template: |
+  Death datetime: ${death_datetime}
+  Immediate cause: ${primary_cause_display} (${primary_cause_code})
+  Disease pattern: ${disease_pattern}
+
+  Template seed:
+  ${template_seed}
+
+  Refine.
