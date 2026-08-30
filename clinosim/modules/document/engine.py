@@ -713,6 +713,58 @@ def document_enricher(ctx: Any) -> None:
                     stub.related_procedure_id = str(_o(primary_proc, "procedure_id", "") or "")
                     documents.append(stub)
                     doc_seq += 1
+                elif freq == "per_bedside_procedure":
+                    # Issue #992: emit one procedure_note (LOINC 28570-0)
+                    # per ProcedureRecord whose ``procedure_code`` is
+                    # listed under ``procedure_note_codes`` in
+                    # bedside_procedure_codes.yaml. Each stub carries
+                    # ``related_procedure_id`` so the narrative pass can
+                    # look up the specific Procedure out of
+                    # ``patient_dict['procedures']`` and build a per-
+                    # procedure ctx (see NarrativePass.run + ctx.related_procedure_id).
+                    #
+                    # AD-32: stubs are emitted for every recorded Procedure
+                    # regardless of encounter close state — a bedside
+                    # procedure done today has a formal note today, not on
+                    # discharge.
+                    from clinosim.modules.document.reference_data_loaders import (
+                        load_bedside_procedure_codes,
+                    )
+
+                    bedside_codes = load_bedside_procedure_codes()["procedure_note"]
+                    for proc in _o(record, "procedures", []) or []:
+                        if _o(proc, "encounter_id", "") != encounter_id:
+                            continue
+                        proc_code = str(_o(proc, "procedure_code", "") or "").strip()
+                        if proc_code not in bedside_codes:
+                            continue
+                        proc_id = _o(proc, "procedure_id", "") or ""
+                        proc_start = _o(proc, "start_datetime", None) or admission_dt
+                        proc_end = _o(proc, "end_datetime", None) or proc_start
+                        documents.append(
+                            ClinicalDocument(
+                                document_id=(f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}-pn"),
+                                task_type=spec.type_key,
+                                loinc_code=spec.loinc_code,
+                                patient_id=pid,
+                                encounter_id=encounter_id,
+                                author_practitioner_id=(
+                                    _o(proc, "primary_surgeon_id", "") or _pick_document_author(spec, encounter)
+                                ),
+                                related_procedure_id=proc_id,
+                                authored_datetime=(
+                                    proc_end.isoformat() if hasattr(proc_end, "isoformat") else str(proc_end)
+                                ),
+                                period_start=(
+                                    proc_start.isoformat() if hasattr(proc_start, "isoformat") else str(proc_start)
+                                ),
+                                period_end=(proc_end.isoformat() if hasattr(proc_end, "isoformat") else str(proc_end)),
+                                language=lang,
+                                format_type=spec.format_type.value,
+                                narrative=None,
+                            )
+                        )
+                        doc_seq += 1
 
                 elif freq == "encounter_once":
                     # Single-visit encounters (outpatient SOAP, ED note, ED triage note).

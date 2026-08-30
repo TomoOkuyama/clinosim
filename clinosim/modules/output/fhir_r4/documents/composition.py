@@ -284,6 +284,17 @@ _SECTION_TITLE_JA: dict[str, str] = {
     "complications_and_comorbidities": "合併症・併存症",
     "family_communication": "家族への説明経過",
     "autopsy_status_and_findings": "剖検の有無・所見",
+    # Issue #992 — 処置記録 (Procedure note) sections. Titles mirror the
+    # section keys authored in
+    # ``clinosim/modules/document/reference_data/document_type_specs.yaml``.
+    "pn_procedure_name": "処置名",
+    "pn_consent": "インフォームド・コンセント",
+    "pn_performer": "実施者",
+    "pn_analgesia": "麻酔・鎮静",
+    "pn_course": "処置経過",
+    "pn_complications": "合併症の有無",
+    "pn_specimens": "検体の有無",
+    "pn_postop_plan": "術後方針",
 }
 
 
@@ -308,6 +319,15 @@ _DEATH_CERT_SECTION_TITLE_EN: dict[str, str] = {
     "complications_and_comorbidities": "Complications and comorbidities",
     "family_communication": "Family communication",
     "autopsy_status_and_findings": "Autopsy status and findings",
+    # Issue #992 — 処置記録 sections in US locale.
+    "pn_procedure_name": "Procedure",
+    "pn_consent": "Informed consent",
+    "pn_performer": "Operator",
+    "pn_analgesia": "Analgesia",
+    "pn_course": "Procedure course",
+    "pn_complications": "Complications",
+    "pn_specimens": "Specimens",
+    "pn_postop_plan": "Post-procedure plan",
 }
 
 
@@ -422,6 +442,22 @@ _SECTION_LOINC: dict[str, str] = {
     "policy": "18776-5",  # Plan of care (policy = clinical plan)
     "discharge_estimate": "8648-8",  # Hospital course (estimated LOS/discharge)
     "explanation_consent": "18776-5",  # Plan of care (was 42346-6, unknown)
+    # Issue #992 — 処置記録 (Procedure note) sections. We map every
+    # ``pn_*`` slug to LOINC codes that are already used elsewhere in
+    # this file (all confirmed present in the fhir-jp-validator LOINC
+    # 2.82 cache). ``29554-3`` "Procedure narrative" is a canonical
+    # match for the procedural body; ``51897-7`` "Care team member"
+    # matches the operator section; every remaining section falls back
+    # to ``18776-5`` "Plan of care note" — the catch-all this file
+    # already uses for care_plan / follow_up / functional_status.
+    "pn_procedure_name": "29554-3",  # Procedure narrative (name/description)
+    "pn_consent": "18776-5",
+    "pn_performer": "51897-7",  # Care team member
+    "pn_analgesia": "18776-5",
+    "pn_course": "29554-3",  # Procedure narrative
+    "pn_complications": "18776-5",
+    "pn_specimens": "18776-5",
+    "pn_postop_plan": "18776-5",
 }
 
 

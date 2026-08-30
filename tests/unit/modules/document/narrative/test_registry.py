@@ -181,6 +181,12 @@ def test_load_raises_on_missing_required_field() -> None:
                 "stage2_strategy": "template_seed_bundle",
                 "llm_enabled_sections": ["op_findings", "op_course", "op_postop_plan"],
             },
+            "procedure_note": {
+                "loinc_code": "28570-0",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "per_bedside_procedure",
+            },
         }
     }
     with pytest.raises(ValueError, match="missing countries_supported"):
@@ -302,6 +308,12 @@ def test_load_raises_on_null_entry() -> None:
                 ],
                 "stage2_strategy": "template_seed_bundle",
                 "llm_enabled_sections": ["op_findings", "op_course", "op_postop_plan"],
+            },
+            "procedure_note": {
+                "loinc_code": "28570-0",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "per_bedside_procedure",
             },
         }
     }
@@ -430,6 +442,12 @@ def test_load_raises_on_empty_countries_supported() -> None:
                 "stage2_strategy": "template_seed_bundle",
                 "llm_enabled_sections": ["op_findings", "op_course", "op_postop_plan"],
             },
+            "procedure_note": {
+                "loinc_code": "28570-0",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "per_bedside_procedure",
+            },
         }
     }
     with pytest.raises(ValueError, match="countries_supported empty"):
@@ -439,18 +457,20 @@ def test_load_raises_on_empty_countries_supported() -> None:
 # === α-min-2 tests ===
 
 
-def test_load_specs_returns_17_total() -> None:
-    """17 = 3 α-min-1 + 6 α-min-2 + 3 chain-2 + PR2b referral + PR3 checkup +
-    Issue #961 death cert + Issue #961 ext death discharge summary + Issue #991
-    operative note."""
+def test_load_specs_returns_18_total() -> None:
+    """18 = 3 α-min-1 + 6 α-min-2 + 3 chain-2 + PR2b referral + PR3 checkup +
+    Issue #961 death cert + Issue #961 ext death discharge summary +
+    Issue #991 operative_note + Issue #992 procedure_note."""
     load_document_type_specs.cache_clear()
     specs = load_document_type_specs()
-    assert len(specs) == 17, f"Expected 17 specs (adds operative_note per Issue #991), got {len(specs)}"
+    assert len(specs) == 18, (
+        f"Expected 18 specs (adds operative_note + procedure_note per Issues #991 + #992), got {len(specs)}"
+    )
 
 
-def test_supported_document_types_covers_17_entries() -> None:
-    """SUPPORTED_DOCUMENT_TYPES frozenset has 17 members after Issue #991 OPERATIVE_NOTE."""
-    assert len(SUPPORTED_DOCUMENT_TYPES) == 17
+def test_supported_document_types_covers_18_entries() -> None:
+    """SUPPORTED_DOCUMENT_TYPES frozenset has 18 members after Issues #991 + #992."""
+    assert len(SUPPORTED_DOCUMENT_TYPES) == 18
 
 
 def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> None:
@@ -464,23 +484,25 @@ def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> N
     assert keys == ["outpatient_soap"], f"Expected only outpatient_soap in restricted set, got {keys}"
 
 
-def test_specs_for_encounter_type_inpatient_returns_13_specs() -> None:
+def test_specs_for_encounter_type_inpatient_returns_14_specs() -> None:
     """3 α-min-1 (no restriction, matches all) + 3 nursing specs + admission_care_plan +
     nutrition_care_plan + rehabilitation_plan (chain 2) + referral_note (P2-13 PR2b) +
     death_certificate (Issue #961) + death_discharge_summary (Issue #961 ext) +
-    operative_note (Issue #991) = 13 total for inpatient."""
+    operative_note (Issue #991) + procedure_note (Issue #992) = 14 total for inpatient."""
     load_document_type_specs.cache_clear()
     inpatient_specs = specs_for_encounter_type("inpatient")
-    assert len(inpatient_specs) == 13, f"Expected 13 inpatient specs, got {len(inpatient_specs)}"
+    assert len(inpatient_specs) == 14, f"Expected 14 inpatient specs, got {len(inpatient_specs)}"
 
 
-def test_specs_for_encounter_type_emergency_returns_2_ed_specs() -> None:
-    """ED_NOTE and ED_TRIAGE_NOTE are the only encounter-restricted specs for emergency."""
+def test_specs_for_encounter_type_emergency_returns_ed_and_procedure_specs() -> None:
+    """ED_NOTE + ED_TRIAGE_NOTE + PROCEDURE_NOTE (Issue #992) are the encounter-
+    restricted specs applicable to emergency encounters — the last one because
+    a bedside procedure (LP / chest tube / cardioversion) can happen in the ED."""
     load_document_type_specs.cache_clear()
     emergency_specs = specs_for_encounter_type("emergency")
     restricted = [s for s in emergency_specs if s.encounter_types_supported]
     keys = {s.type_key for s in restricted}
-    assert keys == {"ed_note", "ed_triage_note"}, f"Expected ED specs only, got {keys}"
+    assert keys == {"ed_note", "ed_triage_note", "procedure_note"}, f"Expected ED specs + procedure_note, got {keys}"
 
 
 def test_encounter_once_generation_frequency_recognized() -> None:

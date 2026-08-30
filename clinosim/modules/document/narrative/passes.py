@@ -186,6 +186,13 @@ class NarrativePass(ABC):
                 # Daily notes previously all rendered as day 0 because
                 # ctx was built once per patient with day_index=0.
                 ctx.day_index = self._stub_day_index(stub, encounter_dict)
+                # Issue #992: per-Procedure documents (procedure_note /
+                # operative_note) carry ``related_procedure_id`` on the
+                # stub. Propagate to the ctx so ``_build_pn_*`` /
+                # ``_build_op_*`` builders can look up the specific
+                # Procedure out of ``ctx.procedures`` — every other stub
+                # leaves this as "".
+                ctx.related_procedure_id = str(stub.get("related_procedure_id", "") or "")
                 output = self._generate(ctx, spec)
                 wrapper = self._output_to_wrapper(output, generator=self._generator_name())
                 results.append(

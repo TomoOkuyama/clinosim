@@ -1148,6 +1148,18 @@ class TemplateNarrativeGenerator:
             "op_blood_loss": self._build_op_blood_loss,
             "op_equipment": self._build_op_equipment,
             "op_postop_plan": self._build_op_postop_plan,
+            # Issue #992: PROCEDURE_NOTE sections (LOINC 28570-0). Keys
+            # are ``pn_``-prefixed so they never collide with the
+            # generic ``course`` / ``complications`` / ``specimens``
+            # slugs a future document type may reuse.
+            "pn_procedure_name": self._build_pn_procedure_name,
+            "pn_consent": self._build_pn_consent,
+            "pn_performer": self._build_pn_performer,
+            "pn_analgesia": self._build_pn_analgesia,
+            "pn_course": self._build_pn_course,
+            "pn_complications": self._build_pn_complications,
+            "pn_specimens": self._build_pn_specimens,
+            "pn_postop_plan": self._build_pn_postop_plan,
         }
 
         # P2-13 PR2a: use the JP-specific section list when country=JP so
@@ -6373,6 +6385,253 @@ class TemplateNarrativeGenerator:
             "to detect postoperative complications early."
         )
         return f"Postoperative plan: {dest}. {monitor}", facts
+
+    # Issue #992: PROCEDURE_NOTE (処置記録, LOINC 28570-0) section builders.
+    # Each builder resolves the ProcedureRecord identified by
+    # ``ctx.related_procedure_id`` (populated per-stub by
+    # ``NarrativePass.run``) out of ``ctx.procedures`` and renders one
+    # section of the note. When the procedure is missing (defensive
+    # fallback — should never happen because the enricher only creates a
+    # stub when a matching ProcedureRecord exists) the builders emit a
+    # short "記録なし" / "not documented" line rather than raising, so a
+    # single stale narrative version never blocks the whole pipeline.
+    # ─────────────────────────────────────────────────────────────────
+
+    def _pn_resolve_procedure(self, ctx: NarrativeContext) -> tuple[Any | None, list[str]]:
+        """Locate the ProcedureRecord this stub describes."""
+        proc_id = str(getattr(ctx, "related_procedure_id", "") or "")
+        if not proc_id:
+            return None, []
+        for proc in ctx.procedures or []:
+            if str(_o(proc, "procedure_id", "") or "") == proc_id:
+                return proc, [f"ctx.procedures[{proc_id}]"]
+        return None, []
+
+    def _build_pn_procedure_name(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """処置名 / Procedure name — resolved from procedure_code."""
+        is_ja = ctx.target_lang == "ja"
+        proc, facts = self._pn_resolve_procedure(ctx)
+        if proc is None:
+            return ("処置名: 記録なし。" if is_ja else "Procedure: not documented."), facts
+        code_jp = str(_o(proc, "procedure_code_jp", "") or "")
+        code_us = str(_o(proc, "procedure_code_us", "") or "")
+        code = str(_o(proc, "procedure_code", "") or "")
+        # Pick the locale-appropriate code system for the display lookup.
+        primary_code = code_jp if (is_ja and code_jp) else (code_us if (not is_ja and code_us) else code)
+        system_key = (
+            "k-codes"
+            if primary_code == code_jp and code_jp
+            else ("cpt" if primary_code == code_us and code_us else "k-codes")
+        )
+        display = code_lookup(system_key, primary_code, ctx.target_lang) or primary_code or ""
+        proc_type = str(_o(proc, "procedure_type", "") or "")
+        facts.append("ctx.procedures.procedure_code")
+        if is_ja:
+            core = f"処置名: {display}"
+            if primary_code:
+                core += f"（{primary_code}）"
+            if proc_type:
+                core += f"／術式区分: {proc_type}"
+            return core + "。", facts
+        core = f"Procedure: {display}"
+        if primary_code:
+            core += f" ({primary_code})"
+        if proc_type:
+            core += f" / type: {proc_type}"
+        return core + ".", facts
+
+    def _build_pn_consent(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """インフォームド・コンセント / Consent — boilerplate.
+
+        clinosim does not model per-Procedure consent artefacts. The
+        template emits the standard "consent obtained" phrase every real
+        JP electronic-chart procedure note carries; sites that need a
+        richer consent trail should record it upstream (Order /
+        Procedure.note) and extend this builder.
+        """
+        _proc, facts = self._pn_resolve_procedure(ctx)
+        is_ja = ctx.target_lang == "ja"
+        if is_ja:
+            return (
+                "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・"
+                "予想される合併症について文書で説明し、同意を得た。"
+            ), facts
+        return (
+            "Informed consent: risks, benefits, and alternatives were explained to the "
+            "patient (or surrogate) and written consent was obtained prior to the procedure."
+        ), facts
+
+    def _build_pn_performer(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """実施者 / Performer — from ProcedureRecord.primary_surgeon_id."""
+        is_ja = ctx.target_lang == "ja"
+        proc, facts = self._pn_resolve_procedure(ctx)
+        if proc is None:
+            return ("実施者: 記録なし。" if is_ja else "Operator: not documented."), facts
+        performer_id = str(_o(proc, "primary_surgeon_id", "") or "")
+        assistant_ids = list(_o(proc, "assistant_ids", []) or [])
+        anesth_id = str(_o(proc, "anesthesiologist_id", "") or "")
+
+        # Roster lookup — if the pass populated ``ctx.roster_map`` we can
+        # substitute the raw id with a full name; otherwise the raw id
+        # goes through and downstream roster localizers may still
+        # rewrite it (feedback: staff-id leak was already fixed for
+        # Composition, this keeps parity).
+        def _localise(raw_id: str, role_suffix_ja: str, role_suffix_en: str) -> str:
+            entry = (ctx.roster_map or {}).get(raw_id) if raw_id else None
+            if entry:
+                name = str(_o(entry, "name", "") or _o(entry, "display", "") or raw_id)
+                return f"{name}{role_suffix_ja}" if is_ja else f"{name}{role_suffix_en}"
+            return raw_id
+
+        performer = _localise(performer_id, "医師", ", MD")
+        assistants = [_localise(a, "医師", ", MD") for a in assistant_ids if a]
+        anesth = _localise(anesth_id, "医師", ", MD") if anesth_id else ""
+        facts.extend(["ctx.procedures.primary_surgeon_id"])
+        if is_ja:
+            parts = [f"実施者: {performer or '記録なし'}"]
+            if assistants:
+                parts.append(f"介助: {', '.join(assistants)}")
+            if anesth:
+                parts.append(f"麻酔科医: {anesth}")
+            return "。".join(parts) + "。", facts
+        parts = [f"Operator: {performer or 'not documented'}"]
+        if assistants:
+            parts.append(f"Assistants: {', '.join(assistants)}")
+        if anesth:
+            parts.append(f"Anesthesiologist: {anesth}")
+        return ". ".join(parts) + ".", facts
+
+    def _build_pn_analgesia(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """麻酔・鎮静 / Analgesia — from ProcedureRecord.anesthesia_type."""
+        is_ja = ctx.target_lang == "ja"
+        proc, facts = self._pn_resolve_procedure(ctx)
+        if proc is None:
+            return ("麻酔・鎮静: 記録なし。" if is_ja else "Analgesia: not documented."), facts
+        anesth = str(_o(proc, "anesthesia_type", "") or "").strip().lower()
+        # Bedside procedures use local / sedation almost exclusively —
+        # if the record says "general" we still honor it (some cardio-
+        # version cases are done under brief GA).
+        display_ja = {
+            "local": "局所麻酔",
+            "sedation": "静脈内鎮静（監視下）",
+            "spinal": "脊椎麻酔",
+            "general": "全身麻酔",
+        }.get(anesth, "局所麻酔")
+        display_en = {
+            "local": "local anesthesia",
+            "sedation": "monitored intravenous sedation",
+            "spinal": "spinal anesthesia",
+            "general": "general anesthesia",
+        }.get(anesth, "local anesthesia")
+        facts.append("ctx.procedures.anesthesia_type")
+        if is_ja:
+            return f"麻酔・鎮静: {display_ja}下に施行。", facts
+        return f"Analgesia: procedure performed under {display_en}.", facts
+
+    def _build_pn_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """処置経過 / Procedure course — from duration + approach + outcome."""
+        is_ja = ctx.target_lang == "ja"
+        proc, facts = self._pn_resolve_procedure(ctx)
+        if proc is None:
+            return ("処置経過: 記録なし。" if is_ja else "Course: not documented."), facts
+        duration = int(_o(proc, "duration_minutes", 0) or 0)
+        approach = str(_o(proc, "approach", "") or "")
+        outcome_code = str(_o(proc, "outcome_code", "") or "")
+        # SNOMED outcome codes: 385669000 successful / 385670004 partial /
+        # 385671000 unsuccessful.
+        outcome_ja = {
+            "385669000": "手技は問題なく完遂した",
+            "385670004": "手技は部分的に完遂した",
+            "385671000": "手技は完遂できなかった",
+        }.get(outcome_code, "手技は概ね予定通りに完遂した")
+        outcome_en = {
+            "385669000": "The procedure was completed without issue",
+            "385670004": "The procedure was partially completed",
+            "385671000": "The procedure could not be completed",
+        }.get(outcome_code, "The procedure was completed as planned")
+        facts.extend(["ctx.procedures.duration_minutes", "ctx.procedures.outcome_code"])
+        if is_ja:
+            core = f"処置経過: 所要時間{duration}分にて実施。"
+            if approach:
+                core += f"アプローチは{approach}。"
+            return core + f"{outcome_ja}。", facts
+        core = f"Course: procedure took {duration} minutes."
+        if approach:
+            core += f" Approach: {approach}."
+        return core + f" {outcome_en}.", facts
+
+    def _build_pn_complications(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """合併症の有無 / Complications — from intraop_complications + complication_codes."""
+        is_ja = ctx.target_lang == "ja"
+        proc, facts = self._pn_resolve_procedure(ctx)
+        if proc is None:
+            return ("合併症の有無: 記録なし。" if is_ja else "Complications: not documented."), facts
+        intraop = [str(x) for x in (_o(proc, "intraop_complications", []) or []) if x]
+        codes = [str(x) for x in (_o(proc, "complication_codes", []) or []) if x]
+        facts.append("ctx.procedures.intraop_complications")
+        if intraop or codes:
+            code_display = []
+            for c in codes:
+                disp = code_lookup("snomed-ct", c, ctx.target_lang) or c
+                code_display.append(f"{disp}（{c}）" if is_ja else f"{disp} ({c})")
+            all_items = intraop + code_display
+            joined = "、".join(all_items) if is_ja else "; ".join(all_items)
+            if is_ja:
+                return f"合併症の有無: あり — {joined}。", facts
+            return f"Complications: present — {joined}.", facts
+        if is_ja:
+            return "合併症の有無: 特記すべき手技合併症なし。", facts
+        return "Complications: none noted during the procedure.", facts
+
+    def _build_pn_specimens(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """検体の有無 / Specimens — from ProcedureRecord.specimens_sent."""
+        is_ja = ctx.target_lang == "ja"
+        proc, facts = self._pn_resolve_procedure(ctx)
+        if proc is None:
+            return ("検体の有無: 記録なし。" if is_ja else "Specimens: not documented."), facts
+        specimens = [str(x) for x in (_o(proc, "specimens_sent", []) or []) if x]
+        facts.append("ctx.procedures.specimens_sent")
+        if specimens:
+            joined = "、".join(specimens) if is_ja else ", ".join(specimens)
+            if is_ja:
+                return f"検体の有無: {joined}を採取し病理・微生物検査に提出。", facts
+            return f"Specimens: {joined} obtained and sent for pathology/microbiology.", facts
+        if is_ja:
+            return "検体の有無: 検体採取なし。", facts
+        return "Specimens: none obtained.", facts
+
+    def _build_pn_postop_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """術後方針 / Post-procedure plan — outcome-aware boilerplate."""
+        is_ja = ctx.target_lang == "ja"
+        proc, facts = self._pn_resolve_procedure(ctx)
+        if proc is None:
+            return ("術後方針: 記録なし。" if is_ja else "Post-procedure plan: not documented."), facts
+        outcome_code = str(_o(proc, "outcome_code", "") or "")
+        facts.append("ctx.procedures.outcome_code")
+        # Simple, defensible plans: baseline monitoring for successful
+        # procedures; escalation-of-care phrasing for unsuccessful ones.
+        if outcome_code == "385671000":
+            if is_ja:
+                return (
+                    "術後方針: 手技目的を達成できなかったため、代替治療（外科的介入 "
+                    "または内視鏡的再アプローチ）を検討する。バイタル・症状の変化を"
+                    "厳重に監視する。"
+                ), facts
+            return (
+                "Post-procedure plan: because the intended goal was not achieved, "
+                "alternative therapy (surgical or repeat endoscopic approach) will be "
+                "considered. Continue close monitoring of vitals and symptoms."
+            ), facts
+        if is_ja:
+            return (
+                "術後方針: バイタル・穿刺部位（挿入部）を経時的に観察し、合併症の"
+                "早期発見に努める。翌日以降にフォロー画像・検査を予定する。"
+            ), facts
+        return (
+            "Post-procedure plan: monitor vitals and the puncture / insertion site "
+            "serially for early detection of complications. Follow-up imaging or labs "
+            "will be scheduled the next day."
+        ), facts
 
     # ─────────────────────────────────────────────────────────────────
     # Formatting helpers

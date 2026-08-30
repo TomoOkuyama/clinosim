@@ -72,6 +72,15 @@ class DocumentType(StrEnum):
     # exist; this enum entry wires the DocumentType layer that the
     # narrative pipeline reads.
     OPERATIVE_NOTE = "operative_note"
+    # Issue #992: 処置記録 (Procedure note) — LOINC 28570-0. Emitted per
+    # invasive bedside Procedure (endoscopy / chest tube / central line /
+    # lumbar puncture / thoracentesis / paracentesis / cardioversion /
+    # etc.). The K/D/G/J code-set that dispatches this document type
+    # lives in
+    # ``clinosim/modules/document/reference_data/bedside_procedure_codes.yaml``.
+    # Complements #991 OPERATIVE_NOTE (which covers surgical Procedures
+    # such as ORIF / laparotomy / colectomy).
+    PROCEDURE_NOTE = "procedure_note"
 
 
 @dataclass(frozen=True)
@@ -285,6 +294,14 @@ class NarrativeContext:
     # both structural-CIF dict entries and in-memory ``Order`` dataclasses
     # round-trip via ``get_attr_or_key``.
     orders: list[Any] = field(default_factory=list)
+
+    # === Issue #992 (procedure_note dispatch) ===
+    # For per-Procedure documents (PROCEDURE_NOTE / OPERATIVE_NOTE) the
+    # narrative pass sets this per-stub from ``ClinicalDocument.related_procedure_id``
+    # so section builders can look up the specific Procedure they
+    # describe out of ``ctx.procedures``. Empty string for every other
+    # document type (mirrors ``ctx.shift`` / ``ctx.day_index``).
+    related_procedure_id: str = ""
 
     # === Issue #982 (family_history narrative) ===
     # Raw ``record.family_history`` (list of ``FamilyMemberHistoryRecord``
