@@ -64,6 +64,14 @@ class DocumentType(StrEnum):
     # discharge-summary Composition per encounter, and its title
     # disambiguates death vs living discharge.
     DEATH_DISCHARGE_SUMMARY = "death_discharge_summary"
+    # Issue #991: 手術記録 (Operative note) — LOINC 11504-8. Emitted for
+    # every inpatient/ICU encounter that has ≥ 1 surgical procedure
+    # (category_code == "387713003" SNOMED surgical procedure). Complements
+    # the existing procedure catalog (#954) with a surgical-service-line
+    # narrative document. Prompt yaml + LLMTaskType.OPERATIVE_NOTE already
+    # exist; this enum entry wires the DocumentType layer that the
+    # narrative pipeline reads.
+    OPERATIVE_NOTE = "operative_note"
 
 
 @dataclass(frozen=True)
