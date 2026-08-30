@@ -1,0 +1,157 @@
+# JP Practitioner qualification + regulatory-license identifier tables
+# (Issue #962). Emit-only; not consumed anywhere in CIF generation.
+#
+# Three sections:
+#   1. `qualification_codes` — MHLW national license per staff role
+#      (medical / nursing / allied-health / pharmacy / lab). Emitted to
+#      `Practitioner.qualification[0]`.
+#   2. `physician_specialty_boards` — 学会認定専門医 (board certifications)
+#      per hospital department (循環器専門医, etc.). Emitted to
+#      `Practitioner.qualification[1]` for physicians / radiologists when
+#      the physician's specialty matches a mapped department.
+#   3. `license_identifiers` — MHLW 免許登録番号 per staff role
+#      (医籍番号, 看護師籍登録番号, 薬剤師名簿登録番号, etc.).
+#      Emitted to `Practitioner.identifier[]`. Values are deterministically
+#      derived from the staff_id via SHA-256 (RNG-neutral additive field,
+#      per feedback_rng_neutral_additive_field) — no CIF change, no
+#      master-RNG consumption.
+#
+# Source references
+# -----------------
+# * `code_system` (`urn:oid:1.2.392.100495.20.1.75`) — MHLW national
+#   qualification OID stub (JP-CLINS example). No live JP-CLINS
+#   `MHLW_Qualification` CodeSystem publication yet; this OID mirrors
+#   the sibling MRN example (`urn:oid:1.2.392.100495.20.3.51.1`) used in
+#   `demographics/patient.py`. Codes and displays follow HL7 v3
+#   OccupationCode conventions where they exist.
+# * `license_identifiers[*].system` — JP-CLINS `IdSystem` naming pattern
+#   `http://jpfhir.jp/fhir/core/IdSystem/JP_Practitioner_<Kind>LicenseNumber`,
+#   mirroring the sibling
+#   `http://jpfhir.jp/fhir/core/IdSystem/insurance-medical-institution-no`
+#   URIs used in `documents/referral_orgs.py` and
+#   `encounters/facility.py`. The physician URI matches the example
+#   quoted in Issue #962 (JP_Practitioner_MedicalLicenseNumber).
+# * `physician_specialty_boards.code` — synthetic string tokens
+#   (`CardiologySpecialist`, etc.) with the Japanese board name in
+#   `display`. Board certifications are issued by 学会 (e.g. 日本循環器学会),
+#   not by MHLW, so we surface them under the same MHLW-qualification
+#   umbrella for compactness rather than fabricating a per-board OID.
+
+code_system: urn:oid:1.2.392.100495.20.1.75  # MHLW national qualification (example)
+license_identifier_salt: practitioner-license-2026  # SHA-256 salt for deterministic license numbers
+
+qualification_codes:
+  physician:
+    code: MedicalDoctor
+    display: 医師
+  nurse:
+    code: RegisteredNurse
+    display: 看護師
+  lab_technician:
+    code: ClinicalLabTechnician
+    display: 臨床検査技師
+  radiologist:
+    code: MedicalDoctor
+    display: 医師 (放射線科)
+  pharmacist:
+    code: Pharmacist
+    display: 薬剤師
+  physical_therapist:
+    code: PhysicalTherapist
+    display: 理学療法士
+  occupational_therapist:
+    code: OccupationalTherapist
+    display: 作業療法士
+  speech_therapist:
+    code: SpeechTherapist
+    display: 言語聴覚士
+  medical_social_worker:
+    code: MedicalSocialWorker
+    display: 医療ソーシャルワーカー
+  dietitian:
+    code: RegisteredDietitian
+    display: 管理栄養士
+
+# Physician board certifications (専門医資格). Keyed by
+# ``StaffMember.specialty`` — which equals the physician's ``department``
+# in the roster (see clinosim/modules/staff/engine.py::_add_physician).
+physician_specialty_boards:
+  cardiology:            {code: CardiologySpecialist,       display: 循環器専門医}
+  pulmonology:           {code: RespiratorySpecialist,      display: 呼吸器専門医}
+  gastroenterology:      {code: GastroenterologySpecialist, display: 消化器専門医}
+  nephrology:            {code: NephrologySpecialist,       display: 腎臓専門医}
+  endocrinology:         {code: EndocrinologySpecialist,    display: 内分泌代謝科専門医}
+  neurology:             {code: NeurologySpecialist,        display: 神経内科専門医}
+  general_surgery:       {code: SurgerySpecialist,          display: 外科専門医}
+  orthopedics:           {code: OrthopedicsSpecialist,      display: 整形外科専門医}
+  neurosurgery:          {code: NeurosurgerySpecialist,     display: 脳神経外科専門医}
+  trauma_surgery:        {code: SurgerySpecialist,          display: 外科専門医}
+  emergency_medicine:    {code: EmergencySpecialist,        display: 救急科専門医}
+  primary_care:          {code: InternalMedicineSpecialist, display: 総合内科専門医}
+  internal_medicine:     {code: InternalMedicineSpecialist, display: 総合内科専門医}
+  obstetrics_gynecology: {code: ObstetricsGynecologySpecialist, display: 産婦人科専門医}
+  pediatrics:            {code: PediatricsSpecialist,       display: 小児科専門医}
+  radiology:             {code: RadiologySpecialist,        display: 放射線科専門医}
+
+# JP MHLW 免許登録番号 per role. `digits` = fixed width, zero-padded
+# from the SHA-256-derived integer. `prefix` / `suffix` bracket the
+# numeric core (e.g. 医籍番号 is conventionally written 第123456号).
+license_identifiers:
+  physician:
+    system: http://jpfhir.jp/fhir/core/IdSystem/JP_Practitioner_MedicalLicenseNumber
+    label: 医籍番号
+    prefix: 第
+    suffix: 号
+    digits: 6
+  radiologist:
+    system: http://jpfhir.jp/fhir/core/IdSystem/JP_Practitioner_MedicalLicenseNumber
+    label: 医籍番号
+    prefix: 第
+    suffix: 号
+    digits: 6
+  nurse:
+    system: http://jpfhir.jp/fhir/core/IdSystem/JP_Practitioner_NursingLicenseNumber
+    label: 看護師籍登録番号
+    prefix: ""
+    suffix: ""
+    digits: 8
+  pharmacist:
+    system: http://jpfhir.jp/fhir/core/IdSystem/JP_Practitioner_PharmacistLicenseNumber
+    label: 薬剤師名簿登録番号
+    prefix: 第
+    suffix: 号
+    digits: 6
+  lab_technician:
+    system: http://jpfhir.jp/fhir/core/IdSystem/JP_Practitioner_ClinicalLabTechnicianLicenseNumber
+    label: 臨床検査技師籍登録番号
+    prefix: 第
+    suffix: 号
+    digits: 6
+  physical_therapist:
+    system: http://jpfhir.jp/fhir/core/IdSystem/JP_Practitioner_PhysicalTherapistLicenseNumber
+    label: 理学療法士名簿登録番号
+    prefix: 第
+    suffix: 号
+    digits: 6
+  occupational_therapist:
+    system: http://jpfhir.jp/fhir/core/IdSystem/JP_Practitioner_OccupationalTherapistLicenseNumber
+    label: 作業療法士名簿登録番号
+    prefix: 第
+    suffix: 号
+    digits: 6
+  speech_therapist:
+    system: http://jpfhir.jp/fhir/core/IdSystem/JP_Practitioner_SpeechTherapistLicenseNumber
+    label: 言語聴覚士名簿登録番号
+    prefix: 第
+    suffix: 号
+    digits: 6
+  dietitian:
+    system: http://jpfhir.jp/fhir/core/IdSystem/JP_Practitioner_RegisteredDietitianLicenseNumber
+    label: 管理栄養士名簿登録番号
+    prefix: 第
+    suffix: 号
+    digits: 6
+  # MSW (医療ソーシャルワーカー) is not an MHLW-licensed profession
+  # (国家資格化されていない社会福祉士等の名称独占資格に限定される)
+  # so no license number is emitted for that role — its qualification
+  # code still populates (see qualification_codes.medical_social_worker).
