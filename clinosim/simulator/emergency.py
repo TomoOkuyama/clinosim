@@ -113,7 +113,15 @@ def _simulate_ed_visit(
     encounter.encounter_type = EncounterType.OUTPATIENT if proto_enc_type == "outpatient" else EncounterType.EMERGENCY
     encounter.status = EncounterStatus.COMPLETED
 
-    staff = assign_staff("admission", "internal_medicine", roster, rng)
+    # Issue #915: ED encounters must draw the attending physician from the
+    # emergency-medicine pool (DR-EM-*), not the internal-medicine pool. The
+    # pre-fix hardcoded "internal_medicine" left every generated DR-EM
+    # practitioner unreferenced by any Encounter — a real ED is staffed by
+    # emergency-medicine specialists, not internists moonlighting.
+    # ``assign_staff`` falls through to any physician if the roster has no
+    # DR-EM (small hospitals / test fixtures), so the change is safe when
+    # the ED specialty pool is empty.
+    staff = assign_staff("admission", "emergency_medicine", roster, rng)
     encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
 
     # ED stay duration from protocol or default

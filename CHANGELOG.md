@@ -97,6 +97,40 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   pharmacists / nurses can tune rates without a code change; the
   catalog covers 74 drugs plus a `default` fallback (30-min bolus).
   Closes #966.
+- **Issue #915 — Practitioner allocation broken (16 % (18/116)
+  Practitioners never referenced by any Encounter/CareTeam).** Pre-fix,
+  ED encounters hardcoded `assign_staff(..., "internal_medicine", ...)`
+  in `simulator/emergency.py`, so all 4 emergency-medicine specialists
+  (DR-EM-*) in the roster were unreferenced — every `EMER` encounter was
+  attributed to an internist. Radiology `DiagnosticReport.performer` /
+  `resultsInterpreter` fell back to the encounter attending, so all 4
+  radiologists (DR-RAD-*) were also unreferenced. Allied-health staff
+  (PT/OT/ST/RD/MSW + rehabilitation MDs) appeared in `Practitioner.ndjson`
+  but no clinical resource ever named them. And `generate_roster`
+  created 2 physicians each for `nutrition` and `medical_social_work`
+  service lines (DR-NU-*, DR-ME-*) — depts that are staffed by
+  dietitians / social workers, not MDs — leaving 4 perpetually-
+  unreferenced practitioners. Fix (four coordinated changes):
+  (1) `simulator/emergency.py:116` — ED attending drawn from
+  `emergency_medicine` pool (falls through to any physician when roster
+  has no DR-EM);
+  (2) `output/fhir_r4/labs/diagnostic_report.py` — imaging DR
+  performer / resultsInterpreter deterministically picks a radiologist
+  from the roster via `sha-lite(role-salt + study_id + order_id)` hash
+  (RNG-neutral additive per `feedback_rng_neutral_additive_field`);
+  (3) `output/fhir_r4/encounters/care_team.py` — inpatient CareTeam
+  gains PT / OT / ST / RD / MSW / rehab-physician participants via
+  role-salted encounter-id hash, mirroring the pharmacist pattern
+  (SNOMED role codes 36682004, 80546007, 159026005, 159033005,
+  106328005, 309362007);
+  (4) `modules/staff/engine.py` — physician generation skipped for
+  `nutrition` and `medical_social_work` depts. Verified on JP p=1000:
+  **112/112 Practitioners referenced (0 unreferenced)**, DR-EM own
+  100+ EMER encounters each, DR-RAD signs 60+ radiology DRs each,
+  allied-health each get 60+ CareTeam refs. MINOR — CIF
+  `attending_physician_id` changes on `EMER` encounters (RNG cascade
+  at `rng.choice`) and new CareTeam participants require a fresh
+  `narrate` run. Closes #915.
 
 ### Added
 

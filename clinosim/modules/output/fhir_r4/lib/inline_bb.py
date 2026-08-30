@@ -896,6 +896,20 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
     for sid, staff in (ctx.roster_map or {}).items():
         if (staff.get("role", "") or "") in _allied_roles:
             add(sid)
+    # Issue #915: emit the remaining roster (radiologists + specialty
+    # physicians in departments that may see no encounters in a small
+    # cohort — DR-EM in a cohort with no ED visits, DR-GS in a cohort
+    # with no surgery admissions, DR-NU / DR-ME / DR-RE whose
+    # encounters route through internal_medicine via
+    # `hospital_operations.yaml::department_rollup`). Pre-fix, these
+    # staff members existed in the in-memory roster but never entered
+    # `Practitioner.ndjson`, breaking the "roster completeness"
+    # invariant that JP hospital master data (医療機関スタッフマスタ) is
+    # expected to satisfy — a consumer listing all clinicians for a
+    # site sees fewer people than the hospital actually employs.
+    # Mirrors the pharmacist / allied-health full-emit pattern above.
+    for sid, staff in (ctx.roster_map or {}).items():
+        add(sid)
     return out
 
 
