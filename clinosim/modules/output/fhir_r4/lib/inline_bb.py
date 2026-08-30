@@ -427,6 +427,11 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     # Chronic codes for primary-condition-ref resolution (chronic-primary
     # encounters resolve reasonReference to the patient-scoped chronic).
     _chronic_codes = _extract_chronic_codes(ctx.patient_data or {})
+    # Issue #967: per-order earliest MA effectiveDateTime lookup. Used by
+    # `_build_medication_request` to clamp `authoredOn` back to
+    # `min(admin) − 1 min` when a day-N add-on order was authored later than
+    # the day-N MAR admin grid (see `_clamp_authored_to_earliest_admin`).
+    _earliest_admin_by_oid = _build_earliest_admin_map(ctx.record.get("medication_administrations", []) or [])
     for order in ctx.record.get("orders", []):
         if order.get("order_type") == "medication":
             if not (order.get("display_name") or "").strip():
@@ -449,8 +454,41 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
                     rp_number="1",
                     order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
                     chronic_condition_codes=_chronic_codes,
+                    earliest_admin_dt=_earliest_admin_by_oid.get(_oid, ""),
                 )
             )
+    return out
+
+
+def _build_earliest_admin_map(mars: list) -> dict[str, str]:
+    """Return ``{order_id: earliest MA effectiveDateTime}`` as ISO strings.
+
+    Issue #967 helper. Mirrors `_build_medication_admin`'s field selection —
+    ``effectiveDateTime = actual_datetime or scheduled_datetime`` — so the
+    clamp compares like-for-like with what will actually be emitted. Blank /
+    missing MA entries contribute nothing; ``min`` over an empty group yields
+    no key (caller reads via `.get(oid, "")`).
+
+    Naive ISO-8601 lexical `min` == chronological `min` because every value has
+    the same `YYYY-MM-DDTHH:MM:SS[.ffffff]` shape (TZ is appended downstream by
+    `_normalize_dt_fields`, not by the builders).
+    """
+    out: dict[str, str] = {}
+    for mar in mars:
+        oid = mar.get("order_id", "") if isinstance(mar, dict) else getattr(mar, "order_id", "")
+        if not oid:
+            continue
+        eff = ""
+        if isinstance(mar, dict):
+            eff = mar.get("actual_datetime") or mar.get("scheduled_datetime") or ""
+        else:
+            eff = getattr(mar, "actual_datetime", None) or getattr(mar, "scheduled_datetime", None) or ""
+        eff = str(eff or "")
+        if not eff:
+            continue
+        prev = out.get(oid)
+        if prev is None or eff < prev:
+            out[oid] = eff
     return out
 
 

@@ -678,6 +678,46 @@ def _resolve_medication_concept(
     return med_concept, rate_adjustment_note
 
 
+def _clamp_authored_to_earliest_admin(authored_naive: str, earliest_admin_dt: str) -> str:
+    """Return an ``authoredOn`` value guaranteed to be ≤ the earliest linked MA.
+
+    Issue #967: some daily-loop paths anchor add-on medication orders to
+    ``admission_time + timedelta(days=N, hours=10)`` while the MAR anchors its
+    q6h/q8h admin grid to ``datetime(admission_date, hour, 0) + timedelta(days=N)``.
+    When admission_time is late in the day (e.g. 16:37), the order's authored
+    stamp lands the next calendar day while the day-N MA slots stay on the
+    admission_date+N calendar day — producing MAs that ostensibly precede the
+    parent MR by up to ~24h. FHIR-emit-only clamp: if any linked MA precedes
+    the naive authoredOn, pull authoredOn back to (earliest MA − 1 minute) so
+    the temporal invariant ``MR.authoredOn ≤ min(MA.effectiveDateTime)`` holds.
+
+    CIF ``ordered_datetime`` is unchanged — this is a per-Issue #967 emit-layer
+    fix (feedback: FHIR-emit bug の data patch は code 層で完結).
+    """
+    if not authored_naive:
+        return earliest_admin_dt or ""
+    if not earliest_admin_dt:
+        return authored_naive
+    # Lexical compare is safe here: both values are naive ISO-8601 strings
+    # (`YYYY-MM-DDTHH:MM:SS[.ffffff]`) — TZ suffix is appended downstream by
+    # ``_normalize_dt_fields``, not by the builders. Same TZ-less shape → the
+    # string ordering matches the chronological ordering.
+    if earliest_admin_dt >= authored_naive:
+        return authored_naive
+    from datetime import datetime as _dt
+    from datetime import timedelta as _td
+
+    for _fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"):
+        try:
+            _parsed = _dt.strptime(earliest_admin_dt, _fmt)
+        except ValueError:
+            continue
+        return (_parsed - _td(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
+    # Unparseable value — better to emit the raw earliest_admin_dt than to keep
+    # the known-wrong authored_naive, so the invariant still holds.
+    return earliest_admin_dt
+
+
 def _build_medication_request(
     order: dict,
     patient_id: str,
@@ -688,6 +728,7 @@ def _build_medication_request(
     rp_number: str = "1",
     order_in_rp: str = "1",
     chronic_condition_codes: list[str] | None = None,
+    earliest_admin_dt: str = "",
 ) -> dict:
     """Build FHIR MedicationRequest resource.
 
@@ -800,7 +841,12 @@ def _build_medication_request(
         "intent": intent_val,
         "medicationCodeableConcept": med_concept,
         "subject": patient_ref(patient_id),
-        "authoredOn": order.get("ordered_datetime", ""),
+        # Issue #967: clamp to (min linked MA − 1 min) when the naive
+        # ordered_datetime is later than the earliest administration; see
+        # `_clamp_authored_to_earliest_admin` for the day-N add-on root cause.
+        "authoredOn": _clamp_authored_to_earliest_admin(
+            str(order.get("ordered_datetime", "") or ""), earliest_admin_dt
+        ),
     }
     # CY6-22 (Chain-6): MedicationRequest.category — HL7 medicationrequest-
     # category (inpatient / outpatient / community / discharge). Issue #548:
@@ -888,7 +934,9 @@ def _build_medication_request(
     # 入院処方 has a distinct dispense track (病棟薬剤師 dispensing per shift).
     # Default 0 refills for acute, 3 for chronic home-med, 1 for inpatient
     # (single scheduled dispense per order).
-    _authored = order.get("ordered_datetime", "") or ""
+    # Issue #967: reuse the clamped authored value here so `dispenseRequest.
+    # validityPeriod.start` never precedes the pharmacy's own ``authoredOn``.
+    _authored = _clamp_authored_to_earliest_admin(str(order.get("ordered_datetime", "") or ""), earliest_admin_dt)
     _end = order.get("end_datetime", "") or ""
     disp: dict[str, Any] = {}
     if _authored and _end:
