@@ -88,18 +88,29 @@ def test_ed_unknown_placeholder_falls_back_to_whole_section_generic():
     """adv-1 I-2: unknown placeholder → whole-section generic phrase.
 
     Per-placeholder substitution ("Labs obtained. No special findings.")
-    produced broken sentences on numeric slots; the section falls back to the
-    single coherent pre-1a generic phrase instead.
+    produced broken sentences on numeric slots; the section falls back to a
+    single coherent generic phrase instead.
+
+    Issue #981 update: the ED-workup fallback now reads "ED workup: no
+    significant findings" (the section-specific
+    ``_ED_WORKUP_FALLBACK_EN``) rather than the bare generic. Both are
+    placeholder-free — the test's original intent (no `{...}` leak, no
+    "Labs obtained. No special findings." sentence collision) is
+    preserved.
     """
     gen = TemplateNarrativeGenerator()
     out = gen.generate(_ctx(DocumentType.ED_NOTE, _ED_PROTOCOL), _spec("ed_note"))
     workup = out.sections["ed_workup"]
-    assert workup == "No special findings"
+    assert workup == "ED workup: no significant findings"
 
 
 def test_numeric_placeholders_fall_back_to_whole_section_generic_en():
     """adv-1 I-2 regression pin (chain 1b T4 refinement): EMPTY vitals →
-    whole-section fallback stays — no 'BP No special findings/... mmHg'."""
+    whole-section fallback stays — no 'BP No special findings/... mmHg'.
+
+    Issue #981 update: ED-workup fallback text is now
+    ``_ED_WORKUP_FALLBACK_EN`` (section-specific), still placeholder-free.
+    """
     proto = {
         "condition_id": "chest_pain_noncardiac",
         "chief_complaint": {"en": "Chest pain", "ja": "胸痛"},
@@ -112,7 +123,7 @@ def test_numeric_placeholders_fall_back_to_whole_section_generic_en():
     gen = TemplateNarrativeGenerator()
     out = gen.generate(_ctx(DocumentType.ED_NOTE, proto), _spec("ed_note"))
     workup = out.sections["ed_workup"]
-    assert workup == "No special findings"
+    assert workup == "ED workup: no significant findings"
     assert "mmHg" not in workup
 
 
@@ -300,7 +311,7 @@ def test_vitals_placeholder_unresolvable_keeps_section_fallback():
     ctx.vitals = [_vital("2025-01-10T10:00:00", heart_rate=88)]  # no BP anywhere
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, _spec("ed_note"))
-    assert out.sections["ed_workup"] == "No special findings"
+    assert out.sections["ed_workup"] == "ED workup: no significant findings"
 
 
 def test_vitals_mixed_with_unknown_placeholder_still_falls_back():
@@ -319,7 +330,7 @@ def test_vitals_mixed_with_unknown_placeholder_still_falls_back():
     ctx.vitals = [_vital("2025-01-10T10:00:00", systolic_bp=120, diastolic_bp=70)]
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, _spec("ed_note"))
-    assert out.sections["ed_workup"] == "No special findings"
+    assert out.sections["ed_workup"] == "ED workup: no significant findings"
 
 
 def test_vitals_placeholders_deterministic():

@@ -95,6 +95,11 @@ _ALLOWED_FACT_PREFIXES: tuple[str, ...] = (
     "profile.",
     "chronic.",
     "encounter.",
+    # #983 (2026-08-30): per-disease / per-encounter chief_complaint variants
+    # loaded from clinosim/modules/document/narrative/reference_data/
+    # chief_complaint_variants.yaml. Sourced from static reference data
+    # (like disease_protocol), fact-neutral (no fabricated patient value).
+    "chief_complaint_variants.",
 )
 
 #: Builtin forbidden patterns (axis 3): meta/AI responses, mock markers,

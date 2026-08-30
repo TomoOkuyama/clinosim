@@ -1,0 +1,306 @@
+# Per-disease chief-complaint variants (Issue #983).
+#
+# Each disease lists 3-5 JP-only variants selected deterministically at
+# narrative-build time via a SHA256 sub-seed on (patient_id + encounter_id)
+# — RNG-neutral (no master-RNG consumption; see feedback_rng_neutral_additive_field).
+#
+# Design principles (issue #983 acceptance):
+#   * First variant in each pool is the historical disease_protocol.chief_complaint.ja
+#     value (preserves the pre-fix top pattern; regression-safe on encounters that
+#     match the pool head).
+#   * Later variants introduce naturalistic diversity: atypical presentations,
+#     duration prefixes (「3日前より…」), single-symptom leads (元気消失など),
+#     and colloquial ordering — patterns actually seen in Japanese chart CCs.
+#   * JP-only. EN CCs go through the existing disease_protocol chain (no US
+#     equivalent needed — US narrative uses the encounter.chief_complaint EN
+#     string set at simulator time).
+#   * disease_id keys mirror clinosim/modules/disease/reference_data/*.yaml so a
+#     future audit can `set(disease_id_files) == set(variant_keys)` — extension
+#     coverage is by-design.
+
+variants:
+  heart_failure_exacerbation:
+    - "労作時呼吸困難・起座呼吸・下肢浮腫"
+    - "夜間発作性呼吸困難・体重増加・咳嗽"
+    - "3日前より下肢浮腫・尿量減少"
+    - "疲労感・息切れ増悪"
+    - "急な息苦しさで夜間覚醒"
+
+  bacterial_pneumonia:
+    - "発熱・咳嗽・呼吸困難"
+    - "3日前より発熱・湿性咳嗽・胸痛"
+    - "高熱・悪寒戦慄・膿性痰"
+    - "全身倦怠感・食思不振・微熱"
+
+  copd_exacerbation:
+    - "呼吸困難増悪・喀痰増加・喘鳴"
+    - "1週間前より痰の量と粘稠度が増加"
+    - "咳嗽・呼吸苦・在宅酸素の流量増加"
+    - "労作時息切れ増悪・チアノーゼ"
+
+  asthma_exacerbation:
+    - "重度喘鳴・呼吸困難・補助呼吸筋使用"
+    - "夜間覚醒するほどの咳嗽・喘鳴"
+    - "吸入薬効果減弱・胸部絞扼感"
+    - "発症2時間の急激な呼吸困難"
+
+  aspiration_pneumonia:
+    - "誤嚥後の咳嗽・発熱・呼吸困難"
+    - "食後のむせと発熱"
+    - "施設で発見された発熱・SpO2低下"
+    - "意識レベル低下と喀痰貯留"
+
+  influenza:
+    - "高熱・筋肉痛・咳嗽・倦怠感"
+    - "急激な発熱と関節痛"
+    - "本日朝からの悪寒・咽頭痛"
+    - "38℃台の発熱・頭痛・食思不振"
+
+  urinary_tract_infection:
+    - "発熱・排尿時痛・側腹部痛"
+    - "頻尿・残尿感・下腹部痛"
+    - "高齢者の発熱と全身倦怠感"
+    - "血尿・発熱・悪寒"
+
+  sepsis:
+    - "発熱・意識変容・低血圧"
+    - "施設での意識レベル低下と高熱"
+    - "頻脈・頻呼吸・不穏"
+    - "3日前より倦怠感・本日ぐったり"
+
+  cellulitis:
+    - "患部の発赤・熱感・腫脹・発熱"
+    - "下腿の腫脹と圧痛"
+    - "外傷後の発赤・浸出液"
+    - "境界不明瞭な紅斑・熱感"
+
+  acute_mi:
+    - "胸痛・冷汗・呼吸困難"
+    - "突然の胸部絞扼感・左肩放散痛"
+    - "労作時胸痛・持続20分以上"
+    - "心窩部不快感・悪心・冷汗"
+
+  atrial_fibrillation_rvr:
+    - "動悸・呼吸困難・めまい・胸部不快感"
+    - "突然の動悸と息苦しさ"
+    - "健診時に不整脈指摘・自覚は軽度"
+    - "労作時息切れ・脈のばらつき"
+
+  cerebral_infarction:
+    - "突然の片麻痺・構音障害・顔面麻痺"
+    - "本日朝起床時の右上下肢脱力"
+    - "会話の突然の呂律不良"
+    - "一過性の右手脱力（症状再発）"
+
+  hemorrhagic_stroke:
+    - "突然の激しい頭痛・嘔吐・意識障害"
+    - "頭部激痛と嘔気の急性発症"
+    - "意識レベル急激低下・失見当識"
+    - "『雷鳴様頭痛』と表現される突発頭痛"
+
+  subdural_hematoma:
+    - "頭部外傷後の意識障害・進行性悪化"
+    - "3週間前の転倒後の頭痛・傾眠"
+    - "認知機能低下・歩行障害の亜急性進行"
+    - "頭部打撲後の嘔気と傾眠"
+
+  diabetic_ketoacidosis:
+    - "嘔気・嘔吐・腹痛・多尿・意識障害"
+    - "口渇・多飲・体重減少・倦怠感"
+    - "感冒後の食欲不振と過呼吸"
+    - "インスリン中断後の腹痛と意識混濁"
+
+  acute_appendicitis:
+    - "右下腹部痛・嘔気・発熱"
+    - "臍周囲痛から右下腹部への移動痛"
+    - "12時間前発症の腹痛・食思不振"
+    - "腹痛と歩行時の右下腹部響痛"
+
+  acute_cholecystitis:
+    - "右季肋部痛・発熱・Murphy徴候陽性"
+    - "食後の右上腹部痛と嘔気"
+    - "既往胆石発作の再燃・発熱"
+    - "背部放散を伴う右季肋部持続痛"
+
+  acute_pancreatitis:
+    - "心窩部激痛（背部放散）・嘔気・嘔吐"
+    - "飲酒後の激しい上腹部痛"
+    - "食後の心窩部持続痛と嘔吐"
+    - "腹痛（前屈位で軽減）"
+
+  gi_bleeding:
+    - "吐血・下血（タール便）・めまい・失神"
+    - "本日朝からの黒色便"
+    - "コーヒー残渣様嘔吐と冷汗"
+    - "貧血症状（動悸・易疲労）と下血"
+
+  ileus:
+    - "腹痛・嘔吐・排便停止・腹部膨満"
+    - "3日前より排ガス排便なく腹満"
+    - "術後10日目の腹痛と嘔吐"
+    - "腹満・悪心・波形の腸雑音亢進"
+
+  liver_cirrhosis_decompensated:
+    - "腹部膨満・黄疸・意識混濁・吐血"
+    - "腹水増悪と食思不振"
+    - "肝性脳症疑いの傾眠と羽ばたき振戦"
+    - "黄疸進行・凝固能低下"
+
+  acute_kidney_injury:
+    - "尿量減少・浮腫・嘔気・意識混濁"
+    - "3日前より尿が出にくい"
+    - "浮腫増悪・体重増加・倦怠感"
+    - "感冒後の乏尿と全身倦怠"
+
+  pulmonary_embolism:
+    - "急性呼吸困難・胸膜痛・頻脈"
+    - "長時間座位後の突発性息切れ"
+    - "術後の呼吸苦・SpO2低下"
+    - "下肢腫脹と急な息苦しさ"
+
+  deep_vein_thrombosis:
+    - "一側下肢の腫脹・疼痛・熱感"
+    - "術後の片側下腿腫脹"
+    - "長距離移動後のふくらはぎ痛"
+    - "下肢緊満感と皮膚色調変化"
+
+  hip_fracture:
+    - "転倒後の股関節痛・歩行不能"
+    - "自宅内転倒後の右股関節痛"
+    - "股関節痛・患肢短縮外旋位"
+    - "深夜転倒後の起立困難"
+
+  vertebral_compression_fracture:
+    - "軽微外傷後の急性背部痛・体動時増悪"
+    - "尻餅後の腰背部痛"
+    - "咳嗽契機の急性背部痛"
+    - "起立・寝返り時の激しい腰痛"
+
+  crush_injury_hand:
+    - "手部挫滅創（労災、指切断の可能性）"
+    - "機械挟まれによる手指損傷"
+    - "作業中プレス機で右手挫滅"
+    - "手指変形と出血・激痛"
+
+  wrist_fracture_surgical:
+    - "橈骨遠位端骨折（転位あり・ORIF適応）"
+    - "転倒後の手関節痛・変形"
+    - "手関節腫脹・可動域制限"
+    - "手をついた転倒後のフォーク状変形"
+
+  industrial_burn_severe:
+    - "労災による重度熱傷・化学熱傷"
+    - "作業中の熱湯曝露による広範囲熱傷"
+    - "薬品飛散による顔面・両上肢熱傷"
+    - "熱傷疼痛と気道熱傷疑いの嗄声"
+
+  electrical_injury:
+    - "感電による外傷（労災）"
+    - "高圧線接触後の意識消失"
+    - "作業中感電後の胸部痛と手掌熱傷"
+    - "感電後の全身痙攣・不整脈"
+
+  fall_from_height:
+    - "高所墜落による多発外傷（労災）"
+    - "3m墜落後の腰背部痛と歩行不能"
+    - "現場墜落後の意識障害"
+    - "墜落後の胸部痛と呼吸苦"
+
+  traffic_accident_severe:
+    - "交通外傷・多発外傷"
+    - "普通乗用車同士の正面衝突後"
+    - "自転車対自動車の受傷後"
+    - "歩行者事故受傷・頭部打撲と胸部痛"
+
+  # ─────────────────────────────────────────────────────────────────
+  # Encounter-protocol variants (Issue #983 extension).
+  #
+  # The yaml keys below match ``encounter_protocol.condition_id`` in
+  # clinosim/modules/encounter/reference_data/*.yaml. Variant swapping
+  # falls through from disease_protocol.disease_id → encounter_protocol.
+  # condition_id inside ``_maybe_swap_cc_variant``, so any encounter
+  # whose CC equals the encounter_protocol canonical picks a variant
+  # here.
+  # ─────────────────────────────────────────────────────────────────
+
+  chest_pain_noncardiac:
+    - "胸痛（急性冠症候群除外目的）"
+    - "労作時胸痛（心筋梗塞既往あり）"
+    - "食後の胸やけ様胸痛"
+    - "運動時の胸部圧迫感（一過性）"
+    - "深呼吸時に増悪する胸壁痛"
+
+  viral_gastroenteritis:
+    - "嘔気・嘔吐・下痢・腹部痙攣"
+    - "昨夜からの水様下痢と嘔気"
+    - "発熱・下痢・脱水症状"
+    - "食後2時間の腹痛と繰り返す嘔吐"
+
+  minor_laceration:
+    - "裂傷（縫合が必要）"
+    - "包丁による指切創・出血持続"
+    - "転倒による前額部裂創"
+    - "作業中のガラス切創"
+
+  migraine:
+    - "激しい頭痛・嘔気・光過敏"
+    - "拍動性の片側頭痛と嘔気"
+    - "前兆を伴う頭痛（閃輝暗点）"
+    - "音・光過敏を伴う頭痛（数時間持続）"
+
+  viral_uri:
+    - "発熱・咽頭痛・咳嗽・鼻汁"
+    - "3日前より鼻汁・咽頭違和感"
+    - "咳嗽・鼻閉・微熱"
+    - "喉のイガイガと倦怠感"
+
+  traffic_accident_minor:
+    - "交通事故（軽症・意識消失なし・頸部/背部痛）"
+    - "追突事故後の頸部痛"
+    - "低速衝突後の胸背部痛"
+    - "自転車転倒後の擦過傷と打撲"
+
+  elderly_fall:
+    - "自宅での転倒（意識消失なし）"
+    - "自室で滑って転倒・腰痛"
+    - "夜間トイレ移動時の転倒"
+    - "浴室での転倒後の右膝痛"
+
+  low_back_pain:
+    - "急性腰痛（挙上時発症）"
+    - "重量物挙上時の腰部激痛"
+    - "朝起床時からの腰痛"
+    - "咳嗽時に増悪する腰痛"
+
+  asthma_attack_mild:
+    - "喘鳴・呼吸困難・胸部絞扼感"
+    - "夜間覚醒するほどの咳嗽・喘鳴"
+    - "運動後の呼吸困難と喘鳴"
+    - "冷気曝露後の呼吸苦"
+
+  ankle_sprain:
+    - "足関節捻挫（転倒後）"
+    - "階段昇降時の足首捻挫"
+    - "スポーツ中の足関節痛と腫脹"
+    - "歩行中の足関節捻挫・荷重困難"
+
+  anxiety_panic_attack:
+    - "動悸・呼吸困難・胸部圧迫感・不安"
+    - "突然の動悸と過呼吸"
+    - "夜間覚醒時の胸部絞扼感と恐怖感"
+    - "パニック発作様症状の再発"
+
+  blunt_chest_trauma:
+    - "外傷後の胸壁痛（呼吸時増悪）"
+    - "胸部打撲後の呼吸苦"
+    - "打撲後の胸痛と皮下気腫疑い"
+
+  food_poisoning:
+    - "食後の腹痛・嘔吐・下痢"
+    - "会食後6時間の激しい嘔吐"
+    - "生鮮食品摂取後の下痢と発熱"
+
+  shoulder_dislocation:
+    - "転倒後の肩関節損傷（上肢挙上不能）"
+    - "スポーツ中の肩関節脱臼・強い疼痛"
+    - "転倒後の肩関節変形と上肢挙上不能"

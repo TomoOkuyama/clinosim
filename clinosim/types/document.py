@@ -267,6 +267,25 @@ class NarrativeContext:
     # Empty dict = no resolution attempted, template falls back to raw id.
     roster_map: dict[str, dict] = field(default_factory=dict)
 
+    # === Issue #981 (ED workup + disposition) ===
+    # Raw ``record.orders`` for the encounter (already narrowed by the
+    # per-encounter structural-CIF file layout). Consumed by
+    # ``_build_ed_workup`` to enumerate labs / imaging actually placed
+    # during the ED visit, rather than falling back to a boilerplate
+    # "検査・処置：特記事項なし" phrase (71% placeholder rate in the
+    # p=2000 audit that motivated the issue). Kept as ``list[Any]`` so
+    # both structural-CIF dict entries and in-memory ``Order`` dataclasses
+    # round-trip via ``get_attr_or_key``.
+    orders: list[Any] = field(default_factory=list)
+
+    # === Issue #982 (family_history narrative) ===
+    # Raw ``record.family_history`` (list of ``FamilyMemberHistoryRecord``
+    # dicts). Populated for FHIR emit already; the narrative layer used
+    # to ignore it and emit "特記家族歴なし" for 100% of docs. Consumed
+    # by ``_build_family_history`` to render a relationship-grouped
+    # narrative from the actual condition codes.
+    family_history: list[Any] = field(default_factory=list)
+
 
 @dataclass
 class NarrativeOutput:
