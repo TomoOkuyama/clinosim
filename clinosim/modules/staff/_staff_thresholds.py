@@ -206,11 +206,37 @@ DOCTORS_PER_INTERNAL_MED_BED_DIVISOR: int = 8
 yields ~1 IM doctor per 8 beds above the ``MIN_INTERNAL_MED_PHYSICIANS``
 floor."""
 
-MIN_SURGERY_PHYSICIANS: int = 3
-"""Minimum general-surgery physician headcount."""
+MIN_SURGERY_PHYSICIANS: int = 2
+"""Minimum general-surgery physician headcount.
 
-DOCTORS_PER_SURGERY_BED_DIVISOR: int = 10
-"""Divisor for the bed-scaled general-surgery physician count."""
+Empirical tuning for the synthetic simulator: JP small-to-mid
+community hospitals staff ~1-2 general surgeons per 100 beds (per
+MHLW 2022 医療施設調査 general-hospital surgical staffing). A 2-doctor
+floor keeps 24/7 on-call coverage viable at the smallest bed counts
+without over-provisioning at the community-hospital scale that most
+clinosim fixtures target.
+
+Previously 3 (paired with a 10-bed divisor): at the default 50-bed
+config that yielded 5 GS attending physicians against ~7 surgical
+inpatient events / year (2 cholecystitis + 5 hip fractures in the
+p=1000 JP seed=42 baseline), leaving 2 of 5 physicians permanently
+unreferenced (#975 residual). See also
+:data:`DOCTORS_PER_SURGERY_BED_DIVISOR`."""
+
+DOCTORS_PER_SURGERY_BED_DIVISOR: int = 50
+"""Divisor for the bed-scaled general-surgery physician count.
+
+Yields ~1 additional GS attending per 50 inpatient beds above the
+:data:`MIN_SURGERY_PHYSICIANS` floor (50-bed→2, 100-bed→2, 200-bed→4).
+Reflects the reality that surgical volume scales with inpatient
+capacity far more slowly than internal-medicine volume — most
+inpatient events are IM-attended, not surgical.
+
+Previously 10 (~1 per 10 beds), which over-provisioned surgeons at
+every catchment size: the 50-bed default yielded 5 attendings against
+~7 surgical events / year, and #975 audit surfaced 2 of 5 GS attendings
+as permanently zero-referenced. See :data:`MIN_SURGERY_PHYSICIANS`
+for the on-call floor rationale."""
 
 MIN_ED_PHYSICIANS: int = 3
 """Minimum emergency-medicine physician headcount."""
