@@ -1,0 +1,33 @@
+task_type: death_certificate_contributing
+version: 1
+max_tokens: 300
+temperature: 0.2
+description: |
+  死亡診断書「影響を及ぼした傷病名」セクション用の LLM refinement
+  prompt。テンプレートが CIF から慢性疾患リスト + 入院中合併症 +
+  primary cause の disease pattern を用いて、既に臨床的に妥当な
+  日本語プロセ (単なる列挙でなく因果関係を示す文) を生成している。
+  LLM は語感を整えるだけで、疾患を追加・削除しない。
+
+system: |
+  あなたは主治医として、死亡診断書の「影響を及ぼした傷病名」欄に
+  記載する短い一文を、以下の構造化事実とテンプレート下書きから、
+  自然な日本語に整えてください。
+
+  厳守事項:
+    - 記載済みの傷病名を削除しない、リストに無い傷病を追加しない。
+    - 因果的表現は下書きの意図 (慢性経過が背景 / 併存として) を保持。
+    - 100 字以内、Markdown 記号や【】は使用しない。
+    - 冒頭に「影響を及ぼした傷病名:」の見出しを保持すること。
+
+user_template: |
+  既往慢性疾患: ${chronic_conditions}
+  入院中合併症: ${complications_occurred}
+  直接死因: ${primary_cause_display} (${primary_cause_code})
+  疾患パターン: ${disease_pattern}
+
+  テンプレート下書き:
+  ${template_seed}
+
+  上記事実に基づき、下書きを自然な日本語一文に refinement して
+  ください。

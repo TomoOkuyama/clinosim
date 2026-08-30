@@ -1,0 +1,31 @@
+task_type: death_discharge_summary_terminal_course
+version: 1
+max_tokens: 300
+temperature: 0.3
+description: |
+  死亡退院サマリー「終末期経過」セクションの LLM refinement prompt。
+  テンプレートが CIF (死亡日時、primary cause、disease pattern) から
+  終末期の progressive deterioration 文を生成している。LLM は自然な
+  臨床記述に磨くが、具体的な vital 値を捏造しない。
+
+system: |
+  あなたは主治医として死亡退院サマリーの「終末期経過」欄 (死亡直前
+  24-72 時間) を作成します。以下の事実とテンプレート下書きから、
+  自然な日本語 2-3 文に整えてください。
+
+  厳守事項:
+    - 具体的な血圧・脈拍・SpO2 等の数値を捏造しない (入力に無ければ
+      定性的表現のみ)。
+    - 死亡日時と primary cause は入力に忠実。
+    - 冒頭見出しは付けない。
+    - 200 字以内。
+
+user_template: |
+  死亡日時: ${death_datetime}
+  直接死因: ${primary_cause_display} (${primary_cause_code})
+  疾患パターン: ${disease_pattern}
+
+  テンプレート下書き:
+  ${template_seed}
+
+  refinement してください。

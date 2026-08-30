@@ -58,6 +58,23 @@ codes:
   69730-0:
     en: Instructions
     ja: 死亡時記録
+  # Issue #961: Death certificate (死亡診断書).
+  # 医師法第 20 条 requires the attending physician to issue a 死亡診断書
+  # whenever certifying a patient's death. Emitted as a distinct
+  # Composition.type on encounters where discharge_disposition == "exp".
+  # LOINC canonical LONG_COMMON_NAME "Death certificate" (verified via
+  # loinc.org 2026-08-30 — the top-level document-type entry, not the
+  # WHO cause-of-death panel 68986-9). JP display 死亡診断書 matches the
+  # 厚生労働省 official form title (医師法第 20 条 / 死亡診断書 (死体検案書)).
+  64297-5:
+    en: Death certificate
+    ja: 死亡診断書
+  # LOINC 79378-6 "Cause of death" — used as Composition.section.code for
+  # the immediate cause section on the death certificate (LOINC canonical
+  # LONG_COMMON_NAME verified 2026-08-30).
+  79378-6:
+    en: Cause of death
+    ja: 死因
   11504-8:
     en: Surgical operation note
     ja: 手術記録

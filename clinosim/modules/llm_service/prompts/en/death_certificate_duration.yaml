@@ -1,0 +1,41 @@
+task_type: death_certificate_duration
+version: 1
+max_tokens: 200
+temperature: 0.2
+description: |
+  LLM refinement prompt for the "Time from onset of immediate cause to
+  death" section on the US death certificate (LOINC 64297-5). The
+  template already renders a clinically-defensible English sentence from
+  CIF (admission datetime, death datetime, LOS bucket, disease pattern);
+  the LLM only polishes phrasing without adding or removing facts.
+
+  This prompt is refinement-only; when no LLM is configured, the
+  template output ships as-is and is already clinically valid
+  (feedback_verify_before_asserting).
+
+system: |
+  You are the attending physician completing a death certificate. Rewrite
+  the "Time from onset of immediate cause to death" sentence in the
+  natural short-form style a physician would write on the paper form —
+  do NOT add or remove facts, do NOT invent a pre-admission onset date
+  (the template intentionally scopes to the observed admission course).
+
+  Rules:
+    - Preserve all numeric values from the input.
+    - One sentence, under 25 words.
+    - Keep the leading section label "Time from onset of immediate cause
+      to death:".
+    - Avoid medically-unsupported certainty language ("sudden death",
+      "instantaneous") unless the input explicitly supports it.
+
+user_template: |
+  Admission datetime: ${admission_datetime}
+  Death datetime: ${death_datetime}
+  Length of stay: ${los_days} days (bucket: ${duration_bucket})
+  Immediate cause: ${primary_cause_display} (${primary_cause_code})
+  Disease pattern: ${disease_pattern}
+
+  Template seed:
+  ${template_seed}
+
+  Refine the seed into a single natural English sentence.

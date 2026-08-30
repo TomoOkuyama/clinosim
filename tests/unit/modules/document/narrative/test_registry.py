@@ -150,6 +150,18 @@ def test_load_raises_on_missing_required_field() -> None:
                 "countries_supported": ["jp"],
                 "generation_frequency": "checkup_once",
             },
+            "death_certificate": {
+                "loinc_code": "64297-5",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "discharge_once_if_deceased",
+            },
+            "death_discharge_summary": {
+                "loinc_code": "18842-5",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "discharge_once_if_deceased_replaces",
+            },
         }
     }
     with pytest.raises(ValueError, match="missing countries_supported"):
@@ -240,6 +252,18 @@ def test_load_raises_on_null_entry() -> None:
                 "format_type": "composition",
                 "countries_supported": ["jp"],
                 "generation_frequency": "checkup_once",
+            },
+            "death_certificate": {
+                "loinc_code": "64297-5",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "discharge_once_if_deceased",
+            },
+            "death_discharge_summary": {
+                "loinc_code": "18842-5",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "discharge_once_if_deceased_replaces",
             },
         }
     }
@@ -337,6 +361,18 @@ def test_load_raises_on_empty_countries_supported() -> None:
                 "countries_supported": ["jp"],
                 "generation_frequency": "checkup_once",
             },
+            "death_certificate": {
+                "loinc_code": "64297-5",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "discharge_once_if_deceased",
+            },
+            "death_discharge_summary": {
+                "loinc_code": "18842-5",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "discharge_once_if_deceased_replaces",
+            },
         }
     }
     with pytest.raises(ValueError, match="countries_supported empty"):
@@ -346,18 +382,17 @@ def test_load_raises_on_empty_countries_supported() -> None:
 # === α-min-2 tests ===
 
 
-def test_load_specs_returns_14_total() -> None:
-    """14 (3 α-min-1 + 6 α-min-2 + 3 chain-2 + PR2b referral + PR3 checkup) specs."""
+def test_load_specs_returns_16_total() -> None:
+    """16 = 3 α-min-1 + 6 α-min-2 + 3 chain-2 + PR2b referral + PR3 checkup +
+    Issue #961 death cert + Issue #961 ext death discharge summary."""
     load_document_type_specs.cache_clear()
     specs = load_document_type_specs()
-    assert len(specs) == 14, (
-        f"Expected 14 specs (3 α-min-1 + 6 α-min-2 + 3 chain-2 + referral + checkup), got {len(specs)}"
-    )
+    assert len(specs) == 16, f"Expected 16 specs (adds death_discharge_summary per Issue #961 ext), got {len(specs)}"
 
 
-def test_supported_document_types_covers_14_entries() -> None:
-    """SUPPORTED_DOCUMENT_TYPES frozenset has 14 members after P2-13 PR3."""
-    assert len(SUPPORTED_DOCUMENT_TYPES) == 14
+def test_supported_document_types_covers_16_entries() -> None:
+    """SUPPORTED_DOCUMENT_TYPES frozenset has 16 members after Issue #961 ext DDS."""
+    assert len(SUPPORTED_DOCUMENT_TYPES) == 16
 
 
 def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> None:
@@ -371,13 +406,14 @@ def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> N
     assert keys == ["outpatient_soap"], f"Expected only outpatient_soap in restricted set, got {keys}"
 
 
-def test_specs_for_encounter_type_inpatient_returns_10_specs() -> None:
+def test_specs_for_encounter_type_inpatient_returns_12_specs() -> None:
     """3 α-min-1 (no restriction, matches all) + 3 nursing specs + admission_care_plan +
-    nutrition_care_plan + rehabilitation_plan (chain 2) + referral_note (P2-13 PR2b)
-    = 10 total for inpatient."""
+    nutrition_care_plan + rehabilitation_plan (chain 2) + referral_note (P2-13 PR2b) +
+    death_certificate (Issue #961) + death_discharge_summary (Issue #961 ext) = 12
+    total for inpatient."""
     load_document_type_specs.cache_clear()
     inpatient_specs = specs_for_encounter_type("inpatient")
-    assert len(inpatient_specs) == 10, f"Expected 10 inpatient specs, got {len(inpatient_specs)}"
+    assert len(inpatient_specs) == 12, f"Expected 12 inpatient specs, got {len(inpatient_specs)}"
 
 
 def test_specs_for_encounter_type_emergency_returns_2_ed_specs() -> None:
