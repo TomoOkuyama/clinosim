@@ -38,6 +38,8 @@ __all__ = [
     "build_route_concept",
     "build_ucum_quantity",
     "canonicalize_route",
+    "augment_iv_dosage_with_rate",
+    "resolve_iv_infusion_default",
     # Bundle-entry constructor
     "entry",
     # Status / code mappers
@@ -67,6 +69,7 @@ __all__ = [
     # _value, _validate_route_maps, _append_tz_if_missing, _UCUM_CODE_MAP.
 ]
 
+import re
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -959,6 +962,188 @@ def _resolve_patient_instruction_ja(route: str, freq: str, freq_per_day: int | N
     return ""
 
 
+# ────────────────────────────────────────────────────────────────────
+# Issue #966: IV rate augmentation
+#
+# PR #920 populated ``MedicationRequest.dosageInstruction.doseAndRate
+# .doseQuantity`` to 94.4 % coverage but did NOT emit ``rateQuantity``
+# (or ``timing.repeat.duration`` for intermittent bolus) for IV-route
+# orders — 421/421 IV MRs shipped without any rate specification.
+# Downstream drug-safety alerts (KCl > 10 mEq/h, vancomycin > 10 mg/min)
+# and nursing-side administration reconstruction depend on explicit rate.
+#
+# Fix: at emit time, look up per-drug infusion defaults from the yaml
+# catalog ``clinosim/locale/shared/iv_infusion_defaults.yaml``
+# (feedback_constants_live_in_external_config.md — tunable clinical
+# constants belong in yaml, not code). The Python side holds only mode
+# dispatch and the fallback default block.
+#
+# Priority order inside ``augment_iv_dosage_with_rate``:
+#   1. Dose text already carries a rate expression (``100 mL/h``,
+#      ``12U/kg/h``, ``5 mcg/min``) — emit rateQuantity from that.
+#   2. Catalog lookup on the display_name (normalized, then longest
+#      prefix, then first token, then alias table).
+#   3. ``default`` block from the yaml (generic 30-min bolus).
+#   4. ``mode = push`` → emit NEITHER rate nor duration (drug is
+#      legitimately given as < 5 min IV push; a fabricated rate is worse
+#      than omission — feedback_semantic_correctness_over_coverage).
+_IV_RATE_TEXT_RE = re.compile(
+    r"(?P<val>\d+(?:\.\d+)?)\s*(?P<num>mL|mg|mcg|ug|U|units|IU|mEq)"
+    r"\s*/\s*(?P<denom>kg/h|kg/min|kg/hr|hr|h|min)",
+    re.IGNORECASE,
+)
+
+
+def _canonicalize_iv_rate_unit(numerator: str, denominator: str) -> str:
+    """Normalize the (numerator, denominator) match into a UCUM rate string.
+
+    UCUM keeps ``mL``, ``mg``, ``mcg``, ``U`` as-is; ``hr`` → ``h``. Weight-
+    normalized rates (``mg/kg/h``) are emitted as authored — UCUM allows
+    the compound form. ``build_ucum_quantity`` down-line applies its own
+    unit-code canonicalization (Issue #781 test) so this just picks a
+    clean surface form for ``rate_unit``.
+    """
+    num = numerator.strip()
+    denom = denominator.strip().lower()
+    if denom in ("hr",):
+        denom = "h"
+    return f"{num}/{denom}"
+
+
+def resolve_iv_infusion_default(display_name: str) -> dict[str, Any] | None:
+    """Return the per-drug IV infusion default entry for ``display_name`` or None.
+
+    Lookup order (see ``iv_infusion_defaults.yaml`` header for full contract):
+      1. Strip protocol prefix (``"IV_fluid: NS 80 mL/h"`` → ``"NS 80 mL/h"``)
+         and lowercase.
+      2. Full-string match against the ``drugs`` map.
+      3. Longest-prefix token match — so ``"Ceftriaxone 1g IV q8h"``
+         resolves to ``"ceftriaxone"``.
+      4. First-token match (safety net for authors' whitespace variants).
+      5. ``aliases`` table (``"NS"`` → ``"normal saline"``).
+      6. ``default`` block.
+      7. ``None`` if the yaml has no ``default`` block (misconfiguration).
+    """
+    from clinosim.locale.loader import load_iv_infusion_defaults
+
+    catalog = load_iv_infusion_defaults() or {}
+    drugs: dict[str, Any] = catalog.get("drugs", {}) or {}
+    aliases: dict[str, str] = catalog.get("aliases", {}) or {}
+    default: dict[str, Any] | None = catalog.get("default")
+
+    cleaned, _ = strip_protocol_prefix(display_name or "")
+    key = cleaned.strip().lower()
+    if not key:
+        return default
+    # Strip a leading route qualifier ("IV normal saline 1000mL" →
+    # "normal saline 1000mL"). Authors put the route into the display_name
+    # for supportive orders whose type does not carry a separate
+    # ``route`` field on the CIF item; the route is redundant here since
+    # the caller has already gated on canonical route = IV.
+    tokens = key.split()
+    if tokens and tokens[0] in ("iv", "i.v.", "intravenous"):
+        tokens = tokens[1:]
+        key = " ".join(tokens)
+    if key in drugs:
+        return drugs[key]
+    # Longest-prefix token match — so "Ceftriaxone 1g IV q8h" resolves to
+    # "ceftriaxone", "normal saline 1000ml" to "normal saline".
+    for n in range(len(tokens), 0, -1):
+        cand = " ".join(tokens[:n])
+        if cand in drugs:
+            return drugs[cand]
+    if tokens and tokens[0] in drugs:
+        return drugs[tokens[0]]
+    # Aliases: try the full key, then longest-prefix, then first token
+    # (mirror the drugs-map resolution order).
+    if key in aliases:
+        return drugs.get(aliases[key], default)
+    for n in range(len(tokens), 0, -1):
+        cand = " ".join(tokens[:n])
+        if cand in aliases:
+            return drugs.get(aliases[cand], default)
+    if tokens and tokens[0] in aliases:
+        return drugs.get(aliases[tokens[0]], default)
+    return default
+
+
+def augment_iv_dosage_with_rate(
+    dosage: dict[str, Any],
+    dose_text: str,
+    route: str | None,
+    display_name: str,
+) -> None:
+    """Extend ``dosage`` in-place with rateQuantity or timing.duration for IV orders.
+
+    No-op when the route is not IV (canonical-form comparison, so
+    ``INTRAVENOUS`` / ``iv`` aliases all resolve). No-op when the drug's
+    catalog entry is ``mode: push`` (< 5 min IV push, e.g. fentanyl,
+    naloxone — a fabricated rate here would be worse than an honest
+    absence per feedback_semantic_correctness_over_coverage).
+
+    ``continuous`` → sets ``dosage["doseAndRate"][0]["rateQuantity"]``
+    (allocates the doseAndRate list if it does not exist).
+
+    ``bolus`` → sets ``dosage["timing"]["repeat"]["duration"]`` +
+    ``durationUnit = "min"`` (preserves any existing ``frequency`` /
+    ``period`` block placed by the caller). ``timing.repeat.duration``
+    is the FHIR-native way to express a scheduled infusion length; the
+    ``MedicationAdministration`` sibling reconstructs the actual
+    administered rate at nursing-record time.
+
+    Priority: an explicit rate expression already inside ``dose_text``
+    (``12 U/kg/h``, ``100 mL/h``, ``5 mcg/min``) wins over the catalog —
+    the disease-YAML author wrote a specific rate that we must honour.
+    """
+    if not dosage:
+        return
+    canonical = canonicalize_route(route)
+    if canonical != "IV":
+        return
+
+    # Priority 1: rate already in dose_text.
+    if dose_text:
+        m = _IV_RATE_TEXT_RE.search(dose_text)
+        if m:
+            try:
+                rate_value = float(m.group("val"))
+            except ValueError:
+                rate_value = None
+            if rate_value is not None:
+                rate_unit = _canonicalize_iv_rate_unit(m.group("num"), m.group("denom"))
+                dar = dosage.setdefault("doseAndRate", [{}])
+                if not dar:
+                    dar.append({})
+                dar[0]["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
+                return
+
+    # Priority 2/3: catalog lookup + default fallback.
+    entry = resolve_iv_infusion_default(display_name)
+    if not entry:
+        return
+    mode = str(entry.get("mode", "") or "").lower()
+    if mode == "continuous":
+        rate_value = entry.get("rate_value")
+        rate_unit = entry.get("rate_unit", "")
+        if rate_value is None or not rate_unit:
+            return
+        dar = dosage.setdefault("doseAndRate", [{}])
+        if not dar:
+            dar.append({})
+        dar[0]["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
+    elif mode == "bolus":
+        duration = entry.get("duration_min")
+        if duration is None:
+            return
+        # Preserve any existing timing.repeat (frequency/period from the
+        # caller's frequency parse) — merge rather than clobber.
+        timing = dosage.setdefault("timing", {})
+        repeat = timing.setdefault("repeat", {})
+        repeat["duration"] = duration
+        repeat["durationUnit"] = "min"
+    # mode == "push" (or unrecognized): intentional no-op.
+
+
 def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any] | None:
     """Build FHIR Dosage from structured order fields."""
     dose_qty = order.get("dose_quantity")
@@ -1163,6 +1348,22 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     elif order.get("display_name"):
         name = order["display_name"]
         dosage["text"] = _localize_drug_name(name, country) if is_jp(country) else name
+
+    # Issue #966: IV-route drugs need an infusion rate (or timing.duration)
+    # in addition to doseQuantity. `augment_iv_dosage_with_rate` is a no-op
+    # for non-IV routes and for drugs the yaml catalog marks as `push`.
+    # The dose text source is `display_name` (authored dose string), since
+    # `order["dose_quantity"]`/`order["dose_unit"]` do not preserve the raw
+    # "/h" or "/min" suffix that `parse_dose_string` strips before setting
+    # the numeric qty. `display_name` still carries the untouched string
+    # (see `enrich_medication_order` in modules/order/engine.py).
+    _display_name = str(order.get("display_name", "") or "")
+    augment_iv_dosage_with_rate(
+        dosage,
+        dose_text=_display_name,
+        route=order.get("route"),
+        display_name=_display_name,
+    )
 
     return dosage if dosage else None
 
