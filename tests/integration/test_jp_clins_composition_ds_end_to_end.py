@@ -61,7 +61,8 @@ def test_jp_p50_discharge_summary_composition_conforms(tmp_path):
     # module comment). Filter by title to isolate the standard living-
     # discharge summaries, whose eDS profile invariants are validated here.
     ds = [
-        c for c in comps
+        c
+        for c in comps
         if any(cc.get("code") == "18842-5" for cc in c.get("type", {}).get("coding", []))
         and c.get("title") != "死亡退院サマリー"
     ]
