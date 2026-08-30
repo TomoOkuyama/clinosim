@@ -255,7 +255,12 @@ def generate_immunizations(
         min_age = int(v["min_age"])
         avail = _parse(v["available_from"])
         freq = v["frequency"]
-        cov = v["coverage_by_age_sex"]
+        # Issue #917: pediatric_series carries per-dose coverage
+        # (coverage_by_sex) rather than the schedule-level
+        # coverage_by_age_sex used by adult (annual / every_n_years / once)
+        # branches. Fall back to an empty dict so the branch dispatch
+        # below can supply its own coverage-lookup path.
+        cov = v.get("coverage_by_age_sex", {})
 
         # earliest eligible date = max(availability, date patient reached min_age)
         reached: date | None
@@ -362,6 +367,62 @@ def generate_immunizations(
                         )
                     )
                 yr += interval
+        elif freq == "pediatric_series":
+            # Issue #917: pediatric routine series (BCG / DTaP-IPV / MR /
+            # varicella / JE / Hib / PCV13 / HepB / rotavirus / mumps).
+            # Each dose has an [age_days_min, age_days_max] window measured
+            # from the patient's date_of_birth. The engine emits one dose
+            # per entry when the window overlaps [start, as_of].
+            #
+            # RNG-neutrality for non-pediatric patients: the window-overlap
+            # test is done BEFORE any rng draw, so adult patients (whose
+            # dob + age_max < start) fall through without touching the RNG
+            # cascade. This preserves adult vaccine sampling identity when
+            # the pediatric block is appended after adult vaccines in the
+            # yaml (dict iteration is insertion-ordered).
+            if dob is None:
+                continue
+            for dose in v.get("doses") or []:
+                d_min = int(dose["age_days_min"])
+                d_max = int(dose["age_days_max"])
+                w_start = date.fromordinal(dob.toordinal() + d_min)
+                w_end = date.fromordinal(dob.toordinal() + d_max)
+                eff_start = max(w_start, start)
+                eff_end = min(w_end, as_of)
+                if eff_start > eff_end:
+                    # Dose window falls entirely outside the sim's valid
+                    # emission range for this patient (already past it at
+                    # sim start, or not yet reached at as_of). Skip WITHOUT
+                    # drawing rng to preserve adult vaccine RNG cascade.
+                    continue
+                span = (eff_end - eff_start).days
+                offset = int(rng.integers(0, span + 1)) if span > 0 else 0
+                occ = date.fromordinal(eff_start.toordinal() + offset)
+                age_at = _age_on(dob, occ, base_age)
+                cov = dose.get("coverage_by_sex") or {}
+                cov_val = float(cov.get(sex, next(iter(cov.values()), 0.0))) if cov else 0.0
+                dose_num = int(dose.get("dose_number", 0)) or None
+                if rng.random() < cov_val:
+                    out.append(
+                        ImmunizationRecord(
+                            vaccine_cvx=cvx,
+                            occurrence_date=occ,
+                            administered_by=default_nurse,
+                            lot_number=_synthetic_lot(occ),
+                            dose_number=dose_num,
+                        )
+                    )
+                elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
+                    out.append(
+                        ImmunizationRecord(
+                            vaccine_cvx=cvx,
+                            occurrence_date=occ,
+                            status="not-done",
+                            dose_number=dose_num,
+                        )
+                    )
+                # age_at referenced for stability with adult branches; no-op here
+                _ = age_at
         else:  # once
             age_at = _age_on(dob, as_of, base_age)
             if rng.random() < _coverage(cov, age_at, sex):

@@ -1,0 +1,46 @@
+# Minimum age (years) at which each chronic condition can plausibly present.
+# Used by :func:`clinosim.modules.patient.activator.activate_patient` to clamp
+# the randomly-sampled chronic-condition onset date so it never precedes
+# ``person.date_of_birth + min_years`` (Issue #968).
+#
+# Semantics: onset_date = max(sampled_onset, dob + min_onset_years).
+# For codes not listed here, the default is `default_min_years` = 0 (any date
+# after birth is allowed; the day-after-birth floor is added by the activator).
+#
+# Sources: 疾患ごとの典型的な発症年齢分布 (国内 pediatric epi ガイドライン
+# + Nelson Pediatrics 2023). Chosen as "minimum plausible new-onset age",
+# not "typical age" — clamp is a floor, not a mode.
+#
+# Codes use ICD-10 base (without decimal subclassification): the code
+# passed in has `.split(".")[0]` applied at the call site.
+default_min_years: 0
+codes:
+  # === Endocrine / metabolic ===
+  E10: 0    # T1DM — infant/toddler onset possible (peak 5-15 yrs, but neonatal cases exist)
+  E11: 20   # T2DM — pediatric T2DM emerging but adult-onset by default (avoid infant T2DM)
+  E03: 0    # Hypothyroidism — congenital forms exist
+  E78: 5    # Hyperlipidemia — familial forms (FH) reasonable from school age
+
+  # === Cardiovascular ===
+  I10: 12   # Essential hypertension — adolescent onset possible, not infant
+  I25: 30   # Chronic IHD — atherosclerosis takes decades
+  I50: 15   # Chronic heart failure — congenital HF is a distinct code; acquired HF starts adolescent+
+  I48: 20   # Atrial fibrillation — very rare in kids
+
+  # === Respiratory ===
+  J44: 30   # COPD — smoking-related, adult
+  J45: 2    # Asthma — commonly diagnosed from age 2 (before that = wheeze, not asthma dx)
+
+  # === Renal ===
+  N18: 5    # CKD — pediatric CKD exists but rare < 5
+
+  # === Neuro / psych ===
+  F00: 50   # Dementia (Alzheimer's) — adult-onset
+  G20: 30   # Parkinson's — young-onset rare < 30
+  G30: 50   # Alzheimer's — adult-onset
+
+  # === Musculoskeletal ===
+  M17: 40   # Knee OA — degenerative
+
+  # === Malignancy — no floor (any age plausible) ===
+  # C-codes intentionally omitted; fall through to default_min_years=0.
