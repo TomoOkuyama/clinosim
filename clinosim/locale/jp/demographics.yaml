@@ -123,8 +123,13 @@ chronic_prevalence:
     "50-74": 0.015
     "75-99": 0.09
   I25:      # Ischemic heart disease — JCS 50+ 3%, 70+ 10%
+    # p=1000 seed=500 JP audit (2026-08-30): observed 70+ 16.7-18.8% under the
+    # marginal-preserving engine (v0.5.0) after care-seeking amplification;
+    # dropped 0.10 → 0.06 so the emitted marginal lands near the 冠動脈疾患
+    # 70+ 10% JCS 2018 benchmark. Mirror in scripts/audit_realworld_stats_jp.py
+    # CHRONIC_CONFIG_TARGETS_JP.
     "50-69": 0.03
-    "70-99": 0.10
+    "70-99": 0.06
   M81:      # Osteoporosis — sex-neutral: 60+ 15%, 70+ 25% (JOS)
     "60-69": 0.15
     "70-99": 0.25
@@ -266,57 +271,64 @@ care_seeking:
 # conservative 1.3-1.8 to JCS/JSH real association values (metabolic
 # syndrome cluster is well-documented at 2.0-2.5x). JP-specific metabolic
 # syndrome dominates the outpatient chronic condition mix.
+#
+# 2026-08-30 (p=1000 seed=500 JP audit): baseline chronic conditions/patient
+# MEAN was 2.99 vs MHLW 国民生活基礎調査 2019 target 2.3 (65+ 平均 2.3,
+# 全年齢 1.4). Cohort skewed comorbidity-heavy under the marginal-preserving
+# engine (v0.5.0). Reduced every multiplier ~15% to bring cumulative
+# comorbidity load toward the MHLW target while keeping JSH/JCS-documented
+# correlation SHAPE (relative ordering) intact.
 comorbidity_correlations:
   I10:        # Hypertension
-    E78:   2.2   # → dyslipidemia (JSH metabolic cluster)
-    E11.9: 2.0   # → type 2 DM
-    I25:   2.0   # → ischemic heart disease
-    N18:   2.0   # → CKD (hypertensive nephropathy)
-    I50:   1.6   # → heart failure
-    E79:   1.8   # → hyperuricemia (metabolic cluster)
-    M54:   1.4   # → chronic back pain (activity-limited elderly)
+    E78:   1.9   # → dyslipidemia (JSH metabolic cluster)
+    E11.9: 1.7   # → type 2 DM
+    I25:   1.7   # → ischemic heart disease
+    N18:   1.7   # → CKD (hypertensive nephropathy)
+    I50:   1.4   # → heart failure
+    E79:   1.5   # → hyperuricemia (metabolic cluster)
+    M54:   1.2   # → chronic back pain (activity-limited elderly)
   E11.9:      # Type 2 DM
-    I10:   1.8   # → hypertension
-    E78:   2.2   # → dyslipidemia
-    N18:   2.5   # → diabetic nephropathy (highest in Japan)
-    I25:   2.0   # → ischemic heart disease
-    F00:   1.5   # → dementia (JP guideline documented, glycemic damage)
-    H26:   1.5   # → cataract (diabetic complication)
-    E79:   1.6   # → hyperuricemia (insulin resistance shared axis)
+    I10:   1.5   # → hypertension
+    E78:   1.9   # → dyslipidemia
+    N18:   2.1   # → diabetic nephropathy (highest in Japan)
+    I25:   1.7   # → ischemic heart disease
+    F00:   1.3   # → dementia (JP guideline documented, glycemic damage)
+    H26:   1.3   # → cataract (diabetic complication)
+    E79:   1.4   # → hyperuricemia (insulin resistance shared axis)
   E78:        # Dyslipidemia
-    I10:   1.8   # → hypertension
-    E11.9: 2.0   # → type 2 DM
-    I25:   2.2   # → IHD (LDL-driven ASCVD)
-    E79:   1.8   # → hyperuricemia (metabolic cluster)
+    I10:   1.5   # → hypertension
+    E11.9: 1.7   # → type 2 DM
+    I25:   1.9   # → IHD (LDL-driven ASCVD)
+    E79:   1.5   # → hyperuricemia (metabolic cluster)
   N18:        # CKD
-    I10:   2.0
-    E11.9: 2.0
-    I50:   2.0   # → HF (cardiorenal syndrome)
-    E79:   2.0   # → hyperuricemia (uric acid retention)
+    I10:   1.7
+    E11.9: 1.7
+    I50:   1.7   # → HF (cardiorenal syndrome)
+    E79:   1.7   # → hyperuricemia (uric acid retention)
   I50:        # Heart failure
-    I25:   2.2   # → IHD (cause of HF)
-    I48:   1.8   # → atrial fibrillation
-    N18:   1.8   # → CKD (cardiorenal)
+    I25:   1.9   # → IHD (cause of HF)
+    I48:   1.5   # → atrial fibrillation
+    N18:   1.5   # → CKD (cardiorenal)
   I48:        # Atrial fibrillation
-    I50:   1.8   # → HF
-    I25:   1.5   # → IHD
-    I10:   1.5   # → HTN
+    I50:   1.5   # → HF
+    I25:   1.3   # → IHD
+    I10:   1.3   # → HTN
   I25:        # Ischemic heart disease
-    I50:   1.8   # → HF
-    I48:   1.5   # → AF
-    I10:   1.8   # → HTN
-    E78:   1.8   # → dyslipidemia
+    I50:   1.5   # → HF
+    I48:   1.3   # → AF
+    I10:   1.5   # → HTN
+    E78:   1.5   # → dyslipidemia
   E79:        # Hyperuricemia
-    I10:   1.6   # → HTN
-    E78:   1.6   # → dyslipidemia
-    E11.9: 1.5   # → DM
-    N18:   1.8   # → CKD (uric acid retention loop)
+    I10:   1.4   # → HTN
+    E78:   1.4   # → dyslipidemia
+    E11.9: 1.3   # → DM
+    N18:   1.5   # → CKD (uric acid retention loop)
   M17:        # Osteoarthritis
-    M54:   1.6   # → chronic back pain
-    M81:   1.3   # → osteoporosis (activity-limited elderly)
+    M54:   1.4   # → chronic back pain
+    M81:   1.1   # → osteoporosis (activity-limited elderly)
   F00:        # Dementia
-    K21:   1.3   # → GERD (medication side effects / poor mobility)
-    K59:   1.6   # → constipation (immobility / anticholinergics)
+    K21:   1.1   # → GERD (medication side effects / poor mobility)
+    K59:   1.4   # → constipation (immobility / anticholinergics)
 
 # Disease incidence rates per 100,000/year by age group
 # Source: MHLW Patient Survey, Japanese Orthopedic Association

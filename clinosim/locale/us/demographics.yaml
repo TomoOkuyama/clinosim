@@ -548,20 +548,26 @@ care_seeking:
 # Comorbidity correlations
 # condition_A present -> multiplier on condition_B's prevalence at sampling time
 # Source: Framingham, UKPDS, epidemiological meta-analyses
+#
+# 2026-08-30: mirror of the JP-side ~15% comorbidity multiplier reduction —
+# baseline p=1000 seed=500 JP audit showed chronic conditions/patient MEAN
+# 2.99 vs MHLW target 2.3 under the marginal-preserving engine (v0.5.0), and
+# the same over-emission dynamic applies to the US mirror. Correlation SHAPE
+# (relative ordering) is preserved.
 comorbidity_correlations:
   I10:
-    E78:   1.6
-    E11.9: 1.4
-    I25:   1.5
+    E78:   1.4
+    E11.9: 1.2
+    I25:   1.3
   E11.9:
-    I10:   1.4
-    E78:   1.7
-    N18:   2.0
-    I25:   1.5
+    I10:   1.2
+    E78:   1.4
+    N18:   1.7
+    I25:   1.3
   E78:
-    I10:   1.5
-    E11.9: 1.5
-    I25:   1.6
+    I10:   1.3
+    E11.9: 1.3
+    I25:   1.4
 
 # Insurance distribution by age band
 # Source: Kaiser Family Foundation 2023, CMS data
