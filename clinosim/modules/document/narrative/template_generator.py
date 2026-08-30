@@ -4603,18 +4603,19 @@ class TemplateNarrativeGenerator:
         """
         prefix = "直接死因までの期間: "
         chronic_lead = "既往の慢性経過に加え、" if pattern == "chronic" else ""
+        disease_suffix = f"（{disease_label}）" if disease_label else ""
         if bucket == "hours":
-            body = f"入院より約{hours}時間で死亡"
+            body = f"入院より約{hours}時間で死亡{disease_suffix}"
         elif bucket == "same_day":
-            body = "入院同日、数時間以内に死亡"
+            body = f"入院同日、数時間以内に死亡{disease_suffix}"
         elif bucket == "days":
-            body = f"入院より約{los}日の経過で死亡"
+            body = f"入院より約{los}日の経過で死亡{disease_suffix}"
         elif bucket == "weeks":
             weeks = max(1, round(los / 7))
-            body = f"入院より約{weeks}週間（{los}日）の経過で死亡"
+            body = f"入院より約{weeks}週間（{los}日）の経過で死亡{disease_suffix}"
         else:  # "long"
             weeks = max(4, round(los / 7))
-            body = f"入院より約{weeks}週間の長期経過で死亡"
+            body = f"入院より約{weeks}週間の長期経過で死亡{disease_suffix}"
         tail = "。入院前の経過は本記録範囲外。"
         return f"{prefix}{chronic_lead}{body}{tail}"
 
@@ -4622,18 +4623,19 @@ class TemplateNarrativeGenerator:
         """EN duration phrase generator (mirrors the JP version)."""
         prefix = "Time from onset of immediate cause to death: "
         chronic_lead = "on a background of chronic disease, " if pattern == "chronic" else ""
+        disease_suffix = f" from {disease_label}" if disease_label else ""
         if bucket == "hours":
-            body = f"died approximately {hours} h after admission"
+            body = f"died approximately {hours} h after admission{disease_suffix}"
         elif bucket == "same_day":
-            body = "died the same day of admission, within hours"
+            body = f"died the same day of admission, within hours{disease_suffix}"
         elif bucket == "days":
-            body = f"died approximately {los} days into the admission"
+            body = f"died approximately {los} days into the admission{disease_suffix}"
         elif bucket == "weeks":
             weeks = max(1, round(los / 7))
-            body = f"died approximately {weeks} week(s) ({los} d) into the admission"
+            body = f"died approximately {weeks} week(s) ({los} d) into the admission{disease_suffix}"
         else:
             weeks = max(4, round(los / 7))
-            body = f"died after a prolonged {weeks}-week course during this admission"
+            body = f"died after a prolonged {weeks}-week course during this admission{disease_suffix}"
         tail = ". Pre-admission course not captured in this record."
         return f"{prefix}{chronic_lead}{body}{tail}"
 
