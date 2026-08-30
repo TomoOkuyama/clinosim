@@ -18,6 +18,7 @@ from clinosim.modules.document.narrative.registry import (
 )
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
+    load_hpi_pertinent_negatives,
     load_physical_exam_findings,
 )
 from clinosim.types.document import (
@@ -59,6 +60,7 @@ __all__ = [
     "specs_for_encounter_type",
     "load_physical_exam_findings",
     "load_discharge_instructions",
+    "load_hpi_pertinent_negatives",
     "DOC_REFERENCE_ID_PREFIX",
     "COMPOSITION_ID_PREFIX",
     "ALLERGY_ID_PREFIX",

@@ -205,3 +205,35 @@ def load_discharge_instructions() -> dict[str, Any]:
         data: dict[str, Any] = yaml.safe_load(f)
     _validate_discharge_instructions(data)
     return data
+
+
+# ─────────────────────────────────────────────────────────────────
+# hpi_pertinent_negatives.yaml (Issue #984)
+# ─────────────────────────────────────────────────────────────────
+
+
+@lru_cache(maxsize=1)
+def load_hpi_pertinent_negatives() -> dict[str, list[str]]:
+    """Load hpi_pertinent_negatives.yaml. Cached singleton.
+
+    Returns a ``{disease_id: [neg_phrase, ...]}`` mapping. Missing file
+    or invalid shape → empty dict (silent no-op ROS tail; template
+    falls back to the pre-#984 HPI body). Content is JP-only; EN
+    locale currently emits its own locale-neutral HPI seed and does
+    not consult this file.
+    """
+    path = _REF_DIR / "hpi_pertinent_negatives.yaml"
+    if not path.exists():
+        return {}
+    with path.open() as f:
+        data = yaml.safe_load(f) or {}
+    out: dict[str, list[str]] = {}
+    if not isinstance(data, dict):
+        return out
+    for disease_id, phrases in data.items():
+        if not isinstance(phrases, list):
+            continue
+        cleaned = [str(p).strip() for p in phrases if p and isinstance(p, str) and str(p).strip()]
+        if cleaned:
+            out[str(disease_id)] = cleaned
+    return out

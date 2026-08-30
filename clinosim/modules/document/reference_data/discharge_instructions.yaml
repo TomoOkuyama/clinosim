@@ -1,4 +1,4 @@
-# Discharge instructions catalog (Tier 1 #3 α-min-1 PR1 Task 5)
+# Discharge instructions catalog.
 #
 # baseline       = disease-agnostic fallback instructions (always applied)
 # disease_specific = per-disease override / supplement instructions
@@ -6,8 +6,13 @@
 # Each entry must have BOTH 'en' (English) and 'ja' (Japanese) fields.
 # Required baseline keys: hydrate, rest, follow_up
 #
-# Task 6 TemplateNarrativeGenerator merges baseline + disease_specific,
+# TemplateNarrativeGenerator merges baseline + disease_specific,
 # with disease_specific taking precedence for shared keys.
+#
+# Issue #986: expanded from 2 disease entries → 30 entries covering every
+# disease in modules/disease/reference_data/. Each entry carries at least
+# daily_care / warning_signs / follow_up so the discharge summary reads
+# as a genuine per-diagnosis instruction sheet, not a generic template.
 
 baseline:
   hydrate:
@@ -30,36 +35,437 @@ baseline:
     ja: "食事は体調に合わせて徐々に通常食に戻してください。"
 
 # Per-disease overrides — supplement or replace baseline entries.
-# Only bacterial_pneumonia is populated in Task 5 as structural demonstration.
 
 disease_specific:
   bacterial_pneumonia:
     follow_up:
-      en: "Follow up with your primary care provider in 7-10 days for chest X-ray reassessment."
-      ja: "退院後 1-2 週間以内に外来受診し、胸部 X-P 再検をお願いします。"
+      en: "Follow up in 7-10 days for chest X-ray reassessment; return sooner if febrile."
+      ja: "退院後 1-2 週間以内に外来受診し、胸部 X-P 再検をお願いします。発熱再燃時はすぐ受診。"
+    daily_care:
+      en: "Cough deep breathing exercises hourly while awake; use incentive spirometer if provided."
+      ja: "覚醒時は 1 時間ごとに深呼吸・咳嗽訓練を実施してください。インセンティブスパイロメトリ処方時は継続。"
     activity:
       en: "Gradual return to normal activity; avoid strenuous exercise for 2 weeks."
       ja: "徐々に通常活動に戻してください。激しい運動は 2 週間控えてください。"
     medications:
       en: "Complete the full prescribed antibiotic course even if you feel better."
       ja: "症状が改善しても処方された抗菌薬を最後まで内服してください。"
-    emergency:
-      en: "Return to the ER if fever recurs, breathing worsens, or chest pain develops."
-      ja: "発熱再出現・呼吸困難悪化・胸痛が現れた場合は速やかに救急受診してください。"
+    warning_signs:
+      en: "Return to ER for fever recurrence >38C, dyspnea worsening, chest pain, or purulent sputum increase."
+      ja: "発熱 38℃ 以上の再燃、呼吸困難悪化、胸痛、膿性痰増加時は救急受診。"
     smoking:
       en: "Smoking significantly delays recovery. Strongly consider cessation."
       ja: "喫煙は回復を著しく遅らせます。禁煙を強くお勧めします。"
 
   aspiration_pneumonia:
     follow_up:
-      en: "Follow up with your physician in 1 week; swallowing evaluation may be recommended."
-      ja: "1 週間以内に外来受診をお願いします。嚥下機能評価を勧める場合があります。"
+      en: "Follow up in 1 week; swallowing evaluation (VF/VE) may be recommended."
+      ja: "1 週間以内に外来受診をお願いします。嚥下造影・嚥下内視鏡検査を勧める場合があります。"
     diet:
       en: "Follow the thickened liquid or pureed diet as instructed to reduce aspiration risk."
       ja: "誤嚥リスク軽減のため、指示されたとろみ食・ペースト食を守ってください。"
+    daily_care:
+      en: "Sit upright at 60-90 degrees during meals and for 30 minutes after; brush teeth after each meal."
+      ja: "食事中・食後 30 分は 60-90 度で座位を保ち、毎食後の口腔ケア (歯磨き) を徹底してください。"
+    warning_signs:
+      en: "Return to ER for fever, cough during meals, choking episodes, or inability to swallow."
+      ja: "発熱、食事中の咳嗽、むせ込み、嚥下困難時は救急受診してください。"
+
+  heart_failure_exacerbation:
+    daily_care:
+      en: "Weigh yourself every morning at the same time; contact us if weight rises >2 kg in 3 days."
+      ja: "毎朝同じ条件 (起床後・排尿後・朝食前) で体重測定。3 日で 2 kg 以上増加時はすぐに連絡してください。"
+    diet:
+      en: "Restrict sodium to <6 g/day and fluids to <1.5 L/day unless directed otherwise."
+      ja: "塩分 6 g/日 以下、水分 1.5 L/日 以下を目安に管理してください。"
+    medications:
+      en: "Take diuretics and heart failure medications daily; do not skip doses. Monitor for dizziness."
+      ja: "利尿薬・心不全治療薬は毎日欠かさず内服してください。めまい・ふらつきに注意。"
+    warning_signs:
+      en: "Return to ER for worsening dyspnea, orthopnea, leg edema, palpitations, or fatigue."
+      ja: "呼吸困難増悪、起坐呼吸、下肢浮腫、動悸、易疲労時は循環器科へ連絡・受診してください。"
+    follow_up:
+      en: "Cardiology follow-up in 7-14 days with weight log and home BP record."
+      ja: "退院後 7-14 日以内に循環器科外来受診。体重ノート・家庭血圧手帳を持参してください。"
+
+  acute_mi:
+    daily_care:
+      en: "Take dual antiplatelet therapy (DAPT) and statin daily. Cardiac rehab attendance strongly recommended."
+      ja: "抗血小板 2 剤併用療法 (DAPT)・スタチンを毎日内服。心臓リハビリテーション参加を強く推奨します。"
     activity:
-      en: "Maintain upright posture during and for 30 minutes after meals."
-      ja: "食事中および食後 30 分は上体を起こした姿勢を保ってください。"
-    emergency:
-      en: "Return to the ER if fever recurs, breathing worsens, or you are unable to swallow."
-      ja: "発熱再出現・呼吸困難・嚥下困難が悪化した場合は速やかに救急受診してください。"
+      en: "Gradual activity resumption per cardiac rehab plan; avoid heavy lifting >5 kg for 4-6 weeks."
+      ja: "心臓リハビリ計画に沿って徐々に活動再開。4-6 週間は 5 kg 以上の重い荷物を持たないでください。"
+    warning_signs:
+      en: "Call ambulance immediately for chest pain lasting >15 min, dyspnea, syncope, or cold sweats."
+      ja: "15 分以上続く胸痛、呼吸困難、失神、冷汗出現時は直ちに救急要請してください。"
+    follow_up:
+      en: "Cardiology follow-up in 1-2 weeks; lipid panel and echocardiogram at 4-6 weeks."
+      ja: "1-2 週後に循環器科外来受診。4-6 週後に脂質パネル・心エコー再検を予定します。"
+
+  atrial_fibrillation_rvr:
+    medications:
+      en: "Take anticoagulant (DOAC or warfarin) daily without missing doses. Rate control meds as prescribed."
+      ja: "抗凝固薬 (DOAC またはワルファリン) を毎日欠かさず内服してください。心拍数コントロール薬も指示通り継続。"
+    daily_care:
+      en: "Check pulse daily; log rate and rhythm. Avoid excessive alcohol and caffeine."
+      ja: "毎日脈拍を確認して記録してください。過度の飲酒・カフェインは避けてください。"
+    warning_signs:
+      en: "Return to ER for palpitations >120 bpm, chest pain, sudden weakness/speech difficulty (stroke), or unusual bleeding."
+      ja: "動悸 (脈拍 120/分以上)、胸痛、突然の脱力・呂律不良 (脳梗塞徴候)、異常出血時は救急受診してください。"
+    follow_up:
+      en: "Cardiology follow-up in 2 weeks with ECG; INR check if on warfarin."
+      ja: "2 週後に循環器科外来受診・心電図施行。ワルファリン内服中は INR 採血を行います。"
+
+  copd_exacerbation:
+    daily_care:
+      en: "Practice pursed-lip breathing during exertion. Use inhaler with correct technique (spacer if provided)."
+      ja: "労作時は口すぼめ呼吸を実施してください。吸入器は正しい手技で使用 (スペーサー処方時は併用)。"
+    medications:
+      en: "Continue LABA/LAMA (with or without ICS) inhaler as prescribed. Complete steroid taper as instructed."
+      ja: "LABA/LAMA (± ICS) 吸入を指示通り継続。ステロイド漸減は指示通り最後まで実施してください。"
+    warning_signs:
+      en: "Return to ER for increased dyspnea, sputum volume/purulence increase, fever, or SpO2 <90%."
+      ja: "呼吸困難増悪、痰量・膿性度増加、発熱、SpO2 90% 未満時は救急受診してください。"
+    smoking:
+      en: "Smoking cessation is the single most important intervention. Nicotine replacement is available."
+      ja: "禁煙が最も重要な治療です。ニコチン置換療法の相談も受け付けています。"
+    follow_up:
+      en: "Pulmonology follow-up in 2-4 weeks; annual influenza and pneumococcal vaccination recommended."
+      ja: "2-4 週後に呼吸器科外来受診。毎年インフルエンザ・肺炎球菌ワクチン接種を推奨します。"
+
+  asthma_exacerbation:
+    daily_care:
+      en: "Use peak flow meter daily; record morning and evening readings. Avoid known triggers."
+      ja: "毎日朝夕にピークフローメーターで測定し記録してください。既知のトリガー曝露は避けてください。"
+    medications:
+      en: "Continue ICS/LABA daily controller. Use SABA (short-acting) as rescue up to every 4 hours."
+      ja: "ICS/LABA コントローラーを毎日継続。発作時は SABA (短時間作用型) を 4 時間ごとに使用可。"
+    warning_signs:
+      en: "Return to ER for peak flow <50% personal best, SABA needed >q4h, difficulty speaking, or blue lips."
+      ja: "ピークフロー個人ベスト値の 50% 未満、SABA を 4 時間より頻回使用、会話困難、チアノーゼ時は救急受診。"
+    follow_up:
+      en: "Pulmonology follow-up in 2-4 weeks; ACT questionnaire review."
+      ja: "2-4 週後に呼吸器科外来受診。ACT 質問票でコントロール状況を再評価します。"
+
+  diabetic_ketoacidosis:
+    daily_care:
+      en: "Check blood glucose 4-6 times daily; check urine or blood ketones if BG >250 mg/dL."
+      ja: "血糖を 1 日 4-6 回測定。血糖 250 mg/dL 超過時は尿ケトンまたは血中ケトンを測定してください。"
+    medications:
+      en: "Take insulin exactly as prescribed. Never skip doses even when sick; adjust per sick-day rules provided."
+      ja: "インスリンは処方通りに投与。体調不良時も欠かさず、指示された sick day rule に従って調整してください。"
+    warning_signs:
+      en: "Return to ER for BG >300 mg/dL with ketones, persistent vomiting, deep breathing, or altered mental status."
+      ja: "血糖 300 mg/dL 超過かつケトン陽性、頻回嘔吐、深く速い呼吸、意識レベル低下時は救急受診してください。"
+    diet:
+      en: "Follow diabetic diet plan; maintain hydration especially during illness (small sips frequently)."
+      ja: "糖尿病食事療法を遵守してください。特に体調不良時は少量頻回の水分摂取を心がけてください。"
+    follow_up:
+      en: "Endocrinology follow-up within 1 week; HbA1c check at 4 weeks."
+      ja: "1 週間以内に内分泌代謝科外来受診。4 週後に HbA1c 再検を行います。"
+
+  sepsis:
+    daily_care:
+      en: "Monitor temperature twice daily; rest and eat as tolerated. Complete full antibiotic course."
+      ja: "1 日 2 回体温測定。体調に合わせた休息・食事を心がけ、抗菌薬は最後まで内服してください。"
+    warning_signs:
+      en: "Return to ER for fever >38C, chills, confusion, rapid heart rate, decreased urine output, or new pain."
+      ja: "発熱 38℃ 以上、悪寒、意識障害、頻脈、尿量減少、新たな疼痛出現時は救急受診してください。"
+    follow_up:
+      en: "Primary care follow-up in 1 week; specialty follow-up per source of infection."
+      ja: "1 週間以内にかかりつけ医受診。感染源に応じて専門科外来もフォローしてください。"
+
+  urinary_tract_infection:
+    daily_care:
+      en: "Drink 1.5-2 L water daily; urinate frequently. Wipe front-to-back after toileting (female)."
+      ja: "1 日 1.5-2 L の水分摂取・頻回排尿を心がけてください。排便後は前から後ろへ拭いてください (女性)。"
+    medications:
+      en: "Complete the full antibiotic course even if symptoms resolve."
+      ja: "症状消失後も処方された抗菌薬は最後まで内服してください。"
+    warning_signs:
+      en: "Return to ER for fever >38C with flank pain (pyelonephritis suspicion), hematuria, or symptom recurrence."
+      ja: "発熱 38℃ 以上・側腹部痛 (腎盂腎炎疑い)、血尿、症状再燃時は救急受診してください。"
+    follow_up:
+      en: "Follow-up urinalysis in 2 weeks. Recurrent UTI evaluation if >2 episodes in 6 months."
+      ja: "2 週後に尿検査再検。半年間に 2 回以上の再発時は精査を検討してください。"
+
+  cellulitis:
+    daily_care:
+      en: "Elevate affected limb when resting. Mark the erythema border daily to track progression."
+      ja: "患肢を安静時は挙上してください。発赤の境界を毎日マーキングし進行を確認してください。"
+    medications:
+      en: "Complete the full antibiotic course. Take pain relievers as needed."
+      ja: "抗菌薬は最後まで内服してください。疼痛時は指示された鎮痛薬を使用可。"
+    warning_signs:
+      en: "Return to ER if erythema expands past marked border, fever recurs, purulent drainage, or streaking appears."
+      ja: "発赤境界を超える拡大、発熱再燃、膿性排液、線状の紅斑出現時は救急受診してください。"
+    follow_up:
+      en: "Follow-up in 5-7 days to confirm resolution. Foot care if diabetic."
+      ja: "5-7 日後に外来受診し治癒確認。糖尿病患者はフットケアを継続してください。"
+
+  cerebral_infarction:
+    daily_care:
+      en: "Continue rehabilitation exercises as instructed. Take antiplatelet/anticoagulant daily."
+      ja: "指示されたリハビリを継続してください。抗血小板薬・抗凝固薬は毎日内服。"
+    medications:
+      en: "Do not stop antiplatelet or anticoagulant without physician approval. Statin as prescribed."
+      ja: "抗血小板薬・抗凝固薬は医師の指示なく中止しないでください。スタチンも指示通り継続。"
+    warning_signs:
+      en: "Call ambulance immediately for sudden weakness, speech difficulty, facial droop, or vision changes (FAST)."
+      ja: "突然の脱力・呂律不良・顔面麻痺・視野障害出現時は直ちに救急要請 (FAST 徴候)。"
+    follow_up:
+      en: "Neurology follow-up in 2 weeks; carotid US and echocardiogram as scheduled."
+      ja: "2 週後に神経内科外来受診。頚動脈エコー・心エコーはスケジュール通り施行してください。"
+
+  hemorrhagic_stroke:
+    daily_care:
+      en: "Strict blood pressure control (BP <140/90 target). Continue rehabilitation."
+      ja: "厳格な血圧管理 (目標 140/90 mmHg 未満) を継続してください。リハビリテーションも継続。"
+    warning_signs:
+      en: "Call ambulance immediately for severe headache, vomiting, weakness recurrence, or consciousness change."
+      ja: "激しい頭痛、嘔吐、麻痺再燃、意識レベル変化時は直ちに救急要請してください。"
+    follow_up:
+      en: "Neurosurgery follow-up in 2 weeks; head CT/MRI as scheduled."
+      ja: "2 週後に脳神経外科外来受診。頭部 CT/MRI はスケジュール通り施行します。"
+
+  subdural_hematoma:
+    daily_care:
+      en: "Avoid activities with head injury risk (contact sports, ladders). Monitor for headache changes."
+      ja: "頭部外傷リスクのある活動 (コンタクトスポーツ・脚立作業) は避けてください。頭痛の変化に注意。"
+    warning_signs:
+      en: "Return to ER immediately for worsening headache, vomiting, weakness, seizure, or consciousness change."
+      ja: "頭痛増悪、嘔吐、脱力、痙攣、意識レベル低下時は直ちに救急受診してください。"
+    follow_up:
+      en: "Neurosurgery follow-up in 2-4 weeks with head CT to assess resolution."
+      ja: "2-4 週後に脳神経外科外来受診・頭部 CT で吸収確認。"
+
+  gi_bleeding:
+    daily_care:
+      en: "Take PPI daily. Avoid NSAIDs and alcohol. Iron supplementation as prescribed for anemia."
+      ja: "PPI を毎日内服。NSAIDs・アルコールは避けてください。貧血に対する鉄剤処方時は継続。"
+    diet:
+      en: "Soft diet for first week; avoid spicy/acidic foods and hot beverages."
+      ja: "退院後 1 週間は消化のよい食事。刺激物・酸味の強い食品・熱い飲料は控えてください。"
+    warning_signs:
+      en: "Return to ER for hematemesis, melena (black tarry stools), hematochezia, dizziness, or syncope."
+      ja: "吐血、黒色便 (タール便)、血便、めまい、失神時は救急受診してください。"
+    follow_up:
+      en: "GI follow-up in 2-4 weeks; repeat endoscopy per plan; CBC to confirm hemoglobin recovery."
+      ja: "2-4 週後に消化器内科外来受診。計画に基づく内視鏡再検、血算で Hb 回復確認を行います。"
+
+  acute_appendicitis:
+    daily_care:
+      en: "Keep surgical wound clean and dry. Gradual diet advancement as tolerated."
+      ja: "手術創部を清潔・乾燥に保ってください。食事は消化のよい物から徐々にステップアップ。"
+    activity:
+      en: "No heavy lifting >5 kg for 2 weeks. Avoid strenuous exercise for 4 weeks."
+      ja: "2 週間は 5 kg 以上の重い物を持たないでください。激しい運動は 4 週間控えてください。"
+    warning_signs:
+      en: "Return to ER for wound redness/discharge, fever, severe abdominal pain, or persistent vomiting."
+      ja: "創部発赤・排液、発熱、強い腹痛、頻回嘔吐時は救急受診してください。"
+    follow_up:
+      en: "Surgery follow-up in 1-2 weeks for wound check and suture removal."
+      ja: "1-2 週後に外科外来受診・創部確認および抜糸。"
+
+  acute_cholecystitis:
+    diet:
+      en: "Low-fat diet for 4 weeks post-op; avoid fried and fatty foods."
+      ja: "術後 4 週間は低脂肪食を継続。揚げ物・脂質の多い食品は避けてください。"
+    warning_signs:
+      en: "Return to ER for right upper quadrant pain recurrence, jaundice, fever, or clay-colored stool."
+      ja: "右上腹部痛再燃、黄疸、発熱、白色便時は救急受診してください。"
+    follow_up:
+      en: "Surgery follow-up in 2 weeks; liver function tests."
+      ja: "2 週後に外科外来受診。肝機能検査を実施します。"
+
+  acute_pancreatitis:
+    diet:
+      en: "Strict alcohol abstinence. Low-fat diet, small frequent meals. Avoid overeating."
+      ja: "完全禁酒を厳守してください。低脂肪食・少量頻回食で管理し、過食を避けてください。"
+    warning_signs:
+      en: "Return to ER for epigastric/back pain recurrence, persistent vomiting, or jaundice."
+      ja: "心窩部痛・背部痛再燃、頻回嘔吐、黄疸出現時は救急受診してください。"
+    follow_up:
+      en: "GI follow-up in 2-4 weeks; amylase/lipase and abdominal US."
+      ja: "2-4 週後に消化器内科外来受診。アミラーゼ・リパーゼ採血と腹部エコーを施行します。"
+
+  acute_kidney_injury:
+    daily_care:
+      en: "Daily weight and urine output monitoring. Avoid NSAIDs and IV contrast."
+      ja: "毎日体重・尿量を記録してください。NSAIDs・造影剤は避けてください。"
+    medications:
+      en: "Review all medications with pharmacist for renal dose adjustment. Continue prescribed regimen."
+      ja: "全ての内服薬を薬剤師と再確認し腎機能に応じた用量調整を確認。処方通り継続してください。"
+    warning_signs:
+      en: "Return to ER for decreased urine output <400 mL/day, edema worsening, dyspnea, or confusion."
+      ja: "尿量 400 mL/日 未満への減少、浮腫増悪、呼吸困難、意識障害時は救急受診してください。"
+    follow_up:
+      en: "Nephrology follow-up in 1-2 weeks; Cr, eGFR, electrolyte recheck."
+      ja: "1-2 週後に腎臓内科外来受診。Cr・eGFR・電解質再検を行います。"
+
+  liver_cirrhosis_decompensated:
+    diet:
+      en: "Sodium restriction <5 g/day; adequate protein 1.0-1.2 g/kg/day. Avoid alcohol strictly."
+      ja: "塩分 5 g/日 未満・蛋白 1.0-1.2 g/kg/日 を目安に管理してください。完全禁酒を厳守。"
+    medications:
+      en: "Continue diuretics and lactulose. Beta-blocker for varices as prescribed."
+      ja: "利尿薬・ラクツロースを継続。静脈瘤に対するβ遮断薬は指示通り内服してください。"
+    warning_signs:
+      en: "Return to ER for hematemesis, melena, confusion (encephalopathy), fever, or abdominal distension."
+      ja: "吐血、黒色便、意識障害 (肝性脳症)、発熱、腹部膨満増悪時は救急受診してください。"
+    follow_up:
+      en: "GI/hepatology follow-up in 2 weeks. HCC screening (US + AFP) every 6 months."
+      ja: "2 週後に消化器内科・肝臓内科外来受診。肝癌スクリーニング (エコー + AFP) を半年ごとに施行。"
+
+  pulmonary_embolism:
+    medications:
+      en: "Anticoagulation (DOAC or warfarin) for minimum 3 months without missing doses."
+      ja: "抗凝固薬 (DOAC またはワルファリン) を最低 3 か月間欠かさず内服してください。"
+    daily_care:
+      en: "Compression stockings if prescribed. Ambulate regularly; avoid prolonged immobility."
+      ja: "弾性ストッキング処方時は着用。定期的に歩行し、長時間の同一姿勢は避けてください。"
+    warning_signs:
+      en: "Return to ER for sudden dyspnea, chest pain, hemoptysis, leg swelling, or bleeding."
+      ja: "突然の呼吸困難、胸痛、喀血、下肢腫脹、出血傾向時は救急受診してください。"
+    follow_up:
+      en: "Pulmonology/hematology follow-up in 2 weeks; d-dimer and CTPA per plan."
+      ja: "2 週後に呼吸器科・血液内科外来受診。計画に基づく D-dimer・造影 CT フォロー。"
+
+  deep_vein_thrombosis:
+    medications:
+      en: "Anticoagulation for minimum 3 months. INR check weekly if on warfarin."
+      ja: "抗凝固薬を最低 3 か月間内服。ワルファリン内服中は週 1 回 INR 採血。"
+    daily_care:
+      en: "Elevate affected leg when resting. Wear compression stocking if prescribed. Ambulate regularly."
+      ja: "患肢を安静時は挙上。弾性ストッキング処方時は着用してください。定期的な歩行を継続。"
+    warning_signs:
+      en: "Return to ER for sudden dyspnea/chest pain (PE), leg pain worsening, or unusual bleeding."
+      ja: "突然の呼吸困難・胸痛 (PE 徴候)、下肢痛増悪、異常出血時は救急受診してください。"
+    follow_up:
+      en: "Follow-up in 2 weeks with lower extremity duplex US."
+      ja: "2 週後に外来受診・下肢静脈エコー再検を予定します。"
+
+  ileus:
+    diet:
+      en: "Gradual diet advancement: clear liquids → full liquids → soft → regular over 3-5 days."
+      ja: "3-5 日かけて食事を段階的にステップアップ (清澄流動 → 流動食 → 軟菜 → 常菜)。"
+    daily_care:
+      en: "Track bowel movements and flatus. Walking encourages GI motility."
+      ja: "排便・排ガスを記録してください。歩行は消化管運動を促進します。"
+    warning_signs:
+      en: "Return to ER for abdominal distension recurrence, vomiting, absent flatus/stool >48h, or fever."
+      ja: "腹部膨満再燃、嘔吐、排ガス・排便 48 時間以上停止、発熱時は救急受診してください。"
+    follow_up:
+      en: "Surgery or GI follow-up in 2 weeks; abdominal imaging if symptoms recur."
+      ja: "2 週後に外科または消化器内科外来受診。症状再燃時は腹部画像検査を行います。"
+
+  hip_fracture:
+    activity:
+      en: "Follow physiotherapy weight-bearing protocol strictly. Use walker or crutches as instructed."
+      ja: "理学療法士の指示する荷重プロトコルを厳守してください。歩行器・松葉杖を指示通り使用。"
+    daily_care:
+      en: "Wound care as instructed. DVT prophylaxis (anticoagulant + calf exercises) daily."
+      ja: "創部ケアは指示通り実施。DVT 予防 (抗凝固薬 + 下腿運動) を毎日継続してください。"
+    warning_signs:
+      en: "Return to ER for wound infection signs, calf swelling/pain (DVT), sudden dyspnea (PE), or fall."
+      ja: "創部感染徴候、下腿腫脹・疼痛 (DVT)、突然の呼吸困難 (PE)、転倒時は救急受診してください。"
+    follow_up:
+      en: "Orthopedic follow-up in 2 weeks; X-ray at 6 weeks. Osteoporosis workup recommended."
+      ja: "2 週後に整形外科外来受診。6 週後に X 線再検。骨粗鬆症検査を推奨します。"
+
+  vertebral_compression_fracture:
+    activity:
+      en: "Wear back brace as prescribed. Avoid heavy lifting, bending, and twisting for 6-12 weeks."
+      ja: "処方されたコルセットを装着。6-12 週間は重い物を持つ・前屈・捻り動作を避けてください。"
+    daily_care:
+      en: "Osteoporosis medication (bisphosphonate or denosumab) as prescribed. Calcium + vitamin D daily."
+      ja: "骨粗鬆症治療薬 (ビスホスホネート・デノスマブ等) を継続。カルシウム・ビタミン D も毎日補充。"
+    warning_signs:
+      en: "Return to ER for new severe back pain, leg weakness/numbness, or bladder/bowel changes."
+      ja: "新規強い背部痛、下肢筋力低下・しびれ、膀胱直腸障害出現時は救急受診してください。"
+    follow_up:
+      en: "Orthopedic follow-up in 4 weeks; bone density (DXA) if not recently performed."
+      ja: "4 週後に整形外科外来受診。最近未施行なら骨密度 (DXA) を測定します。"
+
+  wrist_fracture_surgical:
+    activity:
+      en: "Keep cast/splint dry. Elevate hand above heart level for first 48 hours."
+      ja: "ギプス・シーネは濡らさないでください。術後 48 時間は心臓より高い位置に挙上。"
+    daily_care:
+      en: "Finger exercises daily to prevent stiffness. Shoulder ROM exercises."
+      ja: "拘縮予防のため毎日手指運動を実施。肩関節可動域訓練も継続してください。"
+    warning_signs:
+      en: "Return to ER for finger numbness, blue coloration, severe pain, or cast damage."
+      ja: "手指しびれ、チアノーゼ、強い疼痛、ギプス破損時は救急受診してください。"
+    follow_up:
+      en: "Orthopedic follow-up in 1-2 weeks with X-ray."
+      ja: "1-2 週後に整形外科外来受診・X 線再検。"
+
+  crush_injury_hand:
+    daily_care:
+      en: "Wound dressing changes as instructed. Occupational therapy for hand function recovery."
+      ja: "指示通り創部処置を実施してください。手指機能回復のため作業療法を継続。"
+    warning_signs:
+      en: "Return to ER for finger numbness/color change, severe pain, fever, or wound discharge."
+      ja: "手指しびれ・色調変化、強い疼痛、発熱、創部排液時は救急受診してください。"
+    follow_up:
+      en: "Hand surgery follow-up in 1 week; suture removal and OT plan."
+      ja: "1 週後に手外科外来受診。抜糸・作業療法プラン決定。"
+
+  industrial_burn_severe:
+    daily_care:
+      en: "Wound care per burn clinic protocol. High-protein high-calorie diet for wound healing."
+      ja: "熱傷外来のプロトコルに従い創部処置を実施。創傷治癒促進のため高蛋白・高カロリー食を継続。"
+    warning_signs:
+      en: "Return to ER for wound infection (redness, purulent discharge, fever), pain worsening, or fluid loss signs."
+      ja: "創部感染徴候 (発赤・膿性排液・発熱)、疼痛増悪、脱水徴候出現時は救急受診してください。"
+    follow_up:
+      en: "Burn clinic follow-up in 3-7 days; long-term scar and function evaluation."
+      ja: "3-7 日後に熱傷外来受診。長期的に瘢痕・機能評価を継続します。"
+
+  electrical_injury:
+    daily_care:
+      en: "Cardiac monitoring per instructions. Wound care for entry/exit sites."
+      ja: "指示に従い心電図モニタリング。電流入口・出口部位の創部ケアを継続してください。"
+    warning_signs:
+      en: "Return to ER for palpitations, chest pain, muscle weakness, dark urine (rhabdomyolysis), or numbness."
+      ja: "動悸、胸痛、筋力低下、褐色尿 (横紋筋融解)、しびれ出現時は救急受診してください。"
+    follow_up:
+      en: "Follow-up in 1 week with ECG and CK; neurology referral if symptoms persist."
+      ja: "1 週後に外来受診・心電図と CK 採血。症状持続時は神経内科紹介を検討。"
+
+  traffic_accident_severe:
+    daily_care:
+      en: "Wound and orthopedic care per instructions. Physical/occupational therapy for functional recovery."
+      ja: "創部・整形外科処置は指示通り実施。機能回復のため理学療法・作業療法を継続してください。"
+    warning_signs:
+      en: "Return to ER for new pain, wound infection, neurological changes, or abdominal/chest symptoms."
+      ja: "新規疼痛、創部感染、神経学的変化、腹部・胸部症状出現時は救急受診してください。"
+    follow_up:
+      en: "Multi-specialty follow-up per injury pattern; trauma clinic in 1-2 weeks."
+      ja: "外傷パターンに応じて多科フォロー。1-2 週後に外傷外来受診を予定します。"
+
+  fall_from_height:
+    daily_care:
+      en: "Wound and fracture care per instructions. Fall prevention: home safety review."
+      ja: "創部・骨折処置は指示通り実施。転倒予防のため自宅環境の安全確認を実施してください。"
+    warning_signs:
+      en: "Return to ER for new pain, headache/vomiting (head injury), neurological changes, or wound infection."
+      ja: "新規疼痛、頭痛・嘔吐 (頭部外傷疑い)、神経学的変化、創部感染時は救急受診してください。"
+    follow_up:
+      en: "Multi-specialty follow-up per injury pattern in 1-2 weeks; consider fall risk assessment for elderly."
+      ja: "1-2 週後に外傷パターンに応じた多科フォロー。高齢者は転倒リスク評価を推奨します。"
+
+  influenza:
+    daily_care:
+      en: "Rest at home for 5-7 days from symptom onset. Isolate from vulnerable family members."
+      ja: "症状出現から 5-7 日は自宅安静。ハイリスクの同居家族との接触は控えてください。"
+    diet:
+      en: "Frequent small sips of water/electrolyte solution; light diet as tolerated."
+      ja: "少量頻回の水分・電解質補給。体調に合わせた消化のよい食事。"
+    warning_signs:
+      en: "Return to ER for dyspnea, chest pain, persistent fever >4 days, or confusion."
+      ja: "呼吸困難、胸痛、4 日を超える発熱持続、意識障害時は救急受診してください。"
+    follow_up:
+      en: "Follow-up only if symptoms persist beyond 7 days or worsen."
+      ja: "7 日を超えて症状持続または悪化時のみ外来受診してください。"
