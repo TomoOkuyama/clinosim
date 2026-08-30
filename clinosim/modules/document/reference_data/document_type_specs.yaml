@@ -451,3 +451,56 @@ specs:
       - checkup_questionnaire
     stage2_strategy: template_only
     llm_enabled_sections: []
+
+  # === Issue #991: 手術記録 (Operative note) — LOINC 11504-8 ===
+  # Real JP hospital practice: executing surgeon documents every OR case
+  # (laparoscopic cholecystectomy, appendectomy, PCI, hip-fracture ORIF,
+  # hematoma evacuation etc.). Prompt yaml + LLMTaskType.OPERATIVE_NOTE
+  # already existed at repo root (llm_service/prompts/ja/operative_note.yaml,
+  # llm_service/engine.py); this spec wires the DocumentType layer.
+  #
+  # generation_frequency = per_surgical_encounter (new — engine.py branch):
+  # emit exactly ONE operative_note per encounter that has ≥1 ProcedureRecord
+  # with category_code == "387713003" (SNOMED "Surgical procedure"), which is
+  # populated by clinosim/modules/procedure/engine.py for ORIF /
+  # hemiarthroplasty / coronary_pci / pacemaker_implant /
+  # craniotomy_hematoma_evacuation / bowel_resection / plain "surgery".
+  # Bedside/diagnostic/therapeutic procedures (D/G/J codes: thoracentesis,
+  # bronchoscopy, chest_tube, blood_transfusion etc.) do NOT trigger
+  # operative_note; a separate procedure_note (LOINC 28570-0) will cover
+  # them (Issue #992, deferred).
+  #
+  # The stub records `related_procedure_id` = the first surgical procedure's
+  # id (chronological by start_datetime) so the narrative pipeline and FHIR
+  # emit can link the DocumentReference/Composition to the specific
+  # ProcedureRecord. When an admission has multiple surgical procedures, the
+  # MVP emits one operative_note covering the primary (earliest) surgery;
+  # a per-procedure fan-out is a possible follow-up (out of scope here).
+  #
+  # composition_sections mirror the standard JP operative-note structure
+  # (術式名 / 麻酔法 / 執刀医 / 術中所見 / 手術経過 / 摘出臓器 / 出血量 /
+  # 使用機器・材料 / 術後方針). All are populated from ProcedureRecord
+  # fields — no fabrication (feedback_empty_vs_wrong_assertion). The three
+  # narrative-heavy sections (findings / course / postop_plan) are
+  # LLM-eligible via template_seed_bundle; the structured sections
+  # (procedure_name / anesthesia / surgeon / specimens / blood_loss /
+  # equipment) stay template-only because they emit code+display+datetime
+  # values that must stay deterministic.
+  operative_note:
+    loinc_code: "11504-8"
+    format_type: composition
+    countries_supported: [us, jp]
+    encounter_types_supported: [inpatient, icu]
+    generation_frequency: per_surgical_encounter
+    composition_sections:
+      - op_procedure_name
+      - op_anesthesia
+      - op_surgeon
+      - op_findings
+      - op_course
+      - op_specimens
+      - op_blood_loss
+      - op_equipment
+      - op_postop_plan
+    stage2_strategy: template_seed_bundle
+    llm_enabled_sections: [op_findings, op_course, op_postop_plan]
