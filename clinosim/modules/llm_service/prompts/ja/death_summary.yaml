@@ -1,3 +1,14 @@
+# RESERVED — Direct-invocation prompt for LLMService.generate(task_type=death_summary).
+# NOT reached by the production narrative pipeline (which uses
+# narrative_seed_bundle.yaml only, per replacement_strategy.py).
+# Keep in sync with the corresponding _build_* template output shape
+# if a downstream consumer wires it. Audit reference:
+# docs/reviews/2026-08-30-llm-prompt-audit.md
+# NOTE: LOINC 69730-0 (death_summary) is not currently registered as a
+# DocumentType — the JP death-narrative chain uses death_certificate
+# (LOINC 64297-5) + death_discharge_summary (LOINC 18842-5). Retained
+# for a possible future short-stay/autopsy-only death summary variant.
+# See Issue #1000.
 task_type: death_summary
 version: 1
 max_tokens: 1500

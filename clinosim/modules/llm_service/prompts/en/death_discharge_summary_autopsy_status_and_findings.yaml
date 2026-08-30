@@ -1,4 +1,10 @@
-task_type: death_discharge_summary_autopsy_findings
+# RESERVED — Direct-invocation prompt for LLMService.generate(task_type=death_discharge_summary_autopsy_status_and_findings).
+# NOT reached by the production narrative pipeline (which uses
+# narrative_seed_bundle.yaml only, per replacement_strategy.py).
+# Keep in sync with the corresponding _build_* template output shape
+# if a downstream consumer wires it. Audit reference:
+# docs/reviews/2026-08-30-llm-prompt-audit.md
+task_type: death_discharge_summary_autopsy_status_and_findings
 version: 1
 max_tokens: 300
 temperature: 0.3
