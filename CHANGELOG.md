@@ -70,6 +70,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   new FHIR Condition rows only fire for encounters that would
   otherwise fail the invariant.
   Closes #912.
+- **Issue #966 — IV MedicationRequests now carry infusion rate /
+  bolus duration.** Pre-fix, 421/421 IV-route `MedicationRequest`
+  resources emitted on JP p=1000 s500 (post-#920) had no
+  `dosageInstruction.doseAndRate.rateQuantity` (and no
+  `timing.repeat.duration`) — leaving downstream drug-safety alerts
+  (KCl > 10 mEq/h, vancomycin > 10 mg/min, phenytoin > 50 mg/min)
+  unreproducible and nursing-side administration reconstruction
+  impossible. Fix: new `augment_iv_dosage_with_rate` helper (called
+  from both `build_dosage_instruction` and
+  `_build_discharge_medication_request`) resolves per-drug defaults
+  from a new yaml catalog
+  `clinosim/locale/shared/iv_infusion_defaults.yaml` — continuous
+  drips (saline, KCl, insulin drip, pressors) get
+  `doseAndRate.rateQuantity`; intermittent bolus drugs
+  (antibiotics, PPI, blood products) get
+  `timing.repeat.duration` + `durationUnit = "min"`; IV push
+  drugs (< 5 min: naloxone, fentanyl, ketorolac, morphine push)
+  intentionally get NEITHER, per feedback_semantic_correctness
+  _over_coverage — a fabricated rate on a push drug is worse than
+  an honest absence. Priority order at emit: explicit rate already
+  in the dose text (`12 U/kg/h`, `100 mL/h`) wins over catalog.
+  Post-fix coverage: 301/318 (94.7 %) on JP p=1000 s500; the
+  remaining 17 are all catalog-declared push drugs. Constants live
+  in yaml (`feedback_constants_live_in_external_config.md`) so
+  pharmacists / nurses can tune rates without a code change; the
+  catalog covers 74 drugs plus a `default` fallback (30-min bolus).
+  Closes #966.
 
 ### Added
 

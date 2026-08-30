@@ -1,0 +1,386 @@
+# iv_infusion_defaults.yaml — per-drug default infusion rate / bolus duration
+# ------------------------------------------------------------------------
+# Referenced by ``clinosim.modules.output.fhir_r4.lib.common.resolve_iv_infusion_default``
+# when emitting ``MedicationRequest.dosageInstruction.doseAndRate.rateQuantity``
+# (continuous drips) or ``dosageInstruction.timing.repeat.duration`` +
+# ``durationUnit=min`` (intermittent bolus) for IV-route orders.
+#
+# Background — Issue #966: PR #920 populated ``doseQuantity`` to 94.4 %
+# but skipped the IV-specific rate emission, leaving 421/421 IV-route
+# MedicationRequests without an infusion rate. Real EHRs order IV drugs
+# with explicit rates because downstream drug-safety alerts (KCl > 10
+# mEq/h, vancomycin > 10 mg/min, phenytoin > 50 mg/min) and nursing-side
+# administration reconstruction depend on it.
+#
+# Rule (feedback_constants_live_in_external_config.md): drip rates and
+# infusion durations are tunable clinical constants that non-engineers
+# (pharmacists, nurses) must be able to adjust — they belong in this
+# yaml, not in Python. The Python side only holds `mode` dispatch logic
+# and the fallback default block below.
+#
+# Format
+# ------
+#   drugs:
+#     <normalized name (lowercase; spaces + underscores + parens as authored)>:
+#       mode: continuous | bolus | push
+#       # continuous → emit rateQuantity {value: <rate_value>, unit: <rate_unit>}
+#       # bolus      → emit timing.repeat.duration = <duration_min>, durationUnit = 'min'
+#       # push       → emit NEITHER (drug is legitimately given as a fast
+#       #              IV push < 5 min; a rate would be a fabrication)
+#       rate_value: <number>       # required for continuous
+#       rate_unit: <UCUM string>   # required for continuous; e.g. mL/h, mcg/min, U/kg/h
+#       duration_min: <int>        # required for bolus; typical 15 / 30 / 60 / 120
+#       note: "..."                # human-readable rationale (SoT for maintenance)
+#
+# Lookup semantics (see resolve_iv_infusion_default):
+#   1. Normalize display_name — strip_protocol_prefix + lowercase
+#   2. Full-string match against drugs map
+#   3. Longest-prefix token match (so "Ceftriaxone 1g IV q8h" → "ceftriaxone")
+#   4. First-token match
+#   5. Alias table (aliases block)
+#   6. `default` block
+
+drugs:
+  # ── crystalloid fluids ──────────────────────────────────────────────
+  "normal saline":
+    mode: continuous
+    rate_value: 80
+    rate_unit: "mL/h"
+    note: "0.9% NaCl maintenance 80 mL/h (clinical range 40-125 mL/h)."
+  "normal_saline":
+    mode: continuous
+    rate_value: 80
+    rate_unit: "mL/h"
+    note: "underscore alias for 'normal saline'."
+  "normal saline (0.9% nacl)":
+    mode: continuous
+    rate_value: 80
+    rate_unit: "mL/h"
+  "lactated ringer":
+    mode: continuous
+    rate_value: 80
+    rate_unit: "mL/h"
+    note: "LR maintenance 80 mL/h; 100-200 mL/h in resuscitation."
+  "lactated_ringers":
+    mode: continuous
+    rate_value: 80
+    rate_unit: "mL/h"
+  "d5 half-ns (5% dextrose in 0.45% nacl)":
+    mode: continuous
+    rate_value: 80
+    rate_unit: "mL/h"
+    note: "maintenance IV fluid; 80 mL/h default."
+  "hypertonic saline":
+    mode: continuous
+    rate_value: 30
+    rate_unit: "mL/h"
+    note: "3% NaCl for symptomatic hyponatremia; slow controlled rate."
+
+  # ── electrolytes ────────────────────────────────────────────────────
+  "potassium chloride":
+    mode: continuous
+    rate_value: 10
+    rate_unit: "mEq/h"
+    note: "safety cap: max 10 mEq/h peripheral (higher via central line ≤ 20 mEq/h)."
+  "sodium bicarbonate":
+    mode: bolus
+    duration_min: 30
+    note: "50-150 mEq over 30 min for metabolic acidosis correction."
+  "sodium_bicarbonate":
+    mode: bolus
+    duration_min: 30
+  "calcium_gluconate":
+    mode: bolus
+    duration_min: 10
+    note: "1 g over 10 min for hyperkalemia cardioprotection."
+  "magnesium sulfate":
+    mode: bolus
+    duration_min: 30
+    note: "1-2 g over 15-30 min for hypomagnesemia; 4 g over 20 min for pre-eclampsia."
+
+  # ── antibiotics (intermittent bolus) ────────────────────────────────
+  "ceftriaxone":
+    mode: bolus
+    duration_min: 30
+  "cefazolin":
+    mode: bolus
+    duration_min: 30
+  "cefotaxime":
+    mode: bolus
+    duration_min: 30
+  "cefmetazole":
+    mode: bolus
+    duration_min: 30
+  "ampicillin/sulbactam":
+    mode: bolus
+    duration_min: 30
+  "piperacillin/tazobactam":
+    mode: bolus
+    duration_min: 30
+    note: "extended-infusion protocols use 4 h; 30 min is the standard default."
+  "meropenem":
+    mode: bolus
+    duration_min: 30
+  "vancomycin":
+    mode: bolus
+    duration_min: 60
+    note: "≥ 60 min mandatory (max 10 mg/min; longer for doses > 1 g to avoid red-man)."
+  "azithromycin":
+    mode: bolus
+    duration_min: 60
+    note: "60 min at 1 mg/mL to reduce infusion-site pain."
+  "metronidazole":
+    mode: bolus
+    duration_min: 60
+  "ciprofloxacin":
+    mode: bolus
+    duration_min: 60
+  "peramivir":
+    mode: bolus
+    duration_min: 15
+    note: "IV neuraminidase inhibitor for influenza."
+
+  # ── cardiac / vasoactive continuous drips ──────────────────────────
+  "nitroglycerin":
+    mode: continuous
+    rate_value: 10
+    rate_unit: "ug/min"
+    note: "start 5-10 mcg/min, titrate for chest pain / BP."
+  "nicardipine":
+    mode: continuous
+    rate_value: 5
+    rate_unit: "mg/h"
+    note: "5 mg/h start, titrate to BP goal."
+  "diltiazem":
+    mode: continuous
+    rate_value: 10
+    rate_unit: "mg/h"
+    note: "5-15 mg/h after 0.25 mg/kg IV bolus."
+  "landiolol":
+    mode: continuous
+    rate_value: 40
+    rate_unit: "ug/kg/min"
+    note: "JP ultra-short beta-blocker; typical 40 mcg/kg/min for AF rate control."
+  "amiodarone":
+    mode: continuous
+    rate_value: 1
+    rate_unit: "mg/min"
+    note: "150 mg over 10 min bolus, then 1 mg/min x 6 h, then 0.5 mg/min. Maintenance rate shown."
+  "labetalol":
+    mode: continuous
+    rate_value: 2
+    rate_unit: "mg/min"
+    note: "may be given as intermittent bolus 20 mg IV q10min; continuous 2 mg/min shown here."
+  "metoprolol":
+    mode: push
+    note: "5 mg IV push over 2 min, may repeat x3."
+
+  # ── anticoagulation / thrombolysis ─────────────────────────────────
+  "heparin":
+    mode: continuous
+    rate_value: 18
+    rate_unit: "U/kg/h"
+    note: "weight-based; 18 U/kg/h maintenance after 80 U/kg bolus."
+  "unfractionated heparin":
+    mode: continuous
+    rate_value: 18
+    rate_unit: "U/kg/h"
+  "alteplase (tpa)":
+    mode: bolus
+    duration_min: 60
+    note: "0.9 mg/kg total; 10% as IV bolus + 90% over 60 min (ischemic stroke)."
+  "4-factor pcc (kcentra)":
+    mode: bolus
+    duration_min: 30
+    note: "25-50 U/kg at ≤ 100 U/min (60-90 min for 3-5000 U); 30 min for typical dose."
+  "prothrombin complex concentrate (4f-pcc)":
+    mode: bolus
+    duration_min: 30
+  "idarucizumab":
+    mode: bolus
+    duration_min: 10
+    note: "5 g IV as two 2.5 g vials, each over ≤ 10 min."
+  "andexanet alfa":
+    mode: bolus
+    duration_min: 30
+    note: "IV bolus 15-30 min + 120 min continuous infusion; bolus phase shown."
+  "vitamin k":
+    mode: bolus
+    duration_min: 30
+    note: "phytonadione 10 mg IV over 30 min (max rate 1 mg/min)."
+
+  # ── endocrine / metabolic ──────────────────────────────────────────
+  "insulin_regular":
+    mode: continuous
+    rate_value: 0.1
+    rate_unit: "U/kg/h"
+    note: "DKA/HHS insulin drip; titrate to glucose drop 50-75 mg/dL/h."
+  "regular insulin (continuous iv)":
+    mode: continuous
+    rate_value: 0.1
+    rate_unit: "U/kg/h"
+
+  # ── diuretics ──────────────────────────────────────────────────────
+  "furosemide":
+    mode: bolus
+    duration_min: 5
+    note: "20-40 mg IV over 1-2 min (> 200 mg → infuse ≤ 4 mg/min); 5 min default."
+  "mannitol":
+    mode: continuous
+    rate_value: 200
+    rate_unit: "mL/h"
+    note: "20% mannitol 0.25-1 g/kg over 20-30 min → ≈ 200 mL/h."
+
+  # ── blood products ─────────────────────────────────────────────────
+  "packed_red_blood_cells":
+    mode: bolus
+    duration_min: 120
+    note: "1 unit PRBC over 2-4 h; 120 min default for stable adults."
+  "fresh_frozen_plasma":
+    mode: bolus
+    duration_min: 60
+    note: "1 unit FFP over 30-60 min."
+  "albumin":
+    mode: continuous
+    rate_value: 250
+    rate_unit: "mL/h"
+    note: "25% albumin 100 mL over 30-60 min; 5% albumin 250-500 mL/h."
+
+  # ── analgesia / sedation ───────────────────────────────────────────
+  "morphine":
+    mode: push
+    note: "2-4 mg IV push over 2-5 min. Continuous PCA is a separate order type."
+  "fentanyl":
+    mode: push
+    note: "25-100 mcg IV push (< 1 min). Fentanyl drip is a separate ICU order."
+  "hydromorphone":
+    mode: push
+    note: "0.2-1 mg IV push over 2-3 min."
+  "ketorolac":
+    mode: push
+    note: "15-30 mg IV push over ≥ 15 sec; treated as push for rate purposes."
+  "acetaminophen":
+    mode: bolus
+    duration_min: 15
+    note: "1 g IV over 15 min (Ofirmev / Acelio)."
+
+  # ── steroids ───────────────────────────────────────────────────────
+  "methylprednisolone":
+    mode: bolus
+    duration_min: 30
+    note: "high-dose pulses (500-1000 mg) infused over ≥ 30 min."
+
+  # ── GI / other ─────────────────────────────────────────────────────
+  "omeprazole":
+    mode: bolus
+    duration_min: 30
+    note: "PPI 40 mg IV over 20-30 min; or 8 mg/h drip after 80 mg bolus for UGIB."
+  "pantoprazole":
+    mode: bolus
+    duration_min: 30
+  "octreotide":
+    mode: continuous
+    rate_value: 50
+    rate_unit: "ug/h"
+    note: "50 mcg/h continuous after 50 mcg IV bolus (variceal / GI bleed)."
+  "terlipressin":
+    mode: bolus
+    duration_min: 5
+    note: "1-2 mg IV q4-6h as slow push over ≥ 5 min."
+  "metoclopramide":
+    mode: push
+    note: "10 mg IV push over 1-2 min."
+  "aminophylline":
+    mode: continuous
+    rate_value: 0.5
+    rate_unit: "mg/kg/h"
+    note: "loading 5-6 mg/kg over 30 min, then 0.5 mg/kg/h maintenance."
+  "ondansetron":
+    mode: bolus
+    duration_min: 5
+    note: "4-8 mg IV over 2-5 min (slow push acceptable, 5 min for infusion admin)."
+  "micafungin":
+    mode: bolus
+    duration_min: 60
+    note: "100-150 mg IV over ≥ 60 min to avoid histamine-mediated reactions."
+  "norepinephrine":
+    mode: continuous
+    rate_value: 0.1
+    rate_unit: "ug/kg/min"
+    note: "start 0.05-0.1 mcg/kg/min, titrate to MAP goal."
+  "epinephrine":
+    mode: continuous
+    rate_value: 0.05
+    rate_unit: "ug/kg/min"
+    note: "start 0.02-0.05 mcg/kg/min for shock / anaphylaxis drip."
+  "dopamine":
+    mode: continuous
+    rate_value: 5
+    rate_unit: "ug/kg/min"
+    note: "5-15 mcg/kg/min for inotropic / vasopressor effect."
+  "dobutamine":
+    mode: continuous
+    rate_value: 5
+    rate_unit: "ug/kg/min"
+    note: "2.5-15 mcg/kg/min for low-cardiac-output states."
+  "vasopressin":
+    mode: continuous
+    rate_value: 0.04
+    rate_unit: "U/min"
+    note: "0.03-0.04 U/min fixed rate for septic shock second-line."
+  # ── chemotherapy (short infusions) ─────────────────────────────────
+  "oxaliplatin":
+    mode: bolus
+    duration_min: 120
+    note: "85-100 mg/m² IV over 2 h (peripheral neuropathy risk if faster)."
+  "carboplatin":
+    mode: bolus
+    duration_min: 30
+    note: "AUC 5-6 IV over 30 min."
+  "pemetrexed":
+    mode: bolus
+    duration_min: 10
+    note: "500 mg/m² IV over 10 min."
+  "paclitaxel":
+    mode: bolus
+    duration_min: 180
+    note: "175 mg/m² IV over 3 h with premedication."
+  "docetaxel":
+    mode: bolus
+    duration_min: 60
+    note: "75-100 mg/m² IV over 1 h."
+  "cisplatin":
+    mode: bolus
+    duration_min: 120
+    note: "50-100 mg/m² IV over 1-2 h with vigorous hydration."
+  "5-fluorouracil":
+    mode: continuous
+    rate_value: 250
+    rate_unit: "mg/m2/24h"
+    note: "continuous infusion 46 h at 2400 mg/m² is standard FOLFOX/FOLFIRI."
+
+# Common inpatient shorthand aliases → catalog keys above. Applied AFTER
+# prefix / token normalization but BEFORE the ``default`` fallback.
+aliases:
+  "ns": "normal saline"
+  "0.9% nacl": "normal saline"
+  "lr": "lactated ringer"
+  "d5w": "d5 half-ns (5% dextrose in 0.45% nacl)"
+  "d5ns": "d5 half-ns (5% dextrose in 0.45% nacl)"
+  "kcl": "potassium chloride"
+  "insulin": "insulin_regular"
+  "tpa": "alteplase (tpa)"
+  "alteplase": "alteplase (tpa)"
+  "4-factor pcc": "4-factor pcc (kcentra)"
+  "kcentra": "4-factor pcc (kcentra)"
+  "prbc": "packed_red_blood_cells"
+  "ffp": "fresh_frozen_plasma"
+  "prothrombin complex concentrate": "prothrombin complex concentrate (4f-pcc)"
+
+# Fallback when the drug is not listed AND no alias matches — matches the
+# typical inpatient antibiotic push (~30-min intermittent). Kept as a
+# separate block so consumers can distinguish "catalogued" from "defaulted".
+default:
+  mode: bolus
+  duration_min: 30
+  note: "generic IV infusion fallback: 30-min intermittent bolus."
