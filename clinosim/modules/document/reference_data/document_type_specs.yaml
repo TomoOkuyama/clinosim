@@ -295,6 +295,15 @@ specs:
   # に合わせ inpatient 退院の約 20% を発行対象とする。発行判定は
   # (encounter_id, patient_id) の SHA-256 hash による決定的サブセット
   # 選択(新規 RNG allocation 不要)。
+  # Issue #990 (2026-08-30):stage2_strategy を template_only →
+  # template_seed_bundle に昇格。診療情報提供書は 3 つの自由記述セクション
+  # (紹介目的 / 現病歴 / 治療方針への希望に相当)が「継続加療のため」等の
+  # 定型文で埋まっていたが、実際の医師間文書は文体を LLM 磨き込みで
+  # 自然化する余地が大きい。referral_purpose(950)と present_illness_ref
+  # (360)を LLM 差替対象とし、referring_institution / referral_destination /
+  # diagnoses_and_complaint は構造化(機関名 + code)なので template のまま。
+  # LLM は narrative_seed_bundle.yaml の ### referral_note ブロックの
+  # 指示に従い、紹介先/紹介元/日付/薬剤名/ICD code を verbatim 保持する。
   referral_note:
     loinc_code: "57133-1"
     format_type: composition
@@ -307,8 +316,8 @@ specs:
       - referral_purpose
       - diagnoses_and_complaint
       - present_illness_ref
-    stage2_strategy: template_only
-    llm_enabled_sections: []
+    stage2_strategy: template_seed_bundle
+    llm_enabled_sections: [referral_purpose, present_illness_ref]
 
   # === P2-13 PR3(session 47)JP-eCheckup 健診結果報告書(JP-only、opt-in) ===
   # LOINC 53576-5 を jpfhir.jp JP-eCheckup General v1.7.0(2026-02-16)で照合済。

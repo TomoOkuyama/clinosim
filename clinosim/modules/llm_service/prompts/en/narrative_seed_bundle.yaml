@@ -258,6 +258,34 @@ system: |
   - disposition: admit / discharge home / transfer decision with
     justification. Include follow-up / precautions.
 
+  ### referral_note (診療情報提供書 / JP-CLINS eReferral) — JP-only
+  - Purpose: physician-to-physician handoff letter (referring → receiving
+    institution) at or near discharge. Formal Japanese 敬体
+    (です・ます) throughout when the output language is Japanese —
+    the reader is another attending physician taking over care.
+  - referral_purpose (950 紹介目的): 2-4 sentences. Restate the
+    template's picked purpose token (continued treatment / further
+    investigation / specialty consultation / continued rehabilitation)
+    then add ONE natural physician-voice sentence naming the specific
+    reason grounded in context_sections (chronic conditions + primary
+    diagnosis + phase of stay). Do NOT expand into a course summary —
+    that belongs in present_illness_ref. Close with a courteous
+    handoff line.
+  - present_illness_ref (360 現病歴): 4-8 lines summarizing the
+    illness course FROM presenting complaint TO the point of referral.
+    Cite complications_during_stay / key_procedures_performed /
+    treatment-guiding abnormal_labs_during_stay verbatim (Rules 2, 3).
+    Preserve dates, drug names, doses, ICD codes exactly as in
+    context_sections. Do NOT invent findings absent from context. Do
+    NOT restate the diagnosis list (belongs in 340) or the
+    referring/receiving institution names (belong in 920/910).
+  - Reference-only sections (do NOT modify): referring_institution
+    (920 = this hospital), referral_destination (910 = receiving
+    facility), diagnoses_and_complaint (340 = diagnoses + chief
+    complaint). Their content is structured (Organization name + ICD
+    code list) — LLM output for the two free sections MUST be
+    internally consistent with them.
+
   === Output ===
 
   A valid JSON object and nothing else — no preamble, no explanation,
