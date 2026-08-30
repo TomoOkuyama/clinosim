@@ -39,6 +39,31 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Changed
+
+- **Statistical tuning: I25 (ischemic heart disease) 70+ chronic_prevalence
+  further-tuned 0.06 → 0.04 for MHLW/JCS target alignment (yaml-only).**
+  The follow-up p=1000 seed=500 JP audit
+  (`scripts/audit_realworld_stats_jp.py`) after the initial 0.10 → 0.06
+  drop (#969) still showed emitted I25 70+ at 15.3 % — Δ+5.3pp above the
+  冠動脈疾患 JCS 2018 ~10 % benchmark. Root cause: the observed care-seeking
+  amplification factor between the sampled marginal (yaml value) and the
+  emitted marginal (FHIR Condition prevalence) is ~3× under the current
+  engine, not the ~1.7× / ~2.5× previously assumed, and is non-linear at
+  low base rates. Fix: **yaml-only** — dropped
+  `chronic_prevalence.I25["70-99"]` from 0.06 to 0.04 in
+  `clinosim/locale/jp/demographics.yaml`; audit script mirror
+  `CHRONIC_CONFIG_TARGETS_JP["I25"]` in
+  `scripts/audit_realworld_stats_jp.py` updated to match. Inline citation
+  comment updated to record the measured amplification (~3×) and the
+  three sample points (0.06 → 15.3 %, 0.04 → 12.0 %, 0.03 → 11.1 %) that
+  informed the choice. At 0.04 the emitted marginal lands at 12.0 % —
+  well within the JCS 2018 5-15 % range and 3.3pp closer to the ~10 %
+  midpoint. Classification: **MINOR** — cohort marginal shifts
+  (I25 chronic prevalence), so CIF ↔ narrative-CIF byte-identity across
+  the sim window is not preserved; a fresh `narrate` run is required.
+  Author: Claude.
+
 ### Fixed
 
 - **Issue #912 — Inpatient `Encounter.reasonCode` orphaned from
