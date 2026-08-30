@@ -1,17 +1,21 @@
 {
-  "doc-ENC-FORCED-0001-510915257217-01": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-01",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-01": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-01",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
-        "disease_protocol.chief_complaint.ja",
+        "ctx.encounter.chief_complaint_ja",
         "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
         "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "ctx.patient.demographics",
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
         "ctx.patient.chronic_conditions",
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
         "physical_exam_findings.smooth_recovery.day_0",
+        "ctx.vitals[day_0]",
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -22,25 +26,26 @@
       },
       "sections": {
         "allergies": "薬物アレルギーなし（NKDA）",
-        "assessment_and_plan": "[Mock LLM response #2]\nModel: mock\nFirst prompt line: Section: assessment_and_plan",
+        "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "発熱・咳嗽・呼吸困難",
         "family_history": "特記家族歴なし",
-        "hpi": "[Mock LLM response #1]\nModel: mock\nFirst prompt line: Section: hpi",
+        "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "常用薬なし",
-        "past_medical_history": "J44",
-        "physical_examination": "一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
-        "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: other"
+        "past_medical_history": "その他のCOPD [J44]",
+        "physical_examination": "バイタルサイン: BP 120/74 mmHg, HR 95/min, T 38.8°C, SpO2 95%, RR 22/min。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: その他"
       },
       "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-02": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-02",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-02": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-02",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0",
+        "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_0",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -49,20 +54,47 @@
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 0,
-        "generator": "template",
-        "lang": "ja"
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "[Mock LLM response #2 — assessment]",
+        "objective": "BP 120/74 mmHg, HR 95 回/分, RR 22 回/分, SpO2 95%, T 38.8°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "plan": "[Mock LLM response #2 — plan]",
+        "subjective": "[Mock LLM response #2 — subjective]"
+      },
       "structured": {},
-      "text": "S（主観） 症状あり\nO（客観） バイタル安定、検査所見あり。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 初期診断確定、治療開始\nP（計画） 治療継続、経過観察"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 120/74 mmHg, HR 95 回/分, RR 22 回/分, SpO2 95%, T 38.8°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-03": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-03",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-03": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-03",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_1",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -71,20 +103,47 @@
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 1,
-        "generator": "template",
-        "lang": "ja"
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "[Mock LLM response #3 — assessment]",
+        "objective": "BP 120/70 mmHg, HR 91 回/分, RR 20 回/分, SpO2 94%, T 38.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "plan": "[Mock LLM response #3 — plan]",
+        "subjective": "[Mock LLM response #3 — subjective]"
+      },
       "structured": {},
-      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
+      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 120/70 mmHg, HR 91 回/分, RR 20 回/分, SpO2 94%, T 38.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-04": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-04",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-04": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-04",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_2",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -93,20 +152,47 @@
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 2,
-        "generator": "template",
-        "lang": "ja"
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "[Mock LLM response #4 — assessment]",
+        "objective": "BP 118/76 mmHg, HR 95 回/分, RR 21 回/分, SpO2 94%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "plan": "[Mock LLM response #4 — plan]",
+        "subjective": "[Mock LLM response #4 — subjective]"
+      },
       "structured": {},
-      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
+      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 118/76 mmHg, HR 95 回/分, RR 21 回/分, SpO2 94%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-05": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-05",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-05": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-05",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_3",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -115,20 +201,47 @@
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 3,
-        "generator": "template",
-        "lang": "ja"
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "[Mock LLM response #5 — assessment]",
+        "objective": "BP 121/76 mmHg, HR 95 回/分, RR 19 回/分, SpO2 93%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #5 — plan]",
+        "subjective": "[Mock LLM response #5 — subjective]"
+      },
       "structured": {},
-      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
+      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 121/76 mmHg, HR 95 回/分, RR 19 回/分, SpO2 93%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-06": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-06",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-06": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-06",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_4",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -137,20 +250,47 @@
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 4,
-        "generator": "template",
-        "lang": "ja"
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "[Mock LLM response #6 — assessment]",
+        "objective": "BP 121/73 mmHg, HR 93 回/分, RR 17 回/分, SpO2 95%, T 38.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #6 — plan]",
+        "subjective": "[Mock LLM response #6 — subjective]"
+      },
       "structured": {},
-      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
+      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 121/73 mmHg, HR 93 回/分, RR 17 回/分, SpO2 95%, T 38.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-07": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-07",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-07": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-07",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_5",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -159,20 +299,47 @@
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 5,
-        "generator": "template",
-        "lang": "ja"
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "[Mock LLM response #7 — assessment]",
+        "objective": "BP 120/71 mmHg, HR 92 回/分, RR 15 回/分, SpO2 96%, T 38.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #7 — plan]",
+        "subjective": "[Mock LLM response #7 — subjective]"
+      },
       "structured": {},
-      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
+      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 120/71 mmHg, HR 92 回/分, RR 15 回/分, SpO2 96%, T 38.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-08": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-08",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-08": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-08",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_6",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -181,20 +348,47 @@
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 6,
-        "generator": "template",
-        "lang": "ja"
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "[Mock LLM response #8 — assessment]",
+        "objective": "BP 121/74 mmHg, HR 89 回/分, RR 21 回/分, SpO2 95%, T 38.3°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #8 — plan]",
+        "subjective": "[Mock LLM response #8 — subjective]"
+      },
       "structured": {},
-      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
+      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 121/74 mmHg, HR 89 回/分, RR 21 回/分, SpO2 95%, T 38.3°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-09": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-09",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-09": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-09",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_7",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -203,20 +397,47 @@
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 7,
-        "generator": "template",
-        "lang": "ja"
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "[Mock LLM response #9 — assessment]",
+        "objective": "BP 120/71 mmHg, HR 92 回/分, RR 20 回/分, SpO2 95%, T 39.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #9 — plan]",
+        "subjective": "[Mock LLM response #9 — subjective]"
+      },
       "structured": {},
-      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
+      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 120/71 mmHg, HR 92 回/分, RR 20 回/分, SpO2 95%, T 39.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-10": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-10",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-10": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-10",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_8",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
@@ -225,25 +446,496 @@
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 8,
-        "generator": "template",
-        "lang": "ja"
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "[Mock LLM response #10 — assessment]",
+        "objective": "BP 121/73 mmHg, HR 89 回/分, RR 15 回/分, SpO2 93%, T 38.3°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #10 — plan]",
+        "subjective": "[Mock LLM response #10 — subjective]"
+      },
       "structured": {},
-      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
+      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 121/73 mmHg, HR 89 回/分, RR 15 回/分, SpO2 93%, T 38.3°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-11": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-11",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-11": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-11",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
+        "physical_exam_findings.smooth_recovery.day_9",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 9,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #11 — assessment]",
+        "objective": "BP 121/75 mmHg, HR 88 回/分, RR 19 回/分, SpO2 96%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #11 — plan]",
+        "subjective": "[Mock LLM response #11 — subjective]"
+      },
+      "structured": {},
+      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 121/75 mmHg, HR 88 回/分, RR 19 回/分, SpO2 96%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-12": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-12",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
+        "physical_exam_findings.smooth_recovery.day_10",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 10,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #12 — assessment]",
+        "objective": "BP 119/69 mmHg, HR 90 回/分, RR 20 回/分, SpO2 94%, T 38.9°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #12 — plan]",
+        "subjective": "[Mock LLM response #12 — subjective]"
+      },
+      "structured": {},
+      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 119/69 mmHg, HR 90 回/分, RR 20 回/分, SpO2 94%, T 38.9°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-13": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-13",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
+        "physical_exam_findings.smooth_recovery.day_11",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 11,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #13 — assessment]",
+        "objective": "BP 121/73 mmHg, HR 90 回/分, RR 17 回/分, SpO2 94%, T 38.5°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #13 — plan]",
+        "subjective": "[Mock LLM response #13 — subjective]"
+      },
+      "structured": {},
+      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 121/73 mmHg, HR 90 回/分, RR 17 回/分, SpO2 94%, T 38.5°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-14": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-14",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
+        "physical_exam_findings.smooth_recovery.day_12",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 12,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #14 — assessment]",
+        "objective": "BP 120/71 mmHg, HR 90 回/分, RR 19 回/分, SpO2 92%, T 38.3°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #14 — plan]",
+        "subjective": "[Mock LLM response #14 — subjective]"
+      },
+      "structured": {},
+      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 120/71 mmHg, HR 90 回/分, RR 19 回/分, SpO2 92%, T 38.3°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-15": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-15",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
+        "physical_exam_findings.smooth_recovery.day_13",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 13,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #15 — assessment]",
+        "objective": "BP 121/69 mmHg, HR 86 回/分, RR 17 回/分, SpO2 94%, T 39.2°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #15 — plan]",
+        "subjective": "[Mock LLM response #15 — subjective]"
+      },
+      "structured": {},
+      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 121/69 mmHg, HR 86 回/分, RR 17 回/分, SpO2 94%, T 39.2°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-16": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-16",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
+        "physical_exam_findings.smooth_recovery.day_14",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 14,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #16 — assessment]",
+        "objective": "BP 116/74 mmHg, HR 92 回/分, RR 13 回/分, SpO2 92%, T 38.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #16 — plan]",
+        "subjective": "[Mock LLM response #16 — subjective]"
+      },
+      "structured": {},
+      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 116/74 mmHg, HR 92 回/分, RR 13 回/分, SpO2 92%, T 38.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-17": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-17",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
+        "physical_exam_findings.smooth_recovery.day_15",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #17 — assessment]",
+        "objective": "BP 120/72 mmHg, HR 91 回/分, RR 19 回/分, SpO2 94%, T 38.9°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #17 — plan]",
+        "subjective": "[Mock LLM response #17 — subjective]"
+      },
+      "structured": {},
+      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 120/72 mmHg, HR 91 回/分, RR 19 回/分, SpO2 94%, T 38.9°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-18": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-18",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
+        "physical_exam_findings.smooth_recovery.day_16",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 16,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #18 — assessment]",
+        "objective": "BP 121/75 mmHg, HR 89 回/分, RR 17 回/分, SpO2 93%, T 37.9°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #18 — plan]",
+        "subjective": "[Mock LLM response #18 — subjective]"
+      },
+      "structured": {},
+      "text": "S（主観） [Mock LLM response #18 — subjective]\nO（客観） BP 121/75 mmHg, HR 89 回/分, RR 17 回/分, SpO2 93%, T 37.9°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #18 — assessment]\nP（計画） [Mock LLM response #18 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-19": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-19",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "ctx.vitals.today",
+        "physical_exam_findings.smooth_recovery.day_17",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 17,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #19 — assessment]",
+        "objective": "BP 120/74 mmHg, HR 93 回/分, RR 20 回/分, SpO2 98%, T 38.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "plan": "[Mock LLM response #19 — plan]",
+        "subjective": "[Mock LLM response #19 — subjective]"
+      },
+      "structured": {},
+      "text": "S（主観） [Mock LLM response #19 — subjective]\nO（客観） BP 120/74 mmHg, HR 93 回/分, RR 20 回/分, SpO2 98%, T 38.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #19 — assessment]\nP（計画） [Mock LLM response #19 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-20": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-20",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.diagnoses[0].admission_diagnosis_code",
         "ctx.encounter.admission_datetime",
         "ctx.diagnoses",
-        "disease_protocol.chief_complaint.ja",
+        "ctx.encounter.chief_complaint_ja",
         "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
         "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "ctx.patient.demographics",
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
+        "ctx.los_days",
         "ctx.encounter.discharge_datetime",
         "ctx.diagnoses",
         "ctx.discharge_medications",
@@ -261,22 +953,30 @@
         "admission_diagnoses": "1. 肺炎、詳細不明（J18.9）",
         "admission_reason": "肺炎、詳細不明のため入院となった。",
         "chief_complaint": "発熱・咳嗽・呼吸困難",
-        "discharge_details": "2024-06-24自宅退院となった。",
+        "discharge_details": "2024-07-03自宅退院となった。",
         "discharge_diagnoses": "ウイルス性肺炎、詳細不明（J12.9）",
-        "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 7-10 日以内に呼吸器科または内科外来を受診してください。6-8 週後に胸部 X 線再撮影予定。 処方された抗菌薬は症状が改善しても最後まで内服してください。 発熱（38.5℃超）の持続、呼吸困難の増悪、SpO2 低下があれば速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。 徐々に活動を再開してください。2 週間は激しい運動を避けてください。 喫煙は回復を著しく遅らせます。禁煙を強くお勧めします。 十分な水分摂取と栄養補給を心がけてください。禁煙を強くお勧めします。",
-        "discharge_medications": "Amoxicillin",
-        "hospital_course": "入院 9 日間の治療を経て経過良好。症状は改善し退院となった。",
-        "present_illness": "[Mock LLM response #3]\nModel: mock\nFirst prompt line: Section: present_illness"
+        "discharge_instructions": "[Mock LLM response #20 — discharge_instructions]",
+        "discharge_medications": "アモキシシリン 250mg PO TID",
+        "hospital_course": "[Mock LLM response #20 — hospital_course]",
+        "present_illness": "[Mock LLM response #20 — present_illness]"
       },
       "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-12": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-12",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-21": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-21",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
-      "facts_used": [],
+      "facts_used": [
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
+        "ctx.adl_assessments[-1]",
+        "ctx.patient.chronic_conditions",
+        "ctx.nursing_risk_assessments",
+        "ctx.patient.chronic_conditions",
+        "ctx.nursing_risk_assessments"
+      ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
       "generator_metadata": {
@@ -284,66 +984,24 @@
         "lang": "ja"
       },
       "sections": {
-        "adl_assessment": "ADL：自立（問題なし）",
-        "care_plan": "看護計画：標準的ケア継続",
-        "nursing_diagnosis": "看護診断：特記事項なし",
-        "nursing_history": "入院目的・既往歴：特記事項なし",
+        "adl_assessment": "Barthel Index 95/100 → 自立（食事10、入浴4、移動14、排泄9）",
+        "care_plan": "看護計画: 呼吸パターン観察、酸素投与量調整。",
+        "nursing_diagnosis": "看護診断: ガス交換障害のリスク。",
+        "nursing_history": "入院目的: 発熱・咳嗽・呼吸困難。既往: その他のCOPD。",
         "risk_assessments": "転倒・褥瘡リスク：評価中"
       },
       "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-13-night": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-13-night",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-22-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-22-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 0,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-510915257217-14-day": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-14-day",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 0,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-510915257217-15-evening": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-15-evening",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -357,15 +1015,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 18 日間\n患者状態: BP 120/74, HR 95, SpO2 95%, T 38.8°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-16-night": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-16-night",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-23-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-23-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -379,15 +1039,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 120/70, HR 91, SpO2 93%, T 38.4°C、酸素投与: 経鼻カニューレ 2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-17-day": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-17-day",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-24-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-24-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -401,15 +1063,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 120/70, HR 91, SpO2 93%, T 38.4°C、酸素投与: 経鼻カニューレ 2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-18-evening": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-18-evening",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-25-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-25-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -423,15 +1087,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 120/70, HR 91, SpO2 93%, T 38.4°C、酸素投与: 経鼻カニューレ 2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-19-night": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-19-night",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-26-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-26-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -445,15 +1111,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 118/76, HR 95, SpO2 94%, T 37.7°C、酸素投与: 経鼻カニューレ 1.4 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-20-day": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-20-day",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-27-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-27-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -467,15 +1135,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 118/76, HR 95, SpO2 94%, T 37.7°C、酸素投与: 経鼻カニューレ 1.4 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-21-evening": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-21-evening",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-28-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-28-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -489,15 +1159,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 118/76, HR 95, SpO2 94%, T 37.7°C、酸素投与: 経鼻カニューレ 1.4 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-22-night": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-22-night",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-29-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-29-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -511,15 +1183,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 121/76, HR 95, SpO2 93%, T 37.7°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-23-day": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-23-day",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-30-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-30-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -533,15 +1207,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 121/76, HR 95, SpO2 93%, T 37.7°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-24-evening": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-24-evening",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-31-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-31-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -555,15 +1231,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 121/76, HR 95, SpO2 93%, T 37.7°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-25-night": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-25-night",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-32-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-32-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -577,15 +1255,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 93, SpO2 95%, T 38.4°C、酸素投与: 経鼻カニューレ 1.6 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-26-day": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-26-day",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-33-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-33-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -599,15 +1279,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 93, SpO2 95%, T 38.4°C、酸素投与: 経鼻カニューレ 1.6 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-27-evening": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-27-evening",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-34-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-34-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -621,15 +1303,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 93, SpO2 95%, T 38.4°C、酸素投与: 経鼻カニューレ 1.6 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-28-night": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-28-night",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-35-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-35-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -643,15 +1327,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 92, SpO2 96%, T 38.7°C、酸素投与: 経鼻カニューレ 1 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-29-day": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-29-day",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-36-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-36-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -665,15 +1351,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 92, SpO2 96%, T 38.7°C、酸素投与: 経鼻カニューレ 1 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-30-evening": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-30-evening",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-37-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-37-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -687,15 +1375,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 92, SpO2 96%, T 38.7°C、酸素投与: 経鼻カニューレ 1 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-31-night": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-31-night",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-38-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-38-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -709,15 +1399,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 121/74, HR 89, SpO2 95%, T 38.3°C、酸素投与: 経鼻カニューレ 1.2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-32-day": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-32-day",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-39-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-39-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -731,15 +1423,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 121/74, HR 89, SpO2 95%, T 38.3°C、酸素投与: 経鼻カニューレ 1.2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-33-evening": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-33-evening",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-40-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-40-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -753,15 +1447,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 121/74, HR 89, SpO2 95%, T 38.3°C、酸素投与: 経鼻カニューレ 1.2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-34-night": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-34-night",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-41-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-41-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -775,15 +1471,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 92, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 2.1 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-35-day": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-35-day",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-42-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-42-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -797,15 +1495,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 92, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 2.1 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-36-evening": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-36-evening",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-43-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-43-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -819,15 +1519,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 92, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 2.1 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-37-night": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-37-night",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-44-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-44-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -841,15 +1543,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 89, SpO2 93%, T 38.3°C、酸素投与: 経鼻カニューレ 1.5 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-38-day": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-38-day",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-45-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-45-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -863,15 +1567,17 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 89, SpO2 93%, T 38.3°C、酸素投与: 経鼻カニューレ 1.5 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-39-evening": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-39-evening",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-46-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-46-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -885,15 +1591,666 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 9 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 89, SpO2 93%, T 38.3°C、酸素投与: 経鼻カニューレ 1.5 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-40": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-40",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-47-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-47-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
         "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 9,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 121/75, HR 88, SpO2 95%, T 37.7°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-48-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-48-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 9,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 121/75, HR 88, SpO2 95%, T 37.7°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-49-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-49-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 9,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 121/75, HR 88, SpO2 95%, T 37.7°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-50-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-50-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 10,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 119/69, HR 90, SpO2 93%, T 38.9°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-51-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-51-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 10,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 119/69, HR 90, SpO2 93%, T 38.9°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-52-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-52-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 10,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 119/69, HR 90, SpO2 93%, T 38.9°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-53-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-53-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 11,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 90, SpO2 94%, T 38.5°C、酸素投与: 経鼻カニューレ 2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-54-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-54-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 11,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 90, SpO2 94%, T 38.5°C、酸素投与: 経鼻カニューレ 2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-55-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-55-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 11,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 90, SpO2 94%, T 38.5°C、酸素投与: 経鼻カニューレ 2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-56-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-56-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 12,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 90, SpO2 91%, T 38.3°C、酸素投与: 酸素マスク 4.5 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-57-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-57-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 12,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 90, SpO2 91%, T 38.3°C、酸素投与: 酸素マスク 4.5 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-58-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-58-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 12,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 90, SpO2 91%, T 38.3°C、酸素投与: 酸素マスク 4.5 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-59-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-59-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 13,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 121/69, HR 86, SpO2 93%, T 39.2°C、酸素投与: 経鼻カニューレ 2.7 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-60-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-60-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 13,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 121/69, HR 86, SpO2 93%, T 39.2°C、酸素投与: 経鼻カニューレ 2.7 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-61-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-61-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 13,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 121/69, HR 86, SpO2 93%, T 39.2°C、酸素投与: 経鼻カニューレ 2.7 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-62-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-62-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 14,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 116/74, HR 92, SpO2 92%, T 38.4°C、酸素投与: 経鼻カニューレ 1.2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-63-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-63-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 14,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 116/74, HR 92, SpO2 92%, T 38.4°C、酸素投与: 経鼻カニューレ 1.2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-64-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-64-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 14,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 116/74, HR 92, SpO2 92%, T 38.4°C、酸素投与: 経鼻カニューレ 1.2 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-65-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-65-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 120/72, HR 91, SpO2 93%, T 38.9°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-66-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-66-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 120/72, HR 91, SpO2 93%, T 38.9°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-67-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-67-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 120/72, HR 91, SpO2 93%, T 38.9°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-68-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-68-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 16,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 121/75, HR 89, SpO2 92%, T 37.9°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-69-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-69-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 16,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 121/75, HR 89, SpO2 92%, T 37.9°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-70-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-70-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 16,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 121/75, HR 89, SpO2 92%, T 37.9°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-71-night": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-71-night",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 17,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 120/74, HR 93, SpO2 97%, T 38.0°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-72-day": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-72-day",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 17,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 120/74, HR 93, SpO2 97%, T 38.0°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-73-evening": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-73-evening",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 17,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 120/74, HR 93, SpO2 97%, T 38.0°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-74": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-74",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.los_days",
+        "ctx.intake_output_records",
+        "ctx.patient.chronic_conditions",
+        "ctx.adl_assessments[-1]"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -902,24 +2259,24 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_status": "入院期間: 9 日間。入院目的達成後、退院となった。",
-        "discharge_readiness": "退院準備：退院基準を満たす",
-        "nursing_interventions_provided": "実施した看護介入：特記事項なし",
-        "patient_education": "患者教育：退院指導実施"
+        "admission_status": "入院期間: 18日間。入院理由: 発熱・咳嗽・呼吸困難。退院基準を満たし退院となった。",
+        "discharge_readiness": "退院準備: 退院時 Barthel 95/100。",
+        "nursing_interventions_provided": "入院期間合計 IN 22147 mL / OUT 18562 mL (差 +3585 mL)。",
+        "patient_education": "患者教育: 禁煙、呼吸リハビリ継続。"
       },
       "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-41": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-41",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-75": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-75",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "encounter.ward_id",
         "encounter.bed_number",
         "ctx.diagnoses",
-        "disease_protocol.chief_complaint.ja",
+        "ctx.encounter.chief_complaint_ja",
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0",
         "disease_protocol.target_los"
       ],
@@ -938,21 +2295,22 @@
         "surgery_schedule": "手術：予定なし",
         "symptoms": "発熱・咳嗽・呼吸困難",
         "test_schedule": "検査：担当医の判断により決定",
-        "treatment_plan": "評価: 初期診断確定、治療開始。方針: 治療継続、経過観察。",
-        "ward_and_room": "病棟：4E　病室：4E-10"
+        "treatment_plan": "【評価】初期診断確定、治療開始\n【方針】治療継続、経過観察",
+        "ward_and_room": "病棟：4E　病室：4E-04"
       },
       "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-510915257217-42": {
-    "document_id": "doc-ENC-FORCED-0001-510915257217-42",
-    "encounter_id": "ENC-FORCED-0001-510915257217",
+  "doc-ENC-FORCED-0001-885245253478-76": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-76",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
     "narrative": {
       "facts_used": [
         "encounter.ward_id",
         "encounter.attending_physician_id",
         "patient.bmi",
+        "patient.weight_kg+height_cm",
         "patient.weight_kg"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -966,17 +2324,63 @@
         "dietitian": "担当なし",
         "discharge_evaluation": "退院時及び終了時の総合的評価：退院時に評価予定",
         "dysphagia_diet": "嚥下調整食の必要性：なし",
-        "nutrition_assessment": "栄養状態の評価と課題：特記事項なし",
+        "nutrition_assessment": "栄養状態評価: BMI 22.0 (普通)。",
         "nutrition_counseling": "栄養食事相談：必要に応じて実施",
         "nutrition_goals": "栄養管理計画の目標：現在の栄養状態を維持",
         "nutrition_risk": "低栄養リスク：低（BMI 22.0、リスクなし）",
-        "nutrition_supply": "エネルギー：1389kcal／日　たんぱく質：55.6g／日　補給方法：経口",
+        "nutrition_supply": "エネルギー：1298kcal／日　たんぱく質：51.9g／日　補給方法：経口",
         "other_issues": "その他栄養管理上の課題：特記事項なし",
         "reassessment_timing": "栄養状態の再評価：入院後1週間を目安に実施",
-        "ward_and_physician": "病棟：4E　担当医師：DR-IM-004"
+        "ward_and_physician": "病棟：4E　担当医師：若林 淳 医師"
       },
       "structured": {},
       "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-ED-77": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-ED-77",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "ctx.encounter.chief_complaint_ja",
+        "ctx.vitals[0]",
+        "ctx.lab_results.abnormal",
+        "ctx.procedures.ed",
+        "ctx.encounter.disposition"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "llm",
+        "lang": "ja"
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #21 — assessment]",
+        "chief_complaint": "発熱・咳嗽・呼吸困難",
+        "disposition": "[Mock LLM response #21 — disposition]",
+        "ed_workup": "検査: WBC 12395.0 /uL [H]、アルブミン 3.5 g/dL [L]、AST 103.0 U/L [H]、ALT 59.0 U/L [H]",
+        "hpi": "[Mock LLM response #21 — hpi]",
+        "physical_exam": "来院時所見: BP 120/74 mmHg, HR 95 回/分, RR 22 回/分, SpO2 95%, T 38.8°C。特記の身体所見なし。",
+        "triage_details": "トリアージ情報：未記録"
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-ED-78": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-ED-78",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "トリアージ情報：未記録"
     }
   }
 }
