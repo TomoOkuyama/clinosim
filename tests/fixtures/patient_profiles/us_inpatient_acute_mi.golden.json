@@ -1,10 +1,10 @@
 {
-  "doc-ENC-FORCED-0001-624459969208-01": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-01",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
+  "doc-ENC-FORCED-0001-308142489017-01": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-01",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
-        "disease_protocol.chief_complaint.en",
+        "ctx.encounter.chief_complaint",
         "generic:hpi_onset_en.severe",
         "ctx.patient.chronic_conditions",
         "ctx.patient.smoking_status",
@@ -26,17 +26,17 @@
         "family_history": "No significant family history",
         "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",
         "medications_at_home": "No home medications",
-        "past_medical_history": "I25; I10; E78",
+        "past_medical_history": "Chronic ischemic heart disease [I25]; Essential (primary) hypertension [I10]; Disorders of lipoprotein metabolism and other lipidemias [E78]",
         "physical_examination": "No special findings",
-        "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: other"
+        "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: Other"
       },
       "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-624459969208-02": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-02",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
+  "doc-ENC-FORCED-0001-308142489017-02": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-02",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
         "generic:progress_note_soap_en",
@@ -48,16 +48,42 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "en"
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "Clinical assessment ongoing",
+        "objective": "No special findings",
+        "plan": "Continue current management",
+        "subjective": "No special findings"
+      },
       "structured": {},
       "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
-  "doc-ENC-FORCED-0001-624459969208-03": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-03",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
+  "doc-ENC-FORCED-0001-308142489017-03": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-03",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
         "generic:progress_note_soap_en",
@@ -69,129 +95,51 @@
       "generator_metadata": {
         "day_index": 1,
         "generator": "template",
-        "lang": "en"
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
       },
-      "sections": {},
+      "sections": {
+        "assessment": "Clinical assessment ongoing",
+        "objective": "No special findings",
+        "plan": "Continue current management",
+        "subjective": "No special findings"
+      },
       "structured": {},
       "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
-  "doc-ENC-FORCED-0001-624459969208-04": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-04",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
+  "doc-ENC-FORCED-0001-308142489017-04": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-04",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
-        "generic:progress_note_soap_en",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 2,
-        "generator": "template",
-        "lang": "en"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-05": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-05",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "generic:progress_note_soap_en",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 3,
-        "generator": "template",
-        "lang": "en"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-06": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-06",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "generic:progress_note_soap_en",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 4,
-        "generator": "template",
-        "lang": "en"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-07": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-07",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "generic:progress_note_soap_en",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 5,
-        "generator": "template",
-        "lang": "en"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-08": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-08",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "generic:progress_note_soap_en",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 6,
-        "generator": "template",
-        "lang": "en"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-09": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-09",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "disease_protocol.chief_complaint.en",
-        "ctx.diagnoses",
-        "ctx.discharge_medications",
-        "discharge_instructions.baseline",
-        "discharge_instructions.disease_specific.acute_mi",
-        "discharge_instructions.follow_up"
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
+        "ctx.adl_assessments[-1]",
+        "ctx.patient.chronic_conditions",
+        "ctx.nursing_risk_assessments",
+        "ctx.patient.chronic_conditions",
+        "ctx.nursing_risk_assessments"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -200,20 +148,263 @@
         "lang": "en"
       },
       "sections": {
-        "admission_summary": "Chief complaint: Chest pain, diaphoresis, dyspnea. Admitted for inpatient care.",
-        "discharge_diagnoses": "Acute myocardial infarction, unspecified (I21.9)",
-        "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended. Take ALL cardiac medications as prescribed: aspirin, statin, beta-blocker, ACE inhibitor/ARB. Do NOT stop without consulting cardiologist. Call 911 immediately for: chest pain, severe shortness of breath, palpitations, syncope. Resume a normal diet gradually as tolerated. Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance. Low-fat, low-sodium diet. Smoking cessation mandatory. Limit alcohol. Weight management.",
-        "discharge_medications": "Aspirin; Ticagrelor; Atorvastatin",
-        "follow_up": "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended.",
-        "hospital_course": "The patient was hospitalized for 7 days. Clinical course was favorable with improvement in presenting symptoms."
+        "adl_assessment": "Barthel Index 63/100 → minimal assistance (feeding=7, bathing=3, mobility=9, toilet_use=6)",
+        "care_plan": "Care plan: monitor BP AM/PM, escalate to MD if goal not met.",
+        "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
+        "nursing_history": "Admission reason: Chest pain, diaphoresis, dyspnea. PMH: Chronic ischemic heart disease, Essential (primary) hypertension, Disorders of lipoprotein metabolism and other lipidemias.",
+        "risk_assessments": "Fall / pressure ulcer risk: assessment pending"
       },
       "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-624459969208-10": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-10",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
+  "doc-ENC-FORCED-0001-308142489017-05-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-05-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 2 days\nPatient status: BP 111/68, HR 99, SpO2 93%, T 37.5°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-06-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-06-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 2 days\nPatient status: BP 111/68, HR 99, SpO2 93%, T 37.5°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-07-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-07-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 1,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 2 days\nPatient status: BP 116/65, HR 98, SpO2 98%, T 36.4°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-08-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-08-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 1,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 2 days\nPatient status: BP 116/65, HR 98, SpO2 98%, T 36.4°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-09-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-09-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 1,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 2 days\nPatient status: BP 116/65, HR 98, SpO2 98%, T 36.4°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-10": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-10",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.los_days",
+        "ctx.intake_output_records",
+        "ctx.patient.chronic_conditions",
+        "ctx.adl_assessments[-1]"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {
+        "admission_status": "Hospital stay: 2 days. Admission reason: Chest pain, diaphoresis, dyspnea. Discharge criteria met.",
+        "discharge_readiness": "Discharge readiness: Discharge Barthel 63/100.",
+        "nursing_interventions_provided": "Cumulative IN 3274 mL / OUT 1307 mL (net +1967 mL).",
+        "patient_education": "Patient education: home BP monitoring + low-salt diet."
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-11": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-11",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.los_days",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.patient.chronic_conditions",
+        "encounter.id::autopsy_sample"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {
+        "autopsy_status": "Autopsy performed: no.",
+        "contributing_conditions": "Contributing conditions: Chronic ischemic heart disease (I25); Essential (primary) hypertension (I10); Disorders of lipoprotein metabolism and other lipidemias (E78) as comorbid conditions, which plausibly contributed to the terminal course.",
+        "duration_of_immediate_cause": "Time from onset of immediate cause to death: died approximately 2 days into the admission from Acute myocardial infarction, unspecified. Pre-admission course not captured in this record.",
+        "immediate_cause_of_death": "Immediate cause of death: Acute myocardial infarction, unspecified (I21.9).",
+        "manner_of_death": "Manner of death: natural / disease-related.",
+        "underlying_cause_of_death": "Underlying cause of death: Acute myocardial infarction, unspecified (I21)."
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-12": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-12",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.diagnoses[0].admission_diagnosis_code",
+        "ctx.encounter.admission_datetime",
+        "ctx.los_days",
+        "ctx.medications",
+        "ctx.procedures",
+        "ctx.encounter.discharge_datetime",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.procedures",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.patient.chronic_conditions",
+        "ctx.los_days",
+        "encounter.id::autopsy_sample"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {
+        "admission_state": "The patient was admitted urgently on 2024-06-15 04:16 with Acute myocardial infarction, unspecified (I21.9). On admission the overall clinical status was assessed as severe.",
+        "autopsy_status_and_findings": "Autopsy status and findings: autopsy not performed (no family consent).",
+        "cause_of_death": "Cause of death: Acute myocardial infarction, unspecified (I21.9).",
+        "circumstances_of_death": "On the ward, the patient died naturally under the attending physician's palliative bedside care, and death was confirmed.",
+        "complications_and_comorbidities": "Complications and comorbidities: The patient had a chronic-disease history including Chronic ischemic heart disease (I25), Essential (primary) hypertension (I10), Disorders of lipoprotein metabolism and other lipidemias (E78).",
+        "family_communication": "Family communication: The family was informed early in the admission about the possibility of clinical deterioration, and updated as the course evolved, and the family was present at the bedside at the time of death confirmation.",
+        "terminal_course": "In the final hours the patient developed acute hemodynamic deterioration, attributed to Acute myocardial infarction, unspecified, and death was confirmed at 2024-06-17 00:16.",
+        "treatment_course": "Over the 2-day admission, 27 medication order(s) were administered, 4 procedure(s) were performed, Multidisciplinary treatment was continued, but the patient could not be saved."
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-ED-13": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-ED-13",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.encounter.chief_complaint",
+        "ctx.vitals[0]",
+        "ctx.lab_results.abnormal",
+        "ctx.procedures.ed",
+        "ctx.encounter.disposition"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {
+        "assessment": "Clinical assessment ongoing",
+        "chief_complaint": "Chest pain, diaphoresis, dyspnea",
+        "disposition": "expired. Return precautions provided.",
+        "ed_workup": "PT_INR 1.3 {INR} [H], AST 105.0 U/L [H], ALT 88.0 U/L [H], Troponin_I 68.799 ng/mL [H]",
+        "hpi": "Patient presented with severe symptoms.",
+        "physical_exam": "On arrival: BP 111/68 mmHg, HR 99 bpm, RR 18 /min, SpO2 94%, T 37.5°C. No focal findings on exam.",
+        "triage_details": "Triage information: not recorded"
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-ED-14": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-ED-14",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -222,500 +413,9 @@
         "generator": "template",
         "lang": "en"
       },
-      "sections": {
-        "adl_assessment": "ADL: independent (no issues noted)",
-        "care_plan": "Care plan: continue standard nursing care",
-        "nursing_diagnosis": "Nursing diagnosis: no significant findings",
-        "nursing_history": "Nursing history: no significant findings",
-        "risk_assessments": "Fall / pressure ulcer risk: assessment pending"
-      },
-      "structured": {},
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-11-night": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-11-night",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 0,
-        "generator": "template",
-        "lang": "en",
-        "shift": "night"
-      },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 1 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-12-day": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-12-day",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 0,
-        "generator": "template",
-        "lang": "en",
-        "shift": "day"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-13-evening": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-13-evening",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 0,
-        "generator": "template",
-        "lang": "en",
-        "shift": "evening"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-14-night": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-14-night",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 1,
-        "generator": "template",
-        "lang": "en",
-        "shift": "night"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-15-day": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-15-day",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 1,
-        "generator": "template",
-        "lang": "en",
-        "shift": "day"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-16-evening": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-16-evening",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 1,
-        "generator": "template",
-        "lang": "en",
-        "shift": "evening"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-17-night": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-17-night",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 2,
-        "generator": "template",
-        "lang": "en",
-        "shift": "night"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-18-day": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-18-day",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 2,
-        "generator": "template",
-        "lang": "en",
-        "shift": "day"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-19-evening": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-19-evening",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 2,
-        "generator": "template",
-        "lang": "en",
-        "shift": "evening"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-20-night": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-20-night",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 3,
-        "generator": "template",
-        "lang": "en",
-        "shift": "night"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-21-day": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-21-day",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 3,
-        "generator": "template",
-        "lang": "en",
-        "shift": "day"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-22-evening": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-22-evening",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 3,
-        "generator": "template",
-        "lang": "en",
-        "shift": "evening"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-23-night": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-23-night",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 4,
-        "generator": "template",
-        "lang": "en",
-        "shift": "night"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 5 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-24-day": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-24-day",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 4,
-        "generator": "template",
-        "lang": "en",
-        "shift": "day"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-25-evening": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-25-evening",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 4,
-        "generator": "template",
-        "lang": "en",
-        "shift": "evening"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-26-night": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-26-night",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 5,
-        "generator": "template",
-        "lang": "en",
-        "shift": "night"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-27-day": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-27-day",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 5,
-        "generator": "template",
-        "lang": "en",
-        "shift": "day"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 6 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-28-evening": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-28-evening",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 5,
-        "generator": "template",
-        "lang": "en",
-        "shift": "evening"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-29-night": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-29-night",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 6,
-        "generator": "template",
-        "lang": "en",
-        "shift": "night"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-30-day": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-30-day",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 6,
-        "generator": "template",
-        "lang": "en",
-        "shift": "day"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-31-evening": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-31-evening",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 6,
-        "generator": "template",
-        "lang": "en",
-        "shift": "evening"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7 / LOS 7 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-624459969208-32": {
-    "document_id": "doc-ENC-FORCED-0001-624459969208-32",
-    "encounter_id": "ENC-FORCED-0001-624459969208",
-    "narrative": {
-      "facts_used": [
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "en"
-      },
-      "sections": {
-        "admission_status": "Hospital stay: 7 days. Discharge criteria met.",
-        "discharge_readiness": "Discharge readiness: criteria met",
-        "nursing_interventions_provided": "Nursing interventions provided: no significant findings",
-        "patient_education": "Patient education: discharge instructions provided"
-      },
-      "structured": {},
-      "text": ""
+      "text": "Triage information: not recorded"
     }
   }
 }
