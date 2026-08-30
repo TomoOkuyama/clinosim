@@ -684,6 +684,147 @@ def _parse_iso_datetime(raw: Any) -> datetime | None:
             return None
 
 
+# ─────────────────────────────────────────────────────────────────
+# Issue #979 / #980: CC × physical_examination consistency helpers
+# ─────────────────────────────────────────────────────────────────
+#
+# Template-first fix (per user directive): the physical_examination narrative
+# must be internally coherent with the chief_complaint from CIF alone, without
+# an LLM refinement pass. Two problem classes were observed at seed 1000
+# p=2000 (Issue #980):
+#   * 39 records: CC 意識障害 + PE 意識清明
+#   * 47 records: CC 呼吸困難 + PE 呼吸音清明
+#
+# Fix: after `_format_physical_exam` produces its per-body-system prose, run
+# it through `_apply_cc_pe_consistency`, which detects altered-consciousness
+# or severe-dyspnea CC and rewrites the matching PE clause with a clinically
+# plausible finding drawn from a small pool by SHA256(encounter_id) — this
+# keeps the transform deterministic and RNG-neutral
+# (feedback_rng_neutral_additive_field).
+
+# Consciousness keywords in the chief_complaint that should invalidate a
+# subsequent 「意識清明」 in the physical exam. Matched as literal substrings
+# on the JP chief_complaint text.
+_CC_ALTERED_CONSCIOUSNESS_KEYWORDS: tuple[str, ...] = (
+    "意識障害",
+    "意識消失",
+    "意識レベル低下",
+    "意識もうろう",
+    "昏睡",
+)
+
+# Severe-dyspnea keywords that should invalidate a subsequent 「呼吸音清明」.
+_CC_SEVERE_DYSPNEA_KEYWORDS: tuple[str, ...] = (
+    "呼吸困難",
+    "息苦しさ",
+    "息苦しい",
+    "喘鳴",
+)
+
+# Right-side negation tokens: if any of these follows the keyword within the
+# next few characters, treat the keyword as negated (「意識障害なし」等) and
+# leave PE prose unchanged.
+_CC_NEGATION_TOKENS_RIGHT: tuple[str, ...] = (
+    "なし",
+    "無し",
+    "認めず",
+    "認めない",
+    "否定",
+    "なく",
+)
+# Left-side negation prefixes are rare in JP chief_complaint text but included
+# for defensiveness (「否定的な意識障害」等 is uncommon; usually stated as
+# postfixed 「なし」).
+
+# PE prose fragments to replace. We match the exact catalog text emitted by
+# `_format_physical_exam` (per `clinosim/modules/document/reference_data/
+# physical_exam_findings.yaml` + disease YAML). "意識清明" appears both alone
+# and inside longer phrases; the replacement rewrites the whole clause up to
+# the next 、/。/, .
+_PE_ALTERED_CONSCIOUSNESS_POOL_JA: tuple[str, ...] = (
+    "GCS E3V4M5 (12/15)、JCS I-2 相当の応答遅延あり",
+    "JCS I-2、簡単な問いかけには応答するも見当識低下あり",
+    "GCS E3V5M6 (14/15)、傾眠傾向",
+    "JCS II-10、呼びかけで開眼、内容曖昧",
+)
+_PE_SEVERE_DYSPNEA_POOL_JA: tuple[str, ...] = (
+    "両肺 wheeze 聴取、呼気延長あり",
+    "呼吸促迫、両側 crackles 聴取",
+    "呼気時 wheeze 著明、SpO2 低下",
+    "頻呼吸、努力呼吸あり、両側 rhonchi 聴取",
+)
+
+
+def _cc_keyword_positively_present(cc_text: str, keywords: tuple[str, ...]) -> bool:
+    """Return True if any keyword appears in ``cc_text`` and is NOT negated
+    by a right-adjacent negation token (なし / 認めず / 否定 / etc.).
+
+    Detection window: 6 characters after the keyword's end. This matches the
+    JP chief_complaint style seen in practice — negation follows immediately
+    (「意識障害なし」「呼吸困難認めず」).
+    """
+    if not cc_text:
+        return False
+    for kw in keywords:
+        start = 0
+        while True:
+            idx = cc_text.find(kw, start)
+            if idx < 0:
+                break
+            end = idx + len(kw)
+            tail = cc_text[end : end + 6]
+            if not any(neg in tail for neg in _CC_NEGATION_TOKENS_RIGHT):
+                return True
+            start = end
+    return False
+
+
+def _pick_from_pool_by_encounter(pool: tuple[str, ...], enc_id: str, salt: str) -> str:
+    """Deterministic pool pick keyed on (encounter_id, salt).
+
+    RNG-neutral (SHA256, does not consume master RNG). Same encounter always
+    picks the same phrase — so byte-diff-across-regens holds.
+    """
+    import hashlib
+
+    key = f"{enc_id or 'ENC-UNKNOWN'}|{salt}".encode()
+    idx = hashlib.sha256(key).digest()[0] % len(pool)
+    return pool[idx]
+
+
+def _rewrite_pe_clause(text: str, trigger_substrings: tuple[str, ...], replacement: str) -> str:
+    """Rewrite each clause in ``text`` that contains any trigger substring.
+
+    ``text`` is the joined per-body-system prose from `_format_physical_exam`
+    — clauses are separated by 「。」 for JA (see `_format_physical_exam`
+    return). Body-system labels ("一般状態:", "呼吸器:", …) sit at the head
+    of each clause; we preserve the label and replace only the value portion
+    after the first "：" or ": ".
+
+    Returns ``text`` unchanged if no trigger fires.
+    """
+    if not text:
+        return text
+    clauses = text.split("。")
+    changed = False
+    for i, clause in enumerate(clauses):
+        if not any(t in clause for t in trigger_substrings):
+            continue
+        # Split "label: value" on the first ": " (or "：") and keep the label.
+        # `_format_physical_exam` uses ASCII ": " (see lines 5181-5183).
+        if ": " in clause:
+            label, _sep, _ = clause.partition(": ")
+            clauses[i] = f"{label}: {replacement}"
+            changed = True
+        else:
+            # No label prefix — replace the whole clause.
+            clauses[i] = replacement
+            changed = True
+    if not changed:
+        return text
+    return "。".join(clauses)
+
+
 class TemplateNarrativeGenerator:
     """Stage 1 default narrative generator.
 
@@ -1362,7 +1503,20 @@ class TemplateNarrativeGenerator:
         return text, []
 
     def _build_physical_examination(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build physical_examination using multi-step fallback chain."""
+        """Build physical_examination using multi-step fallback chain.
+
+        Issue #979: prepend a JA vital-signs prose line (BP / HR / T / SpO2
+        / RR) sourced from CIF ``ctx.vitals`` for the appropriate day
+        (admission notes → day 0, discharge summaries → last day, progress
+        notes → ``ctx.day_index``). Silently omit the vitals block when
+        ``ctx.vitals`` is empty for this day — no placeholder emitted.
+
+        Issue #980: after formatting the per-body-system prose, rewrite
+        「意識清明」 clauses to a plausible JCS/GCS phrase when the CIF
+        chief_complaint carries an altered-consciousness keyword, and rewrite
+        「呼吸音清明」 clauses when the CC carries a severe-dyspnea keyword.
+        Deterministic per-encounter pool pick (SHA256), RNG-neutral.
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -1384,6 +1538,18 @@ class TemplateNarrativeGenerator:
         text = self._format_physical_exam(phys_exam, ctx.severity, is_ja)
         if not text:
             text = _GENERIC_FALLBACK_JA
+
+        # #980: rewrite contradicted clauses BEFORE #979 prepend so the
+        # rewrite operates on the "labelled clause" shape produced by
+        # `_format_physical_exam` (see `_rewrite_pe_clause` docstring).
+        text, cc_facts = self._apply_cc_pe_consistency(text, ctx)
+        facts.extend(cc_facts)
+
+        # #979: prepend vital-signs prose line for this day.
+        vitals_line = self._compose_pe_vitals_line(ctx)
+        if vitals_line:
+            facts.append(f"ctx.vitals[day_{ctx.day_index}]")
+            text = f"バイタルサイン: {vitals_line}。{text}"
 
         return text, facts
 
@@ -3722,6 +3888,108 @@ class TemplateNarrativeGenerator:
             parts.append(f"T {_temp:.1f}°C")
         return ", ".join(parts) if parts else ""
 
+    def _compose_pe_vitals_line(self, ctx: NarrativeContext) -> str:
+        """Compose a JA vital-signs prose line for the physical_examination
+        section (Issue #979).
+
+        Picks the day using ``ctx.day_index`` (set per-stub by
+        ``passes.NarrativePass._stub_day_index``, so admission_hp → day 0,
+        discharge_summary → LOS-1, progress_note → per-day) and resolves
+        vitals via ``_filter_vitals_for_day`` (which handles the CIF
+        ``timestamp`` vs ``day`` divergence — see helper docstring).
+
+        If the target day has no vitals, falls back to the encounter's
+        earliest vitals record (day 0) so admission_hp / ED_NOTE / progress
+        notes still emit a vitals block whenever the CIF has any vitals at
+        all. Returns "" only when ``ctx.vitals`` is entirely empty.
+
+        Format matches real JP acute-care admission notes:
+            "BP 130/80 mmHg, HR 88/min, T 37.5°C, SpO2 96% (RA), RR 20/min"
+        """
+        vitals = list(ctx.vitals or [])
+        if not vitals:
+            return ""
+        picks = _filter_vitals_for_day(vitals, ctx.day_index, ctx.encounter)
+        if not picks:
+            # Day-specific vitals absent — use the earliest record so the PE
+            # section still gets a vitals block. Prefer this to emitting
+            # nothing (which was the pre-#979 default and caused 57.7% of PE
+            # sections to lack any numeric vitals).
+            picks = [vitals[0]]
+        v = picks[0]
+
+        parts: list[str] = []
+        _sbp = _o(v, "systolic_bp", None)
+        _dbp = _o(v, "diastolic_bp", None)
+        if _sbp and _dbp:
+            parts.append(f"BP {int(_sbp)}/{int(_dbp)} mmHg")
+        _hr = _o(v, "heart_rate", None)
+        if _hr:
+            parts.append(f"HR {int(_hr)}/min")
+        _temp = _o(v, "temperature_celsius", None)
+        if _temp:
+            parts.append(f"T {_temp:.1f}°C")
+        _spo2 = _o(v, "spo2", None)
+        if _spo2:
+            # Room-air unless a supplemental-oxygen flag is set on the vitals
+            # record (session-88i pattern — see feedback_session_derived_procedure_period).
+            on_o2 = bool(_o(v, "on_supplemental_oxygen", False))
+            suffix = "" if on_o2 else " (RA)"
+            parts.append(f"SpO2 {_spo2:.0f}%{suffix}")
+        _rr = _o(v, "respiratory_rate", None)
+        if _rr:
+            parts.append(f"RR {int(_rr)}/min")
+
+        return ", ".join(parts)
+
+    def _apply_cc_pe_consistency(self, text: str, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Rewrite PE clauses contradicted by the chief_complaint (Issue #980).
+
+        Reads the JA chief_complaint from CIF (encounter.chief_complaint_ja /
+        encounter.chief_complaint), detects two contradiction classes, and
+        replaces the contradicted PE clause with a deterministic phrase
+        drawn from a small pool by SHA256(encounter_id + salt).
+
+        Contradiction classes handled:
+          * CC ∋ 意識障害 / 意識消失 / 昏睡 / 意識レベル低下 / 意識もうろう
+            (not negated by なし/否定/認めず/etc.) → replace 「意識清明」 clause
+          * CC ∋ 呼吸困難 / 息苦しさ / 喘鳴 (not negated) → replace
+            「呼吸音清明」 clause
+
+        Returns ``(rewritten_text, facts)``. ``facts`` names the rewrite
+        rule(s) applied so downstream provenance tools can see it. If no
+        rewrite fires, ``text`` is returned unchanged.
+        """
+        facts: list[str] = []
+        if not text or ctx.target_lang != "ja":
+            return text, facts
+
+        enc = ctx.encounter
+        if enc is None:
+            return text, facts
+        cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
+        cc = str(cc)
+        if not cc:
+            return text, facts
+
+        enc_id = _o(enc, "encounter_id", "") or ""
+
+        if _cc_keyword_positively_present(cc, _CC_ALTERED_CONSCIOUSNESS_KEYWORDS):
+            replacement = _pick_from_pool_by_encounter(_PE_ALTERED_CONSCIOUSNESS_POOL_JA, enc_id, "pe_consciousness")
+            new_text = _rewrite_pe_clause(text, ("意識清明",), replacement)
+            if new_text != text:
+                facts.append("cc_pe_consistency:consciousness")
+                text = new_text
+
+        if _cc_keyword_positively_present(cc, _CC_SEVERE_DYSPNEA_KEYWORDS):
+            replacement = _pick_from_pool_by_encounter(_PE_SEVERE_DYSPNEA_POOL_JA, enc_id, "pe_respiratory")
+            new_text = _rewrite_pe_clause(text, ("呼吸音清明",), replacement)
+            if new_text != text:
+                facts.append("cc_pe_consistency:respiratory")
+                text = new_text
+
+        return text, facts
+
     def _compose_vital_signs_line(self, ctx: NarrativeContext) -> str:
         """Compose a single-line JA/EN vital-signs summary from ctx.vitals[0]
         (encounter has 1 outpatient vitals record per visit — see outpatient.py
@@ -4166,7 +4434,20 @@ class TemplateNarrativeGenerator:
         if parts:
             facts.append(f"encounter_protocol.narrative.ed_note_template.{field}")
             sep = "。" if is_ja else ". "
-            return sep.join(parts), facts
+            text = sep.join(parts)
+            # Issue #980: rewrite contradicted PE clauses (JA only — the
+            # rewrite pools + trigger keywords are JP terminology).
+            if is_ja:
+                text, cc_facts = self._apply_cc_pe_consistency(text, ctx)
+                facts.extend(cc_facts)
+            # Issue #979: prepend vitals prose line (JA only for now — same
+            # rationale as the inpatient path in `_build_physical_examination`).
+            if is_ja:
+                vitals_line = self._compose_pe_vitals_line(ctx)
+                if vitals_line:
+                    facts.append(f"ctx.vitals[day_{ctx.day_index}]")
+                    text = f"バイタルサイン: {vitals_line}。{text}"
+            return text, facts
 
         return fallback, facts
 
