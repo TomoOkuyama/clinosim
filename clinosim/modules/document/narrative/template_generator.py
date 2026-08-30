@@ -638,6 +638,28 @@ def _filter_vitals_for_day(vitals: list, day_index: int, encounter: Any) -> list
     return vitals[:1]
 
 
+# Issue #961 extension: RNG-neutral autopsy sampling (used by both the
+# 死亡診断書 autopsy_status section and the 死亡退院サマリー
+# autopsy_status_and_findings section so the two documents agree per
+# encounter). Cutoff p=0.07 gives ~7% autopsy rate matching the low
+# end of JMA / MHLW real-world autopsy statistics for JP acute care.
+# SHA256 keyed on (encounter_id, patient_id, "autopsy") is deterministic
+# across regens and does not consume the master RNG
+# (feedback_rng_neutral_additive_field).
+_DDS_AUTOPSY_PROB_CUTOFF = int((1 << 64) * 0.07)
+
+
+def _autopsy_performed_sha256(ctx: NarrativeContext) -> bool:
+    """Deterministic per-encounter autopsy sample. See module comment above."""
+    import hashlib
+
+    enc_id = _o(getattr(ctx, "encounter", None), "encounter_id", "") or ""
+    pat_id = getattr(ctx.patient, "patient_id", "") if ctx.patient else ""
+    key = f"{enc_id}|{pat_id}|autopsy".encode()
+    h = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
+    return h < _DDS_AUTOPSY_PROB_CUTOFF
+
+
 def _parse_iso_datetime(raw: Any) -> datetime | None:
     """Best-effort parse of an ISO 8601 datetime string / datetime object."""
     if raw is None:
@@ -909,6 +931,20 @@ class TemplateNarrativeGenerator:
             "contributing_conditions": self._build_dc_contributing_conditions,
             "manner_of_death": self._build_dc_manner_of_death,
             "autopsy_status": self._build_dc_autopsy_status,
+            # Issue #961 extension: DEATH_DISCHARGE_SUMMARY sections
+            # (LOINC 18842-5 with title 死亡退院サマリー). Every section
+            # produces a clinically-defensible template narrative from
+            # CIF facts (admission dates, LOS, diagnoses, complications,
+            # working diagnoses, autopsy sample) — LLM refinement is
+            # opt-in polish, not a requirement for narrative validity.
+            "admission_state": self._build_dds_admission_state,
+            "treatment_course": self._build_dds_treatment_course,
+            "terminal_course": self._build_dds_terminal_course,
+            "circumstances_of_death": self._build_dds_circumstances_of_death,
+            "cause_of_death": self._build_dds_cause_of_death,
+            "complications_and_comorbidities": self._build_dds_complications_and_comorbidities,
+            "family_communication": self._build_dds_family_communication,
+            "autopsy_status_and_findings": self._build_dds_autopsy_status_and_findings,
         }
 
         # P2-13 PR2a: use the JP-specific section list when country=JP so
@@ -4448,25 +4484,158 @@ class TemplateNarrativeGenerator:
     def _build_dc_duration_of_immediate_cause(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """直接死因までの期間 / Time from onset of the immediate cause to death.
 
-        Derived from encounter length-of-stay. For chronic conditions the
-        true onset predates admission; this template documents only the
-        observed hospital course and says so explicitly (never fabricate).
+        Real 死亡診断書 forms carry a short prose phrase whose granularity
+        varies with disease trajectory — acute events on the day of
+        admission are documented in hours, subacute pneumonias in days,
+        chronic decompensations in weeks. Template renders one of five
+        duration buckets keyed on encounter LOS + disease pattern
+        (acute / chronic / unknown, from the terminal ICD chapter),
+        giving the LLM refinement pass a clinically-defensible seed to
+        polish.
+
+        Never fabricates a pre-admission onset date — clinosim CIF does
+        not carry a first-onset date for acute events, so the template
+        anchors on the observed admission-to-death interval and states
+        so explicitly.
         """
         is_ja = ctx.target_lang == "ja"
         facts: list[str] = ["ctx.los_days"]
         los = ctx.los_days or 0
+        code, display, _ = self._dc_resolve_primary_cause(ctx)
+        pattern = self._dc_disease_pattern(code)
+        if code:
+            facts.append("ctx.diagnoses[0].discharge_diagnosis_code")
+
         if los <= 0:
-            return (
-                "直接死因までの期間: 入院日と同日に死亡（数時間以内）。"
-                if is_ja
-                else "Time from onset of immediate cause to death: same-day admission (< 24 h)."
-            ), facts
+            hours = self._dc_admission_to_discharge_hours(ctx)
+            if hours is not None and 0 < hours < 24:
+                bucket = "hours"
+                bucket_hours = max(1, int(round(hours)))
+            else:
+                bucket = "same_day"
+                bucket_hours = 0
+        elif los <= 7:
+            bucket = "days"
+            bucket_hours = 0
+        elif los <= 28:
+            bucket = "weeks"
+            bucket_hours = 0
+        else:
+            bucket = "long"
+            bucket_hours = 0
+
         if is_ja:
-            return (f"直接死因までの期間: 当該入院期間中 約{los}日（入院前の慢性経過は本記録範囲外）。"), facts
-        return (
-            f"Time from onset of immediate cause to death: approximately {los} days during this admission "
-            f"(prior chronic history not captured in this record)."
-        ), facts
+            text = self._dc_duration_phrase_ja(bucket, los, bucket_hours, pattern, display or "")
+        else:
+            text = self._dc_duration_phrase_en(bucket, los, bucket_hours, pattern, display or "")
+        return text, facts
+
+    def _dc_disease_pattern(self, icd_code: str) -> str:
+        """Return an "acute" / "chronic" / "unknown" pattern from ICD-10.
+
+        Uses ICD-10 chapter conventions used elsewhere in clinosim: I21/
+        I26/J18/A41 etc. are acute; I25/E11/N18/J44 chronic. "unknown"
+        for anything not in these well-known buckets — the caller emits
+        a neutral phrase in that case rather than fabricating a
+        trajectory.
+        """
+        if not icd_code:
+            return "unknown"
+        stem = icd_code.split(".")[0]
+        acute = frozenset(
+            {
+                "I21",  # 急性心筋梗塞
+                "I22",  # 再発急性心筋梗塞
+                "I26",  # 肺塞栓症
+                "I46",  # 心停止
+                "I50",  # 心不全（急性増悪）
+                "I63",  # 脳梗塞
+                "I61",  # 脳出血
+                "J18",  # 肺炎
+                "J96",  # 呼吸不全
+                "A41",  # 敗血症
+                "N17",  # 急性腎障害
+                "R57",  # ショック
+            }
+        )
+        chronic = frozenset(
+            {
+                "I25",  # 慢性虚血性心疾患
+                "N18",  # 慢性腎臓病
+                "J44",  # COPD
+                "E11",  # 2型糖尿病
+                "K74",  # 肝硬変
+                "C34",  # 肺癌
+                "C25",  # 膵癌
+                "C22",  # 肝癌
+                "C18",  # 大腸癌
+            }
+        )
+        if stem in acute:
+            return "acute"
+        if stem in chronic:
+            return "chronic"
+        return "unknown"
+
+    def _dc_admission_to_discharge_hours(self, ctx: NarrativeContext) -> float | None:
+        """Return the observed admission-to-discharge duration in hours, or
+        ``None`` when either datetime is missing. Enables the duration
+        section to pick hour granularity on same-day deaths."""
+        adm = _o(ctx.encounter, "admission_datetime", None)
+        dis = _o(ctx.encounter, "discharge_datetime", None)
+        if not adm or not dis:
+            return None
+        try:
+            a = adm if isinstance(adm, datetime) else datetime.fromisoformat(str(adm))
+            d = dis if isinstance(dis, datetime) else datetime.fromisoformat(str(dis))
+            secs = (d - a).total_seconds()
+            return max(0.0, secs / 3600.0)
+        except Exception:
+            return None
+
+    def _dc_duration_phrase_ja(self, bucket: str, los: int, hours: int, pattern: str, disease_label: str) -> str:
+        """JP duration phrase generator — five LOS buckets × three patterns.
+
+        The prose reads like a JP physician's short-form note on the
+        死亡診断書 form; the LLM refinement pass polishes further when
+        available, but this template output is already clinically valid
+        and grammatically complete on its own.
+        """
+        prefix = "直接死因までの期間: "
+        chronic_lead = "既往の慢性経過に加え、" if pattern == "chronic" else ""
+        if bucket == "hours":
+            body = f"入院より約{hours}時間で死亡"
+        elif bucket == "same_day":
+            body = "入院同日、数時間以内に死亡"
+        elif bucket == "days":
+            body = f"入院より約{los}日の経過で死亡"
+        elif bucket == "weeks":
+            weeks = max(1, round(los / 7))
+            body = f"入院より約{weeks}週間（{los}日）の経過で死亡"
+        else:  # "long"
+            weeks = max(4, round(los / 7))
+            body = f"入院より約{weeks}週間の長期経過で死亡"
+        tail = "。入院前の経過は本記録範囲外。"
+        return f"{prefix}{chronic_lead}{body}{tail}"
+
+    def _dc_duration_phrase_en(self, bucket: str, los: int, hours: int, pattern: str, disease_label: str) -> str:
+        """EN duration phrase generator (mirrors the JP version)."""
+        prefix = "Time from onset of immediate cause to death: "
+        chronic_lead = "on a background of chronic disease, " if pattern == "chronic" else ""
+        if bucket == "hours":
+            body = f"died approximately {hours} h after admission"
+        elif bucket == "same_day":
+            body = "died the same day of admission, within hours"
+        elif bucket == "days":
+            body = f"died approximately {los} days into the admission"
+        elif bucket == "weeks":
+            weeks = max(1, round(los / 7))
+            body = f"died approximately {weeks} week(s) ({los} d) into the admission"
+        else:
+            weeks = max(4, round(los / 7))
+            body = f"died after a prolonged {weeks}-week course during this admission"
+        tail = ". Pre-admission course not captured in this record."
+        return f"{prefix}{chronic_lead}{body}{tail}"
 
     def _build_dc_underlying_cause(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """原死因 / Underlying cause of death.
@@ -4489,9 +4658,21 @@ class TemplateNarrativeGenerator:
     def _build_dc_contributing_conditions(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """影響を及ぼした傷病名 / Contributing conditions.
 
-        Enumerates chronic conditions on the patient record (up to 5).
-        Returns "該当なし / None" when the patient has no chronic history —
-        never fabricates a comorbidity.
+        Real 死亡診断書 physicians write this field as a short prose
+        paragraph explaining WHICH chronic comorbidities plausibly
+        contributed to the terminal event — a bare list is undersells
+        the clinical linkage. Template enriches with:
+          - Lead-in phrase naming the count (単発の / 複数の)
+          - The comorbidity list (up to 5) with codes
+          - A neutral causal-context sentence tying them to the terminal
+            event (using the disease pattern from the primary cause)
+          - Optionally, any in-hospital complications observed
+            (from ctx.complications_occurred / working_diagnoses) that
+            documented a concrete secondary event.
+
+        Never fabricates a comorbidity: "該当なし / none documented" when
+        the patient has no chronic history and no in-hospital
+        complication was recorded.
         """
         is_ja = ctx.target_lang == "ja"
         facts: list[str] = []
@@ -4504,13 +4685,50 @@ class TemplateNarrativeGenerator:
             system = _o(c, "system", "") or system_key_for("diagnosis", ctx.locale.upper())
             display = code_lookup(system, code_val, ctx.target_lang) or code_val
             parts.append(f"{display}（{code_val}）" if is_ja else f"{display} ({code_val})")
-        if not parts:
+        if parts:
+            facts.append("ctx.patient.chronic_conditions")
+
+        # In-hospital complications add concrete detail beyond baseline
+        # comorbidities (the daily loop records these on the record).
+        comp_tokens = list(getattr(ctx, "complications_occurred", []) or [])[:3]
+        if comp_tokens:
+            facts.append("ctx.complications_occurred")
+
+        primary_code, _display, _ = self._dc_resolve_primary_cause(ctx)
+        pattern = self._dc_disease_pattern(primary_code)
+
+        if not parts and not comp_tokens:
             return ("影響を及ぼした傷病名: 該当なし。" if is_ja else "Contributing conditions: none documented."), facts
-        facts.append("ctx.patient.chronic_conditions")
-        sep = "、" if is_ja else "; "
-        prefix = "影響を及ぼした傷病名: " if is_ja else "Contributing conditions: "
-        suffix = "。" if is_ja else "."
-        return prefix + sep.join(parts) + suffix, facts
+
+        if is_ja:
+            prefix = "影響を及ぼした傷病名: "
+            list_part = "、".join(parts) if parts else ""
+            connector = ""
+            if list_part:
+                connector = "の慢性経過が背景にあり、" if pattern == "chronic" else "を併存疾患として有し、"
+            comp_part = ""
+            if comp_tokens:
+                comp_labels = "、".join(str(t).replace("_", " ") for t in comp_tokens)
+                comp_part = f"入院中に{comp_labels}を合併し臨床経過に影響した。"
+            if list_part:
+                tail = "死亡に至る臨床経過に影響したと考えられる。"
+                return f"{prefix}{list_part}{connector}{comp_part}{tail}", facts
+            return f"{prefix}{comp_part}", facts
+
+        # EN path.
+        prefix = "Contributing conditions: "
+        list_part = "; ".join(parts) if parts else ""
+        connector = ""
+        if list_part:
+            connector = " on a background of chronic disease, " if pattern == "chronic" else " as comorbid conditions, "
+        comp_part = ""
+        if comp_tokens:
+            comp_labels = ", ".join(str(t).replace("_", " ") for t in comp_tokens)
+            comp_part = f" In-hospital complication(s) — {comp_labels} — also affected the clinical course."
+        if list_part:
+            tail = "which plausibly contributed to the terminal course."
+            return f"{prefix}{list_part}{connector}{tail}{comp_part}", facts
+        return f"{prefix}{comp_part.strip()}", facts
 
     def _build_dc_manner_of_death(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """死因の種類 / Manner of death.
@@ -4531,16 +4749,357 @@ class TemplateNarrativeGenerator:
     def _build_dc_autopsy_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """解剖の有無 / Autopsy status.
 
-        clinosim does not currently simulate autopsy consent or
-        pathological findings; every death is emitted with autopsy=無.
-        This matches the majority of Japanese acute-care deaths and is
-        the honest never-fabricate default.
+        Real JP acute-care hospitals perform autopsy on ~5-10% of
+        deaths (JMA / MHLW annual statistics). clinosim samples per
+        encounter with SHA256 (encounter_id + patient_id + "autopsy")
+        so the value is RNG-neutral (does not consume the master RNG)
+        and deterministic across regens — same encounter always gets
+        the same autopsy status. Cutoff p=0.07 gives ~7% autopsy rate,
+        matching the low end of the real-world range.
+
+        The paired DDS section ``autopsy_status_and_findings`` uses the
+        same SHA256 helper so the two documents agree per encounter
+        (feedback_dr_conclusion_code_single_walk — one source for a
+        cross-document invariant).
         """
         is_ja = ctx.target_lang == "ja"
-        facts: list[str] = []
+        facts: list[str] = ["encounter.id::autopsy_sample"]
+        performed = _autopsy_performed_sha256(ctx)
+        if performed:
+            if is_ja:
+                return "解剖の有無: 有（病理解剖）。", facts
+            return "Autopsy performed: yes (pathological autopsy).", facts
         if is_ja:
             return "解剖の有無: 無。", facts
         return "Autopsy performed: no.", facts
+
+    # ─────────────────────────────────────────────────────────────────
+    # DEATH_DISCHARGE_SUMMARY sections (LOINC 18842-5 / title 死亡退院
+    # サマリー) — Issue #961 extension
+    # ─────────────────────────────────────────────────────────────────
+    # Real JP hospital deceased-inpatient discharges use a specialized
+    # 死亡退院サマリー template with eight sections. Every builder here
+    # produces a clinically-defensible narrative from CIF (admission /
+    # discharge datetimes, LOS, primary + working diagnoses, complications,
+    # SHA256-sampled autopsy). Templates are the authoritative base
+    # layer per the coordinator's design principle (2026-08-30): a run
+    # without any LLM configured emits a defensible narrative; the LLM
+    # refinement pass polishes phrasing on top when available (see
+    # llm_service/prompts/{ja,en}/death_discharge_summary_*.yaml).
+
+    def _dds_severity_ja(self, severity: str) -> str:
+        return {"mild": "軽症", "moderate": "中等症", "severe": "重症"}.get(severity or "moderate", "中等症")
+
+    def _dds_severity_en(self, severity: str) -> str:
+        return (severity or "moderate").capitalize()
+
+    def _build_dds_admission_state(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """入院時病状 / Clinical state at admission.
+
+        Renders admission datetime + severity + admission diagnosis code
+        into a short scene-setting paragraph. Grounds the terminal
+        narrative in the observed baseline so the LLM refinement pass
+        cannot drift toward fabricated "healthy on admission" framing.
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = []
+        adm_dt = _o(ctx.encounter, "admission_datetime", None)
+        adm_str = str(adm_dt)[:16].replace("T", " ") if adm_dt else ""
+        diagnoses = ctx.diagnoses or []
+        primary = diagnoses[0] if diagnoses else None
+        adm_code = _o(primary, "admission_diagnosis_code", "") if primary else ""
+        adm_sys = _o(primary, "admission_diagnosis_system", "") if primary else ""
+        adm_disp = ""
+        if adm_code:
+            adm_disp = (
+                code_lookup(adm_sys or system_key_for("diagnosis", ctx.locale.upper()), adm_code, ctx.target_lang)
+                or adm_code
+            )
+            facts.append("ctx.diagnoses[0].admission_diagnosis_code")
+        if adm_dt:
+            facts.append("ctx.encounter.admission_datetime")
+        severity = ctx.severity or "moderate"
+
+        if is_ja:
+            sev = self._dds_severity_ja(severity)
+            when = f"{adm_str}に" if adm_str else ""
+            dx = f"{adm_disp}（{adm_code}）にて" if adm_code else "急性増悪にて"
+            body = f"患者は{when}{dx}当院に緊急入院となった。入院時の全身状態は{sev}の所見を呈していた。"
+            return body, facts
+
+        sev = self._dds_severity_en(severity)
+        when = f"on {adm_str} " if adm_str else ""
+        dx = f"with {adm_disp} ({adm_code})" if adm_code else "with an acute exacerbation"
+        body = (
+            f"The patient was admitted urgently {when}{dx}. "
+            f"On admission the overall clinical status was assessed as {sev.lower()}."
+        )
+        return body, facts
+
+    def _build_dds_treatment_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """治療経過 / Treatment course (multi-day summary).
+
+        Summarizes the LOS, the number of active medications (MAR),
+        procedures performed, and any in-hospital working diagnoses
+        that arose. Deterministic prose grounded in structural CIF
+        counts — the LLM pass can rewrite phrasing but cannot invent
+        procedures or diagnoses that the counts do not support.
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = ["ctx.los_days"]
+        los = ctx.los_days or 0
+        med_count = len(ctx.medications or [])
+        proc_count = len(ctx.procedures or [])
+        working = list(getattr(ctx, "working_diagnoses", []) or [])
+        working_count = len(working)
+        if med_count:
+            facts.append("ctx.medications")
+        if proc_count:
+            facts.append("ctx.procedures")
+        if working_count:
+            facts.append("ctx.working_diagnoses")
+
+        if is_ja:
+            los_part = f"入院期間{los}日間において、" if los > 0 else "入院当日より、"
+            med_part = f"薬剤{med_count}件の投与、" if med_count else ""
+            proc_part = f"処置{proc_count}件を実施し、" if proc_count else ""
+            wk_part = ""
+            if working_count:
+                wk_part = f"入院中に新たに{working_count}件の合併症・併存疾患が判明した。"
+            tail = "集学的治療を継続したが救命に至らなかった。"
+            return f"{los_part}{med_part}{proc_part}{wk_part}{tail}", facts
+
+        los_part = f"Over the {los}-day admission, " if los > 0 else "From admission, "
+        med_part = f"{med_count} medication order(s) were administered, " if med_count else ""
+        proc_part = f"{proc_count} procedure(s) were performed, " if proc_count else ""
+        wk_part = ""
+        if working_count:
+            wk_part = f"and {working_count} additional working diagnosis/es emerged during the stay. "
+        tail = "Multidisciplinary treatment was continued, but the patient could not be saved."
+        return f"{los_part}{med_part}{proc_part}{wk_part}{tail}", facts
+
+    def _build_dds_terminal_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """終末期経過 / Terminal course (final ~24-72 h).
+
+        Anchors on the discharge (= death) datetime and describes the
+        final hours from the primary cause + any complications. When the
+        CIF has no dedicated terminal-vitals summary, the template
+        renders a defensible "progressive deterioration" phrase keyed
+        on disease pattern (chronic decompensation vs acute event)
+        rather than fabricating specific vital values.
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = []
+        dis_dt = _o(ctx.encounter, "discharge_datetime", None)
+        dis_str = str(dis_dt)[:16].replace("T", " ") if dis_dt else ""
+        if dis_dt:
+            facts.append("ctx.encounter.discharge_datetime")
+        code, display, _ = self._dc_resolve_primary_cause(ctx)
+        pattern = self._dc_disease_pattern(code)
+        if code:
+            facts.append("ctx.diagnoses[0].discharge_diagnosis_code")
+
+        if is_ja:
+            if pattern == "acute":
+                phrase = "急速な循環動態悪化を呈し、"
+            elif pattern == "chronic":
+                phrase = "慢性経過の緩徐な悪化から終末期に至り、"
+            else:
+                phrase = "臨床状態の増悪を認め、"
+            dx_part = f"{display}を主因として" if display else ""
+            when = f"{dis_str}に" if dis_str else "最終的に"
+            return f"死亡直前の数時間、{phrase}{dx_part}{when}死亡確認となった。", facts
+
+        if pattern == "acute":
+            phrase = "developed acute hemodynamic deterioration"
+        elif pattern == "chronic":
+            phrase = "progressed slowly toward end-stage decompensation"
+        else:
+            phrase = "showed clinical deterioration"
+        dx_part = f", attributed to {display}," if display else ""
+        when = f"at {dis_str}" if dis_str else "eventually"
+        return f"In the final hours the patient {phrase}{dx_part} and death was confirmed {when}.", facts
+
+    def _build_dds_circumstances_of_death(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """死亡時状況 / Circumstances of death (bedside events).
+
+        Describes the bedside setting at time of death: location (in
+        hospital), resuscitation attempts (from CIF Procedure records
+        when present), and whether resuscitation was performed.
+        Deterministic default is "看取り" (comfort-care death) when no
+        CPR/resuscitation procedure is recorded, and "蘇生術施行" when
+        the CIF Procedure list contains a resuscitation code.
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = []
+        procedures = ctx.procedures or []
+        resuscitation = False
+        for p in procedures:
+            code = str(_o(p, "code", "") or "")
+            name = str(_o(p, "name", "") or "").lower()
+            # ICD-10-PCS / CPT / SNOMED codes for CPR / defibrillation are
+            # detected by name substring — the CIF Procedure list is small
+            # so this is O(n) with n ≤ tens.
+            if any(k in name for k in ("cpr", "cardiopulmonary", "resuscit", "defibrill", "蘇生", "心肺蘇生")):
+                resuscitation = True
+                break
+            if code in {"5A12012", "92950", "99288"}:  # PCS / CPT CPR codes
+                resuscitation = True
+                break
+        if procedures:
+            facts.append("ctx.procedures")
+
+        if is_ja:
+            if resuscitation:
+                body = "入院中の病棟にて、担当医立会いのもと心肺蘇生術を施行するも反応なく、死亡確認となった。"
+            else:
+                body = "入院中の病棟にて、担当医の看取りのもと自然な経過にて死亡確認となった。"
+            return body, facts
+
+        if resuscitation:
+            body = (
+                "On the ward, cardiopulmonary resuscitation was performed by the attending physician; "
+                "the patient did not respond and death was confirmed."
+            )
+        else:
+            body = (
+                "On the ward, the patient died naturally under the attending physician's palliative bedside care, "
+                "and death was confirmed."
+            )
+        return body, facts
+
+    def _build_dds_cause_of_death(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """死因 / Cause of death (structured mirror of DC immediate cause).
+
+        Uses the same _dc_resolve_primary_cause helper so this DDS
+        section and the DC 直接死因 section are guaranteed to agree per
+        encounter (single-source-of-truth per
+        feedback_dr_conclusion_code_single_walk).
+        """
+        is_ja = ctx.target_lang == "ja"
+        code, display, facts = self._dc_resolve_primary_cause(ctx)
+        if not code:
+            return ("死因: 記録なし。" if is_ja else "Cause of death: not documented."), facts
+        if is_ja:
+            return f"死因: {display}（{code}）。", facts
+        return f"Cause of death: {display} ({code}).", facts
+
+    def _build_dds_complications_and_comorbidities(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """合併症・併存症 / Complications and comorbidities.
+
+        Enriched sibling of the DC 影響を及ぼした傷病名 section but
+        oriented for the DDS narrative: enumerates chronic conditions
+        AND in-hospital complications side by side rather than fusing
+        them, so consumers can distinguish pre-existing from acquired.
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = []
+        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+        cond_labels: list[str] = []
+        for c in list(conds)[:5]:
+            code_val = _o(c, "code", "") or (c if isinstance(c, str) else "")
+            if not code_val:
+                continue
+            system = _o(c, "system", "") or system_key_for("diagnosis", ctx.locale.upper())
+            disp = code_lookup(system, code_val, ctx.target_lang) or code_val
+            cond_labels.append(f"{disp}（{code_val}）" if is_ja else f"{disp} ({code_val})")
+        if cond_labels:
+            facts.append("ctx.patient.chronic_conditions")
+
+        comp_tokens = list(getattr(ctx, "complications_occurred", []) or [])[:5]
+        if comp_tokens:
+            facts.append("ctx.complications_occurred")
+
+        if not cond_labels and not comp_tokens:
+            en_none = (
+                "Complications and comorbidities: no notable in-hospital complications; no chronic disease on record."
+            )
+            return ("合併症・併存症: 特記すべき合併症なし、既知の慢性疾患も記録なし。" if is_ja else en_none), facts
+
+        if is_ja:
+            parts: list[str] = []
+            if cond_labels:
+                parts.append("既往の慢性疾患として" + "、".join(cond_labels) + "を有していた")
+            if comp_tokens:
+                labels = "、".join(str(t).replace("_", " ") for t in comp_tokens)
+                parts.append(f"入院中に{labels}の合併を認めた")
+            body = "。".join(parts) + "。"
+            return f"合併症・併存症: {body}", facts
+
+        parts_en: list[str] = []
+        if cond_labels:
+            parts_en.append("The patient had a chronic-disease history including " + ", ".join(cond_labels))
+        if comp_tokens:
+            labels = ", ".join(str(t).replace("_", " ") for t in comp_tokens)
+            parts_en.append(f"During admission the following complication(s) developed: {labels}")
+        body = ". ".join(parts_en) + "."
+        return f"Complications and comorbidities: {body}", facts
+
+    def _build_dds_family_communication(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """家族への説明経過 / Family communication timeline.
+
+        clinosim's CIF does not currently model family-communication
+        events (no dedicated Encounter subtype or Communication resource).
+        Real JP hospital DDS narratives commonly carry a boilerplate
+        "家族に病状悪化を説明、死亡時立会い" when the electronic record
+        is minimal — this is what a physician writes when the paper
+        family-communication log lives outside the EHR. The template
+        emits that boilerplate anchored on the encounter's LOS bucket
+        (short admission = "入院時から重篤性を説明" / long admission =
+        "経過に応じて随時説明") so the LLM refinement pass can polish
+        without inventing specific meeting dates.
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = ["ctx.los_days"]
+        los = ctx.los_days or 0
+
+        if is_ja:
+            if los <= 1:
+                lead = "入院時より病状の重篤性について家族に説明を行い、"
+            elif los <= 7:
+                lead = "入院早期より病状進行の可能性について家族に説明し、経過に応じて随時追加説明を行い、"
+            else:
+                lead = "入院経過中、病状悪化の節目ごとに複数回にわたり家族に説明を行い、"
+            tail = "死亡時には家族立会いのもと死亡確認を行った。"
+            return f"家族への説明経過: {lead}{tail}", facts
+
+        if los <= 1:
+            lead = "The severity of the patient's condition was explained to the family on admission, "
+        elif los <= 7:
+            lead = (
+                "The family was informed early in the admission about the possibility of clinical "
+                "deterioration, and updated as the course evolved, "
+            )
+        else:
+            lead = "The family was updated on multiple occasions at key inflection points during the admission, "
+        tail = "and the family was present at the bedside at the time of death confirmation."
+        return f"Family communication: {lead}{tail}", facts
+
+    def _build_dds_autopsy_status_and_findings(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """剖検の有無・所見 / Autopsy status and findings.
+
+        Uses the SAME SHA256 sampling helper as the DC autopsy_status
+        section so the two documents always agree (~7% autopsy rate).
+        When autopsy=true, appends a defensible "所見は主要臓器の病理
+        学的評価にて確認された" boilerplate — clinosim does not model
+        pathological findings, so this stays generic rather than
+        fabricating specific gross/microscopic descriptions.
+        """
+        is_ja = ctx.target_lang == "ja"
+        facts: list[str] = ["encounter.id::autopsy_sample"]
+        performed = _autopsy_performed_sha256(ctx)
+        if performed:
+            if is_ja:
+                return (
+                    "剖検の有無・所見: 病理解剖を施行。臨床診断と主要臓器の病理所見に大きな乖離は認めなかった。"
+                ), facts
+            return (
+                "Autopsy status and findings: pathological autopsy performed. "
+                "Major-organ pathological findings were consistent with the clinical diagnosis."
+            ), facts
+        if is_ja:
+            return "剖検の有無・所見: 剖検は施行せず（家族同意得られず）。", facts
+        return "Autopsy status and findings: autopsy not performed (no family consent).", facts
 
     # ─────────────────────────────────────────────────────────────────
     # Formatting helpers

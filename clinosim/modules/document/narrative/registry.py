@@ -44,8 +44,10 @@ GENERATION_FREQUENCIES: frozenset[str] = frozenset(
         "daily",
         "daily_3shift",  # α-min-3: 3 nursing notes per LOS day (night/day/evening)
         "discharge_once",
+        "discharge_once_if_alive",  # Issue #961 ext: generic 退院時サマリー — skips deceased encounters (DDS replaces)
         "discharge_fraction_20pct",  # P2-13 PR2b: JP-CLINS referral_note (20% of discharges)
         "discharge_once_if_deceased",  # Issue #961: 死亡診断書 (deceased-inpatient-only)
+        "discharge_once_if_deceased_replaces",  # Issue #961 ext: 死亡退院サマリー (replaces generic DS)
         "encounter_once",
         "checkup_once",  # P2-13 PR3: JP-eCheckup health_checkup_report (opt-in module)
     }
@@ -94,6 +96,9 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset(
         DocumentType.HEALTH_CHECKUP_REPORT,
         # Issue #961: 死亡診断書 (death certificate) — 医師法第 20 条 mandate
         DocumentType.DEATH_CERTIFICATE,
+        # Issue #961 extension: 死亡退院サマリー (death discharge summary) —
+        # replaces the generic 退院時サマリー on deceased-inpatient encounters.
+        DocumentType.DEATH_DISCHARGE_SUMMARY,
     }
 )
 

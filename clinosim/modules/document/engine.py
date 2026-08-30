@@ -501,6 +501,72 @@ def document_enricher(ctx: Any) -> None:
                     )
                     doc_seq += 1
 
+                elif freq == "discharge_once_if_alive":
+                    # Issue #961 extension: generic 退院時サマリー — fires only
+                    # for LIVING discharges. Deceased encounters
+                    # (discharge_disposition == "exp") are handled by the
+                    # `discharge_once_if_deceased_replaces` branch (which
+                    # emits the 死亡退院サマリー). This split gives consumers
+                    # exactly one discharge-summary Composition per encounter
+                    # whose title tells them whether the patient survived
+                    # (see also AD-32: no discharge summary while an
+                    # encounter is still open).
+                    if is_in_progress:
+                        continue
+                    if _o(encounter, "discharge_disposition", "") == "exp":
+                        continue  # DDS (death_discharge_summary) fires instead
+                    end_dt = discharge_dt or admission_dt
+                    documents.append(
+                        ClinicalDocument(
+                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                            task_type=spec.type_key,
+                            loinc_code=spec.loinc_code,
+                            patient_id=pid,
+                            encounter_id=encounter_id,
+                            author_practitioner_id=_pick_document_author(spec, encounter),
+                            authored_datetime=end_dt.isoformat(),
+                            period_start=admission_dt.isoformat(),
+                            period_end=end_dt.isoformat(),
+                            language=lang,
+                            format_type=spec.format_type.value,
+                            narrative=None,
+                        )
+                    )
+                    doc_seq += 1
+
+                elif freq == "discharge_once_if_deceased_replaces":
+                    # Issue #961 extension: 死亡退院サマリー — the
+                    # deceased-inpatient counterpart to `discharge_once_if_alive`.
+                    # Same gate as death_certificate (discharge_disposition ==
+                    # "exp") but produces the specialized death discharge
+                    # summary (LOINC 18842-5 with title "死亡退院サマリー").
+                    # AD-32: skip in-progress encounters (no death can be
+                    # certified until the encounter closes; inpatient.py forces
+                    # closure at time of death, so this gate never under-fires
+                    # on real deaths).
+                    if is_in_progress:
+                        continue
+                    if _o(encounter, "discharge_disposition", "") != "exp":
+                        continue
+                    end_dt = discharge_dt or admission_dt
+                    documents.append(
+                        ClinicalDocument(
+                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                            task_type=spec.type_key,
+                            loinc_code=spec.loinc_code,
+                            patient_id=pid,
+                            encounter_id=encounter_id,
+                            author_practitioner_id=_pick_document_author(spec, encounter),
+                            authored_datetime=end_dt.isoformat(),
+                            period_start=admission_dt.isoformat(),
+                            period_end=end_dt.isoformat(),
+                            language=lang,
+                            format_type=spec.format_type.value,
+                            narrative=None,
+                        )
+                    )
+                    doc_seq += 1
+
                 elif freq == "discharge_once_if_deceased":
                     # Issue #961: 死亡診断書 (death certificate) — emit exactly
                     # one Composition per encounter that ended in death

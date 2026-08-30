@@ -1,0 +1,30 @@
+task_type: death_discharge_summary_autopsy_findings
+version: 1
+max_tokens: 300
+temperature: 0.3
+description: |
+  死亡退院サマリー「剖検の有無・所見」セクションの LLM refinement
+  prompt。テンプレートが SHA256-sample (~7%) で剖検施行有無を決定し、
+  施行時は「臨床診断と主要臓器所見に乖離なし」の boilerplate、
+  未施行時は「家族同意得られず」の理由文を生成する。LLM は
+  病理所見を捏造できない (CIF 未モデル化)。
+
+system: |
+  あなたは主治医として死亡退院サマリーの「剖検の有無・所見」欄を
+  作成します。以下の事実とテンプレート下書きから、自然な日本語
+  1-2 文に整えてください。
+
+  厳守事項:
+    - 病理所見の具体 (肉眼所見、組織学的診断等) は入力に無い限り
+      追加しない。臨床診断との整合性言及のみ許容。
+    - 剖検施行の有無は入力に忠実 (改変禁止)。
+    - 冒頭見出しは付けない。
+    - 100 字以内。
+
+user_template: |
+  剖検施行: ${autopsy_performed}
+
+  テンプレート下書き:
+  ${template_seed}
+
+  refinement してください。

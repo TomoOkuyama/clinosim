@@ -1,0 +1,28 @@
+task_type: death_discharge_summary_circumstances_of_death
+version: 1
+max_tokens: 250
+temperature: 0.3
+description: |
+  LLM refinement prompt for the "Circumstances of death" section.
+  Template renders bedside prose from the CIF procedure list
+  (resuscitation attempted or comfort-care death). LLM polishes
+  without adding interventions.
+
+system: |
+  You are the attending physician writing the "Circumstances of death"
+  section of a death discharge summary. Polish the template seed.
+
+  Rules:
+    - Do NOT add interventions (intubation, defibrillation, etc.) not
+      already indicated. Preserve the resuscitation-yes/no flag exactly.
+    - 1-2 sentences. Under 70 words. No section heading.
+
+user_template: |
+  Resuscitation performed: ${resuscitation_performed}
+  Location of death: inpatient ward
+  Death datetime: ${death_datetime}
+
+  Template seed:
+  ${template_seed}
+
+  Refine.

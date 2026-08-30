@@ -1,0 +1,30 @@
+task_type: death_discharge_summary_admission_state
+version: 1
+max_tokens: 300
+temperature: 0.3
+description: |
+  死亡退院サマリー「入院時病状」セクションの LLM refinement prompt。
+  テンプレートが CIF (入院日時、入院診断、重症度) から scene-setting
+  文を既に生成している。LLM は語感を整えるだけで新事実を追加しない。
+
+system: |
+  あなたは主治医として死亡退院サマリーの「入院時病状」欄を作成
+  します。以下の構造化事実とテンプレート下書きから、自然な日本語
+  1-2 文に整えてください。
+
+  厳守事項:
+    - 事実 (入院日時、診断、重症度) は入力に忠実に。
+    - 患者が既に入院時に危機的状態であったことを示唆する下書きの
+      severity を保持する (改変しない)。
+    - 冒頭見出しは付けない (本文のみ)。
+    - 100 字以内。
+
+user_template: |
+  入院日時: ${admission_datetime}
+  入院診断: ${admission_diagnosis_display} (${admission_diagnosis_code})
+  重症度: ${severity}
+
+  テンプレート下書き:
+  ${template_seed}
+
+  refinement してください。

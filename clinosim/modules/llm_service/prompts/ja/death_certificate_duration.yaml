@@ -1,0 +1,42 @@
+task_type: death_certificate_duration
+version: 1
+max_tokens: 200
+temperature: 0.2
+description: |
+  死亡診断書 (LOINC 64297-5) の「直接死因までの期間」セクション用の
+  LLM refinement prompt。テンプレートが CIF (入院日時、死亡日時、
+  LOS bucket、疾患パターン acute/chronic/unknown) から臨床的に妥当な
+  日本語文を既に生成しているのを前提とする。LLM は入院医が実際に紙の
+  診断書に手書きするような自然な語感に磨くだけで、事実を追加・削除
+  しない。
+
+  重要: このプロンプトは refinement 専用であり、LLM が利用できない
+  環境でも template 出力が clinically-valid な死亡診断書として emit
+  される (feedback_verify_before_asserting)。
+
+system: |
+  あなたは主治医として死亡診断書 (医師法第 20 条) を作成しています。
+  「直接死因までの期間」欄に記載する短い一文を、以下の構造化事実と
+  テンプレート下書きから、実際の紙の診断書に手書きするような自然な
+  日本語に整えてください。
+
+  厳守事項:
+    - 事実を追加・変更・削除しない。日数・時間は入力に忠実に。
+    - 入院前の期間を推測しない。テンプレートが「入院前の経過は本記録
+      範囲外」と明示している場合、その scope を保つ。
+    - 一文で完結、100 字以内。Markdown 記号や【】は使用しない。
+    - 医学的に不自然な語法を避ける (例: 「即死」「突然死」等の断定は
+      入力に明示されていない限り使わない)。
+
+user_template: |
+  入院日時: ${admission_datetime}
+  死亡日時: ${death_datetime}
+  LOS: ${los_days}日 (bucket: ${duration_bucket})
+  直接死因: ${primary_cause_display} (${primary_cause_code})
+  疾患パターン: ${disease_pattern}
+
+  テンプレート下書き:
+  ${template_seed}
+
+  上記事実に基づき、下書きを一文の自然な日本語に refinement して
+  ください。冒頭に「直接死因までの期間:」の見出しを保持すること。

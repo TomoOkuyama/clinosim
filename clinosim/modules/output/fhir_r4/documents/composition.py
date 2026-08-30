@@ -272,6 +272,18 @@ _SECTION_TITLE_JA: dict[str, str] = {
     "contributing_conditions": "影響を及ぼした傷病名",
     "manner_of_death": "死因の種類",
     "autopsy_status": "解剖の有無",
+    # Issue #961 extension — 死亡退院サマリー (Death discharge summary)
+    # sections. Real JP hospital templates title these with the plain
+    # section names (no 【】 or "セクション" suffix — these are Composition
+    # section titles, not narrative body headers).
+    "admission_state": "入院時病状",
+    "treatment_course": "治療経過",
+    "terminal_course": "終末期経過",
+    "circumstances_of_death": "死亡時状況",
+    "cause_of_death": "死因",
+    "complications_and_comorbidities": "合併症・併存症",
+    "family_communication": "家族への説明経過",
+    "autopsy_status_and_findings": "剖検の有無・所見",
 }
 
 
@@ -287,6 +299,15 @@ _DEATH_CERT_SECTION_TITLE_EN: dict[str, str] = {
     "contributing_conditions": "Contributing conditions",
     "manner_of_death": "Manner of death",
     "autopsy_status": "Autopsy performed",
+    # Issue #961 extension — 死亡退院サマリー sections in US locale.
+    "admission_state": "Clinical state at admission",
+    "treatment_course": "Treatment course",
+    "terminal_course": "Terminal course",
+    "circumstances_of_death": "Circumstances of death",
+    "cause_of_death": "Cause of death",
+    "complications_and_comorbidities": "Complications and comorbidities",
+    "family_communication": "Family communication",
+    "autopsy_status_and_findings": "Autopsy status and findings",
 }
 
 
@@ -790,6 +811,19 @@ def _build_composition(
     (unit tests calling the builder in isolation) — sections stay
     text-only.
     """
+    task_type = _o(doc, "task_type", "")
+    # Issue #961 extension: 死亡退院サマリー shares LOINC 18842-5 with the
+    # generic discharge_summary but requires a distinct type.text / title
+    # ("死亡退院サマリー" not "退院時サマリー") and does NOT conform to the
+    # JP-CLINS eDS profile (its 8-section death-specific layout differs
+    # from the eDS 10-section admission+discharge structure). Dispatch on
+    # task_type FIRST so the shared LOINC does not route this to the
+    # profile-strict eDS builder. This branch applies regardless of
+    # locale — US path also benefits from the specialized title.
+    if task_type == "death_discharge_summary":
+        return _build_death_discharge_summary_composition(
+            doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index
+        )
     if lang == "ja":
         loinc = _o(doc, "loinc_code", "")
         if loinc == "18842-5":
@@ -1843,6 +1877,14 @@ def _build_jp_eCheckup_general_composition(
 
 _DEATH_CERT_TYPE_DISPLAY_JA = "死亡診断書"
 
+# Issue #961 extension: 死亡退院サマリー (Death discharge summary) display.
+# Shares LOINC 18842-5 with the generic discharge summary; the JP
+# hospital-canonical title for the death variant is 死亡退院サマリー.
+# English label mirrors the section-title bilingual convention used
+# elsewhere in this file (e.g. _DEATH_CERT_SECTION_TITLE_EN).
+_DEATH_DISCHARGE_SUMMARY_TITLE_JA = "死亡退院サマリー"
+_DEATH_DISCHARGE_SUMMARY_TITLE_EN = "Death discharge summary"
+
 
 def _build_jp_death_certificate_composition(
     doc: Any,
@@ -1890,4 +1932,105 @@ def _build_jp_death_certificate_composition(
         "text": disp,
     }
     comp["title"] = disp
+    return comp
+
+
+# ============================================================
+# Issue #961 extension: 死亡退院サマリー Composition builder
+# ============================================================
+#
+# Real JP hospital deceased-inpatient discharges use a specialized
+# 死亡退院サマリー template, distinct from both the generic 退院時サマリー
+# (which fires only on LIVING discharges after this change) and from the
+# 死亡診断書 legal certificate (LOINC 64297-5, always emitted alongside).
+# This builder shares LOINC 18842-5 with the generic discharge summary
+# but overrides `type.text` / `title` to "死亡退院サマリー" so consumers
+# can disambiguate death vs living discharge from the Composition title
+# alone — the deployed cohort's 47/6389 deaths were previously buried
+# under an ambulatory-style "退院時サマリー" title.
+#
+# We deliberately do NOT assert the JP-CLINS eDS profile:
+#   1. The eDS profile enforces 10 admission+discharge sections; the
+#      death variant has 8 different narrative sections
+#      (admission_state / treatment_course / terminal_course /
+#      circumstances_of_death / cause_of_death /
+#      complications_and_comorbidities / family_communication /
+#      autopsy_status_and_findings). Asserting the profile without
+#      meeting its slices is a per-feedback_profile_assertion_requires_
+#      data_completeness anti-pattern.
+#   2. JP-CLINS does not ship a StructureDefinition for a death-variant
+#      discharge summary; asserting eDS on this document would be a
+#      false profile claim.
+# The `clinicaldocument` HL7 core profile IS asserted (same treatment as
+# the death certificate) so consumers can still discover this is a
+# clinical document via meta.profile.
+
+
+def _build_death_discharge_summary_composition(
+    doc: Any,
+    sections: dict[str, str],
+    lang: str,
+    *,
+    roster_map: dict[str, dict] | None = None,
+    encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
+) -> dict[str, Any]:
+    """Build the 死亡退院サマリー / Death discharge summary Composition — Issue #961 ext.
+
+    Differences from the generic builder:
+      - `type.text` and `title` are the death-variant labels (JP:
+        死亡退院サマリー / EN: Death discharge summary), NOT the
+        LOINC 18842-5 canonical display ("退院時サマリー" /
+        "Discharge summary" — those are the LIVING-discharge labels).
+      - JP path emits the coding under the JP doc-typecodes CS
+        (parallel to the eDS / eReferral / eCheckup dispatch) so the
+        JP consumer sees a JP-authored code system, with the LOINC
+        code value preserved.
+      - `meta.profile` adds the HL7 core `clinicaldocument` profile;
+        JP-CLINS eDS is intentionally NOT asserted (section list
+        differs — see module comment).
+    """
+    comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index)
+
+    meta = comp.setdefault("meta", {})
+    profs = meta.setdefault("profile", [])
+    if _CLINICALDOCUMENT_PROFILE not in profs:
+        profs.append(_CLINICALDOCUMENT_PROFILE)
+
+    if not meta.get("lastUpdated"):
+        ts = derive_meta_last_updated(comp, ("date",)) or _o(doc, "authored_datetime", "")
+        if ts:
+            meta["lastUpdated"] = ts
+
+    if lang == "ja":
+        # Emit under jpfhir doc-typecodes with the death-variant title
+        # (feedback_dual_slot_at_emit_site_not_post_process — set `.text`
+        # here rather than rely on a post-process walker). The LOINC
+        # code 18842-5 lives inside the JP CS coding to preserve
+        # cross-system code lookup; only the display text changes.
+        comp["type"] = {
+            "coding": [
+                {
+                    "system": _JPFHIR_DOC_TYPECODES_SYSTEM,
+                    "code": "18842-5",
+                    "display": _DEATH_DISCHARGE_SUMMARY_TITLE_JA,
+                },
+            ],
+            "text": _DEATH_DISCHARGE_SUMMARY_TITLE_JA,
+        }
+        comp["title"] = _DEATH_DISCHARGE_SUMMARY_TITLE_JA
+    else:
+        # US / EN path: keep the LOINC coding but override the human-
+        # readable slots with the death-variant label.
+        comp["type"] = {
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": "18842-5",
+                    "display": _DEATH_DISCHARGE_SUMMARY_TITLE_EN,
+                },
+            ],
+            "text": _DEATH_DISCHARGE_SUMMARY_TITLE_EN,
+        }
+        comp["title"] = _DEATH_DISCHARGE_SUMMARY_TITLE_EN
+
     return comp

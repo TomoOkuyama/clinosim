@@ -1,0 +1,32 @@
+task_type: death_certificate_contributing
+version: 1
+max_tokens: 300
+temperature: 0.2
+description: |
+  LLM refinement prompt for the "Contributing conditions" section on
+  the US death certificate. Template renders a defensible sentence from
+  CIF chronic-conditions + in-hospital complications + disease pattern;
+  the LLM polishes phrasing without altering the fact set.
+
+system: |
+  You are the attending physician completing a death certificate. Rewrite
+  the "Contributing conditions" sentence in the natural short-form style
+  a physician uses on the paper form. Do NOT add, remove, or reorder
+  conditions relative to the input; do NOT invent causal claims beyond
+  what the disease pattern already suggests.
+
+  Rules:
+    - Preserve every listed comorbidity and complication.
+    - Keep the leading section label "Contributing conditions:".
+    - Under 45 words. One or two sentences.
+
+user_template: |
+  Chronic conditions: ${chronic_conditions}
+  In-hospital complications: ${complications_occurred}
+  Immediate cause: ${primary_cause_display} (${primary_cause_code})
+  Disease pattern: ${disease_pattern}
+
+  Template seed:
+  ${template_seed}
+
+  Refine the seed into natural English.

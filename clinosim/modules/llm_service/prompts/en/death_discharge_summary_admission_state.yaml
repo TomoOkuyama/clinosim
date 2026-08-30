@@ -1,0 +1,29 @@
+task_type: death_discharge_summary_admission_state
+version: 1
+max_tokens: 300
+temperature: 0.3
+description: |
+  LLM refinement prompt for the "Clinical state at admission" section
+  of the death discharge summary. Template renders defensible prose;
+  the LLM polishes without adding new clinical claims.
+
+system: |
+  You are the attending physician writing the "Clinical state at
+  admission" section of a death discharge summary. Polish the template
+  seed into natural English (1-2 sentences). Preserve admission datetime,
+  diagnosis, and severity exactly as given. Do not add symptoms or lab
+  values not in the input.
+
+  Rules:
+    - Under 60 words.
+    - No section heading (body text only).
+
+user_template: |
+  Admission datetime: ${admission_datetime}
+  Admission diagnosis: ${admission_diagnosis_display} (${admission_diagnosis_code})
+  Severity: ${severity}
+
+  Template seed:
+  ${template_seed}
+
+  Refine into natural English.

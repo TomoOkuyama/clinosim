@@ -54,7 +54,15 @@ specs:
     format_type: composition
     countries_supported: [us, jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
-    generation_frequency: discharge_once
+    # Issue #961 ext: generic 退院時サマリー now fires only for LIVING
+    # discharges. Deceased encounters (discharge_disposition == "exp")
+    # receive `death_discharge_summary` (LOINC 18842-5 with title 死亡退院
+    # サマリー) instead — one specialized discharge Composition per death
+    # event, so consumers can disambiguate death vs living discharge from
+    # the Composition title alone. Prior behavior emitted the same generic
+    # discharge summary for both, hiding death events under an ambulatory-
+    # style Composition.
+    generation_frequency: discharge_once_if_alive
     composition_sections:
       - admission_summary
       - hospital_course
@@ -355,8 +363,82 @@ specs:
       - contributing_conditions
       - manner_of_death
       - autopsy_status
-    stage2_strategy: template_only
-    llm_enabled_sections: []
+    # Templates produce the clinically-authoritative narrative for every
+    # section (feedback_verify_before_asserting — a template-only run must
+    # already be defensible). Two sections carry natural-language phrasing
+    # that benefits from LLM refinement when the narrator is available:
+    # duration_of_immediate_cause (JP hospital physicians write this as
+    # a short prose phrase whose granularity varies with the disease
+    # trajectory) and contributing_conditions (the causal linkage between
+    # comorbidities and the terminal event is written as prose, not a bare
+    # list). Immediate/underlying cause, manner, and autopsy stay
+    # template-only — they are structured fill-in fields on the legal form.
+    stage2_strategy: template_seed_bundle
+    llm_enabled_sections: [duration_of_immediate_cause, contributing_conditions]
+
+  # Issue #961 extension: 死亡退院サマリー (Death discharge summary).
+  # ─────────────────────────────────────────────────────────────────────
+  # Real JP hospital deceased-inpatient discharges use a specialized
+  # 死亡退院サマリー template — distinct from both the generic 退院時サマリー
+  # (which is for LIVING discharges only, and no longer fires when
+  # discharge_disposition == "exp") AND from the 死亡診断書 (LOINC 64297-5,
+  # the legally-mandated certificate of death that fires alongside this
+  # summary). This summary carries the clinical narrative of the terminal
+  # admission: how the patient looked at admission, the treatment course,
+  # the terminal 24-72h, the circumstances of death at bedside, cause of
+  # death, contributing comorbidities, the family-communication timeline,
+  # and autopsy status/findings.
+  #
+  # LOINC code is 18842-5 (same as generic discharge summary — LOINC does
+  # not carve out a distinct code for death discharge summaries). The
+  # Composition dispatcher (composition.py) branches on `doc.task_type`
+  # ('death_discharge_summary' vs 'discharge_summary') to pick the
+  # death-variant builder that sets `Composition.title` to "死亡退院
+  # サマリー" so the doc is distinguishable from a living discharge by
+  # title alone.
+  #
+  # generation_frequency = discharge_once_if_deceased_replaces (new
+  # frequency — engine.py branch): emit exactly one per encounter whose
+  # discharge_disposition == "exp". Semantically "replaces" the generic
+  # discharge summary — the engine's `discharge_once_if_alive` branch
+  # skips deceased encounters, so exactly one discharge-summary
+  # Composition is emitted per encounter (living: 退院時サマリー / dead:
+  # 死亡退院サマリー). No spec-level exclusion is needed here (both specs
+  # gate at the engine layer).
+  #
+  # All narrative sections are template_seed_bundle + LLM-eligible; the
+  # deterministic template renders a full clinically-valid narrative
+  # (never placeholder), and LLM refinement adds phrasing polish when
+  # available.
+  death_discharge_summary:
+    loinc_code: "18842-5"
+    format_type: composition
+    countries_supported: [us, jp]
+    encounter_types_supported: [inpatient, icu, rehab_inpatient]
+    generation_frequency: discharge_once_if_deceased_replaces
+    composition_sections:
+      - admission_state
+      - treatment_course
+      - terminal_course
+      - circumstances_of_death
+      - cause_of_death
+      - complications_and_comorbidities
+      - family_communication
+      - autopsy_status_and_findings
+    stage2_strategy: template_seed_bundle
+    # Every narrative section benefits from LLM refinement — the templates
+    # already emit clinically-defensible prose, but LLM adds natural
+    # phrasing on the eight sections a physician would write by hand.
+    # cause_of_death stays template-only because it is a structured field
+    # (ICD code + display, mirrors death_certificate.immediate_cause_of_death).
+    llm_enabled_sections:
+      - admission_state
+      - treatment_course
+      - terminal_course
+      - circumstances_of_death
+      - complications_and_comorbidities
+      - family_communication
+      - autopsy_status_and_findings
 
   health_checkup_report:
     loinc_code: "53576-5"

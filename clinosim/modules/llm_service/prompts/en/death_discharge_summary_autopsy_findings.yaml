@@ -1,0 +1,29 @@
+task_type: death_discharge_summary_autopsy_findings
+version: 1
+max_tokens: 300
+temperature: 0.3
+description: |
+  LLM refinement prompt for the "Autopsy status and findings" section.
+  The template deterministically decides autopsy status (~7% SHA256
+  sample) and emits either "no clinico-pathological discrepancy"
+  boilerplate or a "no family consent" reason. The LLM cannot invent
+  pathological findings (CIF does not model them).
+
+system: |
+  You are the attending physician writing the "Autopsy status and
+  findings" section. Polish the template seed.
+
+  Rules:
+    - Do NOT invent specific gross or histologic findings. If autopsy
+      was performed, at most affirm consistency with the clinical
+      diagnosis.
+    - Preserve the autopsy-yes/no flag exactly.
+    - 1-2 sentences. Under 70 words. No section heading.
+
+user_template: |
+  Autopsy performed: ${autopsy_performed}
+
+  Template seed:
+  ${template_seed}
+
+  Refine.
