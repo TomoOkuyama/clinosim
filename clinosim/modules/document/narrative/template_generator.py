@@ -28,11 +28,13 @@ complex date arithmetic.
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import string
 from datetime import datetime, timedelta
 from typing import Any
 
+from clinosim.codes import get_display as code_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -56,6 +58,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
 )
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.reference_data_loaders import (
+    load_chief_complaint_variants,
     load_discharge_instructions,
     load_hpi_pertinent_negatives,
     load_physical_exam_findings,
@@ -485,6 +488,51 @@ _ED_WORKUP_FALLBACK_JA = "検査・処置：特記事項なし"
 _ED_WORKUP_FALLBACK_EN = "ED workup: no significant findings"
 _DISPOSITION_FALLBACK_JA = "帰宅または入院加療"
 _DISPOSITION_FALLBACK_EN = "Disposition: to be determined"
+
+# Issue #982: family-history relationship display labels. HL7 v3-RoleCode
+# canonical Japanese labels ("母"/"父"/"兄弟姉妹") — mirrors the FHIR
+# `_build_relationship_codeable` map in
+# clinosim/modules/output/fhir_r4/demographics/family_history.py so the
+# narrative and the FHIR resource render the same label per relative.
+_FAMILY_RELATION_LABEL_JA: dict[str, str] = {
+    "MTH": "母",
+    "FTH": "父",
+    "NSIB": "兄弟姉妹",
+}
+_FAMILY_RELATION_LABEL_EN: dict[str, str] = {
+    "MTH": "mother",
+    "FTH": "father",
+    "NSIB": "sibling",
+}
+_FAMILY_HISTORY_FALLBACK_JA = "特記家族歴なし"
+_FAMILY_HISTORY_FALLBACK_EN = "No significant family history"
+_FAMILY_HISTORY_DECEASED_SUFFIX_JA = "（故人）"
+_FAMILY_HISTORY_DECEASED_SUFFIX_EN = " (deceased)"
+
+# Issue #981: ED disposition reasoning-phrase templates. Selected from the
+# admission diagnosis / acuity when the raw disposition code alone would
+# leave the narrative bare ("自宅退院。" without a why).
+_ED_DISPOSITION_ADMISSION_JA = "入院適応（{reason}）"
+_ED_DISPOSITION_ADMISSION_EN = "Admitted ({reason})"
+_ED_DISPOSITION_HOME_JA = "自宅退院（JTAS レベル {level}、{reason}）"
+_ED_DISPOSITION_HOME_EN = "Discharged home (JTAS level {level}, {reason})"
+_ED_DISPOSITION_EXPIRED_JA = "救急室内死亡（家族への説明済み）"
+_ED_DISPOSITION_EXPIRED_EN = "Died in the ED (family informed)"
+_ED_DISPOSITION_TRANSFER_JA = "他院転送（{reason}）"
+_ED_DISPOSITION_TRANSFER_EN = "Transferred to another facility ({reason})"
+
+# Fallback reasoning phrases per acuity keyword when no admit diagnosis
+# is available (kept short — the disposition sentence must stay compact).
+_ED_ACUITY_REASON_JA: dict[str, str] = {
+    "severe": "症状重度",
+    "moderate": "症状継続",
+    "mild": "症状軽度",
+}
+_ED_ACUITY_REASON_EN: dict[str, str] = {
+    "severe": "severe symptoms",
+    "moderate": "ongoing symptoms",
+    "mild": "mild symptoms",
+}
 _TRIAGE_FALLBACK_JA = "トリアージ情報：未記録"
 _TRIAGE_FALLBACK_EN = "Triage information: not recorded"
 
@@ -1153,11 +1201,34 @@ class TemplateNarrativeGenerator:
              (ED_NOTE only; encounter-level narrative override)
           3. disease_protocol.chief_complaint                          (疾患 default)
           4. hardcoded fallback「発熱・全身倦怠感」
+
+        Issue #983 variant rotation (JP only): after resolving the raw
+        source CC, if it matches the disease canonical CC (i.e. the
+        simulator wrote the default), swap in a variant from
+        ``chief_complaint_variants.yaml`` picked by a deterministic
+        SHA256 sub-seed on (patient_id, encounter_id). Real encounter
+        overrides (crush injury body-part strings, ED protocol templates)
+        are never touched.
         """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         fallback = "発熱・全身倦怠感" if is_ja else "Chief complaint not specified"
+
+        # Precompute the disease canonical CC — used to decide whether the
+        # raw encounter CC is a disease default (variant-eligible) or a
+        # real per-encounter override (leave untouched).
+        disease_id = _o(ctx.disease_protocol, "disease_id", None) if ctx.disease_protocol is not None else None
+        canonical_disease_cc = self._disease_canonical_cc(ctx.disease_protocol, is_ja)
+        # Fall-through slot: encounter_protocol carries its own canonical CC
+        # + condition_id for ED "minor complaint" flows (chest_pain_noncardiac,
+        # viral_uri, etc.) — the majority of ED CC frequency in the p=2000
+        # audit lives here, not in a disease_protocol. When both slots have
+        # variants the disease slot wins.
+        encounter_condition_id = (
+            _o(ctx.encounter_protocol, "condition_id", None) if ctx.encounter_protocol is not None else None
+        )
+        canonical_encounter_cc = self._disease_canonical_cc(ctx.encounter_protocol, is_ja)
 
         # 1. Encounter's own chief_complaint is the primary source of truth.
         enc = ctx.encounter
@@ -1166,8 +1237,21 @@ class TemplateNarrativeGenerator:
             for key in (preferred_key, "chief_complaint"):
                 raw = _o(enc, key, None)
                 if raw:
+                    raw_str = str(raw)
+                    # Issue #983 — swap disease-default CCs for a variant.
+                    swapped, swap_fact = self._maybe_swap_cc_variant(
+                        raw_str,
+                        disease_id,
+                        canonical_disease_cc,
+                        is_ja,
+                        ctx,
+                        encounter_condition_id=encounter_condition_id,
+                        canonical_encounter_cc=canonical_encounter_cc,
+                    )
                     facts.append(f"ctx.encounter.{key}")
-                    return str(raw), facts
+                    if swap_fact:
+                        facts.append(swap_fact)
+                    return swapped, facts
 
         # 2. ED_NOTE: encounter_protocol.narrative.ed_note_template
         if ctx.document_type == DocumentType.ED_NOTE:
@@ -1200,7 +1284,104 @@ class TemplateNarrativeGenerator:
             text = str(cc)
             facts.append("disease_protocol.chief_complaint:str")
 
-        return text, facts
+        # Issue #983 — variant swap for the disease-protocol path too.
+        swapped, swap_fact = self._maybe_swap_cc_variant(
+            text,
+            disease_id,
+            canonical_disease_cc,
+            is_ja,
+            ctx,
+            encounter_condition_id=encounter_condition_id,
+            canonical_encounter_cc=canonical_encounter_cc,
+        )
+        if swap_fact:
+            facts.append(swap_fact)
+        return swapped, facts
+
+    @staticmethod
+    def _disease_canonical_cc(disease_protocol: Any, is_ja: bool) -> str | None:
+        """Return the disease-protocol canonical chief_complaint (single string).
+
+        Used as the "is this a disease default?" comparison target for
+        Issue #983 variant swapping.
+        """
+        if disease_protocol is None:
+            return None
+        cc = _o(disease_protocol, "chief_complaint", None)
+        if cc is None:
+            return None
+        if isinstance(cc, dict):
+            return cc.get("ja" if is_ja else "en") or cc.get("en")
+        return str(cc)
+
+    @staticmethod
+    def _maybe_swap_cc_variant(
+        text: str,
+        disease_id: str | None,
+        canonical_cc: str | None,
+        is_ja: bool,
+        ctx: NarrativeContext,
+        *,
+        encounter_condition_id: str | None = None,
+        canonical_encounter_cc: str | None = None,
+    ) -> tuple[str, str | None]:
+        """Issue #983 — swap disease-default CCs for a per-encounter variant.
+
+        Returns ``(text, fact_or_none)``. When ``fact_or_none`` is not
+        ``None`` the swap happened and callers should append it to
+        ``facts``. Preserves real per-encounter overrides (burns "手/腕の
+        熱傷", stroke fallback strings authored on Encounter, EN locale
+        entirely) by returning the original ``text``.
+
+        Two lookup keys are attempted in order:
+
+          1. ``disease_id`` from ``ctx.disease_protocol`` — matches admissions
+             for the 32 seeded diseases.
+          2. ``encounter_condition_id`` from ``ctx.encounter_protocol`` —
+             matches ED "minor complaint" flows (chest_pain_noncardiac,
+             viral_uri, elderly_fall etc.). Most ED encounters take this
+             path; a swap here breaks the pre-#983 uniform-per-condition
+             concentration.
+        """
+        if not is_ja or not text:
+            return text, None
+        try:
+            variants = load_chief_complaint_variants()
+        except (OSError, ValueError):
+            # Loader errors are non-fatal — narrative must never raise.
+            return text, None
+
+        # Priority 1 — disease_protocol
+        if disease_id and canonical_cc and text == canonical_cc:
+            pool = variants.get(disease_id) or []
+            if len(pool) > 1:
+                idx = TemplateNarrativeGenerator._cc_variant_index(disease_id, ctx, len(pool))
+                return pool[idx], f"chief_complaint_variants.{disease_id}[{idx}]"
+
+        # Priority 2 — encounter_protocol
+        if encounter_condition_id and canonical_encounter_cc and text == canonical_encounter_cc:
+            pool = variants.get(encounter_condition_id) or []
+            if len(pool) > 1:
+                idx = TemplateNarrativeGenerator._cc_variant_index(encounter_condition_id, ctx, len(pool))
+                return (
+                    pool[idx],
+                    f"chief_complaint_variants.{encounter_condition_id}[{idx}]",
+                )
+
+        return text, None
+
+    @staticmethod
+    def _cc_variant_index(pool_key: str, ctx: NarrativeContext, pool_size: int) -> int:
+        """Deterministic SHA256 sub-seed → variant index.
+
+        Sub-seed on (pool_key, patient_id, encounter_id) — RNG-neutral
+        (no ``ctx``-level RNG consumption; matches the pattern documented
+        in ``feedback_rng_neutral_additive_field``).
+        """
+        patient_id = _o(ctx.patient, "patient_id", "") or ""
+        encounter_id = _o(ctx.encounter, "encounter_id", "") if ctx.encounter is not None else ""
+        seed = f"cc-variant|{pool_key}|{patient_id}|{encounter_id}"
+        return int.from_bytes(hashlib.sha256(seed.encode("utf-8")).digest()[:4], "big") % pool_size
 
     def _build_hpi(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build HPI section.
@@ -1564,11 +1745,82 @@ class TemplateNarrativeGenerator:
         return "; ".join(parts) if parts else fallback, facts
 
     def _build_family_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build family history — generic placeholder (not yet implemented)."""
+        """Build family_history section from ``ctx.family_history`` (Issue #982).
+
+        Pre-#982 this returned a hardcoded "特記家族歴なし" placeholder for
+        every document, even when the CIF carried real
+        FamilyMemberHistoryRecord entries (17,889 FHIR resources in the
+        p=2000 audit — narrative rate was 1 distinct string across 171 docs).
+
+        Walks ``ctx.family_history`` (list of ``FamilyMemberHistoryRecord``
+        dicts or dataclasses), groups by relationship, translates each
+        ``condition_code`` to a display via ``clinosim.codes.get_display``
+        (JP → ICD-10-MHLW display; US → ICD-10-CM), and renders a
+        relationship-grouped sentence. Falls back to the historical
+        "特記家族歴なし" phrase when the CIF has no entries or when every
+        relative carries an empty ``condition_codes`` list — the
+        placeholder still needs to appear for that legitimate case
+        (fam-hx generator emits a relative record even when the sampled
+        conditions are empty, so a bare-relative record must not render
+        as text-less output).
+        """
+        facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        text = "特記家族歴なし" if is_ja else "No significant family history"
-        return text, []
+        fallback = _FAMILY_HISTORY_FALLBACK_JA if is_ja else _FAMILY_HISTORY_FALLBACK_EN
+
+        fams = ctx.family_history or []
+        if not fams:
+            return fallback, facts
+
+        # Country → code-system key for `get_display` lookup. `system_key_for`
+        # is the same helper the FHIR emit-side family_history builder uses,
+        # so the narrative and FHIR resource render the same disease label
+        # per relative.
+        country = "JP" if ctx.locale.lower() == "jp" else "US"
+        try:
+            icd_system_key = system_key_for("diagnosis", country)
+        except KeyError:  # pragma: no cover — kind is hard-coded
+            icd_system_key = "icd-10-mhlw" if is_ja else "icd-10-cm"
+
+        label_map = _FAMILY_RELATION_LABEL_JA if is_ja else _FAMILY_RELATION_LABEL_EN
+        deceased_suffix = _FAMILY_HISTORY_DECEASED_SUFFIX_JA if is_ja else _FAMILY_HISTORY_DECEASED_SUFFIX_EN
+        cond_sep = "、" if is_ja else ", "
+        entry_sep = " " if is_ja else "; "
+
+        entries: list[str] = []
+        for fam in fams:
+            rel = str(_o(fam, "relationship", "") or "")
+            label = label_map.get(rel, rel or ("親族" if is_ja else "relative"))
+            deceased = bool(_o(fam, "deceased", False))
+            codes = list(_o(fam, "condition_codes", []) or [])
+            displays: list[str] = []
+            for code in codes:
+                if not code:
+                    continue
+                # get_display falls back to the code string when the
+                # display is missing — that surfaces a code rather than an
+                # empty entry, better than dropping the relative silently.
+                disp = code_display(icd_system_key, str(code), country=country)
+                if disp:
+                    displays.append(str(disp))
+            if not displays:
+                # A relative with no sampled conditions carries no clinical
+                # signal. Skip so we don't render "母 – 。" empty entries.
+                continue
+            suffix = deceased_suffix if deceased else ""
+            joined = cond_sep.join(displays)
+            if is_ja:
+                entries.append(f"{label}{suffix} – {joined}")
+            else:
+                entries.append(f"{label}{suffix}: {joined}")
+
+        if not entries:
+            return fallback, facts
+
+        facts.append("ctx.family_history")
+        prefix = "家族歴: " if is_ja else "Family history: "
+        return prefix + entry_sep.join(entries), facts
 
     def _build_physical_examination(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build physical_examination using multi-step fallback chain.
@@ -4697,6 +4949,15 @@ class TemplateNarrativeGenerator:
         v9 (2026-08-17) density fix — assemble labs + procedures actually
         performed in ED when the encounter YAML has no ed_workup_summary
         template.
+
+        Issue #981 density fix — before falling back to the abnormal-labs
+        + procedures-only enumeration (which produced 71% "特記事項なし"
+        placeholders in the p=2000 audit because ED encounters rarely
+        have flagged lab_results at narrative time), enumerate the orders
+        placed during the ED visit: lab test panel names + imaging
+        modalities. Orders are the correct source for "what workup was
+        run" — lab_results only surface `flag`-annotated abnormals,
+        procedures only surface bedside interventions.
         """
         facts: list[str] = []
         lang = ctx.target_lang
@@ -4706,13 +4967,90 @@ class TemplateNarrativeGenerator:
         ed_tmpl = self._get_ed_note_template(ctx)
         if ed_tmpl is not None:
             text = _pick_localized(ed_tmpl, "ed_workup_summary", lang, ctx)
-            if text:
+            # Issue #981: the ed_note_template values typically contain
+            # unresolved substitution placeholders (`{lab_summary_ja}` etc.
+            # from the minor-condition ED protocol templates). _pick_localized
+            # returns the generic "特記事項なし" phrase in that case, which
+            # short-circuited the fall-through to the CIF-driven enumeration
+            # below. Treat the generic phrase (and the ED-specific fallback
+            # phrase) as "no real template text" and fall through so the
+            # orders / procedures / labs section can render instead.
+            if text and text not in {_GENERIC_FALLBACK_JA, _GENERIC_FALLBACK_EN, fallback}:
                 facts.append(f"encounter_protocol.narrative.ed_note_template.ed_workup_summary_{lang}")
                 return text, facts
 
-        # v9 density fallback: enumerate actual workup from CIF
+        # Issue #981 preferred fallback: lift the ED orders (labs / imaging
+        # / medications / procedures) placed during this encounter into
+        # the narrative. Orders are the accurate answer to "what did we
+        # do in the ED"; the pre-#981 abnormal-labs-only path missed the
+        # most common cases (blood draw ordered, results normal → labs
+        # list empty; laceration repaired with procedure-only orders and
+        # no lab_results at all).
+        lab_names: list[str] = []
+        imaging_names: list[str] = []
+        med_names: list[str] = []
+        proc_order_names: list[str] = []
+        enc_id = _o(ctx.encounter, "encounter_id", "") if ctx.encounter is not None else ""
+        seen_labs: set[str] = set()  # panel-key or display-name dedup
+        seen_imaging: set[str] = set()
+        seen_meds: set[str] = set()
+        seen_proc_orders: set[str] = set()
+        for order in ctx.orders or []:
+            # Scope to the ED encounter only — record.orders can include a
+            # follow-up outpatient order carried on the same patient file
+            # in richer CIF layouts.
+            if enc_id:
+                oe = _o(order, "encounter_id", "") or ""
+                if oe and oe != enc_id:
+                    continue
+            otype = _o(order, "order_type", "") or ""
+            otype_str = str(otype.value if hasattr(otype, "value") else otype).lower()
+            display_raw = _o(order, "display_name", "") or _o(order, "order_code", "")
+            if otype_str == "lab":
+                key = _o(order, "panel_key", "") or display_raw
+                display = _o(order, "panel_key", "") or display_raw
+                if key and str(key) not in seen_labs:
+                    seen_labs.add(str(key))
+                    lab_names.append(str(display))
+            elif otype_str == "imaging":
+                modality = str(_o(order, "imaging_modality", "") or "").upper()
+                display = display_raw or modality
+                key = f"{modality}|{display}"
+                if display and key not in seen_imaging:
+                    seen_imaging.add(key)
+                    imaging_names.append(str(display))
+            elif otype_str == "medication":
+                if display_raw and str(display_raw) not in seen_meds:
+                    seen_meds.add(str(display_raw))
+                    med_names.append(str(display_raw))
+            elif otype_str == "procedure":
+                if display_raw and str(display_raw) not in seen_proc_orders:
+                    seen_proc_orders.add(str(display_raw))
+                    proc_order_names.append(str(display_raw))
         parts: list[str] = []
-        # Abnormal labs
+        if lab_names:
+            parts.append(
+                ("検査: " if is_ja else "Labs: ") + ("、".join(lab_names[:8]) if is_ja else ", ".join(lab_names[:8]))
+            )
+        if imaging_names:
+            parts.append(
+                ("画像: " if is_ja else "Imaging: ")
+                + ("、".join(imaging_names[:6]) if is_ja else ", ".join(imaging_names[:6]))
+            )
+        if med_names:
+            parts.append(
+                ("投薬: " if is_ja else "Medications: ")
+                + ("、".join(med_names[:6]) if is_ja else ", ".join(med_names[:6]))
+            )
+        if proc_order_names:
+            parts.append(
+                ("処置指示: " if is_ja else "Procedures ordered: ")
+                + ("、".join(proc_order_names[:6]) if is_ja else ", ".join(proc_order_names[:6]))
+            )
+
+        # Enrich with any flagged abnormals (kept from the v9 path — an
+        # abnormal Cr / K reading is high-signal even when the panel it
+        # came from is already listed above).
         abn_labs = []
         for lab in (ctx.lab_results or [])[:8]:
             flag = _o(lab, "flag", None)
@@ -4725,20 +5063,27 @@ class TemplateNarrativeGenerator:
                 abn_labs.append(f"{name} {val} {unit} [{flag}]")
         if abn_labs:
             parts.append(
-                ("検査: " if is_ja else "Labs: ") + "、".join(abn_labs[:4]) if is_ja else ", ".join(abn_labs[:4])
+                ("異常値: " if is_ja else "Abnormal: ")
+                + ("、".join(abn_labs[:4]) if is_ja else ", ".join(abn_labs[:4]))
             )
-        # Procedures / imaging
+
+        # Bedside procedures / imaging descriptions.
         procs = []
         for pr in (ctx.procedures or [])[:4]:
             nm = _o(pr, "procedure_name", None) or _o(pr, "name", None)
             if nm:
                 procs.append(str(nm))
         if procs:
-            parts.append(
-                ("処置・画像: " if is_ja else "Procedures/imaging: ") + "、".join(procs) if is_ja else ", ".join(procs)
-            )
+            parts.append(("処置: " if is_ja else "Procedures: ") + ("、".join(procs) if is_ja else ", ".join(procs)))
         if parts:
-            facts.extend(["ctx.lab_results.abnormal", "ctx.procedures.ed"])
+            fact_sources = []
+            if lab_names or imaging_names or med_names or proc_order_names:
+                fact_sources.append("ctx.orders.ed")
+            if abn_labs:
+                fact_sources.append("ctx.lab_results.abnormal")
+            if procs:
+                fact_sources.append("ctx.procedures.ed")
+            facts.extend(fact_sources)
             return "。".join(parts) if is_ja else ". ".join(parts), facts
 
         return fallback, facts
@@ -4750,6 +5095,12 @@ class TemplateNarrativeGenerator:
         outcome (discharge_disposition / admission linkage) when
         ed_note_template is absent, rather than emitting a bare
         "帰宅または入院加療".
+
+        Issue #981 density fix — attach a reasoning phrase drawn from
+        the admit-diagnosis / disease_protocol / acuity so every
+        disposition sentence reads as "自宅退院（JTAS レベル 4、症状軽度）"
+        instead of the bare "自宅退院。症状経過に応じて再受診指示。" that
+        the pre-#981 code produced (68% of ED docs).
         """
         facts: list[str] = []
         lang = ctx.target_lang
@@ -4759,28 +5110,99 @@ class TemplateNarrativeGenerator:
         ed_tmpl = self._get_ed_note_template(ctx)
         if ed_tmpl is not None:
             text = _pick_localized(ed_tmpl, "disposition", lang, ctx)
-            if text:
+            # Issue #981: same guard as ed_workup — unresolved
+            # `{disposition_display_ja}` placeholder in the ED protocol
+            # template returns the generic phrase, which short-circuited
+            # the encounter-field fallback. Treat it as "no real template
+            # text" and fall through.
+            if text and text not in {_GENERIC_FALLBACK_JA, _GENERIC_FALLBACK_EN, fallback}:
                 facts.append(f"encounter_protocol.narrative.ed_note_template.disposition_{lang}")
                 return text, facts
 
         # v9 density fallback: infer from encounter fields
         enc = ctx.encounter
         if enc is not None:
-            dispo = _o(enc, "discharge_disposition", None) or _o(enc, "outcome", None)
+            dispo = str(_o(enc, "discharge_disposition", None) or _o(enc, "outcome", None) or "").lower()
             adm = _o(enc, "admit_to_ward", None) or bool(_o(enc, "admitted", False))
             facts.append("ctx.encounter.disposition")
-            if adm:
-                if is_ja:
-                    return "帰院後入院加療の方針となった。担当科より病棟へ入棟依頼。", facts
-                return "Admitted for inpatient management. Ward transfer arranged with primary team.", facts
-            if dispo:
-                label = _JA_DISPO_LABEL.get(str(dispo), None) if is_ja else _EN_DISPO_LABEL.get(str(dispo), None)
-                if label:
-                    if is_ja:
-                        return f"{label}。症状経過に応じて再受診指示。", facts
-                    return f"{label}. Return precautions provided.", facts
+            reason = self._ed_disposition_reason(ctx, is_ja)
+            jtas_level = self._ed_triage_level(ctx)
+
+            if adm or dispo == "hosp":
+                # Deprecated `admit_to_ward` (used by legacy fixtures) is
+                # normalized to the same "admitted" path as an inbound
+                # transfer disposition.
+                tmpl = _ED_DISPOSITION_ADMISSION_JA if is_ja else _ED_DISPOSITION_ADMISSION_EN
+                return tmpl.format(reason=reason), facts
+            if dispo == "exp":
+                return (_ED_DISPOSITION_EXPIRED_JA if is_ja else _ED_DISPOSITION_EXPIRED_EN), facts
+            if dispo in ("other-hcf", "snf"):
+                tmpl = _ED_DISPOSITION_TRANSFER_JA if is_ja else _ED_DISPOSITION_TRANSFER_EN
+                return tmpl.format(reason=reason), facts
+            if dispo == "home":
+                tmpl = _ED_DISPOSITION_HOME_JA if is_ja else _ED_DISPOSITION_HOME_EN
+                return tmpl.format(level=jtas_level, reason=reason), facts
 
         return fallback, facts
+
+    @staticmethod
+    def _ed_triage_level(ctx: NarrativeContext) -> str:
+        """Extract the JTAS triage level (1-5) from the encounter, or "N/A".
+
+        Encounters that skipped triage_enricher (test fixtures, non-JP
+        cohorts pre-#941) leave ``triage_data`` unset; falls back to a
+        severity → JTAS mapping so the disposition line still carries an
+        integer rather than blank.
+        """
+        enc = ctx.encounter
+        if enc is None:
+            return "-"
+        triage = _o(enc, "triage_data", None)
+        if triage is not None:
+            level = _o(triage, "level", "") or ""
+            if level:
+                return str(level)
+        severity = str(_o(enc, "severity", "") or ctx.severity or "").lower()
+        # Rough clinical mapping: severe→2, moderate→3, mild→4. Matches
+        # JTAS's own severity buckets closely enough for a fallback
+        # sentence.
+        return {"severe": "2", "moderate": "3", "mild": "4"}.get(severity, "-")
+
+    @staticmethod
+    def _ed_disposition_reason(ctx: NarrativeContext, is_ja: bool) -> str:
+        """Return a short reasoning phrase (admit dx / CC / acuity) for #981.
+
+        Never returns empty — an empty reason would collapse the
+        parenthetical to "（）" and read worse than the pre-fix bare
+        disposition. Fall-through priority:
+
+          1. ``encounter.chief_complaint_ja`` / ``chief_complaint`` –
+             the specific complaint the ED chart already knows about.
+          2. ``disease_protocol.chief_complaint`` – matches when the
+             encounter did not override.
+          3. ``encounter.severity`` / ``ctx.severity`` acuity keyword.
+          4. Locale-appropriate generic ("症状に応じて対応" / "clinical
+             judgment").
+        """
+        enc = ctx.encounter
+        if enc is not None:
+            key = "chief_complaint_ja" if is_ja else "chief_complaint"
+            cc = _o(enc, key, "") or (_o(enc, "chief_complaint", "") if is_ja else "")
+            if cc:
+                return str(cc)
+        if ctx.disease_protocol is not None:
+            proto_cc = _o(ctx.disease_protocol, "chief_complaint", None)
+            if isinstance(proto_cc, dict):
+                val = proto_cc.get("ja" if is_ja else "en") or proto_cc.get("en")
+                if val:
+                    return str(val)
+            elif proto_cc:
+                return str(proto_cc)
+        severity = str(_o(enc, "severity", "") or ctx.severity or "").lower() if enc is not None else ""
+        acuity_map = _ED_ACUITY_REASON_JA if is_ja else _ED_ACUITY_REASON_EN
+        if severity in acuity_map:
+            return acuity_map[severity]
+        return "症状に応じて対応" if is_ja else "clinical judgment"
 
     # ─────────────────────────────────────────────────────────────────
     # Fallback helpers

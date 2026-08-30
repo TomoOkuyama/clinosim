@@ -189,7 +189,17 @@ def test_questionnaire_response_returns_structured_dict() -> None:
 
 
 def test_jp_locale_admission_hp_uses_disease_yaml_chief_complaint() -> None:
-    """JP ADMISSION_HP must include chief_complaint from disease YAML (Japanese)."""
+    """JP ADMISSION_HP must include chief_complaint from disease YAML (Japanese).
+
+    Issue #983 note: the emitted CC may be either the disease canonical
+    (「発熱・咳嗽・呼吸困難」) or one of the per-disease variants loaded
+    from ``chief_complaint_variants.yaml``. Both paths are equally
+    disease-driven — assert against the full variant pool so a variant
+    swap does not silently pass just because the disease connection is
+    still visible.
+    """
+    from clinosim.modules.document.reference_data_loaders import load_chief_complaint_variants
+
     protocol = load_disease_protocol("bacterial_pneumonia")
     spec = _get_spec(DocumentType.ADMISSION_HP)
     ctx = _make_ctx(
@@ -200,9 +210,9 @@ def test_jp_locale_admission_hp_uses_disease_yaml_chief_complaint() -> None:
     )
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
-    # bacterial_pneumonia chief_complaint.ja = "発熱・咳嗽・呼吸困難"
     cc_text = out.sections.get("chief_complaint", "")
-    assert "発熱" in cc_text or "咳嗽" in cc_text or "呼吸" in cc_text, f"JP chief_complaint not found in: {cc_text!r}"
+    pool = load_chief_complaint_variants().get("bacterial_pneumonia") or []
+    assert cc_text in pool, f"JP chief_complaint {cc_text!r} not in bacterial_pneumonia variants {pool}"
 
 
 def test_jp_locale_hpi_uses_onset_pattern() -> None:
