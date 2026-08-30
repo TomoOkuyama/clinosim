@@ -170,8 +170,11 @@ def test_anticoag_from_admission1_carries_forward_to_admission2_home_meds():
     # cancer + Z-chapter obstetric prevalence to US demographics.yaml and
     # rebalancing I10 down shifts the cohort again, so seed=49 lost the
     # fixture. Re-scouted 49..120 → seed=55 (POP-000424).
+    # 2026-08-30 (#969 stats-tune): reducing US comorbidity_correlations
+    # multipliers ~15% shifts joint chronic sampling; seed=55 lost the
+    # fixture. Re-scouted 55..150 → seed=56 (POP-000167).
     config = SimulatorConfig(
-        random_seed=55,
+        random_seed=56,
         catchment_population=500,
         country="US",
         time_range=("2025-01", "2026-01"),

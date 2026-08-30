@@ -98,6 +98,35 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   catalog covers 74 drugs plus a `default` fallback (30-min bolus).
   Closes #966.
 
+### Changed
+
+- **Statistical tuning: comorbidity multipliers + I25 70+ prevalence + PPSV23
+  coverage aligned to MHLW audit targets (yaml-only).** The p=1000 seed=500
+  JP audit (`scripts/audit_realworld_stats_jp.py`) flagged three cohort
+  marginals that had drifted under the v0.5.0 marginal-preserving engine:
+  (1) chronic conditions/patient MEAN was 2.99 vs MHLW 国民生活基礎調査
+  2019 target 2.3 (65+ 平均 2.3, 全年齢 1.4), (2) I25 (ischemic heart
+  disease) 70+ prevalence was 18.8% vs 冠動脈疾患 JCS 2018 target 10%
+  (Δ+8.8pp), (3) PPSV23 lifetime 65+ M was 35.8% vs config target 40%
+  (Δ-4.2pp) — under-shoot after care-seeking + min_age eligibility filtering.
+  Fix: **yaml-only** — (1) reduced every `comorbidity_correlations`
+  multiplier in `clinosim/locale/jp/demographics.yaml` by ~15% (e.g.,
+  I10→E78 2.2→1.9, E11.9→N18 2.5→2.1) keeping JSH/JCS correlation SHAPE;
+  US mirror in `clinosim/locale/us/demographics.yaml` applied the same
+  ~15% reduction. (2) `chronic_prevalence.I25["70-99"]` lowered 0.10 →
+  0.06 in `clinosim/locale/jp/demographics.yaml`; audit script mirror
+  `CHRONIC_CONFIG_TARGETS_JP["I25"]` in `scripts/audit_realworld_stats_jp.py`
+  updated to match. (3) `pneumococcal_ppsv23.coverage_by_age_sex["65-99"]`
+  in `clinosim/locale/jp/immunization_schedule.yaml` bumped 0.40/0.42 →
+  0.45/0.47 (M/F). Inline citation comments preserved; numeric values
+  only. Per the marginal-preserving engine, the yaml value IS the target
+  sampled marginal — adjustments picked so the emitted marginal lands
+  near the MHLW benchmark. Classification: **MINOR** — cohort marginals
+  shift (chronic prevalence + comorbidity load + immunization rate), so
+  CIF ↔ narrative-CIF byte-identity across the sim window is not
+  preserved; a fresh `narrate` run is required.
+  Author: Claude.
+
 ### Added
 
 - **Issue #961 — Death certificate (死亡診断書) Composition for deceased
