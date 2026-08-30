@@ -101,8 +101,12 @@ vaccines:
     min_age: 65
     frequency: once
     available_from: "2014-10-01"
+    # 2026-08-30: bumped 0.40/0.42 → 0.45/0.47 so the emitted lifetime rate
+    # at 65+ lands near the 40%/42% MHLW target (p=1000 seed=500 JP audit
+    # baseline was 35.8%/38.2%, ~4pp under-shoot after care-seeking + min_age
+    # eligibility filtering).
     coverage_by_age_sex:
-      "65-99": {M: 0.40, F: 0.42}
+      "65-99": {M: 0.45, F: 0.47}
 
   # === Pediatric routine schedule (定期予防接種 + 任意接種) — Issue #917 ===
   # Sources: MHLW 予防接種スケジュール (2024) / 日本小児科学会 推奨接種スケジュール.
