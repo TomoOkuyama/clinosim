@@ -1,10 +1,28 @@
 task_type: narrative_seed_bundle
-version: 12
+version: 13
 max_tokens: 3500
 temperature: 0.1
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
+
+  v13 changes (2026-08-31, closes #997 + #998):
+    - Added per-doc-type guidance blocks under `=== Per document_type ===`
+      for four doc types that were promoted to `template_seed_bundle`
+      without a per-doc contract in v11/v12:
+        - operative_note (LOINC 11504-8) — #991
+        - procedure_note (LOINC 28570-0) — #992
+        - death_certificate (LOINC 64297-5) — #961
+        - death_discharge_summary (LOINC 18842-5) — #961 ext
+      Each block declares purpose, per-section length caps and content
+      contracts for the `llm_enabled_sections`, and a reference-only list
+      of structured sibling sections the LLM must leave untouched. Every
+      block ends with the verbatim-preservation contract (dates / drug
+      names / doses / ICD codes / K-codes / SNOMED codes / patient +
+      physician names / numeric values). Refinement-only — no fact
+      addition or removal; the deterministic template output is the
+      authoritative base.
+    - No LOINC 69730-0 death_summary block — tracked separately (#1000).
 
   v12 changes (2026-08-30, prompt audit — chore/llm-prompt-audit-2026-08-30):
     - Fixed stale cross-reference in Context contract:
@@ -297,6 +315,129 @@ system: |
     complaint). Their content is structured (Organization name + ICD
     code list) — LLM output for the two free sections MUST be
     internally consistent with them.
+
+  ### operative_note (LOINC 11504-8) — executing surgeon perspective
+  - Purpose: operative note written by the executing surgeon
+    immediately after surgery. Readers are the ward team assuming
+    post-operative care and the future outpatient physician. Style:
+    concise professional third-person past tense.
+  - op_findings: ~150-300 characters (~30-60 English words).
+    Intra-operative observations ONLY — what was actually seen during
+    surgery (organ appearance, lesion size, adhesions, tissue quality).
+    Do NOT describe pre-operative imaging or postoperative expectations.
+    Stay consistent with primary_diagnosis / procedure name in
+    context_sections.
+  - op_course: ~150-300 characters (~30-60 words). Step-by-step
+    operative narrative: incision → exposure → main procedure →
+    hemostasis → closure. Preserve procedure name, approach, equipment
+    names, blood loss, and operative duration verbatim; refine only
+    verbs and connectives for natural prose. If complications occurred,
+    cite complications_during_stay with timing and management.
+  - op_postop_plan: ~150-300 characters (~30-60 words). One-paragraph
+    handoff to the ward: extubation criteria, ICU vs floor disposition,
+    monitoring priorities, pain regimen, antibiotic plan, early
+    mobilization. Copy drug names verbatim from active_medications_today
+    (Rule 3).
+  - Reference-only sections (structured — do NOT modify):
+    op_procedure_name / op_anesthesia / op_surgeon / op_specimens /
+    op_blood_loss / op_equipment. Template output for procedure code
+    display, anesthesia type, surgeon name, specimens, blood loss (mL),
+    and equipment MUST be preserved verbatim; the LLM refines only the
+    three narrative sections above. Preserve verbatim: dates, drug
+    names, doses, ICD codes, K-codes, SNOMED codes, patient names,
+    physician names, numeric values.
+
+  ### procedure_note (LOINC 28570-0) — bedside procedure record
+  - Purpose: bedside procedure record (chest tube, central line, lumbar
+    puncture, intubation, endoscopy — D/G/J-code procedures). Written
+    by the performing physician. Style: concise procedure-note prose.
+  - pn_course: ~100-200 characters (~20-40 words). Concise stepwise
+    account: positioning → sterile prep → local anesthesia → puncture
+    or insertion → confirmation → securing. Preserve procedure name,
+    approach, and device name / size verbatim.
+  - pn_complications: ~100-200 characters (~20-40 words). List every
+    complication in the ProcedureRecord's complications field (Rule 2).
+    When none occurred, state "no complications" explicitly — do NOT
+    use vague phrasing like "nothing significant".
+  - pn_postop_plan: ~100-200 characters (~20-40 words). Post-procedure
+    plan: management of any indwelling device, monitoring priorities,
+    timing of next assessment, reporting thresholds. Copy drug names
+    verbatim.
+  - Reference-only sections (structured — do NOT modify):
+    pn_procedure_name / pn_consent / pn_performer / pn_analgesia /
+    pn_specimens. Template output for K-code display, consent record,
+    performer name, anesthesia type, and specimen count / type MUST be
+    preserved verbatim; the LLM refines only the three narrative
+    sections above. Preserve verbatim: dates, drug names, doses,
+    K-codes, SNOMED codes, performer names, numeric values.
+
+  ### death_certificate (LOINC 64297-5) — legal certificate of death
+  - Purpose: legal form the attending physician completes on the
+    death-certificate paper (Japanese Physicians' Act Art. 20). Readers
+    are the family, civil registry, and insurers. Style: extremely
+    concise, declarative medico-legal form voice.
+  - duration_of_immediate_cause: one sentence, under ~100 characters
+    (~20-25 words). The interval from onset of the immediate cause to
+    death, in a physician's paper-form phrasing (e.g. "several hours",
+    "approximately 3 days", "about 2 weeks"). Do NOT invent
+    pre-admission onset — if no onset timestamp is in context, do not
+    write one.
+  - contributing_conditions: 1-2 sentences, ~100 characters (~25-45
+    words). Preserve the leading label "Contributing conditions:"
+    verbatim. Include every listed comorbidity (Rule 2 — do NOT
+    reorder, add, or drop conditions). Copy ICD codes and disease
+    names verbatim.
+  - Reference-only sections (structured — do NOT modify):
+    immediate_cause_of_death / underlying_cause_of_death /
+    manner_of_death / autopsy_status. The LLM MUST NOT alter the ICD
+    code choice or death-bucket classification set by the template;
+    it refines only the two narrative sections above. Preserve
+    verbatim: dates, ICD codes, disease names, patient / physician
+    names, numeric values.
+
+  ### death_discharge_summary (LOINC 18842-5 — Composition.title =
+      "死亡退院サマリー" for the JP variant)
+  - Purpose: physician-authored narrative for a terminal admission
+    ending in death. Replaces the generic discharge_summary on
+    deceased encounters. Readers: internal M&M conference, family
+    briefing prep, and any referral to another institution. Style:
+    professional third-person past tense.
+  - admission_state: ~150-250 characters (~30-50 words). Presenting
+    complaint, admission vitals, mental status, and severity tag at
+    admission. Copy primary_encounter_reason and admission severity
+    tag verbatim.
+  - treatment_course: ~200-400 characters (~40-80 words). Phase-level
+    narrative (acute → stabilization → terminal). MUST enumerate every
+    complications_during_stay event and every key_procedures_performed
+    entry (Rule 2). Preserve drug names, doses, procedure names, and
+    dates verbatim.
+  - terminal_course: ~200-400 characters (~40-80 words). Clinical
+    course of the final 24-72 hours (vitals decline, mental status
+    change, DNAR decision). Do NOT invent specific vital-sign values
+    or timestamps not in context.
+  - circumstances_of_death: ~100-200 characters (~20-40 words). Time
+    of death, attending staff / family at bedside, terminal event
+    (cardiac / respiratory arrest, etc.). death_datetime verbatim.
+  - complications_and_comorbidities: ~100-200 characters (~20-40
+    words). Enumerate every listed complication and comorbidity — do
+    NOT reorder, add, or drop. Copy ICD codes and disease names
+    verbatim.
+  - family_communication: ~100-200 characters (~20-40 words). Family
+    conferences held during admission, DNAR consent, family presence
+    at time of death — described in general terms. If specific family
+    member names or meeting dates are NOT in context, do NOT
+    fabricate — use summative phrasing like "family was updated
+    regularly".
+  - autopsy_status_and_findings: ~50-150 characters (~10-30 words).
+    Whether an autopsy was performed and, if so, principal findings
+    only. When not performed, one sentence: "autopsy was declined" (or
+    "autopsy not performed").
+  - Reference-only sections (do NOT modify): cause_of_death (ICD code
+    + display, structured). Template output for the ICD code choice
+    MUST be preserved verbatim; the LLM refines only the seven
+    narrative sections above. Preserve verbatim: ICD codes, drug
+    names, procedure names, dates, family member names (only when in
+    context), numeric values.
 
   === Output ===
 

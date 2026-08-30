@@ -1,10 +1,28 @@
 task_type: narrative_seed_bundle
-version: 12
+version: 13
 max_tokens: 3500
 temperature: 0.1
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
+
+  v13 changes (2026-08-31, closes #997 + #998):
+    - Added per-doc-type guidance blocks under `=== Per document_type ===`
+      for four doc types that were promoted to `template_seed_bundle`
+      without a per-doc contract in v11/v12:
+        - operative_note (LOINC 11504-8, 手術記録) — #991
+        - procedure_note (LOINC 28570-0, 処置記録) — #992
+        - death_certificate (LOINC 64297-5, 死亡診断書) — #961
+        - death_discharge_summary (LOINC 18842-5, 死亡退院サマリー) — #961 ext
+      Each block declares purpose, per-section length caps and content
+      contracts for the `llm_enabled_sections`, and a reference-only list
+      of structured sibling sections the LLM must leave untouched. Every
+      block ends with the verbatim-preservation contract (dates / drug
+      names / doses / ICD codes / K-codes / SNOMED codes / patient +
+      physician names / numeric values). Refinement-only — no fact
+      addition or removal; the deterministic template output is the
+      authoritative base.
+    - No LOINC 69730-0 death_summary block — tracked separately (#1000).
 
   v12 changes (2026-08-30, prompt audit — chore/llm-prompt-audit-2026-08-30):
     - Fixed stale cross-reference in Context contract:
@@ -376,6 +394,102 @@ system: |
     Their content is structured (Organization name + ICD code list) —
     LLM output for the two free sections MUST be internally consistent
     with them (e.g. same diagnosis, same discharging institution).
+
+  ### operative_note (手術記録 / LOINC 11504-8) — 執刀医視点
+  - Purpose: 執刀医が術直後に記録する手術記録。読み手は術後管理を担当する
+    病棟医師とその後読み返す外来主治医。文体は簡潔な医療記述体。
+  - op_findings (術中所見): 150-300 字。開腹/開胸/内視鏡下で「実際に目で
+    見た」所見のみ記述する（術前画像所見や術後想定は書かない）。臓器名・
+    病変サイズ・色調・癒着の有無等を具体的に述べる。context_sections の
+    primary_diagnosis / procedure name と矛盾しない範囲で自然な所見表現に
+    留める。
+  - op_course (手術経過): 150-300 字。皮切→展開→処置本体→止血→閉創の
+    順でステップ的に記述する。手技名 / アプローチ / 使用機器名 / 出血量 /
+    手術時間の数値・固有名詞は verbatim に保持し、リフレーズは動詞と接続
+    の自然化のみに限る。合併症が発生した場合は complications_during_stay
+    を引用しつつ発生タイミングと対処を明記する。
+  - op_postop_plan (術後方針): 150-300 字。抜管条件 / ICU 収容の要否 /
+    バイタル監視項目 / 疼痛管理 / 抗菌薬 / 早期離床方針など、病棟への
+    引き継ぎ 1 段落。処方薬名は active_medications_today から verbatim
+    にコピーする（Rule 3）。
+  - Reference-only sections (構造化フィールド — 改変禁止):
+    op_procedure_name / op_anesthesia / op_surgeon / op_specimens /
+    op_blood_loss / op_equipment。K コード表示・麻酔法・執刀医氏名・
+    摘出臓器・出血量 (mL)・使用機器はテンプレート出力を verbatim に保持
+    し、LLM は上記自由記載 3 セクションのみ整文する。日付・薬剤名・
+    用量・ICD/K コード・SNOMED コード・患者/医師氏名・数値は全て
+    verbatim。
+
+  ### procedure_note (処置記録 / LOINC 28570-0) — ベッドサイド処置
+  - Purpose: 胸腔ドレナージ / 中心静脈カテーテル留置 / 腰椎穿刺 / 気管
+    挿管 / 内視鏡検査等、D/G/J コード相当のベッドサイド処置を実施医が
+    記録する。文体は簡潔な処置記録体。
+  - pn_course (処置経過): 100-200 字。体位 → 消毒 → 局所麻酔 → 穿刺
+    または挿入 → 確認 → 固定の順で手技経過を簡潔に記述する。手技名 /
+    アプローチ / デバイス名・サイズは verbatim。
+  - pn_complications (合併症): 100-200 字。ProcedureRecord の
+    complications フィールドに列挙された事象を全て記述する（Rule 2）。
+    合併症なしの場合は「合併症なし」と明記し、「特記事項なし」等の
+    曖昧表現は使わない。
+  - pn_postop_plan (処置後方針): 100-200 字。留置物の管理・観察項目・
+    次回評価タイミング・報告基準を 1 段落で。処方薬名は verbatim。
+  - Reference-only sections (構造化フィールド — 改変禁止):
+    pn_procedure_name / pn_consent / pn_performer / pn_analgesia /
+    pn_specimens。K コード / 同意取得 / 実施医氏名 / 麻酔法 / 採取検体
+    数と種類はテンプレート出力を verbatim に保持し、LLM は自由記載 3
+    セクションのみ整文する。日付・薬剤名・用量・K コード・SNOMED
+    コード・実施医氏名・数値は全て verbatim。
+
+  ### death_certificate (死亡診断書 / LOINC 64297-5) — 医師法第 20 条
+  - Purpose: 主治医が死亡診断書用紙に記入する法的書式。読み手は遺族・
+    行政・保険機関。極めて簡潔・断定的な医療記述体（断定形）で書く。
+  - duration_of_immediate_cause (直接死因の発症からの期間): 1 文、
+    100 字以内。直接死因が発症してから死亡までの期間を医師が書面で
+    記す表現（例:「数時間」「約 3 日」「約 2 週間」）。入院前発症を
+    捏造しない — context にない発症時刻は書かない。
+  - contributing_conditions (影響を及ぼした傷病名): 1-2 文、100 字前後。
+    冒頭ラベル「影響を及ぼした傷病名:」は verbatim に保持する。列挙
+    された併存疾患を全て記載する（Rule 2 — 順序変更・追加・削除は
+    禁止）。ICD コードと疾患名は verbatim コピー。
+  - Reference-only sections (構造化フィールド — 改変禁止):
+    immediate_cause_of_death / underlying_cause_of_death /
+    manner_of_death / autopsy_status。ICD コード選択と death-bucket
+    分類はテンプレート出力を verbatim 保持し、LLM は上記 2 セクション
+    のみ整文する。日付・ICD コード・疾患名・患者/医師氏名・数値は
+    全て verbatim。
+
+  ### death_discharge_summary (死亡退院サマリー / LOINC 18842-5 —
+      Composition.title = 死亡退院サマリー)
+  - Purpose: 死亡退院した入院症例について担当医が記載する終末入院
+    ナラティブ。読み手は院内カンファレンス・遺族向け説明準備・他院
+    への紹介。文体は敬体（です・ます）を基本とする医療記述体。
+  - admission_state (入院時状態): 150-250 字。入院時の主訴・バイタル・
+    意識レベル・重症度を簡潔に記述する。primary_encounter_reason / 入院
+    時の重症度タグは verbatim。
+  - treatment_course (治療経過): 200-400 字。急性期→安定期→終末期の
+    フェーズ移行で記述する。complications_during_stay の各事象と
+    key_procedures_performed の各処置を全て記載する（Rule 2）。薬剤名・
+    用量・処置名・日付を verbatim。
+  - terminal_course (終末期経過): 200-400 字。最後の 24-72 時間の
+    臨床経過（バイタル低下 / 意識レベル低下 / DNAR 方針決定など）を
+    記述する。context にない具体的バイタル値や時刻は捏造しない。
+  - circumstances_of_death (死亡時の状況): 100-200 字。死亡確認時刻・
+    立会者・心肺停止経過を簡潔に記述する。death_datetime は verbatim。
+  - complications_and_comorbidities (合併症・併存疾患): 100-200 字。
+    列挙された合併症・併存疾患を全て記載する（順序変更・追加・削除
+    禁止）。ICD コードと疾患名は verbatim。
+  - family_communication (家族への説明): 100-200 字。入院中の家族
+    カンファレンス実施状況・DNAR 同意・臨終立会いを一般的な表現で
+    記述する。具体的家族氏名や日時が context にない場合は捏造せず、
+    「家族に随時説明した」等の総括的記述に留める。
+  - autopsy_status_and_findings (剖検の有無と所見): 50-150 字。剖検
+    実施の有無と、実施した場合の主要所見のみ。所見がない場合は
+    「剖検施行せず」と 1 文で。
+  - Reference-only sections (改変禁止): cause_of_death (ICD コード +
+    display の構造化フィールド)。テンプレート出力の ICD コード選択を
+    verbatim 保持し、LLM は上記 7 セクションのみ整文する。ICD コード・
+    薬剤名・処置名・日付・家族氏名（context にある場合のみ）・数値は
+    全て verbatim。
 
   === Output ===
 
