@@ -56,6 +56,7 @@ GENERATION_FREQUENCIES: frozenset[str] = frozenset(
         # `related_procedure_id`, and authored_datetime = that procedure's
         # end_datetime (op note written immediately after the operation).
         "per_surgical_encounter",
+        "per_bedside_procedure",  # Issue #992: procedure_note (one Composition per bedside Procedure)
     }
 )
 
@@ -108,6 +109,9 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset(
         # Issue #991: 手術記録 (operative note) — LOINC 11504-8.
         # Fires per surgical encounter (category_code == "387713003").
         DocumentType.OPERATIVE_NOTE,
+        # Issue #992: 処置記録 (procedure note) — one Composition per
+        # bedside Procedure (endoscopy / CV line / LP / thoracentesis / etc.).
+        DocumentType.PROCEDURE_NOTE,
     }
 )
 

@@ -289,3 +289,63 @@ def load_chief_complaint_variants() -> dict[str, list[str]]:
         data: dict[str, Any] = yaml.safe_load(f)
     _validate_chief_complaint_variants(data)
     return dict(data["variants"])
+
+
+# ─────────────────────────────────────────────────────────────────
+# bedside_procedure_codes.yaml (Issue #992)
+# ─────────────────────────────────────────────────────────────────
+
+
+def _validate_bedside_procedure_codes(data: dict[str, Any]) -> None:
+    """Fail-loud validation of bedside_procedure_codes.yaml.
+
+    Layer 1: empty top-level guard
+    Layer 2: required buckets present (procedure_note_codes + operative_note_codes)
+    Layer 3: each bucket is a non-empty list of non-empty strings
+    Layer 4: no code appears in BOTH buckets (a Procedure resolves to
+             exactly one document type — an overlap would double-emit)
+    """
+    if not data:
+        raise ValueError("bedside_procedure_codes.yaml: empty top-level")
+    required_buckets = ("procedure_note_codes", "operative_note_codes")
+    for bucket in required_buckets:
+        if bucket not in data:
+            raise ValueError(f"bedside_procedure_codes.yaml: missing '{bucket}' key")
+        raw = data[bucket]
+        if not raw or not isinstance(raw, list):
+            raise ValueError(f"bedside_procedure_codes.yaml: '{bucket}' must be a non-empty list")
+        for i, entry in enumerate(raw):
+            if not isinstance(entry, str) or not entry.strip():
+                raise ValueError(f"bedside_procedure_codes.yaml: {bucket}[{i}] must be a non-empty string")
+    proc_set = {str(c).strip() for c in data["procedure_note_codes"]}
+    op_set = {str(c).strip() for c in data["operative_note_codes"]}
+    overlap = proc_set & op_set
+    if overlap:
+        raise ValueError(
+            f"bedside_procedure_codes.yaml: codes appear in both buckets "
+            f"({sorted(overlap)}) — a Procedure must resolve to exactly one "
+            f"document type"
+        )
+
+
+@lru_cache(maxsize=1)
+def load_bedside_procedure_codes() -> dict[str, frozenset[str]]:
+    """Load bedside_procedure_codes.yaml + validate. Cached singleton.
+
+    Returns a mapping ``{"procedure_note": frozenset[str],
+    "operative_note": frozenset[str]}`` — the two code sets that drive
+    the per-Procedure document-type dispatch in
+    ``clinosim/modules/document/engine.py`` (Issue #992 procedure_note
+    partner set; Issue #991 operative_note partner set).
+
+    Unknown top-level codes (any procedure_code not listed under either
+    bucket) receive no per-procedure document — this is intentional so
+    a `K002` bedside wound cleanup does not fabricate a formal note.
+    """
+    with (_REF_DIR / "bedside_procedure_codes.yaml").open() as f:
+        data: dict[str, Any] = yaml.safe_load(f)
+    _validate_bedside_procedure_codes(data)
+    return {
+        "procedure_note": frozenset(str(c).strip() for c in data["procedure_note_codes"]),
+        "operative_note": frozenset(str(c).strip() for c in data["operative_note_codes"]),
+    }
