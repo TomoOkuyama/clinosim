@@ -513,3 +513,51 @@ specs:
       - op_postop_plan
     stage2_strategy: template_seed_bundle
     llm_enabled_sections: [op_findings, op_course, op_postop_plan]
+
+  # === Issue #992: 処置記録 (Procedure note, LOINC 28570-0) ===
+  # LOINC 28570-0 verified via loinc.org (LONG_COMMON_NAME "Procedure
+  # note"). JP display 処置記録 aligns with 診療報酬点数表 D/G/J-code
+  # bedside procedures (胸腔ドレナージ / 中心静脈カテーテル留置 / 腰椎
+  # 穿刺 / 気管挿管 / 内視鏡検査 …). Complements #991 operative_note
+  # (LOINC 11504-8) which covers surgical Procedures.
+  #
+  # generation_frequency = per_bedside_procedure (new frequency — engine.py
+  # branch): emit ONE Composition per ProcedureRecord whose
+  # ``procedure_code`` is listed in bedside_procedure_codes.yaml under
+  # ``procedure_note_codes``. The stub carries ``related_procedure_id``
+  # so the narrative pass can look up the specific Procedure.
+  #
+  # Section keys are ``pn_``-prefixed English snake_case slugs (parallel
+  # to the ``_dc_`` / ``_dds_`` naming used by the death-certificate /
+  # death-discharge-summary section families) — the narrative router in
+  # ``template_generator._render_composition_sections`` maps them to
+  # ``_build_pn_*`` builders. JP display titles + LOINC section codes
+  # are declared in ``clinosim/modules/output/fhir_r4/documents/composition.py``.
+  procedure_note:
+    loinc_code: "28570-0"
+    format_type: composition
+    countries_supported: [us, jp]
+    encounter_types_supported: [inpatient, icu, rehab_inpatient, emergency]
+    generation_frequency: per_bedside_procedure
+    composition_sections:
+      - pn_procedure_name
+      - pn_consent
+      - pn_performer
+      - pn_analgesia
+      - pn_course
+      - pn_complications
+      - pn_specimens
+      - pn_postop_plan
+    # Templates render the CIF-derived narrative for every section
+    # (procedure name from code_lookup, consent boilerplate, performer
+    # from ProcedureRecord.primary_surgeon_id, analgesia from
+    # anesthesia_type, course phrasing from duration + approach,
+    # complications / specimens from the respective list fields,
+    # post-procedure plan from disease archetype). LLM refinement is
+    # opt-in polish on the prose-heavy sections (course / complications /
+    # post-procedure plan).
+    stage2_strategy: template_seed_bundle
+    llm_enabled_sections:
+      - pn_course
+      - pn_complications
+      - pn_postop_plan

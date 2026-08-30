@@ -1,0 +1,82 @@
+# bedside_procedure_codes.yaml — dispatch registry for #991/#992
+# ================================================================
+# Maps every ProcedureRecord.procedure_code (K/D/G/J code or CPT) to the
+# document type the narrative pass should emit for that procedure:
+#
+#   procedure_note_codes:  # #992 — invasive bedside procedures
+#     - LOINC 28570-0 (procedure_note) is emitted per Procedure whose
+#       ``procedure_code`` appears in this list.
+#
+#   operative_note_codes:  # #991 — surgical procedures
+#     - LOINC 11504-8 (operative_note) is emitted per Procedure whose
+#       ``procedure_code`` appears in this list. Listed here as the
+#       partner set so a single audit sweep confirms every code the
+#       simulator can emit for a Procedure resolves to exactly one
+#       document type.
+#
+# AUTHORITATIVE SOURCE for code labels: clinosim/codes/data/k-codes.yaml
+# (MHLW 診療報酬点数表 K/D/G/J codes). CPT codes for the US locale are
+# resolved via clinosim/codes/data/cpt.yaml.
+#
+# Codes NOT listed in either bucket receive no per-procedure document
+# (a small `K002 wound debridement` bedside cleanup is not a formal
+# note-worthy procedure, e.g.).
+#
+# ADD-A-CODE checklist
+# --------------------
+# 1. Add the code to k-codes.yaml (or cpt.yaml) so ``code_lookup`` can
+#    resolve its display.
+# 2. Add it here under ``procedure_note_codes`` (bedside) or
+#    ``operative_note_codes`` (surgical).
+# 3. Ensure the disease YAML that emits a ProcedureRecord with that
+#    code is actually reachable from the corresponding archetype —
+#    otherwise the dispatch never fires.
+
+procedure_note_codes:
+  # === D: Diagnostic bedside procedures (検査) ===
+  - D002    # 尿道カテーテル挿入 / Urinary catheter insertion
+  - D004    # 腰椎穿刺 / Lumbar puncture
+  - D010    # 胸腔穿刺 / Thoracentesis
+  - D011    # 腹腔穿刺 / Paracentesis
+  - D012    # 胸腔ドレーン挿入 / Chest tube insertion
+  - D302    # 気管支鏡検査 / Bronchoscopy
+  # === G: General bedside procedures (処置) ===
+  - "G005-2"  # 中心静脈カテーテル挿入 / Central venous catheter insertion
+  - "G005-3"  # 動脈ライン挿入 / Arterial line insertion
+  # === J: Invasive bedside procedures (処置) ===
+  - J034      # 経鼻胃管挿入 / Nasogastric tube insertion
+  - "J034-2"  # イレウス用ロングチューブ挿入法 / Long tube for bowel obstruction
+  - J038      # 急性血液透析 / Acute hemodialysis
+  - J044      # 気管挿管 / Endotracheal intubation
+  # === K: Codes that are technically K-series but clinically bedside
+  #        interventional procedures rather than OR surgeries. These
+  #        emit a procedure_note (not operative_note) because they
+  #        happen at bedside / cath lab / EP suite without a formal
+  #        surgical opening.
+  - K546      # 経皮的冠動脈形成術 / PCI
+  - K597      # ペースメーカー移植術 / Pacemaker implantation
+  - K599      # 電気的カルジオバージョン / Electrical cardioversion
+  - K920      # 輸血 / Blood transfusion (bedside procedure)
+
+operative_note_codes:
+  # === K: Surgical (手術) — OR procedures with anesthesia + incision ===
+  - K002      # 創傷デブリードマン / Wound debridement (OR)
+  - K013      # デブリードマン・植皮術 / Debridement + skin grafting
+  - K081      # 整形外科的骨折固定術 / Orthopedic fracture fixation
+  - K089      # 複雑手指手術・再接着術 / Complex hand replantation
+  - "K164-1"  # 頭蓋内血腫除去術（開頭） / Craniotomy for hematoma
+  - "K164-2"  # 慢性硬膜下血腫穿孔洗浄術 / Burr hole (chronic SDH)
+  - K0461     # 大腿骨観血的整復固定術 / ORIF proximal femur
+  - K0462     # 掌側ロッキングプレートORIF / ORIF forearm
+  - K0811     # 大腿骨頭人工骨頭置換術 / Hemiarthroplasty
+  - K636      # 試験開腹術 / Exploratory laparotomy
+  - "K672-2"  # 腹腔鏡下胆嚢摘出術 / Laparoscopic cholecystectomy
+  - K719      # 結腸切除術 / Colectomy
+  - "K718-2"  # 腹腔鏡下虫垂切除術 / Laparoscopic appendectomy
+  # CPT for US locale — mirror the K-code surgical set above.
+  - "15100"   # Split-thickness autograft
+  - "25607"   # ORIF distal radius
+  - "27236"   # Open treatment femoral fracture
+  - "47562"   # Laparoscopic cholecystectomy
+  - "61312"   # Craniotomy for subdural hematoma
+  - "20838"   # Complex hand surgery
