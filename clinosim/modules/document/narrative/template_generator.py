@@ -3857,9 +3857,7 @@ class TemplateNarrativeGenerator:
             if text:
                 facts.append(f"encounter_protocol.narrative.outpatient_soap_template.assessment_{lang}")
                 if integrated:
-                    facts.extend(
-                        ["ctx.patient.chronic_conditions", "ctx.vitals.today", "ctx.lab_results.today"]
-                    )
+                    facts.extend(["ctx.patient.chronic_conditions", "ctx.vitals.today", "ctx.lab_results.today"])
                     return f"{text}\n{integrated}", facts
                 return text, facts
 
