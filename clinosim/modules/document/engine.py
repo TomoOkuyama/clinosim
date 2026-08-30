@@ -662,6 +662,58 @@ def document_enricher(ctx: Any) -> None:
                     )
                     doc_seq += 1
 
+                elif freq == "per_surgical_encounter":
+                    # Issue #991: 手術記録 (operative note) — fires once per
+                    # encounter that has at least one surgical ProcedureRecord
+                    # (category_code == "387713003", populated by
+                    # clinosim/modules/procedure/engine.py). The stub records
+                    # `related_procedure_id` = the earliest surgical procedure's
+                    # id (by start_datetime) so the narrative pipeline can
+                    # scope its section builders to that specific procedure.
+                    # authored_datetime = procedure end_datetime (op notes are
+                    # written immediately after the operation). Bedside /
+                    # diagnostic / therapeutic procedures (D/G/J codes such as
+                    # thoracentesis, bronchoscopy, blood_transfusion) never
+                    # trigger this branch — they belong to a future
+                    # procedure_note (LOINC 28570-0, Issue #992).
+                    #
+                    # AD-32: skip in-progress encounters. In practice every
+                    # completed surgery already sits inside a completed
+                    # encounter, but this keeps the branch consistent with
+                    # every other "*_once" branch and prevents a snapshot
+                    # from emitting a note for an intra-op patient.
+                    if is_in_progress:
+                        continue
+                    enc_surgical_procs = [
+                        p
+                        for p in (_o(record, "procedures", []) or [])
+                        if _o(p, "encounter_id", "") == encounter_id
+                        and str(_o(p, "category_code", "") or "") == "387713003"
+                    ]
+                    if not enc_surgical_procs:
+                        continue
+                    primary_proc = min(
+                        enc_surgical_procs,
+                        key=lambda p: _o(p, "start_datetime", None) or admission_dt,
+                    )
+                    op_dt = (
+                        _o(primary_proc, "end_datetime", None)
+                        or _o(primary_proc, "start_datetime", None)
+                        or admission_dt
+                    )
+                    stub = _make_doc_stub(
+                        spec,
+                        encounter_id,
+                        doc_seq,
+                        op_dt,
+                        pid,
+                        lang,
+                        _o(primary_proc, "primary_surgeon_id", "") or _pick_document_author(spec, encounter),
+                    )
+                    stub.related_procedure_id = str(_o(primary_proc, "procedure_id", "") or "")
+                    documents.append(stub)
+                    doc_seq += 1
+
                 elif freq == "encounter_once":
                     # Single-visit encounters (outpatient SOAP, ED note, ED triage note).
                     # Emit at day 0; period covers full encounter duration.

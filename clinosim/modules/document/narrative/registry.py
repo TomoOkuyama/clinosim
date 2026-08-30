@@ -50,6 +50,12 @@ GENERATION_FREQUENCIES: frozenset[str] = frozenset(
         "discharge_once_if_deceased_replaces",  # Issue #961 ext: 死亡退院サマリー (replaces generic DS)
         "encounter_once",
         "checkup_once",  # P2-13 PR3: JP-eCheckup health_checkup_report (opt-in module)
+        # Issue #991: operative_note fires once per encounter that has a
+        # surgical ProcedureRecord (category_code == "387713003"). Engine
+        # picks the earliest surgical procedure by start_datetime, stamps
+        # `related_procedure_id`, and authored_datetime = that procedure's
+        # end_datetime (op note written immediately after the operation).
+        "per_surgical_encounter",
     }
 )
 
@@ -99,6 +105,9 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset(
         # Issue #961 extension: 死亡退院サマリー (death discharge summary) —
         # replaces the generic 退院時サマリー on deceased-inpatient encounters.
         DocumentType.DEATH_DISCHARGE_SUMMARY,
+        # Issue #991: 手術記録 (operative note) — LOINC 11504-8.
+        # Fires per surgical encounter (category_code == "387713003").
+        DocumentType.OPERATIVE_NOTE,
     }
 )
 

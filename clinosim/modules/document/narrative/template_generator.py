@@ -1135,6 +1135,19 @@ class TemplateNarrativeGenerator:
             "complications_and_comorbidities": self._build_dds_complications_and_comorbidities,
             "family_communication": self._build_dds_family_communication,
             "autopsy_status_and_findings": self._build_dds_autopsy_status_and_findings,
+            # Issue #991: OPERATIVE_NOTE sections (LOINC 11504-8). Each
+            # builder scopes to the encounter's primary surgical procedure
+            # via `_primary_surgical_procedure`; missing data degrades to
+            # a fallback string rather than fabrication.
+            "op_procedure_name": self._build_op_procedure_name,
+            "op_anesthesia": self._build_op_anesthesia,
+            "op_surgeon": self._build_op_surgeon,
+            "op_findings": self._build_op_findings,
+            "op_course": self._build_op_course,
+            "op_specimens": self._build_op_specimens,
+            "op_blood_loss": self._build_op_blood_loss,
+            "op_equipment": self._build_op_equipment,
+            "op_postop_plan": self._build_op_postop_plan,
         }
 
         # P2-13 PR2a: use the JP-specific section list when country=JP so
@@ -6045,6 +6058,321 @@ class TemplateNarrativeGenerator:
         if is_ja:
             return "剖検の有無・所見: 剖検は施行せず（家族同意得られず）。", facts
         return "Autopsy status and findings: autopsy not performed (no family consent).", facts
+
+    # ─────────────────────────────────────────────────────────────────
+    # OPERATIVE_NOTE section builders (Issue #991)
+    # ─────────────────────────────────────────────────────────────────
+    #
+    # LOINC 11504-8 (Surgical operation note / 手術記録). Every builder
+    # scopes to the encounter's primary surgical ProcedureRecord (earliest
+    # by start_datetime whose category_code == "387713003"), mirroring the
+    # engine's `per_surgical_encounter` dispatch (engine.py). Missing data
+    # degrades to a conservative fallback string rather than fabricating
+    # (feedback_empty_vs_wrong_assertion).
+
+    _OP_ANESTHESIA_JA: dict[str, str] = {
+        "general": "全身麻酔",
+        "spinal": "脊髄くも膜下麻酔",
+        "epidural": "硬膜外麻酔",
+        "local": "局所麻酔",
+        "sedation": "静脈麻酔（鎮静）",
+        "regional": "区域麻酔",
+    }
+    _OP_ANESTHESIA_EN: dict[str, str] = {
+        "general": "General anesthesia",
+        "spinal": "Spinal anesthesia",
+        "epidural": "Epidural anesthesia",
+        "local": "Local anesthesia",
+        "sedation": "IV sedation",
+        "regional": "Regional anesthesia",
+    }
+    _OP_OUTCOME_JA: dict[str, str] = {
+        "385669000": "順調に終了",
+        "385670004": "部分的成功（軽度合併症あり）",
+        "385671000": "不成功",
+    }
+    _OP_OUTCOME_EN: dict[str, str] = {
+        "385669000": "successful",
+        "385670004": "partially successful (minor intraop complications)",
+        "385671000": "unsuccessful",
+    }
+    _OP_APPROACH_JA: dict[str, str] = {
+        "laparoscopic": "腹腔鏡下",
+        "open": "開腹",
+        "endovascular": "血管内",
+        "percutaneous": "経皮的",
+        "thoracoscopic": "胸腔鏡下",
+        "robotic": "ロボット支援下",
+    }
+    _OP_APPROACH_EN: dict[str, str] = {
+        "laparoscopic": "laparoscopic",
+        "open": "open",
+        "endovascular": "endovascular",
+        "percutaneous": "percutaneous",
+        "thoracoscopic": "thoracoscopic",
+        "robotic": "robotic-assisted",
+    }
+
+    def _primary_surgical_procedure(self, ctx: NarrativeContext) -> Any | None:
+        """Return the encounter's earliest surgical ProcedureRecord (or None).
+
+        Mirrors the engine's ``per_surgical_encounter`` selection: filter
+        ``ctx.procedures`` to entries whose ``encounter_id`` matches the
+        current encounter AND whose SNOMED ``category_code == "387713003"``
+        (surgical procedure), then pick the earliest by ``start_datetime``.
+        Bedside/diagnostic/therapeutic procedures never satisfy the
+        category filter, so this is safe to call on non-surgical encounters
+        (returns None). The engine's own choice of primary is deterministic
+        and independent, so template + engine agree on which procedure
+        the note describes.
+        """
+        enc_id = _o(ctx.encounter, "encounter_id", "") or ""
+        candidates = [
+            p
+            for p in (ctx.procedures or [])
+            if _o(p, "encounter_id", "") == enc_id and str(_o(p, "category_code", "") or "") == "387713003"
+        ]
+        if not candidates:
+            return None
+        return min(candidates, key=lambda p: _o(p, "start_datetime", None) or datetime(2000, 1, 1))
+
+    def _resolve_procedure_display(self, proc: Any, lang: str) -> str:
+        """Resolve procedure display via code_lookup (k-codes / cpt).
+
+        Mirrors ``clinosim/modules/output/hospital_course_extractor._resolve_procedure_name``
+        so the operative note reads the same authoritative code catalog as
+        the FHIR emit path — a single edit of the k-codes yaml updates both
+        (single-edit-point rule).
+        """
+        for key in ("procedure_code", "procedure_code_jp", "procedure_code_us"):
+            code = _o(proc, key, "") or ""
+            if not code:
+                continue
+            for system_key in ("k-codes", "cpt"):
+                disp = code_lookup(system_key, code, lang)
+                if disp and disp != code:
+                    return disp
+        return str(_o(proc, "procedure_type", "") or "")
+
+    def _build_op_procedure_name(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """術式名 — procedure code display + K/CPT code + approach modifier."""
+        is_ja = ctx.target_lang == "ja"
+        proc = self._primary_surgical_procedure(ctx)
+        if proc is None:
+            return ("術式：情報なし" if is_ja else "Procedure: not documented"), []
+        facts = ["ctx.procedures"]
+        name = self._resolve_procedure_display(proc, ctx.target_lang)
+        code = _o(proc, "procedure_code", "") or _o(proc, "procedure_code_jp", "") or _o(proc, "procedure_code_us", "")
+        approach_raw = str(_o(proc, "approach", "") or "").lower()
+        approach = (self._OP_APPROACH_JA if is_ja else self._OP_APPROACH_EN).get(approach_raw, approach_raw)
+        duration = _o(proc, "duration_minutes", 0) or 0
+        if is_ja:
+            approach_part = f"（{approach}）" if approach else ""
+            code_part = f"（コード {code}）" if code else ""
+            duration_part = f"、手術時間 {duration} 分" if duration else ""
+            return f"術式：{name}{approach_part}{code_part}{duration_part}", facts
+        approach_part = f" ({approach})" if approach else ""
+        code_part = f" (code {code})" if code else ""
+        duration_part = f"; operative time {duration} min" if duration else ""
+        return f"Procedure: {name}{approach_part}{code_part}{duration_part}", facts
+
+    def _build_op_anesthesia(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """麻酔法 — anesthesia type + ASA class + anesthesiologist."""
+        is_ja = ctx.target_lang == "ja"
+        proc = self._primary_surgical_procedure(ctx)
+        if proc is None:
+            return ("麻酔：情報なし" if is_ja else "Anesthesia: not documented"), []
+        facts = ["ctx.procedures"]
+        atype = str(_o(proc, "anesthesia_type", "") or "").lower()
+        anes_label = (self._OP_ANESTHESIA_JA if is_ja else self._OP_ANESTHESIA_EN).get(
+            atype, atype or ("記載なし" if is_ja else "not documented")
+        )
+        asa = _o(proc, "asa_class", 0) or 0
+        anes_id = _o(proc, "anesthesiologist_id", "") or ""
+        anes_name = _resolve_staff_name(anes_id, ctx.roster_map, is_ja) if anes_id else ""
+        if is_ja:
+            asa_part = f"、ASA分類 {asa}" if asa else ""
+            anes_part = f"、麻酔科医 {anes_name}" if anes_name else ""
+            return f"麻酔法：{anes_label}{asa_part}{anes_part}", facts
+        asa_part = f", ASA class {asa}" if asa else ""
+        anes_part = f", anesthesiologist {anes_name}" if anes_name else ""
+        return f"Anesthesia: {anes_label}{asa_part}{anes_part}", facts
+
+    def _build_op_surgeon(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """執刀医・助手 — primary surgeon + assistant list (name-resolved)."""
+        is_ja = ctx.target_lang == "ja"
+        proc = self._primary_surgical_procedure(ctx)
+        if proc is None:
+            return ("執刀医：情報なし" if is_ja else "Surgeon: not documented"), []
+        facts = ["ctx.procedures"]
+        surgeon_id = _o(proc, "primary_surgeon_id", "") or ""
+        surgeon_name = _resolve_staff_name(surgeon_id, ctx.roster_map, is_ja) if surgeon_id else ""
+        assistant_ids = list(_o(proc, "assistant_ids", []) or [])
+        assistant_names = [_resolve_staff_name(a, ctx.roster_map, is_ja) for a in assistant_ids if a]
+        sep = "、" if is_ja else ", "
+        if is_ja:
+            surgeon_part = f"執刀医：{surgeon_name}" if surgeon_name else "執刀医：情報なし"
+            assist_part = f"／助手：{sep.join(assistant_names)}" if assistant_names else "／助手：なし"
+            return f"{surgeon_part}{assist_part}", facts
+        surgeon_part = f"Primary surgeon: {surgeon_name}" if surgeon_name else "Primary surgeon: not documented"
+        assist_part = f" / Assistants: {sep.join(assistant_names)}" if assistant_names else " / Assistants: none"
+        return f"{surgeon_part}{assist_part}", facts
+
+    def _build_op_findings(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """術中所見 — body site + preop/postop diagnosis + intraop complications."""
+        is_ja = ctx.target_lang == "ja"
+        proc = self._primary_surgical_procedure(ctx)
+        if proc is None:
+            return ("術中所見：情報なし" if is_ja else "Intraoperative findings: not documented"), []
+        facts = ["ctx.procedures"]
+        body_site_code = _o(proc, "body_site_code", "") or ""
+        # snomed-ct is the canonical system key (loader.py). Lookup returns
+        # the code string itself when unresolved — treat that as "no display"
+        # so we never leak raw SNOMED numeric codes into the narrative.
+        body_site_disp = code_lookup("snomed-ct", body_site_code, ctx.target_lang) if body_site_code else ""
+        body_site = body_site_disp if body_site_disp and body_site_disp != body_site_code else ""
+        preop = _o(proc, "preop_diagnosis", "") or ""
+        postop = _o(proc, "postop_diagnosis", "") or ""
+        intraop = list(_o(proc, "intraop_complications", []) or [])
+        if is_ja:
+            parts = []
+            if body_site:
+                parts.append(f"手術部位：{body_site}")
+            if preop:
+                parts.append(f"術前診断：{preop}")
+            if postop and postop != preop:
+                parts.append(f"術後診断：{postop}")
+            if intraop:
+                parts.append(f"術中合併症：{'、'.join(intraop)}")
+            else:
+                parts.append("術中合併症：認めず")
+            return "／".join(parts) if parts else "術中所見：特記すべき所見なし", facts
+        parts = []
+        if body_site:
+            parts.append(f"Body site: {body_site}")
+        if preop:
+            parts.append(f"Preop diagnosis: {preop}")
+        if postop and postop != preop:
+            parts.append(f"Postop diagnosis: {postop}")
+        if intraop:
+            parts.append(f"Intraop complications: {', '.join(intraop)}")
+        else:
+            parts.append("No intraoperative complications")
+        return " / ".join(parts) if parts else "No significant intraoperative findings", facts
+
+    def _build_op_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """手術経過 — approach + duration + outcome + timing narrative."""
+        is_ja = ctx.target_lang == "ja"
+        proc = self._primary_surgical_procedure(ctx)
+        if proc is None:
+            return ("手術経過：情報なし" if is_ja else "Operative course: not documented"), []
+        facts = ["ctx.procedures"]
+        approach_raw = str(_o(proc, "approach", "") or "").lower()
+        approach = (self._OP_APPROACH_JA if is_ja else self._OP_APPROACH_EN).get(approach_raw, approach_raw)
+        duration = _o(proc, "duration_minutes", 0) or 0
+        outcome_code = str(_o(proc, "outcome_code", "") or "")
+        outcome = (self._OP_OUTCOME_JA if is_ja else self._OP_OUTCOME_EN).get(outcome_code, "")
+        start_dt = _o(proc, "start_datetime", None)
+        end_dt = _o(proc, "end_datetime", None)
+        if is_ja:
+            approach_part = f"{approach}アプローチにて" if approach else ""
+            time_part = ""
+            if isinstance(start_dt, datetime) and isinstance(end_dt, datetime):
+                time_part = f"（{start_dt.strftime('%H:%M')} 開始／{end_dt.strftime('%H:%M')} 終了）"
+            duration_part = f"、手術時間 {duration} 分" if duration else ""
+            outcome_part = f"。転帰：{outcome}" if outcome else ""
+            return f"手術経過：{approach_part}予定術式を施行{time_part}{duration_part}{outcome_part}", facts
+        approach_part = f" via a {approach} approach" if approach else ""
+        time_part = ""
+        if isinstance(start_dt, datetime) and isinstance(end_dt, datetime):
+            time_part = f" ({start_dt.strftime('%H:%M')} start / {end_dt.strftime('%H:%M')} end)"
+        duration_part = f", operative time {duration} min" if duration else ""
+        outcome_part = f". Outcome: {outcome}" if outcome else ""
+        return (
+            f"Operative course: planned procedure performed{approach_part}{time_part}{duration_part}{outcome_part}",
+            facts,
+        )
+
+    def _build_op_specimens(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """摘出臓器・組織 — specimens_sent list."""
+        is_ja = ctx.target_lang == "ja"
+        proc = self._primary_surgical_procedure(ctx)
+        if proc is None:
+            return ("摘出臓器・組織：情報なし" if is_ja else "Specimens: not documented"), []
+        facts = ["ctx.procedures"]
+        specimens = [str(s) for s in (_o(proc, "specimens_sent", []) or []) if s]
+        if not specimens:
+            return ("摘出臓器・組織：なし" if is_ja else "Specimens sent to pathology: none"), facts
+        sep = "、" if is_ja else ", "
+        if is_ja:
+            return f"摘出臓器・組織：{sep.join(specimens)}（病理検査へ提出）", facts
+        return f"Specimens sent to pathology: {sep.join(specimens)}", facts
+
+    def _build_op_blood_loss(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """出血量・輸血 — estimated_blood_loss_ml + transfusion note."""
+        is_ja = ctx.target_lang == "ja"
+        proc = self._primary_surgical_procedure(ctx)
+        if proc is None:
+            return ("出血量：情報なし" if is_ja else "Blood loss: not documented"), []
+        facts = ["ctx.procedures"]
+        ebl = _o(proc, "estimated_blood_loss_ml", 0) or 0
+        # Transfusion inference: check ctx.procedures for a blood_transfusion
+        # ProcedureRecord in the same encounter (K920 / procedure_type
+        # "blood_transfusion" from clinosim.modules.procedure.engine).
+        enc_id = _o(ctx.encounter, "encounter_id", "") or ""
+        transfused = any(
+            (
+                _o(p, "encounter_id", "") == enc_id
+                and str(_o(p, "procedure_type", "") or "").lower() == "blood_transfusion"
+            )
+            for p in (ctx.procedures or [])
+        )
+        if is_ja:
+            transfusion_part = "、術中輸血あり" if transfused else "、術中輸血なし"
+            return f"推定出血量：{ebl} mL{transfusion_part}", facts
+        transfusion_part = "; intraoperative transfusion given" if transfused else "; no intraoperative transfusion"
+        return f"Estimated blood loss: {ebl} mL{transfusion_part}", facts
+
+    def _build_op_equipment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """使用機器・材料 — implants_used list."""
+        is_ja = ctx.target_lang == "ja"
+        proc = self._primary_surgical_procedure(ctx)
+        if proc is None:
+            return ("使用機器・材料：情報なし" if is_ja else "Equipment: not documented"), []
+        facts = ["ctx.procedures"]
+        implants = [str(x) for x in (_o(proc, "implants_used", []) or []) if x]
+        if not implants:
+            return (
+                "使用機器・材料：特記すべきインプラント・器材使用なし" if is_ja else "Implants / devices: none"
+            ), facts
+        sep = "、" if is_ja else ", "
+        if is_ja:
+            return f"使用機器・材料：{sep.join(implants)}", facts
+        return f"Implants / devices used: {sep.join(implants)}", facts
+
+    def _build_op_postop_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """術後方針 — recovery destination + monitoring plan (derived)."""
+        is_ja = ctx.target_lang == "ja"
+        proc = self._primary_surgical_procedure(ctx)
+        if proc is None:
+            return ("術後方針：情報なし" if is_ja else "Postoperative plan: not documented"), []
+        facts = ["ctx.procedures"]
+        enc_type_raw = _o(ctx.encounter, "encounter_type", None)
+        enc_type = str(_o(enc_type_raw, "value", enc_type_raw) or "").lower()
+        outcome_code = str(_o(proc, "outcome_code", "") or "")
+        intraop = list(_o(proc, "intraop_complications", []) or [])
+        # Recovery destination: ICU/high-acuity or general ward
+        icu_flag = enc_type == "icu" or bool(intraop) or outcome_code == "385670004"
+        if is_ja:
+            dest = "ICUにて全身管理" if icu_flag else "病棟にて経過観察"
+            monitor = "バイタルサイン・尿量・創部所見を頻回に観察し、術後合併症の早期発見に努める。"
+            return f"術後方針：{dest}。{monitor}", facts
+        dest = "ICU-level monitoring" if icu_flag else "ward-level monitoring"
+        monitor = (
+            "Vital signs, urine output, and wound assessment will be checked at frequent intervals "
+            "to detect postoperative complications early."
+        )
+        return f"Postoperative plan: {dest}. {monitor}", facts
 
     # ─────────────────────────────────────────────────────────────────
     # Formatting helpers
