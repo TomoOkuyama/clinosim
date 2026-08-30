@@ -104,7 +104,45 @@ def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
     pharmacist_ids = sorted(
         sid for sid, staff in (ctx.roster_map or {}).items() if (staff.get("role", "") or "") == "pharmacist"
     )
-    return [_build_care_team(enc, patient_id, lang, pharmacist_ids, ctx.country) for enc in encounters]
+    # Issue #915: allied-health participants (PT / OT / ST / RD / MSW +
+    # rehabilitation MD consult) — multi-disciplinary CareTeam expansion.
+    # Pre-fix, these staff appeared in Practitioner.ndjson but were never
+    # referenced by any clinical resource. Real inpatient wards routinely
+    # include rehab (PT/OT/ST), dietitian, social-work, and rehab-MD
+    # consult — especially for LOS > 7d, orthopedic / neurology
+    # admissions, and discharge planning. Selection uses the same
+    # encounter-id hash pattern as pharmacist_ids so re-generation is
+    # byte-identical (AD-16 / RNG-neutral additive per
+    # feedback_rng_neutral_additive_field). Attendance is deterministic
+    # per-role using a role-name salt so different roles don't co-vary
+    # on the same encounter.
+    #
+    # Rehabilitation physicians (DR-RE-*) are physicians by role but
+    # participate as a consult member of the inpatient team — the ward
+    # attending is still the disease-specialty MD (orthopedics for hip
+    # fracture, neurology for stroke); the rehab MD signs off on the
+    # rehab plan. Filtering the physician list to
+    # ``department == 'rehabilitation'`` isolates them from the general
+    # attending pool.
+    allied_ids_by_role: dict[str, list[str]] = {}
+    for role_name in (
+        "physical_therapist",
+        "occupational_therapist",
+        "speech_therapist",
+        "dietitian",
+        "medical_social_worker",
+    ):
+        allied_ids_by_role[role_name] = sorted(
+            sid for sid, staff in (ctx.roster_map or {}).items() if (staff.get("role", "") or "") == role_name
+        )
+    allied_ids_by_role["rehab_physician"] = sorted(
+        sid
+        for sid, staff in (ctx.roster_map or {}).items()
+        if (staff.get("role", "") or "") == "physician" and (staff.get("department", "") or "") == "rehabilitation"
+    )
+    return [
+        _build_care_team(enc, patient_id, lang, pharmacist_ids, ctx.country, allied_ids_by_role) for enc in encounters
+    ]
 
 
 def _build_care_team(
@@ -113,6 +151,7 @@ def _build_care_team(
     lang: str,
     pharmacist_ids: list[str] | None = None,
     country: str = "US",
+    allied_ids_by_role: dict[str, list[str]] | None = None,
 ) -> dict[str, Any]:
     """Build one FHIR R4 CareTeam resource from an Encounter (dataclass or dict)."""
     encounter_id = _o(encounter, "encounter_id", "") or ""
@@ -189,6 +228,52 @@ def _build_care_team(
                 "member": {"reference": f"Practitioner/{pharmacist_ids[idx]}"},
             }
         )
+
+    # Issue #915: allied-health participants for inpatient encounters —
+    # physical therapist, occupational therapist, speech-language therapist,
+    # dietitian, medical social worker. Pre-fix, these staff were generated
+    # in Practitioner.ndjson (via `_bb_practitioners` allied-health block)
+    # but never referenced by any clinical resource — the whole allied-
+    # health slice of the hospital roster was dead weight to any FHIR
+    # consumer. Real inpatient encounters routinely involve rehab (PT/OT/
+    # ST), dietary, and social-work interventions; JP multi-disciplinary
+    # care (多職種連携) is spec-mandated for long-stay admissions. Selection
+    # uses encounter-id hash salted by role name so different roles pick
+    # different allied-health staff on the same encounter (AD-16 byte-
+    # deterministic, master RNG un-consumed).
+    #
+    # SNOMED role codes verified against tx.fhir.org SNOMED International
+    # 2026-06-01 loadout (see care_team.py L74 header for the tx
+    # provenance): 36682004 = "Physiotherapist", 80546007 =
+    # "Occupational therapist", 159026005 = "Speech and language
+    # therapist", 159033005 = "Dietitian", 106328005 = "Social worker".
+    _allied_role_specs = (
+        ("physical_therapist", "36682004", "Physiotherapist", "理学療法士"),
+        ("occupational_therapist", "80546007", "Occupational therapist", "作業療法士"),
+        ("speech_therapist", "159026005", "Speech and language therapist", "言語聴覚士"),
+        ("dietitian", "159033005", "Dietitian", "管理栄養士"),
+        ("medical_social_worker", "106328005", "Social worker", "医療ソーシャルワーカー"),
+        # Rehabilitation physician (リハビリテーション科医) — consult member,
+        # not primary attending; uses SNOMED 309362007 "Rehabilitation
+        # physician" (verified via tx.fhir.org 2026-06-01 loadout).
+        ("rehab_physician", "309362007", "Rehabilitation physician", "リハビリテーション科医"),
+    )
+    if allied_ids_by_role and enc_type in ("inpatient", "icu", "rehab_inpatient"):
+        for role_name, snomed_code, en_display, ja_display in _allied_role_specs:
+            pool = allied_ids_by_role.get(role_name, [])
+            if not pool:
+                continue
+            # Salt the hash with role name so distinct roles pick distinct
+            # staff on the same encounter — otherwise two roles with equal
+            # pool size would always co-select the same index.
+            hash_key = f"{role_name}:{encounter_id}"
+            idx = sum(ord(c) for c in hash_key) % len(pool)
+            participants.append(
+                {
+                    "role": _role_coding(snomed_code, en_display, ja_display),
+                    "member": {"reference": f"Practitioner/{pool[idx]}"},
+                }
+            )
 
     # Issue #854 Bucket B (PR-care-team): opaque CareTeam.id.
     # Structural key = pre-#854 id body = encounter_id.

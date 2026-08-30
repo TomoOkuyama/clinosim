@@ -192,8 +192,24 @@ def generate_roster(
         **DOCTORS_PER_DEPT_FIXED,
     }
 
+    # Issue #915: allied-health-only service lines (nutrition,
+    # medical_social_work) are staffed by dietitians / social workers,
+    # not physicians. Pre-fix, ``DEFAULT_DOCTORS_PER_DEPT`` (=2) MDs were
+    # generated for these departments (DR-NU-*, DR-ME-*) but no
+    # simulator path ever picks them as attending — they became
+    # perpetually-unreferenced Practitioner resources. Skip physician
+    # generation for these depts; the RD/MSW allied-health blocks below
+    # still populate the roster with appropriate professionals.
+    #
+    # ``rehabilitation`` keeps its 2 rehab MDs (リハビリテーション科医 do
+    # exist as attending clinicians in JP hospitals) — they get
+    # referenced via the CareTeam allied-health / rehab expansion.
+    _physician_skip_depts = frozenset({"nutrition", "medical_social_work"})
+
     physician_counters: dict[str, int] = {}
     for dept in available:
+        if dept in _physician_skip_depts:
+            continue
         count = doctors_per_dept.get(dept, DEFAULT_DOCTORS_PER_DEPT)
         physician_counters[dept] = 0
         for i in range(count):
