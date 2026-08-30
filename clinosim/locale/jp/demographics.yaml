@@ -123,13 +123,16 @@ chronic_prevalence:
     "50-74": 0.015
     "75-99": 0.09
   I25:      # Ischemic heart disease — JCS 50+ 3%, 70+ 10%
-    # p=1000 seed=500 JP audit (2026-08-30): observed 70+ 16.7-18.8% under the
-    # marginal-preserving engine (v0.5.0) after care-seeking amplification;
-    # dropped 0.10 → 0.06 so the emitted marginal lands near the 冠動脈疾患
-    # 70+ 10% JCS 2018 benchmark. Mirror in scripts/audit_realworld_stats_jp.py
+    # p=1000 seed=500 JP audit (2026-08-30): observed 70+ 15.3% at yaml 0.06,
+    # 12.0% at 0.04, 11.1% at 0.03 under the marginal-preserving engine
+    # (v0.5.0). Care-seeking amplification measured ~3× (not 1.7× as originally
+    # assumed), and is non-linear at low base rates (diminishing returns
+    # below 0.04). Further-tuned 0.06 → 0.04 to land the emitted marginal at
+    # 12.0%, close to the 冠動脈疾患 70+ 10% JCS 2018 benchmark and within
+    # the JCS 2018 5-15% range. Mirror in scripts/audit_realworld_stats_jp.py
     # CHRONIC_CONFIG_TARGETS_JP.
     "50-69": 0.03
-    "70-99": 0.06
+    "70-99": 0.04
   M81:      # Osteoporosis — sex-neutral: 60+ 15%, 70+ 25% (JOS)
     "60-69": 0.15
     "70-99": 0.25
