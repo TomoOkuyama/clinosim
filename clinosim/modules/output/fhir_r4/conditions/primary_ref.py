@@ -93,6 +93,20 @@ def chronic_condition_key(patient_id: str, idx: int) -> str:
     return f"chronic-{patient_id}-{idx:02d}"
 
 
+def encounter_admission_condition_key(patient_id: str, encounter_id: str) -> str:
+    """Structural key for an encounter's admission-diagnosis Condition.
+
+    Issue #912: emitted alongside the encounter-primary (discharge) Condition
+    when the admission diagnosis differs from both the discharge diagnosis and
+    every chronic Condition of the patient — so ``Encounter.reasonCode`` has a
+    concrete linked ``Condition`` in ``Encounter.diagnosis[]`` rather than a
+    text-only mismatch.
+    """
+    if encounter_id:
+        return f"{encounter_id}-admission"
+    return f"{patient_id}-admission"
+
+
 def encounter_primary_condition_id(patient_id: str, encounter_id: str) -> str:
     """Return the opaque Condition.id for an encounter's primary diagnosis."""
     return _resolve_condition_id(encounter_primary_condition_key(patient_id, encounter_id))
@@ -101,6 +115,66 @@ def encounter_primary_condition_id(patient_id: str, encounter_id: str) -> str:
 def chronic_condition_id(patient_id: str, idx: int) -> str:
     """Return the opaque Condition.id for the ``idx``-th chronic condition."""
     return _resolve_condition_id(chronic_condition_key(patient_id, idx))
+
+
+def encounter_admission_condition_id(patient_id: str, encounter_id: str) -> str:
+    """Return the opaque Condition.id for an encounter's admission diagnosis
+    (Issue #912). See :func:`encounter_admission_condition_key`."""
+    return _resolve_condition_id(encounter_admission_condition_key(patient_id, encounter_id))
+
+
+def needs_admission_diagnosis_condition(
+    admit_dx_code: str,
+    primary_dx_code: str,
+    chronic_condition_codes: list[str] | None,
+) -> bool:
+    """Return True when the admission dx should be emitted as its own Condition.
+
+    Issue #912 invariant: ``Encounter.reasonCode`` (which encodes
+    ``admit_dx_code``) MUST have a matching ``Condition`` referenced from
+    ``Encounter.diagnosis[]``. The encounter-primary Condition encodes the
+    discharge dx (``primary_dx_code``) and any chronic Conditions encode the
+    patient's ongoing problems. When ``admit_dx_code`` matches none of those,
+    the reason is orphaned — pre-fix 45.4% of IMP encounters (Issue #912
+    reproduction).
+
+    Fix: emit an extra Condition for the admission dx and reference it as
+    ``diagnosis[].use = AD``. Returns False when the admission code already
+    round-trips via the primary or chronic Conditions (no fabrication needed).
+
+    ## Chronic-primary suppression awareness
+
+    ``_build_conditions`` suppresses the encounter-primary Condition when the
+    primary's ICD base matches a chronic's base (``is_chronic_primary``) — the
+    chronic Condition then carries the encounter diagnosis. In that case the
+    codes actually present in ``Encounter.diagnosis[]`` are the chronic codes
+    only, NOT ``primary_dx_code``. Example: COPD-exacerbation admission emits
+    ``admit_dx=J44.1``, ``primary_dx=J44.1``, chronic=[``J44``] — the
+    encounter-primary is suppressed, chronic J44 is what appears in
+    ``diagnosis[]``, and ``reasonCode=J44.1`` has NO matching Condition without
+    this helper firing. So the check compares ``admit_dx`` against the set of
+    codes actually emitted, not against ``primary_dx_code`` alone.
+
+    Codes are compared exact-match — chronic Conditions emit their raw
+    ``chronic_conditions[].code`` and the encounter-primary Condition emits
+    ``primary_dx_code`` (both via ``map_diagnosis_code`` for locale). Callers
+    should pre-map both inputs before calling; JP mapping is identity for WHO
+    codes so raw-input calls still work in most cases.
+    """
+    if not admit_dx_code:
+        return False
+    chronic_codes = [c for c in (chronic_condition_codes or []) if c]
+    chronic_bases = {c.split(".")[0] for c in chronic_codes}
+    # Codes actually emitted as Conditions in this patient's record.
+    codes_in_conditions: set[str] = set(chronic_codes)
+    primary_base = (primary_dx_code or "").split(".")[0]
+    # Encounter-primary Condition is emitted only when its base does NOT match
+    # a chronic base (see ``is_chronic_primary`` / ``_build_conditions``).
+    if primary_dx_code and primary_base and primary_base not in chronic_bases:
+        codes_in_conditions.add(primary_dx_code)
+    if admit_dx_code in codes_in_conditions:
+        return False
+    return True
 
 
 def _icd_base(code: str) -> str:

@@ -15,8 +15,11 @@ import pytest
 
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     chronic_condition_id,
+    encounter_admission_condition_id,
+    encounter_admission_condition_key,
     encounter_primary_condition_id,
     is_chronic_primary,
+    needs_admission_diagnosis_condition,
     primary_condition_ref,
     primary_condition_ref_from_codes,
 )
@@ -100,6 +103,54 @@ def test_from_codes_variant_handles_none_and_empty() -> None:
     assert primary_condition_ref_from_codes("", ["I10"], "PAT", "ENC-1") == encounter_primary_condition_id(
         "PAT", "ENC-1"
     )
+
+
+def test_needs_admission_condition_when_admit_matches_primary() -> None:
+    """Same admit and primary code with no chronic mismatch → no extra
+    Condition needed; the encounter-primary Condition already carries
+    ``admit_dx_code``."""
+    assert not needs_admission_diagnosis_condition("A41.9", "A41.9", [])
+    assert not needs_admission_diagnosis_condition("A41.9", "A41.9", ["I10"])
+
+
+def test_needs_admission_condition_when_admit_in_chronic_list() -> None:
+    """Admit code already emitted verbatim as a chronic Condition → skip."""
+    assert not needs_admission_diagnosis_condition("J44", "J44", ["J44"])
+
+
+def test_needs_admission_condition_when_chronic_suppresses_primary() -> None:
+    """Issue #912: COPD exacerbation admission — admit=J44.1, primary=J44.1,
+    chronic=[J44]. ``is_chronic_primary`` suppresses the encounter-primary
+    Condition (base J44 matches chronic base), so ``diagnosis[]`` only
+    carries the chronic ``J44`` — the leaf ``J44.1`` reasonCode is
+    orphaned. The helper must emit an admission Condition."""
+    assert needs_admission_diagnosis_condition("J44.1", "J44.1", ["J44"])
+
+
+def test_needs_admission_condition_when_discharge_differs_and_chronic_carries_it() -> None:
+    """Pyelonephritis admission with renal-stone discharge dx — admit=N10,
+    primary=N20.0, chronic=[N20.0, Z09]. ``diagnosis[]`` carries the
+    chronic N20.0 (which shadows the encounter-primary via base N20 →
+    is_chronic_primary), so N10 has no matching Condition."""
+    assert needs_admission_diagnosis_condition("N10", "N20.0", ["N20.0", "Z09"])
+
+
+def test_needs_admission_condition_returns_false_when_admit_missing() -> None:
+    assert not needs_admission_diagnosis_condition("", "J18.9", ["I10"])
+    assert not needs_admission_diagnosis_condition(None, "J18.9", ["I10"])  # type: ignore[arg-type]
+
+
+def test_admission_condition_id_stable_and_distinct_from_primary() -> None:
+    """Admission id is deterministic and never collides with the primary id
+    for the same (patient, encounter). Downstream cross-references
+    (Encounter.diagnosis[].condition on the AD entry) rely on both."""
+    admit = encounter_admission_condition_id("PAT", "ENC-1")
+    primary = encounter_primary_condition_id("PAT", "ENC-1")
+    assert admit != primary
+    assert admit == encounter_admission_condition_id("PAT", "ENC-1")  # deterministic
+    # Structural key preserves the encounter id for round-trip
+    assert encounter_admission_condition_key("PAT", "ENC-1") == "ENC-1-admission"
+    assert encounter_admission_condition_key("PAT", "") == "PAT-admission"
 
 
 def test_string_chronic_entry() -> None:

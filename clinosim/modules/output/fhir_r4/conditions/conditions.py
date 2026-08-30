@@ -15,8 +15,11 @@ from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     CONDITION_KEY_SYSTEM,
     chronic_condition_id,
     chronic_condition_key,
+    encounter_admission_condition_id,
+    encounter_admission_condition_key,
     encounter_primary_condition_id,
     encounter_primary_condition_key,
+    needs_admission_diagnosis_condition,
 )
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     is_chronic_primary as _encounter_primary_is_chronic,
@@ -139,6 +142,12 @@ _EX_DIAGNOSISTYPE_SYSTEM = "http://terminology.hl7.org/CodeSystem/ex-diagnosisty
 _DIAGNOSIS_TYPE_DISPLAY_EN = {
     "principal": "Principal Diagnosis",
     "clinical": "Clinical Diagnosis",
+    # Issue #912: admitting-diagnosis Condition emitted alongside the
+    # principal (discharge) Condition when the admission dx differs from the
+    # discharge dx and from every chronic Condition — carries the
+    # ``Encounter.reasonCode`` code so the invariant
+    # ``reasonCode ⊆ diagnosis[].condition.code`` holds.
+    "admitting": "Admitting Diagnosis",
 }
 
 
@@ -440,6 +449,121 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             cond["bodySite"] = [_bs]
 
         conditions.append(cond)
+
+    # --- Admission diagnosis (Issue #912) ---
+    # When ``clinical_diagnosis.admission_diagnosis_code`` differs from the
+    # discharge/primary dx AND from every chronic Condition, the admission dx
+    # was previously only carried as a text-only ``Encounter.reasonCode`` with
+    # NO matching ``Condition`` in the patient record — 45.4% of IMP encounters
+    # at seed=500 p=1000 (pyelonephritis-admitted patients whose workup landed
+    # on renal-stone as the discharge dx; COPD-exacerbation-admitted patients
+    # whose diagnosis[] linked to chronic COPD Condition; pneumonia-admitted
+    # patients whose diagnosis[] linked to a more specific pneumococcal
+    # pneumonia Condition; etc.). Fix: emit an ``AD`` Condition so the
+    # invariant ``reasonCode ⊆ diagnosis[].condition.code`` holds. The
+    # encounter builder mirrors this decision (same helper) to add the
+    # ``diagnosis[].use=AD`` entry that references this Condition.
+    _admit_dx_code_raw = dx.get("admission_diagnosis_code", "") or ""
+    _primary_dx_code_raw = dx.get("discharge_diagnosis_code") or _admit_dx_code_raw
+    _chronic_codes_raw = [
+        _cc if isinstance(_cc, str) else (get_attr_or_key(_cc, "code", "") or "") for _cc in chronic_list
+    ]
+    _chronic_codes_raw = [c for c in _chronic_codes_raw if c]
+    _admit_mapped_check = map_diagnosis_code(_admit_dx_code_raw, country) if _admit_dx_code_raw else ""
+    _primary_mapped_check = map_diagnosis_code(_primary_dx_code_raw, country) if _primary_dx_code_raw else ""
+    _chronic_mapped_check = [map_diagnosis_code(_c, country) for _c in _chronic_codes_raw]
+    if encounter_id and (
+        needs_admission_diagnosis_condition(_admit_dx_code_raw, _primary_dx_code_raw, _chronic_codes_raw)
+        or needs_admission_diagnosis_condition(_admit_mapped_check, _primary_mapped_check, _chronic_mapped_check)
+    ):
+        _admit_mapped = _admit_mapped_check
+        # NOTE: intentionally do not add ``_admit_mapped``'s ICD base to
+        # ``seen_codes`` — the admission Condition carries a distinct ICD code
+        # (e.g. J44.1 COPD exacerbation vs J44 chronic COPD on the chronic
+        # entry, or vs J44.0 on the encounter-primary entry). Leaving the base
+        # out of ``seen_codes`` keeps both rows for the same-base cases (three
+        # rows for COPD-exacerbation admissions with chronic COPD carriers:
+        # primary J44.0 / admission J44.1 / chronic J44), which is the desired
+        # audit trail.
+        _admit_structural_key = encounter_admission_condition_key(patient_id, encounter_id)
+        _admit_cond: dict[str, Any] = {
+            "resourceType": "Condition",
+            "id": encounter_admission_condition_id(patient_id, encounter_id),
+            "identifier": [wrap_as_identifier(_admit_structural_key, CONDITION_KEY_SYSTEM)],
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
+                if is_jp(country_code)
+                else {}
+            ),
+            **({"extension": [_ecs_diagnosis_type_extension("admitting")]} if is_jp(country_code) else {}),
+            # Admission dx is the working diagnosis at admission — during the
+            # stay it may be refined or resolved. Encode as ``active`` until
+            # the encounter completes; ``resolved`` at discharge (same rule as
+            # the encounter-primary path above for non-chronic, non-deceased).
+            "clinicalStatus": {
+                "coding": [
+                    _coding_with_display(
+                        "hl7-condition-clinical",
+                        "resolved" if (is_inpatient and discharge_dt and not deceased) else "active",
+                        lang,
+                    )
+                ],
+            },
+            "verificationStatus": {
+                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
+            },
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-condition-category"),
+                            "code": "encounter-diagnosis",
+                            "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
+                        }
+                    ],
+                }
+            ],
+            "code": build_diagnosis_codeable_concept(_admit_mapped, icd_system_key, country),
+            "subject": patient_ref(patient_id),
+        }
+        # Override ``code.text`` with the code's full-granularity display so
+        # ``Condition.code.text`` == ``Encounter.reasonCode.text`` (Issue #912
+        # audit's substring rule requires the two ``text`` slots to overlap —
+        # short-name lookup in ``build_diagnosis_codeable_concept`` folds to
+        # the ICD base and so returns e.g. "COPD" for J44.1, not the leaf
+        # "COPD急性増悪" that reasonCode carries). Only replaces when a
+        # distinct leaf display exists; otherwise leaves the short-name text
+        # in place (backwards-compatible).
+        _leaf_display = code_lookup(icd_system_key, _admit_mapped, lang) if _admit_mapped else ""
+        if _leaf_display and _leaf_display != _admit_mapped:
+            _admit_cond["code"]["text"] = _leaf_display
+        if encounters:
+            _admit_cond["encounter"] = encounter_ref(encounters[0].get("encounter_id", ""))
+            _att = encounters[0].get("attending_physician_id", "") or encounters[0].get("admitting_physician_id", "")
+            if _att:
+                _admit_cond["recorder"] = {"reference": f"Practitioner/{_att}"}
+                _admit_cond["asserter"] = {"reference": f"Practitioner/{_att}"}
+        if admission_dt:
+            _admit_cond["onsetDateTime"] = to_fhir_datetime(admission_dt)
+            _admit_cond["recordedDate"] = _admit_cond["onsetDateTime"]
+        if is_inpatient and discharge_dt and not deceased:
+            _admit_cond["abatementDateTime"] = to_fhir_datetime(discharge_dt)
+        _bs_admit = _bodysite_for(_admit_dx_code_raw, country)
+        if _bs_admit:
+            _admit_cond["bodySite"] = [_bs_admit]
+        # Text-only evidence label consistent with the encounter-primary path.
+        _admit_cond["evidence"] = [
+            {
+                "code": [
+                    {
+                        "text": "入院時所見および初期評価"
+                        if is_jp(country_code)
+                        else "Admission presentation and initial assessment"
+                    }
+                ],
+            }
+        ]
+        conditions.append(_admit_cond)
 
     # --- Chronic conditions (from patient profile) ---
     for i, chronic in enumerate(chronic_list):
