@@ -369,6 +369,13 @@ class NarrativePass(ABC):
             # template renderers can substitute staff-ids → names before
             # the text reaches the LLM.
             roster_map=self.roster_map,
+            # Issue #981 — expose the encounter's orders (per-encounter
+            # CIF file already filters to one encounter) so `_build_ed_workup`
+            # can enumerate labs / imaging actually placed in the ED.
+            orders=list(patient_dict.get("orders", []) or []),
+            # Issue #982 — expose family_history for the narrative walker
+            # (was previously ignored → 100% "特記家族歴なし" placeholder).
+            family_history=list(patient_dict.get("family_history", []) or []),
         )
         ctx.narrative_spine = build_narrative_spine(
             disease_protocol,

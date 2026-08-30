@@ -30,6 +30,10 @@ import yaml
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
+# Narrative-scoped reference data (Issue #983 chief_complaint_variants et al).
+# Kept beside `narrative/template_generator.py` because the content is
+# narrative-only (not consumed by FHIR or enrichment paths).
+_NARRATIVE_REF_DIR = _HERE / "narrative" / "reference_data"
 
 # Required top-level keys for baseline and the minimum archetype.
 _PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE = "uncomplicated_improvement"
@@ -237,3 +241,51 @@ def load_hpi_pertinent_negatives() -> dict[str, list[str]]:
         if cleaned:
             out[str(disease_id)] = cleaned
     return out
+
+
+# ─────────────────────────────────────────────────────────────────
+# chief_complaint_variants.yaml (Issue #983)
+# ─────────────────────────────────────────────────────────────────
+
+
+def _validate_chief_complaint_variants(data: dict[str, Any]) -> None:
+    """Fail-loud validation of chief_complaint_variants.yaml.
+
+    Layer 1: empty top-level guard
+    Layer 2: missing 'variants' top-level key
+    Layer 3: 'variants' is a non-empty mapping
+    Layer 4: each disease_id → non-empty list[str]
+    Layer 5: every variant entry is a non-empty JP string
+    """
+    if not data:
+        raise ValueError("chief_complaint_variants.yaml: empty top-level")
+
+    if "variants" not in data:
+        raise ValueError("chief_complaint_variants.yaml: missing 'variants' key")
+
+    variants = data["variants"]
+    if not variants or not isinstance(variants, dict):
+        raise ValueError("chief_complaint_variants.yaml: 'variants' is empty or not a mapping")
+
+    for disease_id, pool in variants.items():
+        if not pool or not isinstance(pool, list):
+            raise ValueError(f"chief_complaint_variants.yaml: variants[{disease_id!r}] must be a non-empty list")
+        for i, entry in enumerate(pool):
+            if not isinstance(entry, str) or not entry.strip():
+                raise ValueError(
+                    f"chief_complaint_variants.yaml: variants[{disease_id!r}][{i}] must be a non-empty string"
+                )
+
+
+@lru_cache(maxsize=1)
+def load_chief_complaint_variants() -> dict[str, list[str]]:
+    """Load chief_complaint_variants.yaml + validate. Cached singleton.
+
+    Returns ``{disease_id: [variant_ja, ...]}`` — flattened for O(1) lookup
+    at narrative-build time (Issue #983). JP-only by design; US narrative
+    keeps the existing single canonical CC (English disease_protocol chain).
+    """
+    with (_NARRATIVE_REF_DIR / "chief_complaint_variants.yaml").open() as f:
+        data: dict[str, Any] = yaml.safe_load(f)
+    _validate_chief_complaint_variants(data)
+    return dict(data["variants"])

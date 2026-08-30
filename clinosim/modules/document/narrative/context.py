@@ -67,4 +67,10 @@ def build_narrative_context(
         # narrative regen without a hospital.json) — template renderers
         # fall back to raw ids in that case.
         roster_map=roster_map or {},
+        # Issue #981 — surface encounter orders for ED workup rendering.
+        # `record.orders` (per-encounter file) already scopes to one
+        # encounter, so no additional filtering is needed here.
+        orders=_o(record, "orders", []) or [],
+        # Issue #982 — surface family_history for narrative rendering.
+        family_history=_o(record, "family_history", []) or [],
     )
