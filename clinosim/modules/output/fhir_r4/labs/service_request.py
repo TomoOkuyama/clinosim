@@ -169,6 +169,157 @@ def _o(order: Any, name: str, default: Any = None) -> Any:
     return get_attr_or_key(order, name, default)
 
 
+def _to_naive_iso(dt: Any) -> str:
+    """Return a naive ISO-8601 string (no TZ) from a datetime obj or string.
+
+    Issue #971 helper. Mirrors the pre-TZ-suffix form used by the PR #970
+    MA/MR clamp so `_clamp_authored_to_earliest_report` can compare naive
+    values lexically (chronological ordering == lexical ordering for
+    same-shape ``YYYY-MM-DDTHH:MM:SS[.ffffff]`` strings).
+    """
+    if dt is None or dt == "":
+        return ""
+    if hasattr(dt, "isoformat"):
+        # datetime / date object — .isoformat() is naive when tzinfo is None
+        # (production CIF stores naive datetimes; TZ is appended at emit
+        # time by `to_fhir_datetime` / `to_fhir_instant`).
+        return dt.isoformat()
+    s = str(dt)
+    if len(s) >= 11 and s[10] == " ":
+        s = s[:10] + "T" + s[11:]
+    # Strip any TZ suffix (defensive — CIF-side ordered_datetime values are
+    # naive today, but future serialization changes should not silently break
+    # the naive-form assumption of the lexical compare below).
+    if s.endswith("Z"):
+        return s[:-1]
+    if len(s) >= 20:
+        for _sep in ("+", "-"):
+            _at = s.find(_sep, 19)
+            if _at >= 0:
+                return s[:_at]
+    return s
+
+
+def _clamp_authored_to_earliest_report(authored_naive: str, earliest_dr_issued: str) -> str:
+    """Return an ``authoredOn`` value guaranteed to be ≤ the earliest linked DR.
+
+    Issue #971 (sibling of #967). Mirror of ``_clamp_authored_to_earliest_admin``
+    in ``clinosim/modules/output/fhir_r4/medications/medications.py``: when any
+    linked ``DiagnosticReport`` carries an ``issued`` timestamp earlier than
+    the naive ``ordered_datetime``, pull ``ServiceRequest.authoredOn`` back to
+    ``(min DR.issued − 1 minute)`` so the temporal invariant
+    ``SR.authoredOn ≤ min(DR.issued)`` holds.
+
+    Root cause (parallel to #967 for MR ↔ MA):
+
+    - Lab-panel DRs default ``DR.issued`` to ``group.bucket + T00:00:00``
+      (date-only, derived from ``result_datetime[:10]``) because ``clinosim``
+      has no separate report-signing timestamp for lab panels — see
+      ``build_dr_resource(..., issued=None, ...)`` in ``diagnostic_report.py``.
+    - ``SR.authoredOn`` comes from the real ``Order.ordered_datetime`` (mid-day
+      timestamp for most acute orders), so for any lab SR whose order was
+      placed after 00:00 on the result day, ``authoredOn > DR.issued`` —
+      2,592 records in JP p=1000 s500.
+
+    Fixing at the DR-issued source (assigning a real report-signing time)
+    would drift the CIF and cascade the RNG (MINOR-bump per
+    ``feedback_versioning_policy_cif_narrative_consistency``). The invariant
+    belongs at the emit layer per
+    ``feedback_fhir_emit_bug_no_direct_patch`` — this clamp keeps CIF
+    ``ordered_datetime`` unchanged, only the emitted ``authoredOn`` moves.
+
+    Lexical compare is safe here: both values are naive ISO-8601 strings
+    (``YYYY-MM-DDTHH:MM:SS[.ffffff]``) — TZ suffix is appended downstream by
+    ``to_fhir_datetime`` / ``to_fhir_instant``, not by the builders. Same
+    TZ-less shape → the string ordering matches the chronological ordering.
+    """
+    if not authored_naive:
+        return earliest_dr_issued or ""
+    if not earliest_dr_issued:
+        return authored_naive
+    if earliest_dr_issued >= authored_naive:
+        return authored_naive
+    from datetime import datetime as _dt
+    from datetime import timedelta as _td
+
+    for _fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"):
+        try:
+            _parsed = _dt.strptime(earliest_dr_issued, _fmt)
+        except ValueError:
+            continue
+        return (_parsed - _td(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S")
+    # Unparseable value — better to emit the raw earliest_dr_issued than to
+    # keep the known-wrong authored_naive, so the invariant still holds.
+    return earliest_dr_issued
+
+
+def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str, str]:
+    """Return ``{sr_id: earliest linked DR.issued}`` as naive ISO strings.
+
+    Issue #971 helper. Mirrors the DR emit paths in ``diagnostic_report.py``
+    so the clamp compares like-for-like with what will actually be emitted:
+
+    - Lab panel DRs (``build_dr_resource``): ``issued`` fallback (the
+      ``issued=None`` caller path) → ``to_fhir_instant(group.bucket)`` =
+      ``YYYY-MM-DDT00:00:00 + TZ``. Naive equivalent = ``bucket + T00:00:00``.
+      SR ids per group via ``_sr_ids_for_group`` (same helper the DR writer
+      uses, so the map keys match by construction).
+    - Radiology DRs (``_build_radiology_dr``): ``issued = started_datetime``
+      (ImagingStudyRecord field). SR id via ``_resolve_service_request_id
+      (order_id)`` (imaging = 1 Order = 1 SR).
+
+    Lazy import of ``diagnostic_report`` internals avoids the circular
+    back-edge (``diagnostic_report`` already imports ``build_panel_counter`` /
+    ``order_to_sr_id`` from this module).
+
+    ``primary_enc_id`` gates the lab side because ``build_lab_panel_reports``
+    itself only walks ``ctx.primary_enc_id`` — mirroring that scope keeps the
+    map from clamping SRs whose orders never actually reach a DR.
+    """
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
+        _sr_ids_for_group,
+        group_lab_orders,
+    )
+
+    out: dict[str, str] = {}
+    orders = record.get("orders", []) or []
+
+    # Lab side — panel-group DRs (issued fallback = bucket midnight).
+    if primary_enc_id:
+        lab_orders = [o for o in orders if _o(o, "order_type") in (OrderType.LAB, "lab")]
+        if lab_orders:
+            panel_counter = build_panel_counter(lab_orders)
+            groups = group_lab_orders(orders, primary_enc_id)
+            for g in groups:
+                # bucket is "YYYY-MM-DD"; DR.issued fallback carries midnight.
+                if not g.bucket or len(g.bucket) < 10:
+                    continue
+                issued_naive = f"{g.bucket[:10]}T00:00:00"
+                for sid in _sr_ids_for_group(g, orders, panel_counter, primary_enc_id):
+                    prev = out.get(sid)
+                    if prev is None or issued_naive < prev:
+                        out[sid] = issued_naive
+
+    # Imaging side — radiology DRs (issued = study.started_datetime).
+    studies = (get_attr_or_key(record, "extensions", {}) or {}).get("imaging") or []
+    for study in studies:
+        rep = _o(study, "report")
+        if not rep:
+            continue
+        started = _o(study, "started_datetime")
+        started_naive = _to_naive_iso(started)
+        if not started_naive:
+            continue
+        order_id = _o(study, "order_id", "") or ""
+        if not order_id:
+            continue
+        sid = _resolve_service_request_id(order_id)
+        prev = out.get(sid)
+        if prev is None or started_naive < prev:
+            out[sid] = started_naive
+    return out
+
+
 def _build_sr_code_field(
     *,
     system: str,
@@ -324,6 +475,12 @@ def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
     JSON-deserialized dicts (production CIF path via json.load).
     """
     orders: list[Any] = ctx.record.get("orders", []) or []
+    # Issue #971: per-SR earliest linked DiagnosticReport.issued lookup. Used
+    # by `_build_sr_skeleton` / `_build_imaging_sr` to clamp `authoredOn` back
+    # to `min(DR.issued) − 1 min` when the naive `ordered_datetime` would
+    # otherwise post-date the report (see `_clamp_authored_to_earliest_report`
+    # and the PR #970 sibling for MR ↔ MA authored timing).
+    _earliest_dr_issued_by_sr = _build_earliest_issued_by_sr(ctx.record, ctx.primary_enc_id or "")
     # C4-23: SR.requester fallback to encounter attending
     # (was 2% missing requester). Same pattern as C4-17 / C4-22. Applied to
     # dict-shaped orders only (test-path dataclasses already carry ordered_by).
@@ -348,16 +505,20 @@ def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
 
     lab_orders = [o for o in orders if _o(o, "order_type") in (OrderType.LAB, "lab")]
     if lab_orders:
-        resources.extend(_build_lab_service_requests(lab_orders, ctx))
+        resources.extend(_build_lab_service_requests(lab_orders, ctx, _earliest_dr_issued_by_sr))
 
     imaging_orders = [o for o in orders if _o(o, "order_type") in (OrderType.IMAGING, "imaging")]
     if imaging_orders:
-        resources.extend(_build_imaging_service_requests(imaging_orders, ctx))
+        resources.extend(_build_imaging_service_requests(imaging_orders, ctx, _earliest_dr_issued_by_sr))
 
     return resources
 
 
-def _build_lab_service_requests(lab_orders: list[Any], ctx: BundleContext) -> list[dict[str, Any]]:
+def _build_lab_service_requests(
+    lab_orders: list[Any],
+    ctx: BundleContext,
+    earliest_dr_issued_by_sr: dict[str, str] | None = None,
+) -> list[dict[str, Any]]:
     """Emit ServiceRequest resources for LAB orders (PR1 panel-aware path).
 
     Extracted from the original ``_bb_service_requests`` body — logic unchanged.
@@ -377,14 +538,25 @@ def _build_lab_service_requests(lab_orders: list[Any], ctx: BundleContext) -> li
         else:
             standalone_orders.append(o)
 
+    _issued_map = earliest_dr_issued_by_sr or {}
     resources: list[dict[str, Any]] = []
     for sr_id, members in sorted(panel_buckets.items()):
         anchor = members[0]
         panel_def = panels[_o(anchor, "panel_key", "")]
-        sr = _build_panel_sr(sr_id, anchor, members, panel_def, lang, country, counter)
+        sr = _build_panel_sr(
+            sr_id,
+            anchor,
+            members,
+            panel_def,
+            lang,
+            country,
+            counter,
+            earliest_dr_issued=_issued_map.get(sr_id, ""),
+        )
         resources.append(sr)
     for o in sorted(standalone_orders, key=lambda x: _o(x, "order_id", "")):
-        sr = _build_standalone_sr(o, lang, country)
+        _sr_id = order_to_sr_id(o, counter)
+        sr = _build_standalone_sr(o, lang, country, earliest_dr_issued=_issued_map.get(_sr_id, ""))
         resources.append(sr)
     return resources
 
@@ -407,7 +579,11 @@ def _map_order_status_to_sr_status(status: Any) -> str:
     return "completed"
 
 
-def _build_imaging_service_requests(orders: list[Any], ctx: BundleContext) -> list[dict[str, Any]]:
+def _build_imaging_service_requests(
+    orders: list[Any],
+    ctx: BundleContext,
+    earliest_dr_issued_by_sr: dict[str, str] | None = None,
+) -> list[dict[str, Any]]:
     """Emit one ServiceRequest per IMAGING Order.
 
     1 Order = 1 SR. Multi-series imaging (e.g. PA + Lateral CXR) is
@@ -418,10 +594,21 @@ def _build_imaging_service_requests(orders: list[Any], ctx: BundleContext) -> li
     """
     lang = resolve_lang(ctx.country)
     country = ctx.country.lower()
-    return [_build_imaging_sr(o, lang, country) for o in sorted(orders, key=lambda x: _o(x, "order_id", ""))]
+    _issued_map = earliest_dr_issued_by_sr or {}
+    out: list[dict[str, Any]] = []
+    for o in sorted(orders, key=lambda x: _o(x, "order_id", "")):
+        # imaging SR id = _resolve_service_request_id(order_id) (1 Order = 1 SR).
+        _sr_id = _resolve_service_request_id(_o(o, "order_id", ""))
+        out.append(_build_imaging_sr(o, lang, country, earliest_dr_issued=_issued_map.get(_sr_id, "")))
+    return out
 
 
-def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
+def _build_imaging_sr(
+    order: Any,
+    lang: str,
+    country: str,
+    earliest_dr_issued: str = "",
+) -> dict[str, Any]:
     """Build one ServiceRequest resource for an IMAGING Order.
 
     Accepts both Order dataclass instances and JSON-deserialized dicts
@@ -562,7 +749,14 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
     # Optional fields
     dt = _o(order, "ordered_datetime")
     if dt is not None:
-        sr["authoredOn"] = to_fhir_datetime(dt)
+        # Issue #971: clamp authoredOn back to (min linked DR.issued − 1 min)
+        # when the raw ordered_datetime would post-date the report; keep
+        # occurrenceDateTime at the original ordered_datetime because
+        # occurrence-after-authored is the natural relationship (planned
+        # fulfillment follows the order stamp).
+        _authored_naive = _to_naive_iso(dt)
+        _authored_clamped = _clamp_authored_to_earliest_report(_authored_naive, earliest_dr_issued)
+        sr["authoredOn"] = to_fhir_datetime(_authored_clamped)
         # CY7-02 (Chain-7): occurrenceDateTime = expected fulfillment time
         # (same as authoredOn — see _build_sr_skeleton for rationale).
         sr["occurrenceDateTime"] = to_fhir_datetime(dt)
@@ -590,6 +784,7 @@ def _build_panel_sr(
     lang: str,
     country: str,
     panel_counter: dict[tuple[str, str, Any], int],
+    earliest_dr_issued: str = "",
 ) -> dict[str, Any]:
     """Build one ServiceRequest resource for a panel (all members share the SR).
 
@@ -615,10 +810,11 @@ def _build_panel_sr(
         anchor=anchor,
         lang=lang,
         country=country,
+        earliest_dr_issued=earliest_dr_issued,
     )
 
 
-def _build_standalone_sr(o: Any, lang: str, country: str) -> dict[str, Any]:
+def _build_standalone_sr(o: Any, lang: str, country: str, earliest_dr_issued: str = "") -> dict[str, Any]:
     """Build one ServiceRequest resource for a stand-alone test.
 
     Applies the same internal-name → standard-code resolution as
@@ -689,6 +885,7 @@ def _build_standalone_sr(o: Any, lang: str, country: str) -> dict[str, Any]:
         lang=lang,
         country=country,
         code_system_override_key=code_system_key if used_loinc_fallback else None,
+        earliest_dr_issued=earliest_dr_issued,
     )
 
 
@@ -705,6 +902,7 @@ def _build_sr_skeleton(
     lang: str,
     country: str,
     code_system_override_key: str | None = None,
+    earliest_dr_issued: str = "",
 ) -> dict[str, Any]:
     """Shared SR resource skeleton for panel + stand-alone.
 
@@ -722,7 +920,20 @@ def _build_sr_skeleton(
     )
     # ordered_datetime may arrive as a datetime object (dataclass path) or an
     # ISO string (JSON-deserialized dict path). If None, authoredOn is omitted.
-    authored_on = to_fhir_datetime(_o(anchor, "ordered_datetime"))
+    # Issue #971: clamp authoredOn back to (min linked DR.issued − 1 min) so
+    # the invariant ``SR.authoredOn ≤ min(DR.issued)`` holds — most lab DRs
+    # default ``issued`` to ``bucket + T00:00:00`` (date-only from
+    # result_datetime[:10]), so mid-day ordered_datetimes routinely trip this
+    # clamp (see `_clamp_authored_to_earliest_report` for the emit-layer
+    # rationale, mirror of PR #970 for MR ↔ MA).
+    _raw_ordered = _o(anchor, "ordered_datetime")
+    authored_on_naive = _clamp_authored_to_earliest_report(_to_naive_iso(_raw_ordered), earliest_dr_issued)
+    authored_on = to_fhir_datetime(authored_on_naive)
+    # occurrenceDateTime keeps the un-clamped ordered_datetime — occurrence-
+    # after-authored is the natural relationship (planned fulfillment follows
+    # the order stamp), and clamping both would silently drift the fulfillment
+    # window backward.
+    occurrence_on = to_fhir_datetime(_raw_ordered)
 
     sr: dict[str, Any] = {
         "resourceType": "ServiceRequest",
@@ -814,6 +1025,6 @@ def _build_sr_skeleton(
     # when the fulfillment slot is scheduled; clinosim's model has no
     # separate scheduling module, so authored = expected occurrence is
     # a defensible approximation.
-    if authored_on:
-        sr["occurrenceDateTime"] = authored_on
+    if occurrence_on:
+        sr["occurrenceDateTime"] = occurrence_on
     return sr
