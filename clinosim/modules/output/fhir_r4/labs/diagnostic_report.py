@@ -1020,21 +1020,52 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         "imagingStudy": [{"reference": f"ImagingStudy/{imaging_study_id_for_cif_study_id(study_id)}"}],
         "conclusion": impression_text,
     }
-    # CY6-03 (Chain-6): radiology DR performer — the radiologist who read the
-    # study. Encounter attending fallback (radiologist_id is not distinct
-    # from attending in clinosim's roster model without a dedicated radiology
-    # assignment step; can be refined in a future roster expansion).
+    # Issue #915: radiology DR performer + resultsInterpreter should point
+    # to a radiologist (DR-RAD-*), not the ordering / attending physician.
+    # Pre-fix, imaging DiagnosticReports fell back to
+    # ``encounter.attending_physician_id`` (an internist or ED physician
+    # in the vast majority of cases), leaving the whole DR-RAD pool
+    # generated in the roster but never referenced by any FHIR resource
+    # — a real image report is signed by the radiologist who read the
+    # study, not the requesting clinician.
+    #
+    # Selection: deterministic per-study using
+    # ``sha-lite(role-name-salt + study_id / order_id)`` % len(radiologists)
+    # so re-generation is byte-identical (AD-16 / RNG-neutral additive per
+    # feedback_rng_neutral_additive_field). Salt with ``radiologist:`` so
+    # the picked index is not identical to any other allied-role picker
+    # keyed off the same encounter/order id (e.g. pharmacist / PT / OT
+    # blocks in care_team.py).
+    #
+    # Fallback: when the roster carries no radiologist (small hospital
+    # config, test fixture without radiology service line), continue to
+    # attribute the read to the encounter attending — preserves the pre-
+    # fix contract for reference integrity.
     _enc_id = _o(study, "encounter_id", "") or ""
     _att = ""
     for _enc in ctx.record.get("encounters", []) or []:
         if _o(_enc, "encounter_id", "") == _enc_id:
             _att = _o(_enc, "attending_physician_id", "") or ""
             break
-    if _att:
-        dr["performer"] = [{"reference": f"Practitioner/{_att}"}]
+    _radiologists = sorted(
+        sid
+        for sid, staff in (getattr(ctx, "roster_map", None) or {}).items()
+        if (staff.get("role", "") or "") == "radiologist"
+    )
+    _reader = ""
+    if _radiologists:
+        # Key on study_id + order_id so two DRs for the same encounter but
+        # different studies can plausibly be read by different radiologists
+        # (a 24/7 radiology group rotates).
+        _hash_key = f"radiologist:{study_id}:{order_id}"
+        _reader = _radiologists[sum(ord(c) for c in _hash_key) % len(_radiologists)]
+    elif _att:
+        _reader = _att
+    if _reader:
+        dr["performer"] = [{"reference": f"Practitioner/{_reader}"}]
         # CY8-13 fix: radiology DR resultsInterpreter =
         # 放射線科医(clinosim roster では attending fallback、performer と同一)。
-        dr["resultsInterpreter"] = [{"reference": f"Practitioner/{_att}"}]
+        dr["resultsInterpreter"] = [{"reference": f"Practitioner/{_reader}"}]
 
     if started_iso:
         dr["effectiveDateTime"] = started_iso
