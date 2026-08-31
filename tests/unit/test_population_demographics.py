@@ -644,8 +644,13 @@ def test_parse_chronic_prevalence_accepts_by_sex_schema():
     age bands via a nested ``by_sex`` block when the same code emits at
     different rates for males vs females (e.g. C50 breast cancer, where
     the female peak is 40-60 and the male peak is 60-70 at ~1% of the
-    female rate). Legacy ``sex: F`` + flat bands remains supported for
-    strict single-sex codes (N40 BPH, N70 salpingitis, etc.)."""
+    female rate). The parser folds the FIRST sex key into the flat-form
+    primary (``sex`` / ``age_ranges``) — sampled from the master RNG,
+    byte-identical to the pre-#957 path — and every remaining sex key
+    into ``augment_sex_bands`` — sampled from a per-patient sub-RNG so
+    activating opposite-sex bands does NOT cascade the master stream.
+    Legacy ``sex: F`` + flat bands remains supported for strict
+    single-sex codes (N40 BPH, N70 salpingitis, etc.)."""
     demo = {
         "chronic_prevalence": {
             "C50": {
@@ -658,25 +663,29 @@ def test_parse_chronic_prevalence_accepts_by_sex_schema():
     }
     result = _parse_chronic_prevalence(demo)
     spec = result["C50"]
-    # F 45yo → in the 40-59 band → 1.5%
-    assert spec.prevalence_at(age=45, sex="F") == 0.015
-    # F 70yo → in the 60-99 band → 3.0%
-    assert spec.prevalence_at(age=70, sex="F") == 0.030
-    # M 70yo → in the male 60-99 band → 0.02%
-    assert spec.prevalence_at(age=70, sex="M") == 0.0002
-    # M 45yo → no male band covers 45 → 0
-    assert spec.prevalence_at(age=45, sex="M") == 0.0
-    # F 20yo → no female band covers 20 → 0
-    assert spec.prevalence_at(age=20, sex="F") == 0.0
+    # Primary (F, sampled from master RNG) — folded into the flat-form
+    # sex + age_ranges fields, byte-identical to a pre-#957 ``sex: F``
+    # entry so the master-RNG sampling path is unchanged.
+    assert spec.sex == "F"
+    assert spec.age_ranges == {(40, 59): 0.015, (60, 99): 0.030}
+    # Augment (M, sampled from per-patient sub-RNG) — augment_prevalence_at
+    # returns the male marginal at the configured band.
+    assert spec.augment_prevalence_at(age=70, sex="M") == 0.0002
+    assert spec.augment_prevalence_at(age=45, sex="M") == 0.0
+    # No augment for F (only M was declared as augment).
+    assert spec.augment_prevalence_at(age=70, sex="F") == 0.0
 
 
 def test_prevalence_at_preserves_legacy_sex_filter():
     """Legacy ``sex: F`` + flat bands (existing N40 / N70 / etc entries):
-    ``prevalence_at`` must apply the sex filter — the same band lookup
-    for the matching sex, zero for the opposite sex."""
+    parser populates ``sex`` + ``age_ranges`` unchanged, ``augment_sex_bands``
+    stays empty (no opposite-sex activation)."""
     demo = {"chronic_prevalence": {"N40": {"sex": "M", "60-99": 0.20}}}
     spec = _parse_chronic_prevalence(demo)["N40"]
-    assert spec.prevalence_at(age=70, sex="M") == 0.20
-    assert spec.prevalence_at(age=70, sex="F") == 0.0
-    # Age outside the configured band → 0 for the matching sex too.
-    assert spec.prevalence_at(age=40, sex="M") == 0.0
+    assert spec.sex == "M"
+    assert spec.age_ranges == {(60, 99): 0.20}
+    assert spec.augment_sex_bands == {}
+    # augment_prevalence_at returns 0.0 for any sex when no augmentation
+    # is declared.
+    assert spec.augment_prevalence_at(age=70, sex="M") == 0.0
+    assert spec.augment_prevalence_at(age=70, sex="F") == 0.0

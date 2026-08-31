@@ -102,6 +102,7 @@ from clinosim.modules.population._population_workflow_thresholds import (
     UNKNOWN_CONDITION_SEVERITY_BETA_ALPHA,
     UNKNOWN_CONDITION_SEVERITY_BETA_BETA,
 )
+from clinosim.seeding import chronic_augment_sex_seed
 from clinosim.types.population import HospitalizationSummary, LifeEvent, PersonRecord
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
@@ -153,37 +154,40 @@ class ChronicConditionSpec:
     Two YAML schemas are supported (see ``_parse_chronic_prevalence``):
 
     * Legacy flat form: ``{sex: "F", "40-59": 0.015, "60-99": 0.030}`` —
-      one set of age bands + one hard sex filter. Used for strictly
+      one set of age bands + one hard sex filter (``sex`` may be
+      ``"M"``, ``"F"``, or ``""`` for sex-neutral). Used for strictly
       single-sex codes (N40 BPH, N70 salpingitis, Z34 pregnancy, C61
-      prostate) and for sex-neutral codes (``sex: ""``). Populates
-      ``age_ranges`` + ``sex``; ``age_ranges_by_sex`` stays empty.
+      prostate) and for sex-neutral codes.
 
-    * ``by_sex`` form: ``{by_sex: {F: {bands}, M: {bands}}}`` — per-sex
-      age bands. Used for codes with asymmetric sex distribution AND
-      distinct age profiles (Issue #957 C50 breast cancer: female peak
-      40-60 at 1.5-3 %, male peak 60+ at ~0.02 %). Populates
-      ``age_ranges_by_sex``; ``age_ranges`` + ``sex`` are the compat
-      shim (``sex = ""``, ``age_ranges = {}``) so any downstream reader
-      that inspects them sees no legacy filter to apply.
+    * ``by_sex`` form: ``{by_sex: {F: {bands}, M: {bands}}}`` — the
+      parser normalises this into the flat form by treating the FIRST
+      sex key as the primary (goes to ``sex`` / ``age_ranges``) and
+      every remaining sex key as an augmentation (goes to
+      ``augment_sex_bands``). This lets the sampling loop use the
+      master RNG for the primary sex (byte-identical to the pre-#957
+      flat-form behaviour) and a per-patient sub-RNG for the
+      augmentation, so cross-patient cascades don't happen when a
+      new sex is activated on a previously-single-sex code (Issue
+      #957 C50 breast cancer: female was primary pre-#957; male at
+      ~1 % of C50 total activates via ``augment_sex_bands``).
 
-    ``prevalence_at`` is the single query API — every consumer should
-    call it rather than picking apart ``age_ranges`` / ``sex`` by hand.
+    ``prevalence_at`` returns the primary-sex prevalence only —
+    augmentation is sampled by a separate sub-RNG path in
+    ``generate_population`` (see the sampling loop) so ``prevalence_at``
+    stays a pure master-RNG-side query.
     """
 
     age_ranges: dict[tuple[int, int], float]
-    sex: str  # "M", "F", or "" (any)
-    age_ranges_by_sex: dict[str, dict[tuple[int, int], float]] = field(default_factory=dict)
+    sex: str  # "M", "F", or "" (any) — primary-sex filter
+    augment_sex_bands: dict[str, dict[tuple[int, int], float]] = field(default_factory=dict)
 
-    def prevalence_at(self, age: int, sex: str) -> float:
-        """Return the target marginal prevalence for a (age, sex) patient,
-        or 0.0 if no configured band covers this cohort. Both age band
-        endpoints are inclusive (yaml convention)."""
-        if self.age_ranges_by_sex:
-            bands = self.age_ranges_by_sex.get(sex, {})
-        else:
-            if self.sex and self.sex != sex:
-                return 0.0
-            bands = self.age_ranges
+    def augment_prevalence_at(self, age: int, sex: str) -> float:
+        """Return the augmentation-sex target marginal prevalence at
+        (age, sex), or 0.0 if none. Sampled by a per-patient sub-RNG
+        (NOT the master RNG) so cross-patient cascades don't happen
+        when a new sex is activated on a previously-single-sex code.
+        """
+        bands = self.augment_sex_bands.get(sex, {})
         for (lo, hi), prev in bands.items():
             if lo <= age <= hi:
                 return prev
@@ -295,14 +299,28 @@ def _expected_comorbidity_multiplier(
     for prior_code, prior_spec in chronic_data.items():
         if prior_code == current_code:
             break
+        if prior_spec.sex and prior_spec.sex != sex:
+            continue
         m = float((comorbidity_cfg.get(prior_code) or {}).get(current_code, 1.0))
         if m == 1.0:
             continue
-        p_prior = prior_spec.prevalence_at(age, sex)
+        p_prior = _target_prev_at_age_legacy(prior_spec, age)
         if p_prior <= 0.0:
             continue
         compound *= 1.0 + p_prior * (m - 1.0)
     return compound
+
+
+def _target_prev_at_age_legacy(spec: ChronicConditionSpec, age: int) -> float:
+    """Primary-sex flat-band lookup for the pre-#957 comorbidity math.
+    Ignores ``augment_sex_bands`` (augmentation contributes to marginal
+    but its cross-code comorbidity coupling is negligible at ~1 % of
+    total; leaving it out of the compound multiplier keeps the
+    primary-sex marginal-rescale math byte-identical to master)."""
+    for (lo, hi), prev in spec.age_ranges.items():
+        if lo <= age <= hi:
+            return prev
+    return 0.0
 
 
 def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
@@ -313,9 +331,14 @@ def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
     * Legacy flat: ``{sex: F, "40-59": 0.015, "60-99": 0.030}`` — single
       set of age bands + optional ``sex`` hard filter. Used for
       strictly single-sex codes and for sex-neutral codes.
-    * ``by_sex``: ``{by_sex: {F: {bands}, M: {bands}}}`` — per-sex age
-      bands (Issue #957 male C50). ``sex`` / flat bands MUST NOT be
-      mixed with ``by_sex``; the two forms are mutually exclusive.
+    * ``by_sex``: ``{by_sex: {F: {bands}, M: {bands}}}`` — the FIRST
+      sex key is normalised into the flat-form primary (``sex`` /
+      ``age_ranges``); every remaining sex key becomes an entry in
+      ``augment_sex_bands``. This lets the primary-sex sampling stay
+      byte-identical to the pre-#957 master-RNG path while the
+      augmentation runs on a per-patient sub-RNG so activating a new
+      sex on a previously-single-sex code does not cascade across
+      patients. ``sex`` / flat bands MUST NOT be mixed with ``by_sex``.
 
     Each ``by_sex`` inner sex block has the same age-range key format as
     the legacy flat form (``"lo-hi": prevalence``).
@@ -328,15 +351,16 @@ def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
 
         by_sex_raw = entry.get("by_sex")
         if isinstance(by_sex_raw, dict):
-            # by_sex form (Issue #957) — mutually exclusive with sex / flat bands.
             extra_keys = [k for k in entry.keys() if k != "by_sex"]
             if extra_keys:
                 raise ValueError(
                     f"chronic_prevalence[{code!r}]: 'by_sex' schema cannot be mixed "
                     f"with legacy keys {extra_keys!r}; pick one form."
                 )
-            by_sex: dict[str, dict[tuple[int, int], float]] = {}
-            for sex_key, bands_raw in by_sex_raw.items():
+            primary_sex = ""
+            primary_bands: dict[tuple[int, int], float] = {}
+            augment: dict[str, dict[tuple[int, int], float]] = {}
+            for i, (sex_key, bands_raw) in enumerate(by_sex_raw.items()):
                 sex_norm = str(sex_key).upper()
                 if sex_norm not in ("M", "F"):
                     raise ValueError(
@@ -346,8 +370,12 @@ def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
                 for range_key, prev in (bands_raw or {}).items():
                     lo, hi = str(range_key).split("-")
                     bands[(int(lo), int(hi))] = float(prev)
-                by_sex[sex_norm] = bands
-            result[code] = ChronicConditionSpec(age_ranges={}, sex="", age_ranges_by_sex=by_sex)
+                if i == 0:
+                    primary_sex = sex_norm
+                    primary_bands = bands
+                else:
+                    augment[sex_norm] = bands
+            result[code] = ChronicConditionSpec(age_ranges=primary_bands, sex=primary_sex, augment_sex_bands=augment)
             continue
 
         # Legacy flat form.
@@ -538,33 +566,62 @@ def generate_population(
             sex_key = "male" if sex == "M" else "female"
             conditions: list[str] = []
             for code, spec in chronic_data.items():
-                # prevalence_at unifies the two schemas: legacy sex-filter +
-                # flat bands (returns 0 if opposite-sex or age out-of-band),
-                # or the by_sex schema (returns 0 if this sex has no band
-                # covering ``age``). Either way the RNG is consumed only
-                # when there is a positive base to sample against — same
-                # cursor shape as the pre-#957 code path.
-                base_prev = spec.prevalence_at(age, sex)
-                if base_prev <= 0.0:
+                if spec.sex and spec.sex != sex:
+                    continue  # e.g., BPH (N40) is male-only
+                for (lo, hi), base_prev in spec.age_ranges.items():
+                    if not (lo <= age <= hi):
+                        continue
+                    # Comorbidity correlation multiplier (from already-sampled conditions)
+                    corr_mult = 1.0
+                    for existing_code in conditions:
+                        corr_mult *= (comorbidity_cfg.get(existing_code) or {}).get(code, 1.0)
+                    # Lifestyle multipliers (per-patient realized values)
+                    life_mult = 1.0
+                    if bmi_cat:
+                        life_mult *= (bmi_cfg_lm.get(bmi_cat) or {}).get(code, 1.0)
+                    life_mult *= (smoking_cfg_lm.get(smoking_status) or {}).get(code, 1.0)
+                    # Population-expected compound multiplier over (age, sex)
+                    e_corr = _expected_comorbidity_multiplier(chronic_data, code, age, sex, comorbidity_cfg)
+                    e_life = _expected_lifestyle_multiplier(demo, code, sex_key, age)
+                    e_compound = e_corr * e_life
+                    # Rescale base so E[per-patient prob] ≈ base_prev (the target
+                    # marginal). Guard against pathological zero.
+                    scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
+                    final_prev = min(1.0, scaled_base * corr_mult * life_mult)
+                    if rng.random() < final_prev:
+                        conditions.append(code)
+
+            # Issue #957 augment_sex_bands: opposite-sex activation for a
+            # previously-single-sex code (currently only C50 male ~1 % of
+            # total). Sampled on a per-(patient, code) sub-RNG so the
+            # master ``rng`` cursor is byte-identical to the pre-#957
+            # path — cross-patient cascade cannot happen when an
+            # augmentation is added or its probability tuned.
+            for code, spec in chronic_data.items():
+                aug_base = spec.augment_prevalence_at(age, sex)
+                if aug_base <= 0.0:
                     continue
-                # Comorbidity correlation multiplier (from already-sampled conditions)
+                if code in conditions:
+                    continue  # already assigned via primary path (defensive)
+                aug_rng = np.random.default_rng(
+                    chronic_augment_sex_seed(pid, code)  # per-(patient, code) sub-seed
+                )
+                # Lifestyle + comorbidity multipliers use the same math as
+                # the primary path; the only isolation change is the RNG
+                # source.
                 corr_mult = 1.0
                 for existing_code in conditions:
                     corr_mult *= (comorbidity_cfg.get(existing_code) or {}).get(code, 1.0)
-                # Lifestyle multipliers (per-patient realized values)
                 life_mult = 1.0
                 if bmi_cat:
                     life_mult *= (bmi_cfg_lm.get(bmi_cat) or {}).get(code, 1.0)
                 life_mult *= (smoking_cfg_lm.get(smoking_status) or {}).get(code, 1.0)
-                # Population-expected compound multiplier over (age, sex)
                 e_corr = _expected_comorbidity_multiplier(chronic_data, code, age, sex, comorbidity_cfg)
                 e_life = _expected_lifestyle_multiplier(demo, code, sex_key, age)
                 e_compound = e_corr * e_life
-                # Rescale base so E[per-patient prob] ≈ base_prev (the target
-                # marginal). Guard against pathological zero.
-                scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
+                scaled_base = aug_base / e_compound if e_compound > 0.0 else aug_base
                 final_prev = min(1.0, scaled_base * corr_mult * life_mult)
-                if rng.random() < final_prev:
+                if aug_rng.random() < final_prev:
                     conditions.append(code)
 
             # Care seeking threshold (JP: lower = more willing)

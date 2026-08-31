@@ -144,6 +144,29 @@ def issue939_procedure_seed(encounter_id: str, proc_type: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+def chronic_augment_sex_seed(patient_id: str, code: str) -> int:
+    """Per-(patient, code) deterministic sub-seed for opposite-sex
+    chronic-condition augmentation sampling (Issue #957).
+
+    The ``chronic_prevalence`` YAML supports an ``augment_sex_bands``
+    block on entries whose primary sex used to be exclusive (e.g. C50
+    breast cancer, historically female-only; now male at ~1 % of C50
+    total activates via augment_sex_bands). Sampling the augmentation
+    on this per-(patient, code) sub-RNG rather than the shared master
+    ``rng`` used by the primary path means adding / tuning an
+    augmentation does NOT shift any downstream draw for any patient —
+    the whole primary sampling stream stays byte-identical to the
+    pre-augment behaviour, so cross-patient RNG cascades cannot happen.
+
+    Sibling of ``chronic_medication_seed`` — same AD-16 rationale
+    applied one layer up (population activation) instead of the
+    medication-selection layer.
+    """
+    salt = "clinosim:chronic-augment-sex:v1"
+    digest = hashlib.sha256(f"{salt}|{patient_id}|{code}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 def individual_lab_seed(order_id: str) -> int:
     """Per-individual-lab-order deterministic sub-seed in ``[0, 2**32)``.
 
