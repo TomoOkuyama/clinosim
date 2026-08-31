@@ -39,22 +39,14 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
-## [0.6.0] - 2026-08-31
-
-**Release theme**: v0.6.0 rolls up substantial data-quality /
-clinical-coherence / temporal-consistency fixes across Issues
-#909 / #918 / #916 / #911 / #913 / #914 / #957 / #757 (session-93)
-plus the pre-existing Unreleased batch from sessions 91-92 covering
-#949-#1002. Every `### Fixed`, `### Added`, `### Changed`, and
-`### Narrative CIF` / `### LLM prompts` subsection below shipped
-between the v0.5.0 tag (2026-08-27) and this release.
-
-**Classification: MINOR.** Multiple entries below (chronic prevalence
-tuning, Z-code Condition removal, AVPU/GCS coupling, MedAdmin timing,
-antibiotic template, monitoring pipeline) shift cohort statistics or
-per-patient RNG shape, so structured CIF and downstream narrative CIF
-byte-identity are not preserved across the v0.5.0 → v0.6.0 line.
-A fresh `narrate` run is required after upgrade.
+**In-progress v0.6.0 target.** The initial v0.6.0 tag was cut on
+2026-08-31 and **un-released the same day** because META Issues #914
+Bucket B / #957 remaining slices / #757 remaining mappings were left
+as follow-up rather than completed. Per the project policy of shipping
+a MINOR release only when its release-scope Issues are fully closed,
+the tag was removed and the remaining scope is being folded in
+before re-tagging. Everything below stays queued under
+`[Unreleased]` until the re-tag.
 
 ### Changed
 
