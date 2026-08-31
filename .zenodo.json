@@ -1,6 +1,6 @@
 {
   "title": "clinosim: Clinically Realistic Hospital Data Simulator",
-  "description": "Population-driven, physiology-based synthetic Electronic Health Record generator. Every patient carries a hidden 13-variable physiological state and every lab, vital, medication, and diagnosis is derived from that state. FHIR R4 Bulk Data Access output; multi-country (US and JP) locale packs; JP Core FHIR profile compliance on 16 primary resource types; 32 inpatient diseases and 46 ED / outpatient conditions; deterministic seeded reproduction (byte-identical output within a MINOR release line).",
+  "description": "Population-driven, physiology-based synthetic Electronic Health Record generator. Every patient carries a hidden 14-variable physiological state and every lab, vital, medication, and diagnosis is derived from that state. FHIR R4 Bulk Data Access output; multi-country (US and JP) locale packs; JP Core FHIR profile compliance on 16 primary resource types; 32 inpatient diseases and 46 ED / outpatient conditions; deterministic seeded reproduction (byte-identical output within a MINOR release line).",
   "license": "MIT",
   "keywords": [
     "synthetic EHR",
