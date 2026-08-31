@@ -1243,7 +1243,6 @@ def generate_healthcare_calendar(
                 )
             )
 
-<<<<<<< HEAD
         # --- Perinatal delivery encounter (Issue #957 Tier-3-B) ---
         # For Z34-carrying women (chronic marker "actively pregnant during
         # sim window"), emit one delivery IMP encounter per year at a
@@ -1252,6 +1251,16 @@ def generate_healthcare_calendar(
         # ``prng`` is NOT consumed — pre-existing calendar streams are
         # byte-identical whether the delivery scheduler runs or not.
         events.extend(_perinatal_delivery_events(person, year))
+
+        # --- Chemotherapy cycle visits (Issue #957 Tier-3-A) ---
+        # For chronic-carrier patients of cancer codes with an assigned
+        # cycle-based regimen (FOLFOX q14d, CarboPem q21d, Trastuzumab q3w,
+        # LHRH q28d), emit chemo_visit events at the regimen's cycle
+        # cadence. Selection is per-patient deterministic (sub-RNG keyed
+        # off patient_id + salt) so it is RNG-shape neutral against the
+        # calendar's ``prng`` — pre-existing patients' non-chemo events
+        # are byte-identical whether this block runs or not.
+        events.extend(_chemo_cycle_events(person, year))
 
     return events
 
@@ -1357,18 +1366,6 @@ def _perinatal_delivery_events(person: PersonRecord, year: int) -> list[LifeEven
                 protocol_source="perinatal:postpartum",
             )
         )
-=======
-        # --- Chemotherapy cycle visits (Issue #957 Tier-3-A) ---
-        # For chronic-carrier patients of cancer codes with an assigned
-        # cycle-based regimen (FOLFOX q14d, CarboPem q21d, Trastuzumab q3w,
-        # LHRH q28d), emit chemo_visit events at the regimen's cycle
-        # cadence. Selection is per-patient deterministic (sub-RNG keyed
-        # off patient_id + salt) so it is RNG-shape neutral against the
-        # calendar's ``prng`` — pre-existing patients' non-chemo events
-        # are byte-identical whether this block runs or not.
-        events.extend(_chemo_cycle_events(person, year))
-
->>>>>>> 3e7ebcd499 (feat(oncology): chemotherapy cycle scheduling (Tier-3-A slice 1) — partial #957)
     return events
 
 
