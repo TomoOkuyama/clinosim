@@ -26,18 +26,18 @@ def test_l1_load_all_encounter_conditions_uses_lru_cache():
     assert data1 is data2  # cached object identity
 
 
-# ---------- L2: simulator/helpers.py _load_all_disease_protocols ----------
+# ---------- L2: simulator/helpers.py load_all_disease_protocols ----------
 
 
 def test_l2_load_all_disease_protocols_uses_lru_cache():
-    from clinosim.simulator.helpers import _load_all_disease_protocols
+    from clinosim.simulator.helpers import load_all_disease_protocols
 
-    _load_all_disease_protocols.cache_clear()
-    info0 = _load_all_disease_protocols.cache_info()
+    load_all_disease_protocols.cache_clear()
+    info0 = load_all_disease_protocols.cache_info()
     assert info0.hits == 0
-    data1 = _load_all_disease_protocols()
-    data2 = _load_all_disease_protocols()
-    info1 = _load_all_disease_protocols.cache_info()
+    data1 = load_all_disease_protocols()
+    data2 = load_all_disease_protocols()
+    info1 = load_all_disease_protocols.cache_info()
     assert info1.hits >= 1
     assert data1 is data2
 
@@ -190,7 +190,7 @@ def test_load_all_disease_protocols_raises_on_invalid_yaml(monkeypatch):
 
     The aggregate loader was relocated from simulator/helpers.py to the
     canonical modules/disease/protocol.py (loader-commonization refactor);
-    helpers._load_all_disease_protocols is now a re-export alias of it, so the
+    `helpers.load_all_disease_protocols` is now a re-export of it, so the
     monkeypatch targets the loader's own module namespace.
     """
     from clinosim.modules.disease import protocol as disease_protocol

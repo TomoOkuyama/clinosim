@@ -41,8 +41,6 @@ from clinosim.simulator import (
     run_alpha,                    # backward-compat single-patient run
     main,                         # CLI entry (`clinosim` console_scripts)
     load_all_disease_protocols,   # protocol registry loader
-    _load_all_disease_protocols,  # deprecated alias, Issue #557 —
-                                  # scheduled for removal next release
 )
 ```
 
@@ -122,7 +120,7 @@ Simulation orchestration (13 files):
 
 ```
 clinosim/simulator/
-  __init__.py            public API (6 exports)
+  __init__.py            public API (5 exports)
   cli.py                 argparse entry, top-level subcommand dispatch
   engine.py              run_alpha / run_beta / run_forced
   daily_loop.py          per-day loop extracted from engine

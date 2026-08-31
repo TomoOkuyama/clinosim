@@ -50,11 +50,6 @@ from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import HomeMedication, PatientProfile
 
-# Deprecated underscore alias (Issue #557) — kept for one release cycle so
-# existing imports continue to resolve. New code imports
-# `load_all_disease_protocols` directly.
-_load_all_disease_protocols = load_all_disease_protocols
-
 __all__ = [
     "DiseaseProtocol",
     "HospitalizationSummary",
@@ -62,11 +57,10 @@ __all__ = [
     "PhysiologicalState",
     "CIFPatientRecord",
     "PatientProfile",
-    # Public loader (Issue #557 rename). `_load_all_disease_protocols` is
-    # still available as a deprecated alias defined above; new code should
-    # import `load_all_disease_protocols`.
+    # Public loader (Issue #557 rename). The pre-rename underscore alias
+    # `_load_all_disease_protocols` was removed after its one-release
+    # deprecation cycle; import `load_all_disease_protocols` directly.
     "load_all_disease_protocols",
-    "_load_all_disease_protocols",  # deprecated alias, remove next release
     # Issue #544 re-exports (kept for one deprecation cycle; import from the
     # topic module in new code — mypy-strict requires explicit `__all__`
     # membership for underscore-prefixed re-exports).
