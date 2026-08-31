@@ -403,12 +403,51 @@ def _simulate_outpatient_visit(
         discharge_diagnosis_system=system_key_for("diagnosis", country),
     )
 
+    # Issue #957 slice 3: radiation-therapy Procedure emit for cancer
+    # follow-up encounters flagged ``radiation_therapy_eligible: true``.
+    # Fires per chronic-followup visit; the visit's ``ev_rng`` (already
+    # consumed for labs) is not re-used here — instead we key off a
+    # deterministic sub-rng from the encounter id so downstream RNG is
+    # untouched (feedback_rng_neutral_additive_field pattern).
+    procedures_list: list = []
+    if chronic_code and spec.get("radiation_therapy_eligible"):
+        import hashlib
+
+        from clinosim.types.procedure import ProcedureRecord
+
+        _rt_seed = int.from_bytes(
+            hashlib.sha256(f"rt:{encounter.encounter_id}".encode()).digest()[:8],
+            "big",
+        )
+        _rt_rng = determinism.default_rng(_rt_seed)
+        # Fire on ~40 % of follow-up visits (approximate: active RT course
+        # is a subset of the follow-up window, real cadence is 5x/week for
+        # 5-7 weeks then off, folded into a per-visit probability here).
+        if _rt_rng.random() < 0.4:
+            _rt_code = "M001-2"  # 3D-CRT is the modern default for most sites
+            _rt_start = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
+            procedures_list.append(
+                ProcedureRecord(
+                    procedure_id=f"PROC-{patient.patient_id}-RT-{encounter.encounter_id[:8]}",
+                    patient_id=patient.patient_id,
+                    encounter_id=encounter.encounter_id,
+                    procedure_type="radiation_therapy",
+                    procedure_code=_rt_code,
+                    procedure_code_jp=_rt_code,
+                    procedure_code_us="",
+                    start_datetime=_rt_start,
+                    end_datetime=_rt_start + timedelta(minutes=20),
+                    primary_surgeon_id=encounter.attending_physician_id,
+                )
+            )
+
     record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
         orders=orders,
         vital_signs=vitals,
         lab_results=lab_results,
+        procedures=procedures_list,
         condition_event=condition_event,
         clinical_diagnosis=clinical_diagnosis,
         discharge_prescription=rx,
