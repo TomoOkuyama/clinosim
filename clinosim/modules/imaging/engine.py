@@ -359,6 +359,30 @@ RADIOLOGY_REPORT_ID_PREFIX = "imgrpt-"
 
 
 # ---------------------------------------------------------------------------
+# Issue #918: series-as-studies consolidation (same physical scan window).
+#
+# Multiple imaging Orders on the same encounter for the same (modality,
+# body_site) that fire within ``_SERIES_AS_STUDIES_WINDOW_MIN`` minutes of
+# each other represent a single physical scan whose series were fanned
+# out into separate Orders by overlapping specs (disease protocol +
+# admission block + ED workup). FHIR ``ImagingStudy`` = one DICOM Study
+# = one physical scan session, so we consolidate at enricher time by
+# skipping the duplicates (same shape as the Issue #822 near-identical
+# dedup, extended to catch same-(modality, body_site) within a wider
+# window). The gap between adjacent "real" repeat imaging (e.g. control
+# CT after intervention) is always ≥ 6h — the audit's 1-6h bucket has
+# zero pairs — so a 60-minute window catches the series-as-studies
+# fingerprint without touching any legitimate repeat.
+#
+# Only modalities that emit one FHIR study per physical acquisition are
+# consolidated. Plain radiography (``CR``) legitimately repeats within
+# a shift on ICU / pneumonia patients (daily portable film) and is left
+# unconsolidated by design.
+_SERIES_AS_STUDIES_WINDOW_MIN: int = 60
+_CONSOLIDATABLE_MODALITIES: frozenset[str] = frozenset({"CT", "MR", "US", "XA"})
+
+
+# ---------------------------------------------------------------------------
 # POST_ENCOUNTER enricher: Order(IMAGING) → ImagingStudyRecord
 # ---------------------------------------------------------------------------
 
@@ -603,14 +627,36 @@ def imaging_enricher(ctx: Any) -> None:
             _stub_display = _o(order, "display_name", "") or ""
             _stub_started = _o(order, "ordered_datetime")
             _canon = _canonicalize_display(_stub_display)
+            _order_encounter_id = _o(order, "encounter_id", "") or ""
             _dup = any(
-                prev.encounter_id == (_o(order, "encounter_id", "") or "")
+                prev.encounter_id == _order_encounter_id
                 and prev.started_datetime == _stub_started
                 and _canonicalize_display(prev.description) == _canon
                 for prev in studies
             )
             if _dup:
                 continue
+
+            # Issue #918: series-as-studies consolidation. Skip when a
+            # prior study on the same encounter already covers this
+            # (modality, body_site) within the ``_SERIES_AS_STUDIES_WINDOW_MIN``
+            # window — these represent the same physical scan whose series
+            # were fanned out into separate Orders by overlapping protocol
+            # sources. Gated to CT/MR/US/XA — plain radiography (CR) is
+            # left alone because same-shift chest-X-ray repeats on ICU /
+            # pneumonia patients are clinically legitimate.
+            if modality in _CONSOLIDATABLE_MODALITIES and body_site_snomed and _stub_started:
+                _series_dup = any(
+                    prev.encounter_id == _order_encounter_id
+                    and prev.modality_code == modality
+                    and prev.body_site_snomed == body_site_snomed
+                    and prev.started_datetime is not None
+                    and abs((_stub_started - prev.started_datetime).total_seconds()) / 60.0
+                    <= _SERIES_AS_STUDIES_WINDOW_MIN
+                    for prev in studies
+                )
+                if _series_dup:
+                    continue
 
             # stub-only path: build minimum spec-valid ImagingStudy (no series /
             # modality unknown / description = display_name)。JP Core ImagingStudy

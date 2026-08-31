@@ -263,6 +263,165 @@ def test_generic_negative_report_content_is_stable():
     assert r1.report_id == "imgrpt-enc1-1"
 
 
+def _make_head_ct_order(order_id: str, minute_offset: int) -> Order:
+    return Order(
+        order_id=order_id,
+        encounter_id="enc-shared",
+        patient_id="pt1",
+        order_type=OrderType.IMAGING,
+        order_code="30799-1",
+        display_name="CT Head without contrast",
+        urgency="stat",
+        clinical_intent="Suspected ICH",
+        ordered_datetime=datetime(2026, 6, 30, 8, minute_offset),
+        status=OrderStatus.PLACED,
+        imaging_modality="CT",
+        imaging_body_site_code="69536005",
+        imaging_views=["axial"],
+        imaging_spec_meta={"abnormal_rate_by_severity": {"any": 1.0}},
+    )
+
+
+def test_issue_918_head_ct_within_60min_consolidates_to_single_study():
+    """Issue #918: 3 head-CT orders in ~20 min on the same encounter
+    (audit's `pt-02ee09c03138` shape — 21:20 / 21:37 / 21:40) represent one
+    physical scan whose series were fanned out by overlapping order sources
+    (admission block + disease protocol + ED workup). Enricher must emit
+    exactly one ImagingStudyRecord.
+    """
+    record = SimpleNamespace(
+        patient_id="pt1",
+        orders=[
+            _make_head_ct_order("ORD-1", 20),
+            _make_head_ct_order("ORD-2", 37),
+            _make_head_ct_order("ORD-3", 40),
+        ],
+        extensions={},
+        disease_id="hemorrhagic_stroke",
+        severity="severe",
+    )
+    imaging_enricher(_make_ctx(record))
+    studies = record.extensions["imaging"]
+    assert len(studies) == 1
+    assert studies[0].order_id == "ORD-1"
+    assert studies[0].modality_code == "CT"
+
+
+def test_issue_918_head_ct_over_60min_apart_keeps_both_studies():
+    """Issue #918: 6-hour-apart head CTs (baseline vs post-intervention
+    control) are legitimate repeat imaging and must both survive."""
+    record = SimpleNamespace(
+        patient_id="pt1",
+        orders=[
+            Order(
+                order_id="ORD-baseline",
+                encounter_id="enc-shared",
+                patient_id="pt1",
+                order_type=OrderType.IMAGING,
+                order_code="30799-1",
+                display_name="CT Head without contrast",
+                urgency="stat",
+                clinical_intent="Baseline",
+                ordered_datetime=datetime(2026, 6, 30, 8, 30),
+                status=OrderStatus.PLACED,
+                imaging_modality="CT",
+                imaging_body_site_code="69536005",
+                imaging_views=["axial"],
+                imaging_spec_meta={"abnormal_rate_by_severity": {"any": 1.0}},
+            ),
+            Order(
+                order_id="ORD-control",
+                encounter_id="enc-shared",
+                patient_id="pt1",
+                order_type=OrderType.IMAGING,
+                order_code="30799-1",
+                display_name="CT Head without contrast",
+                urgency="stat",
+                clinical_intent="Control",
+                ordered_datetime=datetime(2026, 6, 30, 14, 30),
+                status=OrderStatus.PLACED,
+                imaging_modality="CT",
+                imaging_body_site_code="69536005",
+                imaging_views=["axial"],
+                imaging_spec_meta={"abnormal_rate_by_severity": {"any": 1.0}},
+            ),
+        ],
+        extensions={},
+        disease_id="hemorrhagic_stroke",
+        severity="severe",
+    )
+    imaging_enricher(_make_ctx(record))
+    studies = record.extensions["imaging"]
+    assert len(studies) == 2
+
+
+def test_issue_918_chest_xray_same_shift_not_consolidated():
+    """Issue #918: chest X-ray legitimately repeats within a shift on ICU
+    / pneumonia patients (daily portable film). CR is excluded from
+    consolidation by design — same-modality same-body-site CR orders at
+    different minutes must both survive."""
+
+    def _cr(order_id, minute):
+        return Order(
+            order_id=order_id,
+            encounter_id="enc-icu",
+            patient_id="pt1",
+            order_type=OrderType.IMAGING,
+            order_code="36572-6",
+            display_name="Chest X-ray PA",
+            urgency="routine",
+            clinical_intent="Follow-up",
+            ordered_datetime=datetime(2026, 6, 30, 8, minute),
+            status=OrderStatus.PLACED,
+            imaging_modality="CR",
+            imaging_body_site_code="51185008",
+            imaging_views=["PA"],
+            imaging_spec_meta={"abnormal_rate_by_severity": {"moderate": 0.5}},
+        )
+
+    record = SimpleNamespace(
+        patient_id="pt1",
+        orders=[_cr("ORD-cr1", 15), _cr("ORD-cr2", 30)],
+        extensions={},
+        disease_id="bacterial_pneumonia",
+        severity="moderate",
+    )
+    imaging_enricher(_make_ctx(record))
+    studies = record.extensions["imaging"]
+    assert len(studies) == 2
+
+
+def test_issue_918_different_body_site_not_consolidated():
+    """Same modality but different body_site = distinct scans, both preserved."""
+    head_ct = _make_head_ct_order("ORD-head", 20)
+    chest_ct = Order(
+        order_id="ORD-chest",
+        encounter_id="enc-shared",
+        patient_id="pt1",
+        order_type=OrderType.IMAGING,
+        order_code="24628-0",
+        display_name="CT Chest without contrast",
+        urgency="stat",
+        clinical_intent="Screen",
+        ordered_datetime=datetime(2026, 6, 30, 8, 30),
+        status=OrderStatus.PLACED,
+        imaging_modality="CT",
+        imaging_body_site_code="51185008",
+        imaging_views=["axial"],
+        imaging_spec_meta={"abnormal_rate_by_severity": {"any": 1.0}},
+    )
+    record = SimpleNamespace(
+        patient_id="pt1",
+        orders=[head_ct, chest_ct],
+        extensions={},
+        disease_id="hemorrhagic_stroke",
+        severity="severe",
+    )
+    imaging_enricher(_make_ctx(record))
+    studies = record.extensions["imaging"]
+    assert len(studies) == 2
+
+
 def test_enricher_infers_imaging_metadata_from_legacy_orders():
     """Legacy IMAGING orders without imaging_body_site_code/imaging_modality
     are now imputed via inference module (session 48 CIF-VS-FHIR-01 fix).
