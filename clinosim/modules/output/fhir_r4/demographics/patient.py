@@ -84,13 +84,16 @@ def patient_ref(cif_patient_id: str) -> dict[str, str]:
 
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque occupation id ===
+# Issue #909: salt hash input with observation-key kind so ``.id`` diverges
+# from ``Patient.id`` (which hashes ``patient_id`` unsalted).
+_OCCUPATION_KEY_KIND = "occupation-observation-key"
 # Structural key = pre-#854 id body (patient id).
 OCCUPATION_ID_PREFIX = "occupation-"
-OCCUPATION_KEY_SYSTEM = structural_key_system("occupation-observation-key")
+OCCUPATION_KEY_SYSTEM = structural_key_system(_OCCUPATION_KEY_KIND)
 
 
 def _resolve_occupation_id(structural_key: str) -> str:
-    return derive_opaque_id(OCCUPATION_ID_PREFIX, structural_key)
+    return derive_opaque_id(OCCUPATION_ID_PREFIX, f"{_OCCUPATION_KEY_KIND}:{structural_key}")
 
 
 # === Issue #854 Bucket C (PR-coverage): opaque Coverage.id ===

@@ -61,18 +61,30 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque blood-type ids ===
 # ABO / RhD blood-type Observations. Structural key = pre-#854 id body
 # (without ``blood-abo-`` / ``blood-rh-`` prefix) = the patient id.
+#
+# Issue #909: per-patient singleton Observation families originally hashed
+# ``ctx.patient_id`` directly. Patient.id itself uses the same input via
+# ``resolve_patient_id(cif_patient_id) = derive_opaque_id("pt-", patient_id)``,
+# so ``sha256(patient_id)[:12]`` reappeared verbatim as the 12-hex tail of
+# both Patient.id and every derived Observation.id. The fix salts the hash
+# input with the observation-key kind slug so each family's ``.id`` diverges
+# from ``Patient.id`` and from every other family. Identifier.value is kept
+# equal to ``patient_id`` so consumers keep the same round-trip recovery
+# path via the existing ``Identifier.system`` URI (unchanged).
+_BLOOD_ABO_KEY_KIND = "blood-abo-observation-key"
+_BLOOD_RH_KEY_KIND = "blood-rh-observation-key"
 BLOOD_ABO_ID_PREFIX = "blood-abo-"
 BLOOD_RH_ID_PREFIX = "blood-rh-"
-BLOOD_ABO_KEY_SYSTEM = structural_key_system("blood-abo-observation-key")
-BLOOD_RH_KEY_SYSTEM = structural_key_system("blood-rh-observation-key")
+BLOOD_ABO_KEY_SYSTEM = structural_key_system(_BLOOD_ABO_KEY_KIND)
+BLOOD_RH_KEY_SYSTEM = structural_key_system(_BLOOD_RH_KEY_KIND)
 
 
 def _resolve_blood_abo_id(structural_key: str) -> str:
-    return derive_opaque_id(BLOOD_ABO_ID_PREFIX, structural_key)
+    return derive_opaque_id(BLOOD_ABO_ID_PREFIX, f"{_BLOOD_ABO_KEY_KIND}:{structural_key}")
 
 
 def _resolve_blood_rh_id(structural_key: str) -> str:
-    return derive_opaque_id(BLOOD_RH_ID_PREFIX, structural_key)
+    return derive_opaque_id(BLOOD_RH_ID_PREFIX, f"{_BLOOD_RH_KEY_KIND}:{structural_key}")
 
 
 # LOINC codes — spec-authoritative (Regenstrief LOINC 2.77). The display

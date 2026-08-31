@@ -156,6 +156,46 @@ def test_all_13_families_produce_distinct_ids_from_same_key() -> None:
     assert len(ids) == 13, f"expected 13 distinct ids, got {len(ids)}: {ids!r}"
 
 
+# === Issue #909: opaque-id must not leak Patient hex ===
+# Per-patient singleton families (blood-abo/blood-rh/smoking/alcohol/occupation/carelevel)
+# originally hashed ``ctx.patient_id`` directly. Patient.id itself uses the same
+# unsalted hash via ``resolve_patient_id`` — so ``sha256(patient_id)[:12]`` was
+# emitted verbatim as the 12-hex tail of BOTH Patient.id and every derived
+# Observation.id. Post-fix each family salts the hash with its observation-key
+# kind slug so the tails diverge.
+_PER_PATIENT_SINGLETON_RESOLVERS = [
+    (_resolve_blood_abo_id, "blood-abo-"),
+    (_resolve_blood_rh_id, "blood-rh-"),
+    (_resolve_smoking_status_id, "smoking-"),
+    (_resolve_alcohol_use_id, "alcohol-"),
+    (_resolve_occupation_id, "occupation-"),
+    (_resolve_care_level_id, "carelevel-"),
+]
+
+
+@pytest.mark.parametrize("resolver,prefix", _PER_PATIENT_SINGLETON_RESOLVERS)
+def test_family_id_tail_diverges_from_patient_id_tail(resolver, prefix) -> None:
+    """Regression for #909: the 12-hex tail must not equal Patient.id's 12-hex tail.
+
+    Both Patient.id and per-patient singleton Observations use the same
+    ``patient_id`` string as input, so without a per-family salt the sha256
+    prefix collides and the 12-hex tail of ``Observation.id`` reproduces
+    ``Patient.id``'s tail — trivially recovering the patient identifier
+    from any exposed ``Observation.id``.
+    """
+    from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
+
+    patient_id = "POP-000123"
+    patient_fhir_id = resolve_patient_id(patient_id)
+    patient_tail = patient_fhir_id.split("-", 1)[1]
+    observation_id = resolver(patient_id)
+    observation_tail = observation_id[len(prefix) :]
+    assert observation_tail != patient_tail, (
+        f"Issue #909 regression: {prefix}{observation_tail} shares its 12-hex "
+        f"tail with Patient/{patient_fhir_id} — hash input was not salted."
+    )
+
+
 # === Emit-path smoke tests (one per family) ===
 
 
