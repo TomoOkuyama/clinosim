@@ -196,6 +196,65 @@ C61:  # Prostate cancer (male-only per sex-gate)
   follow_up_interval_months: 3
   labs: []
   labs_quarterly: [PSA]
+
+# Issue #957 slice 2: additional JP-common cancer follow-up entries.
+# Cadences per NCCN / JSCO / JCOG survivorship guidelines; tumor markers
+# emit via #957 slice 1 reference-range infrastructure (already merged).
+
+C15:  # Esophageal cancer follow-up
+  visit_reason:
+    en: "Esophageal cancer follow-up, symptom review, imaging surveillance"
+    ja: "食道がんフォローアップ・症状評価・画像経過観察"
+  follow_up_interval_months: 3
+  labs: [Albumin]                        # nutritional monitoring
+  labs_quarterly: [CEA]
+  vitals: [systolic_bp, heart_rate, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+C16:  # Gastric cancer follow-up
+  visit_reason:
+    en: "Gastric cancer follow-up, tumor marker (CEA, CA19-9), symptom review"
+    ja: "胃がんフォローアップ・腫瘍マーカー（CEA, CA19-9）・症状評価"
+  follow_up_interval_months: 3
+  labs: [Hb, Albumin]                    # anemia + nutrition
+  labs_quarterly: [CEA, CA19_9]
+  vitals: [systolic_bp, heart_rate, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+C25:  # Pancreatic cancer follow-up
+  visit_reason:
+    en: "Pancreatic cancer follow-up, tumor marker (CA19-9), symptom review"
+    ja: "膵がんフォローアップ・腫瘍マーカー（CA19-9）・症状評価"
+  follow_up_interval_months: 2
+  labs: [Amylase, Lipase, Glucose]       # exocrine + endocrine pancreatic function
+  labs_quarterly: [CA19_9, CEA]
+  vitals: [systolic_bp, heart_rate, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+C67:  # Bladder cancer follow-up
+  visit_reason:
+    en: "Bladder cancer follow-up, urinalysis, cystoscopy schedule review"
+    ja: "膀胱がんフォローアップ・尿検査・膀胱鏡経過観察"
+  follow_up_interval_months: 3
+  labs: [Urinalysis, Creatinine]
+  labs_quarterly: [CEA]
+  vitals: [systolic_bp, heart_rate, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 15
+
+C71:  # Malignant brain tumor (glioma) follow-up
+  visit_reason:
+    en: "Brain tumor follow-up, neuro symptom review, imaging surveillance"
+    ja: "脳腫瘍フォローアップ・神経症状評価・画像経過観察"
+  follow_up_interval_months: 3
+  labs: [Na, K]                          # anticonvulsant / steroid monitoring
+  labs_quarterly: []                     # no standard blood tumor marker
+  vitals: [systolic_bp, heart_rate, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
   vitals: [systolic_bp, diastolic_bp]
   prescriptions_renewed: true
   visit_duration_minutes: 15

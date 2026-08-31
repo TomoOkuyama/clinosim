@@ -210,6 +210,30 @@ chronic_prevalence:
     "60-69": 0.025
     "70-99": 0.055
 
+  # Issue #957 slice 2: additional JP-common cancers.
+  # Prevalence values calibrated to MHLW 患者調査 2020 + 国立がん研究センター
+  # がん統計 2020 (age-specific incidence + 5-year survivor prevalence).
+  # NOTE: 男性 C50 (breast cancer in males, ~1% of C50 total) remains
+  # deferred — the sex-lock in icd10_sex_restrictions.yaml continues to
+  # gate C50 female-only, and this file only adds prevalence for the
+  # additional cancer sites below. Male-C50 activation requires paired
+  # demographics + activator work and is tracked as a separate follow-up.
+  C15:      # Esophageal cancer — JP incidence higher than West; smoking/alcohol
+    "50-69": 0.005
+    "70-99": 0.012
+  C16:      # Stomach cancer — JP top-5 (H. pylori era survivor cohort); high incidence
+    "50-69": 0.012
+    "70-99": 0.028
+  C25:      # Pancreatic cancer — low 5yr survival, small survivor prevalence
+    "50-69": 0.002
+    "70-99": 0.006
+  C67:      # Bladder cancer — smoking-associated, male > female
+    "50-69": 0.004
+    "70-99": 0.012
+  C71:      # Brain cancer (malignant primary) — glioma cohort, low incidence
+    "40-69": 0.002
+    "70-99": 0.004
+
   # --- Obstetrics (Issue #943) ---------------------------------------------
   # Z34 (encounter for supervision of normal pregnancy) modelled as a
   # short-window "active-during-sim-window" marker on childbearing-age
