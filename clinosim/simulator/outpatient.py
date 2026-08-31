@@ -411,15 +411,17 @@ def _simulate_outpatient_visit(
     # untouched (feedback_rng_neutral_additive_field pattern).
     procedures_list: list = []
 
-    # Issue #957 Tier-3-A: chemotherapy administration Procedure emit for
-    # chemo_visit encounters. Fires unconditionally (every chemo cycle
-    # visit administers chemo; there's no "chemo visit that didn't
-    # administer"). Uses the JP/US billing code from chemo_regimens.yaml
-    # ``procedure`` block. Per-cycle drug MedicationRequest / MAR is a
-    # follow-up slice — this slice closes the "0 chemo cycle events at
-    # regimen cadence" gap by emitting the Encounter + Procedure pair.
+    # Issue #957 Tier-3-A: chemotherapy administration Procedure emit +
+    # per-cycle drug MedicationRequest (Order) + MedicationAdministration
+    # for chemo_visit encounters. Fires unconditionally (every chemo cycle
+    # visit administers chemo). Uses the JP/US billing code from
+    # ``chemo_regimens.yaml::procedure`` block for the Procedure resource;
+    # the per-cycle drugs come from ``chemo_regimens.yaml::regimens.<name>
+    # .cycle_orders`` (Day-1 IV agents).
+    chemo_mars: list = []
     if visit_type == "chemo_visit" and spec.get("chemo_regimen"):
         from clinosim.modules._shared import is_jp
+        from clinosim.types.encounter import MedicationAdministration
         from clinosim.types.procedure import ProcedureRecord
 
         _chemo_proc = spec.get("chemo_procedure") or {}
@@ -442,6 +444,59 @@ def _simulate_outpatient_visit(
                 primary_surgeon_id=encounter.attending_physician_id,
             )
         )
+
+        # Per-cycle drug Order (MedicationRequest) + MedicationAdministration.
+        # Each drug on the regimen's ``cycle_orders`` list produces one Order
+        # (order_type=MEDICATION) and one MedicationAdministration record
+        # tied to the same encounter. The nurse assignment mirrors the
+        # inpatient MAR path (medication_administration / department).
+        chemo_admin_nurse = assign_staff("medication_administration", department_id, roster, rng).get(
+            "administering_nurse", opd_nurse_id
+        )
+        _cycle_orders = spec.get("chemo_regimen", {}).get("cycle_orders") or []
+        for _i, _drug in enumerate(_cycle_orders):
+            if not isinstance(_drug, dict):
+                continue
+            _drug_name = str(_drug.get("drug") or "")
+            if not _drug_name:
+                continue
+            _dose = str(_drug.get("dose") or "")
+            _route = str(_drug.get("route") or "IV")
+            _drug_ja = str(_drug.get("drug_ja") or "")
+            _order_id = f"ORD-{encounter.encounter_id}-CHEMO-M{_i:02d}"
+            _admin_time = _chemo_start + timedelta(minutes=_i * 5)  # stagger 5-min per drug
+            _order = Order(
+                order_id=_order_id,
+                encounter_id=encounter.encounter_id,
+                patient_id=patient.patient_id,
+                order_type=OrderType.MEDICATION,
+                display_name=_drug_name,
+                urgency="routine",
+                clinical_intent=f"Chemotherapy cycle: {_drug_name} {_dose}".strip(),
+                clinical_intent_ja=f"化学療法サイクル: {_drug_ja or _drug_name} {_dose}".strip(),
+                ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
+                ordered_by=encounter.attending_physician_id,
+                status=OrderStatus.RESULTED,
+                dose_text_en=_dose,
+                dose_text_ja=_dose,
+                route=_route,
+                frequency="once",
+                frequency_per_day=1,
+                duration_days=1,
+            )
+            orders.append(_order)
+            chemo_mars.append(
+                MedicationAdministration(
+                    order_id=_order_id,
+                    drug_name=_drug_name,
+                    scheduled_datetime=_admin_time,
+                    actual_datetime=_admin_time,
+                    status="given",
+                    dose=_dose,
+                    route=_route,
+                    administered_by=chemo_admin_nurse,
+                )
+            )
 
     if chronic_code and spec.get("radiation_therapy_eligible"):
         import hashlib
@@ -481,6 +536,10 @@ def _simulate_outpatient_visit(
         vital_signs=vitals,
         lab_results=lab_results,
         procedures=procedures_list,
+        # Issue #957 Tier-3-A per-cycle chemo MAR emit — only populated on
+        # chemo_visit encounters; other outpatient visits keep the default
+        # empty list.
+        medication_administrations=list(chemo_mars),
         condition_event=condition_event,
         clinical_diagnosis=clinical_diagnosis,
         discharge_prescription=rx,
