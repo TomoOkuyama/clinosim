@@ -90,6 +90,39 @@ resident and becomes a hospital encounter only when an event
 crosses the threshold. This is what keeps epidemiology correctly
 scaled at the population level.
 
+### 1b.2. Healthcare-calendar event firing — `generate_healthcare_calendar`
+
+Acute disease events are population-wide (§1b). Alongside them,
+`generate_healthcare_calendar(registry, year, country, rng)`
+(`population/engine.py`) emits a separate stream of
+**calendar-driven encounters** that a real patient sees regardless
+of any acute onset — chronic-condition management visits, screening,
+vaccinations, cycle-based chemotherapy, delivery. Each fires from
+a **per-person independent RNG stream** so an edit to one person's
+schedule cannot cascade into unrelated patients' timelines
+(`rng.spawn(len(persons))`).
+
+**Event catalog:**
+
+| `event_type` | Fires for | Cadence source | Dispatch target |
+|---|---|---|---|
+| `chronic_visit` | Anyone with a chronic condition present in `locale/shared/chronic_followup.yaml` (16 chronic codes + flu vaccination + diabetic retinopathy screening) | `follow_up_interval_months` per chronic entry; capped at 6/year | `_simulate_outpatient_visit(visit_type="chronic_followup")` |
+| `pediatric_visit` | Anyone with an active well-child schedule item (`modules/pediatric/calendar.py`) | Age-conditional per JP MHLW / US CDC well-child schedule | `_simulate_outpatient_visit(visit_type="pediatric_visit")` |
+| `health_screening` | Age ≥ 40 (annual) + age ≥ 50 colonoscopy (10-year interval → 10 %/yr) + female age ≥ 40 mammography (60 %/yr) | Population thresholds in `_population_workflow_thresholds` | `_simulate_outpatient_visit(visit_type="health_screening")` |
+| `chemo_visit` | Chronic-cancer carriers whose per-(patient, cancer_code) sub-RNG assigns an active regimen from `chemo_regimens.yaml` | `cycle_interval_days` per regimen (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d), capped by `course_cycles` | `_simulate_outpatient_visit(visit_type="chemo_visit")` — emits Encounter + `chemotherapy_administration` Procedure |
+| `delivery` | Z34-carrying women (actively pregnant during sim window) | One event per pregnancy-year at a scheduled month within `perinatal.yaml::scheduling.delivery_month_range` (default April-October) | `simulator/perinatal.py::simulate_delivery_encounter` — emits IMP Encounter with `O80` admission dx / `Z37.0` discharge dx + delivery Procedure |
+
+**Determinism-neutrality contract:** every event added since the
+initial chronic-visit scheduler (chemo_visit, delivery) uses a
+dedicated per-patient sub-seed (`chemotherapy_regimen_seed`,
+`perinatal_delivery_seed`) instead of consuming the calendar's
+shared per-person stream. Adding or tuning these emissions is
+byte-identical for every patient except the ones the new event
+directly targets.
+
+Full schema + slice scope for the oncology + obstetric events:
+[`../reference/oncology-obstetric-service-lines.md`](../reference/oncology-obstetric-service-lines.md).
+
 ### 1c. Patient hydration — `modules/patient`
 
 Residents whose hospitalisation / visit fires are thickened by

@@ -56,7 +56,7 @@ skeleton 値は `_template/` scaffold (`clinosim/locale/_template/`)
 |---|---|---|
 | `names.yaml` | 姓 + 名 と頻度重み | 国家統計局 / 戸籍 |
 | `addresses.yaml` | 地域 (都道府県 / 県 / 州) + 郵便コード | 国営郵便サービス |
-| `demographics.yaml` | 年齢分布、血液型、慢性疾患 prevalence、疾患 incidence、生活習慣 | 政府センサス / 疾患サーベイランス |
+| `demographics.yaml` | 年齢分布、血液型、慢性疾患 prevalence (下記スキーマ注記参照)、疾患 incidence、生活習慣 | 政府センサス / 疾患サーベイランス |
 | `formatting.yaml` | 日付 / 時刻 / 数値フォーマット | 現地慣習 |
 | `code_mapping_diagnosis.yaml` | 内部疾患 id → 国別診断コード | 現地コーディングスキーム |
 | `code_mapping_lab.yaml` | 内部検査名 → 国別検査コード | 現地検査コードシステム (JLAC10 / LOINC / 国別) |
@@ -67,6 +67,44 @@ skeleton 値は `_template/` scaffold (`clinosim/locale/_template/`)
 各ファイルはロード時に検証されます; ファイル欠如は組み込みデフォルト
 にフォールバックしますが、生成データが真に locale 代表とはならない
 ことを意味します。
+
+### `demographics.yaml::chronic_prevalence` スキーマの 2 形式
+
+エントリごとに 2 つの形式を受け付けます:
+
+- **Flat form** (単性別または性別非依存): `sex: F|M|""` +
+  `"<lo>-<hi>": <target_marginal>` 年齢帯 pair。共有の population
+  master RNG からサンプリング。
+
+  ```yaml
+  chronic_prevalence:
+    N40:                  # BPH、男性のみ
+      sex: M
+      "60-99": 0.20
+    E11:                  # T2DM、性別非依存
+      "40-99": 0.10
+  ```
+
+- **`by_sex` form** (性別で非対称な帯域。男性乳がんが C50 全体の
+  ~1 % で女性 BC より遅い年齢 peak を持つケース等)。最初の性別 key が
+  primary となり (flat form と同一の master RNG からサンプリング)、
+  残りの性別 key はすべて `augment_sex_bands` に入り
+  `(patient_id, code)` 毎の sub-RNG からサンプリングされる (opposite-sex
+  活性化が master stream を cascade しないため)。
+
+  ```yaml
+  chronic_prevalence:
+    C50:                  # 乳がん — F primary + M ~0.02 %
+      by_sex:
+        F:
+          "40-59": 0.015
+          "60-99": 0.030
+        M:
+          "60-99": 0.0002
+  ```
+
+full な挙動 + downstream の sex-conditional 請求コード mapping:
+[`reference/oncology-obstetric-service-lines.ja.md`](reference/oncology-obstetric-service-lines.ja.md) §3。
 
 ## 任意 YAML ファイル (opt-in モジュール)
 
