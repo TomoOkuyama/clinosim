@@ -617,3 +617,23 @@ codes:
   24357-6:
     en: Urinalysis panel
     ja: 尿検査パネル
+  # Tumor markers (Issue #957 slice 1). Codes verified against
+  # NLM Clinical Table Search Service LOINC API (2026-08).
+  2039-6:
+    en: CEA
+    ja: CEA（癌胎児性抗原）
+  24108-3:
+    en: Cancer Ag 19-9
+    ja: CA19-9
+  1834-1:
+    en: Alpha-1-Fetoprotein
+    ja: AFP（α-フェトプロテイン）
+  44805-4:
+    en: PIVKA-II
+    ja: PIVKA-II
+  6875-9:
+    en: Cancer Ag 15-3
+    ja: CA15-3
+  2857-1:
+    en: Prostate specific Ag
+    ja: PSA（前立腺特異抗原）
