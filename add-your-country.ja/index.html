@@ -956,6 +956,8 @@
       
         
       
+        
+      
     
     
     
@@ -1242,6 +1244,34 @@
     
   
     Multi-country
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/oncology-obstetric-service-lines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Oncology + obstetric service lines
   
 
     
@@ -2245,6 +2275,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="必須 YAML ファイル">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#demographicsyamlchronic_prevalence-スキーマの-2-形式" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        demographics.yaml::chronic_prevalence スキーマの 2 形式
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2440,7 +2487,7 @@ skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_templat
 </tr>
 <tr>
 <td><code>demographics.yaml</code></td>
-<td>年齢分布、血液型、慢性疾患 prevalence、疾患 incidence、生活習慣</td>
+<td>年齢分布、血液型、慢性疾患 prevalence (下記スキーマ注記参照)、疾患 incidence、生活習慣</td>
 <td>政府センサス / 疾患サーベイランス</td>
 </tr>
 <tr>
@@ -2478,6 +2525,39 @@ skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_templat
 <p>各ファイルはロード時に検証されます; ファイル欠如は組み込みデフォルト
 にフォールバックしますが、生成データが真に locale 代表とはならない
 ことを意味します。</p>
+<h3 id="demographicsyamlchronic_prevalence-スキーマの-2-形式"><code>demographics.yaml::chronic_prevalence</code> スキーマの 2 形式<a class="headerlink" href="#demographicsyamlchronic_prevalence-スキーマの-2-形式" title="Permanent link">&para;</a></h3>
+<p>エントリごとに 2 つの形式を受け付けます:</p>
+<ul>
+<li><strong>Flat form</strong> (単性別または性別非依存): <code>sex: F|M|""</code> +
+  <code>"&lt;lo&gt;-&lt;hi&gt;": &lt;target_marginal&gt;</code> 年齢帯 pair。共有の population
+  master RNG からサンプリング。</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">chronic_prevalence</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">N40</span><span class="p">:</span><span class="w">                  </span><span class="c1"># BPH、男性のみ</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">sex</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">M</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="s">"60-99"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.20</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">E11</span><span class="p">:</span><span class="w">                  </span><span class="c1"># T2DM、性別非依存</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="s">"40-99"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.10</span>
+</span></code></pre></div>
+<ul>
+<li><strong><code>by_sex</code> form</strong> (性別で非対称な帯域。男性乳がんが C50 全体の
+  ~1 % で女性 BC より遅い年齢 peak を持つケース等)。最初の性別 key が
+  primary となり (flat form と同一の master RNG からサンプリング)、
+  残りの性別 key はすべて <code>augment_sex_bands</code> に入り
+  <code>(patient_id, code)</code> 毎の sub-RNG からサンプリングされる (opposite-sex
+  活性化が master stream を cascade しないため)。</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">chronic_prevalence</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">C50</span><span class="p">:</span><span class="w">                  </span><span class="c1"># 乳がん — F primary + M ~0.02 %</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">by_sex</span><span class="p">:</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">      </span><span class="nt">F</span><span class="p">:</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">        </span><span class="s">"40-59"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.015</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">        </span><span class="s">"60-99"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.030</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">      </span><span class="nt">M</span><span class="p">:</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">        </span><span class="s">"60-99"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0002</span>
+</span></code></pre></div>
+<p>full な挙動 + downstream の sex-conditional 請求コード mapping:
+<a href="../reference/oncology-obstetric-service-lines.ja/"><code>reference/oncology-obstetric-service-lines.ja.md</code></a> §3。</p>
 <h2 id="任意-yaml-ファイル-opt-in-モジュール">任意 YAML ファイル (opt-in モジュール)<a class="headerlink" href="#任意-yaml-ファイル-opt-in-モジュール" title="Permanent link">&para;</a></h2>
 <p>対応国が特定 opt-in モジュールをサポートする場合のみ追加:</p>
 <table>
@@ -2528,8 +2608,8 @@ skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_templat
 </table>
 <h2 id="コード登録">コード登録<a class="headerlink" href="#コード登録" title="Permanent link">&para;</a></h2>
 <h3 id="1-loaderpy-に国を登録">1. <code>loader.py</code> に国を登録<a class="headerlink" href="#1-loaderpy-に国を登録" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># clinosim/locale/loader.py</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">_COUNTRY_DIR_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"JP"</span><span class="p">:</span> <span class="s2">"jp"</span><span class="p">,</span> <span class="s2">"US"</span><span class="p">:</span> <span class="s2">"us"</span><span class="p">,</span> <span class="s2">"XX"</span><span class="p">:</span> <span class="s2">"xx"</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># clinosim/locale/loader.py</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">_COUNTRY_DIR_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"JP"</span><span class="p">:</span> <span class="s2">"jp"</span><span class="p">,</span> <span class="s2">"US"</span><span class="p">:</span> <span class="s2">"us"</span><span class="p">,</span> <span class="s2">"XX"</span><span class="p">:</span> <span class="s2">"xx"</span><span class="p">}</span>
 </span></code></pre></div>
 <p>ローダーは要求コードがマップにない場合 <code>country.lower()</code> にフォール
 バックしますが、明示登録が完全性 / 発見可能性のために推奨。</p>
@@ -2566,9 +2646,9 @@ gate:</p>
       が有効な FHIR R4 リソースを emit</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 同 seed の 2 実行がバイト同一出力を生成 (決定性チェック —
       clinosim のコア不変条件、AD-16):
-      <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># manifest transactionTime のみが差分</span>
+      <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># manifest transactionTime のみが差分</span>
 </span></code></pre></div></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 氏名 / 住所 / 日付が期待される現地慣習でレンダリング</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 検査 reference range が権威ソースと一致</li>

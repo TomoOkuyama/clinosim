@@ -956,6 +956,8 @@
       
         
       
+        
+      
     
     
     
@@ -1242,6 +1244,34 @@
     
   
     Multi-country
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/oncology-obstetric-service-lines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Oncology + obstetric service lines
   
 
     
@@ -2249,6 +2279,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#1b2-ヘルスケアカレンダーイベント発火--generate_healthcare_calendar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1b.2. ヘルスケアカレンダーイベント発火 — generate_healthcare_calendar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#1c-患者の-hydrate--modulespatient" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2430,6 +2471,65 @@
 </ul>
 <p>「患者は population から生まれる」— どの患者も最初は住民で、イベントが閾値を超えて初めて
 hospital encounter に変換される。これにより疫学が人口レベルで正しくスケールする。</p>
+<h3 id="1b2-ヘルスケアカレンダーイベント発火--generate_healthcare_calendar">1b.2. ヘルスケアカレンダーイベント発火 — <code>generate_healthcare_calendar</code><a class="headerlink" href="#1b2-ヘルスケアカレンダーイベント発火--generate_healthcare_calendar" title="Permanent link">&para;</a></h3>
+<p>急性疾患イベントは人口全体で発火する (§1b)。それと並行して
+<code>generate_healthcare_calendar(registry, year, country, rng)</code>
+(<code>population/engine.py</code>) が、急性 onset の有無に関わらず実患者が受ける
+<strong>カレンダー駆動の encounter</strong> ストリームを別途 emit する — 慢性疾患
+管理受診、健診、予防接種、化学療法サイクル、分娩など。各患者は
+<strong>独立した RNG stream</strong> を持つので、1 人のスケジュール変更が他の
+無関係な患者の timeline に cascade しない (<code>rng.spawn(len(persons))</code>)。</p>
+<p><strong>イベントカタログ:</strong></p>
+<table>
+<thead>
+<tr>
+<th><code>event_type</code></th>
+<th>発火対象</th>
+<th>ケイデンス出所</th>
+<th>Dispatch 先</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>chronic_visit</code></td>
+<td><code>locale/shared/chronic_followup.yaml</code> にある慢性疾患保有者 (16 の慢性コード + インフル予防接種 + 糖尿病網膜症スクリーニング)</td>
+<td>慢性エントリ毎の <code>follow_up_interval_months</code>、年 6 回まで cap</td>
+<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code></td>
+</tr>
+<tr>
+<td><code>pediatric_visit</code></td>
+<td>active な well-child schedule item を持つ患者 (<code>modules/pediatric/calendar.py</code>)</td>
+<td>JP MHLW / US CDC well-child schedule に沿った年齢条件付き</td>
+<td><code>_simulate_outpatient_visit(visit_type="pediatric_visit")</code></td>
+</tr>
+<tr>
+<td><code>health_screening</code></td>
+<td>40 歳以上 (年 1 健診) + 50 歳以上 colonoscopy (10 年間隔 → 10 %/年) + 女性 40 歳以上 mammography (60 %/年)</td>
+<td><code>_population_workflow_thresholds</code> の population 閾値</td>
+<td><code>_simulate_outpatient_visit(visit_type="health_screening")</code></td>
+</tr>
+<tr>
+<td><code>chemo_visit</code></td>
+<td><code>(patient, cancer_code)</code> 毎の sub-RNG が <code>chemo_regimens.yaml</code> の active regimen を割り当てた慢性がん患者</td>
+<td>Regimen 毎の <code>cycle_interval_days</code> (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d)、<code>course_cycles</code> で cap</td>
+<td><code>_simulate_outpatient_visit(visit_type="chemo_visit")</code> — Encounter + <code>chemotherapy_administration</code> Procedure を emit</td>
+</tr>
+<tr>
+<td><code>delivery</code></td>
+<td>Z34 保有 (sim window 内 active な妊娠) の女性</td>
+<td>妊娠年毎に 1 件、<code>perinatal.yaml::scheduling.delivery_month_range</code> 内 (デフォルト 4-10 月) の scheduled 月に発火</td>
+<td><code>simulator/perinatal.py::simulate_delivery_encounter</code> — <code>O80</code> admission dx / <code>Z37.0</code> discharge dx + 分娩 Procedure の IMP Encounter を emit</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Determinism-neutrality 契約:</strong> 初回 chronic-visit スケジューラ以降に
+追加された event (chemo_visit、delivery) はすべて、カレンダー共有の
+per-person stream を消費するのではなく専用の per-patient sub-seed
+(<code>chemotherapy_regimen_seed</code>、<code>perinatal_delivery_seed</code>) を使用する。
+これらの emit の追加・調整は、新 event が直接対象とする患者を除き
+byte-identical。</p>
+<p>腫瘍 + 産科 event の full schema + slice スコープ:
+<a href="../../reference/oncology-obstetric-service-lines.ja/"><code>../reference/oncology-obstetric-service-lines.ja.md</code></a>。</p>
 <h3 id="1c-患者の-hydrate--modulespatient">1c. 患者の hydrate — <code>modules/patient</code><a class="headerlink" href="#1c-患者の-hydrate--modulespatient" title="Permanent link">&para;</a></h3>
 <p>入院/受診が確定した住民は <code>activate_patient(person, rng, demo)</code>(<code>patient/activator.py</code>)で
 Layer 1 → Layer 2 <code>PatientProfile</code> に厚くなる:身長/体重、<strong>慢性疾患の staging</strong>

@@ -893,6 +893,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#1b2-healthcare-calendar-event-firing--generate_healthcare_calendar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1b.2. Healthcare-calendar event firing — generate_healthcare_calendar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#1c-patient-hydration--modulespatient" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1132,6 +1143,8 @@
   
     
     
+      
+        
       
         
       
@@ -1447,6 +1460,34 @@
     
   
     Multi-country
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/oncology-obstetric-service-lines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Oncology + obstetric service lines
   
 
     
@@ -2454,6 +2495,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#1b2-healthcare-calendar-event-firing--generate_healthcare_calendar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1b.2. Healthcare-calendar event firing — generate_healthcare_calendar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#1c-patient-hydration--modulespatient" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2662,6 +2714,68 @@ each month. For each resident, it evaluates disease incidence (rate
 resident and becomes a hospital encounter only when an event
 crosses the threshold. This is what keeps epidemiology correctly
 scaled at the population level.</p>
+<h3 id="1b2-healthcare-calendar-event-firing--generate_healthcare_calendar">1b.2. Healthcare-calendar event firing — <code>generate_healthcare_calendar</code><a class="headerlink" href="#1b2-healthcare-calendar-event-firing--generate_healthcare_calendar" title="Permanent link">&para;</a></h3>
+<p>Acute disease events are population-wide (§1b). Alongside them,
+<code>generate_healthcare_calendar(registry, year, country, rng)</code>
+(<code>population/engine.py</code>) emits a separate stream of
+<strong>calendar-driven encounters</strong> that a real patient sees regardless
+of any acute onset — chronic-condition management visits, screening,
+vaccinations, cycle-based chemotherapy, delivery. Each fires from
+a <strong>per-person independent RNG stream</strong> so an edit to one person's
+schedule cannot cascade into unrelated patients' timelines
+(<code>rng.spawn(len(persons))</code>).</p>
+<p><strong>Event catalog:</strong></p>
+<table>
+<thead>
+<tr>
+<th><code>event_type</code></th>
+<th>Fires for</th>
+<th>Cadence source</th>
+<th>Dispatch target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>chronic_visit</code></td>
+<td>Anyone with a chronic condition present in <code>locale/shared/chronic_followup.yaml</code> (16 chronic codes + flu vaccination + diabetic retinopathy screening)</td>
+<td><code>follow_up_interval_months</code> per chronic entry; capped at 6/year</td>
+<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code></td>
+</tr>
+<tr>
+<td><code>pediatric_visit</code></td>
+<td>Anyone with an active well-child schedule item (<code>modules/pediatric/calendar.py</code>)</td>
+<td>Age-conditional per JP MHLW / US CDC well-child schedule</td>
+<td><code>_simulate_outpatient_visit(visit_type="pediatric_visit")</code></td>
+</tr>
+<tr>
+<td><code>health_screening</code></td>
+<td>Age ≥ 40 (annual) + age ≥ 50 colonoscopy (10-year interval → 10 %/yr) + female age ≥ 40 mammography (60 %/yr)</td>
+<td>Population thresholds in <code>_population_workflow_thresholds</code></td>
+<td><code>_simulate_outpatient_visit(visit_type="health_screening")</code></td>
+</tr>
+<tr>
+<td><code>chemo_visit</code></td>
+<td>Chronic-cancer carriers whose per-(patient, cancer_code) sub-RNG assigns an active regimen from <code>chemo_regimens.yaml</code></td>
+<td><code>cycle_interval_days</code> per regimen (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d), capped by <code>course_cycles</code></td>
+<td><code>_simulate_outpatient_visit(visit_type="chemo_visit")</code> — emits Encounter + <code>chemotherapy_administration</code> Procedure</td>
+</tr>
+<tr>
+<td><code>delivery</code></td>
+<td>Z34-carrying women (actively pregnant during sim window)</td>
+<td>One event per pregnancy-year at a scheduled month within <code>perinatal.yaml::scheduling.delivery_month_range</code> (default April-October)</td>
+<td><code>simulator/perinatal.py::simulate_delivery_encounter</code> — emits IMP Encounter with <code>O80</code> admission dx / <code>Z37.0</code> discharge dx + delivery Procedure</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Determinism-neutrality contract:</strong> every event added since the
+initial chronic-visit scheduler (chemo_visit, delivery) uses a
+dedicated per-patient sub-seed (<code>chemotherapy_regimen_seed</code>,
+<code>perinatal_delivery_seed</code>) instead of consuming the calendar's
+shared per-person stream. Adding or tuning these emissions is
+byte-identical for every patient except the ones the new event
+directly targets.</p>
+<p>Full schema + slice scope for the oncology + obstetric events:
+<a href="../../reference/oncology-obstetric-service-lines/"><code>../reference/oncology-obstetric-service-lines.md</code></a>.</p>
 <h3 id="1c-patient-hydration--modulespatient">1c. Patient hydration — <code>modules/patient</code><a class="headerlink" href="#1c-patient-hydration--modulespatient" title="Permanent link">&para;</a></h3>
 <p>Residents whose hospitalisation / visit fires are thickened by
 <code>activate_patient(person, rng, demo)</code>

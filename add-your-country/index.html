@@ -956,6 +956,8 @@
       
         
       
+        
+      
     
     
     
@@ -1242,6 +1244,34 @@
     
   
     Multi-country
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/oncology-obstetric-service-lines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Oncology + obstetric service lines
   
 
     
@@ -2245,6 +2275,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Required YAML files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#demographicsyamlchronic_prevalence-schema-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        demographics.yaml::chronic_prevalence schema variants
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2439,7 +2486,7 @@ require no country-specific work.</p>
 </tr>
 <tr>
 <td><code>demographics.yaml</code></td>
-<td>Age distribution, blood type, chronic-disease prevalence, disease incidence, lifestyle</td>
+<td>Age distribution, blood type, chronic-disease prevalence (see schema note below), disease incidence, lifestyle</td>
 <td>Government census / disease surveillance</td>
 </tr>
 <tr>
@@ -2476,6 +2523,40 @@ require no country-specific work.</p>
 </table>
 <p>Each file is validated at load time; a missing file falls back to built-in
 defaults but that means the generated data is not truly locale-representative.</p>
+<h3 id="demographicsyamlchronic_prevalence-schema-variants"><code>demographics.yaml::chronic_prevalence</code> schema variants<a class="headerlink" href="#demographicsyamlchronic_prevalence-schema-variants" title="Permanent link">&para;</a></h3>
+<p>Two accepted shapes per entry:</p>
+<ul>
+<li><strong>Flat form</strong> (single-sex or sex-neutral): <code>sex: F|M|""</code> +
+  <code>"&lt;lo&gt;-&lt;hi&gt;": &lt;target_marginal&gt;</code> age-band pairs. Sampled from
+  the shared population master RNG.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">chronic_prevalence</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">N40</span><span class="p">:</span><span class="w">                  </span><span class="c1"># BPH, male-only</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">sex</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">M</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="s">"60-99"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.20</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">E11</span><span class="p">:</span><span class="w">                  </span><span class="c1"># T2DM, sex-neutral</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="s">"40-99"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.10</span>
+</span></code></pre></div>
+<ul>
+<li><strong><code>by_sex</code> form</strong> (asymmetric per-sex bands, e.g. male breast
+  cancer at ~1 % of C50 total with a later age peak than female
+  BC). The first sex key becomes the primary (sampled on the
+  master RNG identically to the flat form); every remaining sex
+  key becomes an entry in <code>augment_sex_bands</code> sampled from a
+  per-<code>(patient_id, code)</code> sub-RNG so opposite-sex activation
+  does not cascade the master stream.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">chronic_prevalence</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">C50</span><span class="p">:</span><span class="w">                  </span><span class="c1"># Breast cancer — F primary + M ~0.02 %</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">by_sex</span><span class="p">:</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">      </span><span class="nt">F</span><span class="p">:</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">        </span><span class="s">"40-59"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.015</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">        </span><span class="s">"60-99"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.030</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">      </span><span class="nt">M</span><span class="p">:</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">        </span><span class="s">"60-99"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0002</span>
+</span></code></pre></div>
+<p>Full behavior + downstream sex-conditional billing-code mapping:
+<a href="../reference/oncology-obstetric-service-lines/"><code>reference/oncology-obstetric-service-lines.md</code></a> §3.</p>
 <h2 id="optional-yaml-files-opt-in-modules">Optional YAML files (opt-in modules)<a class="headerlink" href="#optional-yaml-files-opt-in-modules" title="Permanent link">&para;</a></h2>
 <p>Only add these when your country supports a specific opt-in module:</p>
 <table>
@@ -2526,8 +2607,8 @@ defaults but that means the generated data is not truly locale-representative.</
 </table>
 <h2 id="code-registration">Code registration<a class="headerlink" href="#code-registration" title="Permanent link">&para;</a></h2>
 <h3 id="1-register-the-country-in-loaderpy">1. Register the country in <code>loader.py</code><a class="headerlink" href="#1-register-the-country-in-loaderpy" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># clinosim/locale/loader.py</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">_COUNTRY_DIR_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"JP"</span><span class="p">:</span> <span class="s2">"jp"</span><span class="p">,</span> <span class="s2">"US"</span><span class="p">:</span> <span class="s2">"us"</span><span class="p">,</span> <span class="s2">"XX"</span><span class="p">:</span> <span class="s2">"xx"</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># clinosim/locale/loader.py</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">_COUNTRY_DIR_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"JP"</span><span class="p">:</span> <span class="s2">"jp"</span><span class="p">,</span> <span class="s2">"US"</span><span class="p">:</span> <span class="s2">"us"</span><span class="p">,</span> <span class="s2">"XX"</span><span class="p">:</span> <span class="s2">"xx"</span><span class="p">}</span>
 </span></code></pre></div>
 <p>The loader falls back to <code>country.lower()</code> when the map does not contain
 the requested code, but registering it explicitly is preferred for
@@ -2562,9 +2643,9 @@ emits JP Core profiles when <code>country == "JP"</code> via
       valid FHIR R4 resources</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Two independent runs with the same seed produce byte-identical output
       (determinism check — clinosim's core invariant, AD-16):
-      <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># must show only manifest transactionTime</span>
+      <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># must show only manifest transactionTime</span>
 </span></code></pre></div></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Names / addresses / dates render in the expected local convention</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Lab reference ranges match the authoritative source</li>
