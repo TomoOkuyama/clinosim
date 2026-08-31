@@ -66,7 +66,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
-from mpmath import cos as _mp_cos
+from mpmath import cos as _mp_cos  # type: ignore[import-untyped]
 from mpmath import log as _mp_log
 from mpmath import mp, mpf
 from mpmath import pi as _mp_pi

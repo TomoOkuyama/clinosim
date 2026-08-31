@@ -148,7 +148,7 @@ def _sha256_gaussian(key: str, sd: float) -> float:
     """
     if sd <= 0:
         return 0.0
-    from mpmath import erfinv, mp, mpf, sqrt
+    from mpmath import erfinv, mp, mpf, sqrt  # type: ignore[import-untyped]
 
     mp.prec = 128
     h = hashlib.sha256(key.encode()).digest()
@@ -209,6 +209,12 @@ def _pediatric_medians(country: str, sex: str, age_years: int) -> dict[str, floa
     """Return {"height": …, "weight": …, "head_circumference": …?} for a
     pediatric age / sex, or None when the age falls outside the yaml table.
 
+    ``head_circumference`` is only present in the returned dict when the
+    growth-chart row carries the measurement (ages within the pediatric
+    head-circumference tracking window). Callers check ``"head_circumference"
+    in peds`` — never on a sentinel ``None`` value — so downstream unwrap
+    stays type-safe.
+
     Sex normalization: "M" / "male" → male row, otherwise female row.
     """
     ref = _load_reference()
@@ -217,11 +223,13 @@ def _pediatric_medians(country: str, sex: str, age_years: int) -> dict[str, floa
     row = (tables.get(sex_key) or {}).get(int(age_years))
     if not row:
         return None
-    return {
+    out: dict[str, float] = {
         "height": float(row.get("height", 0.0)),
         "weight": float(row.get("weight", 0.0)),
-        "head_circumference": (float(row["head_circumference"]) if "head_circumference" in row else None),
     }
+    if "head_circumference" in row:
+        out["head_circumference"] = float(row["head_circumference"])
+    return out
 
 
 def _derive_anthropometrics(
@@ -264,7 +272,10 @@ def _derive_anthropometrics(
             # Age outside table range: fall back to nearest adult profile.
             base_height = float(patient_data.get("height_cm", 0.0) or 0.0) or 160.0
             base_weight = float(patient_data.get("weight_kg", 0.0) or 0.0) or 55.0
-            peds = {"head_circumference": None}
+            # Empty dict so the "head_circumference in peds" check downstream
+            # returns False — head circumference is only tracked in the
+            # pediatric growth window, absent above it.
+            peds = {}
         else:
             base_height = peds["height"]
             base_weight = peds["weight"]
