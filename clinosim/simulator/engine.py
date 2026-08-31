@@ -943,6 +943,17 @@ def run_beta(
             for lab in spec.get("labs_annual", []):
                 if ev_rng.random() < OUTPATIENT_LABS_ANNUAL_PROBABILITY and lab not in visit_labs:
                     visit_labs.append(lab)
+            # Issue #757: medication-driven monitoring labs. Follows the
+            # patient regardless of the visit's primary reason — a
+            # warfarin-treated DVT patient whose only chronic follow-up
+            # is for hypertension still gets INR checks here. Data-driven
+            # via ``med_lab_mapping.yaml``; sub-scope of the monitoring
+            # pipeline META. Closes #736 (US warfarin PT_INR 0-obs gap).
+            from clinosim.modules.monitoring import monitoring_labs_for_patient
+
+            for lab in monitoring_labs_for_patient(patient.current_medications, ev_rng):
+                if lab not in visit_labs:
+                    visit_labs.append(lab)
             merged_spec = dict(spec)
             merged_spec["labs"] = visit_labs
             chronic_dept = resolve_outpatient_department("chronic_followup", event.disease_id, None, hospital_ops)

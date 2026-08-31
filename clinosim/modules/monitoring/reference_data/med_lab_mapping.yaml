@@ -1,0 +1,49 @@
+# Chronic-medication-driven monitoring lab mapping (Issue #757).
+#
+# For each mapping entry:
+#   ``matches``  — list of case-insensitive substring patterns applied to
+#                   ``HomeMedication.drug_name`` / ``drug_name_ja``. Any match
+#                   is sufficient; the check is intentionally forgiving so
+#                   trade names + generic names + JP katakana forms all resolve.
+#   ``labs``     — canonical clinosim lab-analyte names appended to the
+#                   visit's ``visit_labs`` list when the patient carries a
+#                   matching medication. Names must exist in
+#                   ``BASELINE_LAB_NORMALS`` or be modelled in
+#                   ``derive_lab_values`` so the outpatient emit loop does
+#                   not silent-drop them (feedback_semantic_correctness_over_coverage).
+#   ``per_visit_probability`` — fraction of chronic-followup visits at which
+#                   the monitoring lab fires. 1.0 = every visit; use lower
+#                   values for labs whose real cadence is longer than the
+#                   patient's typical follow-up interval (e.g. HbA1c q3-6mo
+#                   on a q2mo INR schedule).
+#
+# Priority-ordered per Issue #757's clinical-importance × prevalence table.
+
+medication_lab_mapping:
+  # Warfarin — every-visit INR is the maintenance standard-of-care (2-4 wk
+  # cadence for stable patients, more frequent during dose titration).
+  # Closes #736 (US warfarin PT-INR 0-observation gap).
+  warfarin:
+    matches: ["warfarin", "ワルファリン", "coumadin"]
+    labs: [PT_INR]
+    per_visit_probability: 1.0
+
+  # Levothyroxine — TSH 6-8 weeks after dose change, then annual. Approximated
+  # here as ~50 % of chronic-followup visits since most clinics group with
+  # the primary condition follow-up rather than a dedicated thyroid visit.
+  levothyroxine:
+    matches: ["levothyroxine", "レボチロキシン", "synthroid", "チラーヂン"]
+    labs: [TSH]
+    per_visit_probability: 0.5
+
+  # Diabetes oral (metformin as sentinel) + insulin — HbA1c q3-6mo. Standard
+  # ADA / JDS diabetes-monitoring cadence.
+  metformin:
+    matches: ["metformin", "メトホルミン"]
+    labs: [HbA1c]
+    per_visit_probability: 0.5
+
+  insulin:
+    matches: ["insulin", "インスリン"]
+    labs: [HbA1c]
+    per_visit_probability: 0.5
