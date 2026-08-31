@@ -36,8 +36,6 @@ from clinosim.simulator import (
     run_alpha,                    # 後方互換単一患者実行
     main,                         # CLI エントリ (`clinosim` console_scripts)
     load_all_disease_protocols,   # プロトコルレジストリローダー
-    _load_all_disease_protocols,  # deprecated alias、Issue #557 —
-                                  # 次リリースで削除予定
 )
 ```
 
@@ -115,7 +113,7 @@ clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 
 ```
 clinosim/simulator/
-  __init__.py            公開 API (6 export)
+  __init__.py            公開 API (5 export)
   cli.py                 argparse エントリ、トップレベルサブコマンド
                          dispatch
   engine.py              run_alpha / run_beta / run_forced
