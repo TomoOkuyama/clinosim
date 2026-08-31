@@ -116,7 +116,7 @@ Concrete consequences:
 
 ## Directory contents
 
-Simulation orchestration (13 files):
+Simulation orchestration (12 files):
 
 ```
 clinosim/simulator/
@@ -124,8 +124,6 @@ clinosim/simulator/
   cli.py                 argparse entry, top-level subcommand dispatch
   engine.py              run_alpha / run_beta / run_forced
   daily_loop.py          per-day loop extracted from engine
-  des_engine.py          DES-lite event engine (Issue #557: pending
-                         removal, kept for one release)
   hospital_ops.py        hospital operations orchestration
   inpatient.py           inpatient encounter simulator
   outpatient.py          outpatient encounter simulator

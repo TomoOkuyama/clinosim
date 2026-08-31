@@ -133,7 +133,7 @@ dict を) 渡す。
 | Consumer | 場所 | 役割 |
 |---|---|---|
 | Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`L191` 付近) | `hospital_ops` を load (`--hospital-config PATH` または `load_hospital_operations()`) し、run ごとに `HospitalState` を構築。 |
-| Discrete-event scheduler | [`clinosim/simulator/des_engine.py`](../../simulator/des_engine.py) (`L21` 付近) | lab / imaging / OR 結果の timestamp に `HospitalState.calculate_delay` を使用。 |
+| Order 結果 timing | [`clinosim/modules/order/engine.py`](../order/engine.py) (`calculate_result_time_from_state`、~L795) | lab / imaging / OR 結果の timestamp に `HospitalState.calculate_delay` を使用。`simulator/lab_pipeline.py` + `simulator/unknown_condition.py` から呼び出される。 |
 | Order queue-replay test | [`tests/unit/test_order_queue_replay.py`](../../../tests/unit/test_order_queue_replay.py) | `HospitalState` + `load_hospital_operations()` を load し queue add / release 意味論を replay。 |
 | Wall-clock sentinel test | [`tests/unit/test_wallclock_sentinel_defaults.py`](../../../tests/unit/test_wallclock_sentinel_defaults.py) | `_UNSET_DATETIME` sentinel default を assert。 |
 
