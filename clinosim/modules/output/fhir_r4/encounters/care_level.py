@@ -33,12 +33,15 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque care-level id ===
 # Structural key = pre-#854 id body (patient id).
+# Issue #909: salt hash input with observation-key kind so ``.id`` diverges
+# from ``Patient.id`` (which hashes ``patient_id`` unsalted).
+_CARE_LEVEL_KEY_KIND = "care-level-observation-key"
 CARE_LEVEL_ID_PREFIX = "carelevel-"
-CARE_LEVEL_KEY_SYSTEM = structural_key_system("care-level-observation-key")
+CARE_LEVEL_KEY_SYSTEM = structural_key_system(_CARE_LEVEL_KEY_KIND)
 
 
 def _resolve_care_level_id(structural_key: str) -> str:
-    return derive_opaque_id(CARE_LEVEL_ID_PREFIX, structural_key)
+    return derive_opaque_id(CARE_LEVEL_ID_PREFIX, f"{_CARE_LEVEL_KEY_KIND}:{structural_key}")
 
 
 # Issue #733: LOINC observation-identifier for the care-level Observation.
