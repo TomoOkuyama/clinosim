@@ -54,6 +54,21 @@ C50:
 C61: "C61"          # Malignant neoplasm of prostate (billable as-is)
 Z34: "Z34.90"       # Encounter for supervision of normal pregnancy, unspecified, unspecified trimester
 Z37: "Z37.9"        # Outcome of delivery, unspecified — past-birth marker on the problem list
+Z38: "Z38.00"       # Single liveborn, delivered vaginally, born in hospital (Issue #957 Tier-3-B)
+Z38.0: "Z38.00"     # Alias — Z38.0 is a WHO-only header that maps to the CM 5-char leaf
+Z39: "Z39.2"        # Encounter for routine postpartum follow-up (Issue #957 Tier-3-B)
+# ── Perinatal newborn + abortion (Issue #957 Tier-3-B slice 3) ─────────
+P59.9: "P59.9"       # Neonatal jaundice, unspecified
+P07.3: "P07.3"       # Preterm newborn (28-<37 wk)
+P22.0: "P22.0"       # Respiratory distress syndrome of newborn
+L20.9: "L20.9"       # Atopic dermatitis, unspecified
+L22:   "L22"         # Diaper dermatitis
+O03:   "O03.9"       # Spontaneous abortion → CM unspecified-outcome billable leaf
+O04:   "O04.5"       # Medical abortion → CM "with genital tract/pelvic infection" billable leaf
+                     # (US ICD-10-CM structures O04 into complication categories;
+                     # O04.5 is the closest billable stand-in for uncomplicated
+                     # induced termination when a specific complication is not
+                     # coded)
 
 # --- Past acute events carried as chronic background → "personal history of / old" ---
 I21: "I25.2"        # Old myocardial infarction

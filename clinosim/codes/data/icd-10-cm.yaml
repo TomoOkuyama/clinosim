@@ -443,6 +443,48 @@ codes:
   L03.90:
     ja: 蜂窩織炎，詳細不明
     en: Cellulitis, unspecified
+  L20:
+    en: Atopic dermatitis
+    ja: アトピー性皮膚炎
+  L20.9:
+    en: Atopic dermatitis, unspecified
+    ja: アトピー性皮膚炎、詳細不明
+  L22:
+    en: Diaper dermatitis
+    ja: おむつ皮膚炎
+  # ── Perinatal conditions (Issue #957 Tier-3-B slice 3) — sampled on the
+  # newborn's birth encounter via ``perinatal.yaml::newborn_conditions``.
+  P07:
+    en: Disorders of newborn related to short gestation and low birth weight
+    ja: 早産・低出生体重に関連する新生児障害
+  P07.3:
+    en: "Preterm newborn (28 completed weeks to less than 37 completed weeks)"
+    ja: "在胎 28-37 週の早産児"
+  P22:
+    en: Respiratory distress of newborn
+    ja: 新生児呼吸窮迫
+  P22.0:
+    en: "Respiratory distress syndrome of newborn"
+    ja: "新生児呼吸窮迫症候群"
+  P59:
+    en: Neonatal jaundice from other and unspecified causes
+    ja: その他および詳細不明の新生児黄疸
+  P59.9:
+    en: "Neonatal jaundice, unspecified"
+    ja: "新生児黄疸、詳細不明"
+  # ── Abortion codes (Issue #957 Tier-3-B slice 3, young-age gate).
+  O03:
+    en: Spontaneous abortion
+    ja: 自然流産
+  O03.9:
+    en: "Complete or unspecified spontaneous abortion without complication"
+    ja: "自然流産、合併症なし・詳細不明"
+  O04:
+    en: Complications following (induced) termination of pregnancy
+    ja: 人工妊娠中絶に伴う合併症
+  O04.5:
+    en: "Genital tract and pelvic infection following (induced) termination of pregnancy"
+    ja: "人工妊娠中絶後の性器・骨盤感染"
   M17:
     en: Osteoarthritis of knee
     ja: 変形性膝関節症
@@ -722,6 +764,15 @@ codes:
   Z38:
     en: "Liveborn infants according to place of birth and type of delivery"
     ja: "出生児の出生場所および分娩様式別分類"
+  Z38.00:
+    en: "Single liveborn infant, delivered vaginally"
+    ja: "単胎生児、経腟分娩、院内出生"
+  Z39:
+    en: "Encounter for maternal postpartum care and examination"
+    ja: "産褥期の医療ケアおよび検査"
+  Z39.2:
+    en: "Encounter for routine postpartum follow-up"
+    ja: "産後定期フォローアップ"
   Z48.01:
     en: Encounter for change or removal of surgical wound dressing
     ja: 手術創ドレッシング交換・抜去

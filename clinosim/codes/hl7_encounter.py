@@ -41,6 +41,12 @@ class AdmitSource(StrEnum):
     OUTP = "outp"
     """Outpatient department — walk-in / scheduled outpatient encounter origin."""
 
+    BORN = "born"
+    """Born in hospital — newborn admission source for a baby delivered in
+    the same facility. Issue #957 perinatal chain: emitted on the newborn's
+    IMP Encounter, paired with ``Encounter.partOf`` pointing at the
+    mother's delivery encounter for FHIR mother→baby linkage."""
+
 
 class DischargeDisposition(StrEnum):
     """HL7 v2 discharge-disposition ``http://terminology.hl7.org/CodeSystem/discharge-disposition``."""

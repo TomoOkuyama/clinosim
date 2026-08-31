@@ -992,16 +992,41 @@ def run_beta(
                 config=config,
                 department_id=pedi_dept,
             )
+        elif event.event_type == "abortion":
+            # Issue #957 Tier-3-B slice 3: pregnancy termination event
+            # (spontaneous O03.9 or induced O04.5). Age-gated abortion
+            # outcome resolution runs in the scheduler
+            # (``resolve_pregnancy_outcome``); dispatch here just emits
+            # the outpatient day-surgery encounter with the pre-decided
+            # discharge dx.
+            from clinosim.simulator.perinatal import simulate_abortion_encounter
+
+            abortion_records = simulate_abortion_encounter(
+                patient=patient,
+                visit_date=visit_time,
+                discharge_dx=event.disease_id,
+                roster=roster,
+                rng=ev_rng,
+                country=config.country,
+                config=config,
+                hospital_ops=hospital_ops,
+            )
+            patient_records.extend(abortion_records)
+            n_calendar += 1
+            continue
         elif event.event_type == "delivery":
-            # Issue #957 Tier-3-B: mother-side perinatal delivery encounter.
-            # Emits one inpatient encounter per Z34 pregnancy-year with
-            # admission dx O80 (spontaneous delivery), discharge dx Z37.0
-            # (single liveborn), and a delivery Procedure. Newborn
-            # Patient generation + postpartum + Z38 remain follow-up
-            # slices (multi-patient linked encounters are deferred).
+            # Issue #957 Tier-3-B: mother-side perinatal delivery encounter
+            # + newborn Patient + Encounter chain (Slice 2). Emits one
+            # inpatient encounter for the mother (admission dx O80
+            # spontaneous delivery, discharge dx Z37.0 single liveborn,
+            # delivery Procedure) AND one for the newborn (admitSource=born,
+            # partOf → mother's delivery encounter, discharge dx Z38.0).
+            # Postpartum AMB visits fire separately as chronic_visit-style
+            # events (see ``_perinatal_delivery_events`` in
+            # population/engine.py).
             from clinosim.simulator.perinatal import simulate_delivery_encounter
 
-            opd_record = simulate_delivery_encounter(
+            delivery_records = simulate_delivery_encounter(
                 patient=patient,
                 visit_date=visit_time,
                 roster=roster,
@@ -1010,6 +1035,12 @@ def run_beta(
                 config=config,
                 hospital_ops=hospital_ops,
             )
+            # Both mother and newborn records land on ``patient_records``;
+            # skip the shared single-record append at the bottom of this
+            # branch (delivery is the only dispatch that produces >1 record).
+            patient_records.extend(delivery_records)
+            n_calendar += 1
+            continue
         elif event.event_type == "health_screening":
             # F1: visit_reason must vary by disease_id — see the
             # ev_key comment above. Previously every health_screening dispatch
