@@ -190,19 +190,6 @@ class ChronicConditionSpec:
         return 0.0
 
 
-def _target_prev_at_age(spec: ChronicConditionSpec, age: int, sex: str = "") -> float:
-    """Deprecated shim — callers should use ``spec.prevalence_at(age, sex)``.
-    Kept for backward compatibility with any external caller that predates
-    the ``by_sex`` schema (Issue #957); when ``sex`` is omitted this
-    collapses to the pre-#957 flat-band behaviour."""
-    if sex:
-        return spec.prevalence_at(age, sex)
-    for (lo, hi), prev in spec.age_ranges.items():
-        if lo <= age <= hi:
-            return prev
-    return 0.0
-
-
 def _bmi_category_probabilities(demo: dict, sex_key: str) -> dict[str, float]:
     """Return P(bmi_cat) for cats {'normal', 'overweight', 'obese'} given the
     physiology.bmi distribution and lifestyle_risk_multipliers.bmi.thresholds
