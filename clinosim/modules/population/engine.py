@@ -148,14 +148,55 @@ def _parse_age_distribution(demo: dict) -> tuple[list[tuple[int, int]], list[flo
 
 @dataclass(frozen=True)
 class ChronicConditionSpec:
+    """Target marginal prevalence of a chronic condition by (age, sex).
+
+    Two YAML schemas are supported (see ``_parse_chronic_prevalence``):
+
+    * Legacy flat form: ``{sex: "F", "40-59": 0.015, "60-99": 0.030}`` —
+      one set of age bands + one hard sex filter. Used for strictly
+      single-sex codes (N40 BPH, N70 salpingitis, Z34 pregnancy, C61
+      prostate) and for sex-neutral codes (``sex: ""``). Populates
+      ``age_ranges`` + ``sex``; ``age_ranges_by_sex`` stays empty.
+
+    * ``by_sex`` form: ``{by_sex: {F: {bands}, M: {bands}}}`` — per-sex
+      age bands. Used for codes with asymmetric sex distribution AND
+      distinct age profiles (Issue #957 C50 breast cancer: female peak
+      40-60 at 1.5-3 %, male peak 60+ at ~0.02 %). Populates
+      ``age_ranges_by_sex``; ``age_ranges`` + ``sex`` are the compat
+      shim (``sex = ""``, ``age_ranges = {}``) so any downstream reader
+      that inspects them sees no legacy filter to apply.
+
+    ``prevalence_at`` is the single query API — every consumer should
+    call it rather than picking apart ``age_ranges`` / ``sex`` by hand.
+    """
+
     age_ranges: dict[tuple[int, int], float]
     sex: str  # "M", "F", or "" (any)
+    age_ranges_by_sex: dict[str, dict[tuple[int, int], float]] = field(default_factory=dict)
+
+    def prevalence_at(self, age: int, sex: str) -> float:
+        """Return the target marginal prevalence for a (age, sex) patient,
+        or 0.0 if no configured band covers this cohort. Both age band
+        endpoints are inclusive (yaml convention)."""
+        if self.age_ranges_by_sex:
+            bands = self.age_ranges_by_sex.get(sex, {})
+        else:
+            if self.sex and self.sex != sex:
+                return 0.0
+            bands = self.age_ranges
+        for (lo, hi), prev in bands.items():
+            if lo <= age <= hi:
+                return prev
+        return 0.0
 
 
-def _target_prev_at_age(spec: ChronicConditionSpec, age: int) -> float:
-    """Return the target marginal prevalence of ``spec`` at ``age``, or 0 if
-    the age falls in no configured band. Age bands are half-open in the yaml
-    convention (both endpoints inclusive)."""
+def _target_prev_at_age(spec: ChronicConditionSpec, age: int, sex: str = "") -> float:
+    """Deprecated shim — callers should use ``spec.prevalence_at(age, sex)``.
+    Kept for backward compatibility with any external caller that predates
+    the ``by_sex`` schema (Issue #957); when ``sex`` is omitted this
+    collapses to the pre-#957 flat-band behaviour."""
+    if sex:
+        return spec.prevalence_at(age, sex)
     for (lo, hi), prev in spec.age_ranges.items():
         if lo <= age <= hi:
             return prev
@@ -267,12 +308,10 @@ def _expected_comorbidity_multiplier(
     for prior_code, prior_spec in chronic_data.items():
         if prior_code == current_code:
             break
-        if prior_spec.sex and prior_spec.sex != sex:
-            continue
         m = float((comorbidity_cfg.get(prior_code) or {}).get(current_code, 1.0))
         if m == 1.0:
             continue
-        p_prior = _target_prev_at_age(prior_spec, age)
+        p_prior = prior_spec.prevalence_at(age, sex)
         if p_prior <= 0.0:
             continue
         compound *= 1.0 + p_prior * (m - 1.0)
@@ -282,14 +321,49 @@ def _expected_comorbidity_multiplier(
 def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
     """Parse chronic_prevalence from demographics YAML into structured dict.
 
-    Supports optional ``sex: M`` or ``sex: F`` field to restrict conditions
-    to a specific sex (e.g., BPH is male-only).
+    Two schemas are accepted (see ``ChronicConditionSpec``):
+
+    * Legacy flat: ``{sex: F, "40-59": 0.015, "60-99": 0.030}`` — single
+      set of age bands + optional ``sex`` hard filter. Used for
+      strictly single-sex codes and for sex-neutral codes.
+    * ``by_sex``: ``{by_sex: {F: {bands}, M: {bands}}}`` — per-sex age
+      bands (Issue #957 male C50). ``sex`` / flat bands MUST NOT be
+      mixed with ``by_sex``; the two forms are mutually exclusive.
+
+    Each ``by_sex`` inner sex block has the same age-range key format as
+    the legacy flat form (``"lo-hi": prevalence``).
     """
     raw = demo.get("chronic_prevalence", {})
     result: dict[str, ChronicConditionSpec] = {}
     for code, entry in raw.items():
         if not isinstance(entry, dict):
             continue
+
+        by_sex_raw = entry.get("by_sex")
+        if isinstance(by_sex_raw, dict):
+            # by_sex form (Issue #957) — mutually exclusive with sex / flat bands.
+            extra_keys = [k for k in entry.keys() if k != "by_sex"]
+            if extra_keys:
+                raise ValueError(
+                    f"chronic_prevalence[{code!r}]: 'by_sex' schema cannot be mixed "
+                    f"with legacy keys {extra_keys!r}; pick one form."
+                )
+            by_sex: dict[str, dict[tuple[int, int], float]] = {}
+            for sex_key, bands_raw in by_sex_raw.items():
+                sex_norm = str(sex_key).upper()
+                if sex_norm not in ("M", "F"):
+                    raise ValueError(
+                        f"chronic_prevalence[{code!r}].by_sex: sex key must be 'M' or 'F', got {sex_key!r}"
+                    )
+                bands: dict[tuple[int, int], float] = {}
+                for range_key, prev in (bands_raw or {}).items():
+                    lo, hi = str(range_key).split("-")
+                    bands[(int(lo), int(hi))] = float(prev)
+                by_sex[sex_norm] = bands
+            result[code] = ChronicConditionSpec(age_ranges={}, sex="", age_ranges_by_sex=by_sex)
+            continue
+
+        # Legacy flat form.
         sex_filter = str(entry.get("sex", ""))
         age_ranges: dict[tuple[int, int], float] = {}
         for key, prev in entry.items():
@@ -477,30 +551,34 @@ def generate_population(
             sex_key = "male" if sex == "M" else "female"
             conditions: list[str] = []
             for code, spec in chronic_data.items():
-                if spec.sex and spec.sex != sex:
-                    continue  # e.g., BPH (N40) is male-only
-                for (lo, hi), base_prev in spec.age_ranges.items():
-                    if not (lo <= age <= hi):
-                        continue
-                    # Comorbidity correlation multiplier (from already-sampled conditions)
-                    corr_mult = 1.0
-                    for existing_code in conditions:
-                        corr_mult *= (comorbidity_cfg.get(existing_code) or {}).get(code, 1.0)
-                    # Lifestyle multipliers (per-patient realized values)
-                    life_mult = 1.0
-                    if bmi_cat:
-                        life_mult *= (bmi_cfg_lm.get(bmi_cat) or {}).get(code, 1.0)
-                    life_mult *= (smoking_cfg_lm.get(smoking_status) or {}).get(code, 1.0)
-                    # Population-expected compound multiplier over (age, sex)
-                    e_corr = _expected_comorbidity_multiplier(chronic_data, code, age, sex, comorbidity_cfg)
-                    e_life = _expected_lifestyle_multiplier(demo, code, sex_key, age)
-                    e_compound = e_corr * e_life
-                    # Rescale base so E[per-patient prob] ≈ base_prev (the target
-                    # marginal). Guard against pathological zero.
-                    scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
-                    final_prev = min(1.0, scaled_base * corr_mult * life_mult)
-                    if rng.random() < final_prev:
-                        conditions.append(code)
+                # prevalence_at unifies the two schemas: legacy sex-filter +
+                # flat bands (returns 0 if opposite-sex or age out-of-band),
+                # or the by_sex schema (returns 0 if this sex has no band
+                # covering ``age``). Either way the RNG is consumed only
+                # when there is a positive base to sample against — same
+                # cursor shape as the pre-#957 code path.
+                base_prev = spec.prevalence_at(age, sex)
+                if base_prev <= 0.0:
+                    continue
+                # Comorbidity correlation multiplier (from already-sampled conditions)
+                corr_mult = 1.0
+                for existing_code in conditions:
+                    corr_mult *= (comorbidity_cfg.get(existing_code) or {}).get(code, 1.0)
+                # Lifestyle multipliers (per-patient realized values)
+                life_mult = 1.0
+                if bmi_cat:
+                    life_mult *= (bmi_cfg_lm.get(bmi_cat) or {}).get(code, 1.0)
+                life_mult *= (smoking_cfg_lm.get(smoking_status) or {}).get(code, 1.0)
+                # Population-expected compound multiplier over (age, sex)
+                e_corr = _expected_comorbidity_multiplier(chronic_data, code, age, sex, comorbidity_cfg)
+                e_life = _expected_lifestyle_multiplier(demo, code, sex_key, age)
+                e_compound = e_corr * e_life
+                # Rescale base so E[per-patient prob] ≈ base_prev (the target
+                # marginal). Guard against pathological zero.
+                scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
+                final_prev = min(1.0, scaled_base * corr_mult * life_mult)
+                if rng.random() < final_prev:
+                    conditions.append(code)
 
             # Care seeking threshold (JP: lower = more willing)
             # RM-7e: care-seeking threshold from locale

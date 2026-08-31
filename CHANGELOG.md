@@ -114,6 +114,30 @@ before re-tagging. Everything below stays queued under
 
 ### Added
 
+- **Issue #957 (male-C50 activation) — Breast cancer for male patients.**
+  Real-world male breast cancer is ~1 % of C50 total (MHLW 患者調査 2020 /
+  SEER 2020, primarily age 60+ at ~0.02 % carrier prevalence in the male
+  60+ cohort). Pre-fix C50 was hard-locked female-only via
+  `icd10_sex_restrictions.yaml`; no male patient could carry C50 as a
+  chronic condition and the sibling cancer emit paths (follow-up,
+  tumor-marker labs, radiation-therapy Procedure) never fired for male
+  BC patients. Fix: (a) lift the sex-lock for C50 (C51-C58 female-genital
+  sibling codes stay locked); (b) extend the `chronic_prevalence` YAML
+  schema with a `by_sex: {F: {bands}, M: {bands}}` block so male / female
+  age profiles are declared independently (female peak 40-60, male peak
+  60+, ~1 % rate ratio); (c) US ICD-10-CM splits C50 into female-side
+  (`C50.919`) / male-side (`C50.929`) unspecified-site leaves — new
+  sex-conditional mapping entry + `map_diagnosis_code(code, country, sex=…)`
+  optional kwarg + per-person callers in `_build_conditions` /
+  `_build_encounter` / `_build_medication_admin` thread the patient's
+  sex through so male BC patients receive the anatomy-appropriate
+  billing code. New end-to-end test asserts male C50 → `C50.929`,
+  female C50 → `C50.919` (US), and both sexes → `C50` identity
+  mapping (JP). Adds `C50.929` display to `codes/data/icd-10-cm.yaml`.
+  Classification: **MINOR** — male 60+ patients now sample an extra
+  `rng.random()` for the male C50 band, shifting their downstream
+  cursor; female patients + all other codes are RNG-shape neutral.
+  Author: Claude. Partial #957.
 - **Issue #757 (partial) — Chronic-medication-driven monitoring pipeline
   foundation.** New `clinosim/modules/monitoring/` module: YAML-driven
   `(medication → monitoring lab + per-visit probability)` mapping,
