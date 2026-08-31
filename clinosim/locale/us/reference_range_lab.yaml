@@ -138,3 +138,22 @@ ranges:
   # === Other ===
   Cortisol:
     - {low: 6.2, high: 19.4, unit: "ug/dL", text: "AM reference interval (Mayo)"}
+
+  # === Tumor markers (Issue #957 slice 1: cancer follow-up) ===
+  # Declared under labs_quarterly / labs_annual in chronic_followup.yaml
+  # (C18/C22/C34/C50/C61) but missing from reference_range_lab.yaml, so the
+  # outpatient emit path was silent-dropping these labs for cancer patients
+  # in remission monitoring. Reference cutoffs from CLSI / CAP tumor-marker
+  # documents (upper limits of clinical normal, remission-expected range).
+  CEA:
+    - {low: 0, high: 5.0, unit: "ng/mL", text: "Nonsmoker upper limit (smokers < 10)"}
+  CA19_9:
+    - {low: 0, high: 37.0, unit: "U/mL", text: "CLSI standard cutoff"}
+  AFP:
+    - {low: 0, high: 10.0, unit: "ng/mL", text: "Standard reference interval"}
+  PIVKA_II:
+    - {low: 0, high: 40.0, unit: "mAU/mL", text: "HCC screening cutoff"}
+  CA15_3:
+    - {low: 0, high: 30.0, unit: "U/mL", text: "Female breast-cancer follow-up standard"}
+  PSA:
+    - {low: 0, high: 4.0, unit: "ng/mL", text: "Age < 60 upper limit (male only; age >= 60: < 6.5)", sex: "M"}
