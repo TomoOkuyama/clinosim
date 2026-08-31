@@ -2348,6 +2348,38 @@ before re-tagging. Everything below stays queued under
 </ul>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Issue #957 (male-C50 activation) — Breast cancer for male patients.</strong>
+  Real-world male breast cancer is ~1 % of C50 total (MHLW 患者調査 2020 /
+  SEER 2020, primarily age 60+ at ~0.02 % carrier prevalence in the male
+  60+ cohort). Pre-fix C50 was hard-locked female-only via
+  <code>icd10_sex_restrictions.yaml</code>; no male patient could carry C50 as a
+  chronic condition and the sibling cancer emit paths (follow-up,
+  tumor-marker labs, radiation-therapy Procedure) never fired for male
+  BC patients. Fix: (a) lift the sex-lock for C50 (C51-C58 female-genital
+  sibling codes stay locked); (b) extend the <code>chronic_prevalence</code> YAML
+  schema with a <code>by_sex: {F: {bands}, M: {bands}}</code> block so male / female
+  age profiles are declared independently (female peak 40-60, male peak
+  60+, ~1 % rate ratio); &copy; US ICD-10-CM splits C50 into female-side
+  (<code>C50.919</code>) / male-side (<code>C50.929</code>) unspecified-site leaves — new
+  sex-conditional mapping entry + <code>map_diagnosis_code(code, country, sex=…)</code>
+  optional kwarg + per-person callers in <code>_build_conditions</code> /
+  <code>_build_encounter</code> / <code>_build_medication_admin</code> thread the patient's
+  sex through so male BC patients receive the anatomy-appropriate
+  billing code. New end-to-end test asserts male C50 → <code>C50.929</code>,
+  female C50 → <code>C50.919</code> (US), and both sexes → <code>C50</code> identity
+  mapping (JP). Adds <code>C50.929</code> display to <code>codes/data/icd-10-cm.yaml</code>.
+  Classification: <strong>PATCH</strong> — the augmentation is sampled via a
+  per-patient sub-RNG (<code>chronic_augment_sex_seed</code>), so the master
+  population RNG stream stays byte-identical to the pre-#957 path
+  for every patient (verified: fresh <code>p=60 seed=42</code> regen produces
+  POP-000047 with sex=M age=38 chronic=[] — matches master exactly);
+  the only structured-CIF drift is the addition of C50 chronic
+  conditions on ~0.02 % of male 60+ patients (and the derived FHIR
+  MedicationRequest / Condition + follow-up encounter cascade that
+  follows). Fresh <code>narrate</code> is NOT required — pre-existing patients'
+  narrative CIF stays consistent because their structural CIF is
+  byte-identical to master.
+  Author: Claude. Partial #957.</li>
 <li><strong>Issue #757 (partial) — Chronic-medication-driven monitoring pipeline
   foundation.</strong> New <code>clinosim/modules/monitoring/</code> module: YAML-driven
   <code>(medication → monitoring lab + per-visit probability)</code> mapping,
