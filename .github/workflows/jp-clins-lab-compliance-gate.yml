@@ -78,7 +78,7 @@ jobs:
           # and the payload can be republished under the same URL. This
           # step is what actually stops silent drift.
           shasum -a 256 -c <<'CHECKSUMS'
-          51d838eecb48a9bb377657333b5389c8ce83303bc34ef12bcadaa659316699a3  clins.tgz
+          1a3a77f9a2f8923ef402c8920fc84a8beb859ff02a45b258cd3e611feb4f388c  clins.tgz
           831b1f6ce5c3d7712ea5d167cb371c87dbf3ea08e70f29267d80acd508becaff  term.tgz
           CHECKSUMS
 
@@ -93,7 +93,7 @@ jobs:
           # (the URL channel could carry a different point release).
           python3 - <<'PY'
           import json, sys
-          for path, want in (("clins-ext/package/package.json", "1.12.0"),
+          for path, want in (("clins-ext/package/package.json", "1.13.0"),
                              ("term-ext/package/package.json", "2.2606.0")):
               got = json.load(open(path))["version"]
               if got != want:
