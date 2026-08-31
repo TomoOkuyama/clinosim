@@ -12,7 +12,10 @@ import pytest
 
 from clinosim.codes import lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules.output.fhir_r4.lib.common import map_diagnosis_code
+from clinosim.modules.output.fhir_r4.lib.common import (
+    iter_diagnosis_mapping_targets,
+    map_diagnosis_code,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -61,11 +64,12 @@ def test_us_targets_resolve_a_real_display(internal: str, target: str) -> None:
 
 def test_every_us_target_resolves_a_real_display() -> None:
     # Guards the whole US map (chronic + history + primary specificity entries):
-    # no mapped code may emit "(display unavailable)".
-    us_map = load_code_mapping("diagnosis", "US")
-    missing = [
-        t for t in set(us_map.values()) if not (lookup("icd-10-cm", t, "en") and lookup("icd-10-cm", t, "en") != t)
-    ]
+    # no mapped code may emit "(display unavailable)".  Since Issue #957 the
+    # US map may hold sex-conditional dict values (currently only C50); we
+    # flatten via iter_diagnosis_mapping_targets so both by_sex leaves and
+    # the plain-string targets are validated.
+    targets = set(iter_diagnosis_mapping_targets("US"))
+    missing = [t for t in targets if not (lookup("icd-10-cm", t, "en") and lookup("icd-10-cm", t, "en") != t)]
     assert not missing, f"US targets without a display in icd-10-cm.yaml: {missing}"
 
 
@@ -94,3 +98,34 @@ def test_jp_mapping_folds_to_who_granularity() -> None:
 
 def test_empty_code_passes_through() -> None:
     assert map_diagnosis_code("", "US") == ""
+
+
+def test_us_c50_maps_by_sex() -> None:
+    """Issue #957 male-C50: US ICD-10-CM splits C50 into female-side
+    (C50.9x1x — .911/.912/.919) vs male-side (C50.9x2x — .921/.922/.929)
+    subcategories. ``map_diagnosis_code`` must route the internal ``C50``
+    to the sex-appropriate billable leaf so male breast-cancer patients
+    are not coded with a female-anatomy code."""
+    assert map_diagnosis_code("C50", "US", sex="F") == "C50.919"
+    assert map_diagnosis_code("C50", "US", sex="M") == "C50.929"
+    # Backward compat: missing / unknown sex falls back to the female
+    # unspecified leaf (the pre-Issue-957 behaviour, and the ~99%-of-cases
+    # default). Every per-person caller SHOULD pass sex explicitly.
+    assert map_diagnosis_code("C50", "US") == "C50.919"
+    assert map_diagnosis_code("C50", "US", sex="") == "C50.919"
+
+
+def test_jp_c50_identity_regardless_of_sex() -> None:
+    """JP ICD-10 does not carry male/female subcategories at the C50
+    code level — the code stays ``C50`` for both sexes. Passing sex must
+    not alter the JP mapping."""
+    assert map_diagnosis_code("C50", "JP", sex="F") == "C50"
+    assert map_diagnosis_code("C50", "JP", sex="M") == "C50"
+    assert map_diagnosis_code("C50", "JP") == "C50"
+
+
+def test_c50_929_target_resolves_a_real_display() -> None:
+    """The male-side target ``C50.929`` must have a real ICD-10-CM
+    display, otherwise the Condition would emit '(display unavailable)'."""
+    disp = lookup("icd-10-cm", "C50.929", "en")
+    assert disp and disp != "C50.929"

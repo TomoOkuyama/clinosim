@@ -327,6 +327,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             deceased=_deceased,
             chronic_condition_codes=_chronic_codes,
             record_orders=ctx.record.get("orders", []),
+            patient_sex=str((ctx.patient_data or {}).get("sex", "") or ""),
         )
         # ED bridge Encounter emit (CY7-05 + N-3 refinement):
         # - Always emit the synth `-ED` companion Encounter when the IMP
@@ -350,6 +351,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                 synth_enc,
                 ctx.patient_id,
                 country=ctx.country,
+                patient_sex=str((ctx.patient_data or {}).get("sex", "") or ""),
             )
             # synth-ED conveys the discharge-to-IMP transition via partOf,
             # not dischargeDisposition; the canonical "home" fallback
@@ -661,6 +663,7 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
             chronic_condition_codes=_chronic_codes,
             parent_order=_order_by_oid.get(_oid),
+            patient_sex=str((ctx.patient_data or {}).get("sex", "") or ""),
         )
         _req = _resource.get("request") if isinstance(_resource, dict) else None
         if _req and isinstance(_req, dict):

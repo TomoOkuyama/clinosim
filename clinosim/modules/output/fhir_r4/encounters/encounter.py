@@ -161,6 +161,7 @@ def _build_encounter(
     deceased: bool = False,
     chronic_condition_codes: list[str] | None = None,
     record_orders: list | None = None,  # CY8-03: DIET Order source for dietPreference
+    patient_sex: str = "",  # Issue #957: threads sex to sex-conditional ICD-10-CM mapping (C50)
 ) -> dict:
     """Build FHIR Encounter resource."""
     encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
@@ -381,7 +382,7 @@ def _build_encounter(
         # `icd-10` for JP; `map_diagnosis_code` folds CM-granular to WHO
         # roots via code_mapping_diagnosis.
         _reason_system = system_key_for("diagnosis", country)
-        _reason_code = map_diagnosis_code(admit_dx_code, country) if admit_dx_code else ""
+        _reason_code = map_diagnosis_code(admit_dx_code, country, sex=patient_sex) if admit_dx_code else ""
         # Issue #360 G1 (iris4h-ai 2026-07-22): the fallback path (used when
         # admit_dx_code is empty or code_lookup returns the raw code) must
         # prefer the JP chief_complaint stashed by the simulator on JP
@@ -526,9 +527,11 @@ def _build_encounter(
         # gates both sides so ids stay consistent). Pre-fix 45.4% of IMP
         # encounters at seed=500 p=1000 had reasonCode text with no matching
         # Condition in the patient record.
-        _mapped_admit = map_diagnosis_code(admit_dx_code, country) if admit_dx_code else ""
-        _mapped_primary = map_diagnosis_code(primary_dx_code, country) if primary_dx_code else ""
-        _mapped_chronics = [map_diagnosis_code(_c, country) for _c in (chronic_condition_codes or []) if _c]
+        _mapped_admit = map_diagnosis_code(admit_dx_code, country, sex=patient_sex) if admit_dx_code else ""
+        _mapped_primary = map_diagnosis_code(primary_dx_code, country, sex=patient_sex) if primary_dx_code else ""
+        _mapped_chronics = [
+            map_diagnosis_code(_c, country, sex=patient_sex) for _c in (chronic_condition_codes or []) if _c
+        ]
         # Issue #916: skip the AD entry when the admission dx is a Z-chapter
         # visit-reason code (no matching admission Condition emitted).
         _admit_dx_is_visit_reason = bool(admit_dx_code) and is_visit_reason_zcode(admit_dx_code)
