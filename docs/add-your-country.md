@@ -55,7 +55,7 @@ The `xx/` directory MUST contain the following. See the `_template/` scaffold
 |---|---|---|
 | `names.yaml` | Family + given names with frequency weights | National statistics office / civil registry |
 | `addresses.yaml` | Regions (state / prefecture / province) + postal codes | National postal service |
-| `demographics.yaml` | Age distribution, blood type, chronic-disease prevalence, disease incidence, lifestyle | Government census / disease surveillance |
+| `demographics.yaml` | Age distribution, blood type, chronic-disease prevalence (see schema note below), disease incidence, lifestyle | Government census / disease surveillance |
 | `formatting.yaml` | Date / time / number formatting | Local convention |
 | `code_mapping_diagnosis.yaml` | Internal disease id → national diagnosis code | Local coding scheme |
 | `code_mapping_lab.yaml` | Internal lab name → national lab code | Local lab code system (JLAC10 / LOINC / national) |
@@ -65,6 +65,45 @@ The `xx/` directory MUST contain the following. See the `_template/` scaffold
 
 Each file is validated at load time; a missing file falls back to built-in
 defaults but that means the generated data is not truly locale-representative.
+
+### `demographics.yaml::chronic_prevalence` schema variants
+
+Two accepted shapes per entry:
+
+- **Flat form** (single-sex or sex-neutral): `sex: F|M|""` +
+  `"<lo>-<hi>": <target_marginal>` age-band pairs. Sampled from
+  the shared population master RNG.
+
+  ```yaml
+  chronic_prevalence:
+    N40:                  # BPH, male-only
+      sex: M
+      "60-99": 0.20
+    E11:                  # T2DM, sex-neutral
+      "40-99": 0.10
+  ```
+
+- **`by_sex` form** (asymmetric per-sex bands, e.g. male breast
+  cancer at ~1 % of C50 total with a later age peak than female
+  BC). The first sex key becomes the primary (sampled on the
+  master RNG identically to the flat form); every remaining sex
+  key becomes an entry in `augment_sex_bands` sampled from a
+  per-`(patient_id, code)` sub-RNG so opposite-sex activation
+  does not cascade the master stream.
+
+  ```yaml
+  chronic_prevalence:
+    C50:                  # Breast cancer — F primary + M ~0.02 %
+      by_sex:
+        F:
+          "40-59": 0.015
+          "60-99": 0.030
+        M:
+          "60-99": 0.0002
+  ```
+
+Full behavior + downstream sex-conditional billing-code mapping:
+[`reference/oncology-obstetric-service-lines.md`](reference/oncology-obstetric-service-lines.md) §3.
 
 ## Optional YAML files (opt-in modules)
 
