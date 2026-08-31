@@ -111,7 +111,7 @@ clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 
 ## ディレクトリ構成
 
-シミュレーションオーケストレーション (13 ファイル):
+シミュレーションオーケストレーション (12 ファイル):
 
 ```
 clinosim/simulator/
@@ -120,8 +120,6 @@ clinosim/simulator/
                          dispatch
   engine.py              run_alpha / run_beta / run_forced
   daily_loop.py          engine から抽出した per-day ループ
-  des_engine.py          DES-lite イベントエンジン (Issue #557: 削除
-                         予定、1 リリースだけ残置)
   hospital_ops.py        病院運用オーケストレーション
   inpatient.py           入院エンカウンターシミュレータ
   outpatient.py          外来エンカウンターシミュレータ
