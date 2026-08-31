@@ -729,7 +729,7 @@ pattern.
 Each enricher / module **derives its own sub-stream from the master
 seed** and never touches the main random stream. The derivation
 formula is centralised in
-`clinosim/simulator/seeding.py:derive_sub_seed(master, module_offset, key)`
+`clinosim/seeding.py:derive_sub_seed(master, module_offset, key)`
 (AD-16 / AD-59).
 
 ```python
@@ -748,7 +748,7 @@ lacks per-patient keying).
 
 **Registering a new module's offset**: when creating a module,
 register the sub-seed numeric offset in
-**`clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS`**. The
+**`clinosim/seeding.py:ENRICHER_SEED_OFFSETS`**. The
 convention is **16-bit hex ASCII (2 characters)** — pick two
 letters mnemonic for the module name:
 
