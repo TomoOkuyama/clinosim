@@ -167,6 +167,7 @@ def chronic_augment_sex_seed(patient_id: str, code: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+<<<<<<< HEAD
 def perinatal_delivery_seed(patient_id: str, year: int) -> int:
     """Per-(patient, year) deterministic sub-seed for perinatal delivery
     scheduling (Issue #957 Tier-3-B).
@@ -183,6 +184,30 @@ def perinatal_delivery_seed(patient_id: str, year: int) -> int:
     """
     salt = "clinosim:perinatal-delivery:v1"
     digest = hashlib.sha256(f"{salt}|{patient_id}|{year}".encode()).digest()[:6]
+=======
+def chemotherapy_regimen_seed(patient_id: str, cancer_code: str) -> int:
+    """Per-(patient, cancer_code) deterministic sub-seed for chemo regimen
+    assignment + cycle Day-1 offset (Issue #957 Tier-3-A).
+
+    ``_chemo_cycle_events`` (population/engine.py) samples a chronic-cancer
+    carrier's active chemotherapy regimen (Bernoulli against the
+    ``by_cancer[code]`` probability distribution in ``chemo_regimens.yaml``)
+    plus the Day-1 offset within the first cycle window. Isolating both
+    draws from the calendar's shared per-person ``prng`` means adding
+    the chemo scheduler does NOT shift any pre-existing calendar event
+    (chronic_visit / screening / flu_vax / mammography / …) for either
+    cancer patients or non-cancer patients — the entire pre-#957
+    calendar stream is byte-identical.
+
+    Sibling of ``chronic_medication_seed`` — same AD-16 rationale, keyed
+    on both patient_id AND cancer_code so a patient carrying multiple
+    cancers gets independent regimen draws per site (multi-primary
+    survivors are rare but the semantics must be correct when it
+    happens).
+    """
+    salt = "clinosim:chemotherapy-regimen:v1"
+    digest = hashlib.sha256(f"{salt}|{patient_id}|{cancer_code}".encode()).digest()[:6]
+>>>>>>> 3e7ebcd499 (feat(oncology): chemotherapy cycle scheduling (Tier-3-A slice 1) — partial #957)
     return int.from_bytes(digest, "big") % (2**32)
 
 

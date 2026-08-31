@@ -1243,6 +1243,7 @@ def generate_healthcare_calendar(
                 )
             )
 
+<<<<<<< HEAD
         # --- Perinatal delivery encounter (Issue #957 Tier-3-B) ---
         # For Z34-carrying women (chronic marker "actively pregnant during
         # sim window"), emit one delivery IMP encounter per year at a
@@ -1356,7 +1357,91 @@ def _perinatal_delivery_events(person: PersonRecord, year: int) -> list[LifeEven
                 protocol_source="perinatal:postpartum",
             )
         )
+=======
+        # --- Chemotherapy cycle visits (Issue #957 Tier-3-A) ---
+        # For chronic-carrier patients of cancer codes with an assigned
+        # cycle-based regimen (FOLFOX q14d, CarboPem q21d, Trastuzumab q3w,
+        # LHRH q28d), emit chemo_visit events at the regimen's cycle
+        # cadence. Selection is per-patient deterministic (sub-RNG keyed
+        # off patient_id + salt) so it is RNG-shape neutral against the
+        # calendar's ``prng`` — pre-existing patients' non-chemo events
+        # are byte-identical whether this block runs or not.
+        events.extend(_chemo_cycle_events(person, year))
+
+>>>>>>> 3e7ebcd499 (feat(oncology): chemotherapy cycle scheduling (Tier-3-A slice 1) — partial #957)
     return events
+
+
+def _chemo_cycle_events(person: PersonRecord, year: int) -> list[LifeEvent]:
+    """Emit chemo_visit LifeEvents for one person's active chemo regimen(s).
+
+    RNG-neutrality contract: consumes ZERO calls on the caller's ``prng`` —
+    every random draw uses ``chemotherapy_regimen_seed(person_id, cancer_code)``
+    (a per-patient / per-cancer-code deterministic sub-RNG, sibling of
+    the RT-Procedure emit pattern). YAML edits to ``chemo_regimens.yaml``
+    therefore never cascade into unrelated patients' calendar streams.
+
+    Design (slice-1): one regimen per cancer code; the assignment table
+    is a simple Bernoulli draw against the code's ``probability``. If
+    the draw succeeds, the patient carries that regimen for the whole
+    year and cycles fire at the regimen's ``cycle_interval_days``
+    starting from a random Day-1 offset in the first cycle window,
+    capped by ``course_cycles`` (per-year cap = min(course_cycles,
+    365 / cycle_interval_days)).
+    """
+    from clinosim.locale.loader import load_chemo_regimens
+    from clinosim.seeding import chemotherapy_regimen_seed
+
+    data = load_chemo_regimens()
+    regimens = data.get("regimens") or {}
+    by_cancer = data.get("by_cancer") or {}
+    if not regimens or not by_cancer:
+        return []
+
+    out: list[LifeEvent] = []
+    for cancer_code in person.chronic_conditions:
+        assignments = by_cancer.get(cancer_code) or []
+        if not assignments:
+            continue
+        chemo_rng = np.random.default_rng(chemotherapy_regimen_seed(person.person_id, cancer_code))
+        # Bernoulli assignment: draw once, iterate the ranked list until a
+        # probability envelope matches. Residual mass = "no active regimen".
+        u = float(chemo_rng.random())
+        picked_name = ""
+        cumulative = 0.0
+        for entry in assignments:
+            cumulative += float(entry.get("probability", 0.0) or 0.0)
+            if u < cumulative:
+                picked_name = str(entry.get("regimen") or "")
+                break
+        if not picked_name or picked_name not in regimens:
+            continue
+        regimen = regimens[picked_name]
+        interval = int(regimen.get("cycle_interval_days") or 0)
+        if interval <= 0:
+            continue
+        course_cycles = int(regimen.get("course_cycles") or 0) or (365 // interval)
+        max_cycles_this_year = min(course_cycles, max(1, 365 // interval))
+        # Day-1 offset within the first cycle window
+        day_offset = int(chemo_rng.integers(1, interval + 1))
+        cycle_start = date(year, 1, 1) + timedelta(days=day_offset - 1)
+        for cycle_idx in range(max_cycles_this_year):
+            visit_day = cycle_start + timedelta(days=interval * cycle_idx)
+            if visit_day.year != year:
+                break
+            out.append(
+                LifeEvent(
+                    person_id=person.person_id,
+                    event_type="chemo_visit",
+                    timestamp=visit_day,
+                    severity=0.0,
+                    condition_type="chemo_infusion",
+                    disease_id=cancer_code,
+                    encounter_type="outpatient",
+                    protocol_source=f"chemo_regimens:{picked_name}",
+                )
+            )
+    return out
 
 
 def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> dict:

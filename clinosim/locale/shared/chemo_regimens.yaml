@@ -1,0 +1,86 @@
+# Chemotherapy regimen library — cycle-based scheduling (Issue #957 Tier-3-A).
+#
+# Purpose: real chemo regimens are cycle-based (FOLFOX q14d, CHOP q21d,
+# LHRH q28d, etc.), not continuous daily therapy. Pre-#957 the simulator
+# only carried chemo drugs as chronic daily MedicationRequests — the
+# temporal signature was flat and any consumer computing "chemo cycles
+# received in the year" got nonsense. This YAML declares real cycle
+# intervals + per-cycle Day-1 drugs so the healthcare calendar can emit
+# ``chemo_visit`` events at the right cadence.
+#
+# Slice-1 scope: schedule + Encounter + Procedure emit. Per-cycle
+# MedicationRequest / MedicationAdministration remains a follow-up
+# slice (kept out of this MVP to bound scope). Oral daily chemo
+# (Capecitabine, Tamoxifen, Anastrozole, Bicalutamide) continues to
+# flow through ``chronic_medications.yaml`` unchanged — those ARE
+# daily home meds, not cycle drugs.
+#
+# Cadence sources: NCCN 2024 guidelines, JSCO practice guidelines,
+# JCOG protocol handbooks (adjuvant colon / lung / breast / prostate).
+
+# ---------------------------------------------------------------------------
+# Regimen library. Each regimen names its cycle interval (days), the number
+# of cycles in a typical course, and the drugs administered on Day 1 of the
+# cycle. Drugs infused on Days 2+ of the same cycle (e.g. FOLFOX's 46-h
+# 5-FU infusion) are represented as a single Day-1 entry — the MedicationAdmin
+# slice will expand them into per-day records.
+regimens:
+  FOLFOX:                                # colorectal adjuvant
+    cycle_interval_days: 14
+    course_cycles: 12                    # ~6 months adjuvant
+    cycle_orders:
+      - {drug: "Oxaliplatin",  drug_ja: "オキサリプラチン",  dose: "85mg/m2",                        route: "IV"}
+      - {drug: "Leucovorin",   drug_ja: "ロイコボリン",      dose: "400mg/m2",                       route: "IV"}
+      - {drug: "5-FU",         drug_ja: "フルオロウラシル",  dose: "400mg/m2 bolus + 2400mg/m2/46h", route: "IV"}
+  CarboPem:                              # lung adjuvant / advanced
+    cycle_interval_days: 21
+    course_cycles: 4
+    cycle_orders:
+      - {drug: "Carboplatin",  drug_ja: "カルボプラチン",    dose: "AUC5",     route: "IV"}
+      - {drug: "Pemetrexed",   drug_ja: "ペメトレキセド",    dose: "500mg/m2", route: "IV"}
+  Trastuzumab_q3w:                       # breast HER2+ maintenance
+    cycle_interval_days: 21
+    course_cycles: 18                    # 1 year
+    cycle_orders:
+      - {drug: "Trastuzumab",  drug_ja: "トラスツズマブ",    dose: "6mg/kg",   route: "IV"}
+  LHRH_q28d:                             # prostate ADT depot
+    cycle_interval_days: 28
+    course_cycles: 24                    # 2 years continuous
+    cycle_orders:
+      - {drug: "Leuprorelin",  drug_ja: "リュープロレリン",  dose: "3.75mg",   route: "SC"}
+
+# ---------------------------------------------------------------------------
+# Per-cancer-code assignment table. For a chronic-carrier of a cancer code
+# the scheduler picks one regimen (or none) via a per-patient sub-RNG so
+# YAML edits + cohort re-runs stay deterministic and patient-scoped.
+# Probabilities are the share of chronic carriers with an ACTIVE regimen
+# (majority of carriers are in surveillance-only mode without active chemo).
+# Sum per code must be <= 1.0; residual mass is "no active regimen this year".
+by_cancer:
+  C18: [{regimen: FOLFOX,           probability: 0.25}]  # adjuvant chemo ~25 % of colon-cancer chronic carriers
+  C34: [{regimen: CarboPem,         probability: 0.20}]  # advanced NSCLC platinum doublet
+  C50: [{regimen: Trastuzumab_q3w,  probability: 0.15}]  # HER2+ ~15 % of BC, on trastuzumab maintenance
+  C61: [{regimen: LHRH_q28d,        probability: 0.35}]  # ADT majority of C61 chronic carriers
+  # C22 (liver) / C15 (esophageal) / C16 (stomach) / C25 (pancreatic) /
+  # C67 (bladder) / C71 (brain) — carry oral TKI or surveillance-only in
+  # this generator today; no IV cycle regimen assigned in slice 1.
+
+# ---------------------------------------------------------------------------
+# Procedure code emitted on each chemo_visit encounter. Same code for all
+# regimens in slice 1 (the code identifies "chemotherapy administration",
+# not the specific regimen; the specific drugs would live on the Encounter's
+# MedicationAdministration slice — future work).
+procedure:
+  jp_code: "G003"                   # JP 医科診療報酬点数表: 抗悪性腫瘍剤局所持続注入
+  jp_display: "抗悪性腫瘍剤注入"
+  us_code: "96413"                  # US CPT: Chemotherapy administration, IV infusion, first hour
+  us_display: "Chemotherapy administration, IV infusion, up to 1 hour"
+  duration_minutes: 60              # infusion duration; encounter length includes prep/monitor
+
+# ---------------------------------------------------------------------------
+# Encounter reason strings emitted on Encounter.reasonCode / chief complaint.
+encounter:
+  visit_reason:
+    en: "Chemotherapy infusion"
+    ja: "化学療法・点滴投与"
+  department: "oncology_infusion"   # falls back to internal_medicine when the hospital lacks this dept
