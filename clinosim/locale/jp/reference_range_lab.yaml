@@ -147,3 +147,21 @@ ranges:
   # === その他 ===
   Cortisol:
     - {low: 6.24, high: 18.0, unit: "ug/dL", text: "早朝基準値"}
+
+  # === 腫瘍マーカー (Issue #957 slice 1: cancer follow-up) ===
+  # 慢性がんフォローアップ (chronic_followup.yaml: C18/C22/C34/C50/C61) で
+  # labs_quarterly / labs_annual に宣言済だが reference_range_lab.yaml 側で
+  # 欠落していたため outpatient emit 経路で silent-drop していた。基準は
+  # JCCLS / メーカー添付文書の一般カットオフ (寛解期の想定範囲)。
+  CEA:
+    - {low: 0, high: 5.0, unit: "ng/mL", text: "非喫煙者一般基準値（喫煙者は < 10）"}
+  CA19_9:
+    - {low: 0, high: 37.0, unit: "U/mL", text: "一般基準値"}
+  AFP:
+    - {low: 0, high: 10.0, unit: "ng/mL", text: "一般基準値"}
+  PIVKA_II:
+    - {low: 0, high: 40.0, unit: "mAU/mL", text: "一般基準値（肝細胞癌診断カットオフ）"}
+  CA15_3:
+    - {low: 0, high: 30.0, unit: "U/mL", text: "一般基準値（女性乳癌フォローアップ）"}
+  PSA:
+    - {low: 0, high: 4.0, unit: "ng/mL", text: "60歳未満一般基準値（男性のみ、60歳以上は < 6.5）", sex: "M"}

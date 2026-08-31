@@ -69,3 +69,12 @@ BNP: "4Z271"
 CRP: "5C070"
 Troponin_I: "5C094"
 PCT: "5C215"
+
+# Tumor markers (Issue #957 slice 1): intentionally NOT registered here.
+# The JP lab coding strategy routes analytes with no CoreLabo slice through
+# the JP-CLINS ``Uncoded`` code system (``99999999999999999``) + the
+# ``LocalCode`` slice — see ``coding_strategy.py::UncodedStrategy``.
+# Registering tumor markers in this file would divert them out of the
+# Uncoded/LocalCode dual-slice path and break the profile invariant.
+# LOINC coding is still emitted alongside via the strategy's US-mapping
+# fallback (mirrors the LegacyJSLM / CoreLabo dual-coding pattern).

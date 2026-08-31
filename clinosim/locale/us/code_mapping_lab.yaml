@@ -64,3 +64,13 @@ aPTT: "14979-9"              # Activated Partial Thromboplastin Time (lowercase 
 Troponin: "10839-9"          # Troponin I (default alias when no isoform specified)
 Troponin_T: "6598-7"         # Troponin T (cardiac)
 Urinalysis: "24357-6"        # Urinalysis panel
+
+# Tumor markers (Issue #957 slice 1) — LOINC codes verified via
+# clinicaltables.nlm.nih.gov v3 LOINC API. Emitted for cancer
+# follow-up encounters (chronic_followup.yaml C18/C22/C34/C50/C61).
+CEA: "2039-6"                # CEA [Mass/volume] in Serum or Plasma
+CA19_9: "24108-3"            # Cancer Ag 19-9 [Units/volume] in Serum or Plasma
+AFP: "1834-1"                # Alpha-1-Fetoprotein [Mass/volume] in Serum or Plasma
+PIVKA_II: "44805-4"          # Prothrombin.protein induced by vit K absence [Mass/vol] in Serum
+CA15_3: "6875-9"             # Cancer Ag 15-3 [Units/volume] in Serum or Plasma
+PSA: "2857-1"                # Prostate specific Ag [Mass/volume] in Serum or Plasma
