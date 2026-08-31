@@ -11,6 +11,7 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     CONDITION_KEY_SYSTEM,
     chronic_condition_id,
@@ -250,14 +251,18 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
     # --- Primary diagnosis (encounter diagnosis) ---
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
-    # Chronic-primary suppression: when this encounter's primary dx merges
-    # into a chronic problem (HTN follow-up, HF exacerbation, DM control,
-    # …), skip the encounter-primary Condition emission. The chronic
-    # Condition below already carries the disease info, and
-    # `Encounter.diagnosis[].use=DD` expresses the encounter-role — the
-    # duplicate `cond-{enc}-primary` was drifting ICD granularity (I50 vs
-    # I50.9) and inflating the Condition table by ~encounter_count for
-    # polymorbid patients.
+    # Issue #916: Z-chapter visit-reason codes (Z00.0 general medical,
+    # Z09 follow-up, Z23 immunization, Z12/Z13 screening, …) are not
+    # clinical Conditions — they describe *reasons for encountering the
+    # health system*. They already appear on ``Encounter.reasonCode``
+    # (encounter.py) and ``Immunization`` (self-describing resource);
+    # emitting a duplicate resolved same-day ``Condition`` for them
+    # pollutes the problem list. 43.3 % of Conditions at v0.5.0 were
+    # Z-code pseudo-diagnoses; the fix here is to skip the Condition
+    # emission (encounter.py mirror in the ``diagnosis[]`` /
+    # ``reasonReference`` slots so no dangling refs remain).
+    if dx_code and is_visit_reason_zcode(dx_code):
+        dx_code = ""
     if dx_code and not _encounter_primary_is_chronic(record):
         base_code = dx_code.split(".")[0]
         seen_codes.add(base_code)
@@ -465,6 +470,11 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     # ``diagnosis[].use=AD`` entry that references this Condition.
     _admit_dx_code_raw = dx.get("admission_diagnosis_code", "") or ""
     _primary_dx_code_raw = dx.get("discharge_diagnosis_code") or _admit_dx_code_raw
+    # Issue #916: skip admission Condition for Z-chapter visit-reason codes
+    # (mirrors the primary-diagnosis skip above — Z09 follow-up admissions,
+    # routine physical Z00.0, etc., belong on Encounter.reasonCode alone).
+    if _admit_dx_code_raw and is_visit_reason_zcode(_admit_dx_code_raw):
+        _admit_dx_code_raw = ""
     _chronic_codes_raw = [
         _cc if isinstance(_cc, str) else (get_attr_or_key(_cc, "code", "") or "") for _cc in chronic_list
     ]
