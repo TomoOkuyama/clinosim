@@ -271,7 +271,6 @@ def _validate_chronic_medications_route_vocabulary(data: Any) -> None:
 
 
 @lru_cache(maxsize=1)
-<<<<<<< HEAD
 def load_perinatal_config() -> dict[str, Any]:
     """Load perinatal delivery configuration (Issue #957 Tier-3-B).
 
@@ -282,7 +281,9 @@ def load_perinatal_config() -> dict[str, Any]:
     healthcare-calendar delivery-event scheduler.
     """
     return _load_yaml(_LOCALE_DIR / "shared" / "perinatal.yaml", fallback={})
-=======
+
+
+@lru_cache(maxsize=1)
 def load_chemo_regimens() -> dict[str, Any]:
     """Load chemotherapy regimen library + per-cancer assignment table.
 
@@ -295,7 +296,6 @@ def load_chemo_regimens() -> dict[str, Any]:
     reason string.
     """
     return _load_yaml(_LOCALE_DIR / "shared" / "chemo_regimens.yaml", fallback={})
->>>>>>> 3e7ebcd499 (feat(oncology): chemotherapy cycle scheduling (Tier-3-A slice 1) — partial #957)
 
 
 @lru_cache(maxsize=8)

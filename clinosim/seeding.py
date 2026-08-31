@@ -167,7 +167,6 @@ def chronic_augment_sex_seed(patient_id: str, code: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
-<<<<<<< HEAD
 def perinatal_delivery_seed(patient_id: str, year: int) -> int:
     """Per-(patient, year) deterministic sub-seed for perinatal delivery
     scheduling (Issue #957 Tier-3-B).
@@ -184,7 +183,9 @@ def perinatal_delivery_seed(patient_id: str, year: int) -> int:
     """
     salt = "clinosim:perinatal-delivery:v1"
     digest = hashlib.sha256(f"{salt}|{patient_id}|{year}".encode()).digest()[:6]
-=======
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 def chemotherapy_regimen_seed(patient_id: str, cancer_code: str) -> int:
     """Per-(patient, cancer_code) deterministic sub-seed for chemo regimen
     assignment + cycle Day-1 offset (Issue #957 Tier-3-A).
@@ -207,7 +208,6 @@ def chemotherapy_regimen_seed(patient_id: str, cancer_code: str) -> int:
     """
     salt = "clinosim:chemotherapy-regimen:v1"
     digest = hashlib.sha256(f"{salt}|{patient_id}|{cancer_code}".encode()).digest()[:6]
->>>>>>> 3e7ebcd499 (feat(oncology): chemotherapy cycle scheduling (Tier-3-A slice 1) — partial #957)
     return int.from_bytes(digest, "big") % (2**32)
 
 
