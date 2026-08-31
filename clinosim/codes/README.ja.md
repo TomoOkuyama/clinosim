@@ -56,7 +56,10 @@ from clinosim.codes.hl7_encounter import (
 
 `StrEnum` は `str` を継承するので、
 `encounter.admit_source = AdmitSource.EMD` はリファクタ前の `str`
-型と wire 互換 (`== "emd"` 比較も継続動作)。
+型と wire 互換 (`== "emd"` 比較も継続動作)。周産期の新生児 Patient
+チェーン向けに `AdmitSource.BORN` (= `"born"`) を追加済 — 新生児の
+Encounter が本値と `admit_source_encounter_id` (母親の分娩 Encounter を
+指す) を保持し、FHIR 側では `Encounter.partOf` に emit されます。
 
 ## 決定性
 
@@ -338,6 +341,11 @@ Condition display が近似 prefix マッチにフォールバック。
 - **SNOMED CT**: 国際リリース月次 → 年 1 回安定版を追従。
 - **RxNorm**: 週次更新 (毎週月曜) → 年 1 回安定版を追従。
 - **WHO ICD-10**: 更新まれ (現行 2019)。
-- **JP Core / JP-CLINS eCS**: `iris4h-ai/jp_core/package/` に pin
-  された版と MHLW registry エントリに追従。
+- **JP Core / JP-CLINS eCS**: `.github/jp-validator-pins.env` の
+  JP Core `1.1.7` と、
+  `.github/workflows/jp-clins-lab-compliance-gate.yml` が assert する
+  JP-CLINS package version (現在 `1.13.0`) に追従。v1.12.0 → v1.13.0
+  差分は additive terminology のみ (hepatitis serology + labo split の
+  9 新規 ValueSet)、clinosim が emit する StructureDefinition canonical
+  URL に変更なし。
 - 内部 short key は安定。YAML 構造変更は major version bump。

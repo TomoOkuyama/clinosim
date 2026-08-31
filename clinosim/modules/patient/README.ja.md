@@ -71,6 +71,29 @@ from clinosim.modules.patient.activator import (
   を named tuple に置換する変更は byte-diff clean。
 - 常用薬付与は (patient, disease profile) について決定論的 — 追加
   RNG draw なし。
+- **慢性継続薬の跨 encounter 引き継ぎ (v0.5.x fix)**: disease YAML
+  の `continue_at_discharge` block から派生した常用薬 (抗凝固 / スタチン
+  / 降圧 / 抗血小板等の生涯 secondary prevention 薬) が encounter を
+  跨いで生存するよう修正済み。実装は
+  [`clinosim/simulator/discharge_rx.py`](../../simulator/discharge_rx.py)
+  (`_append_item(chronic_continuation=True)` は default 28 日)と
+  [`clinosim/simulator/helpers.py`](../../simulator/helpers.py)
+  (`_deactivate_to_layer1` の急性 filter が `0 < d <= 14` を gate
+  するようになり、`atrial_fibrillation_rvr.yaml` 等が使う「長期 /
+  未指定」marker である `duration_days=0` は chronic として fall-through)。
+  regression: `test_continue_at_discharge_items_default_to_28_day_chronic_duration`、
+  `test_duration_days_zero_is_chronic_and_carries_forward`、
+  `test_duration_days_seven_is_acute_and_dropped`、
+  `test_anticoag_from_admission1_carries_forward_to_admission2_home_meds`。
+- **新生児 (newborn) Patient 生成**: Z34 保有女性の周産期分娩 LifeEvent
+  が発火した場合、対になる新生児 `PatientProfile` を構築 —
+  `id = "<mother_id>-BABY"`、世帯は母親から継承、性別は per-mother
+  sub-RNG でサンプリング、`birthDate` = 分娩日、身体計測は 0 歳
+  default。新生児は自身の population sampler を回さない — 活性化は
+  [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py)
+  で行われ、母親 + 新生児の 2 `CIFPatientRecord` が返却され、新生児側
+  の `Encounter.partOf` で紐付く。詳細:
+  [`docs/reference/oncology-obstetric-service-lines.ja.md`](../../../docs/reference/oncology-obstetric-service-lines.ja.md)。
 
 ## 依存
 

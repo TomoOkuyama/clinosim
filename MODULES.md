@@ -124,7 +124,7 @@ the canonical 11-section structure).
 |---|---|---|---|---|
 | [codes](clinosim/codes/) | international code lookup (LOINC/SNOMED/ICD/RxNorm/JLAC10/CVX/JJ1017 K-code) | foundation | — | — |
 | [locale](clinosim/locale/) | country-specific data (names / addresses / reference ranges / code_mapping) | foundation | — | — |
-| [physiology](clinosim/modules/physiology/README.md) | 13-variable physiology state + lab/vital derivation | simulation | — (uses caller RNG) | — |
+| [physiology](clinosim/modules/physiology/README.md) | 14-variable physiology state + lab/vital derivation | simulation | — (uses caller RNG) | — |
 | [observation](clinosim/modules/observation/README.md) | lab / vital / microbiology + nursing flowsheet (NEWS2/GCS/Braden/Morse) | simulation | nursing `0x4E55` (shared) | POST_RECORDS 20 (`nursing`) |
 | [order](clinosim/modules/order/README.md) | lab / medication / imaging order placement + AD-60 audit | simulation | — (per-order via AD-59) | — (audit registered) |
 | [clinical_course](clinosim/modules/clinical_course/README.md) | trajectory archetype + daily `StateChangeDirective` | simulation | — (uses caller RNG) | — |

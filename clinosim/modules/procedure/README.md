@@ -39,6 +39,31 @@ every one with a clinical citation.
   imaging-order construction — that is
   [`clinosim.modules.imaging`](../imaging/README.md).
 
+### Longitudinal service-line Procedures (v0.5 → v0.6.0)
+
+Two additional Procedure surfaces sit alongside the surgical /
+bedside / rehab trio above and reach FHIR via the same
+`ProcedureRecord` shape:
+
+- **Delivery Procedure** — attached to every mother-side perinatal
+  delivery Encounter (see
+  [`clinosim.modules.encounter`](../encounter/README.md)). Code:
+  JP `K894` (経腟分娩 — MHLW 診療報酬点数表 K-code) or US CPT
+  `59400` (routine obstetric care incl. vaginal delivery). Emitted
+  by [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py)
+  with the shape coming from
+  [`clinosim/locale/shared/perinatal.yaml`](../../locale/shared/perinatal.yaml)
+  `procedure` block; not routed through `simulate_surgery`.
+- **Radiation-therapy Procedure** — attached to radiation
+  encounters in the oncology service line; the Procedure carries
+  the modality, dose, and site from the disease-YAML radiation
+  block. Emitted via a dedicated builder (session 93 landing);
+  not routed through `simulate_surgery` either.
+
+Both retain the canonical `ProcedureRecord` fields so the FHIR
+adapter ([`output/fhir_r4/procedures/`](../output/fhir_r4/procedures/README.md))
+can emit them without a new resource-type builder.
+
 ## Public API
 
 ```python

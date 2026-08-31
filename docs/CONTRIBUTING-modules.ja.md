@@ -4,7 +4,7 @@
 
 > **本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心** です。**FHIR builder layer(Layer 4 = `_fhir_*.py`)を追加・拡張する場合は** [`docs/design-guides/fhir-data-generation-logic.md`](design-guides/fhir-data-generation-logic.md) を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。
 
-> **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 30 module(counting rule: `clinosim/modules/` 配下の package 数。`_shared.py` 等の非 package ファイルは含まない)の俯瞰は [`MODULES.md`](../MODULES.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は [`docs/design-guides/README.md`](design-guides/README.md) を参照。
+> **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 33 module(counting rule: `clinosim/modules/` 配下の package 数。`_shared.py` 等の非 package ファイルは含まない)の俯瞰は [`MODULES.md`](../MODULES.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は [`docs/design-guides/README.md`](design-guides/README.md) を参照。
 
 実コードの正本パス:
 - Enricher registry: `clinosim/simulator/enrichers.py`

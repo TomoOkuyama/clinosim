@@ -66,10 +66,10 @@
 | 0 | 国際コード体系(LOINC/ICD/RxNorm/JLAC10…、EN-first) | `clinosim/codes/` |
 | 1 | 参照データ YAML(疾患・検査・locale・病院設定) | `modules/*/reference_data/`, `locale/`, `config/` |
 | 2 | loader(cached + fail-loud validation) | 各 module 内 |
-| 3 | CIF 生成(simulator + 30 modules) | `simulator/`, `modules/` |
+| 3 | CIF 生成(simulator + 33 modules) | `simulator/`, `modules/` |
 | 4 | 出力 adapter(FHIR builders ほか) | `modules/output/` |
 
-- **module は 30 個**(`MODULES.md` が地図)。always-on(臨床カスケード上必須:device →
+- **module は 33 個**(`MODULES.md` が地図)。always-on(臨床カスケード上必須:device →
   hai → antibiotic / imaging / document / triage / nursing_assignment 等)と opt-in がある。
 - module 間依存は README の Dependencies 宣言 + `types/` / `codes/` / `locale/` のみ。
   CIF への書込みは `extensions[<module>]`(typed field 追加は Base のみ)。
@@ -136,8 +136,8 @@
 
 ## 7. 現在地とロードマップ(2026-07-06 時点)
 
-- **version**: v0.2。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。
-  32 疾患 + 46 外来/ED 条件、30 modules、FHIR R4 で 25+ resource type を emit。
+- **version**: v0.5.0 (v0.6.0 release-gate 準備中の時点で最終 sync)。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。32 疾患 + 46 外来 / ED 病態、33 モジュール、25+ FHIR R4 resource 型 emit。縦断サービスライン (腫瘍 + 産科 — がん chronic marker × 化学療法 regimen サイクル × 放射線治療 × 分娩 encounter × 新生児 Patient chain × 妊娠中絶 outcome) は v0.6.0 target 時点で配線済 — 詳細は `docs/reference/oncology-obstetric-service-lines.ja.md`。
+  32 疾患 + 46 外来/ED 条件、33 modules、FHIR R4 で 25+ resource type を emit。
 - **β-JP-1 chain 2(厚労省帳票)は完了**(session 33-36): 入院診療計画書 / 看護必要度
   A・B・C 項目評価票(公式には「D 表」という帳票は存在しない、名称は session 36 で訂正
   済み)/ 栄養管理計画書 / リハビリテーション実施計画書 の 4/4 文書が完了。
@@ -156,10 +156,10 @@
 - **現在フェーズ**: β-JP-1 の主要 chain + FHIR completeness の C1/C2/C3 主要部が完了。
   次候補は β-2(手術/麻酔記録等、着手前 brainstorming 必須・規模大)、または completeness の
   残(FP-AGE person.age 複数年 / FP-ARCH-2/3 残 7 trauma 疾患 course_archetypes / 横断
-  follow-up)。詳細は fix-point registry と `TODO.md` の各 deferred section。
+  follow-up)。詳細は fix-point registry と GitHub Issues board (`docs/roadmap.ja.md` 参照)。旧 `TODO.md` の deferred section は Issues 化により廃止。
 - **その後の chain**(優先順、`docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md` §4
   ただし上記完了分は本節が最新): β-2(手術/麻酔)→ γ/δ/ε → SS-MIX2。
-- **deferred の正**: `TODO.md` の各 "deferred" section(chain ごとに文脈付き entry あり)。
+- **deferred の正**: GitHub Issues board (see `docs/roadmap.ja.md`)。旧 `TODO.md` は Issues 化に伴い廃止。作業開始前に必ず `.resume-prompt.md` (最新 session hand-off) を読む。
   作業開始前に `.session-resume-prompt.md`(最新セッションの引き継ぎ)を必ず読む。
 
 ## 8. 用語ミニ辞書

@@ -62,7 +62,10 @@ from clinosim.codes.hl7_encounter import (
 `StrEnum` inherits from `str`, so
 `encounter.admit_source = AdmitSource.EMD` stays wire-compatible with
 the pre-refactor `str` typing (comparisons `== "emd"` continue to
-work).
+work). `AdmitSource.BORN` (= `"born"`) was added for the perinatal
+newborn-Patient chain — the newborn's Encounter carries it plus
+`admit_source_encounter_id` pointing at the mother's delivery
+Encounter, which becomes `Encounter.partOf` on the FHIR side.
 
 ## Determinism
 
@@ -352,6 +355,12 @@ tests diff against.
   once a year.
 - **WHO ICD-10**: seldom updated (current release is 2019).
 - **JP Core / JP-CLINS eCS**: track the version pinned in
-  `iris4h-ai/jp_core/package/` and MHLW registry entries.
+  `.github/jp-validator-pins.env` (JP Core `1.1.7`) and the
+  JP-CLINS package version asserted by
+  `.github/workflows/jp-clins-lab-compliance-gate.yml`
+  (currently `1.13.0`; the v1.12.0 → v1.13.0 delta is additive
+  terminology only — 9 new ValueSets for hepatitis serology + labo
+  split — so the StructureDefinition canonical URLs emitted by
+  clinosim are unchanged).
 - Internal short keys are stable. Any YAML structural change is a
   major version bump.

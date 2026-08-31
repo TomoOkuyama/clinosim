@@ -56,8 +56,9 @@ from clinosim.modules.hai.engine import (
     load_hai_codes,                                # () -> dict (@lru_cache)
     load_hai_organisms,                            # () -> dict (@lru_cache)
     load_hai_specimens,                            # () -> dict (@lru_cache)
+    load_hai_antibiogram,                          # () -> dict (@lru_cache)
 )
-from clinosim.modules.hai.enricher import hai_enricher   # POST_ENCOUNTER entry
+from clinosim.modules.hai.enricher import enrich_hai   # POST_ENCOUNTER entry
 from clinosim.modules.hai.lab_lift import (
     apply_hai_lab_lift,                            # (record) -> None (observations を mutate)
     _hai_lift_delta,                               # closed-form WBC / CRP delta
@@ -121,7 +122,7 @@ from clinosim.modules.hai.lab_lift import (
 clinosim/modules/hai/
   __init__.py                    HAI_TYPES canonical 定数 + loader stub
   engine.py                      sample_hai_onset + loader + validator + _sample_organism
-  enricher.py                    POST_ENCOUNTER hai_enricher
+  enricher.py                    POST_ENCOUNTER enrich_hai
   lab_lift.py                    apply_hai_lab_lift + _hai_lift_delta (Phase 3a)
   audit.py                       AD-60 audit plug-in (最初の per-Module) — lift_firing_proof
   reference_data/

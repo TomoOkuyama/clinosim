@@ -4,7 +4,7 @@
 
 他モジュールが LLM 呼び出しに使う唯一のゲートウェイ (AD-11 —
 「LLM 呼び出しは `llm_service` 経由のみ」、AD-24)。provider SDK
-(Ollama / Bedrock / Anthropic / vLLM / mock) は他モジュールから
+(Ollama / Bedrock / vLLM / mock) は他モジュールから
 **直接呼ばれない**。task-type enum、prompt 構築、response 検証、
 prompt cache、provider 選択を所有する。
 
@@ -87,10 +87,10 @@ from clinosim.modules.llm_service import (
 ## 依存
 
 - `clinosim.modules.llm_service.providers` — `LLMProvider` Protocol
-  と 5 concrete provider (bedrock / ollama / vllm / anthropic /
+  と 4 bundled provider (bedrock / ollama / vllm /
   mock)。
 - Provider SDK (`llm_service` 自体ではなく各 provider file で遅延
-  load): `boto3` (bedrock)、`httpx` (ollama + vllm + anthropic)。
+  load): `boto3` (bedrock)、`httpx` (ollama + vllm)。
 - `hashlib.sha256` — cache key 導出。
 - `yaml` — `factory.py` の config file loader。
 - 他の `clinosim.modules.*` には依存しない (本モジュールは全 module が
@@ -131,7 +131,7 @@ clinosim/modules/llm_service/
   prompts/
     en/                          英語 prompt manifest
     ja/                          日本語 prompt manifest
-  providers/                     LLMProvider Protocol + 5 concrete provider (bedrock/ollama/vllm/anthropic/mock)
+  providers/                     LLMProvider Protocol + 4 concrete provider (bedrock/ollama/vllm/mock)。anthropic_direct は bundle 外 (register_provider で追加)
   SPEC.md                        拡張設計参考 (runtime data ではない)
 ```
 

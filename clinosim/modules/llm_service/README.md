@@ -4,10 +4,9 @@
 
 The single gateway every other module uses for LLM calls (AD-11 —
 "LLM calls only via `llm_service`", AD-24). Provider SDKs
-(Ollama / Bedrock / Anthropic / vLLM / mock) are **never** called
-directly by any other module. Owns task-type enums, prompt
-construction, response validation, prompt caching, and provider
-selection.
+(Ollama / Bedrock / vLLM / mock) are **never** called directly by
+any other module. Owns task-type enums, prompt construction,
+response validation, prompt caching, and provider selection.
 
 ## Scope
 
@@ -27,8 +26,9 @@ selection.
   `PromptRegistry` + `PromptSpec` (per-task prompt manifest);
   `PromptCache` (SHA-256 keyed disk cache for reproducibility +
   Stage 2 re-run economy); `build_from_config` +
-  `build_from_config_file` factory; the six providers under
-  `providers/`.
+  `build_from_config_file` factory; the four bundled providers under
+  `providers/` (`bedrock`, `ollama`, `vllm`, `mock`) plus their
+  aliases (`local` → `ollama`, `openai_compatible` → `vllm`).
 - **Out of scope**: narrative-content assembly / template rendering
   ([`clinosim.modules.document.narrative`](../document/narrative/README.md)
   owns the two-pass narrative generation and imports `LLMService`);
@@ -92,11 +92,10 @@ from clinosim.modules.llm_service import (
 ## Dependencies
 
 - `clinosim.modules.llm_service.providers` — the `LLMProvider`
-  Protocol + five concrete providers (bedrock / ollama / vllm /
-  anthropic / mock).
+  Protocol + four concrete providers (bedrock / ollama / vllm /
+  mock).
 - Provider SDKs (loaded lazily by each provider file, not by
-  `llm_service` itself): `boto3` (bedrock), `httpx` (ollama +
-  vllm + anthropic).
+  `llm_service` itself): `boto3` (bedrock), `httpx` (ollama + vllm).
 - `hashlib.sha256` — cache key derivation.
 - `yaml` — config-file loader in `factory.py`.
 - No dependency on any other `clinosim.modules.*` (this module is
@@ -141,7 +140,7 @@ clinosim/modules/llm_service/
   prompts/
     en/                          English prompt manifest
     ja/                          Japanese prompt manifest
-  providers/                     LLMProvider Protocol + 5 concrete providers (bedrock/ollama/vllm/anthropic/mock)
+  providers/                     LLMProvider Protocol + 4 bundled providers (bedrock/ollama/vllm/mock); anthropic_direct is not bundled (register via register_provider)
   SPEC.md                        extended design reference (not runtime)
 ```
 

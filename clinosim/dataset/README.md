@@ -3,10 +3,11 @@
 ## Purpose
 
 `clinosim.dataset` is a thin CLI wrapper that turns a named preset
-(`jp-100`, `us-1000`, …) into the corresponding `clinosim generate`
-invocation. It exists so users can run one short command instead of
-remembering the six flags that make a given preset the reproducible
-release it is.
+(`jp-100`, `us-1000`, …) into the corresponding `clinosim simulate`
+invocation (`simulate` is the canonical subcommand; `generate` remains
+as a deprecation alias). It exists so users can run one short command
+instead of remembering the six flags that make a given preset the
+reproducible release it is.
 
 Presets are the **versioned public API for dataset releases**. Adding
 a new preset is how a maintainer declares a new officially-supported

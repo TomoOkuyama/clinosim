@@ -74,6 +74,32 @@ from clinosim.modules.patient.activator import (
   for the named tuples is byte-diff clean.
 - Home-medication attachment is deterministic given (patient, disease
   profile) — no additional RNG draws.
+- **Chronic-continuation carryforward (v0.5.x fix)**: home-medication
+  items sourced from a disease-YAML `continue_at_discharge` block
+  (lifelong secondary-prevention drugs: anticoagulant, statin,
+  antihypertensive, antiplatelet) survive across encounters. The
+  fix lives in
+  [`clinosim/simulator/discharge_rx.py`](../../simulator/discharge_rx.py)
+  (`_append_item(chronic_continuation=True)` defaults to 28 days) and
+  [`clinosim/simulator/helpers.py`](../../simulator/helpers.py)
+  (`_deactivate_to_layer1` acute filter now guards `0 < d <= 14`
+  so `duration_days=0` — the disease-YAML "long-term / unspecified"
+  marker used by `atrial_fibrillation_rvr.yaml` etc. — falls through
+  as chronic). Regression tests:
+  `test_continue_at_discharge_items_default_to_28_day_chronic_duration`,
+  `test_duration_days_zero_is_chronic_and_carries_forward`,
+  `test_duration_days_seven_is_acute_and_dropped`,
+  `test_anticoag_from_admission1_carries_forward_to_admission2_home_meds`.
+- **Newborn Patient generation**: for a Z34-carrying woman whose
+  perinatal-delivery LifeEvent fires, a paired newborn `PatientProfile`
+  is constructed with `id = "<mother_id>-BABY"`, household inherited
+  from the mother, sex sampled via a per-mother sub-RNG, `birthDate`
+  = the delivery date, and age-0 anthropometric defaults. The newborn
+  never runs its own population sampler — activation is done inside
+  [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py)
+  and returns two `CIFPatientRecord`s (mother + newborn) linked via
+  `Encounter.partOf` on the newborn side. See
+  [`docs/reference/oncology-obstetric-service-lines.md`](../../../docs/reference/oncology-obstetric-service-lines.md).
 
 ## Dependencies
 

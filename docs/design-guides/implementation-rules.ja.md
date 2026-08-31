@@ -14,7 +14,7 @@
    (`docs/history/specs-archive/`)→ TDD 実装(test first)→ 独立検証 → PR →
    compact adversarial review(5-lens、finding は実証必須)→ fix → 全 suite green → merge。
 2. **Scope discipline(★★★)**: spec 確定後の scope 拡大禁止。scope 外の発見は
-   「データ品質/臨床整合性に必須」の場合のみ対応、それ以外は **TODO.md に formal entry 化**
+   「データ品質/臨床整合性に必須」の場合のみ対応、それ以外は **GitHub Issues board に formal entry 化** (`docs/roadmap.ja.md` 参照; 旧 `TODO.md` は Issues 化に伴い廃止)
    (文脈・file:line・修正案つき)。
 3. **着手前 status audit**: TODO/ドキュメントの記述を鵜呑みにせず、**実装前に実測で検証**
    (実例: α-min-3 の「CRITICAL 配線 gap」は 2 世代前に解決済みだった。cohort 出力を
@@ -49,7 +49,7 @@
 ## 3. 決定性(AD-16 / AD-59)— 絶対規則
 
 - `random.random()` 禁止。RNG は必ず sub-seed 由来の `numpy.random.Generator`
-  (`simulator/seeding.py`: `derive_sub_seed` + `ENRICHER_SEED_OFFSETS` 登録、
+  (`clinosim/seeding.py`: `derive_sub_seed(master_seed, module_offset, key)` + `ENRICHER_SEED_OFFSETS` (16-bit hex-ASCII) 登録、
   lab は `panel_specimen_seed` / `individual_lab_seed`)。
 - **`datetime.now()` / `date.today()` を生成経路に書かない**(既存の残存は determinism
   chain の TODO — 増やすのは禁止)。narrative の時刻は `_deterministic_timestamp` 系。
@@ -114,7 +114,7 @@
 
 - `codes/data/*.yaml` は **`en` 必須**、出典は authoritative(CMS/NLM/WHO/JCCLS/MHLW)。
   **コードの捏造絶対禁止** — 新 code は NLM API / WHO browser で検証してから登録。
-- 診断コード追加時は「Diagnosis code coverage」手順(CLAUDE.md)に従い
+- 診断コード追加時は「Diagnosis code coverage」手順(AGENTS.md)に従い
   `pytest tests/unit/test_diagnosis_code_coverage.py` green を確認。
 - **JP 出力は全 display/text/name が日本語、US 出力は日本語文字 0**(既知の例外 =
   `KNOWN_JA_ONLY_FALLBACK_SECTIONS`。勝手に拡げない)。緊急番号等の locale 依存表現に注意
@@ -202,4 +202,4 @@ registry 経由 / dict+dataclass 両 path のテスト必須 / reference integri
 3. `docs/CONTRIBUTING-modules.md`(Layers 1-3 詳細 HOW-TO)
 4. `fhir-data-generation-logic.md`(Layer 4、builder を書くとき)
 5. `clinosim/modules/output/SPEC.md`(two-pass narrative、Stage 2 を触るとき)
-6. 直近の chain 文脈: `.session-resume-prompt.md` + `TODO.md` 各 deferred section
+6. 直近の chain 文脈: `.resume-prompt.md` + GitHub Issues board (`docs/roadmap.ja.md` 参照)

@@ -13,6 +13,10 @@ clinosim uses LLMs only for **clinical documents** (Stage 2). All structural dat
 - Pluggable providers via `clinosim.modules.llm_service.providers`:
   - `ollama` — local Ollama server (default)
   - `bedrock` — AWS Bedrock via Converse API (for EC2 deployment)
+  - `vllm` — OpenAI-compatible `/v1/chat/completions` endpoint
+    (vLLM, SGLang, or any other OpenAI-compatible server; supports
+    continuous batching via `--concurrency` on `clinosim narrate`)
+  - `openai_compatible` — alias for `vllm`
   - `mock` — deterministic stub for tests
   - New providers can be registered via `providers.register_provider()`.
 - Prompt templates live as YAML under `clinosim/modules/llm_service/prompts/<lang>/<task>.yaml` and are rendered with `string.Template`.

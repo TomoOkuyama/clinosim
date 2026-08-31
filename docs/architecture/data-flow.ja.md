@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph stage3["Stage 3 — clinosim export-fhir"]
-        adapter["fhir_r4_adapter (+ per-theme _fhir_* builders)<br/>structural → 16 FHIR resource types<br/>narratives → DocumentReference (base64)<br/>display text は clinosim.codes 経由"]
+        adapter["fhir_r4_adapter (+ per-theme _fhir_* builder subpackage)<br/>structural → 25+ FHIR resource type<br/>narratives → DocumentReference (base64)<br/>display text は clinosim.codes 経由"]
         fhir["output/fhir_r4/<br/>HL7 Bulk Data NDJSON + manifest.json"]
         adapter --> fhir
     end
