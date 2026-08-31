@@ -33,14 +33,34 @@ def enrich_nursing(ctx) -> None:
         rng = np.random.default_rng(seed)
 
         # 1) NEWS2 + GCS on each vital record (NEWS2 deterministic; GCS small jitter)
+        #
+        # Issue #911: GCS must derive from the SAME latent consciousness state
+        # as AVPU. Previously the enricher defaulted ``consciousness_level``
+        # to ``"A"`` (→ base 15 → jitter → GCS ~14/15) on every vital record
+        # regardless of whether that record carried an AVPU sample.
+        # `_generate_vitals` only sets ``consciousness_level`` on the routine
+        # full-vitals rounds (feature-set-driven emit); continuous-monitoring
+        # rows and event rechecks emit without AVPU. AVPU Observations are
+        # only emitted for records where ``consciousness_level`` is populated
+        # (labs/observations.py line 621's ``if loc:`` gate), so the extra
+        # GCS Observations produced from the ``"A"``-defaulted rows were
+        # unpaired GCS ≈ 15 records that the audit joins by same-day and
+        # sees as ``AVPU=U → GCS=15`` contradictions (12,945 impossible pairs
+        # at v0.5.0). Fix: skip GCS emission for vitals without AVPU — one
+        # scale is not authored for the other to contradict.
         for vs in _get(rec, "vital_signs", []) or []:
             vsd = vs if isinstance(vs, dict) else vs.__dict__
             news2 = compute_news2(vsd)
-            gcs = compute_gcs(vsd.get("consciousness_level", "A"), perfusion_status=1.0, rng=rng)
+            loc_val = vsd.get("consciousness_level", "") or ""
+            gcs = compute_gcs(loc_val, perfusion_status=1.0, rng=rng) if loc_val else None
             if isinstance(vs, dict):
-                vs["news2_score"], vs["gcs_score"] = news2, gcs
+                vs["news2_score"] = news2
+                if gcs is not None:
+                    vs["gcs_score"] = gcs
             else:
-                vs.news2_score, vs.gcs_score = news2, gcs
+                vs.news2_score = news2
+                if gcs is not None:
+                    vs.gcs_score = gcs
 
         # 2) Daily Braden + Morse from ADL (align by date) + I/O (IV present)
         adls = _get(rec, "adl_assessments", []) or []

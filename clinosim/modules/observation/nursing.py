@@ -77,7 +77,14 @@ def compute_gcs(consciousness_level: str, perfusion_status: float, rng: np.rando
     base = int(cfg["avpu_base"].get(consciousness_level, 15))
     # Poor perfusion (shock/encephalopathy) nudges GCS down slightly, deterministic + small noise.
     decrement = int(round((1.0 - perfusion_status) * GCS_PERFUSION_DECREMENT_SCALE))
-    jitter = int(rng.integers(GCS_JITTER_LOW, GCS_JITTER_HIGH, endpoint=True))  # 0 or 1, deterministic per sub-seed
+    # Always consume the jitter RNG draw to preserve the master-rng stream
+    # shape (feedback_rng_shift_patient_cache_cascade). Issue #911: for AVPU
+    # ``A`` (Alert) the GCS is strictly 15 by definition — an Alert patient
+    # is fully conscious, so the downward jitter must not fire. Consumers
+    # (per the audit) treat "Alert with GCS < 15" as a clinical
+    # contradiction. Non-Alert bands keep the ±1 jitter for realism.
+    _jitter_draw = int(rng.integers(GCS_JITTER_LOW, GCS_JITTER_HIGH, endpoint=True))
+    jitter = 0 if consciousness_level == "A" else _jitter_draw
     score = base - decrement - jitter
     return max(cfg["min"], min(cfg["max"], score))
 
