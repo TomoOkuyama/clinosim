@@ -509,6 +509,14 @@ def _run_daily_loop(
                     # Skip entries with neither drug nor procedure
 
         # Treatment escalation: if inflammation not improving by day 3, escalate
+        # Issue #914: an inflammation-not-improving heuristic alone fired on
+        # nearly every day-3 admission with mid-severity, producing meropenem
+        # (or the disease's escalation agent) on ~34 % of pyelonephritis
+        # encounters — real clinical escalation rate is <15 % (reserved for
+        # culture ESBL / true 72 h non-defervescence). Each ``escalation``
+        # entry may now carry an optional ``probability`` field (0.0-1.0);
+        # when unset the pre-existing "always escalate on trigger" behavior
+        # is preserved (byte-compat with disease YAMLs that predate this).
         if day == TREATMENT_ESCALATION_DAY and state.inflammation_level > TREATMENT_ESCALATION_INFLAMMATION_MIN:
             escalation_drugs = protocol.drugs.get("escalation", {}).get(country_key, [])
             if isinstance(escalation_drugs, dict):
@@ -516,6 +524,10 @@ def _run_daily_loop(
             for esc_drug in escalation_drugs:
                 if not isinstance(esc_drug, dict):
                     continue
+                _esc_prob = esc_drug.get("probability")
+                if _esc_prob is not None and float(_esc_prob) < 1.0:
+                    if rng.random() >= float(_esc_prob):
+                        continue
                 drug_name = esc_drug.get("drug", "")
                 dose = esc_drug.get("dose", "")
                 indication = esc_drug.get("indication", "no improvement")

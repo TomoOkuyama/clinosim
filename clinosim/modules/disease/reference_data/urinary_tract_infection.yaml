@@ -426,11 +426,18 @@ drugs:
         pregnancy_safe: false
 
   escalation:  # when first-line fails (Day 3 no improvement)
+    # Issue #914: real UTI escalation rate is <15 % of admissions —
+    # reserved for culture-confirmed ESBL / true 72 h non-defervescence.
+    # The daily-loop trigger only checks ``inflammation_level not improving``
+    # which fires on ~34 % of mid-severity encounters; gate with an
+    # explicit probability so the effective escalation rate matches the
+    # clinical baseline (guideline: IDSA UTI 2010, JP 尿路感染症 GL 2015).
     japan:
       - drug: "Meropenem"
         code_yj: "6139400"
         dose: "1g IV q8h"
         indication: "no_defervescence_72h or culture_ESBL_producing_organism"
+        probability: 0.4   # ~15 % effective (0.34 trigger × 0.4 gate)
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
     us:
@@ -438,34 +445,51 @@ drugs:
         code_rxnorm: "106892"
         dose: "1g IV q8h"
         indication: "same"
+        probability: 0.4
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
       - drug: "Piperacillin/Tazobactam"
         code_rxnorm: "240984"
         dose: "4.5g IV q6h"
         indication: "alternative escalation"
+        probability: 0.2   # alternative escalation ≤ 20 % of already-selected escalations
 
   discharge_oral:
+    # Issue #914: alternatives within an antibiotic class are mutually
+    # exclusive — real prescribers pick ONE oral step-down agent, not
+    # every listed alternative. Pre-fix all entries were appended
+    # unconditionally (72/92 UTI admissions in audit v0.5.0 received the
+    # 4-drug template Ceftriaxone + Cefcapene + Meropenem + Levofloxacin;
+    # the two oral options fanning out here are the primary contributor).
+    exclusive_classes: ["oral_antibiotic"]
     japan:
       - drug: "Levofloxacin"
         code_yj: "6241013"
         dose: "500mg PO daily"
         duration_days: 7
+        drug_class: "oral_antibiotic"
+        probability: 0.65   # fluoroquinolone preferred where local susceptibility permits
       - drug: "Cefcapene pivoxil"
         code_yj: "6132420"
         dose: "100mg PO TID"
         duration_days: 7
         note: "If fluoroquinolone not preferred"
+        drug_class: "oral_antibiotic"
+        probability: 0.35
     us:
       - drug: "Ciprofloxacin"
         code_rxnorm: "309308"
         dose: "500mg PO BID"
         duration_days: 7
+        drug_class: "oral_antibiotic"
+        probability: 0.55
       - drug: "Trimethoprim/Sulfamethoxazole"
         code_rxnorm: "198335"
         dose: "160/800mg PO BID"
         duration_days: 14
         note: "If susceptible on culture"
+        drug_class: "oral_antibiotic"
+        probability: 0.45
 
 # ============================================================
 # DRUG INTERACTIONS relevant to UTI treatment
