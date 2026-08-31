@@ -2,8 +2,13 @@
 
 clinosim emits FHIR R4 resources with **JP-CLINS (電子カルテ情報共有サービス) profile URLs** for `country=JP` cohorts. This document covers the 6 information items enabled in PR1; 3-document Composition support (退院時サマリー / 診療情報提供書 / opt-in 健康診断結果報告書) lands in PR2 and PR3.
 
-Verified against jpfhir.jp JP-CLINS **v1.12.0** (2026-02-16). See
-<https://jpfhir.jp/fhir/clins/igv1/artifacts.html>.
+Verified against jpfhir.jp JP-CLINS **v1.13.0** (2026-08-31, current
+CI pin in `.github/workflows/jp-clins-lab-compliance-gate.yml`). See
+<https://jpfhir.jp/fhir/clins/igv1/artifacts.html>. The StructureDefinition
+canonical URLs are unchanged from the v1.12.0 (2026-02-16) baseline;
+v1.13.0 adds **9 new ValueSets** (hepatitis serology + labo split)
+purely as additive terminology entries. All emit paths described in
+this document continue to hold.
 
 ## Scope
 
@@ -11,7 +16,7 @@ Acute-care hospital EHR/EMR data generation, `country=JP`.
 
 ### 6 information items / 5 profiles (PR1)
 
-JP-CLINS v1.12.0 publishes **5 StructureDefinition profiles** covering the "6 information items" domain concept — 傷病名 and 感染症 share the same `JP_Condition_eCS` profile (no separate infection profile), and DiagnosticReport is **not** in JP-CLINS scope (lab results are emitted only as Observation.LabResult).
+JP-CLINS v1.13.0 publishes **5 StructureDefinition profiles** covering the "6 information items" domain concept — 傷病名 and 感染症 share the same `JP_Condition_eCS` profile (no separate infection profile), and DiagnosticReport is **not** in JP-CLINS scope (lab results are emitted only as Observation.LabResult).
 
 For every country=JP cohort, the following resource types carry the JP-CLINS eCS profile URL in `meta.profile[]` alongside the existing JP Core profile:
 
@@ -29,7 +34,7 @@ URL root: `http://jpfhir.jp/fhir/eCS/StructureDefinition/`
 
 - Observation: only when `category.coding[].code == "laboratory"` — vital signs stay on the JP Core profile only.
 
-**Not covered by JP-CLINS v1.12.0** (emitted with JP Core profile only, no JP-CLINS URL added):
+**Not covered by JP-CLINS v1.13.0** (emitted with JP Core profile only, no JP-CLINS URL added):
 
 - DiagnosticReport (any category)
 - Observation vital-signs / social-history / survey / imaging
@@ -58,7 +63,7 @@ URL root: `http://jpfhir.jp/fhir/eCS/StructureDefinition/`
 
 ## JP-CLINS 退院時サマリー Composition (PR2a)
 
-For every `country=JP` inpatient / icu / rehab_inpatient discharge encounter, clinosim emits a Composition resource that conforms to `JP_Composition_eDischargeSummary` (v1.12.0):
+For every `country=JP` inpatient / icu / rehab_inpatient discharge encounter, clinosim emits a Composition resource that conforms to `JP_Composition_eDischargeSummary` (v1.13.0):
 
 - `Composition.meta.profile` includes `http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary`
 - `Composition.type.coding[0].system` = `http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes`, code = `18842-5`, display = `退院時サマリー`. The LOINC coding is retained as a secondary entry for interop with US tooling.
@@ -78,7 +83,7 @@ For every `country=JP` inpatient / icu / rehab_inpatient discharge encounter, cl
 
 ## JP-CLINS 診療情報提供書 Composition (PR2b)
 
-For a deterministic 20% subset of `country=JP` inpatient / icu / rehab_inpatient discharge encounters, clinosim emits a **診療情報提供書 (referral note)** Composition conforming to `JP_Composition_eReferral` (v1.12.0):
+For a deterministic 20% subset of `country=JP` inpatient / icu / rehab_inpatient discharge encounters, clinosim emits a **診療情報提供書 (referral note)** Composition conforming to `JP_Composition_eReferral` (v1.13.0):
 
 - Emission rate: 20% (empirical acute-care hospital benchmark), controlled by a stable hash of `(encounter_id, patient_id)` so the same seed produces the same referral-note-emitting subset (no new RNG allocation).
 - `Composition.meta.profile` includes `http://jpfhir.jp/fhir/eReferral/StructureDefinition/JP_Composition_eReferral`

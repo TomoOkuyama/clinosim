@@ -53,7 +53,7 @@ _HOT9_URI = "http://medis.or.jp/CodeSystem/master-HOT9"
 #   uniqueId[type=uri, preferred=True].value
 _HOT13_URI = "http://medis.or.jp/CodeSystem/master-HOT13"
 
-# JP-CLINS eCS Nocoded fallback CS: clinical-information-sharing#1.12.0/package/
+# JP-CLINS eCS Nocoded fallback CS: clinical-information-sharing#1.13.0/package/
 #   CodeSystem-jp-eCS-medicationcode-nocoded-cs.json
 #   `url` field (spec-published complete CS)
 _MEDICATION_NOCODED_URI = "http://jpfhir.jp/fhir/eCS/CodeSystem/MedicationCodeNocoded_CS"

@@ -12,7 +12,7 @@ The constraints pinned here are the ones a future edit is most likely to break s
 
 * **`expectedSupplyDuration` fixed values.** `unit` is the Japanese string `日` in BOTH
   `JP_MedicationRequest` (JP Core 1.2.0) and `JP_MedicationRequest_eCS` (JP-CLINS
-  1.12.0); `code` is the UCUM token `d`. Putting `"d"` in `unit` is a fixed-value
+  1.13.0); `code` is the UCUM token `d`. Putting `"d"` in `unit` is a fixed-value
   violation that survives dropping the eCS profile.
 * **Open-ended supply sentinels.** Disease YAMLs write `duration_days: 0  # chronic`
   and `duration_days: ongoing`. Emitting `{"value": 0}` asserts a zero-day supply and a

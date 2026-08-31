@@ -46,7 +46,7 @@ class DocumentType(StrEnum):
     NUTRITION_CARE_PLAN = "nutrition_care_plan"  # LOINC 80791-7
     # JP-mandated (厚生労働省 4帳票 — final of the four).
     REHABILITATION_PLAN = "rehabilitation_plan"  # LOINC 34823-5
-    # JP-CLINS 診療情報提供書 (referral note) — LOINC 57133-1 (JP-CLINS v1.12.0).
+    # JP-CLINS 診療情報提供書 (referral note) — LOINC 57133-1 (JP-CLINS v1.13.0).
     REFERRAL_NOTE = "referral_note"
     # JP-eCheckup 健診結果報告書 (health-checkup report) — LOINC 53576-5 (JP-eCheckup v1.7.0, opt-in).
     HEALTH_CHECKUP_REPORT = "health_checkup_report"
@@ -142,7 +142,7 @@ class DocumentTypeSpec:
     def composition_sections_for(self, country: str) -> tuple[str, ...]:
         """Return the section list for ``country``.
 
-        JP-CLINS v1.12.0 requires a different discharge-summary
+        JP-CLINS v1.13.0 requires a different discharge-summary
         structure than the traditional English six-section layout. When
         ``composition_sections_jp`` is populated and ``country == "JP"``,
         the JP-specific list is preferred. Otherwise the

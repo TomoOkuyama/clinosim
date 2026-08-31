@@ -1501,7 +1501,7 @@ def build_reference_range(
         # fhir-jp-validator 2026-07-17 §【最優先 2】(31k errors)で以下 2 点が
         # 判明:
         # (1) 過去 clinosim 版が使っていた URL(fragment 版 → 現行 spec 準拠版
-        #     どちらも)は JP Core 1.2.0 / JP-CLINS 1.12.0 / jpfhir-terminology
+        #     どちらも)は JP Core 1.2.0 / JP-CLINS 1.13.0 / jpfhir-terminology
         #     2.2606.0 のいずれの StructureDefinition にも存在しない
         #     (`grep -rl 'ReferenceRangeSource' fhir-jp-validator/tx-server-build/...`
         #      で match ゼロ)。spec fixedUri 直接引用 rule違反。

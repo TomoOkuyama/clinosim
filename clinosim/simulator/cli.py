@@ -56,7 +56,7 @@ def _enforce_jp_clins_pkg_gate(allow_legacy: bool) -> None:
         print(
             "ERROR: JP-CLINS package not detected. `clinosim generate --country JP`\n"
             "requires either:\n"
-            "  - `fhir install clinical-information-sharing 1.12.0` (+ jpfhir-terminology 2.2606.0), OR\n"
+            "  - `fhir install clinical-information-sharing 1.13.0` (+ jpfhir-terminology 2.2606.0), OR\n"
             "  - set $CLINOSIM_JP_CLINS_PKG_DIR to the pkg's `package/` directory.\n"
             "Without the package, output would fall back to legacy 5-digit JLAC10 OIDs\n"
             "(non-JP-CLINS eCS compliant) with no signal to downstream consumers.\n"
@@ -158,7 +158,7 @@ def main() -> None:
         help="(JP only) Permit generation to proceed with legacy 5-digit JLAC10 OID "
         "output when the JP-CLINS package is not installed (Issue #418). "
         "Default is fail-loud: `--country JP` requires the pkg "
-        "(`clinical-information-sharing#1.12.0` + `jpfhir-terminology#2.2606.0`) "
+        "(`clinical-information-sharing#1.13.0` + `jpfhir-terminology#2.2606.0`) "
         "so the emitted output is JP-CLINS eCS compliant. Set this flag to "
         "acknowledge non-compliant output — the run will print a warning and "
         "produce legacy fallback codes. Ignored for non-JP countries.",

@@ -274,7 +274,7 @@ _BUILTIN_URIS: dict[str, str] = {
     "hot7": "http://medis.or.jp/CodeSystem/master-HOT7",
     "hot9": "http://medis.or.jp/CodeSystem/master-HOT9",
     "hot13": "http://medis.or.jp/CodeSystem/master-HOT13",
-    # JP-CLINS eCS Nocoded fallback CS — clinical-information-sharing#1.12.0
+    # JP-CLINS eCS Nocoded fallback CS — clinical-information-sharing#1.13.0
     # の CodeSystem-jp-eCS-medicationcode-nocoded-cs.json `url` 直接引用。
     # medication[x].coding min=1 を code_mapping 不在薬でも満たすための slice。
     "medication-nocoded": "http://jpfhir.jp/fhir/eCS/CodeSystem/MedicationCodeNocoded_CS",

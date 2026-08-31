@@ -259,7 +259,7 @@ def convert_cif_to_fhir(
             # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
             # (and low/high/component mirrors). LabResult_eCS forbids them
             # (max=0) and the previously-emitted `referenceRangeSource` URL
-            # was not registered anywhere in JP-CLINS 1.12.0. Universal —
+            # was not registered anywhere in JP-CLINS 1.13.0. Universal —
             # US output already omits the extension so the walker is a no-op.
             _strip_forbidden_observation_reference_range_extensions(resource)
             # PR-E (2026-07-17): emit companion Specimen for lab Observations
@@ -598,7 +598,7 @@ def _build_bundle(
             # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
             # (and low/high/component mirrors). LabResult_eCS forbids them
             # (max=0) and the previously-emitted `referenceRangeSource` URL
-            # was not registered anywhere in JP-CLINS 1.12.0. Universal —
+            # was not registered anywhere in JP-CLINS 1.13.0. Universal —
             # US output already omits the extension so the walker is a no-op.
             _strip_forbidden_observation_reference_range_extensions(resource)
             # PR-E (2026-07-17): emit companion Specimen for lab Observations

@@ -70,7 +70,7 @@ specs:
       - discharge_medications
       - discharge_instructions
       - follow_up
-    # JP-CLINS v1.12.0 準拠の必須 10 セクション(300 構造情報の下に nest)。
+    # JP-CLINS v1.13.0 準拠の必須 10 セクション(300 構造情報の下に nest)。
     # session 58 Chain #9(#267)で eDS spec の min=10 制約に合わせ 5→10 に拡張
     # (312/322/342/352/360 admission + 333/324/344/444/424 discharge)。
     # session 59 #286 で narrative content 側も同時に 10 に拡張し txt-2
@@ -285,7 +285,7 @@ specs:
     llm_enabled_sections: []
 
   # === P2-13 PR2b(session 47)JP-CLINS 診療情報提供書(JP-only)===
-  # LOINC 57133-1 を jpfhir.jp v1.12.0(2026-02-16)で照合済。JP-CLINS
+  # LOINC 57133-1 を jpfhir.jp v1.13.0(2026-02-16)で照合済。JP-CLINS
   # eReferral profile(JP_Composition_eReferral)の必須 section 構造:
   #   920 紹介元 / 910 紹介先 / 300 構造情報
   #     └ 950 紹介目的 / 340 傷病名・主訴 / 360 現病歴

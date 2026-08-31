@@ -36,7 +36,7 @@ _JP_CLINS_ECS_SD = (
     / "tx-server-build"
     / "terminology"
     / "fhir-server"
-    / "clinical-information-sharing#1.12.0"
+    / "clinical-information-sharing#1.13.0"
     / "package"
     / "StructureDefinition-JP-Observation-LabResult-eCS.json"
 )

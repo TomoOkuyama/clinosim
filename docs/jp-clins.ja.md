@@ -6,8 +6,13 @@ clinosim は `country=JP` コホートに対し **JP-CLINS (電子カルテ情�
 ます; 3 種類の Composition (退院時サマリー / 診療情報提供書 / opt-in
 健康診断結果報告書) は PR2 と PR3 で追加されます。
 
-jpfhir.jp JP-CLINS **v1.12.0** (2026-02-16) に対して検証済。
+jpfhir.jp JP-CLINS **v1.13.0** (2026-08-31、現時点の CI pin — 
+`.github/workflows/jp-clins-lab-compliance-gate.yml`) に対して検証済。
 <https://jpfhir.jp/fhir/clins/igv1/artifacts.html> 参照。
+StructureDefinition canonical URL は v1.12.0 (2026-02-16) baseline
+から未変更。v1.13.0 の追加は **9 新規 ValueSet** (hepatitis serology
++ labo split) に限定された terminology-only の additive 追加であり、
+本ドキュメントの emit path 記述はすべて維持されます。
 
 ## スコープ
 
@@ -15,7 +20,7 @@ jpfhir.jp JP-CLINS **v1.12.0** (2026-02-16) に対して検証済。
 
 ### 6 情報項目 / 5 プロファイル (PR1)
 
-JP-CLINS v1.12.0 は「6 情報項目」ドメイン概念をカバーする
+JP-CLINS v1.13.0 は「6 情報項目」ドメイン概念をカバーする
 **5 StructureDefinition プロファイル** を公開しています — 傷病名と
 感染症は同じ `JP_Condition_eCS` プロファイルを共有 (別個の感染症
 プロファイルなし)、DiagnosticReport は JP-CLINS スコープに **含まれ
@@ -39,7 +44,7 @@ URL ルート: `http://jpfhir.jp/fhir/eCS/StructureDefinition/`
 - Observation: `category.coding[].code == "laboratory"` の場合のみ —
   vital sign は JP Core プロファイルのみ保持。
 
-**JP-CLINS v1.12.0 対象外** (JP Core プロファイルのみで emit、
+**JP-CLINS v1.13.0 対象外** (JP Core プロファイルのみで emit、
 JP-CLINS URL 非追加):
 
 - DiagnosticReport (全 category)
@@ -71,7 +76,7 @@ JP-CLINS URL 非追加):
 ## JP-CLINS 退院時サマリー Composition (PR2a)
 
 `country=JP` の inpatient / icu / rehab_inpatient 退院エンカウンター
-全てに対し、clinosim は `JP_Composition_eDischargeSummary` (v1.12.0)
+全てに対し、clinosim は `JP_Composition_eDischargeSummary` (v1.13.0)
 準拠の Composition リソースを emit:
 
 - `Composition.meta.profile` に
@@ -111,7 +116,7 @@ extension leak を浮上させた。
 
 `country=JP` の inpatient / icu / rehab_inpatient 退院エンカウンター
 の決定的 20% サブセットに対し、clinosim は
-`JP_Composition_eReferral` (v1.12.0) 準拠の **診療情報提供書
+`JP_Composition_eReferral` (v1.13.0) 準拠の **診療情報提供書
 (referral note)** Composition を emit:
 
 - Emission 率: 20% (実務急性期病院ベンチマーク)。

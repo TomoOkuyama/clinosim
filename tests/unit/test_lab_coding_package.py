@@ -113,7 +113,7 @@ def _pkg_or_skip():
 
 
 def test_pkg_all_slices_count_matches_ecs_sd(_pkg_or_skip):
-    """187 slices with Fixed display in eCS 1.12.0 SD:
+    """187 slices with Fixed display in eCS 1.13.0 SD:
     55 CoreLabo × 2 (JLAC10 + JLAC11) + 38 InfectionLabo × 2 + Uncoded (1)
     = 110 + 76 + 1 = 187. Locked so a downstream SD version bump
     surfaces as a test regression rather than silent shift."""
@@ -189,7 +189,7 @@ def test_pkg_value_set_url_preserved_verbatim(_pkg_or_skip):
     info = pkg.slice_info("coreLaboJLAC10/k")
     assert info is not None
     # Sample assertion: the URL is non-empty and contains the version
-    # suffix as the SD carries it (1.1.0a in eCS 1.12.0).
+    # suffix as the SD carries it (1.1.0a in eCS 1.13.0).
     assert info.value_set_url != ""
     assert "|1.1.0" in info.value_set_url, (
         "SD carries |1.1.0a suffix; loader must preserve verbatim (session 67 memo constraint)"

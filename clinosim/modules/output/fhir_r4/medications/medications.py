@@ -217,7 +217,7 @@ OUTPATIENT_RX_ID_PREFIX = "rxopd-"
 #
 #   JP_MedicationRequest (JP Core 1.2.0) — StructureDefinition-jp-medicationrequest.json
 #     dispenseRequest.expectedSupplyDuration.unit    min=0  fixedString '日'
-#   JP_MedicationRequest_eCS (JP-CLINS 1.12.0) — StructureDefinition-JP-MedicationRequest-eCS.json
+#   JP_MedicationRequest_eCS (JP-CLINS 1.13.0) — StructureDefinition-JP-MedicationRequest-eCS.json
 #     dispenseRequest.expectedSupplyDuration.value   min=1  MS=True
 #     dispenseRequest.expectedSupplyDuration.unit    min=1  MS=True  fixedString '日'
 #     dispenseRequest.expectedSupplyDuration.system  min=1  MS=True  fixedUri  'http://unitsofmeasure.org'
@@ -369,7 +369,7 @@ _YJ12_PATTERN = re.compile(r"^\d{7}[A-Z]\d{4}$")
 
 # #291 JP-CLINS eCS "nocoded" slice — code_mapping にヒットしない
 # 薬(ED 特異薬 等)の `medication[x].coding` min=1 を満たすための fallback。
-# spec: clinical-information-sharing#1.12.0/package/
+# spec: clinical-information-sharing#1.13.0/package/
 # CodeSystem-jp-eCS-medicationcode-nocoded-cs.json 権威 display "標準コードなし"。
 _JP_MEDICATION_CODE_NOCODED_CS = "http://jpfhir.jp/fhir/eCS/CodeSystem/MedicationCodeNocoded_CS"
 _JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"
@@ -660,7 +660,7 @@ def _resolve_medication_concept(
         # ED 特異薬(点眼薬 / 泌尿器系一次治療薬 等)+ #283 で tx-server
         # 未収録 YJ code は eCS の "nocoded" slice に fallback。
         # slice fixedUri は spec:
-        # clinical-information-sharing#1.12.0/package/
+        # clinical-information-sharing#1.13.0/package/
         # CodeSystem-jp-eCS-medicationcode-nocoded-cs.json
         # #305 display は権威 CodeSystem 定義通り
         # "標準コードなし" 固定(NOCODED は 1 code / 1 display の required

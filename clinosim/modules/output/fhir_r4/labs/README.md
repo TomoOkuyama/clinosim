@@ -110,7 +110,7 @@ Not applicable — pure builders over CIF + reference-range tables.
   `imaging` AD-60 audit plug-in for its 15-check
   `lift_firing_proof`.
 - **JP-CLINS package constants** (`coding_package.py`):
-  - `_JP_CLINS_PKG_ID = "clinical-information-sharing"` + `_JP_CLINS_PKG_VERSION = "1.12.0"`.
+  - `_JP_CLINS_PKG_ID = "clinical-information-sharing"` + `_JP_CLINS_PKG_VERSION = "1.13.0"`.
   - `_JP_CLINS_TERMINOLOGY_PKG_ID = "jpfhir-terminology"` + `_JP_CLINS_TERMINOLOGY_PKG_VERSION = "2.2606.0"`.
   - `_ECS_SD_FILENAME = "StructureDefinition-JP-Observation-LabResult-eCS.json"`.
   - `_SPECIMEN_MATERIAL_CS_FILENAME = "CodeSystem-jp-observationsamplematerialcodejlac10-cs.json"`.

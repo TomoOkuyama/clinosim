@@ -108,7 +108,7 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
 
 @pytest.mark.integration
 def test_jp_p100_diagnostic_report_has_no_clins_profile(tmp_path):
-    """JP-CLINS v1.12.0 does not publish a DiagnosticReport profile — must not emit."""
+    """JP-CLINS v1.13.0 does not publish a DiagnosticReport profile — must not emit."""
     outdir = tmp_path / "jp-dr"
     run_generate("JP", 100, 42, outdir, end=_SNAPSHOT_END)
     resources_by_type = _load_resources(outdir)
