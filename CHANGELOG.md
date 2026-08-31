@@ -48,6 +48,45 @@ the tag was removed and the remaining scope is being folded in
 before re-tagging. Everything below stays queued under
 `[Unreleased]` until the re-tag.
 
+### Fixed
+
+- **Chronic-continuation drugs (anticoagulant / statin / antihypertensive
+  / antiplatelet) silently lost across encounters.** Two interacting
+  defects caused patients newly started on a lifelong secondary-
+  prevention drug at admission #1 to reach admission #2 without it as
+  a home medication:
+  (1) `discharge_rx.py::_append_item` defaulted `duration_days=7` for
+      every discharge item, including those sourced from
+      `continue_at_discharge` category blocks that are lifelong by
+      design (anticoagulation, statin, antihypertensive, antiplatelet).
+  (2) `helpers.py::_deactivate_to_layer1`'s acute-course filter used
+      `int(_dur) <= 14` which also matched `duration_days == 0`, the
+      disease-YAML convention for "long-term / unspecified" (e.g.
+      `atrial_fibrillation_rvr.yaml`'s Apixaban + Metoprolol_succinate
+      chronic-continuation entries).
+  Together, both classes of lifelong meds cleared the acute filter and
+  disappeared from `person.current_medications`, so the next
+  admission's `_generate_home_medication_orders` (which reads from
+  `patient.current_medications` via the cache) emitted nothing for
+  them. Fix: `_append_item` accepts `chronic_continuation=True` from
+  the `continue_at_discharge` caller (default 28 days for those); the
+  filter now guards `0 < d <= 14` so 0 falls through as chronic.
+  Regression tests: `test_continue_at_discharge_items_default_to_28_day_chronic_duration`
+  + `test_duration_days_zero_is_chronic_and_carries_forward` +
+  `test_duration_days_seven_is_acute_and_dropped` (sibling Bucket B
+  guard). Verified end-to-end via the previously-failing integration
+  test `test_anticoag_from_admission1_carries_forward_to_admission2_home_meds`
+  which now passes. Classification: **PATCH** — bug fix restoring the
+  A' Phase 1 invariant (Issue #440) + Bucket B invariant (Issue #914)
+  compatibility. Structured-CIF drift limited to patients previously
+  dropping chronic-continuation drugs; those now retain them across
+  admissions as clinically expected. Author: Claude.
+- **Ruff E741 in `tests/unit/test_lab_timeseries.py`.** Renamed
+  ambiguous variable `l` (single lowercase L, indistinguishable from
+  digit 1 in many fonts) to `row` in two set-comprehensions. Pre-fix
+  the informational Quality CI check failed on every PR. No runtime
+  behaviour change. Classification: **PATCH**. Author: Claude.
+
 ### Changed
 
 - **Statistical tuning: I25 (ischemic heart disease) 70+ chronic_prevalence

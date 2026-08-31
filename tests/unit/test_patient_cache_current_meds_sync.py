@@ -175,3 +175,88 @@ def test_a_prime_anticoag_from_discharge_appears_as_home_med_next_encounter():
         f"patient_cache profile.current_medications (Layer 2, should be synced): "
         f"{patient_enc2.current_medications}."
     )
+
+
+def _synthetic_record_with_duration(
+    patient: PatientProfile, person_id: str, drug_name: str, duration_days: int
+) -> CIFPatientRecord:
+    """Encounter with a fixed discharge_prescription entry carrying an
+    explicit ``duration_days`` — for probing the ``_deactivate_to_layer1``
+    acute-course filter behaviour without invoking the stochastic
+    simulator or discharge_rx builder."""
+    admission = datetime(2025, 3, 10, 12, 0)
+    discharge = datetime(2025, 3, 15, 12, 0)
+    enc = _make_encounter(person_id, admission, discharge)
+    rx = PrescriptionRecord(
+        prescription_id="RX-TEST-DURATION",
+        patient_id=person_id,
+        prescriber_id="ATTEND-01",
+        issue_date=discharge,
+        items=[
+            {
+                "drug_name": drug_name,
+                "dose": "5mg",
+                "route": "PO",
+                "duration_days": duration_days,
+            }
+        ],
+    )
+    return CIFPatientRecord(patient=patient, encounters=[enc], discharge_prescription=rx)
+
+
+@pytest.mark.unit
+def test_duration_days_zero_is_chronic_and_carries_forward():
+    """Regression for the session-94 anticoag-lost defect.
+
+    The disease-YAML convention is ``duration_days: 0`` = "long-term /
+    unspecified" (see ``atrial_fibrillation_rvr.yaml`` for Apixaban +
+    Metoprolol_succinate on the AFib chronic-continuation block). The
+    acute-course filter in ``_deactivate_to_layer1`` MUST NOT drop
+    ``duration_days == 0`` items — those are lifelong meds and are
+    the exact class the anticoag carryforward invariant protects.
+
+    Pre-fix, the filter tested ``int(_dur) <= 14`` which matched 0
+    (since 0 ≤ 14) and silently dropped the chronic drug. Post-fix,
+    the guard is ``0 < int(_dur) <= 14`` so 0 falls through as chronic.
+    """
+    rng = np.random.default_rng(42)
+    demo = load_demographics("US")
+    person = _make_person()
+    patient_cache: dict[str, PatientProfile] = {}
+    patient_cache[person.person_id] = activate_patient(person, rng, demo)
+
+    record = _synthetic_record_with_duration(
+        patient_cache[person.person_id], person.person_id, "Apixaban", duration_days=0
+    )
+    _deactivate_to_layer1(person, record, "atrial_fibrillation_rvr", patient_cache=patient_cache)
+
+    carried = [m.drug_name for m in person.current_medications]
+    assert "Apixaban" in carried, (
+        f"duration_days=0 (long-term / unspecified) was dropped by the acute-course filter. "
+        f"person.current_medications = {carried}. Filter must guard `0 < d <= 14`, not `d <= 14`."
+    )
+
+
+@pytest.mark.unit
+def test_duration_days_seven_is_acute_and_dropped():
+    """Sibling regression guard: the acute-course drop MUST still fire
+    for positive short durations (7-day antibiotic, 5-day steroid taper).
+    A hypertension follow-up should not accumulate a Levofloxacin
+    prescription from a prior UTI admission (Issue #914 Bucket B).
+    """
+    rng = np.random.default_rng(42)
+    demo = load_demographics("US")
+    person = _make_person()
+    patient_cache: dict[str, PatientProfile] = {}
+    patient_cache[person.person_id] = activate_patient(person, rng, demo)
+
+    record = _synthetic_record_with_duration(
+        patient_cache[person.person_id], person.person_id, "Levofloxacin", duration_days=7
+    )
+    _deactivate_to_layer1(person, record, "urinary_tract_infection", patient_cache=patient_cache)
+
+    carried = [m.drug_name for m in person.current_medications]
+    assert "Levofloxacin" not in carried, (
+        f"acute-course drop failed to fire — Levofloxacin duration_days=7 carried forward as chronic. "
+        f"person.current_medications = {carried}."
+    )
