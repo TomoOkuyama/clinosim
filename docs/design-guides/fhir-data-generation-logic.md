@@ -35,7 +35,7 @@ reference material.
 
 ```
             ┌──────────────────────────────────────────┐
-  CIF →     │ Layer 4: FHIR builders (_fhir_*.py)      │  → FHIR R4 NDJSON
+  CIF →     │ Layer 4: FHIR builders (fhir_r4/<domain>/*.py)      │  → FHIR R4 NDJSON
             │  - read CIF (record / record.extensions) │     (Bulk Data Export)
             │  - read clinosim.codes (display lookup)  │
             │  - read clinosim.locale (locale display) │
@@ -68,7 +68,7 @@ reference material.
 | Step | Content | See |
 |---|---|---|
 | 1 | Prepare the required field / extensions on the CIF side (assumed complete) | CIF guide = `docs/CONTRIBUTING-modules.md` |
-| 2 | Create a new builder file `clinosim/modules/output/_fhir_<topic>.py` | Section B.2 |
+| 2 | Create a new builder file `clinosim/modules/output/fhir_r4/<domain>/<topic>.py` | Section B.2 |
 | 3 | Define canonical constants (ID prefix, identifier system) inside the builder | Section B.3 |
 | 4 | Implement resource-skeleton functions (via `code_lookup` / `get_system_uri`) | Section B.4 |
 | 5 | Implement the builder entry point `_bb_<topic>(ctx: BundleContext) -> list[dict]` | Section B.5 |
@@ -78,7 +78,7 @@ reference material.
 ### B.2 File template
 
 ```python
-# clinosim/modules/output/_fhir_<topic>.py
+# clinosim/modules/output/fhir_r4/<domain>/<topic>.py
 """<Topic> FHIR R4 builder.
 
 Reads CIF (record.extensions["<topic>"] or record.<field>), emits FHIR R4
@@ -91,7 +91,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, lookup as code_lookup
 from clinosim.modules._shared import resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
 # Canonical constants — single definition site, consumers import (Section B.3)
 TOPIC_ID_PREFIX = "tp-"
@@ -133,7 +133,7 @@ Place canonical constants (ID prefix, identifier system, category
 constants, etc.) inside the builder:
 
 ```python
-# clinosim/modules/output/_fhir_<topic>.py (writer = canonical owner)
+# clinosim/modules/output/fhir_r4/<domain>/<topic>.py (writer = canonical owner)
 TOPIC_ID_PREFIX = "tp-"                                       # FHIR Resource.id prefix
 TOPIC_IDENTIFIER_SYSTEM = "urn:clinosim:identifier:topic-id"  # identifier.system URI
 TOPIC_CATEGORY_SNOMED = "..."                                 # category SNOMED code
@@ -143,7 +143,7 @@ Import them from **audit modules / consumer modules / reader tests**:
 
 ```python
 # clinosim/modules/<owner>/audit.py (reader)
-from clinosim.modules.output._fhir_<topic> import (
+from clinosim.modules.output.fhir_r4.<domain>.<topic> import (
     TOPIC_ID_PREFIX, TOPIC_IDENTIFIER_SYSTEM,
 )
 ```
@@ -204,7 +204,7 @@ additions 2026-07-02: `hl7-endpoint-connection-type` /
 def _bb_<topic>(ctx: BundleContext) -> list[dict]:
 ```
 
-`BundleContext` (existing, `clinosim/modules/output/_fhir_common.py`)
+`BundleContext` (existing, `clinosim/modules/output/fhir_r4/lib/common.py`)
 is the uniform input to a builder:
 
 | Field | Purpose |
@@ -268,8 +268,8 @@ Call the builder function directly. Construct a minimal
 ```python
 # tests/unit/output/test_fhir_<topic>.py
 from datetime import datetime
-from clinosim.modules.output._fhir_common import BundleContext
-from clinosim.modules.output._fhir_<topic> import _bb_<topic>
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.<domain>.<topic> import _bb_<topic>
 
 def _make_ctx(extensions_topic_data, country="us"):
     return BundleContext(
@@ -349,7 +349,7 @@ Add a **`lift_firing_proof`** to `clinosim/modules/<owner>/audit.py`
 (5+ equality_checks):
 
 ```python
-from clinosim.modules.output._fhir_<topic> import (
+from clinosim.modules.output.fhir_r4.<domain>.<topic> import (
     TOPIC_ID_PREFIX, TOPIC_IDENTIFIER_SYSTEM,
 )
 
@@ -445,7 +445,7 @@ in `clinosim/modules/_shared.py` — shared-logic unification
 - Country-dependent code-system selection (JLAC10 vs LOINC etc.) =
   `system_key_for(kind, ctx.country)` (E.11).
 - Enum values (severity / route / category etc.) = `_localize_display()`
-  (existing helper, `clinosim/modules/output/_fhir_localization.py`).
+  (existing helper, `clinosim/modules/output/fhir_r4/lib/common.py (localization helpers)`).
 - Drug / procedure names = `code_lookup()` or `_localize_drug_name()`
   (backed by the canonical cached loaders
   `clinosim/locale/loader.py:load_drug_names_ja()` /

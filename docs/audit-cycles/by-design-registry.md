@@ -59,7 +59,7 @@ Each entry has six fields:
 
 - **id**: `inpatient-mr-substitution-omitted`
 - **observation**: Some fraction (roughly 45–55%) of `MedicationRequest.ndjson` records are missing `substitution.allowedBoolean`.
-- **by_design_reason**: JP inpatient dispensing practice = brand-specified, generic substitution not allowed. `_fhir_medications.py` only emits `substitution` for `intent == "instance-order"` (chronic outpatient prescriptions); it intentionally omits it for `intent == "order"` (inpatient orders). FHIR R4 `MedicationRequest.substitution` has cardinality 0..1.
+- **by_design_reason**: JP inpatient dispensing practice = brand-specified, generic substitution not allowed. `fhir_r4/medications/medications.py` only emits `substitution` for `intent == "instance-order"` (chronic outpatient prescriptions); it intentionally omits it for `intent == "order"` (inpatient orders). FHIR R4 `MedicationRequest.substitution` has cardinality 0..1.
 - **signature**: Aggregate the `intent` field of missing-substitution MRs; **all must be `"order"`** (equivalently, every MR with `intent == "instance-order"` has substitution attached, 100%).
 - **established_session**: session 44, 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
@@ -69,7 +69,7 @@ Each entry has six fields:
 
 - **id**: `coverage-class-plan-omitted-for-late-elderly-insurer`
 - **observation**: Some fraction (roughly 15–25%) of `Coverage.ndjson` records lack an entry with `class[].type.coding[].code == "plan"`.
-- **by_design_reason**: JP late-elderly medical care insurers (後期高齢者医療広域連合, age ≥ 75) only have an insurer number (group) and **do not have a symbol (plan)** by statutory design. `_fhir_patient.py:170-200` emits the plan entry only when `symbol` is truthy, so late-elderly Coverage records have no plan.
+- **by_design_reason**: JP late-elderly medical care insurers (後期高齢者医療広域連合, age ≥ 75) only have an insurer number (group) and **do not have a symbol (plan)** by statutory design. `fhir_r4/demographics/patient.py:170-200` emits the plan entry only when `symbol` is truthy, so late-elderly Coverage records have no plan.
 - **signature**: Extract all Coverage records missing plan; every one must have `payor` / `class[0].name` containing "後期高齢者医療広域連合". Missing plan on any other insurer type is out of scope for this registry.
 - **established_session**: session 44, 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
@@ -79,7 +79,7 @@ Each entry has six fields:
 
 - **id**: `fmh-onsetstring-omitted-for-healthy-relatives`
 - **observation**: Some fraction (roughly 15–20%) of `FamilyMemberHistory.ndjson` records are missing `condition[].onsetString`.
-- **by_design_reason**: `_fhir_family_history.py:81-91` does not emit `condition[]` when the relative's `condition_codes` is empty, so there is no target to attach onsetString to. Healthy relatives (no disease history) = clinically realistic. FHIR R4 `FamilyMemberHistory.condition` has cardinality 0..*.
+- **by_design_reason**: `fhir_r4/demographics/family_history.py:81-91` does not emit `condition[]` when the relative's `condition_codes` is empty, so there is no target to attach onsetString to. Healthy relatives (no disease history) = clinically realistic. FHIR R4 `FamilyMemberHistory.condition` has cardinality 0..*.
 - **signature**: For every FMH missing onsetString, `"condition" not in resource` (i.e., the condition array does not exist at all). If the condition array is present but onsetString is missing, that is a real bug (out of scope for this registry).
 - **established_session**: session 44, 2026-07-11 (Chain 2 verify)
 - **established_pr**: `1481306d2f`
@@ -153,13 +153,13 @@ Each entry has six fields:
 - **signature**: Every CI omits the `summary` field (the emit code does not produce it). Planned to be populated in a future β-JP-1 LLM narrative pass (see FHIR completeness registry).
 - **established_session**: session 41, 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
-- **revalidation_check**: Grep-verify that `_fhir_composition.py` (or the clinical_impression builder) does not emit summary.
+- **revalidation_check**: Grep-verify that `fhir_r4/documents/composition.py` (or the clinical_impression builder) does not emit summary.
 
 ### care-team-inactive-for-completed-encounter
 
 - **id**: `care-team-inactive-for-completed-encounter`
 - **observation**: Many records have `CareTeam.status = "inactive"` (CTs attached to discharged encounters). A review expected "active".
-- **by_design_reason**: The FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`. Discharged encounter = the team is no longer providing care = `inactive` is the spec-correct value (`_fhir_care_team.py:88-89`). Confirmed at C1-14 (cycle 1).
+- **by_design_reason**: The FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`. Discharged encounter = the team is no longer providing care = `inactive` is the spec-correct value (`fhir_r4/encounters/care_team.py:88-89`). Confirmed at C1-14 (cycle 1).
 - **signature**: Every CT with `status = "inactive"` has `encounter.discharge_datetime` non-null.
 - **established_session**: session 41, 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
@@ -179,8 +179,8 @@ Each entry has six fields:
 
 - **id**: `coverage-type-text-only-no-fabrication`
 - **observation**: `Coverage.type` has only `{"text": "..."}` and no `coding`.
-- **by_design_reason**: No authoritative FHIR CodeSystem has been finalized for JP insurance types (公費 / 社保 / 国保 etc.). Following the no-fabrication policy, text-only is preserved (`_fhir_patient.py:152-155`). Confirmed at C2-12 (cycle 2).
-- **signature**: `Coverage.type.coding` is omitted on every Coverage (no fabricated code exists in `_fhir_patient.py`).
+- **by_design_reason**: No authoritative FHIR CodeSystem has been finalized for JP insurance types (公費 / 社保 / 国保 etc.). Following the no-fabrication policy, text-only is preserved (`fhir_r4/demographics/patient.py:152-155`). Confirmed at C2-12 (cycle 2).
+- **signature**: `Coverage.type.coding` is omitted on every Coverage (no fabricated code exists in `fhir_r4/demographics/patient.py`).
 - **established_session**: session 42, 2026-07-07 (cycle 2)
 - **established_pr**: cycle 2 close
 - **revalidation_check**: Every Coverage's type has no `coding`, only `text`. When an authoritative code source is established, this entry is retired.
@@ -201,7 +201,7 @@ Each entry has six fields:
 - **id**: `composition-vs-documentreference-format-type-split`
 - **observation**: Resource counts of `Composition.ndjson` and `DocumentReference.ndjson` differ ("distribution looks skewed").
 - **by_design_reason**: `ClinicalDocument.format_type` intentionally branches: `composition` (H&P / Discharge Summary / Nursing / SOAP and other section-structured records) → emit Composition; `free_text` (Progress Note / Nursing Record / Triage etc.) → emit DocumentReference. These are independent resource types; a matching ratio is not required. Confirmed at C4-25 (cycle 4).
-- **signature**: The `format_type` filter in `_fhir_composition.py` and `_fhir_documents.py` is consistent across both builders (composition → Composition emit / free_text → DR emit / other → skip).
+- **signature**: The `format_type` filter in `fhir_r4/documents/composition.py` and `fhir_r4/documents/documents.py` is consistent across both builders (composition → Composition emit / free_text → DR emit / other → skip).
 - **established_session**: session 43, 2026-07-08 (cycle 4)
 - **established_pr**: cycle 4 close
 - **revalidation_check**: Every Composition resource originates from a `format_type == "composition"` doc, and every DR resource originates from a `format_type == "free_text"` doc (verify by id back-trace).
@@ -298,7 +298,7 @@ Each entry has six fields:
 - **signature**: The primary ICD prefix (first segment before `.`) of a Condition missing bodySite is NOT in the 15 prefixes above. Missing bodySite for a Condition matching the 15 prefixes = a real bug (out of scope for this registry).
 - **established_session**: session 48, 2026-07-13 (Cycle 8)
 - **established_pr**: cycle 8 close
-- **revalidation_check**: Aggregate ICD prefixes across Conditions missing bodySite; confirm none contain the 15 prefixes. When a new anatomic-site disease is added to `disease`, update `_CONDITION_BODY_SITE` (`_fhir_conditions.py`) + this signature.
+- **revalidation_check**: Aggregate ICD prefixes across Conditions missing bodySite; confirm none contain the 15 prefixes. When a new anatomic-site disease is added to `disease`, update `_CONDITION_BODY_SITE` (`fhir_r4/conditions/conditions.py`) + this signature.
 
 ### cy8-24-condition-abatement-finished-encounter-only
 

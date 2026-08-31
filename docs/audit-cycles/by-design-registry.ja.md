@@ -57,7 +57,7 @@
 - **id**: `inpatient-mr-substitution-omitted`
 - **observation**: `MedicationRequest.ndjson` で `substitution.allowedBoolean` が 一部(概ね 45–55%)欠落。
 - **by_design_reason**: JP 病棟 dispensing 慣行 = 銘柄指定・後発品置換不可。
-  `_fhir_medications.py` は `intent == "instance-order"` (慢性外来処方) のみ
+  `fhir_r4/medications/medications.py` は `intent == "instance-order"` (慢性外来処方) のみ
   `substitution` を emit、`intent == "order"` (入院オーダー) では意図的に
   omit。FHIR R4 `MedicationRequest.substitution` は 0..1。
 - **signature**: 欠落した MR の `intent` field を全数集計し、**全て `"order"`**(すなわち `"instance-order"` を持つ MR は 100% substitution 付き)であること。
@@ -69,7 +69,7 @@
 
 - **id**: `coverage-class-plan-omitted-for-late-elderly-insurer`
 - **observation**: `Coverage.ndjson` の一部 (概ね 15–25%) が `class[].type.coding[].code == "plan"` の entry を持たない。
-- **by_design_reason**: JP 後期高齢者医療広域連合 (75 歳以上) は保険者番号 (group) のみで **記号 (symbol / plan) を持たない**(制度上)。`_fhir_patient.py:170-200` は `symbol` が truthy の時のみ plan entry を emit するため、後期高齢者 coverage には plan が付かない。
+- **by_design_reason**: JP 後期高齢者医療広域連合 (75 歳以上) は保険者番号 (group) のみで **記号 (symbol / plan) を持たない**(制度上)。`fhir_r4/demographics/patient.py:170-200` は `symbol` が truthy の時のみ plan entry を emit するため、後期高齢者 coverage には plan が付かない。
 - **signature**: plan 欠落の Coverage を全数抽出し、その `payor` / class[0].name が「後期高齢者医療広域連合」を含むこと。他の insurer type で plan 欠落があれば本レジストリ対象外。
 - **established_session**: session 44, 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
@@ -79,7 +79,7 @@
 
 - **id**: `fmh-onsetstring-omitted-for-healthy-relatives`
 - **observation**: `FamilyMemberHistory.ndjson` の一部 (概ね 15–20%) で `condition[].onsetString` が欠落。
-- **by_design_reason**: `_fhir_family_history.py:81-91` は relative の `condition_codes` が空の場合 `condition[]` を emit しない。従って onsetString を attach する対象自体がない。健常な relative(疾患履歴無し) = clinically-realistic。FHIR R4 `FamilyMemberHistory.condition` は 0..*。
+- **by_design_reason**: `fhir_r4/demographics/family_history.py:81-91` は relative の `condition_codes` が空の場合 `condition[]` を emit しない。従って onsetString を attach する対象自体がない。健常な relative(疾患履歴無し) = clinically-realistic。FHIR R4 `FamilyMemberHistory.condition` は 0..*。
 - **signature**: onsetString 欠落 FMH で `"condition" not in resource`(そもそも condition array が存在しない)であること。`condition` array があるのに onsetString が欠落 = 真のバグ(本レジストリ対象外)。
 - **established_session**: session 44, 2026-07-11 (Chain 2 verify)
 - **established_pr**: `1481306d2f`
@@ -153,13 +153,13 @@
 - **signature**: 全 CI で `summary` field が omit されている(コード側で emit していない)ことを確認。将来 β-JP-1 LLM narrative pass で populate 予定(FHIR completeness registry 参照)。
 - **established_session**: session 41, 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
-- **revalidation_check**: `_fhir_composition.py` (or clinical_impression builder) が summary を emit していないことを grep 確認。
+- **revalidation_check**: `fhir_r4/documents/composition.py` (or clinical_impression builder) が summary を emit していないことを grep 確認。
 
 ### care-team-inactive-for-completed-encounter
 
 - **id**: `care-team-inactive-for-completed-encounter`
 - **observation**: `CareTeam.status = "inactive"` の record が多い(退院済 encounter に紐付く CT)。"active" を期待するレビューあり。
-- **by_design_reason**: FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`。退院済 encounter = team が現在ケアを提供していない = inactive が spec 正解(`_fhir_care_team.py:88-89`)。C1-14 で確認済(cycle 1)。
+- **by_design_reason**: FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`。退院済 encounter = team が現在ケアを提供していない = inactive が spec 正解(`fhir_r4/encounters/care_team.py:88-89`)。C1-14 で確認済(cycle 1)。
 - **signature**: `status = "inactive"` の CT に紐付く `encounter.discharge_datetime` が non-null であること。
 - **established_session**: session 41, 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
@@ -179,8 +179,8 @@
 
 - **id**: `coverage-type-text-only-no-fabrication`
 - **observation**: `Coverage.type` が `{"text": "..."}` のみで `coding` を持たない。
-- **by_design_reason**: JP 保険 type (公費 / 社保 / 国保 等) に authoritative FHIR CodeSystem が確定していない。fabrication 禁止 policy に従い text-only 維持(`_fhir_patient.py:152-155`)。C2-12 で確認済(cycle 2)。
-- **signature**: `Coverage.type.coding` が全 Coverage で omit されていること(`_fhir_patient.py` に fabricated code が入っていない)。
+- **by_design_reason**: JP 保険 type (公費 / 社保 / 国保 等) に authoritative FHIR CodeSystem が確定していない。fabrication 禁止 policy に従い text-only 維持(`fhir_r4/demographics/patient.py:152-155`)。C2-12 で確認済(cycle 2)。
+- **signature**: `Coverage.type.coding` が全 Coverage で omit されていること(`fhir_r4/demographics/patient.py` に fabricated code が入っていない)。
 - **established_session**: session 42, 2026-07-07 (cycle 2)
 - **established_pr**: cycle 2 close
 - **revalidation_check**: 全 Coverage の type に `coding` が無く、`text` のみであること。authoritative code source が確立した時点で本 entry は解除。
@@ -201,7 +201,7 @@
 - **id**: `composition-vs-documentreference-format-type-split`
 - **observation**: `Composition.ndjson` の resource 数 が `DocumentReference.ndjson` より多い / 少ないなど「分布が偏る」観測。
 - **by_design_reason**: `ClinicalDocument.format_type` により意図的に分岐 — `composition` (H&P / Discharge Summary / Nursing / SOAP 等 section 構造持つ帳票) → Composition emit。`free_text` (Progress Note / Nursing Record / Triage 等) → DocumentReference emit。両者は独立 resource type であり比率一致は要求されない。C4-25 で確認済(cycle 4)。
-- **signature**: `_fhir_composition.py` および `_fhir_documents.py` の `format_type` filter が両ビルダーで一貫していること(composition ↔ Composition emit / free_text ↔ DR emit / それ以外 → skip)。
+- **signature**: `fhir_r4/documents/composition.py` および `fhir_r4/documents/documents.py` の `format_type` filter が両ビルダーで一貫していること(composition ↔ Composition emit / free_text ↔ DR emit / それ以外 → skip)。
 - **established_session**: session 43, 2026-07-08 (cycle 4)
 - **established_pr**: cycle 4 close
 - **revalidation_check**: Composition 全 resource が `format_type == "composition"` doc 由来、DR 全 resource が `format_type == "free_text"` doc 由来であること(id 遡り検証)。
@@ -336,7 +336,7 @@
 - **established_pr**: cycle 8 close
 - **revalidation_check**: bodySite 欠落 Condition の ICD prefix を集計、上記
   15 prefix を含まないことを確認。新規部位性疾患を disease に追加した場合
-  は `_CONDITION_BODY_SITE`(`_fhir_conditions.py`)+ 本 signature を update。
+  は `_CONDITION_BODY_SITE`(`fhir_r4/conditions/conditions.py`)+ 本 signature を update。
 
 ### cy8-24-condition-abatement-finished-encounter-only
 

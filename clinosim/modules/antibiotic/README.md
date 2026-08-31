@@ -10,7 +10,7 @@ the snapshot, materialises the IDSA 2009 / 2016 empirical regimen
 plus (PR3b-3 Pass 2) the S/I/R-driven narrow / de-escalation
 regimen. Every regimen becomes one `Order(MEDICATION)` +
 N `MedicationAdministration` records that the existing
-`_fhir_medications.py` builder emits without a new builder.
+`fhir_r4/medications/medications.py` builder emits without a new builder.
 
 ## Scope
 

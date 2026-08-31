@@ -110,7 +110,7 @@ NDJSON を id で sort する。
   load-bearing)。
 - **社会歴 SDOH anchor**: `_sdoh_effective_datetime` が smoking /
   alcohol / care-level の `effectiveDateTime` を最古 encounter 入院
-  時刻から導出し標準化する (`_fhir_care_level.py` C2-10 pattern と一致)。
+  時刻から導出し標準化する (`fhir_r4/encounters/care_level.py` C2-10 pattern と一致)。
 
 ## ディレクトリ構造
 

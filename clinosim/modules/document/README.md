@@ -122,7 +122,7 @@ from clinosim.modules.document.engine import document_enricher
 - **Canonical ID prefixes** (writer-owned; every FHIR builder
   imports these): `DOC_REFERENCE_ID_PREFIX`,
   `COMPOSITION_ID_PREFIX`, `ALLERGY_ID_PREFIX`,
-  `CLINICAL_IMPRESSION_ID_PREFIX`. `_fhir_patient.py` still writes
+  `CLINICAL_IMPRESSION_ID_PREFIX`. `fhir_r4/demographics/patient.py` still writes
   `allergy-{patient_id}-{index:02d}` inline; the constant here
   canonicalises the prefix for Task 9 FHIR builders (concern
   logged; unification tracked).

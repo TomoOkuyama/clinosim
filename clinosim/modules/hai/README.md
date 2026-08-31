@@ -46,7 +46,7 @@ HAI cascade.
   ([`antibiotic`](../antibiotic/README.md)); FHIR
   `Observation` / `DiagnosticReport` emission for the culture
   ([`output/fhir_r4/labs/`](../output/fhir_r4/) —
-  `_fhir_microbiology.py`); ServiceRequest emission
+  `fhir_r4/labs/microbiology.py`); ServiceRequest emission
   ([`order`](../order/README.md)).
 
 ## Public API

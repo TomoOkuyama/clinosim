@@ -120,7 +120,7 @@ from clinosim.modules.document.engine import document_enricher
 - **Canonical ID prefix** (writer 所有、全 FHIR builder が import):
   `DOC_REFERENCE_ID_PREFIX`, `COMPOSITION_ID_PREFIX`,
   `ALLERGY_ID_PREFIX`, `CLINICAL_IMPRESSION_ID_PREFIX`。
-  `_fhir_patient.py` は `allergy-{patient_id}-{index:02d}` を inline
+  `fhir_r4/demographics/patient.py` は `allergy-{patient_id}-{index:02d}` を inline
   で書き込んでいるが、本 prefix 定数は Task 9 FHIR builder のために
   canonicalise する (concern logged。統一は追跡中)。
 - **`NURSING_LOINCS`** (frozenset、`engine.py` の
