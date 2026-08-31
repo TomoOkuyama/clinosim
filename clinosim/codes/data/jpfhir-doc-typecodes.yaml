@@ -1,6 +1,6 @@
 # JP-CLINS 文書種別 CodeSystem — Composition.type 用 coding(JP-only)
 #
-# 一次出典:jpfhir.jp JP-CLINS v1.12.0(2026-02-16)。
+# 一次出典:jpfhir.jp JP-CLINS v1.13.0(2026-02-16)。
 # https://jpfhir.jp/fhir/clins/igv1/CodeSystem-jp-codeSystem-documentTypeCode.html
 # を 2026-07-12(session 47 P2-13 PR2a)に照合。
 #
@@ -10,8 +10,8 @@
 metadata:
   name: JP-CLINS Document Type Code
   uri: http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes
-  version: "1.12.0"
-  source: "jpfhir.jp JP-CLINS v1.12.0 CodeSystem doc-typecodes"
+  version: "1.13.0"
+  source: "jpfhir.jp JP-CLINS v1.13.0 CodeSystem doc-typecodes"
   description: JP-CLINS document type code system for FHIR Composition.type
 codes:
   "18842-5":

@@ -107,7 +107,7 @@ from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
   plug-in の 15-check `lift_firing_proof` が import。
 - **JP-CLINS package 定数** (`coding_package.py`):
   - `_JP_CLINS_PKG_ID = "clinical-information-sharing"` +
-    `_JP_CLINS_PKG_VERSION = "1.12.0"`。
+    `_JP_CLINS_PKG_VERSION = "1.13.0"`。
   - `_JP_CLINS_TERMINOLOGY_PKG_ID = "jpfhir-terminology"` +
     `_JP_CLINS_TERMINOLOGY_PKG_VERSION = "2.2606.0"`。
   - `_ECS_SD_FILENAME = "StructureDefinition-JP-Observation-LabResult-eCS.json"`。

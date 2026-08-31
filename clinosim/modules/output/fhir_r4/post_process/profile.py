@@ -128,10 +128,10 @@ def _apply_jp_core_profile(resource: dict) -> None:
 
 # JP-CLINS eCS profiles (電子カルテ情報共有サービス).
 # Applied additively on top of JP Core profiles for country=JP.
-# URLs verified against jpfhir.jp/fhir/clins/igv1/artifacts.html (v1.12.0,
+# URLs verified against jpfhir.jp/fhir/clins/igv1/artifacts.html (v1.13.0,
 # 2026-02-16) on 2026-07-12. Canonical URLs use /fhir/eCS/ path.
 #
-# JP-CLINS v1.12.0 publishes 5 profiles covering the "6 information items"
+# JP-CLINS v1.13.0 publishes 5 profiles covering the "6 information items"
 # domain: 傷病名 + 感染症 share JP_Condition_eCS; DiagnosticReport is not in
 # JP-CLINS scope (lab results emitted only as Observation.LabResult).
 _JP_CLINS_PROFILES: dict[str, list[str]] = {
@@ -239,7 +239,7 @@ def _apply_jp_clins_profile(resource: dict) -> None:
 def _medication_request_satisfies_ecs(resource: dict) -> bool:
     """Predicate: may this MedicationRequest assert JP_MedicationRequest_eCS? (Issue #445)
 
-    `JP_MedicationRequest_eCS` (JP-CLINS 1.12.0) raises `dosageInstruction` to
+    `JP_MedicationRequest_eCS` (JP-CLINS 1.13.0) raises `dosageInstruction` to
     **min=1**; the parent `JP_MedicationRequest` (JP Core 1.2.0) leaves it at
     **min=0**. Discharge and outpatient-renewal prescriptions transcribed from
     `patient.current_medications` carry neither dose nor route — both are lost upstream

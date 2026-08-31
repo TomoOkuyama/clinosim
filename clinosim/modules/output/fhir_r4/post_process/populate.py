@@ -33,7 +33,7 @@ from clinosim.modules.output.fhir_r4.post_process.strip import (
 _CLINOSIM_OBSERVATION_ID_SYSTEM = "urn:clinosim:observation-id"
 
 
-# JP-CLINS 1.12.0 JP_Observation_LabResult_eCS profile requires an
+# JP-CLINS 1.13.0 JP_Observation_LabResult_eCS profile requires an
 # `identifier:resourceIdentifier` slice whose `.system` matches the profile's
 # patternUri (spec directly from
 # `StructureDefinition-JP-Observation-LabResult-eCS.json`, differential
@@ -57,7 +57,7 @@ _HL7_V3_SUBSTITUTION_SYSTEM = "http://terminology.hl7.org/CodeSystem/v3-substanc
 
 # JP-CLINS MedicationRequest.dosageInstruction (Dosage = JP_MedicationDosage_eCS)
 # canonical constants (spec fixedUri from
-# StructureDefinition-jp-medicationdosage-eCS.json in JP-CLINS 1.12.0).
+# StructureDefinition-jp-medicationdosage-eCS.json in JP-CLINS 1.13.0).
 # The R5020 constraint ("valid Usage-MedicationUsage-codesystem") requires
 # exactly one of: MHLW ePrescription code OR the dummy uncoded code.
 # clinosim has no MHLW usage-code mapping, so the dummy is the correct choice
@@ -70,7 +70,7 @@ _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE = "0X0XXXXXXXXX0000"
 
 
 # Issue #782 (part of META #774): consumer viewer からの指摘で "ダミー" 表現の
-# display を factual な placeholder に変更。JP-CLINS 1.12.0 example fixture
+# display を factual な placeholder に変更。JP-CLINS 1.13.0 example fixture
 # (`MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json`) は
 # `"ダミー用法コード"` を使うが、consumer 側で raw FHIR を露出する場面
 # (デモ・スクリーンショット) で「ダミー」文字が信頼を損ねる。code は spec の
@@ -251,7 +251,7 @@ _DEFAULT_MEAL_CONTEXT_BY_FREQ: dict[int, str] = {
 }
 
 # (frequency, meal-context) → MHLW MedicationUsage_ePrescription code.
-# Codes verified against JP-CLINS 1.12.0 example fixtures + the
+# Codes verified against JP-CLINS 1.13.0 example fixtures + the
 # authoritative `jpfhir-terminology#2.2606.0` CS.
 _FREQ_CONTEXT_TO_MHLW_CODE: dict[tuple[int, str], tuple[str, str]] = {
     (1, "朝食後"): ("1011000400000000", "１日１回朝食後　服用"),
@@ -561,7 +561,7 @@ def _resolve_mhlw_usage_code(
 # JP_MedicationDosage_eCS `Dosage.doseAndRate.type` min=1.
 # Spec-authoritative example fixture
 # (`MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json` in
-# `clinical-information-sharing#1.12.0/package/example/`) uses the MHLW
+# `clinical-information-sharing#1.13.0/package/example/`) uses the MHLW
 # MedicationIngredientStrengthType CodeSystem `code=1 / display=製剤量`
 # (pharmaceutical dose = the amount of formulation ordered, as opposed to
 # active-ingredient strength). clinosim does not otherwise emit this
@@ -681,7 +681,7 @@ _FHIR_URI_TO_CODE_SYSTEM_KEY: dict[str, str] = {
 def _populate_observation_identifier_and_last_updated(resource: dict, country: str = "") -> None:
     """Populate `Observation.identifier` and `Observation.meta.lastUpdated`.
 
-    JP_Observation_LabResult_eCS (JP-CLINS 1.12.0) requires both fields:
+    JP_Observation_LabResult_eCS (JP-CLINS 1.13.0) requires both fields:
     - `identifier[]` (`min=1`) with an `identifier:resourceIdentifier` slice
       whose `.system` matches the spec `patternUri`. For JP output the
       spec-canonical URI is emitted as the leading identifier so the slice
@@ -733,7 +733,7 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
     """Populate `JP_MedicationDosage_eCS`-required fields on each
     `MedicationRequest.dosageInstruction[]`.
 
-    JP-CLINS 1.12.0 pulls the Dosage type through a JP-specific profile that
+    JP-CLINS 1.13.0 pulls the Dosage type through a JP-specific profile that
     layers three requirements the clinosim builder does not currently emit:
 
     1. **`Dosage.extension:periodOfUse` (min=1)** — a `Period` whose `start`
@@ -1103,7 +1103,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # JP_MedicationRequest_eCS pins `status` = patternCode "completed" and
     # `intent` = patternCode "order", and requires `substitution.allowed[x]`
     # to be a CodeableConcept (allowedBoolean is rejected). Spec:
-    # `tx-server-build/.../clinical-information-sharing#1.12.0/package/
+    # `tx-server-build/.../clinical-information-sharing#1.13.0/package/
     # StructureDefinition-JP-MedicationRequest-eCS.json`. Enforced only on
     # JP output; US path keeps the original semantics.
     #
@@ -1188,7 +1188,7 @@ def _normalize_jp_observation_category(resource: dict) -> None:
 
     Spec 根拠(StructureDefinition snapshot 実測):
 
-    - **JP_Observation_LabResult_eCS**(JP-CLINS 1.12.0)
+    - **JP_Observation_LabResult_eCS**(JP-CLINS 1.13.0)
       `Observation.category` は `1..1`、slice `laboratory` の
       `coding` は `1..1` かつ `coding.system fixedUri` =
       `JP_SimpleObservationCategory_CS`。HL7 coding 併記は

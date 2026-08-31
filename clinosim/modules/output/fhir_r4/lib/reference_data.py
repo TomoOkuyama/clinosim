@@ -39,7 +39,7 @@ _SEVERITY_JP: dict[str, dict[str, str]] = {
 # NOTE: 過去に定義していた `_JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL`
 # (`.../StructureDefinition/JP_Observation_ReferenceRangeSource`)は削除。
 # 2026-07-17 fhir-jp-validator report で以下 2 点が判明したため:
-# (1) URL は JP Core 1.2.0 / JP-CLINS 1.12.0 / jpfhir-terminology 2.2606.0
+# (1) URL は JP Core 1.2.0 / JP-CLINS 1.13.0 / jpfhir-terminology 2.2606.0
 #     の StructureDefinition カタログに存在せず、HAPI が "extension is
 #     unknown" として reject する。
 # (2) `JP_Observation_LabResult_eCS` は `Observation.referenceRange.

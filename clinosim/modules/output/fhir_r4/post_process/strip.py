@@ -25,13 +25,13 @@ def _strip_forbidden_observation_reference_range_extensions(resource: dict) -> N
 
     Rationale:
 
-    - `JP_Observation_LabResult_eCS` (JP-CLINS 1.12.0) locks
+    - `JP_Observation_LabResult_eCS` (JP-CLINS 1.13.0) locks
       `Observation.referenceRange.extension` (and `modifierExtension`,
       `low.extension`, `high.extension`) to `max=0`; the same lock
       applies to `component[*].referenceRange.*`. Any extension emitted
       on these paths violates the profile, regardless of URL.
     - clinosim previously emitted a `referenceRangeSource` extension
-      whose URL was not registered anywhere in the JP-CLINS 1.12.0 /
+      whose URL was not registered anywhere in the JP-CLINS 1.13.0 /
       jp-core 1.2.0 / jpfhir-terminology 2.2606.0 packages
       (fhir-jp-validator 2026-07-17 §【最優先 2】surfaced 31,006
       errors from this). The emit site in `_fhir_common.build_reference_range`

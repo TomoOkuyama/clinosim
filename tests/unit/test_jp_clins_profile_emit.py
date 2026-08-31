@@ -1,6 +1,6 @@
 """Unit tests for JP-CLINS eCS profile URL emission (P2-13 PR1).
 
-JP-CLINS v1.12.0 canonical URLs verified 2026-07-12 against
+JP-CLINS v1.13.0 canonical URLs verified 2026-07-12 against
 https://jpfhir.jp/fhir/clins/igv1/artifacts.html — path is /fhir/eCS/,
 5 profiles cover the 6-information-item domain (傷病名 + 感染症 share
 JP_Condition_eCS; DiagnosticReport is NOT in JP-CLINS scope).
@@ -135,7 +135,7 @@ class TestCategoryFilters:
         assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS" in r["meta"]["profile"]
 
     def test_diagnostic_report_no_clins_profile(self):
-        # JP-CLINS v1.12.0 does not publish a DiagnosticReport profile.
+        # JP-CLINS v1.13.0 does not publish a DiagnosticReport profile.
         # Lab results are emitted only as Observation.LabResult in JP-CLINS.
         # The adapter must NOT attach a JP-CLINS profile to DiagnosticReport
         # regardless of category.

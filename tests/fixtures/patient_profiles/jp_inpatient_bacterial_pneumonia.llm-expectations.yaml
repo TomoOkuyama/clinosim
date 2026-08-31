@@ -6,7 +6,7 @@
 admission_hp:
   chief_complaint:
     all_of: ["発熱"]
-# P2-13 PR2a (session 47): JP-CLINS v1.12.0 conformance changed the JP
+# P2-13 PR2a (session 47): JP-CLINS v1.13.0 conformance changed the JP
 # discharge summary section structure. Old English-flavored sections
 # (discharge_diagnoses / discharge_medications / hospital_course) no
 # longer exist in JP output; the required 5 sections are
