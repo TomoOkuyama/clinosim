@@ -2274,6 +2274,20 @@ cut before this policy was formally documented and has been renumbered
 to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="060---2026-08-31">[0.6.0] - 2026-08-31<a class="headerlink" href="#060---2026-08-31" title="Permanent link">&para;</a></h2>
+<p><strong>Release theme</strong>: v0.6.0 rolls up substantial data-quality /
+clinical-coherence / temporal-consistency fixes across Issues</p>
+<h1 id="909--918--916--911--913--914--957--757-session-93">909 / #918 / #916 / #911 / #913 / #914 / #957 / #757 (session-93)<a class="headerlink" href="#909--918--916--911--913--914--957--757-session-93" title="Permanent link">&para;</a></h1>
+<p>plus the pre-existing Unreleased batch from sessions 91-92 covering</p>
+<h1 id="949-1002-every--fixed--added--changed-and">949-#1002. Every <code>### Fixed</code>, <code>### Added</code>, <code>### Changed</code>, and<a class="headerlink" href="#949-1002-every--fixed--added--changed-and" title="Permanent link">&para;</a></h1>
+<p><code>### Narrative CIF</code> / <code>### LLM prompts</code> subsection below shipped
+between the v0.5.0 tag (2026-08-27) and this release.</p>
+<p><strong>Classification: MINOR.</strong> Multiple entries below (chronic prevalence
+tuning, Z-code Condition removal, AVPU/GCS coupling, MedAdmin timing,
+antibiotic template, monitoring pipeline) shift cohort statistics or
+per-patient RNG shape, so structured CIF and downstream narrative CIF
+byte-identity are not preserved across the v0.5.0 → v0.6.0 line.
+A fresh <code>narrate</code> run is required after upgrade.</p>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Statistical tuning: I25 (ischemic heart disease) 70+ chronic_prevalence
@@ -2299,9 +2313,249 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   the sim window is not preserved; a fresh <code>narrate</code> run is required.
   Author: Claude.</li>
 </ul>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Issue #757 (partial) — Chronic-medication-driven monitoring pipeline
+  foundation.</strong> New <code>clinosim/modules/monitoring/</code> module: YAML-driven
+  <code>(medication → monitoring lab + per-visit probability)</code> mapping,
+  fail-loud loader, pure-function <code>monitoring_labs_for_patient(current_medications, rng)</code>
+  API supporting both dataclass and dict med shapes. Integration hook
+  in <code>simulator/engine.py::_process_chronic_visit_event</code> merges the
+  returned labs into the visit's <code>visit_labs</code> after the existing
+  <code>labs_quarterly</code> / <code>labs_annual</code> mergers. Initial mappings
+  (warfarin/Coumadin → PT_INR every visit; levothyroxine → TSH ~q6mo;
+  metformin &amp; insulin → HbA1c q3-6mo) close #736 (US warfarin patients
+  emit 0 → 4/4 PT_INR at p=500). Digoxin/statin/lithium/immunosuppressant
+  remain in the #757 table for later passes. Classification: <strong>MINOR</strong>
+  — new <code>ev_rng.random()</code> calls in the chronic-visit dispatch shift
+  the master-rng stream for warfarin/levothyroxine/DM patients.
+  Author: Claude. Closes #736; partial #757.</li>
+<li><strong>Issue #957 (slice 1) — Tumor-marker reference ranges + baseline
+  normals.</strong> <code>chronic_followup.yaml</code> declared CEA / CA19-9 / AFP /
+  PIVKA-II / CA15-3 / PSA as <code>labs_quarterly</code> / <code>labs_annual</code> for
+  C18 / C22 / C34 / C50 / C61 cancer cohorts, but the outpatient lab
+  emit path silent-dropped them because their canonical names were
+  missing from both <code>derive_lab_values</code> and <code>BASELINE_LAB_NORMALS</code>
+  (silent-skip gate). Fix: add in-remission-normal baseline values
+  (PSA 1.5 ng/mL, CEA 2.5 ng/mL, …) + UCUM units in <code>LAB_UNITS</code> +
+  reference cutoffs to <code>locale/{jp,us}/reference_range_lab.yaml</code> +
+  LOINC mapping in US <code>code_mapping_lab.yaml</code> (JP intentionally uses
+  the JP-CLINS <code>Uncoded</code> + <code>LocalCode</code> dual-slice pattern via the
+  existing coding strategy). Verified JP p=500: 0 → 9 tumor marker
+  Observations. Sample emit FHIR-valid (JP_Observation_LabResult
+  profile satisfied). RT Procedure / chemo cycle / perinatal chain
+  remain in #957 for later slices. Classification: <strong>PATCH</strong> —
+  data-only additions, no simulation-logic change, no RNG shift.
+  Author: Claude. Partial #957.</li>
+<li><strong>Issue #965 — Death-certificate + death-discharge-summary
+  Compositions for deceased inpatients.</strong> New per-section LLM
+  refinement pipeline for 死亡診断書 (LOINC 64297-5) and
+  死亡退院サマリー (LOINC 34133-9 extended) with 8+ section templates
+  (autopsy status/findings, circumstances of death, complications &amp;
+  comorbidities, family communication, terminal course, treatment
+  course, admission state). Closes #961.</li>
+<li><strong>Issue #972 — JP routine 定期予防接種 schedule + chronic-condition
+  birthDate gate.</strong> Adds age-appropriate pediatric immunization
+  schedule per MHLW 予防接種法 (Hib / PCV13 / DPT-IPV / MR / VZV / JEV);
+  clamps <code>Condition.onsetDateTime</code> at <code>birthDate</code> per Issue #968.
+  Closes #917, #968.</li>
+<li><strong>Issue #954 — Missing procedure catalog entries.</strong> Adds PCI (K546),
+  pacemaker implant (K597), craniotomy (K169), ileus tube (K380),
+  and bowel resection (K7161) to the procedure emit catalog.
+  Closes #939.</li>
+<li><strong>Issue #951 — Anthropometric vitals emission.</strong> Emits height,
+  weight, BMI, and (pediatric) head-circumference <code>Observation</code>s per
+  visit across every venue. Closes #946.</li>
+<li><strong>Issue #955 — AllergyIntolerance NKA + polyallergy support.</strong>
+  Emits explicit "no known allergies" positive assertion when the
+  patient's allergy list is empty; supports multi-allergen patients
+  with distinct <code>AllergyIntolerance</code> resources per allergen.
+  Closes #942.</li>
+<li><strong>Issue #952 — <code>hospitalization.admitSource</code> + <code>dischargeDisposition</code>
+  dual-slot fix.</strong> Restores populated fields on all 703 IMP encounters
+  via <code>_build_hosp_concept</code> with the dual-slot (EN coding + locale
+  text) pattern. Closes #941.</li>
+<li><strong>Issue #953 — Universal post-snapshot event filter.</strong> New bundle-
+  layer filter drops any resource whose <code>effectiveDateTime</code> /
+  <code>authoredOn</code> / <code>performedDateTime</code> falls after <code>snapshot_date</code>,
+  including cascade-generated MedAdmin / DR entries that pre-date
+  fixes only propagate at emit time. Closes #945.</li>
+</ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Issue #912 — Inpatient <code>Encounter.reasonCode</code> orphaned from
+<li><strong>Issue #909 — Per-patient singleton Observation ids leaked the
+  Patient hex tail.</strong> 32,690 records (2.63 % of all Observations)
+  across the alcohol / smoking / occupation / blood-abo / blood-rh /
+  carelevel families had <code>.id</code> whose 12-hex tail was byte-identical
+  to <code>Patient.id</code>'s tail — trivially recovering the patient link.
+  Root cause: both <code>resolve_patient_id</code> and each family's opaque-id
+  resolver hashed the same unsalted <code>patient_id</code> string, so
+  <code>sha256(patient_id)[:12]</code> reappeared in both slots. Fix: salt each
+  family's hash input with its observation-key kind slug
+  (<code>blood-abo-observation-key:{patient_id}</code> etc.) so <code>.id</code> diverges
+  from <code>Patient.id</code> and from every other family. Identifier.value
+  kept equal to <code>patient_id</code> so consumers keep the same round-trip
+  path via the <code>Identifier.system</code> URI. Regression test parametrized
+  over all 6 families verifies the tails diverge. Classification:
+  <strong>PATCH</strong> — 6 families' <code>.id</code> values change, no other fields
+  touched. Closes #909.</li>
+<li><strong>Issue #918 — ImagingStudy series-as-studies duplication.</strong>
+  780 same-encounter same-description pairs within 60 min (189
+  head-CT pairs within 30 min) and 0 pairs in the 1-6 h bucket —
+  the tell-tale hole between "series-as-studies" cluster and
+  legitimate repeat imaging (≥ 6 h). Extreme audit sample
+  <code>pt-02ee09c03138</code>: 3 head-CTs at 21:20 / 21:37 / 21:40 (medically
+  impossible on one scanner). Fix: extend the Issue #822 dedup with
+  a wider <code>(encounter, modality, body_site) within
+  _SERIES_AS_STUDIES_WINDOW_MIN (60 min)</code> criterion; gated to
+  CT / MR / US / XA (CR chest-X-ray legitimate ICU repeats left
+  alone). Regression tests cover the audit shape + retention of
+  legitimate 6h-apart repeats. Classification: <strong>PATCH</strong> — no CIF
+  Order records deleted, only the redundant ImagingStudyRecord.
+  Closes #918.</li>
+<li><strong>Issue #916 — 43 % of Conditions were ICD-10 Z-chapter
+  visit-reason codes.</strong> 14,384 / 33,188 Conditions were Z09
+  (follow-up) / Z00.0 (checkup) / Z23 (immunization) / Z12.x /
+  Z13.5 pseudo-diagnoses, every one emitted as <code>clinicalStatus=resolved</code>
+  with same-day <code>abatementDateTime</code> — polluting the problem list
+  with non-diseases. Fix: new <code>is_visit_reason_zcode</code> predicate
+  (Z00-Z02 / Z09 / Z11-Z13 / Z23 / Z25-Z29 / Z71 / Z76 base bands;
+  Z80-Z99 personal-history / device-presence codes preserved as
+  clinical facts). Gated three emission paths in <code>conditions.py</code> +
+  <code>encounter.py</code> on the predicate: Condition primary/admission emit
+  skipped, <code>reasonReference</code> and <code>diagnosis[]</code> refs suppressed so no
+  dangling refs remain. <code>Encounter.reasonCode</code> still carries the
+  Z-code text + coding. Verified JP p=100: 0/179 Conditions carry
+  any Z-code (was ~43 %). Classification: <strong>MINOR</strong> — Condition
+  resource count drops by ~43 % (<code>33,188 → ~18,804</code>), so cohort
+  totals differ. Closes #916.</li>
+<li><strong>Issue #911 — AVPU + GCS sampled independently produced 52 %
+  same-day contradictions (6,152 <code>AVPU=U + GCS=15</code> impossible
+  pairs).</strong> Three coordinated fixes: (1) <code>nursing_enricher.py</code> skips
+  GCS emission on vitals without AVPU (removes default-A
+  <code>GCS ≈ 15</code> records that were unpaired against real AVPU); (2)
+  <code>vitals_pipeline.py</code> stabilizes AVPU per (patient, day) via an
+  isolated per-day sub-RNG from <code>sha256("avpu:&lt;patient&gt;:&lt;day&gt;")</code> —
+  master-rng consumption preserved by still calling <code>_loc_for(state,
+  disease_id, day, rng)</code> and discarding (pattern per
+  <code>feedback_rng_neutral_additive_field</code>); (3) <code>nursing.py</code> sets
+  GCS = 15 strictly for AVPU = A (jitter skipped; <code>rng.integers</code>
+  draw still consumed to preserve stream shape). Verified JP p=200:
+  in-range % 48 → <strong>100 %</strong> across all AVPU categories, median GCS
+  now 15 / 13 / 9 by category (was 14 across every category).
+  Classification: <strong>MINOR</strong> — vitals <code>consciousness_level</code> /
+  <code>gcs_score</code> values change per patient-day. Closes #911.</li>
+<li><strong>Issue #913 — MedicationAdministration ignored parent
+  MR.timing.repeat.frequency in 76.5 % of prescriptions.</strong> MAR ran
+  on a hardcoded drug-name / route dispatch and defaulted to TID
+  (3/day) for oral drugs regardless of prescription frequency, so
+  amlodipine 1/day emitted 3 admins/day (3× on-chart over-dose
+  signature; 100 % of amlodipine / atorvastatin / candesartan /
+  clopidogrel / apixaban / lansoprazole / vitamin D / metformin /
+  tiotropium prescriptions mismatched their own MR). Fix: new
+  <code>_admin_hours_from_frequency</code> helper maps prescribed per-day
+  frequency to MAR admin slots (1→[8], 2→[8,20], 3→[8,14,20],
+  4→[0,6,12,18], 6→q4h, 8→q3h, ≥12→q4h cap for continuous
+  infusions — cap reflects real MAR practice for drips). Ordering:
+  antibiotic clinical-override (Q6H β-lactam combos + Q8H
+  carbapenem / adv-cephalosporin) → <code>order.frequency_per_day</code> →
+  legacy drug-name fallback. Verified JP p=100: match rate
+  23.5 % → <strong>63.6 %</strong>, under-admin 16.3 % → <strong>0.0 %</strong>.
+  Classification: <strong>MINOR</strong> — MedAdmin count per medication order
+  changes; downstream Composition / discharge-summary references
+  propagate. Closes #913.</li>
+<li><strong>Issue #914 (Bucket A) — Pyelonephritis 4-drug template
+  eliminated.</strong> Pre-fix ~90 % of acute pyelonephritis admissions
+  received ≥3 antibiotics simultaneously, with 72/92 receiving the
+  identical 4-drug template Ceftriaxone + Cefcapene + Meropenem +
+  Levofloxacin. Two root causes: (1) UTI's <code>discharge_oral</code> listed
+  two alternative oral agents without an <code>exclusive_classes</code>
+  marker → both emitted; (2) unconditional <code>escalation</code> trigger on
+  day-3 non-improvement fired the entire escalation drug list
+  regardless of clinical criteria. Fix: UTI <code>discharge_oral</code> now
+  declares <code>exclusive_classes: ["oral_antibiotic"]</code> with per-entry
+  <code>drug_class</code> + probability weights (Levofloxacin 0.65 / Cefcapene
+  0.35 JP; Cipro 0.55 / TMP-SMX 0.45 US). Escalation entries gain
+  an optional <code>probability</code> field consumed by the daily-loop branch
+  (Meropenem 0.4 JP, Meropenem 0.4 + Pip-Tazo 0.2 US → ~15 %
+  effective escalation, matching IDSA UTI 2010 / JP 尿路感染症 GL
+  2015). Verified JP p=300: 4-drug template 72 → <strong>0</strong>; IMP ≥3-drug
+  rate 24.5 % → <strong>11.8 %</strong>; 急性腎盂腎炎 ≥3-drug 90 % → <strong>0 %</strong>.
+  Bucket B (antibiotics on non-infectious encounters — hypertension /
+  dyslipidemia / stable COPD) remains as follow-up in #914.
+  Classification: <strong>MINOR</strong> — antibiotic emit rate + escalation
+  rate shift per-encounter. Partial #914.</li>
+<li><strong>Issue #964 — Practitioner qualification population.</strong>
+  Populates <code>Practitioner.qualification</code> for non-MD / RN roles
+  (technicians, therapists, dietitians) with regulatory-appropriate
+  identifiers. Closes #962.</li>
+<li><strong>Issue #970 — MedicationRequest.authoredOn timing invariant.</strong>
+  Ensures <code>MR.authoredOn</code> precedes every linked MedicationAdministration
+  <code>effectiveDateTime</code>, restoring the temporal ordering guarantee.
+  Closes #967.</li>
+<li><strong>Issue #973 — IV MedicationRequest infusion rate emission.</strong>
+  Populates <code>dosageInstruction.doseAndRate.rateQuantity</code> for
+  continuous drips and <code>timing.repeat.duration</code> for bolus antibiotics
+  via <code>iv_infusion_defaults.yaml</code>. Closes #966.</li>
+<li><strong>Issue #974 — Encounter.reasonCode ⊆ diagnosis[] invariant.</strong>
+  Ensures every <code>reasonCode.text</code> has a matching Condition in
+  <code>diagnosis[]</code>. Closes #912 (encounter-side sibling of
+  conditions-side #912 fix).</li>
+<li><strong>Issue #975 / #976 — Practitioner allocation balance + surgery
+  roster scaling.</strong> Corrects staff allocation across the full roster
+  and scales surgery roster to catchment volume. Closes #915,
+  #975 GS residual.</li>
+<li><strong>Issue #977 — I25 (ischemic heart disease) 70+ chronic prevalence
+  further tuning (0.06 → 0.04).</strong> Follow-up to #969 that landed
+  emitted marginal at 15.3 % (above JCS 2018 ~10 % benchmark);
+  measured amplification is ~3× not the assumed ~1.7-2.5×. Adjusts
+  <code>chronic_prevalence.I25["70-99"]</code> + audit script mirror. Emitted
+  marginal now 12.0 %, within JCS 2018 5-15 % range. Closes #969
+  follow-up.</li>
+<li><strong>Issue #978 — ServiceRequest.authoredOn ≤ DR.issued invariant.</strong>
+  Sibling of #967: ensures <code>SR.authoredOn</code> precedes every linked
+  <code>DiagnosticReport.issued</code>. Closes #971.</li>
+<li><strong>Issue #949 — ICD-10 sex-lock dispatch.</strong> Sex-gates ICD-10
+  dispatch to eliminate anatomically-impossible diagnoses (e.g. male
+  patients with pregnancy codes). Closes #947.</li>
+<li><strong>Issue #950 — Adult social-history age gate.</strong> Adult smoking /
+  alcohol / LTCI carelevel Observations are now suppressed for
+  pediatric patients (&lt; adolescence). Closes #938, #940.</li>
+</ul>
+<h3 id="narrative-cif">Narrative CIF<a class="headerlink" href="#narrative-cif" title="Permanent link">&para;</a></h3>
+<ul>
+<li>**Issue #987 — Vitals prepended to physical_examination narrative</li>
+<li>chief complaint × physical exam consistency guard.** Closes
+  #979, #980.</li>
+<li><strong>Issue #988 — ED workup / disposition from CIF orders + FamilyHistory
+  narrative + 100+ per-disease chief-complaint variants.</strong> Closes
+  #981, #982, #983.</li>
+<li><strong>Issue #989 — HPI enrichment (ROS / home meds / prior care) +
+  assessment personalization (patient-specific values) + discharge
+  instructions expansion (32 disease templates).</strong> Closes #984, #985,
+  #986.</li>
+</ul>
+<h3 id="llm-prompts">LLM prompts<a class="headerlink" href="#llm-prompts" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Issue #993 — LLM refinement enabled for referral_note (紹介状).</strong>
+  <code>template_only</code> → <code>template_seed_bundle</code> refinement path. Closes
+  #990.</li>
+<li><strong>Issue #994 — PROCEDURE_NOTE (処置記録, LOINC 28570-0) DocumentType +
+  LLM refinement pipeline.</strong> Closes #992.</li>
+<li><strong>Issue #995 — OPERATIVE_NOTE (手術記録, LOINC 11504-8) DocumentType +
+  LLM refinement pipeline.</strong> Closes #991.</li>
+<li><strong>Issue #996 — LLM prompt v11 → v12 bundle cross-ref cleanup + full
+  audit report.</strong></li>
+<li><strong>Issue #1001 — 14 dormant per-task prompts marked as reserved +
+  DDS autopsy naming drift fix + missing DDS complications prompt.</strong>
+  Closes #999, #1000.</li>
+<li>
+<p><strong>Issue #1002 — Per-doc-type LLM guidance blocks for operative_note /
+  procedure_note / death_certificate / death_discharge_summary in
+  <code>narrative_seed_bundle.yaml</code> v13.</strong> Closes #997, #998.</p>
+</li>
+<li>
+<p><strong>Issue #912 — Inpatient <code>Encounter.reasonCode</code> orphaned from
   <code>Encounter.diagnosis[]</code>.</strong> Pre-fix, 35.7 % (30/84) of IMP encounters
   at JP p=1000 seed=500 emitted a <code>reasonCode.text</code> whose Condition
   did not exist in the patient's record — <code>diagnosis[]</code> linked to a
@@ -2329,7 +2583,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   encounters 30 → 0 (35.7 % → 0.0 %). PATCH-scope — CIF unchanged,
   new FHIR Condition rows only fire for encounters that would
   otherwise fail the invariant.
-  Closes #912.</li>
+  Closes #912.</p>
+</li>
 <li><strong>Issue #966 — IV MedicationRequests now carry infusion rate /
   bolus duration.</strong> Pre-fix, 421/421 IV-route <code>MedicationRequest</code>
   resources emitted on JP p=1000 s500 (post-#920) had no
@@ -2421,7 +2676,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   preserved; a fresh <code>narrate</code> run is required.
   Author: Claude.</li>
 </ul>
-<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #961 — Death certificate (死亡診断書) Composition for deceased
   inpatients.</strong> Pre-fix, 47/6,389 deceased patients on the JP p=6,389
@@ -2779,7 +3034,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   tests, and documented as public API — whitelist entry added to
   <code>vulture_whitelist.py</code>.</li>
 </ul>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #946 — Anthropometric vitals (height / weight / BMI /
   head-circumference).</strong> Pre-fix, not a single body-height /
@@ -3613,7 +3868,7 @@ regression).</p>
 <li><code>test_data/</code> (5392 files / 200 MB of accumulated LLM narrative eval
   outputs) untracked; <code>.gitignore</code> prevents re-add (PR #529).</li>
 </ul>
-<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Synthea comparison adapter</strong> (P1-10):
   <a href="../../eval/"><code>clinosim eval</code></a> can now score a
@@ -3779,7 +4034,7 @@ distribution work that makes it installable.</p>
 <li>New <code>LICENSE</code> file at repo root (prior state: <code>pyproject.toml</code> declared
   MIT but no LICENSE text shipped).</li>
 </ul>
-<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
+<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Population-driven, physiology-based synthetic EHR data simulation
   (13-variable hidden physiological state per patient).</li>
