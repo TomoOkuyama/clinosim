@@ -74,3 +74,12 @@ AFP: "1834-1"                # Alpha-1-Fetoprotein [Mass/volume] in Serum or Pla
 PIVKA_II: "44805-4"          # Prothrombin.protein induced by vit K absence [Mass/vol] in Serum
 CA15_3: "6875-9"             # Cancer Ag 15-3 [Units/volume] in Serum or Plasma
 PSA: "2857-1"                # Prostate specific Ag [Mass/volume] in Serum or Plasma
+
+# Therapeutic drug monitoring (Issue #757 remaining) — LOINC codes
+# verified via clinicaltables.nlm.nih.gov v3 LOINC API. Emitted for
+# chronic-followup encounters where the patient carries the drug in
+# ``current_medications`` (med_lab_mapping.yaml routes them here).
+Digoxin: "10535-3"           # Digoxin [Mass/volume] in Serum or Plasma
+Lithium: "14334-7"           # Lithium [Mass/volume] in Serum or Plasma
+Tacrolimus: "27069-5"        # Tacrolimus [Mass/volume] in Serum or Plasma
+Ciclosporin: "3521-2"        # Cyclosporine [Mass/volume] in Serum or Plasma

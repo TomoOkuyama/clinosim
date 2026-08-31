@@ -157,3 +157,14 @@ ranges:
     - {low: 0, high: 30.0, unit: "U/mL", text: "Female breast-cancer follow-up standard"}
   PSA:
     - {low: 0, high: 4.0, unit: "ng/mL", text: "Age < 60 upper limit (male only; age >= 60: < 6.5)", sex: "M"}
+
+  # === Therapeutic drug monitoring (Issue #757 remaining) ===
+  # low/high express the therapeutic band; excursions outside flag as H/L.
+  Digoxin:
+    - {low: 0.5, high: 2.0, unit: "ng/mL", text: "Therapeutic (DIG trial target 0.5-0.9)"}
+  Lithium:
+    - {low: 0.6, high: 1.2, unit: "mmol/L", text: "Therapeutic maintenance range"}
+  Tacrolimus:
+    - {low: 5.0, high: 20.0, unit: "ng/mL", text: "Trough; transplant-type dependent, early 10-15 / maintenance 5-10"}
+  Ciclosporin:
+    - {low: 100, high: 300, unit: "ng/mL", text: "Trough; transplant-type dependent"}

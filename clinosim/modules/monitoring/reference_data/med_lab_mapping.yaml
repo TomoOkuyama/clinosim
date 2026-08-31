@@ -47,3 +47,46 @@ medication_lab_mapping:
     matches: ["insulin", "インスリン"]
     labs: [HbA1c]
     per_visit_probability: 0.5
+
+  # Digoxin — Digoxin level q1-2wk after dose change, then q6-12mo. Also
+  # requires K+ and Cr monitoring (both physiology-modeled → they emit
+  # via the existing chronic-followup labs, but we add here explicitly
+  # so digoxin patients get the pair even at non-cardiac visits).
+  digoxin:
+    matches: ["digoxin", "ジゴキシン", "ラニラピッド", "lanoxin"]
+    labs: [Digoxin, K, Creatinine]
+    per_visit_probability: 0.5
+
+  # Statin — LFTs (ALT/AST) baseline + as clinically indicated. Real
+  # cadence is once at start + q6-12mo; approximate as ~25% of visits.
+  statin:
+    matches: ["atorvastatin", "アトルバスタチン", "rosuvastatin", "ロスバスタチン", "simvastatin", "シンバスタチン", "pravastatin", "プラバスタチン", "statin"]
+    labs: [ALT, AST]
+    per_visit_probability: 0.25
+
+  # ACE-i / ARB / diuretic — K+ and Cr 1-2wk after start, then q6-12mo.
+  # Cadence is longer than typical HTN follow-up (q2-3mo), so probability
+  # weighted below 1.0.
+  ace_arb_diuretic:
+    matches: ["enalapril", "エナラプリル", "lisinopril", "リシノプリル", "losartan", "ロサルタン", "candesartan", "カンデサルタン", "valsartan", "バルサルタン", "furosemide", "フロセミド", "hydrochlorothiazide", "ヒドロクロロチアジド", "spironolactone", "スピロノラクトン"]
+    labs: [K, Creatinine]
+    per_visit_probability: 0.4
+
+  # Lithium — Li level + TSH + Cr every 6-12mo. Toxic window is narrow;
+  # missed monitoring is a real prescribing-safety concern.
+  lithium:
+    matches: ["lithium", "リチウム", "リーマス"]
+    labs: [Lithium, TSH, Creatinine]
+    per_visit_probability: 0.35
+
+  # Immunosuppressant — drug trough level per-visit. Post-transplant care
+  # requires trough monitoring at every clinic visit while active.
+  tacrolimus:
+    matches: ["tacrolimus", "タクロリムス", "プログラフ", "prograf"]
+    labs: [Tacrolimus, Creatinine, K]
+    per_visit_probability: 1.0
+
+  ciclosporin:
+    matches: ["ciclosporin", "cyclosporine", "シクロスポリン", "ネオーラル", "neoral"]
+    labs: [Ciclosporin, Creatinine, K]
+    per_visit_probability: 1.0
