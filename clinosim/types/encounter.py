@@ -78,7 +78,7 @@ class Encounter:
     bed_number: str = ""  # e.g. "401-2"
     time_resolution: timedelta | None = None
     # FHIR-aligned hospitalization fields
-    admit_source: str = ""  # "emd" | "hosp-trans" | "gp" | "mp" | "nursing" | "outp"
+    admit_source: str = ""  # "emd" | "hosp-trans" | "gp" | "mp" | "nursing" | "outp" | "born"
     # CY7-05 (Chain-6): when admit_source == "emd", store the source ED encounter
     # id so FHIR Encounter.partOf can link ED → IMP within the same patient's
     # care episode (Encounter.partOf 0..1 Reference to Encounter).
