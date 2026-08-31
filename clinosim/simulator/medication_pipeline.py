@@ -51,6 +51,59 @@ from clinosim.types.encounter import (
 )
 from clinosim.types.patient import PatientProfile
 
+# ---------------------------------------------------------------------------
+# Issue #913: MedicationAdministration must honour parent
+# MedicationRequest.dosageInstruction.timing.repeat.frequency.
+#
+# Pre-fix the MAR generator used a hardcoded drug-name dispatch (q6h_drugs
+# / q8h_drugs / daily_drugs / route heuristics) and ignored
+# ``order.frequency_per_day``. MedicationRequest emit derived the timing
+# from ``parse_dose_string`` (medications.py line 1183-1187), so amlodipine
+# 1/day showed up as MR.timing.frequency=1 but got 3/day MedAdmins from the
+# TID default — a 3× on-chart over-dose signature (audit v0.5.0: 60.3 %
+# of MR ↔ MA pairs over-admin, 60 % of that being 1/day → 3/day).
+#
+# Fix: use ``order.frequency_per_day`` when populated. Fall back to the
+# drug-name dispatch only when the enricher could not determine a
+# frequency (e.g. antibiotics like "Meropenem 1g" whose display_name
+# doesn't declare a schedule).
+#
+# Continuous infusions (freq ≥ 12/day) are capped at Q4H (6/day) to
+# reflect the way real nursing charts record MAR entries for continuous
+# drips (per-shift check + dose-change annotations) rather than emitting
+# hourly rows. Cap is a data-volume compromise, not clinical semantics —
+# the prescription still carries ``timing.repeat.frequency=24``; the
+# discrepancy shrinks from 8× (audit's 24 → 3 under-admin) to 4× (24 →
+# 6), and represents "MAR observed q4h during infusion".
+_FREQ_TO_HOURS: dict[int, list[int]] = {
+    1: [8],
+    2: [8, 20],
+    3: [8, 14, 20],
+    4: [0, 6, 12, 18],
+    5: [6, 10, 14, 18, 22],
+    6: [0, 4, 8, 12, 16, 20],
+    7: [3, 6, 9, 12, 15, 18, 21],
+    8: [0, 3, 6, 9, 12, 15, 18, 21],
+}
+_CONTINUOUS_INFUSION_MAR_HOURS: list[int] = [0, 4, 8, 12, 16, 20]  # q4h cap for freq >= 12
+
+
+def _admin_hours_from_frequency(freq_per_day: int) -> list[int]:
+    """Map a prescribed per-day frequency (from ``MR.timing.repeat.frequency``
+    equivalent) to the MAR admin-hour slots.
+
+    Issue #913: eliminates the divergence between MedicationRequest
+    prescription frequency and MedicationAdministration actual admins.
+    """
+    if freq_per_day <= 0:
+        return [8, 14, 20]
+    if freq_per_day >= 12:
+        return list(_CONTINUOUS_INFUSION_MAR_HOURS)
+    if freq_per_day <= 8:
+        return list(_FREQ_TO_HOURS[freq_per_day])
+    # 9-11: rare (e.g. q2.5h) — snap to q3h (8/day).
+    return list(_FREQ_TO_HOURS[8])
+
 
 def _generate_home_medication_orders(
     patient: PatientProfile,
@@ -328,24 +381,45 @@ def _generate_mar(
         # Determine administration times based on drug and route
         route = _determine_route(drug_name, order.clinical_intent)
 
-        # Known frequencies for specific drugs
-        q6h_drugs = ["AMPICILLIN", "SULBACTAM", "PIPERACILLIN", "TAZOBACTAM"]
-        q8h_drugs = ["MEROPENEM", "CEFTRIAXONE", "CEFTAZIDIME"]
-        daily_drugs = ["LEVOFLOXACIN", "ENOXAPARIN", "FUROSEMIDE"]
-
+        # Issue #913: MAR admin count must match
+        # ``MedicationRequest.dosageInstruction.timing.repeat.frequency``
+        # (both derived from the same order — before this fix, MAR ran
+        # on a hardcoded drug-name heuristic that diverged from what the
+        # prescription said → 60 % of pairs over-admin, ~3× on-chart
+        # over-dose signature).
+        #
+        # Ordering:
+        # 1. Antibiotic clinical-override (Q6H / Q8H) — for β-lactam
+        #    combos + carbapenem + advanced cephalosporins whose 1/day
+        #    default (from the enricher) would be clinically dangerous.
+        #    Ceftriaxone (correctly 1/day) is intentionally omitted.
+        # 2. Explicit prescribed frequency (``order.frequency_per_day``) —
+        #    honours the parsed prescription frequency, aligning MAR to MR.
+        # 3. Legacy drug-name / route dispatch — the enricher's DAILY
+        #    default fires for parseable-dose but no-frequency orders,
+        #    so this branch is rarely hit today; kept for safety on
+        #    orders without a resolvable frequency at all.
         drug_upper = drug_name.upper()
+        q6h_drugs = ["AMPICILLIN", "SULBACTAM", "PIPERACILLIN", "TAZOBACTAM"]
+        q8h_drugs = ["MEROPENEM", "CEFTAZIDIME"]
+        _freq_per_day = getattr(order, "frequency_per_day", None)
         if any(d in drug_upper for d in q6h_drugs):
-            admin_hours = [0, 6, 12, 18]  # q6h
+            admin_hours = [0, 6, 12, 18]  # q6h — clinical override for β-lactam combos
         elif any(d in drug_upper for d in q8h_drugs):
-            admin_hours = [0, 8, 16]  # q8h
-        elif any(d in drug_upper for d in daily_drugs) or route == "SC":
-            admin_hours = [8]  # daily
-        elif route == "IV":
-            admin_hours = [0, 8, 16]  # default IV: q8h
-        elif "BID" in drug_upper or "bid" in order.clinical_intent.lower():
-            admin_hours = [8, 20]
+            admin_hours = [0, 8, 16]  # q8h — clinical override for carbapenem / adv ceph
+        elif _freq_per_day and _freq_per_day > 0:
+            admin_hours = _admin_hours_from_frequency(int(_freq_per_day))
         else:
-            admin_hours = [8, 14, 20]  # TID default for PO
+            # Legacy fallback (unresolvable frequency).
+            daily_drugs = ["LEVOFLOXACIN", "ENOXAPARIN", "FUROSEMIDE"]
+            if any(d in drug_upper for d in daily_drugs) or route == "SC":
+                admin_hours = [8]  # daily
+            elif route == "IV":
+                admin_hours = [0, 8, 16]  # default IV: q8h
+            elif "BID" in drug_upper or "bid" in order.clinical_intent.lower():
+                admin_hours = [8, 20]
+            else:
+                admin_hours = [8, 14, 20]  # TID default for PO
 
         # seed=400 verification finding: Sepsis abx-within-3h
         # target (Surviving Sepsis / JSSCG bundle) was 34% because Day-0
