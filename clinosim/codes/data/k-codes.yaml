@@ -123,3 +123,18 @@ codes:
   J034-2:
     en: Long tube (ileus tube) placement for bowel obstruction
     ja: イレウス用ロングチューブ挿入法
+
+  # --- M: Radiation therapy (Issue #957 slice 3 — cancer treatment) ---
+  # Source: MHLW 診療報酬点数表 (令和6年度) 第7部 放射線治療.
+  # Cancer-follow-up patients on active radiation therapy emit these
+  # procedure codes via the outpatient chronic-followup dispatch when
+  # the cancer entry declares ``radiation_therapy_eligible: true``.
+  M001:
+    en: External beam radiation therapy (simple)
+    ja: 体外照射（単純）
+  M001-2:
+    en: External beam radiation therapy (3D-CRT)
+    ja: 体外照射（IMRT・3D-CRT等）
+  M001-3:
+    en: External beam radiation therapy (IMRT)
+    ja: 強度変調放射線治療（IMRT）
