@@ -84,6 +84,12 @@ def _specialty_for_visit(visit_type: str, code: str) -> str:
         return "pediatrics"
     if visit_type == "health_screening":
         return _SCREENING_SPECIALTY.get(code, "primary_care")
+    if visit_type in ("chemo_visit", "chemo_infusion"):
+        # Issue #957 Tier-3-A: chemo infusion attaches to oncology when the
+        # hospital offers it; ``resolve_department`` (hospital_ops) handles
+        # the rollup to a broader service line (e.g. internal_medicine) at
+        # community hospitals that lack a dedicated oncology unit.
+        return "oncology"
     if visit_type in ("chronic_followup", "chronic"):
         if not code:
             return "internal_medicine"

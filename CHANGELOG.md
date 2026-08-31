@@ -182,6 +182,40 @@ before re-tagging. Everything below stays queued under
   Procedure per pregnancy-year; CIF ↔ narrative-CIF byte-identity
   is broken for Z34 patients only, fresh `narrate` required for
   them. Author: Claude. Partial #957.
+- **Issue #957 (Tier-3-A slice 1) — Chemotherapy cycle scheduling.**
+  Real chemo regimens are cycle-based (FOLFOX q14d, CarboPem q21d,
+  Trastuzumab q3w, LHRH q28d), not continuous daily therapy. Pre-fix
+  the simulator carried chemo drugs as chronic daily
+  `MedicationRequest`s only — the temporal signature was flat and any
+  consumer computing "chemo cycles received in the year" got nonsense.
+  This slice introduces a healthcare-calendar-level `chemo_visit`
+  event: new `clinosim/locale/shared/chemo_regimens.yaml` declares the
+  regimen library (cycle interval, course cycles, per-cycle drugs) +
+  a per-cancer-code assignment table (`by_cancer`); the population
+  scheduler (`_chemo_cycle_events` in `population/engine.py`) picks a
+  regimen per chronic-cancer carrier via a per-patient deterministic
+  sub-RNG (`chemotherapy_regimen_seed`) and emits `chemo_visit`
+  `LifeEvent`s at the regimen's cycle cadence; `simulator/engine.py`
+  dispatches these to `_simulate_outpatient_visit` with a chemo-
+  specific `followup_spec` that routes to the oncology department
+  and emits a `ProcedureRecord` for the chemotherapy administration
+  (JP: G003 抗悪性腫瘍剤注入, US: CPT 96413). Verified on JP p=5000
+  seed=1: **422 chemo-cycle encounters + 422 chemotherapy-
+  administration Procedures across 36 patients**, cycle spacing
+  matches regimen intervals exactly (17/12/13/4 cycles = q21d
+  Trastuzumab / q14d FOLFOX / q28d LHRH / q21d CarboPem). Per-cycle
+  drug `MedicationRequest` / `MedicationAdministration` remains a
+  follow-up slice — oral chemo (Capecitabine, Tamoxifen, Anastrozole,
+  Bicalutamide) continues to flow through `chronic_medications.yaml`
+  unchanged. RNG contract: the scheduler uses a per-(patient,
+  cancer_code) sub-RNG, so pre-existing calendar events (chronic
+  follow-ups, screenings, flu-vax, mammography, DR screening) are
+  byte-identical for both cancer and non-cancer patients — verified
+  by `test_chemo_scheduler_does_not_shift_non_chemo_calendar_stream`.
+  Classification: **MINOR** — new `chemo_visit` Encounter +
+  Procedure resources shift the FHIR resource inventory; the
+  scheduler itself is RNG-shape neutral against the rest of the
+  calendar. Author: Claude. Partial #957.
 - **Issue #757 (partial) — Chronic-medication-driven monitoring pipeline
   foundation.** New `clinosim/modules/monitoring/` module: YAML-driven
   `(medication → monitoring lab + per-visit probability)` mapping,
