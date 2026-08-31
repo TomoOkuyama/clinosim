@@ -2274,20 +2274,14 @@ cut before this policy was formally documented and has been renumbered
 to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
-<h2 id="060---2026-08-31">[0.6.0] - 2026-08-31<a class="headerlink" href="#060---2026-08-31" title="Permanent link">&para;</a></h2>
-<p><strong>Release theme</strong>: v0.6.0 rolls up substantial data-quality /
-clinical-coherence / temporal-consistency fixes across Issues</p>
-<h1 id="909--918--916--911--913--914--957--757-session-93">909 / #918 / #916 / #911 / #913 / #914 / #957 / #757 (session-93)<a class="headerlink" href="#909--918--916--911--913--914--957--757-session-93" title="Permanent link">&para;</a></h1>
-<p>plus the pre-existing Unreleased batch from sessions 91-92 covering</p>
-<h1 id="949-1002-every--fixed--added--changed-and">949-#1002. Every <code>### Fixed</code>, <code>### Added</code>, <code>### Changed</code>, and<a class="headerlink" href="#949-1002-every--fixed--added--changed-and" title="Permanent link">&para;</a></h1>
-<p><code>### Narrative CIF</code> / <code>### LLM prompts</code> subsection below shipped
-between the v0.5.0 tag (2026-08-27) and this release.</p>
-<p><strong>Classification: MINOR.</strong> Multiple entries below (chronic prevalence
-tuning, Z-code Condition removal, AVPU/GCS coupling, MedAdmin timing,
-antibiotic template, monitoring pipeline) shift cohort statistics or
-per-patient RNG shape, so structured CIF and downstream narrative CIF
-byte-identity are not preserved across the v0.5.0 → v0.6.0 line.
-A fresh <code>narrate</code> run is required after upgrade.</p>
+<p><strong>In-progress v0.6.0 target.</strong> The initial v0.6.0 tag was cut on
+2026-08-31 and <strong>un-released the same day</strong> because META Issues #914
+Bucket B / #957 remaining slices / #757 remaining mappings were left
+as follow-up rather than completed. Per the project policy of shipping
+a MINOR release only when its release-scope Issues are fully closed,
+the tag was removed and the remaining scope is being folded in
+before re-tagging. Everything below stays queued under
+<code>[Unreleased]</code> until the re-tag.</p>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Statistical tuning: I25 (ischemic heart disease) 70+ chronic_prevalence
