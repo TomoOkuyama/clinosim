@@ -1,6 +1,6 @@
 """Unit tests for `_populate_jp_medication_dosage_ecs_fields` walker.
 
-JP-CLINS 1.12.0 `JP_MedicationDosage_eCS` layers three requirements on top
+JP-CLINS 1.13.0 `JP_MedicationDosage_eCS` layers three requirements on top
 of the base `Dosage` type that clinosim's builder does not emit:
 
 - `Dosage.extension:periodOfUse` (min=1) — a `Period` with `start` marking

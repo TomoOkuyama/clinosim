@@ -56,7 +56,7 @@ _INFECTIONLABO_JLAC10_CS_FILENAME = "CodeSystem-jp-clins-codesystem-jlac10-infec
 _INFECTIONLABO_JLAC11_CS_FILENAME = "CodeSystem-jp-clins-codesystem-jlac11-infectionlabo-cs.json"
 
 _JP_CLINS_PKG_ID = "clinical-information-sharing"
-_JP_CLINS_PKG_VERSION = "1.12.0"
+_JP_CLINS_PKG_VERSION = "1.13.0"
 _JP_CLINS_TERMINOLOGY_PKG_ID = "jpfhir-terminology"
 _JP_CLINS_TERMINOLOGY_PKG_VERSION = "2.2606.0"
 

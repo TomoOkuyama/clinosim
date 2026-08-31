@@ -1132,19 +1132,19 @@ _JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-type
 
 # JP-CLINS eDS / eReferral pin
 # `Composition.identifier.system` to this URI (spec `fixedUri`, verified via
-# `clinical-information-sharing#1.12.0/package/StructureDefinition-JP-Composition-
+# `clinical-information-sharing#1.13.0/package/StructureDefinition-JP-Composition-
 # {eDischargeSummary,eReferral}.json`). Same URI as identifier
 # slices on Observation / Condition / AI / MR.
 _JP_COMPOSITION_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
 
 # JP-CLINS eDS Composition required elements.
 # Extension URL for `Composition.extension:version` (spec `fixedUri` on the
-# slice discriminator). Verified via `clinical-information-sharing#1.12.0/
+# slice discriminator). Verified via `clinical-information-sharing#1.13.0/
 # package/StructureDefinition-JP-Composition-eDischargeSummary.json`.
 _JP_EDS_VERSION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/composition-clinicaldocument-versionNumber"
 # `Composition.category.coding` fixed system + fixed code per spec.
 # doc-subtypecodes CS authoritative display (spec:
-# `clinical-information-sharing#1.12.0/package/CodeSystem-jp-codeSystem-
+# `clinical-information-sharing#1.13.0/package/CodeSystem-jp-codeSystem-
 # documentSubTypeCode.json`) → DISCHARGE = "退院時文書"。旧値 "退院時サマリー"
 # は jpfhir-doc-typecodes CS(下記 `_JP_EDS_TYPE_DISPLAY_JA`)の display で
 # あり、doc-subtypecodes CS とは別軸。 (#267) で 1 定数を
@@ -1175,7 +1175,7 @@ def _section_title_from_section_display(display: str) -> str:
 # JP-CLINS 実 canonical URL は
 # `.../CodeSystem/document-section`(resource id `jp-codeSystem-clins-
 # document-section` を path に含めない)。iris4h-ai の
-# clinical-information-sharing#1.12.0/package/
+# clinical-information-sharing#1.13.0/package/
 # CodeSystem-jp-codeSystem-clins-document-section.json `.url` fixedUri
 # を直接引用。従来の id-in-URL 版は HAPI で 1272 warn。
 _JPFHIR_DOC_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
@@ -1222,7 +1222,7 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
 # receives `encounter_id` and `doc_id` (comp-prefixed) as keyword args and
 # returns the reference string. The reference targets track the JP-CLINS spec
 # `type.targetProfile` on each `.entry` element (verified against
-# `clinical-information-sharing#1.12.0/package/StructureDefinition-JP-
+# `clinical-information-sharing#1.13.0/package/StructureDefinition-JP-
 # Composition-eDischargeSummary.json`).
 # Issue #925: multi-ref extension to `_JP_DS_SECTION_ENTRY_REFERENCES`.
 # Where the base map holds a single templated Reference per section
@@ -1283,7 +1283,7 @@ def _build_jp_clins_discharge_summary_composition(
     roster_map: dict[str, dict] | None = None,
     encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
-    """JP-CLINS eDischargeSummary v1.12.0 準拠 Composition を emit する。
+    """JP-CLINS eDischargeSummary v1.13.0 準拠 Composition を emit する。
 
     汎用 Composition builder との差分:
       - meta.profile = [JP_Composition_eDischargeSummary]
@@ -1564,7 +1564,7 @@ _JP_ER_REFERRING_FROM_REF: list[dict[str, str]] = [{"reference": "Organization/h
 # 5 top-level 制約を持つ(extension:version min=1 / category min=1 /
 # author min=2 / meta.lastUpdated min=1 / event.code min=1)。CONSULT
 # は authoritative doc-subtypecodes CS "他科コンサルト"(spec:
-# clinical-information-sharing#1.12.0/package/CodeSystem-jp-codeSystem-
+# clinical-information-sharing#1.13.0/package/CodeSystem-jp-codeSystem-
 # documentSubTypeCode.json)。
 _JP_ER_CATEGORY_CODE = "CONSULT"
 _JP_ER_CATEGORY_DISPLAY_JA = "他科コンサルト"
@@ -1582,7 +1582,7 @@ def _build_jp_clins_referral_note_composition(
     *,
     roster_map: dict[str, dict] | None = None,
 ) -> dict[str, Any]:
-    """JP-CLINS eReferral v1.12.0 準拠 Composition を emit する。
+    """JP-CLINS eReferral v1.13.0 準拠 Composition を emit する。
 
     汎用 Composition builder との差分:
       - meta.profile = [JP_Composition_eReferral]
@@ -1870,7 +1870,7 @@ def _build_jp_eCheckup_general_composition(
                 # Chain 8 (v2 feedback §【中優先 8】): JP-CLINS
                 # eDischargeSummary / eReferral / eCheckup pin
                 # Composition.section[*].text.status to fixedCode "additional"
-                # (see fhir-jp-validator/tx-server-build/.../clinical-information-sharing#1.12.0
+                # (see fhir-jp-validator/tx-server-build/.../clinical-information-sharing#1.13.0
                 # StructureDefinition-JP-Composition-*.json). generic
                 # Composition (_build_composition_generic below) keeps
                 # "generated" per base FHIR default.

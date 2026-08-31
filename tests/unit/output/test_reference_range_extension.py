@@ -6,7 +6,7 @@ Historical context:
 - Sessions 51-55 iterated on the extension URL trying to satisfy HAPI
   Validator, but fhir-jp-validator report 2026-07-17 §【最優先 2】
   (31,006 errors) showed the URL is not registered anywhere in
-  JP-CLINS 1.12.0 / jp-core 1.2.0 / jpfhir-terminology 2.2606.0. In
+  JP-CLINS 1.13.0 / jp-core 1.2.0 / jpfhir-terminology 2.2606.0. In
   addition, `JP_Observation_LabResult_eCS` locks
   `Observation.referenceRange.extension` (and `.low.extension` /
   `.high.extension`) to `max=0`, so no URL — spec-valid or not — can

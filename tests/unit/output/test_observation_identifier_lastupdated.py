@@ -1,6 +1,6 @@
 """Unit tests for `_populate_observation_identifier_and_last_updated` walker.
 
-JP_Observation_LabResult_eCS (JP-CLINS 1.12.0) declares `identifier` and
+JP_Observation_LabResult_eCS (JP-CLINS 1.13.0) declares `identifier` and
 `meta.lastUpdated` with `min=1`. The walker is a single seam that runs
 regardless of country (base FHIR admits both as optional; universal
 emission keeps US output consistent and cost-free).

@@ -210,7 +210,7 @@ def _check_fixed_display(lab_obs: list[dict]) -> EvalCheck:
             severity=Severity.MAJOR,
             message=(
                 "JP-CLINS eCS StructureDefinition not available — install pkg "
-                "'clinical-information-sharing#1.12.0' via the fhir CLI or set "
+                "'clinical-information-sharing#1.13.0' via the fhir CLI or set "
                 "$CLINOSIM_JP_CLINS_PKG_DIR to the pkg's package/ directory. Display check "
                 "requires the SD's Fixed value table from the installed pkg — a bundled "
                 "extract would drift from pkg updates and undermine the check's meaning."

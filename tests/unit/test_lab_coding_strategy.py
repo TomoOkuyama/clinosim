@@ -174,7 +174,7 @@ def test_classify_analyte_us_returns_legacy_loinc(country):
 def test_slice_name_for_analyte_covers_all_corelabo_entries(lab_name, expected_slice):
     """All 20 CoreLabo-classified analytes map to the expected SD
     slice suffix. Any mismatch means either the SD naming changed
-    (session 67 pinned these against SD 1.12.0) or the analyte moved
+    (session 67 pinned these against SD 1.13.0) or the analyte moved
     kind (should also flip the _JP_EXPECTED_KIND table)."""
     assert _slice_name_for_analyte(lab_name) == expected_slice
 

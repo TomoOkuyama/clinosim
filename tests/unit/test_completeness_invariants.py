@@ -157,7 +157,7 @@ class TestJpClinsProfileEmissionInvariants:
     resource type MUST carry the JP-CLINS eCS profile URL in meta.profile[].
     Filter: Observation only when category=laboratory (vitals stay JP Core).
 
-    JP-CLINS v1.12.0 covers 5 resource types (Condition, AllergyIntolerance,
+    JP-CLINS v1.13.0 covers 5 resource types (Condition, AllergyIntolerance,
     Observation.LabResult, MedicationRequest, Procedure). DiagnosticReport is
     NOT in JP-CLINS scope; lab results are emitted only as Observation.LabResult.
 
@@ -193,7 +193,7 @@ class TestJpClinsProfileEmissionInvariants:
         assert not missing, f"expected dense JP-CLINS resource types missing from cohort: {missing}"
 
     def test_diagnostic_report_gets_no_clins_profile(self, jp_bacterial_pneumonia_resources):
-        """JP-CLINS v1.12.0 does not publish a DiagnosticReport profile."""
+        """JP-CLINS v1.13.0 does not publish a DiagnosticReport profile."""
         clins_root = "http://jpfhir.jp/fhir/eCS/StructureDefinition/"
         for r in jp_bacterial_pneumonia_resources:
             if r["resourceType"] != "DiagnosticReport":
