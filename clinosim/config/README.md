@@ -72,7 +72,7 @@ Alternate hospital sizes:
   Full-service teaching / regional referral shape.
 
 Both share the schema of `hospital_operations.yaml`; select at
-generation time via `clinosim generate --hospital-config <path>`.
+generation time via `clinosim simulate --hospital-config <path>`.
 
 ### `japan.yaml` / `us.yaml`
 

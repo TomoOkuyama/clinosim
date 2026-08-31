@@ -59,7 +59,7 @@ result = run_beta(config)
 CLI use:
 
 ```bash
-clinosim generate -p 10000 -o ./output --format cif csv fhir
+clinosim simulate -p 10000 -o ./output --format cif csv fhir
 clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 ```
 
@@ -170,7 +170,7 @@ CLI subcommand handlers (7 files):
   cli_enumerate.py       `clinosim enumerate` subcommand
   cli_export_fhir.py     `clinosim export-fhir` subcommand
   cli_narrate.py         `clinosim narrate` subcommand
-  cli_regenerate.py      `clinosim regenerate` subcommand
+  cli_regenerate.py      `clinosim regenerate-goldens` subcommand
   cli_test_disease.py    `clinosim test-disease` subcommand
   cli_test_encounter.py  `clinosim test-encounter` subcommand
 ```
