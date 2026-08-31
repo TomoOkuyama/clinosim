@@ -14,14 +14,9 @@
    (`docs/history/specs-archive/`)→ TDD 実装(test first)→ 独立検証 → PR →
    compact adversarial review(5-lens、finding は実証必須)→ fix → 全 suite green → merge。
 2. **Scope discipline(★★★)**: spec 確定後の scope 拡大禁止。scope 外の発見は
-<<<<<<< HEAD
-   「データ品質/臨床整合性に必須」の場合のみ対応、それ以外は **GitHub Issues board に formal entry 化** (`docs/roadmap.ja.md` 参照; 旧 `TODO.md` は Issues 化に伴い廃止)
-   (文脈・file:line・修正案つき)。
-=======
    「データ品質/臨床整合性に必須」の場合のみ対応、それ以外は
    **GitHub Issues board に formal entry 化** (`docs/roadmap.ja.md` 参照;
    旧 `TODO.md` は Issues 化に伴い廃止) — 文脈・file:line・修正案つきで。
->>>>>>> d0948cfd07 (docs(ja): drop residual TODO.md references from 2 design guides (parity with EN))
 3. **着手前 status audit**: TODO/ドキュメントの記述を鵜呑みにせず、**実装前に実測で検証**
    (実例: α-min-3 の「CRITICAL 配線 gap」は 2 世代前に解決済みだった。cohort 出力を
    数えるだけで 1 PR 分の無駄を回避)。
@@ -208,8 +203,4 @@ registry 経由 / dict+dataclass 両 path のテスト必須 / reference integri
 3. `docs/CONTRIBUTING-modules.md`(Layers 1-3 詳細 HOW-TO)
 4. `fhir-data-generation-logic.md`(Layer 4、builder を書くとき)
 5. `clinosim/modules/output/SPEC.md`(two-pass narrative、Stage 2 を触るとき)
-<<<<<<< HEAD
-6. 直近の chain 文脈: `.resume-prompt.md` + GitHub Issues board (`docs/roadmap.ja.md` 参照)
-=======
 6. 直近の chain 文脈: `.resume-prompt.md` (最新セッション引き継ぎ) + GitHub Issues board (`docs/roadmap.ja.md` 参照)。旧 `TODO.md` は Issues 化に伴い廃止
->>>>>>> d0948cfd07 (docs(ja): drop residual TODO.md references from 2 design guides (parity with EN))
