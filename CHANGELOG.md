@@ -39,6 +39,23 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-31
+
+**Release theme**: v0.6.0 rolls up substantial data-quality /
+clinical-coherence / temporal-consistency fixes across Issues
+#909 / #918 / #916 / #911 / #913 / #914 / #957 / #757 (session-93)
+plus the pre-existing Unreleased batch from sessions 91-92 covering
+#949-#1002. Every `### Fixed`, `### Added`, `### Changed`, and
+`### Narrative CIF` / `### LLM prompts` subsection below shipped
+between the v0.5.0 tag (2026-08-27) and this release.
+
+**Classification: MINOR.** Multiple entries below (chronic prevalence
+tuning, Z-code Condition removal, AVPU/GCS coupling, MedAdmin timing,
+antibiotic template, monitoring pipeline) shift cohort statistics or
+per-patient RNG shape, so structured CIF and downstream narrative CIF
+byte-identity are not preserved across the v0.5.0 → v0.6.0 line.
+A fresh `narrate` run is required after upgrade.
+
 ### Changed
 
 - **Statistical tuning: I25 (ischemic heart disease) 70+ chronic_prevalence
@@ -64,7 +81,245 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   the sim window is not preserved; a fresh `narrate` run is required.
   Author: Claude.
 
+### Added
+
+- **Issue #757 (partial) — Chronic-medication-driven monitoring pipeline
+  foundation.** New `clinosim/modules/monitoring/` module: YAML-driven
+  `(medication → monitoring lab + per-visit probability)` mapping,
+  fail-loud loader, pure-function `monitoring_labs_for_patient(current_medications, rng)`
+  API supporting both dataclass and dict med shapes. Integration hook
+  in `simulator/engine.py::_process_chronic_visit_event` merges the
+  returned labs into the visit's `visit_labs` after the existing
+  `labs_quarterly` / `labs_annual` mergers. Initial mappings
+  (warfarin/Coumadin → PT_INR every visit; levothyroxine → TSH ~q6mo;
+  metformin & insulin → HbA1c q3-6mo) close #736 (US warfarin patients
+  emit 0 → 4/4 PT_INR at p=500). Digoxin/statin/lithium/immunosuppressant
+  remain in the #757 table for later passes. Classification: **MINOR**
+  — new `ev_rng.random()` calls in the chronic-visit dispatch shift
+  the master-rng stream for warfarin/levothyroxine/DM patients.
+  Author: Claude. Closes #736; partial #757.
+- **Issue #957 (slice 1) — Tumor-marker reference ranges + baseline
+  normals.** `chronic_followup.yaml` declared CEA / CA19-9 / AFP /
+  PIVKA-II / CA15-3 / PSA as `labs_quarterly` / `labs_annual` for
+  C18 / C22 / C34 / C50 / C61 cancer cohorts, but the outpatient lab
+  emit path silent-dropped them because their canonical names were
+  missing from both `derive_lab_values` and `BASELINE_LAB_NORMALS`
+  (silent-skip gate). Fix: add in-remission-normal baseline values
+  (PSA 1.5 ng/mL, CEA 2.5 ng/mL, …) + UCUM units in `LAB_UNITS` +
+  reference cutoffs to `locale/{jp,us}/reference_range_lab.yaml` +
+  LOINC mapping in US `code_mapping_lab.yaml` (JP intentionally uses
+  the JP-CLINS `Uncoded` + `LocalCode` dual-slice pattern via the
+  existing coding strategy). Verified JP p=500: 0 → 9 tumor marker
+  Observations. Sample emit FHIR-valid (JP_Observation_LabResult
+  profile satisfied). RT Procedure / chemo cycle / perinatal chain
+  remain in #957 for later slices. Classification: **PATCH** —
+  data-only additions, no simulation-logic change, no RNG shift.
+  Author: Claude. Partial #957.
+- **Issue #965 — Death-certificate + death-discharge-summary
+  Compositions for deceased inpatients.** New per-section LLM
+  refinement pipeline for 死亡診断書 (LOINC 64297-5) and
+  死亡退院サマリー (LOINC 34133-9 extended) with 8+ section templates
+  (autopsy status/findings, circumstances of death, complications &
+  comorbidities, family communication, terminal course, treatment
+  course, admission state). Closes #961.
+- **Issue #972 — JP routine 定期予防接種 schedule + chronic-condition
+  birthDate gate.** Adds age-appropriate pediatric immunization
+  schedule per MHLW 予防接種法 (Hib / PCV13 / DPT-IPV / MR / VZV / JEV);
+  clamps `Condition.onsetDateTime` at `birthDate` per Issue #968.
+  Closes #917, #968.
+- **Issue #954 — Missing procedure catalog entries.** Adds PCI (K546),
+  pacemaker implant (K597), craniotomy (K169), ileus tube (K380),
+  and bowel resection (K7161) to the procedure emit catalog.
+  Closes #939.
+- **Issue #951 — Anthropometric vitals emission.** Emits height,
+  weight, BMI, and (pediatric) head-circumference `Observation`s per
+  visit across every venue. Closes #946.
+- **Issue #955 — AllergyIntolerance NKA + polyallergy support.**
+  Emits explicit "no known allergies" positive assertion when the
+  patient's allergy list is empty; supports multi-allergen patients
+  with distinct `AllergyIntolerance` resources per allergen.
+  Closes #942.
+- **Issue #952 — `hospitalization.admitSource` + `dischargeDisposition`
+  dual-slot fix.** Restores populated fields on all 703 IMP encounters
+  via `_build_hosp_concept` with the dual-slot (EN coding + locale
+  text) pattern. Closes #941.
+- **Issue #953 — Universal post-snapshot event filter.** New bundle-
+  layer filter drops any resource whose `effectiveDateTime` /
+  `authoredOn` / `performedDateTime` falls after `snapshot_date`,
+  including cascade-generated MedAdmin / DR entries that pre-date
+  fixes only propagate at emit time. Closes #945.
+
 ### Fixed
+
+- **Issue #909 — Per-patient singleton Observation ids leaked the
+  Patient hex tail.** 32,690 records (2.63 % of all Observations)
+  across the alcohol / smoking / occupation / blood-abo / blood-rh /
+  carelevel families had `.id` whose 12-hex tail was byte-identical
+  to `Patient.id`'s tail — trivially recovering the patient link.
+  Root cause: both `resolve_patient_id` and each family's opaque-id
+  resolver hashed the same unsalted `patient_id` string, so
+  `sha256(patient_id)[:12]` reappeared in both slots. Fix: salt each
+  family's hash input with its observation-key kind slug
+  (`blood-abo-observation-key:{patient_id}` etc.) so `.id` diverges
+  from `Patient.id` and from every other family. Identifier.value
+  kept equal to `patient_id` so consumers keep the same round-trip
+  path via the `Identifier.system` URI. Regression test parametrized
+  over all 6 families verifies the tails diverge. Classification:
+  **PATCH** — 6 families' `.id` values change, no other fields
+  touched. Closes #909.
+- **Issue #918 — ImagingStudy series-as-studies duplication.**
+  780 same-encounter same-description pairs within 60 min (189
+  head-CT pairs within 30 min) and 0 pairs in the 1-6 h bucket —
+  the tell-tale hole between "series-as-studies" cluster and
+  legitimate repeat imaging (≥ 6 h). Extreme audit sample
+  `pt-02ee09c03138`: 3 head-CTs at 21:20 / 21:37 / 21:40 (medically
+  impossible on one scanner). Fix: extend the Issue #822 dedup with
+  a wider `(encounter, modality, body_site) within
+  _SERIES_AS_STUDIES_WINDOW_MIN (60 min)` criterion; gated to
+  CT / MR / US / XA (CR chest-X-ray legitimate ICU repeats left
+  alone). Regression tests cover the audit shape + retention of
+  legitimate 6h-apart repeats. Classification: **PATCH** — no CIF
+  Order records deleted, only the redundant ImagingStudyRecord.
+  Closes #918.
+- **Issue #916 — 43 % of Conditions were ICD-10 Z-chapter
+  visit-reason codes.** 14,384 / 33,188 Conditions were Z09
+  (follow-up) / Z00.0 (checkup) / Z23 (immunization) / Z12.x /
+  Z13.5 pseudo-diagnoses, every one emitted as `clinicalStatus=resolved`
+  with same-day `abatementDateTime` — polluting the problem list
+  with non-diseases. Fix: new `is_visit_reason_zcode` predicate
+  (Z00-Z02 / Z09 / Z11-Z13 / Z23 / Z25-Z29 / Z71 / Z76 base bands;
+  Z80-Z99 personal-history / device-presence codes preserved as
+  clinical facts). Gated three emission paths in `conditions.py` +
+  `encounter.py` on the predicate: Condition primary/admission emit
+  skipped, `reasonReference` and `diagnosis[]` refs suppressed so no
+  dangling refs remain. `Encounter.reasonCode` still carries the
+  Z-code text + coding. Verified JP p=100: 0/179 Conditions carry
+  any Z-code (was ~43 %). Classification: **MINOR** — Condition
+  resource count drops by ~43 % (`33,188 → ~18,804`), so cohort
+  totals differ. Closes #916.
+- **Issue #911 — AVPU + GCS sampled independently produced 52 %
+  same-day contradictions (6,152 `AVPU=U + GCS=15` impossible
+  pairs).** Three coordinated fixes: (1) `nursing_enricher.py` skips
+  GCS emission on vitals without AVPU (removes default-A
+  `GCS ≈ 15` records that were unpaired against real AVPU); (2)
+  `vitals_pipeline.py` stabilizes AVPU per (patient, day) via an
+  isolated per-day sub-RNG from `sha256("avpu:<patient>:<day>")` —
+  master-rng consumption preserved by still calling `_loc_for(state,
+  disease_id, day, rng)` and discarding (pattern per
+  `feedback_rng_neutral_additive_field`); (3) `nursing.py` sets
+  GCS = 15 strictly for AVPU = A (jitter skipped; `rng.integers`
+  draw still consumed to preserve stream shape). Verified JP p=200:
+  in-range % 48 → **100 %** across all AVPU categories, median GCS
+  now 15 / 13 / 9 by category (was 14 across every category).
+  Classification: **MINOR** — vitals `consciousness_level` /
+  `gcs_score` values change per patient-day. Closes #911.
+- **Issue #913 — MedicationAdministration ignored parent
+  MR.timing.repeat.frequency in 76.5 % of prescriptions.** MAR ran
+  on a hardcoded drug-name / route dispatch and defaulted to TID
+  (3/day) for oral drugs regardless of prescription frequency, so
+  amlodipine 1/day emitted 3 admins/day (3× on-chart over-dose
+  signature; 100 % of amlodipine / atorvastatin / candesartan /
+  clopidogrel / apixaban / lansoprazole / vitamin D / metformin /
+  tiotropium prescriptions mismatched their own MR). Fix: new
+  `_admin_hours_from_frequency` helper maps prescribed per-day
+  frequency to MAR admin slots (1→[8], 2→[8,20], 3→[8,14,20],
+  4→[0,6,12,18], 6→q4h, 8→q3h, ≥12→q4h cap for continuous
+  infusions — cap reflects real MAR practice for drips). Ordering:
+  antibiotic clinical-override (Q6H β-lactam combos + Q8H
+  carbapenem / adv-cephalosporin) → `order.frequency_per_day` →
+  legacy drug-name fallback. Verified JP p=100: match rate
+  23.5 % → **63.6 %**, under-admin 16.3 % → **0.0 %**.
+  Classification: **MINOR** — MedAdmin count per medication order
+  changes; downstream Composition / discharge-summary references
+  propagate. Closes #913.
+- **Issue #914 (Bucket A) — Pyelonephritis 4-drug template
+  eliminated.** Pre-fix ~90 % of acute pyelonephritis admissions
+  received ≥3 antibiotics simultaneously, with 72/92 receiving the
+  identical 4-drug template Ceftriaxone + Cefcapene + Meropenem +
+  Levofloxacin. Two root causes: (1) UTI's `discharge_oral` listed
+  two alternative oral agents without an `exclusive_classes`
+  marker → both emitted; (2) unconditional `escalation` trigger on
+  day-3 non-improvement fired the entire escalation drug list
+  regardless of clinical criteria. Fix: UTI `discharge_oral` now
+  declares `exclusive_classes: ["oral_antibiotic"]` with per-entry
+  `drug_class` + probability weights (Levofloxacin 0.65 / Cefcapene
+  0.35 JP; Cipro 0.55 / TMP-SMX 0.45 US). Escalation entries gain
+  an optional `probability` field consumed by the daily-loop branch
+  (Meropenem 0.4 JP, Meropenem 0.4 + Pip-Tazo 0.2 US → ~15 %
+  effective escalation, matching IDSA UTI 2010 / JP 尿路感染症 GL
+  2015). Verified JP p=300: 4-drug template 72 → **0**; IMP ≥3-drug
+  rate 24.5 % → **11.8 %**; 急性腎盂腎炎 ≥3-drug 90 % → **0 %**.
+  Bucket B (antibiotics on non-infectious encounters — hypertension /
+  dyslipidemia / stable COPD) remains as follow-up in #914.
+  Classification: **MINOR** — antibiotic emit rate + escalation
+  rate shift per-encounter. Partial #914.
+- **Issue #964 — Practitioner qualification population.**
+  Populates `Practitioner.qualification` for non-MD / RN roles
+  (technicians, therapists, dietitians) with regulatory-appropriate
+  identifiers. Closes #962.
+- **Issue #970 — MedicationRequest.authoredOn timing invariant.**
+  Ensures `MR.authoredOn` precedes every linked MedicationAdministration
+  `effectiveDateTime`, restoring the temporal ordering guarantee.
+  Closes #967.
+- **Issue #973 — IV MedicationRequest infusion rate emission.**
+  Populates `dosageInstruction.doseAndRate.rateQuantity` for
+  continuous drips and `timing.repeat.duration` for bolus antibiotics
+  via `iv_infusion_defaults.yaml`. Closes #966.
+- **Issue #974 — Encounter.reasonCode ⊆ diagnosis[] invariant.**
+  Ensures every `reasonCode.text` has a matching Condition in
+  `diagnosis[]`. Closes #912 (encounter-side sibling of
+  conditions-side #912 fix).
+- **Issue #975 / #976 — Practitioner allocation balance + surgery
+  roster scaling.** Corrects staff allocation across the full roster
+  and scales surgery roster to catchment volume. Closes #915,
+  #975 GS residual.
+- **Issue #977 — I25 (ischemic heart disease) 70+ chronic prevalence
+  further tuning (0.06 → 0.04).** Follow-up to #969 that landed
+  emitted marginal at 15.3 % (above JCS 2018 ~10 % benchmark);
+  measured amplification is ~3× not the assumed ~1.7-2.5×. Adjusts
+  `chronic_prevalence.I25["70-99"]` + audit script mirror. Emitted
+  marginal now 12.0 %, within JCS 2018 5-15 % range. Closes #969
+  follow-up.
+- **Issue #978 — ServiceRequest.authoredOn ≤ DR.issued invariant.**
+  Sibling of #967: ensures `SR.authoredOn` precedes every linked
+  `DiagnosticReport.issued`. Closes #971.
+- **Issue #949 — ICD-10 sex-lock dispatch.** Sex-gates ICD-10
+  dispatch to eliminate anatomically-impossible diagnoses (e.g. male
+  patients with pregnancy codes). Closes #947.
+- **Issue #950 — Adult social-history age gate.** Adult smoking /
+  alcohol / LTCI carelevel Observations are now suppressed for
+  pediatric patients (< adolescence). Closes #938, #940.
+
+### Narrative CIF
+
+- **Issue #987 — Vitals prepended to physical_examination narrative
+  + chief complaint × physical exam consistency guard.** Closes
+  #979, #980.
+- **Issue #988 — ED workup / disposition from CIF orders + FamilyHistory
+  narrative + 100+ per-disease chief-complaint variants.** Closes
+  #981, #982, #983.
+- **Issue #989 — HPI enrichment (ROS / home meds / prior care) +
+  assessment personalization (patient-specific values) + discharge
+  instructions expansion (32 disease templates).** Closes #984, #985,
+  #986.
+
+### LLM prompts
+
+- **Issue #993 — LLM refinement enabled for referral_note (紹介状).**
+  `template_only` → `template_seed_bundle` refinement path. Closes
+  #990.
+- **Issue #994 — PROCEDURE_NOTE (処置記録, LOINC 28570-0) DocumentType +
+  LLM refinement pipeline.** Closes #992.
+- **Issue #995 — OPERATIVE_NOTE (手術記録, LOINC 11504-8) DocumentType +
+  LLM refinement pipeline.** Closes #991.
+- **Issue #996 — LLM prompt v11 → v12 bundle cross-ref cleanup + full
+  audit report.**
+- **Issue #1001 — 14 dormant per-task prompts marked as reserved +
+  DDS autopsy naming drift fix + missing DDS complications prompt.**
+  Closes #999, #1000.
+- **Issue #1002 — Per-doc-type LLM guidance blocks for operative_note /
+  procedure_note / death_certificate / death_discharge_summary in
+  `narrative_seed_bundle.yaml` v13.** Closes #997, #998.
 
 - **Issue #912 — Inpatient `Encounter.reasonCode` orphaned from
   `Encounter.diagnosis[]`.** Pre-fix, 35.7 % (30/84) of IMP encounters
