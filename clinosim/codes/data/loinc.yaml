@@ -637,3 +637,17 @@ codes:
   2857-1:
     en: Prostate specific Ag
     ja: PSA（前立腺特異抗原）
+  # Therapeutic drug monitoring (Issue #757 remaining). Codes verified
+  # against NLM Clinical Table Search Service LOINC API (2026-08).
+  10535-3:
+    en: Digoxin
+    ja: ジゴキシン血中濃度
+  14334-7:
+    en: Lithium
+    ja: リチウム血中濃度
+  27069-5:
+    en: Tacrolimus
+    ja: タクロリムス血中濃度（トラフ）
+  3521-2:
+    en: Cyclosporine
+    ja: シクロスポリン血中濃度（トラフ）

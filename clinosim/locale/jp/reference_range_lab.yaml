@@ -165,3 +165,14 @@ ranges:
     - {low: 0, high: 30.0, unit: "U/mL", text: "一般基準値（女性乳癌フォローアップ）"}
   PSA:
     - {low: 0, high: 4.0, unit: "ng/mL", text: "60歳未満一般基準値（男性のみ、60歳以上は < 6.5）", sex: "M"}
+
+  # === 薬物血中濃度モニタリング (Issue #757 remaining) ===
+  # 治療域 (therapeutic range) を low/high で表現。治療域外は H/L flag。
+  Digoxin:
+    - {low: 0.5, high: 2.0, unit: "ng/mL", text: "治療域（DIG trial 目標 0.5-0.9）"}
+  Lithium:
+    - {low: 0.6, high: 1.2, unit: "mmol/L", text: "治療域（維持量 0.6-1.2 mmol/L）"}
+  Tacrolimus:
+    - {low: 5.0, high: 20.0, unit: "ng/mL", text: "移植種別により目標域変動あり、初期は 10-15、維持で 5-10"}
+  Ciclosporin:
+    - {low: 100, high: 300, unit: "ng/mL", text: "トラフ値、移植種別により目標域変動あり"}

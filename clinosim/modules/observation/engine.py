@@ -244,6 +244,12 @@ LAB_UNITS: dict[str, str] = {
     "PIVKA_II": "mAU/mL",
     "CA15_3": "U/mL",
     "PSA": "ng/mL",
+    # Issue #757 remaining: drug-level monitoring (digoxin / lithium /
+    # tacrolimus / ciclosporin).
+    "Digoxin": "ng/mL",
+    "Lithium": "mmol/L",  # UCUM canonical for mEq/L on lithium
+    "Tacrolimus": "ng/mL",
+    "Ciclosporin": "ng/mL",
 }
 
 
@@ -302,6 +308,15 @@ BASELINE_LAB_NORMALS: dict[str, float] = {
     "PIVKA_II": 20,  # mAU/mL (upper normal < 40 mAU/mL)
     "CA15_3": 18,  # U/mL (upper normal < 30 U/mL)
     "PSA": 1.5,  # ng/mL (upper normal < 4 ng/mL, male only)
+    # Issue #757 remaining mappings: drug-level monitoring analytes.
+    # Baseline values sit in the mid-therapeutic band for each drug, so a
+    # patient on stable dosing shows a "therapeutic-range" (interpretation=N)
+    # value on the FHIR referenceRange emit. Sub-therapeutic and toxic
+    # excursions are a separate physiology extension (deferred).
+    "Digoxin": 1.0,  # ng/mL (therapeutic 0.5-2.0 ng/mL)
+    "Lithium": 0.8,  # mEq/L (therapeutic 0.6-1.2 mEq/L)
+    "Tacrolimus": 8.0,  # ng/mL (trough therapeutic 5-20 ng/mL)
+    "Ciclosporin": 150,  # ng/mL (trough therapeutic 100-300 ng/mL)
 }
 
 
