@@ -189,3 +189,130 @@ def test_chemo_events_actually_emit_in_healthcare_calendar() -> None:
         assert e.condition_type == "chemo_infusion", e
         assert e.protocol_source.startswith("chemo_regimens:"), e
         assert e.encounter_type == "outpatient", e
+
+
+# ---------------------------------------------------------------------------
+# Per-cycle drug MedicationRequest + MedicationAdministration emit
+# ---------------------------------------------------------------------------
+
+
+def test_chemo_visit_emits_per_cycle_medication_order_and_admin() -> None:
+    """Regression: every ``chemo_visit`` outpatient encounter must emit
+    (a) one ``Order`` (order_type=MEDICATION) per drug on the regimen's
+    ``cycle_orders`` list, and (b) one ``MedicationAdministration``
+    record per drug, with matching ``order_id``.
+
+    Slice-1 upgrade (session 94): moved from Encounter+Procedure only
+    to full per-cycle MedicationRequest + MedicationAdministration
+    emission so downstream consumers computing "drug-days of chemo"
+    or "cycles of X received" get real numbers instead of derived
+    approximations.
+    """
+    from datetime import datetime
+
+    from clinosim.modules.staff.engine import StaffRoster
+    from clinosim.simulator.outpatient import _simulate_outpatient_visit
+    from clinosim.types.encounter import OrderType
+    from clinosim.types.patient import PatientProfile
+
+    patient = PatientProfile(patient_id="POP-000001", sex="M", age=68)
+    visit_dt = datetime(2024, 4, 15, 10, 0)
+    chemo_spec = {
+        "labs": [],
+        "visit_reason": {"en": "Chemotherapy infusion", "ja": "化学療法・点滴投与"},
+        "chemo_regimen_name": "LHRH_q28d",
+        "chemo_regimen": {
+            "cycle_interval_days": 28,
+            "course_cycles": 12,
+            "cycle_orders": [
+                {"drug": "Leuprorelin", "drug_ja": "リュープロレリン", "dose": "3.75mg", "route": "SC"},
+            ],
+        },
+        "chemo_procedure": {"jp_code": "G003", "us_code": "96413", "duration_minutes": 60},
+    }
+    record = _simulate_outpatient_visit(
+        patient=patient,
+        visit_type="chemo_visit",
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        chronic_code="C61",
+        followup_spec=chemo_spec,
+        country="JP",
+        department_id="internal_medicine",
+    )
+
+    # Order side: one MEDICATION order per cycle drug
+    med_orders = [o for o in record.orders if o.order_type == OrderType.MEDICATION]
+    assert len(med_orders) == 1, f"expected 1 med order per cycle drug, got {len(med_orders)}"
+    order = med_orders[0]
+    assert order.display_name == "Leuprorelin"
+    assert order.route == "SC"
+    assert order.dose_text_en == "3.75mg"
+    assert order.dose_text_ja == "3.75mg"
+    assert order.duration_days == 1  # cycle-day-only administration
+    assert order.encounter_id == record.encounters[0].encounter_id
+    assert order.clinical_intent.startswith("Chemotherapy cycle:")
+    assert order.clinical_intent_ja.startswith("化学療法サイクル:")
+
+    # MAR side: one MedicationAdministration per drug, linked by order_id
+    assert len(record.medication_administrations) == 1
+    mar = record.medication_administrations[0]
+    assert mar.order_id == order.order_id
+    assert mar.drug_name == "Leuprorelin"
+    assert mar.status == "given"
+    assert mar.dose == "3.75mg"
+    assert mar.route == "SC"
+
+
+def test_chemo_visit_multi_drug_regimen_emits_one_order_and_mar_per_drug() -> None:
+    """Multi-drug regimen (FOLFOX: 3 drugs) must produce 3 Orders + 3
+    MedicationAdministrations, all linked to the same encounter."""
+    from datetime import datetime
+
+    from clinosim.modules.staff.engine import StaffRoster
+    from clinosim.simulator.outpatient import _simulate_outpatient_visit
+    from clinosim.types.encounter import OrderType
+    from clinosim.types.patient import PatientProfile
+
+    patient = PatientProfile(patient_id="POP-000042", sex="F", age=65)
+    visit_dt = datetime(2024, 5, 1, 10, 0)
+    chemo_spec = {
+        "labs": [],
+        "visit_reason": {"en": "Chemotherapy infusion", "ja": "化学療法・点滴投与"},
+        "chemo_regimen_name": "FOLFOX",
+        "chemo_regimen": {
+            "cycle_interval_days": 14,
+            "course_cycles": 12,
+            "cycle_orders": [
+                {"drug": "Oxaliplatin", "drug_ja": "オキサリプラチン", "dose": "85mg/m2", "route": "IV"},
+                {"drug": "Leucovorin", "drug_ja": "ロイコボリン", "dose": "400mg/m2", "route": "IV"},
+                {"drug": "5-FU", "drug_ja": "フルオロウラシル", "dose": "400mg/m2 bolus", "route": "IV"},
+            ],
+        },
+        "chemo_procedure": {"jp_code": "G003", "us_code": "96413", "duration_minutes": 60},
+    }
+    record = _simulate_outpatient_visit(
+        patient=patient,
+        visit_type="chemo_visit",
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        chronic_code="C18",
+        followup_spec=chemo_spec,
+        country="JP",
+        department_id="internal_medicine",
+    )
+
+    med_orders = [o for o in record.orders if o.order_type == OrderType.MEDICATION]
+    assert len(med_orders) == 3, f"expected 3 med orders (FOLFOX has 3 drugs), got {len(med_orders)}"
+    assert len(record.medication_administrations) == 3
+    # order_id ↔ MAR.order_id 1:1 pairing
+    order_ids = {o.order_id for o in med_orders}
+    mar_order_ids = {m.order_id for m in record.medication_administrations}
+    assert order_ids == mar_order_ids, (
+        f"Order.order_id ↔ MAR.order_id mismatch: orders={order_ids} mars={mar_order_ids}"
+    )
+    # All drugs represented
+    assert {o.display_name for o in med_orders} == {"Oxaliplatin", "Leucovorin", "5-FU"}
+    assert {m.drug_name for m in record.medication_administrations} == {"Oxaliplatin", "Leucovorin", "5-FU"}

@@ -182,6 +182,24 @@ before re-tagging. Everything below stays queued under
   Procedure per pregnancy-year; CIF ↔ narrative-CIF byte-identity
   is broken for Z34 patients only, fresh `narrate` required for
   them. Author: Claude. Partial #957.
+- **Issue #957 (Tier-3-A slice 2) — Chemotherapy per-cycle
+  MedicationRequest + MedicationAdministration.** Extends slice 1
+  (Encounter + Procedure only) to also emit one `Order`
+  (order_type=MEDICATION → FHIR MedicationRequest) and one
+  `MedicationAdministration` per drug on the regimen's
+  `cycle_orders` list. Any consumer computing "cycles of X received"
+  or "drug-days of chemo" now gets real records instead of a
+  derived approximation. Verified JP p=5000 seed=1: **381 chemo
+  encounters × cycle drugs = 609 CIF MARs + 609 CIF Orders**
+  (Trastuzumab_q3w single-drug regimen dominant); FHIR-side
+  MedicationAdministration / MedicationRequest per-drug counts
+  match. Nurse assignment uses the same `medication_administration
+  / department` staffing pool as inpatient MAR. 2 new tests:
+  single-drug + multi-drug (FOLFOX) regimens both assert 1 Order
+  + 1 MAR per drug with matching `order_id`. Classification:
+  **MINOR** — new MedicationRequest + MedicationAdministration
+  resources on chemo_visit encounters (scoped to cancer patients
+  with an active regimen only). Author: Claude. Partial #957.
 - **Issue #957 (Tier-3-A slice 1) — Chemotherapy cycle scheduling.**
   Real chemo regimens are cycle-based (FOLFOX q14d, CarboPem q21d,
   Trastuzumab q3w, LHRH q28d), not continuous daily therapy. Pre-fix
