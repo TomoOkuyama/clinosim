@@ -1041,6 +1041,38 @@ def run_beta(
             patient_records.extend(delivery_records)
             n_calendar += 1
             continue
+        elif event.event_type == "chemo_visit":
+            # Issue #957 Tier-3-A: chemo cycle visit dispatch. Uses the
+            # existing outpatient visit builder with a chemo-specific
+            # followup_spec so the encounter emits with the regimen's
+            # visit_reason + department + a Procedure record for the
+            # chemotherapy administration. Per-cycle drug MedicationRequest
+            # / MedicationAdministration is a follow-up slice.
+            regimen_name = event.protocol_source.split(":", 1)[1] if ":" in event.protocol_source else ""
+            from clinosim.locale.loader import load_chemo_regimens
+
+            chemo_data = load_chemo_regimens()
+            regimen = (chemo_data.get("regimens") or {}).get(regimen_name) or {}
+            chemo_spec: dict = {
+                "labs": [],  # cycle labs are captured on the sibling chronic_visit; keep chemo_visit lean
+                "visit_reason": (chemo_data.get("encounter") or {}).get("visit_reason") or "Chemotherapy infusion",
+                "chemo_regimen_name": regimen_name,
+                "chemo_regimen": regimen,
+                "chemo_procedure": chemo_data.get("procedure") or {},
+            }
+            chemo_dept = resolve_outpatient_department("chemo_visit", event.disease_id, None, hospital_ops)
+            opd_record = _simulate_outpatient_visit(
+                patient,
+                "chemo_visit",
+                visit_time,
+                roster,
+                ev_rng,
+                chronic_code=event.disease_id,
+                followup_spec=chemo_spec,
+                country=config.country,
+                config=config,
+                department_id=chemo_dept,
+            )
         elif event.event_type == "health_screening":
             # F1: visit_reason must vary by disease_id — see the
             # ev_key comment above. Previously every health_screening dispatch

@@ -410,6 +410,39 @@ def _simulate_outpatient_visit(
     # deterministic sub-rng from the encounter id so downstream RNG is
     # untouched (feedback_rng_neutral_additive_field pattern).
     procedures_list: list = []
+
+    # Issue #957 Tier-3-A: chemotherapy administration Procedure emit for
+    # chemo_visit encounters. Fires unconditionally (every chemo cycle
+    # visit administers chemo; there's no "chemo visit that didn't
+    # administer"). Uses the JP/US billing code from chemo_regimens.yaml
+    # ``procedure`` block. Per-cycle drug MedicationRequest / MAR is a
+    # follow-up slice — this slice closes the "0 chemo cycle events at
+    # regimen cadence" gap by emitting the Encounter + Procedure pair.
+    if visit_type == "chemo_visit" and spec.get("chemo_regimen"):
+        from clinosim.modules._shared import is_jp
+        from clinosim.types.procedure import ProcedureRecord
+
+        _chemo_proc = spec.get("chemo_procedure") or {}
+        _chemo_code_jp = str(_chemo_proc.get("jp_code") or "")
+        _chemo_code_us = str(_chemo_proc.get("us_code") or "")
+        _chemo_dur_min = int(_chemo_proc.get("duration_minutes") or 60)
+        _chemo_code = _chemo_code_jp if is_jp(country) else _chemo_code_us
+        _chemo_start = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
+        procedures_list.append(
+            ProcedureRecord(
+                procedure_id=f"PROC-{patient.patient_id}-CHEMO-{encounter.encounter_id[:8]}",
+                patient_id=patient.patient_id,
+                encounter_id=encounter.encounter_id,
+                procedure_type="chemotherapy_administration",
+                procedure_code=_chemo_code,
+                procedure_code_jp=_chemo_code_jp,
+                procedure_code_us=_chemo_code_us,
+                start_datetime=_chemo_start,
+                end_datetime=_chemo_start + timedelta(minutes=_chemo_dur_min),
+                primary_surgeon_id=encounter.attending_physician_id,
+            )
+        )
+
     if chronic_code and spec.get("radiation_therapy_eligible"):
         import hashlib
 
