@@ -3154,32 +3154,50 @@ specialty, how many beds per ward) was hardcoded or randomly assigned. This crea
 size labels.</p>
 <hr />
 <h2 id="65-updated-module-list">6.5 Updated module list<a class="headerlink" href="#65-updated-module-list" title="Permanent link">&para;</a></h2>
-<p>The current module count has grown beyond v0.1-alpha:</p>
+<p>The v0.1-alpha module snapshot has grown into <strong>33 top-level
+packages under <code>clinosim/modules/</code></strong> plus the <code>codes/</code> + <code>locale/</code> +
+<code>types/</code> foundation packages. Canonical inventory (with layer,
+sub-seed offset, and enricher stage/order per module) lives in
+<a href="../../MODULES.md"><code>../../MODULES.md</code></a>; the sketch below groups
+current modules by layer for quick orientation:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>clinosim/
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── codes/                  ★ NEW (AD-30, AD-33, AD-35)
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├── locale/
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├── config/
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├── types/
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── codes/                  ★ International code systems (AD-30/33/35)
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├── locale/                 Country-specific data (jp/, us/, shared/)
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├── config/                 Hospital + LLM-service YAMLs
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├── types/                  Shared data types (Pydantic + dataclass)
 </span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>├── modules/
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│   ├── disease/            (32 disease YAMLs)
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│   ├── encounter/          (46 ED/outpatient YAMLs)
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│   ├── physiology/
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│   ├── clinical_course/
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>│   ├── diagnosis/
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>│   ├── observation/
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>│   ├── order/
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>│   ├── procedure/          ★ NEW (was empty, now 15 bedside procedures)
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>│   ├── population/
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>│   ├── patient/
-</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>│   ├── staff/              (ward-aware after AD-34)
-</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>│   ├── facility/           ★ NEW README (M/M/1 queueing)
-</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>│   ├── healthcare_system/
-</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>│   ├── output/             (Bulk Data NDJSON after AD-31)
-</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>│   ├── llm_service/
-</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>│   └── validator/
-</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>└── simulator/              (orchestration: engine, inpatient, emergency, outpatient)
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│   ├── (Simulation)        physiology (14-var), observation, order,
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│   │                       clinical_course, diagnosis, procedure,
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│   │                       encounter (46 YAMLs), disease (32 YAMLs)
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│   ├── (Population)        population, patient, identity, pediatric,
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>│   │                       staff, facility, healthcare_system,
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>│   │                       family_history, sdoh
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>│   ├── (Enrichment)        POST_POPULATION: allergy, identity
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>│   │                       POST_ENCOUNTER: device, hai, antibiotic,
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>│   │                                       imaging, triage,
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>│   │                                       nursing_assignment, document
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>│   │                       POST_RECORDS:  nursing, immunization,
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>│   │                                      family_history, code_status,
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>│   │                                      care_level, monitoring,
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>│   │                                      health_checkup
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>│   └── (Output)            output (FHIR R4 Bulk NDJSON per AD-31,
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>│                                    split into per-theme builder
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>│                                    subpackages), llm_service,
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>│                                    validator
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>└── simulator/              Top-level orchestration
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>                            (engine, inpatient, emergency, outpatient,
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>                             enrichers.py registry per AD-56)
 </span></code></pre></div>
-<p>Each module has its own README.md with API reference and design notes.</p>
+<p>Each module has its own <code>README.md</code> (+ <code>README.ja.md</code> mirror) with
+API reference, sub-seed convention, enricher wiring, and extension
+notes. Longitudinal service lines added in the v0.5.x → v0.6.0
+window — oncology (10 cancer sites, chemo regimen cycles, radiation
+Procedure, tumor-marker labs) and obstetrics (delivery Encounter
+with Z37.0, newborn Patient chain with Z38.0, postpartum × 2,
+abortion outcome) — live inside the existing modules (population +
+patient + encounter + disease + order + procedure + output/fhir_r4)
+rather than as new top-level modules; see
+<a href="../../reference/oncology-obstetric-service-lines/"><code>../reference/oncology-obstetric-service-lines.md</code></a>.</p>
 <hr />
 <h2 id="66-realistic-vital-sign-measurement-patterns">6.6 Realistic vital sign measurement patterns<a class="headerlink" href="#66-realistic-vital-sign-measurement-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="problem_4">Problem<a class="headerlink" href="#problem_4" title="Permanent link">&para;</a></h3>

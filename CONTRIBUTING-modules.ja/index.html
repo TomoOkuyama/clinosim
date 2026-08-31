@@ -2865,7 +2865,7 @@
 <p>このドキュメントは、新しいコントリビューターが clinosim に <strong>モジュール/プラグインを追加し、データを生成し、どのデータ/コードを使うかを正しく選択する</strong> ための実践 playbook です。アーキテクチャ原則 (ADR) は <code>DESIGN.md</code>、規約の総覧は <code>AGENTS.md</code> を参照してください。本書はそれらと重複せず、<strong>HOW-TO</strong> に集中します。</p>
 <blockquote>
 <p><strong>本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心</strong> です。<strong>FHIR builder layer(Layer 4 = <code>_fhir_*.py</code>)を追加・拡張する場合は</strong> <a href="../design-guides/fhir-data-generation-logic/"><code>docs/design-guides/fhir-data-generation-logic.md</code></a> を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。</p>
-<p><strong>新規モジュール作成時</strong>: <a href="../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a> をコピーして開始。全 30 module(counting rule: <code>clinosim/modules/</code> 配下の package 数。<code>_shared.py</code> 等の非 package ファイルは含まない)の俯瞰は <a href="../MODULES.md"><code>MODULES.md</code></a> を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は <a href="../design-guides/"><code>docs/design-guides/README.md</code></a> を参照。</p>
+<p><strong>新規モジュール作成時</strong>: <a href="../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a> をコピーして開始。全 33 module(counting rule: <code>clinosim/modules/</code> 配下の package 数。<code>_shared.py</code> 等の非 package ファイルは含まない)の俯瞰は <a href="../MODULES.md"><code>MODULES.md</code></a> を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は <a href="../design-guides/"><code>docs/design-guides/README.md</code></a> を参照。</p>
 </blockquote>
 <p>実コードの正本パス:
 - Enricher registry: <code>clinosim/simulator/enrichers.py</code>

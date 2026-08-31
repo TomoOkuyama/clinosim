@@ -2503,7 +2503,7 @@
 NDJSON エクスポート内の FHIR R4 <code>DocumentReference</code> リソースとして。</p>
 <p>本ガイドがカバーする範囲:</p>
 <ul>
-<li><a href="#document-scope">5 つの文書種別と生成タイミング</a></li>
+<li><a href="#document-scope">emit される文書種別と生成タイミング</a></li>
 <li><a href="#fhir-mapping">LOINC マッピングと FHIR フィールド</a></li>
 <li><a href="#workflow">エンドツーエンドワークフロー</a></li>
 <li><a href="#prompts">プロンプトテンプレートの記述と編集</a></li>
@@ -2513,10 +2513,16 @@ NDJSON エクスポート内の FHIR R4 <code>DocumentReference</code> リソー
 </ul>
 <hr />
 <h2 id="document-scope">Document scope<a class="headerlink" href="#document-scope" title="Permanent link">&para;</a></h2>
-<p>Milestone 1 は 2 tier に構成された <strong>5 つの文書種別</strong> を生成します。
-Progress Note (LOINC 11506-3) は enum に定義されているが、実世界の
-progress note が構造化 vitals/labs/MAR レイヤと重複度が高いため、
-将来の Tier C opt-in として予約されています。</p>
+<p>clinosim の LLM service enum <code>LLMTaskType</code>
+(<code>clinosim/modules/llm_service/engine.py</code>) は 20+ の NARRATIVE task type
+と 4 つの JUDGMENT task type を定義しています。うち <strong>prompt YAML →
+template pass → DocumentReference emit path で end-to-end 配線済みの
+サブセット</strong>が以下の 8 文書種別で、いずれも
+<code>clinosim/modules/llm_service/prompts/{en,ja}/</code> に EN + JA prompt YAML
+を持ちます。Progress Note (LOINC 11506-3) は enum 定義済ながら、実世界
+の progress note が構造化 vitals/labs/MAR レイヤと重複度が高いため
+将来の Tier C opt-in として予約。nursing / outpatient / ED / care-plan /
+health-checkup 系 NARRATIVE type も同様に将来 phase 用に enum のみ宣言。</p>
 <table>
 <thead>
 <tr>
@@ -2532,14 +2538,28 @@ progress note が構造化 vitals/labs/MAR レイヤと重複度が高いため�
 <td>A</td>
 <td>Discharge Summary</td>
 <td><code>18842-5</code></td>
-<td>完了した各入院エンカウンター</td>
+<td>完了した各入院エンカウンター (非死亡)</td>
 <td>1</td>
 </tr>
 <tr>
 <td>A</td>
-<td>Death Note</td>
+<td>Death Summary</td>
 <td><code>69730-0</code></td>
 <td><code>record.deceased = true</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Death Discharge Summary</td>
+<td><code>18842-5</code> (specialized title)</td>
+<td><code>record.deceased = true</code> — 死亡症例で通常の退院サマリを置換 (Issue #961)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Death Certificate</td>
+<td><code>64297-5</code></td>
+<td><code>record.deceased = true</code> — 医師法第 20 条 mandate (Issue #961)</td>
 <td>1</td>
 </tr>
 <tr>
@@ -2562,6 +2582,13 @@ progress note が構造化 vitals/labs/MAR レイヤと重複度が高いため�
 <td><code>28570-0</code></td>
 <td>固定 allowlist からの侵襲的ベッドサイド手技</td>
 <td>0..N</td>
+</tr>
+<tr>
+<td>JP</td>
+<td>Referral Note</td>
+<td><code>57133-1</code></td>
+<td><code>country=JP</code> の退院エンカウンターの決定的 20% サブセット (JP-CLINS eReferral、PR2b)</td>
+<td>1</td>
 </tr>
 </tbody>
 </table>

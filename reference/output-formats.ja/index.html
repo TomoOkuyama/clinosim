@@ -2256,6 +2256,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#縦断サービスライン-emit-v05--v060" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        縦断サービスライン emit (v0.5 → v0.6.0)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#含まれる-fhir-r4-フィールド-主要リソース" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2372,12 +2383,48 @@
 </span></code></pre></div>
 <p>各行 = 1 FHIR リソース。<code>Resource.id</code> は全 resource type 横断で一意。
 Reference integrity を維持。</p>
-<p><code>DocumentReference.ndjson</code> は <code>clinosim export-fhir</code> に
-<code>--narrative-version</code> を指定した時 (または
-<code>clinosim simulate --narrative --format fhir</code> で full pipeline を
-実行した時) のみ emit。narrative version なしでは、残りのリソース
-型は通常通り生成。<code>Coverage.ndjson</code> (+ 保険者 <code>Organization</code>) は
-JP かつ保険有効時のみ emit (<code>--jp-insurance</code>、デフォルト on)。</p>
+<p><code>DocumentReference.ndjson</code> は <code>--narrative-version</code> が version
+ディレクトリに解決される時 (default: <code>current</code>、Stage 1 の
+<code>TemplateNarrativePass</code> が維持する <code>current_version.txt</code> ポインタ
+経由) に emit される。narrative version が存在しないときは残りの
+リソース型は通常通り生成。<code>Coverage.ndjson</code> (+ 保険者
+<code>Organization</code>) は JP かつ保険有効時のみ emit
+(<code>--jp-insurance</code>、デフォルト on)。</p>
+<h3 id="縦断サービスライン-emit-v05--v060">縦断サービスライン emit (v0.5 → v0.6.0)<a class="headerlink" href="#縦断サービスライン-emit-v05--v060" title="Permanent link">&para;</a></h3>
+<p>いずれのサービスラインも上記標準リソースファイルを通じて emit —
+新規リソース型は追加していない。サービスラインのスキーマ詳細は
+<a href="../oncology-obstetric-service-lines.ja/"><code>oncology-obstetric-service-lines.ja.md</code></a>
+参照。</p>
+<ul>
+<li><strong>腫瘍</strong> (10 部位: C15 / C16 / C18 / C22 / C25 / C34 / C50 /
+  C61 / C67 / C71、C50 の ~1 % 男性乳がん含む):</li>
+<li>がん慢性マーカー → <code>Condition</code> (ICD-10)。</li>
+<li><code>chemo_visit</code> LifeEvent (config: <code>locale/shared/chemo_regimens.yaml</code>
+    — FOLFOX q14d、CarboPem q21d、Trastuzumab q3w、LHRH q28d) →
+    外来 <code>Encounter</code> + regimen の各薬剤について per-cycle
+    <code>MedicationRequest</code> + <code>MedicationAdministration</code>。</li>
+<li>放射線治療 → <code>Procedure</code>。</li>
+<li>腫瘍マーカー labs (CEA / CA19-9 / AFP / PIVKA-II / CA15-3 /
+    PSA) → <code>Observation</code> (LOINC laboratory)。</li>
+<li><strong>産科</strong> (config: <code>locale/shared/perinatal.yaml</code>):</li>
+<li>Z34 妊娠慢性マーカー → 母親別分娩スケジュール。</li>
+<li>母親側分娩 <code>Encounter</code> (IMP 入院、admit dx Z34、discharge dx
+    Z37.0、分娩 <code>Procedure</code> — JP K894 / US CPT 59400)。</li>
+<li>産褥 encounter × 2 (~1 週 と ~4 週、disease id <code>Z39</code>; config:
+    <code>locale/shared/chronic_followup.yaml</code>)。</li>
+<li>中絶 outcome (age-gate 15-19 → 35-44) — 外来日帰り手術
+    <code>Encounter</code> with O03.9 (自然) or O04.5 (人工)。発火時は
+    delivery + newborn chain を skip。</li>
+<li>新生児 <code>Patient</code> (id <code>&lt;mother&gt;-BABY</code>) を delivery ごとに生成、
+    世帯 + 出生日を母親から継承、性別は per-mother sub-RNG から
+    サンプリング。新生児 <code>Encounter</code> は
+    <code>admit_source = born</code> (新規 <code>AdmitSource.BORN</code> enum member) と
+    <code>Encounter.partOf → Encounter/&lt;母親側 delivery encounter&gt;</code> で
+    link back、discharge dx は <code>Z38.0</code>。</li>
+<li>新生児 perinatal <code>Condition</code>: P59.9 黄疸 ~20 %、P07.3 早産
+    ~7 % (→ 条件付き P22.0 RDS ~35 %)、L22 おむつかぶれ ~30 %、
+    L20.9 アトピー ~15 %。</li>
+</ul>
 <h3 id="含まれる-fhir-r4-フィールド-主要リソース">含まれる FHIR R4 フィールド (主要リソース)<a class="headerlink" href="#含まれる-fhir-r4-フィールド-主要リソース" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

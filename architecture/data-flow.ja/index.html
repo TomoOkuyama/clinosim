@@ -2301,7 +2301,7 @@
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    end
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    subgraph stage3["Stage 3 — clinosim export-fhir"]
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        adapter["fhir_r4_adapter (+ per-theme _fhir_* builders)&lt;br/&gt;structural → 16 FHIR resource types&lt;br/&gt;narratives → DocumentReference (base64)&lt;br/&gt;display text は clinosim.codes 経由"]
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        adapter["fhir_r4_adapter (+ per-theme _fhir_* builder subpackage)&lt;br/&gt;structural → 25+ FHIR resource type&lt;br/&gt;narratives → DocumentReference (base64)&lt;br/&gt;display text は clinosim.codes 経由"]
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        fhir["output/fhir_r4/&lt;br/&gt;HL7 Bulk Data NDJSON + manifest.json"]
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        adapter --&gt; fhir
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    end

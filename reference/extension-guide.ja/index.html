@@ -2308,20 +2308,28 @@
 <h3 id="新規疾患追加">新規疾患追加<a class="headerlink" href="#新規疾患追加" title="Permanent link">&para;</a></h3>
 <ol>
 <li><code>clinosim/modules/disease/reference_data/&lt;disease_id&gt;.yaml</code> を
-   作成 (既存疾患をテンプレートに)</li>
+   作成 (既存疾患をテンプレートに)。</li>
 <li><code>clinosim/locale/&lt;country&gt;/demographics.yaml</code> の incidence リスト
-   に追加</li>
-<li>必要な ICD コードを <code>clinosim/codes/data/icd-10-cm.yaml</code> に追加
-   (未登録の場合)</li>
-<li>テスト: <code>clinosim test-disease &lt;disease_id&gt;</code></li>
+   に追加。</li>
+<li><strong><code>icd_codes</code> 全値 (primary + variants) をコードデータに登録</strong> —
+   US billable leaves は <code>clinosim/codes/data/icd-10-cm.yaml</code>、JP WHO
+   コードは <code>clinosim/codes/data/icd-10.yaml</code>、CM 粒度を WHO 親コード
+   に折り畳む場合等は <code>clinosim/codes/data/code_mapping_diagnosis/&lt;country&gt;.yaml</code>
+   に mapping エントリを追加。未登録だと FHIR Condition display が
+   prefix 近似 fallback に落ちる。<code>AGENTS.md</code> 「Diagnosis code
+   coverage」参照。</li>
+<li>テスト: <code>clinosim test-disease &lt;disease_id&gt;</code> および
+   <code>pytest tests/unit/test_diagnosis_code_coverage.py</code>。</li>
 </ol>
-<p>詳細: <code>clinosim/modules/disease/README.md</code></p>
+<p>詳細: <code>clinosim/modules/disease/README.ja.md</code></p>
 <h3 id="新規-encounter-型追加-ed外来">新規 encounter 型追加 (ED/外来)<a class="headerlink" href="#新規-encounter-型追加-ed外来" title="Permanent link">&para;</a></h3>
 <ol>
 <li><code>clinosim/modules/encounter/reference_data/&lt;condition_id&gt;.yaml</code>
-   を作成</li>
-<li><code>icd10_code</code> と <code>icd10_display</code> を含める</li>
-<li>テスト: <code>clinosim test-encounter &lt;condition_id&gt;</code></li>
+   を作成。</li>
+<li><code>icd10_code</code> と <code>icd10_display</code> を含める。</li>
+<li><code>icd10_code</code> を「新規疾患追加」ステップ 3 に従って登録。</li>
+<li>テスト: <code>clinosim test-encounter &lt;condition_id&gt;</code> および
+   <code>pytest tests/unit/test_diagnosis_code_coverage.py</code>。</li>
 </ol>
 <h3 id="新規国追加">新規国追加<a class="headerlink" href="#新規国追加" title="Permanent link">&para;</a></h3>
 <ol>

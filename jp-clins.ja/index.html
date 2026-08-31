@@ -2469,12 +2469,17 @@
 します。本ドキュメントは PR1 で有効化された 6 情報項目を対象とし
 ます; 3 種類の Composition (退院時サマリー / 診療情報提供書 / opt-in
 健康診断結果報告書) は PR2 と PR3 で追加されます。</p>
-<p>jpfhir.jp JP-CLINS <strong>v1.12.0</strong> (2026-02-16) に対して検証済。
-<a href="https://jpfhir.jp/fhir/clins/igv1/artifacts.html">https://jpfhir.jp/fhir/clins/igv1/artifacts.html</a> 参照。</p>
+<p>jpfhir.jp JP-CLINS <strong>v1.13.0</strong> (2026-08-31、現時点の CI pin — 
+<code>.github/workflows/jp-clins-lab-compliance-gate.yml</code>) に対して検証済。
+<a href="https://jpfhir.jp/fhir/clins/igv1/artifacts.html">https://jpfhir.jp/fhir/clins/igv1/artifacts.html</a> 参照。
+StructureDefinition canonical URL は v1.12.0 (2026-02-16) baseline
+から未変更。v1.13.0 の追加は <strong>9 新規 ValueSet</strong> (hepatitis serology
++ labo split) に限定された terminology-only の additive 追加であり、
+本ドキュメントの emit path 記述はすべて維持されます。</p>
 <h2 id="スコープ">スコープ<a class="headerlink" href="#スコープ" title="Permanent link">&para;</a></h2>
 <p>急性期病院 EHR/EMR データ生成、<code>country=JP</code>。</p>
 <h3 id="6-情報項目--5-プロファイル-pr1">6 情報項目 / 5 プロファイル (PR1)<a class="headerlink" href="#6-情報項目--5-プロファイル-pr1" title="Permanent link">&para;</a></h3>
-<p>JP-CLINS v1.12.0 は「6 情報項目」ドメイン概念をカバーする
+<p>JP-CLINS v1.13.0 は「6 情報項目」ドメイン概念をカバーする
 <strong>5 StructureDefinition プロファイル</strong> を公開しています — 傷病名と
 感染症は同じ <code>JP_Condition_eCS</code> プロファイルを共有 (別個の感染症
 プロファイルなし)、DiagnosticReport は JP-CLINS スコープに <strong>含まれ
@@ -2523,7 +2528,7 @@
 <li>Observation: <code>category.coding[].code == "laboratory"</code> の場合のみ —
   vital sign は JP Core プロファイルのみ保持。</li>
 </ul>
-<p><strong>JP-CLINS v1.12.0 対象外</strong> (JP Core プロファイルのみで emit、
+<p><strong>JP-CLINS v1.13.0 対象外</strong> (JP Core プロファイルのみで emit、
 JP-CLINS URL 非追加):</p>
 <ul>
 <li>DiagnosticReport (全 category)</li>
@@ -2551,7 +2556,7 @@ JP-CLINS URL 非追加):</p>
 </span></code></pre></div>
 <h2 id="jp-clins-退院時サマリー-composition-pr2a">JP-CLINS 退院時サマリー Composition (PR2a)<a class="headerlink" href="#jp-clins-退院時サマリー-composition-pr2a" title="Permanent link">&para;</a></h2>
 <p><code>country=JP</code> の inpatient / icu / rehab_inpatient 退院エンカウンター
-全てに対し、clinosim は <code>JP_Composition_eDischargeSummary</code> (v1.12.0)
+全てに対し、clinosim は <code>JP_Composition_eDischargeSummary</code> (v1.13.0)
 準拠の Composition リソースを emit:</p>
 <ul>
 <li><code>Composition.meta.profile</code> に
@@ -2590,7 +2595,7 @@ extension leak を浮上させた。</p>
 <h2 id="jp-clins-診療情報提供書-composition-pr2b">JP-CLINS 診療情報提供書 Composition (PR2b)<a class="headerlink" href="#jp-clins-診療情報提供書-composition-pr2b" title="Permanent link">&para;</a></h2>
 <p><code>country=JP</code> の inpatient / icu / rehab_inpatient 退院エンカウンター
 の決定的 20% サブセットに対し、clinosim は
-<code>JP_Composition_eReferral</code> (v1.12.0) 準拠の <strong>診療情報提供書
+<code>JP_Composition_eReferral</code> (v1.13.0) 準拠の <strong>診療情報提供書
 (referral note)</strong> Composition を emit:</p>
 <ul>
 <li>Emission 率: 20% (実務急性期病院ベンチマーク)。

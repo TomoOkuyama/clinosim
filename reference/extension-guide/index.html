@@ -2407,17 +2407,18 @@
 <h1 id="extension-guide">Extension Guide<a class="headerlink" href="#extension-guide" title="Permanent link">&para;</a></h1>
 <h3 id="add-a-new-disease">Add a new disease<a class="headerlink" href="#add-a-new-disease" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Create <code>clinosim/modules/disease/reference_data/&lt;disease_id&gt;.yaml</code> (use existing disease as template)</li>
-<li>Add to incidence list in <code>clinosim/locale/&lt;country&gt;/demographics.yaml</code></li>
-<li>Add necessary ICD codes to <code>clinosim/codes/data/icd-10-cm.yaml</code> (if not present)</li>
-<li>Test: <code>clinosim test-disease &lt;disease_id&gt;</code></li>
+<li>Create <code>clinosim/modules/disease/reference_data/&lt;disease_id&gt;.yaml</code> (use existing disease as template).</li>
+<li>Add to incidence list in <code>clinosim/locale/&lt;country&gt;/demographics.yaml</code>.</li>
+<li><strong>Register every <code>icd_codes</code> value (primary AND variants) in the code data</strong> — US billable leaves in <code>clinosim/codes/data/icd-10-cm.yaml</code>, JP WHO codes in <code>clinosim/codes/data/icd-10.yaml</code>, with a mapping entry in <code>clinosim/codes/data/code_mapping_diagnosis/&lt;country&gt;.yaml</code> when the disease code needs folding (e.g. CM-granularity → WHO parent). Skipping this makes the FHIR Condition display fall back to approximate prefix-matched text. See <code>AGENTS.md</code> → "Diagnosis code coverage".</li>
+<li>Test: <code>clinosim test-disease &lt;disease_id&gt;</code> and <code>pytest tests/unit/test_diagnosis_code_coverage.py</code>.</li>
 </ol>
 <p>Details: <code>clinosim/modules/disease/README.md</code></p>
 <h3 id="add-a-new-encounter-type-edoutpatient">Add a new encounter type (ED/outpatient)<a class="headerlink" href="#add-a-new-encounter-type-edoutpatient" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Create <code>clinosim/modules/encounter/reference_data/&lt;condition_id&gt;.yaml</code></li>
-<li>Include <code>icd10_code</code> and <code>icd10_display</code></li>
-<li>Test: <code>clinosim test-encounter &lt;condition_id&gt;</code></li>
+<li>Create <code>clinosim/modules/encounter/reference_data/&lt;condition_id&gt;.yaml</code>.</li>
+<li>Include <code>icd10_code</code> and <code>icd10_display</code>.</li>
+<li>Register <code>icd10_code</code> per "Add a new disease" step 3.</li>
+<li>Test: <code>clinosim test-encounter &lt;condition_id&gt;</code> and <code>pytest tests/unit/test_diagnosis_code_coverage.py</code>.</li>
 </ol>
 <h3 id="add-a-new-country">Add a new country<a class="headerlink" href="#add-a-new-country" title="Permanent link">&para;</a></h3>
 <ol>

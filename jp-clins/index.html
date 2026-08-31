@@ -2465,12 +2465,17 @@
 
 <h1 id="jp-clins-profile-support">JP-CLINS Profile Support<a class="headerlink" href="#jp-clins-profile-support" title="Permanent link">&para;</a></h1>
 <p>clinosim emits FHIR R4 resources with <strong>JP-CLINS (電子カルテ情報共有サービス) profile URLs</strong> for <code>country=JP</code> cohorts. This document covers the 6 information items enabled in PR1; 3-document Composition support (退院時サマリー / 診療情報提供書 / opt-in 健康診断結果報告書) lands in PR2 and PR3.</p>
-<p>Verified against jpfhir.jp JP-CLINS <strong>v1.12.0</strong> (2026-02-16). See
-<a href="https://jpfhir.jp/fhir/clins/igv1/artifacts.html">https://jpfhir.jp/fhir/clins/igv1/artifacts.html</a>.</p>
+<p>Verified against jpfhir.jp JP-CLINS <strong>v1.13.0</strong> (2026-08-31, current
+CI pin in <code>.github/workflows/jp-clins-lab-compliance-gate.yml</code>). See
+<a href="https://jpfhir.jp/fhir/clins/igv1/artifacts.html">https://jpfhir.jp/fhir/clins/igv1/artifacts.html</a>. The StructureDefinition
+canonical URLs are unchanged from the v1.12.0 (2026-02-16) baseline;
+v1.13.0 adds <strong>9 new ValueSets</strong> (hepatitis serology + labo split)
+purely as additive terminology entries. All emit paths described in
+this document continue to hold.</p>
 <h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
 <p>Acute-care hospital EHR/EMR data generation, <code>country=JP</code>.</p>
 <h3 id="6-information-items--5-profiles-pr1">6 information items / 5 profiles (PR1)<a class="headerlink" href="#6-information-items--5-profiles-pr1" title="Permanent link">&para;</a></h3>
-<p>JP-CLINS v1.12.0 publishes <strong>5 StructureDefinition profiles</strong> covering the "6 information items" domain concept — 傷病名 and 感染症 share the same <code>JP_Condition_eCS</code> profile (no separate infection profile), and DiagnosticReport is <strong>not</strong> in JP-CLINS scope (lab results are emitted only as Observation.LabResult).</p>
+<p>JP-CLINS v1.13.0 publishes <strong>5 StructureDefinition profiles</strong> covering the "6 information items" domain concept — 傷病名 and 感染症 share the same <code>JP_Condition_eCS</code> profile (no separate infection profile), and DiagnosticReport is <strong>not</strong> in JP-CLINS scope (lab results are emitted only as Observation.LabResult).</p>
 <p>For every country=JP cohort, the following resource types carry the JP-CLINS eCS profile URL in <code>meta.profile[]</code> alongside the existing JP Core profile:</p>
 <table>
 <thead>
@@ -2513,7 +2518,7 @@
 <ul>
 <li>Observation: only when <code>category.coding[].code == "laboratory"</code> — vital signs stay on the JP Core profile only.</li>
 </ul>
-<p><strong>Not covered by JP-CLINS v1.12.0</strong> (emitted with JP Core profile only, no JP-CLINS URL added):</p>
+<p><strong>Not covered by JP-CLINS v1.13.0</strong> (emitted with JP Core profile only, no JP-CLINS URL added):</p>
 <ul>
 <li>DiagnosticReport (any category)</li>
 <li>Observation vital-signs / social-history / survey / imaging</li>
@@ -2538,7 +2543,7 @@
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">}</span>
 </span></code></pre></div>
 <h2 id="jp-clins-退院時サマリー-composition-pr2a">JP-CLINS 退院時サマリー Composition (PR2a)<a class="headerlink" href="#jp-clins-退院時サマリー-composition-pr2a" title="Permanent link">&para;</a></h2>
-<p>For every <code>country=JP</code> inpatient / icu / rehab_inpatient discharge encounter, clinosim emits a Composition resource that conforms to <code>JP_Composition_eDischargeSummary</code> (v1.12.0):</p>
+<p>For every <code>country=JP</code> inpatient / icu / rehab_inpatient discharge encounter, clinosim emits a Composition resource that conforms to <code>JP_Composition_eDischargeSummary</code> (v1.13.0):</p>
 <ul>
 <li><code>Composition.meta.profile</code> includes <code>http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary</code></li>
 <li><code>Composition.type.coding[0].system</code> = <code>http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes</code>, code = <code>18842-5</code>, display = <code>退院時サマリー</code>. The LOINC coding is retained as a secondary entry for interop with US tooling.</li>
@@ -2557,7 +2562,7 @@
 <p><strong>US path unchanged.</strong> The English 6-section discharge summary Composition (<code>admission_summary</code> / <code>hospital_course</code> / <code>discharge_diagnoses</code> / <code>discharge_medications</code> / <code>discharge_instructions</code> / <code>follow_up</code>, LOINC-only type coding, no JP-CLINS URL) is emitted unchanged for <code>country=US</code>.</p>
 <p><strong>Multi-locale isolation.</strong> US NDJSON output contains no JP CodeSystem URIs, no <code>http://jpfhir.jp/fhir/*</code> URL prefix, and no Japanese text. Integration test <code>tests/integration/test_jp_clins_composition_ds_end_to_end.py::test_us_p50_has_no_japanese_language_leakage</code> scans every US NDJSON file byte-by-byte for JP signals — this is the check that surfaced the pre-existing <code>_build_reference_range</code> JP Core extension leak fixed in this PR.</p>
 <h2 id="jp-clins-診療情報提供書-composition-pr2b">JP-CLINS 診療情報提供書 Composition (PR2b)<a class="headerlink" href="#jp-clins-診療情報提供書-composition-pr2b" title="Permanent link">&para;</a></h2>
-<p>For a deterministic 20% subset of <code>country=JP</code> inpatient / icu / rehab_inpatient discharge encounters, clinosim emits a <strong>診療情報提供書 (referral note)</strong> Composition conforming to <code>JP_Composition_eReferral</code> (v1.12.0):</p>
+<p>For a deterministic 20% subset of <code>country=JP</code> inpatient / icu / rehab_inpatient discharge encounters, clinosim emits a <strong>診療情報提供書 (referral note)</strong> Composition conforming to <code>JP_Composition_eReferral</code> (v1.13.0):</p>
 <ul>
 <li>Emission rate: 20% (empirical acute-care hospital benchmark), controlled by a stable hash of <code>(encounter_id, patient_id)</code> so the same seed produces the same referral-note-emitting subset (no new RNG allocation).</li>
 <li><code>Composition.meta.profile</code> includes <code>http://jpfhir.jp/fhir/eReferral/StructureDefinition/JP_Composition_eReferral</code></li>

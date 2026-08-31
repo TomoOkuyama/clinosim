@@ -2437,6 +2437,10 @@
 <li>Pluggable providers via <code>clinosim.modules.llm_service.providers</code>:</li>
 <li><code>ollama</code> — local Ollama server (default)</li>
 <li><code>bedrock</code> — AWS Bedrock via Converse API (for EC2 deployment)</li>
+<li><code>vllm</code> — OpenAI-compatible <code>/v1/chat/completions</code> endpoint
+    (vLLM, SGLang, or any other OpenAI-compatible server; supports
+    continuous batching via <code>--concurrency</code> on <code>clinosim narrate</code>)</li>
+<li><code>openai_compatible</code> — alias for <code>vllm</code></li>
 <li><code>mock</code> — deterministic stub for tests</li>
 <li>New providers can be registered via <code>providers.register_provider()</code>.</li>
 <li>Prompt templates live as YAML under <code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/&lt;task&gt;.yaml</code> and are rendered with <code>string.Template</code>.</li>

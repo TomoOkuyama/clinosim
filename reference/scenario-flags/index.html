@@ -2410,7 +2410,7 @@ master-RNG-cascade defect documented in spec
 <li><strong>Implement formula change</strong> in <code>derive_lab_values</code> (BNP-pattern surgical: no state mutation, formula-only)</li>
 </ol>
 <p><strong>NEVER</strong> add <code>flag=value</code> directly at a call site — J5 prevention (see
-<a href="../../CLAUDE.md">CLAUDE.md</a> "AD-55 enricher patterns"). The helper is the
+<a href="../../AGENTS.md">AGENTS.md</a> "AD-55 enricher patterns"). The helper is the
 single edit point so adding a new flag automatically reaches all 4 sites
 through the <code>**flags</code> splat.</p>
 <h2 id="doac-exclusion-phase-2b-clinical-decision">DOAC exclusion (Phase 2b clinical decision)<a class="headerlink" href="#doac-exclusion-phase-2b-clinical-decision" title="Permanent link">&para;</a></h2>
@@ -2423,7 +2423,7 @@ PR #82 (Phase 2b) for the full rationale.</p>
 <h2 id="関連">関連<a class="headerlink" href="#関連" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../../DESIGN.md">DESIGN.md</a> AD-57 (BNP-pattern surgical) / AD-59 (per-order sub-rng) / AD-56 (enricher registry)</li>
-<li><a href="../../CLAUDE.md">CLAUDE.md</a> "AD-55 enricher patterns"</li>
+<li><a href="../../AGENTS.md">AGENTS.md</a> "AD-55 enricher patterns"</li>
 <li><a href="../../CONTRIBUTING-modules/">docs/CONTRIBUTING-modules.md</a> "PR 検証ガイド" + "sub-seed 導出ルール"</li>
 <li><a href="../../clinosim/modules/physiology/README.md">clinosim/modules/physiology/README.md</a> — helper API reference</li>
 <li>spec / plan: <code>docs/history/specs-archive/2026-06-24-phase2a-vte-d-dimer-design.md</code> (causes_vte) + <code>docs/history/specs-archive/2026-06-24-phase2b-on-anticoagulation-design.md</code> (on_warfarin)</li>

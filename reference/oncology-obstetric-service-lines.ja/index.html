@@ -2494,6 +2494,11 @@
 <td><code>locale/shared/chemo_regimens.yaml</code> + <code>population/engine.py::_chemo_cycle_events</code> + <code>simulator/outpatient.py::_simulate_outpatient_visit</code> の chemo 分岐</td>
 </tr>
 <tr>
+<td>サイクル毎 chemo 薬 order</td>
+<td>各 <code>chemo_visit</code> で regimen の <code>cycle_orders</code> に列挙された薬剤ごとに <code>MedicationRequest</code> + <code>MedicationAdministration</code> を 1 件ずつ emit (<code>order_id</code> 一致)</td>
+<td><code>simulator/outpatient.py</code> chemo 分岐 (Order emit)</td>
+</tr>
+<tr>
 <td>経口 chemo (毎日 home meds)</td>
 <td>Capecitabine / Tamoxifen / Anastrozole / Bicalutamide / Sorafenib / Lenvatinib / Osimertinib</td>
 <td><code>locale/shared/chronic_medications.yaml</code> (変更なし; 経口 chemo は毎日 home med として正しい)</td>
@@ -2535,24 +2540,52 @@
 <td>JP: <code>K894</code> 分娩介助 / US: CPT <code>59400</code> routine obstetric care</td>
 <td><code>perinatal.yaml::procedure</code></td>
 </tr>
+<tr>
+<td>新生児 <code>Patient</code> チェーン</td>
+<td>Baby id <code>&lt;mother&gt;-BABY</code>、世帯継承、性別は per-mother sub-RNG、birthDate = 分娩日</td>
+<td><code>simulator/perinatal.py</code> (session 94)</td>
+</tr>
+<tr>
+<td>新生児 Encounter</td>
+<td>IMP、<code>admit_source = born</code> (新規 <code>AdmitSource.BORN</code> enum member) + <code>admit_source_encounter_id</code> → 新生児側 FHIR <code>Encounter.partOf</code></td>
+<td><code>simulator/perinatal.py</code> + <code>types/encounter.py::AdmitSource.BORN</code></td>
+</tr>
+<tr>
+<td>新生児側 Z38.0</td>
+<td>新生児 discharge dx</td>
+<td><code>simulator/perinatal.py</code></td>
+</tr>
+<tr>
+<td>産褥 encounter × 2</td>
+<td>~1 週 + ~4 週の chronic_visit、disease_id <code>Z39</code> (産褥期 maternal 管理)</td>
+<td><code>locale/shared/chronic_followup.yaml::Z39</code></td>
+</tr>
+<tr>
+<td>新生児 perinatal condition</td>
+<td>P59.9 黄疸 ~20 %、P07.3 早産 ~7 % (→ 条件付き P22.0 RDS ~35 %)、L22 おむつかぶれ ~30 %、L20.9 アトピー ~15 %</td>
+<td><code>simulator/perinatal.py</code> (per-newborn sub-RNG)</td>
+</tr>
+<tr>
+<td>中絶 outcome (age-gate)</td>
+<td>自然 O03.9 / 人工 O04.5 外来日帰り手術。年齢帯別確率 15-19: 40 % → 35-44: 7 %。発火時は当該 Z34 年の delivery + newborn chain を skip</td>
+<td><code>locale/shared/perinatal.yaml::abortion</code> + <code>population/engine.py::_abortion_outcome_events</code></td>
+</tr>
 </tbody>
 </table>
 <h3 id="13-明示的に未カバー-follow-up-slice-で対応">1.3 明示的に未カバー (follow-up slice で対応)<a class="headerlink" href="#13-明示的に未カバー-follow-up-slice-で対応" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>新生児 Patient 生成</strong> — 新生児自身の <code>Patient</code> リソース
-  (<code>birthDate = 分娩日</code>、性別サンプル)。multi-patient linked-Encounter
-  architecture (<code>Encounter.partOf</code> 母→児) を要する。</li>
-<li><strong>新生児 Encounter</strong> (<code>admitSource = born</code>)。</li>
-<li><strong>Z38 (新生児側 birth outcome)</strong> を児レコードに emit。</li>
-<li><strong>産褥 encounter</strong> — 6 週間で 2-3 AMB visit。</li>
 <li><strong>時限付き妊娠 state</strong> — 現在 Z34 は sim window 全期間 problem list に
   留まっている。実際の 40 週 active state ではない。follow-up で
-  <code>disease_incidence</code> 型 event + snapshot-aware clamping に移行予定。</li>
-<li><strong>サイクル毎 chemo 薬 MedicationRequest / MedicationAdministration</strong>
-  — 現在の chemo_visit は Encounter + Procedure のみ emit。実際の
-  cycle-day 薬剤投与記録は follow-up slice、経口 chemo は現行の
-  chronic-daily MedicationRequest 経路を継続。</li>
+  <code>disease_incidence</code> 型 event + snapshot-aware clamping に移行予定。
+  session 94 で delivery + 産褥 + 新生児 chain が着地したことで、
+  元スコープが懸念した時間的シグネチャは既に供給されており、優先度
+  は「必須」から「あればより良い」へ downgrade。</li>
 <li><strong>がん専用 Composition type</strong> — LOINC 34133-9 (がん治療 note)。</li>
+<li><strong>年跨ぎ chemo cycle continuity</strong> — 現在 cycle は暦年ごとに fresh
+  scheduling。11 月 FOLFOX 開始患者は 1 月に cycle 1 から再開する。</li>
+<li><strong>帝王切開シェア</strong> — 現状全 delivery が O80 自然経腟分娩として
+  emit。実際の JP 帝王切開率は ~20 % (O82); per-mother sub-RNG での
+  split が follow-up 候補。</li>
 </ul>
 <hr />
 <h2 id="2-出力パイプライン-data-flow">2. 出力パイプライン (data flow)<a class="headerlink" href="#2-出力パイプライン-data-flow" title="Permanent link">&para;</a></h2>

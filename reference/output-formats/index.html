@@ -1131,6 +1131,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#longitudinal-service-line-emit-v05--v060" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longitudinal service-line emit (v0.5 → v0.6.0)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#included-fhir-r4-fields-key-resources" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2356,6 +2367,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#longitudinal-service-line-emit-v05--v060" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longitudinal service-line emit (v0.5 → v0.6.0)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#included-fhir-r4-fields-key-resources" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2464,7 +2486,49 @@
 </span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>└── Location.ndjson                  # Wards + beds + operating rooms
 </span></code></pre></div>
 <p>Each line = 1 FHIR resource. <code>Resource.id</code> is unique across all resource types. Reference integrity is maintained.</p>
-<p><code>DocumentReference.ndjson</code> is emitted only when <code>clinosim export-fhir</code> is given <code>--narrative-version</code> (or when <code>clinosim simulate --narrative --format fhir</code> runs the full pipeline). Without a narrative version, the remaining resource types are produced normally. <code>Coverage.ndjson</code> (+ insurer <code>Organization</code>) is emitted only for JP with insurance enabled (<code>--jp-insurance</code>, default on).</p>
+<p><code>DocumentReference.ndjson</code> is emitted whenever <code>--narrative-version</code>
+resolves to a version directory (default: <code>current</code>, backed by the
+<code>current_version.txt</code> pointer that Stage 1's <code>TemplateNarrativePass</code>
+maintains). Without any narrative version present the remaining
+resource types are produced normally. <code>Coverage.ndjson</code> (+ insurer
+<code>Organization</code>) is emitted only for JP with insurance enabled
+(<code>--jp-insurance</code>, default on).</p>
+<h3 id="longitudinal-service-line-emit-v05--v060">Longitudinal service-line emit (v0.5 → v0.6.0)<a class="headerlink" href="#longitudinal-service-line-emit-v05--v060" title="Permanent link">&para;</a></h3>
+<p>Both service lines emit through the standard resource files above —
+no new resource types were introduced; the service-line schema is
+described in
+<a href="../oncology-obstetric-service-lines/"><code>oncology-obstetric-service-lines.md</code></a>.</p>
+<ul>
+<li><strong>Oncology</strong> (10 sites: C15 / C16 / C18 / C22 / C25 / C34 / C50 /
+  C61 / C67 / C71, including male breast at ~1 % of C50):</li>
+<li>Cancer chronic marker → <code>Condition</code> (ICD-10).</li>
+<li><code>chemo_visit</code> LifeEvents (config: <code>locale/shared/chemo_regimens.yaml</code>
+    — FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d) →
+    outpatient <code>Encounter</code> + per-cycle <code>MedicationRequest</code> +
+    <code>MedicationAdministration</code> per drug on the regimen.</li>
+<li>Radiation therapy → <code>Procedure</code>.</li>
+<li>Tumor-marker labs (CEA / CA19-9 / AFP / PIVKA-II / CA15-3 / PSA)
+    → <code>Observation</code> (LOINC laboratory).</li>
+<li><strong>Obstetrics</strong> (config: <code>locale/shared/perinatal.yaml</code>):</li>
+<li>Z34 pregnancy chronic marker → per-mother delivery schedule.</li>
+<li>Mother-side delivery <code>Encounter</code> (IMP admission, admit dx Z34,
+    discharge dx Z37.0, delivery <code>Procedure</code> — JP K894 / US CPT
+    59400).</li>
+<li>Postpartum encounters × 2 at ~1 wk and ~4 wk with disease id
+    <code>Z39</code> (config: <code>locale/shared/chronic_followup.yaml</code>).</li>
+<li>Abortion outcome (age-gated 15-19 → 35-44) — outpatient
+    day-surgery <code>Encounter</code> with O03.9 (spontaneous) or O04.5
+    (induced). If fired, delivery + newborn chain are skipped.</li>
+<li>Newborn <code>Patient</code> (id <code>&lt;mother&gt;-BABY</code>) generated per delivery,
+    household + birthDate inherited, sex sampled via per-mother
+    sub-RNG. Newborn <code>Encounter</code> links back via
+    <code>admit_source = born</code> (new <code>AdmitSource.BORN</code> enum member) and
+    <code>Encounter.partOf → Encounter/&lt;mother-delivery-encounter&gt;</code>, with
+    discharge dx <code>Z38.0</code>.</li>
+<li>Newborn perinatal <code>Condition</code>s: P59.9 jaundice ~20 %,
+    P07.3 preterm ~7 % (→ conditional P22.0 RDS at ~35 %), L22
+    diaper dermatitis ~30 %, L20.9 atopic dermatitis ~15 %.</li>
+</ul>
 <h3 id="included-fhir-r4-fields-key-resources">Included FHIR R4 Fields (key resources)<a class="headerlink" href="#included-fhir-r4-fields-key-resources" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

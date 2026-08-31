@@ -3169,33 +3169,48 @@ catchment と長い LOS では現実的な 80% ベッド稼働率に近づく。
 本当に異なる病院になった。</p>
 <hr />
 <h2 id="65-モジュール一覧の更新">6.5 モジュール一覧の更新<a class="headerlink" href="#65-モジュール一覧の更新" title="Permanent link">&para;</a></h2>
-<p>現行モジュール数は v0.1-alpha を超えて成長した:</p>
+<p>v0.1-alpha 時点のモジュール snapshot は成長し、現在
+<strong><code>clinosim/modules/</code> 配下 33 top-level package</strong> + <code>codes/</code> +
+<code>locale/</code> + <code>types/</code> foundation package を持つ。canonical な
+モジュール一覧 (layer / sub-seed offset / enricher stage・order 付き)
+は <a href="../../MODULES.ja.md"><code>../../MODULES.ja.md</code></a> を参照。以下は現行
+モジュールを層別に配置した俯瞰スケッチ:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>clinosim/
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── codes/                  ★ NEW (AD-30、AD-33、AD-35)
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├── locale/
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├── config/
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├── types/
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── codes/                  ★ 国際コードシステム (AD-30/33/35)
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├── locale/                 国別データ (jp/、us/、shared/)
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├── config/                 病院 + LLM-service YAML
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├── types/                  共有データ型 (Pydantic + dataclass)
 </span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>├── modules/
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│   ├── disease/            (32 疾患 YAML)
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│   ├── encounter/          (46 ED/外来 YAML)
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│   ├── physiology/
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│   ├── clinical_course/
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>│   ├── diagnosis/
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>│   ├── observation/
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>│   ├── order/
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>│   ├── procedure/          ★ NEW (以前空、現在 15 ベッドサイド手技)
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>│   ├── population/
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>│   ├── patient/
-</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>│   ├── staff/              (AD-34 以降 ward-aware)
-</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>│   ├── facility/           ★ NEW README (M/M/1 待ち行列)
-</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>│   ├── healthcare_system/
-</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>│   ├── output/             (AD-31 以降 Bulk Data NDJSON)
-</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>│   ├── llm_service/
-</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>│   └── validator/
-</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>└── simulator/              (オーケストレーション: engine、inpatient、emergency、outpatient)
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│   ├── (Simulation)        physiology (14 変数)、observation、order、
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│   │                       clinical_course、diagnosis、procedure、
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│   │                       encounter (46 YAML)、disease (32 YAML)
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│   ├── (Population)        population、patient、identity、pediatric、
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>│   │                       staff、facility、healthcare_system、
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>│   │                       family_history、sdoh
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>│   ├── (Enrichment)        POST_POPULATION: allergy、identity
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>│   │                       POST_ENCOUNTER: device、hai、antibiotic、
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>│   │                                       imaging、triage、
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>│   │                                       nursing_assignment、document
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>│   │                       POST_RECORDS:  nursing、immunization、
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>│   │                                      family_history、code_status、
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>│   │                                      care_level、monitoring、
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>│   │                                      health_checkup
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>│   └── (Output)            output (FHIR R4 Bulk NDJSON、AD-31 で
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>│                                    per-theme builder subpackage に
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>│                                    split 済)、llm_service、validator
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>└── simulator/              トップレベル orchestration
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>                            (engine、inpatient、emergency、outpatient、
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>                             AD-56 の enrichers.py registry)
 </span></code></pre></div>
-<p>各モジュールは API リファレンスと設計ノート付きの独自 README.md
-を持つ。</p>
+<p>各モジュールは API リファレンスと設計ノート付きの独自
+<code>README.md</code> (+ <code>README.ja.md</code> mirror) を持つ。v0.5.x → v0.6.0 の
+enrichment: 腫瘍サービスライン (10 部位、化学療法 regimen サイクル、
+放射線 Procedure、腫瘍マーカー labs) + 産科サービスライン (Z37.0 で
+の分娩 Encounter、Z38.0 の新生児 Patient chain、産後 × 2、abortion
+outcome) は新規 top-level module ではなく、既存 module (population +
+patient + encounter + disease + order + procedure + output/fhir_r4)
+の内部拡張として実装されている。詳細は
+<a href="../../reference/oncology-obstetric-service-lines.ja/"><code>../reference/oncology-obstetric-service-lines.ja.md</code></a>。</p>
 <hr />
 <h2 id="66-現実的な-vital-sign-測定パターン">6.6 現実的な vital sign 測定パターン<a class="headerlink" href="#66-現実的な-vital-sign-測定パターン" title="Permanent link">&para;</a></h2>
 <h3 id="問題_4">問題<a class="headerlink" href="#問題_4" title="Permanent link">&para;</a></h3>

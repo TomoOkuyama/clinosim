@@ -2270,7 +2270,7 @@
   <a href="#clinosim-test-disease-disease_id" class="md-nav__link">
     <span class="md-ellipsis">
       
-        clinosim test-disease DISEASE_ID
+        clinosim test-disease [DISEASE_ID]
       
     </span>
   </a>
@@ -2304,6 +2304,94 @@
     <span class="md-ellipsis">
       
         clinosim list-diseases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-enumerate--網羅的デバッグ-issue-345" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim enumerate — 網羅的デバッグ (Issue #345)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-diff--snapshot-diff--bundle-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim diff — snapshot diff → Bundle transaction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-regenerate-goldens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim regenerate-goldens
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-check-narratives--意味的-narrative-cif-ゲート" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim check-narratives — 意味的 narrative-CIF ゲート
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-audit--per-module-pr-ゲート" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim audit — per-Module PR ゲート
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-dataset--名前付きプリセット-dataset-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim dataset — 名前付きプリセット dataset builder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-eval--公開-3-軸評価" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim eval — 公開 3 軸評価
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-benchmark--p2-15-予測ベンチマークハーネス" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim benchmark — P2-15 予測ベンチマークハーネス
       
     </span>
   </a>
@@ -2349,20 +2437,26 @@
 <!-- README.md から抽出 (Issue #568 PR A)。本ファイルの見出しが変更されたら README のポインタを更新。 -->
 
 <h1 id="cli-リファレンス">CLI リファレンス<a class="headerlink" href="#cli-リファレンス" title="Permanent link">&para;</a></h1>
-<p>clinosim は 3 つの独立ステージで構成。<code>clinosim simulate</code> が Stage 1
-を実行; Stage 2 と 3 は <code>--narrative</code> と <code>--format fhir</code> で合成
-可能、または再現性・リモート実行 (Bedrock on EC2 等) ・反復
-narrative 実験のため独立に実行。<code>clinosim generate</code> は
-<code>simulate</code> の deprecated alias として残存。</p>
+<p><code>clinosim</code> は 3 つの独立ステージ + デバッグ / audit / dataset /
+eval / benchmark subcommand で構成。Stage 1 (<code>simulate</code>) が
+structural CIF を生成、Stage 2 (<code>narrate</code>) と Stage 3 (<code>export-fhir</code>)
+は CIF 上で走り、Stage 1 と合成するか、または再現性・リモート LLM
+実行・反復 narrative 実験のため独立に実行可能。<code>clinosim generate</code>
+は <code>simulate</code> の deprecated alias として残る。</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌────────────────┐  ┌────────────────┐  ┌──────────────────┐
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│ simulate       │→ │ narrate        │→ │ export-fhir      │
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│ (Stage 1)      │  │ (Stage 2)      │  │ (Stage 3)        │
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│ structured CIF │  │ narrative CIF  │  │ FHIR R4 NDJSON   │
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>└────────────────┘  └────────────────┘  └──────────────────┘
 </span></code></pre></div>
-<h3 id="clinosim-simulate--stage-1-structural-シミュレーション"><code>clinosim simulate</code> — Stage 1 (structural シミュレーション)<a class="headerlink" href="#clinosim-simulate--stage-1-structural-シミュレーション" title="Permanent link">&para;</a></h3>
-<p>集団駆動シミュレーション。structural CIF を生成、オプションで
-Stage &#8532; を 1 コマンドで実行。</p>
+<p>権威 source は
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/simulator/cli.py"><code>clinosim/simulator/cli.py</code></a>
+。最新オプション一覧は <code>clinosim &lt;subcommand&gt; --help</code> で確認。</p>
+<h2 id="clinosim-simulate--stage-1-structural-シミュレーション"><code>clinosim simulate</code> — Stage 1 (structural シミュレーション)<a class="headerlink" href="#clinosim-simulate--stage-1-structural-シミュレーション" title="Permanent link">&para;</a></h2>
+<p>集団駆動シミュレーション。structural CIF を生成し、末尾で
+template Stage 2 narrative pass を自動実行するので
+<code>clinosim simulate --format fhir-r4</code> だけで emit 可能な FHIR bundle
+になる。<code>clinosim generate</code> は同じオプションを受け付ける。</p>
 <table>
 <thead>
 <tr>
@@ -2389,7 +2483,7 @@ Stage &#8532; を 1 コマンドで実行。</p>
 </tr>
 <tr>
 <td><code>--start YYYY-MM-DD</code></td>
-<td><code>--end</code> から 1 年前</td>
+<td><code>--end</code> の 1 年前</td>
 <td>シミュレーション開始日</td>
 </tr>
 <tr>
@@ -2404,8 +2498,8 @@ Stage &#8532; を 1 コマンドで実行。</p>
 </tr>
 <tr>
 <td><code>--format ...</code></td>
-<td><code>cif fhir</code></td>
-<td><code>cif</code> / <code>csv</code> / <code>fhir</code></td>
+<td><code>cif</code></td>
+<td><code>cif</code> / <code>csv</code> / <code>fhir-r4</code> (alias: <code>fhir</code>) から 1 個以上。<code>OutputAdapter</code> (AD-58) を register することで追加可能。</td>
 </tr>
 <tr>
 <td><code>-s, --seed N</code></td>
@@ -2413,38 +2507,38 @@ Stage &#8532; を 1 コマンドで実行。</p>
 <td>ランダム seed</td>
 </tr>
 <tr>
-<td><code>--narrative</code></td>
-<td>off</td>
-<td>Stage 1 後に Stage 2 (臨床文書) を実行</td>
+<td><code>--jp-insurance / --no-jp-insurance</code></td>
+<td>on (JP のみ)</td>
+<td>JP 保険加入 / 被保険者番号 の含有 (FHIR <code>Coverage</code> として emit)。非 JP では無視。</td>
 </tr>
 <tr>
-<td><code>--llm-config PATH</code></td>
+<td><code>--cache-dir DIR</code></td>
 <td>(未設定)</td>
-<td><code>--narrative</code> 時に使用する LLM サービス YAML</td>
+<td>F4 memoize: 前回 snapshot の cursor 前に完了した encounter を持つ患者を再利用。daily-cron 追記対応 (p=500k 追記が ~13 h → ~分)。</td>
 </tr>
 <tr>
-<td><code>--narrative-version ID</code></td>
-<td>auto</td>
-<td>FHIR エクスポート時に使用する narrative version id</td>
+<td><code>--log-file PATH</code></td>
+<td><code>&lt;output&gt;/simulator.log</code></td>
+<td>構造化 JSONL simulator ログ (Issue #172)。<code>tail -f</code> で live 監視。level は <code>CLINOSIM_LOG_LEVEL</code> (default <code>INFO</code>)。</td>
 </tr>
 <tr>
-<td><code>--narrative-model NAME</code></td>
-<td><code>qwen:7b</code></td>
-<td>レガシー Ollama モデル名 (<code>--llm-config</code> 設定時は無視)</td>
+<td><code>--allow-legacy</code></td>
+<td>off</td>
+<td>(JP のみ) JP-CLINS package 未インストール時に legacy 5-digit JLAC10 OID 出力を許可。default は fail-loud (Issue #418) — <code>--country JP</code> は eCS 準拠出力のため JP-CLINS package を要求。</td>
 </tr>
 </tbody>
 </table>
-<h3 id="clinosim-narrate--stage-2-臨床文書"><code>clinosim narrate</code> — Stage 2 (臨床文書)<a class="headerlink" href="#clinosim-narrate--stage-2-臨床文書" title="Permanent link">&para;</a></h3>
+<h2 id="clinosim-narrate--stage-2-臨床文書"><code>clinosim narrate</code> — Stage 2 (臨床文書)<a class="headerlink" href="#clinosim-narrate--stage-2-臨床文書" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p><strong>注</strong>: template モードの DocumentReference は Stage 1 の
-<code>document_enricher</code> モジュールにより自動 emit されるので、
+<code>TemplateNarrativePass</code> により自動 emit されるので、
 <code>clinosim simulate --format fhir-r4</code> は別途 <code>narrate</code> step なしでも
-<code>docStatus="preliminary"</code> 文書を含む valid な FHIR bundle を生成。
-後で <code>narrate</code> を実行するとそれらを LLM 生成テキストで
-<code>docStatus="final"</code> にアップグレード (template モードなら
-<code>preliminary</code> のまま)。</p>
+<code>docStatus="preliminary"</code> 文書付きの valid な FHIR bundle を生成。
+後で <code>narrate</code> を実行すると新規 narrative version が書かれ、
+template provider の default で <code>current_version.txt</code> は新 version
+を指すよう更新される。</p>
 </blockquote>
-<p>既存 CIF ディレクトリを読み、LLM サービス経由で臨床文書を生成。
+<p>既存 CIF ディレクトリを読み、臨床文書を生成。
 <code>&lt;cif&gt;/narratives/&lt;version_id&gt;/</code> に新規 narrative バージョンを書き
 出す。</p>
 <table>
@@ -2462,24 +2556,54 @@ Stage &#8532; を 1 コマンドで実行。</p>
 <td>既存 CIF ディレクトリへのパス</td>
 </tr>
 <tr>
+<td><code>--provider NAME</code></td>
+<td><code>template</code></td>
+<td>Narrative 生成器: <code>template</code> (決定的)、または LLM provider: <code>bedrock</code>、<code>ollama</code>、<code>mock</code>、<code>vllm</code> (OpenAI 互換 <code>/v1/chat/completions</code>; SGLang 他 OpenAI 互換サーバも対象)、<code>openai_compatible</code> (<code>vllm</code> の alias)。</td>
+</tr>
+<tr>
 <td><code>--llm-config PATH</code></td>
-<td>(template モード)</td>
-<td>LLM サービス YAML (<code>clinosim/config/llm_service*.yaml</code>)</td>
+<td>provider ごとの default</td>
+<td>LLM サービス YAML (<code>clinosim/config/llm_service*.yaml</code>)。Default: <code>bedrock</code> → <code>llm_service.bedrock.yaml</code>、<code>ollama</code> → <code>llm_service.yaml</code>、<code>mock</code> → in-code <code>MockProvider</code>。</td>
 </tr>
 <tr>
 <td><code>--version-id ID</code></td>
-<td>auto-timestamped</td>
+<td>provider 名</td>
 <td>Narrative バージョンディレクトリ名</td>
-</tr>
-<tr>
-<td><code>--language LANG</code></td>
-<td><code>en</code></td>
-<td>文書言語 (<code>en</code> | <code>ja</code>)</td>
 </tr>
 <tr>
 <td><code>--tasks LIST</code></td>
 <td>全 Tier A+B</td>
-<td>カンマ区切りサブセット: <code>discharge_summary,death_summary,operative_note,admission_hp,procedure_note</code></td>
+<td>カンマ区切り <code>LLMTaskType</code> フィルタ (<code>discharge_summary,death_summary,operative_note,admission_hp,procedure_note</code>)</td>
+</tr>
+<tr>
+<td><code>--country CODE</code></td>
+<td><code>US</code></td>
+<td>Country code (display 言語)</td>
+</tr>
+<tr>
+<td><code>--set-current / --no-set-current</code></td>
+<td>provider 依存</td>
+<td><code>current_version.txt</code> を更新。Default: <code>--provider template</code> では yes、LLM provider (bedrock/ollama/mock) では no (M-3 / N-chain: 試験 run が production export を silent に上書きしない)、<code>--patient-filter</code> 指定時はどの provider でも常に no (chain 1b adv-1 I-1)。明示指定は常に勝つ。</td>
+</tr>
+<tr>
+<td><code>--seed N</code></td>
+<td><code>42</code></td>
+<td>決定性のための RNG seed</td>
+</tr>
+<tr>
+<td><code>--patient-filter REGEX</code></td>
+<td>(未設定)</td>
+<td>患者ファイル stem / <code>patient_id</code> に対する正規表現 — マッチする患者のみ narrate (remote per-patient iteration、chain 1b T3)。フィルタは version manifest に記録。</td>
+</tr>
+<tr>
+<td><code>--merge-into-version</code></td>
+<td>off</td>
+<td><code>--patient-filter</code> 併用時: 既に文書がある version ディレクトリへの書き込みを許可 (iterate-one-patient loop)。指定なしでは非空 version への filtered write は拒否。</td>
+</tr>
+<tr>
+<td><code>--concurrency N</code></td>
+<td><code>1</code></td>
+<td>narrate worker thread 数。値を上げると batching LLM backend (vLLM continuous batching 等) が N 個の in-flight <code>generate()</code> 呼を吸収 — サーバの <code>--max-num-seqs</code> またはその一部に合わせる。thread-safe provider (Ollama / vLLM / Mock) 必須。</td>
 </tr>
 </tbody>
 </table>
@@ -2528,10 +2652,11 @@ Stage &#8532; を 1 コマンドで実行。</p>
 </table>
 <p>詳細は <a href="../../clinical_documents.ja/">../clinical_documents.ja.md</a>
 参照。</p>
-<h3 id="clinosim-export-fhir--stage-3-fhir-r4-ndjson"><code>clinosim export-fhir</code> — Stage 3 (FHIR R4 NDJSON)<a class="headerlink" href="#clinosim-export-fhir--stage-3-fhir-r4-ndjson" title="Permanent link">&para;</a></h3>
+<h2 id="clinosim-export-fhir--stage-3-fhir-r4-ndjson"><code>clinosim export-fhir</code> — Stage 3 (FHIR R4 NDJSON)<a class="headerlink" href="#clinosim-export-fhir--stage-3-fhir-r4-ndjson" title="Permanent link">&para;</a></h2>
 <p>既存 CIF ディレクトリを読み、FHIR R4 Bulk Data NDJSON ファイルを
-書き出す。DocumentReference リソースは <code>record.documents</code>
-(Stage 1 enricher 出力) から emit。</p>
+書き出す。<code>DocumentReference</code> は <code>record.documents</code>
+(Stage 1 の <code>document_enricher</code> が populate、選択 narrative
+version により <code>final</code> docStatus に昇格) から emit。</p>
 <table>
 <thead>
 <tr>
@@ -2554,52 +2679,373 @@ Stage &#8532; を 1 コマンドで実行。</p>
 <tr>
 <td><code>--country CODE</code></td>
 <td><code>US</code></td>
-<td>Country code (display 言語)</td>
+<td><code>US</code> または <code>JP</code></td>
+</tr>
+<tr>
+<td><code>--narrative-version ID</code></td>
+<td><code>current</code></td>
+<td>Narrative version id (default は <code>current_version.txt</code> を参照)</td>
 </tr>
 </tbody>
 </table>
-<h3 id="clinosim-test-disease-disease_id"><code>clinosim test-disease DISEASE_ID</code><a class="headerlink" href="#clinosim-test-disease-disease_id" title="Permanent link">&para;</a></h3>
-<p>特定疾患の forced シナリオ生成 (デバッグ / golden test)。</p>
+<h2 id="clinosim-test-disease-disease_id"><code>clinosim test-disease [DISEASE_ID]</code><a class="headerlink" href="#clinosim-test-disease-disease_id" title="Permanent link">&para;</a></h2>
+<p>特定入院疾患の forced シナリオ生成 (デバッグ / golden fixture /
+AD-66 patient-profile bootstrap)。<code>DISEASE_ID</code> は
+<code>--patient-profile</code> 指定時は任意。</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--patient-profile NAME</code></td>
+<td>(未設定)</td>
+<td>患者 profile fixture 名またはパス (AD-66); CLI 引数は profile field を上書きし stderr <code>WARN</code> を出す</td>
+</tr>
+<tr>
+<td><code>-n, --count N</code></td>
+<td>3 (または profile count)</td>
+<td>患者数</td>
+</tr>
+<tr>
+<td><code>--severity LEVEL</code></td>
+<td>(YAML から)</td>
+<td>severity 強制: <code>mild</code> / <code>moderate</code> / <code>severe</code></td>
+</tr>
+<tr>
+<td><code>--archetype NAME</code></td>
+<td>(YAML から)</td>
+<td>archetype 名強制</td>
+</tr>
+<tr>
+<td><code>-s, --seed N</code></td>
+<td>42 (または profile <code>random_seed</code>)</td>
+<td>Random seed</td>
+</tr>
+<tr>
+<td><code>--country CODE</code></td>
+<td>US (または profile country)</td>
+<td>Country code</td>
+</tr>
+<tr>
+<td><code>--format ...</code></td>
+<td>(stdout debug)</td>
+<td><code>cif</code> / <code>fhir-r4</code> / <code>csv</code> / <code>all</code> から 1 個以上。<code>-o</code> 必須。</td>
+</tr>
+<tr>
+<td><code>-o, --output DIR</code></td>
+<td>(未設定)</td>
+<td>出力ディレクトリ (<code>--format</code> 指定時必須)。設定時は疾患別ミニコホートで 3-stage pipeline (structural CIF + template narrative + FHIR / CSV) を実行。</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim<span class="w"> </span>test-disease<span class="w"> </span>heart_failure_exacerbation<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--severity<span class="w"> </span>severe<span class="w"> </span>--archetype<span class="w"> </span>treatment_resistant<span class="w"> </span>-n<span class="w"> </span><span class="m">3</span>
 </span></code></pre></div>
-<h3 id="clinosim-test-encounter-condition_id"><code>clinosim test-encounter CONDITION_ID</code><a class="headerlink" href="#clinosim-test-encounter-condition_id" title="Permanent link">&para;</a></h3>
-<p>ED / 外来 encounter unit test。</p>
+<h2 id="clinosim-test-encounter-condition_id"><code>clinosim test-encounter CONDITION_ID</code><a class="headerlink" href="#clinosim-test-encounter-condition_id" title="Permanent link">&para;</a></h2>
+<p>単一 ED / 外来 encounter YAML を通じて 1 (以上) の患者を simulate。</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-n, --count N</code></td>
+<td>1</td>
+<td>患者数</td>
+</tr>
+<tr>
+<td><code>-s, --seed N</code></td>
+<td>42</td>
+<td>Random seed</td>
+</tr>
+<tr>
+<td><code>--country CODE</code></td>
+<td>US</td>
+<td>Country code</td>
+</tr>
+<tr>
+<td><code>--age N</code></td>
+<td>(サンプリング)</td>
+<td>患者年齢強制</td>
+</tr>
+<tr>
+<td><code>--sex M/F</code></td>
+<td>(サンプリング)</td>
+<td>患者性別強制</td>
+</tr>
+<tr>
+<td><code>--format ...</code></td>
+<td>(stdout debug)</td>
+<td><code>test-disease</code> と同じ</td>
+</tr>
+<tr>
+<td><code>-o, --output DIR</code></td>
+<td>(未設定)</td>
+<td>出力ディレクトリ (<code>--format</code> 指定時必須)</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>clinosim<span class="w"> </span>test-encounter<span class="w"> </span>migraine<span class="w"> </span>--age<span class="w"> </span><span class="m">35</span><span class="w"> </span>--sex<span class="w"> </span>F
 </span></code></pre></div>
-<h3 id="clinosim-validate"><code>clinosim validate</code><a class="headerlink" href="#clinosim-validate" title="Permanent link">&para;</a></h3>
+<h2 id="clinosim-validate"><code>clinosim validate</code><a class="headerlink" href="#clinosim-validate" title="Permanent link">&para;</a></h2>
 <p>生成データを公開ベンチマークに対して品質 check。</p>
-<h3 id="clinosim-list-diseases"><code>clinosim list-diseases</code><a class="headerlink" href="#clinosim-list-diseases" title="Permanent link">&para;</a></h3>
-<p>全 32 疾患 (<code>clinosim/modules/disease/reference_data/*.yaml</code>) + 46
-encounter 症状 (<code>clinosim/modules/encounter/reference_data/*.yaml</code>)
-を表示。</p>
-<h3 id="典型的ワークフロー">典型的ワークフロー<a class="headerlink" href="#典型的ワークフロー" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-p, --population N</code></td>
+<td>5000</td>
+<td>Population size</td>
+</tr>
+<tr>
+<td><code>-s, --seed N</code></td>
+<td>42</td>
+<td>Random seed</td>
+</tr>
+<tr>
+<td><code>--country CODE</code></td>
+<td>US</td>
+<td>Country code</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-list-diseases"><code>clinosim list-diseases</code><a class="headerlink" href="#clinosim-list-diseases" title="Permanent link">&para;</a></h2>
+<p>全 32 入院疾患プロトコル (<code>clinosim/modules/disease/reference_data/*.yaml</code>)
++ 46 ED / 外来 encounter 症状
+(<code>clinosim/modules/encounter/reference_data/*.yaml</code>) を表示。</p>
+<h2 id="clinosim-enumerate--網羅的デバッグ-issue-345"><code>clinosim enumerate</code> — 網羅的デバッグ (Issue #345)<a class="headerlink" href="#clinosim-enumerate--網羅的デバッグ-issue-345" title="Permanent link">&para;</a></h2>
+<p>(疾患 × severity × course_archetype) と (encounter × severity) の
+各組合わせをそれぞれ 1 患者ずつ生成。集団駆動サンプリングは大 <code>-p</code>
+でも rare pattern が発火しないことがあるため、<code>enumerate</code> は
+決定的に全組合わせをカバーする。</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-o, --output DIR</code></td>
+<td><strong>必須</strong></td>
+<td><code>cif/</code> / <code>cif/narratives/template/</code> / <code>fhir_r4/</code> / <code>enumeration_manifest.json</code> を書き出す</td>
+</tr>
+<tr>
+<td><code>--level LEVEL</code></td>
+<td><code>full</code></td>
+<td><code>basic</code> (シナリオごとに 1)、<code>severity</code> (シナリオ × severity)、<code>full</code> (疾患 × severity × course_archetype)</td>
+</tr>
+<tr>
+<td><code>--country CODE</code></td>
+<td><code>US</code></td>
+<td><code>US</code> または <code>JP</code></td>
+</tr>
+<tr>
+<td><code>--include-both-countries</code></td>
+<td>off</td>
+<td>JP + US を 1 run で emit (case 数がおよそ倍)</td>
+</tr>
+<tr>
+<td><code>--seed N</code></td>
+<td>42</td>
+<td>sub-seed 導出用のベース seed</td>
+</tr>
+<tr>
+<td><code>--yes-large</code></td>
+<td>off</td>
+<td>coverage 爆発ガード (閾値: 2000 患者) をバイパス</td>
+</tr>
+<tr>
+<td><code>--format ...</code></td>
+<td><code>cif fhir-r4</code></td>
+<td><code>cif</code> / <code>fhir-r4</code> / <code>csv</code> / <code>all</code></td>
+</tr>
+<tr>
+<td><code>--dry-run</code></td>
+<td>off</td>
+<td>計画のみ — 発見シナリオと case 数を表示、simulate / write せず</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-diff--snapshot-diff--bundle-transaction"><code>clinosim diff</code> — snapshot diff → Bundle transaction<a class="headerlink" href="#clinosim-diff--snapshot-diff--bundle-transaction" title="Permanent link">&para;</a></h2>
+<p>2 つの連続 snapshot を FHIR Bundle transaction に変換 (F3;
+day-N vs day-M 追記)。export 済み FHIR ディレクトリで実行。</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--old DIR</code></td>
+<td><strong>必須</strong></td>
+<td>前 snapshot の FHIR 出力ディレクトリ</td>
+</tr>
+<tr>
+<td><code>--new DIR</code></td>
+<td><strong>必須</strong></td>
+<td>現 snapshot の FHIR 出力ディレクトリ</td>
+</tr>
+<tr>
+<td><code>--output-bundle PATH</code></td>
+<td><strong>必須</strong></td>
+<td>Bundle transaction JSON 出力パス</td>
+</tr>
+<tr>
+<td><code>--output-summary PATH</code></td>
+<td>stdout</td>
+<td>サマリテキスト出力パス</td>
+</tr>
+<tr>
+<td><code>--old-cursor DATE</code></td>
+<td>old ディレクトリ名</td>
+<td>前 cursor 日付 (サマリ用)</td>
+</tr>
+<tr>
+<td><code>--new-cursor DATE</code></td>
+<td>new ディレクトリ名</td>
+<td>現 cursor 日付 (サマリ用)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-regenerate-goldens"><code>clinosim regenerate-goldens</code><a class="headerlink" href="#clinosim-regenerate-goldens" title="Permanent link">&para;</a></h2>
+<p>AD-66 α-min-2c golden narrative bootstrap。
+<code>tests/fixtures/patient_profiles/</code> 下の canonical 患者 profile に
+対する golden を再生成。</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--profile NAME</code> | <code>--all</code></td>
+<td>(どちらか必須)</td>
+<td>単一 profile 名、または全 profile</td>
+</tr>
+<tr>
+<td><code>--provider NAME</code></td>
+<td><code>template</code></td>
+<td><code>template</code> (<code>&lt;name&gt;.golden.json</code> を書く)、または <code>mock</code> / <code>bedrock</code> / <code>ollama</code> (<code>&lt;name&gt;.llm-&lt;tag&gt;.golden.json</code> を書く)</td>
+</tr>
+<tr>
+<td><code>--llm-config PATH</code></td>
+<td>(provider ごとの default)</td>
+<td><code>narrate</code> に渡す LLM サービス YAML</td>
+</tr>
+<tr>
+<td><code>--model-tag TAG</code></td>
+<td>provider 名</td>
+<td>LLM golden のファイル名 tag</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-check-narratives--意味的-narrative-cif-ゲート"><code>clinosim check-narratives</code> — 意味的 narrative-CIF ゲート<a class="headerlink" href="#clinosim-check-narratives--意味的-narrative-cif-ゲート" title="Permanent link">&para;</a></h2>
+<p>β-JP-1 chain 1b T2 意味 check: byte-diff が適用されない LLM 出力
+ゲート。exit 0 = pass、1 = 検出あり。</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--cif-dir DIR</code></td>
+<td><strong>必須</strong></td>
+<td>CIF ディレクトリへのパス</td>
+</tr>
+<tr>
+<td><code>--version ID</code></td>
+<td><strong>必須</strong></td>
+<td>check 対象 narrative version id (例: <code>llm-mock</code>、<code>ollama</code>)</td>
+</tr>
+<tr>
+<td><code>--profile NAME</code></td>
+<td>(未設定)</td>
+<td>患者 profile — expectation を <code>tests/fixtures/patient_profiles/&lt;name&gt;.llm-expectations.yaml</code> に解決</td>
+</tr>
+<tr>
+<td><code>--expectations PATH</code></td>
+<td>(未設定)</td>
+<td>明示的 expectation YAML パス (<code>--profile</code> を上書き)</td>
+</tr>
+<tr>
+<td><code>--report PATH</code></td>
+<td>(未設定)</td>
+<td><code>SemanticCheckReport</code> 全体を JSON で書き出す</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-audit--per-module-pr-ゲート"><code>clinosim audit</code> — per-Module PR ゲート<a class="headerlink" href="#clinosim-audit--per-module-pr-ゲート" title="Permanent link">&para;</a></h2>
+<p>AD-60 audit フレームワーク — 現在 6 つの per-module プラグイン
+(<code>hai</code>、<code>antibiotic</code>、<code>order</code>、<code>imaging</code>、<code>document</code>、<code>triage</code>)。
+<code>clinosim/audit/README.ja.md</code> と
+<a href="../../audit-cycles/README.ja/"><code>../audit-cycles/</code></a> の workflow 参照。</p>
+<h2 id="clinosim-dataset--名前付きプリセット-dataset-builder"><code>clinosim dataset</code> — 名前付きプリセット dataset builder<a class="headerlink" href="#clinosim-dataset--名前付きプリセット-dataset-builder" title="Permanent link">&para;</a></h2>
+<p>4 つの名前付きプリセット (<code>us-100</code>、<code>us-1000</code>、<code>jp-100</code>、
+<code>jp-1000</code>) をビルドまたは一覧表示。詳細は
+<a href="../datasets-full.ja/"><code>datasets-full.ja.md</code></a>。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>list
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./jp-100
+</span></code></pre></div>
+<h2 id="clinosim-eval--公開-3-軸評価"><code>clinosim eval</code> — 公開 3 軸評価<a class="headerlink" href="#clinosim-eval--公開-3-軸評価" title="Permanent link">&para;</a></h2>
+<p>生成コホートを structural / clinical / locale の 3 軸でスコア化。
+<a href="../../eval.ja/"><code>../eval.ja.md</code></a> と
+<a href="../../eval-rules.ja/"><code>../eval-rules.ja.md</code></a> 参照。</p>
+<h2 id="clinosim-benchmark--p2-15-予測ベンチマークハーネス"><code>clinosim benchmark</code> — P2-15 予測ベンチマークハーネス<a class="headerlink" href="#clinosim-benchmark--p2-15-予測ベンチマークハーネス" title="Permanent link">&para;</a></h2>
+<p>下流 ML 予測ベンチマーク (AKI、sepsis)。
+<a href="../../benchmarks.ja/"><code>../benchmarks.ja.md</code></a> と
+<code>clinosim/benchmarks/README.ja.md</code> 参照。</p>
+<h2 id="典型的ワークフロー">典型的ワークフロー<a class="headerlink" href="#典型的ワークフロー" title="Permanent link">&para;</a></h2>
 <p><strong>ローカル template のみ実行 (LLM なし、決定的):</strong>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--version-id<span class="w"> </span>template_v1
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--narrative-version<span class="w"> </span>template_v1
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>fhir-r4
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># Stage 2 template narrative + Stage 3 FHIR NDJSON が ./output 配下に出る。</span>
 </span></code></pre></div></p>
 <p><strong>ローカル LLM (Ollama):</strong>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.yaml<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span>--version-id<span class="w"> </span>ollama_en_v1
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--narrative-version<span class="w"> </span>ollama_en_v1
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span>--provider<span class="w"> </span>ollama<span class="w"> </span>--version-id<span class="w"> </span>ollama_en_v1
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--narrative-version<span class="w"> </span>ollama_en_v1
 </span></code></pre></div></p>
 <p><strong>分割: ローカル Stage 1、EC2 Stage 2 (Bedrock)、ローカル Stage 3
 に戻る:</strong>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># ローカルマシン</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>scp<span class="w"> </span>-r<span class="w"> </span>./output/cif<span class="w"> </span>ec2-user@ec2-host:/home/ec2-user/
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># EC2 (IAM ロールに bedrock:Converse)</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/home/ec2-user/cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.bedrock.yaml<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span>--version-id<span class="w"> </span>bedrock_sonnet_en_v1
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># 結果を pull back、それから</span>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span>--narrative-version<span class="w"> </span>bedrock_sonnet_en_v1
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># ローカルマシン</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>scp<span class="w"> </span>-r<span class="w"> </span>./output/cif<span class="w"> </span>ec2-user@ec2-host:/home/ec2-user/
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># EC2 (IAM ロールに bedrock:Converse)</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/home/ec2-user/cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span>--provider<span class="w"> </span>bedrock<span class="w"> </span>--version-id<span class="w"> </span>bedrock_sonnet_en_v1
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="c1"># 結果を pull back、それから FHIR export をローカル実行</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span>--narrative-version<span class="w"> </span>bedrock_sonnet_en_v1
 </span></code></pre></div></p>
 <p>EC2 + Bedrock セットアップガイドは
 <a href="../../bedrock_setup.ja/">../bedrock_setup.ja.md</a> 参照。</p>

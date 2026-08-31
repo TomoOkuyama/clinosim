@@ -2622,8 +2622,9 @@ fit</strong>.</p>
 <li><strong>Scope discipline (★★★)</strong>: no scope expansion after the spec is
    finalised. Findings outside scope are addressed only when they
    are "essential to data quality or clinical coherence"; otherwise
-   they become <strong>formal entries in <code>TODO.md</code></strong> (with context, file:
-   line, and a fix proposal).</li>
+   they become <strong>formal entries on the GitHub Issues board</strong> (see
+   <code>docs/roadmap.md</code>; with context, file:line, and a fix proposal).
+   The pre-Issues <code>TODO.md</code> ledger has been retired.</li>
 <li><strong>Pre-work status audit</strong>: do not take TODO / doc claims at face
    value; <strong>verify empirically before implementing</strong> (a concrete
    example: the α-min-3 "CRITICAL wiring gap" turned out to have
@@ -2691,9 +2692,10 @@ fit</strong>.</p>
 <h2 id="3-determinism-ad-16--ad-59--absolute-rules">3. Determinism (AD-16 / AD-59) — absolute rules<a class="headerlink" href="#3-determinism-ad-16--ad-59--absolute-rules" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>random.random()</code> is forbidden. The RNG must always derive from a
-  sub-seed of <code>numpy.random.Generator</code> (<code>simulator/seeding.py</code>:
-  <code>derive_sub_seed</code> + registration under <code>ENRICHER_SEED_OFFSETS</code>;
-  labs use <code>panel_specimen_seed</code> / <code>individual_lab_seed</code>).</li>
+  sub-seed of <code>numpy.random.Generator</code> (<code>clinosim/seeding.py</code>:
+  <code>derive_sub_seed(master_seed, module_offset, key)</code> + registration
+  under <code>ENRICHER_SEED_OFFSETS</code> (16-bit hex-ASCII); labs use
+  <code>panel_specimen_seed</code> / <code>individual_lab_seed</code>).</li>
 <li><strong><code>datetime.now()</code> / <code>date.today()</code> do not appear on the
   generation path.</strong> (The remaining occurrences are TODOs in the
   determinism chain — adding more is forbidden.) Narrative
@@ -2969,8 +2971,8 @@ integrity must hold (no dangling references).</p>
    builder).</li>
 <li><code>clinosim/modules/output/SPEC.md</code> (two-pass narrative — when you
    touch Stage 2).</li>
-<li>The most recent chain context: <code>.session-resume-prompt.md</code> +
-   each <code>deferred</code> section of <code>TODO.md</code>.</li>
+<li>The most recent chain context: <code>.resume-prompt.md</code> + open issues
+   on the GitHub board (see <code>docs/roadmap.md</code>).</li>
 </ol>
 <p>Japanese counterpart: <a href="../implementation-rules.ja/"><code>implementation-rules.ja.md</code></a>.</p>
 

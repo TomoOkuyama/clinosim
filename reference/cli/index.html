@@ -1117,7 +1117,7 @@
   <a href="#clinosim-test-disease-disease_id" class="md-nav__link">
     <span class="md-ellipsis">
       
-        clinosim test-disease DISEASE_ID
+        clinosim test-disease [DISEASE_ID]
       
     </span>
   </a>
@@ -1151,6 +1151,94 @@
     <span class="md-ellipsis">
       
         clinosim list-diseases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-enumerate--exhaustive-debug-issue-345" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim enumerate — exhaustive debug (Issue #345)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-diff--snapshot-diff--bundle-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim diff — snapshot diff → Bundle transaction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-regenerate-goldens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim regenerate-goldens
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-check-narratives--semantic-narrative-cif-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim check-narratives — semantic narrative-CIF gate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-audit--per-module-pr-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim audit — per-Module PR gate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-dataset--named-preset-dataset-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim dataset — named-preset dataset builder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-eval--public-3-axis-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim eval — public 3-axis evaluation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-benchmark--p2-15-prediction-benchmark-harness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim benchmark — P2-15 prediction benchmark harness
       
     </span>
   </a>
@@ -2414,7 +2502,7 @@
   <a href="#clinosim-test-disease-disease_id" class="md-nav__link">
     <span class="md-ellipsis">
       
-        clinosim test-disease DISEASE_ID
+        clinosim test-disease [DISEASE_ID]
       
     </span>
   </a>
@@ -2448,6 +2536,94 @@
     <span class="md-ellipsis">
       
         clinosim list-diseases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-enumerate--exhaustive-debug-issue-345" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim enumerate — exhaustive debug (Issue #345)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-diff--snapshot-diff--bundle-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim diff — snapshot diff → Bundle transaction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-regenerate-goldens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim regenerate-goldens
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-check-narratives--semantic-narrative-cif-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim check-narratives — semantic narrative-CIF gate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-audit--per-module-pr-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim audit — per-Module PR gate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-dataset--named-preset-dataset-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim dataset — named-preset dataset builder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-eval--public-3-axis-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim eval — public 3-axis evaluation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clinosim-benchmark--p2-15-prediction-benchmark-harness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clinosim benchmark — P2-15 prediction benchmark harness
       
     </span>
   </a>
@@ -2493,15 +2669,27 @@
 <!-- Extracted from `README.md` (Issue #568 PR A). Update the pointer in README when this file's heading changes. -->
 
 <h1 id="cli-reference">CLI Reference<a class="headerlink" href="#cli-reference" title="Permanent link">&para;</a></h1>
-<p>clinosim is organized as three independent stages. <code>clinosim simulate</code> runs Stage 1; Stages 2 and 3 can be composed with it via <code>--narrative</code> and <code>--format fhir</code>, or run separately for reproducibility, remote execution (e.g. Bedrock on EC2), or iterative narrative experiments. <code>clinosim generate</code> remains as a deprecated alias for <code>simulate</code>.</p>
+<p><code>clinosim</code> is organized as three independent stages plus a set of
+debug / audit / dataset / eval / benchmark subcommands. Stage 1
+(<code>simulate</code>) generates the structural CIF; Stages 2 (<code>narrate</code>) and
+3 (<code>export-fhir</code>) run on the CIF and can be composed with Stage 1 or
+run separately for reproducibility, remote LLM execution, or
+iterative narrative experiments. <code>clinosim generate</code> remains as a
+deprecated alias for <code>simulate</code>.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌────────────────┐  ┌────────────────┐  ┌──────────────────┐
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│ simulate       │→ │ narrate        │→ │ export-fhir      │
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│ (Stage 1)      │  │ (Stage 2)      │  │ (Stage 3)        │
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│ structured CIF │  │ narrative CIF  │  │ FHIR R4 NDJSON   │
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>└────────────────┘  └────────────────┘  └──────────────────┘
 </span></code></pre></div>
-<h3 id="clinosim-simulate--stage-1-structural-simulation"><code>clinosim simulate</code> — Stage 1 (structural simulation)<a class="headerlink" href="#clinosim-simulate--stage-1-structural-simulation" title="Permanent link">&para;</a></h3>
-<p>Population-driven simulation. Produces the structural CIF and optionally runs Stage &#8532; in one command.</p>
+<p>The full authoritative source is
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/simulator/cli.py"><code>clinosim/simulator/cli.py</code></a>;
+run <code>clinosim &lt;subcommand&gt; --help</code> for the up-to-date option list.</p>
+<h2 id="clinosim-simulate--stage-1-structural-simulation"><code>clinosim simulate</code> — Stage 1 (structural simulation)<a class="headerlink" href="#clinosim-simulate--stage-1-structural-simulation" title="Permanent link">&para;</a></h2>
+<p>Population-driven simulation. Produces the structural CIF; the
+template Stage 2 narrative pass runs automatically at the end so a
+plain <code>clinosim simulate --format fhir-r4</code> produces an emit-ready
+FHIR bundle. <code>clinosim generate</code> accepts the same options.</p>
 <table>
 <thead>
 <tr>
@@ -2543,8 +2731,8 @@
 </tr>
 <tr>
 <td><code>--format ...</code></td>
-<td><code>cif fhir</code></td>
-<td><code>cif</code>, <code>csv</code>, <code>fhir</code></td>
+<td><code>cif</code></td>
+<td>One or more of <code>cif</code>, <code>csv</code>, <code>fhir-r4</code> (alias: <code>fhir</code>). Add more by registering an <code>OutputAdapter</code> (AD-58).</td>
 </tr>
 <tr>
 <td><code>-s, --seed N</code></td>
@@ -2552,37 +2740,39 @@
 <td>Random seed</td>
 </tr>
 <tr>
-<td><code>--narrative</code></td>
-<td>off</td>
-<td>Run Stage 2 (clinical documents) after Stage 1</td>
+<td><code>--jp-insurance / --no-jp-insurance</code></td>
+<td>on (JP only)</td>
+<td>Include Japanese insurance enrollment / 被保険者番号 (emitted as FHIR <code>Coverage</code>). Ignored for non-JP.</td>
 </tr>
 <tr>
-<td><code>--llm-config PATH</code></td>
+<td><code>--cache-dir DIR</code></td>
 <td>(unset)</td>
-<td>LLM service YAML used when <code>--narrative</code> is set</td>
+<td>F4 memoize: reuse patients whose encounters completed before the prior snapshot's cursor. Enables daily-cron append (p=500k advance drops from ~13 h to ~minutes).</td>
 </tr>
 <tr>
-<td><code>--narrative-version ID</code></td>
-<td>auto</td>
-<td>Narrative version id used when exporting FHIR</td>
+<td><code>--log-file PATH</code></td>
+<td><code>&lt;output&gt;/simulator.log</code></td>
+<td>Structured JSONL simulator log (Issue #172). Use <code>tail -f</code> to watch a run live. Level via <code>CLINOSIM_LOG_LEVEL</code> (default <code>INFO</code>).</td>
 </tr>
 <tr>
-<td><code>--narrative-model NAME</code></td>
-<td><code>qwen:7b</code></td>
-<td>Legacy Ollama model name (ignored if <code>--llm-config</code> is set)</td>
+<td><code>--allow-legacy</code></td>
+<td>off</td>
+<td>(JP only) Permit legacy 5-digit JLAC10 OID output when the JP-CLINS package is not installed. Default is fail-loud (Issue #418) — <code>--country JP</code> requires the JP-CLINS package to emit eCS-compliant output.</td>
 </tr>
 </tbody>
 </table>
-<h3 id="clinosim-narrate--stage-2-clinical-documents"><code>clinosim narrate</code> — Stage 2 (clinical documents)<a class="headerlink" href="#clinosim-narrate--stage-2-clinical-documents" title="Permanent link">&para;</a></h3>
+<h2 id="clinosim-narrate--stage-2-clinical-documents"><code>clinosim narrate</code> — Stage 2 (clinical documents)<a class="headerlink" href="#clinosim-narrate--stage-2-clinical-documents" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p><strong>Note</strong>: template-mode DocumentReferences are also emitted automatically
-during Stage 1 by the <code>document_enricher</code> module, so <code>clinosim simulate
---format fhir-r4</code> produces a valid FHIR bundle with <code>docStatus="preliminary"</code>
-documents even without a separate <code>narrate</code> step. Running <code>narrate</code> afterwards
-upgrades those to <code>docStatus="final"</code> with LLM-generated text (or leaves them
-as <code>preliminary</code> in template mode).</p>
+<p><strong>Note</strong>: template-mode DocumentReferences are already produced
+automatically during Stage 1 by <code>TemplateNarrativePass</code>, so
+<code>clinosim simulate --format fhir-r4</code> yields a valid FHIR bundle
+with <code>docStatus="preliminary"</code> documents even without a separate
+<code>narrate</code> step. Running <code>narrate</code> afterwards writes a new
+narrative version and (by default for the template provider)
+updates <code>current_version.txt</code> to point at it.</p>
 </blockquote>
-<p>Reads an existing CIF directory and generates clinical documents via the LLM service. Writes a new narrative version to <code>&lt;cif&gt;/narratives/&lt;version_id&gt;/</code>.</p>
+<p>Reads an existing CIF directory and generates clinical documents.
+Writes a new narrative version to <code>&lt;cif&gt;/narratives/&lt;version_id&gt;/</code>.</p>
 <table>
 <thead>
 <tr>
@@ -2598,24 +2788,54 @@ as <code>preliminary</code> in template mode).</p>
 <td>Path to an existing CIF directory</td>
 </tr>
 <tr>
+<td><code>--provider NAME</code></td>
+<td><code>template</code></td>
+<td>Narrative generator: <code>template</code> (deterministic), or an LLM provider: <code>bedrock</code>, <code>ollama</code>, <code>mock</code>, <code>vllm</code> (OpenAI-compatible <code>/v1/chat/completions</code>; also covers SGLang and any other OpenAI-compatible server), <code>openai_compatible</code> (alias for <code>vllm</code>).</td>
+</tr>
+<tr>
 <td><code>--llm-config PATH</code></td>
-<td>(template mode)</td>
-<td>LLM service YAML (<code>clinosim/config/llm_service*.yaml</code>)</td>
+<td>provider-specific default</td>
+<td>LLM service YAML (<code>clinosim/config/llm_service*.yaml</code>). Default: <code>bedrock</code> → <code>llm_service.bedrock.yaml</code>, <code>ollama</code> → <code>llm_service.yaml</code>, <code>mock</code> → in-code <code>MockProvider</code>.</td>
 </tr>
 <tr>
 <td><code>--version-id ID</code></td>
-<td>auto-timestamped</td>
+<td>provider name</td>
 <td>Narrative version directory name</td>
-</tr>
-<tr>
-<td><code>--language LANG</code></td>
-<td><code>en</code></td>
-<td>Document language (<code>en</code> | <code>ja</code>)</td>
 </tr>
 <tr>
 <td><code>--tasks LIST</code></td>
 <td>all Tier A+B</td>
-<td>Comma-separated subset: <code>discharge_summary,death_summary,operative_note,admission_hp,procedure_note</code></td>
+<td>Comma-separated <code>LLMTaskType</code> filter (<code>discharge_summary,death_summary,operative_note,admission_hp,procedure_note</code>)</td>
+</tr>
+<tr>
+<td><code>--country CODE</code></td>
+<td><code>US</code></td>
+<td>Country code (display language)</td>
+</tr>
+<tr>
+<td><code>--set-current / --no-set-current</code></td>
+<td>provider-dependent</td>
+<td>Update <code>current_version.txt</code>. Default: yes for <code>--provider template</code>, no for LLM providers (M-3 / N-chain guard: a trial run cannot silently repoint production exports), and always no when <code>--patient-filter</code> is set (chain 1b adv-1 I-1). Explicit <code>--set-current</code> / <code>--no-set-current</code> always wins.</td>
+</tr>
+<tr>
+<td><code>--seed N</code></td>
+<td><code>42</code></td>
+<td>RNG seed for determinism</td>
+</tr>
+<tr>
+<td><code>--patient-filter REGEX</code></td>
+<td>(unset)</td>
+<td>Regex over patient filename stem / <code>patient_id</code> — narrate only matching patients (remote per-patient iteration, chain 1b T3). The version manifest records the filter.</td>
+</tr>
+<tr>
+<td><code>--merge-into-version</code></td>
+<td>off</td>
+<td>With <code>--patient-filter</code>: allow writing into an existing version directory that already contains documents (iterate-one-patient loop). Without this, a filtered write into a non-empty version is refused.</td>
+</tr>
+<tr>
+<td><code>--concurrency N</code></td>
+<td><code>1</code></td>
+<td>Number of narrate worker threads. Higher values let a batching LLM backend (vLLM continuous batching, etc.) absorb N in-flight <code>generate()</code> calls — set to match the server's <code>--max-num-seqs</code> or a fraction of it. Requires thread-safe provider (Ollama, vLLM, Mock are).</td>
 </tr>
 </tbody>
 </table>
@@ -2663,9 +2883,11 @@ as <code>preliminary</code> in template mode).</p>
 </tbody>
 </table>
 <p>See <a href="../../clinical_documents/">../clinical_documents.md</a> for details.</p>
-<h3 id="clinosim-export-fhir--stage-3-fhir-r4-ndjson"><code>clinosim export-fhir</code> — Stage 3 (FHIR R4 NDJSON)<a class="headerlink" href="#clinosim-export-fhir--stage-3-fhir-r4-ndjson" title="Permanent link">&para;</a></h3>
-<p>Reads an existing CIF directory and writes FHIR R4 Bulk Data NDJSON files.
-DocumentReference resources are emitted from <code>record.documents</code> (Stage 1 enricher output).</p>
+<h2 id="clinosim-export-fhir--stage-3-fhir-r4-ndjson"><code>clinosim export-fhir</code> — Stage 3 (FHIR R4 NDJSON)<a class="headerlink" href="#clinosim-export-fhir--stage-3-fhir-r4-ndjson" title="Permanent link">&para;</a></h2>
+<p>Reads an existing CIF directory and writes FHIR R4 Bulk Data NDJSON
+files. <code>DocumentReference</code> resources are emitted from
+<code>record.documents</code> (populated by Stage 1's <code>document_enricher</code> and
+promoted to <code>final</code> docStatus by the selected narrative version).</p>
 <table>
 <thead>
 <tr>
@@ -2688,51 +2910,376 @@ DocumentReference resources are emitted from <code>record.documents</code> (Stag
 <tr>
 <td><code>--country CODE</code></td>
 <td><code>US</code></td>
-<td>Country code (display language)</td>
+<td><code>US</code> or <code>JP</code></td>
+</tr>
+<tr>
+<td><code>--narrative-version ID</code></td>
+<td><code>current</code></td>
+<td>Narrative version id (default reads the <code>current_version.txt</code> pointer)</td>
 </tr>
 </tbody>
 </table>
-<h3 id="clinosim-test-disease-disease_id"><code>clinosim test-disease DISEASE_ID</code><a class="headerlink" href="#clinosim-test-disease-disease_id" title="Permanent link">&para;</a></h3>
-<p>Generate forced scenario for a specific disease (debugging / golden tests).</p>
+<h2 id="clinosim-test-disease-disease_id"><code>clinosim test-disease [DISEASE_ID]</code><a class="headerlink" href="#clinosim-test-disease-disease_id" title="Permanent link">&para;</a></h2>
+<p>Generate a forced scenario for a specific inpatient disease (debug /
+golden fixtures / AD-66 patient-profile bootstraps). <code>DISEASE_ID</code> is
+optional when <code>--patient-profile</code> is set.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--patient-profile NAME</code></td>
+<td>(unset)</td>
+<td>Patient profile fixture name or path (AD-66); CLI args override profile fields with a stderr <code>WARN</code></td>
+</tr>
+<tr>
+<td><code>-n, --count N</code></td>
+<td>3 (or profile count)</td>
+<td>Number of patients</td>
+</tr>
+<tr>
+<td><code>--severity LEVEL</code></td>
+<td>(from YAML)</td>
+<td>Force severity: <code>mild</code> / <code>moderate</code> / <code>severe</code></td>
+</tr>
+<tr>
+<td><code>--archetype NAME</code></td>
+<td>(from YAML)</td>
+<td>Force archetype name</td>
+</tr>
+<tr>
+<td><code>-s, --seed N</code></td>
+<td>42 (or profile <code>random_seed</code>)</td>
+<td>Random seed</td>
+</tr>
+<tr>
+<td><code>--country CODE</code></td>
+<td>US (or profile country)</td>
+<td>Country code</td>
+</tr>
+<tr>
+<td><code>--format ...</code></td>
+<td>(stdout debug)</td>
+<td>One or more of <code>cif</code>, <code>fhir-r4</code>, <code>csv</code>, <code>all</code>. Requires <code>-o</code>.</td>
+</tr>
+<tr>
+<td><code>-o, --output DIR</code></td>
+<td>(unset)</td>
+<td>Output directory (required when <code>--format</code> is set). When set, the full 3-stage pipeline (structural CIF + template narrative + FHIR / CSV) runs for the disease-specific mini-cohort.</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim<span class="w"> </span>test-disease<span class="w"> </span>heart_failure_exacerbation<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--severity<span class="w"> </span>severe<span class="w"> </span>--archetype<span class="w"> </span>treatment_resistant<span class="w"> </span>-n<span class="w"> </span><span class="m">3</span>
 </span></code></pre></div>
-<h3 id="clinosim-test-encounter-condition_id"><code>clinosim test-encounter CONDITION_ID</code><a class="headerlink" href="#clinosim-test-encounter-condition_id" title="Permanent link">&para;</a></h3>
-<p>ED / outpatient encounter unit test.</p>
+<h2 id="clinosim-test-encounter-condition_id"><code>clinosim test-encounter CONDITION_ID</code><a class="headerlink" href="#clinosim-test-encounter-condition_id" title="Permanent link">&para;</a></h2>
+<p>Simulate one (or more) patients through a single ED / outpatient
+encounter YAML.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-n, --count N</code></td>
+<td>1</td>
+<td>Number of patients</td>
+</tr>
+<tr>
+<td><code>-s, --seed N</code></td>
+<td>42</td>
+<td>Random seed</td>
+</tr>
+<tr>
+<td><code>--country CODE</code></td>
+<td>US</td>
+<td>Country code</td>
+</tr>
+<tr>
+<td><code>--age N</code></td>
+<td>(sampled)</td>
+<td>Force patient age</td>
+</tr>
+<tr>
+<td><code>--sex M/F</code></td>
+<td>(sampled)</td>
+<td>Force patient sex</td>
+</tr>
+<tr>
+<td><code>--format ...</code></td>
+<td>(stdout debug)</td>
+<td>Same as <code>test-disease</code></td>
+</tr>
+<tr>
+<td><code>-o, --output DIR</code></td>
+<td>(unset)</td>
+<td>Output directory (required when <code>--format</code> is set)</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>clinosim<span class="w"> </span>test-encounter<span class="w"> </span>migraine<span class="w"> </span>--age<span class="w"> </span><span class="m">35</span><span class="w"> </span>--sex<span class="w"> </span>F
 </span></code></pre></div>
-<h3 id="clinosim-validate"><code>clinosim validate</code><a class="headerlink" href="#clinosim-validate" title="Permanent link">&para;</a></h3>
+<h2 id="clinosim-validate"><code>clinosim validate</code><a class="headerlink" href="#clinosim-validate" title="Permanent link">&para;</a></h2>
 <p>Quality check generated data against published benchmarks.</p>
-<h3 id="clinosim-list-diseases"><code>clinosim list-diseases</code><a class="headerlink" href="#clinosim-list-diseases" title="Permanent link">&para;</a></h3>
-<p>Show all 32 diseases (<code>clinosim/modules/disease/reference_data/*.yaml</code>) + 46 encounter conditions (<code>clinosim/modules/encounter/reference_data/*.yaml</code>).</p>
-<h3 id="typical-workflows">Typical workflows<a class="headerlink" href="#typical-workflows" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-p, --population N</code></td>
+<td>5000</td>
+<td>Population size</td>
+</tr>
+<tr>
+<td><code>-s, --seed N</code></td>
+<td>42</td>
+<td>Random seed</td>
+</tr>
+<tr>
+<td><code>--country CODE</code></td>
+<td>US</td>
+<td>Country code</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-list-diseases"><code>clinosim list-diseases</code><a class="headerlink" href="#clinosim-list-diseases" title="Permanent link">&para;</a></h2>
+<p>Show all 32 inpatient disease protocols
+(<code>clinosim/modules/disease/reference_data/*.yaml</code>) + 46 ED /
+outpatient encounter conditions
+(<code>clinosim/modules/encounter/reference_data/*.yaml</code>).</p>
+<h2 id="clinosim-enumerate--exhaustive-debug-issue-345"><code>clinosim enumerate</code> — exhaustive debug (Issue #345)<a class="headerlink" href="#clinosim-enumerate--exhaustive-debug-issue-345" title="Permanent link">&para;</a></h2>
+<p>Generates exactly one patient per (disease × severity ×
+course_archetype) plus per (encounter × severity). Population-driven
+sampling can leave rare patterns unfired even at large <code>-p</code>;
+<code>enumerate</code> deterministically covers every combination.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-o, --output DIR</code></td>
+<td><strong>required</strong></td>
+<td>Writes <code>cif/</code>, <code>cif/narratives/template/</code>, <code>fhir_r4/</code>, <code>enumeration_manifest.json</code></td>
+</tr>
+<tr>
+<td><code>--level LEVEL</code></td>
+<td><code>full</code></td>
+<td><code>basic</code> (1 per scenario), <code>severity</code> (1 per scenario × severity), <code>full</code> (1 per disease × severity × course_archetype)</td>
+</tr>
+<tr>
+<td><code>--country CODE</code></td>
+<td><code>US</code></td>
+<td><code>US</code> or <code>JP</code></td>
+</tr>
+<tr>
+<td><code>--include-both-countries</code></td>
+<td>off</td>
+<td>Emit both JP and US patients in one run (approximately doubles the case count)</td>
+</tr>
+<tr>
+<td><code>--seed N</code></td>
+<td>42</td>
+<td>Base seed for sub-seed derivation</td>
+</tr>
+<tr>
+<td><code>--yes-large</code></td>
+<td>off</td>
+<td>Bypass the coverage-explosion guard (threshold: 2000 patients)</td>
+</tr>
+<tr>
+<td><code>--format ...</code></td>
+<td><code>cif fhir-r4</code></td>
+<td><code>cif</code>, <code>fhir-r4</code>, <code>csv</code>, <code>all</code></td>
+</tr>
+<tr>
+<td><code>--dry-run</code></td>
+<td>off</td>
+<td>Plan only — print discovered scenarios and case count, do not simulate</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-diff--snapshot-diff--bundle-transaction"><code>clinosim diff</code> — snapshot diff → Bundle transaction<a class="headerlink" href="#clinosim-diff--snapshot-diff--bundle-transaction" title="Permanent link">&para;</a></h2>
+<p>Turn two successive snapshots into a FHIR Bundle transaction (F3;
+day-N vs day-M append). Runs on already-exported FHIR directories.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--old DIR</code></td>
+<td><strong>required</strong></td>
+<td>Previous snapshot's FHIR output directory</td>
+</tr>
+<tr>
+<td><code>--new DIR</code></td>
+<td><strong>required</strong></td>
+<td>Current snapshot's FHIR output directory</td>
+</tr>
+<tr>
+<td><code>--output-bundle PATH</code></td>
+<td><strong>required</strong></td>
+<td>Output path for the Bundle transaction JSON</td>
+</tr>
+<tr>
+<td><code>--output-summary PATH</code></td>
+<td>stdout</td>
+<td>Output path for the summary text</td>
+</tr>
+<tr>
+<td><code>--old-cursor DATE</code></td>
+<td>old dir name</td>
+<td>Previous cursor date (for the summary)</td>
+</tr>
+<tr>
+<td><code>--new-cursor DATE</code></td>
+<td>new dir name</td>
+<td>Current cursor date (for the summary)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-regenerate-goldens"><code>clinosim regenerate-goldens</code><a class="headerlink" href="#clinosim-regenerate-goldens" title="Permanent link">&para;</a></h2>
+<p>AD-66 α-min-2c golden narrative bootstrap. Regenerates goldens for
+canonical patient profiles under
+<code>tests/fixtures/patient_profiles/</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--profile NAME</code> | <code>--all</code></td>
+<td>(one required)</td>
+<td>Single profile by name, or every profile</td>
+</tr>
+<tr>
+<td><code>--provider NAME</code></td>
+<td><code>template</code></td>
+<td><code>template</code> (writes <code>&lt;name&gt;.golden.json</code>), or <code>mock</code> / <code>bedrock</code> / <code>ollama</code> (writes <code>&lt;name&gt;.llm-&lt;tag&gt;.golden.json</code>)</td>
+</tr>
+<tr>
+<td><code>--llm-config PATH</code></td>
+<td>(default per provider)</td>
+<td>LLM service YAML passed through to <code>narrate</code></td>
+</tr>
+<tr>
+<td><code>--model-tag TAG</code></td>
+<td>provider name</td>
+<td>Filename tag for LLM goldens</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-check-narratives--semantic-narrative-cif-gate"><code>clinosim check-narratives</code> — semantic narrative-CIF gate<a class="headerlink" href="#clinosim-check-narratives--semantic-narrative-cif-gate" title="Permanent link">&para;</a></h2>
+<p>β-JP-1 chain 1b T2 semantic check: the LLM-output gate where
+byte-diff does not apply. Exit 0 = pass, 1 = findings.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--cif-dir DIR</code></td>
+<td><strong>required</strong></td>
+<td>Path to a CIF directory</td>
+</tr>
+<tr>
+<td><code>--version ID</code></td>
+<td><strong>required</strong></td>
+<td>Narrative version id to check (e.g. <code>llm-mock</code>, <code>ollama</code>)</td>
+</tr>
+<tr>
+<td><code>--profile NAME</code></td>
+<td>(unset)</td>
+<td>Patient profile — resolves expectations to <code>tests/fixtures/patient_profiles/&lt;name&gt;.llm-expectations.yaml</code></td>
+</tr>
+<tr>
+<td><code>--expectations PATH</code></td>
+<td>(unset)</td>
+<td>Explicit expectations YAML path (overrides <code>--profile</code>)</td>
+</tr>
+<tr>
+<td><code>--report PATH</code></td>
+<td>(unset)</td>
+<td>Write the full <code>SemanticCheckReport</code> as JSON</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clinosim-audit--per-module-pr-gate"><code>clinosim audit</code> — per-Module PR gate<a class="headerlink" href="#clinosim-audit--per-module-pr-gate" title="Permanent link">&para;</a></h2>
+<p>AD-60 audit framework — six per-module plug-ins today (<code>hai</code>,
+<code>antibiotic</code>, <code>order</code>, <code>imaging</code>, <code>document</code>, <code>triage</code>). See
+<code>clinosim/audit/README.md</code> and <a href="../../audit-cycles/"><code>../audit-cycles/</code></a>
+for the workflow.</p>
+<h2 id="clinosim-dataset--named-preset-dataset-builder"><code>clinosim dataset</code> — named-preset dataset builder<a class="headerlink" href="#clinosim-dataset--named-preset-dataset-builder" title="Permanent link">&para;</a></h2>
+<p>Build the four named presets (<code>us-100</code>, <code>us-1000</code>, <code>jp-100</code>,
+<code>jp-1000</code>) or list available presets. See
+<a href="../datasets-full/"><code>datasets-full.md</code></a>.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>list
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./jp-100
+</span></code></pre></div>
+<h2 id="clinosim-eval--public-3-axis-evaluation"><code>clinosim eval</code> — public 3-axis evaluation<a class="headerlink" href="#clinosim-eval--public-3-axis-evaluation" title="Permanent link">&para;</a></h2>
+<p>Score any generated cohort on structural / clinical / locale axes.
+See <a href="../../eval/"><code>../eval.md</code></a> and <a href="../../eval-rules/"><code>../eval-rules.md</code></a>.</p>
+<h2 id="clinosim-benchmark--p2-15-prediction-benchmark-harness"><code>clinosim benchmark</code> — P2-15 prediction benchmark harness<a class="headerlink" href="#clinosim-benchmark--p2-15-prediction-benchmark-harness" title="Permanent link">&para;</a></h2>
+<p>Downstream ML prediction benchmarks (AKI, sepsis). See
+<a href="../../benchmarks/"><code>../benchmarks.md</code></a> and
+<code>clinosim/benchmarks/README.md</code>.</p>
+<h2 id="typical-workflows">Typical workflows<a class="headerlink" href="#typical-workflows" title="Permanent link">&para;</a></h2>
 <p><strong>Local template-only run (no LLM, deterministic):</strong>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--version-id<span class="w"> </span>template_v1
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--narrative-version<span class="w"> </span>template_v1
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>fhir-r4
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># Stage 2 template narrative + Stage 3 FHIR NDJSON both land under ./output.</span>
 </span></code></pre></div></p>
 <p><strong>Local LLM (Ollama):</strong>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.yaml<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span>--version-id<span class="w"> </span>ollama_en_v1
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--narrative-version<span class="w"> </span>ollama_en_v1
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span>--provider<span class="w"> </span>ollama<span class="w"> </span>--version-id<span class="w"> </span>ollama_en_v1
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--narrative-version<span class="w"> </span>ollama_en_v1
 </span></code></pre></div></p>
 <p><strong>Split: local Stage 1, EC2 Stage 2 (Bedrock), back to local Stage 3:</strong>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># On local machine</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>scp<span class="w"> </span>-r<span class="w"> </span>./output/cif<span class="w"> </span>ec2-user@ec2-host:/home/ec2-user/
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># On EC2 (IAM role with bedrock:Converse)</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/home/ec2-user/cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.bedrock.yaml<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span>--version-id<span class="w"> </span>bedrock_sonnet_en_v1
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># Pull result back, then</span>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span>--narrative-version<span class="w"> </span>bedrock_sonnet_en_v1
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># On local machine</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>scp<span class="w"> </span>-r<span class="w"> </span>./output/cif<span class="w"> </span>ec2-user@ec2-host:/home/ec2-user/
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># On EC2 (IAM role with bedrock:Converse)</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/home/ec2-user/cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span>--provider<span class="w"> </span>bedrock<span class="w"> </span>--version-id<span class="w"> </span>bedrock_sonnet_en_v1
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="c1"># Pull the narrative back, then export FHIR locally</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span>--narrative-version<span class="w"> </span>bedrock_sonnet_en_v1
 </span></code></pre></div></p>
-<p>See <a href="../../bedrock_setup/">../bedrock_setup.md</a> for the EC2 + Bedrock setup guide.</p>
+<p>See <a href="../../bedrock_setup/">../bedrock_setup.md</a> for the EC2 + Bedrock
+setup guide.</p>
 <hr />
 
 

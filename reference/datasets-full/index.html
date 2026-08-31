@@ -2325,10 +2325,11 @@ reproducibly buildable from the CLI:</p>
 metadata rework. The Zenodo integration (<code>.zenodo.json</code> at repo root)
 mints a DOI on every tagged release, so cite the DOI for the exact
 clinosim version you built the data with.</p>
-<p>Starting with the <strong>next release cycle</strong>, the release workflow builds
-all four presets and attaches them as GitHub Release assets. The
-current v0.3.0 release ships the infrastructure only — use
-<code>clinosim dataset build</code> to reproduce locally.</p>
+<p>Since the v0.4.x release line the CI release workflow builds all
+four presets and attaches them as GitHub Release assets, so the
+tagged datasets are pinned to a specific <code>clinosim</code> version. To
+reproduce (or rebuild against unreleased master), use
+<code>clinosim dataset build</code> locally.</p>
 <p>To load a dataset into a FHIR server (HAPI FHIR, etc.), see
 <a href="../../fhir-server-ingestion/"><code>../fhir-server-ingestion.md</code></a>.</p>
 <hr />

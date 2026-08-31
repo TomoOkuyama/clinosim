@@ -2797,7 +2797,7 @@ JSON (the <em>narrative CIF</em>) and once as a FHIR R4 <code>DocumentReference<
 the Bulk Data NDJSON export.</p>
 <p>This guide covers:</p>
 <ul>
-<li><a href="#document-scope">The five document types and when each is generated</a></li>
+<li><a href="#document-scope">Emitted document types and when each is generated</a></li>
 <li><a href="#fhir-mapping">LOINC mapping and FHIR fields</a></li>
 <li><a href="#workflow">End-to-end workflow</a></li>
 <li><a href="#prompts">Writing and editing prompt templates</a></li>
@@ -2807,10 +2807,17 @@ the Bulk Data NDJSON export.</p>
 </ul>
 <hr />
 <h2 id="document-scope">Document scope<a class="headerlink" href="#document-scope" title="Permanent link">&para;</a></h2>
-<p>Milestone 1 generates <strong>five document types</strong> organized into two tiers.
-Progress Note (LOINC 11506-3) is defined in the enum but reserved for a future
-Tier C opt-in because real-world progress notes are heavily redundant with the
-structured vitals/labs/MAR layer.</p>
+<p>clinosim's LLM-service enum <code>LLMTaskType</code>
+(<code>clinosim/modules/llm_service/engine.py</code>) lists 20+ NARRATIVE task
+types plus 4 JUDGMENT task types. The subset <strong>wired end-to-end
+through a prompt YAML → template pass → DocumentReference emit path</strong>
+is the eight document types below (each has an EN + JA prompt YAML
+under <code>clinosim/modules/llm_service/prompts/{en,ja}/</code>). Progress Note
+(LOINC 11506-3) is defined in the enum but reserved for a future
+Tier C opt-in because real-world progress notes are heavily redundant
+with the structured vitals/labs/MAR layer; the additional nursing /
+outpatient / ED / care-plan / health-checkup NARRATIVE types are
+similarly declared in the enum for later phases.</p>
 <table>
 <thead>
 <tr>
@@ -2826,14 +2833,28 @@ structured vitals/labs/MAR layer.</p>
 <td>A</td>
 <td>Discharge Summary</td>
 <td><code>18842-5</code></td>
-<td>Every finished inpatient encounter</td>
+<td>Every finished inpatient encounter (non-deceased)</td>
 <td>1</td>
 </tr>
 <tr>
 <td>A</td>
-<td>Death Note</td>
+<td>Death Summary</td>
 <td><code>69730-0</code></td>
 <td><code>record.deceased = true</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Death Discharge Summary</td>
+<td><code>18842-5</code> (specialized title)</td>
+<td><code>record.deceased = true</code> — replaces the generic Discharge Summary on deceased encounters (Issue #961)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Death Certificate</td>
+<td><code>64297-5</code></td>
+<td><code>record.deceased = true</code> — 医師法第 20 条 mandate (Issue #961)</td>
 <td>1</td>
 </tr>
 <tr>
@@ -2856,6 +2877,13 @@ structured vitals/labs/MAR layer.</p>
 <td><code>28570-0</code></td>
 <td>Invasive bedside procedure from a fixed allowlist</td>
 <td>0..N</td>
+</tr>
+<tr>
+<td>JP</td>
+<td>Referral Note</td>
+<td><code>57133-1</code></td>
+<td>Deterministic 20% subset of <code>country=JP</code> discharge encounters (JP-CLINS eReferral, PR2b)</td>
+<td>1</td>
 </tr>
 </tbody>
 </table>

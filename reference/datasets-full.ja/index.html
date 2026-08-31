@@ -2306,9 +2306,10 @@ CLI から再現可能にビルド可能:</p>
 Hub に push 可能。Zenodo integration (<code>.zenodo.json</code> at repo root)
 は tag された各 release で DOI を発行するので、データ構築に使用した
 正確な clinosim バージョンの DOI を引用してください。</p>
-<p><strong>次のリリースサイクル</strong> 以降、release ワークフローは全 4 プリセット
-をビルドし GitHub Release アセットとして attach。現行 v0.3.0
-release はインフラのみを同梱 — ローカル再現には
+<p>v0.4.x release line 以降、CI の release ワークフローは全 4
+プリセットをビルドし GitHub Release アセットとして attach するので、
+tag 付き dataset は特定 <code>clinosim</code> バージョンに pin される。
+ローカル再現 (または未リリースの master での再ビルド) には
 <code>clinosim dataset build</code> を使用。</p>
 <p>FHIR サーバ (HAPI FHIR 等) にデータセットをロードするには
 <a href="../../fhir-server-ingestion.ja/"><code>../fhir-server-ingestion.ja.md</code></a>

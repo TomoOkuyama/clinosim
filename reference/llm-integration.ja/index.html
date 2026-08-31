@@ -2330,6 +2330,10 @@
   provider:</li>
 <li><code>ollama</code> — ローカル Ollama サーバ (デフォルト)</li>
 <li><code>bedrock</code> — AWS Bedrock、Converse API 経由 (EC2 デプロイ用)</li>
+<li><code>vllm</code> — OpenAI 互換 <code>/v1/chat/completions</code> エンドポイント
+    (vLLM、SGLang、その他 OpenAI 互換サーバ; <code>clinosim narrate</code> の
+    <code>--concurrency</code> で continuous batching)</li>
+<li><code>openai_compatible</code> — <code>vllm</code> の alias</li>
 <li><code>mock</code> — テスト用決定的 stub</li>
 <li>新規 provider は <code>providers.register_provider()</code> で登録可能。</li>
 <li>プロンプトテンプレートは
