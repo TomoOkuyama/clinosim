@@ -237,6 +237,13 @@ LAB_UNITS: dict[str, str] = {
     "Lipase": "U/L",
     "Cortisol": "ug/dL",
     # lint: "BNP": "pg/mL" was duplicated (already declared above); dropped.
+    # Issue #957 slice 1: tumor markers (see BASELINE_LAB_NORMALS below).
+    "CEA": "ng/mL",
+    "CA19_9": "U/mL",
+    "AFP": "ng/mL",
+    "PIVKA_II": "mAU/mL",
+    "CA15_3": "U/mL",
+    "PSA": "ng/mL",
 }
 
 
@@ -279,6 +286,22 @@ BASELINE_LAB_NORMALS: dict[str, float] = {
     "TG": 130,
     "TC": 190,
     "ESR": 12,
+    # Issue #957 slice 1: tumor markers for chronic cancer follow-up.
+    # chronic_followup.yaml already lists these under ``labs_quarterly`` /
+    # ``labs_annual`` for C18 / C22 / C34 / C50 / C61, but the outpatient
+    # emit loop drops any lab whose canonical name is missing from both
+    # ``_true_labs`` and ``BASELINE_LAB_NORMALS`` (silent-skip). Cancer
+    # follow-up encounters are monitoring visits — the expected clinical
+    # value is a normal (in-remission) result. Elevated values as a
+    # recurrence signal are a separate physiology extension (deferred).
+    #
+    # Baseline values below the upper reference limit for each marker:
+    "CEA": 2.5,  # ng/mL (upper normal < 5 ng/mL nonsmokers)
+    "CA19_9": 15,  # U/mL (upper normal < 37 U/mL)
+    "AFP": 5,  # ng/mL (upper normal < 10 ng/mL)
+    "PIVKA_II": 20,  # mAU/mL (upper normal < 40 mAU/mL)
+    "CA15_3": 18,  # U/mL (upper normal < 30 U/mL)
+    "PSA": 1.5,  # ng/mL (upper normal < 4 ng/mL, male only)
 }
 
 
