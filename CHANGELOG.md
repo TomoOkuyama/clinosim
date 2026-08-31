@@ -134,9 +134,17 @@ before re-tagging. Everything below stays queued under
   billing code. New end-to-end test asserts male C50 → `C50.929`,
   female C50 → `C50.919` (US), and both sexes → `C50` identity
   mapping (JP). Adds `C50.929` display to `codes/data/icd-10-cm.yaml`.
-  Classification: **MINOR** — male 60+ patients now sample an extra
-  `rng.random()` for the male C50 band, shifting their downstream
-  cursor; female patients + all other codes are RNG-shape neutral.
+  Classification: **PATCH** — the augmentation is sampled via a
+  per-patient sub-RNG (`chronic_augment_sex_seed`), so the master
+  population RNG stream stays byte-identical to the pre-#957 path
+  for every patient (verified: fresh `p=60 seed=42` regen produces
+  POP-000047 with sex=M age=38 chronic=[] — matches master exactly);
+  the only structured-CIF drift is the addition of C50 chronic
+  conditions on ~0.02 % of male 60+ patients (and the derived FHIR
+  MedicationRequest / Condition + follow-up encounter cascade that
+  follows). Fresh `narrate` is NOT required — pre-existing patients'
+  narrative CIF stays consistent because their structural CIF is
+  byte-identical to master.
   Author: Claude. Partial #957.
 - **Issue #757 (partial) — Chronic-medication-driven monitoring pipeline
   foundation.** New `clinosim/modules/monitoring/` module: YAML-driven
