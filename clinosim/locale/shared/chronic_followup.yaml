@@ -154,6 +154,7 @@ C18:  # Colon cancer
   labs_annual: [CEA, CA19_9]
   vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
   prescriptions_renewed: true
+  radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
 
 C22:  # Liver cancer
@@ -165,6 +166,7 @@ C22:  # Liver cancer
   labs_quarterly: [AFP]
   vitals: [systolic_bp, diastolic_bp, weight]
   prescriptions_renewed: true
+  radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
 
 C34:  # Lung cancer
@@ -176,6 +178,7 @@ C34:  # Lung cancer
   labs_quarterly: [CEA]
   vitals: [systolic_bp, heart_rate, spo2, respiratory_rate]
   prescriptions_renewed: true
+  radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
 
 C50:  # Breast cancer (female-only per sex-gate)
@@ -187,6 +190,7 @@ C50:  # Breast cancer (female-only per sex-gate)
   labs_quarterly: [CA15_3]
   vitals: [systolic_bp, diastolic_bp, weight]
   prescriptions_renewed: true
+  radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
 
 C61:  # Prostate cancer (male-only per sex-gate)
@@ -196,6 +200,7 @@ C61:  # Prostate cancer (male-only per sex-gate)
   follow_up_interval_months: 3
   labs: []
   labs_quarterly: [PSA]
+  radiation_therapy_eligible: true    # Issue #957 slice 3 — external beam RT for localized C61
 
 # Issue #957 slice 2: additional JP-common cancer follow-up entries.
 # Cadences per NCCN / JSCO / JCOG survivorship guidelines; tumor markers
@@ -210,6 +215,7 @@ C15:  # Esophageal cancer follow-up
   labs_quarterly: [CEA]
   vitals: [systolic_bp, heart_rate, weight]
   prescriptions_renewed: true
+  radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
 
 C16:  # Gastric cancer follow-up
@@ -221,6 +227,7 @@ C16:  # Gastric cancer follow-up
   labs_quarterly: [CEA, CA19_9]
   vitals: [systolic_bp, heart_rate, weight]
   prescriptions_renewed: true
+  radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
 
 C25:  # Pancreatic cancer follow-up
@@ -232,6 +239,7 @@ C25:  # Pancreatic cancer follow-up
   labs_quarterly: [CA19_9, CEA]
   vitals: [systolic_bp, heart_rate, weight]
   prescriptions_renewed: true
+  radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
 
 C67:  # Bladder cancer follow-up
@@ -254,6 +262,7 @@ C71:  # Malignant brain tumor (glioma) follow-up
   labs_quarterly: []                     # no standard blood tumor marker
   vitals: [systolic_bp, heart_rate, weight]
   prescriptions_renewed: true
+  radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
   vitals: [systolic_bp, diastolic_bp]
   prescriptions_renewed: true
