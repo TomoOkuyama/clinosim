@@ -2446,6 +2446,58 @@ before re-tagging. Everything below stays queued under
   Procedure per pregnancy-year; CIF ↔ narrative-CIF byte-identity
   is broken for Z34 patients only, fresh <code>narrate</code> required for
   them. Author: Claude. Partial #957.</li>
+<li><strong>Issue #957 (Tier-3-A slice 2) — Chemotherapy per-cycle
+  MedicationRequest + MedicationAdministration.</strong> Extends slice 1
+  (Encounter + Procedure only) to also emit one <code>Order</code>
+  (order_type=MEDICATION → FHIR MedicationRequest) and one
+  <code>MedicationAdministration</code> per drug on the regimen's
+  <code>cycle_orders</code> list. Any consumer computing "cycles of X received"
+  or "drug-days of chemo" now gets real records instead of a
+  derived approximation. Verified JP p=5000 seed=1: <strong>381 chemo
+  encounters × cycle drugs = 609 CIF MARs + 609 CIF Orders</strong>
+  (Trastuzumab_q3w single-drug regimen dominant); FHIR-side
+  MedicationAdministration / MedicationRequest per-drug counts
+  match. Nurse assignment uses the same <code>medication_administration
+  / department</code> staffing pool as inpatient MAR. 2 new tests:
+  single-drug + multi-drug (FOLFOX) regimens both assert 1 Order</li>
+<li>1 MAR per drug with matching <code>order_id</code>. Classification:
+  <strong>MINOR</strong> — new MedicationRequest + MedicationAdministration
+  resources on chemo_visit encounters (scoped to cancer patients
+  with an active regimen only). Author: Claude. Partial #957.</li>
+<li><strong>Issue #957 (Tier-3-A slice 1) — Chemotherapy cycle scheduling.</strong>
+  Real chemo regimens are cycle-based (FOLFOX q14d, CarboPem q21d,
+  Trastuzumab q3w, LHRH q28d), not continuous daily therapy. Pre-fix
+  the simulator carried chemo drugs as chronic daily
+  <code>MedicationRequest</code>s only — the temporal signature was flat and any
+  consumer computing "chemo cycles received in the year" got nonsense.
+  This slice introduces a healthcare-calendar-level <code>chemo_visit</code>
+  event: new <code>clinosim/locale/shared/chemo_regimens.yaml</code> declares the
+  regimen library (cycle interval, course cycles, per-cycle drugs) +
+  a per-cancer-code assignment table (<code>by_cancer</code>); the population
+  scheduler (<code>_chemo_cycle_events</code> in <code>population/engine.py</code>) picks a
+  regimen per chronic-cancer carrier via a per-patient deterministic
+  sub-RNG (<code>chemotherapy_regimen_seed</code>) and emits <code>chemo_visit</code>
+  <code>LifeEvent</code>s at the regimen's cycle cadence; <code>simulator/engine.py</code>
+  dispatches these to <code>_simulate_outpatient_visit</code> with a chemo-
+  specific <code>followup_spec</code> that routes to the oncology department
+  and emits a <code>ProcedureRecord</code> for the chemotherapy administration
+  (JP: G003 抗悪性腫瘍剤注入, US: CPT 96413). Verified on JP p=5000
+  seed=1: <strong>422 chemo-cycle encounters + 422 chemotherapy-
+  administration Procedures across 36 patients</strong>, cycle spacing
+  matches regimen intervals exactly (17/12/13/4 cycles = q21d
+  Trastuzumab / q14d FOLFOX / q28d LHRH / q21d CarboPem). Per-cycle
+  drug <code>MedicationRequest</code> / <code>MedicationAdministration</code> remains a
+  follow-up slice — oral chemo (Capecitabine, Tamoxifen, Anastrozole,
+  Bicalutamide) continues to flow through <code>chronic_medications.yaml</code>
+  unchanged. RNG contract: the scheduler uses a per-(patient,
+  cancer_code) sub-RNG, so pre-existing calendar events (chronic
+  follow-ups, screenings, flu-vax, mammography, DR screening) are
+  byte-identical for both cancer and non-cancer patients — verified
+  by <code>test_chemo_scheduler_does_not_shift_non_chemo_calendar_stream</code>.
+  Classification: <strong>MINOR</strong> — new <code>chemo_visit</code> Encounter +
+  Procedure resources shift the FHIR resource inventory; the
+  scheduler itself is RNG-shape neutral against the rest of the
+  calendar. Author: Claude. Partial #957.</li>
 <li><strong>Issue #757 (partial) — Chronic-medication-driven monitoring pipeline
   foundation.</strong> New <code>clinosim/modules/monitoring/</code> module: YAML-driven
   <code>(medication → monitoring lab + per-visit probability)</code> mapping,
