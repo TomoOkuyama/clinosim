@@ -134,8 +134,46 @@ US_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("us")
 JP_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("jp")
 
 
+def _resolve_targets(mapping: dict, code: str) -> list[str]:
+    """Return every possible mapped target for ``code``.
+
+    A mapping entry is normally a string. Issue #957 introduced sex-
+    conditional entries (currently only US C50) shaped as
+    ``{default: <code>, by_sex: {F: <code>, M: <code>}}``; those expand
+    to every string leaf inside the dict so the coverage sweep still
+    finds them all.
+    """
+    value = mapping.get(code, code)
+    if isinstance(value, dict):
+        out: list[str] = []
+        default = value.get("default")
+        if isinstance(default, str):
+            out.append(default)
+        for leaf in (value.get("by_sex") or {}).values():
+            if isinstance(leaf, str):
+                out.append(leaf)
+        return out or [code]
+    return [str(value)]
+
+
+def _all_map_targets(mapping: dict) -> list[str]:
+    """Flatten every string leaf across the mapping (see ``_resolve_targets``)."""
+    out: list[str] = []
+    for value in mapping.values():
+        if isinstance(value, dict):
+            default = value.get("default")
+            if isinstance(default, str):
+                out.append(default)
+            for leaf in (value.get("by_sex") or {}).values():
+                if isinstance(leaf, str):
+                    out.append(leaf)
+        else:
+            out.append(str(value))
+    return out
+
+
 def test_us_emittable_codes_resolve_billable_cm() -> None:
-    missing = sorted(c for c in US_EMITTABLE if US_MAP.get(c, c) not in CM)
+    missing = sorted(c for c in US_EMITTABLE if any(t not in CM for t in _resolve_targets(US_MAP, c)))
     assert not missing, (
         "Emittable diagnosis codes whose US target is not an exact key in icd-10-cm.yaml "
         f"(add the code or a code_mapping_diagnosis/US entry): {missing}"
@@ -143,7 +181,7 @@ def test_us_emittable_codes_resolve_billable_cm() -> None:
 
 
 def test_jp_emittable_codes_resolve_true_who() -> None:
-    missing = sorted(c for c in JP_EMITTABLE if JP_MAP.get(c, c) not in WHO)
+    missing = sorted(c for c in JP_EMITTABLE if any(t not in WHO for t in _resolve_targets(JP_MAP, c)))
     assert not missing, (
         "Emittable diagnosis codes whose JP target is not an exact WHO ICD-10 key in "
         f"icd-10.yaml (add the WHO code or a code_mapping_diagnosis/jp entry): {missing}"
@@ -151,8 +189,8 @@ def test_jp_emittable_codes_resolve_true_who() -> None:
 
 
 def test_diagnosis_map_targets_exist_in_code_data() -> None:
-    bad_us = sorted(v for v in US_MAP.values() if v not in CM)
-    bad_jp = sorted(v for v in JP_MAP.values() if v not in WHO)
+    bad_us = sorted(v for v in _all_map_targets(US_MAP) if v not in CM)
+    bad_jp = sorted(v for v in _all_map_targets(JP_MAP) if v not in WHO)
     assert not bad_us, f"US code_mapping_diagnosis targets missing from icd-10-cm.yaml: {bad_us}"
     assert not bad_jp, f"JP code_mapping_diagnosis targets missing from icd-10.yaml (WHO): {bad_jp}"
 
@@ -161,7 +199,7 @@ def test_jp_never_emits_cm_granular_code() -> None:
     """JP Condition codes must be true WHO ICD-10 (3-4 char), never ICD-10-CM granularity
     (5-7 char, 7th-char extensions, X placeholders) emitted under the WHO system URI.
     Covers all three emittable sources: disease + encounter YAMLs + engine.py differentials."""
-    cm_granular = sorted(c for c in JP_EMITTABLE if not _WHO_FORMAT.match(JP_MAP.get(c, c)))
+    cm_granular = sorted(c for c in JP_EMITTABLE if any(not _WHO_FORMAT.match(t) for t in _resolve_targets(JP_MAP, c)))
     assert not cm_granular, (
         "JP would emit non-WHO-format codes under the icd-10 (WHO) system URI; add a "
         f"code_mapping_diagnosis/jp entry folding each to its WHO 3-4 char code: {cm_granular}"

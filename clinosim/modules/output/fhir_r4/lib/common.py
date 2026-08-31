@@ -44,6 +44,7 @@ __all__ = [
     "entry",
     # Status / code mappers
     "map_diagnosis_code",
+    "iter_diagnosis_mapping_targets",
     "map_encounter_status",
     "map_mar_status",
     # Coding-system helpers (used by both output/ and audit modules)
@@ -497,13 +498,21 @@ def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -
     }
 
 
-def map_diagnosis_code(code: str, country: str) -> str:
+def map_diagnosis_code(code: str, country: str, sex: str = "") -> str:
     """Translate an internal chronic/history diagnosis base code to its locale code.
 
     US maps internal category/WHO codes (I50, E78, I21, ...) to billable ICD-10-CM
     leaves; JP maps identity (WHO ICD-10 category codes are valid as-is). Codes absent
     from the locale map pass through unchanged — disease primary diagnoses are already
     specific (e.g. I21.9, A41.9) and stay untouched. See locale/<c>/code_mapping_diagnosis.
+
+    Sex-conditional targets (Issue #957): a mapping value may be a dict of the
+    form ``{default: "<code>", by_sex: {F: "<code>", M: "<code>"}}`` when the
+    ICD-10-CM leaf splits by patient sex (currently only C50 breast cancer,
+    which resolves to ``C50.919`` for female patients and ``C50.929`` for
+    male patients). Pass ``sex`` at every per-person call site; callers that
+    omit it get the ``default`` target (which for C50 is the female leaf,
+    the ~99 %-of-cases pick).
 
     Dedup is intentionally done on the *internal* base code by the caller, not on the
     mapped code, so a current acute MI (primary I21.9) still suppresses a duplicate
@@ -512,7 +521,37 @@ def map_diagnosis_code(code: str, country: str) -> str:
     if not code:
         return code
     country_code = "JP" if is_jp(country) else "US"
-    return load_code_mapping("diagnosis", country_code).get(code, code)
+    target = load_code_mapping("diagnosis", country_code).get(code, code)
+    if isinstance(target, dict):
+        by_sex = target.get("by_sex") or {}
+        sex_norm = (sex or "").upper()[:1]  # "F"/"M"/"" — first char, case-fold
+        if sex_norm in ("F", "M") and sex_norm in by_sex:
+            return str(by_sex[sex_norm])
+        return str(target.get("default", code))
+    return target
+
+
+def iter_diagnosis_mapping_targets(country: str) -> list[str]:
+    """Flatten every billable target in the country's diagnosis mapping.
+
+    ``load_code_mapping("diagnosis", …)`` returns a ``dict[str, str | dict]``
+    since Issue #957 introduced sex-conditional entries. Callers that need
+    to enumerate every possible mapped code (validation tests, display-
+    coverage sweeps) must walk both the plain string values and the
+    ``by_sex`` / ``default`` leaves of the dict values.
+    """
+    country_code = "JP" if is_jp(country) else "US"
+    out: list[str] = []
+    for value in load_code_mapping("diagnosis", country_code).values():
+        if isinstance(value, dict):
+            default = value.get("default")
+            if default is not None:
+                out.append(str(default))
+            for leaf in (value.get("by_sex") or {}).values():
+                out.append(str(leaf))
+        else:
+            out.append(str(value))
+    return out
 
 
 def infer_severity(record: dict) -> str:

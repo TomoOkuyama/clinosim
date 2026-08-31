@@ -1223,6 +1223,7 @@ def _build_medication_admin(
     order_in_rp: str = "1",
     chronic_condition_codes: list[str] | None = None,
     parent_order: dict | None = None,
+    patient_sex: str = "",  # Issue #957: threads sex to sex-conditional ICD-10-CM mapping (C50)
 ) -> dict:
     """Build FHIR MedicationAdministration resource.
 
@@ -1540,7 +1541,7 @@ def _build_medication_admin(
         # WHO URI on JP output (JP Core `jp-condition-diagnosis` required
         # binding violation, ~7,600 errors on a p=200 6mo JP cohort).
         _icd_system = get_system_uri(system_key_for("diagnosis", country_code))
-        _mapped_dx_code = map_diagnosis_code(primary_dx_code, country_code)
+        _mapped_dx_code = map_diagnosis_code(primary_dx_code, country_code, sex=patient_sex)
         resource["reasonCode"] = [
             {
                 "coding": [

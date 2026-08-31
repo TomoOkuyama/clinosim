@@ -186,8 +186,9 @@ chronic_prevalence:
   # represent active cancer + on-treatment survivors carrying the diagnosis
   # on their problem list. Sources: MHLW 患者調査 2020, 国立がん研究セン
   # ター がん統計 2020 (age-conditional 5-year survivor prevalence).
-  # Sex-locked codes (C50 female, C61 male) enforced via
-  # clinosim/locale/shared/icd10_sex_restrictions.yaml.
+  # C61 (prostate) は sex-lock で male-only (icd10_sex_restrictions.yaml)。
+  # C50 (breast) は male BC が全 C50 の約 1 % 存在するため ``by_sex`` で
+  # 男女それぞれの age band を独立に宣言する (Issue #957)。
   # These are "chronic" in the pipeline sense (persistent problem-list
   # entries with periodic follow-up); actual initial-onset events (dx week,
   # first chemo cycle) are out of scope for this pass and belong on the
@@ -201,10 +202,20 @@ chronic_prevalence:
   C34:      # Lung cancer — JP MHLW top cause of cancer death; survivor 5yr ~1.5%
     "50-69": 0.008
     "70-99": 0.020
-  C50:      # Breast cancer — female only; JP incidence rising, 5yr survivor ~3%
-    sex: F
-    "40-59": 0.015
-    "60-99": 0.030
+  C50:      # Breast cancer — 女性は MHLW 患者調査で罹患率上昇中、5yr 生存者
+            # 保有率 ~3%。男性 BC は全 C50 の約 1 %(国立がん研究センター
+            # がん統計 2020 男性乳がん罹患率 ~1 per 100k、大半 60+)、
+            # 男性 60+ コホート内の保有率で ~0.02 %。年齢分布は男女で異な
+            # り(女性は 40-60 peak、男性は 60+ にシフト)、スケーリングで
+            # は表現できないため band を性別ごとに宣言する。billable
+            # ICD-10-CM leaf は emit 時に性別で分岐(C50.919 女性 / C50.929
+            # 男性)する ``map_diagnosis_code`` 側で解決。
+    by_sex:
+      F:
+        "40-59": 0.015
+        "60-99": 0.030
+      M:
+        "60-99": 0.0002
   C61:      # Prostate cancer — male only; JP incidence rising, indolent survivor
     sex: M
     "60-69": 0.025
@@ -213,11 +224,6 @@ chronic_prevalence:
   # Issue #957 slice 2: additional JP-common cancers.
   # Prevalence values calibrated to MHLW 患者調査 2020 + 国立がん研究センター
   # がん統計 2020 (age-specific incidence + 5-year survivor prevalence).
-  # NOTE: 男性 C50 (breast cancer in males, ~1% of C50 total) remains
-  # deferred — the sex-lock in icd10_sex_restrictions.yaml continues to
-  # gate C50 female-only, and this file only adds prevalence for the
-  # additional cancer sites below. Male-C50 activation requires paired
-  # demographics + activator work and is tracked as a separate follow-up.
   C15:      # Esophageal cancer — JP incidence higher than West; smoking/alcohol
     "50-69": 0.005
     "70-99": 0.012

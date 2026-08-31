@@ -637,3 +637,46 @@ def test_parse_chronic_prevalence_accepts_well_formed_ranges():
     result = _parse_chronic_prevalence(demo)
     assert result["N10"].sex == "F"
     assert result["N10"].age_ranges == {(0, 64): 0.05, (65, 120): 0.2}
+
+
+def test_parse_chronic_prevalence_accepts_by_sex_schema():
+    """Issue #957 male-C50: chronic_prevalence entry may declare per-sex
+    age bands via a nested ``by_sex`` block when the same code emits at
+    different rates for males vs females (e.g. C50 breast cancer, where
+    the female peak is 40-60 and the male peak is 60-70 at ~1% of the
+    female rate). Legacy ``sex: F`` + flat bands remains supported for
+    strict single-sex codes (N40 BPH, N70 salpingitis, etc.)."""
+    demo = {
+        "chronic_prevalence": {
+            "C50": {
+                "by_sex": {
+                    "F": {"40-59": 0.015, "60-99": 0.030},
+                    "M": {"60-99": 0.0002},
+                },
+            },
+        },
+    }
+    result = _parse_chronic_prevalence(demo)
+    spec = result["C50"]
+    # F 45yo → in the 40-59 band → 1.5%
+    assert spec.prevalence_at(age=45, sex="F") == 0.015
+    # F 70yo → in the 60-99 band → 3.0%
+    assert spec.prevalence_at(age=70, sex="F") == 0.030
+    # M 70yo → in the male 60-99 band → 0.02%
+    assert spec.prevalence_at(age=70, sex="M") == 0.0002
+    # M 45yo → no male band covers 45 → 0
+    assert spec.prevalence_at(age=45, sex="M") == 0.0
+    # F 20yo → no female band covers 20 → 0
+    assert spec.prevalence_at(age=20, sex="F") == 0.0
+
+
+def test_prevalence_at_preserves_legacy_sex_filter():
+    """Legacy ``sex: F`` + flat bands (existing N40 / N70 / etc entries):
+    ``prevalence_at`` must apply the sex filter — the same band lookup
+    for the matching sex, zero for the opposite sex."""
+    demo = {"chronic_prevalence": {"N40": {"sex": "M", "60-99": 0.20}}}
+    spec = _parse_chronic_prevalence(demo)["N40"]
+    assert spec.prevalence_at(age=70, sex="M") == 0.20
+    assert spec.prevalence_at(age=70, sex="F") == 0.0
+    # Age outside the configured band → 0 for the matching sex too.
+    assert spec.prevalence_at(age=40, sex="M") == 0.0

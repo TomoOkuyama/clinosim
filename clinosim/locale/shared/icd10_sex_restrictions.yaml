@@ -13,9 +13,12 @@
 # even though it lives in the same block as N40).
 #
 # Source: ICD-10 Volume 2 (WHO) sex-specific chapter exclusions plus obvious
-# anatomy locks (prostate, testis, ovary, uterus, cervix, breast — female-
-# side only for the interim; the ~1% male breast cancer case is deferred
-# until the generator can model it explicitly).
+# anatomy locks (prostate, testis, ovary, uterus, cervix). Note: C50 (breast)
+# is NOT in this list — real-world male breast cancer is ~1 % of C50 total
+# (MHLW 患者調査 / SEER), and Issue #957 activated male C50 via the
+# ``by_sex`` prevalence schema in demographics.chronic_prevalence. Male C50
+# routes to the male-side billable leaf (C50.929) at FHIR emit time via
+# ``map_diagnosis_code(..., sex="M")``.
 #
 # Policy: when a dispatch site (differential, implied-chronic, chronic
 # propagation) picks a code that is locked for the OPPOSITE sex:
@@ -167,12 +170,11 @@ female_only:
   - "O97"
   - "O98"
   - "O99"
-  # C50–C58 malignant neoplasms of breast + female genital organs.
-  # NOTE: C50 (breast) has a ~1% male incidence in the real world. This
-  # generator currently has no male-breast-cancer path, so we lock C50 as
-  # female-only for the interim. Revisit when male-breast-cancer is modeled
-  # explicitly (out of scope for #947).
-  - "C50"    # Malignant neoplasm of breast
+  # C51–C58 malignant neoplasms of female genital organs.
+  # NOTE: C50 (breast) is intentionally NOT locked — Issue #957 activated
+  # male breast cancer (~1 % of C50 total) via the ``by_sex`` prevalence
+  # schema; the female / male split lives in chronic_prevalence, and the
+  # US ICD-10-CM billing code is chosen sex-aware at FHIR emit time.
   - "C51"    # Malignant neoplasm of vulva
   - "C52"    # Malignant neoplasm of vagina
   - "C53"    # Malignant neoplasm of cervix uteri

@@ -217,6 +217,13 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     country_code = "JP" if is_jp(country) else "US"
     lang = resolve_lang(country_code)
     icd_system_key = system_key_for("diagnosis", country_code)
+    # Issue #957: US ICD-10-CM C50 splits into female (C50.919) / male (C50.929)
+    # billable leaves. Every ``map_diagnosis_code`` call in this builder is
+    # per-person, so we thread the patient's sex through consistently. JP-side
+    # C50 is identity-mapped (no male/female subcategory), so the parameter is
+    # a no-op for JP output — carrying it uniformly avoids future drift when
+    # additional sex-conditional entries are added.
+    patient_sex = str(record.get("patient", {}).get("sex", "") or "")
 
     # Chronic conditions the patient carries — used both to recognise a chronic
     # primary diagnosis (active + chronic onset) and to emit problem-list items below.
@@ -334,7 +341,9 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                     ],
                 }
             ],
-            "code": build_diagnosis_codeable_concept(map_diagnosis_code(dx_code, country), icd_system_key, country),
+            "code": build_diagnosis_codeable_concept(
+                map_diagnosis_code(dx_code, country, sex=patient_sex), icd_system_key, country
+            ),
             "subject": patient_ref(patient_id),
         }
         # Issue #744: JP_Condition_eCS must-support `extension:eCS_DiagnosisType`
@@ -479,9 +488,11 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         _cc if isinstance(_cc, str) else (get_attr_or_key(_cc, "code", "") or "") for _cc in chronic_list
     ]
     _chronic_codes_raw = [c for c in _chronic_codes_raw if c]
-    _admit_mapped_check = map_diagnosis_code(_admit_dx_code_raw, country) if _admit_dx_code_raw else ""
-    _primary_mapped_check = map_diagnosis_code(_primary_dx_code_raw, country) if _primary_dx_code_raw else ""
-    _chronic_mapped_check = [map_diagnosis_code(_c, country) for _c in _chronic_codes_raw]
+    _admit_mapped_check = map_diagnosis_code(_admit_dx_code_raw, country, sex=patient_sex) if _admit_dx_code_raw else ""
+    _primary_mapped_check = (
+        map_diagnosis_code(_primary_dx_code_raw, country, sex=patient_sex) if _primary_dx_code_raw else ""
+    )
+    _chronic_mapped_check = [map_diagnosis_code(_c, country, sex=patient_sex) for _c in _chronic_codes_raw]
     if encounter_id and (
         needs_admission_diagnosis_condition(_admit_dx_code_raw, _primary_dx_code_raw, _chronic_codes_raw)
         or needs_admission_diagnosis_condition(_admit_mapped_check, _primary_mapped_check, _chronic_mapped_check)
@@ -640,7 +651,9 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                     ],
                 }
             ],
-            "code": build_diagnosis_codeable_concept(map_diagnosis_code(c_code, country), icd_system_key, country),
+            "code": build_diagnosis_codeable_concept(
+                map_diagnosis_code(c_code, country, sex=patient_sex), icd_system_key, country
+            ),
             "subject": patient_ref(patient_id),
         }
 

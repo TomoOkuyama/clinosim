@@ -975,6 +975,11 @@ codes:
   C50.919:
     en: "Malignant neoplasm of unspecified site of unspecified female breast"
     ja: "女性乳房の悪性新生物、部位詳細不明"
+  C50.929:  # Issue #957: male-side unspecified-site leaf; billing target
+            # emitted for male breast-cancer patients by map_diagnosis_code
+            # when the ICD-10-CM sex-conditional block resolves sex="M".
+    en: "Malignant neoplasm of unspecified site of unspecified male breast"
+    ja: "男性乳房の悪性新生物、部位詳細不明"
   C61:
     en: "Malignant neoplasm of prostate"
     ja: "前立腺の悪性新生物"

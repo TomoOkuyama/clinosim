@@ -70,6 +70,25 @@ def test_male_genital_malignancy_locked_for_female() -> None:
         assert is_sex_locked_for(code, "M") is False, code
 
 
+def test_c50_breast_cancer_not_sex_locked() -> None:
+    """C50 (乳がん) — ~1% real-world male incidence (MHLW 患者調査/SEER).
+    The interim female-only lock is lifted (Issue #957 male-C50 activation);
+    prevalence is now controlled purely by demographics.chronic_prevalence
+    ``by_sex`` bands so the gate must NOT reject C50 for either sex."""
+    for code in ("C50", "C50.9", "C50.919", "C50.929"):
+        assert is_sex_locked_for(code, "M") is False, code
+        assert is_sex_locked_for(code, "F") is False, code
+
+
+def test_other_female_breast_and_genital_codes_stay_locked() -> None:
+    """Guard against over-unlocking: C51–C58 (vulva, vagina, cervix, uterus,
+    ovary, placenta) remain female-only. Only C50 (breast) had a real male
+    incidence — the sibling codes stay locked."""
+    for code in ("C51", "C52", "C53", "C54", "C55", "C56", "C57", "C58"):
+        assert is_sex_locked_for(code, "M") is True, code
+        assert is_sex_locked_for(code, "F") is False, code
+
+
 def test_neutral_codes_not_locked() -> None:
     """UTI (N39.0), pneumonia (J18.9), hypertension (I10) — these are
     NOT sex-locked and must remain emit-able for either sex."""

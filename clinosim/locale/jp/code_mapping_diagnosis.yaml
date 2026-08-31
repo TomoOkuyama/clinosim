@@ -29,7 +29,9 @@ M17: "M17"
 C18: "C18"        # Colon cancer
 C22: "C22"        # Liver / intrahepatic bile duct cancer
 C34: "C34"        # Bronchus / lung cancer
-C50: "C50"        # Breast cancer (female-only per sex-gate)
+C50: "C50"        # Breast cancer — sex-agnostic mapping (JP ICD-10 does not
+                  # split C50 into male/female subcategories the way ICD-10-CM
+                  # does; the US mapping uses a by_sex block, JP stays flat).
 C61: "C61"        # Prostate cancer (male-only per sex-gate)
 Z34: "Z34"        # Encounter for supervision of normal pregnancy (female 15-49 per age/sex gate)
 Z37: "Z37"        # Outcome of delivery — carried as past-birth marker on the problem list

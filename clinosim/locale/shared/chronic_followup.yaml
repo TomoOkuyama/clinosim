@@ -181,7 +181,9 @@ C34:  # Lung cancer
   radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
 
-C50:  # Breast cancer (female-only per sex-gate)
+C50:  # Breast cancer — female-dominant but ~1% male incidence (Issue #957);
+      # follow-up schedule shared (same tumor markers, same hormonal-therapy
+      # cadence for the majority ER+ subtype in both sexes).
   visit_reason:
     en: "Breast cancer follow-up, tumor marker (CA15-3), hormonal therapy review"
     ja: "乳がんフォローアップ・腫瘍マーカー（CA15-3）・ホルモン療法評価"
