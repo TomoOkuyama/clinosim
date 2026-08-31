@@ -44,6 +44,20 @@ stopped.
   discharge-medication reason / narrow-target dose defaults
   ([`antibiotic/_narrow_dose_defaults.py`](../../../antibiotic/_narrow_dose_defaults.py)).
 
+### Chemotherapy cycle MR + MAR (v0.5 → v0.6.0)
+
+For every `chemo_visit` LifeEvent, [`order`](../../../order/README.md)
+emits one `MedicationRequest` plus one `MedicationAdministration` per
+regimen `cycle_orders` drug — sharing the same `order_id` so this
+subpackage's `_bb_medication_requests` / `_bb_medication_admins`
+builders pair them cleanly at emit time. The JP path continues to
+enforce the `MedicationRequest.status = "completed"` invariant (see
+memory `project_jp_ecs_forces_status_completed`); the MAR side
+carries `effectiveDateTime` = the cycle Day-1 administration
+timestamp. Multi-day infusion drug expansion (e.g. FOLFOX's 46-h
+5-FU) is a follow-up slice — the current MVP emits one MAR per
+Day-1 drug.
+
 ## Public API
 
 Every builder is registered with the parent facade

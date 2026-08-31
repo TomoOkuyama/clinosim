@@ -53,6 +53,23 @@ ServiceRequest への `basedOn` を持つことを要求する
   ([`output/fhir_r4/labs/service_request.py`](../output/fhir_r4/labs/service_request.py))、
   抗菌薬 regimen 構築 ([`antibiotic`](../antibiotic/README.md))。
 
+### 化学療法サイクル order emission (v0.5 → v0.6.0)
+
+`chemo_visit` LifeEvent (詳細は
+[`clinosim.modules.population`](../population/README.md)) ごとに、外来
+encounter builder が
+[`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml)
+の regimen 定義を消費し、regimen の `cycle_orders` list の各薬剤について
+`MedicationRequest` と `MedicationAdministration` を **同一 `order_id`
+で 1 対 emit** する。これが Tier-3-A slice-2 の shape — 単一の慢性
+常用薬ではなく、cycle-day-1 薬剤ごとに Order + MAR を対で持つ形。
+経口毎日 chemo (Capecitabine、Tamoxifen、Anastrozole、Bicalutamide)
+は従来通り `chronic_medications.yaml` 経由の常用薬 path を流れる —
+これらは日常常用薬であって cycle 薬ではない。MR / MAR は投与日に
+`intent="order"` / `status="completed"` を付与する。FOLFOX の 46 時間
+5-FU 持続投与のような複日 infusion 薬の per-day record 展開は follow-up
+slice。
+
 ## Public API
 
 `__init__.py` は panel-grouping 3 symbol を再 export。それ以外の

@@ -39,6 +39,41 @@ Owns two related concerns for inpatient / ED / outpatient encounters:
   ([`clinosim.simulator`](../../simulator/)); FHIR `Encounter`
   emission ([`clinosim.modules.output`](../output/README.md)).
 
+### Longitudinal service-line encounter shapes (v0.5 → v0.6.0)
+
+The 46 YAML protocols above cover ED / outpatient chief-complaint
+episodes. The two longitudinal service lines below emit inpatient /
+outpatient encounter shapes that are NOT tied to a `reference_data/`
+protocol — the shape lives directly in
+[`clinosim/locale/shared/perinatal.yaml`](../../locale/shared/perinatal.yaml)
+and
+[`clinosim/locale/shared/chronic_followup.yaml`](../../locale/shared/chronic_followup.yaml):
+
+- **Perinatal delivery Encounter** (mother-side, IMP admission,
+  admit dx `O80`, discharge dx `Z37.0`, LOS 5 days JP / 2 days US,
+  department `obgyn` with `internal_medicine` fallback via
+  `department_rollup`, delivery Procedure JP `K894` / US CPT `59400`).
+- **Newborn Encounter** (IMP admission, `admit_source = "born"` new
+  `AdmitSource.BORN` enum member in
+  [`clinosim/types/encounter.py`](../../types/encounter.py),
+  `admit_source_encounter_id` → mother's delivery encounter →
+  FHIR `Encounter.partOf` on newborn side; LOS inherited from mother;
+  discharge dx `Z38.0`).
+- **Postpartum outpatient encounters × 2** — `chronic_visit` events
+  at ~1 wk and ~4 wk post-delivery, disease_id `Z39`, entry lives in
+  `chronic_followup.yaml`.
+- **Abortion outpatient day-surgery Encounter** (O03.9 spontaneous
+  / O04.5 induced, age-gated 15–19 → 35–44), config in
+  `perinatal.yaml::abortion`. When the abortion outcome fires no
+  delivery / newborn chain is emitted.
+- **Chemotherapy visit Encounter** (`chemo_visit` outpatient
+  event) — one per regimen cycle, cadence from
+  [`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml).
+  Encounter carries the delivery / chemo Procedure and (via
+  [`order`](../order/README.md)) per-cycle MedicationRequest +
+  MedicationAdministration for each Day-1 drug in the regimen's
+  `cycle_orders`. Radiation therapy encounters analogous.
+
 ## Public API
 
 `__init__.py` is empty; consumers import directly from the two

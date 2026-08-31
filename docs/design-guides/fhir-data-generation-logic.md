@@ -2,7 +2,13 @@
 
 **Status:** Active (2026-06-29, established with PR1 ServiceRequest).
 **Audience:** any new developer adding or extending a clinosim FHIR
-resource builder (`clinosim/modules/output/_fhir_*.py`).
+resource builder. Canonical layout: builders live under
+`clinosim/modules/output/fhir_r4/` (per-domain sub-packages —
+`conditions/`, `labs/`, `procedures/`, `documents/`, …); the
+`_BUNDLE_BUILDERS` registry + `register_bundle_builder()` are in
+`clinosim/modules/output/fhir_r4/__init__.py`. The historical
+`clinosim/modules/output/fhir_r4_adapter.py` is now a thin
+compatibility re-export.
 **Scope:** Layer 4 = FHIR R4 resource builders only. CIF generation
 (Layers 1-3) has a separate guide — see
 [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md).
@@ -66,7 +72,7 @@ reference material.
 | 3 | Define canonical constants (ID prefix, identifier system) inside the builder | Section B.3 |
 | 4 | Implement resource-skeleton functions (via `code_lookup` / `get_system_uri`) | Section B.4 |
 | 5 | Implement the builder entry point `_bb_<topic>(ctx: BundleContext) -> list[dict]` | Section B.5 |
-| 6 | Register in `clinosim/modules/output/fhir_r4_adapter.py:_BUNDLE_BUILDERS` OR add via `register_bundle_builder()` | Section B.6 |
+| 6 | Register in `clinosim/modules/output/fhir_r4/__init__.py:_BUNDLE_BUILDERS` OR add via `register_bundle_builder()` | Section B.6 |
 | 7 | Add unit + integration + e2e golden + audit `lift_firing_proof` | Section C |
 
 ### B.2 File template
@@ -221,8 +227,8 @@ AD-16).
 `_BUNDLE_BUILDERS` list directly:
 
 ```python
-# clinosim/modules/output/fhir_r4_adapter.py
-from clinosim.modules.output._fhir_<topic> import _bb_<topic>
+# clinosim/modules/output/fhir_r4/__init__.py
+from clinosim.modules.output.fhir_r4.<domain>.<topic> import _bb_<topic>
 
 _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_patient,
@@ -242,8 +248,8 @@ at import time:
 
 ```python
 # clinosim/modules/<topic>/__init__.py or a startup hook
-from clinosim.modules.output.fhir_r4_adapter import register_bundle_builder
-from clinosim.modules.output._fhir_<topic> import _bb_<topic>
+from clinosim.modules.output.fhir_r4 import register_bundle_builder
+from clinosim.modules.output.fhir_r4.<domain>.<topic> import _bb_<topic>
 register_bundle_builder(_bb_<topic>)
 ```
 
@@ -675,9 +681,10 @@ classic silent-no-op (PR-90 class): no audit gate → downstream NLP
   (Japanese).
 - `DESIGN.md` — ADRs AD-17 / AD-25 / AD-30 / AD-31 / AD-46 /
   AD-47 / AD-55 / AD-56 / AD-58 / AD-59 / AD-60 / AD-61.
-- `CLAUDE.md` — § "FHIR output rules (must follow for all resource
+- `AGENTS.md` — § "FHIR output rules (must follow for all resource
   builders)" / § "FHIR R4 output" / § "Enrichment architecture
-  (narrative prompts)" / § "Common pitfalls".
+  (narrative prompts)" / § "Common pitfalls". (`CLAUDE.md` remains
+  as a thin pointer to `AGENTS.md` for older Claude Code sessions.)
 - `.github/TEMPLATE_MODULE_README.md` — boilerplate for a new
   module README.
 - Memory `feedback_unify_data_logic` — how this guide came to be

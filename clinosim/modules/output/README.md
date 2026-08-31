@@ -28,6 +28,35 @@ build discharge-summary facts. FHIR R4 emission itself lives in the
   ([`clinosim.types`](../../types/)); narrative content generation
   ([`document.narrative`](../document/narrative/README.md)).
 
+### Longitudinal service-line emission surface (v0.5 → v0.6.0)
+
+Two service lines drive additional resource shapes that reach FHIR
+through the existing adapter (no new resource-type builder needed);
+the FHIR R4 subpackage picks them up from the CIF via the same
+`_BUNDLE_BUILDERS` registry:
+
+- **Obstetric — mother-side delivery Encounter** with admission dx
+  `O80`, discharge dx `Z37.0`, delivery Procedure JP `K894` /
+  US CPT `59400`, and **newborn Encounter** with
+  `admit_source = "born"` (new `AdmitSource.BORN` enum value in
+  [`clinosim/types/encounter.py`](../../types/encounter.py)) and
+  `admit_source_encounter_id` → mother's delivery encounter,
+  routed to FHIR `Encounter.partOf` on the newborn side. Discharge
+  dx `Z38.0` on the newborn; `Z39` on postpartum outpatient
+  encounters via `chronic_followup.yaml`. Newborn perinatal
+  conditions P59.9 / P07.3 / P22.0 / L22 / L20.9 reach FHIR as
+  ordinary Condition resources. Abortion outcome (O03.9 / O04.5)
+  reaches FHIR as an outpatient day-surgery Encounter.
+- **Oncology — chemotherapy visit Encounter** with per-cycle
+  `MedicationRequest` + `MedicationAdministration` (same
+  `order_id`, see [`order`](../order/README.md)), radiation
+  therapy `Procedure`, and tumor-marker `Observation` labs
+  (CEA / CA19-9 / AFP / PIVKA-II / CA15-3 / PSA).
+
+All emit through the built-in FHIR R4 adapter and are subject to
+JP-CLINS eCS profile URL attachment on `country=JP` cohorts (per
+[`fhir_r4/labs/README.md`](fhir_r4/labs/README.md)).
+
 ## Public API
 
 ```python

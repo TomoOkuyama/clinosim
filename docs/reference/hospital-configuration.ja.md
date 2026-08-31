@@ -6,7 +6,11 @@
 タを定義:
 
 ```yaml
-recommended_population: 60000
+# 国別 catchment (CLI が --country で resolve、`default` は fallback)
+recommended_population:
+  US: 40000     # 50 床 ÷ 130 床/100K ≈ 38K、80% 稼働で 40K に丸め
+  JP: 10000     # 50 床 × 365 × 0.80 / 14d LOS ≈ 1,043 入院/年; JP 100/1000/年 → 10K catchment
+  default: 40000
 
 available_departments:           # 利用可能な診療科
   - internal_medicine

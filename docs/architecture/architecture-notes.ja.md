@@ -341,36 +341,51 @@ ward_capacity:
 
 ## 6.5 モジュール一覧の更新
 
-現行モジュール数は v0.1-alpha を超えて成長した:
+v0.1-alpha 時点のモジュール snapshot は成長し、現在
+**`clinosim/modules/` 配下 33 top-level package** + `codes/` +
+`locale/` + `types/` foundation package を持つ。canonical な
+モジュール一覧 (layer / sub-seed offset / enricher stage・order 付き)
+は [`../../MODULES.ja.md`](../../MODULES.ja.md) を参照。以下は現行
+モジュールを層別に配置した俯瞰スケッチ:
 
 ```
 clinosim/
-├── codes/                  ★ NEW (AD-30、AD-33、AD-35)
-├── locale/
-├── config/
-├── types/
+├── codes/                  ★ 国際コードシステム (AD-30/33/35)
+├── locale/                 国別データ (jp/、us/、shared/)
+├── config/                 病院 + LLM-service YAML
+├── types/                  共有データ型 (Pydantic + dataclass)
 ├── modules/
-│   ├── disease/            (32 疾患 YAML)
-│   ├── encounter/          (46 ED/外来 YAML)
-│   ├── physiology/
-│   ├── clinical_course/
-│   ├── diagnosis/
-│   ├── observation/
-│   ├── order/
-│   ├── procedure/          ★ NEW (以前空、現在 15 ベッドサイド手技)
-│   ├── population/
-│   ├── patient/
-│   ├── staff/              (AD-34 以降 ward-aware)
-│   ├── facility/           ★ NEW README (M/M/1 待ち行列)
-│   ├── healthcare_system/
-│   ├── output/             (AD-31 以降 Bulk Data NDJSON)
-│   ├── llm_service/
-│   └── validator/
-└── simulator/              (オーケストレーション: engine、inpatient、emergency、outpatient)
+│   ├── (Simulation)        physiology (14 変数)、observation、order、
+│   │                       clinical_course、diagnosis、procedure、
+│   │                       encounter (46 YAML)、disease (32 YAML)
+│   ├── (Population)        population、patient、identity、pediatric、
+│   │                       staff、facility、healthcare_system、
+│   │                       family_history、sdoh
+│   ├── (Enrichment)        POST_POPULATION: allergy、identity
+│   │                       POST_ENCOUNTER: device、hai、antibiotic、
+│   │                                       imaging、triage、
+│   │                                       nursing_assignment、document
+│   │                       POST_RECORDS:  nursing、immunization、
+│   │                                      family_history、code_status、
+│   │                                      care_level、monitoring、
+│   │                                      health_checkup
+│   └── (Output)            output (FHIR R4 Bulk NDJSON、AD-31 で
+│                                    per-theme builder subpackage に
+│                                    split 済)、llm_service、validator
+└── simulator/              トップレベル orchestration
+                            (engine、inpatient、emergency、outpatient、
+                             AD-56 の enrichers.py registry)
 ```
 
-各モジュールは API リファレンスと設計ノート付きの独自 README.md
-を持つ。
+各モジュールは API リファレンスと設計ノート付きの独自
+`README.md` (+ `README.ja.md` mirror) を持つ。v0.5.x → v0.6.0 の
+enrichment: 腫瘍サービスライン (10 部位、化学療法 regimen サイクル、
+放射線 Procedure、腫瘍マーカー labs) + 産科サービスライン (Z37.0 で
+の分娩 Encounter、Z38.0 の新生児 Patient chain、産後 × 2、abortion
+outcome) は新規 top-level module ではなく、既存 module (population +
+patient + encounter + disease + order + procedure + output/fhir_r4)
+の内部拡張として実装されている。詳細は
+[`../reference/oncology-obstetric-service-lines.ja.md`](../reference/oncology-obstetric-service-lines.ja.md)。
 
 ---
 

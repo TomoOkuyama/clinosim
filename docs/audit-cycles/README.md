@@ -51,7 +51,10 @@ clinical integrity / realism.
    - Refresh `.session-resume-prompt.md` so the current cycle state
      (cycle N progress n/20, carry-over list, master HEAD, next action)
      is sufficient for a cold-start in a different session.
-   - Reflect the current cycle progress in `TODO.md` Status.
+   - Reflect the current cycle progress on the GitHub Issues board
+     (see `docs/roadmap.md`). The pre-Issues `TODO.md` ledger has been
+     retired — record cycle progress against the corresponding META /
+     scope issue instead.
    - Commit + push everything (finish in a clean state).
 10. **Ask the user before starting the next cycle** with resolution
     status + carry-over count + doc-update result. Auto-continuation is

@@ -39,6 +39,23 @@ FHIR taxonomy が Immunization を Procedure ファミリに配置している
   `ImagingStudy` (臨床的には procedural だが
   [`../labs/imaging_study.py`](../labs/imaging_study.py) に住む)。
 
+### 縦断サービスライン Procedure emission (v0.5 → v0.6.0)
+
+以下 2 種の Procedure code set は、標準の `_build_procedure` path を
+経由して FHIR 到達する (新規 resource-type builder は不要)。兄弟モジュール
+[`clinosim.modules.procedure`](../../../procedure/README.md) が
+両者について `ProcedureRecord` を構築し、FHIR post-process pipeline
+が code + display を追加配線なしで拾う:
+
+- **分娩 Procedure** — JP `K894` (経腟分娩、MHLW 診療報酬点数表
+  K-code) / US CPT `59400` (routine obstetric care incl. vaginal
+  delivery)。母親側分娩 encounter (emit 元:
+  [`clinosim/simulator/perinatal.py`](../../../../simulator/perinatal.py))
+  に付与。
+- **放射線治療 Procedure** — modality / dose / site は disease YAML
+  の放射線ブロックから取得。code + display は標準 Procedure builder
+  経由で emit され、code system の違いのみで区別される。
+
 ## Public API
 
 各 builder は親 facade (`_BUNDLE_BUILDERS` in

@@ -33,6 +33,30 @@ URL)、`Location` + `Organization` (facility Bundle として CIF write
   要介護度付与
   ([`clinosim.modules.care_level`](../../../care_level/README.md))。
 
+### 周産期 + オンコロジー encounter shape (v0.5 → v0.6.0)
+
+`_build_encounter` は縦断サービスラインが追加した encounter shape を
+処理する (詳細は
+[`../../encounter/README.ja.md`](../../encounter/README.ja.md)
+「縦断サービスライン encounter shape」節):
+
+- **新生児側リンク** — CIF encounter が `admit_source = "born"` を
+  持つとき (新 `AdmitSource.BORN` 値、詳細
+  [`clinosim/types/encounter.py`](../../../../types/encounter.py))、
+  `Encounter.hospitalization.admitSource` は
+  `_build_hosp_concept("hl7-admit-source", ...)` 経由でマップされ、
+  兄弟 `admit_source_encounter_id` は新生児側の
+  `Encounter.partOf` → 母親の分娩 encounter となる。同 field は
+  歴史的 ED→入院リンク (CY7-05) にも再利用される。
+- **分娩 encounter (母親側)** — 通常の入院 Encounter で、`type` は
+  産科受診理由 (`perinatal.yaml::encounter.visit_reason`) を反映。
+  admit dx `O80` / discharge dx `Z37.0` の routing は標準経路。
+  builder 側の特別処理は不要。
+- **化学療法 / 放射線 encounter** — `chemo_visit` / 放射線 LifeEvent
+  から発生する外来 Encounter。新 builder は不要 — 付随の
+  MedicationRequest + MedicationAdministration + Procedure は
+  兄弟 `medications/` と `procedures/` builder が emit する。
+
 ## Public API
 
 各 builder は親 facade (`_BUNDLE_BUILDERS` in

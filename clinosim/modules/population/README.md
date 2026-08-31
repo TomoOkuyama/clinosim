@@ -25,7 +25,21 @@ consumes the `PopulationRegistry` it returns.
   seasonal / lifestyle / occupation risk multipliers, annual
   healthcare-calendar generation (chronic follow-ups, mammography /
   colonoscopy / diabetic retinopathy / flu-vaccine screening,
-  pediatric visits).
+  pediatric visits, **perinatal delivery** LifeEvents for Z34-carrying
+  women — one per pregnancy-year via `_perinatal_delivery_events` —
+  and **chemotherapy cycle** LifeEvents for oncology-marker patients
+  at each regimen's cycle interval via `_chemo_cycle_events`
+  reading `clinosim/locale/shared/chemo_regimens.yaml`).
+- **In scope (chronic-prevalence schema)**: two `chronic_prevalence`
+  entry forms are supported per condition — the historical single-sex
+  form (`sex: M|F` + `bands`) for codes locked to one sex (e.g. `N40`
+  BPH, `Z34` pregnancy, `C61` prostate), and the `by_sex` form
+  (`by_sex: {F: {bands}, M: {bands}}`) which activates the primary
+  sex as usual plus an opposite-sex `augment_sex_bands` sub-population
+  under an independent per-`(patient, code)` sub-seed
+  (`chronic_augment_sex_seed`). Male breast cancer (~1 % of C50) is
+  the canonical `by_sex` consumer; the two forms MUST NOT be mixed on
+  the same code.
 - **Out of scope**: name / address / phone raw data
   ([`clinosim/locale/<country>/`](../../locale/)), disease-protocol
   definitions ([`clinosim.modules.disease`](../disease/README.md)),
@@ -150,6 +164,19 @@ engine and will be reverted in a follow-up recalibration PR (B-3 phase 2).
   keeps memoize snapshots byte-identical across additions of
   RNG-neutral fields (Issue #795 pattern; contrast with attributes
   that must remain RNG-sampled because they depend on age / sex).
+- **Per-patient sub-seeds** (defined in
+  [`clinosim/seeding.py`](../../seeding.py) alongside
+  `ENRICHER_SEED_OFFSETS`): `chronic_augment_sex_seed(patient_id, code)`
+  gates the `by_sex` opposite-sex augmentation so the master
+  chronic-prevalence RNG stream stays byte-identical to the
+  pre-augmentation path; `perinatal_delivery_seed(patient_id, year)`
+  samples the delivery month for a Z34-carrying woman;
+  `chemotherapy_regimen_seed(patient_id, cancer_code)` picks a chemo
+  regimen from `chemo_regimens.yaml` and the cycle-1 start date;
+  newborn perinatal-condition sampling (P59.9 / P07.3 → P22.0 /
+  L22 / L20.9) and abortion-outcome sampling (O03.9 / O04.5) route
+  through sibling per-patient sub-seeds owned in
+  [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py).
 - Monthly event and calendar generation consume the `rng` sequentially
   in a deterministic person / disease / order — YAML edits that add
   or reorder incidence entries can shift downstream stream position;

@@ -41,6 +41,19 @@ RxNorm。JP `MedicationRequest.status='completed'` invariant
   退院薬理由 / narrow-target 用量 default
   ([`antibiotic/_narrow_dose_defaults.py`](../../../antibiotic/_narrow_dose_defaults.py))。
 
+### 化学療法サイクル MR + MAR (v0.5 → v0.6.0)
+
+各 `chemo_visit` LifeEvent について、[`order`](../../../order/README.md)
+が regimen `cycle_orders` の各薬剤について `MedicationRequest` +
+`MedicationAdministration` を **同一 `order_id`** で 1 対 emit する。
+これにより本 subpackage の `_bb_medication_requests` /
+`_bb_medication_admins` builder が emit 時に自然に対を成す。JP path
+は引き続き `MedicationRequest.status = "completed"` invariant を
+enforce (詳細: memory `project_jp_ecs_forces_status_completed`)。MAR
+側は `effectiveDateTime` に cycle Day-1 投与 timestamp を持つ。
+FOLFOX の 46 時間 5-FU 等の複日 infusion 薬の展開は follow-up slice —
+現 MVP は Day-1 薬剤ごとに 1 MAR。
+
 ## Public API
 
 各 builder は親 facade (`_BUNDLE_BUILDERS` in

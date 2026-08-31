@@ -9,7 +9,7 @@ source .venv/bin/activate
 pytest -x
 
 # By category
-pytest -m unit                   # Unit tests (~2400 fast tests)
+pytest -m unit                   # Unit tests (~3900 test functions, 5100+ parameterized cases)
 pytest -m integration            # Cross-module (includes reproduce.sh gate)
 pytest -m e2e                    # E2E + golden tests
 

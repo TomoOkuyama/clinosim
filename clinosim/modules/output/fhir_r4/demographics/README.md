@@ -32,6 +32,20 @@ kept for one release cycle.
   [`clinosim.modules.sdoh`](../../../sdoh/README.md)); JP insurance
   numbering (that lives in `identity` module).
 
+### Newborn Patient (v0.5 → v0.6.0)
+
+Perinatal-delivery LifeEvents produce a paired newborn
+`PatientProfile` in the CIF (see
+[`../../patient/README.md`](../../patient/README.md) —
+`id = "<mother_id>-BABY"`, `birthDate` = delivery date, household
+inherited). No new Patient builder is needed — the existing
+`_build_patient` picks the newborn up from the CIF like any other
+patient. The mother-newborn linkage is expressed on the newborn's
+Encounter (`Encounter.partOf` → mother's delivery encounter),
+handled by the sibling
+[`../encounters/`](../encounters/README.md) builder rather than
+here.
+
 ## Public API
 
 Every builder is registered with the parent facade

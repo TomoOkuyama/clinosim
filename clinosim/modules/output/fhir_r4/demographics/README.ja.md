@@ -31,6 +31,18 @@ builder が担い、`patient.py` 内の inline `_build_allergy_intolerance`
   [`clinosim.modules.sdoh`](../../../sdoh/README.md));JP 保険番号
   (`identity` module 内)。
 
+### 新生児 (Newborn) Patient (v0.5 → v0.6.0)
+
+周産期分娩 LifeEvent は CIF 上に対の新生児 `PatientProfile` を生成する
+(詳細:
+[`../../patient/README.ja.md`](../../patient/README.ja.md) —
+`id = "<mother_id>-BABY"`、`birthDate` = 分娩日、世帯は母親から継承)。
+新規 Patient builder は不要 — 既存 `_build_patient` が CIF から他の
+患者と同様に新生児を拾う。母親↔新生児のリンクは新生児側の Encounter
+(`Encounter.partOf` → 母親の分娩 encounter) で表現され、これは兄弟の
+[`../encounters/`](../encounters/README.ja.md) builder が扱う (本
+subpackage は関与しない)。
+
 ## Public API
 
 各 builder は親 facade (`_BUNDLE_BUILDERS` in

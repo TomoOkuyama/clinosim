@@ -3,9 +3,11 @@
 ## 目的
 
 `clinosim.dataset` は名前付きプリセット (`jp-100` / `us-1000` …) を
-対応する `clinosim generate` 呼び出しに変換する薄い CLI ラッパーで
-す。ユーザーが 6 つのフラグを覚える代わりに 1 つの短いコマンドを実行
-すれば、そのプリセットが再現可能なリリースとなるように存在します。
+対応する `clinosim simulate` 呼び出しに変換する薄い CLI ラッパーで
+す (`simulate` が canonical サブコマンド、`generate` は deprecation
+alias として存続)。ユーザーが 6 つのフラグを覚える代わりに 1 つの
+短いコマンドを実行すれば、そのプリセットが再現可能なリリースと
+なるように存在します。
 
 プリセットは **データセットリリースの版付き公開 API** です。新規プリ
 セット追加は、国 / 人口 / seed / 日付範囲 / 出力形式の新しい公式
@@ -19,7 +21,7 @@
   `clinosim dataset build <name>` CLI サブコマンド。
 - **Out of scope**: 自前の生成能力 — ビルダーは `sys.argv` を書き
   換えてプロセス内で `clinosim.simulator.cli.main` を呼び出すことで
-  `clinosim generate` に委譲し、生成コードパスを single-source に
+  `clinosim simulate` に委譲し、生成コードパスを single-source に
   保ちます。新しいシミュレーション機能追加時にこのパッケージを触る
   必要はありません。
 

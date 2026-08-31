@@ -107,14 +107,18 @@ providers.
 ```
 clinosim/config/
   __init__.py                   (empty by design)
+  determinism.yaml              transcendental-precision knobs
+                                (mpmath prec / RNG proxy — see
+                                clinosim/determinism.py)
   hospital_operations.yaml      default 50-bed community hospital
   hospital_small.yaml           10-bed clinic
   hospital_large.yaml           200-bed regional hospital
   japan.yaml                    JP country defaults
   us.yaml                       US country defaults
-  llm_service.yaml              default LLM configuration
+  llm_service.yaml              default LLM configuration (Ollama)
   llm_service.bedrock.yaml      AWS Bedrock provider
   llm_service.cloud.yaml        cloud-hosted LLM provider
+                                (Anthropic API direct)
   llm_service.sakura.yaml       Sakura Internet GPU provider
 ```
 

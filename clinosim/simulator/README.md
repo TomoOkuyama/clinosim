@@ -8,8 +8,12 @@ synthetic EHR cohort. It orchestrates population generation,
 day-by-day patient trajectories, encounter simulation (inpatient,
 outpatient, ED), pipeline steps for labs / vitals / medications,
 discharge-gate logic, enricher passes, output serialisation, and the
-`clinosim` CLI (`generate`, `test-disease`, `test-encounter`,
-`regenerate`, `enumerate`, `narrate`, `export-fhir`).
+`clinosim` CLI subcommands: `simulate` (canonical; `generate` remains
+as a deprecation alias), `test-disease`, `test-encounter`, `validate`,
+`list-diseases`, `narrate`, `export-fhir`, `enumerate`, `diff`,
+`regenerate-goldens`, `check-narratives`, plus the delegated
+subparsers `audit`, `dataset`, `eval`, and `benchmark` wired in from
+their respective packages.
 
 ## Scope
 

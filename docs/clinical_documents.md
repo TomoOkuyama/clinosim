@@ -7,7 +7,7 @@ the Bulk Data NDJSON export.
 
 This guide covers:
 
-- [The five document types and when each is generated](#document-scope)
+- [Emitted document types and when each is generated](#document-scope)
 - [LOINC mapping and FHIR fields](#fhir-mapping)
 - [End-to-end workflow](#workflow)
 - [Writing and editing prompt templates](#prompts)
@@ -19,18 +19,28 @@ This guide covers:
 
 ## Document scope
 
-Milestone 1 generates **five document types** organized into two tiers.
-Progress Note (LOINC 11506-3) is defined in the enum but reserved for a future
-Tier C opt-in because real-world progress notes are heavily redundant with the
-structured vitals/labs/MAR layer.
+clinosim's LLM-service enum `LLMTaskType`
+(`clinosim/modules/llm_service/engine.py`) lists 20+ NARRATIVE task
+types plus 4 JUDGMENT task types. The subset **wired end-to-end
+through a prompt YAML → template pass → DocumentReference emit path**
+is the eight document types below (each has an EN + JA prompt YAML
+under `clinosim/modules/llm_service/prompts/{en,ja}/`). Progress Note
+(LOINC 11506-3) is defined in the enum but reserved for a future
+Tier C opt-in because real-world progress notes are heavily redundant
+with the structured vitals/labs/MAR layer; the additional nursing /
+outpatient / ED / care-plan / health-checkup NARRATIVE types are
+similarly declared in the enum for later phases.
 
 | Tier | Document | LOINC | Generated when | Per-encounter count |
 |---|---|---|---|---|
-| A | Discharge Summary | `18842-5` | Every finished inpatient encounter | 1 |
-| A | Death Note | `69730-0` | `record.deceased = true` | 1 |
+| A | Discharge Summary | `18842-5` | Every finished inpatient encounter (non-deceased) | 1 |
+| A | Death Summary | `69730-0` | `record.deceased = true` | 1 |
+| A | Death Discharge Summary | `18842-5` (specialized title) | `record.deceased = true` — replaces the generic Discharge Summary on deceased encounters (Issue #961) | 1 |
+| A | Death Certificate | `64297-5` | `record.deceased = true` — 医師法第 20 条 mandate (Issue #961) | 1 |
 | A | Operative Note | `11504-8` | `ProcedureRecord.category_code = 387713003` (surgical) | 1 per surgery |
 | B | Admission H&P | `34117-2` | Every inpatient encounter | 1 |
 | B | Procedure Note | `28570-0` | Invasive bedside procedure from a fixed allowlist | 0..N |
+| JP | Referral Note | `57133-1` | Deterministic 20% subset of `country=JP` discharge encounters (JP-CLINS eReferral, PR2b) | 1 |
 
 ### Procedure Note allowlist
 

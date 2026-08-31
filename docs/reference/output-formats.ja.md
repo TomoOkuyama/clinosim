@@ -76,12 +76,49 @@ output/fhir_r4/
 各行 = 1 FHIR リソース。`Resource.id` は全 resource type 横断で一意。
 Reference integrity を維持。
 
-`DocumentReference.ndjson` は `clinosim export-fhir` に
-`--narrative-version` を指定した時 (または
-`clinosim simulate --narrative --format fhir` で full pipeline を
-実行した時) のみ emit。narrative version なしでは、残りのリソース
-型は通常通り生成。`Coverage.ndjson` (+ 保険者 `Organization`) は
-JP かつ保険有効時のみ emit (`--jp-insurance`、デフォルト on)。
+`DocumentReference.ndjson` は `--narrative-version` が version
+ディレクトリに解決される時 (default: `current`、Stage 1 の
+`TemplateNarrativePass` が維持する `current_version.txt` ポインタ
+経由) に emit される。narrative version が存在しないときは残りの
+リソース型は通常通り生成。`Coverage.ndjson` (+ 保険者
+`Organization`) は JP かつ保険有効時のみ emit
+(`--jp-insurance`、デフォルト on)。
+
+### 縦断サービスライン emit (v0.5 → v0.6.0)
+
+いずれのサービスラインも上記標準リソースファイルを通じて emit —
+新規リソース型は追加していない。サービスラインのスキーマ詳細は
+[`oncology-obstetric-service-lines.ja.md`](oncology-obstetric-service-lines.ja.md)
+参照。
+
+- **腫瘍** (10 部位: C15 / C16 / C18 / C22 / C25 / C34 / C50 /
+  C61 / C67 / C71、C50 の ~1 % 男性乳がん含む):
+  - がん慢性マーカー → `Condition` (ICD-10)。
+  - `chemo_visit` LifeEvent (config: `locale/shared/chemo_regimens.yaml`
+    — FOLFOX q14d、CarboPem q21d、Trastuzumab q3w、LHRH q28d) →
+    外来 `Encounter` + regimen の各薬剤について per-cycle
+    `MedicationRequest` + `MedicationAdministration`。
+  - 放射線治療 → `Procedure`。
+  - 腫瘍マーカー labs (CEA / CA19-9 / AFP / PIVKA-II / CA15-3 /
+    PSA) → `Observation` (LOINC laboratory)。
+- **産科** (config: `locale/shared/perinatal.yaml`):
+  - Z34 妊娠慢性マーカー → 母親別分娩スケジュール。
+  - 母親側分娩 `Encounter` (IMP 入院、admit dx Z34、discharge dx
+    Z37.0、分娩 `Procedure` — JP K894 / US CPT 59400)。
+  - 産褥 encounter × 2 (~1 週 と ~4 週、disease id `Z39`; config:
+    `locale/shared/chronic_followup.yaml`)。
+  - 中絶 outcome (age-gate 15-19 → 35-44) — 外来日帰り手術
+    `Encounter` with O03.9 (自然) or O04.5 (人工)。発火時は
+    delivery + newborn chain を skip。
+  - 新生児 `Patient` (id `<mother>-BABY`) を delivery ごとに生成、
+    世帯 + 出生日を母親から継承、性別は per-mother sub-RNG から
+    サンプリング。新生児 `Encounter` は
+    `admit_source = born` (新規 `AdmitSource.BORN` enum member) と
+    `Encounter.partOf → Encounter/<母親側 delivery encounter>` で
+    link back、discharge dx は `Z38.0`。
+  - 新生児 perinatal `Condition`: P59.9 黄疸 ~20 %、P07.3 早産
+    ~7 % (→ 条件付き P22.0 RDS ~35 %)、L22 おむつかぶれ ~30 %、
+    L20.9 アトピー ~15 %。
 
 ### 含まれる FHIR R4 フィールド (主要リソース)
 

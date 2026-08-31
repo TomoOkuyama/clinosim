@@ -326,35 +326,53 @@ size labels.
 
 ## 6.5 Updated module list
 
-The current module count has grown beyond v0.1-alpha:
+The v0.1-alpha module snapshot has grown into **33 top-level
+packages under `clinosim/modules/`** plus the `codes/` + `locale/` +
+`types/` foundation packages. Canonical inventory (with layer,
+sub-seed offset, and enricher stage/order per module) lives in
+[`../../MODULES.md`](../../MODULES.md); the sketch below groups
+current modules by layer for quick orientation:
 
 ```
 clinosim/
-├── codes/                  ★ NEW (AD-30, AD-33, AD-35)
-├── locale/
-├── config/
-├── types/
+├── codes/                  ★ International code systems (AD-30/33/35)
+├── locale/                 Country-specific data (jp/, us/, shared/)
+├── config/                 Hospital + LLM-service YAMLs
+├── types/                  Shared data types (Pydantic + dataclass)
 ├── modules/
-│   ├── disease/            (32 disease YAMLs)
-│   ├── encounter/          (46 ED/outpatient YAMLs)
-│   ├── physiology/
-│   ├── clinical_course/
-│   ├── diagnosis/
-│   ├── observation/
-│   ├── order/
-│   ├── procedure/          ★ NEW (was empty, now 15 bedside procedures)
-│   ├── population/
-│   ├── patient/
-│   ├── staff/              (ward-aware after AD-34)
-│   ├── facility/           ★ NEW README (M/M/1 queueing)
-│   ├── healthcare_system/
-│   ├── output/             (Bulk Data NDJSON after AD-31)
-│   ├── llm_service/
-│   └── validator/
-└── simulator/              (orchestration: engine, inpatient, emergency, outpatient)
+│   ├── (Simulation)        physiology (14-var), observation, order,
+│   │                       clinical_course, diagnosis, procedure,
+│   │                       encounter (46 YAMLs), disease (32 YAMLs)
+│   ├── (Population)        population, patient, identity, pediatric,
+│   │                       staff, facility, healthcare_system,
+│   │                       family_history, sdoh
+│   ├── (Enrichment)        POST_POPULATION: allergy, identity
+│   │                       POST_ENCOUNTER: device, hai, antibiotic,
+│   │                                       imaging, triage,
+│   │                                       nursing_assignment, document
+│   │                       POST_RECORDS:  nursing, immunization,
+│   │                                      family_history, code_status,
+│   │                                      care_level, monitoring,
+│   │                                      health_checkup
+│   └── (Output)            output (FHIR R4 Bulk NDJSON per AD-31,
+│                                    split into per-theme builder
+│                                    subpackages), llm_service,
+│                                    validator
+└── simulator/              Top-level orchestration
+                            (engine, inpatient, emergency, outpatient,
+                             enrichers.py registry per AD-56)
 ```
 
-Each module has its own README.md with API reference and design notes.
+Each module has its own `README.md` (+ `README.ja.md` mirror) with
+API reference, sub-seed convention, enricher wiring, and extension
+notes. Longitudinal service lines added in the v0.5.x → v0.6.0
+window — oncology (10 cancer sites, chemo regimen cycles, radiation
+Procedure, tumor-marker labs) and obstetrics (delivery Encounter
+with Z37.0, newborn Patient chain with Z38.0, postpartum × 2,
+abortion outcome) — live inside the existing modules (population +
+patient + encounter + disease + order + procedure + output/fhir_r4)
+rather than as new top-level modules; see
+[`../reference/oncology-obstetric-service-lines.md`](../reference/oncology-obstetric-service-lines.md).
 
 ---
 

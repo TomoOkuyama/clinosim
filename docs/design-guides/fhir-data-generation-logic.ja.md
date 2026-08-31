@@ -1,7 +1,7 @@
 # FHIR Data Generation — Logic Design Guide
 
 **Status:** Active(2026-06-29、PR1 ServiceRequest で確立)
-**Audience:** clinosim FHIR resource builder(`clinosim/modules/output/_fhir_*.py`)を追加・拡張する新規開発者
+**Audience:** clinosim FHIR resource builder を追加・拡張する新規開発者。正規レイアウト: builder は `clinosim/modules/output/fhir_r4/` 配下 (`conditions/` / `labs/` / `procedures/` / `documents/` 等の domain sub-package) にあり、`_BUNDLE_BUILDERS` registry と `register_bundle_builder()` は `clinosim/modules/output/fhir_r4/__init__.py`。歴史的な `clinosim/modules/output/fhir_r4_adapter.py` は現在は薄い互換 re-export
 **Scope:** Layer 4 = FHIR R4 resource builder のみ。CIF 生成(Layers 1-3)は別 guide → [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) を参照
 
 clinosim FHIR 生成は **CIF を入力として、FHIR R4 resource dict を出力する** thin な変換層。FHIR 仕様 / US Core / JP Core 準拠 / 多言語 display 解決 / identifier 規約 が中心の関心事。
@@ -53,7 +53,7 @@ CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rul
 | 3 | builder 内 canonical constants(ID prefix / identifier system)を定義 | Section B.3 |
 | 4 | resource skeleton 関数を実装(`code_lookup` / `get_system_uri` 経由) | Section B.4 |
 | 5 | builder entry point `_bb_<topic>(ctx: BundleContext) -> list[dict]` を実装 | Section B.5 |
-| 6 | `clinosim/modules/output/fhir_r4_adapter.py:_BUNDLE_BUILDERS` に登録 OR `register_bundle_builder()` で追加 | Section B.6 |
+| 6 | `clinosim/modules/output/fhir_r4/__init__.py:_BUNDLE_BUILDERS` に登録 OR `register_bundle_builder()` で追加 | Section B.6 |
 | 7 | 単体 + integration + e2e golden + audit lift_firing_proof を追加 | Section C |
 
 ### B.2 ファイル雛形
@@ -189,8 +189,8 @@ builder は `ctx` の field しか触らない(global state なし、AD-16 維�
 **Built-in resource(near-essential / always-on)** = `_BUNDLE_BUILDERS` list に直接追加:
 
 ```python
-# clinosim/modules/output/fhir_r4_adapter.py
-from clinosim.modules.output._fhir_<topic> import _bb_<topic>
+# clinosim/modules/output/fhir_r4/__init__.py
+from clinosim.modules.output.fhir_r4.<domain>.<topic> import _bb_<topic>
 
 _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_patient,
@@ -562,7 +562,7 @@ Condition / Procedure / ServiceRequest 等で dual coding(local primary + intero
 
 - [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) — CIF 生成側(Layers 1-3)の design rule 全集(日本語)
 - `DESIGN.md` — ADRs AD-17 / AD-25 / AD-30 / AD-31 / AD-46 / AD-47 / AD-55 / AD-56 / AD-58 / AD-59 / AD-60 / AD-61
-- `CLAUDE.md` — § "FHIR output rules(must follow for all resource builders)" / § "FHIR R4 output" / § "Enrichment architecture (narrative prompts)" / § "Common pitfalls"
+- `AGENTS.md` — § "FHIR output rules(must follow for all resource builders)" / § "FHIR R4 output" / § "Enrichment architecture (narrative prompts)" / § "Common pitfalls" (`CLAUDE.md` は AGENTS.md への薄い pointer として残存)
 - `.github/TEMPLATE_MODULE_README.md` — 新 module README boilerplate
 - memory `feedback_unify_data_logic` — session 24 で本 guide が確立された経緯
 

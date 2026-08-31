@@ -113,20 +113,32 @@ clinosim/locale/
                                    functions)
   text.py                         resolve_text (multi-language text
                                    resolution helper)
-  us/                             US-specific bundle (12 YAMLs):
-                                   addresses, code_mapping_{diagnosis,
-                                   drug, lab, procedure}, code_status_rates,
-                                   demographics, family_history_prevalence,
-                                   formatting, immunization_schedule,
-                                   names, reference_range_lab
-  jp/                             JP-specific bundle (15 YAMLs — the US
-                                   set plus care_level_rates, identity,
+  us/                             US-specific bundle (13 YAMLs):
+                                   addresses, ambulatory_visit_length,
+                                   code_mapping_{diagnosis,drug,lab,procedure},
+                                   code_status_rates, demographics,
+                                   family_history_prevalence, formatting,
+                                   immunization_schedule, names,
+                                   reference_range_lab
+  jp/                             JP-specific bundle (19 YAMLs — the US
+                                   set plus ambulatory_visit_length,
+                                   care_level_rates, identity,
                                    code_mapping_microbiology,
-                                   code_mapping_microbiology_susceptibility)
-  shared/                         cross-locale data (6 YAMLs):
-                                   chronic_followup, chronic_medications,
-                                   department_display, drug_names_ja,
-                                   med_terms_ja, naming_rules
+                                   code_mapping_microbiology_susceptibility,
+                                   external_organizations,
+                                   practitioner_qualifications)
+  shared/                         cross-locale data (13 YAMLs):
+                                   anthropometric_reference, chemo_regimens
+                                   (chemo regimen library — FOLFOX q14d /
+                                   CarboPem q21d / Trastuzumab q3w /
+                                   LHRH q28d), chronic_followup (incl. Z39
+                                   postpartum), chronic_medications,
+                                   chronic_onset_min_age, department_display,
+                                   drug_names_ja, encounter_disposition_defaults,
+                                   icd10_sex_restrictions,
+                                   iv_infusion_defaults, med_terms_ja,
+                                   naming_rules, perinatal (delivery
+                                   cadence + abortion age-band table)
   _template/                      new-locale scaffolding — README + all
                                    required YAMLs stubbed. Never resolvable
                                    as a country per the leading-underscore

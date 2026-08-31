@@ -184,9 +184,14 @@ validation, canonical constants, and firing counters. Details:
 
 ## 7. Current state and roadmap (as of 2026-07-06)
 
-- **Version**: v0.2. Production cohorts of US p=10k / JP p=5k
-  generate with all audit axes PASS. 32 diseases + 46 outpatient /
-  ED conditions, 33 modules, 25+ FHIR R4 resource types emitted.
+- **Version**: v0.5.0 (v0.6.0 release-gate work in progress at time
+  of last sync). Production cohorts of US p=10k / JP p=5k generate
+  with all audit axes PASS. 32 diseases + 46 outpatient / ED
+  conditions, 33 modules, 25+ FHIR R4 resource types emitted.
+  Longitudinal service lines (oncology + obstetrics — cancer chronic
+  markers × chemo regimen cycles × radiation therapy × delivery
+  encounter × newborn Patient chain × abortion outcome) are wired
+  as of the v0.6.0 target; see `docs/reference/oncology-obstetric-service-lines.md`.
 - **β-JP-1 chain 2 (MHLW forms) is complete** (sessions 33-36): the
   4-of-4 documents — inpatient care plan / nursing-need A, B, C
   evaluation forms (there is officially no "D table" form; the
@@ -218,15 +223,16 @@ validation, canonical constants, and firing counters. Details:
   (FP-AGE `person.age` multi-year / FP-ARCH-2 / 3 with the 7
   remaining trauma disease `course_archetypes` / cross-cutting
   follow-up). Details live in the fix-point registry and in the
-  various deferred sections of `TODO.md`.
+  various deferred sections tracked on the GitHub Issues board
+  (`docs/roadmap.md`). The pre-Issues `TODO.md` ledger has been
+  retired.
 - **Subsequent chains** (in priority order per
   `docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md`
   §4, though the completed parts above take precedence): β-2
   (surgical / anaesthetic) → γ / δ / ε → SS-MIX2.
-- **The canonical source for deferred items**: the "deferred"
-  sections inside `TODO.md` (each has context-carrying entries per
-  chain). Before starting work, always read
-  `.session-resume-prompt.md` (the latest session hand-off).
+- **The canonical source for deferred items**: the GitHub Issues
+  board (see `docs/roadmap.md`). Before starting work, always read
+  `.resume-prompt.md` (the latest session hand-off).
 
 ## 8. Glossary
 

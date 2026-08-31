@@ -71,6 +71,7 @@ from clinosim.modules.document import (
     # Reference-data loaders
     load_physical_exam_findings,    # () -> dict (@lru_cache, 6-layer validated)
     load_discharge_instructions,    # () -> dict (@lru_cache, 6-layer validated)
+    load_hpi_pertinent_negatives,   # () -> dict (@lru_cache)
 
     # Canonical ID prefixes
     DOC_REFERENCE_ID_PREFIX,        # "doc-"

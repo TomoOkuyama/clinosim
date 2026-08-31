@@ -125,7 +125,7 @@ from clinosim.modules.physiology.engine import (
   coupling scale / physiologic min / max / noise SD 定数。
 - **State-coupling 規則定数**
   ([`_state_coupling_thresholds.py`](_state_coupling_thresholds.py))
-  — `apply_coupling_rules` が消費する定数 (13 変数 state を臨床的に
+  — `apply_coupling_rules` が消費する定数 (14 変数 state を臨床的に
   整合させるための軸間 clamp と shift)。
 - **Vital 導出式** ([`_vital_signs_thresholds.py`](_vital_signs_thresholds.py))
   — `derive_vital_signs` / `derive_observed_vitals` の coupling +

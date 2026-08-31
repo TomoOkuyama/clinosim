@@ -25,9 +25,10 @@ Hub に push 可能。Zenodo integration (`.zenodo.json` at repo root)
 は tag された各 release で DOI を発行するので、データ構築に使用した
 正確な clinosim バージョンの DOI を引用してください。
 
-**次のリリースサイクル** 以降、release ワークフローは全 4 プリセット
-をビルドし GitHub Release アセットとして attach。現行 v0.3.0
-release はインフラのみを同梱 — ローカル再現には
+v0.4.x release line 以降、CI の release ワークフローは全 4
+プリセットをビルドし GitHub Release アセットとして attach するので、
+tag 付き dataset は特定 `clinosim` バージョンに pin される。
+ローカル再現 (または未リリースの master での再ビルド) には
 `clinosim dataset build` を使用。
 
 FHIR サーバ (HAPI FHIR 等) にデータセットをロードするには

@@ -106,21 +106,33 @@ clinosim/locale/
   loader.py                       @lru_cache YAML ローダー (公開関数 14)
   text.py                         resolve_text (多言語テキスト解決
                                    ヘルパー)
-  us/                             US 固有バンドル (12 YAML):
-                                   addresses / code_mapping_{diagnosis,
-                                   drug,lab,procedure} / code_status_rates
-                                   / demographics / family_history_
-                                   prevalence / formatting /
-                                   immunization_schedule / names /
+  us/                             US 固有バンドル (13 YAML):
+                                   addresses / ambulatory_visit_length /
+                                   code_mapping_{diagnosis,drug,lab,procedure}
+                                   / code_status_rates / demographics /
+                                   family_history_prevalence / formatting
+                                   / immunization_schedule / names /
                                    reference_range_lab
-  jp/                             JP 固有バンドル (15 YAML — US 集合
-                                   + care_level_rates / identity /
+  jp/                             JP 固有バンドル (19 YAML — US 集合 +
+                                   ambulatory_visit_length /
+                                   care_level_rates / identity /
                                    code_mapping_microbiology /
-                                   code_mapping_microbiology_susceptibility)
-  shared/                         locale 間共有データ (6 YAML):
-                                   chronic_followup / chronic_medications
-                                   / department_display / drug_names_ja
-                                   / med_terms_ja / naming_rules
+                                   code_mapping_microbiology_susceptibility
+                                   / external_organizations /
+                                   practitioner_qualifications)
+  shared/                         locale 間共有データ (13 YAML):
+                                   anthropometric_reference / chemo_regimens
+                                   (化学療法 regimen ライブラリ — FOLFOX
+                                   q14d / CarboPem q21d / Trastuzumab q3w
+                                   / LHRH q28d) / chronic_followup (Z39
+                                   postpartum を含む) / chronic_medications
+                                   / chronic_onset_min_age /
+                                   department_display / drug_names_ja /
+                                   encounter_disposition_defaults /
+                                   icd10_sex_restrictions /
+                                   iv_infusion_defaults / med_terms_ja /
+                                   naming_rules / perinatal (分娩頻度
+                                   config + 妊娠中絶 age-band 確率表)
   _template/                      新規 locale scaffolding — README +
                                    必要 YAML の stub。先頭アンダー
                                    スコアガードにより country として

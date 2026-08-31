@@ -36,6 +36,38 @@
   ([`clinosim.simulator`](../../simulator/))、FHIR `Encounter`
   emission ([`clinosim.modules.output`](../output/README.md))。
 
+### 縦断サービスライン encounter shape (v0.5 → v0.6.0)
+
+上記 46 YAML protocol は ED / 外来主訴 episode を対象とする。以下 2
+縦断サービスラインは `reference_data/` protocol 非依存で、shape は
+[`clinosim/locale/shared/perinatal.yaml`](../../locale/shared/perinatal.yaml)
+と
+[`clinosim/locale/shared/chronic_followup.yaml`](../../locale/shared/chronic_followup.yaml)
+に直接持つ:
+
+- **周産期分娩 Encounter** (母親側、IMP admission、admit dx `O80`、
+  discharge dx `Z37.0`、LOS JP 5 日 / US 2 日、部門は `obgyn`、
+  `department_rollup` で `internal_medicine` fallback。delivery Procedure
+  JP `K894` / US CPT `59400`)。
+- **新生児 Encounter** (IMP admission、`admit_source = "born"` —
+  [`clinosim/types/encounter.py`](../../types/encounter.py) の新
+  `AdmitSource.BORN` enum 値、`admit_source_encounter_id` が母親の
+  分娩 encounter を指し新生児側の FHIR `Encounter.partOf` に emit、
+  LOS は母親から継承、discharge dx `Z38.0`)。
+- **産褥 (postpartum) 外来 encounter × 2** — 分娩後 ~1 週間 / ~4 週間の
+  `chronic_visit` event、disease_id `Z39`、`chronic_followup.yaml` に
+  entry。
+- **中絶外来日帰り手術 Encounter** (O03.9 spontaneous / O04.5 induced、
+  15–19 → 35–44 の年齢帯 gate)、config は `perinatal.yaml::abortion`。
+  中絶 outcome が発火した場合は delivery / newborn chain は emit しない。
+- **化学療法 Encounter** (`chemo_visit` 外来 event) — 各 regimen
+  cycle につき 1 件、cadence は
+  [`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml)
+  から。Encounter は分娩 / 化学療法 Procedure と、([`order`](../order/README.md)
+  経由の) regimen `cycle_orders` 各 Day-1 薬剤に対する per-cycle
+  MedicationRequest + MedicationAdministration を持つ。放射線治療
+  encounter も同様。
+
 ## Public API
 
 `__init__.py` は空。呼び出し側は 2 submodule から直接 import:

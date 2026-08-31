@@ -5,21 +5,29 @@
 ### 新規疾患追加
 
 1. `clinosim/modules/disease/reference_data/<disease_id>.yaml` を
-   作成 (既存疾患をテンプレートに)
+   作成 (既存疾患をテンプレートに)。
 2. `clinosim/locale/<country>/demographics.yaml` の incidence リスト
-   に追加
-3. 必要な ICD コードを `clinosim/codes/data/icd-10-cm.yaml` に追加
-   (未登録の場合)
-4. テスト: `clinosim test-disease <disease_id>`
+   に追加。
+3. **`icd_codes` 全値 (primary + variants) をコードデータに登録** —
+   US billable leaves は `clinosim/codes/data/icd-10-cm.yaml`、JP WHO
+   コードは `clinosim/codes/data/icd-10.yaml`、CM 粒度を WHO 親コード
+   に折り畳む場合等は `clinosim/codes/data/code_mapping_diagnosis/<country>.yaml`
+   に mapping エントリを追加。未登録だと FHIR Condition display が
+   prefix 近似 fallback に落ちる。`AGENTS.md` 「Diagnosis code
+   coverage」参照。
+4. テスト: `clinosim test-disease <disease_id>` および
+   `pytest tests/unit/test_diagnosis_code_coverage.py`。
 
-詳細: `clinosim/modules/disease/README.md`
+詳細: `clinosim/modules/disease/README.ja.md`
 
 ### 新規 encounter 型追加 (ED/外来)
 
 1. `clinosim/modules/encounter/reference_data/<condition_id>.yaml`
-   を作成
-2. `icd10_code` と `icd10_display` を含める
-3. テスト: `clinosim test-encounter <condition_id>`
+   を作成。
+2. `icd10_code` と `icd10_display` を含める。
+3. `icd10_code` を「新規疾患追加」ステップ 3 に従って登録。
+4. テスト: `clinosim test-encounter <condition_id>` および
+   `pytest tests/unit/test_diagnosis_code_coverage.py`。
 
 ### 新規国追加
 

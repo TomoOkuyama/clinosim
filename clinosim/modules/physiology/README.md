@@ -130,7 +130,7 @@ from clinosim.modules.physiology.engine import (
   K, lactate, LDL, Na, PT, PLT, WBC, …).
 - **State-coupling rule constants** ([`_state_coupling_thresholds.py`](_state_coupling_thresholds.py))
   — the constants `apply_coupling_rules` consumes (e.g. state-to-state
-  clamps and shifts that keep the 13-variable state clinically
+  clamps and shifts that keep the 14-variable state clinically
   coherent when one axis moves).
 - **Vital-signs formulae** ([`_vital_signs_thresholds.py`](_vital_signs_thresholds.py))
   — coupling + noise constants for `derive_vital_signs` /

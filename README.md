@@ -17,7 +17,7 @@
 
 ## What is clinosim?
 
-clinosim generates synthetic EHR data through **forward simulation from a population**. Every patient carries a hidden **13-variable physiological state**, and every observation (labs, vitals, medications, diagnoses) is derived from that state — so the data is **clinically coherent by construction**.
+clinosim generates synthetic EHR data through **forward simulation from a population**. Every patient carries a hidden **14-variable physiological state** (`clinosim/types/clinical.py::PhysiologicalState`), and every observation (labs, vitals, medications, diagnoses) is derived from that state — so the data is **clinically coherent by construction**.
 
 Primary use cases:
 

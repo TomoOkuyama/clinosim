@@ -17,6 +17,44 @@ trauma (crush injury, MVA hand fracture, …), and occupational injury
 / ED-only protocols live in a sibling registry under
 [`clinosim.modules.encounter`](../encounter/README.md).
 
+### Longitudinal cancer service line (v0.5 → v0.6.0)
+
+Ten cancer sites — **C15** (esophagus), **C16** (stomach), **C18**
+(colon), **C22** (liver), **C25** (pancreas), **C34** (lung),
+**C50** (breast), **C61** (prostate), **C67** (bladder), **C71**
+(brain) — are dispatched from the population's `chronic_prevalence`
+marker into a longitudinal treatment chain rather than being
+represented only as a chronic Condition. The chain crosses several
+modules:
+[`clinosim.modules.population`](../population/README.md) schedules
+`chemo_visit` LifeEvents on the year calendar using
+[`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml)
+regimens (FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d);
+[`clinosim.modules.order`](../order/README.md) emits per-cycle
+MedicationRequest + MedicationAdministration for each Day-1 drug in
+the regimen's `cycle_orders`;
+[`clinosim.modules.procedure`](../procedure/README.md) emits
+radiation-therapy Procedure resources; and lab derivation emits
+tumor-marker labs (CEA, CA19-9, AFP, PIVKA-II, CA15-3, PSA). This
+module retains ownership of the acute admission YAMLs; the 10
+cancer codes above are chronic markers, not admission YAMLs.
+
+**Male breast cancer (~1 % of C50)**: C50's female-only sex lock
+is lifted (C51–C58 stay locked). The
+[`clinosim.modules.population`](../population/README.md) sampler
+consumes the `by_sex: {F: {bands}, M: {bands}}` prevalence schema
+for `chronic_prevalence[C50]` and augments the male sub-population
+under an independent per-`(patient, code)` sub-seed
+(`chronic_augment_sex_seed`) so the master RNG stream stays
+byte-identical. US ICD-10-CM splits C50 into female-side (`C50.919`)
+and male-side (`C50.929`) unspecified-site leaves; the diagnosis
+adapter routes via
+`map_diagnosis_code(code, country, sex=…)`. JP keeps identity
+mapping `C50 → C50`.
+
+Full schema (encounter shape, config layout, sub-seeds, follow-up
+slice list): [`docs/reference/oncology-obstetric-service-lines.md`](../../../docs/reference/oncology-obstetric-service-lines.md).
+
 ## Scope
 
 - **In scope**: `DiseaseProtocol` schema + child models

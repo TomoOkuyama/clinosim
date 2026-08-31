@@ -21,7 +21,21 @@ calendar (月次 acute-disease event、慢性フォロー visit、screening、
   RNG 非消費)、季節 / lifestyle / 職業リスク乗数付きの月次 acute
   event サンプリング、年次 healthcare calendar 生成 (慢性フォロー、
   mammography / colonoscopy / diabetic retinopathy / flu ワクチン
-  screening、小児 visit)。
+  screening、小児 visit、**周産期分娩 (perinatal delivery)** LifeEvent
+  Z34 保有女性 1 人/妊娠年 について `_perinatal_delivery_events` が
+  発火、**化学療法サイクル (chemo cycle)** LifeEvent オンコロジー
+  マーカー患者について `clinosim/locale/shared/chemo_regimens.yaml`
+  を読む `_chemo_cycle_events` が regimen ごとの cycle interval で
+  発火)。
+- **In scope (慢性 prevalence schema)**: `chronic_prevalence` は各
+  code につき 2 形式を許容 — 単性別 code (`N40` BPH、`Z34` 妊娠、
+  `C61` 前立腺等) 用の従来 `sex: M|F` + `bands` 形式と、C50 のような
+  混性 code 用の `by_sex: {F: {bands}, M: {bands}}` 形式。後者では
+  primary 性が通常通り sampling され、opposite-sex `augment_sex_bands`
+  が per-`(patient, code)` 独立サブ seed
+  (`chronic_augment_sex_seed`) で発火する。男性乳がん (~1 % of C50)
+  が canonical な `by_sex` 消費者。両形式を同一 code で混在させては
+  ならない。
 - **Out of scope**: 姓名 / 住所 / 電話 raw data
   ([`clinosim/locale/<country>/`](../../locale/))、疾患プロトコル定義
   ([`clinosim.modules.disease`](../disease/README.md))、患者の
@@ -138,6 +152,18 @@ Helper 関数 (すべて pure、新規 tunable 定数なし。yaml 側の
   これにより RNG-neutral field 追加時に memoize snapshot が
   byte-identical に保たれる (Issue #795 pattern、age / sex 依存で
   RNG サンプリングが必須の属性とは対照的)。
+- **per-patient サブ seed** (定義は
+  [`clinosim/seeding.py`](../../seeding.py) の `ENRICHER_SEED_OFFSETS`
+  横):`chronic_augment_sex_seed(patient_id, code)` は `by_sex` の
+  opposite-sex 増加を独立 sub-RNG で gate し master 慢性 prevalence
+  RNG stream を augmentation 前と byte-identical に保つ。
+  `perinatal_delivery_seed(patient_id, year)` は Z34 保有女性の
+  分娩月を sampling。`chemotherapy_regimen_seed(patient_id, cancer_code)`
+  は `chemo_regimens.yaml` から regimen を選択し cycle-1 開始日を決定。
+  新生児周産期条件 (P59.9 / P07.3 → P22.0 / L22 / L20.9) と中絶
+  outcome (O03.9 / O04.5) の sampling は
+  [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py)
+  が保持する兄弟 per-patient サブ seed 経由。
 - 月次 event / calendar は決定論的 person / 疾患 / 順序で `rng` を
   逐次消費する — YAML 編集で incidence を追加 / 並替えると下流 stream
   位置が shift しうる。これは想定挙動で、caller 境界で明示する。

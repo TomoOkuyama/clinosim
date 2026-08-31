@@ -17,6 +17,10 @@ clinosim は LLM を **臨床文書** (Stage 2) にのみ使用。全 structural
   provider:
   - `ollama` — ローカル Ollama サーバ (デフォルト)
   - `bedrock` — AWS Bedrock、Converse API 経由 (EC2 デプロイ用)
+  - `vllm` — OpenAI 互換 `/v1/chat/completions` エンドポイント
+    (vLLM、SGLang、その他 OpenAI 互換サーバ; `clinosim narrate` の
+    `--concurrency` で continuous batching)
+  - `openai_compatible` — `vllm` の alias
   - `mock` — テスト用決定的 stub
   - 新規 provider は `providers.register_provider()` で登録可能。
 - プロンプトテンプレートは

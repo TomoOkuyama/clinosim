@@ -34,6 +34,32 @@ custom JP `CareLevel` (要介護度) social-history `Observation`.
   the 要介護度 assignment
   ([`clinosim.modules.care_level`](../../../care_level/README.md)).
 
+### Perinatal + oncology encounter shapes (v0.5 → v0.6.0)
+
+`_build_encounter` now handles the extra encounter shapes from the
+longitudinal service lines (see
+[`../../encounter/README.md`](../../encounter/README.md) §
+"Longitudinal service-line encounter shapes"):
+
+- **Newborn-side link** — when the CIF encounter carries
+  `admit_source = "born"` (new `AdmitSource.BORN` value in
+  [`clinosim/types/encounter.py`](../../../../types/encounter.py)),
+  `Encounter.hospitalization.admitSource` maps that via
+  `_build_hosp_concept("hl7-admit-source", ...)` and the sibling
+  `admit_source_encounter_id` becomes the newborn's `Encounter.partOf`
+  → mother's delivery encounter. Same `admit_source_encounter_id`
+  slot is reused for the historical ED→inpatient linkage (CY7-05).
+- **Delivery encounter (mother side)** — a standard inpatient
+  Encounter with `type` reflecting the OB visit reason (from
+  `perinatal.yaml::encounter.visit_reason`) and no special
+  builder-side handling beyond the standard admission dx `O80` /
+  discharge dx `Z37.0` routing.
+- **Chemo / radiation encounters** — outpatient Encounters
+  emitted from `chemo_visit` / radiation LifeEvents. No new
+  builder needed; the accompanying MedicationRequest +
+  MedicationAdministration + Procedure resources come from the
+  sibling `medications/` and `procedures/` builders.
+
 ## Public API
 
 Every builder is registered with the parent facade

@@ -21,7 +21,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 | ★ Implementation rules distilled (must-follow invariants) | [`docs/design-guides/implementation-rules.md`](docs/design-guides/implementation-rules.md) |
 | ★ Documentation + code-quality policy (all contributors follow) | [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md) |
 | ★ How data is generated (end-to-end walkthrough) | [`docs/design-guides/data-generation-walkthrough.md`](docs/design-guides/data-generation-walkthrough.md) |
-| Module overview (30 modules at a glance) | [`MODULES.md`](MODULES.md) |
+| Module overview (33 modules at a glance) | [`MODULES.md`](MODULES.md) |
 | Scenario / medication flags (`causes_X` / `on_warfarin`) | [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
 | Architecture + ADR table (55+ entries) | [`DESIGN.md`](DESIGN.md) |
 | Module author HOW-TO + PR verification guide | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
@@ -349,7 +349,38 @@ merge 時の HEAD が同一であること**を確認する。
 
 ## Current implementation phase
 
-**v0.2** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases + 46 ED/outpatient conditions, snapshot date support, opt-in JP insurance enrollment (FHIR Coverage, AD-54), and the complete **AD-55 Base data-enrichment set**: microbiology, cardiac markers, nursing flowsheets, immunization, family history, code status, and extended SDOH (smoking/alcohol/JP 要介護度). The FHIR adapter is split into per-theme `_fhir_*` builder modules (FA-1).
+**Baseline capabilities (current release line, v0.5.x → v0.6.0 in
+progress)**: population-driven simulation with full FHIR R4 Bulk Data
+Export, multi-country (US / JP), **32 inpatient disease protocols +
+46 ED / outpatient encounter conditions**, JP-CLINS eCS emission
+(profile pin tracked in `.github/jp-validator-pins.env` and the
+`jp-clins-lab-compliance-gate.yml` CI check), snapshot date support,
+opt-in JP insurance enrollment (FHIR Coverage, AD-54), the complete
+**AD-55 Base data-enrichment set** (microbiology, cardiac markers,
+nursing flowsheets, immunization, family history, code status,
+extended SDOH — smoking / alcohol / JP 要介護度), and the FHIR
+adapter split into per-theme builder modules under
+`clinosim/modules/output/fhir_r4/` (FA-1 complete).
+
+**Longitudinal service lines** (v0.5 → v0.6.0 work): oncology
+(10 cancer sites — C15 / C16 / C18 / C22 / C25 / C34 / C50 / C61 /
+C67 / C71 — including male breast (~1% of C50) via the `by_sex`
+prevalence schema, chemo regimen cycle scheduling with per-cycle
+`MedicationRequest` + `MedicationAdministration`, radiation therapy
+Procedure, tumor-marker labs — CEA / CA19-9 / AFP / PIVKA-II /
+CA15-3 / PSA) and obstetrics (Z34 pregnancy marker → mother-side
+delivery Encounter with Z37.0 discharge dx + delivery Procedure
+JP K894 / US CPT 59400, postpartum encounters × 2 with Z39 in
+`chronic_followup.yaml`, newborn Patient chain with
+`admit_source = born` + `Encounter.partOf`, newborn perinatal
+conditions P59.9 / P07.3 / P22.0 / L22 / L20.9, and abortion
+outcome O03.9 / O04.5 age-gated 15–19 → 35–44). Config: `chemo_regimens.yaml`,
+`perinatal.yaml` (both under `clinosim/locale/shared/`). Runtime
+detail: [`docs/reference/oncology-obstetric-service-lines.md`](docs/reference/oncology-obstetric-service-lines.md).
+
+The v0.3 → v0.5.0 history of PATCH / MINOR bumps between these two
+baselines lives in [`CHANGELOG.md`](CHANGELOG.md); the invariants
+below stay accurate irrespective of release cadence.
 
 **Silent-no-op defense triplet** is fully wired across the codebase (PR #102 / #103 2026-06-27): (1) canonical constants(例 `HAI_TYPES`)を module-level に定義、(2) `_validate_*(data) -> None` を 5 主要 YAML loader(`_validate_microbiology` PR-A 7 cross-refs + `_validate_hai_organisms` + `_validate_demographics` + `_validate_names` + `_validate_addresses`)に wire(import 時 fail-loud)、(3) `normalize_probabilities(..., fallback="raise")` を全 **15 YAML-sourced callsites** に適用(7 modules: code_status / population / clinical_course / hai / family_history / observation / care_level)。test 補強 + 4-stage adversarial chain converged で検証済(unit / integration / e2e: 1020 passed, 4 skipped)。
 

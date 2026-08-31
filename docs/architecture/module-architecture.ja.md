@@ -78,12 +78,20 @@ clinosim/
 │   │   │   ├── bedrock.py             # AWS Bedrock (boto3 遅延 import)
 │   │   │   └── mock.py                # 決定的テスト provider
 │   │   └── prompts/                   # ★ プロンプトテンプレート YAML tree
-│   │       └── en/                    # 英語プロンプト (Tier A+B 5 種)
+│   │       └── en/                    # 英語プロンプト (17 テンプレート —
+│   │           │                      #   入院時 H&P、退院・死亡サマリ、
+│   │           │                      #   手術・処置ノート、紹介状、
+│   │           │                      #   死亡証明書 contributing +
+│   │           │                      #   duration、死亡退院サマリの
+│   │           │                      #   section 別断片、
+│   │           │                      #   narrative_seed + bundle)
 │   │           ├── admission_hp.yaml
 │   │           ├── discharge_summary.yaml
 │   │           ├── death_summary.yaml
 │   │           ├── operative_note.yaml
-│   │           └── procedure_note.yaml
+│   │           ├── procedure_note.yaml
+│   │           ├── referral_note.yaml
+│   │           └── … (clinosim/modules/llm_service/prompts/en/ 参照)
 │   └── validator/            # 公開ベンチマークとの比較
 │
 ├── simulator/                # トップレベルオーケストレーション
