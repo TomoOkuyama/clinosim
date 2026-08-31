@@ -221,7 +221,7 @@ def _sample_newborn_conditions(mother_id: str, delivery_date: date) -> list[Chro
     if not entries:
         return []
     rng = np.random.default_rng(_newborn_conditions_sub_seed(mother_id))
-    onset = delivery_date.isoformat()
+    onset = delivery_date
     out: list[ChronicCondition] = []
     for entry in entries:
         if not isinstance(entry, dict):
@@ -289,7 +289,7 @@ def _build_newborn_patient(mother: PatientProfile, delivery_date: date, sex: str
         # conditions (jaundice / preterm / RDS gated on preterm / atopic
         # + diaper dermatitis) from ``perinatal.yaml::newborn_conditions``.
         chronic_conditions=[
-            ChronicCondition(code="Z38.0", onset_date=delivery_date.isoformat()),
+            ChronicCondition(code="Z38.0", onset_date=delivery_date),
             *_sample_newborn_conditions(mother.patient_id, delivery_date),
         ],
     )
