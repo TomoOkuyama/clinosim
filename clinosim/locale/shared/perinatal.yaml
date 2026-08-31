@@ -1,0 +1,45 @@
+# Perinatal delivery configuration (Issue #957 Tier-3-B slice 1).
+#
+# MVP scope: mother-side delivery Encounter emission for Z34-carrying
+# pregnant women during the sim window. Newborn Patient generation +
+# postpartum Z38 birth-outcome + puerperium visits remain a follow-up
+# slice (multi-patient linked-encounter architecture is deferred).
+#
+# Cadence source: MHLW 人口動態統計 出生率 + JSOG 分娩管理指針 2020
+# (spontaneous vaginal delivery LOS ~4-5 days in JP; ~2 days in US).
+
+# ---------------------------------------------------------------------------
+# Encounter shape. Delivery is emitted as one inpatient encounter with
+# admission diagnosis = O80 (single spontaneous delivery, most common
+# uncomplicated delivery code) and discharge diagnosis = Z37.0 (single
+# liveborn — mother-side birth outcome code, sex-locked female-only via
+# icd10_sex_restrictions.yaml).
+encounter:
+  visit_reason:
+    en: "Delivery (spontaneous vaginal delivery)"
+    ja: "分娩 (自然分娩)"
+  admission_diagnosis_code: "O80"       # WHO ICD-10: Single spontaneous delivery
+  discharge_diagnosis_code: "Z37.0"     # Single liveborn (mother-side outcome)
+  length_of_stay_days:
+    jp: 5                               # JSOG normal delivery LOS ~4-5 days
+    us: 2                               # US Medicare/HEDIS ~2 days (48h stay)
+  department: "obgyn"                   # falls back to internal_medicine when hospital lacks obgyn
+
+# ---------------------------------------------------------------------------
+# Delivery Procedure — emitted on the encounter with the JP/US billing code.
+procedure:
+  jp_code: "K894"                       # JP 医科診療報酬点数表: 分娩介助
+  jp_display: "分娩介助"
+  us_code: "59400"                      # US CPT: Routine obstetric care including antepartum, vaginal delivery, and postpartum care
+  us_display: "Routine obstetric care, vaginal delivery"
+  duration_minutes: 90                  # active labor + delivery interval on the day of birth
+
+# ---------------------------------------------------------------------------
+# Scheduling: for Z34-carrying women within the sim window, the
+# scheduler emits one delivery event per year (Z34 in this generator
+# represents "actively pregnant during the window"; a real pregnancy
+# is 40 weeks and would span two calendar years for many patients —
+# the MVP folds this into one delivery per Z34-year at a scheduled
+# month range, deterministic per patient via sub-RNG).
+scheduling:
+  delivery_month_range: [4, 10]         # broad window covering common delivery months

@@ -146,6 +146,42 @@ before re-tagging. Everything below stays queued under
   narrative CIF stays consistent because their structural CIF is
   byte-identical to master.
   Author: Claude. Partial #957.
+- **Issue #957 (Tier-3-B slice 1) — Perinatal delivery encounter.**
+  Pre-fix the simulator carried Z34 (supervision of normal pregnancy)
+  as a chronic marker on childbearing-age women, but emitted zero
+  delivery Encounters — the obstetric service line was invisible to
+  any FHIR consumer computing "births per year in this hospital".
+  This slice adds a mother-side delivery inpatient encounter at a
+  scheduled month per Z34 pregnancy-year: new
+  `clinosim/locale/shared/perinatal.yaml` declares the encounter
+  shape (admission dx `O80` single spontaneous delivery, discharge
+  dx `Z37.0` single liveborn — mother-side outcome, LOS 5d JP / 2d
+  US) + Procedure billing code (JP: `K894` 分娩介助, US: CPT 59400
+  routine obstetric care). New scheduler
+  (`_perinatal_delivery_events` in `population/engine.py`) picks the
+  delivery month per Z34 woman via a per-(patient, year) sub-RNG
+  (`perinatal_delivery_seed`); `simulator/engine.py` dispatches the
+  new `delivery` event to `simulate_delivery_encounter`
+  (new module `clinosim/simulator/perinatal.py`) which builds the
+  inpatient encounter + Procedure. Verified JP p=3000 seed=1: **57
+  delivery Encounters + 57 delivery Procedures + 57 Z37.0 discharge
+  diagnoses across 57 patients** (perfect 1:1), all patients female
+  ages 20-27, delivery dates April-October per config window,
+  LOS = 5 days. FHIR Procedure emits `K894` (JP MHLW primary) +
+  `59400` (US CPT secondary) coding. RNG contract: scheduler uses
+  per-(patient, year) sub-RNG so pre-existing calendar events
+  (chronic follow-ups, screenings, flu-vax, mammography, DR
+  screening) are byte-identical for both Z34 and non-Z34 patients
+  — verified by `test_delivery_scheduler_does_not_shift_non_z34_calendar_stream`.
+  Newborn Patient generation + postpartum encounters + Z38
+  (newborn-side birth outcome, emitted on the baby's record)
+  remain a follow-up slice — multi-patient linked-encounter
+  architecture (mother→baby partOf reference infrastructure) is
+  deferred. Classification: **MINOR** — Z34-carrying women gain
+  one new inpatient Encounter + Z37.0 Condition + delivery
+  Procedure per pregnancy-year; CIF ↔ narrative-CIF byte-identity
+  is broken for Z34 patients only, fresh `narrate` required for
+  them. Author: Claude. Partial #957.
 - **Issue #757 (partial) — Chronic-medication-driven monitoring pipeline
   foundation.** New `clinosim/modules/monitoring/` module: YAML-driven
   `(medication → monitoring lab + per-visit probability)` mapping,
