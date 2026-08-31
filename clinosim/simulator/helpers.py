@@ -138,6 +138,23 @@ def _deactivate_to_layer1(
     # Issue #452 PR 1: `PersonRecord.current_medications` is now
     # `list[HomeMedication]` — carry route / dose / frequency through from
     # `discharge_prescription.items` instead of dropping them.
+    #
+    # Issue #914 Bucket B: acute short-course therapy (antibiotics
+    # `discharge_oral` 7-day course, steroid tapers 5-7 days, PPI H. pylori
+    # eradication 14 days) must NOT carry forward as a persistent chronic
+    # home medication. Pre-fix, every discharge item — including these
+    # finite courses — replaced `person.current_medications`, so the next
+    # outpatient visit's prescription-renewal loop (`outpatient.py:325`)
+    # re-emitted the antibiotic as if it were a chronic drug. That is how
+    # 12 hypertension follow-ups at JP p=1000 s500 acquired 3+ antibiotics
+    # despite the encounter being for I10 essential hypertension —
+    # discharge Rx from a prior admission was being renewed indefinitely.
+    #
+    # Cutoff: ``duration_days <= 14`` filters out acute courses (UTI oral
+    # abx 7, steroid taper 5-7, PPI eradication 14, etc.) while preserving
+    # chronic transcription (`discharge_rx.py` hardcodes ``duration_days=28``
+    # for chronic renewal) and any longer supply schedule.
+    _ACUTE_COURSE_MAX_DAYS = 14
     if record.discharge_prescription and record.discharge_prescription.items:
         new_meds: list[HomeMedication] = []
         for item in record.discharge_prescription.items:
@@ -146,6 +163,17 @@ def _deactivate_to_layer1(
             drug_name = item.get("drug_name") or item.get("drug") or item.get("name") or ""
             if not drug_name:
                 continue
+            # Issue #914 Bucket B: drop finite courses from the persistent
+            # home-medication carry-forward. The discharge Rx itself still
+            # emits (the patient did receive the 7-day antibiotic), only
+            # the chronic-med list is guarded.
+            _dur = item.get("duration_days")
+            if _dur is not None:
+                try:
+                    if int(_dur) <= _ACUTE_COURSE_MAX_DAYS:
+                        continue
+                except (TypeError, ValueError):
+                    pass
             dq = item.get("dose_quantity")
             try:
                 dose_qty = float(dq) if dq is not None and dq != "" else None
