@@ -43,7 +43,7 @@ HAI cascade の中核。
   ([`antibiotic`](../antibiotic/README.md))、culture の FHIR
   `Observation` / `DiagnosticReport` emission
   ([`output/fhir_r4/labs/`](../output/fhir_r4/) —
-  `_fhir_microbiology.py`)、ServiceRequest emission
+  `fhir_r4/labs/microbiology.py`)、ServiceRequest emission
   ([`order`](../order/README.md))。
 
 ## Public API

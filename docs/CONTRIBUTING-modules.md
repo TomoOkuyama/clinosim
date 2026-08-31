@@ -9,7 +9,7 @@ on **HOW-TO**.
 
 > **This document is centred on the CIF-generation layer** (Layers
 > 1-3 = reference YAML, loader, CIF-generation module). **To add or
-> extend a FHIR builder (Layer 4 = `_fhir_*.py`)**, see
+> extend a FHIR builder (Layer 4 = `fhir_r4/<domain>/*.py`)**, see
 > [`docs/design-guides/fhir-data-generation-logic.md`](design-guides/fhir-data-generation-logic.md)
 > (BundleContext / code_lookup / multilingual display / identifier-
 > system conventions / register_bundle_builder).
@@ -76,16 +76,16 @@ roadmap = [`docs/design-notes/2026-06-30-tier1-document-and-event-density-master
 - `allergy` (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-
   coded schema upgrade (POST_RECORDS order=65). Samples allergies at
   a 15 % prevalence into `PersonRecord.allergies: list[Allergy] | None`;
-  `_fhir_allergy_intolerance.py` emits them. Replaces the inline
+  `fhir_r4/conditions/allergy_intolerance.py` emits them. Replaces the inline
   sampling in `activator.py`.
 - `document` (Tier 1 #3, AD-63): template-driven clinical-document
   emission from Stage 1 (POST_ENCOUNTER order=95). Writes
   `ClinicalDocument` / `ClinicalImpressionRecord` into
   `extensions["document"]` + `extensions["clinical_impressions"]`;
   three FHIR builders emit them
-  (`_fhir_document_reference.py` /
-  `_fhir_composition.py` /
-  `_fhir_clinical_impression.py`). `enabled=lambda c: True`; does
+  (`fhir_r4/documents/documents.py` /
+  `fhir_r4/documents/composition.py` /
+  `fhir_r4/conditions/clinical_impression.py`). `enabled=lambda c: True`; does
   not depend on `extensions["allergy"]` (the builder reads
   `patient.allergies` directly for allergy info).
 - `triage` (Tier 1 #3 α-min-2, AD-64): samples ED encounter's
@@ -97,7 +97,7 @@ roadmap = [`docs/design-notes/2026-06-30-tier1-document-and-event-density-master
 - `nursing_assignment` (Tier 1 #3 α-min-2, AD-64): assigns a primary
   nurse to inpatient / ICU / rehab encounters (POST_ENCOUNTER
   order=94). Writes to `EncounterRecord.primary_nurse_id`;
-  `_fhir_care_team.py` uses it for `CareTeam.participant[1]`.
+  `fhir_r4/encounters/care_team.py` uses it for `CareTeam.participant[1]`.
   `enabled=lambda c: True`. **Note**: this module lives in the
   `modules/nursing/` directory but is the POST_ENCOUNTER `nursing_enricher`
   function (primary-nurse assignment). The same directory also holds
@@ -291,8 +291,8 @@ used in **6 loaders**) was retired, and every module's loader now
 uses `@lru_cache` as the standard. Touch targets were
 `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions` /
 `clinosim/simulator/helpers.py:_load_all_disease_protocols` /
-`clinosim/modules/output/_fhir_diagnostic_report.py:load_panel_groups` /
-`clinosim/modules/output/_fhir_localization.py`'s `_load_med_terms_ja`
+`clinosim/modules/output/fhir_r4/labs/diagnostic_report.py:load_panel_groups` /
+`clinosim/modules/output/fhir_r4/lib/common.py` (localization helpers)'s `_load_med_terms_ja`
 + `_load_drug_names_ja` + `_load_department_display`. Introducing a
 global mutable `_cache` variable in a new module is forbidden (it
 conflicts with the standard test pattern that uses
@@ -496,7 +496,7 @@ than `register_audit_module(` (precedent
 Do not hard-code canonical URIs (system / identifier URIs, etc.)
 shared between a FHIR builder and an audit reader as string
 literals. **Adopt the pattern: define at the writer-side module
-(`clinosim/modules/output/_fhir_*.py`) as a module-level constant
+(`clinosim/modules/output/fhir_r4/<domain>/*.py`) as a module-level constant
 + have the reader side import it**. On rename, the reader triggers
 `ImportError`, defending against silent-no-op skip (same pattern:
 `MB_ORG_ID_PREFIX` PR #113 / `ABX_ORDER_ID_PREFIX` PR #114 /
@@ -511,7 +511,7 @@ Constant-naming convention:
   `urn:clinosim:identifier:<purpose>` (for `identifier.system`; e.g.
   `HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"`) or
   `urn:clinosim:<resource>:<concept>` (for other resources; e.g.
-  `"urn:clinosim:staff"` in `_fhir_practitioner.py`). In pr117-adv-1
+  `"urn:clinosim:staff"` in `fhir_r4/demographics/practitioner.py`). In pr117-adv-1
   the coexisting mix of http-form and urn-form was unified to the
   urn form (the urn form is allowed only for internal concepts that
   have no registered URI in JP Core / US Core / an HL7 IG).
@@ -849,10 +849,10 @@ register_bundle_builder(_bb_my_resource)
   dict. Do not call `_entry()` inside the builder.
 
 **Canonical example — `_bb_service_requests` (PR1, 2026-06-29,
-`_fhir_service_request.py`):**
+`fhir_r4/labs/service_request.py`):**
 
 ```python
-# clinosim/modules/output/_fhir_service_request.py
+# clinosim/modules/output/fhir_r4/labs/service_request.py
 from clinosim.modules.output.fhir_r4_adapter import register_bundle_builder, BundleContext
 from clinosim.modules.order.panel_grouping import classify_lab_specs
 
@@ -882,7 +882,7 @@ Key patterns illustrated:
   subprocess integration smoke test exercises the production dict
   path (see `tests/integration/test_service_request.py`).
 
-See [`clinosim/modules/output/_fhir_service_request.py`](../clinosim/modules/output/_fhir_service_request.py)
+See [`clinosim/modules/output/fhir_r4/labs/service_request.py`](../clinosim/modules/output/fhir_r4/labs/service_request.py)
 for the full implementation.
 
 ### B. Add an output format (`register_output_adapter`, AD-58)
@@ -1031,7 +1031,7 @@ YAML directly (LOC-1).
 locale data. **When a canonical loader exists for a YAML, raw
 `yaml.safe_load` inside a module or a FHIR builder is forbidden**
 (the 2026-07-02 shared-logic unification migrated the inline reads
-in `_fhir_localization.py` and `patient/activator.py` to the
+in `fhir_r4/lib/common.py` (localization helpers) and `patient/activator.py` to the
 loaders):
 
 - `load_med_terms_ja()` — JP medical-terms table (categories +
@@ -1219,7 +1219,7 @@ pass structural / narrative CIF separation is
    # Unit test on builder logic
    ```
 
-2. **Fix** in code: `clinosim/modules/output/_fhir_composition.py`
+2. **Fix** in code: `clinosim/modules/output/fhir_r4/documents/composition.py`
    - Check `_bb_compositions()` reads `doc.narrative.sections` (post-AD-65 structure)
    - Verify reference integrity: all `reference` URIs resolve to resources in manifest
 

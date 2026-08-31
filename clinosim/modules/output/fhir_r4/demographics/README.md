@@ -115,7 +115,7 @@ facade sorts NDJSON by id post-write.
 - **Social-history SDOH anchor**: `_sdoh_effective_datetime`
   standardises the `effectiveDateTime` for smoking / alcohol / care-level
   by deriving it from the earliest encounter admission (matches
-  `_fhir_care_level.py` C2-10 pattern).
+  `fhir_r4/encounters/care_level.py` C2-10 pattern).
 
 ## Directory contents
 

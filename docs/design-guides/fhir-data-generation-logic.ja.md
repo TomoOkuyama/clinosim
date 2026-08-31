@@ -16,7 +16,7 @@ CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rul
 
 ```
             ┌──────────────────────────────────────────┐
-  CIF →     │ Layer 4: FHIR builders (_fhir_*.py)      │  → FHIR R4 NDJSON
+  CIF →     │ Layer 4: FHIR builders (fhir_r4/<domain>/*.py)      │  → FHIR R4 NDJSON
             │  - read CIF (record / record.extensions) │     (Bulk Data Export)
             │  - read clinosim.codes (display lookup)  │
             │  - read clinosim.locale (locale display) │
@@ -49,7 +49,7 @@ CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rul
 | Step | 内容 | 関連 |
 |---|---|---|
 | 1 | CIF 側で必要な field / extensions を準備(完了済み前提) | CIF guide = `docs/CONTRIBUTING-modules.md` |
-| 2 | 新 builder file `clinosim/modules/output/_fhir_<topic>.py` を作成 | Section B.2 |
+| 2 | 新 builder file `clinosim/modules/output/fhir_r4/<domain>/<topic>.py` を作成 | Section B.2 |
 | 3 | builder 内 canonical constants(ID prefix / identifier system)を定義 | Section B.3 |
 | 4 | resource skeleton 関数を実装(`code_lookup` / `get_system_uri` 経由) | Section B.4 |
 | 5 | builder entry point `_bb_<topic>(ctx: BundleContext) -> list[dict]` を実装 | Section B.5 |
@@ -59,7 +59,7 @@ CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rul
 ### B.2 ファイル雛形
 
 ```python
-# clinosim/modules/output/_fhir_<topic>.py
+# clinosim/modules/output/fhir_r4/<domain>/<topic>.py
 """<Topic> FHIR R4 builder.
 
 Reads CIF (record.extensions["<topic>"] or record.<field>), emits FHIR R4
@@ -72,7 +72,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, lookup as code_lookup
 from clinosim.modules._shared import resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
 # Canonical constants — single definition site, consumers import (Section B.3)
 TOPIC_ID_PREFIX = "tp-"
@@ -113,7 +113,7 @@ def _build_resource(item, ctx: BundleContext) -> dict:
 builder 内に置く canonical constants(ID prefix、identifier system、category constants 等):
 
 ```python
-# clinosim/modules/output/_fhir_<topic>.py(writer = canonical owner)
+# clinosim/modules/output/fhir_r4/<domain>/<topic>.py(writer = canonical owner)
 TOPIC_ID_PREFIX = "tp-"                                       # FHIR Resource.id 接頭辞
 TOPIC_IDENTIFIER_SYSTEM = "urn:clinosim:identifier:topic-id"  # identifier.system URI
 TOPIC_CATEGORY_SNOMED = "..."                                 # category SNOMED code
@@ -123,7 +123,7 @@ TOPIC_CATEGORY_SNOMED = "..."                                 # category SNOMED 
 
 ```python
 # clinosim/modules/<owner>/audit.py(reader)
-from clinosim.modules.output._fhir_<topic> import (
+from clinosim.modules.output.fhir_r4.<domain>.<topic> import (
     TOPIC_ID_PREFIX, TOPIC_IDENTIFIER_SYSTEM,
 )
 ```
@@ -169,7 +169,7 @@ sr["code"]["coding"][0]["system"] = get_system_uri("loinc")
 def _bb_<topic>(ctx: BundleContext) -> list[dict]:
 ```
 
-`BundleContext`(`clinosim/modules/output/_fhir_common.py` 既存)は builder への uniform 入力:
+`BundleContext`(`clinosim/modules/output/fhir_r4/lib/common.py` 既存)は builder への uniform 入力:
 
 | Field | 用途 |
 |---|---|
@@ -206,7 +206,7 @@ emission 順序の指針: **reference の解決順** に並べる。Patient → 
 ```python
 # clinosim/modules/<topic>/__init__.py or 起動 hook
 from clinosim.modules.output.fhir_r4_adapter import register_bundle_builder
-from clinosim.modules.output._fhir_<topic> import _bb_<topic>
+from clinosim.modules.output.fhir_r4.<domain>.<topic> import _bb_<topic>
 register_bundle_builder(_bb_<topic>)
 ```
 
@@ -223,8 +223,8 @@ builder 関数を直接呼ぶ。`BundleContext` を最小 fixture で構築:
 ```python
 # tests/unit/output/test_fhir_<topic>.py
 from datetime import datetime
-from clinosim.modules.output._fhir_common import BundleContext
-from clinosim.modules.output._fhir_<topic> import _bb_<topic>
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.<domain>.<topic> import _bb_<topic>
 
 def _make_ctx(extensions_topic_data, country="us"):
     return BundleContext(
@@ -302,7 +302,7 @@ def test_<topic>_ndjson_byte_identical_across_runs():
 `clinosim/modules/<owner>/audit.py` に **lift_firing_proof** を追加(5+ equality_checks):
 
 ```python
-from clinosim.modules.output._fhir_<topic> import (
+from clinosim.modules.output.fhir_r4.<domain>.<topic> import (
     TOPIC_ID_PREFIX, TOPIC_IDENTIFIER_SYSTEM,
 )
 
@@ -384,7 +384,7 @@ JP cohort の判定は **`is_jp(ctx.country)`**、display 言語は **`resolve_l
 
 - 全 `display`, `text`, `name` field = 日本語(`code_lookup(..., resolve_lang(ctx.country))` 経由)
 - 国依存の code system 選択(JLAC10 vs LOINC 等)= `system_key_for(kind, ctx.country)`(E.11)
-- enum 値(severity / route / category 等)= `_localize_display()`(既存 helper、`clinosim/modules/output/_fhir_localization.py`)
+- enum 値(severity / route / category 等)= `_localize_display()`(既存 helper、`clinosim/modules/output/fhir_r4/lib/common.py (localization helpers)`)
 - 薬剤 / 手技名 = `code_lookup()` または `_localize_drug_name()`(裏側は `clinosim/locale/loader.py:load_drug_names_ja()` / `load_med_terms_ja()` の canonical cached loader — builder 内 raw YAML read 禁止、E.3)
 - 診療科 display = `_dept_display()`(裏側は `load_department_display()`)
 - 翻訳不在の場合 = en fallback + audit warn list
