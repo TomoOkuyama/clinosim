@@ -97,8 +97,19 @@ def build_discharge_rx(
     # dose/formulation differences are clinically meaningful and belong in
     # separate line items.
 
-    def _append_item(drug_spec: dict) -> None:
-        """Renal-check + dedup + append. Shared by exclusive & independent paths."""
+    def _append_item(drug_spec: dict, chronic_continuation: bool = False) -> None:
+        """Renal-check + dedup + append. Shared by exclusive & independent paths.
+
+        ``chronic_continuation`` = True for items sourced from a
+        ``continue_at_discharge`` category block (anticoagulation, statin,
+        antihypertensive, antiplatelet — lifelong secondary-prevention meds).
+        For those, the default ``duration_days`` is the chronic-renewal
+        length (28) rather than the acute-course default (7) — the
+        ``_deactivate_to_layer1`` carry-forward filter (helpers.py
+        ``_ACUTE_COURSE_MAX_DAYS = 14``) would otherwise drop them from
+        the next admission's home-medication orders. Explicit
+        ``duration_days`` in the YAML always wins over the default.
+        """
         drug_name = drug_spec.get("drug", "")
         if not drug_name:
             return
@@ -110,6 +121,7 @@ def build_discharge_rx(
         if key in seen_dedup_keys:
             return
         seen_dedup_keys.add(key)
+        default_duration = 28 if chronic_continuation else 7
         # Issue #476: propagate authored localized dose instructions
         # (`dose_ja` / `dose_en`) into the item dict so the discharge-Rx FHIR
         # builder can emit them as country-scoped `dosageInstruction.text`.
@@ -120,7 +132,7 @@ def build_discharge_rx(
                 "drug_name": drug_name,
                 "drug_name_ja": drug_spec.get("drug_ja", ""),
                 "dose": drug_spec.get("dose", ""),
-                "duration_days": drug_spec.get("duration_days", 7),
+                "duration_days": drug_spec.get("duration_days", default_duration),
                 "route": drug_spec.get("route", "PO"),
                 "dose_ja": drug_spec.get("dose_ja", ""),
                 "dose_en": drug_spec.get("dose_en", ""),
@@ -259,7 +271,7 @@ def build_discharge_rx(
             # category is flagged for continuation.
             if str(picked.get("route", "PO")).upper() != "PO":
                 continue
-            _append_item(picked)
+            _append_item(picked, chronic_continuation=True)
 
     return PrescriptionRecord(
         prescription_id=f"RX-{patient.patient_id}-DC",

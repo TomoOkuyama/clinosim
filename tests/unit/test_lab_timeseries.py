@@ -105,9 +105,9 @@ def test_labs_measured_on_day_filters_by_day_index():
     adm = datetime(2026, 4, 8, 0, 0, 0)
     today0 = labs_measured_on_day(labs, adm, 0)
     assert len(today0) == 2
-    assert {l["value"] for l in today0} == {518, 5.8}
+    assert {row["value"] for row in today0} == {518, 5.8}
     today1 = labs_measured_on_day(labs, adm, 1)
-    assert {l["value"] for l in today1} == {400, 5.4}
+    assert {row["value"] for row in today1} == {400, 5.4}
 
 
 def test_labs_measured_on_day_empty_when_none_match():
