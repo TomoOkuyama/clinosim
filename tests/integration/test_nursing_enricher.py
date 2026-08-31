@@ -83,6 +83,63 @@ def test_enricher_impaired_consciousness_affects_scores():
     assert nra_pain.morse_total > nra_alert.morse_total
 
 
+def test_issue_911_gcs_not_set_when_consciousness_level_empty():
+    """Issue #911: GCS must derive from AVPU. When a vital record has no
+    AVPU sample (continuous-monitoring / event-recheck rows that emit
+    without ``consciousness_level``), the enricher must NOT assign a
+    GCS via the ``"A"`` default — the downstream FHIR emit path only
+    fires AVPU Observations for vitals with ``consciousness_level`` set,
+    so a defaulted GCS would surface as an unpaired GCS ≈ 15 record
+    that same-day-joins against a real ``AVPU=U`` from a full-vitals
+    round → the audit's 12,945 impossible pairs.
+    """
+    from clinosim.modules.observation.nursing_enricher import enrich_nursing
+    from clinosim.simulator.enrichers import EnricherContext
+    from clinosim.types.encounter import VitalSignRecord
+    from clinosim.types.output import CIFPatientRecord
+    from clinosim.types.patient import PatientProfile
+
+    rec = CIFPatientRecord(
+        patient=PatientProfile(patient_id="p_no_avpu", age=70),
+        vital_signs=[
+            # Explicit empty consciousness_level — mimics what
+            # `_generate_vitals._emit` writes on continuous-monitoring /
+            # event-recheck rows (``loc = _loc_for(...) if "loc" in fields
+            # else ""``, then ``consciousness_level=loc`` overrides the
+            # dataclass default "A").
+            VitalSignRecord(spo2=95, heart_rate=80, consciousness_level=""),
+        ],
+    )
+    enrich_nursing(EnricherContext(config=None, master_seed=42, records=[rec]))
+    assert rec.vital_signs[0].gcs_score is None, (
+        f"GCS must be None on vitals without AVPU sample; got {rec.vital_signs[0].gcs_score!r}"
+    )
+    # NEWS2 remains populated (it does not depend on AVPU).
+    assert rec.vital_signs[0].news2_score is not None
+
+
+def test_issue_911_gcs_reflects_avpu_band():
+    """Issue #911: when AVPU is populated, GCS must fall within the
+    clinical band for that AVPU category (per nursing_scores.yaml
+    ``avpu_base``: A=15, V=13, P=9, U=5, with 0-1 jitter downwards).
+    """
+    from clinosim.modules.observation.nursing_enricher import enrich_nursing
+    from clinosim.simulator.enrichers import EnricherContext
+    from clinosim.types.encounter import VitalSignRecord
+    from clinosim.types.output import CIFPatientRecord
+    from clinosim.types.patient import PatientProfile
+
+    # Issue #911: A → strict 15 (no jitter); other bands keep ±1 jitter.
+    for clvl, lo, hi in [("A", 15, 15), ("V", 12, 13), ("P", 8, 9), ("U", 4, 5)]:
+        rec = CIFPatientRecord(
+            patient=PatientProfile(patient_id=f"p_{clvl}", age=70),
+            vital_signs=[VitalSignRecord(consciousness_level=clvl)],
+        )
+        enrich_nursing(EnricherContext(config=None, master_seed=42, records=[rec]))
+        gcs = rec.vital_signs[0].gcs_score
+        assert lo <= gcs <= hi, f"AVPU={clvl!r} expected GCS in [{lo},{hi}]; got {gcs}"
+
+
 def test_enricher_deterministic():
     from datetime import date
 

@@ -38,6 +38,7 @@ Supporting sets:
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -350,6 +351,28 @@ def _generate_vitals(
     )
     is_respiratory = disease_id in _RESPIRATORY_DISEASES or disease_id == "heart_failure_exacerbation"
 
+    # Issue #911: stabilize AVPU per (patient, day) to eliminate intra-day
+    # AVPU fluctuation. Without this, ``_loc_for`` samples per-vital and
+    # returns different AVPU categories on the same day (e.g. V at 08:00,
+    # P at 14:00) purely because ``rng.random() < 0.7`` fires per call.
+    # The per-vital variability creates artificial ``AVPU=U + GCS=15``
+    # same-day pairs when consumers join by day (audit fingerprint:
+    # median GCS=14 across every AVPU category, 52 % same-day contradictions).
+    #
+    # RNG-neutral: sample once via a per-day sub-RNG derived from
+    # ``sha256("avpu:<patient>:<day>")`` — the master ``rng`` is left
+    # untouched by this pre-computation. Every ``_emit`` call that would
+    # have consumed the master ``rng`` in ``_loc_for`` still does so (so
+    # downstream vitals see the same master-rng stream); the closure
+    # simply substitutes the cached day-stable AVPU for the returned
+    # value. See ``feedback_rng_neutral_additive_field`` /
+    # ``feedback_rng_shift_patient_cache_cascade`` — same pattern.
+    _avpu_day_seed = int.from_bytes(
+        hashlib.sha256(f"avpu:{patient.patient_id}:{day}".encode()).digest()[:8],
+        "big",
+    )
+    _stable_day_avpu = _loc_for(state, disease_id, day, np.random.default_rng(_avpu_day_seed))
+
     # Routine full-vitals schedule by acuity
     # Critically unstable (septic shock, acute MI, hemorrhagic stroke, subdural
     # hematoma, severe trauma): q1-2h. Set defined in
@@ -375,7 +398,14 @@ def _generate_vitals(
         on_o2, o2_flow, o2_device = (False, None, "")
         if "spo2" in fields:
             on_o2, o2_flow, o2_device = _o2_for(raw["spo2"], disease_id, rng)
-        loc = _loc_for(state, disease_id, day, rng) if "loc" in fields else ""
+        # Issue #911: preserve master-rng consumption for downstream
+        # determinism (call _loc_for and discard) but return the per-day
+        # stable AVPU. See the ``_stable_day_avpu`` derivation above.
+        if "loc" in fields:
+            _loc_for(state, disease_id, day, rng)  # RNG consumption preserved
+            loc = _stable_day_avpu
+        else:
+            loc = ""
         # Pain only with full set
         pain = None
         if "pain" in fields:
