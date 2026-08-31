@@ -71,7 +71,7 @@ YAML を読みます。
   教育・地域基幹形状。
 
 いずれも `hospital_operations.yaml` と同じスキーマ。生成時に
-`clinosim generate --hospital-config <path>` で選択。
+`clinosim simulate --hospital-config <path>` で選択。
 
 ### `japan.yaml` / `us.yaml`
 

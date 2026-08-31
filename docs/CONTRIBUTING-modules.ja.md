@@ -373,7 +373,7 @@ order → canonical_lab_name → generate_lab_result(true_value, rng) → determ
 
 ### sub-seed 導出ルール (コピーすべき正確なパターン)
 
-各 enricher/module は **master seed から自分専用の sub-stream を導出** し、メイン random stream には触れません。derive 式は `clinosim/simulator/seeding.py:derive_sub_seed(master, module_offset, key)` に集約済 (AD-16 / AD-59)。
+各 enricher/module は **master seed から自分専用の sub-stream を導出** し、メイン random stream には触れません。derive 式は `clinosim/seeding.py:derive_sub_seed(master, module_offset, key)` に集約済 (AD-16 / AD-59)。
 
 ```python
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
@@ -386,7 +386,7 @@ rng = np.random.default_rng(
 
 `key` には patient_id / household_id / encounter_id など **per-entity な一意キー** を必ず混ぜます (DET-3: identity module は integer-only の sub-seed で per-patient keying を欠く既知の不整合)。
 
-**新モジュールのオフセット登録**: モジュール作成時、sub-seed の数値オフセットを **`clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS`** に登録します。convention は **16-bit hex ASCII (2 文字)** — モジュール名から覚えやすい 2 文字を選ぶ:
+**新モジュールのオフセット登録**: モジュール作成時、sub-seed の数値オフセットを **`clinosim/seeding.py:ENRICHER_SEED_OFFSETS`** に登録します。convention は **16-bit hex ASCII (2 文字)** — モジュール名から覚えやすい 2 文字を選ぶ:
 
 ```python
 ENRICHER_SEED_OFFSETS = {

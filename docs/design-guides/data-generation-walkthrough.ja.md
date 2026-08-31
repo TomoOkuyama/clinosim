@@ -17,7 +17,7 @@
 データ生成は 3 つの独立した CLI ステージに分かれる(AD-37)。各ステージは前段の成果物だけを読む。
 
 ```
-clinosim generate      →  CIF(構造化)      cif/structural/patients/<enc>.json
+clinosim simulate      →  CIF(構造化)      cif/structural/patients/<enc>.json
         ↓                                    + cif/hospital.json / metadata.json
 clinosim narrate       →  CIF(ナラティブ)  cif/narratives/<version>/documents/<enc>/<doc>.json
         ↓

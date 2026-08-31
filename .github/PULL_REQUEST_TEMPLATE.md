@@ -28,7 +28,7 @@ If your PR is a work in progress, open it as a draft.
 - [ ] No impact — pure docs / packaging / CI
 - [ ] Additive, new code path — output at existing seeds is byte-identical
 - [ ] Changes existing output — this PR needs a MINOR version bump and a CHANGELOG entry describing what changed
-- [ ] Verified byte-identical at seed 42 with a JP p=1000 cohort (`clinosim generate --country JP --population 1000 --seed 42 --start 2026-01-01 --end 2026-06-30`)
+- [ ] Verified byte-identical at seed 42 with a JP p=1000 cohort (`clinosim simulate --country JP --population 1000 --seed 42 --start 2026-01-01 --end 2026-06-30`)
 
 ## Checklist
 

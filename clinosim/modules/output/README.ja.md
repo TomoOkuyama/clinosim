@@ -157,9 +157,10 @@ family 別 FHIR data は `fhir_r4/` subpackage に。
 
 ## Enricher 配線
 
-該当なし — adapter は CLI export 時 (`clinosim export`,
-`clinosim export-fhir`) に呼び出され、`register_builtin_enrichers`
-経由でない。`ENRICHER_SEED_OFFSETS` にも seed 未登録。
+該当なし — adapter は CLI export 時 (`clinosim simulate --format
+fhir-r4 ...` または単独 `clinosim export-fhir`) に呼び出され、
+`register_builtin_enrichers` 経由でない。`ENRICHER_SEED_OFFSETS`
+にも seed 未登録。
 
 ## Output surface (consumers)
 

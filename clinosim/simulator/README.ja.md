@@ -57,7 +57,7 @@ result = run_beta(config)
 CLI 使用:
 
 ```bash
-clinosim generate -p 10000 -o ./output --format cif csv fhir
+clinosim simulate -p 10000 -o ./output --format cif csv fhir
 clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 ```
 
@@ -166,7 +166,7 @@ CLI サブコマンドハンドラ (7 ファイル):
   cli_enumerate.py       `clinosim enumerate` サブコマンド
   cli_export_fhir.py     `clinosim export-fhir` サブコマンド
   cli_narrate.py         `clinosim narrate` サブコマンド
-  cli_regenerate.py      `clinosim regenerate` サブコマンド
+  cli_regenerate.py      `clinosim regenerate-goldens` サブコマンド
   cli_test_disease.py    `clinosim test-disease` サブコマンド
   cli_test_encounter.py  `clinosim test-encounter` サブコマンド
 ```

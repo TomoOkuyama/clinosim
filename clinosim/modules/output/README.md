@@ -165,9 +165,9 @@ the `fhir_r4/` subpackage.
 ## Enricher wiring
 
 Not applicable — the adapters are invoked at CLI export time
-(`clinosim export`, `clinosim export-fhir`), not through
-`register_builtin_enrichers`. There is no seed offset in
-`ENRICHER_SEED_OFFSETS`.
+(`clinosim simulate --format fhir-r4 ...` or the standalone
+`clinosim export-fhir`), not through `register_builtin_enrichers`.
+There is no seed offset in `ENRICHER_SEED_OFFSETS`.
 
 ## Output surfaces (consumers)
 
