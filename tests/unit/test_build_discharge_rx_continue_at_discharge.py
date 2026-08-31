@@ -160,3 +160,44 @@ def test_cross_source_dedup_without_chronic_af_allows_new_loop_anticoag(patient_
         if _has(rx.items, "Edoxaban") or _has(rx.items, "Warfarin"):
             seen += 1
     assert seen == 20, f"anticoag missing in {20 - seen}/20 seeds (categorical must fire)"
+
+
+def test_continue_at_discharge_items_default_to_28_day_chronic_duration(patient_factory):
+    """Regression for the "anticoag lost across encounters" defect
+    (session 94 fix). Items sourced from a ``continue_at_discharge``
+    category block (anticoagulation / statin / antihypertensive /
+    antiplatelet) are lifelong secondary-prevention meds by design.
+    The ``_deactivate_to_layer1`` carry-forward filter in
+    ``helpers.py`` drops any discharge-Rx item whose ``duration_days``
+    is a positive integer ≤ 14 (acute short-course guard), so the
+    default duration for a continue_at_discharge item MUST be 28 days
+    (chronic-renewal length) — not the ``discharge_oral`` default 7.
+
+    Pre-fix, Apixaban emitted from cerebral_infarction's
+    ``anticoagulation`` continue_at_discharge block landed with the
+    generic 7-day default, cleared the acute filter, and silently
+    disappeared from the next admission's home-medication orders.
+    """
+    protocol = _ci_protocol()
+    seen_default = 0
+    for seed in range(20):
+        rx = build_discharge_rx(
+            patient_factory(current_meds=[], chronic_icds=[]),
+            "cerebral_infarction",
+            protocol,
+            "PR-1",
+            datetime(2026, 1, 1),
+            np.random.default_rng(seed),
+            country_key="japan",
+        )
+        for item in rx.items:
+            if item.get("drug_name") in ("Edoxaban", "Warfarin"):
+                # cerebral_infarction anticoagulation entries carry no explicit
+                # duration_days → the continue_at_discharge default must apply.
+                assert item.get("duration_days") == 28, (
+                    f"seed={seed}: continue_at_discharge item "
+                    f"{item.get('drug_name')} defaulted to {item.get('duration_days')!r}, "
+                    f"expected 28 (else the acute-course filter drops it in _deactivate_to_layer1)"
+                )
+                seen_default += 1
+    assert seen_default > 0, "no continue_at_discharge anticoag emitted across 20 seeds — cannot verify default"

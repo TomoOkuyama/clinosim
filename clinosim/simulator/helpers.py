@@ -150,10 +150,21 @@ def _deactivate_to_layer1(
     # despite the encounter being for I10 essential hypertension —
     # discharge Rx from a prior admission was being renewed indefinitely.
     #
-    # Cutoff: ``duration_days <= 14`` filters out acute courses (UTI oral
-    # abx 7, steroid taper 5-7, PPI eradication 14, etc.) while preserving
-    # chronic transcription (`discharge_rx.py` hardcodes ``duration_days=28``
-    # for chronic renewal) and any longer supply schedule.
+    # Cutoff: ``0 < duration_days <= 14`` filters out acute courses (UTI
+    # oral abx 7, steroid taper 5-7, PPI eradication 14, etc.) while
+    # preserving chronic transcription (``discharge_rx.py`` hardcodes
+    # ``duration_days=28`` for chronic renewal and ``duration_days=28``
+    # for ``continue_at_discharge`` category defaults) and any longer
+    # supply schedule.
+    #
+    # ``duration_days == 0`` is the disease-YAML convention for "long-term
+    # / unspecified" (see e.g. ``atrial_fibrillation_rvr.yaml``'s
+    # ``continue_home_medications`` block which sets Apixaban /
+    # Metoprolol_succinate with ``duration_days: 0`` to mark them as
+    # indefinite AFib therapy). Treating 0 as an acute short course
+    # would drop lifelong secondary-prevention drugs from the persistent
+    # home-medication list — the exact regression this filter was meant
+    # to avoid, in reverse.
     _ACUTE_COURSE_MAX_DAYS = 14
     if record.discharge_prescription and record.discharge_prescription.items:
         new_meds: list[HomeMedication] = []
@@ -170,7 +181,8 @@ def _deactivate_to_layer1(
             _dur = item.get("duration_days")
             if _dur is not None:
                 try:
-                    if int(_dur) <= _ACUTE_COURSE_MAX_DAYS:
+                    d = int(_dur)
+                    if 0 < d <= _ACUTE_COURSE_MAX_DAYS:
                         continue
                 except (TypeError, ValueError):
                     pass
