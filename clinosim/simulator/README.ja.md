@@ -6,9 +6,12 @@
 EHR コホートに変換するトップレベルエントリポイントです。集団生成、
 日毎の患者軌跡、エンカウンターシミュレーション (入院 / 外来 / ED)、
 検査 / vitals / 薬剤のパイプラインステップ、退院ゲートロジック、
-enricher パス、出力シリアライズ、`clinosim` CLI (`generate` /
-`test-disease` / `test-encounter` / `regenerate` / `enumerate` /
-`narrate` / `export-fhir`) をオーケストレートします。
+enricher パス、出力シリアライズ、`clinosim` CLI サブコマンド (canonical は `simulate`。`generate` は
+deprecation alias として残存。他: `test-disease` / `test-encounter` /
+`validate` / `list-diseases` / `narrate` / `export-fhir` /
+`enumerate` / `diff` / `regenerate-goldens` / `check-narratives`。
+加えて、各パッケージから wire される委譲 subparser `audit` /
+`dataset` / `eval` / `benchmark`) をオーケストレートします。
 
 ## スコープ
 

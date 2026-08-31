@@ -1212,8 +1212,8 @@ Layer 2 → Layer 1 (更新履歴付き)。NO なら人は Layer 1 に留まる
   モジュールに焦点
 - **Interface-first**: 内部実装前に入出力を定義
 - **判断を即記録**: 合意されたら SPEC.md に確定 spec を書く
-- **Open question を明示的に追跡**: TODO.md とモジュール SPEC.md
-  の両方に
+- **Open question を明示的に追跡**: GitHub Issues board (`docs/roadmap.ja.md` 参照)
+  とモジュール SPEC.md の両方に。旧 `TODO.md` は Issues 化に伴い廃止。
 
 ### 設計優先順序
 

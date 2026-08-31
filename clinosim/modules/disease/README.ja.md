@@ -15,6 +15,42 @@ module 名は "disease" だが、実際には **入院 / encounter プロトコ�
 外来 / ED の短期プロトコルは兄弟 registry
 [`clinosim.modules.encounter`](../encounter/README.md) 側に分離。
 
+### 縦断がんサービスライン (v0.5 → v0.6.0)
+
+がん 10 部位 — **C15** (食道)、**C16** (胃)、**C18** (結腸)、
+**C22** (肝)、**C25** (膵)、**C34** (肺)、**C50** (乳)、**C61**
+(前立腺)、**C67** (膀胱)、**C71** (脳) — は population 側の
+`chronic_prevalence` marker から縦断治療 chain へと dispatch される
+(chronic Condition としてだけの表現ではない)。chain は複数
+モジュールに跨る:
+[`clinosim.modules.population`](../population/README.md) が
+[`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml)
+の regimen (FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d)
+を用いて年 calendar に `chemo_visit` LifeEvent を配置、
+[`clinosim.modules.order`](../order/README.md) が regimen
+`cycle_orders` 各 Day-1 薬剤について per-cycle MedicationRequest +
+MedicationAdministration を emit、
+[`clinosim.modules.procedure`](../procedure/README.md) が
+放射線治療 Procedure resource を emit、lab 導出は腫瘍マーカー labs
+(CEA, CA19-9, AFP, PIVKA-II, CA15-3, PSA) を emit。本モジュールは
+急性入院 YAML の所有を継続し、上記 10 code は chronic marker であって
+入院 YAML ではない。
+
+**男性乳がん (~1 % of C50)**: C50 の female-only sex lock は解除
+(C51–C58 は lock 継続)。
+[`clinosim.modules.population`](../population/README.md) sampler が
+`chronic_prevalence[C50]` に `by_sex: {F: {bands}, M: {bands}}`
+prevalence schema を消費し、male 亚 population を独立 per-`(patient, code)`
+sub-seed (`chronic_augment_sex_seed`) で augmentation する — master
+RNG stream は byte-identical に保たれる。US ICD-10-CM は C50 を
+女性側 (`C50.919`) / 男性側 (`C50.929`) の unspecified-site leaf に
+分ける — 診断 adapter は `map_diagnosis_code(code, country, sex=…)`
+経由で route。JP は identity mapping `C50 → C50` を維持。
+
+完全 schema (encounter shape、config layout、sub-seed、follow-up
+slice list):
+[`docs/reference/oncology-obstetric-service-lines.ja.md`](../../../docs/reference/oncology-obstetric-service-lines.ja.md)。
+
 ## Scope
 
 - **In scope**: `DiseaseProtocol` schema + child model

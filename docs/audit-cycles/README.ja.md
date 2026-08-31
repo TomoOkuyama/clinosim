@@ -52,7 +52,9 @@ FHIR プロファイル準拠** を優先する。
    - `.session-resume-prompt.md` を refresh、現サイクル状態 (cycle N
      progress n/20、carry-over リスト、master HEAD、次アクション) が
      別 session の cold-start に十分となるように。
-   - `TODO.md` Status に現サイクル進捗を反映。
+   - GitHub Issues board (`docs/roadmap.ja.md` 参照) 上の該当 META /
+     scope issue に現サイクル進捗を反映。旧 `TODO.md` 台帳は Issues 化
+     に伴い廃止。
    - 全てを commit + push (clean state で終える)。
 10. **次サイクル開始前にユーザに確認** — 解決状況 + carry-over count
     + doc 更新結果を報告。自動継続は禁止。

@@ -1252,7 +1252,7 @@ What this module does (1–2 sentences).
 - **1 module = 1 context**: Design sessions focus on a single module at a time
 - **Interface-first**: Define inputs/outputs before internal implementation
 - **Record decisions immediately**: Write confirmed specs into SPEC.md as soon as agreed
-- **Track open questions explicitly**: Both in TODO.md and in module SPEC.md
+- **Track open questions explicitly**: Both on the GitHub Issues board (see `docs/roadmap.md`) and in module SPEC.md. The pre-Issues `TODO.md` ledger has been retired.
 
 ### Design priority order
 

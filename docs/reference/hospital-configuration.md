@@ -5,7 +5,11 @@
 `clinosim/config/hospital_*.yaml` defines hospital physical layout and operational parameters:
 
 ```yaml
-recommended_population: 60000
+# Per-country catchment (the CLI resolves by --country; `default` is the fallback)
+recommended_population:
+  US: 40000     # 50 beds ÷ 130 beds/100K ≈ 38K, rounded to 40K for ~80% occupancy
+  JP: 10000     # 50 beds × 365 × 0.80 / 14d LOS ≈ 1,043 admits/yr; JP 100/1000/yr → 10K catchment
+  default: 40000
 
 available_departments:           # Available specialties
   - internal_medicine

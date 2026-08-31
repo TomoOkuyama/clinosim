@@ -35,6 +35,29 @@ encounter 単位の procedure emission を 3 家族に対して所有:
   imaging 発注構築 — これは
   [`clinosim.modules.imaging`](../imaging/README.md)。
 
+### 縦断サービスライン Procedure (v0.5 → v0.6.0)
+
+上記 3 種 (手術 / bedside / rehab) と並列に、以下 2 種の Procedure が
+同じ `ProcedureRecord` shape で emit される:
+
+- **分娩 Procedure** — 母親側の周産期分娩 Encounter (詳細:
+  [`clinosim.modules.encounter`](../encounter/README.md)) に付与。
+  Code: JP `K894` (経腟分娩 — MHLW 診療報酬点数表 K-code) または
+  US CPT `59400` (routine obstetric care incl. vaginal delivery)。
+  emit 元は
+  [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py)、
+  shape は
+  [`clinosim/locale/shared/perinatal.yaml`](../../locale/shared/perinatal.yaml)
+  の `procedure` block。`simulate_surgery` を経由しない。
+- **放射線治療 Procedure** — オンコロジーサービスラインの放射線
+  encounter に付与。Procedure は modality / dose / site を disease
+  YAML の放射線ブロックから持つ。専用 builder が emit (session 93 landing)。
+  `simulate_surgery` を経由しない。
+
+両者とも canonical な `ProcedureRecord` field を維持するため、FHIR
+adapter ([`output/fhir_r4/procedures/`](../output/fhir_r4/procedures/README.md))
+は新しい resource-type builder を追加せずに emit 可能。
+
 ## Public API
 
 ```python

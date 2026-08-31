@@ -43,6 +43,24 @@ FHIR resource-family taxonomy.
   [`../labs/imaging_study.py`](../labs/imaging_study.py) despite
   imaging being clinically procedural).
 
+### Longitudinal service-line Procedure emission (v0.5 → v0.6.0)
+
+Two additional Procedure code sets reach FHIR through the standard
+`_build_procedure` path (no new resource-type builder needed) —
+the sibling
+[`clinosim.modules.procedure`](../../../procedure/README.md) module
+constructs `ProcedureRecord` for both, and the FHIR post-process
+pipeline picks up the code + display without further wiring:
+
+- **Delivery Procedure** — JP `K894` (経腟分娩, MHLW 診療報酬点数表
+  K-code) / US CPT `59400` (routine obstetric care incl. vaginal
+  delivery). Attached to mother-side delivery encounters emitted
+  by [`clinosim/simulator/perinatal.py`](../../../../simulator/perinatal.py).
+- **Radiation-therapy Procedure** — modality / dose / site come
+  from the disease-YAML radiation block; the code + display are
+  emitted by the standard Procedure builder, distinguished only
+  by the code system.
+
 ## Public API
 
 Every builder is registered with the parent facade

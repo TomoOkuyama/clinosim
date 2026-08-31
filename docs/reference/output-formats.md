@@ -68,7 +68,50 @@ output/fhir_r4/
 
 Each line = 1 FHIR resource. `Resource.id` is unique across all resource types. Reference integrity is maintained.
 
-`DocumentReference.ndjson` is emitted only when `clinosim export-fhir` is given `--narrative-version` (or when `clinosim simulate --narrative --format fhir` runs the full pipeline). Without a narrative version, the remaining resource types are produced normally. `Coverage.ndjson` (+ insurer `Organization`) is emitted only for JP with insurance enabled (`--jp-insurance`, default on).
+`DocumentReference.ndjson` is emitted whenever `--narrative-version`
+resolves to a version directory (default: `current`, backed by the
+`current_version.txt` pointer that Stage 1's `TemplateNarrativePass`
+maintains). Without any narrative version present the remaining
+resource types are produced normally. `Coverage.ndjson` (+ insurer
+`Organization`) is emitted only for JP with insurance enabled
+(`--jp-insurance`, default on).
+
+### Longitudinal service-line emit (v0.5 → v0.6.0)
+
+Both service lines emit through the standard resource files above —
+no new resource types were introduced; the service-line schema is
+described in
+[`oncology-obstetric-service-lines.md`](oncology-obstetric-service-lines.md).
+
+- **Oncology** (10 sites: C15 / C16 / C18 / C22 / C25 / C34 / C50 /
+  C61 / C67 / C71, including male breast at ~1 % of C50):
+  - Cancer chronic marker → `Condition` (ICD-10).
+  - `chemo_visit` LifeEvents (config: `locale/shared/chemo_regimens.yaml`
+    — FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d) →
+    outpatient `Encounter` + per-cycle `MedicationRequest` +
+    `MedicationAdministration` per drug on the regimen.
+  - Radiation therapy → `Procedure`.
+  - Tumor-marker labs (CEA / CA19-9 / AFP / PIVKA-II / CA15-3 / PSA)
+    → `Observation` (LOINC laboratory).
+- **Obstetrics** (config: `locale/shared/perinatal.yaml`):
+  - Z34 pregnancy chronic marker → per-mother delivery schedule.
+  - Mother-side delivery `Encounter` (IMP admission, admit dx Z34,
+    discharge dx Z37.0, delivery `Procedure` — JP K894 / US CPT
+    59400).
+  - Postpartum encounters × 2 at ~1 wk and ~4 wk with disease id
+    `Z39` (config: `locale/shared/chronic_followup.yaml`).
+  - Abortion outcome (age-gated 15-19 → 35-44) — outpatient
+    day-surgery `Encounter` with O03.9 (spontaneous) or O04.5
+    (induced). If fired, delivery + newborn chain are skipped.
+  - Newborn `Patient` (id `<mother>-BABY`) generated per delivery,
+    household + birthDate inherited, sex sampled via per-mother
+    sub-RNG. Newborn `Encounter` links back via
+    `admit_source = born` (new `AdmitSource.BORN` enum member) and
+    `Encounter.partOf → Encounter/<mother-delivery-encounter>`, with
+    discharge dx `Z38.0`.
+  - Newborn perinatal `Condition`s: P59.9 jaundice ~20 %,
+    P07.3 preterm ~7 % (→ conditional P22.0 RDS at ~35 %), L22
+    diaper dermatitis ~30 %, L20.9 atopic dermatitis ~15 %.
 
 ### Included FHIR R4 Fields (key resources)
 

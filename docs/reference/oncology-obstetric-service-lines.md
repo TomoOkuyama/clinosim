@@ -33,6 +33,7 @@ Both service lines share the same emission-shape pattern:
 | Tumor marker labs | CEA / CA19-9 / AFP / PIVKA-II / CA15-3 / PSA — reference ranges + baseline normals | `locale/<c>/reference_range_lab.yaml` + `modules/observation/engine.py::BASELINE_LAB_NORMALS` |
 | Radiation-therapy Procedure emit | K001 / M001 / M001-2 / M001-3 fired at ~40 % of follow-up visits (for `radiation_therapy_eligible` cancer codes) | `simulator/outpatient.py` (per chronic-followup visit) |
 | Cycle-based chemotherapy | Regimen library (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d) → `chemo_visit` encounters at correct cadence + delivery Procedure | `locale/shared/chemo_regimens.yaml` + `population/engine.py::_chemo_cycle_events` + `simulator/outpatient.py::_simulate_outpatient_visit` chemo branch |
+| Per-cycle chemo drug orders | Each `chemo_visit` emits one `MedicationRequest` + one `MedicationAdministration` per drug on the regimen's `cycle_orders` list (matching `order_id`) | `simulator/outpatient.py` chemo branch (Order emit) |
 | Oral chemo (daily home meds) | Capecitabine / Tamoxifen / Anastrozole / Bicalutamide / Sorafenib / Lenvatinib / Osimertinib | `locale/shared/chronic_medications.yaml` (unchanged; oral chemo IS a daily home med) |
 
 ### 1.2 Obstetric — covered elements
@@ -44,26 +45,30 @@ Both service lines share the same emission-shape pattern:
 | Prenatal supplement Rx | Folic acid + iron | `locale/shared/chronic_medications.yaml` Z34 block |
 | Mother-side delivery inpatient encounter | One IMP encounter per Z34 pregnancy-year, LOS 5d JP / 2d US, admission dx `O80`, discharge dx `Z37.0`, delivery Procedure | `locale/shared/perinatal.yaml` + `population/engine.py::_perinatal_delivery_events` + `simulator/perinatal.py` |
 | Delivery Procedure | JP: `K894` 分娩介助 / US: CPT `59400` routine obstetric care | `perinatal.yaml::procedure` |
+| Newborn `Patient` chain | Baby id `<mother>-BABY`, household inherited, sex per-mother sub-RNG, birthDate = delivery date | `simulator/perinatal.py` (session 94) |
+| Newborn Encounter | IMP, `admit_source = born` (new `AdmitSource.BORN` enum member) + `admit_source_encounter_id` → FHIR `Encounter.partOf` on the newborn side | `simulator/perinatal.py` + `types/encounter.py::AdmitSource.BORN` |
+| Z38.0 on newborn | Newborn discharge dx | `simulator/perinatal.py` |
+| Postpartum encounters × 2 | ~1 wk + ~4 wk chronic_visit at disease_id `Z39` (encounter for maternal postpartum care) | `locale/shared/chronic_followup.yaml::Z39` |
+| Newborn perinatal conditions | P59.9 jaundice ~20 %, P07.3 preterm ~7 % (→ conditional P22.0 RDS ~35 %), L22 diaper dermatitis ~30 %, L20.9 atopic dermatitis ~15 % | `simulator/perinatal.py` (per-newborn sub-RNG) |
+| Abortion outcome (age-gated) | Spontaneous O03.9 / induced O04.5 outpatient day-surgery. Age-band probability 15-19: 40 % → 35-44: 7 %. When fired, delivery + newborn chain are skipped for the Z34-year | `locale/shared/perinatal.yaml::abortion` + `population/engine.py::_abortion_outcome_events` |
 
 ### 1.3 Explicitly NOT yet covered (follow-up slices)
 
-- **Newborn Patient generation** — the baby's own `Patient` resource
-  with `birthDate = delivery date`, sex sampled. Requires multi-patient
-  linked-Encounter architecture (`Encounter.partOf` mother→baby).
-- **Newborn Encounter** with `admitSource = born`.
-- **Z38 (newborn birth outcome)** on the baby's record.
-- **Postpartum encounters** — 2-3 AMB visits over ~6 weeks.
 - **Time-boxed pregnancy state** — Z34 currently sits on the
   problem list for the full sim window rather than a real 40-week
   active state. Follow-up will move it to a `disease_incidence`-style
-  event with snapshot-aware clamping.
-- **Per-cycle chemo drug MedicationRequest / MedicationAdministration**
-  — the current chemo_visit emits Encounter + Procedure only. The
-  actual cycle-day drug administration records are a follow-up
-  slice; oral chemo continues to flow through the chronic-daily
-  MedicationRequest path unchanged.
+  event with snapshot-aware clamping. Downgraded from "must" to
+  "would be nicer" once the delivery + postpartum + newborn chain
+  landed in session 94 — the temporal signature the original scope
+  worried about is now supplied.
 - **Oncology-specific Composition type** — LOINC 34133-9 for
   cancer treatment notes.
+- **Cross-year chemo cycle continuity** — cycles are scheduled fresh
+  per calendar year. A patient starting FOLFOX in November restarts
+  from cycle 1 in January rather than continuing.
+- **Cesarean-section share** — currently every delivery emits as O80
+  spontaneous vaginal. Real JP rate is ~20 % C-section (O82); a
+  per-mother sub-RNG split is a natural follow-up.
 
 ---
 

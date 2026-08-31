@@ -23,8 +23,9 @@ fit**.
 2. **Scope discipline (★★★)**: no scope expansion after the spec is
    finalised. Findings outside scope are addressed only when they
    are "essential to data quality or clinical coherence"; otherwise
-   they become **formal entries in `TODO.md`** (with context, file:
-   line, and a fix proposal).
+   they become **formal entries on the GitHub Issues board** (see
+   `docs/roadmap.md`; with context, file:line, and a fix proposal).
+   The pre-Issues `TODO.md` ledger has been retired.
 3. **Pre-work status audit**: do not take TODO / doc claims at face
    value; **verify empirically before implementing** (a concrete
    example: the α-min-3 "CRITICAL wiring gap" turned out to have
@@ -65,9 +66,10 @@ fit**.
 ## 3. Determinism (AD-16 / AD-59) — absolute rules
 
 - `random.random()` is forbidden. The RNG must always derive from a
-  sub-seed of `numpy.random.Generator` (`simulator/seeding.py`:
-  `derive_sub_seed` + registration under `ENRICHER_SEED_OFFSETS`;
-  labs use `panel_specimen_seed` / `individual_lab_seed`).
+  sub-seed of `numpy.random.Generator` (`clinosim/seeding.py`:
+  `derive_sub_seed(master_seed, module_offset, key)` + registration
+  under `ENRICHER_SEED_OFFSETS` (16-bit hex-ASCII); labs use
+  `panel_specimen_seed` / `individual_lab_seed`).
 - **`datetime.now()` / `date.today()` do not appear on the
   generation path.** (The remaining occurrences are TODOs in the
   determinism chain — adding more is forbidden.) Narrative
@@ -277,7 +279,7 @@ integrity must hold (no dangling references).
    builder).
 5. `clinosim/modules/output/SPEC.md` (two-pass narrative — when you
    touch Stage 2).
-6. The most recent chain context: `.session-resume-prompt.md` +
-   each `deferred` section of `TODO.md`.
+6. The most recent chain context: `.resume-prompt.md` + open issues
+   on the GitHub board (see `docs/roadmap.md`).
 
 Japanese counterpart: [`implementation-rules.ja.md`](implementation-rules.ja.md).

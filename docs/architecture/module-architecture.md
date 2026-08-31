@@ -77,12 +77,21 @@ clinosim/
 │   │   │   ├── bedrock.py             # AWS Bedrock (boto3 lazy import)
 │   │   │   └── mock.py                # Deterministic test provider
 │   │   └── prompts/                   # ★ Prompt template YAML tree
-│   │       └── en/                    # English prompts (5 Tier A+B types)
+│   │       └── en/                    # English prompts (17 templates —
+│   │           │                      #   admission H&P, discharge/death
+│   │           │                      #   summaries, operative + procedure
+│   │           │                      #   notes, referral note, death
+│   │           │                      #   certificate contributing +
+│   │           │                      #   duration, per-section death
+│   │           │                      #   discharge summary pieces,
+│   │           │                      #   narrative_seed + bundle)
 │   │           ├── admission_hp.yaml
 │   │           ├── discharge_summary.yaml
 │   │           ├── death_summary.yaml
 │   │           ├── operative_note.yaml
-│   │           └── procedure_note.yaml
+│   │           ├── procedure_note.yaml
+│   │           ├── referral_note.yaml
+│   │           └── ... (see clinosim/modules/llm_service/prompts/en/)
 │   └── validator/            # Comparison against published benchmarks
 │
 ├── simulator/                # Top-level orchestration

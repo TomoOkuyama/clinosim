@@ -26,6 +26,34 @@ FHIR R4 emission 本体は [`fhir_r4/`](fhir_r4/README.md) subpackage に。
   ([`clinosim.types`](../../types/));narrative content 生成
   ([`document.narrative`](../document/narrative/README.md))。
 
+### 縦断サービスラインの emission surface (v0.5 → v0.6.0)
+
+2 種のサービスラインが追加 resource shape を発生させるが、既存 adapter
+経由で FHIR に到達する (新規 resource-type builder は不要)。FHIR R4
+subpackage は `_BUNDLE_BUILDERS` registry 経由で CIF から拾う:
+
+- **産科 — 母親側分娩 Encounter** (admit dx `O80`、discharge dx
+  `Z37.0`、分娩 Procedure JP `K894` / US CPT `59400`) と **新生児
+  Encounter** (`admit_source = "born"` — 新
+  `AdmitSource.BORN` enum 値、詳細
+  [`clinosim/types/encounter.py`](../../types/encounter.py)、
+  `admit_source_encounter_id` が母親の分娩 encounter を指し新生児側の
+  FHIR `Encounter.partOf` に emit)。新生児側 discharge dx `Z38.0`、
+  産褥 (postpartum) 外来 encounter は `chronic_followup.yaml` 経由で
+  `Z39`。新生児周産期 conditions P59.9 / P07.3 / P22.0 / L22 / L20.9
+  は通常 Condition resource として FHIR 到達。中絶 outcome (O03.9 /
+  O04.5) は外来日帰り手術 Encounter として emit。
+- **オンコロジー — 化学療法 visit Encounter** に per-cycle
+  `MedicationRequest` + `MedicationAdministration` (同一 `order_id`、
+  詳細 [`order`](../order/README.md))、放射線治療 `Procedure`、
+  腫瘍マーカー `Observation` labs (CEA / CA19-9 / AFP / PIVKA-II /
+  CA15-3 / PSA)。
+
+いずれも built-in FHIR R4 adapter 経由で emit され、`country=JP`
+コホートについては
+[`fhir_r4/labs/README.ja.md`](fhir_r4/labs/README.ja.md) 記載の
+JP-CLINS eCS profile URL attachment の対象となる。
+
 ## Public API
 
 ```python

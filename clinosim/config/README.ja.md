@@ -105,14 +105,17 @@ LLM サービスがこれらのファイルを消費してプロバイダを切�
 ```
 clinosim/config/
   __init__.py                   (意図的に空)
+  determinism.yaml              超越関数精度 (mpmath prec) と RNG proxy
+                                の設定 (詳細は clinosim/determinism.py)
   hospital_operations.yaml      デフォルト 50 床コミュニティ病院
   hospital_small.yaml           10 床クリニック
   hospital_large.yaml           200 床地域病院
   japan.yaml                    JP 国別デフォルト
   us.yaml                       US 国別デフォルト
-  llm_service.yaml              デフォルト LLM 設定
+  llm_service.yaml              デフォルト LLM 設定 (Ollama)
   llm_service.bedrock.yaml      AWS Bedrock プロバイダ
   llm_service.cloud.yaml        クラウドホスト LLM プロバイダ
+                                (Anthropic API 直接)
   llm_service.sakura.yaml       さくらインターネット GPU プロバイダ
 ```
 

@@ -7,7 +7,7 @@ NDJSON エクスポート内の FHIR R4 `DocumentReference` リソースとし�
 
 本ガイドがカバーする範囲:
 
-- [5 つの文書種別と生成タイミング](#document-scope)
+- [emit される文書種別と生成タイミング](#document-scope)
 - [LOINC マッピングと FHIR フィールド](#fhir-mapping)
 - [エンドツーエンドワークフロー](#workflow)
 - [プロンプトテンプレートの記述と編集](#prompts)
@@ -19,18 +19,27 @@ NDJSON エクスポート内の FHIR R4 `DocumentReference` リソースとし�
 
 ## Document scope
 
-Milestone 1 は 2 tier に構成された **5 つの文書種別** を生成します。
-Progress Note (LOINC 11506-3) は enum に定義されているが、実世界の
-progress note が構造化 vitals/labs/MAR レイヤと重複度が高いため、
-将来の Tier C opt-in として予約されています。
+clinosim の LLM service enum `LLMTaskType`
+(`clinosim/modules/llm_service/engine.py`) は 20+ の NARRATIVE task type
+と 4 つの JUDGMENT task type を定義しています。うち **prompt YAML →
+template pass → DocumentReference emit path で end-to-end 配線済みの
+サブセット**が以下の 8 文書種別で、いずれも
+`clinosim/modules/llm_service/prompts/{en,ja}/` に EN + JA prompt YAML
+を持ちます。Progress Note (LOINC 11506-3) は enum 定義済ながら、実世界
+の progress note が構造化 vitals/labs/MAR レイヤと重複度が高いため
+将来の Tier C opt-in として予約。nursing / outpatient / ED / care-plan /
+health-checkup 系 NARRATIVE type も同様に将来 phase 用に enum のみ宣言。
 
 | Tier | 文書 | LOINC | 生成タイミング | エンカウンター別回数 |
 |---|---|---|---|---|
-| A | Discharge Summary | `18842-5` | 完了した各入院エンカウンター | 1 |
-| A | Death Note | `69730-0` | `record.deceased = true` | 1 |
+| A | Discharge Summary | `18842-5` | 完了した各入院エンカウンター (非死亡) | 1 |
+| A | Death Summary | `69730-0` | `record.deceased = true` | 1 |
+| A | Death Discharge Summary | `18842-5` (specialized title) | `record.deceased = true` — 死亡症例で通常の退院サマリを置換 (Issue #961) | 1 |
+| A | Death Certificate | `64297-5` | `record.deceased = true` — 医師法第 20 条 mandate (Issue #961) | 1 |
 | A | Operative Note | `11504-8` | `ProcedureRecord.category_code = 387713003` (手術) | 手術ごとに 1 |
 | B | Admission H&P | `34117-2` | 各入院エンカウンター | 1 |
 | B | Procedure Note | `28570-0` | 固定 allowlist からの侵襲的ベッドサイド手技 | 0..N |
+| JP | Referral Note | `57133-1` | `country=JP` の退院エンカウンターの決定的 20% サブセット (JP-CLINS eReferral、PR2b) | 1 |
 
 ### Procedure Note allowlist
 

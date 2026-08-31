@@ -59,6 +59,24 @@ ServiceRequest.
   antibiotic-regimen construction
   ([`antibiotic`](../antibiotic/README.md)).
 
+### Chemotherapy cycle order emission (v0.5 → v0.6.0)
+
+For each `chemo_visit` LifeEvent (see
+[`clinosim.modules.population`](../population/README.md)), the
+outpatient encounter builder consumes the regimen definition from
+[`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml)
+and emits — for every drug in the regimen's `cycle_orders` list — one
+`MedicationRequest` **plus** one `MedicationAdministration`, both
+sharing the same `order_id`. This is the Tier-3-A slice-2 shape:
+paired Order + MAR per cycle-day-1 drug, rather than a single
+chronic daily home medication. Oral daily chemo (Capecitabine,
+Tamoxifen, Anastrozole, Bicalutamide) continues to flow through the
+existing `chronic_medications.yaml` home-medication path — those
+ARE daily home meds, not cycle drugs. The MRs / MARs carry
+`intent="order"` / `status="completed"` on the day the
+administration happens; a follow-up slice will expand multi-day
+infusion drugs (FOLFOX's 46-h 5-FU) into per-day records.
+
 ## Public API
 
 `__init__.py` re-exports the three panel-grouping symbols; every

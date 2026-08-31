@@ -93,7 +93,7 @@ apply_hai_lab_lift(record=record, encounter=encounter,
 5. **Implement formula change** in `derive_lab_values` (BNP-pattern surgical: no state mutation, formula-only)
 
 **NEVER** add `flag=value` directly at a call site — J5 prevention (see
-[CLAUDE.md](CLAUDE.md) "AD-55 enricher patterns"). The helper is the
+[AGENTS.md](AGENTS.md) "AD-55 enricher patterns"). The helper is the
 single edit point so adding a new flag automatically reaches all 4 sites
 through the `**flags` splat.
 
@@ -109,7 +109,7 @@ PR #82 (Phase 2b) for the full rationale.
 ## 関連
 
 - [DESIGN.md](DESIGN.md) AD-57 (BNP-pattern surgical) / AD-59 (per-order sub-rng) / AD-56 (enricher registry)
-- [CLAUDE.md](CLAUDE.md) "AD-55 enricher patterns"
+- [AGENTS.md](AGENTS.md) "AD-55 enricher patterns"
 - [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md) "PR 検証ガイド" + "sub-seed 導出ルール"
 - [clinosim/modules/physiology/README.md](clinosim/modules/physiology/README.md) — helper API reference
 - spec / plan: `docs/history/specs-archive/2026-06-24-phase2a-vte-d-dimer-design.md` (causes_vte) + `docs/history/specs-archive/2026-06-24-phase2b-on-anticoagulation-design.md` (on_warfarin)
