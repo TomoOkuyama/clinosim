@@ -24,8 +24,8 @@ fit**.
    finalised. Findings outside scope are addressed only when they
    are "essential to data quality or clinical coherence"; otherwise
    they become **formal entries on the GitHub Issues board** (see
-   `docs/roadmap.md`; with context, file:line, and a fix proposal).
-   The pre-Issues `TODO.md` ledger has been retired.
+   `docs/roadmap.md`; the pre-Issues `TODO.md` ledger has been
+   retired) with context, file:line, and a fix proposal.
 3. **Pre-work status audit**: do not take TODO / doc claims at face
    value; **verify empirically before implementing** (a concrete
    example: the α-min-3 "CRITICAL wiring gap" turned out to have
@@ -279,7 +279,9 @@ integrity must hold (no dangling references).
    builder).
 5. `clinosim/modules/output/SPEC.md` (two-pass narrative — when you
    touch Stage 2).
-6. The most recent chain context: `.resume-prompt.md` + open issues
-   on the GitHub board (see `docs/roadmap.md`).
+6. The most recent chain context: `.resume-prompt.md` (latest
+   session hand-off at repo root) + the GitHub Issues board (see
+   `docs/roadmap.md`; the pre-Issues `TODO.md` `deferred` sections
+   have been retired).
 
 Japanese counterpart: [`implementation-rules.ja.md`](implementation-rules.ja.md).
