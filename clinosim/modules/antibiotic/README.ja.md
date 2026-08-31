@@ -7,7 +7,7 @@ always-on の HAI cascade 3 番目 ([`device`](../device/README.md) →
 emitter)。`extensions["hai"]` を消費し、snapshot 手前の onset を持つ
 HAI event 各々について IDSA 2009 / 2016 empirical regimen と
 (PR3b-3 Pass 2) S/I/R 駆動 narrow / de-escalation regimen を
-materialize する。生成される regimen は既存の `_fhir_medications.py`
+materialize する。生成される regimen は既存の `fhir_r4/medications/medications.py`
 builder が emit する `Order(MEDICATION)` 1 件 + `MedicationAdministration`
 N 件になるため、新 builder は不要。
 

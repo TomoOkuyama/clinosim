@@ -2,7 +2,7 @@
 
 このドキュメントは、新しいコントリビューターが clinosim に **モジュール/プラグインを追加し、データを生成し、どのデータ/コードを使うかを正しく選択する** ための実践 playbook です。アーキテクチャ原則 (ADR) は `DESIGN.md`、規約の総覧は `AGENTS.md` を参照してください。本書はそれらと重複せず、**HOW-TO** に集中します。
 
-> **本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心** です。**FHIR builder layer(Layer 4 = `_fhir_*.py`)を追加・拡張する場合は** [`docs/design-guides/fhir-data-generation-logic.md`](design-guides/fhir-data-generation-logic.md) を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。
+> **本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心** です。**FHIR builder layer(Layer 4 = `fhir_r4/<domain>/*.py`)を追加・拡張する場合は** [`docs/design-guides/fhir-data-generation-logic.md`](design-guides/fhir-data-generation-logic.md) を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。
 
 > **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 33 module(counting rule: `clinosim/modules/` 配下の package 数。`_shared.py` 等の非 package ファイルは含まない)の俯瞰は [`MODULES.md`](../MODULES.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は [`docs/design-guides/README.md`](design-guides/README.md) を参照。
 
@@ -41,10 +41,10 @@
 - `hai` (PR-B): CDC NHSN HAI サンプリング (POST_ENCOUNTER order=80)。`extensions["device"]` の存在を前提。
 - `antibiotic` (PR3b-1): HAI 経験的抗菌薬 (POST_ENCOUNTER order=85)。`extensions["hai"]` の存在を前提。
 - `imaging` (Tier 1 #2, AD-62): 画像診断メタデータチェーン (POST_ENCOUNTER order=90)。disease YAML の `imaging_orders` が存在する encounter でのみ `extensions["imaging"]` を生成し、ImagingStudy + Endpoint + 放射線科 DR + imaging SR を emit する。upstream extensions に依存しない (device/hai とは独立)。
-- `allergy` (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-coded スキーマ upgrade (POST_RECORDS order=65)。`PersonRecord.allergies: list[Allergy] | None` に 15% prevalence で allergy サンプリングし、`_fhir_allergy_intolerance.py` builder が emit。activator.py inline sampling を置換。
-- `document` (Tier 1 #3, AD-63): Stage 1 テンプレート起動の臨床文書 emit (POST_ENCOUNTER order=95)。`extensions["document"]` + `extensions["clinical_impressions"]` に ClinicalDocument / ClinicalImpressionRecord を書き込み、3 FHIR builder (`_fhir_document_reference.py` / `_fhir_composition.py` / `_fhir_clinical_impression.py`) が emit。`enabled=lambda c: True`、upstream `extensions["allergy"]` に依存しない(患者アレルギー情報はビルダーが `patient.allergies` を直接参照)。
+- `allergy` (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-coded スキーマ upgrade (POST_RECORDS order=65)。`PersonRecord.allergies: list[Allergy] | None` に 15% prevalence で allergy サンプリングし、`fhir_r4/conditions/allergy_intolerance.py` builder が emit。activator.py inline sampling を置換。
+- `document` (Tier 1 #3, AD-63): Stage 1 テンプレート起動の臨床文書 emit (POST_ENCOUNTER order=95)。`extensions["document"]` + `extensions["clinical_impressions"]` に ClinicalDocument / ClinicalImpressionRecord を書き込み、3 FHIR builder (`fhir_r4/documents/documents.py` / `fhir_r4/documents/composition.py` / `fhir_r4/conditions/clinical_impression.py`) が emit。`enabled=lambda c: True`、upstream `extensions["allergy"]` に依存しない(患者アレルギー情報はビルダーが `patient.allergies` を直接参照)。
 - `triage` (Tier 1 #3 α-min-2, AD-64): ED encounter の triage level (JTAS/JP・ESI/US) + arrival_mode + acuity_score を sample (POST_ENCOUNTER order=93)。`EncounterRecord.triage_data` に書き込み、`document_enricher` が `ED_TRIAGE_NOTE` (LOINC 54094-8) dispatch に使用。`enabled=lambda c: True`、ED-only (非 ED encounter は no-op early return)。
-- `nursing_assignment` (Tier 1 #3 α-min-2, AD-64): 入院/ICU/rehab encounter に primary nurse を assign (POST_ENCOUNTER order=94)。`EncounterRecord.primary_nurse_id` に書き込み、`_fhir_care_team.py` builder が CareTeam.participant[1] に使用。`enabled=lambda c: True`。**注意**: このモジュールは `modules/nursing/` ディレクトリだが POST_ENCOUNTER 担当の nursing_enricher 関数(primary nurse 割当)。同ディレクトリには POST_RECORDS の nursing flowsheet 担当 enricher (NEWS2/GCS/Braden/Morse) も存在する。混同注意。
+- `nursing_assignment` (Tier 1 #3 α-min-2, AD-64): 入院/ICU/rehab encounter に primary nurse を assign (POST_ENCOUNTER order=94)。`EncounterRecord.primary_nurse_id` に書き込み、`fhir_r4/encounters/care_team.py` builder が CareTeam.participant[1] に使用。`enabled=lambda c: True`。**注意**: このモジュールは `modules/nursing/` ディレクトリだが POST_ENCOUNTER 担当の nursing_enricher 関数(primary nurse 割当)。同ディレクトリには POST_RECORDS の nursing flowsheet 担当 enricher (NEWS2/GCS/Braden/Morse) も存在する。混同注意。
 
 ### 決定チェックリスト
 
@@ -173,7 +173,7 @@ call site では `_REF_DIR / "X.yaml"` / `_LOCALE / country / "X.yaml"` で path
 
 `maxsize` は eviction policy にしか効きませんが、**意図を読みやすくする load-bearing な signal** です。`maxsize=4` を country-only loader に付けるとレビュアーが「将来 4 国対応?」と誤解します。
 
-**PR-B1 (2026-06-27) + adversarial fix で完成**: 残存していた hand-rolled cache pattern(`global X; if X is None: ... else return X` を **6 loader**で使用)を撤廃し、全 module の loader が `@lru_cache` 標準。touch 対象は `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions` / `clinosim/simulator/helpers.py:_load_all_disease_protocols` / `clinosim/modules/output/_fhir_diagnostic_report.py:load_panel_groups` / `clinosim/modules/output/_fhir_localization.py` の `_load_med_terms_ja` + `_load_drug_names_ja` + `_load_department_display`。新規 module で global mutable `_cache` 変数を導入することは禁止(`test_*` で `load_X.cache_clear()` を使う標準テスト pattern と相反するため)。同 PR で `clinosim/simulator/helpers.py:_load_all_disease_protocols` の `try/except pass` silent skip も削除済(silent-no-op 防御強化、PR #102 silent-no-op 防御 3 層との整合)。**brainstorming Step 1 での sweep grep は `grep -i "cache\|state\|memo"` 等の意味フィルタを使わず、`grep -E "^_[A-Za-z_]+: *.+ *= *None"` の generic sentinel pattern を必ず使うこと**(PR-B1 adversarial review 教訓: 意味フィルタが `_drug_names_ja` 等の cache を false-negative)。
+**PR-B1 (2026-06-27) + adversarial fix で完成**: 残存していた hand-rolled cache pattern(`global X; if X is None: ... else return X` を **6 loader**で使用)を撤廃し、全 module の loader が `@lru_cache` 標準。touch 対象は `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions` / `clinosim/simulator/helpers.py:_load_all_disease_protocols` / `clinosim/modules/output/fhir_r4/labs/diagnostic_report.py:load_panel_groups` / `clinosim/modules/output/fhir_r4/lib/common.py` (localization helpers) の `_load_med_terms_ja` + `_load_drug_names_ja` + `_load_department_display`。新規 module で global mutable `_cache` 変数を導入することは禁止(`test_*` で `load_X.cache_clear()` を使う標準テスト pattern と相反するため)。同 PR で `clinosim/simulator/helpers.py:_load_all_disease_protocols` の `try/except pass` silent skip も削除済(silent-no-op 防御強化、PR #102 silent-no-op 防御 3 層との整合)。**brainstorming Step 1 での sweep grep は `grep -i "cache\|state\|memo"` 等の意味フィルタを使わず、`grep -E "^_[A-Za-z_]+: *.+ *= *None"` の generic sentinel pattern を必ず使うこと**(PR-B1 adversarial review 教訓: 意味フィルタが `_drug_names_ja` 等の cache を false-negative)。
 
 **共通ロジック統一 (2026-07-02) で protocol / config loader も `@lru_cache` 化済**: `load_disease_protocol(disease_id)`(maxsize=64)/ `load_encounter_condition(condition_id)`(maxsize=64)/ `load_healthcare_config(country)`(maxsize=2)/ `load_hospital_operations()`(maxsize=1)。
 
@@ -246,12 +246,12 @@ regression test pattern:`inspect.getsource()` で source 内 `_validate_*()` 呼
 ### Cross-module canonical URI constants(PR3b-5, 2026-06-29)
 
 FHIR builder と audit reader が共有する canonical URI(system / identifier
-URI 等)を hard-coded literal で書かないこと。**writer 側 module(`clinosim/modules/output/_fhir_*.py`)に module-level 定数として定義 + reader 側がそれを import する pattern**を踏襲。rename 時に reader 側で ImportError が triggered され、silent-no-op skip を防御する(同パターン:`MB_ORG_ID_PREFIX` PR #113 / `ABX_ORDER_ID_PREFIX` PR #114 / `HAI_EVENT_ID_SYSTEM` PR3b-5)。
+URI 等)を hard-coded literal で書かないこと。**writer 側 module(`clinosim/modules/output/fhir_r4/<domain>/*.py`)に module-level 定数として定義 + reader 側がそれを import する pattern**を踏襲。rename 時に reader 側で ImportError が triggered され、silent-no-op skip を防御する(同パターン:`MB_ORG_ID_PREFIX` PR #113 / `ABX_ORDER_ID_PREFIX` PR #114 / `HAI_EVENT_ID_SYSTEM` PR3b-5)。
 
 定数命名規約:
 - ID prefix:`<BUILDER_PREFIX>_<RESOURCE>_ID_PREFIX = "..."`(例 `MB_ORG_ID_PREFIX`)
 - system URI(canonical):`<DOMAIN>_<CONCEPT>_SYSTEM = "..."`(例 `HAI_EVENT_ID_SYSTEM`)
-- 内部 URI には **urn-form** を使用:`urn:clinosim:identifier:<purpose>`(identifier system 用、例 `HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"`)または `urn:clinosim:<resource>:<concept>`(その他 resource 用、例 `_fhir_practitioner.py` の `"urn:clinosim:staff"`)。pr117-adv-1 で http-form と urn-form が両方混在していた状態を urn-form に統一(JP Core / US Core / HL7 IG に登録ない内部 concept のみ urn-form を許容)
+- 内部 URI には **urn-form** を使用:`urn:clinosim:identifier:<purpose>`(identifier system 用、例 `HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"`)または `urn:clinosim:<resource>:<concept>`(その他 resource 用、例 `fhir_r4/demographics/practitioner.py` の `"urn:clinosim:staff"`)。pr117-adv-1 で http-form と urn-form が両方混在していた状態を urn-form に統一(JP Core / US Core / HL7 IG に登録ない内部 concept のみ urn-form を許容)
 
 contract test pattern:`assert clinical_axis.CONSTANT is mb_builder.CONSTANT`(同一 object identity 確認、import path 一致を pin)。先例 `tests/unit/test_clinical_axis_per_organism.py:test_hai_event_id_system_canonical_constant_shared`。
 
@@ -466,10 +466,10 @@ register_bundle_builder(_bb_my_resource)
 - `Resource.id` は型内で globally unique に。encounter-scoped id (`lab-{encounter_id}-...`) を使う (FA-7)。
 - **double-wrap 注意 (FA-3):** builder は raw resource dict を返す。`_entry()` を builder 内で呼ばない。
 
-**Canonical example — `_bb_service_requests` (PR1, 2026-06-29, `_fhir_service_request.py`):**
+**Canonical example — `_bb_service_requests` (PR1, 2026-06-29, `fhir_r4/labs/service_request.py`):**
 
 ```python
-# clinosim/modules/output/_fhir_service_request.py
+# clinosim/modules/output/fhir_r4/labs/service_request.py
 from clinosim.modules.output.fhir_r4_adapter import register_bundle_builder, BundleContext
 from clinosim.modules.order.panel_grouping import classify_lab_specs
 
@@ -495,7 +495,7 @@ Key patterns illustrated:
 - Both dict-path and dataclass-path MUST be covered by tests: a subprocess integration smoke
   test exercises the production dict path (see `tests/integration/test_service_request.py`).
 
-See [`clinosim/modules/output/_fhir_service_request.py`](../clinosim/modules/output/_fhir_service_request.py) for the full implementation.
+See [`clinosim/modules/output/fhir_r4/labs/service_request.py`](../clinosim/modules/output/fhir_r4/labs/service_request.py) for the full implementation.
 
 ### B. 出力フォーマットを追加する (`register_output_adapter`, AD-58)
 
@@ -601,7 +601,7 @@ system = system_key_for("procedure", country)  # JP → "k-codes", 他 → "cpt"
 
 ### locale の shared データも canonical loader を通す(2026-07-02 拡充)
 
-`clinosim/locale/loader.py` には shared locale データの cached loader が揃っています。**canonical loader が存在する YAML を module 内 / FHIR builder 内で raw `yaml.safe_load` するのは禁止**(共通ロジック統一 2026-07-02 で `_fhir_localization.py` と `patient/activator.py` の inline 読み込みを全て loader 経由に移行済):
+`clinosim/locale/loader.py` には shared locale データの cached loader が揃っています。**canonical loader が存在する YAML を module 内 / FHIR builder 内で raw `yaml.safe_load` するのは禁止**(共通ロジック統一 2026-07-02 で `fhir_r4/lib/common.py` (localization helpers) と `patient/activator.py` の inline 読み込みを全て loader 経由に移行済):
 
 - `load_med_terms_ja()` — JP 薬剤用語テーブル(categories + terms、YAML 順序保持 = 置換 order-sensitive)
 - `load_drug_names_ja()` — 英→日 薬剤名 mapping(key は lowercase 正規化済)
@@ -738,7 +738,7 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
    # Unit test on builder logic
    ```
 
-2. **Fix** in code: `clinosim/modules/output/_fhir_composition.py`
+2. **Fix** in code: `clinosim/modules/output/fhir_r4/documents/composition.py`
    - Check `_bb_compositions()` reads `doc.narrative.sections` (post-AD-65 structure)
    - Verify reference integrity: all `reference` URIs resolve to resources in manifest
 
