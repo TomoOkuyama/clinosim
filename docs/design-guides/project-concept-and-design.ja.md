@@ -156,11 +156,10 @@
 - **現在フェーズ**: β-JP-1 の主要 chain + FHIR completeness の C1/C2/C3 主要部が完了。
   次候補は β-2(手術/麻酔記録等、着手前 brainstorming 必須・規模大)、または completeness の
   残(FP-AGE person.age 複数年 / FP-ARCH-2/3 残 7 trauma 疾患 course_archetypes / 横断
-  follow-up)。詳細は fix-point registry と GitHub Issues board (`docs/roadmap.ja.md` 参照)。旧 `TODO.md` の deferred section は Issues 化により廃止。
+  follow-up)。詳細は fix-point registry と GitHub Issues board (`docs/roadmap.ja.md` 参照)。旧 `TODO.md` の deferred section は Issues 化に伴い廃止。
 - **その後の chain**(優先順、`docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md` §4
   ただし上記完了分は本節が最新): β-2(手術/麻酔)→ γ/δ/ε → SS-MIX2。
 - **deferred の正**: GitHub Issues board (see `docs/roadmap.ja.md`)。旧 `TODO.md` は Issues 化に伴い廃止。作業開始前に必ず `.resume-prompt.md` (最新 session hand-off) を読む。
-  作業開始前に `.session-resume-prompt.md`(最新セッションの引き継ぎ)を必ず読む。
 
 ## 8. 用語ミニ辞書
 
