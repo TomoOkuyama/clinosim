@@ -2771,7 +2771,7 @@
 <hr />
 <h2 id="a-fhir-builder-layer-の位置と責務">A. FHIR builder layer の位置と責務<a class="headerlink" href="#a-fhir-builder-layer-の位置と責務" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>            ┌──────────────────────────────────────────┐
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  CIF →     │ Layer 4: FHIR builders (_fhir_*.py)      │  → FHIR R4 NDJSON
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  CIF →     │ Layer 4: FHIR builders (fhir_r4/&lt;domain&gt;/*.py)      │  → FHIR R4 NDJSON
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>            │  - read CIF (record / record.extensions) │     (Bulk Data Export)
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>            │  - read clinosim.codes (display lookup)  │
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>            │  - read clinosim.locale (locale display) │
@@ -2840,7 +2840,7 @@
 </tr>
 <tr>
 <td>2</td>
-<td>新 builder file <code>clinosim/modules/output/_fhir_&lt;topic&gt;.py</code> を作成</td>
+<td>新 builder file <code>clinosim/modules/output/fhir_r4/&lt;domain&gt;/&lt;topic&gt;.py</code> を作成</td>
 <td>Section B.2</td>
 </tr>
 <tr>
@@ -2871,7 +2871,7 @@
 </tbody>
 </table>
 <h3 id="b2-ファイル雛形">B.2 ファイル雛形<a class="headerlink" href="#b2-ファイル雛形" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># clinosim/modules/output/_fhir_&lt;topic&gt;.py</span>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/&lt;domain&gt;/&lt;topic&gt;.py</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="sd">"""&lt;Topic&gt; FHIR R4 builder.</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="sd">Reads CIF (record.extensions["&lt;topic&gt;"] or record.&lt;field&gt;), emits FHIR R4</span>
@@ -2884,7 +2884,7 @@
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_system_uri</span><span class="p">,</span> <span class="n">lookup</span> <span class="k">as</span> <span class="n">code_lookup</span>
 </span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_lang</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output._fhir_common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
 </span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
 </span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="c1"># Canonical constants — single definition site, consumers import (Section B.3)</span>
 </span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">TOPIC_ID_PREFIX</span> <span class="o">=</span> <span class="s2">"tp-"</span>
@@ -2921,14 +2921,14 @@
 </span></code></pre></div>
 <h3 id="b3-canonical-constants--単一定義-site">B.3 canonical constants — 単一定義 site<a class="headerlink" href="#b3-canonical-constants--単一定義-site" title="Permanent link">&para;</a></h3>
 <p>builder 内に置く canonical constants(ID prefix、identifier system、category constants 等):</p>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># clinosim/modules/output/_fhir_&lt;topic&gt;.py(writer = canonical owner)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/&lt;domain&gt;/&lt;topic&gt;.py(writer = canonical owner)</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">TOPIC_ID_PREFIX</span> <span class="o">=</span> <span class="s2">"tp-"</span>                                       <span class="c1"># FHIR Resource.id 接頭辞</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">TOPIC_IDENTIFIER_SYSTEM</span> <span class="o">=</span> <span class="s2">"urn:clinosim:identifier:topic-id"</span>  <span class="c1"># identifier.system URI</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">TOPIC_CATEGORY_SNOMED</span> <span class="o">=</span> <span class="s2">"..."</span>                                 <span class="c1"># category SNOMED code</span>
 </span></code></pre></div>
 <p>これらを <strong>audit module / consumer module / reader test</strong> から import:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># clinosim/modules/&lt;owner&gt;/audit.py(reader)</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output._fhir_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="p">(</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">TOPIC_ID_PREFIX</span><span class="p">,</span> <span class="n">TOPIC_IDENTIFIER_SYSTEM</span><span class="p">,</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">)</span>
 </span></code></pre></div>
@@ -2961,7 +2961,7 @@
 <h3 id="b5-builder-entry-point--bundlecontext-interface">B.5 builder entry point + BundleContext interface<a class="headerlink" href="#b5-builder-entry-point--bundlecontext-interface" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 </span></code></pre></div>
-<p><code>BundleContext</code>(<code>clinosim/modules/output/_fhir_common.py</code> 既存)は builder への uniform 入力:</p>
+<p><code>BundleContext</code>(<code>clinosim/modules/output/fhir_r4/lib/common.py</code> 既存)は builder への uniform 入力:</p>
 <table>
 <thead>
 <tr>
@@ -3020,7 +3020,7 @@
 <p><strong>Opt-in module(AD-55 Module)</strong> = <code>register_bundle_builder()</code> を import 時に呼ぶ:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># clinosim/modules/&lt;topic&gt;/__init__.py or 起動 hook</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output._fhir_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
 </span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">)</span>
 </span></code></pre></div>
 <p><code>register_bundle_builder</code> は dedup あり(同名 builder の二重登録は無視)。</p>
@@ -3030,8 +3030,8 @@
 <p>builder 関数を直接呼ぶ。<code>BundleContext</code> を最小 fixture で構築:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># tests/unit/output/test_fhir_&lt;topic&gt;.py</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output._fhir_common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output._fhir_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
 </span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
 </span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">_make_ctx</span><span class="p">(</span><span class="n">extensions_topic_data</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="s2">"us"</span><span class="p">):</span>
 </span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="k">return</span> <span class="n">BundleContext</span><span class="p">(</span>
@@ -3097,7 +3097,7 @@
 </span></code></pre></div>
 <h3 id="c4-audit-module-silent-no-op-gatead-60">C.4 audit module(★ silent-no-op gate、AD-60)<a class="headerlink" href="#c4-audit-module-silent-no-op-gatead-60" title="Permanent link">&para;</a></h3>
 <p><code>clinosim/modules/&lt;owner&gt;/audit.py</code> に <strong>lift_firing_proof</strong> を追加(5+ equality_checks):</p>
-<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output._fhir_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="p">(</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="n">TOPIC_ID_PREFIX</span><span class="p">,</span> <span class="n">TOPIC_IDENTIFIER_SYSTEM</span><span class="p">,</span>
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="p">)</span>
 </span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
@@ -3194,7 +3194,7 @@
 <ul>
 <li>全 <code>display</code>, <code>text</code>, <code>name</code> field = 日本語(<code>code_lookup(..., resolve_lang(ctx.country))</code> 経由)</li>
 <li>国依存の code system 選択(JLAC10 vs LOINC 等)= <code>system_key_for(kind, ctx.country)</code>(E.11)</li>
-<li>enum 値(severity / route / category 等)= <code>_localize_display()</code>(既存 helper、<code>clinosim/modules/output/_fhir_localization.py</code>)</li>
+<li>enum 値(severity / route / category 等)= <code>_localize_display()</code>(既存 helper、<code>clinosim/modules/output/fhir_r4/lib/common.py (localization helpers)</code>)</li>
 <li>薬剤 / 手技名 = <code>code_lookup()</code> または <code>_localize_drug_name()</code>(裏側は <code>clinosim/locale/loader.py:load_drug_names_ja()</code> / <code>load_med_terms_ja()</code> の canonical cached loader — builder 内 raw YAML read 禁止、E.3)</li>
 <li>診療科 display = <code>_dept_display()</code>(裏側は <code>load_department_display()</code>)</li>
 <li>翻訳不在の場合 = en fallback + audit warn list</li>

@@ -3530,7 +3530,7 @@ on <strong>HOW-TO</strong>.</p>
 <blockquote>
 <p><strong>This document is centred on the CIF-generation layer</strong> (Layers
 1-3 = reference YAML, loader, CIF-generation module). <strong>To add or
-extend a FHIR builder (Layer 4 = <code>_fhir_*.py</code>)</strong>, see
+extend a FHIR builder (Layer 4 = <code>fhir_r4/&lt;domain&gt;/*.py</code>)</strong>, see
 <a href="../design-guides/fhir-data-generation-logic/"><code>docs/design-guides/fhir-data-generation-logic.md</code></a>
 (BundleContext / code_lookup / multilingual display / identifier-
 system conventions / register_bundle_builder).</p>
@@ -3624,16 +3624,16 @@ roadmap = <a href="../design-notes/2026-06-30-tier1-document-and-event-density-m
 - <code>allergy</code> (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-
   coded schema upgrade (POST_RECORDS order=65). Samples allergies at
   a 15 % prevalence into <code>PersonRecord.allergies: list[Allergy] | None</code>;
-  <code>_fhir_allergy_intolerance.py</code> emits them. Replaces the inline
+  <code>fhir_r4/conditions/allergy_intolerance.py</code> emits them. Replaces the inline
   sampling in <code>activator.py</code>.
 - <code>document</code> (Tier 1 #3, AD-63): template-driven clinical-document
   emission from Stage 1 (POST_ENCOUNTER order=95). Writes
   <code>ClinicalDocument</code> / <code>ClinicalImpressionRecord</code> into
   <code>extensions["document"]</code> + <code>extensions["clinical_impressions"]</code>;
   three FHIR builders emit them
-  (<code>_fhir_document_reference.py</code> /
-  <code>_fhir_composition.py</code> /
-  <code>_fhir_clinical_impression.py</code>). <code>enabled=lambda c: True</code>; does
+  (<code>fhir_r4/documents/documents.py</code> /
+  <code>fhir_r4/documents/composition.py</code> /
+  <code>fhir_r4/conditions/clinical_impression.py</code>). <code>enabled=lambda c: True</code>; does
   not depend on <code>extensions["allergy"]</code> (the builder reads
   <code>patient.allergies</code> directly for allergy info).
 - <code>triage</code> (Tier 1 #3 α-min-2, AD-64): samples ED encounter's
@@ -3645,7 +3645,7 @@ roadmap = <a href="../design-notes/2026-06-30-tier1-document-and-event-density-m
 - <code>nursing_assignment</code> (Tier 1 #3 α-min-2, AD-64): assigns a primary
   nurse to inpatient / ICU / rehab encounters (POST_ENCOUNTER
   order=94). Writes to <code>EncounterRecord.primary_nurse_id</code>;
-  <code>_fhir_care_team.py</code> uses it for <code>CareTeam.participant[1]</code>.
+  <code>fhir_r4/encounters/care_team.py</code> uses it for <code>CareTeam.participant[1]</code>.
   <code>enabled=lambda c: True</code>. <strong>Note</strong>: this module lives in the
   <code>modules/nursing/</code> directory but is the POST_ENCOUNTER <code>nursing_enricher</code>
   function (primary-nurse assignment). The same directory also holds
@@ -3825,8 +3825,8 @@ used in <strong>6 loaders</strong>) was retired, and every module's loader now
 uses <code>@lru_cache</code> as the standard. Touch targets were
 <code>clinosim/modules/encounter/protocol.py:load_all_encounter_conditions</code> /
 <code>clinosim/simulator/helpers.py:_load_all_disease_protocols</code> /
-<code>clinosim/modules/output/_fhir_diagnostic_report.py:load_panel_groups</code> /
-<code>clinosim/modules/output/_fhir_localization.py</code>'s <code>_load_med_terms_ja</code>
+<code>clinosim/modules/output/fhir_r4/labs/diagnostic_report.py:load_panel_groups</code> /
+<code>clinosim/modules/output/fhir_r4/lib/common.py</code> (localization helpers)'s <code>_load_med_terms_ja</code>
 + <code>_load_drug_names_ja</code> + <code>_load_department_display</code>. Introducing a
 global mutable <code>_cache</code> variable in a new module is forbidden (it
 conflicts with the standard test pattern that uses
@@ -4016,7 +4016,7 @@ than <code>register_audit_module(</code> (precedent
 <p>Do not hard-code canonical URIs (system / identifier URIs, etc.)
 shared between a FHIR builder and an audit reader as string
 literals. <strong>Adopt the pattern: define at the writer-side module
-(<code>clinosim/modules/output/_fhir_*.py</code>) as a module-level constant
+(<code>clinosim/modules/output/fhir_r4/&lt;domain&gt;/*.py</code>) as a module-level constant
 + have the reader side import it</strong>. On rename, the reader triggers
 <code>ImportError</code>, defending against silent-no-op skip (same pattern:
 <code>MB_ORG_ID_PREFIX</code> PR #113 / <code>ABX_ORDER_ID_PREFIX</code> PR #114 /
@@ -4030,7 +4030,7 @@ literals. <strong>Adopt the pattern: define at the writer-side module
   <code>urn:clinosim:identifier:&lt;purpose&gt;</code> (for <code>identifier.system</code>; e.g.
   <code>HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"</code>) or
   <code>urn:clinosim:&lt;resource&gt;:&lt;concept&gt;</code> (for other resources; e.g.
-  <code>"urn:clinosim:staff"</code> in <code>_fhir_practitioner.py</code>). In pr117-adv-1
+  <code>"urn:clinosim:staff"</code> in <code>fhir_r4/demographics/practitioner.py</code>). In pr117-adv-1
   the coexisting mix of http-form and urn-form was unified to the
   urn form (the urn form is allowed only for internal concepts that
   have no registered URI in JP Core / US Core / an HL7 IG).</p>
@@ -4245,7 +4245,7 @@ per-venue (WBC 6500 in <code>outpatient.py</code> diverging from WBC 7500 in
 <p>Each enricher / module <strong>derives its own sub-stream from the master
 seed</strong> and never touches the main random stream. The derivation
 formula is centralised in
-<code>clinosim/simulator/seeding.py:derive_sub_seed(master, module_offset, key)</code>
+<code>clinosim/seeding.py:derive_sub_seed(master, module_offset, key)</code>
 (AD-16 / AD-59).</p>
 <div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.simulator.seeding</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">,</span> <span class="n">derive_sub_seed</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
@@ -4260,7 +4260,7 @@ has a known inconsistency where the sub-seed is integer-only and
 lacks per-patient keying).</p>
 <p><strong>Registering a new module's offset</strong>: when creating a module,
 register the sub-seed numeric offset in
-<strong><code>clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS</code></strong>. The
+<strong><code>clinosim/seeding.py:ENRICHER_SEED_OFFSETS</code></strong>. The
 convention is <strong>16-bit hex ASCII (2 characters)</strong> — pick two
 letters mnemonic for the module name:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">ENRICHER_SEED_OFFSETS</span> <span class="o">=</span> <span class="p">{</span>
@@ -4379,8 +4379,8 @@ not wrap in a Bundle entry — the registry uniformly wraps them via
   dict. Do not call <code>_entry()</code> inside the builder.</li>
 </ul>
 <p><strong>Canonical example — <code>_bb_service_requests</code> (PR1, 2026-06-29,
-<code>_fhir_service_request.py</code>):</strong></p>
-<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># clinosim/modules/output/_fhir_service_request.py</span>
+<code>fhir_r4/labs/service_request.py</code>):</strong></p>
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/labs/service_request.py</span>
 </span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span><span class="p">,</span> <span class="n">BundleContext</span>
 </span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.order.panel_grouping</span><span class="w"> </span><span class="kn">import</span> <span class="n">classify_lab_specs</span>
 </span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
@@ -4408,7 +4408,7 @@ not wrap in a Bundle entry — the registry uniformly wraps them via
 - Both dict-path and dataclass-path MUST be covered by tests: a
   subprocess integration smoke test exercises the production dict
   path (see <code>tests/integration/test_service_request.py</code>).</p>
-<p>See <a href="../clinosim/modules/output/_fhir_service_request.py"><code>clinosim/modules/output/_fhir_service_request.py</code></a>
+<p>See <a href="../clinosim/modules/output/fhir_r4/labs/service_request.py"><code>clinosim/modules/output/fhir_r4/labs/service_request.py</code></a>
 for the full implementation.</p>
 <h3 id="b-add-an-output-format-register_output_adapter-ad-58">B. Add an output format (<code>register_output_adapter</code>, AD-58)<a class="headerlink" href="#b-add-an-output-format-register_output_adapter-ad-58" title="Permanent link">&para;</a></h3>
 <p>Do not edit the CLI <code>--format</code> dispatch. Register a class that
@@ -4537,7 +4537,7 @@ YAML directly (LOC-1).</p>
 locale data. <strong>When a canonical loader exists for a YAML, raw
 <code>yaml.safe_load</code> inside a module or a FHIR builder is forbidden</strong>
 (the 2026-07-02 shared-logic unification migrated the inline reads
-in <code>_fhir_localization.py</code> and <code>patient/activator.py</code> to the
+in <code>fhir_r4/lib/common.py</code> (localization helpers) and <code>patient/activator.py</code> to the
 loaders):</p>
 <ul>
 <li><code>load_med_terms_ja()</code> — JP medical-terms table (categories +
@@ -4755,7 +4755,7 @@ pass structural / narrative CIF separation is
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>Fix</strong> in code: <code>clinosim/modules/output/_fhir_composition.py</code></p>
+<p><strong>Fix</strong> in code: <code>clinosim/modules/output/fhir_r4/documents/composition.py</code></p>
 </li>
 <li>Check <code>_bb_compositions()</code> reads <code>doc.narrative.sections</code> (post-AD-65 structure)</li>
 <li>
