@@ -230,6 +230,29 @@ codes:
   L03:
     en: Cellulitis
     ja: 蜂窩織炎
+  L20:
+    en: Atopic dermatitis
+    ja: アトピー性皮膚炎
+  L22:
+    en: Diaper dermatitis
+    ja: おむつ皮膚炎
+  # ── Perinatal conditions (Issue #957 Tier-3-B slice 3).
+  P07:
+    en: Disorders of newborn related to short gestation and low birth weight
+    ja: 早産・低出生体重に関連する新生児障害
+  P22:
+    en: Respiratory distress of newborn
+    ja: 新生児呼吸窮迫
+  P59:
+    en: Neonatal jaundice from other and unspecified causes
+    ja: その他および詳細不明の新生児黄疸
+  # ── Abortion codes (Issue #957 Tier-3-B slice 3, young-age gate).
+  O03:
+    en: Spontaneous abortion
+    ja: 自然流産
+  O04:
+    en: Medical abortion
+    ja: 医学的人工妊娠中絶
   M17:
     en: Gonarthrosis [arthrosis of knee]
     ja: 変形性膝関節症
@@ -428,6 +451,9 @@ codes:
   Z38:
     en: Liveborn infants according to place of birth
     ja: 出生児の出生場所別分類
+  Z39:
+    en: Encounter for maternal postpartum care and examination
+    ja: 産褥期の医療ケアおよび検査
   Z48:
     en: Other surgical follow-up care
     ja: 術後ケア

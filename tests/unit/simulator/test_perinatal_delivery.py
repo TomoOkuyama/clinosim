@@ -63,37 +63,75 @@ def test_person_without_z34_emits_no_delivery_event() -> None:
     assert _perinatal_delivery_events(person, year=2024) == []
 
 
-def test_person_with_z34_emits_exactly_one_delivery_event_per_year() -> None:
-    """A Z34-carrying woman emits exactly ONE delivery event per year
-    (slice-1: one delivery per pregnancy-year; multi-year pregnancies
-    are folded into a single-year event for MVP simplicity)."""
-    person = _make_person("POP-000001", "F", 28, ["Z34"])
-    events = _perinatal_delivery_events(person, year=2024)
-    assert len(events) == 1
-    ev = events[0]
-    assert ev.event_type == "delivery"
-    assert ev.disease_id == "Z34"
-    assert ev.condition_type == "perinatal_delivery"
-    assert ev.encounter_type == "inpatient"
-    assert ev.timestamp.year == 2024
+def test_z34_delivery_outcome_emits_delivery_plus_two_postpartum_events() -> None:
+    """A Z34-carrying woman whose per-mother outcome roll picks
+    ``delivery`` (majority path) emits ONE ``delivery`` event + TWO
+    ``chronic_visit`` postpartum events per pregnancy-year (Slice 2:
+    JSOG / ACOG standard 1-week + 4-week post-delivery follow-ups)."""
+    # Age 40 sits in the "35-44" bin with the lowest abortion rate
+    # (~7 %), so most patients in this band go through the delivery
+    # path. Sweep patient ids until we hit one.
+    for i in range(200):
+        person = _make_person(f"POP-DL{i:04d}", "F", 40, ["Z34"])
+        events = _perinatal_delivery_events(person, year=2024)
+        if events[0].event_type != "delivery":
+            continue  # rolled abortion for this patient — try another
+        assert len(events) == 3
+        assert events[0].disease_id == "Z34"
+        assert events[0].condition_type == "perinatal_delivery"
+        assert events[0].encounter_type == "inpatient"
+        for pp in events[1:]:
+            assert pp.event_type == "chronic_visit"
+            assert pp.condition_type == "postpartum"
+            assert pp.disease_id == "Z39"
+            assert pp.encounter_type == "outpatient"
+            assert pp.protocol_source == "perinatal:postpartum"
+        assert events[1].timestamp > events[0].timestamp
+        assert events[2].timestamp > events[1].timestamp
+        return
+    pytest.fail("no delivery outcome observed across 200 age-40 Z34 patients — abortion rate calibration drift")
+
+
+def test_z34_abortion_outcome_emits_single_abortion_event() -> None:
+    """A Z34-carrying woman whose per-mother outcome roll picks
+    ``abortion`` (age-gated minority path) emits ONE ``abortion``
+    event, no delivery, no postpartum. Discharge dx is O03.9
+    (spontaneous) or O04.5 (induced) per the induced-share split."""
+    # Age 17 sits in the "15-19" bin with the highest abortion rate
+    # (40 %), so a sweep hits abortion outcomes quickly.
+    for i in range(50):
+        person = _make_person(f"POP-AB{i:04d}", "F", 17, ["Z34"])
+        events = _perinatal_delivery_events(person, year=2024)
+        if events[0].event_type != "abortion":
+            continue
+        assert len(events) == 1
+        ab = events[0]
+        assert ab.encounter_type == "outpatient"
+        assert ab.condition_type == "pregnancy_termination"
+        assert ab.disease_id in ("O03.9", "O04.5")
+        assert ab.protocol_source == "perinatal:abortion"
+        return
+    pytest.fail("no abortion outcome across 50 age-17 Z34 patients — abortion rate calibration drift")
 
 
 def test_delivery_month_falls_in_config_window() -> None:
     """Delivery month must land inside the ``delivery_month_range`` from
-    ``perinatal.yaml`` (default [4, 10])."""
+    ``perinatal.yaml`` (default [4, 10]). Applies to both delivery
+    AND abortion events since both share the scheduled date draw."""
     for i in range(50):
-        person = _make_person(f"POP-{i:06d}", "F", 28, ["Z34"])
+        person = _make_person(f"POP-{i:06d}", "F", 40, ["Z34"])
         events = _perinatal_delivery_events(person, year=2024)
-        assert len(events) == 1
-        assert 4 <= events[0].timestamp.month <= 10, events[0].timestamp
+        head = events[0]
+        assert 4 <= head.timestamp.month <= 10, head.timestamp
 
 
 def test_delivery_scheduling_is_deterministic() -> None:
-    """Same person + year always picks the same delivery date."""
+    """Same person + year always picks the same delivery + postpartum
+    dates."""
     person = _make_person("POP-000042", "F", 30, ["Z34"])
     a = _perinatal_delivery_events(person, year=2024)
     b = _perinatal_delivery_events(person, year=2024)
-    assert a[0].timestamp == b[0].timestamp
+    assert [(e.event_type, e.timestamp) for e in a] == [(e.event_type, e.timestamp) for e in b]
 
 
 def test_delivery_scheduler_does_not_shift_non_z34_calendar_stream() -> None:
@@ -123,12 +161,13 @@ def _make_patient() -> PatientProfile:
     return PatientProfile(patient_id="POP-000001", sex="F", age=28)
 
 
-def test_delivery_encounter_shape_jp() -> None:
-    """JP delivery encounter: inpatient, LOS=5 days, admission dx O80,
-    discharge dx Z37.0, Procedure with K894 (JP MHLW) primary code."""
+def test_delivery_encounter_returns_mother_and_newborn_records_jp() -> None:
+    """JP delivery: mother's IMP encounter (LOS=5d, O80/Z37.0, K894
+    Procedure) + newborn's IMP encounter (admitSource=born, partOf →
+    mother's encounter, Z38.0)."""
     patient = _make_patient()
     visit_dt = datetime(2024, 7, 15, 10, 0)
-    record = simulate_delivery_encounter(
+    records = simulate_delivery_encounter(
         patient=patient,
         visit_date=visit_dt,
         roster=StaffRoster(),
@@ -136,26 +175,41 @@ def test_delivery_encounter_shape_jp() -> None:
         country="JP",
         hospital_ops={},
     )
-    assert len(record.encounters) == 1
-    enc = record.encounters[0]
-    assert enc.encounter_type.value == "inpatient"
-    assert enc.admission_datetime == visit_dt
-    assert (enc.discharge_datetime - visit_dt).days == 5, "JP delivery LOS should be 5 days"
-    assert record.clinical_diagnosis.admission_diagnosis_code == "O80"
-    assert record.clinical_diagnosis.discharge_diagnosis_code == "Z37.0"
-    assert len(record.procedures) == 1
-    proc = record.procedures[0]
-    assert proc.procedure_type == "delivery"
-    assert proc.procedure_code == "K894"
-    assert proc.procedure_code_jp == "K894"
+    assert len(records) == 2, "delivery must return mother + newborn records"
+    mother_rec, newborn_rec = records
+
+    # Mother-side
+    assert mother_rec.patient.patient_id == "POP-000001"
+    m_enc = mother_rec.encounters[0]
+    assert m_enc.encounter_type.value == "inpatient"
+    assert m_enc.admission_datetime == visit_dt
+    assert (m_enc.discharge_datetime - visit_dt).days == 5, "JP delivery LOS should be 5 days"
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O80"
+    assert mother_rec.clinical_diagnosis.discharge_diagnosis_code == "Z37.0"
+    assert len(mother_rec.procedures) == 1
+    assert mother_rec.procedures[0].procedure_code == "K894"
+    assert mother_rec.procedures[0].procedure_type == "delivery"
+
+    # Newborn-side (Slice 2)
+    assert newborn_rec.patient.patient_id == "POP-000001-BABY"
+    assert newborn_rec.patient.household_id == patient.household_id
+    assert newborn_rec.patient.age == 0
+    assert newborn_rec.patient.date_of_birth == visit_dt.date()
+    assert newborn_rec.patient.sex in ("M", "F")
+    n_enc = newborn_rec.encounters[0]
+    assert n_enc.encounter_type.value == "inpatient"
+    assert n_enc.admit_source.value == "born"
+    # FHIR mother→baby link
+    assert n_enc.admit_source_encounter_id == m_enc.encounter_id
+    assert newborn_rec.clinical_diagnosis.discharge_diagnosis_code == "Z38.0"
 
 
 def test_delivery_encounter_shape_us() -> None:
-    """US delivery encounter: inpatient, LOS=2 days, admission dx O80,
-    discharge dx Z37.0, Procedure with 59400 (CPT) primary code."""
+    """US delivery: LOS=2d, mother has 59400 CPT Procedure, newborn
+    still has Z38.0 discharge dx + partOf link to mother."""
     patient = _make_patient()
     visit_dt = datetime(2024, 7, 15, 10, 0)
-    record = simulate_delivery_encounter(
+    records = simulate_delivery_encounter(
         patient=patient,
         visit_date=visit_dt,
         roster=StaffRoster(),
@@ -163,8 +217,27 @@ def test_delivery_encounter_shape_us() -> None:
         country="US",
         hospital_ops={},
     )
-    enc = record.encounters[0]
-    assert (enc.discharge_datetime - visit_dt).days == 2, "US delivery LOS should be 2 days"
-    proc = record.procedures[0]
-    assert proc.procedure_code == "59400"
-    assert proc.procedure_code_us == "59400"
+    assert len(records) == 2
+    mother_rec, newborn_rec = records
+    m_enc = mother_rec.encounters[0]
+    assert (m_enc.discharge_datetime - visit_dt).days == 2, "US delivery LOS should be 2 days"
+    assert mother_rec.procedures[0].procedure_code == "59400"
+    assert newborn_rec.encounters[0].admit_source_encounter_id == m_enc.encounter_id
+    assert newborn_rec.clinical_diagnosis.discharge_diagnosis_code == "Z38.0"
+
+
+def test_newborn_sex_is_deterministic_per_mother() -> None:
+    """Same mother → same newborn sex across independent simulate
+    calls (per-mother sub-RNG isolation)."""
+    patient = _make_patient()
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    rec_a = simulate_delivery_encounter(
+        patient=patient, visit_date=visit_dt, roster=StaffRoster(), rng=np.random.default_rng(42), country="JP"
+    )
+    rec_b = simulate_delivery_encounter(
+        patient=patient, visit_date=visit_dt, roster=StaffRoster(), rng=np.random.default_rng(99), country="JP"
+    )
+    # Different mother-side rng but the same newborn sex — proves
+    # newborn sex is derived from mother_id (per-mother sub-RNG),
+    # not from the caller's rng.
+    assert rec_a[1].patient.sex == rec_b[1].patient.sex

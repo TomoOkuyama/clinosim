@@ -28,6 +28,10 @@ def test_admit_source_wire_values() -> None:
     expected = {
         AdmitSource.EMD: "emd",
         AdmitSource.OUTP: "outp",
+        # Issue #957 Tier-3-B: newborn admission source emitted on the baby's
+        # IMP Encounter, paired with Encounter.partOf pointing at the
+        # mother's delivery encounter.
+        AdmitSource.BORN: "born",
     }
     for member, code in expected.items():
         assert member.value == code, f"{member.name}.value must be {code!r}"

@@ -287,6 +287,22 @@ Z34:  # Encounter for supervision of normal pregnancy (female 20-44 per age/sex 
   prescriptions_renewed: true
   visit_duration_minutes: 25
 
+Z39:  # Encounter for maternal postpartum care (Issue #957 Tier-3-B Slice 2).
+      # Scheduled ×2 by ``_perinatal_delivery_events`` at ~1 week and ~4 weeks
+      # post-delivery (JSOG / ACOG standard postpartum follow-up intervals).
+      # Female 20-44 by the same age/sex context that produced the Z34
+      # prenatal window; no separate sex-gate needed (only Z34-carriers
+      # can reach this event).
+  visit_reason:
+    en: "Postpartum follow-up: wound check, breastfeeding support, mood screening"
+    ja: "産後フォローアップ・創部確認・授乳支援・産後うつスクリーニング"
+  follow_up_interval_months: 0    # event-scheduled, not periodic
+  labs: []
+  labs_quarterly: [Hb]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
+  prescriptions_renewed: false
+  visit_duration_minutes: 20
+
 # Disease-specific post-discharge follow-up
 _post_discharge:
   first_visit_days: 14

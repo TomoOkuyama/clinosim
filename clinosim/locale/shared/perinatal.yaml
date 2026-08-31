@@ -43,3 +43,89 @@ procedure:
 # month range, deterministic per patient via sub-RNG).
 scheduling:
   delivery_month_range: [4, 10]         # broad window covering common delivery months
+
+# ---------------------------------------------------------------------------
+# Abortion outcome for Z34 pregnancies (Issue #957 Tier-3-B slice 3).
+# For a Z34-carrying woman, the per-mother sub-RNG rolls this table
+# BEFORE the delivery event fires — if the roll succeeds the pregnancy
+# ends in abortion (spontaneous O03.9 or induced O04.5) instead of
+# progressing to delivery, and no newborn Patient chain is emitted.
+#
+# Rates: MHLW 母体保護統計 2020 + JSOG 2019 (JP-authoritative for age
+# skew; US CDC WISQARS abortion surveillance for the US split).
+# Split: within the pregnant cohort, ~1/3 of terminations at age 15-19
+# are spontaneous (miscarriage) and ~2/3 are induced; the ratio flips
+# past age 35 (higher spontaneous, lower induced). Encoded as two
+# separate probability curves so both codes emit at realistic rates.
+abortion:
+  encounter:
+    visit_reason:
+      en: "Pregnancy termination"
+      ja: "妊娠中絶"
+    department: "obgyn"
+    length_of_stay_days: 0                # outpatient day-surgery (AMB encounter)
+    duration_minutes: 90
+  procedure:
+    jp_code: "K909"                       # JP: 子宮内容除去術
+    us_code: "59840"                      # US CPT: Induced abortion, by D&C
+  # Total abortion probability by mother's age at delivery draw time.
+  # The remaining mass (1 - probability) proceeds to delivery.
+  probability_by_age:
+    "15-19": 0.40                         # ~40 % of adolescent pregnancies end in abortion (JP MHLW)
+    "20-24": 0.25
+    "25-29": 0.15
+    "30-34": 0.10
+    "35-44": 0.07
+  # Split within an abortion event between spontaneous (O03.9) and
+  # induced (O04.5). Younger cohorts skew toward induced; older skew
+  # toward spontaneous miscarriage.
+  induced_share_by_age:
+    "15-19": 0.85
+    "20-24": 0.70
+    "25-29": 0.50
+    "30-34": 0.35
+    "35-44": 0.20
+
+# ---------------------------------------------------------------------------
+# Newborn-specific conditions sampled at the delivery encounter (Issue #957
+# Tier-3-B Slice 3). Emitted on the newborn's chronic_conditions +
+# birth-encounter clinical_diagnosis (in addition to the mandatory Z38.0
+# single-liveborn code). Every entry uses a per-mother sub-RNG so the
+# activation is byte-neutral against unrelated newborns.
+#
+# Sources: WHO / MHLW infant morbidity 2020, JSN / AAP guidelines.
+# Only codes with a non-negligible incidence in the general term-birth
+# population are listed here; NICU-specific conditions (P22.0 RDS at
+# ~1 % in term neonates but ~50 % in <32-wk preterm, P29 cardiovascular
+# disorders, etc.) are gated behind the P07.3 preterm-birth flag so
+# they only fire on preterm-flagged newborns.
+newborn_conditions:
+  # Very common transient conditions — most resolve within days-weeks
+  # of birth but appear on the delivery-encounter Condition list.
+  - code: P59.9                         # Neonatal jaundice, unspecified
+    probability: 0.20                   # ~20 % require documentation (transient physiological jaundice, higher in Asian populations)
+    display_en: "Neonatal jaundice, unspecified"
+    display_ja: "新生児黄疸、詳細不明"
+
+  - code: P07.3                         # Preterm newborn (28-<37 wk)
+    probability: 0.07                   # ~7 % of live births per MHLW / CDC natality
+    display_en: "Preterm newborn (28 completed weeks to less than 37 completed weeks)"
+    display_ja: "在胎 28-37 週の早産児"
+    triggers:                           # conditions gated on this flag
+      - code: P22.0                     # RDS — only meaningful on preterm
+        conditional_probability: 0.35   # ~35 % of preterm 28-37wk newborns develop RDS
+        display_en: "Respiratory distress syndrome of newborn"
+        display_ja: "新生児呼吸窮迫症候群"
+
+  # First-year chronic conditions the newborn carries onto the problem
+  # list (persist beyond the birth encounter). Diaper dermatitis is
+  # near-universal at some point but the "carries" rate is lower.
+  - code: L22                           # Diaper dermatitis
+    probability: 0.30                   # per-newborn carrier rate; on-and-off through infancy
+    display_en: "Diaper dermatitis"
+    display_ja: "おむつ皮膚炎"
+
+  - code: L20.9                         # Atopic dermatitis, unspecified
+    probability: 0.15                   # ~10-20 % of infants per MHLW allergy survey (JP higher than US)
+    display_en: "Atopic dermatitis, unspecified"
+    display_ja: "アトピー性皮膚炎、詳細不明"
