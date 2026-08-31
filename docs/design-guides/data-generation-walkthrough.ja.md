@@ -63,6 +63,36 @@ clinosim export-fhir   →  FHIR R4 NDJSON     fhir_r4/<ResourceType>.ndjson + m
 「患者は population から生まれる」— どの患者も最初は住民で、イベントが閾値を超えて初めて
 hospital encounter に変換される。これにより疫学が人口レベルで正しくスケールする。
 
+### 1b.2. ヘルスケアカレンダーイベント発火 — `generate_healthcare_calendar`
+
+急性疾患イベントは人口全体で発火する (§1b)。それと並行して
+`generate_healthcare_calendar(registry, year, country, rng)`
+(`population/engine.py`) が、急性 onset の有無に関わらず実患者が受ける
+**カレンダー駆動の encounter** ストリームを別途 emit する — 慢性疾患
+管理受診、健診、予防接種、化学療法サイクル、分娩など。各患者は
+**独立した RNG stream** を持つので、1 人のスケジュール変更が他の
+無関係な患者の timeline に cascade しない (`rng.spawn(len(persons))`)。
+
+**イベントカタログ:**
+
+| `event_type` | 発火対象 | ケイデンス出所 | Dispatch 先 |
+|---|---|---|---|
+| `chronic_visit` | `locale/shared/chronic_followup.yaml` にある慢性疾患保有者 (16 の慢性コード + インフル予防接種 + 糖尿病網膜症スクリーニング) | 慢性エントリ毎の `follow_up_interval_months`、年 6 回まで cap | `_simulate_outpatient_visit(visit_type="chronic_followup")` |
+| `pediatric_visit` | active な well-child schedule item を持つ患者 (`modules/pediatric/calendar.py`) | JP MHLW / US CDC well-child schedule に沿った年齢条件付き | `_simulate_outpatient_visit(visit_type="pediatric_visit")` |
+| `health_screening` | 40 歳以上 (年 1 健診) + 50 歳以上 colonoscopy (10 年間隔 → 10 %/年) + 女性 40 歳以上 mammography (60 %/年) | `_population_workflow_thresholds` の population 閾値 | `_simulate_outpatient_visit(visit_type="health_screening")` |
+| `chemo_visit` | `(patient, cancer_code)` 毎の sub-RNG が `chemo_regimens.yaml` の active regimen を割り当てた慢性がん患者 | Regimen 毎の `cycle_interval_days` (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d)、`course_cycles` で cap | `_simulate_outpatient_visit(visit_type="chemo_visit")` — Encounter + `chemotherapy_administration` Procedure を emit |
+| `delivery` | Z34 保有 (sim window 内 active な妊娠) の女性 | 妊娠年毎に 1 件、`perinatal.yaml::scheduling.delivery_month_range` 内 (デフォルト 4-10 月) の scheduled 月に発火 | `simulator/perinatal.py::simulate_delivery_encounter` — `O80` admission dx / `Z37.0` discharge dx + 分娩 Procedure の IMP Encounter を emit |
+
+**Determinism-neutrality 契約:** 初回 chronic-visit スケジューラ以降に
+追加された event (chemo_visit、delivery) はすべて、カレンダー共有の
+per-person stream を消費するのではなく専用の per-patient sub-seed
+(`chemotherapy_regimen_seed`、`perinatal_delivery_seed`) を使用する。
+これらの emit の追加・調整は、新 event が直接対象とする患者を除き
+byte-identical。
+
+腫瘍 + 産科 event の full schema + slice スコープ:
+[`../reference/oncology-obstetric-service-lines.ja.md`](../reference/oncology-obstetric-service-lines.ja.md)。
+
 ### 1c. 患者の hydrate — `modules/patient`
 
 入院/受診が確定した住民は `activate_patient(person, rng, demo)`(`patient/activator.py`)で
