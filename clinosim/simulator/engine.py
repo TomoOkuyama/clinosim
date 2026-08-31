@@ -992,6 +992,24 @@ def run_beta(
                 config=config,
                 department_id=pedi_dept,
             )
+        elif event.event_type == "delivery":
+            # Issue #957 Tier-3-B: mother-side perinatal delivery encounter.
+            # Emits one inpatient encounter per Z34 pregnancy-year with
+            # admission dx O80 (spontaneous delivery), discharge dx Z37.0
+            # (single liveborn), and a delivery Procedure. Newborn
+            # Patient generation + postpartum + Z38 remain follow-up
+            # slices (multi-patient linked encounters are deferred).
+            from clinosim.simulator.perinatal import simulate_delivery_encounter
+
+            opd_record = simulate_delivery_encounter(
+                patient=patient,
+                visit_date=visit_time,
+                roster=roster,
+                rng=ev_rng,
+                country=config.country,
+                config=config,
+                hospital_ops=hospital_ops,
+            )
         elif event.event_type == "health_screening":
             # F1: visit_reason must vary by disease_id — see the
             # ev_key comment above. Previously every health_screening dispatch

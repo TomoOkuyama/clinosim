@@ -270,6 +270,19 @@ def _validate_chronic_medications_route_vocabulary(data: Any) -> None:
         validate_yaml_route_value(raw, source="chronic_medications.yaml")
 
 
+@lru_cache(maxsize=1)
+def load_perinatal_config() -> dict[str, Any]:
+    """Load perinatal delivery configuration (Issue #957 Tier-3-B).
+
+    Consumers query the ``encounter`` block for admission/discharge
+    diagnosis + LOS + department, the ``procedure`` block for the
+    JP/US billing code emitted on the delivery encounter, and the
+    ``scheduling`` block for the delivery-month range used by the
+    healthcare-calendar delivery-event scheduler.
+    """
+    return _load_yaml(_LOCALE_DIR / "shared" / "perinatal.yaml", fallback={})
+
+
 @lru_cache(maxsize=8)
 def load_addresses(country: str) -> dict[str, Any]:
     """Load address/phone data for a country."""

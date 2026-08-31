@@ -167,6 +167,25 @@ def chronic_augment_sex_seed(patient_id: str, code: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+def perinatal_delivery_seed(patient_id: str, year: int) -> int:
+    """Per-(patient, year) deterministic sub-seed for perinatal delivery
+    scheduling (Issue #957 Tier-3-B).
+
+    ``_perinatal_delivery_events`` (population/engine.py) picks the
+    delivery month + day-of-month within the ``scheduling.delivery_month_range``
+    window for each Z34-carrying woman. Isolating the draw on this
+    per-(patient, year) sub-RNG keeps the calendar's shared per-person
+    ``prng`` untouched — adding the delivery scheduler is byte-neutral
+    against every pre-existing calendar event stream.
+
+    Sibling of ``chemotherapy_regimen_seed`` — same AD-16 rationale
+    applied to the perinatal scheduler.
+    """
+    salt = "clinosim:perinatal-delivery:v1"
+    digest = hashlib.sha256(f"{salt}|{patient_id}|{year}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 def individual_lab_seed(order_id: str) -> int:
     """Per-individual-lab-order deterministic sub-seed in ``[0, 2**32)``.
 

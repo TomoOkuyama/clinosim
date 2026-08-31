@@ -1243,7 +1243,58 @@ def generate_healthcare_calendar(
                 )
             )
 
+        # --- Perinatal delivery encounter (Issue #957 Tier-3-B) ---
+        # For Z34-carrying women (chronic marker "actively pregnant during
+        # sim window"), emit one delivery IMP encounter per year at a
+        # scheduled month within the config-declared window. The scheduler
+        # uses a per-(patient, year) sub-RNG so the calendar's shared
+        # ``prng`` is NOT consumed — pre-existing calendar streams are
+        # byte-identical whether the delivery scheduler runs or not.
+        events.extend(_perinatal_delivery_events(person, year))
+
     return events
+
+
+def _perinatal_delivery_events(person: PersonRecord, year: int) -> list[LifeEvent]:
+    """Emit a delivery LifeEvent for a Z34-carrying pregnant woman.
+
+    RNG-neutrality contract: consumes ZERO calls on the caller's ``prng``
+    — the delivery month/day draws use ``perinatal_delivery_seed(person_id,
+    year)`` (sibling of ``chemotherapy_regimen_seed``). Adding this
+    scheduler does NOT shift any pre-existing calendar event for any
+    patient.
+
+    Slice-1 semantics: one delivery per Z34-year (multi-year
+    pregnancies + newborn Patient generation deferred to a follow-up
+    slice — see ``locale/shared/perinatal.yaml`` docstring).
+    """
+    if "Z34" not in person.chronic_conditions:
+        return []
+    from clinosim.locale.loader import load_perinatal_config
+    from clinosim.seeding import perinatal_delivery_seed
+
+    cfg = load_perinatal_config()
+    sched = cfg.get("scheduling") or {}
+    m_lo, m_hi = sched.get("delivery_month_range") or [4, 10]
+    m_lo = int(m_lo)
+    m_hi = int(m_hi)
+    if m_lo < 1 or m_hi > 12 or m_lo > m_hi:
+        return []
+    rng = np.random.default_rng(perinatal_delivery_seed(person.person_id, year))
+    delivery_month = int(rng.integers(m_lo, m_hi + 1))
+    delivery_day = int(rng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE))
+    return [
+        LifeEvent(
+            person_id=person.person_id,
+            event_type="delivery",
+            timestamp=date(year, delivery_month, delivery_day),
+            severity=0.0,
+            condition_type="perinatal_delivery",
+            disease_id="Z34",
+            encounter_type="inpatient",
+            protocol_source="perinatal:delivery",
+        )
+    ]
 
 
 def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> dict:
