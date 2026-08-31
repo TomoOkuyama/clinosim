@@ -15,6 +15,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     encounter_admission_condition_id,
     needs_admission_diagnosis_condition,
@@ -406,7 +407,11 @@ def _build_encounter(
         # reasonReference: link to primary Condition (if dx exists).
         # Chronic-primary encounters resolve to the patient-scoped chronic
         # Condition; acute-primary encounters keep the encounter-scoped id.
-        if primary_dx_code:
+        # Issue #916: skip the reference when the primary dx is a Z-chapter
+        # visit-reason code — conditions.py no longer emits a Condition for
+        # these, so the reference would dangle. The reasonCode text/coding
+        # above already carries the Z-code semantic.
+        if primary_dx_code and not is_visit_reason_zcode(primary_dx_code):
             _primary_ref = primary_condition_ref_from_codes(
                 primary_dx_code, chronic_condition_codes, patient_id, encounter_id
             )
@@ -438,7 +443,13 @@ def _build_encounter(
         resource["participant"] = participants
 
     # Diagnosis reference (link to Condition)
-    if primary_dx_code:
+    # Issue #916: when the primary dx is a Z-chapter visit-reason code,
+    # conditions.py does not emit a Condition for it — so ``diagnosis[]``
+    # must not link to one either (dangling ref otherwise). Comorbidities
+    # remain populated when other chronic Conditions exist. The
+    # ``reasonCode`` slot above already carries the Z-code semantic.
+    _primary_dx_is_visit_reason = bool(primary_dx_code) and is_visit_reason_zcode(primary_dx_code)
+    if primary_dx_code and not _primary_dx_is_visit_reason:
         # C5-04: localize diagnosis role display.
         from clinosim.modules.output.fhir_r4.lib.localization import (
             _DIAGNOSIS_ROLE_DISPLAY_JA,
@@ -518,9 +529,13 @@ def _build_encounter(
         _mapped_admit = map_diagnosis_code(admit_dx_code, country) if admit_dx_code else ""
         _mapped_primary = map_diagnosis_code(primary_dx_code, country) if primary_dx_code else ""
         _mapped_chronics = [map_diagnosis_code(_c, country) for _c in (chronic_condition_codes or []) if _c]
-        if needs_admission_diagnosis_condition(
-            admit_dx_code, primary_dx_code, chronic_condition_codes
-        ) or needs_admission_diagnosis_condition(_mapped_admit, _mapped_primary, _mapped_chronics):
+        # Issue #916: skip the AD entry when the admission dx is a Z-chapter
+        # visit-reason code (no matching admission Condition emitted).
+        _admit_dx_is_visit_reason = bool(admit_dx_code) and is_visit_reason_zcode(admit_dx_code)
+        if not _admit_dx_is_visit_reason and (
+            needs_admission_diagnosis_condition(admit_dx_code, primary_dx_code, chronic_condition_codes)
+            or needs_admission_diagnosis_condition(_mapped_admit, _mapped_primary, _mapped_chronics)
+        ):
             _ad_display = _localize_display("Admission diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA)
             diagnosis_list.append(
                 {
