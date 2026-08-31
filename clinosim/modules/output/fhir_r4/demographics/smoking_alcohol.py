@@ -34,18 +34,24 @@ from clinosim.modules.sdoh import load_social_history
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque SDOH ids ===
 # Structural key = pre-#854 id body (patient id).
+# Issue #909: salt hash input with observation-key kind so ``.id`` diverges
+# from ``Patient.id`` (which hashes ``patient_id`` unsalted). Identifier.value
+# is kept equal to ``patient_id`` so consumers keep the same round-trip
+# recovery path via the existing ``Identifier.system`` URI (unchanged).
+_SMOKING_STATUS_KEY_KIND = "smoking-status-observation-key"
+_ALCOHOL_USE_KEY_KIND = "alcohol-use-observation-key"
 SMOKING_STATUS_ID_PREFIX = "smoking-"
 ALCOHOL_USE_ID_PREFIX = "alcohol-"
-SMOKING_STATUS_KEY_SYSTEM = structural_key_system("smoking-status-observation-key")
-ALCOHOL_USE_KEY_SYSTEM = structural_key_system("alcohol-use-observation-key")
+SMOKING_STATUS_KEY_SYSTEM = structural_key_system(_SMOKING_STATUS_KEY_KIND)
+ALCOHOL_USE_KEY_SYSTEM = structural_key_system(_ALCOHOL_USE_KEY_KIND)
 
 
 def _resolve_smoking_status_id(structural_key: str) -> str:
-    return derive_opaque_id(SMOKING_STATUS_ID_PREFIX, structural_key)
+    return derive_opaque_id(SMOKING_STATUS_ID_PREFIX, f"{_SMOKING_STATUS_KEY_KIND}:{structural_key}")
 
 
 def _resolve_alcohol_use_id(structural_key: str) -> str:
-    return derive_opaque_id(ALCOHOL_USE_ID_PREFIX, structural_key)
+    return derive_opaque_id(ALCOHOL_USE_ID_PREFIX, f"{_ALCOHOL_USE_KEY_KIND}:{structural_key}")
 
 
 def _obs(obs_id: str, country: str, loinc: str, loinc_text: str, value_system: str, value_code: str) -> dict[str, Any]:
