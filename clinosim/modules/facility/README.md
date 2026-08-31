@@ -140,7 +140,7 @@ computed.
 | Consumer | Where | Role |
 |---|---|---|
 | Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`~L191`) | Loads `hospital_ops` (either from `--hospital-config PATH` or from `load_hospital_operations()`) and constructs a per-run `HospitalState`. |
-| Discrete-event scheduler | [`clinosim/simulator/des_engine.py`](../../simulator/des_engine.py) (`~L21`) | Uses `HospitalState.calculate_delay` to timestamp lab / imaging / OR results. |
+| Order-result timing | [`clinosim/modules/order/engine.py`](../order/engine.py) (`calculate_result_time_from_state`, ~L795) | Uses `HospitalState.calculate_delay` to timestamp lab / imaging / OR results. Called by `simulator/lab_pipeline.py` + `simulator/unknown_condition.py`. |
 | Order queue-replay test | [`tests/unit/test_order_queue_replay.py`](../../../tests/unit/test_order_queue_replay.py) | Loads `HospitalState` + `load_hospital_operations()` to replay queue add / release semantics. |
 | Wall-clock sentinel test | [`tests/unit/test_wallclock_sentinel_defaults.py`](../../../tests/unit/test_wallclock_sentinel_defaults.py) | Asserts the `_UNSET_DATETIME` sentinel default. |
 

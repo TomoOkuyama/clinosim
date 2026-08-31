@@ -315,14 +315,27 @@ _.model_config  # encounter/protocol.py:85 (Pydantic ConfigDict)
 _.icd10_code  # encounter/protocol.py:88
 
 # ----- clinosim/modules/facility/hospital_state.py (dataclass) -----
-# Hospital-operational-state fields — read by scheduler / enricher.
-_.mri_queue  # facility/hospital_state.py:33
-_.xray_queue  # facility/hospital_state.py:34
-_.ultrasound_queue  # facility/hospital_state.py:35
-_.or_queue  # facility/hospital_state.py:36
+# Hospital-operational-state fields — read by scheduler / enricher /
+# `add_to_queue` (indirect via `getattr(self, f"{resource}_queue")`) and
+# by `tests/unit/test_order_queue_replay.py` via `hs.<field>` direct
+# reads. Vulture cannot see the `getattr` indirection; the direct
+# reads in tests satisfy some but not all of these — whitelist covers
+# the remainder.
+_.lab_queue  # facility/hospital_state.py:58 (indirect via getattr in add_to_queue)
+_.ct_queue  # facility/hospital_state.py:59 (indirect via getattr in add_to_queue)
+_.mri_queue  # facility/hospital_state.py:60
+_.xray_queue  # facility/hospital_state.py:61
+_.ultrasound_queue  # facility/hospital_state.py:62
+_.or_queue  # facility/hospital_state.py:63
 _.ed_crowding  # facility/hospital_state.py:40
 _.nursing_staff  # facility/hospital_state.py:45 (also read as attribute at :67)
 _.pharmacy_staff  # facility/hospital_state.py:46 (also read as attribute at :68, :76)
+# Symmetric queue-management method — public API on HospitalState
+# (documented in facility/README.md). Currently no live caller after
+# `simulator/des_engine.py` was removed as orphan; kept for the
+# add_to_queue / release_from_queue pairing so downstream code can
+# still model resource release deterministically.
+_.release_from_queue  # facility/hospital_state.py:221
 
 
 # =============================================================================
