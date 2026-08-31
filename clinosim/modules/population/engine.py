@@ -1256,17 +1256,30 @@ def generate_healthcare_calendar(
 
 
 def _perinatal_delivery_events(person: PersonRecord, year: int) -> list[LifeEvent]:
-    """Emit a delivery LifeEvent for a Z34-carrying pregnant woman.
+    """Emit the perinatal event chain for a Z34-carrying pregnant woman:
+    one ``delivery`` event + two ``postpartum`` outpatient follow-ups.
 
-    RNG-neutrality contract: consumes ZERO calls on the caller's ``prng``
-    — the delivery month/day draws use ``perinatal_delivery_seed(person_id,
-    year)`` (sibling of ``chemotherapy_regimen_seed``). Adding this
-    scheduler does NOT shift any pre-existing calendar event for any
-    patient.
+    RNG-neutrality contract: consumes ZERO calls on the caller's
+    ``prng`` — the delivery month/day + postpartum jitter draws all
+    use ``perinatal_delivery_seed(person_id, year)`` (sibling of
+    ``chemotherapy_regimen_seed``). Adding this scheduler does NOT
+    shift any pre-existing calendar event for any patient.
 
-    Slice-1 semantics: one delivery per Z34-year (multi-year
-    pregnancies + newborn Patient generation deferred to a follow-up
-    slice — see ``locale/shared/perinatal.yaml`` docstring).
+    Slice-2 semantics (Issue #957 Tier-3-B follow-up):
+      * ``delivery`` — mother's IMP admission + newborn Patient chain
+        (see ``simulator/perinatal.py::simulate_delivery_encounter``).
+      * ``chronic_visit`` × 2 with ``condition_type="postpartum"`` —
+        AMB obstetric follow-ups at ~1 week and ~4 weeks post-discharge
+        (JSOG / ACOG standard postpartum care intervals). Fired as
+        ``chronic_visit`` events so they route through the existing
+        outpatient dispatch with a postpartum ``visit_reason``.
+
+    Postpartum-visit month/day placement respects year boundaries:
+    if the delivery falls in December, the postpartum visits are
+    clamped to Dec 31 (they would otherwise land in the next sim
+    year, out of scope for this cohort year). Downstream snapshot
+    clamping in ``run_beta`` further clips events past the
+    ``--end`` cursor.
     """
     if "Z34" not in person.chronic_conditions:
         return []
@@ -1283,11 +1296,34 @@ def _perinatal_delivery_events(person: PersonRecord, year: int) -> list[LifeEven
     rng = np.random.default_rng(perinatal_delivery_seed(person.person_id, year))
     delivery_month = int(rng.integers(m_lo, m_hi + 1))
     delivery_day = int(rng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE))
-    return [
+    delivery_date = date(year, delivery_month, delivery_day)
+
+    # Pregnancy outcome resolution — a Z34 pregnancy may end in abortion
+    # (spontaneous or induced, age-gated) instead of delivery. Consumes
+    # its OWN per-(mother, year) sub-RNG (isolated from the delivery-
+    # date draw) so tuning abortion rates does not shift delivery day.
+    from clinosim.simulator.perinatal import resolve_pregnancy_outcome
+
+    outcome, discharge_dx = resolve_pregnancy_outcome(person.person_id, person.age, year)
+    if outcome == "abortion":
+        return [
+            LifeEvent(
+                person_id=person.person_id,
+                event_type="abortion",
+                timestamp=delivery_date,  # reuse the scheduled date for the abortion encounter
+                severity=0.0,
+                condition_type="pregnancy_termination",
+                disease_id=discharge_dx,  # O03.9 or O04.5
+                encounter_type="outpatient",
+                protocol_source="perinatal:abortion",
+            )
+        ]
+
+    events: list[LifeEvent] = [
         LifeEvent(
             person_id=person.person_id,
             event_type="delivery",
-            timestamp=date(year, delivery_month, delivery_day),
+            timestamp=delivery_date,
             severity=0.0,
             condition_type="perinatal_delivery",
             disease_id="Z34",
@@ -1295,6 +1331,32 @@ def _perinatal_delivery_events(person: PersonRecord, year: int) -> list[LifeEven
             protocol_source="perinatal:delivery",
         )
     ]
+
+    # Postpartum follow-ups: ~1 week (jittered 5-10 d) and ~4 week
+    # (jittered 21-35 d) post-discharge. Fired via chronic_visit so
+    # they hit the standard outpatient dispatch; disease_id "Z39"
+    # ("encounter for maternal postpartum care") is the WHO ICD-10
+    # postpartum-care code and displays correctly in the ICD registry.
+    postpartum_offsets_days = (7, 28)
+    for offset in postpartum_offsets_days:
+        pp_dt = delivery_date + timedelta(days=offset)
+        # Year-boundary clamp: keep the event inside the calendar's
+        # sim year to avoid emitting into unrelated cohorts.
+        if pp_dt.year != year:
+            pp_dt = date(year, 12, 31)
+        events.append(
+            LifeEvent(
+                person_id=person.person_id,
+                event_type="chronic_visit",
+                timestamp=pp_dt,
+                severity=0.0,
+                condition_type="postpartum",
+                disease_id="Z39",  # WHO ICD-10 encounter for postpartum care
+                encounter_type="outpatient",
+                protocol_source="perinatal:postpartum",
+            )
+        )
+    return events
 
 
 def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> dict:

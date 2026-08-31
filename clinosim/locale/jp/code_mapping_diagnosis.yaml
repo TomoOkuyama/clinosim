@@ -35,6 +35,16 @@ C50: "C50"        # Breast cancer — sex-agnostic mapping (JP ICD-10 does not
 C61: "C61"        # Prostate cancer (male-only per sex-gate)
 Z34: "Z34"        # Encounter for supervision of normal pregnancy (female 15-49 per age/sex gate)
 Z37: "Z37"        # Outcome of delivery — carried as past-birth marker on the problem list
+Z38: "Z38"        # Liveborn infants (newborn-side birth outcome; Issue #957 Tier-3-B)
+Z39: "Z39"        # Encounter for maternal postpartum care (Issue #957 Tier-3-B)
+# ── Perinatal newborn + abortion (Issue #957 Tier-3-B slice 3) ──
+P59.9: "P59"      # Neonatal jaundice → WHO parent (JP has no 5-char subdivision)
+P07.3: "P07"      # Preterm newborn → WHO parent
+P22.0: "P22"      # Neonatal RDS → WHO parent
+L20.9: "L20"      # Atopic dermatitis → WHO parent
+L22:   "L22"      # Diaper dermatitis
+O03:   "O03"      # Spontaneous abortion
+O04:   "O04"      # Medical abortion
 
 # --- Past acute events carried as chronic background (identity) ---
 I21: "I21"
