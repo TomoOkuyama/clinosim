@@ -284,6 +284,24 @@ _SECTION_TITLE_JA: dict[str, str] = {
     "complications_and_comorbidities": "合併症・併存症",
     "family_communication": "家族への説明経過",
     "autopsy_status_and_findings": "剖検の有無・所見",
+    # Issue #991 — 手術記録 (Operative note) sections. Titles mirror the
+    # section keys authored in
+    # ``clinosim/modules/document/reference_data/document_type_specs.yaml``.
+    # Session 97 drift fix: PR #991 landed the OPERATIVE_NOTE document
+    # type with builders for these 9 slugs but only populated the US
+    # display table (`_SECTION_TITLE_EN`), leaving JP output falling
+    # through to the raw machine slug — 36 hits in p=500 JP verify
+    # (op_procedure_name / op_anesthesia / …). Adding the JA mirror
+    # here (sibling to `pn_*` from PR #992 which shipped with both).
+    "op_procedure_name": "術式",
+    "op_anesthesia": "麻酔",
+    "op_surgeon": "術者",
+    "op_findings": "術中所見",
+    "op_course": "手術経過",
+    "op_specimens": "摘出標本",
+    "op_blood_loss": "推定出血量",
+    "op_equipment": "使用器具・機材",
+    "op_postop_plan": "術後方針",
     # Issue #992 — 処置記録 (Procedure note) sections. Titles mirror the
     # section keys authored in
     # ``clinosim/modules/document/reference_data/document_type_specs.yaml``.
