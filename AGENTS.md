@@ -368,15 +368,23 @@ C67 / C71 — including male breast (~1% of C50) via the `by_sex`
 prevalence schema, chemo regimen cycle scheduling with per-cycle
 `MedicationRequest` + `MedicationAdministration`, radiation therapy
 Procedure, tumor-marker labs — CEA / CA19-9 / AFP / PIVKA-II /
-CA15-3 / PSA) and obstetrics (Z34 pregnancy marker → mother-side
-delivery Encounter with Z37.0 discharge dx + delivery Procedure
-JP K894 / US CPT 59400, postpartum encounters × 2 with Z39 in
-`chronic_followup.yaml`, newborn Patient chain with
-`admit_source = born` + `Encounter.partOf`, newborn perinatal
-conditions P59.9 / P07.3 / P22.0 / L22 / L20.9, and abortion
-outcome O03.9 / O04.5 age-gated 15–19 → 35–44). Config: `chemo_regimens.yaml`,
-`perinatal.yaml` (both under `clinosim/locale/shared/`). Runtime
-detail: [`docs/reference/oncology-obstetric-service-lines.md`](docs/reference/oncology-obstetric-service-lines.md).
+CA15-3 / PSA) and obstetrics (META #957 Incr 1: pregnancy as a
+time-boxed `TemporalStatePeriod` on `PersonRecord.state_periods`,
+opened by an age-banded annual conception Bernoulli against MHLW
+2022 / CDC NVSR 2022 rates; prenatal visits at gestational weeks
+12/24/36 with encounter reason Z34; mother-side delivery Encounter
+with Z37.0 discharge dx + delivery Procedure JP K894 / US CPT 59400
++ newborn Patient chain via `admit_source = born` + `Encounter.partOf`;
+postpartum encounters × 2 at 7 d / 28 d with Z39; Z37 past-birth
+problem-list-item derived from `state_history` delivered periods;
+newborn perinatal conditions P59.9 / P07.3 / P22.0 / L22 / L20.9;
+abortion outcome O03.9 / O04.5 age-gated 15-19 → 35-44). Config:
+`chemo_regimens.yaml`, `perinatal.yaml` (both under
+`clinosim/locale/shared/`). Runtime detail:
+[`docs/reference/oncology-obstetric-service-lines.md`](docs/reference/oncology-obstetric-service-lines.md).
+Framework rationale:
+[`docs/architecture/architecture-notes.md`](docs/architecture/architecture-notes.md)
+§9 (AD-67 TemporalStatePeriod).
 
 The v0.3 → v0.5.0 history of PATCH / MINOR bumps between these two
 baselines lives in [`CHANGELOG.md`](CHANGELOG.md); the invariants

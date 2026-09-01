@@ -955,3 +955,138 @@ narrative CIF manifest に伝播、per-document コスト分析と audit を
 可能にする。
 
 ---
+
+## 9. 時限 state パターン — `TemporalStatePeriod` (AD-67、META #957 Incr 1)
+
+### Problem
+
+いくつかの臨床事実は `PersonRecord.chronic_conditions` (フラットな
+`list[str]` の ICD code) には収まりが悪い。**開始と outcome を持つ
+時限エピソード** であり、慢性状態ではないため:
+
+- **妊娠** — 40 週の active state、分娩または中絶で閉じる、繰り返し
+  発生しうる (多産)。
+- **がん active treatment** — 数ヶ月にわたる FOLFOX / Trastuzumab
+  コース、完了 / 寛解 / 中止で閉じる。
+- **抗凝固コース** — DVT 予防の 3 ヶ月ワルファリンコース、明確な
+  終了日を持つ。
+- **encounter 後モニタリング** — 期限のある INR チェック窓。
+- **寛解** — active treatment 終了後の「cancer-free follow-up」窓。
+
+Incr 1 前のコードは妊娠を慢性状態として扱っていた (Z34 が sim window
+全期間 problem list に載る)。これにより 3 つの具体的なバグを生んで
+いた:
+
+1. **意味的に誤り** — Z34 problem-list-item emit は生涯にわたる慢性
+   状態を示唆するが、Z34 は「正常妊娠の管理のための encounter」 —
+   来院理由であり慢性診断ではない。
+2. **時間的に誤り** — 女性が実際に妊娠していたかに関わらず、Day 0
+   から sim cursor まで active のまま。妊娠中サプリ (葉酸、鉄剤)
+   が非妊娠期間にも emit されていた。
+3. **統計的に誤り** — Z34 は ~18 % (20-34 JP) で sample され、
+   Z34 年毎に ~1 分娩を生成。実際の MHLW / CDC 年齢帯別出生率は同
+   年齢帯で ~5-10 %。多年 sim で obstetric activity が過剰 emit。
+
+### Decision (AD-67)
+
+**慢性状態と区別される、人が経過する時限的な臨床 / biographical
+state** を表現する汎用 `TemporalStatePeriod` dataclass を導入。
+`PersonRecord.state_periods` (Layer 1) と `PatientProfile.state_periods`
+(Layer 2) の両方に attach、lifecycle generator が呼ぶ query API
+(`has_active_state`、`get_active_state`、`state_history`) を提供する。
+
+```python
+@dataclass
+class TemporalStatePeriod:
+    state_type: str                # "pregnancy" | "cancer_treatment" | "acute_med_course" | …
+    start_date: date
+    end_date: date | None = None   # None = まだ open
+    outcome: str = ""              # "delivered" | "aborted" | "completed" | …
+    metadata: dict[str, Any] = field(default_factory=dict)  # state 固有 field
+    period_seq: int = 0            # (person, state_type) 毎の 0-indexed
+```
+
+**Semantic contract:**
+- `start_date` inclusive、`end_date` set 時は inclusive。
+- `(person, state_type)` あたり同時に高々 1 つの active period を
+  仮定 (妊娠は生物学的に成立; 他の lifecycle state も arrive 時に
+  成立する想定)。
+- `metadata` は state 固有の structured field を carry。妊娠なら:
+  `lmp`、`edd`、`planned_delivery_date`、`delivered_on` (または
+  `abortion_date` + `abortion_dx`)。
+
+**Generator contract (state_type ごと):**
+- 1 つの owner モジュールが state の `state_periods` に書く。妊娠 =
+  `population/engine.py::_pregnancy_lifecycle_events`。
+- Draw は state-scoped deterministic sub-RNG を使う (妊娠は現在
+  `perinatal_delivery_seed(person_id, year)`; がんは
+  `chemotherapy_regimen_seed(person_id, cancer_code)`; 将来の state
+  は独自 seed)。
+- Owner が遷移条件で period を open し、終了条件で close、close 時に
+  `outcome` と `end_date` を書き、`person.state_periods` に append。
+
+**FHIR emit contract:**
+- Downstream emit adapter が `state_history(state_type)` を読む
+  (post-`asdict()` では `record["patient"]["state_periods"]`)、
+  Condition / Observation / Procedure などの「これは 1 回起こって
+  今は close されている」semantic のリソースを導出 — Z37 過去出産
+  マーカーが典型例。
+
+### なぜ `chronic_conditions` にそのまま残さないのか
+
+`chronic_conditions` は fixed schema (flat `list[str]`) を持ち、その
+consumer (FHIR problem-list emit、慢性 followup dispatch、慢性薬剤
+activator) は「code が list にあれば患者はその慢性状態を今、永久に
+持っている」と仮定している。時限エピソードはこの仮定を 3 つの site
+で同時に破り、それを per-code の特殊ケースで pave over すると、
+産科読者にしか意味のない unbounded な code path を生む。明確な
+lifecycle contract を持つ別データ構造にすることで、新しい lifecycle
+state 毎に **1 つの owner + 1 つの emit adapter** で着地でき、
+「産科」や「がん」の concern を chronic list の全 consumer に散らす
+ことを避けられる。
+
+### RNG cursor 保全 (byte-diff 安全性)
+
+demographics `chronic_prevalence` yaml は Z34 (と過去出産マーカー
+Z37) を引き続き列挙し、Bernoulli 反復順が非産科 code で shift しない
+ようにする。ただし sampling loop は当該 code の draw を no-op consume
+する — `rng.random()` call は行い cursor は進めるが、code は
+`chronic_conditions` に append しない。フィルタは
+`modules/population/engine.py::_STATE_PERIOD_CHRONIC_CODES`。p=1000
+US 非産科 byte-identity vs master を検証済み (596/596 person が
+match)。
+
+### 初回着地 (Incr 1 — 妊娠) の非目標
+
+- **Event generator registry** — Incr 1 は pregnancy generator を
+  `generate_healthcare_calendar` に直接 wire。新 state generator が
+  自動登録できる registry は Incr 2。
+- **StateDirective** — Incr 1 は generator が `state_periods` を直接
+  変更する。generator が返す明示的な `StateDirective` (open / close
+  / transition) を共有 reducer が適用して auditability を確保、は
+  Incr 2+。
+- **汎用 `state_rng` helper** — Incr 1 は各 state が既にそのドメイン
+  で確立された sub-RNG naming を再利用 (妊娠 =
+  `perinatal_delivery_seed`)。共通の
+  `state_rng(pid, state_type, period_seq)` helper は Incr 3。
+- **がん active-treatment 移行** — chemo cycle scheduler は本パターン
+  の自然な次候補; Incr 1.5。
+
+### 現在の consumer
+
+| Consumer | 読み取り元 | 目的 |
+|---|---|---|
+| `_pregnancy_lifecycle_events` | 自らの `state_periods` 書き込み | 年 N+1 の `get_active_state` short-circuit で Bernoulli skip; 年 N の period が年境界を carry |
+| `activator.py::activate_patient` | `person.state_periods` | 妊娠履歴 non-empty で med-derivation 入力に葉酸 + 鉄剤を注入 |
+| `_build_conditions` (FHIR) | `record["patient"]["state_periods"]` | delivered pregnancy period 毎に Z37 problem-list-item Condition を emit |
+| `tests/integration/test_pregnancy_lifecycle_e2e.py` | patient CIF record | 生物学 invariant を assert (Z34 problem-list なし; 産褥は分娩後; 男性 / 未成年 / 閉経後は妊娠 period ゼロ) |
+
+### Reference
+
+- Types: `clinosim/types/patient.py::TemporalStatePeriod`
+- Query API: `clinosim/types/population.py::PersonRecord.has_active_state / get_active_state / state_history`
+- Generator: `clinosim/modules/population/engine.py::_pregnancy_lifecycle_events`
+- FHIR adapter: `clinosim/modules/output/fhir_r4/conditions/conditions.py` (past-pregnancies block)
+- Config: `clinosim/locale/shared/perinatal.yaml::lifecycle`
+
+---
