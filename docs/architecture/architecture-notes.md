@@ -878,3 +878,144 @@ the narrative CIF manifest, enabling per-document cost analysis and audit.
 
 ---
 
+## 9. Temporal-state pattern — `TemporalStatePeriod` (AD-67, META #957 Incr 1)
+
+### Problem
+
+Several clinical facts fit awkwardly on `PersonRecord.chronic_conditions`
+(a flat `list[str]` of ICD codes) because they are **time-boxed
+episodes with an outcome**, not chronic conditions:
+
+- **Pregnancy** — a 40-week active state, closes with delivery or
+  abortion, may repeat (multi-parity).
+- **Cancer active treatment** — an FOLFOX / Trastuzumab course that
+  spans months, closes with completion / remission / discontinuation.
+- **Anticoagulation course** — a 3-month DVT prophylaxis warfarin
+  course with a defined stop date.
+- **Post-encounter monitoring** — an INR check window that expires.
+- **Remission** — a bounded window of "cancer-free follow-up" after
+  active treatment closes.
+
+Pre-Incr-1 the code treated pregnancy as a chronic condition (Z34 sat
+on the problem list for the entire sim window), which produced three
+concrete bugs:
+
+1. **Semantic wrong** — Z34 problem-list-item emit implied a lifelong
+   chronic condition, but Z34 is an "encounter for supervision of
+   normal pregnancy" — a visit reason, not a chronic diagnosis.
+2. **Temporal wrong** — the entry stayed active from Day 0 to the sim
+   cursor, regardless of whether the woman was actually pregnant at
+   any point in that window. Prenatal supplements (folic acid, iron)
+   emitted for non-pregnant time periods.
+3. **Statistical wrong** — Z34 was sampled at ~18 % prevalence (20-34
+   JP), producing ~1 delivery per Z34-year. Real MHLW / CDC age-band
+   fertility rates are ~5-10 % for the same bands. Multi-year sims
+   over-emitted obstetric activity.
+
+### Decision (AD-67)
+
+Introduce a general-purpose `TemporalStatePeriod` dataclass that
+represents a **time-boxed clinical or biographical state a person
+passes through**, distinct from a chronic condition. Attach it to
+both `PersonRecord.state_periods` (Layer 1) and
+`PatientProfile.state_periods` (Layer 2), and provide a query API
+(`has_active_state`, `get_active_state`, `state_history`) that
+lifecycle generators call.
+
+```python
+@dataclass
+class TemporalStatePeriod:
+    state_type: str                # "pregnancy" | "cancer_treatment" | "acute_med_course" | …
+    start_date: date
+    end_date: date | None = None   # None = still open
+    outcome: str = ""              # "delivered" | "aborted" | "completed" | …
+    metadata: dict[str, Any] = field(default_factory=dict)  # state-specific fields
+    period_seq: int = 0            # 0-indexed per (person, state_type)
+```
+
+**Semantic contract:**
+- `start_date` inclusive, `end_date` inclusive when set.
+- Assumes at most one active period per `(person, state_type)` at any
+  time (holds for pregnancy by biology; will hold for other lifecycle
+  states as they arrive).
+- `metadata` carries state-specific structured fields. For pregnancy:
+  `lmp`, `edd`, `planned_delivery_date`, `delivered_on` (or
+  `abortion_date` + `abortion_dx`).
+
+**Generator contract (per state_type):**
+- A single owner module writes to `state_periods` for the state.
+  Pregnancy = `_pregnancy_lifecycle_events` in `population/engine.py`.
+- Draws use a state-scoped deterministic sub-RNG (pregnancy currently
+  uses `perinatal_delivery_seed(person_id, year)`; cancer will use
+  `chemotherapy_regimen_seed(person_id, cancer_code)`; future states
+  get their own).
+- The owner opens the period on the transition condition, closes it
+  on the terminal condition, writes `outcome` and `end_date` at
+  close, and appends to `person.state_periods`.
+
+**FHIR emit contract:**
+- Downstream emit adapters read `state_history(state_type)` (post-
+  `asdict()` this is `record["patient"]["state_periods"]`) to derive
+  Condition / Observation / Procedure resources whose semantic is
+  "this happened once and is now closed" — like Z37 past-birth marker.
+
+### Why not just leave it on `chronic_conditions`?
+
+`chronic_conditions` has a fixed schema (flat `list[str]`) and its
+consumers (FHIR problem-list emit, chronic followup dispatch, chronic
+medication activator) assume "if the code is in the list, the patient
+has the chronic condition right now, forever." A time-boxed episode
+violates that assumption at three sites at once, and papering over
+each with per-code special cases produces an unbounded set of code
+paths that only make sense to obstetric readers. A separate data
+structure with an explicit lifecycle contract lets each new lifecycle
+state land as a **single owner + a single emit adapter**, without
+splitting the "obstetric" or "cancer" concerns across every consumer
+of the chronic list.
+
+### RNG-cursor preservation (byte-diff safety)
+
+The demographics `chronic_prevalence` yaml still lists Z34 (and Z37,
+the past-birth marker) so the Bernoulli iteration order does not
+shift for any non-obstetric code. But the sampling loop no-op-
+consumes the draw for these codes — the `rng.random()` call happens
+so the cursor advances, but the code is not appended to
+`chronic_conditions`. Filter is `_STATE_PERIOD_CHRONIC_CODES` in
+`modules/population/engine.py`. Verified p=1000 US non-obstetric
+byte-identity vs master (596/596 persons matched).
+
+### Non-goals for the first landing (Incr 1 — pregnancy)
+
+- **Event generator registry** — Incr 1 wires the pregnancy generator
+  directly into `generate_healthcare_calendar`. A registry that lets
+  new state generators auto-register is Incr 2.
+- **StateDirective** — Incr 1 has generators mutate `state_periods`
+  directly. An explicit `StateDirective` (open / close / transition)
+  that generators return, applied by a shared reducer for
+  auditability, is Incr 2+.
+- **Generalized `state_rng` helper** — Incr 1 has each state reuse
+  the sub-RNG naming already established for that domain
+  (pregnancy = `perinatal_delivery_seed`). A common
+  `state_rng(pid, state_type, period_seq)` helper is Incr 3.
+- **Cancer active-treatment migration** — the chemo cycle scheduler
+  is a natural next candidate for this pattern; Incr 1.5.
+
+### Consumers today
+
+| Consumer | Reads from | Purpose |
+|---|---|---|
+| `_pregnancy_lifecycle_events` | own writes to `state_periods` | year-N+1 `get_active_state` short-circuits Bernoulli; year-N period carries across year boundary |
+| `activator.py::activate_patient` | `person.state_periods` | attaches folic acid + iron via med-derivation input when pregnancy history non-empty |
+| `_build_conditions` (FHIR) | `record["patient"]["state_periods"]` | emits one Z37 problem-list-item Condition per delivered pregnancy period |
+| `tests/integration/test_pregnancy_lifecycle_e2e.py` | patient CIF record | asserts biology invariants (no Z34 problem-list; postpartum after delivery; men / minors / postmenopausal have zero pregnancy periods) |
+
+### Reference
+
+- Types: `clinosim/types/patient.py::TemporalStatePeriod`
+- Query API: `clinosim/types/population.py::PersonRecord.has_active_state / get_active_state / state_history`
+- Generator: `clinosim/modules/population/engine.py::_pregnancy_lifecycle_events`
+- FHIR adapter: `clinosim/modules/output/fhir_r4/conditions/conditions.py` (past-pregnancies block)
+- Config: `clinosim/locale/shared/perinatal.yaml::lifecycle`
+
+---
+

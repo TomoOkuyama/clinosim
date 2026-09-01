@@ -102,20 +102,36 @@ Reference integrity を維持。
   - 腫瘍マーカー labs (CEA / CA19-9 / AFP / PIVKA-II / CA15-3 /
     PSA) → `Observation` (LOINC laboratory)。
 - **産科** (config: `locale/shared/perinatal.yaml`):
-  - Z34 妊娠慢性マーカー → 母親別分娩スケジュール。
-  - 母親側分娩 `Encounter` (IMP 入院、admit dx Z34、discharge dx
+  - 妊娠は時限 `TemporalStatePeriod` (`state_type="pregnancy"`)
+    として `PersonRecord.state_periods` にモデル化 —
+    `perinatal.yaml::lifecycle.annual_conception_rate` (MHLW 2022 /
+    CDC NVSR 2022) に対する年齢帯別 conception Bernoulli で open、
+    planned delivery date (LMP + 280 d ± 7 d jitter) を含む年で
+    `outcome="delivered"` として close、中絶時は abortion date で
+    `outcome="aborted"` として close。cross-year 妊娠は
+    `state_periods` 経由で carry — 詳細は
+    [architecture-notes §9](../architecture/architecture-notes.ja.md)。
+  - 妊婦健診 `Encounter` (AMB、obgyn) は妊娠週 12 / 24 / 36 で
+    encounter reason Z34。Z34 は problem-list-item Condition を
+    emit しない (妊娠は state、慢性状態ではない)。
+  - 母親側分娩 `Encounter` (IMP 入院、admit dx O80、discharge dx
     Z37.0、分娩 `Procedure` — JP K894 / US CPT 59400)。
-  - 産褥 encounter × 2 (~1 週 と ~4 週、disease id `Z39`; config:
-    `locale/shared/chronic_followup.yaml`)。
+  - 産褥 `Encounter` × 2 (分娩後 7 d と 28 d、encounter reason
+    `Z39`、obgyn)。
   - 中絶 outcome (age-gate 15-19 → 35-44) — 外来日帰り手術
     `Encounter` with O03.9 (自然) or O04.5 (人工)。発火時は
-    delivery + newborn chain を skip。
+    delivery + newborn chain を skip、period は `outcome="aborted"`
+    で close。
   - 新生児 `Patient` (id `<mother>-BABY`) を delivery ごとに生成、
     世帯 + 出生日を母親から継承、性別は per-mother sub-RNG から
     サンプリング。新生児 `Encounter` は
     `admit_source = born` (新規 `AdmitSource.BORN` enum member) と
     `Encounter.partOf → Encounter/<母親側 delivery encounter>` で
     link back、discharge dx は `Z38.0`。
+  - 過去出産 `Condition` — delivered pregnancy period ごとに Z37
+    `problem-list-item` 1 件、`onsetDateTime = delivery_date`
+    (emit 時に `state_history("pregnancy")` から導出;
+    生物学的整合、多産で複数 Z37)。
   - 新生児 perinatal `Condition`: P59.9 黄疸 ~20 %、P07.3 早産
     ~7 % (→ 条件付き P22.0 RDS ~35 %)、L22 おむつかぶれ ~30 %、
     L20.9 アトピー ~15 %。

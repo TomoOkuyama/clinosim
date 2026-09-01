@@ -4,9 +4,59 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Any
 
 from clinosim.types.allergy import Allergy  # noqa: F401 — re-exported for callers
 from clinosim.types.identity import IdentityTimeline
+
+
+@dataclass
+class TemporalStatePeriod:
+    """A time-boxed clinical or biographical state a person passes through.
+
+    Introduced by META #957 pregnancy-lifecycle refactor (Incr 1) as the
+    canonical replacement for "chronic condition entries that actually
+    represent a lifecycle" — currently pregnancy (Z34 + Z37 past-birth
+    marker), later cancer active-treatment, warfarin courses, remission,
+    etc.
+
+    Semantics:
+      * ``start_date`` inclusive; ``end_date`` inclusive when set; ``None``
+        end_date means the period is still open (e.g., ongoing pregnancy).
+      * ``outcome`` is populated when the period closes ("delivered" /
+        "aborted" / "completed" / …); empty while still open.
+      * ``metadata`` carries state-specific structured fields (e.g., for
+        pregnancy: ``lmp``, ``edd``, ``delivery_date``). Callers must not
+        rely on unknown keys; only the state's dedicated generator writes
+        or reads them.
+      * ``period_seq`` is 0-indexed per (person, state_type). A woman with
+        two delivered pregnancies has ``period_seq=0`` and ``period_seq=1``.
+    """
+
+    state_type: str
+    start_date: date
+    end_date: date | None = None
+    outcome: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
+    period_seq: int = 0
+
+    def is_active_at(self, day: date) -> bool:
+        """Return True iff ``day`` falls inside this period (inclusive)."""
+        if day < self.start_date:
+            return False
+        if self.end_date is None:
+            return True
+        return day <= self.end_date
+
+    def overlaps_year(self, year: int) -> bool:
+        """Return True iff the period intersects the calendar ``year``."""
+        year_start = date(year, 1, 1)
+        year_end = date(year, 12, 31)
+        if self.end_date is not None and self.end_date < year_start:
+            return False
+        if self.start_date > year_end:
+            return False
+        return True
 
 
 @dataclass
@@ -174,6 +224,11 @@ class PatientProfile:
 
     physiological_profile: PatientPhysiologicalProfile = field(default_factory=PatientPhysiologicalProfile)
     baseline_vitals: BaselineVitals = field(default_factory=BaselineVitals)
+    # META #957 Incr 1: time-boxed lifecycle states (pregnancy for now).
+    # Mirrors ``PersonRecord.state_periods`` and is copied through by the
+    # patient activator so that FHIR emit adapters (Z37 past-birth marker
+    # via ``state_history("pregnancy")``) can read it from the record dict.
+    state_periods: list[TemporalStatePeriod] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Issue #452 PR 1 migration shim: accept legacy `list[str]` fixtures

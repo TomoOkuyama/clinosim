@@ -110,15 +110,30 @@ schedule cannot cascade into unrelated patients' timelines
 | `pediatric_visit` | Anyone with an active well-child schedule item (`modules/pediatric/calendar.py`) | Age-conditional per JP MHLW / US CDC well-child schedule | `_simulate_outpatient_visit(visit_type="pediatric_visit")` |
 | `health_screening` | Age ≥ 40 (annual) + age ≥ 50 colonoscopy (10-year interval → 10 %/yr) + female age ≥ 40 mammography (60 %/yr) | Population thresholds in `_population_workflow_thresholds` | `_simulate_outpatient_visit(visit_type="health_screening")` |
 | `chemo_visit` | Chronic-cancer carriers whose per-(patient, cancer_code) sub-RNG assigns an active regimen from `chemo_regimens.yaml` | `cycle_interval_days` per regimen (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d), capped by `course_cycles` | `_simulate_outpatient_visit(visit_type="chemo_visit")` — emits Encounter + `chemotherapy_administration` Procedure |
-| `delivery` | Z34-carrying women (actively pregnant during sim window) | One event per pregnancy-year at a scheduled month within `perinatal.yaml::scheduling.delivery_month_range` (default April-October) | `simulator/perinatal.py::simulate_delivery_encounter` — emits IMP Encounter with `O80` admission dx / `Z37.0` discharge dx + delivery Procedure |
+| `chronic_visit` (`condition_type="prenatal_visit"`, `disease_id="Z34"`) | Women 15-49 with an active `TemporalStatePeriod(state_type="pregnancy")` | Gestational weeks 12 / 24 / 36 from LMP, from `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` | `_simulate_outpatient_visit(visit_type="chronic_followup")` routed to `obgyn` via `_CHRONIC_DISEASE_SPECIALTY` |
+| `delivery` | Women whose active pregnancy period's `planned_delivery_date` (EDD ± 7 d jitter) falls in the sim year — opened by an annual conception Bernoulli against `perinatal.yaml::lifecycle.annual_conception_rate.{jp,us}` | One event per delivered pregnancy period, per-`(person_id, year)` sub-RNG (`perinatal_delivery_seed`) | `simulator/perinatal.py::simulate_delivery_encounter` — emits IMP Encounter with `O80` admission dx / `Z37.0` discharge dx + delivery Procedure + newborn Patient chain |
+| `chronic_visit` (`condition_type="postpartum"`, `disease_id="Z39"`) | Same delivered pregnancy periods | 7 d + 28 d after `delivery_date`, from `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` | `_simulate_outpatient_visit(visit_type="chronic_followup")` routed to `obgyn` |
+| `abortion` | Same lifecycle generator, when the per-mother-year abortion outcome roll succeeds (age-banded 15-19 40 % → 35-44 7 %) | Gestational week ~10 (LMP + 70 ± 14 d), closes the period with `outcome="aborted"` | `simulator/perinatal.py::simulate_abortion_encounter` — outpatient day-surgery, discharge dx `O03.9` / `O04.5` |
+
+**META #957 Incr 1 note:** pregnancy is no longer treated as a
+chronic condition. Z34 is not appended to `chronic_conditions` (the
+sampling loop consumes the Bernoulli draw as a no-op to preserve
+rng cursor); instead the pregnancy-lifecycle generator opens a
+`TemporalStatePeriod(state_type="pregnancy")` on
+`PersonRecord.state_periods` on conception and closes it on delivery
+(or abortion). Cross-year pregnancies carry via `state_periods`;
+year N+1's generator call short-circuits the conception Bernoulli
+via `get_active_state`. See
+[`../architecture/architecture-notes.md#9-temporal-state-pattern--temporalstateperiod-ad-67-meta-957-incr-1`](../architecture/architecture-notes.md).
 
 **Determinism-neutrality contract:** every event added since the
-initial chronic-visit scheduler (chemo_visit, delivery) uses a
-dedicated per-patient sub-seed (`chemotherapy_regimen_seed`,
-`perinatal_delivery_seed`) instead of consuming the calendar's
-shared per-person stream. Adding or tuning these emissions is
-byte-identical for every patient except the ones the new event
-directly targets.
+initial chronic-visit scheduler (chemo_visit + the full pregnancy
+lifecycle) uses a dedicated per-patient sub-seed
+(`chemotherapy_regimen_seed`, `perinatal_delivery_seed`) instead of
+consuming the calendar's shared per-person stream. Adding or tuning
+these emissions is byte-identical for every patient except the ones
+the new event directly targets — verified p=1000 US non-obstetric
+595/595 identity vs pre-Incr-1 master.
 
 Full schema + slice scope for the oncology + obstetric events:
 [`../reference/oncology-obstetric-service-lines.md`](../reference/oncology-obstetric-service-lines.md).

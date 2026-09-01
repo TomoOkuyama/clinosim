@@ -138,22 +138,22 @@ chronic_prevalence:
     "60-69": 0.030
     "70-99": 0.060
 
-  # --- Obstetrics (Issue #943) ---------------------------------------------
-  # Z34 (supervision of normal pregnancy) modelled as short-window active
-  # marker on childbearing-age women. Rate calibrated to CDC Natality 2020
-  # (~11 births per 1000 total pop, higher than JP; concentrated ages
-  # 20-39). Sex-locked female-only via icd10_sex_restrictions.yaml. See JP
-  # demographics for the shared scope-limitation note (delivery / newborn
-  # / puerperium deferred to a follow-up Issue).
+  # --- Obstetrics (Issue #943, migrated by META #957 Incr 1) ---------------
+  # META #957 Incr 1: Z34 / Z37 no-op-consumed here — see the JP mirror
+  # (`locale/jp/demographics.yaml`) for the full rationale. The values
+  # below are frozen at pre-Incr-1 numbers as RNG-cursor anchors and are
+  # NO LONGER SEMANTICALLY MEANINGFUL as prevalences. Obstetric emit
+  # tuning goes to `locale/shared/perinatal.yaml::lifecycle.annual_conception_rate.us`;
+  # editing these bands changes the rng cursor for codes iterated after
+  # them, which is why they are pinned.
   Z34:
     sex: F
-    "20-34": 0.190
-    "35-44": 0.085
-  Z37:      # Outcome of delivery — carried as chronic marker of past birth
-            # (see JP demographics for scope-limitation note).
+    "20-34": 0.190   # frozen; obstetric emit tuning goes to perinatal.yaml
+    "35-44": 0.085   # frozen
+  Z37:
     sex: F
-    "25-44": 0.130
-    "45-64": 0.170
+    "25-44": 0.130   # frozen
+    "45-64": 0.170   # frozen
 
 # Disease incidence rates per 100,000/year by age group
 # Source: CDC, AHA, AAOS statistics

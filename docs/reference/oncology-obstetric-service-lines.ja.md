@@ -39,51 +39,77 @@
 
 | 要素 | 内容 | 場所 |
 |---|---|---|
-| 妊娠慢性マーカー (Z34) | 女性 20-44、~18 % (JP 20-34) / ~19 % (US 20-34) | `locale/<c>/demographics.yaml` の `chronic_prevalence.Z34` (`sex: F`) |
-| 過去分娩マーカー (Z37) | 産科既往のある女性の problem list に保持 | 同 YAML |
-| 妊娠中サプリ Rx | 葉酸 + 鉄剤 | `locale/shared/chronic_medications.yaml` の Z34 ブロック |
-| 母親側分娩入院 encounter | Z34 妊娠年毎に 1 件の IMP encounter、LOS JP 5d / US 2d、admission dx `O80`、discharge dx `Z37.0`、delivery Procedure | `locale/shared/perinatal.yaml` + `population/engine.py::_perinatal_delivery_events` + `simulator/perinatal.py` |
+| 時限付き妊娠 lifecycle state (META #957 Incr 1) | 15-49 歳女性に対して MHLW 2022 (JP) / CDC NVSR 2022 (US) の年齢帯別出生率で年次 conception Bernoulli。受精すると `TemporalStatePeriod(state_type="pregnancy")` を `PersonRecord.state_periods` に open (metadata: `{lmp, edd, planned_delivery_date}`)、planned_delivery_date を含む年で close (`outcome="delivered"`)、または abortion date で close (`outcome="aborted"`)。 | `perinatal.yaml::lifecycle.annual_conception_rate` + `population/engine.py::_pregnancy_lifecycle_events` + `types/patient.py::TemporalStatePeriod` |
+| 過去分娩 Z37 problem-list-item | delivered pregnancy period 毎に 1 件、onsetDateTime = 分娩日。生物学的整合 — 複数出産で複数 Z37。FHIR emit 時に `state_history("pregnancy")` から導出、**Incr 1 前の chronic-sample proxy を置換**。 | `modules/output/fhir_r4/conditions/conditions.py::_build_conditions` (past-pregnancies adapter) |
+| 妊娠中サプリ Rx | 葉酸 + 鉄剤。pregnancy 履歴のある patient にのみ home medication として付与。emit path は不変 (`chronic_medications.yaml::Z34`)、gate が `chronic_conditions` から `state_periods` へ移動 — activator で仮想 Z34 `ChronicCondition` を med-derivation 入力に注入。 | `locale/shared/chronic_medications.yaml` の Z34 block + `modules/patient/activator.py` (state 起点 hook) |
+| 妊婦健診 encounter | AMB encounter、妊娠週 12/24/36 (Incr 1 は簡易版、q4w/q2w/q1w cadence は Incr 1.5)、`disease_id="Z34"`、`_CHRONIC_DISEASE_SPECIALTY` で obgyn に routing。 | `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` + `population/engine.py::_pregnancy_lifecycle_events` |
+| 母親側分娩入院 encounter | delivered pregnancy period 毎に 1 件 IMP encounter、planned delivery date (EDD ± 7 d jitter) を含む年で発火。LOS JP 5 d / US 2 d、admission dx `O80`、discharge dx `Z37.0`、delivery Procedure。 | `locale/shared/perinatal.yaml::encounter` + `population/engine.py::_pregnancy_lifecycle_events` + `simulator/perinatal.py` |
 | 分娩 Procedure | JP: `K894` 分娩介助 / US: CPT `59400` routine obstetric care | `perinatal.yaml::procedure` |
 | 新生児 `Patient` チェーン | Baby id `<mother>-BABY`、世帯継承、性別は per-mother sub-RNG、birthDate = 分娩日 | `simulator/perinatal.py` (session 94) |
 | 新生児 Encounter | IMP、`admit_source = born` (新規 `AdmitSource.BORN` enum member) + `admit_source_encounter_id` → 新生児側 FHIR `Encounter.partOf` | `simulator/perinatal.py` + `types/encounter.py::AdmitSource.BORN` |
 | 新生児側 Z38.0 | 新生児 discharge dx | `simulator/perinatal.py` |
-| 産褥 encounter × 2 | ~1 週 + ~4 週の chronic_visit、disease_id `Z39` (産褥期 maternal 管理) | `locale/shared/chronic_followup.yaml::Z39` |
+| 産褥 encounter × 2 | 分娩日 + 7 d / + 28 d、`chronic_visit` with `disease_id="Z39"`、obgyn routing。12 月分娩の場合は Dec 31 に year-boundary clamp。 | `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` + `population/engine.py::_pregnancy_lifecycle_events` |
 | 新生児 perinatal condition | P59.9 黄疸 ~20 %、P07.3 早産 ~7 % (→ 条件付き P22.0 RDS ~35 %)、L22 おむつかぶれ ~30 %、L20.9 アトピー ~15 % | `simulator/perinatal.py` (per-newborn sub-RNG) |
-| 中絶 outcome (age-gate) | 自然 O03.9 / 人工 O04.5 外来日帰り手術。年齢帯別確率 15-19: 40 % → 35-44: 7 %。発火時は当該 Z34 年の delivery + newborn chain を skip | `locale/shared/perinatal.yaml::abortion` + `population/engine.py::_abortion_outcome_events` |
+| 中絶 outcome (age-gate) | 自然 O03.9 / 人工 O04.5 外来日帰り手術。年齢帯別確率 15-19: 40 % → 35-44: 7 %。発火時は妊娠週 ~10 (LMP+70±14 d) で period を `outcome="aborted"` close、delivery + newborn chain skip。 | `locale/shared/perinatal.yaml::abortion` + `population/engine.py::_pregnancy_lifecycle_events` (abortion 分岐) |
 
-### 1.3 明示的に未カバー (follow-up slice で対応)
+### 1.3 明示的に未カバー (Incr 1.5 以降)
 
-- **時限付き妊娠 state** — 現在 Z34 は sim window 全期間 problem list に
-  留まっている。実際の 40 週 active state ではない。follow-up で
-  `disease_incidence` 型 event + snapshot-aware clamping に移行予定。
-  session 94 で delivery + 産褥 + 新生児 chain が着地したことで、
-  元スコープが懸念した時間的シグネチャは既に供給されており、優先度
-  は「必須」から「あればより良い」へ downgrade。
+- **妊婦健診の per-encounter サプリ MedicationRequest** — Incr 1 は
+  葉酸 + 鉄剤を activator hook 経由で `current_medications` に永続
+  attach (妊娠履歴 non-empty を gate)。妊婦健診 encounter 単位で
+  MedicationRequest を emit する方がクリーン。Incr 1.5 で対応。
+- **Trimester 別 Z34.0X emit** — 現状すべての妊婦健診が
+  `Z34` (trimester 未指定) を emit。妊娠週帯で
+  `Z34.00 / Z34.01 / Z34.02 / Z34.03` に細分化するのは yaml + emit
+  の小改修、Incr 1.5 で対応。
+- **完全な妊婦健診 cadence** — Incr 1 は 12 / 24 / 36 週の 3 回
+  簡易版。実臨床は 28 週まで q4w、36 週まで q2w、以降 q1w — Incr 1.5。
+- **妊娠中合併症** — O24 妊娠糖尿病、O14 妊娠高血圧、O99 妊娠に
+  合併する既存疾患。`state_periods` に妊娠中 comorbidity hook を
+  必要とする。
+- **多年 TFR calibration** — Incr 1 は LMP を暦年内 uniform で
+  seed するため、単年 sim では delivery が過少 emit (前年 conception
+  分の cross-year pregnancy が欠落するため「実 annual」の ~25 %
+  程度)。多年 sim で steady-state 収束。population 生成時の
+  pre-warm pass は Incr 1.5。
+- **死産 / 早産 outcome variation** — 現状すべての非中絶妊娠は
+  正期産の生児 delivery。
+- **帝王切開シェア** — 現状全 delivery が O80 自然経腟分娩として
+  emit。実際の JP 帝王切開率は ~20 % (O82)。
 - **がん専用 Composition type** — LOINC 34133-9 (がん治療 note)。
 - **年跨ぎ chemo cycle continuity** — 現在 cycle は暦年ごとに fresh
   scheduling。11 月 FOLFOX 開始患者は 1 月に cycle 1 から再開する。
-- **帝王切開シェア** — 現状全 delivery が O80 自然経腟分娩として
-  emit。実際の JP 帝王切開率は ~20 % (O82); per-mother sub-RNG での
-  split が follow-up 候補。
 
 ---
 
 ## 2. 出力パイプライン (data flow)
 
 ```
-locale/<c>/demographics.yaml
-  chronic_prevalence.C50 / .C61 / .Z34 / ...
-                      │
-                      ▼
-population/engine.py::generate_population()
-  each PersonRecord gets chronic_conditions = ["C50", "Z34", ...]
-                      │
-                      ▼
-population/engine.py::generate_healthcare_calendar()
+locale/<c>/demographics.yaml                 locale/shared/perinatal.yaml
+  chronic_prevalence.C50 / .C61 / ...           lifecycle.annual_conception_rate
+  (Z34 / Z37 は no-op-consume、append しない)   lifecycle.gestation_days
+                      │                         lifecycle.prenatal_visit_gestational_weeks
+                      ▼                         lifecycle.postpartum_visit_offsets_days
+population/engine.py::generate_population()                        │
+  each PersonRecord gets chronic_conditions = ["C50", ...]         │
+  person.state_periods = []  (生成時は空)                          │
+                      │                                            │
+                      ▼                                            │
+population/engine.py::generate_healthcare_calendar()               │
+  active pregnancy なしの 15-49 女性:                              │
+     _pregnancy_lifecycle_events(person, year, country) ◄──────────┤
+        rng.random() < annual_conception_rate(country, age)?       │
+          → TemporalStatePeriod(state_type="pregnancy",             │
+                lmp=..., edd=lmp+280, planned_delivery_date=...) open
+          → person.state_periods に append                          │
+     active pregnancy period ごと:                                  │
+        → LifeEvent(chronic_visit, condition_type="prenatal_visit", disease_id="Z34") × 3
+        planned_delivery が当該年:
+          → LifeEvent(delivery, disease_id="Z34")
+          → LifeEvent(chronic_visit, condition_type="postpartum", disease_id="Z39") × 2
+          → period を outcome="delivered", end_date=delivery_date で close
   regimen assignment ありのがん患者:
      _chemo_cycle_events(person, year)  →  LifeEvent(chemo_visit, ...) × N cycles
-  Z34 女性:
-     _perinatal_delivery_events(person, year)  →  LifeEvent(delivery, ...)
                       │
                       ▼
 simulator/engine.py::run_beta()
@@ -94,11 +120,28 @@ simulator/engine.py::run_beta()
                                           → Encounter (IMP, obgyn dept, LOS 5/2d)
                                           → ProcedureRecord (delivery)
                                           → ClinicalDiagnosis(admission=O80, discharge=Z37.0)
+                                          → 新生児 Patient chain
+  event_type == "abortion"          →  simulate_abortion_encounter(...) (period 既に close)
+  event_type == "chronic_visit" with condition_type == "prenatal_visit" or "postpartum"
+                                    →  outpatient dispatch 経由、
+                                        specialty = obgyn (via _CHRONIC_DISEASE_SPECIALTY)
+                      │
+                      ▼
+activator.py::activate_patient() [patient_cache に per-person]
+  PatientProfile.state_periods = person.state_periods の shallow copy
+  state_history("pregnancy") が non-empty:
+     current_meds に葉酸 + 鉄剤 (med-derivation 入力に仮想 Z34 経由)
                       │
                       ▼
 CIFPatientRecord → cif/structural/patients/<enc>.json に書き出し
+  record["patient"]["state_periods"] に妊娠履歴が carry
                       │
                       ▼
+export-fhir → conditions/conditions.py::_build_conditions
+  chronic loop: chronic_conditions を iterate (Z34 なし → Z34 problem-list-item も無し)
+  past-pregnancies adapter: state_periods を outcome="delivered" で filter
+                            → delivered period 毎に Z37 problem-list-item を emit
+                              (onsetDateTime = end_date)
 export-fhir → Encounter.ndjson / Procedure.ndjson / Condition.ndjson / ...
 ```
 
@@ -218,7 +261,8 @@ procedure:                            # chemo_visit 毎に emit
 ### 3.4 `perinatal.yaml`
 
 場所: `locale/shared/perinatal.yaml`。分娩 encounter shape + procedure
-code + scheduling window を宣言する。
+code + abortion outcome テーブル + **pregnancy lifecycle block**
+(META #957 Incr 1) を宣言する。
 
 ```yaml
 encounter:
@@ -237,13 +281,51 @@ procedure:
   us_code: "59400"                      # CPT routine obstetric care
   duration_minutes: 90
 
+# Legacy block — abortion 分岐の date placement で backward-compat のため
+# 保持。Incr 1 lifecycle generator はこれを参照せず、delivery date は
+# EDD ± jitter から導出する。
 scheduling:
-  delivery_month_range: [4, 10]         # Day-1 draw の月 bounds
+  delivery_month_range: [4, 10]
+
+# META #957 Incr 1: 完全な妊娠 lifecycle (年次 conception → LMP/EDD →
+# 妊婦健診 / 分娩 / 産褥 → close)。MHLW 2022 (JP) / CDC NVSR 2022 (US)
+# の年齢帯別出生率で per-woman-per-year Bernoulli。
+lifecycle:
+  annual_conception_rate:
+    jp:
+      "15-19": 0.003
+      "20-24": 0.023
+      "25-29": 0.075
+      "30-34": 0.099
+      "35-39": 0.051
+      "40-44": 0.008
+      "45-49": 0.0002
+    us:
+      "15-19": 0.014
+      "20-24": 0.059
+      "25-29": 0.096
+      "30-34": 0.097
+      "35-39": 0.056
+      "40-44": 0.012
+      "45-49": 0.001
+  gestation_days: 280                          # Naegele の法則
+  delivery_jitter_days: [-7, 7]
+  prenatal_visit_gestational_weeks: [12, 24, 36]
+  postpartum_visit_offsets_days: [7, 28]
 ```
 
-**Slice-1 semantics:** Z34 妊娠年毎に 1 件の分娩 event を config window
-内の scheduled 月に発火。多年妊娠 transition + 新生児 Patient 生成は
-deferred な follow-up slice。
+**Incr 1 semantics:** 各 sim 年で generator は per-`(person_id, year)`
+sub-RNG (`perinatal_delivery_seed`) を roll する。女性が 15-49 で
+active pregnancy period が無ければ年次 conception Bernoulli を roll。
+hit したら `TemporalStatePeriod(state_type="pregnancy")` を open (LMP
+は年内 uniform、EDD = LMP + 280 d、jitter 付きの planned delivery
+date)。cross-year 妊娠 (LMP が年 N 後半、EDD が年 N+1) は
+`person.state_periods` 経由で carry — 年 N+1 の call は
+`get_active_state` short-circuit で Bernoulli を skip する。planned
+delivery が当該年に到達すると、generator は delivery + postpartum
+event を emit し、period を `outcome="delivered"` で close する。
+中絶 outcome は妊娠週 ~10 (LMP + 70 ± 14 d) で period を
+`outcome="aborted"` close し外来 1 件を emit する。
 
 ---
 
@@ -323,7 +405,8 @@ cascade しないことを保証する:
 | Emit | Sub-seed helper | Key |
 |---|---|---|
 | Chemo regimen 選択 + Day-1 offset | `chemotherapy_regimen_seed` | `(patient_id, cancer_code)` |
-| 分娩 event の月 + 日 | `perinatal_delivery_seed` | `(patient_id, year)` |
+| 妊娠 lifecycle (受精 Bernoulli + LMP + jitter) | `perinatal_delivery_seed` | `(patient_id, year)` |
+| 中絶 outcome (自然 / 人工 split) | `_abortion_outcome_sub_seed` | `(mother_id, year)` |
 | 男性 C50 augmentation サンプリング | `chronic_augment_sex_seed` | `(patient_id, code)` |
 | 慢性薬剤選択 | `chronic_medication_seed` | `patient_id` |
 | 退院 Rx categorical + Bernoulli | `discharge_prescription_seed` | `(patient_id, encounter_id)` |
@@ -340,7 +423,9 @@ cascade しないことを保証する:
 |---|---|
 | JP または US 慢性がん保有 cohort に部位を追加 | `locale/<c>/demographics.yaml` (`chronic_prevalence`) + `locale/shared/chronic_followup.yaml` (follow-up スケジュール) + `codes/data/icd-10*.yaml` (display) |
 | Chemo regimen を追加 (または新がんに attach) | `locale/shared/chemo_regimens.yaml` — `regimens` 下に新規 + `by_cancer` に 1 行 |
-| 分娩 LOS または window を変更 | `locale/shared/perinatal.yaml` |
+| 分娩 LOS または delivery Procedure code を変更 | `locale/shared/perinatal.yaml::encounter` / `::procedure` |
+| 年齢帯別 conception rate を調整 | `locale/shared/perinatal.yaml::lifecycle.annual_conception_rate.{jp,us}` |
+| 妊婦健診の cadence / 産褥 offset を変更 | `locale/shared/perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` / `::postpartum_visit_offsets_days` |
 | 現在単性別の慢性コードに opposite-sex augmentation を活性化 | `demographics.yaml` のエントリを `by_sex` form に変換; sex-conditional 請求コード用の sibling `code_mapping_diagnosis.yaml` も要チェック (§3.2 参照) |
 | 慢性薬モニタリングルールを追加 | `modules/monitoring/reference_data/med_lab_mapping.yaml` — Python 変更不要 |
 | Acute-course cutoff を変更 | `simulator/helpers.py::_ACUTE_COURSE_MAX_DAYS` (単一定数) |

@@ -729,4 +729,91 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
         conditions.append(cond)
 
+    # --- Past pregnancies → Z37 problem-list-item (META #957 Incr 1) ---
+    # Replaces the pre-Incr-1 s95-z37 "chronic proxy" past-birth marker.
+    # For each closed pregnancy period with outcome="delivered", emit
+    # one Z37 problem-list-item Condition anchored at the delivery date.
+    # This is a biology-consistent record: exactly one Z37 per delivered
+    # pregnancy per patient (multi-parity → multi-Z37), sourced from
+    # ``person.state_periods``.
+    state_periods = record.get("patient", {}).get("state_periods", []) or []
+    _att_recorder = encounters[0].get("attending_physician_id", "") if encounters else ""
+    z37_seq = 0
+    for period in state_periods:
+        # asdict serialization: period is a dict on the FHIR emit path
+        # (record built via dataclasses.asdict). In-memory tests may pass
+        # a live TemporalStatePeriod dataclass — get_attr_or_key handles
+        # both.
+        if get_attr_or_key(period, "state_type", "") != "pregnancy":
+            continue
+        if get_attr_or_key(period, "outcome", "") != "delivered":
+            continue
+        end_date = get_attr_or_key(period, "end_date", "") or ""
+        if not end_date:
+            continue
+        if "Z37" in seen_codes:
+            # A prior chronic-path Z37 emit already claimed the slot for
+            # this base code; a second same-base-code problem-list item
+            # would collide on the dedup key. Skip to preserve invariant.
+            # (Should not happen post-Incr-1 since Z37 is no longer in
+            # chronic_conditions.)
+            break
+
+        z37_id = f"cond-past-birth-{patient_id}-{z37_seq}"
+        z37_key = f"pregnancy-past-birth|{patient_id}|{z37_seq}"
+        z37_cond: dict = {
+            "resourceType": "Condition",
+            "id": z37_id,
+            "identifier": [wrap_as_identifier(z37_key, CONDITION_KEY_SYSTEM)],
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
+                if is_jp(country_code)
+                else {}
+            ),
+            **({"extension": [_ecs_diagnosis_type_extension("clinical")]} if is_jp(country_code) else {}),
+            "clinicalStatus": {
+                "coding": [_coding_with_display("hl7-condition-clinical", "active", lang)],
+            },
+            "verificationStatus": {
+                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
+            },
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-condition-category"),
+                            "code": "problem-list-item",
+                            "display": _localize_display("Problem List Item", country, _CATEGORY_DISPLAY_JA),
+                        }
+                    ],
+                }
+            ],
+            "code": build_diagnosis_codeable_concept(
+                map_diagnosis_code("Z37", country, sex=patient_sex), icd_system_key, country
+            ),
+            "subject": patient_ref(patient_id),
+            "onsetDateTime": to_fhir_date(end_date),
+            "evidence": [
+                {
+                    "code": [
+                        {
+                            "text": "問題リスト:過去診療で確立"
+                            if is_jp(country_code)
+                            else "Problem list — established in prior encounters"
+                        }
+                    ],
+                }
+            ],
+        }
+        if _att_recorder:
+            z37_cond["recorder"] = {"reference": f"Practitioner/{_att_recorder}"}
+            z37_cond["asserter"] = {"reference": f"Practitioner/{_att_recorder}"}
+        else:
+            z37_cond["recorder"] = {"reference": "Practitioner/DR-IM-001"}
+            z37_cond["asserter"] = {"reference": "Practitioner/DR-IM-001"}
+        if admission_dt:
+            z37_cond["recordedDate"] = to_fhir_datetime(admission_dt)
+        conditions.append(z37_cond)
+        z37_seq += 1
+
     return conditions

@@ -1055,9 +1055,11 @@ def run_beta(
             # spontaneous delivery, discharge dx Z37.0 single liveborn,
             # delivery Procedure) AND one for the newborn (admitSource=born,
             # partOf → mother's delivery encounter, discharge dx Z38.0).
-            # Postpartum AMB visits fire separately as chronic_visit-style
-            # events (see ``_perinatal_delivery_events`` in
-            # population/engine.py).
+            # Prenatal + postpartum AMB visits fire separately as
+            # chronic_visit-style events (see
+            # ``_pregnancy_lifecycle_events`` in population/engine.py,
+            # which owns the full pregnancy lifecycle since META #957
+            # Incr 1).
             from clinosim.simulator.perinatal import simulate_delivery_encounter
 
             delivery_records = simulate_delivery_encounter(

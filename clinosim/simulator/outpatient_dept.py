@@ -68,6 +68,13 @@ _CHRONIC_DISEASE_SPECIALTY: dict[str, str] = {
     "Z12": "primary_care",
     "Z13": "primary_care",
     "Z23": "primary_care",
+    # Obstetric Z codes — prenatal supervision + postpartum care ->
+    # obgyn (falls back to internal_medicine via hospital rollup when
+    # the receiving hospital lacks an obgyn department). Emitted by the
+    # META #957 Incr 1 pregnancy-lifecycle generator as chronic_visit
+    # events with disease_id Z34 / Z39.
+    "Z34": "obgyn",
+    "Z39": "obgyn",
 }
 
 # Screening event_type → clinical specialty.

@@ -240,33 +240,39 @@ chronic_prevalence:
     "40-69": 0.002
     "70-99": 0.004
 
-  # --- Obstetrics (Issue #943) ---------------------------------------------
-  # Z34 (encounter for supervision of normal pregnancy) modelled as a
-  # short-window "active-during-sim-window" marker on childbearing-age
-  # women. Rate calibrated to MHLW 人口動態統計 出生率 (~6.4 births per
-  # 1000 total population, concentrated in ages 20-39) so that at any
-  # given ~1yr sim window ~3-4% of eligible women are pregnant.
+  # --- Obstetrics (Issue #943, migrated by META #957 Incr 1) ---------------
+  # META #957 Incr 1: Z34 (encounter for supervision of normal pregnancy)
+  # and Z37 (outcome of delivery) NO LONGER emit as chronic conditions.
+  # They are RETAINED in `chronic_prevalence` purely as RNG-cursor
+  # anchors so the Bernoulli iteration order does NOT shift for any
+  # non-obstetric code — the sampling loop in
+  # `population/engine.py::generate_population` no-op-consumes their
+  # Bernoulli draws via `_STATE_PERIOD_CHRONIC_CODES = {"Z34", "Z37"}`.
   #
-  # SCOPE LIMITATION (documented in PR #943): true delivery+newborn+puerperium
-  # is not yet modelled — a follow-up Issue will introduce a dedicated
-  # obstetric module with mother-baby linked Encounters, Z37/Z38 birth
-  # outcome, and newborn Patient generation.  Adding Z34 as chronic here
-  # gives non-zero obstetric footprint (Conditions, prenatal follow-up
-  # visits, prenatal supplement MedicationRequests) so the "0 obstetric
-  # records" gap is closed even before the full module ships.
-  # Sex-locked female-only via icd10_sex_restrictions.yaml.
+  # Pregnancy is now a `TemporalStatePeriod(state_type="pregnancy")` on
+  # `PersonRecord.state_periods`, opened by the pregnancy-lifecycle
+  # generator (`_pregnancy_lifecycle_events`) which rolls an age-banded
+  # annual conception Bernoulli against
+  # `perinatal.yaml::lifecycle.annual_conception_rate.jp`. Z37 past-birth
+  # problem-list-item Conditions are derived at FHIR emit time from
+  # `state_history("pregnancy")` delivered periods.
+  #
+  # The values below are frozen at their pre-Incr-1 numbers and are
+  # NO LONGER SEMANTICALLY MEANINGFUL as prevalences — they only shape
+  # how many rng.random() calls the sampling loop makes for female
+  # patients in the 20-44 band. Changing them affects the rng cursor
+  # for codes iterated AFTER Z34 / Z37, which is why the entries and
+  # their bands are pinned. To tune obstetric emit, edit
+  # `locale/shared/perinatal.yaml::lifecycle.annual_conception_rate.jp`
+  # instead. Sex-locked female-only via icd10_sex_restrictions.yaml.
   Z34:
     sex: F
-    "20-34": 0.180
-    "35-44": 0.080
-  Z37:      # Outcome of delivery — carried as chronic marker of past birth
-            # in women of reproductive-or-post-reproductive age. Signals
-            # obstetric history in the record; interim proxy until the
-            # full obstetric module (delivery Encounter + newborn Patient)
-            # ships as a follow-up Issue.
+    "20-34": 0.180   # frozen; see comment above — obstetric emit tuning goes to perinatal.yaml
+    "35-44": 0.080   # frozen; see comment above
+  Z37:
     sex: F
-    "25-44": 0.120
-    "45-64": 0.150
+    "25-44": 0.120   # frozen; see comment above
+    "45-64": 0.150   # frozen; see comment above
 
 # RM-7e (session 42): JP care-seeking threshold lower than US (30%→20%)
 # reflects JP 健診 culture (mandatory annual company + 特定健診 for 40+).

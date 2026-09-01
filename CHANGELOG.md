@@ -48,6 +48,47 @@ the tag was removed and the remaining scope is being folded in
 before re-tagging. Everything below stays queued under
 `[Unreleased]` until the re-tag.
 
+### Added
+
+- **Pregnancy lifecycle refactor: `TemporalStatePeriod` framework +
+  biology-consistent obstetric emit (META #957 Incr 1).** Introduces a
+  general-purpose time-boxed state pattern (`TemporalStatePeriod` on
+  `PersonRecord.state_periods` + `PatientProfile.state_periods` with
+  `has_active_state` / `get_active_state` / `state_history` query API)
+  and migrates pregnancy off the pre-Incr-1 "Z34 as chronic condition"
+  proxy model. The new `_pregnancy_lifecycle_events` scheduler consumes
+  age-banded annual conception Bernoulli (MHLW 2022 / CDC NVSR 2022
+  age-specific fertility rates in `perinatal.yaml::lifecycle`) →
+  opens a pregnancy period with LMP + EDD (LMP + 280 d) → emits
+  prenatal visits at gestational weeks 12/24/36 → emits delivery
+  (EDD ± 7 d jitter) + two postpartum visits (7 d / 28 d) → closes the
+  period with `outcome="delivered"`. Abortion path closes with
+  `outcome="aborted"` and emits a single abortion encounter.
+  Cross-year pregnancies carry via `state_periods`; year N+1's call
+  short-circuits the conception Bernoulli via `get_active_state`.
+  FHIR emit consequences: **Z34 problem-list-item goes to zero**
+  (pregnancy is not a chronic condition); **Z37 problem-list-item is
+  now derived from `state_history("pregnancy")` delivered periods**
+  (one per delivered pregnancy, biology-consistent; replaces the
+  session-95 s95-z37 chronic proxy). Prenatal supplements (folic acid,
+  iron via `chronic_medications.yaml::Z34`) still emit via an
+  activator-time hook keyed on `state_history("pregnancy")`
+  non-empty. Z34 / Z39 now route to `obgyn` in
+  `_CHRONIC_DISEASE_SPECIALTY`. Classification: **MINOR** — obstetric
+  byte-diff (population-level statistical shift + FHIR resource
+  reorganization). **Non-obstetric patients are byte-identical**
+  (verified p=1000 US, 596/596 non-obstetric persons matched master's
+  encounter lists); the chronic sampling loop consumes Z34/Z37
+  Bernoulli draws as no-ops to preserve rng cursor. Deferred to Incr 1.5:
+  proper per-encounter MedicationRequest emission for prenatal
+  supplements (Incr 1 attaches them as home medications, slightly
+  over-emitting past the pregnancy period); trimester-specific
+  Z34.0X emit; q4w/q2w/q1w prenatal cadence; O24 GDM / O14
+  preeclampsia comorbidities. Regression tests: full unit suite 5168
+  pass + new `tests/integration/test_pregnancy_lifecycle_e2e.py` +
+  rewritten `tests/unit/simulator/test_perinatal_delivery.py` (14
+  tests over lifecycle contract + encounter builder). Author: Claude.
+
 ### Fixed
 
 - **Chronic-continuation drugs (anticoagulant / statin / antihypertensive

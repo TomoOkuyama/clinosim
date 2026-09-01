@@ -1,7 +1,9 @@
-"""Perinatal delivery encounter emission (Issue #957 Tier-3-B).
+"""Perinatal delivery encounter emission (Issue #957 Tier-3-B; the
+scheduling side was extended to a full lifecycle in META #957 Incr 1).
 
-Mother-side delivery + newborn Patient chain for a Z34-carrying pregnant
-woman. Slice-2 scope:
+Mother-side delivery + newborn Patient chain for a pregnant woman whose
+active pregnancy period's planned_delivery_date falls in the current
+sim year. Slice-2 scope:
   * Mother's inpatient delivery encounter (admission dx O80, discharge
     dx Z37.0 single liveborn, delivery Procedure).
   * Newborn Patient resource (birthDate = delivery date, sex sampled
@@ -12,10 +14,11 @@ woman. Slice-2 scope:
   * Newborn Z38.0 (single liveborn, born in hospital, delivered
     without mention of caesarean section) discharge diagnosis.
 
-Postpartum encounters × 2 (mother-side AMB visits at ~1 week and
-~4 week post-discharge) live on the healthcare-calendar scheduler
-(``_perinatal_delivery_events`` in ``population/engine.py``) so
-they hit the standard chronic-followup dispatch path.
+Prenatal visits (weeks 12 / 24 / 36) + postpartum visits × 2
+(7 d / 28 d post-delivery) are scheduled by the pregnancy-lifecycle
+generator (``_pregnancy_lifecycle_events`` in ``population/engine.py``)
+and dispatch through the standard chronic-followup path, routed to
+obgyn via ``_CHRONIC_DISEASE_SPECIALTY``.
 """
 
 from __future__ import annotations
@@ -73,8 +76,8 @@ def _lookup_age_band(table: dict, age: int) -> float:
 
 
 def resolve_pregnancy_outcome(mother_id: str, mother_age: int, year: int) -> tuple[str, str]:
-    """Decide whether a Z34 pregnancy this year ends in ``"delivery"``
-    or ``"abortion"``. Returns ``(outcome, discharge_dx)``:
+    """Decide whether a pregnancy conceived this year ends in
+    ``"delivery"`` or ``"abortion"``. Returns ``(outcome, discharge_dx)``:
 
       * ``("delivery", "Z37.0")`` — proceed to the delivery event chain.
       * ``("abortion", "O03.9")`` — spontaneous abortion outcome.
@@ -246,10 +249,10 @@ def _sample_newborn_conditions(mother_id: str, delivery_date: date) -> list[Chro
 
 def _newborn_patient_id(mother_id: str) -> str:
     """Derive a stable newborn PatientId from the mother's ID. Format:
-    ``<mother_id>-BABY`` — deterministic, mother-linkable via string
-    inspection when needed, and unique per mother-year (multi-year
-    multi-pregnancy is out of scope for slice 2 — one newborn per
-    Z34-year)."""
+    ``<mother_id>-BABY`` — deterministic and mother-linkable via string
+    inspection when needed. Multi-parity across a multi-year sim is
+    still a scope limitation (each delivery reuses the same suffix); a
+    ``period_seq``-based disambiguator is deferred to Incr 1.5."""
     return f"{mother_id}-BABY"
 
 

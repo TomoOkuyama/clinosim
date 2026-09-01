@@ -168,18 +168,22 @@ def chronic_augment_sex_seed(patient_id: str, code: str) -> int:
 
 
 def perinatal_delivery_seed(patient_id: str, year: int) -> int:
-    """Per-(patient, year) deterministic sub-seed for perinatal delivery
-    scheduling (Issue #957 Tier-3-B).
+    """Per-(patient, year) deterministic sub-seed for the pregnancy
+    lifecycle generator (Issue #957 Tier-3-B, extended by META #957
+    Incr 1).
 
-    ``_perinatal_delivery_events`` (population/engine.py) picks the
-    delivery month + day-of-month within the ``scheduling.delivery_month_range``
-    window for each Z34-carrying woman. Isolating the draw on this
-    per-(patient, year) sub-RNG keeps the calendar's shared per-person
-    ``prng`` untouched — adding the delivery scheduler is byte-neutral
-    against every pre-existing calendar event stream.
+    ``_pregnancy_lifecycle_events`` (population/engine.py) uses this
+    sub-RNG for every draw it makes in one year: the annual conception
+    Bernoulli against ``perinatal.yaml::lifecycle.annual_conception_rate``,
+    LMP uniform-day-in-year, delivery-date jitter around EDD, and (on
+    the abortion branch) the abortion offset around gestational week
+    10. Isolating every draw on this per-(patient, year) sub-RNG keeps
+    the calendar's shared per-person ``prng`` untouched — adding or
+    tuning the lifecycle generator is byte-neutral against every
+    pre-existing calendar event stream for non-pregnant patients.
 
     Sibling of ``chemotherapy_regimen_seed`` — same AD-16 rationale
-    applied to the perinatal scheduler.
+    applied to the pregnancy lifecycle scheduler.
     """
     salt = "clinosim:perinatal-delivery:v1"
     digest = hashlib.sha256(f"{salt}|{patient_id}|{year}".encode()).digest()[:6]

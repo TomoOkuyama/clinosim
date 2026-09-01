@@ -81,14 +81,29 @@ hospital encounter に変換される。これにより疫学が人口レベル�
 | `pediatric_visit` | active な well-child schedule item を持つ患者 (`modules/pediatric/calendar.py`) | JP MHLW / US CDC well-child schedule に沿った年齢条件付き | `_simulate_outpatient_visit(visit_type="pediatric_visit")` |
 | `health_screening` | 40 歳以上 (年 1 健診) + 50 歳以上 colonoscopy (10 年間隔 → 10 %/年) + 女性 40 歳以上 mammography (60 %/年) | `_population_workflow_thresholds` の population 閾値 | `_simulate_outpatient_visit(visit_type="health_screening")` |
 | `chemo_visit` | `(patient, cancer_code)` 毎の sub-RNG が `chemo_regimens.yaml` の active regimen を割り当てた慢性がん患者 | Regimen 毎の `cycle_interval_days` (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d)、`course_cycles` で cap | `_simulate_outpatient_visit(visit_type="chemo_visit")` — Encounter + `chemotherapy_administration` Procedure を emit |
-| `delivery` | Z34 保有 (sim window 内 active な妊娠) の女性 | 妊娠年毎に 1 件、`perinatal.yaml::scheduling.delivery_month_range` 内 (デフォルト 4-10 月) の scheduled 月に発火 | `simulator/perinatal.py::simulate_delivery_encounter` — `O80` admission dx / `Z37.0` discharge dx + 分娩 Procedure の IMP Encounter を emit |
+| `chronic_visit` (`condition_type="prenatal_visit"`、`disease_id="Z34"`) | 15-49 歳女性で active な `TemporalStatePeriod(state_type="pregnancy")` を持つ患者 | LMP からの妊娠週 12 / 24 / 36、出所は `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` | `_simulate_outpatient_visit(visit_type="chronic_followup")`、`_CHRONIC_DISEASE_SPECIALTY` 経由で `obgyn` に routing |
+| `delivery` | active pregnancy period の `planned_delivery_date` (EDD ± 7 d jitter) が sim 年に含まれる女性 — period は `perinatal.yaml::lifecycle.annual_conception_rate.{jp,us}` に対する年次 conception Bernoulli で open | delivered pregnancy period 毎に 1 件、per-`(person_id, year)` sub-RNG (`perinatal_delivery_seed`) | `simulator/perinatal.py::simulate_delivery_encounter` — `O80` admission dx / `Z37.0` discharge dx + 分娩 Procedure + 新生児 Patient chain の IMP Encounter を emit |
+| `chronic_visit` (`condition_type="postpartum"`、`disease_id="Z39"`) | 同じ delivered pregnancy period | `delivery_date` の 7 d + 28 d 後、出所は `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` | `_simulate_outpatient_visit(visit_type="chronic_followup")`、`obgyn` に routing |
+| `abortion` | 同 lifecycle generator、per-mother-year の abortion outcome roll が hit (年齢帯別 15-19 40 % → 35-44 7 %) した場合 | 妊娠週 ~10 (LMP + 70 ± 14 d) で発火、period を `outcome="aborted"` で close | `simulator/perinatal.py::simulate_abortion_encounter` — 外来日帰り手術、discharge dx `O03.9` / `O04.5` |
+
+**META #957 Incr 1 note:** 妊娠はもはや慢性状態として扱われない。
+Z34 は `chronic_conditions` に append されない (sampling loop は
+rng cursor 保全のため Bernoulli draw を no-op consume)。代わりに
+pregnancy-lifecycle generator が受精時に
+`TemporalStatePeriod(state_type="pregnancy")` を
+`PersonRecord.state_periods` に open し、分娩 (または中絶) で close
+する。cross-year 妊娠は `state_periods` 経由で carry — 年 N+1 の
+generator call は `get_active_state` で conception Bernoulli を
+short-circuit。詳細:
+[`../architecture/architecture-notes.ja.md#9-時限-state-パターン--temporalstateperiod-ad-67meta-957-incr-1`](../architecture/architecture-notes.ja.md)。
 
 **Determinism-neutrality 契約:** 初回 chronic-visit スケジューラ以降に
-追加された event (chemo_visit、delivery) はすべて、カレンダー共有の
-per-person stream を消費するのではなく専用の per-patient sub-seed
-(`chemotherapy_regimen_seed`、`perinatal_delivery_seed`) を使用する。
-これらの emit の追加・調整は、新 event が直接対象とする患者を除き
-byte-identical。
+追加された event (chemo_visit + 妊娠 lifecycle) はすべて、カレンダー
+共有の per-person stream を消費するのではなく専用の per-patient
+sub-seed (`chemotherapy_regimen_seed`、`perinatal_delivery_seed`) を
+使用する。これらの emit の追加・調整は、新 event が直接対象とする
+患者を除き byte-identical — p=1000 US 非産科 596/596 identity vs
+Incr 1 前 master を検証済み。
 
 腫瘍 + 産科 event の full schema + slice スコープ:
 [`../reference/oncology-obstetric-service-lines.ja.md`](../reference/oncology-obstetric-service-lines.ja.md)。

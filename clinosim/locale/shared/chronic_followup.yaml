@@ -270,29 +270,38 @@ C71:  # Malignant brain tumor (glioma) follow-up
   prescriptions_renewed: true
   visit_duration_minutes: 15
 
-# --- Obstetric follow-up (Issue #943) -------------------------------------
-# Prenatal visits per ACOG / JSOG guidance (monthly early, more frequent
-# late trimester). We model as monthly across the sim window; a follow-up
-# Issue will introduce trimester-conditional cadence + delivery event +
-# newborn Patient generation.
+# --- Obstetric follow-up (Issue #943, extended by META #957 Incr 1) ------
+# Post-Incr-1 the Z34 / Z39 entries here are consulted ONLY as visit-spec
+# lookup by the outpatient dispatch (visit_reason / labs / labs_quarterly
+# / vitals / prescriptions_renewed / visit_duration_minutes). They are
+# NOT the source of schedule cadence — cadence for prenatal + postpartum
+# now comes from
+# `locale/shared/perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks`
+# and `::postpartum_visit_offsets_days` respectively, and the visits are
+# emitted by `_pregnancy_lifecycle_events` in `population/engine.py`.
+# The `follow_up_interval_months` field below is therefore dead for
+# these two entries (Z34 / Z39 do not appear in
+# `person.chronic_conditions` any more, so the periodic-chronic-visit
+# dispatch never iterates them). Kept for the visit_spec fields.
 
-Z34:  # Encounter for supervision of normal pregnancy (female 20-44 per age/sex gate)
+Z34:  # Encounter for supervision of normal pregnancy
+      # Visit-spec only; cadence lives in perinatal.yaml::lifecycle
   visit_reason:
     en: "Prenatal check-up, fetal wellbeing, maternal vitals"
     ja: "妊婦健診・胎児健常評価・妊婦バイタルサイン"
-  follow_up_interval_months: 1
+  follow_up_interval_months: 1        # dead field post-Incr-1; see header
   labs: []
   labs_quarterly: [Hb, Glucose]
   vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
   prescriptions_renewed: true
   visit_duration_minutes: 25
 
-Z39:  # Encounter for maternal postpartum care (Issue #957 Tier-3-B Slice 2).
-      # Scheduled ×2 by ``_perinatal_delivery_events`` at ~1 week and ~4 weeks
-      # post-delivery (JSOG / ACOG standard postpartum follow-up intervals).
-      # Female 20-44 by the same age/sex context that produced the Z34
-      # prenatal window; no separate sex-gate needed (only Z34-carriers
-      # can reach this event).
+Z39:  # Encounter for maternal postpartum care.
+      # Post-Incr-1: scheduled ×2 by ``_pregnancy_lifecycle_events`` at
+      # +7 d and +28 d after the delivery date, from
+      # ``perinatal.yaml::lifecycle.postpartum_visit_offsets_days``.
+      # Only mothers with a delivered pregnancy state_period reach this
+      # dispatch; visit-spec here supplies visit_reason / labs / vitals.
   visit_reason:
     en: "Postpartum follow-up: wound check, breastfeeding support, mood screening"
     ja: "産後フォローアップ・創部確認・授乳支援・産後うつスクリーニング"

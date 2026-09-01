@@ -40,54 +40,83 @@ Both service lines share the same emission-shape pattern:
 
 | Element | Coverage | Where |
 |---|---|---|
-| Pregnancy chronic marker (Z34) | Female 20-44, ~18 % (JP 20-34) / ~19 % (US 20-34) | `chronic_prevalence.Z34` in `locale/<c>/demographics.yaml` (`sex: F`) |
-| Past-birth chronic marker (Z37) | Carried on the problem list of women with obstetric history | Same YAML |
-| Prenatal supplement Rx | Folic acid + iron | `locale/shared/chronic_medications.yaml` Z34 block |
-| Mother-side delivery inpatient encounter | One IMP encounter per Z34 pregnancy-year, LOS 5d JP / 2d US, admission dx `O80`, discharge dx `Z37.0`, delivery Procedure | `locale/shared/perinatal.yaml` + `population/engine.py::_perinatal_delivery_events` + `simulator/perinatal.py` |
+| Pregnancy as time-boxed lifecycle state (META #957 Incr 1) | Age-banded annual conception Bernoulli against MHLW 2022 (JP) / CDC NVSR 2022 (US) rates for women 15-49. Conception opens a `TemporalStatePeriod(state_type="pregnancy")` on `PersonRecord.state_periods` with metadata `{lmp, edd, planned_delivery_date}`; the period closes on the year containing the delivery date (with `outcome="delivered"`) or at the abortion date (with `outcome="aborted"`). | `perinatal.yaml::lifecycle.annual_conception_rate` + `population/engine.py::_pregnancy_lifecycle_events` + `types/patient.py::TemporalStatePeriod` |
+| Past-birth Z37 problem-list-item | One Z37 problem-list-item Condition per delivered pregnancy period, anchored at the delivery date. Biology-consistent — multi-parity woman emits multi-Z37. Derived at FHIR emit time from `state_history("pregnancy")`; **replaces the pre-Incr-1 chronic-sample proxy**. | `modules/output/fhir_r4/conditions/conditions.py::_build_conditions` (past-pregnancies adapter) |
+| Prenatal supplement Rx | Folic acid + iron attached as home medications when the person has any pregnancy history. Emit path unchanged (`chronic_medications.yaml::Z34`); gate switched from `chronic_conditions` to `state_periods` via a virtual Z34 `ChronicCondition` in the med-derivation input at activator time. | `locale/shared/chronic_medications.yaml` Z34 block + `modules/patient/activator.py` (state-based hook) |
+| Prenatal visits | AMB encounters at gestational weeks 12 / 24 / 36 (simplified from the full q4w/q2w/q1w cadence deferred to Incr 1.5), `disease_id="Z34"`, routed to `obgyn` via `_CHRONIC_DISEASE_SPECIALTY`. | `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` + `population/engine.py::_pregnancy_lifecycle_events` |
+| Mother-side delivery inpatient encounter | One IMP encounter per delivered pregnancy period on the year containing the planned delivery date (EDD ± 7 d jitter). LOS 5 d JP / 2 d US, admission dx `O80`, discharge dx `Z37.0`, delivery Procedure. | `locale/shared/perinatal.yaml::encounter` + `population/engine.py::_pregnancy_lifecycle_events` + `simulator/perinatal.py` |
 | Delivery Procedure | JP: `K894` 分娩介助 / US: CPT `59400` routine obstetric care | `perinatal.yaml::procedure` |
 | Newborn `Patient` chain | Baby id `<mother>-BABY`, household inherited, sex per-mother sub-RNG, birthDate = delivery date | `simulator/perinatal.py` (session 94) |
 | Newborn Encounter | IMP, `admit_source = born` (new `AdmitSource.BORN` enum member) + `admit_source_encounter_id` → FHIR `Encounter.partOf` on the newborn side | `simulator/perinatal.py` + `types/encounter.py::AdmitSource.BORN` |
 | Z38.0 on newborn | Newborn discharge dx | `simulator/perinatal.py` |
-| Postpartum encounters × 2 | ~1 wk + ~4 wk chronic_visit at disease_id `Z39` (encounter for maternal postpartum care) | `locale/shared/chronic_followup.yaml::Z39` |
+| Postpartum encounters × 2 | 7 d + 28 d after delivery date, `chronic_visit` with `disease_id="Z39"`, routed to `obgyn`. Year-boundary clamped (Dec 31) when the delivery is in December. | `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` + `population/engine.py::_pregnancy_lifecycle_events` |
 | Newborn perinatal conditions | P59.9 jaundice ~20 %, P07.3 preterm ~7 % (→ conditional P22.0 RDS ~35 %), L22 diaper dermatitis ~30 %, L20.9 atopic dermatitis ~15 % | `simulator/perinatal.py` (per-newborn sub-RNG) |
-| Abortion outcome (age-gated) | Spontaneous O03.9 / induced O04.5 outpatient day-surgery. Age-band probability 15-19: 40 % → 35-44: 7 %. When fired, delivery + newborn chain are skipped for the Z34-year | `locale/shared/perinatal.yaml::abortion` + `population/engine.py::_abortion_outcome_events` |
+| Abortion outcome (age-gated) | Spontaneous O03.9 / induced O04.5 outpatient day-surgery. Age-band probability 15-19: 40 % → 35-44: 7 %. When fired, the period closes with `outcome="aborted"` at gestational week ~10 (day 70 from LMP ± 14 d); delivery + newborn chain are skipped. | `locale/shared/perinatal.yaml::abortion` + `population/engine.py::_pregnancy_lifecycle_events` (abortion branch) |
 
-### 1.3 Explicitly NOT yet covered (follow-up slices)
+### 1.3 Explicitly NOT yet covered (Incr 1.5 + later slices)
 
-- **Time-boxed pregnancy state** — Z34 currently sits on the
-  problem list for the full sim window rather than a real 40-week
-  active state. Follow-up will move it to a `disease_incidence`-style
-  event with snapshot-aware clamping. Downgraded from "must" to
-  "would be nicer" once the delivery + postpartum + newborn chain
-  landed in session 94 — the temporal signature the original scope
-  worried about is now supplied.
+- **Per-encounter prenatal supplement MedicationRequest** — Incr 1
+  attaches folic acid + iron to the persistent
+  `current_medications` list via the activator hook (keyed on
+  pregnancy history non-empty). Cleaner semantics is to emit them
+  as `MedicationRequest` resources scoped to the prenatal visits
+  themselves. Deferred to Incr 1.5.
+- **Trimester-specific Z34.0X emit** — currently every prenatal visit
+  emits `Z34` (unspecified trimester). Refining to `Z34.00 / Z34.01 /
+  Z34.02 / Z34.03` by gestational-age band is a small yaml + emit
+  change deferred to Incr 1.5.
+- **Full prenatal cadence** — Incr 1 uses a simplified 3-visit
+  schedule at 12 / 24 / 36 weeks. Real practice is q4w until 28 wk,
+  q2w until 36 wk, then q1w — Incr 1.5.
+- **Gestational comorbidity sampling** — O24 gestational diabetes,
+  O14 preeclampsia, O99 pregnancy-complicating co-existing disease.
+  Requires a comorbidity-during-pregnancy hook on `state_periods`.
+- **Multi-pregnancy TFR calibration** — Incr 1 seeds LMP uniformly
+  in the calendar year, so first-year sims under-emit deliveries
+  (only ~25 % of "true annual" births show up in year 1 because
+  cross-year pregnancies conceived in the prior year are missing).
+  Steady state converges over multi-year sims; a proper pre-warm
+  pass at population generation is Incr 1.5.
+- **Stillbirth / preterm outcome variation** — currently every
+  non-abortion pregnancy delivers a live term newborn.
+- **Cesarean-section share** — every delivery emits as O80
+  spontaneous vaginal. Real JP rate is ~20 % C-section (O82).
 - **Oncology-specific Composition type** — LOINC 34133-9 for
   cancer treatment notes.
 - **Cross-year chemo cycle continuity** — cycles are scheduled fresh
   per calendar year. A patient starting FOLFOX in November restarts
   from cycle 1 in January rather than continuing.
-- **Cesarean-section share** — currently every delivery emits as O80
-  spontaneous vaginal. Real JP rate is ~20 % C-section (O82); a
-  per-mother sub-RNG split is a natural follow-up.
 
 ---
 
 ## 2. Emission pipeline (data flow)
 
 ```
-locale/<c>/demographics.yaml
-  chronic_prevalence.C50 / .C61 / .Z34 / ...
-                      │
-                      ▼
-population/engine.py::generate_population()
-  each PersonRecord gets chronic_conditions = ["C50", "Z34", ...]
-                      │
-                      ▼
-population/engine.py::generate_healthcare_calendar()
+locale/<c>/demographics.yaml                 locale/shared/perinatal.yaml
+  chronic_prevalence.C50 / .C61 / ...           lifecycle.annual_conception_rate
+  (Z34 / Z37 no-op-consumed, not appended)      lifecycle.gestation_days
+                      │                         lifecycle.prenatal_visit_gestational_weeks
+                      ▼                         lifecycle.postpartum_visit_offsets_days
+population/engine.py::generate_population()                        │
+  each PersonRecord gets chronic_conditions = ["C50", ...]         │
+  person.state_periods = []  (empty at generation)                 │
+                      │                                            │
+                      ▼                                            │
+population/engine.py::generate_healthcare_calendar()               │
+  for each woman 15-49 with no active pregnancy:                   │
+     _pregnancy_lifecycle_events(person, year, country) ◄──────────┤
+        rng.random() < annual_conception_rate(country, age)?       │
+          → open TemporalStatePeriod(state_type="pregnancy",       │
+                lmp=..., edd=lmp+280, planned_delivery_date=...)   │
+          → append to person.state_periods                         │
+     for each active pregnancy period:                             │
+        → LifeEvent(chronic_visit, condition_type="prenatal_visit", disease_id="Z34") × 3
+        if planned_delivery in this year:
+          → LifeEvent(delivery, disease_id="Z34")
+          → LifeEvent(chronic_visit, condition_type="postpartum", disease_id="Z39") × 2
+          → close period with outcome="delivered", end_date=delivery_date
   for each person with a cancer code + regimen assignment:
      _chemo_cycle_events(person, year)  →  LifeEvent(chemo_visit, ...) × N cycles
-  for each Z34 woman:
-     _perinatal_delivery_events(person, year)  →  LifeEvent(delivery, ...)
                       │
                       ▼
 simulator/engine.py::run_beta()
@@ -98,11 +127,28 @@ simulator/engine.py::run_beta()
                                           → Encounter (IMP, obgyn dept, LOS 5/2d)
                                           → ProcedureRecord (delivery)
                                           → ClinicalDiagnosis(admission=O80, discharge=Z37.0)
+                                          → newborn Patient chain
+  event_type == "abortion"          →  simulate_abortion_encounter(...) (period closed already)
+  event_type == "chronic_visit" with condition_type == "prenatal_visit" or "postpartum"
+                                    →  routed through outpatient dispatch,
+                                        specialty = obgyn (via _CHRONIC_DISEASE_SPECIALTY)
+                      │
+                      ▼
+activator.py::activate_patient() [cached per person]
+  PatientProfile.state_periods = shallow copy of person.state_periods
+  if state_history("pregnancy") is non-empty:
+     current_meds includes folic acid + iron (via virtual Z34 in med-derivation input)
                       │
                       ▼
 CIFPatientRecord written to cif/structural/patients/<enc>.json
+  record["patient"]["state_periods"] carries the pregnancy history
                       │
                       ▼
+export-fhir → conditions/conditions.py::_build_conditions
+  chronic loop: iterates chronic_conditions (Z34 absent → no Z34 problem-list-item)
+  past-pregnancies adapter: iterates state_periods with outcome="delivered"
+                            → emits one Z37 problem-list-item per delivered period
+                              (onsetDateTime = end_date)
 export-fhir → Encounter.ndjson / Procedure.ndjson / Condition.ndjson / ...
 ```
 
@@ -224,7 +270,8 @@ the first cycle window, capped by both `course_cycles` and
 ### 3.4 `perinatal.yaml`
 
 Located at `locale/shared/perinatal.yaml`. Declares delivery
-encounter shape + procedure code + scheduling window.
+encounter shape + procedure code + abortion outcome table + the
+**pregnancy lifecycle block** (META #957 Incr 1).
 
 ```yaml
 encounter:
@@ -243,14 +290,53 @@ procedure:
   us_code: "59400"                      # CPT routine obstetric care
   duration_minutes: 90
 
+# Legacy block — kept for backward compat with the abortion outcome
+# branch's date placement. The Incr 1 lifecycle generator does NOT
+# consult this; it derives the delivery date from EDD ± jitter.
 scheduling:
-  delivery_month_range: [4, 10]         # month bounds for Day-1 draw
+  delivery_month_range: [4, 10]
+
+# META #957 Incr 1: full pregnancy lifecycle (annual conception →
+# LMP/EDD → prenatal / delivery / postpartum → close). Age-banded
+# per-woman-per-year Bernoulli against MHLW 2022 (JP) / CDC NVSR 2022
+# (US) age-specific fertility rates.
+lifecycle:
+  annual_conception_rate:
+    jp:
+      "15-19": 0.003
+      "20-24": 0.023
+      "25-29": 0.075
+      "30-34": 0.099
+      "35-39": 0.051
+      "40-44": 0.008
+      "45-49": 0.0002
+    us:
+      "15-19": 0.014
+      "20-24": 0.059
+      "25-29": 0.096
+      "30-34": 0.097
+      "35-39": 0.056
+      "40-44": 0.012
+      "45-49": 0.001
+  gestation_days: 280                          # Naegele's rule
+  delivery_jitter_days: [-7, 7]
+  prenatal_visit_gestational_weeks: [12, 24, 36]
+  postpartum_visit_offsets_days: [7, 28]
 ```
 
-**Slice-1 semantics:** one delivery event per Z34 pregnancy-year at
-a scheduled month within the config window. Multi-year pregnancy
-transitions + newborn Patient generation are the deferred
-follow-up slice.
+**Incr 1 semantics:** each sim year the generator rolls a per-
+`(person_id, year)` sub-RNG (`perinatal_delivery_seed`). If the
+woman is 15-49 and has no active pregnancy period, it rolls the
+annual conception Bernoulli. On a hit it opens a
+`TemporalStatePeriod(state_type="pregnancy")` with LMP uniform in
+the year, EDD = LMP + 280 d, and a jittered planned delivery date.
+Cross-year pregnancies (LMP late in year N, EDD in year N+1) carry
+via `person.state_periods`; year N+1's call short-circuits the
+Bernoulli via `get_active_state`. When the year of the planned
+delivery arrives, the generator emits the delivery + postpartum
+events and closes the period with `outcome="delivered"`. Abortion
+outcomes close the period with `outcome="aborted"` and emit a
+single outpatient abortion encounter.
 
 ---
 
@@ -333,7 +419,8 @@ master population RNG stream:
 | Emission | Sub-seed helper | Key |
 |---|---|---|
 | Chemo regimen selection + Day-1 offset | `chemotherapy_regimen_seed` | `(patient_id, cancer_code)` |
-| Perinatal delivery month + day | `perinatal_delivery_seed` | `(patient_id, year)` |
+| Pregnancy lifecycle (conception Bernoulli + LMP + jitter) | `perinatal_delivery_seed` | `(patient_id, year)` |
+| Abortion outcome (spontaneous vs induced split) | `_abortion_outcome_sub_seed` | `(mother_id, year)` |
 | Male C50 augmentation sampling | `chronic_augment_sex_seed` | `(patient_id, code)` |
 | Chronic-medication selection | `chronic_medication_seed` | `patient_id` |
 | Discharge-Rx categorical + Bernoulli | `discharge_prescription_seed` | `(patient_id, encounter_id)` |
@@ -351,7 +438,9 @@ for the AD-16 pattern that motivates these.
 |---|---|
 | Add a cancer site to the JP or US chronic-carrier cohort | `locale/<c>/demographics.yaml` (`chronic_prevalence`) + `locale/shared/chronic_followup.yaml` (follow-up schedule) + `codes/data/icd-10*.yaml` (display) |
 | Add a chemo regimen (or attach one to a new cancer) | `locale/shared/chemo_regimens.yaml` — new entry under `regimens` + a row in `by_cancer` |
-| Change delivery LOS or window | `locale/shared/perinatal.yaml` |
+| Change delivery LOS or delivery Procedure code | `locale/shared/perinatal.yaml::encounter` / `::procedure` |
+| Tune age-banded conception rate | `locale/shared/perinatal.yaml::lifecycle.annual_conception_rate.{jp,us}` |
+| Change prenatal visit cadence / postpartum offsets | `locale/shared/perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` / `::postpartum_visit_offsets_days` |
 | Activate an opposite-sex augmentation on a currently-single-sex chronic code | Convert the entry to `by_sex` form in `demographics.yaml`; check sibling `code_mapping_diagnosis.yaml` for sex-conditional billing codes (see §3.2) |
 | Add a chronic-med monitoring rule | `modules/monitoring/reference_data/med_lab_mapping.yaml` — no Python change |
 | Change the acute-course cutoff | `simulator/helpers.py::_ACUTE_COURSE_MAX_DAYS` (single constant) |

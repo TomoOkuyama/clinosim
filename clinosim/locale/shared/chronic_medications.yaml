@@ -258,10 +258,18 @@ C61:  # Prostate cancer — androgen deprivation therapy (ADT)
   monitoring:
     - {test: "AST", frequency: "every_3_days", intent: "Anti-androgen hepatic monitoring"}
 
-# --- Obstetric prenatal supplements (Issue #943) --------------------------
+# --- Obstetric prenatal supplements (Issue #943, gate migrated by META #957 Incr 1) ---
 # Standard prenatal supplement pair — folic acid + iron. Not exhaustive of
-# pregnancy pharmacology; covers the near-universal supplement floor so
-# Z34 patients emit MedicationRequests.
+# pregnancy pharmacology; covers the near-universal supplement floor.
+#
+# Post-Incr-1 gate: Z34 no longer sits in `PersonRecord.chronic_conditions`,
+# so the default activator loop over chronic_conditions never reaches this
+# entry. Instead `patient/activator.py` synthesizes a virtual Z34
+# `ChronicCondition` for the med-derivation input WHEN the person has a
+# non-empty `state_history("pregnancy")` — so this block still fires as
+# home medications for women who have (or previously had) a pregnancy in
+# the sim window. Proper per-encounter MedicationRequest emission scoped
+# to prenatal visits is Incr 1.5.
 Z34:  # Encounter for supervision of normal pregnancy
   medications:
     - {drug: "Folic acid", drug_ja: "葉酸", dose: "0.4mg", route: "PO", frequency: "daily"}

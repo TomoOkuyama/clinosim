@@ -41,8 +41,71 @@ procedure:
 # is 40 weeks and would span two calendar years for many patients —
 # the MVP folds this into one delivery per Z34-year at a scheduled
 # month range, deterministic per patient via sub-RNG).
+#
+# NOTE: ``scheduling`` is retained for backward compatibility with the
+# pre-#957-Incr-1 delivery-only scheduler (still consumed by the abortion
+# outcome branch's date placement). The Incr-1 pregnancy-lifecycle
+# generator uses the ``lifecycle`` block below instead — annual
+# conception Bernoulli with a proper LMP → EDD gestation cycle.
 scheduling:
   delivery_month_range: [4, 10]         # broad window covering common delivery months
+
+# ---------------------------------------------------------------------------
+# Pregnancy lifecycle (META #957 Incr 1 — time-boxed pregnancy state).
+#
+# Replaces the "Z34 as chronic condition -> one delivery per year"
+# model with a real biological lifecycle:
+#
+#   * Per-year conception Bernoulli against ``annual_conception_rate``
+#     (age-banded, locale-specific; drawn from a per-(person, year)
+#     sub-RNG so master rng cursor is untouched).
+#   * On conception, open a ``TemporalStatePeriod(state_type="pregnancy")``
+#     with metadata ``{lmp, edd}`` (LMP uniform-day-in-year,
+#     EDD = LMP + ``gestation_days``).
+#   * During the active period, emit ``prenatal_visit`` events at the
+#     scheduled gestational ages that fall inside the sim year.
+#   * On the year containing EDD, emit ``delivery`` (± jitter) + two
+#     ``postpartum_visit`` events and close the period with
+#     ``outcome="delivered"``.
+#
+# Rates (per-woman per-year Bernoulli):
+#   JP: MHLW 人口動態統計 出生率 2022 by 5-year maternal-age band —
+#       raw crude age-specific birth rates rounded to 3 decimals.
+#   US: CDC NVSR fertility rates 2022 by 5-year maternal-age band.
+# Ages outside 15-49 do not conceive (sex_restriction Z34 gate is 15-49).
+#
+# Note: these are DELIVERY rates, not conception rates. Because Incr 1
+# does not sample stillbirth / spontaneous abortion at the conception
+# stage (those still ride the existing perinatal.abortion table), using
+# delivery rates directly matches the observed cohort delivery count.
+lifecycle:
+  annual_conception_rate:
+    jp:
+      "15-19": 0.003    # MHLW 2022 age-specific birth rate ~2.8/1000
+      "20-24": 0.023
+      "25-29": 0.075
+      "30-34": 0.099
+      "35-39": 0.051
+      "40-44": 0.008
+      "45-49": 0.0002
+    us:
+      "15-19": 0.014    # CDC NVSR 2022
+      "20-24": 0.059
+      "25-29": 0.096
+      "30-34": 0.097
+      "35-39": 0.056
+      "40-44": 0.012
+      "45-49": 0.001
+  # Full-term pregnancy length used to derive EDD from LMP.
+  # 280 days = 40 weeks (Naegele's rule).
+  gestation_days: 280
+  # Jitter applied to the delivery date around EDD (uniform integer days).
+  delivery_jitter_days: [-7, 7]
+  # Prenatal visit schedule (simplified to 3 anchor visits at 12/24/36
+  # gestational weeks; full q4w/q2w/q1w cadence deferred to Incr 1.5).
+  prenatal_visit_gestational_weeks: [12, 24, 36]
+  # Postpartum visits fired at these day offsets after the delivery date.
+  postpartum_visit_offsets_days: [7, 28]
 
 # ---------------------------------------------------------------------------
 # Abortion outcome for Z34 pregnancies (Issue #957 Tier-3-B slice 3).
