@@ -539,3 +539,9 @@ _.lab_trend  # document/narrative/lab_timeseries.py:188
 # because #942 refactor also added load_allergen_config as a sibling.
 # Kept as the documented public entrypoint for allergen-catalog loading.
 _.load_allergens  # modules/allergy/engine.py:134
+
+# Issue #957: Encounter.service_line consumed via _o(encounter, "service_line",
+# "") in modules/document/engine.py::_effective_outpatient_loinc. Vulture only
+# sees the dataclass field declaration + the direct assignment site in
+# simulator/outpatient.py and misses the getattr-style consumer.
+_.service_line  # types/encounter.py + simulator/outpatient.py (read via _o() in document/engine.py)
