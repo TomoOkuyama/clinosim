@@ -9,63 +9,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from clinosim.types.identity import IdentityTimeline
-from clinosim.types.patient import HomeMedication
+from clinosim.types.patient import HomeMedication, TemporalStatePeriod
 
 if TYPE_CHECKING:
     from clinosim.types.allergy import Allergy
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent", "TemporalStatePeriod"]
-
-
-@dataclass
-class TemporalStatePeriod:
-    """A time-boxed clinical or biographical state a person passes through.
-
-    Introduced by META #957 pregnancy-lifecycle refactor (Incr 1) as the
-    canonical replacement for "chronic condition entries that actually
-    represent a lifecycle" — currently pregnancy (Z34), later cancer
-    active-treatment, warfarin courses, remission, etc.
-
-    Semantics:
-      * ``start_date`` inclusive; ``end_date`` inclusive when set; ``None``
-        end_date means the period is still open (e.g., ongoing pregnancy).
-      * ``outcome`` is populated when the period closes ("delivered" /
-        "aborted" / "completed" / …); empty while still open.
-      * ``metadata`` carries state-specific structured fields (e.g., for
-        pregnancy: ``lmp``, ``edd``, ``delivery_date``). Callers must not
-        rely on unknown keys; only the state's dedicated generator writes
-        or reads them.
-      * ``period_seq`` is 0-indexed per (person, state_type). A woman with
-        two delivered pregnancies has ``period_seq=0`` and ``period_seq=1``.
-    """
-
-    state_type: str
-    start_date: date
-    end_date: date | None = None
-    outcome: str = ""
-    metadata: dict[str, Any] = field(default_factory=dict)
-    period_seq: int = 0
-
-    def is_active_at(self, day: date) -> bool:
-        """Return True iff ``day`` falls inside this period (inclusive)."""
-        if day < self.start_date:
-            return False
-        if self.end_date is None:
-            return True
-        return day <= self.end_date
-
-    def overlaps_year(self, year: int) -> bool:
-        """Return True iff the period intersects the calendar ``year``."""
-        year_start = date(year, 1, 1)
-        year_end = date(year, 12, 31)
-        if self.end_date is not None and self.end_date < year_start:
-            return False
-        if self.start_date > year_end:
-            return False
-        return True
 
 
 @dataclass

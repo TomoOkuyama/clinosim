@@ -454,7 +454,37 @@ def activate_patient(
     if not current_meds:
         # Derive home medications from chronic conditions via chronic_medications.yaml
         # CIF stores English drug names (AD-30). JP names resolved at FHIR output.
-        current_meds = _derive_home_medications(conditions, patient_id=person.person_id, country="US")
+        #
+        # META #957 Incr 1: pregnancy prenatal supplements (folic acid,
+        # iron — indexed under the Z34 key in chronic_medications.yaml)
+        # were previously attached because Z34 was in chronic_conditions.
+        # Post-Incr-1 Z34 lives in `state_periods` instead; when the
+        # person has EVER conceived in this sim (state_history non-empty)
+        # we synthesize a virtual Z34 ChronicCondition for the med-
+        # derivation input ONLY so the supplement regimen still emits
+        # as a home medication. The problem-list Condition emit iterates
+        # the real `conditions` list (without this virtual entry) so no
+        # Z34 problem-list-item leaks back in.
+        #
+        # ARCHITECTURAL NOTE: this activator hook attaches supplements
+        # to the patient's persistent current_medications, which slightly
+        # over-emits (supplements persist past the pregnancy). Proper
+        # per-encounter MedicationRequest emission scoped to prenatal
+        # visits is Incr 1.5. Under-emit vs the pre-Incr-1 flow (which
+        # attached from Day 0 to any Z34-carrying woman, regardless of
+        # actual pregnancy timing) is a net data-quality gain.
+        _meds_input = conditions
+        _has_pregnancy_history = bool(
+            [
+                p for p in getattr(person, "state_periods", []) or []
+                if getattr(p, "state_type", "") == "pregnancy"
+            ]
+        )
+        if _has_pregnancy_history:
+            from clinosim.types.patient import ChronicCondition as _CC
+
+            _meds_input = list(conditions) + [_CC(code="Z34", system="icd-10-cm")]
+        current_meds = _derive_home_medications(_meds_input, patient_id=person.person_id, country="US")
 
     # Address and contact from Layer 1
     from clinosim.types.patient import Address, ContactInfo
@@ -590,6 +620,12 @@ def activate_patient(
         baseline_vitals=vitals,
         race=race,
         ethnicity=ethnicity,
+        # META #957 Incr 1: forward the person's temporal-state periods
+        # (pregnancy for now) so the FHIR emit adapter can derive the
+        # Z37 past-birth problem-list-item Condition from delivered
+        # pregnancies via ``state_history("pregnancy")``. Shallow copy —
+        # PatientProfile does not mutate periods.
+        state_periods=list(getattr(person, "state_periods", []) or []),
     )
 
 

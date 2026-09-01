@@ -116,15 +116,18 @@ __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
 # yaml for RNG-cursor placement but that represent time-boxed states rather
 # than truly chronic diseases. Their Bernoulli draw in the chronic sampling
 # loop is CONSUMED (to preserve cursor byte-identity for all codes iterated
-# after them) but the code is NOT appended to ``PersonRecord.chronic_conditions``
-# — pregnancy is tracked via ``person.state_periods`` (opened by the
-# pregnancy-lifecycle generator).
+# after them) but the code is NOT appended to ``PersonRecord.chronic_conditions``.
 #
-# Z37 (outcome of delivery, past-birth marker) currently stays in the chronic
-# sampling path per the s95-z37 by-design-registry entry (interim proxy until
-# the pregnancy-history adapter migrates it in a follow-up Incr). Adding it
-# here would delete the marker with no replacement emit path.
-_STATE_PERIOD_CHRONIC_CODES = frozenset({"Z34"})
+# - Z34 (encounter for supervision of normal pregnancy): tracked as an
+#   OPEN ``TemporalStatePeriod`` on ``person.state_periods`` while the
+#   pregnancy is active; the pregnancy-lifecycle generator handles it.
+# - Z37 (outcome of delivery): derived by the FHIR emit adapter from
+#   ``state_history("pregnancy")`` entries with ``outcome="delivered"``.
+#   This replaces the pre-Incr-1 s95-z37 "chronic proxy" past-birth
+#   marker, upgrading it from an independently-sampled Bernoulli to a
+#   biology-consistent record of the woman's actual delivered
+#   pregnancies (one Z37 problem-list-item per delivered period).
+_STATE_PERIOD_CHRONIC_CODES = frozenset({"Z34", "Z37"})
 
 
 @dataclass
