@@ -39,14 +39,18 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
-**In-progress v0.6.0 target.** The initial v0.6.0 tag was cut on
-2026-08-31 and **un-released the same day** because META Issues #914
-Bucket B / #957 remaining slices / #757 remaining mappings were left
-as follow-up rather than completed. Per the project policy of shipping
-a MINOR release only when its release-scope Issues are fully closed,
-the tag was removed and the remaining scope is being folded in
-before re-tagging. Everything below stays queued under
-`[Unreleased]` until the re-tag.
+**v0.6.0 scope complete, awaiting user Go for tag.** The initial
+v0.6.0 tag was cut on 2026-08-31 and **un-released the same day**
+because META Issues #914 Bucket B / #957 remaining slices / #757
+remaining mappings were left as follow-up rather than completed.
+Session 97 (2026-09-01) closed the last remaining sub-item —
+pregnancy lifecycle refactor (PR #1051, Incr 1 of META #957) +
+chemo per-cycle emit drift close-out (PR #1052) — and **all three
+META Issues (#914, #957, #757) are now CLOSED**. The remaining
+step is the tag itself, which is held per project policy until an
+explicit user Go signal (`feedback_release_tag_requires_user_go`).
+Everything below stays queued under `[Unreleased]` until the
+re-tag.
 
 ### Added
 

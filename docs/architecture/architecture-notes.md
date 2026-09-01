@@ -470,7 +470,7 @@ observations.
 | AD-62 | 2026-06-30 | **Imaging metadata-only chain with WADO-RS placeholder.** |
 | AD-63 | 2026-07-01 | **Document narrative + structured event density foundation. Two new always-on Modules (allergy = POST_POPULATION order=10 / document = POST_ENCOUNTER order=95), 3 FHIR builders (DocumentReference / Composition / ClinicalImpression), 17-check lift_firing_proof. Closes Stage 1 document-density gap (DR 0→23,760, Comp 0→9,275, CI 0→23,760 US p=10k).** |
 
-*Numbering gaps AD-1, AD-2, AD-12, AD-14, AD-15, AD-27 are reserved/withdrawn — never assigned to a shipped decision. AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69 are documented in their own `### AD-6N` sections below rather than in this compact table. AD-67 (severity single source of truth), AD-68 (archetype_modifiers wiring), AD-69 (DiseaseProtocol extra="forbid") are the 2026-07-06 FHIR-completeness chain — see `docs/design-notes/2026-07-06-fix-point-registry.md`.*
+*Numbering gaps AD-1, AD-2, AD-12, AD-14, AD-15, AD-27 are reserved/withdrawn — never assigned to a shipped decision. AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69/AD-70/AD-71 are documented in their own `### AD-6N` / `### AD-7N` sections below rather than in this compact table. AD-67 (severity single source of truth), AD-68 (archetype_modifiers wiring), AD-69 (DiseaseProtocol extra="forbid") are the 2026-07-06 FHIR-completeness chain — see `docs/design-notes/2026-07-06-fix-point-registry.md`. AD-70 (JLAC10 primary + LOINC secondary) is the 2026-07-26 JP-CLINS lab-coding migration. AD-71 (`TemporalStatePeriod` temporal-state pattern) is the 2026-09-01 META #957 Incr 1 pregnancy-lifecycle refactor.*
 
 ---
 
@@ -878,7 +878,7 @@ the narrative CIF manifest, enabling per-document cost analysis and audit.
 
 ---
 
-## 9. Temporal-state pattern — `TemporalStatePeriod` (AD-67, META #957 Incr 1)
+## 9. Temporal-state pattern — `TemporalStatePeriod` (AD-71, META #957 Incr 1)
 
 ### Problem
 
@@ -912,7 +912,7 @@ concrete bugs:
    fertility rates are ~5-10 % for the same bands. Multi-year sims
    over-emitted obstetric activity.
 
-### Decision (AD-67)
+### Decision (AD-71)
 
 Introduce a general-purpose `TemporalStatePeriod` dataclass that
 represents a **time-boxed clinical or biographical state a person
