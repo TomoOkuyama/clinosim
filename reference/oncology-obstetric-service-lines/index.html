@@ -1367,10 +1367,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#13-explicitly-not-yet-covered-follow-up-slices" class="md-nav__link">
+  <a href="#13-explicitly-not-yet-covered-incr-15--later-slices" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1.3 Explicitly NOT yet covered (follow-up slices)
+        1.3 Explicitly NOT yet covered (Incr 1.5 + later slices)
       
     </span>
   </a>
@@ -2501,10 +2501,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#13-explicitly-not-yet-covered-follow-up-slices" class="md-nav__link">
+  <a href="#13-explicitly-not-yet-covered-incr-15--later-slices" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1.3 Explicitly NOT yet covered (follow-up slices)
+        1.3 Explicitly NOT yet covered (Incr 1.5 + later slices)
       
     </span>
   </a>
@@ -2750,24 +2750,29 @@ Japanese doc: <a href="../oncology-obstetric-service-lines.ja/"><code>oncology-o
 </thead>
 <tbody>
 <tr>
-<td>Pregnancy chronic marker (Z34)</td>
-<td>Female 20-44, ~18 % (JP 20-34) / ~19 % (US 20-34)</td>
-<td><code>chronic_prevalence.Z34</code> in <code>locale/&lt;c&gt;/demographics.yaml</code> (<code>sex: F</code>)</td>
+<td>Pregnancy as time-boxed lifecycle state (META #957 Incr 1)</td>
+<td>Age-banded annual conception Bernoulli against MHLW 2022 (JP) / CDC NVSR 2022 (US) rates for women 15-49. Conception opens a <code>TemporalStatePeriod(state_type="pregnancy")</code> on <code>PersonRecord.state_periods</code> with metadata <code>{lmp, edd, planned_delivery_date}</code>; the period closes on the year containing the delivery date (with <code>outcome="delivered"</code>) or at the abortion date (with <code>outcome="aborted"</code>).</td>
+<td><code>perinatal.yaml::lifecycle.annual_conception_rate</code> + <code>population/engine.py::_pregnancy_lifecycle_events</code> + <code>types/patient.py::TemporalStatePeriod</code></td>
 </tr>
 <tr>
-<td>Past-birth chronic marker (Z37)</td>
-<td>Carried on the problem list of women with obstetric history</td>
-<td>Same YAML</td>
+<td>Past-birth Z37 problem-list-item</td>
+<td>One Z37 problem-list-item Condition per delivered pregnancy period, anchored at the delivery date. Biology-consistent — multi-parity woman emits multi-Z37. Derived at FHIR emit time from <code>state_history("pregnancy")</code>; <strong>replaces the pre-Incr-1 chronic-sample proxy</strong>.</td>
+<td><code>modules/output/fhir_r4/conditions/conditions.py::_build_conditions</code> (past-pregnancies adapter)</td>
 </tr>
 <tr>
 <td>Prenatal supplement Rx</td>
-<td>Folic acid + iron</td>
-<td><code>locale/shared/chronic_medications.yaml</code> Z34 block</td>
+<td>Folic acid + iron attached as home medications when the person has any pregnancy history. Emit path unchanged (<code>chronic_medications.yaml::Z34</code>); gate switched from <code>chronic_conditions</code> to <code>state_periods</code> via a virtual Z34 <code>ChronicCondition</code> in the med-derivation input at activator time.</td>
+<td><code>locale/shared/chronic_medications.yaml</code> Z34 block + <code>modules/patient/activator.py</code> (state-based hook)</td>
+</tr>
+<tr>
+<td>Prenatal visits</td>
+<td>AMB encounters at gestational weeks 12 / 24 / 36 (simplified from the full q4w/q2w/q1w cadence deferred to Incr 1.5), <code>disease_id="Z34"</code>, routed to <code>obgyn</code> via <code>_CHRONIC_DISEASE_SPECIALTY</code>.</td>
+<td><code>perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks</code> + <code>population/engine.py::_pregnancy_lifecycle_events</code></td>
 </tr>
 <tr>
 <td>Mother-side delivery inpatient encounter</td>
-<td>One IMP encounter per Z34 pregnancy-year, LOS 5d JP / 2d US, admission dx <code>O80</code>, discharge dx <code>Z37.0</code>, delivery Procedure</td>
-<td><code>locale/shared/perinatal.yaml</code> + <code>population/engine.py::_perinatal_delivery_events</code> + <code>simulator/perinatal.py</code></td>
+<td>One IMP encounter per delivered pregnancy period on the year containing the planned delivery date (EDD ± 7 d jitter). LOS 5 d JP / 2 d US, admission dx <code>O80</code>, discharge dx <code>Z37.0</code>, delivery Procedure.</td>
+<td><code>locale/shared/perinatal.yaml::encounter</code> + <code>population/engine.py::_pregnancy_lifecycle_events</code> + <code>simulator/perinatal.py</code></td>
 </tr>
 <tr>
 <td>Delivery Procedure</td>
@@ -2791,8 +2796,8 @@ Japanese doc: <a href="../oncology-obstetric-service-lines.ja/"><code>oncology-o
 </tr>
 <tr>
 <td>Postpartum encounters × 2</td>
-<td>~1 wk + ~4 wk chronic_visit at disease_id <code>Z39</code> (encounter for maternal postpartum care)</td>
-<td><code>locale/shared/chronic_followup.yaml::Z39</code></td>
+<td>7 d + 28 d after delivery date, <code>chronic_visit</code> with <code>disease_id="Z39"</code>, routed to <code>obgyn</code>. Year-boundary clamped (Dec 31) when the delivery is in December.</td>
+<td><code>perinatal.yaml::lifecycle.postpartum_visit_offsets_days</code> + <code>population/engine.py::_pregnancy_lifecycle_events</code></td>
 </tr>
 <tr>
 <td>Newborn perinatal conditions</td>
@@ -2801,60 +2806,105 @@ Japanese doc: <a href="../oncology-obstetric-service-lines.ja/"><code>oncology-o
 </tr>
 <tr>
 <td>Abortion outcome (age-gated)</td>
-<td>Spontaneous O03.9 / induced O04.5 outpatient day-surgery. Age-band probability 15-19: 40 % → 35-44: 7 %. When fired, delivery + newborn chain are skipped for the Z34-year</td>
-<td><code>locale/shared/perinatal.yaml::abortion</code> + <code>population/engine.py::_abortion_outcome_events</code></td>
+<td>Spontaneous O03.9 / induced O04.5 outpatient day-surgery. Age-band probability 15-19: 40 % → 35-44: 7 %. When fired, the period closes with <code>outcome="aborted"</code> at gestational week ~10 (day 70 from LMP ± 14 d); delivery + newborn chain are skipped.</td>
+<td><code>locale/shared/perinatal.yaml::abortion</code> + <code>population/engine.py::_pregnancy_lifecycle_events</code> (abortion branch)</td>
 </tr>
 </tbody>
 </table>
-<h3 id="13-explicitly-not-yet-covered-follow-up-slices">1.3 Explicitly NOT yet covered (follow-up slices)<a class="headerlink" href="#13-explicitly-not-yet-covered-follow-up-slices" title="Permanent link">&para;</a></h3>
+<h3 id="13-explicitly-not-yet-covered-incr-15--later-slices">1.3 Explicitly NOT yet covered (Incr 1.5 + later slices)<a class="headerlink" href="#13-explicitly-not-yet-covered-incr-15--later-slices" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Time-boxed pregnancy state</strong> — Z34 currently sits on the
-  problem list for the full sim window rather than a real 40-week
-  active state. Follow-up will move it to a <code>disease_incidence</code>-style
-  event with snapshot-aware clamping. Downgraded from "must" to
-  "would be nicer" once the delivery + postpartum + newborn chain
-  landed in session 94 — the temporal signature the original scope
-  worried about is now supplied.</li>
+<li><strong>Per-encounter prenatal supplement MedicationRequest</strong> — Incr 1
+  attaches folic acid + iron to the persistent
+  <code>current_medications</code> list via the activator hook (keyed on
+  pregnancy history non-empty). Cleaner semantics is to emit them
+  as <code>MedicationRequest</code> resources scoped to the prenatal visits
+  themselves. Deferred to Incr 1.5.</li>
+<li><strong>Trimester-specific Z34.0X emit</strong> — currently every prenatal visit
+  emits <code>Z34</code> (unspecified trimester). Refining to <code>Z34.00 / Z34.01 /
+  Z34.02 / Z34.03</code> by gestational-age band is a small yaml + emit
+  change deferred to Incr 1.5.</li>
+<li><strong>Full prenatal cadence</strong> — Incr 1 uses a simplified 3-visit
+  schedule at 12 / 24 / 36 weeks. Real practice is q4w until 28 wk,
+  q2w until 36 wk, then q1w — Incr 1.5.</li>
+<li><strong>Gestational comorbidity sampling</strong> — O24 gestational diabetes,
+  O14 preeclampsia, O99 pregnancy-complicating co-existing disease.
+  Requires a comorbidity-during-pregnancy hook on <code>state_periods</code>.</li>
+<li><strong>Multi-pregnancy TFR calibration</strong> — Incr 1 seeds LMP uniformly
+  in the calendar year, so first-year sims under-emit deliveries
+  (only ~25 % of "true annual" births show up in year 1 because
+  cross-year pregnancies conceived in the prior year are missing).
+  Steady state converges over multi-year sims; a proper pre-warm
+  pass at population generation is Incr 1.5.</li>
+<li><strong>Stillbirth / preterm outcome variation</strong> — currently every
+  non-abortion pregnancy delivers a live term newborn.</li>
+<li><strong>Cesarean-section share</strong> — every delivery emits as O80
+  spontaneous vaginal. Real JP rate is ~20 % C-section (O82).</li>
 <li><strong>Oncology-specific Composition type</strong> — LOINC 34133-9 for
   cancer treatment notes.</li>
 <li><strong>Cross-year chemo cycle continuity</strong> — cycles are scheduled fresh
   per calendar year. A patient starting FOLFOX in November restarts
   from cycle 1 in January rather than continuing.</li>
-<li><strong>Cesarean-section share</strong> — currently every delivery emits as O80
-  spontaneous vaginal. Real JP rate is ~20 % C-section (O82); a
-  per-mother sub-RNG split is a natural follow-up.</li>
 </ul>
 <hr />
 <h2 id="2-emission-pipeline-data-flow">2. Emission pipeline (data flow)<a class="headerlink" href="#2-emission-pipeline-data-flow" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>locale/&lt;c&gt;/demographics.yaml
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  chronic_prevalence.C50 / .C61 / .Z34 / ...
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                      │
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                      ▼
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>population/engine.py::generate_population()
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  each PersonRecord gets chronic_conditions = ["C50", "Z34", ...]
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                      │
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                      ▼
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>population/engine.py::generate_healthcare_calendar()
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  for each person with a cancer code + regimen assignment:
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>     _chemo_cycle_events(person, year)  →  LifeEvent(chemo_visit, ...) × N cycles
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  for each Z34 woman:
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>     _perinatal_delivery_events(person, year)  →  LifeEvent(delivery, ...)
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>                      │
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>                      ▼
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>simulator/engine.py::run_beta()
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  event_type == "chemo_visit"       →  _simulate_outpatient_visit(...) with chemo spec
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>                                          → Encounter (AMB, oncology_infusion dept)
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>                                          → ProcedureRecord (chemotherapy_administration)
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  event_type == "delivery"          →  simulate_delivery_encounter(...)
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>                                          → Encounter (IMP, obgyn dept, LOS 5/2d)
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>                                          → ProcedureRecord (delivery)
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>                                          → ClinicalDiagnosis(admission=O80, discharge=Z37.0)
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>                      │
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>                      ▼
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>CIFPatientRecord written to cif/structural/patients/&lt;enc&gt;.json
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                      │
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>                      ▼
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>export-fhir → Encounter.ndjson / Procedure.ndjson / Condition.ndjson / ...
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>locale/&lt;c&gt;/demographics.yaml                 locale/shared/perinatal.yaml
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  chronic_prevalence.C50 / .C61 / ...           lifecycle.annual_conception_rate
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  (Z34 / Z37 no-op-consumed, not appended)      lifecycle.gestation_days
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                      │                         lifecycle.prenatal_visit_gestational_weeks
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                      ▼                         lifecycle.postpartum_visit_offsets_days
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>population/engine.py::generate_population()                        │
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  each PersonRecord gets chronic_conditions = ["C50", ...]         │
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  person.state_periods = []  (empty at generation)                 │
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                      │                                            │
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                      ▼                                            │
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>population/engine.py::generate_healthcare_calendar()               │
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  for each woman 15-49 with no active pregnancy:                   │
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>     _pregnancy_lifecycle_events(person, year, country) ◄──────────┤
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        rng.random() &lt; annual_conception_rate(country, age)?       │
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>          → open TemporalStatePeriod(state_type="pregnancy",       │
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>                lmp=..., edd=lmp+280, planned_delivery_date=...)   │
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>          → append to person.state_periods                         │
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>     for each active pregnancy period:                             │
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        → LifeEvent(chronic_visit, condition_type="prenatal_visit", disease_id="Z34") × 3
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        if planned_delivery in this year:
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>          → LifeEvent(delivery, disease_id="Z34")
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>          → LifeEvent(chronic_visit, condition_type="postpartum", disease_id="Z39") × 2
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>          → close period with outcome="delivered", end_date=delivery_date
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>  for each person with a cancer code + regimen assignment:
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>     _chemo_cycle_events(person, year)  →  LifeEvent(chemo_visit, ...) × N cycles
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>                      │
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                      ▼
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>simulator/engine.py::run_beta()
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>  event_type == "chemo_visit"       →  _simulate_outpatient_visit(...) with chemo spec
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>                                          → Encounter (AMB, oncology_infusion dept)
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                                          → ProcedureRecord (chemotherapy_administration)
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>  event_type == "delivery"          →  simulate_delivery_encounter(...)
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>                                          → Encounter (IMP, obgyn dept, LOS 5/2d)
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>                                          → ProcedureRecord (delivery)
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>                                          → ClinicalDiagnosis(admission=O80, discharge=Z37.0)
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>                                          → newborn Patient chain
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>  event_type == "abortion"          →  simulate_abortion_encounter(...) (period closed already)
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>  event_type == "chronic_visit" with condition_type == "prenatal_visit" or "postpartum"
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>                                    →  routed through outpatient dispatch,
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>                                        specialty = obgyn (via _CHRONIC_DISEASE_SPECIALTY)
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>                      │
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>                      ▼
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>activator.py::activate_patient() [cached per person]
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>  PatientProfile.state_periods = shallow copy of person.state_periods
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>  if state_history("pregnancy") is non-empty:
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>     current_meds includes folic acid + iron (via virtual Z34 in med-derivation input)
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>                      │
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>                      ▼
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>CIFPatientRecord written to cif/structural/patients/&lt;enc&gt;.json
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>  record["patient"]["state_periods"] carries the pregnancy history
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>                      │
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>                      ▼
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>export-fhir → conditions/conditions.py::_build_conditions
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>  chronic loop: iterates chronic_conditions (Z34 absent → no Z34 problem-list-item)
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>  past-pregnancies adapter: iterates state_periods with outcome="delivered"
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>                            → emits one Z37 problem-list-item per delivered period
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>                              (onsetDateTime = end_date)
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>export-fhir → Encounter.ndjson / Procedure.ndjson / Condition.ndjson / ...
 </span></code></pre></div>
 <hr />
 <h2 id="3-schema-reference">3. Schema reference<a class="headerlink" href="#3-schema-reference" title="Permanent link">&para;</a></h2>
@@ -2953,7 +3003,8 @@ the first cycle window, capped by both <code>course_cycles</code> and
 <code>cycle_orders</code> entries is deferred to a follow-up slice.</p>
 <h3 id="34-perinatalyaml">3.4 <code>perinatal.yaml</code><a class="headerlink" href="#34-perinatalyaml" title="Permanent link">&para;</a></h3>
 <p>Located at <code>locale/shared/perinatal.yaml</code>. Declares delivery
-encounter shape + procedure code + scheduling window.</p>
+encounter shape + procedure code + abortion outcome table + the
+<strong>pregnancy lifecycle block</strong> (META #957 Incr 1).</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">encounter</span><span class="p">:</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">visit_reason</span><span class="p">:</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">en</span><span class="p">:</span><span class="w"> </span><span class="s">"Delivery</span><span class="nv"> </span><span class="s">(spontaneous</span><span class="nv"> </span><span class="s">vaginal</span><span class="nv"> </span><span class="s">delivery)"</span>
@@ -2970,13 +3021,52 @@ encounter shape + procedure code + scheduling window.</p>
 </span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="nt">us_code</span><span class="p">:</span><span class="w"> </span><span class="s">"59400"</span><span class="w">                      </span><span class="c1"># CPT routine obstetric care</span>
 </span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">  </span><span class="nt">duration_minutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">90</span>
 </span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
-</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="nt">scheduling</span><span class="p">:</span>
-</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">  </span><span class="nt">delivery_month_range</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">10</span><span class="p p-Indicator">]</span><span class="w">         </span><span class="c1"># month bounds for Day-1 draw</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="c1"># Legacy block — kept for backward compat with the abortion outcome</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="c1"># branch's date placement. The Incr 1 lifecycle generator does NOT</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="c1"># consult this; it derives the delivery date from EDD ± jitter.</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="nt">scheduling</span><span class="p">:</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">  </span><span class="nt">delivery_month_range</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">10</span><span class="p p-Indicator">]</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="c1"># META #957 Incr 1: full pregnancy lifecycle (annual conception →</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="c1"># LMP/EDD → prenatal / delivery / postpartum → close). Age-banded</span>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="c1"># per-woman-per-year Bernoulli against MHLW 2022 (JP) / CDC NVSR 2022</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="c1"># (US) age-specific fertility rates.</span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="nt">lifecycle</span><span class="p">:</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="w">  </span><span class="nt">annual_conception_rate</span><span class="p">:</span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="w">    </span><span class="nt">jp</span><span class="p">:</span>
+</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="w">      </span><span class="s">"15-19"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.003</span>
+</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="w">      </span><span class="s">"20-24"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.023</span>
+</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="w">      </span><span class="s">"25-29"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.075</span>
+</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="w">      </span><span class="s">"30-34"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.099</span>
+</span><span id="__span-4-34"><a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="w">      </span><span class="s">"35-39"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.051</span>
+</span><span id="__span-4-35"><a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="w">      </span><span class="s">"40-44"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.008</span>
+</span><span id="__span-4-36"><a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="w">      </span><span class="s">"45-49"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0002</span>
+</span><span id="__span-4-37"><a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="w">    </span><span class="nt">us</span><span class="p">:</span>
+</span><span id="__span-4-38"><a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a><span class="w">      </span><span class="s">"15-19"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.014</span>
+</span><span id="__span-4-39"><a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="w">      </span><span class="s">"20-24"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.059</span>
+</span><span id="__span-4-40"><a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a><span class="w">      </span><span class="s">"25-29"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.096</span>
+</span><span id="__span-4-41"><a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a><span class="w">      </span><span class="s">"30-34"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.097</span>
+</span><span id="__span-4-42"><a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a><span class="w">      </span><span class="s">"35-39"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.056</span>
+</span><span id="__span-4-43"><a id="__codelineno-4-43" name="__codelineno-4-43" href="#__codelineno-4-43"></a><span class="w">      </span><span class="s">"40-44"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.012</span>
+</span><span id="__span-4-44"><a id="__codelineno-4-44" name="__codelineno-4-44" href="#__codelineno-4-44"></a><span class="w">      </span><span class="s">"45-49"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.001</span>
+</span><span id="__span-4-45"><a id="__codelineno-4-45" name="__codelineno-4-45" href="#__codelineno-4-45"></a><span class="w">  </span><span class="nt">gestation_days</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">280</span><span class="w">                          </span><span class="c1"># Naegele's rule</span>
+</span><span id="__span-4-46"><a id="__codelineno-4-46" name="__codelineno-4-46" href="#__codelineno-4-46"></a><span class="w">  </span><span class="nt">delivery_jitter_days</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-7</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">7</span><span class="p p-Indicator">]</span>
+</span><span id="__span-4-47"><a id="__codelineno-4-47" name="__codelineno-4-47" href="#__codelineno-4-47"></a><span class="w">  </span><span class="nt">prenatal_visit_gestational_weeks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">12</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">24</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">36</span><span class="p p-Indicator">]</span>
+</span><span id="__span-4-48"><a id="__codelineno-4-48" name="__codelineno-4-48" href="#__codelineno-4-48"></a><span class="w">  </span><span class="nt">postpartum_visit_offsets_days</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">7</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">28</span><span class="p p-Indicator">]</span>
 </span></code></pre></div>
-<p><strong>Slice-1 semantics:</strong> one delivery event per Z34 pregnancy-year at
-a scheduled month within the config window. Multi-year pregnancy
-transitions + newborn Patient generation are the deferred
-follow-up slice.</p>
+<p><strong>Incr 1 semantics:</strong> each sim year the generator rolls a per-
+<code>(person_id, year)</code> sub-RNG (<code>perinatal_delivery_seed</code>). If the
+woman is 15-49 and has no active pregnancy period, it rolls the
+annual conception Bernoulli. On a hit it opens a
+<code>TemporalStatePeriod(state_type="pregnancy")</code> with LMP uniform in
+the year, EDD = LMP + 280 d, and a jittered planned delivery date.
+Cross-year pregnancies (LMP late in year N, EDD in year N+1) carry
+via <code>person.state_periods</code>; year N+1's call short-circuits the
+Bernoulli via <code>get_active_state</code>. When the year of the planned
+delivery arrives, the generator emits the delivery + postpartum
+events and closes the period with <code>outcome="delivered"</code>. Abortion
+outcomes close the period with <code>outcome="aborted"</code> and emit a
+single outpatient abortion encounter.</p>
 <hr />
 <h2 id="4-chronic-medication-carryforward-semantics">4. Chronic-medication carryforward semantics<a class="headerlink" href="#4-chronic-medication-carryforward-semantics" title="Permanent link">&para;</a></h2>
 <p>Drugs a patient takes at home are tracked on
@@ -3094,9 +3184,14 @@ master population RNG stream:</p>
 <td><code>(patient_id, cancer_code)</code></td>
 </tr>
 <tr>
-<td>Perinatal delivery month + day</td>
+<td>Pregnancy lifecycle (conception Bernoulli + LMP + jitter)</td>
 <td><code>perinatal_delivery_seed</code></td>
 <td><code>(patient_id, year)</code></td>
+</tr>
+<tr>
+<td>Abortion outcome (spontaneous vs induced split)</td>
+<td><code>_abortion_outcome_sub_seed</code></td>
+<td><code>(mother_id, year)</code></td>
 </tr>
 <tr>
 <td>Male C50 augmentation sampling</td>
@@ -3142,8 +3237,16 @@ for the AD-16 pattern that motivates these.</p>
 <td><code>locale/shared/chemo_regimens.yaml</code> — new entry under <code>regimens</code> + a row in <code>by_cancer</code></td>
 </tr>
 <tr>
-<td>Change delivery LOS or window</td>
-<td><code>locale/shared/perinatal.yaml</code></td>
+<td>Change delivery LOS or delivery Procedure code</td>
+<td><code>locale/shared/perinatal.yaml::encounter</code> / <code>::procedure</code></td>
+</tr>
+<tr>
+<td>Tune age-banded conception rate</td>
+<td><code>locale/shared/perinatal.yaml::lifecycle.annual_conception_rate.{jp,us}</code></td>
+</tr>
+<tr>
+<td>Change prenatal visit cadence / postpartum offsets</td>
+<td><code>locale/shared/perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks</code> / <code>::postpartum_visit_offsets_days</code></td>
 </tr>
 <tr>
 <td>Activate an opposite-sex augmentation on a currently-single-sex chronic code</td>

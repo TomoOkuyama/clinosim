@@ -2841,6 +2841,100 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#9-temporal-state-pattern--temporalstateperiod-ad-67-meta-957-incr-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Temporal-state pattern — TemporalStatePeriod (AD-67, META #957 Incr 1)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Temporal-state pattern — TemporalStatePeriod (AD-67, META #957 Incr 1)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decision-ad-67" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision (AD-67)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-not-just-leave-it-on-chronic_conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why not just leave it on chronic_conditions?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rng-cursor-preservation-byte-diff-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RNG-cursor preservation (byte-diff safety)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-goals-for-the-first-landing-incr-1--pregnancy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals for the first landing (Incr 1 — pregnancy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumers-today" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumers today
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3835,6 +3929,156 @@ admission H&amp;P / discharge summary template code).</p>
 - <code>provider</code> — the configured provider key (e.g. <code>bedrock</code>) for provenance</p>
 <p>All of these are recorded on the <code>ClinicalDocument.generation</code> block and propagate into
 the narrative CIF manifest, enabling per-document cost analysis and audit.</p>
+<hr />
+<h2 id="9-temporal-state-pattern--temporalstateperiod-ad-67-meta-957-incr-1">9. Temporal-state pattern — <code>TemporalStatePeriod</code> (AD-67, META #957 Incr 1)<a class="headerlink" href="#9-temporal-state-pattern--temporalstateperiod-ad-67-meta-957-incr-1" title="Permanent link">&para;</a></h2>
+<h3 id="problem_9">Problem<a class="headerlink" href="#problem_9" title="Permanent link">&para;</a></h3>
+<p>Several clinical facts fit awkwardly on <code>PersonRecord.chronic_conditions</code>
+(a flat <code>list[str]</code> of ICD codes) because they are <strong>time-boxed
+episodes with an outcome</strong>, not chronic conditions:</p>
+<ul>
+<li><strong>Pregnancy</strong> — a 40-week active state, closes with delivery or
+  abortion, may repeat (multi-parity).</li>
+<li><strong>Cancer active treatment</strong> — an FOLFOX / Trastuzumab course that
+  spans months, closes with completion / remission / discontinuation.</li>
+<li><strong>Anticoagulation course</strong> — a 3-month DVT prophylaxis warfarin
+  course with a defined stop date.</li>
+<li><strong>Post-encounter monitoring</strong> — an INR check window that expires.</li>
+<li><strong>Remission</strong> — a bounded window of "cancer-free follow-up" after
+  active treatment closes.</li>
+</ul>
+<p>Pre-Incr-1 the code treated pregnancy as a chronic condition (Z34 sat
+on the problem list for the entire sim window), which produced three
+concrete bugs:</p>
+<ol>
+<li><strong>Semantic wrong</strong> — Z34 problem-list-item emit implied a lifelong
+   chronic condition, but Z34 is an "encounter for supervision of
+   normal pregnancy" — a visit reason, not a chronic diagnosis.</li>
+<li><strong>Temporal wrong</strong> — the entry stayed active from Day 0 to the sim
+   cursor, regardless of whether the woman was actually pregnant at
+   any point in that window. Prenatal supplements (folic acid, iron)
+   emitted for non-pregnant time periods.</li>
+<li><strong>Statistical wrong</strong> — Z34 was sampled at ~18 % prevalence (20-34
+   JP), producing ~1 delivery per Z34-year. Real MHLW / CDC age-band
+   fertility rates are ~5-10 % for the same bands. Multi-year sims
+   over-emitted obstetric activity.</li>
+</ol>
+<h3 id="decision-ad-67">Decision (AD-67)<a class="headerlink" href="#decision-ad-67" title="Permanent link">&para;</a></h3>
+<p>Introduce a general-purpose <code>TemporalStatePeriod</code> dataclass that
+represents a <strong>time-boxed clinical or biographical state a person
+passes through</strong>, distinct from a chronic condition. Attach it to
+both <code>PersonRecord.state_periods</code> (Layer 1) and
+<code>PatientProfile.state_periods</code> (Layer 2), and provide a query API
+(<code>has_active_state</code>, <code>get_active_state</code>, <code>state_history</code>) that
+lifecycle generators call.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nd">@dataclass</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">TemporalStatePeriod</span><span class="p">:</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    <span class="n">state_type</span><span class="p">:</span> <span class="nb">str</span>                <span class="c1"># "pregnancy" | "cancer_treatment" | "acute_med_course" | …</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="n">start_date</span><span class="p">:</span> <span class="n">date</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="n">end_date</span><span class="p">:</span> <span class="n">date</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>   <span class="c1"># None = still open</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    <span class="n">outcome</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>              <span class="c1"># "delivered" | "aborted" | "completed" | …</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># state-specific fields</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>    <span class="n">period_seq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>            <span class="c1"># 0-indexed per (person, state_type)</span>
+</span></code></pre></div>
+<p><strong>Semantic contract:</strong>
+- <code>start_date</code> inclusive, <code>end_date</code> inclusive when set.
+- Assumes at most one active period per <code>(person, state_type)</code> at any
+  time (holds for pregnancy by biology; will hold for other lifecycle
+  states as they arrive).
+- <code>metadata</code> carries state-specific structured fields. For pregnancy:
+  <code>lmp</code>, <code>edd</code>, <code>planned_delivery_date</code>, <code>delivered_on</code> (or
+  <code>abortion_date</code> + <code>abortion_dx</code>).</p>
+<p><strong>Generator contract (per state_type):</strong>
+- A single owner module writes to <code>state_periods</code> for the state.
+  Pregnancy = <code>_pregnancy_lifecycle_events</code> in <code>population/engine.py</code>.
+- Draws use a state-scoped deterministic sub-RNG (pregnancy currently
+  uses <code>perinatal_delivery_seed(person_id, year)</code>; cancer will use
+  <code>chemotherapy_regimen_seed(person_id, cancer_code)</code>; future states
+  get their own).
+- The owner opens the period on the transition condition, closes it
+  on the terminal condition, writes <code>outcome</code> and <code>end_date</code> at
+  close, and appends to <code>person.state_periods</code>.</p>
+<p><strong>FHIR emit contract:</strong>
+- Downstream emit adapters read <code>state_history(state_type)</code> (post-
+  <code>asdict()</code> this is <code>record["patient"]["state_periods"]</code>) to derive
+  Condition / Observation / Procedure resources whose semantic is
+  "this happened once and is now closed" — like Z37 past-birth marker.</p>
+<h3 id="why-not-just-leave-it-on-chronic_conditions">Why not just leave it on <code>chronic_conditions</code>?<a class="headerlink" href="#why-not-just-leave-it-on-chronic_conditions" title="Permanent link">&para;</a></h3>
+<p><code>chronic_conditions</code> has a fixed schema (flat <code>list[str]</code>) and its
+consumers (FHIR problem-list emit, chronic followup dispatch, chronic
+medication activator) assume "if the code is in the list, the patient
+has the chronic condition right now, forever." A time-boxed episode
+violates that assumption at three sites at once, and papering over
+each with per-code special cases produces an unbounded set of code
+paths that only make sense to obstetric readers. A separate data
+structure with an explicit lifecycle contract lets each new lifecycle
+state land as a <strong>single owner + a single emit adapter</strong>, without
+splitting the "obstetric" or "cancer" concerns across every consumer
+of the chronic list.</p>
+<h3 id="rng-cursor-preservation-byte-diff-safety">RNG-cursor preservation (byte-diff safety)<a class="headerlink" href="#rng-cursor-preservation-byte-diff-safety" title="Permanent link">&para;</a></h3>
+<p>The demographics <code>chronic_prevalence</code> yaml still lists Z34 (and Z37,
+the past-birth marker) so the Bernoulli iteration order does not
+shift for any non-obstetric code. But the sampling loop no-op-
+consumes the draw for these codes — the <code>rng.random()</code> call happens
+so the cursor advances, but the code is not appended to
+<code>chronic_conditions</code>. Filter is <code>_STATE_PERIOD_CHRONIC_CODES</code> in
+<code>modules/population/engine.py</code>. Verified p=1000 US non-obstetric
+byte-identity vs master (596/596 persons matched).</p>
+<h3 id="non-goals-for-the-first-landing-incr-1--pregnancy">Non-goals for the first landing (Incr 1 — pregnancy)<a class="headerlink" href="#non-goals-for-the-first-landing-incr-1--pregnancy" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Event generator registry</strong> — Incr 1 wires the pregnancy generator
+  directly into <code>generate_healthcare_calendar</code>. A registry that lets
+  new state generators auto-register is Incr 2.</li>
+<li><strong>StateDirective</strong> — Incr 1 has generators mutate <code>state_periods</code>
+  directly. An explicit <code>StateDirective</code> (open / close / transition)
+  that generators return, applied by a shared reducer for
+  auditability, is Incr 2+.</li>
+<li><strong>Generalized <code>state_rng</code> helper</strong> — Incr 1 has each state reuse
+  the sub-RNG naming already established for that domain
+  (pregnancy = <code>perinatal_delivery_seed</code>). A common
+  <code>state_rng(pid, state_type, period_seq)</code> helper is Incr 3.</li>
+<li><strong>Cancer active-treatment migration</strong> — the chemo cycle scheduler
+  is a natural next candidate for this pattern; Incr 1.5.</li>
+</ul>
+<h3 id="consumers-today">Consumers today<a class="headerlink" href="#consumers-today" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Consumer</th>
+<th>Reads from</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_pregnancy_lifecycle_events</code></td>
+<td>own writes to <code>state_periods</code></td>
+<td>year-N+1 <code>get_active_state</code> short-circuits Bernoulli; year-N period carries across year boundary</td>
+</tr>
+<tr>
+<td><code>activator.py::activate_patient</code></td>
+<td><code>person.state_periods</code></td>
+<td>attaches folic acid + iron via med-derivation input when pregnancy history non-empty</td>
+</tr>
+<tr>
+<td><code>_build_conditions</code> (FHIR)</td>
+<td><code>record["patient"]["state_periods"]</code></td>
+<td>emits one Z37 problem-list-item Condition per delivered pregnancy period</td>
+</tr>
+<tr>
+<td><code>tests/integration/test_pregnancy_lifecycle_e2e.py</code></td>
+<td>patient CIF record</td>
+<td>asserts biology invariants (no Z34 problem-list; postpartum after delivery; men / minors / postmenopausal have zero pregnancy periods)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reference">Reference<a class="headerlink" href="#reference" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Types: <code>clinosim/types/patient.py::TemporalStatePeriod</code></li>
+<li>Query API: <code>clinosim/types/population.py::PersonRecord.has_active_state / get_active_state / state_history</code></li>
+<li>Generator: <code>clinosim/modules/population/engine.py::_pregnancy_lifecycle_events</code></li>
+<li>FHIR adapter: <code>clinosim/modules/output/fhir_r4/conditions/conditions.py</code> (past-pregnancies block)</li>
+<li>Config: <code>clinosim/locale/shared/perinatal.yaml::lifecycle</code></li>
+</ul>
 <hr />
 
 

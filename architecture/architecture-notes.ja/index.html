@@ -2841,6 +2841,100 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#9-時限-state-パターン--temporalstateperiod-ad-67meta-957-incr-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 時限 state パターン — TemporalStatePeriod (AD-67、META #957 Incr 1)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 時限 state パターン — TemporalStatePeriod (AD-67、META #957 Incr 1)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decision-ad-67" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision (AD-67)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#なぜ-chronic_conditions-にそのまま残さないのか" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        なぜ chronic_conditions にそのまま残さないのか
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rng-cursor-保全-byte-diff-安全性" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RNG cursor 保全 (byte-diff 安全性)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#初回着地-incr-1--妊娠-の非目標" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        初回着地 (Incr 1 — 妊娠) の非目標
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#現在の-consumer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        現在の consumer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3913,6 +4007,150 @@ hardcoded path を使用 (admission H&amp;P / 退院サマリテンプレート
 <p>これら全ては <code>ClinicalDocument.generation</code> ブロックに記録され、
 narrative CIF manifest に伝播、per-document コスト分析と audit を
 可能にする。</p>
+<hr />
+<h2 id="9-時限-state-パターン--temporalstateperiod-ad-67meta-957-incr-1">9. 時限 state パターン — <code>TemporalStatePeriod</code> (AD-67、META #957 Incr 1)<a class="headerlink" href="#9-時限-state-パターン--temporalstateperiod-ad-67meta-957-incr-1" title="Permanent link">&para;</a></h2>
+<h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
+<p>いくつかの臨床事実は <code>PersonRecord.chronic_conditions</code> (フラットな
+<code>list[str]</code> の ICD code) には収まりが悪い。<strong>開始と outcome を持つ
+時限エピソード</strong> であり、慢性状態ではないため:</p>
+<ul>
+<li><strong>妊娠</strong> — 40 週の active state、分娩または中絶で閉じる、繰り返し
+  発生しうる (多産)。</li>
+<li><strong>がん active treatment</strong> — 数ヶ月にわたる FOLFOX / Trastuzumab
+  コース、完了 / 寛解 / 中止で閉じる。</li>
+<li><strong>抗凝固コース</strong> — DVT 予防の 3 ヶ月ワルファリンコース、明確な
+  終了日を持つ。</li>
+<li><strong>encounter 後モニタリング</strong> — 期限のある INR チェック窓。</li>
+<li><strong>寛解</strong> — active treatment 終了後の「cancer-free follow-up」窓。</li>
+</ul>
+<p>Incr 1 前のコードは妊娠を慢性状態として扱っていた (Z34 が sim window
+全期間 problem list に載る)。これにより 3 つの具体的なバグを生んで
+いた:</p>
+<ol>
+<li><strong>意味的に誤り</strong> — Z34 problem-list-item emit は生涯にわたる慢性
+   状態を示唆するが、Z34 は「正常妊娠の管理のための encounter」 —
+   来院理由であり慢性診断ではない。</li>
+<li><strong>時間的に誤り</strong> — 女性が実際に妊娠していたかに関わらず、Day 0
+   から sim cursor まで active のまま。妊娠中サプリ (葉酸、鉄剤)
+   が非妊娠期間にも emit されていた。</li>
+<li><strong>統計的に誤り</strong> — Z34 は ~18 % (20-34 JP) で sample され、
+   Z34 年毎に ~1 分娩を生成。実際の MHLW / CDC 年齢帯別出生率は同
+   年齢帯で ~5-10 %。多年 sim で obstetric activity が過剰 emit。</li>
+</ol>
+<h3 id="decision-ad-67">Decision (AD-67)<a class="headerlink" href="#decision-ad-67" title="Permanent link">&para;</a></h3>
+<p><strong>慢性状態と区別される、人が経過する時限的な臨床 / biographical
+state</strong> を表現する汎用 <code>TemporalStatePeriod</code> dataclass を導入。
+<code>PersonRecord.state_periods</code> (Layer 1) と <code>PatientProfile.state_periods</code>
+(Layer 2) の両方に attach、lifecycle generator が呼ぶ query API
+(<code>has_active_state</code>、<code>get_active_state</code>、<code>state_history</code>) を提供する。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nd">@dataclass</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">TemporalStatePeriod</span><span class="p">:</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    <span class="n">state_type</span><span class="p">:</span> <span class="nb">str</span>                <span class="c1"># "pregnancy" | "cancer_treatment" | "acute_med_course" | …</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="n">start_date</span><span class="p">:</span> <span class="n">date</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="n">end_date</span><span class="p">:</span> <span class="n">date</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>   <span class="c1"># None = まだ open</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    <span class="n">outcome</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>              <span class="c1"># "delivered" | "aborted" | "completed" | …</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># state 固有 field</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>    <span class="n">period_seq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>            <span class="c1"># (person, state_type) 毎の 0-indexed</span>
+</span></code></pre></div>
+<p><strong>Semantic contract:</strong>
+- <code>start_date</code> inclusive、<code>end_date</code> set 時は inclusive。
+- <code>(person, state_type)</code> あたり同時に高々 1 つの active period を
+  仮定 (妊娠は生物学的に成立; 他の lifecycle state も arrive 時に
+  成立する想定)。
+- <code>metadata</code> は state 固有の structured field を carry。妊娠なら:
+  <code>lmp</code>、<code>edd</code>、<code>planned_delivery_date</code>、<code>delivered_on</code> (または
+  <code>abortion_date</code> + <code>abortion_dx</code>)。</p>
+<p><strong>Generator contract (state_type ごと):</strong>
+- 1 つの owner モジュールが state の <code>state_periods</code> に書く。妊娠 =
+  <code>population/engine.py::_pregnancy_lifecycle_events</code>。
+- Draw は state-scoped deterministic sub-RNG を使う (妊娠は現在
+  <code>perinatal_delivery_seed(person_id, year)</code>; がんは
+  <code>chemotherapy_regimen_seed(person_id, cancer_code)</code>; 将来の state
+  は独自 seed)。
+- Owner が遷移条件で period を open し、終了条件で close、close 時に
+  <code>outcome</code> と <code>end_date</code> を書き、<code>person.state_periods</code> に append。</p>
+<p><strong>FHIR emit contract:</strong>
+- Downstream emit adapter が <code>state_history(state_type)</code> を読む
+  (post-<code>asdict()</code> では <code>record["patient"]["state_periods"]</code>)、
+  Condition / Observation / Procedure などの「これは 1 回起こって
+  今は close されている」semantic のリソースを導出 — Z37 過去出産
+  マーカーが典型例。</p>
+<h3 id="なぜ-chronic_conditions-にそのまま残さないのか">なぜ <code>chronic_conditions</code> にそのまま残さないのか<a class="headerlink" href="#なぜ-chronic_conditions-にそのまま残さないのか" title="Permanent link">&para;</a></h3>
+<p><code>chronic_conditions</code> は fixed schema (flat <code>list[str]</code>) を持ち、その
+consumer (FHIR problem-list emit、慢性 followup dispatch、慢性薬剤
+activator) は「code が list にあれば患者はその慢性状態を今、永久に
+持っている」と仮定している。時限エピソードはこの仮定を 3 つの site
+で同時に破り、それを per-code の特殊ケースで pave over すると、
+産科読者にしか意味のない unbounded な code path を生む。明確な
+lifecycle contract を持つ別データ構造にすることで、新しい lifecycle
+state 毎に <strong>1 つの owner + 1 つの emit adapter</strong> で着地でき、
+「産科」や「がん」の concern を chronic list の全 consumer に散らす
+ことを避けられる。</p>
+<h3 id="rng-cursor-保全-byte-diff-安全性">RNG cursor 保全 (byte-diff 安全性)<a class="headerlink" href="#rng-cursor-保全-byte-diff-安全性" title="Permanent link">&para;</a></h3>
+<p>demographics <code>chronic_prevalence</code> yaml は Z34 (と過去出産マーカー
+Z37) を引き続き列挙し、Bernoulli 反復順が非産科 code で shift しない
+ようにする。ただし sampling loop は当該 code の draw を no-op consume
+する — <code>rng.random()</code> call は行い cursor は進めるが、code は
+<code>chronic_conditions</code> に append しない。フィルタは
+<code>modules/population/engine.py::_STATE_PERIOD_CHRONIC_CODES</code>。p=1000
+US 非産科 byte-identity vs master を検証済み (596/596 person が
+match)。</p>
+<h3 id="初回着地-incr-1--妊娠-の非目標">初回着地 (Incr 1 — 妊娠) の非目標<a class="headerlink" href="#初回着地-incr-1--妊娠-の非目標" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Event generator registry</strong> — Incr 1 は pregnancy generator を
+  <code>generate_healthcare_calendar</code> に直接 wire。新 state generator が
+  自動登録できる registry は Incr 2。</li>
+<li><strong>StateDirective</strong> — Incr 1 は generator が <code>state_periods</code> を直接
+  変更する。generator が返す明示的な <code>StateDirective</code> (open / close
+  / transition) を共有 reducer が適用して auditability を確保、は
+  Incr 2+。</li>
+<li><strong>汎用 <code>state_rng</code> helper</strong> — Incr 1 は各 state が既にそのドメイン
+  で確立された sub-RNG naming を再利用 (妊娠 =
+  <code>perinatal_delivery_seed</code>)。共通の
+  <code>state_rng(pid, state_type, period_seq)</code> helper は Incr 3。</li>
+<li><strong>がん active-treatment 移行</strong> — chemo cycle scheduler は本パターン
+  の自然な次候補; Incr 1.5。</li>
+</ul>
+<h3 id="現在の-consumer">現在の consumer<a class="headerlink" href="#現在の-consumer" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Consumer</th>
+<th>読み取り元</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_pregnancy_lifecycle_events</code></td>
+<td>自らの <code>state_periods</code> 書き込み</td>
+<td>年 N+1 の <code>get_active_state</code> short-circuit で Bernoulli skip; 年 N の period が年境界を carry</td>
+</tr>
+<tr>
+<td><code>activator.py::activate_patient</code></td>
+<td><code>person.state_periods</code></td>
+<td>妊娠履歴 non-empty で med-derivation 入力に葉酸 + 鉄剤を注入</td>
+</tr>
+<tr>
+<td><code>_build_conditions</code> (FHIR)</td>
+<td><code>record["patient"]["state_periods"]</code></td>
+<td>delivered pregnancy period 毎に Z37 problem-list-item Condition を emit</td>
+</tr>
+<tr>
+<td><code>tests/integration/test_pregnancy_lifecycle_e2e.py</code></td>
+<td>patient CIF record</td>
+<td>生物学 invariant を assert (Z34 problem-list なし; 産褥は分娩後; 男性 / 未成年 / 閉経後は妊娠 period ゼロ)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reference">Reference<a class="headerlink" href="#reference" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Types: <code>clinosim/types/patient.py::TemporalStatePeriod</code></li>
+<li>Query API: <code>clinosim/types/population.py::PersonRecord.has_active_state / get_active_state / state_history</code></li>
+<li>Generator: <code>clinosim/modules/population/engine.py::_pregnancy_lifecycle_events</code></li>
+<li>FHIR adapter: <code>clinosim/modules/output/fhir_r4/conditions/conditions.py</code> (past-pregnancies block)</li>
+<li>Config: <code>clinosim/locale/shared/perinatal.yaml::lifecycle</code></li>
+</ul>
 <hr />
 
 

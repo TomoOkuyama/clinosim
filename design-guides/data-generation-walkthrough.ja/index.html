@@ -2515,19 +2515,48 @@ hospital encounter に変換される。これにより疫学が人口レベル�
 <td><code>_simulate_outpatient_visit(visit_type="chemo_visit")</code> — Encounter + <code>chemotherapy_administration</code> Procedure を emit</td>
 </tr>
 <tr>
+<td><code>chronic_visit</code> (<code>condition_type="prenatal_visit"</code>、<code>disease_id="Z34"</code>)</td>
+<td>15-49 歳女性で active な <code>TemporalStatePeriod(state_type="pregnancy")</code> を持つ患者</td>
+<td>LMP からの妊娠週 12 / 24 / 36、出所は <code>perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks</code></td>
+<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code>、<code>_CHRONIC_DISEASE_SPECIALTY</code> 経由で <code>obgyn</code> に routing</td>
+</tr>
+<tr>
 <td><code>delivery</code></td>
-<td>Z34 保有 (sim window 内 active な妊娠) の女性</td>
-<td>妊娠年毎に 1 件、<code>perinatal.yaml::scheduling.delivery_month_range</code> 内 (デフォルト 4-10 月) の scheduled 月に発火</td>
-<td><code>simulator/perinatal.py::simulate_delivery_encounter</code> — <code>O80</code> admission dx / <code>Z37.0</code> discharge dx + 分娩 Procedure の IMP Encounter を emit</td>
+<td>active pregnancy period の <code>planned_delivery_date</code> (EDD ± 7 d jitter) が sim 年に含まれる女性 — period は <code>perinatal.yaml::lifecycle.annual_conception_rate.{jp,us}</code> に対する年次 conception Bernoulli で open</td>
+<td>delivered pregnancy period 毎に 1 件、per-<code>(person_id, year)</code> sub-RNG (<code>perinatal_delivery_seed</code>)</td>
+<td><code>simulator/perinatal.py::simulate_delivery_encounter</code> — <code>O80</code> admission dx / <code>Z37.0</code> discharge dx + 分娩 Procedure + 新生児 Patient chain の IMP Encounter を emit</td>
+</tr>
+<tr>
+<td><code>chronic_visit</code> (<code>condition_type="postpartum"</code>、<code>disease_id="Z39"</code>)</td>
+<td>同じ delivered pregnancy period</td>
+<td><code>delivery_date</code> の 7 d + 28 d 後、出所は <code>perinatal.yaml::lifecycle.postpartum_visit_offsets_days</code></td>
+<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code>、<code>obgyn</code> に routing</td>
+</tr>
+<tr>
+<td><code>abortion</code></td>
+<td>同 lifecycle generator、per-mother-year の abortion outcome roll が hit (年齢帯別 15-19 40 % → 35-44 7 %) した場合</td>
+<td>妊娠週 ~10 (LMP + 70 ± 14 d) で発火、period を <code>outcome="aborted"</code> で close</td>
+<td><code>simulator/perinatal.py::simulate_abortion_encounter</code> — 外来日帰り手術、discharge dx <code>O03.9</code> / <code>O04.5</code></td>
 </tr>
 </tbody>
 </table>
+<p><strong>META #957 Incr 1 note:</strong> 妊娠はもはや慢性状態として扱われない。
+Z34 は <code>chronic_conditions</code> に append されない (sampling loop は
+rng cursor 保全のため Bernoulli draw を no-op consume)。代わりに
+pregnancy-lifecycle generator が受精時に
+<code>TemporalStatePeriod(state_type="pregnancy")</code> を
+<code>PersonRecord.state_periods</code> に open し、分娩 (または中絶) で close
+する。cross-year 妊娠は <code>state_periods</code> 経由で carry — 年 N+1 の
+generator call は <code>get_active_state</code> で conception Bernoulli を
+short-circuit。詳細:
+<a href="../../architecture/architecture-notes.ja/"><code>../architecture/architecture-notes.ja.md#9-時限-state-パターン--temporalstateperiod-ad-67meta-957-incr-1</code></a>。</p>
 <p><strong>Determinism-neutrality 契約:</strong> 初回 chronic-visit スケジューラ以降に
-追加された event (chemo_visit、delivery) はすべて、カレンダー共有の
-per-person stream を消費するのではなく専用の per-patient sub-seed
-(<code>chemotherapy_regimen_seed</code>、<code>perinatal_delivery_seed</code>) を使用する。
-これらの emit の追加・調整は、新 event が直接対象とする患者を除き
-byte-identical。</p>
+追加された event (chemo_visit + 妊娠 lifecycle) はすべて、カレンダー
+共有の per-person stream を消費するのではなく専用の per-patient
+sub-seed (<code>chemotherapy_regimen_seed</code>、<code>perinatal_delivery_seed</code>) を
+使用する。これらの emit の追加・調整は、新 event が直接対象とする
+患者を除き byte-identical — p=1000 US 非産科 596/596 identity vs
+Incr 1 前 master を検証済み。</p>
 <p>腫瘍 + 産科 event の full schema + slice スコープ:
 <a href="../../reference/oncology-obstetric-service-lines.ja/"><code>../reference/oncology-obstetric-service-lines.ja.md</code></a>。</p>
 <h3 id="1c-患者の-hydrate--modulespatient">1c. 患者の hydrate — <code>modules/patient</code><a class="headerlink" href="#1c-患者の-hydrate--modulespatient" title="Permanent link">&para;</a></h3>

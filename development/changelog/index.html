@@ -2312,6 +2312,47 @@ a MINOR release only when its release-scope Issues are fully closed,
 the tag was removed and the remaining scope is being folded in
 before re-tagging. Everything below stays queued under
 <code>[Unreleased]</code> until the re-tag.</p>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Pregnancy lifecycle refactor: <code>TemporalStatePeriod</code> framework +
+  biology-consistent obstetric emit (META #957 Incr 1).</strong> Introduces a
+  general-purpose time-boxed state pattern (<code>TemporalStatePeriod</code> on
+  <code>PersonRecord.state_periods</code> + <code>PatientProfile.state_periods</code> with
+  <code>has_active_state</code> / <code>get_active_state</code> / <code>state_history</code> query API)
+  and migrates pregnancy off the pre-Incr-1 "Z34 as chronic condition"
+  proxy model. The new <code>_pregnancy_lifecycle_events</code> scheduler consumes
+  age-banded annual conception Bernoulli (MHLW 2022 / CDC NVSR 2022
+  age-specific fertility rates in <code>perinatal.yaml::lifecycle</code>) →
+  opens a pregnancy period with LMP + EDD (LMP + 280 d) → emits
+  prenatal visits at gestational weeks 12/24/36 → emits delivery
+  (EDD ± 7 d jitter) + two postpartum visits (7 d / 28 d) → closes the
+  period with <code>outcome="delivered"</code>. Abortion path closes with
+  <code>outcome="aborted"</code> and emits a single abortion encounter.
+  Cross-year pregnancies carry via <code>state_periods</code>; year N+1's call
+  short-circuits the conception Bernoulli via <code>get_active_state</code>.
+  FHIR emit consequences: <strong>Z34 problem-list-item goes to zero</strong>
+  (pregnancy is not a chronic condition); <strong>Z37 problem-list-item is
+  now derived from <code>state_history("pregnancy")</code> delivered periods</strong>
+  (one per delivered pregnancy, biology-consistent; replaces the
+  session-95 s95-z37 chronic proxy). Prenatal supplements (folic acid,
+  iron via <code>chronic_medications.yaml::Z34</code>) still emit via an
+  activator-time hook keyed on <code>state_history("pregnancy")</code>
+  non-empty. Z34 / Z39 now route to <code>obgyn</code> in
+  <code>_CHRONIC_DISEASE_SPECIALTY</code>. Classification: <strong>MINOR</strong> — obstetric
+  byte-diff (population-level statistical shift + FHIR resource
+  reorganization). <strong>Non-obstetric patients are byte-identical</strong>
+  (verified p=1000 US, 596/596 non-obstetric persons matched master's
+  encounter lists); the chronic sampling loop consumes Z34/Z37
+  Bernoulli draws as no-ops to preserve rng cursor. Deferred to Incr 1.5:
+  proper per-encounter MedicationRequest emission for prenatal
+  supplements (Incr 1 attaches them as home medications, slightly
+  over-emitting past the pregnancy period); trimester-specific
+  Z34.0X emit; q4w/q2w/q1w prenatal cadence; O24 GDM / O14
+  preeclampsia comorbidities. Regression tests: full unit suite 5168
+  pass + new <code>tests/integration/test_pregnancy_lifecycle_e2e.py</code> +
+  rewritten <code>tests/unit/simulator/test_perinatal_delivery.py</code> (14
+  tests over lifecycle contract + encounter builder). Author: Claude.</li>
+</ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Chronic-continuation drugs (anticoagulant / statin / antihypertensive
@@ -2376,7 +2417,7 @@ before re-tagging. Everything below stays queued under
   the sim window is not preserved; a fresh <code>narrate</code> run is required.
   Author: Claude.</li>
 </ul>
-<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #957 (male-C50 activation) — Breast cancer for male patients.</strong>
   Real-world male breast cancer is ~1 % of C50 total (MHLW 患者調査 2020 /
@@ -2859,7 +2900,7 @@ before re-tagging. Everything below stays queued under
   preserved; a fresh <code>narrate</code> run is required.
   Author: Claude.</li>
 </ul>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #961 — Death certificate (死亡診断書) Composition for deceased
   inpatients.</strong> Pre-fix, 47/6,389 deceased patients on the JP p=6,389
@@ -3217,7 +3258,7 @@ before re-tagging. Everything below stays queued under
   tests, and documented as public API — whitelist entry added to
   <code>vulture_whitelist.py</code>.</li>
 </ul>
-<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #946 — Anthropometric vitals (height / weight / BMI /
   head-circumference).</strong> Pre-fix, not a single body-height /
@@ -4051,7 +4092,7 @@ regression).</p>
 <li><code>test_data/</code> (5392 files / 200 MB of accumulated LLM narrative eval
   outputs) untracked; <code>.gitignore</code> prevents re-add (PR #529).</li>
 </ul>
-<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
+<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Synthea comparison adapter</strong> (P1-10):
   <a href="../../eval/"><code>clinosim eval</code></a> can now score a
@@ -4217,7 +4258,7 @@ distribution work that makes it installable.</p>
 <li>New <code>LICENSE</code> file at repo root (prior state: <code>pyproject.toml</code> declared
   MIT but no LICENSE text shipped).</li>
 </ul>
-<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
+<h3 id="added_5">Added<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Population-driven, physiology-based synthetic EHR data simulation
   (13-variable hidden physiological state per patient).</li>

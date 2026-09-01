@@ -2510,21 +2510,38 @@ described in
 <li>Tumor-marker labs (CEA / CA19-9 / AFP / PIVKA-II / CA15-3 / PSA)
     → <code>Observation</code> (LOINC laboratory).</li>
 <li><strong>Obstetrics</strong> (config: <code>locale/shared/perinatal.yaml</code>):</li>
-<li>Z34 pregnancy chronic marker → per-mother delivery schedule.</li>
-<li>Mother-side delivery <code>Encounter</code> (IMP admission, admit dx Z34,
+<li>Pregnancy modelled as a time-boxed <code>TemporalStatePeriod</code>
+    (<code>state_type="pregnancy"</code>) on <code>PersonRecord.state_periods</code> —
+    opened by an age-banded annual conception Bernoulli against
+    <code>perinatal.yaml::lifecycle.annual_conception_rate</code> (MHLW 2022 /
+    CDC NVSR 2022), closed on the year containing the planned
+    delivery date (EDD + 280 d from LMP ± 7 d jitter) with
+    <code>outcome="delivered"</code>, or on the abortion date with
+    <code>outcome="aborted"</code>. Cross-year pregnancies carry via
+    <code>state_periods</code> — see <a href="../../architecture/architecture-notes/">architecture-notes §9</a>.</li>
+<li>Prenatal visit <code>Encounter</code>s (AMB, obgyn) at gestational
+    weeks 12 / 24 / 36 with encounter reason Z34. Z34 does NOT emit
+    a problem-list-item Condition (pregnancy is a state, not a
+    chronic condition).</li>
+<li>Mother-side delivery <code>Encounter</code> (IMP admission, admit dx O80,
     discharge dx Z37.0, delivery <code>Procedure</code> — JP K894 / US CPT
     59400).</li>
-<li>Postpartum encounters × 2 at ~1 wk and ~4 wk with disease id
-    <code>Z39</code> (config: <code>locale/shared/chronic_followup.yaml</code>).</li>
+<li>Postpartum <code>Encounter</code>s × 2 at 7 d and 28 d after delivery with
+    encounter reason <code>Z39</code> (obgyn).</li>
 <li>Abortion outcome (age-gated 15-19 → 35-44) — outpatient
     day-surgery <code>Encounter</code> with O03.9 (spontaneous) or O04.5
-    (induced). If fired, delivery + newborn chain are skipped.</li>
+    (induced). If fired, delivery + newborn chain are skipped and
+    the period closes with <code>outcome="aborted"</code>.</li>
 <li>Newborn <code>Patient</code> (id <code>&lt;mother&gt;-BABY</code>) generated per delivery,
     household + birthDate inherited, sex sampled via per-mother
     sub-RNG. Newborn <code>Encounter</code> links back via
     <code>admit_source = born</code> (new <code>AdmitSource.BORN</code> enum member) and
     <code>Encounter.partOf → Encounter/&lt;mother-delivery-encounter&gt;</code>, with
     discharge dx <code>Z38.0</code>.</li>
+<li>Past-birth <code>Condition</code> — one Z37 <code>problem-list-item</code> per
+    delivered pregnancy period, <code>onsetDateTime = delivery_date</code>
+    (derived at emit time from <code>state_history("pregnancy")</code>;
+    biology-consistent, multi-parity woman gets multi-Z37).</li>
 <li>Newborn perinatal <code>Condition</code>s: P59.9 jaundice ~20 %,
     P07.3 preterm ~7 % (→ conditional P22.0 RDS at ~35 %), L22
     diaper dermatitis ~30 %, L20.9 atopic dermatitis ~15 %.</li>

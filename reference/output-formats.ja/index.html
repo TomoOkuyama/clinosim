@@ -2407,20 +2407,36 @@ Reference integrity を維持。</p>
 <li>腫瘍マーカー labs (CEA / CA19-9 / AFP / PIVKA-II / CA15-3 /
     PSA) → <code>Observation</code> (LOINC laboratory)。</li>
 <li><strong>産科</strong> (config: <code>locale/shared/perinatal.yaml</code>):</li>
-<li>Z34 妊娠慢性マーカー → 母親別分娩スケジュール。</li>
-<li>母親側分娩 <code>Encounter</code> (IMP 入院、admit dx Z34、discharge dx
+<li>妊娠は時限 <code>TemporalStatePeriod</code> (<code>state_type="pregnancy"</code>)
+    として <code>PersonRecord.state_periods</code> にモデル化 —
+    <code>perinatal.yaml::lifecycle.annual_conception_rate</code> (MHLW 2022 /
+    CDC NVSR 2022) に対する年齢帯別 conception Bernoulli で open、
+    planned delivery date (LMP + 280 d ± 7 d jitter) を含む年で
+    <code>outcome="delivered"</code> として close、中絶時は abortion date で
+    <code>outcome="aborted"</code> として close。cross-year 妊娠は
+    <code>state_periods</code> 経由で carry — 詳細は
+    <a href="../../architecture/architecture-notes.ja/">architecture-notes §9</a>。</li>
+<li>妊婦健診 <code>Encounter</code> (AMB、obgyn) は妊娠週 12 / 24 / 36 で
+    encounter reason Z34。Z34 は problem-list-item Condition を
+    emit しない (妊娠は state、慢性状態ではない)。</li>
+<li>母親側分娩 <code>Encounter</code> (IMP 入院、admit dx O80、discharge dx
     Z37.0、分娩 <code>Procedure</code> — JP K894 / US CPT 59400)。</li>
-<li>産褥 encounter × 2 (~1 週 と ~4 週、disease id <code>Z39</code>; config:
-    <code>locale/shared/chronic_followup.yaml</code>)。</li>
+<li>産褥 <code>Encounter</code> × 2 (分娩後 7 d と 28 d、encounter reason
+    <code>Z39</code>、obgyn)。</li>
 <li>中絶 outcome (age-gate 15-19 → 35-44) — 外来日帰り手術
     <code>Encounter</code> with O03.9 (自然) or O04.5 (人工)。発火時は
-    delivery + newborn chain を skip。</li>
+    delivery + newborn chain を skip、period は <code>outcome="aborted"</code>
+    で close。</li>
 <li>新生児 <code>Patient</code> (id <code>&lt;mother&gt;-BABY</code>) を delivery ごとに生成、
     世帯 + 出生日を母親から継承、性別は per-mother sub-RNG から
     サンプリング。新生児 <code>Encounter</code> は
     <code>admit_source = born</code> (新規 <code>AdmitSource.BORN</code> enum member) と
     <code>Encounter.partOf → Encounter/&lt;母親側 delivery encounter&gt;</code> で
     link back、discharge dx は <code>Z38.0</code>。</li>
+<li>過去出産 <code>Condition</code> — delivered pregnancy period ごとに Z37
+    <code>problem-list-item</code> 1 件、<code>onsetDateTime = delivery_date</code>
+    (emit 時に <code>state_history("pregnancy")</code> から導出;
+    生物学的整合、多産で複数 Z37)。</li>
 <li>新生児 perinatal <code>Condition</code>: P59.9 黄疸 ~20 %、P07.3 早産
     ~7 % (→ 条件付き P22.0 RDS ~35 %)、L22 おむつかぶれ ~30 %、
     L20.9 アトピー ~15 %。</li>
