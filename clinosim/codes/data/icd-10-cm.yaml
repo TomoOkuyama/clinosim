@@ -485,6 +485,17 @@ codes:
   O04.5:
     en: "Genital tract and pelvic infection following (induced) termination of pregnancy"
     ja: "人工妊娠中絶後の性器・骨盤感染"
+  # ── Delivery admission diagnosis (Issue #1035).
+  # ICD-10-CM O80 is billable ("Encounter for full-term uncomplicated
+  # delivery") per CMS 2024. Referenced by
+  # clinosim/locale/shared/perinatal.yaml as the default WHO ICD-10 code
+  # for uncomplicated delivery; on US emit the same value is a valid
+  # billable leaf so no code_mapping_diagnosis entry is required, but the
+  # display needs to be resolvable to avoid the "(display unavailable)"
+  # fallback in build_diagnosis_codeable_concept.
+  O80:
+    en: "Encounter for full-term uncomplicated delivery"
+    ja: "満期・合併症なし分娩のためのエンカウンタ"
   M17:
     en: Osteoarthritis of knee
     ja: 変形性膝関節症

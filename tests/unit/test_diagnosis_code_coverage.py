@@ -88,6 +88,59 @@ def _family_history_codes() -> set[str]:
     return set((data.get("conditions") or {}).keys())
 
 
+def _perinatal_admission_codes() -> set[str]:
+    """ICD codes emitted as delivery admission diagnoses (6th emittable
+    source: perinatal.yaml admission_diagnosis_code drives the mother's
+    delivery Encounter primary diagnosis in FHIR emit). Issue #1035:
+    O80 was the sole perinatal admission code but had no icd-10.yaml /
+    icd-10-cm.yaml entry, so 186 US + 157 JP Condition resources fell
+    back to "(display unavailable)". The coverage sweep now spans this
+    channel too."""
+    fp = os.path.join(ROOT, "clinosim/locale/shared/perinatal.yaml")
+    if not os.path.exists(fp):
+        return set()
+    data = yaml.safe_load(open(fp)) or {}
+    codes: set[str] = set()
+
+    def _walk(node: object) -> None:
+        if isinstance(node, dict):
+            for key, val in node.items():
+                if key == "admission_diagnosis_code" and isinstance(val, str):
+                    codes.add(val)
+                else:
+                    _walk(val)
+        elif isinstance(node, list):
+            for item in node:
+                _walk(item)
+
+    _walk(data)
+    return codes
+
+
+def _chronic_followup_codes() -> set[str]:
+    """ICD codes emitted from the chronic_followup.yaml prevalence table
+    (7th emittable source: chronic follow-up visits key on WHO/base
+    codes like C15/C25/C67 which propagate to Condition.code on the
+    followup Encounter). Issue #1035: C15/C25/C67 were emitted as bare
+    base codes but had no icd-10.yaml entry, so JP fell back to
+    "(display unavailable)" for 93 Condition resources.
+
+    Underscore-prefixed keys (``_post_discharge``, ``_post_discharge_by_disease``)
+    are private configuration sections, not ICD codes — filter them out.
+    A followup entry only actually fires when the patient carries the
+    chronic disease, so the effective per-country emittable set is the
+    intersection with that country's locale chronic prevalence (see
+    ``_locale_chronic_codes``); this helper returns the raw keys and
+    callers intersect where needed."""
+    fp = os.path.join(ROOT, "clinosim/locale/shared/chronic_followup.yaml")
+    if not os.path.exists(fp):
+        return set()
+    data = yaml.safe_load(open(fp)) or {}
+    if not isinstance(data, dict):
+        return set()
+    return {k for k in data if not k.startswith("_")}
+
+
 def _locale_chronic_codes(country: str) -> set[str]:
     """ICD codes referenced in locale demographics (5th emittable source: chronic
     condition prevalence + comorbidity_correlations tables that drive population
@@ -129,9 +182,14 @@ WHO = _codes("clinosim/codes/data/icd-10.yaml")
 US_MAP = _map("clinosim/locale/us/code_mapping_diagnosis.yaml")
 JP_MAP = _map("clinosim/locale/jp/code_mapping_diagnosis.yaml")
 INTERNAL = _emittable_internal_codes()
-_COUNTRY_AGNOSTIC = INTERNAL | _engine_differential_codes() | _family_history_codes()
-US_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("us")
-JP_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("jp")
+_COUNTRY_AGNOSTIC = INTERNAL | _engine_differential_codes() | _family_history_codes() | _perinatal_admission_codes()
+_CHRONIC_FOLLOWUP = _chronic_followup_codes()
+# chronic_followup only fires for chronic conditions the locale actually
+# has, so intersect with the locale demographics rather than assert every
+# followup key resolves in both locales (Issue #1035: C15/C16/C25/C67/C71
+# are JP-only cancers not present in US demographics).
+US_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("us") | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("us"))
+JP_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("jp") | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("jp"))
 
 
 def _resolve_targets(mapping: dict, code: str) -> list[str]:
