@@ -804,3 +804,101 @@ Alternative deferred:
   #404 (Uncoded + LocalCode + sanitize)
 - Session note: `project_session_67_end_state.md` (axis completion、
   decision B 採用)
+
+---
+
+### AD-71 · 時限 state パターン — `TemporalStatePeriod` (時限エピソード用の state-scoped generator)
+
+**Date:** 2026-09-01 (session 97、META #957 Incr 1)
+
+**Status:** Accepted
+
+**Context:**
+
+いくつかの臨床事実は `PersonRecord.chronic_conditions` (フラットな
+`list[str]` の ICD code) には収まりが悪い。**開始と outcome を持つ
+時限エピソード** であり、慢性状態ではないため:
+
+- **妊娠** — 40 週の active state、分娩または中絶で閉じる、繰り返し
+  発生しうる (多産)。
+- **がん active treatment** — 数ヶ月にわたる FOLFOX / Trastuzumab
+  コース、完了 / 寛解 / 中止で閉じる。
+- **抗凝固コース** — DVT 予防の 3 ヶ月ワルファリンコース、明確な
+  終了日を持つ。
+- **encounter 後モニタリング** — 期限のある INR チェック窓。
+- **寛解** — active treatment 終了後の「cancer-free follow-up」窓。
+
+Incr 1 前のコードは妊娠を慢性状態として扱っていた (Z34 が sim window
+全期間 problem list に載る)。これにより 3 つの具体的バグを生んでいた:
+(1) 意味的に誤り — problem-list-item は慢性状態を示唆するが Z34 は
+「正常妊娠の管理のための encounter」で来院理由; (2) 時間的に誤り —
+女性が実際に妊娠していたかに関わらず Day 0 から sim cursor まで
+active; (3) 統計的に誤り — Z34 は ~18 % で sample されるが実 MHLW/CDC
+出生率は同年齢帯で ~5-10 %。
+
+**Decision:** `TemporalStatePeriod` を first-class data structure と
+して導入、state 毎の owner generator モデルを確立。
+
+- `TemporalStatePeriod(state_type, start_date, end_date, outcome,
+  metadata, period_seq)` は `PersonRecord.state_periods` と
+  `PatientProfile.state_periods` の両方に配置 (activator が mirror
+  copy し、FHIR emit adapter が `record["patient"]["state_periods"]`
+  として参照)。
+- Query API: `has_active_state(state_type, at_date=None)` /
+  `get_active_state(state_type, at_date=None)` /
+  `state_history(state_type)` (on `PersonRecord`)。
+- **state_type 毎に単一 owner**: 妊娠は `population/engine.py::_pregnancy_lifecycle_events`
+  が owner。がん active-treatment / 抗凝固コース / 寛解は将来 owner。
+- **state-scoped sub-RNG**: draw は per-state deterministic sub-seed
+  を使う (妊娠は既存 `perinatal_delivery_seed(pid, year)`; がんは
+  `chemotherapy_regimen_seed(pid, cancer_code)` を再利用予定)。
+- **FHIR emit contract**: adapter は `state_history(state_type)`
+  (post-`asdict()` では `record["patient"]["state_periods"]`) を
+  読み、「これは 1 回起こって今は close されている」semantic の
+  Condition / Observation / Procedure を導出。例: delivered pregnancy
+  period 毎に 1 件の Z37 problem-list-item。
+- **RNG-cursor 保全**: `chronic_prevalence` に居た code (今は Z34/Z37、
+  将来はより多くの state-typed code) を RNG-cursor anchor として
+  yaml に残しつつ、sampling loop で
+  `modules/population/engine.py::_STATE_PERIOD_CHRONIC_CODES` 経由で
+  Bernoulli draw を no-op consume。非産科患者は移行前後で byte-identical
+  (p=1000 US で 596/596 verify 済)。
+
+**Rationale:**
+
+`chronic_conditions` は固定 schema (flat `list[str]`) で、consumer
+(FHIR problem-list emit、慢性 followup dispatch、慢性薬剤 activator)
+は「code が list にあれば患者はその慢性状態を今、永久に持っている」
+と仮定している。時限エピソードはこの仮定を 3 つの site で同時に破り、
+それを per-code の特殊ケースで pave over すると unbounded な code
+path を生む。明確な lifecycle contract を持つ別データ構造にする
+ことで、新 lifecycle state 毎に **1 つの owner + 1 つの emit adapter**
+で着地でき、「産科」や「がん」の concern を chronic list 全 consumer
+に散らすことを避けられる。
+
+**Non-goals (この ADR):**
+
+- **Event generator registry** — Incr 1 は pregnancy generator を
+  `generate_healthcare_calendar` に直接 wire。新 state generator が
+  自動登録できる registry は Incr 2。
+- **StateDirective** — Incr 1 は generator が `state_periods` を直接
+  変更する。generator が返す明示的な `StateDirective` (open / close
+  / transition) を共有 reducer が適用して auditability を確保、は
+  Incr 2+。
+- **汎用 `state_rng` helper** — Incr 1 は各 state が既にそのドメイン
+  で確立された sub-RNG naming を再利用。共通の
+  `state_rng(pid, state_type, period_seq)` helper は Incr 3。
+
+**Related ADRs:** AD-16 (階層 seed 管理による reproducibility) /
+AD-18 (runtime-only 型は dataclass) / AD-56 (adapter 単一責任)
+
+**Related documents:**
+
+- Architecture 章: [`architecture-notes.ja.md`](architecture-notes.ja.md) §9 —
+  problem statement / decision / 現在の consumer を含むフル記述。
+- Migration PR: #1051 (feat: pregnancy lifecycle refactor —
+  TemporalStatePeriod + biology-consistent obstetric emit)。
+- Follow-up PR: #1052 (chore: rewrite stale "follow-up slice" comment;
+  META #957 close-out)。
+- META Issue: #957 (Full oncology + obstetric service line deepening)
+  — この ADR chain で close。

@@ -20,7 +20,7 @@ module's own `README.md`.
   DocumentReference. LLM service architecture.
 - [`adr-history.md`](adr-history.md) — clean `### AD-NN:` sections:
   Japanese localization (AD-42, AD-43), FHIR standards compliance +
-  occupational injuries (AD-44 through AD-48, AD-61 through AD-70).
+  occupational injuries (AD-44 through AD-48, AD-61 through AD-71).
 
 **Extracted from the root `README.md`** (Issue #568 PR A):
 
