@@ -450,6 +450,20 @@ class TestDeriveObservedVitals:
             raw = derive_observed_vitals(state, baseline_vitals, ts, np.random.default_rng(seed))
             assert 60 <= raw["spo2"] <= 100
 
+    def test_noise_keeps_every_vital_in_physiological_range(self, baseline_vitals):
+        """Issue #1040: negative noise draws must not pull vitals below their
+        physiological floor (agonal RR 3-5/min on non-terminal patients)."""
+        state = PhysiologicalState()  # baseline RR sits at the floor (~14-16) → most exposed
+        ts = datetime(2024, 6, 15, 10, 0)
+        for seed in range(200):
+            raw = derive_observed_vitals(state, baseline_vitals, ts, np.random.default_rng(seed))
+            assert 35.0 <= raw["temperature"] <= 42.0, f"seed={seed} temp={raw['temperature']}"
+            assert 40 <= raw["heart_rate"] <= 180, f"seed={seed} hr={raw['heart_rate']}"
+            assert 60 <= raw["systolic_bp"] <= 220, f"seed={seed} sbp={raw['systolic_bp']}"
+            assert 30 <= raw["diastolic_bp"] <= 130, f"seed={seed} dbp={raw['diastolic_bp']}"
+            assert 8 <= raw["respiratory_rate"] <= 45, f"seed={seed} rr={raw['respiratory_rate']}"
+            assert 60 <= raw["spo2"] <= 100, f"seed={seed} spo2={raw['spo2']}"
+
     def test_tracks_physiology(self, baseline_vitals):
         """Observed vitals follow the hidden state, not a fixed normal template."""
         ts = datetime(2024, 6, 15, 10, 0)
