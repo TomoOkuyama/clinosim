@@ -182,16 +182,22 @@ C-1) drove a three-layer defense across the codebase: fail-loud
 validation, canonical constants, and firing counters. Details:
 `implementation-rules.md` §9.
 
-## 7. Current state and roadmap (as of 2026-07-06)
+## 7. Current state and roadmap (as of 2026-09-02)
 
-- **Version**: v0.5.0 (v0.6.0 release-gate work in progress at time
-  of last sync). Production cohorts of US p=10k / JP p=5k generate
-  with all audit axes PASS. 32 diseases + 46 outpatient / ED
-  conditions, 33 modules, 25+ FHIR R4 resource types emitted.
-  Longitudinal service lines (oncology + obstetrics — cancer chronic
-  markers × chemo regimen cycles × radiation therapy × delivery
-  encounter × newborn Patient chain × abortion outcome) are wired
-  as of the v0.6.0 target; see `docs/reference/oncology-obstetric-service-lines.md`.
+- **Version**: v0.5.0 (v0.6.0 release-gate — all 3 META Issues
+  (#914 / #957 / #757) closed; awaiting tag). Production cohorts of
+  US p=10k / JP p=5k generate with all audit axes PASS. 32 diseases
+  + 46 outpatient / ED conditions, 33 modules, 25+ FHIR R4 resource
+  types emitted. Longitudinal service lines (oncology + obstetrics —
+  cancer chronic markers × chemo regimen cycles + per-cycle drug
+  MedicationRequest/Administration × radiation therapy Procedure ×
+  **time-boxed `TemporalStatePeriod` pregnancy lifecycle**
+  (conception → prenatal visits at gestational weeks 12/24/36 →
+  delivery encounter → postpartum) × newborn Patient chain × abortion
+  outcome × Z37 past-birth problem-list-item (state_history-derived))
+  landed with META #957 Incr 1 (session 97, PR #1051); see
+  `docs/reference/oncology-obstetric-service-lines.md` + AD-71
+  `docs/architecture/architecture-notes.md` §9.
 - **β-JP-1 chain 2 (MHLW forms) is complete** (sessions 33-36): the
   4-of-4 documents — inpatient care plan / nursing-need A, B, C
   evaluation forms (there is officially no "D table" form; the
