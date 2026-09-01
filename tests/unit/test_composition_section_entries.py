@@ -193,18 +193,19 @@ def test_soap_composition_plan_section_has_medication_and_procedure_entries():
     doc = _soap_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "en", encounter_index=index)
     sections_by_title = {s["title"]: s for s in comp["section"]}
+    # Issue #1037: US locale titles are humanized ("plan" → "Plan").
     # Plan (P) → 2 MedicationRequest entries.
-    plan_entries = sections_by_title["plan"].get("entry") or []
+    plan_entries = sections_by_title["Plan"].get("entry") or []
     assert {e["reference"] for e in plan_entries} == {"MedicationRequest/mr-a", "MedicationRequest/mr-b"}
     # Objective (O) → 3 Observation entries.
-    obj_entries = sections_by_title["objective"].get("entry") or []
+    obj_entries = sections_by_title["Objective"].get("entry") or []
     assert len(obj_entries) == 3
     assert all(r["reference"].startswith("Observation/") for r in obj_entries)
     # Assessment (A) → 1 Condition entry.
-    assess_entries = sections_by_title["assessment"].get("entry") or []
+    assess_entries = sections_by_title["Assessment"].get("entry") or []
     assert assess_entries == [{"reference": "Condition/cond-hypertension"}]
     # Subjective (S) → narrative-only, no entry key.
-    assert "entry" not in sections_by_title["subjective"]
+    assert "entry" not in sections_by_title["Subjective"]
 
 
 @pytest.mark.unit

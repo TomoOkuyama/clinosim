@@ -80,17 +80,35 @@ def test_localize_section_title_ja(slug: str, expected: str) -> None:
     assert _localize_section_title(slug, "ja") == expected
 
 
-def test_localize_section_title_en_returns_slug_unchanged() -> None:
-    """English locale keeps the raw slug (unchanged pre-fix behaviour)."""
-    assert _localize_section_title("adl_assessment", "en") == "adl_assessment"
-    assert _localize_section_title("hpi", "en") == "hpi"
+def test_localize_section_title_en_resolves_via_section_title_en() -> None:
+    """Issue #1037: US locale must not emit a bare machine slug as
+    ``Composition.section.title``. Explicit ``_SECTION_TITLE_EN`` entries
+    take priority."""
+    assert _localize_section_title("adl_assessment", "en") == "ADL assessment"
+    assert _localize_section_title("hpi", "en") == "History of present illness"
+    assert _localize_section_title("hospital_course", "en") == "Hospital course"
+
+
+def test_localize_section_title_en_humanization_fallback() -> None:
+    """A new slug with no explicit English mapping is humanized rather than
+    emitted as a machine key (`brand_new_section` → `Brand new section`).
+    Prevents future template additions from silently regressing to Issue #1037."""
+    assert _localize_section_title("brand_new_section", "en") == "Brand new section"
+
+
+def test_localize_section_title_en_passthrough_for_titlecase_input() -> None:
+    """Sections whose ``title`` is already human-readable (`Findings`,
+    `Impression`, or contains a space) pass through unchanged so callers
+    that emit their own display are not mangled."""
+    assert _localize_section_title("Findings", "en") == "Findings"
+    assert _localize_section_title("Impression", "en") == "Impression"
+    assert _localize_section_title("Assessment and Plan", "en") == "Assessment and Plan"
 
 
 def test_localize_section_title_unknown_slug_falls_back_to_slug() -> None:
-    """Unknown slugs pass through unchanged so a new template section still
-    emits — silent-no-op deferral is intentional (adding a new slug is a
-    dict edit, not an emitter change). Guards against a future emitter
-    that would crash on missing translation."""
+    """Unknown slugs pass through unchanged for JP so a new template section
+    still emits — silent-no-op deferral is intentional. (US path now
+    humanizes; see the sibling test above.)"""
     assert _localize_section_title("brand_new_section", "ja") == "brand_new_section"
 
 
@@ -199,14 +217,30 @@ def test_jp_composition_section_titles_are_all_japanese() -> None:
     assert titles == ["現病歴", "身体所見", "ADL評価", "看護歴"]
 
 
-def test_en_composition_section_titles_preserve_english_slugs() -> None:
-    """Regression pin: US locale keeps the pre-fix English slugs on
-    ``section[].title`` — Issue #360 G3 must not alter US behaviour."""
+def test_en_composition_section_titles_use_human_readable_english() -> None:
+    """Issue #1037: US locale must not emit machine slugs (`hpi`,
+    `hospital_course`) as ``section[].title``. The end-to-end path resolves
+    the slug through ``_SECTION_TITLE_EN`` to a human-readable English
+    label."""
     doc = _minimal_doc()
     doc["language"] = "en"
-    sections = {"hpi": "History of present illness."}
+    sections = {
+        "hpi": "History of present illness content.",
+        "hospital_course": "Course content.",
+        "discharge_diagnoses": "Diagnoses.",
+        "discharge_medications": "Medications.",
+        "discharge_instructions": "Instructions.",
+        "follow_up": "Follow-up plan.",
+    }
     res = _build_composition_generic(doc, sections, lang="en")
-    assert res["section"][0]["title"] == "hpi"
+    assert [s["title"] for s in res["section"]] == [
+        "History of present illness",
+        "Hospital course",
+        "Discharge diagnoses",
+        "Discharge medications",
+        "Discharge instructions",
+        "Follow-up",
+    ]
 
 
 def test_issue_870_ed_and_rehab_sections_localize_ja() -> None:
