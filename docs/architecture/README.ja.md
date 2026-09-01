@@ -20,7 +20,7 @@ clinosim のアーキテクチャリファレンス。モジュール境界や c
   文書。LLM service アーキテクチャ。
 - [`adr-history.md`](adr-history.md) — clean `### AD-NN:` セクション:
   日本語 localization (AD-42、AD-43)、FHIR standards 準拠 + 労災
-  (AD-44 〜 AD-48、AD-61 〜 AD-70)。
+  (AD-44 〜 AD-48、AD-61 〜 AD-71)。
 
 **ルート `README.md` から抽出** (Issue #568 PR A):
 

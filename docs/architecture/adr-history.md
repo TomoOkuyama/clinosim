@@ -671,3 +671,97 @@ single responsibility) / AD-58 (output adapter registration pattern)
 - Migration PRs: #396 (dispatcher refactor) / #398 (shared pkg loader) / #400 (analyte classifier)
   / #402 (CoreLabo emit) / #404 (Uncoded + LocalCode + sanitize)
 - Session notes: `project_session_67_end_state.md` (axis completion, decision B adoption)
+
+---
+
+### AD-71 · Temporal state pattern — `TemporalStatePeriod` (state-scoped generators for time-boxed episodes)
+
+**Date:** 2026-09-01 (session 97, META #957 Incr 1)
+
+**Status:** Accepted
+
+**Context:**
+
+Several clinical facts fit awkwardly on `PersonRecord.chronic_conditions` (a flat
+`list[str]` of ICD codes) because they are **time-boxed episodes with an outcome**, not
+chronic conditions:
+
+- **Pregnancy** — a 40-week active state, closes with delivery or abortion, may repeat
+  (multi-parity).
+- **Cancer active treatment** — an FOLFOX / Trastuzumab course that spans months, closes
+  with completion / remission / discontinuation.
+- **Anticoagulation course** — a 3-month DVT prophylaxis warfarin course with a defined
+  stop date.
+- **Post-encounter monitoring** — an INR check window that expires.
+- **Remission** — a bounded window of "cancer-free follow-up" after active treatment
+  closes.
+
+Pre-Incr-1 the code treated pregnancy as a chronic condition (Z34 sat on the problem list
+for the entire sim window), producing three concrete bugs: (1) semantically wrong —
+problem-list-item implies a chronic disease but Z34 is a "supervision of normal pregnancy"
+encounter reason; (2) temporally wrong — the entry stayed active from Day 0 to the sim
+cursor regardless of whether the woman was actually pregnant at any point; (3) statistically
+wrong — Z34 was sampled at ~18 % prevalence but real MHLW/CDC fertility rates are ~5-10 %.
+
+**Decision:** Introduce `TemporalStatePeriod` as a first-class data structure with a
+per-state generator ownership model.
+
+- `TemporalStatePeriod(state_type, start_date, end_date, outcome, metadata, period_seq)`
+  lives on both `PersonRecord.state_periods` and `PatientProfile.state_periods` (mirror
+  copied by the activator so the FHIR emit adapter sees it under
+  `record["patient"]["state_periods"]`).
+- Query API: `has_active_state(state_type, at_date=None)` /
+  `get_active_state(state_type, at_date=None)` / `state_history(state_type)` on
+  `PersonRecord`.
+- **Single owner per state_type**: pregnancy is owned by
+  `_pregnancy_lifecycle_events` in `population/engine.py`. Cancer active-treatment /
+  anticoagulation courses / remission are future owners.
+- **State-scoped sub-RNG**: draws use a per-state deterministic sub-seed (pregnancy uses
+  the existing `perinatal_delivery_seed(pid, year)`; cancer will use
+  `chemotherapy_regimen_seed(pid, cancer_code)`).
+- **FHIR emit contract**: adapters read `state_history(state_type)` (post-`asdict()` this
+  is `record["patient"]["state_periods"]`) to derive Condition / Observation / Procedure
+  resources whose semantic is "this happened once and is now closed" — e.g., one Z37
+  problem-list-item per delivered pregnancy period.
+- **RNG-cursor preservation**: codes that used to sit in `chronic_prevalence` (Z34, Z37
+  today; more state-typed codes in future) are RETAINED in the yaml as RNG-cursor anchors
+  but the sampling loop no-op-consumes their Bernoulli draw via
+  `_STATE_PERIOD_CHRONIC_CODES` in `modules/population/engine.py`. Non-obstetric
+  patients are byte-identical across the migration (verified p=1000 US: 596/596).
+
+**Rationale:**
+
+`chronic_conditions` has a fixed schema (flat `list[str]`) and its consumers (FHIR
+problem-list emit, chronic followup dispatch, chronic medication activator) assume "if
+the code is in the list, the patient has the chronic condition right now, forever." A
+time-boxed episode violates that assumption at three sites at once, and papering over
+each with per-code special cases produces an unbounded set of code paths. A separate data
+structure with an explicit lifecycle contract lets each new lifecycle state land as a
+**single owner + a single emit adapter**, without splitting the "obstetric" or "cancer"
+concerns across every consumer of the chronic list.
+
+**Non-goals (this ADR):**
+
+- **Event generator registry** — Incr 1 wires the pregnancy generator directly into
+  `generate_healthcare_calendar`. A registry that lets new state generators auto-register
+  is Incr 2.
+- **StateDirective** — Incr 1 has generators mutate `state_periods` directly. An explicit
+  `StateDirective` (open / close / transition) that generators return, applied by a shared
+  reducer for auditability, is Incr 2+.
+- **Generalized `state_rng` helper** — Incr 1 has each state reuse the sub-RNG naming
+  already established for that domain. A common
+  `state_rng(pid, state_type, period_seq)` helper is Incr 3.
+
+**Related ADRs:** AD-16 (reproducibility via hierarchical seed management) / AD-18
+(dataclass for runtime-only types) / AD-56 (adapter single responsibility)
+
+**Related documents:**
+
+- Architecture chapter: [`architecture-notes.md`](architecture-notes.md) §9 — full narrative
+  with problem statement, decision, current consumers.
+- Migration PR: #1051 (feat: pregnancy lifecycle refactor — TemporalStatePeriod +
+  biology-consistent obstetric emit).
+- Follow-up PR: #1052 (chore: rewrite stale "follow-up slice" comment; META #957
+  close-out).
+- META Issue: #957 (Full oncology + obstetric service line deepening) — closed by this ADR
+  chain.

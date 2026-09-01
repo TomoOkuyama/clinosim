@@ -484,7 +484,7 @@ observation から計算可能。
 | AD-62 | 2026-06-30 | **メタデータのみの Imaging チェーンと WADO-RS プレースホルダ。** |
 | AD-63 | 2026-07-01 | **Document narrative + structured event density 基盤。2 つの新 always-on Module (allergy = POST_POPULATION order=10 / document = POST_ENCOUNTER order=95)、3 FHIR builder (DocumentReference / Composition / ClinicalImpression)、17 チェックの lift_firing_proof。Stage 1 document-density ギャップを解消 (DR 0→23,760、Comp 0→9,275、CI 0→23,760 US p=10k)。** |
 
-*番号ギャップ AD-1、AD-2、AD-12、AD-14、AD-15、AD-27 は予約 / 撤回済 — ship された決定に一切割当てられていない。AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69 はこのコンパクトなテーブルではなく [`adr-history.ja.md`](adr-history.ja.md) の独自 `### AD-6N` セクションでドキュメント化。AD-67 (severity single source of truth)、AD-68 (archetype_modifiers wiring)、AD-69 (DiseaseProtocol extra="forbid") は 2026-07-06 の FHIR-completeness chain — `docs/design-notes/2026-07-06-fix-point-registry.md` 参照。*
+*番号ギャップ AD-1、AD-2、AD-12、AD-14、AD-15、AD-27 は予約 / 撤回済 — ship された決定に一切割当てられていない。AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69/AD-70/AD-71 はこのコンパクトなテーブルではなく [`adr-history.ja.md`](adr-history.ja.md) の独自 `### AD-6N` / `### AD-7N` セクションでドキュメント化。AD-67 (severity single source of truth)、AD-68 (archetype_modifiers wiring)、AD-69 (DiseaseProtocol extra="forbid") は 2026-07-06 の FHIR-completeness chain — `docs/design-notes/2026-07-06-fix-point-registry.md` 参照。AD-70 (JLAC10 primary + LOINC secondary) は 2026-07-26 JP-CLINS 検体検査 coding migration。AD-71 (`TemporalStatePeriod` 時限 state パターン) は 2026-09-01 META #957 Incr 1 妊娠 lifecycle refactor。*
 
 ---
 
@@ -956,7 +956,7 @@ narrative CIF manifest に伝播、per-document コスト分析と audit を
 
 ---
 
-## 9. 時限 state パターン — `TemporalStatePeriod` (AD-67、META #957 Incr 1)
+## 9. 時限 state パターン — `TemporalStatePeriod` (AD-71、META #957 Incr 1)
 
 ### Problem
 
@@ -987,7 +987,7 @@ Incr 1 前のコードは妊娠を慢性状態として扱っていた (Z34 が 
    Z34 年毎に ~1 分娩を生成。実際の MHLW / CDC 年齢帯別出生率は同
    年齢帯で ~5-10 %。多年 sim で obstetric activity が過剰 emit。
 
-### Decision (AD-67)
+### Decision (AD-71)
 
 **慢性状態と区別される、人が経過する時限的な臨床 / biographical
 state** を表現する汎用 `TemporalStatePeriod` dataclass を導入。

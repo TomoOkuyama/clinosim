@@ -384,7 +384,7 @@ abortion outcome O03.9 / O04.5 age-gated 15-19 → 35-44). Config:
 [`docs/reference/oncology-obstetric-service-lines.md`](docs/reference/oncology-obstetric-service-lines.md).
 Framework rationale:
 [`docs/architecture/architecture-notes.md`](docs/architecture/architecture-notes.md)
-§9 (AD-67 TemporalStatePeriod).
+§9 (AD-71 TemporalStatePeriod).
 
 The v0.3 → v0.5.0 history of PATCH / MINOR bumps between these two
 baselines lives in [`CHANGELOG.md`](CHANGELOG.md); the invariants
