@@ -475,15 +475,10 @@ def activate_patient(
         # actual pregnancy timing) is a net data-quality gain.
         _meds_input = conditions
         _has_pregnancy_history = bool(
-            [
-                p for p in getattr(person, "state_periods", []) or []
-                if getattr(p, "state_type", "") == "pregnancy"
-            ]
+            [p for p in getattr(person, "state_periods", []) or [] if getattr(p, "state_type", "") == "pregnancy"]
         )
         if _has_pregnancy_history:
-            from clinosim.types.patient import ChronicCondition as _CC
-
-            _meds_input = list(conditions) + [_CC(code="Z34", system="icd-10-cm")]
+            _meds_input = list(conditions) + [ChronicCondition(code="Z34", system="icd-10-cm")]
         current_meds = _derive_home_medications(_meds_input, patient_id=person.person_id, country="US")
 
     # Address and contact from Layer 1

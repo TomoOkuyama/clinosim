@@ -1319,9 +1319,7 @@ def _annual_conception_rate(lc: dict, country: str, age: int) -> float:
     Bands in yaml are inclusive ranges like ``"25-29": 0.075``. Returns
     ``0.0`` for ages outside the eligible window or when config missing.
     """
-    rates = (lc.get("annual_conception_rate") or {}).get(
-        "jp" if is_jp(country) else "us"
-    ) or {}
+    rates = (lc.get("annual_conception_rate") or {}).get("jp" if is_jp(country) else "us") or {}
     for band, value in rates.items():
         if "-" not in band:
             continue
@@ -1334,9 +1332,7 @@ def _annual_conception_rate(lc: dict, country: str, age: int) -> float:
     return 0.0
 
 
-def _pregnancy_lifecycle_events(
-    person: PersonRecord, year: int, country: str
-) -> list[LifeEvent]:
+def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -> list[LifeEvent]:
     """Full pregnancy lifecycle scheduler (META #957 Incr 1).
 
     Replaces the pre-Incr-1 ``_perinatal_delivery_events`` "Z34 chronic
@@ -1381,9 +1377,7 @@ def _pregnancy_lifecycle_events(
     """
     if person.sex != "F":
         return []
-    if not (
-        _PREGNANCY_ELIGIBLE_MIN_AGE <= person.age <= _PREGNANCY_ELIGIBLE_MAX_AGE
-    ):
+    if not (_PREGNANCY_ELIGIBLE_MIN_AGE <= person.age <= _PREGNANCY_ELIGIBLE_MAX_AGE):
         return []
     from clinosim.locale.loader import load_perinatal_config
     from clinosim.seeding import perinatal_delivery_seed
@@ -1413,9 +1407,7 @@ def _pregnancy_lifecycle_events(
         lmp = date(year, 1, 1) + timedelta(days=lmp_offset)
         edd = lmp + timedelta(days=gestation_days)
 
-        outcome, discharge_dx = resolve_pregnancy_outcome(
-            person.person_id, person.age, year
-        )
+        outcome, discharge_dx = resolve_pregnancy_outcome(person.person_id, person.age, year)
         if outcome == "abortion":
             # Abortions cluster in the first trimester — schedule at
             # gestational week ~10 (day 70 from LMP), jittered ±14 days.
@@ -1473,9 +1465,7 @@ def _pregnancy_lifecycle_events(
     # year, or carried from a prior year). Only the delivery-path branch
     # falls through here — abortion returned above.
     lmp = active.metadata["lmp"]
-    planned_delivery_date = active.metadata.get(
-        "planned_delivery_date"
-    ) or active.metadata["edd"]
+    planned_delivery_date = active.metadata.get("planned_delivery_date") or active.metadata["edd"]
 
     year_start = date(year, 1, 1)
     year_end = date(year, 12, 31)

@@ -98,9 +98,7 @@ class PersonRecord:
 
         self.current_medications = _normalize_home_medications(self.current_medications)
 
-    def get_active_state(
-        self, state_type: str, at_date: date | None = None
-    ) -> TemporalStatePeriod | None:
+    def get_active_state(self, state_type: str, at_date: date | None = None) -> TemporalStatePeriod | None:
         """Return the (single) active period of ``state_type`` on ``at_date``,
         or ``None`` if the person has no such active period.
 
@@ -123,9 +121,7 @@ class PersonRecord:
                     return period
         return None
 
-    def has_active_state(
-        self, state_type: str, at_date: date | None = None
-    ) -> bool:
+    def has_active_state(self, state_type: str, at_date: date | None = None) -> bool:
         """Convenience wrapper around ``get_active_state``."""
         return self.get_active_state(state_type, at_date) is not None
 
