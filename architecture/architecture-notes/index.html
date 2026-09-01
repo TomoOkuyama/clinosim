@@ -2842,15 +2842,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-temporal-state-pattern--temporalstateperiod-ad-67-meta-957-incr-1" class="md-nav__link">
+  <a href="#9-temporal-state-pattern--temporalstateperiod-ad-71-meta-957-incr-1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Temporal-state pattern — TemporalStatePeriod (AD-67, META #957 Incr 1)
+        9. Temporal-state pattern — TemporalStatePeriod (AD-71, META #957 Incr 1)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9. Temporal-state pattern — TemporalStatePeriod (AD-67, META #957 Incr 1)">
+    <nav class="md-nav" aria-label="9. Temporal-state pattern — TemporalStatePeriod (AD-71, META #957 Incr 1)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2865,10 +2865,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#decision-ad-67" class="md-nav__link">
+  <a href="#decision-ad-71" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Decision (AD-67)
+        Decision (AD-71)
       
     </span>
   </a>
@@ -3536,7 +3536,7 @@ observations.</p>
 </tr>
 </tbody>
 </table>
-<p><em>Numbering gaps AD-1, AD-2, AD-12, AD-14, AD-15, AD-27 are reserved/withdrawn — never assigned to a shipped decision. AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69 are documented in their own <code>### AD-6N</code> sections below rather than in this compact table. AD-67 (severity single source of truth), AD-68 (archetype_modifiers wiring), AD-69 (DiseaseProtocol extra="forbid") are the 2026-07-06 FHIR-completeness chain — see <code>docs/design-notes/2026-07-06-fix-point-registry.md</code>.</em></p>
+<p><em>Numbering gaps AD-1, AD-2, AD-12, AD-14, AD-15, AD-27 are reserved/withdrawn — never assigned to a shipped decision. AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69/AD-70/AD-71 are documented in their own <code>### AD-6N</code> / <code>### AD-7N</code> sections below rather than in this compact table. AD-67 (severity single source of truth), AD-68 (archetype_modifiers wiring), AD-69 (DiseaseProtocol extra="forbid") are the 2026-07-06 FHIR-completeness chain — see <code>docs/design-notes/2026-07-06-fix-point-registry.md</code>. AD-70 (JLAC10 primary + LOINC secondary) is the 2026-07-26 JP-CLINS lab-coding migration. AD-71 (<code>TemporalStatePeriod</code> temporal-state pattern) is the 2026-09-01 META #957 Incr 1 pregnancy-lifecycle refactor.</em></p>
 <hr />
 <h2 id="69-resident-identifier--insurance-numbering-ad-54">6.9 Resident identifier &amp; insurance numbering (AD-54)<a class="headerlink" href="#69-resident-identifier--insurance-numbering-ad-54" title="Permanent link">&para;</a></h2>
 <h3 id="problem_5">Problem<a class="headerlink" href="#problem_5" title="Permanent link">&para;</a></h3>
@@ -3930,7 +3930,7 @@ admission H&amp;P / discharge summary template code).</p>
 <p>All of these are recorded on the <code>ClinicalDocument.generation</code> block and propagate into
 the narrative CIF manifest, enabling per-document cost analysis and audit.</p>
 <hr />
-<h2 id="9-temporal-state-pattern--temporalstateperiod-ad-67-meta-957-incr-1">9. Temporal-state pattern — <code>TemporalStatePeriod</code> (AD-67, META #957 Incr 1)<a class="headerlink" href="#9-temporal-state-pattern--temporalstateperiod-ad-67-meta-957-incr-1" title="Permanent link">&para;</a></h2>
+<h2 id="9-temporal-state-pattern--temporalstateperiod-ad-71-meta-957-incr-1">9. Temporal-state pattern — <code>TemporalStatePeriod</code> (AD-71, META #957 Incr 1)<a class="headerlink" href="#9-temporal-state-pattern--temporalstateperiod-ad-71-meta-957-incr-1" title="Permanent link">&para;</a></h2>
 <h3 id="problem_9">Problem<a class="headerlink" href="#problem_9" title="Permanent link">&para;</a></h3>
 <p>Several clinical facts fit awkwardly on <code>PersonRecord.chronic_conditions</code>
 (a flat <code>list[str]</code> of ICD codes) because they are <strong>time-boxed
@@ -3962,7 +3962,7 @@ concrete bugs:</p>
    fertility rates are ~5-10 % for the same bands. Multi-year sims
    over-emitted obstetric activity.</li>
 </ol>
-<h3 id="decision-ad-67">Decision (AD-67)<a class="headerlink" href="#decision-ad-67" title="Permanent link">&para;</a></h3>
+<h3 id="decision-ad-71">Decision (AD-71)<a class="headerlink" href="#decision-ad-71" title="Permanent link">&para;</a></h3>
 <p>Introduce a general-purpose <code>TemporalStatePeriod</code> dataclass that
 represents a <strong>time-boxed clinical or biographical state a person
 passes through</strong>, distinct from a chronic condition. Attach it to

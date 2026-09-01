@@ -2480,6 +2480,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ad-71--時限-state-パターン--temporalstateperiod-時限エピソード用の-state-scoped-generator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AD-71 · 時限 state パターン — TemporalStatePeriod (時限エピソード用の state-scoped generator)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3279,6 +3290,95 @@ analyte 用の primary coding system として JLAC10 を確立 (session
   #404 (Uncoded + LocalCode + sanitize)
 - Session note: <code>project_session_67_end_state.md</code> (axis completion、
   decision B 採用)</p>
+<hr />
+<h3 id="ad-71--時限-state-パターン--temporalstateperiod-時限エピソード用の-state-scoped-generator">AD-71 · 時限 state パターン — <code>TemporalStatePeriod</code> (時限エピソード用の state-scoped generator)<a class="headerlink" href="#ad-71--時限-state-パターン--temporalstateperiod-時限エピソード用の-state-scoped-generator" title="Permanent link">&para;</a></h3>
+<p><strong>Date:</strong> 2026-09-01 (session 97、META #957 Incr 1)</p>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong></p>
+<p>いくつかの臨床事実は <code>PersonRecord.chronic_conditions</code> (フラットな
+<code>list[str]</code> の ICD code) には収まりが悪い。<strong>開始と outcome を持つ
+時限エピソード</strong> であり、慢性状態ではないため:</p>
+<ul>
+<li><strong>妊娠</strong> — 40 週の active state、分娩または中絶で閉じる、繰り返し
+  発生しうる (多産)。</li>
+<li><strong>がん active treatment</strong> — 数ヶ月にわたる FOLFOX / Trastuzumab
+  コース、完了 / 寛解 / 中止で閉じる。</li>
+<li><strong>抗凝固コース</strong> — DVT 予防の 3 ヶ月ワルファリンコース、明確な
+  終了日を持つ。</li>
+<li><strong>encounter 後モニタリング</strong> — 期限のある INR チェック窓。</li>
+<li><strong>寛解</strong> — active treatment 終了後の「cancer-free follow-up」窓。</li>
+</ul>
+<p>Incr 1 前のコードは妊娠を慢性状態として扱っていた (Z34 が sim window
+全期間 problem list に載る)。これにより 3 つの具体的バグを生んでいた:
+(1) 意味的に誤り — problem-list-item は慢性状態を示唆するが Z34 は
+「正常妊娠の管理のための encounter」で来院理由; (2) 時間的に誤り —
+女性が実際に妊娠していたかに関わらず Day 0 から sim cursor まで
+active; (3) 統計的に誤り — Z34 は ~18 % で sample されるが実 MHLW/CDC
+出生率は同年齢帯で ~5-10 %。</p>
+<p><strong>Decision:</strong> <code>TemporalStatePeriod</code> を first-class data structure と
+して導入、state 毎の owner generator モデルを確立。</p>
+<ul>
+<li><code>TemporalStatePeriod(state_type, start_date, end_date, outcome,
+  metadata, period_seq)</code> は <code>PersonRecord.state_periods</code> と
+  <code>PatientProfile.state_periods</code> の両方に配置 (activator が mirror
+  copy し、FHIR emit adapter が <code>record["patient"]["state_periods"]</code>
+  として参照)。</li>
+<li>Query API: <code>has_active_state(state_type, at_date=None)</code> /
+  <code>get_active_state(state_type, at_date=None)</code> /
+  <code>state_history(state_type)</code> (on <code>PersonRecord</code>)。</li>
+<li><strong>state_type 毎に単一 owner</strong>: 妊娠は <code>population/engine.py::_pregnancy_lifecycle_events</code>
+  が owner。がん active-treatment / 抗凝固コース / 寛解は将来 owner。</li>
+<li><strong>state-scoped sub-RNG</strong>: draw は per-state deterministic sub-seed
+  を使う (妊娠は既存 <code>perinatal_delivery_seed(pid, year)</code>; がんは
+  <code>chemotherapy_regimen_seed(pid, cancer_code)</code> を再利用予定)。</li>
+<li><strong>FHIR emit contract</strong>: adapter は <code>state_history(state_type)</code>
+  (post-<code>asdict()</code> では <code>record["patient"]["state_periods"]</code>) を
+  読み、「これは 1 回起こって今は close されている」semantic の
+  Condition / Observation / Procedure を導出。例: delivered pregnancy
+  period 毎に 1 件の Z37 problem-list-item。</li>
+<li><strong>RNG-cursor 保全</strong>: <code>chronic_prevalence</code> に居た code (今は Z34/Z37、
+  将来はより多くの state-typed code) を RNG-cursor anchor として
+  yaml に残しつつ、sampling loop で
+  <code>modules/population/engine.py::_STATE_PERIOD_CHRONIC_CODES</code> 経由で
+  Bernoulli draw を no-op consume。非産科患者は移行前後で byte-identical
+  (p=1000 US で 596/596 verify 済)。</li>
+</ul>
+<p><strong>Rationale:</strong></p>
+<p><code>chronic_conditions</code> は固定 schema (flat <code>list[str]</code>) で、consumer
+(FHIR problem-list emit、慢性 followup dispatch、慢性薬剤 activator)
+は「code が list にあれば患者はその慢性状態を今、永久に持っている」
+と仮定している。時限エピソードはこの仮定を 3 つの site で同時に破り、
+それを per-code の特殊ケースで pave over すると unbounded な code
+path を生む。明確な lifecycle contract を持つ別データ構造にする
+ことで、新 lifecycle state 毎に <strong>1 つの owner + 1 つの emit adapter</strong>
+で着地でき、「産科」や「がん」の concern を chronic list 全 consumer
+に散らすことを避けられる。</p>
+<p><strong>Non-goals (この ADR):</strong></p>
+<ul>
+<li><strong>Event generator registry</strong> — Incr 1 は pregnancy generator を
+  <code>generate_healthcare_calendar</code> に直接 wire。新 state generator が
+  自動登録できる registry は Incr 2。</li>
+<li><strong>StateDirective</strong> — Incr 1 は generator が <code>state_periods</code> を直接
+  変更する。generator が返す明示的な <code>StateDirective</code> (open / close
+  / transition) を共有 reducer が適用して auditability を確保、は
+  Incr 2+。</li>
+<li><strong>汎用 <code>state_rng</code> helper</strong> — Incr 1 は各 state が既にそのドメイン
+  で確立された sub-RNG naming を再利用。共通の
+  <code>state_rng(pid, state_type, period_seq)</code> helper は Incr 3。</li>
+</ul>
+<p><strong>Related ADRs:</strong> AD-16 (階層 seed 管理による reproducibility) /
+AD-18 (runtime-only 型は dataclass) / AD-56 (adapter 単一責任)</p>
+<p><strong>Related documents:</strong></p>
+<ul>
+<li>Architecture 章: <a href="../architecture-notes.ja/"><code>architecture-notes.ja.md</code></a> §9 —
+  problem statement / decision / 現在の consumer を含むフル記述。</li>
+<li>Migration PR: #1051 (feat: pregnancy lifecycle refactor —
+  TemporalStatePeriod + biology-consistent obstetric emit)。</li>
+<li>Follow-up PR: #1052 (chore: rewrite stale "follow-up slice" comment;
+  META #957 close-out)。</li>
+<li>META Issue: #957 (Full oncology + obstetric service line deepening)
+  — この ADR chain で close。</li>
+</ul>
 
 
 

@@ -2304,14 +2304,18 @@ cut before this policy was formally documented and has been renumbered
 to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
-<p><strong>In-progress v0.6.0 target.</strong> The initial v0.6.0 tag was cut on
-2026-08-31 and <strong>un-released the same day</strong> because META Issues #914
-Bucket B / #957 remaining slices / #757 remaining mappings were left
-as follow-up rather than completed. Per the project policy of shipping
-a MINOR release only when its release-scope Issues are fully closed,
-the tag was removed and the remaining scope is being folded in
-before re-tagging. Everything below stays queued under
-<code>[Unreleased]</code> until the re-tag.</p>
+<p><strong>v0.6.0 scope complete, awaiting user Go for tag.</strong> The initial
+v0.6.0 tag was cut on 2026-08-31 and <strong>un-released the same day</strong>
+because META Issues #914 Bucket B / #957 remaining slices / #757
+remaining mappings were left as follow-up rather than completed.
+Session 97 (2026-09-01) closed the last remaining sub-item —
+pregnancy lifecycle refactor (PR #1051, Incr 1 of META #957) +
+chemo per-cycle emit drift close-out (PR #1052) — and <strong>all three
+META Issues (#914, #957, #757) are now CLOSED</strong>. The remaining
+step is the tag itself, which is held per project policy until an
+explicit user Go signal (<code>feedback_release_tag_requires_user_go</code>).
+Everything below stays queued under <code>[Unreleased]</code> until the
+re-tag.</p>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Pregnancy lifecycle refactor: <code>TemporalStatePeriod</code> framework +

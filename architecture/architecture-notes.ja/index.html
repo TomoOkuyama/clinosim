@@ -2842,15 +2842,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-時限-state-パターン--temporalstateperiod-ad-67meta-957-incr-1" class="md-nav__link">
+  <a href="#9-時限-state-パターン--temporalstateperiod-ad-71meta-957-incr-1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. 時限 state パターン — TemporalStatePeriod (AD-67、META #957 Incr 1)
+        9. 時限 state パターン — TemporalStatePeriod (AD-71、META #957 Incr 1)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9. 時限 state パターン — TemporalStatePeriod (AD-67、META #957 Incr 1)">
+    <nav class="md-nav" aria-label="9. 時限 state パターン — TemporalStatePeriod (AD-71、META #957 Incr 1)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2865,10 +2865,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#decision-ad-67" class="md-nav__link">
+  <a href="#decision-ad-71" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Decision (AD-67)
+        Decision (AD-71)
       
     </span>
   </a>
@@ -3550,7 +3550,7 @@ observation から計算可能。</p>
 </tr>
 </tbody>
 </table>
-<p><em>番号ギャップ AD-1、AD-2、AD-12、AD-14、AD-15、AD-27 は予約 / 撤回済 — ship された決定に一切割当てられていない。AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69 はこのコンパクトなテーブルではなく <a href="../adr-history.ja/"><code>adr-history.ja.md</code></a> の独自 <code>### AD-6N</code> セクションでドキュメント化。AD-67 (severity single source of truth)、AD-68 (archetype_modifiers wiring)、AD-69 (DiseaseProtocol extra="forbid") は 2026-07-06 の FHIR-completeness chain — <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> 参照。</em></p>
+<p><em>番号ギャップ AD-1、AD-2、AD-12、AD-14、AD-15、AD-27 は予約 / 撤回済 — ship された決定に一切割当てられていない。AD-61/AD-64/AD-65/AD-66/AD-67/AD-68/AD-69/AD-70/AD-71 はこのコンパクトなテーブルではなく <a href="../adr-history.ja/"><code>adr-history.ja.md</code></a> の独自 <code>### AD-6N</code> / <code>### AD-7N</code> セクションでドキュメント化。AD-67 (severity single source of truth)、AD-68 (archetype_modifiers wiring)、AD-69 (DiseaseProtocol extra="forbid") は 2026-07-06 の FHIR-completeness chain — <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> 参照。AD-70 (JLAC10 primary + LOINC secondary) は 2026-07-26 JP-CLINS 検体検査 coding migration。AD-71 (<code>TemporalStatePeriod</code> 時限 state パターン) は 2026-09-01 META #957 Incr 1 妊娠 lifecycle refactor。</em></p>
 <hr />
 <h2 id="69-resident-identifier--保険番号-ad-54">6.9 Resident identifier &amp; 保険番号 (AD-54)<a class="headerlink" href="#69-resident-identifier--保険番号-ad-54" title="Permanent link">&para;</a></h2>
 <h3 id="問題_5">問題<a class="headerlink" href="#問題_5" title="Permanent link">&para;</a></h3>
@@ -4008,7 +4008,7 @@ hardcoded path を使用 (admission H&amp;P / 退院サマリテンプレート
 narrative CIF manifest に伝播、per-document コスト分析と audit を
 可能にする。</p>
 <hr />
-<h2 id="9-時限-state-パターン--temporalstateperiod-ad-67meta-957-incr-1">9. 時限 state パターン — <code>TemporalStatePeriod</code> (AD-67、META #957 Incr 1)<a class="headerlink" href="#9-時限-state-パターン--temporalstateperiod-ad-67meta-957-incr-1" title="Permanent link">&para;</a></h2>
+<h2 id="9-時限-state-パターン--temporalstateperiod-ad-71meta-957-incr-1">9. 時限 state パターン — <code>TemporalStatePeriod</code> (AD-71、META #957 Incr 1)<a class="headerlink" href="#9-時限-state-パターン--temporalstateperiod-ad-71meta-957-incr-1" title="Permanent link">&para;</a></h2>
 <h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
 <p>いくつかの臨床事実は <code>PersonRecord.chronic_conditions</code> (フラットな
 <code>list[str]</code> の ICD code) には収まりが悪い。<strong>開始と outcome を持つ
@@ -4037,7 +4037,7 @@ narrative CIF manifest に伝播、per-document コスト分析と audit を
    Z34 年毎に ~1 分娩を生成。実際の MHLW / CDC 年齢帯別出生率は同
    年齢帯で ~5-10 %。多年 sim で obstetric activity が過剰 emit。</li>
 </ol>
-<h3 id="decision-ad-67">Decision (AD-67)<a class="headerlink" href="#decision-ad-67" title="Permanent link">&para;</a></h3>
+<h3 id="decision-ad-71">Decision (AD-71)<a class="headerlink" href="#decision-ad-71" title="Permanent link">&para;</a></h3>
 <p><strong>慢性状態と区別される、人が経過する時限的な臨床 / biographical
 state</strong> を表現する汎用 <code>TemporalStatePeriod</code> dataclass を導入。
 <code>PersonRecord.state_periods</code> (Layer 1) と <code>PatientProfile.state_periods</code>
