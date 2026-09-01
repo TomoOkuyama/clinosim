@@ -375,6 +375,30 @@
 - **revalidation_check**: device 欠落 MAR の route + dose_text を集計、上記
   条件を満たすことを確認。IV 持続点滴での device 100% 発火を保証。
 
+### s95-z37-past-birth-marker-stale-onset
+
+- **id**: `s95-z37-past-birth-marker-stale-onset`
+- **observation**: `Z37.*` Condition の相当割合(JP ~53%/US ~57%)が
+  `onsetDateTime` が `recordedDate` より数年以上前で emit される。極端例では
+  13年ギャップ(`onset=2012-10-25`, `recorded=2025-10-11`)。
+- **by_design_reason**: `clinosim/locale/jp/demographics.yaml:262-269`(US mirror あり)
+  が `Z37` を `chronic_prevalence` に "past-birth marker on the record" として authoring。
+  demographics activator は Z37 を `patient.chronic_conditions` に、患者の activation
+  window から draw した `onset_date`(通常は sim cursor より数年前)で追加。
+  FHIR emit がこれを `problem-list-item` Condition として pickup し、その historical
+  onset を保持する。obstetric-history モジュール本格実装までの proxy。encounter-diagnosis
+  Z37(今回の分娩 outcome)は別 Condition で category `encounter-diagnosis`・onset =
+  encounter 時刻 — 常に正しい。
+- **signature**: `onsetDateTime` が `recordedDate` より 30 日以上前の Z37 は必ず
+  `category.coding[].code == "problem-list-item"` を持つ。category が `encounter-diagnosis`
+  かつ stale onset の Z37 → 真のバグ。
+- **established_session**: session 95, 2026-09-01 (post-close p=10000 audit follow-up)
+- **established_pr**: #1034 (issue) — コメントスレッド + registry entry
+- **revalidation_check**: `onset < recorded - 30d` を持つ全 Z37 について category が
+  `problem-list-item` であることを確認。加えて Z39 postpartum encounter 日付が母の
+  delivery encounter `period.start` 以降であることを確認(Z39 scheduler は
+  `delivery_date` を直接読み、Z37.onset を参照しないため cascade 無し)。
+
 ---
 
 ## Non-Entries (真のバグ、Registry 対象外)
@@ -420,3 +444,8 @@
   `cy8-23-condition-bodysite-selective` +
   `cy8-24-condition-abatement-finished-encounter-only` +
   `cy8-20-mar-device-iv-infusion-only`)を追加。合計 **25 entries**。
+- 2026-09-01 (session 95, Issue #1034 調査): session-95 p=10000 audit の
+  "Z37 stale onset + Z39 cascade" 発見を調査した結果として
+  `s95-z37-past-birth-marker-stale-onset` を追加。audit の Z39 cascade
+  主張は再現せず(母の delivery 前に立つ Z39 は 0/314)、Z37 stale onset は
+  `demographics.yaml` "past-birth marker" として意図的動作。合計 **26 entries**。
