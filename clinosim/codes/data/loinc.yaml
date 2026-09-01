@@ -13,6 +13,15 @@ metadata:
   source: "Regenstrief LOINC; US lab codes verified vs NLM Clinical Tables LOINC API (2026-06)"
   description: Logical Observation Identifiers Names and Codes
 codes:
+  # === LOINC Parts (LP-prefixed hierarchy nodes used for category slices) ===
+  # Issue #1038: LP29684-5 is emitted on Composition.category / DR.category
+  # (JP-CLINS eImagingReport `category:first` slice, imaging_report.py +
+  # diagnostic_report.py). Registering here lets the sibling-display / .text
+  # walker resolve a JA label ("放射線") for JP consumers when the strip
+  # walker has removed the emit-time JA display.
+  LP29684-5:
+    en: Radiology
+    ja: 放射線
   # === Clinical document types (FHIR DocumentReference.type) ===
   34117-2:
     en: History and physical note

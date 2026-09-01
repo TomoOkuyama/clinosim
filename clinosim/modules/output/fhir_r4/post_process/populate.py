@@ -998,6 +998,55 @@ def _populate_status_coding_display(coding_dict: Any, display_map: dict[str, str
             c["display"] = display_map[code_]
 
 
+def _populate_cc_text_from_coding_lookup(node: Any, lang: str) -> None:
+    """Recursively populate a CodeableConcept's ``.text`` field from
+    ``code_lookup`` when it is missing.
+
+    Issue #1038: JP Composition emits `Composition.type` and
+    `Composition.section[].code` CodeableConcepts whose LOINC coding has
+    no `display` after the P2 A strip walker runs (English-only CS). For
+    JP-CLINS-mandated document types the emit path already sets `.text`
+    to the JA-native label ("退院時サマリー" etc.), but on some
+    categories (LP29684-5 "放射線" on `Composition.category`) `.text`
+    is absent — leaving no JA-visible label for JP consumers.
+
+    This walker fills the gap without touching `.coding.display`
+    (which would trigger the strip walker's "Wrong Display Name"
+    conformance concern on English-only systems). It reads the first
+    coding entry whose `code_lookup` in ``lang`` returns a real display,
+    and assigns that to the CC's `.text`. Idempotent: skips any CC that
+    already has `.text` populated.
+
+    Callers pass the target language: JP output uses ``lang="ja"``, US
+    uses ``lang="en"`` (harmless — US CCs already have EN displays and
+    typically their `.text`).
+    """
+    if isinstance(node, dict):
+        codings = node.get("coding")
+        if isinstance(codings, list) and not node.get("text"):
+            for cd in codings:
+                if not isinstance(cd, dict):
+                    continue
+                sys_ = cd.get("system", "")
+                code_ = cd.get("code", "")
+                if not sys_ or not code_:
+                    continue
+                system_key = _FHIR_URI_TO_CODE_SYSTEM_KEY.get(sys_)
+                if not system_key:
+                    continue
+                looked_up = code_lookup(system_key, code_, lang)
+                if looked_up and looked_up != code_:
+                    node["text"] = looked_up
+                    break
+        for value in node.values():
+            if isinstance(value, (dict, list)):
+                _populate_cc_text_from_coding_lookup(value, lang)
+    elif isinstance(node, list):
+        for item in node:
+            if isinstance(item, (dict, list)):
+                _populate_cc_text_from_coding_lookup(item, lang)
+
+
 def _populate_procedure_coding_displays(node: Any, lang: str) -> None:
     """Recursively populate missing `display` on every `coding[]` in a
     Procedure resource via ``_copy_display_from_sibling_coding``.
@@ -1051,7 +1100,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     harmlessly) and stays idempotent.
     """
     rt = resource.get("resourceType")
-    if rt not in ("Condition", "AllergyIntolerance", "MedicationRequest", "Procedure"):
+    if rt not in ("Condition", "AllergyIntolerance", "MedicationRequest", "Procedure", "Composition"):
         return
 
     # Procedure only participates in the (4a) coding-display walker below —
@@ -1061,6 +1110,17 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     if rt == "Procedure":
         lang = "ja" if is_jp(country) else "en"
         _populate_procedure_coding_displays(resource, lang)
+        return
+
+    # Composition (Issue #1038): populate CodeableConcept.text with a
+    # JA lookup when it is missing. Does NOT touch `.coding.display`
+    # (that would conflict with the strip walker on English-only CS
+    # like LOINC). JP-CLINS-mandated document types already set `.text`
+    # at emit time; this walker fills the remaining gaps (LP29684-5
+    # radiology category + a small number of edge cases).
+    if rt == "Composition":
+        lang = "ja" if is_jp(country) else "en"
+        _populate_cc_text_from_coding_lookup(resource, lang)
         return
 
     # (1) identifier — canonical namespace, only when not builder-populated.
