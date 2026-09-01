@@ -193,3 +193,99 @@ def test_english_locale_vital_signs_line():
     text, facts = gen._build_outpatient_objective(ctx)
     assert "BP 120/80 mmHg" in text
     assert "HR 68 bpm" in text
+
+
+# ── Issue #1033: US locale must not leak JP drug names in the assessment ──
+
+
+def _us_hme(drug_en: str, drug_ja: str = "", route: str = "PO", dose: str = "10mg") -> SimpleNamespace:
+    """Build a US HomeMedication-like namespace: EN drug_name populated,
+    drug_name_ja also present (both fields are always populated per
+    activator.py; the assessment builder must NOT read drug_name_ja on US)."""
+    return SimpleNamespace(
+        drug_name=drug_en,
+        drug_name_ja=drug_ja,
+        route=route,
+        dose=dose,
+        frequency="daily",
+        dose_quantity=None,
+        dose_unit="",
+    )
+
+
+def test_us_outpatient_assessment_does_not_leak_japanese_drug_names_1033():
+    """Issue #1033: US p=10000 seed=100 emitted assessment sections with
+    katakana drug names (`アトルバスタチン continue.`, `メトホルミン continue.`,
+    `アムロジピン continue.`) because ``_build_outpatient_assessment``
+    pre-resolved current-medications with ``lang="ja"`` regardless of
+    target locale, then substring-matched katakana hints against them.
+    Fix: locale-aware rendering + parallel EN/JA hint tuples."""
+    ctx = _ctx(
+        lang="en",
+        chronic_conditions=[
+            SimpleNamespace(code="I10"),
+            SimpleNamespace(code="E11.9"),
+            SimpleNamespace(code="E78.5"),
+        ],
+        current_medications=[
+            _us_hme("Amlodipine", "アムロジピン", dose="5mg"),
+            _us_hme("Metformin", "メトホルミン", dose="500mg"),
+            _us_hme("Atorvastatin", "アトルバスタチン", dose="10mg"),
+        ],
+        vitals=[
+            SimpleNamespace(
+                systolic_bp=142,
+                diastolic_bp=88,
+                heart_rate=72,
+                respiratory_rate=16,
+                spo2=98.0,
+                temperature_celsius=None,
+            )
+        ],
+    )
+    gen = TemplateNarrativeGenerator()
+    text, _facts = gen._build_outpatient_assessment(ctx)
+
+    # No JP characters (hiragana / katakana / CJK) anywhere.
+    for ch in text:
+        cp = ord(ch)
+        assert not (0x3040 <= cp <= 0x309F), f"hiragana leak: {text!r}"
+        assert not (0x30A0 <= cp <= 0x30FF), f"katakana leak: {text!r}"
+        assert not (0x4E00 <= cp <= 0x9FFF), f"CJK leak: {text!r}"
+    # And the assessment did cite the intended EN drug where applicable.
+    assert "Amlodipine" in text or "Metformin" in text or "Atorvastatin" in text
+
+
+def test_jp_outpatient_assessment_still_uses_japanese_drug_names_1033():
+    """The JP path must not regress: katakana drug names still cited in
+    the assessment when the target is JP."""
+    ctx = _ctx(
+        lang="ja",
+        chronic_conditions=[
+            SimpleNamespace(code="I10"),
+            SimpleNamespace(code="E11.9"),
+        ],
+        current_medications=[
+            _us_hme("Amlodipine", "アムロジピン", dose="5mg"),
+            _us_hme("Metformin", "メトホルミン", dose="500mg"),
+        ],
+        vitals=[
+            SimpleNamespace(
+                systolic_bp=138,
+                diastolic_bp=88,
+                heart_rate=72,
+                respiratory_rate=16,
+                spo2=98.0,
+                temperature_celsius=None,
+            )
+        ],
+    )
+    gen = TemplateNarrativeGenerator()
+    text, _facts = gen._build_outpatient_assessment(ctx)
+
+    # Either the primary chronic hits the disease-specific chronic
+    # registry (which supplies its own JP text) or the per-condition
+    # integration composes a JP line. Either way, we expect no bare
+    # English drug tokens to leak into the JP text.
+    assert "Amlodipine" not in text or "アムロジピン" in text
+    assert "Metformin" not in text or "メトホルミン" in text

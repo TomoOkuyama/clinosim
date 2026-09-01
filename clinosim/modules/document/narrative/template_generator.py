@@ -4504,18 +4504,24 @@ class TemplateNarrativeGenerator:
         is_ja = ctx.target_lang == "ja"
         disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
 
-        # Pre-resolve current-medications for continuation-tail
+        # Pre-resolve current-medications for continuation-tail. Issue #1033:
+        # rendering always as ``lang="ja"`` leaks katakana drug names into US
+        # assessment prose (`Metformin continue` → `メトホルミン continue`).
+        # Render in the target locale and match hints in the target locale so
+        # a US assessment cites the English drug name and a JP assessment
+        # cites the katakana name.
         cur_meds = _o(patient, "current_medications", []) or []
-        med_names_ja = [_render_home_med_name(m, lang="ja") for m in cur_meds]
-        med_names_ja = [n for n in med_names_ja if n]
+        med_names_display = [_render_home_med_name(m, lang=ctx.target_lang) for m in cur_meds]
+        med_names_display = [n for n in med_names_display if n]
 
-        def _pick_med_containing(hints: tuple[str, ...]) -> str | None:
-            """Return the first current-med whose name contains any hint.
-
-            hints are substring matchers on the localized JA display so
-            the assessment cites the actual continuation drug rather than
-            a generic 「継続」 phrase."""
-            for n in med_names_ja:
+        def _pick_med_containing(en_hints: tuple[str, ...], ja_hints: tuple[str, ...]) -> str | None:
+            """Return the first current-med whose (locale-rendered) name
+            contains any hint. Hints must be provided for both locales — the
+            match set is chosen by ``ctx.target_lang`` so a US assessment
+            searches on English tokens and a JP assessment on katakana.
+            """
+            hints = ja_hints if is_ja else en_hints
+            for n in med_names_display:
                 for h in hints:
                     if h in n:
                         return n
@@ -4549,9 +4555,12 @@ class TemplateNarrativeGenerator:
                         f"{NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD} mmHg"
                     )
                 )
-                med = _pick_med_containing(("アムロジピン", "エナラプリル", "ロサルタン", "テルミサルタン"))
+                med = _pick_med_containing(
+                    en_hints=("Amlodipine", "Enalapril", "Losartan", "Telmisartan"),
+                    ja_hints=("アムロジピン", "エナラプリル", "ロサルタン", "テルミサルタン"),
+                )
                 med_tail = f"、{med} 継続" if med and is_ja else (f"; {med} continue" if med else "")
-                interp = f"BP {int(sbp)}/{int(dbp)} mmHg — {target} — {ctrl}{med_tail}。"
+                interp = f"BP {int(sbp)}/{int(dbp)} mmHg — {target} — {ctrl}{med_tail}" + ("。" if is_ja else ".")
 
             # ── E11 / E10: Diabetes mellitus ───────────────────────────
             elif code_prefix.startswith(("E10", "E11")):
@@ -4585,7 +4594,10 @@ class TemplateNarrativeGenerator:
                 if fbg:
                     v, u = fbg
                     parts_dm.append(f"血糖 {v} {u or 'mg/dL'}" if is_ja else f"glucose {v} {u or 'mg/dL'}")
-                med = _pick_med_containing(("メトホルミン", "グリメピリド", "インスリン", "シタグリプチン", "DPP"))
+                med = _pick_med_containing(
+                    en_hints=("Metformin", "Glimepiride", "Insulin", "Sitagliptin", "DPP"),
+                    ja_hints=("メトホルミン", "グリメピリド", "インスリン", "シタグリプチン", "DPP"),
+                )
                 if med:
                     parts_dm.append(f"{med} 継続" if is_ja else f"{med} continue")
                 if parts_dm:
@@ -4613,9 +4625,12 @@ class TemplateNarrativeGenerator:
                         if is_ja
                         else f"target < {NARRATIVE_LDL_ELEVATED_THRESHOLD} mg/dL (primary prevention)"
                     )
-                    med = _pick_med_containing(("スタチン", "ロスバスタチン", "アトルバスタチン", "エゼチミブ"))
+                    med = _pick_med_containing(
+                        en_hints=("statin", "Rosuvastatin", "Atorvastatin", "Ezetimibe"),
+                        ja_hints=("スタチン", "ロスバスタチン", "アトルバスタチン", "エゼチミブ"),
+                    )
                     med_tail = f"、{med} 継続" if med and is_ja else (f"; {med} continue" if med else "")
-                    interp = f"LDL {v} {u or 'mg/dL'} — {target} — {ctrl}{med_tail}。"
+                    interp = f"LDL {v} {u or 'mg/dL'} — {target} — {ctrl}{med_tail}" + ("。" if is_ja else ".")
 
             # ── N18: Chronic kidney disease ────────────────────────────
             elif code_prefix.startswith("N18"):
@@ -4660,7 +4675,10 @@ class TemplateNarrativeGenerator:
                 bits: list[str] = []
                 if spo2:
                     bits.append(f"SpO2 {int(spo2)}%")
-                med = _pick_med_containing(("LABA", "LAMA", "チオトロピウム", "サルメテロール"))
+                med = _pick_med_containing(
+                    en_hints=("LABA", "LAMA", "Tiotropium", "Salmeterol"),
+                    ja_hints=("LABA", "LAMA", "チオトロピウム", "サルメテロール"),
+                )
                 if med:
                     bits.append(f"{med} 吸入継続" if is_ja else f"{med} inhalation continue")
                 if bits:
@@ -4674,7 +4692,10 @@ class TemplateNarrativeGenerator:
                 bits2: list[str] = []
                 if spo2:
                     bits2.append(f"SpO2 {int(spo2)}%")
-                med = _pick_med_containing(("ICS", "サルメテロール", "モンテルカスト"))
+                med = _pick_med_containing(
+                    en_hints=("ICS", "Salmeterol", "Montelukast"),
+                    ja_hints=("ICS", "サルメテロール", "モンテルカスト"),
+                )
                 if med:
                     bits2.append(f"{med} 継続" if is_ja else f"{med} continue")
                 if bits2:
