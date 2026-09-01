@@ -983,6 +983,16 @@ def derive_vital_signs(
     }
 
 
+_OBSERVED_VITAL_CLAMPS: dict[str, tuple[float, float]] = {
+    "temperature": (TEMPERATURE_CLAMP_MIN, TEMPERATURE_CLAMP_MAX),
+    "heart_rate": (HR_CLAMP_MIN, HR_CLAMP_MAX),
+    "systolic_bp": (BP_SBP_CLAMP_MIN, BP_SBP_CLAMP_MAX),
+    "diastolic_bp": (BP_DBP_CLAMP_MIN, BP_DBP_CLAMP_MAX),
+    "respiratory_rate": (RR_CLAMP_MIN, RR_CLAMP_MAX),
+    "spo2": (OBSERVED_SPO2_CLAMP_MIN, OBSERVED_SPO2_CLAMP_MAX),
+}
+
+
 def derive_observed_vitals(
     state: PhysiologicalState,
     baseline: BaselineVitals,
@@ -993,14 +1003,17 @@ def derive_observed_vitals(
 
     Single derivation path shared by inpatient, ED, and outpatient (AD-57): the true
     vitals come from the hidden physiological state, then per-measurement Gaussian noise
-    models device/observer variation. SpO2 is re-clamped to a physiological range.
+    models device/observer variation. Every field is re-clamped to its physiological
+    range after noise so that outlier draws (e.g. RR floor 8 with SD=2 negative tail)
+    cannot cross into non-physiological territory (Issue #1040 — agonal RR 3-5 on
+    non-terminal patients).
     """
     raw = derive_vital_signs(state, baseline, timestamp)
     for key in raw:
         noise_sd = OBSERVED_TEMPERATURE_NOISE_SD if key == "temperature" else OBSERVED_VITALS_NOISE_SD_DEFAULT
         raw[key] += float(rng.normal(0, noise_sd))
-        if key == "spo2":
-            raw[key] = min(OBSERVED_SPO2_CLAMP_MAX, max(OBSERVED_SPO2_CLAMP_MIN, raw[key]))
+        lo, hi = _OBSERVED_VITAL_CLAMPS[key]
+        raw[key] = min(hi, max(lo, raw[key]))
     return raw
 
 
