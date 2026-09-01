@@ -253,6 +253,12 @@ codes:
   O04:
     en: Medical abortion
     ja: 医学的人工妊娠中絶
+  # ── Delivery admission diagnosis (Issue #1035).
+  # Referenced by clinosim/locale/shared/perinatal.yaml as the default
+  # WHO ICD-10 admission_diagnosis_code for uncomplicated delivery.
+  O80:
+    en: "Single spontaneous delivery"
+    ja: "単胎自然分娩"
   M17:
     en: Gonarthrosis [arthrosis of knee]
     ja: 変形性膝関節症
@@ -856,12 +862,22 @@ codes:
   # jp-condition-diagnosis の required binding で strict display match が
   # 発火するため。WHO ICD-10 (`http://hl7.org/fhir/sid/icd-10`) では display
   # tolerance が緩く v15 まで発火せず、PR #353 の MHLW URI 切替後に露出。
+  # Issue #1035: category codes C15/C25/C67 are emitted as base codes
+  # on JP MHLW-ICD10 path (chronic_followup + demographics prevalence),
+  # so they need a display entry to avoid the "(display unavailable)"
+  # fallback in build_diagnosis_codeable_concept.
+  C15:
+    en: "Malignant neoplasm of oesophagus"
+    ja: "食道の悪性新生物＜腫瘍＞"
   C18:
     en: "Malignant neoplasm of colon"
     ja: "結腸の悪性新生物＜腫瘍＞"
   C22:
     en: "Malignant neoplasm of liver and intrahepatic bile ducts"
     ja: "肝及び肝内胆管の悪性新生物＜腫瘍＞"
+  C25:
+    en: "Malignant neoplasm of pancreas"
+    ja: "膵の悪性新生物＜腫瘍＞"
   C34:
     en: "Malignant neoplasm of bronchus and lung"
     ja: "気管支及び肺の悪性新生物＜腫瘍＞"
@@ -871,6 +887,9 @@ codes:
   C61:
     en: "Malignant neoplasm of prostate"
     ja: "前立腺の悪性新生物＜腫瘍＞"
+  C67:
+    en: "Malignant neoplasm of bladder"
+    ja: "膀胱の悪性新生物＜腫瘍＞"
   C71.9:
     en: Brain, unspecified
     ja: "脳の悪性新生物、詳細不明"
