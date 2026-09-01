@@ -1082,8 +1082,14 @@ def run_beta(
             # existing outpatient visit builder with a chemo-specific
             # followup_spec so the encounter emits with the regimen's
             # visit_reason + department + a Procedure record for the
-            # chemotherapy administration. Per-cycle drug MedicationRequest
-            # / MedicationAdministration is a follow-up slice.
+            # chemotherapy administration + per-cycle drug
+            # `MedicationRequest` + `MedicationAdministration` for each
+            # `cycle_orders` entry (Day-1 IV agents). See
+            # `simulator/outpatient.py:429` (`if visit_type ==
+            # "chemo_visit" and spec.get("chemo_regimen")`) — the
+            # per-cycle emit landed as part of the same tier-3-A slice
+            # and closes the last outstanding META #957 obstetric +
+            # oncology sub-item.
             regimen_name = event.protocol_source.split(":", 1)[1] if ":" in event.protocol_source else ""
             from clinosim.locale.loader import load_chemo_regimens
 
