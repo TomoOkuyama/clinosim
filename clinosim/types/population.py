@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from clinosim.types.identity import IdentityTimeline
 from clinosim.types.patient import HomeMedication
@@ -17,7 +17,55 @@ from clinosim.types.patient import HomeMedication
 if TYPE_CHECKING:
     from clinosim.types.allergy import Allergy
 
-__all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
+__all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent", "TemporalStatePeriod"]
+
+
+@dataclass
+class TemporalStatePeriod:
+    """A time-boxed clinical or biographical state a person passes through.
+
+    Introduced by META #957 pregnancy-lifecycle refactor (Incr 1) as the
+    canonical replacement for "chronic condition entries that actually
+    represent a lifecycle" — currently pregnancy (Z34), later cancer
+    active-treatment, warfarin courses, remission, etc.
+
+    Semantics:
+      * ``start_date`` inclusive; ``end_date`` inclusive when set; ``None``
+        end_date means the period is still open (e.g., ongoing pregnancy).
+      * ``outcome`` is populated when the period closes ("delivered" /
+        "aborted" / "completed" / …); empty while still open.
+      * ``metadata`` carries state-specific structured fields (e.g., for
+        pregnancy: ``lmp``, ``edd``, ``delivery_date``). Callers must not
+        rely on unknown keys; only the state's dedicated generator writes
+        or reads them.
+      * ``period_seq`` is 0-indexed per (person, state_type). A woman with
+        two delivered pregnancies has ``period_seq=0`` and ``period_seq=1``.
+    """
+
+    state_type: str
+    start_date: date
+    end_date: date | None = None
+    outcome: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
+    period_seq: int = 0
+
+    def is_active_at(self, day: date) -> bool:
+        """Return True iff ``day`` falls inside this period (inclusive)."""
+        if day < self.start_date:
+            return False
+        if self.end_date is None:
+            return True
+        return day <= self.end_date
+
+    def overlaps_year(self, year: int) -> bool:
+        """Return True iff the period intersects the calendar ``year``."""
+        year_start = date(year, 1, 1)
+        year_end = date(year, 12, 31)
+        if self.end_date is not None and self.end_date < year_start:
+            return False
+        if self.start_date > year_end:
+            return False
+        return True
 
 
 @dataclass
@@ -82,6 +130,13 @@ class PersonRecord:
     # None = enricher hasn't run; [] = enricher ran, patient has no allergy.
     # Task 15 will make the enricher the sole source and remove the activator block.
     allergies: list[Allergy] | None = None
+    # Time-boxed lifecycle states (META #957 Incr 1). Populated over the
+    # life of the simulation by state-scoped generators (currently only
+    # the pregnancy-lifecycle generator; cancer active-treatment / acute
+    # medication courses / remission arrive in later increments). Distinct
+    # from ``chronic_conditions`` which stays for truly chronic diseases
+    # (HTN, DM, CKD) that do not have a lifecycle.
+    state_periods: list[TemporalStatePeriod] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Issue #452 PR 1 migration shim: accept legacy `list[str]` fixtures
@@ -90,6 +145,43 @@ class PersonRecord:
         from clinosim.types.patient import _normalize_home_medications
 
         self.current_medications = _normalize_home_medications(self.current_medications)
+
+    def get_active_state(
+        self, state_type: str, at_date: date | None = None
+    ) -> TemporalStatePeriod | None:
+        """Return the (single) active period of ``state_type`` on ``at_date``,
+        or ``None`` if the person has no such active period.
+
+        When ``at_date is None``, "active" means "still open" (``end_date``
+        is None) — this is the natural query for the pregnancy generator
+        checking "is she pregnant right now, unresolved".
+
+        Assumes at most one active period per state_type at a time — this
+        holds for pregnancy by biology (no overlapping pregnancies) and is
+        expected to hold for the other lifecycle states as they arrive.
+        """
+        for period in self.state_periods:
+            if period.state_type != state_type:
+                continue
+            if at_date is None:
+                if period.end_date is None:
+                    return period
+            else:
+                if period.is_active_at(at_date):
+                    return period
+        return None
+
+    def has_active_state(
+        self, state_type: str, at_date: date | None = None
+    ) -> bool:
+        """Convenience wrapper around ``get_active_state``."""
+        return self.get_active_state(state_type, at_date) is not None
+
+    def state_history(self, state_type: str) -> list[TemporalStatePeriod]:
+        """Return every period of ``state_type`` (open + closed), in
+        insertion order — which for a period-per-episode generator is
+        chronological."""
+        return [p for p in self.state_periods if p.state_type == state_type]
 
 
 @dataclass

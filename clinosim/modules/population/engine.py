@@ -103,9 +103,28 @@ from clinosim.modules.population._population_workflow_thresholds import (
     UNKNOWN_CONDITION_SEVERITY_BETA_BETA,
 )
 from clinosim.seeding import chronic_augment_sex_seed
-from clinosim.types.population import HospitalizationSummary, LifeEvent, PersonRecord
+from clinosim.types.population import (
+    HospitalizationSummary,
+    LifeEvent,
+    PersonRecord,
+    TemporalStatePeriod,
+)
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
+
+# META #957 Incr 1: ICD codes that appear in demographics ``chronic_prevalence``
+# yaml for RNG-cursor placement but that represent time-boxed states rather
+# than truly chronic diseases. Their Bernoulli draw in the chronic sampling
+# loop is CONSUMED (to preserve cursor byte-identity for all codes iterated
+# after them) but the code is NOT appended to ``PersonRecord.chronic_conditions``
+# — pregnancy is tracked via ``person.state_periods`` (opened by the
+# pregnancy-lifecycle generator).
+#
+# Z37 (outcome of delivery, past-birth marker) currently stays in the chronic
+# sampling path per the s95-z37 by-design-registry entry (interim proxy until
+# the pregnancy-history adapter migrates it in a follow-up Incr). Adding it
+# here would delete the marker with no replacement emit path.
+_STATE_PERIOD_CHRONIC_CODES = frozenset({"Z34"})
 
 
 @dataclass
@@ -589,6 +608,19 @@ def generate_population(
                     scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
                     final_prev = min(1.0, scaled_base * corr_mult * life_mult)
                     if rng.random() < final_prev:
+                        # META #957 Incr 1: Z34 (encounter for supervision of
+                        # normal pregnancy) and Z37 (outcome of delivery) are
+                        # temporal-state markers, not chronic conditions.
+                        # The Bernoulli draw is CONSUMED to preserve the rng
+                        # cursor byte-identity for non-obstetric codes iterated
+                        # after these entries; the append is skipped so no
+                        # problem-list-item is emitted from chronic_conditions.
+                        # Pregnancy state lives in ``person.state_periods`` via
+                        # the pregnancy-lifecycle generator; Z37 past-birth
+                        # marker is derived from state_history in the FHIR
+                        # emit adapter.
+                        if code in _STATE_PERIOD_CHRONIC_CODES:
+                            continue
                         conditions.append(code)
 
             # Issue #957 augment_sex_bands: opposite-sex activation for a
@@ -622,6 +654,8 @@ def generate_population(
                 scaled_base = aug_base / e_compound if e_compound > 0.0 else aug_base
                 final_prev = min(1.0, scaled_base * corr_mult * life_mult)
                 if aug_rng.random() < final_prev:
+                    if code in _STATE_PERIOD_CHRONIC_CODES:
+                        continue  # temporal-state markers — see primary loop
                     conditions.append(code)
 
             # Care seeking threshold (JP: lower = more willing)
@@ -1111,6 +1145,18 @@ def generate_healthcare_calendar(
 
         events.extend(generate_pediatric_events(person, year, prng))
 
+        # --- Pregnancy lifecycle (META #957 Incr 1) ---
+        # Placed BEFORE the `if not conditions_with_spec: continue` gate,
+        # for the same reason as pediatric encounters above: healthy
+        # childbearing-age women typically have no chronic conditions in
+        # ``followup_data`` (Z34 is no longer in ``chronic_conditions``
+        # after the Incr-1 refactor), so gating on ``conditions_with_spec``
+        # would silently skip every non-comorbid pregnancy. The generator
+        # uses a per-(patient, year) sub-RNG so it does not shift the
+        # calendar's shared ``prng`` — non-obstetric calendars stay
+        # byte-identical.
+        events.extend(_pregnancy_lifecycle_events(person, year, country))
+
         # --- Chronic disease visits ---
         # Group conditions into combined visits (real patients see one doctor
         # for multiple conditions in a single visit)
@@ -1243,14 +1289,9 @@ def generate_healthcare_calendar(
                 )
             )
 
-        # --- Perinatal delivery encounter (Issue #957 Tier-3-B) ---
-        # For Z34-carrying women (chronic marker "actively pregnant during
-        # sim window"), emit one delivery IMP encounter per year at a
-        # scheduled month within the config-declared window. The scheduler
-        # uses a per-(patient, year) sub-RNG so the calendar's shared
-        # ``prng`` is NOT consumed — pre-existing calendar streams are
-        # byte-identical whether the delivery scheduler runs or not.
-        events.extend(_perinatal_delivery_events(person, year))
+        # --- Pregnancy lifecycle handled above ---
+        # (moved BEFORE the chronic-condition gate — see the placement
+        # note near the pediatric-encounter block.)
 
         # --- Chemotherapy cycle visits (Issue #957 Tier-3-A) ---
         # For chronic-carrier patients of cancer codes with an assigned
@@ -1265,107 +1306,230 @@ def generate_healthcare_calendar(
     return events
 
 
-def _perinatal_delivery_events(person: PersonRecord, year: int) -> list[LifeEvent]:
-    """Emit the perinatal event chain for a Z34-carrying pregnant woman:
-    one ``delivery`` event + two ``postpartum`` outpatient follow-ups.
+_PREGNANCY_ELIGIBLE_MIN_AGE = 15
+_PREGNANCY_ELIGIBLE_MAX_AGE = 49
+
+
+def _annual_conception_rate(lc: dict, country: str, age: int) -> float:
+    """Look up the age-banded annual conception probability for ``country``.
+
+    Bands in yaml are inclusive ranges like ``"25-29": 0.075``. Returns
+    ``0.0`` for ages outside the eligible window or when config missing.
+    """
+    rates = (lc.get("annual_conception_rate") or {}).get(
+        "jp" if is_jp(country) else "us"
+    ) or {}
+    for band, value in rates.items():
+        if "-" not in band:
+            continue
+        try:
+            lo, hi = (int(x) for x in band.split("-"))
+        except ValueError:
+            continue
+        if lo <= age <= hi:
+            return float(value)
+    return 0.0
+
+
+def _pregnancy_lifecycle_events(
+    person: PersonRecord, year: int, country: str
+) -> list[LifeEvent]:
+    """Full pregnancy lifecycle scheduler (META #957 Incr 1).
+
+    Replaces the pre-Incr-1 ``_perinatal_delivery_events`` "Z34 chronic
+    marker → one delivery/year" scheduler with a biology-shaped model:
+
+      * Annual conception Bernoulli against the age-banded rate in
+        ``perinatal.yaml::lifecycle.annual_conception_rate`` (locale-
+        specific, MHLW/CDC-authoritative). On conception, opens a
+        ``TemporalStatePeriod(state_type="pregnancy")`` with metadata
+        ``{lmp, edd, planned_delivery_date}`` recording the LMP, EDD
+        (LMP + gestation_days), and the jittered delivery date.
+      * On the year containing the planned delivery date, emits one
+        ``delivery`` IMP event + two ``postpartum_visit`` AMB follow-ups
+        (7 d and 28 d post-delivery) and closes the period with
+        ``outcome="delivered"``.
+      * During any sim year the pregnancy is active, emits
+        ``prenatal_visit`` AMB events at gestational weeks configured in
+        ``lifecycle.prenatal_visit_gestational_weeks`` (default: 12/24/36).
+      * Abortion path: on conception, ``resolve_pregnancy_outcome``
+        rolls a per-(mother, year) sub-RNG; if it hits, we emit a single
+        ``abortion`` event at ~10 gestational weeks and close the period
+        with ``outcome="aborted"``. Same discharge diagnosis (O03.9 /
+        O04.5) as the pre-Incr-1 flow.
 
     RNG-neutrality contract: consumes ZERO calls on the caller's
-    ``prng`` — the delivery month/day + postpartum jitter draws all
-    use ``perinatal_delivery_seed(person_id, year)`` (sibling of
-    ``chemotherapy_regimen_seed``). Adding this scheduler does NOT
-    shift any pre-existing calendar event for any patient.
+    ``prng``. Every draw uses ``perinatal_delivery_seed(person_id, year)``
+    (sibling of ``chemotherapy_regimen_seed``). Non-obstetric patients'
+    calendars are byte-identical whether this scheduler runs or not.
 
-    Slice-2 semantics (Issue #957 Tier-3-B follow-up):
-      * ``delivery`` — mother's IMP admission + newborn Patient chain
-        (see ``simulator/perinatal.py::simulate_delivery_encounter``).
-      * ``chronic_visit`` × 2 with ``condition_type="postpartum"`` —
-        AMB obstetric follow-ups at ~1 week and ~4 weeks post-discharge
-        (JSOG / ACOG standard postpartum care intervals). Fired as
-        ``chronic_visit`` events so they route through the existing
-        outpatient dispatch with a postpartum ``visit_reason``.
+    Cross-year state: pregnancy periods carry across sim years via
+    ``person.state_periods``. A conception in year N with EDD in year
+    N+1 emits prenatal visits in year N (those before Dec 31) and the
+    delivery + postpartum in year N+1. Same period record is consulted
+    both years; the year-N call opens the period, the year-N+1 call
+    closes it. The RNG cursor for year N+1 does NOT re-roll conception
+    for that person because the ``get_active_state`` short-circuit skips
+    the Bernoulli path.
 
-    Postpartum-visit month/day placement respects year boundaries:
-    if the delivery falls in December, the postpartum visits are
-    clamped to Dec 31 (they would otherwise land in the next sim
-    year, out of scope for this cohort year). Downstream snapshot
-    clamping in ``run_beta`` further clips events past the
-    ``--end`` cursor.
+    Age gate: mothers must be within [15, 49] per the Z34
+    icd10_sex_restrictions.yaml sex-lock; ages outside this window
+    return no events (and do not open new periods).
     """
-    if "Z34" not in person.chronic_conditions:
+    if person.sex != "F":
+        return []
+    if not (
+        _PREGNANCY_ELIGIBLE_MIN_AGE <= person.age <= _PREGNANCY_ELIGIBLE_MAX_AGE
+    ):
         return []
     from clinosim.locale.loader import load_perinatal_config
     from clinosim.seeding import perinatal_delivery_seed
-
-    cfg = load_perinatal_config()
-    sched = cfg.get("scheduling") or {}
-    m_lo, m_hi = sched.get("delivery_month_range") or [4, 10]
-    m_lo = int(m_lo)
-    m_hi = int(m_hi)
-    if m_lo < 1 or m_hi > 12 or m_lo > m_hi:
-        return []
-    rng = np.random.default_rng(perinatal_delivery_seed(person.person_id, year))
-    delivery_month = int(rng.integers(m_lo, m_hi + 1))
-    delivery_day = int(rng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE))
-    delivery_date = date(year, delivery_month, delivery_day)
-
-    # Pregnancy outcome resolution — a Z34 pregnancy may end in abortion
-    # (spontaneous or induced, age-gated) instead of delivery. Consumes
-    # its OWN per-(mother, year) sub-RNG (isolated from the delivery-
-    # date draw) so tuning abortion rates does not shift delivery day.
     from clinosim.simulator.perinatal import resolve_pregnancy_outcome
 
-    outcome, discharge_dx = resolve_pregnancy_outcome(person.person_id, person.age, year)
-    if outcome == "abortion":
-        return [
-            LifeEvent(
-                person_id=person.person_id,
-                event_type="abortion",
-                timestamp=delivery_date,  # reuse the scheduled date for the abortion encounter
-                severity=0.0,
-                condition_type="pregnancy_termination",
-                disease_id=discharge_dx,  # O03.9 or O04.5
-                encounter_type="outpatient",
-                protocol_source="perinatal:abortion",
-            )
-        ]
+    cfg = load_perinatal_config()
+    lc = cfg.get("lifecycle") or {}
+    if not lc:
+        return []
+    gestation_days = int(lc.get("gestation_days", 280))
+    prenatal_ga_weeks = list(lc.get("prenatal_visit_gestational_weeks") or [12, 24, 36])
+    postpartum_offsets = list(lc.get("postpartum_visit_offsets_days") or [7, 28])
+    jit = lc.get("delivery_jitter_days") or [-7, 7]
+    jit_lo, jit_hi = int(jit[0]), int(jit[1])
 
-    events: list[LifeEvent] = [
-        LifeEvent(
-            person_id=person.person_id,
-            event_type="delivery",
-            timestamp=delivery_date,
-            severity=0.0,
-            condition_type="perinatal_delivery",
-            disease_id="Z34",
-            encounter_type="inpatient",
-            protocol_source="perinatal:delivery",
+    rng = np.random.default_rng(perinatal_delivery_seed(person.person_id, year))
+
+    active = person.get_active_state("pregnancy")
+    if active is None:
+        rate = _annual_conception_rate(lc, country, person.age)
+        if rate <= 0.0:
+            return []
+        if float(rng.random()) >= rate:
+            return []
+        # Conception this year: pick LMP uniformly within [Jan 1, Dec 31].
+        lmp_offset = int(rng.integers(0, 365))
+        lmp = date(year, 1, 1) + timedelta(days=lmp_offset)
+        edd = lmp + timedelta(days=gestation_days)
+
+        outcome, discharge_dx = resolve_pregnancy_outcome(
+            person.person_id, person.age, year
         )
-    ]
+        if outcome == "abortion":
+            # Abortions cluster in the first trimester — schedule at
+            # gestational week ~10 (day 70 from LMP), jittered ±14 days.
+            ab_offset_days = 70 + int(rng.integers(-14, 15))
+            ab_date = lmp + timedelta(days=ab_offset_days)
+            # Ensure the encounter falls in the current sim year so it
+            # is not silently clipped by the run_beta snapshot window.
+            if ab_date.year != year:
+                ab_date = date(year, 12, 31)
+            period = TemporalStatePeriod(
+                state_type="pregnancy",
+                start_date=lmp,
+                end_date=ab_date,
+                outcome="aborted",
+                metadata={
+                    "lmp": lmp,
+                    "edd": edd,
+                    "abortion_date": ab_date,
+                    "abortion_dx": discharge_dx,
+                },
+                period_seq=len(person.state_history("pregnancy")),
+            )
+            person.state_periods.append(period)
+            return [
+                LifeEvent(
+                    person_id=person.person_id,
+                    event_type="abortion",
+                    timestamp=ab_date,
+                    severity=0.0,
+                    condition_type="pregnancy_termination",
+                    disease_id=discharge_dx,
+                    encounter_type="outpatient",
+                    protocol_source="perinatal:abortion",
+                )
+            ]
 
-    # Postpartum follow-ups: ~1 week (jittered 5-10 d) and ~4 week
-    # (jittered 21-35 d) post-discharge. Fired via chronic_visit so
-    # they hit the standard outpatient dispatch; disease_id "Z39"
-    # ("encounter for maternal postpartum care") is the WHO ICD-10
-    # postpartum-care code and displays correctly in the ICD registry.
-    postpartum_offsets_days = (7, 28)
-    for offset in postpartum_offsets_days:
-        pp_dt = delivery_date + timedelta(days=offset)
-        # Year-boundary clamp: keep the event inside the calendar's
-        # sim year to avoid emitting into unrelated cohorts.
-        if pp_dt.year != year:
-            pp_dt = date(year, 12, 31)
+        # Delivery path: jitter EDD, open the pregnancy period.
+        jitter = int(rng.integers(jit_lo, jit_hi + 1))
+        planned_delivery_date = edd + timedelta(days=jitter)
+        active = TemporalStatePeriod(
+            state_type="pregnancy",
+            start_date=lmp,
+            end_date=None,
+            outcome="",
+            metadata={
+                "lmp": lmp,
+                "edd": edd,
+                "planned_delivery_date": planned_delivery_date,
+            },
+            period_seq=len(person.state_history("pregnancy")),
+        )
+        person.state_periods.append(active)
+
+    # ``active`` is now the live pregnancy period (freshly opened this
+    # year, or carried from a prior year). Only the delivery-path branch
+    # falls through here — abortion returned above.
+    lmp = active.metadata["lmp"]
+    planned_delivery_date = active.metadata.get(
+        "planned_delivery_date"
+    ) or active.metadata["edd"]
+
+    year_start = date(year, 1, 1)
+    year_end = date(year, 12, 31)
+    events: list[LifeEvent] = []
+
+    for ga_wk in prenatal_ga_weeks:
+        visit_date = lmp + timedelta(weeks=int(ga_wk))
+        if not (year_start <= visit_date <= year_end):
+            continue
+        if visit_date >= planned_delivery_date:
+            continue  # skip prenatal visits scheduled past delivery
         events.append(
             LifeEvent(
                 person_id=person.person_id,
                 event_type="chronic_visit",
-                timestamp=pp_dt,
+                timestamp=visit_date,
                 severity=0.0,
-                condition_type="postpartum",
-                disease_id="Z39",  # WHO ICD-10 encounter for postpartum care
+                condition_type="prenatal_visit",
+                disease_id="Z34",
                 encounter_type="outpatient",
-                protocol_source="perinatal:postpartum",
+                protocol_source="perinatal:prenatal",
             )
         )
+
+    if year_start <= planned_delivery_date <= year_end:
+        events.append(
+            LifeEvent(
+                person_id=person.person_id,
+                event_type="delivery",
+                timestamp=planned_delivery_date,
+                severity=0.0,
+                condition_type="perinatal_delivery",
+                disease_id="Z34",
+                encounter_type="inpatient",
+                protocol_source="perinatal:delivery",
+            )
+        )
+        for offset in postpartum_offsets:
+            pp_dt = planned_delivery_date + timedelta(days=int(offset))
+            if pp_dt.year != year:
+                pp_dt = date(year, 12, 31)
+            events.append(
+                LifeEvent(
+                    person_id=person.person_id,
+                    event_type="chronic_visit",
+                    timestamp=pp_dt,
+                    severity=0.0,
+                    condition_type="postpartum",
+                    disease_id="Z39",
+                    encounter_type="outpatient",
+                    protocol_source="perinatal:postpartum",
+                )
+            )
+        active.end_date = planned_delivery_date
+        active.outcome = "delivered"
+        active.metadata["delivered_on"] = planned_delivery_date
+
     return events
 
 
