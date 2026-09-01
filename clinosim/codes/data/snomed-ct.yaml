@@ -94,6 +94,24 @@ codes:
   '113257007':
     en: Structure of cardiovascular system
     ja: 循環器系
+  # Issue #1036: SNOMED body-site codes emitted from
+  # clinosim/modules/procedure/engine.py (ProcedureMeta bodySite) that
+  # lacked a snomed-ct.yaml entry, so the sibling-copy walker's English
+  # fallback returned nothing → JP output emitted the coding without
+  # display. Displays below match tx.fhir.org $lookup FSNs shortened to
+  # PT / clinical short form.
+  '80891009':
+    en: Heart structure
+    ja: 心臓
+  '41801008':
+    en: Structure of coronary artery
+    ja: 冠動脈
+  '26107004':
+    en: Structure of small intestine
+    ja: 小腸
+  '30315005':
+    en: Structure of large intestine
+    ja: 大腸
   '118375008':
     en: Intrathoracic structure
     ja: 胸腔内
