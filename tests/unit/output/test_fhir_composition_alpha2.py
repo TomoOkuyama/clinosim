@@ -115,11 +115,12 @@ def test_admission_nursing_assessment_sections_populated():
     r = _bb_compositions(ctx)[0]
     assert "section" in r
     titles = {s["title"] for s in r["section"]}
-    assert "nursing_history" in titles
-    assert "adl_assessment" in titles
-    assert "risk_assessments" in titles
-    assert "nursing_diagnosis" in titles
-    assert "care_plan" in titles
+    # Issue #1037: US locale emits human-readable EN section titles, not raw slugs.
+    assert "Nursing history" in titles
+    assert "ADL assessment" in titles
+    assert "Risk assessments" in titles
+    assert "Nursing diagnosis" in titles
+    assert "Care plan" in titles
 
 
 def test_admission_nursing_assessment_id_uses_prefix():
@@ -205,10 +206,11 @@ def test_nursing_discharge_summary_sections():
     r = _bb_compositions(ctx)[0]
     assert "section" in r
     titles = {s["title"] for s in r["section"]}
-    assert "admission_status" in titles
-    assert "nursing_interventions_provided" in titles
-    assert "patient_education" in titles
-    assert "discharge_readiness" in titles
+    # Issue #1037: US locale emits human-readable EN section titles, not raw slugs.
+    assert "Admission status" in titles
+    assert "Nursing interventions provided" in titles
+    assert "Patient education" in titles
+    assert "Discharge readiness" in titles
 
 
 def test_jp_locale_nursing_discharge_summary_display():
@@ -269,10 +271,11 @@ def test_outpatient_soap_four_sections():
     r = _bb_compositions(ctx)[0]
     assert "section" in r
     titles = {s["title"] for s in r["section"]}
-    assert "subjective" in titles
-    assert "objective" in titles
-    assert "assessment" in titles
-    assert "plan" in titles
+    # Issue #1037: US locale humanizes slug titles (leading-cap fallback).
+    assert "Subjective" in titles
+    assert "Objective" in titles
+    assert "Assessment" in titles
+    assert "Plan" in titles
 
 
 def test_jp_locale_outpatient_soap_display():
@@ -336,7 +339,17 @@ def test_ed_note_seven_sections():
     r = _bb_compositions(ctx)[0]
     assert "section" in r
     titles = {s["title"] for s in r["section"]}
-    expected = {"chief_complaint", "hpi", "triage_details", "physical_exam", "ed_workup", "assessment", "disposition"}
+    # Issue #1037: US locale emits human-readable EN titles (explicit map +
+    # humanization fallback for slugs without an entry).
+    expected = {
+        "Chief complaint",
+        "History of present illness",
+        "Triage details",
+        "Physical exam",
+        "ED workup",
+        "Assessment",
+        "Disposition",
+    }
     assert expected == titles
 
 
@@ -391,6 +404,6 @@ def test_section_text_div_contains_content():
     """Each section's text.div contains the expected narrative fragment."""
     ctx = _make_ctx([_sample_nursing_assessment_dict()])
     r = _bb_compositions(ctx)[0]
-    braden_section = next(s for s in r["section"] if s["title"] == "risk_assessments")
+    braden_section = next(s for s in r["section"] if s["title"] == "Risk assessments")
     assert "Braden" in braden_section["text"]["div"]
     assert braden_section["text"]["status"] == "generated"

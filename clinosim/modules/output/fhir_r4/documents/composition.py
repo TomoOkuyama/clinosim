@@ -298,19 +298,85 @@ _SECTION_TITLE_JA: dict[str, str] = {
 }
 
 
-# Issue #961 — English display for 死亡診断書 sections (US locale). Kept
-# as a small local dict rather than adding to _SECTION_LOINC because the
-# section codes below are LOINC 79378-6 (Cause of death) which is not a
-# universal fit for every section — we prefer explicit human-readable
-# titles.
-_DEATH_CERT_SECTION_TITLE_EN: dict[str, str] = {
+# English display for Composition.section.title on US output. Issue #1037:
+# US eDischargeSummary (and every other US Composition variant) previously
+# emitted the raw machine slug (``hospital_course``, ``discharge_diagnoses``,
+# ``op_procedure_name`` etc.) as ``title`` because the earlier US-side lookup
+# only covered death-certificate sections. Entries below mirror
+# ``_SECTION_TITLE_JA`` so every section type authored in
+# ``document_type_specs.yaml`` has a US display; anything not listed falls
+# through the humanization fallback in ``_localize_section_title``.
+_SECTION_TITLE_EN: dict[str, str] = {
+    # Admission H&P / progress
+    "hpi": "History of present illness",
+    "past_medical_history": "Past medical history",
+    "medications_at_home": "Home medications",
+    "physical_exam": "Physical exam",
+    "physical_examination": "Physical examination",
+    "chief_complaint": "Chief complaint",
+    "triage_details": "Triage details",
+    # Discharge summary — Issue #1037 primary scope
+    "admission_summary": "Admission summary",
+    "hospital_course": "Hospital course",
+    "discharge_diagnoses": "Discharge diagnoses",
+    "discharge_medications": "Discharge medications",
+    "discharge_instructions": "Discharge instructions",
+    "discharge_evaluation": "Discharge evaluation",
+    "discharge_readiness": "Discharge readiness",
+    "follow_up": "Follow-up",
+    # Nursing sections
+    "nursing_history": "Nursing history",
+    "nursing_diagnosis": "Nursing diagnosis",
+    "nursing_interventions_provided": "Nursing interventions provided",
+    "admission_status": "Admission status",
+    "adl_assessment": "ADL assessment",
+    "risk_assessments": "Risk assessments",
+    "care_plan": "Care plan",
+    "reassessment_timing": "Reassessment timing",
+    "other_issues": "Other issues",
+    # History / social
+    "social_history": "Social history",
+    "family_history": "Family history",
+    # Education / assessment
+    "patient_education": "Patient education",
+    "assessment_and_plan": "Assessment and plan",
+    # ED / inpatient planning (Issue #870 US mirror)
+    "ed_workup": "ED workup",
+    "treatment_plan": "Treatment plan",
+    "test_schedule": "Test schedule",
+    "surgery_schedule": "Surgery schedule",
+    "special_nutrition_management": "Special nutrition management",
+    "other_plans": "Other plans",
+    "estimated_los": "Estimated length of stay",
+    "discharge_estimate": "Estimated discharge",
+    "explanation_consent": "Explanation and consent",
+    # Rehabilitation plan (Issue #870 US mirror)
+    "session_frequency": "Session frequency",
+    "rehab_team": "Rehabilitation team",
+    "functional_status": "Functional status",
+    "basic_movement": "Basic movement",
+    # Ward-info & plan
+    "ward_and_room": "Ward and room",
+    "ward_and_physician": "Ward and attending physician",
+    "other_staff": "Other staff",
+    # Operative note
+    "op_procedure_name": "Procedure",
+    "op_anesthesia": "Anesthesia",
+    "op_surgeon": "Surgeon",
+    "op_findings": "Operative findings",
+    "op_course": "Operative course",
+    "op_specimens": "Specimens",
+    "op_blood_loss": "Estimated blood loss",
+    "op_equipment": "Equipment",
+    "op_postop_plan": "Post-operative plan",
+    # Issue #961 — death certificate sections (US locale)
     "immediate_cause_of_death": "Immediate cause of death",
     "duration_of_immediate_cause": "Time from onset of immediate cause to death",
     "underlying_cause_of_death": "Underlying cause of death",
     "contributing_conditions": "Contributing conditions",
     "manner_of_death": "Manner of death",
     "autopsy_status": "Autopsy performed",
-    # Issue #961 extension — 死亡退院サマリー sections in US locale.
+    # Issue #961 extension — death discharge summary sections (US locale)
     "admission_state": "Clinical state at admission",
     "treatment_course": "Treatment course",
     "terminal_course": "Terminal course",
@@ -319,7 +385,7 @@ _DEATH_CERT_SECTION_TITLE_EN: dict[str, str] = {
     "complications_and_comorbidities": "Complications and comorbidities",
     "family_communication": "Family communication",
     "autopsy_status_and_findings": "Autopsy status and findings",
-    # Issue #992 — 処置記録 sections in US locale.
+    # Issue #992 — 処置記録 sections (US locale)
     "pn_procedure_name": "Procedure",
     "pn_consent": "Informed consent",
     "pn_performer": "Operator",
@@ -331,24 +397,38 @@ _DEATH_CERT_SECTION_TITLE_EN: dict[str, str] = {
 }
 
 
+def _humanize_section_slug(slug: str) -> str:
+    """Fallback humanization for a section slug not in ``_SECTION_TITLE_EN``.
+
+    ``op_blood_loss`` → ``"Op blood loss"``. Not perfect but far better than
+    emitting the raw slug for US consumers, and it means adding a new section
+    to ``document_type_specs.yaml`` cannot silently regress to a machine-key
+    title again (Issue #1037 regression class).
+    """
+    if not slug:
+        return slug
+    return slug.replace("_", " ").capitalize()
+
+
 def _localize_section_title(section_title: str, lang: str) -> str:
     """Return the display form of a Composition.section.title for ``lang``.
 
     Issue #360 G3: JP output previously emitted the raw English slug
     (``adl_assessment``, ``hpi``); this helper substitutes the Japanese
-    display when ``lang == "ja"``. Unknown slugs pass through unchanged
-    so the section still emits (silent-no-op deferral is intentional —
-    adding a new slug is an incremental dict edit, not an emitter
-    change).
+    display when ``lang == "ja"``. Issue #1037: US output previously
+    emitted the raw slug (``hospital_course``) as the title; now every
+    slug either has an explicit ``_SECTION_TITLE_EN`` entry or is
+    humanized so ``title`` is never a bare machine key.
     """
     if lang == "ja":
         return _SECTION_TITLE_JA.get(section_title, section_title)
-    # Issue #961: 死亡診断書 sections get a proper English display in US
-    # locale too — the raw slug (`immediate_cause_of_death`) is not a
-    # human-readable label to a consumer reading the Composition.
-    if section_title in _DEATH_CERT_SECTION_TITLE_EN:
-        return _DEATH_CERT_SECTION_TITLE_EN[section_title]
-    return section_title
+    if section_title in _SECTION_TITLE_EN:
+        return _SECTION_TITLE_EN[section_title]
+    # Slugs that already look human-readable (Title Case, contain spaces,
+    # or are plain English words the caller passed) pass through unchanged.
+    if section_title and (section_title[0].isupper() or " " in section_title):
+        return section_title
+    return _humanize_section_slug(section_title)
 
 
 _SECTION_LOINC: dict[str, str] = {
@@ -1917,7 +1997,7 @@ _DEATH_CERT_TYPE_DISPLAY_JA = "死亡診断書"
 # Shares LOINC 18842-5 with the generic discharge summary; the JP
 # hospital-canonical title for the death variant is 死亡退院サマリー.
 # English label mirrors the section-title bilingual convention used
-# elsewhere in this file (e.g. _DEATH_CERT_SECTION_TITLE_EN).
+# elsewhere in this file (e.g. _SECTION_TITLE_EN).
 _DEATH_DISCHARGE_SUMMARY_TITLE_JA = "死亡退院サマリー"
 _DEATH_DISCHARGE_SUMMARY_TITLE_EN = "Death discharge summary"
 
