@@ -320,6 +320,16 @@ Each entry has six fields:
 - **established_pr**: cycle 8 close
 - **revalidation_check**: Aggregate route + dose_text across MARs missing device; confirm the condition above. Guarantee 100% device fire on IV continuous infusion.
 
+### s95-z37-past-birth-marker-stale-onset
+
+- **id**: `s95-z37-past-birth-marker-stale-onset`
+- **observation**: A large fraction (~53% JP / 57% US) of `Z37.*` Condition resources emit with `onsetDateTime` many years before `recordedDate`. Extreme cases show a 13-year gap (e.g. `onset=2012-10-25`, `recorded=2025-10-11`).
+- **by_design_reason**: `clinosim/locale/jp/demographics.yaml:262-269` (and US mirror) authors `Z37` in `chronic_prevalence` as a "past-birth marker on the record" for women of reproductive-or-post-reproductive age. The demographics activator adds Z37 to `patient.chronic_conditions` with an `onset_date` drawn from the patient's activation window (typically years before the sim cursor) so the FHIR emit picks it up as a `problem-list-item` Condition with that historical onset. This is a proxy for real obstetric history until the fuller obstetric-history module ships. Encounter-diagnosis Z37 (current-delivery outcome) is a SEPARATE Condition with category `encounter-diagnosis` and onset = encounter time — always correct.
+- **signature**: A Z37 Condition where `onsetDateTime` is many days before `recordedDate` MUST have `category.coding[].code == "problem-list-item"`. If a Z37 with `category == "encounter-diagnosis"` shows stale onset → real bug.
+- **established_session**: session 95, 2026-09-01 (post-close p=10000 audit follow-up)
+- **established_pr**: #1034 (issue) — comment thread + registry entry
+- **revalidation_check**: For every Z37 with `onset < recorded - 30d`, confirm category is `problem-list-item`. Also verify Z39 postpartum encounter dates > mother's delivery encounter's `period.start` (Z39 scheduler reads `delivery_date`, not Z37.onset, so no cascade risk).
+
 ---
 
 ## Non-Entries (real bugs, out of scope for this registry)
@@ -350,3 +360,4 @@ The following are **not eligible for registration**. If detected during audit, r
   - `realistic-mr-mar-ratio-for-outpatient-heavy-cohort` → MAR/MR band widened 5-15 → 5-40 (accommodating a wide natural band from long-LOS IMP + continuous-infusion drip mixture)
   net: **21 entries** (1 retire + 2 signature updates, no new entries).
 - 2026-07-13 (session 48 Cycle 8 expansion): added 4 new patterns confirmed in cycle 8 verify (`cy8-29-unknown-condition-imp-no-partof` + `cy8-23-condition-bodysite-selective` + `cy8-24-condition-abatement-finished-encounter-only` + `cy8-20-mar-device-iv-infusion-only`). Total **25 entries**.
+- 2026-09-01 (session 95, Issue #1034 investigation): added `s95-z37-past-birth-marker-stale-onset` after the session-95 p=10000 audit's "Z37 stale onset + Z39 cascade" finding was investigated. Audit's Z39 cascade claim did not reproduce (0/314 Z39s before mother's delivery); the Z37 stale onset is intentional per `demographics.yaml` "past-birth marker". Total **26 entries**.
