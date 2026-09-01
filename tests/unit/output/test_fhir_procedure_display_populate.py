@@ -9,7 +9,7 @@ step's scope — so `category` / `bodySite[]` / `performer[].function` /
 `outcome` / `complication[]` / `reasonCode[]` all shipped with the
 `display` field entirely absent.
 
-This test covers the fix: a new `_populate_procedure_coding_displays`
+This test covers the fix: a new `_populate_resource_coding_displays`
 walker that recursively visits every `coding[]` list in a Procedure
 resource and applies the same sibling-copy step.
 """
@@ -46,17 +46,17 @@ def _make_procedure_with_stripped_displays() -> dict:
     }
 
 
-def test_populate_procedure_coding_displays_fills_every_coding() -> None:
+def test_populate_resource_coding_displays_fills_every_coding() -> None:
     """The recursive walker restores an English display on every SNOMED
     coding inside a Procedure resource, regardless of nesting depth
     (`category`, `bodySite[]`, `performer[].function`, `outcome`,
     `complication[]`)."""
     from clinosim.modules.output.fhir_r4.post_process.populate import (
-        _populate_procedure_coding_displays,
+        _populate_resource_coding_displays,
     )
 
     proc = _make_procedure_with_stripped_displays()
-    _populate_procedure_coding_displays(proc, lang="ja")
+    _populate_resource_coding_displays(proc, lang="ja")
 
     assert proc["category"]["coding"][0]["display"] == "Therapeutic procedure"
     assert proc["bodySite"][0]["coding"][0]["display"] == "Heart structure"
@@ -65,29 +65,29 @@ def test_populate_procedure_coding_displays_fills_every_coding() -> None:
     assert proc["complication"][0]["coding"][0]["display"] == "Bleeding"
 
 
-def test_populate_procedure_coding_displays_is_idempotent() -> None:
+def test_populate_resource_coding_displays_is_idempotent() -> None:
     """Running the walker a second time leaves the displays unchanged."""
     from clinosim.modules.output.fhir_r4.post_process.populate import (
-        _populate_procedure_coding_displays,
+        _populate_resource_coding_displays,
     )
 
     proc = _make_procedure_with_stripped_displays()
-    _populate_procedure_coding_displays(proc, lang="ja")
+    _populate_resource_coding_displays(proc, lang="ja")
     snapshot = {
         "category": proc["category"]["coding"][0]["display"],
         "bodySite": proc["bodySite"][0]["coding"][0]["display"],
         "outcome": proc["outcome"]["coding"][0]["display"],
     }
-    _populate_procedure_coding_displays(proc, lang="ja")
+    _populate_resource_coding_displays(proc, lang="ja")
     assert proc["category"]["coding"][0]["display"] == snapshot["category"]
     assert proc["bodySite"][0]["coding"][0]["display"] == snapshot["bodySite"]
     assert proc["outcome"]["coding"][0]["display"] == snapshot["outcome"]
 
 
-def test_populate_procedure_coding_displays_preserves_existing_display() -> None:
+def test_populate_resource_coding_displays_preserves_existing_display() -> None:
     """A coding that already has a display is NOT overwritten."""
     from clinosim.modules.output.fhir_r4.post_process.populate import (
-        _populate_procedure_coding_displays,
+        _populate_resource_coding_displays,
     )
 
     sct = _snomed_uri()
@@ -99,7 +99,7 @@ def test_populate_procedure_coding_displays_preserves_existing_display() -> None
             ],
         },
     }
-    _populate_procedure_coding_displays(proc, lang="ja")
+    _populate_resource_coding_displays(proc, lang="ja")
     assert proc["outcome"]["coding"][0]["display"] == "Custom outcome label"
 
 

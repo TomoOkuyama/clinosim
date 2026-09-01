@@ -998,21 +998,23 @@ def _populate_status_coding_display(coding_dict: Any, display_map: dict[str, str
             c["display"] = display_map[code_]
 
 
-def _populate_procedure_coding_displays(node: Any, lang: str) -> None:
+def _populate_resource_coding_displays(node: Any, lang: str) -> None:
     """Recursively populate missing `display` on every `coding[]` in a
-    Procedure resource via ``_copy_display_from_sibling_coding``.
+    resource via ``_copy_display_from_sibling_coding``.
 
-    Issue #1036: `_copy_display_from_sibling_coding` originally ran only on
-    Condition.code and AllergyIntolerance.code/reaction. Procedure carries
-    codings in many places (`category`, `bodySite[]`, `performer[].function`,
-    `outcome`, `complication[]`, `reasonCode[]`, `usedCode[]`,
-    `code.coding`), each on SNOMED (an English-only CodeSystem per
-    ``_ENGLISH_ONLY_CODING_SYSTEM_PREFIXES``), so the P2 A walker drops the
-    Japanese display and nothing populates it back — 9,321 `coding[]` sites
-    in JP p=10000 emitted without any `display` field. Walking the tree
-    generically is safer than enumerating every field name (a new emit path
-    that adds a coding is covered automatically) and idempotent (the sibling
-    helper only touches entries whose `display` is currently missing).
+    Issue #1036 / #1038: `_copy_display_from_sibling_coding` originally
+    ran only on Condition.code and AllergyIntolerance.code/reaction.
+    Other resources (Procedure, Composition, ...) also carry codings on
+    English-only CodeSystems (SNOMED, LOINC, HL7 terminology): the P2 A
+    walker drops the Japanese display and nothing populates it back —
+    9,321 `coding[]` sites on Procedure in JP p=10000 and 2,190+ LOINC
+    sites on Composition.type + section.code emitted without any
+    `display` field.
+
+    Walking the tree generically is safer than enumerating every field
+    name (a new emit path that adds a coding is covered automatically)
+    and idempotent (the sibling helper only touches entries whose
+    `display` is currently missing).
     """
     if isinstance(node, dict):
         codings = node.get("coding")
@@ -1020,11 +1022,11 @@ def _populate_procedure_coding_displays(node: Any, lang: str) -> None:
             _copy_display_from_sibling_coding(codings, lang)
         for value in node.values():
             if isinstance(value, (dict, list)):
-                _populate_procedure_coding_displays(value, lang)
+                _populate_resource_coding_displays(value, lang)
     elif isinstance(node, list):
         for item in node:
             if isinstance(item, (dict, list)):
-                _populate_procedure_coding_displays(item, lang)
+                _populate_resource_coding_displays(item, lang)
 
 
 def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") -> None:
@@ -1051,16 +1053,17 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     harmlessly) and stays idempotent.
     """
     rt = resource.get("resourceType")
-    if rt not in ("Condition", "AllergyIntolerance", "MedicationRequest", "Procedure"):
+    if rt not in ("Condition", "AllergyIntolerance", "MedicationRequest", "Procedure", "Composition"):
         return
 
-    # Procedure only participates in the (4a) coding-display walker below —
-    # the earlier steps (identifier, lastUpdated fallback, status displays)
+    # Procedure (Issue #1036) and Composition (Issue #1038) only
+    # participate in the recursive coding-display walker below — the
+    # earlier steps (identifier, lastUpdated fallback, status displays)
     # are gated by `_ECS_IDENTIFIER_SYSTEMS` and by `rt in
-    # ("Condition", "AllergyIntolerance")` and are no-ops for this rt.
-    if rt == "Procedure":
+    # ("Condition", "AllergyIntolerance")` and are no-ops for these rts.
+    if rt in ("Procedure", "Composition"):
         lang = "ja" if is_jp(country) else "en"
-        _populate_procedure_coding_displays(resource, lang)
+        _populate_resource_coding_displays(resource, lang)
         return
 
     # (1) identifier — canonical namespace, only when not builder-populated.
