@@ -59,8 +59,9 @@ def test_composition_builder_reads_narrative_sections():
     resource = _build_composition(doc, sections, "en")
 
     assert resource["resourceType"] == "Composition"
+    # Issue #1037: US locale emits human-readable EN titles, not raw slugs.
     titles = {s["title"] for s in resource["section"]}
-    assert titles == {"hpi", "assessment_and_plan"}
+    assert titles == {"History of present illness", "Assessment and plan"}
     divs = "".join(s["text"]["div"] for s in resource["section"])
     assert "text" in divs and "plan" in divs
 
@@ -91,7 +92,7 @@ def test_bb_compositions_merges_narrative_from_doc_dict():
     ctx = _make_ctx([doc])
     resources = _bb_compositions(ctx)
     assert len(resources) == 1
-    assert resources[0]["section"][0]["title"] == "hpi"
+    assert resources[0]["section"][0]["title"] == "History of present illness"
 
 
 @pytest.mark.unit
