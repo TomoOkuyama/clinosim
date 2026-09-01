@@ -2300,10 +2300,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-現在地とロードマップ2026-07-06-時点" class="md-nav__link">
+  <a href="#7-現在地とロードマップ2026-09-02-時点" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. 現在地とロードマップ(2026-07-06 時点)
+        7. 現在地とロードマップ(2026-09-02 時点)
       
     </span>
   </a>
@@ -2524,9 +2524,9 @@
 <p><strong>silent-no-op(動いているように見えて実は発火していない)がこのプロジェクト最大の敵</strong>。
 歴史的事故(PR-90 / J5 / C-1)から fail-loud validation・canonical constants・発火 counter
 の 3 層防御が全域に張られている。詳細 = <code>implementation-rules.md</code> §9。</p>
-<h2 id="7-現在地とロードマップ2026-07-06-時点">7. 現在地とロードマップ(2026-07-06 時点)<a class="headerlink" href="#7-現在地とロードマップ2026-07-06-時点" title="Permanent link">&para;</a></h2>
+<h2 id="7-現在地とロードマップ2026-09-02-時点">7. 現在地とロードマップ(2026-09-02 時点)<a class="headerlink" href="#7-現在地とロードマップ2026-09-02-時点" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>version</strong>: v0.5.0 (v0.6.0 release-gate 準備中の時点で最終 sync)。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。32 疾患 + 46 外来 / ED 病態、33 モジュール、25+ FHIR R4 resource 型 emit。縦断サービスライン (腫瘍 + 産科 — がん chronic marker × 化学療法 regimen サイクル × 放射線治療 × 分娩 encounter × 新生児 Patient chain × 妊娠中絶 outcome) は v0.6.0 target 時点で配線済 — 詳細は <code>docs/reference/oncology-obstetric-service-lines.ja.md</code>。
+<li><strong>version</strong>: v0.5.0 (v0.6.0 release-gate — 3 META Issue (#914 / #957 / #757) 全 close、tag 待ち)。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。32 疾患 + 46 外来 / ED 病態、33 モジュール、25+ FHIR R4 resource 型 emit。縦断サービスライン (腫瘍 + 産科 — がん chronic marker × 化学療法 regimen サイクル + per-cycle drug MedicationRequest/Administration × 放射線治療 Procedure × <strong>時限 <code>TemporalStatePeriod</code> 妊娠 lifecycle</strong> (受精 → 妊婦健診 12/24/36 週 → 分娩 encounter → 産褥) × 新生児 Patient chain × 妊娠中絶 outcome × Z37 過去出産 problem-list-item (state_history 由来)) は META #957 Incr 1 (session 97、PR #1051) で完成 — 詳細は <code>docs/reference/oncology-obstetric-service-lines.ja.md</code> + AD-71 <code>docs/architecture/architecture-notes.ja.md</code> §9。
   32 疾患 + 46 外来/ED 条件、33 modules、FHIR R4 で 25+ resource type を emit。</li>
 <li><strong>β-JP-1 chain 2(厚労省帳票)は完了</strong>(session 33-36): 入院診療計画書 / 看護必要度
   A・B・C 項目評価票(公式には「D 表」という帳票は存在しない、名称は session 36 で訂正

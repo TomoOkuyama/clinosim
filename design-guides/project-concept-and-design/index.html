@@ -886,10 +886,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-current-state-and-roadmap-as-of-2026-07-06" class="md-nav__link">
+  <a href="#7-current-state-and-roadmap-as-of-2026-09-02" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Current state and roadmap (as of 2026-07-06)
+        7. Current state and roadmap (as of 2026-09-02)
       
     </span>
   </a>
@@ -2444,10 +2444,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-current-state-and-roadmap-as-of-2026-07-06" class="md-nav__link">
+  <a href="#7-current-state-and-roadmap-as-of-2026-09-02" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Current state and roadmap (as of 2026-07-06)
+        7. Current state and roadmap (as of 2026-09-02)
       
     </span>
   </a>
@@ -2716,16 +2716,22 @@ biggest enemy of this project.</strong> Historical incidents (PR-90 / J5 /
 C-1) drove a three-layer defense across the codebase: fail-loud
 validation, canonical constants, and firing counters. Details:
 <code>implementation-rules.md</code> §9.</p>
-<h2 id="7-current-state-and-roadmap-as-of-2026-07-06">7. Current state and roadmap (as of 2026-07-06)<a class="headerlink" href="#7-current-state-and-roadmap-as-of-2026-07-06" title="Permanent link">&para;</a></h2>
+<h2 id="7-current-state-and-roadmap-as-of-2026-09-02">7. Current state and roadmap (as of 2026-09-02)<a class="headerlink" href="#7-current-state-and-roadmap-as-of-2026-09-02" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Version</strong>: v0.5.0 (v0.6.0 release-gate work in progress at time
-  of last sync). Production cohorts of US p=10k / JP p=5k generate
-  with all audit axes PASS. 32 diseases + 46 outpatient / ED
-  conditions, 33 modules, 25+ FHIR R4 resource types emitted.
-  Longitudinal service lines (oncology + obstetrics — cancer chronic
-  markers × chemo regimen cycles × radiation therapy × delivery
-  encounter × newborn Patient chain × abortion outcome) are wired
-  as of the v0.6.0 target; see <code>docs/reference/oncology-obstetric-service-lines.md</code>.</li>
+<li><strong>Version</strong>: v0.5.0 (v0.6.0 release-gate — all 3 META Issues
+  (#914 / #957 / #757) closed; awaiting tag). Production cohorts of
+  US p=10k / JP p=5k generate with all audit axes PASS. 32 diseases</li>
+<li>46 outpatient / ED conditions, 33 modules, 25+ FHIR R4 resource
+  types emitted. Longitudinal service lines (oncology + obstetrics —
+  cancer chronic markers × chemo regimen cycles + per-cycle drug
+  MedicationRequest/Administration × radiation therapy Procedure ×
+  <strong>time-boxed <code>TemporalStatePeriod</code> pregnancy lifecycle</strong>
+  (conception → prenatal visits at gestational weeks 12/24/36 →
+  delivery encounter → postpartum) × newborn Patient chain × abortion
+  outcome × Z37 past-birth problem-list-item (state_history-derived))
+  landed with META #957 Incr 1 (session 97, PR #1051); see
+  <code>docs/reference/oncology-obstetric-service-lines.md</code> + AD-71
+  <code>docs/architecture/architecture-notes.md</code> §9.</li>
 <li><strong>β-JP-1 chain 2 (MHLW forms) is complete</strong> (sessions 33-36): the
   4-of-4 documents — inpatient care plan / nursing-need A, B, C
   evaluation forms (there is officially no "D table" form; the
