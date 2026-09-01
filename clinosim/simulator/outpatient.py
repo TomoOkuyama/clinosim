@@ -161,6 +161,13 @@ def _simulate_outpatient_visit(
             encounter.chief_complaint_ja = _chief_ja
     encounter.encounter_type = EncounterType.OUTPATIENT
     encounter.status = EncounterStatus.COMPLETED
+    # Issue #957: chemo_visit encounters are the oncology service line.
+    # Marked here so the document dispatcher (document_enricher, encounter_once
+    # branch) can substitute the generic outpatient LOINC 34131-3 for the
+    # oncology-appropriate LOINC 34133-9 ("Summary of episode note"). Other
+    # visit_types leave service_line empty (no distinguishing service line).
+    if visit_type == "chemo_visit":
+        encounter.service_line = "oncology"
     # Issue #927: per-visit-type triangular length. Uses a per-encounter
     # sub-RNG derived from encounter_id so it does NOT consume the caller's
     # opd_rng — every downstream draw (staff, vitals, labs, prescription)
