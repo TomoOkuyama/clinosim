@@ -102,6 +102,15 @@ class Encounter:
     # keeps pre-1a structural CIF JSON loading unchanged (backward compat);
     # unknown-condition and ED/outpatient paths leave it "".
     clinical_course_archetype: str = ""
+    # Issue #957: service-line tag for encounters that belong to a
+    # distinguishable clinical service line. Currently populated only for
+    # oncology outpatient encounters (chemo_visit dispatch in
+    # simulator/outpatient.py) so the document dispatcher can swap the
+    # generic outpatient LOINC 34131-3 for the oncology-appropriate
+    # LOINC 34133-9 "Summary of episode note". Empty string = no
+    # distinguishing service line (default). Values: ``""`` | ``"oncology"``.
+    # AD-30 compliant: internal enum-like key, not display text.
+    service_line: str = ""
 
     def __post_init__(self) -> None:
         if self.time_resolution is None:

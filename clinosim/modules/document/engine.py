@@ -120,6 +120,31 @@ _CI_ENCOUNTER_TYPES: frozenset[str] = frozenset(
 
 _CANCELLED_STATUSES: frozenset[str] = frozenset({"cancelled"})
 
+# Issue #957: LOINC code substituted for OUTPATIENT_SOAP on oncology
+# service-line encounters (e.g. chemo_visit). 34133-9 "Summary of episode
+# note" is the generic episode-summary LOINC — a more descriptive fit
+# for a chemo cycle visit than the routine outpatient SOAP note code
+# 34131-3. The spec.loinc_code remains 34131-3 as the default; this
+# override only fires when `encounter.service_line == "oncology"`.
+_ONCOLOGY_OUTPATIENT_SOAP_LOINC: str = "34133-9"
+
+
+def _effective_outpatient_loinc(spec_loinc: str, encounter: Any) -> str:
+    """Return the effective LOINC for an ``encounter_once`` outpatient
+    document, substituting the oncology-service-line code on
+    OUTPATIENT_SOAP when applicable (Issue #957).
+
+    Returns ``spec_loinc`` unchanged for every other case (non-oncology
+    service line, non-OUTPATIENT_SOAP spec, or when ``encounter`` has no
+    ``service_line`` attribute — backwards-compat with older CIF).
+    """
+    if spec_loinc != "34131-3":
+        return spec_loinc
+    if _o(encounter, "service_line", "") == "oncology":
+        return _ONCOLOGY_OUTPATIENT_SOAP_LOINC
+    return spec_loinc
+
+
 # α-min-3: acute-care nursing 3-shift schedule for `daily_3shift` specs.
 # Writer-owned canonical constant (single edit point — sibling to
 # DOC_REFERENCE_ID_PREFIX ownership). Neutral shift keys are stored in
@@ -772,11 +797,16 @@ def document_enricher(ctx: Any) -> None:
                     # AD-32: if discharge_dt is None (rare in-progress outpatient/ED),
                     # still emit — single-visit context makes partial data meaningful.
                     end_dt = discharge_dt or admission_dt
+                    # Issue #957: oncology-service-line encounters (chemo_visit)
+                    # get LOINC 34133-9 instead of the generic outpatient
+                    # 34131-3. See `_effective_outpatient_loinc` — no-op for
+                    # every other spec + service_line combination.
+                    _emit_loinc = _effective_outpatient_loinc(spec.loinc_code, encounter)
                     documents.append(
                         ClinicalDocument(
                             document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
                             task_type=spec.type_key,
-                            loinc_code=spec.loinc_code,
+                            loinc_code=_emit_loinc,
                             patient_id=pid,
                             encounter_id=encounter_id,
                             author_practitioner_id=_pick_document_author(spec, encounter),
