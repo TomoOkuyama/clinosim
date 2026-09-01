@@ -329,6 +329,19 @@ def _pediatric_visit_reason(disease_id: str) -> str | dict[str, str]:
 # ============================================================
 
 
+def _parse_time_range_bound(bound: str) -> datetime:
+    """Parse a `config.time_range` bound string into a datetime.
+
+    Accepts both ``YYYY-MM-DD`` (CLI-populated) and ``YYYY-MM`` (test
+    fixtures / month-precision callers). A month-only string resolves to
+    day 1 (00:00) of that month — the natural lower bound for the month.
+    """
+    try:
+        return datetime.strptime(bound, "%Y-%m-%d")
+    except ValueError:
+        return datetime.strptime(bound, "%Y-%m")
+
+
 def run_beta(
     config: SimulatorConfig | None = None,
     hospital_config_path: str | None = None,
@@ -473,6 +486,17 @@ def run_beta(
             for e in all_events
             if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
         ]
+
+    # Issue #1039: also clamp on the lower bound. `generate_monthly_events`
+    # runs at month precision starting from ``start_m``; an event scheduled
+    # in the first month can land on any day 1..31, including days before
+    # ``--start`` (e.g. ``--start 2025-08-31`` still fires August 1-30
+    # events). The month-loop bound alone does not enforce the day-level
+    # ``--start`` cursor. RNG-neutral post-generation filter.
+    _start_dt_lb = _parse_time_range_bound(config.time_range[0])
+    all_events = [
+        e for e in all_events if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) >= _start_dt_lb
+    ]
 
     hospital_events = sorted(
         [e for e in all_events if e.requires_hospital],
@@ -901,6 +925,16 @@ def run_beta(
             for e in calendar_events
             if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
         ]
+    # Issue #1039: also clamp on the lower bound. `generate_healthcare_calendar`
+    # iterates a full calendar year (months 1..12) starting from ``start_y``, so
+    # a `--start YYYY-MM-DD` mid-year produces events back to Jan 1 of that
+    # year. Filter them out to make the ``[--start, --end]`` window strict
+    # (mirror of the snapshot_dt upper clamp above). RNG-neutral: post-
+    # generation filter, no rng call count change → no cascade.
+    start_dt = _parse_time_range_bound(config.time_range[0])
+    calendar_events = [
+        e for e in calendar_events if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) >= start_dt
+    ]
     print(f"  Healthcare calendar: {len(calendar_events)} events for population", flush=True)
     sim_log.info("engine", "healthcare_calendar_generated", events=len(calendar_events))
 
