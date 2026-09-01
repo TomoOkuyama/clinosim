@@ -381,23 +381,26 @@
 - **observation**: `Z37.*` Condition の相当割合(JP ~53%/US ~57%)が
   `onsetDateTime` が `recordedDate` より数年以上前で emit される。極端例では
   13年ギャップ(`onset=2012-10-25`, `recorded=2025-10-11`)。
-- **by_design_reason**: `clinosim/locale/jp/demographics.yaml:262-269`(US mirror あり)
-  が `Z37` を `chronic_prevalence` に "past-birth marker on the record" として authoring。
-  demographics activator は Z37 を `patient.chronic_conditions` に、患者の activation
-  window から draw した `onset_date`(通常は sim cursor より数年前)で追加。
-  FHIR emit がこれを `problem-list-item` Condition として pickup し、その historical
-  onset を保持する。obstetric-history モジュール本格実装までの proxy。encounter-diagnosis
-  Z37(今回の分娩 outcome)は別 Condition で category `encounter-diagnosis`・onset =
-  encounter 時刻 — 常に正しい。
+- **by_design_reason**: **session 97 更新 (META #957 Incr 1)** — Z37 はもはや
+  `chronic_prevalence` で sample されない。代わりに FHIR emit adapter が
+  `person.state_periods` (state_type="pregnancy"、outcome="delivered") から
+  delivered pregnancy period 毎に 1 件の Z37 `problem-list-item` を導出し、
+  delivery date に anchor する。これにより stale-onset パターンは、sim が
+  実際に simulate した cross-year delivery のみに縮小する; 「activation window
+  historical onset」proxy source は retire。以下の interim signature は依然として
+  有効 — historical onset の Z37 は必ず `problem-list-item` category で、delivery
+  encounter の Z37 `encounter-diagnosis` sibling は current-time onset を持つ —
+  ただし population は sim 自身の delivery event に bound され、1:1 に相関する。
 - **signature**: `onsetDateTime` が `recordedDate` より 30 日以上前の Z37 は必ず
   `category.coding[].code == "problem-list-item"` を持つ。category が `encounter-diagnosis`
-  かつ stale onset の Z37 → 真のバグ。
-- **established_session**: session 95, 2026-09-01 (post-close p=10000 audit follow-up)
-- **established_pr**: #1034 (issue) — コメントスレッド + registry entry
+  かつ stale onset の Z37 → 真のバグ。Incr-1 後: problem-list-item Z37 の数は
+  cohort 全体の `Σ delivered pregnancy period` に等しい (生物学的整合)。
+- **established_session**: session 95, 2026-09-01 (post-close p=10000 audit follow-up); **session 97 で更新**、2026-09-01 (META #957 Incr 1 refactor)。
+- **established_pr**: #1034 (issue) — コメントスレッド + registry entry。Incr-1 refactor: this branch。
 - **revalidation_check**: `onset < recorded - 30d` を持つ全 Z37 について category が
   `problem-list-item` であることを確認。加えて Z39 postpartum encounter 日付が母の
-  delivery encounter `period.start` 以降であることを確認(Z39 scheduler は
-  `delivery_date` を直接読み、Z37.onset を参照しないため cascade 無し)。
+  delivery encounter `period.start` 以降であることを確認(Z39 scheduler は同じ
+  delivery event に由来する `state_period.metadata.delivered_on` を読むため cascade 無し)。
 
 ---
 
@@ -449,3 +452,9 @@
   `s95-z37-past-birth-marker-stale-onset` を追加。audit の Z39 cascade
   主張は再現せず(母の delivery 前に立つ Z39 は 0/314)、Z37 stale onset は
   `demographics.yaml` "past-birth marker" として意図的動作。合計 **26 entries**。
+- 2026-09-01 (session 97, META #957 Incr 1): `s95-z37-past-birth-marker-stale-onset`
+  を更新 — Z37 chronic-sample proxy を retire し、`state_periods` 由来の
+  FHIR emit adapter に置換。stale-onset パターン自体は残る(多年 sim で
+  delivery date が過去になりうる)が、emit path と population semantic が
+  変化: delivered pregnancy period 毎に Z37 problem-list-item 1 件。
+  合計 **26 entries**(in-place 更新、add/remove なし)。

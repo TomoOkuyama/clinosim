@@ -545,3 +545,13 @@ _.load_allergens  # modules/allergy/engine.py:134
 # sees the dataclass field declaration + the direct assignment site in
 # simulator/outpatient.py and misses the getattr-style consumer.
 _.service_line  # types/encounter.py + simulator/outpatient.py (read via _o() in document/engine.py)
+
+# META #957 Incr 1: TemporalStatePeriod public API. Vulture flags these
+# because the FHIR emit consumer walks the record dict via get_attr_or_key
+# (not attribute access), unit tests reach these via getattr-style access,
+# and `overlaps_year` is currently only consumed by tests + is preserved
+# as public API for the state-period framework (cancer / warfarin course
+# generators in later increments will use it).
+_.period_seq  # types/patient.py::TemporalStatePeriod — read via dict access in FHIR emit + tests
+_.overlaps_year  # types/patient.py::TemporalStatePeriod — public API + used by tests
+_.has_active_state  # types/population.py::PersonRecord — public convenience wrapper + used by tests
