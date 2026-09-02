@@ -24,6 +24,8 @@ cohort. They require nothing beyond `pip install -e .[dev]`.
 | --- | --- |
 | [`full_run_us.sh`](full_run_us.sh) | End-to-end run generating a US cohort with default settings — the "does clinosim work on my box" smoke test |
 | [`full_run_ja.sh`](full_run_ja.sh) | Same, JP locale. Requires `CLINOSIM_JP_CLINS_PKG_DIR` env pointing at a JP-CLINS package dir |
+| [`verify_bundle.py`](verify_bundle.py) | Cohort-scale invariant verify (locale integrity / narrative language / temporal invariants / obstetric biology / referential integrity). Session-98 formalization of the ad-hoc p=10000 verify. Usage: `python scripts/verify_bundle.py <out_dir> {US\|JP}` |
+| [`verify_medical_stats.py`](verify_medical_stats.py) | Companion epidemiological verify — chronic prevalence, acute incidence, mortality, encounter mix vs. real-world benchmark bands. Usage: `python scripts/verify_medical_stats.py <out_dir> {US\|JP}` |
 
 ## Maintainer-only (require AWS / EC2 / Bedrock access)
 

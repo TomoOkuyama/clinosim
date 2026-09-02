@@ -3922,14 +3922,23 @@ class TemplateNarrativeGenerator:
                 if tmpl is not None:
                     return tmpl
         # L3: chronic-condition registry (v9 new)
-        from clinosim.modules.document.narrative._chronic_soap import resolve_chronic_soap
+        #
+        # Session-98 log-noise fix: the registry (`chronic_soap_templates.yaml`)
+        # only carries `_ja` fields today. On EN runs `_pick_localized` would
+        # emit "template locale field subjective_en missing" and fall through
+        # to the CIF-composed EN path anyway — 91,640 warnings on the p=10000
+        # US sim, all no-op. Skip the registry entirely for EN so the
+        # warning fires only when a genuinely bilingual template drops a
+        # locale (the guardrail's original intent).
+        if ctx.target_lang == "ja":
+            from clinosim.modules.document.narrative._chronic_soap import resolve_chronic_soap
 
-        patient = ctx.patient
-        if patient is not None:
-            conds = _o(patient, "chronic_conditions", []) or []
-            chronic_tmpl = resolve_chronic_soap(conds)
-            if chronic_tmpl is not None:
-                return chronic_tmpl
+            patient = ctx.patient
+            if patient is not None:
+                conds = _o(patient, "chronic_conditions", []) or []
+                chronic_tmpl = resolve_chronic_soap(conds)
+                if chronic_tmpl is not None:
+                    return chronic_tmpl
         return None
 
     def _build_outpatient_subjective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4792,7 +4801,7 @@ class TemplateNarrativeGenerator:
             parts.append(" ".join(bits))
         if not parts:
             return ""
-        head = ("本日処方: " if is_ja else "Today's prescription: ") + "; ".join(parts)
+        head = ("本日処方: " if is_ja else "Today's prescription: ") + ("、".join(parts) if is_ja else "; ".join(parts))
         return head
 
     def _compose_today_procedures_line(self, ctx: NarrativeContext) -> str:
