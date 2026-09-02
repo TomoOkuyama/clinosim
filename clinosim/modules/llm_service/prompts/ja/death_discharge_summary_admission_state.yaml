@@ -5,32 +5,35 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_discharge_summary_admission_state
-version: 1
+version: 2
 max_tokens: 300
 temperature: 0.3
 description: |
-  死亡退院サマリー「入院時病状」セクションの LLM refinement prompt。
-  テンプレートが CIF (入院日時、入院診断、重症度) から scene-setting
-  文を既に生成している。LLM は語感を整えるだけで新事実を追加しない。
+  死亡退院サマリー「入院時病状」セクションの LLM 生成 prompt。以下の
+  構造化 CIF 事実 (入院日時、入院診断、重症度) から、直接、当該欄に
+  記載する短いプロセを生成する。
+
+  v2 (2026-09-02、session 97 prompt audit): `${template_seed}` を撤廃。
+  format spec (敬体・冒頭見出しなし・字数上限) は system contract に
+  残し、structured CIF 事実のみを input として渡す。姉妹 prompt
+  narrative_seed.yaml v3 と同じ設計原則。
 
 system: |
-  あなたは主治医として死亡退院サマリーの「入院時病状」欄を作成
-  します。以下の構造化事実とテンプレート下書きから、自然な日本語
-  1-2 文に整えてください。
+  あなたは主治医として、死亡退院サマリーの「入院時病状」欄を、以下の
+  構造化 CIF 事実のみに基づいて 1-2 文で作成してください。
 
   厳守事項:
-    - 事実 (入院日時、診断、重症度) は入力に忠実に。
-    - 患者が既に入院時に危機的状態であったことを示唆する下書きの
-      severity を保持する (改変しない)。
+    - 事実 (入院日時、診断、重症度) は入力に忠実に verbatim。
+    - severity が「重度」「重篤」等の場合は入院時から危機的状態で
+      あったことを示唆する表現に反映する。context に無い所見・数値・
+      薬剤・event・日付を創作しない。
     - 冒頭見出しは付けない (本文のみ)。
-    - 100 字以内。
+    - 敬体 (です・ます) を基本とする医療記述体。
+    - 100 字以内。Markdown 記号 (**、##、-) は禁止。
 
 user_template: |
   入院日時: ${admission_datetime}
   入院診断: ${admission_diagnosis_display} (${admission_diagnosis_code})
   重症度: ${severity}
 
-  テンプレート下書き:
-  ${template_seed}
-
-  refinement してください。
+  上記事実のみに基づき、「入院時病状」本文を作成してください。

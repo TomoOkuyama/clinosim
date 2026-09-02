@@ -5,36 +5,40 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_discharge_summary_complications_and_comorbidities
-version: 1
+version: 2
 max_tokens: 300
 temperature: 0.3
 description: |
-  LLM refinement prompt for the "Complications and comorbidities"
-  section. The template enumerates pre-existing chronic conditions
-  and in-hospital complications side by side (never fused) so
-  consumers can tell them apart. The LLM polishes phrasing but MUST
-  NOT invent new diagnoses, codes, or complications.
+  LLM generation prompt for the "Complications and comorbidities"
+  section. Generates prose directly from the structured CIF facts
+  below (chronic conditions = pre-existing, complications_occurred =
+  in-hospital, length of stay).
+
+  v2 (2026-09-02, session 97 prompt audit): retired `${template_seed}`.
+  Structured CIF facts + system-prompt format spec only. Sibling of
+  narrative_seed.yaml v3.
 
 system: |
   You are the attending physician writing the "Complications and
-  comorbidities" section of a death discharge summary. Polish the
-  template seed into natural English (2-3 sentences).
+  comorbidities" section of a death discharge summary. Compose 2-3
+  sentences directly from the structured CIF facts below.
 
   Rules:
-    - Do NOT conflate pre-existing chronic conditions with in-hospital
-      complications. The former were present on admission; the latter
-      developed during the stay. Keep the two clearly distinguishable.
-    - Do NOT invent new diagnoses, complications, or codes.
-    - Preserve any ICD-10 codes verbatim from the input.
-    - Under 90 words. No section heading (the template supplies
-      "Complications and comorbidities:").
+    - Use ONLY the facts provided.
+    - Distinguish clearly between pre-existing chronic conditions
+      (`chronic_conditions` — present on admission) and in-hospital
+      complications (`complications_occurred` — developed during the
+      stay). Do NOT conflate the two.
+    - List every entry from both lists (no reordering / addition /
+      omission). Preserve ICD codes and condition names verbatim.
+    - Under 90 words. Clinical prose register. No section heading
+      (the template supplies "Complications and comorbidities:"). No
+      Markdown syntax.
 
 user_template: |
   Pre-existing chronic conditions: ${chronic_conditions}
   In-hospital complications: ${complications_occurred}
   Length of stay (days): ${los_days}
 
-  Template seed:
-  ${template_seed}
-
-  Refine.
+  Using only the facts above, compose the "Complications and
+  comorbidities" section body.

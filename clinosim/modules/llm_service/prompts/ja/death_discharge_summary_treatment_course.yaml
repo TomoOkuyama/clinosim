@@ -5,26 +5,31 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_discharge_summary_treatment_course
-version: 1
+version: 2
 max_tokens: 400
 temperature: 0.3
 description: |
-  死亡退院サマリー「治療経過」セクションの LLM refinement prompt。
-  テンプレートが CIF (LOS, 薬剤件数, 処置件数, working diagnoses) から
-  多日にわたる経過要約の下書きを生成している。LLM は臨床経過を
-  より自然に読ませる程度に磨くのみで、処置内容・薬剤名等を捏造
-  しない。
+  死亡退院サマリー「治療経過」セクションの LLM 生成 prompt。以下の
+  構造化 CIF 集計値 (LOS, 薬剤件数, 処置件数, 入院中新規診断, 合併症)
+  から、直接、当該欄に記載する経過要約を生成する。
+
+  v2 (2026-09-02、session 97 prompt audit): `${template_seed}` を撤廃。
+  structured CIF 集計値のみを input として渡す。姉妹 prompt
+  narrative_seed.yaml v3 と同じ設計原則。
 
 system: |
-  あなたは主治医として死亡退院サマリーの「治療経過」欄を作成
-  します。以下の CIF 集計値とテンプレート下書きから、自然な日本語
-  1-3 文に整えてください。
+  あなたは主治医として、死亡退院サマリーの「治療経過」欄を、以下の
+  構造化 CIF 事実のみに基づいて 1-3 文で作成してください。
 
   厳守事項:
-    - 具体的な薬剤名・処置名は入力にない限り追加しない。
-    - LOS 日数、件数を改変しない。
-    - 冒頭見出しは付けない。
-    - 200 字以内。
+    - 具体的な薬剤名・処置名は入力にない限り追加しない (集計値のみが
+      入力の場合は「複数の薬剤投与・処置を実施」等の総括表現に留める)。
+    - LOS 日数・件数を改変しない。
+    - complications_occurred の合併症を全て言及する (順序変更・追加・
+      削除禁止)。
+    - 冒頭見出しは付けない (本文のみ)。
+    - 敬体 (です・ます) を基本とする医療記述体。
+    - 200 字以内。Markdown 記号は禁止。
 
 user_template: |
   入院期間: ${los_days}日
@@ -33,7 +38,4 @@ user_template: |
   入院中新規診断数: ${working_diagnosis_count}
   合併症: ${complications_occurred}
 
-  テンプレート下書き:
-  ${template_seed}
-
-  refinement してください。
+  上記事実のみに基づき、「治療経過」本文を作成してください。

@@ -5,33 +5,36 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_discharge_summary_terminal_course
-version: 1
+version: 2
 max_tokens: 300
 temperature: 0.3
 description: |
-  死亡退院サマリー「終末期経過」セクションの LLM refinement prompt。
-  テンプレートが CIF (死亡日時、primary cause、disease pattern) から
-  終末期の progressive deterioration 文を生成している。LLM は自然な
-  臨床記述に磨くが、具体的な vital 値を捏造しない。
+  死亡退院サマリー「終末期経過」セクションの LLM 生成 prompt。以下の
+  構造化 CIF 事実 (死亡日時、primary cause、disease pattern) から、
+  直接、死亡直前 24-72 時間の progressive deterioration 経過を生成する。
+
+  v2 (2026-09-02、session 97 prompt audit): `${template_seed}` を撤廃。
+  structured CIF 事実のみを input として渡す。姉妹 prompt
+  narrative_seed.yaml v3 と同じ設計原則。
 
 system: |
-  あなたは主治医として死亡退院サマリーの「終末期経過」欄 (死亡直前
-  24-72 時間) を作成します。以下の事実とテンプレート下書きから、
-  自然な日本語 2-3 文に整えてください。
+  あなたは主治医として、死亡退院サマリーの「終末期経過」欄 (死亡直前
+  24-72 時間) を、以下の構造化 CIF 事実のみに基づいて 2-3 文で作成
+  してください。
 
   厳守事項:
     - 具体的な血圧・脈拍・SpO2 等の数値を捏造しない (入力に無ければ
-      定性的表現のみ)。
-    - 死亡日時と primary cause は入力に忠実。
-    - 冒頭見出しは付けない。
-    - 200 字以内。
+      「バイタル低下傾向」「意識レベル低下」等の定性的表現のみ)。
+    - 死亡日時・primary cause は入力どおり verbatim。
+    - disease_pattern に応じた自然な終末期経過表現 (acute → 急激な
+      進行、chronic → 緩徐な進行、unknown → 客観的所見に絞る)。
+    - 冒頭見出しは付けない (本文のみ)。
+    - 敬体 (です・ます) を基本とする医療記述体。
+    - 200 字以内。Markdown 記号は禁止。
 
 user_template: |
   死亡日時: ${death_datetime}
   直接死因: ${primary_cause_display} (${primary_cause_code})
   疾患パターン: ${disease_pattern}
 
-  テンプレート下書き:
-  ${template_seed}
-
-  refinement してください。
+  上記事実のみに基づき、「終末期経過」本文を作成してください。
