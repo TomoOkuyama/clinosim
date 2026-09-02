@@ -265,7 +265,16 @@ def main() -> None:
         help="Narrative version directory name (default: provider name)",
     )
     nr.add_argument("--tasks", default=None, help="Comma-separated LLMTaskType filter (default: all)")
-    nr.add_argument("--country", default="US")
+    # `--country` for narrate is auto-detected from cif/metadata.json in
+    # _resolve_narrate_country (session 97 fix — a JP-generated CIF used
+    # to silently render EN narratives when this flag was omitted). The
+    # sentinel default "" lets the resolver distinguish "not passed" from
+    # "explicitly passed" (an explicit --country US on a JP CIF fails
+    # loud instead of silently drifting; anything explicit that matches
+    # the CIF metadata is honored).
+    nr.add_argument(
+        "--country", default="", help="Country code (US or JP); auto-detected from cif/metadata.json when omitted"
+    )
     nr.add_argument(
         "--set-current",
         action=argparse.BooleanOptionalAction,
