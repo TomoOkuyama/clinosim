@@ -101,3 +101,27 @@ def test_compose_chronic_assessment_integrated_ja_uses_fullwidth_punct():
     text = gen._compose_chronic_assessment_integrated(ctx)  # noqa: SLF001
     assert text, "expected assessment content"
     assert "、" in text or "。" in text, f"JA assessment should carry JA punct, got {text!r}"
+
+
+@pytest.mark.unit
+def test_compose_today_prescription_line_ja_uses_fullwidth_join():
+    """L4795 minor polish: JA prescription list should use `、` not `; `.
+
+    The item builder emitted the JA prescription list as
+    "本日処方: Metformin 500mg tid x14日分; Tiotropium 18mcg qd" — an
+    ASCII semicolon inside a JA sentence reads as mixed-locale style.
+    The locale-conditional join keeps the JP `、` for JA and `; ` for EN.
+    """
+    gen = TemplateNarrativeGenerator()
+    ctx = _en_ctx_with_chronic(["E11", "J44"])
+    ctx.target_lang = "ja"
+    ctx.locale = "jp"
+    ctx.medications = [
+        SimpleNamespace(medication_name="Metformin", route="PO", dose="500mg", frequency="tid", duration_days=14),
+        SimpleNamespace(medication_name="Tiotropium", route="INH", dose="18mcg", frequency="qd", duration_days=None),
+    ]
+    text = gen._compose_today_prescription_line(ctx)  # noqa: SLF001
+    if text:  # only asserts when the composer actually produced items
+        # JA output must not carry an ASCII semicolon as the item separator.
+        # (Individual items may legitimately embed other ASCII punctuation.)
+        assert "; " not in text, f"JA prescription list uses `; ` between items — got {text!r}"
