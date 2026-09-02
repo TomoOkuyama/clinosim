@@ -24,6 +24,10 @@ __all__ = [
     "load_document_type_specs",
     "specs_for_country",
     "specs_for_encounter_type",
+    "SectionCatalogEntry",
+    "load_section_catalog",
+    "resolve_section_title",
+    "resolve_section_loinc",
 ]
 
 _HERE = Path(__file__).resolve().parent
@@ -275,3 +279,131 @@ def specs_for_encounter_type(encounter_type: str) -> list[DocumentTypeSpec]:
         if not s.encounter_types_supported  # empty tuple = no restriction
         or encounter_type_lower in s.encounter_types_supported
     ]
+
+
+# =============================================================================
+# Section catalog (META #957 close-out session 97, 2026-09-02)
+# =============================================================================
+#
+# Single source of truth for section slug metadata (title_ja / title_en /
+# loinc). Before this catalog existed, the same information was authored
+# across three parallel dicts in
+# `clinosim/modules/output/fhir_r4/documents/composition.py` — asymmetric
+# updates produced silent drift (PR #991 OPERATIVE_NOTE landing forgot the
+# JA-side dict; the raw slug `op_procedure_name` leaked as
+# `Composition.section.title`; patched separately by PR #1055).
+#
+# Load-time validation (`_validate_section_catalog`) enforces:
+#   1. Every slug has non-empty title_ja / title_en / loinc.
+#   2. Every slug listed in `document_type_specs.yaml::composition_sections*`
+#      is registered in the catalog (missing → ImportError, no silent drift).
+#
+# The FHIR emit layer (`_localize_section_title` / `_loinc_for_section`)
+# reads via `resolve_section_title` / `resolve_section_loinc` — the emit
+# layer holds no locale mapping of its own after PR that lands this catalog.
+
+
+class SectionCatalogEntry:
+    """One row of the section catalog. Fields align with the yaml schema."""
+
+    __slots__ = ("slug", "title_ja", "title_en", "loinc", "description")
+
+    def __init__(self, slug: str, title_ja: str, title_en: str, loinc: str, description: str = "") -> None:
+        self.slug = slug
+        self.title_ja = title_ja
+        self.title_en = title_en
+        self.loinc = loinc
+        self.description = description
+
+    def title_for(self, lang: str) -> str:
+        """Return the localized title for a Composition emit language.
+
+        `lang` is a two-letter locale code (`"ja"` for JP, anything else
+        falls back to EN — matches the existing `_localize_section_title`
+        contract).
+        """
+        return self.title_ja if str(lang).lower() == "ja" else self.title_en
+
+    def __repr__(self) -> str:
+        return f"SectionCatalogEntry(slug={self.slug!r}, loinc={self.loinc!r})"
+
+
+def _validate_section_catalog(catalog: dict[str, dict[str, Any]]) -> None:
+    """Fail-loud validation of the section_catalog.yaml payload.
+
+    Runs at import time (via `load_section_catalog`). Fails on:
+      * A slug entry missing any of title_ja / title_en / loinc.
+      * Any slug authored in `document_type_specs.yaml::composition_sections*`
+        that is not registered in the catalog. This is the drift class the
+        catalog exists to prevent — a new section type added to the doc-spec
+        yaml without a catalog entry would previously silent-fall-through
+        to a raw machine slug title.
+    """
+    incomplete: list[str] = []
+    for slug, entry in catalog.items():
+        if not isinstance(entry, dict):
+            incomplete.append(f"{slug} (not a dict)")
+            continue
+        for field in ("title_ja", "title_en", "loinc"):
+            if not entry.get(field):
+                incomplete.append(f"{slug}.{field}")
+    if incomplete:
+        raise ValueError(
+            f"section_catalog.yaml: incomplete entries — {incomplete[:20]}"
+            + (f" (and {len(incomplete) - 20} more)" if len(incomplete) > 20 else "")
+        )
+
+    # Cross-reference: every slug in document_type_specs.yaml must appear
+    # in the catalog. Detects the drift class where a new doc type lands
+    # with composition_sections referencing a slug that has no localization.
+    specs = load_document_type_specs()
+    doc_spec_slugs: set[str] = set()
+    for spec in specs.values():
+        doc_spec_slugs.update(spec.composition_sections or ())
+        doc_spec_slugs.update(getattr(spec, "composition_sections_jp", None) or ())
+    missing = sorted(doc_spec_slugs - set(catalog.keys()))
+    if missing:
+        raise ValueError(
+            f"section_catalog.yaml: {len(missing)} slug(s) authored in "
+            f"document_type_specs.yaml are missing from the catalog — {missing[:20]}"
+            + (f" (and {len(missing) - 20} more)" if len(missing) > 20 else "")
+            + ". Add an entry with title_ja / title_en / loinc, or remove "
+            "the slug from document_type_specs.yaml."
+        )
+
+
+@lru_cache(maxsize=1)
+def load_section_catalog() -> dict[str, SectionCatalogEntry]:
+    """Load + validate `section_catalog.yaml`. Cached singleton."""
+    with (_REF_DIR / "section_catalog.yaml").open() as f:
+        data = yaml.safe_load(f) or {}
+    _validate_section_catalog(data)
+    out: dict[str, SectionCatalogEntry] = {}
+    for slug, entry in data.items():
+        out[slug] = SectionCatalogEntry(
+            slug=slug,
+            title_ja=entry["title_ja"],
+            title_en=entry["title_en"],
+            loinc=entry["loinc"],
+            description=entry.get("description", ""),
+        )
+    return out
+
+
+def resolve_section_title(slug: str, lang: str) -> str:
+    """Return the localized `Composition.section.title` for `slug`.
+
+    Called from the FHIR emit layer (`composition.py::_localize_section_title`
+    is now a thin wrapper around this). Returns the empty string when the
+    slug is unknown — callers may fall back to the raw slug for backward
+    compatibility, but production code paths should never see an unknown
+    slug because `_validate_section_catalog` enforces coverage at load time.
+    """
+    entry = load_section_catalog().get(slug)
+    return entry.title_for(lang) if entry is not None else ""
+
+
+def resolve_section_loinc(slug: str) -> str:
+    """Return the LOINC code for `slug`, or the empty string if unknown."""
+    entry = load_section_catalog().get(slug)
+    return entry.loinc if entry is not None else ""

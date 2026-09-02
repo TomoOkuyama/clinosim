@@ -30,11 +30,23 @@ from __future__ import annotations
 
 import pytest
 
+from clinosim.modules.document.narrative.registry import load_section_catalog
 from clinosim.modules.output.fhir_r4.documents.composition import (
-    _SECTION_TITLE_JA,
     _build_composition_generic,
     _localize_section_title,
 )
+
+
+# The pre-catalog `_SECTION_TITLE_JA` dict was migrated to
+# `clinosim/modules/document/reference_data/section_catalog.yaml` (META #957
+# close-out session 97). Tests that used to reach into the dict now read the
+# catalog directly — same lookup, single SoT.
+def _section_title_ja_map() -> dict[str, str]:
+    """Compatibility shim: `{slug: title_ja}` view of the section catalog."""
+    return {slug: entry.title_ja for slug, entry in load_section_catalog().items()}
+
+
+_SECTION_TITLE_JA = _section_title_ja_map()
 
 pytestmark = pytest.mark.unit
 

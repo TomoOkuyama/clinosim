@@ -1,0 +1,665 @@
+# Document section catalog — single source of truth for section slug metadata.
+#
+# Introduced by META #957 close-out session 97 (2026-09-02): before this file,
+# section metadata (JA title / EN title / LOINC coding) was authored across
+# three parallel dicts in
+# `clinosim/modules/output/fhir_r4/documents/composition.py` (`_SECTION_TITLE_JA`,
+# `_SECTION_TITLE_EN`, `_SECTION_LOINC`). PRs adding a new section type (e.g. #991
+# OPERATIVE_NOTE, #992 PROCEDURE_NOTE, #961 death certificate) had to update all
+# three tables plus the section builder in `template_generator.py` — asymmetric
+# updates produced silent drift (raw machine slug leaking as
+# `Composition.section.title` in JP output; 36 hits in a p=500 JP verify sim
+# were caused by PR #991 forgetting the JA-side dict, patched by PR #1055).
+#
+# This file is the single SoT. Every section slug authored in
+# `document_type_specs.yaml` MUST have an entry here (fail-loud at import time
+# in `_validate_section_catalog_coverage`). Adding a new slug is one edit:
+# add an entry here and reference it from `document_type_specs.yaml`.
+#
+# Schema (validated by Pydantic in `clinosim/locale/loader.py::load_section_catalog`):
+#
+#   <slug>:
+#     title_ja: <str>      # Japanese display title for JP output
+#     title_en: <str>      # English display title for US output
+#     loinc: <str>         # LOINC section code (see clinosim/codes/data/loinc.yaml)
+#     description: <str>   # (optional) one-line maintainer note — clinical scope
+#
+# Naming conventions:
+#   * `subjective` / `objective` / `assessment` / `plan` — SOAP outpatient / progress notes
+#   * `admission_*` / `hospital_course` / `discharge_*` — inpatient course docs
+#   * `nursing_*` / `care_plan` / `adl_assessment` — nursing note sections
+#   * `op_*` — operative note (surgical) sections (Issue #991)
+#   * `pn_*` — procedure note (non-surgical procedure) sections (Issue #992)
+#   * `dds_*` — death discharge summary sections (Issue #961)
+#   * `nutrition_*` — dietitian / nutrition management plan sections
+#
+# LOINC selection guidance:
+#   * Match the section's clinical scope against the LOINC 2.82 catalog
+#     (mirror cached under fhir-jp-validator + iris4h-ai).
+#   * When no exact match exists, use one of the established catch-alls:
+#       18776-5 "Plan of care note"       — plan / policy / goals / follow_up
+#       51852-2 "Provider unspecified Progress note" — misc narrative catch-all
+#       29554-3 "Procedure narrative"     — surgical / procedural body text
+#       51897-7 "Care team member"        — performer / operator sections
+#       61144-2 "Diet and nutrition Narrative" — dietitian / nutrition family
+#   * Death-certificate legal fields (immediate_cause_of_death /
+#     underlying_cause_of_death / manner_of_death) use 69453-9
+#     "Cause of death [US Standard Certificate of Death]" family.
+#
+# JA translation guidance:
+#   * Follow JSOG / MHLW 標準診療録記載要領 conventions when the section is
+#     clinically established.
+#   * Match existing `_SECTION_TITLE_JA` values verbatim (behavior-preserving
+#     migration); only novel entries use fresh translations.
+
+# ---------------------------------------------------------------------------
+# SOAP outpatient / progress notes
+# ---------------------------------------------------------------------------
+
+subjective:
+  title_ja: "主観的所見"
+  title_en: "Subjective"
+  loinc: "10164-2"
+  description: "SOAP note S — patient-reported symptoms / HPI narrative"
+
+objective:
+  title_ja: "客観的所見"
+  title_en: "Objective"
+  loinc: "8716-3"
+  description: "SOAP note O — vital signs + physical exam findings"
+
+assessment:
+  title_ja: "評価"
+  title_en: "Assessment"
+  loinc: "51848-0"
+  description: "SOAP note A — clinical assessment / diagnosis reasoning"
+
+plan:
+  title_ja: "計画"
+  title_en: "Plan"
+  loinc: "18776-5"
+  description: "SOAP note P — treatment plan"
+
+# ---------------------------------------------------------------------------
+# Admission H&P / progress
+# ---------------------------------------------------------------------------
+
+chief_complaint:
+  title_ja: "主訴"
+  title_en: "Chief complaint"
+  loinc: "10154-3"
+
+hpi:
+  title_ja: "現病歴"
+  title_en: "History of present illness"
+  loinc: "10164-2"
+
+past_medical_history:
+  title_ja: "既往歴"
+  title_en: "Past medical history"
+  loinc: "11348-0"
+
+medications_at_home:
+  title_ja: "服薬歴"
+  title_en: "Medications at home"
+  loinc: "10160-0"
+
+physical_exam:
+  title_ja: "身体所見"
+  title_en: "Physical exam"
+  loinc: "29545-1"
+
+physical_examination:
+  title_ja: "身体所見"
+  title_en: "Physical examination"
+  loinc: "29545-1"
+
+triage_details:
+  title_ja: "トリアージ情報"
+  title_en: "Triage details"
+  loinc: "51897-7"
+
+assessment_and_plan:
+  title_ja: "評価と計画"
+  title_en: "Assessment and plan"
+  loinc: "51847-2"
+
+# ---------------------------------------------------------------------------
+# Admission composition sections (JP-CLINS admission_hp variant)
+# ---------------------------------------------------------------------------
+
+admission_reason:
+  title_ja: "入院理由"
+  title_en: "Reason for admission"
+  loinc: "42349-1"
+
+admission_details:
+  title_ja: "入院詳細"
+  title_en: "Admission details"
+  loinc: "8646-2"
+
+admission_diagnoses:
+  title_ja: "入院時診断"
+  title_en: "Admission diagnoses"
+  loinc: "46241-6"
+
+admission_state:
+  title_ja: "入院時病状"
+  title_en: "Clinical state at admission"
+  loinc: "8646-2"
+
+admission_status:
+  title_ja: "入院時状態"
+  title_en: "Admission status"
+  loinc: "8646-2"
+
+admission_summary:
+  title_ja: "入院時サマリー"
+  title_en: "Admission summary"
+  loinc: "8648-8"
+
+# ---------------------------------------------------------------------------
+# Discharge summary
+# ---------------------------------------------------------------------------
+
+hospital_course:
+  title_ja: "入院経過"
+  title_en: "Hospital course"
+  loinc: "8648-8"
+
+discharge_diagnoses:
+  title_ja: "退院時診断"
+  title_en: "Discharge diagnoses"
+  loinc: "11535-2"
+
+discharge_details:
+  title_ja: "退院詳細"
+  title_en: "Discharge details"
+  loinc: "8649-6"
+
+discharge_medications:
+  title_ja: "退院時処方"
+  title_en: "Discharge medications"
+  loinc: "10183-2"
+
+discharge_evaluation:
+  title_ja: "退院時評価"
+  title_en: "Discharge evaluation"
+  loinc: "8650-4"
+
+discharge_readiness:
+  title_ja: "退院可能性"
+  title_en: "Discharge readiness"
+  loinc: "8650-4"
+
+discharge_estimate:
+  title_ja: "退院見込み"
+  title_en: "Estimated discharge"
+  loinc: "8648-8"
+
+discharge_instructions:
+  title_ja: "退院時説明"
+  title_en: "Discharge instructions"
+  loinc: "8653-8"
+
+# ---------------------------------------------------------------------------
+# Nursing sections
+# ---------------------------------------------------------------------------
+
+nursing_history:
+  title_ja: "看護歴"
+  title_en: "Nursing history"
+  loinc: "10164-2"
+
+nursing_diagnosis:
+  title_ja: "看護診断"
+  title_en: "Nursing diagnosis"
+  loinc: "46241-6"
+
+nursing_interventions_provided:
+  title_ja: "実施した看護介入"
+  title_en: "Nursing interventions provided"
+  loinc: "10160-0"
+
+adl_assessment:
+  title_ja: "ADL評価"
+  title_en: "ADL assessment"
+  loinc: "18776-5"
+
+risk_assessments:
+  title_ja: "リスク評価"
+  title_en: "Risk assessments"
+  loinc: "75326-9"
+
+care_plan:
+  title_ja: "看護計画"
+  title_en: "Care plan"
+  loinc: "18776-5"
+
+reassessment_timing:
+  title_ja: "再評価予定"
+  title_en: "Reassessment timing"
+  loinc: "18776-5"
+
+other_issues:
+  title_ja: "その他"
+  title_en: "Other issues"
+  loinc: "51852-2"
+
+# ---------------------------------------------------------------------------
+# Ward-info & plan sections
+# ---------------------------------------------------------------------------
+
+ward_and_room:
+  title_ja: "病棟・病室"
+  title_en: "Ward and room"
+  loinc: "8646-2"
+
+ward_and_physician:
+  title_ja: "病棟・主治医"
+  title_en: "Ward and attending physician"
+  loinc: "8646-2"
+
+other_staff:
+  title_ja: "その他スタッフ"
+  title_en: "Other staff"
+  loinc: "51897-7"
+
+diagnosis:
+  title_ja: "診断"
+  title_en: "Diagnosis"
+  loinc: "29308-4"
+
+symptoms:
+  title_ja: "症状"
+  title_en: "Symptoms"
+  loinc: "10187-3"
+
+# ---------------------------------------------------------------------------
+# Rehab
+# ---------------------------------------------------------------------------
+
+patient_and_diagnosis:
+  title_ja: "患者・診断"
+  title_en: "Patient and diagnosis"
+  loinc: "29308-4"
+
+# ---------------------------------------------------------------------------
+# Dietitian / nutrition
+# ---------------------------------------------------------------------------
+
+dietitian:
+  title_ja: "栄養士"
+  title_en: "Dietitian"
+  loinc: "51897-7"
+
+nutrition_risk:
+  title_ja: "栄養リスク"
+  title_en: "Nutrition risk"
+  loinc: "61144-2"
+
+nutrition_assessment:
+  title_ja: "栄養評価"
+  title_en: "Nutrition assessment"
+  loinc: "61144-2"
+
+nutrition_goals:
+  title_ja: "栄養目標"
+  title_en: "Nutrition goals"
+  loinc: "61144-2"
+
+nutrition_supply:
+  title_ja: "栄養供給"
+  title_en: "Nutrition supply"
+  loinc: "61144-2"
+
+nutrition_counseling:
+  title_ja: "栄養指導"
+  title_en: "Nutrition counseling"
+  loinc: "61144-2"
+
+dietary_content:
+  title_ja: "食事内容"
+  title_en: "Dietary content"
+  loinc: "61144-2"
+
+dysphagia_diet:
+  title_ja: "嚥下食"
+  title_en: "Dysphagia diet"
+  loinc: "61144-2"
+
+# ---------------------------------------------------------------------------
+# History / social
+# ---------------------------------------------------------------------------
+
+allergies:
+  title_ja: "アレルギー"
+  title_en: "Allergies"
+  loinc: "48765-2"
+
+family_history:
+  title_ja: "家族歴"
+  title_en: "Family history"
+  loinc: "10157-6"
+
+social_history:
+  title_ja: "社会歴"
+  title_en: "Social history"
+  loinc: "29762-2"
+
+# ---------------------------------------------------------------------------
+# Education / assessment
+# ---------------------------------------------------------------------------
+
+patient_education:
+  title_ja: "患者教育"
+  title_en: "Patient education"
+  loinc: "18776-5"
+
+# ---------------------------------------------------------------------------
+# ED / inpatient planning (Issue #870)
+# ---------------------------------------------------------------------------
+
+ed_workup:
+  title_ja: "救急外来での評価"
+  title_en: "ED workup"
+  loinc: "51897-7"
+
+disposition:
+  title_ja: "転帰"
+  title_en: "Disposition"
+  loinc: "68609-7"
+
+treatment_plan:
+  title_ja: "治療計画"
+  title_en: "Treatment plan"
+  loinc: "18776-5"
+
+test_schedule:
+  title_ja: "検査予定"
+  title_en: "Test schedule"
+  loinc: "18776-5"
+
+surgery_schedule:
+  title_ja: "手術予定"
+  title_en: "Surgery schedule"
+  loinc: "18776-5"
+
+special_nutrition_management:
+  title_ja: "特別栄養管理"
+  title_en: "Special nutrition management"
+  loinc: "61144-2"
+
+other_plans:
+  title_ja: "その他の計画"
+  title_en: "Other plans"
+  loinc: "18776-5"
+
+estimated_los:
+  title_ja: "予定入院期間"
+  title_en: "Estimated length of stay"
+  loinc: "8646-2"
+
+explanation_consent:
+  title_ja: "説明と同意"
+  title_en: "Explanation and consent"
+  loinc: "18776-5"
+
+# ---------------------------------------------------------------------------
+# Rehabilitation plan (Issue #870)
+# ---------------------------------------------------------------------------
+
+session_frequency:
+  title_ja: "セッション頻度"
+  title_en: "Session frequency"
+  loinc: "18776-5"
+
+rehab_team:
+  title_ja: "リハビリテーションチーム"
+  title_en: "Rehabilitation team"
+  loinc: "51897-7"
+
+policy:
+  title_ja: "方針"
+  title_en: "Policy"
+  loinc: "18776-5"
+
+goals:
+  title_ja: "目標"
+  title_en: "Goals"
+  loinc: "18776-5"
+
+functional_status:
+  title_ja: "機能状態"
+  title_en: "Functional status"
+  loinc: "18776-5"
+
+basic_movement:
+  title_ja: "基本動作"
+  title_en: "Basic movement"
+  loinc: "18776-5"
+
+# ---------------------------------------------------------------------------
+# Death certificate — 死亡診断書 (Issue #961)
+# Legal-form field labels per 医師法第 20 条 / MHLW 死亡診断書 form.
+# LOINC 69453-9 family is "Cause of death [US Standard Certificate of Death]".
+# ---------------------------------------------------------------------------
+
+immediate_cause_of_death:
+  title_ja: "直接死因"
+  title_en: "Immediate cause of death"
+  loinc: "69453-9"
+
+underlying_cause_of_death:
+  title_ja: "原死因"
+  title_en: "Underlying cause of death"
+  loinc: "69453-9"
+
+contributing_conditions:
+  title_ja: "影響を及ぼした傷病名"
+  title_en: "Contributing conditions"
+  loinc: "69453-9"
+
+duration_of_immediate_cause:
+  title_ja: "直接死因までの期間"
+  title_en: "Time from onset of immediate cause to death"
+  loinc: "69453-9"
+
+manner_of_death:
+  title_ja: "死因の種類"
+  title_en: "Manner of death"
+  loinc: "69449-7"
+
+circumstances_of_death:
+  title_ja: "死亡時状況"
+  title_en: "Circumstances of death"
+  loinc: "69453-9"
+
+cause_of_death:
+  title_ja: "死因"
+  title_en: "Cause of death"
+  loinc: "69453-9"
+
+autopsy_status:
+  title_ja: "解剖の有無"
+  title_en: "Autopsy performed"
+  loinc: "85699-7"
+
+autopsy_status_and_findings:
+  title_ja: "剖検の有無・所見"
+  title_en: "Autopsy status and findings"
+  loinc: "85699-7"
+
+# ---------------------------------------------------------------------------
+# Death discharge summary (Issue #961 ext) — 死亡退院サマリー sections
+# ---------------------------------------------------------------------------
+
+treatment_course:
+  title_ja: "治療経過"
+  title_en: "Treatment course"
+  loinc: "8648-8"
+
+terminal_course:
+  title_ja: "終末期経過"
+  title_en: "Terminal course"
+  loinc: "8648-8"
+
+complications_and_comorbidities:
+  title_ja: "合併症・併存症"
+  title_en: "Complications and comorbidities"
+  loinc: "10164-2"
+
+family_communication:
+  title_ja: "家族への説明経過"
+  title_en: "Family communication"
+  loinc: "18776-5"
+
+# ---------------------------------------------------------------------------
+# Operative note (Issue #991) — 手術記録 sections
+# ---------------------------------------------------------------------------
+
+op_procedure_name:
+  title_ja: "術式"
+  title_en: "Procedure"
+  loinc: "29554-3"
+
+op_anesthesia:
+  title_ja: "麻酔"
+  title_en: "Anesthesia"
+  loinc: "18776-5"
+
+op_surgeon:
+  title_ja: "術者"
+  title_en: "Surgeon"
+  loinc: "51897-7"
+
+op_findings:
+  title_ja: "術中所見"
+  title_en: "Operative findings"
+  loinc: "29554-3"
+
+op_course:
+  title_ja: "手術経過"
+  title_en: "Operative course"
+  loinc: "29554-3"
+
+op_specimens:
+  title_ja: "摘出標本"
+  title_en: "Specimens"
+  loinc: "18776-5"
+
+op_blood_loss:
+  title_ja: "推定出血量"
+  title_en: "Estimated blood loss"
+  loinc: "18776-5"
+
+op_equipment:
+  title_ja: "使用器具・機材"
+  title_en: "Equipment"
+  loinc: "18776-5"
+
+op_postop_plan:
+  title_ja: "術後方針"
+  title_en: "Post-operative plan"
+  loinc: "18776-5"
+
+# ---------------------------------------------------------------------------
+# Procedure note (Issue #992) — 処置記録 sections
+# ---------------------------------------------------------------------------
+
+pn_procedure_name:
+  title_ja: "処置名"
+  title_en: "Procedure"
+  loinc: "29554-3"
+
+pn_consent:
+  title_ja: "インフォームド・コンセント"
+  title_en: "Informed consent"
+  loinc: "18776-5"
+
+pn_performer:
+  title_ja: "実施者"
+  title_en: "Operator"
+  loinc: "51897-7"
+
+pn_analgesia:
+  title_ja: "麻酔・鎮静"
+  title_en: "Analgesia"
+  loinc: "18776-5"
+
+pn_course:
+  title_ja: "処置経過"
+  title_en: "Procedure course"
+  loinc: "29554-3"
+
+pn_complications:
+  title_ja: "合併症の有無"
+  title_en: "Complications"
+  loinc: "18776-5"
+
+pn_specimens:
+  title_ja: "検体の有無"
+  title_en: "Specimens"
+  loinc: "18776-5"
+
+pn_postop_plan:
+  title_ja: "術後方針"
+  title_en: "Post-procedure plan"
+  loinc: "18776-5"
+
+# ---------------------------------------------------------------------------
+# Referral note (Issue #990) — 紹介状 sections
+# ---------------------------------------------------------------------------
+
+referring_institution:
+  title_ja: "紹介元医療機関"
+  title_en: "Referring institution"
+  loinc: "51897-7"
+
+referral_destination:
+  title_ja: "紹介先医療機関"
+  title_en: "Referral destination"
+  loinc: "51897-7"
+
+referral_purpose:
+  title_ja: "紹介目的"
+  title_en: "Referral purpose"
+  loinc: "42349-1"
+
+present_illness:
+  title_ja: "現病歴"
+  title_en: "Present illness"
+  loinc: "10164-2"
+
+present_illness_ref:
+  title_ja: "現病歴"
+  title_en: "Present illness"
+  loinc: "10164-2"
+
+# ---------------------------------------------------------------------------
+# Health checkup — 健康診断 sections
+# ---------------------------------------------------------------------------
+
+checkup_questionnaire:
+  title_ja: "問診票"
+  title_en: "Health checkup questionnaire"
+  loinc: "10187-3"
+
+checkup_lab_results:
+  title_ja: "検査結果"
+  title_en: "Health checkup lab results"
+  loinc: "26436-6"
+
+diagnoses_and_complaint:
+  title_ja: "診断・主訴"
+  title_en: "Diagnoses and chief complaint"
+  loinc: "29308-4"
+
+# ---------------------------------------------------------------------------
+# Follow-up / continuity of care
+# ---------------------------------------------------------------------------
+
+follow_up:
+  title_ja: "経過観察"
+  title_en: "Follow-up"
+  loinc: "18776-5"
