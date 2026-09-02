@@ -342,6 +342,18 @@ def simulate_delivery_encounter(
     enc_cfg = cfg.get("encounter") or {}
     proc_cfg = cfg.get("procedure") or {}
 
+    # ── Cesarean-section roll (session 98 F7 — Incr 1.5) ─────────────
+    # Real-world share: US 32.1 %, JP 20.4 %. Pre-fix all deliveries
+    # emitted as O80 (spontaneous vaginal), which produced 100 %
+    # vaginal cohorts — clinically unrealistic. Roll per-mother via
+    # a dedicated sub-RNG (isolated from the main rng cursor so
+    # activating this feature is byte-neutral for any non-perinatal
+    # patient).
+    cs_cfg = cfg.get("cesarean") or {}
+    cs_prob = float((cs_cfg.get("probability") or {}).get("jp" if is_jp(country) else "us") or 0.0)
+    cs_rng = np.random.default_rng(_newborn_sub_seed(f"cesarean|{patient.patient_id}"))
+    is_cesarean = float(cs_rng.random()) < cs_prob
+
     dept = resolve_department(enc_cfg.get("department") or "obgyn", hospital_ops)
 
     # ── Mother-side delivery encounter ───────────────────────────────
@@ -357,7 +369,11 @@ def simulate_delivery_encounter(
         encounter.chief_complaint_ja = ja_reason
     encounter.encounter_type = EncounterType.INPATIENT
     encounter.status = EncounterStatus.COMPLETED
-    los_days = int((enc_cfg.get("length_of_stay_days") or {}).get("jp" if is_jp(country) else "us") or 2)
+    if is_cesarean:
+        cs_los = int((cs_cfg.get("length_of_stay_days") or {}).get("jp" if is_jp(country) else "us") or 4)
+        los_days = cs_los
+    else:
+        los_days = int((enc_cfg.get("length_of_stay_days") or {}).get("jp" if is_jp(country) else "us") or 2)
     encounter.discharge_datetime = visit_date + timedelta(days=los_days)
     encounter.admit_source = AdmitSource.OUTP
     encounter.discharge_disposition = DischargeDisposition.HOME
@@ -368,7 +384,12 @@ def simulate_delivery_encounter(
     encounter.admitting_physician_id = encounter.attending_physician_id
     encounter.discharging_physician_id = encounter.attending_physician_id
 
-    admit_dx = str(enc_cfg.get("admission_diagnosis_code") or "O80")
+    if is_cesarean:
+        admit_dx = str(cs_cfg.get("admission_diagnosis_code") or "O82")
+    else:
+        admit_dx = str(enc_cfg.get("admission_diagnosis_code") or "O80")
+    # discharge diagnosis Z37.0 (single liveborn — outcome) applies to
+    # both delivery modes; ICD-10 does not sub-divide Z37 by mode.
     discharge_dx = str(enc_cfg.get("discharge_diagnosis_code") or "Z37.0")
     icd_system = system_key_for("diagnosis", country)
     clinical_diagnosis = ClinicalDiagnosis(
@@ -385,9 +406,15 @@ def simulate_delivery_encounter(
 
     from clinosim.types.procedure import ProcedureRecord
 
-    proc_code_jp = str(proc_cfg.get("jp_code") or "K894")
-    proc_code_us = str(proc_cfg.get("us_code") or "59400")
-    proc_duration_min = int(proc_cfg.get("duration_minutes") or 90)
+    if is_cesarean:
+        cs_proc = cs_cfg.get("procedure") or {}
+        proc_code_jp = str(cs_proc.get("jp_code") or "K898")
+        proc_code_us = str(cs_proc.get("us_code") or "59510")
+        proc_duration_min = int(cs_proc.get("duration_minutes") or 60)
+    else:
+        proc_code_jp = str(proc_cfg.get("jp_code") or "K894")
+        proc_code_us = str(proc_cfg.get("us_code") or "59400")
+        proc_duration_min = int(proc_cfg.get("duration_minutes") or 90)
     proc_code = proc_code_jp if is_jp(country) else proc_code_us
     procedure = ProcedureRecord(
         procedure_id=f"PROC-{patient.patient_id}-DELIVERY-{encounter.encounter_id[:8]}",
