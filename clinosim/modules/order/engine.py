@@ -464,7 +464,24 @@ def place_admission_orders(
         detail_raw = str(sup.get("detail", "") or "")
         for splitter in (" or ", " OR ", " または "):
             if splitter in detail_raw:
-                detail_raw = detail_raw.split(splitter, 1)[0].strip()
+                _primary, _tail = detail_raw.split(splitter, 1)
+                _primary = _primary.strip()
+                # Session-98 F6 (empty_dose): the tail of "NS or LR 500-1000mL
+                # bolus, then 125-250mL/h" carries the shared rate/frequency
+                # that applies to whichever alternative was chosen. Extract
+                # any numeric suffix (from the first digit onward) and glue
+                # it to the primary so the downstream dose parser sees the
+                # rate and populates ``dose_quantity`` — otherwise "NS" alone
+                # is unparseable and the MAR ends up with an empty numeric
+                # dose (dosage.text = "IV_fluid: NS", no dose.value).
+                import re as _re_glue
+
+                _tail_stripped = _tail.strip()
+                _digit_match = _re_glue.search(r"\d", _tail_stripped)
+                if _digit_match:
+                    detail_raw = f"{_primary} {_tail_stripped[_digit_match.start() :]}"
+                else:
+                    detail_raw = _primary
                 break
         order_type = classify_inpatient_supportive(detail_raw, sup_type)
         order = Order(

@@ -496,6 +496,14 @@ codes:
   O80:
     en: "Encounter for full-term uncomplicated delivery"
     ja: "満期・合併症なし分娩のためのエンカウンタ"
+  # Cesarean-section admission diagnosis (session 98 F7 — Incr 1.5).
+  # US ICD-10-CM keeps a bare O82 category for coded cesarean deliveries;
+  # sub-codes (O82.0 planned CS in labor / O82.1 emergency CS in labor)
+  # exist but the category code itself is emittable per CDC coding
+  # guidelines when the CIF does not differentiate planning stage.
+  O82:
+    en: "Encounter for cesarean delivery without indication"
+    ja: "帝王切開分娩のためのエンカウンタ (適応なし)"
   M17:
     en: Osteoarthritis of knee
     ja: 変形性膝関節症
