@@ -2498,7 +2498,7 @@ class TemplateNarrativeGenerator:
         if current_meds:
             facts.append("ctx.patient.current_medications")
         med_text = (
-            "、".join(_render_home_med_name(m) for m in current_meds)
+            ("、" if is_ja else ", ").join(_render_home_med_name(m) for m in current_meds)
             if current_meds
             else ("常用薬なし" if is_ja else "None taken")
         )
@@ -4601,7 +4601,7 @@ class TemplateNarrativeGenerator:
                 if med:
                     parts_dm.append(f"{med} 継続" if is_ja else f"{med} continue")
                 if parts_dm:
-                    interp = "、".join(parts_dm) + ("。" if is_ja else ".")
+                    interp = ("、" if is_ja else ", ").join(parts_dm) + ("。" if is_ja else ".")
 
             # ── E78: Dyslipidemia ──────────────────────────────────────
             elif code_prefix.startswith("E78"):
@@ -4665,7 +4665,7 @@ class TemplateNarrativeGenerator:
                     v, u = cr
                     parts_ckd.append(f"Cr {v} {u or 'mg/dL'}")
                 if parts_ckd:
-                    interp = "、".join(parts_ckd) + (
+                    interp = ("、" if is_ja else ", ").join(parts_ckd) + (
                         "、腎機能推移を継続監視。" if is_ja else "; ongoing renal function monitoring."
                     )
 
@@ -4682,7 +4682,7 @@ class TemplateNarrativeGenerator:
                 if med:
                     bits.append(f"{med} 吸入継続" if is_ja else f"{med} inhalation continue")
                 if bits:
-                    interp = "、".join(bits) + (
+                    interp = ("、" if is_ja else ", ").join(bits) + (
                         "、CAT score / mMRC で症状評価。" if is_ja else "; CAT / mMRC symptom review."
                     )
 
@@ -4699,7 +4699,7 @@ class TemplateNarrativeGenerator:
                 if med:
                     bits2.append(f"{med} 継続" if is_ja else f"{med} continue")
                 if bits2:
-                    interp = "、".join(bits2) + (
+                    interp = ("、" if is_ja else ", ").join(bits2) + (
                         "、ACT で コントロール状況確認。" if is_ja else "; ACT control review."
                     )
 
@@ -4812,7 +4812,6 @@ class TemplateNarrativeGenerator:
             names.append(str(nm))
         if not names:
             return ""
-        head = ("本日実施: " if is_ja else "Today's workup: ") + "、".join(names) if is_ja else "; ".join(names)
         head = ("本日実施: " if is_ja else "Today's workup: ") + ("、".join(names) if is_ja else "; ".join(names))
         return head
 
