@@ -703,6 +703,17 @@ def _dt_fields(resource: dict):
         "authoredOn",
         "occurrenceDateTime",
         "recorded",
+        # Condition / AllergyIntolerance / Immunization use `recordedDate`
+        # (not the shorter `recorded`). Missing this field caused Encounter
+        # for a post-mortem CIF record to be dropped while the sibling
+        # Condition and AllergyIntolerance survived with dangling
+        # `.encounter` refs (Issue #926 follow-up: symmetric field coverage).
+        "recordedDate",
+        # Condition uses onsetDateTime / abatementDateTime as its primary
+        # event timestamps; without them a Condition emitted post-mortem
+        # slips past the gate and leaves dangling refs to a dropped Encounter.
+        "onsetDateTime",
+        "abatementDateTime",
         "collectedDateTime",
         "date",
         "performedDateTime",
@@ -763,6 +774,13 @@ def _snapshot_ts_iter(resource: dict):
         "authoredOn",
         "occurrenceDateTime",
         "recorded",
+        # Symmetric with `_dt_fields` — Condition / AllergyIntolerance /
+        # Immunization use `recordedDate` (not `recorded`), and Condition
+        # additionally uses `onsetDateTime` / `abatementDateTime`.
+        # Missing these left orphan-reference-generating events unchecked.
+        "recordedDate",
+        "onsetDateTime",
+        "abatementDateTime",
         "collectedDateTime",
         "date",
         "performedDateTime",
