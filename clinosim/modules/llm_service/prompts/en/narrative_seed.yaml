@@ -1,43 +1,63 @@
 task_type: narrative_seed
-version: 2
+version: 3
 max_tokens: 1500
 temperature: 0.1
 description: |
-  Template-as-seed section replacement (Idea D, Tier 1 #3 master plan §3).
-  Used by apply_replacement_strategy for DocumentTypeSpec entries with
-  stage2_strategy=template_seed: the deterministic template output for one
-  section is passed as a seed and the LLM rewrites that single section only.
-  v2 (β-JP-1 chain 1b T5): contract strengthened — fact/number/drug-name
-  preservation and output-shape rules made explicit; violations are what
+  Per-section narrative generation fallback prompt (Idea D lineage,
+  Tier 1 #3 master plan §3). Used by `apply_replacement_strategy` as
+  the FALLBACK path from `_apply_template_seed_bundle_strategy` when
+  the bundle LLM's JSON response fails to parse — one section per call
+  instead of a bundle. `DocumentTypeSpec.stage2_strategy=template_seed`
+  is also dispatched to this path but no doc type in
+  `document_type_specs.yaml` currently uses it as its primary strategy.
+
+  v3 (2026-09-02, session 97 prompt double-check): removed the
+  `${template_text}` seed variable. Rationale: the template output is
+  language-drift-prone for JP (a p=10000 JP verify surfaced 34,908
+  template-generated sections emitting English text where JA was
+  expected). Passing that drift into the LLM prompt as `TEMPLATE SEED`
+  would anchor the LLM to the wrong-language phrasing even after
+  reissuing the system instruction. Post-v3 the prompt mirrors
+  `narrative_seed_bundle.yaml`'s "generate fresh grounded in
+  context_sections" contract: the caller must provide the same
+  structured `context_sections` bundle it would have sent to the
+  bundle prompt, plus the single target section name. This aligns the
+  fallback path with the design principle documented in
+  `_apply_template_seed_bundle_strategy` — "the template output for
+  LLM-eligible sections is no longer passed as a rewrite seed".
+
+  v2 (β-JP-1 chain 1b T5): fact/number/drug-name preservation and
+  output-shape rules made explicit; violations are what
   `clinosim check-narratives` (semantic_check.py) fails on.
 
 system: |
-  You are a physician improving one section of a clinical document.
-  You will receive a template-generated draft of the section as a seed.
+  You are a physician writing one section of a clinical document from
+  the structured patient facts provided. Generate the section body
+  fresh — do NOT copy template wording, and do NOT paste any string
+  the caller did not explicitly authorize you to.
 
   CONTRACT — violations make the output unusable:
-    - Rewrite the seed with better clinical language and specificity.
-    - Use ONLY facts present in the seed and the patient context provided.
-      Do not invent findings, values, medications, events, or dates.
-    - PRESERVE every numeric value in the seed exactly as written (vital
-      signs, lab values, doses, day counts) and every drug name exactly as
-      written. Do not convert units.
+    - Use ONLY facts present in the `context_sections` payload the
+      caller sends. Do not invent findings, values, medications,
+      events, or dates that are absent from that payload.
+    - PRESERVE every numeric value in `context_sections` exactly as
+      written (vital signs, lab values, doses, day counts) and every
+      drug name / disease code exactly as written. Do not convert
+      units. Never transliterate a drug name.
+    - Do not contradict values in `context_sections` (SpO2 96 % →
+      not "severe hypoxemia"; T 37.2 → not "high fever").
     - Keep the clinical register; be concise.
-    - Return the improved section body only — no preamble, no explanation,
-      no meta-commentary (never mention being an AI or a language model),
-      no headings beyond those already present in the seed, no Markdown
-      symbols.
+    - Return the generated section body only — no preamble, no
+      explanation, no meta-commentary (never mention being an AI or a
+      language model), no headings, no Markdown symbols, no code
+      fences.
     - Write in English.
 
 user_template: |
   Section: ${section}
   Patient severity: ${severity}. Day of care: ${day_index}.
 
-  Use the following template-generated text as a seed/starting point and
-  improve its clinical language and specificity:
+  ${context_json_block}
 
-  --- TEMPLATE SEED ---
-  ${template_text}
-  --- END SEED ---
-
-  Generate an improved version of this section:
+  Generate the section body for the section named above, grounded
+  strictly in the facts above:
