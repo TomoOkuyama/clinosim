@@ -355,16 +355,7 @@ def _simulate_unknown_condition(
         if not o.encounter_id:
             o.encounter_id = encounter.encounter_id
 
-    # Note: unknown-condition encounters intentionally do NOT run the
-    # POST_ENCOUNTER stage (device + hai). _simulate_unknown_condition never
-    # sets record.icu_transferred = True (line 511 default), and modules/
-    # device/engine.place_devices_for_encounter early-returns [] when
-    # icu_transferred is False. So the enrichers + apply_hai_lab_lift would
-    # uniformly no-op here; the post-PR-90 xhigh review caught a 29-line
-    # dead block at this spot and it was removed. If a future requirement
-    # adds ICU transfer to unknown-condition simulation, gate the hook on
-    # icu_transferred just like every other AD-32-aware code path.
-    return CIFPatientRecord(
+    record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
         orders=all_orders,
@@ -383,3 +374,36 @@ def _simulate_unknown_condition(
         ),
         physiological_states=state_history,
     )
+
+    # POST_ENCOUNTER stage — session-98 F3 fix. The original code path
+    # intentionally skipped POST_ENCOUNTER, motivated by device + hai
+    # enrichers no-op'ing on unknown-condition records (icu_transferred is
+    # always False here). But `document_enricher`, `nursing_enricher`,
+    # `adl_enricher`, and `intake_output_enricher` DO produce content for
+    # every inpatient encounter regardless of ICU status — skipping them
+    # left ~3-4% of completed IMP encounters (49 US / 47 JP on p=10000
+    # seed=300) with ZERO Compositions, empty nursing assessments, empty
+    # ADL, empty intake/output. Documents / nursing / ADL / I/O are the
+    # exact EHR-record integrity signals a downstream reader expects on
+    # ANY inpatient stay — unknown-condition admissions are physically
+    # real hospitalizations from the patient's viewpoint. Running the
+    # stage now restores the missing per-encounter clinical documentation.
+    # Device + HAI enrichers self-gate on icu_transferred, so this call
+    # is byte-neutral for the enrichers that were the original rationale.
+    # Guarded on ``config is not None`` so unit tests that pass config=None
+    # continue to work — the enricher stage requires config.country for
+    # per-country spec dispatch.
+    if config is not None:
+        from clinosim.simulator.enrichers import POST_ENCOUNTER, EnricherContext, run_stage
+
+        run_stage(
+            POST_ENCOUNTER,
+            EnricherContext(
+                config=config,
+                master_seed=config.random_seed,
+                records=[record],
+                roster=roster,
+            ),
+        )
+
+    return record

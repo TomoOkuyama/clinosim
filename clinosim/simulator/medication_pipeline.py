@@ -368,7 +368,25 @@ def _generate_mar(
 
     mars: list[MedicationAdministration] = []
 
-    med_orders = [o for o in orders if o.order_type == OrderType.MEDICATION and o.status == OrderStatus.PLACED]
+    # Session-98 F4/F5 fix: DISCONTINUE orders describe a treatment
+    # STOP event, not an administration. `daily_loop._apply_treatment_modifier`
+    # emits them as `Order(order_type=MEDICATION, display_name="DISCONTINUE: X",
+    # status=PLACED)` for downstream visibility, but rendering them as
+    # MedicationAdministration produces phantom "administrations" with
+    # neither dose nor rate (dosage.text = "SC", dose.value absent) — 1,005
+    # such MAs on a US p=10000 seed=300 run (Ampicillin/Sulbactam 544,
+    # Piperacillin/Tazobactam 324, Ceftriaxone 103; all reported as F4
+    # empty-dose AND F5 IV-drug-with-SC-route defects in the session-98
+    # extended verify). The FHIR way to represent a stop is
+    # `MedicationRequest.status="stopped"` on the parent Rx, NOT a MAR.
+    # Filter here so the downstream MAR builder never sees these orders.
+    med_orders = [
+        o
+        for o in orders
+        if o.order_type == OrderType.MEDICATION
+        and o.status == OrderStatus.PLACED
+        and not (o.display_name or "").startswith("DISCONTINUE:")
+    ]
     # Ensure medication orders are enriched (idempotent) so MAR can use structured dose
     for o in med_orders:
         enrich_medication_order(o)
