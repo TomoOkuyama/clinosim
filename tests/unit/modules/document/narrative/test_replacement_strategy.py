@@ -138,20 +138,35 @@ def test_template_only_strategy_preserves_all_fields() -> None:
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_template_seed_strategy_passes_template_as_seed_to_llm() -> None:
-    """template_seed: the LLM receives a prompt containing the template text."""
+def test_template_seed_strategy_does_not_pass_template_text_to_llm() -> None:
+    """template_seed (v3, 2026-09-02 prompt double-check): the LLM prompt
+    is context-driven — the LLM-enabled section's template text is NEVER
+    passed as a `${template_text}` seed. Rationale: template output is
+    language-drift-prone (a p=10000 JP verify surfaced 34,908 template-
+    generated sections emitting English where JA was expected) and
+    anchoring the LLM to that drift defeats the JP prompt's language
+    contract. Sibling sections (NOT in llm_enabled_sections) still pass
+    through as reference context — those are unmodified template output
+    the LLM must not rewrite.
+    """
     spec = _make_spec(
         stage2_strategy="template_seed",
         llm_enabled_sections=("hpi",),
     )
-    template_output = _make_template_output({"hpi": "Template HPI text", "assessment_and_plan": "A&P"})
+    template_output = _make_template_output({"hpi": "Template HPI text", "assessment_and_plan": "Template A&P text"})
     ctx = _make_ctx()
     provider = MockProvider()
 
     _apply(template_output, ctx, spec, _mock_llm(provider))
 
     assert provider.call_count == 1
-    assert "Template HPI text" in provider.last_prompt  # template seed in prompt
+    # LLM-enabled section's template text MUST NOT leak into the prompt
+    # (retired in v3 — was `--- TEMPLATE SEED ---\n${template_text}` in v2).
+    assert "Template HPI text" not in provider.last_prompt
+    # Sibling non-LLM sections DO pass through as reference context so the
+    # LLM can ground its generation in facts template renderers computed
+    # (e.g. a chronic conditions list under `assessment_and_plan`).
+    assert "Template A&P text" in provider.last_prompt
 
 
 def test_template_seed_strategy_only_replaces_llm_enabled_sections() -> None:
