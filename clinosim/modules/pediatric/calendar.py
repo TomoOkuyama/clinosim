@@ -10,14 +10,18 @@ Determinism notes:
 - The generator accepts a caller-supplied `prng` (the per-person
   spawned generator already used by `generate_healthcare_calendar`), so
   no master RNG is consumed here.
-- The YAML is parsed once at call time (small file); no lru_cache to
-  keep hot-reload friendly for tests. Callers who care about repeat
-  cost can cache the result of `load_pediatric_schedule()`.
+- The YAML load is cached via `@lru_cache` per resolved path. Pre-cache,
+  the loader was called ~1.3× per patient during the healthcare-calendar
+  build (1,325 calls / 19.6s cumulative on a JP p=1000 profile) because
+  the schedule ran uncached inside the per-patient generator hot loop.
+  Tests that mutate the schedule file can invalidate via
+  ``load_pediatric_schedule.cache_clear()``.
 """
 
 from __future__ import annotations
 
 from datetime import date
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +31,7 @@ import yaml
 _YAML_PATH = Path(__file__).parent / "reference_data" / "pediatric_schedule.yaml"
 
 
+@lru_cache(maxsize=8)
 def load_pediatric_schedule(path: Path | None = None) -> dict[str, dict[str, Any]]:
     """Load and validate the pediatric encounter schedule.
 
