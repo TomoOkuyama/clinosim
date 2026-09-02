@@ -53,6 +53,12 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.document.narrative.registry import (
+    resolve_section_loinc as _resolve_section_loinc,
+)
+from clinosim.modules.document.narrative.registry import (
+    resolve_section_title as _resolve_section_title,
+)
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
     build_external_org_resource,
@@ -173,255 +179,32 @@ def _localize_practitioner_ids_in_text(text: str, roster_map: dict[str, dict], c
     return _STAFF_ID_RE.sub(_sub, text)
 
 
-# C2-27: map section titles (as produced by document
-# enrichers / narrative pass) to LOINC section codes. Codes verified via the
-# LOINC search (loinc.org), matching HL7 recommendations for CCD document
-# sections. Titles not listed here remain title-only until either the enricher
-# starts emitting a canonical title or the code is verified.
-# Issue #360 G3 (iris4h-ai 2026-07-22 feedback): Composition.section.title
-# on JP output previously emitted the raw English slug ("adl_assessment",
-# "hpi", "chief_complaint", ...) which iris4h-ai's Clinical Cockpit had to
-# dictionary-lookup on the UI side to render Japanese titles. Generator-side
-# translation moves that responsibility back to clinosim, matching how
-# JP-CLINS DISCHARGE_SUMMARY sections already carry Japanese titles.
+# =============================================================================
+# Section catalog lookup (META #957 close-out session 97, 2026-09-02)
+# =============================================================================
 #
-# Keys are the section_title strings written by the enrichers / narrative
-# pass; values are the JP-clinical-chart display form. When an entry is
-# missing (unknown slug) the caller falls back to the raw slug so the
-# section still emits — silent-no-op deferral rather than a silent drop.
-# Coverage extends to every slug currently in `_SECTION_LOINC` (below) plus
-# the 30 slugs listed in the iris4h-ai feedback report.
-_SECTION_TITLE_JA: dict[str, str] = {
-    # SOAP outpatient / progress notes
-    "subjective": "主観的所見",
-    "objective": "客観的所見",
-    "assessment": "評価",
-    "plan": "計画",
-    # Admission H&P / progress
-    "chief_complaint": "主訴",
-    "hpi": "現病歴",
-    "past_medical_history": "既往歴",
-    "medications_at_home": "服薬歴",
-    "physical_exam": "身体所見",
-    "physical_examination": "身体所見",
-    "triage_details": "トリアージ情報",
-    # Discharge summary
-    "admission_summary": "入院時サマリー",
-    "hospital_course": "入院経過",
-    "discharge_diagnoses": "退院時診断",
-    "discharge_medications": "退院時処方",
-    "discharge_evaluation": "退院時評価",
-    "discharge_readiness": "退院可能性",
-    # Nursing sections
-    "nursing_history": "看護歴",
-    "nursing_diagnosis": "看護診断",
-    "nursing_interventions_provided": "実施した看護介入",
-    "admission_status": "入院時状態",
-    "adl_assessment": "ADL評価",
-    "risk_assessments": "リスク評価",
-    "care_plan": "看護計画",
-    "reassessment_timing": "再評価予定",
-    "other_issues": "その他",
-    # Ward-info & plan sections
-    "ward_and_room": "病棟・病室",
-    "ward_and_physician": "病棟・主治医",
-    "other_staff": "その他スタッフ",
-    "diagnosis": "診断",
-    "symptoms": "症状",
-    # Rehab
-    "patient_and_diagnosis": "患者・診断",
-    # Dietitian / nutrition
-    "dietitian": "栄養士",
-    "nutrition_risk": "栄養リスク",
-    "nutrition_assessment": "栄養評価",
-    "nutrition_goals": "栄養目標",
-    "nutrition_supply": "栄養供給",
-    "nutrition_counseling": "栄養指導",
-    "dietary_content": "食事内容",
-    "dysphagia_diet": "嚥下食",
-    # History / social
-    "allergies": "アレルギー",
-    "family_history": "家族歴",
-    "social_history": "社会歴",
-    # Education / assessment
-    "patient_education": "患者教育",
-    "assessment_and_plan": "評価と計画",
-    # Issue #870 — ED / inpatient planning sections
-    "ed_workup": "救急外来での評価",
-    "disposition": "転帰",
-    "treatment_plan": "治療計画",
-    "test_schedule": "検査予定",
-    "surgery_schedule": "手術予定",
-    "special_nutrition_management": "特別栄養管理",
-    "other_plans": "その他の計画",
-    "estimated_los": "予定入院期間",
-    "discharge_estimate": "退院見込み",
-    "explanation_consent": "説明と同意",
-    # Issue #870 — Rehabilitation plan sections
-    "session_frequency": "セッション頻度",
-    "rehab_team": "リハビリテーションチーム",
-    "policy": "方針",
-    "goals": "目標",
-    "functional_status": "機能状態",
-    "basic_movement": "基本動作",
-    # Issue #961 — 死亡診断書 (Death certificate) sections. Legal-form
-    # field labels per 医師法第 20 条 / MHLW 死亡診断書 form.
-    "immediate_cause_of_death": "直接死因",
-    "duration_of_immediate_cause": "直接死因までの期間",
-    "underlying_cause_of_death": "原死因",
-    "contributing_conditions": "影響を及ぼした傷病名",
-    "manner_of_death": "死因の種類",
-    "autopsy_status": "解剖の有無",
-    # Issue #961 extension — 死亡退院サマリー (Death discharge summary)
-    # sections. Real JP hospital templates title these with the plain
-    # section names (no 【】 or "セクション" suffix — these are Composition
-    # section titles, not narrative body headers).
-    "admission_state": "入院時病状",
-    "treatment_course": "治療経過",
-    "terminal_course": "終末期経過",
-    "circumstances_of_death": "死亡時状況",
-    "cause_of_death": "死因",
-    "complications_and_comorbidities": "合併症・併存症",
-    "family_communication": "家族への説明経過",
-    "autopsy_status_and_findings": "剖検の有無・所見",
-    # Issue #991 — 手術記録 (Operative note) sections. Titles mirror the
-    # section keys authored in
-    # ``clinosim/modules/document/reference_data/document_type_specs.yaml``.
-    # Session 97 drift fix: PR #991 landed the OPERATIVE_NOTE document
-    # type with builders for these 9 slugs but only populated the US
-    # display table (`_SECTION_TITLE_EN`), leaving JP output falling
-    # through to the raw machine slug — 36 hits in p=500 JP verify
-    # (op_procedure_name / op_anesthesia / …). Adding the JA mirror
-    # here (sibling to `pn_*` from PR #992 which shipped with both).
-    "op_procedure_name": "術式",
-    "op_anesthesia": "麻酔",
-    "op_surgeon": "術者",
-    "op_findings": "術中所見",
-    "op_course": "手術経過",
-    "op_specimens": "摘出標本",
-    "op_blood_loss": "推定出血量",
-    "op_equipment": "使用器具・機材",
-    "op_postop_plan": "術後方針",
-    # Issue #992 — 処置記録 (Procedure note) sections. Titles mirror the
-    # section keys authored in
-    # ``clinosim/modules/document/reference_data/document_type_specs.yaml``.
-    "pn_procedure_name": "処置名",
-    "pn_consent": "インフォームド・コンセント",
-    "pn_performer": "実施者",
-    "pn_analgesia": "麻酔・鎮静",
-    "pn_course": "処置経過",
-    "pn_complications": "合併症の有無",
-    "pn_specimens": "検体の有無",
-    "pn_postop_plan": "術後方針",
-}
-
-
-# English display for Composition.section.title on US output. Issue #1037:
-# US eDischargeSummary (and every other US Composition variant) previously
-# emitted the raw machine slug (``hospital_course``, ``discharge_diagnoses``,
-# ``op_procedure_name`` etc.) as ``title`` because the earlier US-side lookup
-# only covered death-certificate sections. Entries below mirror
-# ``_SECTION_TITLE_JA`` so every section type authored in
-# ``document_type_specs.yaml`` has a US display; anything not listed falls
-# through the humanization fallback in ``_localize_section_title``.
-_SECTION_TITLE_EN: dict[str, str] = {
-    # Admission H&P / progress
-    "hpi": "History of present illness",
-    "past_medical_history": "Past medical history",
-    "medications_at_home": "Home medications",
-    "physical_exam": "Physical exam",
-    "physical_examination": "Physical examination",
-    "chief_complaint": "Chief complaint",
-    "triage_details": "Triage details",
-    # Discharge summary — Issue #1037 primary scope
-    "admission_summary": "Admission summary",
-    "hospital_course": "Hospital course",
-    "discharge_diagnoses": "Discharge diagnoses",
-    "discharge_medications": "Discharge medications",
-    "discharge_instructions": "Discharge instructions",
-    "discharge_evaluation": "Discharge evaluation",
-    "discharge_readiness": "Discharge readiness",
-    "follow_up": "Follow-up",
-    # Nursing sections
-    "nursing_history": "Nursing history",
-    "nursing_diagnosis": "Nursing diagnosis",
-    "nursing_interventions_provided": "Nursing interventions provided",
-    "admission_status": "Admission status",
-    "adl_assessment": "ADL assessment",
-    "risk_assessments": "Risk assessments",
-    "care_plan": "Care plan",
-    "reassessment_timing": "Reassessment timing",
-    "other_issues": "Other issues",
-    # History / social
-    "social_history": "Social history",
-    "family_history": "Family history",
-    # Education / assessment
-    "patient_education": "Patient education",
-    "assessment_and_plan": "Assessment and plan",
-    # ED / inpatient planning (Issue #870 US mirror)
-    "ed_workup": "ED workup",
-    "treatment_plan": "Treatment plan",
-    "test_schedule": "Test schedule",
-    "surgery_schedule": "Surgery schedule",
-    "special_nutrition_management": "Special nutrition management",
-    "other_plans": "Other plans",
-    "estimated_los": "Estimated length of stay",
-    "discharge_estimate": "Estimated discharge",
-    "explanation_consent": "Explanation and consent",
-    # Rehabilitation plan (Issue #870 US mirror)
-    "session_frequency": "Session frequency",
-    "rehab_team": "Rehabilitation team",
-    "functional_status": "Functional status",
-    "basic_movement": "Basic movement",
-    # Ward-info & plan
-    "ward_and_room": "Ward and room",
-    "ward_and_physician": "Ward and attending physician",
-    "other_staff": "Other staff",
-    # Operative note
-    "op_procedure_name": "Procedure",
-    "op_anesthesia": "Anesthesia",
-    "op_surgeon": "Surgeon",
-    "op_findings": "Operative findings",
-    "op_course": "Operative course",
-    "op_specimens": "Specimens",
-    "op_blood_loss": "Estimated blood loss",
-    "op_equipment": "Equipment",
-    "op_postop_plan": "Post-operative plan",
-    # Issue #961 — death certificate sections (US locale)
-    "immediate_cause_of_death": "Immediate cause of death",
-    "duration_of_immediate_cause": "Time from onset of immediate cause to death",
-    "underlying_cause_of_death": "Underlying cause of death",
-    "contributing_conditions": "Contributing conditions",
-    "manner_of_death": "Manner of death",
-    "autopsy_status": "Autopsy performed",
-    # Issue #961 extension — death discharge summary sections (US locale)
-    "admission_state": "Clinical state at admission",
-    "treatment_course": "Treatment course",
-    "terminal_course": "Terminal course",
-    "circumstances_of_death": "Circumstances of death",
-    "cause_of_death": "Cause of death",
-    "complications_and_comorbidities": "Complications and comorbidities",
-    "family_communication": "Family communication",
-    "autopsy_status_and_findings": "Autopsy status and findings",
-    # Issue #992 — 処置記録 sections (US locale)
-    "pn_procedure_name": "Procedure",
-    "pn_consent": "Informed consent",
-    "pn_performer": "Operator",
-    "pn_analgesia": "Analgesia",
-    "pn_course": "Procedure course",
-    "pn_complications": "Complications",
-    "pn_specimens": "Specimens",
-    "pn_postop_plan": "Post-procedure plan",
-}
-
-
+# Section slug metadata (title_ja / title_en / LOINC) previously lived in
+# three parallel dicts here (`_SECTION_TITLE_JA`, `_SECTION_TITLE_EN`,
+# `_SECTION_LOINC`). Asymmetric ship (e.g. PR #991 OPERATIVE_NOTE landing
+# forgot the JA-side dict; raw slug `op_procedure_name` leaked as
+# `Composition.section.title` on 36 JP p=500 sections, patched by PR #1055)
+# proved the drift class was systemic.
+#
+# The three dicts are now consolidated into a single yaml SoT at
+# `clinosim/modules/document/reference_data/section_catalog.yaml`, loaded +
+# validated at import time via
+# `clinosim.modules.document.narrative.registry.load_section_catalog` (fail-loud
+# on any slug authored in `document_type_specs.yaml` that lacks a catalog
+# entry). The two thin wrappers below preserve the historical call sites
+# (`_localize_section_title` / `_SECTION_LOINC.get`) so grep/imports keep
+# working while narrative CIF schema migration (Stage 2 title write-through)
+# lands as a follow-up PR.
 def _humanize_section_slug(slug: str) -> str:
-    """Fallback humanization for a section slug not in ``_SECTION_TITLE_EN``.
-
-    ``op_blood_loss`` → ``"Op blood loss"``. Not perfect but far better than
-    emitting the raw slug for US consumers, and it means adding a new section
-    to ``document_type_specs.yaml`` cannot silently regress to a machine-key
-    title again (Issue #1037 regression class).
+    """Last-resort fallback humanization for a slug not registered in the
+    catalog. `_validate_section_catalog` prevents this path from being hit
+    for any slug authored in `document_type_specs.yaml`, but the helper is
+    retained for safety on legacy fixture / ad-hoc callers that pass a
+    non-registered title string. ``op_blood_loss`` → ``"Op blood loss"``.
     """
     if not slug:
         return slug
@@ -429,134 +212,29 @@ def _humanize_section_slug(slug: str) -> str:
 
 
 def _localize_section_title(section_title: str, lang: str) -> str:
-    """Return the display form of a Composition.section.title for ``lang``.
+    """Return the display form of a `Composition.section.title` for `lang`.
 
-    Issue #360 G3: JP output previously emitted the raw English slug
-    (``adl_assessment``, ``hpi``); this helper substitutes the Japanese
-    display when ``lang == "ja"``. Issue #1037: US output previously
-    emitted the raw slug (``hospital_course``) as the title; now every
-    slug either has an explicit ``_SECTION_TITLE_EN`` entry or is
-    humanized so ``title`` is never a bare machine key.
+    Reads from `section_catalog.yaml`. Unknown slugs (which should not
+    happen for anything from `document_type_specs.yaml` — validated at
+    import time) fall through to `_humanize_section_slug` on the US path
+    or pass through unchanged on JP (matching pre-catalog behavior).
     """
+    resolved = _resolve_section_title(section_title, lang)
+    if resolved:
+        return resolved
     if lang == "ja":
-        return _SECTION_TITLE_JA.get(section_title, section_title)
-    if section_title in _SECTION_TITLE_EN:
-        return _SECTION_TITLE_EN[section_title]
-    # Slugs that already look human-readable (Title Case, contain spaces,
-    # or are plain English words the caller passed) pass through unchanged.
+        return section_title  # JP path historically passed slug through on miss
     if section_title and (section_title[0].isupper() or " " in section_title):
         return section_title
     return _humanize_section_slug(section_title)
 
 
-_SECTION_LOINC: dict[str, str] = {
-    # SOAP outpatient / progress notes
-    "subjective": "10164-2",  # History of Present illness (subj narrative)
-    "objective": "8716-3",  # Vital signs (objective) — narrower approx
-    "assessment": "51848-0",  # Evaluation note (assessment)
-    "plan": "18776-5",  # Plan of care note
-    # Admission H&P / progress
-    "chief_complaint": "10154-3",  # Chief complaint
-    "hpi": "10164-2",  # History of present illness
-    "past_medical_history": "11348-0",  # History of past illness
-    "medications_at_home": "10160-0",  # History of medication use
-    "physical_exam": "29545-1",  # Physical findings
-    # #276:従来 56816-2 を "Vital signs assessment" として
-    # section code に使用していたが LOINC 56816-2 の LONG_COMMON_NAME は
-    # "Patient location"(semantic-mismatch)。8716-3 "Vital signs note"
-    # に substitute(clinosim authoritative snapshot verified)。
-    "triage_details": "8716-3",  # Vital signs note
-    # Discharge summary
-    "admission_summary": "10154-3",  # (reused, admission complaint)
-    "hospital_course": "8648-8",  # Hospital course
-    "discharge_diagnoses": "11535-2",  # Hospital discharge diagnosis
-    "discharge_medications": "10183-2",  # Hospital discharge medications
-    # Nursing sections
-    "nursing_history": "34117-2",  # History and physical (H&P)
-    # 45391-8 is unknown in the fhir-jp-validator's LOINC
-    # 2.82 cache (148 v4 errors). Substitute with the plan-of-care catch-all
-    # (18776-5) that clinosim already emits successfully across many section
-    # keys — ADL / functional / basic-movement notes fit under the rehab plan
-    # of care semantically.
-    "adl_assessment": "18776-5",  # Plan of care note (was 45391-8, unknown in LOINC 2.82)
-    "risk_assessments": "75326-9",  # Assessment plan
-    "nursing_diagnosis": "51848-0",  # Evaluation note (approx)
-    "admission_status": "8648-8",  # Hospital course
-    "nursing_interventions_provided": "10184-0",  # Interventions
-    # 42346-6 is unknown in the fhir-jp-validator's
-    # LOINC 2.82 cache (135 v4 errors). Substitute with 18776-5 (Plan of care
-    # note) — patient education / consent is part of the plan-of-care family
-    # in CCDA.
-    "patient_education": "18776-5",  # Plan of care note (was 42346-6)
-    "discharge_readiness": "8650-4",  # Hospital discharge readiness
-    # Ward-info & plan sections
-    "ward_and_room": "42349-1",  # Reason for visit (approx)
-    "other_staff": "51897-7",  # Care team member
-    "diagnosis": "29308-4",  # Diagnosis
-    "symptoms": "10187-3",  # Review of systems (approx)
-    "ward_and_physician": "42349-1",  # Reason for visit
-    "dietitian": "51897-7",  # Care team member
-    "nutrition_risk": "61144-2",  # Diet and nutrition Narrative (C4-04 cycle 4: 9279-1 was Respiratory rate — wrong LOINC)  # noqa: E501
-    "nutrition_assessment": "61144-2",  # (same)
-    # Rehab
-    "patient_and_diagnosis": "29308-4",  # Diagnosis
-    "rehab_team": "51897-7",  # Care team member
-    "functional_status": "18776-5",  # Plan of care note (was 45391-8, unknown)
-    "basic_movement": "18776-5",  # (same)
-    # CY2-C: residual auto-derived section titles that
-    # appeared in cycle 2's 8% uncoded remainder. Codes verified via LOINC
-    # search.
-    "ed_workup": "51852-2",  # Workup panel (ED assessment)
-    "disposition": "68609-7",  # Discharge disposition (ED disposition)
-    "allergies": "48765-2",  # Allergies and adverse reactions
-    "social_history": "29762-2",  # Social history
-    "family_history": "10157-6",  # History of family member disease
-    "physical_examination": "29545-1",  # Physical findings (reuse of physical_exam)
-    "assessment_and_plan": "51847-2",  # Assessment and plan note
-    "care_plan": "18776-5",  # Plan of care note (reuse of plan)
-    "treatment_plan": "18776-5",  # (reused)
-    "test_schedule": "18776-5",  # (falls under plan)
-    "surgery_schedule": "18776-5",  # (falls under plan)
-    "estimated_los": "8648-8",  # Hospital course (LOS estimate)
-    "special_nutrition_management": "61144-2",  # Diet and nutrition Narrative
-    "other_plans": "18776-5",  # Plan of care (catch-all)
-    "discharge_instructions": "8653-8",  # Hospital discharge instructions
-    "follow_up": "18776-5",  # Plan of care (follow-up)
-    "nutrition_goals": "61144-2",  # Diet nutrition goals
-    "nutrition_supply": "61144-2",  # (same)
-    "dysphagia_diet": "61144-2",  # (same)
-    "dietary_content": "61144-2",  # (same)
-    # C4-19: residual unmapped titles from cycle 4
-    # baseline (546 sections in JP p=10000). Bind to the closest LOINC where
-    # the CCDA / narrative theme corresponds; uncertain titles fall back to
-    # a plan-of-care catch-all (18776-5) matching how care_plan / follow_up
-    # already map above.
-    "nutrition_counseling": "61144-2",  # Diet and nutrition Narrative
-    "other_issues": "51852-2",  # Provider unspecified Progress note (catch-all narrative)
-    "reassessment_timing": "18776-5",  # Plan of care (schedule)
-    "discharge_evaluation": "8650-4",  # Hospital discharge readiness
-    "session_frequency": "18776-5",  # Plan of care
-    "goals": "18776-5",  # Plan of care (goals section of care plan)
-    "policy": "18776-5",  # Plan of care (policy = clinical plan)
-    "discharge_estimate": "8648-8",  # Hospital course (estimated LOS/discharge)
-    "explanation_consent": "18776-5",  # Plan of care (was 42346-6, unknown)
-    # Issue #992 — 処置記録 (Procedure note) sections. We map every
-    # ``pn_*`` slug to LOINC codes that are already used elsewhere in
-    # this file (all confirmed present in the fhir-jp-validator LOINC
-    # 2.82 cache). ``29554-3`` "Procedure narrative" is a canonical
-    # match for the procedural body; ``51897-7`` "Care team member"
-    # matches the operator section; every remaining section falls back
-    # to ``18776-5`` "Plan of care note" — the catch-all this file
-    # already uses for care_plan / follow_up / functional_status.
-    "pn_procedure_name": "29554-3",  # Procedure narrative (name/description)
-    "pn_consent": "18776-5",
-    "pn_performer": "51897-7",  # Care team member
-    "pn_analgesia": "18776-5",
-    "pn_course": "29554-3",  # Procedure narrative
-    "pn_complications": "18776-5",
-    "pn_specimens": "18776-5",
-    "pn_postop_plan": "18776-5",
-}
+def _loinc_for_section(section_title: str) -> str | None:
+    """Return the LOINC section code for `section_title`, or `None` if the
+    slug is not registered in the catalog. Callers that previously used
+    `_SECTION_LOINC.get(...)` now go through this helper."""
+    code = _resolve_section_loinc(section_title)
+    return code or None
 
 
 # === Issue #925: encounter → linked-resource index ===
@@ -1178,7 +856,7 @@ def _build_composition_generic(
                 "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{_escape_html(_resolved_text)}</div>",
             },
         }
-        loinc_section = _SECTION_LOINC.get(section_title)
+        loinc_section = _loinc_for_section(section_title)
         if loinc_section:
             _loinc_disp = code_lookup("loinc", loinc_section, _doc_lang) or section_title
             # p=500 review finding (session 89): LOINC is on the
