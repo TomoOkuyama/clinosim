@@ -19,7 +19,7 @@ Usage:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 import yaml
@@ -111,7 +111,14 @@ def is_japanese_only_display_system(system_key: str) -> bool:
     return system_key in _JAPANESE_ONLY_DISPLAY_SYSTEMS
 
 
-@lru_cache(maxsize=32)
+# maxsize=None (unbounded): the set of code-system keys is bounded at
+# module scope (~32 yaml files + a handful of aliases + at most one None
+# entry per missing key), so unbounded cache carries no growth risk while
+# eliminating the off-by-one LRU thrash. Pre-#1062 the ceiling was 32 vs
+# 33 distinct keys, so every full pass evicted the LRU tail and the next
+# access re-parsed the evicted yaml from disk — profile showed
+# ``_load_system`` accumulating ~22s / 6,538 calls despite the decorator.
+@cache
 def _load_system(system_key: str) -> CodeSystem | None:
     """Load a code system yaml file. Returns None if not found."""
     data_key = _SYSTEM_DATA_ALIASES.get(system_key, system_key)

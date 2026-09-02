@@ -37,29 +37,51 @@ __all__ = [
 # lru_cache object keeps those APIs working.
 
 
+# Pattern caches for the localization hot paths. Keyed on `id()` of the
+# loader-returned dict so `_load_med_terms_ja.cache_clear()` /
+# `_load_drug_names_ja.cache_clear()` (tests) transparently invalidate the
+# derived pattern cache: the next loader call returns a fresh dict object,
+# `id()` differs, and the compiled-pattern rebuild kicks in.
+_DOSAGE_PATTERNS_CACHE: dict[str, object] = {"dict_id": None, "value": None}
+_DRUG_PATTERNS_CACHE: dict[str, object] = {"dict_id": None, "value": None}
+
+
+def _dosage_term_patterns() -> tuple[tuple[re.Pattern[str], str], ...]:
+    """Pre-compile med-term (category + term) regex patterns once per process.
+
+    Pre-#1062 the sort + `re.compile` ran on every ``_localize_dosage_terms``
+    call — 183 terms × 104,581 calls on a JP p=1000 sim = ~19M compile
+    operations, ~45s wall. Sorting descending-by-length once and returning
+    the compiled patterns as a tuple lets the hot-path skip both.
+    """
+    tables = _load_med_terms_ja()
+    if _DOSAGE_PATTERNS_CACHE["dict_id"] == id(tables):
+        return _DOSAGE_PATTERNS_CACHE["value"]  # type: ignore[return-value]
+    patterns: list[tuple[re.Pattern[str], str]] = []
+    # Category prefixes first, longest-match-wins, case-insensitive.
+    for cat, ja in sorted(tables["categories"].items(), key=lambda x: -len(x[0])):
+        patterns.append((re.compile(r"(?i)\b" + re.escape(cat) + r"\b"), ja))
+    # Dose/route/frequency terms: case-sensitive for all-caps abbreviations
+    # (PRN, PO, IV) so the terminal-lower-case token "po" in "clopidogrel"
+    # does not collide, case-insensitive otherwise.
+    for term, ja in sorted(tables["terms"].items(), key=lambda x: -len(x[0])):
+        if term.isupper():
+            patterns.append((re.compile(r"\b" + re.escape(term) + r"\b"), ja))
+        else:
+            patterns.append((re.compile(r"(?i)\b" + re.escape(term) + r"\b"), ja))
+    compiled = tuple(patterns)
+    _DOSAGE_PATTERNS_CACHE["dict_id"] = id(tables)
+    _DOSAGE_PATTERNS_CACHE["value"] = compiled
+    return compiled
+
+
 def _localize_dosage_terms(text: str) -> str:
     """Translate common medical abbreviations and dosage terms to Japanese.
 
     Word-level replacements with case-insensitive matching for common terms.
     """
-    tables = _load_med_terms_ja()
-    # Category prefixes (apply first, longest-match-wins, case-insensitive)
-    # These often appear as "Category: ..." or "Category_word ..."
-    for cat, ja in sorted(tables["categories"].items(), key=lambda x: -len(x[0])):
-        # Match as prefix word, case-insensitive, followed by : or space or _
-        pattern = r"(?i)\b" + re.escape(cat) + r"\b"
-        text = re.sub(pattern, ja, text)
-    # Dose/route/frequency terms (word-boundary, case-sensitive for uppercase abbrevs,
-    # case-insensitive for lowercase words)
-    for term, ja in sorted(tables["terms"].items(), key=lambda x: -len(x[0])):
-        if term.isupper():
-            # Case-sensitive for uppercase abbrevs (PRN, PO, IV)
-            pattern = r"\b" + re.escape(term) + r"\b"
-            text = re.sub(pattern, ja, text)
-        else:
-            # Case-insensitive for lowercase words
-            pattern = r"(?i)\b" + re.escape(term) + r"\b"
-            text = re.sub(pattern, ja, text)
+    for pattern, ja in _dosage_term_patterns():
+        text = pattern.sub(ja, text)
     return text
 
 
@@ -116,6 +138,27 @@ def _localize_rate_adjustment(note_en: str, country: str) -> str:
     return f"注入速度を{m.group(2)}%{direction_ja}"
 
 
+def _drug_name_patterns() -> tuple[tuple[re.Pattern[str], str], ...]:
+    """Pre-compile the drug-name substring regex list once per process.
+
+    Pre-#1062 the sort + ``re.compile`` ran on every ``_localize_drug_name``
+    call — 267 drugs × 78,474 calls on a JP p=1000 sim = ~21M compile
+    operations, ~48s wall. Sorting descending-by-length once (longest match
+    wins for substring replacement) and pre-compiling collapses the slow
+    fall-through path to a plain list iteration + `pattern.subn` per entry.
+    Cache-invalidation notes on ``_DOSAGE_PATTERNS_CACHE`` apply here too.
+    """
+    ja_dict = _load_drug_names_ja()
+    if _DRUG_PATTERNS_CACHE["dict_id"] == id(ja_dict):
+        return _DRUG_PATTERNS_CACHE["value"]  # type: ignore[return-value]
+    compiled = tuple(
+        (re.compile(r"(?i)\b" + re.escape(k) + r"\b"), v) for k, v in sorted(ja_dict.items(), key=lambda x: -len(x[0]))
+    )
+    _DRUG_PATTERNS_CACHE["dict_id"] = id(ja_dict)
+    _DRUG_PATTERNS_CACHE["value"] = compiled
+    return compiled
+
+
 def _localize_drug_name(drug_name: str, country: str) -> str:
     """Resolve drug name to Japanese when country=JP.
 
@@ -145,9 +188,7 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     # Use case-insensitive regex replacement
     result = normalized
     changed = False
-    for en_key in sorted(ja_dict.keys(), key=lambda k: -len(k)):
-        ja_val = ja_dict[en_key]
-        pattern = re.compile(r"(?i)\b" + re.escape(en_key) + r"\b")
+    for pattern, ja_val in _drug_name_patterns():
         new_result, n = pattern.subn(ja_val, result)
         if n > 0:
             result = new_result
