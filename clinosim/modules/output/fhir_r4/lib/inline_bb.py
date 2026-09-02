@@ -438,6 +438,18 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
         if order.get("order_type") == "medication":
             if not (order.get("display_name") or "").strip():
                 continue  # skip blank drug names (CIF data quality)
+            # Session-98 F4/F5 fix: DISCONTINUE stop-orders (emitted by
+            # daily_loop._apply_treatment_modifier as `Order(display_name=
+            # "DISCONTINUE: X")`) describe a treatment stop event, not a
+            # prescription. Emitting them as MedicationRequest produces
+            # phantom Rx (the "DISCONTINUE:" prefix is stripped by
+            # strip_protocol_prefix so they land in the FHIR output as if
+            # they were fresh prescriptions of the drug the clinician
+            # actually stopped). Mirror the MAR-side filter in
+            # medication_pipeline._generate_mar so the FHIR view is
+            # consistent — no phantom MR, no phantom MA.
+            if (order.get("display_name") or "").startswith("DISCONTINUE:"):
+                continue
             if not order.get("ordered_by"):
                 _eid = order.get("encounter_id", "") or ctx.primary_enc_id
                 _att = _attending_by_enc.get(_eid, "")

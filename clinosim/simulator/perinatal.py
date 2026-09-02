@@ -304,7 +304,7 @@ def simulate_delivery_encounter(
     roster: StaffRoster,
     rng: np.random.Generator,
     country: str = "US",
-    config: object | None = None,  # noqa: ARG001 — reserved for enricher hook parity
+    config: object | None = None,
     hospital_ops: dict | None = None,
 ) -> list[CIFPatientRecord]:
     """Build the delivery encounter chain: mother's IMP encounter +
@@ -470,4 +470,28 @@ def simulate_delivery_encounter(
         physiological_states=[],
     )
 
-    return [mother_record, newborn_record]
+    records = [mother_record, newborn_record]
+
+    # POST_ENCOUNTER stage — session-98 F3 follow-up. Delivery + newborn
+    # inpatient encounters previously skipped the enricher stage,
+    # producing 4 IMP encounters / p=1000 (2 Z37.0 mothers + 2 Z38.0
+    # newborns) with ZERO Compositions in the extended verify. Documents
+    # / nursing / ADL / I/O are the exact EHR-record integrity signals a
+    # downstream reader expects on ANY inpatient stay; birth admissions
+    # are physically real inpatient stays. Guarded on ``config is not
+    # None`` for test parity (the enricher stage requires config.country).
+    if config is not None:
+        from clinosim.simulator.enrichers import POST_ENCOUNTER, EnricherContext, run_stage
+
+        for _rec in records:
+            run_stage(
+                POST_ENCOUNTER,
+                EnricherContext(
+                    config=config,
+                    master_seed=config.random_seed,
+                    records=[_rec],
+                    roster=roster,
+                ),
+            )
+
+    return records
