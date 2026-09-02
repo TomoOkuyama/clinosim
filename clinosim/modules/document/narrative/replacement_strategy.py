@@ -409,14 +409,40 @@ def _apply_template_seed_strategy(
     country = ctx.locale.upper() if getattr(ctx, "locale", None) else "US"
     llm_sections = [s for s in spec.llm_enabled_sections_for(country) if s in new_sections]
 
-    for section in llm_sections:
-        template_text = new_sections.get(section, "")
+    # v3 (2026-09-02 prompt double-check): build the SAME structured
+    # `context_sections` payload the bundle strategy uses. Passing template
+    # `${template_text}` as an LLM seed was retired — the template output
+    # is language-drift-prone (a p=10000 JP verify found 34,908 sections
+    # emitting English where JA was expected) and anchoring the LLM to
+    # that drift defeats the JP prompt's language instruction. Fresh
+    # generation grounded strictly in `context_sections` mirrors the
+    # bundle strategy's design principle. The per-section fallback path
+    # (this function) only fires on bundle-JSON-parse failure, but the
+    # SAME grounding contract now applies to both paths.
+    context_sections: dict[str, str] = {
+        s: new_sections.get(s, "") for s in template_output.sections.keys() if s not in llm_sections
+    }
+    _extra = _build_extra_context(ctx, spec, template_section_names=set(context_sections.keys()))
+    for _k, _v in _extra.items():
+        if _k not in context_sections and _v:
+            context_sections[_k] = _v
 
+    import json as _json  # local (matches bundle strategy pattern below)
+
+    if context_sections:
+        context_json_block = "Context sections (reference only — do NOT modify):\n" + _json.dumps(
+            context_sections, ensure_ascii=False, indent=2
+        )
+    else:
+        context_json_block = "Context sections: (none — every template section is being rewritten)"
+
+    for section in llm_sections:
         # Layer-1 cache lookup (NarrativeCache, clinical-context key).
-        # seed_hash (C-1, N-chain adv-1): hashing the template seed text into
-        # the key makes a cache hit ⇔ identical seed — wrong-patient reuse is
-        # structurally impossible even when the clinical-context components
-        # degenerate (e.g. disease_id="" on the production pass path).
+        # seed_hash (C-1, N-chain adv-1): now hashes the section-name +
+        # context_sections tuple rather than the retired template seed.
+        # Cache hit ⇔ same section-name + same context — wrong-patient
+        # reuse is still structurally impossible.
+        _cache_repr = section + "\x01" + "\n".join(f"{k}\x00{v}" for k, v in sorted(context_sections.items()))
         c_key = cache_key(
             disease=disease_id,
             archetype=ctx.clinical_course_archetype,
@@ -425,7 +451,7 @@ def _apply_template_seed_strategy(
             demographics_bucket=demo_bucket,
             lang=ctx.target_lang,
             section=section,
-            seed_hash=template_seed_hash(template_text),
+            seed_hash=template_seed_hash(_cache_repr),
         )
         if cache_get is not None:
             cached = cache_get(c_key)
@@ -433,17 +459,17 @@ def _apply_template_seed_strategy(
                 new_sections[section] = cached
                 continue
 
-        # Cache miss — invoke the LLM with template seed (Idea D) via the
-        # unified AD-11 path (retry + PromptCache + cost accounting inside).
-        # Prompt ownership (N-3): prompts/{en,ja}/narrative_seed.yaml rendered
-        # via the service's PromptRegistry (en fallback for other languages).
-        # A missing/invalid prompt raises (FileNotFoundError / KeyError) and
+        # Cache miss — invoke the LLM via the unified AD-11 path (retry +
+        # PromptCache + cost accounting inside). Prompt ownership (N-3):
+        # prompts/{en,ja}/narrative_seed.yaml v3 (post-2026-09-02 shift
+        # to context-driven; no ${template_text} variable). A missing /
+        # invalid prompt raises (FileNotFoundError / KeyError) and
         # propagates to LLMNarrativeGenerator's template fallback.
         prompt_spec = llm.prompt_registry.get("narrative_seed", language)
         system_prompt, user_prompt = prompt_spec.render(
             {
                 "section": section,
-                "template_text": template_text,
+                "context_json_block": context_json_block,
                 "severity": ctx.severity,
                 "day_index": ctx.day_index,
             }

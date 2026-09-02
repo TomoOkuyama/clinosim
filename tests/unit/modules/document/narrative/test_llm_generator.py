@@ -165,9 +165,17 @@ def test_llm_generator_template_only_spec_keeps_template_metadata() -> None:
     assert result.metadata["generator"] == "template"
 
 
-def test_llm_generator_template_seed_prompt_contains_seed_text() -> None:
-    """Idea D pin: the seed prompt sent to the provider embeds template text."""
-    tg = _mock_template_generator({"hpi": "UNIQUE-SEED-TEXT", "assessment_and_plan": "a&p"})
+def test_llm_generator_template_seed_prompt_is_context_driven_not_seed_driven() -> None:
+    """v3 (2026-09-02 prompt double-check): the retired Idea D "seed pin"
+    is gone. The LLM-enabled section's template text MUST NOT be embedded
+    in the prompt as a rewrite anchor (template output was language-drift-
+    prone in JP and defeated the JA generation contract). The prompt now
+    embeds the sibling non-LLM sections + CIF-derived extras as
+    `context_sections` reference facts. See
+    `clinosim/modules/llm_service/prompts/{en,ja}/narrative_seed.yaml` v3
+    header for the design rationale.
+    """
+    tg = _mock_template_generator({"hpi": "UNIQUE-SEED-TEXT", "assessment_and_plan": "A&P-CONTEXT-TEXT"})
     provider = MockProvider()
     gen = LLMNarrativeGenerator(template_generator=tg, llm=_mock_llm_service(provider))
     spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
@@ -175,7 +183,10 @@ def test_llm_generator_template_seed_prompt_contains_seed_text() -> None:
 
     gen.generate(ctx, spec)
 
-    assert "UNIQUE-SEED-TEXT" in provider.last_prompt
+    # LLM-enabled section's template text MUST NOT leak (retired seed).
+    assert "UNIQUE-SEED-TEXT" not in provider.last_prompt
+    # Sibling non-LLM section's text DOES pass through as reference context.
+    assert "A&P-CONTEXT-TEXT" in provider.last_prompt
 
 
 # ─────────────────────────────────────────────────────────────────
