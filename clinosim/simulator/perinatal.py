@@ -483,12 +483,17 @@ def simulate_delivery_encounter(
     if config is not None:
         from clinosim.simulator.enrichers import POST_ENCOUNTER, EnricherContext, run_stage
 
+        # `config` is annotated `object | None` (kept for enricher-hook
+        # parity), narrow to SimulatorConfig locally so mypy resolves
+        # `config.random_seed`. Runtime callers always pass the concrete
+        # SimulatorConfig instance via `simulator/engine.py::simulate`.
+        _seed = int(getattr(config, "random_seed", 0))
         for _rec in records:
             run_stage(
                 POST_ENCOUNTER,
                 EnricherContext(
                     config=config,
-                    master_seed=config.random_seed,
+                    master_seed=_seed,
                     records=[_rec],
                     roster=roster,
                 ),
