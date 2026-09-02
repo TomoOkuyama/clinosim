@@ -5,29 +5,42 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_discharge_summary_family_communication
-version: 1
+version: 2
 max_tokens: 300
 temperature: 0.3
 description: |
-  LLM refinement prompt for the "Family communication" section. CIF
-  does not model family-communication events; the template emits a
-  LOS-bucket-appropriate boilerplate. The LLM polishes without
-  fabricating specific meeting dates, family names, or verbatim quotes.
+  LLM generation prompt for the "Family communication" section. CIF
+  does not model family-communication events; the LLM produces a
+  LOS-bucket-appropriate high-level summary from the structured facts
+  below.
+
+  v2 (2026-09-02, session 97 prompt audit): retired `${template_seed}`.
+  Structured CIF facts + system-prompt format spec only. Sibling of
+  narrative_seed.yaml v3.
 
 system: |
   You are the attending physician writing the "Family communication"
-  section of a death discharge summary. Polish the template seed.
+  section of a death discharge summary. Compose 1-2 sentences directly
+  from the structured CIF facts below.
 
   Rules:
-    - Do NOT invent specific meeting dates, family names, or verbatim
-      quotes. Preserve the LOS-bucket abstraction from the seed.
-    - 1-2 sentences. Under 70 words. No section heading.
+    - Use ONLY the facts provided. Do NOT invent specific meeting
+      dates, family names, or verbatim quotes.
+    - Keep the summary abstract (e.g., "family was updated at
+      admission and at intervals throughout the stay"), scaled to
+      LOS bucket:
+        short — admission update + terminal update
+        medium — admission + at clinical inflection + terminal
+        long — admission + multiple conferences + end-of-life goals
+               discussion + terminal
+    - Do NOT mention DNAR consent or bedside presence unless present
+      in the input.
+    - 1-2 sentences. Under 70 words. Clinical prose register. No
+      section heading. No Markdown syntax.
 
 user_template: |
   LOS: ${los_days} days (bucket: ${los_bucket})
   Death datetime: ${death_datetime}
 
-  Template seed:
-  ${template_seed}
-
-  Refine.
+  Using only the facts above, compose the "Family communication"
+  section body.

@@ -5,31 +5,38 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_discharge_summary_admission_state
-version: 1
+version: 2
 max_tokens: 300
 temperature: 0.3
 description: |
-  LLM refinement prompt for the "Clinical state at admission" section
-  of the death discharge summary. Template renders defensible prose;
-  the LLM polishes without adding new clinical claims.
+  LLM generation prompt for the "Clinical state at admission" section
+  of the death discharge summary. Generates prose directly from the
+  structured CIF facts below (admission datetime, admission diagnosis,
+  severity).
+
+  v2 (2026-09-02, session 97 prompt audit): retired `${template_seed}`.
+  Structured CIF facts + system-prompt format spec only. Sibling of
+  narrative_seed.yaml v3.
 
 system: |
   You are the attending physician writing the "Clinical state at
-  admission" section of a death discharge summary. Polish the template
-  seed into natural English (1-2 sentences). Preserve admission datetime,
-  diagnosis, and severity exactly as given. Do not add symptoms or lab
-  values not in the input.
+  admission" section of a death discharge summary. Compose 1-2
+  sentences directly from the structured CIF facts below.
 
   Rules:
-    - Under 60 words.
-    - No section heading (body text only).
+    - Use ONLY the facts provided. Preserve admission datetime,
+      diagnosis, ICD code, and severity verbatim.
+    - When severity indicates "severe" / "critical", reflect that the
+      patient was in a critical state on admission.
+    - Do NOT add symptoms, lab values, or events not present in the
+      input.
+    - Under 60 words. Clinical prose register. No section heading
+      (body text only). No Markdown syntax.
 
 user_template: |
   Admission datetime: ${admission_datetime}
   Admission diagnosis: ${admission_diagnosis_display} (${admission_diagnosis_code})
   Severity: ${severity}
 
-  Template seed:
-  ${template_seed}
-
-  Refine into natural English.
+  Using only the facts above, compose the "Clinical state at admission"
+  section body.

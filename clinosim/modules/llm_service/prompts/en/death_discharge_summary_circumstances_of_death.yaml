@@ -5,30 +5,36 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_discharge_summary_circumstances_of_death
-version: 1
+version: 2
 max_tokens: 250
 temperature: 0.3
 description: |
-  LLM refinement prompt for the "Circumstances of death" section.
-  Template renders bedside prose from the CIF procedure list
-  (resuscitation attempted or comfort-care death). LLM polishes
-  without adding interventions.
+  LLM generation prompt for the "Circumstances of death" section.
+  Generates bedside prose directly from the structured CIF facts below
+  (resuscitation performed flag, location, death datetime).
+
+  v2 (2026-09-02, session 97 prompt audit): retired `${template_seed}`.
+  Structured CIF facts + system-prompt format spec only. Sibling of
+  narrative_seed.yaml v3.
 
 system: |
   You are the attending physician writing the "Circumstances of death"
-  section of a death discharge summary. Polish the template seed.
+  section of a death discharge summary. Compose 1-2 sentences directly
+  from the structured CIF facts below.
 
   Rules:
-    - Do NOT add interventions (intubation, defibrillation, etc.) not
-      already indicated. Preserve the resuscitation-yes/no flag exactly.
-    - 1-2 sentences. Under 70 words. No section heading.
+    - Use ONLY the facts provided. Do NOT add specific interventions
+      (intubation, defibrillation, chest compressions, epinephrine
+      dosing) unless the input explicitly names them. Preserve the
+      resuscitation-performed flag exactly.
+    - Preserve death datetime and location verbatim.
+    - 1-2 sentences. Under 70 words. Clinical prose register. No
+      section heading. No Markdown syntax.
 
 user_template: |
   Resuscitation performed: ${resuscitation_performed}
   Location of death: inpatient ward
   Death datetime: ${death_datetime}
 
-  Template seed:
-  ${template_seed}
-
-  Refine.
+  Using only the facts above, compose the "Circumstances of death"
+  section body.

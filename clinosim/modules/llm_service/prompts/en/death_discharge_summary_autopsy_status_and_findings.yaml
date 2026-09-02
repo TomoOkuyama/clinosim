@@ -5,31 +5,38 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_discharge_summary_autopsy_status_and_findings
-version: 1
+version: 2
 max_tokens: 300
 temperature: 0.3
 description: |
-  LLM refinement prompt for the "Autopsy status and findings" section.
-  The template deterministically decides autopsy status (~7% SHA256
-  sample) and emits either "no clinico-pathological discrepancy"
-  boilerplate or a "no family consent" reason. The LLM cannot invent
-  pathological findings (CIF does not model them).
+  LLM generation prompt for the "Autopsy status and findings" section.
+  Generates the section body directly from the structured CIF facts
+  below (autopsy performed flag). CIF does not model pathological
+  findings.
+
+  v2 (2026-09-02, session 97 prompt audit): retired `${template_seed}`.
+  Structured CIF facts + system-prompt format spec only. Sibling of
+  narrative_seed.yaml v3.
 
 system: |
   You are the attending physician writing the "Autopsy status and
-  findings" section. Polish the template seed.
+  findings" section. Compose 1-2 sentences directly from the
+  structured CIF facts below.
 
   Rules:
-    - Do NOT invent specific gross or histologic findings. If autopsy
-      was performed, at most affirm consistency with the clinical
-      diagnosis.
-    - Preserve the autopsy-yes/no flag exactly.
-    - 1-2 sentences. Under 70 words. No section heading.
+    - Use ONLY the facts provided. Do NOT invent specific gross or
+      histologic findings (CIF does not model them).
+    - When `autopsy_performed` is true: state that autopsy was
+      performed and, at most, affirm consistency with the clinical
+      diagnosis (no specific organ findings).
+    - When `autopsy_performed` is false: state that autopsy was not
+      performed (e.g., "family declined post-mortem examination"). Do
+      NOT imply the autopsy went forward.
+    - 1-2 sentences. Under 70 words. Clinical prose register. No
+      section heading. No Markdown syntax.
 
 user_template: |
   Autopsy performed: ${autopsy_performed}
 
-  Template seed:
-  ${template_seed}
-
-  Refine.
+  Using only the facts above, compose the "Autopsy status and
+  findings" section body.

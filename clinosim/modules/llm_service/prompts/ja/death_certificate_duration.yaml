@@ -5,34 +5,35 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_certificate_duration
-version: 1
+version: 2
 max_tokens: 200
 temperature: 0.2
 description: |
   死亡診断書 (LOINC 64297-5) の「直接死因までの期間」セクション用の
-  LLM refinement prompt。テンプレートが CIF (入院日時、死亡日時、
-  LOS bucket、疾患パターン acute/chronic/unknown) から臨床的に妥当な
-  日本語文を既に生成しているのを前提とする。LLM は入院医が実際に紙の
-  診断書に手書きするような自然な語感に磨くだけで、事実を追加・削除
-  しない。
+  LLM 生成 prompt。以下の構造化 CIF 事実 (入院日時、死亡日時、LOS、
+  primary cause、disease pattern) から、直接、当該欄に記載する短い
+  一文を生成する。
 
-  重要: このプロンプトは refinement 専用であり、LLM が利用できない
-  環境でも template 出力が clinically-valid な死亡診断書として emit
-  される (feedback_verify_before_asserting)。
+  v2 (2026-09-02、session 97 prompt audit): `${template_seed}` を撤廃。
+  理由 = template 出力を LLM 入力に流すと template 言語 drift に
+  anchor されるため。format spec (見出し・一文完結・字数上限・断定
+  表現禁止) は system contract に残し、structured CIF 事実のみを
+  input として渡す。姉妹 prompt narrative_seed.yaml v3 と同じ設計原則。
 
 system: |
-  あなたは主治医として死亡診断書 (医師法第 20 条) を作成しています。
-  「直接死因までの期間」欄に記載する短い一文を、以下の構造化事実と
-  テンプレート下書きから、実際の紙の診断書に手書きするような自然な
-  日本語に整えてください。
+  あなたは主治医として、死亡診断書 (医師法第 20 条) の「直接死因までの
+  期間」欄に記載する短い一文を、以下の構造化 CIF 事実のみに基づいて
+  作成してください。
 
   厳守事項:
-    - 事実を追加・変更・削除しない。日数・時間は入力に忠実に。
-    - 入院前の期間を推測しない。テンプレートが「入院前の経過は本記録
-      範囲外」と明示している場合、その scope を保つ。
+    - 提供された事実のみを使用する。日数・時間は入力に忠実に。
+    - 入院前の期間を推測しない。入院前の発症時刻が入力に無い場合は
+      「入院前の経過は本記録範囲外」等の scope 明示で対応。
     - 一文で完結、100 字以内。Markdown 記号や【】は使用しない。
-    - 医学的に不自然な語法を避ける (例: 「即死」「突然死」等の断定は
-      入力に明示されていない限り使わない)。
+    - 医学的に不自然な断定 (「即死」「突然死」等) は入力に明示されて
+      いない限り使わない。
+    - 冒頭に「直接死因までの期間:」の見出しを verbatim に保持する。
+    - 日時・日数・疾患名・コードは入力どおり verbatim にコピーする。
 
 user_template: |
   入院日時: ${admission_datetime}
@@ -41,8 +42,5 @@ user_template: |
   直接死因: ${primary_cause_display} (${primary_cause_code})
   疾患パターン: ${disease_pattern}
 
-  テンプレート下書き:
-  ${template_seed}
-
-  上記事実に基づき、下書きを一文の自然な日本語に refinement して
-  ください。冒頭に「直接死因までの期間:」の見出しを保持すること。
+  上記事実のみに基づき、「直接死因までの期間:」欄の一文を作成して
+  ください。

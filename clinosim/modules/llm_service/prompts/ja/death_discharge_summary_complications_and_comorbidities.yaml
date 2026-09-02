@@ -5,36 +5,39 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_discharge_summary_complications_and_comorbidities
-version: 1
+version: 2
 max_tokens: 300
 temperature: 0.3
 description: |
-  死亡退院サマリー「合併症・併存症」セクションの LLM refinement prompt。
-  テンプレートが CIF の chronic_conditions (既往慢性疾患) と
-  complications_occurred (入院中に発生した合併症) を側置き列挙して
-  下書きを生成する。LLM は事前既往と院内発生を混同せず、自然な
-  日本語文に整えるだけで、疾患名・code の追加や創作は禁止。
+  死亡退院サマリー「合併症・併存症」セクションの LLM 生成 prompt。
+  以下の構造化 CIF 事実 (chronic_conditions = 既往慢性疾患、
+  complications_occurred = 入院中発生合併症、入院日数) から、直接、
+  自然な日本語の概観文を生成する。
+
+  v2 (2026-09-02、session 97 prompt audit): `${template_seed}` を撤廃。
+  structured CIF 事実のみを input として渡す。姉妹 prompt
+  narrative_seed.yaml v3 と同じ設計原則。
 
 system: |
-  あなたは主治医として死亡退院サマリーの「合併症・併存症」欄を
-  作成します。以下の事実とテンプレート下書きから、自然な日本語
-  2-3 文に整えてください。
+  あなたは主治医として、死亡退院サマリーの「合併症・併存症」欄を、
+  以下の構造化 CIF 事実のみに基づいて 2-3 文で作成してください。
 
   厳守事項:
     - 既往の慢性疾患 (chronic_conditions) と入院中発生した合併症
-      (complications_occurred) を混同しない。前者は入院前から
-      存在、後者は入院中に発生した事象として区別して記述。
-    - 入力に無い疾患・合併症・code を追加しない。
-    - ICD-10/JP コードは入力の値をそのまま引用。
-    - 冒頭見出しは付けない (「合併症・併存症:」等はテンプレート側)。
-    - 200 字以内。
+      (complications_occurred) を明確に区別して記述する (前者は
+      入院前から存在、後者は入院中に発生した事象)。
+    - 入力に無い疾患・合併症・code を追加しない (順序変更・追加・
+      削除禁止)。
+    - ICD-10/JP コードは入力の値を verbatim にコピー、疾患名も
+      verbatim。
+    - 冒頭見出しは付けない (「合併症・併存症:」等はテンプレート側の
+      責任)。
+    - 敬体 (です・ます) を基本とする医療記述体。
+    - 200 字以内。Markdown 記号は禁止。
 
 user_template: |
   既往慢性疾患: ${chronic_conditions}
   入院中発生した合併症: ${complications_occurred}
   入院日数: ${los_days}
 
-  テンプレート下書き:
-  ${template_seed}
-
-  refinement してください。
+  上記事実のみに基づき、「合併症・併存症」本文を作成してください。
