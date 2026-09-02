@@ -5,9 +5,96 @@ Split from `clinosim/simulator/cli.py` — see PR K.
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from typing import Any
+
+
+def _country_from_cif_metadata(cif_dir: str) -> str | None:
+    """Return the country code recorded in ``cif/metadata.json``, or ``None``
+    if the file is absent / malformed. ``clinosim simulate`` always writes
+    this file with the country flag it was invoked with, so a JP-generated
+    CIF carries ``"country": "JP"``. Reading it here lets the narrate CLI
+    default to the CIF's actual country instead of the ``--country US``
+    static default (which silently produced EN narratives from JP CIFs
+    for callers who forgot the flag — session 97 verify surfaced 34,908
+    such long EN sections on a p=10000 JP sim before this fix).
+    """
+    meta_path = os.path.join(cif_dir, "metadata.json")
+    if not os.path.exists(meta_path):
+        return None
+    try:
+        with open(meta_path) as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return None
+    country = data.get("country")
+    if not country or not isinstance(country, str):
+        return None
+    return country.upper()
+
+
+def _resolve_narrate_country(args: Any) -> str:
+    """Resolve the country to use for a narrate run, preferring CIF metadata
+    over the CLI default and failing loud on mismatch.
+
+    Semantics:
+      * `cif/metadata.json` present and `--country` omitted (default US)
+        → use the CIF's country.
+      * `cif/metadata.json` present and `--country` explicitly passed and
+        matches → use it.
+      * `cif/metadata.json` present and `--country` explicitly passed but
+        mismatches → EXIT 2 with a helpful message (the caller almost
+        certainly does not intend to render EN narratives on a JP CIF or
+        vice versa; forcing a mismatch would require running with
+        `--country <cif-country>` explicitly).
+      * `cif/metadata.json` absent (legacy CIF) → fall back to the
+        `--country` flag value with a stderr warning so the caller
+        notices the fallback.
+    """
+    # `args.country == ""` is the sentinel meaning "user did NOT pass
+    # --country" (argparse default in cli.py); anything else is an
+    # explicit CLI override. `"US"` is only the fallback when both
+    # metadata and CLI are missing.
+    cli_raw = str(args.country or "")
+    cli_explicit = bool(cli_raw)
+    cli_country = cli_raw.upper() or "US"
+    cif_country = _country_from_cif_metadata(args.cif_dir)
+
+    if cif_country is None:
+        # Legacy CIF or missing metadata — fall back to CLI value.
+        print(
+            f"narrate: NOTICE: cif/metadata.json not found in '{args.cif_dir}'; "
+            f"falling back to --country {cli_country}. If the CIF was "
+            "generated with a different country, re-run with the correct "
+            "--country to avoid producing narratives in the wrong language.",
+            file=sys.stderr,
+        )
+        return cli_country
+
+    if not cli_explicit:
+        # CIF metadata is authoritative when CLI did not override.
+        if cli_country != cif_country:
+            # Silently switching from the US default to the CIF's country
+            # is the whole point of this helper — no message needed.
+            pass
+        return cif_country
+
+    if cli_country != cif_country:
+        print(
+            f"narrate: ERROR: --country {cli_country} conflicts with "
+            f"cif/metadata.json country={cif_country} in '{args.cif_dir}'. "
+            "Narrative text is generated in the country's language "
+            f"(JP → 日本語, US → English); a mismatch would produce "
+            f"wrong-language narratives against the structural CIF. Re-run "
+            f"with --country {cif_country} (or generate a new CIF with "
+            f"--country {cli_country}).",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+    return cli_country
 
 
 def _build_llm_service_for_narrate(provider: str, llm_config: str | None) -> Any:
@@ -52,6 +139,10 @@ def _run_narrate(args: Any) -> None:
 
     version_id = args.version_id or ("template" if args.provider == "template" else args.provider)
     tasks = [t.strip() for t in args.tasks.split(",")] if args.tasks else None
+    # Country resolution — prefer cif/metadata.json over the CLI default so a
+    # JP-generated CIF does not silently render EN narratives when the caller
+    # forgot `--country JP`. See `_resolve_narrate_country` for full semantics.
+    _country = _resolve_narrate_country(args)
 
     # I-1 (chain 1b adv-1): a filtered write into a version dir that already
     # contains documents leaves stale files from the previous generation on
@@ -85,7 +176,7 @@ def _run_narrate(args: Any) -> None:
         pass_impl = TemplateNarrativePass(
             cif_dir=args.cif_dir,
             version_id=version_id,
-            country=args.country,
+            country=_country,
             tasks=tasks,
             rng_seed=args.seed,
             patient_filter=args.patient_filter,
@@ -97,7 +188,7 @@ def _run_narrate(args: Any) -> None:
             cif_dir=args.cif_dir,
             llm=llm,
             version_id=version_id,
-            country=args.country,
+            country=_country,
             tasks=tasks,
             rng_seed=args.seed,
             patient_filter=args.patient_filter,
