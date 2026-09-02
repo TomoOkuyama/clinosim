@@ -259,6 +259,14 @@ codes:
   O80:
     en: "Single spontaneous delivery"
     ja: "単胎自然分娩"
+  # Cesarean-section admission diagnosis (session 98 F7 — Incr 1.5).
+  # WHO ICD-10 category O82 = single delivery by cesarean section.
+  # Referenced by clinosim/locale/shared/perinatal.yaml as the
+  # admission_diagnosis_code when the per-mother cesarean sub-RNG
+  # rolls into the C-section shape (US ~32.1 %, JP ~20.4 %).
+  O82:
+    en: "Single delivery by caesarean section"
+    ja: "帝王切開による単胎分娩"
   M17:
     en: Gonarthrosis [arthrosis of knee]
     ja: 変形性膝関節症
