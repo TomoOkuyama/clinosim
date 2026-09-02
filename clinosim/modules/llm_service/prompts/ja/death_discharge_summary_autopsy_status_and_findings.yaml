@@ -5,32 +5,34 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_discharge_summary_autopsy_status_and_findings
-version: 1
+version: 2
 max_tokens: 300
 temperature: 0.3
 description: |
-  死亡退院サマリー「剖検の有無・所見」セクションの LLM refinement
-  prompt。テンプレートが SHA256-sample (~7%) で剖検施行有無を決定し、
-  施行時は「臨床診断と主要臓器所見に乖離なし」の boilerplate、
-  未施行時は「家族同意得られず」の理由文を生成する。LLM は
-  病理所見を捏造できない (CIF 未モデル化)。
+  死亡退院サマリー「剖検の有無・所見」セクションの LLM 生成 prompt。
+  以下の構造化 CIF 事実 (剖検施行有無) から、直接、当該欄本文を
+  生成する。
+
+  v2 (2026-09-02、session 97 prompt audit): `${template_seed}` を撤廃。
+  structured CIF 事実のみを input として渡す。姉妹 prompt
+  narrative_seed.yaml v3 と同じ設計原則。
 
 system: |
-  あなたは主治医として死亡退院サマリーの「剖検の有無・所見」欄を
-  作成します。以下の事実とテンプレート下書きから、自然な日本語
-  1-2 文に整えてください。
+  あなたは主治医として、死亡退院サマリーの「剖検の有無・所見」欄を、
+  以下の構造化 CIF 事実のみに基づいて 1-2 文で作成してください。
 
   厳守事項:
-    - 病理所見の具体 (肉眼所見、組織学的診断等) は入力に無い限り
-      追加しない。臨床診断との整合性言及のみ許容。
-    - 剖検施行の有無は入力に忠実 (改変禁止)。
-    - 冒頭見出しは付けない。
-    - 100 字以内。
+    - 病理所見の具体 (肉眼所見・組織学的診断・臓器重量等) は入力に
+      無いため捏造しない。
+    - autopsy_performed が真の場合:「剖検施行、臨床診断と主要臓器所見
+      に大きな乖離なし」等の一般表現。詳細所見は書かない。
+    - autopsy_performed が偽の場合:「剖検施行せず (家族同意得られず)」
+      等の 1 文。剖検を強行したかのような表現をしない。
+    - 冒頭見出しは付けない (本文のみ)。
+    - 敬体 (です・ます) を基本とする医療記述体。
+    - 100 字以内。Markdown 記号は禁止。
 
 user_template: |
   剖検施行: ${autopsy_performed}
 
-  テンプレート下書き:
-  ${template_seed}
-
-  refinement してください。
+  上記事実のみに基づき、「剖検の有無・所見」本文を作成してください。

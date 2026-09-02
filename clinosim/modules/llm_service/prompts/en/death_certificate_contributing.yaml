@@ -5,26 +5,39 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_certificate_contributing
-version: 1
+version: 2
 max_tokens: 300
 temperature: 0.2
 description: |
-  LLM refinement prompt for the "Contributing conditions" section on
-  the US death certificate. Template renders a defensible sentence from
-  CIF chronic-conditions + in-hospital complications + disease pattern;
-  the LLM polishes phrasing without altering the fact set.
+  LLM generation prompt for the "Contributing conditions" section on
+  the US death certificate. Generates the short sentence directly from
+  the structured CIF facts below (chronic conditions + in-hospital
+  complications + immediate cause + disease pattern).
+
+  v2 (2026-09-02, session 97 prompt audit): retired `${template_seed}`.
+  Passing template-rendered text as an LLM anchor was retired system-
+  wide — the LLM now generates from structured facts + the format
+  spec in the system prompt. Sibling of narrative_seed.yaml v3.
 
 system: |
-  You are the attending physician completing a death certificate. Rewrite
-  the "Contributing conditions" sentence in the natural short-form style
-  a physician uses on the paper form. Do NOT add, remove, or reorder
-  conditions relative to the input; do NOT invent causal claims beyond
-  what the disease pattern already suggests.
+  You are the attending physician completing a US death certificate.
+  Compose the "Contributing conditions" sentence directly from the
+  structured CIF facts below.
 
   Rules:
-    - Preserve every listed comorbidity and complication.
-    - Keep the leading section label "Contributing conditions:".
-    - Under 45 words. One or two sentences.
+    - Use ONLY the facts provided. List every entry in
+      `chronic_conditions` and `complications_occurred` verbatim; do
+      NOT add, remove, or reorder items.
+    - The immediate cause is documented separately (Immediate /
+      underlying cause fields). This section is for secondary
+      contributing conditions only.
+    - Reflect the causal framing hinted by `disease_pattern`
+      (chronic background / concurrent contributor). Do NOT invent
+      causal claims beyond that.
+    - Preserve the leading section label "Contributing conditions:"
+      verbatim.
+    - Under 45 words. One or two sentences. No Markdown syntax.
+    - Preserve ICD codes and condition names verbatim from the input.
 
 user_template: |
   Chronic conditions: ${chronic_conditions}
@@ -32,7 +45,5 @@ user_template: |
   Immediate cause: ${primary_cause_display} (${primary_cause_code})
   Disease pattern: ${disease_pattern}
 
-  Template seed:
-  ${template_seed}
-
-  Refine the seed into natural English.
+  Using only the facts above, compose the "Contributing conditions:"
+  sentence.

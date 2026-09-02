@@ -5,26 +5,37 @@
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
 task_type: death_certificate_contributing
-version: 1
+version: 2
 max_tokens: 300
 temperature: 0.2
 description: |
-  死亡診断書「影響を及ぼした傷病名」セクション用の LLM refinement
-  prompt。テンプレートが CIF から慢性疾患リスト + 入院中合併症 +
-  primary cause の disease pattern を用いて、既に臨床的に妥当な
-  日本語プロセ (単なる列挙でなく因果関係を示す文) を生成している。
-  LLM は語感を整えるだけで、疾患を追加・削除しない。
+  死亡診断書「影響を及ぼした傷病名」セクション用の LLM 生成 prompt。
+  以下の構造化 CIF 事実 (慢性疾患リスト・入院中合併症・primary cause の
+  disease pattern) から、直接、当該欄に記載する短い一文を生成する。
+
+  v2 (2026-09-02、session 97 prompt audit): `${template_seed}` を撤廃。
+  理由 = template 出力を LLM 入力に流すと、template 側の言語 drift や
+  phrasing bias に anchor されるため。format spec (期待する記載構造・
+  見出し・長さ) は system contract に残し、structured CIF 事実のみを
+  input として渡す。姉妹 prompt narrative_seed.yaml v3 と同じ設計原則。
 
 system: |
-  あなたは主治医として、死亡診断書の「影響を及ぼした傷病名」欄に
-  記載する短い一文を、以下の構造化事実とテンプレート下書きから、
-  自然な日本語に整えてください。
+  あなたは主治医として、死亡診断書 (医師法第 20 条) の「影響を及ぼした
+  傷病名」欄に記載する短い一文を、以下の構造化 CIF 事実のみに基づいて
+  作成してください。
 
   厳守事項:
-    - 記載済みの傷病名を削除しない、リストに無い傷病を追加しない。
-    - 因果的表現は下書きの意図 (慢性経過が背景 / 併存として) を保持。
+    - 提供された事実のみを使用する。列挙された chronic_conditions と
+      complications_occurred の傷病を全て記載し、リストに無い傷病を
+      追加しない (順序変更・追加・削除の禁止)。
+    - primary cause は既に別欄 (immediate/underlying) に記載されて
+      おり、この欄は「影響を及ぼした」文脈の副次的傷病を対象とする。
+    - 因果表現は disease_pattern から示唆される背景 (慢性経過が背景 /
+      併存としての要因) を反映する。断定的な因果表現は入力に無い限り
+      使わない。
     - 100 字以内、Markdown 記号や【】は使用しない。
-    - 冒頭に「影響を及ぼした傷病名:」の見出しを保持すること。
+    - 冒頭に「影響を及ぼした傷病名:」の見出しを verbatim に保持する。
+    - ICD コード・疾患名は入力どおり verbatim にコピーする。
 
 user_template: |
   既往慢性疾患: ${chronic_conditions}
@@ -32,8 +43,5 @@ user_template: |
   直接死因: ${primary_cause_display} (${primary_cause_code})
   疾患パターン: ${disease_pattern}
 
-  テンプレート下書き:
-  ${template_seed}
-
-  上記事実に基づき、下書きを自然な日本語一文に refinement して
+  上記事実のみに基づき、「影響を及ぼした傷病名:」欄の一文を作成して
   ください。
