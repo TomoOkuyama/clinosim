@@ -78,7 +78,7 @@ def test_hepatic_impairment_elevates_all_lft_analytes() -> None:
     assert impaired["TP"] < healthy["TP"]
 
 
-def test_dyslipidemia_elevates_TC_LDL_TG_drops_HDL() -> None:
+def test_dyslipidemia_elevates_TC_LDL_TG_drops_HDL() -> None:  # noqa: N802 (clinical acronyms)
     healthy = derive_lab_values(_healthy_state(), sex="M", age=55, has_dyslipidemia=False)
     dyslip = derive_lab_values(_healthy_state(), sex="M", age=55, has_dyslipidemia=True)
     assert dyslip["TC"] > healthy["TC"]
@@ -87,7 +87,7 @@ def test_dyslipidemia_elevates_TC_LDL_TG_drops_HDL() -> None:
     assert dyslip["HDL"] < healthy["HDL"]
 
 
-def test_diabetes_elevates_TG_independently_of_dyslipidemia() -> None:
+def test_diabetes_elevates_TG_independently_of_dyslipidemia() -> None:  # noqa: N802 (clinical acronym)
     no_dm = derive_lab_values(_healthy_state(), sex="M", age=55, has_diabetes=False)
     dm = derive_lab_values(_healthy_state(), sex="M", age=55, has_diabetes=True)
     assert dm["TG"] > no_dm["TG"]
