@@ -430,6 +430,7 @@ drugs:
         indication: "severe_cerebral_edema_or_herniation"
 
   alternative_penicillin_allergy:
+    _indication_tag: antimicrobial_penicillin_class
     japan: []
     us: []
 

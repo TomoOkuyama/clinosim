@@ -365,6 +365,7 @@ drugs:
         indication: "no_response_to_initial_treatment"
 
   alternative_penicillin_allergy:
+    _indication_tag: antimicrobial_penicillin_class
     # Not applicable — no antibiotics in primary treatment
     japan: []
     us: []
