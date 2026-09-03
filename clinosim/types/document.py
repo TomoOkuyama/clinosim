@@ -246,6 +246,14 @@ class NarrativeContext:
     # the LLM prompt.
     complications_occurred: list[str] = field(default_factory=list)
 
+    # === Issue #1066 (drug_safety, session 99) ===
+    # Encounter-filtered projection of PatientProfile.safety_skip_log entries.
+    # Each dict carries the JP + EN forms of the considered / avoided drugs
+    # plus the substitute (or None if fully skipped). Consumed by the template
+    # and LLM narrative pipelines to surface "considered but not prescribed"
+    # clinical reasoning in the Assessment & Plan section.
+    safety_skips: list[dict[str, Any]] = field(default_factory=list)
+
     # === Issue #848 (in-hospital new-disease complication) ===
     # Working diagnoses arising DURING the admission. Populated by
     # ``engine._merge_disease_into_active_encounter`` when a life event

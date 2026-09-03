@@ -1,0 +1,223 @@
+# clinosim/modules/drug_safety/reference_data/drug_classes.yaml
+# Drug → class[] taxonomy for the drug_safety module.
+# Schema documented in ./README.md.
+#
+# Class taxonomy (dot-notated: family.subfamily):
+#   anticoagulant.{vka, doac, heparin}
+#   antiplatelet.{cox_inhibitor, p2y12, gp2b3a}
+#   nsaid.{non_selective, cox2_selective}
+#   ccb.{dhp, non_dhp}
+#   beta_blocker.{cardioselective, non_selective}
+#   acei | arb | acei_arb (union tag on both)
+#   potassium_supplement, electrolyte_supplement
+#   diuretic.{loop, thiazide, k_sparing}
+#   statin, cyp3a4_substrate, cyp3a4_inhibitor_strong
+#   xanthine_oxidase_inhibitor, thiopurine, immunosuppressant
+#   ssri, maoi, antidepressant, antiparkinsonian
+#   analgesic.non_opioid, macrolide
+#   antihypertensive, antiarrhythmic.class4
+#
+# When adding a new drug, assign every class it belongs to. Rules are matched
+# by class, so a drug added to an existing class automatically inherits rules.
+
+mappings:
+  # Anticoagulants
+  Warfarin:
+    aliases: ["ワルファリン", "coumadin", "warf"]
+    drug_ja: "ワルファリン"
+    classes: ["anticoagulant.vka", "anticoagulant"]
+
+  Apixaban:
+    aliases: ["アピキサバン", "eliquis"]
+    drug_ja: "アピキサバン"
+    classes: ["anticoagulant.doac", "anticoagulant"]
+
+  Rivaroxaban:
+    aliases: ["リバーロキサバン", "xarelto"]
+    drug_ja: "リバーロキサバン"
+    classes: ["anticoagulant.doac", "anticoagulant"]
+
+  Dabigatran:
+    aliases: ["ダビガトラン", "pradaxa"]
+    drug_ja: "ダビガトラン"
+    classes: ["anticoagulant.doac", "anticoagulant"]
+
+  Edoxaban:
+    aliases: ["エドキサバン", "リクシアナ", "savaysa"]
+    drug_ja: "エドキサバン"
+    classes: ["anticoagulant.doac", "anticoagulant"]
+
+  Enoxaparin:
+    aliases: ["エノキサパリン", "lovenox"]
+    drug_ja: "エノキサパリン"
+    classes: ["anticoagulant.heparin", "anticoagulant"]
+
+  Heparin:
+    aliases: ["ヘパリン"]
+    drug_ja: "ヘパリン"
+    classes: ["anticoagulant.heparin", "anticoagulant"]
+
+  # Antiplatelets — aspirin is dual-class (antiplatelet AND nsaid)
+  Aspirin:
+    aliases: ["アスピリン", "ASA", "バイアスピリン"]
+    drug_ja: "アスピリン"
+    classes: ["antiplatelet.cox_inhibitor", "antiplatelet", "nsaid.non_selective", "nsaid"]
+
+  Clopidogrel:
+    aliases: ["クロピドグレル", "plavix", "プラビックス"]
+    drug_ja: "クロピドグレル"
+    classes: ["antiplatelet.p2y12", "antiplatelet"]
+
+  Prasugrel:
+    aliases: ["プラスグレル", "effient", "エフィエント"]
+    drug_ja: "プラスグレル"
+    classes: ["antiplatelet.p2y12", "antiplatelet"]
+
+  Ticagrelor:
+    aliases: ["チカグレロル", "brilinta"]
+    drug_ja: "チカグレロル"
+    classes: ["antiplatelet.p2y12", "antiplatelet"]
+
+  # NSAIDs (non-antiplatelet)
+  Ibuprofen:
+    aliases: ["イブプロフェン"]
+    drug_ja: "イブプロフェン"
+    classes: ["nsaid.non_selective", "nsaid"]
+
+  Loxoprofen:
+    aliases: ["ロキソプロフェン", "ロキソニン"]
+    drug_ja: "ロキソプロフェン"
+    classes: ["nsaid.non_selective", "nsaid"]
+
+  Naproxen:
+    aliases: ["ナプロキセン"]
+    drug_ja: "ナプロキセン"
+    classes: ["nsaid.non_selective", "nsaid"]
+
+  Diclofenac:
+    aliases: ["ジクロフェナク", "ボルタレン"]
+    drug_ja: "ジクロフェナク"
+    classes: ["nsaid.non_selective", "nsaid"]
+
+  Celecoxib:
+    aliases: ["セレコキシブ", "celebrex"]
+    drug_ja: "セレコキシブ"
+    classes: ["nsaid.cox2_selective", "nsaid"]
+
+  # Analgesic (non-NSAID) — pain_management substitution target
+  Acetaminophen:
+    aliases: ["アセトアミノフェン", "paracetamol", "tylenol", "カロナール"]
+    drug_ja: "アセトアミノフェン"
+    classes: ["analgesic.non_opioid"]
+
+  # β-blockers
+  Metoprolol:
+    aliases: ["メトプロロール", "ロプレソール"]
+    drug_ja: "メトプロロール"
+    classes: ["beta_blocker.cardioselective", "beta_blocker", "antihypertensive"]
+
+  Carvedilol:
+    aliases: ["カルベジロール", "アーチスト"]
+    drug_ja: "カルベジロール"
+    classes: ["beta_blocker.non_selective", "beta_blocker", "antihypertensive"]
+
+  Bisoprolol:
+    aliases: ["ビソプロロール", "メインテート"]
+    drug_ja: "ビソプロロール"
+    classes: ["beta_blocker.cardioselective", "beta_blocker", "antihypertensive"]
+
+  # CCBs — DHP is generally safe with BB; non-DHP is the interaction risk
+  Amlodipine:
+    aliases: ["アムロジピン"]
+    drug_ja: "アムロジピン"
+    classes: ["ccb.dhp", "ccb", "antihypertensive"]
+
+  Nifedipine:
+    aliases: ["ニフェジピン", "アダラート"]
+    drug_ja: "ニフェジピン"
+    classes: ["ccb.dhp", "ccb", "antihypertensive"]
+
+  Verapamil:
+    aliases: ["ベラパミル", "ワソラン"]
+    drug_ja: "ベラパミル"
+    classes: ["ccb.non_dhp", "ccb", "antiarrhythmic.class4"]
+
+  Diltiazem:
+    aliases: ["ジルチアゼム", "ヘルベッサー"]
+    drug_ja: "ジルチアゼム"
+    classes: ["ccb.non_dhp", "ccb", "antihypertensive"]
+
+  # ACEi / ARB (unified via acei_arb tag)
+  Candesartan:
+    aliases: ["カンデサルタン", "ブロプレス"]
+    drug_ja: "カンデサルタン"
+    classes: ["arb", "acei_arb", "antihypertensive"]
+
+  Losartan:
+    aliases: ["ロサルタン", "ニューロタン"]
+    drug_ja: "ロサルタン"
+    classes: ["arb", "acei_arb", "antihypertensive"]
+
+  Enalapril:
+    aliases: ["エナラプリル", "レニベース"]
+    drug_ja: "エナラプリル"
+    classes: ["acei", "acei_arb", "antihypertensive"]
+
+  Lisinopril:
+    aliases: ["リシノプリル"]
+    drug_ja: "リシノプリル"
+    classes: ["acei", "acei_arb", "antihypertensive"]
+
+  # Potassium (interaction target for ACEi/ARB)
+  "Potassium chloride":
+    aliases: ["KCl", "K-Dur", "塩化カリウム", "スローケー"]
+    drug_ja: "塩化カリウム"
+    classes: ["potassium_supplement", "electrolyte_supplement"]
+
+  # Diuretics
+  Furosemide:
+    aliases: ["フロセミド", "ラシックス"]
+    drug_ja: "フロセミド"
+    classes: ["diuretic.loop"]
+
+  Spironolactone:
+    aliases: ["スピロノラクトン", "アルダクトン"]
+    drug_ja: "スピロノラクトン"
+    classes: ["diuretic.k_sparing"]
+
+  # Statins + CYP3A4 inhibitors
+  Atorvastatin:
+    aliases: ["アトルバスタチン", "リピトール"]
+    drug_ja: "アトルバスタチン"
+    classes: ["statin", "cyp3a4_substrate"]
+
+  Simvastatin:
+    aliases: ["シンバスタチン", "リポバス"]
+    drug_ja: "シンバスタチン"
+    classes: ["statin", "cyp3a4_substrate"]
+
+  Clarithromycin:
+    aliases: ["クラリスロマイシン", "クラリス", "biaxin"]
+    drug_ja: "クラリスロマイシン"
+    classes: ["macrolide", "cyp3a4_inhibitor_strong"]
+
+  # Other rule targets
+  Allopurinol:
+    aliases: ["アロプリノール", "ザイロリック"]
+    drug_ja: "アロプリノール"
+    classes: ["xanthine_oxidase_inhibitor"]
+
+  Azathioprine:
+    aliases: ["アザチオプリン", "イムラン"]
+    drug_ja: "アザチオプリン"
+    classes: ["thiopurine", "immunosuppressant"]
+
+  Sertraline:
+    aliases: ["セルトラリン", "ジェイゾロフト"]
+    drug_ja: "セルトラリン"
+    classes: ["ssri", "antidepressant"]
+
+  Selegiline:
+    aliases: ["セレギリン", "エフピー"]
+    drug_ja: "セレギリン"
+    classes: ["maoi", "antiparkinsonian"]

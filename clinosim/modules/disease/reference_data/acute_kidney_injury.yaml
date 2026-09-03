@@ -409,6 +409,7 @@ drugs:
         pregnancy_safe: false
 
   hyperkalemia_management:
+    _indication_tag: electrolyte_correction
     japan:
       - drug: "Calcium_gluconate"
         code_yj: "3212001"

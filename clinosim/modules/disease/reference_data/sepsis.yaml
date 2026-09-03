@@ -535,6 +535,7 @@ drugs:
         probability: 0.50
 
   alternative_penicillin_allergy:
+    _indication_tag: antimicrobial_penicillin_class
     japan:
       - drug: "Ciprofloxacin"
         code_yj: "6241400"

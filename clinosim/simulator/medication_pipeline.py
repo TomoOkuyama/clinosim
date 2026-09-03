@@ -545,3 +545,165 @@ def _generate_mar(
             )
 
     return mars
+
+
+# ---------------------------------------------------------------------------
+# Issue #1066 (drug_safety): admission-order contraindication gate.
+# ---------------------------------------------------------------------------
+
+
+def apply_drug_safety_gate_to_admission_orders(
+    admission_orders: list[Order],
+    patient: PatientProfile,
+    encounter_id: str,
+    admission_time: datetime,
+    attending_id: str,
+    protocol: Any = None,
+    country: str = "us",
+) -> list[Order]:
+    """Post-hoc filter admission_orders through drug_safety.check_pair.
+
+    Real EHR CPOE prevents contraindicated orders at entry time; this
+    function reproduces that by walking the emitted MedicationOrder list
+    in order, checking each candidate against every previously-accepted
+    med (home + acute), and:
+
+      - severity == major / contraindicated: drop the candidate, try
+        ``suggest_alternative`` (disease_ctx-first, generic pool second),
+        emit the substitute in place if one is available.
+      - severity == moderate: keep the order but append a MR.note-shaped
+        caution dict to ``order.notes`` (order-level list; downstream FHIR
+        MR builder consumes it in Task 11).
+      - severity == minor / allowed: keep unchanged.
+
+    Every skip (with or without substitute) is appended to
+    ``patient.safety_skip_log`` with ``encounter_id`` set to the current
+    admission and ``context_hint`` derived from the verdict's
+    ``substitution_hint``.
+
+    Non-medication orders (labs, imaging, supportive/care-plan) pass
+    through unchanged.
+
+    Never raises. Determinism: no RNG consumed — verdicts are pure yaml
+    lookups; substitution picks the first conflict-free alternative in
+    yaml order.
+    """
+    from clinosim.modules import drug_safety
+    from clinosim.modules.drug_safety.verdict import SafetySkipEntry
+
+    # Existing active meds visible to the gate: patient's home meds
+    # (already-accepted, already in patient.current_medications) at the
+    # start of the pass. The activator (Task 8) has ALREADY run the gate
+    # against home_med derivation, so this list represents chronic pairs
+    # that were approved (or that pre-date the gate — see the
+    # already-chronic bypass below).
+    home_med_names: list[str] = [m.drug_name for m in (patient.current_medications or []) if m.drug_name]
+    # Canonicalise once so the bypass check below matches regardless of
+    # dose-suffixed input.
+    _canonical_home = {drug_safety.canonical_name(name) or name.strip().lower() for name in home_med_names}
+
+    out: list[Order] = []
+    accepted_med_names: list[str] = list(home_med_names)
+    substitute_seq = 0
+
+    for order in admission_orders:
+        if order.order_type != OrderType.MEDICATION:
+            out.append(order)
+            continue
+
+        candidate = order.display_name or ""
+        if not candidate:
+            out.append(order)
+            continue
+
+        # Issue #1066: home-medication continuation orders re-emit drugs already
+        # in ``patient.current_medications``. The activator has already made
+        # the chronic-pair decision (Task 8); re-gating a home-med continuation
+        # against its own siblings would spuriously skip legitimate chronic
+        # co-therapy (e.g. Apixaban continuation getting flagged against a
+        # sibling Aspirin that itself sits in current_medications from a
+        # separate chronic condition — see the anticoag-carryforward
+        # integration test). Only gate NEW additions on top of the chronic
+        # baseline.
+        _canonical_candidate = drug_safety.canonical_name(candidate) or candidate.strip().lower()
+        if _canonical_candidate in _canonical_home:
+            out.append(order)
+            accepted_med_names.append(candidate)
+            continue
+
+        verdicts = drug_safety.check_candidate_against_active(candidate, accepted_med_names)
+        worst = max(
+            (v for v in verdicts if not v.is_allowed),
+            key=lambda v: drug_safety.SEVERITY_RANK[v.severity],
+            default=None,
+        )
+
+        if worst is not None and worst.default_action == "skip":
+            indication = worst.substitution_hint
+            alt = drug_safety.suggest_alternative(
+                candidate,
+                indication,
+                active_meds=accepted_med_names,
+                disease_ctx=protocol,
+                country=country,
+            )
+            patient.safety_skip_log.append(
+                SafetySkipEntry(
+                    encounter_id=encounter_id,
+                    candidate_drug=candidate,
+                    candidate_drug_ja=(drug_safety.japanese_display(candidate) or candidate),
+                    active_conflict=worst.matched_active_drug or "",
+                    active_conflict_ja=(
+                        drug_safety.japanese_display(worst.matched_active_drug or "")
+                        or (worst.matched_active_drug or "")
+                    ),
+                    verdict=worst,
+                    substituted_with=alt.drug if alt else None,
+                    substituted_with_ja=(alt.drug_ja if alt else None),
+                    context_hint=indication,
+                    timestamp=admission_time.isoformat(),
+                )
+            )
+            if alt is None:
+                # Fully skip — order dropped
+                continue
+            # Emit substitute in place
+            substitute_seq += 1
+            sub_order = Order(
+                order_id=f"ORD-{encounter_id}-SUB-{substitute_seq:02d}",
+                encounter_id=encounter_id,
+                patient_id=patient.patient_id,
+                order_type=OrderType.MEDICATION,
+                order_code="",
+                display_name=alt.drug,
+                urgency=order.urgency or "routine",
+                clinical_intent=f"Alternative for {candidate} (contraindication avoided): {alt.drug}",
+                clinical_intent_ja=f"{candidate} の禁忌回避のため代替処方: {alt.drug_ja}",
+                ordered_datetime=order.ordered_datetime,
+                ordered_by=order.ordered_by or attending_id,
+                status=OrderStatus.PLACED,
+                route=alt.default_route,
+                frequency=alt.default_frequency.upper() if alt.default_frequency else "",
+            )
+            if alt.default_dose:
+                from clinosim.modules.order.engine import enrich_medication_order
+
+                enrich_medication_order(sub_order, alt.default_dose)
+            out.append(sub_order)
+            accepted_med_names.append(alt.drug)
+            continue
+
+        if worst is not None and worst.default_action == "emit_with_note":
+            locale = country.lower()
+            note_text = worst.rationale_ja if locale == "jp" else worst.rationale_en
+            prefix = "併用注意: " if locale == "jp" else "Drug interaction (caution): "
+            note_entry = {
+                "text": f"{prefix}{note_text}",
+                "authorReference": {"display": "clinosim drug_safety v1"},
+            }
+            order.notes.append(note_entry)
+
+        out.append(order)
+        accepted_med_names.append(candidate)
+
+    return out

@@ -332,6 +332,7 @@ drugs:
         pregnancy_safe: true
 
   alternative_penicillin_allergy:
+    _indication_tag: antimicrobial_penicillin_class
     japan:
       - drug: "Clindamycin"
         code_yj: "6112001"
@@ -348,6 +349,7 @@ drugs:
         pregnancy_safe: false
 
   mrsa_coverage:
+    _indication_tag: antimicrobial_gram_positive_resistant
     japan:
       - drug: "Vancomycin"
         code_yj: "6113001"

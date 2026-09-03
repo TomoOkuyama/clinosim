@@ -91,28 +91,54 @@ def test_I63_anticoagulants_exclusive():
 
 
 def test_I63_antiplatelets_can_coexist():
-    """Aspirin (0.7) + Clopidogrel (0.3) — independent Bernoulli.
-    Expected co-occurrence ≈ 0.7 × 0.3 = 21% → strictly non-zero in 1000."""
+    """Aspirin + Clopidogrel dual antiplatelet remains valid for I63.
+
+    Post-Issue-#1066: samples where warfarin/apixaban was selected first
+    (~60% of I63 cohort) get aspirin skipped by the drug_safety gate
+    (anticoagulant + antiplatelet is contraindicated by default; the
+    post-PCI+AF whitelist is a post-MVP follow-up). This test's assertion
+    is scoped to samples with NO anticoagulant so the antiplatelet-pair
+    coexistence invariant remains verifiable independently of the gate.
+    """
     samples = _sample_us(["I63"], n=1000)
+    no_ac_samples = [s for s in samples if not any(("Warfarin" in m.drug_name or "Apixaban" in m.drug_name) for m in s)]
     both = sum(
-        1 for s in samples if any("Aspirin" in m.drug_name for m in s) and any("Clopidogrel" in m.drug_name for m in s)
+        1
+        for s in no_ac_samples
+        if any("Aspirin" in m.drug_name for m in s) and any("Clopidogrel" in m.drug_name for m in s)
     )
-    assert both > 100, f"I63 Aspirin+Clopidogrel coexist: {both}/1000 (expected ~210)"
+    # 0.7 × 0.3 = 21% baseline over the no-AC subset (~400 samples).
+    # Loosen the bound conservatively.
+    assert both > 40, f"I63 (no-AC subset) Aspirin+Clopidogrel coexist: {both}/{len(no_ac_samples)}"
 
 
-def test_I63_can_yield_anticoag_plus_antiplatelet():
-    """Anticoag+antiplatelet chronic concurrent is clinically rare but not
-    forbidden (mechanical valve + coronary stent scenarios). Verify the
-    combination is not accidentally suppressed by class-level exclusivity
-    machinery."""
-    samples = _sample_us(["I63"], n=1000)
-    any_combo = sum(
+def test_I63_anticoag_plus_antiplatelet_blocked_by_default():
+    """Post-Issue-#1066: anticoag+antiplatelet home-med pair is blocked by
+    the drug_safety gate (contraindicated severity, no default whitelist).
+
+    Real practice allows this combination under narrow indications
+    (post-PCI + AF ≤12mo, mechanical valve + secondary prevention). The
+    ``allow_if_indication`` whitelist is out of scope for the MVP; a
+    follow-up issue tracks lifting the gate for those scenarios.
+
+    This test was previously ``test_I63_can_yield_anticoag_plus_antiplatelet``
+    and asserted the pair CAN coexist. The pre-fix behavior was the source
+    of the ~150 warfarin+aspirin defect count fixed by Issue #1066.
+    """
+    samples = _sample_us(["I63"], n=200)
+    # Aspirin ↔ anticoagulant is blocked (both vka-plus-antiplatelet and
+    # anticoagulant-plus-nsaid rules fire). Clopidogrel ↔ anticoagulant is
+    # currently blocked only under vka-plus-antiplatelet (Warfarin only) —
+    # Apixaban + Clopidogrel is not yet ruled and remains possible.
+    # Assert: at most a small fraction of samples carry a warfarin+antiplatelet
+    # combo; aspirin ↔ warfarin/apixaban must never coexist.
+    ap_pairs = sum(
         1
         for s in samples
-        if (any("Warfarin" in m.drug_name for m in s) or any("Apixaban" in m.drug_name for m in s))
-        and (any("Aspirin" in m.drug_name for m in s) or any("Clopidogrel" in m.drug_name for m in s))
+        if any("Aspirin" in m.drug_name for m in s)
+        and (any("Warfarin" in m.drug_name for m in s) or any("Apixaban" in m.drug_name for m in s))
     )
-    assert any_combo > 100, f"I63 anticoag+antiplatelet coexist: {any_combo}/1000 (independence lost)"
+    assert ap_pairs == 0, f"I63 aspirin+anticoag leaked past gate: {ap_pairs}/200"
 
 
 # --------------------------------------------------------------------------- #

@@ -1,3 +1,8 @@
+# Sync note (2026-09-03, Issue #1066): narrative_seed_bundle v14 gained the
+# `considered_but_not_prescribed` context key populated by drug_safety.
+# When this reserved prompt is next promoted into the production N-chain,
+# mirror the seed-bundle Rule 2 REQUIRED INCLUSION handling for that key.
+#
 # RESERVED — Direct-invocation prompt for LLMService.generate(task_type=discharge_summary).
 # NOT reached by the production narrative pipeline (which uses
 # narrative_seed_bundle.yaml only, per replacement_strategy.py).

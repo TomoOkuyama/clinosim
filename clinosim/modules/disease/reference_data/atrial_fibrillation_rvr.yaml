@@ -331,6 +331,7 @@ drugs:
         pregnancy_safe: false
 
   alternative_beta_blocker_contraindicated:
+    _indication_tag: hypertension_or_rate_control
     japan:
       - drug: "Digoxin"
         code_yj: "2113003"

@@ -352,6 +352,43 @@ _GENERIC_ASSESSMENT_EN = "Clinical assessment ongoing"
 _GENERIC_PLAN_JA = "治療継続"
 _GENERIC_PLAN_EN = "Continue current management"
 
+
+def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
+    """Render an assessment-and-plan addendum listing drug candidates that
+    were considered but not prescribed due to a contraindication (with the
+    substitute drug when one was chosen).
+
+    Empty skips → empty string. One line per skip. Called from the plan
+    section renderers of both progress_note and outpatient SOAP so the
+    physician's clinical reasoning ("~ was avoided due to ~; ~ chosen
+    instead") is visible in the deterministic template output — not only
+    in the LLM-driven narrative (Task 10/11).
+
+    Issue #1066 (drug_safety) — sibling of B9 progress_note density gap.
+    """
+    if not skips:
+        return ""
+    lines: list[str] = []
+    for s in skips:
+        if lang == "ja":
+            considered = s.get("considered_ja") or s.get("considered") or ""
+            avoided = s.get("avoided_due_to_ja") or s.get("avoided_due_to") or ""
+            substituted = s.get("substituted_with_ja") or s.get("substituted_with")
+            if substituted:
+                lines.append(f"・{considered} は {avoided} との併用禁忌のため回避し、{substituted} を処方。")
+            else:
+                lines.append(f"・{considered} は {avoided} との併用禁忌のため処方せず。")
+        else:
+            considered = s.get("considered") or ""
+            avoided = s.get("avoided_due_to") or ""
+            substituted = s.get("substituted_with")
+            if substituted:
+                lines.append(f"- {considered} avoided due to concurrent {avoided}; {substituted} prescribed instead.")
+            else:
+                lines.append(f"- {considered} avoided due to concurrent {avoided}; alternative analgesic considered.")
+    return "\n".join(lines)
+
+
 # English HPI onset phrases per severity — the disease YAML
 # `hpi_template.onset_pattern` is Japanese-only, so the EN locale must
 # synthesize its own text rather than fall back to the Japanese source
@@ -976,6 +1013,14 @@ class TemplateNarrativeGenerator:
             phys_summary = self._format_physical_exam(phys_exam, ctx.severity, is_ja)
             if phys_summary:
                 objective = f"{objective}。{phys_summary}"
+
+        # Issue #1066 (drug_safety): append avoidance-and-substitution
+        # reasoning to plan when this encounter carries safety_skip_log
+        # entries. Same content flows into the LLM prompt via Task 10/11.
+        skips_addendum = _render_safety_skips_line(getattr(ctx, "safety_skips", None) or [], lang)
+        if skips_addendum:
+            plan = f"{plan}\n{skips_addendum}" if plan else skips_addendum
+            facts.append("ctx.safety_skips")
 
         # Build SOAP note. Also populate `sections` so the section-level LLM
         # replacement pipeline can operate on progress_note (session 88j
@@ -4762,6 +4807,14 @@ class TemplateNarrativeGenerator:
         if follow_up:
             lines.append(follow_up)
             facts.append("encounter_protocol.next_visit_interval")
+
+        # Issue #1066: append drug_safety avoidance/substitution reasoning
+        # so outpatient chronic follow-up notes carry the same visibility
+        # as inpatient progress notes.
+        skips_addendum = _render_safety_skips_line(getattr(ctx, "safety_skips", None) or [], lang)
+        if skips_addendum:
+            lines.append(skips_addendum)
+            facts.append("ctx.safety_skips")
 
         if lines:
             return "\n".join(lines), facts

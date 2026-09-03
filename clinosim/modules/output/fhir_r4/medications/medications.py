@@ -970,6 +970,17 @@ def _build_medication_request(
         if _stop_intent:
             resource["note"] = [{"text": _stop_intent}]
 
+    # Issue #1066 (drug_safety): pass through any order-level note dicts
+    # attached by the CPOE-style gate (moderate DDI cautions).
+    # Each note is already MR.note-shaped ({"text": ..., "authorReference":
+    # {"display": "clinosim drug_safety v1"}}) so we just extend the list.
+    _order_notes = order.get("notes")
+    if _order_notes:
+        existing_notes = resource.setdefault("note", [])
+        for entry in _order_notes:
+            if isinstance(entry, dict) and entry.get("text"):
+                existing_notes.append(entry)
+
     return resource
 
 

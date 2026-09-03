@@ -943,6 +943,38 @@ def _build_extra_context(
     # be able to mention them. v5 dropped these entirely so
     # discharge_summary / progress_note / admission_hp appeared bland
     # and clinically hollow.
+    # ---- Issue #1066 (drug_safety): considered-but-not-prescribed ---
+    # Surface the CPOE-style avoidance / substitution log so the LLM can
+    # weave the clinical reasoning ("~ was avoided due to concurrent ~; ~
+    # was prescribed instead") into the narrative's Assessment & Plan
+    # section. This is the Layer-3 (production LLM prompt) leg of the
+    # 4-layer narrative integration; Layer 2 (deterministic template) is
+    # in template_generator._render_safety_skips_line.
+    safety_skips = list(getattr(ctx, "safety_skips", []) or [])
+    if safety_skips:
+        is_ja = ctx.target_lang == "ja"
+        lines: list[str] = []
+        for s in safety_skips[:8]:  # cap payload (~200 tokens max)
+            if is_ja:
+                considered = s.get("considered_ja") or s.get("considered") or ""
+                avoided = s.get("avoided_due_to_ja") or s.get("avoided_due_to") or ""
+                substituted = s.get("substituted_with_ja") or s.get("substituted_with")
+                if substituted:
+                    lines.append(f"- {considered} ({avoided} との併用のため回避); 代替として {substituted} を処方")
+                else:
+                    lines.append(f"- {considered} ({avoided} との併用のため回避、代替薬は選択せず)")
+            else:
+                considered = s.get("considered") or ""
+                avoided = s.get("avoided_due_to") or ""
+                substituted = s.get("substituted_with")
+                if substituted:
+                    lines.append(
+                        f"- {considered} (avoided due to concurrent {avoided}); substituted with {substituted}"
+                    )
+                else:
+                    lines.append(f"- {considered} (avoided due to concurrent {avoided}); no alternative selected")
+        extra["considered_but_not_prescribed"] = "\n".join(lines)
+
     complications = list(getattr(ctx, "complications_occurred", []) or [])
     if complications:
         # Issue #848: when the complication is an in-hospital new-disease
