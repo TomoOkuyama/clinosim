@@ -555,3 +555,15 @@ _.service_line  # types/encounter.py + simulator/outpatient.py (read via _o() in
 _.period_seq  # types/patient.py::TemporalStatePeriod — read via dict access in FHIR emit + tests
 _.overlaps_year  # types/patient.py::TemporalStatePeriod — public API + used by tests
 _.has_active_state  # types/population.py::PersonRecord — public convenience wrapper + used by tests
+
+# ----- clinosim/modules/drug_safety (Issue #1066) -----
+# audit_drug_safety is a public API for verify_medical_stats.py + tests;
+# vulture flags it because no production call site imports it (verify_medical_stats
+# imports check_pair directly, and the audit plug-in is invoked from the
+# forthcoming AD-60 registry work — see docs/superpowers/specs/2026-09-03-drug-safety-module-design.md).
+_.audit_drug_safety  # modules/drug_safety/audit.py:30
+
+# AlternativeDrug.source_path — YAML provenance carried on every alternative
+# pick. Read by tests + a future audit path that traces which YAML block
+# supplied each substitute. Kept as documented public data-carrier field.
+_.source_path  # modules/drug_safety/engine.py::AlternativeDrug

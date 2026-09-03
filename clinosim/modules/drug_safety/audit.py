@@ -41,8 +41,7 @@ def audit_drug_safety(patients: list[Any]) -> list[AuditFinding]:
         profile = getattr(p, "profile", p)
         home_meds = getattr(profile, "home_medications", None) or getattr(profile, "current_medications", [])
         home_meds = home_meds or []
-        drugs = [getattr(m, "drug_name", None) or getattr(m, "drug", None) for m in home_meds]
-        drugs = [d for d in drugs if d]
+        drugs: list[str] = [d for m in home_meds if (d := getattr(m, "drug_name", None) or getattr(m, "drug", None))]
         skip_log = getattr(profile, "safety_skip_log", None) or []
         skipped_pairs = {(entry.candidate_drug, entry.active_conflict) for entry in skip_log}
         skipped_pairs |= {(entry.active_conflict, entry.candidate_drug) for entry in skip_log}
