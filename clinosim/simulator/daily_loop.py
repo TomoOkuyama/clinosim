@@ -102,6 +102,7 @@ def _run_daily_loop(
     admission_time: datetime,
     target_los: int,
     has_diabetes: bool,
+    has_dyslipidemia: bool,  # Issue #1073 B8: E78 chronic condition → lipid modulation
     healthcare: HealthcareSystemConfig,
     roster: StaffRoster,
     rng: np.random.Generator,
@@ -280,7 +281,13 @@ def _run_daily_loop(
             ),
         }
         true_labs = derive_lab_values(
-            state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, **flags
+            state,
+            sex=patient.sex,
+            age=patient.age,
+            has_diabetes=has_diabetes,
+            has_dyslipidemia=has_dyslipidemia,
+            hour=lab_hour,
+            **flags,
         )  # noqa: E501
 
         # Apply temporal lag: CRP reflects inflammation from ~1 day ago
@@ -288,7 +295,13 @@ def _run_daily_loop(
             lag_idx = max(0, len(state_history) - 2)
             lagged_state = state_history[lag_idx]
             lagged_labs = derive_lab_values(
-                lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, **flags
+                lagged_state,
+                sex=patient.sex,
+                age=patient.age,
+                has_diabetes=has_diabetes,
+                has_dyslipidemia=has_dyslipidemia,
+                hour=lab_hour,
+                **flags,
             )  # noqa: E501
             true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
 

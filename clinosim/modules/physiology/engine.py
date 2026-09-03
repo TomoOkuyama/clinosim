@@ -33,6 +33,8 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     ALBUMIN_FLOOR,
     ALBUMIN_HEPATIC_SCALE,
     ALBUMIN_INFLAMMATION_SCALE,
+    ALP_BASELINE_U_L,
+    ALP_HEPATIC_SCALE,
     ALT_BASELINE_U_L,
     ALT_HEPATIC_SCALE,
     APTT_BASELINE_SEC,
@@ -84,6 +86,9 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     FIBRINOGEN_INFLAMMATION_SCALE,
     FIBRINOGEN_PHYSIOLOGIC_MAX,
     FIBRINOGEN_PHYSIOLOGIC_MIN,
+    GGT_BASELINE_FEMALE_U_L,
+    GGT_BASELINE_MALE_U_L,
+    GGT_HEPATIC_SCALE,
     GLU_CLAMP_MAX,
     GLU_CLAMP_MIN,
     GLU_HYPERGLYCEMIA_SCALE,
@@ -111,8 +116,15 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     HCO3_METABOLIC_GAIN,
     HCO3_RENAL_COMPENSATION_RATIO,
     HCT_HB_RATIO,
+    HDL_BASELINE_FEMALE_MG_DL,
+    HDL_BASELINE_MALE_MG_DL,
+    HDL_DYSLIPIDEMIA_SCALE,
     LACTATE_BASELINE_MMOL_L,
     LACTATE_PERFUSION_SCALE,
+    LDH_BASELINE_U_L,
+    LDH_HEPATIC_SCALE,
+    LDL_BASELINE_MG_DL,
+    LDL_DYSLIPIDEMIA_SCALE,
     PCO2_BASELINE_MMHG,
     PCO2_CLAMP_MAX,
     PCO2_CLAMP_MIN,
@@ -153,6 +165,14 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     SODIUM_STATUS_SCALE,
     T_BIL_BASELINE_MG_DL,
     T_BIL_HEPATIC_SCALE,
+    TC_BASELINE_MG_DL,
+    TC_DYSLIPIDEMIA_SCALE,
+    TG_BASELINE_MG_DL,
+    TG_DIABETES_SCALE,
+    TG_DYSLIPIDEMIA_SCALE,
+    TP_BASELINE_G_DL,
+    TP_FLOOR_G_DL,
+    TP_HEPATIC_SCALE,
     TROPONIN_ACS_INJURY_SQ_SCALE,
     TROPONIN_BASELINE_NG_ML,
     TROPONIN_RENAL_LIFT_SCALE,
@@ -589,6 +609,7 @@ def derive_lab_values(
     causes_vte: bool = False,
     on_warfarin: bool = False,
     hai_inflammation_lift: float = 0.0,
+    has_dyslipidemia: bool = False,
 ) -> dict[str, float]:
     """Derive lab values from physiological state. Returns 'true' values before noise."""
     labs: dict[str, float] = {}
@@ -728,6 +749,25 @@ def derive_lab_values(
     labs["AST"] = AST_BASELINE_U_L + (1 - hepatic) * AST_HEPATIC_SCALE
     labs["ALT"] = ALT_BASELINE_U_L + (1 - hepatic) * ALT_HEPATIC_SCALE
     labs["T_Bil"] = T_BIL_BASELINE_MG_DL + (1 - hepatic) * T_BIL_HEPATIC_SCALE
+    # Issue #1073 B8: extended LFT — ALP + GGT + TP + LDH now derived so the
+    # LFT panel emits all 8 components instead of silent-dropping to 2/8.
+    labs["ALP"] = ALP_BASELINE_U_L + (1 - hepatic) * ALP_HEPATIC_SCALE
+    _ggt_base = GGT_BASELINE_MALE_U_L if sex == "M" else GGT_BASELINE_FEMALE_U_L
+    labs["GGT"] = _ggt_base + (1 - hepatic) * GGT_HEPATIC_SCALE
+    labs["TP"] = max(TP_FLOOR_G_DL, TP_BASELINE_G_DL - (1 - hepatic) * TP_HEPATIC_SCALE)
+    labs["LDH"] = LDH_BASELINE_U_L + (1 - hepatic) * LDH_HEPATIC_SCALE
+
+    # --- Lipid ---
+    # Issue #1073 B8: lipid panel — TC + LDL + HDL + TG. Baseline modulated by
+    # E78 (dyslipidemia chronic condition) via has_dyslipidemia flag from the
+    # caller and by E11 (DM) for TG via has_diabetes.
+    _dyslip = 1.0 if has_dyslipidemia else 0.0
+    _dm = 1.0 if has_diabetes else 0.0
+    labs["TC"] = TC_BASELINE_MG_DL + _dyslip * TC_DYSLIPIDEMIA_SCALE
+    labs["LDL"] = LDL_BASELINE_MG_DL + _dyslip * LDL_DYSLIPIDEMIA_SCALE
+    _hdl_base = HDL_BASELINE_MALE_MG_DL if sex == "M" else HDL_BASELINE_FEMALE_MG_DL
+    labs["HDL"] = max(20, _hdl_base - _dyslip * HDL_DYSLIPIDEMIA_SCALE)
+    labs["TG"] = TG_BASELINE_MG_DL + _dyslip * TG_DYSLIPIDEMIA_SCALE + _dm * TG_DIABETES_SCALE
     # PT_INR: hepatic (cirrhosis factor depletion) + coagulation_status (DIC
     # consumption) drive baseline; therapeutic warfarin overrides to target
     # the 2.0-3.0 clinical band. AC + comorbidity (DIC, cirrhosis) compounds
