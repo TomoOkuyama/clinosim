@@ -2252,7 +2252,7 @@
 
 <h1 id="モジュール">モジュール<a class="headerlink" href="#モジュール" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-モジュールマップ">clinosim モジュールマップ<a class="headerlink" href="#clinosim-モジュールマップ" title="Permanent link">&para;</a></h1>
-<p>clinosim の <strong>33 モジュール</strong> (数え方: <code>clinosim/modules/</code> 配下の
+<p>clinosim の <strong>34 モジュール</strong> (数え方: <code>clinosim/modules/</code> 配下の
 top-level package。<code>_shared.py</code> 等の非 package file は除く。
 <code>nursing_assignment</code> は observation-layer nursing flowsheet enricher
 と <code>clinosim/modules/nursing/</code> を共有) を 1 ページで俯瞰する。プロジェクト
@@ -2377,7 +2377,7 @@ framework (現在 6 per-module plug-in: <code>hai</code>, <code>antibiotic</code
 </span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>└──────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h2 id="モジュール索引">モジュール索引<a class="headerlink" href="#モジュール索引" title="Permanent link">&para;</a></h2>
-<p>計 33 モジュール (<code>clinosim/modules/</code> 配下 top-level package;
+<p>計 34 モジュール (<code>clinosim/modules/</code> 配下 top-level package;
 下表は追加で foundation の <code>codes</code> / <code>locale</code> も列挙)。各エントリは
 canonical 11-section 構造に従う per-module README にリンクする。</p>
 <table>
@@ -2614,6 +2614,13 @@ canonical 11-section 構造に従う per-module README にリンクする。</p>
 <td>enrichment</td>
 <td><code>0x4843</code> ("HC")</td>
 <td>POST_RECORDS 70</td>
+</tr>
+<tr>
+<td><a href="../../clinosim/modules/drug_safety/README.ja.md">drug_safety</a></td>
+<td>class ベース禁忌併用 gate + 代替薬 substitution (Issue #1066)</td>
+<td>foundation</td>
+<td>— (deterministic lookup)</td>
+<td>— (library, enricher ではない)</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/output/README.ja.md">output</a></td>

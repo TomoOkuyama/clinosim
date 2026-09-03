@@ -2315,7 +2315,7 @@ Output surfaces / Testing / Ownership) — see the module index at
 </table>
 <h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
 <p>clinosim is a population-driven, physiology-based synthetic EHR data
-simulator, organized into <strong>33 themed modules</strong> (packages under
+simulator, organized into <strong>34 themed modules</strong> (packages under
 <code>clinosim/modules/</code>) across four layers:</p>
 <ol>
 <li><strong>Foundation</strong> — <code>clinosim/codes/</code> + <code>clinosim/locale/</code> +
@@ -2398,7 +2398,7 @@ load-bearing verification gate that protects this goal.</p>
 </span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>└──────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h2 id="module-inventory">Module inventory<a class="headerlink" href="#module-inventory" title="Permanent link">&para;</a></h2>
-<p>33 modules total (top-level packages under <code>clinosim/modules/</code>; the
+<p>34 modules total (top-level packages under <code>clinosim/modules/</code>; the
 table below additionally lists the <code>codes</code> / <code>locale</code> foundation
 packages). Every entry links to the per-module README (which follows
 the canonical 11-section structure).</p>
@@ -2636,6 +2636,13 @@ the canonical 11-section structure).</p>
 <td>enrichment</td>
 <td><code>0x4843</code> ("HC")</td>
 <td>POST_RECORDS 70</td>
+</tr>
+<tr>
+<td><a href="../../clinosim/modules/drug_safety/README.md">drug_safety</a></td>
+<td>class-based contraindication gate + alternative substitution (Issue #1066)</td>
+<td>foundation</td>
+<td>— (deterministic lookup)</td>
+<td>— (library, not an enricher)</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/output/README.md">output</a></td>
