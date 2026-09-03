@@ -4,13 +4,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from clinosim.modules.drug_safety.verdict import SafetySkipEntry
 from clinosim.types.allergy import Allergy  # noqa: F401 — re-exported for callers
 from clinosim.types.identity import IdentityTimeline
 
-if TYPE_CHECKING:
-    from clinosim.modules.drug_safety.verdict import SafetySkipEntry
+# Issue #1066 (drug_safety): SafetySkipEntry imported unconditionally (no
+# clinosim deps in verdict.py, no cycle) so Pydantic TypeAdapter[CIFPatientRecord]
+# can resolve the forward reference. The prior TYPE_CHECKING guard broke
+# test_incremental_snapshot_workflow (Pydantic runtime resolution).
+_ = SafetySkipEntry  # keep import referenced under `from __future__` semantics
 
 
 @dataclass

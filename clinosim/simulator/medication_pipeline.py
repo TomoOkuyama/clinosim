@@ -593,8 +593,14 @@ def apply_drug_safety_gate_to_admission_orders(
 
     # Existing active meds visible to the gate: patient's home meds
     # (already-accepted, already in patient.current_medications) at the
-    # start of the pass.
+    # start of the pass. The activator (Task 8) has ALREADY run the gate
+    # against home_med derivation, so this list represents chronic pairs
+    # that were approved (or that pre-date the gate — see the
+    # already-chronic bypass below).
     home_med_names: list[str] = [m.drug_name for m in (patient.current_medications or []) if m.drug_name]
+    # Canonicalise once so the bypass check below matches regardless of
+    # dose-suffixed input.
+    _canonical_home = {drug_safety.canonical_name(name) or name.strip().lower() for name in home_med_names}
 
     out: list[Order] = []
     accepted_med_names: list[str] = list(home_med_names)
@@ -608,6 +614,21 @@ def apply_drug_safety_gate_to_admission_orders(
         candidate = order.display_name or ""
         if not candidate:
             out.append(order)
+            continue
+
+        # Issue #1066: home-medication continuation orders re-emit drugs already
+        # in ``patient.current_medications``. The activator has already made
+        # the chronic-pair decision (Task 8); re-gating a home-med continuation
+        # against its own siblings would spuriously skip legitimate chronic
+        # co-therapy (e.g. Apixaban continuation getting flagged against a
+        # sibling Aspirin that itself sits in current_medications from a
+        # separate chronic condition — see the anticoag-carryforward
+        # integration test). Only gate NEW additions on top of the chronic
+        # baseline.
+        _canonical_candidate = drug_safety.canonical_name(candidate) or candidate.strip().lower()
+        if _canonical_candidate in _canonical_home:
+            out.append(order)
+            accepted_med_names.append(candidate)
             continue
 
         verdicts = drug_safety.check_candidate_against_active(candidate, accepted_med_names)
