@@ -1,12 +1,12 @@
-"""drug_safety engine — check_pair, check_candidate_against_active.
+"""drug_safety engine — check_pair, check_candidate_against_active, suggest_alternative.
 
-``suggest_alternative`` is added in Task 4 (shared pool path) and Task 5
-(disease_ctx branch).
+The disease_ctx branch of suggest_alternative is wired in Task 5.
 """
 
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -15,6 +15,7 @@ import yaml
 
 from clinosim.modules.drug_safety.classifier import (
     canonical_name,
+    japanese_display,
     resolve_classes,
 )
 from clinosim.modules.drug_safety.verdict import (
@@ -25,6 +26,18 @@ from clinosim.modules.drug_safety.verdict import (
 
 _HERE = Path(__file__).resolve().parent
 _CONTRAINDICATIONS_YAML = _HERE / "reference_data" / "contraindications.yaml"
+_SHARED_SUBSTITUTION_YAML = _HERE.parents[1] / "locale" / "shared" / "drug_substitution.yaml"
+
+
+@dataclass(frozen=True)
+class AlternativeDrug:
+    drug: str
+    drug_ja: str
+    default_dose: str
+    default_route: str
+    default_frequency: str
+    source_path: str  # yaml provenance, e.g. "locale/shared/drug_substitution.yaml#pain_management[0]"
+
 
 _ALLOWED = SafetyVerdict(
     severity="allowed",
@@ -110,3 +123,86 @@ def check_candidate_against_active(
             )
         )
     return out
+
+
+# ---------------------------------------------------------------------------
+# Alternative substitution
+# ---------------------------------------------------------------------------
+
+
+@lru_cache(maxsize=1)
+def _load_shared_substitutions() -> dict[str, dict[str, Any]]:
+    with _SHARED_SUBSTITUTION_YAML.open(encoding="utf-8") as fh:
+        data = yaml.safe_load(fh)
+    return data.get("indications", {}) or {}
+
+
+def _alt_is_safe(alt_drug: str, active_meds: Sequence[str]) -> bool:
+    return not check_candidate_against_active(alt_drug, active_meds)
+
+
+def _shared_pool_pick(indication: str, active_meds: Sequence[str]) -> AlternativeDrug | None:
+    shared = _load_shared_substitutions()
+    block = shared.get(indication)
+    if not block:
+        return None
+    for idx, entry in enumerate(block.get("alternatives", []) or []):
+        drug = entry.get("drug")
+        if not drug or not _alt_is_safe(drug, active_meds):
+            continue
+        return AlternativeDrug(
+            drug=drug,
+            drug_ja=entry.get("drug_ja", drug),
+            default_dose=entry.get("default_dose", ""),
+            default_route=entry.get("default_route", "PO"),
+            default_frequency=entry.get("default_frequency", "daily"),
+            source_path=(f"locale/shared/drug_substitution.yaml#{indication}[{idx}]"),
+        )
+    return None
+
+
+def suggest_alternative(
+    candidate: str,
+    indication: str | None,
+    *,
+    active_meds: Sequence[str] = (),
+    disease_ctx: Any | None = None,
+    country: str = "us",
+) -> AlternativeDrug | None:
+    """Pick a conflict-free alternative for ``candidate`` given ``indication``.
+
+    Priority order:
+      1. disease_ctx alternatives (wired in Task 5) matching ``indication``
+      2. locale/shared/drug_substitution.yaml[indication].alternatives
+      3. None (fully skipped — caller must handle)
+
+    Every returned alternative has been re-checked via check_pair against
+    every entry in ``active_meds`` and is guaranteed conflict-free.
+    """
+    if indication is None:
+        return None
+
+    # Disease-YAML branch — Task 5 wires this to alternatives_by_indication().
+    if disease_ctx is not None:
+        try:
+            from clinosim.modules.disease.protocol import alternatives_by_indication
+
+            disease_alts = alternatives_by_indication(disease_ctx, indication, country)
+        except (ImportError, AttributeError):
+            disease_alts = []
+        for idx, entry in enumerate(disease_alts):
+            drug = entry.get("drug")
+            if not drug or not _alt_is_safe(drug, active_meds):
+                continue
+            disease_id = getattr(disease_ctx, "disease_id", "unknown")
+            return AlternativeDrug(
+                drug=drug,
+                drug_ja=japanese_display(drug) or drug,
+                default_dose=entry.get("dose", ""),
+                default_route="PO",  # disease YAML dose strings encode route inline
+                default_frequency="daily",
+                source_path=(f"clinosim/modules/disease/reference_data/{disease_id}.yaml#{indication}[{idx}]"),
+            )
+
+    # Shared-pool fallback
+    return _shared_pool_pick(indication, active_meds)
