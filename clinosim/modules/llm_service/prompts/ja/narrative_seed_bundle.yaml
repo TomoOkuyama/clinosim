@@ -1,10 +1,18 @@
 task_type: narrative_seed_bundle
-version: 13
+version: 14
 max_tokens: 3500
 temperature: 0.1
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
+
+  v14 changes (2026-09-03, Issue #1066 drug_safety Layer 3):
+    - Added `considered_but_not_prescribed` context key (populated by
+      replacement_strategy._build_extra_context when the encounter carries
+      drug_safety skip-log entries).
+    - Rule 2 REQUIRED INCLUSION extended for drug_safety avoidance
+      surfacing — LLM must weave "〜との併用禁忌のため〜を回避し、〜を
+      選択した。" into A&P prose when the key is present.
 
   v13 changes (2026-08-31, closes #997 + #998):
     - Added per-doc-type guidance blocks under `=== Per document_type ===`
@@ -98,6 +106,8 @@ system: |
     - vitals_range_during_stay  min-max of key vitals across the stay
     - key_procedures_performed  procedures done during the stay
     - complications_during_stay complication tokens fired by the daily loop
+    - considered_but_not_prescribed  drug_safety CPOE-style avoidance log
+                              (bullet lines: candidate, conflict, substitute)
     - supplemental_oxygen_today  "<device> <flow> L/min" if today's O2 is on
     - encounter_type            outpatient / inpatient / emergency / …
     - discharge_outcome         disposition label
@@ -143,6 +153,14 @@ system: |
      - supplemental_oxygen_today → narrative MUST NOT claim "room air"
        / "no oxygen therapy" / "酸素投与なし". SpO2 references MUST
        state device + flow rate from this key.
+     - considered_but_not_prescribed (drug_safety, Issue #1066) → EVERY
+       entry MUST be surfaced in the A&P section using natural clinical
+       Japanese prose that names the considered drug, the active
+       conflict, and the substitute (when one is listed). 推奨文体:
+       「〜との併用禁忌のため〜を回避し、〜を選択した。」
+       代替薬が示されていない場合は「〜を回避、代替薬は選択せず」。
+       Silent omission is a hallucination of the inverse.
+       NEVER invent avoidances or substitutions not in the input.
 
   3. VERBATIM COPY — no re-interpretation of pre-resolved fields.
      - hospital_day_label: copy verbatim ("入院初日" for day 0,
