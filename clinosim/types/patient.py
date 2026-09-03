@@ -6,8 +6,15 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
+from clinosim.modules.drug_safety.verdict import SafetySkipEntry
 from clinosim.types.allergy import Allergy  # noqa: F401 — re-exported for callers
 from clinosim.types.identity import IdentityTimeline
+
+# Issue #1066 (drug_safety): SafetySkipEntry imported unconditionally (no
+# clinosim deps in verdict.py, no cycle) so Pydantic TypeAdapter[CIFPatientRecord]
+# can resolve the forward reference. The prior TYPE_CHECKING guard broke
+# test_incremental_snapshot_workflow (Pydantic runtime resolution).
+_ = SafetySkipEntry  # keep import referenced under `from __future__` semantics
 
 
 @dataclass
@@ -208,6 +215,14 @@ class PatientProfile:
     chronic_conditions: list[ChronicCondition] = field(default_factory=list)
     allergies: list[Allergy] = field(default_factory=list)
     current_medications: list[HomeMedication] = field(default_factory=list)
+    # Issue #1066 (drug_safety): per-patient log of medication candidates that
+    # were skipped by the contraindication gate. Populated by
+    # ``clinosim.modules.patient.activator`` during home-med derivation and by
+    # ``clinosim.simulator.medication_pipeline`` during per-encounter emit.
+    # NOT emitted into FHIR structured resources — matches real CPOE workflow
+    # where blocked orders leave no chart trace. Consumed by narrative context
+    # so the physician's avoidance reasoning surfaces in progress notes.
+    safety_skip_log: list[SafetySkipEntry] = field(default_factory=list)
     # Issue #433 C1: immutable snapshot of the patient's baseline chronic
     # medications, captured at Layer 1 → Layer 2 activation. `current_medications`
     # is a dynamic view that mutates across encounters (renal-hold at discharge,

@@ -656,3 +656,51 @@ def load_all_disease_protocols() -> dict[str, DiseaseProtocol]:
         disease_id = yaml_file.stem
         protocols[disease_id] = load_disease_protocol(disease_id)
     return protocols
+
+
+# ---------------------------------------------------------------------------
+# Alternative-drug lookup for drug_safety.suggest_alternative (Issue #437 revive).
+# ---------------------------------------------------------------------------
+
+
+_COUNTRY_YAML_KEYS: dict[str, tuple[str, ...]] = {
+    "us": ("us",),
+    "jp": ("japan", "jp"),
+    "japan": ("japan", "jp"),
+}
+
+
+def alternatives_by_indication(
+    protocol: DiseaseProtocol,
+    indication_tag: str,
+    country: str,
+) -> list[dict[str, Any]]:
+    """Return the list of alternative drug entries whose ``_indication_tag`` matches.
+
+    Walks ``protocol.drugs`` (a dict of blocks such as ``alternative_penicillin_allergy``,
+    ``mrsa_coverage``, ``hyperkalemia_management``), filters by
+    ``_indication_tag == indication_tag``, and returns the country's list.
+    Handles the disease-YAML convention that country slots are named
+    ``us`` / ``japan`` (full name), not the ISO-2 country code the caller uses.
+    Returns ``[]`` when no match — never raises.
+
+    Wired by ``clinosim.modules.drug_safety.engine.suggest_alternative``.
+    Closes Issue #437 dead-data class by giving these blocks a runtime reader.
+    """
+    drugs = getattr(protocol, "drugs", None) or {}
+    country_keys = _COUNTRY_YAML_KEYS.get(country.lower(), (country.lower(),))
+    out: list[dict[str, Any]] = []
+    for _block_name, block in drugs.items():
+        if not isinstance(block, dict):
+            continue
+        if block.get("_indication_tag") != indication_tag:
+            continue
+        country_entries: Any = []
+        for key in country_keys:
+            country_entries = block.get(key, []) or []
+            if country_entries:
+                break
+        if isinstance(country_entries, dict):
+            country_entries = [country_entries]
+        out.extend(country_entries)
+    return out

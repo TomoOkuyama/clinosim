@@ -346,6 +346,7 @@ drugs:
         pregnancy_safe: false
 
   alternative_penicillin_allergy:
+    _indication_tag: antimicrobial_penicillin_class
     japan:
       - drug: "Clindamycin"
         code_yj: "6112001"

@@ -52,6 +52,81 @@ explicit user Go signal (`feedback_release_tag_requires_user_go`).
 Everything below stays queued under `[Unreleased]` until the
 re-tag.
 
+### Added (session 99, drug_safety — Issue #1066)
+
+- **New `clinosim.modules.drug_safety` foundation module**: class-based
+  contraindication rule engine with severity-graded verdicts
+  (allowed / minor / moderate / major / contraindicated) and
+  alternative-drug substitution. Invoked synchronously from the `order`
+  and `patient` modules, not registered as a POST_* enricher.
+- **Contraindication rule set** (8 rules): warfarin+antiplatelet,
+  anticoagulant+NSAID, β-blocker+non-DHP CCB, ACEi/ARB+K supplement,
+  ACEi/ARB+K-sparing diuretic, statin+CYP3A4 strong inhibitor,
+  allopurinol+thiopurine, SSRI+MAOI.
+- **Alternative drug substitution**: revives Issue #437 dead-data
+  `alternative_*` blocks in 15 disease YAMLs via `_indication_tag`
+  markers + new `locale/shared/drug_substitution.yaml` generic pool.
+- **CIF trace field `PatientProfile.safety_skip_log`** carrying the
+  per-patient list of skipped candidates (candidate + active_conflict
+  + verdict + substituted_with + context_hint). NOT emitted into FHIR
+  structured resources (matches real EHR CPOE behavior).
+- **`MedicationRequest.note[]` caution passthrough** for moderate DDI
+  co-prescriptions (`authorReference.display = "clinosim drug_safety v1"`).
+- **Narrative surfacing across all 4 layers**:
+  - Layer 1 (context): `NarrativeContext.safety_skips` +
+    `build_narrative_context` filter.
+  - Layer 2 (template): `template_generator._render_safety_skips_line`
+    appends deterministic avoidance bullets to A&P / Plan.
+  - Layer 3 (production LLM prompt): `narrative_seed_bundle.yaml` v13
+    → v14 gains `considered_but_not_prescribed` context key + Rule 2
+    REQUIRED INCLUSION.
+  - Layer 4: sync-note comments on 6 reserved individual prompts.
+- **AD-60-style audit plug-in** `audit_drug_safety(patients)` — post-hoc
+  missed-gate detector, direct-invocation (full AD-60 4-axis registration
+  deferred).
+- **verify_medical_stats.py `contraindicated_pair_count` metric**
+  (target: 0 per cohort).
+
+### Changed (session 99, drug_safety)
+
+- **Contraindicated home-med pairs no longer form** in the activator
+  (chronic-med derivation) or the admission-order pipeline (acute
+  first-line drugs vs home meds). US p=1000 seed=500 baseline vs fix:
+  30 contraindicated pairs → 0. MR total 2576 → 2572 (skipped or
+  substituted). Cohort statistics (HTN prev / encounter mix / mortality
+  / incidence) shifted only within small-sample noise.
+- **Order-emit RNG shape shifts** where skips or substitutions occur.
+  Consumer ETLs that hardcoded MR counts or specific-pair presence
+  need to re-baseline against v0.6.0.
+- **`clinosim.types.encounter.Order` gains a `notes: list[dict]` field**
+  (empty default). MR builder passes non-empty entries into
+  `MedicationRequest.note[]`.
+- **`clinosim.types.patient.PatientProfile` gains `safety_skip_log:
+  list[SafetySkipEntry]` field** (empty default, TYPE_CHECKING import
+  to break the types→modules cycle).
+- **`clinosim.types.document.NarrativeContext` gains `safety_skips:
+  list[dict]` field** (encounter-filtered projection).
+- **Issue #437 sibling scope closed**: the 4 previously-dead
+  `alternative_*` block families in disease YAML now have a runtime
+  reader (`disease.protocol.alternatives_by_indication`).
+- **Test updates**: `test_I63_antiplatelets_can_coexist` tightened to
+  no-anticoag subset (post-gate coexistence is verifiable only when no
+  anticoagulant was picked first). `test_I63_can_yield_anticoag_plus_antiplatelet`
+  renamed to `test_I63_anticoag_plus_antiplatelet_blocked_by_default`
+  and now asserts the aspirin+anticoag pair is zero — the core B1 defect.
+  The whitelist for narrow-indication exceptions (post-PCI+AF, mechanical
+  valve) is a post-MVP follow-up.
+
+### Migration notes (session 99, drug_safety)
+
+- Downstream ETLs counting `warfarin+aspirin` / `warfarin+NSAID` /
+  `β-blocker+verapamil` co-prescription events will see counts drop
+  significantly. Re-baseline against v0.6.0.
+- New MR.note authorReference `clinosim drug_safety v1` — note parsers
+  that allowlist authorReferences must add it.
+- No new FHIR resource types emitted, no bundle-structural change, no
+  DetectedIssue.
+
 ### Added
 
 - **Pregnancy lifecycle refactor: `TemporalStatePeriod` framework +

@@ -1,0 +1,33 @@
+# clinosim/locale/shared/drug_substitution.yaml
+# Generic indication-driven alternative drug pool for drug_safety.suggest_alternative.
+# Consulted after disease_ctx alternative_* blocks (see spec §4.4) and before
+# returning None. Schema documented in
+# clinosim/modules/drug_safety/reference_data/README.md.
+#
+# Every candidate is re-checked via check_pair against the caller's active_meds
+# list, so an alternative that would form its own contraindication is skipped
+# and the iterator moves to the next entry.
+
+indications:
+  pain_management:
+    description: "General analgesia when NSAID or opioid is contraindicated."
+    alternatives:
+      - drug: "Acetaminophen"
+        drug_ja: "アセトアミノフェン"
+        default_dose: "500mg"
+        default_route: "PO"
+        default_frequency: "q6h_prn"
+
+  hypertension_or_rate_control:
+    description: "BP or heart-rate control when a specific antihypertensive class is contraindicated."
+    alternatives:
+      - drug: "Amlodipine"
+        drug_ja: "アムロジピン"
+        default_dose: "5mg"
+        default_route: "PO"
+        default_frequency: "daily"
+      - drug: "Candesartan"
+        drug_ja: "カンデサルタン"
+        default_dose: "8mg"
+        default_route: "PO"
+        default_frequency: "daily"

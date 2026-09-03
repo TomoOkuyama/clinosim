@@ -1,6 +1,6 @@
 # clinosim モジュールマップ
 
-clinosim の **33 モジュール** (数え方: `clinosim/modules/` 配下の
+clinosim の **34 モジュール** (数え方: `clinosim/modules/` 配下の
 top-level package。`_shared.py` 等の非 package file は除く。
 `nursing_assignment` は observation-layer nursing flowsheet enricher
 と `clinosim/modules/nursing/` を共有) を 1 ページで俯瞰する。プロジェクト
@@ -113,7 +113,7 @@ framework (現在 6 per-module plug-in: `hai`, `antibiotic`, `order`,
 
 ## モジュール索引
 
-計 33 モジュール (`clinosim/modules/` 配下 top-level package;
+計 34 モジュール (`clinosim/modules/` 配下 top-level package;
 下表は追加で foundation の `codes` / `locale` も列挙)。各エントリは
 canonical 11-section 構造に従う per-module README にリンクする。
 
@@ -151,6 +151,7 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | [care_level](clinosim/modules/care_level/README.ja.md) | JP 要介護度 (JP 限定) | enrichment | `0x434C` ("CL") | POST_RECORDS 60 (JP gate) |
 | [monitoring](clinosim/modules/monitoring/README.ja.md) | 慢性薬 → monitoring labs (Issue #757) | enrichment | `0x4D4D` ("MM") | POST_RECORDS 65 |
 | [health_checkup](clinosim/modules/health_checkup/README.ja.md) | JP 事業者健診 (JP 限定 opt-in) | enrichment | `0x4843` ("HC") | POST_RECORDS 70 |
+| [drug_safety](clinosim/modules/drug_safety/README.ja.md) | class ベース禁忌併用 gate + 代替薬 substitution (Issue #1066) | foundation | — (deterministic lookup) | — (library, enricher ではない) |
 | [output](clinosim/modules/output/README.ja.md) | CIF → FHIR R4 NDJSON / CSV アダプタ registry | output | — | — |
 | [llm_service](clinosim/modules/llm_service/README.ja.md) | narrative Stage 2 用の単一 LLM gateway (AD-11) | output | — | — |
 | [validator](clinosim/modules/validator/README.ja.md) | realism benchmark + consistency check | output | — | — |

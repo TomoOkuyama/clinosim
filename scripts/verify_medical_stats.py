@@ -250,3 +250,49 @@ print(band("ed_share (EMER)", enc_pct(ed), *b["ed_share_pct"], "%"))
 print(band("inpatient_share (IMP)", enc_pct(imp), *b["inpatient_share_pct"], "%"))
 if other:
     print(f"  other encounter classes: {other} ({enc_pct(other):.1f}%)")
+
+
+# ---------------------------------------------------------------------------
+# Issue #1066 (drug_safety): contraindicated pair count in FHIR MRs
+# ---------------------------------------------------------------------------
+try:
+    from clinosim.modules.drug_safety.engine import check_pair as _check_pair
+
+    print("\n--- Drug safety (Issue #1066) ---")
+    fhir_dir = Path(sys.argv[1]) / "fhir_r4"
+    if not fhir_dir.exists():
+        fhir_dir = Path(sys.argv[1])  # caller may pass fhir dir directly
+    mr_file = fhir_dir / "MedicationRequest.ndjson"
+    if not mr_file.exists():
+        print(f"  [WARN] MedicationRequest.ndjson not found under {fhir_dir}")
+    else:
+        per_patient: dict[str, list[str]] = {}
+        for line in mr_file.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            mr = json.loads(line)
+            subject = mr.get("subject", {}).get("reference", "")
+            display = ""
+            med = mr.get("medicationCodeableConcept", {})
+            for cd in med.get("coding", []) or []:
+                if cd.get("display"):
+                    display = cd["display"]
+                    break
+            if not display:
+                display = med.get("text", "")
+            if display and subject:
+                per_patient.setdefault(subject, []).append(display)
+        pair_counts: Counter = Counter()
+        for drugs in per_patient.values():
+            for i, a in enumerate(drugs):
+                for b_ in drugs[i + 1 :]:
+                    v = _check_pair(a, b_)
+                    if v.severity in {"major", "contraindicated"}:
+                        pair_counts[v.rule_id or "unknown"] += 1
+        total = sum(pair_counts.values())
+        print(f"  contraindicated_pair_count (major + contraindicated): {total} (target: 0)")
+        if pair_counts:
+            for rule_id, cnt in pair_counts.most_common():
+                print(f"    {rule_id}: {cnt}")
+except ImportError:
+    print("\n[SKIP] clinosim.modules.drug_safety not importable — skip drug_safety metrics")

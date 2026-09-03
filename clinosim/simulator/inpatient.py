@@ -332,6 +332,27 @@ def _simulate_patient(
     )
     admission_orders.extend(home_med_orders)
 
+    # Issue #1066: run admission_orders through the drug_safety CPOE-style
+    # gate. Contraindicated / major DDI candidates are dropped (with
+    # alternative substituted where the disease YAML alternative_* block
+    # or locale/shared/drug_substitution.yaml supplies one). Moderate DDI
+    # candidates are kept with a caution note attached. Home meds and
+    # already-accepted acute drugs form the active-med set. See
+    # docs/superpowers/specs/2026-09-03-drug-safety-module-design.md.
+    from clinosim.simulator.medication_pipeline import (
+        apply_drug_safety_gate_to_admission_orders,
+    )
+
+    admission_orders = apply_drug_safety_gate_to_admission_orders(
+        admission_orders,
+        patient,
+        encounter.encounter_id,
+        admission_time,
+        attending_id,
+        protocol=protocol,
+        country=country_key,
+    )
+
     # Tracking
     procedures, rehab_sessions = [], []
     icu_transferred, death_occurred = False, False

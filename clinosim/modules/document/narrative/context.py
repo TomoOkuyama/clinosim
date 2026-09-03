@@ -32,6 +32,10 @@ def build_narrative_context(
     locale = country.lower()
     patient = _o(record, "patient", None)
     allergies: list[Any] = _o(patient, "allergies", []) if patient is not None else []
+
+    # Issue #1066 (drug_safety): filter PatientProfile.safety_skip_log to this encounter.
+    safety_skips = _build_safety_skips(patient, encounter)
+
     return NarrativeContext(
         patient=patient,
         encounter=encounter,
@@ -73,4 +77,41 @@ def build_narrative_context(
         orders=_o(record, "orders", []) or [],
         # Issue #982 — surface family_history for narrative rendering.
         family_history=_o(record, "family_history", []) or [],
+        # Issue #1066 — encounter-filtered drug_safety avoidance log for narrative surface.
+        safety_skips=safety_skips,
     )
+
+
+def _build_safety_skips(patient: Any, encounter: Any) -> list[dict[str, Any]]:
+    """Filter ``patient.safety_skip_log`` to entries whose encounter_id matches
+    ``encounter.id`` and reshape into narrative-consumable dicts.
+    Returns [] when patient is None, no log exists, or no entries match.
+    """
+    if patient is None:
+        return []
+    raw_log = _o(patient, "safety_skip_log", []) or []
+    if not raw_log:
+        return []
+    encounter_id = _o(encounter, "id", None) if encounter is not None else None
+    if encounter_id is None:
+        return []
+    out: list[dict[str, Any]] = []
+    for entry in raw_log:
+        if getattr(entry, "encounter_id", None) != encounter_id:
+            continue
+        verdict = getattr(entry, "verdict", None)
+        out.append(
+            {
+                "considered": entry.candidate_drug,
+                "considered_ja": entry.candidate_drug_ja,
+                "avoided_due_to": entry.active_conflict,
+                "avoided_due_to_ja": entry.active_conflict_ja,
+                "rationale_en": getattr(verdict, "rationale_en", None),
+                "rationale_ja": getattr(verdict, "rationale_ja", None),
+                "substituted_with": entry.substituted_with,
+                "substituted_with_ja": entry.substituted_with_ja,
+                "context": entry.context_hint,
+                "severity": getattr(verdict, "severity", None),
+            }
+        )
+    return out

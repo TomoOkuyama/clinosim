@@ -240,6 +240,13 @@ class Order:
     # authored instruction without repeating the drug name.
     dose_text_ja: str = ""  # JP dose instruction (authored, not term-translated)
     dose_text_en: str = ""  # EN dose instruction (authored, mirror slot for US)
+    # Issue #1066 (drug_safety): free-form note dicts attached by the
+    # CPOE-style contraindication gate for moderate DDI cases. Each entry
+    # is already MR.note-shaped (``{"text": ..., "authorReference":
+    # {"display": "clinosim drug_safety v1"}}``) so downstream FHIR
+    # MedicationRequest emit can pass them through verbatim. Empty on all
+    # orders that did not trigger a moderate-severity gate finding.
+    notes: list[dict] = field(default_factory=list)
 
 
 @dataclass
