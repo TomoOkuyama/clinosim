@@ -126,12 +126,6 @@ def test_I63_anticoag_plus_antiplatelet_blocked_by_default():
     of the ~150 warfarin+aspirin defect count fixed by Issue #1066.
     """
     samples = _sample_us(["I63"], n=200)
-    any_combo = sum(
-        1
-        for s in samples
-        if (any("Warfarin" in m.drug_name for m in s) or any("Apixaban" in m.drug_name for m in s))
-        and (any("Aspirin" in m.drug_name for m in s) or any("Clopidogrel" in m.drug_name for m in s))
-    )
     # Aspirin ↔ anticoagulant is blocked (both vka-plus-antiplatelet and
     # anticoagulant-plus-nsaid rules fire). Clopidogrel ↔ anticoagulant is
     # currently blocked only under vka-plus-antiplatelet (Warfarin only) —

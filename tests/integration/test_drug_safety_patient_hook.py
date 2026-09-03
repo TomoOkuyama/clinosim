@@ -42,7 +42,6 @@ def test_derive_home_meds_skips_aspirin_when_warfarin_already_chosen() -> None:
 def test_derive_home_meds_skip_log_populated_with_synthetic_data(monkeypatch) -> None:
     """Monkeypatch chronic_medications loader to force a contraindicated pair,
     then verify the gate skips the second drug and records a skip entry."""
-    from clinosim.modules.patient import activator as activator_mod
 
     fake_data = {
         "TEST_CODE": {

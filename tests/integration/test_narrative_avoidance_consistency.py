@@ -9,12 +9,11 @@ for drug_safety: no narrative may invent a drug name outside the CIF trace.
 from __future__ import annotations
 
 from datetime import datetime
-from types import SimpleNamespace
 
 from clinosim.modules.document.narrative.template_generator import (
     _render_safety_skips_line,
 )
-from clinosim.modules.drug_safety.verdict import SafetySkipEntry, SafetyVerdict
+from clinosim.modules.drug_safety.verdict import SafetySkipEntry
 from clinosim.simulator.medication_pipeline import (
     apply_drug_safety_gate_to_admission_orders,
 )

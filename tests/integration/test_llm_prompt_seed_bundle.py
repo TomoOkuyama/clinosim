@@ -54,7 +54,6 @@ def test_extra_context_builder_emits_considered_but_not_prescribed() -> None:
     from clinosim.modules.document.narrative.replacement_strategy import (
         _build_extra_context,
     )
-    from clinosim.types.document import DocumentType
 
     ctx = SimpleNamespace(
         patient=None,
