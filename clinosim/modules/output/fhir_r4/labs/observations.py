@@ -202,7 +202,19 @@ def _build_lab_observation(
             "text": display_name,
         },
         "subject": patient_ref(patient_id),
-        "effectiveDateTime": result.get("result_datetime", ""),
+        # Session-98 F11 fix. `effectiveDateTime` on a lab Observation is
+        # the *sample collection* time (FHIR spec: "The time or time-period
+        # the observed value is asserted as being true"); `issued` is when
+        # the report becomes available in the chart. Pre-fix we wrote the
+        # RESULT time into `effectiveDateTime`, which for late-ED lab
+        # orders (encounter ends 23:XX, result at 00:XX next day) produced
+        # observations dated AFTER the parent encounter's period.end — 74
+        # such Obs on JP p=10000 seed=500. Fix: prefer the parent Order's
+        # `ordered_datetime` (a close proxy for collection time — sample
+        # is drawn shortly after order) and expose the result availability
+        # via `issued`.
+        "effectiveDateTime": order.get("ordered_datetime") or result.get("result_datetime", ""),
+        "issued": result.get("result_datetime", ""),
     }
 
     if isinstance(value, (int, float)):

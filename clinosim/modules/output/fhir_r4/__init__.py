@@ -663,6 +663,20 @@ def _build_bundle(
     # `snapshot_date` is absent (test fixtures / legacy CIF without
     # metadata).
     if ctx.snapshot_date:
+        # Session-98 F10: reconcile Encounter status/period with snapshot.
+        # Pre-fix, an Encounter whose CIF-side `discharge_datetime` fell
+        # AFTER snapshot was emitted with `status="finished"` +
+        # `period.end` past the cutoff — while the downstream discharge
+        # summary Composition (and any post-snapshot MedAdmin / lab /
+        # nursing / death cert) was dropped by `_drop_entries_after_
+        # snapshot`. Consumers saw a "completed" admission with no
+        # discharge summary — semantically inconsistent (JP p=10000
+        # seed=500: 3 IMPs, 2 with post-snapshot deceased patients
+        # missing death cert). Truncate the Encounter to snapshot state:
+        # at snapshot time the patient is STILL admitted, so status
+        # reverts to "in-progress" and period.end / length / status-
+        # History-past-snapshot are cleared.
+        entries = _reconcile_encounters_at_snapshot(entries, ctx.snapshot_date)
         entries, _snap_dropped, _snap_scrubbed = _drop_entries_after_snapshot(entries, ctx.snapshot_date)
         if _snap_dropped and snapshot_drop_counter is not None:
             for _rt, _cnt in _snap_dropped.items():
@@ -685,6 +699,60 @@ def _build_bundle(
         "type": "collection",
         "entry": entries,
     }
+
+
+def _reconcile_encounters_at_snapshot(entries: list[dict], snapshot_iso: str) -> list[dict]:
+    """Truncate Encounter.status + period.end for admissions crossing snapshot.
+
+    Session-98 F10 fix. Called before `_drop_entries_after_snapshot`.
+    For every Encounter whose ``period.end > snapshot`` (both dates
+    compared at day precision, mirroring the drop-filter):
+
+      * ``status`` reverts to ``"in-progress"`` — at snapshot the
+        patient is still admitted.
+      * ``period.end`` and ``length`` are removed — end date isn't
+        known as of snapshot.
+      * ``statusHistory`` entries whose ``period.start > snapshot`` are
+        stripped and any surviving entry's ``period.end`` past snapshot
+        is cleared, so the audit trail reflects the snapshot view.
+
+    This runs on the entry list in-place. Encounter is a dimensional
+    resource that survives ``_drop_entries_after_snapshot``; the
+    reconciliation just corrects its shape so downstream Composition /
+    death-cert drops don't leave a "completed but no discharge summary"
+    inconsistency.
+    """
+    for e in entries:
+        if not isinstance(e, dict):
+            continue
+        res = e.get("resource") or {}
+        if res.get("resourceType") != "Encounter":
+            continue
+        per = res.get("period") or {}
+        end = per.get("end")
+        if not isinstance(end, str) or end[:10] <= snapshot_iso:
+            continue
+        res["status"] = "in-progress"
+        per.pop("end", None)
+        res.pop("length", None)
+        sh = res.get("statusHistory")
+        if isinstance(sh, list):
+            kept: list[dict] = []
+            for entry in sh:
+                if not isinstance(entry, dict):
+                    kept.append(entry)
+                    continue
+                sh_per = entry.get("period") or {}
+                sh_start = sh_per.get("start", "")
+                if isinstance(sh_start, str) and sh_start[:10] > snapshot_iso:
+                    continue  # future status transition not observed yet
+                sh_end = sh_per.get("end")
+                if isinstance(sh_end, str) and sh_end[:10] > snapshot_iso:
+                    sh_per.pop("end", None)
+                kept.append(entry)
+            if len(kept) != len(sh):
+                res["statusHistory"] = kept
+    return entries
 
 
 # Only Patient is unconditionally allowed to keep dateTime fields after
