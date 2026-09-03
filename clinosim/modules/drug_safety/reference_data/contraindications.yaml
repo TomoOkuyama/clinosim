@@ -1,0 +1,79 @@
+# clinosim/modules/drug_safety/reference_data/contraindications.yaml
+# Class × class contraindication rules. Schema documented in ./README.md.
+# - Match is order-independent (check_pair(A, B) == check_pair(B, A)).
+# - When multiple rules hit the same drug pair, the highest-severity rule wins.
+# - `substitution_hint` names the indication tag suggest_alternative should use
+#   as a prior; leave null when no natural substitute exists.
+
+rules:
+  - id: vka-plus-antiplatelet
+    lhs: anticoagulant.vka
+    rhs: antiplatelet
+    severity: contraindicated
+    rationale_en: "VKA + antiplatelet substantially raises major bleeding risk. Allowed only under specific indications (recent PCI + AF ≤12mo, mechanical valve + secondary prevention) with GI protection."
+    rationale_ja: "ワルファリン (VKA) と抗血小板薬の併用は重大出血リスクを大幅に上昇。特定 indication (PCI 後 12 か月以内かつ AF、機械弁 + 二次予防) 下でのみ、消化管保護と併用。"
+    substitution_hint: pain_management
+    source: "CHEST 2016 antithrombotic guidelines; JCS 2020 抗血栓療法"
+
+  - id: anticoagulant-plus-nsaid
+    lhs: anticoagulant
+    rhs: nsaid
+    severity: contraindicated
+    rationale_en: "Anticoagulant + NSAID raises GI bleeding risk ~3-4x. Use acetaminophen instead."
+    rationale_ja: "抗凝固薬と NSAID の併用は消化管出血リスクを 3-4 倍に上昇。アセトアミノフェン等の代替を選択。"
+    substitution_hint: pain_management
+    source: "BMJ 2011;343:d4094"
+
+  - id: bb-plus-non-dhp-ccb
+    lhs: beta_blocker
+    rhs: ccb.non_dhp
+    severity: major
+    rationale_en: "β-blocker + non-DHP CCB (verapamil / diltiazem) risks bradycardia, AV block, heart failure exacerbation."
+    rationale_ja: "β遮断薬と非 DHP CCB (ベラパミル/ジルチアゼム) の併用は徐脈・房室ブロック・心不全増悪リスク。"
+    substitution_hint: hypertension_or_rate_control
+    source: "ACC/AHA 2019 chronic coronary disease; JCS 2018 心不全"
+
+  - id: acei-arb-plus-potassium
+    lhs: acei_arb
+    rhs: potassium_supplement
+    severity: major
+    rationale_en: "ACEi/ARB + K supplementation risks hyperkalemia; monitor K+ closely if combined."
+    rationale_ja: "ACEi/ARB と K 補充の併用は高 K 血症リスク。併用時は K+ モニタリング必須。"
+    substitution_hint: null
+    source: "KDIGO 2024 CKD management"
+
+  - id: acei-arb-plus-k-sparing-diuretic
+    lhs: acei_arb
+    rhs: diuretic.k_sparing
+    severity: moderate
+    rationale_en: "ACEi/ARB + K-sparing diuretic (spironolactone) raises hyperkalemia risk. Combination is sometimes indicated in heart failure — monitor K+."
+    rationale_ja: "ACEi/ARB と K 保持性利尿薬 (スピロノラクトン) の併用は高 K 血症リスク。心不全では併用適応もあるが K+ モニタリング必須。"
+    substitution_hint: null
+    source: "ESC 2021 heart failure guidelines"
+
+  - id: statin-plus-cyp3a4-strong-inhibitor
+    lhs: statin
+    rhs: cyp3a4_inhibitor_strong
+    severity: major
+    rationale_en: "Simvastatin/atorvastatin + strong CYP3A4 inhibitor (clarithromycin, itraconazole) raises rhabdomyolysis risk. Consider holding statin during antibiotic course."
+    rationale_ja: "シンバスタチン/アトルバスタチンと強力な CYP3A4 阻害薬 (クラリスロマイシン、イトラコナゾール) の併用は横紋筋融解症リスク。抗菌薬投与中はスタチン休薬を検討。"
+    substitution_hint: null
+    source: "FDA drug safety communication 2011"
+
+  - id: allopurinol-plus-thiopurine
+    lhs: xanthine_oxidase_inhibitor
+    rhs: thiopurine
+    severity: contraindicated
+    rationale_en: "Allopurinol + azathioprine causes life-threatening bone marrow suppression via blocked thiopurine metabolism. Avoid; if unavoidable, reduce azathioprine to 25% of usual dose."
+    rationale_ja: "アロプリノールとアザチオプリンの併用は代謝阻害により致死的骨髄抑制を引き起こす。原則併用禁忌。やむを得ず併用する場合はアザチオプリンを通常量の 25% に減量。"
+    substitution_hint: null
+    source: "UpToDate 2024 immunosuppressant drug interactions"
+
+  - id: ssri-plus-maoi
+    lhs: ssri
+    rhs: maoi
+    severity: contraindicated
+    rationale_en: "SSRI + MAOI risks fatal serotonin syndrome. Requires ≥14-day washout between the two."
+    rationale_ja: "SSRI と MAOI の併用は致死的セロトニン症候群のリスク。切替時は 14 日以上の休薬期間が必要。"
+    substitution_hint: null
+    source: "APA 2010 major depressive disorder practice guideline"
