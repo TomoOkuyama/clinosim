@@ -964,3 +964,107 @@ WBC_CIRCADIAN_HOUR_OFFSET: int = 4
 WBC_CIRCADIAN_HOUR_PERIOD: int = 12
 """Hour period used as the divisor in the circadian cosine (12-hour
 period matches the diurnal cycle)."""
+
+
+# ---------------------------------------------------------------------------
+# Extended hepatic panel — ALP + GGT + TP + LDH (Issue #1073 B8)
+# ---------------------------------------------------------------------------
+# Adds the 4 LFT components that were missing from derive_lab_values so
+# LFT panel emit stops silently dropping to 2/8 components. All four
+# track ``state.hepatic_function`` — clinically the dominant driver for
+# these enzymes in the modeled disease set (cholestasis, hepatitis,
+# cirrhosis). GGT + alcohol modulation is a follow-up (needs
+# alcohol_use to reach derive_lab_values through the flag pipeline).
+
+ALP_BASELINE_U_L: int = 85
+"""Baseline ALP (alkaline phosphatase, U/L) at full hepatic function —
+mid-range of the JCCLS healthy adult reference (40-130)."""
+
+ALP_HEPATIC_SCALE: int = 250
+"""ALP elevation (U/L per unit ``(1 - hepatic_function)``) — peak
+~335 U/L at hepatic=0 matches cholestasis / obstructive-jaundice
+clinical range (300-1000; capped conservatively for the shared
+hepatic axis to avoid overshooting non-obstructive disease)."""
+
+GGT_BASELINE_MALE_U_L: int = 30
+"""Baseline GGT (γ-glutamyl transferase, U/L) at full hepatic function
+for males — mid-range of the JCCLS healthy adult reference (<50)."""
+
+GGT_BASELINE_FEMALE_U_L: int = 20
+"""Baseline GGT (U/L) at full hepatic function for females — reflects
+the sex-specific reference (<30 F vs <50 M)."""
+
+GGT_HEPATIC_SCALE: int = 200
+"""GGT elevation (U/L per unit ``(1 - hepatic_function)``) — peak
+~230 U/L at hepatic=0 matches cholestasis / alcoholic-hepatitis
+mid-range."""
+
+TP_BASELINE_G_DL: float = 7.4
+"""Baseline total protein (g/dL) at full hepatic function — mid-range
+of the JCCLS healthy adult reference (6.5-8.3)."""
+
+TP_HEPATIC_SCALE: float = 1.5
+"""TP decrement (g/dL per unit ``(1 - hepatic_function)``) — mirrors
+ALBUMIN_HEPATIC_SCALE since TP tracks albumin closely and drops in
+liver failure via decreased synthesis."""
+
+TP_FLOOR_G_DL: float = 4.0
+"""Physiological floor for TP — matches decompensated-liver-failure /
+severe protein-losing enteropathy lower band."""
+
+LDH_BASELINE_U_L: int = 180
+"""Baseline LDH (lactate dehydrogenase, U/L) at full hepatic function —
+mid-range of the JCCLS healthy adult reference (120-250)."""
+
+LDH_HEPATIC_SCALE: int = 200
+"""LDH elevation (U/L per unit ``(1 - hepatic_function)``) — captures
+hepatic-cell lysis; ischemia / hemolysis / tumor lysis are additional
+drivers deferred to a follow-up (they need dedicated state flags)."""
+
+
+# ---------------------------------------------------------------------------
+# Lipid panel — TC + LDL + HDL + TG (Issue #1073 B8)
+# ---------------------------------------------------------------------------
+# Baseline lipid values modulated by ``has_dyslipidemia`` (E78 chronic
+# condition) and ``has_diabetes`` (E11, elevates TG). Sex-specific
+# baselines for HDL reflect the well-established gender difference.
+
+TC_BASELINE_MG_DL: int = 180
+"""Baseline total cholesterol (mg/dL) at no-dyslipidemia — mid-range of
+the borderline threshold (<200 desirable, 200-239 borderline)."""
+
+TC_DYSLIPIDEMIA_SCALE: int = 80
+"""TC elevation (mg/dL) for E78 patients — pushes into the 240-260
+borderline-high band consistent with unmanaged dyslipidemia."""
+
+LDL_BASELINE_MG_DL: int = 105
+"""Baseline LDL cholesterol (mg/dL) at no-dyslipidemia — near-optimal
+(100-129) mid-range."""
+
+LDL_DYSLIPIDEMIA_SCALE: int = 60
+"""LDL elevation (mg/dL) for E78 patients — pushes into the 160-189
+high band."""
+
+HDL_BASELINE_FEMALE_MG_DL: int = 55
+"""Baseline HDL cholesterol (mg/dL) for females — reflects the female
+mean (~55 vs male ~45) from Framingham reference distributions."""
+
+HDL_BASELINE_MALE_MG_DL: int = 45
+"""Baseline HDL cholesterol (mg/dL) for males."""
+
+HDL_DYSLIPIDEMIA_SCALE: int = 12
+"""HDL decrement (mg/dL) for E78 patients — pushes into the low-HDL
+risk-factor range (<40 M, <50 F)."""
+
+TG_BASELINE_MG_DL: int = 120
+"""Baseline triglycerides (mg/dL) at no-dyslipidemia — mid-range of
+the normal band (<150)."""
+
+TG_DYSLIPIDEMIA_SCALE: int = 80
+"""TG elevation (mg/dL) for E78 patients — pushes into the 150-199
+borderline-high band."""
+
+TG_DIABETES_SCALE: int = 40
+"""TG additional elevation (mg/dL) for E11 patients — reflects the
+metabolic-syndrome / insulin-resistance TG rise even without formal
+dyslipidemia diagnosis."""

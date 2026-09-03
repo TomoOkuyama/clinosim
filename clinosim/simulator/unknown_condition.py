@@ -144,6 +144,7 @@ def _simulate_unknown_condition(
     all_lab_results: list[OrderResult] = []
     state_history = [deepcopy(state)]
     has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
+    has_dyslipidemia = any(c.code.startswith("E78") for c in patient.chronic_conditions)
 
     # Extensive admission workup (broader than known-disease)
     admission_labs = [
@@ -292,7 +293,12 @@ def _simulate_unknown_condition(
             **medication_flags_from_context(patient),
         }
         true_labs = derive_lab_values(
-            state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, **_flags_unknown
+            state,
+            sex=patient.sex,
+            age=patient.age,
+            has_diabetes=has_diabetes,
+            has_dyslipidemia=has_dyslipidemia,
+            **_flags_unknown,
         )  # noqa: E501
         for order in all_orders:
             if (
