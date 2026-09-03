@@ -479,7 +479,13 @@ def activate_patient(
         )
         if _has_pregnancy_history:
             _meds_input = list(conditions) + [ChronicCondition(code="Z34", system="icd-10-cm")]
-        current_meds = _derive_home_medications(_meds_input, patient_id=person.person_id, country="US")
+        _home_med_skip_log: list = []
+        current_meds = _derive_home_medications(
+            _meds_input,
+            patient_id=person.person_id,
+            country="US",
+            skip_log_out=_home_med_skip_log,
+        )
 
     # Address and contact from Layer 1
     from clinosim.types.patient import Address, ContactInfo
@@ -609,6 +615,10 @@ def activate_patient(
         # Shallow copy — subsequent encounters mutate current_medications but
         # baseline preserves the activation-time chronic regimen.
         baseline_chronic_medications=list(current_meds),
+        # Issue #1066: drug_safety skip log collected during home-med
+        # derivation is copied into the profile so downstream narrative /
+        # audit paths can surface it.
+        safety_skip_log=list(_home_med_skip_log),
         smoking_status=person.smoking_status,
         alcohol_use=person.alcohol_use,
         physiological_profile=profile,
@@ -630,6 +640,7 @@ def _derive_home_medications(
     country: str = "US",
     *,
     patient_id: str = "",
+    skip_log_out: list | None = None,
 ) -> list[HomeMedication]:
     """Derive home medications from chronic conditions via chronic_medications.yaml.
 
@@ -702,10 +713,56 @@ def _derive_home_medications(
             name_for_display = drug_ja if is_jp(country) else drug_en
             if not name_for_display or name_for_display in seen:
                 continue
+
+            # Issue #1066: drug_safety CPOE-style gate for chronic co-prescriptions.
+            # The activator is the point where warfarin+aspirin (both chronic)
+            # pairs form — check each candidate against already-accepted home
+            # meds and skip on major/contraindicated severity. Substitution
+            # for chronic meds is out of scope for MVP; a skipped chronic
+            # candidate is simply dropped (Warfarin already covers the AF
+            # anticoagulation indication, so the Aspirin skip does not leave
+            # a therapy gap).
+            from clinosim.modules import drug_safety
+            from clinosim.modules.drug_safety.verdict import (
+                SEVERITY_RANK,
+                SafetySkipEntry,
+            )
+
+            candidate_drug = drug_en if drug_en else name_for_display
+            active_drug_names = [m.drug_name for m in meds if m.drug_name]
+            verdicts = drug_safety.check_candidate_against_active(candidate_drug, active_drug_names)
+            worst = max(
+                (v for v in verdicts if not v.is_allowed),
+                key=lambda v: SEVERITY_RANK[v.severity],
+                default=None,
+            )
+            if worst is not None and worst.default_action == "skip":
+                if skip_log_out is not None:
+                    skip_log_out.append(
+                        SafetySkipEntry(
+                            encounter_id="__home_med_derivation__",
+                            candidate_drug=candidate_drug,
+                            candidate_drug_ja=(
+                                drug_safety.japanese_display(candidate_drug) or drug_ja or candidate_drug
+                            ),
+                            active_conflict=worst.matched_active_drug or "",
+                            active_conflict_ja=(
+                                drug_safety.japanese_display(worst.matched_active_drug or "")
+                                or (worst.matched_active_drug or "")
+                            ),
+                            verdict=worst,
+                            substituted_with=None,
+                            substituted_with_ja=None,
+                            context_hint="home_med_derivation",
+                            timestamp="",
+                        )
+                    )
+                continue  # drop the contraindicated chronic candidate
+
             seen.add(name_for_display)
             meds.append(
                 HomeMedication(
-                    drug_name=drug_en if drug_en else name_for_display,
+                    drug_name=candidate_drug,
                     drug_name_ja=drug_ja,
                     route=str(picked.get("route", "") or ""),
                     dose=str(picked.get("dose", "") or ""),
