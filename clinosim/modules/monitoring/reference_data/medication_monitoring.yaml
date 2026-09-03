@@ -111,3 +111,48 @@ mappings:
         loinc: "2160-0"
         rationale: "ARB/ACE-i renal-safety monitoring — companion to K. Expected 10-20% Cr rise at start (efferent arteriolar vasodilation); > 30% requires dose reduction."
         rationale_ja: "ARB/ACE-i 腎安全性モニタリング — K と対で評価。開始時に Cr が 10-20% 上昇するのは輸出細動脈の血管拡張による想定内変化。30% 超は減量が必要。"
+
+  # DOAC renal-clearance monitoring (Issue #1070 B5 — pass 7).
+  # All four DOACs are renally cleared to varying degrees (Dabigatran ~80%,
+  # Edoxaban ~50%, Apixaban ~27%, Rivaroxaban ~33%). Guidelines require
+  # baseline eGFR + at least biannual (q6mo) surveillance on stable therapy,
+  # more frequent (q3mo) at CrCl 30-50. Baseline coverage analysis: DOAC
+  # patients today emit ≈ 0 eGFR orders (no monitoring driver — sepsis /
+  # AKI / hypertension incidental fires cover < 5 %). This enricher closes
+  # the gap so DOAC + monitoring appears in the FHIR record the way real
+  # anticoagulation clinics chart it.
+  Apixaban:
+    aliases: ["アピキサバン", "eliquis"]
+    drug_ja: "アピキサバン"
+    monitoring:
+      - lab: eGFR
+        loinc: "77147-7"
+        rationale: "DOAC (Apixaban) renal-clearance monitoring — dose adjustment CrCl < 30 (5 mg BID → 2.5 mg BID). At minimum q6 months on stable therapy per Chest 2018 / JCS 2020."
+        rationale_ja: "DOAC (アピキサバン) の腎排泄モニタリング — CrCl <30 で減量 (5 mg 1日2回 → 2.5 mg 1日2回)。Chest 2018 / JCS 2020 に基づき安定期は 6 か月毎の測定を最低推奨。"
+
+  Rivaroxaban:
+    aliases: ["リバーロキサバン", "xarelto", "イグザレルト"]
+    drug_ja: "リバーロキサバン"
+    monitoring:
+      - lab: eGFR
+        loinc: "77147-7"
+        rationale: "DOAC (Rivaroxaban) renal-clearance monitoring — contraindicated CrCl < 15, dose adjustment CrCl 15-49 (20 mg qd → 15 mg qd). At minimum q6 months per Chest 2018."
+        rationale_ja: "DOAC (リバーロキサバン) の腎排泄モニタリング — CrCl <15 で禁忌、CrCl 15-49 で減量 (20 mg 1日1回 → 15 mg 1日1回)。Chest 2018 に基づき 6 か月毎測定を最低推奨。"
+
+  Dabigatran:
+    aliases: ["ダビガトラン", "pradaxa", "プラザキサ"]
+    drug_ja: "ダビガトラン"
+    monitoring:
+      - lab: eGFR
+        loinc: "77147-7"
+        rationale: "DOAC (Dabigatran) renal-clearance monitoring — most renally-dependent of the DOACs (~80% renal). Contraindicated CrCl < 30, dose adjustment CrCl 30-50 (150 mg BID → 110 mg BID). Recheck q3-6 months."
+        rationale_ja: "DOAC (ダビガトラン) の腎排泄モニタリング — 4 剤中最も腎依存 (約 80% 腎排泄)。CrCl <30 で禁忌、CrCl 30-50 で減量 (150 mg 1日2回 → 110 mg 1日2回)。3-6 か月毎に再検。"
+
+  Edoxaban:
+    aliases: ["エドキサバン", "リクシアナ", "savaysa", "lixiana"]
+    drug_ja: "エドキサバン"
+    monitoring:
+      - lab: eGFR
+        loinc: "77147-7"
+        rationale: "DOAC (Edoxaban) renal-clearance monitoring — dose adjustment CrCl 15-50 (60 mg qd → 30 mg qd). Contraindicated CrCl < 15 or > 95 (paradoxical stroke risk). At minimum q6 months per JCS 2020."
+        rationale_ja: "DOAC (エドキサバン) の腎排泄モニタリング — CrCl 15-50 で減量 (60 mg 1日1回 → 30 mg 1日1回)。CrCl <15 または >95 は禁忌 (逆説的脳卒中リスク)。JCS 2020 に基づき 6 か月毎測定を最低推奨。"
