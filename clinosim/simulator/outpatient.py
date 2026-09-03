@@ -258,6 +258,7 @@ def _simulate_outpatient_visit(
     )
 
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
+    _has_dyslipidemia = any("E78" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     # J5 (Phase 2a): outpatient follow-ups carry no acute scenario flag by
     # design — causes_vte / causes_myocardial_injury describe acute events
     # (ED / inpatient presentations), not chronic-disease monitoring visits.
@@ -269,7 +270,9 @@ def _simulate_outpatient_visit(
         **scenario_flags_from_protocol(None),
         **medication_flags_from_context(patient),
     }
-    _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm, **_flags)
+    _true_labs = derive_lab_values(
+        _state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm, has_dyslipidemia=_has_dyslipidemia, **_flags
+    )
     # Reference-normal fallback for analytes physiology doesn't model (HbA1c, WBC, CRP, etc.
     # are physiology-modeled and resolve via _true_labs first). DET-6 single source.
     baseline_values = BASELINE_LAB_NORMALS

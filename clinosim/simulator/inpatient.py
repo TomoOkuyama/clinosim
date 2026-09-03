@@ -394,6 +394,8 @@ def _simulate_patient(
     # `target_los_config` (Issue #550) returns dict[str, float]; `min_los` param
     # is typed `int`. Cast at the boundary rather than widening the param type.
     protocol_min_los = int(los_cfg.get("min", 3))
+    # Issue #1073 B8: E78 chronic dyslipidemia flag drives lipid panel derives.
+    has_dyslipidemia = any("E78" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     loop_result = _run_daily_loop(
         state,
         patient,
@@ -405,6 +407,7 @@ def _simulate_patient(
         admission_time,
         target_los,
         has_diabetes,
+        has_dyslipidemia,
         healthcare,
         roster,
         rng,

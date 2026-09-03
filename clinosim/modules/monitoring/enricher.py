@@ -196,7 +196,8 @@ def _derive_true_labs_for_patient(patient: Any, matched_drugs: list[str]) -> dic
     sex = getattr(patient, "sex", "M") or "M"
     age = int(getattr(patient, "age", 0) or 0)
     has_dm = any("E11" in (getattr(c, "code", "") or "") for c in getattr(patient, "chronic_conditions", []) or [])
-    labs = dict(derive_lab_values(state, sex=sex, age=age, has_diabetes=has_dm, **flags))
+    has_dyslip = any("E78" in (getattr(c, "code", "") or "") for c in getattr(patient, "chronic_conditions", []) or [])
+    labs = dict(derive_lab_values(state, sex=sex, age=age, has_diabetes=has_dm, has_dyslipidemia=has_dyslip, **flags))
     # Merge baseline normals for analytes physiology does not model (e.g. TSH,
     # LDL, HDL, TG, TC, ESR, Ca). Physiology values win when both exist so a
     # medication_flags-driven value (like warfarin PT_INR) is never overwritten.
