@@ -680,17 +680,7 @@ def apply_drug_safety_gate_to_admission_orders(
                 "text": f"{prefix}{note_text}",
                 "authorReference": {"display": "clinosim drug_safety v1"},
             }
-            notes = getattr(order, "notes", None)
-            if notes is None:
-                try:
-                    order.notes = [note_entry]
-                except AttributeError:
-                    # Order dataclass may not have a notes field — fall back
-                    # to attaching via clinical_intent suffix so the caution
-                    # is not lost. Task 11 wires order.notes for FHIR emit.
-                    order.clinical_intent = f"{order.clinical_intent} [safety: {note_text}]"
-            else:
-                notes.append(note_entry)
+            order.notes.append(note_entry)
 
         out.append(order)
         accepted_med_names.append(candidate)

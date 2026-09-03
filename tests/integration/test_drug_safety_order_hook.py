@@ -117,13 +117,9 @@ def test_gate_moderate_severity_attaches_caution_note() -> None:
     # No skip entry — moderate severity is emit_with_note
     assert patient.safety_skip_log == []
     order = result[0]
-    notes = getattr(order, "notes", None)
-    if notes:
-        assert any("併用注意" in n["text"] for n in notes)
-    else:
-        # Order dataclass may not carry notes yet — Task 11 wires it.
-        # In that fallback we stash caution in clinical_intent.
-        assert "safety:" in (order.clinical_intent or "")
+    assert order.notes, "Task 11 wires Order.notes as a real field"
+    assert any("併用注意" in n["text"] for n in order.notes)
+    assert order.notes[0]["authorReference"]["display"] == "clinosim drug_safety v1"
 
 
 def test_gate_passes_non_medication_orders_through() -> None:
