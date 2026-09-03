@@ -199,8 +199,16 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
     # below). Issue #854 Bucket A row 4: switched from pre-computed obs_id
     # strings to raw indices so the id-emit format lives at one point.
     by_bucket: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
-    # Issue #821 (N-7): track the max (latest) full result_datetime per bucket
+    # Issue #821 (N-7): track the max (latest) full timestamp per bucket
     # so DR.effectiveDateTime can carry time precision (was date-only bucket).
+    #
+    # Session-98 F11: prefer the parent Order.ordered_datetime (a close
+    # proxy for sample-collection time) over result_datetime. `effective`
+    # on a DiagnosticReport is the clinically-relevant time (collection
+    # window end), not the result-availability time — the latter belongs
+    # on `issued`, which the DR builder sets separately from
+    # `latest_issued`. Late-ED lab results were producing DRs dated after
+    # the parent encounter's period.end because result_datetime > enc end.
     bucket_max_dt: dict[str, str] = {}
     for idx, order in enumerate(orders):
         ot = _o(order, "order_type")
@@ -209,10 +217,16 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
         result = _o(order, "result")
         if not result:
             continue
+        # Effective proxy: prefer ordered_datetime, fall back to result_datetime.
         # result_datetime may be a datetime object (dataclass) or ISO string (dict).
-        dt_raw = _o(result, "result_datetime")
-        dt_full = str(dt_raw) if dt_raw else ""
-        when = dt_full[:10]
+        ordered_raw = _o(order, "ordered_datetime")
+        result_raw = _o(result, "result_datetime")
+        effective_raw = ordered_raw or result_raw
+        dt_full = str(effective_raw) if effective_raw else ""
+        # Day-resolution bucket keys still come from result_datetime so
+        # existing group_lab_orders behaviour (day-level DR grouping) is
+        # unchanged — only `effective_datetime` on the emitted DR shifts.
+        when = str(result_raw)[:10] if result_raw else dt_full[:10]
         if len(when) < 10:
             continue
         lab_name = _o(result, "lab_name") or _o(order, "display_name") or ""
