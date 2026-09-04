@@ -1465,6 +1465,26 @@ def _build_medication_admin(
         dose_text = _mar_dose_raw
         dose_str = _mar_dose_raw
     parsed = _parse_dose_for_mar(dose_str or drug_name)
+    # C3 / Issue #1089: bolus IV drugs (cephalosporins, chemotherapy
+    # agents) frequently reach here with ``mar.dose = "IV"`` (a route
+    # hint only) or with a text form the regex above cannot parse. In
+    # both cases the parent Order carries the real dose (parsed from
+    # ``dose: "1g IV q8h"`` in the disease YAML) — backfill from there
+    # so the MA does not emit an empty-dose element for
+    # augment-catalog-covered bolus meds (Cefmetazole 87 US / Carboplatin
+    # 44 US on the p=10k s=1000 cohort). MAR-specified doses win: only
+    # backfill when the parse found no numeric dose_quantity.
+    if parsed.get("dose_quantity") is None:
+        _po_backfill = parent_order or {}
+        _po_qty = _po_backfill.get("dose_quantity")
+        _po_unit = _po_backfill.get("dose_unit", "") or ""
+        if _po_qty is not None and _po_unit:
+            parsed["dose_quantity"] = float(_po_qty)
+            parsed["dose_unit"] = _po_unit
+            _q_txt = f"{int(_po_qty)}" if isinstance(_po_qty, float) and _po_qty.is_integer() else str(_po_qty)
+            _dose_summary = f"{_q_txt}{_po_unit}"
+            if _dose_summary not in dose_text:
+                dose_text = f"{_dose_summary} {dose_text}".strip() if dose_text.strip() else _dose_summary
     # attach any rate-adjustment note peeled off drug_name to dose_text
     # so continuous-infusion titration intent surfaces in the dosage record.
     if rate_adjustment_note:
