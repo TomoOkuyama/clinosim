@@ -956,15 +956,34 @@ class TemplateNarrativeGenerator:
 
         # daily_trajectory / physical_exam_findings values (disease YAML +
         # reference_data) are JP-only strings. The EN locale must not read
-        # the JP source directly — instead synthesize generic English SOAP
-        # text. Per-archetype English content is deferred to the LLM
-        # narrative pass.
+        # the JP source directly — instead synthesize English SOAP text
+        # from CIF facts (chronic conditions, abnormal labs, active meds,
+        # complications). Issue #1074 B9 (session 99): EN branch now uses
+        # ``_compose_progress_assessment_from_state`` /
+        # ``_compose_progress_plan_from_state`` state-composers which
+        # produce patient-specific per-day text instead of the generic
+        # fallback (baseline: 19.4 % ``Clinical assessment ongoing`` +
+        # 7.8 % ``Continue current management`` across 1,409 progress
+        # notes at US p=2000 seed=500).
         if not is_ja:
             facts.append("generic:progress_note_soap_en")
+            # subjective / objective stay on the generic EN placeholder —
+            # those pull from disease YAML per-day physical exam findings
+            # which are JP-only. The v6 blocker fix below prepends
+            # today's numeric vitals to ``objective`` regardless, so the
+            # objective section still carries per-day data.
             subjective = _GENERIC_FALLBACK_EN
             objective = _GENERIC_FALLBACK_EN
-            assessment = _GENERIC_ASSESSMENT_EN
-            plan = _GENERIC_PLAN_EN
+            # Assessment + plan now use the state-composers so each day of
+            # each encounter carries patient-specific reasoning.
+            composed_assess = self._compose_progress_assessment_from_state(ctx)
+            composed_plan = self._compose_progress_plan_from_state(ctx)
+            assessment = composed_assess or _GENERIC_ASSESSMENT_EN
+            plan = composed_plan or _GENERIC_PLAN_EN
+            if composed_assess:
+                facts.append("ctx.progress_assessment.state_composed.en")
+            if composed_plan:
+                facts.append("ctx.progress_plan.state_composed.en")
         else:
             # Resolve daily trajectory for this day (with fallback chain)
             traj, traj_source = self._resolve_daily_trajectory_with_source(
@@ -4184,14 +4203,26 @@ class TemplateNarrativeGenerator:
 
         v9 (2026-08-17) density fix — pulls today's abnormal labs (H/L
         flagged) + complications flag into a 1-2 line assessment.
+
+        Issue #1074 B9 (session-99 2026-09-04): EN branch added. Prior to
+        this fix the EN inpatient progress_note assessment collapsed to
+        the ``Clinical assessment ongoing`` fallback for every day of
+        every encounter (measured on US p=2000 seed=500: 19.4 % of
+        1,409 progress notes shipped identically). The EN branch mirrors
+        the JA structure — complications listed, today's abnormal-flag
+        labs cited by name+value+flag — so each per-day EN note carries
+        patient-specific reasoning.
         """
-        if ctx.target_lang != "ja":
-            return ""
+        is_ja = ctx.target_lang == "ja"
         parts: list[str] = []
         # Complications (from record via NarrativeContext v6 field)
         comps = list(getattr(ctx, "complications_occurred", []) or [])
         if comps:
-            parts.append(f"合併症 {'、'.join(str(c) for c in comps[:3])} を認識、対応継続中。")
+            comp_list = ", ".join(str(c) for c in comps[:3])
+            if is_ja:
+                parts.append(f"合併症 {'、'.join(str(c) for c in comps[:3])} を認識、対応継続中。")
+            else:
+                parts.append(f"Complications noted ({comp_list}); management ongoing.")
         # Abnormal labs today
         labs = list(ctx.lab_results or [])
         abn: list[str] = []
@@ -4208,19 +4239,30 @@ class TemplateNarrativeGenerator:
             if name and val is not None:
                 abn.append(f"{name} {val} {unit} [{flag}]")
         if abn:
-            parts.append(f"本日の検査所見: {'、'.join(abn[:4])}。")
+            if is_ja:
+                parts.append(f"本日の検査所見: {'、'.join(abn[:4])}。")
+            else:
+                parts.append(f"Notable labs today: {', '.join(abn[:4])}.")
         if not parts:
-            parts.append("経過観察中、著変なし。")
-        return "".join(parts)
+            if is_ja:
+                parts.append("経過観察中、著変なし。")
+            else:
+                parts.append("Clinical course stable, no significant change.")
+        return "".join(parts) if is_ja else " ".join(parts)
 
     def _compose_progress_plan_from_state(self, ctx: NarrativeContext) -> str:
         """Inpatient progress_note Plan from CIF facts.
 
         v9 (2026-08-17) density fix — lists today's active medications
         (JA localized) and today's procedures / orders.
+
+        Issue #1074 B9 (session-99 2026-09-04): EN branch added — parallels
+        the JA structure so the EN plan section carries per-day med and
+        procedure lists instead of the generic ``Continue current
+        management`` fallback (measured on US p=2000 seed=500: 7.8 % of
+        1,409 progress notes shipped the fallback).
         """
-        if ctx.target_lang != "ja":
-            return ""
+        is_ja = ctx.target_lang == "ja"
         parts: list[str] = []
         # Today's meds (MAR)
         admins = list(ctx.medications or [])
@@ -4234,21 +4276,33 @@ class TemplateNarrativeGenerator:
             if not name or name in seen:
                 continue
             seen.add(name)
-            from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+            if is_ja:
+                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
-            med_names.append(_localize_drug_name(str(name), "JP"))
+                med_names.append(_localize_drug_name(str(name), "JP"))
+            else:
+                med_names.append(str(name))
             if len(med_names) >= 6:
                 break
         if med_names:
-            parts.append(f"薬物療法継続: {'、'.join(med_names)}。")
+            if is_ja:
+                parts.append(f"薬物療法継続: {'、'.join(med_names)}。")
+            else:
+                parts.append(f"Continue current medications: {', '.join(med_names)}.")
         # Today's procedures
         procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:4]]
         procs = [p for p in procs if p]
         if procs:
-            parts.append(f"本日の処置: {'、'.join(str(p) for p in procs)}。")
+            if is_ja:
+                parts.append(f"本日の処置: {'、'.join(str(p) for p in procs)}。")
+            else:
+                parts.append(f"Procedures today: {', '.join(str(p) for p in procs)}.")
         if not parts:
-            parts.append("治療継続、経過観察。")
-        return "".join(parts)
+            if is_ja:
+                parts.append("治療継続、経過観察。")
+            else:
+                parts.append("Continue current management, observe course.")
+        return "".join(parts) if is_ja else " ".join(parts)
 
     def _compose_today_vitals_line(self, ctx: NarrativeContext) -> str:
         """Compose today's numeric vital-signs summary for inpatient
