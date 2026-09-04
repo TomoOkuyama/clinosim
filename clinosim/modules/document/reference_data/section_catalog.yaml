@@ -526,7 +526,7 @@ op_procedure_name:
 op_anesthesia:
   title_ja: "麻酔"
   title_en: "Anesthesia"
-  loinc: "18776-5"
+  loinc: "29554-3"
 
 op_surgeon:
   title_ja: "術者"
@@ -546,22 +546,22 @@ op_course:
 op_specimens:
   title_ja: "摘出標本"
   title_en: "Specimens"
-  loinc: "18776-5"
+  loinc: "29554-3"
 
 op_blood_loss:
   title_ja: "推定出血量"
   title_en: "Estimated blood loss"
-  loinc: "18776-5"
+  loinc: "29554-3"
 
 op_equipment:
   title_ja: "使用器具・機材"
   title_en: "Equipment"
-  loinc: "18776-5"
+  loinc: "29554-3"
 
 op_postop_plan:
   title_ja: "術後方針"
   title_en: "Post-operative plan"
-  loinc: "18776-5"
+  loinc: "29554-3"
 
 # ---------------------------------------------------------------------------
 # Procedure note (Issue #992) — 処置記録 sections
@@ -575,7 +575,7 @@ pn_procedure_name:
 pn_consent:
   title_ja: "インフォームド・コンセント"
   title_en: "Informed consent"
-  loinc: "18776-5"
+  loinc: "29554-3"
 
 pn_performer:
   title_ja: "実施者"
@@ -585,7 +585,7 @@ pn_performer:
 pn_analgesia:
   title_ja: "麻酔・鎮静"
   title_en: "Analgesia"
-  loinc: "18776-5"
+  loinc: "29554-3"
 
 pn_course:
   title_ja: "処置経過"
@@ -595,17 +595,17 @@ pn_course:
 pn_complications:
   title_ja: "合併症の有無"
   title_en: "Complications"
-  loinc: "18776-5"
+  loinc: "29554-3"
 
 pn_specimens:
   title_ja: "検体の有無"
   title_en: "Specimens"
-  loinc: "18776-5"
+  loinc: "29554-3"
 
 pn_postop_plan:
   title_ja: "術後方針"
   title_en: "Post-procedure plan"
-  loinc: "18776-5"
+  loinc: "29554-3"
 
 # ---------------------------------------------------------------------------
 # Referral note (Issue #990) — 紹介状 sections
