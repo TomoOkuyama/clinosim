@@ -424,7 +424,7 @@ drugs:
         indication: "severe_cerebral_edema_or_herniation_signs"
     us:
       - drug: "Hypertonic Saline"
-        code_rxnorm: "313002"
+        code_rxnorm: "2587736"   # C2/#1088: pre-fix 313002 was 0.9% NaCl NS (fabrication for 23.4%); NLM-verified 23.4% NaCl CUI
         dose: "23.4% 30mL IV over 15min via central line"
         route: IV
         indication: "severe_cerebral_edema_or_herniation"
