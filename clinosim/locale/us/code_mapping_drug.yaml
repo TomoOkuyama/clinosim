@@ -67,3 +67,31 @@ Donepezil: "135447"
 Levodopa/Carbidopa: "103919"
 Levothyroxine: "10582"
 Tamsulosin: "77492"
+
+# C2 / Issue #1088: top-frequency drugs emitting as text-only in US MA on
+# the session-100 p=10k cohort (7,062/64,317, 10.98 %). Every RxCUI here
+# was verified via NLM RxNav /REST/rxcui/<cui>/property.json?propName=RxNorm%20Name.
+# Keys match the exact sim string (Order.display_name); aliases like
+# "NS" / "KCl" / "5-FU" are the canonical sim names — one entry per CUI
+# (test_no_two_drugs_share_a_rxcui invariant preserved).
+Regular insulin: "253182"    # Insulin, Regular, Human
+NS: "313002"                 # Normal saline (Sodium Chloride 0.9%)
+Prednisolone: "8638"
+KCl: "8591"                  # Potassium Chloride
+Insulin glargine: "274783"
+Dobutamine: "3616"
+Trastuzumab: "224905"
+Capecitabine: "194000"
+Oxaliplatin: "32592"
+Ticagrelor: "1116632"
+Leucovorin: "6313"
+5-FU: "4492"                 # Fluorouracil
+Cefmetazole: "2182"
+Leuprorelin: "42375"         # Leuprolide (US) / Leuprorelin (INN)
+Mannitol: "6628"
+Lactated Ringer: "847630"
+Fentanyl: "4337"
+Osimertinib: "1721560"
+Omeprazole: "7646"
+# Crystalloid intentionally omitted — generic term with no single canonical
+# RxCUI; caller should resolve to NS or Lactated Ringer.

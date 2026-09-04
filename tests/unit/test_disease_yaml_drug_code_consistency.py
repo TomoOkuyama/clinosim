@@ -74,6 +74,18 @@ _ALLOWED_ALIASES: dict[str, set[str]] = {
     # NSAID (Loxoprofen) = Loxoprofen (drug is Loxoprofen, class-prefix in name).
     "nsaid (loxoprofen)": {"loxoprofen"},
     "loxoprofen": {"nsaid (loxoprofen)"},
+    # C2 / #1088: sim canonical strings are the short forms (per Order.display_name);
+    # a few disease YAMLs write the long form. These pairs are the SAME drug
+    # (verified via NLM RxCUI 313002 for NS, 8591 for KCl).
+    "normal saline (0.9% nacl)": {"ns"},
+    "ns": {"normal saline (0.9% nacl)"},
+    "potassium chloride": {"kcl"},
+    "kcl": {"potassium chloride"},
+    # Lactated_Ringers (plural, underscore) = Lactated Ringer (canonical
+    # sim string) — same product; the disease YAML author wrote the
+    # plural variant.
+    "lactated ringers": {"lactated ringer"},
+    "lactated ringer": {"lactated ringers"},
 }
 
 # Session 45 backlog (session-45-drug-code-audit) — resolved 2026-07-11.

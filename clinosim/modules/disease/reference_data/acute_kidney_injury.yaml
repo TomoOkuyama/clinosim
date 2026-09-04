@@ -397,7 +397,7 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Lactated_Ringers"
-        code_rxnorm: "313002"
+        code_rxnorm: "847630"    # C2/#1088: pre-fix 313002 was NS (fabrication); NLM-verified LR CUI
         dose: "200-500 mL/h IV (if prerenal, fluid-responsive)"
         route: IV
         note: "Balanced crystalloid preferred over NS to avoid hyperchloremic acidosis"

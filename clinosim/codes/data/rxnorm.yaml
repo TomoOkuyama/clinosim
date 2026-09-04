@@ -143,8 +143,14 @@ codes:
     en: Erythromycin
     ja: エリスロマイシン
   '4337':
-    en: Ceftriaxone
-    ja: セフトリアキソン
+    # C2 / #1088: pre-C2 this entry was mislabeled as "Ceftriaxone" — a
+    # copy-paste from an old edit. NLM RxNav authoritative name for RxCUI
+    # 4337 is fentanyl (verified via /REST/rxcui/4337/property.json,
+    # propName=RxNorm Name). Ceftriaxone is 2193, which is what
+    # code_mapping_drug.yaml correctly points at. The mislabel was
+    # invisible only because nothing mapped to 4337 before C2.
+    en: Fentanyl
+    ja: フェンタニル
   '435':
     en: Albuterol (ProAir / Ventolin)
     ja: サルブタモール（サルタノール/ベネトリン）
@@ -264,3 +270,68 @@ codes:
   '10831':
     en: Sulfamethoxazole / Trimethoprim (Bactrim)
     ja: スルファメトキサゾール／トリメトプリム（バクタ）
+
+  # === C2 / Issue #1088: top-frequency US MA text-only drugs ===
+  # Session-100 review counted these as the top drugs emitting with
+  # medicationCodeableConcept.text only (no coding[]) on a US p=10k s=1000
+  # cohort — 7,062/64,317 (10.98 %) of all MAs. Every RxCUI below was
+  # verified via NLM RxNav (rxnav.nlm.nih.gov/REST/rxcui/<cui>/property.json
+  # ?propName=RxNorm%20Name).
+  '253182':
+    en: Insulin, Regular, Human
+    ja: レギュラーインスリン（ヒト）
+  '313002':
+    en: Sodium Chloride 9 MG/ML Injectable Solution
+    ja: 生理食塩液
+  '8638':
+    en: Prednisolone
+    ja: プレドニゾロン
+  '8591':
+    en: Potassium Chloride
+    ja: 塩化カリウム
+  '274783':
+    en: Insulin Glargine
+    ja: インスリングラルギン（ランタス）
+  '3616':
+    en: Dobutamine
+    ja: ドブタミン
+  '224905':
+    en: Trastuzumab
+    ja: トラスツズマブ（ハーセプチン）
+  '194000':
+    en: Capecitabine
+    ja: カペシタビン（ゼローダ）
+  '32592':
+    en: Oxaliplatin
+    ja: オキサリプラチン（エルプラット）
+  '1116632':
+    en: Ticagrelor
+    ja: チカグレロル（ブリリンタ）
+  '6313':
+    en: Leucovorin
+    ja: ロイコボリン
+  '4492':
+    en: Fluorouracil
+    ja: フルオロウラシル（5-FU）
+  '2182':
+    en: Cefmetazole
+    ja: セフメタゾール
+  '42375':
+    en: Leuprolide
+    ja: リュープロレリン（リュープリン）
+  '6628':
+    en: Mannitol
+    ja: マンニトール
+  '847630':
+    en: lactated Ringers Injectable Solution
+    ja: 乳酸リンゲル液
+  '1721560':
+    en: Osimertinib
+    ja: オシメルチニブ（タグリッソ）
+  # C2 sweep: Hypertonic Saline 23.4% used by hemorrhagic_stroke.yaml.
+  # NLM-verified via /REST/approximateTerm ? term=Sodium%20Chloride%2023.4%25
+  # (RXNORM top match), replacing a pre-C2 fabrication that pointed at
+  # 313002 (0.9% NaCl NS).
+  '2587736':
+    en: Sodium Chloride 23.4% Injectable Solution
+    ja: 塩化ナトリウム 23.4% 注射液

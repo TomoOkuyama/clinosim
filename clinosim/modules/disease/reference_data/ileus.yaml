@@ -345,7 +345,7 @@ drugs:
 
     us:
       - drug: "Lactated Ringer"
-        code_rxnorm: "313002"
+        code_rxnorm: "847630"    # C2/#1088: pre-fix 313002 was NS (fabrication); NLM-verified LR CUI
         dose: "125-250 mL/h IV"
         route: IV
         pregnancy_safe: true
