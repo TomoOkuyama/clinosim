@@ -691,6 +691,36 @@ def _run_daily_loop(
         actual_los = day + 1
     except NameError:
         actual_los = max(1, target_los)
+
+    # C7b (#1100): drug_safety gate on post-admission MEDICATION Orders.
+    # ``admission_orders`` were gated at admission time; anything the
+    # daily loop appended afterwards (treatment_mod step-up meds,
+    # complication-triggered add-ons) has never been checked. Partition
+    # ``all_orders`` into (admission, new) and route the new ones through
+    # the general gate, seeded with home + admission-accepted MEDICATION
+    # names so a mid-encounter Aspirin request against an admission-time
+    # Enoxaparin is skipped / substituted.
+    from clinosim.simulator.medication_pipeline import (
+        apply_drug_safety_gate_to_orders,
+    )
+
+    _admission_len = len(admission_orders)
+    _pre_new = all_orders[:_admission_len]
+    _new_orders = all_orders[_admission_len:]
+    if _new_orders:
+        _accepted = [o.display_name for o in _pre_new if o.order_type == OrderType.MEDICATION and o.display_name]
+        _gated_new = apply_drug_safety_gate_to_orders(
+            _new_orders,
+            patient=patient,
+            encounter_id=admission_orders[0].encounter_id if admission_orders else "",
+            ordered_datetime=admission_time,
+            attending_id=attending_id,
+            protocol=protocol,
+            country=country_key,
+            already_accepted_meds=_accepted,
+        )
+        all_orders = _pre_new + _gated_new
+
     return {
         "orders": all_orders,
         "lab_results": all_lab_results,
