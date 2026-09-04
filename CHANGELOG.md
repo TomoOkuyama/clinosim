@@ -52,6 +52,21 @@ explicit user Go signal (`feedback_release_tag_requires_user_go`).
 Everything below stays queued under `[Unreleased]` until the
 re-tag.
 
+### Added (session 99, prophylaxis — Issue #1071)
+
+- **New `clinosim.modules.prophylaxis` enrichment module**: standard-of-care
+  DVT (VTE) chemoprophylaxis for inpatient encounters ≥ 48 h. Registered as
+  POST_ENCOUNTER order 75 (after `device` 70, before `hai` 80).
+- **Enoxaparin 40 mg SC daily** emitted as a `MedicationRequest` (via the
+  standard FHIR MR builder — no new adapter) for every eligible IMP
+  encounter that is not on therapeutic anticoagulation and does not carry
+  a contraindication (active bleeding / recent hemorrhagic stroke / GI
+  bleed / delivery / active DVT-PE treatment).
+- **Cohort measurement (US p=2000 seed=500, 12-month sim)**:
+  IMP ≥ 48 h DVT-prevention coverage 61.2 % → 94.2 %.
+  Residual 5.8 % = delivery admissions (Z37 / Z38) intentionally
+  skipped — postpartum VTE protocol is out of the generic DVT rule.
+
 ### Added (session 99, drug_safety — Issue #1066)
 
 - **New `clinosim.modules.drug_safety` foundation module**: class-based
