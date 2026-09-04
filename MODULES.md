@@ -26,7 +26,7 @@ Output surfaces / Testing / Ownership) — see the module index at
 ## TL;DR
 
 clinosim is a population-driven, physiology-based synthetic EHR data
-simulator, organized into **34 themed modules** (packages under
+simulator, organized into **35 themed modules** (packages under
 `clinosim/modules/`) across four layers:
 
 1. **Foundation** — `clinosim/codes/` + `clinosim/locale/` +
@@ -115,7 +115,7 @@ load-bearing verification gate that protects this goal.
 
 ## Module inventory
 
-34 modules total (top-level packages under `clinosim/modules/`; the
+35 modules total (top-level packages under `clinosim/modules/`; the
 table below additionally lists the `codes` / `locale` foundation
 packages). Every entry links to the per-module README (which follows
 the canonical 11-section structure).
@@ -155,6 +155,7 @@ the canonical 11-section structure).
 | [monitoring](clinosim/modules/monitoring/README.md) | chronic-med → monitoring labs (Issue #757) | enrichment | `0x4D4D` ("MM") | POST_RECORDS 65 |
 | [health_checkup](clinosim/modules/health_checkup/README.md) | JP 事業者健診 (JP-only opt-in) | enrichment | `0x4843` ("HC") | POST_RECORDS 70 |
 | [drug_safety](clinosim/modules/drug_safety/README.md) | class-based contraindication gate + alternative substitution (Issue #1066) | foundation | — (deterministic lookup) | — (library, not an enricher) |
+| [prophylaxis](clinosim/modules/prophylaxis/README.md) | DVT/VTE chemoprophylaxis for IMP ≥ 48 h (Issue #1071) | enrichment | `0x5052` ("PR") | POST_ENCOUNTER 75 |
 | [output](clinosim/modules/output/README.md) | CIF → FHIR R4 NDJSON / CSV adapter registry | output | — | — |
 | [llm_service](clinosim/modules/llm_service/README.md) | single LLM gateway (AD-11) for narrative Stage 2 | output | — | — |
 | [validator](clinosim/modules/validator/README.md) | realism benchmarks + consistency checks | output | — | — |

@@ -1,0 +1,73 @@
+# clinosim/modules/prophylaxis/reference_data/prophylaxis_rules.yaml
+# Standard-of-care VTE chemoprophylaxis defaults (Issue #1071 B6).
+#
+# Rule (feedback_constants_live_in_external_config): drug / dose / route
+# / frequency are tunable clinical parameters — non-engineers (pharmacists,
+# infection-control nurses) need to adjust them without touching Python.
+#
+# Skip conditions live under `skip_conditions:` as human-readable tags so
+# the enricher's Python dispatch can be extended without changing this file.
+
+dvt_prophylaxis:
+  drug: "Enoxaparin"
+  drug_ja: "エノキサパリン"
+  dose_quantity: 40.0
+  dose_unit: "mg"
+  route: "SC"
+  frequency: "daily"
+  min_los_hours: 48
+  # Rationale citation
+  guideline: "CHEST 2018 antithrombotic therapy for VTE + ACCP 2022"
+  # Consumer-facing intent (populates Order.clinical_intent)
+  clinical_intent: "DVT prophylaxis: standard-of-care VTE chemoprophylaxis for inpatient stay ≥48h"
+  clinical_intent_ja: "DVT予防: 入院期間 48 時間以上の患者に対する標準 VTE 化学的予防"
+
+# Skip conditions — the enricher walks these tags against the encounter /
+# patient state and skips prophylaxis when ANY tag matches. Adding a tag
+# is a two-step change: add it here for documentation, then teach the
+# enricher (`should_skip_dvt_prophylaxis`) how to detect it.
+skip_conditions:
+  # Patient already on therapeutic anticoagulation — prophylaxis would double up.
+  therapeutic_anticoagulant_active:
+    description: "Patient's active medications include a therapeutic anticoagulant (warfarin / DOAC / therapeutic heparin drip)."
+    drug_needles:
+      - "warfarin"
+      - "apixaban"
+      - "rivaroxaban"
+      - "dabigatran"
+      - "edoxaban"
+      - "argatroban"
+      - "heparin drip"
+      - "heparin infusion"
+
+  # Disease conditions where anticoagulation is contraindicated or the
+  # admission's own therapy already covers DVT prevention.
+  active_bleeding_or_hemorrhage:
+    description: "Active bleeding / recent hemorrhagic stroke / GI bleed — anticoagulation is contraindicated until bleeding is controlled."
+    icd_prefixes:
+      - "I61"     # Intracerebral hemorrhage
+      - "I60"     # Subarachnoid hemorrhage
+      - "I62"     # Non-traumatic subdural hemorrhage
+      - "S06.5"   # Traumatic subdural hemorrhage
+      - "K92"     # Melena / GI hemorrhage, unspecified
+      - "K25.0"   # Acute gastric ulcer with hemorrhage
+      - "K26.0"   # Acute duodenal ulcer with hemorrhage
+      - "K92.2"   # Gastrointestinal hemorrhage, unspecified
+
+  # Delivery admissions (Z37/Z38) — postpartum VTE prophylaxis follows a
+  # different protocol (mechanical compression + selective LMWH by risk
+  # score); handled by the perinatal module, not this generic rule.
+  perinatal_delivery:
+    description: "Delivery admission — postpartum VTE prophylaxis is protocol-specific and out of the generic DVT rule."
+    icd_prefixes:
+      - "Z37"     # Outcome of delivery
+      - "Z38"     # Liveborn infants according to place of birth
+
+  # Active DVT/PE treatment — the therapeutic AC used for treatment
+  # replaces prophylaxis by definition.
+  active_dvt_pe_treatment:
+    description: "Admission diagnosis is DVT or PE — the therapeutic anticoagulant used for treatment replaces prophylaxis."
+    icd_prefixes:
+      - "I26"     # Pulmonary embolism
+      - "I80"     # Deep vein thrombosis
+      - "I82"     # Venous embolism and thrombosis
