@@ -4480,22 +4480,29 @@ class TemplateNarrativeGenerator:
     def _build_outpatient_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build SOAP assessment from outpatient_soap_template.assessment_<lang>.
 
-        Also handles ED_NOTE context (falls back to generic if no encounter_protocol).
+        Also handles ED_NOTE context (falls back to CIF-composed assessment).
 
         Issue #780: when no template is available, list active chronic conditions
         so the A section reflects the patient's real problem list.
+
+        Issue #1074 B9 (session-99 2026-09-04): ED_NOTE and outpatient-with-no-
+        chronic-conditions paths now compose from CIF facts (primary dx +
+        working diagnoses / chief complaint) instead of the generic
+        ``Clinical assessment ongoing`` fallback.
         """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-
-        # ED_NOTE: read from ed_note_template (no separate assessment field in current schema;
-        # use generic assessment fallback — ED assessment is embedded in ed_workup)
-        if ctx.document_type == DocumentType.ED_NOTE:
-            fallback = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
-            return fallback, facts
-
         fallback = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
+
+        # ED_NOTE: previously returned generic. Now composes from CIF —
+        # primary dx code + working diagnoses give a per-patient A line.
+        if ctx.document_type == DocumentType.ED_NOTE:
+            composed = self._compose_ed_assessment_from_state(ctx)
+            if composed:
+                facts.append("ctx.ed_assessment.state_composed")
+                return composed, facts
+            return fallback, facts
 
         # Issue #985: ALWAYS compute the integrated per-chronic-condition
         # value block first, so an encounter YAML template ("HbA1c 目標
@@ -4528,7 +4535,100 @@ class TemplateNarrativeGenerator:
             facts.append("ctx.patient.chronic_conditions")
             return chronic_line, facts
 
+        # Issue #1074 B9: patients with NO chronic conditions previously fell
+        # through to the generic "Clinical assessment ongoing" — 11.6 % of
+        # 1,409 progress notes in the US p=2000 seed=500 baseline. When no
+        # template + no chronic list is available, compose from the primary
+        # encounter reason (chief_complaint + primary_dx_display) so the
+        # assessment reflects the actual visit.
+        cc_line = self._compose_encounter_reason_line(ctx)
+        if cc_line:
+            facts.append("ctx.encounter.chief_complaint")
+            return cc_line, facts
+
         return fallback, facts
+
+    def _compose_ed_assessment_from_state(self, ctx: NarrativeContext) -> str:
+        """ED_NOTE assessment composed from CIF facts (Issue #1074 B9).
+
+        Combines admission dx + working diagnoses + primary complications
+        into a short JA/EN line so ED encounters carry per-patient A text.
+        Empty string when no facts available (caller falls back to generic).
+        """
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        from clinosim.codes import lookup as _code_lookup
+
+        # Use working_diagnoses from ctx if available
+        wds = list(getattr(ctx, "working_diagnoses", []) or [])
+        primary_dx_codes: list[str] = []
+        for wd in wds[:3]:
+            if isinstance(wd, dict):
+                code = wd.get("disease_id") or wd.get("code") or wd.get("icd_code")
+                if code:
+                    primary_dx_codes.append(str(code))
+            else:
+                code = _o(wd, "disease_id", None) or _o(wd, "code", None)
+                if code:
+                    primary_dx_codes.append(str(code))
+
+        # If no working dx, fall back to encounter chief complaint anchor
+        parts: list[str] = []
+        if primary_dx_codes:
+            disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+            labels = []
+            for code in primary_dx_codes:
+                # Strip pediatric/other prefixes — try registry lookup first
+                disp = _code_lookup(disp_key, code, lang) or code
+                labels.append(disp)
+            if is_ja:
+                parts.append(f"救急対応中の疾患: {'、'.join(labels)}")
+            else:
+                parts.append(f"ED working assessment: {', '.join(labels)}")
+        else:
+            # Fall through to chief_complaint if no dx
+            cc = self._compose_encounter_reason_line(ctx)
+            if cc:
+                return cc
+
+        # Complications if any
+        comps = list(getattr(ctx, "complications_occurred", []) or [])
+        if comps:
+            comp_list = ", ".join(str(c) for c in comps[:3])
+            if is_ja:
+                parts.append(f"合併症: {comp_list}")
+            else:
+                parts.append(f"Complications: {comp_list}")
+
+        sep = "。" if is_ja else ". "
+        return sep.join(parts) + ("。" if is_ja and parts else "" if not parts else ".")
+
+    def _compose_encounter_reason_line(self, ctx: NarrativeContext) -> str:
+        """Short JA/EN line describing the visit's primary reason (Issue #1074 B9).
+
+        Reads ``encounter.chief_complaint`` first; falls back to
+        ``primary_diagnosis`` when the CC is empty or looks like a template
+        stub. Empty string when neither is available.
+        """
+        enc = getattr(ctx, "encounter", None)
+        if enc is None:
+            return ""
+        is_ja = ctx.target_lang == "ja"
+        cc = _o(enc, "chief_complaint", "") or ""
+        cc = str(cc).strip()
+        primary_dx = _o(enc, "primary_diagnosis", "") or _o(enc, "primary_dx", "") or ""
+        primary_dx = str(primary_dx).strip()
+
+        # Prefer a non-empty, non-stub chief_complaint
+        if cc and cc.lower() not in ("none", "n/a", "--"):
+            if is_ja:
+                return f"来院理由: {cc}"
+            return f"Encounter reason: {cc}"
+        if primary_dx:
+            if is_ja:
+                return f"主な問題: {primary_dx}"
+            return f"Primary problem: {primary_dx}"
+        return ""
 
     def _compose_chronic_condition_line(self, ctx: NarrativeContext) -> str:
         """List the patient's active chronic conditions in a short JA/EN line
