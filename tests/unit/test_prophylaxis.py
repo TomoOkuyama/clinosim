@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from types import SimpleNamespace
+from typing import Any
 
 from clinosim.modules.prophylaxis.engine import (
     build_dvt_prophylaxis_orders,
@@ -214,3 +215,73 @@ def test_dx_case_insensitive() -> None:
     """ICD prefix match handles lower-case input."""
     record = _record(_patient([]), _encounter(los_hours=72), dx="i61.9")
     assert build_dvt_prophylaxis_orders(record=record) == []
+
+
+# ---------------------------------------------------------------------------
+# Issue #1087 (C1): drug_safety pair gate before auto-issuing Enoxaparin
+# ---------------------------------------------------------------------------
+
+
+def _med_order(name: str, order_id: str = "ORD-CHR-1") -> Any:
+    """Build a minimal MEDICATION Order suitable for record.orders."""
+    from clinosim.types.encounter import Order, OrderStatus, OrderType
+
+    return Order(
+        order_id=order_id,
+        encounter_id="ENC-1",
+        patient_id="PT-1",
+        order_type=OrderType.MEDICATION,
+        display_name=name,
+        ordered_datetime=datetime(2026, 1, 1, 10, 0),
+        status=OrderStatus.PLACED,
+    )
+
+
+def test_skip_on_chronic_aspirin_via_drug_safety() -> None:
+    """Patient on chronic aspirin — Enoxaparin would create a
+    contraindicated anticoagulant+antiplatelet(+nsaid) pair."""
+    skip, reason = should_skip_dvt_prophylaxis(
+        patient=_patient(["Aspirin 81mg"]),
+        encounter=_encounter(72),
+        admission_dx_code="J18.1",
+    )
+    assert skip is True
+    assert reason.startswith("drug_safety_pair:")
+
+
+def test_skip_on_in_encounter_nsaid_via_drug_safety() -> None:
+    """In-encounter NSAID (record.orders) — Enoxaparin still blocked."""
+    record = _record(_patient([]), _encounter(los_hours=72), dx="J18.1")
+    record.orders = [_med_order("Ibuprofen 400mg", "ORD-INE-1")]
+    assert build_dvt_prophylaxis_orders(record=record) == []
+
+
+def test_skip_on_in_encounter_ketorolac_via_drug_safety() -> None:
+    """Ketorolac is a very common IV/IM NSAID — must be classified
+    so the drug_safety gate catches it."""
+    record = _record(_patient([]), _encounter(los_hours=72), dx="J18.1")
+    record.orders = [_med_order("Ketorolac", "ORD-INE-2")]
+    assert build_dvt_prophylaxis_orders(record=record) == []
+
+
+def test_no_skip_on_allowed_chronic_med() -> None:
+    """Non-conflicting chronic med (statin) — Enoxaparin still emits."""
+    record = _record(
+        _patient(["Atorvastatin 40mg"]),
+        _encounter(los_hours=72),
+        dx="J18.1",
+    )
+    orders = build_dvt_prophylaxis_orders(record=record)
+    assert len(orders) == 1
+    assert orders[0].display_name == "Enoxaparin"
+
+
+def test_therapeutic_ac_still_wins_over_drug_safety_gate() -> None:
+    """Therapeutic AC skip (existing rule) still fires and is reported."""
+    skip, reason = should_skip_dvt_prophylaxis(
+        patient=_patient(["Warfarin 3mg PO daily"]),
+        encounter=_encounter(72),
+        admission_dx_code="I48",
+    )
+    assert skip is True
+    assert reason == "therapeutic_anticoagulant_active"

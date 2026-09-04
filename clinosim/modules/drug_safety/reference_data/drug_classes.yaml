@@ -99,6 +99,23 @@ mappings:
     drug_ja: "ジクロフェナク"
     classes: ["nsaid.non_selective", "nsaid"]
 
+  # Ketorolac — very common IV/IM NSAID (post-op / ED pain).
+  # #1087 (C1): omission let anticoag+NSAID pairs slip past the gate.
+  Ketorolac:
+    aliases: ["ケトロラック", "toradol"]
+    drug_ja: "ケトロラック"
+    classes: ["nsaid.non_selective", "nsaid"]
+
+  Meloxicam:
+    aliases: ["メロキシカム", "mobic"]
+    drug_ja: "メロキシカム"
+    classes: ["nsaid.preferential_cox2", "nsaid"]
+
+  Indomethacin:
+    aliases: ["インドメタシン", "indocin"]
+    drug_ja: "インドメタシン"
+    classes: ["nsaid.non_selective", "nsaid"]
+
   Celecoxib:
     aliases: ["セレコキシブ", "celebrex"]
     drug_ja: "セレコキシブ"
