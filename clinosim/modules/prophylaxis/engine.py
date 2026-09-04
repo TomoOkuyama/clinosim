@@ -162,14 +162,18 @@ def build_dvt_prophylaxis_orders(
         return []
 
     adm_dt = getattr(enc, "admission_datetime", None)
-    ordered_dt = adm_dt
     if isinstance(adm_dt, str):
         try:
             ordered_dt = datetime.fromisoformat(adm_dt) + timedelta(hours=6)
         except (TypeError, ValueError):
-            ordered_dt = adm_dt
+            # Fall back to now — Order dataclass requires a real datetime
+            ordered_dt = datetime.now()
     elif isinstance(adm_dt, datetime):
         ordered_dt = adm_dt + timedelta(hours=6)
+    else:
+        # No admission_datetime available — Order dataclass requires a
+        # datetime; use now as a safe fallback (test paths always supply one).
+        ordered_dt = datetime.now()
 
     # Emit as a real Order dataclass so downstream CLI debug printers and
     # any consumer expecting attribute access work uniformly.

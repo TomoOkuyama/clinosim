@@ -40,6 +40,6 @@ def enrich_prophylaxis(ctx: Any) -> None:
             continue
         existing = getattr(record, "orders", None)
         if existing is None:
-            record.orders = list(new_orders)  # type: ignore[attr-defined]
+            record.orders = list(new_orders)
         else:
             existing.extend(new_orders)
