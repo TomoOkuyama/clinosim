@@ -278,6 +278,7 @@ ENRICHER_SEED_OFFSETS = {
     "triage": 0x5452,  # "TR" (Tier 1 #3 α-min-2 PR1, triage module)
     "health_checkup": 0x4843,  # "HC" (per-patient checkup lab sampling)
     "medication_monitoring": 0x4D4D,  # "MM" (#757 chronic-med → monitoring lab pairs)
+    "prophylaxis": 0x5052,  # "PR" (#1071 B6 DVT chemoprophylaxis for IMP ≥ 48h)
 }
 
 assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), (

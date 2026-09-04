@@ -265,6 +265,22 @@ def register_builtin_enrichers() -> None:
         )
     )
 
+    # DVT (VTE) chemoprophylaxis for inpatient stays ≥ 48 h (Issue #1071 B6).
+    # Order 75 — after device (70) so device placement is visible, before
+    # hai (80) so HAI antibiotics do not perturb the prophylaxis decision.
+    # Pure rule-based, no RNG. See clinosim/modules/prophylaxis/README.md.
+    from clinosim.modules.prophylaxis.enricher import enrich_prophylaxis
+
+    register_enricher(
+        Enricher(
+            name="prophylaxis",
+            stage=POST_ENCOUNTER,
+            order=75,
+            enabled=lambda c: True,
+            run=enrich_prophylaxis,
+        )
+    )
+
     # Empirical antibiotic regimen for HAI events (AD-55 always-on
     # Module = near-essential clinical cascade, PR3b-1). Consumes
     # extensions["hai"] (PR-B output); no-op when no HAI events are present. Order 85.
