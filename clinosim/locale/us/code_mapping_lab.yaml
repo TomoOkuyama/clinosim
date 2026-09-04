@@ -38,7 +38,7 @@ pH: "2744-1"
 pCO2: "2019-8"
 pO2: "2703-7"
 HCO3: "1963-8"
-LDL: "2089-1"
+LDL: "13457-7"          # Cholesterol.LDL by calculation (Friedewald) — physiology emits calc value (C5 / #1091)
 HDL: "2085-9"
 TG: "2571-8"
 TC: "2093-3"
