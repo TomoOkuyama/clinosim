@@ -217,9 +217,18 @@ codes:
   11580-8:
     en: Thyroid stimulating hormone [Units/volume] in Serum or Plasma
     ja: TSH（血清）
+  # C5 / #1091 correction: 13457-7 IS the calculation code (Friedewald);
+  # 18262-6 is the direct-assay code. Pre-C5 the display here was
+  # mislabeled as "by Direct assay" but the LOINC identity 13457-7
+  # unambiguously names the calculation method — corrected verbatim from
+  # the LOINC master. The direct-assay code 18262-6 is added below for
+  # completeness / future TG-≥-400 direct-measure emit.
   13457-7:
+    en: Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation
+    ja: LDLコレステロール（計算法）
+  18262-6:
     en: Cholesterol in LDL [Mass/volume] in Serum or Plasma by Direct assay
-    ja: LDLコレステロール
+    ja: LDLコレステロール（直接測定法）
   14804-9:
     en: Lactate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma by Lactate to pyruvate reaction
     ja: LDH（血清）
