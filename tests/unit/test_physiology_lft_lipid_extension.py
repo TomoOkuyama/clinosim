@@ -106,6 +106,62 @@ def test_ggt_sex_specific_baseline() -> None:
     assert labs_m["GGT"] > labs_f["GGT"]
 
 
+def test_ldl_is_friedewald_consistent_when_tg_below_400() -> None:  # noqa: N802
+    """C5 / #1091: LDL must be internally consistent with TC/HDL/TG.
+
+    Friedewald: LDL = TC - HDL - TG/5 (all mg/dL, valid when TG < 400).
+    The pre-C5 physiology computed LDL from an independent formula on
+    E78, giving LDL values that could disagree with TC-HDL-TG by tens of
+    mg/dL. That's not just a LOINC-selection defect (2089-1 vs 13457-7)
+    but an internal-consistency defect: consumers computing LDL from the
+    other three saw a different number from what we emitted.
+    """
+    for sex in ("M", "F"):
+        for has_dyslip in (False, True):
+            labs = derive_lab_values(
+                _healthy_state(),
+                sex=sex,
+                age=55,
+                has_dyslipidemia=has_dyslip,
+            )
+            # Only assert when TG < 400 (Friedewald validity range)
+            if labs["TG"] >= 400:
+                continue
+            expected = labs["TC"] - labs["HDL"] - labs["TG"] / 5
+            assert abs(labs["LDL"] - expected) < 1.0, (
+                f"sex={sex} dyslip={has_dyslip}: "
+                f"LDL={labs['LDL']:.1f} but Friedewald(TC={labs['TC']:.1f}, "
+                f"HDL={labs['HDL']:.1f}, TG={labs['TG']:.1f}) = {expected:.1f}"
+            )
+
+
+def test_ldl_floor_at_healthy_low_bound() -> None:  # noqa: N802
+    """Even with high HDL / low TC, LDL floors at a plausible low bound
+    (≥ 30 mg/dL) — no negative values from the Friedewald subtraction."""
+    labs = derive_lab_values(_healthy_state(), sex="F", age=55)
+    assert labs["LDL"] >= 30.0, labs
+
+
+def test_us_ldl_loinc_is_13457_7_calc_not_2089_1_generic() -> None:  # noqa: N802
+    """C5 / #1091: US LDL now emits LOINC 13457-7 (calc-Friedewald).
+
+    2089-1 (\"Cholesterol in LDL [Mass/volume] in Serum or Plasma\") is
+    the older generic code; 13457-7 (\"…by calculation\") is the modern
+    preferred code that also matches how we now derive LDL. Pin the
+    mapping so a future YAML edit that reverts to 2089-1 fails loud.
+    """
+    from pathlib import Path
+
+    import yaml
+
+    mapping_path = Path(__file__).resolve().parents[2] / "clinosim" / "locale" / "us" / "code_mapping_lab.yaml"
+    with mapping_path.open(encoding="utf-8") as fh:
+        mapping = yaml.safe_load(fh)
+    assert mapping.get("LDL") == "13457-7", (
+        f"US LDL LOINC should be 13457-7 (calc-Friedewald); got {mapping.get('LDL')!r}"
+    )
+
+
 def test_tp_floor_holds_under_extreme_hepatic_failure() -> None:
     """TP must never dip below the physiologic floor even at hepatic=0."""
     state = _healthy_state()

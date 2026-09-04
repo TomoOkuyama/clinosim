@@ -764,10 +764,19 @@ def derive_lab_values(
     _dyslip = 1.0 if has_dyslipidemia else 0.0
     _dm = 1.0 if has_diabetes else 0.0
     labs["TC"] = TC_BASELINE_MG_DL + _dyslip * TC_DYSLIPIDEMIA_SCALE
-    labs["LDL"] = LDL_BASELINE_MG_DL + _dyslip * LDL_DYSLIPIDEMIA_SCALE
     _hdl_base = HDL_BASELINE_MALE_MG_DL if sex == "M" else HDL_BASELINE_FEMALE_MG_DL
     labs["HDL"] = max(20, _hdl_base - _dyslip * HDL_DYSLIPIDEMIA_SCALE)
     labs["TG"] = TG_BASELINE_MG_DL + _dyslip * TG_DYSLIPIDEMIA_SCALE + _dm * TG_DIABETES_SCALE
+    # C5 / Issue #1091: LDL derived via Friedewald equation so it stays
+    # internally consistent with TC / HDL / TG. Valid for TG < 400 mg/dL;
+    # for higher TG the equation breaks down and a real lab would order a
+    # direct measurement (LOINC 18262-6). The pre-C5 independent-formula
+    # path is retained here as the fallback for that > 400 mg/dL case so
+    # LDL is never absent when the panel would otherwise emit it.
+    if labs["TG"] < 400:
+        labs["LDL"] = max(30.0, labs["TC"] - labs["HDL"] - labs["TG"] / 5)
+    else:
+        labs["LDL"] = max(30.0, LDL_BASELINE_MG_DL + _dyslip * LDL_DYSLIPIDEMIA_SCALE)
     # PT_INR: hepatic (cirrhosis factor depletion) + coagulation_status (DIC
     # consumption) drive baseline; therapeutic warfarin overrides to target
     # the 2.0-3.0 clinical band. AC + comorbidity (DIC, cirrhosis) compounds
