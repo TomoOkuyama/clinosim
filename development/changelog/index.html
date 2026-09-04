@@ -2316,6 +2316,21 @@ step is the tag itself, which is held per project policy until an
 explicit user Go signal (<code>feedback_release_tag_requires_user_go</code>).
 Everything below stays queued under <code>[Unreleased]</code> until the
 re-tag.</p>
+<h3 id="added-session-99-prophylaxis--issue-1071">Added (session 99, prophylaxis — Issue #1071)<a class="headerlink" href="#added-session-99-prophylaxis--issue-1071" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>New <code>clinosim.modules.prophylaxis</code> enrichment module</strong>: standard-of-care
+  DVT (VTE) chemoprophylaxis for inpatient encounters ≥ 48 h. Registered as
+  POST_ENCOUNTER order 75 (after <code>device</code> 70, before <code>hai</code> 80).</li>
+<li><strong>Enoxaparin 40 mg SC daily</strong> emitted as a <code>MedicationRequest</code> (via the
+  standard FHIR MR builder — no new adapter) for every eligible IMP
+  encounter that is not on therapeutic anticoagulation and does not carry
+  a contraindication (active bleeding / recent hemorrhagic stroke / GI
+  bleed / delivery / active DVT-PE treatment).</li>
+<li><strong>Cohort measurement (US p=2000 seed=500, 12-month sim)</strong>:
+  IMP ≥ 48 h DVT-prevention coverage 61.2 % → 94.2 %.
+  Residual 5.8 % = delivery admissions (Z37 / Z38) intentionally
+  skipped — postpartum VTE protocol is out of the generic DVT rule.</li>
+</ul>
 <h3 id="added-session-99-drug_safety--issue-1066">Added (session 99, drug_safety — Issue #1066)<a class="headerlink" href="#added-session-99-drug_safety--issue-1066" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>New <code>clinosim.modules.drug_safety</code> foundation module</strong>: class-based
