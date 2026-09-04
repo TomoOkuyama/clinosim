@@ -1483,6 +1483,25 @@ def _build_medication_admin(
         rate_value = parsed.get("dose_quantity") or 1
         rate_unit = parsed.get("dose_unit", "mL") + "/h"
         dosage["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
+
+    # Issue #1067 B2: IV-route drugs missing a structured dose need the same
+    # catalog-based rate/duration augmentation the MR builder gets via
+    # ``augment_iv_dosage_with_rate`` (Issue #966). Previously MA path only
+    # handled the ad-hoc "CONTINUOUS"/"DRIP"/"/h" cases above, leaving
+    # protocol-string IV meds (KCl range, sliding-scale insulin, NS bolus
+    # without an explicit rate) with an empty dose. Same helper, same
+    # semantics — dose_text and display_name flow the same way. Emit-side
+    # only, no CIF rewrite.
+    from clinosim.modules.output.fhir_r4.lib.common import (
+        augment_iv_dosage_with_rate as _augment_iv,
+    )
+
+    _augment_iv(
+        dosage,
+        dose_text=dose_text or "",
+        route=mar.get("route") or parsed.get("route"),
+        display_name=drug_name_clean or "",
+    )
     # Route — resolved through the shared helper so the MAR and MR paths cannot drift
     # apart again (Issue #458: the missing `INH` / `NEB` aliases produced 166 text-only
     # elements here versus 6 on the MR path). `.upper()` now lives in the helper.
