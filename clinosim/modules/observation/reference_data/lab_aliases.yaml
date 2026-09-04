@@ -12,3 +12,13 @@ Troponin_repeat: Troponin_I
 # Blood gas repeat → the "ABG" panel (expanded into pH/pCO2/pO2/HCO3 components).
 ABG_repeat_1h: ABG
 ABG_repeat: ABG
+# C4 / Issue #1090: LFT panel semantic aliases. Disease YAMLs (liver
+# cirrhosis, cholecystitis, appendicitis, pancreatitis, GI bleed, …)
+# order labs under the human-readable name ``Total_bilirubin`` but
+# ``derive_lab_values`` keys the derived value under ``T_Bil``. Pre-C4
+# the alias table had no entry, so 7+ diseases silently dropped the
+# order — resulting in zero Bilirubin.total emit across a p=10k cohort.
+# Symmetrical ``Total_protein → TP`` alias is included so any future
+# author who writes the human form lands on the physiology key.
+Total_bilirubin: T_Bil
+Total_protein: TP
