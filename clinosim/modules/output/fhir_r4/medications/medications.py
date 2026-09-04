@@ -788,6 +788,16 @@ def _build_medication_request(
         order.get("end_datetime")
         or (encounter_type == "outpatient" and order.get("encounter_id"))
         or (_is_episodic and encounter_type == "inpatient" and order.get("encounter_id"))
+        # C7a / #1099: ED-course meds complete at ED encounter close.
+        # Anything ordered during an emergency encounter is per-encounter
+        # (IV ketorolac, IM ibuprofen, single-dose IV antibiotic, PRN
+        # ondansetron, …). Home-medication continuation orders that
+        # happen to be recorded at ED intake are excluded (patient is
+        # still on them post-discharge). Pre-C7a these meds stayed
+        # ``status="active"`` forever, feeding false cross-encounter
+        # active-med signals into drug_safety analysis and creating
+        # spurious contraindicated pairs (89 % of #1087 residual).
+        or (encounter_type == "emergency" and order.get("encounter_id") and not _is_home_med)
     ):
         status_val = "completed"
 
