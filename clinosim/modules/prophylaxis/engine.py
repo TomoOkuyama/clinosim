@@ -37,6 +37,7 @@ def should_skip_dvt_prophylaxis(
     encounter: Any,
     admission_dx_code: str = "",
     active_medications: list[str] | None = None,
+    candidate_drug: str = "",
 ) -> tuple[bool, str]:
     """Return ``(skip, reason)`` — the enricher records ``reason`` in the
     trace so audit consumers can see WHY prophylaxis was withheld.
@@ -48,6 +49,11 @@ def should_skip_dvt_prophylaxis(
         admission_dx_code: ICD code from ``clinical_diagnosis``. Empty string
             means no dx available — do not skip on the dx-based rules.
         active_medications: optional pre-computed list of drug-name strings.
+        candidate_drug: the drug the enricher intends to add (defaults to
+            the DVT rule's ``drug`` — Enoxaparin). Fed into
+            ``drug_safety.check_candidate_against_active`` so any
+            major/contraindicated pair against ``active_medications``
+            skips prophylaxis (Issue #1087).
 
     Never raises. If the rule yaml is malformed, returns ``(False, "")`` so
     the caller emits prophylaxis (safe default).
@@ -80,6 +86,25 @@ def should_skip_dvt_prophylaxis(
             for prefix in rule.get("icd_prefixes", []) or []:
                 if dx_upper.startswith(str(prefix).upper()):
                     return True, rule_name
+
+    # Rule 5 (Issue #1087): drug_safety pair check — the candidate drug
+    # (Enoxaparin) would create a major/contraindicated pair with an
+    # already-active med (chronic aspirin, in-encounter NSAID, etc.).
+    if not candidate_drug:
+        candidate_drug = _dvt_rule().get("drug", "Enoxaparin") or "Enoxaparin"
+    if active_medications:
+        try:
+            from clinosim.modules.drug_safety.engine import (
+                check_candidate_against_active,
+            )
+
+            verdicts = check_candidate_against_active(candidate_drug, active_medications)
+        except Exception:  # pragma: no cover — defensive: never let a
+            # drug_safety failure block prophylaxis.
+            verdicts = []
+        for v in verdicts:
+            if v.severity in ("major", "contraindicated"):
+                return True, f"drug_safety_pair:{v.rule_id or 'unknown'}"
 
     return False, ""
 
@@ -149,10 +174,31 @@ def build_dvt_prophylaxis_orders(
 
     patient = getattr(record, "patient", None)
     admission_dx = _admission_dx_from_record(record)
+
+    # #1087 (C1): union chronic (patient.current_medications) + in-encounter
+    # (record.orders where OrderType is MEDICATION and not cancelled/stopped).
+    # This lets the drug_safety gate see the aspirin / NSAID that the
+    # prophylaxis Enoxaparin would clash with.
+    from clinosim.types.encounter import OrderStatus, OrderType
+
+    chronic = [
+        getattr(m, "drug_name", None) or getattr(m, "drug", None) or ""
+        for m in (getattr(patient, "current_medications", None) or [])
+    ]
+    in_encounter = [
+        (getattr(o, "display_name", "") or "")
+        for o in (getattr(record, "orders", None) or [])
+        if getattr(o, "order_type", None) == OrderType.MEDICATION
+        and getattr(o, "status", None) not in (OrderStatus.CANCELLED, OrderStatus.STOPPED)
+    ]
+    active_meds = [m for m in chronic + in_encounter if m]
+
     skip, reason = should_skip_dvt_prophylaxis(
         patient=patient,
         encounter=enc,
         admission_dx_code=admission_dx,
+        active_medications=active_meds,
+        candidate_drug=rule.get("drug", "Enoxaparin"),
     )
     if skip:
         return []
