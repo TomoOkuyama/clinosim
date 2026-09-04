@@ -552,34 +552,45 @@ def _generate_mar(
 # ---------------------------------------------------------------------------
 
 
-def apply_drug_safety_gate_to_admission_orders(
-    admission_orders: list[Order],
+def apply_drug_safety_gate_to_orders(
+    candidate_orders: list[Order],
+    *,
     patient: PatientProfile,
     encounter_id: str,
-    admission_time: datetime,
-    attending_id: str,
+    ordered_datetime: datetime,
+    attending_id: str = "",
     protocol: Any = None,
     country: str = "us",
+    already_accepted_meds: list[str] | None = None,
 ) -> list[Order]:
-    """Post-hoc filter admission_orders through drug_safety.check_pair.
+    """Filter a stream of candidate medication Orders through
+    ``drug_safety.check_pair``.
 
-    Real EHR CPOE prevents contraindicated orders at entry time; this
-    function reproduces that by walking the emitted MedicationOrder list
-    in order, checking each candidate against every previously-accepted
-    med (home + acute), and:
+    C7b / Issue #1100 generalization: this is the shared per-order gate
+    used by every issuance path (admission, daily_loop step-up,
+    outpatient, ED, POST_ENCOUNTER enrichers). Real EHR CPOE prevents
+    contraindicated orders at entry time; this function reproduces that
+    by walking the candidate MedicationOrder list in order, checking
+    each candidate against every previously-accepted med, and:
 
       - severity == major / contraindicated: drop the candidate, try
         ``suggest_alternative`` (disease_ctx-first, generic pool second),
         emit the substitute in place if one is available.
       - severity == moderate: keep the order but append a MR.note-shaped
-        caution dict to ``order.notes`` (order-level list; downstream FHIR
-        MR builder consumes it in Task 11).
+        caution dict to ``order.notes`` (order-level list; downstream
+        FHIR MR builder consumes it).
       - severity == minor / allowed: keep unchanged.
 
+    ``already_accepted_meds`` seeds the accepted-med set. When ``None``
+    (default) it is initialized from ``patient.current_medications`` —
+    matching the admission-orders behavior. Callers coming from
+    post-admission paths (daily_loop, POST_ENCOUNTER enrichers) should
+    pass in the union of home meds + admission-accepted meds + any
+    already-processed candidates for the current pass.
+
     Every skip (with or without substitute) is appended to
-    ``patient.safety_skip_log`` with ``encounter_id`` set to the current
-    admission and ``context_hint`` derived from the verdict's
-    ``substitution_hint``.
+    ``patient.safety_skip_log`` with ``encounter_id`` set and
+    ``context_hint`` derived from the verdict's ``substitution_hint``.
 
     Non-medication orders (labs, imaging, supportive/care-plan) pass
     through unchanged.
@@ -591,22 +602,27 @@ def apply_drug_safety_gate_to_admission_orders(
     from clinosim.modules import drug_safety
     from clinosim.modules.drug_safety.verdict import SafetySkipEntry
 
-    # Existing active meds visible to the gate: patient's home meds
-    # (already-accepted, already in patient.current_medications) at the
-    # start of the pass. The activator (Task 8) has ALREADY run the gate
-    # against home_med derivation, so this list represents chronic pairs
-    # that were approved (or that pre-date the gate — see the
-    # already-chronic bypass below).
+    # Existing active meds visible to the gate. When ``already_accepted_meds``
+    # is None, seed from patient home meds (matches admission-orders
+    # historical behavior). Otherwise use the caller-supplied set — it
+    # already reflects home + admission + prior-day acceptance for
+    # post-admission passes.
     home_med_names: list[str] = [m.drug_name for m in (patient.current_medications or []) if m.drug_name]
+    if already_accepted_meds is None:
+        seed = list(home_med_names)
+    else:
+        seed = list(already_accepted_meds)
     # Canonicalise once so the bypass check below matches regardless of
-    # dose-suffixed input.
+    # dose-suffixed input. Bypass covers home meds specifically so a
+    # continue-home-med order doesn't get flagged against its own
+    # chronic-list sibling.
     _canonical_home = {drug_safety.canonical_name(name) or name.strip().lower() for name in home_med_names}
 
     out: list[Order] = []
-    accepted_med_names: list[str] = list(home_med_names)
+    accepted_med_names: list[str] = seed
     substitute_seq = 0
 
-    for order in admission_orders:
+    for order in candidate_orders:
         if order.order_type != OrderType.MEDICATION:
             out.append(order)
             continue
@@ -661,7 +677,7 @@ def apply_drug_safety_gate_to_admission_orders(
                     substituted_with=alt.drug if alt else None,
                     substituted_with_ja=(alt.drug_ja if alt else None),
                     context_hint=indication,
-                    timestamp=admission_time.isoformat(),
+                    timestamp=ordered_datetime.isoformat(),
                 )
             )
             if alt is None:
@@ -707,3 +723,35 @@ def apply_drug_safety_gate_to_admission_orders(
         accepted_med_names.append(candidate)
 
     return out
+
+
+def apply_drug_safety_gate_to_admission_orders(
+    admission_orders: list[Order],
+    patient: PatientProfile,
+    encounter_id: str,
+    admission_time: datetime,
+    attending_id: str,
+    protocol: Any = None,
+    country: str = "us",
+) -> list[Order]:
+    """Backward-compat wrapper preserved from before C7b (#1100).
+
+    Delegates to :func:`apply_drug_safety_gate_to_orders` with
+    ``already_accepted_meds=None`` so the general helper seeds from
+    ``patient.current_medications`` (home meds) — matching the
+    admission-orders historical behavior.
+
+    New call sites should use :func:`apply_drug_safety_gate_to_orders`
+    directly and pass an explicit ``already_accepted_meds`` list that
+    reflects home + admission + prior-day accepted meds.
+    """
+    return apply_drug_safety_gate_to_orders(
+        admission_orders,
+        patient=patient,
+        encounter_id=encounter_id,
+        ordered_datetime=admission_time,
+        attending_id=attending_id,
+        protocol=protocol,
+        country=country,
+        already_accepted_meds=None,
+    )
