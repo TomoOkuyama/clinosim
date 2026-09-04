@@ -729,13 +729,18 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
         conditions.append(cond)
 
-    # --- Past pregnancies → Z37 problem-list-item (META #957 Incr 1) ---
+    # --- Past pregnancies → Z87.59 problem-list-item (META #957 Incr 1 +
+    # #1092 C6 semantic fix) ---
     # Replaces the pre-Incr-1 s95-z37 "chronic proxy" past-birth marker.
     # For each closed pregnancy period with outcome="delivered", emit
-    # one Z37 problem-list-item Condition anchored at the delivery date.
-    # This is a biology-consistent record: exactly one Z37 per delivered
-    # pregnancy per patient (multi-parity → multi-Z37), sourced from
-    # ``person.state_periods``.
+    # one Z87.59 (Personal history of other complications of pregnancy,
+    # childbirth and the puerperium) problem-list-item Condition anchored
+    # at the delivery date. Z37.x is the delivery-encounter outcome code
+    # and belongs only on that encounter's Condition record; using it as a
+    # long-lived problem-list marker was a semantic misuse (#1092).
+    # This remains a biology-consistent record: exactly one past-birth
+    # Condition per delivered pregnancy per patient (multi-parity →
+    # multi-Z87.59), sourced from ``person.state_periods``.
     state_periods = record.get("patient", {}).get("state_periods", []) or []
     _att_recorder = encounters[0].get("attending_physician_id", "") if encounters else ""
     z37_seq = 0
@@ -751,12 +756,11 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         end_date = get_attr_or_key(period, "end_date", "") or ""
         if not end_date:
             continue
-        if "Z37" in seen_codes:
-            # A prior chronic-path Z37 emit already claimed the slot for
-            # this base code; a second same-base-code problem-list item
-            # would collide on the dedup key. Skip to preserve invariant.
-            # (Should not happen post-Incr-1 since Z37 is no longer in
-            # chronic_conditions.)
+        # Guard against a same-base-code collision on the chronic dedup
+        # key. Z37 is no longer in chronic_conditions post-Incr-1; Z87.59
+        # is not a chronic code at all — this branch remains as a
+        # defensive break rather than an expected path.
+        if "Z87" in seen_codes:
             break
 
         z37_id = f"cond-past-birth-{patient_id}-{z37_seq}"
@@ -789,7 +793,9 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 }
             ],
             "code": build_diagnosis_codeable_concept(
-                map_diagnosis_code("Z37", country, sex=patient_sex), icd_system_key, country
+                map_diagnosis_code("Z87.59", country, sex=patient_sex),
+                icd_system_key,
+                country,
             ),
             "subject": patient_ref(patient_id),
             "onsetDateTime": to_fhir_date(end_date),

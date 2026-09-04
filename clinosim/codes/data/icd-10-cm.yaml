@@ -875,6 +875,16 @@ codes:
   Z87.310:
     en: Personal history of (healed) osteoporosis fracture
     ja: 骨粗鬆症性骨折（治癒）の既往
+  # #1092 (C6): past-pregnancy problem-list marker. Z37.x is for the
+  # delivery-encounter outcome only — the historical marker on the mother's
+  # chart uses Z87.5x.
+  Z87.51:
+    en: Personal history of pre-term labor
+    ja: 早産の既往
+  Z87.59:
+    en: Personal history of other complications of pregnancy, childbirth and
+      the puerperium
+    ja: その他の妊娠・分娩・産褥合併症の既往
   # --- Billable targets for non-billable PRIMARY dx codes (specificity / 7th char).
   #     locale/us/code_mapping_diagnosis translates the internal disease/encounter code
   #     to these CM leaves for US output. Verified vs NLM ICD-10-CM API (2024). ---
