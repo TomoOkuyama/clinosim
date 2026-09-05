@@ -775,7 +775,12 @@ def run_beta(
         if record.deceased or record.is_readmission:
             continue
         person = population.get_person(record.patient.patient_id)
-        if not person or not person.is_alive:
+        # C11g-3b: readmission is only viable if the person is still
+        # alive at snapshot time (natural death between discharge and
+        # snapshot excludes them from the pool). Fall back to permissive
+        # if snapshot_dt is None (identity/legacy tests).
+        _readmit_gate_date = snapshot_dt.date() if snapshot_dt else date.max
+        if not person or not person.is_alive or not person.is_alive_at(_readmit_gate_date):
             continue
         readmit_disease_id = (
             record.condition_event.ground_truth_diseases[0] if record.condition_event.ground_truth_diseases else None
@@ -894,6 +899,12 @@ def run_beta(
         followup_date = enc.discharge_datetime + timedelta(days=post_dc_days)
         # Skip post-discharge visits scheduled after the snapshot date
         if snapshot_dt and followup_date > snapshot_dt:
+            continue
+        # C11g-3b: natural-death gate on the scheduled follow-up date.
+        # A patient discharged before dying naturally on date D still
+        # gets a follow-up visit scheduled for D + post_dc_days — if
+        # that date lands after D, the visit did not physically happen.
+        if not person.is_alive_at(followup_date.date()):
             continue
         opd_key = f"{pid}|post_discharge|{followup_date.isoformat()}"
         opd_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, opd_key)
@@ -1241,6 +1252,15 @@ def run_beta(
             )
             # Skip ED visits past snapshot date
             if snapshot_dt and ed_time > snapshot_dt:
+                continue
+            # C11g-3b: natural-death gate on the actual ED visit date.
+            # ED-visit person selection at loop head uses the naive
+            # ``is_alive`` boolean because ``ed_time`` is not yet known
+            # (it is computed here from the slot RNG); this second check
+            # blocks the visit when the sampled datetime falls after
+            # ``date_of_death``. Reordering to filter earlier would
+            # shift the slot_rng cursor and cascade to unrelated slots.
+            if not person.is_alive_at(ed_time.date()):
                 continue
 
             ed_record = _simulate_ed_visit(
