@@ -631,6 +631,14 @@ def activate_patient(
         # pregnancies via ``state_history("pregnancy")``. Shallow copy —
         # PatientProfile does not mutate periods.
         state_periods=list(getattr(person, "state_periods", []) or []),
+        # Issue #1114 C11g-4: forward the natural-death date sampled by
+        # the ``natural_death`` POST_POPULATION enricher so downstream
+        # FHIR emit (``_build_patient``) surfaces it as
+        # ``Patient.deceasedDateTime``. In-hospital deaths still flow
+        # through the ``record.deceased`` → discharge_datetime path
+        # (see ``fhir_r4/__init__.py:521``) — the two paths converge in
+        # the FHIR builder's ``p.get("date_of_death")`` read.
+        date_of_death=getattr(person, "date_of_death", None),
     )
 
 
