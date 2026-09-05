@@ -594,10 +594,20 @@ class NarrativePass(ABC):
         enc_dir = os.path.join(narrative_dir, encounter_id)
         os.makedirs(enc_dir, exist_ok=True)
         filename = self._filename_for(stub, spec)
+        _narr = asdict(wrapper)
+        # Issue #1157: drop the ``structured`` field from the on-disk
+        # JSON when it is empty. The field is reserved for the
+        # QUESTIONNAIRE_RESPONSE emit path (per its docstring) but no
+        # current doc type populates it, so every existing narrative
+        # doc carried an empty ``{}`` that consumers had to skip past.
+        # Retain when populated (once QUESTIONNAIRE_RESPONSE lands
+        # or any future doc type opts in).
+        if not _narr.get("structured"):
+            _narr.pop("structured", None)
         payload = {
             "document_id": stub["document_id"],
             "encounter_id": encounter_id,
-            "narrative": asdict(wrapper),
+            "narrative": _narr,
         }
         with open(os.path.join(enc_dir, filename), "w") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False)
