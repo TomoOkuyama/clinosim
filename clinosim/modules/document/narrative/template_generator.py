@@ -966,14 +966,20 @@ class TemplateNarrativeGenerator:
         # 7.8 % ``Continue current management`` across 1,409 progress
         # notes at US p=2000 seed=500).
         if not is_ja:
-            facts.append("generic:progress_note_soap_en")
-            # subjective / objective stay on the generic EN placeholder —
-            # those pull from disease YAML per-day physical exam findings
-            # which are JP-only. The v6 blocker fix below prepends
-            # today's numeric vitals to ``objective`` regardless, so the
-            # objective section still carries per-day data.
-            subjective = _GENERIC_FALLBACK_EN
-            objective = _GENERIC_FALLBACK_EN
+            facts.append("composed:progress_note_soap_en")
+            # Issue #1155 (session-103): subjective + objective previously
+            # short-circuited to "No special findings" on every EN
+            # inpatient progress note. Now use the CIF-derived composers
+            # (subjective covers hospital day / fever / desat; objective
+            # uses today's vitals line already known to be locale-neutral).
+            composed_subj = self._compose_progress_subjective_from_state(ctx)
+            _obj_vitals = self._compose_pe_vitals_line(ctx)
+            subjective = composed_subj or _GENERIC_FALLBACK_EN
+            objective = _obj_vitals if _obj_vitals else _GENERIC_FALLBACK_EN
+            if composed_subj:
+                facts.append("ctx.progress_subjective.state_composed.en")
+            if _obj_vitals:
+                facts.append(f"ctx.vitals[day_{ctx.day_index}].en")
             # Assessment + plan now use the state-composers so each day of
             # each encounter carries patient-specific reasoning.
             composed_assess = self._compose_progress_assessment_from_state(ctx)
@@ -4241,29 +4247,49 @@ class TemplateNarrativeGenerator:
         This composes a minimum-viable subjective from stay_progress +
         today's abnormal vitals (fever / hypoxia flag), backed only by
         confirmed CIF signals.
+
+        Issue #1155 (session-103): EN branch added — parallels the JA
+        structure so US inpatient progress notes carry per-day
+        subjective ("Hospital day N. Persistent fever 38.5°C. Continued
+        SpO2 89 % desaturation.") instead of the flat "No special
+        findings" fallback.
         """
-        if ctx.target_lang != "ja":
-            return ""
+        is_ja = ctx.target_lang == "ja"
         picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
         parts: list[str] = []
         los = ctx.los_days or 0
         day_1indexed = ctx.day_index + 1
         if los > 0:
-            parts.append(f"入院{day_1indexed}日目。")
+            if is_ja:
+                parts.append(f"入院{day_1indexed}日目。")
+            else:
+                parts.append(f"Hospital day {day_1indexed}.")
         if picks:
             v = picks[0]
             temp = _o(v, "temperature_celsius", None)
             spo2 = _o(v, "spo2", None)
             if temp and float(temp) >= 38.0:
-                parts.append(f"発熱 {float(temp):.1f}°C 持続。")
+                if is_ja:
+                    parts.append(f"発熱 {float(temp):.1f}°C 持続。")
+                else:
+                    parts.append(f"Persistent fever {float(temp):.1f}°C.")
             elif temp and float(temp) < 36.0:
-                parts.append(f"低体温 {float(temp):.1f}°C を認める。")
+                if is_ja:
+                    parts.append(f"低体温 {float(temp):.1f}°C を認める。")
+                else:
+                    parts.append(f"Hypothermia {float(temp):.1f}°C noted.")
             if spo2 and float(spo2) < 92:
-                parts.append(f"SpO2 {int(float(spo2))}% と低下傾向。")
+                if is_ja:
+                    parts.append(f"SpO2 {int(float(spo2))}% と低下傾向。")
+                else:
+                    parts.append(f"SpO2 {int(float(spo2))}% (desaturation trend).")
         if len(parts) <= 1:
             # No abnormal signal — neutral observation phrase
-            parts.append("自覚症状に著変なし。")
-        return "".join(parts)
+            if is_ja:
+                parts.append("自覚症状に著変なし。")
+            else:
+                parts.append("No new subjective complaints.")
+        return "".join(parts) if is_ja else " ".join(parts)
 
     def _compose_progress_assessment_from_state(self, ctx: NarrativeContext) -> str:
         """Inpatient progress_note Assessment from CIF facts.
