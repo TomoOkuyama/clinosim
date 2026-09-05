@@ -151,6 +151,25 @@ def register_builtin_enrichers() -> None:
         )
     )
 
+    # Natural-death sampling (Issue #1114 C11g-2). POST_POPULATION so
+    # date_of_death is populated before the event generators run;
+    # ``PersonRecord.is_alive_at(t)`` becomes the query API for
+    # future date-aware filtering. C11g-2 only samples + logs; event
+    # generators still use the naive ``is_alive`` boolean unchanged
+    # (C11g-3 wires the actual filter). Always-on for both countries;
+    # a no-op when actuarial_life_table.yaml is missing.
+    from clinosim.modules.natural_death import sample_natural_deaths
+
+    register_enricher(
+        Enricher(
+            name="natural_death",
+            stage=POST_POPULATION,
+            order=20,
+            enabled=lambda c: True,
+            run=sample_natural_deaths,
+        )
+    )
+
     # Nursing flowsheet (AD-55 Base): NEWS2/GCS + Braden/Morse. Always-on.
     from clinosim.modules.observation.nursing_enricher import enrich_nursing
 
