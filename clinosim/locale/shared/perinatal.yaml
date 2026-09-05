@@ -68,34 +68,49 @@ scheduling:
 #     ``postpartum_visit`` events and close the period with
 #     ``outcome="delivered"``.
 #
-# Rates (per-woman per-year Bernoulli):
-#   JP: MHLW 人口動態統計 出生率 2022 by 5-year maternal-age band —
-#       raw crude age-specific birth rates rounded to 3 decimals.
-#   US: CDC NVSR fertility rates 2022 by 5-year maternal-age band.
+# Rates (per-woman per-year Bernoulli — CONCEPTION rate, before
+# abortion-outcome resolution by the ``abortion.probability_by_age``
+# block below).
+#
 # Ages outside 15-49 do not conceive (sex_restriction Z34 gate is 15-49).
 #
-# Note: these are DELIVERY rates, not conception rates. Because Incr 1
-# does not sample stillbirth / spontaneous abortion at the conception
-# stage (those still ride the existing perinatal.abortion table), using
-# delivery rates directly matches the observed cohort delivery count.
+# Semantic note (session 103, Issue #1116):
+#   Older revisions of this file described these as DELIVERY rates
+#   (CDC birth rate / MHLW 出生率 verbatim), but the pipeline actually
+#   applies the abortion filter downstream (``resolve_pregnancy_outcome``
+#   in ``clinosim/simulator/perinatal.py``), so with birth-rate inputs
+#   the emitted delivery count sat at ~2.9 %/fertile-female-year vs
+#   the target ~5.5 %/yr (see #1116 instrumentation PR #1146). Values
+#   are now calibrated as CONCEPTION rate ≈ birth rate × 1.4, so:
+#     emitted_delivery = conception_rate × (1 − abortion_prob_by_age)
+#                       ≈ conception_rate × 0.81 ≈ birth-rate target
+#   The 1.4× multiplier is uniform across age bands (approximation —
+#   real per-age pregnancy-loss ratios vary from ~1.9× at 15-19 to
+#   ~2.3× at 40-44; sim's ``abortion.probability_by_age`` averages
+#   ~20 % so a uniform 1.4× scales conception → delivery to the
+#   right ballpark without a per-age lookup).
+# Sources for the birth-rate base (pre-multiplication):
+#   JP: MHLW 人口動態統計 出生率 2022 by 5-year maternal-age band —
+#       crude age-specific birth rates rounded to 3 decimals.
+#   US: CDC NVSR fertility rates 2022 by 5-year maternal-age band.
 lifecycle:
   annual_conception_rate:
     jp:
-      "15-19": 0.003    # MHLW 2022 age-specific birth rate ~2.8/1000
-      "20-24": 0.023
-      "25-29": 0.075
-      "30-34": 0.099
-      "35-39": 0.051
-      "40-44": 0.008
-      "45-49": 0.0002
+      "15-19": 0.004    # birth 0.003 × 1.4 (session 103 #1116)
+      "20-24": 0.032    # birth 0.023
+      "25-29": 0.105    # birth 0.075
+      "30-34": 0.139    # birth 0.099
+      "35-39": 0.071    # birth 0.051
+      "40-44": 0.011    # birth 0.008
+      "45-49": 0.0003   # birth 0.0002
     us:
-      "15-19": 0.014    # CDC NVSR 2022
-      "20-24": 0.059
-      "25-29": 0.096
-      "30-34": 0.097
-      "35-39": 0.056
-      "40-44": 0.012
-      "45-49": 0.001
+      "15-19": 0.020    # birth 0.014 × 1.4 (session 103 #1116)
+      "20-24": 0.083    # birth 0.059
+      "25-29": 0.134    # birth 0.096
+      "30-34": 0.136    # birth 0.097
+      "35-39": 0.078    # birth 0.056
+      "40-44": 0.017    # birth 0.012
+      "45-49": 0.001    # birth 0.001 (unchanged — below rounding threshold)
   # Full-term pregnancy length used to derive EDD from LMP.
   # 280 days = 40 weeks (Naegele's rule).
   gestation_days: 280
