@@ -1341,6 +1341,16 @@ def generate_healthcare_calendar(
         # are byte-identical whether this block runs or not.
         events.extend(_chemo_cycle_events(person, year))
 
+    # Issue #1116: flush per-year perinatal stage counters so a `grep
+    # perinatal_yearly_stage_counts` over simulator.log surfaces where
+    # the delivery-rate gap opens (conception_bernoulli_attempted vs
+    # delivery_emitted_this_year across the sim window).
+    if _PERINATAL_STAGE_COUNTERS:
+        from clinosim.simulator import log as sim_log
+
+        sim_log.info("perinatal", "yearly_stage_counts", year=year, country=country, **_PERINATAL_STAGE_COUNTERS)
+        _PERINATAL_STAGE_COUNTERS.clear()
+
     return events
 
 
@@ -1365,6 +1375,21 @@ def _annual_conception_rate(lc: dict, country: str, age: int) -> float:
         if lo <= age <= hi:
             return float(value)
     return 0.0
+
+
+# Issue #1116: per-year perinatal stage counters. Populated by
+# ``_pregnancy_lifecycle_events`` at every branch point; flushed to
+# sim_log at the end of each ``generate_healthcare_calendar`` call
+# so cohort-scale analysis can grep the sim log for
+# ``event=perinatal_yearly_stage_counts`` and see where the ~50 %
+# delivery-rate gap (annual_conception_rate vs emitted deliveries)
+# actually opens. Reset per call; safe under this module's
+# single-threaded contract.
+_PERINATAL_STAGE_COUNTERS: dict[str, int] = {}
+
+
+def _perinatal_stage_incr(stage: str) -> None:
+    _PERINATAL_STAGE_COUNTERS[stage] = _PERINATAL_STAGE_COUNTERS.get(stage, 0) + 1
 
 
 def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -> list[LifeEvent]:
@@ -1414,6 +1439,7 @@ def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -
         return []
     if not (_PREGNANCY_ELIGIBLE_MIN_AGE <= person.age <= _PREGNANCY_ELIGIBLE_MAX_AGE):
         return []
+    _perinatal_stage_incr("called_fertile_female")
     from clinosim.locale.loader import load_perinatal_config
     from clinosim.seeding import perinatal_delivery_seed
     from clinosim.simulator.perinatal import resolve_pregnancy_outcome
@@ -1421,6 +1447,7 @@ def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -
     cfg = load_perinatal_config()
     lc = cfg.get("lifecycle") or {}
     if not lc:
+        _perinatal_stage_incr("config_missing")
         return []
     gestation_days = int(lc.get("gestation_days", 280))
     prenatal_ga_weeks = list(lc.get("prenatal_visit_gestational_weeks") or [12, 24, 36])
@@ -1431,18 +1458,25 @@ def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -
     rng = np.random.default_rng(perinatal_delivery_seed(person.person_id, year))
 
     active = person.get_active_state("pregnancy")
+    if active is not None:
+        _perinatal_stage_incr("carried_active_period")
     if active is None:
         rate = _annual_conception_rate(lc, country, person.age)
         if rate <= 0.0:
+            _perinatal_stage_incr("rate_zero")
             return []
+        _perinatal_stage_incr("conception_bernoulli_attempted")
         if float(rng.random()) >= rate:
+            _perinatal_stage_incr("conception_declined")
             return []
+        _perinatal_stage_incr("conception_rolled_pregnant")
         # Conception this year: pick LMP uniformly within [Jan 1, Dec 31].
         lmp_offset = int(rng.integers(0, 365))
         lmp = date(year, 1, 1) + timedelta(days=lmp_offset)
         edd = lmp + timedelta(days=gestation_days)
 
         outcome, discharge_dx = resolve_pregnancy_outcome(person.person_id, person.age, year)
+        _perinatal_stage_incr(f"outcome_{outcome}")
         if outcome == "abortion":
             # Abortions cluster in the first trimester — schedule at
             # gestational week ~10 (day 70 from LMP), jittered ±14 days.
@@ -1526,6 +1560,7 @@ def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -
         )
 
     if year_start <= planned_delivery_date <= year_end:
+        _perinatal_stage_incr("delivery_emitted_this_year")
         events.append(
             LifeEvent(
                 person_id=person.person_id,
@@ -1557,6 +1592,14 @@ def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -
         active.end_date = planned_delivery_date
         active.outcome = "delivered"
         active.metadata["delivered_on"] = planned_delivery_date
+    else:
+        # Planned delivery date is in another year (typical: conception
+        # near year-end, EDD in the following year). The pregnancy period
+        # stays open; next year's call finds active != None and emits the
+        # delivery + postpartum then.
+        _perinatal_stage_incr(
+            "delivery_deferred_next_year" if planned_delivery_date > year_end else "delivery_before_sim_year"
+        )
 
     return events
 
