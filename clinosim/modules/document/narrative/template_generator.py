@@ -4223,14 +4223,36 @@ class TemplateNarrativeGenerator:
                 parts.append(f"合併症 {'、'.join(str(c) for c in comps[:3])} を認識、対応継続中。")
             else:
                 parts.append(f"Complications noted ({comp_list}); management ongoing.")
-        # Abnormal labs today
+        # Abnormal labs today — Issue #1154 fix.
+        #
+        # Prior behaviour: the code read a ``lab.day`` field that real
+        # CIF ``lab_results`` never carry (per ``lab_timeseries.py``'s
+        # design contract: "adding a `day` field at the CIF layer is
+        # therefore unnecessary — result_datetime is the time source").
+        # ``d = _o(lab, "day", None)`` was always None, so
+        # ``if d is not None and d != ctx.day_index: continue`` never
+        # fired and every progress-note day showed the SAME first-6
+        # abnormal labs across an 8-day stay.
+        #
+        # Fix: two-path day resolution, mirroring ``_filter_vitals_for_day``:
+        #   1. Explicit ``lab.day`` (legacy test fixtures + any CIF that
+        #      may carry it) → filter by that.
+        #   2. Fall back to ``result_datetime`` vs
+        #      ``ctx.encounter.admission_datetime`` (real CIF).
+        _lab_enc = getattr(ctx, "encounter", None)
+        _lab_adm_raw = _o(_lab_enc, "admission_datetime", None) if _lab_enc is not None else None
+        _lab_adm_dt = _parse_iso_datetime(_lab_adm_raw) if _lab_adm_raw is not None else None
         labs = list(ctx.lab_results or [])
         abn: list[str] = []
-        for lab in labs[:6]:
+        for lab in labs:
             flag = _o(lab, "flag", None)
             if not flag:
                 continue
             d = _o(lab, "day", None)
+            if d is None and _lab_adm_dt is not None:
+                _rdt = _parse_iso_datetime(_o(lab, "result_datetime", None))
+                if _rdt is not None:
+                    d = (_rdt - _lab_adm_dt).days
             if d is not None and d != ctx.day_index:
                 continue
             name = _o(lab, "lab_name", None)
@@ -4238,6 +4260,8 @@ class TemplateNarrativeGenerator:
             unit = _o(lab, "unit", "") or ""
             if name and val is not None:
                 abn.append(f"{name} {val} {unit} [{flag}]")
+            if len(abn) >= 6:
+                break
         if abn:
             if is_ja:
                 parts.append(f"本日の検査所見: {'、'.join(abn[:4])}。")
@@ -4264,12 +4288,26 @@ class TemplateNarrativeGenerator:
         """
         is_ja = ctx.target_lang == "ja"
         parts: list[str] = []
-        # Today's meds (MAR)
+        # Today's meds (MAR) — Issue #1154 fix: MedicationAdministration
+        # records store ``scheduled_datetime`` / ``actual_datetime`` but
+        # no ``day`` field, so the naive ``m.day`` filter previously
+        # accepted every med from every day of the stay. Derive day from
+        # timestamp vs admission_datetime, mirroring the pattern in
+        # ``_filter_vitals_for_day``.
         admins = list(ctx.medications or [])
+        _p_enc = getattr(ctx, "encounter", None)
+        _adm_raw = _o(_p_enc, "admission_datetime", None) if _p_enc is not None else None
+        _adm_dt = _parse_iso_datetime(_adm_raw) if _adm_raw is not None else None
         med_names: list[str] = []
         seen: set[str] = set()
         for m in admins:
             d = _o(m, "day", None)
+            if d is None and _adm_dt is not None:
+                # Derive day from the med's own timestamp field
+                _m_ts_raw = _o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None)
+                _m_ts = _parse_iso_datetime(_m_ts_raw) if _m_ts_raw is not None else None
+                if _m_ts is not None:
+                    d = (_m_ts - _adm_dt).days
             if d is not None and d != ctx.day_index:
                 continue
             name = _o(m, "drug_name", None) or _o(m, "medication", None) or _o(m, "name", None)
