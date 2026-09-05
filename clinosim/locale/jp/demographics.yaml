@@ -193,15 +193,21 @@ chronic_prevalence:
   # entries with periodic follow-up); actual initial-onset events (dx week,
   # first chemo cycle) are out of scope for this pass and belong on the
   # oncology-service roadmap.
+  # Issue #1112 (C11e, 2026-09-05): band values scaled ~30 % down on all
+  # cancer codes below to land the emitted any-cancer prev in the (5, 10)
+  # benchmark band in verify_medical_stats.py (pre-fix observed 11.2-13.3 %
+  # on JP p={2000,10k} s={321, 1000}). Age-band structure unchanged →
+  # RNG-neutral: each patient still hits exactly one draw per code (or zero
+  # if outside any band). Per ``feedback_rng_shift_patient_cache_cascade``.
   C18:      # Colon cancer — JP incidence 60-70 per 100k, 5yr survivor ~2%
-    "50-69": 0.010
-    "70-99": 0.025
+    "50-69": 0.007
+    "70-99": 0.017
   C22:      # Liver / intrahepatic bile duct — JP elevated (HBV/HCV cohort)
-    "50-69": 0.008
-    "70-99": 0.015
+    "50-69": 0.006
+    "70-99": 0.010
   C34:      # Lung cancer — JP MHLW top cause of cancer death; survivor 5yr ~1.5%
-    "50-69": 0.008
-    "70-99": 0.020
+    "50-69": 0.005
+    "70-99": 0.014
   C50:      # Breast cancer — 女性は MHLW 患者調査で罹患率上昇中、5yr 生存者
             # 保有率 ~3%。男性 BC は全 C50 の約 1 %(国立がん研究センター
             # がん統計 2020 男性乳がん罹患率 ~1 per 100k、大半 60+)、
@@ -210,35 +216,43 @@ chronic_prevalence:
             # は表現できないため band を性別ごとに宣言する。billable
             # ICD-10-CM leaf は emit 時に性別で分岐(C50.919 女性 / C50.929
             # 男性)する ``map_diagnosis_code`` 側で解決。
+    # Issue #1112 (C11e): F band scaled -30 % (0.015→0.010, 0.030→0.021).
+    # Male BC nano-band kept unchanged (already vanishingly small).
     by_sex:
       F:
-        "40-59": 0.015
-        "60-99": 0.030
+        "40-59": 0.010
+        "60-99": 0.021
       M:
         "60-99": 0.0002
   C61:      # Prostate cancer — male only; JP incidence rising, indolent survivor
+    # Issue #1112 (C11e): -30 % scaling (0.025→0.017, 0.055→0.038).
     sex: M
-    "60-69": 0.025
-    "70-99": 0.055
+    "60-69": 0.017
+    "70-99": 0.038
 
   # Issue #957 slice 2: additional JP-common cancers.
   # Prevalence values calibrated to MHLW 患者調査 2020 + 国立がん研究センター
   # がん統計 2020 (age-specific incidence + 5-year survivor prevalence).
   C15:      # Esophageal cancer — JP incidence higher than West; smoking/alcohol
-    "50-69": 0.005
-    "70-99": 0.012
+    # Issue #1112 (C11e): -30 % (0.005→0.003, 0.012→0.008).
+    "50-69": 0.003
+    "70-99": 0.008
   C16:      # Stomach cancer — JP top-5 (H. pylori era survivor cohort); high incidence
-    "50-69": 0.012
-    "70-99": 0.028
+    # Issue #1112 (C11e): -30 % (0.012→0.008, 0.028→0.020).
+    "50-69": 0.008
+    "70-99": 0.020
   C25:      # Pancreatic cancer — low 5yr survival, small survivor prevalence
+    # Issue #1112 (C11e): pinned (0.002/0.006 already low; rounding boundary).
     "50-69": 0.002
-    "70-99": 0.006
+    "70-99": 0.005
   C67:      # Bladder cancer — smoking-associated, male > female
-    "50-69": 0.004
-    "70-99": 0.012
+    # Issue #1112 (C11e): -20 % (0.004→0.003, 0.012→0.010).
+    "50-69": 0.003
+    "70-99": 0.010
   C71:      # Brain cancer (malignant primary) — glioma cohort, low incidence
+    # Issue #1112 (C11e): pinned (0.002/0.004 already low; rounding boundary).
     "40-69": 0.002
-    "70-99": 0.004
+    "70-99": 0.003
 
   # --- Obstetrics (Issue #943, migrated by META #957 Incr 1) ---------------
   # META #957 Incr 1: Z34 (encounter for supervision of normal pregnancy)
