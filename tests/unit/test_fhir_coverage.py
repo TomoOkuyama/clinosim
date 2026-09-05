@@ -105,9 +105,35 @@ class TestCoverageBuilder:
         patient = {"patient_id": "P", "identity": {"enrollments": []}}
         assert _build_coverage_resources(patient, "JP") == []
 
-    def test_us_has_no_coverage_config(self):
-        # US has no identity.yaml fhir_coverage block in Phase 1 → no Coverage emitted.
-        assert _build_coverage_resources(_PATIENT_JP, "US") == []
+    def test_us_coverage_emits_via_us_core_profile(self):
+        # Issue #1107 (session 103): US now has identity.yaml with a US-Core
+        # ``fhir_coverage.profile`` URL + payors block, so US enrollments
+        # produce Coverage rows. Legacy assertion "US emits zero Coverage"
+        # is no longer true — we assert the profile URL instead.
+        us_patient = {
+            "patient_id": "P-US",
+            "date_of_birth": "1970-06-15",
+            "identity": {
+                "enrollments": [
+                    {
+                        "country": "US",
+                        "category": "private_employer",
+                        "insurer_number": "US-EMPLGRP",
+                        "member_id": "12345678901",
+                    }
+                ]
+            },
+        }
+        resources = _build_coverage_resources(us_patient, "US")
+        coverages = [r for r in resources if r["resourceType"] == "Coverage"]
+        assert coverages, "US enrollment should produce at least one Coverage row"
+        # US-Core profile URL declared
+        assert any(
+            "us-core-coverage" in (p or "") for cov in coverages for p in cov.get("meta", {}).get("profile", [])
+        ), "US Coverage should carry the us-core-coverage profile URL"
+        # No JP 記号/枝番 extensions leaked in
+        for cov in coverages:
+            assert cov.get("extension", []) == [], "US Coverage should have no JP-specific extensions"
 
 
 @pytest.mark.unit
