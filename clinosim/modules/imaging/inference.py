@@ -92,11 +92,25 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     (rf"腎{_SEP}ct|腎臓{_SEP}ct", "CT", "kidney", []),
     # CT angiography — head/neck に routed
     (rf"ct{_SEP}angiography{_SEP}head{_SEP}neck", "CT", "head", []),
+    # Soft-tissue CT with/without contrast (cellulitis / abscess /
+    # tissue-injury workup). Folded into ``leg`` for the same
+    # anatomic-most-common reason as Soft_tissue_ultrasound above.
+    (
+        rf"(?:ct{_SEP}soft{_SEP}tissue|soft{_SEP}tissue{_SEP}ct)(?:{_SEP}(?:with|no)n?{_SEP}?contrast)?|軟部{_SEP}ct",
+        "CT",
+        "leg",
+        [],
+    ),
     # ---- MR / MRA ----
     (rf"(?:head|brain|cranial){_SEP}mri|mri{_SEP}(?:head|brain)(?:{_SEP}dwi)?", "MR", "head", []),
     (rf"mra{_SEP}intracranial", "MR", "head", []),
     (rf"頭部{_SEP}mri|脳{_SEP}mri", "MR", "head", []),
-    (rf"spine{_SEP}mri|(?:lumbar|cervical){_SEP}mri|mri{_SEP}spine", "MR", "spine", []),
+    (
+        rf"spine{_SEP}mri|(?:lumbar|cervical|thoracic){_SEP}mri|mri{_SEP}(?:spine|lumbar|cervical|thoracic)",
+        "MR",
+        "spine",
+        [],
+    ),
     (rf"脊椎{_SEP}mri|(?:腰椎|頸椎|胸椎){_SEP}mri", "MR", "spine", []),
     (rf"abdominal?{_SEP}mri|mri{_SEP}abdomen", "MR", "abdomen", []),
     (rf"腹部{_SEP}mri", "MR", "abdomen", []),
@@ -119,6 +133,12 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
         "leg",
         [],
     ),
+    # Soft-tissue US (cellulitis / abscess workup). Folded into ``leg``
+    # because that is the anatomic site most common cellulitis targets;
+    # no dedicated ``soft_tissue`` body_site exists in body_sites.yaml
+    # (same fold-into-nearest-anatomy pattern as carotid → spine and
+    # echo → chest above).
+    (rf"soft{_SEP}tissue{_SEP}(?:ultrasound|us)|軟部{_SEP}(?:超音波|エコー|us)", "US", "leg", []),
     # ---- XA / angiography ----
     # Coronary angiography → XA. Folded into ``chest`` (same precision
     # as the echocardiogram folding) because no ``heart`` body_site is defined.

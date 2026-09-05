@@ -33,6 +33,7 @@ modalities:
       hip: [180, 260]
       spine: [220, 320]
       kidney: [280, 420]                         # CT urography ≈ abdomen coverage
+      leg: [180, 320]                            # session-103: soft-tissue CT for cellulitis workup
     default_views_by_body_site:
       head: ["axial"]
       chest: ["axial"]
@@ -40,6 +41,7 @@ modalities:
       hip: ["axial"]
       spine: ["axial"]
       kidney: ["axial"]
+      leg: ["axial"]                             # session-103: CT_soft_tissue_with_contrast
 
   MR:                                            # Magnetic Resonance
     dicom_code: "MR"
