@@ -678,6 +678,24 @@ def generate_population(
             elif bmi >= BMI_OBESE_THRESHOLD:
                 conditions.append("E66.9")  # Obesity, unspecified, BMI ≥ 30
 
+            # Issue #1134 (Substance Use): SDOH-derived Condition insertion.
+            # Rationale: ``smoking_status`` / ``alcohol_use`` are already
+            # sampled attributes on PersonRecord (SDOH social-history
+            # Observation codes). Cross-resource consistency requires that
+            # patients labeled ``current`` smoker or ``heavy`` drinker also
+            # carry an ICD chronic Condition (F17.210 nicotine dependence /
+            # F10.20 alcohol dependence uncomplicated). Analytics that
+            # filter Conditions for smoking-related risk were previously
+            # blind to the SDOH-encoded classification.
+            # Deterministic (derives from already-sampled attributes), no
+            # rng draw → RNG-neutral. Same insertion phase as E66 (after
+            # chronic loops, before care-seeking threshold).
+            # See META #1137 for design authority.
+            if smoking_status == "current":
+                conditions.append("F17.210")  # Nicotine dependence, cigarettes, uncomplicated
+            if alcohol_use == "heavy":
+                conditions.append("F10.20")  # Alcohol dependence, uncomplicated
+
             # Care seeking threshold (JP: lower = more willing)
             # RM-7e: care-seeking threshold from locale
             # (JP: 20% reflects 健診 culture; US: 30% baseline).

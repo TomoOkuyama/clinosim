@@ -68,6 +68,12 @@ codes:
   F10:
     en: Alcohol related disorders
     ja: アルコール使用障害
+  F10.20:
+    en: Alcohol dependence, uncomplicated
+    ja: アルコール依存症（合併症なし）
+  F17.210:
+    en: Nicotine dependence, cigarettes, uncomplicated
+    ja: ニコチン依存症（紙巻きたばこ、合併症なし）
   F32:
     en: Depressive episode
     ja: うつ病
