@@ -284,6 +284,22 @@ def load_perinatal_config() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_actuarial_life_table() -> dict[str, Any]:
+    """Load all-cause age × sex annual mortality qx for US + JP (Issue #1114 C11g-1).
+
+    Top-level shape:
+        annual_mortality_qx.<country>.<sex>.<age_lower> -> qx  (float, [0, 1])
+        provenance.<country> -> {source, reference_year, document, tables_consulted}
+
+    Values are 5-year band means of single-year qx from national period
+    life tables (US CDC NVSR 71-01 2020; JP 厚労省 第23回完全生命表 2020).
+    Data-only scaffold — no consumer yet; C11g-2 wires it into the
+    population activator's natural-death step.
+    """
+    return _load_yaml(_LOCALE_DIR / "shared" / "actuarial_life_table.yaml", fallback={})
+
+
+@lru_cache(maxsize=1)
 def load_chemo_regimens() -> dict[str, Any]:
     """Load chemotherapy regimen library + per-cancer assignment table.
 

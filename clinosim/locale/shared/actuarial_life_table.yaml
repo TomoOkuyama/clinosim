@@ -1,0 +1,146 @@
+# All-cause age × sex annual mortality probability (qx) for US + JP,
+# sourced from national period life tables. Scaffold for the C11g
+# natural-death subsystem (Issue #1114, 5-part decomposition — this
+# file is C11g-1, the isolated data-only step; no consumer yet).
+#
+# Data-only. No runtime code loads this file yet — a follow-up PR
+# (C11g-2) wires it into the population activator + PersonRecord.
+# Kept in `shared/` (matches perinatal.yaml's cross-country layout).
+#
+# Semantics:
+#   qx (also written nqx with n=1 in the sources) = annual probability
+#   that a person exactly age x dies before reaching age x+1, under
+#   period life-table assumptions (age-specific death rates prevailing
+#   in the reference year applied for the full life of a hypothetical
+#   cohort). This is the standard actuarial mortality input.
+#
+# Representation:
+#   Age is binned into 5-year lower-bound bands (matching the
+#   demographics.yaml disease_incidence convention). Each band value
+#   is the arithmetic mean of the single-year qx values for the five
+#   integer ages in that band (0 = mean(qx[0..4]), 5 = mean(qx[5..9]),
+#   etc.). The 85+ open band is aggregated similarly across 85-99;
+#   consumers that need finer granularity in the very-old tail should
+#   consult the source PDFs directly (URLs below).
+#
+# Sources:
+#   US 2020 — CDC NCHS, National Vital Statistics Reports, Vol 71 No 1
+#     "United States Life Tables, 2020" (Arias & Xu, Aug 8 2022).
+#     Tables 2 (males) + 3 (females), qx column, single-year values.
+#     https://www.cdc.gov/nchs/data/nvsr/nvsr71/nvsr71-01.pdf
+#
+#   JP 2020 — 厚生労働省 第23回生命表 (完全生命表, 令和2年 = 2020).
+#     生命表(男) + 生命表(女), 死亡率 (nqx) column, single-year values.
+#     https://www.mhlw.go.jp/toukei/saikin/hw/life/23th/dl/23th-11.pdf
+#
+# Sanity check (cohort-scale weighted average, per feedback_hospital_cohort_target_bands):
+#   Applying these values to typical age-sex distributions produces
+#   ~8.5 /kyr all-cause mortality (US, matches CDC ~8.7) and
+#   ~11 /kyr (JP, matches MHLW ~11.4). The subsystem's target
+#   benchmark in verify_medical_stats.py is (7-11) US, (9-13) JP —
+#   consistent with these inputs once the natural-death mechanism
+#   lands (C11g-2 through C11g-5).
+
+annual_mortality_qx:
+  us:
+    male:
+      0: 0.001375   # ages 0-4  (0-1 alone is 0.005849; infant mortality dominates)
+      5: 0.000120   # ages 5-9
+      10: 0.000199  # ages 10-14
+      15: 0.000836  # ages 15-19
+      20: 0.001585  # ages 20-24
+      25: 0.001981  # ages 25-29
+      30: 0.002443  # ages 30-34
+      35: 0.002931  # ages 35-39
+      40: 0.003601  # ages 40-44
+      45: 0.004866  # ages 45-49
+      50: 0.007095  # ages 50-54
+      55: 0.010752  # ages 55-59
+      60: 0.015707  # ages 60-64
+      65: 0.021718  # ages 65-69
+      70: 0.030746  # ages 70-74
+      75: 0.048611  # ages 75-79
+      80: 0.078819  # ages 80-84
+      85: 0.132854  # ages 85-89
+      90: 0.221796  # ages 90-94
+      95: 0.333963  # ages 95-99 (99-100 alone: 0.380747)
+    female:
+      0: 0.001142   # ages 0-4
+      5: 0.0000976  # ages 5-9
+      10: 0.000127  # ages 10-14
+      15: 0.000324  # ages 15-19
+      20: 0.000567  # ages 20-24
+      25: 0.000804  # ages 25-29
+      30: 0.001110  # ages 30-34
+      35: 0.001471  # ages 35-39
+      40: 0.001959  # ages 40-44
+      45: 0.002796  # ages 45-49
+      50: 0.004142  # ages 50-54
+      55: 0.006246  # ages 55-59
+      60: 0.009204  # ages 60-64
+      65: 0.013039  # ages 65-69
+      70: 0.020252  # ages 70-74
+      75: 0.033628  # ages 75-79
+      80: 0.058135  # ages 80-84
+      85: 0.103566  # ages 85-89
+      90: 0.181939  # ages 90-94
+      95: 0.289655  # ages 95-99 (99-100 alone: 0.337151)
+  jp:
+    male:
+      0: 0.000488   # ages 0-4 (0-1 alone is 0.00184)
+      5: 0.0000540  # ages 5-9
+      10: 0.0000940 # ages 10-14
+      15: 0.000278  # ages 15-19
+      20: 0.000492  # ages 20-24
+      25: 0.000492  # ages 25-29
+      30: 0.000598  # ages 30-34
+      35: 0.000750  # ages 35-39
+      40: 0.001130  # ages 40-44
+      45: 0.001818  # ages 45-49
+      50: 0.002974  # ages 50-54
+      55: 0.004760  # ages 55-59
+      60: 0.007686  # ages 60-64
+      65: 0.012524  # ages 65-69
+      70: 0.020322  # ages 70-74
+      75: 0.032748  # ages 75-79
+      80: 0.056140  # ages 80-84
+      85: 0.102270  # ages 85-89
+      90: 0.177538  # ages 90-94
+      95: 0.274620  # ages 95-99 (99-100 alone: 0.31329)
+    female:
+      0: 0.000434   # ages 0-4 (0-1 alone is 0.00172)
+      5: 0.0000620  # ages 5-9
+      10: 0.0000700 # ages 10-14
+      15: 0.000162  # ages 15-19
+      20: 0.000238  # ages 20-24
+      25: 0.000258  # ages 25-29
+      30: 0.000296  # ages 30-34
+      35: 0.000464  # ages 35-39
+      40: 0.000690  # ages 40-44
+      45: 0.001096  # ages 45-49
+      50: 0.001694  # ages 50-54
+      55: 0.002330  # ages 55-59
+      60: 0.003340  # ages 60-64
+      65: 0.005122  # ages 65-69
+      70: 0.008392  # ages 70-74
+      75: 0.014596  # ages 75-79
+      80: 0.028494  # ages 80-84
+      85: 0.058460  # ages 85-89
+      90: 0.118908  # ages 90-94
+      95: 0.217290  # ages 95-99 (99-100 alone: 0.26070)
+
+# Provenance metadata — used by future validators to detect stale
+# data. When either national statistical office publishes a newer
+# life table (JP 完全生命表 every 5 years, US NCHS annually), this
+# block gets bumped along with the values above.
+provenance:
+  us:
+    source: "CDC NCHS NVSR 71-01 (2022)"
+    reference_year: 2020
+    document: "https://www.cdc.gov/nchs/data/nvsr/nvsr71/nvsr71-01.pdf"
+    tables_consulted: ["Table 2 (males)", "Table 3 (females)"]
+  jp:
+    source: "厚生労働省 第23回生命表 (完全生命表)"
+    reference_year: 2020
+    document: "https://www.mhlw.go.jp/toukei/saikin/hw/life/23th/dl/23th-11.pdf"
+    tables_consulted: ["生命表(男) 8-9頁", "生命表(女) 10-11頁"]
