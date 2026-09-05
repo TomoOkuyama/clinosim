@@ -473,6 +473,13 @@ _.news2_score  # modules/observation/nursing_enricher.py:43
 # Dead functions (no callers found in either clinosim/ or tests/):
 _.load_terminology  # locale/loader.py:188 (only README mention; API-doc drift)
 _.load_formatting  # locale/loader.py:206 (only README mention; API-doc drift)
+
+# Interim scaffolding — callers coming in a follow-up PR:
+# load_actuarial_life_table is called by tests/unit/test_actuarial_life_table.py
+# (validates YAML shape + realism), but vulture only scans clinosim/. C11g-2
+# (Issue #1114 next PR) will add the production caller in the population
+# activator; this entry gets removed then.
+_.load_actuarial_life_table  # locale/loader.py:286 (C11g-1 scaffold — see #1114)
 _.get_default_cache  # modules/document/narrative/cache.py:133
 _.generate_encounter_timeline  # modules/encounter/engine.py:177 (58 LOC; only README mention)
 _.calculate_imaging_result_time  # modules/order/engine.py:555 (49 LOC; only README mention)
