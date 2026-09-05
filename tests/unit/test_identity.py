@@ -202,8 +202,20 @@ class TestAssignIdentitiesPass:
         ids2 = [p.identity.current_enrollment().member_id for p in r2.persons.values()]
         assert ids1 == ids2
 
-    def test_us_is_noop(self):
+    def test_us_now_assigns_enrollments(self):
+        # Issue #1107 (session 103): US shipped its own identity.yaml +
+        # USIdentityProvider.assign_household, so this pass now populates
+        # a single InsuranceEnrollment per person (category derived from
+        # the age-conditional distribution). The legacy "US is a no-op"
+        # invariant is retired.
         reg = self._registry()
         assign_identities(reg, "US", master_seed=42)
-        # US has no identity.yaml in Phase 1 → pass is a no-op.
-        assert all(p.identity is None for p in reg.persons.values())
+        # Every person now has an IdentityTimeline with at least one
+        # enrollment carrying a US category label.
+        for p in reg.persons.values():
+            assert p.identity is not None, "US identity pass should populate IdentityTimeline"
+            enr = p.identity.current_enrollment()
+            assert enr is not None, "US identity pass should populate at least one enrollment"
+            assert enr.country == "US"
+            assert enr.category  # non-empty category slug
+            assert enr.member_id  # non-empty synthetic member id

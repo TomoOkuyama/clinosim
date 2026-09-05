@@ -1,0 +1,128 @@
+# US resident insurance / Coverage config (Issue #1107, session 103).
+#
+# Companion to jp/identity.yaml — same shape, populated with US-specific
+# payors + US-Core Coverage profile URL. Consumed by the identity module
+# (assign.py) via load_identity_config("US"), and by the FHIR adapter's
+# _build_coverage_resources for Coverage + payor Organization emit.
+#
+# Semantic differences from JP:
+#   - No fiscal-year re-aging (US benefit plans typically run calendar
+#     year; Medicare Part A/B eligibility is birthday-driven and rides
+#     over calendar years unchanged).
+#   - No 記号/枝番 composite identifier; US uses subscriber_id / member_id
+#     as flat identifiers, no extensions.
+#   - Age gate: 65 → Medicare auto-enrollment (CMS).
+#   - CHIP as a distinct age-conditional payor for <18 Medicaid variant.
+#
+# Sources for the payor roster:
+#   - Kaiser Family Foundation 2023 Health Coverage of Children + Adults
+#   - CMS.gov: Medicare, Medicaid, and CHIP program overviews
+#   - VA / TRICARE / Marketplace: HHS enrollment fact sheets
+# Representative payor IDs are synthetic (not real CMS Provider IDs) so
+# this file never carries actual identifiable federal-payor identifiers.
+
+# US uses calendar year for benefit periods.
+fiscal_year:
+  start_month: 1
+  start_day: 1
+
+# Age gates.
+#   late_elderly_min_age: set to 200 (disabled) — the JP "late_elderly"
+#     auto-promotion in _build_coverage_resources looks up a
+#     ``payers.late_elderly`` entry, but US Medicare auto-enrollment at
+#     65 is already handled at ``assign_household`` time (see
+#     ``providers/us.py`` — 65+ members route to `medicare` category
+#     even when the age-band weights draw a residual non-Medicare pick).
+#     Disabling the FY-time promotion prevents a double-relabel that
+#     would look up ``payers.late_elderly[0]`` (absent for US) and emit
+#     an empty payor identifier.
+#   primary_subscriber_min_age: 18 per standard commercial plan rules.
+age_gates:
+  late_elderly_min_age: 200
+  primary_subscriber_min_age: 18
+
+# Distribution used by the identity provider at household-assignment time.
+# Copy of demographics.yaml insurance_distribution to keep the identity
+# module output-agnostic (no dependency on demographics.yaml keys).
+# Source: Kaiser Family Foundation 2023 + CMS enrollment data.
+sampling:
+  insurance_distribution:
+    - age_range: "0-18"
+      weights:
+        private:       0.55
+        medicaid_chip: 0.40
+        uninsured:     0.05
+    - age_range: "19-64"
+      weights:
+        private_employer: 0.55
+        medicaid:         0.22
+        uninsured:        0.11
+        other_public:     0.12
+    - age_range: "65-99"
+      weights:
+        medicare:              0.40
+        medicare_plus_private: 0.35
+        medicare_medicaid:     0.10   # "dual eligible"
+        private_employer:      0.10   # retiree employer plans
+        other_public:          0.05   # VA / TRICARE
+
+# Representative payor rosters per insurance category.
+# `number` is a synthetic identifier used as the coverage class group ID and
+# as the payor Organization.identifier — NOT a real CMS or commercial ID.
+payers:
+  private:
+    - number: "US-BCBS"
+      name: "Blue Cross Blue Shield (individual market)"
+  private_employer:
+    - number: "US-EMPLGRP"
+      name: "Employer-Sponsored Group Health Plan"
+  medicare:
+    - number: "CMS-MEDICARE"
+      name: "Centers for Medicare & Medicaid Services (Medicare)"
+  medicare_plus_private:
+    - number: "CMS-MA-PLAN"
+      name: "Medicare Advantage Plan (Part C)"
+  medicare_medicaid:
+    - number: "CMS-DUAL"
+      name: "Medicare-Medicaid Dual Eligible Program"
+  medicaid:
+    - number: "STATE-MEDICAID"
+      name: "State Medicaid Program"
+  medicaid_chip:
+    - number: "STATE-CHIP"
+      name: "Children's Health Insurance Program (CHIP)"
+  other_public:
+    - number: "US-VA-TRICARE"
+      name: "VA / TRICARE (military & veterans)"
+  uninsured:
+    - number: "US-SELFPAY"
+      name: "Self-Pay / Uninsured"
+
+# Coverage.type.text label per insurance category.
+coverage_type_labels:
+  private: "Private insurance (individual market)"
+  private_employer: "Employer-sponsored group plan"
+  medicare: "Medicare (Part A/B)"
+  medicare_plus_private: "Medicare Advantage (Part C)"
+  medicare_medicaid: "Medicare + Medicaid (dual eligible)"
+  medicaid: "Medicaid"
+  medicaid_chip: "CHIP"
+  other_public: "VA / TRICARE / other public"
+  uninsured: "Self-Pay / Uninsured"
+
+# FHIR Coverage emission config (consumed by
+# clinosim/modules/output/fhir_r4/demographics/patient.py).
+fhir_coverage:
+  # US-Core Coverage profile URL (StructureDefinition).
+  # https://www.hl7.org/fhir/us/core/StructureDefinition-us-core-coverage.html
+  profile: "http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage"
+  # Placeholder identifier system for the composite subscriber ID.
+  # No US-wide "national insurer number system" exists; this URI is
+  # scoped to the clinosim synthetic cohort.
+  member_id_system: "urn:oid:2.16.840.1.113883.3.564.5.10.clinosim.us.coverage"
+  insurer_number_system: "urn:oid:2.16.840.1.113883.3.564.5.10.clinosim.us.payer"
+  # US Coverage has no 記号/番号/枝番 extensions — leave blank so the
+  # emitter skips the JP-Core-specific extension block.
+  ext_symbol: ""
+  ext_number: ""
+  ext_subnumber: ""

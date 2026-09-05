@@ -442,16 +442,29 @@ def _build_coverage_resources(
                     }
                 )
 
-            # JP Core extensions: 記号 / 番号 / 枝番
+            # JP Core extensions: 記号 / 番号 / 枝番. Each extension is
+            # only appended when the identity.yaml declares a non-empty
+            # StructureDefinition URL for it — US locales set the ext_*
+            # keys to "" so the block emits no extensions (US-Core
+            # Coverage has no equivalent slot).
             extensions: list[dict] = []
-            if use_symbol:
-                extensions.append({"url": cfg.get("ext_symbol", ""), "valueString": use_symbol})
-            extensions.append({"url": cfg.get("ext_number", ""), "valueString": number})
-            if use_branch:
-                extensions.append({"url": cfg.get("ext_subnumber", ""), "valueString": use_branch})
+            ext_symbol_url = cfg.get("ext_symbol") or ""
+            ext_number_url = cfg.get("ext_number") or ""
+            ext_subnumber_url = cfg.get("ext_subnumber") or ""
+            if use_symbol and ext_symbol_url:
+                extensions.append({"url": ext_symbol_url, "valueString": use_symbol})
+            if ext_number_url:
+                extensions.append({"url": ext_number_url, "valueString": number})
+            if use_branch and ext_subnumber_url:
+                extensions.append({"url": ext_subnumber_url, "valueString": use_branch})
 
-            # Composite member identifier: 保険者番号:記号:番号:枝番
-            composite = ":".join([insurer, use_symbol or "", number, use_branch or ""])
+            # Composite member identifier — JP: 保険者番号:記号:番号:枝番;
+            # US drops the empty 記号/枝番 columns so the composite reads
+            # "<insurer>:<member_id>" rather than "<insurer>::<member_id>:".
+            if use_symbol or use_branch:
+                composite = ":".join([insurer, use_symbol or "", number, use_branch or ""])
+            else:
+                composite = f"{insurer}:{number}"
             subscriber = f"{use_symbol}:{number}" if use_symbol else number
 
             # Issue #923: structural key always carries the FY year so

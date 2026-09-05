@@ -132,7 +132,13 @@ def register_builtin_enrichers() -> None:
         )
     )
 
-    # Resident identifier & insurance numbering (AD-54). JP-only, opt-out via config.
+    # Resident identifier & insurance numbering (AD-54 + Issue #1107).
+    # JP: opt-out via ``--no-jp-insurance`` (session 103: US also enrolls
+    # now, so the gate is country-aware — JP respects its opt-out flag,
+    # US is always on). ``assign_identities`` internally no-ops when
+    # ``load_identity_config(country)`` returns empty, so future locales
+    # that ship an ``identity.yaml`` (or don't) don't need this line
+    # touched.
     from clinosim.modules.identity import assign_identities
 
     register_enricher(
@@ -140,7 +146,7 @@ def register_builtin_enrichers() -> None:
             name="identity",
             stage=POST_POPULATION,
             order=10,
-            enabled=lambda c: is_jp(c.country) and c.jp_insurance_numbers,
+            enabled=lambda c: c.jp_insurance_numbers if is_jp(c.country) else True,
             run=lambda ctx: assign_identities(ctx.population, ctx.config.country, ctx.master_seed),
         )
     )
