@@ -104,6 +104,13 @@ HOSPITAL_COHORT_TARGET = {
         "copd_adult_prev_pct": (8, 14),  # YAML target ~12% (Medicare-user)
         "diabetes_adult_prev_pct": (14, 22),  # YAML target ~18-20% (Medicare-user)
         "dyslipidemia_adult_prev_pct": (40, 60),  # YAML target ~55% (Medicare-user)
+        # Issue #1117 (C11j, 2026-09-05): US hospital-catchment median age
+        # sits +5-15 yr above general Census — care-seeking filter drops
+        # non-visitors, elderly seek more care. Header note "hospital patient
+        # population ≠ general population, so some prevalences legitimately
+        # deviate" applies to median age too.
+        "median_age": (45, 60),  # Medicare-user hospital median
+        "outpatient_share_pct": (60, 95),  # chronic-care AMB heavy
     },
     "JP": {
         # Values reflect hospital-cohort skew per YAML comments in
@@ -111,6 +118,11 @@ HOSPITAL_COHORT_TARGET = {
         "copd_adult_prev_pct": (8, 14),  # YAML target ~12% (elderly hospital-catchment)
         "diabetes_adult_prev_pct": (15, 22),  # YAML target ~15-20% (hospital-catchment)
         "dyslipidemia_adult_prev_pct": (40, 60),  # YAML target ~50-55% (hospital-catchment)
+        # Issue #1117 (C11j, 2026-09-05): JP hospital 65+ ≈ 56 % of total per
+        # MHLW 患者調査 2020 (referenced in demographics.yaml header),
+        # yielding cohort median age ~60-68 vs general population ~48.
+        "median_age": (58, 68),  # MHLW hospital-catchment median
+        "outpatient_share_pct": (60, 95),  # chronic-care AMB heavy
     },
 }
 
@@ -252,7 +264,7 @@ print("--- Demographics ---")
 print(f"  patients: {n_pat}, adults(≥18@2024): {n_adult}, deceased: {n_deceased}")
 print(f"  sex distribution: {dict(sex_dist)}")
 print(f"  median age (2024): {median_age}, mean age: {mean_age:.1f}")
-print(band("median_age", median_age, *b["median_age"]))
+print(band("median_age", median_age, *b["median_age"], hc_key="median_age"))
 print(f"  age pyramid: {dict(sorted(buckets.items()))}")
 
 print("\n--- Chronic disease prevalence (unique adult patients) ---")
@@ -293,7 +305,7 @@ def enc_pct(k):
 
 
 print(f"  total encounters: {total_enc}, class dist: {dict(enc_class)}")
-print(band("outpatient_share (AMB)", enc_pct(amb), *b["outpatient_share_pct"], "%"))
+print(band("outpatient_share (AMB)", enc_pct(amb), *b["outpatient_share_pct"], "%", hc_key="outpatient_share_pct"))
 print(band("ed_share (EMER)", enc_pct(ed), *b["ed_share_pct"], "%"))
 print(band("inpatient_share (IMP)", enc_pct(imp), *b["inpatient_share_pct"], "%"))
 if other:
