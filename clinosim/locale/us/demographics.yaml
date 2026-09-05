@@ -55,11 +55,26 @@ blood_type:
 # clinosim/modules/population/README.md "Marginal-preserving prevalence"
 # and "Cohort skew vs sampled population".
 chronic_prevalence:
-  I10:      # Hypertension — CDC ~48% of adults; cohort target ~65% (Medicare-user)
-    # Issue #943 (2026-08-30): rebalanced down (0.33 → 0.22) so I10 does
-    # not over-dominate encounter reasonCode share. Paired with follow-up
-    # interval 1→4 change (see chronic_followup.yaml).
-    "40-99": 0.22
+  I10:      # Hypertension — NHANES 2017-18 adult 18+ ≈ 47.3% (age-stratified:
+    # 18-39 ≈ 22%, 40-59 ≈ 54%, 60+ ≈ 74%). Cohort target hits the middle
+    # of ``hypertension_adult_prev_pct: (40, 50)`` in scripts/verify_medical_stats.py.
+    # Issue #1108 (C11a, 2026-09-05): age-band recalibration replaces the
+    # single "40-99": 0.22 band (observed cohort ~25 %, below the 40-50 band)
+    # with three 40+ bands that hit ~41 % cohort adult prev — in target.
+    # The prior single-band was itself Issue #943's rebalance (0.33 → 0.22)
+    # against I10 encounter reasonCode dominance; the paired
+    # chronic_followup 1→4 mo interval remains in place. Age-band values
+    # sit ~30-40 % below NHANES age-band %s to leave headroom for the
+    # care-seeker skew (empirically ~1.1-1.5× depending on band) that
+    # lifts emitted cohort prev above sampled marginal.
+    # RNG-neutral: bands are non-overlapping and each patient age ≥ 40
+    # matches exactly one band, so ``rng.random()`` call count per
+    # patient stays identical to the single-band shape (18-39 skipped
+    # both before and after this change). See
+    # ``feedback_rng_shift_patient_cache_cascade`` in maintainer memory.
+    "40-59": 0.30
+    "60-79": 0.50
+    "80-99": 0.65
   # NOTE (B-3 phase 2, Issue #919): E11.9 / E78 / J44 / N18 restored to
   # Medicare-user cohort targets under the marginal-preserving engine
   # (v0.5.0 / PR #902); the old Issue #739 ~0.5× downscale is no longer
