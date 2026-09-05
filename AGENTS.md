@@ -460,6 +460,29 @@ Required fields: `recommended_population`, `available_departments`, `department_
 
 The `available_departments` list determines which physicians get generated. The `department_rollup` map resolves granular specialties (e.g., pulmonology) to available departments (e.g., internal_medicine) for hospitals that don't have all sub-specialties.
 
+### Known limitation — bed capacity is advisory, not enforced (#1132)
+
+`resource_capacity.inpatient_beds` is declared per hospital, but the
+simulator's inpatient dispatch does not gate admissions on the current
+concurrent-inpatient count. Life events are processed chronologically
+and admitted regardless of remaining bed capacity — the concurrent
+count can therefore exceed the declared bed count (session-102 5-year
+US p=10k sim: peak concurrent=176 vs 50 declared beds = 352 %
+occupancy).
+
+The `bed_occ=NN%` line in the simulator log reports occupancy against
+a smoothed telemetry denominator (not the raw declared count), so a
+99 % `bed_occ` value coexists with concurrent > capacity.
+
+**Impact on downstream analytics**: any bed-capacity-based
+denominator (utilization %, HAI-per-bed-day, staffing-per-bed ratio)
+should treat the sim's inpatient-day counts as if the hospital had
+elastic capacity, not enforced 50 beds. Alternatively, treat concurrent
+> capacity as an ED-boarding / transfer-out proxy.
+
+Full queueing / transfer / diversion model is future work per issue
+#1132 (see the follow-up META for scoping into decomposed sub-issues).
+
 ## LLM setup
 
 Default: local Ollama (no API key or cloud account needed).
