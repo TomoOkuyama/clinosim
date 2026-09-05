@@ -82,7 +82,40 @@ BENCH = {
         "median_age": (43, 52),  # 48.4
     },
 }
+
+# --- hospital-cohort (Medicare-user / hospital-catchment) target bands ---
+# The chronic_prevalence blocks in clinosim/locale/{us,jp}/demographics.yaml
+# explicitly target Medicare-user hospital-catchment prevalences (e.g. COPD
+# YAML comment "cohort target ~12% (Medicare-user)"), which sit higher than
+# general-population NHANES / MHLW rates. The header note on this script
+# already flags "COPD over-emit legitimately deviate"; issues #1109 (COPD),
+# #1110 (DM), #1111 (Dyslipidemia) were the surfaced instances of that
+# design characteristic.
+#
+# When present, an axis is considered acceptable if it hits EITHER the
+# general benchmark above OR the hospital-cohort target below. Printed
+# marker is "OK   " for general match, "OK-HC" for hospital-cohort match
+# only, "OUT  " for neither. Absent an entry here, the axis is judged on
+# the general benchmark alone (behavior unchanged from pre-#1109).
+HOSPITAL_COHORT_TARGET = {
+    "US": {
+        # Values reflect Medicare-user cohort per the YAML comments in
+        # clinosim/locale/us/demographics.yaml chronic_prevalence.
+        "copd_adult_prev_pct": (8, 14),  # YAML target ~12% (Medicare-user)
+        "diabetes_adult_prev_pct": (14, 22),  # YAML target ~18-20% (Medicare-user)
+        "dyslipidemia_adult_prev_pct": (40, 60),  # YAML target ~55% (Medicare-user)
+    },
+    "JP": {
+        # Values reflect hospital-cohort skew per YAML comments in
+        # clinosim/locale/jp/demographics.yaml chronic_prevalence.
+        "copd_adult_prev_pct": (8, 14),  # YAML target ~12% (elderly hospital-catchment)
+        "diabetes_adult_prev_pct": (15, 22),  # YAML target ~15-20% (hospital-catchment)
+        "dyslipidemia_adult_prev_pct": (40, 60),  # YAML target ~50-55% (hospital-catchment)
+    },
+}
+
 b = BENCH[COUNTRY]
+b_hc = HOSPITAL_COHORT_TARGET.get(COUNTRY, {})
 
 # --- Patient roll: sex, age, deceased ---
 patients = {}
@@ -193,10 +226,24 @@ other = total_enc - ed - imp - amb
 
 
 # --- Print report ---
-def band(name, val, low, high, unit=""):
+def band(name, val, low, high, unit="", hc_key=""):
+    """Format an axis line. When ``hc_key`` is set and the value falls outside
+    the general benchmark but inside the hospital-cohort target for that key,
+    prints "OK-HC" (hospital-cohort acceptable) with both bands. Otherwise
+    prints "OK " or "OUT" against the general benchmark alone."""
     ok = low <= val <= high if val is not None else False
-    marker = "OK " if ok else "OUT"
-    return f"  [{marker}] {name:44s} = {val:>8.2f}{unit}  benchmark {low}-{high}{unit}"
+    hc_lo, hc_hi = b_hc.get(hc_key, (None, None)) if hc_key else (None, None)
+    hc_ok = (hc_lo is not None and hc_lo <= val <= hc_hi) if val is not None else False
+    if ok:
+        marker = "OK "
+        tail = ""
+    elif hc_ok:
+        marker = "OK-HC"
+        tail = f" hospital-cohort {hc_lo}-{hc_hi}{unit}"
+    else:
+        marker = "OUT"
+        tail = f" hospital-cohort {hc_lo}-{hc_hi}{unit}" if hc_lo is not None else ""
+    return f"  [{marker}] {name:44s} = {val:>8.2f}{unit}  benchmark {low}-{high}{unit}{tail}"
 
 
 print(f"===== {COUNTRY}  p={n_pat} adults={n_adult}  ({SIM_YEARS} yr sim) =====\n")
@@ -217,8 +264,9 @@ def prev_pct(name):
 
 for name in ["hypertension", "diabetes", "copd", "asthma", "ckd", "cad", "chf", "dyslipidemia", "cancer_any"]:
     v = prev_pct(name)
-    lo, hi = b.get(f"{name}_adult_prev_pct", b.get("cancer_any_active_prev_pct" if name == "cancer_any" else ""))
-    print(band(f"{name}_prev", v, lo, hi, "%") + f"  (unique adults n={len(adult_with_dx[name])})")
+    hc_key = f"{name}_adult_prev_pct" if name != "cancer_any" else "cancer_any_active_prev_pct"
+    lo, hi = b.get(hc_key, ("", ""))
+    print(band(f"{name}_prev", v, lo, hi, "%", hc_key=hc_key) + f"  (unique adults n={len(adult_with_dx[name])})")
 
 print("\n--- Acute / incidence (per 1000 population per year) ---")
 for name in ["mi", "stroke", "sepsis", "pneumonia"]:
