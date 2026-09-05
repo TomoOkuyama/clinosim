@@ -1136,7 +1136,13 @@ def run_beta(
                 ev_rng,
                 chronic_code=event.disease_id or "annual_health_screening",
                 followup_spec={
-                    "labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT"],
+                    # C8 (#1103): TP (Total Protein, LOINC 2885-2) appended
+                    # so the LFT-panel-declared analyte gets a cohort footprint.
+                    # Hardcoded list retained (see #1103 for follow-up to load
+                    # from annual_health_screening.yaml directly); appended at
+                    # the end so existing lab order_id sub-RNG seeds keep their
+                    # positional index (AD-16 individual_lab_seed contract).
+                    "labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT", "TP"],
                     "visit_reason": screening_reason,
                 },
                 country=config.country,
