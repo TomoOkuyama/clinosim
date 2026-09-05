@@ -765,7 +765,13 @@ def generate_monthly_events(
     risk_mults = demo.get("disease_risk_multipliers", {})
 
     for person in registry.persons.values():
-        if not person.is_alive:
+        # C11g-3: honor natural death date_of_death alongside in-hospital
+        # is_alive boolean — the acute disease event date is exactly
+        # ``event_date`` for this month, so we can filter precisely.
+        # Persons dying in a prior month never fire further events;
+        # persons dying later this month/next fire correctly through
+        # event_date threshold.
+        if not person.is_alive or not person.is_alive_at(event_date):
             continue
 
         # Lifestyle risk multiplier prep — computed once per person, outside per-disease loop

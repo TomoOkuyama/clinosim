@@ -653,7 +653,10 @@ def run_beta(
         concurrent_patients += 1
 
         person = population.get_person(event.person_id)
-        if person is None or not person.is_alive:
+        # C11g-3: natural-death gate. Skip admissions after date_of_death
+        # (the actuarial pass may have picked a date preceding this
+        # event's timestamp).
+        if person is None or not person.is_alive or not person.is_alive_at(event_time.date()):
             continue
 
         patient = _activate_cached(person)
@@ -808,7 +811,8 @@ def run_beta(
     readmission_events.sort(key=lambda e: e.timestamp)
     for re_event in readmission_events:
         person = population.get_person(re_event.person_id)
-        if not person or not person.is_alive:
+        # C11g-3: natural-death gate on the readmission date.
+        if not person or not person.is_alive or not person.is_alive_at(re_event.timestamp):
             continue
         protocol = protocols.get(re_event.disease_id)
         if not protocol:
@@ -951,7 +955,12 @@ def run_beta(
     n_calendar = 0
     for event in calendar_events:
         person = population.get_person(event.person_id)
-        if not person or not person.is_alive:
+        # C11g-3: natural-death gate on the calendar event's target date.
+        # Chronic followup / screening visits scheduled for a date
+        # after date_of_death get filtered here (the generator itself
+        # uses a per-year filter that is intentionally coarse — this
+        # per-event filter is the precise complement).
+        if not person or not person.is_alive or not person.is_alive_at(event.timestamp):
             continue
         patient = _activate_cached(person)
 
