@@ -53,6 +53,8 @@ BENCH = {
         "obesity_adult_prev_pct": (35, 45),  # NHANES 2021-23 ~40.3%
         "tobacco_use_adult_prev_pct": (10, 15),  # NHIS 2022 current smoker ~11.5%
         "alcohol_use_disorder_adult_prev_pct": (5, 12),  # NSDUH 2022 AUD ~10%
+        "depression_adult_prev_pct": (10, 15),  # NHANES 2021-23 PHQ-9 ≥ 10 ~13.1%
+        "anxiety_adult_prev_pct": (2, 5),  # NIMH GAD 12-mo ~3.1%
         "cancer_any_active_prev_pct": (4, 8),  # ~5%
         "mi_incidence_per_1000_yr": (2, 5),  # ~3/1000/year adults
         "stroke_incidence_per_1000_yr": (2, 5),  # ~3/1000/year
@@ -76,6 +78,8 @@ BENCH = {
         "obesity_adult_prev_pct": (20, 30),  # MHLW 2019 JP adult ~25%
         "tobacco_use_adult_prev_pct": (10, 20),  # MHLW JP adult current smoker ~15%
         "alcohol_use_disorder_adult_prev_pct": (2, 8),  # JP AUD lower than US ~5%
+        "depression_adult_prev_pct": (4, 8),  # MHLW lifetime 5% / elderly 8%
+        "anxiety_adult_prev_pct": (2, 5),  # JP epi similar to US
         "cancer_any_active_prev_pct": (5, 10),
         "mi_incidence_per_1000_yr": (1, 3),  # lower than US
         "stroke_incidence_per_1000_yr": (2, 6),  # higher than US
@@ -194,6 +198,8 @@ prefixes = {
     "obesity": ("E66",),
     "tobacco_use": ("F17.210", "F17.211", "F17.220", "F17.290"),
     "alcohol_use_disorder": ("F10.20", "F10.21", "F10.22"),
+    "depression": ("F32", "F33"),
+    "anxiety": ("F41.1",),
     "cancer_any": tuple(f"C{n:02d}" for n in range(0, 100)) + tuple(f"D{n:02d}" for n in range(0, 49)),
 }
 adult_with_dx = {k: set() for k in prefixes}
@@ -295,6 +301,8 @@ _CHRONIC_ROW_ORDER = [
     "obesity",
     "tobacco_use",
     "alcohol_use_disorder",
+    "depression",
+    "anxiety",
     "cancer_any",
 ]
 for name in _CHRONIC_ROW_ORDER:
