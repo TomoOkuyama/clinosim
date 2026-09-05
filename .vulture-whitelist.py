@@ -470,14 +470,6 @@ _.news2_score  # modules/observation/nursing_enricher.py:43
 # **Follow-up PR removes both the symbols below AND their entries here.**
 # See the "Delete candidates" section of the vulture-scan review report.
 
-# Interim scaffolding — production caller lands in C11g-3 (Issue #1114):
-# PersonRecord.is_alive_at is called by tests/unit/test_natural_death.py
-# (validates the date-aware alive/dead predicate), but vulture only scans
-# clinosim/. The follow-up PR (C11g-3) wires this method into the 4+
-# existing naive-is_alive call sites in the event dispatchers. This entry
-# gets removed then.
-_.is_alive_at  # types/population.py (C11g-2 scaffold — see #1114)
-
 # Dead functions (no callers found in either clinosim/ or tests/):
 _.load_terminology  # locale/loader.py:188 (only README mention; API-doc drift)
 _.load_formatting  # locale/loader.py:206 (only README mention; API-doc drift)
