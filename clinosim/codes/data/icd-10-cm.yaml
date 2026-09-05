@@ -77,9 +77,15 @@ codes:
   F32:
     en: Depressive episode
     ja: うつ病
+  F33:
+    en: Recurrent depressive disorder
+    ja: 反復性うつ病性障害
   F41.0:
     en: Panic disorder [episodic paroxysmal anxiety] without agoraphobia
     ja: パニック障害（広場恐怖なし）
+  F41.1:
+    en: Generalized anxiety disorder
+    ja: 全般性不安障害
   G20:
     en: Parkinson disease
     ja: パーキンソン病

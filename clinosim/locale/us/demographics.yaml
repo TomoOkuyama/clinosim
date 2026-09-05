@@ -67,11 +67,16 @@ chronic_prevalence:
     # sit ~30-40 % below NHANES age-band %s to leave headroom for the
     # care-seeker skew (empirically ~1.1-1.5× depending on band) that
     # lifts emitted cohort prev above sampled marginal.
-    # RNG-neutral: bands are non-overlapping and each patient age ≥ 40
-    # matches exactly one band, so ``rng.random()`` call count per
-    # patient stays identical to the single-band shape (18-39 skipped
-    # both before and after this change). See
-    # ``feedback_rng_shift_patient_cache_cascade`` in maintainer memory.
+    # Issue #1128 (2026-09-05): "18-39" band ADDED to close the young-adult
+    # HTN under-emit gap identified by session-102 5-yr cohort verification
+    # (pre-fix 18-39 = 0.09 %, NHANES = 23.4 %). This adds an ``rng.random()``
+    # draw for every 18-39 adult and cascades downstream chronic-code
+    # sampling for that band — see MINOR bump justification in Bundle-C PR
+    # body and META #1137 (per-issue decision: Option A, accept cascade to
+    # avoid architectural over-engineering; 18-39 value 0.05 pitched at
+    # ~1/4 of NHANES 23 % because hospital-catchment care-seeker skew is
+    # much larger for young adults).
+    "18-39": 0.05
     "40-59": 0.30
     "60-79": 0.50
     "80-99": 0.65
@@ -138,6 +143,31 @@ chronic_prevalence:
   M17:      # Osteoarthritis — ~15% age 50+, ~30% age 70+
     "50-69": 0.15
     "70-99": 0.30
+
+  # --- Mental health (Bundle-C, Issues #1127 + #1135, 2026-09-05) ----------
+  # NHANES 2021-23 (PHQ-9 ≥ 10) US adult depression: 15-17 % (18-39),
+  # 13-15 % (40-59), 8.7 % (60+). Sim values pitched ~70-80 % of NHANES to
+  # leave headroom for hospital-catchment care-seeker skew.
+  # NIMH GAD 12-month adult prev: ~3.1 % (18+), lower in elderly.
+  # Cross-country parity: JP demographics.yaml already declares F32 —
+  # session-102 identified US mirror as a data-completeness defect (0 %
+  # emit vs 13 % NHANES). Per META #1137: Option A (chronic_prevalence
+  # YAML addition) chosen over new ``mental_health/`` module for the
+  # minimal-viable close; module trigger is 2+ mental-health axes merged
+  # + first treatment path (PHQ-9/SSRI) proposed.
+  # RNG cascade: new codes add rng.random() draws for age-eligible
+  # patients. MINOR version bump required per feedback_versioning_policy.
+  F32:      # Depression (single episode) — NHANES 2021-23 US adult PHQ-9 ≥ 10 = 13.1%
+    "18-39": 0.10
+    "40-59": 0.13
+    "60-99": 0.09
+  F33:      # Recurrent depressive disorder — ~30% of F32 cohort per DSM registry data
+    "40-59": 0.04
+    "60-99": 0.03
+  F41.1:    # Generalized anxiety disorder (GAD) — NIMH ~3.1% adult 12-mo
+    "18-39": 0.04
+    "40-59": 0.03
+    "60-99": 0.02
 
   # --- Oncology (Issue #943) ------------------------------------------------
   # Target marginal prevalence for active cancer + on-treatment survivors on
