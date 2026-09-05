@@ -85,10 +85,19 @@ chronic_prevalence:
     "40-99": 0.44
   J44:      # COPD — CDC ~6% general; cohort target ~12% (Medicare-user)
     "40-99": 0.10
-  N18:      # CKD — CDC ~14% of adults; cohort target ~17% (Medicare-user)
-    "60-99": 0.14
-  I50:      # Heart failure
-    "65-99": 0.04
+  N18:      # CKD — CDC ~14% of adults; cohort target ~17% (Medicare-user).
+    # Issue #1113 (C11f, 2026-09-05): band raised 0.14 → 0.28 to land the
+    # emitted cohort in the (10, 20) benchmark band in verify_medical_stats.py
+    # (pre-fix observed 7.19 % on US p=10k s=321). Same age band structure so
+    # ``rng.random()`` call count per patient is byte-identical to the
+    # pre-fix shape — 60+ patients still hit exactly one draw for N18.
+    "60-99": 0.28
+  I50:      # Heart failure — cohort target ~2.4 % (US CHF prev).
+    # Issue #1113 (C11f, 2026-09-05): band raised 0.04 → 0.08 to land the
+    # emitted cohort in the (1.5, 3.5) benchmark band in
+    # verify_medical_stats.py (pre-fix observed 1.42 % on US p=10k s=321).
+    # RNG-neutral, same "65-99" band shape.
+    "65-99": 0.08
   I48:      # Atrial fibrillation — ~2% age 50+, ~10% age 75+
     "50-74": 0.02
     "75-99": 0.10
