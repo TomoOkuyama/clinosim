@@ -279,6 +279,7 @@ ENRICHER_SEED_OFFSETS = {
     "health_checkup": 0x4843,  # "HC" (per-patient checkup lab sampling)
     "medication_monitoring": 0x4D4D,  # "MM" (#757 chronic-med → monitoring lab pairs)
     "prophylaxis": 0x5052,  # "PR" (#1071 B6 DVT chemoprophylaxis for IMP ≥ 48h)
+    "natural_death": 0x4E44,  # "ND" (#1114 C11g-2 actuarial mortality sampling)
 }
 
 assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), (

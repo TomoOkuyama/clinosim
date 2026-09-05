@@ -67,6 +67,15 @@ class PersonRecord:
     smoking_status: str = "never"  # "never" | "former" | "current"
     alcohol_use: str = "none"  # "none" | "social" | "heavy"
     is_alive: bool = True
+    # Issue #1114 C11g-2: natural-death date, populated by the
+    # ``natural_death`` POST_POPULATION enricher when the actuarial
+    # Bernoulli against ``locale/shared/actuarial_life_table.yaml``
+    # qx hits within the sim window. Stays ``None`` for patients who
+    # survive the window. Consumed by ``is_alive_at(t)`` (this file)
+    # and (from C11g-3 onward) by event-emit filters + FHIR
+    # deceasedDateTime. Distinct from in-hospital death which flips
+    # ``PatientProfile.deceased`` inside the discharge gate.
+    date_of_death: date | None = None
     care_seeking_threshold: float = 0.3
     has_visited_hospital: bool = False
     visit_count: int = 0
@@ -124,6 +133,25 @@ class PersonRecord:
     def has_active_state(self, state_type: str, at_date: date | None = None) -> bool:
         """Convenience wrapper around ``get_active_state``."""
         return self.get_active_state(state_type, at_date) is not None
+
+    def is_alive_at(self, when: date) -> bool:
+        """Return True if the person is alive at ``when`` (Issue #1114 C11g-2).
+
+        Rule: alive iff ``date_of_death is None`` (never dies within the
+        modelled window) OR ``when < date_of_death`` (still pre-death).
+        The death day itself counts as not-alive — matches the standard
+        actuarial convention that a person "dies on" their death date and
+        is unavailable for events scheduled on that day or later.
+
+        Note: C11g-2 populates ``date_of_death`` but does NOT yet route
+        the event generators through this method. C11g-3 wires the
+        filter into ``generate_monthly_events`` /
+        ``generate_healthcare_calendar`` (4+ call sites of the current
+        naive ``is_alive`` boolean).
+        """
+        if self.date_of_death is None:
+            return True
+        return when < self.date_of_death
 
     def state_history(self, state_type: str) -> list[TemporalStatePeriod]:
         """Return every period of ``state_type`` (open + closed), in
