@@ -50,6 +50,15 @@ codes:
   E11.9:
     en: Type 2 diabetes mellitus without complications
     ja: 2型糖尿病
+  E66:
+    en: Overweight and obesity
+    ja: 過体重及び肥満
+  E66.01:
+    en: Morbid (severe) obesity due to excess calories
+    ja: 高度肥満（過剰摂取による）
+  E66.9:
+    en: Obesity, unspecified
+    ja: 肥満（詳細不明）
   E78:
     en: Disorders of lipoprotein metabolism and other lipidemias
     ja: 脂質異常症

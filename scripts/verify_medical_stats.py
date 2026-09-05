@@ -50,6 +50,7 @@ BENCH = {
         "cad_adult_prev_pct": (4, 8),  # ~6%
         "chf_adult_prev_pct": (1.5, 3.5),  # ~2.4%
         "dyslipidemia_adult_prev_pct": (25, 40),  # ~30-35%
+        "obesity_adult_prev_pct": (35, 45),  # NHANES 2021-23 ~40.3%
         "cancer_any_active_prev_pct": (4, 8),  # ~5%
         "mi_incidence_per_1000_yr": (2, 5),  # ~3/1000/year adults
         "stroke_incidence_per_1000_yr": (2, 5),  # ~3/1000/year
@@ -70,6 +71,7 @@ BENCH = {
         "cad_adult_prev_pct": (3, 7),
         "chf_adult_prev_pct": (1.5, 4),
         "dyslipidemia_adult_prev_pct": (30, 50),
+        "obesity_adult_prev_pct": (20, 30),  # MHLW 2019 JP adult ~25%
         "cancer_any_active_prev_pct": (5, 10),
         "mi_incidence_per_1000_yr": (1, 3),  # lower than US
         "stroke_incidence_per_1000_yr": (2, 6),  # higher than US
@@ -185,6 +187,7 @@ prefixes = {
     "cad": ("I20", "I21", "I22", "I23", "I24", "I25"),
     "chf": ("I50", "I11.0", "I13.0"),
     "dyslipidemia": ("E78",),
+    "obesity": ("E66",),
     "cancer_any": tuple(f"C{n:02d}" for n in range(0, 100)) + tuple(f"D{n:02d}" for n in range(0, 49)),
 }
 adult_with_dx = {k: set() for k in prefixes}
@@ -274,7 +277,19 @@ def prev_pct(name):
     return (len(adult_with_dx[name]) / n_adult * 100) if n_adult else 0
 
 
-for name in ["hypertension", "diabetes", "copd", "asthma", "ckd", "cad", "chf", "dyslipidemia", "cancer_any"]:
+_CHRONIC_ROW_ORDER = [
+    "hypertension",
+    "diabetes",
+    "copd",
+    "asthma",
+    "ckd",
+    "cad",
+    "chf",
+    "dyslipidemia",
+    "obesity",
+    "cancer_any",
+]
+for name in _CHRONIC_ROW_ORDER:
     v = prev_pct(name)
     hc_key = f"{name}_adult_prev_pct" if name != "cancer_any" else "cancer_any_active_prev_pct"
     lo, hi = b.get(hc_key, ("", ""))
