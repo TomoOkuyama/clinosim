@@ -104,11 +104,25 @@ chronic_prevalence:
   I25:      # Ischemic heart disease — ~5% age 50+, ~15% age 70+
     "50-69": 0.05
     "70-99": 0.15
-  M81:      # Osteoporosis — sex-neutral ~12% age 60+
-    "60-99": 0.12
-  F00:      # Dementia/Alzheimer — ~3% age 65+, ~15% age 85+
-    "65-84": 0.03
-    "85-99": 0.15
+  M81:      # Osteoporosis — NHANES 2017-18 age-adj 50+ ≈ 12.6 %; women 27.1 % vs
+    # men 4-5 % at 65+ (marked female skew per NCHS Data Brief 405).
+    # Issue #1136 (2026-09-05, partial): single-band value bump 0.12 → 0.20
+    # to close the overall gap. Sex-asymmetry (by_sex conversion) DEFERRED —
+    # augment_sex_bands migration from a sex-neutral single-band code shifts
+    # the master rng cursor for the previously-covered opposite sex (males
+    # in this case). See META #1137 — needs an ``augment_age_bands`` /
+    # ``augment_sex_from_neutral`` mechanism as a follow-up architectural
+    # improvement before by_sex on M81 can land byte-neutral.
+    "60-99": 0.20
+  F00:      # Dementia/Alzheimer — Alz Association 2024 F&F: 5.0 % (65-74),
+    # 13.2 % (75-84), 33.4 % (85+) — average ~11 % of 65+.
+    # Issue #1131 (2026-09-05): raised ``65-84`` value 0.03 → 0.07 to reach
+    # averaged Alz Assoc target. RNG-neutral (single-band value bump, same
+    # age-band structure, no new draws). Split into (65-74) + (75-84) bands
+    # was rejected as it would add rng.random() draws for 65-74 patients.
+    # See META #1137 for design authority.
+    "65-84": 0.07
+    "85-99": 0.30
   G20:      # Parkinson's disease — ~0.5% age 60+, ~2% age 80+
     "60-79": 0.005
     "80-99": 0.02
@@ -134,15 +148,20 @@ chronic_prevalence:
   # females vs males (Issue #957).
   # "Chronic" here means persistent problem-list entry with follow-up; true
   # initial-onset (dx week, first chemo cycle) is out of scope for this pass.
+  # --- Cancer 60+ under-emit fix (Issue #1130, 2026-09-05) ---
+  # 5-year US p=10k cohort measured 60-74 = 6.72 % / 75+ = 8.67 %, against
+  # SEER 2023 15-18 % (60-74) / 18-22 % (75+). Bands raised ~1.6-1.8× on
+  # 70-99 (elderly) bands to close the gap. RNG-neutral (existing bands,
+  # value bumps only — no new age band). Per META #1137 decision (Option A).
   C18:      # Colon cancer — SEER incidence 40 per 100k, survivor ~2%
-    "50-69": 0.010
-    "70-99": 0.022
+    "50-69": 0.014
+    "70-99": 0.035
   C22:      # Liver cancer — SEER lower than JP, but rising with NAFLD/HCV
-    "50-69": 0.004
-    "70-99": 0.010
+    "50-69": 0.006
+    "70-99": 0.016
   C34:      # Lung cancer — SEER top cause of cancer death; survivor ~1.5%
-    "50-69": 0.008
-    "70-99": 0.018
+    "50-69": 0.012
+    "70-99": 0.030
   C50:      # Breast cancer — SEER incidence ~130 per 100k (female), survivor ~3%.
             # Male BC is ~1% of C50 total (SEER 2020 male breast-cancer
             # incidence ~1.3 per 100k, primarily age 60+; carrier prevalence
@@ -151,16 +170,18 @@ chronic_prevalence:
             # sex rather than sharing a single set with a scalar rescale.
             # Billable ICD-10-CM leaf resolves per-sex at FHIR emit time
             # (C50.919 female / C50.929 male) via ``map_diagnosis_code``.
+            # Issue #1130: F 60-99 raised 0.035 → 0.055 for SEER-target survivor prev.
     by_sex:
       F:
         "40-59": 0.020
-        "60-99": 0.035
+        "60-99": 0.055
       M:
         "60-99": 0.0002
-  C61:      # Prostate cancer — male only; SEER indolent survivor cohort large
+  C61:      # Prostate cancer — male only; SEER indolent survivor cohort large.
+    # Issue #1130: 70-99 raised 0.060 → 0.100 (SEER prostate survivor ~11 % of men 70+).
     sex: M
-    "60-69": 0.030
-    "70-99": 0.060
+    "60-69": 0.045
+    "70-99": 0.100
 
   # --- Obstetrics (Issue #943, migrated by META #957 Incr 1) ---------------
   # META #957 Incr 1: Z34 / Z37 no-op-consumed here — see the JP mirror
