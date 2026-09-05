@@ -1930,13 +1930,20 @@ class TemplateNarrativeGenerator:
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
-        # physical_exam_findings values (disease YAML + reference_data)
-        # are JP-only strings. The EN locale previously emitted them with
-        # a `:ja_only_fallback` tag, leaking CJK into US narratives. The
-        # EN locale now skips the JP source entirely and uses a generic
-        # placeholder; per-disease English content is deferred to the LLM
-        # narrative pass.
+        # Issue #1156: EN PE previously short-circuited to a bare
+        # "No special findings" placeholder. The JP-only per-disease
+        # ``physical_exam_findings`` YAML content still cannot be reused
+        # (would leak CJK), but the vitals line ``_compose_pe_vitals_line``
+        # produces a language-neutral prose string ("BP 130/80 mmHg, HR
+        # 88/min, T 37.5°C, SpO2 96% (RA), RR 20/min") that reads
+        # cleanly in either locale. EN now prepends the vitals block
+        # so admission H&P PE carries at least the encounter's
+        # objective vitals instead of being blank.
         if not is_ja:
+            vitals_line = self._compose_pe_vitals_line(ctx)
+            if vitals_line:
+                facts.append(f"ctx.vitals[day_{ctx.day_index}]")
+                return f"Vital signs: {vitals_line}. General: no additional exam findings recorded.", facts
             facts.append("generic:physical_exam_en")
             return _GENERIC_FALLBACK_EN, facts
 
@@ -1968,16 +1975,21 @@ class TemplateNarrativeGenerator:
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
-        # daily_trajectory values (disease YAML) are JP-only strings. The
-        # EN locale previously emitted them with a `:ja_only_fallback`
-        # tag, leaking CJK into US narratives. The EN locale now skips
-        # the JP source and uses generic English assessment / plan
-        # phrases; per-archetype English wording is deferred to the LLM
-        # narrative pass.
+        # Issue #1156: EN branch previously short-circuited to the
+        # generic "Clinical assessment ongoing. Plan: Continue current
+        # management." string for every admission, disconnecting the
+        # H&P A&P section from the chief complaint. The EN branch now
+        # calls the same CIF-derived composers as JA (which were made
+        # language-aware in the same fix), so an asthma-exacerbation
+        # admission reads "Admitted for evaluation and management of:
+        # Severe wheezing... Initial medications: Prednisone, Albuterol..."
+        # instead of the disconnected generic fallback. daily_trajectory
+        # YAML content is still JA-only so EN skips that source.
         if not is_ja:
-            facts.append("generic:daily_trajectory_en")
-            text = f"Assessment: {_GENERIC_ASSESSMENT_EN}. Plan: {_GENERIC_PLAN_EN}."
-            return text, facts
+            facts.append("composed:cif_state_en")
+            _en_assessment = self._compose_ap_assessment_from_state(ctx) or _GENERIC_ASSESSMENT_EN
+            _en_plan = self._compose_ap_plan_from_state(ctx) or _GENERIC_PLAN_EN
+            return f"Assessment: {_en_assessment} Plan: {_en_plan}", facts
 
         traj, traj_src = self._resolve_daily_trajectory_with_source(ctx, ctx.clinical_course_archetype, 0)
         if traj_src:
@@ -2009,15 +2021,31 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     def _compose_ap_assessment_from_state(self, ctx: NarrativeContext) -> str:
-        """admission_hp Assessment composed from CIF (v9 density fix)."""
-        if ctx.target_lang != "ja":
-            return ""
+        """admission_hp Assessment composed from CIF (v9 density fix).
+
+        Issue #1156: prior to session-103 this composer returned ""
+        for non-JA locales, forcing EN admission H&P sections into the
+        ``Clinical assessment ongoing`` fallback regardless of the
+        actual chief complaint / disease / severity. EN branch now
+        parallels the JA structure (same CIF sources, English wording).
+        """
+        is_ja = ctx.target_lang == "ja"
         parts: list[str] = []
         enc = ctx.encounter
-        # Primary reason
-        cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) if enc else None
+        # Primary reason — respect locale (JA reads chief_complaint_ja
+        # first; EN reads chief_complaint first so JA labels do not leak
+        # into US-locale narratives).
+        if enc is None:
+            cc = None
+        elif is_ja:
+            cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None)
+        else:
+            cc = _o(enc, "chief_complaint", None) or _o(enc, "chief_complaint_ja", None)
         if cc:
-            parts.append(f"主訴「{cc}」で入院。")
+            if is_ja:
+                parts.append(f"主訴「{cc}」で入院。")
+            else:
+                parts.append(f"Admitted for evaluation and management of: {cc}.")
         # Severity + disease
         # session-88j P1-12/Bug-3: JA output must not leak raw EN severity
         # (mild / moderate / severe / critical) into 「病態: X (Y)」. v14
@@ -2027,13 +2055,16 @@ class TemplateNarrativeGenerator:
             disease = _o(ctx.disease_protocol, "disease_id", None)
             if disease:
                 _sev = str(ctx.severity or "")
-                if _sev and ctx.target_lang == "ja":
+                if _sev and is_ja:
                     from clinosim.modules.document.narrative.replacement_strategy import (
                         _localize_severity_ja,
                     )
 
                     _sev = _localize_severity_ja(_sev)
-                parts.append(f"病態: {disease} ({_sev})。")
+                if is_ja:
+                    parts.append(f"病態: {disease} ({_sev})。")
+                else:
+                    parts.append(f"Working diagnosis: {disease} (severity: {_sev}).")
         # Chronic backdrop
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
         if conds:
@@ -2046,47 +2077,83 @@ class TemplateNarrativeGenerator:
             ]
             labels = [lbl for lbl in labels if lbl]
             if labels:
-                parts.append(f"併存疾患: {'、'.join(labels)}。")
+                if is_ja:
+                    parts.append(f"併存疾患: {'、'.join(labels)}。")
+                else:
+                    parts.append(f"Comorbidities: {', '.join(labels)}.")
         if not parts:
-            parts.append("急性症状の精査・治療目的で入院。")
-        return "".join(parts)
+            if is_ja:
+                parts.append("急性症状の精査・治療目的で入院。")
+            else:
+                parts.append("Admitted for acute symptom workup and management.")
+        return "".join(parts) if is_ja else " ".join(parts)
 
     def _compose_ap_plan_from_state(self, ctx: NarrativeContext) -> str:
-        """admission_hp Plan composed from CIF (v9 density fix)."""
-        if ctx.target_lang != "ja":
-            return ""
+        """admission_hp Plan composed from CIF (v9 density fix).
+
+        Issue #1156: EN branch added — parallels the JA structure so
+        the EN admission H&P plan section carries LOS estimate, day-0
+        medication orders, and workup procedures instead of the
+        ``Continue current management`` fallback.
+        """
+        is_ja = ctx.target_lang == "ja"
         parts: list[str] = []
         # LOS estimate
         los = ctx.los_days or 0
         if los > 0:
-            parts.append(f"予定入院期間: 約{los}日。")
-        # Today's meds
+            if is_ja:
+                parts.append(f"予定入院期間: 約{los}日。")
+            else:
+                parts.append(f"Estimated length of stay: ~{los} days.")
+        # Today's meds (day 0 admission-day filter). Same explicit-day-else-
+        # timestamp-derived pattern as `_compose_progress_plan_from_state`
+        # (Issue #1154) so real CIF MedicationAdministration without a
+        # ``day`` field still filters correctly.
+        _adm_raw = _o(getattr(ctx, "encounter", None), "admission_datetime", None)
+        _adm_dt = _parse_iso_datetime(_adm_raw) if _adm_raw is not None else None
         admins = list(ctx.medications or [])
         med_names: list[str] = []
         seen: set[str] = set()
-        for m in admins[:20]:
+        for m in admins[:60]:
             d = _o(m, "day", None)
+            if d is None and _adm_dt is not None:
+                _mts_raw = _o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None)
+                _mts = _parse_iso_datetime(_mts_raw) if _mts_raw is not None else None
+                if _mts is not None:
+                    d = (_mts - _adm_dt).days
             if d is not None and d != 0:  # admission day
                 continue
             name = _o(m, "drug_name", None) or _o(m, "medication", None)
             if not name or name in seen:
                 continue
             seen.add(name)
-            from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+            if is_ja:
+                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
-            med_names.append(_localize_drug_name(str(name), "JP"))
+                med_names.append(_localize_drug_name(str(name), "JP"))
+            else:
+                med_names.append(str(name))
             if len(med_names) >= 6:
                 break
         if med_names:
-            parts.append(f"薬物療法: {'、'.join(med_names)}。")
+            if is_ja:
+                parts.append(f"薬物療法: {'、'.join(med_names)}。")
+            else:
+                parts.append(f"Initial medications: {', '.join(med_names)}.")
         # Ordered procedures (workup)
         procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:4]]
         procs = [p for p in procs if p]
         if procs:
-            parts.append(f"検査・処置: {'、'.join(str(p) for p in procs)}。")
+            if is_ja:
+                parts.append(f"検査・処置: {'、'.join(str(p) for p in procs)}。")
+            else:
+                parts.append(f"Workup / procedures: {', '.join(str(p) for p in procs)}.")
         if not parts:
-            parts.append("経過観察・症状に応じた対応。")
-        return "".join(parts)
+            if is_ja:
+                parts.append("経過観察・症状に応じた対応。")
+            else:
+                parts.append("Observation with symptom-directed management.")
+        return "".join(parts) if is_ja else " ".join(parts)
 
     def _build_admission_summary(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build admission_summary for DISCHARGE_SUMMARY."""
