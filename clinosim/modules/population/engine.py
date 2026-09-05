@@ -50,6 +50,7 @@ from clinosim.modules.population._population_thresholds import (
     BMI_CLAMP_DEFAULT,
     BMI_MEAN_FEMALE_DEFAULT,
     BMI_MEAN_MALE_DEFAULT,
+    BMI_MORBID_OBESITY_THRESHOLD,
     BMI_OBESE_THRESHOLD,
     BMI_OVERWEIGHT_THRESHOLD,
     BMI_STD_DEFAULT,
@@ -660,6 +661,22 @@ def generate_population(
                     if code in _STATE_PERIOD_CHRONIC_CODES:
                         continue  # temporal-state markers — see primary loop
                     conditions.append(code)
+
+            # Issue #1126 (F-1 Obesity): BMI-derived Condition insertion.
+            # Rationale: E66 has ~100 % clinical correlation with BMI ≥ 30 per
+            # ICD-10-CM diagnostic criteria. Sampling E66 independently from a
+            # prevalence YAML would produce nonsensical combinations (BMI-42
+            # patient without E66, or BMI-22 patient with E66). Instead derive
+            # deterministically from the already-generated BMI. RNG-neutral:
+            # no rng draw here, only a threshold check. Inserted AFTER the
+            # ``chronic_prevalence`` + ``augment_sex_bands`` loops so the
+            # marginal-preserving rescale (which uses E[compound] over
+            # chronic_prevalence codes only) is not perturbed.
+            # See META #1137 for design authority.
+            if bmi >= BMI_MORBID_OBESITY_THRESHOLD:
+                conditions.append("E66.01")  # Morbid (severe) obesity, BMI ≥ 40
+            elif bmi >= BMI_OBESE_THRESHOLD:
+                conditions.append("E66.9")  # Obesity, unspecified, BMI ≥ 30
 
             # Care seeking threshold (JP: lower = more willing)
             # RM-7e: care-seeking threshold from locale
