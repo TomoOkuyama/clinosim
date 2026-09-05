@@ -914,10 +914,20 @@ def run_beta(
 
     n_post_dc = len(patient_records) - len(inpatient_records) - len(readmission_events)
 
-    # Healthcare calendar: chronic visits + screening for ALL population
-    calendar_key = f"{config.country}|{start_y:04d}|calendar"
-    calendar_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, calendar_key)
-    calendar_events = generate_healthcare_calendar(population, start_y, config.country, calendar_rng)
+    # Healthcare calendar: chronic visits + screening for ALL population.
+    # Issue #1129 (2026-09-05): pre-fix generated calendar events for
+    # ``start_y`` only (single year), so a multi-year sim (e.g. 5-year
+    # window) still emitted only 1 year of chronic-follow-up / screening
+    # events. The AMB per-adult-per-year rate at 5-year sim measured 0.81
+    # vs NAMCS ~3.5 (23 % of expected). Loop over each calendar year in
+    # ``[start_y, end_y]``, using year-keyed rng derived once per year to
+    # keep byte-identity per year (cross-year, the streams are independent
+    # by construction — no cascade from prior years' draws).
+    calendar_events: list = []
+    for cal_year in range(start_y, end_y + 1):
+        calendar_key = f"{config.country}|{cal_year:04d}|calendar"
+        calendar_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, calendar_key)
+        calendar_events.extend(generate_healthcare_calendar(population, cal_year, config.country, calendar_rng))
     # Filter out events past snapshot date
     if snapshot_dt:
         calendar_events = [
@@ -926,7 +936,7 @@ def run_beta(
             if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
         ]
     # Issue #1039: also clamp on the lower bound. `generate_healthcare_calendar`
-    # iterates a full calendar year (months 1..12) starting from ``start_y``, so
+    # iterates a full calendar year (months 1..12) starting from ``cal_year``, so
     # a `--start YYYY-MM-DD` mid-year produces events back to Jan 1 of that
     # year. Filter them out to make the ``[--start, --end]`` window strict
     # (mirror of the snapshot_dt upper clamp above). RNG-neutral: post-
