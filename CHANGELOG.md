@@ -46,11 +46,181 @@ remaining mappings were left as follow-up rather than completed.
 Session 97 (2026-09-01) closed the last remaining sub-item —
 pregnancy lifecycle refactor (PR #1051, Incr 1 of META #957) +
 chemo per-cycle emit drift close-out (PR #1052) — and **all three
-META Issues (#914, #957, #757) are now CLOSED**. The remaining
-step is the tag itself, which is held per project policy until an
-explicit user Go signal (`feedback_release_tag_requires_user_go`).
-Everything below stays queued under `[Unreleased]` until the
-re-tag.
+META Issues (#914, #957, #757) are now CLOSED**. Sessions 100-103
+(2026-09-05 → 2026-09-06) added a further ~40 PRs on top: full
+`natural_death` lifecycle (C11g-1 → C11g-5), US insurance `Coverage`
+emit, engine calendar-loop fix, an 8-axis US demographics
+recalibration bundle (E66 / cancer / dementia / osteoporosis /
+depression / anxiety / young-adult HTN / SDOH tobacco+alcohol /
+MI+stroke incidence), hospital-cohort target-band verifier, imaging
+stub-share ~19 % → < 3 %, and a narrative CIF density round-out
+(admission H&P + progress-note SOAP + on-disk `structured` cleanup).
+The remaining step is the tag itself, which is held per project
+policy until an explicit user Go signal
+(`feedback_release_tag_requires_user_go`). Everything below stays
+queued under `[Unreleased]` until the re-tag.
+
+### Added (session 103 — natural_death lifecycle end-to-end)
+
+- **New `clinosim.modules.natural_death` enricher module** (C11g).
+  Actuarial-driven per-patient mortality sampling replaces the prior
+  "everyone survives the simulation window" fiction:
+  - **C11g-1 (PR #1147)**: new
+    `clinosim/locale/shared/actuarial_life_table.yaml` carrying
+    single-year-age qₓ (probability of dying within 1 year given alive
+    at age x) tables for US (CDC 2020) and JP (MHLW 2020),
+    male / female / total, ages 0–110. Provenance block + citation
+    URLs pinned in the yaml.
+  - **C11g-2 (PR #1150)**: `NaturalDeathEnricher` samples death within
+    the sim window from qₓ using a per-`person_id` sub-RNG (RNG cascade
+    isolation, `feedback_rng_neutral_additive_field` pattern). Assigns
+    `PersonRecord.death_datetime` when death is drawn; otherwise no-op.
+  - **C11g-3a (PR #1152)**: `is_alive_at(t)` gate threaded into the 4
+    event dispatchers (calendar, month-loop, healthcare-calendar,
+    perinatal) so no encounter is generated for a patient after their
+    `death_datetime`.
+  - **C11g-3b / 4 / 5 (PR #1153)**: FHIR alignment —
+    `Patient.deceasedDateTime` emitted on every dead patient,
+    `Patient.active = false` on the same records, US Bundle profile
+    kept. Cohort measurement (US p=50k s=325 5-year): 942 / 31,065
+    patients (3.03 %); US p=10k s=326 1-year: 191 / 6,177 patients
+    (3.09 %); zero encounters starting after death (date-strict).
+
+### Added (session 103 — US insurance Coverage emit, PR #1149)
+
+- **`Coverage` FHIR resource now emitted for US patients** with 9
+  synthetic payor categories: Employer-sponsored group plan (~32 %),
+  Medicare Part A/B (~14 %), Medicaid (~13 %), Medicare Advantage
+  Part C (~9 %), Private individual-market (~9 %), Self-Pay / Uninsured
+  (~7 %), CHIP (~7 %), VA / TRICARE / other public (~7 %), dual
+  eligible (~3 %). Profile: `us-core-coverage`. Cohort measurement
+  US p=10k s=326 1-year: 9,720 Coverage rows on 6,177 patients
+  = 1.57 rows/patient (multi-year enrollment periods).
+- **JP Coverage** (被用者保険被扶養者 / 被保険者 / 国民健康保険 /
+  後期高齢者医療制度) continues to emit as before via the pre-existing
+  `--jp-insurance` path; JP p=10k s=326 measurement:
+  9,378 / 5,529 = 1.70 rows/patient.
+
+### Added (session 103 — narrative CIF density round-out)
+
+- **PR #1158 (Issue #1154)**: progress-note **per-day filter** for
+  `assessment` (abnormal labs) and `plan` (medications) — was reading
+  a non-existent `lab.day` / `med.day` field on CIF, so every
+  progress-note day cited the same first-6 admission-day labs +
+  medications verbatim across an 8-day stay. Two-path day resolution
+  now honors explicit `.day` when present, falls back to
+  `result_datetime` / `actual_datetime | scheduled_datetime` minus
+  `encounter.admission_datetime`. Locale-agnostic (JP + US both
+  benefit).
+- **PR #1159 (Issue #1156)**: admission H&P EN branch —
+  `physical_examination` prepends locale-neutral vitals line
+  (`Vital signs: BP …/… mmHg, HR …/min, T …°C, SpO2 …% (RA), RR …/min.`),
+  `assessment_and_plan` becomes CIF-derived (chief_complaint +
+  working_diagnosis + severity + comorbidities + LOS + initial meds).
+  JA branch was already correct; the fix parallels its structure into
+  EN.
+- **PR #1160 (Issue #1155)**: progress-note SOAP EN branch —
+  `subjective` composer added (`Hospital day N. …` + abnormal-flag
+  guards); `objective` now uses `_compose_pe_vitals_line`. Prior:
+  bare `No special findings` on both slots for every US progress note.
+- **PR #1161 (Issue #1157)**: `NarrativeOutput.structured` field
+  dropped from serialised on-disk JSON when empty (was 100 % of docs
+  carrying an empty `{}` slot; still preserved on the dataclass so
+  QUESTIONNAIRE_RESPONSE emit has a clean insertion point).
+
+### Added (session 103 — perinatal + imaging + JP pneumonia band)
+
+- **PR #1146**: perinatal per-year stage counters instrumented for
+  the pregnancy lifecycle (conception → prenatal 12/24/36 → delivery →
+  postpartum 7d/28d → closed).
+- **PR #1148 (Issue #1116)**: `perinatal.yaml::lifecycle.annual_conception_rate`
+  recalibrated to CDC pregnancy-rate target (6–8 %). US p=10k
+  measurement: 6.40 % conception rate; delivery emit share 3.54 %
+  (target 3.5–6.5 %).
+- **PR #1151**: `CT_soft_tissue` / `Soft_tissue_US` / `MRI_Lumbar`
+  imaging code inference — was falling through to generic Imaging
+  stub. Post-fix stub share 19.4 % → 3.2 %; measurement on US p=10k:
+  0.0 % (0 / 217 imaging procs).
+- **PR #1145 (Issue #1115)**: JP pneumonia `J18` hospital-cohort
+  verifier band widened to (4, 14) — reflects Japan's higher
+  hospitalisation-for-pneumonia rate in aging catchment cohorts.
+
+### Added (session 102 — US demographics epidemiology bundle)
+
+- **PR #1138 (Issue #1126)**: BMI-derived `E66` obesity `Condition`
+  emit — was silently absent from cohort output despite the BMI
+  field being present on every patient. Post-fix US p=10k: 49.24 %
+  adults (target NHANES 35–50 %).
+- **PR #1139 (Issue #1130/#1131/#1136)**: US cancer + dementia +
+  osteoporosis prevalence-bump bundle. Post-fix US p=10k: cancer
+  6.82 % adults (target 4–8), osteoporosis M81 9.12 % adults
+  (target 4–15), dementia 6.84 % 65+ (still under Alzheimer Assoc
+  13–33 target; residual gap tracked as session-102 known defer).
+- **PR #1140**: chronic prevalence recalibration for depression
+  (F32 + F33) + anxiety (F41.1) + young-adult HTN (18–39 band).
+  Post-fix US p=10k: depression 11.56 % (10–15), anxiety 2.44 %
+  (2–5), HTN 13.55 % (4–15 NHANES).
+- **PR #1141 (Issue #1134)**: SDOH-derived Substance Use Conditions —
+  `F17.210` (nicotine dependence, uncomplicated) + `F10.20` (alcohol
+  dependence, uncomplicated) emitted from the SDOH-linked chronic
+  activator. Post-fix US p=10k: tobacco F17 17.87 % adults (HC 10–25),
+  alcohol F10 15.10 % (HC 5–15).
+- **PR #1142 (Issue #1133)**: US `I21` MI + `I63` stroke incidence
+  reduced ~35 % to match AHA benchmark (target 2–5 per 1000
+  adult-yr). Post-fix US p=10k: MI 4.30 /kadult-yr, stroke
+  6.76 /kadult-yr (broad prefix I63/I64/I61).
+- **PR #1144 (Issue #1129)**: engine healthcare-calendar bug — was
+  looping only over the `--start` year, not the full `[start_y, end_y]`
+  window. Post-fix US p=10k: AMB per adult/yr 6.15 (up from
+  the pre-fix 0.81; NAMCS target range clears when de-skewed for
+  hospital-cohort catchment).
+
+### Added (session 101 — hospital-cohort target-band verifier + prev calibrations)
+
+- **PR #1121 (Issue #1108)**: US HTN 3-band recalibration into NHANES
+  target (young / middle / senior bands independently tuned).
+- **PR #1122 (Issue #1109/#1110/#1111)**: `HOSPITAL_COHORT_TARGET`
+  dict in `scripts/verify_medical_stats.py` — flags axes where a
+  Medicare-user (hospital-catchment) cohort legitimately deviates
+  from general-population benchmarks (COPD, DM, dyslipidemia,
+  median_age, outpatient_share). Emits `OK-HC` verdict instead of
+  `FAIL` for these axes. YAML-side intent is now discoverable via
+  the yaml `# Medicare-user cohort target` comment.
+- **PR #1123 (Issue #1113)**: US `N18` CKD + `I50` CHF prevalences
+  brought into benchmark band.
+- **PR #1124 (Issue #1112)**: JP cancer prevalence −30 % into MHLW
+  benchmark band.
+- **PR #1125 (Issue #1117)**: hospital-cohort bands for `median_age`
+  and `outpatient_share` added to the verifier.
+
+### Added (session 100 — pre-release hardening bundle)
+
+- **PR #1094 (Issue #1092)**: past-pregnancy marker `Z37.9` → `Z87.59`
+  (Personal history of other specified conditions). Z37 stays on the
+  active encounter; Z87.59 becomes the durable personal-history
+  marker.
+- **PR #1097 (Issue #1090)**: `Observation.code` alias for
+  `Total_bilirubin` → `T_Bil` (canonical lab-name registry match).
+- **PR #1095 (Issue #1091)**: LDL derivation via Friedewald equation
+  when direct LDL absent, coded as LOINC 13457-7 (calculated LDL) to
+  distinguish from measured LOINC 2089-1.
+- **PR #1096 (Issue #1089)**: `MedicationAdministration.dosage`
+  backfill from parent `Order` for bolus IV meds — was silently
+  dropping dose on empty-MA IV paths.
+- **PR #1098 (Issue #1088)**: US RxNorm coding added for 19
+  top-missing drugs (session-99 code-review surfacing).
+- **PR #1093 (Issue #1087)**: prophylaxis Enoxaparin auto-issue now
+  consults the drug_safety gate before issuing (previously bypassed
+  the anticoag+bleeding-risk contraindication check).
+- **PR #1101 (Issue #1100)**: drug_safety gate universalised to every
+  post-admission MR path (was originally scoped only to activator +
+  order paths).
+- **PR #1102 (Issue #1099)**: ED-course `MedicationRequest.status`
+  set to `completed` at emergency encounter close (was leaking
+  `active` on discharged ED visits).
+- **PR #1120 (Issue #1103)**: TP (Total Protein) `Observation` emit
+  from annual health-screening panel (was in the panel spec but not
+  reaching the emit side).
 
 ### Added (session 99, prophylaxis — Issue #1071)
 
