@@ -23,6 +23,7 @@ __all__ = [
     "BMI_CLAMP_DEFAULT",
     "BMI_MEAN_FEMALE_DEFAULT",
     "BMI_MEAN_MALE_DEFAULT",
+    "BMI_MORBID_OBESITY_THRESHOLD",
     "BMI_OBESE_THRESHOLD",
     "BMI_OVERWEIGHT_THRESHOLD",
     "BMI_STD_DEFAULT",
@@ -141,6 +142,16 @@ for lifestyle-risk-multiplier lookup.
 ``obese``) follow the WHO/US convention; the higher 30 threshold
 therefore fires the ``obese`` multiplier only on the truly-obese
 subset regardless of locale."""
+
+BMI_MORBID_OBESITY_THRESHOLD: float = 40.0
+"""BMI (kg/m²) at or above which a person qualifies for the ICD-10-CM
+E66.01 ``morbid (severe) obesity due to excess calories`` billable
+leaf (rather than E66.9 ``obesity, unspecified``).
+
+40 kg/m² is the WHO Class III / "severe" obesity cutoff and the CMS
+prior-authorization threshold for bariatric-surgery coverage. Used by
+``clinosim/modules/population/engine.py`` at the BMI-derived Condition
+insertion site (Issue #1126, META #1137)."""
 
 
 # ---------------------------------------------------------------------------
