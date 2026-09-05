@@ -331,7 +331,12 @@ class NarrativeOutput:
 
     raw_text: str = ""  # FREE_TEXT 用
     sections: dict[str, str] = field(default_factory=dict)  # COMPOSITION 用
-    structured: dict = field(default_factory=dict)  # QUESTIONNAIRE_RESPONSE 用
+    # Reserved for QUESTIONNAIRE_RESPONSE emit (Issue #1157) — currently
+    # populated by NO active doc type. The on-disk JSON writer at
+    # ``passes.py::_write`` drops the field when empty so consumers do
+    # not see a dead ``{}`` slot on every narrative doc. When a doc
+    # type opts into structured emit, the writer preserves the field.
+    structured: dict = field(default_factory=dict)
     metadata: dict = field(default_factory=dict)  # {generator, lang, ...}
     facts_used: list[str] = field(default_factory=list)  # 使用 CIF field(audit 用)
 
