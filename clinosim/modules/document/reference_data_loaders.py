@@ -349,3 +349,73 @@ def load_bedside_procedure_codes() -> dict[str, frozenset[str]]:
         "procedure_note": frozenset(str(c).strip() for c in data["procedure_note_codes"]),
         "operative_note": frozenset(str(c).strip() for c in data["operative_note_codes"]),
     }
+
+
+# ─────────────────────────────────────────────────────────────────
+# nursing_content.yaml (Session 104 Tier 2)
+# ─────────────────────────────────────────────────────────────────
+
+_NURSING_CONTENT_FIELDS = ("nursing_diagnoses", "care_plan", "patient_education")
+_NURSING_CONTENT_LANGS = ("ja", "en")
+
+
+def _validate_nursing_content(data: dict[str, Any]) -> None:
+    """Fail-loud 6-layer validation of nursing_content.yaml (session-104 Tier 2).
+
+    Layer 1: empty top-level guard
+    Layer 2: at least one axis (`acute_disease` or `chronic_icd10`)
+    Layer 3: each present axis is a non-empty mapping
+    Layer 4: each entry declares all three content fields
+    Layer 5: each field carries BOTH `ja` and `en` list values
+    Layer 6: every list is non-empty (silent-no-op prevention)
+    """
+    if not data:
+        raise ValueError("nursing_content.yaml: empty top-level")
+
+    axes = [ax for ax in ("acute_disease", "chronic_icd10") if ax in data]
+    if not axes:
+        raise ValueError("nursing_content.yaml: missing both 'acute_disease' and 'chronic_icd10' top-level axes")
+
+    for axis in axes:
+        entries = data[axis]
+        if not entries or not isinstance(entries, dict):
+            raise ValueError(f"nursing_content.yaml: '{axis}' is empty or not a mapping")
+        for key, entry in entries.items():
+            if not entry or not isinstance(entry, dict):
+                raise ValueError(f"nursing_content.yaml: {axis}[{key!r}] is empty or not a mapping")
+            for field in _NURSING_CONTENT_FIELDS:
+                if field not in entry:
+                    raise ValueError(f"nursing_content.yaml: {axis}[{key!r}] missing '{field}'")
+                block = entry[field]
+                if not block or not isinstance(block, dict):
+                    raise ValueError(f"nursing_content.yaml: {axis}[{key!r}][{field!r}] is empty or not a mapping")
+                for lang in _NURSING_CONTENT_LANGS:
+                    if lang not in block:
+                        raise ValueError(f"nursing_content.yaml: {axis}[{key!r}][{field!r}] missing '{lang}'")
+                    items = block[lang]
+                    if not items or not isinstance(items, list):
+                        raise ValueError(
+                            f"nursing_content.yaml: {axis}[{key!r}][{field!r}][{lang!r}] is empty or not a list"
+                        )
+                    for i, item in enumerate(items):
+                        if not isinstance(item, str) or not item.strip():
+                            raise ValueError(
+                                f"nursing_content.yaml: "
+                                f"{axis}[{key!r}][{field!r}][{lang!r}][{i}] "
+                                f"must be a non-empty string"
+                            )
+
+
+@lru_cache(maxsize=1)
+def load_nursing_content() -> dict[str, Any]:
+    """Load nursing_content.yaml + validate. Cached singleton.
+
+    Returns the full top-level dict with `acute_disease` and
+    `chronic_icd10` axes. Consumers (`template_generator._build_nursing_*`)
+    merge acute-first then chronic-second, per-lang, deduplicating and
+    capping the merged list.
+    """
+    with (_REF_DIR / "nursing_content.yaml").open() as f:
+        data: dict[str, Any] = yaml.safe_load(f)
+    _validate_nursing_content(data)
+    return data

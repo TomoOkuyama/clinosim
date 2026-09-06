@@ -674,6 +674,81 @@ _SOAP_JA = ("S（主観）", "O（客観）", "A（評価）", "P（計画）")
 _SOAP_EN = ("S:", "O:", "A:", "P:")
 
 
+def _lookup_nursing_content(ctx: NarrativeContext, field: str, is_ja: bool, cap: int) -> tuple[list[str], list[str]]:
+    """Session 104 Tier 2: merge acute-disease + chronic-ICD10 nursing
+    content items for the given field
+    (``"nursing_diagnoses" / "care_plan" / "patient_education"``).
+
+    Merge order: acute (from ``ctx.disease_protocol.disease_id``) first,
+    chronic (from ``ctx.patient.chronic_conditions[].code``) second.
+    Items are deduplicated by exact-string equality and capped at
+    ``cap`` items total. Facts-used trace lists the two sources
+    consulted so the downstream ``facts_used`` field stays honest.
+
+    Returns ``(items, facts)``. When the YAML is unavailable or
+    matches nothing, returns ``([], [])`` — callers fall back to their
+    existing sentinel-fallback strings (byte-identical to the
+    pre-session-104 chronic-only path for non-pilot encounters).
+    """
+    from clinosim.modules.document.reference_data_loaders import (
+        load_nursing_content,
+    )
+
+    try:
+        data = load_nursing_content()
+    except (FileNotFoundError, ValueError, OSError):
+        return [], []
+
+    lang = "ja" if is_ja else "en"
+    items: list[str] = []
+    facts: list[str] = []
+    seen: set[str] = set()
+
+    # --- Acute-first: ctx.disease_protocol.disease_id anchor ----------
+    disease_id = ""
+    if ctx.disease_protocol is not None:
+        disease_id = getattr(ctx.disease_protocol, "disease_id", "") or ""
+    acute_axis = data.get("acute_disease") or {}
+    if disease_id and disease_id in acute_axis:
+        entry = acute_axis[disease_id]
+        acute_items = (entry.get(field) or {}).get(lang) or []
+        for x in acute_items:
+            if not x or x in seen:
+                continue
+            items.append(x)
+            seen.add(x)
+            if len(items) >= cap:
+                break
+        if items:
+            facts.append("ctx.disease_protocol.disease_id")
+
+    # --- Chronic-second: ctx.patient.chronic_conditions ---------------
+    chronic_axis = data.get("chronic_icd10") or {}
+    conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient is not None else []
+    added_chronic = False
+    for c in conds[:5]:
+        if len(items) >= cap:
+            break
+        code = _o(c, "code", "") or (c if isinstance(c, str) else "")
+        prefix = str(code).split(".")[0].upper() if code else ""
+        entry = chronic_axis.get(prefix)
+        if not entry:
+            continue
+        chronic_items = (entry.get(field) or {}).get(lang) or []
+        for x in chronic_items:
+            if not x or x in seen:
+                continue
+            items.append(x)
+            seen.add(x)
+            added_chronic = True
+            if len(items) >= cap:
+                break
+    if added_chronic:
+        facts.append("ctx.patient.chronic_conditions")
+
+    return items, facts
+
+
 def _filter_vitals_for_day(vitals: list, day_index: int, encounter: Any) -> list:
     """Return vitals belonging to day ``day_index`` of the stay.
 
@@ -3318,40 +3393,43 @@ class TemplateNarrativeGenerator:
         return ("。".join(parts) + "。") if is_ja else (". ".join(parts) + "."), facts
 
     def _build_nursing_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build nursing_diagnosis from CIF chronic conditions + risk data.
-        v9 density fix — v8 emitted 11-char placeholder."""
-        facts: list[str] = []
+        """Build nursing_diagnosis from CIF chronic conditions + acute
+        admission reason + risk data.
+
+        Session-104 Tier 2: acute-disease axis (from
+        ``ctx.disease_protocol.disease_id``) is consulted BEFORE the
+        chronic-ICD10 axis via ``_lookup_nursing_content``. Both axes
+        are backed by ``nursing_content.yaml`` — the 6 chronic
+        prefixes are carried over verbatim, so byte-diff on encounters
+        without a pilot acute match is zero.
+
+        Risk-derived NDx (fall / pressure ulcer) are appended after
+        the YAML-driven items — same behavior as pre-session-104.
+        """
         is_ja = ctx.target_lang == "ja"
-        dx_labels: list[str] = []
-        # Convert chronic condition into NANDA-like nursing diagnosis phrase
-        # (light-weight mapping; disease code → nursing focus, not clinical dx)
-        chronic_to_ndx = {
-            "I10": "血圧管理不足のリスク" if is_ja else "risk for inadequate BP control",
-            "I50": "体液貯留・活動耐性低下" if is_ja else "fluid retention / activity intolerance",
-            "E11": "血糖コントロール変動" if is_ja else "unstable glycemic control",
-            "N18": "腎機能低下・電解質異常のリスク" if is_ja else "renal impairment / electrolyte imbalance risk",
-            "J45": "気道クリアランス不十分のリスク" if is_ja else "risk for ineffective airway clearance",
-            "J44": "ガス交換障害のリスク" if is_ja else "risk for impaired gas exchange",
-        }
-        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
-        for c in conds[:5]:
-            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
-            prefix = code.split(".")[0].upper() if code else ""
-            ndx = chronic_to_ndx.get(prefix)
-            if ndx:
-                dx_labels.append(ndx)
-        # Risk-derived NDx
+        dx_labels, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja, cap=5)
+
+        # Risk-derived NDx (unchanged from pre-session-104 semantics —
+        # appended on top of the YAML-driven items, past the cap).
         risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
         if risks:
             latest = risks[-1]
             fall = _o(latest, "fall_risk_level", None)
             if fall and str(fall).lower() in ("high", "moderate"):
-                dx_labels.append("転倒リスク" if is_ja else "fall risk")
+                fr = "転倒リスク" if is_ja else "fall risk"
+                if fr not in dx_labels:
+                    dx_labels.append(fr)
+                    if "ctx.nursing_risk_assessments" not in facts:
+                        facts.append("ctx.nursing_risk_assessments")
             braden = _o(latest, "braden_total", None)
             if braden is not None and braden <= 14:
-                dx_labels.append("褥瘡リスク" if is_ja else "pressure-ulcer risk")
+                pu = "褥瘡リスク" if is_ja else "pressure-ulcer risk"
+                if pu not in dx_labels:
+                    dx_labels.append(pu)
+                    if "ctx.nursing_risk_assessments" not in facts:
+                        facts.append("ctx.nursing_risk_assessments")
+
         if dx_labels:
-            facts.extend(["ctx.patient.chronic_conditions", "ctx.nursing_risk_assessments"])
             head = "看護診断: " if is_ja else "Nursing diagnoses: "
             sep = "、" if is_ja else ", "
             return head + sep.join(dx_labels) + ("。" if is_ja else "."), facts
@@ -3359,50 +3437,52 @@ class TemplateNarrativeGenerator:
 
     def _build_care_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build care_plan from CIF-derived nursing diagnoses (mirror of
-        _build_nursing_diagnosis interventions). v9 density fix."""
-        facts: list[str] = []
+        _build_nursing_diagnosis interventions).
+
+        Session-104 Tier 2: acute-disease axis (from
+        ``ctx.disease_protocol.disease_id``) is consulted BEFORE the
+        chronic-ICD10 axis via ``_lookup_nursing_content``. The 6
+        chronic prefixes carry over verbatim, so byte-diff on
+        non-pilot encounters is zero. Risk-driven actions (fall / PU
+        precautions) are appended after the YAML-driven items — same
+        as pre-session-104.
+        """
         is_ja = ctx.target_lang == "ja"
-        actions: list[str] = []
-        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
-        # Map chronic → nursing action (light-weight)
-        chronic_to_action = {
-            "I10": "血圧を朝夕測定、目標未達時は担当医へ報告"
-            if is_ja
-            else "monitor BP AM/PM, escalate to MD if goal not met",
-            "I50": "体重・浮腫を毎日測定、水分制限指導"
-            if is_ja
-            else "daily weight + edema check, fluid restriction education",
-            "E11": "血糖モニタ、低血糖症状観察" if is_ja else "glucose monitoring, hypoglycemia surveillance",
-            "N18": "尿量・浮腫観察、電解質モニタ" if is_ja else "urine output + edema + electrolyte monitoring",
-            "J45": "呼吸音聴診、SpO2 継続モニタ、吸入指導"
-            if is_ja
-            else "auscultation, continuous SpO2, inhaler teaching",
-            "J44": "呼吸パターン観察、酸素投与量調整" if is_ja else "respiratory pattern check, O2 titration",
-        }
-        for c in conds[:4]:
-            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
-            prefix = code.split(".")[0].upper() if code else ""
-            act = chronic_to_action.get(prefix)
-            if act:
-                actions.append(act)
-        # Add risk-driven actions
+        actions, facts = _lookup_nursing_content(ctx, "care_plan", is_ja, cap=4)
+
+        # Risk-driven actions. Semantic-prefix dedup (session-104): the
+        # acute YAML entry for cerebral_infarction (and future pilots)
+        # already emits a "fall precautions" line — appending the
+        # risk-derived version would double-cover. Skip whenever ANY
+        # existing action already opens with the fall-precaution /
+        # PU-prevention prefix (locale-specific).
         risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+        _fall_prefix = "転倒予防" if is_ja else "fall precautions"
+        _pu_prefix = "褥瘡予防" if is_ja else "PU prevention"
         if risks:
             latest = risks[-1]
             if str(_o(latest, "fall_risk_level", "") or "").lower() in ("high", "moderate"):
-                actions.append(
-                    "転倒予防: ベッド柵設置、ナースコール手元"
-                    if is_ja
-                    else "fall precautions: bed rails, call bell within reach"
-                )
+                if not any(a.startswith(_fall_prefix) for a in actions):
+                    fp = (
+                        "転倒予防: ベッド柵設置、ナースコール手元"
+                        if is_ja
+                        else "fall precautions: bed rails, call bell within reach"
+                    )
+                    actions.append(fp)
+                    if "ctx.nursing_risk_assessments" not in facts:
+                        facts.append("ctx.nursing_risk_assessments")
             if (_o(latest, "braden_total", 25) or 25) <= 14:
-                actions.append(
-                    "褥瘡予防: 2時間毎体位変換、圧再分散マットレス"
-                    if is_ja
-                    else "PU prevention: q2h turning, pressure-redistributing mattress"
-                )
+                if not any(a.startswith(_pu_prefix) for a in actions):
+                    pu = (
+                        "褥瘡予防: 2時間毎体位変換、圧再分散マットレス"
+                        if is_ja
+                        else "PU prevention: q2h turning, pressure-redistributing mattress"
+                    )
+                    actions.append(pu)
+                    if "ctx.nursing_risk_assessments" not in facts:
+                        facts.append("ctx.nursing_risk_assessments")
+
         if actions:
-            facts.extend(["ctx.patient.chronic_conditions", "ctx.nursing_risk_assessments"])
             head = "看護計画: " if is_ja else "Care plan: "
             sep = "、" if is_ja else "; "
             return head + sep.join(actions) + ("。" if is_ja else "."), facts
@@ -3960,28 +4040,21 @@ class TemplateNarrativeGenerator:
         return (_INTERVENTIONS_FALLBACK_JA if is_ja else _INTERVENTIONS_FALLBACK_EN), facts
 
     def _build_patient_education(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build patient_education from chronic conditions + discharge Rx.
-        v9 density fix — pull disease-specific self-care topics."""
-        facts: list[str] = []
+        """Build patient_education from chronic conditions + acute
+        admission reason.
+
+        Session-104 Tier 2: acute-disease axis (from
+        ``ctx.disease_protocol.disease_id``) is consulted BEFORE the
+        chronic-ICD10 axis via ``_lookup_nursing_content``. The 6
+        chronic prefixes carry over verbatim from the pre-session-104
+        hardcoded map, so byte-diff on non-pilot encounters is zero.
+        No risk-derived rows here (unlike nursing_diagnosis /
+        care_plan) — patient education is disease-driven only.
+        """
         is_ja = ctx.target_lang == "ja"
-        conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
-        edu_by_code = {
-            "I10": "血圧測定と減塩指導" if is_ja else "home BP monitoring + low-salt diet",
-            "I50": "水分・塩分制限、体重毎日測定" if is_ja else "fluid/salt restriction, daily weight",
-            "E11": "血糖自己測定、低血糖対応" if is_ja else "SMBG + hypoglycemia response",
-            "N18": "腎機能保護、蛋白制限" if is_ja else "renoprotective + protein restriction",
-            "J45": "吸入器手技、増悪サイン認識" if is_ja else "inhaler technique + exacerbation triggers",
-            "J44": "禁煙、呼吸リハビリ継続" if is_ja else "smoking cessation + pulmonary rehab continuation",
-        }
-        topics: list[str] = []
-        for c in conds[:4]:
-            code = _o(c, "code", "") or (c if isinstance(c, str) else "")
-            t = edu_by_code.get(code.split(".")[0].upper() if code else "")
-            if t:
-                topics.append(t)
+        topics, facts = _lookup_nursing_content(ctx, "patient_education", is_ja, cap=4)
         if not topics:
             return (_PATIENT_EDUCATION_FALLBACK_JA if is_ja else _PATIENT_EDUCATION_FALLBACK_EN), facts
-        facts.append("ctx.patient.chronic_conditions")
         head = "患者教育: " if is_ja else "Patient education: "
         sep = "、" if is_ja else "; "
         return head + sep.join(topics) + ("。" if is_ja else "."), facts
