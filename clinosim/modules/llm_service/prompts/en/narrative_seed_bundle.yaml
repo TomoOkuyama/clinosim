@@ -1,10 +1,40 @@
 task_type: narrative_seed_bundle
-version: 14
+version: 15
 max_tokens: 3500
 temperature: 0.1
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
+
+  v15 changes (2026-09-06, session 104 realism uplift Tier 1):
+    - Added three patient-profile context keys populated by
+      replacement_strategy._build_extra_context:
+        1. `patient_demographics` — one-line age / sex / employment /
+           smoking / alcohol / marital / insurance anchor. Universal
+           (all doc types), skipped when the template already renders
+           `social_history` (admission_hp / discharge_summary carry it
+           natively).
+        2. `patient_biometrics` — Ht / Wt / BMI / blood type one-liner.
+           Emitted for doc types where these facts have narrative weight
+           (admission_hp / operative_note / procedure_note /
+           discharge_summary / death_discharge_summary).
+        3. `health_literacy_tag` — 3-band tag ("low" / "medium" / "high")
+           discretising `patient.health_literacy` (0.0-1.0 float). Emitted
+           for patient/family-facing doc types (admission_hp /
+           discharge_summary / referral_note / death_discharge_summary).
+           Consumed by the new Rule 6 to tune tone in patient-facing
+           sections.
+    - Added Rule 6 HEALTH-LITERACY TONE: discharge_instructions and
+      family_communication sections MUST match the reader-comfort band.
+      Missing tag → default to the "medium" tone.
+    - Per-doc-type guidance updated:
+        - discharge_summary.discharge_instructions references Rule 6 and
+          the health_literacy_tag band.
+        - operative_note and procedure_note reference patient_biometrics
+          when narrating dosing / mobility / transfusion prep.
+        - death_discharge_summary.family_communication references Rule 6.
+    - Grounding Rule 1 reaffirmed: never fabricate age / sex / social
+      history / biometrics values absent from these keys.
 
   v14 changes (2026-09-03, Issue #1066 drug_safety Layer 3):
     - Added `considered_but_not_prescribed` context key (populated by
@@ -82,6 +112,15 @@ system: |
   === Context contract (each key described once) ===
 
   Text keys (use their VALUE as the primary factual anchor):
+    - patient_demographics      one-line age / sex / employment / smoking /
+                              alcohol / marital / insurance anchor
+                              (session-104). Universal — see Rule 1.
+    - patient_biometrics        Ht / Wt / BMI / blood type one-liner
+                              (session-104, admission_hp / operative_note /
+                              procedure_note / discharge_summary /
+                              death_discharge_summary only).
+    - health_literacy_tag       "low" / "medium" / "high" band
+                              (session-104). See Rule 6.
     - clinical_scenario         disease + archetype + severity tag
     - stay_progress             "day N of expected M (phase)"
     - hospital_day_label        VERBATIM day phrase — see Rule 3
@@ -120,6 +159,16 @@ system: |
      - Temporal / trending claims ("improved from yesterday") require
        support from stay_progress + today's vitals + archetype;
        otherwise use「著変なし」/ "no change".
+     - Patient-profile grounding (session-104): age / sex / smoking /
+       alcohol / marital status / employment / insurance / Ht / Wt /
+       BMI / blood type MUST come from `patient_demographics` /
+       `patient_biometrics` when those keys are present. NEVER invent
+       or round these values; NEVER contradict them (e.g.
+       patient_demographics says "non-smoker" → do NOT write "smoking
+       cessation counseling" in discharge_instructions). When a key
+       is ABSENT, do NOT write the value at all — silent omission is
+       correct; substituting a plausible default is a Grounding
+       violation.
 
   2. REQUIRED INCLUSION — surface every context key present.
      - complications_during_stay → EVERY complication MUST appear
@@ -204,11 +253,39 @@ system: |
      For target_language=en these translations do not apply — keep
      source form.
 
+  6. HEALTH-LITERACY TONE (session-104) — patient/family-facing
+     sections MUST match the `health_literacy_tag` band. When the tag
+     is absent, default to the "medium" tone. Applies to:
+     `discharge_instructions` (discharge_summary),
+     `family_communication` (death_discharge_summary), and the
+     `referral_purpose` handoff line (referral_note is
+     physician-to-physician overall, but the closing courtesy line
+     may be read by staff of varying literacy).
+       - low  → short sentences (< 20 words), one instruction per
+                line, no Latin medical terms, no abbreviations, plain
+                everyday vocabulary. Example (EN): "Take the blue pill
+                once every morning after breakfast."
+                Example (JA): 「青い薬を毎朝食後に 1 錠、口から飲んでください。」
+       - medium → standard patient-facing tone; brief medical terms
+                acceptable with a plain-language gloss on first use.
+                Example (EN): "Continue amlodipine (blood-pressure
+                medicine) 5 mg once daily."
+                Example (JA): 「アムロジピン (血圧の薬) 5mg を 1 日 1 回、
+                毎朝服用してください。」
+       - high → full medical terminology acceptable; concise clinical
+                phrasing. Example (EN): "Continue amlodipine 5 mg PO
+                once daily; recheck BP in 2 weeks."
+                Example (JA): 「アムロジピン 5mg 1 日 1 回内服継続、
+                2 週間後に血圧再評価。」
+     Physician-to-physician sections (hpi / assessment / plan /
+     hospital_course / op_findings / etc.) are UNAFFECTED — always
+     use the standard clinical register.
+
   Natural narrative variance is allowed for realism: patient-voice
   phrasing for symptoms already in context, generic medical additions
   ("appetite normal", "bowel and bladder without complaint"), and
   stylistic diversity across patients — but never at the expense of
-  the five rule blocks above.
+  the six rule blocks above.
 
   === Trajectory shape by archetype ===
 
@@ -276,7 +353,10 @@ system: |
     are enforced here.
   - discharge_instructions: patient voice (JA: です・ます; EN: direct).
     Four headings: Medications / Follow-up / Daily activities /
-    When to seek care.
+    When to seek care. Apply Rule 6 — match the reader's
+    `health_literacy_tag` band (low / medium / high) so vocabulary
+    complexity and sentence length fit the patient. When the tag is
+    absent, default to the medium tone.
   - present_illness (JP-only slot): same purpose as HPI, chronological.
 
   ### progress_note (daily SOAP)
@@ -359,7 +439,11 @@ system: |
     handoff to the ward: extubation criteria, ICU vs floor disposition,
     monitoring priorities, pain regimen, antibiotic plan, early
     mobilization. Copy drug names verbatim from active_medications_today
-    (Rule 3).
+    (Rule 3). Reference `patient_biometrics` when it directly bears on
+    the plan (BMI ≥ 30 → early mobilization emphasis; anticoagulant
+    dosing framed against body weight; transfusion readiness cued to
+    blood type). Never restate the biometrics verbatim as a stand-alone
+    sentence — weave them naturally.
   - Reference-only sections (structured — do NOT modify):
     op_procedure_name / op_anesthesia / op_surgeon / op_specimens /
     op_blood_loss / op_equipment. Template output for procedure code
@@ -384,7 +468,9 @@ system: |
   - pn_postop_plan: ~100-200 characters (~20-40 words). Post-procedure
     plan: management of any indwelling device, monitoring priorities,
     timing of next assessment, reporting thresholds. Copy drug names
-    verbatim.
+    verbatim. Reference `patient_biometrics` only when a biometric
+    value materially changes the plan (e.g. BMI-driven positioning
+    difficulty or a blood type note for a bleeding-risk procedure).
   - Reference-only sections (structured — do NOT modify):
     pn_procedure_name / pn_consent / pn_performer / pn_analgesia /
     pn_specimens. Template output for K-code display, consent record,
@@ -449,7 +535,9 @@ system: |
     at time of death — described in general terms. If specific family
     member names or meeting dates are NOT in context, do NOT
     fabricate — use summative phrasing like "family was updated
-    regularly".
+    regularly". Apply Rule 6 — match the reader's `health_literacy_tag`
+    band so the register fits the family who will read this in the
+    medical record. When the tag is absent, default to the medium tone.
   - autopsy_status_and_findings: ~50-150 characters (~10-30 words).
     Whether an autopsy was performed and, if so, principal findings
     only. When not performed, one sentence: "autopsy was declined" (or
