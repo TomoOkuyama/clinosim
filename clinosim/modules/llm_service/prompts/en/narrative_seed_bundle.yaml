@@ -1,10 +1,25 @@
 task_type: narrative_seed_bundle
-version: 15
+version: 16
 max_tokens: 3500
 temperature: 0.1
 description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
+
+  v16 changes (2026-09-06, session 104 post-verify defect fix, Issue #1167):
+    - admission_hp `assessment_and_plan` per-doc-type guidance split the
+      REQUIRED heading list by locale. Pre-v16 the rule asked for the
+      Japanese-Kanji headings 【評価】/【薬物療法】/【検査】/... VERBATIM
+      regardless of `target_language`. On EN output the LLM sometimes
+      obeyed the "VERBATIM" clause and emitted bare Kanji headings
+      (評価 / 薬物療法 / 検査) inside English narrative — 4 / 859
+      docs affected in the session-104 H100 verify (US p=100 s=125).
+      v16 splits the heading list explicitly:
+        target_language=ja → 【評価】/【薬物療法】/【検査】/【教育・指導】/【予定入院期間】
+        target_language=en → **Assessment** / **Medications** /
+                             **Diagnostics** / **Patient Education** /
+                             **Planned Length of Stay**
+      No other rules changed. No RNG effect.
 
   v15 changes (2026-09-06, session 104 realism uplift Tier 1):
     - Added three patient-profile context keys populated by
@@ -337,9 +352,14 @@ system: |
   - hpi: chronological narrative onset → prior care → presentation.
     4-8 lines. Keep separate from PMH.
   - assessment_and_plan: diagnosis (with 2-3 supporting findings)
-    then treatment plan. REQUIRED headings VERBATIM:
-    【評価】/【薬物療法】/【検査】/【教育・指導】/【予定入院期間】
-    Drug list under 【薬物療法】 MUST name each drug from context with
+    then treatment plan. REQUIRED headings BY LOCALE — pick the set
+    that matches `target_language`. Do NOT mix locales; do NOT emit
+    the Japanese Kanji version when `target_language=en`.
+      target_language=ja → 【評価】/【薬物療法】/【検査】/【教育・指導】/【予定入院期間】
+      target_language=en → **Assessment** / **Medications** / **Diagnostics** /
+                           **Patient Education** / **Planned Length of Stay**
+    Drug list under the medications heading (【薬物療法】 for JA,
+    **Medications** for EN) MUST name each drug from context with
     dose/route (Rule 3). No drug-class-only abstraction.
 
   ### discharge_summary

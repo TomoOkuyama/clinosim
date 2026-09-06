@@ -142,3 +142,44 @@ def test_extra_context_builder_skips_when_no_safety_skips() -> None:
     spec = SimpleNamespace(type_key="progress_note")
     extra = _build_extra_context(ctx, spec, template_section_names=set())
     assert "considered_but_not_prescribed" not in extra
+
+
+# ─────────────────────────────────────────────────────────────────
+# v16 (session 104 post-verify defect fix, Issue #1167)
+# admission_hp assessment_and_plan heading list must split by locale.
+# ─────────────────────────────────────────────────────────────────
+
+
+def test_en_bundle_admission_hp_headings_have_en_locale_branch() -> None:
+    """The EN bundle's admission_hp guidance MUST enumerate an EN-side
+    heading set alongside (or instead of) the JA-Kanji verbatim list —
+    otherwise the LLM leaks bare Kanji (評価 / 薬物療法 / 検査) into
+    English admission-H&P narratives (Issue #1167 root cause).
+    """
+    system = _load("en")["system"]
+    # Locate the admission_hp block
+    hp_start = system.find("### admission_hp")
+    hp_end = system.find("### discharge_summary", hp_start)
+    assert hp_start >= 0 and hp_end > hp_start, "admission_hp block missing"
+    hp_block = system[hp_start:hp_end]
+    # Assert BOTH locale headings are present in the block
+    assert "target_language=ja" in hp_block, "admission_hp block missing target_language=ja variant"
+    assert "target_language=en" in hp_block, (
+        "admission_hp block missing target_language=en variant "
+        "(Issue #1167 — LLM leaks JA Kanji headings without this branch)"
+    )
+    assert "Assessment" in hp_block and "Medications" in hp_block, (
+        "admission_hp block missing EN-side heading vocabulary"
+    )
+
+
+def test_ja_bundle_admission_hp_headings_have_en_locale_branch() -> None:
+    """Symmetric guard for the JA bundle."""
+    system = _load("ja")["system"]
+    hp_start = system.find("### admission_hp")
+    hp_end = system.find("### discharge_summary", hp_start)
+    assert hp_start >= 0 and hp_end > hp_start
+    hp_block = system[hp_start:hp_end]
+    assert "target_language=ja" in hp_block
+    assert "target_language=en" in hp_block
+    assert "Assessment" in hp_block and "Medications" in hp_block
