@@ -705,3 +705,52 @@ def test_filter_vitals_for_day_honours_explicit_day_field() -> None:
     assert _filter_vitals_for_day(vitals, 1, None)[0].temperature_celsius == 37.5
     # No day-2 tagged; must return [] not fall back to first
     assert _filter_vitals_for_day(vitals, 2, None) == []
+
+
+def test_filter_vitals_for_day_calendar_day_bucket_with_evening_admission() -> None:
+    """Session-104 Issue #1166 regression guard.
+
+    Pre-v7 the timestamp-fallback used ``(ts - adm_dt).days`` which
+    floors to 24-h buckets from admission time. An admission at
+    20:23 (evening) then bucketed vitals from TWO consecutive calendar
+    days into the same day_index — e.g. day_index=1 saw both
+    2026-03-20 evening AND 2026-03-21 daytime readings. The LLM
+    consequently cited a 2026-03-21 T=38.5°C fever spike in an
+    Assessment for a doc labeled "Hospital day 2" (day_index=1) whose
+    Objective section showed a 2026-03-20 evening T=36.8°C reading.
+
+    v7 switches to calendar-day bucketing
+    (``(ts.date() - adm_dt.date()).days``) so day_index=N corresponds
+    to the Nth calendar day since admission — matching the
+    ``hospital_day_label`` rendering the LLM sees. The reproduced
+    sample from the H100 verify:
+
+      Admission: 2026-03-19T20:23:00
+      day 0 (Hospital day 1) → only 2026-03-19 vitals (T=37.3)
+      day 1 (Hospital day 2) → only 2026-03-20 vitals (T ≤ 37.2)
+      day 2 (Hospital day 3) → only 2026-03-21 vitals (T=38.5 spike)
+    """
+    from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
+
+    encounter = SimpleNamespace(admission_datetime="2026-03-19T20:23:00")
+    vitals = [
+        SimpleNamespace(timestamp="2026-03-19T23:39:48", temperature_celsius=37.3, day=None),
+        SimpleNamespace(timestamp="2026-03-20T06:02:28", temperature_celsius=37.2, day=None),
+        SimpleNamespace(timestamp="2026-03-20T23:55:42", temperature_celsius=36.8, day=None),
+        SimpleNamespace(timestamp="2026-03-21T05:48:01", temperature_celsius=37.1, day=None),
+        SimpleNamespace(timestamp="2026-03-21T12:05:45", temperature_celsius=38.5, day=None),  # the "spike"
+    ]
+
+    day0 = _filter_vitals_for_day(vitals, 0, encounter)
+    day1 = _filter_vitals_for_day(vitals, 1, encounter)
+    day2 = _filter_vitals_for_day(vitals, 2, encounter)
+
+    # Day 0 (admission day, 2026-03-19) → exactly 1 vital
+    assert [v.temperature_celsius for v in day0] == [37.3]
+    # Day 1 (2026-03-20) → 2 vitals, none above 37.2
+    assert [v.temperature_celsius for v in day1] == [37.2, 36.8]
+    assert all(v.temperature_celsius <= 37.2 for v in day1)
+    # Day 2 (2026-03-21) → 2 vitals INCLUDING the 38.5°C spike —
+    # this is the day the spike ACTUALLY belongs to.
+    assert 38.5 in [v.temperature_celsius for v in day2]
+    assert 36.8 not in [v.temperature_celsius for v in day2]

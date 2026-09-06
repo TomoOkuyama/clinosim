@@ -757,10 +757,30 @@ def _filter_vitals_for_day(vitals: list, day_index: int, encounter: Any) -> list
     admission-day vitals leak into every day's context, producing "T=38.1°C
     repeated for 15 consecutive progress notes" hallucinations (POP-000075).
 
+    v7 (session 104, Issue #1166): timestamp bucketing now uses
+    **calendar day** offset rather than 24h-window offset. Pre-v7 the
+    delta computation was ``(ts - adm_dt).days`` which floors sub-daily
+    admission times: an admission at 2026-03-19T20:23 (evening) bucketed
+    2026-03-20T23:55 vitals AND 2026-03-21T18:00 vitals into the same
+    day_index=1 slot (both fall within 24-48h of admission). The
+    resulting doc labeled "Hospital day 2" (= day_index=1) then showed
+    vitals from two calendar days, causing the LLM to write "new fever
+    spike to 38.5°C" (a day 2026-03-21 reading) inside an Objective
+    section that displayed the 2026-03-20 evening T=36.8°C reading —
+    a subtle Grounding drift that reads as fabrication.
+
+    v7 changes the offset to ``(ts.date() - adm_dt.date()).days`` so
+    day_index=N aligns with the Nth calendar day since admission
+    (day_index=0 = admission calendar day, day_index=1 = next calendar
+    day, etc.). This matches the ``hospital_day_label`` rendering
+    (``"hospital day {day_index+1}"``) that the LLM sees, so a doc
+    labeled "Hospital day 2" surfaces exactly the 2026-03-20 vitals
+    and never the 2026-03-21 spike.
+
     Resolution order:
       1. If any record has an explicit ``day`` field, match on it.
-      2. Otherwise derive a day offset from ``timestamp`` minus
-         encounter.admission_datetime.
+      2. Otherwise derive a calendar-day offset from ``timestamp.date()``
+         minus ``encounter.admission_datetime.date()``.
       3. If neither exists, fall back to the first record (initial vitals).
     """
     vitals = list(vitals or [])
@@ -774,7 +794,7 @@ def _filter_vitals_for_day(vitals: list, day_index: int, encounter: Any) -> list
     if any_tagged:
         # Some records have day, none matched → this day has none.
         return []
-    # 2. Timestamp fallback
+    # 2. Calendar-day offset fallback
     adm_raw = _o(encounter, "admission_datetime", None) if encounter is not None else None
     adm_dt = _parse_iso_datetime(adm_raw)
     if adm_dt is None:
@@ -786,12 +806,14 @@ def _filter_vitals_for_day(vitals: list, day_index: int, encounter: Any) -> list
             adm_dt = min(candidates)
     if adm_dt is None:
         return vitals[:1]
+    adm_date = adm_dt.date()
     picks: list = []
     for v in vitals:
         ts = _parse_iso_datetime(_o(v, "timestamp", None))
         if ts is None:
             continue
-        offset = (ts - adm_dt).days
+        # Session-104 v7: calendar-day bucket, not 24h-window bucket.
+        offset = (ts.date() - adm_date).days
         if offset == day_index:
             picks.append(v)
     if picks:
@@ -2201,7 +2223,9 @@ class TemplateNarrativeGenerator:
                 _mts_raw = _o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None)
                 _mts = _parse_iso_datetime(_mts_raw) if _mts_raw is not None else None
                 if _mts is not None:
-                    d = (_mts - _adm_dt).days
+                    # Session-104 Issue #1166: calendar-day bucket
+                    # (sibling of _filter_vitals_for_day v7).
+                    d = (_mts.date() - _adm_dt.date()).days
             if d is not None and d != 0:  # admission day
                 continue
             name = _o(m, "drug_name", None) or _o(m, "medication", None)
@@ -4418,7 +4442,9 @@ class TemplateNarrativeGenerator:
             if d is None and _lab_adm_dt is not None:
                 _rdt = _parse_iso_datetime(_o(lab, "result_datetime", None))
                 if _rdt is not None:
-                    d = (_rdt - _lab_adm_dt).days
+                    # Session-104 Issue #1166: calendar-day bucket
+                    # (sibling of _filter_vitals_for_day v7).
+                    d = (_rdt.date() - _lab_adm_dt.date()).days
             if d is not None and d != ctx.day_index:
                 continue
             name = _o(lab, "lab_name", None)
@@ -4469,11 +4495,13 @@ class TemplateNarrativeGenerator:
         for m in admins:
             d = _o(m, "day", None)
             if d is None and _adm_dt is not None:
-                # Derive day from the med's own timestamp field
+                # Derive day from the med's own timestamp field. Session-104
+                # Issue #1166: calendar-day bucket (sibling of
+                # _filter_vitals_for_day v7).
                 _m_ts_raw = _o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None)
                 _m_ts = _parse_iso_datetime(_m_ts_raw) if _m_ts_raw is not None else None
                 if _m_ts is not None:
-                    d = (_m_ts - _adm_dt).days
+                    d = (_m_ts.date() - _adm_dt.date()).days
             if d is not None and d != ctx.day_index:
                 continue
             name = _o(m, "drug_name", None) or _o(m, "medication", None) or _o(m, "name", None)
