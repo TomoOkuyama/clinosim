@@ -1,26 +1,36 @@
-# `clinosim.modules.natural_death` — actuarial mortality sampling (Issue #1114 C11g-2)
+# `clinosim.modules.natural_death` — actuarial mortality lifecycle (Issue #1114 C11g complete)
 
 ## Purpose
 
 Samples a per-person natural death date at population-generation time
-from national period life tables (US CDC + JP MHLW). Populates the
-`PersonRecord.date_of_death` field so downstream event generators can
-gate emission on `PersonRecord.is_alive_at(t)`. Ships the "sampling
-step" half of the mortality lifecycle — the actual filter wiring is
-follow-up work (C11g-3, per #1114 decomposition).
+from national period life tables (US CDC + JP MHLW), then gates every
+downstream event generator + FHIR emitter on
+`PersonRecord.is_alive_at(t)`. The full mortality lifecycle
+(sample → filter → FHIR emit) is complete as of session 103.
 
 ## Scope
 
-- **In scope**: age × sex × country annual qx lookup from
-  `locale/shared/actuarial_life_table.yaml`; per-person Bernoulli
-  across each sim-window year; assignment of `PersonRecord.date_of_death`
-  to a random day in the first firing year; cohort-mortality log line
-  via `sim_log`.
-- **Out of scope**: filtering the event dispatchers on `is_alive_at(t)`
-  (C11g-3), emitting `FHIR Patient.deceasedDateTime` for natural
-  deaths (C11g-4/5), in-hospital death (already lives in
+- **In scope**:
+  - **Sampling** (C11g-2, PR #1150): age × sex × country annual qx
+    lookup from `locale/shared/actuarial_life_table.yaml`; per-person
+    Bernoulli across each sim-window year; assignment of
+    `PersonRecord.date_of_death` to a random day in the first firing
+    year; cohort-mortality log line via `sim_log`.
+  - **Event-dispatcher gating** (C11g-3a, PR #1152): `is_alive_at(t)`
+    threaded into the 4 event dispatchers
+    (`generate_monthly_events`, `generate_healthcare_calendar`,
+    chronic-followup, ED / readmission) so no encounter is generated
+    after a patient's `date_of_death`.
+  - **FHIR Patient alignment** (C11g-3b + 4 + 5, PR #1153):
+    `Patient.deceasedDateTime` populated from `date_of_death` +
+    `Patient.active = false` on every deceased record. Living
+    patients keep `active = true` + `deceasedBoolean = false`.
+- **Out of scope**: in-hospital death (already lives in
   [`discharge_gate.py`](../../simulator/discharge_gate.py) which
-  flips `PatientProfile.deceased`).
+  flips `PatientProfile.deceased`; C11g-2/3 do not disturb that
+  path); explicit `Observation-death-summary` or SSDMF-style FHIR
+  resource emit (unified `deceasedDateTime` is sufficient for the
+  current downstream contract).
 
 ## Public API
 
@@ -73,23 +83,22 @@ For each person P:
 Persons who never fire keep `date_of_death = None` and stay alive
 for the full window.
 
-## What C11g-2 does NOT do
+## What the C11g lifecycle does NOT do
 
-- Encounters for patients with `date_of_death` still emit at their
-  original cadence — the event dispatchers (`generate_monthly_events`,
-  `generate_healthcare_calendar`, chronic-followup, calendar
-  screening) still check the naive `is_alive` boolean, not the new
-  `is_alive_at(t)` predicate. C11g-3 wires the date-aware filter.
-- FHIR `Patient.deceasedDateTime` is not populated from `date_of_death`
-  yet. In-hospital deaths still use the pre-existing
-  `PatientProfile.deceased` boolean flipped by the discharge gate.
-  C11g-4/5 unify these paths.
-- No `Observation-death-summary` or SSDMF-style FHIR resource emit.
-
-Attempting a partial wire-up (populate `date_of_death` AND filter
-some emit sites but not others) is exactly the "impossible data"
-regression the #1114 defer comment warned against; keeping the C11g-2
-scope isolated is deliberate.
+- **No `Observation-death-summary` or SSDMF-style FHIR resource
+  emit** — `deceasedDateTime` on `Patient` is the single source of
+  truth for downstream consumers, matching FHIR R4 base and
+  us-core-patient / jp-core-patient practice. Extending to a
+  dedicated death Observation is possible but not currently
+  requested.
+- **No cause-of-death coding** — the sampling model draws a death
+  date only, not an ICD-10 R99 / cause-specific code. Adding a
+  drawn cause would require a separate mortality-cause distribution
+  YAML (deferred; not requested).
+- **In-hospital deaths continue to use `PatientProfile.deceased`**
+  flipped by the discharge gate. `is_alive_at(t)` respects both
+  the sampled `date_of_death` and the discharge-gate flip, so the
+  two paths compose without double-counting.
 
 ## Verification
 
@@ -111,6 +120,11 @@ scope isolated is deliberate.
 - [`clinosim/modules/discharge_gate.py`](../../simulator/discharge_gate.py)
   — the existing in-hospital death path (`PatientProfile.deceased`).
 - Issue [#1114](https://github.com/TomoOkuyama/clinosim/issues/1114)
-  — the 5-part C11g decomposition tracker.
+  — the 5-part C11g decomposition tracker (fully closed).
 - [`clinosim/locale/shared/actuarial_life_table.yaml`](../../locale/shared/actuarial_life_table.yaml)
   — the qx data source (C11g-1, PR #1147).
+- Wiring PRs: [#1150](https://github.com/TomoOkuyama/clinosim/pull/1150)
+  (C11g-2 sampling), [#1152](https://github.com/TomoOkuyama/clinosim/pull/1152)
+  (C11g-3a event-dispatcher gating),
+  [#1153](https://github.com/TomoOkuyama/clinosim/pull/1153) (C11g-3b + 4 + 5
+  FHIR Patient alignment).

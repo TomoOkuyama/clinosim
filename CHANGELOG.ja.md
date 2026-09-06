@@ -31,6 +31,21 @@ JP 表示テキスト方針変更、JP 保険番号 opt-in 挙動変更等) が�
 
 ## [Unreleased] (JP load-bearing 追記)
 
+- **JP 完全生命表 (MHLW 2020 第23回) 導入 + natural_death lifecycle 完成** (PR #1147/#1150/#1152/#1153、session 103 C11g-1〜5):
+  `clinosim/locale/shared/actuarial_life_table.yaml` に JP MHLW 生命表 (男/女、
+  0-110 歳 5 年帯 qₓ) を追加、`clinosim.modules.natural_death.NaturalDeathEnricher`
+  が per-person Bernoulli で自然死日をサンプリング、`is_alive_at(t)` を 4
+  イベント dispatcher に配線、`Patient.deceasedDateTime` + `Patient.active=false`
+  を deceased record に emit。JP p=10000 s326 1yr で 204/5,529 = 3.69% が
+  deceased 化、死亡日以降の encounter は完全に 0 (jp-core-patient 準拠)。
+- **JP 肺炎 (J18) hospital-cohort target band を (4, 14) に拡張** (PR #1145、
+  Issue #1115): 高齢者向け急性期病院の入院来院 cohort では J18 有病率が
+  一般人口ベンチマーク (~2%) より高いのが実運用通例なので、
+  `scripts/verify_medical_stats.py::HOSPITAL_COHORT_TARGET.JP` に該当バンド
+  を明示化し `OK-HC` verdict とした。JP demographics YAML は変更なし。
+- **JP がん有病率を benchmark band 内へ -30%** (PR #1124、Issue #1112):
+  MHLW cancer registry ベース。JP demographics YAML `chronic_prevalence.C**`
+  の band を再校正。
 - **外来 follow-up 診療科 resolver 化**: 従来 `outpatient.py` が
   post-discharge / chronic / screening / pediatric すべての外来 follow-up
   encounter で `department_id="internal_medicine"` を hardcode し、
