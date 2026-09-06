@@ -2278,6 +2278,21 @@ JP 表示テキスト方針変更、JP 保険番号 opt-in 挙動変更等) が�
 <p>英語版: <a href="../../CHANGELOG.md"><code>CHANGELOG.md (English)</code></a>。</p>
 <h2 id="unreleased-jp-load-bearing-追記">[Unreleased] (JP load-bearing 追記)<a class="headerlink" href="#unreleased-jp-load-bearing-追記" title="Permanent link">&para;</a></h2>
 <ul>
+<li><strong>JP 完全生命表 (MHLW 2020 第23回) 導入 + natural_death lifecycle 完成</strong> (PR #1147/#1150/#1152/#1153、session 103 C11g-1〜5):
+  <code>clinosim/locale/shared/actuarial_life_table.yaml</code> に JP MHLW 生命表 (男/女、
+  0-110 歳 5 年帯 qₓ) を追加、<code>clinosim.modules.natural_death.NaturalDeathEnricher</code>
+  が per-person Bernoulli で自然死日をサンプリング、<code>is_alive_at(t)</code> を 4
+  イベント dispatcher に配線、<code>Patient.deceasedDateTime</code> + <code>Patient.active=false</code>
+  を deceased record に emit。JP p=10000 s326 1yr で 204/5,529 = 3.69% が
+  deceased 化、死亡日以降の encounter は完全に 0 (jp-core-patient 準拠)。</li>
+<li><strong>JP 肺炎 (J18) hospital-cohort target band を (4, 14) に拡張</strong> (PR #1145、
+  Issue #1115): 高齢者向け急性期病院の入院来院 cohort では J18 有病率が
+  一般人口ベンチマーク (~2%) より高いのが実運用通例なので、
+  <code>scripts/verify_medical_stats.py::HOSPITAL_COHORT_TARGET.JP</code> に該当バンド
+  を明示化し <code>OK-HC</code> verdict とした。JP demographics YAML は変更なし。</li>
+<li><strong>JP がん有病率を benchmark band 内へ -30%</strong> (PR #1124、Issue #1112):
+  MHLW cancer registry ベース。JP demographics YAML <code>chronic_prevalence.C**</code>
+  の band を再校正。</li>
 <li><strong>外来 follow-up 診療科 resolver 化</strong>: 従来 <code>outpatient.py</code> が
   post-discharge / chronic / screening / pediatric すべての外来 follow-up
   encounter で <code>department_id="internal_medicine"</code> を hardcode し、
