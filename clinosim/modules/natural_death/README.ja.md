@@ -1,24 +1,36 @@
-# `clinosim.modules.natural_death` — 生命表からの自然死サンプリング (Issue #1114 C11g-2)
+# `clinosim.modules.natural_death` — 自然死ライフサイクル (Issue #1114 C11g complete)
 
 ## 目的
 
 母集団生成時に、各人物に対して国別の完全生命表 (US CDC / JP MHLW) から
 自然死日を 1 度だけサンプリングし、`PersonRecord.date_of_death` に
-セットする。下流のイベント生成器が `PersonRecord.is_alive_at(t)` で
-gate できる。C11g-2 は「サンプリング側」のみ担い、実際の filter 配線は
-後続 PR (C11g-3、#1114 の 5-part 分解) が実施する。
+セットする。下流のイベント生成器と FHIR emitter が
+`PersonRecord.is_alive_at(t)` で全て gate される。
+サンプリング → filter → FHIR emit の全経路が session 103 で完成 (C11g-1 → C11g-5)。
 
 ## Scope
 
-- **In scope**: `locale/shared/actuarial_life_table.yaml` からの
-  age × sex × country 年間 qx 参照; sim 窓の各年ごとの
-  per-person Bernoulli; 初発火年からのランダム日抽出;
-  `sim_log` へのコホート死亡率サマリ出力。
-- **Out of scope**: `is_alive_at(t)` を使ったイベント dispatcher の
-  filter 配線 (C11g-3); 自然死患者の FHIR `Patient.deceasedDateTime`
-  emit (C11g-4/5); 院内死亡 (既存
+- **In scope**:
+  - **サンプリング** (C11g-2、PR #1150):
+    `locale/shared/actuarial_life_table.yaml` からの
+    age × sex × country 年間 qx 参照; sim 窓の各年ごとの
+    per-person Bernoulli; 初発火年からのランダム日抽出;
+    `sim_log` へのコホート死亡率サマリ出力。
+  - **イベント dispatcher の gating** (C11g-3a、PR #1152):
+    `is_alive_at(t)` を 4 系統
+    (`generate_monthly_events` / `generate_healthcare_calendar` /
+    chronic-followup / ED・readmission) へ配線、`date_of_death` 後の
+    encounter は一切生成されない。
+  - **FHIR Patient 整合** (C11g-3b + 4 + 5、PR #1153):
+    `Patient.deceasedDateTime` に `date_of_death` を populate、
+    かつ deceased record では `Patient.active = false`。生存患者は
+    `active = true` + `deceasedBoolean = false` を維持。
+- **Out of scope**: 院内死亡 (既存
   [`discharge_gate.py`](../../simulator/discharge_gate.py) が
-  `PatientProfile.deceased` を flip する経路)。
+  `PatientProfile.deceased` を flip する経路。C11g-2/3 はこの path
+  を破壊しない); 明示的 `Observation-death-summary` や SSDMF
+  相当 FHIR resource emit (現状の下流契約では
+  `deceasedDateTime` 統一で十分)。
 
 ## Public API
 
@@ -64,23 +76,20 @@ US / JP どちらも常時有効。actuarial YAML が欠けている場合は no
 一度も発火しなかった人は `date_of_death = None` のまま、
 sim 窓全期間生存扱い。
 
-## C11g-2 が「まだ」やらないこと
+## C11g ライフサイクルが「やらない」こと
 
-- `date_of_death` を持つ患者への encounter emit は依然として
-  従来通り生成される (`generate_monthly_events` /
-  `generate_healthcare_calendar` / 慢性 followup / 定期健診
-  はまだ naive `is_alive` boolean を見ている)。C11g-3 で
-  日付対応 filter を配線。
-- FHIR `Patient.deceasedDateTime` は `date_of_death` から
-  populate されない。院内死亡は既存 `PatientProfile.deceased`
-  ブールで discharge_gate から反映される。C11g-4/5 で
-  経路を統合。
-- `Observation-death-summary` や SSDMF 相当の FHIR
-  resource emit も未対応。
-
-部分配線 (フィールドは埋めるが一部のみ filter する) は
-#1114 の defer コメントが警告した「impossible data」regression
-に直結するため、C11g-2 の scope を意図的に狭く保つ。
+- **`Observation-death-summary` や SSDMF 相当の FHIR resource emit
+  はしない** — `Patient.deceasedDateTime` を single source of truth
+  として下流に渡す方針。FHIR R4 base 及び us-core-patient /
+  jp-core-patient の慣行に準拠。専用 Observation 追加は可能だが
+  現状要件無し。
+- **死因コーディングはしない** — サンプリングは死亡日のみで、
+  ICD-10 R99 / cause-specific code は付与しない。追加すると
+  cause distribution YAML の別ファイルが要る (defer)。
+- **院内死亡は依然として `PatientProfile.deceased`** を
+  discharge_gate で flip する経路が継続。`is_alive_at(t)` は
+  サンプリング `date_of_death` と discharge-gate flip の両方を
+  尊重するため、二重カウント無しに合成できる。
 
 ## 検証
 
@@ -99,6 +108,11 @@ sim 窓全期間生存扱い。
 - [`clinosim/modules/discharge_gate.py`](../../simulator/discharge_gate.py)
   — 院内死亡経路 (`PatientProfile.deceased`)。
 - Issue [#1114](https://github.com/TomoOkuyama/clinosim/issues/1114)
-  — C11g 5-part 分解 tracker。
+  — C11g 5-part 分解 tracker (完全 close)。
 - [`clinosim/locale/shared/actuarial_life_table.yaml`](../../locale/shared/actuarial_life_table.yaml)
   — qx データソース (C11g-1、PR #1147)。
+- 配線 PR: [#1150](https://github.com/TomoOkuyama/clinosim/pull/1150)
+  (C11g-2 サンプリング)、[#1152](https://github.com/TomoOkuyama/clinosim/pull/1152)
+  (C11g-3a event dispatcher gating)、
+  [#1153](https://github.com/TomoOkuyama/clinosim/pull/1153) (C11g-3b + 4 + 5
+  FHIR Patient 整合)。
