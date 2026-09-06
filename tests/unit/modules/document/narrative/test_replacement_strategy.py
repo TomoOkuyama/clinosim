@@ -9,6 +9,10 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from clinosim.modules.document.narrative.replacement_strategy import (
+    _build_extra_context,
+    _health_literacy_tag,
+    _render_patient_biometrics,
+    _render_patient_demographics,
     apply_replacement_strategy,
 )
 from clinosim.modules.llm_service.engine import LLMService, LLMTaskType
@@ -327,8 +331,16 @@ def test_template_seed_different_patients_different_seeds_no_cache_collision() -
 
 
 def test_template_seed_identical_seed_and_bucket_reuses_cache() -> None:
-    """C-1: genuinely identical seeds in the same clinical bucket still share
-    one cache entry (cross-patient reuse preserved) — 1 provider call total.
+    """C-1: genuinely identical seeds in the same clinical bucket AND
+    identical patient profiles share one cache entry (cross-patient
+    reuse preserved) — 1 provider call total.
+
+    Session 104: the extractor now emits per-patient realism keys
+    (`patient_demographics` etc.) that widen the cache signature.
+    Cross-patient reuse now requires the patient profiles to match
+    exactly on the extracted fields — bucket alone is no longer
+    sufficient. This is intentional: cache hits across differing
+    patients would leak profile-specific LLM output.
     """
     from clinosim.modules.document.narrative.cache import NarrativeCache
 
@@ -341,13 +353,40 @@ def test_template_seed_identical_seed_and_bucket_reuses_cache() -> None:
     ctx_a = _make_ctx()
     ctx_a.patient = {"age": 55, "sex": "M"}
     ctx_b = _make_ctx()
-    ctx_b.patient = {"age": 57, "sex": "M"}  # same 50s-M bucket
+    ctx_b.patient = {"age": 55, "sex": "M"}  # identical profile → cache reuse
 
     shared = {"hpi": "Identical template seed text"}
     _apply(_make_template_output(dict(shared)), ctx_a, spec, llm, cache_get=cache.get, cache_put=cache.put)
     _apply(_make_template_output(dict(shared)), ctx_b, spec, llm, cache_get=cache.get, cache_put=cache.put)
 
-    assert provider.call_count == 1  # cache hit: identical seed + bucket
+    assert provider.call_count == 1  # cache hit: identical seed + bucket + demographics
+
+
+def test_template_seed_different_patient_demographics_bypasses_cache() -> None:
+    """Session 104: two patients with the same bucket but different
+    ages / sex / demographics MUST NOT share a cache entry — the
+    LLM output would encode the first patient's profile and leak
+    into the second's narrative. Guards against a subtle Grounding
+    Rule 1 violation created by cross-patient cache reuse.
+    """
+    from clinosim.modules.document.narrative.cache import NarrativeCache
+
+    cache = NarrativeCache()
+
+    spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
+    provider = MockProvider()
+    llm = _mock_llm(provider)
+
+    ctx_a = _make_ctx()
+    ctx_a.patient = SimpleNamespace(age=55, sex="M", smoking_status="never")
+    ctx_b = _make_ctx()
+    ctx_b.patient = SimpleNamespace(age=57, sex="M", smoking_status="current_smoker")
+
+    shared = {"hpi": "Identical template seed text"}
+    _apply(_make_template_output(dict(shared)), ctx_a, spec, llm, cache_get=cache.get, cache_put=cache.put)
+    _apply(_make_template_output(dict(shared)), ctx_b, spec, llm, cache_get=cache.get, cache_put=cache.put)
+
+    assert provider.call_count == 2  # cache miss — differing demographics
 
 
 def test_local_llm_provider_protocol_deleted() -> None:
@@ -618,9 +657,15 @@ def test_bundle_strategy_free_text_rebuilds_raw_text() -> None:
 
 
 def test_bundle_strategy_cache_hit_reuses_bundle_across_patients() -> None:
-    """Bundle cache key hashes ALL seed sections together so identical
-    (disease, day, severity, bundle-seeds) tuples across patients share
-    ONE LLM call."""
+    """Bundle cache key hashes ALL seed sections + all context keys
+    together, so identical (disease, day, severity, bundle-seeds,
+    patient-profile) tuples across patients share ONE LLM call.
+
+    Session 104: `patient_demographics` now enters the context and thus
+    the cache signature — cross-patient reuse requires the profiles to
+    match on the extracted fields, not just the coarse bucket. Guards
+    against cross-patient leak of profile-specific LLM output.
+    """
     from clinosim.modules.document.narrative.cache import NarrativeCache
 
     cache = NarrativeCache()
@@ -628,10 +673,12 @@ def test_bundle_strategy_cache_hit_reuses_bundle_across_patients() -> None:
     provider = MockProvider()
     llm = _mock_llm(provider)
 
+    # Identical profiles → deterministic cross-patient reuse
+    patient_shape = {"age": 55, "sex": "M"}
     ctx_a = _make_ctx()
-    ctx_a.patient = {"age": 55, "sex": "M"}
+    ctx_a.patient = dict(patient_shape)
     ctx_b = _make_ctx()
-    ctx_b.patient = {"age": 57, "sex": "M"}  # same 50s-M bucket
+    ctx_b.patient = dict(patient_shape)
 
     shared = {
         "subjective": "identical S seed",
@@ -647,6 +694,39 @@ def test_bundle_strategy_cache_hit_reuses_bundle_across_patients() -> None:
 
     # Second doc hits the cache — total LLM calls stays at 1
     assert provider.call_count == 1
+
+
+def test_bundle_strategy_cache_misses_when_patient_demographics_differ() -> None:
+    """Session 104: two bundle calls with the same clinical seeds but
+    different patient demographics (age / smoking / marital status)
+    MUST NOT share cache — the bundle output encodes the first
+    patient's profile via Rule 1 and would leak if replayed for a
+    different patient."""
+    from clinosim.modules.document.narrative.cache import NarrativeCache
+
+    cache = NarrativeCache()
+    spec = _bundle_spec()
+    provider = MockProvider()
+    llm = _mock_llm(provider)
+
+    ctx_a = _make_ctx()
+    ctx_a.patient = SimpleNamespace(age=55, sex="M", smoking_status="never")
+    ctx_b = _make_ctx()
+    ctx_b.patient = SimpleNamespace(age=72, sex="F", smoking_status="current_smoker")
+
+    shared = {
+        "subjective": "identical S seed",
+        "objective": "T 37.2",
+        "assessment": "identical A seed",
+        "plan": "identical P seed",
+    }
+    o_a = NarrativeOutput(sections=dict(shared), metadata={}, facts_used=[])
+    o_b = NarrativeOutput(sections=dict(shared), metadata={}, facts_used=[])
+
+    _apply(o_a, ctx_a, spec, llm, cache_get=cache.get, cache_put=cache.put)
+    _apply(o_b, ctx_b, spec, llm, cache_get=cache.get, cache_put=cache.put)
+
+    assert provider.call_count == 2  # cache miss — differing demographics
 
 
 def test_bundle_strategy_empty_llm_sections_returns_template_unchanged() -> None:
@@ -872,3 +952,219 @@ def test_build_extra_context_discharge_summary_enrichment() -> None:
     assert "WBC" in extra.get("abnormal_labs_during_stay", "")
     range_line = extra.get("vitals_range_during_stay", "")
     assert "sBP" in range_line and "T" in range_line and "SpO2" in range_line
+
+
+# ─────────────────────────────────────────────────────────────────
+# Session 104 Tier 1: patient_demographics + patient_biometrics +
+# health_literacy_tag realism keys
+# ─────────────────────────────────────────────────────────────────
+
+
+def _rich_patient() -> SimpleNamespace:
+    return SimpleNamespace(
+        age=72,
+        sex="female",
+        chronic_conditions=[],
+        employment_status="retired",
+        occupation="",
+        smoking_status="former_smoker",
+        alcohol_use="occasional",
+        marital_status="widowed",
+        insurance_type="late_elderly",
+        height_cm=158,
+        weight_kg=52.4,
+        bmi=21.0,
+        blood_type="O",
+        rh_factor="positive",
+        health_literacy=0.35,
+    )
+
+
+def _empty_patient() -> SimpleNamespace:
+    return SimpleNamespace(
+        age=None,
+        sex="",
+        chronic_conditions=[],
+        employment_status="",
+        occupation="",
+        smoking_status="",
+        alcohol_use="",
+        marital_status="",
+        insurance_type="",
+        height_cm=None,
+        weight_kg=None,
+        bmi=0,
+        blood_type="",
+        rh_factor="",
+        health_literacy=None,
+    )
+
+
+def test_render_patient_demographics_ja_full_anchor() -> None:
+    out = _render_patient_demographics(_rich_patient(), lang="ja")
+    assert "72歳女性" in out
+    assert "退職" in out
+    assert "元喫煙" in out
+    assert "機会飲酒" in out
+    assert "死別" in out
+    assert "後期高齢者医療制度" in out
+
+
+def test_render_patient_demographics_en_full_anchor() -> None:
+    out = _render_patient_demographics(_rich_patient(), lang="en")
+    assert "72 y/o female" in out
+    assert "retired" in out
+    assert "former smoker" in out
+    assert "occasional alcohol" in out
+    assert "widowed" in out
+    assert "Late-Elderly Medical Care System" in out
+
+
+def test_render_patient_demographics_silent_on_empty_patient() -> None:
+    assert _render_patient_demographics(_empty_patient(), lang="ja") == ""
+    assert _render_patient_demographics(_empty_patient(), lang="en") == ""
+
+
+def test_render_patient_demographics_partial_skips_missing() -> None:
+    p = SimpleNamespace(
+        age=68,
+        sex="male",
+        employment_status="",
+        occupation="",
+        smoking_status="never",
+        alcohol_use="",
+        marital_status="",
+        insurance_type="",
+    )
+    ja = _render_patient_demographics(p, lang="ja")
+    en = _render_patient_demographics(p, lang="en")
+    # Age + sex + one social item, nothing fabricated for missing fields
+    assert ja == "68歳男性、非喫煙"
+    assert en == "68 y/o male, non-smoker"
+
+
+def test_render_patient_biometrics_full_line() -> None:
+    ja = _render_patient_biometrics(_rich_patient(), lang="ja")
+    en = _render_patient_biometrics(_rich_patient(), lang="en")
+    assert "身長 158 cm" in ja
+    assert "体重 52.4 kg" in ja
+    assert "BMI 21.0" in ja
+    assert "血液型 O+" in ja
+    assert "Ht 158 cm" in en
+    assert "Wt 52.4 kg" in en
+    assert "blood type O+" in en
+
+
+def test_render_patient_biometrics_silent_on_missing() -> None:
+    assert _render_patient_biometrics(_empty_patient(), lang="ja") == ""
+    assert _render_patient_biometrics(_empty_patient(), lang="en") == ""
+
+
+def test_render_patient_biometrics_rh_negative() -> None:
+    p = SimpleNamespace(
+        height_cm=170,
+        weight_kg=68,
+        bmi=23.5,
+        blood_type="AB",
+        rh_factor="negative",
+    )
+    assert "AB-" in _render_patient_biometrics(p, lang="en")
+
+
+def test_health_literacy_tag_bands() -> None:
+    # Fixed thresholds: <0.4 low, 0.4-<0.7 medium, ≥0.7 high
+    def _tag(v):
+        return _health_literacy_tag(SimpleNamespace(health_literacy=v))
+
+    assert _tag(0.0) == "low"
+    assert _tag(0.39) == "low"
+    assert _tag(0.4) == "medium"
+    assert _tag(0.69) == "medium"
+    assert _tag(0.7) == "high"
+    assert _tag(1.0) == "high"
+    # Missing → silent
+    assert _tag(None) == ""
+    assert _health_literacy_tag(SimpleNamespace(health_literacy=None)) == ""
+
+
+def test_health_literacy_tag_absent_field_silent() -> None:
+    # A patient object with no health_literacy attribute at all
+    p = SimpleNamespace()
+    assert _health_literacy_tag(p) == ""
+
+
+def _make_ctx_with_patient(patient, doc_type="progress_note", lang="ja") -> NarrativeContext:
+    dt = getattr(DocumentType, doc_type.upper())
+    return NarrativeContext(
+        patient=patient,
+        encounter=SimpleNamespace(encounter_id="enc"),
+        encounter_type=SimpleNamespace(value="inpatient"),
+        disease_protocol=None,
+        encounter_protocol=None,
+        clinical_course_archetype="uncomplicated_improvement",
+        severity="moderate",
+        day_index=1,
+        los_days=5,
+        vitals=[],
+        lab_results=[],
+        medications=[],
+        diagnoses=[],
+        procedures=[],
+        allergies=[],
+        document_type=dt,
+        target_lang=lang,
+        locale="jp" if lang == "ja" else "us",
+    )
+
+
+def test_build_extra_context_emits_patient_demographics_when_template_lacks_social_history() -> None:
+    ctx = _make_ctx_with_patient(_rich_patient(), doc_type="progress_note", lang="ja")
+    spec = _bundle_spec(type_key="progress_note")
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert "patient_demographics" in extra
+    assert "72歳女性" in extra["patient_demographics"]
+
+
+def test_build_extra_context_skips_patient_demographics_when_template_has_social_history() -> None:
+    ctx = _make_ctx_with_patient(_rich_patient(), doc_type="admission_hp", lang="ja")
+    spec = _bundle_spec(type_key="admission_hp", llm_enabled_sections=("hpi", "assessment_and_plan"))
+    extra = _build_extra_context(ctx, spec, template_section_names={"social_history"})
+    assert "patient_demographics" not in extra  # skipped because template renders it
+
+
+def test_build_extra_context_emits_patient_biometrics_only_for_scoped_doc_types() -> None:
+    # operative_note is in _BIOMETRICS_DOC_TYPES → emit
+    ctx = _make_ctx_with_patient(_rich_patient(), doc_type="operative_note", lang="en")
+    spec = _bundle_spec(type_key="operative_note", llm_enabled_sections=("op_findings",))
+    extra_op = _build_extra_context(ctx, spec, template_section_names=set())
+    assert "patient_biometrics" in extra_op
+    assert "BMI 21.0" in extra_op["patient_biometrics"]
+
+    # progress_note is NOT in the biometrics set → skip
+    ctx_pn = _make_ctx_with_patient(_rich_patient(), doc_type="progress_note", lang="en")
+    spec_pn = _bundle_spec(type_key="progress_note")
+    extra_pn = _build_extra_context(ctx_pn, spec_pn, template_section_names=set())
+    assert "patient_biometrics" not in extra_pn
+
+
+def test_build_extra_context_emits_health_literacy_tag_for_patient_facing_docs() -> None:
+    # discharge_summary is patient-facing → tag emitted
+    ctx = _make_ctx_with_patient(_rich_patient(), doc_type="discharge_summary", lang="ja")
+    spec = _bundle_spec(type_key="discharge_summary", llm_enabled_sections=("discharge_instructions",))
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert extra.get("health_literacy_tag") == "low"
+
+    # progress_note is physician-to-physician → tag skipped (invariant tone)
+    ctx_pn = _make_ctx_with_patient(_rich_patient(), doc_type="progress_note", lang="ja")
+    spec_pn = _bundle_spec(type_key="progress_note")
+    extra_pn = _build_extra_context(ctx_pn, spec_pn, template_section_names=set())
+    assert "health_literacy_tag" not in extra_pn
+
+
+def test_build_extra_context_universal_keys_silent_on_empty_patient() -> None:
+    ctx = _make_ctx_with_patient(_empty_patient(), doc_type="discharge_summary", lang="ja")
+    spec = _bundle_spec(type_key="discharge_summary", llm_enabled_sections=("discharge_instructions",))
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert "patient_demographics" not in extra
+    assert "patient_biometrics" not in extra
+    assert "health_literacy_tag" not in extra

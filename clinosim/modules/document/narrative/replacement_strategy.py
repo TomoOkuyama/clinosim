@@ -826,6 +826,257 @@ def _get(obj, key, default=None):
     return getattr(obj, key, default)
 
 
+# ─────────────────────────────────────────────────────────────────
+# Session 104 Tier 1 realism: patient-profile keys
+# ─────────────────────────────────────────────────────────────────
+
+# Doc types that get patient_biometrics (Ht/Wt/BMI/blood type).
+# Surgical + anaesthesia + procedure + discharge-planning contexts
+# where these facts are narratively load-bearing.
+_BIOMETRICS_DOC_TYPES: frozenset[str] = frozenset(
+    {
+        "admission_hp",
+        "operative_note",
+        "procedure_note",
+        "discharge_summary",
+        "death_discharge_summary",
+    }
+)
+
+# Doc types that get health_literacy_tag. Patient/family-facing text
+# lives in these; other doc types are physician-to-physician and the
+# tone is invariant.
+_HEALTH_LITERACY_DOC_TYPES: frozenset[str] = frozenset(
+    {
+        "admission_hp",
+        "discharge_summary",
+        "referral_note",
+        "death_discharge_summary",
+    }
+)
+
+# Localization tables — smoking_status / alcohol_use / marital_status /
+# employment_status / occupation / insurance_type live in patient
+# profile as raw English tokens (US) or JA slugs (JP). The LLM contract
+# says "cite these verbatim" so we localize here at extraction time.
+# Locale-aware label tables. Each entry maps a raw enum-like token
+# (from PatientProfile) to a (JA, EN) display pair — the EN side keeps
+# short, clinician-natural phrasing rather than a raw slug so the LLM
+# reads a real note-style anchor, not an ENUM-flavoured hint.
+_SMOKING_LABELS: dict[str, tuple[str, str]] = {
+    "never": ("非喫煙", "non-smoker"),
+    "never_smoker": ("非喫煙", "non-smoker"),
+    "current": ("現喫煙", "current smoker"),
+    "current_smoker": ("現喫煙", "current smoker"),
+    "former": ("元喫煙", "former smoker"),
+    "former_smoker": ("元喫煙", "former smoker"),
+}
+_ALCOHOL_LABELS: dict[str, tuple[str, str]] = {
+    "none": ("飲酒なし", "non-drinker"),
+    "never": ("飲酒なし", "non-drinker"),
+    "occasional": ("機会飲酒", "occasional alcohol"),
+    "light": ("少量飲酒", "light alcohol use"),
+    "moderate": ("中等度飲酒", "moderate alcohol use"),
+    "heavy": ("多量飲酒", "heavy alcohol use"),
+    "former": ("断酒中", "former drinker (abstinent)"),
+}
+_MARITAL_LABELS: dict[str, tuple[str, str]] = {
+    "single": ("独身", "single"),
+    "married": ("既婚", "married"),
+    "divorced": ("離婚", "divorced"),
+    "widowed": ("死別", "widowed"),
+    "separated": ("別居", "separated"),
+    "partnered": ("内縁", "partnered"),
+}
+_EMPLOYMENT_LABELS: dict[str, tuple[str, str]] = {
+    "employed": ("就業中", "employed"),
+    "self_employed": ("自営", "self-employed"),
+    "unemployed": ("無職", "unemployed"),
+    "retired": ("退職", "retired"),
+    "student": ("学生", "student"),
+    "homemaker": ("主婦・主夫", "homemaker"),
+    "disabled": ("就労困難", "unable to work (disability)"),
+}
+_INSURANCE_LABELS: dict[str, tuple[str, str]] = {
+    # US
+    "employer_group": ("雇用主提供保険", "employer-sponsored"),
+    "medicare": ("Medicare", "Medicare"),
+    "medicaid": ("Medicaid", "Medicaid"),
+    "medicare_advantage": ("Medicare Advantage", "Medicare Advantage"),
+    "private_individual": ("個人加入民間保険", "private (individual market)"),
+    "va_tricare": ("VA/TRICARE", "VA/TRICARE"),
+    "self_pay": ("自費", "self-pay"),
+    "chip": ("CHIP", "CHIP"),
+    "dual_eligible": ("Medicare + Medicaid 二重加入", "Medicare + Medicaid (dual eligible)"),
+    # JP
+    "employee_subscriber": ("被用者保険 (被保険者)", "employee health insurance (subscriber)"),
+    "employee_dependent": ("被用者保険 (被扶養者)", "employee health insurance (dependent)"),
+    "national_health_insurance": ("国民健康保険", "National Health Insurance"),
+    "late_elderly": ("後期高齢者医療制度", "Late-Elderly Medical Care System"),
+}
+
+
+def _localize_token(token: str, table: dict[str, tuple[str, str]], lang: str) -> str:
+    """Look a raw enum-like token up in the (JA, EN) label table.
+    Returns "" for empty / unknown / None input; falls back to a
+    lower-case slug for tokens the table does not know."""
+    if not token:
+        return ""
+    key = str(token).strip().lower()
+    if not key or key in ("unknown", "none"):
+        return ""
+    is_ja = str(lang).lower().startswith("ja")
+    hit = table.get(key)
+    if hit is not None:
+        return hit[0] if is_ja else hit[1]
+    return key.replace("_", " ")
+
+
+def _render_patient_demographics(patient: Any, lang: str) -> str:
+    """Compose a one-line demographic anchor (age / sex / occupation /
+    social history / marital / insurance). Used as the LLM's primary
+    background reference for SOAP-shaped docs whose template layer does
+    NOT render a social_history section. Missing fields drop silently
+    (never fabricate)."""
+    age = _get(patient, "age", None)
+    sex = _get(patient, "sex", "")
+    is_ja = str(lang).lower().startswith("ja")
+
+    parts: list[str] = []
+
+    # Age + sex — the leading anchor. Prefer explicit int age; skip
+    # entirely if age is missing / None / 0 (unknown).
+    if age and isinstance(age, int) and age > 0:
+        sex_label = ""
+        if sex:
+            s = str(sex).strip().lower()
+            if is_ja:
+                sex_label = {"male": "男性", "female": "女性", "m": "男性", "f": "女性"}.get(s, "")
+            else:
+                sex_label = {"male": "male", "female": "female", "m": "male", "f": "female"}.get(s, s)
+        if is_ja:
+            parts.append(f"{age}歳{sex_label}" if sex_label else f"{age}歳")
+        else:
+            parts.append(f"{age} y/o {sex_label}".strip() if sex_label else f"{age} y/o")
+
+    # Employment (retired / employed / …) — retired matters for
+    # discharge-planning + adherence context.
+    employment = _localize_token(_get(patient, "employment_status", ""), _EMPLOYMENT_LABELS, lang)
+    occupation = _get(patient, "occupation", "") or ""
+    if employment:
+        # If occupation is present AND employment==employed, prefer the
+        # occupation phrase; else use the employment label.
+        if occupation and employment in ("就業中", "employed"):
+            parts.append(str(occupation) if is_ja else str(occupation))
+        else:
+            parts.append(employment)
+    elif occupation:
+        parts.append(str(occupation))
+
+    # Smoking / alcohol — social history.
+    smoke = _localize_token(_get(patient, "smoking_status", ""), _SMOKING_LABELS, lang)
+    if smoke:
+        parts.append(smoke)
+    alc = _localize_token(_get(patient, "alcohol_use", ""), _ALCOHOL_LABELS, lang)
+    if alc:
+        parts.append(alc)
+
+    # Marital status — matters for disposition + family communication.
+    marital = _localize_token(_get(patient, "marital_status", ""), _MARITAL_LABELS, lang)
+    if marital:
+        parts.append(marital)
+
+    # Insurance — matters for follow-up + referral routing.
+    ins = _localize_token(_get(patient, "insurance_type", ""), _INSURANCE_LABELS, lang)
+    if ins:
+        parts.append(ins)
+
+    if not parts:
+        return ""
+    sep = "、" if is_ja else ", "
+    return sep.join(parts)
+
+
+def _render_patient_biometrics(patient: Any, lang: str) -> str:
+    """Compose Ht / Wt / BMI / blood-type one-liner. Used by surgical
+    + anaesthesia + procedure + discharge doc types where these facts
+    have narrative weight (dose scaling, transfusion prep, mobility).
+    Missing fields drop silently."""
+    height_cm = _get(patient, "height_cm", None)
+    weight_kg = _get(patient, "weight_kg", None)
+    bmi = _get(patient, "bmi", None)
+    blood_type = _get(patient, "blood_type", "") or ""
+    rh = _get(patient, "rh_factor", "") or ""
+    is_ja = str(lang).lower().startswith("ja")
+
+    parts: list[str] = []
+
+    def _pos(v: Any) -> bool:
+        try:
+            return v is not None and float(v) > 0
+        except (TypeError, ValueError):
+            return False
+
+    if _pos(height_cm) or _pos(weight_kg):
+        h_str = f"{float(height_cm):.0f} cm" if _pos(height_cm) else "-"
+        w_str = f"{float(weight_kg):.1f} kg" if _pos(weight_kg) else "-"
+        if is_ja:
+            parts.append(f"身長 {h_str} / 体重 {w_str}")
+        else:
+            parts.append(f"Ht {h_str} / Wt {w_str}")
+    if _pos(bmi):
+        parts.append(f"BMI {float(bmi):.1f}")
+    if blood_type:
+        bt = str(blood_type).strip().upper()
+        # Format blood type + Rh factor as "O+" / "O-" style. rh_factor
+        # comes in as "positive" / "negative" / "+" / "-".
+        rh_symbol = ""
+        if rh:
+            r = str(rh).strip().lower()
+            if r in ("positive", "pos", "+"):
+                rh_symbol = "+"
+            elif r in ("negative", "neg", "-"):
+                rh_symbol = "-"
+        label = f"{bt}{rh_symbol}" if rh_symbol else bt
+        if is_ja:
+            parts.append(f"血液型 {label}")
+        else:
+            parts.append(f"blood type {label}")
+
+    if not parts:
+        return ""
+    sep = "、" if is_ja else ", "
+    return sep.join(parts)
+
+
+def _health_literacy_tag(patient: Any) -> str:
+    """3-band discretisation of `patient.health_literacy` (0.0-1.0 float):
+
+      < 0.4  → "low"     — LLM should use plain-language phrasing, no
+                          Latin medical terms, no abbreviations, short
+                          sentences (< 20 words), one instruction per line.
+      0.4-0.7 → "medium" — standard patient-facing tone, brief medical
+                           terms defined in parenthesis when first used.
+      ≥ 0.7  → "high"    — full medical terminology acceptable; the
+                           patient can parse standard discharge language.
+
+    Locale-invariant tag; the prompt encodes the per-locale style
+    guidance. Returns "" when the field is unset (do NOT default to
+    a band — silence is honest)."""
+    hl = _get(patient, "health_literacy", None)
+    try:
+        val = float(hl) if hl is not None else None
+    except (TypeError, ValueError):
+        return ""
+    if val is None:
+        return ""
+    if val < 0.4:
+        return "low"
+    if val < 0.7:
+        return "medium"
+    return "high"
+
+
 def _build_extra_context(
     ctx: NarrativeContext,
     spec: DocumentTypeSpec,
@@ -866,6 +1117,36 @@ def _build_extra_context(
             rendered = _render_chronic_list(chronic, lang=ctx.target_lang)
             if rendered:
                 extra["chronic_conditions"] = rendered
+
+    # ---- Session 104 Tier 1 realism keys ----------------------------
+    # Three new keys surface patient-profile facts previously hidden
+    # from the LLM (SOAP-shaped docs — progress_note / outpatient_soap /
+    # ed_note — see NO template social_history / biometrics sections,
+    # so the LLM had only `patient_bucket` decade-granularity for
+    # demographics). Additive; docs that already carry the equivalent
+    # template section (admission_hp social_history / medications_at_home)
+    # skip via the same `tmpl` gate the chronic_conditions block uses.
+    if p is not None:
+        _demo = _render_patient_demographics(p, lang=ctx.target_lang)
+        if _demo and "social_history" not in tmpl:
+            extra["patient_demographics"] = _demo
+        # Biometrics: emit for doc types where BMI / blood type carry
+        # narrative weight (surgical / anaesthesia / procedure / discharge
+        # planning). Also emit whenever the template does NOT already
+        # render `physical_examination` (which typically states vitals
+        # but not height / weight / blood type).
+        if doc_type in _BIOMETRICS_DOC_TYPES:
+            _bio = _render_patient_biometrics(p, lang=ctx.target_lang)
+            if _bio:
+                extra["patient_biometrics"] = _bio
+        # Health-literacy tag: 3-band discretisation drives the tone of
+        # patient-facing narrative (discharge_instructions, referral
+        # letter courtesy, family_communication register). LOCALE-INVARIANT
+        # tag — the prompt localises the tone rules per language.
+        if doc_type in _HEALTH_LITERACY_DOC_TYPES:
+            _hl = _health_literacy_tag(p)
+            if _hl:
+                extra["health_literacy_tag"] = _hl
 
     # ---- Scenario / trajectory (session-88j v3) --------------------
     # CIF was built around disease_protocol × archetype. Exposing the
