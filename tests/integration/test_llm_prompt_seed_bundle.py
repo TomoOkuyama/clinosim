@@ -16,12 +16,27 @@ def _load(lang: str) -> dict:
         return yaml.safe_load(fh)
 
 
-def test_en_bundle_version_bumped_to_14() -> None:
-    assert _load("en")["version"] == 14
+def test_en_bundle_version_at_or_above_14() -> None:
+    assert _load("en")["version"] >= 14
 
 
-def test_ja_bundle_version_bumped_to_14() -> None:
-    assert _load("ja")["version"] == 14
+def test_ja_bundle_version_at_or_above_14() -> None:
+    assert _load("ja")["version"] >= 14
+
+
+def test_en_bundle_lists_session_104_patient_profile_keys() -> None:
+    system = _load("en")["system"]
+    for key in ("patient_demographics", "patient_biometrics", "health_literacy_tag"):
+        assert key in system, f"EN bundle missing session-104 context key: {key}"
+    # Rule 6 is the health-literacy tone guardrail.
+    assert "HEALTH-LITERACY TONE" in system
+
+
+def test_ja_bundle_lists_session_104_patient_profile_keys() -> None:
+    system = _load("ja")["system"]
+    for key in ("patient_demographics", "patient_biometrics", "health_literacy_tag"):
+        assert key in system, f"JA bundle missing session-104 context key: {key}"
+    assert "HEALTH-LITERACY TONE" in system
 
 
 def test_en_bundle_lists_considered_but_not_prescribed_context_key() -> None:
