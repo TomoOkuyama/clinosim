@@ -186,6 +186,31 @@ Prednisolone: "プレドニゾロン"
 Sodium bicarbonate: "炭酸水素ナトリウム"
 Sodium polystyrene sulfonate: "ポリスチレンスルホン酸ナトリウム"  # MHLW YJ 2190009A1048 (ケイキサレート)
 
+# --- Oncology / 抗癌剤・分子標的薬 (session 104 Issue #1168) ---
+# Entries mirror the drug_ja fields already declared in
+# `chronic_medications.yaml` (chronic outpatient regimens for C-code
+# cancer patients) and `chemo_regimens.yaml` (inpatient chemo). Pre-104
+# these katakana were only wired through the CIF `drug_ja` field but
+# never registered in `drug_names_ja.yaml`, so the FHIR-adapter
+# `_localize_drug_name` post-processor missed them and the LLM narrative
+# leaked bare English names into JP output (Osimertinib 11× /
+# Sorafenib 9× / Lenvatinib 9× observed in the session-104 H100 p=100
+# verify).
+Anastrozole: "アナストロゾール"            # MHLW YJ 4291013F1029 (アリミデックス)
+Bicalutamide: "ビカルタミド"               # MHLW YJ 4291012F1022 (カソデックス)
+Capecitabine: "カペシタビン"               # MHLW YJ 4223006F1027 (ゼローダ)
+Carboplatin: "カルボプラチン"              # MHLW YJ 4291402A1042 (パラプラチン)
+Folic acid: "葉酸"
+Lenvatinib: "レンバチニブ"                 # MHLW YJ 4291051F1024 (レンビマ)
+Leucovorin: "ロイコボリン"                 # MHLW YJ 3929402D1051 (ユーゼル)
+Leuprorelin: "リュープロレリン"            # MHLW YJ 2499404D1049 (リュープリン)
+Osimertinib: "オシメルチニブ"              # MHLW YJ 4291052F1029 (タグリッソ)
+Oxaliplatin: "オキサリプラチン"            # MHLW YJ 4291403A1046 (エルプラット)
+Pemetrexed: "ペメトレキセド"               # MHLW YJ 4229402A1024 (アリムタ)
+Sorafenib: "ソラフェニブ"                  # MHLW YJ 4291032F1020 (ネクサバール)
+Tamoxifen: "タモキシフェン"                # MHLW YJ 4291005F1023 (ノルバデックス)
+Trastuzumab: "トラスツズマブ"              # MHLW YJ 4291404G1044 (ハーセプチン)
+
 # --- IV fluids / 輸液 ---
 IV normal saline: "生理食塩液"
 Normal saline: "生理食塩液"

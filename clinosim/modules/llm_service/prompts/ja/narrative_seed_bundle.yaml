@@ -6,14 +6,36 @@ description: |
   Bundle strategy for clinical document narrative generation.
   Single English prompt with output language controlled by ${target_language}.
 
-  v16 changes (2026-09-06, session 104 post-verify defect fix, Issue #1167):
-    - admission_hp `assessment_and_plan` per-doc-type guidance split the
+  v16 changes (2026-09-06, session 104 post-verify defect fixes,
+  Issues #1167 + #1168 folded):
+
+    Issue #1167 — admission_hp EN Kanji heading leak:
+    - `admission_hp.assessment_and_plan` per-doc-type guidance split the
       REQUIRED heading list by locale (JA ↔ EN). Pre-v16 the rule asked
       for 【評価】/【薬物療法】/【検査】/... VERBATIM regardless of locale,
       so on `target_language=en` output the LLM sometimes leaked bare
       Kanji (評価 / 薬物療法 / 検査) inside English narrative. Session-104
       H100 verify (US p=100 s=125) surfaced 4 / 859 US docs affected.
-      Symmetric with the EN bundle. No RNG effect.
+      Symmetric with the EN bundle.
+
+    Issue #1168 — JP persistence / stage descriptor leaks:
+    - Rule 5 Section A expanded to cover disease-persistence + stage
+      descriptors that were leaking as English into JP narratives on
+      the session-104 H100 verify (JP p=100 s=125):
+        Stage 122× / Mild 29× / persistent 29× / Moderate 13× /
+        intermittent 13× / Level 10×
+      New table entries: intermittent → 間欠, persistent → 持続,
+      stage → ステージ, level → レベル, grade → グレード. Compound
+      severity forms (e.g. "Mild persistent" → 「軽度持続」) enumerated
+      explicitly.
+    - Section A also now states case-insensitivity ("Mild" / "MILD"
+      / "mild" all resolve to 軽度) so upper-case CIF display forms
+      no longer bypass the rule.
+
+    No RNG effect for either fix. Companion PR adds Osimertinib /
+    Sorafenib / Lenvatinib (and 10 sibling oncology drugs) to
+    `clinosim/locale/shared/drug_names_ja.yaml`, fixing the
+    canonical-katakana leak surfaced in the same verify run.
 
   v15 changes (2026-09-06, session 104 realism uplift Tier 1):
     - Added three patient-profile context keys populated by
@@ -242,13 +264,30 @@ system: |
      exists. The tables below are the ONLY authorized JP renderings —
      do NOT invent variants.
 
-     A. Severity labels (mild/moderate/severe) — always translate:
-        mild        → 軽度
-        moderate    → 中等度
-        severe      → 重度
-        very severe → 最重度
-        critical    → 重篤
-       Example: "本態性高血圧 (Stage 1, mild)" → 「本態性高血圧 (Stage 1, 軽度)」
+     A. Severity + persistence + stage descriptors — always translate
+        (case-insensitive: Mild / MILD / mild all → 軽度):
+        mild            → 軽度
+        moderate        → 中等度
+        severe          → 重度
+        very severe     → 最重度
+        critical        → 重篤
+        intermittent    → 間欠
+        persistent      → 持続
+        stage           → ステージ   (or omit when clinically redundant
+                                      e.g. "CKD Stage 3b" → 「CKD G3b」)
+        level           → レベル
+        grade           → グレード
+       Compound descriptors (asthma severity common):
+          "Mild persistent"      → 「軽度持続」
+          "Moderate persistent"  → 「中等度持続」
+          "Severe persistent"    → 「重度持続」
+          "Mild intermittent"    → 「軽度間欠」
+       Example (Issue #1168 defect): "Asthma (Mild persistent)"
+          → 「気管支喘息（軽度持続）」 — NEVER paste the EN triplet
+          into JA output.
+       Example (already correct): "本態性高血圧 (Stage 1, mild)"
+          → 「本態性高血圧 (Stage 1, 軽度)」 — the "Stage 1" digit-form
+          may be preserved as-is; only the descriptor words translate.
 
      B. Discharge disposition / arrival mode — translate the label:
         home / home_with_family / home_alone → 自宅退院

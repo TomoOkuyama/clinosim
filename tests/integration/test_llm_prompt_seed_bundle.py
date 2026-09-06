@@ -145,8 +145,9 @@ def test_extra_context_builder_skips_when_no_safety_skips() -> None:
 
 
 # ─────────────────────────────────────────────────────────────────
-# v16 (session 104 post-verify defect fix, Issue #1167)
-# admission_hp assessment_and_plan heading list must split by locale.
+# v16 (session 104 post-verify defect fixes, Issues #1167 + #1168)
+#   #1167 — admission_hp assessment_and_plan heading list splits by locale
+#   #1168 — Rule 5 Section A covers disease-persistence + stage descriptors
 # ─────────────────────────────────────────────────────────────────
 
 
@@ -183,3 +184,23 @@ def test_ja_bundle_admission_hp_headings_have_en_locale_branch() -> None:
     assert "target_language=ja" in hp_block
     assert "target_language=en" in hp_block
     assert "Assessment" in hp_block and "Medications" in hp_block
+
+
+def test_ja_bundle_section_a_covers_persistence_and_stage_descriptors() -> None:
+    """JA bundle Rule 5 Section A must enumerate `intermittent`,
+    `persistent`, `stage`, `level`, `grade` explicitly. Session-104
+    H100 verify (JP p=100 s=125) surfaced 280+ EN leaks of these
+    tokens into JA narratives; pre-fix Section A only covered
+    mild/moderate/severe/very-severe/critical."""
+    system = _load("ja")["system"]
+    # Extract Section A
+    a_start = system.find("A. Severity")
+    b_start = system.find("B.", a_start)
+    assert a_start >= 0 and b_start > a_start, "Section A missing"
+    section_a = system[a_start:b_start]
+    for token in ("intermittent", "persistent", "stage", "level", "grade"):
+        assert token in section_a, f"Issue #1168 regression: Section A missing token '{token}'"
+    # Case-insensitive rule must be stated (Mild / MILD / mild all → 軽度)
+    assert "case-insensitive" in section_a.lower(), "Section A missing case-insensitivity clause"
+    # Compound severity example
+    assert "軽度持続" in section_a or "Mild persistent" in section_a
