@@ -1,0 +1,288 @@
+# Session 104 Tier 2 — per-condition nursing content (nursing_diagnoses /
+# care_plan / patient_education) for admission_nursing_assessment (doc-05)
+# and nursing_discharge_summary (doc-10).
+#
+# Pre-session-104 behavior: template_generator._build_nursing_{diagnosis,
+# care_plan, patient_education} keyed on 6 chronic ICD-10 prefixes
+# (I10 / I50 / E11 / N18 / J45 / J44) — completely disease-agnostic for
+# ACUTE admission reasons, so every COPD-exacerbation admission got the
+# same nursing content as a DVT admission (whichever chronic conditions
+# happened to be present).
+#
+# Post-session-104: two lookup axes are merged (acute-first, chronic-second):
+#   1. `acute_disease.<disease_id>` — matched against
+#      ctx.disease_protocol.disease_id (the admission reason).
+#   2. `chronic_icd10.<code>` — matched against
+#      ctx.patient.chronic_conditions[].code prefix (comorbidities).
+#
+# Merge algorithm:
+#   items_out = dedup(acute_items + chronic_items)[:cap]
+# where cap = 5 (nursing_diagnoses) / 4 (care_plan) / 4 (patient_education).
+# Acute items always rank above chronic items so the primary admission
+# reason drives the nursing framing.
+#
+# When neither axis matches, the template falls back to the
+# generic-fallback constant it used pre-session-104 (unchanged behavior).
+#
+# Pilot scope: 5 acute diseases matching the top-5 inpatient LOS drivers
+# observed in US p=10k s=326 (session 104 verify): copd_exacerbation,
+# diabetic_ketoacidosis, heart_failure_exacerbation, bacterial_pneumonia,
+# cerebral_infarction. Additional acute diseases can be added incrementally
+# without any code change — the loader treats missing entries as "use
+# chronic-only path".
+#
+# Curation source: nursing-diagnosis (NANDA-I 2024-2026), care-plan
+# (NIC 8th ed. domains), patient-education (AHA / ADA / ATS / ASA
+# published patient guides). No verbatim copyrighted text — paraphrased
+# clinical concept only.
+
+version: 1
+
+acute_disease:
+
+  copd_exacerbation:
+    nursing_diagnoses:
+      ja:
+        - ガス交換障害
+        - 気道クリアランス不十分
+        - 活動耐性低下
+        - 不安 (呼吸困難関連)
+      en:
+        - impaired gas exchange
+        - ineffective airway clearance
+        - activity intolerance
+        - anxiety (dyspnea-related)
+    care_plan:
+      ja:
+        - SpO2 持続モニタ + 酸素投与量調整
+        - 呼吸パターン・副雑音を 1 shift 毎に評価
+        - 起坐位で呼吸楽な体位保持を支援
+        - 吸入手技を毎回付き添い確認
+      en:
+        - continuous SpO2 monitoring + O2 titration
+        - respiratory pattern + adventitious sounds q shift
+        - support upright / tripod positioning for dyspnea relief
+        - direct-observed inhaler technique at each dose
+    patient_education:
+      ja:
+        - 吸入器手技の再確認 (定量吸入・スペーサ使用法)
+        - 増悪の早期サイン認識 (痰の色調変化・SpO2 低下)
+        - 禁煙継続支援と受動喫煙回避
+        - 呼吸リハビリの継続方法
+      en:
+        - inhaler technique reinforcement (MDI + spacer use)
+        - early exacerbation signs (sputum color change, SpO2 drop)
+        - smoking cessation reinforcement + secondhand smoke avoidance
+        - pulmonary rehabilitation continuation
+
+  diabetic_ketoacidosis:
+    nursing_diagnoses:
+      ja:
+        - 体液量不足
+        - 電解質バランス異常のリスク
+        - 血糖コントロール変動
+        - 感染徴候観察
+      en:
+        - deficient fluid volume
+        - risk for electrolyte imbalance
+        - unstable glycemic control
+        - risk for infection
+    care_plan:
+      ja:
+        - IN/OUT を 1 時間毎に計測、輸液速度調整を医師と連携
+        - 血糖・血清 K を 1-2 時間毎にモニタ、低血糖・低 K を早期認識
+        - 意識状態と Kussmaul 呼吸を継続観察
+        - 感染源探索 (尿・下気道) と体温トレンド記録
+      en:
+        - hourly I/O, coordinate IV rate titration with MD
+        - q1-2h glucose + serum K monitoring, early hypoglycemia / hypokalemia recognition
+        - continuous mental-status + Kussmaul-respiration assessment
+        - infection source workup (urine / LRT) + temperature trending
+    patient_education:
+      ja:
+        - シックデイルール (発熱・嘔吐時の インスリン調整と受診タイミング)
+        - 血糖自己測定 + ケトン尿試験紙の使用法
+        - 低血糖症状と即応 (ブドウ糖・グルカゴン)
+        - 定期通院とインスリン投与遵守の重要性
+      en:
+        - sick-day rules (insulin dose + when to seek care during illness)
+        - self blood-glucose monitoring + urine-ketone strips
+        - hypoglycemia recognition + rescue (glucose tabs / glucagon)
+        - importance of routine follow-up + insulin adherence
+
+  heart_failure_exacerbation:
+    nursing_diagnoses:
+      ja:
+        - 体液量過剰
+        - 心拍出量減少
+        - 活動耐性低下
+        - 不安 (呼吸困難関連)
+      en:
+        - excess fluid volume
+        - decreased cardiac output
+        - activity intolerance
+        - anxiety (dyspnea-related)
+    care_plan:
+      ja:
+        - 毎日同一条件で体重測定・浮腫程度を記録
+        - IN/OUT 厳密管理、水分制限 (指示量) 遵守
+        - 起坐位保持・下肢挙上を支援
+        - 利尿薬投与後の血圧・尿量を継続観察
+      en:
+        - daily weight (same conditions) + edema grading
+        - strict I/O, adhere to prescribed fluid restriction
+        - support upright positioning + leg elevation
+        - post-diuretic BP + urine output monitoring
+    patient_education:
+      ja:
+        - 毎日の体重測定と 2 日で 2kg 増加時の連絡基準
+        - 減塩食 (1 日 6g 以下) と加工食品回避
+        - 服薬遵守 (利尿薬・β遮断薬・ACEi/ARB)
+        - 息切れ・下肢浮腫増悪時の早期受診
+      en:
+        - daily weight + call criteria for 2 kg gain in 2 days
+        - low-sodium diet (< 6 g/d) + processed-food avoidance
+        - medication adherence (diuretic / β-blocker / ACEi-ARB)
+        - early return for worsening dyspnea / lower-extremity edema
+
+  bacterial_pneumonia:
+    nursing_diagnoses:
+      ja:
+        - ガス交換障害
+        - 気道クリアランス不十分
+        - 発熱による体温調節不足
+        - 感染拡大リスク
+      en:
+        - impaired gas exchange
+        - ineffective airway clearance
+        - hyperthermia (fever-related)
+        - risk for infection spread
+    care_plan:
+      ja:
+        - SpO2 継続モニタと酸素投与量調整
+        - 咳嗽介助 + 排痰支援 (体位ドレナージ / ネブライザ)
+        - 発熱時の水分補給促進、解熱後発汗の清潔ケア
+        - 標準予防策の徹底 + 訪問者へ手指衛生指導
+      en:
+        - continuous SpO2 + O2 titration
+        - cough assistance + secretion clearance (positioning / nebulizer)
+        - hydration during fever, hygiene after diaphoresis
+        - standard precautions + hand-hygiene teaching for visitors
+    patient_education:
+      ja:
+        - 抗菌薬の内服完遂 (症状改善後も指示日数まで)
+        - 咳嗽・喀痰・呼吸困難再燃時の早期受診
+        - 手指衛生と咳エチケット、家族への感染予防
+        - 肺炎球菌・インフルエンザワクチン推奨
+      en:
+        - complete full antibiotic course (even after symptoms improve)
+        - early return for recurrent cough / sputum / dyspnea
+        - hand hygiene + cough etiquette, household infection prevention
+        - pneumococcal + influenza vaccination recommended
+
+  cerebral_infarction:
+    nursing_diagnoses:
+      ja:
+        - 脳血流減少に関連した神経学的変化のリスク
+        - 転倒・外傷リスク
+        - 嚥下障害のリスク
+        - コミュニケーション障害
+      en:
+        - risk for altered neurological status related to cerebral perfusion
+        - risk for falls / injury
+        - risk for impaired swallowing
+        - impaired verbal communication
+    care_plan:
+      ja:
+        - NIHSS ベースの神経学的評価を毎 shift 実施
+        - 嚥下スクリーニング後の食事形態調整、誤嚥予防
+        - "転倒予防: ベッド柵・センサーマット・ナースコール手元"
+        - 患側肢のポジショニング + 早期リハビリ連携
+      en:
+        - NIHSS-based neurological assessment q shift
+        - swallow screening → diet-form modification, aspiration precautions
+        - "fall precautions: bed rails, sensor mat, call bell within reach"
+        - affected-limb positioning + early rehab coordination
+    patient_education:
+      ja:
+        - 抗血栓薬の服薬遵守と出血症状の観察
+        - 血圧・血糖・脂質管理と生活習慣改善
+        - 再発サイン (FAST) の家族共有
+        - 通所リハビリの継続と自宅環境整備
+      en:
+        - antithrombotic adherence + bleeding-sign monitoring
+        - BP / glucose / lipid control + lifestyle modification
+        - stroke-recurrence signs (FAST) shared with family
+        - outpatient rehab continuation + home-environment safety
+
+# Chronic ICD-10 axis — mirrors the pre-session-104 hardcoded map for
+# byte-diff safety. Verbatim carry-over of the 6 prefixes the code path
+# already understood. Add new prefixes here without touching template
+# code.
+chronic_icd10:
+
+  I10:
+    nursing_diagnoses:
+      ja: [血圧管理不足のリスク]
+      en: [risk for inadequate BP control]
+    care_plan:
+      ja: [血圧を朝夕測定、目標未達時は担当医へ報告]
+      en: [monitor BP AM/PM, escalate to MD if goal not met]
+    patient_education:
+      ja: [血圧測定と減塩指導]
+      en: [home BP monitoring + low-salt diet]
+
+  I50:
+    nursing_diagnoses:
+      ja: [体液貯留・活動耐性低下]
+      en: [fluid retention / activity intolerance]
+    care_plan:
+      ja: [体重・浮腫を毎日測定、水分制限指導]
+      en: [daily weight + edema check, fluid restriction education]
+    patient_education:
+      ja: [水分・塩分制限、体重毎日測定]
+      en: [fluid/salt restriction, daily weight]
+
+  E11:
+    nursing_diagnoses:
+      ja: [血糖コントロール変動]
+      en: [unstable glycemic control]
+    care_plan:
+      ja: [血糖モニタ、低血糖症状観察]
+      en: [glucose monitoring, hypoglycemia surveillance]
+    patient_education:
+      ja: [血糖自己測定、低血糖対応]
+      en: [SMBG + hypoglycemia response]
+
+  N18:
+    nursing_diagnoses:
+      ja: [腎機能低下・電解質異常のリスク]
+      en: [renal impairment / electrolyte imbalance risk]
+    care_plan:
+      ja: [尿量・浮腫観察、電解質モニタ]
+      en: [urine output + edema + electrolyte monitoring]
+    patient_education:
+      ja: [腎機能保護、蛋白制限]
+      en: [renoprotective + protein restriction]
+
+  J45:
+    nursing_diagnoses:
+      ja: [気道クリアランス不十分のリスク]
+      en: [risk for ineffective airway clearance]
+    care_plan:
+      ja: [呼吸音聴診、SpO2 継続モニタ、吸入指導]
+      en: [auscultation, continuous SpO2, inhaler teaching]
+    patient_education:
+      ja: [吸入器手技、増悪サイン認識]
+      en: [inhaler technique + exacerbation triggers]
+
+  J44:
+    nursing_diagnoses:
+      ja: [ガス交換障害のリスク]
+      en: [risk for impaired gas exchange]
+    care_plan:
+      ja: [呼吸パターン観察、酸素投与量調整]
+      en: [respiratory pattern check, O2 titration]
+    patient_education:
+      ja: [禁煙、呼吸リハビリ継続]
+      en: [smoking cessation + pulmonary rehab continuation]
