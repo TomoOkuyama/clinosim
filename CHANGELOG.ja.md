@@ -31,6 +31,38 @@ JP 表示テキスト方針変更、JP 保険番号 opt-in 挙動変更等) が�
 
 ## [Unreleased] (JP load-bearing 追記)
 
+## [0.6.0] - 2026-09-07 (JP load-bearing 追記)
+
+- **session 104 実測 defect fix 3 件** (2026-09-06 → 2026-09-07):
+  - **JP 抗癌剤 canonical katakana** (PR #1170、Issue #1168 Cat A/B):
+    `chronic_medications.yaml` 側で `drug_ja` 定義済だが
+    `drug_names_ja.yaml` 側に未登録だった 14 薬 (Osimertinib →
+    オシメルチニブ / Sorafenib → ソラフェニブ / Lenvatinib →
+    レンバチニブ / 他 11 薬) を追加。localize 抜けが解消され JP
+    narrative の EN 混入が消える。
+  - **Rule 5 Section A に stage/persistence 語彙追加** (PR #1170):
+    従来は mild/moderate/severe しか対象化されていなかったが、
+    Stage / Level / Grade / persistent / intermittent を追加。
+    prompt v15 → v16。case-insensitive 明示、「Mild persistent」
+    → 「軽度持続」の複合形も enumerate。
+  - **admission_hp EN 出力 Kanji 見出し混入 fix** (PR #1169、
+    Issue #1167): 【評価】/【薬物療法】等 5 見出しの locale 分岐を
+    prompt に明記。target_language=en 時は "Assessment /
+    Medications / Diagnostics / Patient Education / Planned Length
+    of Stay" に切り替わる。US p=100 で 4/859 doc が Kanji 混入 → 0 化。
+- **calendar-day filter fix (progress-note vitals grounding)** (PR
+  #1171、Issue #1166): `_filter_vitals_for_day` + 3 sibling
+  helper が `timedelta.days` を使っており、20:23 admission だと
+  day_index=1 が 2026-03-20 evening + 2026-03-21 daytime の 2 暦日
+  にまたがっていた → LLM が Objective (day-1 evening) と別日 (day-2)
+  の T=38.5°C spike を "today's" として引用する Rule 1 GROUNDING
+  drift。calendar-day 化 (`(ts.date() - adm_dt.date()).days`) で解決。
+- **疾患別 nursing content pilot (5 疾患)** (PR #1165): 従来 nursing
+  content は chronic ICD-10 の 6 prefix のみ由来だったので、
+  COPD 増悪 / DKA / HF 増悪 / 細菌性肺炎 / 脳梗塞 全て同一な内容が
+  emit されていた。`nursing_content.yaml` に急性疾患軸を追加、NANDA-I
+  / NIC / AHA-ADA-ATS-ASA 患者向け教育資材ベースで疾患別 nursing
+  diagnosis / care plan / patient education を格納。
 - **JP 完全生命表 (MHLW 2020 第23回) 導入 + natural_death lifecycle 完成** (PR #1147/#1150/#1152/#1153、session 103 C11g-1〜5):
   `clinosim/locale/shared/actuarial_life_table.yaml` に JP MHLW 生命表 (男/女、
   0-110 歳 5 年帯 qₓ) を追加、`clinosim.modules.natural_death.NaturalDeathEnricher`
