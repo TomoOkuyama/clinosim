@@ -4921,13 +4921,18 @@ class TemplateNarrativeGenerator:
         if patient is None:
             return ""
         conditions = _o(patient, "chronic_conditions", []) or []
-        if not conditions:
-            return ""
+        # Issue #1183: the empty-conditions early return silently dropped
+        # abnormal-vital lines for patients with no chronic conditions.
+        # Continue into the loop with an empty condition list; the
+        # vital-abnormal pass at the end still fires.
         vitals = list(ctx.vitals or [])
         labs = list(ctx.lab_results or [])
         v0 = vitals[0] if vitals else None
         sbp = _o(v0, "systolic_bp", None) if v0 else None
         dbp = _o(v0, "diastolic_bp", None) if v0 else None
+        hr_v = _o(v0, "heart_rate", None) if v0 else None
+        temp_v = _o(v0, "temperature_celsius", None) if v0 else None
+        spo2_v = _o(v0, "spo2", None) if v0 else None
 
         # Issue #985: cite value regardless of flag — a target-comparison
         # assessment needs the actual number even when in-range.
@@ -5148,6 +5153,49 @@ class TemplateNarrativeGenerator:
             else:
                 stub = "本日測定なし、次回受診時再評価。" if is_ja else "no measurement today; reassess next visit."
                 lines.append(f"{i}. {label}: {stub}")
+
+        # Issue #1183: Assessment previously ignored abnormal vitals that
+        # were not paired with a matching chronic condition. Tachycardia
+        # was acknowledged in 2.5% of notes (20/790), hypoxemia in 0%
+        # (0/1,890), and fever in only 6.7% (2/30). Add a per-vital pass
+        # after the condition-dispatch loop so a HR ≥100 / SpO2 <95 /
+        # T ≥38 always surfaces in the Assessment prose regardless of
+        # the chronic-condition list.
+        vital_lines: list[str] = []
+        try:
+            hr_f = float(hr_v) if hr_v is not None else None
+        except (TypeError, ValueError):
+            hr_f = None
+        try:
+            temp_f = float(temp_v) if temp_v is not None else None
+        except (TypeError, ValueError):
+            temp_f = None
+        try:
+            spo2_f = float(spo2_v) if spo2_v is not None else None
+        except (TypeError, ValueError):
+            spo2_f = None
+        if hr_f is not None and hr_f >= 100:
+            if is_ja:
+                vital_lines.append(f"頻脈: HR {int(round(hr_f))} 回/分、動悸・脱水評価要。")
+            else:
+                vital_lines.append(f"Tachycardia: HR {int(round(hr_f))} /min, assess volume + arrhythmia.")
+        if spo2_f is not None and spo2_f < 95:
+            severity_ja = "重度低酸素症" if spo2_f < 90 else "低酸素症"
+            severity_en = "severe hypoxemia" if spo2_f < 90 else "hypoxemia"
+            if is_ja:
+                vital_lines.append(f"{severity_ja}: SpO2 {spo2_f:.0f}%、酸素化評価要。")
+            else:
+                vital_lines.append(f"{severity_en.capitalize()}: SpO2 {spo2_f:.0f}%, oxygenation review needed.")
+        if temp_f is not None and temp_f >= 38.0:
+            if is_ja:
+                vital_lines.append(f"発熱: T {temp_f:.1f}°C、感染源精査要。")
+            else:
+                vital_lines.append(f"Fever: T {temp_f:.1f}°C, evaluate for infection source.")
+        # Append with continued numbering so the Assessment reads as one list.
+        start = len(lines) + 1
+        for j, extra in enumerate(vital_lines):
+            lines.append(f"{start + j}. {extra}")
+
         if not lines:
             return ""
         return "\n".join(lines)
