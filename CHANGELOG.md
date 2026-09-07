@@ -39,26 +39,114 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
-**v0.6.0 scope complete, awaiting user Go for tag.** The initial
-v0.6.0 tag was cut on 2026-08-31 and **un-released the same day**
-because META Issues #914 Bucket B / #957 remaining slices / #757
-remaining mappings were left as follow-up rather than completed.
-Session 97 (2026-09-01) closed the last remaining sub-item —
-pregnancy lifecycle refactor (PR #1051, Incr 1 of META #957) +
-chemo per-cycle emit drift close-out (PR #1052) — and **all three
-META Issues (#914, #957, #757) are now CLOSED**. Sessions 100-103
-(2026-09-05 → 2026-09-06) added a further ~40 PRs on top: full
-`natural_death` lifecycle (C11g-1 → C11g-5), US insurance `Coverage`
-emit, engine calendar-loop fix, an 8-axis US demographics
-recalibration bundle (E66 / cancer / dementia / osteoporosis /
-depression / anxiety / young-adult HTN / SDOH tobacco+alcohol /
-MI+stroke incidence), hospital-cohort target-band verifier, imaging
-stub-share ~19 % → < 3 %, and a narrative CIF density round-out
-(admission H&P + progress-note SOAP + on-disk `structured` cleanup).
-The remaining step is the tag itself, which is held per project
-policy until an explicit user Go signal
-(`feedback_release_tag_requires_user_go`). Everything below stays
-queued under `[Unreleased]` until the re-tag.
+## [0.6.0] - 2026-09-07
+
+**MINOR** — the wave of feature + defect-fix work accumulated across
+sessions 97-104 (2026-09-01 → 2026-09-07) is cut as v0.6.0. The
+initial v0.6.0 tag was attempted on 2026-08-31 and **un-released the
+same day** because META Issues #914 Bucket B / #957 remaining slices
+/ #757 remaining mappings were left as follow-up. Sessions 97-104
+closed those remaining sub-items and added a substantial further
+feature + narrative-quality wave. All CIF ↔ narrative-CIF consistency
+invariants required a MINOR bump per the versioning policy: seven of
+the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
+`narrate` run is required against the new structured CIF.
+
+### Session 104 (2026-09-06 → 2026-09-07) additions
+
+#### Added
+
+- **Patient-profile realism keys for LLM narrative prompts** (PR
+  [#1164](https://github.com/TomoOkuyama/clinosim/pull/1164)). Three
+  new context keys populated by
+  `replacement_strategy._build_extra_context` — `patient_demographics`
+  (age / sex / employment / smoking / alcohol / marital / insurance
+  anchor), `patient_biometrics` (Ht / Wt / BMI / blood type),
+  `health_literacy_tag` (`low` / `medium` / `high` band). Bundle
+  prompt v14 → v15 gains new Rule 6 HEALTH-LITERACY TONE consumer.
+  SOAP-shaped docs (progress_note / outpatient_soap / ed_note) that
+  previously saw only the coarse `patient_bucket` now get exact
+  demographics + biometrics; discharge_instructions and
+  family_communication tone matches the reader's literacy band.
+  RNG-cascade — cache signature widens to include patient profile.
+- **Disease-specific nursing content pilot** (PR
+  [#1165](https://github.com/TomoOkuyama/clinosim/pull/1165)). New
+  `clinosim/modules/document/reference_data/nursing_content.yaml`
+  registers 5 acute-disease pilot entries
+  (copd_exacerbation / diabetic_ketoacidosis /
+  heart_failure_exacerbation / bacterial_pneumonia /
+  cerebral_infarction) plus the 6 grandfathered chronic ICD-10
+  prefixes. `_build_nursing_diagnosis` / `_build_care_plan` /
+  `_build_patient_education` now merge acute-first, chronic-second,
+  deduplicated. Pre-104 nursing content was chronic-only — every
+  COPD-exacerbation admission produced the same nursing text as any
+  other. Post-104, pilot disease admissions surface NANDA-I-grounded,
+  disease-specific nursing diagnoses / NIC care actions / patient
+  education topics. Byte-diff on non-pilot encounters is zero (the
+  chronic axis reproduces the pre-104 hardcoded map verbatim). RNG-
+  cascade on pilot-disease encounters (narrative text change).
+
+#### Fixed
+
+- **admission_hp EN Kanji heading leak** (PR
+  [#1169](https://github.com/TomoOkuyama/clinosim/pull/1169),
+  closes #1167). H100 verify surfaced 4 / 859 US narrative docs
+  emitting bare 評価 / 薬物療法 / 検査 Kanji headings inside English
+  admission-H&P `assessment_and_plan`. Bundle prompt v15 → v16 splits
+  the REQUIRED heading list by locale (target_language=ja →
+  【評価】/【薬物療法】/…, target_language=en →
+  **Assessment / Medications / Diagnostics / Patient Education /
+  Planned Length of Stay**). Non-admission_hp doc types unchanged;
+  no RNG effect.
+- **JP narrative EN-leak (14 oncology drug names + Rule 5
+  descriptors)** (PR
+  [#1170](https://github.com/TomoOkuyama/clinosim/pull/1170),
+  partially closes #1168). H100 JP verify surfaced ~280 English-
+  token leaks that are not Japanese-EHR-common medical acronyms. Two
+  root causes:
+  - 14 chronic-medication + chemo drugs (Osimertinib / Sorafenib /
+    Lenvatinib / Anastrozole / Bicalutamide / Capecitabine /
+    Carboplatin / Folic acid / Leucovorin / Leuprorelin / Oxaliplatin
+    / Pemetrexed / Tamoxifen / Trastuzumab) had `drug_ja` katakana in
+    `chronic_medications.yaml` but no entry in `drug_names_ja.yaml`
+    → localizer missed them → EN name leaked to JA output. Added
+    them under a new `# --- Oncology / 抗癌剤・分子標的薬 ---`
+    section with MHLW YJ / brand annotations.
+  - Rule 5 LOCALIZATION Section A pre-104 only covered severity
+    (mild/moderate/severe). Verify surfaced 216+ bare
+    Stage / Mild / Moderate / persistent / intermittent / Level
+    tokens. v15 → v16 Section A now enumerates these + Grade,
+    states case-insensitivity, and demonstrates compound severity
+    forms ("Mild persistent" → 「軽度持続」).
+  Category C leaks (Ice pack application / Elastic bandage wrap /
+  Silver sulfadiazine cream / "mg PO daily" / Xray / daily) are
+  deferred — mixed CIF-source root causes tracked as #1168 remainder.
+- **Progress-note calendar-day filter** (PR
+  [#1171](https://github.com/TomoOkuyama/clinosim/pull/1171),
+  closes #1166). H100 US verify surfaced a progress-note whose
+  Assessment cited "new fever spike to 38.5°C" while the same doc's
+  Objective showed T 36.8°C. The 38.5°C reading was real but
+  belonged to a different calendar day than the doc was labeled for.
+  Root cause: `_filter_vitals_for_day` and 3 sibling per-day filters
+  (session-103 lab/med filters) used `(ts - adm_dt).days` — a
+  `timedelta.days` floor that buckets sub-daily admission times into
+  24-h windows spanning two calendar days. Fix: switch to
+  `(ts.date() - adm_dt.date()).days` in all four sites so day_index=N
+  = Nth calendar day since admission (matches the
+  `hospital_day_label` rendering the LLM sees). Byte-diff on
+  encounters admitted late in a calendar day; no RNG effect.
+
+#### Chore
+
+- **dependabot: ruff 0.16.4 → 0.16.5** (PR
+  [#1162](https://github.com/TomoOkuyama/clinosim/pull/1162)).
+- **Documentation drift sweep** (PR
+  [#1163](https://github.com/TomoOkuyama/clinosim/pull/1163)).
+  CHANGELOG + AGENTS + module READMEs + docs/architecture updated to
+  reflect the session 100-103 wave that had landed on master without
+  documentation follow-up. See PR body for the drift punch-list.
+
+### Sessions 100-103 (2026-09-05 → 2026-09-06) additions
 
 ### Added (session 103 — natural_death lifecycle end-to-end)
 
