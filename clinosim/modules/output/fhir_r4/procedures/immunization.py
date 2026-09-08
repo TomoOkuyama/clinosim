@@ -16,6 +16,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
+from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _coding_with_display,
@@ -44,6 +45,45 @@ def _resolve_immunization_id(structural_key: str) -> str:
     return derive_opaque_id(IMMUNIZATION_ID_PREFIX, structural_key)
 
 
+def _match_immunization_encounter(imm: Any, encounters: list) -> str:
+    """Best-effort match of an immunization to its administering encounter.
+
+    Issue #1184 F4 / #1186 F6: 100% of `Immunization.encounter` slots were
+    blank because ``ImmunizationRecord`` has no ``encounter_id`` field.
+    The immunization scheduler runs independently of the encounter loop,
+    so wire the link at emit time by matching:
+      1. ``occurrence_date`` == encounter admission date, AND
+      2. the encounter is a vaccination-purpose visit (chief_complaint
+         mentions vaccination / immunization / 予防接種, or the encounter
+         type is pediatric_visit).
+
+    Returns the CIF encounter_id of the first match, or an empty string
+    when no encounter on that day plausibly administered the vaccine.
+    """
+    if not encounters:
+        return ""
+    occ = get_attr_or_key(imm, "occurrence_date", None)
+    if occ is None:
+        return ""
+    # Normalize to date for comparison.
+    occ_date = occ if hasattr(occ, "day") else None
+    if occ_date is None:
+        return ""
+    _vaccine_cc_hints = ("予防接種", "vaccination", "vaccine", "immunization")
+    for enc in encounters:
+        adm = get_attr_or_key(enc, "admission_datetime", None)
+        if adm is None:
+            continue
+        adm_date = adm.date() if hasattr(adm, "date") else adm
+        if adm_date != occ_date:
+            continue
+        cc = get_attr_or_key(enc, "chief_complaint_ja", "") or get_attr_or_key(enc, "chief_complaint", "") or ""
+        cc_l = str(cc).lower()
+        if any(h in cc_l or h in cc for h in _vaccine_cc_hints):
+            return get_attr_or_key(enc, "encounter_id", "") or ""
+    return ""
+
+
 def _bb_immunizations(ctx: BundleContext) -> list[dict]:
     """Build FHIR Immunization resources from CIF immunizations (CVX codes, AD-30/AD-56).
 
@@ -53,6 +93,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
     """
     lang = resolve_lang(ctx.country)
     out: list[dict] = []
+    encounters = ctx.record.get("encounters", []) or []
 
     for i, imm in enumerate(ctx.record.get("immunizations") or []):
         cvx = get_attr_or_key(imm, "vaccine_cvx", "")
@@ -99,6 +140,13 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
             "recorded": occ_str,
             "primarySource": primary_source,
         }
+        # Issue #1184 F4 / #1186 F6: link Immunization to the vaccination
+        # encounter that administered it. Emit only when a same-day
+        # vaccination-purpose encounter is found — silence beats a
+        # fabricated reference (AD-30).
+        matched_enc = _match_immunization_encounter(imm, encounters)
+        if matched_enc:
+            resource["encounter"] = encounter_ref(matched_enc)
         # C1-19: FHIR R4 requires statusReason when
         # Immunization.status is "not-done". Use v3-ActReason PATOBJ
         # ("patient objection") since clinosim samples refusals rather than
