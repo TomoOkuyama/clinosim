@@ -3144,7 +3144,7 @@ class TemplateNarrativeGenerator:
             if hr:
                 vital_line_parts.append(f"HR {int(hr)}")
             if spo2:
-                vital_line_parts.append(f"SpO2 {int(float(spo2))}%")
+                vital_line_parts.append(f"SpO2 {float(spo2):.0f}%")
             if temp:
                 vital_line_parts.append(f"T {float(temp):.1f}°C")
             if vital_line_parts:
@@ -4412,9 +4412,9 @@ class TemplateNarrativeGenerator:
                     parts.append(f"Hypothermia {float(temp):.1f}°C noted.")
             if spo2 and float(spo2) < 92:
                 if is_ja:
-                    parts.append(f"SpO2 {int(float(spo2))}% と低下傾向。")
+                    parts.append(f"SpO2 {float(spo2):.0f}% と低下傾向。")
                 else:
-                    parts.append(f"SpO2 {int(float(spo2))}% (desaturation trend).")
+                    parts.append(f"SpO2 {float(spo2):.0f}% (desaturation trend).")
         if len(parts) <= 1:
             # No abnormal signal — neutral observation phrase
             if is_ja:
@@ -5149,7 +5149,7 @@ class TemplateNarrativeGenerator:
                 spo2 = _o(v0, "spo2", None) if v0 else None
                 bits: list[str] = []
                 if spo2:
-                    bits.append(f"SpO2 {int(spo2)}%")
+                    bits.append(f"SpO2 {float(spo2):.0f}%")
                 med = _pick_med_containing(
                     en_hints=("LABA", "LAMA", "Tiotropium", "Salmeterol"),
                     ja_hints=("LABA", "LAMA", "チオトロピウム", "サルメテロール"),
@@ -5166,7 +5166,7 @@ class TemplateNarrativeGenerator:
                 spo2 = _o(v0, "spo2", None) if v0 else None
                 bits2: list[str] = []
                 if spo2:
-                    bits2.append(f"SpO2 {int(spo2)}%")
+                    bits2.append(f"SpO2 {float(spo2):.0f}%")
                 med = _pick_med_containing(
                     en_hints=("ICS", "Salmeterol", "Montelukast"),
                     ja_hints=("ICS", "サルメテロール", "モンテルカスト"),
