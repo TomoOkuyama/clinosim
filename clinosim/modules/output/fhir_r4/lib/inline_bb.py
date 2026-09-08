@@ -471,6 +471,57 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
                     earliest_admin_dt=_earliest_admin_by_oid.get(_oid, ""),
                 )
             )
+    return _dedup_medication_requests(out)
+
+
+def _dedup_medication_requests(mrs: list[dict]) -> list[dict]:
+    """Drop MedicationRequests that are byte-identical duplicates on
+    (drug text, authoredOn date, first-dosage text, first-route code).
+
+    Issue #1177: 247 (patient, authoredOn) buckets in the JP p=10000
+    sample emit ≥2 MedicationRequests whose drug + dose + route are
+    literally the same. Downstream med-reconciliation fires a false
+    duplicate-order alert on all 247, cumulative-dose calculators
+    double-count, and current-meds panels double-list. Multiple CIF
+    order sources (chronic list + episode-specific + inpatient
+    add-on) can converge on the same effective order — the CIF layer
+    could dedup at source, but a final-emit dedup here also protects
+    against future new order sources landing without their own guard.
+
+    Keeps the first occurrence per key; drops later duplicates. Never
+    coalesces different-formulation entries (different dose OR route
+    OR authoredOn day = distinct key, retained). No RNG involvement.
+    """
+    seen: set[tuple[str, str, str, str]] = set()
+    out: list[dict] = []
+    for mr in mrs:
+        med_text = ""
+        med = mr.get("medicationCodeableConcept")
+        if isinstance(med, dict):
+            med_text = str(med.get("text", "") or "").strip().lower()
+        authored = str(mr.get("authoredOn", ""))[:10]  # date-precision, ignore TZ
+        dose_text = ""
+        route_code = ""
+        di = mr.get("dosageInstruction") or []
+        if di and isinstance(di[0], dict):
+            di0 = di[0]
+            dose_text = str(di0.get("text", "") or "").strip().lower()
+            route = di0.get("route")
+            if isinstance(route, dict):
+                coding = route.get("coding") or []
+                if coding and isinstance(coding[0], dict):
+                    route_code = str(coding[0].get("code", "") or "").strip().lower()
+        key = (med_text, authored, dose_text, route_code)
+        # Empty-drug-text rows fall through unchanged — we cannot decide
+        # equality without a drug identity, and the earlier filter already
+        # drops empty-display orders.
+        if not med_text:
+            out.append(mr)
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(mr)
     return out
 
 
