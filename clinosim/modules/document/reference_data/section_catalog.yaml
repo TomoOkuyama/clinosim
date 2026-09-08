@@ -234,7 +234,12 @@ risk_assessments:
 care_plan:
   title_ja: "看護計画"
   title_en: "Care plan"
-  loinc: "18776-5"
+  # Issue #1105: route the specific `看護計画` (Nurse Plan of Care) slug to
+  # LOINC 64295-9 "Nurse Plan of Care Note" instead of the generic
+  # 18776-5 "Plan of care note". Verified via
+  # clinicaltables.nlm.nih.gov/api/loinc_items (LONG_COMMON_NAME =
+  # "Nurse Plan of Care Note").
+  loinc: "64295-9"
 
 reassessment_timing:
   title_ja: "再評価予定"
@@ -354,7 +359,10 @@ social_history:
 patient_education:
   title_ja: "患者教育"
   title_en: "Patient education"
-  loinc: "18776-5"
+  # Issue #1105: route the specific `患者教育` slug to LOINC 34895-3
+  # "Patient education and consents" instead of the generic 18776-5.
+  # Verified via clinicaltables.nlm.nih.gov/api/loinc_items.
+  loinc: "34895-3"
 
 # ---------------------------------------------------------------------------
 # ED / inpatient planning (Issue #870)
