@@ -70,6 +70,7 @@ from clinosim.modules.population._population_thresholds import (
 from clinosim.modules.population._population_workflow_thresholds import (
     CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE,
     CHRONIC_VISITS_MAX_PER_YEAR,
+    COLONOSCOPY_MAX_AGE,
     COLONOSCOPY_MIN_AGE,
     COLONOSCOPY_PROBABILITY,
     DIABETIC_RETINOPATHY_ICD10_CODE,
@@ -83,10 +84,12 @@ from clinosim.modules.population._population_workflow_thresholds import (
     FLU_VAX_COMORBIDITY_MIN,
     FLU_VAX_MONTHS,
     FLU_VAX_PROBABILITY,
+    HEALTH_SCREENING_MAX_AGE,
     HEALTH_SCREENING_MIN_AGE,
     HEALTH_SCREENING_MONTH_END_EXCLUSIVE,
     HEALTH_SCREENING_MONTH_START,
     LEGAL_ADULT_AGE,
+    MAMMOGRAPHY_MAX_AGE,
     MAMMOGRAPHY_MIN_AGE,
     MAMMOGRAPHY_PROBABILITY,
     MIXED_CONDITIONS_MIN_AGE_DEFAULT,
@@ -1235,24 +1238,30 @@ def generate_healthcare_calendar(
             month += shortest_interval
             visit_count += 1
 
-        # --- Annual health screening (age 40+) ---
+        # --- Annual health screening (age 40-89, S14 upper cap) ---
+        # RNG-neutral gate: consume the two prng.integers draws for
+        # anyone at or above the lower age gate so populations below
+        # the cap byte-shape is unchanged; only skip the append when
+        # age > MAX. Above ~90, ADL dependency + comorbidity load make
+        # routine asymptomatic screening low-yield (Issue #1189 F3
+        # sibling).
         if person.age >= HEALTH_SCREENING_MIN_AGE:
             screening_month = int(prng.integers(HEALTH_SCREENING_MONTH_START, HEALTH_SCREENING_MONTH_END_EXCLUSIVE))
-            screening_date = date(
-                year, screening_month, int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE))
-            )
-            events.append(
-                LifeEvent(
-                    person_id=person.person_id,
-                    event_type="health_screening",
-                    timestamp=screening_date,
-                    severity=0.0,
-                    condition_type="screening",
-                    disease_id="annual_health_screening",
-                    encounter_type="outpatient",
-                    protocol_source="screening:annual",
+            screening_day = int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE))
+            if person.age <= HEALTH_SCREENING_MAX_AGE:
+                screening_date = date(year, screening_month, screening_day)
+                events.append(
+                    LifeEvent(
+                        person_id=person.person_id,
+                        event_type="health_screening",
+                        timestamp=screening_date,
+                        severity=0.0,
+                        condition_type="screening",
+                        disease_id="annual_health_screening",
+                        encounter_type="outpatient",
+                        protocol_source="screening:annual",
+                    )
                 )
-            )
 
         # --- Flu vaccination (age 65+ or chronic conditions, Oct-Dec) ---
         if person.age >= FLU_VAX_ADULT_AGE_THRESHOLD or len(person.chronic_conditions) >= FLU_VAX_COMORBIDITY_MIN:
@@ -1274,7 +1283,15 @@ def generate_healthcare_calendar(
                 )
 
         # --- Colonoscopy screening (age 50+, every 10 years → ~10% per year) ---
-        if person.age >= COLONOSCOPY_MIN_AGE and prng.random() < COLONOSCOPY_PROBABILITY:
+        # RNG-neutral upper-age cap (S14): keep the prng.random() draw for
+        # any age >= COLONOSCOPY_MIN_AGE so RNG shape is unchanged for
+        # populations below the cap; drop the emit when age > MAX.
+        _colonoscopy_roll = prng.random() if person.age >= COLONOSCOPY_MIN_AGE else None
+        if (
+            COLONOSCOPY_MIN_AGE <= person.age <= COLONOSCOPY_MAX_AGE
+            and _colonoscopy_roll is not None
+            and _colonoscopy_roll < COLONOSCOPY_PROBABILITY
+        ):
             events.append(
                 LifeEvent(
                     person_id=person.person_id,
@@ -1293,7 +1310,16 @@ def generate_healthcare_calendar(
             )
 
         # --- Mammography screening (women 40+, annual → ~60% participation) ---
-        if person.sex == "F" and person.age >= MAMMOGRAPHY_MIN_AGE and prng.random() < MAMMOGRAPHY_PROBABILITY:
+        # RNG-neutral upper-age cap (S14): keep the prng.random() draw for
+        # any eligible-sex person >= MAMMOGRAPHY_MIN_AGE so RNG shape is
+        # unchanged for populations below the cap; drop emit when > MAX.
+        _mammography_roll = prng.random() if (person.sex == "F" and person.age >= MAMMOGRAPHY_MIN_AGE) else None
+        if (
+            person.sex == "F"
+            and MAMMOGRAPHY_MIN_AGE <= person.age <= MAMMOGRAPHY_MAX_AGE
+            and _mammography_roll is not None
+            and _mammography_roll < MAMMOGRAPHY_PROBABILITY
+        ):
             events.append(
                 LifeEvent(
                     person_id=person.person_id,
