@@ -2236,8 +2236,16 @@ class TemplateNarrativeGenerator:
         """
         is_ja = ctx.target_lang == "ja"
         parts: list[str] = []
-        # LOS estimate
-        los = ctx.los_days or 0
+        # LOS estimate — Issue #1185 F4: two sections of the same admission_hp
+        # document reported different planned LOS numbers (25日 vs 17日)
+        # because `_compose_ap_plan_from_state` used `ctx.los_days` (the
+        # actual observed LOS) while `_build_acp_estimated_los` used the
+        # canonical `_estimated_los_days()` resolver (protocol mean =
+        # AT-ADMISSION prediction). Route both through the canonical
+        # resolver so the "予定入院期間" and "推定入院期間" slots of the
+        # same document quote the same value. The resolver falls back to
+        # `ctx.los_days` when disease_protocol is unavailable.
+        los, _los_facts = self._estimated_los_days(ctx)
         if los > 0:
             if is_ja:
                 parts.append(f"予定入院期間: 約{los}日。")
