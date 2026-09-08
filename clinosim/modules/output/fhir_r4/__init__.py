@@ -89,6 +89,7 @@ from clinosim.modules.output.fhir_r4.post_process import (
     _populate_condition_ai_mr_ecs_fields,
     _populate_jp_medication_dosage_ecs_fields,
     _populate_observation_identifier_and_last_updated,
+    _populate_practitioner_reference_display,
     _strip_forbidden_observation_reference_range_extensions,
     _strip_japanese_display_on_english_only_systems,
 )
@@ -282,6 +283,11 @@ def convert_cif_to_fhir(
             # Condition / AllergyIntolerance / MedicationRequest. Universal —
             # US output picks up the same fields harmlessly.
             _populate_condition_ai_mr_ecs_fields(resource, country)
+            # Issue #1178: fill Reference.display for Practitioner/… refs.
+            # Universal — no-op when roster_map is empty. Runs after every
+            # builder + eCS populator so late-added references get the same
+            # treatment.
+            _populate_practitioner_reference_display(resource, roster_map)
             _normalize_dt_fields(resource, country)
             write(resource)
             n_resources += 1
@@ -615,6 +621,9 @@ def _build_bundle(
             # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
             # Condition / AllergyIntolerance / MedicationRequest. Universal.
             _populate_condition_ai_mr_ecs_fields(resource, country)
+            # Issue #1178: fill Reference.display for Practitioner/… refs.
+            # Walks the resource once; no-op when roster_map is empty.
+            _populate_practitioner_reference_display(resource, getattr(ctx, "roster_map", None))
             # feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource, country)
