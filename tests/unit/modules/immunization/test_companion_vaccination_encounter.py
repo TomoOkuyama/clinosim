@@ -34,6 +34,10 @@ def test_synth_encounter_shape() -> None:
     assert enc.chief_complaint_ja == "予防接種"
     assert enc.patient_id == "POP-000001"
     assert enc.encounter_id.startswith("ENC-VAX-POP-000001-")
+    # Issue #1215: encounter carries its own Z23 visit-reason so the FHIR
+    # emit's reasonCode is not polluted by the record's primary IMP dx.
+    assert enc.admission_diagnosis_code == "Z23"
+    assert enc.admission_diagnosis_system == "icd-10-cm"
 
 
 def test_synth_encounter_id_is_deterministic() -> None:

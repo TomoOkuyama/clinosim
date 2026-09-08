@@ -156,6 +156,14 @@ def _synthesize_vaccination_encounter(imm: object, patient_id: str, country: str
     is_ja = country == "JP"
     chief_en = "Vaccination visit"
     chief_ja = "予防接種"
+    # Issue #1215: stamp Z23 "Encounter for immunization" as the companion
+    # encounter's own admission diagnosis so FHIR emit's reasonCode reflects
+    # the visit purpose (vaccination) instead of inheriting the record's
+    # primary IMP admission dx (e.g. T30.0 burn for a hospitalized patient
+    # who happened to also receive an in-window flu shot at a follow-up
+    # visit). Z23 is a visit-reason Z-code (recognized by
+    # ``is_visit_reason_zcode``), so no dangling Condition reference is
+    # created — the reasonCode text/coding alone carries the semantic.
     return Encounter(
         encounter_id=enc_id,
         patient_id=patient_id,
@@ -167,6 +175,8 @@ def _synthesize_vaccination_encounter(imm: object, patient_id: str, country: str
         chief_complaint=chief_en,
         chief_complaint_ja=chief_ja if is_ja else "",
         priority="R",  # routine
+        admission_diagnosis_code="Z23",
+        admission_diagnosis_system="icd-10-cm",
     )
 
 
