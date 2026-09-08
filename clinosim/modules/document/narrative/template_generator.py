@@ -861,20 +861,44 @@ def _age_at(ctx: NarrativeContext) -> int | None:
     if patient is None:
         return None
     static_age = _o(patient, "age", None)
-    dob = _o(patient, "date_of_birth", None)
-    if dob is None:
+    dob_raw = _o(patient, "date_of_birth", None)
+    if dob_raw is None:
+        return static_age
+    # #1173 verify follow-up (2nd pass): CIF can carry `date_of_birth`
+    # as either a `date` object (typed CIF) or an ISO string like
+    # `"1990-06-25"` (CIF reader on serialized JSON). `dob.year` on a
+    # string raises AttributeError which the try/except below silently
+    # swallowed, and the helper fell back to static age — so 94-96% of
+    # SOAP headers still reported the stale age. Normalize string DOB
+    # here so both representations reach the year arithmetic.
+    from datetime import date as _date
+
+    dob: _date | None
+    if isinstance(dob_raw, str):
+        try:
+            dob = _date.fromisoformat(dob_raw[:10])
+        except ValueError:
+            return static_age
+    elif hasattr(dob_raw, "year") and hasattr(dob_raw, "month") and hasattr(dob_raw, "day"):
+        dob = dob_raw
+    else:
         return static_age
     enc = getattr(ctx, "encounter", None)
     ref_dt = _o(enc, "admission_datetime", None) if enc is not None else None
     if ref_dt is None:
         return static_age
     try:
-        ref = ref_dt.date() if isinstance(ref_dt, datetime) else ref_dt
+        if isinstance(ref_dt, str):
+            ref = _date.fromisoformat(ref_dt[:10])
+        elif isinstance(ref_dt, datetime):
+            ref = ref_dt.date()
+        else:
+            ref = ref_dt
         years = ref.year - dob.year - (1 if (ref.month, ref.day) < (dob.month, dob.day) else 0)
         if years < 0:
             return static_age
         return years
-    except (AttributeError, TypeError):
+    except (AttributeError, TypeError, ValueError):
         return static_age
 
 

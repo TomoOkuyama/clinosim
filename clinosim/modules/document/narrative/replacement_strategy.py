@@ -949,18 +949,40 @@ def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None)
     """
     age = _get(patient, "age", None)
     # Age-at-encounter override — Issue #1173 verify gap.
-    dob = _get(patient, "date_of_birth", None)
+    # #1173 verify 2nd pass: CIF `date_of_birth` may be a `date` or an
+    # ISO string ("1990-06-25"). `.year` on a string raised silently-
+    # swallowed AttributeError → static age used → 94-96% stale headers.
+    # Normalize both shapes below.
+    from datetime import date as _date
+    from datetime import datetime as _datetime
+
+    dob_raw = _get(patient, "date_of_birth", None)
+    dob: Any
+    if isinstance(dob_raw, str):
+        try:
+            dob = _date.fromisoformat(dob_raw[:10])
+        except ValueError:
+            dob = None
+    elif dob_raw is not None and hasattr(dob_raw, "year"):
+        dob = dob_raw
+    else:
+        dob = None
     if encounter is not None and dob is not None:
         _adm = _get(encounter, "admission_datetime", None)
         if _adm is not None:
             try:
-                ref_date = _adm.date() if hasattr(_adm, "date") else _adm
+                if isinstance(_adm, str):
+                    ref_date = _date.fromisoformat(_adm[:10])
+                elif isinstance(_adm, _datetime):
+                    ref_date = _adm.date()
+                else:
+                    ref_date = _adm
                 _computed = (
                     ref_date.year - dob.year - (1 if (ref_date.month, ref_date.day) < (dob.month, dob.day) else 0)
                 )
                 if _computed >= 0:
                     age = _computed
-            except (AttributeError, TypeError):
+            except (AttributeError, TypeError, ValueError):
                 pass
     sex = _get(patient, "sex", "")
     is_ja = str(lang).lower().startswith("ja")
