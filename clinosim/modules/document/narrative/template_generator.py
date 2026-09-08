@@ -843,6 +843,41 @@ def _autopsy_performed_sha256(ctx: NarrativeContext) -> bool:
     return h < _DDS_AUTOPSY_PROB_CUTOFF
 
 
+def _age_at(ctx: NarrativeContext) -> int | None:
+    """Age of ``ctx.patient`` at the ``ctx.encounter`` date.
+
+    ``PatientProfile.age`` is a static field set at cohort-generation
+    time. Encounters happen months to years later along the simulation
+    window, so reading ``patient.age`` directly under-reports by 1-2 y
+    (birthday not yet passed / multi-year window). Prefer this helper
+    on any narrative that quotes the patient's age at a specific visit
+    (Issue #1173: 95.1% of SOAP progress-note headers off-by-1-or-2).
+
+    Returns the correctly-aged integer when both ``date_of_birth`` and
+    encounter date are available; falls back to ``patient.age`` when
+    either is missing.
+    """
+    patient = getattr(ctx, "patient", None)
+    if patient is None:
+        return None
+    static_age = _o(patient, "age", None)
+    dob = _o(patient, "date_of_birth", None)
+    if dob is None:
+        return static_age
+    enc = getattr(ctx, "encounter", None)
+    ref_dt = _o(enc, "admission_datetime", None) if enc is not None else None
+    if ref_dt is None:
+        return static_age
+    try:
+        ref = ref_dt.date() if isinstance(ref_dt, datetime) else ref_dt
+        years = ref.year - dob.year - (1 if (ref.month, ref.day) < (dob.month, dob.day) else 0)
+        if years < 0:
+            return static_age
+        return years
+    except (AttributeError, TypeError):
+        return static_age
+
+
 def _parse_iso_datetime(raw: Any) -> datetime | None:
     """Best-effort parse of an ISO 8601 datetime string / datetime object."""
     if raw is None:
@@ -1712,7 +1747,7 @@ class TemplateNarrativeGenerator:
         patient = ctx.patient
         enc = ctx.encounter
         parts: list[str] = []
-        age = _o(patient, "age", None) if patient else None
+        age = _age_at(ctx) if patient else None
         sex = _o(patient, "sex", None) if patient else ""
         sex_ja = {"M": "男性", "F": "女性"}.get(str(sex).upper(), "")
         if age and sex_ja:
@@ -4242,7 +4277,7 @@ class TemplateNarrativeGenerator:
         if patient is None:
             return ""
         is_ja = ctx.target_lang == "ja"
-        age = _o(patient, "age", None)
+        age = _age_at(ctx)
         sex_raw = _o(patient, "sex", None) or ""
         sex_ja = {"M": "男性", "F": "女性"}.get(str(sex_raw).upper(), "")
         sex_en = {"M": "male", "F": "female"}.get(str(sex_raw).upper(), "")
