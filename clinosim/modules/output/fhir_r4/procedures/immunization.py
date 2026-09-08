@@ -173,10 +173,16 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
             "primarySource": primary_source,
         }
         # Issue #1184 F4 / #1186 F6: link Immunization to the vaccination
-        # encounter that administered it. Emit only when a same-day
-        # vaccination-purpose encounter is found — silence beats a
-        # fabricated reference (AD-30).
-        matched_enc = _match_immunization_encounter(imm, encounters)
+        # encounter that administered it. Emit only when a source ID is
+        # found — silence beats a fabricated reference (AD-30).
+        # CIF-level align (#1197 verify 2nd pass): `ImmunizationRecord.
+        # encounter_id` is now populated by the immunization enricher's
+        # `_align_to_encounters` post-generation pass. Prefer that
+        # explicit id; the emit-time keyword bridge remains as fallback
+        # for CIFs where the alignment couldn't find a nearby encounter.
+        matched_enc = get_attr_or_key(imm, "encounter_id", "") or ""
+        if not matched_enc:
+            matched_enc = _match_immunization_encounter(imm, encounters)
         if matched_enc:
             resource["encounter"] = encounter_ref(matched_enc)
         # C1-19: FHIR R4 requires statusReason when
