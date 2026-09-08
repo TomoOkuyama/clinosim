@@ -5093,11 +5093,35 @@ class TemplateNarrativeGenerator:
                     parts_dm.append(
                         f"尿アルブミン {v} {u or 'mg/gCr'}" if is_ja else f"urine albumin {v} {u or 'mg/gCr'}"
                     )
-                # 空腹時血糖
+                # 空腹時血糖 — Issue #1188 F4: Nathan formula consistency
+                # gate. `eAG (mg/dL) ≈ 28.7 × HbA1c − 46.7`. When HbA1c is
+                # elevated (≥8) but the glucose is normoglycemic (<160),
+                # the paired citation is clinically implausible (a random
+                # glucose of 120-135 mg/dL is not compatible with HbA1c 9%
+                # unless the sample is a rare tight-fasting draw). Rather
+                # than paper over the underlying CIF sampling mismatch,
+                # skip the glucose citation when the pair is Nathan-
+                # inconsistent — HbA1c is the more meaningful long-term
+                # marker anyway, and the Assessment line stays clean.
                 fbg = lab_by_name.get("glucose")
                 if fbg:
-                    v, u = fbg
-                    parts_dm.append(f"血糖 {v} {u or 'mg/dL'}" if is_ja else f"glucose {v} {u or 'mg/dL'}")
+                    v_g, u_g = fbg
+                    _emit_glucose = True
+                    if hba1c:
+                        try:
+                            _hba1c_val = float(hba1c[0])
+                            _glucose_val = float(v_g)
+                            _expected_eag = 28.7 * _hba1c_val - 46.7
+                            # Skip when reported glucose is >60 mg/dL below
+                            # the Nathan-expected eAG (i.e., the pair
+                            # implausibly asserts good acute control on a
+                            # patient with poor long-term control).
+                            if _hba1c_val >= 8.0 and _glucose_val + 60 < _expected_eag:
+                                _emit_glucose = False
+                        except (TypeError, ValueError):
+                            pass
+                    if _emit_glucose:
+                        parts_dm.append(f"血糖 {v_g} {u_g or 'mg/dL'}" if is_ja else f"glucose {v_g} {u_g or 'mg/dL'}")
                 med = _pick_med_containing(
                     en_hints=("Metformin", "Glimepiride", "Insulin", "Sitagliptin", "DPP"),
                     ja_hints=("メトホルミン", "グリメピリド", "インスリン", "シタグリプチン", "DPP"),
