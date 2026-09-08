@@ -5253,6 +5253,18 @@ class TemplateNarrativeGenerator:
             text = _pick_localized(soap, "plan", lang, ctx)
             if text:
                 facts.append(f"encounter_protocol.narrative.outpatient_soap_template.plan_{lang}")
+                # Issue #1180: the YAML `plan_<lang>` is a per-condition
+                # constant, which made the Plan section byte-identical
+                # across every visit in 92.1% of patients. Append a
+                # per-encounter varying follow-up line so consecutive
+                # visits show different cadence (band chosen per chronic
+                # condition, index rotated deterministically off
+                # (patient_id, encounter_id)). Preserves the YAML content
+                # as the baseline; only adds a new tail line.
+                tail = self._compose_follow_up_line(ctx)
+                if tail:
+                    facts.append("encounter_protocol.next_visit_interval")
+                    return f"{text}\n{tail}", facts
                 return text, facts
 
         # v9 multi-line composition (density fix)
@@ -5348,7 +5360,15 @@ class TemplateNarrativeGenerator:
 
     def _compose_follow_up_line(self, ctx: NarrativeContext) -> str:
         """Follow-up guidance from encounter_protocol (未確定 — treat as
-        planning, not fact). v9 density fix."""
+        planning, not fact). v9 density fix.
+
+        Issue #1180: in 92.1% of patients the Plan section was byte-identical
+        across every outpatient visit because the sentinel `1 か月後` and
+        the per-condition YAML `plan_ja` never varied by visit. Add a
+        per-encounter deterministic rotation over a small band of
+        clinically-plausible intervals so consecutive visits show
+        different follow-up cadence.
+        """
         ep = ctx.encounter_protocol
         interval = _o(ep, "next_visit_interval_days", None) if ep is not None else None
         is_ja = ctx.target_lang == "ja"
@@ -5358,8 +5378,40 @@ class TemplateNarrativeGenerator:
                 return f"次回外来: {d}日後を予定。" if is_ja else f"Next visit: in {d} days (planned)."
             except (TypeError, ValueError):
                 pass
-        # Generic follow-up sentinel (planning phrase, not fact)
-        return "次回外来: 1か月後を予定。" if is_ja else "Next visit: planned in 1 month."
+        # #1180: per-condition follow-up interval bands (in days). Reflects
+        # AHA / JDS / JSH / KDIGO / GOLD guideline windows for stable chronic
+        # follow-up. Bands are intentionally short (3-5 options) so a
+        # patient's own sequence of visits reads with clinical variation
+        # rather than as identical template text.
+        _follow_up_bands_days: dict[str, tuple[int, ...]] = {
+            "I10": (30, 60, 90),  # HTN stable — 1-3 mo
+            "E10": (60, 90),  # T1DM — 2-3 mo
+            "E11": (60, 90),  # T2DM — 2-3 mo
+            "E78": (90, 120, 180),  # dyslipidemia — 3-6 mo
+            "N18": (30, 60, 90),  # CKD — 1-3 mo
+            "J44": (60, 90, 120),  # COPD stable — 2-4 mo
+            "J45": (60, 90, 120),  # Asthma stable — 2-4 mo
+        }
+        # Pick the primary chronic's ICD prefix for the band lookup.
+        primary_prefix = ""
+        patient = getattr(ctx, "patient", None)
+        conditions = _o(patient, "chronic_conditions", []) if patient else []
+        for cond in conditions or []:
+            code = _o(cond, "code", "") or (cond if isinstance(cond, str) else "")
+            if code:
+                primary_prefix = code.split(".")[0].upper()
+                break
+        band = _follow_up_bands_days.get(primary_prefix, (28, 60, 90))
+        # Deterministic per-encounter rotation — same encounter always emits
+        # the same interval, but consecutive encounters of the same patient
+        # cycle through the band.
+        enc = getattr(ctx, "encounter", None)
+        enc_id = _o(enc, "encounter_id", "") or ""
+        pat_id = getattr(patient, "patient_id", "") if patient else ""
+        key = f"{pat_id}|{enc_id}|follow_up_interval".encode()
+        idx = int.from_bytes(hashlib.sha256(key).digest()[:4], "big") % len(band)
+        d = band[idx]
+        return f"次回外来: {d}日後を予定。" if is_ja else f"Next visit: in {d} days (planned)."
 
     def _compose_current_medications_line(self, ctx: NarrativeContext) -> str:
         """List the patient's current medications for the Plan section.
