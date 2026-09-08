@@ -6,6 +6,7 @@ simulation random stream is untouched (AD-16). occurrence dates <= snapshot (AD-
 
 from __future__ import annotations
 
+import hashlib
 from datetime import date, datetime
 
 import numpy as np
@@ -14,6 +15,7 @@ from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.immunization.engine import generate_immunizations, load_schedule
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.types.encounter import Encounter, EncounterStatus, EncounterType
 
 
 def _as_of(ctx, rec) -> date:
@@ -129,6 +131,71 @@ def _align_to_encounters(imm_recs: list, encounters: list) -> list:
     return imm_recs
 
 
+def _synthesize_vaccination_encounter(imm: object, patient_id: str, country: str) -> Encounter:
+    """Create a minimal outpatient Encounter for an orphan immunization.
+
+    Issue #1197 verify Pass 5 follow-up — companion encounter emit per the
+    responsibility-decomposition design (see PR description). When
+    ``_align_to_encounters`` cannot find an existing outpatient encounter
+    within ±60 days of an in-sim-window immunization, this helper emits
+    the encounter the FHIR world implicitly requires (a shot cannot be
+    administered without an act — so the CIF must carry the visit).
+
+    Shape: outpatient / completed / primary_care / vaccination purpose.
+    Deterministic id derived from patient + occurrence_date + CVX so a
+    re-run reuses the same id (idempotent verify).
+    """
+    occ = _get(imm, "occurrence_date", None)
+    cvx = str(_get(imm, "vaccine_cvx", "") or "")
+    if not isinstance(occ, date):
+        occ = date(2000, 1, 1)
+    _key = f"{patient_id}|{occ.isoformat()}|{cvx}|synth-vax".encode()
+    _suffix = hashlib.sha256(_key).hexdigest()[:12]
+    enc_id = f"ENC-VAX-{patient_id}-{_suffix}"
+    adm = datetime(occ.year, occ.month, occ.day, 10, 0)
+    is_ja = country == "JP"
+    chief_en = "Vaccination visit"
+    chief_ja = "予防接種"
+    return Encounter(
+        encounter_id=enc_id,
+        patient_id=patient_id,
+        encounter_type=EncounterType.OUTPATIENT,
+        status=EncounterStatus.COMPLETED,
+        department_id="primary_care",
+        admission_datetime=adm,
+        discharge_datetime=adm,
+        chief_complaint=chief_en,
+        chief_complaint_ja=chief_ja if is_ja else "",
+        priority="R",  # routine
+    )
+
+
+def _sim_window_start(ctx) -> date | None:
+    """Return the sim window's start date (inclusive) or None if unresolvable.
+
+    Reads ``ctx.config.time_range`` (used by the natural-death enricher
+    already — see `modules/natural_death/enricher.py`). Falls back to
+    None on any parse failure so callers can decide policy (pre-sim
+    historical doses stay unlinked when the window is unknown).
+    """
+    cfg = getattr(ctx, "config", None)
+    if cfg is None:
+        return None
+    raw = getattr(cfg, "time_range", None)
+    if raw is None:
+        return None
+    try:
+        seq = tuple(raw)
+    except TypeError:
+        return None
+    if len(seq) < 1:
+        return None
+    try:
+        return date.fromisoformat(str(seq[0])[:10])
+    except ValueError:
+        return None
+
+
 def enrich_immunizations(ctx) -> None:
     country = _get(_get(ctx, "config"), "country", "US") if _get(ctx, "config") else "US"
     schedule = load_schedule(country)
@@ -153,6 +220,14 @@ def enrich_immunizations(ctx) -> None:
             continue
         for enc in _get(rec, "encounters", []) or []:
             _all_encs_by_patient.setdefault(pid, []).append(enc)
+    # Issue #1197 companion-encounter synthesis (verify Pass 5 gap): for
+    # in-sim-window immunizations that could not be aligned to an
+    # existing encounter (~25-39% of in-window doses, per Pass 5 verify),
+    # emit a minimal `vaccination visit` outpatient encounter. Pre-sim
+    # historical doses (patient interview / registry-recorded) stay
+    # unlinked — a real visit was not simulated, so honesty > fabrication.
+    country_upper = str(country or "US").upper()
+    sim_start = _sim_window_start(ctx)
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
@@ -161,4 +236,24 @@ def enrich_immunizations(ctx) -> None:
         # Issue #1197 align — cross-record encounter pool.
         pool = _all_encs_by_patient.get(pid) or (_get(rec, "encounters", []) or [])
         recs = _align_to_encounters(recs, pool)
+        # Companion synthesis for the residual in-window orphans.
+        rec_encounters = _get(rec, "encounters", []) or []
+        for imm in recs:
+            if _get(imm, "encounter_id", "") or "":
+                continue  # already aligned
+            occ = _get(imm, "occurrence_date", None)
+            if not isinstance(occ, date):
+                continue
+            # Pre-sim historical dose: mark primary_source=False and
+            # leave encounter_id empty (honest boundary).
+            if sim_start is not None and occ < sim_start:
+                _set(imm, "primary_source", False)
+                continue
+            # In-window orphan: emit companion encounter for THIS record.
+            # (Kept per-record to avoid cross-record encounter injection —
+            # each record retains its self-contained encounter list.)
+            synth = _synthesize_vaccination_encounter(imm, pid, country_upper)
+            rec_encounters.append(synth)
+            _set(imm, "encounter_id", synth.encounter_id)
+        _set(rec, "encounters", rec_encounters)
         _set(rec, "immunizations", recs)
