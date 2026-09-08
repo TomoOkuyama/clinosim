@@ -131,7 +131,12 @@ def _align_to_encounters(imm_recs: list, encounters: list) -> list:
     return imm_recs
 
 
-def _synthesize_vaccination_encounter(imm: object, patient_id: str, country: str) -> Encounter:
+def _synthesize_vaccination_encounter(
+    imm: object,
+    patient_id: str,
+    country: str,
+    attending_physician_id: str = "",
+) -> Encounter:
     """Create a minimal outpatient Encounter for an orphan immunization.
 
     Issue #1197 verify Pass 5 follow-up — companion encounter emit per the
@@ -144,6 +149,10 @@ def _synthesize_vaccination_encounter(imm: object, patient_id: str, country: str
     Shape: outpatient / completed / primary_care / vaccination purpose.
     Deterministic id derived from patient + occurrence_date + CVX so a
     re-run reuses the same id (idempotent verify).
+
+    ``attending_physician_id`` (Issue #1215 follow-up): when supplied,
+    stamped as the encounter's attending. Empty string leaves it unset
+    (fallback for callers that lack roster access).
     """
     occ = _get(imm, "occurrence_date", None)
     cvx = str(_get(imm, "vaccine_cvx", "") or "")
@@ -156,18 +165,45 @@ def _synthesize_vaccination_encounter(imm: object, patient_id: str, country: str
     is_ja = country == "JP"
     chief_en = "Vaccination visit"
     chief_ja = "予防接種"
+    # Issue #1215: stamp Z23 "Encounter for immunization" as the companion
+    # encounter's own admission diagnosis so FHIR emit's reasonCode reflects
+    # the visit purpose (vaccination) instead of inheriting the record's
+    # primary IMP admission dx (e.g. T30.0 burn for a hospitalized patient
+    # who happened to also receive an in-window flu shot at a follow-up
+    # visit). Z23 is a visit-reason Z-code (recognized by
+    # ``is_visit_reason_zcode``), so no dangling Condition reference is
+    # created — the reasonCode text/coding alone carries the semantic.
     return Encounter(
         encounter_id=enc_id,
         patient_id=patient_id,
         encounter_type=EncounterType.OUTPATIENT,
         status=EncounterStatus.COMPLETED,
         department_id="primary_care",
+        attending_physician_id=attending_physician_id,
         admission_datetime=adm,
         discharge_datetime=adm,
         chief_complaint=chief_en,
         chief_complaint_ja=chief_ja if is_ja else "",
         priority="R",  # routine
+        admission_diagnosis_code="Z23",
+        admission_diagnosis_system="icd-10-cm",
     )
+
+
+def _pick_primary_care_physician(pid: str, physician_ids: list[str]) -> str:
+    """Deterministically pick a physician id for a given patient.
+
+    Issue #1215 follow-up: the companion vaccination encounter must carry an
+    attending so downstream CareTeam / practitioner emit does not fall back
+    to ``Practitioner/UNKNOWN``. Hash the patient id and index into the
+    (sorted) roster so regeneration is byte-identical (AD-16). Empty
+    roster returns empty string; caller keeps the encounter unattended
+    (the pre-fix behaviour) rather than fabricating a non-existent id.
+    """
+    if not physician_ids:
+        return ""
+    idx = int(hashlib.sha256(pid.encode()).hexdigest(), 16) % len(physician_ids)
+    return physician_ids[idx]
 
 
 def _sim_window_start(ctx) -> date | None:
@@ -204,8 +240,22 @@ def enrich_immunizations(ctx) -> None:
     # administer routine vaccinations).
     roster = getattr(ctx, "roster", None)
     nurse_ids = []
+    # Issue #1215 follow-up: also pull primary_care physicians so the
+    # companion vaccination encounter can carry a real attending id
+    # (otherwise CareTeam.participant[0].member -> Practitioner/UNKNOWN).
+    # Fallback to any physician when the primary_care department is unstaffed.
+    primary_care_physician_ids: list[str] = []
     if roster and hasattr(roster, "members"):
         nurse_ids = sorted(m.staff_id for m in roster.members if getattr(m, "role", "") == "nurse")
+        primary_care_physician_ids = sorted(
+            m.staff_id
+            for m in roster.members
+            if getattr(m, "role", "") == "physician" and getattr(m, "department", "") == "primary_care"
+        )
+        if not primary_care_physician_ids:
+            primary_care_physician_ids = sorted(
+                m.staff_id for m in roster.members if getattr(m, "role", "") == "physician"
+            )
     # Issue #1197 cross-record alignment (verify Pass 4 root fix): CIF
     # splits one patient's history into one record per encounter, so a
     # single record only sees ONE encounter — the aligner previously
@@ -252,7 +302,8 @@ def enrich_immunizations(ctx) -> None:
             # In-window orphan: emit companion encounter for THIS record.
             # (Kept per-record to avoid cross-record encounter injection —
             # each record retains its self-contained encounter list.)
-            synth = _synthesize_vaccination_encounter(imm, pid, country_upper)
+            _attending = _pick_primary_care_physician(pid, primary_care_physician_ids)
+            synth = _synthesize_vaccination_encounter(imm, pid, country_upper, attending_physician_id=_attending)
             rec_encounters.append(synth)
             _set(imm, "encounter_id", synth.encounter_id)
         _set(rec, "encounters", rec_encounters)

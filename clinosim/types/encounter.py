@@ -111,6 +111,15 @@ class Encounter:
     # distinguishing service line (default). Values: ``""`` | ``"oncology"``.
     # AD-30 compliant: internal enum-like key, not display text.
     service_line: str = ""
+    # Encounter-scoped admission diagnosis (Issue #1215 FHIR reasonCode
+    # per-encounter fix). When set, overrides the record-level
+    # ``clinical_diagnosis.admission_diagnosis_code`` at FHIR emit time so
+    # a companion encounter (e.g. ENC-VAX-* vaccination visit) carries its
+    # own visit-reason (Z23) instead of inheriting the record's primary
+    # IMP admission dx. Empty string = fall back to record-level (default,
+    # preserves existing behaviour for all non-companion encounters).
+    admission_diagnosis_code: str = ""
+    admission_diagnosis_system: str = ""
 
     def __post_init__(self) -> None:
         if self.time_resolution is None:

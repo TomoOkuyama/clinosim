@@ -315,15 +315,30 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             if isinstance(enc, dict)
             else getattr(enc, "admit_source_encounter_id", "")
         )  # noqa: E501
+        # Issue #1215: prefer encounter-scoped admission dx when set (e.g.
+        # ENC-VAX-* companion encounter stamps Z23). Falls back to the
+        # record-level admit_dx_code so existing IMP / ED / chronic-fu
+        # encounters keep the primary admission diagnosis they inherit
+        # from ``clinical_diagnosis.admission_diagnosis_code``.
+        _enc_admit_code = (
+            enc.get("admission_diagnosis_code", "")
+            if isinstance(enc, dict)
+            else getattr(enc, "admission_diagnosis_code", "")
+        ) or ""
+        _enc_admit_system = (
+            enc.get("admission_diagnosis_system", "")
+            if isinstance(enc, dict)
+            else getattr(enc, "admission_diagnosis_system", "")
+        ) or ""
         _resource = _build_encounter(
             enc,
             ctx.patient_id,
             ctx.is_readmission,
             ctx.prior_encounter_id,
-            primary_dx_code=ctx.primary_dx_code,
+            primary_dx_code=_enc_admit_code or ctx.primary_dx_code,
             country=ctx.country,
-            admit_dx_code=ctx.admit_dx_code,
-            admit_dx_system=ctx.admit_dx_system,
+            admit_dx_code=_enc_admit_code or ctx.admit_dx_code,
+            admit_dx_system=_enc_admit_system or ctx.admit_dx_system,
             icu_transferred_day=_icu_day,
             deceased=_deceased,
             chronic_condition_codes=_chronic_codes,
