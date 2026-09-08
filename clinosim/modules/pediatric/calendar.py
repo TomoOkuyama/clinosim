@@ -79,7 +79,20 @@ def generate_pediatric_events(
 
     from clinosim.modules.population.engine import LifeEvent
 
-    age = int(getattr(person, "age", 0) or 0)
+    # Issue #1186 F4: `person.age` is the static age recorded at cohort
+    # generation time. When the sim runs multiple years, a 6-year-old
+    # recorded at sim start would be 8 by simulation year 2 — but the
+    # scheduler previously kept using the static 6, so the pre-
+    # kindergarten immunization visit (age_max=6) kept firing for
+    # school-age children. Compute the person's actual age at the
+    # scheduling year: `year - dob.year` when `date_of_birth` is
+    # available; fall back to static `age` otherwise.
+    static_age = int(getattr(person, "age", 0) or 0)
+    dob = getattr(person, "date_of_birth", None)
+    if dob is not None and hasattr(dob, "year"):
+        age = int(year) - int(dob.year)
+    else:
+        age = static_age
     # No pediatric schedule applies for adults; early-return so we don't
     # touch the per-person rng for out-of-band ages (preserves the
     # empty-schedule invariant style for the >18 case).
