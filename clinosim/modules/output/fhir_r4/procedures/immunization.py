@@ -69,7 +69,23 @@ def _match_immunization_encounter(imm: Any, encounters: list) -> str:
     occ_date = occ if hasattr(occ, "day") else None
     if occ_date is None:
         return ""
-    _vaccine_cc_hints = ("予防接種", "vaccination", "vaccine", "immunization")
+    # #1184 F4 / #1186 F6 follow-up (S104 verify): the original hint set
+    # missed common US EN chief_complaint variants like "Kindergarten
+    # booster" / "Well-child visit" / "Booster shot". Broaden the hint
+    # list to cover both locales' typical scheduler emissions.
+    _vaccine_cc_hints = (
+        "予防接種",
+        "vaccination",
+        "vaccine",
+        "immunization",
+        "well-child",
+        "well child",
+        "kindergarten booster",
+        "kindergarten entry",
+        "booster shot",
+        "booster:",
+    )
+    _same_day: list = []
     for enc in encounters:
         adm = get_attr_or_key(enc, "admission_datetime", None)
         if adm is None:
@@ -77,10 +93,26 @@ def _match_immunization_encounter(imm: Any, encounters: list) -> str:
         adm_date = adm.date() if hasattr(adm, "date") else adm
         if adm_date != occ_date:
             continue
+        _same_day.append(enc)
         cc = get_attr_or_key(enc, "chief_complaint_ja", "") or get_attr_or_key(enc, "chief_complaint", "") or ""
         cc_l = str(cc).lower()
         if any(h in cc_l or h in cc for h in _vaccine_cc_hints):
             return get_attr_or_key(enc, "encounter_id", "") or ""
+    # Broader fallback: when a same-day pediatric_visit exists but no
+    # keyword matched (chief_complaint may be a specific vaccination-day
+    # phrase like the CVX display), route to the pediatric encounter
+    # rather than emit a blank Immunization.encounter. Adult vaccinations
+    # keep the strict keyword gate above.
+    for enc in _same_day:
+        enc_type = str(get_attr_or_key(enc, "encounter_type", "") or "").lower()
+        if enc_type == "outpatient":
+            # Only bind when the encounter is a pediatric well-child /
+            # vaccination category — infer from service_line or the
+            # presence of "小児" / "pediatric" in the chief_complaint.
+            cc = get_attr_or_key(enc, "chief_complaint_ja", "") or get_attr_or_key(enc, "chief_complaint", "") or ""
+            cc_l = str(cc).lower()
+            if "小児" in cc or "pediatric" in cc_l or "kindergarten" in cc_l or "well-child" in cc_l:
+                return get_attr_or_key(enc, "encounter_id", "") or ""
     return ""
 
 

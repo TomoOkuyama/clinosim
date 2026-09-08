@@ -643,7 +643,12 @@ def _bb_discharge_medication_requests(ctx: BundleContext) -> list[dict]:
                 prescriber_id=prescriber_id,
             )
         )
-    return out
+    # #1176 / #1179 follow-up (S104 verify): the discharge-Rx builder
+    # bypassed the same-day same-class dedup guard applied to
+    # `_bb_medication_requests`, so RAAS (ACE-I + ARB) pairs still
+    # emerged when both drugs were on the take-home list. Chain both
+    # dedups here too — exact-duplicate first, then class-collision.
+    return _dedup_same_class_orders(_dedup_medication_requests(out))
 
 
 def build_order_in_rp_map(orders: list) -> dict[str, int]:
