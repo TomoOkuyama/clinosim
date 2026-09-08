@@ -44,9 +44,19 @@ def test_within_14_days_snaps_date_and_id() -> None:
     assert result[0].encounter_id == "enc-b"
 
 
-def test_beyond_14_days_leaves_unchanged() -> None:
+def test_within_60_days_snaps_annual_flu() -> None:
+    # Annual flu shots picked in Oct-Dec may sit 30-60 days from any given
+    # chronic follow-up visit — must still bind.
+    imm = ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2026, 11, 15))
+    enc = _enc("enc-flu", datetime(2026, 10, 1, 10, 0))  # −45 days
+    result = _align_to_encounters([imm], [enc])
+    assert result[0].occurrence_date == date(2026, 10, 1)
+    assert result[0].encounter_id == "enc-flu"
+
+
+def test_beyond_60_days_leaves_unchanged() -> None:
     imm = ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2026, 8, 1))
-    enc = _enc("enc-far", datetime(2026, 8, 20, 10, 0))  # 19 days
+    enc = _enc("enc-far", datetime(2026, 10, 20, 10, 0))  # 80 days
     result = _align_to_encounters([imm], [enc])
     assert result[0].occurrence_date == date(2026, 8, 1)
     assert result[0].encounter_id == ""
