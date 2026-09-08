@@ -17,6 +17,7 @@ from datetime import date, datetime
 from types import SimpleNamespace
 
 from clinosim.modules.immunization.enricher import (
+    _pick_primary_care_physician,
     _synthesize_vaccination_encounter,
     enrich_immunizations,
 )
@@ -34,6 +35,10 @@ def test_synth_encounter_shape() -> None:
     assert enc.chief_complaint_ja == "予防接種"
     assert enc.patient_id == "POP-000001"
     assert enc.encounter_id.startswith("ENC-VAX-POP-000001-")
+    # Issue #1215: encounter carries its own Z23 visit-reason so the FHIR
+    # emit's reasonCode is not polluted by the record's primary IMP dx.
+    assert enc.admission_diagnosis_code == "Z23"
+    assert enc.admission_diagnosis_system == "icd-10-cm"
 
 
 def test_synth_encounter_id_is_deterministic() -> None:
@@ -49,6 +54,37 @@ def test_synth_encounter_id_varies_by_patient() -> None:
     enc1 = _synthesize_vaccination_encounter(imm, "POP-000001", "JP")
     enc2 = _synthesize_vaccination_encounter(imm, "POP-000002", "JP")
     assert enc1.encounter_id != enc2.encounter_id
+
+
+def test_synth_encounter_attending_stamped_when_provided() -> None:
+    imm = ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2026, 10, 1))
+    enc = _synthesize_vaccination_encounter(imm, "POP-000001", "JP", attending_physician_id="DR-042")
+    assert enc.attending_physician_id == "DR-042"
+
+
+def test_synth_encounter_attending_empty_by_default() -> None:
+    imm = ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2026, 10, 1))
+    enc = _synthesize_vaccination_encounter(imm, "POP-000001", "JP")
+    assert enc.attending_physician_id == ""
+
+
+def test_pick_primary_care_physician_deterministic() -> None:
+    ids = ["DR-001", "DR-002", "DR-003"]
+    a = _pick_primary_care_physician("POP-000001", ids)
+    b = _pick_primary_care_physician("POP-000001", ids)
+    assert a == b
+    assert a in ids
+
+
+def test_pick_primary_care_physician_varies_by_patient() -> None:
+    # Over 100 patients we expect to see more than one physician selected.
+    ids = ["DR-001", "DR-002", "DR-003"]
+    picked = {_pick_primary_care_physician(f"POP-{i:06d}", ids) for i in range(100)}
+    assert len(picked) >= 2
+
+
+def test_pick_primary_care_physician_empty_roster() -> None:
+    assert _pick_primary_care_physician("POP-000001", []) == ""
 
 
 def test_synth_encounter_us_has_no_ja_chief() -> None:
