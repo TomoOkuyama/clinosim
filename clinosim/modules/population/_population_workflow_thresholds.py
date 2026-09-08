@@ -29,6 +29,7 @@ from __future__ import annotations
 __all__ = [
     "CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE",
     "CHRONIC_VISITS_MAX_PER_YEAR",
+    "COLONOSCOPY_MAX_AGE",
     "COLONOSCOPY_MIN_AGE",
     "COLONOSCOPY_PROBABILITY",
     "DIABETIC_RETINOPATHY_ICD10_CODE",
@@ -43,9 +44,11 @@ __all__ = [
     "FLU_VAX_COMORBIDITY_MIN",
     "FLU_VAX_MONTHS",
     "FLU_VAX_PROBABILITY",
+    "HEALTH_SCREENING_MAX_AGE",
     "HEALTH_SCREENING_MIN_AGE",
     "HEALTH_SCREENING_MONTH_END_EXCLUSIVE",
     "HEALTH_SCREENING_MONTH_START",
+    "MAMMOGRAPHY_MAX_AGE",
     "MAMMOGRAPHY_MIN_AGE",
     "MAMMOGRAPHY_PROBABILITY",
     "MIXED_CONDITIONS_MIN_AGE_DEFAULT",
@@ -227,6 +230,18 @@ HEALTH_SCREENING_MIN_AGE: int = 40
 40 matches the standard US and JP annual-physical eligibility age;
 the JP 特定健診 program also uses 40 as its enrollment floor."""
 
+HEALTH_SCREENING_MAX_AGE: int = 89
+"""Age above which the annual general-purpose health screening is
+no longer scheduled by the population workflow.
+
+Beyond ~90, ADL dependency and comorbidity load make routine
+asymptomatic screening low-yield, and goals of care typically
+shift to condition management + comfort. Issue #1189 F3: a 100-
+year-old with active pancreatic cancer received `annual_health_
+screening` events despite goals-of-care mismatch. The 89 cap is
+lenient (keeps the visit for the ~85-89 band where individualized
+screening still happens) but stops the ≥90 emissions."""
+
 HEALTH_SCREENING_MONTH_START: int = 4
 """Earliest month (inclusive) of the year in which the annual health
 screening is scheduled.
@@ -306,6 +321,17 @@ COLONOSCOPY_MIN_AGE: int = 50
 recent USPSTF guidance lowered this to 45; the simulator sticks with
 50 as the median long-established target.)"""
 
+COLONOSCOPY_MAX_AGE: int = 75
+"""Age above which colonoscopy screening is no longer routinely
+offered.
+
+USPSTF (2021) sets the routine colorectal cancer screening upper
+bound at 75; ages 76-85 are individualized. Above 85 screening is
+not recommended. The simulator uses 75 as the hard cap so
+population-level Bernoulli sampling stops emitting age-inappropriate
+screening events (Issue #1189 F3 sibling — mammography at 100 y/o
+was the visible instance)."""
+
 COLONOSCOPY_PROBABILITY: float = 0.08
 """Per-year probability of receiving a colonoscopy screening among
 eligible persons.
@@ -320,6 +346,17 @@ patients.
 
 40 covers both the USPSTF (40-74) and JP MHLW (40+) mammography
 recommendation windows."""
+
+MAMMOGRAPHY_MAX_AGE: int = 74
+"""Age above which mammography screening is no longer routinely
+offered.
+
+USPSTF (2024) recommends mammography for ages 40-74. Japanese MHLW
+guidance similarly targets 40-74 with no recommendation above 74.
+Issue #1189 F3: a 100-year-old with 4-year active pancreatic cancer
+received two mammography_screening events over the sim window
+because the sampler had no upper age cap — clinically inappropriate
+and inconsistent with goals of care in an active-malignancy elder."""
 
 MAMMOGRAPHY_PROBABILITY: float = 0.4
 """Per-year probability of receiving a mammography screening among
