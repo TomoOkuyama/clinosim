@@ -1181,6 +1181,14 @@ def generate_healthcare_calendar(
         if not person.is_alive:
             continue
 
+        # Issue #1189 F3 follow-up (S104 verify): age caps use age-at-year,
+        # not the static sim-start `person.age`. Without this, a person aging
+        # past the cap during a multi-year sim still received one boundary-
+        # year screening (age 75 mammography, age 90 annual physical). Falls
+        # back to static age when `date_of_birth` is missing.
+        _dob = getattr(person, "date_of_birth", None)
+        _age_at_year = (int(year) - int(_dob.year)) if _dob is not None and hasattr(_dob, "year") else int(person.age)
+
         # --- Pediatric encounters (Issue #760) ---
         # Placed BEFORE the `if not conditions_with_spec: continue` gate so
         # pediatric patients (who typically carry no chronic conditions in
@@ -1245,10 +1253,10 @@ def generate_healthcare_calendar(
         # age > MAX. Above ~90, ADL dependency + comorbidity load make
         # routine asymptomatic screening low-yield (Issue #1189 F3
         # sibling).
-        if person.age >= HEALTH_SCREENING_MIN_AGE:
+        if _age_at_year >= HEALTH_SCREENING_MIN_AGE:
             screening_month = int(prng.integers(HEALTH_SCREENING_MONTH_START, HEALTH_SCREENING_MONTH_END_EXCLUSIVE))
             screening_day = int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE))
-            if person.age <= HEALTH_SCREENING_MAX_AGE:
+            if _age_at_year <= HEALTH_SCREENING_MAX_AGE:
                 screening_date = date(year, screening_month, screening_day)
                 events.append(
                     LifeEvent(
@@ -1286,9 +1294,9 @@ def generate_healthcare_calendar(
         # RNG-neutral upper-age cap (S14): keep the prng.random() draw for
         # any age >= COLONOSCOPY_MIN_AGE so RNG shape is unchanged for
         # populations below the cap; drop the emit when age > MAX.
-        _colonoscopy_roll = prng.random() if person.age >= COLONOSCOPY_MIN_AGE else None
+        _colonoscopy_roll = prng.random() if _age_at_year >= COLONOSCOPY_MIN_AGE else None
         if (
-            COLONOSCOPY_MIN_AGE <= person.age <= COLONOSCOPY_MAX_AGE
+            COLONOSCOPY_MIN_AGE <= _age_at_year <= COLONOSCOPY_MAX_AGE
             and _colonoscopy_roll is not None
             and _colonoscopy_roll < COLONOSCOPY_PROBABILITY
         ):
@@ -1313,10 +1321,10 @@ def generate_healthcare_calendar(
         # RNG-neutral upper-age cap (S14): keep the prng.random() draw for
         # any eligible-sex person >= MAMMOGRAPHY_MIN_AGE so RNG shape is
         # unchanged for populations below the cap; drop emit when > MAX.
-        _mammography_roll = prng.random() if (person.sex == "F" and person.age >= MAMMOGRAPHY_MIN_AGE) else None
+        _mammography_roll = prng.random() if (person.sex == "F" and _age_at_year >= MAMMOGRAPHY_MIN_AGE) else None
         if (
             person.sex == "F"
-            and MAMMOGRAPHY_MIN_AGE <= person.age <= MAMMOGRAPHY_MAX_AGE
+            and MAMMOGRAPHY_MIN_AGE <= _age_at_year <= MAMMOGRAPHY_MAX_AGE
             and _mammography_roll is not None
             and _mammography_roll < MAMMOGRAPHY_PROBABILITY
         ):
