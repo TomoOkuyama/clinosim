@@ -165,6 +165,7 @@ from clinosim.modules.output.fhir_r4.medications.medications import (  # noqa: F
     _build_discharge_medication_request,
     _build_medication_admin,
     _build_medication_request,
+    _dedup_same_class_orders,
     _resolve_mr_id,
 )
 from clinosim.modules.output.fhir_r4.procedures.device import (  # noqa: F401
@@ -471,7 +472,17 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
                     earliest_admin_dt=_earliest_admin_by_oid.get(_oid, ""),
                 )
             )
-    return _dedup_medication_requests(out)
+    # Chain the two guards:
+    #   Issue #1177: `_dedup_medication_requests` drops byte-identical MRs
+    #     on (drug text, authoredOn date, first-dosage text, first-route
+    #     code).
+    #   Issue #1176 / #1179: `_dedup_same_class_orders` drops later MRs
+    #     whose (patient, day, therapeutic class) key already appears
+    #     (ACE-I + ARB, PPI + PPI, NSAID + NSAID, Anticoagulant +
+    #     Anticoagulant). Runs after exact-duplicate dedup because a same-
+    #     class collision may include an exact duplicate; running exact
+    #     first keeps the class guard's key stable.
+    return _dedup_same_class_orders(_dedup_medication_requests(out))
 
 
 def _dedup_medication_requests(mrs: list[dict]) -> list[dict]:
