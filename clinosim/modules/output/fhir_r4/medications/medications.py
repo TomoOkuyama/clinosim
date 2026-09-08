@@ -959,6 +959,28 @@ def _build_medication_request(
         disp["numberOfRepeatsAllowed"] = 0
     elif encounter_type in ("inpatient", "emergency"):
         disp["numberOfRepeatsAllowed"] = 0  # inpatient/ED dispense once per order
+    # Issue #1175: JP-CLINS eCS pins MedicationRequest.status = "completed"
+    # (patternCode), which masks the true operational state. The extension +
+    # note carrier at post_process/populate.py preserves intent for
+    # extension-aware consumers, but naive consumers filtering
+    # `MedicationRequest?status=active` see no active meds for any patient.
+    # Emit `expectedSupplyDuration` for home-med + outpatient orders so a
+    # consumer can compute (authoredOn + supplyDuration * (1 +
+    # numberOfRepeatsAllowed)) and treat the Rx as active while inside that
+    # window. Falls back to the CIF-provided `days_supply` when present, else
+    # a chronic-med default of 30 days per script (JP outpatient standard
+    # cycle). JP-CLINS eCS requires unit=`日` + system=UCUM + code=`d`.
+    _days = order.get("days_supply") or 0
+    if not _days:
+        if _is_home_med or encounter_type == "outpatient":
+            _days = 30  # standard chronic-Rx cycle
+    if _days and _days > 0:
+        disp["expectedSupplyDuration"] = {
+            "value": int(_days),
+            "unit": _SUPPLY_DURATION_UNIT_JP if is_jp(country) else _SUPPLY_DURATION_UNIT_US,
+            "system": get_system_uri("ucum"),
+            "code": _SUPPLY_DURATION_CODE,
+        }
     resource["dispenseRequest"] = disp
 
     # C5-23: MedicationRequest.substitution (0..1)
