@@ -134,8 +134,18 @@ def test_cross_cursor_shared_window_byte_identical():
         b_rec = b_by_enc[enc_id]
         # immunizations は POST_RECORDS enricher が snapshot_date を as-of 参照日と
         # して直接使うため意図的に cursor 依存(note 2 参照)— 比較から除外
-        a_cmp = replace(a_rec, immunizations=[])
-        b_cmp = replace(b_rec, immunizations=[])
+        # Issue #1197 verify Pass 5 companion-encounter synthesis
+        # (S104 wave): unaligned in-sim immunizations get a companion
+        # `ENC-VAX-…` encounter appended to `rec.encounters`. Which
+        # immunizations are generated depends on `as_of` (cursor's
+        # snapshot_date), so these synthetic encounters are cursor-
+        # dependent by design — the same rationale as excluding the
+        # immunization list itself. Strip them from the encounter list
+        # for comparison; the "real" encounters (visit-simulated) still
+        # match byte-identically across cursors.
+        _strip_vax = lambda encs: [e for e in encs if not e.encounter_id.startswith("ENC-VAX-")]  # noqa: E731
+        a_cmp = replace(a_rec, immunizations=[], encounters=_strip_vax(a_rec.encounters))
+        b_cmp = replace(b_rec, immunizations=[], encounters=_strip_vax(b_rec.encounters))
         assert a_cmp == b_cmp, f"cross-cursor drift for encounter {enc_id}"
         checked += 1
 
