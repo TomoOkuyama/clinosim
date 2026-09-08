@@ -57,12 +57,22 @@ def _qx_for(life_table: dict, country: str, sex: str, age: int) -> float:
 
 def _sim_window(config: Any) -> tuple[date, date] | None:
     """Return the (start, end) sim window from config, or None if unresolved."""
-    time_range = getattr(config, "time_range", None) or ()
-    if len(time_range) < 2:
+    raw = getattr(config, "time_range", None)
+    if raw is None:
         return None
     try:
-        start = date.fromisoformat(str(time_range[0])[:10])
-        end = date.fromisoformat(str(time_range[1])[:10])
+        time_range = tuple(raw)
+    except TypeError:
+        return None
+    if len(time_range) < 2:
+        return None
+    # Unpack so mypy narrows to concrete elements (indexing `time_range[0]`
+    # on a heterogeneous tuple[Any, ...] read from getattr triggers
+    # `Tuple index out of range` under the shipped mypy config).
+    raw_start, raw_end = time_range[0], time_range[1]
+    try:
+        start = date.fromisoformat(str(raw_start)[:10])
+        end = date.fromisoformat(str(raw_end)[:10])
     except ValueError:
         return None
     return (start, end)
