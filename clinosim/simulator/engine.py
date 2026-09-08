@@ -281,10 +281,14 @@ def _replay_cached_admission_queue(
 # ev_key comment in the P4 calendar loop below). Each needs its own visit
 # reason text so two screenings landing on the same calendar date don't
 # collapse into indistinguishable encounters.
-_HEALTH_SCREENING_VISIT_REASON = {
-    "annual_health_screening": "Annual health screening",
-    "colonoscopy_screening": "Colonoscopy screening",
-    "mammography_screening": "Mammography screening",
+_HEALTH_SCREENING_VISIT_REASON: dict[str, dict[str, str]] = {
+    "annual_health_screening": {"en": "Annual health screening", "ja": "年次健診"},
+    "colonoscopy_screening": {"en": "Colonoscopy screening", "ja": "大腸内視鏡検診"},
+    "mammography_screening": {"en": "Mammography screening", "ja": "マンモグラフィー検診"},
+}
+_HEALTH_SCREENING_VISIT_REASON_FALLBACK: dict[str, str] = {
+    "en": "Annual health screening",
+    "ja": "年次健診",
 }
 
 
@@ -321,7 +325,10 @@ def _pediatric_visit_reason(disease_id: str) -> str | dict[str, str]:
     for candidate_entry in schedule.values():
         if candidate_entry.get("disease_id") == disease_id and candidate_entry.get("visit_reason"):
             return candidate_entry["visit_reason"]
-    return f"Pediatric visit: {disease_id}"
+    # #1182: previous fallback leaked snake_case `disease_id` and raw
+    # English into `chief_complaint_ja`. Return a bilingual dict so
+    # `resolve_text` can pick the caller's target language.
+    return {"en": f"Pediatric visit: {disease_id}", "ja": "小児外来受診"}
 
 
 # ============================================================
@@ -1154,7 +1161,9 @@ def run_beta(
             # collision) could produce two indistinguishable encounters for a
             # single patient's mammography + annual checkup landing on the
             # same date.
-            screening_reason = _HEALTH_SCREENING_VISIT_REASON.get(event.disease_id, "Annual health screening")
+            screening_reason = _HEALTH_SCREENING_VISIT_REASON.get(
+                event.disease_id, _HEALTH_SCREENING_VISIT_REASON_FALLBACK
+            )
             screening_dept = resolve_outpatient_department(
                 "health_screening", event.disease_id or "annual_health_screening", None, hospital_ops
             )

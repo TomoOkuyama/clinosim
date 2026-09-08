@@ -131,7 +131,15 @@ def _simulate_outpatient_visit(
 
         fu = load_chronic_followup()
         disease_fu = fu.get("_post_discharge_by_disease", {}).get(post_discharge_disease, {})
-        raw_chief = disease_fu.get("visit_reason", f"Post-discharge follow-up: {post_discharge_disease}")
+        # Fallback dict (en/ja) — snake_case leak fix (#1182): the previous
+        # `f"Post-discharge follow-up: {snake_case}"` string emitted raw
+        # `bacterial_pneumonia` into JP chief_complaint. When a disease
+        # has no explicit visit_reason in chronic_followup.yaml, fall back
+        # to a generic bilingual phrase so JP callers get a JA string.
+        raw_chief = disease_fu.get(
+            "visit_reason",
+            {"en": "Post-discharge follow-up", "ja": "退院後フォローアップ"},
+        )
         chief = resolve_text(raw_chief, country=country)
     else:
         # Try encounter protocol YAML for chief complaint
@@ -139,10 +147,13 @@ def _simulate_outpatient_visit(
             from clinosim.modules.encounter.protocol import load_encounter_condition
 
             enc_proto = load_encounter_condition(chronic_code)
-            raw_chief = enc_proto.get("chief_complaint", f"Follow-up: {chronic_code}")
+            raw_chief = enc_proto.get(
+                "chief_complaint",
+                {"en": f"Follow-up: {chronic_code}", "ja": "外来フォローアップ"},
+            )
             chief = resolve_text(raw_chief, country=country)
         except (FileNotFoundError, Exception):
-            chief = f"Follow-up: {chronic_code}"
+            chief = "外来フォローアップ" if country == "JP" else f"Follow-up: {chronic_code}"
 
     encounter = create_inpatient_encounter(
         patient.patient_id,
