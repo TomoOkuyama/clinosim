@@ -104,13 +104,20 @@ def _align_to_encounters(imm_recs: list, encounters: list) -> list:
         occ = _get(imm, "occurrence_date", None)
         if not isinstance(occ, date):
             continue
-        # Nearest outpatient encounter within ±14 days.
+        # Nearest outpatient encounter within ±60 days. The window is
+        # 60 rather than 14 to cover annual flu shots — the flu
+        # scheduler picks a fixed month per year (Oct-Dec) that may not
+        # coincide with the patient's own chronic follow-up cadence
+        # (every 30-90 days). Pediatric infant series and one-off adult
+        # vaccinations remain within the same window; the tightest
+        # clinical constraint (immunization within one full quarter of
+        # any real-world office visit) is preserved.
         best_delta: int | None = None
         best_day: date | None = None
         best_eid: str = ""
         for _day, _eid in _enc_days:
             _delta = abs((_day - occ).days)
-            if _delta > 14:
+            if _delta > 60:
                 continue
             if best_delta is None or _delta < best_delta:
                 best_delta = _delta
@@ -132,14 +139,26 @@ def enrich_immunizations(ctx) -> None:
     nurse_ids = []
     if roster and hasattr(roster, "members"):
         nurse_ids = sorted(m.staff_id for m in roster.members if getattr(m, "role", "") == "nurse")
+    # Issue #1197 cross-record alignment (verify Pass 4 root fix): CIF
+    # splits one patient's history into one record per encounter, so a
+    # single record only sees ONE encounter — the aligner previously
+    # couldn't reach the patient's other in-sim encounters. Build a
+    # per-patient encounter union up-front so alignment finds any nearby
+    # encounter across the patient's full record set.
+    _all_encs_by_patient: dict[str, list] = {}
+    for rec in ctx.records:
+        patient = _get(rec, "patient")
+        pid = _get(patient, "patient_id", "") if patient else ""
+        if not pid:
+            continue
+        for enc in _get(rec, "encounters", []) or []:
+            _all_encs_by_patient.setdefault(pid, []).append(enc)
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
         rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["immunization"], pid or "x"))
         recs = generate_immunizations(patient, schedule, _as_of(ctx, rec), rng, nurse_ids=nurse_ids)
-        # Issue #1197 CIF-layer align: snap each immunization to the
-        # nearest same-fortnight outpatient encounter and stamp
-        # encounter_id. See `_align_to_encounters` for the policy.
-        encounters = _get(rec, "encounters", []) or []
-        recs = _align_to_encounters(recs, encounters)
+        # Issue #1197 align — cross-record encounter pool.
+        pool = _all_encs_by_patient.get(pid) or (_get(rec, "encounters", []) or [])
+        recs = _align_to_encounters(recs, pool)
         _set(rec, "immunizations", recs)
