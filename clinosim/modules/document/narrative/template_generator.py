@@ -5277,9 +5277,31 @@ class TemplateNarrativeGenerator:
                 # Fold in the first two lab_by_name entries not already
                 # cited by the condition dispatch (kept generic — the
                 # condition-specific labs would have fired `interp`).
+                # Issue #1188 F4 verify 2nd pass: apply the same Nathan
+                # gate here so a stray `glucose N mg/dL` that would
+                # contradict the paired HbA1c (poorly-controlled patient
+                # with normoglycemic reading) is not surfaced under an
+                # unrelated condition's fallback line either.
+                _hba1c_val_gate: float | None = None
+                if lab_by_name:
+                    _hba1c_pair = lab_by_name.get("hba1c")
+                    if _hba1c_pair is not None:
+                        try:
+                            _hba1c_val_gate = float(_hba1c_pair[0])
+                        except (TypeError, ValueError):
+                            _hba1c_val_gate = None
                 if lab_by_name:
                     for name in list(lab_by_name.keys())[:2]:
                         v, u = lab_by_name[name]
+                        # Nathan gate for glucose in the generic fallback.
+                        if name.lower() == "glucose" and _hba1c_val_gate is not None and _hba1c_val_gate >= 8.0:
+                            try:
+                                _g = float(v)
+                                _expected_eag = 28.7 * _hba1c_val_gate - 46.7
+                                if _g + 60 < _expected_eag:
+                                    continue  # skip Nathan-inconsistent glucose
+                            except (TypeError, ValueError):
+                                pass
                         obs_bits.append(f"{name} {v}{f' {u}' if u else ''}")
                 if obs_bits:
                     joined = ("、" if is_ja else ", ").join(obs_bits[:4])
