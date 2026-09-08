@@ -1641,3 +1641,162 @@ def _build_medication_admin(
         ]
 
     return resource
+
+
+# ─────────────────────────────────────────────────────────────────
+# Class-collision guard for MedicationRequest (Issue #1176 / #1179)
+# ─────────────────────────────────────────────────────────────────
+#
+# Empirical p=10000 audit found ≥2 drugs from the same therapeutic
+# class co-authored on the same day for a small number of patients:
+#   * ACE-I + ARB (dual RAAS blockade) — 70 orders / 19 patients (Class III: Harm)
+#   * PPI + PPI                        — 26 buckets / 4 patients
+#   * NSAID + NSAID                    — 11 buckets / 11 patients
+#   * Anticoagulant + Anticoagulant    — 29 buckets / 4 patients
+#
+# The cause is multiple CIF order sources (chronic problem list +
+# episode-specific treatment plan + inpatient add-on flow) each
+# picking a different drug from the same class for the same clinical
+# indication. Fix at CIF layer is preferable long-term; the emit-time
+# guard below is the belt-and-braces filter that keeps the FHIR
+# output clean while the CIF drift is investigated.
+#
+# Classification uses substring match against a small drug → class
+# dictionary. Matching is intentionally conservative: only drugs on
+# the explicit list contribute to a class, so a drug not covered here
+# falls through as its own class ("_uncovered") and is never dropped
+# by this guard.
+
+_MEDICATION_CLASS_MEMBERS: dict[str, tuple[str, ...]] = {
+    "ppi": (
+        "omeprazole",
+        "esomeprazole",
+        "lansoprazole",
+        "rabeprazole",
+        "pantoprazole",
+        "オメプラゾール",
+        "エソメプラゾール",
+        "ランソプラゾール",
+        "ラベプラゾール",
+        "パントプラゾール",
+    ),
+    "nsaid": (
+        "ibuprofen",
+        "diclofenac",
+        "naproxen",
+        "celecoxib",
+        "loxoprofen",
+        "meloxicam",
+        "indomethacin",
+        "イブプロフェン",
+        "ジクロフェナク",
+        "ナプロキセン",
+        "セレコキシブ",
+        "ロキソプロフェン",
+        "メロキシカム",
+        "インドメタシン",
+    ),
+    "anticoagulant": (
+        "warfarin",
+        "edoxaban",
+        "apixaban",
+        "rivaroxaban",
+        "dabigatran",
+        "ワルファリン",
+        "エドキサバン",
+        "アピキサバン",
+        "リバーロキサバン",
+        "ダビガトラン",
+    ),
+    "ace_inhibitor": (
+        "enalapril",
+        "lisinopril",
+        "perindopril",
+        "ramipril",
+        "captopril",
+        "エナラプリル",
+        "リシノプリル",
+        "ペリンドプリル",
+        "ラミプリル",
+        "カプトプリル",
+    ),
+    "arb": (
+        "candesartan",
+        "losartan",
+        "telmisartan",
+        "olmesartan",
+        "valsartan",
+        "azilsartan",
+        "irbesartan",
+        "カンデサルタン",
+        "ロサルタン",
+        "テルミサルタン",
+        "オルメサルタン",
+        "バルサルタン",
+        "アジルサルタン",
+        "イルベサルタン",
+    ),
+}
+# Classes that are clinically incompatible when co-prescribed on the same day
+# (dual RAAS blockade = ACE-I + ARB; dual anticoagulation = 2 different DOACs
+# or DOAC + warfarin). ACE_i and ARB share a `raas` supergroup — treat as
+# same class for dedup purposes.
+_MEDICATION_CLASS_SUPERGROUPS: dict[str, str] = {
+    "ace_inhibitor": "raas",
+    "arb": "raas",
+}
+
+
+def _classify_medication(med_text: str) -> str:
+    """Return the therapeutic-class key for a drug display text, or "" when uncovered."""
+    if not med_text:
+        return ""
+    lower = med_text.lower()
+    for cls, members in _MEDICATION_CLASS_MEMBERS.items():
+        for m in members:
+            if m in lower or m in med_text:
+                # Collapse class into supergroup when defined.
+                return _MEDICATION_CLASS_SUPERGROUPS.get(cls, cls)
+    return ""
+
+
+def _dedup_same_class_orders(mrs: list[dict]) -> list[dict]:
+    """Drop later MedicationRequest orders that duplicate the therapeutic
+    class of an earlier order authored on the same day for the same patient.
+
+    Issue #1176: ACE-I + ARB (dual RAAS blockade) — 70 orders / 19 patients.
+    Issue #1179: PPI + PPI (26 buckets), NSAID + NSAID (11), Anticoagulant +
+    Anticoagulant (29).
+
+    Keys off (subject.reference, authoredOn date, therapeutic class). The
+    first order in a colliding pair wins; later orders in the same class
+    on the same day for the same patient are dropped. Drugs not covered by
+    ``_MEDICATION_CLASS_MEMBERS`` are never dropped (they classify as ""
+    and skip the guard).
+
+    Never coalesces different-formulation combinations that were already
+    filtered by :func:`_dedup_medication_requests` (exact-duplicate dedup);
+    that function should run first when both are chained.
+    """
+    seen: set[tuple[str, str, str]] = set()
+    out: list[dict] = []
+    for mr in mrs:
+        subject_ref = ""
+        subj = mr.get("subject")
+        if isinstance(subj, dict):
+            subject_ref = str(subj.get("reference", "") or "").strip()
+        authored = str(mr.get("authoredOn", ""))[:10]
+        med_text = ""
+        med = mr.get("medicationCodeableConcept")
+        if isinstance(med, dict):
+            med_text = str(med.get("text", "") or "").strip()
+        cls = _classify_medication(med_text)
+        if not cls or not subject_ref or not authored:
+            out.append(mr)
+            continue
+        key = (subject_ref, authored, cls)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(mr)
+    return out
