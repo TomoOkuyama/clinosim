@@ -747,6 +747,65 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
                 if _target not in _mr_ids:
                     _resource.pop("request", None)  # drop the dangling ref
         out.append(_resource)
+    return _dedup_medication_admins(out)
+
+
+def _dedup_medication_admins(mas: list[dict]) -> list[dict]:
+    """Drop MedicationAdministration duplicates within the same hour bucket.
+
+    Issue #1187 F5: a 25-day inpatient stay recorded 33 MedicationAdministration
+    entries for a daily drug (atorvastatin) and 28 for another daily drug
+    (amlodipine) — 33/25 = 1.32 doses/day for a 1/day prescription, and
+    28/25 = 1.12 doses/day. The MAR-generator schedule for a `daily_drugs`
+    entry emits only one dose per day (`admin_hours=[8]`), so the surplus
+    comes from:
+
+      * Duplicate CIF Orders for the same chronic drug both emitting MARs
+        (before the #1177 MR dedup landed, and now for any surviving
+        near-duplicate that eluded that guard's strict tuple key).
+      * The STAT/day-0 ad-hoc first-dose path landing within the same hour
+        as the scheduled-grid dose (the 90-min duplicate-avoidance window
+        does not cover a chronic drug whose STAT flag is false).
+      * Home-medication continuation orders that fire in parallel with an
+        episode-specific order for the same drug.
+
+    Key: (drug_name lower, hour-bucketed scheduled_datetime, patient
+    reference). The hour bucket collapses jitter within the same slot.
+    Empty `drug_name` or missing `effectiveDateTime` rows pass through
+    unchanged (cannot key). First occurrence wins.
+    """
+    seen: set[tuple[str, str, str]] = set()
+    out: list[dict] = []
+    for ma in mas:
+        med = ma.get("medicationCodeableConcept")
+        drug = ""
+        if isinstance(med, dict):
+            drug = str(med.get("text", "") or "").strip().lower()
+        # Look for effectiveDateTime or effectivePeriod.start.
+        eff = ""
+        raw_eff = ma.get("effectiveDateTime")
+        if raw_eff:
+            eff = str(raw_eff)
+        else:
+            per = ma.get("effectivePeriod")
+            if isinstance(per, dict):
+                eff = str(per.get("start", "") or "")
+        subject = ""
+        subj = ma.get("subject")
+        if isinstance(subj, dict):
+            subject = str(subj.get("reference", "") or "").strip()
+        # Hour-bucket: `YYYY-MM-DDTHH` — a MAR is a discrete dose, not a
+        # period. Two MARs in the same hour for the same drug on the same
+        # patient are, at best, a scheduling artifact.
+        hour_bucket = eff[:13] if len(eff) >= 13 else eff
+        if not drug or not hour_bucket:
+            out.append(ma)
+            continue
+        key = (drug, hour_bucket, subject)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(ma)
     return out
 
 
