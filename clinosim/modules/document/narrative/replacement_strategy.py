@@ -932,13 +932,36 @@ def _localize_token(token: str, table: dict[str, tuple[str, str]], lang: str) ->
     return key.replace("_", " ")
 
 
-def _render_patient_demographics(patient: Any, lang: str) -> str:
+def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None) -> str:
     """Compose a one-line demographic anchor (age / sex / occupation /
     social history / marital / insurance). Used as the LLM's primary
     background reference for SOAP-shaped docs whose template layer does
     NOT render a social_history section. Missing fields drop silently
-    (never fabricate)."""
+    (never fabricate).
+
+    Issue #1173 follow-up (S104 verify): the previous version read
+    `patient.age` — the static sim-start age — which under-reported by
+    1-2 y whenever the encounter fell later in the sim window. When
+    ``encounter`` is passed and both ``patient.date_of_birth`` and
+    ``encounter.admission_datetime`` are available, derive the true
+    age at the encounter date. Falls back to static ``patient.age``
+    when either field is missing (safe default).
+    """
     age = _get(patient, "age", None)
+    # Age-at-encounter override — Issue #1173 verify gap.
+    dob = _get(patient, "date_of_birth", None)
+    if encounter is not None and dob is not None:
+        _adm = _get(encounter, "admission_datetime", None)
+        if _adm is not None:
+            try:
+                ref_date = _adm.date() if hasattr(_adm, "date") else _adm
+                _computed = (
+                    ref_date.year - dob.year - (1 if (ref_date.month, ref_date.day) < (dob.month, dob.day) else 0)
+                )
+                if _computed >= 0:
+                    age = _computed
+            except (AttributeError, TypeError):
+                pass
     sex = _get(patient, "sex", "")
     is_ja = str(lang).lower().startswith("ja")
 
@@ -1127,7 +1150,7 @@ def _build_extra_context(
     # template section (admission_hp social_history / medications_at_home)
     # skip via the same `tmpl` gate the chronic_conditions block uses.
     if p is not None:
-        _demo = _render_patient_demographics(p, lang=ctx.target_lang)
+        _demo = _render_patient_demographics(p, lang=ctx.target_lang, encounter=getattr(ctx, "encounter", None))
         if _demo and "social_history" not in tmpl:
             extra["patient_demographics"] = _demo
         # Biometrics: emit for doc types where BMI / blood type carry
