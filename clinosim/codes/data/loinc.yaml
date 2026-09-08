@@ -75,6 +75,15 @@ codes:
   # loinc.org 2026-08-30 — the top-level document-type entry, not the
   # WHO cause-of-death panel 68986-9). JP display 死亡診断書 matches the
   # 厚生労働省 official form title (医師法第 20 条 / 死亡診断書 (死体検案書)).
+  # Issue #1105 (C10 P2): specific Plan-of-care LOINCs for JP Composition
+  # slug routing. Both verified via clinicaltables.nlm.nih.gov/api/loinc_items
+  # (2026-09-09). Reduces the 92.6% concentration on the generic 18776-5.
+  64295-9:
+    en: Nurse Plan of Care Note
+    ja: 看護計画
+  34895-3:
+    en: Patient education and consents
+    ja: 患者教育
   64297-5:
     en: Death certificate
     ja: 死亡診断書
