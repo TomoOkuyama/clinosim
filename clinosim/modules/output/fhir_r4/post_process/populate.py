@@ -1383,3 +1383,62 @@ def _normalize_jp_observation_category(resource: dict) -> None:
                 cat_elem["text"] = text_hint
             break
     resource["category"] = rebuilt
+
+
+def _resolve_practitioner_display(staff_id: str, roster_map: dict[str, dict] | None) -> str:
+    """Compose a `Reference.display` string for a Practitioner reference.
+
+    Reads the staff `name` (already stored in the roster as `"family given"`
+    for JP kanji rosters and `"given family"` for US rosters) and returns
+    it as-is. `Reference.display` per FHIR R4 is free-text — no need to
+    replicate the Practitioner.name split logic. Returns "" when the
+    staff id is not in the roster (silence beats fabrication, AD-30).
+    """
+    if not roster_map:
+        return ""
+    staff = roster_map.get(staff_id)
+    if not staff:
+        return ""
+    name = str(staff.get("name", "") or "").strip()
+    return name
+
+
+def _populate_practitioner_reference_display(resource: dict, roster_map: dict[str, dict] | None) -> None:
+    """Fill `Reference.display` for `Practitioner/…` references (Issue #1178).
+
+    Before this walker, every Practitioner reference emitted by every
+    builder omitted `display`, so consumers rendering a chart-note author
+    / DR performer / CareTeam member row saw an empty string until they
+    fetched the Practitioner resource. This affects 171,781 references
+    (100%) across Composition.author, ClinicalImpression.assessor,
+    DiagnosticReport.performer, DocumentReference.author, Condition.
+    asserter, and CareTeam.participant[].member.
+
+    Fix (single walker at post-emit time): recursively scan the resource
+    for any dict of shape `{"reference": "Practitioner/<id>", …}` without
+    a `display` key. Resolve `<id>` against the shared roster map — the
+    same source the `_build_practitioner` builder uses — and populate
+    `display` with the staff `name` field. Silence (no display key)
+    stays when the roster does not have the id (avoids fabrication).
+
+    Idempotent: skips when the target dict already carries a non-empty
+    `display`.
+    """
+    if not roster_map:
+        return
+
+    def _walk(node: Any) -> None:
+        if isinstance(node, dict):
+            ref = node.get("reference")
+            if isinstance(ref, str) and ref.startswith("Practitioner/") and not node.get("display"):
+                staff_id = ref[len("Practitioner/") :]
+                d = _resolve_practitioner_display(staff_id, roster_map)
+                if d:
+                    node["display"] = d
+            for v in node.values():
+                _walk(v)
+        elif isinstance(node, list):
+            for item in node:
+                _walk(item)
+
+    _walk(resource)

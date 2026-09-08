@@ -54,6 +54,7 @@ __all__ = [
     "_populate_condition_ai_mr_ecs_fields",
     "_populate_jp_medication_dosage_ecs_fields",
     "_populate_observation_identifier_and_last_updated",
+    "_populate_practitioner_reference_display",
     "_populate_status_coding_display",
     # profile
     "_FHIR_ID_PATTERN",
@@ -117,6 +118,7 @@ from clinosim.modules.output.fhir_r4.post_process.populate import (  # noqa: E40
     _populate_condition_ai_mr_ecs_fields,
     _populate_jp_medication_dosage_ecs_fields,
     _populate_observation_identifier_and_last_updated,
+    _populate_practitioner_reference_display,
     _populate_status_coding_display,
 )
 from clinosim.modules.output.fhir_r4.post_process.profile import (  # noqa: E402, F401
