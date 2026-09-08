@@ -4965,9 +4965,25 @@ class TemplateNarrativeGenerator:
         v0 = vitals[0] if vitals else None
         sbp = _o(v0, "systolic_bp", None) if v0 else None
         dbp = _o(v0, "diastolic_bp", None) if v0 else None
-        hr_v = _o(v0, "heart_rate", None) if v0 else None
-        temp_v = _o(v0, "temperature_celsius", None) if v0 else None
-        spo2_v = _o(v0, "spo2", None) if v0 else None
+        # Issue #1181: cast remaining vitals to floats up-front so the
+        # observation-aware fallback below can quote them without a
+        # try/except per branch (also consumed by the #1183 vital-abnormal
+        # handler after the condition-dispatch loop).
+        _hr_raw = _o(v0, "heart_rate", None) if v0 else None
+        _t_raw = _o(v0, "temperature_celsius", None) if v0 else None
+        _spo2_raw = _o(v0, "spo2", None) if v0 else None
+        try:
+            hr_f = float(_hr_raw) if _hr_raw is not None else None
+        except (TypeError, ValueError):
+            hr_f = None
+        try:
+            temp_f = float(_t_raw) if _t_raw is not None else None
+        except (TypeError, ValueError):
+            temp_f = None
+        try:
+            spo2_f = float(_spo2_raw) if _spo2_raw is not None else None
+        except (TypeError, ValueError):
+            spo2_f = None
 
         # Issue #985: cite value regardless of flag — a target-comparison
         # assessment needs the actual number even when in-range.
@@ -5186,8 +5202,45 @@ class TemplateNarrativeGenerator:
             if interp:
                 lines.append(f"{i}. {label}: {interp}")
             else:
-                stub = "本日測定なし、次回受診時再評価。" if is_ja else "no measurement today; reassess next visit."
-                lines.append(f"{i}. {label}: {stub}")
+                # Issue #1181 (87.7% of SOAP notes contradicted by their
+                # own encounter's Observations): before falling back to
+                # "本日測定なし", check whether *any* vitals or labs were
+                # actually captured on this encounter. If so, cite the
+                # top three general observations rather than assert
+                # "not measured" — the same encounter carries the
+                # measurements verbatim.
+                obs_bits: list[str] = []
+                if sbp is not None and dbp is not None:
+                    obs_bits.append(f"BP {int(sbp)}/{int(dbp)} mmHg")
+                if hr_f is not None:
+                    obs_bits.append(f"HR {int(round(hr_f))} 回/分" if is_ja else f"HR {int(round(hr_f))} /min")
+                if temp_f is not None:
+                    obs_bits.append(f"T {temp_f:.1f}°C")
+                if spo2_f is not None:
+                    obs_bits.append(f"SpO2 {spo2_f:.0f}%")
+                # Fold in the first two lab_by_name entries not already
+                # cited by the condition dispatch (kept generic — the
+                # condition-specific labs would have fired `interp`).
+                if lab_by_name:
+                    for name in list(lab_by_name.keys())[:2]:
+                        v, u = lab_by_name[name]
+                        obs_bits.append(f"{name} {v}{f' {u}' if u else ''}")
+                if obs_bits:
+                    joined = ("、" if is_ja else ", ").join(obs_bits[:4])
+                    if is_ja:
+                        follow = (
+                            f"本日測定 ({joined}) は病態特異的モニタリング項目に該当せず、"
+                            f"次回受診時に {label} 特化評価を追加検討。"
+                        )
+                    else:
+                        follow = (
+                            f"today's measurements ({joined}) not condition-specific; "
+                            f"defer {label} focused review to next visit."
+                        )
+                    lines.append(f"{i}. {label}: {follow}")
+                else:
+                    stub = "本日測定なし、次回受診時再評価。" if is_ja else "no measurement today; reassess next visit."
+                    lines.append(f"{i}. {label}: {stub}")
 
         # Issue #1183: Assessment previously ignored abnormal vitals that
         # were not paired with a matching chronic condition. Tachycardia
@@ -5195,20 +5248,10 @@ class TemplateNarrativeGenerator:
         # (0/1,890), and fever in only 6.7% (2/30). Add a per-vital pass
         # after the condition-dispatch loop so a HR ≥100 / SpO2 <95 /
         # T ≥38 always surfaces in the Assessment prose regardless of
-        # the chronic-condition list.
+        # the chronic-condition list. hr_f / temp_f / spo2_f are already
+        # parsed once at the top of this method (shared with PR B3's
+        # observation-aware fallback).
         vital_lines: list[str] = []
-        try:
-            hr_f = float(hr_v) if hr_v is not None else None
-        except (TypeError, ValueError):
-            hr_f = None
-        try:
-            temp_f = float(temp_v) if temp_v is not None else None
-        except (TypeError, ValueError):
-            temp_f = None
-        try:
-            spo2_f = float(spo2_v) if spo2_v is not None else None
-        except (TypeError, ValueError):
-            spo2_f = None
         if hr_f is not None and hr_f >= 100:
             if is_ja:
                 vital_lines.append(f"頻脈: HR {int(round(hr_f))} 回/分、動悸・脱水評価要。")
