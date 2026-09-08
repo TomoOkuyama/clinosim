@@ -336,3 +336,13 @@ class ImmunizationRecord:
     dose_number: int | None = None
     lot_number: str = ""  # manufacturer lot ID; empty when unrecorded
     administered_by: str = ""  # staff_id of nurse/physician who administered
+    # Issue #1184 F4 / #1186 F6 CIF-layer align (#1197 verify 2nd-pass root
+    # fix): the FHIR emit-time bridge could not populate Immunization.
+    # encounter because the CIF scheduler picked occurrence_date on an
+    # age-anchored calendar independent of the encounter calendar (~4/1969
+    # same-day overlap). The immunization enricher now runs an alignment
+    # pass after both immunizations and encounters exist per-record,
+    # snapping the occurrence_date to a nearby pediatric_visit encounter
+    # and stamping this field with that encounter's id. Empty when no
+    # nearby encounter was found (silence beats fabrication, AD-30).
+    encounter_id: str = ""
