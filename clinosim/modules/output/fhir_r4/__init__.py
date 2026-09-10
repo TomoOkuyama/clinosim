@@ -1131,11 +1131,26 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
     Compares only the calendar-date prefix (``YYYY-MM-DD``) so same-day
     activity (final labs, terminal medication administration, death
     certificate) survives.
+
+    Issue #1218 (2026-09-10, JP p=10000 audit): first-pass drop leaves
+    references to the removed ids on surviving parent resources
+    (``Composition.section[*].entry[]``, ``DiagnosticReport.result[]``,
+    ``Observation.hasMember/derivedFrom[]``, ``MedicationAdministration
+    .request`` cascade, etc.), producing 1,866 dangling
+    ``Composition.section.entry -> Observation/…`` refs (vs/news2/lab/
+    gcs Observations recorded up until discharge, dropped when
+    effectiveDateTime > dod, while the enclosing Composition's ``.date``
+    was ≤ dod and survived). Fixed by mirroring the
+    ``_drop_entries_after_snapshot`` reference-scrubber pass on
+    survivors — same helper (`_scrub_refs_one_pass`), same 3-pass
+    fixed-point bound.
     """
     kept: list[dict] = []
+    dropped_ids: set[str] = set()
     for e in entries:
         res = e.get("resource", {}) if isinstance(e, dict) else {}
         rtype = res.get("resourceType", "")
+        rid = res.get("id", "")
         if rtype in _AFTER_DEATH_ALLOWED_RESOURCE_TYPES:
             kept.append(e)
             continue
@@ -1147,6 +1162,8 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
             p = res.get("period", {}) or {}
             start = p.get("start", "")
             if isinstance(start, str) and start and start[:10] > dod_iso:
+                if rid:
+                    dropped_ids.add(f"{rtype}/{rid}")
                 continue
             kept.append(e)
             continue
@@ -1155,8 +1172,23 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
             if v[:10] > dod_iso:
                 after_death = True
                 break
-        if not after_death:
-            kept.append(e)
+        if after_death:
+            if rid:
+                dropped_ids.add(f"{rtype}/{rid}")
+            continue
+        kept.append(e)
+    # Issue #1218: second-pass reference scrubber — bounded fixed-point
+    # iteration (3 passes), same shape as `_drop_entries_after_snapshot`.
+    # Each pass may cascade-drop resources whose single required
+    # Reference points at an already-dropped id (MedAdmin.request → MR);
+    # those cascade drops join the drop set so the next pass scrubs any
+    # references to them.
+    for _ in range(3):
+        kept, _scrubbed_this_pass, cascade_dropped = _scrub_refs_one_pass(kept, dropped_ids)
+        if not cascade_dropped:
+            break
+        for cid in cascade_dropped:
+            dropped_ids.add(cid)
     return kept
 
 
