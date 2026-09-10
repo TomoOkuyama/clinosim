@@ -941,12 +941,16 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
             # Condition; acute-primary encounters keep the encounter-scoped id.
             # Issue #1222: skip reasonReference when the encounter's primary
             # dx is a Z-chapter visit-reason code — no Condition was emitted
-            # for it (Issue #916), so the reference would dangle.
-            from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
+            # for it (Issue #916), so the reference would dangle. Prefer the
+            # per-encounter admission dx (Issue #1215) so VAX companion
+            # encounters correctly gate on Z23.
+            from clinosim.modules.diagnosis.nonspecific_codes import (
+                encounter_primary_dx_code,
+                is_visit_reason_zcode,
+            )
             from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
 
-            _dx_pr = (ctx.record or {}).get("clinical_diagnosis", {}) or {}
-            _primary_dx_pr = _dx_pr.get("discharge_diagnosis_code") or _dx_pr.get("admission_diagnosis_code", "") or ""
+            _primary_dx_pr = encounter_primary_dx_code(ctx.record, enc_id)
             if not (_primary_dx_pr and is_visit_reason_zcode(_primary_dx_pr)):
                 _primary_ref = primary_condition_ref(ctx.record, ctx.patient_id, enc_id)
                 procedure_res["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
