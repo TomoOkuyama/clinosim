@@ -46,9 +46,18 @@ codes:
   F32:
     en: Depressive episode
     ja: うつ病エピソード
+  # Issue #1239 (2026-09-10): F33/F41.1 追加 (JP demographics.yaml で
+  # chronic prevalence 定義追加に伴い icd-10 catalog にも登録、無いと
+  # Condition emit が display lookup 失敗で dangling ref 発生)。
+  F33:
+    en: Recurrent depressive disorder
+    ja: 反復性うつ病性障害
   F41.0:
     en: Panic disorder [episodic paroxysmal anxiety]
     ja: パニック障害
+  F41.1:
+    en: Generalized anxiety disorder
+    ja: 全般性不安障害
   G20:
     en: Parkinson disease
     ja: パーキンソン病
