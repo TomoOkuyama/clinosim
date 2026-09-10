@@ -335,12 +335,27 @@ def document_enricher(ctx: Any) -> None:
         # within the record regardless of encounter count.
         doc_seq = len(documents) + 1
 
+        # Issue #1228: skip encounters that already have documents so this
+        # enricher is idempotent when re-invoked at POST_RECORDS. The
+        # immunization enricher (POST_RECORDS) appends companion vaccination
+        # encounters (`ENC-VAX-*`, PR #1214) AFTER this enricher's
+        # POST_ENCOUNTER pass has completed, then calls this enricher again
+        # so the new encounters receive their document stubs. Existing
+        # encounters (from POST_ENCOUNTER) must not re-emit — the guard is
+        # "any document exists for this encounter_id" because a single
+        # POST_ENCOUNTER pass emits every applicable spec (admission_once /
+        # daily / daily_3shift / discharge_once / encounter_once) in one go.
+        _encounters_with_docs: set[str] = {d.encounter_id for d in documents if d.encounter_id}
+
         for encounter in _o(record, "encounters", []) or []:
             enc_type_val = _enc_type_value(_o(encounter, "encounter_type", None))
 
             enc_status_val = _enc_status_value(_o(encounter, "status", None))
             if enc_status_val in _CANCELLED_STATUSES:
                 continue  # AD-32: cancelled encounters produce no documents
+            _enc_id_early = _o(encounter, "encounter_id", "") or ""
+            if _enc_id_early and _enc_id_early in _encounters_with_docs:
+                continue  # Issue #1228: already dispatched (idempotent re-invoke)
 
             # Per-spec encounter-type × country intersection.
             # specs_for_encounter_type is lru_cache(maxsize=4); cheap repeated call.
