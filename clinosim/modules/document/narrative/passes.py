@@ -169,14 +169,51 @@ class NarrativePass(ABC):
                 patient_dict = json.load(f)
             if not self._spec_applies(spec, patient_dict):
                 return []
-            encounter_dict = (patient_dict.get("encounters") or [{}])[0]
+            encounters = patient_dict.get("encounters") or []
+            primary_encounter = encounters[0] if encounters else {}
             stubs = self._find_matching_stubs(patient_dict, spec)
             if not stubs:
                 return []
-            ctx = self._build_context(patient_dict, encounter_dict, spec, language)
-            encounter_id = encounter_dict.get("encounter_id", "")
+            # Issue #1237: index encounters by encounter_id so each stub can
+            # bind to its OWN encounter's context (was: every stub reused
+            # `encounters[0]`, so companion vaccination encounters
+            # (`ENC-VAX-*`, S104 PR #1214) and synth ED-bridge encounters
+            # (`{IMP}-ED`) got the parent IMP's chief_complaint / clinical
+            # course leaked into their narrative — 5,521 US / 1,387 JP
+            # semantic-false-positive files at p=10k).
+            encounters_by_id: dict[str, dict[str, Any]] = {}
+            for enc in encounters:
+                _eid = enc.get("encounter_id", "") if isinstance(enc, dict) else ""
+                if _eid:
+                    encounters_by_id[_eid] = enc
+            # Per-encounter context cache — `_build_context` is O(N_facts)
+            # so we memoize across stubs that share an encounter (e.g. the
+            # 3 daily_3shift stubs for one hospital day). This keeps the
+            # per-unit cost close to the pre-#1237 baseline while giving
+            # every stub its own encounter view.
+            ctx_cache: dict[str, Any] = {}
+
+            def _ctx_for(stub_encounter_id: str) -> tuple[Any, dict[str, Any], str]:
+                """Return ``(ctx, encounter_dict, encounter_id)`` for a stub.
+
+                Falls back to the primary encounter when the stub's
+                ``encounter_id`` doesn't map (e.g. legacy stubs without
+                the field). Falls back further to an empty dict when the
+                patient has no encounters at all (test scaffolding).
+                """
+                enc = encounters_by_id.get(stub_encounter_id) or primary_encounter
+                enc_id = enc.get("encounter_id", "") if isinstance(enc, dict) else ""
+                cache_key = enc_id or "__primary__"
+                _cached = ctx_cache.get(cache_key)
+                if _cached is None:
+                    _cached = self._build_context(patient_dict, enc, spec, language)
+                    ctx_cache[cache_key] = _cached
+                return _cached, enc, enc_id
+
             results: list[dict[str, Any]] = []
             for stub in stubs:
+                _stub_enc_id = str(stub.get("encounter_id", "") or "")
+                ctx, encounter_dict, encounter_id = _ctx_for(_stub_enc_id)
                 # Per-stub shift key (daily_3shift stubs carry
                 # "night"/"day"/"evening"; all other stubs ""). ctx is
                 # per-unit (not shared across threads) so this mutation
