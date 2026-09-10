@@ -953,9 +953,14 @@ def _snapshot_ts_iter(resource: dict):
 _SCRUB_LIST_REF_FIELDS_BY_TYPE: dict[str, tuple[str, ...]] = {
     "DiagnosticReport": ("result",),
     "Observation": ("hasMember", "derivedFrom"),
-    "MedicationRequest": ("basedOn",),
+    # Issue #1235: MR/MA/Procedure also carry `reasonReference` list to
+    # Condition. In-hospital-death case (Issue #1219) can drop the target
+    # Condition (per-event recordedDate > dod), leaving dangling refs on
+    # surviving parent resources. Symmetric with the Encounter scrub below.
+    "MedicationRequest": ("basedOn", "reasonReference"),
+    "MedicationAdministration": ("reasonReference",),
     "ServiceRequest": ("basedOn",),
-    "Procedure": ("report",),
+    "Procedure": ("report", "reasonReference"),
     # Issue #1231: Encounter.reasonReference[] — list of Reference to
     # Condition / Observation. In-hospital-death case (Issue #1219) keeps
     # the Encounter (start-gated allowlist) but its per-event referents
