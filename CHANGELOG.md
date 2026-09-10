@@ -41,16 +41,18 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
-- **CIFReader multi-encounter narrative merge** (#1244 → PR). `_merge_narrative_into`
-  now walks every encounter referenced by the record's document stubs (union of
-  `stub.encounter_id`) instead of only `encounters[0]`. Prior behaviour dropped
-  narrative content for companion / bridge encounters — `ENC-VAX-*` vaccination
-  visits (immunization enricher) and `{IMP}-ED` synth bridge encounters (via-ED
-  admissions) — because their narrative files live under their own encounter
-  directory, not the record's primary encounter. Impact at v0.6.1 p=10k: **2,770
-  `composition stub … has no narrative` warnings → 0**, and the corresponding VAX
-  / ED-bridge Composition resources are now emitted. FHIR-emit-only change; CIF is
-  byte-unchanged. **PATCH-scope**.
+- **Immunization enricher: VAX companion encounter cross-record duplication**
+  (#1245 → PR). A patient with N record files (one per primary encounter,
+  per-encounter CIF sharding) previously received N copies of every
+  synthesized `ENC-VAX-*` companion encounter — `generate_immunizations` is
+  deterministic per patient (same imm list on every call across records), so
+  each record's iteration synthesized and appended the identical companion
+  encounter. At p=10k seed 342 this hit 23 % of VAX encounters (one appearing
+  in 9 record files). Now tracks hosted VAX encounter_ids per patient; the
+  first record to encounter an orphan imm hosts the synth encounter, later
+  records only link the imm via its `encounter_id` field. CIF layer bug;
+  affects downstream narrative and Composition duplicate emission.
+  **PATCH-scope** (bug fix, CIF layer dedup but no field schema change).
 
 ## [0.6.1] - 2026-09-10
 
