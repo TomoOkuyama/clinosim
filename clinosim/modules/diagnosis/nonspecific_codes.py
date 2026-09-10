@@ -95,3 +95,39 @@ def is_visit_reason_zcode(code: str) -> bool:
         return False
     base = code.split(".", 1)[0]
     return base in _VISIT_REASON_ZCODE_BASES
+
+
+def encounter_primary_dx_code(record: dict | None, encounter_id: str) -> str:
+    """Resolve the primary dx code for an encounter, encounter-scoped first.
+
+    Issue #1215 introduced ``Encounter.admission_diagnosis_code`` /
+    ``admission_diagnosis_system`` so a companion encounter appended by an
+    enricher (e.g. ``ENC-VAX-*`` vaccination visit — Issue #1197 Pass 5
+    fix) can carry its own visit-reason code (Z23) instead of inheriting
+    the record's primary IMP admission dx. FHIR emit-path gates that
+    switch on the encounter's dx (e.g. ``is_visit_reason_zcode`` for the
+    Procedure.reasonReference gate — Issue #1222) must prefer that per-
+    encounter code when it's populated; otherwise the gate looks at the
+    wrong dx and fails to fire.
+
+    Resolution order:
+      1. ``encounter.admission_diagnosis_code`` (per-encounter override,
+         Issue #1215)
+      2. ``record.clinical_diagnosis.discharge_diagnosis_code``
+      3. ``record.clinical_diagnosis.admission_diagnosis_code``
+      4. ``""`` (unknown)
+
+    Empty ``record`` or ``encounter_id`` short-circuits to ``""``.
+    """
+    if not record or not encounter_id:
+        return ""
+    for enc in record.get("encounters") or []:
+        if not isinstance(enc, dict):
+            continue
+        if enc.get("encounter_id") == encounter_id:
+            enc_code = enc.get("admission_diagnosis_code") or ""
+            if enc_code:
+                return str(enc_code)
+            break
+    dx = record.get("clinical_diagnosis") or {}
+    return str(dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "") or "")

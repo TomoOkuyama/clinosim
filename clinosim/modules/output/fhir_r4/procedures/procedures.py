@@ -238,12 +238,15 @@ def _build_procedure(
     # dangle. Encounter.reasonCode already carries the Z-code semantic;
     # Procedure.reasonCode below mirrors it as text/coding, no reference
     # needed. P=10k audit finding #F: 45 Procedure→Condition dangling refs.
-    from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
+    # Post-#1223 residual (S105 v2 audit): 41 refs remained because the
+    # gate looked at record-level dx only. VAX companion encounters
+    # (#1215) carry encounter-scoped ``admission_diagnosis_code=Z23``
+    # while the record-level dx is the primary IMP admission (non-Z-code),
+    # so the gate did not fire. ``encounter_primary_dx_code`` prefers the
+    # per-encounter dx and falls back to record-level.
+    from clinosim.modules.diagnosis.nonspecific_codes import encounter_primary_dx_code, is_visit_reason_zcode
 
-    _dx_for_ref = (record or {}).get("clinical_diagnosis", {}) or {}
-    _primary_dx_code = (
-        _dx_for_ref.get("discharge_diagnosis_code") or _dx_for_ref.get("admission_diagnosis_code", "") or ""
-    )
+    _primary_dx_code = encounter_primary_dx_code(record, enc_id)
     if enc_id and not (_primary_dx_code and is_visit_reason_zcode(_primary_dx_code)):
         # Issue #854 Bucket B (PR-condition): route through the shared
         # resolver so `.reasonReference[]` stays byte-consistent with the
