@@ -31,6 +31,49 @@ JP 表示テキスト方針変更、JP 保険番号 opt-in 挙動変更等) が�
 
 ## [Unreleased] (JP load-bearing 追記)
 
+## [0.6.1] - 2026-09-10 (JP load-bearing 追記)
+
+- **JP national YJ CodeSystem 完全 ship** (PR #1230, Issue #1220):
+  jpfhir-terminology 2.2606.0 の CodeSystem は `content=fragment` (25,542
+  中先頭 2,000、精神/神経薬領域のみ)。cardiovascular/respiratory/oncology
+  系 YJ code が emit path で JP-CLINS eCS `nocoded` slice に downgrade
+  され、MR 41.8 % / MA 25.1 % で医薬品識別不能状態。MEDIS 医薬品HOTコード
+  マスター 2026-08-31 版から `content=complete` (23,923 concepts) の
+  clinosim-shipped CS を新設し、canonical URL (`http://capstandard.jp/
+  iyaku.info/CodeSystem/YJ-code`) は tx-server と同一 → downstream
+  validator が clinosim CS を IG package で優先 load すれば `required`
+  binding が完全解決。**MR NOCODED 41.8 % → 0.49 %、MA NOCODED 25.1 %
+  → 0.08 % (JP p=10k 実測)**。同 PR 内で clinosim yj.yaml の 16 件
+  fictitious code (`4291013F1029` 等) を real MEDIS-registered code に
+  curation。Refresh script `scripts/refresh_authoritative_yj_full.py`。
+- **17 oncology / hormonal / supplement drug YJ codes 追加** (PR
+  #1234, Issue #1233): Oxaliplatin / 5-FU / Leucovorin / Capecitabine
+  / Trastuzumab / Osimertinib / Pemetrexed / Carboplatin / Sorafenib
+  / Bicalutamide / Lenvatinib / Leuprorelin / Tamoxifen / Anastrozole
+  / 葉酸 / Cefcapene / アドエア (ICS+LABA)。yj.yaml + code_mapping_
+  drug.yaml + drug_names_ja.yaml に real MEDIS codes を追加。以前は
+  NOCODED downgrade されていた化学療法 regimen (FOLFOX/CarboPem/
+  Trastuzumab/LHRH) 等が real YJ code で emit。
+- **JP F33 / F41.1 chronic prevalence config 追加** (PR #1240, Issue
+  #1239): `clinosim/locale/jp/demographics.yaml` に F33 (反復性うつ病、
+  ~1-2%) と F41.1 (全般性不安障害/GAD、~0.8-1.5%) の prevalence
+  定義を追加 (US 側は Session 102 で追加済、JP mirror 漏れ)。JP p=10k
+  で F33 = 0 → ~150-200 件 emit 見込み。合わせて `codes/data/icd-10.yaml`
+  に F33 / F41.1 の canonical JA display を追加。
+- **companion vaccination encounter (`ENC-VAX-*`) の Z23 reasonCode +
+  日本語 chief_complaint「予防接種」+ VAX narrative dispatch** (PR
+  #1216 / #1229 / #1238): Session 104 で導入した companion vaccination
+  encounter が FHIR emit 側で親 IMP encounter の admission dx (熱傷等)
+  を reasonCode に inheriting していた defect を root-cause 修正。
+  Encounter-scoped Z23 で正しく emit + 実際の attending physician が
+  stamp される + narrative 内容も encounter-scoped context (「予防接種
+  のため来院」) で生成される。
+- **JP-CLINS eCS 全般の validator-reference-integrity 品質改善** (S105
+  wave 全体): in-hospital-death case の in-mortem-timestamp resource
+  drop → parent resource の dangling refs を PR #1226/#1232/#1236 で
+  3-pass scrubber として一括 fix。JP p=10k で dangling FHIR references
+  2,509 → 0。
+
 ## [0.6.0] - 2026-09-07 (JP load-bearing 追記)
 
 - **session 104 実測 defect fix 3 件** (2026-09-06 → 2026-09-07):
