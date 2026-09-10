@@ -764,12 +764,46 @@ def _reconcile_encounters_at_snapshot(entries: list[dict], snapshot_iso: str) ->
     return entries
 
 
-# Only Patient is unconditionally allowed to keep dateTime fields after
-# death (its `deceasedDateTime` IS the death event). Every other resource
-# type is checked field-by-field via `_dt_fields`: resources with no
-# gating dateTime pass through automatically (nothing to compare), and
-# resources whose fields are all at or before the death date survive.
-_AFTER_DEATH_ALLOWED_RESOURCE_TYPES = frozenset({"Patient"})
+# Patient + purely dimensional resources are unconditionally kept
+# regardless of any date field they carry. Patient's ``deceasedDateTime``
+# IS the death event; the others (Practitioner / Organization / Location
+# / Device / Medication / Endpoint / PractitionerRole) carry no gating
+# dateTime today but are listed for defense-in-depth.
+_AFTER_DEATH_ALLOWED_RESOURCE_TYPES = frozenset(
+    {
+        "Patient",
+        "Practitioner",
+        "PractitionerRole",
+        "Organization",
+        "Location",
+        "Endpoint",
+        "Device",
+        "Medication",
+    }
+)
+
+# Issue #1219 (2026-09-10, JP p=10000 audit): lifecycle resources whose
+# ``period.end`` legitimately extends past ``date_of_death`` for an
+# in-hospital death. Encounter.period.end is the hospital's body-out
+# timestamp (discharge_datetime), Coverage.period.end tracks insurance-
+# card validity (Issue #944 already flips ``status`` when it passes
+# snapshot), CareTeam.period mirrors the encounter's caregiving window.
+# For these resources the ``period.start`` is the correct gate: emit
+# when the resource STARTED at or before dod; drop only when it starts
+# after dod (impossible for real clinical data — indicates fabrication).
+#
+# Concrete failure this guards: 5 IMP encounters in p=10k where the
+# patient died before the ``discharge_datetime``. The universal
+# `_dt_fields` gate saw ``period.end`` after dod and dropped the whole
+# Encounter, while its per-timestamp children (Composition / DR / SR /
+# MR / MA / Procedure / DocRef / ClinImp with per-event timestamps
+# ≤ dod) survived → 41 dangling child-to-Encounter references. The
+# synth-ED bridge always survived (its period.end = IMP admission,
+# before dod), producing the asymmetric "bridge present, IMP dropped"
+# shape observed in audit. This new gate keeps the earlier invariant
+# (an Encounter that STARTS after death is bogus data → still dropped;
+# see ``test_drops_encounter_starting_after_death``).
+_AFTER_DEATH_START_GATED_RESOURCE_TYPES = frozenset({"Encounter", "Coverage", "CareTeam"})
 
 
 def _dt_fields(resource: dict):
@@ -1090,6 +1124,17 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
         res = e.get("resource", {}) if isinstance(e, dict) else {}
         rtype = res.get("resourceType", "")
         if rtype in _AFTER_DEATH_ALLOWED_RESOURCE_TYPES:
+            kept.append(e)
+            continue
+        if rtype in _AFTER_DEATH_START_GATED_RESOURCE_TYPES:
+            # Issue #1219: gate on ``period.start`` only — the lifecycle
+            # end (Encounter.discharge, Coverage.card-expiry) legitimately
+            # extends past dod for in-hospital deaths. An entry that
+            # STARTS after dod is still bogus data and must drop.
+            p = res.get("period", {}) or {}
+            start = p.get("start", "")
+            if isinstance(start, str) and start and start[:10] > dod_iso:
+                continue
             kept.append(e)
             continue
         after_death = False
