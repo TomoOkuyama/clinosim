@@ -32,7 +32,9 @@ _TX_REGISTERED_YJ_JA_DISPLAY: dict[str, str] = {
     "1139010F1024": "イーケプラ錠２５０ｍｇ",
     "1149019C1149": "ロキソニン細粒１０％",
     "1119402A1022": "１％ディプリバン注",
-    "1147002F1013": "ジクロフェナクナトリウム２５ｍｇ錠",
+    # Issue #1220: was 1147002F1013 (fictitious), replaced with real MEDIS
+    # code 1147002F1650 curated to the same 25mg tablet display.
+    "1147002F1650": "ジクロフェナクナトリウム２５ｍｇ錠",
     "1139403A1020": "ロラピタ静注２ｍｇ",
 }
 
