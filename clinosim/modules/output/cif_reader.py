@@ -132,36 +132,55 @@ class CIFReader:
             yield record
 
     def _merge_narrative_into(self, record: dict[str, Any]) -> None:
+        # Issue #1244: walk every unique encounter referenced by the record's
+        # stubs, not just encounters[0]. A record may carry stubs for its
+        # primary encounter plus companion / bridge encounters — ENC-VAX-*
+        # vaccination visits (immunization enricher, PR #1197 / #1214) and
+        # {IMP}-ED synth bridge encounters (via-ED admissions) — whose
+        # narrative files live under their own encounter dir, not the
+        # primary's. The pre-fix "first encounter only" walk dropped ~2,770
+        # VAX / ED-bridge narratives at v0.6.1 p=10k.
         if not self._narrative_available:
             return
-        enc_id = self._first_encounter_id(record)
-        if not enc_id:
+        stubs = record.get("documents") or []
+        if not stubs:
             return
-        enc_dir = os.path.join(self.narrative_docs_dir, enc_id)
-        if not os.path.isdir(enc_dir):
-            return
-        stub_by_id = {d.get("document_id", ""): d for d in (record.get("documents") or [])}
-        for fn in sorted(os.listdir(enc_dir)):
-            if not fn.endswith(".json"):
-                continue
-            with open(os.path.join(enc_dir, fn), encoding="utf-8") as f:
-                narr_file = json.load(f)
-            doc_id = narr_file.get("document_id", "")
-            stub = stub_by_id.get(doc_id)
-            if stub is None:
-                logger.warning(
-                    "CIFReader: orphan narrative file %s (document_id=%s) in "
-                    "encounter %s has no matching structural stub — dropped",
-                    fn,
-                    doc_id,
-                    enc_id,
-                )
-                continue
-            stub["narrative"] = narr_file.get("narrative")
-
-    @staticmethod
-    def _first_encounter_id(record: dict[str, Any]) -> str:
+        stub_by_id: dict[str, dict[str, Any]] = {}
+        enc_ids: set[str] = set()
+        for stub in stubs:
+            doc_id = str(stub.get("document_id", "") or "")
+            enc_id = str(stub.get("encounter_id", "") or "")
+            if doc_id:
+                stub_by_id[doc_id] = stub
+            if enc_id:
+                enc_ids.add(enc_id)
+        # Also walk the record's first encounter — production stubs always
+        # carry encounter_id, but some legacy test fixtures omit it and
+        # depend on the pre-#1244 "walk encounters[0]" behaviour for
+        # single-encounter records.
         encs = record.get("encounters") or []
-        if not encs:
-            return ""
-        return str(encs[0].get("encounter_id", ""))
+        if encs:
+            first_enc_id = str(encs[0].get("encounter_id", "") or "")
+            if first_enc_id:
+                enc_ids.add(first_enc_id)
+        for enc_id in sorted(enc_ids):
+            enc_dir = os.path.join(self.narrative_docs_dir, enc_id)
+            if not os.path.isdir(enc_dir):
+                continue
+            for fn in sorted(os.listdir(enc_dir)):
+                if not fn.endswith(".json"):
+                    continue
+                with open(os.path.join(enc_dir, fn), encoding="utf-8") as f:
+                    narr_file = json.load(f)
+                doc_id = narr_file.get("document_id", "")
+                stub = stub_by_id.get(doc_id)
+                if stub is None:
+                    logger.warning(
+                        "CIFReader: orphan narrative file %s (document_id=%s) in "
+                        "encounter %s has no matching structural stub — dropped",
+                        fn,
+                        doc_id,
+                        enc_id,
+                    )
+                    continue
+                stub["narrative"] = narr_file.get("narrative")
