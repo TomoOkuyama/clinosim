@@ -144,8 +144,25 @@ def test_cross_cursor_shared_window_byte_identical():
         # for comparison; the "real" encounters (visit-simulated) still
         # match byte-identically across cursors.
         _strip_vax = lambda encs: [e for e in encs if not e.encounter_id.startswith("ENC-VAX-")]  # noqa: E731
-        a_cmp = replace(a_rec, immunizations=[], encounters=_strip_vax(a_rec.encounters))
-        b_cmp = replace(b_rec, immunizations=[], encounters=_strip_vax(b_rec.encounters))
+        # Issue #1228 (S105): companion vax encounters now also get a
+        # document stub dispatched from `enrich_immunizations`. Those
+        # documents inherit the same cursor-dependent shape as their
+        # parent VAX encounters (both derive from as_of), so strip them
+        # from the document list for comparison alongside the encounter
+        # strip above.
+        _strip_vax_docs = lambda docs: [d for d in docs if not d.encounter_id.startswith("ENC-VAX-")]  # noqa: E731
+        a_cmp = replace(
+            a_rec,
+            immunizations=[],
+            encounters=_strip_vax(a_rec.encounters),
+            documents=_strip_vax_docs(a_rec.documents),
+        )
+        b_cmp = replace(
+            b_rec,
+            immunizations=[],
+            encounters=_strip_vax(b_rec.encounters),
+            documents=_strip_vax_docs(b_rec.documents),
+        )
         assert a_cmp == b_cmp, f"cross-cursor drift for encounter {enc_id}"
         checked += 1
 
