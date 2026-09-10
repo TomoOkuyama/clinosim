@@ -2277,6 +2277,49 @@ JP 表示テキスト方針変更、JP 保険番号 opt-in 挙動変更等) が�
 場合は本 file に該当 entry のみ日本語で追記する運用です。</p>
 <p>英語版: <a href="../../CHANGELOG.md"><code>CHANGELOG.md (English)</code></a>。</p>
 <h2 id="unreleased-jp-load-bearing-追記">[Unreleased] (JP load-bearing 追記)<a class="headerlink" href="#unreleased-jp-load-bearing-追記" title="Permanent link">&para;</a></h2>
+<h2 id="061---2026-09-10-jp-load-bearing-追記">[0.6.1] - 2026-09-10 (JP load-bearing 追記)<a class="headerlink" href="#061---2026-09-10-jp-load-bearing-追記" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>JP national YJ CodeSystem 完全 ship</strong> (PR #1230, Issue #1220):
+  jpfhir-terminology 2.2606.0 の CodeSystem は <code>content=fragment</code> (25,542
+  中先頭 2,000、精神/神経薬領域のみ)。cardiovascular/respiratory/oncology
+  系 YJ code が emit path で JP-CLINS eCS <code>nocoded</code> slice に downgrade
+  され、MR 41.8 % / MA 25.1 % で医薬品識別不能状態。MEDIS 医薬品HOTコード
+  マスター 2026-08-31 版から <code>content=complete</code> (23,923 concepts) の
+  clinosim-shipped CS を新設し、canonical URL (<code>http://capstandard.jp/
+  iyaku.info/CodeSystem/YJ-code</code>) は tx-server と同一 → downstream
+  validator が clinosim CS を IG package で優先 load すれば <code>required</code>
+  binding が完全解決。<strong>MR NOCODED 41.8 % → 0.49 %、MA NOCODED 25.1 %
+  → 0.08 % (JP p=10k 実測)</strong>。同 PR 内で clinosim yj.yaml の 16 件
+  fictitious code (<code>4291013F1029</code> 等) を real MEDIS-registered code に
+  curation。Refresh script <code>scripts/refresh_authoritative_yj_full.py</code>。</li>
+<li><strong>17 oncology / hormonal / supplement drug YJ codes 追加</strong> (PR
+  #1234, Issue #1233): Oxaliplatin / 5-FU / Leucovorin / Capecitabine
+  / Trastuzumab / Osimertinib / Pemetrexed / Carboplatin / Sorafenib
+  / Bicalutamide / Lenvatinib / Leuprorelin / Tamoxifen / Anastrozole
+  / 葉酸 / Cefcapene / アドエア (ICS+LABA)。yj.yaml + code_mapping_
+  drug.yaml + drug_names_ja.yaml に real MEDIS codes を追加。以前は
+  NOCODED downgrade されていた化学療法 regimen (FOLFOX/CarboPem/
+  Trastuzumab/LHRH) 等が real YJ code で emit。</li>
+<li><strong>JP F33 / F41.1 chronic prevalence config 追加</strong> (PR #1240, Issue
+  #1239): <code>clinosim/locale/jp/demographics.yaml</code> に F33 (反復性うつ病、
+  ~1-2%) と F41.1 (全般性不安障害/GAD、~0.8-1.5%) の prevalence
+  定義を追加 (US 側は Session 102 で追加済、JP mirror 漏れ)。JP p=10k
+  で F33 = 0 → ~150-200 件 emit 見込み。合わせて <code>codes/data/icd-10.yaml</code>
+  に F33 / F41.1 の canonical JA display を追加。</li>
+<li><strong>companion vaccination encounter (<code>ENC-VAX-*</code>) の Z23 reasonCode +
+  日本語 chief_complaint「予防接種」+ VAX narrative dispatch</strong> (PR
+  #1216 / #1229 / #1238): Session 104 で導入した companion vaccination
+  encounter が FHIR emit 側で親 IMP encounter の admission dx (熱傷等)
+  を reasonCode に inheriting していた defect を root-cause 修正。
+  Encounter-scoped Z23 で正しく emit + 実際の attending physician が
+  stamp される + narrative 内容も encounter-scoped context (「予防接種
+  のため来院」) で生成される。</li>
+<li><strong>JP-CLINS eCS 全般の validator-reference-integrity 品質改善</strong> (S105
+  wave 全体): in-hospital-death case の in-mortem-timestamp resource
+  drop → parent resource の dangling refs を PR #1226/#1232/#1236 で
+  3-pass scrubber として一括 fix。JP p=10k で dangling FHIR references
+  2,509 → 0。</li>
+</ul>
 <h2 id="060---2026-09-07-jp-load-bearing-追記">[0.6.0] - 2026-09-07 (JP load-bearing 追記)<a class="headerlink" href="#060---2026-09-07-jp-load-bearing-追記" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>session 104 実測 defect fix 3 件</strong> (2026-09-06 → 2026-09-07):</li>

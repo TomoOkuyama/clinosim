@@ -2304,6 +2304,171 @@ cut before this policy was formally documented and has been renumbered
 to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="061---2026-09-10">[0.6.1] - 2026-09-10<a class="headerlink" href="#061---2026-09-10" title="Permanent link">&para;</a></h2>
+<p><strong>PATCH</strong> — Session 105 wave (14 PRs). Cumulative dangling-FHIR-reference
+cleanup, VAX companion encounter follow-through, full JP national YJ
+CodeSystem ship, and JP mental-health prevalence config gap fix. Every
+change either preserves CIF ↔ narrative-CIF consistency directly (FHIR
+emit-only fixes: dangling-ref scrubbers, per-encounter dispatch gates,
+<code>nocoded</code> slice elimination) or has a narrow scope where a re-<code>narrate</code>
+against the new structural CIF is a small refresh, not a full rebuild
+(F33/F41.1 config addition affects ≲2 % of JP adults; YJ code catalog
+replacements swap 16 fictitious codes for real MEDIS-registered codes on
+1-2 drugs per patient at most). Version bump from 0.6.0 is PATCH — the
+S105 wave delivers audit-driven quality improvements without the
+schema-level breaks that trigger a MINOR bump.</p>
+<h3 id="session-105-2026-09-08--2026-09-10-fixes">Session 105 (2026-09-08 → 2026-09-10) fixes<a class="headerlink" href="#session-105-2026-09-08--2026-09-10-fixes" title="Permanent link">&para;</a></h3>
+<h4 id="fixed-fhir-reference-integrity-cascade--dangling-refs-2509--0-at-p10k">Fixed (FHIR reference-integrity cascade — dangling refs 2,509 → 0 at p=10k)<a class="headerlink" href="#fixed-fhir-reference-integrity-cascade--dangling-refs-2509--0-at-p10k" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Composition.section.entry scrubber for post-death drops</strong> (PR
+  <a href="https://github.com/TomoOkuyama/clinosim/pull/1226">#1226</a>). The
+  <code>_drop_entries_after_death</code> filter (Issue #926) removed post-mortem
+  Observation resources but left their references on surviving
+  Composition sections. 1,866 dangling refs at JP p=10k in-hospital-
+  death cohorts. Added a second-pass scrubber
+  (<code>_scrub_refs_one_pass</code>) that walks every survivor and drops
+  Reference items whose target is in the drop set.</li>
+<li><strong>MedicationAdministration.request gate on post-dedup MR set</strong> (PR
+  <a href="https://github.com/TomoOkuyama/clinosim/pull/1225">#1225</a>). MR dedup
+  (Issue #1177 byte-identical + Issue #1176/#1179 same-class) drops
+  duplicate MRs, but the MA builder's dangling-ref gate used the raw
+  order set. 357 dangling MA→MR refs. <code>BundleContext.emitted_mr_ids</code>
+  now threads the actual emitted MR ids through so the gate reflects
+  the true post-dedup surface.</li>
+<li><strong>Encounter after-death allow with start-gated invariant</strong> (PR
+  <a href="https://github.com/TomoOkuyama/clinosim/pull/1224">#1224</a>). 5 IMP
+  encounters in p=10k in-hospital-death cohorts were silently dropped
+  because <code>Encounter.period.end</code> (body-out timestamp) exceeded dod.
+  New <code>_AFTER_DEATH_START_GATED_RESOURCE_TYPES = {Encounter, Coverage,
+  CareTeam}</code> gates on <code>period.start</code> only; <code>period.end</code> past dod stays
+  legitimate. Bogus admission-after-death (<code>period.start &gt; dod</code>) still
+  drops — Issue #926 invariant preserved.</li>
+<li><strong>Procedure.reasonReference Z-code visit-reason gate</strong> (PR
+  <a href="https://github.com/TomoOkuyama/clinosim/pull/1223">#1223</a>). Three
+  Procedure emit sites (<code>procedures.py</code>, <code>oxygen_therapy.py</code>,
+  <code>lib/inline_bb.py</code>) unconditionally emitted <code>reasonReference</code> while
+  <code>conditions.py</code> (Issue #916) skips Condition emit for Z-chapter
+  visit-reason codes (Z00.0/Z09/Z12/Z13/Z23/Z25-29/Z71/Z76). 45
+  dangling refs. Symmetric <code>is_visit_reason_zcode</code> gate at all three
+  Procedure emit sites.</li>
+<li><strong>Procedure Z-code gate uses per-encounter dx</strong> (PR
+  <a href="https://github.com/TomoOkuyama/clinosim/pull/1227">#1227</a>). Residual
+  41 refs from PR #1223 because the gate read record-level dx only;
+  companion vax encounters (<code>ENC-VAX-*</code>) carry encounter-scoped Z23.
+  New <code>encounter_primary_dx_code(record, encounter_id)</code> helper prefers
+  per-encounter dx.</li>
+<li><strong>Encounter.diagnosis[] + reasonReference[] scrubber</strong> (PR
+  <a href="https://github.com/TomoOkuyama/clinosim/pull/1232">#1232</a>). PR
+  #1226 covered Composition / DR / MR / SR / MA / DocRef but missed
+  <code>Encounter.diagnosis[*].condition.reference</code> (nested single Reference
+  inside a BackboneElement list) and <code>Encounter.reasonReference[]</code>. 6
+  JP + 1 US dangling in the in-hospital-death case.</li>
+<li><strong>MR/MA/Procedure.reasonReference scrub</strong> (PR
+  <a href="https://github.com/TomoOkuyama/clinosim/pull/1236">#1236</a>). PR
+  #1232 pattern extended to the 3 remaining resource types that also
+  carry <code>reasonReference</code> lists to Condition. 118 JP + 31 US dangling
+  refs closed.</li>
+</ul>
+<h4 id="fixed-vax-companion-encounter-follow-through--issue-1197-pass-5">Fixed (VAX companion encounter follow-through — Issue #1197 Pass 5+)<a class="headerlink" href="#fixed-vax-companion-encounter-follow-through--issue-1197-pass-5" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Per-encounter reasonCode with VAX Z23 stamp + attending physician</strong>
+  (PR <a href="https://github.com/TomoOkuyama/clinosim/pull/1216">#1216</a>). The
+  companion vaccination encounter (<code>ENC-VAX-*</code>, session 104 PR #1214)
+  inherited the record's primary IMP admission dx as its FHIR
+  <code>Encounter.reasonCode</code> — a burn patient's flu-shot visit was tagged
+  T30.0. New <code>Encounter.admission_diagnosis_code</code> field on the CIF
+  encounter dataclass carries the per-encounter dx; the enricher
+  stamps Z23 on the VAX companion; the FHIR encounter builder prefers
+  the encounter-scoped code when set, falling back to record-level.
+  Same PR adds real attending physician stamping (was
+  <code>Practitioner/UNKNOWN</code>).</li>
+<li><strong>VAX narrative dispatch — idempotent document_enricher re-invoke</strong>
+  (PR <a href="https://github.com/TomoOkuyama/clinosim/pull/1229">#1229</a>).
+  <code>document_enricher</code> runs at POST_ENCOUNTER; <code>enrich_immunizations</code>
+  runs at POST_RECORDS and appends VAX encounters afterwards, so those
+  encounters had no document stub / narrative. The enricher is now
+  idempotent (skips encounters with existing docs) and
+  <code>enrich_immunizations</code> re-invokes it after VAX creation — narrative
+  dispatch: 0/1,478 → 1,478/1,478 (100%).</li>
+<li><strong>Narrative pass binds each stub to its OWN encounter context</strong> (PR
+  <a href="https://github.com/TomoOkuyama/clinosim/pull/1238">#1238</a>). Even
+  after PR #1229 delivered VAX stubs, the Stage 2 pass fell back to
+  <code>encounters[0]</code> (parent IMP) for context, so 5,521 US / 1,387 JP
+  VAX narratives ended up with stroke/burn/newborn subjective content.
+  <code>_run_unit</code> now indexes encounters by id, per-stub <code>_build_context</code>
+  is cached per encounter, and the written narrative's <code>encounter_id</code>
+  reflects the stub's own encounter. Also fixes the same latent bug
+  for <code>-ED</code> synth-bridge encounters.</li>
+</ul>
+<h4 id="fixed-jp-codesystem--418--nocoded--05-">Fixed (JP CodeSystem — 41.8 % NOCODED → 0.5 %)<a class="headerlink" href="#fixed-jp-codesystem--418--nocoded--05-" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Full JP national YJ CodeSystem shipped as clinosim artifact</strong> (PR
+  <a href="https://github.com/TomoOkuyama/clinosim/pull/1230">#1230</a>). The
+  jpfhir-terminology 2.2606.0 CodeSystem ships as <code>content=fragment</code>
+  (first 2000/25,542 concepts, psychiatric/neurological drugs only),
+  causing the emit path to route 41.8 % of MR / 25.1 % of MA to the
+  JP-CLINS eCS <code>nocoded</code> slice for cardiovascular / respiratory /
+  oncology YJ codes. <code>clinosim/codes/authoritative/JP_MedicationCode
+  YJ_CS_full.json</code> (<code>content=complete</code>, 23,923 concepts, MEDIS-
+  sourced) replaces the tx-server-fragment dependency; the emit gate
+  (<code>_is_yj_code_valid</code>) checks against the full CS. Also curates 16
+  historical clinosim yj.yaml codes that had been fictitious to real
+  MEDIS-registered codes (Diclofenac / Milnacipran / Aminophylline /
+  Disopyramide / Carvedilol / Nicardipine / Mannitol / Codeine /
+  Mg-sulfate / Vasopressin / Levothyroxine / Adrenaline /
+  Norepinephrine / Ferrous-citrate / Ringer's / Alendronate).
+  Refresh script: <code>scripts/refresh_authoritative_yj_full.py</code>.</li>
+<li><strong>17 oncology / hormonal / supplement drug codes added to yj.yaml</strong>
+  (PR <a href="https://github.com/TomoOkuyama/clinosim/pull/1234">#1234</a>).
+  Oxaliplatin / Fluorouracil / Leucovorin / Capecitabine / Trastuzumab
+  / Osimertinib / Pemetrexed / Carboplatin / Sorafenib / Bicalutamide
+  / Lenvatinib / Leuprorelin / Tamoxifen / Anastrozole / Folic-acid /
+  Cefcapene / ICS+LABA — real MEDIS 2026-08-31 版 codes. English
+  drug-name lookups added to <code>code_mapping_drug.yaml</code>; fictitious code
+  comments in <code>drug_names_ja.yaml</code> refreshed. MR NOCODED 3.36 % →
+  0.49 %, MA NOCODED 0.97 % → 0.08 %.</li>
+</ul>
+<h4 id="fixed-jp-demographics--audit-metric">Fixed (JP demographics + audit metric)<a class="headerlink" href="#fixed-jp-demographics--audit-metric" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>JP F33 (recurrent depression) + F41.1 (GAD) chronic prevalence
+  config</strong> (PR
+  <a href="https://github.com/TomoOkuyama/clinosim/pull/1240">#1240</a>). US
+  <code>demographics.yaml</code> declared F33 / F41.1 (session 102 addition) but
+  JP mirror was missing — F33 = 0 / F41.1 = 0 at JP p=10k despite F32
+  = 297. Added <code>F33: {40-59: 0.015, 60-99: 0.02}</code> (~1-2% MHLW
+  epidemiology) and <code>F41.1: {40-59: 0.012, 60-99: 0.015}</code> (~0.8-1.5%
+  JP GAD). Also added F33 / F41.1 to <code>codes/data/icd-10.yaml</code> (JP
+  code catalog) with canonical JA display so Condition emit resolves
+  the display lookup cleanly.</li>
+<li><strong>AMB counting scope refinement — NAMCS-comparable slice</strong>
+  (PR <a href="https://github.com/TomoOkuyama/clinosim/pull/1242">#1242</a>). The
+  audit fork's US "AMB rate 6.29/adult/yr vs NAMCS 3.78" finding was a
+  metric-definition mismatch, not code drift — clinosim's total AMB
+  legitimately includes companion vax encounters (Issue #1197 Pass 5),
+  chemo cycle visits, and post-discharge follow-ups outside NAMCS's
+  office-based physician-visit scope. <code>verify_medical_stats.py</code> now
+  prints <code>total_amb_per_adult_yr</code> (broader) alongside
+  <code>namcs_amb_per_adult_yr</code> (excludes <code>ENC-VAX-*</code> / reasonCode Z23) so
+  the audit can compare the narrow slice against the NAMCS 3.0-4.5/yr
+  band directly.</li>
+</ul>
+<h3 id="session-105-2026-09-08--2026-09-10-verification">Session 105 (2026-09-08 → 2026-09-10) verification<a class="headerlink" href="#session-105-2026-09-08--2026-09-10-verification" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>JP p=10,000 s=329, window 2025-09-10 → 2026-09-10</strong>: 2,509 → 0
+  dangling FHIR references (all 7 scrubber PRs), MR NOCODED 41.8 % →
+  0.49 %, MA NOCODED 25.1 % → 0.08 %, 100 % Immunization.encounter
+  linkage (in-sim doses), 100 % VAX reasonCode Z23-only (was 73/74
+  polluted at Pass 5), 100 % VAX CareTeam attending real Practitioner
+  (was 74/74 UNKNOWN), 100 % VAX narrative populated with the correct
+  encounter's context (was 1,387 files with parent IMP content).</li>
+<li><strong>US p=10,000 s=329, same window</strong>: same class of fixes verified —
+  100 % Immunization linkage, 100 % VAX reasonCode Z23, 5,521 VAX
+  narratives populated with own context, 90.7 % MR
+  <code>expectedSupplyDuration</code> populate, 100 % <code>Practitioner.display</code>
+  populate, LOINC 64295-9 / 34895-3 sections emitted, age-cap gates
+  hold (mammography&gt;74 = 0, colonoscopy&gt;75 = 0, annual-physical&gt;89
+  = 0).</li>
+</ul>
 <h2 id="060---2026-09-07">[0.6.0] - 2026-09-07<a class="headerlink" href="#060---2026-09-07" title="Permanent link">&para;</a></h2>
 <p><strong>MINOR</strong> — the wave of feature + defect-fix work accumulated across
 sessions 97-104 (2026-09-01 → 2026-09-07) is cut as v0.6.0. The
