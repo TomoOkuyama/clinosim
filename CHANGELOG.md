@@ -39,6 +39,174 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-09-10
+
+**PATCH** — Session 105 wave (14 PRs). Cumulative dangling-FHIR-reference
+cleanup, VAX companion encounter follow-through, full JP national YJ
+CodeSystem ship, and JP mental-health prevalence config gap fix. Every
+change either preserves CIF ↔ narrative-CIF consistency directly (FHIR
+emit-only fixes: dangling-ref scrubbers, per-encounter dispatch gates,
+`nocoded` slice elimination) or has a narrow scope where a re-`narrate`
+against the new structural CIF is a small refresh, not a full rebuild
+(F33/F41.1 config addition affects ≲2 % of JP adults; YJ code catalog
+replacements swap 16 fictitious codes for real MEDIS-registered codes on
+1-2 drugs per patient at most). Version bump from 0.6.0 is PATCH — the
+S105 wave delivers audit-driven quality improvements without the
+schema-level breaks that trigger a MINOR bump.
+
+### Session 105 (2026-09-08 → 2026-09-10) fixes
+
+#### Fixed (FHIR reference-integrity cascade — dangling refs 2,509 → 0 at p=10k)
+
+- **Composition.section.entry scrubber for post-death drops** (PR
+  [#1226](https://github.com/TomoOkuyama/clinosim/pull/1226)). The
+  `_drop_entries_after_death` filter (Issue #926) removed post-mortem
+  Observation resources but left their references on surviving
+  Composition sections. 1,866 dangling refs at JP p=10k in-hospital-
+  death cohorts. Added a second-pass scrubber
+  (`_scrub_refs_one_pass`) that walks every survivor and drops
+  Reference items whose target is in the drop set.
+- **MedicationAdministration.request gate on post-dedup MR set** (PR
+  [#1225](https://github.com/TomoOkuyama/clinosim/pull/1225)). MR dedup
+  (Issue #1177 byte-identical + Issue #1176/#1179 same-class) drops
+  duplicate MRs, but the MA builder's dangling-ref gate used the raw
+  order set. 357 dangling MA→MR refs. `BundleContext.emitted_mr_ids`
+  now threads the actual emitted MR ids through so the gate reflects
+  the true post-dedup surface.
+- **Encounter after-death allow with start-gated invariant** (PR
+  [#1224](https://github.com/TomoOkuyama/clinosim/pull/1224)). 5 IMP
+  encounters in p=10k in-hospital-death cohorts were silently dropped
+  because `Encounter.period.end` (body-out timestamp) exceeded dod.
+  New `_AFTER_DEATH_START_GATED_RESOURCE_TYPES = {Encounter, Coverage,
+  CareTeam}` gates on `period.start` only; `period.end` past dod stays
+  legitimate. Bogus admission-after-death (`period.start > dod`) still
+  drops — Issue #926 invariant preserved.
+- **Procedure.reasonReference Z-code visit-reason gate** (PR
+  [#1223](https://github.com/TomoOkuyama/clinosim/pull/1223)). Three
+  Procedure emit sites (`procedures.py`, `oxygen_therapy.py`,
+  `lib/inline_bb.py`) unconditionally emitted `reasonReference` while
+  `conditions.py` (Issue #916) skips Condition emit for Z-chapter
+  visit-reason codes (Z00.0/Z09/Z12/Z13/Z23/Z25-29/Z71/Z76). 45
+  dangling refs. Symmetric `is_visit_reason_zcode` gate at all three
+  Procedure emit sites.
+- **Procedure Z-code gate uses per-encounter dx** (PR
+  [#1227](https://github.com/TomoOkuyama/clinosim/pull/1227)). Residual
+  41 refs from PR #1223 because the gate read record-level dx only;
+  companion vax encounters (`ENC-VAX-*`) carry encounter-scoped Z23.
+  New `encounter_primary_dx_code(record, encounter_id)` helper prefers
+  per-encounter dx.
+- **Encounter.diagnosis[] + reasonReference[] scrubber** (PR
+  [#1232](https://github.com/TomoOkuyama/clinosim/pull/1232)). PR
+  #1226 covered Composition / DR / MR / SR / MA / DocRef but missed
+  `Encounter.diagnosis[*].condition.reference` (nested single Reference
+  inside a BackboneElement list) and `Encounter.reasonReference[]`. 6
+  JP + 1 US dangling in the in-hospital-death case.
+- **MR/MA/Procedure.reasonReference scrub** (PR
+  [#1236](https://github.com/TomoOkuyama/clinosim/pull/1236)). PR
+  #1232 pattern extended to the 3 remaining resource types that also
+  carry `reasonReference` lists to Condition. 118 JP + 31 US dangling
+  refs closed.
+
+#### Fixed (VAX companion encounter follow-through — Issue #1197 Pass 5+)
+
+- **Per-encounter reasonCode with VAX Z23 stamp + attending physician**
+  (PR [#1216](https://github.com/TomoOkuyama/clinosim/pull/1216)). The
+  companion vaccination encounter (`ENC-VAX-*`, session 104 PR #1214)
+  inherited the record's primary IMP admission dx as its FHIR
+  `Encounter.reasonCode` — a burn patient's flu-shot visit was tagged
+  T30.0. New `Encounter.admission_diagnosis_code` field on the CIF
+  encounter dataclass carries the per-encounter dx; the enricher
+  stamps Z23 on the VAX companion; the FHIR encounter builder prefers
+  the encounter-scoped code when set, falling back to record-level.
+  Same PR adds real attending physician stamping (was
+  `Practitioner/UNKNOWN`).
+- **VAX narrative dispatch — idempotent document_enricher re-invoke**
+  (PR [#1229](https://github.com/TomoOkuyama/clinosim/pull/1229)).
+  `document_enricher` runs at POST_ENCOUNTER; `enrich_immunizations`
+  runs at POST_RECORDS and appends VAX encounters afterwards, so those
+  encounters had no document stub / narrative. The enricher is now
+  idempotent (skips encounters with existing docs) and
+  `enrich_immunizations` re-invokes it after VAX creation — narrative
+  dispatch: 0/1,478 → 1,478/1,478 (100%).
+- **Narrative pass binds each stub to its OWN encounter context** (PR
+  [#1238](https://github.com/TomoOkuyama/clinosim/pull/1238)). Even
+  after PR #1229 delivered VAX stubs, the Stage 2 pass fell back to
+  `encounters[0]` (parent IMP) for context, so 5,521 US / 1,387 JP
+  VAX narratives ended up with stroke/burn/newborn subjective content.
+  `_run_unit` now indexes encounters by id, per-stub `_build_context`
+  is cached per encounter, and the written narrative's `encounter_id`
+  reflects the stub's own encounter. Also fixes the same latent bug
+  for `-ED` synth-bridge encounters.
+
+#### Fixed (JP CodeSystem — 41.8 % NOCODED → 0.5 %)
+
+- **Full JP national YJ CodeSystem shipped as clinosim artifact** (PR
+  [#1230](https://github.com/TomoOkuyama/clinosim/pull/1230)). The
+  jpfhir-terminology 2.2606.0 CodeSystem ships as `content=fragment`
+  (first 2000/25,542 concepts, psychiatric/neurological drugs only),
+  causing the emit path to route 41.8 % of MR / 25.1 % of MA to the
+  JP-CLINS eCS `nocoded` slice for cardiovascular / respiratory /
+  oncology YJ codes. `clinosim/codes/authoritative/JP_MedicationCode
+  YJ_CS_full.json` (`content=complete`, 23,923 concepts, MEDIS-
+  sourced) replaces the tx-server-fragment dependency; the emit gate
+  (`_is_yj_code_valid`) checks against the full CS. Also curates 16
+  historical clinosim yj.yaml codes that had been fictitious to real
+  MEDIS-registered codes (Diclofenac / Milnacipran / Aminophylline /
+  Disopyramide / Carvedilol / Nicardipine / Mannitol / Codeine /
+  Mg-sulfate / Vasopressin / Levothyroxine / Adrenaline /
+  Norepinephrine / Ferrous-citrate / Ringer's / Alendronate).
+  Refresh script: `scripts/refresh_authoritative_yj_full.py`.
+- **17 oncology / hormonal / supplement drug codes added to yj.yaml**
+  (PR [#1234](https://github.com/TomoOkuyama/clinosim/pull/1234)).
+  Oxaliplatin / Fluorouracil / Leucovorin / Capecitabine / Trastuzumab
+  / Osimertinib / Pemetrexed / Carboplatin / Sorafenib / Bicalutamide
+  / Lenvatinib / Leuprorelin / Tamoxifen / Anastrozole / Folic-acid /
+  Cefcapene / ICS+LABA — real MEDIS 2026-08-31 版 codes. English
+  drug-name lookups added to `code_mapping_drug.yaml`; fictitious code
+  comments in `drug_names_ja.yaml` refreshed. MR NOCODED 3.36 % →
+  0.49 %, MA NOCODED 0.97 % → 0.08 %.
+
+#### Fixed (JP demographics + audit metric)
+
+- **JP F33 (recurrent depression) + F41.1 (GAD) chronic prevalence
+  config** (PR
+  [#1240](https://github.com/TomoOkuyama/clinosim/pull/1240)). US
+  `demographics.yaml` declared F33 / F41.1 (session 102 addition) but
+  JP mirror was missing — F33 = 0 / F41.1 = 0 at JP p=10k despite F32
+  = 297. Added `F33: {40-59: 0.015, 60-99: 0.02}` (~1-2% MHLW
+  epidemiology) and `F41.1: {40-59: 0.012, 60-99: 0.015}` (~0.8-1.5%
+  JP GAD). Also added F33 / F41.1 to `codes/data/icd-10.yaml` (JP
+  code catalog) with canonical JA display so Condition emit resolves
+  the display lookup cleanly.
+- **AMB counting scope refinement — NAMCS-comparable slice**
+  (PR [#1242](https://github.com/TomoOkuyama/clinosim/pull/1242)). The
+  audit fork's US "AMB rate 6.29/adult/yr vs NAMCS 3.78" finding was a
+  metric-definition mismatch, not code drift — clinosim's total AMB
+  legitimately includes companion vax encounters (Issue #1197 Pass 5),
+  chemo cycle visits, and post-discharge follow-ups outside NAMCS's
+  office-based physician-visit scope. `verify_medical_stats.py` now
+  prints `total_amb_per_adult_yr` (broader) alongside
+  `namcs_amb_per_adult_yr` (excludes `ENC-VAX-*` / reasonCode Z23) so
+  the audit can compare the narrow slice against the NAMCS 3.0-4.5/yr
+  band directly.
+
+### Session 105 (2026-09-08 → 2026-09-10) verification
+
+- **JP p=10,000 s=329, window 2025-09-10 → 2026-09-10**: 2,509 → 0
+  dangling FHIR references (all 7 scrubber PRs), MR NOCODED 41.8 % →
+  0.49 %, MA NOCODED 25.1 % → 0.08 %, 100 % Immunization.encounter
+  linkage (in-sim doses), 100 % VAX reasonCode Z23-only (was 73/74
+  polluted at Pass 5), 100 % VAX CareTeam attending real Practitioner
+  (was 74/74 UNKNOWN), 100 % VAX narrative populated with the correct
+  encounter's context (was 1,387 files with parent IMP content).
+- **US p=10,000 s=329, same window**: same class of fixes verified —
+  100 % Immunization linkage, 100 % VAX reasonCode Z23, 5,521 VAX
+  narratives populated with own context, 90.7 % MR
+  `expectedSupplyDuration` populate, 100 % `Practitioner.display`
+  populate, LOINC 64295-9 / 34895-3 sections emitted, age-cap gates
+  hold (mammography>74 = 0, colonoscopy>75 = 0, annual-physical>89
+  = 0).
+
 ## [0.6.0] - 2026-09-07
 
 **MINOR** — the wave of feature + defect-fix work accumulated across
