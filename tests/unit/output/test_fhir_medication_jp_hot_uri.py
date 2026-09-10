@@ -76,46 +76,46 @@ def test_medication_request_jp_hot7_uri() -> None:
 
 
 def test_medication_request_jp_yj12_uri() -> None:
-    """12-char YJ code(tx-server fragment 内 = verified)→ JP YJ code URI。
-    session 59 #283:fragment 外の YJ code は nocoded fallback にダウングレード
-    されるので、この test は fragment に含まれる YJ12 code を使用する。
+    """12-char YJ code → JP YJ code URI. Issue #1220: replaced tx-server-
+    fragment-based gate with the clinosim-shipped MEDIS full CS
+    (``content=complete``, 23,923 concepts). Any real MHLW YJ code passes.
     """
-    # 1112700X1011 = ハロタン(全身麻酔薬)、tx-server の 2000-concept
-    # fragment に含まれる(session 59 #283 で確認済)。
-    mr = _build_mr("1112700X1011")
+    # 1112700X1038 = （局）ハロタン (全身麻酔薬)、MEDIS 医薬品HOTマスター
+    # 2026-08-31 版に収録。
+    mr = _build_mr("1112700X1038")
     coding = mr["medicationCodeableConcept"]["coding"][0]
     assert coding["system"] == JP_YJ_CODE_URI
-    assert coding["code"] == "1112700X1011"
+    assert coding["code"] == "1112700X1038"
 
 
-def test_medication_request_jp_nocoded_fallback_when_yj_not_in_tx_fragment() -> None:
-    """#283:tx-server の YJ CodeSystem は 25542 中 2000 の fragment
-    (11xx/12xx 精神/神経系)しか収録していない。fragment 外の YJ code は
-    verify 不能で HAPI が "システムURIを決定できません" error を出す(v5
-    594 件)。JP output でこれらは nocoded slice へダウングレードし薬剤名
-    は text field で保持。verified YJ(fragment 内)は従来通り emit。
+def test_medication_request_jp_emits_full_yj_codes() -> None:
+    """Issue #1220: the tx-server-fragment-based gate (Issue #283) was
+    replaced by the clinosim-shipped full JP national YJ CodeSystem
+    (``JP_MedicationCodeYJ_CS_full.json``, ``content=complete``, MEDIS-
+    sourced, 23,923 concepts). Every clinosim yj.yaml code was curated
+    to a real MHLW YJ code and passes the new ``_is_yj_code_valid`` gate,
+    so the ``codingYJ`` slice always carries the real code — no
+    ``nocoded`` downgrade for cardiovascular / respiratory / oncology
+    codes previously outside the tx-server fragment.
     """
     from clinosim.modules.output.fhir_r4.medications.medications import (
         _JP_MEDICATION_CODE_NOCODED_CS,
-        _JP_MEDICATION_CODE_NOCODED_DISPLAY,
-        _is_tx_server_verified_yj,
+        _JP_YJ_CODE_URI,
+        _is_yj_code_valid,
     )
 
-    # 未検証 YJ(fragment 外の cardiovascular 系):nocoded fallback
-    unverified = "2149032F1013"  # カルベジロール
-    assert not _is_tx_server_verified_yj(unverified)
-    mr = _build_mr(unverified)
+    # cardiovascular / respiratory YJ code — previously downgraded to
+    # NOCODED because the tx-server ships fragment 11xx/12xx only.
+    cardio_code = "2149032F1099"  # カルベジロール１０ｍｇ錠
+    assert _is_yj_code_valid(cardio_code)
+    mr = _build_mr(cardio_code)
     coding = mr["medicationCodeableConcept"]["coding"][0]
-    assert coding["system"] == _JP_MEDICATION_CODE_NOCODED_CS
-    assert coding["code"] == "NOCODED"
-    # #305 session 60:display は権威 CodeSystem 定義通り
-    # "標準コードなし" 固定(1-code / 1-display required binding)。
-    # 薬剤名は CodeableConcept.text で保持。
-    assert coding["display"] == _JP_MEDICATION_CODE_NOCODED_DISPLAY == "標準コードなし"
-    assert mr["medicationCodeableConcept"]["text"]
+    assert coding["system"] == _JP_YJ_CODE_URI, f"expected YJ URI, got {coding['system']}"
+    assert coding["code"] == cardio_code
+    assert coding["system"] != _JP_MEDICATION_CODE_NOCODED_CS
 
-    # US は影響なし(YJ system 未使用)
-    mr_us = _build_mr(unverified, country="US")
+    # US path: YJ system 未使用、影響なし (regression guard)
+    mr_us = _build_mr(cardio_code, country="US")
     assert mr_us["medicationCodeableConcept"]["coding"][0]["system"] != _JP_MEDICATION_CODE_NOCODED_CS
 
 
@@ -208,9 +208,9 @@ def test_medication_administration_jp_hot7_uri() -> None:
 
 
 def test_medication_administration_jp_yj12_uri() -> None:
-    """MA builder も 12-char YJ code(fragment 内 = verified)→ YJ URI。
-    session 59 #283 で fragment 外 YJ は nocoded fallback。"""
-    ma = _build_ma("1112700X1011")  # ハロタン、tx-server fragment 内
+    """MA builder も 12-char YJ code → YJ URI。Issue #1220: MEDIS full CS
+    導入により fragment 依存廃止、任意の real MHLW YJ code が gate 通過。"""
+    ma = _build_ma("1112700X1038")  # ハロタン (MEDIS 医薬品HOTマスター収録)
     coding = ma["medicationCodeableConcept"]["coding"][0]
     assert coding["system"] == JP_YJ_CODE_URI
 
