@@ -41,6 +41,17 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Newborn given-name registration window** (#1247 → PR). `_build_newborn_patient`
+  in `clinosim/simulator/perinatal.py` unconditionally emitted `given_name=""`
+  for every newborn, so babies remained nameless in the CIF and FHIR output
+  even months after birth. Now models JP 戸籍法 §49 (14-day birth-registration
+  window): given name stays empty for the first 14 days after delivery and is
+  sampled from the locale name pool afterwards using a fresh sub-seed keyed on
+  the newborn's patient id (RNG-neutral against every other draw). Family
+  name inheritance from the mother is unchanged. **PATCH-scope**: FHIR-Patient
+  emit only; CIF-narrative that historically ignored the empty given name is
+  unaffected (baby narratives already use "新生児" placeholders).
+
 - **CIFReader multi-encounter narrative merge** (#1244 → PR). `_merge_narrative_into`
   now walks every encounter referenced by the record's document stubs (union of
   `stub.encounter_id`) instead of only `encounters[0]`. Prior behaviour dropped
