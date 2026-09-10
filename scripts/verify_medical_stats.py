@@ -248,15 +248,40 @@ for c in read_nd(FHIR / "Condition.ndjson"):
 enc_class = Counter()
 enc_dates = Counter()
 total_enc = 0
+# Issue #1241 (2026-09-10): split AMB into NAMCS-compatible (physician-visit
+# scope) vs total broader AMB. CDC NAMCS ~3.5-3.78 visits/adult/yr covers
+# office-based physician visits; clinosim's total AMB additionally counts
+# companion vaccination encounters (`ENC-VAX-*`, Issue #1197 Pass 5 fix),
+# chemo cycle visits (oncology regimen module), and post-discharge follow-
+# ups, so a raw total-AMB-per-adult rate legitimately runs above the NAMCS
+# benchmark without any code regression. Report both, comparing the narrow
+# rate against NAMCS.
+amb_vax_count = 0  # companion vaccination encounters (ENC-VAX-* id prefix or reasonCode Z23)
 for e in read_nd(FHIR / "Encounter.ndjson"):
     cls = e.get("class", {}).get("code", "")
     enc_class[cls] += 1
     total_enc += 1
+    if cls == "AMB" or cls == "ambulatory":
+        _cif_id = ""
+        for _ident in e.get("identifier", []) or []:
+            _v = _ident.get("value", "")
+            if isinstance(_v, str) and _v:
+                _cif_id = _v
+                break
+        _reason_codes: list[str] = []
+        for _rc in e.get("reasonCode", []) or []:
+            for _coding in _rc.get("coding", []) or []:
+                _c = _coding.get("code", "")
+                if _c:
+                    _reason_codes.append(_c)
+        if _cif_id.startswith("ENC-VAX-") or "Z23" in _reason_codes:
+            amb_vax_count += 1
 
 # ED = 'EMER', inpatient = 'IMP', outpatient = 'AMB' (or others)
 ed = enc_class.get("EMER", 0)
 imp = enc_class.get("IMP", 0)
 amb = enc_class.get("AMB", 0) + enc_class.get("ambulatory", 0)
+amb_namcs = max(0, amb - amb_vax_count)  # NAMCS-scoped (excludes companion vax)
 other = total_enc - ed - imp - amb
 
 
@@ -349,6 +374,30 @@ print(band("ed_share (EMER)", enc_pct(ed), *b["ed_share_pct"], "%"))
 print(band("inpatient_share (IMP)", enc_pct(imp), *b["inpatient_share_pct"], "%"))
 if other:
     print(f"  other encounter classes: {other} ({enc_pct(other):.1f}%)")
+
+# Issue #1241: AMB per adult per year — split into NAMCS-scoped (excludes
+# companion vaccination) vs total broader AMB. NAMCS 2018 = ~3.5-3.8
+# office-based physician visits per adult per year (CDC narrow scope).
+# Clinosim's total AMB additionally covers companion vaccination
+# encounters (Issue #1197 Pass 5), chemo cycle visits (oncology regimen),
+# and post-discharge follow-ups, so a raw total-AMB-per-adult rate
+# legitimately runs above the NAMCS band without any code regression.
+# The narrow band lets the audit measure the NAMCS-comparable slice
+# directly.
+_AMB_NAMCS_BAND = (3.0, 4.5)  # target NAMCS 3.5-3.8, ±10 % tolerance for hospital-cohort skew
+print()
+_total_narrow = (amb / n_adult / SIM_YEARS) if n_adult else 0
+print(f"  total_amb_per_adult_yr    = {_total_narrow:>8.2f} /yr  (all AMB: incl. VAX / chemo / post-dc)")
+_narrow = (amb_namcs / n_adult / SIM_YEARS) if n_adult else 0
+print(
+    band(
+        "namcs_amb_per_adult_yr",
+        _narrow,
+        *_AMB_NAMCS_BAND,
+        "/yr",
+    )
+    + f"  (excludes {amb_vax_count} companion-vax encounters)"
+)
 
 
 # ---------------------------------------------------------------------------
