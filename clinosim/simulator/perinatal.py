@@ -256,24 +256,64 @@ def _newborn_patient_id(mother_id: str) -> str:
     return f"{mother_id}-BABY"
 
 
-def _build_newborn_patient(mother: PatientProfile, delivery_date: date, sex: str) -> PatientProfile:
+_NEWBORN_NAMING_WINDOW_DAYS: int = 14
+"""Days after birth within which a Japanese newborn's given name is
+typically not yet registered. 戸籍法第 49 条 mandates birth registration
+within 14 days, and it is standard EHR practice for the given-name field
+to stay empty (or a temporary placeholder) until then. After the window
+the name is sampled from the locale's given-name pool. #1247."""
+
+
+def _sample_newborn_given_name(baby_id: str, sex: str, country: str) -> str:
+    """Deterministically sample a given name for a newborn from the same
+    locale name pool used for adult patients (population.engine helpers).
+    Uses a fresh sub-seed keyed on baby_id so the RNG cascade of the
+    caller is untouched — the name is a pure derivative of (baby_id,
+    country, sex).
+    """
+    from clinosim.modules.population.engine import _load_name_data, _sample_given_name
+
+    name_data = _load_name_data(country)
+    if not name_data:
+        return ""
+    # Sub-seed derived from baby_id — independent of any RNG stream so
+    # perinatal callers see byte-identical output for their own draws.
+    sub = int(hashlib.sha256(f"newborn-given|{baby_id}|{country}|{sex}".encode()).hexdigest(), 16) % (2**32)
+    rng = np.random.default_rng(sub)
+    picked = _sample_given_name(name_data, sex, rng)
+    return str(picked.get("kanji") or picked.get("name") or "")
+
+
+def _build_newborn_patient(
+    mother: PatientProfile,
+    delivery_date: date,
+    sex: str,
+    snapshot_date: date | None = None,
+    country: str = "US",
+) -> PatientProfile:
     """Build the newborn's PatientProfile — enough fields for the FHIR
     Patient emit to produce a valid resource (id, name, sex, DOB,
     household link inherited from mother, blood type omitted).
 
     Household inheritance: babies live with the mother, so
-    ``household_id`` mirrors the mother's. Family name is inherited;
-    given name is intentionally left empty (real newborns take days-
-    to-weeks to receive a name and the CIF doesn't need to invent one
-    for slice 2).
+    ``household_id`` mirrors the mother's. Family name is inherited.
+    Given name (Issue #1247): empty within
+    :data:`_NEWBORN_NAMING_WINDOW_DAYS` of birth (Japanese 戸籍法 window
+    / US "Baby <family>" convention); sampled from the locale name pool
+    afterwards. Requires ``snapshot_date`` — without it (test fixtures
+    that predate this signature) the name stays empty, matching the
+    pre-#1247 behaviour.
     """
     from clinosim.types.patient import Address, ContactInfo, PersonName
 
     newborn_id = _newborn_patient_id(mother.patient_id)
+    given = ""
+    if snapshot_date is not None and (snapshot_date - delivery_date).days > _NEWBORN_NAMING_WINDOW_DAYS:
+        given = _sample_newborn_given_name(newborn_id, sex, country)
     return PatientProfile(
         patient_id=newborn_id,
         household_id=mother.household_id,
-        name=PersonName(family_name=mother.name.family_name, given_name=""),
+        name=PersonName(family_name=mother.name.family_name, given_name=given),
         age=0,
         sex=sex,
         date_of_birth=delivery_date,
@@ -449,7 +489,17 @@ def simulate_delivery_encounter(
     baby_rng = np.random.default_rng(_newborn_sub_seed(patient.patient_id))
     baby_sex = "M" if float(baby_rng.random()) < 0.514 else "F"  # ~51.4% male at birth (JP MHLW / US CDC)
     delivery_date = visit_date.date()
-    newborn = _build_newborn_patient(patient, delivery_date, baby_sex)
+    # Issue #1247: pass snapshot_date so `_build_newborn_patient` decides
+    # given-name assignment (empty within 14 days of birth per JP 戸籍法,
+    # sampled from the locale name pool afterwards). `config.snapshot_date`
+    # is a `date` (or None on test paths without a config).
+    _snap = getattr(config, "snapshot_date", None) if config is not None else None
+    if isinstance(_snap, str):
+        try:
+            _snap = date.fromisoformat(_snap[:10])
+        except ValueError:
+            _snap = None
+    newborn = _build_newborn_patient(patient, delivery_date, baby_sex, snapshot_date=_snap, country=country)
 
     newborn_encounter = create_inpatient_encounter(
         newborn.patient_id,
