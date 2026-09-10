@@ -308,3 +308,18 @@ def enrich_immunizations(ctx) -> None:
             _set(imm, "encounter_id", synth.encounter_id)
         _set(rec, "encounters", rec_encounters)
         _set(rec, "immunizations", recs)
+    # Issue #1228: dispatch document stubs for the companion vaccination
+    # encounters just appended. `document_enricher` normally runs at
+    # POST_ENCOUNTER (before this POST_RECORDS enricher), so any encounter
+    # added here bypasses the walk. The dispatcher is idempotent (skips
+    # encounters that already carry a document), so this re-invoke only
+    # emits stubs for the new ENC-VAX-* encounters; existing IMP / ED /
+    # outpatient documents stay byte-identical.
+    if any(
+        (str(_get(e, "encounter_id", "") or "")).startswith("ENC-VAX-")
+        for rec in ctx.records
+        for e in (_get(rec, "encounters", []) or [])
+    ):
+        from clinosim.modules.document.engine import document_enricher
+
+        document_enricher(ctx)
