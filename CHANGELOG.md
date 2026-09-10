@@ -39,6 +39,19 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **CIFReader multi-encounter narrative merge** (#1244 → PR). `_merge_narrative_into`
+  now walks every encounter referenced by the record's document stubs (union of
+  `stub.encounter_id`) instead of only `encounters[0]`. Prior behaviour dropped
+  narrative content for companion / bridge encounters — `ENC-VAX-*` vaccination
+  visits (immunization enricher) and `{IMP}-ED` synth bridge encounters (via-ED
+  admissions) — because their narrative files live under their own encounter
+  directory, not the record's primary encounter. Impact at v0.6.1 p=10k: **2,770
+  `composition stub … has no narrative` warnings → 0**, and the corresponding VAX
+  / ED-bridge Composition resources are now emitted. FHIR-emit-only change; CIF is
+  byte-unchanged. **PATCH-scope**.
+
 ## [0.6.1] - 2026-09-10
 
 **PATCH** — Session 105 wave (14 PRs). Cumulative dangling-FHIR-reference

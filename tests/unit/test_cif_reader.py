@@ -76,6 +76,80 @@ def test_reader_merges_narrative_into_stub(tmp_path):
 
 
 @pytest.mark.unit
+def test_reader_merges_narratives_for_companion_encounters(tmp_path):
+    """Regression for #1244.
+
+    A record may carry documents for its primary encounter plus companion /
+    bridge encounters (ENC-VAX-* vaccination visits appended by the
+    immunization enricher, {IMP}-ED synth bridge encounters). The reader must
+    merge narrative content for ALL encounters referenced by the record's
+    stubs, not just ``encounters[0]``. The pre-fix behaviour dropped ~2,770
+    VAX / ED-bridge narratives at v0.6.1 p=10k.
+    """
+    structural = tmp_path / "structural" / "patients"
+    structural.mkdir(parents=True)
+    (structural / "ENC-1.json").write_text(
+        json.dumps(
+            {
+                "patient": {"patient_id": "POP-1"},
+                "encounters": [
+                    {"encounter_id": "ENC-1"},
+                    {"encounter_id": "ENC-VAX-1-a"},
+                    {"encounter_id": "ENC-1-ED"},
+                ],
+                "documents": [
+                    {
+                        "document_id": "doc-ENC-1-01",
+                        "task_type": "admission_hp",
+                        "encounter_id": "ENC-1",
+                        "narrative": None,
+                    },
+                    {
+                        "document_id": "doc-ENC-VAX-1-a-02",
+                        "task_type": "outpatient_soap",
+                        "encounter_id": "ENC-VAX-1-a",
+                        "narrative": None,
+                    },
+                    {
+                        "document_id": "doc-ENC-1-ED-03",
+                        "task_type": "ed_note",
+                        "encounter_id": "ENC-1-ED",
+                        "narrative": None,
+                    },
+                ],
+            },
+            ensure_ascii=False,
+        )
+    )
+    base = tmp_path / "narratives" / "template" / "documents"
+    for enc_id, doc_id, section_text in [
+        ("ENC-1", "doc-ENC-1-01", "primary HPI"),
+        ("ENC-VAX-1-a", "doc-ENC-VAX-1-a-02", "VAX SOAP"),
+        ("ENC-1-ED", "doc-ENC-1-ED-03", "ED note text"),
+    ]:
+        d = base / enc_id
+        d.mkdir(parents=True)
+        (d / f"{doc_id}.json").write_text(
+            json.dumps(
+                {
+                    "document_id": doc_id,
+                    "encounter_id": enc_id,
+                    "narrative": {"sections": {"body": section_text}},
+                },
+                ensure_ascii=False,
+            )
+        )
+    (tmp_path / "narratives" / "current_version.txt").write_text("template")
+
+    r = CIFReader(str(tmp_path))
+    (patient,) = list(r.iter_patients())
+    doc_map = {d["document_id"]: d for d in patient["documents"]}
+    assert doc_map["doc-ENC-1-01"]["narrative"]["sections"]["body"] == "primary HPI"
+    assert doc_map["doc-ENC-VAX-1-a-02"]["narrative"]["sections"]["body"] == "VAX SOAP"
+    assert doc_map["doc-ENC-1-ED-03"]["narrative"]["sections"]["body"] == "ED note text"
+
+
+@pytest.mark.unit
 def test_reader_current_version_default_falls_back_to_template(tmp_path):
     _make_two_layer_cif(tmp_path)
     (tmp_path / "narratives" / "current_version.txt").unlink()
