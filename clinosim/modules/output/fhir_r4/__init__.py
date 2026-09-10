@@ -956,6 +956,12 @@ _SCRUB_LIST_REF_FIELDS_BY_TYPE: dict[str, tuple[str, ...]] = {
     "MedicationRequest": ("basedOn",),
     "ServiceRequest": ("basedOn",),
     "Procedure": ("report",),
+    # Issue #1231: Encounter.reasonReference[] — list of Reference to
+    # Condition / Observation. In-hospital-death case (Issue #1219) keeps
+    # the Encounter (start-gated allowlist) but its per-event referents
+    # may drop via `_dt_fields` gate, leaving dangling refs. Symmetric
+    # scrub with the diagnosis[] walker below.
+    "Encounter": ("reasonReference",),
 }
 _CASCADE_SINGLE_REF_BY_TYPE: dict[str, str] = {
     # Dropping the referenced MedicationRequest orphans the
@@ -1034,7 +1040,30 @@ def _scrub_refs_one_pass(entries: list[dict], dropped_ids: set[str]) -> tuple[li
             for section in res.get("section", []) or []:
                 if isinstance(section, dict):
                     scrubbed += _scrub_section_entries_recursive(section, dropped_ids)
-        # (4) DocumentReference.context.related[]
+        # (4a) Encounter.diagnosis[*].condition.reference — nested single
+        # Reference inside a BackboneElement list (Issue #1231, S105 final
+        # audit residual). Structure:
+        #   Encounter.diagnosis: [{"condition": {"reference": "Condition/..."},
+        #                          "use": {...}, "rank": int}, ...]
+        # Drop the whole diagnosis[] entry when its condition target is
+        # dropped — the entry loses meaning without a resolvable ref, and
+        # Encounter.diagnosis is 0..* (empty list is spec-clean).
+        if rtype == "Encounter":
+            diags = res.get("diagnosis")
+            if isinstance(diags, list):
+                new_diags: list = []
+                for d in diags:
+                    if isinstance(d, dict):
+                        cond = d.get("condition")
+                        if isinstance(cond, dict):
+                            tgt = cond.get("reference")
+                            if isinstance(tgt, str) and tgt in dropped_ids:
+                                scrubbed += 1
+                                continue
+                    new_diags.append(d)
+                if len(new_diags) != len(diags):
+                    res["diagnosis"] = new_diags
+        # (4b) DocumentReference.context.related[]
         if rtype == "DocumentReference":
             context = res.get("context")
             if isinstance(context, dict):
