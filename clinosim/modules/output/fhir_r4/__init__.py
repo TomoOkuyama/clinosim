@@ -569,6 +569,19 @@ def _build_bundle(
     for builder in _BUNDLE_BUILDERS:
         if builder.__name__ in _composition_builder_names and ctx.encounter_resource_index is None:
             ctx.encounter_resource_index = _build_encounter_resource_index(entries)
+        # Issue #1217: populate the post-dedup MR id set right before the
+        # MA builder runs so it can gate `MedicationAdministration.request
+        # .reference` on the actual emitted MR surface (not the pre-dedup
+        # order set). Dedup helpers drop byte-identical + same-class MRs,
+        # so a raw order-based gate lets 357 dangling refs slip through
+        # in p=10k (audit finding #B).
+        if builder.__name__ == "_bb_medication_admins" and ctx.emitted_mr_ids is None:
+            ctx.emitted_mr_ids = {
+                _e.get("resource", {}).get("id", "")
+                for _e in entries
+                if isinstance(_e, dict) and _e.get("resource", {}).get("resourceType") == "MedicationRequest"
+            }
+            ctx.emitted_mr_ids.discard("")
         for resource in builder(ctx):
             # C3-11..18: apply JP Core profile URLs at
             # the adapter level so every resource type gains conformance
