@@ -180,6 +180,15 @@ chronic_prevalence:
   F32:      # Depression — MHLW: adults 5% lifetime, elderly 8%
     "40-64": 0.05
     "65-99": 0.08
+  # Issue #1239 (2026-09-10): JP F33 / F41.1 prevalence 定義追加
+  # (S105 final v3 audit で JP p=10k 実測 F33=0/F41=0 発覚、US では
+  # 定義済だが JP demographics.yaml では欠落していた)。
+  F33:      # 反復性うつ病 — MHLW 患者調査系、~1-2%圏、加齢とともに増加
+    "40-59": 0.015
+    "60-99": 0.02
+  F41.1:    # 全般性不安障害 (GAD) — 日本の疫学 ~0.8-1.5%
+    "40-59": 0.012
+    "60-99": 0.015
 
   # --- Oncology (Issue #943) ------------------------------------------------
   # Prevalence figures are TARGET MARGINAL for the sampled population and
