@@ -764,7 +764,13 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             _ref = _req.get("reference", "")
             if _ref.startswith("MedicationRequest/"):
                 _target = _ref[len("MedicationRequest/") :]
-                if _target not in _mr_ids:
+                # Issue #1217: prefer the post-dedup MR id set threaded
+                # through by `_build_bundle`. Falls back to the pre-#1217
+                # order-based `_mr_ids` when the caller has not populated
+                # it (unit tests exercising this builder in isolation) so
+                # the pre-fix baseline is preserved for those callers.
+                _gate = ctx.emitted_mr_ids if ctx.emitted_mr_ids is not None else _mr_ids
+                if _target not in _gate:
                     _resource.pop("request", None)  # drop the dangling ref
         out.append(_resource)
     return _dedup_medication_admins(out)
