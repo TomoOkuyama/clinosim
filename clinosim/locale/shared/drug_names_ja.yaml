@@ -196,20 +196,20 @@ Sodium polystyrene sulfonate: "ポリスチレンスルホン酸ナトリウム"
 # leaked bare English names into JP output (Osimertinib 11× /
 # Sorafenib 9× / Lenvatinib 9× observed in the session-104 H100 p=100
 # verify).
-Anastrozole: "アナストロゾール"            # MHLW YJ 4291013F1029 (アリミデックス)
-Bicalutamide: "ビカルタミド"               # MHLW YJ 4291012F1022 (カソデックス)
-Capecitabine: "カペシタビン"               # MHLW YJ 4223006F1027 (ゼローダ)
-Carboplatin: "カルボプラチン"              # MHLW YJ 4291402A1042 (パラプラチン)
+Anastrozole: "アナストロゾール"            # MHLW YJ 4291010F1201 (アナストロゾール1mg、Issue #1233)
+Bicalutamide: "ビカルタミド"               # MHLW YJ 4291009F1101 (ビカルタミド80mg、Issue #1233)
+Capecitabine: "カペシタビン"               # MHLW YJ 4223005F1030 (カペシタビン300mg、Issue #1233)
+Carboplatin: "カルボプラチン"              # MHLW YJ 4291403A2149 (カルボプラチン150mg、Issue #1233)
 Folic acid: "葉酸"
-Lenvatinib: "レンバチニブ"                 # MHLW YJ 4291051F1024 (レンビマ)
-Leucovorin: "ロイコボリン"                 # MHLW YJ 3929402D1051 (ユーゼル)
-Leuprorelin: "リュープロレリン"            # MHLW YJ 2499404D1049 (リュープリン)
-Osimertinib: "オシメルチニブ"              # MHLW YJ 4291052F1029 (タグリッソ)
-Oxaliplatin: "オキサリプラチン"            # MHLW YJ 4291403A1046 (エルプラット)
-Pemetrexed: "ペメトレキセド"               # MHLW YJ 4229402A1024 (アリムタ)
-Sorafenib: "ソラフェニブ"                  # MHLW YJ 4291032F1020 (ネクサバール)
-Tamoxifen: "タモキシフェン"                # MHLW YJ 4291005F1023 (ノルバデックス)
-Trastuzumab: "トラスツズマブ"              # MHLW YJ 4291404G1044 (ハーセプチン)
+Lenvatinib: "レンバチニブ"                 # MHLW YJ 4291039M2027 (レンビマ10mg、Issue #1233)
+Leucovorin: "ロイコボリン"                 # MHLW YJ 3929004F2030 (ロイコボリン25mg、Issue #1233)
+Leuprorelin: "リュープロレリン"            # MHLW YJ 2499407G2034 (リュープロレリン3.75mg、Issue #1233)
+Osimertinib: "オシメルチニブ"              # MHLW YJ 4291045F2023 (タグリッソ80mg、Issue #1233)
+Oxaliplatin: "オキサリプラチン"            # MHLW YJ 4291410A2084 (オキサリプラチン100mg、Issue #1233)
+Pemetrexed: "ペメトレキセド"               # MHLW YJ 4229401A2020 (ペメトレキセド500mg、Issue #1233)
+Sorafenib: "ソラフェニブ"                  # MHLW YJ 4291017F1025 (ネクサバール200mg、Issue #1233)
+Tamoxifen: "タモキシフェン"                # MHLW YJ 4291003F1210 (タモキシフェン10mg、Issue #1233)
+Trastuzumab: "トラスツズマブ"              # MHLW YJ 4291442D2030 (トラスツズマブBS 150mg、Issue #1233)
 
 # --- IV fluids / 輸液 ---
 IV normal saline: "生理食塩液"

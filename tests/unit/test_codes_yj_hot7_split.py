@@ -70,12 +70,14 @@ class TestFileSeparation:
 
     def test_split_preserves_total_count(self):
         """Session 81 split moved 106 HOT7 codes out and left 59 YJ12
-        codes. If a future PR adds/removes drug data these counts change
-        — update this test with the new totals rather than removing the
-        pin (the counts document the split's intent)."""
+        codes. Issue #1233 (2026-09-10): +17 real MEDIS YJ codes for
+        oncology / endocrine / supplements to cure JP p=10k NOCODED
+        residual → 76 YJ12. If a future PR adds/removes drug data these
+        counts change — update this test with the new totals rather than
+        removing the pin (the counts document the split's intent)."""
         yj_n = len(_load(_YJ_FILE).get("codes") or {})
         hot7_n = len(_load(_HOT7_FILE).get("codes") or {})
-        assert yj_n == 59, f"yj.yaml YJ12 count expected 59, got {yj_n}"
+        assert yj_n == 76, f"yj.yaml YJ12 count expected 76, got {yj_n}"
         assert hot7_n == 106, f"hot7.yaml HOT7 count expected 106, got {hot7_n}"
 
 

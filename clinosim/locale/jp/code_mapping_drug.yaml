@@ -331,3 +331,24 @@ lactulose:                               "3999001Q2058"  # (lowercase alias for 
 "Ticagrelor": "3399011"
 "Tramadol": "1149038"
 "Vitamin K": "3160001"
+
+# Issue #1233: oncology + hormonal + supplements — real MEDIS YJ codes
+# (2026-08-31 版) added to eliminate NOCODED semantic loss for these drugs
+# (previously not in mapping → order.display_name English fallthrough).
+"Anastrozole": "4291010F1201"
+"Bicalutamide": "4291009F1101"
+"Capecitabine": "4223005F1030"
+"Carboplatin": "4291403A2149"
+"Cefcapene pivoxil": "6132016F2038"
+"Fluorouracil": "4223401A4037"
+"Fluticasone/Salmeterol": "2290800G2039"
+"Folic acid": "3135001F1025"
+"Lenvatinib": "4291039M2027"
+"Leucovorin": "3929004F2030"
+"Leuprorelin": "2499407G2034"
+"Osimertinib": "4291045F2023"
+"Oxaliplatin": "4291410A2084"
+"Pemetrexed": "4229401A2020"
+"Sorafenib": "4291017F1025"
+"Tamoxifen": "4291003F1210"
+"Trastuzumab": "4291442D2030"

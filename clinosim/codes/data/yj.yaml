@@ -182,3 +182,61 @@ codes:
   8219700S5026:
     en: Fentanyl (Durotep MT patch)
     ja: フェンタニル（デュロテップMTパッチ）
+  # Issue #1233: oncology + endocrine + supplement drugs sourced from
+  # MEDIS 医薬品HOTコードマスター (2026-08-31 版) — replaces the previously
+  # fictitious YJ codes recorded in drug_names_ja.yaml comments and cures
+  # 3.36% MR NOCODED / 0.97% MA NOCODED at JP p=10k.
+  # Oncology
+  4291410A2084:
+    en: Oxaliplatin injection 100mg
+    ja: オキサリプラチン100mg注
+  4223401A4037:
+    en: Fluorouracil (5-FU) 250mg injection
+    ja: フルオロウラシル注250mg
+  3929004F2030:
+    en: Leucovorin (folinate) 25mg tablet
+    ja: ロイコボリン錠25mg
+  4223005F1030:
+    en: Capecitabine 300mg tablet
+    ja: カペシタビン錠300mg
+  4291442D2030:
+    en: Trastuzumab 150mg IV infusion
+    ja: トラスツズマブBS点滴静注用150mg
+  4291045F2023:
+    en: Osimertinib 80mg (Tagrisso)
+    ja: タグリッソ錠80mg
+  4229401A2020:
+    en: Pemetrexed 500mg IV
+    ja: ペメトレキセド点滴静注液500mg
+  4291403A2149:
+    en: Carboplatin 150mg injection
+    ja: カルボプラチン注射液150mg
+  4291017F1025:
+    en: Sorafenib 200mg (Nexavar)
+    ja: ネクサバール錠200mg
+  4291009F1101:
+    en: Bicalutamide 80mg tablet
+    ja: ビカルタミド80mg錠
+  4291039M2027:
+    en: Lenvatinib 10mg (Lenvima)
+    ja: レンビマカプセル10mg
+  # Endocrine / hormonal
+  2499407G2034:
+    en: Leuprorelin acetate 3.75mg injection kit
+    ja: リュープロレリン酢酸塩注射用キット3.75mg
+  4291003F1210:
+    en: Tamoxifen citrate 10mg tablet
+    ja: タモキシフェンクエン酸塩10mg錠
+  4291010F1201:
+    en: Anastrozole 1mg tablet
+    ja: アナストロゾール錠1mg
+  # Supplements & other
+  3135001F1025:
+    en: Folic acid tablet
+    ja: 葉酸錠
+  6132016F2038:
+    en: Cefcapene pivoxil 100mg tablet
+    ja: セフカペンピボキシル塩酸塩100mg錠
+  2290800G2039:
+    en: Fluticasone/Salmeterol inhaler (Advair Diskus 250)
+    ja: アドエア250ディスカス28吸入用
