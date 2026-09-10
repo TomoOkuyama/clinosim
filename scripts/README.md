@@ -54,7 +54,7 @@ any regular schedule.
 | --- | --- |
 | [`refresh_authoritative_loinc.py`](refresh_authoritative_loinc.py) | Refresh the LOINC common-lab table from the authoritative dump |
 | [`refresh_authoritative_yj.py`](refresh_authoritative_yj.py) | Refresh YJ-code (drug) canonical map |
-| [`refresh_authoritative_yj_tx_valid.py`](refresh_authoritative_yj_tx_valid.py) | Same, validating against tx-server |
+| [`refresh_authoritative_yj_full.py`](refresh_authoritative_yj_full.py) | Rebuild the full JP national YJ CodeSystem (`JP_MedicationCodeYJ_CS_full.json`, `content=complete`, 23,923 concepts) from the MEDIS 医薬品HOTコードマスター. Replaces the tx-server-fragment gate (Issue #1220) so validators can resolve the full VS instead of falling back to the JP-CLINS eCS `nocoded` slice. |
 | [`convert_ja_narrative_style.py`](convert_ja_narrative_style.py) | One-off stylistic conversion pass (JP narrative corpus) |
 | [`audit_disease_narrative_en.py`](audit_disease_narrative_en.py) | English narrative audit (per-disease coverage) |
 | [`audit_realworld_stats_jp.py`](audit_realworld_stats_jp.py) | JP cohort vs real-world statistics (MHLW 患者調査 / 接種率 / 慢性疾患) audit. Compares per-season for immunization + MHLW 患者調査 for age distribution — NOT general Census. See `modules/immunization/README.md` + `modules/population/README.md` for benchmark rationale. |

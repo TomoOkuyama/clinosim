@@ -375,42 +375,54 @@ _JP_MEDICATION_CODE_NOCODED_CS = "http://jpfhir.jp/fhir/eCS/CodeSystem/Medicatio
 _JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"
 _JP_MEDICATION_CODE_NOCODED_DISPLAY = "標準コードなし"
 
-# #283 tx-server-verifiable YJ code set(2000 concepts fragment)。
-# jpfhir-terminology 2.2606.0 の CodeSystem-jp-medicationcodeyj-cs.json は
-# 25542 全 YJ codes のうち先頭 2000(11xx/12xx = 精神/神経系のみ)を fragment
-# として出荷。clinosim が emit する YJ code はこの fragment 内なら通常の
-# `codingYJ` slice、fragment 外なら `nocoded` slice に fallback(薬剤名は
-# text field で保持)。HAPI validator が fragment 外の code を "システム URI
-# を決定できません" error で報告する(v5 で 594 件)ため defensive downgrade。
-# snapshot は `scripts/refresh_authoritative_yj_tx_valid.py` で更新可能。
+# Issue #1220 (2026-09-10): JP national YJ CodeSystem shipped as clinosim
+# artifact (``codes/authoritative/JP_MedicationCodeYJ_CS_full.json``,
+# ``content=complete``, 23,923 concepts sourced from MEDIS 医薬品HOTコード
+# マスター). Replaces the tx-server-fragment-based gate (Issue #283) which
+# downgraded 41.8 % of MedicationRequest / 25.1 % of MedicationAdministration
+# to the JP-CLINS eCS ``nocoded`` slice because the tx-server-shipped
+# ``jpfhir-terminology 2.2606.0`` CodeSystem is content=fragment (2000/25542,
+# psychiatric/neurological only) and cannot verify cardiovascular /
+# respiratory / oncology YJ codes clinosim emits.
+#
+# The clinosim-shipped CS is honest — same canonical URL as tx-server's
+# (``http://capstandard.jp/iyaku.info/CodeSystem/YJ-code``), full concept
+# set, MEDIS attribution in copyright. Downstream FHIR validators should
+# load clinosim's CS ahead of the tx-server fragment (IG package
+# precedence) so the ``required`` binding on
+# ``codingYJ.code -> JP_MedicationCodeYJ_VS|1.1.0a`` resolves against the
+# complete concept set — spec-clean rather than defensive-downgrade.
+#
+# Refresh from upstream MEDIS master:
+#     python scripts/refresh_authoritative_yj_full.py \\
+#         --source h<YYYYMMDD>/MEDIS<YYYYMMDD>.TXT
 
 
-def _load_tx_server_verified_yj_codes() -> frozenset[str]:
-    """Load tx-server's verifiable YJ code set as an immutable frozenset."""
+def _load_full_yj_codes() -> frozenset[str]:
+    """Load the full JP national YJ code set from the clinosim-shipped CS."""
     import json as _json
     from pathlib import Path as _Path
 
-    # PR2 (Issue #555): file moved from output/_fhir_medications.py to
-    # output/fhir_r4/medications/medications.py (2 layers deeper) — parent
-    # depth adjusted from 2 to 4 so the path still resolves to clinosim/codes/.
-    _snapshot = _Path(__file__).resolve().parents[4] / "codes" / "authoritative" / "yj_tx_valid_codes.json"
-    if not _snapshot.is_file():
+    _cs = _Path(__file__).resolve().parents[4] / "codes" / "authoritative" / "JP_MedicationCodeYJ_CS_full.json"
+    if not _cs.is_file():
         return frozenset()
-    return frozenset(_json.loads(_snapshot.read_text()).get("codes", []))
+    _data = _json.loads(_cs.read_text())
+    return frozenset(c.get("code", "") for c in _data.get("concept", []) if c.get("code"))
 
 
-_TX_SERVER_VERIFIED_YJ_CODES: frozenset[str] = _load_tx_server_verified_yj_codes()
+_FULL_YJ_CODES: frozenset[str] = _load_full_yj_codes()
 
 
-def _is_tx_server_verified_yj(code: str) -> bool:
-    """Return True when the YJ code is present in the tx-server's fragment CS.
+def _is_yj_code_valid(code: str) -> bool:
+    """Return True when ``code`` is present in the JP national YJ CodeSystem.
 
-    #283:the JP tx-server ships a 2000-concept fragment of the
-    25542-concept YJ CodeSystem. Codes outside the fragment cannot be
-    validator-verified even though they are real MHLW YJ codes; the caller
-    routes them to the JP-CLINS eCS `nocoded` slice instead of `codingYJ`.
+    Issue #1220: single source of truth is the clinosim-shipped
+    ``JP_MedicationCodeYJ_CS_full.json`` (MEDIS-sourced, content=complete).
+    All clinosim yj.yaml codes are curated to real MHLW YJ codes and pass
+    this gate; consumers get semantic accuracy and validator can verify
+    every emitted ``codingYJ.code`` against the full VS.
     """
-    return code in _TX_SERVER_VERIFIED_YJ_CODES
+    return code in _FULL_YJ_CODES
 
 
 def _resolve_jp_drug_system_uri(code: str) -> str:
@@ -644,7 +656,7 @@ def _resolve_medication_concept(
         and drug_system_key == "yj"
         and bool(code_value)
         and code_system == _JP_YJ_CODE_URI
-        and not _is_tx_server_verified_yj(code_value)
+        and not _is_yj_code_valid(code_value)
     )
     if code_value and not _jp_yj_unverified:
         med_concept["coding"] = [
@@ -1359,7 +1371,7 @@ def _build_medication_admin(
         and drug_system_key == "yj"
         and bool(code_value)
         and code_system == _JP_YJ_CODE_URI
-        and not _is_tx_server_verified_yj(code_value)
+        and not _is_yj_code_valid(code_value)
     )
     if code_value and not _jp_yj_unverified:
         display = code_lookup(drug_system_key, code_value, lang)

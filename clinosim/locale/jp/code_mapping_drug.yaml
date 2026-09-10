@@ -26,7 +26,7 @@ Vancomycin: "6113001"
 
 # 循環器系
 Furosemide: "2139005"
-Carvedilol: "2149032F1013"
+Carvedilol: "2149032F1099"
 Enalapril: "2144002"
 Lisinopril: "2144006"
 Amlodipine: "2149114"
@@ -39,7 +39,7 @@ Apixaban: "3339004"
 Aspirin: "1143001"
 Clopidogrel: "3399008"
 Atorvastatin: "2189015"
-Norepinephrine: "2451401A1018"
+Norepinephrine: "2451401A1034"
 
 # 鎮痛・消炎
 Acetaminophen: "1141001"
@@ -71,10 +71,10 @@ Fluticasone/Salmeterol: "2290800"
 Lansoprazole: "2329023F1020"
 Sodium bicarbonate: "2344004"
 Vitamin D: "3112001F1055"
-Alendronate: "3999018F1013"
+Alendronate: "3999018F1196"
 Donepezil: "1190012"
 Levodopa/Carbidopa: "1169101F1120"
-Levothyroxine: "2431004F1013"
+Levothyroxine: "2431004F1021"
 Tamsulosin: "2590009"
 
 # === CO-8 authoritative subset (session 43 secondary-dx continuation) ===
@@ -142,29 +142,29 @@ Acetaminophen: "1141007"       # アセトアミノフェン (パラセタモー
 # that would otherwise miss the longest-match lookup in _fhir_medications.
 Oseltamivir:            "6250021"  # オセルタミビルリン酸塩
 Ciprofloxacin:          "6241400"  # シプロフロキサシン
-Magnesium sulfate:      "2355002X1016"  # 硫酸マグネシウム水和物
+Magnesium sulfate:      "2355002X1075"  # 硫酸マグネシウム水和物
 Magnesium Sulfate:      "2355002"  # (case alias)
 Aminophylline:          "2115001"  # アミノフィリン水和物
 Butylscopolamine:       "1242002F1330"  # ブチルスコポラミン臭化物
 Dai-kenchu-to:          "5200092C1025"  # 大建中湯エキス
 Cefmetazole:            "6132408"  # セフメタゾールナトリウム
 Mannitol:               "2190400"  # Ｄ－マンニトール
-Disopyramide:           "2129005F1013"  # リン酸ジソピラミド
+Disopyramide:           "2129005F1145"  # リン酸ジソピラミド
 Midazolam:              "1124031Q1024"  # ミダゾラム
 Ketamine:               "1119400A1031"  # ケタミン塩酸塩
 Alteplase:              "3959402D1027"  # アルテプラーゼ (遺伝子組換え)
-Adrenaline:             "2451400A1013"  # アドレナリン
-Epinephrine:            "2451400A1013"  # (alias — same drug as Adrenaline)
-Vasopressin:            "2414402A1019"  # バソプレシン
+Adrenaline:             "2451400A1030"  # アドレナリン
+Epinephrine:            "2451400A1030"  # (alias — same drug as Adrenaline)
+Vasopressin:            "2414402A1035"  # バソプレシン
 Salbutamol:             "2254001F1102"  # サルブタモール硫酸塩 (long form; short
                                         # form 2254701 also valid, kept above)
-Ringers:                "3319539A1015"  # リンゲル液 (unqualified Ringer's)
+Ringers:                "3319539A1082"  # リンゲル液 (unqualified Ringer's)
 Human serum albumin:    "6343410X1088"  # 人血清アルブミン
 Albumin:                "6343410X1088"  # (alias)
 Octreotide:             "2499403"  # オクトレオチド酢酸塩
 Levetiracetam:          "1139010"  # レベチラセタム
 Loxoprofen:             "1149019"  # ロキソプロフェンナトリウム水和物
-Milnacipran:            "1179040F1012"  # ミルナシプラン塩酸塩
+Milnacipran:            "1179040F2108"  # ミルナシプラン塩酸塩
 Propofol:               "1119402A1022"  # プロポフォール
 Fentanyl:               "8219700"  # フェンタニル
 Levocarnitine:          "3999033F1026"  # レボカルニチン
@@ -278,13 +278,13 @@ Nafamostat:                              "3999407"  # ナファモスタット�
 "Calcium gluconate":                     "3213400A2047"  # グルコン酸カルシウム水和物 (カルチコール注射液)
 Metronidazole:                           "6419002"  # メトロニダゾール (アネメトロ点滴静注液500mg — injection form preferred)
 "Metronidazole 500mg":                   "6419401A1027"
-Ferrous_fumarate:                        "3221001F1032"  # フマル酸第一鉄 — placeholder (needs MHLW verification;
+Ferrous_fumarate:                        "3222013F1025"  # フマル酸第一鉄 — placeholder (needs MHLW verification;
                                                           # 3221 = 造血剤鉄剤 認証 class)
-"Ferrous fumarate":                      "3221001F1032"
+"Ferrous fumarate":                      "3222013F1025"
 # Terlipressin is NOT in MHLW 薬価基準 (imported / not marketed) — leave uncoded and
 # add to by-design registry.
 # コデイン standalone (codeine phosphate) — for pediatric formulation
-Codeine:                                 "2242001B2017"  # コデインリン酸塩水和物
+Codeine:                                 "2242001B2122"  # コデインリン酸塩水和物
 # Lactulose — supportive orders with type_hint "lactulose" (protocol_category
 # fallback path). モニラック / ラグノス family; syrup form is standard.
 Lactulose:                               "3999001"  # ラクツロース (モニラック・シロップ65%)

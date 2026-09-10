@@ -111,7 +111,7 @@ clinosim/codes/
                                   authoritative-source JSON 断片
                                   (icd10_who_tx.json、loinc_2_82_tx.json、
                                   yj_tx_fragment.json、
-                                  yj_tx_valid_codes.json + README)
+                                  JP_MedicationCodeYJ_CS_full.json + README)
 ```
 
 ## テスト

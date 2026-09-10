@@ -45,7 +45,7 @@ Peramivir: "ペラミビル"                    # MHLW YJ 6250405A1032 (ラピ�
 Acetaminophen: "アセトアミノフェン"
 Acetaminophen/codeine: "アセトアミノフェン/コデイン"
 Celecoxib: "セレコキシブ"
-Codeine: "コデイン"                        # MHLW YJ 2242001B2017
+Codeine: "コデイン"                        # MHLW YJ 2242001B2122
 Diclofenac: "ジクロフェナク"
 Fentanyl: "フェンタニル"
 Ibuprofen: "イブプロフェン"
@@ -58,7 +58,7 @@ Pregabalin: "プレガバリン"                 # MHLW YJ 1190017F1029 (リリ�
 Tramadol: "トラマドール"                   # MHLW YJ 1149038F1024 (トラマール)
 
 # --- Cardiovascular / 循環器系 ---
-Adrenaline: "アドレナリン"                 # MHLW YJ 2451400A1013 (alias of Epinephrine)
+Adrenaline: "アドレナリン"                 # MHLW YJ 2451400A1030 (alias of Epinephrine)
 Alteplase: "アルテプラーゼ"                # MHLW YJ 3959402D1027 (アクチバシン; 遺伝子組換え)
 Amiodarone: "アミオダロン"                 # MHLW YJ 2129410A1028 (アンカロン)
 Amlodipine: "アムロジピン"
@@ -73,7 +73,7 @@ Carvedilol: "カルベジロール"
 Clopidogrel: "クロピドグレル"
 Digoxin: "ジゴキシン"
 Diltiazem: "ジルチアゼム"
-Disopyramide: "ジソピラミド"               # MHLW YJ 2129005F1013 (リン酸ジソピラミド)
+Disopyramide: "ジソピラミド"               # MHLW YJ 2129005F1145 (リン酸ジソピラミド)
 Dobutamine: "ドブタミン"
 Edoxaban: "エドキサバン"
 Enalapril: "エナラプリル"
@@ -96,7 +96,7 @@ Rivaroxaban: "リバーロキサバン"            # MHLW YJ 3339003F1024 (イ�
 Spironolactone: "スピロノラクトン"
 Ticagrelor: "チカグレロル"                 # MHLW YJ 3399011F1027 (ブリリンタ)
 Unfractionated Heparin: "未分画ヘパリン"
-Vasopressin: "バソプレシン"                # MHLW YJ 2414402A1019 (バソプレシン注射液)
+Vasopressin: "バソプレシン"                # MHLW YJ 2414402A1035 (バソプレシン注射液)
 Warfarin: "ワルファリン"
 
 # --- Respiratory / 呼吸器系 ---
@@ -142,7 +142,7 @@ Levetiracetam: "レベチラセタム"
 Levocarnitine: "レボカルニチン"            # MHLW YJ 3999033F1026 (エルカルチンFF)
 Levodopa/Carbidopa: "レボドパ/カルビドパ"
 Lorazepam: "ロラゼパム"
-Milnacipran: "ミルナシプラン"              # MHLW YJ 1179040F1012
+Milnacipran: "ミルナシプラン"              # MHLW YJ 1179040F2108
 
 # --- Bone / 骨代謝 ---
 Alendronate: "アレンドロネート"
@@ -176,7 +176,7 @@ Ferrous sulfate: "硫酸鉄"                  # MHLW YJ 3222007G1033 (フェロ�
 Human serum albumin: "人血清アルブミン"    # MHLW YJ 6343410X1088 (献血アルブミン)
 Lidocaine: "リドカイン"
 Magnesium Sulfate: "硫酸マグネシウム"
-Magnesium sulfate: "硫酸マグネシウム"      # lowercase alias (MHLW YJ 2355002X1016)
+Magnesium sulfate: "硫酸マグネシウム"      # lowercase alias (MHLW YJ 2355002X1075)
 Mannitol: "マンニトール"
 Methylprednisolone: "メチルプレドニゾロン"
 Nafamostat: "ナファモスタット"
@@ -219,7 +219,7 @@ Lactated Ringer: "乳酸リンゲル液"
 Lactated Ringers: "乳酸リンゲル液"          # plural alias (MHLW YJ 3319534A4046 = ラクテック注)
 Lactated Ringer's: "乳酸リンゲル液"          # apostrophe alias
 Lactated Ringer's solution: "乳酸リンゲル液"
-Ringers: "リンゲル液"                       # MHLW YJ 3319539A1015 (リンゲル液)
+Ringers: "リンゲル液"                       # MHLW YJ 3319539A1082 (リンゲル液)
 LR: "乳酸リンゲル液"
 Hypertonic Saline: "高張食塩液"
 Crystalloid: "晶質液"
