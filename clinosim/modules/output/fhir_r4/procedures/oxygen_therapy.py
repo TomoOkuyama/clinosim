@@ -413,8 +413,16 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
             procedure["encounter"] = encounter_ref(enc_id)
             # Chronic-primary encounters resolve to the patient-scoped chronic
             # Condition; acute-primary encounters keep the encounter-scoped id.
-            _primary_ref = primary_condition_ref(ctx.record, ctx.patient_id, enc_id)
-            procedure["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
+            # Issue #1222: skip reasonReference when the encounter's primary
+            # dx is a Z-chapter visit-reason code — no Condition was emitted
+            # for it (Issue #916), so the reference would dangle.
+            from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
+
+            _dx_o2 = (ctx.record or {}).get("clinical_diagnosis", {}) or {}
+            _primary_dx_o2 = _dx_o2.get("discharge_diagnosis_code") or _dx_o2.get("admission_diagnosis_code", "") or ""
+            if not (_primary_dx_o2 and is_visit_reason_zcode(_primary_dx_o2)):
+                _primary_ref = primary_condition_ref(ctx.record, ctx.patient_id, enc_id)
+                procedure["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
 
         performer_ref = ordered_by or enc_att_idx.get(enc_id, "")
         if performer_ref:
