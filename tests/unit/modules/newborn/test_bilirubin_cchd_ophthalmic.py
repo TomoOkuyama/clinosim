@@ -198,6 +198,11 @@ def test_bilirubin_bundle_builder_renders_three_observations() -> None:
         assert "58941-6" in loincs
         vq = o.get("valueQuantity", {})
         assert vq.get("code") == "mg/dL"
+        # Category must NOT be "laboratory" — TcB is bedside, not a
+        # sent-away lab; keep out of the JP-CLINS lab profile scope.
+        cat_codes = [c.get("code") for cat in o.get("category", []) for c in cat.get("coding", [])]
+        assert "laboratory" not in cat_codes
+        assert "exam" in cat_codes
 
 
 def test_cchd_bundle_builder_renders_two_observations_with_bodysite() -> None:

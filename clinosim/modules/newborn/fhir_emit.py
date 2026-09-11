@@ -141,9 +141,13 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
     from `record.extensions["newborn"]["bilirubin"]` (populated by
     `enrich_newborn` — engine.build_bilirubin_observations).
 
-    LOINC 58941-6, category `laboratory` (bilirubin is a lab-type
-    Observation even when measured transcutaneously — matches real
-    EHR classification), valueQuantity in `mg/dL` (UCUM).
+    LOINC 58941-6. Category **`exam`** — TcB is a bedside
+    bilirubinometer reading (clinician exam finding), NOT a serum lab
+    sample. This deliberate category choice keeps the Observation
+    outside the JP-CLINS eCS `Observation-eCS-Laboratory` profile
+    scope, which mandates a LocalCode slice on every
+    `category=laboratory` Observation (not applicable to TcB).
+    valueQuantity in `mg/dL` (UCUM).
     """
     from clinosim.codes import get_system_uri
     from clinosim.modules._shared import is_jp
@@ -179,11 +183,11 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
                     "coding": [
                         {
                             "system": get_system_uri("hl7-observation-category"),
-                            "code": "laboratory",
-                            "display": "Laboratory",
+                            "code": "exam",
+                            "display": "Exam",
                         }
                     ],
-                    "text": "検体検査" if is_ja else "Laboratory",
+                    "text": "身体所見" if is_ja else "Exam",
                 }
             ],
             "code": {
