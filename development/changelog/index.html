@@ -2306,18 +2306,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Immunization enricher: VAX companion encounter cross-record duplication</strong>
-  (#1245 → PR). A patient with N record files (one per primary encounter,
-  per-encounter CIF sharding) previously received N copies of every
-  synthesized <code>ENC-VAX-*</code> companion encounter — <code>generate_immunizations</code> is
-  deterministic per patient (same imm list on every call across records), so
-  each record's iteration synthesized and appended the identical companion
-  encounter. At p=10k seed 342 this hit 23 % of VAX encounters (one appearing
-  in 9 record files). Now tracks hosted VAX encounter_ids per patient; the
-  first record to encounter an orphan imm hosts the synth encounter, later
-  records only link the imm via its <code>encounter_id</code> field. CIF layer bug;
-  affects downstream narrative and Composition duplicate emission.
-  <strong>PATCH-scope</strong> (bug fix, CIF layer dedup but no field schema change).</li>
+<li><strong>Pediatric immunization series: dose-gap silent-fabrication</strong> (#1248 → PR).
+  <code>generate_immunizations</code> drew each dose in a <code>pediatric_series</code> schedule
+  entry with an independent coverage roll, so a missed dose 1 (coverage
+  fail or "declined" record) did not gate the subsequent doses.
+  Downstream: newborn Immunization records with <code>doseNumber = 2</code> (or 3)
+  present without any <code>doseNumber = 1</code> in the record — implying an
+  impossible "past vaccination" for a patient born inside the sim window.
+  At v0.6.1 JP p=10k this affected 21 % of babies (21 of 99). Now the
+  series discontinues on the first missed dose: dose N cannot be
+  administered without dose N-1, matching real clinical practice. RNG
+  cascade: the new <code>series_discontinued</code> gate is checked <em>before</em> any
+  rng draw, so cross-series RNG for patients whose earlier doses fell
+  outside the sim window (the pre-fix skip path) is unchanged — the shift
+  is scoped to pediatric-series cohorts. <strong>MINOR-scope</strong> (CIF layer:
+  immunization records removed; narrative CIF referencing those records
+  needs a re-narrate).</li>
 </ul>
 <h2 id="061---2026-09-10">[0.6.1] - 2026-09-10<a class="headerlink" href="#061---2026-09-10" title="Permanent link">&para;</a></h2>
 <p><strong>PATCH</strong> — Session 105 wave (14 PRs). Cumulative dangling-FHIR-reference
