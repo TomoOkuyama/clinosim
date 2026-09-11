@@ -41,6 +41,29 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Newborn bilirubin + CCHD SpO2 + US ophthalmic prophylaxis** (#1252 →
+  PR, sub-scope N7 — final slice of the newborn workup roadmap).
+  * **Transcutaneous bilirubin (TcB) daily monitoring** — one reading
+    per birth-admission day (1 / 2 / 3, per `newborn_screening.yaml
+    ::bilirubin.schedule_days`), sampled from a normal distribution
+    keyed on `patient_id`. Day-3 mean higher than day 1 (physiological
+    jaundice peaks day 3-5). LOINC 58941-6, mg/dL (UCUM). New bundle-
+    builder `_bb_newborn_bilirubin`.
+  * **CCHD pulse-oximetry screening** — Right-hand + foot SpO2 at ≥ 24 h
+    post-birth. Well-newborn cohort ~99.9 % pass. LOINC 59408-5 with
+    SNOMED `bodySite` (368208006 right upper arm / 22335008 foot) to
+    distinguish pre- vs post-ductal readings. New bundle-builder
+    `_bb_newborn_cchd_pulse_ox`.
+  * **US erythromycin ophthalmic prophylaxis** — 1 cm ribbon each eye
+    within 1 h of birth, US CDC-standard for gonococcal ophthalmia
+    prevention. JP branch declares `drug_name = ""` and returns no
+    MAR entry (not JP standard). RxNorm 313418. Reuses existing
+    `MedicationAdministration` emit — no new bundle-builder.
+  Verified end-to-end at JP p=500 seed 342 — every baby now emits 3
+  bilirubin Observations + 2 CCHD Observations. **PATCH-scope**:
+  additive; uses `extensions` dict + existing MAR pipeline; no schema
+  change.
+
 - **Newborn tandem-MS metabolic screening** (#1252 → PR, sub-scope N6,
   minimum-viable slice). `clinosim.modules.newborn.engine
   .build_metabolic_screen_procedure` emits a `ProcedureRecord` for the

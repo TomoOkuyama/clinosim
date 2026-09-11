@@ -22,9 +22,12 @@ from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.newborn.engine import (
     build_apgar_scores,
+    build_bilirubin_observations,
+    build_cchd_pulse_ox,
     build_hearing_screen_procedure,
     build_metabolic_screen_procedure,
     build_newborn_shift_vitals,
+    build_ophthalmic_prophylaxis,
     build_vitamin_k_administrations,
     is_newborn_birth_record,
 )
@@ -49,9 +52,28 @@ def enrich_newborn(ctx: Any) -> None:
             new_apgar = build_apgar_scores(record=record)
             new_hearing = build_hearing_screen_procedure(record=record)
             new_metabolic = build_metabolic_screen_procedure(record=record)
+            new_bili = build_bilirubin_observations(record=record)
+            new_cchd = build_cchd_pulse_ox(record=record)
+            new_oph = build_ophthalmic_prophylaxis(record=record, country=country)
         except Exception:  # pragma: no cover — defensive
             logger.exception("newborn enricher failed on record; continuing")
             continue
+        if new_bili or new_cchd:
+            ext = _get(record, "extensions", None)
+            if ext is None:
+                ext = {}
+                _set(record, "extensions", ext)
+            nb = ext.setdefault("newborn", {})
+            if new_bili:
+                nb["bilirubin"] = list(new_bili)
+            if new_cchd:
+                nb["cchd_pulse_ox"] = list(new_cchd)
+        if new_oph:
+            existing_mars = _get(record, "medication_administrations", None)
+            if existing_mars is None:
+                _set(record, "medication_administrations", list(new_oph))
+            else:
+                existing_mars.extend(new_oph)
         new_procs = [p for p in (new_hearing, new_metabolic) if p is not None]
         if new_procs:
             existing_procs = _get(record, "procedures", None)
