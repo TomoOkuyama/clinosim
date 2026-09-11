@@ -2307,6 +2307,21 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
 <li>
+<p><strong>Newborn Patient.contact inherits guardian (mother) info</strong> (#1246 → PR).
+  <code>_build_newborn_patient</code> previously emitted an empty <code>ContactInfo</code>, so
+  every newborn shipped without any FHIR <code>Patient.contact[]</code> entry —
+  downstream chart / appointment / emergency-contact pipelines had no
+  route to reach any responsible adult. Now the newborn's
+  <code>ContactInfo.emergency_contact_*</code> carries the mother's name +
+  preferred phone (<code>phone_mobile</code> fallback to <code>phone_home</code>) with
+  <code>relationship = "MTH"</code>; the shared household landline is copied to
+  the baby's own <code>phone_home</code>; the personal telecom (mobile / email)
+  stays empty because a real newborn cannot be reached directly.
+  Verified end-to-end at JP p=500 seed 342 — every baby now emits
+  <code>Patient.contact[0]</code> with the mother's telecom.
+  <strong>PATCH-scope</strong>: FHIR-Patient emit only.</p>
+</li>
+<li>
 <p><strong>Newborn given-name registration window</strong> (#1247 → PR). <code>_build_newborn_patient</code>
   in <code>clinosim/simulator/perinatal.py</code> unconditionally emitted <code>given_name=""</code>
   for every newborn, so babies remained nameless in the CIF and FHIR output
