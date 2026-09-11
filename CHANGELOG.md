@@ -58,6 +58,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   absent, no consumer was reading it); JP behavior unchanged; RNG
   independent (sub-seed keyed on `patient_id`).
 
+- **US newborn MedicationAdministration.text truncated to first token**
+  (#1264 → PR). The FHIR MedAdmin resolver runs a longest-prefix match of
+  the CIF `drug_name` against `code_mapping_drug.yaml`; on a US catalog
+  miss `base_name` stays at `.split(" ")[0]`, so US newborn drugs shipped
+  useless single-word `.text`:
+  `"Vitamin K1 (phytonadione) 1 mg IM"` → **`"Vitamin"`** (indistinguishable
+  from adult Vitamin D supplement), and `"Erythromycin 0.5% ophthalmic
+  ointment (Ilotycin)"` → **`"Erythromycin"`** (indistinguishable from
+  systemic erythromycin antibiotic). Fixed by adding two multi-word
+  catalog keys (`"Vitamin K1 (phytonadione)"` and `"Erythromycin 0.5%
+  ophthalmic ointment"`) — the resolver's longest-prefix match now lands
+  on the clean drug identifier and populates `.coding` with the
+  authoritative RxNorm SCD (312424 = "0.5 ML vitamin K1 2 MG/ML Injection"
+  and 310149 = "erythromycin 0.005 MG/MG Ophthalmic Ointment"). **Both
+  RxCUIs verified 2026-09-11 via NLM RxNav `/REST/rxcui/<cui>.json`
+  (TTY=SCD).** The RxCUIs `977786` and `313418` previously declared in
+  `newborn_screening.yaml` at #1256 / #1262 were fabricated (`{"idGroup":
+  {}}` on RxNav lookup — no such concepts exist in RxNorm) and are
+  replaced with the verified ones here; they were never actually reached
+  by the FHIR emit path (the resolver reads the US drug catalog, not the
+  yaml `rxnorm_code` field), so the correction is emit-invisible.
+  Verified end-to-end at s=351 p=500: US 6 babies × 2 MARs = 12 baby MARs,
+  100 % emit the clean `.text` + RxNorm coding; JP unchanged
+  (`ケイツーシロップ`). **PATCH-scope**: US drug catalog + rxnorm.yaml +
+  newborn yaml (rxnorm_code field only, unused by emit) additions; no
+  CIF schema change; no CIF byte drift; JP unaffected.
+
 ### Added
 
 - **Newborn bilirubin + CCHD SpO2 + US ophthalmic prophylaxis** (#1252 →

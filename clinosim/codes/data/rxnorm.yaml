@@ -335,3 +335,13 @@ codes:
   '2587736':
     en: Sodium Chloride 23.4% Injectable Solution
     ja: 塩化ナトリウム 23.4% 注射液
+  # Newborn birth-admission workup (#1252 / #1264). RXCUIs NLM-verified
+  # 2026-09-11 via /REST/rxcui/<cui>.json (both TTY=SCD). Replaces the
+  # fabricated 977786 / 313418 declared in newborn_screening.yaml at
+  # #1256 / #1262 (never actually reached emit until #1264).
+  '312424':
+    en: 0.5 ML vitamin K1 2 MG/ML Injection
+    ja: ビタミンK1 2 mg/mL 注射液 0.5 mL
+  '310149':
+    en: erythromycin 0.005 MG/MG Ophthalmic Ointment
+    ja: エリスロマイシン 0.005 mg/mg 眼軟膏

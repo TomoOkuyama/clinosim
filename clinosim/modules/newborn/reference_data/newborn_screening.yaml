@@ -68,7 +68,15 @@ ophthalmic_prophylaxis:
     dose: "1 cm ribbon each eye"
     route: "OPH"                # ophthalmic
     within_hours_of_birth: 1
-    rxnorm_code: "313418"       # RxNorm — erythromycin ophthalmic
+    # RxNorm SCD 310149 = "erythromycin 0.005 MG/MG Ophthalmic Ointment"
+    # (= 5 mg/g = 0.5 %). NLM-verified 2026-09-11 via
+    # /REST/rxcui/310149.json (#1264). Replaces the fabricated 313418
+    # declared at #1262 (never resolved through emit prior to #1264;
+    # the FHIR MedicationAdministration builder reads the US drug
+    # catalog directly, not this field, so the bad code was silently
+    # dead — but it's now the authoritative single source of truth
+    # any future emit path can key on).
+    rxnorm_code: "310149"
   jp:                            # not administered in JP standard care
     drug_name: ""
 
@@ -196,5 +204,10 @@ vitamin_k:
     route: "IM"
     schedule_days: [0]
     within_hours_of_birth: 6
-    # RxNorm SCD — phytonadione 1 MG/ML Injectable Solution.
-    rxnorm_code: "977786"
+    # RxNorm SCD 312424 = "0.5 ML vitamin K1 2 MG/ML Injection"
+    # (2 mg/mL × 0.5 mL ampoule = 1 mg total, matching the AAP newborn
+    # IM dose). NLM-verified 2026-09-11 via /REST/rxcui/312424.json
+    # (#1264). Replaces the fabricated 977786 declared at #1256 (never
+    # resolved through emit prior to #1264; see the ophthalmic block
+    # above for the same rationale).
+    rxnorm_code: "312424"
