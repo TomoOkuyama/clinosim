@@ -1,0 +1,48 @@
+# Newborn birth-admission clinical workup schedule (#1252).
+#
+# Locale-specific protocol config for the clinosim.modules.newborn
+# enricher. Every value is a real clinical-guideline parameter — the
+# engine reads from here, never from hardcoded defaults.
+#
+# References
+#   * JP: 日本小児科学会・厚生労働省「新生児医療の水準に関する調査」;
+#     MHLW 新生児医療 資料 (Vitamin K prophylaxis 3-dose oral schedule
+#     since 2011); 予防接種法施行令 (Hep B universal since 2016 — owned
+#     by the immunization module, referenced here only).
+#   * US: AAP Guidelines for Perinatal Care 8th ed. (Vitamin K 1 mg IM
+#     within 6 h of birth; erythromycin ophthalmic prophylaxis at
+#     birth; hearing screen before discharge; CCHD SpO2 screen at
+#     ≥ 24 h; state-varying metabolic panel at day 2-3).
+#
+# Scope of this file
+#   * Vitamin K prophylaxis — implemented.
+#   * Apgar, hearing screen, metabolic screen, bilirubin, CCHD SpO2,
+#     ophthalmic prophylaxis — reserved slots for follow-up PRs.
+
+# Sub-scope PR N2 (this file's first slice): Vitamin K prophylaxis only.
+vitamin_k:
+  jp:
+    # Konakion Syrup (K2, phytomenadione syrup 0.2 %). MHLW 新生児
+    # ビタミン K 欠乏性出血症予防 (2011 改訂) — 3 oral doses at
+    # (birth-day, day 7 before discharge, 1-month checkup). Only the
+    # first two land inside the birth admission (LOS 3-7 d in JP), the
+    # third is a post-discharge outpatient event owned by the
+    # outpatient / calendar layer (out of scope for this PR).
+    drug_name: "ケイツーシロップ (フィトナジオン 2 mg 経口)"
+    dose: "2 mg"
+    route: "PO"
+    schedule_days: [0, 7]   # days after birth; skipped if past discharge
+    within_hours_of_birth: 24   # dose 1 must land inside the first 24 h
+    # YJ code — MEDIS-registered oral vitamin K2 (phytomenadione)
+    # syrup 0.2 %. Not read by the engine at this scope; downstream
+    # FHIR MedicationAdministration.medicationCodeableConcept catalog
+    # will resolve the display via the existing drug_names_ja.yaml.
+    yj_code: "3160009S1024"
+  us:
+    drug_name: "Vitamin K1 (phytonadione) 1 mg IM"
+    dose: "1 mg"
+    route: "IM"
+    schedule_days: [0]
+    within_hours_of_birth: 6
+    # RxNorm SCD — phytonadione 1 MG/ML Injectable Solution.
+    rxnorm_code: "977786"

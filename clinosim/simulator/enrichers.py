@@ -373,6 +373,27 @@ def register_builtin_enrichers() -> None:
         )
     )
 
+    # Newborn birth-admission clinical workup (#1252, always-on Module).
+    # Fires only on records whose ``condition_event.condition_type ==
+    # "newborn_birth"`` (perinatal.py stamp); non-newborn records no-op.
+    # This PR's slice: Vitamin K prophylaxis (JP oral × 2 / US IM × 1).
+    # Order 92 places it between the encounter-level enrichers (device 70
+    # → hai 80 → prophylaxis 75 → antibiotic 85 → imaging 90 → triage 93 →
+    # nursing_assignment 94) and the document enricher (95) so any
+    # downstream narrative that references Vitamin K administration has
+    # the MAR entry in hand.
+    from clinosim.modules.newborn import enrich_newborn
+
+    register_enricher(
+        Enricher(
+            name="newborn",
+            stage=POST_ENCOUNTER,
+            order=92,
+            enabled=lambda c: True,
+            run=enrich_newborn,
+        )
+    )
+
     # Document module (Tier 1 #3 α-min-1, AD-55 always-on Module). Generates
     # ClinicalDocument stubs (Stage 1 template text) + ClinicalImpressionRecord
     # entries for each inpatient encounter. Locale-gated via specs_for_country().
