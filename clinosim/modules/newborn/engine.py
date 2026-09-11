@@ -16,11 +16,13 @@ delivery encounter construction). Any other record is a no-op.
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import yaml
 
 from clinosim.modules._shared import get_attr_or_key as _get
@@ -199,4 +201,60 @@ def build_newborn_shift_vitals(record: Any) -> list[VitalSignRecord]:
             data_source="manual",
         )
         for ts in boundaries
+    ]
+
+
+def build_apgar_scores(record: Any) -> list[dict[str, Any]]:
+    """Apgar score at 1 min + 5 min for a newborn's birth admission (#1252 N4).
+
+    Standard neonatal resuscitation assessment (Virginia Apgar, 1953).
+    Each of five components (color / heart rate / reflex / muscle tone /
+    respiration) scores 0-2; total 0-10.
+
+    Weighted sample from `newborn_screening.yaml::apgar
+    .minute_{1,5}_score_weights` using a fresh sub-seed keyed on the
+    newborn's `patient_id` — RNG-neutral against every other draw.
+
+    Returns a list of `{"minute": 1 | 5, "score": 0..10, "timestamp": datetime}`
+    dicts. The FHIR emit layer walks this and renders LOINC 9271-8
+    (1-min) / 9274-2 (5-min) Observation resources.
+
+    Empty list for non-newborn records (defensive; the enricher gates).
+    """
+    if not is_newborn_birth_record(record):
+        return []
+    encounters = _get(record, "encounters", []) or []
+    if not encounters:
+        return []
+    birth_enc = encounters[0]
+    admit_dt = _get(birth_enc, "admission_datetime", None)
+    if not isinstance(admit_dt, datetime):
+        return []
+    patient = _get(record, "patient", None)
+    pid = str(_get(patient, "patient_id", "") or "") if patient is not None else ""
+    if not pid:
+        return []
+
+    cfg = load_newborn_config().get("apgar") or {}
+    m1_weights = cfg.get("minute_1_score_weights") or {}
+    m5_weights = cfg.get("minute_5_score_weights") or {}
+    if not m1_weights or not m5_weights:
+        return []
+
+    def _sample(weights: dict, salt: str) -> int:
+        # Fresh sub-seed keyed on pid + salt — deterministic + isolated.
+        sub = int(hashlib.sha256(f"newborn-apgar|{pid}|{salt}".encode()).hexdigest(), 16) % (2**32)
+        rng = np.random.default_rng(sub)
+        scores = list(weights.keys())
+        raw = np.array([float(weights[s]) for s in scores], dtype=float)
+        total = float(raw.sum())
+        if total <= 0:
+            return int(scores[0])
+        probs = raw / total
+        idx = int(rng.choice(len(scores), p=probs))
+        return int(scores[idx])
+
+    return [
+        {"minute": 1, "score": _sample(m1_weights, "min1"), "timestamp": admit_dt + timedelta(minutes=1)},
+        {"minute": 5, "score": _sample(m5_weights, "min5"), "timestamp": admit_dt + timedelta(minutes=5)},
     ]
