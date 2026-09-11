@@ -284,6 +284,39 @@ def _sample_newborn_given_name(baby_id: str, sex: str, country: str) -> str:
     return str(picked.get("kanji") or picked.get("name") or "")
 
 
+def _newborn_contact_from_mother(mother: PatientProfile):
+    """Build a newborn `ContactInfo` seeded with the mother as the
+    emergency contact (#1246). Direct telecom for the baby stays empty
+    (a newborn cannot answer a phone); the mother's channels populate
+    `emergency_contact_*` so downstream FHIR emit renders a
+    `Patient.contact[]` entry with `relationship = MTH`.
+    """
+    from clinosim.types.patient import ContactInfo
+
+    m_contact = getattr(mother, "contact", None) or ContactInfo()
+    m_name = getattr(mother, "name", None)
+    if m_name is not None:
+        _display_parts = [str(getattr(m_name, "family_name", "") or "")]
+        _given = str(getattr(m_name, "given_name", "") or "")
+        if _given:
+            _display_parts.append(_given)
+        mother_name_text = " ".join(part for part in _display_parts if part)
+    else:
+        mother_name_text = ""
+    emergency_phone = str(getattr(m_contact, "phone_mobile", "") or "") or str(
+        getattr(m_contact, "phone_home", "") or ""
+    )
+    return ContactInfo(
+        phone_home=str(getattr(m_contact, "phone_home", "") or ""),
+        phone_mobile="",
+        phone_primary=str(getattr(m_contact, "phone_home", "") or ""),
+        email="",
+        emergency_contact_name=mother_name_text,
+        emergency_contact_phone=emergency_phone,
+        emergency_contact_relationship="MTH" if (mother_name_text or emergency_phone) else "",
+    )
+
+
 def _build_newborn_patient(
     mother: PatientProfile,
     delivery_date: date,
@@ -304,7 +337,7 @@ def _build_newborn_patient(
     that predate this signature) the name stays empty, matching the
     pre-#1247 behaviour.
     """
-    from clinosim.types.patient import Address, ContactInfo, PersonName
+    from clinosim.types.patient import Address, PersonName
 
     newborn_id = _newborn_patient_id(mother.patient_id)
     given = ""
@@ -326,7 +359,18 @@ def _build_newborn_patient(
         weight_kg=3.2,
         bmi=12.8,  # neonate BMI is not clinically meaningful but keeps the float non-zero
         address=Address(**{k: v for k, v in vars(mother.address).items()}) if mother.address else Address(),
-        contact=ContactInfo(),
+        # Issue #1246: newborns cannot be contacted directly (no personal
+        # phone / email), so `Patient.telecom` stays empty — but every
+        # real pediatric EHR carries the parent's phone as the emergency
+        # contact so the baby is reachable via the guardian. Inherit the
+        # mother's contact channels:
+        #   * `phone_home` — household landline is shared (baby lives at
+        #     the same address), so the number is copied verbatim.
+        #   * `phone_mobile` / `email` — personal channels, left empty.
+        #   * `emergency_contact_*` — mother's name + preferred phone,
+        #     relationship = "MTH" (the delivery path is mother-only;
+        #     father / other guardian is a follow-up scope).
+        contact=_newborn_contact_from_mother(mother),
         preferred_language=mother.preferred_language,
         # Z38.0 (single liveborn) is universal; add the sampled newborn
         # conditions (jaundice / preterm / RDS gated on preterm / atopic

@@ -358,6 +358,48 @@ def test_newborn_given_name_sampled_past_naming_window() -> None:
     assert given_a == given_b, "given-name sampling must not depend on the caller's rng stream"
 
 
+def test_newborn_contact_inherits_from_mother() -> None:
+    """Issue #1246: a newborn's `ContactInfo` inherits the mother as the
+    emergency contact — direct telecom on the baby stays empty (real
+    newborns cannot be reached directly), the household landline is
+    shared, and `emergency_contact_*` carries the mother's name / phone
+    / relationship = "MTH".
+    """
+    from clinosim.types.patient import ContactInfo, PersonName
+
+    mother = PatientProfile(
+        patient_id="POP-000042",
+        sex="F",
+        age=28,
+        name=PersonName(family_name="山田", given_name="花子"),
+        contact=ContactInfo(
+            phone_home="03-1234-5678",
+            phone_mobile="090-1111-2222",
+            phone_primary="090-1111-2222",
+            email="hanako@example.com",
+        ),
+    )
+    visit_dt = datetime(2026, 6, 1, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=mother,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="JP",
+        hospital_ops={},
+    )
+    baby = records[1].patient
+    # Direct telecom: baby cannot be reached personally.
+    assert baby.contact.phone_mobile == ""
+    assert baby.contact.email == ""
+    # Household landline is shared with the mother.
+    assert baby.contact.phone_home == "03-1234-5678"
+    # Emergency contact = mother.
+    assert baby.contact.emergency_contact_name == "山田 花子"
+    assert baby.contact.emergency_contact_phone == "090-1111-2222"
+    assert baby.contact.emergency_contact_relationship == "MTH"
+
+
 def test_newborn_sex_is_deterministic_per_mother() -> None:
     patient = _make_patient()
     visit_dt = datetime(2024, 7, 15, 10, 0)
