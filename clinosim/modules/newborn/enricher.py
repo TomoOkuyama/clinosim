@@ -21,6 +21,7 @@ from typing import Any
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.newborn.engine import (
+    build_apgar_scores,
     build_newborn_shift_vitals,
     build_vitamin_k_administrations,
     is_newborn_birth_record,
@@ -43,9 +44,20 @@ def enrich_newborn(ctx: Any) -> None:
         try:
             new_mars = build_vitamin_k_administrations(record=record, country=country)
             new_vitals = build_newborn_shift_vitals(record=record)
+            new_apgar = build_apgar_scores(record=record)
         except Exception:  # pragma: no cover — defensive
             logger.exception("newborn enricher failed on record; continuing")
             continue
+        if new_apgar:
+            # Store under `extensions["newborn"]["apgar"]`. The FHIR
+            # emit path (`_bb_newborn_apgar` in the fhir_r4 adapter)
+            # walks this and renders LOINC 9271-8 / 9274-2 Observations.
+            ext = _get(record, "extensions", None)
+            if ext is None:
+                _set(record, "extensions", {"newborn": {"apgar": list(new_apgar)}})
+            else:
+                nb = ext.setdefault("newborn", {})
+                nb["apgar"] = list(new_apgar)
         if new_mars:
             existing_mars = _get(record, "medication_administrations", None)
             if existing_mars is None:

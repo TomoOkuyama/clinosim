@@ -41,6 +41,23 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Newborn Apgar score at 1 min / 5 min** (#1252 → PR, sub-scope N4).
+  `clinosim.modules.newborn.engine.build_apgar_scores` samples from the
+  distribution in `newborn_screening.yaml::apgar.minute_{1,5}_score_weights`
+  (well-newborn cohort per AAP / MHLW 出生調査 — 1-min median 8, 5-min
+  median 9) using a fresh sub-seed keyed on `patient_id`. Stored under
+  `record.extensions["newborn"]["apgar"]`. New FHIR bundle-builder
+  `_bb_newborn_apgar` (in `clinosim/modules/newborn/fhir_emit.py`,
+  registered next to `_bb_anthropometrics`) renders LOINC 9271-8 (1 min)
+  and 9274-2 (5 min) `Observation` resources with UCUM `{score}`
+  valueQuantity and survey category. Verified end-to-end at JP p=500
+  seed 342: every baby emits 2 Apgar Observations, 5-min mean > 1-min
+  mean (matches real cohort transition physiology). **PATCH-scope**:
+  additive; no CIF schema change (uses the pre-existing `extensions`
+  dict); narrative CIF unchanged.
+
+### Added
+
 - **Newborn shift-cadence vital signs** (#1252 → PR, sub-scope N3). The
   observation module's vitals engine is disease-anchored (needs a
   `physiological_states` trajectory to perturb `baseline_vitals`); healthy
