@@ -25,7 +25,7 @@ import yaml
 
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import is_jp
-from clinosim.types.encounter import MedicationAdministration
+from clinosim.types.encounter import MedicationAdministration, VitalSignRecord
 
 _HERE = Path(__file__).resolve().parent
 
@@ -118,3 +118,85 @@ def build_vitamin_k_administrations(
             )
         )
     return out
+
+
+def build_newborn_shift_vitals(record: Any) -> list[VitalSignRecord]:
+    """Shift-cadence vital signs for a newborn's birth admission (#1252 N3).
+
+    The observation module's vitals engine derives per-day vitals from
+    `physiological_states` + `baseline_vitals`. Healthy Z38.0 newborns
+    have no physiology trajectory (nothing to perturb → engine emits
+    nothing), so a real neonatal chart's shift-cadence T / HR / RR /
+    SpO2 series is silently missing. This helper closes the gap.
+
+    Emits one `VitalSignRecord` at admission (t=0) and one at each
+    subsequent shift boundary (`newborn_screening.yaml::shift_vitals
+    .shift_hours`, default night 00:00 / day 08:00 / evening 16:00)
+    across the birth admission LOS. Values are the newborn's own
+    `baseline_vitals` verbatim — deterministic, no RNG. Jitter /
+    physiology-driven perturbation is a follow-up once the neonatal
+    physiology model lands.
+
+    Returns an empty list on non-newborn records (defensive; the
+    enricher already gates).
+    """
+    if not is_newborn_birth_record(record):
+        return []
+    encounters = _get(record, "encounters", []) or []
+    if not encounters:
+        return []
+    birth_enc = encounters[0]
+    admit_dt = _get(birth_enc, "admission_datetime", None)
+    if not isinstance(admit_dt, datetime):
+        return []
+    discharge_dt = _get(birth_enc, "discharge_datetime", None)
+
+    patient = _get(record, "patient", None)
+    if patient is None:
+        return []
+    bv = _get(patient, "baseline_vitals", None)
+    if bv is None:
+        return []
+
+    cfg = load_newborn_config().get("shift_vitals") or {}
+    shift_hours = list(cfg.get("shift_hours") or [0, 8, 16])
+    if not shift_hours:
+        return []
+    shift_hours_sorted = sorted(int(h) for h in shift_hours if 0 <= int(h) <= 23)
+
+    # Enumerate every shift boundary from admission through discharge,
+    # plus the admission timestamp itself (real charts always record a
+    # vital set on arrival, regardless of shift).
+    boundaries: list[datetime] = [admit_dt]
+    day = datetime(admit_dt.year, admit_dt.month, admit_dt.day)
+    end = discharge_dt if isinstance(discharge_dt, datetime) else admit_dt + timedelta(days=1)
+    cursor = day
+    while cursor <= end:
+        for h in shift_hours_sorted:
+            t = cursor.replace(hour=h, minute=0, second=0, microsecond=0)
+            if t <= admit_dt or t > end:
+                continue
+            boundaries.append(t)
+        cursor += timedelta(days=1)
+    boundaries.sort()
+
+    temperature = float(_get(bv, "temperature", 36.7) or 36.7)
+    heart_rate = int(_get(bv, "heart_rate", 130) or 130)
+    systolic_bp = int(_get(bv, "systolic_bp", 68) or 68)
+    diastolic_bp = int(_get(bv, "diastolic_bp", 40) or 40)
+    respiratory_rate = int(_get(bv, "respiratory_rate", 40) or 40)
+    spo2 = float(_get(bv, "spo2", 97) or 97)
+
+    return [
+        VitalSignRecord(
+            timestamp=ts,
+            temperature_celsius=temperature,
+            heart_rate=heart_rate,
+            systolic_bp=systolic_bp,
+            diastolic_bp=diastolic_bp,
+            respiratory_rate=respiratory_rate,
+            spo2=spo2,
+            data_source="manual",
+        )
+        for ts in boundaries
+    ]

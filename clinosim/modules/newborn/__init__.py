@@ -25,6 +25,7 @@ scope). See the #1252 issue comment for the module-boundary rationale.
 """
 
 from clinosim.modules.newborn.engine import (
+    build_newborn_shift_vitals,
     build_vitamin_k_administrations,
     is_newborn_birth_record,
     load_newborn_config,
@@ -32,6 +33,7 @@ from clinosim.modules.newborn.engine import (
 from clinosim.modules.newborn.enricher import enrich_newborn
 
 __all__ = [
+    "build_newborn_shift_vitals",
     "build_vitamin_k_administrations",
     "enrich_newborn",
     "is_newborn_birth_record",
