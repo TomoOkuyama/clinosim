@@ -1648,15 +1648,25 @@ class TemplateNarrativeGenerator:
         # so the LLM doesn't inherit the EN token into its output — same
         # rule as `_build_admission_hp_condition` line ~1393. EN branch
         # keeps the raw token because it is already valid English.
+        # #1266: guard against empty ctx.severity — for records with no
+        # graded severity (e.g. newborn Z38.0 US, 28.5 % of admissions at
+        # s=351 p=10k) the raw f-string interpolated `""` producing the
+        # doubled-space fingerprint "Patient presented with  symptoms."
+        # in the emitted Composition. Both locales use the natural
+        # chief-complaint-less form on empty severity.
+        sev = str(ctx.severity or "").strip()
         if is_ja:
             from clinosim.modules.document.narrative.replacement_strategy import (
                 _localize_severity_ja,
             )
 
-            _sev_disp = _localize_severity_ja(str(ctx.severity or ""))
-            fallback = f"{_sev_disp}の症状で受診。"
+            if sev:
+                _sev_disp = _localize_severity_ja(sev)
+                fallback = f"{_sev_disp}の症状で受診。"
+            else:
+                fallback = "受診となった。"
         else:
-            fallback = f"Patient presented with {ctx.severity} symptoms."
+            fallback = f"Patient presented with {sev} symptoms." if sev else "Patient presented for evaluation."
 
         # ED_NOTE reads from ed_note_template
         if ctx.document_type == DocumentType.ED_NOTE:
@@ -2518,15 +2528,24 @@ class TemplateNarrativeGenerator:
         # no structural changes are needed. Text style harmonization will be
         # deferred to the LLM narrative pass when applicable.
         if not hpi_text:
+            # #1266 empty-severity guard (see `_build_hpi`).
+            sev = str(ctx.severity or "").strip()
             if is_ja:
                 from clinosim.modules.document.narrative.replacement_strategy import (
                     _localize_severity_ja,
                 )
 
-                _sev_disp = _localize_severity_ja(str(ctx.severity or ""))
-                hpi_text = f"{_sev_disp}の症状で受診し入院となった。"
+                if sev:
+                    _sev_disp = _localize_severity_ja(sev)
+                    hpi_text = f"{_sev_disp}の症状で受診し入院となった。"
+                else:
+                    hpi_text = "受診し入院となった。"
             else:
-                hpi_text = f"Patient presented with {ctx.severity} symptoms leading to admission."
+                hpi_text = (
+                    f"Patient presented with {sev} symptoms leading to admission."
+                    if sev
+                    else "Patient presented for evaluation and admission."
+                )
         return hpi_text, facts
 
     # ─────────────────────────────────────────────────────────────────
@@ -2644,15 +2663,20 @@ class TemplateNarrativeGenerator:
         hpi_text, facts = self._build_hpi(ctx)
         is_ja = ctx.target_lang == "ja"
         if not hpi_text:
+            # #1266 empty-severity guard (see `_build_hpi`).
+            sev = str(ctx.severity or "").strip()
             if is_ja:
                 from clinosim.modules.document.narrative.replacement_strategy import (
                     _localize_severity_ja,
                 )
 
-                _sev_disp = _localize_severity_ja(str(ctx.severity or ""))
-                hpi_text = f"{_sev_disp}の症状で受診し入院となった。"
+                if sev:
+                    _sev_disp = _localize_severity_ja(sev)
+                    hpi_text = f"{_sev_disp}の症状で受診し入院となった。"
+                else:
+                    hpi_text = "受診となった。"
             else:
-                hpi_text = f"Patient presented with {ctx.severity} symptoms."
+                hpi_text = f"Patient presented with {sev} symptoms." if sev else "Patient presented for evaluation."
         return hpi_text, facts
 
     # ─────────────────────────────────────────────────────────────────

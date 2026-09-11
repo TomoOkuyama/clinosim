@@ -102,6 +102,25 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   "OPH"}`. **PATCH-scope**: FHIR-emit-only; no CIF change; JP unaffected
   (JP branch is a no-op for ophthalmic prophylaxis).
 
+- **US `admission_hp` HPI doubled-space fingerprint** (#1266 → PR).
+  `_build_hpi` / `_build_present_illness` / `_build_present_illness_ref`
+  emitted `"Patient presented with {ctx.severity} symptoms."` as their
+  no-disease-protocol fallback. For records with no graded severity
+  (newborn Z38.0 US — Z38.0 is not a graded illness) `ctx.severity`
+  was empty, so the raw f-string interpolated `""` and produced the
+  doubled-space fingerprint `"Patient presented with  symptoms."` in
+  every affected Composition's HPI section. Empirical at s=351 p=10k:
+  **256 / 897 US admission_hp (28.5 %)** carried the fingerprint; JP
+  cosmetically weaker (`"の症状で受診。"` leading-の) but not on the
+  double-space class. Fixed with a symmetric empty-severity guard on
+  all three sites: when severity is empty the sentence becomes
+  `"Patient presented for evaluation."` (US) / `"受診となった。"` (JP),
+  and `_build_present_illness` uses the `... for evaluation and
+  admission.` variant. Verified end-to-end at s=351 p=500 US: **0/54
+  admission_hp** now carry the doubled-space pattern; baby samples
+  emit `"Patient presented for evaluation."`. **PATCH-scope**: narrative
+  template-string fallback only; no CIF change; no RNG.
+
 ### Added
 
 - **Newborn bilirubin + CCHD SpO2 + US ophthalmic prophylaxis** (#1252 →
