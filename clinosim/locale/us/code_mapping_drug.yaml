@@ -95,3 +95,13 @@ Osimertinib: "1721560"
 Omeprazole: "7646"
 # Crystalloid intentionally omitted — generic term with no single canonical
 # RxCUI; caller should resolve to NS or Lactated Ringer.
+
+# Newborn birth-admission workup (#1252). Multi-word keys — the FHIR
+# MedicationAdministration/MedicationRequest resolver's longest-prefix
+# match hits these on the CIF drug_name (e.g. `"Vitamin K1 (phytonadione)
+# 1 mg IM"` matches the 3-token prefix `"Vitamin K1 (phytonadione)"`),
+# so `.text` carries a clean drug identifier and `.coding` gets the
+# authoritative RxNorm SCD. Both RxCUIs verified 2026-09-11 via NLM
+# RxNav `/REST/rxcui/<cui>.json` (TTY=SCD; #1264).
+Vitamin K1 (phytonadione): "312424"                       # 0.5 ML vitamin K1 2 MG/ML Injection (RxNorm SCD)
+Erythromycin 0.5% ophthalmic ointment: "310149"           # erythromycin 0.005 MG/MG Ophthalmic Ointment (RxNorm SCD)
