@@ -293,6 +293,71 @@ def test_delivery_encounter_shape_us() -> None:
     assert newborn_rec.clinical_diagnosis.discharge_diagnosis_code == "Z38.0"
 
 
+def test_newborn_given_name_empty_within_naming_window() -> None:
+    """Issue #1247: a newborn less than 14 days old at snapshot has no
+    registered given name yet (JP 戸籍法 §49). Family name is inherited
+    from the mother (unchanged behaviour).
+    """
+
+    class _Cfg:
+        def __init__(self, snap: date) -> None:
+            self.snapshot_date = snap
+
+    patient = _make_patient()
+    visit_dt = datetime(2026, 8, 30, 10, 0)  # 11 days before snapshot 2026-09-10
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="JP",
+        config=_Cfg(date(2026, 9, 10)),
+        hospital_ops={},
+    )
+    _, newborn = records
+    assert newborn.patient.name.family_name == patient.name.family_name
+    assert newborn.patient.name.given_name == "", (
+        "given name must remain empty within the 14-day birth-registration window"
+    )
+
+
+def test_newborn_given_name_sampled_past_naming_window() -> None:
+    """Issue #1247: past the 14-day birth-registration window, the given
+    name is sampled deterministically from the locale name pool. The
+    same (baby_id, country, sex) yields the same given name across
+    reruns (fresh sub-seed keyed on baby_id — no coupling to caller RNG).
+    """
+
+    class _Cfg:
+        def __init__(self, snap: date) -> None:
+            self.snapshot_date = snap
+
+    patient = _make_patient()
+    visit_dt = datetime(2026, 6, 1, 10, 0)  # 101 days before snapshot 2026-09-10
+    records_a = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="JP",
+        config=_Cfg(date(2026, 9, 10)),
+        hospital_ops={},
+    )
+    records_b = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(9999),  # different rng — output must not depend on it
+        country="JP",
+        config=_Cfg(date(2026, 9, 10)),
+        hospital_ops={},
+    )
+    given_a = records_a[1].patient.name.given_name
+    given_b = records_b[1].patient.name.given_name
+    assert given_a, "given name must be sampled past the naming window"
+    assert given_a == given_b, "given-name sampling must not depend on the caller's rng stream"
+
+
 def test_newborn_sex_is_deterministic_per_mother() -> None:
     patient = _make_patient()
     visit_dt = datetime(2024, 7, 15, 10, 0)
