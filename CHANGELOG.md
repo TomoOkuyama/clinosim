@@ -39,6 +39,50 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Added
+
+- **Newborn metabolic screen full FHIR shape** (#1252 sub-scope N6b →
+  PR). The N6 slice emitted only a `Procedure` for the heel-stick event;
+  downstream consumers querying `ServiceRequest.ndjson`,
+  `Specimen.ndjson`, or `DiagnosticReport.ndjson` for a newborn screening
+  panel saw nothing. N6b adds the three sibling resources so the
+  diagnostic-workflow evidence a real EHR produces (order → specimen →
+  aggregate report) is emitted alongside the physical-event Procedure:
+    - `ServiceRequest` — LOINC 54089-8 "Newborn screening panel", SNOMED
+      108252007 laboratory-procedure category, `status=completed /
+      intent=order`, `authoredOn=admission` + `occurrenceDateTime=heel-
+      stick`. `subject` + `encounter` refs to the newborn's Patient +
+      birth admission.
+    - `Specimen` — SNOMED 122554006 "Capillary blood specimen"
+      (tx.fhir.org $lookup-verified 2026-09-11), `status=available`,
+      `collection.collectedDateTime=heel-stick timestamp`, body-site +
+      collection-method emitted as text only (no SNOMED coding — the
+      repo's verified-code rule forbids fabricating unverified
+      terminology bindings; verified heel / heel-stick codes are not on
+      the tx-server used elsewhere in this codebase).
+    - `DiagnosticReport` — LOINC 54089-8, HL7 v2-0074 "LAB" category,
+      `status=final`, `basedOn → SR`, `specimen → Specimen`,
+      `conclusionCode` carries the SNOMED pass / refer outcome from the
+      shared sub-seed. The per-analyte `.result[]` is a follow-up scope
+      (N6c); this MVP slice ships the overall verdict + workflow shape.
+  All four resources (SR + Specimen + DR + Procedure) share the same
+  sub-seed keyed on `patient_id`, so `DR.conclusionCode` and
+  `Procedure.outcome.coding` are guaranteed byte-identical. Cross-ref IDs
+  (`DR.basedOn → SR.id`, `DR.specimen → Specimen.id`) derived
+  deterministically from `patient_id`. New per-locale yaml block under
+  `newborn_screening.yaml::metabolic_screen.{service_request, specimen,
+  diagnostic_report}` (all shared across JP / US; text-only body-site +
+  method are locale-branched EN / JA). Verified end-to-end at s=351
+  p=500: US 6/6 babies (6 SR + 6 Specimen + 6 DR + 6 Procedure), JP 3/3
+  (3 SR + 3 Specimen + 3 DR + 3 Procedure); all cross-refs and verdict
+  invariants held 100 %. **PATCH-scope**: additive FHIR emit + new
+  `extensions["newborn"]["metabolic_screen"]` slot (parallel to the
+  existing bilirubin / cchd_pulse_ox slots which shipped as PATCH);
+  narrative CIF does not reference these resources; RNG unchanged (the
+  sub-seed was already sampled by `build_metabolic_screen_procedure` in
+  N6, and the new helper recomputes from the identical seed key
+  deterministically).
+
 ### Fixed
 
 - **Newborn metabolic screen: US schedule_day mismatch** (#1263 → PR).

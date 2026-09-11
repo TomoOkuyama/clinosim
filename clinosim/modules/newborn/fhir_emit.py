@@ -46,6 +46,21 @@ def _cchd_observation_id(patient_id: str, site: str) -> str:
     return f"obs-{hashlib.sha256(key).hexdigest()[:12]}"
 
 
+def _metabolic_screen_sr_id(patient_id: str) -> str:
+    key = f"nmscr-sr|{patient_id}".encode()
+    return f"sr-{hashlib.sha256(key).hexdigest()[:12]}"
+
+
+def _metabolic_screen_specimen_id(patient_id: str) -> str:
+    key = f"nmscr-spec|{patient_id}".encode()
+    return f"spec-{hashlib.sha256(key).hexdigest()[:12]}"
+
+
+def _metabolic_screen_dr_id(patient_id: str) -> str:
+    key = f"nmscr-dr|{patient_id}".encode()
+    return f"dr-{hashlib.sha256(key).hexdigest()[:12]}"
+
+
 def _bb_newborn_apgar(ctx: Any) -> list[dict]:
     """Emit Apgar score `Observation` resources for newborns.
 
@@ -316,3 +331,294 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
             obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
         out.append(obs)
     return out
+
+
+# ═════════════════════════════════════════════════════════════════════
+# #1252 N6b: metabolic-screen full FHIR shape (ServiceRequest +
+# Specimen + DiagnosticReport). The Procedure resource emitted for the
+# physical heel-stick event stays on `record.procedures` and flows
+# through the shared `_bb_procedures` builder; these three sibling
+# resources add the diagnostic-workflow evidence a downstream consumer
+# expects when querying ServiceRequest.ndjson / Specimen.ndjson /
+# DiagnosticReport.ndjson for a newborn screening panel.
+# Per-analyte Observations are deferred to a follow-up sub-scope.
+# ═════════════════════════════════════════════════════════════════════
+
+
+def _read_metabolic_screen_ext(ctx: Any) -> tuple[dict[str, Any], str, str, bool] | None:
+    """Shared preamble for the three N6b bundle-builders. Returns
+    ``(ext_dict, patient_id, encounter_id, is_ja)`` or None on no-op.
+    """
+    from clinosim.modules._shared import is_jp
+
+    record = getattr(ctx, "record", None) or {}
+    if isinstance(record, dict):
+        extensions = record.get("extensions", {}) or {}
+    else:
+        extensions = getattr(record, "extensions", {}) or {}
+    ext = ((extensions.get("newborn") or {}).get("metabolic_screen")) or {}
+    if not ext:
+        return None
+    patient_id = str(getattr(ctx, "patient_id", "") or "") or str(ext.get("patient_id", "") or "")
+    if not patient_id:
+        return None
+    country = str(getattr(ctx, "country", "us") or "us")
+    encounter_id = str(getattr(ctx, "primary_enc_id", "") or "") or str(ext.get("encounter_id", "") or "")
+    return ext, patient_id, encounter_id, is_jp(country)
+
+
+def _iso(dt: Any) -> str:
+    if dt is None:
+        return ""
+    return dt.isoformat() if hasattr(dt, "isoformat") else str(dt)
+
+
+def _bb_newborn_metabolic_screen_service_request(ctx: Any) -> list[dict]:
+    """Emit the newborn tandem-MS screen `ServiceRequest` (#1252 N6b).
+
+    LOINC 54089-8 "Newborn screening panel American Health Information
+    Community (AHIC)" as both category-coded (SNOMED 108252007
+    "Laboratory procedure") and per-order code. status=completed,
+    intent=order — this is a retrospective evidence emit for a screen
+    that already happened during the birth admission.
+    """
+    from clinosim.codes import get_system_uri
+    from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
+
+    parsed = _read_metabolic_screen_ext(ctx)
+    if parsed is None:
+        return []
+    ext, patient_id, encounter_id, is_ja = parsed
+
+    sr_id = _metabolic_screen_sr_id(patient_id)
+    order_loinc = str(ext.get("order_loinc") or "54089-8")
+    order_display = str(ext.get("order_display") or "Newborn screening panel")
+    order_display_ja = str(ext.get("order_display_ja") or order_display)
+    cat_code = str(ext.get("order_category_code") or "108252007")
+    cat_display = str(ext.get("order_category_display") or "Laboratory procedure")
+
+    resource: dict[str, Any] = {
+        "resourceType": "ServiceRequest",
+        "id": sr_id,
+        "identifier": [
+            {
+                "system": "urn:clinosim:identifier:newborn-metabolic-screen-sr-key",
+                "value": f"{patient_id}-nmscr-sr",
+            }
+        ],
+        "status": "completed",
+        "intent": "order",
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": cat_code,
+                        "display": cat_display,
+                    }
+                ],
+                "text": cat_display,
+            }
+        ],
+        "code": {
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": order_loinc,
+                    "display": order_display,
+                }
+            ],
+            "text": order_display_ja if is_ja else order_display,
+        },
+        "subject": patient_ref(patient_id),
+    }
+    ordered = ext.get("ordered_datetime")
+    if ordered is not None:
+        resource["authoredOn"] = _iso(ordered)
+    collected = ext.get("collected_datetime")
+    if collected is not None:
+        resource["occurrenceDateTime"] = _iso(collected)
+    if encounter_id:
+        resource["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+    return [resource]
+
+
+def _bb_newborn_metabolic_screen_specimen(ctx: Any) -> list[dict]:
+    """Emit the heel-stick capillary-blood `Specimen` for the metabolic
+    screen (#1252 N6b). SNOMED 122554006 "Capillary blood specimen".
+    Body site + collection method emit as text only (no SNOMED coding)
+    — the repo's `feedback_verify_fhir_profile_uri_from_spec` rule
+    forbids fabricating codes, and verified codes for "heel structure"
+    / "heel-stick collection method" are not available on the tx
+    servers used elsewhere in this codebase. Text-only is honest and
+    FHIR-spec-conformant.
+    """
+    from clinosim.codes import get_system_uri
+    from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
+
+    parsed = _read_metabolic_screen_ext(ctx)
+    if parsed is None:
+        return []
+    ext, patient_id, _encounter_id, is_ja = parsed
+
+    spec_id = _metabolic_screen_specimen_id(patient_id)
+    type_code = str(ext.get("specimen_type_code") or "122554006")
+    type_display = str(ext.get("specimen_type_display") or "Capillary blood specimen")
+    type_display_ja = str(ext.get("specimen_type_display_ja") or type_display)
+
+    body_site_text = str(
+        ext.get("specimen_body_site_ja" if is_ja else "specimen_body_site_en") or ("踵" if is_ja else "Heel")
+    )
+    method_text = str(
+        ext.get("specimen_method_ja" if is_ja else "specimen_method_en")
+        or ("踵採血 (毛細血管採血)" if is_ja else "Heel-stick capillary blood collection")
+    )
+    collected = ext.get("collected_datetime")
+
+    resource: dict[str, Any] = {
+        "resourceType": "Specimen",
+        "id": spec_id,
+        "identifier": [
+            {
+                "system": "urn:clinosim:identifier:newborn-metabolic-screen-specimen-key",
+                "value": f"{patient_id}-nmscr-spec",
+            }
+        ],
+        "status": "available",
+        "type": {
+            "coding": [
+                {
+                    "system": get_system_uri("snomed-ct"),
+                    "code": type_code,
+                    "display": type_display,
+                }
+            ],
+            "text": type_display_ja if is_ja else type_display,
+        },
+        "subject": patient_ref(patient_id),
+        "collection": {
+            "bodySite": {"text": body_site_text},
+            "method": {"text": method_text},
+        },
+    }
+    if collected is not None:
+        resource["collection"]["collectedDateTime"] = _iso(collected)
+    return [resource]
+
+
+def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
+    """Emit the aggregate `DiagnosticReport` for the newborn tandem-MS
+    metabolic screen (#1252 N6b). LOINC 54089-8, category laboratory
+    (hl7 v2-0074 "LAB"), `conclusionCode` carrying the SNOMED
+    pass / refer outcome from the shared sub-seed
+    (`build_metabolic_screen_workflow_data`). Per-analyte results
+    (`.result[]`) are a follow-up sub-scope; this report ships the
+    overall verdict.
+    """
+    from clinosim.codes import get_system_uri
+    from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
+
+    parsed = _read_metabolic_screen_ext(ctx)
+    if parsed is None:
+        return []
+    ext, patient_id, encounter_id, is_ja = parsed
+
+    dr_id = _metabolic_screen_dr_id(patient_id)
+    sr_id = _metabolic_screen_sr_id(patient_id)
+    spec_id = _metabolic_screen_specimen_id(patient_id)
+
+    dr_loinc = str(ext.get("dr_code_loinc") or "54089-8")
+    dr_display = str(ext.get("dr_code_display") or "Newborn screening panel")
+    dr_display_ja = str(ext.get("dr_code_display_ja") or dr_display)
+    dr_cat_code = str(ext.get("dr_category_code") or "LAB")
+    dr_cat_display = str(ext.get("dr_category_display") or "Laboratory")
+
+    outcome_code = str(ext.get("outcome_code") or "")
+    outcome_key = str(ext.get("outcome_key") or "")
+    if outcome_key == "pass":
+        conclusion_en = "Pass — no significant abnormalities detected across the screening panel."
+        conclusion_ja = "陰性 (パス) — スクリーニングパネル全項目で異常所見なし。"
+    else:
+        conclusion_en = (
+            "Refer — one or more screening panel results were flagged; follow-up confirmatory testing indicated."
+        )
+        conclusion_ja = "陽性 (要精査) — スクリーニングパネルの一部で異常所見あり、確認検査を推奨。"
+
+    resource: dict[str, Any] = {
+        "resourceType": "DiagnosticReport",
+        "id": dr_id,
+        "identifier": [
+            {
+                "system": "urn:clinosim:identifier:newborn-metabolic-screen-dr-key",
+                "value": f"{patient_id}-nmscr-dr",
+            }
+        ],
+        "status": "final",
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-diagnostic-service-section"),
+                        "code": dr_cat_code,
+                        "display": dr_cat_display,
+                    }
+                ],
+                "text": dr_cat_display,
+            }
+        ],
+        "code": {
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": dr_loinc,
+                    "display": dr_display,
+                }
+            ],
+            "text": dr_display_ja if is_ja else dr_display,
+        },
+        "subject": patient_ref(patient_id),
+        "basedOn": [{"reference": f"ServiceRequest/{sr_id}"}],
+        "specimen": [{"reference": f"Specimen/{spec_id}"}],
+        "conclusion": conclusion_ja if is_ja else conclusion_en,
+    }
+    if outcome_code:
+        resource["conclusionCode"] = [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": outcome_code,
+                        # SNOMED outcome displays match the hearing-screen
+                        # and Procedure.outcome slots emitted elsewhere
+                        # for the same codes (385669000 / 385671000).
+                        "display": ("Successful" if outcome_key == "pass" else "Unsuccessful"),
+                    }
+                ],
+                "text": ("陰性 (パス)" if is_ja else "Pass")
+                if outcome_key == "pass"
+                else ("要精査" if is_ja else "Refer"),
+            }
+        ]
+    collected = ext.get("collected_datetime")
+    if collected is not None:
+        resource["effectiveDateTime"] = _iso(collected)
+        # Report issued 1 h after collection (nominal tandem-MS turnaround
+        # is 24-72 h; this MVP slice uses 1 h so the timestamps stay
+        # inside the birth-admission window regardless of LOS). Handle
+        # both datetime (in-memory enricher path) and str (post-CIF-JSON
+        # round-trip path) inputs — CIFReader deserializes datetimes as
+        # naive ISO strings, so we parse before adding.
+        from datetime import datetime as _dt
+        from datetime import timedelta as _td
+
+        if isinstance(collected, _dt):
+            issued_dt = collected + _td(hours=1)
+        else:
+            try:
+                issued_dt = _dt.fromisoformat(str(collected)) + _td(hours=1)
+            except ValueError:
+                issued_dt = None
+        resource["issued"] = _iso(issued_dt) if issued_dt is not None else _iso(collected)
+    if encounter_id:
+        resource["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+    return [resource]
