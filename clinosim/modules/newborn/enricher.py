@@ -23,6 +23,7 @@ from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.newborn.engine import (
     build_apgar_scores,
     build_hearing_screen_procedure,
+    build_metabolic_screen_procedure,
     build_newborn_shift_vitals,
     build_vitamin_k_administrations,
     is_newborn_birth_record,
@@ -47,15 +48,17 @@ def enrich_newborn(ctx: Any) -> None:
             new_vitals = build_newborn_shift_vitals(record=record)
             new_apgar = build_apgar_scores(record=record)
             new_hearing = build_hearing_screen_procedure(record=record)
+            new_metabolic = build_metabolic_screen_procedure(record=record)
         except Exception:  # pragma: no cover — defensive
             logger.exception("newborn enricher failed on record; continuing")
             continue
-        if new_hearing is not None:
+        new_procs = [p for p in (new_hearing, new_metabolic) if p is not None]
+        if new_procs:
             existing_procs = _get(record, "procedures", None)
             if existing_procs is None:
-                _set(record, "procedures", [new_hearing])
+                _set(record, "procedures", list(new_procs))
             else:
-                existing_procs.append(new_hearing)
+                existing_procs.extend(new_procs)
         if new_apgar:
             # Store under `extensions["newborn"]["apgar"]`. The FHIR
             # emit path (`_bb_newborn_apgar` in the fhir_r4 adapter)

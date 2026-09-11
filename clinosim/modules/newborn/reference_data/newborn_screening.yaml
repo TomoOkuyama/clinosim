@@ -19,6 +19,33 @@
 #   * Apgar, hearing screen, metabolic screen, bilirubin, CCHD SpO2,
 #     ophthalmic prophylaxis — reserved slots for follow-up PRs.
 
+# Tandem-mass-spectrometry newborn metabolic screening (新生児マス・
+# スクリーニング) — heel-stick capillary blood sample drawn day 4-6
+# of birth admission, tested for a panel of 20+ inborn errors of
+# metabolism (PKU, homocystinuria, MSUD, galactosemia, CAH,
+# congenital hypothyroidism, MCAD, etc.). Universal in JP since 2014
+# (厚生労働省 タンデムマス・スクリーニング事業) and US state-level
+# since 2005 (Wilson & Junger criteria expansion). Detection rate
+# ~0.1-0.3 % of newborns; 99 %+ pass. This PR (N6) emits only the
+# Procedure event for the collection; ServiceRequest + Specimen +
+# DiagnosticReport for the full workflow is a follow-up scope.
+metabolic_screen:
+  # Days after birth admission start for the heel-stick collection.
+  # JP standard is day 4-6 (before typical 5-day discharge); the
+  # median lands at day 4. Skipped if the target day falls past
+  # discharge (LOS < schedule_day).
+  schedule_day: 4
+  # Result distribution — weighted sample keyed on baby_id (fresh
+  # sub-seed). ~99.7 % pass in real cohorts.
+  result_weights: {pass: 0.997, refer: 0.003}
+  # SNOMED procedure code for neonatal metabolic screening (405058008
+  # = "Neonatal screening test"). Category 103693007 (diagnostic).
+  procedure_code: "405058008"
+  category_code: "103693007"
+  # Outcome codes (same SNOMED slots as hearing screen).
+  outcome_pass: "385669000"
+  outcome_refer: "385671000"
+
 # Automated Auditory Brainstem Response (AABR) hearing screen
 # (#1252 N5). Universal newborn hearing screening — JP has ~95 %
 # coverage since 2000 (厚生労働省 新生児聴覚検査事業), US ~98 %
