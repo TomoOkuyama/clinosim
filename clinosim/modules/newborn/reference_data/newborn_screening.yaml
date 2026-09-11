@@ -19,6 +19,24 @@
 #   * Apgar, hearing screen, metabolic screen, bilirubin, CCHD SpO2,
 #     ophthalmic prophylaxis — reserved slots for follow-up PRs.
 
+# Apgar score at 1 min + 5 min (#1252 N4). Standard neonatal
+# resuscitation assessment (Virginia Apgar, 1953). Each of the five
+# components (color / heart rate / reflex / muscle tone / respiration)
+# scores 0-2 → total 0-10. Real Z38.0 well-newborn population
+# distribution — 1-min median 8, 5-min median 9.
+#
+# LOINC 9271-8 (1 min) / 9274-2 (5 min) are the FHIR-standard codes
+# consumers key on; the FHIR emit layer resolves those from
+# `minute` at build time.
+apgar:
+  # Score distribution per minute. Values are (score, weight) pairs
+  # — deterministic weighted sample keyed on the newborn's patient id
+  # (fresh sub-seed; no coupling to caller RNG). Distribution matches
+  # real-world well-newborn cohort: ~85 % score ≥ 8 at 1 min,
+  # ~97 % score ≥ 8 at 5 min (AAP / MHLW 出生調査).
+  minute_1_score_weights: {8: 0.55, 9: 0.25, 7: 0.10, 6: 0.05, 10: 0.03, 5: 0.02}
+  minute_5_score_weights: {9: 0.55, 10: 0.30, 8: 0.12, 7: 0.02, 6: 0.01}
+
 # Shift-cadence vital signs (#1252 N3). Newborn birth admissions are
 # not driven by the disease-anchored physiology engine (a healthy
 # Z38.0 birth has no pathology to perturb), so `observation` module's
