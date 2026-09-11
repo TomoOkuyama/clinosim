@@ -41,18 +41,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
-- **Immunization enricher: VAX companion encounter cross-record duplication**
-  (#1245 → PR). A patient with N record files (one per primary encounter,
-  per-encounter CIF sharding) previously received N copies of every
-  synthesized `ENC-VAX-*` companion encounter — `generate_immunizations` is
-  deterministic per patient (same imm list on every call across records), so
-  each record's iteration synthesized and appended the identical companion
-  encounter. At p=10k seed 342 this hit 23 % of VAX encounters (one appearing
-  in 9 record files). Now tracks hosted VAX encounter_ids per patient; the
-  first record to encounter an orphan imm hosts the synth encounter, later
-  records only link the imm via its `encounter_id` field. CIF layer bug;
-  affects downstream narrative and Composition duplicate emission.
-  **PATCH-scope** (bug fix, CIF layer dedup but no field schema change).
+- **Pediatric immunization series: dose-gap silent-fabrication** (#1248 → PR).
+  `generate_immunizations` drew each dose in a `pediatric_series` schedule
+  entry with an independent coverage roll, so a missed dose 1 (coverage
+  fail or "declined" record) did not gate the subsequent doses.
+  Downstream: newborn Immunization records with `doseNumber = 2` (or 3)
+  present without any `doseNumber = 1` in the record — implying an
+  impossible "past vaccination" for a patient born inside the sim window.
+  At v0.6.1 JP p=10k this affected 21 % of babies (21 of 99). Now the
+  series discontinues on the first missed dose: dose N cannot be
+  administered without dose N-1, matching real clinical practice. RNG
+  cascade: the new `series_discontinued` gate is checked *before* any
+  rng draw, so cross-series RNG for patients whose earlier doses fell
+  outside the sim window (the pre-fix skip path) is unchanged — the shift
+  is scoped to pediatric-series cohorts. **MINOR-scope** (CIF layer:
+  immunization records removed; narrative CIF referencing those records
+  needs a re-narrate).
 
 ## [0.6.1] - 2026-09-10
 

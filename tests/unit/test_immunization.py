@@ -1,6 +1,6 @@
 """Unit tests for immunization generation."""
 
-from datetime import date
+from datetime import date, timedelta
 
 import numpy as np
 import pytest
@@ -98,6 +98,53 @@ def test_covid_never_before_availability(patient_factory):
         found += len(covid)
         assert all(r.occurrence_date >= date(2020, 12, 14) for r in covid)
     assert found > 0, "expected at least one COVID record across seeds (high elderly coverage)"
+
+
+def test_issue_1248_pediatric_series_no_dose_gaps():
+    """Regression for #1248.
+
+    In a ``pediatric_series`` vaccine schedule, dose N must never be
+    emitted without doses 1..N-1 also present. A missed dose 1 (coverage
+    failure or declined) discontinues the series — dose 2/3 cannot then
+    be administered. Pre-fix behaviour drew each dose's coverage
+    independently, producing dose-2-without-dose-1 records at ~21 % of
+    Japanese babies at p=10k seed 342.
+    """
+    from clinosim.modules.immunization.engine import generate_immunizations
+    from clinosim.types.patient import PatientProfile
+
+    # 40 babies of various dob within a sim-year window; verify each
+    # (baby, cvx) group's dose set is 1..max(dose) contiguous.
+    schedule = {
+        "pediatric_series_test": {
+            "cvx": "119",  # Rotarix in the JP catalog
+            "min_age": 0,
+            "frequency": "pediatric_series",
+            "available_from": "2020-01-01",
+            "doses": [
+                {"dose_number": 1, "age_days_min": 60, "age_days_max": 90, "coverage_by_sex": {"M": 0.85, "F": 0.85}},
+                {"dose_number": 2, "age_days_min": 91, "age_days_max": 150, "coverage_by_sex": {"M": 0.85, "F": 0.85}},
+            ],
+        },
+    }
+    as_of = date(2026, 9, 10)
+
+    gap_babies = 0
+    for i in range(40):
+        # dob spread from 2025-11-01 to 2026-07-01 so both doses fall inside sim window.
+        dob = date(2025, 11, 1) + timedelta(days=i * 6)
+        baby = PatientProfile(patient_id=f"POP-{i:03d}-BABY", age=0, sex="M" if i % 2 == 0 else "F", date_of_birth=dob)
+        recs = generate_immunizations(baby, schedule, as_of, np.random.default_rng(seed=1000 + i))
+        # Doses actually emitted (completed status only — a "not-done" record
+        # documents a decline, which by design discontinues the series).
+        doses = sorted({r.dose_number for r in recs if r.status == "completed" and r.dose_number is not None})
+        if not doses:
+            continue
+        expected = list(range(1, max(doses) + 1))
+        if doses != expected:
+            gap_babies += 1
+
+    assert gap_babies == 0, f"{gap_babies}/40 babies have dose gaps (dose N present but dose N-1 absent) — #1248"
 
 
 def test_feb29_dob_does_not_crash():

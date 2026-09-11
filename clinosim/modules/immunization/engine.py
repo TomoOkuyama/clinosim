@@ -380,8 +380,19 @@ def generate_immunizations(
             # cascade. This preserves adult vaccine sampling identity when
             # the pediatric block is appended after adult vaccines in the
             # yaml (dict iteration is insertion-ordered).
+            #
+            # Issue #1248: dose N in a series can only be administered if
+            # dose N-1 was administered. A missed dose 1 (coverage failure
+            # or declined) discontinues the series — pre-fix per-dose
+            # independent draws produced dose-2-without-dose-1 records for
+            # ~21 % of Japanese babies (v0.6.1 p=10k). Track series
+            # discontinuation and skip subsequent draws when it fires; the
+            # gate is checked BEFORE the rng draw so it does not shift
+            # cross-series RNG cascade for any patient whose earlier
+            # doses all fell outside the sim window (unchanged skip path).
             if dob is None:
                 continue
+            series_discontinued = False
             for dose in v.get("doses") or []:
                 d_min = int(dose["age_days_min"])
                 d_max = int(dose["age_days_max"])
@@ -394,6 +405,12 @@ def generate_immunizations(
                     # emission range for this patient (already past it at
                     # sim start, or not yet reached at as_of). Skip WITHOUT
                     # drawing rng to preserve adult vaccine RNG cascade.
+                    continue
+                if series_discontinued:
+                    # A prior dose in this series was missed / declined.
+                    # Skip WITHOUT drawing rng — the real-world sequel is
+                    # simply no visit; no chart entry (a per-dose "not-done"
+                    # would fabricate a documented refusal event).
                     continue
                 span = (eff_end - eff_start).days
                 offset = int(rng.integers(0, span + 1)) if span > 0 else 0
@@ -421,6 +438,12 @@ def generate_immunizations(
                             dose_number=dose_num,
                         )
                     )
+                    series_discontinued = True
+                else:
+                    # Coverage failed AND no "not-done" record emitted —
+                    # silent skip. Still discontinues the series (dose N
+                    # requires dose N-1).
+                    series_discontinued = True
                 # age_at referenced for stability with adult branches; no-op here
                 _ = age_at
         else:  # once
