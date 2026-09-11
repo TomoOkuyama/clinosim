@@ -41,6 +41,24 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Newborn tandem-MS metabolic screening** (#1252 → PR, sub-scope N6,
+  minimum-viable slice). `clinosim.modules.newborn.engine
+  .build_metabolic_screen_procedure` emits a `ProcedureRecord` for the
+  heel-stick capillary blood collection event of the neonatal
+  metabolic mass-screening (新生児マス・スクリーニング) — day 4 of
+  birth admission by default (per `newborn_screening.yaml
+  ::metabolic_screen.schedule_day`), SNOMED procedure code 405058008
+  (Neonatal screening test), category 103693007 (diagnostic).
+  Result outcome sampled from yaml (fresh sub-seed keyed on
+  `patient_id`): ~99.7 % pass (SNOMED 385669000) / ~0.3 % refer
+  (385671000), matching real cohort detection rates. Skipped when LOS
+  is shorter than schedule_day (defensive). Full `ServiceRequest` +
+  `Specimen` + `DiagnosticReport` per-analyte results are deferred to
+  a follow-up scope — this PR emits the Procedure alone so consumers
+  see evidence "screening happened with outcome X". Appended to
+  `record.procedures` — flows through the existing `_bb_procedures`
+  bundle-builder. **PATCH-scope**: additive; no schema change.
+
 - **Newborn AABR hearing screen** (#1252 → PR, sub-scope N5).
   `clinosim.modules.newborn.engine.build_hearing_screen_procedure` emits
   a `ProcedureRecord` for the automated auditory brainstem response

@@ -326,3 +326,78 @@ def build_hearing_screen_procedure(record: Any) -> ProcedureRecord | None:
         category_code=category_code,
         outcome_code=outcome_code,
     )
+
+
+def build_metabolic_screen_procedure(record: Any) -> ProcedureRecord | None:
+    """Tandem-MS newborn metabolic screening `ProcedureRecord` (#1252 N6).
+
+    Universal newborn metabolic mass-screening (新生児マス・スクリーニング)
+    — heel-stick capillary blood collected day 4-6 of the birth
+    admission, tested for a panel of 20+ inborn errors of metabolism.
+    Detection rate ~0.1-0.3 %; ~99.7 % pass in real well-newborn cohorts.
+
+    This PR (N6) emits only the `Procedure` event for the collection.
+    `ServiceRequest` (screening order) + `Specimen` (heel-stick blood)
+    + `DiagnosticReport` (per-analyte results) are deliberately deferred
+    to a follow-up — the Procedure alone gives evidence "the screening
+    was performed with outcome X".
+
+    Sampled via a fresh sub-seed keyed on `patient_id`. Skipped when
+    the target day falls past discharge (defensive; applies to LOS <
+    schedule_day edge cases).
+    """
+    if not is_newborn_birth_record(record):
+        return None
+    encounters = _get(record, "encounters", []) or []
+    if not encounters:
+        return None
+    birth_enc = encounters[0]
+    admit_dt = _get(birth_enc, "admission_datetime", None)
+    if not isinstance(admit_dt, datetime):
+        return None
+    discharge_dt = _get(birth_enc, "discharge_datetime", None)
+    patient = _get(record, "patient", None)
+    pid = str(_get(patient, "patient_id", "") or "") if patient is not None else ""
+    if not pid:
+        return None
+
+    cfg = load_newborn_config().get("metabolic_screen") or {}
+    if not cfg:
+        return None
+    schedule_day = int(cfg.get("schedule_day", 4) or 4)
+    # Collection at 10:00 on day N (mimicking morning-round cadence).
+    day_dt = datetime(admit_dt.year, admit_dt.month, admit_dt.day, 10, 0)
+    sched = day_dt + timedelta(days=schedule_day)
+    if sched <= admit_dt:
+        # Same-day birth: shift into afternoon so it does not tie the admit ts.
+        sched = admit_dt + timedelta(hours=4)
+    if isinstance(discharge_dt, datetime) and sched > discharge_dt:
+        return None
+    result_weights = cfg.get("result_weights") or {"pass": 0.997, "refer": 0.003}
+
+    sub = int(hashlib.sha256(f"newborn-metabolic-screen|{pid}".encode()).hexdigest(), 16) % (2**32)
+    rng = np.random.default_rng(sub)
+    outcomes = list(result_weights.keys())
+    raw = np.array([float(result_weights[k]) for k in outcomes], dtype=float)
+    probs = raw / raw.sum()
+    outcome_key = str(outcomes[int(rng.choice(len(outcomes), p=probs))])
+
+    outcome_code = str(cfg.get("outcome_pass" if outcome_key == "pass" else "outcome_refer") or "")
+    proc_code = str(cfg.get("procedure_code") or "405058008")  # SNOMED neonatal screening
+    category_code = str(cfg.get("category_code") or "103693007")  # diagnostic procedure
+
+    enc_id = str(_get(birth_enc, "encounter_id", "") or "")
+    proc_id = f"PROC-{pid}-METABOLIC-SCREEN"
+
+    return ProcedureRecord(
+        procedure_id=proc_id,
+        patient_id=pid,
+        encounter_id=enc_id,
+        procedure_type="metabolic_screen_tandem_ms",
+        procedure_code=proc_code,
+        start_datetime=sched,
+        end_datetime=sched + timedelta(minutes=5),
+        duration_minutes=5,
+        category_code=category_code,
+        outcome_code=outcome_code,
+    )
