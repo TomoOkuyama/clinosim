@@ -85,6 +85,23 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   newborn yaml (rxnorm_code field only, unused by emit) additions; no
   CIF schema change; no CIF byte drift; JP unaffected.
 
+- **OPH (ophthalmic) route missing SNOMED coding on MedicationAdministration**
+  (#1265 → PR). `_ROUTE_SNOMED` in `clinosim.modules.output.fhir_r4.lib
+  .reference_data` had no entry for `OPH`, so `build_route_concept` fell back
+  to `{"text": "OPH"}` with no `coding` for the newborn erythromycin
+  ophthalmic prophylaxis (#1252 N7 US). Companion drugs on the same run
+  (Vitamin K IM etc.) shipped a proper SNOMED route — only OPH was
+  text-only. Fixed by registering `OPH → 54485002` (SNOMED CT "Ophthalmic
+  route"). Both invariants held: JP display `点眼` added to `_ROUTE_JA`
+  (`_validate_route_maps` keys⊇ guard), and the SNOMED display is a
+  registered Synonym (verified 2026-09-11 via `tx.fhir.org/r4/CodeSystem
+  /$lookup?system=http://snomed.info/sct&code=54485002` — module=core,
+  active, FSN `Ophthalmic route (qualifier value)`). Verified end-to-end
+  at s=351 p=500 US: 6/6 baby erythromycin MARs emit `{coding: [{system:
+  snomed.info/sct, code: 54485002, display: "Ophthalmic route"}], text:
+  "OPH"}`. **PATCH-scope**: FHIR-emit-only; no CIF change; JP unaffected
+  (JP branch is a no-op for ophthalmic prophylaxis).
+
 ### Added
 
 - **Newborn bilirubin + CCHD SpO2 + US ophthalmic prophylaxis** (#1252 →

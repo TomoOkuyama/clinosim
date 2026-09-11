@@ -63,11 +63,18 @@ def test_alias_keys_are_uppercase():
     assert all(a == a.upper() for a in _ROUTE_ALIASES), sorted(_ROUTE_ALIASES)
 
 
-def test_canonical_set_is_unchanged_by_this_pr():
-    """No new SNOMED code is introduced — only aliases onto existing entries.
+def test_canonical_set_is_the_full_declared_route_vocabulary():
+    """Pins the canonical `_ROUTE_SNOMED` key set as a change-audit checkpoint.
 
-    Pins the reason `test_fhir_route_snomed_display.py` (which parametrizes over
-    `_ROUTE_SNOMED` and demands an authoritative display per code) is unaffected.
+    Any new route SNOMED entry MUST be accompanied by a matching authoritative
+    display in `test_fhir_route_snomed_display.py::_AUTHORITATIVE_SNOMED_ROUTE_DISPLAY`
+    (guarded via parametrize over `_ROUTE_SNOMED`). This assertion catches drift
+    where a canonical route lands here but the authoritative-display guard is
+    forgotten. History:
+      * Issue #458 (session 74) — initial canonical set (9 entries).
+      * #1265 (session 106)     — added OPH → 54485002 (Ophthalmic route)
+                                  for the newborn erythromycin prophylaxis
+                                  (#1252 N7 US); tx.fhir.org $lookup-verified.
     """
     assert set(_ROUTE_SNOMED) == {
         "PO",
@@ -79,6 +86,7 @@ def test_canonical_set_is_unchanged_by_this_pr():
         "INHALED",
         "NEBULIZED",
         "TOPICAL",
+        "OPH",
     }
 
 

@@ -35,6 +35,11 @@ _AUTHORITATIVE_SNOMED_ROUTE_DISPLAY: dict[str, str] = {
     # #311 session 60:Sublingual route の authoritative code。SNOMED
     # valid synonym として "Sublingual" を HAPI 受容。
     "37839007": "Sublingual",
+    # #1265: Ophthalmic route (newborn erythromycin prophylaxis, #1252 N7 US).
+    # "Ophthalmic route" は SNOMED registered Synonym (verified via tx.fhir.org
+    # /r4/CodeSystem/$lookup 2026-09-11); FSN は "Ophthalmic route (qualifier
+    # value)" だが tx-server は Synonym form も受容する。
+    "54485002": "Ophthalmic route",
 }
 
 

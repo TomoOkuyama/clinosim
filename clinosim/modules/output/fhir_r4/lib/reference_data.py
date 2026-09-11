@@ -131,6 +131,13 @@ _ROUTE_SNOMED: dict[str, dict[str, str]] = {
     "INHALED": {"code": "447694001", "display": "Respiratory tract route (qualifier value)"},
     "TOPICAL": {"code": "6064005", "display": "Topical"},
     "NEBULIZED": {"code": "447694001", "display": "Respiratory tract route (qualifier value)"},
+    # #1265: OPH (ophthalmic) for the newborn erythromycin prophylaxis
+    # (#1252 N7 US) and any future eye-drop / eye-ointment route.
+    # Authoritative-display verified 2026-09-11 via
+    # tx.fhir.org/r4/CodeSystem/$lookup?system=http://snomed.info/sct&code=54485002
+    # — "Ophthalmic route" is a registered SNOMED Synonym (FSN =
+    # "Ophthalmic route (qualifier value)"; module=core, active).
+    "OPH": {"code": "54485002", "display": "Ophthalmic route"},
 }
 
 

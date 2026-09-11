@@ -487,6 +487,7 @@ _ROUTE_JA: dict[str, str] = {
     "NG": "経鼻",
     "INHALED": "吸入",
     "NEBULIZED": "ネブライザー",
+    "OPH": "点眼",  # #1265: eye-drop / eye-ointment (点眼薬)
 }
 _FREQ_JA: dict[str, str] = {
     "DAILY": "1日1回",
