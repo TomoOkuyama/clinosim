@@ -2306,7 +2306,20 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Pediatric immunization series: dose-gap silent-fabrication</strong> (#1248 → PR).
+<li>
+<p><strong>Newborn given-name registration window</strong> (#1247 → PR). <code>_build_newborn_patient</code>
+  in <code>clinosim/simulator/perinatal.py</code> unconditionally emitted <code>given_name=""</code>
+  for every newborn, so babies remained nameless in the CIF and FHIR output
+  even months after birth. Now models JP 戸籍法 §49 (14-day birth-registration
+  window): given name stays empty for the first 14 days after delivery and is
+  sampled from the locale name pool afterwards using a fresh sub-seed keyed on
+  the newborn's patient id (RNG-neutral against every other draw). Family
+  name inheritance from the mother is unchanged. <strong>PATCH-scope</strong>: FHIR-Patient
+  emit only; CIF-narrative that historically ignored the empty given name is
+  unaffected (baby narratives already use "新生児" placeholders).</p>
+</li>
+<li>
+<p><strong>Pediatric immunization series: dose-gap silent-fabrication</strong> (#1248 → PR).
   <code>generate_immunizations</code> drew each dose in a <code>pediatric_series</code> schedule
   entry with an independent coverage roll, so a missed dose 1 (coverage
   fail or "declined" record) did not gate the subsequent doses.
@@ -2321,7 +2334,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   outside the sim window (the pre-fix skip path) is unchanged — the shift
   is scoped to pediatric-series cohorts. <strong>MINOR-scope</strong> (CIF layer:
   immunization records removed; narrative CIF referencing those records
-  needs a re-narrate).</li>
+  needs a re-narrate).</p>
+</li>
 </ul>
 <h2 id="061---2026-09-10">[0.6.1] - 2026-09-10<a class="headerlink" href="#061---2026-09-10" title="Permanent link">&para;</a></h2>
 <p><strong>PATCH</strong> — Session 105 wave (14 PRs). Cumulative dangling-FHIR-reference
