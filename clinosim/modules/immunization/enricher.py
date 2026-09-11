@@ -278,6 +278,14 @@ def enrich_immunizations(ctx) -> None:
     # unlinked — a real visit was not simulated, so honesty > fabrication.
     country_upper = str(country or "US").upper()
     sim_start = _sim_window_start(ctx)
+    # Issue #1245: a patient with N record files (per-encounter CIF sharding)
+    # produced N copies of every synth VAX encounter — `generate_immunizations`
+    # is deterministic per patient (same imm list on every call), so each
+    # record's iteration synthesized and appended the identical companion
+    # encounter. Track VAX encounter_ids we've already hosted per patient and
+    # skip re-append on later iterations; the imm's encounter_id is still
+    # linked so downstream (Immunization.encounter reference) resolves.
+    _vax_hosted_by_patient: dict[str, set[str]] = {}
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
@@ -288,6 +296,7 @@ def enrich_immunizations(ctx) -> None:
         recs = _align_to_encounters(recs, pool)
         # Companion synthesis for the residual in-window orphans.
         rec_encounters = _get(rec, "encounters", []) or []
+        hosted = _vax_hosted_by_patient.setdefault(pid, set())
         for imm in recs:
             if _get(imm, "encounter_id", "") or "":
                 continue  # already aligned
@@ -299,12 +308,14 @@ def enrich_immunizations(ctx) -> None:
             if sim_start is not None and occ < sim_start:
                 _set(imm, "primary_source", False)
                 continue
-            # In-window orphan: emit companion encounter for THIS record.
-            # (Kept per-record to avoid cross-record encounter injection —
-            # each record retains its self-contained encounter list.)
+            # In-window orphan: emit companion encounter. The FIRST record
+            # we visit for this patient hosts the encounter; later records
+            # only link the imm to it (no cross-record duplicate append).
             _attending = _pick_primary_care_physician(pid, primary_care_physician_ids)
             synth = _synthesize_vaccination_encounter(imm, pid, country_upper, attending_physician_id=_attending)
-            rec_encounters.append(synth)
+            if synth.encounter_id not in hosted:
+                rec_encounters.append(synth)
+                hosted.add(synth.encounter_id)
             _set(imm, "encounter_id", synth.encounter_id)
         _set(rec, "encounters", rec_encounters)
         _set(rec, "immunizations", recs)
