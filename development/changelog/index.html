@@ -2306,7 +2306,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Newborn metabolic screen: US schedule_day mismatch</strong> (#1263 → PR).
+<li>
+<p><strong>Newborn metabolic screen: US schedule_day mismatch</strong> (#1263 → PR).
   <code>build_metabolic_screen_procedure</code> used a single shared <code>schedule_day: 4</code>
   slot — JP-appropriate (before a 5-day discharge), but past the 2-day US
   birth-admission LOS, so the defensive discharge gate silently skipped
@@ -2321,7 +2322,74 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   p=500: US 6/6 (100 %) offset ≈ 0.99 d; JP 3/3 (100 %) offset ≈ 3.98 d.
   <strong>PATCH-scope</strong>: additive US Procedure emission (screen was silently
   absent, no consumer was reading it); JP behavior unchanged; RNG
-  independent (sub-seed keyed on <code>patient_id</code>).</li>
+  independent (sub-seed keyed on <code>patient_id</code>).</p>
+</li>
+<li>
+<p><strong>US newborn MedicationAdministration.text truncated to first token</strong>
+  (#1264 → PR). The FHIR MedAdmin resolver runs a longest-prefix match of
+  the CIF <code>drug_name</code> against <code>code_mapping_drug.yaml</code>; on a US catalog
+  miss <code>base_name</code> stays at <code>.split(" ")[0]</code>, so US newborn drugs shipped
+  useless single-word <code>.text</code>:
+  <code>"Vitamin K1 (phytonadione) 1 mg IM"</code> → <strong><code>"Vitamin"</code></strong> (indistinguishable
+  from adult Vitamin D supplement), and <code>"Erythromycin 0.5% ophthalmic
+  ointment (Ilotycin)"</code> → <strong><code>"Erythromycin"</code></strong> (indistinguishable from
+  systemic erythromycin antibiotic). Fixed by adding two multi-word
+  catalog keys (<code>"Vitamin K1 (phytonadione)"</code> and <code>"Erythromycin 0.5%
+  ophthalmic ointment"</code>) — the resolver's longest-prefix match now lands
+  on the clean drug identifier and populates <code>.coding</code> with the
+  authoritative RxNorm SCD (312424 = "0.5 ML vitamin K1 2 MG/ML Injection"
+  and 310149 = "erythromycin 0.005 MG/MG Ophthalmic Ointment"). <strong>Both
+  RxCUIs verified 2026-09-11 via NLM RxNav <code>/REST/rxcui/&lt;cui&gt;.json</code>
+  (TTY=SCD).</strong> The RxCUIs <code>977786</code> and <code>313418</code> previously declared in
+  <code>newborn_screening.yaml</code> at #1256 / #1262 were fabricated (<code>{"idGroup":
+  {}}</code> on RxNav lookup — no such concepts exist in RxNorm) and are
+  replaced with the verified ones here; they were never actually reached
+  by the FHIR emit path (the resolver reads the US drug catalog, not the
+  yaml <code>rxnorm_code</code> field), so the correction is emit-invisible.
+  Verified end-to-end at s=351 p=500: US 6 babies × 2 MARs = 12 baby MARs,
+  100 % emit the clean <code>.text</code> + RxNorm coding; JP unchanged
+  (<code>ケイツーシロップ</code>). <strong>PATCH-scope</strong>: US drug catalog + rxnorm.yaml +
+  newborn yaml (rxnorm_code field only, unused by emit) additions; no
+  CIF schema change; no CIF byte drift; JP unaffected.</p>
+</li>
+<li>
+<p><strong>OPH (ophthalmic) route missing SNOMED coding on MedicationAdministration</strong>
+  (#1265 → PR). <code>_ROUTE_SNOMED</code> in <code>clinosim.modules.output.fhir_r4.lib
+  .reference_data</code> had no entry for <code>OPH</code>, so <code>build_route_concept</code> fell back
+  to <code>{"text": "OPH"}</code> with no <code>coding</code> for the newborn erythromycin
+  ophthalmic prophylaxis (#1252 N7 US). Companion drugs on the same run
+  (Vitamin K IM etc.) shipped a proper SNOMED route — only OPH was
+  text-only. Fixed by registering <code>OPH → 54485002</code> (SNOMED CT "Ophthalmic
+  route"). Both invariants held: JP display <code>点眼</code> added to <code>_ROUTE_JA</code>
+  (<code>_validate_route_maps</code> keys⊇ guard), and the SNOMED display is a
+  registered Synonym (verified 2026-09-11 via <code>tx.fhir.org/r4/CodeSystem
+  /$lookup?system=http://snomed.info/sct&amp;code=54485002</code> — module=core,
+  active, FSN <code>Ophthalmic route (qualifier value)</code>). Verified end-to-end
+  at s=351 p=500 US: 6/6 baby erythromycin MARs emit <code>{coding: [{system:
+  snomed.info/sct, code: 54485002, display: "Ophthalmic route"}], text:
+  "OPH"}</code>. <strong>PATCH-scope</strong>: FHIR-emit-only; no CIF change; JP unaffected
+  (JP branch is a no-op for ophthalmic prophylaxis).</p>
+</li>
+<li>
+<p><strong>US <code>admission_hp</code> HPI doubled-space fingerprint</strong> (#1266 → PR).
+  <code>_build_hpi</code> / <code>_build_present_illness</code> / <code>_build_present_illness_ref</code>
+  emitted <code>"Patient presented with {ctx.severity} symptoms."</code> as their
+  no-disease-protocol fallback. For records with no graded severity
+  (newborn Z38.0 US — Z38.0 is not a graded illness) <code>ctx.severity</code>
+  was empty, so the raw f-string interpolated <code>""</code> and produced the
+  doubled-space fingerprint <code>"Patient presented with  symptoms."</code> in
+  every affected Composition's HPI section. Empirical at s=351 p=10k:
+  <strong>256 / 897 US admission_hp (28.5 %)</strong> carried the fingerprint; JP
+  cosmetically weaker (<code>"の症状で受診。"</code> leading-の) but not on the
+  double-space class. Fixed with a symmetric empty-severity guard on
+  all three sites: when severity is empty the sentence becomes
+  <code>"Patient presented for evaluation."</code> (US) / <code>"受診となった。"</code> (JP),
+  and <code>_build_present_illness</code> uses the <code>... for evaluation and
+  admission.</code> variant. Verified end-to-end at s=351 p=500 US: <strong>0/54
+  admission_hp</strong> now carry the doubled-space pattern; baby samples
+  emit <code>"Patient presented for evaluation."</code>. <strong>PATCH-scope</strong>: narrative
+  template-string fallback only; no CIF change; no RNG.</p>
+</li>
 </ul>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
