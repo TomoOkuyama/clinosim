@@ -116,6 +116,50 @@ metabolic_screen:
   # Outcome codes (same SNOMED slots as hearing screen).
   outcome_pass: "385669000"
   outcome_refer: "385671000"
+  # #1252 N6b: full FHIR workflow shape (ServiceRequest + Specimen +
+  # DiagnosticReport) for the metabolic screen. The Procedure emitted
+  # in N6 records the physical heel-stick event; this block emits the
+  # diagnostic-workflow evidence a downstream consumer expects when
+  # querying `ServiceRequest` / `DiagnosticReport` for a newborn
+  # screening panel. Per-analyte Observations are a follow-up scope.
+  service_request:
+    # LOINC 54089-8 = "Newborn screening panel American Health
+    # Information Community (AHIC)" — the canonical panel code for
+    # the tandem-MS newborn screen. Verified 2026-09-11 via
+    # tx.fhir.org/r4/CodeSystem/$lookup?system=http://loinc.org&code=54089-8.
+    order_loinc: "54089-8"
+    order_display: "Newborn screening panel"
+    order_display_ja: "新生児マス・スクリーニング パネル"
+    # SNOMED 108252007 = "Laboratory procedure" — tx.fhir.org verified.
+    category_code: "108252007"
+    category_display: "Laboratory procedure"
+  specimen:
+    # SNOMED 122554006 = "Capillary blood specimen" — tx.fhir.org
+    # verified 2026-09-11 via /ValueSet/$expand filter=capillary blood
+    # specimen (top-of-list match).
+    type_code: "122554006"
+    type_display: "Capillary blood specimen"
+    type_display_ja: "毛細血管血検体"
+    # Heel-stick collection details — body-site and method emitted as
+    # text-only (no SNOMED code) because verified codes for
+    # "heel structure" / "heel-stick collection" are not readily
+    # available on the terminology servers used elsewhere in the
+    # codebase; per the `feedback_verify_fhir_profile_uri_from_spec`
+    # rule we ship honest text rather than a fabricated coding.
+    body_site_text_en: "Heel"
+    body_site_text_ja: "踵"
+    collection_method_text_en: "Heel-stick capillary blood collection"
+    collection_method_text_ja: "踵採血 (毛細血管採血)"
+  diagnostic_report:
+    # Same LOINC 54089-8 for the aggregate report — matches SR.code.
+    code_loinc: "54089-8"
+    code_display: "Newborn screening panel"
+    code_display_ja: "新生児マス・スクリーニング パネル"
+    # laboratory category (hl7-diagnostic-service-sections) — the DR
+    # is a lab-type diagnostic report even though the collection is a
+    # bedside heel-stick.
+    category_code: "LAB"
+    category_display: "Laboratory"
 
 # Automated Auditory Brainstem Response (AABR) hearing screen
 # (#1252 N5). Universal newborn hearing screening — JP has ~95 %
