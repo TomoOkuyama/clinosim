@@ -26,6 +26,7 @@ scope). See the #1252 issue comment for the module-boundary rationale.
 
 from clinosim.modules.newborn.engine import (
     build_apgar_scores,
+    build_hearing_screen_procedure,
     build_newborn_shift_vitals,
     build_vitamin_k_administrations,
     is_newborn_birth_record,
@@ -35,6 +36,7 @@ from clinosim.modules.newborn.enricher import enrich_newborn
 
 __all__ = [
     "build_apgar_scores",
+    "build_hearing_screen_procedure",
     "build_newborn_shift_vitals",
     "build_vitamin_k_administrations",
     "enrich_newborn",

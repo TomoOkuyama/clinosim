@@ -41,6 +41,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Newborn AABR hearing screen** (#1252 → PR, sub-scope N5).
+  `clinosim.modules.newborn.engine.build_hearing_screen_procedure` emits
+  a `ProcedureRecord` for the automated auditory brainstem response
+  (AABR) hearing screen — scheduled 24 h into the birth admission
+  (`newborn_screening.yaml::hearing_screen`), SNOMED procedure code
+  232717001 (AABR screening test), category 103693007 (diagnostic).
+  Result sampled from the yaml distribution using a fresh sub-seed keyed
+  on `patient_id`: ~97 % pass (outcome 385669000) / ~3 % refer (385671000),
+  matching AAP JCIH 2019 well-newborn cohort rates. Appended to
+  `record.procedures` — flows through the existing `_bb_procedures`
+  bundle-builder to emit a FHIR `Procedure` resource with correct SNOMED
+  code + outcome. Skipped if the screen would land past discharge
+  (defensive gate for LOS < 24 h). Verified end-to-end at JP p=500 seed
+  342. **PATCH-scope**: additive; leverages existing `record.procedures`
+  emit pipeline; no schema change.
+
 - **Newborn Apgar score at 1 min / 5 min** (#1252 → PR, sub-scope N4).
   `clinosim.modules.newborn.engine.build_apgar_scores` samples from the
   distribution in `newborn_screening.yaml::apgar.minute_{1,5}_score_weights`

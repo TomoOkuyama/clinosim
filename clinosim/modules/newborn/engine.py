@@ -28,6 +28,7 @@ import yaml
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import is_jp
 from clinosim.types.encounter import MedicationAdministration, VitalSignRecord
+from clinosim.types.procedure import ProcedureRecord
 
 _HERE = Path(__file__).resolve().parent
 
@@ -258,3 +259,70 @@ def build_apgar_scores(record: Any) -> list[dict[str, Any]]:
         {"minute": 1, "score": _sample(m1_weights, "min1"), "timestamp": admit_dt + timedelta(minutes=1)},
         {"minute": 5, "score": _sample(m5_weights, "min5"), "timestamp": admit_dt + timedelta(minutes=5)},
     ]
+
+
+def build_hearing_screen_procedure(record: Any) -> ProcedureRecord | None:
+    """AABR hearing screen `ProcedureRecord` for a newborn's birth admission
+    (#1252 N5).
+
+    Universal newborn hearing screening — JP 厚生労働省 新生児聴覚検査事業 /
+    US EHDI Act, ~95-98 % coverage in modern hospitals. Fires during the
+    birth admission (median day 1 per `newborn_screening.yaml
+    ::hearing_screen.hours_after_admission`). Result sampled from the
+    yaml distribution using a fresh sub-seed keyed on `patient_id`
+    (RNG-neutral against every other draw). Real-world well-newborn
+    cohort: ~97 % pass, ~3 % refer.
+
+    Returns `None` for non-newborn records or when the screen would land
+    past discharge.
+    """
+    if not is_newborn_birth_record(record):
+        return None
+    encounters = _get(record, "encounters", []) or []
+    if not encounters:
+        return None
+    birth_enc = encounters[0]
+    admit_dt = _get(birth_enc, "admission_datetime", None)
+    if not isinstance(admit_dt, datetime):
+        return None
+    discharge_dt = _get(birth_enc, "discharge_datetime", None)
+    patient = _get(record, "patient", None)
+    pid = str(_get(patient, "patient_id", "") or "") if patient is not None else ""
+    if not pid:
+        return None
+
+    cfg = load_newborn_config().get("hearing_screen") or {}
+    if not cfg:
+        return None
+    hours = int(cfg.get("hours_after_admission", 24) or 24)
+    sched = admit_dt + timedelta(hours=hours)
+    if isinstance(discharge_dt, datetime) and sched > discharge_dt:
+        return None
+    result_weights = cfg.get("result_weights") or {"pass": 0.97, "refer": 0.03}
+
+    sub = int(hashlib.sha256(f"newborn-hearing-screen|{pid}".encode()).hexdigest(), 16) % (2**32)
+    rng = np.random.default_rng(sub)
+    outcomes = list(result_weights.keys())
+    raw = np.array([float(result_weights[k]) for k in outcomes], dtype=float)
+    probs = raw / raw.sum()
+    outcome_key = str(outcomes[int(rng.choice(len(outcomes), p=probs))])
+
+    outcome_code = str(cfg.get("outcome_pass" if outcome_key == "pass" else "outcome_refer") or "")
+    proc_code = str(cfg.get("procedure_code") or "232717001")  # SNOMED AABR screening
+    category_code = str(cfg.get("category_code") or "103693007")  # diagnostic procedure
+
+    enc_id = str(_get(birth_enc, "encounter_id", "") or "")
+    proc_id = f"PROC-{pid}-HEARING-SCREEN"
+
+    return ProcedureRecord(
+        procedure_id=proc_id,
+        patient_id=pid,
+        encounter_id=enc_id,
+        procedure_type="hearing_screen_aabr",
+        procedure_code=proc_code,
+        start_datetime=sched,
+        end_datetime=sched + timedelta(minutes=15),
+        duration_minutes=15,
+        category_code=category_code,
+        outcome_code=outcome_code,
+    )
