@@ -2304,6 +2304,28 @@ cut before this policy was formally documented and has been renumbered
 to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>clinosim/modules/newborn/</code> — birth-admission clinical workup</strong> (#1252 → PR,
+  sub-scope N2). New module that fills the gap between <code>simulator/perinatal.py</code>
+  (owns Encounter + Patient shells) and <code>clinosim.modules.pediatric</code>
+  (post-discharge well-child scope). Fires only on records whose
+  <code>condition_event.condition_type == "newborn_birth"</code>; non-newborn records are
+  a no-op. First slice ships Vitamin K prophylaxis (<code>MedicationAdministration</code>):
+  JP Konakion oral 2 mg × 2 doses (day 0 within 24 h, day 7 before discharge —
+  per MHLW 新生児 ビタミン K 欠乏性出血症予防, 2011 改訂), US Vitamin K1 1 mg
+  IM × 1 dose (within 6 h of birth — per AAP Guidelines for Perinatal Care 8<sup>th</sup>
+  ed.). Config-driven from <code>newborn_screening.yaml</code>; deterministic (no RNG).
+  Enricher registered as POST_ENCOUNTER order 92 — after every encounter-level
+  enricher populates its own data, before the document enricher (95) so
+  downstream narratives that reference Vitamin K administration find the MAR
+  entry in place. Verified end-to-end at JP p=500 seed 342: every baby now
+  emits 1 Vitamin K MAR (day 0). Follow-up sub-scopes N3–N7 stack Apgar,
+  hearing screen, metabolic screen, bilirubin monitoring, CCHD SpO2 screen,
+  and (US) ophthalmic prophylaxis in the same module seam. <strong>PATCH-scope</strong>
+  (additive CIF field, no schema change; narrative CIF still valid — the new
+  MAR entries were absent before, so no consumer was reading them yet).</li>
+</ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
 <li>
@@ -2529,7 +2551,7 @@ invariants required a MINOR bump per the versioning policy: seven of
 the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 <code>narrate</code> run is required against the new structured CIF.</p>
 <h3 id="session-104-2026-09-06--2026-09-07-additions">Session 104 (2026-09-06 → 2026-09-07) additions<a class="headerlink" href="#session-104-2026-09-06--2026-09-07-additions" title="Permanent link">&para;</a></h3>
-<h4 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h4>
+<h4 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h4>
 <ul>
 <li><strong>Patient-profile realism keys for LLM narrative prompts</strong> (PR
   <a href="https://github.com/TomoOkuyama/clinosim/pull/1164">#1164</a>). Three
@@ -2874,7 +2896,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 <li>No new FHIR resource types emitted, no bundle-structural change, no
   DetectedIssue.</li>
 </ul>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Pregnancy lifecycle refactor: <code>TemporalStatePeriod</code> framework +
   biology-consistent obstetric emit (META #957 Incr 1).</strong> Introduces a
@@ -2979,7 +3001,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   the sim window is not preserved; a fresh <code>narrate</code> run is required.
   Author: Claude.</li>
 </ul>
-<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #957 (male-C50 activation) — Breast cancer for male patients.</strong>
   Real-world male breast cancer is ~1 % of C50 total (MHLW 患者調査 2020 /
@@ -3462,7 +3484,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   preserved; a fresh <code>narrate</code> run is required.
   Author: Claude.</li>
 </ul>
-<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
+<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #961 — Death certificate (死亡診断書) Composition for deceased
   inpatients.</strong> Pre-fix, 47/6,389 deceased patients on the JP p=6,389
@@ -3820,7 +3842,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   tests, and documented as public API — whitelist entry added to
   <code>vulture_whitelist.py</code>.</li>
 </ul>
-<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
+<h3 id="added_5">Added<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #946 — Anthropometric vitals (height / weight / BMI /
   head-circumference).</strong> Pre-fix, not a single body-height /
@@ -4654,7 +4676,7 @@ regression).</p>
 <li><code>test_data/</code> (5392 files / 200 MB of accumulated LLM narrative eval
   outputs) untracked; <code>.gitignore</code> prevents re-add (PR #529).</li>
 </ul>
-<h3 id="added_5">Added<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
+<h3 id="added_6">Added<a class="headerlink" href="#added_6" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Synthea comparison adapter</strong> (P1-10):
   <a href="../../eval/"><code>clinosim eval</code></a> can now score a
@@ -4820,7 +4842,7 @@ distribution work that makes it installable.</p>
 <li>New <code>LICENSE</code> file at repo root (prior state: <code>pyproject.toml</code> declared
   MIT but no LICENSE text shipped).</li>
 </ul>
-<h3 id="added_6">Added<a class="headerlink" href="#added_6" title="Permanent link">&para;</a></h3>
+<h3 id="added_7">Added<a class="headerlink" href="#added_7" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Population-driven, physiology-based synthetic EHR data simulation
   (13-variable hidden physiological state per patient).</li>
