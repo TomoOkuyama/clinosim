@@ -19,6 +19,26 @@
 #   * Apgar, hearing screen, metabolic screen, bilirubin, CCHD SpO2,
 #     ophthalmic prophylaxis — reserved slots for follow-up PRs.
 
+# Shift-cadence vital signs (#1252 N3). Newborn birth admissions are
+# not driven by the disease-anchored physiology engine (a healthy
+# Z38.0 birth has no pathology to perturb), so `observation` module's
+# vitals emit stays silent. This block declares a static shift cadence
+# for the birth admission so downstream consumers see the T / HR / RR /
+# SpO2 series every real neonatal chart carries. Values are drawn from
+# the term-newborn `baseline_vitals` seeded on the Patient by N1;
+# jitter is intentionally omitted here (added in a follow-up once the
+# neonatal physiology model lands).
+shift_vitals:
+  # Hours-of-day for each nursing shift. Matches the existing
+  # daily_3shift note cadence used elsewhere (night → day → evening).
+  shift_hours: [0, 8, 16]
+  # First recorded vital set lands at the encounter admission time (t=0),
+  # subsequent sets follow the shift cadence above. Skipped if past
+  # discharge. The birth-encounter LOS defaults are already captured in
+  # `perinatal.yaml::encounter.length_of_stay_days` (JP 5 / US 2), so
+  # this section only carries the cadence — the total dose count is a
+  # pure LOS × cadence derivative.
+
 # Sub-scope PR N2 (this file's first slice): Vitamin K prophylaxis only.
 vitamin_k:
   jp:
