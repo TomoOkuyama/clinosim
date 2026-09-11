@@ -358,6 +358,55 @@ def test_newborn_given_name_sampled_past_naming_window() -> None:
     assert given_a == given_b, "given-name sampling must not depend on the caller's rng stream"
 
 
+def test_newborn_baseline_vitals_are_neonatal_not_adult() -> None:
+    """Issue #1252 (N1): a newborn's `baseline_vitals` must reflect
+    term-newborn medians (HR ~130 / BP ~68/40 / RR ~40) — not the
+    adult PatientProfile defaults (HR 72 / BP 120/75 / RR 16). Values
+    live in `perinatal.yaml::newborn.baseline_vitals`.
+    """
+    patient = _make_patient()
+    visit_dt = datetime(2026, 6, 1, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="JP",
+        hospital_ops={},
+    )
+    baby = records[1].patient
+    bv = baby.baseline_vitals
+    # Neonatal ranges (term newborn, AHA / Nelson Pediatrics 21st ed.):
+    #   HR 100-160, systolic 55-80, diastolic 30-45, RR 30-60, T 36.5-37.5.
+    assert 100 <= bv.heart_rate <= 160, f"HR {bv.heart_rate} outside neonatal range"
+    assert 55 <= bv.systolic_bp <= 80, f"systolic {bv.systolic_bp} outside neonatal range"
+    assert 30 <= bv.diastolic_bp <= 45, f"diastolic {bv.diastolic_bp} outside neonatal range"
+    assert 30 <= bv.respiratory_rate <= 60, f"RR {bv.respiratory_rate} outside neonatal range"
+    assert 36.5 <= bv.temperature <= 37.5, f"T {bv.temperature} outside neonatal range"
+    assert bv.spo2 >= 95, f"SpO2 {bv.spo2} below neonatal room-air threshold"
+
+
+def test_newborn_occupation_is_infant_not_other() -> None:
+    """Issue #1252 (N1): `PatientProfile.occupation` defaults to "other",
+    which surfaces on the FHIR US Core Patient Occupation observation
+    as "その他 / Other occupation" for every newborn. Newborns should
+    inherit the framework's age-appropriate developmental-stage label
+    (Issue #360 G7): "infant" (乳児 / Infant).
+    """
+    patient = _make_patient()
+    visit_dt = datetime(2026, 6, 1, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="JP",
+        hospital_ops={},
+    )
+    baby = records[1].patient
+    assert baby.occupation == "infant"
+
+
 def test_newborn_contact_inherits_from_mother() -> None:
     """Issue #1246: a newborn's `ContactInfo` inherits the mother as the
     emergency contact — direct telecom on the baby stays empty (real

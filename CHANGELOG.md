@@ -39,6 +39,21 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Newborn `baseline_vitals` + occupation are age-appropriate** (#1252 → PR,
+  sub-scope N1). `_build_newborn_patient` inherited the `PatientProfile`
+  defaults (`BaselineVitals` HR 72 / BP 120/75 / RR 16 — adult values;
+  `occupation="other"`), producing clinically implausible reference
+  vitals on every baby and a nonsensical FHIR US Core Patient Occupation
+  observation "その他 / Other occupation" on every 0-day-old. Now seeded from
+  `perinatal.yaml::newborn` — HR 130 / BP 68/40 / RR 40 / T 36.7 / SpO2 97
+  (term-newborn medians per AHA / Nelson Pediatrics 21st ed. + JP MHLW
+  母子保健統計), and occupation `"infant"` (乳児 / Infant, aligned with the
+  framework's Issue #360 G7 developmental-stage labels). PATCH-scope:
+  patient-attribute defaults; no CIF schema change; narrative CIF was
+  never using the previous adult values.
+
 ### Added
 
 - **`clinosim/modules/newborn/` — birth-admission clinical workup** (#1252 → PR,
