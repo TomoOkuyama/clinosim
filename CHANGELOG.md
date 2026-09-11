@@ -39,6 +39,26 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Added
+
+- **Newborn shift-cadence vital signs** (#1252 → PR, sub-scope N3). The
+  observation module's vitals engine is disease-anchored (needs a
+  `physiological_states` trajectory to perturb `baseline_vitals`); healthy
+  Z38.0 newborns have no such trajectory, so the vitals emit was silent
+  and every newborn shipped with zero timestamped vital signs across the
+  birth admission — no heart rate, temperature, respiratory rate, SpO2,
+  or blood pressure entries. `clinosim.modules.newborn.engine` now emits
+  a shift-cadence `VitalSignRecord` series: 1 at admission + one per
+  shift boundary (night 00:00 / day 08:00 / evening 16:00, per
+  `newborn_screening.yaml::shift_vitals`) across the birth-admission LOS,
+  using the neonatal `baseline_vitals` seeded by N1. Deterministic; no
+  RNG. Verified end-to-end at JP p=500 seed 342: every baby now emits
+  16 vital sets (5-day JP LOS × 3 shifts + 1 arrival) → FHIR renders 64
+  vital-signs Observations per BABY cohort across all LOINCs (HR 8867-4,
+  T 8310-5, RR 9279-1, SpO2 2708-6, blood-pressure panel 85354-9, level
+  of consciousness 80288-4) — every axis was 0 pre-N3. **PATCH-scope**:
+  additive; no schema change; narrative CIF was never using these entries.
+
 ### Fixed
 
 - **Newborn `baseline_vitals` + occupation are age-appropriate** (#1252 → PR,
