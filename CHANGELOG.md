@@ -39,6 +39,28 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Added
+
+- **`clinosim/modules/newborn/` — birth-admission clinical workup** (#1252 → PR,
+  sub-scope N2). New module that fills the gap between `simulator/perinatal.py`
+  (owns Encounter + Patient shells) and `clinosim.modules.pediatric`
+  (post-discharge well-child scope). Fires only on records whose
+  `condition_event.condition_type == "newborn_birth"`; non-newborn records are
+  a no-op. First slice ships Vitamin K prophylaxis (`MedicationAdministration`):
+  JP Konakion oral 2 mg × 2 doses (day 0 within 24 h, day 7 before discharge —
+  per MHLW 新生児 ビタミン K 欠乏性出血症予防, 2011 改訂), US Vitamin K1 1 mg
+  IM × 1 dose (within 6 h of birth — per AAP Guidelines for Perinatal Care 8th
+  ed.). Config-driven from `newborn_screening.yaml`; deterministic (no RNG).
+  Enricher registered as POST_ENCOUNTER order 92 — after every encounter-level
+  enricher populates its own data, before the document enricher (95) so
+  downstream narratives that reference Vitamin K administration find the MAR
+  entry in place. Verified end-to-end at JP p=500 seed 342: every baby now
+  emits 1 Vitamin K MAR (day 0). Follow-up sub-scopes N3–N7 stack Apgar,
+  hearing screen, metabolic screen, bilirubin monitoring, CCHD SpO2 screen,
+  and (US) ophthalmic prophylaxis in the same module seam. **PATCH-scope**
+  (additive CIF field, no schema change; narrative CIF still valid — the new
+  MAR entries were absent before, so no consumer was reading them yet).
+
 ### Fixed
 
 - **Newborn given-name registration window** (#1247 → PR). `_build_newborn_patient`
