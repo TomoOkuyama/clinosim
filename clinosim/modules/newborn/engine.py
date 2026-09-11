@@ -401,3 +401,156 @@ def build_metabolic_screen_procedure(record: Any) -> ProcedureRecord | None:
         category_code=category_code,
         outcome_code=outcome_code,
     )
+
+
+def build_bilirubin_observations(record: Any) -> list[dict[str, Any]]:
+    """Transcutaneous bilirubin (TcB) daily readings across the birth
+    admission (#1252 N7).
+
+    LOINC 58941-6. One reading per scheduled day (per
+    `newborn_screening.yaml::bilirubin.schedule_days`, default day
+    1 / 2 / 3), sampled from a normal distribution keyed on
+    `patient_id`. Skipped for days that fall past discharge.
+
+    Returns a list of `{"day": N, "timestamp": dt, "value_mg_dl": float,
+    "loinc": "58941-6"}` dicts. The FHIR emit layer walks this list.
+    """
+    if not is_newborn_birth_record(record):
+        return []
+    encounters = _get(record, "encounters", []) or []
+    if not encounters:
+        return []
+    birth_enc = encounters[0]
+    admit_dt = _get(birth_enc, "admission_datetime", None)
+    if not isinstance(admit_dt, datetime):
+        return []
+    discharge_dt = _get(birth_enc, "discharge_datetime", None)
+    patient = _get(record, "patient", None)
+    pid = str(_get(patient, "patient_id", "") or "") if patient is not None else ""
+    if not pid:
+        return []
+
+    cfg = load_newborn_config().get("bilirubin") or {}
+    schedule_days = list(cfg.get("schedule_days") or [1, 2, 3])
+    hour_of_day = int(cfg.get("hour_of_day", 10) or 10)
+    mean_by_day = cfg.get("mean_by_day") or {}
+    std_by_day = cfg.get("std_by_day") or {}
+    clamp_min = float(cfg.get("clamp_min", 2.0) or 2.0)
+    clamp_max = float(cfg.get("clamp_max", 20.0) or 20.0)
+    loinc = str(cfg.get("loinc") or "58941-6")
+
+    day_base = datetime(admit_dt.year, admit_dt.month, admit_dt.day, hour_of_day, 0)
+    out: list[dict[str, Any]] = []
+    for day in schedule_days:
+        try:
+            d = int(day)
+        except (TypeError, ValueError):
+            continue
+        ts = day_base + timedelta(days=d)
+        if ts <= admit_dt:
+            continue
+        if isinstance(discharge_dt, datetime) and ts > discharge_dt:
+            continue
+        mean = float((mean_by_day or {}).get(d) or (mean_by_day or {}).get(str(d)) or 6.0 + d * 2.0)
+        std = float((std_by_day or {}).get(d) or (std_by_day or {}).get(str(d)) or 2.0)
+        sub = int(hashlib.sha256(f"newborn-bilirubin|{pid}|{d}".encode()).hexdigest(), 16) % (2**32)
+        rng = np.random.default_rng(sub)
+        value = float(rng.normal(mean, std))
+        value = max(clamp_min, min(clamp_max, value))
+        out.append({"day": d, "timestamp": ts, "value_mg_dl": round(value, 1), "loinc": loinc})
+    return out
+
+
+def build_cchd_pulse_ox(record: Any) -> list[dict[str, Any]]:
+    """CCHD (Critical Congenital Heart Disease) pulse-oximetry screen
+    (#1252 N7).
+
+    Right-hand + one-foot SpO2 at ≥ 24 h post-birth. LOINC 59408-5
+    with body-site distinction encoded in the emit layer. Well-newborn
+    cohort: both readings ~97 %, ~99.9 % pass. Skipped when the 24 h
+    slot falls past discharge (defensive).
+
+    Returns a list of `{"site": "right_hand" | "foot", "timestamp": dt,
+    "value_pct": int, "loinc": "59408-5"}` dicts. The FHIR emit layer
+    renders one Observation per body site.
+    """
+    if not is_newborn_birth_record(record):
+        return []
+    encounters = _get(record, "encounters", []) or []
+    if not encounters:
+        return []
+    birth_enc = encounters[0]
+    admit_dt = _get(birth_enc, "admission_datetime", None)
+    if not isinstance(admit_dt, datetime):
+        return []
+    discharge_dt = _get(birth_enc, "discharge_datetime", None)
+    patient = _get(record, "patient", None)
+    pid = str(_get(patient, "patient_id", "") or "") if patient is not None else ""
+    if not pid:
+        return []
+
+    cfg = load_newborn_config().get("cchd_pulse_ox") or {}
+    hours = int(cfg.get("hours_after_admission", 24) or 24)
+    sched = admit_dt + timedelta(hours=hours)
+    if isinstance(discharge_dt, datetime) and sched > discharge_dt:
+        return []
+    loinc = str(cfg.get("loinc") or "59408-5")
+    clamp_min = int(cfg.get("clamp_min", 90) or 90)
+    clamp_max = int(cfg.get("clamp_max", 100) or 100)
+
+    def _sample(mean: float, std: float, salt: str) -> int:
+        sub = int(hashlib.sha256(f"newborn-cchd|{pid}|{salt}".encode()).hexdigest(), 16) % (2**32)
+        rng = np.random.default_rng(sub)
+        v = int(round(float(rng.normal(mean, std))))
+        return max(clamp_min, min(clamp_max, v))
+
+    rh_mean = float(cfg.get("right_hand_spo2_mean", 97) or 97)
+    rh_std = float(cfg.get("right_hand_spo2_std", 1) or 1)
+    ft_mean = float(cfg.get("foot_spo2_mean", 97) or 97)
+    ft_std = float(cfg.get("foot_spo2_std", 1) or 1)
+    return [
+        {"site": "right_hand", "timestamp": sched, "value_pct": _sample(rh_mean, rh_std, "rh"), "loinc": loinc},
+        {"site": "foot", "timestamp": sched, "value_pct": _sample(ft_mean, ft_std, "ft"), "loinc": loinc},
+    ]
+
+
+def build_ophthalmic_prophylaxis(record: Any, country: str) -> list[MedicationAdministration]:
+    """Erythromycin ophthalmic prophylaxis at birth (US only) — #1252 N7.
+
+    CDC-recommended for every US newborn (protection against neonatal
+    gonococcal ophthalmia). Not JP standard.
+
+    Config in `newborn_screening.yaml::ophthalmic_prophylaxis` — JP
+    branch declares `drug_name = ""` which the engine reads as "not
+    administered" and returns an empty list.
+    """
+    if not is_newborn_birth_record(record):
+        return []
+    encounters = _get(record, "encounters", []) or []
+    if not encounters:
+        return []
+    birth_enc = encounters[0]
+    admit_dt = _get(birth_enc, "admission_datetime", None)
+    if not isinstance(admit_dt, datetime):
+        return []
+    cfg = (load_newborn_config().get("ophthalmic_prophylaxis") or {}).get("jp" if is_jp(country) else "us") or {}
+    drug_name = str(cfg.get("drug_name") or "")
+    if not drug_name:
+        return []
+    dose = str(cfg.get("dose") or "")
+    route = str(cfg.get("route") or "OPH")
+    within_hours = int(cfg.get("within_hours_of_birth", 1) or 1)
+    sched = admit_dt + timedelta(hours=min(within_hours, 24))
+    enc_id = str(_get(birth_enc, "encounter_id", "") or "")
+    order_id = f"ORD-{enc_id}-OPH-PROPHYLAXIS" if enc_id else "ORD-OPH-PROPHYLAXIS"
+    return [
+        MedicationAdministration(
+            order_id=order_id,
+            drug_name=drug_name,
+            scheduled_datetime=sched,
+            actual_datetime=sched,
+            status="given",
+            dose=dose,
+            route=route,
+        )
+    ]

@@ -20,7 +20,11 @@ from datetime import datetime
 from typing import Any
 
 from clinosim.modules._shared import is_jp
-from clinosim.modules.newborn.fhir_emit import _bb_newborn_apgar
+from clinosim.modules.newborn.fhir_emit import (
+    _bb_newborn_apgar,
+    _bb_newborn_bilirubin,
+    _bb_newborn_cchd_pulse_ox,
+)
 from clinosim.modules.output.cif_reader import CIFReader
 from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import _bb_allergy_intolerances
 from clinosim.modules.output.fhir_r4.conditions.clinical_impression import _bb_clinical_impressions
@@ -444,6 +448,8 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_vitals,
     _bb_anthropometrics,  # Issue #946: height / weight / BMI / head-circ per encounter
     _bb_newborn_apgar,  # Issue #1252 N4: Apgar score at 1 min / 5 min for newborns
+    _bb_newborn_bilirubin,  # Issue #1252 N7: transcutaneous bilirubin daily readings
+    _bb_newborn_cchd_pulse_ox,  # Issue #1252 N7: CCHD pulse-ox screen (RH + foot)
     _bb_microbiology,
     _bb_diagnostic_reports,
     _bb_medication_requests,
