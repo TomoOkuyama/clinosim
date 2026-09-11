@@ -2306,7 +2306,27 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Newborn AABR hearing screen</strong> (#1252 → PR, sub-scope N5).
+<li>
+<p><strong>Newborn tandem-MS metabolic screening</strong> (#1252 → PR, sub-scope N6,
+  minimum-viable slice). <code>clinosim.modules.newborn.engine
+  .build_metabolic_screen_procedure</code> emits a <code>ProcedureRecord</code> for the
+  heel-stick capillary blood collection event of the neonatal
+  metabolic mass-screening (新生児マス・スクリーニング) — day 4 of
+  birth admission by default (per <code>newborn_screening.yaml
+  ::metabolic_screen.schedule_day</code>), SNOMED procedure code 405058008
+  (Neonatal screening test), category 103693007 (diagnostic).
+  Result outcome sampled from yaml (fresh sub-seed keyed on
+  <code>patient_id</code>): ~99.7 % pass (SNOMED 385669000) / ~0.3 % refer
+  (385671000), matching real cohort detection rates. Skipped when LOS
+  is shorter than schedule_day (defensive). Full <code>ServiceRequest</code> +
+  <code>Specimen</code> + <code>DiagnosticReport</code> per-analyte results are deferred to
+  a follow-up scope — this PR emits the Procedure alone so consumers
+  see evidence "screening happened with outcome X". Appended to
+  <code>record.procedures</code> — flows through the existing <code>_bb_procedures</code>
+  bundle-builder. <strong>PATCH-scope</strong>: additive; no schema change.</p>
+</li>
+<li>
+<p><strong>Newborn AABR hearing screen</strong> (#1252 → PR, sub-scope N5).
   <code>clinosim.modules.newborn.engine.build_hearing_screen_procedure</code> emits
   a <code>ProcedureRecord</code> for the automated auditory brainstem response
   (AABR) hearing screen — scheduled 24 h into the birth admission
@@ -2318,7 +2338,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   <code>record.procedures</code> — flows through the existing <code>_bb_procedures</code>
   bundle-builder to emit a FHIR <code>Procedure</code> resource with correct SNOMED
   code + outcome. Skipped if the screen would land past discharge
-  (defensive gate for LOS &lt; 24 h). Verified end-to-end at JP p=500 seed</li>
+  (defensive gate for LOS &lt; 24 h). Verified end-to-end at JP p=500 seed</p>
+</li>
 <li>
 <p><strong>PATCH-scope</strong>: additive; leverages existing <code>record.procedures</code>
   emit pipeline; no schema change.</p>
