@@ -2306,16 +2306,18 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>CIFReader multi-encounter narrative merge</strong> (#1244 → PR). <code>_merge_narrative_into</code>
-  now walks every encounter referenced by the record's document stubs (union of
-  <code>stub.encounter_id</code>) instead of only <code>encounters[0]</code>. Prior behaviour dropped
-  narrative content for companion / bridge encounters — <code>ENC-VAX-*</code> vaccination
-  visits (immunization enricher) and <code>{IMP}-ED</code> synth bridge encounters (via-ED
-  admissions) — because their narrative files live under their own encounter
-  directory, not the record's primary encounter. Impact at v0.6.1 p=10k: <strong>2,770
-  <code>composition stub … has no narrative</code> warnings → 0</strong>, and the corresponding VAX
-  / ED-bridge Composition resources are now emitted. FHIR-emit-only change; CIF is
-  byte-unchanged. <strong>PATCH-scope</strong>.</li>
+<li><strong>Immunization enricher: VAX companion encounter cross-record duplication</strong>
+  (#1245 → PR). A patient with N record files (one per primary encounter,
+  per-encounter CIF sharding) previously received N copies of every
+  synthesized <code>ENC-VAX-*</code> companion encounter — <code>generate_immunizations</code> is
+  deterministic per patient (same imm list on every call across records), so
+  each record's iteration synthesized and appended the identical companion
+  encounter. At p=10k seed 342 this hit 23 % of VAX encounters (one appearing
+  in 9 record files). Now tracks hosted VAX encounter_ids per patient; the
+  first record to encounter an orphan imm hosts the synth encounter, later
+  records only link the imm via its <code>encounter_id</code> field. CIF layer bug;
+  affects downstream narrative and Composition duplicate emission.
+  <strong>PATCH-scope</strong> (bug fix, CIF layer dedup but no field schema change).</li>
 </ul>
 <h2 id="061---2026-09-10">[0.6.1] - 2026-09-10<a class="headerlink" href="#061---2026-09-10" title="Permanent link">&para;</a></h2>
 <p><strong>PATCH</strong> — Session 105 wave (14 PRs). Cumulative dangling-FHIR-reference
