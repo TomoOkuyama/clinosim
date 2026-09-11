@@ -337,12 +337,31 @@ def _build_newborn_patient(
     that predate this signature) the name stays empty, matching the
     pre-#1247 behaviour.
     """
-    from clinosim.types.patient import Address, PersonName
+    from clinosim.types.patient import Address, BaselineVitals, PersonName
 
     newborn_id = _newborn_patient_id(mother.patient_id)
     given = ""
     if snapshot_date is not None and (snapshot_date - delivery_date).days > _NEWBORN_NAMING_WINDOW_DAYS:
         given = _sample_newborn_given_name(newborn_id, sex, country)
+    # Issue #1252 (N1): seed neonatal-specific `baseline_vitals` from
+    # `perinatal.yaml::newborn.baseline_vitals` — term-newborn medians
+    # (HR ~130 / BP ~68/40 / RR ~40) rather than the PatientProfile
+    # adult defaults (HR 72 / BP 120/75 / RR 16). Same locale-config file
+    # already carries every other newborn parameter (LOS / cesarean rate
+    # / newborn conditions). Occupation defaults to the framework's
+    # existing developmental-stage label "infant" (乳児 / Infant) rather
+    # than the adult fallback "other" — same file, same section.
+    _newborn_cfg = (load_perinatal_config() or {}).get("newborn") or {}
+    _bv_cfg = _newborn_cfg.get("baseline_vitals") or {}
+    baseline_vitals = BaselineVitals(
+        temperature=float(_bv_cfg.get("temperature", 36.7)),
+        heart_rate=int(_bv_cfg.get("heart_rate", 130)),
+        systolic_bp=int(_bv_cfg.get("systolic_bp", 68)),
+        diastolic_bp=int(_bv_cfg.get("diastolic_bp", 40)),
+        respiratory_rate=int(_bv_cfg.get("respiratory_rate", 40)),
+        spo2=float(_bv_cfg.get("spo2", 97)),
+    )
+    occupation = str(_newborn_cfg.get("occupation") or "infant")
     return PatientProfile(
         patient_id=newborn_id,
         household_id=mother.household_id,
@@ -358,6 +377,8 @@ def _build_newborn_patient(
         height_cm=50.0,
         weight_kg=3.2,
         bmi=12.8,  # neonate BMI is not clinically meaningful but keeps the float non-zero
+        baseline_vitals=baseline_vitals,
+        occupation=occupation,
         address=Address(**{k: v for k, v in vars(mother.address).items()}) if mother.address else Address(),
         # Issue #1246: newborns cannot be contacted directly (no personal
         # phone / email), so `Patient.telecom` stays empty — but every
