@@ -328,13 +328,16 @@ def build_hearing_screen_procedure(record: Any) -> ProcedureRecord | None:
     )
 
 
-def build_metabolic_screen_procedure(record: Any) -> ProcedureRecord | None:
+def build_metabolic_screen_procedure(record: Any, country: str) -> ProcedureRecord | None:
     """Tandem-MS newborn metabolic screening `ProcedureRecord` (#1252 N6).
 
-    Universal newborn metabolic mass-screening (新生児マス・スクリーニング)
-    — heel-stick capillary blood collected day 4-6 of the birth
-    admission, tested for a panel of 20+ inborn errors of metabolism.
-    Detection rate ~0.1-0.3 %; ~99.7 % pass in real well-newborn cohorts.
+    Universal newborn metabolic mass-screening — heel-stick capillary
+    blood collected during the birth admission, tested for a panel of
+    20+ inborn errors of metabolism. Detection rate ~0.1-0.3 %;
+    ~99.7 % pass in real well-newborn cohorts. Locale differs only in
+    the scheduled day of collection (JP day 4 before a 5-day discharge;
+    US day 1 24 h post-birth before a 2-day discharge — #1263). The
+    SNOMED procedure code and result distribution are locale-invariant.
 
     This PR (N6) emits only the `Procedure` event for the collection.
     `ServiceRequest` (screening order) + `Specimen` (heel-stick blood)
@@ -364,7 +367,12 @@ def build_metabolic_screen_procedure(record: Any) -> ProcedureRecord | None:
     cfg = load_newborn_config().get("metabolic_screen") or {}
     if not cfg:
         return None
-    schedule_day = int(cfg.get("schedule_day", 4) or 4)
+    sched_cfg = cfg.get("schedule_day", 4)
+    locale_key = "jp" if is_jp(country) else "us"
+    if isinstance(sched_cfg, dict):
+        schedule_day = int(sched_cfg.get(locale_key, sched_cfg.get("jp", 4)) or 4)
+    else:
+        schedule_day = int(sched_cfg or 4)
     # Collection at 10:00 on day N (mimicking morning-round cadence).
     day_dt = datetime(admit_dt.year, admit_dt.month, admit_dt.day, 10, 0)
     sched = day_dt + timedelta(days=schedule_day)
