@@ -51,7 +51,7 @@ def enrich_newborn(ctx: Any) -> None:
             new_vitals = build_newborn_shift_vitals(record=record)
             new_apgar = build_apgar_scores(record=record)
             new_hearing = build_hearing_screen_procedure(record=record)
-            new_metabolic = build_metabolic_screen_procedure(record=record)
+            new_metabolic = build_metabolic_screen_procedure(record=record, country=country)
             new_bili = build_bilirubin_observations(record=record)
             new_cchd = build_cchd_pulse_ox(record=record)
             new_oph = build_ophthalmic_prophylaxis(record=record, country=country)

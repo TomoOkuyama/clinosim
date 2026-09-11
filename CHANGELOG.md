@@ -39,6 +39,25 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Newborn metabolic screen: US schedule_day mismatch** (#1263 → PR).
+  `build_metabolic_screen_procedure` used a single shared `schedule_day: 4`
+  slot — JP-appropriate (before a 5-day discharge), but past the 2-day US
+  birth-admission LOS, so the defensive discharge gate silently skipped
+  the tandem-MS `Procedure` emission for every US well-newborn. Empirical
+  gap at s=351 p=10k: JP 85/86 (99 %) vs **US 43/125 (34 %)** — 82
+  US babies were missing the single most-important neonatal screening
+  event. `newborn_screening.yaml::metabolic_screen.schedule_day` is now a
+  per-locale dict (`jp: 4`, `us: 1` — heel-stick day 1, 24 h post-birth,
+  per AAP Guidelines for Perinatal Care 8th ed. / US EHDI Act universal-
+  screening cohort). SNOMED procedure code + category + pass/refer
+  distribution remain locale-invariant. Verified end-to-end at s=351
+  p=500: US 6/6 (100 %) offset ≈ 0.99 d; JP 3/3 (100 %) offset ≈ 3.98 d.
+  **PATCH-scope**: additive US Procedure emission (screen was silently
+  absent, no consumer was reading it); JP behavior unchanged; RNG
+  independent (sub-seed keyed on `patient_id`).
+
 ### Added
 
 - **Newborn bilirubin + CCHD SpO2 + US ophthalmic prophylaxis** (#1252 →
