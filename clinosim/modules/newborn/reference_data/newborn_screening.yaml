@@ -84,15 +84,25 @@ ophthalmic_prophylaxis:
 # DiagnosticReport for the full workflow is a follow-up scope.
 metabolic_screen:
   # Days after birth admission start for the heel-stick collection.
-  # JP standard is day 4-6 (before typical 5-day discharge); the
-  # median lands at day 4. Skipped if the target day falls past
-  # discharge (LOS < schedule_day).
-  schedule_day: 4
+  # Per-locale — different birth-admission LOS forces different
+  # scheduling to keep the screen inside the admission window:
+  #   * JP — heel-stick day 4-6 (before typical 5-day discharge);
+  #     the median lands at day 4 (厚生労働省 タンデムマス・スクリーニング事業).
+  #   * US — heel-stick day 1 (24 h post-birth) before typical 2-day
+  #     discharge, per US EHDI Act universal-screening cohort
+  #     (AAP Guidelines for Perinatal Care 8th ed. — most states
+  #     collect between 24 h and discharge).
+  # Skipped if the target day falls past discharge (LOS < schedule_day).
+  schedule_day:
+    jp: 4
+    us: 1
   # Result distribution — weighted sample keyed on baby_id (fresh
-  # sub-seed). ~99.7 % pass in real cohorts.
+  # sub-seed). ~99.7 % pass in real cohorts (locale-invariant).
   result_weights: {pass: 0.997, refer: 0.003}
   # SNOMED procedure code for neonatal metabolic screening (405058008
   # = "Neonatal screening test"). Category 103693007 (diagnostic).
+  # Locale-invariant — the same tandem-MS panel is emitted under both
+  # 新生児マス・スクリーニング (JP) and state EHDI programs (US).
   procedure_code: "405058008"
   category_code: "103693007"
   # Outcome codes (same SNOMED slots as hearing screen).
