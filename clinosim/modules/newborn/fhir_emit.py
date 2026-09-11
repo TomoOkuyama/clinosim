@@ -36,6 +36,16 @@ def _apgar_observation_id(patient_id: str, minute: int) -> str:
     return f"obs-{hashlib.sha256(key).hexdigest()[:12]}"
 
 
+def _bilirubin_observation_id(patient_id: str, day: int) -> str:
+    key = f"bili|{patient_id}|{day}".encode()
+    return f"obs-{hashlib.sha256(key).hexdigest()[:12]}"
+
+
+def _cchd_observation_id(patient_id: str, site: str) -> str:
+    key = f"cchd|{patient_id}|{site}".encode()
+    return f"obs-{hashlib.sha256(key).hexdigest()[:12]}"
+
+
 def _bb_newborn_apgar(ctx: Any) -> list[dict]:
     """Emit Apgar score `Observation` resources for newborns.
 
@@ -120,6 +130,188 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
             # `datetime` from build_apgar_scores; convert if needed.
             iso = ts.isoformat() if hasattr(ts, "isoformat") else str(ts)
             obs["effectiveDateTime"] = iso
+        if encounter_id:
+            obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        out.append(obs)
+    return out
+
+
+def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
+    """Emit newborn transcutaneous-bilirubin `Observation` resources
+    from `record.extensions["newborn"]["bilirubin"]` (populated by
+    `enrich_newborn` — engine.build_bilirubin_observations).
+
+    LOINC 58941-6. Category **`exam`** — TcB is a bedside
+    bilirubinometer reading (clinician exam finding), NOT a serum lab
+    sample. This deliberate category choice keeps the Observation
+    outside the JP-CLINS eCS `Observation-eCS-Laboratory` profile
+    scope, which mandates a LocalCode slice on every
+    `category=laboratory` Observation (not applicable to TcB).
+    valueQuantity in `mg/dL` (UCUM).
+    """
+    from clinosim.codes import get_system_uri
+    from clinosim.modules._shared import is_jp
+    from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
+    from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
+
+    record = getattr(ctx, "record", None) or {}
+    if isinstance(record, dict):
+        extensions = record.get("extensions", {}) or {}
+    else:
+        extensions = getattr(record, "extensions", {}) or {}
+    bili = ((extensions.get("newborn") or {}).get("bilirubin")) or []
+    if not bili:
+        return []
+    patient_id = str(getattr(ctx, "patient_id", "") or "")
+    country = str(getattr(ctx, "country", "us") or "us")
+    encounter_id = str(getattr(ctx, "primary_enc_id", "") or "")
+    is_ja = is_jp(country)
+    key_system = "urn:clinosim:identifier:newborn-bilirubin-key"
+    out: list[dict] = []
+    for e in bili:
+        day = int(e.get("day", 0) or 0)
+        value = float(e.get("value_mg_dl", 0.0) or 0.0)
+        loinc = str(e.get("loinc") or "58941-6")
+        struct_key = f"{patient_id}-bili-day-{day}"
+        obs: dict[str, Any] = {
+            "resourceType": "Observation",
+            "id": _bilirubin_observation_id(patient_id, day),
+            "identifier": [wrap_as_identifier(struct_key, key_system)],
+            "status": "final",
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-observation-category"),
+                            "code": "exam",
+                            "display": "Exam",
+                        }
+                    ],
+                    "text": "身体所見" if is_ja else "Exam",
+                }
+            ],
+            "code": {
+                "coding": [
+                    {
+                        "system": get_system_uri("loinc"),
+                        "code": loinc,
+                        "display": "Bilirubin.total [Mass/volume] transcutaneous",
+                    }
+                ],
+                "text": "経皮ビリルビン" if is_ja else "Transcutaneous bilirubin",
+            },
+            "subject": patient_ref(patient_id),
+            "valueQuantity": {
+                "value": value,
+                "unit": "mg/dL",
+                "system": get_system_uri("ucum"),
+                "code": "mg/dL",
+            },
+        }
+        ts = e.get("timestamp")
+        if ts is not None:
+            obs["effectiveDateTime"] = ts.isoformat() if hasattr(ts, "isoformat") else str(ts)
+        if encounter_id:
+            obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        out.append(obs)
+    return out
+
+
+_CCHD_SITE_SNOMED: dict[str, tuple[str, str]] = {
+    "right_hand": ("368208006", "Right upper arm"),
+    "foot": ("22335008", "Foot"),
+}
+
+_CCHD_SITE_DISPLAY_JA: dict[str, str] = {
+    "right_hand": "右手 (pre-ductal)",
+    "foot": "足 (post-ductal)",
+}
+
+
+def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
+    """Emit CCHD pulse-oximetry screening `Observation` resources from
+    `record.extensions["newborn"]["cchd_pulse_ox"]`.
+
+    LOINC 59408-5 (Oxygen saturation in arterial blood by pulse
+    oximetry). One Observation per body site (right hand / foot) with
+    SNOMED `bodySite` distinguishing pre- vs post-ductal readings.
+    """
+    from clinosim.codes import get_system_uri
+    from clinosim.modules._shared import is_jp
+    from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
+    from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
+
+    record = getattr(ctx, "record", None) or {}
+    if isinstance(record, dict):
+        extensions = record.get("extensions", {}) or {}
+    else:
+        extensions = getattr(record, "extensions", {}) or {}
+    entries = ((extensions.get("newborn") or {}).get("cchd_pulse_ox")) or []
+    if not entries:
+        return []
+    patient_id = str(getattr(ctx, "patient_id", "") or "")
+    country = str(getattr(ctx, "country", "us") or "us")
+    encounter_id = str(getattr(ctx, "primary_enc_id", "") or "")
+    is_ja = is_jp(country)
+    key_system = "urn:clinosim:identifier:newborn-cchd-key"
+
+    out: list[dict] = []
+    for e in entries:
+        site = str(e.get("site") or "")
+        site_snomed = _CCHD_SITE_SNOMED.get(site)
+        if site_snomed is None:
+            continue
+        value = int(e.get("value_pct", 0) or 0)
+        loinc = str(e.get("loinc") or "59408-5")
+        struct_key = f"{patient_id}-cchd-{site}"
+        obs: dict[str, Any] = {
+            "resourceType": "Observation",
+            "id": _cchd_observation_id(patient_id, site),
+            "identifier": [wrap_as_identifier(struct_key, key_system)],
+            "status": "final",
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-observation-category"),
+                            "code": "vital-signs",
+                            "display": "Vital Signs",
+                        }
+                    ],
+                    "text": "バイタルサイン" if is_ja else "Vital Signs",
+                }
+            ],
+            "code": {
+                "coding": [
+                    {
+                        "system": get_system_uri("loinc"),
+                        "code": loinc,
+                        "display": "Oxygen saturation in Arterial blood by Pulse oximetry",
+                    }
+                ],
+                "text": (_CCHD_SITE_DISPLAY_JA[site] if is_ja else f"SpO2 ({site.replace('_', ' ')})"),
+            },
+            "subject": patient_ref(patient_id),
+            "valueQuantity": {
+                "value": value,
+                "unit": "%",
+                "system": get_system_uri("ucum"),
+                "code": "%",
+            },
+            "bodySite": {
+                "coding": [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": site_snomed[0],
+                        "display": site_snomed[1],
+                    }
+                ],
+                "text": _CCHD_SITE_DISPLAY_JA[site] if is_ja else site_snomed[1],
+            },
+        }
+        ts = e.get("timestamp")
+        if ts is not None:
+            obs["effectiveDateTime"] = ts.isoformat() if hasattr(ts, "isoformat") else str(ts)
         if encounter_id:
             obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
         out.append(obs)

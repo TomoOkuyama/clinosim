@@ -19,6 +19,59 @@
 #   * Apgar, hearing screen, metabolic screen, bilirubin, CCHD SpO2,
 #     ophthalmic prophylaxis — reserved slots for follow-up PRs.
 
+# Transcutaneous bilirubin (TcB) monitoring during birth admission
+# (#1252 N7). Standard practice — bilirubinometer reading every day
+# 1-3 to catch hyperbilirubinemia (physiological jaundice peaks
+# day 3-5, most needs no treatment). LOINC 58941-6 (Bilirubin
+# transcutaneous). Values mg/dL — normal well-newborn range 4-14 by
+# day 3; higher on Asian populations.
+bilirubin:
+  # Days after birth admission to record TcB reading. day 0 (birth
+  # day) is typically outside cadence; day 1-3 are the ones that
+  # matter. Skipped if past discharge.
+  schedule_days: [1, 2, 3]
+  hour_of_day: 10           # morning nursing round
+  # Normal (physiological) range mg/dL for term newborn — median 7,
+  # bounded 4-14. Yaml carries a normal-cohort mean/std; engine
+  # samples via sub-seed. Peak day 3, so day 3 value skewed higher.
+  mean_by_day: {1: 6.0, 2: 8.0, 3: 10.0}
+  std_by_day: {1: 2.0, 2: 2.5, 3: 3.0}
+  clamp_min: 2.0
+  clamp_max: 20.0
+  loinc: "58941-6"
+
+# CCHD (Critical Congenital Heart Disease) pulse-oximetry screening
+# (#1252 N7). US-mandated per state since 2011; JP AAP-recommended
+# since 2018. Screens right hand + one foot at ≥ 24 h age.
+# Pass: SpO2 ≥ 95 % in both AND ≤ 3 % pre/post-ductal difference.
+# Real cohort ~99.9 % pass; true CCHD prevalence ~1/1000. LOINC
+# 59408-5 (Oxygen saturation in arterial blood by pulse oximetry).
+cchd_pulse_ox:
+  hours_after_admission: 24
+  # Values by body site — well-newborn median 97 %, tight range.
+  right_hand_spo2_mean: 97
+  right_hand_spo2_std: 1
+  foot_spo2_mean: 97
+  foot_spo2_std: 1
+  clamp_min: 90
+  clamp_max: 100
+  loinc: "59408-5"
+
+# US ophthalmic prophylaxis at birth — erythromycin ophthalmic
+# ointment 0.5 % applied within 1 h of birth to both eyes,
+# CDC-recommended prophylaxis against neonatal gonococcal
+# ophthalmia. Not standard in JP (declining gonorrhea rates + higher
+# antibiotic-stewardship threshold — MHLW does not mandate).
+ophthalmic_prophylaxis:
+  us:
+    drug_name: "Erythromycin 0.5% ophthalmic ointment (Ilotycin)"
+    dose: "1 cm ribbon each eye"
+    route: "OPH"                # ophthalmic
+    within_hours_of_birth: 1
+    rxnorm_code: "313418"       # RxNorm — erythromycin ophthalmic
+  jp:                            # not administered in JP standard care
+    drug_name: ""
+
 # Tandem-mass-spectrometry newborn metabolic screening (新生児マス・
 # スクリーニング) — heel-stick capillary blood sample drawn day 4-6
 # of birth admission, tested for a panel of 20+ inborn errors of
