@@ -26,6 +26,7 @@ from clinosim.modules.newborn.engine import (
     build_cchd_pulse_ox,
     build_hearing_screen_procedure,
     build_metabolic_screen_procedure,
+    build_metabolic_screen_workflow_data,
     build_newborn_shift_vitals,
     build_ophthalmic_prophylaxis,
     build_vitamin_k_administrations,
@@ -52,13 +53,14 @@ def enrich_newborn(ctx: Any) -> None:
             new_apgar = build_apgar_scores(record=record)
             new_hearing = build_hearing_screen_procedure(record=record)
             new_metabolic = build_metabolic_screen_procedure(record=record, country=country)
+            new_metabolic_workflow = build_metabolic_screen_workflow_data(record=record, country=country)
             new_bili = build_bilirubin_observations(record=record)
             new_cchd = build_cchd_pulse_ox(record=record)
             new_oph = build_ophthalmic_prophylaxis(record=record, country=country)
         except Exception:  # pragma: no cover — defensive
             logger.exception("newborn enricher failed on record; continuing")
             continue
-        if new_bili or new_cchd:
+        if new_bili or new_cchd or new_metabolic_workflow:
             ext = _get(record, "extensions", None)
             if ext is None:
                 ext = {}
@@ -68,6 +70,15 @@ def enrich_newborn(ctx: Any) -> None:
                 nb["bilirubin"] = list(new_bili)
             if new_cchd:
                 nb["cchd_pulse_ox"] = list(new_cchd)
+            if new_metabolic_workflow:
+                # #1252 N6b: stash the ServiceRequest / Specimen /
+                # DiagnosticReport payload for the metabolic screen
+                # workflow. The three bundle-builders in
+                # `clinosim.modules.newborn.fhir_emit` read this to emit
+                # the diagnostic-workflow evidence sibling to the
+                # existing `Procedure` (which records the physical
+                # heel-stick event).
+                nb["metabolic_screen"] = dict(new_metabolic_workflow)
         if new_oph:
             existing_mars = _get(record, "medication_administrations", None)
             if existing_mars is None:

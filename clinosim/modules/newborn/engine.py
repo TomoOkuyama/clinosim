@@ -411,6 +411,111 @@ def build_metabolic_screen_procedure(record: Any, country: str) -> ProcedureReco
     )
 
 
+def build_metabolic_screen_workflow_data(record: Any, country: str) -> dict[str, Any] | None:
+    """Companion `ServiceRequest` + `Specimen` + `DiagnosticReport` payload
+    for the tandem-MS newborn metabolic screen (#1252 N6b).
+
+    Returns a dict stashed under
+    ``record.extensions["newborn"]["metabolic_screen"]`` that the FHIR
+    bundle-builders (``_bb_newborn_metabolic_screen_service_request`` /
+    ``_bb_newborn_metabolic_screen_specimen`` /
+    ``_bb_newborn_metabolic_screen_diagnostic_report``) walk to emit
+    the diagnostic-workflow evidence a downstream consumer expects when
+    querying `ServiceRequest.ndjson` or `DiagnosticReport.ndjson` for a
+    newborn screening panel. The physical heel-stick event is separately
+    represented as a `Procedure` by
+    ``build_metabolic_screen_procedure``; the two share the same
+    sampled outcome — sub-seed and outcome computation are kept in sync
+    by recomputing here from the identical `newborn-metabolic-screen`
+    seed (deterministic, no shared mutable state).
+
+    Per-analyte Observations are deferred to a follow-up sub-scope;
+    this slice ships the workflow shape (order → specimen → aggregate
+    report) with a single conclusionCode reflecting the pass / refer
+    verdict.
+
+    Returns None on non-newborn records / missing admission datetime /
+    empty pid / when the screen slot falls past discharge (mirrors the
+    gate on ``build_metabolic_screen_procedure`` so the two either both
+    emit or both skip).
+    """
+    if not is_newborn_birth_record(record):
+        return None
+    encounters = _get(record, "encounters", []) or []
+    if not encounters:
+        return None
+    birth_enc = encounters[0]
+    admit_dt = _get(birth_enc, "admission_datetime", None)
+    if not isinstance(admit_dt, datetime):
+        return None
+    discharge_dt = _get(birth_enc, "discharge_datetime", None)
+    patient = _get(record, "patient", None)
+    pid = str(_get(patient, "patient_id", "") or "") if patient is not None else ""
+    if not pid:
+        return None
+
+    cfg = load_newborn_config().get("metabolic_screen") or {}
+    if not cfg:
+        return None
+    sched_cfg = cfg.get("schedule_day", 4)
+    locale_key = "jp" if is_jp(country) else "us"
+    if isinstance(sched_cfg, dict):
+        schedule_day = int(sched_cfg.get(locale_key, sched_cfg.get("jp", 4)) or 4)
+    else:
+        schedule_day = int(sched_cfg or 4)
+    day_dt = datetime(admit_dt.year, admit_dt.month, admit_dt.day, 10, 0)
+    sched = day_dt + timedelta(days=schedule_day)
+    if sched <= admit_dt:
+        sched = admit_dt + timedelta(hours=4)
+    if isinstance(discharge_dt, datetime) and sched > discharge_dt:
+        return None
+
+    result_weights = cfg.get("result_weights") or {"pass": 0.997, "refer": 0.003}
+    sub = int(hashlib.sha256(f"newborn-metabolic-screen|{pid}".encode()).hexdigest(), 16) % (2**32)
+    rng = np.random.default_rng(sub)
+    outcomes = list(result_weights.keys())
+    raw = np.array([float(result_weights[k]) for k in outcomes], dtype=float)
+    probs = raw / raw.sum()
+    outcome_key = str(outcomes[int(rng.choice(len(outcomes), p=probs))])
+    outcome_code = str(cfg.get("outcome_pass" if outcome_key == "pass" else "outcome_refer") or "")
+
+    enc_id = str(_get(birth_enc, "encounter_id", "") or "")
+
+    sr_cfg = cfg.get("service_request") or {}
+    spec_cfg = cfg.get("specimen") or {}
+    dr_cfg = cfg.get("diagnostic_report") or {}
+
+    return {
+        "patient_id": pid,
+        "encounter_id": enc_id,
+        # The order is authored at admission and completed at heel-stick.
+        "ordered_datetime": admit_dt,
+        "collected_datetime": sched,
+        "outcome_key": outcome_key,
+        "outcome_code": outcome_code,
+        # Copy through the yaml codes so the FHIR emit does not need
+        # to re-load the config — same pattern as other newborn
+        # extension slots (bilirubin, cchd_pulse_ox).
+        "order_loinc": str(sr_cfg.get("order_loinc") or "54089-8"),
+        "order_display": str(sr_cfg.get("order_display") or "Newborn screening panel"),
+        "order_display_ja": str(sr_cfg.get("order_display_ja") or "新生児マス・スクリーニング パネル"),
+        "order_category_code": str(sr_cfg.get("category_code") or "108252007"),
+        "order_category_display": str(sr_cfg.get("category_display") or "Laboratory procedure"),
+        "specimen_type_code": str(spec_cfg.get("type_code") or "122554006"),
+        "specimen_type_display": str(spec_cfg.get("type_display") or "Capillary blood specimen"),
+        "specimen_type_display_ja": str(spec_cfg.get("type_display_ja") or "毛細血管血検体"),
+        "specimen_body_site_en": str(spec_cfg.get("body_site_text_en") or "Heel"),
+        "specimen_body_site_ja": str(spec_cfg.get("body_site_text_ja") or "踵"),
+        "specimen_method_en": str(spec_cfg.get("collection_method_text_en") or "Heel-stick capillary blood collection"),
+        "specimen_method_ja": str(spec_cfg.get("collection_method_text_ja") or "踵採血 (毛細血管採血)"),
+        "dr_code_loinc": str(dr_cfg.get("code_loinc") or "54089-8"),
+        "dr_code_display": str(dr_cfg.get("code_display") or "Newborn screening panel"),
+        "dr_code_display_ja": str(dr_cfg.get("code_display_ja") or "新生児マス・スクリーニング パネル"),
+        "dr_category_code": str(dr_cfg.get("category_code") or "LAB"),
+        "dr_category_display": str(dr_cfg.get("category_display") or "Laboratory"),
+    }
+
+
 def build_bilirubin_observations(record: Any) -> list[dict[str, Any]]:
     """Transcutaneous bilirubin (TcB) daily readings across the birth
     admission (#1252 N7).
