@@ -676,19 +676,38 @@ def generate_population(
             # marginal-preserving rescale (which uses E[compound] over
             # chronic_prevalence codes only) is not perturbed.
             # See META #1137 for design authority.
-            if bmi >= BMI_MORBID_OBESITY_THRESHOLD:
-                conditions.append("E66.01")  # Morbid (severe) obesity, BMI ≥ 40
-            elif bmi >= BMI_OBESE_THRESHOLD:
-                conditions.append("E66.9")  # Obesity, unspecified, BMI ≥ 30
-            elif bmi >= BMI_OVERWEIGHT_THRESHOLD:
-                # Issue #1272: complete the 3-band ICD-10-CM E66 dispatch.
-                # BMI 25.0-29.9 is the overweight band (~30 % of US adults,
-                # ~20 % of JP adults). Pre-#1272 no ICD Condition was emitted
-                # for this band, so downstream analytics keying on E66.3
-                # saw an empty cohort even though the BMI Observation
-                # itself was correctly emitted. Same 3-band split #1126
-                # declared in the metabolic-cluster scope (see META #1137).
-                conditions.append("E66.3")  # Overweight, BMI 25-29.9
+            #
+            # Issue #1284: age-gate the E66 dispatch. Adult BMI thresholds
+            # (25/30/40) are not the correct pediatric coding practice —
+            # ICD-10-CM pairs pediatric obesity with `Z68.51`–`Z68.54`
+            # (BMI-for-age percentile) rather than the adult-oriented E66
+            # cascade, and the underlying BMI sampler currently emits
+            # adult-scaled values for all ages (a p=10k s=354 audit
+            # counted 15 toddlers aged 2-5 with E66.01 "morbid obesity",
+            # 52 US pediatric patients with any E66.01, and 881 US
+            # pediatric patients with any E66 code). Skip the E66
+            # dispatch entirely below :data:`LEGAL_ADULT_AGE` (=20 — the
+            # existing adult-boundary constant already used for the
+            # lifestyle-attribute gates above). A future follow-up in
+            # the metabolic/ module (META #1137) can layer proper
+            # `Z68.5x` BMI-for-age emission plus CDC-percentile BMI
+            # sampling on top; this change is the scope-disciplined bug
+            # fix that eliminates the physiologically-impossible peds
+            # E66.01 rows.
+            if age >= LEGAL_ADULT_AGE:
+                if bmi >= BMI_MORBID_OBESITY_THRESHOLD:
+                    conditions.append("E66.01")  # Morbid (severe) obesity, BMI ≥ 40
+                elif bmi >= BMI_OBESE_THRESHOLD:
+                    conditions.append("E66.9")  # Obesity, unspecified, BMI ≥ 30
+                elif bmi >= BMI_OVERWEIGHT_THRESHOLD:
+                    # Issue #1272: complete the 3-band ICD-10-CM E66 dispatch.
+                    # BMI 25.0-29.9 is the overweight band (~30 % of US adults,
+                    # ~20 % of JP adults). Pre-#1272 no ICD Condition was emitted
+                    # for this band, so downstream analytics keying on E66.3
+                    # saw an empty cohort even though the BMI Observation
+                    # itself was correctly emitted. Same 3-band split #1126
+                    # declared in the metabolic-cluster scope (see META #1137).
+                    conditions.append("E66.3")  # Overweight, BMI 25-29.9
 
             # Issue #1134 (Substance Use): SDOH-derived Condition insertion.
             # Rationale: ``smoking_status`` / ``alcohol_use`` are already
