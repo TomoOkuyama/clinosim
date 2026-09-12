@@ -101,16 +101,19 @@ def test_female_c50_still_emits_c50_919_on_us_condition() -> None:
     assert "C50.929" not in c50_codes, f"Female C50 must NOT emit male-anatomy C50.929, got {c50_codes!r}"
 
 
-def test_male_c50_jp_emit_uses_identity_mapping() -> None:
-    """JP ICD-10 has no per-sex C50 subcategory; both sexes must emit
-    the identity ``C50`` code (no drift, no fallback to some CM
-    granular leaf under the WHO system URI)."""
+def test_male_c50_jp_emit_uses_sex_agnostic_who_leaf() -> None:
+    """JP ICD-10 has no per-sex C50 subcategory; both sexes must emit the
+    same sex-agnostic WHO ICD-10 leaf. Since Issue #1320, the JP mapping
+    lifts the C50 root to the billable ``C50.9`` (breast, unspecified)
+    leaf — still sex-agnostic (unlike US, which splits into C50.9x1 /
+    C50.9x2 by patient sex)."""
     for sex in ("F", "M"):
         record = _make_c50_chronic_record(sex=sex)
         conditions = _build_conditions(record, patient_id="POP-000001", country="JP")
         c50_codes = _c50_coding_codes(conditions)
         assert c50_codes, f"JP C50 patient (sex={sex}) must emit a C50 Condition"
-        assert "C50" in c50_codes, f"JP C50 (sex={sex}) must emit identity C50, got {c50_codes!r}"
-        assert not any(c.startswith("C50.") for c in c50_codes), (
-            f"JP must NOT emit CM-granular C50.* leaves (sex={sex}), got {c50_codes!r}"
+        assert "C50.9" in c50_codes, f"JP C50 (sex={sex}) must emit WHO leaf C50.9, got {c50_codes!r}"
+        # Must NOT emit US-style per-sex CM granular leaves (C50.911/919/921/929).
+        assert not any(c.startswith("C50.9") and len(c) > 5 for c in c50_codes), (
+            f"JP must NOT emit CM-granular C50.9xx leaves (sex={sex}), got {c50_codes!r}"
         )
