@@ -66,6 +66,25 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   N40=16, F00=13, C61=3, N10=4, …). Mirrors the US-side #1309 / #1356
   fix pattern across a broader set of chronic categories.
 
+- **Chronic once-daily meds administered 2-3× per calendar day inpatient**
+  (Issue #1337). ``enrich_medication_order`` populated
+  ``order.frequency_per_day`` only when ``parse_dose_string`` recognised
+  a frequency token; chronic home meds arrive from
+  ``HomeMedication.frequency = "daily"`` with a numeric-only
+  ``dose = "50mcg"`` — ``parse_dose_string`` finds no token in that
+  substring, so ``frequency_per_day`` stayed None. The MAR scheduler in
+  ``_generate_mar`` then fell through to its TID default
+  ``admin_hours = [8, 14, 20]`` for every once-daily home med
+  (Levothyroxine 100 % of 26 JP encounters, Enalapril, Vitamin D, Sodium
+  bicarb, Lansoprazole …) — a doubled-to-tripled dose emit throughout
+  the entire inpatient stay.
+
+  Fix: fall back to ``_FREQ_PER_DAY`` lookup against ``order.frequency``
+  itself when ``parse_dose_string`` yields no ``frequency_per_day`` —
+  so a bare ``"DAILY"`` label maps to ``frequency_per_day = 1``, MAR
+  emits once/day, and the doubled-dose signature clears. Verified on
+  p=500 JP: 0 / 4 Enalapril encounters (was 100 % baseline) with
+  >1× same-day admin; Levothyroxine cohort now correctly single-dosed.
 - **Anachronistic chronic DAPT on I25 patients** (Issue #1330). Chronic
   Clopidogrel (as DAPT with Aspirin) is only indicated within 6-12 mo
   of PCI / ACS per ACC/AHA / ESC / JCS 2022 — long-term chronic DAPT
@@ -181,6 +200,21 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **US SEER-calibrated prevalences for C15 / C16 / C25 / C67 / C71**
+  (Issue #1311). S108 PRs #1298 (C15/C16 → FOLFOX), #1303 (Gemcitabine
+  / Irinotecan / Nab-paclitaxel / Temozolomide / BCG catalog), and
+  #1304 (C25 → GemNabP, C67 → BCG intravesical, C71 → Temozolomide /
+  Stupp) added chemo regimens for five cancer codes. US
+  ``demographics.yaml`` had no prevalence entries for any of them, so
+  the US p=10k s=355 build carried 0 Condition records for these
+  codes — the regimens never fired in US. Added SEER Cancer
+  Statistics Review 1975-2020 5-year-survivor-prevalence bands to
+  ``clinosim/locale/us/demographics.yaml``; also added
+  ``C15 / C16 / C25 / C67 / C71 → .9 (unspecified)`` entries to
+  ``clinosim/locale/us/code_mapping_diagnosis.yaml`` and the
+  corresponding displays to ``clinosim/codes/data/icd-10-cm.yaml``.
+  p=200 s=356 US sim now emits C16.9 Conditions; the regimen wiring
+  from PR #1298 fires end-to-end.
 - **CAD (I25.x) secondary-prevention statin chronic med**
   (Issue #1338). Class-I evidence in ACC/AHA 2018, ESC 2019, and JAS
   2022 secondary-prevention guidelines. The prior sim modelled statin
