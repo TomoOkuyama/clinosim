@@ -916,6 +916,34 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # ``proc-order-{patient_id}-{seq:04d}``) so consumers can recover it
         # verbatim from identifier[] under PROCEDURE_KEY_SYSTEM.
         _proc_structural_key = f"proc-order-{order_id}" if order_id else f"proc-order-{ctx.patient_id}-{proc_seq:04d}"
+        # Issue #1282 Sub-B: consult the display-name → SNOMED CT
+        # crosswalk. When a common clinical procedure (hemodialysis,
+        # CRRT, wound care, triage, oxygen therapy, etc.) is
+        # recognised by keyword in the free-text Order display name,
+        # attach the verified SNOMED coding so downstream analytics
+        # filtering by `Procedure.code.coding[*].code` can find it.
+        # Unmatched entries fall through to text-only emit (pre-#1282
+        # behaviour), and `code.text` still carries the localised
+        # display so consumers doing free-text keyword search remain
+        # unaffected.
+        from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import (
+            resolve_procedure_snomed,
+        )
+
+        _code_field: dict = {"text": _code_text}
+        _snomed_hit = resolve_procedure_snomed(display)
+        if _snomed_hit is not None:
+            _snomed_code, _snomed_display_en = _snomed_hit
+            _snomed_display = (
+                _localize_drug_name(_snomed_display_en, ctx.country) if is_jp(ctx.country) else _snomed_display_en
+            )
+            _code_field["coding"] = [
+                {
+                    "system": get_system_uri("snomed-ct"),
+                    "code": _snomed_code,
+                    "display": _snomed_display,
+                }
+            ]
         procedure_res: dict = {
             "resourceType": "Procedure",
             "id": _resolve_procedure_id(_proc_structural_key),
@@ -931,7 +959,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
                     }
                 ],
             },
-            "code": {"text": _code_text},
+            "code": _code_field,
             "subject": patient_ref(ctx.patient_id),
         }
         if enc_id:
