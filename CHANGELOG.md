@@ -41,6 +41,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Prednisone + Prednisolone dual emit on US corticosteroid encounters**
+  (Issue #1323). US COPD exacerbation encounters carried both drugs
+  (Prednisone = prodrug of Prednisolone, same active moiety) on
+  186/286 (65 %) encounters because the disease-YAML
+  ``supportive.steroid`` block had a single locale-blind ``detail``
+  string ("Prednisolone 40mg PO daily x5 days") while the
+  locale-aware ``drugs.discharge_oral`` block emitted the US-form
+  Prednisone separately.
+
+  Fix: added an optional ``locale_detail: {jp: "...", us: "..."}``
+  map on ``supportive[]`` items and an equivalent ``locale_name`` on
+  encounter-YAML ``treatment[]`` items. Old entries with only the
+  bare ``detail`` / ``name`` keep working unchanged. Applied to
+  ``copd_exacerbation.yaml`` supportive steroid entry and
+  ``encounter/asthma_attack_mild.yaml`` treatment steroid entry.
+
+  Verification (p=500 s=356):
+    US: 17/17 Prednisone-only (was 65 % dup on the p=10k baseline)
+    JP: 18/18 Prednisolone-only (unchanged — JA behaviour preserved)
+
+  FHIR-emit-only change on the discharge path but CIF-affecting on
+  the admission-supportive path (US patients now emit
+  ``Prednisone`` instead of ``Prednisolone`` as the supportive
+  medication order display_name); classified MINOR under the
+  CIF-narrative consistency policy.
+
+
 - **JP MedicationAdministration.medicationCodeableConcept.text emits
   Japanese for chemo drugs** (Issue #1310). PR #1303 catalogued
   Gemcitabine / Irinotecan / Nab-paclitaxel / Temozolomide / BCG with
@@ -113,6 +140,23 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **CAD (I25.x) secondary-prevention statin chronic med**
+  (Issue #1338). Class-I evidence in ACC/AHA 2018, ESC 2019, and JAS
+  2022 secondary-prevention guidelines. The prior sim modelled statin
+  ONLY under E78 (dyslipidemia chronic block), so 39 % of CAD
+  patients without an E78 chronic diagnosis carried zero statin.
+  Added ``Atorvastatin 40 mg PO daily`` (high-intensity, first-line
+  per guidelines) with ``probability: 0.90`` (matches real-world
+  adherence 85-90 %, with headroom for statin-intolerance
+  exclusions) to the I25 medications block in
+  ``clinosim/locale/shared/chronic_medications.yaml``.
+
+  Chronic-med dedup handles the I25+E78 collision (drug_name-keyed).
+  Verification (p=500 s=356 US): CAD patients with statin: 11/14
+  (78.6 %) — was ~61 % baseline. RNG cascade: one added
+  ``rng.random()`` draw per I25 patient (chronic-med sampler);
+  classified MINOR under the CIF-narrative consistency policy for
+  the affected cohort.
 - **US Core Patient extensions** — us-core-race, us-core-ethnicity,
   us-core-birthsex (Issue #1344). Every US Patient resource previously
   emitted with no extensions at all, so 100 % of the cohort failed US
