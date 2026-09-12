@@ -463,6 +463,112 @@ def test_vaginal_delivery_no_cefazolin_1285() -> None:
     assert cefazolin_orders == [], "vaginal delivery must not carry Cefazolin"
 
 
+def test_cesarean_intraop_bundle_full_shape_1285() -> None:
+    """Issue #1285 sub-scope: every C-section delivery carries the full
+    ACOG / ERAS intraoperative medication bundle — Cefazolin
+    (preop) + Bupivacaine (spinal) + Fentanyl (intrathecal adjunct)
+    + Ondansetron (antiemetic) + Oxytocin (post-cord-clamp uterotonic)
+    + Ketorolac (postop multimodal analgesia)."""
+    patient = PatientProfile(patient_id="POP-000005", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O82"
+    names_seen = {o.display_name for o in mother_rec.orders}
+    expected = {"Cefazolin", "Bupivacaine", "Fentanyl", "Ondansetron", "Oxytocin", "Ketorolac"}
+    missing = expected - names_seen
+    assert not missing, f"C-section intraop bundle missing: {missing}"
+    # Confirm one entry per drug (no duplicates).
+    for name in expected:
+        hits = [o for o in mother_rec.orders if o.display_name == name]
+        assert len(hits) == 1, f"{name} appears {len(hits)} times, expected 1"
+
+
+def test_cesarean_intraop_timing_anchors_1285() -> None:
+    """Order.ordered_datetime is aligned to the ACOG / ERAS anchors:
+    Cefazolin preop (before incision), spinal + antiemetic at incision,
+    Oxytocin ~10 min in (cord clamp), Ketorolac ~60 min postop."""
+    patient = PatientProfile(patient_id="POP-000005", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    orders_by_name = {o.display_name: o for o in records[0].orders}
+    # Cefazolin: preop (< visit_dt).
+    assert orders_by_name["Cefazolin"].ordered_datetime < visit_dt
+    # Spinal + Ondansetron: at incision.
+    assert orders_by_name["Bupivacaine"].ordered_datetime == visit_dt
+    assert orders_by_name["Fentanyl"].ordered_datetime == visit_dt
+    assert orders_by_name["Ondansetron"].ordered_datetime == visit_dt
+    # Oxytocin: ~10 min after incision (cord-clamp anchor).
+    assert orders_by_name["Oxytocin"].ordered_datetime == visit_dt + timedelta(minutes=10)
+    # Ketorolac: ~60 min postop.
+    assert orders_by_name["Ketorolac"].ordered_datetime == visit_dt + timedelta(minutes=60)
+
+
+def test_cesarean_intraop_dosing_matches_acog_1285() -> None:
+    """Doses match ACOG / ASA standards (locked in to catch drift):
+    Cefazolin 2 g IV, Bupivacaine 12 mg IT, Fentanyl 25 mcg IT,
+    Ondansetron 4 mg IV, Oxytocin 10 U IV, Ketorolac 30 mg IV."""
+    patient = PatientProfile(patient_id="POP-000005", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    orders_by_name = {o.display_name: o for o in records[0].orders}
+    expected = {
+        "Cefazolin": (2.0, "g", "IV"),
+        "Bupivacaine": (12.0, "mg", "IT"),
+        "Fentanyl": (25.0, "mcg", "IT"),
+        "Ondansetron": (4.0, "mg", "IV"),
+        "Oxytocin": (10.0, "U", "IV"),
+        "Ketorolac": (30.0, "mg", "IV"),
+    }
+    for name, (dose, unit, route) in expected.items():
+        o = orders_by_name[name]
+        assert o.dose_quantity == dose, f"{name} dose {o.dose_quantity} != expected {dose}"
+        assert o.dose_unit == unit, f"{name} unit {o.dose_unit!r} != expected {unit!r}"
+        assert o.route == route, f"{name} route {o.route!r} != expected {route!r}"
+        assert o.frequency == "once", f"{name} must be single-dose"
+
+
+def test_vaginal_delivery_no_intraop_bundle_1285() -> None:
+    """Regression: vaginal delivery does not emit any of the C-section
+    intraop bundle drugs (each is scoped to the surgical path)."""
+    patient = PatientProfile(patient_id="POP-000001", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O80"
+    for name in ("Cefazolin", "Bupivacaine", "Fentanyl", "Ondansetron", "Oxytocin", "Ketorolac"):
+        hits = [o for o in mother_rec.orders if o.display_name == name]
+        assert hits == [], f"vaginal delivery must not carry {name}"
+
+
 def test_delivery_encounter_shape_us() -> None:
     patient = _make_patient()
     visit_dt = datetime(2024, 7, 15, 10, 0)
