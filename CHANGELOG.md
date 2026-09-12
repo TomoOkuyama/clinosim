@@ -39,6 +39,23 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **JP MedicationAdministration.medicationCodeableConcept.text emits
+  Japanese for chemo drugs** (Issue #1310). PR #1303 catalogued
+  Gemcitabine / Irinotecan / Nab-paclitaxel / Temozolomide / BCG with
+  Japanese displays on the HOT7 and RxNorm codings, but
+  ``clinosim/locale/shared/drug_names_ja.yaml`` — the SoT consumed by
+  ``_localize_drug_name`` for the top-level ``.text`` field — had no
+  entries for the five new drugs, so JP consumers reading
+  ``.text`` first saw the English name. Added entries for
+  Gemcitabine / Irinotecan / Nab-paclitaxel (both hyphenated and
+  underscored variants) / Temozolomide / BCG (including the
+  ``BCG intravesical`` disease-YAML alias). p=200 s=356 JP verify:
+  Temozolomide now emits as ``テモゾロミド`` on both
+  MedicationRequest and MedicationAdministration. FHIR-emit-only
+  change: CIF byte-unchanged; PATCH.
+
 ### Added
 
 - **Cesarean full intraoperative medication bundle**
