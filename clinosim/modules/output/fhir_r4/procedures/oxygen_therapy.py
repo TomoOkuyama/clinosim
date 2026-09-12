@@ -180,6 +180,8 @@ def _oxygen_session_period(
     encounter_id: str,
     encounter_end: str,
     vitals: list[Any],
+    *,
+    allow_unattributed_vitals: bool = True,
 ) -> tuple[str, str, str] | None:
     """Return (start_iso, end_iso, device_mode) for the O2 session, or None
     when the encounter has no on-supplemental-oxygen vitals.
@@ -191,12 +193,24 @@ def _oxygen_session_period(
     Single session per encounter — the simulator does not currently model
     discontinue+restart. If future disease YAMLs express interrupted O2
     courses, this helper is the seam that would split them.
+
+    ``allow_unattributed_vitals`` (default True) permits the "fall back to
+    all vitals when the encounter-id filter yields nothing" behaviour that
+    single-encounter records rely on — historically CIF vital_signs omitted
+    ``encounter_id`` because the enclosing per-encounter CIF file made the
+    scoping implicit. Multi-encounter records MUST set this to False (see
+    Issue #1352) — otherwise a second encounter with no on-O2 vitals of
+    its own would fall through to the first encounter's on-O2 vitals and
+    emit a duplicate Procedure carrying the OTHER encounter's session
+    timestamps, tagged to the wrong encounter reference.
     """
     ordered_dt = str(_o(order, "ordered_datetime", "") or "") if order is not None else ""
     vitals_here = [v for v in vitals if str(_o(v, "encounter_id", "") or "") == encounter_id]
-    if not vitals_here:
-        # Vitals sometimes don't carry encounter_id — fall back to all vitals
-        # (typical for a single-encounter record).
+    if not vitals_here and allow_unattributed_vitals:
+        # Single-encounter fallback: CIF vitals sometimes lack encounter_id
+        # (historical single-encounter files). Safe only when the caller
+        # confirms the record has one encounter — otherwise a second
+        # encounter would silently inherit the first's O2 session (#1352).
         vitals_here = list(vitals)
     on_o2 = [v for v in vitals_here if bool(_o(v, "on_supplemental_oxygen", False))]
     if not on_o2:
@@ -291,6 +305,15 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
     is_jp_out = is_jp(ctx.country)
     proc_display = code_lookup("snomed-ct", _SNOMED_OXYGEN_THERAPY, lang) or "Oxygen therapy"
 
+    # Issue #1352: only allow the "unattributed-vitals fallback" in
+    # ``_oxygen_session_period`` when the record has exactly one encounter.
+    # Multi-encounter records must strictly attribute on-O2 vitals to the
+    # encounter carrying them — otherwise a later encounter (e.g. an
+    # outpatient VAX visit) would silently inherit the earlier inpatient
+    # O2 session and emit a duplicate Procedure resource carrying the
+    # first encounter's timestamps under the second encounter's reference.
+    allow_unattributed = len(encounters) == 1
+
     out: list[dict] = []
     # Iterate encounters in the record's own order so resource output is
     # stable and matches the order they were admitted / discharged in.
@@ -307,7 +330,13 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
             default=None,
         )
 
-        session = _oxygen_session_period(order, enc_id, enc_end_idx.get(enc_id, ""), vitals)
+        session = _oxygen_session_period(
+            order,
+            enc_id,
+            enc_end_idx.get(enc_id, ""),
+            vitals,
+            allow_unattributed_vitals=allow_unattributed,
+        )
         if not session:
             # Observable drop reason: no on-O2 vitals for this encounter.
             logger.info(
