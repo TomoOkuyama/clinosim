@@ -270,6 +270,53 @@ C61:  # Prostate cancer — androgen deprivation therapy (ADT)
 # home medications for women who have (or previously had) a pregnancy in
 # the sim window. Proper per-encounter MedicationRequest emission scoped
 # to prenatal visits is Incr 1.5.
+# ---------------------------------------------------------------------
+# Mental health chronic medications — Issue #1281, aligned with META
+# #1137 (mental_health/ module cluster). First-line SSRI selection per
+# APA / VA-DoD (US) and 気分障害治療ガイドライン / 日本うつ病学会 (JP).
+# ---------------------------------------------------------------------
+# The SSRI selection is mutually exclusive within the `ssri` class —
+# a patient receives ONE first-line agent (real US SAMHSA data shows
+# ~60-80 % of diagnosed F32/F33 patients on any antidepressant,
+# distributed across sertraline / escitalopram / fluoxetine).
+# JP first-line preference (sertraline / escitalopram / paroxetine) is
+# a shared shape here; the emit path localises the drug name via
+# `drug_ja`.
+#
+# Pre-#1281 F32/F33 patients received zero antidepressant orders
+# despite the diagnosis being planted on `chronic_conditions` — every
+# other chronic condition (HTN, T2DM, dyslip, COPD, GERD, …) already
+# had a chronic-med generator in this file. This block closes the
+# neighbouring gap.
+#
+# Drug catalog note: as of the fix, RxNorm / YJ codes for SSRIs are
+# not yet registered in `codes/data/rxnorm.yaml` or the
+# `locale/{us,jp}/code_mapping_drug.yaml` files, so the FHIR emit
+# path renders `MedicationRequest.medicationCodeableConcept.text`
+# only. A follow-up PR will add the codes; the emit path continues
+# to work in either state.
+
+F32:  # Depressive episode (single)
+  exclusive_classes: ["ssri"]
+  medications:
+    - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.32}
+    - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
+    - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.11}
+
+F33:  # Recurrent depressive disorder — same first-line SSRI shape as F32
+  exclusive_classes: ["ssri"]
+  medications:
+    - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.35}
+    - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.25}
+    - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.12}
+
+F41.1:  # Generalized anxiety disorder — SSRI/SNRI first-line
+  exclusive_classes: ["ssri"]
+  medications:
+    - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.28}
+    - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
+    - {drug: "Paroxetine", drug_ja: "パロキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.10}
+
 Z34:  # Encounter for supervision of normal pregnancy
   medications:
     - {drug: "Folic acid", drug_ja: "葉酸", dose: "0.4mg", route: "PO", frequency: "daily"}
