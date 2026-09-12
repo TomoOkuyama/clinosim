@@ -41,6 +41,27 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **SSRI drug code registration (Sertraline / Escitalopram /
+  Fluoxetine / Paroxetine / Citalopram)** (#1281 follow-up → PR).
+  The chronic-med SSRI block wired for F32 / F33 / F41.1 in #1281
+  used the internal drug names above, but none were registered in
+  `codes/data/rxnorm.yaml` or the
+  `locale/{us,jp}/code_mapping_drug.yaml` files, so the FHIR emit
+  path rendered `MedicationRequest.medicationCodeableConcept.text`
+  only. Now:
+  - US: RxCUIs 36437 / 321988 / 4493 / 32937 / 2556 registered
+    (all TTY=IN, verified against `tx.fhir.org` `$lookup` on
+    2026-09-12).
+  - JP: YJ 7-digit class codes 1179044 / 1179052 / 1179040 added
+    for the PMDA-approved subset (Sertraline / Escitalopram /
+    Paroxetine). Fluoxetine + Citalopram are NOT PMDA-approved in
+    Japan; a JP-side lookup returns nothing for them and the emit
+    falls back to text-only for those particular draws.
+  - Regression guard: verified-code drift test + PMDA-omit
+    invariant (`tests/unit/test_ssri_drug_code_registration_1281.py`).
+  **PATCH-scope**: additive drug catalogue entries; no CIF change;
+  no new RNG draws. Pairs with the #1281 chronic-med addition to
+  make antidepressant MedicationRequest emission fully coded.
 - **SNOMED coding for Order-derived clinical Procedures**
   (#1282 Sub-B → PR). The Order → Procedure emit path in
   `output/fhir_r4/lib/inline_bb.py` previously emitted

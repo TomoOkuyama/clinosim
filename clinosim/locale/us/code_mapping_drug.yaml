@@ -105,3 +105,13 @@ Omeprazole: "7646"
 # RxNav `/REST/rxcui/<cui>.json` (TTY=SCD; #1264).
 Vitamin K1 (phytonadione): "312424"                       # 0.5 ML vitamin K1 2 MG/ML Injection (RxNorm SCD)
 Erythromycin 0.5% ophthalmic ointment: "310149"           # erythromycin 0.005 MG/MG Ophthalmic Ointment (RxNorm SCD)
+
+# SSRI antidepressants (#1281 follow-up). RXCUIs verified 2026-09-12
+# via tx.fhir.org $lookup against RxNorm (TTY=IN). Wired by
+# `chronic_medications.yaml::F32/F33/F41.1` SSRI class; pre-registration
+# `MedicationRequest.medicationCodeableConcept` had text only.
+Sertraline: "36437"
+Escitalopram: "321988"
+Fluoxetine: "4493"
+Paroxetine: "32937"
+Citalopram: "2556"
