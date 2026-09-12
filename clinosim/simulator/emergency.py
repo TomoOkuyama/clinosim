@@ -321,6 +321,7 @@ def _simulate_ed_visit(
                     rationale_ja=_gate.rationale_ja,
                     substitution_hint=None,
                 )
+                _matched = _gate.matched_drug_name or _tx_name
                 patient.safety_skip_log.append(
                     SafetySkipEntry(
                         encounter_id=encounter.encounter_id,
@@ -331,7 +332,7 @@ def _simulate_ed_visit(
                         verdict=_wrapped,
                         substituted_with=None,
                         substituted_with_ja=None,
-                        context_hint=f"ed_treatment_dispatch:{cond_name}",
+                        context_hint=f"ed_treatment_dispatch:{cond_name}:matched={_matched}",
                         timestamp=visit_time.isoformat(),
                     )
                 )
