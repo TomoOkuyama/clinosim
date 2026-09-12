@@ -220,3 +220,40 @@ def test_cancer_at_tiny_clinic_falls_back_to_internal_medicine_1280(tiny_clinic)
     # internal_medicine" branch.
     dept = resolve_outpatient_department("chronic_followup", "C67", None, tiny_clinic)
     assert dept == "internal_medicine"
+
+
+# ---------------------------------------------------------------------------
+# Issue #1281 sub-scope: F32/F33/F41.1 route to psychiatry
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def psychiatry_hospital():
+    """Hospital that staffs a dedicated psychiatry service line."""
+    return {
+        "available_departments": [
+            "internal_medicine",
+            "psychiatry",
+            "primary_care",
+        ],
+        "department_rollup": {},
+    }
+
+
+@pytest.mark.parametrize("code", ["F32", "F33", "F41.1", "F41.9"])
+def test_mental_health_chronic_followup_routes_to_psychiatry_1281(psychiatry_hospital, code):
+    """Depression / anxiety follow-up routes to Psychiatry at a hospital
+    that offers the service line. Pre-#1281 these fell to
+    `internal_medicine` (default for unmapped chronic codes)."""
+    assert resolve_outpatient_department("chronic_followup", code, None, psychiatry_hospital) == "psychiatry"
+
+
+@pytest.mark.parametrize("code", ["F32", "F33", "F41.1"])
+def test_mental_health_at_community_hospital_rolls_up_to_internal_medicine_1281(hospital_ops, code):
+    """The community-hospital fixture doesn't staff psychiatry — the
+    rollup path (declared in `hospital_operations.yaml`) folds
+    `psychiatry` → `internal_medicine`, matching real primary-care
+    management of stable mild-to-moderate MDD / GAD."""
+    hospital_ops["department_rollup"]["psychiatry"] = "internal_medicine"
+    dept = resolve_outpatient_department("chronic_followup", code, None, hospital_ops)
+    assert dept == "internal_medicine"
