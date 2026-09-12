@@ -156,6 +156,32 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   keeps Ketorolac with the ``CSKT`` order-id suffix; (c) shared 5 drugs
   (Cefazolin, Bupivacaine, Fentanyl, Ondansetron, Oxytocin) present on
   both sides unchanged.
+- **Implied-chronic co-morbidity Conditions stamped with acute-admission
+  onset date, not backdated to a plausible historical onset** (Issue
+  #1339). When ``simulator/inpatient.py``'s ``_IMPLIED_CHRONIC_BY_DISEASE``
+  branch fires (e.g. K85.9 pancreatitis admission → K74 cirrhosis on
+  workup, K44.1 CAP → J44 COPD, I63.9 CVA → I25 CAD + I48 Afib), it
+  appended each implied ChronicCondition with ``onset_date =
+  admission_date``, producing "chronic condition first appearing at the
+  acute event" records. Exemplars at p=200/s356: pt-a16a514a4f93
+  K74 cirrhosis onset = 2026-01-05 K85.9 admission; pt-8ad04d397d65 I25
+  CAD + I48 Afib both onset = 2025-10-06 CVA admission.
+
+  Fix: routed the emit through new
+  ``clinosim.modules.patient.activator.derive_implied_chronic_onset``
+  which backdates 1-14 years by ``SHA256(patient_id, base_code)`` (same
+  window as the population-time activator sampler) and applies the same
+  ``dob + min_onset_age`` floor as ``_clamp_chronic_onset``. Hash-derived
+  so the master RNG cascade is unperturbed
+  (RNG-neutral-additive-field pattern) and re-runs land the same onset
+  for the same patient × code.
+
+  Verification (p=200 s356 US): chronic-code Conditions with onset date
+  matching earliest IMP admission dropped 26 → 5. The 5 residual are all
+  J44.1 / J45.x acute exacerbations as encounter-diagnosis, which
+  correctly onset at admission (the exacerbation IS the acute event) —
+  the chronic J44.9 / J45.909 problem-list-item now carries the
+  backdated onset (2020-04-12, 2017-02-08 in the exemplar traces).
 
 - **Inpatient progress_note subjective repeats identical boilerplate
   across every hospital day** (Issue #1327). When today's vitals carry

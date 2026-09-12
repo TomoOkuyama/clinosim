@@ -693,9 +693,11 @@ def _simulate_patient(
     _patient_age = int(getattr(patient, "age", 0) or 0)
     _implied = _IMPLIED_CHRONIC_BY_DISEASE.get(disease_id, [])
     if _implied:
+        from clinosim.modules.patient.activator import derive_implied_chronic_onset
         from clinosim.types.patient import ChronicCondition
 
         _adm_date = getattr(admission_time, "date", lambda: admission_time)()
+        _dob = getattr(patient, "date_of_birth", None)
         for _code in _implied:
             _base = _code.split(".")[0]
             if _base in _existing_codes:
@@ -709,10 +711,16 @@ def _simulate_patient(
             if _min_age is not None and _patient_age < _min_age:
                 continue  # skip age-restricted ICD for younger patients
             _existing_codes.add(_base)
+            # Issue #1339: backdate the implied-chronic onset from
+            # (patient_id, code) hash so it precedes the acute admission
+            # by 1-14 years, matching the population-time sampling window.
+            # RNG-neutral (deterministic per patient×code, no master-RNG
+            # consumption) — see `derive_implied_chronic_onset`.
+            _backdated = derive_implied_chronic_onset(patient.patient_id, _code, _adm_date, _dob)
             patient.chronic_conditions.append(
                 ChronicCondition(
                     code=_code,
-                    onset_date=_adm_date,
+                    onset_date=_backdated,
                 )
             )
 
