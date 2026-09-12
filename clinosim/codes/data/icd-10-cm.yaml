@@ -1056,9 +1056,18 @@ codes:
   A15.0:
     en: "Tuberculosis of lung"
     ja: "肺結核"
+  C15.9:
+    en: "Malignant neoplasm of esophagus, unspecified"
+    ja: "食道の悪性新生物、詳細不明"
   C16.9:
     en: "Malignant neoplasm of stomach, unspecified"
     ja: "胃の悪性新生物、詳細不明"
+  C25.9:
+    en: "Malignant neoplasm of pancreas, unspecified"
+    ja: "膵臓の悪性新生物、詳細不明"
+  C67.9:
+    en: "Malignant neoplasm of bladder, unspecified"
+    ja: "膀胱の悪性新生物、詳細不明"
   # Cancer category codes for family history display (FamilyMemberHistory.condition,
   # not emitted as billable patient Conditions). Names per NLM ICD-10-CM / WHO ICD-10.
   C18:
