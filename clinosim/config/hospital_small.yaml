@@ -44,6 +44,9 @@ department_rollup:
   radiation_oncology: internal_medicine
   hematology_oncology: internal_medicine
   medical_oncology: internal_medicine
+  # Issue #1281 sub-scope: tiny clinic doesn't run psychiatry either;
+  # depression / anxiety follow-up rolls to internal_medicine.
+  psychiatry: internal_medicine
 
 wards:
   internal_medicine: ["1F"]              # single ward

@@ -80,6 +80,14 @@ department_rollup:
   radiation_oncology: oncology
   hematology_oncology: oncology
   medical_oncology: oncology
+  # Issue #1281 sub-scope: this 50-bed community hospital does NOT
+  # staff a dedicated psychiatry service line (psychiatric care is
+  # referred to a partnered mental-health facility for severe cases).
+  # Stable mild-to-moderate depression / anxiety follow-up is managed
+  # by internal medicine per real primary-care patterns in Japan.
+  # A future hospital config that does offer psychiatry would drop
+  # this rollup so those visits route to their own service line.
+  psychiatry: internal_medicine
 
 # Ward layout — which ward(s) each department uses + bed count per ward
 wards:

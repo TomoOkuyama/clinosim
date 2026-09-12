@@ -99,6 +99,17 @@ _CHRONIC_DISEASE_SPECIALTY: dict[str, str] = {
     "C61": "oncology",  # prostate
     "C67": "oncology",  # bladder
     "C71": "oncology",  # brain / glioma
+    # Mental health chronic — Issue #1281 sub-scope. Depression /
+    # anxiety follow-up visits belong in Psychiatry (`精神科`), not
+    # Internal Medicine — but community hospitals often lack a
+    # dedicated psychiatry service line, in which case the rollup at
+    # `hospital_ops::department_rollup` maps `psychiatry` back to
+    # `internal_medicine` (matches real primary-care management of
+    # stable, mild-to-moderate MDD / GAD).
+    "F32": "psychiatry",  # Depressive episode
+    "F33": "psychiatry",  # Recurrent depressive disorder
+    "F41.1": "psychiatry",  # Generalized anxiety disorder
+    "F41.9": "psychiatry",  # Anxiety disorder, unspecified
 }
 
 # Screening event_type → clinical specialty.
