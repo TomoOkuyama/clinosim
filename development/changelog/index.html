@@ -2306,6 +2306,35 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Inpatient progress_note subjective repeats identical boilerplate
+  across every hospital day</strong> (Issue #1327). When today's vitals carry
+  no abnormal marker (fever / hypothermia / hypoxia), the
+  <code>_compose_progress_subjective_from_state</code> fallback emitted the
+  same "自覚症状に著変なし。" / "No new subjective complaints."
+  string on every day of a multi-day stay. Exemplar pt-25a61e67a2e2
+  (JP, 99yo F, 15-day I50.9 CHF admission) produced 15 identical daily
+  notes despite the CIF containing a Cr 4.26 → 0.84 recovery and
+  dyspnea improvement trend.</li>
+</ul>
+<p>Fix: (a) added a yesterday-vs-today trend comparison — a resolved
+  fever now renders "熱型下降 (前日 38.6°C → 本日 37.0°C)。" instead
+  of falsely repeating "Persistent fever"; a new-onset fever renders
+  "発熱 38.6°C 出現。"; a recovering SpO2 renders "SpO2 改善 (前日
+  88% → 本日 95%)。"; (b) when today has no abnormal signal, pick a
+  phase-aware neutral phrase from a small pool (early / mid / late /
+  discharge-eve) rotated deterministically by <code>day_index</code> so
+  consecutive days differ. Every phrase describes the clinical hold
+  ("食事摂取良好、明らかな苦痛の訴えなし。" / "Continuing planned
+  therapy; symptoms broadly stable.") without asserting an unmodeled
+  symptom — a nurse's neutral-observation vocabulary, not fabrication.
+  Rotation is deterministic (no RNG consumed) so seed reproducibility
+  is preserved.</p>
+<p>Verification: 10-day stable stay now shows ≥3 distinct subjective
+  bodies (was 1). Trend phrases surface on the correct day.</p>
+<p>Non-scope: full disease-phase-driven daily_trajectory (Issue #1327
+  suggested-fix bullet 1) would require per-disease YAML expansion
+  and is deferred as a larger design.</p>
+<ul>
 <li><strong>Chest-imaging DiagnosticReport with descriptor-only abnormal
   impression ("Hyperinflation..." / "肺過膨張、横隔膜平坦化、胸骨後
   腔拡大。") classified as Normal</strong> (Issue #1324). The
