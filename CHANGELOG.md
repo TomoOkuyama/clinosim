@@ -41,6 +41,28 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Chronic once-daily meds administered 2-3× per calendar day inpatient**
+  (Issue #1337). ``enrich_medication_order`` populated
+  ``order.frequency_per_day`` only when ``parse_dose_string`` recognised
+  a frequency token; chronic home meds arrive from
+  ``HomeMedication.frequency = "daily"`` with a numeric-only
+  ``dose = "50mcg"`` — ``parse_dose_string`` finds no token in that
+  substring, so ``frequency_per_day`` stayed None. The MAR scheduler in
+  ``_generate_mar`` then fell through to its TID default
+  ``admin_hours = [8, 14, 20]`` for every once-daily home med
+  (Levothyroxine 100 % of 26 JP encounters, Enalapril, Vitamin D, Sodium
+  bicarb, Lansoprazole …) — a doubled-to-tripled dose emit throughout
+  the entire inpatient stay.
+
+  Fix: fall back to ``_FREQ_PER_DAY`` lookup against ``order.frequency``
+  itself when ``parse_dose_string`` yields no ``frequency_per_day`` —
+  so a bare ``"DAILY"`` label maps to ``frequency_per_day = 1``, MAR
+  emits once/day, and the doubled-dose signature clears. Verified on
+  p=500 JP: 0 / 4 Enalapril encounters (was 100 % baseline) with
+  >1× same-day admin; Levothyroxine cohort now correctly single-dosed.
+
+
+
 - **JP MedicationAdministration.medicationCodeableConcept.text emits
   Japanese for chemo drugs** (Issue #1310). PR #1303 catalogued
   Gemcitabine / Irinotecan / Nab-paclitaxel / Temozolomide / BCG with
