@@ -197,18 +197,26 @@ Sodium polystyrene sulfonate: "ポリスチレンスルホン酸ナトリウム"
 # Sorafenib 9× / Lenvatinib 9× observed in the session-104 H100 p=100
 # verify).
 Anastrozole: "アナストロゾール"            # MHLW YJ 4291010F1201 (アナストロゾール1mg、Issue #1233)
+BCG: "BCG（膀胱内注入療法）"                # MHLW HOT7 (BCG 膀胱内注入用、Issue #1310)
+"BCG intravesical": "BCG（膀胱内注入療法）" # disease-YAML alias form
 Bicalutamide: "ビカルタミド"               # MHLW YJ 4291009F1101 (ビカルタミド80mg、Issue #1233)
 Capecitabine: "カペシタビン"               # MHLW YJ 4223005F1030 (カペシタビン300mg、Issue #1233)
 Carboplatin: "カルボプラチン"              # MHLW YJ 4291403A2149 (カルボプラチン150mg、Issue #1233)
 Folic acid: "葉酸"
+Gemcitabine: "ゲムシタビン"                # MHLW HOT7 (ゲムシタビン塩酸塩、Issue #1310)
+Irinotecan: "イリノテカン"                 # MHLW HOT7 (イリノテカン塩酸塩水和物、Issue #1310)
 Lenvatinib: "レンバチニブ"                 # MHLW YJ 4291039M2027 (レンビマ10mg、Issue #1233)
 Leucovorin: "ロイコボリン"                 # MHLW YJ 3929004F2030 (ロイコボリン25mg、Issue #1233)
 Leuprorelin: "リュープロレリン"            # MHLW YJ 2499407G2034 (リュープロレリン3.75mg、Issue #1233)
+"Nab-paclitaxel": "ナブパクリタキセル"     # MHLW HOT7 (パクリタキセル、アルブミン懸濁型、Issue #1310)
+Nab_paclitaxel: "ナブパクリタキセル"       # underscore-form used inside a few disease YAMLs
+"nab-Paclitaxel": "ナブパクリタキセル"     # case-variant alias
 Osimertinib: "オシメルチニブ"              # MHLW YJ 4291045F2023 (タグリッソ80mg、Issue #1233)
 Oxaliplatin: "オキサリプラチン"            # MHLW YJ 4291410A2084 (オキサリプラチン100mg、Issue #1233)
 Pemetrexed: "ペメトレキセド"               # MHLW YJ 4229401A2020 (ペメトレキセド500mg、Issue #1233)
 Sorafenib: "ソラフェニブ"                  # MHLW YJ 4291017F1025 (ネクサバール200mg、Issue #1233)
 Tamoxifen: "タモキシフェン"                # MHLW YJ 4291003F1210 (タモキシフェン10mg、Issue #1233)
+Temozolomide: "テモゾロミド"               # MHLW HOT7 (テモゾロミド、Issue #1310)
 Trastuzumab: "トラスツズマブ"              # MHLW YJ 4291442D2030 (トラスツズマブBS 150mg、Issue #1233)
 
 # --- IV fluids / 輸液 ---
@@ -359,20 +367,6 @@ Rust ring removal with burr: "バーによる錆輪除去"
 # localizes correctly.
 "ICS/LABA inhaler": "吸入ステロイド／β2刺激薬配合吸入剤"
 "ICS/LABA": "吸入ステロイド／β2刺激薬配合"
-
-# --- Chemotherapy agents (Issue #1310, catalogued by PR #1303) ---
-# Text-localization for medicationCodeableConcept.text; corresponding
-# HOT7 / RxNorm codings already carry a Japanese `display`, but the
-# top-level `.text` field (which JP consumers read first) was falling
-# through the English fallback until these keys were added.
-Gemcitabine: "ゲムシタビン"
-Irinotecan: "イリノテカン"
-"Nab-paclitaxel": "ナブパクリタキセル"
-Nab_paclitaxel: "ナブパクリタキセル"       # underscore-form used inside a few disease YAMLs
-"nab-Paclitaxel": "ナブパクリタキセル"
-Temozolomide: "テモゾロミド"
-BCG: "BCG（膀胱内注入療法）"
-"BCG intravesical": "BCG（膀胱内注入療法）"
 
 # --- Allergens / アレルゲン ---
 Penicillin: "ペニシリン"
