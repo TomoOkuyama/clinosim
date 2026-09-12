@@ -39,6 +39,20 @@ codes:
   G20: 30   # Parkinson's — young-onset rare < 30
   G30: 50   # Alzheimer's — adult-onset
 
+  # === Substance-use disorders (Issue #1349) ===
+  # DSM-5 / ICD-10 diagnostic criteria for substance-use dependence
+  # require a pattern of use over time; pediatric dependence-level
+  # diagnoses (F10 alcohol, F17 nicotine) are clinically implausible.
+  # F10 minimum onset ~15 (adolescent AUD rare but recognised);
+  # F17 minimum onset ~16 (nicotine dependence diagnosed post-16 typically).
+  # SDOH-derived Condition emit path (population/engine.py) already gates
+  # smoking_status / alcohol_use to "never" / "none" for age < 18, so
+  # this floor primarily guards the chronic-condition onset-date sampler
+  # from placing dependence-code onsets years before the patient became
+  # of legal age (Issue #1349 exemplar: F10.20 with onsetDateTime at age 9).
+  F10: 15   # Alcohol use / dependence — DSM-5 AUD rare < 15
+  F17: 16   # Nicotine dependence — dependence-level dx typically ≥ 16
+
   # === Musculoskeletal ===
   M17: 40   # Knee OA — degenerative
 
