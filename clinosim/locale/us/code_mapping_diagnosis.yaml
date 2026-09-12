@@ -33,6 +33,14 @@ J45: "J45.909"      # Unspecified asthma, uncomplicated
 N40: "N40.0"        # Benign prostatic hyperplasia without lower urinary tract symptoms
 M17: "M17.9"        # Osteoarthritis of knee, unspecified
 
+# Mental-health category headers → billable ICD-10-CM leaves (Issue #1309).
+# Bare F32 / F33 are non-billable category headers in ICD-10-CM; F32.9 /
+# F33.9 are the "unspecified" leaves used when the encounter documentation
+# does not distinguish severity / recurrence pattern. Matches the sim's
+# current clinical modeling depth (mood cohort without severity subtyping).
+F32: "F32.9"        # Depressive episode, unspecified
+F33: "F33.9"        # Major depressive disorder, recurrent, unspecified
+
 # --- Oncology / obstetric chronic conditions (Issue #943) ---
 #     Category codes emitted as billable ICD-10-CM base (category is billable when
 #     the site is unspecified; NLM Clinical Tables verified). Site-specific leaves
