@@ -41,6 +41,31 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Duplicate cross-encounter Oxygen therapy Procedure emit — 62
+  same-patient / same-code / same-``performedPeriod`` pairs across
+  distinct encounters on p=10k US** (Issue #1352). The oxygen-therapy
+  builder walks every encounter in the record and emits one Procedure
+  per encounter that has ``on_supplemental_oxygen=True`` vitals. The
+  session-derivation helper (``_oxygen_session_period``) then falls
+  back to "all vitals in the record" whenever the per-encounter
+  ``encounter_id`` filter yields an empty list — a legacy affordance
+  for single-encounter CIF files that historically omitted the
+  ``encounter_id`` field on vitals. In multi-encounter records this
+  fallback silently attributed the FIRST encounter's on-O2 vitals to
+  every subsequent encounter that had none of its own, so an
+  outpatient VAX visit 12 months after an AIN inpatient admission
+  emitted a duplicate Oxygen therapy Procedure carrying the AIN
+  session's timestamps under the VAX encounter reference.
+
+  Fix: multi-encounter records now disable the unattributed-vitals
+  fallback — encounters without matching ``encounter_id`` vitals are
+  skipped with the existing ``no_on_o2_vitals`` log reason.
+  Single-encounter records still fall back so the historical CIF
+  shape keeps working. Regression tests
+  (``test_multi_encounter_second_encounter_without_on_o2_vitals_is_skipped_1352``,
+  ``test_single_encounter_untagged_vitals_still_emit_1352_backcompat``)
+  guard both sides.
+
 - **Anachronistic chronic DAPT on I25 patients** (Issue #1330). Chronic
   Clopidogrel (as DAPT with Aspirin) is only indicated within 6-12 mo
   of PCI / ACS per ACC/AHA / ESC / JCS 2022 — long-term chronic DAPT
