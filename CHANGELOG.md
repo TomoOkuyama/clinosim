@@ -105,6 +105,42 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   ``test_extended_procedure_crosswalk_covers_top_15_empty_coding_buckets_1308``
   asserts every one of the 15 exemplar display strings from the
   Issue reproduction resolves to the expected SNOMED code.
+- **Continuous IV infusion MedicationRequests emit a misleading
+  ``doseQuantity`` scalar alongside the correct ``rateQuantity``** —
+  Norepinephrine/Dobutamine drips carry `dose 0.05 μg` next to
+  `rate 0.05 μg/kg/min` (Issue #1332). ``augment_iv_dosage_with_rate``
+  correctly populates ``rateQuantity`` from the
+  ``iv_infusion_defaults.yaml`` catalog when the drug is marked
+  ``mode: continuous``, but the generic dose parser leaves behind the
+  scalar it peeled from the dose text ("0.05 μg" → doseQuantity 0.05
+  μg). Downstream consumers read the vestigial doseQuantity as a total
+  single-dose — a 10,000× underdose interpretation for a titrated drip.
+
+  Fix: for ``mode: continuous`` drugs, drop the vestigial
+  ``doseQuantity`` (and the orphaned JP eCS strength-type qualifier
+  bound to it) from ``doseAndRate[0]``, leaving only the correct
+  ``rateQuantity``. Bolus (Ceftriaxone / oxaliplatin) and push
+  (Fentanyl) drugs retain their ``doseQuantity`` unchanged. The
+  sibling ``MedicationAdministration`` records the nurse fills at
+  bag-hang time are the canonical source for actually-administered
+  volume — the ordered ``MedicationRequest`` should only assert the
+  rate.
+
+  Regression tests:
+  - ``test_continuous_drop_dose_quantity_1332`` covers the 4 exemplar
+    vasopressors (Norepinephrine / Dobutamine / Epinephrine /
+    Dopamine) — every one must carry ``rateQuantity`` and NOT
+    ``doseQuantity`` / ``type`` after the augmentation.
+  - ``test_bolus_preserves_dose_quantity_1332_backcompat`` guards
+    Ceftriaxone (bolus) and Fentanyl (push) — neither loses its
+    ``doseQuantity``.
+
+  Non-scope: Issue #1332 also mentions insulin drip / propofol /
+  heparin drip / nitroglycerin — those drugs would benefit from
+  ``mode: continuous`` entries in ``iv_infusion_defaults.yaml``
+  (out of this PR's scope; the fix here is universal for any
+  continuous-mode entry once its rate is authored). Nitroglycerin
+  and insulin drip catalog additions are deferred as a follow-up.
 
 - **Chest-imaging DiagnosticReport with descriptor-only abnormal
   impression ("Hyperinflation..." / "肺過膨張、横隔膜平坦化、胸骨後
