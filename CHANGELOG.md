@@ -41,6 +41,36 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Chest-imaging DiagnosticReport with descriptor-only abnormal
+  impression ("Hyperinflation..." / "肺過膨張、横隔膜平坦化、胸骨後
+  腔拡大。") classified as Normal** (Issue #1324). The
+  ``_derive_imaging_conclusion_code`` walker checks a fixed abnormal
+  keyword list before falling through to Normal. The list carried
+  generic markers ("異常" / "abnormal") and named acute findings
+  (fracture / opacity / mass / consolidation / effusion / nodule),
+  but not the chronic-parenchymal descriptor vocabulary radiologists
+  use for COPD emphysema — hyperinflation, flattened diaphragm,
+  increased retrosternal airspace. Descriptor-only impressions
+  therefore fell through to Normal (SNOMED 17621005) even when the
+  text was clearly abnormal.
+
+  Fix: extend the abnormal-keyword list with common CXR / chest
+  descriptors — JP: 過膨張 / 過膨脹 / 平坦化 / 胸骨後腔拡大 / 気胸 /
+  心拡大 / 胸水 / 肺水腫 / 無気肺 / 透過性; EN: hyperinflation /
+  flattened diaphragm / retrosternal / pneumothorax / cardiomegaly /
+  pleural effusion / pulmonary edema / atelectasis / infiltrate /
+  lesion. The negation-first ordering is preserved so "no
+  hyperinflation" still resolves to Normal (never override
+  a committed negation).
+
+  Verification (p=500 seed=356 JP): 6 CXR DR with the COPD triad
+  ("肺過膨張、横隔膜平坦化、胸骨後腔拡大。") previously carrying
+  Normal conclusionCode now correctly resolve to Abnormal.
+
+  Non-scope: Issue #1324 also reports "2 CXRs 2 minutes apart on the
+  same ED encounter is unrealistic" — that's a separate imaging-order
+  dedup concern, filed as a follow-up.
+
 - **Duplicate Condition emit when admit_dx and discharge_dx collapse to
   the same code under the locale mapping** (Issue #1341). The
   encounter-Condition builder decides whether to emit a separate
