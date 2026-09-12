@@ -41,6 +41,34 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **JP MedicationAdministration.medicationCodeableConcept.text emits
+  Japanese for chemo drugs** (Issue #1310). PR #1303 catalogued
+  Gemcitabine / Irinotecan / Nab-paclitaxel / Temozolomide / BCG with
+  Japanese displays on the HOT7 and RxNorm codings, but
+  ``clinosim/locale/shared/drug_names_ja.yaml`` — the SoT consumed by
+  ``_localize_drug_name`` for the top-level ``.text`` field — had no
+  entries for the five new drugs, so JP consumers reading
+  ``.text`` first saw the English name. Added entries for
+  Gemcitabine / Irinotecan / Nab-paclitaxel (both hyphenated and
+  underscored variants) / Temozolomide / BCG (including the
+  ``BCG intravesical`` disease-YAML alias). p=200 s=356 JP verify:
+  Temozolomide now emits as ``テモゾロミド`` on both
+  MedicationRequest and MedicationAdministration. FHIR-emit-only
+  change: CIF byte-unchanged; PATCH.
+- **Depression Condition emits bare F32 / F33 (non-billable ICD-10-CM)**
+  (Issue #1309, US-only). ``F32`` and ``F33`` are ICD-10-CM category
+  headers; billable leaves are ``F32.0-F32.9`` and ``F33.0-F33.9``. The
+  sim's current mood-cohort modeling has no severity subtyping, so the
+  clinically-appropriate leaf is ``.9`` "unspecified". Added
+  ``F32 → F32.9`` and ``F33 → F33.9`` to
+  ``clinosim/locale/us/code_mapping_diagnosis.yaml`` and the
+  corresponding ``F32.9`` / ``F33.9`` displays to
+  ``clinosim/codes/data/icd-10-cm.yaml``. p=10k s=356 baseline: 484
+  bare F32 + 128 bare F33 → 0 after fix; all become F32.9 / F33.9 with
+  the same cohort volume. JP-side counterpart (#1320) tracked
+  separately (requires broader WHO ICD-10 leaf additions to
+  ``icd-10.yaml``).
+
 - **Non-daily MedicationRequest.dosageInstruction.timing.repeat coverage**
   (Issue #1348). The prior derivation table recognised only daily / q6h
   / q4h / q3h / q2h / qhs, so ``weekly`` (Alendronate),
@@ -102,6 +130,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   ``rng.random()`` draw per I25 patient (chronic-med sampler);
   classified MINOR under the CIF-narrative consistency policy for
   the affected cohort.
+- **US Core Patient extensions** — us-core-race, us-core-ethnicity,
+  us-core-birthsex (Issue #1344). Every US Patient resource previously
+  emitted with no extensions at all, so 100 % of the cohort failed US
+  Core AllPatients profile conformance. Adds three
+  Extension builders in ``clinosim/modules/output/fhir_r4/demographics/
+  patient.py`` and wires them into ``_build_patient`` behind an
+  ``is_jp(country)`` guard — US emit only; JP behaviour unchanged.
+
+  Race and ethnicity source ``PatientProfile.race`` /
+  ``PatientProfile.ethnicity`` (already sampled by
+  ``patient.activator`` from US ``demographics.yaml``
+  ``race_distribution`` / ``ethnicity_distribution``), translated to
+  the OMB code+display pairs on the CDC race+ethnicity CodeSystem
+  (``urn:oid:2.16.840.1.113883.6.238``). Birthsex maps
+  ``PatientProfile.sex`` → ``M`` / ``F`` on the us-core-birthsex slot.
+  Unknown / unmapped slugs are omitted rather than fabricated
+  (feedback_empty_vs_wrong_assertion) — newborn / pediatric records
+  where the race sampler has not fired still get birthsex but no
+  race / ethnicity.
+
+  Verification (p=200 s=356 US): 123/125 adults carry race +
+  ethnicity, 125/125 carry birthsex. Adult race distribution
+  approximates US Census 2020 (White 56 %, Black 13 %, Asian 6 %,
+  Native American 2 %, Other 22 % — the "Other" over-share is a
+  yaml-tuning follow-up); Hispanic ethnicity 18.4 % matches Census
+  18.7 %. FHIR-emit-only change: CIF byte-unchanged; PATCH under the
+  CIF-narrative consistency policy.
 - **Demographic contraindication gate for ED medication dispatch**
   (Issues #1316, #1328 — CATASTROPHIC pediatric aspirin/NTG +
   Tamsulosin sex/age mismatch). New
