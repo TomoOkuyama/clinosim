@@ -1,0 +1,75 @@
+# MEDIS 標準病名マスター 病名管理番号 (8-digit) crosswalk seed.
+#
+# CodeSystem URI: http://medis.or.jp/CodeSystem/master-disease-keyNumber
+# Registered separately in `codes/loader.py::_BUILTIN_URIS` under the
+# key `medis-disease-keyno`.
+#
+# ---------------------------------------------------------------------
+# Purpose (Issue #1277)
+# ---------------------------------------------------------------------
+# JP-CLINS `JP_Condition_eCS` requires every Condition to carry the
+# MEDIS 病名管理番号 coding on `code.coding:medisRecordNo`. Pre-#1277
+# every clinosim JP Condition emitted the `99999999 未コード化傷病名`
+# placeholder because no ICD-10 → MEDIS crosswalk was available.
+# Consumers running JP DPC / claim analytics on the emitted data
+# therefore saw the placeholder for every diagnosis, unable to key on
+# a real 傷病名 code.
+#
+# This file is the seed crosswalk — a hand-verified subset of the full
+# MEDIS master (which has ~24,000 codes and requires manual
+# acquisition from medis.or.jp). Entries below are cross-referenced
+# against the `medis-codesystem-diseasekanricodes` CodeSystem shipped
+# by `fhir-jp-validator` at
+# `tx-server-build/terminology/fhir-server/jpfhir-terminology#2.2606.0/
+#  package/CodeSystem-medis-codesystem-diseasekanricodes.json`
+# (which itself is a 2000-concept `content=fragment` subset of the
+# MEDIS 5.18 master, published by 日本医療情報学会 一般社団法人).
+#
+# ---------------------------------------------------------------------
+# Extending the crosswalk
+# ---------------------------------------------------------------------
+# Each new entry requires:
+# 1. Locating the target ICD-10 code in the sim's chronic-conditions
+#    space (see `chronic_medications.yaml` + `chronic_followup.yaml`).
+# 2. Finding a matching entry in the MEDIS diseasekanricodes CodeSystem
+#    OR the full MEDIS master (medis.or.jp). Match must be:
+#      a) A clean 1:1 (ICD covers the specific MEDIS concept, not a
+#         subtype qualifier).
+#      b) NOT a specific disease-with-complication subtype (e.g.
+#         MEDIS 20105909 `２型糖尿病合併慢性腎臓病` maps to combined
+#         E11.2+N18, NOT bare N18 — do not use it for N18 alone).
+# 3. Adding one line here + updating the count in the docstring.
+#
+# No fabrication policy: if no clean match exists (e.g. the fragment
+# has no `本態性高血圧症` for I10), leave the entry out — the emit
+# path falls back to the `99999999` placeholder for unmapped codes
+# (spec-compliant JP-CLINS behaviour).
+#
+# ---------------------------------------------------------------------
+# Seed contents (verified 2026-09-12 against fhir-jp-validator
+# jpfhir-terminology 2.2606.0 / MEDIS 5.18 fragment):
+# ---------------------------------------------------------------------
+metadata:
+  name: MEDIS 標準病名マスター 病名管理番号 (crosswalk seed)
+  uri: http://medis.or.jp/CodeSystem/master-disease-keyNumber
+  version: "5.18-fragment-seed"
+  source: >-
+    fhir-jp-validator jpfhir-terminology 2.2606.0 CodeSystem
+    `medis-codesystem-diseasekanricodes` (fragment of MEDIS 5.18
+    master). Verified 2026-09-12.
+  description: >-
+    Seed ICD-10 → MEDIS 病名管理番号 crosswalk. Two clean 1:1 entries
+    at seed time. Extend as authoritative MEDIS matches are added
+    (see file header for the extending workflow + no-fabrication
+    policy).
+
+# ICD-10-mhlw code → MEDIS 病名管理番号 entry
+crosswalk:
+  E11.9:
+    medis_code: "20050020"
+    medis_display: "２型糖尿病"
+    fragment_source: "medis-codesystem-diseasekanricodes concept[20050020]"
+  I50:
+    medis_code: "20084004"
+    medis_display: "うっ血性心不全"
+    fragment_source: "medis-codesystem-diseasekanricodes concept[20084004]"
