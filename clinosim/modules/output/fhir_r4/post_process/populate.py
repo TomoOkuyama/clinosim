@@ -12,6 +12,8 @@ here than to weave through every resource-specific builder. Also owns
 
 from __future__ import annotations
 
+import functools
+from pathlib import Path
 from typing import Any
 
 from clinosim.codes import lookup as code_lookup
@@ -621,6 +623,59 @@ _MEDIS_UNCODED_DISEASE_CODE = "99999999"
 _MEDIS_UNCODED_DISEASE_DISPLAY = "未コード化傷病名"
 
 
+# Issue #1277: seed ICD-10 → MEDIS 病名管理番号 crosswalk. Loaded once
+# from `codes/data/medis-disease-keyno.yaml`; each entry is a
+# hand-verified 1:1 match cross-referenced against the fhir-jp-
+# validator jpfhir-terminology 2.2606.0 MEDIS 5.18 fragment. Falls
+# back to the `99999999` placeholder for un-mapped ICD-10 codes
+# (spec-compliant JP-CLINS behaviour).
+@functools.lru_cache(maxsize=1)
+def _load_medis_crosswalk() -> dict[str, tuple[str, str]]:
+    """Return `{icd_code: (medis_code, medis_display)}` for verified
+    ICD-10-mhlw → MEDIS 病名管理番号 seed entries. Empty dict on any
+    load error so the caller falls back to the placeholder."""
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "medis-disease-keyno.yaml"
+    if not path.exists():
+        return {}
+    try:
+        with path.open(encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or {}
+    except (OSError, yaml.YAMLError):
+        return {}
+    out: dict[str, tuple[str, str]] = {}
+    for icd, entry in (data.get("crosswalk") or {}).items():
+        if not isinstance(entry, dict):
+            continue
+        code = str(entry.get("medis_code") or "").strip()
+        display = str(entry.get("medis_display") or "").strip()
+        if code and display:
+            out[str(icd).strip()] = (code, display)
+    return out
+
+
+def _medis_crosswalk_lookup(icd_code: str) -> tuple[str, str] | None:
+    """Look up a MEDIS 病名管理番号 (code, display) for an ICD-10 code.
+
+    Resolution order:
+      1. Exact ICD match in the crosswalk (`E11.9`).
+      2. Base ICD (`E11.9` → `E11`) — allows the seed to cover a
+         family of subtypes with one entry when clinically valid.
+      3. None — caller emits the `99999999` placeholder.
+    """
+    if not icd_code:
+        return None
+    crosswalk = _load_medis_crosswalk()
+    hit = crosswalk.get(icd_code)
+    if hit is not None:
+        return hit
+    base = icd_code.split(".")[0]
+    if base != icd_code:
+        return crosswalk.get(base)
+    return None
+
+
 # HL7 condition-clinical / condition-ver-status display map. The tiny code
 # vocabulary is not in clinosim/codes/data/ (they are HL7 spec CS, not
 # clinical codes) so we keep the English display map inline.
@@ -1178,22 +1233,45 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
 
     # (4b) JP-CLINS `JP_Condition_eCS` `code.coding:medisRecordNo` slice min=1.
     #  (v4 feedback, 6,242 errors, -1.5pp). Every JP
-    # Condition must carry a MEDIS 病名管理番号 coding; without an ICD-10 →
-    # keyNumber crosswalk shipped in clinosim, we use the MEDIS "uncoded
-    # disease" placeholder — a real, spec-registered entry (`99999999` /
-    # `未コード化傷病名`) used in JP hospital systems when reception input
-    # does not map cleanly. Idempotent: skips when a MEDIS coding is already
-    # present so future per-ICD-10 curation can be layered without conflict.
+    # Condition must carry a MEDIS 病名管理番号 coding.
+    #
+    # Issue #1277 (2026-09-12): the seed ICD-10 → MEDIS 病名管理番号
+    # crosswalk in `codes/data/medis-disease-keyno.yaml` provides
+    # verified entries for the small subset of ICD-10 codes cross-
+    # referenced against the fhir-jp-validator jpfhir-terminology
+    # 2.2606.0 fragment of the MEDIS 5.18 master. For ICD-10 codes
+    # NOT in the crosswalk, we still emit the MEDIS "uncoded disease"
+    # placeholder (`99999999` / `未コード化傷病名`) — a real, spec-
+    # registered entry used in JP hospital systems when reception
+    # input does not map cleanly. Idempotent: skips when a MEDIS
+    # coding is already present so future per-ICD-10 curation can be
+    # layered without conflict.
     if rt == "Condition" and is_jp(country):
         code_field = resource.get("code")
         if isinstance(code_field, dict):
             codings = code_field.setdefault("coding", [])
             if not any(isinstance(c, dict) and c.get("system") == _MEDIS_DISEASE_KEYNUMBER_SYSTEM for c in codings):
+                # Issue #1277: check the seed crosswalk against the
+                # primary ICD-10-mhlw coding on this Condition. Pick
+                # the first ICD-10 code we find that has a mapping;
+                # fall back to the placeholder when no ICD is mapped.
+                medis_code = _MEDIS_UNCODED_DISEASE_CODE
+                medis_display = _MEDIS_UNCODED_DISEASE_DISPLAY
+                for existing in codings:
+                    if not isinstance(existing, dict):
+                        continue
+                    icd_code = str(existing.get("code") or "")
+                    if not icd_code:
+                        continue
+                    mapped = _medis_crosswalk_lookup(icd_code)
+                    if mapped is not None:
+                        medis_code, medis_display = mapped
+                        break
                 codings.append(
                     {
                         "system": _MEDIS_DISEASE_KEYNUMBER_SYSTEM,
-                        "code": _MEDIS_UNCODED_DISEASE_CODE,
-                        "display": _MEDIS_UNCODED_DISEASE_DISPLAY,
+                        "code": medis_code,
+                        "display": medis_display,
                     }
                 )
 
