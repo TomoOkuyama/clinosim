@@ -41,6 +41,31 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Antidepressant chronic-med derivation for F32 / F33 / F41.1**
+  (#1281 → PR, META #1137 axis 1). The chronic-medications
+  dispatcher had no entries for the mental-health ICD codes, so
+  every F32 (depressive episode) and F33 (recurrent depressive
+  disorder) patient received zero antidepressants despite the
+  diagnosis being planted on `chronic_conditions` (p=10k s=354:
+  683 US and 369 JP diagnosed, 100 % untreated). Other chronic
+  conditions (HTN → Amlodipine, T2DM → Metformin, dyslip →
+  Atorvastatin, COPD → Tiotropium) already had generators in
+  `chronic_medications.yaml`. Fix adds F32, F33, F41.1 entries with
+  mutually-exclusive `ssri` class (Sertraline / Escitalopram /
+  Fluoxetine / Paroxetine) at APA / VA-DoD first-line coverage
+  (~65-75 % SSRI for depression, ~60 % for anxiety — matches SAMHSA
+  per-diagnosis treatment rates for insured adults). Per META
+  #1137's own sequencing note ("immediate work can land as minimal
+  in-place YAML changes; module split comes when content
+  accumulates"), the change lands as a YAML addition rather than a
+  new `mental_health/` module — the SSRI generator uses the exact
+  same infrastructure every other chronic condition already uses.
+  Follow-up: register SSRIs in `codes/data/rxnorm.yaml` +
+  `locale/{us,jp}/code_mapping_drug.yaml` so
+  `MedicationRequest.medicationCodeableConcept.coding` populates
+  (currently the emit path renders `.text` only until codes land).
+  **MINOR-scope**: adds `MedicationRequest` rows for the F32/F33/F41.1
+  cohort; re-narrate suggested for depressed and GAD patients.
 - **Cesarean surgical antimicrobial prophylaxis (Cefazolin 2 g IV)**
   (#1285 (partial) → PR). ACOG mandates a preoperative single dose
   of Cefazolin 2 g IV within 60 minutes before skin incision for
