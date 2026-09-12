@@ -535,9 +535,18 @@ def _build_encounter(
         # Issue #916: skip the AD entry when the admission dx is a Z-chapter
         # visit-reason code (no matching admission Condition emitted).
         _admit_dx_is_visit_reason = bool(admit_dx_code) and is_visit_reason_zcode(admit_dx_code)
+        # Issue #1341: mirror the ``raw AND mapped`` combining used by the
+        # sibling conditions builder. The two sides MUST agree on whether
+        # the admission Condition is emitted — if they disagree, the
+        # encounter's ``diagnosis[].condition.reference`` would point at a
+        # Condition that does not exist (dangling ref caught by the
+        # ``reference_integrity`` eval axis on the jp-100 preset). Prior
+        # ``OR`` combining fired the AD reference on mapping-collapse cases
+        # even after the conditions builder learned to suppress the actual
+        # admission Condition, causing a dangling reference.
         if not _admit_dx_is_visit_reason and (
             needs_admission_diagnosis_condition(admit_dx_code, primary_dx_code, chronic_condition_codes)
-            or needs_admission_diagnosis_condition(_mapped_admit, _mapped_primary, _mapped_chronics)
+            and needs_admission_diagnosis_condition(_mapped_admit, _mapped_primary, _mapped_chronics)
         ):
             _ad_display = _localize_display("Admission diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA)
             diagnosis_list.append(
