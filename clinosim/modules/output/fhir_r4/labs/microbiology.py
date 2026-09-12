@@ -479,6 +479,16 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 ],
             }
         ]
+        # Issue #1343: MB DR.conclusion — a one-line human-readable summary
+        # of the culture outcome. Previously blank (0 %); a reader with the
+        # ``conclusionCode`` alone cannot see WHICH organism grew or WHICH
+        # antibiotic sensitivities were tested. Populate from the same mb
+        # payload that drives ``presentedForm`` — organism display + a
+        # compact susceptibility summary for positive cultures, or the
+        # "no growth after 5-day incubation" wording for negatives.
+        _mb_conclusion = _mb_conclusion_text(mb, lang)
+        if _mb_conclusion:
+            report["conclusion"] = _mb_conclusion
         # CY8-16 polish: MB DR.issued default = reported_datetime。
         if not report.get("issued") and mb.get("reported_datetime"):
             from clinosim.modules.output.fhir_r4.lib.common import to_fhir_instant
@@ -495,6 +505,73 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         out.append(report)
 
     return out
+
+
+def _mb_conclusion_text(mb: dict, lang: str) -> str:
+    """One-line ``DiagnosticReport.conclusion`` text (Issue #1343).
+
+    For positive cultures (``mb["growth"]``): "<Organism> isolated" plus a
+    compact susceptibility summary (``PEN=S, CTX=S, VAN=R``). For
+    negatives: "No growth after 5-day incubation" / "5 日間培養で発育
+    なし。". Empty string only when the payload lacks both a growth flag
+    and an organism (a defensive guard — realistic microbiology events
+    always carry one).
+    """
+    growth = bool(mb.get("growth"))
+    organism = mb.get("organism_snomed", "") or ""
+    if not growth:
+        if not organism:
+            return "5 日間培養で発育なし。" if lang == "ja" else "No growth after 5-day incubation."
+        # Rare: growth flag off but organism recorded → treat as "not
+        # clinically significant, likely contaminant" for narrative honesty.
+        org_disp = code_lookup("snomed-ct", organism, lang) or organism
+        return (
+            f"{org_disp} を検出したが臨床的意義は乏しい(汚染疑い)。"
+            if lang == "ja"
+            else f"{org_disp} detected but not clinically significant (likely contaminant)."
+        )
+    org_disp = code_lookup("snomed-ct", organism, lang) if organism else ""
+    if not org_disp:
+        return "培養陽性(菌種同定中)。" if lang == "ja" else "Culture positive; organism identification pending."
+    sus_list = mb.get("susceptibilities") or []
+    if not sus_list:
+        return (
+            f"{org_disp} を分離。感受性検査は実施中。"
+            if lang == "ja"
+            else f"{org_disp} isolated; susceptibility panel pending."
+        )
+
+    # Compact sensitivity summary — pick up to 4 sensitivities to keep the
+    # line readable. Prefer the payload's ``antibiotic_display`` when
+    # provided; otherwise resolve the LOINC display and strip the trailing
+    # ``[Susceptibility]`` suffix / JA ``感受性`` suffix so the reader
+    # sees the drug name ("Ceftriaxone=S") rather than a bare LOINC code.
+    def _ab_label(sus: dict) -> str:
+        if sus.get("antibiotic_display"):
+            return str(sus["antibiotic_display"])
+        loinc = str(sus.get("antibiotic_loinc") or "")
+        if not loinc:
+            return "?"
+        disp = code_lookup("loinc", loinc, lang) or ""
+        if not disp:
+            return loinc
+        # Trim the "[Susceptibility]" / "感受性" tail — the header
+        # of the summary already establishes we are listing sensitivities.
+        for tail_marker in (" [Susceptibility]", "感受性"):
+            if disp.endswith(tail_marker):
+                disp = disp[: -len(tail_marker)]
+                break
+        return disp.strip() or loinc
+
+    parts: list[str] = []
+    for sus in sus_list[:4]:
+        ab = _ab_label(sus)
+        interp = str(sus.get("interpretation") or "?")
+        parts.append(f"{ab}={interp}")
+    tail = ", ".join(parts)
+    if len(sus_list) > 4:
+        tail += " …"
+    return f"{org_disp} を分離。感受性: {tail}。" if lang == "ja" else f"{org_disp} isolated. Susceptibility: {tail}."
 
 
 def _mb_presented_text(mb: dict, lang: str) -> str:

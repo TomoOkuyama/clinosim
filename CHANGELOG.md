@@ -41,6 +41,44 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Microbiology DiagnosticReport.conclusion emitted blank** (Issue
+  #1343). Every blood-culture / urine-culture / sputum-culture DR
+  populated ``conclusionCode`` (SNOMED Normal/Abnormal) and
+  ``presentedForm`` (multi-line attachment), but the canonical
+  ``conclusion`` single-line summary field was empty — a downstream
+  reader scanning ``DiagnosticReport.conclusion`` on the MB DR saw
+  nothing. Exemplar pt-2d4b7329af88 (US, 71yo F, CAP admission): 600-7
+  Bacteria identified in Blood by Culture DR with conclusionCode Normal
+  but conclusion "".
+
+  Fix: added ``_mb_conclusion_text`` in
+  ``clinosim/modules/output/fhir_r4/labs/microbiology.py`` which
+  produces a one-line human-readable summary from the same MB payload
+  that drives ``presentedForm``. Four canonical branches:
+
+  - Negative culture — "No growth after 5-day incubation" /
+    "5 日間培養で発育なし。"
+  - Positive with sensitivities — "\<Organism\> isolated. Susceptibility:
+    \<DrugA\>=S, \<DrugB\>=I, \<DrugC\>=R" (up to 4 drugs; "…" tail when
+    more panelled). Drug label resolved via ``code_lookup("loinc", …)``
+    with the ``[Susceptibility]`` / ``感受性`` suffix trimmed so the
+    reader sees "Ceftriaxone=S" rather than "18895-3=S".
+  - Positive without sensitivities — organism-only line noting the
+    panel is pending.
+  - Growth flag off but organism recorded — labelled as likely
+    contaminant so the reader isn't misled.
+
+  Verification (p=200 s356 US): MB DR ``conclusion`` populated on 100 %
+  of cultures (was 0 %). Sample: "Escherichia coli isolated.
+  Susceptibility: Amoxicillin+Clavulanate=S, Ceftriaxone=S,
+  Ciprofloxacin=S, Clindamycin=S …."
+
+  Non-scope: the organism-linked follow-up (organism Observation
+  emitted from primary Dx pattern J13 → S. pneumoniae etc.) is a larger
+  scope; the pre-existing `mb-org` / `mb-sus` Observation emit is
+  already present in the same builder and this fix targets the missing
+  summary text alone.
+
 - **Inpatient progress_note subjective repeats identical boilerplate
   across every hospital day** (Issue #1327). When today's vitals carry
   no abnormal marker (fever / hypothermia / hypoxia), the
