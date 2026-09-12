@@ -41,6 +41,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Prednisone + Prednisolone dual emit on US corticosteroid encounters**
+  (Issue #1323). US COPD exacerbation encounters carried both drugs
+  (Prednisone = prodrug of Prednisolone, same active moiety) on
+  186/286 (65 %) encounters because the disease-YAML
+  ``supportive.steroid`` block had a single locale-blind ``detail``
+  string ("Prednisolone 40mg PO daily x5 days") while the
+  locale-aware ``drugs.discharge_oral`` block emitted the US-form
+  Prednisone separately.
+
+  Fix: added an optional ``locale_detail: {jp: "...", us: "..."}``
+  map on ``supportive[]`` items and an equivalent ``locale_name`` on
+  encounter-YAML ``treatment[]`` items. Old entries with only the
+  bare ``detail`` / ``name`` keep working unchanged. Applied to
+  ``copd_exacerbation.yaml`` supportive steroid entry and
+  ``encounter/asthma_attack_mild.yaml`` treatment steroid entry.
+
+  Verification (p=500 s=356):
+    US: 17/17 Prednisone-only (was 65 % dup on the p=10k baseline)
+    JP: 18/18 Prednisolone-only (unchanged — JA behaviour preserved)
+
+  FHIR-emit-only change on the discharge path but CIF-affecting on
+  the admission-supportive path (US patients now emit
+  ``Prednisone`` instead of ``Prednisolone`` as the supportive
+  medication order display_name); classified MINOR under the
+  CIF-narrative consistency policy.
+
+
 - **JP MedicationAdministration.medicationCodeableConcept.text emits
   Japanese for chemo drugs** (Issue #1310). PR #1303 catalogued
   Gemcitabine / Irinotecan / Nab-paclitaxel / Temozolomide / BCG with
