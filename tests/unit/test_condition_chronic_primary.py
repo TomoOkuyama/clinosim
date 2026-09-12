@@ -118,11 +118,10 @@ def test_chronic_primary_with_finer_encounter_code_still_merges() -> None:
     assert _by_id_suffix(conds, "enc-hf-primary") is None
     chronic = _by_id_suffix(conds, "cond-chronic-pat-3-00")
     assert chronic is not None
-    # Chronic keeps its own 3-char code (ICD granularity harmonisation is
-    # deferred — this PR only removes the duplicate row). JP mapping is
-    # identity so I50 stays I50; US would map I50 → I50.9 via
-    # code_mapping_diagnosis.
-    assert chronic["code"]["coding"][0]["code"] == "I50"
+    # Chronic keeps its own base code, lifted by code_mapping_diagnosis to
+    # the billable leaf. Since Issue #1320 JP maps I50 → I50.9 (same target
+    # as US), so both locales now converge on the billable leaf here.
+    assert chronic["code"]["coding"][0]["code"] == "I50.9"
 
 
 def test_admission_condition_suppressed_when_mapping_collapses_admit_and_primary_1341() -> None:
