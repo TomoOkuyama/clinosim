@@ -2306,6 +2306,30 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Prednisone + Prednisolone dual emit on US corticosteroid encounters</strong>
+  (Issue #1323). US COPD exacerbation encounters carried both drugs
+  (Prednisone = prodrug of Prednisolone, same active moiety) on
+  186/286 (65 %) encounters because the disease-YAML
+  <code>supportive.steroid</code> block had a single locale-blind <code>detail</code>
+  string ("Prednisolone 40mg PO daily x5 days") while the
+  locale-aware <code>drugs.discharge_oral</code> block emitted the US-form
+  Prednisone separately.</li>
+</ul>
+<p>Fix: added an optional <code>locale_detail: {jp: "...", us: "..."}</code>
+  map on <code>supportive[]</code> items and an equivalent <code>locale_name</code> on
+  encounter-YAML <code>treatment[]</code> items. Old entries with only the
+  bare <code>detail</code> / <code>name</code> keep working unchanged. Applied to
+  <code>copd_exacerbation.yaml</code> supportive steroid entry and
+  <code>encounter/asthma_attack_mild.yaml</code> treatment steroid entry.</p>
+<p>Verification (p=500 s=356):
+    US: 17/17 Prednisone-only (was 65 % dup on the p=10k baseline)
+    JP: 18/18 Prednisolone-only (unchanged — JA behaviour preserved)</p>
+<p>FHIR-emit-only change on the discharge path but CIF-affecting on
+  the admission-supportive path (US patients now emit
+  <code>Prednisone</code> instead of <code>Prednisolone</code> as the supportive
+  medication order display_name); classified MINOR under the
+  CIF-narrative consistency policy.</p>
+<ul>
 <li><strong>JP MedicationAdministration.medicationCodeableConcept.text emits
   Japanese for chemo drugs</strong> (Issue #1310). PR #1303 catalogued
   Gemcitabine / Irinotecan / Nab-paclitaxel / Temozolomide / BCG with
@@ -2376,14 +2400,30 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   under the CIF-narrative consistency policy.</p>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>US Core Patient extensions</strong> — us-core-race, us-core-ethnicity,
+<li><strong>CAD (I25.x) secondary-prevention statin chronic med</strong>
+  (Issue #1338). Class-I evidence in ACC/AHA 2018, ESC 2019, and JAS
+  2022 secondary-prevention guidelines. The prior sim modelled statin
+  ONLY under E78 (dyslipidemia chronic block), so 39 % of CAD
+  patients without an E78 chronic diagnosis carried zero statin.
+  Added <code>Atorvastatin 40 mg PO daily</code> (high-intensity, first-line
+  per guidelines) with <code>probability: 0.90</code> (matches real-world
+  adherence 85-90 %, with headroom for statin-intolerance
+  exclusions) to the I25 medications block in
+  <code>clinosim/locale/shared/chronic_medications.yaml</code>.</li>
+</ul>
+<p>Chronic-med dedup handles the I25+E78 collision (drug_name-keyed).
+  Verification (p=500 s=356 US): CAD patients with statin: 11/14
+  (78.6 %) — was ~61 % baseline. RNG cascade: one added
+  <code>rng.random()</code> draw per I25 patient (chronic-med sampler);
+  classified MINOR under the CIF-narrative consistency policy for
+  the affected cohort.
+- <strong>US Core Patient extensions</strong> — us-core-race, us-core-ethnicity,
   us-core-birthsex (Issue #1344). Every US Patient resource previously
   emitted with no extensions at all, so 100 % of the cohort failed US
   Core AllPatients profile conformance. Adds three
   Extension builders in <code>clinosim/modules/output/fhir_r4/demographics/
   patient.py</code> and wires them into <code>_build_patient</code> behind an
-  <code>is_jp(country)</code> guard — US emit only; JP behaviour unchanged.</li>
-</ul>
+  <code>is_jp(country)</code> guard — US emit only; JP behaviour unchanged.</p>
 <p>Race and ethnicity source <code>PatientProfile.race</code> /
   <code>PatientProfile.ethnicity</code> (already sampled by
   <code>patient.activator</code> from US <code>demographics.yaml</code>
