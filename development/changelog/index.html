@@ -2306,7 +2306,34 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Chronic once-daily meds administered 2-3× per calendar day inpatient</strong>
+<li>
+<p><strong>JP-side Condition ICD-10 emits 3-char bare category codes</strong> (Issue
+  #1320). Chronic Conditions on the JP locale emitted at WHO ICD-10
+  3-character category root (E78 / J44 / N18 / M17 / K21 / M81 / I50 /
+  I48 / I25 / E03 / J45 / E79 / K59 / H26 / M54 / F32 / F33, plus
+  oncology roots C15 / C16 / C18 / C22 / C25 / C34 / C50 / C67 / C71) —
+  historically justified as WHO-identity "category codes are valid
+  classifications" but downstream analytics keying on billable 4-char
+  precision (per MHLW 統計分類提要 / JP-CLINS billable use) lose the
+  entire chronic cohort. Baseline p=10k JP: 1,982 bare E78, 1,798 H26,
+  1,125 M17, 782 K21, 751 M81, 654 E79, 612 J44, 541 K59, 533 N18, …
+  Fix: lifted the JP identity mappings in
+  <code>clinosim/locale/jp/code_mapping_diagnosis.yaml</code> to the dominant
+  WHO 4-char billable leaf (E78 → E78.5 hyperlipidaemia unspecified,
+  J44 → J44.9 COPD unspecified, K59 → K59.0 constipation, M54 → M54.5
+  low back pain, F32 → F32.9 depressive episode unspecified, …). WHO
+  true 3-char leaves (I10, N40, G20, F00, C61, N10, R55, external
+  causes, Z-status codes) stay identity. All 26 target 4-char leaves
+  are registered in <code>clinosim/codes/data/icd-10.yaml</code> with MHLW
+  ICD-10 (2013) canonical displays so <code>build_diagnosis_codeable_concept</code>
+  resolves the label without <code>(display unavailable)</code>. Verified p=500
+  JP: 0 bare emit for the fixed set (E78.5=94, H26.9=97, M54.5=64,
+  K59.0=41, M17.9=55, K21.9=36, …); WHO 3-char leaves preserved (I10=83,
+  N40=16, F00=13, C61=3, N10=4, …). Mirrors the US-side #1309 / #1356
+  fix pattern across a broader set of chronic categories.</p>
+</li>
+<li>
+<p><strong>Chronic once-daily meds administered 2-3× per calendar day inpatient</strong>
   (Issue #1337). <code>enrich_medication_order</code> populated
   <code>order.frequency_per_day</code> only when <code>parse_dose_string</code> recognised
   a frequency token; chronic home meds arrive from
@@ -2317,7 +2344,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   <code>admin_hours = [8, 14, 20]</code> for every once-daily home med
   (Levothyroxine 100 % of 26 JP encounters, Enalapril, Vitamin D, Sodium
   bicarb, Lansoprazole …) — a doubled-to-tripled dose emit throughout
-  the entire inpatient stay.</li>
+  the entire inpatient stay.</p>
+</li>
 </ul>
 <p>Fix: fall back to <code>_FREQ_PER_DAY</code> lookup against <code>order.frequency</code>
   itself when <code>parse_dose_string</code> yields no <code>frequency_per_day</code> —
