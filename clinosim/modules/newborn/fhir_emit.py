@@ -13,6 +13,18 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
+
+def _encounter_ref(encounter_id: str) -> dict[str, str]:
+    """Local wrapper around ``encounter_ref`` — deferred import to avoid the
+    ``clinosim.modules.output.fhir_r4`` → ``clinosim.modules.newborn.fhir_emit``
+    circular at module load time (the adapter's __init__ re-exports every
+    ``_bb_*`` newborn function from this module).
+    """
+    from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
+
+    return encounter_ref(encounter_id)
+
+
 _APGAR_MINUTE_TO_LOINC: dict[int, str] = {
     1: "9271-8",
     5: "9274-2",
@@ -146,7 +158,7 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
             iso = ts.isoformat() if hasattr(ts, "isoformat") else str(ts)
             obs["effectiveDateTime"] = iso
         if encounter_id:
-            obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+            obs["encounter"] = _encounter_ref(encounter_id)
         out.append(obs)
     return out
 
@@ -227,7 +239,7 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
         if ts is not None:
             obs["effectiveDateTime"] = ts.isoformat() if hasattr(ts, "isoformat") else str(ts)
         if encounter_id:
-            obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+            obs["encounter"] = _encounter_ref(encounter_id)
         out.append(obs)
     return out
 
@@ -328,7 +340,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
         if ts is not None:
             obs["effectiveDateTime"] = ts.isoformat() if hasattr(ts, "isoformat") else str(ts)
         if encounter_id:
-            obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+            obs["encounter"] = _encounter_ref(encounter_id)
         out.append(obs)
     return out
 
@@ -439,7 +451,7 @@ def _bb_newborn_metabolic_screen_service_request(ctx: Any) -> list[dict]:
     if collected is not None:
         resource["occurrenceDateTime"] = _iso(collected)
     if encounter_id:
-        resource["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        resource["encounter"] = _encounter_ref(encounter_id)
     return [resource]
 
 
@@ -620,5 +632,5 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
                 issued_dt = None
         resource["issued"] = _iso(issued_dt) if issued_dt is not None else _iso(collected)
     if encounter_id:
-        resource["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        resource["encounter"] = _encounter_ref(encounter_id)
     return [resource]
