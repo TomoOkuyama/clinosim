@@ -118,6 +118,18 @@ I25:  # Ischemic heart disease / Coronary artery disease
     # follow-up post-PCI-driven event flag (deferred — needs a
     # ``recent_pci_within_12mo`` sim feature).
     - {drug: "Clopidogrel", drug_ja: "クロピドグレル", dose: "75mg", route: "PO", frequency: "daily", probability: 0.10, note: "Chronic DAPT with Aspirin (assumed within 12 mo of PCI); truly chronic >12 mo is exceptional"}
+    # Issue #1338: high-intensity statin for CAD secondary prevention is
+    # Class-I evidence in every guideline body (ACC/AHA 2018, ESC 2019,
+    # JAS 2022). Prior sim modelled statin ONLY under E78 (dyslipidemia
+    # chronic block), so 39 % of CAD patients without an E78 chronic
+    # diagnosis carried zero statin. probability 0.90 reflects real-world
+    # adherence (~85-90 %) with headroom for statin-intolerance /
+    # patient-preference exclusions. Dose is high-intensity Atorvastatin
+    # 40 mg (guideline first-line for secondary prevention); patients
+    # who also carry E78 will collide with the E78 block's 10 mg entry —
+    # chronic-med dedup keeps a single Atorvastatin at whichever dose
+    # activator picks up first, avoiding dual-emit.
+    - {drug: "Atorvastatin", drug_ja: "アトルバスタチン", dose: "40mg", route: "PO", frequency: "daily", probability: 0.90, note: "CAD secondary prevention (Class I)"}
   hold_conditions:
     - {drug: "Aspirin", condition: "Pre-surgical", note: "Hold pre-surgery"}
     - {drug: "Clopidogrel", condition: "Pre-surgical", note: "Hold pre-surgery"}

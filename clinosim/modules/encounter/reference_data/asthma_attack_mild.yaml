@@ -37,7 +37,18 @@ workup:
 treatment:
   - {name: "Nebulized salbutamol 2.5mg", probability: 0.95, route: "INH", intent: "bronchodilation"}
   - {name: "Ipratropium bromide 0.5mg nebulized", probability: 0.4, route: "INH", intent: "bronchodilation"}
-  - {name: "Prednisolone 40mg", probability: 0.7, route: "PO", intent: "anti-inflammatory"}
+  # Issue #1323: locale-aware corticosteroid emit. JP uses Prednisolone,
+  # US uses Prednisone (the prodrug) — sim previously emitted the JP name
+  # on both locales, and downstream chronic/discharge paths emitted the
+  # US-form separately, producing duplicate-steroid MedicationAdministration
+  # pairs on US asthma outpatient encounters.
+  - name: "Prednisolone 40mg"
+    locale_name:
+      jp: "Prednisolone 40mg"
+      us: "Prednisone 40mg"
+    probability: 0.7
+    route: "PO"
+    intent: "anti-inflammatory"
 
 discharge_instructions:
   - "Good response to bronchodilator therapy"
