@@ -49,6 +49,33 @@ regimens:
     cycle_orders:
       - {drug: "Leuprorelin",  drug_ja: "リュープロレリン",  dose: "3.75mg",   route: "SC"}
 
+  # Issue #1280 sub-D: additional regimens using the chemo drugs
+  # registered by #1303 (Gemcitabine / Irinotecan / Nab-paclitaxel /
+  # Temozolomide / BCG).
+  GemNabP:                               # pancreatic first-line (Von Hoff protocol)
+    # Real Von Hoff MPACT schedule: nab-paclitaxel 125 mg/m2 IV + gemcitabine
+    # 1000 mg/m2 IV Day 1, 8, 15 of a 28-day cycle. Simplified here as one
+    # Day-1 chemo_visit per cycle (same pattern FOLFOX/CarboPem use — the
+    # per-day expansion is a future MedicationAdmin slice).
+    cycle_interval_days: 28
+    course_cycles: 6                     # ~6 months first-line palliative
+    cycle_orders:
+      - {drug: "Nab-paclitaxel",  drug_ja: "ナブパクリタキセル",  dose: "125mg/m2",   route: "IV"}
+      - {drug: "Gemcitabine",     drug_ja: "ゲムシタビン",         dose: "1000mg/m2",  route: "IV"}
+  BCG_intravesical:                      # NMIBC adjuvant induction (SWOG 8507)
+    cycle_interval_days: 7               # weekly instillation
+    course_cycles: 6                     # 6-week induction; maintenance q3mo is out of scope
+    cycle_orders:
+      - {drug: "BCG", drug_ja: "BCG", dose: "1 vial (81mg TICE / 27mg Connaught)", route: "intravesical"}
+  Temozolomide_stupp:                    # glioblastoma adjuvant (Stupp EORTC 22981)
+    # Adjuvant Temozolomide 150-200 mg/m2 PO daily × 5 days q28d × 6 cycles
+    # after concurrent chemoradiation. Sim emits one Day-1 chemo_visit per
+    # 28-day cycle (same simplification as GemNabP above).
+    cycle_interval_days: 28
+    course_cycles: 6
+    cycle_orders:
+      - {drug: "Temozolomide", drug_ja: "テモゾロミド", dose: "150mg/m2 PO daily x 5 days", route: "PO"}
+
 # ---------------------------------------------------------------------------
 # Per-cancer-code assignment table. For a chronic-carrier of a cancer code
 # the scheduler picks one regimen (or none) via a per-patient sub-RNG so
@@ -79,13 +106,32 @@ by_cancer:
   #   carriers (majority are in surveillance-only post-curative
   #   resection).
   #
-  # C22 / C25 / C67 / C71: their first-line real-world regimens
-  # (Gemcitabine + Nab-paclitaxel for pancreatic, BCG intravesical
-  # for bladder, Temozolomide for glioma) require drugs not yet in
-  # the sim's chemo catalog. Deferred to a follow-up PR that first
-  # registers those drugs (parallels the SSRI + intraop pattern).
   C15: [{regimen: FOLFOX,           probability: 0.20}]  # esophageal perioperative FOLFOX
   C16: [{regimen: FOLFOX,           probability: 0.20}]  # gastric adjuvant / palliative FOLFOX
+
+  # Issue #1280 sub-D: regimen wiring for the remaining C-chapter
+  # cancers, using drugs registered by #1303. Real first-line
+  # protocols cited alongside probability:
+  #
+  # - C25 pancreatic:  GemNabP (Von Hoff MPACT protocol) — real
+  #   US first-line for metastatic pancreatic ~40 %; sim's chronic
+  #   carriers include both palliative and post-Whipple surveillance,
+  #   so cohort-scale active-regimen prevalence is lower.
+  # - C67 bladder:     BCG intravesical (SWOG 8507 induction) —
+  #   ~35-40 % of NMIBC (Ta / T1 / CIS) receive BCG adjuvant post-
+  #   TURBT; muscle-invasive C67 gets systemic GC (not modelled
+  #   here — Cisplatin not yet registered).
+  # - C71 glioma:      Temozolomide adjuvant (Stupp EORTC 22981) —
+  #   ~60 % of GBM (most C71 chronic carriers post-diagnosis).
+  #
+  # C22 hepatocellular remains deferred: real first-line is
+  # Atezolizumab + Bevacizumab (imAbev IMbrave150 trial),
+  # neither yet registered. Sorafenib / Lenvatinib chronic
+  # oral TKIs already flow through `chronic_medications.yaml`
+  # for C22, so C22 carriers are not fully untreated in the sim.
+  C25: [{regimen: GemNabP,           probability: 0.20}]  # pancreatic first-line
+  C67: [{regimen: BCG_intravesical,  probability: 0.20}]  # NMIBC adjuvant induction
+  C71: [{regimen: Temozolomide_stupp, probability: 0.35}]  # GBM adjuvant Stupp
 
 # ---------------------------------------------------------------------------
 # Procedure code emitted on each chemo_visit encounter. Same code for all
