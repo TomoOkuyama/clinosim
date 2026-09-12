@@ -31,3 +31,8 @@ departments:
   # so PractitionerRole.organization refs to allied-health staff resolve.
   nutrition: {en: "Clinical Nutrition", ja: "栄養管理科"}
   medical_social_work: {en: "Medical Social Work", ja: "医療社会事業科"}
+  # Issue #1280 Sub-A: oncology service line (chronic cancer follow-up
+  # + chemo infusion visits now route here). Sub-lines are rollup-mapped
+  # to this bucket at hospitals without dedicated radiation-oncology /
+  # medical-oncology facilities.
+  oncology: {en: "Oncology", ja: "腫瘍内科"}

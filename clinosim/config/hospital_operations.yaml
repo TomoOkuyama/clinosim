@@ -36,6 +36,19 @@ available_departments:
   - rehabilitation       # リハビリテーション科 (PT/OT/ST)
   - nutrition            # 栄養管理科 (RD)
   - medical_social_work  # 医療社会事業科 (MSW)
+  # Oncology — Issue #1280 Sub-A. A ~50-bed community hospital in
+  # 2026 generally offers a general-oncology outpatient service line
+  # even if it doesn't run a dedicated radiation-oncology facility
+  # (RT is referred to a partnered tertiary center). Chemotherapy
+  # infusion visits + cancer chronic-followup visits now route here
+  # instead of falling back to internal_medicine (which was the
+  # p=10k s=354 audit's "cancer without oncology footprint"
+  # complaint — every C-carrier's visits showed 内科 despite the
+  # visit being a cancer follow-up). Rollup below folds sub-lines
+  # (oncology_infusion, radiation_oncology, hematology_oncology,
+  # medical_oncology) back to this bucket so specialised generators
+  # still resolve to a real department.
+  - oncology             # 腫瘍内科 / 化学療法室
 
 # Map granular specialties to the available departments at this hospital
 department_rollup:
@@ -61,6 +74,12 @@ department_rollup:
   pediatrics: primary_care
   obgyn: primary_care
   dermatology: primary_care
+  # Issue #1280 Sub-A: oncology sub-lines fold to the general
+  # oncology bucket the hospital does staff.
+  oncology_infusion: oncology
+  radiation_oncology: oncology
+  hematology_oncology: oncology
+  medical_oncology: oncology
 
 # Ward layout — which ward(s) each department uses + bed count per ward
 wards:
@@ -71,6 +90,11 @@ wards:
   orthopedics: ["3W"]
   emergency_medicine: ["ER"]
   primary_care: ["OPD"]
+  # Oncology infusion/outpatient service line — no dedicated ward at
+  # this 50-bed hospital; oncology inpatients admit to internal_medicine
+  # wards. The bare "OPD-ONC" key satisfies the ward-lookup contract
+  # for OPD visits where a ward id must exist.
+  oncology: ["OPD-ONC"]
 
 # Bed capacity per ward (inpatient wards only; 50 beds total)
 ward_capacity:

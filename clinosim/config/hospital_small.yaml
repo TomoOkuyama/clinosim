@@ -35,6 +35,15 @@ department_rollup:
   pediatrics: primary_care
   obgyn: primary_care
   dermatology: primary_care
+  # Issue #1280 Sub-A: tiny clinic doesn't run oncology; cancer
+  # follow-up visits fall back to internal_medicine here (real world:
+  # cancer patients at a 10-bed clinic are co-managed with a tertiary
+  # oncology center — the clinic's chart records generic follow-up).
+  oncology: internal_medicine
+  oncology_infusion: internal_medicine
+  radiation_oncology: internal_medicine
+  hematology_oncology: internal_medicine
+  medical_oncology: internal_medicine
 
 wards:
   internal_medicine: ["1F"]              # single ward

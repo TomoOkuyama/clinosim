@@ -41,6 +41,29 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Cancer chronic follow-up routes to Oncology (`腫瘍内科`)**
+  (#1280 Sub-A → PR). Pre-fix every C-chapter cancer chronic follow-
+  up visit fell through the specialty dispatcher to
+  `internal_medicine`, so p=10k s=354 audit patients carrying only
+  C67 bladder / C22 liver / C71 brain (etc.) had every quarterly
+  surveillance visit routed to `内科` / Primary Care rather than
+  `腫瘍内科` / Oncology — matching the "cancer without oncology
+  footprint" observation. Fix adds an `oncology` service line to
+  `hospital_operations.yaml::available_departments`, maps every
+  C-chapter code the sim emits (C15 esophageal, C16 gastric, C18
+  colon, C22 hepatocellular, C25 pancreatic, C34 lung, C50 breast,
+  C61 prostate, C67 bladder, C71 brain) to the `oncology` specialty
+  in `_CHRONIC_DISEASE_SPECIALTY`, and rolls the granular sub-lines
+  (`oncology_infusion`, `radiation_oncology`, `medical_oncology`,
+  `hematology_oncology`) to the same bucket at hospitals that offer
+  the general service. Small clinics that don't (`hospital_small.yaml`)
+  keep the internal_medicine fallback via the existing rollup
+  branch. Regression guard confirms both hospital shapes. **PATCH-
+  scope**: FHIR-emit-only labeling change on the Encounter's
+  serviceType / department; no CIF change, no new RNG draws. The
+  broader #1280 scope (regimen probability tuning + regimen
+  expansion for C15/C16/C22/C25/C67/C71 + cancer surgery emit) is
+  deferred to follow-up PRs needing oncology clinical review.
 - **Pregnancy complications sampling (O14 / O24 / O42 / O60 / O64)**
   (#1285 Sub-A → PR). Pre-fix every one of the ~185 US pregnancies
   at p=10k s=354 emitted no O-chapter complication code — the only

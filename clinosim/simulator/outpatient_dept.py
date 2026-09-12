@@ -75,6 +75,30 @@ _CHRONIC_DISEASE_SPECIALTY: dict[str, str] = {
     # events with disease_id Z34 / Z39.
     "Z34": "obgyn",
     "Z39": "obgyn",
+    # Oncology chronic — Issue #1280 Sub-A. Cancer follow-up visits
+    # (C-chapter ICD codes) previously fell through to
+    # internal_medicine, so a chronic-carrier of C67 bladder cancer
+    # with only oral-TKI therapy (Sorafenib etc. from
+    # chronic_medications.yaml) had every quarterly surveillance
+    # visit routed to 内科 / primary_care rather than 腫瘍内科 /
+    # Oncology — matching the p=10k s=354 audit's "cancer without
+    # oncology footprint" complaint. Hospitals without a dedicated
+    # oncology service still fall back to internal_medicine via the
+    # `hospital_ops.department_rollup` (`resolve_department` at the
+    # call site), so this mapping is purely additive.
+    #
+    # Every C-chapter cancer code the sim currently emits (see
+    # `chronic_followup.yaml` + `chemo_regimens.yaml::by_cancer`).
+    "C15": "oncology",  # esophageal
+    "C16": "oncology",  # gastric
+    "C18": "oncology",  # colon
+    "C22": "oncology",  # hepatocellular
+    "C25": "oncology",  # pancreatic
+    "C34": "oncology",  # lung
+    "C50": "oncology",  # breast
+    "C61": "oncology",  # prostate
+    "C67": "oncology",  # bladder
+    "C71": "oncology",  # brain / glioma
 }
 
 # Screening event_type → clinical specialty.
