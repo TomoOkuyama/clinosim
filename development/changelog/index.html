@@ -2362,7 +2362,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   under the CIF-narrative consistency policy.</p>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Demographic contraindication gate for ED medication dispatch</strong>
+<li><strong>US Core Patient extensions</strong> — us-core-race, us-core-ethnicity,
+  us-core-birthsex (Issue #1344). Every US Patient resource previously
+  emitted with no extensions at all, so 100 % of the cohort failed US
+  Core AllPatients profile conformance. Adds three
+  Extension builders in <code>clinosim/modules/output/fhir_r4/demographics/
+  patient.py</code> and wires them into <code>_build_patient</code> behind an
+  <code>is_jp(country)</code> guard — US emit only; JP behaviour unchanged.</li>
+</ul>
+<p>Race and ethnicity source <code>PatientProfile.race</code> /
+  <code>PatientProfile.ethnicity</code> (already sampled by
+  <code>patient.activator</code> from US <code>demographics.yaml</code>
+  <code>race_distribution</code> / <code>ethnicity_distribution</code>), translated to
+  the OMB code+display pairs on the CDC race+ethnicity CodeSystem
+  (<code>urn:oid:2.16.840.1.113883.6.238</code>). Birthsex maps
+  <code>PatientProfile.sex</code> → <code>M</code> / <code>F</code> on the us-core-birthsex slot.
+  Unknown / unmapped slugs are omitted rather than fabricated
+  (feedback_empty_vs_wrong_assertion) — newborn / pediatric records
+  where the race sampler has not fired still get birthsex but no
+  race / ethnicity.</p>
+<p>Verification (p=200 s=356 US): 123/125 adults carry race +
+  ethnicity, 125/125 carry birthsex. Adult race distribution
+  approximates US Census 2020 (White 56 %, Black 13 %, Asian 6 %,
+  Native American 2 %, Other 22 % — the "Other" over-share is a
+  yaml-tuning follow-up); Hispanic ethnicity 18.4 % matches Census
+  18.7 %. FHIR-emit-only change: CIF byte-unchanged; PATCH under the
+  CIF-narrative consistency policy.
+- <strong>Demographic contraindication gate for ED medication dispatch</strong>
   (Issues #1316, #1328 — CATASTROPHIC pediatric aspirin/NTG +
   Tamsulosin sex/age mismatch). New
   <code>clinosim.modules.drug_safety.check_demographic_gate</code> and
@@ -2373,8 +2399,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   ED encounter treatment dispatcher (<code>clinosim/simulator/emergency.py</code>)
   ahead of Order creation; blocked candidates are recorded in
   <code>patient.safety_skip_log</code> with the matching rule id and the
-  patient age/sex that triggered the skip.</li>
-</ul>
+  patient age/sex that triggered the skip.</p>
 <p>Seeded rules:
   - <code>aspirin-pediatric-reyes</code> — Aspirin blocked below age 16 (Reye's
     syndrome risk), bypassed for M30.3 / I00 / I01 / I02.
