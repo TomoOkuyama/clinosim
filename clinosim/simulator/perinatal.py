@@ -534,10 +534,48 @@ def simulate_delivery_encounter(
         primary_surgeon_id=encounter.attending_physician_id,
     )
 
+    # Issue #1285: emit surgical antimicrobial prophylaxis for
+    # cesarean deliveries. ACOG mandates a preoperative single dose
+    # of Cefazolin 2 g IV (weight-based; 3 g if BMI ≥ 30 / weight
+    # ≥ 120 kg) administered within 60 minutes before skin incision —
+    # this is a SCIP inpatient quality measure (SCIP-INF-1) and
+    # real-world US compliance is > 95 %. Pre-fix 37 US C-sections at
+    # p=10k s=354 emitted zero Cefazolin MRs. Full obstetric intraop
+    # bundle (Oxytocin, Bupivacaine spinal, Fentanyl adjunct,
+    # Ondansetron, Ketorolac) is deferred to a follow-up that first
+    # registers those drugs in `codes/data/rxnorm.yaml` +
+    # `locale/{us,jp}/code_mapping_drug.yaml` (Oxytocin and
+    # Bupivacaine are not yet in the drug catalog).
+    orders: list = []
+    if is_cesarean:
+        from clinosim.types.encounter import Order, OrderStatus, OrderType
+
+        orders.append(
+            Order(
+                order_id=f"ORD-{encounter.encounter_id}-CSCF-01",
+                encounter_id=encounter.encounter_id,
+                patient_id=patient.patient_id,
+                order_type=OrderType.MEDICATION,
+                display_name="Cefazolin",
+                urgency="stat",
+                clinical_intent="Cesarean surgical antimicrobial prophylaxis (ACOG / SCIP-INF-1)",
+                clinical_intent_ja="帝王切開周術期予防抗菌薬 (ACOG / SCIP-INF-1)",
+                ordered_datetime=visit_date - timedelta(minutes=30),
+                ordered_by=encounter.attending_physician_id,
+                status=OrderStatus.PLACED,
+                dose_quantity=2.0,
+                dose_unit="g",
+                frequency="once",
+                frequency_per_day=1,
+                route="IV",
+                duration_days=1,
+            )
+        )
+
     mother_record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
-        orders=[],
+        orders=orders,
         vital_signs=[],
         lab_results=[],
         procedures=[procedure],
