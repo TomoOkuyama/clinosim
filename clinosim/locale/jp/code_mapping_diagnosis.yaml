@@ -1,38 +1,56 @@
 # Diagnosis code mapping — Internal chronic/history base code → ICD-10 (Japan)
 #
-# AUTHORITATIVE SOURCE: ICD-10 (WHO, 2013年版準拠 — 厚生労働省 統計分類).
-# Note: Japan uses standard WHO ICD-10 codes WITHOUT clinical modification; 3-character
-# category codes (I50, J44, ...) are valid classifications. This map is therefore IDENTITY
-# for every internal chronic/history base code — wiring it up in the FHIR adapter leaves JP
-# output unchanged (the US counterpart instead translates to billable ICD-10-CM leaves).
+# AUTHORITATIVE SOURCE: ICD-10 (WHO, 2013年版準拠 — 厚生労働省 統計分類提要).
+# Chronic Condition emit was historically identity at 3-char category level;
+# Issue #1320 (session 111) lifted the identity mappings to billable 4-char
+# leaves (".9 unspecified" or the dominant subtype like K59.0 constipation)
+# so downstream billable analytics keying on WHO ICD-10 4-char precision see
+# the full cohort. WHO 3-char true-leaves (I10, N40, C61, G20, F00, N10, R55,
+# external causes, Z-status codes) are preserved as identity.
 
-# --- Chronic conditions (identity — WHO ICD-10 category codes emitted as-is) ---
+# --- Chronic conditions ---
+# Identity (WHO 3-char leaves — no 4-char subclassification, or intentionally
+# preserved because the CIF has no finer intent than the category root).
 I10: "I10"
 E11.9: "E11.9"
 E10: "E10"
-E78: "E78"
-J44: "J44"
-N18: "N18"
-I50: "I50"
-I48: "I48"
-I25: "I25"
-M81: "M81"
-F00: "F00"
-G20: "G20"
-E03: "E03"
-K21: "K21"
-J45: "J45"
-N40: "N40"
-M17: "M17"
+F00: "F00"        # Alzheimer type dementia; F00.-* subdivisions covered by #1333.
+G20: "G20"        # Parkinson disease — WHO 2013 has no 4-char subdivision.
+N40: "N40"        # Prostatic hyperplasia — WHO 2013 has no 4-char subdivision.
+# Identity → billable 4-char (Issue #1320).
+E78: "E78.5"      # Hyperlipidaemia, unspecified.
+J44: "J44.9"      # COPD, unspecified.
+N18: "N18.9"      # Chronic kidney disease, unspecified (fallback; stage-specific
+                  # subtypes N18.1-N18.5 remain preferred where staging is known).
+I50: "I50.9"      # Heart failure, unspecified.
+I48: "I48.9"      # Atrial fibrillation/flutter, unspecified.
+I25: "I25.9"      # Chronic ischaemic heart disease, unspecified.
+M81: "M81.9"      # Osteoporosis without pathological fracture, unspecified.
+E03: "E03.9"      # Hypothyroidism, unspecified.
+K21: "K21.9"      # GERD without oesophagitis.
+J45: "J45.9"      # Asthma, unspecified.
+M17: "M17.9"      # Gonarthrosis, unspecified.
+E79: "E79.0"      # Hyperuricaemia (dominant chronic use of E79 in MHLW cohort).
+K59: "K59.0"      # Constipation (dominant chronic use of K59).
+H26: "H26.9"      # Cataract, unspecified.
+M54: "M54.5"      # Low back pain (dominant chronic use of M54 per MHLW 患者調査).
+F32: "F32.9"      # Depressive episode, unspecified (mirrors US-side #1356).
+F33: "F33.9"      # Recurrent depressive disorder, unspecified (mirrors #1356).
 
-# --- Oncology / obstetric chronic conditions (identity — WHO ICD-10 category codes; Issue #943) ---
-C18: "C18"        # Colon cancer
-C22: "C22"        # Liver / intrahepatic bile duct cancer
-C34: "C34"        # Bronchus / lung cancer
-C50: "C50"        # Breast cancer — sex-agnostic mapping (JP ICD-10 does not
+# --- Oncology / obstetric chronic conditions (Issue #943 + #1320 + #1358) ---
+# 3-char roots that have WHO 4-char subdivisions → ".9 unspecified" billable leaf.
+C15: "C15.9"      # Oesophageal cancer (Issue #1358 seed).
+C16: "C16.9"      # Gastric cancer.
+C18: "C18.9"      # Colon cancer.
+C22: "C22.9"      # Liver / intrahepatic bile duct cancer.
+C25: "C25.9"      # Pancreatic cancer (Issue #1358 seed).
+C34: "C34.9"      # Bronchus / lung cancer.
+C50: "C50.9"      # Breast cancer — sex-agnostic mapping (JP ICD-10 does not
                   # split C50 into male/female subcategories the way ICD-10-CM
                   # does; the US mapping uses a by_sex block, JP stays flat).
-C61: "C61"        # Prostate cancer (male-only per sex-gate)
+C61: "C61"        # Prostate cancer — WHO 2013 has no 4-char subdivision.
+C67: "C67.9"      # Bladder cancer (Issue #1358 seed).
+C71: "C71.9"      # Malignant neoplasm of brain, unspecified (Issue #1358 seed).
 Z34: "Z34"        # Encounter for supervision of normal pregnancy (female 15-49 per age/sex gate)
 Z37: "Z37"        # Outcome of delivery — carried as past-birth marker on the problem list
 Z38: "Z38"        # Liveborn infants (newborn-side birth outcome; Issue #957 Tier-3-B)
