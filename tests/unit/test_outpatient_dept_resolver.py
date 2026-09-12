@@ -175,3 +175,48 @@ def test_unknown_visit_type_defaults_to_internal_medicine(hospital_ops):
 def test_empty_chronic_code_falls_back(hospital_ops):
     dept = resolve_outpatient_department("chronic_followup", "", None, hospital_ops)
     assert dept == "internal_medicine"
+
+
+# ---------------------------------------------------------------------------
+# Issue #1280 Sub-A: cancer chronic follow-up routes to oncology
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def oncology_hospital():
+    """Community hospital that offers an oncology service line."""
+    return {
+        "available_departments": [
+            "internal_medicine",
+            "cardiology",
+            "oncology",
+            "primary_care",
+        ],
+        "department_rollup": {
+            "oncology_infusion": "oncology",
+            "radiation_oncology": "oncology",
+            "medical_oncology": "oncology",
+            "hematology_oncology": "oncology",
+        },
+    }
+
+
+@pytest.mark.parametrize(
+    "code",
+    ["C15", "C16", "C18", "C22", "C25", "C34", "C50", "C61", "C67", "C71"],
+)
+def test_cancer_chronic_followup_routes_to_oncology_1280(oncology_hospital, code):
+    """Every C-chapter cancer follow-up visit routes to oncology at a
+    hospital that offers the service line. Pre-#1280 these all fell to
+    `internal_medicine` (the default for unmapped chronic codes)."""
+    assert resolve_outpatient_department("chronic_followup", code, None, oncology_hospital) == "oncology"
+
+
+def test_cancer_at_tiny_clinic_falls_back_to_internal_medicine_1280(tiny_clinic):
+    """Small clinic without oncology dept still falls back gracefully
+    (rollup path in the config would map oncology → internal_medicine)."""
+    # tiny_clinic fixture doesn't yet include the oncology rollup; the
+    # resolver falls back to internal_medicine via the "available &
+    # internal_medicine" branch.
+    dept = resolve_outpatient_department("chronic_followup", "C67", None, tiny_clinic)
+    assert dept == "internal_medicine"
