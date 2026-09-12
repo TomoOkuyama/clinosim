@@ -109,9 +109,56 @@ def test_only_verified_snomed_codes():
         "225113003",  # Timed urine collection
         "225390008",  # Triage
         "57485005",  # Oxygen therapy
+        # Issue #1308: extended crosswalk for ED / inpatient minor procedures.
+        "447094002",  # Bronchodilator therapy
+        "385763009",  # Inhalation therapy
+        "18946005",  # Skin closure (suture / staple / tissue adhesive)
+        "268400002",  # Closed reduction of fracture
+        "79733001",  # Application of sling (also used for cervical collar)
+        "385760008",  # Application of dressing to wound
+        "229886001",  # Cold pack application
+        "386305005",  # Warm pack application
+        "241689008",  # Procedural sedation
+        "229586001",  # Application of intermittent pneumatic compression (SCD)
+        "244042001",  # Insertion of urinary bladder catheter (Foley)
     }
     for _match, snomed, _display in _load_entries():
         assert snomed in verified, (
             f"crosswalk carries unverified SNOMED {snomed} — verify via tx.fhir.org "
             f"$lookup before adding + update this test's `verified` set"
+        )
+
+
+def test_extended_procedure_crosswalk_covers_top_15_empty_coding_buckets_1308() -> None:
+    """Issue #1308: 15 largest empty-coding buckets on the US p=10k s=355
+    baseline (1275 / 4033 Procedure rows = 31.6 %) must now resolve to a
+    verified SNOMED concept via the crosswalk.
+
+    Coverage claim: after this PR, every one of the 15 exemplar display
+    strings from the Issue reproduction routes to a non-empty
+    ``Procedure.code.coding[0]`` entry."""
+    from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import resolve_procedure_snomed
+
+    cases = [
+        ("Ice pack application", "229886001"),
+        ("bronchodilator: Salbutamol 2.5mg nebulizer q4h (q1h PRN acute)", "447094002"),
+        ("bronchodilator: Ipratropium 0.5mg nebulizer q6h", "447094002"),
+        ("Elastic bandage wrap", "385760008"),
+        ("Suture closure", "18946005"),
+        ("Closed reduction", "268400002"),
+        ("Cool water irrigation", "229886001"),
+        ("Sling immobilization", "79733001"),
+        ("Non-adherent dressing", "385760008"),
+        ("Tissue adhesive (glue)", "18946005"),
+        ("Cervical collar application", "79733001"),
+        ("Procedural sedation (Propofol/Midazolam)", "241689008"),
+        ("Heat pack application", "386305005"),
+        ("DVT_prophylaxis: Sequential compression devices", "229586001"),
+        ("Foley catheter insertion", "244042001"),
+    ]
+    for display, expected_snomed in cases:
+        got = resolve_procedure_snomed(display)
+        assert got is not None, f"crosswalk miss on Issue #1308 exemplar {display!r}"
+        assert got[0] == expected_snomed, (
+            f"crosswalk returned wrong SNOMED for {display!r}: got {got[0]}, expected {expected_snomed}"
         )

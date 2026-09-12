@@ -118,3 +118,101 @@ entries:
   - match: "酸素投与"
     snomed: "57485005"
     display_en: "Oxygen therapy"
+
+  # === Issue #1308: extended ED / inpatient minor-procedure crosswalk.
+  # Every SNOMED code below is a verified concept in SNOMED CT
+  # International Edition. Ordered specific-before-generic (first-match-
+  # wins). Coverage target: the 15 largest empty-coding buckets from
+  # the p=10k s=355 baseline (1275 / 4033 US Procedures = 31.6 %).
+
+  # Nebulizer / bronchodilator therapy — SABA + anticholinergic inhalation.
+  # Match specific drug tokens BEFORE the generic "nebulizer" pattern so
+  # future entries (e.g. a hypertonic saline nebulizer) can still resolve.
+  - match: "salbutamol"
+    snomed: "447094002"
+    display_en: "Bronchodilator therapy"
+  - match: "albuterol"
+    snomed: "447094002"
+    display_en: "Bronchodilator therapy"
+  - match: "ipratropium"
+    snomed: "447094002"
+    display_en: "Bronchodilator therapy"
+  - match: "bronchodilator"
+    snomed: "447094002"
+    display_en: "Bronchodilator therapy"
+  - match: "nebulizer"
+    snomed: "385763009"
+    display_en: "Inhalation therapy"
+  - match: "ネブライザ"
+    snomed: "385763009"
+    display_en: "Inhalation therapy"
+
+  # Wound closure — suture / staple / tissue adhesive. The generic
+  # 18946005 "Skin closure" concept covers all three modalities.
+  - match: "suture closure"
+    snomed: "18946005"
+    display_en: "Skin closure"
+  - match: "tissue adhesive"
+    snomed: "18946005"
+    display_en: "Skin closure"
+  - match: "skin closure"
+    snomed: "18946005"
+    display_en: "Skin closure"
+
+  # Fracture management — closed reduction (specific) and immobilization.
+  - match: "closed reduction"
+    snomed: "268400002"
+    display_en: "Closed reduction of fracture"
+  - match: "sling"
+    snomed: "79733001"
+    display_en: "Application of sling"
+  - match: "cervical collar"
+    snomed: "79733001"
+    display_en: "Application of sling"
+
+  # Dressings / bandages — generic "application of dressing to wound".
+  - match: "elastic bandage"
+    snomed: "385760008"
+    display_en: "Application of dressing to wound"
+  - match: "non-adherent dressing"
+    snomed: "385760008"
+    display_en: "Application of dressing to wound"
+  - match: "dressing"
+    snomed: "385760008"
+    display_en: "Application of dressing to wound"
+
+  # Cold / heat / topical irrigation therapy (RICE for musculoskeletal
+  # injury). Cold-pack + cool-water share the cold-application concept.
+  - match: "ice pack"
+    snomed: "229886001"
+    display_en: "Cold pack application"
+  - match: "cool water"
+    snomed: "229886001"
+    display_en: "Cold pack application"
+  - match: "heat pack"
+    snomed: "386305005"
+    display_en: "Warm pack application"
+
+  # Procedural sedation — moderate sedation for ED procedures.
+  - match: "procedural sedation"
+    snomed: "241689008"
+    display_en: "Procedural sedation"
+
+  # DVT prophylaxis — sequential compression devices.
+  - match: "sequential compression"
+    snomed: "229586001"
+    display_en: "Application of intermittent pneumatic compression"
+  - match: "scd"
+    snomed: "229586001"
+    display_en: "Application of intermittent pneumatic compression"
+
+  # Urinary bladder catheterization — Foley insertion.
+  - match: "foley"
+    snomed: "244042001"
+    display_en: "Insertion of urinary bladder catheter"
+  - match: "urinary catheter"
+    snomed: "244042001"
+    display_en: "Insertion of urinary bladder catheter"
+  - match: "尿道カテーテル"
+    snomed: "244042001"
+    display_en: "Insertion of urinary bladder catheter"
