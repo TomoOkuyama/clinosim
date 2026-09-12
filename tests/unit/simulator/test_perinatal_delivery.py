@@ -443,6 +443,57 @@ def test_cesarean_delivery_carries_cefazolin_prophylaxis_1285() -> None:
     assert order.ordered_datetime < visit_dt
 
 
+def test_cesarean_chief_complaint_matches_o82_1317() -> None:
+    """Issue #1317: cesarean-delivery encounter's ``chief_complaint``
+    must reflect surgical mode. Prior to the fix the vaginal-delivery
+    ``perinatal.yaml::encounter.visit_reason`` was used regardless of
+    the cesarean roll, so every O82 admission's narrative CIF said
+    "spontaneous vaginal delivery" — a direct FHIR-vs-narrative
+    contradiction.
+    """
+    # Same POP-000005 patient id used by the sibling Cefazolin test
+    # above — its cesarean sub-RNG lands under the US 32.1 % ceiling.
+    patient = PatientProfile(patient_id="POP-000005", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O82"
+    enc = mother_rec.encounters[0]
+    cc = enc.chief_complaint or ""
+    # Must NOT carry the vaginal-delivery wording.
+    assert "vaginal" not in cc.lower(), f"C-section chief_complaint leaks vaginal wording: {cc!r}"
+    # Must state cesarean explicitly.
+    assert "cesarean" in cc.lower(), f"C-section chief_complaint missing 'cesarean' term: {cc!r}"
+
+
+def test_vaginal_delivery_chief_complaint_1317() -> None:
+    """Sibling of the cesarean test: vaginal delivery must retain the
+    vaginal-delivery wording. Guards the fallback branch (when
+    ``cesarean.visit_reason`` is absent or the roll misses)."""
+    patient = PatientProfile(patient_id="POP-000001", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O80"
+    cc = (mother_rec.encounters[0].chief_complaint or "").lower()
+    assert "vaginal" in cc
+    assert "cesarean" not in cc
+
+
 def test_vaginal_delivery_no_cefazolin_1285() -> None:
     """Regression: vaginal (non-cesarean) delivery does not emit
     Cefazolin — ACOG prophylaxis applies only to surgical delivery."""
