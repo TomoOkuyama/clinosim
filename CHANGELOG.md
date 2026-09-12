@@ -41,6 +41,35 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Demographic contraindication gate for ED medication dispatch**
+  (Issues #1316, #1328 — CATASTROPHIC pediatric aspirin/NTG +
+  Tamsulosin sex/age mismatch). New
+  `clinosim.modules.drug_safety.check_demographic_gate` and
+  `reference_data/demographic_gates.yaml` catalog block a drug from
+  emitting when the patient's age / sex disqualifies them (with
+  ICD-10 prefix exceptions — Aspirin still allowed for pediatric
+  Kawasaki M30.3 / acute rheumatic fever I00-I02). Wired into the
+  ED encounter treatment dispatcher (`clinosim/simulator/emergency.py`)
+  ahead of Order creation; blocked candidates are recorded in
+  `patient.safety_skip_log` with the matching rule id and the
+  patient age/sex that triggered the skip.
+
+  Seeded rules:
+  - `aspirin-pediatric-reyes` — Aspirin blocked below age 16 (Reye's
+    syndrome risk), bypassed for M30.3 / I00 / I01 / I02.
+  - `nitroglycerin-adult-only` — Nitroglycerin blocked below age 18
+    (no routine pediatric indication).
+  - `tamsulosin-adult-male-bph` — Tamsulosin blocked outside adult
+    male (BPH-only, no pediatric / female indication).
+
+  p=200 s=356 US + JP verification: pediatric Aspirin, pediatric NTG,
+  pediatric Tamsulosin, female Tamsulosin all drop from cohort-level
+  presence to 0 while adult Aspirin (US 27 / JP 21) and adult-male
+  Tamsulosin (US 26 / JP 45) remain intact. RNG cascade is confined
+  to the affected pediatric / non-BPH cohorts (adult-male behaviour
+  is byte-identical); classified MINOR under the CIF-consistency
+  policy for those cohorts.
+
 - **Cesarean full intraoperative medication bundle**
   (#1285 sub-scope → PR). Extends the Cefazolin-only surgical
   prophylaxis added earlier to the full ACOG / ASA / ERAS
