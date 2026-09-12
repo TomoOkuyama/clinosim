@@ -71,6 +71,40 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   Non-scope: full disease-phase-driven daily_trajectory (Issue #1327
   suggested-fix bullet 1) would require per-disease YAML expansion
   and is deferred as a larger design.
+- **``Procedure.code.coding[]`` empty on 32 % of records — Order
+  display-name → SNOMED crosswalk covers only 6 categories** (Issue
+  #1308). PR #1295 (Issue #1282 partial fix) seeded the crosswalk for
+  hemodialysis / CRRT / oxygen / wound care / triage / urine output —
+  1275 / 4033 US Procedures (31.6 %) at p=10k s=355 still emit
+  ``code = {text: ...}`` with an empty ``coding`` array (966 / 3692
+  on JP), so downstream analytics filtering ``Procedure.code.coding[*].code``
+  miss the underlying clinical event.
+
+  Fix: extend ``procedure_name_snomed.yaml`` with the 15 largest
+  empty-coding buckets from the Issue reproduction. All SNOMED
+  concepts are International-Edition-verified and grouped so the
+  first-match-wins ordering keeps specific patterns (Salbutamol /
+  Ipratropium) above generic ones (nebulizer / bronchodilator):
+
+  - Bronchodilator therapy / inhalation (447094002 / 385763009):
+    Salbutamol, Albuterol, Ipratropium, generic nebulizer
+  - Skin closure (18946005): suture / tissue adhesive
+  - Closed reduction of fracture (268400002)
+  - Application of sling (79733001): sling / cervical collar
+  - Application of dressing to wound (385760008): elastic bandage /
+    non-adherent dressing / generic dressing
+  - Cold pack (229886001) / warm pack (386305005): ice pack /
+    cool-water irrigation / heat pack
+  - Procedural sedation (241689008)
+  - Intermittent pneumatic compression (229586001): DVT SCD
+  - Insertion of urinary bladder catheter (244042001): Foley
+
+  Verification: every SNOMED added is registered in the
+  ``test_only_verified_snomed_codes`` allowlist (Issue #1282's drift
+  guard). New regression
+  ``test_extended_procedure_crosswalk_covers_top_15_empty_coding_buckets_1308``
+  asserts every one of the 15 exemplar display strings from the
+  Issue reproduction resolves to the expected SNOMED code.
 
 - **Chest-imaging DiagnosticReport with descriptor-only abnormal
   impression ("Hyperinflation..." / "肺過膨張、横隔膜平坦化、胸骨後
