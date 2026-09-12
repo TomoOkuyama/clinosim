@@ -819,3 +819,69 @@ def test_pmh_us_e78_maps_to_billable_leaf_display_1333() -> None:
 
     assert "Hyperlipidemia" in pmh, f"US E78 → E78.5 must surface 'Hyperlipidemia' display; got: {pmh!r}"
     assert "[E78.5]" in pmh, f"Traceability bracket must carry FHIR emit code [E78.5]; got: {pmh!r}"
+
+
+def test_inpatient_progress_subjective_varies_across_stable_days_1327() -> None:
+    """Issue #1327: consecutive stable-vitals hospital days must NOT all
+    render the identical "自覚症状に著変なし。" fallback. The exemplar
+    (JP pt-25a61e67a2e2, 15-day I50.9 stay) previously had 15 identical
+    daily notes despite the CIF containing recovery signal.
+
+    After the fix, the phrase pool + day_index rotation produce
+    day-to-day variance across a multi-day LOS with no abnormal vitals."""
+    from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
+
+    gen = TemplateNarrativeGenerator()
+    los = 10
+    subjectives: list[str] = []
+    for day in range(los):
+        ctx = _make_ctx(target_lang="ja", locale="jp", day_index=day, los_days=los)
+        # Empty vitals → fallback pool triggers.
+        subjectives.append(gen._compose_progress_subjective_from_state(ctx))
+
+    # Every note carries the "入院N日目。" prefix.
+    for i, s in enumerate(subjectives, start=1):
+        assert f"入院{i}日目" in s, f"Day {i} must carry hospital-day header; got {s!r}"
+    # Distinct phrase-body count >= 3 across a 10-day stay (was 1 pre-fix).
+    stripped = {s.split("。", 1)[-1] for s in subjectives}
+    assert len(stripped) >= 3, (
+        f"Multi-day stable stay must show phrase variance; got {len(stripped)} distinct bodies "
+        f"across {los} days: {sorted(stripped)!r}"
+    )
+    # The old fallback phrase is no longer the ONLY body.
+    only_boilerplate = all("自覚症状に著変なし" in s for s in subjectives)
+    assert not only_boilerplate, "Every day must not fall through to the same boilerplate phrase"
+
+
+def test_inpatient_progress_subjective_trend_detection_1327() -> None:
+    """Issue #1327 companion: today's vitals compared to yesterday's
+    should produce a rhythm phrase (fever resolved / SpO2 recovering)
+    instead of a flat 'Persistent fever' repeat. Uses two-day windows
+    with contrasting values.
+
+    Deterministic timestamps drive ``_filter_vitals_for_day``:
+      day 0 (admission = 2026-07-01) → 2026-07-01 vital
+      day 1 → 2026-07-02 vital
+    """
+    from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
+
+    gen = TemplateNarrativeGenerator()
+    vitals = [
+        SimpleNamespace(timestamp="2026-07-01T09:00:00", temperature_celsius=38.6, spo2=96.0, day=None),
+        SimpleNamespace(timestamp="2026-07-02T09:00:00", temperature_celsius=37.0, spo2=96.0, day=None),
+    ]
+    ctx_day2 = _make_ctx(target_lang="ja", locale="jp", day_index=1, los_days=5)
+    ctx_day2.vitals = vitals
+    text = gen._compose_progress_subjective_from_state(ctx_day2)
+    # Trend phrase must appear (rather than "発熱 37.0°C 持続" false claim).
+    assert "熱型下降" in text, f"Fever-down trend phrase must appear on day-2; got {text!r}"
+
+    # SpO2 recovery trend
+    vitals2 = [
+        SimpleNamespace(timestamp="2026-07-01T09:00:00", temperature_celsius=36.8, spo2=89.0, day=None),
+        SimpleNamespace(timestamp="2026-07-02T09:00:00", temperature_celsius=36.8, spo2=95.0, day=None),
+    ]
+    ctx_day2b = _make_ctx(target_lang="ja", locale="jp", day_index=1, los_days=5)
+    ctx_day2b.vitals = vitals2
+    text2 = gen._compose_progress_subjective_from_state(ctx_day2b)
+    assert "SpO2 改善" in text2, f"SpO2-recovery trend phrase must appear on day-2; got {text2!r}"
