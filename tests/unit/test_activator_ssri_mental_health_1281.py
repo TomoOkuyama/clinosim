@@ -115,3 +115,57 @@ def test_multi_diagnosis_f32_with_htn_gets_both() -> None:
         if has_ssri and has_htn:
             return
     pytest.fail("no F32+I10 combined seed produced both an SSRI and an HTN drug")
+
+
+# ---------------------------------------------------------------------------
+# SNRI + atypical augmentation classes (#1281 second follow-up)
+# ---------------------------------------------------------------------------
+
+SNRI_DRUGS = ("venlafaxine", "duloxetine")
+ATYPICAL_DRUGS = ("mirtazapine",)
+
+
+def test_f32_snri_class_fires_in_expected_band_us() -> None:
+    """F32 depression cohort: ~15 % receive an SNRI (Venlafaxine or
+    Duloxetine — the second-line class alongside SSRI first-line)."""
+    hits = sum(1 for s in _sample("US", "F32", n=1000) if any(d.lower() in SNRI_DRUGS for d in s))
+    assert 0.08 * 1000 <= hits <= 0.22 * 1000, f"F32 SNRI rate {hits}/1000 outside 8-22 %"
+
+
+def test_f32_atypical_class_fires_in_expected_band_us() -> None:
+    """F32 depression cohort: ~6 % receive Mirtazapine (atypical class)."""
+    hits = sum(1 for s in _sample("US", "F32", n=1000) if any(d.lower() in ATYPICAL_DRUGS for d in s))
+    assert 0.03 * 1000 <= hits <= 0.10 * 1000, f"F32 atypical rate {hits}/1000 outside 3-10 %"
+
+
+def test_f32_augmentation_pattern_ssri_plus_snri_exists() -> None:
+    """Real STAR*D augmentation: some F32 patients on BOTH an SSRI AND
+    an SNRI (~10-15 % of treated). Confirm the multi-class exclusive
+    design permits this cross-class combination."""
+    found_combo = False
+    for seed in range(1000):
+        meds = _derive_home_medications([_Cond(code="F32")], np.random.default_rng(seed), country="US")
+        names = [m.drug_name.lower() for m in meds]
+        if any(d in SSRI_DRUGS for d in names) and any(d in SNRI_DRUGS for d in names):
+            found_combo = True
+            break
+    assert found_combo, "SSRI + SNRI augmentation combination never fires across 1000 seeds"
+
+
+def test_f41_1_snri_first_line_higher_than_f32() -> None:
+    """F41.1 GAD: SNRI probability is bumped vs F32 because APA / VA-DoD
+    list SNRI as ALSO first-line for anxiety (vs second-line for
+    depression)."""
+    f32_snri = sum(1 for s in _sample("US", "F32", n=500) if any(d.lower() in SNRI_DRUGS for d in s))
+    f41_snri = sum(1 for s in _sample("US", "F41.1", n=500) if any(d.lower() in SNRI_DRUGS for d in s))
+    assert f41_snri > f32_snri, f"F41.1 SNRI ({f41_snri}) should exceed F32 SNRI ({f32_snri})"
+
+
+def test_snri_selection_is_mutually_exclusive_within_class() -> None:
+    """`exclusive_classes` includes `snri` — a patient gets at most one
+    SNRI (Venlafaxine XOR Duloxetine, never both)."""
+    for seed in range(500):
+        meds = _derive_home_medications([_Cond(code="F32")], np.random.default_rng(seed), country="US")
+        names = [m.drug_name.lower() for m in meds]
+        snri_hits = [d for d in names if d in SNRI_DRUGS]
+        assert len(snri_hits) <= 1, f"multiple SNRIs on one patient: {snri_hits}"

@@ -387,3 +387,25 @@ codes:
   '35827':
     en: ketorolac
     ja: ケトロラク
+
+  # SNRI + atypical antidepressants (#1281 second follow-up, mental_health
+  # cluster). Extends the SSRI block above with second-line and
+  # SNRI-first-line options that APA / VA-DoD / ACOG list for
+  # depression + GAD. All RXCUIs NLM-verified 2026-09-12 via
+  # tx.fhir.org $lookup (TTY=IN except milnacipran which is only
+  # available as the hydrochloride salt SCD `30003`).
+  '42355':
+    en: fluvoxamine
+    ja: フルボキサミン
+  '30003':
+    en: milnacipran hydrochloride
+    ja: ミルナシプラン塩酸塩
+  '72625':
+    en: duloxetine
+    ja: デュロキセチン
+  '39786':
+    en: venlafaxine
+    ja: ベンラファキシン
+  '15996':
+    en: mirtazapine
+    ja: ミルタザピン
