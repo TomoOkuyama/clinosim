@@ -45,9 +45,14 @@ F33: "F33.9"        # Major depressive disorder, recurrent, unspecified
 #     Category codes emitted as billable ICD-10-CM base (category is billable when
 #     the site is unspecified; NLM Clinical Tables verified). Site-specific leaves
 #     (e.g. C18.9) are unnecessary until the generator models subsite anatomy.
+C15: "C15.9"        # Malignant neoplasm of oesophagus, part unspecified (Issue #1311)
+C16: "C16.9"        # Malignant neoplasm of stomach, unspecified (Issue #1311)
 C18: "C18.9"        # Malignant neoplasm of colon, unspecified
 C22: "C22.9"        # Malignant neoplasm of liver, not specified as primary or secondary
+C25: "C25.9"        # Malignant neoplasm of pancreas, unspecified (Issue #1311)
 C34: "C34.90"       # Malignant neoplasm of unspecified part of unspecified bronchus or lung
+C67: "C67.9"        # Malignant neoplasm of bladder, unspecified (Issue #1311)
+C71: "C71.9"        # Malignant neoplasm of brain, unspecified (Issue #1311)
 # C50 breast cancer — ICD-10-CM splits the "unspecified site" leaf by patient
 # sex (C50.919 female / C50.929 male). Issue #957 activated male C50 (~1 %
 # of C50 total per SEER); every per-person caller of ``map_diagnosis_code``
