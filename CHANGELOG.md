@@ -41,6 +41,41 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Duplicate Condition emit when admit_dx and discharge_dx collapse to
+  the same code under the locale mapping** (Issue #1341). The
+  encounter-Condition builder decides whether to emit a separate
+  ``admitting`` Condition by combining a RAW-view check (does
+  ``admit_dx_code`` differ from every raw code already carried?) with a
+  MAPPED-view check (same question, after ``map_diagnosis_code``). The
+  prior ``raw OR mapped`` combining emitted a false-positive admission
+  Condition whenever the raw admit / primary looked distinct but both
+  collapsed to the same code under the locale mapping — a common shape
+  for JP hip-fracture encounters (``discharge_dx=S72.00`` +
+  ``admit_dx=S72.0`` both map to ``S72.0``) and for JP diagnoses
+  carrying the ``99999999`` placeholder code. Result: two Conditions
+  on the same encounter, same code, same onset timestamp, distinguished
+  only by ``JP_eCS_DiagnosisType`` extension (principal vs admitting).
+
+  Fix: combine the two shape checks with ``AND`` — both raw and mapped
+  views must independently say "admit is orphaned" before an admission
+  Condition is emitted. The raw check is preserved as a defensive layer
+  for cases where the locale mapping happens to be identity but a
+  raw-distinct case still needs an admission row (e.g. US
+  ``admit=J44.1`` / ``primary=J44.0``); the AND simply suppresses the
+  collapse false positive.
+
+  Verification: p=500 seed=356 JP baseline had 10 dup pairs (all with
+  the pattern above); the fix removes all 10. Regression test
+  ``test_admission_condition_suppressed_when_mapping_collapses_admit_and_primary_1341``
+  covers the exact shape.
+
+  Non-scope: Issue #1341 also reports a **Condition / imaging site
+  mismatch** (S72.0 femoral-neck Condition + 転子部 trochanteric
+  imaging text on the same encounter). That's a separate defect in the
+  hip-fracture disease-YAML — fracture-site variant sampling
+  (S72.00/S72.10/S72.2) is independent from the imaging-text sampler.
+  Deferred as a follow-up.
+
 - **Chronic once-daily meds administered 2-3× per calendar day inpatient**
   (Issue #1337). ``enrich_medication_order`` populated
   ``order.frequency_per_day`` only when ``parse_dose_string`` recognised

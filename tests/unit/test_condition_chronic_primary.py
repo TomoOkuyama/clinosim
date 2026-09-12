@@ -123,3 +123,42 @@ def test_chronic_primary_with_finer_encounter_code_still_merges() -> None:
     # identity so I50 stays I50; US would map I50 → I50.9 via
     # code_mapping_diagnosis.
     assert chronic["code"]["coding"][0]["code"] == "I50"
+
+
+def test_admission_condition_suppressed_when_mapping_collapses_admit_and_primary_1341() -> None:
+    """Issue #1341: admit_dx and discharge_dx are raw-distinct but both
+    collapse to the same code under ``map_diagnosis_code``. Prior to the
+    fix, the raw-view of ``needs_admission_diagnosis_condition`` said "admit
+    is orphaned" (raw admit != raw primary), while the mapped-view said
+    "admit is covered" (mapped admit == mapped primary). The OR combining
+    the two views emitted a second Condition carrying the same mapped code
+    as the primary — 10 dup pairs on JP p=500 seed=356 (mostly hip-fracture
+    S72.0 collapses and JP 99999999 placeholder-code collapses).
+
+    Scenario: JP hip fracture — discharge_dx=S72.00 (raw variant),
+    admit_dx=S72.0 (raw root). Both map to S72.0 in JP. The encounter
+    should carry exactly ONE S72.0 Condition (the principal), not two.
+    """
+    record = {
+        "clinical_diagnosis": {
+            "discharge_diagnosis_code": "S72.00",
+            "admission_diagnosis_code": "S72.0",
+        },
+        "encounters": [
+            {
+                "encounter_id": "enc-hip",
+                "encounter_type": "inpatient",
+                "admission_datetime": "2026-07-21T09:58:00",
+                "discharge_datetime": "2026-07-28T14:00:00",
+            }
+        ],
+        "patient": {"chronic_conditions": []},
+    }
+    conds = _build_conditions(record, "pat-hip", "JP")
+    # Collect S72.0 Conditions attached to this encounter.
+    s72_conds = [c for c in conds if any((cod.get("code") == "S72.0") for cod in c.get("code", {}).get("coding", []))]
+    assert len(s72_conds) == 1, (
+        f"admission Condition must not duplicate the primary when both admit "
+        f"and discharge dx collapse to the same mapped code (S72.0); got "
+        f"{len(s72_conds)} S72.0 Conditions"
+    )
