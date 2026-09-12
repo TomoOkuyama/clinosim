@@ -58,16 +58,15 @@ def test_no_cancer_conditions_emits_no_chemo_events() -> None:
 
 
 def test_cancer_code_without_by_cancer_entry_emits_nothing() -> None:
-    """A cancer code that has NO entry in ``by_cancer`` (e.g. C22 liver,
-    C25 pancreatic, C67 bladder, C71 brain — surveillance-only until
-    the required drugs land in the chemo catalog) produces zero events
-    even when the patient carries the code. C15 esophageal + C16
-    gastric now DO have entries (#1280 Sub-B — both reuse the FOLFOX
-    regimen); see ``test_c15_c16_folfox_emits_at_14_day_cadence_1280``."""
-    for code in ("C22", "C25", "C67", "C71"):
+    """A cancer code that has NO entry in ``by_cancer`` (e.g. C22 liver
+    — first-line Atezolizumab + Bevacizumab requires drugs not yet in
+    the chemo catalog) produces zero chemo events. C15/C16 landed
+    in #1280 Sub-B; C25/C67/C71 landed in #1280 Sub-D — sole
+    remaining un-wired mainstream C-code is C22."""
+    for code in ("C22",):
         person = _make_person(f"POP-{code}", "F", 60, [code])
         events = _chemo_cycle_events(person, year=2024)
-        assert events == [], f"code {code} should not emit chemo events in slice 1, got {events}"
+        assert events == [], f"code {code} should not emit chemo events, got {events}"
 
 
 def test_c15_c16_folfox_emits_at_14_day_cadence_1280() -> None:
@@ -94,6 +93,43 @@ def test_c15_c16_folfox_emits_at_14_day_cadence_1280() -> None:
             found = True
             break
         assert found, f"no FOLFOX assignment across 200 sweeps for {code} — probability drift?"
+
+
+@pytest.mark.parametrize(
+    "code, expected_regimen, expected_interval, max_events",
+    [
+        ("C25", "GemNabP", 28, 6),  # Von Hoff pancreatic — 6 cycles / 6 months
+        ("C67", "BCG_intravesical", 7, 6),  # SWOG 8507 induction — weekly x 6
+        ("C71", "Temozolomide_stupp", 28, 6),  # Stupp adjuvant — 6 cycles / 6 months
+    ],
+)
+def test_c25_c67_c71_regimens_emit_at_correct_cadence_1280(
+    code, expected_regimen, expected_interval, max_events
+) -> None:
+    """Issue #1280 sub-D: C25 (pancreatic), C67 (bladder), C71 (glioma)
+    now dispatch to real first-line regimens using the drug catalog
+    added by #1303. Sweep 200 patient ids to find one whose sub-RNG
+    lands on the regimen (probabilities 0.20 / 0.20 / 0.35 → 40-70
+    hits per sweep — comfortable margin)."""
+    for i in range(200):
+        pid = f"POP-{code}-{i:04d}"
+        person = _make_person(pid, "F", 60, [code])
+        events = _chemo_cycle_events(person, year=2024)
+        if not events:
+            continue
+        if events[0].protocol_source != f"chemo_regimens:{expected_regimen}":
+            continue
+        assert all(e.event_type == "chemo_visit" for e in events), events
+        assert all(e.disease_id == code for e in events), (code, events)
+        dates = sorted(e.timestamp for e in events)
+        gaps = [(dates[j + 1] - dates[j]).days for j in range(len(dates) - 1)]
+        assert all(g == expected_interval for g in gaps), (
+            f"non-{expected_interval}-day {expected_regimen} gaps for {code} {pid}: {gaps}"
+        )
+        # course_cycles caps annual events at max_events
+        assert len(events) <= max_events, f"{code} {pid} exceeded cap: {len(events)} > {max_events}"
+        return
+    pytest.fail(f"no {expected_regimen} assignment across 200 sweeps for {code} — probability drift?")
 
 
 def test_cancer_code_with_regimen_emits_events_at_cycle_cadence() -> None:
