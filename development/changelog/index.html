@@ -2333,13 +2333,36 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 </ul>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Newborn metabolic screen full FHIR shape</strong> (#1252 sub-scope N6b →
+<li>
+<p><strong>BMI-derived <code>E66.3</code> (Overweight, BMI 25-29.9) Condition emit</strong>
+  (#1272 → PR). Completes the 3-band ICD-10-CM E66 dispatch declared
+  by #1126 (Issue #1137 metabolic-cluster scope). Pre-#1272 the BMI-
+  derived Condition insertion block in
+  <code>clinosim.modules.population.engine</code> had only two branches (E66.9
+  for BMI ≥ 30, E66.01 for BMI ≥ 40), so patients in the overweight
+  band (BMI 25-29.9 — ~30 % of US adults, ~20 % of JP adults) had no
+  ICD Condition emitted at all. Downstream analytics keying on <code>E66.3</code>
+  saw an empty cohort even though the BMI Observation itself was
+  correctly emitted. Fix adds the missing <code>elif bmi &gt;=
+  BMI_OVERWEIGHT_THRESHOLD</code> branch (deterministic, RNG-neutral —
+  same shape as the existing two branches) and registers <code>E66.3
+  Overweight / 過体重</code> in <code>codes/data/icd-10-cm.yaml</code>. Verified
+  end-to-end at s=352 p=1 000: US <code>E66.3=180 / E66.9=269 / E66.01=27</code>
+  (was <code>0 / 269 / 27</code>); JP <code>E66.3=125 / E66.9=13</code> (was <code>0 / 13</code>).
+  CIF <code>chronic_conditions</code> gains an <code>E66.3</code> entry for BMI 25-29.9
+  patients — existing narrative-CIF files that reference
+  <code>chronic_conditions</code> on these patients need a fresh <code>narrate</code> run
+  to surface the new code (same class as #1251, #1126).</p>
+</li>
+<li>
+<p><strong>Newborn metabolic screen full FHIR shape</strong> (#1252 sub-scope N6b →
   PR). The N6 slice emitted only a <code>Procedure</code> for the heel-stick event;
   downstream consumers querying <code>ServiceRequest.ndjson</code>,
   <code>Specimen.ndjson</code>, or <code>DiagnosticReport.ndjson</code> for a newborn screening
   panel saw nothing. N6b adds the three sibling resources so the
   diagnostic-workflow evidence a real EHR produces (order → specimen →
-  aggregate report) is emitted alongside the physical-event Procedure:<ul>
+  aggregate report) is emitted alongside the physical-event Procedure:</p>
+<ul>
 <li><code>ServiceRequest</code> — LOINC 54089-8 "Newborn screening panel", SNOMED
   108252007 laboratory-procedure category, <code>status=completed /
   intent=order</code>, <code>authoredOn=admission</code> + <code>occurrenceDateTime=heel-
