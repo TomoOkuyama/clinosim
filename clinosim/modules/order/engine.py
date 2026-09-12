@@ -219,6 +219,19 @@ def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
         order.frequency = parsed["frequency"]
     if order.frequency_per_day is None and parsed.get("frequency_per_day") is not None:
         order.frequency_per_day = parsed["frequency_per_day"]
+    # Issue #1337: chronic home meds arrive with ``order.frequency = "DAILY"``
+    # (from ``HomeMedication.frequency = "daily"`` upstream), but
+    # ``parse_dose_string("50mcg")`` finds no frequency token in the numeric
+    # dose string, so ``frequency_per_day`` stays None. That defaults the
+    # MAR scheduler in ``_generate_mar`` to ``[8, 14, 20]`` (TID PO) — a
+    # doubled-to-tripled-dose emit for every once-daily home med
+    # (Levothyroxine 100 % of 26 JP encounters, Enalapril, Sodium bicarb,
+    # …). Fill from the label directly here when parse_dose_string missed.
+    if order.frequency_per_day is None and order.frequency:
+        _label = str(order.frequency).lower().strip()
+        _derived = _FREQ_PER_DAY.get(_label)
+        if _derived is not None:
+            order.frequency_per_day = _derived
     if not order.route and parsed.get("route"):
         order.route = parsed["route"]
     # Fallback: heuristic from drug name (PO is the default for tablets)
