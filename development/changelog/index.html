@@ -2306,7 +2306,30 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Duplicate cross-encounter Oxygen therapy Procedure emit — 62
+<li><strong>Pediatric substance-use dependence Condition emit — F10.20 alcohol
+  dependence at age 9, F17.210 nicotine dependence at age 12</strong> (Issue
+  #1349). SDOH-derived chronic Conditions F17.210 and F10.20 (added in
+  <code>population/engine.py</code> when <code>smoking_status="current"</code> /
+  <code>alcohol_use="heavy"</code>) are emitted only for age ≥ 18 patients
+  (both attributes are clamped to <code>never</code> / <code>none</code> under
+  <code>LEGAL_ADULT_AGE</code> in the population loop). However, the
+  chronic-condition onset-date sampler
+  (<code>activator._sample_chronic_onset</code>) draws an "diagnosed 1-15 years
+  ago" window with no per-disease minimum onset age for F10 / F17, so
+  a 22 yo patient could receive an F10.20 with
+  <code>onsetDateTime</code> at age 9 — clinically implausible per DSM-5 (AUD
+  rare &lt; 15) and ICD-10 (nicotine dependence-level dx typically ≥ 16).</li>
+</ul>
+<p>Fix: add <code>F10: 15</code> and <code>F17: 16</code> minimum-onset-age floors to
+  <code>clinosim/locale/shared/chronic_onset_min_age.yaml</code>. The existing
+  <code>_clamp_chronic_onset</code> helper (Issue #968) then bumps any sampled
+  onset earlier than <code>dob + 15 y</code> (F10) or <code>dob + 16 y</code> (F17) up
+  to the floor — RNG cursor is unchanged (clamp, not resample).</p>
+<p>Verification (p=500 seed=356 US):
+  - Before: F10.20 min age at dx = 9, F17.210 min = 12.
+  - After:  F10.20 min age at dx = 15 (33 records), F17.210 min = 16
+    (37 records); zero records at age &lt; 15.
+- <strong>Duplicate cross-encounter Oxygen therapy Procedure emit — 62
   same-patient / same-code / same-<code>performedPeriod</code> pairs across
   distinct encounters on p=10k US</strong> (Issue #1352). The oxygen-therapy
   builder walks every encounter in the record and emits one Procedure
@@ -2320,8 +2343,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   every subsequent encounter that had none of its own, so an
   outpatient VAX visit 12 months after an AIN inpatient admission
   emitted a duplicate Oxygen therapy Procedure carrying the AIN
-  session's timestamps under the VAX encounter reference.</li>
-</ul>
+  session's timestamps under the VAX encounter reference.</p>
 <p>Fix: multi-encounter records now disable the unattributed-vitals
   fallback — encounters without matching <code>encounter_id</code> vitals are
   skipped with the existing <code>no_on_o2_vitals</code> log reason.
