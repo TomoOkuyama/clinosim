@@ -78,6 +78,28 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   scope; the pre-existing `mb-org` / `mb-sus` Observation emit is
   already present in the same builder and this fix targets the missing
   summary text alone.
+- **Pediatric Enoxaparin still emitted on the inpatient
+  DVT-prophylaxis fallback path (post-#1276 regression)** (Issue
+  #1306). PR #1276 gated the enricher-side
+  ``build_dvt_prophylaxis_orders`` on age < 15, but the
+  disease-YAML supportive-orders fallback in
+  ``modules/order/engine.place_admission_orders`` still emitted
+  ``DVT_prophylaxis: Enoxaparin`` unconditionally. At p=10k s355 US 4
+  patients aged 3 / 6 / 8 / 14 (all J13 / J12.9 pneumonia inpatient)
+  received Enoxaparin.
+
+  Fix: threaded ``patient_age`` through ``place_admission_orders``.
+  When the caller passes a pediatric age (< the ceiling declared in
+  ``prophylaxis_rules.yaml``), any ``DVT_prophylaxis`` entry is dropped
+  from the supportive-orders list — covering both the yaml-declared
+  path and the hard-coded fallback. Non-DVT supportive orders
+  (IV_fluid, Positioning, oxygen) are untouched. The ceiling now lives
+  in a shared ``pediatric_anticoag_ceiling()`` helper in
+  ``modules/prophylaxis/engine.py`` so both the enricher-side gate and
+  the disease-YAML gate read from the same yaml source of truth.
+
+  Backwards compat: callers that don't pass ``patient_age`` (legacy
+  tests, older adapter code) see the pre-#1306 behavior.
 
 - **Inpatient progress_note subjective repeats identical boilerplate
   across every hospital day** (Issue #1327). When today's vitals carry
