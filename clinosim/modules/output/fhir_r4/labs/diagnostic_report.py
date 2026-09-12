@@ -377,6 +377,15 @@ _IMAGING_NORMAL_IMPRESSION_PATTERNS: tuple[str, ...] = (
 # only after the negation gate above has been checked, so a "no acute
 # consolidation" impression is not mis-classified because of the
 # "consolidation" substring.
+#
+# Issue #1324: extended with CXR / chest-imaging descriptor keywords that
+# describe specific abnormal findings without carrying the generic
+# "異常" / "abnormal" marker — e.g. COPD emphysema ("肺過膨張、
+# 横隔膜平坦化、胸骨後腔拡大" / "Hyperinflation with flattened
+# diaphragms and increased retrosternal airspace") was previously
+# misclassified as Normal because none of the listed substrings matched.
+# The extended list captures the descriptor-only impressions that
+# radiologists use for chronic parenchymal disease.
 _IMAGING_ABNORMAL_IMPRESSION_PATTERNS: tuple[str, ...] = (
     "異常",
     "認め",
@@ -391,6 +400,17 @@ _IMAGING_ABNORMAL_IMPRESSION_PATTERNS: tuple[str, ...] = (
     "腫大",
     "浸潤",
     "肥大",
+    # === Issue #1324: CXR / chest-imaging descriptor keywords ===
+    "過膨張",  # hyperinflation (COPD emphysema)
+    "過膨脹",  # hyperinflation (alternate JIS form)
+    "平坦化",  # flattening (diaphragm — COPD)
+    "胸骨後腔拡大",  # increased retrosternal airspace (COPD)
+    "気胸",  # pneumothorax
+    "心拡大",  # cardiomegaly
+    "胸水",  # pleural effusion
+    "肺水腫",  # pulmonary edema
+    "無気肺",  # atelectasis
+    "透過性",  # increased/decreased radiolucency
     "abnormal",
     "consolidation",
     "fracture",
@@ -400,6 +420,17 @@ _IMAGING_ABNORMAL_IMPRESSION_PATTERNS: tuple[str, ...] = (
     "opacity",
     "effusion",
     "nodule",
+    # === Issue #1324: English CXR / chest-imaging descriptors ===
+    "hyperinflation",
+    "flattened diaphragm",
+    "retrosternal",
+    "pneumothorax",
+    "cardiomegaly",
+    "pleural effusion",
+    "pulmonary edema",
+    "atelectasis",
+    "infiltrate",
+    "lesion",
 )
 
 
