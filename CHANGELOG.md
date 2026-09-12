@@ -72,6 +72,30 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   reject Z86/history-target codes the way
   ``_resolve_family_history_code`` does on the FHIR side, so a
   narrow narrative-only patch would be incomplete.
+- **JP-side Condition ICD-10 emits 3-char bare category codes** (Issue
+  #1320). Chronic Conditions on the JP locale emitted at WHO ICD-10
+  3-character category root (E78 / J44 / N18 / M17 / K21 / M81 / I50 /
+  I48 / I25 / E03 / J45 / E79 / K59 / H26 / M54 / F32 / F33, plus
+  oncology roots C15 / C16 / C18 / C22 / C25 / C34 / C50 / C67 / C71) —
+  historically justified as WHO-identity "category codes are valid
+  classifications" but downstream analytics keying on billable 4-char
+  precision (per MHLW 統計分類提要 / JP-CLINS billable use) lose the
+  entire chronic cohort. Baseline p=10k JP: 1,982 bare E78, 1,798 H26,
+  1,125 M17, 782 K21, 751 M81, 654 E79, 612 J44, 541 K59, 533 N18, …
+  Fix: lifted the JP identity mappings in
+  ``clinosim/locale/jp/code_mapping_diagnosis.yaml`` to the dominant
+  WHO 4-char billable leaf (E78 → E78.5 hyperlipidaemia unspecified,
+  J44 → J44.9 COPD unspecified, K59 → K59.0 constipation, M54 → M54.5
+  low back pain, F32 → F32.9 depressive episode unspecified, …). WHO
+  true 3-char leaves (I10, N40, G20, F00, C61, N10, R55, external
+  causes, Z-status codes) stay identity. All 26 target 4-char leaves
+  are registered in ``clinosim/codes/data/icd-10.yaml`` with MHLW
+  ICD-10 (2013) canonical displays so ``build_diagnosis_codeable_concept``
+  resolves the label without ``(display unavailable)``. Verified p=500
+  JP: 0 bare emit for the fixed set (E78.5=94, H26.9=97, M54.5=64,
+  K59.0=41, M17.9=55, K21.9=36, …); WHO 3-char leaves preserved (I10=83,
+  N40=16, F00=13, C61=3, N10=4, …). Mirrors the US-side #1309 / #1356
+  fix pattern across a broader set of chronic categories.
 
 - **Chronic once-daily meds administered 2-3× per calendar day inpatient**
   (Issue #1337). ``enrich_medication_order`` populated
