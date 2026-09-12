@@ -33,6 +33,30 @@ LLM_SEED_SECTIONS = {
     "progress_note": {"subjective", "assessment", "plan"},
     "outpatient_soap": {"subjective", "assessment", "plan"},
     "ed_note": {"hpi", "assessment", "disposition"},
+    # Issue #1358 follow-up: sync with the additional template_seed_bundle
+    # doc types declared in ``clinosim/modules/document/reference_data/
+    # document_type_specs.yaml``. Pre-fix cohorts sampled by
+    # ``run_generate(seed=42, p=100)`` never triggered a surgery / death /
+    # referral / procedure_note doc, so this dict silently drifted from
+    # the yaml as those doc types landed. Any RNG cascade that surfaced
+    # one of them (e.g. #1311's chemo-cancer additions activating a
+    # C-code surgical patient) hit the ``seed_sections is None`` branch
+    # below and reported an "unexpected replacement" for a section that
+    # was in fact validly LLM-eligible per the yaml. Keep this table in
+    # sync with ``document_type_specs.yaml``'s ``llm_enabled_sections``.
+    "referral_note": {"referral_purpose", "present_illness_ref"},
+    "death_certificate": {"duration_of_immediate_cause", "contributing_conditions"},
+    "death_discharge_summary": {
+        "admission_state",
+        "treatment_course",
+        "terminal_course",
+        "circumstances_of_death",
+        "complications_and_comorbidities",
+        "family_communication",
+        "autopsy_status_and_findings",
+    },
+    "operative_note": {"op_findings", "op_course", "op_postop_plan"},
+    "procedure_note": {"pn_course", "pn_complications", "pn_postop_plan"},
 }
 
 # FREE_TEXT doc types whose `text` field is rebuilt from the possibly-
