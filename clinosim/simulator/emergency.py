@@ -295,10 +295,18 @@ def _simulate_ed_visit(
     # treatment_classifier (single source of truth shared with the inpatient
     # supportive path in modules/order/engine.py; J5 pattern prevention).
     # Default is MEDICATION; non-drug names route to PROCEDURE or THERAPY.
+    # Issue #1323: locale-aware treatment name — a ``treatment[]`` item may
+    # carry an optional ``locale_name: {jp: "...", us: "..."}`` map that
+    # picks the country-appropriate drug string (e.g. Prednisolone JP /
+    # Prednisone US for the same active corticosteroid). Old entries with
+    # only ``name`` keep working unchanged. Country key mirrors the disease-
+    # yaml supportive[] ``locale_detail`` split in modules/order/engine.py.
+    _tx_country_key = "jp" if str(country).lower() in ("jp", "japan") else "us"
     for i, tx in enumerate((protocol or {}).get("treatment", [])):
         if rng.random() > tx.get("probability", 1.0):
             continue
-        _tx_name = tx.get("name", "")
+        _locale_name = tx.get("locale_name") or {}
+        _tx_name = str(_locale_name.get(_tx_country_key) or tx.get("name", ""))
         _order_type = classify_encounter_treatment(_tx_name)
         if _order_type == OrderType.MEDICATION:
             _gate = check_demographic_gate(
