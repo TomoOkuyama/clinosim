@@ -469,12 +469,21 @@ def place_admission_orders(
     # the ED treatment path in simulator/emergency.py; J5 pattern prevention).
     for i, sup in enumerate(admission.get("supportive", [])):
         sup_type = sup.get("type", "")
-        # CY2-B continuation: disease-YAML supportive detail
-        # texts sometimes carry alternatives ("NS or LR", "Enoxaparin ... or IPC").
-        # Real MARs specify what was given — pick the primary (first) alternative
-        # for the Order display_name so downstream FHIR emit doesn't produce
-        # "生理食塩液 または 乳酸リンゲル液" as a fake compound drug name.
-        detail_raw = str(sup.get("detail", "") or "")
+        # Issue #1323: locale-aware detail. Prior to this fix
+        # ``supportive[].detail`` was a single locale-blind string, so
+        # COPD exacerbation admissions on US always emitted
+        # ``Prednisolone`` (JP-form corticosteroid) from the shared
+        # supportive block AND ``Prednisone`` (US-form) from the
+        # locale-aware ``drugs.discharge_oral`` block, giving 65 % of
+        # US COPD exacerbation encounters a duplicate steroid pair.
+        # Fix: a supportive item may now carry an optional
+        # ``locale_detail: {jp: "...", us: "..."}`` map — when set,
+        # pick the country-appropriate variant; fall back to the shared
+        # ``detail`` when the map is absent. Old YAML entries keep
+        # working unchanged.
+        _locale_detail = sup.get("locale_detail") or {}
+        _country_key = "jp" if str(country).lower() in ("jp", "japan") else "us"
+        detail_raw = str(_locale_detail.get(_country_key) or sup.get("detail", "") or "")
         for splitter in (" or ", " OR ", " または "):
             if splitter in detail_raw:
                 _primary, _tail = detail_raw.split(splitter, 1)
