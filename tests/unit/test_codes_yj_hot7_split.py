@@ -86,11 +86,16 @@ class TestFileSeparation:
         - #1281 second follow-up (SNRI+atypical antidepressants): +1
           Fluvoxamine (1179038). Duloxetine / Venlafaxine / Mirtazapine
           JP YJ codes deferred until per-code verification lands. → 114.
+        - #1280 sub-C (chemo drug catalog expansion): +5 (Gemcitabine
+          4224400 / Irinotecan 4240401 / Nab-paclitaxel 4291423 /
+          Temozolomide 4291023 / BCG 6323400). All PMDA-approved
+          oncology drugs. Regimen wiring for C22 / C25 / C67 / C71
+          deferred to follow-up. → 119.
         """
         yj_n = len(_load(_YJ_FILE).get("codes") or {})
         hot7_n = len(_load(_HOT7_FILE).get("codes") or {})
         assert yj_n == 76, f"yj.yaml YJ12 count expected 76, got {yj_n}"
-        assert hot7_n == 114, f"hot7.yaml HOT7 count expected 114, got {hot7_n}"
+        assert hot7_n == 119, f"hot7.yaml HOT7 count expected 119, got {hot7_n}"
 
 
 # ────────────────────────────────────────────────────────────────────

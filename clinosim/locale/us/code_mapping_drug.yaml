@@ -133,3 +133,14 @@ Oxytocin: "7824"
 Bupivacaine: "1815"
 Ondansetron: "26225"
 Ketorolac: "35827"
+
+# Oncology chemo catalog expansion (#1280 sub-C). RXCUIs verified
+# 2026-09-12 via tx.fhir.org $lookup (TTY=IN). Regimen wiring in
+# `chemo_regimens.yaml` for C22 / C25 / C67 / C71 is deferred to a
+# separate follow-up requiring oncology clinical review of dose /
+# cycle interval — this batch is drug catalog only.
+Gemcitabine: "12574"
+Irinotecan: "51499"
+"Nab-paclitaxel": "486610"     # RxNorm publishes as "paclitaxel protein-bound" (486610); nab- prefix is the clinical alias
+Temozolomide: "37776"
+BCG: "1344"                    # BCG Vaccine RxCUI — intravesical bladder immunotherapy uses the same organism

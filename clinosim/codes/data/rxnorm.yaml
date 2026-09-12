@@ -409,3 +409,36 @@ codes:
   '15996':
     en: mirtazapine
     ja: ミルタザピン
+
+  # Oncology chemo drug catalog expansion (#1280 sub-C, follow-up
+  # after #1298 wired C15 / C16 → FOLFOX). Registers the drugs
+  # needed for the next round of `by_cancer` regimen additions —
+  # C22 hepatocellular (Gemcitabine + Nab-paclitaxel salvage),
+  # C25 pancreatic (Gemcitabine + Nab-paclitaxel first-line;
+  # FOLFIRINOX needs Irinotecan), C67 bladder (BCG intravesical
+  # + GC), C71 glioma (Temozolomide oral daily). Regimen wiring
+  # itself is a separate follow-up requiring oncology clinical
+  # review of dose / cycle interval per cancer type — this PR is
+  # drug catalog only (verified codes, no wiring risk).
+  #
+  # All RXCUIs NLM-verified 2026-09-12 via tx.fhir.org $lookup
+  # against `http://www.nlm.nih.gov/research/umls/rxnorm`
+  # (TTY=IN for ingredient concepts; Nab-paclitaxel resolves via
+  # its protein-bound paclitaxel SCD form since there is no
+  # standalone "nab-paclitaxel" IN in RxNorm — 486610 is the
+  # published SCD-family entry).
+  '12574':
+    en: gemcitabine
+    ja: ゲムシタビン
+  '51499':
+    en: irinotecan
+    ja: イリノテカン
+  '486610':
+    en: paclitaxel protein-bound
+    ja: ナブパクリタキセル
+  '37776':
+    en: temozolomide
+    ja: テモゾロミド
+  '1344':
+    en: BCG Vaccine
+    ja: BCG膀胱内注入療法（免疫療法）
