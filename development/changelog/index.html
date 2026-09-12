@@ -2306,7 +2306,31 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Narrative renders chronic disease under the WHO parent-code label
+<li><strong>Duplicate cross-encounter Oxygen therapy Procedure emit — 62
+  same-patient / same-code / same-<code>performedPeriod</code> pairs across
+  distinct encounters on p=10k US</strong> (Issue #1352). The oxygen-therapy
+  builder walks every encounter in the record and emits one Procedure
+  per encounter that has <code>on_supplemental_oxygen=True</code> vitals. The
+  session-derivation helper (<code>_oxygen_session_period</code>) then falls
+  back to "all vitals in the record" whenever the per-encounter
+  <code>encounter_id</code> filter yields an empty list — a legacy affordance
+  for single-encounter CIF files that historically omitted the
+  <code>encounter_id</code> field on vitals. In multi-encounter records this
+  fallback silently attributed the FIRST encounter's on-O2 vitals to
+  every subsequent encounter that had none of its own, so an
+  outpatient VAX visit 12 months after an AIN inpatient admission
+  emitted a duplicate Oxygen therapy Procedure carrying the AIN
+  session's timestamps under the VAX encounter reference.</li>
+</ul>
+<p>Fix: multi-encounter records now disable the unattributed-vitals
+  fallback — encounters without matching <code>encounter_id</code> vitals are
+  skipped with the existing <code>no_on_o2_vitals</code> log reason.
+  Single-encounter records still fall back so the historical CIF
+  shape keeps working. Regression tests
+  (<code>test_multi_encounter_second_encounter_without_on_o2_vitals_is_skipped_1352</code>,
+  <code>test_single_encounter_untagged_vitals_still_emit_1352_backcompat</code>)
+  guard both sides.
+- <strong>Narrative renders chronic disease under the WHO parent-code label
   while FHIR emits the locale-mapped billable leaf — US <code>F00</code> shown
   as "Dementia in Alzheimer disease" while FHIR emitted <code>F03.90</code></strong>
   (Issue #1333). Four narrative builders in <code>template_generator.py</code>
@@ -2319,8 +2343,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   US <code>E78</code> → <code>E78.5</code> etc.). The narrative therefore pulled the
   WHO parent-label from <code>icd-10-cm.yaml</code> (<code>F00</code> display exists
   only for family-history / cross-reference use) while FHIR emitted
-  the CM billable leaf — the two documents disagreed on the disease.</li>
-</ul>
+  the CM billable leaf — the two documents disagreed on the disease.</p>
 <p>Fix: every chronic-condition display path now routes the base code
   through <code>map_diagnosis_code(base, country)</code> and looks up the
   emit-target's display; the trailing <code>[code]</code> bracket also carries
