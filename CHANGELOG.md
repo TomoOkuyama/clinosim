@@ -179,6 +179,31 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   (out of this PR's scope; the fix here is universal for any
   continuous-mode entry once its rate is authored). Nitroglycerin
   and insulin drip catalog additions are deferred as a follow-up.
+- **Antibiotic MAR schedules doses past ``Encounter.period.end``** —
+  15/>1d gap on JP p=10k, all Vancomycin (Issue #1312).
+  ``generate_mar_doses`` truncated only at ``snapshot_datetime``
+  (AD-32) — a 14-day Vancomycin regimen started 3 days before
+  discharge emitted 11 doses whose ``effectiveDateTime`` fell after
+  the encounter's discharge time, breaking the FHIR expectation that
+  an inpatient MAR falls within its ``Encounter.period``.
+
+  Fix: added an optional ``encounter_end_datetime`` kwarg to
+  ``generate_mar_doses``; the effective ceiling becomes
+  ``min(snapshot_datetime, encounter_end_datetime)``. The antibiotic
+  enricher looks up the regimen's encounter in the CIF and passes the
+  discharge time (both Pass 1 empirical emit and Pass 2 narrow /
+  de-escalation emit). The dose scheduled at the discharge hour itself
+  is retained (``> cap`` guard) so the last in-encounter dose is not
+  wrongly dropped. Backwards-compat: omitting the kwarg (older
+  callers, cross-encounter regimens) preserves the pre-fix
+  snapshot-only cap.
+
+  Regression tests: ``test_generate_mar_doses_encounter_end_caps_before_snapshot_1312``
+  (Vancomycin q12h × 14 days with 4-day discharge window → 9 doses,
+  was 28), ``test_generate_mar_doses_snapshot_still_caps_when_earlier_than_discharge_1312``
+  (AD-32 snapshot semantics preserved when snapshot is the earlier
+  bound), ``..._no_encounter_end_preserves_snapshot_only_behaviour_1312``
+  (backwards-compat guard).
 
 - **Chest-imaging DiagnosticReport with descriptor-only abnormal
   impression ("Hyperinflation..." / "肺過膨張、横隔膜平坦化、胸骨後

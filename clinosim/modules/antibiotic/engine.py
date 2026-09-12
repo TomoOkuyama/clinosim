@@ -285,6 +285,7 @@ def generate_mar_doses(
     regimen: AntibioticRegimen,
     snapshot_datetime: datetime,
     order_id: str,
+    encounter_end_datetime: datetime | None = None,
 ) -> list[MedicationAdministration]:
     """Materialize per-dose MAR records spanning [start_dt, start_dt + duration_days).
 
@@ -292,14 +293,28 @@ def generate_mar_doses(
     ``regimen.start_datetime``. Doses after ``snapshot_datetime`` are
     truncated (AD-32). Raises ``KeyError`` if ``regimen.frequency``
     is not in ``FREQ_PER_DAY``.
+
+    ``encounter_end_datetime`` (Issue #1312) caps the schedule at the
+    encounter's discharge time when provided. A 14-day Vancomycin
+    regimen started 3 days before discharge previously emitted 11 doses
+    with ``effectiveDateTime`` past ``Encounter.period.end`` (violates
+    the FHIR-spec expectation that an inpatient MAR falls inside the
+    encounter period). When both bounds are given the earlier of the
+    two applies. Optional so callers that don't yet plumb the encounter
+    (older tests, cross-encounter regimens) keep working unchanged.
     """
     freq = FREQ_PER_DAY[regimen.frequency]
     spacing = timedelta(hours=24 // freq)
     total_doses = regimen.duration_days * freq
+    # Effective ceiling — earlier of the snapshot and (optional) discharge.
+    if encounter_end_datetime is not None:
+        cap = min(snapshot_datetime, encounter_end_datetime)
+    else:
+        cap = snapshot_datetime
     out: list[MedicationAdministration] = []
     for i in range(total_doses):
         sched = regimen.start_datetime + spacing * i
-        if sched > snapshot_datetime:
+        if sched > cap:
             break
         out.append(
             MedicationAdministration(
