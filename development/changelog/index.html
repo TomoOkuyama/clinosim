@@ -2306,7 +2306,39 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Pediatric substance-use dependence Condition emit — F10.20 alcohol
+<li><strong>Duplicate Condition emit when admit_dx and discharge_dx collapse to
+  the same code under the locale mapping</strong> (Issue #1341). The
+  encounter-Condition builder decides whether to emit a separate
+  <code>admitting</code> Condition by combining a RAW-view check (does
+  <code>admit_dx_code</code> differ from every raw code already carried?) with a
+  MAPPED-view check (same question, after <code>map_diagnosis_code</code>). The
+  prior <code>raw OR mapped</code> combining emitted a false-positive admission
+  Condition whenever the raw admit / primary looked distinct but both
+  collapsed to the same code under the locale mapping — a common shape
+  for JP hip-fracture encounters (<code>discharge_dx=S72.00</code> +
+  <code>admit_dx=S72.0</code> both map to <code>S72.0</code>) and for JP diagnoses
+  carrying the <code>99999999</code> placeholder code. Result: two Conditions
+  on the same encounter, same code, same onset timestamp, distinguished
+  only by <code>JP_eCS_DiagnosisType</code> extension (principal vs admitting).</li>
+</ul>
+<p>Fix: combine the two shape checks with <code>AND</code> — both raw and mapped
+  views must independently say "admit is orphaned" before an admission
+  Condition is emitted. The raw check is preserved as a defensive layer
+  for cases where the locale mapping happens to be identity but a
+  raw-distinct case still needs an admission row (e.g. US
+  <code>admit=J44.1</code> / <code>primary=J44.0</code>); the AND simply suppresses the
+  collapse false positive.</p>
+<p>Verification: p=500 seed=356 JP baseline had 10 dup pairs (all with
+  the pattern above); the fix removes all 10. Regression test
+  <code>test_admission_condition_suppressed_when_mapping_collapses_admit_and_primary_1341</code>
+  covers the exact shape.</p>
+<p>Non-scope: Issue #1341 also reports a <strong>Condition / imaging site
+  mismatch</strong> (S72.0 femoral-neck Condition + 転子部 trochanteric
+  imaging text on the same encounter). That's a separate defect in the
+  hip-fracture disease-YAML — fracture-site variant sampling
+  (S72.00/S72.10/S72.2) is independent from the imaging-text sampler.
+  Deferred as a follow-up.
+- <strong>Pediatric substance-use dependence Condition emit — F10.20 alcohol
   dependence at age 9, F17.210 nicotine dependence at age 12</strong> (Issue
   #1349). SDOH-derived chronic Conditions F17.210 and F10.20 (added in
   <code>population/engine.py</code> when <code>smoking_status="current"</code> /
@@ -2318,8 +2350,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   ago" window with no per-disease minimum onset age for F10 / F17, so
   a 22 yo patient could receive an F10.20 with
   <code>onsetDateTime</code> at age 9 — clinically implausible per DSM-5 (AUD
-  rare &lt; 15) and ICD-10 (nicotine dependence-level dx typically ≥ 16).</li>
-</ul>
+  rare &lt; 15) and ICD-10 (nicotine dependence-level dx typically ≥ 16).</p>
 <p>Fix: add <code>F10: 15</code> and <code>F17: 16</code> minimum-onset-age floors to
   <code>clinosim/locale/shared/chronic_onset_min_age.yaml</code>. The existing
   <code>_clamp_chronic_onset</code> helper (Issue #968) then bumps any sampled
