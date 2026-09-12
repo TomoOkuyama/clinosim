@@ -39,6 +39,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Depression Condition emits bare F32 / F33 (non-billable ICD-10-CM)**
+  (Issue #1309, US-only). ``F32`` and ``F33`` are ICD-10-CM category
+  headers; billable leaves are ``F32.0-F32.9`` and ``F33.0-F33.9``. The
+  sim's current mood-cohort modeling has no severity subtyping, so the
+  clinically-appropriate leaf is ``.9`` "unspecified". Added
+  ``F32 → F32.9`` and ``F33 → F33.9`` to
+  ``clinosim/locale/us/code_mapping_diagnosis.yaml`` and the
+  corresponding ``F32.9`` / ``F33.9`` displays to
+  ``clinosim/codes/data/icd-10-cm.yaml``. p=10k s=356 baseline: 484
+  bare F32 + 128 bare F33 → 0 after fix; all become F32.9 / F33.9 with
+  the same cohort volume. JP-side counterpart (#1320) tracked
+  separately (requires broader WHO ICD-10 leaf additions to
+  ``icd-10.yaml``).
+
 ### Added
 
 - **Cesarean full intraoperative medication bundle**
