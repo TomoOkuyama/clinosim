@@ -41,6 +41,28 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **SNOMED coding for Order-derived clinical Procedures**
+  (#1282 Sub-B → PR). The Order → Procedure emit path in
+  `output/fhir_r4/lib/inline_bb.py` previously emitted
+  `Procedure.code` with `text` only and an EMPTY `coding` array —
+  36 % of all Procedure rows at p=10k s=354 (Issue #1282). New
+  crosswalk `output/fhir_r4/procedures/procedure_name_snomed.yaml`
+  maps free-text `Order.display_name` substrings to verified SNOMED
+  CT codes: hemodialysis (302497006), CRRT / hemofiltration
+  (233581009), ECMO (233573008), CPAP / BiPAP (47545007), wound
+  care (225358003), timed urine collection (225113003), triage
+  (225390008), oxygen therapy (57485005). First-match-wins
+  ordering ensures the specific pattern beats a broader family
+  match (e.g. `CRRT` beats `hemodialysis` when both keywords
+  appear in the same display). Every SNOMED code is verified
+  against `tx.fhir.org` `$lookup` — the regression suite includes
+  a guard that fails on drift to an unverified code. Unmatched
+  displays fall through to text-only (pre-#1282 behaviour). ED
+  triage / admission-staging design decision (keep as
+  `Procedure` vs move to `Encounter.classHistory`) is a separate
+  follow-up. **PATCH-scope**: additive `code.coding` on matched
+  Order-derived Procedures; no other emit path touched; no CIF
+  change; no new RNG draws.
 - **Cancer chronic follow-up routes to Oncology (`腫瘍内科`)**
   (#1280 Sub-A → PR). Pre-fix every C-chapter cancer chronic follow-
   up visit fell through the specialty dispatcher to

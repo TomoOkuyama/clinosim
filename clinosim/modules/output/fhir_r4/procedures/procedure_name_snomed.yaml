@@ -1,0 +1,120 @@
+# Order → Procedure display-name → SNOMED CT crosswalk (Issue #1282 Sub-B).
+#
+# `simulator/emergency.py` (ED treatment orders) and
+# `modules/order/engine.py` (inpatient admission supportive-care orders)
+# emit `Order` records typed as `OrderType.PROCEDURE` with a free-text
+# `display_name` (e.g. "血液透析 3-4h セッション, 3x/週 または 持続 (CRRT)",
+# "O2: Nasal cannula SpO2 >= 94%", "Wound irrigation with normal saline").
+# The Order → Procedure builder in `output/fhir_r4/lib/inline_bb.py`
+# previously emitted these as `Procedure.code = {text: <display>}` with an
+# EMPTY `coding` array — 36 % of all Procedure rows at p=10k s=354 (see
+# Issue #1282), so any consumer filtering `Procedure.code.coding[*].code`
+# missed the underlying event.
+#
+# This crosswalk maps a normalized substring of `display_name` (case-
+# insensitive Unicode fold) to a verified SNOMED CT code. The lookup is
+# first-match-wins in the order declared here — put more specific
+# patterns (e.g. "CRRT") ABOVE their broader family entry (e.g.
+# "hemodialysis") so the most-specific code wins.
+#
+# Verification policy (per repo `feedback_verify_fhir_profile_uri_from_spec`):
+# every SNOMED code below MUST resolve via tx.fhir.org `$lookup` against
+# `http://snomed.info/sct`. Verified 2026-09-12 against the SNOMED CT
+# International Edition (version 20250201).
+
+# ---------------------------------------------------------------------------
+# Entries. First-match-wins in the declared order below.
+# Format: {match: <lowercase substring>, snomed: <code>, display_en: <text>}
+# `match` is matched with case-insensitive substring against the trimmed
+# lowercase `display_name`; Japanese pattern strings match verbatim
+# (Python str.lower() is idempotent on kana/kanji).
+entries:
+  # CRRT / hemofiltration — check before generic "hemodial" match.
+  - match: "crrt"
+    snomed: "233581009"
+    display_en: "Haemofiltration"
+  - match: "持続濾過"
+    snomed: "233581009"
+    display_en: "Haemofiltration"
+  - match: "持続的血液濾過"
+    snomed: "233581009"
+    display_en: "Haemofiltration"
+
+  # Hemodialysis (standard 3-4 h session).
+  - match: "血液透析"
+    snomed: "302497006"
+    display_en: "Haemodialysis"
+  - match: "hemodial"
+    snomed: "302497006"
+    display_en: "Haemodialysis"
+  - match: "haemodial"
+    snomed: "302497006"
+    display_en: "Haemodialysis"
+
+  # ECMO — check before broader ventilation entries.
+  - match: "ecmo"
+    snomed: "233573008"
+    display_en: "Extracorporeal membrane oxygenation"
+  - match: "extracorporeal membrane"
+    snomed: "233573008"
+    display_en: "Extracorporeal membrane oxygenation"
+
+  # CPAP / BiPAP non-invasive ventilation.
+  - match: "cpap"
+    snomed: "47545007"
+    display_en: "Continuous positive airway pressure ventilation treatment"
+  - match: "bipap"
+    snomed: "47545007"
+    display_en: "Continuous positive airway pressure ventilation treatment"
+  - match: "非侵襲的換気"
+    snomed: "47545007"
+    display_en: "Continuous positive airway pressure ventilation treatment"
+
+  # Wound care / debridement.
+  - match: "wound care"
+    snomed: "225358003"
+    display_en: "Wound care"
+  - match: "wound irrigation"
+    snomed: "225358003"
+    display_en: "Wound care"
+  - match: "創傷ケア"
+    snomed: "225358003"
+    display_en: "Wound care"
+  - match: "創部処置"
+    snomed: "225358003"
+    display_en: "Wound care"
+
+  # Foley urine output monitoring (timed urine collection).
+  - match: "urine output"
+    snomed: "225113003"
+    display_en: "Timed urine collection"
+  - match: "尿量測定"
+    snomed: "225113003"
+    display_en: "Timed urine collection"
+  - match: "尿量観察"
+    snomed: "225113003"
+    display_en: "Timed urine collection"
+
+  # ED triage marker (assessment).
+  - match: "triage"
+    snomed: "225390008"
+    display_en: "Triage"
+  - match: "トリアージ"
+    snomed: "225390008"
+    display_en: "Triage"
+
+  # Oxygen therapy (nasal cannula / face mask / venturi mask). Note the
+  # dedicated `output/fhir_r4/procedures/oxygen_therapy.py` builder handles
+  # session-derived oxygen Procedures already; the entry below covers
+  # point-in-time ED / admission O2 orders that still hit the generic
+  # Order → Procedure builder (session-derived shape is not available for
+  # them).
+  - match: "o2:"
+    snomed: "57485005"
+    display_en: "Oxygen therapy"
+  - match: "oxygen therapy"
+    snomed: "57485005"
+    display_en: "Oxygen therapy"
+  - match: "酸素投与"
+    snomed: "57485005"
+    display_en: "Oxygen therapy"
