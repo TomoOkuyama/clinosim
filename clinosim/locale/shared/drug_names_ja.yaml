@@ -360,6 +360,20 @@ Rust ring removal with burr: "バーによる錆輪除去"
 "ICS/LABA inhaler": "吸入ステロイド／β2刺激薬配合吸入剤"
 "ICS/LABA": "吸入ステロイド／β2刺激薬配合"
 
+# --- Chemotherapy agents (Issue #1310, catalogued by PR #1303) ---
+# Text-localization for medicationCodeableConcept.text; corresponding
+# HOT7 / RxNorm codings already carry a Japanese `display`, but the
+# top-level `.text` field (which JP consumers read first) was falling
+# through the English fallback until these keys were added.
+Gemcitabine: "ゲムシタビン"
+Irinotecan: "イリノテカン"
+"Nab-paclitaxel": "ナブパクリタキセル"
+Nab_paclitaxel: "ナブパクリタキセル"       # underscore-form used inside a few disease YAMLs
+"nab-Paclitaxel": "ナブパクリタキセル"
+Temozolomide: "テモゾロミド"
+BCG: "BCG（膀胱内注入療法）"
+"BCG intravesical": "BCG（膀胱内注入療法）"
+
 # --- Allergens / アレルゲン ---
 Penicillin: "ペニシリン"
 Cephalosporin: "セフェム系抗菌薬"
