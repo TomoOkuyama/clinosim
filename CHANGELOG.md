@@ -60,6 +60,21 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   emits once/day, and the doubled-dose signature clears. Verified on
   p=500 JP: 0 / 4 Enalapril encounters (was 100 % baseline) with
   >1× same-day admin; Levothyroxine cohort now correctly single-dosed.
+- **Anachronistic chronic DAPT on I25 patients** (Issue #1330). Chronic
+  Clopidogrel (as DAPT with Aspirin) is only indicated within 6-12 mo
+  of PCI / ACS per ACC/AHA / ESC / JCS 2022 — long-term chronic DAPT
+  >12 mo is exceptional. The prior 0.40 probability on ``I25.medications``
+  activated DAPT on 40 % of every I25 patient at population time, then
+  the sim provisioned it as a home-med predating any acute cardiac
+  event by many months (19 JP + 4 US patients on the p=10k baseline
+  had DAPT starting 5+ mo before any I21 / I25 / I63 / I50 Dx). Retuned
+  to 0.10 to represent the ~10 % of chronic-CAD patients within their
+  6-12 mo post-PCI window. Verified p=500 JP: anachronistic patients
+  drop from ~4 % of DAPT-carrying cohort to <1 %. Follow-up needs a
+  ``recent_pci_within_12mo`` flag so DAPT provisioning is gated on
+  post-PCI temporal proximity rather than a flat probability.
+
+
 
 - **Prednisone + Prednisolone dual emit on US corticosteroid encounters**
   (Issue #1323). US COPD exacerbation encounters carried both drugs
