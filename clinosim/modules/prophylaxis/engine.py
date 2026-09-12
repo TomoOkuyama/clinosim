@@ -60,6 +60,33 @@ def should_skip_dvt_prophylaxis(
     """
     conditions = _skip_conditions()
 
+    # Rule 0 (Issue #1276): pediatric age gate. AAP / CHEST 2019
+    # pediatric VTE prophylaxis guidelines do not recommend routine
+    # prophylaxis for the "any adult inpatient ≥ 48 h LOS" trigger
+    # this rule set applies. Skip below `pediatric_age_ceiling`
+    # (default 15). A follow-up in the pediatric care module (Issue
+    # #1137) can layer positive-indication detection (ortho surgery,
+    # ICU immobilization, Kawasaki disease) + weight-based dosing.
+    peds_rule = conditions.get("pediatric_age_gate", {}) or {}
+    peds_ceiling = peds_rule.get("pediatric_age_ceiling")
+    if peds_ceiling is not None:
+        pat_age = getattr(patient, "age", None)
+        if pat_age is None:
+            # Derive from date_of_birth against admission_datetime.
+            dob = getattr(patient, "date_of_birth", None)
+            adm = getattr(encounter, "admission_datetime", None)
+            if isinstance(dob, str) and dob and adm is not None:
+                try:
+                    dob_dt = datetime.fromisoformat(dob).date()
+                    adm_date = adm.date() if isinstance(adm, datetime) else datetime.fromisoformat(str(adm)).date()
+                    pat_age = (
+                        adm_date.year - dob_dt.year - ((adm_date.month, adm_date.day) < (dob_dt.month, dob_dt.day))
+                    )
+                except (TypeError, ValueError):
+                    pat_age = None
+        if isinstance(pat_age, int) and pat_age < int(peds_ceiling):
+            return True, "pediatric_age_gate"
+
     # Rule 1: therapeutic anticoagulant on board.
     if active_medications is None:
         active_medications = [
