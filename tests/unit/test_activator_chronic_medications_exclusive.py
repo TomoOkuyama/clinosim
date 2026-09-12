@@ -160,12 +160,20 @@ def test_I50_heart_failure_triad_can_coexist():
 
 
 def test_I25_DAPT_pair_can_coexist():
-    """I25 = Aspirin 1.0 + Clopidogrel 0.4 → P(both) = 40% → ≥ 250/1000."""
+    """I25 = Aspirin 1.0 + Clopidogrel 0.10 → P(both) = 10% → ≥ 50/1000.
+
+    Issue #1330: chronic DAPT (Aspirin + Clopidogrel) is only indicated
+    within 6-12 mo of PCI / ACS per ACC/AHA / ESC / JCS 2022 — long-term
+    chronic DAPT is exceptional. The prior 0.40 probability produced
+    anachronistic "DAPT started 5+ mo before any cardiac Dx" for 19 JP +
+    4 US patients on the p=10k baseline. Retuned to 0.10 to represent
+    the ~10 % of chronic-CAD patients within the post-PCI window.
+    """
     samples = _sample_us(["I25"], n=1000)
     both = sum(
         1 for s in samples if any("Aspirin" in m.drug_name for m in s) and any("Clopidogrel" in m.drug_name for m in s)
     )
-    assert both > 250, f"I25 DAPT coexist: {both}/1000 (expected ~400)"
+    assert both > 50, f"I25 DAPT coexist: {both}/1000 (expected ~100 at prob 0.10)"
 
 
 # --------------------------------------------------------------------------- #
