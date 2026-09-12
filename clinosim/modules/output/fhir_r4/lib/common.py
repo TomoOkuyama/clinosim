@@ -1201,6 +1201,118 @@ def augment_iv_dosage_with_rate(
     # mode == "push" (or unrecognized): intentional no-op.
 
 
+# Issue #1348: frequency-label → FHIR Dosage.timing.repeat (frequency, period, periodUnit).
+# Case-insensitive lookup. UCUM units: "h" hour, "d" day, "wk" week, "mo" month.
+# `nightly` is once-daily at hs; not a distinct cadence from `qhs` but the label
+# is common in disease-YAML mental-health / chronic-med lists so it gets an
+# explicit entry.
+_FREQ_LABEL_TIMING: dict[str, tuple[int, int, str]] = {
+    # Once daily
+    "qd": (1, 1, "d"),
+    "q24h": (1, 1, "d"),
+    "once daily": (1, 1, "d"),
+    "daily": (1, 1, "d"),
+    "1x/day": (1, 1, "d"),
+    "qhs": (1, 1, "d"),
+    "bedtime": (1, 1, "d"),
+    "at bedtime": (1, 1, "d"),
+    "hs": (1, 1, "d"),
+    "nightly": (1, 1, "d"),
+    "qam": (1, 1, "d"),
+    "qpm": (1, 1, "d"),
+    # Multiple times per day
+    "bid": (2, 1, "d"),
+    "q12h": (2, 1, "d"),
+    "twice daily": (2, 1, "d"),
+    "2x/day": (2, 1, "d"),
+    "tid": (3, 1, "d"),
+    "q8h": (3, 1, "d"),
+    "three times daily": (3, 1, "d"),
+    "3x/day": (3, 1, "d"),
+    "qid": (4, 1, "d"),
+    "q6h": (4, 1, "d"),
+    "four times daily": (4, 1, "d"),
+    "4x/day": (4, 1, "d"),
+    "q4h": (6, 1, "d"),
+    "q3h": (8, 1, "d"),
+    "q2h": (12, 1, "d"),
+    "q1h": (24, 1, "d"),
+    # Multi-day cadence (once per N days)
+    "every_other_day": (1, 2, "d"),
+    "qod": (1, 2, "d"),
+    "every other day": (1, 2, "d"),
+    "every_3_days": (1, 3, "d"),
+    "every 3 days": (1, 3, "d"),
+    # Weekly
+    "weekly": (1, 1, "wk"),
+    "1x/week": (1, 1, "wk"),
+    "qweek": (1, 1, "wk"),
+    "qwk": (1, 1, "wk"),
+    "once weekly": (1, 1, "wk"),
+    # Monthly
+    "monthly": (1, 1, "mo"),
+    "1x/month": (1, 1, "mo"),
+    "qmonth": (1, 1, "mo"),
+    # Chemo per-cycle cadence
+    "q3weeks": (1, 3, "wk"),
+    "q3wks": (1, 3, "wk"),
+    "every 3 weeks": (1, 3, "wk"),
+    "q4weeks": (1, 4, "wk"),
+    "q4wks": (1, 4, "wk"),
+    "every 4 weeks": (1, 4, "wk"),
+}
+
+
+def _split_prn_suffix(flow: str) -> tuple[str, bool]:
+    """Strip a trailing ` prn` / ` as needed` suffix so `q6h PRN` splits into
+    (`q6h`, True). The cadence still emits a `timing.repeat`, and PRN sets
+    `asNeededBoolean=true` in parallel (FHIR-valid: "up to every 6 hours as
+    needed").
+    """
+    for suffix in (" prn", " as needed", " when required"):
+        if flow.endswith(suffix):
+            return flow[: -len(suffix)].strip(), True
+    return flow, False
+
+
+def resolve_timing_repeat(
+    freq_raw: str | None,
+    freq_per_day: int | None = None,
+) -> tuple[dict[str, Any] | None, bool]:
+    """Resolve a raw frequency label (or explicit ``freq_per_day``) to a FHIR
+    ``timing.repeat`` sub-dict + a PRN flag.
+
+    Returns ``(repeat_dict, is_prn)``:
+
+      * ``repeat_dict`` — ``{"frequency": N, "period": P, "periodUnit":
+        "d"|"wk"|"mo"|"h"}`` or ``None`` when the label is unknown and no
+        ``freq_per_day`` is supplied.
+      * ``is_prn`` — ``True`` when the label is bare PRN or a PRN-suffixed
+        cadence (``q6h PRN`` etc.). Callers should also set
+        ``asNeededBoolean=true`` on the parent ``dosageInstruction``.
+
+    Shared by ``build_dosage_instruction`` (inpatient / order-driven path)
+    and ``_build_discharge_medication_request`` (discharge / outpatient
+    renewal path) so both emit sites use one lookup table and stay in sync
+    with new labels declared in disease / chronic YAML. Issue #1348.
+    """
+    if freq_per_day and (not freq_raw or not freq_raw.strip()):
+        return {"frequency": int(freq_per_day), "period": 1, "periodUnit": "d"}, False
+    if not freq_raw:
+        return None, False
+    _flow, _prn = _split_prn_suffix(freq_raw.lower().strip())
+    if _flow in ("prn", "as needed", "when required", ""):
+        return None, True
+    _timing = _FREQ_LABEL_TIMING.get(_flow)
+    if _timing is None:
+        # Unknown label — fall back to caller-supplied freq_per_day if any.
+        if freq_per_day:
+            return {"frequency": int(freq_per_day), "period": 1, "periodUnit": "d"}, _prn
+        return None, _prn
+    _f, _p, _u = _timing
+    return {"frequency": _f, "period": _p, "periodUnit": _u}, _prn
+
+
 def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any] | None:
     """Build FHIR Dosage from structured order fields."""
     dose_qty = order.get("dose_quantity")
@@ -1271,47 +1383,33 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
         dosage["route"] = route_concept
         parts.append(route)
 
-    # Timing
-    # C4-16: derive freq_per_day from common freq
-    # strings when the order only supplies the label (was 13% of MR with
-    # dosageInstruction lacking timing.repeat).
-    if freq_per_day is None and freq:
-        _flow = freq.lower().strip()
-        _derived: int | None = None
-        if _flow in ("qd", "q24h", "once daily", "daily", "1x/day"):
-            _derived = 1
-        elif _flow in ("bid", "q12h", "twice daily", "2x/day"):
-            _derived = 2
-        elif _flow in ("tid", "q8h", "three times daily", "3x/day"):
-            _derived = 3
-        elif _flow in ("qid", "q6h", "four times daily", "4x/day"):
-            _derived = 4
-        elif _flow in ("q4h",):
-            _derived = 6
-        elif _flow in ("q3h",):
-            _derived = 8
-        elif _flow in ("q2h",):
-            _derived = 12
-        elif _flow in ("qhs", "bedtime", "at bedtime", "hs"):
-            _derived = 1
-        if _derived is not None:
-            freq_per_day = _derived
-
-    if freq_per_day:
-        dosage["timing"] = {
-            "repeat": {
-                "frequency": freq_per_day,
-                "period": 1,
-                "periodUnit": "d",
-            },
-        }
-        parts.append(freq or f"{freq_per_day}x/day")
+    # Timing — resolve to a FHIR ``timing.repeat`` via the shared helper.
+    # Issue #1348: prior implementation stored only ``freq_per_day`` (int),
+    # so any non-daily cadence (``weekly``, ``monthly``, ``q3weeks``,
+    # ``every_3_days``, ``nightly``, ``every_other_day``) fell through to
+    # the plain-text branch with no ``timing.repeat`` emit — Alendronate
+    # 99.8 %, Mirtazapine 100 %, Salbutamol 100 % (PRN — kept in
+    # asNeededBoolean branch), and every chemo per-cycle IV lacked
+    # structured timing. ``resolve_timing_repeat`` centralises the label
+    # dispatch table so the inpatient / order-driven path here and the
+    # discharge / outpatient path in ``_build_discharge_medication_request``
+    # stay in sync.
+    _repeat, _is_prn = resolve_timing_repeat(freq, freq_per_day)
+    if _repeat:
+        dosage["timing"] = {"repeat": _repeat}
+        if _repeat.get("periodUnit") == "d" and _repeat.get("period") == 1:
+            # Preserve the freq_per_day int for downstream text-summary /
+            # JA patient-instruction paths that still key off it.
+            freq_per_day = _repeat["frequency"]
+        parts.append(freq or f"{_repeat['frequency']}x/{_repeat['periodUnit']}")
     elif freq:
-        _flow = freq.lower().strip()
-        # PRN / as needed → asNeededBoolean=true, no fixed frequency.
-        if _flow in ("prn", "as needed", "when required"):
-            dosage["asNeededBoolean"] = True
+        # Label present but unknown to the table (e.g. free-form
+        # ``q6h_first_24h_then_daily``) — keep the label in the text
+        # summary rather than fabricating a numeric repeat we cannot
+        # justify. Semantic-correctness > coverage.
         parts.append(freq)
+    if _is_prn:
+        dosage["asNeededBoolean"] = True
 
     # Dosage.patientInstruction — Issue #848 fix (route-aware).
     # Prior emit derived the phrase from the frequency label alone and
