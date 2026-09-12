@@ -41,6 +41,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **US SEER-calibrated prevalences for C15 / C16 / C25 / C67 / C71**
+  (Issue #1311). S108 PRs #1298 (C15/C16 → FOLFOX), #1303 (Gemcitabine
+  / Irinotecan / Nab-paclitaxel / Temozolomide / BCG catalog), and
+  #1304 (C25 → GemNabP, C67 → BCG intravesical, C71 → Temozolomide /
+  Stupp) added chemo regimens for five cancer codes. US
+  ``demographics.yaml`` had no prevalence entries for any of them, so
+  the US p=10k s=355 build carried 0 Condition records for these
+  codes — the regimens never fired in US. Added SEER Cancer
+  Statistics Review 1975-2020 5-year-survivor-prevalence bands to
+  ``clinosim/locale/us/demographics.yaml``; also added
+  ``C15 / C16 / C25 / C67 / C71 → .9 (unspecified)`` entries to
+  ``clinosim/locale/us/code_mapping_diagnosis.yaml`` and the
+  corresponding displays to ``clinosim/codes/data/icd-10-cm.yaml``.
+  p=200 s=356 US sim now emits C16.9 Conditions; the regimen wiring
+  from PR #1298 fires end-to-end.
+
 - **Cesarean full intraoperative medication bundle**
   (#1285 sub-scope → PR). Extends the Cefazolin-only surgical
   prophylaxis added earlier to the full ACOG / ASA / ERAS
