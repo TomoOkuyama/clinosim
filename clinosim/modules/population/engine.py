@@ -680,6 +680,15 @@ def generate_population(
                 conditions.append("E66.01")  # Morbid (severe) obesity, BMI ≥ 40
             elif bmi >= BMI_OBESE_THRESHOLD:
                 conditions.append("E66.9")  # Obesity, unspecified, BMI ≥ 30
+            elif bmi >= BMI_OVERWEIGHT_THRESHOLD:
+                # Issue #1272: complete the 3-band ICD-10-CM E66 dispatch.
+                # BMI 25.0-29.9 is the overweight band (~30 % of US adults,
+                # ~20 % of JP adults). Pre-#1272 no ICD Condition was emitted
+                # for this band, so downstream analytics keying on E66.3
+                # saw an empty cohort even though the BMI Observation
+                # itself was correctly emitted. Same 3-band split #1126
+                # declared in the metabolic-cluster scope (see META #1137).
+                conditions.append("E66.3")  # Overweight, BMI 25-29.9
 
             # Issue #1134 (Substance Use): SDOH-derived Condition insertion.
             # Rationale: ``smoking_status`` / ``alcohol_use`` are already

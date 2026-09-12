@@ -56,6 +56,9 @@ codes:
   E66.01:
     en: Morbid (severe) obesity due to excess calories
     ja: 高度肥満（過剰摂取による）
+  E66.3:
+    en: Overweight
+    ja: 過体重
   E66.9:
     en: Obesity, unspecified
     ja: 肥満（詳細不明）
