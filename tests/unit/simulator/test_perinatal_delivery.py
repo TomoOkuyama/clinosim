@@ -273,6 +273,138 @@ def test_delivery_encounter_returns_mother_and_newborn_records_jp() -> None:
     assert newborn_rec.clinical_diagnosis.discharge_diagnosis_code == "Z38.0"
 
 
+def test_pregnancy_complications_stamped_on_state_period_metadata_1285() -> None:
+    """Issue #1285 Sub-A: `_pregnancy_lifecycle_events` samples per-
+    pregnancy complications (O14 / O24 / O42 / O60 / O64) from
+    `perinatal.yaml::complications.bernoulli_draws`. Sweep a cohort
+    and verify each complication code lands in the observed
+    aggregate at approximately its configured probability."""
+    hits_by_code: dict[str, int] = {}
+    n_pregnancies = 0
+    for i in range(2000):
+        person = _make_person(f"POP-C{i:04d}", "F", 28)
+        _pregnancy_lifecycle_events(person, year=2024, country="US")
+        if not person.state_periods:
+            continue
+        period = person.state_periods[-1]
+        if period.state_type != "pregnancy" or period.outcome == "aborted":
+            continue
+        n_pregnancies += 1
+        for code in period.metadata.get("complications") or []:
+            hits_by_code[code] = hits_by_code.get(code, 0) + 1
+    assert n_pregnancies >= 100, f"only {n_pregnancies} pregnancies in sweep — insufficient"
+    # Each configured complication code should have hit at least once
+    # and at most ~2× its target probability (loose empirical bands).
+    for code, target in [
+        ("O14.9", 0.05),
+        ("O24.9", 0.06),
+        ("O42.9", 0.05),
+        ("O60.1", 0.10),
+        ("O64.9", 0.04),
+    ]:
+        observed = hits_by_code.get(code, 0) / max(n_pregnancies, 1)
+        assert 0.5 * target <= observed <= 2.5 * target, (
+            f"{code} rate {observed:.3f} outside 0.5-2.5× target {target:.3f}"
+        )
+
+
+def test_aborted_pregnancy_has_no_complications_metadata_1285() -> None:
+    """Aborted pregnancies never carry O-chapter complication codes
+    (the abortion path returns before the complication sampler runs)."""
+    # Sweep age-20 US so the abortion outcome hits often enough.
+    for i in range(2000):
+        p = _make_person(f"POP-AB{i:04d}", "F", 20)
+        _pregnancy_lifecycle_events(p, year=2024, country="US")
+        if not p.state_periods:
+            continue
+        period = p.state_periods[-1]
+        if period.outcome == "aborted":
+            assert not period.metadata.get("complications"), (
+                f"aborted pregnancy carried complications: {period.metadata.get('complications')}"
+            )
+
+
+def test_delivery_encounter_surfaces_complications_as_working_dx_1285() -> None:
+    """Issue #1285 Sub-A: when the pregnancy carries any pre-sampled
+    complications, the delivery encounter's ClinicalDiagnosis
+    `working_diagnoses` picks them up and the ConditionEvent's
+    ground_truth_diseases lists them alongside Z37.0."""
+    from clinosim.types.patient import TemporalStatePeriod
+
+    patient = PatientProfile(patient_id="POP-000001", sex="F", age=28)
+    delivery_dt = datetime(2024, 7, 15, 10, 0)
+    # Manually plant a pregnancy period matching the delivery date so
+    # the test doesn't rely on the lifecycle sweep RNG.
+    lmp = delivery_dt.date() - timedelta(days=280)
+    period = TemporalStatePeriod(
+        state_type="pregnancy",
+        start_date=lmp,
+        end_date=None,
+        outcome="",
+        metadata={
+            "lmp": lmp,
+            "edd": lmp + timedelta(days=280),
+            "planned_delivery_date": delivery_dt.date(),
+            "complications": ["O24.9", "O60.1"],
+        },
+        period_seq=0,
+    )
+    patient.state_periods = [period]
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=delivery_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    wd_codes = {d.get("disease_id") for d in mother_rec.clinical_diagnosis.working_diagnoses}
+    assert "O24.9" in wd_codes, "GDM must land in working_diagnoses"
+    assert "O60.1" in wd_codes, "preterm labor must land in working_diagnoses"
+    assert "O24.9" in mother_rec.condition_event.ground_truth_diseases
+    assert "O60.1" in mother_rec.condition_event.ground_truth_diseases
+    # Z37.0 (single liveborn outcome) is still present
+    assert "Z37.0" in mother_rec.condition_event.ground_truth_diseases
+    assert mother_rec.condition_event.condition_type == "mixed"
+
+
+def test_delivery_without_complications_uses_perinatal_delivery_type_1285() -> None:
+    """No complications sampled → `condition_type` stays
+    `perinatal_delivery` (regression against always-flipping to mixed)."""
+    from clinosim.types.patient import TemporalStatePeriod
+
+    patient = PatientProfile(patient_id="POP-NC-1", sex="F", age=28)
+    delivery_dt = datetime(2024, 7, 15, 10, 0)
+    lmp = delivery_dt.date() - timedelta(days=280)
+    period = TemporalStatePeriod(
+        state_type="pregnancy",
+        start_date=lmp,
+        end_date=None,
+        outcome="",
+        metadata={
+            "lmp": lmp,
+            "edd": lmp + timedelta(days=280),
+            "planned_delivery_date": delivery_dt.date(),
+            "complications": [],
+        },
+        period_seq=0,
+    )
+    patient.state_periods = [period]
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=delivery_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    assert mother_rec.clinical_diagnosis.working_diagnoses == []
+    assert mother_rec.condition_event.condition_type == "perinatal_delivery"
+    assert mother_rec.condition_event.ground_truth_diseases == ["Z37.0"]
+
+
 def test_cesarean_delivery_carries_cefazolin_prophylaxis_1285() -> None:
     """Issue #1285: US C-section delivery must emit a Cefazolin 2 g IV
     single-dose surgical antimicrobial prophylaxis Order (ACOG mandate,

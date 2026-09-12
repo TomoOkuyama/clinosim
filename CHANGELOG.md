@@ -41,6 +41,28 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Pregnancy complications sampling (O14 / O24 / O42 / O60 / O64)**
+  (#1285 Sub-A → PR). Pre-fix every one of the ~185 US pregnancies
+  at p=10k s=354 emitted no O-chapter complication code — the only
+  O-codes present were O03 / O04 (abortion) and O80 / O82 (delivery
+  mode). Real US obstetric care carries a complication code on
+  20-40 % of pregnancies. `_pregnancy_lifecycle_events` now samples
+  five independent Bernoulli complications at conception (rates
+  targeting CDC / ACOG mid-band values: 5 % preeclampsia, 6 % GDM,
+  5 % PROM, 10 % preterm labor, 4 % malposition) from
+  `perinatal.yaml::complications.bernoulli_draws`, storing the hit
+  codes on the pregnancy `TemporalStatePeriod.metadata`. At delivery
+  time `simulator/perinatal.py::simulate_delivery_encounter` reads
+  the complications back and surfaces them via
+  `ClinicalDiagnosis.working_diagnoses` +
+  `ConditionEvent.ground_truth_diseases`, so the FHIR emit path
+  renders each as a secondary Condition attached to the delivery
+  encounter. Draws use the existing per-mother-year
+  `perinatal_delivery_seed` sub-RNG (isolated from the calendar
+  master RNG — non-perinatal patients' streams are byte-neutral).
+  Aborted pregnancies skip the sampler by construction. **MINOR-scope**:
+  additive CIF `chronic_conditions`-like data on the pregnancy
+  cohort; re-narrate suggested for pregnant patients.
 - **Antidepressant chronic-med derivation for F32 / F33 / F41.1**
   (#1281 → PR, META #1137 axis 1). The chronic-medications
   dispatcher had no entries for the mental-health ICD codes, so

@@ -123,6 +123,56 @@ lifecycle:
   postpartum_visit_offsets_days: [7, 28]
 
 # ---------------------------------------------------------------------------
+# Pregnancy complications sampler — Issue #1285. Bernoulli draws per
+# complication at conception (per-pregnancy, per-mother sub-RNG derived
+# from `perinatal_delivery_seed`), stored on the pregnancy
+# TemporalStatePeriod's metadata as `complications: [<ICD>, ...]`. At
+# delivery the encounter's `ClinicalDiagnosis.working_diagnoses` inherits
+# these codes so FHIR emit renders them as secondary Conditions attached
+# to the delivery encounter, matching the O10-O99 shape real EHRs carry.
+#
+# Prevalence figures reflect real-world US / CDC statistics (single
+# probability applied to both locales for MVP; locale-specific rates
+# can be added if the delta materially matters). Sources:
+#   - GDM O24: 5-10 % of pregnancies (CDC / ADA — 6 % chosen as
+#     an all-comers mid-band; higher in BMI-30+ cohort but the
+#     current sampler is not BMI-conditional).
+#   - Preeclampsia / eclampsia O14: 5-8 % (ACOG Task Force 2013).
+#   - PROM O42: 3-8 % of term pregnancies (ACOG PB 217).
+#   - Preterm labor O60: 10-12 % of pregnancies (CDC 2022 preterm
+#     birth = 10.4 %).
+#   - Malposition / malpresentation O64: 3-5 % (breech ~3 %).
+#
+# Draws are independent Bernoulli — a pregnancy may carry multiple
+# complications. Aborted pregnancies (outcome="aborted") skip sampling
+# entirely (the abortion path returns before reaching the delivery
+# encounter, so no O-chapter code lands anywhere).
+complications:
+  # ICD-10 code, human-readable name (JA/EN), Bernoulli probability.
+  # Each row is one complication.
+  bernoulli_draws:
+    - code: "O24.9"     # Diabetes mellitus in pregnancy, unspecified
+      display_en: "Gestational diabetes mellitus"
+      display_ja: "妊娠糖尿病"
+      probability: 0.06
+    - code: "O14.9"     # Pre-eclampsia, unspecified
+      display_en: "Pre-eclampsia"
+      display_ja: "妊娠高血圧腎症"
+      probability: 0.05
+    - code: "O42.9"     # Premature rupture of membranes, unspecified
+      display_en: "Premature rupture of membranes"
+      display_ja: "前期破水"
+      probability: 0.05
+    - code: "O60.1"     # Preterm labor with preterm delivery
+      display_en: "Preterm labor with preterm delivery"
+      display_ja: "早産（早産分娩を伴う）"
+      probability: 0.10
+    - code: "O64.9"     # Obstructed labor due to malposition, unspecified
+      display_en: "Obstructed labor due to malposition or malpresentation"
+      display_ja: "胎位異常による分娩停止"
+      probability: 0.04
+
+# ---------------------------------------------------------------------------
 # Cesarean-section share (session 98 F7 fix — Incr 1.5 clinical realism).
 # Real-world: US CDC 2022 = 32.1 %, JP MHLW 2020 = ~20 %. Pre-fix all
 # deliveries emitted as O80 (single spontaneous vaginal delivery) which

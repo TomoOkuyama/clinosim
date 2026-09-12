@@ -1584,6 +1584,18 @@ def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -
         # Delivery path: jitter EDD, open the pregnancy period.
         jitter = int(rng.integers(jit_lo, jit_hi + 1))
         planned_delivery_date = edd + timedelta(days=jitter)
+        # Issue #1285: sample per-pregnancy complications (Bernoulli per
+        # entry in `perinatal.yaml::complications.bernoulli_draws`). Uses
+        # the same conception sub-RNG (`rng`) so activation is byte-
+        # neutral for any non-perinatal patient. Draws are independent:
+        # a pregnancy may carry multiple complications (GDM + PROM etc.).
+        complications: list[str] = []
+        for entry in cfg.get("complications", {}).get("bernoulli_draws") or []:
+            prob = float(entry.get("probability", 0.0) or 0.0)
+            if prob <= 0.0:
+                continue
+            if float(rng.random()) < prob:
+                complications.append(str(entry.get("code") or ""))
         active = TemporalStatePeriod(
             state_type="pregnancy",
             start_date=lmp,
@@ -1593,6 +1605,7 @@ def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -
                 "lmp": lmp,
                 "edd": edd,
                 "planned_delivery_date": planned_delivery_date,
+                "complications": [c for c in complications if c],
             },
             period_seq=len(person.state_history("pregnancy")),
         )
