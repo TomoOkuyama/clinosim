@@ -1,0 +1,87 @@
+# clinosim/modules/drug_safety/reference_data/demographic_gates.yaml
+# Demographic contraindication catalog — drug is contraindicated (or
+# indication-restricted) based on the patient's age / sex, independent
+# of any co-prescribed medication. Complements the pair-wise
+# ``contraindications.yaml`` (drug-drug interactions) with a
+# "prescribe-at-all?" gate.
+#
+# Consumed by clinosim.modules.drug_safety.demographic.check_demographic_gate
+# and applied at every order-entry site where the sim drives medication
+# selection from a protocol (ED encounter dispatch, disease-YAML treatment
+# lists, inpatient daily-loop, discharge_rx). See rule id references for
+# the specific Issue that triggered each entry.
+#
+# Rule schema:
+#   id            (required) — kebab-case, unique across this file
+#   drug_names    (required) — list of case-insensitive aliases; a candidate
+#                              drug matches when any alias appears as a
+#                              case-insensitive substring of the candidate
+#                              display string (mirrors classifier.canonical_name
+#                              substring fallback). Include EN / JA / brand.
+#   min_age       (optional) — patient must be >= this age
+#   max_age       (optional) — patient must be <= this age
+#   sex           (optional) — "male" | "female" (matches PatientProfile.sex
+#                              "M"/"F" or FHIR gender lowercase)
+#   exception_indications (optional) — list of ICD-10 code prefixes; if any
+#                              of the encounter's diagnosis codes starts with
+#                              one of these prefixes, the gate is bypassed
+#                              (drug allowed despite age/sex mismatch).
+#   severity      (required) — "contraindicated" | "major" (both skip;
+#                              "moderate" emits with note) matching
+#                              verdict.SEVERITY_RANK.
+#   rationale_en, rationale_ja  — one-sentence clinical rationale
+#   references    (optional) — free-text citation
+
+rules:
+  - id: aspirin-pediatric-reyes
+    drug_names: [Aspirin, ASA, "アスピリン", "バイアスピリン"]
+    min_age: 16
+    exception_indications:
+      # Kawasaki disease is the classic pediatric aspirin indication.
+      - "M30.3"
+      # Acute rheumatic fever — anti-inflammatory dose is standard.
+      - "I00"
+      - "I01"
+      - "I02"
+    severity: contraindicated
+    rationale_en: >-
+      Aspirin under age 16 carries a risk of Reye's syndrome (encephalopathy
+      + hepatic failure) after viral illness. Pediatric indications are
+      limited to Kawasaki disease and acute rheumatic fever, where a
+      weight-based dose is used.
+    rationale_ja: >-
+      16 歳未満へのアスピリンは、ウイルス感染後の Reye 症候群
+      (急性脳症・肝不全) リスクにより原則禁忌。小児適応は川崎病
+      および急性リウマチ熱に限られる (体重換算投与)。
+    references: "FDA MedWatch (1980, 2004); AAP Reye's syndrome guideline."
+
+  - id: nitroglycerin-adult-only
+    drug_names: [Nitroglycerin, NTG, GTN, "ニトログリセリン", "ニトロペン"]
+    min_age: 18
+    severity: contraindicated
+    rationale_en: >-
+      Nitroglycerin has no routine pediatric indication for chest pain.
+      Off-label pediatric ICU use (pulmonary hypertension, refractory
+      heart failure) is specialist-supervised and does not fit the ED
+      "empiric ACS protocol" path this gate blocks.
+    rationale_ja: >-
+      ニトログリセリンは、小児の胸痛に対する適応がない。小児 ICU で
+      肺高血圧や心不全に用いる例は専門管理下の適応外使用であり、
+      ED 「経験的 ACS プロトコル」対象外。
+    references: "Micromedex Pediatric Dosing; AHA pediatric ACS guidance."
+
+  - id: tamsulosin-adult-male-bph
+    drug_names: [Tamsulosin, "タムスロシン", "ハルナール", "flomax"]
+    min_age: 50
+    sex: male
+    severity: contraindicated
+    rationale_en: >-
+      Tamsulosin (α1a-adrenergic blocker) is approved only for
+      benign prostatic hyperplasia in adult males. No pediatric or
+      female indication exists; pediatric urinary retention needs a
+      different differential (UTI, phimosis, neurogenic bladder).
+    rationale_ja: >-
+      タムスロシン (α1a 遮断薬) は成人男性の前立腺肥大症のみ適応。
+      小児・女性への適応はない。小児尿閉は別の原因検索が必要
+      (UTI・包茎・神経因性膀胱等)。
+    references: "PMDA/FDA 添付文書; AUA BPH guidelines."

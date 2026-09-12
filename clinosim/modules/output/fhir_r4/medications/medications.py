@@ -1221,7 +1221,8 @@ def _build_discharge_medication_request(
     # _over_coverage): unparseable dose → leave doseQuantity empty; better an
     # honest 80% coverage than a fabricated 100%.
     if not authored_text and dose:
-        from clinosim.modules.order.engine import _FREQ_PER_DAY, parse_dose_string
+        from clinosim.modules.order.engine import parse_dose_string
+        from clinosim.modules.output.fhir_r4.lib.common import resolve_timing_repeat
 
         _parsed = parse_dose_string(dose)
         _qty = _parsed.get("dose_quantity")
@@ -1232,15 +1233,18 @@ def _build_discharge_medication_request(
         # used by chronic-transcribe and outpatient-renewal paths); fall back
         # to whatever `parse_dose_string` peeled out of the dose string (the
         # protocol `discharge_oral` shape bakes "20mg PO daily" into `dose`).
+        # Route through the shared ``resolve_timing_repeat`` helper (Issue
+        # #1348) so weekly / monthly / per-cycle / nightly labels get a
+        # structured `timing.repeat` here too, not just on the inpatient
+        # ``build_dosage_instruction`` path.
         _freq_raw = str(get_attr_or_key(item, "frequency", "") or "").strip()
         if not _freq_raw and _parsed.get("frequency"):
             _freq_raw = str(_parsed["frequency"])
         _freq_per_day = _parsed.get("frequency_per_day")
-        if _freq_per_day is None and _freq_raw:
-            _freq_per_day = _FREQ_PER_DAY.get(_freq_raw.lower().strip())
-        if _freq_per_day:
-            dosage["timing"] = {"repeat": {"frequency": _freq_per_day, "period": 1, "periodUnit": "d"}}
-        elif _freq_raw and _freq_raw.lower().strip() in ("prn", "as needed", "when required"):
+        _repeat, _is_prn = resolve_timing_repeat(_freq_raw, _freq_per_day)
+        if _repeat:
+            dosage["timing"] = {"repeat": _repeat}
+        if _is_prn:
             dosage["asNeededBoolean"] = True
 
     # Issue #966: IV-route drugs need an infusion rate (or timing.duration)
