@@ -68,6 +68,26 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **BMI-derived `E66.3` (Overweight, BMI 25-29.9) Condition emit**
+  (#1272 → PR). Completes the 3-band ICD-10-CM E66 dispatch declared
+  by #1126 (Issue #1137 metabolic-cluster scope). Pre-#1272 the BMI-
+  derived Condition insertion block in
+  `clinosim.modules.population.engine` had only two branches (E66.9
+  for BMI ≥ 30, E66.01 for BMI ≥ 40), so patients in the overweight
+  band (BMI 25-29.9 — ~30 % of US adults, ~20 % of JP adults) had no
+  ICD Condition emitted at all. Downstream analytics keying on `E66.3`
+  saw an empty cohort even though the BMI Observation itself was
+  correctly emitted. Fix adds the missing `elif bmi >=
+  BMI_OVERWEIGHT_THRESHOLD` branch (deterministic, RNG-neutral —
+  same shape as the existing two branches) and registers `E66.3
+  Overweight / 過体重` in `codes/data/icd-10-cm.yaml`. Verified
+  end-to-end at s=352 p=1 000: US `E66.3=180 / E66.9=269 / E66.01=27`
+  (was `0 / 269 / 27`); JP `E66.3=125 / E66.9=13` (was `0 / 13`).
+  CIF `chronic_conditions` gains an `E66.3` entry for BMI 25-29.9
+  patients — existing narrative-CIF files that reference
+  `chronic_conditions` on these patients need a fresh `narrate` run
+  to surface the new code (same class as #1251, #1126).
+
 - **Newborn metabolic screen full FHIR shape** (#1252 sub-scope N6b →
   PR). The N6 slice emitted only a `Procedure` for the heel-stick event;
   downstream consumers querying `ServiceRequest.ndjson`,
