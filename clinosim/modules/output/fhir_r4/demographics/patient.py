@@ -39,6 +39,100 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import _ALLERGEN_RXNORM
 
+# === Issue #1344: US Core Patient extensions ===
+# https://hl7.org/fhir/us/core/StructureDefinition-us-core-race.html
+# https://hl7.org/fhir/us/core/StructureDefinition-us-core-ethnicity.html
+# https://hl7.org/fhir/us/core/StructureDefinition-us-core-birthsex.html
+#
+# Codes are OMB race + ethnicity categories from the CDC race+ethnicity
+# CodeSystem (OID 2.16.840.1.113883.6.238). Internal race/ethnicity
+# fields on PatientProfile carry the sim's snake_case slug; this map
+# translates each to the (code, display) pair the US Core Extension slot
+# expects.
+_US_CORE_RACE_URL = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race"
+_US_CORE_ETHNICITY_URL = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity"
+_US_CORE_BIRTHSEX_URL = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-birthsex"
+_OMB_RACE_ETHNICITY_SYSTEM = "urn:oid:2.16.840.1.113883.6.238"
+
+_OMB_RACE_CODE_DISPLAY: dict[str, tuple[str, str]] = {
+    "white": ("2106-3", "White"),
+    "black": ("2054-5", "Black or African American"),
+    "asian": ("2028-9", "Asian"),
+    "native_american": ("1002-5", "American Indian or Alaska Native"),
+    "pacific_islander": ("2076-8", "Native Hawaiian or Other Pacific Islander"),
+    "other": ("2131-1", "Other Race"),
+}
+_OMB_ETHNICITY_CODE_DISPLAY: dict[str, tuple[str, str]] = {
+    "hispanic": ("2135-2", "Hispanic or Latino"),
+    "not_hispanic": ("2186-5", "Not Hispanic or Latino"),
+}
+
+
+def _build_us_core_race_extension(race: str) -> dict[str, Any] | None:
+    """Build a us-core-race Extension for the given internal race slug.
+
+    Returns None when the slug is empty or unrecognised — the extension is
+    only emitted when a real OMB category is available (fabricating one
+    would be worse than omitting per feedback_empty_vs_wrong_assertion).
+    """
+    entry = _OMB_RACE_CODE_DISPLAY.get(race or "")
+    if not entry:
+        return None
+    code, display = entry
+    return {
+        "url": _US_CORE_RACE_URL,
+        "extension": [
+            {
+                "url": "ombCategory",
+                "valueCoding": {
+                    "system": _OMB_RACE_ETHNICITY_SYSTEM,
+                    "code": code,
+                    "display": display,
+                },
+            },
+            {"url": "text", "valueString": display},
+        ],
+    }
+
+
+def _build_us_core_ethnicity_extension(ethnicity: str) -> dict[str, Any] | None:
+    entry = _OMB_ETHNICITY_CODE_DISPLAY.get(ethnicity or "")
+    if not entry:
+        return None
+    code, display = entry
+    return {
+        "url": _US_CORE_ETHNICITY_URL,
+        "extension": [
+            {
+                "url": "ombCategory",
+                "valueCoding": {
+                    "system": _OMB_RACE_ETHNICITY_SYSTEM,
+                    "code": code,
+                    "display": display,
+                },
+            },
+            {"url": "text", "valueString": display},
+        ],
+    }
+
+
+def _build_us_core_birthsex_extension(sex: str) -> dict[str, Any] | None:
+    """Map PatientProfile.sex ("M"/"F") to the us-core-birthsex valueCode.
+
+    The sim does not currently distinguish administrative gender from
+    birth sex; the two coincide, so ``sex`` is the correct source for the
+    US-Core birthsex Extension. Values outside M/F are omitted (would
+    require an "UNK"/"OTH" mapping that the sim does not yet model).
+    """
+    sex_upper = (sex or "").strip().upper()
+    if sex_upper not in ("M", "F"):
+        return None
+    return {
+        "url": _US_CORE_BIRTHSEX_URL,
+        "valueCode": sex_upper,
+    }
+
+
 # === Issue #854 Bucket C row 18 (PR-patient): opaque Patient.id ===
 # Structural key = the CIF ``patient_id`` verbatim (`POP-{n:06d}`, a
 # simulation-generation-artifact slug, not a clinical identifier).
@@ -752,6 +846,30 @@ def _build_patient(p: dict, country: str) -> dict:
 
     if dob:
         resource["birthDate"] = to_fhir_date(dob)
+
+    # Issue #1344: US Core Patient extensions (us-core-race,
+    # us-core-ethnicity, us-core-birthsex) — must-support on US Core
+    # AllPatients profile. Sourced from PatientProfile.race /
+    # PatientProfile.ethnicity (US demographics.yaml `race_distribution`
+    # / `ethnicity_distribution`, populated by
+    # ``patient.activator`` for the US locale) and PatientProfile.sex.
+    # US-only emit: JP locale has no equivalent extension slot and the
+    # sim's population module currently only samples race/ethnicity for
+    # US. Unknown / unmapped slugs are silently omitted rather than
+    # emitting a fabricated OMB code (feedback_empty_vs_wrong_assertion).
+    if not is_jp(country):
+        _uc_extensions: list[dict[str, Any]] = []
+        _race_ext = _build_us_core_race_extension(str(p.get("race") or ""))
+        if _race_ext:
+            _uc_extensions.append(_race_ext)
+        _eth_ext = _build_us_core_ethnicity_extension(str(p.get("ethnicity") or ""))
+        if _eth_ext:
+            _uc_extensions.append(_eth_ext)
+        _bs_ext = _build_us_core_birthsex_extension(str(p.get("sex") or ""))
+        if _bs_ext:
+            _uc_extensions.append(_bs_ext)
+        if _uc_extensions:
+            resource.setdefault("extension", []).extend(_uc_extensions)
 
     # CY7-15 (Chain-7): multipleBirthBoolean — required by JP Core Patient
     # profile 0..1. Default false (majority — realistic multiple-birth
