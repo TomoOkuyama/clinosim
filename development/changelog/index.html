@@ -2306,8 +2306,38 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li>
-<p><strong>JP-side Condition ICD-10 emits 3-char bare category codes</strong> (Issue
+<li><strong>Narrative renders chronic disease under the WHO parent-code label
+  while FHIR emits the locale-mapped billable leaf — US <code>F00</code> shown
+  as "Dementia in Alzheimer disease" while FHIR emitted <code>F03.90</code></strong>
+  (Issue #1333). Four narrative builders in <code>template_generator.py</code>
+  (<code>_build_past_medical_history</code>, HPI chronic short-list,
+  <code>_build_working_diagnosis_context</code> chronic backdrop, nursing PMH
+  summary, and outpatient subjective) resolved the CIF base code
+  (<code>F00</code>, <code>E78</code>, <code>J44</code> …) directly against <code>icd-10-cm.yaml</code> /
+  <code>icd-10.yaml</code>, bypassing the locale mapping the FHIR Condition
+  builder applies via <code>map_diagnosis_code</code> (US <code>F00</code> → <code>F03.90</code>,
+  US <code>E78</code> → <code>E78.5</code> etc.). The narrative therefore pulled the
+  WHO parent-label from <code>icd-10-cm.yaml</code> (<code>F00</code> display exists
+  only for family-history / cross-reference use) while FHIR emitted
+  the CM billable leaf — the two documents disagreed on the disease.</li>
+</ul>
+<p>Fix: every chronic-condition display path now routes the base code
+  through <code>map_diagnosis_code(base, country)</code> and looks up the
+  emit-target's display; the trailing <code>[code]</code> bracket also carries
+  the emit-target code so narrative-side traceability matches the
+  FHIR Condition <code>coding.code</code>. Verified per-code: US <code>F00</code> →
+  <code>F03.90</code> → "Unspecified dementia, unspecified severity, without
+  behavioral disturbance, ..." (was "Dementia in Alzheimer disease");
+  US <code>E78</code> → <code>E78.5</code> → "Hyperlipidemia, unspecified"; JP <code>F00</code>
+  stays <code>F00</code> → "アルツハイマー型認知症" (identity per JP mapping —
+  F00 legitimately represents Alzheimer type dementia in WHO ICD-10
+  2013). Family-history display has the same structural bug shape
+  (<code>code_display</code> in <code>_build_family_history</code> also bypasses the
+  mapping) but is filed as a follow-up — that path also needs to
+  reject Z86/history-target codes the way
+  <code>_resolve_family_history_code</code> does on the FHIR side, so a
+  narrow narrative-only patch would be incomplete.
+- <strong>JP-side Condition ICD-10 emits 3-char bare category codes</strong> (Issue
   #1320). Chronic Conditions on the JP locale emitted at WHO ICD-10
   3-character category root (E78 / J44 / N18 / M17 / K21 / M81 / I50 /
   I48 / I25 / E03 / J45 / E79 / K59 / H26 / M54 / F32 / F33, plus
@@ -2331,9 +2361,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   K59.0=41, M17.9=55, K21.9=36, …); WHO 3-char leaves preserved (I10=83,
   N40=16, F00=13, C61=3, N10=4, …). Mirrors the US-side #1309 / #1356
   fix pattern across a broader set of chronic categories.</p>
-</li>
-<li>
-<p><strong>Chronic once-daily meds administered 2-3× per calendar day inpatient</strong>
+<ul>
+<li><strong>Chronic once-daily meds administered 2-3× per calendar day inpatient</strong>
   (Issue #1337). <code>enrich_medication_order</code> populated
   <code>order.frequency_per_day</code> only when <code>parse_dose_string</code> recognised
   a frequency token; chronic home meds arrive from
@@ -2344,8 +2373,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   <code>admin_hours = [8, 14, 20]</code> for every once-daily home med
   (Levothyroxine 100 % of 26 JP encounters, Enalapril, Vitamin D, Sodium
   bicarb, Lansoprazole …) — a doubled-to-tripled dose emit throughout
-  the entire inpatient stay.</p>
-</li>
+  the entire inpatient stay.</li>
 </ul>
 <p>Fix: fall back to <code>_FREQ_PER_DAY</code> lookup against <code>order.frequency</code>
   itself when <code>parse_dose_string</code> yields no <code>frequency_per_day</code> —
