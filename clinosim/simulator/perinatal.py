@@ -497,16 +497,57 @@ def simulate_delivery_encounter(
     # both delivery modes; ICD-10 does not sub-divide Z37 by mode.
     discharge_dx = str(enc_cfg.get("discharge_diagnosis_code") or "Z37.0")
     icd_system = system_key_for("diagnosis", country)
+
+    # Issue #1285: surface pre-sampled pregnancy complications on the
+    # delivery encounter. `_pregnancy_lifecycle_events` (population/
+    # engine.py) samples per-pregnancy Bernoulli complications at
+    # conception (from `perinatal.yaml::complications.bernoulli_draws`)
+    # and stores them on the pregnancy `TemporalStatePeriod.metadata`.
+    # The delivery encounter reads them back and renders them as:
+    #   * secondary working_diagnoses entries — FHIR emit picks these
+    #     up as secondary Conditions attached to the delivery encounter
+    #     (same shape used by in-hospital complication tracking, see
+    #     ``simulator/engine.py::_record_complication_on_active_encounter``);
+    #   * additional ground_truth_diseases entries on the ConditionEvent
+    #     so downstream consumers see the actual clinical burden.
+    # Aborted pregnancies never reach this builder, so no O-chapter
+    # complication codes leak into an abortion event.
+    complications: list[str] = []
+    for period in getattr(patient, "state_periods", []) or []:
+        if getattr(period, "state_type", "") != "pregnancy":
+            continue
+        if getattr(period, "outcome", "") == "aborted":
+            continue
+        meta = getattr(period, "metadata", {}) or {}
+        pd = meta.get("planned_delivery_date")
+        # Match this delivery to its own pregnancy period. A patient can
+        # accumulate multiple periods across sim years — pick the one
+        # whose planned_delivery_date matches visit_date.
+        if isinstance(pd, date) and pd == visit_date.date():
+            complications = [str(c) for c in (meta.get("complications") or []) if c]
+            break
+
+    working_diagnoses: list[dict] = []
+    for code in complications:
+        working_diagnoses.append(
+            {
+                "disease_id": code,
+                "onset_day": 0,
+                "onset_datetime": visit_date.isoformat(),
+            }
+        )
+
     clinical_diagnosis = ClinicalDiagnosis(
         admission_diagnosis_code=admit_dx,
         admission_diagnosis_system=icd_system,
         discharge_diagnosis_code=discharge_dx,
         discharge_diagnosis_system=icd_system,
+        working_diagnoses=working_diagnoses,
     )
     condition_event = ConditionEvent(
         condition_id=f"COND-{patient.patient_id}-DELIVERY",
-        condition_type="perinatal_delivery",
-        ground_truth_diseases=[discharge_dx],
+        condition_type=("mixed" if complications else "perinatal_delivery"),
+        ground_truth_diseases=[discharge_dx, *complications],
     )
 
     from clinosim.types.procedure import ProcedureRecord
