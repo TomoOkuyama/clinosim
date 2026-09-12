@@ -371,3 +371,18 @@ lactulose:                               "3999001Q2058"  # (lowercase alias for 
 # lookup no longer silently returns the bare code.
 "Oxytocin": "2499401"
 "Bupivacaine": "1214402"
+
+# SNRI + atypical antidepressants (#1281 second follow-up). Class
+# 1179 = 精神神経用剤. Only the JP-approved subset is registered
+# here — Duloxetine / Venlafaxine / Mirtazapine ARE PMDA-approved
+# but their specific 7-digit class-representative product numbers
+# have not been cross-verified in this PR, so they fall back to
+# text-only coding on the JP side until a dedicated JP-YJ
+# verification chain confirms them (same conservative treatment as
+# any other unregistered chronic drug). Fluvoxamine's 1179038 is
+# widely cited in MHLW 薬価基準収載品目 (デプロメール/ルボックス).
+# Milnacipran already lives at 1179040F2108 in yj.yaml (12-char)
+# and resolves via the yj→hot7 sibling fallback; adding the alias
+# here so the internal name → class code lookup succeeds too.
+"Fluvoxamine": "1179038"
+"Milnacipran": "1179040F2108"

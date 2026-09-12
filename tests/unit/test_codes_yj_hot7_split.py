@@ -83,11 +83,14 @@ class TestFileSeparation:
           already referenced from the JP `code_mapping_drug.yaml` but
           missing from hot7 display; that backfill is what took the
           count to 113 rather than 111.
+        - #1281 second follow-up (SNRI+atypical antidepressants): +1
+          Fluvoxamine (1179038). Duloxetine / Venlafaxine / Mirtazapine
+          JP YJ codes deferred until per-code verification lands. → 114.
         """
         yj_n = len(_load(_YJ_FILE).get("codes") or {})
         hot7_n = len(_load(_HOT7_FILE).get("codes") or {})
         assert yj_n == 76, f"yj.yaml YJ12 count expected 76, got {yj_n}"
-        assert hot7_n == 113, f"hot7.yaml HOT7 count expected 113, got {hot7_n}"
+        assert hot7_n == 114, f"hot7.yaml HOT7 count expected 114, got {hot7_n}"
 
 
 # ────────────────────────────────────────────────────────────────────

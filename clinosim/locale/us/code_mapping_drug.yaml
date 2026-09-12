@@ -116,6 +116,15 @@ Fluoxetine: "4493"
 Paroxetine: "32937"
 Citalopram: "2556"
 
+# SNRI + atypical antidepressants (#1281 second follow-up). RXCUIs
+# verified 2026-09-12 via tx.fhir.org $lookup (TTY=IN except
+# milnacipran which resolves via its hydrochloride SCD).
+Fluvoxamine: "42355"
+Milnacipran: "30003"
+Duloxetine: "72625"
+Venlafaxine: "39786"
+Mirtazapine: "15996"
+
 # Cesarean intraoperative bundle (#1285 sub-scope). RXCUIs verified
 # 2026-09-12 via tx.fhir.org $lookup (TTY=IN). Wired by
 # `simulator/perinatal.py::simulate_delivery_encounter`. Cefazolin

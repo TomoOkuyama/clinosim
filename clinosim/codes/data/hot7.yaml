@@ -362,3 +362,10 @@ codes:
   '2391003':
     en: Ondansetron
     ja: オンダンセトロン塩酸塩水和物
+
+  # JP-approved SSRI backup (#1281 second follow-up). Class 1179
+  # 精神神経用剤 product 038 = フルボキサミンマレイン酸塩
+  # (widely cited MHLW 薬価基準品目; デプロメール / ルボックス).
+  '1179038':
+    en: Fluvoxamine
+    ja: フルボキサミンマレイン酸塩

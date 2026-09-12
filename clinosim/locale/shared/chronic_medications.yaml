@@ -297,25 +297,42 @@ C61:  # Prostate cancer — androgen deprivation therapy (ADT)
 # to work in either state.
 
 F32:  # Depressive episode (single)
-  exclusive_classes: ["ssri"]
+  # Two independent categorical classes: SSRI (first-line) + SNRI
+  # (second-line). Atypicals (Mirtazapine) are on a separate
+  # exclusive class too. A patient may end up on SSRI-only,
+  # SSRI+SNRI augmentation, atypical-only, etc. — matches real US
+  # STAR*D trial patterns (~15-20 % of treated depression carries
+  # augmentation therapy).
+  exclusive_classes: ["ssri", "snri", "atypical_ad"]
   medications:
     - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.32}
     - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
     - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.11}
+    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08}
+    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.07}
+    - {drug: "Mirtazapine", drug_ja: "ミルタザピン", dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.06}
 
-F33:  # Recurrent depressive disorder — same first-line SSRI shape as F32
-  exclusive_classes: ["ssri"]
+F33:  # Recurrent depressive disorder — same three-class shape as F32
+  exclusive_classes: ["ssri", "snri", "atypical_ad"]
   medications:
     - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.35}
     - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.25}
     - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.12}
+    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10}
+    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08}
+    - {drug: "Mirtazapine", drug_ja: "ミルタザピン", dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.08}
 
-F41.1:  # Generalized anxiety disorder — SSRI/SNRI first-line
-  exclusive_classes: ["ssri"]
+F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
+  # APA / VA-DoD GAD guidelines: SNRI (Venlafaxine / Duloxetine)
+  # AND SSRI both listed as first-line. Bumped SNRI probability
+  # accordingly.
+  exclusive_classes: ["ssri", "snri"]
   medications:
     - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.28}
     - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
     - {drug: "Paroxetine", drug_ja: "パロキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.10}
+    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.15}
+    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10}
 
 Z34:  # Encounter for supervision of normal pregnancy
   medications:
