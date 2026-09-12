@@ -99,6 +99,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **US Core Patient extensions** — us-core-race, us-core-ethnicity,
+  us-core-birthsex (Issue #1344). Every US Patient resource previously
+  emitted with no extensions at all, so 100 % of the cohort failed US
+  Core AllPatients profile conformance. Adds three
+  Extension builders in ``clinosim/modules/output/fhir_r4/demographics/
+  patient.py`` and wires them into ``_build_patient`` behind an
+  ``is_jp(country)`` guard — US emit only; JP behaviour unchanged.
+
+  Race and ethnicity source ``PatientProfile.race`` /
+  ``PatientProfile.ethnicity`` (already sampled by
+  ``patient.activator`` from US ``demographics.yaml``
+  ``race_distribution`` / ``ethnicity_distribution``), translated to
+  the OMB code+display pairs on the CDC race+ethnicity CodeSystem
+  (``urn:oid:2.16.840.1.113883.6.238``). Birthsex maps
+  ``PatientProfile.sex`` → ``M`` / ``F`` on the us-core-birthsex slot.
+  Unknown / unmapped slugs are omitted rather than fabricated
+  (feedback_empty_vs_wrong_assertion) — newborn / pediatric records
+  where the race sampler has not fired still get birthsex but no
+  race / ethnicity.
+
+  Verification (p=200 s=356 US): 123/125 adults carry race +
+  ethnicity, 125/125 carry birthsex. Adult race distribution
+  approximates US Census 2020 (White 56 %, Black 13 %, Asian 6 %,
+  Native American 2 %, Other 22 % — the "Other" over-share is a
+  yaml-tuning follow-up); Hispanic ethnicity 18.4 % matches Census
+  18.7 %. FHIR-emit-only change: CIF byte-unchanged; PATCH under the
+  CIF-narrative consistency policy.
 - **Demographic contraindication gate for ED medication dispatch**
   (Issues #1316, #1328 — CATASTROPHIC pediatric aspirin/NTG +
   Tamsulosin sex/age mismatch). New
