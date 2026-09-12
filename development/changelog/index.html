@@ -2366,7 +2366,40 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   guard). New regression
   <code>test_extended_procedure_crosswalk_covers_top_15_empty_coding_buckets_1308</code>
   asserts every one of the 15 exemplar display strings from the
-  Issue reproduction resolves to the expected SNOMED code.</p>
+  Issue reproduction resolves to the expected SNOMED code.
+- <strong>Continuous IV infusion MedicationRequests emit a misleading
+  <code>doseQuantity</code> scalar alongside the correct <code>rateQuantity</code></strong> —
+  Norepinephrine/Dobutamine drips carry <code>dose 0.05 μg</code> next to
+  <code>rate 0.05 μg/kg/min</code> (Issue #1332). <code>augment_iv_dosage_with_rate</code>
+  correctly populates <code>rateQuantity</code> from the
+  <code>iv_infusion_defaults.yaml</code> catalog when the drug is marked
+  <code>mode: continuous</code>, but the generic dose parser leaves behind the
+  scalar it peeled from the dose text ("0.05 μg" → doseQuantity 0.05
+  μg). Downstream consumers read the vestigial doseQuantity as a total
+  single-dose — a 10,000× underdose interpretation for a titrated drip.</p>
+<p>Fix: for <code>mode: continuous</code> drugs, drop the vestigial
+  <code>doseQuantity</code> (and the orphaned JP eCS strength-type qualifier
+  bound to it) from <code>doseAndRate[0]</code>, leaving only the correct
+  <code>rateQuantity</code>. Bolus (Ceftriaxone / oxaliplatin) and push
+  (Fentanyl) drugs retain their <code>doseQuantity</code> unchanged. The
+  sibling <code>MedicationAdministration</code> records the nurse fills at
+  bag-hang time are the canonical source for actually-administered
+  volume — the ordered <code>MedicationRequest</code> should only assert the
+  rate.</p>
+<p>Regression tests:
+  - <code>test_continuous_drop_dose_quantity_1332</code> covers the 4 exemplar
+    vasopressors (Norepinephrine / Dobutamine / Epinephrine /
+    Dopamine) — every one must carry <code>rateQuantity</code> and NOT
+    <code>doseQuantity</code> / <code>type</code> after the augmentation.
+  - <code>test_bolus_preserves_dose_quantity_1332_backcompat</code> guards
+    Ceftriaxone (bolus) and Fentanyl (push) — neither loses its
+    <code>doseQuantity</code>.</p>
+<p>Non-scope: Issue #1332 also mentions insulin drip / propofol /
+  heparin drip / nitroglycerin — those drugs would benefit from
+  <code>mode: continuous</code> entries in <code>iv_infusion_defaults.yaml</code>
+  (out of this PR's scope; the fix here is universal for any
+  continuous-mode entry once its rate is authored). Nitroglycerin
+  and insulin drip catalog additions are deferred as a follow-up.</p>
 <ul>
 <li><strong>Chest-imaging DiagnosticReport with descriptor-only abnormal
   impression ("Hyperinflation..." / "肺過膨張、横隔膜平坦化、胸骨後
