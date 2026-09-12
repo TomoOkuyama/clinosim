@@ -13,7 +13,11 @@ import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
-from clinosim.modules.immunization.engine import generate_immunizations, load_schedule
+from clinosim.modules.immunization.engine import (
+    generate_immunizations,
+    generate_pregnancy_tdap,
+    load_schedule,
+)
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.encounter import Encounter, EncounterStatus, EncounterType
 
@@ -291,6 +295,25 @@ def enrich_immunizations(ctx) -> None:
         pid = _get(patient, "patient_id", "") if patient else ""
         rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["immunization"], pid or "x"))
         recs = generate_immunizations(patient, schedule, _as_of(ctx, rec), rng, nurse_ids=nurse_ids)
+        # Issue #1283: append US maternal Tdap (CVX 115) for each
+        # pregnancy period whose 27-36-week window overlaps the sim.
+        # Uses the same per-patient sub-RNG the schedule pass just
+        # returned from, so draws are deterministic per (patient, seed)
+        # and don't cascade into unrelated modules. Non-US, non-female,
+        # and no-pregnancy patients fall through without draws.
+        _default_nurse = ""
+        if nurse_ids and pid:
+            _default_nurse = nurse_ids[sum(ord(c) for c in pid) % len(nurse_ids)]
+        recs.extend(
+            generate_pregnancy_tdap(
+                patient,
+                _as_of(ctx, rec),
+                rng,
+                country_upper,
+                default_nurse=_default_nurse,
+            )
+        )
+        recs.sort(key=lambda r: r.occurrence_date)
         # Issue #1197 align — cross-record encounter pool.
         pool = _all_encs_by_patient.get(pid) or (_get(rec, "encounters", []) or [])
         recs = _align_to_encounters(recs, pool)

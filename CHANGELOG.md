@@ -41,6 +41,26 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **US maternal Tdap (CVX 115) during pregnancy (ACIP 27-36 weeks)**
+  (#1283 → PR). ACIP recommends one Tdap dose per pregnancy at
+  27-36 weeks gestation to boost maternal antibodies for the
+  newborn's passive pertussis protection. Pre-fix the sim did not
+  model this at all — every US Z34-carrying patient's Immunization
+  stream was Tdap-free inside their pregnancy interval (0/185
+  pregnancies covered at p=10k s=354). New
+  `generate_pregnancy_tdap` in
+  `clinosim.modules.immunization.engine` walks
+  `patient.state_periods` (the pregnancy-lifecycle records META #957
+  Incr 1 already emits) and, for each non-aborted period whose
+  27-36-week window overlaps the sim, emits a Tdap `Immunization`
+  at ~78 % coverage plus a small `not-done` share for realism. The
+  enricher pass appends these to the schedule-driven list before
+  sort/align. Locale-gated to US (JP has no equivalent universal
+  maternal pertussis-booster policy). Uses the same per-patient
+  sub-RNG as the schedule pass, so draws are deterministic per
+  (patient, seed) and don't cascade into unrelated modules.
+  **MINOR-scope**: adds Immunization rows for the US pregnant
+  cohort; re-narrate suggested for those patients.
 - **US pediatric ACIP primary immunization series wired**
   (#1279 → PR). `clinosim/locale/us/immunization_schedule.yaml`
   shipped only adult vaccines (influenza / covid19 / ppsv23 /
