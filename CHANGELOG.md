@@ -41,6 +41,25 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Pediatric BMI-derived E66 Condition emit uses adult thresholds**
+  (#1284 → PR). The E66 dispatch block in
+  `clinosim.modules.population.engine` fired the adult BMI thresholds
+  (25 / 30 / 40) regardless of age, so a p=10k s=354 audit counted
+  881 US pediatric patients (age 0-17) with any E66 code, 52 with
+  `E66.01` "Morbid (severe) obesity", and **15 toddlers aged 2-5
+  with `E66.01`** — BMI ≥ 40 is physiologically impossible in that
+  age band. Adult E66 thresholds are not the correct pediatric coding
+  practice; ICD-10-CM pairs pediatric obesity with `Z68.5x`
+  BMI-for-age percentiles rather than the E66 cascade. Fix
+  age-gates the dispatch at :data:`LEGAL_ADULT_AGE` (=20, the existing
+  adult-boundary constant already used for the lifestyle-attribute
+  gates in the same loop). Under-20 patients no longer receive
+  `E66.01` / `E66.9` / `E66.3` from the BMI-derived path. Adult emit
+  is unchanged. Full pediatric coding (Z68.5x + CDC BMI-for-age
+  percentile sampling) is deferred to the metabolic/ module (META
+  #1137). **PATCH-scope** at the same shape as #1272 — deterministic
+  dispatch change to CIF `chronic_conditions` for pediatric only,
+  no new RNG draws.
 - **Coverage lifecycle not reconciled on patient death** (#1278 → PR).
   `_derive_coverage_status` (Issue #944) flips `Coverage.status` based
   on `period.end` vs the simulation snapshot date, but has no
