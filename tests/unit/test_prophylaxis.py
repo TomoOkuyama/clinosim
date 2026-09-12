@@ -202,6 +202,66 @@ def test_active_dvt_no_order() -> None:
     assert build_dvt_prophylaxis_orders(record=record) == []
 
 
+def _peds_patient(age: int, meds: list[str] | None = None) -> SimpleNamespace:
+    home_meds = [SimpleNamespace(drug_name=m) for m in (meds or [])]
+    return SimpleNamespace(patient_id=f"PEDS-{age}", age=age, current_medications=home_meds)
+
+
+def test_pediatric_skip_asthma_admission_1276() -> None:
+    """Issue #1276 core case: 9-year-old asthma admission does NOT
+    receive routine DVT prophylaxis (adult 40 mg SC daily is unsafe +
+    asthma is not a positive pediatric VTE-prophylaxis indication)."""
+    skip, reason = should_skip_dvt_prophylaxis(
+        patient=_peds_patient(age=9),
+        encounter=_encounter(los_hours=216),  # ~9 days, well past min_los
+        admission_dx_code="J45.901",  # unspecified asthma with acute exacerbation
+    )
+    assert skip is True
+    assert reason == "pediatric_age_gate"
+
+
+def test_pediatric_no_order_end_to_end_1276() -> None:
+    """End-to-end: build_dvt_prophylaxis_orders returns [] for a peds
+    inpatient with a non-indicated admission dx."""
+    record = _record(_peds_patient(age=9), _encounter(los_hours=216), dx="J45.901")
+    assert build_dvt_prophylaxis_orders(record=record) == []
+
+
+def test_pediatric_ceiling_boundary_1276() -> None:
+    """Age 15 is at the ceiling → NOT pediatric, prophylaxis path
+    proceeds normally (skip=False on unrelated admission dx)."""
+    skip, reason = should_skip_dvt_prophylaxis(
+        patient=_peds_patient(age=15),
+        encounter=_encounter(los_hours=72),
+        admission_dx_code="J18.1",
+    )
+    assert skip is False
+    assert reason == ""
+
+
+def test_pediatric_edge_case_age_14_1276() -> None:
+    """Age 14 (< ceiling 15) → skipped."""
+    skip, reason = should_skip_dvt_prophylaxis(
+        patient=_peds_patient(age=14),
+        encounter=_encounter(los_hours=72),
+        admission_dx_code="J18.1",
+    )
+    assert skip is True
+    assert reason == "pediatric_age_gate"
+
+
+def test_adult_untouched_by_1276() -> None:
+    """Regression: age-bearing adult patient still emits the order."""
+    record = _record(
+        _peds_patient(age=45, meds=["Amlodipine 5mg"]),
+        _encounter(los_hours=72),
+        dx="J18.1",
+    )
+    orders = build_dvt_prophylaxis_orders(record=record)
+    assert len(orders) == 1
+    assert orders[0].display_name == "Enoxaparin"
+
+
 def test_deterministic_output() -> None:
     """Same input twice → byte-identical output (no RNG consumption)."""
     record1 = _record(_patient(["Amlodipine 5mg"]), _encounter(los_hours=72), dx="J18.1")

@@ -71,3 +71,26 @@ skip_conditions:
       - "I26"     # Pulmonary embolism
       - "I80"     # Deep vein thrombosis
       - "I82"     # Venous embolism and thrombosis
+
+  # Issue #1276: Pediatric age gate. AAP / CHEST 2019 pediatric VTE
+  # prophylaxis guidelines reserve prophylactic anticoagulation for
+  # ICU + immobilization or specific thromboembolic risk factors
+  # (post-orthopedic surgery, sepsis with DIC, Kawasaki disease).
+  # The generic "any adult inpatient ≥ 48 h LOS" trigger is NOT
+  # clinically appropriate for children: an asthma admission in a
+  # 9-year-old should not receive Enoxaparin. Additionally, the
+  # adult-flat 40 mg dose in the rule above is unsafe for a small
+  # child — pediatric prophylactic dosing is weight-based
+  # (0.5-1 mg/kg SC q12h per the enoxaparin pediatric label).
+  #
+  # The current sim has no reliable signal for the specific pediatric
+  # positive indications (ortho-surgery admission, ICU with
+  # immobilization, Kawasaki disease workflow), so this rule is a
+  # blanket age gate: skip DVT prophylaxis for anyone below
+  # `pediatric_age_ceiling`. A follow-up (see comment in
+  # `should_skip_dvt_prophylaxis`) can layer positive-indication
+  # detection + weight-based dosing when the pediatric care module
+  # (Issue #1137 architectural cluster) picks that up.
+  pediatric_age_gate:
+    description: "Pediatric patient (age < pediatric_age_ceiling) without a positive VTE-prophylaxis indication. Skip the generic DVT rule; adult-flat 40 mg is unsafe and asthma / bronchiolitis / seizure admissions are not indications."
+    pediatric_age_ceiling: 15    # AAP / CHEST 2019 pediatric VTE guideline boundary
