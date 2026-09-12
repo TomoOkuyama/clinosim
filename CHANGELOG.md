@@ -41,6 +41,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Anachronistic chronic DAPT on I25 patients** (Issue #1330). Chronic
+  Clopidogrel (as DAPT with Aspirin) is only indicated within 6-12 mo
+  of PCI / ACS per ACC/AHA / ESC / JCS 2022 — long-term chronic DAPT
+  >12 mo is exceptional. The prior 0.40 probability on ``I25.medications``
+  activated DAPT on 40 % of every I25 patient at population time, then
+  the sim provisioned it as a home-med predating any acute cardiac
+  event by many months (19 JP + 4 US patients on the p=10k baseline
+  had DAPT starting 5+ mo before any I21 / I25 / I63 / I50 Dx). Retuned
+  to 0.10 to represent the ~10 % of chronic-CAD patients within their
+  6-12 mo post-PCI window. Verified p=500 JP: anachronistic patients
+  drop from ~4 % of DAPT-carrying cohort to <1 %. Follow-up needs a
+  ``recent_pci_within_12mo`` flag so DAPT provisioning is gated on
+  post-PCI temporal proximity rather than a flat probability.
+
+
+
 - **Depression Condition emits bare F32 / F33 (non-billable ICD-10-CM)**
   (Issue #1309, US-only). ``F32`` and ``F33`` are ICD-10-CM category
   headers; billable leaves are ``F32.0-F32.9`` and ``F33.0-F33.9``. The
