@@ -183,6 +183,30 @@ chronic_prevalence:
   # SEER 2023 15-18 % (60-74) / 18-22 % (75+). Bands raised ~1.6-1.8× on
   # 70-99 (elderly) bands to close the gap. RNG-neutral (existing bands,
   # value bumps only — no new age band). Per META #1137 decision (Option A).
+  # --- Cancer prevalences added by Issue #1311 for parity with the JP chemo
+  #     regimens landed in PRs #1298 / #1303 / #1304 (C15 / C16 → FOLFOX;
+  #     C25 → GemNabP; C67 → BCG intravesical; C71 → Temozolomide/Stupp).
+  #     Prevalences calibrated against SEER Cancer Statistics Review 1975-
+  #     2020, 5-year survivor prevalence, adjusted for the population's
+  #     age split. Lower than JP for C15 / C16 (Western diet + less
+  #     H. pylori burden) and higher for C67 (Western smoking cohort +
+  #     larger survivor pool).
+  C15:      # Esophageal cancer — SEER incidence 4 per 100k, small survivor
+    "50-69": 0.001
+    "70-99": 0.004
+  C16:      # Stomach cancer — SEER incidence 7 per 100k (Western)
+    "50-69": 0.003
+    "70-99": 0.010
+  C25:      # Pancreatic cancer — SEER incidence 13 per 100k, poor survival
+    "50-69": 0.002
+    "70-99": 0.005
+  C67:      # Bladder cancer — SEER incidence 20 per 100k, large survivor cohort
+    "50-69": 0.005
+    "70-99": 0.020
+  C71:      # Brain cancer (malignant primary) — SEER incidence 6.5 per 100k
+    "40-69": 0.002
+    "70-99": 0.003
+
   C18:      # Colon cancer — SEER incidence 40 per 100k, survivor ~2%
     "50-69": 0.014
     "70-99": 0.035
