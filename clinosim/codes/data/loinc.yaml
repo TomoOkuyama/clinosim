@@ -678,3 +678,23 @@ codes:
   3521-2:
     en: Cyclosporine
     ja: シクロスポリン血中濃度（トラフ）
+
+  # Mental-health assessment scores — Issue #1281 / META #1137
+  # mental_health cluster. All codes verified via tx.fhir.org $lookup
+  # against `http://loinc.org` on 2026-09-12. Wired for future emit by
+  # a mental_health enricher that fires at F32 / F33 / F41.1 chronic
+  # follow-up visits; the observation-side plumbing is a follow-up PR.
+  # Registering the codes here first lets any consumer / test that
+  # references PHQ-9 / GAD-7 by LOINC resolve the display correctly.
+  44249-1:
+    en: PHQ-9 quick depression assessment panel
+    ja: PHQ-9 うつ病質問票 総合スコア
+  70274-6:
+    en: Generalized anxiety disorder 7 item (GAD-7) total score
+    ja: GAD-7 全般性不安障害 総合スコア
+  89204-2:
+    en: 'Patient Health Questionnaire-9: Modified for Teens total score'
+    ja: PHQ-9 (青少年改訂版) 総合スコア
+  55757-9:
+    en: Patient Health Questionnaire 2 item (PHQ-2)
+    ja: PHQ-2 うつ病2項目版
