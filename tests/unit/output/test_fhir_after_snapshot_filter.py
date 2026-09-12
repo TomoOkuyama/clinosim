@@ -433,3 +433,80 @@ def test_mixed_bundle_partial_drop_counter_accurate() -> None:
     assert len(kept) == 2
     assert {e["resource"]["id"] for e in kept} == {"obs-past", "mar-past"}
     assert dropped == {"Observation": 1}
+
+
+# ────────────────────────────────────────────────────────────────────
+# Issue #1273 — nested Specimen.collection.collectedDateTime traversal
+# ────────────────────────────────────────────────────────────────────
+
+
+def test_drops_specimen_when_nested_collected_datetime_is_past_snapshot() -> None:
+    """`Specimen.collection.collectedDateTime` is nested one level deep.
+    Prior to #1273 the top-level `_snapshot_ts_iter` walk missed it, so
+    a Specimen whose collection timestamp landed past the CIF snapshot
+    silently survived the filter — while its sibling
+    `ServiceRequest.occurrenceDateTime` / `DiagnosticReport
+    .effectiveDateTime` / `Procedure.performedDateTime` (all top-level)
+    were correctly dropped. Result: orphan Specimen rows.
+    """
+    entries = [
+        _entry(
+            {
+                "resourceType": "Specimen",
+                "id": "spec-future",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "122554006",
+                            "display": "Capillary blood specimen",
+                        }
+                    ]
+                },
+                "collection": {
+                    "collectedDateTime": "2026-08-30T10:00:00+09:00",
+                    "bodySite": {"text": "Heel"},
+                },
+            }
+        ),
+        _entry(
+            {
+                "resourceType": "Specimen",
+                "id": "spec-past",
+                "collection": {"collectedDateTime": "2026-08-27T09:00:00+09:00"},
+            }
+        ),
+    ]
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
+    kept_ids = {e["resource"]["id"] for e in kept}
+    assert "spec-past" in kept_ids
+    assert "spec-future" not in kept_ids, "past-snapshot Specimen must be dropped via nested collectedDateTime walk"
+    assert dropped == {"Specimen": 1}
+
+
+def test_drops_specimen_when_nested_collected_period_start_is_past_snapshot() -> None:
+    """Symmetric with the collectedDateTime case — Specimen may also
+    use `collection.collectedPeriod.start` (FHIR-valid alternative
+    shape). The same nested-walk fix must cover both.
+    """
+    entries = [
+        _entry(
+            {
+                "resourceType": "Specimen",
+                "id": "spec-period-future",
+                "collection": {"collectedPeriod": {"start": "2026-08-30T10:00:00+09:00"}},
+            }
+        ),
+        _entry(
+            {
+                "resourceType": "Specimen",
+                "id": "spec-period-past",
+                "collection": {"collectedPeriod": {"start": "2026-08-27T09:00:00+09:00"}},
+            }
+        ),
+    ]
+    kept, dropped, _scrubbed = _drop_entries_after_snapshot(entries, SNAP)
+    kept_ids = {e["resource"]["id"] for e in kept}
+    assert "spec-period-past" in kept_ids
+    assert "spec-period-future" not in kept_ids
+    assert dropped == {"Specimen": 1}

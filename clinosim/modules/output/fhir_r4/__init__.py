@@ -927,6 +927,28 @@ def _snapshot_ts_iter(resource: dict):
         v = resource.get(k)
         if isinstance(v, str):
             yield v
+    # Issue #1273: Specimen puts its collection timestamp one level deeper
+    # at `Specimen.collection.collectedDateTime` (or
+    # `.collection.collectedPeriod.start` — Period.start policy per this
+    # function's docstring). The top-level walk above misses it, so a
+    # past-snapshot Specimen silently survived the filter while sibling
+    # ServiceRequest / DiagnosticReport / Procedure (top-level timestamp
+    # fields) were dropped — a #1252 N6b metabolic-screen orphan showed
+    # up on JP s=352 p=10k when the newborn's LOS extended past the sim
+    # window. This nested walk is deliberately scoped to Specimen (the
+    # only R4 resource with a nested date-of-event) — a generic recursive
+    # dict walk would over-filter (see the docstring's note on Period
+    # .start policy vs. the projected-end policy for ongoing infusions).
+    coll = resource.get("collection")
+    if isinstance(coll, dict):
+        v = coll.get("collectedDateTime")
+        if isinstance(v, str):
+            yield v
+        per = coll.get("collectedPeriod")
+        if isinstance(per, dict):
+            v = per.get("start")
+            if isinstance(v, str):
+                yield v
     for pkey in ("period", "effectivePeriod", "performedPeriod", "occurrencePeriod"):
         p = resource.get(pkey)
         if isinstance(p, dict):

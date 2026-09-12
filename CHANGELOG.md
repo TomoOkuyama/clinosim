@@ -39,6 +39,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`_drop_entries_after_snapshot` — nested `Specimen.collection.collectedDateTime`
+  bypass** (#1273 → PR). `_snapshot_ts_iter` walked only top-level date
+  fields, so a `Specimen` whose collection timestamp landed one level
+  deeper at `Specimen.collection.collectedDateTime` silently survived
+  the CIF-snapshot cutoff filter — while its sibling `ServiceRequest`
+  / `DiagnosticReport` / `Procedure` (all top-level date fields) were
+  correctly dropped. Result: orphan `Specimen` rows with no
+  matching request/report/procedure. Surfaced during the fresh
+  p=10k s=352 acceptance verify on JP: 1 newborn metabolic-screen
+  Specimen (`spec-54d2dce97809`, `collectedDateTime = 2026-09-15` past
+  the 2026-09-12 sim end) had no sibling SR/DR/Procedure. Fix walks
+  `Specimen.collection.collectedDateTime` and the FHIR-valid
+  alternative shape `Specimen.collection.collectedPeriod.start` — the
+  latter following the same `Period.start` policy the docstring
+  already applied to other nested Period fields. Deliberately scoped
+  to `Specimen` (the only R4 resource with a nested date-of-event); a
+  generic recursive dict walk would over-filter (see the docstring's
+  note on `Period.start` policy vs. projected-end policy for ongoing
+  infusions). Verified end-to-end at s=352 p=10 000 JP: metabolic
+  Specimen count now 69 (matches SR/DR/Procedure), total
+  `Specimen.ndjson` down 49 rows (other past-snapshot Specimens also
+  correctly caught). **PATCH-scope**: FHIR-emit filter granularity;
+  no CIF change; RNG-neutral; sibling `_drop_entries_after_death`
+  benefits from the same iterator improvement.
+
 ### Added
 
 - **Newborn metabolic screen full FHIR shape** (#1252 sub-scope N6b →
