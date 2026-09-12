@@ -2306,6 +2306,23 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Pediatric Enoxaparin VTE prophylaxis auto-issued at adult 40 mg</strong>
+  (#1276 → PR). <code>clinosim.modules.prophylaxis</code> fires the generic
+  DVT rule (Enoxaparin 40 mg SC daily) on any inpatient encounter
+  ≥ 48 h regardless of patient age. p=10k s=354 audit surfaced
+  13 pediatric MRs (US 8 / JP 5) at the adult-flat 40 mg dose, none
+  for a positive pediatric VTE-prophylaxis indication (e.g., asthma
+  admission in a 9-year-old — not indicated by AAP / CHEST 2019
+  guidelines). Both problems compound: an inappropriate indication
+  at an unsafe dose. Fix adds a <code>pediatric_age_gate</code> skip condition
+  (default <code>pediatric_age_ceiling: 15</code>) evaluated ahead of the
+  other rules in <code>should_skip_dvt_prophylaxis</code>. Pediatric patients
+  under the ceiling never receive the generic Enoxaparin order;
+  positive-indication detection (ortho surgery, ICU immobilization,
+  Kawasaki disease) + weight-based dosing (0.5-1 mg/kg SC q12h) is
+  deferred to the pediatric-care module (META #1137). <strong>PATCH-scope</strong>:
+  yaml-configurable, deterministic (no RNG), FHIR emit path
+  unchanged apart from the removed inappropriate rows.</li>
 <li><strong>Pediatric BMI-derived E66 Condition emit uses adult thresholds</strong>
   (#1284 → PR). The E66 dispatch block in
   <code>clinosim.modules.population.engine</code> fired the adult BMI thresholds
