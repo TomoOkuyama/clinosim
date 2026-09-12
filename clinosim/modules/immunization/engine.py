@@ -473,3 +473,95 @@ def generate_immunizations(
 
     out.sort(key=lambda r: r.occurrence_date)
     return out
+
+
+# ---------------------------------------------------------------------------
+# Pregnancy-triggered Tdap — Issue #1283
+# ---------------------------------------------------------------------------
+
+# ACIP recommends one dose of Tdap (CVX 115) during each pregnancy at
+# 27-36 weeks gestation to boost maternal antibodies for the newborn's
+# passive pertussis protection. Real-world US coverage for insured
+# pregnancies is ~70-80 % (CDC Pregnancy Risk Assessment Monitoring
+# System, ACOG-tracked). Locale-invariant biology, but the universal
+# recommendation is US-specific (JP has no equivalent public-health
+# mandate for routine maternal pertussis boosters).
+_MATERNAL_TDAP_CVX: str = "115"
+_MATERNAL_TDAP_COVERAGE_US: float = 0.78
+_MATERNAL_TDAP_GA_MIN_DAYS: int = 189  # 27 completed weeks
+_MATERNAL_TDAP_GA_MAX_DAYS: int = 258  # 36+6 completed weeks
+
+
+def generate_pregnancy_tdap(
+    patient,
+    as_of: date,
+    rng: np.random.Generator,
+    country: str,
+    default_nurse: str = "",
+) -> list:
+    """Return maternal-Tdap `ImmunizationRecord`s for each pregnancy on
+    the patient whose 27-36-week window overlaps ``[available_from, as_of]``.
+
+    Uses the same sub-RNG the schedule pass already exhausted; the caller
+    is responsible for scoping the rng so this function's draws don't
+    perturb pre-existing schedule-driven RNG state (per-patient sub-seed
+    upstream). Deterministic per patient / pregnancy period.
+
+    Locale-gated to US only — JP has no equivalent universal maternal
+    pertussis-booster policy (Issue #1283).
+
+    Never raises; returns ``[]`` when the patient carries no pregnancy
+    state periods or the country is not US.
+    """
+    from clinosim.types.encounter import ImmunizationRecord
+
+    if str(country).upper() != "US":
+        return []
+    state_periods = getattr(patient, "state_periods", None) or []
+    if not state_periods:
+        return []
+    out: list = []
+    for period in state_periods:
+        if getattr(period, "state_type", "") != "pregnancy":
+            continue
+        meta = getattr(period, "metadata", {}) or {}
+        lmp = meta.get("lmp")
+        if not isinstance(lmp, date):
+            continue
+        # Skip aborted / miscarried periods — no term-window Tdap window opens.
+        if getattr(period, "outcome", "") == "aborted":
+            continue
+        # 27-36 week window measured from LMP.
+        win_start = date.fromordinal(lmp.toordinal() + _MATERNAL_TDAP_GA_MIN_DAYS)
+        win_end = date.fromordinal(lmp.toordinal() + _MATERNAL_TDAP_GA_MAX_DAYS)
+        # Clamp to what has actually happened by as_of.
+        eff_end = min(win_end, as_of)
+        if win_start > eff_end:
+            continue
+        if rng.random() < _MATERNAL_TDAP_COVERAGE_US:
+            span = (eff_end - win_start).days
+            offset = int(rng.integers(0, span + 1)) if span > 0 else 0
+            occ = date.fromordinal(win_start.toordinal() + offset)
+            _mfr_hash = f"{(_det_hash(_MATERNAL_TDAP_CVX) % 900 + 100):03d}"
+            batch = f"{(_det_hash(_MATERNAL_TDAP_CVX, occ.year, occ.month) % 900 + 100):03d}"
+            out.append(
+                ImmunizationRecord(
+                    vaccine_cvx=_MATERNAL_TDAP_CVX,
+                    occurrence_date=occ,
+                    administered_by=default_nurse,
+                    lot_number=f"L{_mfr_hash}-{occ.year:04d}{occ.month:02d}-{batch}",
+                )
+            )
+        elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
+            # Small share documents the visit-side refusal / contraindication.
+            span = (eff_end - win_start).days
+            offset = int(rng.integers(0, span + 1)) if span > 0 else 0
+            occ = date.fromordinal(win_start.toordinal() + offset)
+            out.append(
+                ImmunizationRecord(
+                    vaccine_cvx=_MATERNAL_TDAP_CVX,
+                    occurrence_date=occ,
+                    status="not-done",
+                )
+            )
+    return out
