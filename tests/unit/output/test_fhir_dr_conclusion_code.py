@@ -291,3 +291,52 @@ def test_imaging_negation_overrides_abnormal_keyword():
 
     assert _derive_imaging_conclusion_code("no acute consolidation.", "en")["coding"][0]["code"] == SNOMED_NORMAL
     assert _derive_imaging_conclusion_code("急性期異常所見を認めず。", "ja")["coding"][0]["code"] == SNOMED_NORMAL
+
+
+def test_imaging_copd_emphysema_descriptors_are_abnormal_1324():
+    """Issue #1324: descriptor-only radiology impressions (CXR emphysema —
+    hyperinflation / flattened diaphragm / retrosternal airspace) were
+    previously classified as Normal because the abnormal-keyword list
+    only carried generic markers ("異常" / "abnormal") and named acute
+    findings (fracture / opacity / mass), not the chronic-parenchymal
+    descriptor vocabulary that radiologists actually use for COPD.
+
+    The Issue exemplar impression is the classic COPD emphysema triad;
+    both JP and EN forms must resolve to Abnormal (263654008)."""
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
+        _derive_imaging_conclusion_code,
+    )
+
+    jp = "肺過膨張、横隔膜平坦化、胸骨後腔拡大。"
+    assert _derive_imaging_conclusion_code(jp, "ja")["coding"][0]["code"] == SNOMED_ABNORMAL, (
+        f"JP COPD triad must resolve to Abnormal; got {_derive_imaging_conclusion_code(jp, 'ja')}"
+    )
+    en = "Hyperinflation with flattened diaphragms and increased retrosternal airspace."
+    assert _derive_imaging_conclusion_code(en, "en")["coding"][0]["code"] == SNOMED_ABNORMAL, (
+        f"EN COPD triad must resolve to Abnormal; got {_derive_imaging_conclusion_code(en, 'en')}"
+    )
+
+
+def test_imaging_chest_descriptors_are_abnormal_1324():
+    """Issue #1324 companion: other common chest-imaging abnormal
+    descriptors (cardiomegaly / pleural effusion / pneumothorax /
+    pulmonary edema / atelectasis) must also flip conclusionCode to
+    Abnormal without relying on the generic "異常" / "abnormal"
+    marker."""
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
+        _derive_imaging_conclusion_code,
+    )
+
+    ja_cases = ["心拡大あり", "気胸疑い", "胸水を認める", "肺水腫", "無気肺の疑い"]
+    for text in ja_cases:
+        code = _derive_imaging_conclusion_code(text, "ja")["coding"][0]["code"]
+        assert code == SNOMED_ABNORMAL, f"JP {text!r} must be Abnormal; got {code}"
+    en_cases = [
+        "Cardiomegaly with left pleural effusion.",
+        "Pneumothorax on the right.",
+        "Interstitial pulmonary edema.",
+        "Atelectasis at the lung base.",
+    ]
+    for text in en_cases:
+        code = _derive_imaging_conclusion_code(text, "en")["coding"][0]["code"]
+        assert code == SNOMED_ABNORMAL, f"EN {text!r} must be Abnormal; got {code}"
