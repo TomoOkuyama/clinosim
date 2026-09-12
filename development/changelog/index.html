@@ -2306,6 +2306,18 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Coverage lifecycle not reconciled on patient death</strong> (#1278 → PR).
+  <code>_derive_coverage_status</code> (Issue #944) flips <code>Coverage.status</code> based
+  on <code>period.end</code> vs the simulation snapshot date, but has no
+  visibility into the patient's <code>deceasedDateTime</code>. p=10k s=354 audit
+  found that of 163 US deceased patients 92 % kept <code>period.end</code> past
+  DOD and 60 % kept <code>status="active"</code> (JP 91 % / 36 % of 219). Real
+  payers cancel enrollment at DOD. <code>_drop_entries_after_death</code> already
+  treats Coverage as start-gated (Issue #1219); the reconciliation
+  step now also clamps surviving <code>period.end</code> down to DOD and flips
+  <code>status="active"</code> → <code>status="cancelled"</code> (the FHIR R4 value the
+  builder already uses for expired FY rows). <strong>PATCH-scope</strong>:
+  FHIR-emit-only, no CIF change, RNG-neutral.</li>
 <li><strong><code>_drop_entries_after_snapshot</code> — nested <code>Specimen.collection.collectedDateTime</code>
   bypass</strong> (#1273 → PR). <code>_snapshot_ts_iter</code> walked only top-level date
   fields, so a <code>Specimen</code> whose collection timestamp landed one level
