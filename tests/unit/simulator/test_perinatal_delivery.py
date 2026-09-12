@@ -273,6 +273,64 @@ def test_delivery_encounter_returns_mother_and_newborn_records_jp() -> None:
     assert newborn_rec.clinical_diagnosis.discharge_diagnosis_code == "Z38.0"
 
 
+def test_cesarean_delivery_carries_cefazolin_prophylaxis_1285() -> None:
+    """Issue #1285: US C-section delivery must emit a Cefazolin 2 g IV
+    single-dose surgical antimicrobial prophylaxis Order (ACOG mandate,
+    SCIP-INF-1 quality measure, real US compliance > 95 %). Pre-fix
+    the mother record's `orders` list was empty for every delivery.
+
+    Uses a patient id whose cesarean sub-RNG (see `_newborn_sub_seed`)
+    resolves to a C-section in the US locale (probability config).
+    """
+    patient = PatientProfile(patient_id="POP-000005", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    # This particular patient_id is chosen so the cesarean-rate sub-RNG
+    # (`_newborn_sub_seed('cesarean|POP-000005')`) lands under US 32.1 %.
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O82"
+    cefazolin_orders = [o for o in mother_rec.orders if getattr(o, "display_name", "").lower() == "cefazolin"]
+    assert len(cefazolin_orders) == 1, (
+        f"C-section must carry exactly one Cefazolin prophylaxis Order; got {len(cefazolin_orders)}"
+    )
+    order = cefazolin_orders[0]
+    assert order.dose_quantity == 2.0
+    assert order.dose_unit == "g"
+    assert order.route == "IV"
+    assert order.frequency == "once"
+    assert "SCIP-INF-1" in order.clinical_intent
+    # Preop timing: given ~30 min before incision (well within the ACOG
+    # 60-min window).
+    assert order.ordered_datetime < visit_dt
+
+
+def test_vaginal_delivery_no_cefazolin_1285() -> None:
+    """Regression: vaginal (non-cesarean) delivery does not emit
+    Cefazolin — ACOG prophylaxis applies only to surgical delivery."""
+    # Pick a patient_id whose cesarean sub-RNG lands ABOVE US 32.1 %.
+    patient = PatientProfile(patient_id="POP-000001", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O80"
+    cefazolin_orders = [o for o in mother_rec.orders if getattr(o, "display_name", "").lower() == "cefazolin"]
+    assert cefazolin_orders == [], "vaginal delivery must not carry Cefazolin"
+
+
 def test_delivery_encounter_shape_us() -> None:
     patient = _make_patient()
     visit_dt = datetime(2024, 7, 15, 10, 0)

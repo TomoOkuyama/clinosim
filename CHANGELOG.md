@@ -41,6 +41,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Cesarean surgical antimicrobial prophylaxis (Cefazolin 2 g IV)**
+  (#1285 (partial) → PR). ACOG mandates a preoperative single dose
+  of Cefazolin 2 g IV within 60 minutes before skin incision for
+  every cesarean delivery — this is SCIP-INF-1, a tracked inpatient
+  quality measure with real-world US compliance > 95 %. Pre-fix the
+  37 US C-sections at p=10k s=354 emitted zero Cefazolin
+  MedicationRequests. `simulator/perinatal.py` now attaches a single
+  Cefazolin `Order` (2 g IV single-dose, `ordered_datetime` set to
+  30 min before delivery) to every C-section mother record. Full
+  obstetric intraop bundle (Oxytocin, Bupivacaine spinal, Fentanyl,
+  Ondansetron, Ketorolac) and pregnancy complications sampling
+  (O10-O99) are deferred to a follow-up that first registers the
+  missing drugs in `codes/data/rxnorm.yaml` +
+  `locale/{us,jp}/code_mapping_drug.yaml`. **PATCH-scope**:
+  additive MR on C-section deliveries only; no other emit path
+  touched; deterministic via existing `_newborn_sub_seed`.
 - **US maternal Tdap (CVX 115) during pregnancy (ACIP 27-36 weeks)**
   (#1283 → PR). ACIP recommends one Tdap dose per pregnancy at
   27-36 weeks gestation to boost maternal antibodies for the
