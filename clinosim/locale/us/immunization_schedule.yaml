@@ -347,3 +347,63 @@ vaccines:
         age_days_min: 4015    # 11 years
         age_days_max: 4745    # 13 years
         coverage_by_sex: {M: 0.87, F: 0.90}
+
+  # ==================================================================
+  # US ACIP adolescent / early-childhood catch-up series — Issue #1279
+  # second follow-up. HPV / MenACWY / Hep A were explicitly deferred
+  # from the first pass pending CVX registration; codes verified
+  # 2026-09-12 via tx.fhir.org $lookup. NIS-Teen 2023 coverage
+  # midpoints used for `coverage_by_sex`.
+  # ==================================================================
+
+  pediatric_hepa:
+    cvx: "83"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2006-10-01"       # ACIP universal 12-23 mo recommendation
+    doses:
+      - dose_number: 1
+        age_days_min: 365    # 12 months
+        age_days_max: 545    # 18 months
+        coverage_by_sex: {M: 0.86, F: 0.87}
+      - dose_number: 2
+        age_days_min: 730    # 24 months (≥6 mo after dose 1)
+        age_days_max: 1095   # 36 months
+        coverage_by_sex: {M: 0.82, F: 0.83}
+
+  pediatric_hpv:
+    cvx: "165"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: recommended
+    # HPV9 licensure late-2014; universal ACIP recommendation now
+    # 9-valent (Gardasil-9). 2-dose schedule when initiated before
+    # age 15; 3-dose otherwise (this generator models the 2-dose path
+    # which covers the majority — ~78 % initiate before 15).
+    available_from: "2015-01-01"
+    doses:
+      - dose_number: 1
+        age_days_min: 4015    # 11 years
+        age_days_max: 4745    # 13 years
+        coverage_by_sex: {M: 0.76, F: 0.79}
+      - dose_number: 2
+        age_days_min: 4195    # 6 mo after dose 1 (11.5 y)
+        age_days_max: 5110    # 14 years
+        coverage_by_sex: {M: 0.68, F: 0.72}
+
+  pediatric_menacwy:
+    cvx: "147"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: recommended
+    available_from: "2005-01-14"       # Menactra licensure
+    doses:
+      - dose_number: 1
+        age_days_min: 4015    # 11 years
+        age_days_max: 4745    # 13 years
+        coverage_by_sex: {M: 0.88, F: 0.90}
+      - dose_number: 2
+        age_days_min: 5840    # 16 years
+        age_days_max: 6570    # 18 years
+        coverage_by_sex: {M: 0.60, F: 0.62}

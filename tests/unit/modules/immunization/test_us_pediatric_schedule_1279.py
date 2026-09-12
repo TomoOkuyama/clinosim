@@ -32,7 +32,9 @@ def _patient(dob: date, age: int, sex: str, pid: str = "PT-PEDS-1") -> SimpleNam
 
 
 def test_us_schedule_ships_pediatric_series() -> None:
-    """Every ACIP primary-series vaccine now lives in the US schedule."""
+    """Every ACIP primary-series + adolescent vaccine now lives in the US
+    schedule. Adolescent series (HPV / MenACWY / HepA) landed in the
+    #1279 second follow-up after the initial primary-series wire-in."""
     schedule = load_schedule("US")
     required = {
         "pediatric_hepb",
@@ -45,6 +47,10 @@ def test_us_schedule_ships_pediatric_series() -> None:
         "pediatric_varicella",
         "pediatric_influenza",
         "pediatric_tdap_booster",
+        # Adolescent series — #1279 second follow-up
+        "pediatric_hepa",
+        "pediatric_hpv",
+        "pediatric_menacwy",
     }
     missing = required - set(schedule)
     assert not missing, f"US schedule missing pediatric entries: {missing}"
@@ -89,6 +95,44 @@ def test_us_school_age_gets_boosters_and_flu() -> None:
     assert len(recs) >= 5, f"15yo US expected ≥5 imms; got {len(recs)}"
     flu_recs = [r for r in recs if r.vaccine_cvx == "158"]
     assert len(flu_recs) >= 2, "15yo US expected ≥2 pediatric flu shots (annual)"
+
+
+def test_us_adolescent_gets_hpv_menacwy_hepa_1279_second() -> None:
+    """17-year-old US patient carries HPV9 + MenACWY + Hep A adolescent
+    series (all landed in the #1279 second follow-up)."""
+    schedule = load_schedule("US")
+    rng = np.random.default_rng(42)
+    recs = generate_immunizations(
+        _patient(date(2008, 3, 10), 17, "F"),
+        schedule,
+        as_of=date(2026, 9, 12),
+        rng=rng,
+        nurse_ids=["nurse-1"],
+    )
+    cvx_seen = {r.vaccine_cvx for r in recs}
+    for cvx, label in (("165", "HPV9"), ("147", "MenACWY"), ("83", "HepA")):
+        assert cvx in cvx_seen, f"17yo US missing {label} (cvx {cvx})"
+
+
+def test_us_toddler_gets_hepa_dose_1_1279_second() -> None:
+    """3-year-old US patient receives HepA dose 1 (12-18 mo window)."""
+    schedule = load_schedule("US")
+    rng = np.random.default_rng(42)
+    recs = generate_immunizations(
+        _patient(date(2023, 1, 1), 3, "M"),
+        schedule,
+        as_of=date(2026, 9, 12),
+        rng=rng,
+        nurse_ids=["nurse-1"],
+    )
+    hepa = [r for r in recs if r.vaccine_cvx == "83"]
+    assert hepa, "3yo US must carry HepA cvx 83 dose 1"
+    # Dose 1 lands within 12-18 mo from dob (2024-01-01 to 2024-07-01).
+    for r in hepa:
+        if r.dose_number == 1:
+            assert date(2024, 1, 1) <= r.occurrence_date <= date(2024, 7, 1), (
+                f"HepA dose 1 occ {r.occurrence_date} outside 12-18mo window"
+            )
 
 
 def test_us_adult_flu_still_emits() -> None:
