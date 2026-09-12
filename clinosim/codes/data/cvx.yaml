@@ -105,3 +105,10 @@ codes:
   "141":
     en: "Influenza, seasonal, injectable"
     ja: "インフルエンザ（季節性・注射用）"
+
+  # === US pediatric primary series (ACIP) — Issue #1279 ===
+  # Verified against CDC IIS CVX list (public):
+  # https://www2.cdc.gov/vaccines/iis/iisstandards/vaccines.asp?rpt=cvx.
+  "10":
+    en: "IPV"
+    ja: "不活化ポリオワクチン（IPV）"

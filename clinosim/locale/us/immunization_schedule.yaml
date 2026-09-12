@@ -113,3 +113,237 @@ vaccines:
     coverage_by_age_sex:
       "50-64": {M: 0.30, F: 0.35}
       "65-99": {M: 0.45, F: 0.50}
+
+  # ==================================================================
+  # US ACIP pediatric primary series — Issue #1279.
+  # Coverage figures target the National Immunization Survey NIS-Child
+  # 2023 mid-band point estimates (see cdc.gov/vaccines/imz-managers/
+  # coverage/childvaxview/data-reports/). Real US coverage is high but
+  # not universal — the ~90 % floor here reflects NIS-Child completion
+  # rates for the 19-35-month cohort.
+  #
+  # dose_number semantics + [age_days_min, age_days_max] windows follow
+  # the same shape as the JP pediatric_series block. The engine
+  # (`_generate_from_schedule`) is locale-agnostic; the fix is
+  # entirely at the schedule-config layer.
+  #
+  # Not modelled here (deferred to a follow-up in the pediatric care
+  # module, Issue #1137 architectural cluster):
+  #   - HPV @ 11-12y  (CVX 165) — needs CVX register + config
+  #   - MenACWY @ 11-12y + 16y booster (CVX 147) — needs CVX register
+  #   - Hep A @ 12-23m + booster (CVX 85 adult / 83 ped) — needs CVX 83
+  #   - Meningococcal B teen (CVX 162 / 163) — needs CVX register
+  # ==================================================================
+
+  pediatric_hepb:
+    cvx: "08"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "1991-11-01"
+    doses:
+      - dose_number: 1
+        age_days_min: 0       # birth dose
+        age_days_max: 30
+        coverage_by_sex: {M: 0.92, F: 0.92}
+      - dose_number: 2
+        age_days_min: 30      # 1 month
+        age_days_max: 90
+        coverage_by_sex: {M: 0.90, F: 0.90}
+      - dose_number: 3
+        age_days_min: 180     # 6 months
+        age_days_max: 545     # up to 18 months
+        coverage_by_sex: {M: 0.90, F: 0.90}
+
+  pediatric_dtap:
+    cvx: "20"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "1997-01-01"
+    doses:
+      - dose_number: 1
+        age_days_min: 60      # 2 months
+        age_days_max: 90
+        coverage_by_sex: {M: 0.95, F: 0.95}
+      - dose_number: 2
+        age_days_min: 120     # 4 months
+        age_days_max: 150
+        coverage_by_sex: {M: 0.93, F: 0.93}
+      - dose_number: 3
+        age_days_min: 180     # 6 months
+        age_days_max: 210
+        coverage_by_sex: {M: 0.92, F: 0.92}
+      - dose_number: 4
+        age_days_min: 455     # 15 months
+        age_days_max: 545     # 18 months
+        coverage_by_sex: {M: 0.86, F: 0.86}
+      - dose_number: 5
+        age_days_min: 1460    # 4 years
+        age_days_max: 2190    # 6 years
+        coverage_by_sex: {M: 0.85, F: 0.85}
+
+  pediatric_ipv:
+    cvx: "10"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2000-01-01"    # US switched fully to IPV
+    doses:
+      - dose_number: 1
+        age_days_min: 60      # 2 months
+        age_days_max: 90
+        coverage_by_sex: {M: 0.93, F: 0.93}
+      - dose_number: 2
+        age_days_min: 120     # 4 months
+        age_days_max: 150
+        coverage_by_sex: {M: 0.92, F: 0.92}
+      - dose_number: 3
+        age_days_min: 180     # 6 months
+        age_days_max: 545     # 6-18 months window
+        coverage_by_sex: {M: 0.91, F: 0.91}
+      - dose_number: 4
+        age_days_min: 1460    # 4 years
+        age_days_max: 2190    # 6 years
+        coverage_by_sex: {M: 0.86, F: 0.86}
+
+  pediatric_hib:
+    cvx: "17"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2000-01-01"
+    doses:
+      - dose_number: 1
+        age_days_min: 60      # 2 months
+        age_days_max: 90
+        coverage_by_sex: {M: 0.93, F: 0.93}
+      - dose_number: 2
+        age_days_min: 120     # 4 months
+        age_days_max: 150
+        coverage_by_sex: {M: 0.92, F: 0.92}
+      - dose_number: 3
+        age_days_min: 180     # 6 months (some Hib products need only 2+booster)
+        age_days_max: 210
+        coverage_by_sex: {M: 0.90, F: 0.90}
+      - dose_number: 4
+        age_days_min: 365     # 12 months
+        age_days_max: 455     # 15 months
+        coverage_by_sex: {M: 0.88, F: 0.88}
+
+  pediatric_pcv13:
+    cvx: "133"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2010-04-01"    # PCV13 FDA approval, replacing PCV7
+    doses:
+      - dose_number: 1
+        age_days_min: 60      # 2 months
+        age_days_max: 90
+        coverage_by_sex: {M: 0.93, F: 0.93}
+      - dose_number: 2
+        age_days_min: 120     # 4 months
+        age_days_max: 150
+        coverage_by_sex: {M: 0.92, F: 0.92}
+      - dose_number: 3
+        age_days_min: 180     # 6 months
+        age_days_max: 210
+        coverage_by_sex: {M: 0.90, F: 0.90}
+      - dose_number: 4
+        age_days_min: 365     # 12 months
+        age_days_max: 455     # 15 months
+        coverage_by_sex: {M: 0.87, F: 0.87}
+
+  pediatric_rotavirus:
+    cvx: "116"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "2006-02-01"    # RotaTeq (5-valent, 3 doses)
+    doses:
+      - dose_number: 1
+        age_days_min: 60      # 2 months (must start by 15 weeks / ≈105 d)
+        age_days_max: 90
+        coverage_by_sex: {M: 0.82, F: 0.82}
+      - dose_number: 2
+        age_days_min: 120     # 4 months
+        age_days_max: 150
+        coverage_by_sex: {M: 0.80, F: 0.80}
+      - dose_number: 3
+        age_days_min: 180     # 6 months (must complete by 32 weeks / 8 mo)
+        age_days_max: 240
+        coverage_by_sex: {M: 0.78, F: 0.78}
+
+  pediatric_mmr:
+    cvx: "03"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "1971-01-01"    # MMR combined licensure
+    doses:
+      - dose_number: 1
+        age_days_min: 365     # 12 months
+        age_days_max: 455     # 15 months
+        coverage_by_sex: {M: 0.91, F: 0.91}
+      - dose_number: 2
+        age_days_min: 1460    # 4 years
+        age_days_max: 2190    # 6 years
+        coverage_by_sex: {M: 0.90, F: 0.90}
+
+  pediatric_varicella:
+    cvx: "21"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: mandatory
+    available_from: "1995-03-01"    # US Varicella vaccine licensure
+    doses:
+      - dose_number: 1
+        age_days_min: 365     # 12 months
+        age_days_max: 455     # 15 months
+        coverage_by_sex: {M: 0.90, F: 0.90}
+      - dose_number: 2
+        age_days_min: 1460    # 4 years
+        age_days_max: 2190    # 6 years
+        coverage_by_sex: {M: 0.89, F: 0.89}
+
+  # Pediatric annual influenza — every year from 6 months.
+  # Modelled with the same `annual` frequency the adult path uses;
+  # the engine gates emission on `min_age` (in years) so setting
+  # min_age: 0 with a floor via history_years reasonably approximates
+  # the "starts at 6 months" reality (small pre-6mo sliver of eligible
+  # infants is a minor over-approximation, acceptable for realism).
+  pediatric_influenza:
+    cvx: "158"
+    min_age: 0
+    frequency: annual
+    season_month: 10
+    available_from: "2010-08-01"    # universal ≥ 6 mo recommendation
+    history_years: 5
+    seasonal_distribution:
+      "9":  0.10
+      "10": 0.35
+      "11": 0.30
+      "12": 0.15
+      "1":  0.07
+      "2":  0.03
+    # Coverage figures: NIS-Child pediatric flu vaccination ~55-60 %.
+    coverage_by_age_sex:
+      "0-4":  {M: 0.60, F: 0.62}
+      "5-12": {M: 0.55, F: 0.58}
+      "13-17": {M: 0.50, F: 0.53}
+
+  # Adolescent Tdap booster at age 11-12 (single dose distinct from
+  # the every-10-year adult Tdap above; ACIP recommends one Tdap
+  # dose at 11-12 then Td/Tdap every 10 years thereafter).
+  pediatric_tdap_booster:
+    cvx: "115"
+    min_age: 0
+    frequency: pediatric_series
+    program_type: recommended
+    available_from: "2005-06-10"
+    doses:
+      - dose_number: 1
+        age_days_min: 4015    # 11 years
+        age_days_max: 4745    # 13 years
+        coverage_by_sex: {M: 0.87, F: 0.90}

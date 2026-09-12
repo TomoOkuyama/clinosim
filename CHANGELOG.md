@@ -39,6 +39,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Added
+
+- **US pediatric ACIP primary immunization series wired**
+  (#1279 → PR). `clinosim/locale/us/immunization_schedule.yaml`
+  shipped only adult vaccines (influenza / covid19 / ppsv23 /
+  tdap / zoster_rzv), so at p=10k s=354 every US patient age 0-17
+  (n=1 286) received zero Immunization records — inverse of the
+  ~90 % NIS-Child real-world coverage and inconsistent with the
+  JP locale (JP peds average 15-17 imms/patient). Fix adds ten
+  `pediatric_series` entries in the US schedule for the ACIP
+  primary + adolescent series: HepB (birth / 1mo / 6-18mo),
+  DTaP (2/4/6/15-18mo/4-6y), IPV (2/4/6-18mo/4-6y), Hib (2/4/6/12-15mo),
+  PCV13 (2/4/6/12-15mo), Rotavirus (RotaTeq 2/4/6mo), MMR
+  (12-15mo/4-6y), Varicella (12-15mo/4-6y), annual influenza
+  from 6 months, adolescent Tdap booster (11-13y). Coverage
+  numbers target NIS-Child 2023 completion rates. CVX `10` (IPV)
+  registered in `codes/data/cvx.yaml` (verified against CDC IIS
+  CVX list). HPV / MenACWY / Hep A / MenB deferred to a follow-up
+  (need additional CVX registrations). **MINOR-scope**: the fix
+  changes CIF Immunization coverage for pediatric patients (0
+  → primary series) and, as a natural side effect, retrospectively
+  emits pediatric-window vaccines for adults born after each
+  vaccine's `available_from` (e.g., 45yo adults now carry childhood
+  MMR record). RNG cascade limited to Immunization emit; unrelated
+  modules unaffected. A `narrate` refresh is required for pediatric
+  narrative-CIF documents.
+
 ### Fixed
 
 - **Pediatric Enoxaparin VTE prophylaxis auto-issued at adult 40 mg**
