@@ -2306,12 +2306,30 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li>
-<p><strong>Anachronistic chronic DAPT on I25 patients</strong> (Issue #1330). Chronic
-  Clopidogrel (as DAPT with Aspirin) is only indicated within 6-12 mo
-  of PCI / ACS per ACC/AHA / ESC / JCS 2022 — long-term chronic DAPT</p>
+<li><strong>Chronic once-daily meds administered 2-3× per calendar day inpatient</strong>
+  (Issue #1337). <code>enrich_medication_order</code> populated
+  <code>order.frequency_per_day</code> only when <code>parse_dose_string</code> recognised
+  a frequency token; chronic home meds arrive from
+  <code>HomeMedication.frequency = "daily"</code> with a numeric-only
+  <code>dose = "50mcg"</code> — <code>parse_dose_string</code> finds no token in that
+  substring, so <code>frequency_per_day</code> stayed None. The MAR scheduler in
+  <code>_generate_mar</code> then fell through to its TID default
+  <code>admin_hours = [8, 14, 20]</code> for every once-daily home med
+  (Levothyroxine 100 % of 26 JP encounters, Enalapril, Vitamin D, Sodium
+  bicarb, Lansoprazole …) — a doubled-to-tripled dose emit throughout
+  the entire inpatient stay.</li>
+</ul>
+<p>Fix: fall back to <code>_FREQ_PER_DAY</code> lookup against <code>order.frequency</code>
+  itself when <code>parse_dose_string</code> yields no <code>frequency_per_day</code> —
+  so a bare <code>"DAILY"</code> label maps to <code>frequency_per_day = 1</code>, MAR
+  emits once/day, and the doubled-dose signature clears. Verified on
+  p=500 JP: 0 / 4 Enalapril encounters (was 100 % baseline) with</p>
 <blockquote>
-<p>12 mo is exceptional. The prior 0.40 probability on <code>I25.medications</code>
+<p>1× same-day admin; Levothyroxine cohort now correctly single-dosed.
+- <strong>Anachronistic chronic DAPT on I25 patients</strong> (Issue #1330). Chronic
+  Clopidogrel (as DAPT with Aspirin) is only indicated within 6-12 mo
+  of PCI / ACS per ACC/AHA / ESC / JCS 2022 — long-term chronic DAPT
+12 mo is exceptional. The prior 0.40 probability on <code>I25.medications</code>
   activated DAPT on 40 % of every I25 patient at population time, then
   the sim provisioned it as a home-med predating any acute cardiac
   event by many months (19 JP + 4 US patients on the p=10k baseline
@@ -2322,17 +2340,15 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   <code>recent_pci_within_12mo</code> flag so DAPT provisioning is gated on
   post-PCI temporal proximity rather than a flat probability.</p>
 </blockquote>
-</li>
-<li>
-<p><strong>Prednisone + Prednisolone dual emit on US corticosteroid encounters</strong>
+<ul>
+<li><strong>Prednisone + Prednisolone dual emit on US corticosteroid encounters</strong>
   (Issue #1323). US COPD exacerbation encounters carried both drugs
   (Prednisone = prodrug of Prednisolone, same active moiety) on
   186/286 (65 %) encounters because the disease-YAML
   <code>supportive.steroid</code> block had a single locale-blind <code>detail</code>
   string ("Prednisolone 40mg PO daily x5 days") while the
   locale-aware <code>drugs.discharge_oral</code> block emitted the US-form
-  Prednisone separately.</p>
-</li>
+  Prednisone separately.</li>
 </ul>
 <p>Fix: added an optional <code>locale_detail: {jp: "...", us: "..."}</code>
   map on <code>supportive[]</code> items and an equivalent <code>locale_name</code> on
