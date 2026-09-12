@@ -112,3 +112,23 @@ codes:
   "10":
     en: "IPV"
     ja: "不活化ポリオワクチン（IPV）"
+
+  # === US adolescent series (ACIP) — Issue #1279 second follow-up ===
+  # HPV / MenACWY / Hep A / MenB previously deferred from #1279's
+  # first pass; codes verified 2026-09-12 via tx.fhir.org $lookup
+  # against `http://hl7.org/fhir/sid/cvx` (CDC IIS CVX list).
+  "165":
+    en: "HPV9"
+    ja: "HPV（9価, ガーダシル9）"
+  "147":
+    en: "meningococcal MCV4, unspecified formulation"
+    ja: "髄膜炎菌（4価, MenACWY）"
+  "114":
+    en: "meningococcal MCV4P"
+    ja: "髄膜炎菌（4価・Menactra, MCV4P）"
+  "83":
+    en: "Hep A, ped/adol, 2 dose"
+    ja: "A型肝炎（小児・青少年 2 回接種）"
+  "162":
+    en: "meningococcal B, recombinant"
+    ja: "髄膜炎菌B（組換え型・Trumenba/Bexsero）"
