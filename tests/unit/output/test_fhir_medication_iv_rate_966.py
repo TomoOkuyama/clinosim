@@ -236,3 +236,58 @@ def test_build_dosage_instruction_iv_fentanyl_push_no_rate():
     # timing may or may not exist depending on frequency; but no duration.
     if "timing" in dosage:
         assert "duration" not in (dosage["timing"].get("repeat") or {})
+
+
+# === Issue #1332: continuous-infusion doseQuantity must NOT be emitted ===
+
+
+def test_continuous_drop_dose_quantity_1332():
+    """Issue #1332: vasopressors / inotropes / continuous drips are dosed
+    as a RATE (μg/kg/min), never as a fixed one-time bolus. If the
+    generic dose parser peeled a scalar off the dose text (e.g.
+    Norepinephrine "0.05 μg"), the resulting doseQuantity misleads
+    downstream consumers into reading it as a total single-dose.
+
+    After the fix, ``augment_iv_dosage_with_rate`` drops ``doseQuantity``
+    (and the orphaned ``type`` qualifier bound to it) from
+    ``doseAndRate[0]`` for continuous-mode drugs, keeping only
+    ``rateQuantity``.
+    """
+    for drug, expected_rate_unit in (
+        ("Norepinephrine", "ug/kg/min"),
+        ("Dobutamine", "ug/kg/min"),
+        ("Epinephrine", "ug/kg/min"),
+        ("Dopamine", "ug/kg/min"),
+    ):
+        d = {
+            "doseAndRate": [
+                {
+                    "doseQuantity": {"value": 0.05, "unit": "ug", "code": "ug"},
+                    "type": {"coding": [{"system": "urn:jpfhir", "code": "1", "display": "製剤量"}]},
+                },
+            ],
+        }
+        augment_iv_dosage_with_rate(d, dose_text="", route="IV", display_name=drug)
+        dar0 = d["doseAndRate"][0]
+        assert "rateQuantity" in dar0, f"{drug} must carry rateQuantity"
+        assert dar0["rateQuantity"]["unit"] == expected_rate_unit, (
+            f"{drug} rateQuantity unit expected {expected_rate_unit}, got {dar0['rateQuantity']!r}"
+        )
+        assert "doseQuantity" not in dar0, f"{drug} continuous drip must not carry stale doseQuantity; got {dar0!r}"
+        # ``type`` (製剤量) is bound to the ordered dose. Without doseQuantity
+        # it becomes an orphaned qualifier — must be dropped too.
+        assert "type" not in dar0, (
+            f"{drug} continuous drip must not carry orphaned strength-type qualifier; got {dar0!r}"
+        )
+
+
+def test_bolus_preserves_dose_quantity_1332_backcompat():
+    """Issue #1332 backwards-compat: bolus (Ceftriaxone) and push
+    (Fentanyl) drugs must NOT lose their doseQuantity — the drop rule
+    applies only to continuous-mode entries."""
+    for drug in ("Ceftriaxone", "Fentanyl"):
+        d = {"doseAndRate": [{"doseQuantity": {"value": 1, "unit": "g"}}]}
+        augment_iv_dosage_with_rate(d, dose_text="", route="IV", display_name=drug)
+        assert d["doseAndRate"][0].get("doseQuantity") is not None, (
+            f"{drug} must retain doseQuantity (bolus / push mode)"
+        )
