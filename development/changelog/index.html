@@ -2435,6 +2435,21 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   under the CIF-narrative consistency policy.</p>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>US SEER-calibrated prevalences for C15 / C16 / C25 / C67 / C71</strong>
+  (Issue #1311). S108 PRs #1298 (C15/C16 → FOLFOX), #1303 (Gemcitabine
+  / Irinotecan / Nab-paclitaxel / Temozolomide / BCG catalog), and
+  #1304 (C25 → GemNabP, C67 → BCG intravesical, C71 → Temozolomide /
+  Stupp) added chemo regimens for five cancer codes. US
+  <code>demographics.yaml</code> had no prevalence entries for any of them, so
+  the US p=10k s=355 build carried 0 Condition records for these
+  codes — the regimens never fired in US. Added SEER Cancer
+  Statistics Review 1975-2020 5-year-survivor-prevalence bands to
+  <code>clinosim/locale/us/demographics.yaml</code>; also added
+  <code>C15 / C16 / C25 / C67 / C71 → .9 (unspecified)</code> entries to
+  <code>clinosim/locale/us/code_mapping_diagnosis.yaml</code> and the
+  corresponding displays to <code>clinosim/codes/data/icd-10-cm.yaml</code>.
+  p=200 s=356 US sim now emits C16.9 Conditions; the regimen wiring
+  from PR #1298 fires end-to-end.</li>
 <li><strong>CAD (I25.x) secondary-prevention statin chronic med</strong>
   (Issue #1338). Class-I evidence in ACC/AHA 2018, ESC 2019, and JAS
   2022 secondary-prevention guidelines. The prior sim modelled statin
