@@ -41,6 +41,20 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **JP MedicationAdministration.medicationCodeableConcept.text emits
+  Japanese for chemo drugs** (Issue #1310). PR #1303 catalogued
+  Gemcitabine / Irinotecan / Nab-paclitaxel / Temozolomide / BCG with
+  Japanese displays on the HOT7 and RxNorm codings, but
+  ``clinosim/locale/shared/drug_names_ja.yaml`` — the SoT consumed by
+  ``_localize_drug_name`` for the top-level ``.text`` field — had no
+  entries for the five new drugs, so JP consumers reading
+  ``.text`` first saw the English name. Added entries for
+  Gemcitabine / Irinotecan / Nab-paclitaxel (both hyphenated and
+  underscored variants) / Temozolomide / BCG (including the
+  ``BCG intravesical`` disease-YAML alias). p=200 s=356 JP verify:
+  Temozolomide now emits as ``テモゾロミド`` on both
+  MedicationRequest and MedicationAdministration. FHIR-emit-only
+  change: CIF byte-unchanged; PATCH.
 - **Depression Condition emits bare F32 / F33 (non-billable ICD-10-CM)**
   (Issue #1309, US-only). ``F32`` and ``F33`` are ICD-10-CM category
   headers; billable leaves are ``F32.0-F32.9`` and ``F33.0-F33.9``. The
