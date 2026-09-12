@@ -1235,6 +1235,22 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
                 if rid:
                     dropped_ids.add(f"{rtype}/{rid}")
                 continue
+            # Issue #1278: reconcile Coverage lifecycle with the DOD.
+            # `_derive_coverage_status` (Issue #944) flips status based on
+            # snapshot_date vs. period.end, but has no visibility into the
+            # patient's death. p=10k s=354 audit found ~92 % of deceased
+            # patients keep `period.end` past DOD and 36-60 % keep
+            # `status="active"` — real payers cancel enrollment at DOD.
+            # Clamp period.end down to DOD when it overshoots, and flip
+            # status to "cancelled" (the FHIR R4 value already used for
+            # expired FY rows in the same builder).
+            if rtype == "Coverage":
+                end = p.get("end", "")
+                if isinstance(end, str) and end and end[:10] > dod_iso:
+                    p["end"] = dod_iso
+                    res["period"] = p
+                if res.get("status") == "active":
+                    res["status"] = "cancelled"
             kept.append(e)
             continue
         after_death = False
