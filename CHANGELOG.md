@@ -41,6 +41,38 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Cesarean full intraoperative medication bundle**
+  (#1285 sub-scope → PR). Extends the Cefazolin-only surgical
+  prophylaxis added earlier to the full ACOG / ASA / ERAS
+  cesarean intraop stack — every C-section mother record now
+  carries six MedicationRequest Orders anchored to real ACOG
+  timing intervals:
+  - Cefazolin 2 g IV, 30 min preop (SCIP-INF-1)
+  - Bupivacaine 0.5 % 12 mg intrathecal at incision (spinal
+    anesthesia)
+  - Fentanyl 25 mcg intrathecal at incision (opioid adjunct)
+  - Ondansetron 4 mg IV at incision (antiemetic prophylaxis
+    against spinal-induced hypotension)
+  - Oxytocin 10 U IV bolus at cord clamp / +10 min (uterotonic,
+    PPH prevention)
+  - Ketorolac 30 mg IV at +60 min (postop multimodal analgesia,
+    ERAS pathway)
+  Drug catalog registrations landed alongside:
+  - `rxnorm.yaml` gains RxCUIs 7824 (oxytocin), 1815 (bupivacaine),
+    26225 (ondansetron), 35827 (ketorolac). All verified via
+    tx.fhir.org $lookup on 2026-09-12.
+  - `hot7.yaml` gains JP class-representative 7-digit codes
+    2499401 (子宮収縮薬), 1214402 (局所麻酔剤). Also backfills
+    display entries for 1149029 (Ketorolac) and 2391003
+    (Ondansetron) — both were already referenced from
+    `code_mapping_drug.yaml (JP)` but had no hot7 display, so the
+    fallback lookup returned the bare code.
+  - `locale/us/code_mapping_drug.yaml` + `locale/jp/code_mapping_drug.yaml`
+    gain the missing intraop-drug entries.
+  Determinism: fixed dose + timing anchors relative to `visit_date`;
+  no RNG consumption. **PATCH-scope**: additive MedicationRequests
+  on the C-section mother path only; no other emit path touched;
+  no CIF change.
 - **SSRI drug code registration (Sertraline / Escitalopram /
   Fluoxetine / Paroxetine / Citalopram)** (#1281 follow-up → PR).
   The chronic-med SSRI block wired for F32 / F33 / F41.1 in #1281

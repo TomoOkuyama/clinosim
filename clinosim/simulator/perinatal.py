@@ -575,43 +575,121 @@ def simulate_delivery_encounter(
         primary_surgeon_id=encounter.attending_physician_id,
     )
 
-    # Issue #1285: emit surgical antimicrobial prophylaxis for
-    # cesarean deliveries. ACOG mandates a preoperative single dose
-    # of Cefazolin 2 g IV (weight-based; 3 g if BMI ≥ 30 / weight
-    # ≥ 120 kg) administered within 60 minutes before skin incision —
-    # this is a SCIP inpatient quality measure (SCIP-INF-1) and
-    # real-world US compliance is > 95 %. Pre-fix 37 US C-sections at
-    # p=10k s=354 emitted zero Cefazolin MRs. Full obstetric intraop
-    # bundle (Oxytocin, Bupivacaine spinal, Fentanyl adjunct,
-    # Ondansetron, Ketorolac) is deferred to a follow-up that first
-    # registers those drugs in `codes/data/rxnorm.yaml` +
-    # `locale/{us,jp}/code_mapping_drug.yaml` (Oxytocin and
-    # Bupivacaine are not yet in the drug catalog).
+    # Issue #1285: emit the full cesarean intraoperative medication
+    # bundle. Real-world US C-section deliveries are covered by ACOG /
+    # SCIP protocols with essentially 100 % compliance on:
+    #   1. Cefazolin 2 g IV single dose within 60 min preop
+    #      (SCIP-INF-1 antimicrobial prophylaxis).
+    #   2. Bupivacaine 0.5 % 12 mg intrathecal (spinal anesthesia,
+    #      the dominant anesthetic modality for elective C-section).
+    #   3. Fentanyl 25 mcg intrathecal adjunct (opioid potentiation
+    #      of the spinal block).
+    #   4. Ondansetron 4 mg IV pre-incision (5HT3 antiemetic
+    #      prophylaxis against spinal-induced hypotension nausea).
+    #   5. Oxytocin 10 U IV bolus after cord clamp (uterotonic
+    #      to promote uterine contraction + prevent PPH).
+    #   6. Ketorolac 30 mg IV postop (multimodal analgesia adjunct
+    #      to opioid, per ERAS obstetric pathway).
+    # Pre-fix (p=10k s=354): 37 US C-sections emitted zero of these
+    # meds. Drug codes registered 2026-09-12 (RxNorm + JP YJ) so
+    # `MedicationRequest.medicationCodeableConcept.coding` populates.
+    #
+    # Timing anchors: Cefazolin 30 min preop; bupivacaine + fentanyl +
+    # ondansetron at time of incision (visit_date); oxytocin at cord
+    # clamp (~10 min after incision, typical); ketorolac 60 min postop.
+    #
+    # Determinism: pure deterministic emissions (fixed doses, fixed
+    # timing anchors relative to visit_date). No RNG consumption.
     orders: list = []
     if is_cesarean:
         from clinosim.types.encounter import Order, OrderStatus, OrderType
 
-        orders.append(
-            Order(
-                order_id=f"ORD-{encounter.encounter_id}-CSCF-01",
-                encounter_id=encounter.encounter_id,
-                patient_id=patient.patient_id,
-                order_type=OrderType.MEDICATION,
-                display_name="Cefazolin",
-                urgency="stat",
-                clinical_intent="Cesarean surgical antimicrobial prophylaxis (ACOG / SCIP-INF-1)",
-                clinical_intent_ja="帝王切開周術期予防抗菌薬 (ACOG / SCIP-INF-1)",
-                ordered_datetime=visit_date - timedelta(minutes=30),
-                ordered_by=encounter.attending_physician_id,
-                status=OrderStatus.PLACED,
-                dose_quantity=2.0,
-                dose_unit="g",
-                frequency="once",
-                frequency_per_day=1,
-                route="IV",
-                duration_days=1,
+        _attending = encounter.attending_physician_id
+        _cs_ord_specs: list[tuple[str, str, str, str, float, str, str, timedelta]] = [
+            # (id_suffix, display_name, intent_en, intent_ja, dose, unit, route, timing_delta)
+            (
+                "CSCF",
+                "Cefazolin",
+                "Cesarean surgical antimicrobial prophylaxis (ACOG / SCIP-INF-1)",
+                "帝王切開周術期予防抗菌薬 (ACOG / SCIP-INF-1)",
+                2.0,
+                "g",
+                "IV",
+                timedelta(minutes=-30),
+            ),
+            (
+                "CSBP",
+                "Bupivacaine",
+                "Cesarean spinal anesthesia (0.5 % intrathecal)",
+                "帝王切開脊髄くも膜下麻酔 (0.5 % 髄腔内)",
+                12.0,
+                "mg",
+                "IT",
+                timedelta(minutes=0),
+            ),
+            (
+                "CSFN",
+                "Fentanyl",
+                "Cesarean intrathecal opioid adjunct to spinal anesthesia",
+                "帝王切開脊髄くも膜下麻酔 オピオイド補助",
+                25.0,
+                "mcg",
+                "IT",
+                timedelta(minutes=0),
+            ),
+            (
+                "CSOD",
+                "Ondansetron",
+                "Cesarean antiemetic prophylaxis (spinal-induced hypotension)",
+                "帝王切開制吐薬予防 (脊麻後低血圧対策)",
+                4.0,
+                "mg",
+                "IV",
+                timedelta(minutes=0),
+            ),
+            (
+                "CSOX",
+                "Oxytocin",
+                "Cesarean uterotonic post-cord-clamp (PPH prevention)",
+                "帝王切開臍帯クランプ後 子宮収縮薬 (PPH予防)",
+                10.0,
+                "U",
+                "IV",
+                timedelta(minutes=10),
+            ),
+            (
+                "CSKT",
+                "Ketorolac",
+                "Cesarean postoperative multimodal analgesia (ERAS)",
+                "帝王切開術後多剤鎮痛 (ERAS)",
+                30.0,
+                "mg",
+                "IV",
+                timedelta(minutes=60),
+            ),
+        ]
+        for _sfx, _name, _intent_en, _intent_ja, _dose, _unit, _route, _delta in _cs_ord_specs:
+            orders.append(
+                Order(
+                    order_id=f"ORD-{encounter.encounter_id}-{_sfx}-01",
+                    encounter_id=encounter.encounter_id,
+                    patient_id=patient.patient_id,
+                    order_type=OrderType.MEDICATION,
+                    display_name=_name,
+                    urgency="stat",
+                    clinical_intent=_intent_en,
+                    clinical_intent_ja=_intent_ja,
+                    ordered_datetime=visit_date + _delta,
+                    ordered_by=_attending,
+                    status=OrderStatus.PLACED,
+                    dose_quantity=_dose,
+                    dose_unit=_unit,
+                    frequency="once",
+                    frequency_per_day=1,
+                    route=_route,
+                    duration_days=1,
+                )
             )
-        )
 
     mother_record = CIFPatientRecord(
         patient=patient,

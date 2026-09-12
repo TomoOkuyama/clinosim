@@ -339,3 +339,26 @@ codes:
   '1179040':
     en: Paroxetine
     ja: パロキセチン塩酸塩水和物
+
+  # Cesarean intraoperative bundle (#1285 sub-scope). 7-digit class
+  # representatives per MHLW 薬効分類. `2499401` (子宮収縮薬 →
+  # オキシトシン) and `1214402` (局所麻酔剤 → ブピバカイン塩酸塩)
+  # follow the same class-stand-in convention every other 7-digit
+  # entry in this file uses (12-char per-SKU codes live in yj.yaml).
+  # Ketorolac (`1149029`, 解熱鎮痛消炎剤) and Ondansetron
+  # (`2391003`, 制吐薬) fill the silent gap left when the JP
+  # code_mapping already referenced these codes but hot7.yaml had
+  # no display entry — the fallback drug-code lookup returned the
+  # code itself as display, which is now the JP-standard label.
+  '2499401':
+    en: Oxytocin
+    ja: オキシトシン
+  '1214402':
+    en: Bupivacaine
+    ja: ブピバカイン塩酸塩水和物
+  '1149029':
+    en: Ketorolac
+    ja: ケトロラクトロメタミン
+  '2391003':
+    en: Ondansetron
+    ja: オンダンセトロン塩酸塩水和物
