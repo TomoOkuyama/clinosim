@@ -754,3 +754,68 @@ def test_filter_vitals_for_day_calendar_day_bucket_with_evening_admission() -> N
     # this is the day the spike ACTUALLY belongs to.
     assert 38.5 in [v.temperature_celsius for v in day2]
     assert 36.8 not in [v.temperature_celsius for v in day2]
+
+
+def test_pmh_us_f00_maps_to_unspecified_dementia_not_alzheimer_1333() -> None:
+    """Issue #1333: US CIF chronic base code ``F00`` is mapped by
+    ``code_mapping_diagnosis/us.yaml`` to ``F03.90`` (Unspecified
+    dementia) at FHIR emit. The narrative PMH must show the SAME
+    disease as the FHIR Condition, not the WHO F00 parent label
+    ("Dementia in Alzheimer disease") that ``icd-10-cm.yaml`` carries
+    for family-history / cross-reference use only."""
+    from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
+
+    ctx = _make_ctx(target_lang="en", locale="us")
+    ctx.patient.chronic_conditions = [
+        SimpleNamespace(code="F00", stage="", onset_date="2018-01-01"),
+    ]
+    gen = TemplateNarrativeGenerator()
+    pmh, _facts = gen._build_past_medical_history(ctx)
+
+    # Must reference the emit-target billable dementia label, NOT the
+    # WHO F00 parent-label ("Dementia in Alzheimer disease").
+    assert "Alzheimer" not in pmh, f"US F00 → F03.90 must not surface 'Alzheimer' in the narrative PMH; got: {pmh!r}"
+    assert "dementia" in pmh.lower(), f"US F00 → F03.90 must still surface some 'dementia' wording; got: {pmh!r}"
+    # Traceability bracket must carry the FHIR emit code, not the CIF base.
+    assert "[F03.90]" in pmh, f"Traceability bracket must carry FHIR emit code [F03.90]; got: {pmh!r}"
+
+
+def test_pmh_jp_f00_stays_alzheimer_identity_1333() -> None:
+    """Issue #1333 counter-case: JP CIF chronic base code ``F00`` is
+    identity-mapped by ``code_mapping_diagnosis/jp.yaml`` (WHO ICD-10
+    2013 uses F00 = Alzheimer type dementia paired with G30.-*). The
+    JP narrative label must remain the Alzheimer display — the
+    routing-through-``map_diagnosis_code`` fix must NOT flip JP F00
+    to something else."""
+    from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
+
+    ctx = _make_ctx(target_lang="ja", locale="jp")
+    ctx.patient.chronic_conditions = [
+        SimpleNamespace(code="F00", stage="", onset_date="2018-01-01"),
+    ]
+    gen = TemplateNarrativeGenerator()
+    pmh, _facts = gen._build_past_medical_history(ctx)
+
+    # JP legitimately renders F00 as Alzheimer type dementia.
+    assert "アルツハイマー" in pmh, f"JP F00 must render Alzheimer type dementia display; got: {pmh!r}"
+    # Traceability bracket carries the identity (unmapped) code.
+    assert "[F00]" in pmh, f"JP F00 identity mapping must carry [F00] traceability; got: {pmh!r}"
+
+
+def test_pmh_us_e78_maps_to_billable_leaf_display_1333() -> None:
+    """Issue #1333 companion: US ``E78`` (chronic dyslipidemia) →
+    ``E78.5`` (Hyperlipidemia, unspecified) at FHIR emit. The
+    narrative must show the billable-leaf display, not the WHO
+    parent-category label ("Disorders of lipoprotein metabolism ...").
+    """
+    from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
+
+    ctx = _make_ctx(target_lang="en", locale="us")
+    ctx.patient.chronic_conditions = [
+        SimpleNamespace(code="E78", stage="", onset_date="2015-05-01"),
+    ]
+    gen = TemplateNarrativeGenerator()
+    pmh, _facts = gen._build_past_medical_history(ctx)
+
+    assert "Hyperlipidemia" in pmh, f"US E78 → E78.5 must surface 'Hyperlipidemia' display; got: {pmh!r}"
+    assert "[E78.5]" in pmh, f"Traceability bracket must carry FHIR emit code [E78.5]; got: {pmh!r}"
