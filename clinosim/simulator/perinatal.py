@@ -462,14 +462,24 @@ def simulate_delivery_encounter(
     dept = resolve_department(enc_cfg.get("department") or "obgyn", hospital_ops)
 
     # ── Mother-side delivery encounter ───────────────────────────────
+    # Issue #1317: when the roll picks cesarean, prefer the
+    # ``cesarean.visit_reason`` override so the encounter's
+    # chief_complaint matches the O82 admission diagnosis and CPT 59510
+    # procedure. Falls back to the vaginal-delivery visit_reason when
+    # the cesarean block does not override.
+    _reason_cfg = enc_cfg.get("visit_reason") or {}
+    if is_cesarean:
+        _cs_reason_cfg = cs_cfg.get("visit_reason") or {}
+        if _cs_reason_cfg:
+            _reason_cfg = _cs_reason_cfg
     encounter = create_inpatient_encounter(
         patient.patient_id,
         visit_date,
-        chief_complaint=(enc_cfg.get("visit_reason") or {}).get("en") or "Delivery",
+        chief_complaint=_reason_cfg.get("en") or "Delivery",
         department_id=dept,
         visit_number=0,
     )
-    ja_reason = (enc_cfg.get("visit_reason") or {}).get("ja") or ""
+    ja_reason = _reason_cfg.get("ja") or ""
     if ja_reason:
         encounter.chief_complaint_ja = ja_reason
     encounter.encounter_type = EncounterType.INPATIENT
