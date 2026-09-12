@@ -361,3 +361,13 @@ lactulose:                               "3999001Q2058"  # (lowercase alias for 
 "Sertraline": "1179044"
 "Escitalopram": "1179052"
 "Paroxetine": "1179040"
+
+# Cesarean intraoperative bundle (#1285 sub-scope). 7-digit class
+# representatives per MHLW 薬効分類:
+#   2499 = 子宮収縮薬 (Oxytocin)
+#   1214 = 局所麻酔剤 (Bupivacaine — for spinal anesthesia)
+# Ketorolac (1149029) and Ondansetron (2391003) are already listed
+# above; the hot7.yaml side now carries their JA displays so the
+# lookup no longer silently returns the bare code.
+"Oxytocin": "2499401"
+"Bupivacaine": "1214402"

@@ -367,3 +367,23 @@ codes:
   '2556':
     en: citalopram
     ja: シタロプラム
+
+  # Cesarean intraoperative bundle (#1285 sub-scope). RXCUIs
+  # NLM-verified 2026-09-12 via tx.fhir.org $lookup (TTY=IN).
+  # Used by `simulator/perinatal.py::simulate_delivery_encounter`
+  # for the C-section intraop MR emission (Oxytocin post-cord-clamp,
+  # Bupivacaine spinal anesthesia, Fentanyl intrathecal adjunct,
+  # Ondansetron antiemetic, Ketorolac postop analgesia). Cefazolin
+  # is already registered above.
+  '7824':
+    en: oxytocin
+    ja: オキシトシン
+  '1815':
+    en: bupivacaine
+    ja: ブピバカイン
+  '26225':
+    en: ondansetron
+    ja: オンダンセトロン
+  '35827':
+    en: ketorolac
+    ja: ケトロラク
