@@ -113,6 +113,23 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **CAD (I25.x) secondary-prevention statin chronic med**
+  (Issue #1338). Class-I evidence in ACC/AHA 2018, ESC 2019, and JAS
+  2022 secondary-prevention guidelines. The prior sim modelled statin
+  ONLY under E78 (dyslipidemia chronic block), so 39 % of CAD
+  patients without an E78 chronic diagnosis carried zero statin.
+  Added ``Atorvastatin 40 mg PO daily`` (high-intensity, first-line
+  per guidelines) with ``probability: 0.90`` (matches real-world
+  adherence 85-90 %, with headroom for statin-intolerance
+  exclusions) to the I25 medications block in
+  ``clinosim/locale/shared/chronic_medications.yaml``.
+
+  Chronic-med dedup handles the I25+E78 collision (drug_name-keyed).
+  Verification (p=500 s=356 US): CAD patients with statin: 11/14
+  (78.6 %) — was ~61 % baseline. RNG cascade: one added
+  ``rng.random()`` draw per I25 patient (chronic-med sampler);
+  classified MINOR under the CIF-narrative consistency policy for
+  the affected cohort.
 - **US Core Patient extensions** — us-core-race, us-core-ethnicity,
   us-core-birthsex (Issue #1344). Every US Patient resource previously
   emitted with no extensions at all, so 100 % of the cohort failed US
