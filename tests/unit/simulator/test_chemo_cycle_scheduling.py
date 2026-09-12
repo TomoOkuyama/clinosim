@@ -59,12 +59,41 @@ def test_no_cancer_conditions_emits_no_chemo_events() -> None:
 
 def test_cancer_code_without_by_cancer_entry_emits_nothing() -> None:
     """A cancer code that has NO entry in ``by_cancer`` (e.g. C22 liver,
-    C15 esophageal — surveillance-only in slice 1) produces zero events
-    even when the patient carries the code."""
-    for code in ("C22", "C15", "C16", "C25", "C67", "C71"):
+    C25 pancreatic, C67 bladder, C71 brain — surveillance-only until
+    the required drugs land in the chemo catalog) produces zero events
+    even when the patient carries the code. C15 esophageal + C16
+    gastric now DO have entries (#1280 Sub-B — both reuse the FOLFOX
+    regimen); see ``test_c15_c16_folfox_emits_at_14_day_cadence_1280``."""
+    for code in ("C22", "C25", "C67", "C71"):
         person = _make_person(f"POP-{code}", "F", 60, [code])
         events = _chemo_cycle_events(person, year=2024)
         assert events == [], f"code {code} should not emit chemo events in slice 1, got {events}"
+
+
+def test_c15_c16_folfox_emits_at_14_day_cadence_1280() -> None:
+    """Issue #1280 Sub-B: C15 esophageal and C16 gastric both now
+    dispatch to the FOLFOX regimen at ~20 % chronic-carrier
+    probability. Sweep patient ids to find one who lands on FOLFOX
+    (probability=0.20, so ~40 hits per 200 sweep — comfortable
+    margin), then assert the emitted events carry the correct
+    disease_id + FOLFOX 14-day cadence."""
+    for code in ("C15", "C16"):
+        found = False
+        for i in range(200):
+            pid = f"POP-{code}-{i:04d}"
+            person = _make_person(pid, "F", 60, [code])
+            events = _chemo_cycle_events(person, year=2024)
+            if not events:
+                continue
+            assert all(e.event_type == "chemo_visit" for e in events), events
+            assert all(e.disease_id == code for e in events), (code, events)
+            assert all(e.protocol_source == "chemo_regimens:FOLFOX" for e in events), events
+            dates = sorted(e.timestamp for e in events)
+            gaps = [(dates[j + 1] - dates[j]).days for j in range(len(dates) - 1)]
+            assert all(g == 14 for g in gaps), f"non-14-day FOLFOX gaps for {code} {pid}: {gaps}"
+            found = True
+            break
+        assert found, f"no FOLFOX assignment across 200 sweeps for {code} — probability drift?"
 
 
 def test_cancer_code_with_regimen_emits_events_at_cycle_cadence() -> None:

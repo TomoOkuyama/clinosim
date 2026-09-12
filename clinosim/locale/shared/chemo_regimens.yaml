@@ -61,9 +61,31 @@ by_cancer:
   C34: [{regimen: CarboPem,         probability: 0.20}]  # advanced NSCLC platinum doublet
   C50: [{regimen: Trastuzumab_q3w,  probability: 0.15}]  # HER2+ ~15 % of BC, on trastuzumab maintenance
   C61: [{regimen: LHRH_q28d,        probability: 0.35}]  # ADT majority of C61 chronic carriers
-  # C22 (liver) / C15 (esophageal) / C16 (stomach) / C25 (pancreatic) /
-  # C67 (bladder) / C71 (brain) — carry oral TKI or surveillance-only in
-  # this generator today; no IV cycle regimen assigned in slice 1.
+
+  # Issue #1280 Sub-B: expand `by_cancer` to two additional upper-GI
+  # cancers whose real first-line regimen is well-established and
+  # reuses drugs already in the sim's chemo catalog (Oxaliplatin +
+  # Leucovorin + 5-FU). Adding these without introducing new drug
+  # registrations keeps scope tight while closing the "cancer without
+  # oncology footprint" gap for C15/C16 chronic carriers.
+  #
+  # - C15 esophageal (SCC + adenocarcinoma): FOLFOX perioperative
+  #   is a JCOG-1109 arm (NExT trial DCF is more common in JP, but
+  #   FOLFOX is a valid alternative and reuses existing drugs).
+  #   Active-regimen prevalence ~20 % of chronic carriers.
+  # - C16 gastric (adenocarcinoma): FOLFOX is a common perioperative
+  #   or first-line palliative regimen (JCOG-1509 / FLOT is an
+  #   alternative). Active-regimen prevalence ~20 % of chronic
+  #   carriers (majority are in surveillance-only post-curative
+  #   resection).
+  #
+  # C22 / C25 / C67 / C71: their first-line real-world regimens
+  # (Gemcitabine + Nab-paclitaxel for pancreatic, BCG intravesical
+  # for bladder, Temozolomide for glioma) require drugs not yet in
+  # the sim's chemo catalog. Deferred to a follow-up PR that first
+  # registers those drugs (parallels the SSRI + intraop pattern).
+  C15: [{regimen: FOLFOX,           probability: 0.20}]  # esophageal perioperative FOLFOX
+  C16: [{regimen: FOLFOX,           probability: 0.20}]  # gastric adjuvant / palliative FOLFOX
 
 # ---------------------------------------------------------------------------
 # Procedure code emitted on each chemo_visit encounter. Same code for all
