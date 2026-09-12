@@ -39,6 +39,50 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Non-daily MedicationRequest.dosageInstruction.timing.repeat coverage**
+  (Issue #1348). The prior derivation table recognised only daily / q6h
+  / q4h / q3h / q2h / qhs, so ``weekly`` (Alendronate),
+  ``nightly`` (Mirtazapine), ``every_3_days`` / ``every_other_day``,
+  ``monthly``, and chemo per-cycle ``q3weeks`` labels fell through to
+  the plain-text branch with no structured ``timing.repeat`` emit —
+  Alendronate 99.8 %, Mirtazapine 100 %, Trastuzumab / Oxaliplatin
+  IV cycles all lacked cadence.
+
+  Fix: introduced ``resolve_timing_repeat`` in
+  ``clinosim/modules/output/fhir_r4/lib/common.py`` — one shared
+  lookup table (``_FREQ_LABEL_TIMING``) keyed on frequency label,
+  returning ``(frequency, period, periodUnit)`` with UCUM units
+  ``h``/``d``/``wk``/``mo``. Cover new labels: ``nightly``, ``qam``,
+  ``qpm``, ``q1h``, ``every_other_day``, ``qod``, ``every_3_days``,
+  ``weekly``/``qweek``/``1x/week``, ``monthly``/``qmonth``,
+  ``q3weeks``/``q3wks``/``every 3 weeks``, ``q4wks``. A trailing
+  ``PRN`` suffix on any cadence (``q6h PRN``) now emits BOTH the
+  fixed ``timing.repeat`` AND ``asNeededBoolean=true`` — FHIR-valid
+  "up to every 6 hours as needed" semantics.
+
+  ``_build_discharge_medication_request`` (medications.py) was
+  duplicating a smaller frequency lookup and is now routed through
+  the same helper, so discharge / outpatient-renewal MRs pick up the
+  weekly / per-cycle cadence coverage without a separate second edit.
+
+  Verification (p=200 s=356 US sim + FHIR export):
+    Alendronate  30/30 with `timing.repeat` (was 3/30)
+    Mirtazapine   1/1  with `timing.repeat` (was 0/1)
+    Trastuzumab   8/8  with `timing.repeat` (was 0/8)
+    Oxaliplatin  12/12 with `timing.repeat`
+    Salbutamol   83/83 with `asNeededBoolean=true` (correct PRN)
+    Overall US p=200: 91.6 % (was 87.4 % on the p=10k baseline)
+
+  Remaining gap: Insulin sliding-scale MRs (~0.6 % of the pool)
+  arrive at the emitter with no ``frequency`` field set at all — the
+  upstream chronic-med sampler / disease-YAML author has not authored
+  cadence for sliding-scale prescriptions. Separate PR.
+
+  FHIR-emit-only change: CIF is byte-unchanged; classified PATCH
+  under the CIF-narrative consistency policy.
+
 ### Added
 
 - **US Core Patient extensions** — us-core-race, us-core-ethnicity,
@@ -68,6 +112,34 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   yaml-tuning follow-up); Hispanic ethnicity 18.4 % matches Census
   18.7 %. FHIR-emit-only change: CIF byte-unchanged; PATCH under the
   CIF-narrative consistency policy.
+- **Demographic contraindication gate for ED medication dispatch**
+  (Issues #1316, #1328 — CATASTROPHIC pediatric aspirin/NTG +
+  Tamsulosin sex/age mismatch). New
+  `clinosim.modules.drug_safety.check_demographic_gate` and
+  `reference_data/demographic_gates.yaml` catalog block a drug from
+  emitting when the patient's age / sex disqualifies them (with
+  ICD-10 prefix exceptions — Aspirin still allowed for pediatric
+  Kawasaki M30.3 / acute rheumatic fever I00-I02). Wired into the
+  ED encounter treatment dispatcher (`clinosim/simulator/emergency.py`)
+  ahead of Order creation; blocked candidates are recorded in
+  `patient.safety_skip_log` with the matching rule id and the
+  patient age/sex that triggered the skip.
+
+  Seeded rules:
+  - `aspirin-pediatric-reyes` — Aspirin blocked below age 16 (Reye's
+    syndrome risk), bypassed for M30.3 / I00 / I01 / I02.
+  - `nitroglycerin-adult-only` — Nitroglycerin blocked below age 18
+    (no routine pediatric indication).
+  - `tamsulosin-adult-male-bph` — Tamsulosin blocked outside adult
+    male (BPH-only, no pediatric / female indication).
+
+  p=200 s=356 US + JP verification: pediatric Aspirin, pediatric NTG,
+  pediatric Tamsulosin, female Tamsulosin all drop from cohort-level
+  presence to 0 while adult Aspirin (US 27 / JP 21) and adult-male
+  Tamsulosin (US 26 / JP 45) remain intact. RNG cascade is confined
+  to the affected pediatric / non-BPH cohorts (adult-male behaviour
+  is byte-identical); classified MINOR under the CIF-consistency
+  policy for those cohorts.
 
 - **Cesarean full intraoperative medication bundle**
   (#1285 sub-scope → PR). Extends the Cefazolin-only surgical
