@@ -372,6 +372,17 @@ lactulose:                               "3999001Q2058"  # (lowercase alias for 
 "Oxytocin": "2499401"
 "Bupivacaine": "1214402"
 
+# Oncology chemo catalog expansion (#1280 sub-C). 7-digit class
+# representatives per MHLW 薬効分類. All drugs PMDA-approved.
+# Regimen wiring in `chemo_regimens.yaml` for C22 / C25 / C67 / C71
+# is deferred to a separate follow-up requiring oncology clinical
+# review.
+"Gemcitabine": "4224400"          # ジェムザール
+"Irinotecan": "4240401"           # カンプト / トポテシン
+"Nab-paclitaxel": "4291423"       # アブラキサン
+"Temozolomide": "4291023"         # テモダール
+"BCG": "6323400"                  # イムノブラダー (intravesical)
+
 # SNRI + atypical antidepressants (#1281 second follow-up). Class
 # 1179 = 精神神経用剤. Only the JP-approved subset is registered
 # here — Duloxetine / Venlafaxine / Mirtazapine ARE PMDA-approved

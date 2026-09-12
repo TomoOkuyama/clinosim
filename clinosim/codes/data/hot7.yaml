@@ -369,3 +369,27 @@ codes:
   '1179038':
     en: Fluvoxamine
     ja: フルボキサミンマレイン酸塩
+
+  # Oncology chemo drug catalog expansion (#1280 sub-C). 7-digit
+  # class-representative per MHLW 薬効分類 — same convention every
+  # other 7-digit entry in this file uses.
+  #   4224 = 代謝拮抗剤 (Gemcitabine)
+  #   4240 = その他の抗悪性腫瘍剤 (Irinotecan topoisomerase inhibitor)
+  #   4291 = 抗悪性腫瘍剤 (Nab-paclitaxel taxane, Temozolomide
+  #                       alkylating agent)
+  #   6323 = 免疫療法用製剤 (BCG intravesical)
+  '4224400':
+    en: Gemcitabine
+    ja: ゲムシタビン塩酸塩
+  '4240401':
+    en: Irinotecan
+    ja: イリノテカン塩酸塩水和物
+  '4291423':
+    en: Nab-paclitaxel
+    ja: パクリタキセル（アルブミン懸濁型）
+  '4291023':
+    en: Temozolomide
+    ja: テモゾロミド
+  '6323400':
+    en: BCG (intravesical)
+    ja: BCG膀胱内注入用
