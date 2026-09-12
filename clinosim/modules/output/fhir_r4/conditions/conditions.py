@@ -493,9 +493,22 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         map_diagnosis_code(_primary_dx_code_raw, country, sex=patient_sex) if _primary_dx_code_raw else ""
     )
     _chronic_mapped_check = [map_diagnosis_code(_c, country, sex=patient_sex) for _c in _chronic_codes_raw]
+    # Issue #1341: combine the raw and mapped shape checks with AND, not OR.
+    # The prior OR emitted a false-positive admission Condition whenever the
+    # RAW admit / primary looked distinct but both COLLAPSED to the same code
+    # under ``map_diagnosis_code`` — e.g. JP hip-fracture case where
+    # ``admit_dx=S72.0`` and ``discharge_dx=S72.00`` are raw-distinct but the
+    # JP mapping folds S72.00 → S72.0. Emitting an admission Condition here
+    # produced two S72.0 Conditions on the same encounter (one principal, one
+    # admitting), sharing identity + timestamp. The primary Condition already
+    # carries the mapped admit code, so no extra row is needed. Both checks
+    # must independently say "admit is orphaned" before we emit — that
+    # preserves the defensive raw-check for edge cases where the mapping
+    # collapses primary/chronic but leaves admit distinct, while suppressing
+    # the false positive.
     if encounter_id and (
         needs_admission_diagnosis_condition(_admit_dx_code_raw, _primary_dx_code_raw, _chronic_codes_raw)
-        or needs_admission_diagnosis_condition(_admit_mapped_check, _primary_mapped_check, _chronic_mapped_check)
+        and needs_admission_diagnosis_condition(_admit_mapped_check, _primary_mapped_check, _chronic_mapped_check)
     ):
         _admit_mapped = _admit_mapped_check
         # NOTE: intentionally do not add ``_admit_mapped``'s ICD base to
