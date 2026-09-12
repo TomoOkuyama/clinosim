@@ -418,14 +418,21 @@ def test_dwell_fill_preserves_timezone_offset():
     )
 
 
-def test_no_on_o2_vitals_logs_reason(caplog):
-    """When an encounter is walked but has no on-O2 vitals at all, we
-    still emit an observable log line explaining the skip."""
+def test_multi_encounter_second_encounter_without_on_o2_vitals_is_skipped_1352(caplog):
+    """Issue #1352 regression: a second encounter with no on-O2 vitals of
+    its own must NOT silently inherit the first encounter's session. Prior
+    to the fix, ``_oxygen_session_period`` fell back to "all vitals" when
+    the per-encounter filter yielded an empty list, which caused ENC-B to
+    emit a Procedure carrying ENC-A's session timestamps under ENC-B's
+    encounter reference — duplicate cross-encounter emit (patient sample
+    pt-37e10316320a: AIN admission + later VAX encounter both emitting
+    Oxygen therapy at identical performedDateTime).
+
+    Fix: multi-encounter records disable the unattributed-vitals fallback.
+    """
     import logging as _log
 
     caplog.set_level(_log.INFO, logger="clinosim.modules.output.fhir_r4.procedures.oxygen_therapy")
-    # We need at least one on-O2 vital somewhere in the record so the
-    # cheap short-circuit at the top of _bb_oxygen_therapy doesn't fire.
     record = {
         "encounters": [
             {"encounter_id": "ENC-WITH", "discharge_datetime": "2025-06-30T20:00:00"},
@@ -433,7 +440,7 @@ def test_no_on_o2_vitals_logs_reason(caplog):
         ],
         "orders": [],
         "vital_signs": [
-            # on-O2 vital tagged to ENC-WITH only
+            # on-O2 vitals attributed to ENC-WITH only
             {
                 "encounter_id": "ENC-WITH",
                 "timestamp": "2025-06-21T18:22:00",
@@ -449,15 +456,56 @@ def test_no_on_o2_vitals_logs_reason(caplog):
         ],
     }
     ctx = _ctx(record)
-    _bb_oxygen_therapy(ctx)
-    # ENC-WITHOUT has no matching on-O2 vital and no ambient fallback
-    # applies because ENC-WITH's vitals carry encounter_id — the
-    # per-encounter filter yields an empty list for ENC-WITHOUT.
-    # NOTE: current _oxygen_session_period falls back to "all vitals"
-    # when the filter is empty (documented behaviour), so ENC-WITHOUT
-    # actually reuses ENC-WITH's on-O2 vitals. This test therefore
-    # asserts the healthier "no skip" outcome rather than a skip. If
-    # that fallback is ever removed, flip to `no_on_o2_vitals`.
-    # Just confirming the path runs cleanly with logs enabled.
-    # (Regression guard against future silent-drop reintroductions.)
-    assert True
+    resources = _bb_oxygen_therapy(ctx)
+
+    # Exactly one Procedure — the ENC-WITHOUT emit path is correctly skipped.
+    # (Encounter references are opaque-migrated at emit time, so the pre-migration
+    # ENC-WITH literal is not in the resource; the log + count assertions carry
+    # the regression coverage.)
+    assert len(resources) == 1, (
+        f"multi-encounter record must not duplicate O2 Procedure onto encounters "
+        f"without on-O2 vitals; got {len(resources)} procedures"
+    )
+    # Session period must reflect ENC-WITH's on-O2 vitals (2025-06-21 → 2025-06-25),
+    # not the fallback that pulled other encounters' vitals.
+    period = resources[0].get("performedPeriod", {})
+    assert period.get("start", "").startswith("2025-06-21T18:22:00"), (
+        f"Procedure session start must reflect ENC-WITH's first on-O2 vital; got {period!r}"
+    )
+    # ENC-WITHOUT's skip is logged with the no_on_o2_vitals reason.
+    assert any("no_on_o2_vitals" in rec.message and "ENC-WITHOUT" in rec.message for rec in caplog.records), (
+        f"expected no_on_o2_vitals skip log for ENC-WITHOUT; got {[r.message for r in caplog.records]}"
+    )
+
+
+def test_single_encounter_untagged_vitals_still_emit_1352_backcompat():
+    """Issue #1352 backwards-compatibility check: single-encounter records
+    historically omit ``encounter_id`` on vitals (the enclosing per-encounter
+    CIF file implicitly scoped them). The fix must NOT regress that case —
+    single-encounter records still fall back to "all vitals" so the O2
+    Procedure emits normally."""
+    record = {
+        "encounters": [
+            {"encounter_id": "ENC-ONLY", "discharge_datetime": "2025-06-30T20:00:00"},
+        ],
+        "orders": [],
+        "vital_signs": [
+            # No encounter_id on vitals — the historical single-encounter shape.
+            {
+                "timestamp": "2025-06-21T18:22:00",
+                "on_supplemental_oxygen": True,
+                "oxygen_delivery_device": "nasal_cannula",
+            },
+            {
+                "timestamp": "2025-06-25T12:00:00",
+                "on_supplemental_oxygen": True,
+                "oxygen_delivery_device": "nasal_cannula",
+            },
+        ],
+    }
+    ctx = _ctx(record)
+    resources = _bb_oxygen_therapy(ctx)
+    assert len(resources) == 1, (
+        f"single-encounter record with untagged on-O2 vitals must still emit "
+        f"one Procedure via the fallback; got {len(resources)}"
+    )

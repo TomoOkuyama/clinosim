@@ -75,6 +75,61 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   hip-fracture disease-YAML — fracture-site variant sampling
   (S72.00/S72.10/S72.2) is independent from the imaging-text sampler.
   Deferred as a follow-up.
+- **Duplicate cross-encounter Oxygen therapy Procedure emit — 62
+  same-patient / same-code / same-``performedPeriod`` pairs across
+  distinct encounters on p=10k US** (Issue #1352). The oxygen-therapy
+  builder walks every encounter in the record and emits one Procedure
+  per encounter that has ``on_supplemental_oxygen=True`` vitals. The
+  session-derivation helper (``_oxygen_session_period``) then falls
+  back to "all vitals in the record" whenever the per-encounter
+  ``encounter_id`` filter yields an empty list — a legacy affordance
+  for single-encounter CIF files that historically omitted the
+  ``encounter_id`` field on vitals. In multi-encounter records this
+  fallback silently attributed the FIRST encounter's on-O2 vitals to
+  every subsequent encounter that had none of its own, so an
+  outpatient VAX visit 12 months after an AIN inpatient admission
+  emitted a duplicate Oxygen therapy Procedure carrying the AIN
+  session's timestamps under the VAX encounter reference.
+
+  Fix: multi-encounter records now disable the unattributed-vitals
+  fallback — encounters without matching ``encounter_id`` vitals are
+  skipped with the existing ``no_on_o2_vitals`` log reason.
+  Single-encounter records still fall back so the historical CIF
+  shape keeps working. Regression tests
+  (``test_multi_encounter_second_encounter_without_on_o2_vitals_is_skipped_1352``,
+  ``test_single_encounter_untagged_vitals_still_emit_1352_backcompat``)
+  guard both sides.
+- **Narrative renders chronic disease under the WHO parent-code label
+  while FHIR emits the locale-mapped billable leaf — US ``F00`` shown
+  as "Dementia in Alzheimer disease" while FHIR emitted ``F03.90``**
+  (Issue #1333). Four narrative builders in ``template_generator.py``
+  (``_build_past_medical_history``, HPI chronic short-list,
+  ``_build_working_diagnosis_context`` chronic backdrop, nursing PMH
+  summary, and outpatient subjective) resolved the CIF base code
+  (``F00``, ``E78``, ``J44`` …) directly against ``icd-10-cm.yaml`` /
+  ``icd-10.yaml``, bypassing the locale mapping the FHIR Condition
+  builder applies via ``map_diagnosis_code`` (US ``F00`` → ``F03.90``,
+  US ``E78`` → ``E78.5`` etc.). The narrative therefore pulled the
+  WHO parent-label from ``icd-10-cm.yaml`` (``F00`` display exists
+  only for family-history / cross-reference use) while FHIR emitted
+  the CM billable leaf — the two documents disagreed on the disease.
+
+  Fix: every chronic-condition display path now routes the base code
+  through ``map_diagnosis_code(base, country)`` and looks up the
+  emit-target's display; the trailing ``[code]`` bracket also carries
+  the emit-target code so narrative-side traceability matches the
+  FHIR Condition ``coding.code``. Verified per-code: US ``F00`` →
+  ``F03.90`` → "Unspecified dementia, unspecified severity, without
+  behavioral disturbance, ..." (was "Dementia in Alzheimer disease");
+  US ``E78`` → ``E78.5`` → "Hyperlipidemia, unspecified"; JP ``F00``
+  stays ``F00`` → "アルツハイマー型認知症" (identity per JP mapping —
+  F00 legitimately represents Alzheimer type dementia in WHO ICD-10
+  2013). Family-history display has the same structural bug shape
+  (``code_display`` in ``_build_family_history`` also bypasses the
+  mapping) but is filed as a follow-up — that path also needs to
+  reject Z86/history-target codes the way
+  ``_resolve_family_history_code`` does on the FHIR side, so a
+  narrow narrative-only patch would be incomplete.
 - **JP-side Condition ICD-10 emits 3-char bare category codes** (Issue
   #1320). Chronic Conditions on the JP locale emitted at WHO ICD-10
   3-character category root (E78 / J44 / N18 / M17 / K21 / M81 / I50 /
