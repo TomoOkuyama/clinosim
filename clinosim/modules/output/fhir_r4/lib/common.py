@@ -1188,6 +1188,20 @@ def augment_iv_dosage_with_rate(
         if not dar:
             dar.append({})
         dar[0]["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
+        # Issue #1332: continuous IV infusions (vasopressors / inotropes /
+        # nitroglycerin drip / insulin drip / propofol / heparin drip) are
+        # dosed as a RATE, never as a fixed one-time bolus. Any doseQuantity
+        # the generic dose parser peeled off (e.g. "0.05 ug" for
+        # Norepinephrine — meaningless for a titrated drip) misleads
+        # downstream consumers into reading the rate scalar as a total
+        # single-dose. For continuous mode we keep only rateQuantity;
+        # doseQuantity + total-volume are properly modeled by the sibling
+        # MedicationAdministration records the nurse fills at bag-hang time.
+        dar[0].pop("doseQuantity", None)
+        # ``type`` (MedicationIngredientStrengthStrengthType 製剤量) is
+        # bound to the ordered dose. Without doseQuantity it becomes an
+        # orphaned qualifier — drop it so the FHIR shape stays coherent.
+        dar[0].pop("type", None)
     elif mode == "bolus":
         duration = entry.get("duration_min")
         if duration is None:
