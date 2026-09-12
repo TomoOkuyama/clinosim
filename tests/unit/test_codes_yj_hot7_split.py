@@ -74,11 +74,20 @@ class TestFileSeparation:
         oncology / endocrine / supplements to cure JP p=10k NOCODED
         residual → 76 YJ12. If a future PR adds/removes drug data these
         counts change — update this test with the new totals rather than
-        removing the pin (the counts document the split's intent)."""
+        removing the pin (the counts document the split's intent).
+
+        History since v0.6.1 (s107 continued):
+        - #1296 (SSRI): +3 (Sertraline / Escitalopram / Paroxetine) → 109.
+        - #1297 (C-section intraop bundle): +4 (Oxytocin / Bupivacaine /
+          Ketorolac / Ondansetron) → 113. Ketorolac + Ondansetron were
+          already referenced from the JP `code_mapping_drug.yaml` but
+          missing from hot7 display; that backfill is what took the
+          count to 113 rather than 111.
+        """
         yj_n = len(_load(_YJ_FILE).get("codes") or {})
         hot7_n = len(_load(_HOT7_FILE).get("codes") or {})
         assert yj_n == 76, f"yj.yaml YJ12 count expected 76, got {yj_n}"
-        assert hot7_n == 106, f"hot7.yaml HOT7 count expected 106, got {hot7_n}"
+        assert hot7_n == 113, f"hot7.yaml HOT7 count expected 113, got {hot7_n}"
 
 
 # ────────────────────────────────────────────────────────────────────
