@@ -105,7 +105,19 @@ I48:  # Atrial fibrillation
 I25:  # Ischemic heart disease / Coronary artery disease
   medications:
     - {drug: "Aspirin", drug_ja: "アスピリン", dose: "100mg", route: "PO", frequency: "daily"}
-    - {drug: "Clopidogrel", drug_ja: "クロピドグレル", dose: "75mg", route: "PO", frequency: "daily", probability: 0.4}
+    # Issue #1330: chronic Clopidogrel (as DAPT with Aspirin) is only
+    # indicated within 6-12 mo of PCI / ACS per ACC/AHA + ESC + JCS 2022;
+    # long-term chronic DAPT >12 mo is exceptional. The prior 0.40
+    # probability activated DAPT on 40 % of every I25 patient at
+    # activation time — that pre-dates any acute cardiac event in the
+    # sim (I21 admissions may be MANY months later), producing the
+    # anachronistic "DAPT started 5+ mo before any cardiac Dx" pattern
+    # for 19 JP + 4 US patients on the p=10k baseline. Retune to 0.10
+    # to represent the ~10 % of chronic-CAD patients within their
+    # 6-12 mo post-PCI window; add a note as an anchor for the
+    # follow-up post-PCI-driven event flag (deferred — needs a
+    # ``recent_pci_within_12mo`` sim feature).
+    - {drug: "Clopidogrel", drug_ja: "クロピドグレル", dose: "75mg", route: "PO", frequency: "daily", probability: 0.10, note: "Chronic DAPT with Aspirin (assumed within 12 mo of PCI); truly chronic >12 mo is exceptional"}
     # Issue #1338: high-intensity statin for CAD secondary prevention is
     # Class-I evidence in every guideline body (ACC/AHA 2018, ESC 2019,
     # JAS 2022). Prior sim modelled statin ONLY under E78 (dyslipidemia
