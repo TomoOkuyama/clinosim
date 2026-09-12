@@ -19,6 +19,10 @@ codes:
   E03:
     en: Other hypothyroidism
     ja: その他の甲状腺機能低下症
+  # Issue #1320: JP identity E03 root → billable E03.9 for chronic Condition emit.
+  E03.9:
+    en: Hypothyroidism, unspecified
+    ja: 甲状腺機能低下症、詳細不明
   E10:
     en: Type 1 diabetes mellitus
     ja: 1型糖尿病
@@ -31,12 +35,21 @@ codes:
   E78:
     en: Disorders of lipoprotein metabolism and other lipidaemias
     ja: 脂質異常症
+  # Issue #1320: JP identity map lifts E78/E79 root → billable 4-char leaves
+  # (WHO ICD-10 2013, MHLW 統計分類提要準拠). Chronic Condition emit at 3-char
+  # bare loses subtype signal and fails downstream billable analytics.
+  E78.5:
+    en: Hyperlipidaemia, unspecified
+    ja: 高脂血症、詳細不明
   E79:
     # WHO ICD-10 category (icd.who.int/browse10 Chapter IV, Metabolic disorders).
     # JP DPC / SDM uses E79 root for 高尿酸血症 (hyperuricemia) — one of MHLW's
     # major chronic diseases for men in age 40+.
     en: Disorders of purine and pyrimidine metabolism
     ja: プリン・ピリミジン代謝障害（高尿酸血症）
+  E79.0:
+    en: Hyperuricaemia without signs of inflammatory arthritis and tophaceous disease
+    ja: 炎症性関節炎および痛風結節症を伴わない高尿酸血症
   F00:
     en: Dementia in Alzheimer disease[G30.-]
     ja: アルツハイマー型認知症
@@ -46,12 +59,20 @@ codes:
   F32:
     en: Depressive episode
     ja: うつ病エピソード
+  # Issue #1320: JP identity F32/F33 root → billable F32.9/F33.9 for chronic
+  # Condition emit. Mirrors the US-side fix in #1356 (billable ICD-10-CM leaves).
+  F32.9:
+    en: Depressive episode, unspecified
+    ja: うつ病エピソード、詳細不明
   # Issue #1239 (2026-09-10): F33/F41.1 追加 (JP demographics.yaml で
   # chronic prevalence 定義追加に伴い icd-10 catalog にも登録、無いと
   # Condition emit が display lookup 失敗で dangling ref 発生)。
   F33:
     en: Recurrent depressive disorder
     ja: 反復性うつ病性障害
+  F33.9:
+    en: Recurrent depressive disorder, unspecified
+    ja: 反復性うつ病性障害、詳細不明
   F41.0:
     en: Panic disorder [episodic paroxysmal anxiety]
     ja: パニック障害
@@ -66,6 +87,10 @@ codes:
     # JP MHLW chronic disease prevalence 40-60% in 60+/70+ demographic.
     en: Other cataract
     ja: 白内障（その他）
+  # Issue #1320: JP identity H26 root → billable H26.9 for chronic Condition emit.
+  H26.9:
+    en: Cataract, unspecified
+    ja: 白内障、詳細不明
   G43:
     en: Migraine
     ja: 片頭痛
@@ -96,6 +121,10 @@ codes:
   I25:
     en: Chronic ischaemic heart disease
     ja: 慢性虚血性心疾患
+  # Issue #1320: JP identity I25 root → billable I25.9 for chronic Condition emit.
+  I25.9:
+    en: Chronic ischaemic heart disease, unspecified
+    ja: 慢性虚血性心疾患、詳細不明
   I26:
     en: Pulmonary embolism
     ja: 肺塞栓症
@@ -200,6 +229,10 @@ codes:
   K21:
     en: Gastro-oesophageal reflux disease
     ja: 胃食道逆流症
+  # Issue #1320: JP identity K21 root → billable K21.9 for chronic Condition emit.
+  K21.9:
+    en: Gastro-oesophageal reflux disease without oesophagitis
+    ja: 食道炎を伴わない胃食道逆流症
   K25:
     en: Gastric ulcer
     ja: 胃潰瘍
@@ -215,6 +248,12 @@ codes:
     # Includes K59.0 constipation as leaf sub-code.
     en: Other functional intestinal disorders
     ja: その他の機能性腸障害（便秘症を含む）
+  # Issue #1320: JP identity K59 root → billable K59.0 for chronic Condition emit.
+  # K59.0 (constipation) is the dominant chronic-followup use of this category
+  # per JP MHLW 患者調査 (older adults 15-20 %).
+  K59.0:
+    en: Constipation
+    ja: 便秘症
   K37:
     en: Unspecified appendicitis
     ja: 虫垂炎、詳細不明
@@ -279,6 +318,10 @@ codes:
   M17:
     en: Gonarthrosis [arthrosis of knee]
     ja: 変形性膝関節症
+  # Issue #1320: JP identity M17 root → billable M17.9 for chronic Condition emit.
+  M17.9:
+    en: Gonarthrosis, unspecified
+    ja: 変形性膝関節症、詳細不明
   M48:
     en: Other spondylopathies
     ja: その他脊椎症
@@ -290,12 +333,22 @@ codes:
   M54.5:
     en: Low back pain
     ja: 腰痛
+  # Issue #1320: JP identity M54 root → billable M54.5 (low back pain) via
+  # code_mapping_diagnosis. M54.9 (dorsalgia, unspecified) also registered
+  # for chronic Condition fallback where subtype is unknown.
+  M54.9:
+    en: Dorsalgia, unspecified
+    ja: 背部痛、詳細不明
   M80:
     en: Osteoporosis with pathological fracture
     ja: 骨粗鬆症性病的骨折
   M81:
     en: Osteoporosis without pathological fracture
     ja: 骨粗鬆症（病的骨折なし）
+  # Issue #1320: JP identity M81 root → billable M81.9 for chronic Condition emit.
+  M81.9:
+    en: Osteoporosis, unspecified
+    ja: 骨粗鬆症、詳細不明
   N10:
     en: Acute tubulo-interstitial nephritis
     ja: 急性腎盂腎炎
@@ -886,27 +939,51 @@ codes:
   C15:
     en: "Malignant neoplasm of oesophagus"
     ja: "食道の悪性新生物＜腫瘍＞"
+  # Issue #1320: JP identity oncology roots → billable ".9 unspecified" leaves
+  # for chronic Condition emit. WHO ICD-10 2013 leaf displays follow the MHLW
+  # ICD-10 統計分類提要 canonical (「悪性新生物＜腫瘍＞、詳細不明」suffix).
+  C15.9:
+    en: "Oesophagus, unspecified"
+    ja: "食道の悪性新生物＜腫瘍＞、詳細不明"
   C18:
     en: "Malignant neoplasm of colon"
     ja: "結腸の悪性新生物＜腫瘍＞"
+  C18.9:
+    en: "Colon, unspecified"
+    ja: "結腸の悪性新生物＜腫瘍＞、詳細不明"
   C22:
     en: "Malignant neoplasm of liver and intrahepatic bile ducts"
     ja: "肝及び肝内胆管の悪性新生物＜腫瘍＞"
+  C22.9:
+    en: "Liver, unspecified"
+    ja: "肝の悪性新生物＜腫瘍＞、詳細不明"
   C25:
     en: "Malignant neoplasm of pancreas"
     ja: "膵の悪性新生物＜腫瘍＞"
+  C25.9:
+    en: "Pancreas, unspecified"
+    ja: "膵の悪性新生物＜腫瘍＞、詳細不明"
   C34:
     en: "Malignant neoplasm of bronchus and lung"
     ja: "気管支及び肺の悪性新生物＜腫瘍＞"
+  C34.9:
+    en: "Bronchus or lung, unspecified"
+    ja: "気管支又は肺の悪性新生物＜腫瘍＞、詳細不明"
   C50:
     en: "Malignant neoplasm of breast"
     ja: "乳房の悪性新生物＜腫瘍＞"
+  C50.9:
+    en: "Breast, unspecified"
+    ja: "乳房の悪性新生物＜腫瘍＞、詳細不明"
   C61:
     en: "Malignant neoplasm of prostate"
     ja: "前立腺の悪性新生物＜腫瘍＞"
   C67:
     en: "Malignant neoplasm of bladder"
     ja: "膀胱の悪性新生物＜腫瘍＞"
+  C67.9:
+    en: "Bladder, unspecified"
+    ja: "膀胱の悪性新生物＜腫瘍＞、詳細不明"
   C71.9:
     en: Brain, unspecified
     ja: "脳の悪性新生物、詳細不明"
