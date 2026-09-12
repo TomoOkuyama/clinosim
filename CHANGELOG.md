@@ -41,6 +41,30 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Pediatric substance-use dependence Condition emit — F10.20 alcohol
+  dependence at age 9, F17.210 nicotine dependence at age 12** (Issue
+  #1349). SDOH-derived chronic Conditions F17.210 and F10.20 (added in
+  ``population/engine.py`` when ``smoking_status="current"`` /
+  ``alcohol_use="heavy"``) are emitted only for age ≥ 18 patients
+  (both attributes are clamped to ``never`` / ``none`` under
+  ``LEGAL_ADULT_AGE`` in the population loop). However, the
+  chronic-condition onset-date sampler
+  (``activator._sample_chronic_onset``) draws an "diagnosed 1-15 years
+  ago" window with no per-disease minimum onset age for F10 / F17, so
+  a 22 yo patient could receive an F10.20 with
+  ``onsetDateTime`` at age 9 — clinically implausible per DSM-5 (AUD
+  rare < 15) and ICD-10 (nicotine dependence-level dx typically ≥ 16).
+
+  Fix: add ``F10: 15`` and ``F17: 16`` minimum-onset-age floors to
+  ``clinosim/locale/shared/chronic_onset_min_age.yaml``. The existing
+  ``_clamp_chronic_onset`` helper (Issue #968) then bumps any sampled
+  onset earlier than ``dob + 15 y`` (F10) or ``dob + 16 y`` (F17) up
+  to the floor — RNG cursor is unchanged (clamp, not resample).
+
+  Verification (p=500 seed=356 US):
+  - Before: F10.20 min age at dx = 9, F17.210 min = 12.
+  - After:  F10.20 min age at dx = 15 (33 records), F17.210 min = 16
+    (37 records); zero records at age < 15.
 - **Duplicate cross-encounter Oxygen therapy Procedure emit — 62
   same-patient / same-code / same-``performedPeriod`` pairs across
   distinct encounters on p=10k US** (Issue #1352). The oxygen-therapy
