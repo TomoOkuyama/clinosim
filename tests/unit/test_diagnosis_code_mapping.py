@@ -80,8 +80,11 @@ def test_specific_primary_codes_pass_through_unchanged() -> None:
 
 
 def test_jp_mapping_folds_to_who_granularity() -> None:
-    # JP maps internal codes to WHO ICD-10 (3-4 char). WHO category codes stay identity;
-    # CM-granular internal codes (e.g. A41.01, S06.0X0A) fold to their WHO parent.
+    # JP maps internal codes to WHO ICD-10 (3-4 char). Two shapes coexist:
+    #   1. WHO true 3-char leaves (I10, N40, G20, F00, C61, ...) — identity.
+    #   2. WHO categories with 4-char subdivisions — Issue #1320 lifts them to
+    #      the dominant billable leaf (E78 → E78.5, J44 → J44.9, ...).
+    # CM-granular internal codes (e.g. A41.01, S06.0X0A) still fold to their WHO parent.
     import re
 
     jp_map = load_code_mapping("diagnosis", "JP")
@@ -89,9 +92,19 @@ def test_jp_mapping_folds_to_who_granularity() -> None:
     who_format = re.compile(r"^[A-Z][0-9]{2}(\.[0-9])?$")
     for k, v in jp_map.items():
         assert who_format.match(v), f"JP map target must be WHO ICD-10 granularity, got {k} -> {v}"
-    # WHO category codes pass through identity; CM granularity folds to the WHO parent.
+    # WHO 3-char leaves pass through identity.
+    assert map_diagnosis_code("I10", "JP") == "I10"
+    assert map_diagnosis_code("C61", "JP") == "C61"
+    # WHO categories with 4-char subdivisions lift to the billable leaf (#1320).
+    assert map_diagnosis_code("E78", "JP") == "E78.5"
+    assert map_diagnosis_code("J44", "JP") == "J44.9"
+    assert map_diagnosis_code("N18", "JP") == "N18.9"
+    assert map_diagnosis_code("M17", "JP") == "M17.9"
+    assert map_diagnosis_code("F32", "JP") == "F32.9"
+    assert map_diagnosis_code("C16", "JP") == "C16.9"
+    # Primary/specific codes pass through unchanged (already billable).
     assert map_diagnosis_code("I21", "JP") == "I21"
-    assert map_diagnosis_code("E78", "JP") == "E78"
+    # CM-granular internal codes still fold to their WHO parent.
     assert map_diagnosis_code("A41.01", "JP") == "A41.0"
     assert map_diagnosis_code("S06.0X0A", "JP") == "S06.0"
 
@@ -115,13 +128,14 @@ def test_us_c50_maps_by_sex() -> None:
     assert map_diagnosis_code("C50", "US", sex="") == "C50.919"
 
 
-def test_jp_c50_identity_regardless_of_sex() -> None:
-    """JP ICD-10 does not carry male/female subcategories at the C50
-    code level — the code stays ``C50`` for both sexes. Passing sex must
-    not alter the JP mapping."""
-    assert map_diagnosis_code("C50", "JP", sex="F") == "C50"
-    assert map_diagnosis_code("C50", "JP", sex="M") == "C50"
-    assert map_diagnosis_code("C50", "JP") == "C50"
+def test_jp_c50_sex_agnostic_maps_to_c50_9() -> None:
+    """JP ICD-10 does not carry male/female subcategories at the C50 code
+    level, so the mapping is sex-agnostic (unlike US which splits into
+    C50.9x1 / C50.9x2 by patient sex). Issue #1320 lifts the JP identity
+    (``C50``) to the billable leaf (``C50.9`` breast unspecified)."""
+    assert map_diagnosis_code("C50", "JP", sex="F") == "C50.9"
+    assert map_diagnosis_code("C50", "JP", sex="M") == "C50.9"
+    assert map_diagnosis_code("C50", "JP") == "C50.9"
 
 
 def test_c50_929_target_resolves_a_real_display() -> None:
