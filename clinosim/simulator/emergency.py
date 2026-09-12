@@ -270,6 +270,27 @@ def _simulate_ed_visit(
             )
         )
 
+    # Issue #1316 / #1328: demographic contraindication gate. Pediatric
+    # Aspirin (Reye's syndrome), pediatric Nitroglycerin, and non-adult-male
+    # Tamsulosin all leaked into ED treatment orders through this loop
+    # before the gate was wired. The gate runs on MEDICATION-classified
+    # entries only; PROCEDURE / THERAPY entries (e.g. "Foley catheter
+    # insertion", "IV normal saline") never carry age/sex contraindications
+    # in the current catalog. Gate rules are declarative
+    # (drug_safety/reference_data/demographic_gates.yaml); adding a new
+    # rule requires no changes to this dispatcher.
+    from clinosim.modules.drug_safety import check_demographic_gate
+    from clinosim.modules.drug_safety.verdict import SafetySkipEntry, SafetyVerdict
+
+    _proto_icd = (protocol or condition).get("icd10_code")
+    _indication_codes: list[str] = []
+    if _proto_icd:
+        _indication_codes.append(str(_proto_icd))
+    for _cc in patient.chronic_conditions:
+        _cc_code = getattr(_cc, "code", None) or getattr(_cc, "icd10_code", None)
+        if _cc_code:
+            _indication_codes.append(str(_cc_code))
+
     # Treatment orders from protocol — classify via the canonical
     # treatment_classifier (single source of truth shared with the inpatient
     # supportive path in modules/order/engine.py; J5 pattern prevention).
@@ -279,6 +300,43 @@ def _simulate_ed_visit(
             continue
         _tx_name = tx.get("name", "")
         _order_type = classify_encounter_treatment(_tx_name)
+        if _order_type == OrderType.MEDICATION:
+            _gate = check_demographic_gate(
+                _tx_name,
+                patient_age=patient.age,
+                patient_sex=patient.sex,
+                indication_codes=_indication_codes,
+            )
+            if _gate.should_skip:
+                # Log the skip so downstream verification / audit can prove the
+                # gate fired instead of the drug silently disappearing. Reuse
+                # the existing SafetySkipEntry container to share provenance
+                # tooling with the DDI gate (drug_safety.check_pair).
+                _wrapped = SafetyVerdict(
+                    severity=_gate.severity,
+                    rule_id=_gate.rule_id,
+                    matched_classes=None,
+                    matched_active_drug=None,
+                    rationale_en=_gate.rationale_en,
+                    rationale_ja=_gate.rationale_ja,
+                    substitution_hint=None,
+                )
+                _matched = _gate.matched_drug_name or _tx_name
+                patient.safety_skip_log.append(
+                    SafetySkipEntry(
+                        encounter_id=encounter.encounter_id,
+                        candidate_drug=_tx_name,
+                        candidate_drug_ja=_tx_name,
+                        active_conflict=f"demographic:age={patient.age},sex={patient.sex}",
+                        active_conflict_ja=f"適応外:年齢={patient.age},性別={patient.sex}",
+                        verdict=_wrapped,
+                        substituted_with=None,
+                        substituted_with_ja=None,
+                        context_hint=f"ed_treatment_dispatch:{cond_name}:matched={_matched}",
+                        timestamp=visit_time.isoformat(),
+                    )
+                )
+                continue
         orders.append(
             Order(
                 order_id=f"ORD-{encounter.encounter_id}-ED-T{i}",
