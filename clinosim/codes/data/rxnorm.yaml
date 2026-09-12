@@ -345,3 +345,25 @@ codes:
   '310149':
     en: erythromycin 0.005 MG/MG Ophthalmic Ointment
     ja: エリスロマイシン 0.005 mg/mg 眼軟膏
+  # SSRI antidepressants (#1281 follow-up). RXCUIs NLM-verified
+  # 2026-09-12 via tx.fhir.org $lookup against
+  # `http://www.nlm.nih.gov/research/umls/rxnorm` (TTY=IN ingredient
+  # concepts). Used by `chronic_medications.yaml::F32/F33/F41.1`
+  # SSRI block wired in #1281 — pre-registration the emit path
+  # rendered `MedicationRequest.medicationCodeableConcept.text` only;
+  # coding now populates via the standard drug code lookup.
+  '36437':
+    en: sertraline
+    ja: セルトラリン
+  '321988':
+    en: escitalopram
+    ja: エスシタロプラム
+  '4493':
+    en: fluoxetine
+    ja: フルオキセチン
+  '32937':
+    en: paroxetine
+    ja: パロキセチン
+  '2556':
+    en: citalopram
+    ja: シタロプラム

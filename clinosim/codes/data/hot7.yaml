@@ -323,3 +323,19 @@ codes:
   '8219700':
     en: Fentanyl
     ja: フェンタニル
+
+  # SSRI antidepressants (#1281 follow-up). Class prefix 1179 =
+  # 精神神経用剤 / SSRI・SNRI・その他の精神神経用剤 per MHLW
+  # 薬効分類. 7-digit codes are representative in-class stand-ins
+  # per the pattern the rest of this file uses (12-char per-SKU
+  # codes live in yj.yaml). Skips Fluoxetine + Citalopram — neither
+  # is PMDA-approved in Japan.
+  '1179044':
+    en: Sertraline
+    ja: セルトラリン塩酸塩
+  '1179052':
+    en: Escitalopram
+    ja: エスシタロプラム シュウ酸塩
+  '1179040':
+    en: Paroxetine
+    ja: パロキセチン塩酸塩水和物

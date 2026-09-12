@@ -352,3 +352,12 @@ lactulose:                               "3999001Q2058"  # (lowercase alias for 
 "Sorafenib": "4291017F1025"
 "Tamoxifen": "4291003F1210"
 "Trastuzumab": "4291442D2030"
+
+# SSRI antidepressants (#1281 follow-up). Class 1179 = 精神神経用剤
+# (SSRI・SNRI・その他). Fluoxetine and Citalopram intentionally
+# omitted — neither is PMDA-approved in Japan; if the emit path draws
+# either for a JP patient the FHIR MedicationRequest falls back to
+# text-only coding (same shape as any unregistered chronic med).
+"Sertraline": "1179044"
+"Escitalopram": "1179052"
+"Paroxetine": "1179040"
