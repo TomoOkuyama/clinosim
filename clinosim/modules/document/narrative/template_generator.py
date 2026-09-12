@@ -1794,17 +1794,23 @@ class TemplateNarrativeGenerator:
             cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
         if cc:
             parts.append(f"主訴: {cc}。")
-        # Chronic short list
+        # Chronic short list — Issue #1333: route CIF base code through
+        # map_diagnosis_code so display matches the FHIR emit-target.
         from clinosim.codes import lookup as _code_lookup
+        from clinosim.modules.output.fhir_r4.lib.common import (
+            map_diagnosis_code as _map_diagnosis_code,
+        )
 
+        country = "JP" if ctx.locale.lower() == "jp" else "US"
         conds = _o(patient, "chronic_conditions", []) or []
         chronic_labels: list[str] = []
         for c in conds[:3]:
             code = _o(c, "code", "") or (c if isinstance(c, str) else "")
             if not code:
                 continue
+            emit_code = _map_diagnosis_code(code, country) or code
             key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
-            disp = _code_lookup(key, code, ctx.target_lang) or code
+            disp = _code_lookup(key, emit_code, ctx.target_lang) or emit_code
             chronic_labels.append(disp)
         if chronic_labels:
             parts.append(f"既往: {'、'.join(chronic_labels)}。")
@@ -1872,6 +1878,20 @@ class TemplateNarrativeGenerator:
         # persistent); I10 (Stage 1); …") which read as a coding sheet
         # rather than a clinical PMH. LOOKUP failure falls back to the raw
         # code so the field is never empty.
+        #
+        # Issue #1333 fix: route the CIF base code through
+        # ``map_diagnosis_code`` first so the narrative shows the same
+        # billable code (and display) that the FHIR Condition emits. The
+        # historical bug was US ``F00`` (dementia base) rendering as
+        # "Dementia in Alzheimer disease" (WHO F00 parent-display leaked
+        # from icd-10-cm.yaml) while FHIR emitted ``F03.90`` (unspecified
+        # dementia) via ``code_mapping_diagnosis/us.yaml`` — narrative
+        # ↔ FHIR disagreed on the disease name. Now the narrative looks
+        # up the emit-target's display and prints the emit-target code in
+        # the trailing ``[code]`` bracket.
+        from clinosim.modules.output.fhir_r4.lib.common import map_diagnosis_code
+
+        country = "JP" if ctx.locale.lower() == "jp" else "US"
         icd_system = "icd-10" if is_ja else "icd-10-cm"
         lines = []
         for cond in conditions:
@@ -1879,20 +1899,24 @@ class TemplateNarrativeGenerator:
             stage = _o(cond, "stage", "")
             if not code:
                 continue
-            display = code_lookup(icd_system, code, lang) or code
-            if display == code:
+            # Sex is not always available in ctx.patient shape; pass empty
+            # so map_diagnosis_code takes the ``default`` on sex-conditional
+            # entries (US C50 defaults to the female leaf per its docstring).
+            emit_code = map_diagnosis_code(code, country) or code
+            display = code_lookup(icd_system, emit_code, lang) or emit_code
+            if display == emit_code:
                 # Try 3-char parent (E11.9 → E11) — many mappings live only
                 # at the category level.
-                base = code.split(".")[0]
-                if base != code:
-                    display = code_lookup(icd_system, base, lang) or code
+                base = emit_code.split(".")[0]
+                if base != emit_code:
+                    display = code_lookup(icd_system, base, lang) or emit_code
             annotation = f" ({stage})" if stage else ""
-            if display and display != code:
+            if display and display != emit_code:
                 # Format: "気管支喘息 (Moderate persistent) [J45]" — code
                 # trailing for traceability, humans read the display first.
-                lines.append(f"{display}{annotation} [{code}]")
+                lines.append(f"{display}{annotation} [{emit_code}]")
             else:
-                lines.append(f"{code}{annotation}")
+                lines.append(f"{emit_code}{annotation}")
         if lines:
             return "; ".join(lines), facts
         return none_text, facts
@@ -2237,16 +2261,26 @@ class TemplateNarrativeGenerator:
                     parts.append(f"病態: {disease} ({_sev})。")
                 else:
                     parts.append(f"Working diagnosis: {disease} (severity: {_sev}).")
-        # Chronic backdrop
+        # Chronic backdrop — Issue #1333: route CIF base code through
+        # map_diagnosis_code so display matches the FHIR emit-target.
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
         if conds:
             from clinosim.codes import lookup as _code_lookup
+            from clinosim.modules.output.fhir_r4.lib.common import (
+                map_diagnosis_code as _map_diagnosis_code,
+            )
 
+            country = "JP" if ctx.locale.lower() == "jp" else "US"
             key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
-            labels = [
-                _code_lookup(key, _o(c, "code", "") or "", ctx.target_lang) or (_o(c, "code", "") or "")
-                for c in conds[:4]
-            ]
+
+            def _resolve_chronic_label(c: object) -> str:
+                base = _o(c, "code", "") or ""
+                if not base:
+                    return ""
+                emit = _map_diagnosis_code(base, country) or base
+                return _code_lookup(key, emit, ctx.target_lang) or emit
+
+            labels = [_resolve_chronic_label(c) for c in conds[:4]]
             labels = [lbl for lbl in labels if lbl]
             if labels:
                 if is_ja:
@@ -3397,17 +3431,23 @@ class TemplateNarrativeGenerator:
             )
         if cc:
             parts.append(f"入院目的: {cc}。" if is_ja else f"Admission reason: {cc}. ")
-        # Chronic summary
+        # Chronic summary — Issue #1333: route CIF base code through
+        # map_diagnosis_code so display matches the FHIR emit-target.
         from clinosim.codes import lookup as _code_lookup
+        from clinosim.modules.output.fhir_r4.lib.common import (
+            map_diagnosis_code as _map_diagnosis_code,
+        )
 
+        country = "JP" if ctx.locale.lower() == "jp" else "US"
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
         labels: list[str] = []
         for c in conds[:4]:
             code = _o(c, "code", "") or (c if isinstance(c, str) else "")
             if not code:
                 continue
+            emit_code = _map_diagnosis_code(code, country) or code
             key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
-            labels.append(_code_lookup(key, code, ctx.target_lang) or code)
+            labels.append(_code_lookup(key, emit_code, ctx.target_lang) or emit_code)
         if labels:
             parts.append(
                 ("既往: " if is_ja else "PMH: ")
@@ -4346,17 +4386,26 @@ class TemplateNarrativeGenerator:
             else:
                 cc = _o(enc, "chief_complaint_en", None) or _o(enc, "chief_complaint", None) or ""
         cc = str(cc)
-        # Chronic condition follow-up context (short list, code-lookup localized)
+        # Chronic condition follow-up context (short list, code-lookup localized).
+        # Issue #1333: route CIF base code through map_diagnosis_code so the
+        # narrative display matches the FHIR emit-target (US F00 → F03.90
+        # renders as "Unspecified dementia", not the WHO parent-code
+        # "Dementia in Alzheimer disease").
         from clinosim.codes import lookup as _code_lookup
+        from clinosim.modules.output.fhir_r4.lib.common import (
+            map_diagnosis_code as _map_diagnosis_code,
+        )
 
+        country = "JP" if ctx.locale.lower() == "jp" else "US"
         conditions = _o(patient, "chronic_conditions", []) or []
         chronic_labels: list[str] = []
         for c in conditions[:3]:
             code = _o(c, "code", "") or (c if isinstance(c, str) else "")
             if not code:
                 continue
+            emit_code = _map_diagnosis_code(code, country) or code
             key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
-            disp = _code_lookup(key, code, ctx.target_lang) or code
+            disp = _code_lookup(key, emit_code, ctx.target_lang) or emit_code
             chronic_labels.append(disp)
         # Compose
         parts: list[str] = []
