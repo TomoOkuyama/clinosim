@@ -8,6 +8,10 @@ from clinosim.modules.drug_safety.classifier import (
     japanese_display,
     resolve_classes,
 )
+from clinosim.modules.drug_safety.demographic import (
+    DemographicVerdict,
+    check_demographic_gate,
+)
 from clinosim.modules.drug_safety.engine import (
     AlternativeDrug,
     check_candidate_against_active,
@@ -24,11 +28,13 @@ from clinosim.modules.drug_safety.verdict import (
 __all__ = [
     "SEVERITY_RANK",
     "AlternativeDrug",
+    "DemographicVerdict",
     "SafetySkipEntry",
     "SafetyVerdict",
     "Severity",
     "canonical_name",
     "check_candidate_against_active",
+    "check_demographic_gate",
     "check_pair",
     "japanese_display",
     "resolve_classes",
