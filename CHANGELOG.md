@@ -41,6 +41,45 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Enoxaparin emitted twice on the same admission with mismatched
+  units (2000 IU + 40 mg)** (Issue #1342). Two paths were both emitting
+  DVT chemoprophylaxis for adult inpatients — disease-YAML
+  ``supportive: DVT_prophylaxis`` (via
+  ``order.engine.place_admission_orders``) and
+  ``prophylaxis.enricher.enrich_prophylaxis``. Every non-pediatric
+  inpatient carried two Enoxaparin MedicationRequests with mismatched
+  units (2000 IU ≈ 20 mg vs the correct 40 mg prophylactic dose) —
+  cumulative-dose analytics read supratherapeutic.
+
+  Fix: in ``modules/order/engine.place_admission_orders``, skip the
+  Order APPEND for any ``DVT_prophylaxis`` supportive entry while
+  preserving the loop's per-entry ``rng.normal`` call. The prophylaxis
+  enricher owns the emit universally — it already carries the
+  LOS ≥ 48 h / therapeutic-AC / bleeding-contraindication /
+  pediatric-age-ceiling gates from PRs #1071 / #1276 / #1306.
+
+  Module boundary: no new module. Simplifies
+  ``place_admission_orders`` to "non-DVT supportive only"; the
+  ``prophylaxis`` module becomes the canonical DVT_prophylaxis SoT —
+  one gate, one emit, one dose contract.
+
+  Determinism: RNG-cursor stable. The supportive-orders loop still
+  iterates every yaml/fallback entry and still calls
+  ``rng.normal(ordered_datetime, …)`` per iteration; only
+  ``orders.append`` is skipped for DVT_prophylaxis. Downstream RNG
+  (imaging orders, daily loop) sees the same cursor position.
+
+  Verification (p=500 s356 JP): mixed-unit Enoxaparin encounters
+  31 → 1. The residual 1 encounter is a locale-specific dose gap
+  (JP disease-YAML ``discharge_oral`` blocks emit 2000 IU while the
+  enricher hardcodes 40 mg) — separate follow-up on
+  ``prophylaxis_rules.yaml`` locale-aware dose.
+
+  Subsumes the Issue #1306 pediatric gate — since DVT_prophylaxis is
+  now always stripped from ``place_admission_orders``, no pediatric
+  Enoxaparin can leak through this path, and the enricher's pediatric
+  gate (Issue #1276) covers the enricher side.
+
 - **Pregnancy complications O14 / O24 / O42 / O60 / O64 never emitted
   as FHIR Conditions (post-#1293 regression)** (Issue #1307). PR #1293
   populated ``ClinicalDiagnosis.working_diagnoses`` from the pregnancy
