@@ -102,6 +102,30 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   on p=2000 US s=356 (pregnant + HTN overlap is statistically rare at
   this cohort scale; the substitution mechanism fires for eligible
   patients).
+- **De-escalation status-flip enricher: original antibiotic MR now
+  emits ``status=stopped`` when a matching ``DISCONTINUE: X`` marker
+  fires** (Issue #1346). ``simulator/daily_loop`` has long emitted a
+  stand-alone ``Order(display_name="DISCONTINUE: DrugName")`` when a
+  disease-YAML archetype's ``treatment_modifications.day_N.stop: [X]``
+  block fires (cellulitis treatment_resistant / gradual_deterioration
+  / sudden_deterioration archetypes; AKI Metformin hold; etc.). Prior
+  to this pass, the ORIGINAL X medication order stayed at ``PLACED``
+  through discharge, so FHIR ``MedicationRequest`` rendered the
+  original antibiotic as still-active — the reviewer of a cellulitis
+  IMP admission (#1346) flagged Cefazolin + Meropenem + Vancomycin +
+  Pip/Tazo 4-antibiotic stacking with no visible stewardship. New
+  ``clinosim.modules.order.discontinue_flip.enrich_discontinue_flip``
+  POST_ENCOUNTER enricher (order 91, RNG-free) walks
+  ``record.orders`` for ``DISCONTINUE: X`` markers (identified by the
+  existing ``MED_STOP_ORDER_ID_MARKER`` in ``order_id``) and flips
+  every matching X medication order's ``status`` to ``STOPPED``.
+  Byte-preserving to per-day MAR generation because the enricher
+  fires POST_ENCOUNTER — the flipped status only propagates to the
+  encounter-final ``MedicationRequest`` emit. Match is
+  case-insensitive first-token substring (``"Cefazolin 2g"`` matches
+  ``"DISCONTINUE: Cefazolin"``). Verified on US p=2000 s=356: 6 MRs
+  correctly flipped to stopped (Ceftriaxone 3, Piperacillin/Tazobactam
+  2, Cefazolin 1) — was 0 pre-fix.
 
 - **Lab-derived AKI Condition emit — Creatinine peak ≥ 4.0 mg/dL now
   produces a paired ``N17.9`` (`Acute kidney failure, unspecified`)
