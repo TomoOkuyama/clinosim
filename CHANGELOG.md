@@ -73,6 +73,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   matching in ``simulator/perinatal.py`` for other pregnancies with
   complications is a separate defer (this PR closes the FHIR-emit gap
   identified in #1307).
+- **Vaginal delivery (O80) encounters emitted ZERO intrapartum meds
+  — asymmetric with C-section's 6-drug bundle** (Issue #1336).
+  ``simulator/perinatal.py`` had no order emit on the else-branch of
+  ``is_cesarean``, so every O80 delivery in p=10k builds landed as an
+  IMP encounter with 0 MedicationRequests / MedicationAdministrations.
+  Clinically wrong — real vaginal deliveries universally receive
+  Oxytocin for 3rd-stage active management (AWHONN / WHO / ACOG
+  Class IA evidence for PPH prevention) and running IV crystalloid
+  during labor.
+
+  Fix: added a vaginal-delivery intrapartum bundle in
+  ``simulator/perinatal.py`` (parallel to the existing
+  ``_cs_ord_specs`` list) with two universal Orders:
+
+  - Lactated Ringer 125 mL/h IV continuous — labor hydration.
+  - Oxytocin 10 U IM ×1 at delivery — active 3rd-stage management,
+    IM route (IV bolus is the C-section variant; ACOG considers both
+    routes equivalent for 3rd-stage but IM is the community-hospital
+    default for vaginal delivery).
+
+  Order-id suffix scheme parallels the C-section family: ``VD*``
+  (VDIV, VDOX), encounter-scoped, byte-stable across re-runs.
+
+  Non-scope for this PR (each requires probability sampling / risk-
+  factor flags): epidural analgesia (needs pain-severity roll), GBS
+  antibiotic prophylaxis (needs GBS+ carrier flag on the patient),
+  RhoGAM (needs Rh- flag). These stay as separate follow-ups.
 
 - **IV cycle-based chemotherapy agents (Oxaliplatin / Pemetrexed /
   Carboplatin / Trastuzumab) emitted as monthly chronic
