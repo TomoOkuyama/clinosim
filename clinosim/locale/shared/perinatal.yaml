@@ -193,6 +193,15 @@ cesarean:
   probability:
     us: 0.321                             # CDC NVSS 2022: 32.1 % cesarean rate
     jp: 0.204                             # MHLW 医療施設調査 2020: 20.4 % cesarean rate
+  # Issue #1317: cesarean-specific visit_reason so the delivery
+  # encounter's ``chief_complaint`` matches the O82 admission code and
+  # the CPT 59510 procedure. Prior to this override the vaginal-delivery
+  # ``encounter.visit_reason`` above was used regardless of mode, so
+  # every C-section encounter's narrative CIF said "spontaneous
+  # vaginal delivery" — a direct FHIR-vs-narrative contradiction.
+  visit_reason:
+    en: "Delivery (cesarean section)"
+    ja: "分娩 (帝王切開)"
   admission_diagnosis_code: "O82"         # WHO ICD-10: Single delivery by cesarean section
   procedure:
     jp_code: "K898"                       # JP 医科診療報酬点数表: 帝王切開術
