@@ -2414,7 +2414,31 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   Acetaminophen 1000 mg IV and NOT Ketorolac; (b) US cesarean bundle
   keeps Ketorolac with the <code>CSKT</code> order-id suffix; &copy; shared 5 drugs
   (Cefazolin, Bupivacaine, Fentanyl, Ondansetron, Oxytocin) present on
-  both sides unchanged.</p>
+  both sides unchanged.
+- <strong>Implied-chronic co-morbidity Conditions stamped with acute-admission
+  onset date, not backdated to a plausible historical onset</strong> (Issue
+  #1339). When <code>simulator/inpatient.py</code>'s <code>_IMPLIED_CHRONIC_BY_DISEASE</code>
+  branch fires (e.g. K85.9 pancreatitis admission → K74 cirrhosis on
+  workup, K44.1 CAP → J44 COPD, I63.9 CVA → I25 CAD + I48 Afib), it
+  appended each implied ChronicCondition with <code>onset_date =
+  admission_date</code>, producing "chronic condition first appearing at the
+  acute event" records. Exemplars at p=200/s356: pt-a16a514a4f93
+  K74 cirrhosis onset = 2026-01-05 K85.9 admission; pt-8ad04d397d65 I25
+  CAD + I48 Afib both onset = 2025-10-06 CVA admission.</p>
+<p>Fix: routed the emit through new
+  <code>clinosim.modules.patient.activator.derive_implied_chronic_onset</code>
+  which backdates 1-14 years by <code>SHA256(patient_id, base_code)</code> (same
+  window as the population-time activator sampler) and applies the same
+  <code>dob + min_onset_age</code> floor as <code>_clamp_chronic_onset</code>. Hash-derived
+  so the master RNG cascade is unperturbed
+  (RNG-neutral-additive-field pattern) and re-runs land the same onset
+  for the same patient × code.</p>
+<p>Verification (p=200 s356 US): chronic-code Conditions with onset date
+  matching earliest IMP admission dropped 26 → 5. The 5 residual are all
+  J44.1 / J45.x acute exacerbations as encounter-diagnosis, which
+  correctly onset at admission (the exacerbation IS the acute event) —
+  the chronic J44.9 / J45.909 problem-list-item now carries the
+  backdated onset (2020-04-12, 2017-02-08 in the exemplar traces).</p>
 <ul>
 <li><strong>Inpatient progress_note subjective repeats identical boilerplate
   across every hospital day</strong> (Issue #1327). When today's vitals carry
