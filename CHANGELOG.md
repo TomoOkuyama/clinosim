@@ -100,6 +100,38 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   factor flags): epidural analgesia (needs pain-severity roll), GBS
   antibiotic prophylaxis (needs GBS+ carrier flag on the patient),
   RhoGAM (needs Rh- flag). These stay as separate follow-ups.
+- **C-section (and vaginal) delivery narrative said "No discharge
+  medications"** (Issue #1313). ``simulator/perinatal.py``'s delivery
+  encounter builder set ``discharge_prescription=None``. Every
+  delivery narrative CIF (720 US S355 + 918 US S356 + 399+434 JP)
+  rendered "No discharge medications" because the narrative writer
+  reads ``discharge_prescription.items`` alone (the intraop bundle
+  lives on ``medication_administrations`` and does not belong on
+  discharge — the patient does not take Bupivacaine home).
+
+  Fix: added a standard postpartum ``PrescriptionRecord`` with the
+  ACOG / ASA multimodal-analgesia bundle:
+
+  - Acetaminophen 500 mg PO q6h PRN × 7 days (both delivery modes)
+  - Ibuprofen 400 mg PO — C-section: tid × 5 days (scheduled);
+    vaginal: q6h PRN × 3 days (as-needed only)
+
+  Emitted for both O80 and O82 deliveries so downstream narrative
+  writers, FHIR MedicationRequest emit, and pharmacy consumers see
+  the real take-home bundle. Drug names in English on the CIF; JP
+  displays localize via ``drug_ja`` at FHIR / narrative emit time
+  (Acetaminophen → アセトアミノフェン; Ibuprofen → イブプロフェン).
+
+  Module boundary: kept in ``simulator/perinatal.py`` next to the
+  existing ``_cs_ord_specs`` intraop bundle. A follow-up refactor
+  could move the postpartum-Rx spec to ``perinatal.yaml`` alongside
+  ``cesarean.visit_reason`` / procedure codes — deferred so this PR
+  stays scoped to the reported gap.
+
+  Non-scope: opioid step-up (Oxycodone PRN for breakthrough pain in
+  the ~5-10 % of C-sections with NRS ≥ 6), Docusate stool-softener,
+  iron sulfate for postpartum anemia — all real but not routine at the
+  discharge level; separate follow-ups.
 
 - **IV cycle-based chemotherapy agents (Oxaliplatin / Pemetrexed /
   Carboplatin / Trastuzumab) emitted as monthly chronic
