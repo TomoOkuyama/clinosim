@@ -2361,7 +2361,39 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   <code>modules/prophylaxis/engine.py</code> so both the enricher-side gate and
   the disease-YAML gate read from the same yaml source of truth.</p>
 <p>Backwards compat: callers that don't pass <code>patient_age</code> (legacy
-  tests, older adapter code) see the pre-#1306 behavior.</p>
+  tests, older adapter code) see the pre-#1306 behavior.
+- <strong>Newborn / infant anthropometrics implausible — 74 cm height and 9 kg
+  weight at day 0, BMI Observations emitted for babies</strong> (Issue #1322).
+  <code>clinosim/modules/output/fhir_r4/labs/anthropometrics.py</code> looked up
+  height / weight in the <code>pediatric_growth</code> yearly table where the
+  <code>age=0</code> row is the 12-month median (74 cm / 9.6 kg), so every
+  newborn admitted at day 0 through 11 months emitted 1-year-old
+  anthropometrics. Exemplar pt-d2105a0c23f2 (US, dob 2026-05-09): day-8
+  weight 9.0 kg, 4-month weight 9.9 kg, height 74 cm across every
+  encounter. BMI 19.0 kg/m² was also emitted at 2.5 months — invalid
+  under WHO / AAP guidance (BMI is not a valid pediatric metric under
+  age 2; weight-for-length percentile is used instead).</p>
+<p>Fix, three parts:</p>
+<ul>
+<li>Added a new WHO <code>pediatric_growth_infant</code> table in
+    <code>anthropometric_reference.yaml</code> with month-of-age medians for 0-18
+    months (birth 50 cm / 3.3 kg → 12 months 75 cm / 9.6 kg for males;
+    equivalent WHO series for females).</li>
+<li><code>_derive_anthropometrics</code> now computes <code>age_months</code> from the
+    encounter datetime relative to dob and, for <code>age_months &lt; 24</code>,
+    routes the lookup through the new <code>_infant_medians</code> helper. The
+    yearly <code>pediatric_growth</code> table is unchanged (backwards compat for
+    ages ≥ 2); older callers that pass only <code>age_years</code> still resolve
+    correctly.</li>
+<li><code>build_anthropometric_observations</code> suppresses the BMI Observation
+    for <code>age_years &lt; 2</code>. Height + weight alone suffice for infant
+    growth analytics; downstream consumers that want a growth percentile
+    should use weight-for-length instead.</li>
+</ul>
+<p>Verification (p=200 s356 US, 3 newborn cohort): day-0 emits now show
+  50 cm / 3.2-3.9 kg (WHO birth median), 3-month emits show 54.7 cm /
+  3.7-5.0 kg (WHO 3-month median with per-encounter noise), and BMI is
+  no longer emitted for any of the 3 babies.</p>
 <ul>
 <li><strong>Inpatient progress_note subjective repeats identical boilerplate
   across every hospital day</strong> (Issue #1327). When today's vitals carry
