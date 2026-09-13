@@ -31,20 +31,13 @@ def _skip_conditions() -> dict[str, dict[str, Any]]:
     return _load_rules().get("skip_conditions", {}) or {}
 
 
-def pediatric_anticoag_ceiling() -> int | None:
-    """Return the age ceiling below which DVT chemoprophylaxis (Enoxaparin)
-    is skipped, per ``prophylaxis_rules.yaml -> skip_conditions ->
-    pediatric_age_gate.pediatric_age_ceiling`` (Issue #1276 / #1306).
-
-    ``None`` when the yaml is missing this rule — callers should treat
-    that as "no gate" (safe fallback, matches ``should_skip_dvt_prophylaxis``
-    semantics). Reused by ``order/engine.place_admission_orders`` so the
-    disease-YAML supportive-orders fallback path applies the same gate
-    as the enricher-driven path (Issue #1306 regression fix).
-    """
-    peds_rule = _skip_conditions().get("pediatric_age_gate", {}) or {}
-    ceiling = peds_rule.get("pediatric_age_ceiling")
-    return int(ceiling) if ceiling is not None else None
+# NOTE: ``pediatric_anticoag_ceiling()`` was introduced as a shared
+# helper for the Issue #1306 dual-path gate (order/engine +
+# prophylaxis/engine). Issue #1342 collapsed the two paths — the
+# ``prophylaxis`` module is now the single DVT_prophylaxis SoT, so the
+# pediatric ceiling is read only once, inside
+# :func:`should_skip_dvt_prophylaxis` above (via ``_skip_conditions()``).
+# The public shim was removed here (vulture / dead-code CI gate).
 
 
 def should_skip_dvt_prophylaxis(
