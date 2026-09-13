@@ -1046,13 +1046,27 @@ def _render_patient_biometrics(patient: Any, lang: str) -> str:
     """Compose Ht / Wt / BMI / blood-type one-liner. Used by surgical
     + anaesthesia + procedure + discharge doc types where these facts
     have narrative weight (dose scaling, transfusion prep, mobility).
-    Missing fields drop silently."""
+    Missing fields drop silently.
+
+    Neonatal / infant framing (S113→S114): when the patient is a
+    newborn / infant (``age == 0`` or ``occupation == "infant"``), the
+    numeric shape (身長 50 cm / 体重 3.2 kg) reads as adult malnutrition
+    to a downstream LLM without an explicit neonatal anchor. Prefix the
+    line with 「出生時 / birth」and suppress BMI (乳児 BMI has no
+    clinical utility; the CDC/WHO growth curves use weight-for-length
+    percentiles instead). Height / weight labels stay the same numeric
+    units — only the framing shifts.
+    """
     height_cm = _get(patient, "height_cm", None)
     weight_kg = _get(patient, "weight_kg", None)
     bmi = _get(patient, "bmi", None)
     blood_type = _get(patient, "blood_type", "") or ""
     rh = _get(patient, "rh_factor", "") or ""
     is_ja = str(lang).lower().startswith("ja")
+
+    _age = _get(patient, "age", None)
+    _occupation = str(_get(patient, "occupation", "") or "").strip().lower()
+    is_neonate = (isinstance(_age, int) and _age == 0) or _occupation == "infant"
 
     parts: list[str] = []
 
@@ -1065,11 +1079,19 @@ def _render_patient_biometrics(patient: Any, lang: str) -> str:
     if _pos(height_cm) or _pos(weight_kg):
         h_str = f"{float(height_cm):.0f} cm" if _pos(height_cm) else "-"
         w_str = f"{float(weight_kg):.1f} kg" if _pos(weight_kg) else "-"
-        if is_ja:
-            parts.append(f"身長 {h_str} / 体重 {w_str}")
+        if is_neonate:
+            if is_ja:
+                parts.append(f"出生時 身長 {h_str} / 体重 {w_str}")
+            else:
+                parts.append(f"birth Ht {h_str} / Wt {w_str}")
         else:
-            parts.append(f"Ht {h_str} / Wt {w_str}")
-    if _pos(bmi):
+            if is_ja:
+                parts.append(f"身長 {h_str} / 体重 {w_str}")
+            else:
+                parts.append(f"Ht {h_str} / Wt {w_str}")
+    # BMI: suppress for neonates / infants (weight-for-length percentile
+    # is the pediatric standard; adult BMI cutoffs do not apply < 2 y/o).
+    if _pos(bmi) and not is_neonate:
         parts.append(f"BMI {float(bmi):.1f}")
     if blood_type:
         bt = str(blood_type).strip().upper()
@@ -1133,7 +1155,7 @@ def _build_extra_context(
     `template_section_names` (v5 dedup): set of template section names
     already going into `context_sections`. Extras that would duplicate
     those sections (chronic_conditions ↔ past_medical_history,
-    home_medications ↔ medications_at_home, today_vitals_summary ↔
+    home_medications ↔ medications_at_home, todays_vitals_summary ↔
     objective, etc.) are skipped — template narrative wins on overlap.
 
     Values are JSON-serialised strings so the prompt payload stays a
@@ -1404,10 +1426,14 @@ def _build_extra_context(
             extra["vitals_range_during_stay"] = vitals_range
     elif doc_type == "outpatient_soap":
         # home_medications always useful (outpatient template has no
-        # medications section). today_vitals_summary: skip when
+        # medications section). todays_vitals_summary: skip when
         # template's `objective` already contains today's vitals numeric
         # summary (outpatient_soap.objective renders BP/HR/RR/SpO2/T
-        # verbatim from vitals — same info).
+        # verbatim from vitals — same info). Naming normalized S113→S114:
+        # outpatient_soap previously used the singular `today_vitals_summary`
+        # while progress_note used `todays_vitals_summary`; the bundle
+        # prompt Context contract only lists the `todays_` form, so the
+        # outpatient_soap variant was silently missing from prompt guidance.
         home_meds = _get(p, "current_medications", []) or _get(p, "medications", []) or []
         # session-88j Phase B fix: outpatient_soap home_medications was
         # rendering EN drug names (Amlodipine / Atorvastatin / …) because
@@ -1420,7 +1446,7 @@ def _build_extra_context(
         if "objective" not in tmpl:
             today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index, enc)
             if today_vitals:
-                extra["today_vitals_summary"] = today_vitals
+                extra["todays_vitals_summary"] = today_vitals
         # v6: same lab flag injection as progress_note — outpatient
         # assessment was ignoring AST H, PT_INR H, Cr H etc.
         abnormal_today = _render_abnormal_labs(ctx.lab_results, day_index=None, lang=ctx.target_lang)
