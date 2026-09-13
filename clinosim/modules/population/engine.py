@@ -1685,6 +1685,39 @@ def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -
     return events
 
 
+def pick_active_chemo_regimen(
+    chemo_rng: np.random.Generator,
+    regimens: dict,
+    by_cancer: dict,
+    cancer_code: str,
+) -> tuple[str, dict] | None:
+    """Consume one ``chemo_rng.random()`` and return the actively-assigned
+    chemo regimen ``(name, regimen_dict)`` for ``cancer_code``, or ``None``
+    when the patient falls into the surveillance-only residual mass.
+
+    Kept as a stand-alone helper so both call sites — ``_chemo_cycle_events``
+    (cycle event scheduling) and ``patient/activator._derive_home_medications``
+    (chronic-med active-regimen mutex, Issue #1329) — share exactly one
+    implementation of the Bernoulli envelope walk. Callers create their own
+    ``np.random.default_rng(chemotherapy_regimen_seed(person_id, code))``
+    and pass it in; this helper never creates or shares state.
+    """
+    assignments = by_cancer.get(cancer_code) or []
+    if not assignments:
+        return None
+    u = float(chemo_rng.random())
+    cumulative = 0.0
+    for entry in assignments:
+        cumulative += float(entry.get("probability", 0.0) or 0.0)
+        if u < cumulative:
+            name = str(entry.get("regimen") or "")
+            regimen = regimens.get(name)
+            if not name or regimen is None:
+                return None
+            return (name, regimen)
+    return None
+
+
 def _chemo_cycle_events(person: PersonRecord, year: int) -> list[LifeEvent]:
     """Emit chemo_visit LifeEvents for one person's active chemo regimen(s).
 
@@ -1717,19 +1750,14 @@ def _chemo_cycle_events(person: PersonRecord, year: int) -> list[LifeEvent]:
         if not assignments:
             continue
         chemo_rng = np.random.default_rng(chemotherapy_regimen_seed(person.person_id, cancer_code))
-        # Bernoulli assignment: draw once, iterate the ranked list until a
-        # probability envelope matches. Residual mass = "no active regimen".
-        u = float(chemo_rng.random())
-        picked_name = ""
-        cumulative = 0.0
-        for entry in assignments:
-            cumulative += float(entry.get("probability", 0.0) or 0.0)
-            if u < cumulative:
-                picked_name = str(entry.get("regimen") or "")
-                break
-        if not picked_name or picked_name not in regimens:
+        # Bernoulli assignment via shared helper — consumes exactly one
+        # ``chemo_rng.random()`` (byte-preserving with pre-Issue-1329
+        # inline pick loop). ``day_offset`` continues to consume the
+        # next ``chemo_rng.integers`` draw below on the same RNG.
+        picked = pick_active_chemo_regimen(chemo_rng, regimens, by_cancer, cancer_code)
+        if picked is None:
             continue
-        regimen = regimens[picked_name]
+        picked_name, regimen = picked
         interval = int(regimen.get("cycle_interval_days") or 0)
         if interval <= 0:
             continue

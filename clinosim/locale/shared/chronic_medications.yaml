@@ -254,8 +254,15 @@ M17:  # Osteoarthritis
 # clinically-nonsensical monotherapy MedicationRequests (Oxaliplatin
 # 130 mg standalone every ~34 days for C18 patients, etc.).
 C18:  # Colon cancer — oral fluoropyrimidine (Capecitabine, XELOX/XELIRI adjuvant)
+  # Issue #1329: `drug_class: fluoropyrimidine` on Capecitabine enables
+  # the active-regimen mutex in `patient/activator._derive_home_medications`.
+  # A C18 chronic carrier who is also on an active fluoropyrimidine-
+  # containing IV regimen (FOLFOX carries 5-FU) has Capecitabine's
+  # effective probability zeroed at sampling time — preventing the
+  # double 5-FU exposure (oral Capecitabine + IV 5-FU) observed in
+  # p=10k random-sample review.
   medications:
-    - {drug: "Capecitabine", drug_ja: "カペシタビン", dose: "1250mg/m2", route: "PO", frequency: "bid", probability: 0.5}
+    - {drug: "Capecitabine", drug_ja: "カペシタビン", dose: "1250mg/m2", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5}
     # Oxaliplatin (IV q3weeks) removed per Issue #1319 — cycle-based
     # chemo, emitted via chemo_regimens.yaml (FOLFOX) not as a daily
     # home med. Prior probability 0.3 produced ~196 excess standalone-
