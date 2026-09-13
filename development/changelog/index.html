@@ -2306,8 +2306,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
-<li>
-<p><strong>Acute-illness medication holds for AKI and acute ischemic stroke</strong>
+<li><strong>Acute-illness medication holds for AKI and acute ischemic stroke</strong>
   (Issue #1335, META #1392 Cluster A part 3). Extended
   <code>acute_kidney_injury.yaml::medication_holds</code> with ACE-I families
   (Enalapril / Lisinopril / Captopril / Ramipril / Perindopril /
@@ -2333,7 +2332,24 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   encounter, 0 inpatient / discharge ACE-I / ARB / PO-bisphosphonate
   MRs on the affected encounters (was 2 discharge Candesartan + 0
   bisphosphonate pre-fix). The residual <code>community</code>-category MR is
-  the home-med status marker, not a fresh order — clinically correct.</p>
+  the home-med status marker, not a fresh order — clinically correct.</li>
+<li>
+<p><strong>ED order drug-safety gate + NSAID same-class stacking mutex</strong>
+  (Issue #1347, META #1392 Cluster A part 4). New pair rule
+  <code>nsaid-stacking</code> (any <code>nsaid</code> × <code>nsaid</code> → contraindicated)
+  covers 2+ NSAIDs concurrent (Celecoxib + Ibuprofen, Ketorolac IV +
+  Ibuprofen PO, Loxoprofen + Diclofenac, etc.). <code>simulator/emergency</code>
+  ED order dispatcher now calls
+  <code>drug_safety.check_candidate_against_active</code> on every candidate
+  MEDICATION order, checking against the patient's
+  <code>current_medications</code> + already-appended ED orders (both chronic-
+  vs-new and new-vs-new pairs caught). Drops on contraindicated /
+  major severity with a <code>SafetySkipEntry</code> audit record. Random-
+  sample review flagged 3-NSAID stacking on an ED low-back-pain visit
+  (pt-be5046f05c2f) plus chronic NSAID + anticoagulant pairs — both
+  paths now suppressed. Verified on US p=500 s=356: 0 encounters with
+  3+ concurrent NSAIDs (was ≥1 pre-fix), 0 patients with chronic
+  NSAID + anticoagulant.</p>
 </li>
 <li>
 <p><strong>Lab-derived AKI Condition emit — Creatinine peak ≥ 4.0 mg/dL now
