@@ -1,10 +1,62 @@
 task_type: narrative_seed_bundle
-version: 16
+version: 17
 max_tokens: 3500
 temperature: 0.1
 description: |
   Bundle strategy for clinical document narrative generation.
-  Single English prompt with output language controlled by ${target_language}.
+  Locale-authored prompt — `prompt_registry.get("narrative_seed_bundle", language)`
+  selects `prompts/{en,ja}/narrative_seed_bundle.yaml`. The `${target_language}`
+  header echoes the caller's language for the LLM's JSON parser; per-locale
+  rule tables and per-doc-type blocks are authored in the locale-specific
+  file (this JA file is canonical for JP output; EN file for US output).
+  The stale pre-v17 doc-string that claimed a "Single English prompt with
+  output language controlled by ${target_language}" was accurate only
+  through session-88j v9; the JA file has been the canonical JP source
+  since v11 (Rule 5 D lab hard-guard onward).
+
+  v17 changes (2026-09-14, session S113→S114 narrative review):
+    - Doc-string above updated to reflect the two-file locale-authored
+      shape.
+    - Rule 3 VERBATIM COPY に person-name preservation clause 追加。
+      テンプレートが `_resolve_staff_name` 経由で解決済み医療者名
+      (医師・看護師・執刀医・麻酔科医) を含んで LLM に渡した際、又は
+      roster 欠落で raw staff-id (STAFF-… / DR-…) が fallback された
+      際は、LLM 側で verbatim に保持。pre-v17 は 4 doc type
+      (operative_note / procedure_note / death_certificate /
+      death_discharge_summary) のみ per-doc contract で列挙、admission_hp
+      / discharge_summary / ed_note / referral_note / progress_note /
+      outpatient_soap は sikent re-invent / drop / Romanize のリスクが
+      あった。患者氏名は全 context key から意図的に除外 (privacy) — 全
+      文書で「捏造しない」ルールを universal 化。
+    - Context contract expanded with SIX keys the code emits but the
+      pre-v17 prompt never mentioned (name-resolution drift found in
+      S113→S114 audit): `admission_datetime`, `length_of_stay_days`,
+      `in_hospital_new_diagnoses`, `chief_complaint_verbatim`,
+      `arrival_mode`, `initial_vitals`. (`patient_bucket` intentionally
+      omitted — cache-key use only, not narrative-load-bearing.) The
+      absence let ed_note narratives fabricate arrival-mode defaults
+      (「独歩来院」when actually 救急車搬送) and let admission_datetime /
+      length_of_stay_days be silently re-paraphrased. Issue #848 の
+      `in_hospital_new_diagnoses` は最大の silent-loss — 入院中新規発症
+      疾患が PMH のように narrate されていた。
+    - Context contract entry for `todays_vitals_summary` now covers both
+      progress_note AND outpatient_soap. Pre-v17 the outpatient_soap
+      variant was silently emitted as `today_vitals_summary` (singular,
+      no `s`); the simulator emit site was renamed to the plural form.
+    - Rule 2 `considered_but_not_prescribed` cadence forward-declared to
+      cover four `event_type` values (avoid / hold / substitute /
+      deescalate). Backend wire-up tracked as Issue #1403; until then
+      the payload only carries the legacy `avoid` cadence.
+    - Related follow-ups tracked separately:
+        - Issue #1404: neonatal admission_hp per-doc-type block
+          (Apgar/AABR/tandem-MS/CCHD/bilirubin/Vitamin K). Related fix
+          in `_render_patient_biometrics`: neonatal age /
+          `occupation="infant"` framing prefixes 「出生時 身長/体重」
+          and suppresses BMI.
+        - Issue #1405: P1 refinement backlog (F32/F33 SSRI narrative
+          rule, oncology chemo-cycle framing, N17.9↔Cr trend tie,
+          MedicationRequest frequency cite rule, blood-culture DR
+          conclusion, US Core race/ethnicity/birthsex).
 
   v16 changes (2026-09-06, session 104 post-verify defect fixes,
   Issues #1167 + #1168 folded):
@@ -161,6 +213,9 @@ system: |
     - primary_encounter_reason  chief complaint / admission trigger
     - chronic_conditions        active PMH list, comma-separated
     - todays_vitals_summary     day-N BP/HR/RR/SpO2/T snapshot
+                              (progress_note + outpatient_soap; S113→S114
+                              rename — outpatient_soap previously used
+                              singular `today_vitals_summary`)
     - active_medications_today  day-N MAR (canonical katakana pre-resolved)
     - home_medications          patient's chronic Rx (canonical katakana)
     - discharge_medications_list  Rx issued at discharge (canonical katakana)
@@ -176,6 +231,24 @@ system: |
     - supplemental_oxygen_today  "<device> <flow> L/min" if today's O2 is on
     - encounter_type            outpatient / inpatient / emergency / …
     - discharge_outcome         disposition label
+    - admission_datetime        入院日時 (ISO 形式、universal)。hospital_course
+                              の冒頭に anchor として cite する。日付を
+                              曖昧な自由記述に置き換えない。
+    - length_of_stay_days       在院日数 (整数、universal)。hospital_course
+                              の冒頭 / 退院サマリで期間表現に必要な場合
+                              cite する。
+    - in_hospital_new_diagnoses  入院中に新規発症した疾患 (Issue #848)。
+                              形式:「<disease> on hospital day N」。既往
+                              (PMH) と区別して narrate すること。silent
+                              に PMH に混ぜてはならない。
+    - chief_complaint_verbatim  ed_note のみ。HPI 冒頭に VERBATIM で
+                              コピー、意訳しない。
+    - arrival_mode              ed_note のみ。独歩来院 / 救急車搬送 / 転院
+                              搬送 等。HPI 冒頭に必ず反映する。silent に
+                              「独歩来院」を default 化するのは fabrication。
+    - initial_vitals            ed_note のみ。ED 到着時の初回 vitals。
+                              「到着時 snapshot」として narrate し、当日
+                              の状態と混同しない。
 
   Keys marked "VERBATIM" MUST be copied character-for-character into the
   narrative. Keys marked with a data type (list / snapshot) MUST be
@@ -227,14 +300,25 @@ system: |
      - supplemental_oxygen_today → narrative MUST NOT claim "room air"
        / "no oxygen therapy" / "酸素投与なし". SpO2 references MUST
        state device + flow rate from this key.
-     - considered_but_not_prescribed (drug_safety, Issue #1066) → EVERY
-       entry MUST be surfaced in the A&P section using natural clinical
-       Japanese prose that names the considered drug, the active
-       conflict, and the substitute (when one is listed). 推奨文体:
-       「〜との併用禁忌のため〜を回避し、〜を選択した。」
-       代替薬が示されていない場合は「〜を回避、代替薬は選択せず」。
-       Silent omission is a hallucination of the inverse.
-       NEVER invent avoidances or substitutions not in the input.
+     - considered_but_not_prescribed (drug_safety, Issue #1066 + #1403) →
+       EVERY entry MUST be surfaced in the A&P section using natural
+       clinical Japanese prose. The payload lines carry one of four
+       `event_type` markers (leading "avoid:" / "hold:" / "substitute:"
+       / "deescalate:" prefix in the bullet, or an inferable phrasing
+       when the marker is absent — legacy `avoid` payload pre-#1403)。
+       event_type ごとの推奨文体:
+         · avoid — 「〜との併用禁忌のため〜を回避し、〜を選択した。」
+           代替薬が示されていない場合は「〜を回避、代替薬は選択せず」。
+         · hold — 「〜のため〜を今回入院中は保留とし、〜の改善後に再開
+           予定。」
+         · substitute — 「〜のため〜を〜に切替 (期間: 〜、理由: 〜)。」
+           avoid との区別: substitution は active な臨床状態 (妊娠等)
+           への計画的切替であり、薬剤相互作用の回避ではない。
+         · deescalate — 「〜を第N病日で中止し〜へ de-escalate した。」
+       いずれの entry も silent omission は「回避/保留/切替/中止しな
+       かった」という inverse hallucination となる。
+       入力に無い回避・保留・切替・de-escalation を絶対に fabrication
+       しない。
 
   3. VERBATIM COPY — no re-interpretation of pre-resolved fields.
      - hospital_day_label: copy verbatim ("入院初日" for day 0,
@@ -251,6 +335,17 @@ system: |
          ウァルファリン     → ワルファリン
      - Delirium: always「せん妄」in JP output. NEVER Chinese-script
        「谵妄」 or transliteration「デリリア」.
+     - Person names (universal — S113→S114 name-resolution audit):
+       テンプレートが既に解決済みの医療者名 (医師・看護師・執刀医・
+       麻酔科医・助手) を含む section (例: 「担当医師：加瀬 幸男」)
+       を渡してきた場合、LLM は当該氏名を VERBATIM で保持する。
+       氏名を別人へ差し替えたり、drop したり、姓名を分解 / 並べ替え
+       したり、Romanization 化 (加瀬 幸男 ↔ Kase Yukio) してはならない。
+       roster_map が pass 時に欠落し template が raw staff-id (STAFF-…
+       / DR-… / NS-… / PHY-… パターン) を emit している場合は、その
+       ID を verbatim で保持し、もっともらしい氏名を fabrication しない。
+       患者氏名は全 context key から意図的に除外されており、section が
+       患者を参照する場合も氏名を捏造しない。
 
   4. NO FABRICATED PLACEHOLDERS.
      - Never write vague time phrases ("日数不明", "date unknown", "at
