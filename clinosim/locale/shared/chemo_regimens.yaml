@@ -24,10 +24,17 @@
 # cycle. Drugs infused on Days 2+ of the same cycle (e.g. FOLFOX's 46-h
 # 5-FU infusion) are represented as a single Day-1 entry — the MedicationAdmin
 # slice will expand them into per-day records.
+# ``contains_drug_classes`` on each regimen exposes the drug classes an
+# active regimen represents so the chronic-med sampler
+# (`patient/activator._derive_home_medications`) can gate mutually-
+# exclusive oral home meds. First consumer (Issue #1329): fluoropyrimidine
+# — a patient on active FOLFOX must not also receive Capecitabine (oral
+# 5-FU pro-drug) as a chronic home med (double 5-FU exposure).
 regimens:
   FOLFOX:                                # colorectal adjuvant
     cycle_interval_days: 14
     course_cycles: 12                    # ~6 months adjuvant
+    contains_drug_classes: [fluoropyrimidine, platinum]
     cycle_orders:
       - {drug: "Oxaliplatin",  drug_ja: "オキサリプラチン",  dose: "85mg/m2",                        route: "IV"}
       - {drug: "Leucovorin",   drug_ja: "ロイコボリン",      dose: "400mg/m2",                       route: "IV"}
@@ -35,17 +42,20 @@ regimens:
   CarboPem:                              # lung adjuvant / advanced
     cycle_interval_days: 21
     course_cycles: 4
+    contains_drug_classes: [platinum, antifolate]
     cycle_orders:
       - {drug: "Carboplatin",  drug_ja: "カルボプラチン",    dose: "AUC5",     route: "IV"}
       - {drug: "Pemetrexed",   drug_ja: "ペメトレキセド",    dose: "500mg/m2", route: "IV"}
   Trastuzumab_q3w:                       # breast HER2+ maintenance
     cycle_interval_days: 21
     course_cycles: 18                    # 1 year
+    contains_drug_classes: [her2_antibody]
     cycle_orders:
       - {drug: "Trastuzumab",  drug_ja: "トラスツズマブ",    dose: "6mg/kg",   route: "IV"}
   LHRH_q28d:                             # prostate ADT depot
     cycle_interval_days: 28
     course_cycles: 24                    # 2 years continuous
+    contains_drug_classes: [lhrh_agonist]
     cycle_orders:
       - {drug: "Leuprorelin",  drug_ja: "リュープロレリン",  dose: "3.75mg",   route: "SC"}
 
@@ -59,12 +69,14 @@ regimens:
     # per-day expansion is a future MedicationAdmin slice).
     cycle_interval_days: 28
     course_cycles: 6                     # ~6 months first-line palliative
+    contains_drug_classes: [taxane, gemcitabine]
     cycle_orders:
       - {drug: "Nab-paclitaxel",  drug_ja: "ナブパクリタキセル",  dose: "125mg/m2",   route: "IV"}
       - {drug: "Gemcitabine",     drug_ja: "ゲムシタビン",         dose: "1000mg/m2",  route: "IV"}
   BCG_intravesical:                      # NMIBC adjuvant induction (SWOG 8507)
     cycle_interval_days: 7               # weekly instillation
     course_cycles: 6                     # 6-week induction; maintenance q3mo is out of scope
+    contains_drug_classes: [bcg]
     cycle_orders:
       - {drug: "BCG", drug_ja: "BCG", dose: "1 vial (81mg TICE / 27mg Connaught)", route: "intravesical"}
   Temozolomide_stupp:                    # glioblastoma adjuvant (Stupp EORTC 22981)
@@ -73,6 +85,7 @@ regimens:
     # 28-day cycle (same simplification as GemNabP above).
     cycle_interval_days: 28
     course_cycles: 6
+    contains_drug_classes: [alkylator]
     cycle_orders:
       - {drug: "Temozolomide", drug_ja: "テモゾロミド", dose: "150mg/m2 PO daily x 5 days", route: "PO"}
 
