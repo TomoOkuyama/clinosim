@@ -740,6 +740,18 @@ def _derive_home_medications(
 
         exclusive_classes = set(spec.get("exclusive_classes") or ())
         medications = spec.get("medications", [])
+        # Issue #1314: locale-exclude filter. Drugs whose
+        # ``locale_exclude`` field lists the current country (e.g.
+        # Fluoxetine on JP — not PMDA-approved) are removed from the
+        # sampler input before the categorical / Bernoulli split. Kept
+        # at the caller side (rather than inside
+        # ``select_with_exclusive_classes``) to avoid threading
+        # ``country`` through every call site; a locale-exclude gate is
+        # a data-availability signal, not a probability-shape choice.
+        _country_upper = str(country).strip().upper()
+        medications = [
+            m for m in medications if _country_upper not in {str(x).upper() for x in (m.get("locale_exclude") or [])}
+        ]
 
         # Single-mechanism selection: exclusive_classes categorical + non-exclusive
         # independent Bernoulli. Shared with `_build_discharge_rx` — see

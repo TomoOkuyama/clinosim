@@ -71,11 +71,17 @@ def test_ssri_selection_is_mutually_exclusive() -> None:
         assert len(ssri_hits) <= 1, f"multiple SSRIs on one patient: {ssri_hits}"
 
 
-def test_jp_locale_uses_japanese_ssri_display() -> None:
+def test_jp_locale_uses_japanese_ad_display_1281_1314() -> None:
     """JP locale routes through `drug_ja` so `drug_name_ja` carries the
-    kana/kanji form (e.g. セルトラリン)."""
-    # Fixture may draw the no-SSRI branch — sweep a few seeds to find
-    # a positive sample. F32's SSRI probabilities sum to 0.65.
+    kana/kanji form (e.g. セルトラリン). Updated for Issue #1314:
+    Fluoxetine is NOT PMDA-approved for Japan and is filtered out by
+    the ``locale_exclude`` YAML field, so it no longer appears in JP
+    F32 samples — the assertion now covers the remaining SSRI + SNRI +
+    atypical-AD JP-approved drugs.
+    """
+    # Fixture may draw the no-AD branch — sweep a few seeds to find
+    # a positive sample. F32 3-class probabilities sum ~= 0.86 after
+    # Fluoxetine's JP exclusion.
     got_ja = None
     for seed in range(50):
         m = _derive_home_medications([_Cond(code="F32")], np.random.default_rng(seed), country="JP")
@@ -85,7 +91,16 @@ def test_jp_locale_uses_japanese_ssri_display() -> None:
                 break
         if got_ja is not None:
             break
-    assert got_ja in ("セルトラリン", "エスシタロプラム", "フルオキセチン"), got_ja
+    # PMDA-approved AD subset: Sertraline / Escitalopram (SSRI), Venlafaxine
+    # / Duloxetine (SNRI), Mirtazapine (atypical AD). Fluoxetine NOT here.
+    assert got_ja in (
+        "セルトラリン",
+        "エスシタロプラム",
+        "ベンラファキシン",
+        "デュロキセチン",
+        "ミルタザピン",
+    ), got_ja
+    assert got_ja != "フルオキセチン", "Fluoxetine must not appear on JP samples (Issue #1314)"
 
 
 def test_non_mental_health_conditions_unchanged() -> None:

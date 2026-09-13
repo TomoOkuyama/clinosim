@@ -349,7 +349,14 @@ F32:  # Depressive episode (single)
   medications:
     - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.32}
     - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
-    - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.11}
+    # Issue #1314: Fluoxetine is NOT PMDA-approved for Japan (0 hits
+    # in the bundled JP_MedicationCodeYJ_CS_full.json master under
+    # フルオキセチン / プロザック). ``locale_exclude`` filters this
+    # entry out of the sampler on JP so no unfilled "標準コードなし"
+    # placeholder MR emits; residual probability grows the "no ssri"
+    # branch (Sertraline / Escitalopram — both PMDA-approved — remain
+    # the JP first-line).
+    - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.11, locale_exclude: ["JP"]}
     - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08}
     - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.07}
     - {drug: "Mirtazapine", drug_ja: "ミルタザピン", dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.06}
@@ -359,7 +366,8 @@ F33:  # Recurrent depressive disorder — same three-class shape as F32
   medications:
     - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.35}
     - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.25}
-    - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.12}
+    # Issue #1314: Fluoxetine NOT PMDA-approved (see F32 note above).
+    - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.12, locale_exclude: ["JP"]}
     - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10}
     - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08}
     - {drug: "Mirtazapine", drug_ja: "ミルタザピン", dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.08}
