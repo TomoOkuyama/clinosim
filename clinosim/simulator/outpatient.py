@@ -394,11 +394,27 @@ def _simulate_outpatient_visit(
                 "duration_days": OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
             }
 
+        # Issue #1318: PRN inhalers (Salbutamol, other SABAs) + other PRN
+        # rescue meds are NOT refilled at every routine follow-up visit.
+        # A real Salbutamol pMDI canister lasts 200 puffs (~2-3 months of
+        # 4-8 puffs/day PRN wheeze use); real refill cadence is 1-4/year
+        # via a standalone refill request, not per-visit renewal. Pre-fix
+        # the outpatient renewal loop emitted a fresh community-category
+        # MR for every PRN med at every visit — 14 Salbutamol MRs/year
+        # for top-user COPD patients on JP p=500 s=356. Filter drops
+        # anything the chronic-med YAML flags ``frequency: "prn"``. The
+        # med stays on ``patient.current_medications`` and continues to
+        # surface as a home-med marker in inpatient admission orders /
+        # discharge Rx / narrative — only the routine per-visit refill
+        # stops firing.
+        def _is_prn(med: Any) -> bool:
+            return str(getattr(med, "frequency", "") or "").strip().lower() == "prn"
+
         rx = PrescriptionRecord(
             prescription_id=f"RX-{patient.patient_id}-OPD",
             prescriber_id=encounter.attending_physician_id,
             issue_date=visit_date,
-            items=[_apply_pregnancy_substitution(med) for med in patient.current_medications],
+            items=[_apply_pregnancy_substitution(med) for med in patient.current_medications if not _is_prn(med)],
         )
 
     # Set encounter_id on all orders
