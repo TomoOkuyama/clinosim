@@ -117,7 +117,16 @@ def enrich_antibiotic(ctx) -> None:
                     medication_intent=regimen.intent,
                 )
                 get_or_create_container(rec, "orders", list).append(order)
-                mars = generate_mar_doses(regimen, snapshot_datetime=snapshot, order_id=order_id)
+                # Issue #1312: cap the schedule at the encounter's discharge
+                # so a 14-day Vancomycin regimen started 3 days before
+                # discharge does not emit 11 doses past ``Encounter.period.end``.
+                _enc_end = _lookup_encounter_end(rec, regimen.encounter_id)
+                mars = generate_mar_doses(
+                    regimen,
+                    snapshot_datetime=snapshot,
+                    order_id=order_id,
+                    encounter_end_datetime=_enc_end,
+                )
                 get_or_create_container(rec, "medication_administrations", list).extend(mars)
                 regimens_out.append(regimen)
         if regimens_out:
@@ -125,6 +134,31 @@ def enrich_antibiotic(ctx) -> None:
             get_or_create_container(ext, "antibiotic", list).extend(regimens_out)
         # PR3b-3 Pass 2: narrow / de-escalation
         _apply_pass2(rec, snapshot)
+
+
+def _lookup_encounter_end(record, encounter_id: str) -> datetime | None:
+    """Return ``discharge_datetime`` for ``encounter_id`` in this CIF record.
+
+    Returns None when the encounter is not found or has no discharge
+    datetime — callers pass ``None`` to ``generate_mar_doses`` to
+    preserve the pre-#1312 uncapped behaviour (snapshot cap still
+    applies). Issue #1312.
+    """
+    if not encounter_id:
+        return None
+    for enc in _get(record, "encounters", []) or []:
+        if str(_get(enc, "encounter_id", "") or "") != encounter_id:
+            continue
+        raw = _get(enc, "discharge_datetime", None)
+        if not raw:
+            return None
+        if isinstance(raw, datetime):
+            return raw
+        try:
+            return datetime.fromisoformat(str(raw))
+        except (TypeError, ValueError):
+            return None
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -274,7 +308,13 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
                 medication_intent="narrowed",
             )
             get_or_create_container(rec, "orders", list).append(order)
-            mars = generate_mar_doses(new_regimen, snapshot_datetime=snapshot, order_id=order_id)
+            _enc_end = _lookup_encounter_end(rec, new_regimen.encounter_id)
+            mars = generate_mar_doses(
+                new_regimen,
+                snapshot_datetime=snapshot,
+                order_id=order_id,
+                encounter_end_datetime=_enc_end,
+            )
             get_or_create_container(rec, "medication_administrations", list).extend(mars)
 
     if new_regimens:
