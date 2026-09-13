@@ -1,0 +1,59 @@
+# clinosim/modules/drug_safety/reference_data/disease_contraindications.yaml
+#
+# Drug-class × active-disease-state contraindication rules — the drug-vs-
+# disease-state companion to ``contraindications.yaml`` (drug-vs-drug rules).
+# Consumed by ``clinosim.modules.drug_safety.engine.check_candidate_against_disease_state``.
+#
+# When a candidate drug's ``drug_class`` (from ``drug_classes.yaml``) matches
+# a rule AND the patient carries a chronic ICD code whose base or full form
+# matches the rule's ``disease_predicate.icd_prefix``, the rule fires with
+# the declared ``severity``. ``check_candidate_against_disease_state`` returns
+# the highest-severity matched verdict; callers (activator's chronic-med
+# sampler, discharge_rx builder) apply the default action derived from
+# severity by ``verdict.SafetyVerdict.default_action``.
+#
+# Match semantics:
+#   - ``drug_class``: a class in the candidate's expanded class list.
+#   - ``disease_predicate.icd_prefix``: any of the strings match a chronic
+#     condition's code by prefix. E.g. ``["I50"]`` matches ``I50``, ``I50.9``,
+#     ``I50.32``, …
+#
+# Cluster A of Issue #1392 (META): first three rules land the NSAID vs
+# HF / cirrhosis / CKD stage 4-5 gates identified in Issue #1350 by
+# random-sample review. Wire-up covers chronic-med sampling; acute-illness
+# gates (ACE-I in AKI, Alendronate PO in dysphagic stroke — Issue #1335)
+# require order/discharge_rx path integration and are deferred to a
+# follow-up PR in the same Cluster A family.
+#
+# Severity taxonomy is shared with ``contraindications.yaml``:
+#   contraindicated > major > moderate > minor > allowed
+# The default action mapping in ``verdict.py`` treats
+# ``contraindicated / major`` as "skip", ``moderate / minor`` as "warn".
+
+rules:
+  - id: nsaid-in-heart-failure
+    drug_class: nsaid
+    disease_predicate: {icd_prefix: ["I50"]}
+    severity: major
+    substitution_hint: pain_management
+    rationale_en: "NSAIDs precipitate HF exacerbation via renal Na+/water retention and prostaglandin-mediated vasoconstriction. Substitute with acetaminophen or topical NSAID."
+    rationale_ja: "NSAID は腎 Na+/水貯留とプロスタグランジン阻害による血管収縮により心不全増悪を惹起。アセトアミノフェンまたは外用 NSAID に切替。"
+    source: "AHA/ACC/HFSA 2022 Heart Failure Guideline; JCS 2021 急性・慢性心不全診療ガイドライン"
+
+  - id: nsaid-in-cirrhosis
+    drug_class: nsaid
+    disease_predicate: {icd_prefix: ["K74", "K70.3"]}
+    severity: contraindicated
+    substitution_hint: pain_management
+    rationale_en: "NSAIDs risk hepatorenal syndrome, variceal bleeding, and acute kidney injury in cirrhosis. Acetaminophen at reduced dose (≤2 g/day) is safer; opioids with caution."
+    rationale_ja: "NSAID は肝硬変で肝腎症候群・食道静脈瘤出血・急性腎障害リスクを増悪。アセトアミノフェン減量 (2 g/日以下) が安全、オピオイドは慎重投与。"
+    source: "AASLD Practice Guidance 2021 (cirrhosis complications); 日本消化器病学会 肝硬変診療ガイドライン 2020"
+
+  - id: nsaid-in-ckd-stage-4-5
+    drug_class: nsaid
+    disease_predicate: {icd_prefix: ["N18.4", "N18.5", "N18.6"]}
+    severity: contraindicated
+    substitution_hint: pain_management
+    rationale_en: "NSAIDs cause afferent arteriolar vasoconstriction and are contraindicated at eGFR < 30 mL/min/1.73m2 (KDIGO CKD stage 4-5). Substitute with acetaminophen or topical NSAID; opioids with dose reduction."
+    rationale_ja: "NSAID は腎輸入細動脈収縮により eGFR < 30 (CKD ステージ 4-5) では禁忌。アセトアミノフェンまたは外用 NSAID に切替、オピオイドは減量投与。"
+    source: "KDIGO 2024 CKD Guideline; 日本腎臓学会 CKD 診療ガイドライン 2023"

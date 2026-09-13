@@ -15,6 +15,7 @@ from clinosim.modules.drug_safety.demographic import (
 from clinosim.modules.drug_safety.engine import (
     AlternativeDrug,
     check_candidate_against_active,
+    check_candidate_against_disease_state,
     check_pair,
     suggest_alternative,
 )
@@ -34,6 +35,7 @@ __all__ = [
     "Severity",
     "canonical_name",
     "check_candidate_against_active",
+    "check_candidate_against_disease_state",
     "check_demographic_gate",
     "check_pair",
     "japanese_display",
