@@ -63,6 +63,25 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   (Cr rise ≥ 1.5x baseline) by design — per-patient baseline Cr is
   not surfaced to POST_ENCOUNTER context in a stable form, and
   under-firing beats false-positive N17 on stable-CKD carriers.
+- **Triple-antithrombotic (DOAC + Aspirin + P2Y12) gate at discharge Rx**
+  (Issue #1334 part 2, META #1392 Cluster A). New drug-safety pair rule
+  ``doac-plus-p2y12`` (``anticoagulant.doac`` × ``antiplatelet.p2y12`` →
+  contraindicated) covers the DOAC + P2Y12 combination that
+  ``vka-plus-antiplatelet`` did not (VKA-only lhs). Wired into
+  ``simulator/discharge_rx._append_item`` as a narrow, direction-aware
+  gate: when the CANDIDATE being added is a P2Y12 and an active
+  anticoagulant.doac is already emitted on the discharge Rx, the P2Y12
+  is dropped. Direction matters — a DOAC candidate is never dropped by
+  a prior-emitted P2Y12 (DOAC has higher clinical priority for
+  cardioembolic-stroke secondary prevention). The gate deliberately
+  does NOT fire on the older ``anticoagulant-plus-nsaid`` rule (which
+  catches DOAC + Aspirin); dropping Aspirin from disease-YAML
+  ``continue_at_discharge`` blocks would invalidate legitimate
+  post-CVA / post-MI mixed-cardioembolic-plus-atherothrombotic
+  regimens still emitted intentionally by
+  ``cerebral_infarction.yaml``. A follow-up PR under META #1392 may
+  widen the gate once a cardioembolic-vs-atherothrombotic stroke
+  discriminator is surfaced on the encounter.
 
 ### Fixed
 

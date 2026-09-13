@@ -98,7 +98,8 @@ def build_discharge_rx(
     # separate line items.
 
     def _append_item(drug_spec: dict, chronic_continuation: bool = False) -> None:
-        """Renal-check + dedup + append. Shared by exclusive & independent paths.
+        """Renal-check + dedup + narrow drug_safety triple-antithrombotic
+        gate + append. Shared by exclusive & independent paths.
 
         ``chronic_continuation`` = True for items sourced from a
         ``continue_at_discharge`` category block (anticoagulation, statin,
@@ -120,6 +121,35 @@ def build_discharge_rx(
         key = _dedup_key(drug_name)
         if key in seen_dedup_keys:
             return
+        # Issue #1334 part 2 (META #1392 Cluster A): narrow, direction-
+        # aware drug_safety gate for the triple-antithrombotic pattern
+        # (DOAC + Aspirin + P2Y12 concurrently post-CVA). The gate:
+        # - fires only for the ``doac-plus-p2y12`` rule (not the older
+        #   ``anticoagulant-plus-nsaid`` rule, whose DOAC+Aspirin
+        #   combination remains permitted here — the cerebral_infarction
+        #   YAML's `antiplatelet` + `anticoagulation` continue_at_discharge
+        #   blocks intentionally emit both for post-CVA dual-secondary-
+        #   prevention);
+        # - is direction-aware — the CANDIDATE must be the P2Y12 side.
+        #   When the candidate is the anticoagulant (DOAC) and a P2Y12 is
+        #   already emitted, the DOAC is KEPT (anticoagulation is the
+        #   higher-priority antithrombotic for cardioembolic stroke), and
+        #   the residual P2Y12 stays. Clean triple → dual conversion when
+        #   the YAML order places anticoagulation BEFORE antiplatelet;
+        #   partial conversion (DOAC + P2Y12 dual, no ordering fix)
+        #   otherwise. A follow-up under META #1392 may reorder the
+        #   discharge iteration and gate both directions once a
+        #   cardioembolic-vs-atherothrombotic stroke discriminator is
+        #   surfaced on the encounter.
+        from clinosim.modules import drug_safety
+
+        _candidate_classes = set(drug_safety.resolve_classes(drug_name) or ())
+        if "antiplatelet.p2y12" in _candidate_classes:
+            already_emitted = [it["drug_name"] for it in items if it.get("drug_name")]
+            for active in already_emitted:
+                v = drug_safety.check_pair(drug_name, active)
+                if v.rule_id == "doac-plus-p2y12" and not v.is_allowed:
+                    return  # drop the P2Y12 candidate that would form the triple
         seen_dedup_keys.add(key)
         default_duration = 28 if chronic_continuation else 7
         # Issue #476: propagate authored localized dose instructions
