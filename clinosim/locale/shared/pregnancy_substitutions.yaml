@@ -1,0 +1,89 @@
+# clinosim/locale/shared/pregnancy_substitutions.yaml
+#
+# Pregnancy-contraindicated → pregnancy-safe substitution table.
+# Consumed by ``simulator/outpatient.py`` prescription-renewal loop (and
+# any future callers) when the patient's ``state_periods`` contain an
+# active pregnancy period at the visit date.
+#
+# Design (Issue #1321, META #1392 Cluster A part 5):
+#   * Prior to this table, chronic HTN meds (Amlodipine / Lisinopril /
+#     Losartan) refilled at every prenatal visit — including drugs
+#     with FDA Pregnancy Category C-D and no ACOG recommendation for
+#     pregnancy HTN.
+#   * Table maps original drug → substitute pregnancy-safe HomeMedication
+#     shape. Only fires while the pregnancy state is active
+#     (``TemporalStatePeriod.is_active_at(visit_date)``); post-Z39
+#     postpartum reverts to the pre-pregnancy regimen automatically
+#     because the substitution helper reads state at each visit.
+#   * ACOG 2019 recommends Methyldopa, Labetalol, or long-acting
+#     Nifedipine as first-line pregnancy HTN agents. Methyldopa is
+#     preferred first-line (longest safety record); Labetalol chosen
+#     for severe HTN or when Methyldopa contraindicated.
+#
+# Match key is exact drug_name (canonical English form). Loosely
+# structured to accept future additions (statins → skip, warfarin →
+# LMWH, etc.) — for now the entries cover the finding scope (HTN meds
+# in Z34 prenatal visits).
+
+substitutions:
+  # DHP-CCB (finding case: pt-192d90bc7df0 Amlodipine on prenatal visits)
+  Amlodipine:
+    substitute: "Methyldopa"
+    substitute_ja: "メチルドパ"
+    dose: "250mg"
+    route: "PO"
+    frequency: "tid"
+    rationale_en: "Amlodipine is FDA Cat C in pregnancy; ACOG 2019 recommends Methyldopa first-line for chronic HTN in pregnancy."
+    rationale_ja: "アムロジピンは妊娠中 FDA カテゴリー C。ACOG 2019 では妊娠中慢性高血圧の第一選択はメチルドパ。"
+
+  # ACE-I (absolutely contraindicated post-1st trimester — teratogenic)
+  Enalapril:
+    substitute: "Methyldopa"
+    substitute_ja: "メチルドパ"
+    dose: "250mg"
+    route: "PO"
+    frequency: "tid"
+    rationale_en: "ACE-I absolutely contraindicated in pregnancy — fetal renal dysgenesis, oligohydramnios."
+    rationale_ja: "ACE-I は妊娠中絶対禁忌 — 胎児腎低形成、羊水過少。"
+  Lisinopril:
+    substitute: "Methyldopa"
+    substitute_ja: "メチルドパ"
+    dose: "250mg"
+    route: "PO"
+    frequency: "tid"
+    rationale_en: "ACE-I absolutely contraindicated in pregnancy."
+    rationale_ja: "ACE-I は妊娠中絶対禁忌。"
+  Captopril:
+    substitute: "Methyldopa"
+    substitute_ja: "メチルドパ"
+    dose: "250mg"
+    route: "PO"
+    frequency: "tid"
+    rationale_en: "ACE-I absolutely contraindicated in pregnancy."
+    rationale_ja: "ACE-I は妊娠中絶対禁忌。"
+
+  # ARB (same category as ACE-I — absolutely contraindicated)
+  Losartan:
+    substitute: "Methyldopa"
+    substitute_ja: "メチルドパ"
+    dose: "250mg"
+    route: "PO"
+    frequency: "tid"
+    rationale_en: "ARB absolutely contraindicated in pregnancy — same fetal renal / oligohydramnios risk as ACE-I."
+    rationale_ja: "ARB は妊娠中絶対禁忌 — ACE-I と同じ胎児腎低形成/羊水過少リスク。"
+  Valsartan:
+    substitute: "Methyldopa"
+    substitute_ja: "メチルドパ"
+    dose: "250mg"
+    route: "PO"
+    frequency: "tid"
+    rationale_en: "ARB absolutely contraindicated in pregnancy."
+    rationale_ja: "ARB は妊娠中絶対禁忌。"
+  Candesartan:
+    substitute: "Methyldopa"
+    substitute_ja: "メチルドパ"
+    dose: "250mg"
+    route: "PO"
+    frequency: "tid"
+    rationale_en: "ARB absolutely contraindicated in pregnancy."
+    rationale_ja: "ARB は妊娠中絶対禁忌。"
