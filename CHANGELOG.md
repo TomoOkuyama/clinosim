@@ -86,6 +86,25 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   on p=2000 US s=356: 0 patients with both Capecitabine + FOLFOX-drug
   MR (was ~2). Structured CIF byte-diff on Capecitabine-carrier subset
   only.
+- **N10 disease-code semantic disambiguation between pyelonephritis and
+  drug-induced AIN** (Issue #1353). The
+  ``acute_kidney_injury.yaml::diagnostic.differential`` row for
+  ``interstitial_nephritis`` was emitting ``N10`` — the same ICD-10 code
+  ``urinary_tract_infection.yaml`` uses for its bacterial-pyelonephritis
+  primary path (antibiotic-treated). WHO ICD-10 ``N10`` = "Acute tubulo-
+  interstitial nephritis" spans both etiologies (bacterial + drug/immune),
+  and the sim's UTI branch is the antibiotic-treated form by design.
+  Random-sample review of an antibiotic-escalated ``N10`` case therefore
+  read as "AIN mistreated" (steroid + offending-drug d/c would be
+  clinically right for AIN). Renamed the AKI differential row's ``icd``
+  to ``N14.1`` (ICD-10-CM "Nephropathy induced by other drugs, medicaments
+  and biological substances") so the two Condition-emit paths never share
+  a code. Added clarifying comment blocks in both disease YAMLs, and
+  registered ``s112-n10-pyelonephritis-vs-ain-single-code`` in the
+  by-design registry pointing at the semantic. Distinct AIN modeling as
+  its own disease branch (steroid + drug-d/c treatment path) is deferred;
+  the escalation-without-de-escalation antibiotic concern that motivated
+  the review is tracked separately in Issue #1346.
 - **Clopidogrel 300 mg loading dose emitted as chronic maintenance
   MR after cerebral infarction** (Issue #1334 part 1). ``cerebral_
   infarction.yaml`` discharge / DAPT block wrote the dose string as
