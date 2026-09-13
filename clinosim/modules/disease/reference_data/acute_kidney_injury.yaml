@@ -231,12 +231,35 @@ order_protocols:
 # ============================================================
 diagnostic:
   diagnostic_difficulty: 0.35  # AKI diagnosis is easy; identifying the cause is the challenge
+  # Issue #1353: the ``interstitial_nephritis`` differential now emits the
+  # ICD-10-CM code ``N14.1`` (Nephropathy induced by other drugs, medicaments
+  # and biological substances) rather than ``N10``. ICD-10 ``N10`` in the
+  # WHO ICD-10 dictionary spans "Acute tubulo-interstitial nephritis"
+  # (both the bacterial pyelonephritis form and the drug/immune AIN form),
+  # and clinical convention outside Japan reserves ``N10`` for acute
+  # pyelonephritis specifically (see the primary code in
+  # ``urinary_tract_infection.yaml``). Using the same code for both the
+  # bacterial-infection path AND the drug-induced-AIN differential row
+  # here created reviewer confusion (Issue #1353: "N10 case treated with
+  # antibiotic escalation looks like AIN mistreated") — the sim already
+  # models the pyelonephritis path with antibiotics via
+  # ``urinary_tract_infection.yaml``, so the row here is disambiguated
+  # to the drug-induced form.
+  #
+  # ``N14.1`` is a US ICD-10-CM extension not present in the WHO base
+  # dictionary — Condition emit falls back to the "primary" AKI code
+  # (``N17.9`` per ``icd_codes.primary`` above) when the Bayesian
+  # differential does not converge on this branch. When it does converge
+  # (prior 0.05), the emitted code is ``N14.1``; distinct treatment
+  # modeling for AIN (drug d/c + steroid rather than antibiotic) is
+  # deferred (see by-design registry #1353) and would require its own
+  # disease branch, not this AKI differential row.
   differential:
     - {disease: "prerenal_aki", icd: "N17.9", name: "Prerenal AKI (dehydration, hypoperfusion)", prior: 0.55}
     - {disease: "intrinsic_renal_atn", icd: "N17.0", name: "Acute tubular necrosis", prior: 0.20}
     - {disease: "postrenal_obstruction", icd: "N13.9", name: "Obstructive uropathy", prior: 0.10}
     - {disease: "glomerulonephritis", icd: "N05.9", name: "Rapidly progressive GN", prior: 0.05}
-    - {disease: "interstitial_nephritis", icd: "N10", name: "Acute interstitial nephritis", prior: 0.05}
+    - {disease: "interstitial_nephritis", icd: "N14.1", name: "Drug-induced acute interstitial nephritis", prior: 0.05}
     - {disease: "hepatorenal_syndrome", icd: "K76.7", name: "Hepatorenal syndrome", prior: 0.03}
     - {disease: "other", icd: "N17.8", name: "Other causes of AKI", prior: 0.02}
 
