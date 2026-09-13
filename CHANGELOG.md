@@ -79,6 +79,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   now always stripped from ``place_admission_orders``, no pediatric
   Enoxaparin can leak through this path, and the enricher's pediatric
   gate (Issue #1276) covers the enricher side.
+- **JP HOT7 / YJ codes missing for Duloxetine / Venlafaxine /
+  Mirtazapine; Fluoxetine sampled on JP despite no PMDA approval**
+  (Issue #1314). ``locale/jp/code_mapping_drug.yaml`` did not register
+  7-digit class-representative YJ codes for the SNRI + atypical-AD
+  subset (previously deferred pending cross-verification per the pre-
+  #1314 comment). FHIR emit fell through to the eCS ``nocoded`` slice
+  with a ``標準コードなし`` placeholder. Fluoxetine is NOT PMDA-
+  approved for Japan and should not sample there at all.
+
+  Fix, two parts:
+
+  - Registered ``1179052`` (Duloxetine), ``1179051`` (Mirtazapine),
+    ``1179055`` (Venlafaxine, brand イフェクサーSR) as JP YJ class-
+    representative codes. Each was cross-verified against the bundled
+    ``JP_MedicationCodeYJ_CS_full.json`` product master (≥ 1 product-
+    level entry per class-rep — a wet audit gate against fabricated
+    coding).
+  - Added ``locale_exclude: ["JP"]`` on the Fluoxetine entries in
+    ``chronic_medications.yaml`` F32 / F33 blocks. New filter in
+    ``_derive_home_medications`` strips locale-excluded drugs before
+    the sampler runs; residual probability grows the "no ssri" branch
+    (Sertraline / Escitalopram remain the JP first-line).
+
+  Non-scope: SNRI + atypical AD entries in the JP prescribing pathway
+  now emit real YJ coding, but the RxNorm mapping already existed on
+  the US side (unchanged). A follow-up could layer a
+  ``locale_exclude`` sweep across other US-only drugs if any surface.
 
 - **Pregnancy complications O14 / O24 / O42 / O60 / O64 never emitted
   as FHIR Conditions (post-#1293 regression)** (Issue #1307). PR #1293
