@@ -394,6 +394,30 @@ def register_builtin_enrichers() -> None:
         )
     )
 
+    # De-escalation status flip (Issue #1346). Walks each inpatient
+    # record's orders for ``DISCONTINUE: X`` MEDICATION markers and
+    # flips the original matching X order's status to STOPPED. Runs
+    # AFTER the daily loop's per-day MAR generation (POST_ENCOUNTER
+    # stage) so the flipped status propagates only to the encounter-
+    # final MedicationRequest emit, not to the per-day MAR iteration
+    # (byte-preserving MARs). Fills the pre-existing gap where
+    # antibiotic escalation (cellulitis treatment_resistant archetype,
+    # etc.) left the original Cefazolin MR active alongside the
+    # escalation drugs. Order 91 places it before triage / document /
+    # nursing_assignment / lab_derived_dx / document so downstream
+    # narratives / evidence text see the correct terminal status.
+    from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip
+
+    register_enricher(
+        Enricher(
+            name="discontinue_flip",
+            stage=POST_ENCOUNTER,
+            order=91,
+            enabled=lambda c: True,
+            run=enrich_discontinue_flip,
+        )
+    )
+
     # Lab-derived complication diagnosis (Issue #1326). Scans an inpatient
     # encounter's Creatinine lab_results for KDIGO Stage 3 absolute crossings
     # (Cr >= 4.0 mg/dL) and appends a working_diagnoses N17.9 entry when the
