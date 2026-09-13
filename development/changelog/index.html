@@ -2485,7 +2485,39 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   unit: "mg/m2"}</code>, 5-FU <code>{value: 400, unit: "mg/m2"}</code> (bolus dose;
   the 46-h infusion component remains in <code>.text</code> alongside).
   Un-parseable doses (<code>AUC5</code> for Carboplatin, BCG <code>1 vial (…)</code>)
-  gracefully fall through to text-only, no regression.</p>
+  gracefully fall through to text-only, no regression.
+- <strong>Paroxetine prescribed to elderly (age ≥ 65) despite AGS Beers 2023
+  "avoid" listing</strong> (Issue #1325). <code>chronic_medications.yaml</code> F41.1
+  block listed Paroxetine at 0.10 probability regardless of patient
+  age. Real geriatric prescribing avoids Paroxetine for age ≥ 65
+  (high anticholinergic burden → cognitive impairment; orthostatic
+  hypotension → fall risk); first-line SSRIs in the elderly are
+  Sertraline and Escitalopram.</p>
+<p>Fix, two parts:</p>
+<ul>
+<li>Added <code>age_max: 64</code> to the Paroxetine entry in
+    <code>chronic_medications.yaml</code>.</li>
+<li>Extended <code>modules/_shared.select_with_exclusive_classes</code> with an
+    optional <code>patient_age</code> parameter. Drug specs may declare
+    <code>age_max</code> (inclusive upper bound) and/or <code>age_min</code> (inclusive
+    lower bound); patients outside the accepted band drop the entry
+    silently before the categorical / Bernoulli split. RNG-neutral —
+    the exclusive-class draw still consumes one <code>rng.choice</code> per
+    class regardless of member count, and the filter's residual
+    probability mass grows the "no drug from this class" branch.</li>
+<li>Threaded <code>patient_age</code> through <code>_derive_home_medications</code> in
+    <code>modules/patient/activator.py</code>.</li>
+</ul>
+<p>Verification (p=500 s356 JP): Paroxetine MRs for age &lt; 65 → 0 (was
+  ~50 expected). Elderly patients (5 remaining Paroxetine MRs) are all
+  patients who started Paroxetine before age 65 and aged into 65+
+  during the sim window — a real-world continuation scenario.</p>
+<p>Non-scope: deprescribing on age transition (Issue #1325 direction #2
+  — swap to Sertraline when patient crosses 65) requires per-encounter
+  substitution logic and is deferred as a separate follow-up. The
+  reusable <code>age_min</code> / <code>age_max</code> sampler plumbing added here
+  enables the sibling Beers-avoid drugs (Diphenhydramine chronic,
+  Diazepam chronic) with a single YAML field.</p>
 <ul>
 <li><strong>Microbiology DiagnosticReport.conclusion emitted blank</strong> (Issue
   #1343). Every blood-culture / urine-culture / sputum-culture DR
