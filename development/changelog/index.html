@@ -2349,8 +2349,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   paths now suppressed. Verified on US p=500 s=356: 0 encounters with
   3+ concurrent NSAIDs (was ≥1 pre-fix), 0 patients with chronic
   NSAID + anticoagulant.</li>
-<li>
-<p><strong>Pregnancy-safe antihypertensive substitution at outpatient
+<li><strong>Pregnancy-safe antihypertensive substitution at outpatient
   prescription renewal</strong> (Issue #1321, META #1392 Cluster A part 5).
   New YAML <code>clinosim/locale/shared/pregnancy_substitutions.yaml</code>
   maps FDA-Cat-C/D chronic HTN drugs (Amlodipine, ACE-I family:
@@ -2367,7 +2366,32 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   Verified: 1 Methyldopa MR emitted for the pregnancy-carrier subset
   on p=2000 US s=356 (pregnant + HTN overlap is statistically rare at
   this cohort scale; the substitution mechanism fires for eligible
-  patients).</p>
+  patients).</li>
+<li>
+<p><strong>De-escalation status-flip enricher: original antibiotic MR now
+  emits <code>status=stopped</code> when a matching <code>DISCONTINUE: X</code> marker
+  fires</strong> (Issue #1346). <code>simulator/daily_loop</code> has long emitted a
+  stand-alone <code>Order(display_name="DISCONTINUE: DrugName")</code> when a
+  disease-YAML archetype's <code>treatment_modifications.day_N.stop: [X]</code>
+  block fires (cellulitis treatment_resistant / gradual_deterioration
+  / sudden_deterioration archetypes; AKI Metformin hold; etc.). Prior
+  to this pass, the ORIGINAL X medication order stayed at <code>PLACED</code>
+  through discharge, so FHIR <code>MedicationRequest</code> rendered the
+  original antibiotic as still-active — the reviewer of a cellulitis
+  IMP admission (#1346) flagged Cefazolin + Meropenem + Vancomycin +
+  Pip/Tazo 4-antibiotic stacking with no visible stewardship. New
+  <code>clinosim.modules.order.discontinue_flip.enrich_discontinue_flip</code>
+  POST_ENCOUNTER enricher (order 91, RNG-free) walks
+  <code>record.orders</code> for <code>DISCONTINUE: X</code> markers (identified by the
+  existing <code>MED_STOP_ORDER_ID_MARKER</code> in <code>order_id</code>) and flips
+  every matching X medication order's <code>status</code> to <code>STOPPED</code>.
+  Byte-preserving to per-day MAR generation because the enricher
+  fires POST_ENCOUNTER — the flipped status only propagates to the
+  encounter-final <code>MedicationRequest</code> emit. Match is
+  case-insensitive first-token substring (<code>"Cefazolin 2g"</code> matches
+  <code>"DISCONTINUE: Cefazolin"</code>). Verified on US p=2000 s=356: 6 MRs
+  correctly flipped to stopped (Ceftriaxone 3, Piperacillin/Tazobactam
+  2, Cefazolin 1) — was 0 pre-fix.</p>
 </li>
 <li>
 <p><strong>Lab-derived AKI Condition emit — Creatinine peak ≥ 4.0 mg/dL now
