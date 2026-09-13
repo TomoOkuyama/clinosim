@@ -829,7 +829,17 @@ def _derive_home_medications(
 
             candidate_drug = drug_en if drug_en else name_for_display
             active_drug_names = [m.drug_name for m in meds if m.drug_name]
-            verdicts = drug_safety.check_candidate_against_active(candidate_drug, active_drug_names)
+            drug_verdicts = drug_safety.check_candidate_against_active(candidate_drug, active_drug_names)
+            # Issue #1392 Cluster A: also gate on drug-vs-active-disease
+            # (NSAID vs HF / cirrhosis / CKD stage 4-5). The patient's
+            # chronic-condition list is the full carrier set at this point
+            # in activation. Codes are stored as their base form (I50, K74,
+            # N18) or with subcode (N18.4 for CKD-4 carriers); the
+            # ``check_candidate_against_disease_state`` predicate matcher
+            # accepts both via prefix match.
+            active_condition_codes = [cond.code for cond in chronic_conditions if hasattr(cond, "code") and cond.code]
+            disease_verdicts = drug_safety.check_candidate_against_disease_state(candidate_drug, active_condition_codes)
+            verdicts = list(drug_verdicts) + list(disease_verdicts)
             worst = max(
                 (v for v in verdicts if not v.is_allowed),
                 key=lambda v: SEVERITY_RANK[v.severity],
