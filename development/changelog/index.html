@@ -2306,6 +2306,26 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Capecitabine (oral 5-FU pro-drug) prescribed concurrently with IV
+  FOLFOX in C18 colon-cancer chronic carriers — double 5-FU exposure</strong>
+  (Issue #1329). <code>chronic_medications.yaml::C18</code> sampled Capecitabine
+  independently of <code>chemo_regimens.yaml::by_cancer::C18</code> FOLFOX
+  Bernoulli, so ~12 % of C18 carriers received both. The two paths now
+  share the same <code>chemotherapy_regimen_seed(patient_id, cancer_code)</code>
+  sub-RNG via a new pure-function helper
+  <code>pick_active_chemo_regimen</code> in <code>population/engine.py</code>. When
+  <code>_derive_home_medications</code> (activator) sees an active regimen with
+  <code>contains_drug_classes</code> overlapping a candidate med's
+  <code>drug_class</code>, the candidate's <code>probability</code> is zeroed in a
+  shallow spec copy — RNG-preserving inside
+  <code>select_with_exclusive_classes</code> (Bernoulli draw still fires, class
+  mass collapses into residual). <code>chemo_regimens.yaml</code> regimens now
+  declare <code>contains_drug_classes</code> (FOLFOX: fluoropyrimidine+platinum;
+  CarboPem: platinum+antifolate; …); <code>chronic_medications.yaml::C18</code>
+  Capecitabine now carries <code>drug_class: fluoropyrimidine</code>. Verified
+  on p=2000 US s=356: 0 patients with both Capecitabine + FOLFOX-drug
+  MR (was ~2). Structured CIF byte-diff on Capecitabine-carrier subset
+  only.</li>
 <li><strong>Clopidogrel 300 mg loading dose emitted as chronic maintenance
   MR after cerebral infarction</strong> (Issue #1334 part 1). <code>cerebral_
   infarction.yaml</code> discharge / DAPT block wrote the dose string as
