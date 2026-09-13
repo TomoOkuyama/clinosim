@@ -782,6 +782,55 @@ def simulate_delivery_encounter(
                 )
             )
 
+    # Issue #1313: postpartum discharge prescription. Real delivery
+    # encounters (vaginal + cesarean both) send the mother home on a
+    # short-course analgesic bundle. Pre-fix ``discharge_prescription``
+    # was ``None`` for every delivery encounter, so narrative CIF
+    # documents rendered "No discharge medications" for O80 / O82
+    # deliveries — a silent gap contradicting standard postpartum
+    # care. The intraop bundle (Cefazolin / Bupivacaine / Fentanyl /
+    # Ondansetron / Oxytocin / Ketorolac|Acetaminophen) is administered
+    # during surgery and lives in ``medication_administrations`` +
+    # per-encounter ``orders``; it does NOT belong in discharge_
+    # medications (the patient does not take Bupivacaine home). Instead
+    # emit a small, clinically-real postpartum take-home bundle here.
+    #
+    # Content follows ACOG / ASA postpartum analgesia guidelines
+    # (Acetaminophen + Ibuprofen multimodal; opioid step-up reserved
+    # for breakthrough pain and NOT emitted at the routine-discharge
+    # level to avoid over-prescribing signal in downstream analytics).
+    # C-section adds a 3-5 day scheduled NSAID course; vaginal
+    # delivery is PRN-only. Both locales share the same drug set —
+    # names localise via the drug_ja fields already present in the
+    # locale/*/code_mapping_drug.yaml files.
+    _mother_rx_items: list[dict] = [
+        {
+            "drug_name": "Acetaminophen",
+            "drug_name_ja": "アセトアミノフェン",
+            "dose": "500mg",
+            "route": "PO",
+            "frequency": "q6h PRN",
+            "duration_days": 7,
+        },
+        {
+            "drug_name": "Ibuprofen",
+            "drug_name_ja": "イブプロフェン",
+            "dose": "400mg",
+            "route": "PO",
+            "frequency": "tid" if is_cesarean else "q6h PRN",
+            "duration_days": 5 if is_cesarean else 3,
+        },
+    ]
+    from clinosim.types.encounter import PrescriptionRecord as _PrescriptionRecord
+
+    _mother_discharge_rx = _PrescriptionRecord(
+        prescription_id=f"RX-{patient.patient_id}-DELIVERY",
+        patient_id=patient.patient_id,
+        prescriber_id=encounter.attending_physician_id,
+        issue_date=encounter.discharge_datetime or visit_date,
+        items=_mother_rx_items,
+    )
+
     mother_record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
@@ -791,7 +840,7 @@ def simulate_delivery_encounter(
         procedures=[procedure],
         condition_event=condition_event,
         clinical_diagnosis=clinical_diagnosis,
-        discharge_prescription=None,
+        discharge_prescription=_mother_discharge_rx,
         physiological_states=[],
     )
 
