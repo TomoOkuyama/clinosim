@@ -718,6 +718,69 @@ def simulate_delivery_encounter(
                     duration_days=1,
                 )
             )
+    else:
+        # Issue #1336: vaginal delivery intrapartum bundle. Prior to this
+        # fix O80 delivery encounters emitted ZERO MedicationRequests
+        # while every O82 encounter fired the full 6-drug intraop bundle
+        # (PR #1285 / #1297). Real vaginal deliveries always receive a
+        # 3rd-stage management uterotonic (Oxytocin — Class IA evidence,
+        # AWHONN / WHO / ACOG universal recommendation for PPH
+        # prevention) and running IV crystalloid during labor. Emit
+        # those two universally; optional add-ons (epidural analgesia,
+        # GBS antibiotic prophylaxis, RhoGAM) require probability
+        # sampling / risk-factor flags and are deferred as separate
+        # follow-ups.
+        #
+        # Order-id suffix scheme parallels the C-section CS* family:
+        # VD*, encounter-scoped, byte-stable across re-runs.
+        from clinosim.types.encounter import Order, OrderStatus, OrderType
+
+        _vd_attending = encounter.attending_physician_id
+        _vd_ord_specs: list[tuple[str, str, str, str, float, str, str, timedelta]] = [
+            # (id_suffix, display_name, intent_en, intent_ja, dose, unit, route, timing_delta)
+            (
+                "VDIV",
+                "Lactated Ringer",
+                "Vaginal delivery IV crystalloid during labor (maintenance + hydration)",
+                "経腟分娩中の維持輸液 (乳酸リンゲル)",
+                125.0,
+                "mL/h",
+                "IV",
+                timedelta(hours=-2),
+            ),
+            (
+                "VDOX",
+                "Oxytocin",
+                "Vaginal delivery active 3rd-stage uterotonic (PPH prevention, AWHONN / ACOG Class IA)",
+                "経腟分娩 分娩第3期 子宮収縮薬 (PPH予防、AWHONN / ACOG Class IA)",
+                10.0,
+                "U",
+                "IM",
+                timedelta(minutes=0),
+            ),
+        ]
+        for _sfx, _name, _intent_en, _intent_ja, _dose, _unit, _route, _delta in _vd_ord_specs:
+            orders.append(
+                Order(
+                    order_id=f"ORD-{encounter.encounter_id}-{_sfx}-01",
+                    encounter_id=encounter.encounter_id,
+                    patient_id=patient.patient_id,
+                    order_type=OrderType.MEDICATION,
+                    display_name=_name,
+                    urgency="routine",
+                    clinical_intent=_intent_en,
+                    clinical_intent_ja=_intent_ja,
+                    ordered_datetime=visit_date + _delta,
+                    ordered_by=_vd_attending,
+                    status=OrderStatus.PLACED,
+                    dose_quantity=_dose,
+                    dose_unit=_unit,
+                    frequency="continuous" if _unit == "mL/h" else "once",
+                    frequency_per_day=24 if _unit == "mL/h" else 1,
+                    route=_route,
+                    duration_days=1,
+                )
+            )
 
     mother_record = CIFPatientRecord(
         patient=patient,
