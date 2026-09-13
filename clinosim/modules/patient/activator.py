@@ -6,7 +6,8 @@ with physiological parameters, baseline vitals, and detailed medical history.
 
 from __future__ import annotations
 
-from datetime import date
+import hashlib
+from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
 
@@ -252,6 +253,43 @@ def _clamp_chronic_onset(sampled: date, dob: date | None, code: str) -> date:
     floor_days = max(1, int(min_years) * 365)
     floor = date.fromordinal(dob.toordinal() + floor_days)
     return floor if sampled < floor else sampled
+
+
+def derive_implied_chronic_onset(
+    patient_id: str,
+    code: str,
+    reference_date: date,
+    dob: date | None,
+) -> date:
+    """Backdate an implied-chronic Condition onset deterministically from
+    ``(patient_id, code)`` so it precedes the reference (acute-admission) date
+    by a plausible 1-14 years — mirroring the activator's population-time
+    sampling window — without consuming the master RNG (Issue #1339).
+
+    Callers (currently ``simulator/inpatient.py``'s ``_IMPLIED_CHRONIC_BY_DISEASE``
+    branch) previously stamped ``onset_date = admission_date``, which produced
+    same-day "chronic condition first appearing at the acute event" records.
+    That is clinically wrong: an implied chronic co-morbidity discovered on
+    workup was pre-existing for years — the admission is the *documentation*
+    event, not the onset.
+
+    The offset is derived from ``SHA256(patient_id|base_code|implied_onset)``
+    so patients keep the same onset across re-runs and the master-RNG cascade
+    is unperturbed (see ``feedback_rng_neutral_additive_field``). Applies the
+    same ``dob + min_onset_age`` floor as :func:`_clamp_chronic_onset` so
+    pediatric edge cases stay clinically valid.
+    """
+    base_code = code.split(".")[0]
+    seed = int(
+        hashlib.sha256(f"{patient_id}|{base_code}|implied_onset".encode()).hexdigest()[:16],
+        16,
+    )
+    # 1-14 years back plus 0-364 additional days (matches the activator's
+    # 1..14 exclusive sampling window CHRONIC_ONSET_YEAR_MIN..MAX_EXCLUSIVE).
+    years_back = 1 + (seed % 14)
+    extra_days = (seed >> 16) % 365
+    sampled = reference_date - timedelta(days=years_back * 365 + extra_days)
+    return _clamp_chronic_onset(sampled, dob, code)
 
 
 def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
