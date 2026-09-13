@@ -2306,6 +2306,43 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Microbiology DiagnosticReport.conclusion emitted blank</strong> (Issue
+  #1343). Every blood-culture / urine-culture / sputum-culture DR
+  populated <code>conclusionCode</code> (SNOMED Normal/Abnormal) and
+  <code>presentedForm</code> (multi-line attachment), but the canonical
+  <code>conclusion</code> single-line summary field was empty — a downstream
+  reader scanning <code>DiagnosticReport.conclusion</code> on the MB DR saw
+  nothing. Exemplar pt-2d4b7329af88 (US, 71yo F, CAP admission): 600-7
+  Bacteria identified in Blood by Culture DR with conclusionCode Normal
+  but conclusion "".</li>
+</ul>
+<p>Fix: added <code>_mb_conclusion_text</code> in
+  <code>clinosim/modules/output/fhir_r4/labs/microbiology.py</code> which
+  produces a one-line human-readable summary from the same MB payload
+  that drives <code>presentedForm</code>. Four canonical branches:</p>
+<ul>
+<li>Negative culture — "No growth after 5-day incubation" /
+    "5 日間培養で発育なし。"</li>
+<li>Positive with sensitivities — "\&lt;Organism&gt; isolated. Susceptibility:
+    \&lt;DrugA&gt;=S, \&lt;DrugB&gt;=I, \&lt;DrugC&gt;=R" (up to 4 drugs; "…" tail when
+    more panelled). Drug label resolved via <code>code_lookup("loinc", …)</code>
+    with the <code>[Susceptibility]</code> / <code>感受性</code> suffix trimmed so the
+    reader sees "Ceftriaxone=S" rather than "18895-3=S".</li>
+<li>Positive without sensitivities — organism-only line noting the
+    panel is pending.</li>
+<li>Growth flag off but organism recorded — labelled as likely
+    contaminant so the reader isn't misled.</li>
+</ul>
+<p>Verification (p=200 s356 US): MB DR <code>conclusion</code> populated on 100 %
+  of cultures (was 0 %). Sample: "Escherichia coli isolated.
+  Susceptibility: Amoxicillin+Clavulanate=S, Ceftriaxone=S,
+  Ciprofloxacin=S, Clindamycin=S …."</p>
+<p>Non-scope: the organism-linked follow-up (organism Observation
+  emitted from primary Dx pattern J13 → S. pneumoniae etc.) is a larger
+  scope; the pre-existing <code>mb-org</code> / <code>mb-sus</code> Observation emit is
+  already present in the same builder and this fix targets the missing
+  summary text alone.</p>
+<ul>
 <li><strong>Inpatient progress_note subjective repeats identical boilerplate
   across every hospital day</strong> (Issue #1327). When today's vitals carry
   no abnormal marker (fever / hypothermia / hypoxia), the
