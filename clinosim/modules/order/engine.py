@@ -81,6 +81,7 @@ from clinosim.modules.order._state_delay_thresholds import (
 )
 from clinosim.modules.order.panel_grouping import classify_lab_specs, load_panel_definitions
 from clinosim.modules.order.treatment_classifier import classify_inpatient_supportive
+from clinosim.modules.prophylaxis.engine import pediatric_anticoag_ceiling as _pediatric_anticoag_ceiling
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 
 # Mapping: text frequency token → times per day
@@ -333,11 +334,22 @@ def place_admission_orders(
     country: str,
     rng: np.random.Generator,
     ordered_by: str = "",
+    patient_age: int | None = None,
 ) -> list[Order]:
     """Expand protocol admission orders into concrete Order instances.
 
     Reads order_protocols.admission_orders from disease YAML.
     Falls back to drugs/expected_lab_distributions if order_protocols not defined.
+
+    ``patient_age`` (Issue #1306) — when provided and the patient is
+    younger than the pediatric anticoagulation ceiling from
+    ``prophylaxis_rules.yaml``, ``DVT_prophylaxis: Enoxaparin`` supportive
+    entries are dropped. AAP / CHEST 2019 pediatric VTE guidelines do
+    not recommend routine chemoprophylaxis for pediatric inpatients.
+    Mirrors the gate already present in ``modules/prophylaxis.engine
+    .should_skip_dvt_prophylaxis`` (Issue #1276) — that gate covers the
+    enricher-driven emit path; this call site covers the disease-YAML
+    supportive-orders fallback path.
     """
     orders: list[Order] = []
 
@@ -355,6 +367,16 @@ def place_admission_orders(
             {"type": "IV_fluid", "detail": "NS 80-125 mL/h"},
             {"type": "DVT_prophylaxis", "detail": "Enoxaparin 2000IU SC daily"},
         ]
+
+    # Issue #1306: pediatric DVT-prophylaxis gate. Filter out any
+    # ``DVT_prophylaxis`` supportive-order entry (yaml or fallback) when
+    # the patient is younger than the ceiling declared in
+    # ``prophylaxis_rules.yaml`` (default 15). Never touch other supportive
+    # orders — IV_fluid, oxygen, positioning are safe at any age.
+    if patient_age is not None:
+        _peds_ceiling = _pediatric_anticoag_ceiling()
+        if _peds_ceiling is not None and patient_age < _peds_ceiling:
+            admission["supportive"] = [s for s in admission.get("supportive", []) if s.get("type") != "DVT_prophylaxis"]
 
     if not admission.get("imaging"):
         admission["imaging"] = [{"test": "Chest_Xray", "urgency": "stat"}]
