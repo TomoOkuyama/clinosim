@@ -20,6 +20,8 @@ from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     encounter_admission_condition_key,
     encounter_primary_condition_id,
     encounter_primary_condition_key,
+    encounter_secondary_condition_id,
+    encounter_secondary_condition_key,
     needs_admission_diagnosis_condition,
 )
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -149,6 +151,10 @@ _DIAGNOSIS_TYPE_DISPLAY_EN = {
     # ``Encounter.reasonCode`` code so the invariant
     # ``reasonCode ⊆ diagnosis[].condition.code`` holds.
     "admitting": "Admitting Diagnosis",
+    # Issue #1307: working_diagnoses secondary Condition — pregnancy
+    # complications carried onto the delivery encounter and in-hospital
+    # complications recorded during an active admission.
+    "differential": "Differential Diagnosis",
 }
 
 
@@ -598,6 +604,112 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             }
         ]
         conditions.append(_admit_cond)
+
+    # --- Secondary encounter diagnoses (working_diagnoses) — Issue #1307 ---
+    # ``clinical_diagnosis.working_diagnoses`` carries secondary Dx entries
+    # populated by two writers:
+    #   * ``simulator/perinatal.py`` — pregnancy complications
+    #     (O14 / O24 / O42 / O60 / O64) surfaced from the pregnancy
+    #     TemporalStatePeriod.metadata onto the delivery encounter.
+    #   * ``simulator/engine.py::_record_complication_on_active_encounter``
+    #     — in-hospital complications developed during an active admission
+    #     (sepsis-in-CAP, DKA-in-DM, etc.).
+    # PR #1293 wired the first writer but the FHIR emit path did not read
+    # ``working_diagnoses`` back — 0 O-code Conditions on p=10k builds.
+    # Fix: iterate the list here and emit one Condition per entry, category
+    # ``encounter-diagnosis`` (secondary), onset from the entry's timestamp.
+    _working_dx = dx.get("working_diagnoses") or []
+    for _wd_idx, _wd in enumerate(_working_dx):
+        _wd_code_raw = str((_wd.get("disease_id") or "") if isinstance(_wd, dict) else "")
+        if not _wd_code_raw:
+            continue
+        _wd_base = _wd_code_raw.split(".")[0]
+        # Dedup: skip if the encounter primary / admission / a chronic
+        # already emitted this ICD base — the primary/admission slot owns
+        # it, no need for a duplicate secondary row.
+        if _wd_base in seen_codes:
+            continue
+        seen_codes.add(_wd_base)
+        _wd_mapped = map_diagnosis_code(_wd_code_raw, country, sex=patient_sex)
+        if not _wd_mapped:
+            continue
+        _wd_onset_dt = str(_wd.get("onset_datetime") or "") if isinstance(_wd, dict) else ""
+        _wd_source = str(_wd.get("source") or "") if isinstance(_wd, dict) else ""
+        _wd_structural_key = encounter_secondary_condition_key(patient_id, encounter_id, _wd_idx)
+        _wd_cond: dict[str, Any] = {
+            "resourceType": "Condition",
+            "id": encounter_secondary_condition_id(patient_id, encounter_id, _wd_idx),
+            "identifier": [wrap_as_identifier(_wd_structural_key, CONDITION_KEY_SYSTEM)],
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
+                if is_jp(country_code)
+                else {}
+            ),
+            # JP eCS DiagnosisType: "differential" is the closest
+            # spec-defined value in ``ex-diagnosistype`` for a
+            # working-diagnoses entry (a Condition under active
+            # clinical consideration on this encounter). "secondary"
+            # is NOT a valid code in that value-set.
+            **({"extension": [_ecs_diagnosis_type_extension("differential")]} if is_jp(country_code) else {}),
+            "clinicalStatus": {
+                "coding": [
+                    _coding_with_display(
+                        "hl7-condition-clinical",
+                        # Match the encounter-primary discharge semantics —
+                        # resolved when the encounter ends non-deceased,
+                        # active while ongoing / on discharge for deceased.
+                        "resolved" if (is_inpatient and discharge_dt and not deceased) else "active",
+                        lang,
+                    )
+                ],
+            },
+            "verificationStatus": {
+                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
+            },
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-condition-category"),
+                            "code": "encounter-diagnosis",
+                            "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
+                        }
+                    ],
+                }
+            ],
+            "code": build_diagnosis_codeable_concept(_wd_mapped, icd_system_key, country),
+            "subject": patient_ref(patient_id),
+        }
+        if encounters:
+            _wd_cond["encounter"] = encounter_ref(encounters[0].get("encounter_id", ""))
+            _wd_att = encounters[0].get("attending_physician_id", "")
+            if _wd_att:
+                _wd_cond["recorder"] = {"reference": f"Practitioner/{_wd_att}"}
+                _wd_cond["asserter"] = {"reference": f"Practitioner/{_wd_att}"}
+        if _wd_onset_dt:
+            _wd_cond["onsetDateTime"] = to_fhir_datetime(_wd_onset_dt)
+            _wd_cond["recordedDate"] = _wd_cond["onsetDateTime"]
+        elif admission_dt:
+            _wd_cond["onsetDateTime"] = to_fhir_datetime(admission_dt)
+            _wd_cond["recordedDate"] = _wd_cond["onsetDateTime"]
+        if is_inpatient and discharge_dt and not deceased:
+            _wd_cond["abatementDateTime"] = to_fhir_datetime(discharge_dt)
+        # Evidence label: distinguish in-hospital complication from
+        # pre-existing pregnancy-complication carryover so downstream
+        # readers can tell them apart without parsing ICD chapters.
+        if _wd_source == "in_hospital_complication":
+            _ev_text_en = "In-hospital complication observed during admission"
+            _ev_text_ja = "入院中に発生した合併症"
+        else:
+            _ev_text_en = "Secondary diagnosis carried onto the encounter"
+            _ev_text_ja = "併存傷病"
+        _wd_cond["evidence"] = [
+            {"code": [{"text": _ev_text_ja if is_jp(country_code) else _ev_text_en}]},
+        ]
+        _bs_wd = _bodysite_for(_wd_code_raw, country)
+        if _bs_wd:
+            _wd_cond["bodySite"] = [_bs_wd]
+        conditions.append(_wd_cond)
 
     # --- Chronic conditions (from patient profile) ---
     for i, chronic in enumerate(chronic_list):
