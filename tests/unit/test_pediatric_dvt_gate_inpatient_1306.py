@@ -73,41 +73,34 @@ def _has_iv_fluid(orders) -> bool:
     return any((o.display_name or "").startswith("IV_fluid:") for o in orders)
 
 
-def test_adult_still_gets_enoxaparin_from_fallback():
-    orders = _run(_protocol_with_fallback_supportive(), age=45)
-    assert _has_enoxaparin(orders)
+def test_no_patient_gets_enoxaparin_from_place_admission_orders_after_1342():
+    """Issue #1342: after unifying DVT_prophylaxis emit through the
+    ``prophylaxis.enricher`` single-source path, ``place_admission_orders``
+    NEVER emits an Enoxaparin Order — regardless of patient age. This
+    subsumes the original Issue #1306 pediatric gate (which was scoped
+    to age < 15); adults now also route through the enricher, which
+    keeps the LOS ≥ 48 h / therapeutic-AC-active / contraindication
+    checks in ONE place.
+    """
+    for age in (None, 3, 14, 15, 45, 80):
+        orders = _run(_protocol_with_fallback_supportive(), age=age)
+        assert not _has_enoxaparin(orders), (
+            f"age={age} still received Enoxaparin from the fallback path — "
+            "single-source-of-truth violation for DVT chemoprophylaxis"
+        )
 
 
-def test_pediatric_3yo_skips_enoxaparin_from_fallback():
+def test_pediatric_still_gets_iv_fluid_after_1342():
+    # Non-DVT supportive orders are unaffected — IV_fluid still emits.
     orders = _run(_protocol_with_fallback_supportive(), age=3)
-    assert not _has_enoxaparin(orders)
-    # Other supportive orders unaffected — IV_fluid still there.
     assert _has_iv_fluid(orders)
 
 
-def test_pediatric_14yo_skips_enoxaparin_from_fallback():
-    # Ceiling is exclusive (age < 15 → skip); 14 hits the gate.
-    orders = _run(_protocol_with_fallback_supportive(), age=14)
+def test_yaml_declared_dvt_prophylaxis_also_stripped_after_1342():
+    # The strip applies uniformly whether DVT_prophylaxis came from the
+    # hard-coded fallback or from an explicit disease-YAML declaration.
+    orders = _run(_protocol_with_yaml_dvt_prophylaxis(), age=45)
     assert not _has_enoxaparin(orders)
-
-
-def test_15yo_gets_enoxaparin_from_fallback():
-    # 15 is the ceiling; age >= 15 does NOT skip.
-    orders = _run(_protocol_with_fallback_supportive(), age=15)
-    assert _has_enoxaparin(orders)
-
-
-def test_pediatric_skips_yaml_declared_dvt_prophylaxis():
-    orders = _run(_protocol_with_yaml_dvt_prophylaxis(), age=6)
-    assert not _has_enoxaparin(orders)
-    # Other yaml-declared supportive items (Positioning, IV_fluid) unaffected.
+    # Non-DVT supportive items (Positioning, IV_fluid) are preserved.
     assert _has_iv_fluid(orders)
     assert any("Positioning" in (o.display_name or "") for o in orders)
-
-
-def test_omitting_patient_age_preserves_pre_1306_behavior():
-    # Backwards compat: callers that don't pass patient_age get the
-    # old behavior (no age gate). This matters for any legacy callers
-    # of place_admission_orders (tests, older adapters).
-    orders = _run(_protocol_with_fallback_supportive(), age=None)
-    assert _has_enoxaparin(orders)

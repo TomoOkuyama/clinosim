@@ -81,7 +81,6 @@ from clinosim.modules.order._state_delay_thresholds import (
 )
 from clinosim.modules.order.panel_grouping import classify_lab_specs, load_panel_definitions
 from clinosim.modules.order.treatment_classifier import classify_inpatient_supportive
-from clinosim.modules.prophylaxis.engine import pediatric_anticoag_ceiling as _pediatric_anticoag_ceiling
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 
 # Mapping: text frequency token → times per day
@@ -386,15 +385,12 @@ def place_admission_orders(
             {"type": "DVT_prophylaxis", "detail": "Enoxaparin 2000IU SC daily"},
         ]
 
-    # Issue #1306: pediatric DVT-prophylaxis gate. Filter out any
-    # ``DVT_prophylaxis`` supportive-order entry (yaml or fallback) when
-    # the patient is younger than the ceiling declared in
-    # ``prophylaxis_rules.yaml`` (default 15). Never touch other supportive
-    # orders — IV_fluid, oxygen, positioning are safe at any age.
-    if patient_age is not None:
-        _peds_ceiling = _pediatric_anticoag_ceiling()
-        if _peds_ceiling is not None and patient_age < _peds_ceiling:
-            admission["supportive"] = [s for s in admission.get("supportive", []) if s.get("type") != "DVT_prophylaxis"]
+    # Issue #1306 pediatric filter is now folded into the per-entry
+    # DVT_prophylaxis suppression below (see the Issue #1342 comment on
+    # the supportive-loop). The list-shape is preserved so downstream
+    # loop iteration and its per-iteration ``rng.normal`` cursor
+    # position stay byte-stable; only the Order APPEND is skipped.
+    _ = patient_age  # noqa: F841 — read inside the supportive loop below
 
     if not admission.get("imaging"):
         admission["imaging"] = [{"test": "Chest_Xray", "urgency": "stat"}]
@@ -568,6 +564,27 @@ def place_admission_orders(
         # so dose_quantity / dose_unit are correctly set (not display_name).
         if order_type == OrderType.MEDICATION:
             enrich_medication_order(order, dose_str=detail_raw)
+        # Issue #1342 (and #1306 pediatric): DVT_prophylaxis is emitted
+        # by the ``modules/prophylaxis/enricher.enrich_prophylaxis``
+        # POST_ENCOUNTER enricher — the single canonical path with
+        # LOS ≥ 48 h + contraindication + pediatric-age-ceiling gates
+        # already wired. Prior to this fix, the enricher emitted
+        # ``Enoxaparin 40 mg SC daily`` while THIS supportive-orders path
+        # ALSO emitted ``Enoxaparin 2000IU SC daily`` (from disease-YAML
+        # ``supportive: DVT_prophylaxis`` entries or the fallback
+        # default), producing two MedicationRequests with mismatched
+        # units on every adult inpatient. Skip the append here so the
+        # enricher becomes the single source of truth. The list-shape
+        # (and ``rng.normal`` cursor above) is preserved so downstream
+        # RNG-dependent logic is byte-stable — only the emitted Order
+        # count for DVT_prophylaxis drops by one per affected encounter.
+        #
+        # Pediatric extra gate: on pediatric patients (age <
+        # ``pediatric_anticoag_ceiling``), the enricher itself already
+        # skips (Issue #1276), so no orders are emitted here EITHER,
+        # closing the leak Issue #1306 originally targeted.
+        if sup_type == "DVT_prophylaxis":
+            continue
         orders.append(order)
 
     # Imaging orders
