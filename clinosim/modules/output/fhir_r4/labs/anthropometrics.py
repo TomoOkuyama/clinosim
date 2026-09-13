@@ -200,9 +200,25 @@ def _age_at(dob: date, when: datetime) -> int:
     return max(0, yrs)
 
 
+def _age_at_months(dob: date, when: datetime) -> int:
+    """Age in whole months (Issue #1322 infant growth-chart lookup).
+
+    Rounded down (a 5-week-old is 1 month, not 2). Returns 0 for any date
+    at or before ``dob``, so newborns admitted on day 0 land on the WHO
+    birth-median row.
+    """
+    months = (when.year - dob.year) * 12 + (when.month - dob.month)
+    if when.day < dob.day:
+        months -= 1
+    return max(0, months)
+
+
 # ---------------------------------------------------------------------------
 # Value derivation.
 # ---------------------------------------------------------------------------
+
+
+_INFANT_MEDIAN_UPPER_MONTHS = 24
 
 
 def _pediatric_medians(country: str, sex: str, age_years: int) -> dict[str, float] | None:
@@ -216,6 +232,12 @@ def _pediatric_medians(country: str, sex: str, age_years: int) -> dict[str, floa
     stays type-safe.
 
     Sex normalization: "M" / "male" → male row, otherwise female row.
+
+    NOTE: for ages under 2 years, callers should prefer
+    :func:`_infant_medians` (keyed by month-of-age), which resolves the
+    0-24 month band with sub-year granularity. The ``age_years=0`` row
+    here represents the 12-month median (kept for backwards compatibility
+    with adult / older-pediatric callers that only have years available).
     """
     ref = _load_reference()
     tables = (ref.get("pediatric_growth") or {}).get("JP" if is_jp(country) else "US") or {}
@@ -232,14 +254,62 @@ def _pediatric_medians(country: str, sex: str, age_years: int) -> dict[str, floa
     return out
 
 
+def _infant_medians(sex: str, age_months: int) -> dict[str, float] | None:
+    """Return WHO length-for-age / weight-for-age / head-circumference
+    p50 medians for infants under 24 months (Issue #1322).
+
+    The infant table's month keys are 0 / 1 / 3 / 6 / 9 / 12 / 18. The
+    row selected is the largest key ≤ ``age_months`` (a 4-month-old
+    picks the 3-month row, an 11-month-old picks the 9-month row) —
+    p50 medians vary smoothly, and picking the next-earlier keyed row
+    is closer than picking the next-later row for a growing child.
+
+    Returns ``None`` when the age is at or above 24 months; those
+    callers should fall back to :func:`_pediatric_medians` for the
+    yearly table.
+    """
+    if age_months >= _INFANT_MEDIAN_UPPER_MONTHS:
+        return None
+    ref = _load_reference()
+    tables = ref.get("pediatric_growth_infant") or {}
+    sex_key = "male" if str(sex or "").upper().startswith("M") else "female"
+    rows = tables.get(sex_key) or {}
+    if not rows:
+        return None
+    # Pick the largest key ≤ age_months.
+    keys = sorted(int(k) for k in rows.keys())
+    picked_key = keys[0]
+    for k in keys:
+        if k <= age_months:
+            picked_key = k
+        else:
+            break
+    row = rows[picked_key]
+    out: dict[str, float] = {
+        "height": float(row.get("height", 0.0)),
+        "weight": float(row.get("weight", 0.0)),
+    }
+    if "head_circumference" in row:
+        out["head_circumference"] = float(row["head_circumference"])
+    return out
+
+
 def _derive_anthropometrics(
     patient_data: dict,
     encounter_id: str,
     age_years: int,
     country: str,
+    age_months: int | None = None,
 ) -> dict[str, float]:
     """Return {"height_cm", "weight_kg", "bmi", "head_circumference_cm"?}
     for one encounter. Values are clamped to yaml `clamps` bounds.
+
+    ``age_months`` (Issue #1322) selects the WHO infant growth table for
+    ages under 24 months so a newborn admitted at day 0 emits 50 cm /
+    3.3 kg rather than the 12-month-median 74 cm / 9.6 kg. When it is
+    ``None`` (older callers), the function falls back to the yearly
+    ``pediatric_growth`` table using ``age_years`` alone — the same
+    behavior as before this parameter was added.
     """
     ref = _load_reference()
     clamps = ref.get("clamps") or {}
@@ -267,7 +337,14 @@ def _derive_anthropometrics(
                 base_weight = float(fallback["weight"])
     else:
         # Pediatric path — growth-chart medians per age/sex.
-        peds = _pediatric_medians(country, sex, age_years)
+        # Issue #1322: for age < 24 months, prefer the WHO infant table
+        # (sub-year granularity) so newborns don't inherit the 12-month
+        # median (74 cm / 9.6 kg) from the ``age=0`` yearly row.
+        peds: dict[str, float] | None = None
+        if age_months is not None and age_months < _INFANT_MEDIAN_UPPER_MONTHS:
+            peds = _infant_medians(sex, age_months)
+        if peds is None:
+            peds = _pediatric_medians(country, sex, age_years)
         if peds is None:
             # Age outside table range: fall back to nearest adult profile.
             base_height = float(patient_data.get("height_cm", 0.0) or 0.0) or 160.0
@@ -308,7 +385,14 @@ def _derive_anthropometrics(
 
     if age_years <= hc_max_age:
         # Head-circumference: pediatric growth-chart median + small noise.
-        peds = _pediatric_medians(country, sex, age_years) or {}
+        # Issue #1322: for age < 24 months, look up HC in the infant table
+        # (sub-year granularity) so a newborn's HC ~34.5 cm is emitted
+        # instead of the 12-month median 46 cm from the yearly ``age=0``
+        # row.
+        if age_months is not None and age_months < _INFANT_MEDIAN_UPPER_MONTHS:
+            peds = _infant_medians(sex, age_months) or {}
+        else:
+            peds = _pediatric_medians(country, sex, age_years) or {}
         hc_base = peds.get("head_circumference")
         if hc_base is not None:
             hc_sd = float(noise.get("head_circumference_cm_sd", 0.1))
@@ -405,14 +489,16 @@ def build_anthropometric_observations(
 
     dob = _parse_date_of_birth(patient_data.get("date_of_birth"))
     enc_dt = _parse_encounter_datetime(get_attr_or_key(encounter, "admission_datetime", None))
+    age_months: int | None = None
     if dob is None:
         age_years = int(patient_data.get("age", 0) or 0)
     elif enc_dt is None:
         age_years = int(patient_data.get("age", 0) or 0)
     else:
         age_years = _age_at(dob, enc_dt)
+        age_months = _age_at_months(dob, enc_dt)
 
-    values = _derive_anthropometrics(patient_data, encounter_id, age_years, country)
+    values = _derive_anthropometrics(patient_data, encounter_id, age_years, country, age_months)
 
     effective_dt = to_fhir_datetime(enc_dt.isoformat()) if enc_dt else ""
 
@@ -427,7 +513,13 @@ def build_anthropometric_observations(
             LOINC_BODY_WEIGHT, values["weight_kg"], patient_id, encounter_id, effective_dt, country, "weight"
         )
     )
-    out.append(_build_one_observation(LOINC_BMI, values["bmi"], patient_id, encounter_id, effective_dt, country, "bmi"))
+    # Issue #1322: BMI is not a valid metric under age 2 (WHO / AAP: use
+    # weight-for-length percentile instead). Suppress the BMI Observation
+    # for infants; height + weight alone suffice for growth analytics.
+    if age_years >= 2:
+        out.append(
+            _build_one_observation(LOINC_BMI, values["bmi"], patient_id, encounter_id, effective_dt, country, "bmi")
+        )
     if "head_circumference_cm" in values:
         out.append(
             _build_one_observation(

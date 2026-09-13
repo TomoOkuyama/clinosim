@@ -100,6 +100,39 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
   Backwards compat: callers that don't pass ``patient_age`` (legacy
   tests, older adapter code) see the pre-#1306 behavior.
+- **Newborn / infant anthropometrics implausible — 74 cm height and 9 kg
+  weight at day 0, BMI Observations emitted for babies** (Issue #1322).
+  ``clinosim/modules/output/fhir_r4/labs/anthropometrics.py`` looked up
+  height / weight in the ``pediatric_growth`` yearly table where the
+  ``age=0`` row is the 12-month median (74 cm / 9.6 kg), so every
+  newborn admitted at day 0 through 11 months emitted 1-year-old
+  anthropometrics. Exemplar pt-d2105a0c23f2 (US, dob 2026-05-09): day-8
+  weight 9.0 kg, 4-month weight 9.9 kg, height 74 cm across every
+  encounter. BMI 19.0 kg/m² was also emitted at 2.5 months — invalid
+  under WHO / AAP guidance (BMI is not a valid pediatric metric under
+  age 2; weight-for-length percentile is used instead).
+
+  Fix, three parts:
+
+  - Added a new WHO ``pediatric_growth_infant`` table in
+    ``anthropometric_reference.yaml`` with month-of-age medians for 0-18
+    months (birth 50 cm / 3.3 kg → 12 months 75 cm / 9.6 kg for males;
+    equivalent WHO series for females).
+  - ``_derive_anthropometrics`` now computes ``age_months`` from the
+    encounter datetime relative to dob and, for ``age_months < 24``,
+    routes the lookup through the new ``_infant_medians`` helper. The
+    yearly ``pediatric_growth`` table is unchanged (backwards compat for
+    ages ≥ 2); older callers that pass only ``age_years`` still resolve
+    correctly.
+  - ``build_anthropometric_observations`` suppresses the BMI Observation
+    for ``age_years < 2``. Height + weight alone suffice for infant
+    growth analytics; downstream consumers that want a growth percentile
+    should use weight-for-length instead.
+
+  Verification (p=200 s356 US, 3 newborn cohort): day-0 emits now show
+  50 cm / 3.2-3.9 kg (WHO birth median), 3-month emits show 54.7 cm /
+  3.7-5.0 kg (WHO 3-month median with per-encounter noise), and BMI is
+  no longer emitted for any of the 3 babies.
 
 - **Inpatient progress_note subjective repeats identical boilerplate
   across every hospital day** (Issue #1327). When today's vitals carry
