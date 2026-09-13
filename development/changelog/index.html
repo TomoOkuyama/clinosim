@@ -2469,7 +2469,24 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   J44.1 / J45.x acute exacerbations as encounter-diagnosis, which
   correctly onset at admission (the exacerbation IS the acute event) —
   the chronic J44.9 / J45.909 problem-list-item now carries the
-  backdated onset (2020-04-12, 2017-02-08 in the exemplar traces).</p>
+  backdated onset (2020-04-12, 2017-02-08 in the exemplar traces).
+- <strong>Cesarean-delivery encounter's <code>chief_complaint</code> said "spontaneous
+  vaginal delivery" — direct FHIR-vs-narrative contradiction</strong> (Issue
+  #1317). The delivery encounter builder in <code>simulator/perinatal.py</code>
+  used a single <code>perinatal.yaml::encounter.visit_reason</code> for both
+  vaginal and cesarean modes, so every O82 admission's narrative CIF
+  documented "Delivery (spontaneous vaginal delivery)" / "分娩 (自然
+  分娩)" — while the same encounter's FHIR carried O82 admission +
+  CPT 59510 procedure + the full C-section intraop bundle.</p>
+<p>Fix: added a <code>visit_reason</code> override under the <code>cesarean:</code> block
+  in <code>perinatal.yaml</code> ("Delivery (cesarean section)" / "分娩 (帝王
+  切開)") and, when the cesarean roll succeeds, resolved the encounter
+  chief_complaint / chief_complaint_ja through the override. The
+  vaginal-delivery visit_reason remains the default when the roll
+  misses or the override is absent (backwards-compat fallback).</p>
+<p>Verification: unit tests pin (a) cesarean encounter's chief_complaint
+  contains "cesarean" and does NOT contain "vaginal"; (b) vaginal
+  delivery keeps the "spontaneous vaginal delivery" wording.</p>
 <ul>
 <li><strong>Inpatient progress_note subjective repeats identical boilerplate
   across every hospital day</strong> (Issue #1327). When today's vitals carry
