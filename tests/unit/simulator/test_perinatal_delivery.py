@@ -662,9 +662,14 @@ def test_us_cesarean_retains_ketorolac_after_1315() -> None:
     assert kt.order_id.endswith("-CSKT-01")
 
 
-def test_vaginal_delivery_no_intraop_bundle_1285() -> None:
-    """Regression: vaginal delivery does not emit any of the C-section
-    intraop bundle drugs (each is scoped to the surgical path)."""
+def test_vaginal_delivery_no_surgical_bundle_1285_1336() -> None:
+    """Regression: vaginal delivery does not emit the SURGICAL C-section
+    intraop bundle drugs (Cefazolin / Bupivacaine / Fentanyl /
+    Ondansetron / Ketorolac). Updated for Issue #1336: vaginal delivery
+    DOES emit Oxytocin (universal 3rd-stage management, AWHONN / ACOG
+    Class IA) and IV crystalloid — see
+    ``test_vaginal_delivery_intrapartum_bundle_1336`` below.
+    """
     patient = PatientProfile(patient_id="POP-000001", sex="F", age=28)
     visit_dt = datetime(2024, 7, 15, 10, 0)
     records = simulate_delivery_encounter(
@@ -677,9 +682,39 @@ def test_vaginal_delivery_no_intraop_bundle_1285() -> None:
     )
     mother_rec = records[0]
     assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O80"
-    for name in ("Cefazolin", "Bupivacaine", "Fentanyl", "Ondansetron", "Oxytocin", "Ketorolac"):
+    # Surgical-only drugs must NOT appear on vaginal delivery.
+    for name in ("Cefazolin", "Bupivacaine", "Fentanyl", "Ondansetron", "Ketorolac"):
         hits = [o for o in mother_rec.orders if o.display_name == name]
-        assert hits == [], f"vaginal delivery must not carry {name}"
+        assert hits == [], f"vaginal delivery must not carry surgical drug {name}"
+
+
+def test_vaginal_delivery_intrapartum_bundle_1336() -> None:
+    """Issue #1336: vaginal delivery encounters must emit the universal
+    intrapartum bundle (Oxytocin 10 U IM 3rd-stage + Lactated Ringer IV
+    crystalloid). Pre-fix, O80 encounters carried ZERO
+    MedicationRequests, asymmetric with C-section's 6-drug bundle."""
+    patient = PatientProfile(patient_id="POP-000001", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O80"
+    names = {o.display_name for o in mother_rec.orders}
+    assert "Oxytocin" in names, "vaginal delivery must carry 3rd-stage Oxytocin"
+    assert "Lactated Ringer" in names, "vaginal delivery must carry IV crystalloid"
+    # Route + dose sanity — IM vs C-section's IV.
+    ox = next(o for o in mother_rec.orders if o.display_name == "Oxytocin")
+    assert ox.route == "IM", f"vaginal delivery Oxytocin route should be IM, got {ox.route}"
+    assert ox.dose_quantity == 10.0
+    assert ox.dose_unit == "U"
+    # Order-id suffix scheme parallels the C-section CS* family (VD*).
+    assert ox.order_id.endswith("-VDOX-01")
 
 
 def test_delivery_encounter_shape_us() -> None:
