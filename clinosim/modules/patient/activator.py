@@ -523,6 +523,7 @@ def activate_patient(
             patient_id=person.person_id,
             country="US",
             skip_log_out=_home_med_skip_log,
+            patient_age=age,
         )
 
     # Address and contact from Layer 1
@@ -687,6 +688,7 @@ def _derive_home_medications(
     *,
     patient_id: str = "",
     skip_log_out: list | None = None,
+    patient_age: int | None = None,
 ) -> list[HomeMedication]:
     """Derive home medications from chronic conditions via chronic_medications.yaml.
 
@@ -750,6 +752,7 @@ def _derive_home_medications(
             rng,
             independent_mode="bernoulli",
             context=f"chronic_medications ICD {code}",
+            patient_age=patient_age,
         ):
             drug_en = picked.get("drug", "")
             drug_ja = picked.get("drug_ja", "")
