@@ -2335,7 +2335,32 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   rate matches expectations; the underlying planned_delivery_date
   matching in <code>simulator/perinatal.py</code> for other pregnancies with
   complications is a separate defer (this PR closes the FHIR-emit gap
-  identified in #1307).</p>
+  identified in #1307).
+- <strong>Vaginal delivery (O80) encounters emitted ZERO intrapartum meds
+  — asymmetric with C-section's 6-drug bundle</strong> (Issue #1336).
+  <code>simulator/perinatal.py</code> had no order emit on the else-branch of
+  <code>is_cesarean</code>, so every O80 delivery in p=10k builds landed as an
+  IMP encounter with 0 MedicationRequests / MedicationAdministrations.
+  Clinically wrong — real vaginal deliveries universally receive
+  Oxytocin for 3<sup>rd</sup>-stage active management (AWHONN / WHO / ACOG
+  Class IA evidence for PPH prevention) and running IV crystalloid
+  during labor.</p>
+<p>Fix: added a vaginal-delivery intrapartum bundle in
+  <code>simulator/perinatal.py</code> (parallel to the existing
+  <code>_cs_ord_specs</code> list) with two universal Orders:</p>
+<ul>
+<li>Lactated Ringer 125 mL/h IV continuous — labor hydration.</li>
+<li>Oxytocin 10 U IM ×1 at delivery — active 3<sup>rd</sup>-stage management,
+    IM route (IV bolus is the C-section variant; ACOG considers both
+    routes equivalent for 3<sup>rd</sup>-stage but IM is the community-hospital
+    default for vaginal delivery).</li>
+</ul>
+<p>Order-id suffix scheme parallels the C-section family: <code>VD*</code>
+  (VDIV, VDOX), encounter-scoped, byte-stable across re-runs.</p>
+<p>Non-scope for this PR (each requires probability sampling / risk-
+  factor flags): epidural analgesia (needs pain-severity roll), GBS
+  antibiotic prophylaxis (needs GBS+ carrier flag on the patient),
+  RhoGAM (needs Rh- flag). These stay as separate follow-ups.</p>
 <ul>
 <li><strong>IV cycle-based chemotherapy agents (Oxaliplatin / Pemetrexed /
   Carboplatin / Trastuzumab) emitted as monthly chronic
