@@ -301,6 +301,11 @@ def _simulate_patient(
         country=country_key,
         rng=rng,
         ordered_by=attending_id,
+        # Issue #1306: thread patient age so the pediatric DVT-prophylaxis
+        # gate applies to the disease-YAML supportive-orders fallback path
+        # (mirrors the enricher-side gate that already covers the
+        # prophylaxis-engine emit).
+        patient_age=int(getattr(patient, "age", 0) or 0),
     )
 
     # Imaging orders from disease YAML imaging_orders[] (Tier 1 #2 PR1).
