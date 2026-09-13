@@ -903,3 +903,94 @@ def test_newborn_sex_is_deterministic_per_mother() -> None:
         patient=patient, visit_date=visit_dt, roster=StaffRoster(), rng=np.random.default_rng(99), country="JP"
     )
     assert rec_a[1].patient.sex == rec_b[1].patient.sex
+
+
+# ---------------------------------------------------------------------------
+# Issue #1313 — postpartum discharge prescription.
+# ---------------------------------------------------------------------------
+
+
+def test_cesarean_discharge_prescription_populated_1313() -> None:
+    """Issue #1313: C-section delivery encounters must emit a real
+    postpartum discharge_prescription so narrative CIF documents do NOT
+    render "No discharge medications". Pre-fix ``discharge_prescription``
+    was ``None`` for every delivery encounter.
+    """
+    patient = PatientProfile(patient_id="POP-000005", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O82"
+    rx = mother_rec.discharge_prescription
+    assert rx is not None, "C-section discharge_prescription must not be None"
+    drug_names = {i["drug_name"] for i in rx.items}
+    # Standard postpartum analgesic bundle (multimodal — Acetaminophen +
+    # NSAID per ACOG / ASA postpartum guidelines).
+    assert "Acetaminophen" in drug_names
+    assert "Ibuprofen" in drug_names
+    # The intraop bundle (Cefazolin / Bupivacaine / Fentanyl /
+    # Ondansetron / Oxytocin / Ketorolac|Acetaminophen IV) is
+    # administered during surgery and does NOT belong on the
+    # discharge_prescription — the patient does not take Bupivacaine
+    # home. It lives on ``medication_administrations`` + ``orders``
+    # (unchanged).
+    assert "Bupivacaine" not in drug_names
+    assert "Fentanyl" not in drug_names
+
+
+def test_vaginal_delivery_discharge_prescription_populated_1313() -> None:
+    """Vaginal delivery (O80) also receives a postpartum discharge_prescription,
+    but with a shorter NSAID course (PRN only, 3 days) reflecting the lower
+    postpartum-pain burden vs a C-section."""
+    patient = PatientProfile(patient_id="POP-000001", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O80"
+    rx = mother_rec.discharge_prescription
+    assert rx is not None
+    drug_names = {i["drug_name"] for i in rx.items}
+    assert "Acetaminophen" in drug_names
+    assert "Ibuprofen" in drug_names
+    # Vaginal-delivery Ibuprofen is PRN-only, 3 days (vs cesarean's tid × 5).
+    ibu = next(i for i in rx.items if i["drug_name"] == "Ibuprofen")
+    assert "PRN" in ibu["frequency"].upper() or ibu["frequency"] == "q6h PRN"
+    assert ibu["duration_days"] == 3
+
+
+def test_jp_cesarean_discharge_prescription_populated_1313() -> None:
+    """JP C-section also emits the same postpartum bundle. Drug names
+    stay in English on the CIF (the drug_ja localization happens at
+    FHIR / narrative emit time)."""
+    # POP-000003 lands under the JP cesarean sub-RNG per the sibling
+    # #1315 test.
+    patient = PatientProfile(patient_id="POP-000003", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="JP",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    rx = mother_rec.discharge_prescription
+    assert rx is not None
+    drug_names = {i["drug_name"] for i in rx.items}
+    assert "Acetaminophen" in drug_names
+    assert "Ibuprofen" in drug_names
