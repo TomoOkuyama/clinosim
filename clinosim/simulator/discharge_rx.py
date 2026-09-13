@@ -35,7 +35,42 @@ from clinosim.types.patient import PatientProfile
 # discharge-strength one (metformin for lactic-acidosis risk, enoxaparin
 # for bleeding-risk).
 _RENAL_HOLD_DRUGS: frozenset[str] = frozenset(
-    {"metformin", "celecoxib", "ibuprofen", "naproxen", "enoxaparin", "alendronate"}
+    {
+        "metformin",
+        "celecoxib",
+        "ibuprofen",
+        "naproxen",
+        "diclofenac",
+        "loxoprofen",
+        "meloxicam",
+        "ketorolac",
+        "indomethacin",
+        "enoxaparin",
+        "alendronate",
+        # Issue #1335 (META #1392 Cluster A part 3): ACE-I / ARB families
+        # gate on renal function at discharge as well as during the
+        # inpatient course. When ``final_renal_function <
+        # DISCHARGE_RENAL_HOLD_THRESHOLD`` (KDIGO stage 3b+ / active
+        # AKI), afferent-arteriolar and efferent-arteriolar
+        # vasoactive agents must not be transcribed onto the discharge
+        # prescription regardless of which disease protocol drove the
+        # admission (the lab-derived AKI Condition enricher added in
+        # #1326 can attach a N17.x diagnosis to a non-AKI-primary
+        # admission — this list catches those too).
+        "enalapril",
+        "lisinopril",
+        "captopril",
+        "ramipril",
+        "perindopril",
+        "benazepril",
+        "losartan",
+        "valsartan",
+        "candesartan",
+        "olmesartan",
+        "telmisartan",
+        "irbesartan",
+        "azilsartan",
+    }
 )
 
 
@@ -86,6 +121,28 @@ def build_discharge_rx(
     items: list[dict] = []
     seen_dedup_keys: set[str] = set()
 
+    # Issue #1335 (META #1392 Cluster A part 3): expose the disease
+    # protocol's ``medication_holds`` at discharge — this is the same
+    # data ``medication_pipeline`` consumes for inpatient order gating.
+    # Prior to this pass discharge_rx only knew a fixed
+    # ``_RENAL_HOLD_DRUGS`` set (Metformin, NSAIDs, Enoxaparin,
+    # Alendronate) plus renal-function threshold, so ACE-I / ARB /
+    # ARB-family drugs held during the inpatient AKI course were still
+    # transcribed onto the discharge Rx from the patient's home-med
+    # list. Reading the same protocol block keeps the inpatient and
+    # discharge-Rx hold sets in a single source of truth. Compared
+    # against lowercase substring match to mirror how
+    # ``medication_pipeline`` matches (substring, not exact) so
+    # multi-name entries in the YAML (e.g. Enalapril / Lisinopril /
+    # Captopril) each match their MR text variant.
+    protocol_held: set[str] = set()
+    if protocol and getattr(protocol, "medication_holds", None):
+        for _hold in protocol.medication_holds or []:
+            for _d in _hold.get("drugs", []) or []:
+                _dl = str(_d).lower().strip()
+                if _dl:
+                    protocol_held.add(_dl)
+
     # A' Phase 1 (Issue #440) dedup: with `patient.current_medications` now
     # tracking newly started drugs across encounters, both the protocol
     # ``discharge_oral`` path AND the chronic-transcribe path below can
@@ -117,6 +174,11 @@ def build_discharge_rx(
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(
             rd in drug_name.lower() for rd in _RENAL_HOLD_DRUGS
         ):
+            return
+        # Issue #1335: apply the disease-protocol medication_holds at
+        # discharge as well. Substring match on lowercase drug_name to
+        # mirror ``medication_pipeline``'s inpatient hold semantics.
+        if protocol_held and any(h in drug_name.lower() for h in protocol_held):
             return
         key = _dedup_key(drug_name)
         if key in seen_dedup_keys:

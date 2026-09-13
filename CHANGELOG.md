@@ -41,6 +41,34 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+- **Acute-illness medication holds for AKI and acute ischemic stroke**
+  (Issue #1335, META #1392 Cluster A part 3). Extended
+  ``acute_kidney_injury.yaml::medication_holds`` with ACE-I families
+  (Enalapril / Lisinopril / Captopril / Ramipril / Perindopril /
+  Benazepril) and ARB families (Losartan / Valsartan / Candesartan /
+  Olmesartan / Telmisartan / Irbesartan / Azilsartan) — random-sample
+  review flagged Enalapril 5 mg started in an N17.9 admission
+  (KDIGO 2012 § 3.5.2 recommends holding RAAS blockade in AKI).
+  Extended the NSAID hold to also cover Diclofenac / Loxoprofen /
+  Meloxicam / Ketorolac / Indomethacin so JP-specific NSAIDs and IV
+  Ketorolac are also held. Added ``cerebral_infarction.yaml::
+  medication_holds`` (previously absent) covering PO bisphosphonates
+  (Alendronate / Risedronate / Ibandronate / Minodronate) — dysphagia /
+  NG-tube aspiration risk contraindicates PO bisphosphonates in acute
+  stroke (finding on pt-8ad04d397d65). ``simulator/discharge_rx``
+  now (a) consumes ``protocol.medication_holds`` at discharge time
+  (previously only ``medication_pipeline`` read it, so held drugs
+  re-emerged on the discharge Rx via chronic-med transcription), and
+  (b) extends the fixed ``_RENAL_HOLD_DRUGS`` set to include ACE-I /
+  ARB families and additional NSAIDs so the KDIGO-threshold gate
+  catches them regardless of which disease protocol drove the
+  admission (protects the lab-derived AKI Condition path added in
+  #1326 too). Verified on JP p=500 s=356: 3 AKI encounters, 1 stroke
+  encounter, 0 inpatient / discharge ACE-I / ARB / PO-bisphosphonate
+  MRs on the affected encounters (was 2 discharge Candesartan + 0
+  bisphosphonate pre-fix). The residual ``community``-category MR is
+  the home-med status marker, not a fresh order — clinically correct.
+
 - **Lab-derived AKI Condition emit — Creatinine peak ≥ 4.0 mg/dL now
   produces a paired ``N17.9`` (`Acute kidney failure, unspecified`)
   Condition on the inpatient encounter** (Issue #1326). New POST_ENCOUNTER
