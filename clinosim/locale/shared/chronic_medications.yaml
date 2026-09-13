@@ -372,7 +372,14 @@ F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
   medications:
     - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.28}
     - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
-    - {drug: "Paroxetine", drug_ja: "パロキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.10}
+    # Issue #1325: Paroxetine is on the AGS Beers Criteria 2023 "avoid"
+    # list for adults age ≥ 65 (high anticholinergic burden → cognitive
+    # impairment, orthostatic hypotension → fall risk). ``age_max: 64``
+    # filters this entry out of the exclusive-class sampler when the
+    # patient is 65+; the residual probability mass increases the
+    # "no ssri" branch for elderly cohort (Sertraline + Escitalopram
+    # are the geriatric first-line, sampled unchanged).
+    - {drug: "Paroxetine", drug_ja: "パロキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.10, age_max: 64}
     - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.15}
     - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10}
 
