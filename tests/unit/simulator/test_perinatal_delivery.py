@@ -549,6 +549,68 @@ def test_cesarean_intraop_dosing_matches_acog_1285() -> None:
         assert o.frequency == "once", f"{name} must be single-dose"
 
 
+def test_jp_cesarean_uses_acetaminophen_analgesic_1315() -> None:
+    """Issue #1315: JP C-section intraop bundle must substitute Ketorolac
+    (US ERAS default) with IV Acetaminophen (JP obstetric practice).
+    Pre-fix, JP p=10k builds emitted 0/N Ketorolac (present in JP drug
+    catalog but not the clinical default for postop analgesia), leaving
+    every JP C-section with a missing postop-analgesia slot.
+    """
+    # POP-000003's cesarean sub-RNG lands under the JP 20.4 % ceiling
+    # (roll ≈ 0.070). US uses POP-000005 elsewhere; JP needs its own
+    # deterministic-cesarean fixture because the cesarean rate is lower.
+    patient = PatientProfile(patient_id="POP-000003", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="JP",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O82"
+    names_seen = {o.display_name for o in mother_rec.orders}
+    # JP substitutes Ketorolac → Acetaminophen.
+    assert "Acetaminophen" in names_seen
+    assert "Ketorolac" not in names_seen
+    # The other 5 intraop drugs are unchanged.
+    for shared in ("Cefazolin", "Bupivacaine", "Fentanyl", "Ondansetron", "Oxytocin"):
+        assert shared in names_seen, f"JP intraop bundle missing {shared}"
+    # Dose / route sanity: JP Acetaminophen postop IV 1000 mg (アセリオ standard).
+    acet = next(o for o in mother_rec.orders if o.display_name == "Acetaminophen")
+    assert acet.dose_quantity == 1000.0
+    assert acet.dose_unit == "mg"
+    assert acet.route == "IV"
+    assert acet.frequency == "once"
+    # Timing anchor: 60 min postop (same as the US Ketorolac slot).
+    assert acet.ordered_datetime == visit_dt + timedelta(minutes=60)
+
+
+def test_us_cesarean_retains_ketorolac_after_1315() -> None:
+    """Regression guard for #1315: the US branch of the analgesic slot
+    must keep Ketorolac unchanged so pre-existing consumers of the US
+    bundle are byte-preserved (order_id suffix 'CSKT' also preserved)."""
+    patient = PatientProfile(patient_id="POP-000005", sex="F", age=28)
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="US",
+        hospital_ops={},
+    )
+    mother_rec = records[0]
+    names_seen = {o.display_name for o in mother_rec.orders}
+    assert "Ketorolac" in names_seen
+    assert "Acetaminophen" not in names_seen
+    kt = next(o for o in mother_rec.orders if o.display_name == "Ketorolac")
+    # Byte-preserving id suffix.
+    assert kt.order_id.endswith("-CSKT-01")
+
+
 def test_vaginal_delivery_no_intraop_bundle_1285() -> None:
     """Regression: vaginal delivery does not emit any of the C-section
     intraop bundle drugs (each is scoped to the surgical path)."""
