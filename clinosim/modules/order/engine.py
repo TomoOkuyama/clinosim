@@ -259,8 +259,26 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
 
     s = dose_str.strip()
 
-    # Dose quantity + unit (e.g. "500mg", "1.5g", "1000IU", "0.4mg")
-    m = re.search(r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)", s, re.IGNORECASE)
+    # Dose quantity + unit. Two-tier match:
+    # 1. BSA / weight-based dose (e.g. "85mg/m2", "6mg/kg", "500mg/m2") —
+    #    matched first so the compound unit is not truncated to bare "mg".
+    #    Issue #1331: chemo cycle drugs in ``chemo_regimens.yaml`` (Oxaliplatin
+    #    85mg/m2, Leucovorin 400mg/m2, Trastuzumab 6mg/kg, etc.) previously
+    #    fell through to no-match here, leaving ``Order.dose_quantity`` /
+    #    ``dose_unit`` unset and FHIR ``MedicationRequest.dosageInstruction[]
+    #    .doseAndRate[].doseQuantity`` empty (only ``dosageInstruction.text``
+    #    populated). UCUM accepts ``mg/m2`` / ``mg/kg`` / ``mcg/kg`` as valid
+    #    unit tokens (BSA/weight-normalised), and ``build_ucum_quantity``
+    #    routes them through unchanged.
+    # 2. Plain-unit dose (e.g. "500mg", "1.5g", "1000IU", "0.4mg") —
+    #    fallback for non-BSA doses; also catches "3.75mg" (Leuprorelin).
+    m = re.search(
+        r"(\d+(?:\.\d+)?)\s*(mg/m2|mg/kg|mcg/kg|mcg/m2|ug/kg)\b",
+        s,
+        re.IGNORECASE,
+    )
+    if not m:
+        m = re.search(r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)", s, re.IGNORECASE)
     if m:
         try:
             result["dose_quantity"] = float(m.group(1))
