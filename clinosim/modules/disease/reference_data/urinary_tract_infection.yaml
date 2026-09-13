@@ -10,8 +10,17 @@ department: internal_medicine
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
+# Issue #1353: ``N10`` in this YAML represents the bacterial-infection form
+# of "Acute tubulo-interstitial nephritis" — i.e. acute pyelonephritis —
+# for which empiric-antibiotic escalation is the guideline-directed
+# treatment (IDSA / JAID-JSC 2019 UTI guidelines). The drug-induced /
+# immune-mediated AIN form of the same WHO ICD-10 chapter (steroid +
+# offending-drug d/c treatment) is modeled separately in
+# ``acute_kidney_injury.yaml`` under the ``interstitial_nephritis``
+# differential row using ``N14.1`` (Nephropathy induced by other drugs
+# / medicaments) so a single ICD code never spans both treatment paths.
 icd_codes:
-  primary: "N10"  # Acute pyelonephritis
+  primary: "N10"  # Acute pyelonephritis (bacterial infection form)
   variants:
     - {code: "N39.0", name: "Urinary tract infection, site not specified", probability: 0.35}
     - {code: "N10", name: "Acute tubulo-interstitial nephritis (pyelonephritis)", probability: 0.35}
