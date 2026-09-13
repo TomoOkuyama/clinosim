@@ -15,6 +15,23 @@ rules:
     substitution_hint: pain_management
     source: "CHEST 2016 antithrombotic guidelines; JCS 2020 抗血栓療法"
 
+  # Issue #1334 part 2 (META #1392 Cluster A): DOAC + P2Y12-inhibitor
+  # antiplatelet is the missing peer of vka-plus-antiplatelet — post-CVA
+  # discharge Rx pattern review found DOAC + Aspirin + Clopidogrel triple
+  # therapy emitted on encounters without a documented PCI. DOAC + P2Y12
+  # is contraindicated outside of the post-PCI+AF ≤6-week window; DOAC +
+  # Aspirin is already caught by ``anticoagulant-plus-nsaid`` below
+  # (Aspirin dual-classed as antiplatelet.cox_inhibitor + nsaid). This
+  # rule closes the third leg of the triple.
+  - id: doac-plus-p2y12
+    lhs: anticoagulant.doac
+    rhs: antiplatelet.p2y12
+    severity: contraindicated
+    rationale_en: "DOAC + P2Y12 inhibitor (Clopidogrel/Prasugrel/Ticagrelor) raises major bleeding risk. Reserved to a brief post-PCI window in AF patients (≤6 weeks); long-term double therapy is not indicated."
+    rationale_ja: "DOAC と P2Y12 阻害薬 (クロピドグレル/プラスグレル/チカグレロル) の併用は重大出血リスクを大幅に上昇。AF での PCI 直後 6 週以内に限定される二剤併用、長期併用は原則禁忌。"
+    substitution_hint: pain_management
+    source: "AUGUSTUS 2019, ENTRUST-AF-PCI 2019, JCS 2020 抗血栓療法"
+
   - id: anticoagulant-plus-nsaid
     lhs: anticoagulant
     rhs: nsaid
