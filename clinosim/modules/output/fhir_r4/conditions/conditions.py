@@ -151,6 +151,10 @@ _DIAGNOSIS_TYPE_DISPLAY_EN = {
     # ``Encounter.reasonCode`` code so the invariant
     # ``reasonCode ⊆ diagnosis[].condition.code`` holds.
     "admitting": "Admitting Diagnosis",
+    # Issue #1307: working_diagnoses secondary Condition — pregnancy
+    # complications carried onto the delivery encounter and in-hospital
+    # complications recorded during an active admission.
+    "differential": "Differential Diagnosis",
 }
 
 
@@ -641,7 +645,12 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 if is_jp(country_code)
                 else {}
             ),
-            **({"extension": [_ecs_diagnosis_type_extension("secondary")]} if is_jp(country_code) else {}),
+            # JP eCS DiagnosisType: "differential" is the closest
+            # spec-defined value in ``ex-diagnosistype`` for a
+            # working-diagnoses entry (a Condition under active
+            # clinical consideration on this encounter). "secondary"
+            # is NOT a valid code in that value-set.
+            **({"extension": [_ecs_diagnosis_type_extension("differential")]} if is_jp(country_code) else {}),
             "clinicalStatus": {
                 "coding": [
                     _coding_with_display(
