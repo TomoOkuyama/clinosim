@@ -41,6 +41,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Clopidogrel 300 mg loading dose emitted as chronic maintenance
+  MR after cerebral infarction** (Issue #1334 part 1). ``cerebral_
+  infarction.yaml`` discharge / DAPT block wrote the dose string as
+  ``"300mg loading, then 75mg PO daily"``. The dose parser extracted
+  the first quantity (300 mg) and emitted it as the chronic-Rx
+  ``doseQuantity.value`` — a downstream reader saw the loading dose
+  taken daily by every stroke patient. Loading is a ONE-TIME acute
+  admission dose per POINT / CHANCE protocol, not maintenance.
+
+  Fix: changed the dose to just ``"75mg PO daily"`` (the maintenance
+  dose) in both JP and US cerebral_infarction blocks. The 300 mg
+  loading annotation is preserved in the ``note`` field for clinical
+  context but no longer confuses the parser. ``acute_mi.yaml``
+  ``discharge_oral`` already used ``"75mg PO daily"`` correctly
+  (unchanged); its ``first_line`` (admission single-dose) block keeps
+  the 300 mg load — semantically correct there since it IS a
+  one-time admission Order.
+
+  Verification (p=500 s356 US): Clopidogrel MR ``doseQuantity.value``
+  distribution → 0 × 300 mg, 6 × 75 mg (was multiple 300 mg emits per
+  cerebral-infarction discharge).
+
+  Non-scope: the triple-antithrombotic mutex bug (DOAC + Aspirin +
+  P2Y12 concurrent on the same encounter — Issue #1334 part 2) needs
+  a drug_safety pair-check gate at emit time. Deferred as a separate
+  follow-up.
+
 - **Enoxaparin emitted twice on the same admission with mismatched
   units (2000 IU + 40 mg)** (Issue #1342). Two paths were both emitting
   DVT chemoprophylaxis for adult inpatients — disease-YAML

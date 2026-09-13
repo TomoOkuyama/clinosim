@@ -444,10 +444,18 @@ drugs:
         pregnancy_safe: false
       - drug: "Clopidogrel"
         code_yj: "3399008"
-        dose: "300mg loading, then 75mg PO daily"
+        # Issue #1334: chronic-discharge dose is 75mg qd, NOT the 300mg
+        # loading dose (which is administered ONCE at admission and
+        # should not appear in the maintenance MR). Prior "300mg
+        # loading, then 75mg PO daily" string parsed to
+        # ``doseQuantity.value = 300`` — a load dose emitted as a
+        # daily-taken discharge Rx (clinically wrong; readers assumed
+        # patients received 300 mg × N days). Loading is deferred to
+        # the acute-admission single-dose emit path.
+        dose: "75mg PO daily"
         route: PO
         probability: 0.40  # dual antiplatelet for minor stroke / high-risk TIA
-        note: "DAPT (aspirin + clopidogrel) for 21 days in minor stroke"
+        note: "DAPT (aspirin + clopidogrel) for 21 days in minor stroke; 300 mg PO loading dose given ONCE at admission per POINT/CHANCE"
     us:
       - drug: "Aspirin"
         code_rxnorm: "1191"
@@ -457,10 +465,12 @@ drugs:
         pregnancy_safe: false
       - drug: "Clopidogrel"
         code_rxnorm: "32968"
-        dose: "300mg loading, then 75mg PO daily"
+        # Issue #1334: chronic-discharge dose (75mg qd), not the 300mg
+        # load. See JP block above for the full rationale.
+        dose: "75mg PO daily"
         route: PO
         probability: 0.40
-        note: "DAPT for 21 days per POINT/CHANCE trial for minor stroke"
+        note: "DAPT for 21 days per POINT/CHANCE trial for minor stroke; 300 mg PO loading dose given ONCE at admission"
 
   # Anticoagulation for cardioembolic stroke secondary prevention.
   # JP guideline: JCS 2019 脳卒中治療ガイドライン → DOAC (edoxaban / apixaban /
