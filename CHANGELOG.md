@@ -39,6 +39,31 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Added
+
+- **Lab-derived AKI Condition emit — Creatinine peak ≥ 4.0 mg/dL now
+  produces a paired ``N17.9`` (`Acute kidney failure, unspecified`)
+  Condition on the inpatient encounter** (Issue #1326). New POST_ENCOUNTER
+  enricher ``clinosim.modules.diagnosis.lab_derived_dx.enrich_lab_derived_dx``
+  (order 94, RNG-free) walks each inpatient encounter's ``lab_results``
+  for a Creatinine peak crossing the KDIGO 2012 Stage-3 absolute
+  threshold. When crossed AND no N17.x code is already on the encounter
+  (admission / discharge / working_diagnoses) AND the patient does not
+  carry CKD stage 4-5 or ESRD baseline (``N18.4/5/6``, ``N19``), the
+  enricher appends an ``{disease_id: "N17.9", source:
+  "lab_derived_aki_kdigo_stage3", …}`` entry to
+  ``clinical_diagnosis.working_diagnoses``. The existing FHIR ``Condition``
+  emit walker (Issue #1307) renders the paired secondary Condition —
+  no new emit code path required. Fills the pre-existing gap where the
+  daily-loop complication engine tagged ``complications_occurred``
+  with ``"acute_kidney_injury"`` but never populated a paired ICD
+  entry, so FHIR emit rendered no Condition. Verified on p=500 US
+  s=356: 4/4 severe-Cr inpatient encounters now carry an N17.x
+  Condition (was 3/4 pre-fix). Under-fires on smaller AKI events
+  (Cr rise ≥ 1.5x baseline) by design — per-patient baseline Cr is
+  not surfaced to POST_ENCOUNTER context in a stable form, and
+  under-firing beats false-positive N17 on stable-CKD carriers.
+
 ### Fixed
 
 - **Clopidogrel 300 mg loading dose emitted as chronic maintenance

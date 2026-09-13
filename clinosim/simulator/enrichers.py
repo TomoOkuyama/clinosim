@@ -394,6 +394,29 @@ def register_builtin_enrichers() -> None:
         )
     )
 
+    # Lab-derived complication diagnosis (Issue #1326). Scans an inpatient
+    # encounter's Creatinine lab_results for KDIGO Stage 3 absolute crossings
+    # (Cr >= 4.0 mg/dL) and appends a working_diagnoses N17.9 entry when the
+    # encounter doesn't already carry an N17.x diagnosis and the patient
+    # lacks CKD stage 4-5 / ESRD baseline. Reads-only into
+    # ``record.lab_results`` and appends into
+    # ``clinical_diagnosis.working_diagnoses``; the existing FHIR emit path
+    # (conditions.py working_diagnoses walker added in Issue #1307) renders
+    # the paired Condition without any new emit code. RNG-free. Order 94.5
+    # (between nursing_assignment 94 and document 95) so downstream
+    # narratives / diagnostic text can reference the derived Dx.
+    from clinosim.modules.diagnosis.lab_derived_dx import enrich_lab_derived_dx
+
+    register_enricher(
+        Enricher(
+            name="lab_derived_dx",
+            stage=POST_ENCOUNTER,
+            order=94,  # ties with nursing_assignment; sorted by (order, name) → lab_derived_dx first
+            enabled=lambda c: True,
+            run=enrich_lab_derived_dx,
+        )
+    )
+
     # Document module (Tier 1 #3 α-min-1, AD-55 always-on Module). Generates
     # ClinicalDocument stubs (Stage 1 template text) + ClinicalImpressionRecord
     # entries for each inpatient encounter. Locale-gated via specs_for_country().
