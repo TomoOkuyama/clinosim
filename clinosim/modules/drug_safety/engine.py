@@ -26,6 +26,7 @@ from clinosim.modules.drug_safety.verdict import (
 
 _HERE = Path(__file__).resolve().parent
 _CONTRAINDICATIONS_YAML = _HERE / "reference_data" / "contraindications.yaml"
+_DISEASE_CONTRAINDICATIONS_YAML = _HERE / "reference_data" / "disease_contraindications.yaml"
 _SHARED_SUBSTITUTION_YAML = _HERE.parents[1] / "locale" / "shared" / "drug_substitution.yaml"
 
 
@@ -120,6 +121,90 @@ def check_candidate_against_active(
                 rationale_en=v.rationale_en,
                 rationale_ja=v.rationale_ja,
                 substitution_hint=v.substitution_hint,
+            )
+        )
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Disease-state contraindication check (Issue #1392 Cluster A — #1350 / #1335)
+# ---------------------------------------------------------------------------
+
+
+@lru_cache(maxsize=1)
+def _load_disease_rules() -> list[dict[str, Any]]:
+    """Load disease-vs-drug-class rules from ``disease_contraindications.yaml``.
+
+    Cached — the YAML never changes at runtime; a test that needs to
+    reload should clear this cache directly."""
+    if not _DISEASE_CONTRAINDICATIONS_YAML.exists():
+        return []
+    with _DISEASE_CONTRAINDICATIONS_YAML.open(encoding="utf-8") as fh:
+        data = yaml.safe_load(fh) or {}
+    return list(data.get("rules", []))
+
+
+def _condition_matches_predicate(condition_code: str, predicate: dict[str, Any]) -> bool:
+    """Prefix-match a single ``condition_code`` (e.g. ``"I50.32"``) against
+    a ``disease_predicate`` block. Currently supports only
+    ``icd_prefix`` (list of strings); extend here for future predicate
+    kinds (``sex``, ``age_min``, chronic-condition flags, etc.)."""
+    prefixes = predicate.get("icd_prefix") or []
+    if not condition_code:
+        return False
+    for p in prefixes:
+        if condition_code.startswith(str(p)):
+            return True
+    return False
+
+
+def check_candidate_against_disease_state(
+    candidate: str,
+    active_condition_codes: Sequence[str],
+) -> list[SafetyVerdict]:
+    """Return the list of non-allowed drug-vs-disease-state verdicts.
+
+    ``candidate`` is a drug name (canonical or alias). Its expanded
+    class list (``resolve_classes``) is intersected against each rule's
+    ``drug_class`` filter; matching rules then check whether any
+    ``active_condition_codes`` entry (chronic-condition ICD codes) meets
+    the rule's ``disease_predicate``. Every triggered rule appears as a
+    :class:`SafetyVerdict` in the returned list — callers pick the
+    highest-severity entry to drive skip / warn.
+
+    Empty return value = no drug-vs-disease-state rule triggered; the
+    candidate may still hit a drug-vs-drug rule via
+    :func:`check_candidate_against_active`.
+
+    Kept as a peer function of ``check_candidate_against_active`` — a
+    caller normally invokes both and combines verdicts.
+    """
+    classes = resolve_classes(candidate)
+    if not classes:
+        return []
+    class_set = set(classes)
+    out: list[SafetyVerdict] = []
+    for rule in _load_disease_rules():
+        rule_class = str(rule.get("drug_class") or "")
+        if rule_class and rule_class not in class_set:
+            continue
+        predicate = rule.get("disease_predicate") or {}
+        matched_condition = next(
+            (code for code in active_condition_codes if _condition_matches_predicate(str(code), predicate)),
+            None,
+        )
+        if matched_condition is None:
+            continue
+        severity: Severity = rule.get("severity", "moderate")
+        out.append(
+            SafetyVerdict(
+                severity=severity,
+                rule_id=rule.get("id"),
+                matched_classes=(rule_class, matched_condition),
+                matched_active_drug=None,
+                rationale_en=rule.get("rationale_en"),
+                rationale_ja=rule.get("rationale_ja"),
+                substitution_hint=rule.get("substitution_hint"),
             )
         )
     return out

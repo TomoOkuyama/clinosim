@@ -82,6 +82,28 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   ``cerebral_infarction.yaml``. A follow-up PR under META #1392 may
   widen the gate once a cardioembolic-vs-atherothrombotic stroke
   discriminator is surfaced on the encounter.
+- **Drug-vs-disease-state contraindication gate** (Issue #1350, Cluster A
+  of META #1392). New engine function
+  ``clinosim.modules.drug_safety.check_candidate_against_disease_state
+  (candidate, active_condition_codes)`` reads a new YAML
+  ``drug_safety/reference_data/disease_contraindications.yaml`` and
+  returns ``SafetyVerdict`` entries when the candidate's ``drug_class``
+  matches a rule AND the patient's active chronic-condition codes match
+  the rule's ``disease_predicate`` (prefix match on ICD-10). First three
+  rules land the NSAID vs (a) heart failure (I50, major), (b) cirrhosis
+  (K74 / K70.3, contraindicated), and (c) CKD stage 4-5 (N18.4/5/6,
+  contraindicated) gates identified in Issue #1350 by random-sample
+  review. Wired into ``patient/activator._derive_home_medications`` as
+  a peer of the existing ``check_candidate_against_active`` drug-vs-drug
+  gate — the two verdict lists are combined, worst severity wins, and
+  the candidate is dropped when the winning verdict maps to "skip"
+  (major / contraindicated). Verified on JP p=500 s=356: 21 NSAID
+  chronic-MR patients with 0 overlap onto HF / cirrhosis / CKD 4-5
+  chronic carriers (per-issue reproduction script). Acute-illness
+  gates (ACE-I in AKI, Alendronate PO in dysphagic stroke — Issue
+  #1335) and drug-class stacking limits (Issue #1334 part 2, #1347)
+  are deferred to follow-up PRs in the same Cluster A family under
+  META #1392.
 
 ### Fixed
 
