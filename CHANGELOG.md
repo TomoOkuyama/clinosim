@@ -41,6 +41,39 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **Pregnancy complications O14 / O24 / O42 / O60 / O64 never emitted
+  as FHIR Conditions (post-#1293 regression)** (Issue #1307). PR #1293
+  populated ``ClinicalDiagnosis.working_diagnoses`` from the pregnancy
+  ``TemporalStatePeriod.metadata.complications`` at delivery encounter
+  time, but NO FHIR builder read that field back — 0 O-code Conditions
+  on p=10k builds despite the sampler correctly generating ~30 %
+  complications per pregnancy.
+
+  Fix: added a secondary-Condition emit loop in
+  ``modules/output/fhir_r4/conditions/conditions.py::_build_conditions``
+  that iterates ``clinical_diagnosis.working_diagnoses`` and emits one
+  ``encounter-diagnosis`` Condition per entry, onset from the entry's
+  ``onset_datetime``. New ``encounter_secondary_condition_id`` /
+  ``encounter_secondary_condition_key`` helpers in ``primary_ref.py``
+  give each secondary a stable, patient-scoped opaque id so the row is
+  referenceable and per-encounter dedup collapses re-emits.
+
+  Same emit path also handles the other ``working_diagnoses`` writer —
+  ``simulator/engine.py::_record_complication_on_active_encounter``
+  (in-hospital complications during an active admission: DKA-in-DM,
+  sepsis-in-CAP, etc.). Distinguishing ``evidence[].code.text`` label
+  ("In-hospital complication observed during admission" vs "Secondary
+  diagnosis carried onto the encounter") tells downstream readers apart
+  without parsing ICD chapters.
+
+  Verification (p=500 s356 US): 2 O-code Conditions emitted (O24.9,
+  O42.9) matching the 2 pregnancy periods whose complications reached
+  the delivery-encounter working_diagnoses (was 0). Per-Bernoulli-sample
+  rate matches expectations; the underlying planned_delivery_date
+  matching in ``simulator/perinatal.py`` for other pregnancies with
+  complications is a separate defer (this PR closes the FHIR-emit gap
+  identified in #1307).
+
 - **IV cycle-based chemotherapy agents (Oxaliplatin / Pemetrexed /
   Carboplatin / Trastuzumab) emitted as monthly chronic
   MedicationRequests without regimen partners** (Issue #1319).
