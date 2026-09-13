@@ -2328,6 +2328,25 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   (Cr rise ≥ 1.5x baseline) by design — per-patient baseline Cr is
   not surfaced to POST_ENCOUNTER context in a stable form, and
   under-firing beats false-positive N17 on stable-CKD carriers.</li>
+<li><strong>Triple-antithrombotic (DOAC + Aspirin + P2Y12) gate at discharge Rx</strong>
+  (Issue #1334 part 2, META #1392 Cluster A). New drug-safety pair rule
+  <code>doac-plus-p2y12</code> (<code>anticoagulant.doac</code> × <code>antiplatelet.p2y12</code> →
+  contraindicated) covers the DOAC + P2Y12 combination that
+  <code>vka-plus-antiplatelet</code> did not (VKA-only lhs). Wired into
+  <code>simulator/discharge_rx._append_item</code> as a narrow, direction-aware
+  gate: when the CANDIDATE being added is a P2Y12 and an active
+  anticoagulant.doac is already emitted on the discharge Rx, the P2Y12
+  is dropped. Direction matters — a DOAC candidate is never dropped by
+  a prior-emitted P2Y12 (DOAC has higher clinical priority for
+  cardioembolic-stroke secondary prevention). The gate deliberately
+  does NOT fire on the older <code>anticoagulant-plus-nsaid</code> rule (which
+  catches DOAC + Aspirin); dropping Aspirin from disease-YAML
+  <code>continue_at_discharge</code> blocks would invalidate legitimate
+  post-CVA / post-MI mixed-cardioembolic-plus-atherothrombotic
+  regimens still emitted intentionally by
+  <code>cerebral_infarction.yaml</code>. A follow-up PR under META #1392 may
+  widen the gate once a cardioembolic-vs-atherothrombotic stroke
+  discriminator is surfaced on the encounter.</li>
 </ul>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2351,6 +2370,25 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   on p=2000 US s=356: 0 patients with both Capecitabine + FOLFOX-drug
   MR (was ~2). Structured CIF byte-diff on Capecitabine-carrier subset
   only.</li>
+<li><strong>N10 disease-code semantic disambiguation between pyelonephritis and
+  drug-induced AIN</strong> (Issue #1353). The
+  <code>acute_kidney_injury.yaml::diagnostic.differential</code> row for
+  <code>interstitial_nephritis</code> was emitting <code>N10</code> — the same ICD-10 code
+  <code>urinary_tract_infection.yaml</code> uses for its bacterial-pyelonephritis
+  primary path (antibiotic-treated). WHO ICD-10 <code>N10</code> = "Acute tubulo-
+  interstitial nephritis" spans both etiologies (bacterial + drug/immune),
+  and the sim's UTI branch is the antibiotic-treated form by design.
+  Random-sample review of an antibiotic-escalated <code>N10</code> case therefore
+  read as "AIN mistreated" (steroid + offending-drug d/c would be
+  clinically right for AIN). Renamed the AKI differential row's <code>icd</code>
+  to <code>N14.1</code> (ICD-10-CM "Nephropathy induced by other drugs, medicaments
+  and biological substances") so the two Condition-emit paths never share
+  a code. Added clarifying comment blocks in both disease YAMLs, and
+  registered <code>s112-n10-pyelonephritis-vs-ain-single-code</code> in the
+  by-design registry pointing at the semantic. Distinct AIN modeling as
+  its own disease branch (steroid + drug-d/c treatment path) is deferred;
+  the escalation-without-de-escalation antibiotic concern that motivated
+  the review is tracked separately in Issue #1346.</li>
 <li><strong>Clopidogrel 300 mg loading dose emitted as chronic maintenance
   MR after cerebral infarction</strong> (Issue #1334 part 1). <code>cerebral_
   infarction.yaml</code> discharge / DAPT block wrote the dose string as
