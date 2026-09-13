@@ -2360,7 +2360,36 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <p>Non-scope for this PR (each requires probability sampling / risk-
   factor flags): epidural analgesia (needs pain-severity roll), GBS
   antibiotic prophylaxis (needs GBS+ carrier flag on the patient),
-  RhoGAM (needs Rh- flag). These stay as separate follow-ups.</p>
+  RhoGAM (needs Rh- flag). These stay as separate follow-ups.
+- <strong>C-section (and vaginal) delivery narrative said "No discharge
+  medications"</strong> (Issue #1313). <code>simulator/perinatal.py</code>'s delivery
+  encounter builder set <code>discharge_prescription=None</code>. Every
+  delivery narrative CIF (720 US S355 + 918 US S356 + 399+434 JP)
+  rendered "No discharge medications" because the narrative writer
+  reads <code>discharge_prescription.items</code> alone (the intraop bundle
+  lives on <code>medication_administrations</code> and does not belong on
+  discharge — the patient does not take Bupivacaine home).</p>
+<p>Fix: added a standard postpartum <code>PrescriptionRecord</code> with the
+  ACOG / ASA multimodal-analgesia bundle:</p>
+<ul>
+<li>Acetaminophen 500 mg PO q6h PRN × 7 days (both delivery modes)</li>
+<li>Ibuprofen 400 mg PO — C-section: tid × 5 days (scheduled);
+    vaginal: q6h PRN × 3 days (as-needed only)</li>
+</ul>
+<p>Emitted for both O80 and O82 deliveries so downstream narrative
+  writers, FHIR MedicationRequest emit, and pharmacy consumers see
+  the real take-home bundle. Drug names in English on the CIF; JP
+  displays localize via <code>drug_ja</code> at FHIR / narrative emit time
+  (Acetaminophen → アセトアミノフェン; Ibuprofen → イブプロフェン).</p>
+<p>Module boundary: kept in <code>simulator/perinatal.py</code> next to the
+  existing <code>_cs_ord_specs</code> intraop bundle. A follow-up refactor
+  could move the postpartum-Rx spec to <code>perinatal.yaml</code> alongside
+  <code>cesarean.visit_reason</code> / procedure codes — deferred so this PR
+  stays scoped to the reported gap.</p>
+<p>Non-scope: opioid step-up (Oxycodone PRN for breakthrough pain in
+  the ~5-10 % of C-sections with NRS ≥ 6), Docusate stool-softener,
+  iron sulfate for postpartum anemia — all real but not routine at the
+  discharge level; separate follow-ups.</p>
 <ul>
 <li><strong>IV cycle-based chemotherapy agents (Oxaliplatin / Pemetrexed /
   Carboplatin / Trastuzumab) emitted as monthly chronic
