@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from datetime import datetime, timedelta
+from typing import Any
 
 import numpy as np
 
@@ -352,21 +353,52 @@ def _simulate_outpatient_visit(
         # shim on the two container types still handles fixture-time
         # `list[str]` construction. Attribute-assigned test fixtures were
         # migrated to `HomeMedication(drug_name=...)` in this PR.
+        #
+        # Issue #1321 (META #1392 Cluster A part 5): pregnancy-safe
+        # substitution. When the patient is currently in an active
+        # pregnancy ``TemporalStatePeriod`` at the visit date and the
+        # chronic med matches ``pregnancy_substitutions.yaml``, the
+        # substitute drug is emitted in place of the original for the
+        # duration of the pregnancy period (post-Z39 postpartum reverts
+        # automatically because the substitution is applied per-visit,
+        # not persisted to ``patient.current_medications``). ACOG 2019
+        # first-line pregnancy HTN targets Methyldopa.
+        from clinosim.locale.loader import load_pregnancy_substitutions
+
+        _preg_subs = load_pregnancy_substitutions()
+        # ``is_active_at`` expects ``datetime.date``; ``visit_date`` is a
+        # ``datetime`` in the outpatient signature, hence the ``.date()``.
+        _visit_day = visit_date.date() if hasattr(visit_date, "date") else visit_date
+        _in_pregnancy = _preg_subs and any(
+            getattr(p, "state_type", "") == "pregnancy" and p.is_active_at(_visit_day)
+            for p in getattr(patient, "state_periods", []) or []
+        )
+
+        def _apply_pregnancy_substitution(med: Any) -> dict:
+            entry = _preg_subs.get(med.drug_name) if _in_pregnancy else None
+            if entry:
+                return {
+                    "drug_name": str(entry.get("substitute") or med.drug_name),
+                    "drug_name_ja": str(entry.get("substitute_ja") or med.drug_name_ja),
+                    "dose": str(entry.get("dose") or med.dose),
+                    "route": str(entry.get("route") or med.route),
+                    "frequency": str(entry.get("frequency") or med.frequency),
+                    "duration_days": OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
+                }
+            return {
+                "drug_name": med.drug_name,
+                "drug_name_ja": med.drug_name_ja,
+                "dose": med.dose,
+                "route": med.route,
+                "frequency": med.frequency,
+                "duration_days": OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
+            }
+
         rx = PrescriptionRecord(
             prescription_id=f"RX-{patient.patient_id}-OPD",
             prescriber_id=encounter.attending_physician_id,
             issue_date=visit_date,
-            items=[
-                {
-                    "drug_name": med.drug_name,
-                    "drug_name_ja": med.drug_name_ja,
-                    "dose": med.dose,
-                    "route": med.route,
-                    "frequency": med.frequency,
-                    "duration_days": OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
-                }
-                for med in patient.current_medications
-            ],
+            items=[_apply_pregnancy_substitution(med) for med in patient.current_medications],
         )
 
     # Set encounter_id on all orders

@@ -84,6 +84,24 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   paths now suppressed. Verified on US p=500 s=356: 0 encounters with
   3+ concurrent NSAIDs (was ≥1 pre-fix), 0 patients with chronic
   NSAID + anticoagulant.
+- **Pregnancy-safe antihypertensive substitution at outpatient
+  prescription renewal** (Issue #1321, META #1392 Cluster A part 5).
+  New YAML ``clinosim/locale/shared/pregnancy_substitutions.yaml``
+  maps FDA-Cat-C/D chronic HTN drugs (Amlodipine, ACE-I family:
+  Enalapril / Lisinopril / Captopril, ARB family: Losartan / Valsartan
+  / Candesartan) to ACOG-2019-recommended Methyldopa 250 mg PO tid.
+  ``simulator/outpatient`` prescription-renewal loop now consults the
+  substitution table when the patient's ``state_periods`` contain an
+  active pregnancy ``TemporalStatePeriod`` at the visit date, and
+  emits the substitute in place of the original in the outpatient
+  ``PrescriptionRecord.items``. Post-Z39 postpartum reverts
+  automatically — the check is per-visit and never mutates
+  ``patient.current_medications``. Random-sample review flagged
+  Amlodipine 5 mg on every prenatal visit for pt-192d90bc7df0.
+  Verified: 1 Methyldopa MR emitted for the pregnancy-carrier subset
+  on p=2000 US s=356 (pregnant + HTN overlap is statistically rare at
+  this cohort scale; the substitution mechanism fires for eligible
+  patients).
 
 - **Lab-derived AKI Condition emit — Creatinine peak ≥ 4.0 mg/dL now
   produces a paired ``N17.9`` (`Acute kidney failure, unspecified`)

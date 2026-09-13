@@ -271,6 +271,18 @@ def _validate_chronic_medications_route_vocabulary(data: Any) -> None:
 
 
 @lru_cache(maxsize=1)
+def load_pregnancy_substitutions() -> dict[str, dict[str, Any]]:
+    """Load pregnancy-contraindicated → pregnancy-safe drug substitution table
+    (Issue #1321, META #1392 Cluster A part 5).
+
+    Returned as ``{original_drug_name: {substitute: ..., dose: ..., ...}}``
+    for direct O(1) lookup at outpatient prescription-renewal time. Falls
+    back to empty dict if the YAML is missing (defensive)."""
+    data = _load_yaml(_LOCALE_DIR / "shared" / "pregnancy_substitutions.yaml", fallback={})
+    return data.get("substitutions", {}) or {}
+
+
+@lru_cache(maxsize=1)
 def load_perinatal_config() -> dict[str, Any]:
     """Load perinatal delivery configuration (Issue #957 Tier-3-B).
 
