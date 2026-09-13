@@ -235,6 +235,40 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   the 46-h infusion component remains in ``.text`` alongside).
   Un-parseable doses (``AUC5`` for Carboplatin, BCG ``1 vial (…)``)
   gracefully fall through to text-only, no regression.
+- **Paroxetine prescribed to elderly (age ≥ 65) despite AGS Beers 2023
+  "avoid" listing** (Issue #1325). ``chronic_medications.yaml`` F41.1
+  block listed Paroxetine at 0.10 probability regardless of patient
+  age. Real geriatric prescribing avoids Paroxetine for age ≥ 65
+  (high anticholinergic burden → cognitive impairment; orthostatic
+  hypotension → fall risk); first-line SSRIs in the elderly are
+  Sertraline and Escitalopram.
+
+  Fix, two parts:
+
+  - Added ``age_max: 64`` to the Paroxetine entry in
+    ``chronic_medications.yaml``.
+  - Extended ``modules/_shared.select_with_exclusive_classes`` with an
+    optional ``patient_age`` parameter. Drug specs may declare
+    ``age_max`` (inclusive upper bound) and/or ``age_min`` (inclusive
+    lower bound); patients outside the accepted band drop the entry
+    silently before the categorical / Bernoulli split. RNG-neutral —
+    the exclusive-class draw still consumes one ``rng.choice`` per
+    class regardless of member count, and the filter's residual
+    probability mass grows the "no drug from this class" branch.
+  - Threaded ``patient_age`` through ``_derive_home_medications`` in
+    ``modules/patient/activator.py``.
+
+  Verification (p=500 s356 JP): Paroxetine MRs for age < 65 → 0 (was
+  ~50 expected). Elderly patients (5 remaining Paroxetine MRs) are all
+  patients who started Paroxetine before age 65 and aged into 65+
+  during the sim window — a real-world continuation scenario.
+
+  Non-scope: deprescribing on age transition (Issue #1325 direction #2
+  — swap to Sertraline when patient crosses 65) requires per-encounter
+  substitution logic and is deferred as a separate follow-up. The
+  reusable ``age_min`` / ``age_max`` sampler plumbing added here
+  enables the sibling Beers-avoid drugs (Diphenhydramine chronic,
+  Diazepam chronic) with a single YAML field.
 
 - **Microbiology DiagnosticReport.conclusion emitted blank** (Issue
   #1343). Every blood-culture / urine-culture / sputum-culture DR

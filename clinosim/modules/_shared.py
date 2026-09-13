@@ -159,6 +159,7 @@ def select_with_exclusive_classes(
     *,
     independent_mode: str = "bernoulli",
     context: str = "",
+    patient_age: int | None = None,
 ) -> list[dict]:
     """Partition drug_specs by ``drug_class`` + ``exclusive_classes``, return
     the drug_specs actually selected for prescription.
@@ -218,6 +219,26 @@ def select_with_exclusive_classes(
     for spec in drug_specs:
         if not isinstance(spec, dict):
             continue
+        # Issue #1325: age-gated prescribing preferences (AGS Beers 2023
+        # "avoid" list — Paroxetine for age ≥ 65, potential future
+        # Diphenhydramine / Diazepam entries). Drugs may declare
+        # ``age_max`` (upper bound, inclusive) and/or ``age_min`` (lower
+        # bound, inclusive); patients outside the accepted band drop the
+        # entry silently. Filtering happens BEFORE the categorical /
+        # Bernoulli split so an exclusive-class residual mass reflects
+        # the actual accepted subset for the patient. RNG-neutral: the
+        # exclusive-class draw still consumes one ``rng.choice`` per
+        # class regardless of member count, and non-exclusive drugs are
+        # filtered before their Bernoulli loop (see docs). Silent skip
+        # is intentional; the emit is a data-quality preference, not a
+        # hard contraindication (call the drug-safety module for those).
+        if patient_age is not None:
+            _amax = spec.get("age_max")
+            _amin = spec.get("age_min")
+            if _amax is not None and patient_age > int(_amax):
+                continue
+            if _amin is not None and patient_age < int(_amin):
+                continue
         cls = spec.get("drug_class")
         if cls and cls in exclusive_classes:
             by_exclusive_class.setdefault(cls, []).append(spec)
