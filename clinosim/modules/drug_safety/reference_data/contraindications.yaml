@@ -94,3 +94,23 @@ rules:
     rationale_ja: "SSRI と MAOI の併用は致死的セロトニン症候群のリスク。切替時は 14 日以上の休薬期間が必要。"
     substitution_hint: null
     source: "APA 2010 major depressive disorder practice guideline"
+
+  # Issue #1347 (META #1392 Cluster A part 4): same-class NSAID stacking
+  # mutex. Multiple NSAIDs concurrently provide NO additional analgesia
+  # (single receptor family, ceiling effect) but multiply GI bleed, renal
+  # injury and cardiac risk. Random-sample review flagged 3-NSAID
+  # stacking on an ED low-back-pain visit (Ketorolac IV + Ibuprofen PO
+  # + chronic Celecoxib PO). This rule fires on any nsaid × nsaid pair;
+  # the activator dedup and ED-order gate treat it as skip. Aspirin
+  # baby-dose (81 mg) for cardio-protection with a topical NSAID is a
+  # documented exception in some guidelines but is not modeled here as
+  # a whitelist — clinical impact of dropping the second NSAID is
+  # minimal (patient still has the first one plus acetaminophen/etc.).
+  - id: nsaid-stacking
+    lhs: nsaid
+    rhs: nsaid
+    severity: contraindicated
+    rationale_en: "Multiple NSAIDs concurrent give no added analgesia (single receptor family, ceiling effect) but multiply GI bleed / renal / cardiac risk. Pick one NSAID or switch to acetaminophen."
+    rationale_ja: "NSAID の重複投与は鎮痛効果を上乗せせず (受容体飽和)、消化管出血・腎障害・心血管イベントリスクを多重化。単剤またはアセトアミノフェン等に切替。"
+    substitution_hint: pain_management
+    source: "ACR 2020 knee OA guideline; JOA 変形性膝関節症診療ガイドライン 2023"

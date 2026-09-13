@@ -68,6 +68,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   MRs on the affected encounters (was 2 discharge Candesartan + 0
   bisphosphonate pre-fix). The residual ``community``-category MR is
   the home-med status marker, not a fresh order — clinically correct.
+- **ED order drug-safety gate + NSAID same-class stacking mutex**
+  (Issue #1347, META #1392 Cluster A part 4). New pair rule
+  ``nsaid-stacking`` (any ``nsaid`` × ``nsaid`` → contraindicated)
+  covers 2+ NSAIDs concurrent (Celecoxib + Ibuprofen, Ketorolac IV +
+  Ibuprofen PO, Loxoprofen + Diclofenac, etc.). ``simulator/emergency``
+  ED order dispatcher now calls
+  ``drug_safety.check_candidate_against_active`` on every candidate
+  MEDICATION order, checking against the patient's
+  ``current_medications`` + already-appended ED orders (both chronic-
+  vs-new and new-vs-new pairs caught). Drops on contraindicated /
+  major severity with a ``SafetySkipEntry`` audit record. Random-
+  sample review flagged 3-NSAID stacking on an ED low-back-pain visit
+  (pt-be5046f05c2f) plus chronic NSAID + anticoagulant pairs — both
+  paths now suppressed. Verified on US p=500 s=356: 0 encounters with
+  3+ concurrent NSAIDs (was ≥1 pre-fix), 0 patients with chronic
+  NSAID + anticoagulant.
 
 - **Lab-derived AKI Condition emit — Creatinine peak ≥ 4.0 mg/dL now
   produces a paired ``N17.9`` (`Acute kidney failure, unspecified`)
