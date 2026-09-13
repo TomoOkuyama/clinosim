@@ -191,3 +191,87 @@ def test_us_display_localization():
     assert obs[LOINC_BODY_WEIGHT]["code"]["text"] == "Body weight"
     # US emit: no JP profile stamp.
     assert "meta" not in obs[LOINC_BODY_HEIGHT]
+
+
+# ---------------------------------------------------------------------------
+# Issue #1322 — infant anthropometrics (age < 24 months).
+# ---------------------------------------------------------------------------
+
+
+def _newborn(dob="2025-01-05"):
+    return {
+        "patient_id": "pt-newborn",
+        "date_of_birth": dob,
+        "sex": "M",
+        "height_cm": 0.0,  # not yet set — infant table drives emit
+        "weight_kg": 0.0,
+        "bmi": 0.0,
+        "age": 0,
+    }
+
+
+def test_newborn_at_day_zero_uses_birth_median_not_12month():
+    # Issue #1322 root bug: dob 2025-01-05, encounter 2025-01-05 (day 0)
+    # previously emitted 74 cm / 9.6 kg (the yearly ``age=0`` row = 12-month
+    # median). Fix routes < 24 mo through the WHO infant table so day-0
+    # emits ~50 cm / ~3.3 kg (birth median).
+    obs = _by_code(
+        build_anthropometric_observations(_newborn("2025-01-05"), _encounter(admission="2025-01-05T09:00:00"), "US")
+    )
+    h = obs[LOINC_BODY_HEIGHT]["valueQuantity"]["value"]
+    w = obs[LOINC_BODY_WEIGHT]["valueQuantity"]["value"]
+    # WHO male birth median 50 cm — allow ±2 cm for clamp / noise.
+    assert 48.0 <= h <= 52.0, f"newborn height {h} not near 50 cm birth median"
+    # WHO male birth median 3.3 kg — weight_kg clamp min is 2.0, but
+    # per-encounter Gaussian noise (sd 0.6) can push within ~± 1.5 kg.
+    assert 2.0 <= w <= 5.0, f"newborn weight {w} not near 3.3 kg birth median"
+
+
+def test_infant_at_3_months_uses_3_month_median():
+    # dob 2025-01-05, encounter 2025-04-10 → age ~3 mo.
+    obs = _by_code(
+        build_anthropometric_observations(_newborn("2025-01-05"), _encounter(admission="2025-04-10T09:00:00"), "US")
+    )
+    h = obs[LOINC_BODY_HEIGHT]["valueQuantity"]["value"]
+    w = obs[LOINC_BODY_WEIGHT]["valueQuantity"]["value"]
+    # WHO male 3-month median 61.4 cm / 6.4 kg.
+    assert 59.0 <= h <= 64.0, f"3mo height {h} not near 61 cm"
+    assert 5.0 <= w <= 8.0, f"3mo weight {w} not near 6.4 kg"
+
+
+def test_bmi_suppressed_for_infants_under_2():
+    # BMI is not a valid pediatric metric under age 2 — WHO uses
+    # weight-for-length percentile instead. Suppress the BMI Observation.
+    obs = build_anthropometric_observations(_newborn("2025-01-05"), _encounter(admission="2025-06-15T09:00:00"), "US")
+    codes = _codes(obs)
+    assert LOINC_BMI not in codes
+    assert LOINC_BODY_HEIGHT in codes
+    assert LOINC_BODY_WEIGHT in codes
+
+
+def test_bmi_emitted_from_age_2_onward():
+    # Age 2 first year with BMI-for-age valid: emit resumes.
+    ped = _pediatric(2023)  # dob 2023-06-01, encounter 2025-06-15 → age 2
+    obs = build_anthropometric_observations(ped, _encounter(admission="2025-06-15T09:00:00"), "US")
+    codes = _codes(obs)
+    assert LOINC_BMI in codes
+
+
+def test_infant_head_circumference_uses_infant_median():
+    # dob 2025-01-05, encounter 2025-01-05 (day 0) → HC ~34.5 cm not 46 cm.
+    obs = _by_code(
+        build_anthropometric_observations(_newborn("2025-01-05"), _encounter(admission="2025-01-05T09:00:00"), "US")
+    )
+    hc = obs[LOINC_HEAD_CIRCUMFERENCE]["valueQuantity"]["value"]
+    # WHO male birth HC median 34.5 cm — clamp min is 30 cm, so within [33, 36].
+    assert 33.0 <= hc <= 36.0, f"newborn HC {hc} not near 34.5 cm"
+
+
+def test_infant_medians_deterministic():
+    # Two calls with identical (patient, encounter) → byte-identical emit.
+    p = _newborn("2025-01-05")
+    e = _encounter(admission="2025-06-15T09:00:00")
+    a = _by_code(build_anthropometric_observations(p, e, "US"))
+    b = _by_code(build_anthropometric_observations(p, e, "US"))
+    for code in (LOINC_BODY_HEIGHT, LOINC_BODY_WEIGHT):
+        assert a[code]["valueQuantity"]["value"] == b[code]["valueQuantity"]["value"]

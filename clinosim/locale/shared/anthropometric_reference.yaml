@@ -83,6 +83,37 @@ per_encounter_noise:
 #
 # Adult rows (>= 18) are omitted — the adult path reads from
 # `patient.height_cm` / `patient.bmi` directly.
+# Infant growth table (age < 24 months, keyed by whole months of age).
+# Issue #1322: the yearly `pediatric_growth` table's `age=0` row is the
+# 12-month median (~74 cm / 9.6 kg), so newborns admitted at 0-11 months
+# previously emitted 1-year-old anthropometrics — a newborn at day 8
+# emitted 74 cm / 9.0 kg where realistic values are ~50 cm / 3.5 kg.
+# Sources: WHO Child Growth Standards p50 for length-for-age /
+# weight-for-age / head-circumference-for-age (both sexes) —
+# https://www.who.int/tools/child-growth-standards . MHLW 乳幼児身体発育
+# 調査 2010 medians are within ±0.5 cm / ±0.3 kg of WHO through the first
+# year; a single unified table serves both locales.
+#
+# Callers (:func:`_pediatric_medians`) resolve the row by month-of-age
+# rounded down to the nearest table key (0 → 0, 4-5 → 3, 6-8 → 6, …).
+pediatric_growth_infant:
+  male:
+    0:  {height: 50.0, weight: 3.3, head_circumference: 34.5}
+    1:  {height: 54.7, weight: 4.5, head_circumference: 37.3}
+    3:  {height: 61.4, weight: 6.4, head_circumference: 40.5}
+    6:  {height: 67.6, weight: 7.9, head_circumference: 43.3}
+    9:  {height: 72.0, weight: 8.9, head_circumference: 45.0}
+    12: {height: 75.7, weight: 9.6, head_circumference: 46.1}
+    18: {height: 82.3, weight: 10.9, head_circumference: 47.4}
+  female:
+    0:  {height: 49.1, weight: 3.2, head_circumference: 33.9}
+    1:  {height: 53.7, weight: 4.2, head_circumference: 36.5}
+    3:  {height: 59.8, weight: 5.8, head_circumference: 39.5}
+    6:  {height: 65.7, weight: 7.3, head_circumference: 42.2}
+    9:  {height: 70.1, weight: 8.2, head_circumference: 43.8}
+    12: {height: 74.0, weight: 8.9, head_circumference: 44.9}
+    18: {height: 80.7, weight: 10.2, head_circumference: 46.2}
+
 pediatric_growth:
   US:                          # CDC growth charts (2000)
     male:
