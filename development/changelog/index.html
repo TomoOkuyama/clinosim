@@ -2333,8 +2333,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   MRs on the affected encounters (was 2 discharge Candesartan + 0
   bisphosphonate pre-fix). The residual <code>community</code>-category MR is
   the home-med status marker, not a fresh order — clinically correct.</li>
-<li>
-<p><strong>ED order drug-safety gate + NSAID same-class stacking mutex</strong>
+<li><strong>ED order drug-safety gate + NSAID same-class stacking mutex</strong>
   (Issue #1347, META #1392 Cluster A part 4). New pair rule
   <code>nsaid-stacking</code> (any <code>nsaid</code> × <code>nsaid</code> → contraindicated)
   covers 2+ NSAIDs concurrent (Celecoxib + Ibuprofen, Ketorolac IV +
@@ -2349,7 +2348,26 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   (pt-be5046f05c2f) plus chronic NSAID + anticoagulant pairs — both
   paths now suppressed. Verified on US p=500 s=356: 0 encounters with
   3+ concurrent NSAIDs (was ≥1 pre-fix), 0 patients with chronic
-  NSAID + anticoagulant.</p>
+  NSAID + anticoagulant.</li>
+<li>
+<p><strong>Pregnancy-safe antihypertensive substitution at outpatient
+  prescription renewal</strong> (Issue #1321, META #1392 Cluster A part 5).
+  New YAML <code>clinosim/locale/shared/pregnancy_substitutions.yaml</code>
+  maps FDA-Cat-C/D chronic HTN drugs (Amlodipine, ACE-I family:
+  Enalapril / Lisinopril / Captopril, ARB family: Losartan / Valsartan
+  / Candesartan) to ACOG-2019-recommended Methyldopa 250 mg PO tid.
+  <code>simulator/outpatient</code> prescription-renewal loop now consults the
+  substitution table when the patient's <code>state_periods</code> contain an
+  active pregnancy <code>TemporalStatePeriod</code> at the visit date, and
+  emits the substitute in place of the original in the outpatient
+  <code>PrescriptionRecord.items</code>. Post-Z39 postpartum reverts
+  automatically — the check is per-visit and never mutates
+  <code>patient.current_medications</code>. Random-sample review flagged
+  Amlodipine 5 mg on every prenatal visit for pt-192d90bc7df0.
+  Verified: 1 Methyldopa MR emitted for the pregnancy-carrier subset
+  on p=2000 US s=356 (pregnant + HTN overlap is statistically rare at
+  this cohort scale; the substitution mechanism fires for eligible
+  patients).</p>
 </li>
 <li>
 <p><strong>Lab-derived AKI Condition emit — Creatinine peak ≥ 4.0 mg/dL now
