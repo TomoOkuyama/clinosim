@@ -383,17 +383,33 @@ lactulose:                               "3999001Q2058"  # (lowercase alias for 
 "Temozolomide": "4291023"         # テモダール
 "BCG": "6323400"                  # イムノブラダー (intravesical)
 
-# SNRI + atypical antidepressants (#1281 second follow-up). Class
-# 1179 = 精神神経用剤. Only the JP-approved subset is registered
-# here — Duloxetine / Venlafaxine / Mirtazapine ARE PMDA-approved
-# but their specific 7-digit class-representative product numbers
-# have not been cross-verified in this PR, so they fall back to
-# text-only coding on the JP side until a dedicated JP-YJ
-# verification chain confirms them (same conservative treatment as
-# any other unregistered chronic drug). Fluvoxamine's 1179038 is
-# widely cited in MHLW 薬価基準収載品目 (デプロメール/ルボックス).
-# Milnacipran already lives at 1179040F2108 in yj.yaml (12-char)
-# and resolves via the yj→hot7 sibling fallback; adding the alias
-# here so the internal name → class code lookup succeeds too.
+# SNRI + atypical antidepressants (#1281 second follow-up + #1314).
+# Class 1179 = 精神神経用剤.
+#
+# Issue #1314: added Duloxetine / Mirtazapine / Venlafaxine (SNRI /
+# atypical AD) 7-digit class-representative codes, cross-verified
+# against the bundled ``JP_MedicationCodeYJ_CS_full.json`` product
+# master (each class-rep is a shortening of individual product codes
+# like ``1179052F1023`` "デュロキセチン錠20mg" → class-rep
+# ``1179052``). Fluoxetine is NOT PMDA-approved for Japan (checked in
+# the same master — 0 hits under フルオキセチン / プロザック); JP
+# chronic-med sampling for depression / anxiety should not route
+# through Fluoxetine, and the FHIR emit falls through to the eCS
+# nocoded slice if the sampler still picks Fluoxetine on JP.
+#
+# 7-digit class-representative rationale:
+#   1179052 — Duloxetine (デュロキセチン, generic since 2014)
+#   1179051 — Mirtazapine (ミルタザピン / brand リフレックス・レメロン)
+#   1179055 — Venlafaxine (brand イフェクサーSR, 2015 approval)
+#   1179038 — Fluvoxamine (デプロメール / ルボックス — pre-existing)
+#   1179040F2108 — Milnacipran (12-char yj.yaml entry alias)
+#
+# Master-source: ``clinosim/codes/authoritative/JP_MedicationCodeYJ_CS_full.json``
+# (MHLW 薬価基準 fragment). Each 7-digit code was verified to have
+# ≥ 1 product-level entry in that master before adding here (a wet
+# audit gate for "no fabrication of codes").
 "Fluvoxamine": "1179038"
 "Milnacipran": "1179040F2108"
+"Duloxetine": "1179052"
+"Mirtazapine": "1179051"
+"Venlafaxine": "1179055"
