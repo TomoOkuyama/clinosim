@@ -14,8 +14,19 @@ readmission_eligible: true
 medication_holds:
   - drugs: ["Metformin"]
     reason: "AKI — lactic acidosis risk, renal clearance impaired"
-  - drugs: ["Celecoxib", "Ibuprofen", "Naproxen"]
-    reason: "AKI — NSAIDs contraindicated in renal impairment"
+  - drugs: ["Celecoxib", "Ibuprofen", "Naproxen", "Diclofenac", "Loxoprofen", "Meloxicam", "Ketorolac", "Indomethacin"]
+    reason: "AKI — NSAIDs contraindicated in renal impairment (afferent arteriolar vasoconstriction)"
+  # Issue #1335 (META #1392 Cluster A part 3): ACE-I / ARB block efferent
+  # arteriolar tone and worsen intraglomerular hemodynamics in AKI. KDIGO
+  # 2012 § 3.5.2 recommends holding RAAS blockade until renal function
+  # recovers. Prior YAML omitted these; p=10k random-sample review flagged
+  # Enalapril started in an N17.9 admission (pt-678f0f38f932). Include
+  # DHP-CCB Amlodipine only where clinically appropriate — Amlodipine
+  # remains safe in AKI so is NOT added here.
+  - drugs: ["Enalapril", "Lisinopril", "Captopril", "Ramipril", "Perindopril", "Benazepril"]
+    reason: "AKI — ACE-I blocks efferent arteriolar tone, worsens renal hemodynamics (KDIGO 2012 § 3.5.2)"
+  - drugs: ["Losartan", "Valsartan", "Candesartan", "Olmesartan", "Telmisartan", "Irbesartan", "Azilsartan"]
+    reason: "AKI — ARB same efferent-arteriole mechanism as ACE-I (KDIGO 2012 § 3.5.2)"
 
 icd_codes:
   primary: "N17.9"  # Acute kidney failure, unspecified
