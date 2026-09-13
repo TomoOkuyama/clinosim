@@ -2306,6 +2306,41 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Enoxaparin emitted twice on the same admission with mismatched
+  units (2000 IU + 40 mg)</strong> (Issue #1342). Two paths were both emitting
+  DVT chemoprophylaxis for adult inpatients — disease-YAML
+  <code>supportive: DVT_prophylaxis</code> (via
+  <code>order.engine.place_admission_orders</code>) and
+  <code>prophylaxis.enricher.enrich_prophylaxis</code>. Every non-pediatric
+  inpatient carried two Enoxaparin MedicationRequests with mismatched
+  units (2000 IU ≈ 20 mg vs the correct 40 mg prophylactic dose) —
+  cumulative-dose analytics read supratherapeutic.</li>
+</ul>
+<p>Fix: in <code>modules/order/engine.place_admission_orders</code>, skip the
+  Order APPEND for any <code>DVT_prophylaxis</code> supportive entry while
+  preserving the loop's per-entry <code>rng.normal</code> call. The prophylaxis
+  enricher owns the emit universally — it already carries the
+  LOS ≥ 48 h / therapeutic-AC / bleeding-contraindication /
+  pediatric-age-ceiling gates from PRs #1071 / #1276 / #1306.</p>
+<p>Module boundary: no new module. Simplifies
+  <code>place_admission_orders</code> to "non-DVT supportive only"; the
+  <code>prophylaxis</code> module becomes the canonical DVT_prophylaxis SoT —
+  one gate, one emit, one dose contract.</p>
+<p>Determinism: RNG-cursor stable. The supportive-orders loop still
+  iterates every yaml/fallback entry and still calls
+  <code>rng.normal(ordered_datetime, …)</code> per iteration; only
+  <code>orders.append</code> is skipped for DVT_prophylaxis. Downstream RNG
+  (imaging orders, daily loop) sees the same cursor position.</p>
+<p>Verification (p=500 s356 JP): mixed-unit Enoxaparin encounters
+  31 → 1. The residual 1 encounter is a locale-specific dose gap
+  (JP disease-YAML <code>discharge_oral</code> blocks emit 2000 IU while the
+  enricher hardcodes 40 mg) — separate follow-up on
+  <code>prophylaxis_rules.yaml</code> locale-aware dose.</p>
+<p>Subsumes the Issue #1306 pediatric gate — since DVT_prophylaxis is
+  now always stripped from <code>place_admission_orders</code>, no pediatric
+  Enoxaparin can leak through this path, and the enricher's pediatric
+  gate (Issue #1276) covers the enricher side.</p>
+<ul>
 <li><strong>Pregnancy complications O14 / O24 / O42 / O60 / O64 never emitted
   as FHIR Conditions (post-#1293 regression)</strong> (Issue #1307). PR #1293
   populated <code>ClinicalDiagnosis.working_diagnoses</code> from the pregnancy
