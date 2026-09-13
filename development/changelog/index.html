@@ -2306,6 +2306,37 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>IV cycle-based chemotherapy agents (Oxaliplatin / Pemetrexed /
+  Carboplatin / Trastuzumab) emitted as monthly chronic
+  MedicationRequests without regimen partners</strong> (Issue #1319).
+  <code>chronic_medications.yaml</code> C18 / C34 / C50 blocks listed IV chemo
+  drugs as chronic monthly meds with independent-Bernoulli sampling —
+  a colon-cancer patient could sample Oxaliplatin 130 mg as a
+  standalone chronic MR every ~34 days without its FOLFOX partners
+  (5-FU / Leucovorin), producing clinically-nonsensical monotherapy
+  emit. At p=10k s356 US, Oxaliplatin fired 652 times on
+  non-chemo-visit encounters vs 456 5-FU / 456 Leucovorin — the
+  surplus 196 standalone MRs matched the buggy chronic-med path.</li>
+</ul>
+<p>Fix: scoped the oncology block in <code>chronic_medications.yaml</code> to
+  ORAL / SUBCUTANEOUS daily home chemo only (Capecitabine, Osimertinib,
+  Sorafenib, Lenvatinib, Tamoxifen, Anastrozole, Bicalutamide,
+  Leuprorelin depot). IV cycle drugs (Oxaliplatin, Pemetrexed,
+  Carboplatin, Trastuzumab) emit exclusively via <code>chemo_regimens.yaml</code>
+  cycle scheduling (FOLFOX q14d, CarboPem q21d). Also partially
+  addresses Issue #1329 (Capecitabine + IV 5-FU concurrent) by removing
+  the second IV 5-FU path from the chronic-med emit.</p>
+<p>Verification (p=500 s356 US): all 12 Oxaliplatin MRs now sit on
+  encounters with reasonCode "Malignant neoplasm of colon, unspecified"
+  (FOLFOX regimen path). Pemetrexed / Carboplatin / Trastuzumab MRs on
+  the chronic-med path: 0 (was 0.3 × colon-cancer, 0.3 + 0.2 ×
+  lung-cancer, 0.15 × breast-cancer distributions).</p>
+<p>Non-scope: Trastuzumab as a full regimen entry in
+  <code>chemo_regimens.yaml</code> (HER2-directed weekly / q3wk cycle) is a
+  follow-up — this PR closes the "IV chemo as chronic monthly" leak;
+  the follow-up would restore HER2 breast-cancer coverage at the
+  correct cycle cadence.</p>
+<ul>
 <li><strong>Microbiology DiagnosticReport.conclusion emitted blank</strong> (Issue
   #1343). Every blood-culture / urine-culture / sputum-culture DR
   populated <code>conclusionCode</code> (SNOMED Normal/Abnormal) and
