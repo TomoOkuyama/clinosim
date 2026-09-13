@@ -123,6 +123,29 @@ def encounter_admission_condition_id(patient_id: str, encounter_id: str) -> str:
     return _resolve_condition_id(encounter_admission_condition_key(patient_id, encounter_id))
 
 
+def encounter_secondary_condition_key(patient_id: str, encounter_id: str, idx: int) -> str:
+    """Structural key for an encounter's secondary-diagnosis Condition
+    (Issue #1307). Emitted from
+    ``clinical_diagnosis.working_diagnoses[i]`` entries — pregnancy
+    complications (O14 / O24 / O42 / O60 / O64), in-hospital complications
+    (``simulator/engine.py::_record_complication_on_active_encounter``),
+    and any future secondary-Dx source that lands on that list.
+
+    Encounter-scoped (like the primary + admission keys) with a
+    zero-padded index so per-encounter dedup collapses re-emits and each
+    secondary entry keeps a stable, referenceable id.
+    """
+    base = encounter_id or patient_id
+    return f"{base}-secondary-{idx:02d}"
+
+
+def encounter_secondary_condition_id(patient_id: str, encounter_id: str, idx: int) -> str:
+    """Return the opaque Condition.id for the ``idx``-th
+    ``working_diagnoses`` secondary Condition on this encounter
+    (Issue #1307). See :func:`encounter_secondary_condition_key`."""
+    return _resolve_condition_id(encounter_secondary_condition_key(patient_id, encounter_id, idx))
+
+
 def needs_admission_diagnosis_condition(
     admit_dx_code: str,
     primary_dx_code: str,
