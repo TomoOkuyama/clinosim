@@ -244,10 +244,22 @@ M17:  # Osteoarthritis
 # aim is closing the "0 chemotherapy MedicationRequest" gap. Follow-up
 # work should introduce full protocol-driven cycle scheduling (FOLFOX
 # infusion days, taxane pre-med, aromatase-inhibitor rotation, etc.).
+#
+# Issue #1319: This block is scoped to ORAL / SUBCUTANEOUS daily home
+# chemo (Capecitabine, Osimertinib, Sorafenib, Tamoxifen, Anastrozole,
+# Bicalutamide, Leuprorelin depot). IV cycle-based agents (Oxaliplatin,
+# Carboplatin, Pemetrexed, Trastuzumab, 5-FU, Leucovorin) emit via
+# ``chemo_regimens.yaml`` cycle scheduling instead — they were emitting
+# here as monthly chronic MRs without their regimen partners, producing
+# clinically-nonsensical monotherapy MedicationRequests (Oxaliplatin
+# 130 mg standalone every ~34 days for C18 patients, etc.).
 C18:  # Colon cancer — oral fluoropyrimidine (Capecitabine, XELOX/XELIRI adjuvant)
   medications:
     - {drug: "Capecitabine", drug_ja: "カペシタビン", dose: "1250mg/m2", route: "PO", frequency: "bid", probability: 0.5}
-    - {drug: "Oxaliplatin", drug_ja: "オキサリプラチン", dose: "130mg/m2", route: "IV", frequency: "q3weeks", probability: 0.3}
+    # Oxaliplatin (IV q3weeks) removed per Issue #1319 — cycle-based
+    # chemo, emitted via chemo_regimens.yaml (FOLFOX) not as a daily
+    # home med. Prior probability 0.3 produced ~196 excess standalone-
+    # monotherapy MRs at US p=10k s356.
   monitoring:
     - {test: "Creatinine", frequency: "every_3_days", intent: "Chemotherapy renal function monitoring"}
 
@@ -262,8 +274,10 @@ C22:  # Liver cancer — first-line oral TKI or immunotherapy
 C34:  # Lung cancer — EGFR-TKI first-line for adeno; platinum doublet otherwise
   medications:
     - {drug: "Osimertinib", drug_ja: "オシメルチニブ", dose: "80mg", route: "PO", frequency: "daily", probability: 0.4}
-    - {drug: "Pemetrexed", drug_ja: "ペメトレキセド", dose: "500mg/m2", route: "IV", frequency: "q3weeks", probability: 0.3}
-    - {drug: "Carboplatin", drug_ja: "カルボプラチン", dose: "AUC5", route: "IV", frequency: "q3weeks", probability: 0.2}
+    # Pemetrexed + Carboplatin (both IV q3weeks) removed per Issue #1319 —
+    # cycle-based chemo, emitted via chemo_regimens.yaml (CarboPem
+    # regimen) not as daily home meds. Prior standalone chronic MRs
+    # produced non-cycle q34d monotherapy emit patterns.
   monitoring:
     - {test: "Creatinine", frequency: "every_3_days", intent: "Platinum renal function monitoring"}
 
@@ -271,7 +285,11 @@ C50:  # Breast cancer — endocrine therapy (majority ER+); trastuzumab for HER2
   medications:
     - {drug: "Tamoxifen", drug_ja: "タモキシフェン", dose: "20mg", route: "PO", frequency: "daily", probability: 0.4}
     - {drug: "Anastrozole", drug_ja: "アナストロゾール", dose: "1mg", route: "PO", frequency: "daily", probability: 0.3}
-    - {drug: "Trastuzumab", drug_ja: "トラスツズマブ", dose: "6mg/kg", route: "IV", frequency: "q3weeks", probability: 0.15}
+    # Trastuzumab (IV q3weeks) removed per Issue #1319 — cycle-based
+    # anti-HER2 biologic, must emit via chemo_regimens.yaml as an IV
+    # cycle regimen (a Trastuzumab regimen entry there would be the
+    # right follow-up). Prior chronic-med emission produced standalone
+    # HER2 therapy MRs on internal-medicine encounters.
   monitoring:
     - {test: "AST", frequency: "every_3_days", intent: "Endocrine therapy hepatic monitoring"}
 
