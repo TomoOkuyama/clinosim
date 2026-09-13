@@ -39,6 +39,28 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **PRN rescue inhaler (Salbutamol) modelled as chronic monthly
+  scheduled prescription** (Issue #1318). ``simulator/outpatient``
+  prescription-renewal loop was walking every entry in
+  ``patient.current_medications`` and emitting a fresh community-
+  category ``MedicationRequest`` per visit — 14 Salbutamol MRs/year
+  for top-user COPD patients on JP p=500 s=356. Clinically a
+  Salbutamol pMDI canister lasts 200 puffs (~2-3 months of PRN
+  wheeze use); real refill cadence is 1-4/year via a standalone
+  refill request, not per-follow-up-visit renewal. Filter now drops
+  any entry with ``frequency == "prn"`` from the outpatient renewal
+  loop. PRN meds remain on ``patient.current_medications`` and
+  continue to surface via inpatient admission home-med orders +
+  discharge Rx (both intentional — a hospital's PRN standing order
+  and a discharge refill are clinically correct). Verified on JP
+  p=500 s=356: 253 Salbutamol MRs → 39 (-84 %); community-category
+  MRs 227 → 13 (-94 %); top-user 14 → 8 MRs/year; avg 5.6 → 2.4 /
+  patient / year. Same filter transparently catches any other
+  ``frequency: prn`` chronic med (Nitroglycerin SL, Loperamide,
+  etc.) if declared.
+
 ### Added
 
 - **Acute-illness medication holds for AKI and acute ischemic stroke**
