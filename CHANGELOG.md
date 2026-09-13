@@ -73,6 +73,37 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   follow-up — this PR closes the "IV chemo as chronic monthly" leak;
   the follow-up would restore HER2 breast-cancer coverage at the
   correct cycle cadence.
+- **Chemo cycle MedicationRequests (Oxaliplatin / Leucovorin / 5-FU /
+  etc.) emitted with empty ``doseAndRate.doseQuantity``** (Issue #1331).
+  ``modules/order/engine.parse_dose_string`` matched only bare units
+  (``mg``, ``g``, ``mcg``, ``IU``, …), so the BSA / weight-based dose
+  strings in ``chemo_regimens.yaml`` (``85mg/m2`` for Oxaliplatin,
+  ``400mg/m2`` for Leucovorin, ``6mg/kg`` for Trastuzumab, etc.) fell
+  through with no structured dose extracted. FHIR emit then populated
+  only ``dosageInstruction.text`` = "85mg/m2" while
+  ``doseAndRate.doseQuantity`` stayed absent — downstream pharmaco-
+  kinetic consumers reading structured Quantity fields saw nothing.
+
+  Fix, two parts:
+
+  - ``parse_dose_string`` gains a BSA / weight-based dose regex tier
+    (matched before the bare-unit tier so ``mg/m2`` is not truncated
+    to ``mg``). Handles ``mg/m2`` / ``mg/kg`` / ``mcg/kg`` /
+    ``mcg/m2`` / ``ug/kg``. UCUM accepts these compound units so
+    ``build_ucum_quantity`` emits them unchanged.
+  - The outpatient chemo emit path (``simulator/outpatient.py`` cycle-
+    orders loop) now calls ``enrich_medication_order(order,
+    dose_str=_dose)`` right after constructing each cycle Order, so
+    the parsed ``dose_quantity`` / ``dose_unit`` land on the Order
+    fields the FHIR builder reads.
+
+  Verification (p=500 s356 US): 46/46 chemo MRs now carry structured
+  ``doseQuantity`` (was 0/46). Sample: Oxaliplatin ``{value: 85,
+  unit: "mg/m2", code: "mg/m2"}``, Leucovorin ``{value: 400,
+  unit: "mg/m2"}``, 5-FU ``{value: 400, unit: "mg/m2"}`` (bolus dose;
+  the 46-h infusion component remains in ``.text`` alongside).
+  Un-parseable doses (``AUC5`` for Carboplatin, BCG ``1 vial (…)``)
+  gracefully fall through to text-only, no regression.
 
 - **Microbiology DiagnosticReport.conclusion emitted blank** (Issue
   #1343). Every blood-culture / urine-culture / sputum-culture DR

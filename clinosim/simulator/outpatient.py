@@ -18,6 +18,7 @@ from clinosim.modules.observation.engine import (
     generate_lab_result,
     get_lab_unit,
 )
+from clinosim.modules.order.engine import enrich_medication_order
 from clinosim.modules.staff.engine import (
     FALLBACK_PHYSICIAN_ID,
     StaffRoster,
@@ -531,6 +532,16 @@ def _simulate_outpatient_visit(
                 frequency_per_day=1,
                 duration_days=1,
             )
+            # Issue #1331: also populate structured dose_quantity /
+            # dose_unit from the ``chemo_regimens.yaml`` dose string
+            # (e.g. "85mg/m2" → 85 + "mg/m2"). Falls silently through
+            # for dose strings the parser cannot handle (Carboplatin
+            # "AUC5", 5-FU compound "400mg/m2 bolus + 2400mg/m2/46h",
+            # BCG "1 vial ..."), so those keep the pre-1331 text-only
+            # emit — no regression for un-parseable doses. The FHIR
+            # emit path picks up ``doseQuantity`` from these fields
+            # via ``build_ucum_quantity``.
+            enrich_medication_order(_order, dose_str=_dose)
             orders.append(_order)
             chemo_mars.append(
                 MedicationAdministration(
