@@ -42,6 +42,22 @@ def _ceftriaxone_regimen() -> AntibioticRegimen:
     )
 
 
+def _vancomycin_regimen() -> AntibioticRegimen:
+    """Vancomycin q12h × 14 days = 28 total doses (Issue #1312 test fixture)."""
+    return AntibioticRegimen(
+        regimen_id="abx-h1-vanc",
+        hai_event_id="h1",
+        encounter_id="enc-1",
+        drug_key="vancomycin",
+        dose="1g",
+        route="IV",
+        frequency="q12h",
+        start_datetime=datetime(2026, 1, 10, 8),
+        duration_days=14,
+        intent="empirical",
+    )
+
+
 # ===== Task 3 — build_regimens =====
 
 
@@ -180,3 +196,62 @@ def test_generate_mar_doses_unknown_frequency_raises():
     r.frequency = "q99h"
     with pytest.raises(KeyError):
         generate_mar_doses(r, snapshot_datetime=datetime(2026, 12, 31), order_id="o-1")
+
+
+@pytest.mark.unit
+def test_generate_mar_doses_encounter_end_caps_before_snapshot_1312():
+    """Issue #1312: when the encounter's discharge_datetime is earlier
+    than the snapshot, doses must be truncated at discharge — otherwise
+    a 14-day Vancomycin regimen started 3 days pre-discharge emits 11
+    doses past ``Encounter.period.end``.
+
+    Vancomycin q12h × 14 days = 28 total doses. If admission → discharge
+    spans only 4 days from regimen start, only 8 doses should emit.
+    """
+    r = _vancomycin_regimen()  # q12h × 14 days from 2026-01-10 08:00
+    snapshot = datetime(2026, 12, 31)  # far future — snapshot doesn't clamp
+    # Discharge at 2026-01-14 08:00 → doses at 10/08, 10/20, 11/08, 11/20,
+    # 12/08, 12/20, 13/08, 13/20, 14/08 = 9 doses fit within the window
+    # (the discharge-hour dose is retained; only doses strictly after
+    # discharge are dropped). Would be 28 without the cap.
+    discharge = datetime(2026, 1, 14, 8)
+    mars = generate_mar_doses(
+        r,
+        snapshot_datetime=snapshot,
+        order_id="o-vanc",
+        encounter_end_datetime=discharge,
+    )
+    assert len(mars) == 9, f"expected 9 doses within the 4-day encounter, got {len(mars)} (was 28 before fix)"
+    # No dose scheduled after the discharge datetime.
+    assert all(m.scheduled_datetime <= discharge for m in mars), (
+        f"MAR emitted past discharge: {[m.scheduled_datetime for m in mars if m.scheduled_datetime > discharge]!r}"
+    )
+
+
+@pytest.mark.unit
+def test_generate_mar_doses_snapshot_still_caps_when_earlier_than_discharge_1312():
+    """Issue #1312 companion: snapshot remains the effective ceiling when
+    it's earlier than the encounter discharge (AD-32 semantics preserved)."""
+    r = _ceftriaxone_regimen()
+    snapshot = datetime(2026, 1, 12, 0)  # only 2 doses fit before snapshot
+    discharge = datetime(2026, 1, 20, 0)  # long after snapshot
+    mars = generate_mar_doses(
+        r,
+        snapshot_datetime=snapshot,
+        order_id="o-1",
+        encounter_end_datetime=discharge,
+    )
+    # 10 08:00 and 11 08:00 fit; 12 08:00 > snapshot 00:00 → 2 doses.
+    assert len(mars) == 2, f"expected 2 doses within snapshot, got {len(mars)}"
+
+
+@pytest.mark.unit
+def test_generate_mar_doses_no_encounter_end_preserves_snapshot_only_behaviour_1312():
+    """Issue #1312 backwards-compat: omitting ``encounter_end_datetime``
+    (default None) keeps the pre-fix snapshot-only cap so older callers
+    and tests are unaffected."""
+    r = _ceftriaxone_regimen()
+    snapshot = datetime(2026, 12, 31)  # far future
+    mars = generate_mar_doses(r, snapshot_datetime=snapshot, order_id="o-1")
+    # 7 days × q24h = 7 doses; snapshot doesn't clamp; no encounter cap.
+    assert len(mars) == 7
