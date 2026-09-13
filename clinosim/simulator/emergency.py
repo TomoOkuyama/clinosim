@@ -345,6 +345,51 @@ def _simulate_ed_visit(
                     )
                 )
                 continue
+            # Issue #1347 (META #1392 Cluster A part 4): drug-drug pair
+            # gate for ED order emit. Prior to this pass the ED order
+            # dispatcher only checked the demographic gate (age/sex
+            # rules); it did NOT call ``check_candidate_against_active``
+            # so a patient on chronic Rivaroxaban + Celecoxib could
+            # receive Ketorolac IV + Ibuprofen PO in the same ED visit
+            # (3-NSAID stacking on top of anticoag — massive GI-bleed
+            # risk). The active med set is
+            #   patient.current_medications
+            #   + drug names already appended to ``orders`` this loop
+            # so both chronic-vs-new and new-vs-new pairs are caught.
+            # Drops on "skip" severity (major / contraindicated); logs
+            # a SafetySkipEntry so downstream verification can prove the
+            # gate fired instead of the drug silently disappearing.
+            from clinosim.modules import drug_safety
+            from clinosim.modules.drug_safety.verdict import SEVERITY_RANK
+
+            _active_ed = [m.drug_name for m in (patient.current_medications or []) if m.drug_name] + [
+                str(o.display_name) for o in orders if o.order_type == OrderType.MEDICATION and o.display_name
+            ]
+            _ddi_verdicts = drug_safety.check_candidate_against_active(_tx_name, _active_ed)
+            _ddi_worst = max(
+                (v for v in _ddi_verdicts if not v.is_allowed),
+                key=lambda v: SEVERITY_RANK[v.severity],
+                default=None,
+            )
+            if _ddi_worst is not None and _ddi_worst.default_action == "skip":
+                patient.safety_skip_log.append(
+                    SafetySkipEntry(
+                        encounter_id=encounter.encounter_id,
+                        candidate_drug=_tx_name,
+                        candidate_drug_ja=(drug_safety.japanese_display(_tx_name) or _tx_name),
+                        active_conflict=_ddi_worst.matched_active_drug or "",
+                        active_conflict_ja=(
+                            drug_safety.japanese_display(_ddi_worst.matched_active_drug or "")
+                            or (_ddi_worst.matched_active_drug or "")
+                        ),
+                        verdict=_ddi_worst,
+                        substituted_with=None,
+                        substituted_with_ja=None,
+                        context_hint=f"ed_treatment_ddi:{cond_name}",
+                        timestamp=visit_time.isoformat(),
+                    )
+                )
+                continue
         orders.append(
             Order(
                 order_id=f"ORD-{encounter.encounter_id}-ED-T{i}",
