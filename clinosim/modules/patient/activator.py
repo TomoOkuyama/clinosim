@@ -753,6 +753,44 @@ def _derive_home_medications(
             m for m in medications if _country_upper not in {str(x).upper() for x in (m.get("locale_exclude") or [])}
         ]
 
+        # Issue #1329: active-regimen mutex. A patient sampled into an
+        # active IV chemo regimen (`chemo_regimens.yaml::by_cancer`)
+        # must not simultaneously receive an oral home med whose
+        # ``drug_class`` overlaps the regimen's
+        # ``contains_drug_classes`` (double 5-FU exposure = severe
+        # mucositis / cardiotoxicity). For C-chapter cancer codes,
+        # query the shared ``pick_active_chemo_regimen`` helper on a
+        # per-code sub-RNG (``chemotherapy_regimen_seed``) — the same
+        # seed ``_chemo_cycle_events`` consumes — and zero the
+        # ``probability`` of any conflicting med in a shallow copy of
+        # its spec dict. RNG-preserving: setting ``probability=0``
+        # keeps ``select_with_exclusive_classes`` consuming exactly
+        # the same number of draws (Bernoulli path calls
+        # ``rng.random()`` regardless of the value; exclusive-class
+        # path still draws ``rng.choice`` once per class, with the
+        # zeroed weight collapsing into the residual mass). Only the
+        # affected patient's Capecitabine emit outcome flips; RNG
+        # cursor for downstream chronic-med draws stays put.
+        _base_code = code.split(".")[0]
+        if _base_code.startswith("C") and _base_code[1:].isdigit() and patient_id:
+            from clinosim.locale.loader import load_chemo_regimens
+            from clinosim.modules.population.engine import pick_active_chemo_regimen
+            from clinosim.seeding import chemotherapy_regimen_seed
+
+            _chemo_data = load_chemo_regimens()
+            _chemo_regimens = _chemo_data.get("regimens") or {}
+            _by_cancer = _chemo_data.get("by_cancer") or {}
+            _chemo_rng = np.random.default_rng(chemotherapy_regimen_seed(patient_id, _base_code))
+            _picked = pick_active_chemo_regimen(_chemo_rng, _chemo_regimens, _by_cancer, _base_code)
+            if _picked is not None:
+                _, _regimen = _picked
+                _conflict_classes = {str(x) for x in (_regimen.get("contains_drug_classes") or [])}
+                if _conflict_classes:
+                    medications = [
+                        (m if str(m.get("drug_class") or "") not in _conflict_classes else {**m, "probability": 0.0})
+                        for m in medications
+                    ]
+
         # Single-mechanism selection: exclusive_classes categorical + non-exclusive
         # independent Bernoulli. Shared with `_build_discharge_rx` — see
         # `select_with_exclusive_classes` in clinosim.modules._shared.
