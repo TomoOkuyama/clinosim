@@ -2335,7 +2335,37 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   <code>chemo_regimens.yaml</code> (HER2-directed weekly / q3wk cycle) is a
   follow-up — this PR closes the "IV chemo as chronic monthly" leak;
   the follow-up would restore HER2 breast-cancer coverage at the
-  correct cycle cadence.</p>
+  correct cycle cadence.
+- <strong>Chemo cycle MedicationRequests (Oxaliplatin / Leucovorin / 5-FU /
+  etc.) emitted with empty <code>doseAndRate.doseQuantity</code></strong> (Issue #1331).
+  <code>modules/order/engine.parse_dose_string</code> matched only bare units
+  (<code>mg</code>, <code>g</code>, <code>mcg</code>, <code>IU</code>, …), so the BSA / weight-based dose
+  strings in <code>chemo_regimens.yaml</code> (<code>85mg/m2</code> for Oxaliplatin,
+  <code>400mg/m2</code> for Leucovorin, <code>6mg/kg</code> for Trastuzumab, etc.) fell
+  through with no structured dose extracted. FHIR emit then populated
+  only <code>dosageInstruction.text</code> = "85mg/m2" while
+  <code>doseAndRate.doseQuantity</code> stayed absent — downstream pharmaco-
+  kinetic consumers reading structured Quantity fields saw nothing.</p>
+<p>Fix, two parts:</p>
+<ul>
+<li><code>parse_dose_string</code> gains a BSA / weight-based dose regex tier
+    (matched before the bare-unit tier so <code>mg/m2</code> is not truncated
+    to <code>mg</code>). Handles <code>mg/m2</code> / <code>mg/kg</code> / <code>mcg/kg</code> /
+    <code>mcg/m2</code> / <code>ug/kg</code>. UCUM accepts these compound units so
+    <code>build_ucum_quantity</code> emits them unchanged.</li>
+<li>The outpatient chemo emit path (<code>simulator/outpatient.py</code> cycle-
+    orders loop) now calls <code>enrich_medication_order(order,
+    dose_str=_dose)</code> right after constructing each cycle Order, so
+    the parsed <code>dose_quantity</code> / <code>dose_unit</code> land on the Order
+    fields the FHIR builder reads.</li>
+</ul>
+<p>Verification (p=500 s356 US): 46/46 chemo MRs now carry structured
+  <code>doseQuantity</code> (was 0/46). Sample: Oxaliplatin <code>{value: 85,
+  unit: "mg/m2", code: "mg/m2"}</code>, Leucovorin <code>{value: 400,
+  unit: "mg/m2"}</code>, 5-FU <code>{value: 400, unit: "mg/m2"}</code> (bolus dose;
+  the 46-h infusion component remains in <code>.text</code> alongside).
+  Un-parseable doses (<code>AUC5</code> for Carboplatin, BCG <code>1 vial (…)</code>)
+  gracefully fall through to text-only, no regression.</p>
 <ul>
 <li><strong>Microbiology DiagnosticReport.conclusion emitted blank</strong> (Issue
   #1343). Every blood-culture / urine-culture / sputum-culture DR
