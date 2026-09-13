@@ -133,6 +133,29 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   50 cm / 3.2-3.9 kg (WHO birth median), 3-month emits show 54.7 cm /
   3.7-5.0 kg (WHO 3-month median with per-encounter noise), and BMI is
   no longer emitted for any of the 3 babies.
+- **JP C-section intraop bundle missing postop analgesic (Ketorolac
+  0/N emit, no substitute)** (Issue #1315). PR #1297's intraop bundle
+  hard-coded Ketorolac 30 mg IV for the postop-analgesia slot. Ketorolac
+  is registered in the JP drug catalog (YJ 1149029) but is not the JP
+  obstetric-practice default — real JP practice uses IV Acetaminophen
+  (アセリオ 1 g) as the multimodal-analgesia primary. Every JP C-section
+  in p=10k builds landed with a documentation-missing 6th slot while
+  the US bundle emitted the full six drugs.
+
+  Fix: made the analgesic slot in the ``_cs_ord_specs`` list in
+  ``clinosim/simulator/perinatal.py`` locale-aware. JP substitutes
+  Acetaminophen 1000 mg IV (order-id suffix ``CSAM``); US retains
+  Ketorolac 30 mg IV unchanged (order-id suffix ``CSKT`` preserved to
+  keep US CIF / downstream opaque FHIR ids byte-stable). Both drugs
+  already have RxNorm / YJ codes registered so FHIR emit renders
+  ``medicationCodeableConcept.coding`` on either branch. Timing anchor
+  (60 min postop) is the same on both sides.
+
+  Verification: unit tests pin (a) JP cesarean bundle contains
+  Acetaminophen 1000 mg IV and NOT Ketorolac; (b) US cesarean bundle
+  keeps Ketorolac with the ``CSKT`` order-id suffix; (c) shared 5 drugs
+  (Cefazolin, Bupivacaine, Fentanyl, Ondansetron, Oxytocin) present on
+  both sides unchanged.
 
 - **Inpatient progress_note subjective repeats identical boilerplate
   across every hospital day** (Issue #1327). When today's vitals carry
