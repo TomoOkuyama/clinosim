@@ -9,21 +9,43 @@ from __future__ import annotations
 import pytest
 import yaml
 
+from clinosim.modules.device.engine import load_devices_config
 from clinosim.modules.hai import engine as hai_engine
 
 
 @pytest.fixture(autouse=True)
 def _clear_hai_caches():
-    """Each test starts with empty caches so monkeypatch effects are visible."""
+    """Each test starts with empty HAI caches so monkeypatch effects are
+    visible.
+
+    `load_devices_config` is pre-warmed with the real device catalog
+    BEFORE each test — the autouse fixture runs before the test body's
+    `monkeypatch.setattr(yaml, "safe_load", ...)`, so the real device
+    dict is cached at that point and subsequent `_validate_hai_rates`
+    calls (which look up `source_device_type ∈ devices.yaml`) see the
+    real catalog even when `yaml.safe_load` is monkeypatched inside the
+    test. Without this, the transitive `load_devices_config()` call in
+    the validator reads the monkeypatched yaml on first use and its
+    `@lru_cache(maxsize=1)` stores an empty devices dict, breaking both
+    same-file tests and any later test that lands on the poisoned
+    process.
+
+    Only surfaced when pytest-split's `least_duration` splitting
+    (S115 #1420) reorders the unit suite so this file's monkeypatches
+    run before `test_device_engine.py` has independently warmed the
+    cache with the real data."""
     hai_engine.load_hai_rates.cache_clear()
     hai_engine.load_hai_codes.cache_clear()
     hai_engine.load_hai_organisms.cache_clear()
     hai_engine.load_hai_specimens.cache_clear()
+    load_devices_config.cache_clear()
+    load_devices_config()  # pre-warm with real yaml (before monkeypatch)
     yield
     hai_engine.load_hai_rates.cache_clear()
     hai_engine.load_hai_codes.cache_clear()
     hai_engine.load_hai_organisms.cache_clear()
     hai_engine.load_hai_specimens.cache_clear()
+    load_devices_config.cache_clear()
 
 
 # ----------------------------------------------------------------------------
