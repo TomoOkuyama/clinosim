@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 17
+version: 18
 max_tokens: 3500
 temperature: 0.1
 description: |
@@ -12,6 +12,22 @@ description: |
   with output language controlled by ${target_language}" was accurate only
   through session-88j v9; the JA-authored file has been the canonical JP
   source since v11 (Rule 5 D lab hard-guard onward).
+
+  v18 changes (2026-09-14, session S113→S114 continuation, Issue #1404):
+    - Neonatal admission_hp per-doc-type block added. When
+      `newborn_workup_summary` is present in context_sections, the
+      admission_hp is a birth-admission H&P and the neonatal cadence
+      applies (delivery mode + GA + birth wt/lth/HC + Apgar in HPI;
+      Vitamin K / AABR / tandem-MS / bilirubin / CCHD / ophthalmic in
+      A&P; no adult PMH / home_medications section).
+    - New context key `newborn_workup_summary` added to Context
+      contract. Populated by `context._build_newborn_workup` (reads
+      `record.extensions["newborn"]` + top-level procedures / MARs)
+      only for `patient.occupation == "infant"` or `age == 0` records.
+    - `_render_patient_biometrics` neonatal framing (prefixed
+      「出生時 / birth」, BMI suppressed) already landed in v17 via
+      the S113→S114 narrative-context Python change — no prompt-side
+      re-emission needed here.
 
   v17 changes (2026-09-14, session S113→S114 narrative review):
     - Doc-string above updated to reflect the two-file locale-authored
@@ -240,6 +256,14 @@ system: |
     - initial_vitals            ed_note only. First-recorded vitals at ED
                               arrival — narrate as the arrival snapshot,
                               not as today's status.
+    - newborn_workup_summary    admission_hp only (Issue #1404). One-line
+                              anchor for the neonatal admission_hp
+                              variant: Apgar 1/5 min, AABR / tandem-MS /
+                              CCHD screen flags, bilirubin peak,
+                              Vitamin K + ophthalmic prophylaxis flags.
+                              Presence signals "this is a birth
+                              admission" — see the per-doc-type
+                              neonatal admission_hp block.
 
   Keys marked "VERBATIM" MUST be copied character-for-character into the
   narrative. Keys marked with a data type (list / snapshot) MUST be
@@ -470,6 +494,29 @@ system: |
     Drug list under the medications heading (【薬物療法】 for JA,
     **Medications** for EN) MUST name each drug from context with
     dose/route (Rule 3). No drug-class-only abstraction.
+  - NEONATAL VARIANT (Issue #1404): when `newborn_workup_summary` is
+    present in context_sections, the admission_hp is a birth-admission
+    H&P and MUST shape the narrative around neonatal workup rather
+    than the adult template:
+      * hpi opening: delivery mode (SVD / C-section) + gestational age
+        + birth weight/length/HC from `patient_biometrics` (birth-
+        prefixed) + `newborn_workup_summary`'s Apgar (1 min / 5 min)
+        + feeding plan if in context.
+      * assessment_and_plan: cite every workup element that appears in
+        `newborn_workup_summary` — Vitamin K prophylaxis, AABR
+        hearing-screen result (pass / refer / pending), tandem-MS
+        metabolic-screen submission (result pending 5-7 days),
+        bilirubin peak with the phototherapy threshold context (AAP
+        2022), CCHD SpO2 pre/post-ductal reading (pass < 3 % gap and
+        both ≥ 95 %), ophthalmic prophylaxis. Do NOT emit adult-
+        oriented A&P headings like "Planned Length of Stay" verbatim —
+        newborn LOS follows the newborn-nursery pathway (24-48 h SVD /
+        72-96 h C-section, per country).
+      * PMH does NOT apply — newborns have no prior medical history;
+        replace with "birth history: NSVD/CS at term/preterm, birth
+        weight X g" phrasing grounded in patient_biometrics.
+      * Adult medication reconciliation (home_medications) is empty
+        for newborns — do NOT invent a home-med list.
 
   ### discharge_summary
   - Purpose: summary for post-discharge outpatient team / referring MD.

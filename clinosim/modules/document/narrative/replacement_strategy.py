@@ -1442,6 +1442,17 @@ def _build_extra_context(
             med_names = _render_med_names(home_meds, lang=ctx.target_lang)
             if med_names:
                 extra["home_medications"] = med_names
+        # Issue #1404: neonatal admission_hp — emit a one-line workup
+        # summary the LLM Rule 2 / per-doc-type block reads to weave
+        # Apgar / AABR / metabolic-screen / bilirubin / CCHD / Vitamin K
+        # into HPI + A&P. Empty for non-neonate records (guarded by the
+        # ctx builder's `is_neonate` gate). See `narrative_seed_bundle`
+        # neonatal admission_hp block for the expected cadence.
+        newborn_workup = getattr(ctx, "newborn_workup", None) or {}
+        if newborn_workup.get("is_neonate"):
+            summary = _render_newborn_workup_summary(newborn_workup, lang=ctx.target_lang)
+            if summary:
+                extra["newborn_workup_summary"] = summary
     elif doc_type == "discharge_summary":
         # discharge_medications_list: skip when template renders it.
         if "discharge_medications" not in tmpl:
@@ -1555,6 +1566,71 @@ def _render_chronic_list(chronic: list, lang: str = "en") -> str:
         if code:
             parts.append(f"{code}{detail}")
     return "; ".join(parts) if parts else ""
+
+
+def _render_newborn_workup_summary(workup: dict, lang: str = "en") -> str:
+    """Issue #1404: one-line neonatal workup anchor for admission_hp
+    narrative. Reads the projection built by
+    ``context._build_newborn_workup`` and composes a JA/EN sentence
+    citing the elements the LLM MUST weave into the HPI (Apgar) and
+    A&P (Vitamin K / AABR / metabolic screen / bilirubin / CCHD /
+    ophthalmic prophylaxis) sections.
+
+    Missing elements drop silently — the summary always reflects what
+    the CIF actually carries. Never fabricates a screening not run.
+    """
+    if not workup:
+        return ""
+    is_ja = str(lang).lower().startswith("ja")
+    parts: list[str] = []
+
+    a1 = workup.get("apgar_1min")
+    a5 = workup.get("apgar_5min")
+    if a1 is not None or a5 is not None:
+        a1_str = str(a1) if a1 is not None else "-"
+        a5_str = str(a5) if a5 is not None else "-"
+        if is_ja:
+            parts.append(f"Apgar {a1_str}(1分)/{a5_str}(5分)")
+        else:
+            parts.append(f"Apgar {a1_str}(1 min) / {a5_str}(5 min)")
+
+    if workup.get("has_aabr"):
+        parts.append("AABR 聴覚スクリーン提出済" if is_ja else "AABR hearing screen completed")
+
+    if workup.get("has_metabolic"):
+        parts.append("タンデム MS 代謝異常症スクリーン提出済" if is_ja else "tandem-MS metabolic screen submitted")
+
+    bili = workup.get("bilirubin_peak")
+    if bili is not None:
+        try:
+            bili_f = float(bili)
+            if is_ja:
+                parts.append(f"総ビリルビン最高値 {bili_f:.1f} mg/dL")
+            else:
+                parts.append(f"peak total bilirubin {bili_f:.1f} mg/dL")
+        except (TypeError, ValueError):
+            pass
+
+    ru = workup.get("cchd_ru_spo2")
+    le = workup.get("cchd_le_spo2")
+    if ru is not None or le is not None:
+        ru_str = f"{ru}%" if ru is not None else "-"
+        le_str = f"{le}%" if le is not None else "-"
+        if is_ja:
+            parts.append(f"CCHD SpO2 右上肢 {ru_str} / 下肢 {le_str}")
+        else:
+            parts.append(f"CCHD SpO2 RU {ru_str} / LE {le_str}")
+
+    if workup.get("has_vitamin_k"):
+        parts.append("ビタミン K 投与済" if is_ja else "Vitamin K administered")
+
+    if workup.get("has_ophthalmic"):
+        parts.append("眼科的予防投与済" if is_ja else "ophthalmic prophylaxis administered")
+
+    if not parts:
+        return ""
+    sep = "、" if is_ja else "; "
+    return sep.join(parts)
 
 
 def _render_vitals_for_day(vitals: list, day_index: int, encounter: object | None = None) -> str:
