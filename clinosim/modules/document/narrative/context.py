@@ -142,12 +142,14 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
         if isinstance(minute, int) and isinstance(score, int):
             apgar_by_min[minute] = score
 
-    # Bilirubin peak (highest value in mg/dL). Entries carry {timestamp, total_bilirubin_mg_dl}.
+    # Bilirubin peak (highest value in mg/dL). Real emit shape from
+    # newborn.engine.build_bilirubin_observations uses `value_mg_dl`;
+    # older/legacy fixture shapes may use `total_bilirubin_mg_dl` or
+    # `value`. Read all three (real shape first) — S114 verify (Issue
+    # #1412) found only `value_mg_dl` populated on p=10000 production.
     bili_values: list[float] = []
     for entry in newborn_ext.get("bilirubin") or []:
-        val = _o(entry, "total_bilirubin_mg_dl", None)
-        if val is None:
-            val = _o(entry, "value", None)
+        val = _o(entry, "value_mg_dl", None) or _o(entry, "total_bilirubin_mg_dl", None) or _o(entry, "value", None)
         if val is not None:
             try:
                 bili_values.append(float(val))
@@ -155,47 +157,78 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
                 pass
     bilirubin_peak = max(bili_values) if bili_values else None
 
-    # CCHD SpO2 — walk entries for the right-upper (`RU` / `right_upper`)
-    # and lower-extremity (`LE` / `foot`) readings.
+    # CCHD SpO2 — walk entries for the right-upper (pre-ductal) and
+    # lower-extremity (post-ductal) readings. Real emit shape from
+    # newborn.engine.build_cchd_pulse_ox uses `site: "right_hand"` /
+    # `"foot"` and `value_pct`. Legacy fixture shapes may use `ru` /
+    # `right_upper` / `pre_ductal` / `spo2_percent` / `value` — support
+    # all so hand-authored tests and production data both project.
     cchd_ru: int | None = None
     cchd_le: int | None = None
     for entry in newborn_ext.get("cchd_pulse_ox") or []:
         site = str(_o(entry, "site", "") or "").lower()
-        spo2 = _o(entry, "spo2_percent", None) or _o(entry, "value", None)
+        spo2 = _o(entry, "value_pct", None) or _o(entry, "spo2_percent", None) or _o(entry, "value", None)
         if spo2 is None:
             continue
         try:
             spo2_int = int(spo2)
         except (TypeError, ValueError):
             continue
-        if site in ("ru", "right_upper", "right upper", "pre_ductal", "pre-ductal"):
+        # Pre-ductal (right upper) readings: production shape uses
+        # `right_hand`; earlier fixtures use `ru` / `right_upper` /
+        # `pre_ductal`. All recognized here.
+        if site in ("ru", "right_upper", "right upper", "right_hand", "pre_ductal", "pre-ductal"):
             cchd_ru = spo2_int
+        # Post-ductal (lower extremity) readings.
         elif site in ("le", "lower_extremity", "foot", "post_ductal", "post-ductal"):
             cchd_le = spo2_int
 
     # Presence flags for Procedures + MARs on the top-level lists.
+    # Real ProcedureRecord shape uses `procedure_type` (canonical enum
+    # string like "hearing_screen_aabr" / "metabolic_screen_tandem_ms")
+    # rather than `display_name` — the display is resolved at emit time.
+    # Check `procedure_type` first (production), fall back to
+    # display / name / id for hand-authored fixtures.
     procedures = _o(record, "procedures", None) or []
     has_aabr = False
     has_metabolic = False
     for proc in procedures:
-        name = str(_o(proc, "display_name", "") or _o(proc, "name", "") or "").lower()
-        if "aabr" in name or "hearing screen" in name:
+        ptype = str(_o(proc, "procedure_type", "") or "").lower()
+        pid = str(_o(proc, "procedure_id", "") or "").upper()
+        display = str(_o(proc, "display_name", "") or _o(proc, "name", "") or "").lower()
+        haystack = f"{ptype} {display}"
+        if (
+            "aabr" in haystack
+            or "hearing_screen" in haystack
+            or "hearing screen" in haystack
+            or "HEARING-SCREEN" in pid
+        ):
             has_aabr = True
-        if "tandem" in name or "metabolic screen" in name or "代謝異常" in name:
+        if (
+            "tandem" in haystack
+            or "metabolic_screen" in haystack
+            or "metabolic screen" in haystack
+            or "代謝異常" in haystack
+            or "METABOLIC-SCREEN" in pid
+        ):
             has_metabolic = True
 
+    # Real MedicationAdministrationRecord shape uses `drug_name`
+    # (not `medication_display_name` / `display_name`).
     mars = _o(record, "medication_administrations", None) or []
     has_vitamin_k = False
     has_ophthalmic = False
     for mar in mars:
-        display = str(_o(mar, "medication_display_name", "") or _o(mar, "display_name", "") or "").lower()
+        display = str(
+            _o(mar, "drug_name", "") or _o(mar, "medication_display_name", "") or _o(mar, "display_name", "") or ""
+        ).lower()
         if "vitamin k" in display or "phytonadione" in display or "フィトナジオン" in display:
             has_vitamin_k = True
         if "erythromycin" in display or "エリスロマイシン" in display:
             # Ophthalmic prophylaxis in US neonates is erythromycin
             # 0.5% ophthalmic ointment. Explicit OPH route also flags.
             route = str(_o(mar, "route", "") or "").lower()
-            if route in ("oph", "ophthalmic", "eye") or "eye" in display:
+            if route in ("oph", "ophthalmic", "eye") or "eye" in display or "ophthalmic" in display:
                 has_ophthalmic = True
         if "silver nitrate" in display or "povidone" in display:
             has_ophthalmic = True
