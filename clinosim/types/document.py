@@ -319,6 +319,17 @@ class NarrativeContext:
     # narrative from the actual condition codes.
     family_history: list[Any] = field(default_factory=list)
 
+    # === Issue #1404 (neonatal admission_hp narrative framing) ===
+    # Projection of ``record.extensions["newborn"]`` for neonatal
+    # (occupation="infant" / age=0) records: Apgar 1/5 min scores,
+    # bilirubin trend, CCHD SpO2, metabolic screen workflow, plus
+    # convenience fields for AABR hearing screen and Vitamin K
+    # / ophthalmic prophylaxis MAR presence flags. Empty dict for
+    # non-newborn records — the narrative renderer keys on this to
+    # decide whether to emit the neonatal `newborn_workup_summary`
+    # context line and per-doc-type block.
+    newborn_workup: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass
 class NarrativeOutput:
