@@ -39,6 +39,20 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Changed
+
+- **CI integration tests: 3 → 5 shards** (S114 CI-throughput
+  optimization). Bin-packing simulation on the current
+  `.test_durations` (315 integration tests, 1465s single-worker
+  total) shows ideal max-bin drops from 488s (~8 min) to 293s
+  (~5 min) per shard with 0 % imbalance under greedy longest-first
+  redistribution. Existing durations file re-balances cleanly at
+  N=5 — no `--store-durations` regeneration required.
+  Combined parallelism = 5 shards × xdist -n 2 = 10 concurrent
+  workers (up from 6). Expected wall time: 8-15 min → 5-6 min per
+  shard, cutting the CI critical path by ~40 %. GitHub Actions
+  runner cost stays the same net (5 × ~5m ≈ 3 × ~8m).
+
 ### Fixed
 
 - **`switch` event `substituted_with` now cites the correct antibiotic
