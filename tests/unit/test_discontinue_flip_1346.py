@@ -108,3 +108,62 @@ def test_discontinue_flip_multiple_stops_all_flipped():
     enrich_discontinue_flip(_mk_ctx([rec]))
     assert cef.status == OrderStatus.STOPPED
     assert metfor.status == OrderStatus.STOPPED
+
+
+# ---------------------------------------------------------------------------
+# Issue #1413 (S114): safety_skip_log emit + event_type="switch" default
+# ---------------------------------------------------------------------------
+
+
+from clinosim.modules.order.discontinue_flip import _extract_archetype  # noqa: E402
+
+
+def test_discontinue_flip_emits_skip_log_with_switch_event_type():
+    """Issue #1413: default `event_type` for treatment_modifications
+    stop events is `"switch"` (neutral), NOT `"deescalate"` (which is
+    now opt-in only). Pre-#1413 emitted `"deescalate"` for every stop,
+    mislabeling 100% of production data since all 17 disease-YAML
+    stop blocks are escalations.
+    """
+    from types import SimpleNamespace
+
+    from clinosim.types.patient import PatientProfile
+
+    patient = PatientProfile(patient_id="pt-1")
+    cefazolin = _mk_med_order("ORD-enc-101-D1-CEF", "Cefazolin 2g")
+    stop_marker = _mk_med_order("ORD-enc-101-STOP-D3-0-CEF", "DISCONTINUE: Cefazolin")
+    stop_marker.clinical_intent = "Day 3 treatment_resistant: stop Cefazolin"
+    meropenem = _mk_med_order("ORD-enc-101-D3-MEROP", "Meropenem 1g")
+    encounter = SimpleNamespace(
+        encounter_id="ENC-101",
+        admission_datetime=datetime(2026, 6, 1, 8, 0),
+    )
+    rec = SimpleNamespace(orders=[cefazolin, stop_marker, meropenem], encounter=encounter, patient=patient)
+    enrich_discontinue_flip(_mk_ctx([rec]))
+    assert cefazolin.status == OrderStatus.STOPPED
+    assert len(patient.safety_skip_log) == 1
+    entry = patient.safety_skip_log[0]
+    assert entry.event_type == "switch"  # NOT "deescalate"
+    assert entry.candidate_drug == "Cefazolin 2g"
+    assert entry.substituted_with == "Meropenem 1g"
+    assert entry.encounter_id == "ENC-101"
+    # active_conflict must carry the archetype context, not the pre-#1413
+    # hardcoded "antibiotic stewardship" phrasing.
+    assert "treatment plan change" in entry.active_conflict
+    assert "treatment_resistant" in entry.active_conflict
+    # verdict.rule_id renamed from "antibiotic-de-escalation" to a
+    # neutral marker.
+    assert entry.verdict.rule_id == "treatment-modification-switch"
+
+
+def test_extract_archetype_parses_daily_loop_clinical_intent():
+    """Issue #1413: `_extract_archetype` parses the `daily_loop`-authored
+    format `"Day N <archetype>: stop <drug>"` and returns the archetype
+    token, or "" when the format is not recognized.
+    """
+    assert _extract_archetype("Day 3 treatment_resistant: stop Cefazolin") == "treatment_resistant"
+    assert _extract_archetype("Day 5 gradual_deterioration: stop Ampicillin/Sulbactam") == "gradual_deterioration"
+    assert _extract_archetype("Day 1 complicated_delayed: stop Ceftriaxone") == "complicated_delayed"
+    assert _extract_archetype("") == ""
+    assert _extract_archetype("no colon here") == ""
+    assert _extract_archetype("Day 3") == ""  # too few tokens

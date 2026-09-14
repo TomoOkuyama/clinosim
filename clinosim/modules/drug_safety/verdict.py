@@ -27,8 +27,8 @@ _DEFAULT_ACTION: dict[Severity, str] = {
 # drug-modification path that used to `continue` without a trace now
 # writes a `SafetySkipEntry` with an explicit `event_type` so the
 # narrative context (`ctx.safety_skips`) can render event-appropriate
-# clinical prose (Rule 2 cadence, prompt v17). The four values line up
-# 1:1 with the `narrative_seed_bundle.yaml` Rule 2 cadences:
+# clinical prose (Rule 2 cadence). The five values line up 1:1 with
+# `narrative_seed_bundle.yaml` Rule 2 cadences:
 #   - avoid       — drug × drug pair conflict; drop candidate, optional
 #                   substitute chosen by suggest_alternative
 #   - hold        — disease-protocol `medication_holds` at admission or
@@ -37,9 +37,19 @@ _DEFAULT_ACTION: dict[Severity, str] = {
 #   - substitute  — active-clinical-state substitution (pregnancy Cat
 #                   C/D → Methyldopa; JP C-section postop NSAID →
 #                   Loxoprofen). Not a conflict — a planned swap.
-#   - deescalate  — antibiotic de-escalation: original broad-spectrum
-#                   agent STOPPED on day N when a narrower agent starts.
-EventType = Literal["avoid", "hold", "substitute", "deescalate"]
+#   - switch      — Issue #1413 (S114): default value for treatment_
+#                   modifications stop→start swaps whose direction is
+#                   not explicitly labeled. Neutral phrasing ("X was
+#                   discontinued on day N; Y started"), no spectrum
+#                   claim. Replaces the pre-#1413 default of
+#                   `"deescalate"` which mislabeled 100 % of the 17
+#                   existing YAML stop blocks (all of which are
+#                   escalations for clinical worsening / drug failure).
+#   - deescalate  — explicit antibiotic de-escalation (narrower agent).
+#                   Requires opt-in via a future YAML flag or a
+#                   spectrum-comparison verdict; NOT the default any
+#                   longer.
+EventType = Literal["avoid", "hold", "substitute", "switch", "deescalate"]
 
 
 @dataclass(frozen=True)
