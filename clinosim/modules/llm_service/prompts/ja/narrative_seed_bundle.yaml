@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 18
+version: 19
 max_tokens: 3500
 temperature: 0.1
 description: |
@@ -13,6 +13,24 @@ description: |
   output language controlled by ${target_language}" was accurate only
   through session-88j v9; the JA file has been the canonical JP source
   since v11 (Rule 5 D lab hard-guard onward).
+
+  v19 changes (2026-09-14, session S113→S114 continuation, Issue #1405):
+    - Rule 2 REQUIRED INCLUSION に P1 refinement backlog から 5 sub-rule
+      追加 (いずれも context key は既に届いているが cite rule が
+      pre-v18 に存在しなかった):
+      * active_medications_today の投与頻度 (1日2回 / 1日3回 / q4h /
+        BID / TID) を entry にある場合は narrative で cite する。
+      * F32/F33/F41.1 対応の SSRI/SNRI/atypical 抗うつ薬 → A&P で
+        「うつ病 / 不安障害に対して <薬剤>継続内服」weave。
+        F code なしで SSRI 単独から「うつ病」診断を捏造しない。
+      * 化学療法 cycle framing: FOLFOX / GEM-Cis / TMZ / BCG → cycle
+        番号 + cycle day を cite。制吐前投薬は chemo cycle 内で narrate。
+      * AKI ↔ Creatinine trend の因果 tie: N17.x と Cr 上昇の関連を
+        assessment で明示 (KDIGO stage の diagnostic anchor)。
+      * PRN 薬剤の非更新: サルブタモール等 PRN が home_medications に
+        あり discharge_medications_list に無い場合、refill 行を捏造しない。
+    - 関連 follow-up (#1405 に残置): 血液培養 DR conclusion cite は
+      新 context key が必要なため次 session に延期。
 
   v18 changes (2026-09-14, session S113→S114 continuation, Issue #1404):
     - 新生児 admission_hp per-doc-type block を追加。context_sections に
@@ -341,6 +359,42 @@ system: |
        かった」という inverse hallucination となる。
        入力に無い回避・保留・切替・de-escalation を絶対に fabrication
        しない。
+     - active_medications_today の投与頻度 (Issue #1405 / #1348) → 薬剤
+       entry に頻度 token (1日2回 / 1日3回 / q4h / BID / TID 等) が明記
+       されている場合、narrative 内でも 「メトホルミン 500mg 1日2回」
+       のように頻度を必ず cite する。silent omission は default
+       schedule 前提の解釈を許し、1日当りの用量を過小/過大に
+       誤認させる。entry に頻度が無い場合は捏造せず、薬剤名 + 用量
+       のみで表記する。
+     - メンタルヘルス慢性内服 (Issue #1405 F32/F33/F41.1) →
+       `home_medications` に SSRI / SNRI / atypical 抗うつ薬
+       (エスシタロプラム / セルトラリン / パロキセチン / フルオキセチン
+       / デュロキセチン / ベンラファキシン / ミルタザピン等) があり、
+       かつ chronic_conditions に F32 / F33 / F41.1 が存在する場合、
+       narrative の A&P で「うつ病 / 不安障害に対して <薬剤>継続内服中」
+       と weave する。F code が無いのに SSRI 単独から「うつ病」診断を
+       捏造してはならない — デュロキセチンは慢性疼痛、ミルタザピンは
+       食欲・不眠等 off-label 使用がある。実際の code を cite する。
+     - 化学療法サイクル framing (Issue #1405 / #1280) →
+       `active_medications_today` に FOLFOX / GEM-Cis / TMZ / BCG 等
+       C15/C16/C25/C67/C71 oncology YAML の regimen 名が含まれる場合、
+       薬剤 entry に cycle 番号と cycle day が明記されていれば
+       「FOLFOX 第3サイクル 1日目」形式で narrative に cite する。制吐
+       前投薬 (オンダンセトロン / デキサメタゾン) は chemo pre-med で
+       あり慢性内服ではない — chemo サイクルの中で narrate し、無関係な
+       PRN として扱わない。
+     - AKI ↔ Creatinine trend の因果 tie (Issue #1405 / #1326) →
+       `complications_during_stay` (or `in_hospital_new_diagnoses`) に
+       N17.x AKI code があり、`abnormal_labs_today` / `_during_stay` に
+       Creatinine 上昇がある場合、assessment で Cr 最高値を AKI 診断の
+       anchor として cite する (「Cr 最高値 4.2 mg/dL、KDIGO stage 3
+       の N17.9」)。silent omission は診断根拠を読者に推測させる。
+     - PRN 薬剤の非更新 (Issue #1405 / #1318) → サルブタモール等の PRN
+       頓用薬は月次更新の対象ではない。`home_medications` に PRN 薬が
+       あり `discharge_medications_list` に含まれない場合、「refill」の
+       行を捏造せず、「頓用継続」または退院指導から省略する (実際の
+       refill は 1-4回/年の standalone request であり、来院毎の
+       renewal ではない)。
 
   3. VERBATIM COPY — no re-interpretation of pre-resolved fields.
      - hospital_day_label: copy verbatim ("入院初日" for day 0,
