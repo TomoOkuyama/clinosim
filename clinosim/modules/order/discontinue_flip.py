@@ -70,7 +70,20 @@ def enrich_discontinue_flip(ctx: EnricherContext) -> None:
         # `SafetySkipEntry.stopped_on_day`.
         # Key: normalized drug key → (raw drug display, stop_day)
         stop_drug_info: dict[str, tuple[str, int | None]] = {}
+        # Issue #1416: production CIFPatientRecord uses `record.encounters`
+        # (list); the POST_ENCOUNTER contract passes exactly one encounter
+        # per record. Pre-#1416 read `record.encounter` (singular) which
+        # was `None` on production data → `encounter_id=""` on skip_log
+        # entries (breaking the `_build_safety_skips` filter that matches
+        # entry.encounter_id == encounter.id) AND `stop_day=None` (breaking
+        # the START-D<day>- match in `_find_replacement_agent`). Try
+        # `encounter` singular first (hand-authored test fixtures), then
+        # fall through to `encounters[0]` (production).
         encounter = getattr(record, "encounter", None)
+        if encounter is None:
+            encs = getattr(record, "encounters", None) or []
+            if encs:
+                encounter = encs[0]
         adm_dt = getattr(encounter, "admission_datetime", None) if encounter else None
         for o in orders:
             if getattr(o, "order_type", None) != OrderType.MEDICATION:
@@ -163,21 +176,84 @@ def enrich_discontinue_flip(ctx: EnricherContext) -> None:
 
 
 def _find_replacement_agent(orders, stopped_key: str, stop_day: int | None) -> str | None:
-    """Pick the replacement agent emitted around the stop day. Simple
-    heuristic: first non-DISCONTINUE, non-stopped MEDICATION order
-    whose drug key differs from the stopped drug. Returns the raw
-    display or None.
+    """Pick the replacement agent that came from the SAME
+    ``treatment_modifications.day_N`` YAML block as the STOP marker.
 
-    Issue #1413 (S114) rename: the pre-#1413 name
-    ``_find_narrower_replacement`` over-claimed clinical direction. The
-    heuristic returns whatever agent fires after the stop marker
-    regardless of spectrum — could be broader (escalation) or narrower
-    (de-escalation). All 17 existing disease-YAML stop blocks pair the
-    stop with a broader-spectrum start (clinical worsening trigger),
-    so the returned replacement is almost always broader-spectrum in
-    production data. The narrative render layer must treat this as a
-    neutral "replacement" and NOT assert narrowing.
+    Issue #1416 (S114 verify-2) fix: the pre-#1416 heuristic scanned
+    every non-DISCONTINUE MEDICATION order in the encounter and
+    returned the first drug that differed from the stopped one.
+    Production data showed this picked IV fluid orders 100 % of the
+    time on JP (343/343) and 9 % on US (16/170) — supportive-care MED
+    orders (IV fluids, vasopressors, etc.) are emitted BEFORE the
+    replacement antibiotic in the order list, so they always won the
+    "first non-matching MED order" race.
+
+    Fix: use the ``daily_loop``-authored order-id convention to
+    identify only the START orders paired with THIS stop event. STOP
+    orders are ``ORD-{encounter_id}-STOP-D{day}-{idx}-{drug8}``; START
+    orders from the same treatment_modifications block are
+    ``ORD-{encounter_id}-START-D{day}-{drug8}``. Filtering to
+    ``-START-D{stop_day}-`` gives us exactly the drugs from
+    ``treatment_modifications.day_{stop_day}.start`` — no supportive
+    care, no unrelated home meds.
+
+    When ``stop_day`` is None (timestamp arithmetic failed), fall
+    through to the pre-#1416 first-non-matching-MED heuristic as a
+    best-effort fallback. Returns None when neither path finds a
+    replacement (narrative Rule 2 ``switch`` cadence then renders
+    "X was discontinued (context)" without a ``; Y started`` clause).
     """
+    # Preferred path: match by START order-id convention scoped to the
+    # SAME day as the STOP marker. Multi-drug start blocks (e.g.
+    # cellulitis "stop Cefazolin; start Meropenem + Vancomycin +
+    # Clindamycin") return the FIRST start drug — narrative renders
+    # one drug per switch bullet; the other start drugs already surface
+    # via `active_medications_today` in the LLM prompt payload.
+    #
+    # When stop_day is known (production path):
+    #   - a START-D<day>- match ⇒ return that drug.
+    #   - no START-D<day>- match ⇒ return None. The disease YAML had
+    #     no `start:` entry for this stop (e.g. cerebral_infarction
+    #     antithrombotic HOLD for hemorrhagic-transformation without a
+    #     replacement). Narrative Rule 2 `switch` cadence then renders
+    #     "X was discontinued on day N (context)" without a
+    #     "; Y started" clause. Do NOT fall through to the greedy
+    #     first-non-matching-MED heuristic — that would pick unrelated
+    #     supportive-care orders (IV fluid, vasopressor, home meds).
+    if stop_day is not None:
+        # daily_loop's `day` is 0-indexed while my stop_day is 1-indexed
+        # (see enrich_discontinue_flip: `stop_day = max(0,
+        # int(delta.total_seconds() // 86400) + 1)`). Try both to be
+        # robust across the boundary.
+        candidate_prefixes = (
+            f"-START-D{int(stop_day) - 1}-",  # daily_loop 0-indexed match
+            f"-START-D{int(stop_day)}-",  # 1-indexed match (defensive)
+        )
+        for o in orders:
+            if getattr(o, "order_type", None) != OrderType.MEDICATION:
+                continue
+            if getattr(o, "status", None) == OrderStatus.STOPPED:
+                continue
+            oid = str(getattr(o, "order_id", "") or "")
+            if not any(pref in oid for pref in candidate_prefixes):
+                continue
+            display = str(getattr(o, "display_name", "") or "")
+            if not display or display.startswith("DISCONTINUE:"):
+                continue
+            key = _drug_key(display)
+            if key == stopped_key or not key:
+                continue
+            return display
+        # stop_day is known but no START-D<day>- match found — return
+        # None (stop-only YAML block, no replacement).
+        return None
+
+    # Fallback (stop_day is None only — e.g. hand-authored test fixtures
+    # where the STOP marker's `ordered_datetime` cannot be diffed
+    # against the encounter's `admission_datetime` to derive a day
+    # index): first non-DISCONTINUE, non-stopped MED order that differs.
+    # Same as the pre-#1416 heuristic. Production data always has
+    # stop_day set post-fix, so this path fires only for tests.
     for o in orders:
         if getattr(o, "order_type", None) != OrderType.MEDICATION:
             continue

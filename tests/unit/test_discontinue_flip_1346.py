@@ -130,10 +130,20 @@ def test_discontinue_flip_emits_skip_log_with_switch_event_type():
     from clinosim.types.patient import PatientProfile
 
     patient = PatientProfile(patient_id="pt-1")
+    from datetime import timedelta
+
     cefazolin = _mk_med_order("ORD-enc-101-D1-CEF", "Cefazolin 2g")
     stop_marker = _mk_med_order("ORD-enc-101-STOP-D3-0-CEF", "DISCONTINUE: Cefazolin")
     stop_marker.clinical_intent = "Day 3 treatment_resistant: stop Cefazolin"
-    meropenem = _mk_med_order("ORD-enc-101-D3-MEROP", "Meropenem 1g")
+    # Marker fired on hospital day 4 (admission + 3 days) → discontinue_
+    # flip computes stop_day=4; the paired START order id uses the
+    # daily_loop 0-indexed convention `-START-D3-*`. Set the marker's
+    # `ordered_datetime` explicitly so `stop_day` matches.
+    stop_marker.ordered_datetime = datetime(2026, 6, 1, 8, 0) + timedelta(days=3)
+    # Issue #1416: replacement must use the `-START-D<day>-` order-id
+    # convention that daily_loop authors so the resolver matches by
+    # YAML block rather than picking whatever fires first.
+    meropenem = _mk_med_order("ORD-enc-101-START-D3-MEROPENE", "Meropenem 1g")
     encounter = SimpleNamespace(
         encounter_id="ENC-101",
         admission_datetime=datetime(2026, 6, 1, 8, 0),
@@ -154,6 +164,94 @@ def test_discontinue_flip_emits_skip_log_with_switch_event_type():
     # verdict.rule_id renamed from "antibiotic-de-escalation" to a
     # neutral marker.
     assert entry.verdict.rule_id == "treatment-modification-switch"
+
+
+def test_find_replacement_agent_uses_START_D_convention_over_iv_fluid():  # noqa: N802
+    """Issue #1416: `_find_replacement_agent` must prefer the START order
+    from the SAME `treatment_modifications.day_N` block over unrelated
+    supportive-care MED orders (IV fluid, vasopressor, etc.) that fire
+    earlier in the encounter's order list.
+
+    Reproduction of the JP p=10000 s=358 bug: 100% of switch events
+    picked `IV_fluid: NS 80-125 mL/h` as the "replacement" for
+    Cefazolin because the IV fluid MED order was emitted before the
+    Meropenem START order in the daily_loop dispatch. Post-fix, the
+    START-D<day>-* order_id convention wins.
+    """
+    from types import SimpleNamespace
+
+    from clinosim.modules.order.discontinue_flip import _find_replacement_agent
+
+    orders = [
+        # supportive-care MED order (IV fluid) — no START- prefix,
+        # emitted early in the order list.
+        SimpleNamespace(
+            order_id="ORD-enc-201-D2-FLUID",
+            order_type=OrderType.MEDICATION,
+            status=OrderStatus.PLACED,
+            display_name="IV_fluid: NS 80-125 mL/h",
+        ),
+        # START order from treatment_modifications.day_2.start block —
+        # matches the STOP marker's day.
+        SimpleNamespace(
+            order_id="ORD-enc-201-START-D1-MEROPENE",  # daily_loop 0-indexed day 1 = stop_day 2
+            order_type=OrderType.MEDICATION,
+            status=OrderStatus.PLACED,
+            display_name="Meropenem 1g IV q8h",
+        ),
+    ]
+    replacement = _find_replacement_agent(orders, stopped_key="cefazolin", stop_day=2)
+    assert replacement == "Meropenem 1g IV q8h", "should pick the START-D<day>-* order, NOT the IV fluid"
+
+
+def test_find_replacement_agent_returns_None_for_stop_only_yaml_block():  # noqa: N802
+    """Issue #1416: when the disease YAML `treatment_modifications.day_N`
+    block has a `stop:` list but NO `start:` (e.g. cerebral_infarction
+    antithrombotic hold for hemorrhagic-transformation), production
+    orders contain the STOP marker but no `-START-D<day>-` order. The
+    fix must return None (letting the narrative render "X was
+    discontinued on day N (context)" without a `; Y started` clause)
+    rather than falling through to the greedy heuristic which would
+    pick unrelated supportive-care orders (IV fluid, home meds).
+    """
+    from types import SimpleNamespace
+
+    from clinosim.modules.order.discontinue_flip import _find_replacement_agent
+
+    orders = [
+        # IV fluid — supportive care, MUST NOT be picked as replacement.
+        SimpleNamespace(
+            order_id="ORD-enc-203-ADM-S00",
+            order_type=OrderType.MEDICATION,
+            status=OrderStatus.PLACED,
+            display_name="IV_fluid: NS 80 mL/h",
+        ),
+        # No START-D<day>- order for this stop.
+    ]
+    replacement = _find_replacement_agent(orders, stopped_key="apixaban", stop_day=3)
+    assert replacement is None, "must return None when disease-YAML has no start block (not the IV fluid)"
+
+
+def test_find_replacement_agent_fallback_when_stop_day_unknown():
+    """When `stop_day` is None (test fixture without an admission_datetime
+    to diff against), the resolver falls through to the pre-#1416 first-
+    non-matching-MED heuristic — production always has stop_day set so
+    this only runs for hand-authored fixtures.
+    """
+    from types import SimpleNamespace
+
+    from clinosim.modules.order.discontinue_flip import _find_replacement_agent
+
+    orders = [
+        SimpleNamespace(
+            order_id="ORD-enc-202-D3-MEROP",  # legacy convention (no START- prefix)
+            order_type=OrderType.MEDICATION,
+            status=OrderStatus.PLACED,
+            display_name="Meropenem 1g",
+        ),
+    ]
+    replacement = _find_replacement_agent(orders, stopped_key="cefazolin", stop_day=None)
+    assert replacement == "Meropenem 1g", "fallback fires only when stop_day is None"
 
 
 def test_extract_archetype_parses_daily_loop_clinical_intent():
