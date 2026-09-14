@@ -110,6 +110,47 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   - 11 new unit tests in
     `tests/unit/modules/document/narrative/test_newborn_workup_context.py`
     (context projection + JA/EN render + doc-type gate).
+- **Narrative P1 refinement backlog — 5 Rule 2 sub-rules + US Core
+  race / ethnicity in `_render_patient_demographics`** (Issue #1405).
+  Each item covers a case where context already reached the LLM but no
+  citation rule told the model what to do with it.
+  - Rule 2 REQUIRED INCLUSION (both `prompts/{en,ja}/narrative_seed_bundle.yaml`
+    v17 → v18) extended with:
+    * `active_medications_today` frequency cite rule (BID / QID / QD /
+      TID / q4h): when the drug entry carries a frequency token, the
+      narrative MUST cite it inline ("Metformin 500mg BID" / 「メト
+      ホルミン 500mg 1日2回」). #1348 landed the frequency-carrying
+      MR builder side.
+    * Mental-health SSRI / SNRI / atypical antidepressant weave: when
+      `home_medications` contains one AND `chronic_conditions` has
+      F32/F33/F41.1, narrate "depression / anxiety on <drug>". Never
+      invent an F-code from the SSRI alone (some SSRIs are off-label
+      for pain / appetite). #1281 backend already wired the SSRI to
+      home_medications.
+    * Chemotherapy cycle framing: FOLFOX / GEM-Cis / TMZ / BCG etc.
+      → cite cycle number and cycle day when present; pre-medications
+      narrate under the chemo cycle, not as unrelated PRN. #1280
+      backend added the regimens.
+    * AKI ↔ Creatinine trend tie: N17.x in `complications_during_stay`
+      / `in_hospital_new_diagnoses` AND elevated Creatinine → assessment
+      MUST cite Cr peak as KDIGO diagnostic anchor. #1326 backend
+      landed the lab-derived N17.9 emit.
+    * PRN medication non-renewal: Salbutamol etc. in `home_medications`
+      but NOT in `discharge_medications_list` — do not fabricate a
+      refill line; use "PRN continued as needed" or omit. #1318
+      backend added the PRN renewal skip.
+  - `_render_patient_demographics` extended with US Core race +
+    ethnicity fields (from `PatientProfile.race` / `.ethnicity`, US
+    OMB categories). Locale-appropriate labels (JA: 白人 / 黒人 /
+    アジア系 / ネイティブアメリカン / 太平洋諸島系 / その他人種 /
+    ヒスパニック / 非ヒスパニック; EN: matching US Core canonical
+    strings). JP records leave both fields empty and the line drops
+    them silently — no dangling separators. Related to US Core Patient
+    extensions wired in #1344; the narrative side now surfaces them.
+  - Follow-up remaining in #1405: blood-culture DR conclusion citation
+    (needs a new `blood_culture_result` context key + walk
+    `record.diagnostic_reports` — deferred; larger scope than the
+    prompt-only refinements landed here).
 
 ### Changed
 
