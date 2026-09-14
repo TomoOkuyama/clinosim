@@ -39,6 +39,38 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`_build_newborn_workup` field-name mismatch on production CIF
+  shape** (Issue #1412 / PR #1409 follow-up). S114 verification of a
+  US p=10000 s=357 cohort exposed that 6 of 8 neonatal signals
+  (`bilirubin_peak`, `cchd_ru_spo2`, `cchd_le_spo2`, `has_aabr`,
+  `has_metabolic`, `has_vitamin_k`, `has_ophthalmic`) were silently
+  `None` / `False` on every real birth-admission record because the
+  projection read the wrong field names:
+  - bilirubin: read `value_mg_dl` first (real shape from
+    `newborn.engine.build_bilirubin_observations`), then fall through
+    to legacy `total_bilirubin_mg_dl` / `value`.
+  - CCHD site: recognize production `right_hand` in addition to the
+    legacy fixture aliases (`ru` / `right_upper` / `pre_ductal`).
+  - CCHD spo2: read `value_pct` first (real shape from
+    `newborn.engine.build_cchd_pulse_ox`), then legacy `spo2_percent`
+    / `value`.
+  - Procedures: read `procedure_type` first (canonical enum
+    `hearing_screen_aabr` / `metabolic_screen_tandem_ms`), with
+    `procedure_id` substring fallback (`HEARING-SCREEN` /
+    `METABOLIC-SCREEN`) and legacy `display_name` / `name`.
+  - MedicationAdministrations: read `drug_name` first (real shape from
+    `MedicationAdministrationRecord`), then legacy
+    `medication_display_name` / `display_name`.
+  - Ophthalmic: also flags when the MAR display contains `ophthalmic`
+    (previously only `eye` in display or route match).
+  New golden test
+  `test_build_newborn_workup_real_shape_all_signals_present` uses the
+  actual field shape from the p=10000 US cohort to prevent regression;
+  legacy fixture tests remain green (backward-compat via fallback
+  reads).
+
 ### Changed
 
 - **JA prompt system: block prose translated to Japanese** (Issue

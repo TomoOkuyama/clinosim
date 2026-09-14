@@ -109,6 +109,83 @@ def test_build_newborn_workup_age_zero_infant_by_age_only() -> None:
     assert wu["is_neonate"] is True
 
 
+def _real_shape_neonate_record() -> SimpleNamespace:
+    """Issue #1412: mirror the ACTUAL production CIF payload shape emitted
+    by ``newborn.engine`` + ``newborn.enricher`` on a birth-admission
+    record. Uses `value_mg_dl` (not `total_bilirubin_mg_dl`),
+    `right_hand` / `foot` site names, `value_pct` (not `spo2_percent`),
+    `procedure_type` (not `display_name`), and `drug_name` (not
+    `medication_display_name`) — the field names S114 verification of
+    US p=10000 s=357 found on every one of 119 birth-admission records.
+    """
+    return SimpleNamespace(
+        patient=_neonate_patient(),
+        extensions={
+            "newborn": {
+                "apgar": [
+                    {"minute": 1, "score": 8, "timestamp": datetime(2026, 7, 23, 10, 9)},
+                    {"minute": 5, "score": 9, "timestamp": datetime(2026, 7, 23, 10, 13)},
+                ],
+                "bilirubin": [
+                    {"day": 1, "timestamp": datetime(2026, 7, 24), "value_mg_dl": 6.1, "loinc": "58941-6"},
+                    {"day": 2, "timestamp": datetime(2026, 7, 25), "value_mg_dl": 11.4, "loinc": "58941-6"},
+                ],
+                "cchd_pulse_ox": [
+                    {
+                        "site": "right_hand",
+                        "timestamp": datetime(2026, 7, 24, 10, 8),
+                        "value_pct": 97,
+                        "loinc": "59408-5",
+                    },
+                    {"site": "foot", "timestamp": datetime(2026, 7, 24, 10, 8), "value_pct": 98, "loinc": "59408-5"},
+                ],
+                "metabolic_screen": {
+                    "patient_id": "POP-007117-BABY",
+                    "encounter_id": "ENC-POP-007117-BABY-912694526651",
+                    "outcome_key": "normal",
+                },
+            }
+        },
+        procedures=[
+            SimpleNamespace(
+                procedure_id="PROC-POP-007117-BABY-HEARING-SCREEN",
+                procedure_type="hearing_screen_aabr",
+                procedure_code="232717001",
+            ),
+            SimpleNamespace(
+                procedure_id="PROC-POP-007117-BABY-METABOLIC-SCREEN",
+                procedure_type="metabolic_screen_tandem_ms",
+                procedure_code="405058008",
+            ),
+        ],
+        medication_administrations=[
+            SimpleNamespace(drug_name="Vitamin K1 (phytonadione) 1 mg IM", route="IM"),
+            SimpleNamespace(drug_name="Erythromycin 0.5% ophthalmic ointment (Ilotycin)", route="OPH"),
+        ],
+    )
+
+
+def test_build_newborn_workup_real_shape_all_signals_present() -> None:
+    """Issue #1412 regression guard — real production CIF shape must
+    populate all 8 workup signals (was failing before the field-name
+    fix: only Apgar populated, bilirubin_peak / cchd / has_aabr /
+    has_metabolic / has_vitamin_k / has_ophthalmic all defaulted to
+    None / False).
+    """
+    record = _real_shape_neonate_record()
+    wu = _build_newborn_workup(record, record.patient)
+    assert wu["is_neonate"] is True
+    assert wu["apgar_1min"] == 8
+    assert wu["apgar_5min"] == 9
+    assert wu["bilirubin_peak"] == 11.4  # peaks the 2-day series
+    assert wu["cchd_ru_spo2"] == 97  # pre-ductal, site="right_hand"
+    assert wu["cchd_le_spo2"] == 98  # post-ductal, site="foot"
+    assert wu["has_aabr"] is True  # procedure_type="hearing_screen_aabr"
+    assert wu["has_metabolic"] is True  # procedure_type="metabolic_screen_tandem_ms"
+    assert wu["has_vitamin_k"] is True  # drug_name contains "Vitamin K1"
+    assert wu["has_ophthalmic"] is True  # drug_name contains "erythromycin" + route "OPH"
+
+
 def test_build_newborn_workup_missing_extensions_returns_defaults() -> None:
     record = SimpleNamespace(
         patient=_neonate_patient(),
