@@ -200,7 +200,57 @@ def test_deescalate_stopped_on_day_ja() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Mixed batch — all four kinds in one payload render distinctly
+# switch — treatment_modifications stop→start (Issue #1413 default)
+# ---------------------------------------------------------------------------
+
+
+def test_switch_with_day_and_replacement_en() -> None:
+    skip = {
+        "considered": "Cefazolin 2g",
+        "avoided_due_to": "treatment plan change (archetype: treatment_resistant)",
+        "substituted_with": "Meropenem 1g",
+        "event_type": "switch",
+        "stopped_on_day": 3,
+    }
+    out = _render([skip], target_lang="en")
+    assert "switch: Cefazolin 2g discontinued on day 3" in out
+    assert "Meropenem 1g started" in out
+    # Must NOT assert spectrum direction.
+    assert "narrowed" not in out
+    assert "de-escalated" not in out
+    assert "stewardship" not in out
+
+
+def test_switch_ja_neutral_phrasing() -> None:
+    skip = {
+        "considered_ja": "セファゾリン",
+        "avoided_due_to_ja": "治療計画変更 (経過型: treatment_resistant)",
+        "substituted_with_ja": "メロペネム",
+        "event_type": "switch",
+        "stopped_on_day": 2,
+    }
+    out = _render([skip], target_lang="ja")
+    assert "switch: セファゾリン" in out
+    assert "第2病日で中止" in out
+    assert "メロペネム" in out
+    # Must NOT assert spectrum direction.
+    assert "de-escalate" not in out
+    assert "de-escalation" not in out
+    assert "狭域" not in out
+
+
+def test_switch_without_replacement() -> None:
+    skip = {
+        "considered": "Cefazolin",
+        "avoided_due_to": "treatment plan change",
+        "event_type": "switch",
+    }
+    out = _render([skip], target_lang="en")
+    assert "switch: Cefazolin discontinued during the stay" in out
+
+
+# ---------------------------------------------------------------------------
+# Mixed batch — all five kinds in one payload render distinctly
 # ---------------------------------------------------------------------------
 
 
@@ -216,7 +266,15 @@ def test_mixed_batch_all_event_types_render_distinct_bullets_en() -> None:
         },
         {
             "considered": "Cefazolin",
+            "avoided_due_to": "treatment plan change",
+            "substituted_with": "Meropenem",
+            "event_type": "switch",
+            "stopped_on_day": 3,
+        },
+        {
+            "considered": "Vancomycin",
             "avoided_due_to": "antibiotic stewardship",
+            "substituted_with": "Cefazolin",
             "event_type": "deescalate",
             "stopped_on_day": 2,
         },
@@ -226,4 +284,5 @@ def test_mixed_batch_all_event_types_render_distinct_bullets_en() -> None:
     assert "- avoid: NSAID" in out
     assert "- hold: Enalapril" in out
     assert "- substitute: Amlodipine" in out
-    assert "- deescalate: Cefazolin" in out
+    assert "- switch: Cefazolin" in out
+    assert "- deescalate: Vancomycin" in out

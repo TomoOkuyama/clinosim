@@ -1348,6 +1348,19 @@ def _build_extra_context(
                         lines.append(f"- substitute: {considered} を {substituted} に切替 (理由: {conflict})")
                     else:
                         lines.append(f"- substitute: {considered} を切替 (理由: {conflict})")
+                elif event == "switch":
+                    # Issue #1413 (S114): neutral "X 中止 → Y 開始" 表現。
+                    # 広域/狭域を主張しない — treatment_modifications の
+                    # stop→start は多くが escalation (臨床悪化・薬剤失敗
+                    # 対応) なので、direction を assert しない安全な文体。
+                    day = s.get("stopped_on_day")
+                    day_phrase = f"第{int(day)}病日" if day else "経過中"
+                    if substituted:
+                        lines.append(
+                            f"- switch: {considered} を {day_phrase}で中止し {substituted} に切替 ({conflict})"
+                        )
+                    else:
+                        lines.append(f"- switch: {considered} を {day_phrase}で中止 ({conflict})")
                 elif event == "deescalate":
                     day = s.get("stopped_on_day")
                     day_phrase = f"第{int(day)}病日" if day else "経過中"
@@ -1378,6 +1391,20 @@ def _build_extra_context(
                         )
                     else:
                         lines.append(f"- substitute: {considered} substituted (rationale: {conflict})")
+                elif event == "switch":
+                    # Issue #1413 (S114): neutral "X discontinued, Y started".
+                    # Does NOT assert narrowing or broadening — real
+                    # `treatment_modifications` stops in disease YAML are
+                    # mostly escalations (clinical worsening / failure
+                    # trigger), so a spectrum-agnostic phrasing is safer.
+                    day = s.get("stopped_on_day")
+                    day_phrase = f"on day {int(day)}" if day else "during the stay"
+                    if substituted:
+                        lines.append(
+                            f"- switch: {considered} discontinued {day_phrase}; {substituted} started ({conflict})"
+                        )
+                    else:
+                        lines.append(f"- switch: {considered} discontinued {day_phrase} ({conflict})")
                 elif event == "deescalate":
                     day = s.get("stopped_on_day")
                     day_phrase = f"on day {int(day)}" if day else "during the stay"
