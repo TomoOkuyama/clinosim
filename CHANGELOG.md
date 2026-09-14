@@ -70,6 +70,42 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   actual field shape from the p=10000 US cohort to prevent regression;
   legacy fixture tests remain green (backward-compat via fallback
   reads).
+- **`treatment_modifications` stop events default to `event_type="switch"`,
+  not `"deescalate"`** (Issue #1413 / PR #1408 follow-up). S114
+  verification of a US p=10000 s=357 cohort found 165 (US) + 277 (JP)
+  `deescalate` skip_log entries — **100 % were actually escalations**
+  driven by disease-YAML `treatment_modifications.day_N.stop` blocks
+  that all encode clinical-worsening escalations (Cefazolin →
+  Meropenem+Vancomycin for cellulitis worsening, Ampicillin/Sulbactam
+  → Meropenem for aspiration pneumonia deterioration, Pip/Tazo →
+  Meropenem+Vancomycin for sepsis rescue, Ceftriaxone → Meropenem for
+  UTI worsening, etc.).
+  - `SafetySkipEntry.EventType` gained a fifth value `"switch"`
+    (neutral, spectrum-agnostic).
+  - `discontinue_flip.enrich_discontinue_flip` (renamed helper
+    `_log_deescalation` → `_log_treatment_change`, `_find_narrower_
+    replacement` → `_find_replacement_agent`) now emits
+    `event_type="switch"` by default with `active_conflict` derived
+    from the DISCONTINUE marker's `clinical_intent` archetype token
+    ("treatment plan change (archetype: treatment_resistant)"), NOT
+    the pre-#1413 hardcoded "antibiotic stewardship" phrasing.
+  - `SafetyVerdict.rule_id` renamed from
+    `"antibiotic-de-escalation"` to `"treatment-modification-switch"`.
+  - Rule 2 cadence in `narrative_seed_bundle` v19 → v21 (en + ja):
+    added `switch` cadence (neutral "X discontinued on day N; Y
+    started"), downgraded `deescalate` cadence to explicit opt-in
+    only, forbids upgrading a `switch:` bullet to `deescalate:` prose
+    (LLM must not assert spectrum direction from a `switch:` marker).
+  - `deescalate` remains available for future opt-in when a
+    disease-YAML `stewardship_action: "de_escalate"` flag or a
+    spectrum-comparison verdict is added — pre-#1413 legacy skip_log
+    entries carrying `event_type="deescalate"` still render with the
+    de-escalation cadence.
+  - New tests: `test_switch_with_day_and_replacement_en`,
+    `test_switch_ja_neutral_phrasing`, `test_switch_without_
+    replacement`, `test_discontinue_flip_emits_skip_log_with_switch_
+    event_type`, `test_extract_archetype_parses_daily_loop_clinical_
+    intent`.
 
 ### Changed
 
