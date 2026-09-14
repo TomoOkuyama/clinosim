@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 19
+version: 21
 max_tokens: 3500
 temperature: 0.1
 description: |
@@ -33,6 +33,25 @@ description: |
         NOT fabricate a refill line.
     - Related follow-ups tracked in #1405 remain: blood-culture DR
       conclusion citation (needs new context key — deferred).
+
+  v21 changes (2026-09-14, session S114 verify follow-up, Issue #1413):
+    - Rule 2 `considered_but_not_prescribed` cadence: added FIFTH
+      event_type `switch` (neutral "X discontinued day N; Y started"
+      phrasing, spectrum-agnostic).
+    - `deescalate` cadence downgraded to explicit opt-in only. S114
+      verification of US p=10000 s=357 found 165 / 277 `deescalate`
+      entries on production data — 100% of them were actually
+      escalations (Cefazolin → Meropenem+Vancomycin, Cefmetazole →
+      Pip/Tazo, etc.) driven by `treatment_modifications.day_N.stop`
+      YAML blocks that all encode clinical-worsening escalations. The
+      pre-v21 default of `event_type="deescalate"` mislabeled all of
+      them; discontinue_flip now defaults to `"switch"` (Issue #1413
+      backend PR). Bundle prompt explicitly forbids upgrading a
+      `switch:` bullet to `deescalate:` prose.
+    - LLM must NEVER assert narrowing / broadening / stewardship
+      direction from a `switch:` bullet; only `deescalate:` bullets
+      carry the direction assertion (explicit opt-in via a future YAML
+      flag or spectrum-comparison verdict).
 
   v18 changes (2026-09-14, session S113→S114 continuation, Issue #1404):
     - Neonatal admission_hp per-doc-type block added. When
@@ -335,12 +354,14 @@ system: |
      - supplemental_oxygen_today → narrative MUST NOT claim "room air"
        / "no oxygen therapy" / "酸素投与なし". SpO2 references MUST
        state device + flow rate from this key.
-     - considered_but_not_prescribed (drug_safety, Issue #1066 + #1403) →
+     - considered_but_not_prescribed (drug_safety, Issue #1066 + #1403
+       + #1413) →
        EVERY entry MUST be surfaced in the Assessment & Plan section as
-       natural clinical prose. The payload lines carry one of four
+       natural clinical prose. The payload lines carry one of five
        `event_type` markers (leading "avoid:" / "hold:" / "substitute:"
-       / "deescalate:" prefix in the bullet, or an inferable phrasing
-       when the marker is absent — legacy `avoid` payload pre-#1403).
+       / "switch:" / "deescalate:" prefix in the bullet, or an
+       inferable phrasing when the marker is absent — legacy `avoid`
+       payload pre-#1403).
        Cadence by event type:
          · avoid — "~ was avoided due to concurrent ~; ~ was prescribed
            instead." (JA: "〜との併用禁忌のため〜を回避し、〜を選択した。")
@@ -352,11 +373,27 @@ system: |
            理由: 〜)。") Distinguish from `avoid`: substitution is a
            planned swap for an active clinical state, not a conflict
            avoidance.
-         · deescalate — "~ was discontinued on day N and narrowed to
-           ~." (JA: "〜を第N病日で中止し〜へ de-escalate した。")
+         · switch — "~ was discontinued on day N; ~ started (~)."
+           (JA: "〜を第N病日で中止し〜に切替 (〜)。") NEUTRAL —
+           spectrum-agnostic. Use this cadence when the payload
+           bullet is marked `switch:` (default for
+           `treatment_modifications` stops per Issue #1413). Do NOT
+           assert narrowing or broadening; do NOT write
+           "de-escalated" or "stewardship" unless the payload bullet
+           is explicitly marked `deescalate:`.
+         · deescalate — EXPLICIT antibiotic de-escalation (narrower
+           agent). ONLY use this cadence when the payload bullet is
+           marked `deescalate:` (Issue #1413: default for stops was
+           downgraded from `deescalate` to `switch` because all
+           existing YAML `treatment_modifications.day_N.stop` blocks
+           are actually escalations; explicit `deescalate` requires
+           opt-in via a future YAML flag or spectrum verdict). "~ was
+           discontinued on day N and narrowed to ~." (JA: "〜を第N
+           病日で中止し〜へ de-escalate した。")
        Silent omission of any entry is a hallucination of the inverse.
-       NEVER invent an avoidance, hold, substitution, or de-escalation
-       not in the input.
+       NEVER invent an avoidance, hold, substitution, switch, or
+       de-escalation not in the input; NEVER upgrade a `switch:`
+       bullet to `deescalate:` prose (or vice-versa).
      - active_medications_today frequency (Issue #1405 / #1348) → when
        a drug entry carries an explicit frequency token (BID / QID / QD /
        TID / q4h / etc.), the narrative MUST cite the frequency inline

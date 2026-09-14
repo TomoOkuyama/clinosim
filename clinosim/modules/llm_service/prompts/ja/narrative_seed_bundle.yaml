@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 20
+version: 21
 max_tokens: 3500
 temperature: 0.1
 description: |
@@ -13,6 +13,25 @@ description: |
   output language controlled by ${target_language}" was accurate only
   through session-88j v9; the JA file has been the canonical JP source
   since v11 (Rule 5 D lab hard-guard onward).
+
+  v21 changes (2026-09-14, session S114 verify follow-up, Issue #1413):
+    - Rule 2 `considered_but_not_prescribed` cadence: 5 番目の
+      event_type `switch` を追加 (中立表現「X 中止 → Y 開始」、広域/
+      狭域を主張しない spectrum-agnostic phrasing)。
+    - `deescalate` cadence を明示 opt-in のみに降格。S114 verify で
+      US p=10000 s=357 の 165 / 277 `deescalate` entry が全て実質
+      escalation (Cefazolin → Meropenem+Vancomycin、Cefmetazole →
+      Pip/Tazo 等) と判明 — 既存 disease YAML の `treatment_
+      modifications.day_N.stop` block は全て臨床悪化トリガの
+      escalation を coding していた。pre-v21 default の
+      `event_type="deescalate"` が 100 % 誤 label 化していたため、
+      discontinue_flip が default を `"switch"` に降格 (#1413 backend
+      PR)。bundle prompt でも `switch:` bullet を `deescalate:` prose
+      に upgrade することを禁止。
+    - LLM は `switch:` bullet から狭域化 / 広域化 / stewardship の
+      direction を absolutely 主張してはならない; `deescalate:` bullet
+      のみが direction assert を carry する (将来の YAML flag / 薬剤
+      spectrum verdict による opt-in が必要)。
 
   v20 changes (2026-09-14, session S113→S114 continuation, Issue #1406):
     - JA prompt system: block の Rule 1〜6 explanations と intro
@@ -358,12 +377,13 @@ system: |
      - supplemental_oxygen_today → narrative で「room air」「no oxygen
        therapy」「酸素投与なし」と主張してはならない。SpO2 の参照は
        必ずこの key の device + flow rate と共に記述する。
-     - considered_but_not_prescribed (drug_safety, Issue #1066 + #1403) →
+     - considered_but_not_prescribed (drug_safety, Issue #1066 + #1403
+       + #1413) →
        全 entry を A&P section に自然な日本語臨床文で必ず surface する。
-       payload の各行は 4 種の `event_type` marker (bullet 先頭に
-       「avoid:」「hold:」「substitute:」「deescalate:」の prefix、又は
-       marker 欠落時は文脈から推定される — pre-#1403 の legacy `avoid`
-       payload) のいずれかを carry する。
+       payload の各行は 5 種の `event_type` marker (bullet 先頭に
+       「avoid:」「hold:」「substitute:」「switch:」「deescalate:」の
+       prefix、又は marker 欠落時は文脈から推定される — pre-#1403 の
+       legacy `avoid` payload) のいずれかを carry する。
        event_type ごとの推奨文体:
          · avoid — 「〜との併用禁忌のため〜を回避し、〜を選択した。」
            代替薬が示されていない場合は「〜を回避、代替薬は選択せず」。
@@ -372,11 +392,24 @@ system: |
          · substitute — 「〜のため〜を〜に切替 (期間: 〜、理由: 〜)。」
            avoid との区別: substitution は active な臨床状態 (妊娠等)
            への計画的切替であり、薬剤相互作用の回避ではない。
-         · deescalate — 「〜を第N病日で中止し〜へ de-escalate した。」
+         · switch — 「〜を第N病日で中止し〜に切替 (〜)。」
+           NEUTRAL — 広域/狭域の direction を主張しない。payload bullet
+           が `switch:` marker の場合はこの cadence を使用 (Issue #1413:
+           `treatment_modifications` stop の default event_type)。
+           「de-escalation」「stewardship」等の direction assert は
+           payload が明示的に `deescalate:` を carry する場合のみ用いる。
+         · deescalate — EXPLICIT な抗菌薬 de-escalation (狭域薬への
+           切替) のみ。payload bullet が `deescalate:` marker の場合の
+           み使用 (Issue #1413: pre-#1413 は default だったが、既存
+           YAML `treatment_modifications.day_N.stop` は全て escalation
+           であり default から降格。explicit opt-in が今後の YAML
+           flag / spectrum verdict で追加される予定)。
+           「〜を第N病日で中止し〜へ de-escalate した。」
        いずれの entry も silent omission は「回避/保留/切替/中止しな
        かった」という inverse hallucination となる。
        入力に無い回避・保留・切替・de-escalation を絶対に fabrication
-       しない。
+       しない。`switch:` marker を `deescalate:` に格上げして prose
+       (「stewardship」「de-escalation」等) を追加してもならない (逆も同様)。
      - active_medications_today の投与頻度 (Issue #1405 / #1348) → 薬剤
        entry に頻度 token (1日2回 / 1日3回 / q4h / BID / TID 等) が明記
        されている場合、narrative 内でも 「メトホルミン 500mg 1日2回」
