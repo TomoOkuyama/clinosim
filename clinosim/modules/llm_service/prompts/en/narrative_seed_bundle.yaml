@@ -1,10 +1,71 @@
 task_type: narrative_seed_bundle
-version: 16
+version: 17
 max_tokens: 3500
 temperature: 0.1
 description: |
   Bundle strategy for clinical document narrative generation.
-  Single English prompt with output language controlled by ${target_language}.
+  Locale-authored prompt — `prompt_registry.get("narrative_seed_bundle", language)`
+  selects `prompts/{en,ja}/narrative_seed_bundle.yaml`. The `${target_language}`
+  header echoes the caller's language for the LLM's JSON parser; per-locale
+  rule tables and per-doc-type blocks are authored in the locale-specific
+  file. The stale pre-v17 doc-string that claimed a "Single English prompt
+  with output language controlled by ${target_language}" was accurate only
+  through session-88j v9; the JA-authored file has been the canonical JP
+  source since v11 (Rule 5 D lab hard-guard onward).
+
+  v17 changes (2026-09-14, session S113→S114 narrative review):
+    - Doc-string above updated to reflect the two-file locale-authored
+      shape (stale claim: "Single English prompt").
+    - Rule 3 VERBATIM COPY: new person-name preservation clause. When a
+      template-rendered section already carries a resolved medical-staff
+      name (physician / nurse / surgeon / anesthesiologist — resolved
+      via `_resolve_staff_name` against hospital.json roster) or a raw
+      staff-id fallback (STAFF-… / DR-… / NS-… when roster missing at
+      pass time), the LLM MUST copy verbatim. Pre-v17 only 4 doc types
+      (operative_note / procedure_note / death_certificate /
+      death_discharge_summary) had this contract in per-doc-type blocks;
+      admission_hp / discharge_summary / ed_note / referral_note /
+      progress_note / outpatient_soap could silently re-invent, drop,
+      or Romanize the name on rewrite. Patient names remain absent from
+      every context key by design (privacy) — universal never-fabricate
+      clause added.
+    - Context contract expanded with SEVEN keys the code emits but the
+      pre-v17 prompt never mentioned (name-resolution drift found in
+      S113→S114 audit): `admission_datetime`, `length_of_stay_days`,
+      `in_hospital_new_diagnoses`, `chief_complaint_verbatim`,
+      `arrival_mode`, `initial_vitals`. (`patient_bucket` intentionally
+      omitted — cache-key use only, not narrative-load-bearing.) The
+      absence let ed_note narratives fabricate arrival-mode defaults
+      ("walked in" when actually 救急車搬送) and let admission_datetime /
+      length_of_stay_days be silently re-paraphrased into vague date
+      prose (Issue #848's `in_hospital_new_diagnoses` was the largest
+      silent-loss — new-onset diseases were narrated as if PMH).
+    - Context contract entry for `todays_vitals_summary` now covers both
+      progress_note AND outpatient_soap. Pre-v17 the outpatient_soap
+      variant was silently emitted as `today_vitals_summary` (missing
+      the plural-possessive `s`) so the Rule 2 REQUIRED INCLUSION on
+      vitals never fired for outpatient encounters — the singular
+      `today_vitals_summary` was not a documented context key. The
+      simulator emit site (`replacement_strategy._build_extra_context`
+      outpatient_soap branch) was renamed to the plural form so a
+      single Rule text covers both doc types.
+    - Rule 2 `considered_but_not_prescribed` cadence forward-declared to
+      cover four `event_type` values (avoid / hold / substitute /
+      deescalate) so backend wire-up (Issue #1403) can land without a
+      concurrent prompt refresh. Until Issue #1403 lands the payload
+      only carries the legacy `avoid` cadence — the extended cadence
+      guidance is a no-op on today's payload shape.
+    - Related follow-ups tracked separately:
+        - Issue #1404: neonatal admission_hp per-doc-type block
+          (Apgar/AABR/tandem-MS/CCHD/bilirubin/Vitamin K). Related fix
+          in `_render_patient_biometrics` (S113→S114): neonatal age /
+          `occupation="infant"` framing prefixes "birth Ht/Wt" and
+          suppresses BMI (pediatric growth uses weight-for-length
+          percentiles, not adult BMI cutoffs).
+        - Issue #1405: P1 refinement backlog (F32/F33 SSRI narrative
+          rule, oncology chemo-cycle framing, N17.9↔Cr trend tie,
+          MedicationRequest frequency cite rule, blood-culture DR
+          conclusion, US Core race/ethnicity/birthsex).
 
   v16 changes (2026-09-06, session 104 post-verify defect fix, Issue #1167):
     - admission_hp `assessment_and_plan` per-doc-type guidance split the
@@ -142,6 +203,9 @@ system: |
     - primary_encounter_reason  chief complaint / admission trigger
     - chronic_conditions        active PMH list, comma-separated
     - todays_vitals_summary     day-N BP/HR/RR/SpO2/T snapshot
+                              (progress_note + outpatient_soap; S113→S114
+                              rename — outpatient_soap previously used
+                              singular `today_vitals_summary`)
     - active_medications_today  day-N MAR (canonical katakana pre-resolved)
     - home_medications          patient's chronic Rx (canonical katakana)
     - discharge_medications_list  Rx issued at discharge (canonical katakana)
@@ -157,6 +221,25 @@ system: |
     - supplemental_oxygen_today  "<device> <flow> L/min" if today's O2 is on
     - encounter_type            outpatient / inpatient / emergency / …
     - discharge_outcome         disposition label
+    - admission_datetime        ISO datetime of admission (universal; use
+                              as the anchor for hospital_course opening).
+                              Do NOT re-emit as free-form date prose when
+                              a section can cite it verbatim.
+    - length_of_stay_days       integer LOS (universal). Cite when the
+                              hospital_course opening / discharge summary
+                              length is narratively load-bearing.
+    - in_hospital_new_diagnoses  new diseases that ONSET during the stay
+                              (Issue #848). Format: "<disease> on hospital
+                              day N". These are NOT admission diagnoses —
+                              narrative MUST distinguish them from PMH.
+    - chief_complaint_verbatim  ed_note only. Copy VERBATIM into HPI
+                              opening; do NOT paraphrase.
+    - arrival_mode              ed_note only. 独歩来院 / 救急車搬送 / etc.
+                              MUST enter HPI opening. Silent omission
+                              (defaulting to "walked in") is fabrication.
+    - initial_vitals            ed_note only. First-recorded vitals at ED
+                              arrival — narrate as the arrival snapshot,
+                              not as today's status.
 
   Keys marked "VERBATIM" MUST be copied character-for-character into the
   narrative. Keys marked with a data type (list / snapshot) MUST be
@@ -207,14 +290,28 @@ system: |
      - supplemental_oxygen_today → narrative MUST NOT claim "room air"
        / "no oxygen therapy" / "酸素投与なし". SpO2 references MUST
        state device + flow rate from this key.
-     - considered_but_not_prescribed (drug_safety, Issue #1066) → EVERY
-       entry MUST be surfaced in the Assessment & Plan section as
-       natural clinical prose that names the considered drug, the
-       active conflict, and the substituted drug (when one is listed).
-       Suggested cadence: "~ was avoided due to concurrent ~; ~ was
-       prescribed instead." (JA: "〜との併用禁忌のため〜を回避し、〜を
-       選択した。"). Silent omission is a hallucination of the inverse.
-       NEVER invent avoidances or substitutions not in the input.
+     - considered_but_not_prescribed (drug_safety, Issue #1066 + #1403) →
+       EVERY entry MUST be surfaced in the Assessment & Plan section as
+       natural clinical prose. The payload lines carry one of four
+       `event_type` markers (leading "avoid:" / "hold:" / "substitute:"
+       / "deescalate:" prefix in the bullet, or an inferable phrasing
+       when the marker is absent — legacy `avoid` payload pre-#1403).
+       Cadence by event type:
+         · avoid — "~ was avoided due to concurrent ~; ~ was prescribed
+           instead." (JA: "〜との併用禁忌のため〜を回避し、〜を選択した。")
+         · hold  — "~ was held during this admission because of ~;
+           resume after ~ resolves." (JA: "〜のため〜を今回入院中は
+           保留とし、〜の改善後に再開予定。")
+         · substitute — "~ was substituted with ~ for the duration of
+           ~ (rationale: ~)." (JA: "〜のため〜を〜に切替 (期間: 〜、
+           理由: 〜)。") Distinguish from `avoid`: substitution is a
+           planned swap for an active clinical state, not a conflict
+           avoidance.
+         · deescalate — "~ was discontinued on day N and narrowed to
+           ~." (JA: "〜を第N病日で中止し〜へ de-escalate した。")
+       Silent omission of any entry is a hallucination of the inverse.
+       NEVER invent an avoidance, hold, substitution, or de-escalation
+       not in the input.
 
   3. VERBATIM COPY — no re-interpretation of pre-resolved fields.
      - hospital_day_label: copy verbatim ("入院初日" for day 0,
@@ -231,6 +328,18 @@ system: |
          ウァルファリン     → ワルファリン
      - Delirium: always「せん妄」in JP output. NEVER Chinese-script
        「谵妄」 or transliteration「デリリア」.
+     - Person names (universal — S113→S114 name-resolution audit):
+       When a template-rendered section already carries a resolved
+       staff / physician / nurse / surgeon / anesthesiologist name
+       (e.g. "担当医師：加瀬 幸男" / "attending physician: Dr. Kase Yukio"),
+       copy the name verbatim into the LLM-rewritten section. NEVER
+       substitute a different name, drop the name, translate its form
+       (Kase Yukio ↔ 加瀬 幸男), or reorder family/given components.
+       When the template shows a raw staff-id (STAFF-… / DR-… / NS-… /
+       PHY-… pattern — roster_map missing at pass time), leave it
+       verbatim as-is; do NOT invent a plausible name. Patient names
+       are DELIBERATELY absent from every context key — never invent
+       a patient name if a section references the patient.
 
   4. NO FABRICATED PLACEHOLDERS.
      - Never write vague time phrases ("日数不明", "date unknown", "at
