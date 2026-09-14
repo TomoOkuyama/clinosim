@@ -39,6 +39,71 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Changed
+
+- **Narrative bundle prompts v16 → v17** (S113→S114 narrative review;
+  covers stale docstring, name-resolution drift, and forward-declared
+  event_type cadence). Locale-authored `prompts/{en,ja}/narrative_seed_bundle.yaml`
+  updated in parallel:
+  - Stale pre-v17 docstring "Single English prompt with output language
+    controlled by `${target_language}`" — accurate only through
+    session-88j v9 — replaced with the two-file locale-authored shape.
+  - **Context contract expanded** with 7 (EN) / 6 (JA) keys the code
+    emits but the prompt never mentioned: `admission_datetime`,
+    `length_of_stay_days`, `in_hospital_new_diagnoses`,
+    `chief_complaint_verbatim`, `arrival_mode`, `initial_vitals`
+    (+ `patient_bucket` intentionally omitted — cache-key use only,
+    not narrative-load-bearing). Pre-v17 the absence let ed_note
+    narratives fabricate arrival-mode defaults ("walked in" when
+    actually 救急車搬送) and let `in_hospital_new_diagnoses` (Issue
+    #848 new-onset intra-admission diseases) be silently re-narrated
+    as if PMH.
+  - **`today_vitals_summary` → `todays_vitals_summary` (outpatient_soap
+    key rename)**. Pre-fix the singular form was emitted only for
+    outpatient_soap while progress_note used the plural; the bundle
+    prompt Context contract only listed the plural form so the Rule 2
+    REQUIRED INCLUSION on vitals never fired for outpatient encounters
+    (silent hallucination-of-inverse risk). Rename in
+    `replacement_strategy._build_extra_context::outpatient_soap` +
+    Context contract updated.
+  - **Rule 2 `considered_but_not_prescribed` cadence forward-declared**
+    to cover four `event_type` values (avoid / hold / substitute /
+    deescalate). Payload currently carries only the legacy `avoid`
+    cadence until Issue #1403 wires the backend; the extended cadence
+    guidance is a no-op on today's payload shape but readies the
+    prompt for silent drug-safety events surfaced later (pregnancy
+    substitution #1321, disease-protocol medication_holds #1335,
+    antibiotic de-escalation #1346, JP C-section postop analgesic
+    substitution #1315).
+  - **Rule 3 VERBATIM COPY: universal person-name preservation
+    clause** (S113→S114 name-resolution audit). Pre-v17 only 4 doc
+    types (operative_note / procedure_note / death_certificate /
+    death_discharge_summary) had person-name verbatim contract in
+    per-doc-type blocks; admission_hp / discharge_summary / ed_note /
+    referral_note / progress_note / outpatient_soap could silently
+    re-invent, drop, or Romanize a resolved staff / physician / nurse
+    / surgeon / anesthesiologist name (via `_resolve_staff_name`
+    against hospital.json roster) on rewrite. Universal clause also
+    covers the raw staff-id fallback (STAFF-… / DR-… / NS-… / PHY-…
+    when roster is missing at pass time — do NOT hallucinate a
+    plausible name). Patient names deliberately remain absent from
+    every context key (privacy).
+  - Follow-up issues filed: #1403 (backend wire drug-safety silent
+    events to `safety_skip_log`), #1404 (neonatal admission_hp
+    per-doc-type block), #1405 (P1 refinement backlog: F32/F33 SSRI
+    narrative rule, oncology chemo-cycle framing, N17.9↔Cr trend tie,
+    MedicationRequest frequency cite, blood-culture DR conclusion,
+    US Core race/ethnicity/birthsex).
+- **`_render_patient_biometrics` neonatal / infant framing**
+  (`replacement_strategy.py`). When patient is `age == 0` or
+  `occupation == "infant"`, prefix Ht/Wt line with 「出生時 / birth」
+  and suppress BMI (adult BMI cutoffs are not applicable < 2 y/o;
+  pediatric growth uses weight-for-length percentiles). Pre-fix a
+  newborn `patient_biometrics` line emitted「身長 50 cm / 体重
+  3.2 kg / BMI 12.5」which reads as adult malnutrition to a
+  downstream LLM. Related follow-up in Issue #1404 (neonatal
+  admission_hp per-doc-type block).
+
 ### Fixed
 
 - **PRN rescue inhaler (Salbutamol) modelled as chronic monthly
