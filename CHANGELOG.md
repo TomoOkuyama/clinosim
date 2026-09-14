@@ -41,6 +41,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
+<<<<<<< HEAD
 - **US Core narrow-gate compliance axis + CI gate**
   (S115, Issue #1418 Phase 1). New `clinosim.eval.axes.us_core_compliance`
   registers a 7-check axis that runs strictly (`threshold=1.0`) on US
@@ -72,6 +73,35 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   (US p=300 seed=300 → `clinosim eval --strict --only-axes
   us_core_compliance`, ~1 min per PR). Full HL7 FHIR Validator
   coverage for US Core stays on the roadmap as Phase 3 (Issue #1418).
+=======
+- **JP Core narrow-gate compliance axis + CI gate**
+  (S115, Issue #1418 Phase 1). New
+  `clinosim.eval.axes.jp_core_compliance` registers a 7-check axis
+  that runs strictly (`threshold=1.0`) on JP cohorts and returns
+  `[]` on non-JP locales. Runs alongside (not overlapping) the
+  existing JP-CLINS lab compliance gate — both must pass for a JP
+  PR to merge, per Issue #1418: JP output → JP Core + JP-CLINS
+  準拠必須. The checks cover the narrow subset of JP Core
+  Patient / Encounter / MedicationRequest must-support elements
+  that are already at 100 % on master (verified against a p=100
+  s=300 JP cohort at implementation time):
+  1. `jp_core_patient_profile_declared` — every JP Patient carries
+     a `meta.profile` starting with the JP Core Patient URL prefix.
+  2. `jp_core_patient_identifier_present`
+  3. `jp_core_patient_name_family_given`
+  4. `jp_core_patient_kanji_representation` — every JP Patient has
+     at least one name with `iso21090-EN-representation = IDE`
+     (kanji). Kana (SYL) coverage stays as a WARN in the `locale`
+     axis, not gated here.
+  5. `jp_core_encounter_class_present`
+  6. `jp_core_encounter_period_present`
+  7. `jp_core_medicationrequest_medication_coding_present`
+  Wired into CI via a new `jp-core-compliance-gate.yml` workflow
+  (JP p=300 s=300 `--allow-legacy` → `clinosim eval --strict
+  --only-axes jp_core_compliance`, ~1 min per PR). YJ/HOT drug code
+  membership already covered in the `locale` axis so this new axis
+  does not duplicate it.
+>>>>>>> 1f97eeade8 (feat(eval): JP Core narrow-gate compliance axis + CI gate — #1418 Phase 1)
 
 ### Changed
 
