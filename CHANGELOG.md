@@ -92,6 +92,35 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
+- **Integration slow-test fixture consolidation** (S115, Issue #1420
+  follow-up). Five integration test files were each spinning up an
+  independent `run_beta` / `clinosim generate` per test case — the
+  same config, seed, cohort every time — because there was no
+  shared fixture across the module. Consolidating to a single
+  module-scoped fixture per file removes ~355 s of duplicated
+  simulation work from the integration suite, attacking the 86 s
+  slowest-test floor that bounds any pytest-split N-shard config.
+  Files touched:
+  - `test_discharge_rx_issue_date.py`: 2 tests, 156 s → 78 s
+    (single JP p=200 s=42 sim shared).
+  - `test_document_jp_localization.py`: 5 tests, 101 s → 20 s
+    (single JP p=200 s=42 sim shared).
+  - `test_imaging_jp_localization.py`: 5 tests, 80 s → 20 s
+    (single JP p=200 s=42 sim shared).
+  - `test_document_alpha2_jp_localization.py`: 5 tests, 101 s → 20 s
+    (single JP p=200 s=42 sim shared).
+  - `test_escalation_procedure_emission.py`: 2 tests, 76 s → 37 s
+    (single JP p=500 s=42 CLI invocation shared).
+  Behavior is unchanged; assertions are byte-identical, only the
+  fixture layer is shared. Expected impact on the integration
+  matrix wall time is a further ~1-1.5 min drop on top of the N=10
+  promotion (#1424) because the balanced-shard wall drops below the
+  old 86 s slowest-test floor once the consolidated files' totals
+  are counted individually.
+
+
+### Changed
+
 - **CI unit tests: N=3 shards + xdist -n 2 + coverage combine**
   (S115, Issue #1420 Phase 1). Local bin-packing simulation on the
   regenerated `.test_durations` (6086 unit entries, 119.2s

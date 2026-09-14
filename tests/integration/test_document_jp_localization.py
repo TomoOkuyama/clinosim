@@ -16,12 +16,23 @@ Note on ClinicalImpression.description:
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 import pytest
 
 from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
+
+
+@pytest.fixture(scope="module")
+def jp_export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """One-shot JP p=200 s=42 generation shared by every test in this
+    module. Was 5 × ~20 s independent sims pre-consolidation (S115
+    slow-test fixture consolidation, #1420 follow-up) — this fixture
+    collapses that to a single ~20 s sim, letting the module hit the
+    integration wall-time floor set by the slowest test in the suite."""
+    out = tmp_path_factory.mktemp("jp_docs") / "out"
+    run_generate("JP", 200, 42, out)
+    return out
 
 
 def _has_jp_chars(s: str) -> bool:
@@ -65,54 +76,48 @@ def _text_or_first_display_from_type(resource: dict) -> str:
 
 
 @pytest.mark.integration
-def test_jp_composition_type_display_in_ja() -> None:
+def test_jp_composition_type_display_in_ja(jp_export_dir: Path) -> None:
     """JP cohort: Composition.type.coding[0].display must contain Japanese characters.
 
     LOINC 34117-2 → "入院時記録" / LOINC 18842-5 → "退院時サマリー" (from loinc.yaml ja field).
     """
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "out"
-        run_generate("JP", 200, 42, out)
-        comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
-        if not comps:
-            pytest.skip("No Composition resources emitted for JP cohort n=200")
-        non_jp: list[str] = []
-        for comp in comps:
-            comp_id = comp.get("id", "?")
-            display = _first_display_from_type(comp)
-            if display and not _has_jp_chars(display):
-                non_jp.append(f"Composition/{comp_id} type.display not JP: {display!r}")
-        assert not non_jp, f"{len(non_jp)} Composition resource(s) have non-JP type.display:\n" + "\n".join(non_jp[:5])
+    comps = load_ndjson(find_ndjson(jp_export_dir, "Composition.ndjson"))
+    if not comps:
+        pytest.skip("No Composition resources emitted for JP cohort n=200")
+    non_jp: list[str] = []
+    for comp in comps:
+        comp_id = comp.get("id", "?")
+        display = _first_display_from_type(comp)
+        if display and not _has_jp_chars(display):
+            non_jp.append(f"Composition/{comp_id} type.display not JP: {display!r}")
+    assert not non_jp, f"{len(non_jp)} Composition resource(s) have non-JP type.display:\n" + "\n".join(non_jp[:5])
 
 
 @pytest.mark.integration
-def test_jp_document_reference_type_display_in_ja() -> None:
+def test_jp_document_reference_type_display_in_ja(jp_export_dir: Path) -> None:
     """JP cohort: DocumentReference.type.coding[0].display must be Japanese.
 
     LOINC 11506-3 → "経過記録" (from loinc.yaml ja field).
     """
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "out"
-        run_generate("JP", 200, 42, out)
-        drefs = load_ndjson(find_ndjson(out, "DocumentReference.ndjson"))
-        if not drefs:
-            pytest.skip("No DocumentReference resources emitted for JP cohort n=200")
-        non_jp: list[str] = []
-        for dr in drefs:
-            dr_id = dr.get("id", "?")
-            # Issue #360 G5 (2026-07-22): read JP from type.text (walker-safe
-            # UI source of truth); coding[].display now carries EN LOINC
-            # canonical.
-            display = _text_or_first_display_from_type(dr)
-            if display and not _has_jp_chars(display):
-                non_jp.append(f"DocumentReference/{dr_id} type UI-label not JP: {display!r}")
-        assert not non_jp, f"{len(non_jp)} DocumentReference resource(s) have non-JP type UI-label:\n" + "\n".join(
-            non_jp[:5]
-        )
+    drefs = load_ndjson(find_ndjson(jp_export_dir, "DocumentReference.ndjson"))
+    if not drefs:
+        pytest.skip("No DocumentReference resources emitted for JP cohort n=200")
+    non_jp: list[str] = []
+    for dr in drefs:
+        dr_id = dr.get("id", "?")
+        # Issue #360 G5 (2026-07-22): read JP from type.text (walker-safe
+        # UI source of truth); coding[].display now carries EN LOINC
+        # canonical.
+        display = _text_or_first_display_from_type(dr)
+        if display and not _has_jp_chars(display):
+            non_jp.append(f"DocumentReference/{dr_id} type UI-label not JP: {display!r}")
+    assert not non_jp, f"{len(non_jp)} DocumentReference resource(s) have non-JP type UI-label:\n" + "\n".join(
+        non_jp[:5]
+    )
 
 
 @pytest.mark.integration
-def test_jp_allergy_intolerance_display_in_ja() -> None:
+def test_jp_allergy_intolerance_display_in_ja(jp_export_dir: Path) -> None:
     """JP cohort: AllergyIntolerance.code.coding[0].display must be Japanese.
 
     AllergyIntolerance from the Task 9 builder (id prefix 'allergy-{pid}-{idx}'):
@@ -126,39 +131,36 @@ def test_jp_allergy_intolerance_display_in_ja() -> None:
     for the code — check the CodeableConcept as a whole (text OR any
     coding.display), so either surface satisfies the JP-locale contract.
     """
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "out"
-        run_generate("JP", 200, 42, out)
-        allergies = load_ndjson(find_ndjson(out, "AllergyIntolerance.ndjson"))
-        if not allergies:
-            pytest.skip("No AllergyIntolerance resources emitted for JP cohort n=200")
+    allergies = load_ndjson(find_ndjson(jp_export_dir, "AllergyIntolerance.ndjson"))
+    if not allergies:
+        pytest.skip("No AllergyIntolerance resources emitted for JP cohort n=200")
 
-        # Filter to Task 9 builder entries (have allergen_code → SNOMED coding)
-        task9_allergies = [a for a in allergies if a.get("code", {}).get("coding")]
-        if not task9_allergies:
-            pytest.skip(
-                "No Task 9 AllergyIntolerance (SNOMED-coded) resources in JP cohort n=200 — "
-                "allergy prevalence is 15%; small cohort may have no allergic patients."
+    # Filter to Task 9 builder entries (have allergen_code → SNOMED coding)
+    task9_allergies = [a for a in allergies if a.get("code", {}).get("coding")]
+    if not task9_allergies:
+        pytest.skip(
+            "No Task 9 AllergyIntolerance (SNOMED-coded) resources in JP cohort n=200 — "
+            "allergy prevalence is 15%; small cohort may have no allergic patients."
+        )
+
+    non_jp: list[str] = []
+    for ai in task9_allergies:
+        ai_id = ai.get("id", "?")
+        code = ai.get("code", {})
+        text = code.get("text", "") or ""
+        coding_displays = [c.get("display", "") or "" for c in code.get("coding", [])]
+        has_jp = _has_jp_chars(text) or any(_has_jp_chars(d) for d in coding_displays)
+        if not has_jp:
+            non_jp.append(
+                f"AllergyIntolerance/{ai_id} neither code.text nor code.coding[].display "
+                f"carries JP characters (text={text!r}, coding_displays={coding_displays!r})"
             )
 
-        non_jp: list[str] = []
-        for ai in task9_allergies:
-            ai_id = ai.get("id", "?")
-            code = ai.get("code", {})
-            text = code.get("text", "") or ""
-            coding_displays = [c.get("display", "") or "" for c in code.get("coding", [])]
-            has_jp = _has_jp_chars(text) or any(_has_jp_chars(d) for d in coding_displays)
-            if not has_jp:
-                non_jp.append(
-                    f"AllergyIntolerance/{ai_id} neither code.text nor code.coding[].display "
-                    f"carries JP characters (text={text!r}, coding_displays={coding_displays!r})"
-                )
-
-        assert not non_jp, f"{len(non_jp)} AllergyIntolerance resource(s) have no JP label:\n" + "\n".join(non_jp[:5])
+    assert not non_jp, f"{len(non_jp)} AllergyIntolerance resource(s) have no JP label:\n" + "\n".join(non_jp[:5])
 
 
 @pytest.mark.integration
-def test_jp_composition_section_text_in_ja() -> None:
+def test_jp_composition_section_text_in_ja(jp_export_dir: Path) -> None:
     """JP cohort: Japanese sections in Composition.section[].text.div contain JP chars.
 
     The template generator produces JP content in locale-aware sections
@@ -190,32 +192,29 @@ def test_jp_composition_section_text_in_ja() -> None:
         }
     )
 
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "out"
-        run_generate("JP", 200, 42, out)
-        comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
-        # Only check Composition resources that have JP-capable sections
-        sectioned = [c for c in comps if any(sec.get("title") in _JP_SECTIONS for sec in c.get("section", []))]
-        if not sectioned:
-            pytest.skip("No Composition resources with JP-capable sections for JP cohort n=200")
+    comps = load_ndjson(find_ndjson(jp_export_dir, "Composition.ndjson"))
+    # Only check Composition resources that have JP-capable sections
+    sectioned = [c for c in comps if any(sec.get("title") in _JP_SECTIONS for sec in c.get("section", []))]
+    if not sectioned:
+        pytest.skip("No Composition resources with JP-capable sections for JP cohort n=200")
 
-        non_jp_sections: list[str] = []
-        for comp in sectioned:
-            comp_id = comp.get("id", "?")
-            for sec in comp.get("section", []):
-                title = sec.get("title", "")
-                if title not in _JP_SECTIONS:
-                    continue  # skip known English-fallback sections
-                div = sec.get("text", {}).get("div", "")
-                if div and not _has_jp_chars(div):
-                    non_jp_sections.append(f"Composition/{comp_id} section title={title!r}: div not JP: {div[:80]!r}")
-        assert not non_jp_sections, f"{len(non_jp_sections)} JP-capable section(s) with non-JP text.div:\n" + "\n".join(
-            non_jp_sections[:5]
-        )
+    non_jp_sections: list[str] = []
+    for comp in sectioned:
+        comp_id = comp.get("id", "?")
+        for sec in comp.get("section", []):
+            title = sec.get("title", "")
+            if title not in _JP_SECTIONS:
+                continue  # skip known English-fallback sections
+            div = sec.get("text", {}).get("div", "")
+            if div and not _has_jp_chars(div):
+                non_jp_sections.append(f"Composition/{comp_id} section title={title!r}: div not JP: {div[:80]!r}")
+    assert not non_jp_sections, f"{len(non_jp_sections)} JP-capable section(s) with non-JP text.div:\n" + "\n".join(
+        non_jp_sections[:5]
+    )
 
 
 @pytest.mark.integration
-def test_jp_clinical_impression_structural_fields_present() -> None:
+def test_jp_clinical_impression_structural_fields_present(jp_export_dir: Path) -> None:
     """JP cohort: ClinicalImpression has required structural fields (ref integrity).
 
     Note: ClinicalImpression.description is "Day N clinical assessment" (English)
@@ -231,36 +230,33 @@ def test_jp_clinical_impression_structural_fields_present() -> None:
     The by-design signature requires that an in-progress CI links to an
     in-progress Encounter; any other status combination is a real defect.
     """
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "out"
-        run_generate("JP", 200, 42, out)
-        impressions = load_ndjson(find_ndjson(out, "ClinicalImpression.ndjson"))
-        if not impressions:
-            pytest.skip("No ClinicalImpression resources emitted for JP cohort n=200")
-        encounters = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
-        encounter_status_by_id = {enc.get("id", ""): enc.get("status", "") for enc in encounters}
-        for ci in impressions:
-            ci_id = ci.get("id", "?")
-            status = ci.get("status", "")
-            assert status in ("completed", "in-progress"), (
-                f"ClinicalImpression/{ci_id} unexpected status {status!r}; "
-                "expected 'completed' or by-design 'in-progress' for snapshot-truncated Encounter"
+    impressions = load_ndjson(find_ndjson(jp_export_dir, "ClinicalImpression.ndjson"))
+    if not impressions:
+        pytest.skip("No ClinicalImpression resources emitted for JP cohort n=200")
+    encounters = load_ndjson(find_ndjson(jp_export_dir, "Encounter.ndjson"))
+    encounter_status_by_id = {enc.get("id", ""): enc.get("status", "") for enc in encounters}
+    for ci in impressions:
+        ci_id = ci.get("id", "?")
+        status = ci.get("status", "")
+        assert status in ("completed", "in-progress"), (
+            f"ClinicalImpression/{ci_id} unexpected status {status!r}; "
+            "expected 'completed' or by-design 'in-progress' for snapshot-truncated Encounter"
+        )
+        enc_ref = ci.get("encounter", {}).get("reference", "")
+        if status == "in-progress":
+            # by-design signature: linked Encounter must also be in-progress
+            assert enc_ref.startswith("Encounter/"), (
+                f"ClinicalImpression/{ci_id} in-progress but has no Encounter reference: {enc_ref!r}"
             )
-            enc_ref = ci.get("encounter", {}).get("reference", "")
-            if status == "in-progress":
-                # by-design signature: linked Encounter must also be in-progress
-                assert enc_ref.startswith("Encounter/"), (
-                    f"ClinicalImpression/{ci_id} in-progress but has no Encounter reference: {enc_ref!r}"
-                )
-                enc_id = enc_ref[len("Encounter/") :]
-                enc_status = encounter_status_by_id.get(enc_id)
-                assert enc_status == "in-progress", (
-                    f"ClinicalImpression/{ci_id} status='in-progress' but "
-                    f"linked Encounter/{enc_id} status={enc_status!r} (by-design "
-                    "signature requires both to be in-progress; see "
-                    "docs/audit-cycles/by-design-registry.md "
-                    "snapshot-in-progress-clinical-impression-status)"
-                )
-            assert ci.get("subject", {}).get("reference", "").startswith("Patient/"), (
-                f"ClinicalImpression/{ci_id} subject must start with 'Patient/'"
+            enc_id = enc_ref[len("Encounter/") :]
+            enc_status = encounter_status_by_id.get(enc_id)
+            assert enc_status == "in-progress", (
+                f"ClinicalImpression/{ci_id} status='in-progress' but "
+                f"linked Encounter/{enc_id} status={enc_status!r} (by-design "
+                "signature requires both to be in-progress; see "
+                "docs/audit-cycles/by-design-registry.md "
+                "snapshot-in-progress-clinical-impression-status)"
             )
+        assert ci.get("subject", {}).get("reference", "").startswith("Patient/"), (
+            f"ClinicalImpression/{ci_id} subject must start with 'Patient/'"
+        )

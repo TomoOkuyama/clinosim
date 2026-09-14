@@ -40,7 +40,12 @@ def _grep_ndjson(ndjson_path: Path, needle: str) -> int:
     return count
 
 
-def _run_generate(out_dir: Path) -> None:
+@pytest.fixture(scope="module")
+def jp_cohort_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """One-shot JP p=500 s=42 generation shared by both tests in this
+    module. Was 2 × ~38 s independent CLI invocations pre-consolidation
+    (S115 slow-test fixture consolidation, #1420 follow-up)."""
+    out_dir = tmp_path_factory.mktemp("escalation_cohort") / "cohort"
     env = {**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[2])}
     subprocess.run(
         [
@@ -66,13 +71,12 @@ def _run_generate(out_dir: Path) -> None:
         capture_output=True,
         text=True,
     )
+    return out_dir
 
 
-def test_procedure_drug_names_not_in_medication_request(tmp_path):
+def test_procedure_drug_names_not_in_medication_request(jp_cohort_dir: Path) -> None:
     """None of the 4 migrated drug labels appear in MedicationRequest.ndjson."""
-    out_dir = tmp_path / "cohort"
-    _run_generate(out_dir)
-    mr_path = out_dir / "fhir_r4" / "MedicationRequest.ndjson"
+    mr_path = jp_cohort_dir / "fhir_r4" / "MedicationRequest.ndjson"
     for name in PROCEDURE_DRUG_NAMES:
         count = _grep_ndjson(mr_path, name)
         assert count == 0, (
@@ -82,11 +86,9 @@ def test_procedure_drug_names_not_in_medication_request(tmp_path):
         )
 
 
-def test_procedure_ndjson_present(tmp_path):
+def test_procedure_ndjson_present(jp_cohort_dir: Path) -> None:
     """Procedure.ndjson exists and is non-empty (sanity gate for the above)."""
-    out_dir = tmp_path / "cohort"
-    _run_generate(out_dir)
-    proc_path = out_dir / "fhir_r4" / "Procedure.ndjson"
+    proc_path = jp_cohort_dir / "fhir_r4" / "Procedure.ndjson"
     assert proc_path.exists(), "Procedure.ndjson not emitted"
     assert proc_path.stat().st_size > 0, "Procedure.ndjson is empty"
     # Also verify the file is valid NDJSON (each line parses as JSON).
