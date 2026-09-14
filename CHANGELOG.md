@@ -41,6 +41,42 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Fixed
 
+- **`switch` event `substituted_with` now cites the correct antibiotic
+  (not IV fluid)** (Issue #1416 / PR #1415 follow-up). S114
+  re-verification (post-#1415) found 100 % of JP + 9 % of US switch
+  events picked `IV_fluid: NS 80-125 mL/h` as `substituted_with`
+  because the pre-#1416 `_find_replacement_agent` returned the first
+  non-DISCONTINUE MED order in the encounter — IV fluids emit before
+  the replacement antibiotic in `daily_loop`. Two related root causes:
+  1. `enrich_discontinue_flip` read `record.encounter` (singular);
+     production CIFPatientRecord uses `record.encounters` (list).
+     `encounter=None` in prod → `encounter_id=""` on skip_log entries
+     (broke the `_build_safety_skips` filter that keys entries to the
+     current encounter) AND `stop_day=None` (broke the START-D<day>-
+     match introduced below). Now reads `encounters[0]` as fallback.
+  2. `_find_replacement_agent` had no way to scope to the same
+     `treatment_modifications.day_N` block as the STOP marker. Now
+     matches by the `daily_loop`-authored order-id convention
+     (`-START-D<day>-`), returning `None` when the disease YAML has
+     no `start:` block (e.g. cerebral_infarction antithrombotic hold
+     for hemorrhagic transformation).
+  Verified against a JP p=2000 s=358 smoke: pre-fix 81 / 81 (100 %)
+  wrong replacement; post-fix 80 / 81 correct (Meropenem 1g IV q8h),
+  1 / 81 stop-only correctly returns None. 0 wrong IV_fluid
+  replacements.
+- **Template narrative `_render_safety_skips_line` event_type-aware
+  cadence** (Issue #1416 sibling — S114 code-audit finding). The
+  template renderer for the progress_note / outpatient_soap plan
+  addendum rendered EVERY skip_log entry with pair-avoid phrasing
+  ("~ was avoided due to concurrent ~; ~ prescribed instead")
+  regardless of `event_type`. Post-#1403 skip_log entries carry five
+  event_type values (avoid / hold / substitute / switch / deescalate),
+  each with distinct clinical semantics. The template renderer now
+  dispatches per event_type — mirroring the LLM Rule 2 cadence in
+  `replacement_strategy._build_extra_context` — so hold / substitute
+  / switch / deescalate events narrate correctly in the deterministic
+  template output too, not only in LLM-driven narratives.
+
 - **`_build_newborn_workup` field-name mismatch on production CIF
   shape** (Issue #1412 / PR #1409 follow-up). S114 verification of a
   US p=10000 s=357 cohort exposed that 6 of 8 neonatal signals
