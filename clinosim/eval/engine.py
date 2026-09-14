@@ -170,6 +170,7 @@ class EvalEngine:
             from clinosim.eval.axes import (
                 clinical,
                 jp_clins_lab_compliance,
+                jp_core_compliance,
                 locale,
                 structural,
                 us_core_compliance,
@@ -181,6 +182,7 @@ class EvalEngine:
                 "locale": locale.run,
                 "jp_clins_lab_compliance": jp_clins_lab_compliance.run,
                 "us_core_compliance": us_core_compliance.run,
+                "jp_core_compliance": jp_core_compliance.run,
             }
         if only_axes is not None:
             unknown = [a for a in only_axes if a not in axes]

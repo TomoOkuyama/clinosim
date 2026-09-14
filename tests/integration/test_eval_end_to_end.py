@@ -52,8 +52,9 @@ def test_eval_preset_end_to_end(preset: str, tmp_path: Path) -> None:
     # 1. Report shape is well-formed.
     assert report.overall_score >= 0
     assert report.overall_status in ("PASS", "WARN", "FAIL")
-    # structural + clinical + locale + jp_clins_lab_compliance + us_core_compliance
-    assert len(report.axes) == 5
+    # structural + clinical + locale + jp_clins_lab_compliance +
+    # us_core_compliance + jp_core_compliance
+    assert len(report.axes) == 6
 
     # 2. Core three axes actually ran and produced checks. The JP-CLINS lab
     #    compliance axis returns [] on non-JP or eCS-less cohorts, so it's
