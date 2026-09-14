@@ -81,6 +81,35 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   legacy pair-conflict constructor sites (`activator._derive_home_medications`,
   `medication_pipeline._apply_gate_and_append`, `emergency._apply_ed_gate`,
   etc.) require no callsite edits and keep their `avoid` semantics.
+- **Neonatal admission_hp narrative wiring** (Issue #1404). Pre-fix the
+  177 v0.6.1→HEAD commits added a full newborn-workup pipeline
+  (Apgar / AABR / tandem-MS / bilirubin / CCHD / Vitamin K / ophthalmic
+  prophylaxis under `clinosim.modules.newborn` — Issues #1252 N1-N7)
+  but the narrative bundle prompt had zero per-doc-type guidance for
+  neonatal admission_hp: Apgar / AABR / tandem-MS fell through generic
+  `key_procedures_performed` and adult A&P headings ("Planned Length
+  of Stay") were emitted verbatim for newborns.
+  - New `NarrativeContext.newborn_workup: dict[str, Any]` field
+    populated by `context._build_newborn_workup` (reads
+    `record.extensions["newborn"]` + top-level Procedures / MARs).
+    Gated on `patient.occupation == "infant"` or `age == 0` — empty
+    dict for adult records.
+  - New context key `newborn_workup_summary` rendered by
+    `replacement_strategy._render_newborn_workup_summary` for
+    admission_hp when the workup projection is present. JA and EN
+    cadences: Apgar 1/5 min, AABR / tandem-MS submission flags,
+    bilirubin peak, CCHD SpO2 pre/post-ductal, Vitamin K + ophthalmic
+    prophylaxis flags. Missing elements drop silently (never
+    fabricated).
+  - Narrative bundle prompts v17 → v18 (JA/EN parallel): new
+    "NEONATAL VARIANT" per-doc-type block under `admission_hp` that
+    tells the LLM to shape HPI around delivery mode + GA + birth
+    biometrics + Apgar and A&P around every workup element in
+    `newborn_workup_summary`, and to skip adult PMH / home-medications
+    sections that don't apply to newborns.
+  - 11 new unit tests in
+    `tests/unit/modules/document/narrative/test_newborn_workup_context.py`
+    (context projection + JA/EN render + doc-type gate).
 
 ### Changed
 

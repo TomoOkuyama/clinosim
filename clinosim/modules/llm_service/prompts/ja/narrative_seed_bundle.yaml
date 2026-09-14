@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 17
+version: 18
 max_tokens: 3500
 temperature: 0.1
 description: |
@@ -13,6 +13,21 @@ description: |
   output language controlled by ${target_language}" was accurate only
   through session-88j v9; the JA file has been the canonical JP source
   since v11 (Rule 5 D lab hard-guard onward).
+
+  v18 changes (2026-09-14, session S113→S114 continuation, Issue #1404):
+    - 新生児 admission_hp per-doc-type block を追加。context_sections に
+      `newborn_workup_summary` が含まれる場合は出生入院 H&P であり、
+      新生児 cadence を適用 (HPI に分娩様式 + 在胎週数 + 出生時
+      体重/身長/頭囲 + Apgar; A&P にビタミン K / AABR / タンデム MS /
+      ビリルビン / CCHD / 眼科的予防投与; 成人 PMH / home_medications
+      section なし)。
+    - 新 context key `newborn_workup_summary` を Context contract に追加。
+      `context._build_newborn_workup` が `record.extensions["newborn"]` +
+      top-level procedures / MARs から生成、`patient.occupation ==
+      "infant"` or `age == 0` の record のみ populate。
+    - `_render_patient_biometrics` の新生児 framing (「出生時」prefix、
+      BMI 抑制) は v17 で S113→S114 narrative-context Python 変更として
+      既に landing 済 — prompt 側で再言及不要。
 
   v17 changes (2026-09-14, session S113→S114 narrative review):
     - Doc-string above updated to reflect the two-file locale-authored
@@ -249,6 +264,13 @@ system: |
     - initial_vitals            ed_note のみ。ED 到着時の初回 vitals。
                               「到着時 snapshot」として narrate し、当日
                               の状態と混同しない。
+    - newborn_workup_summary    admission_hp のみ (Issue #1404)。新生児
+                              admission_hp variant 用の one-line anchor:
+                              Apgar 1/5 分、AABR / タンデム MS / CCHD
+                              スクリーン flag、総ビリルビン最高値、
+                              ビタミン K + 眼科的予防投与 flag。存在
+                              が「出生入院である」signal — per-doc-type
+                              の新生児 admission_hp block を参照。
 
   Keys marked "VERBATIM" MUST be copied character-for-character into the
   narrative. Keys marked with a data type (list / snapshot) MUST be
@@ -558,6 +580,27 @@ system: |
     Drug list under the medications heading (【薬物療法】 for JA,
     **Medications** for EN) MUST name each drug from context with
     dose/route (Rule 3). No drug-class-only abstraction.
+  - 新生児 admission_hp (Issue #1404): context_sections に
+    `newborn_workup_summary` が含まれる場合は出生入院の H&P であり、
+    成人 template ではなく新生児 workup 中心で narrative を構成する:
+      * hpi 冒頭: 分娩様式 (経腟分娩 / 帝王切開) + 在胎週数 +
+        `patient_biometrics` (出生時 prefix された身長/体重/頭囲) +
+        `newborn_workup_summary` の Apgar (1 分 / 5 分) + 授乳計画
+        (context に含まれる場合)。
+      * assessment_and_plan: `newborn_workup_summary` に列挙された全
+        workup 要素を cite する — ビタミン K 予防投与、AABR 聴覚
+        スクリーン結果 (pass / refer / pending)、タンデム MS 代謝
+        異常症スクリーン提出 (結果は 5-7 日で判明)、総ビリルビン
+        最高値と光線療法閾値 (AAP 2022) の対応、CCHD SpO2 の
+        pre/post-ductal 読み値 (両側 ≥ 95 % かつ差 < 3 % で pass)、
+        眼科的予防投与。成人向けの「予定入院期間」等の見出しを
+        verbatim で emit しない — 新生児 LOS は新生児室 pathway に
+        従う (経腟 24-48 h / 帝王切開 72-96 h、locale 依存)。
+      * PMH は該当しない — 新生児に既往歴なし。代わりに「出生歴:
+        在胎 X 週で経腟分娩/帝王切開、出生体重 X g」形式を
+        patient_biometrics 起点で emit する。
+      * 成人薬剤 reconciliation (home_medications) は新生児では空 —
+        home-med list を捏造しない。
 
   ### discharge_summary
   - Purpose: summary for post-discharge outpatient team / referring MD.
