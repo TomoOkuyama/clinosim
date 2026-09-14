@@ -2306,13 +2306,52 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong><code>_build_newborn_workup</code> field-name mismatch on production CIF
+<li><strong><code>switch</code> event <code>substituted_with</code> now cites the correct antibiotic
+  (not IV fluid)</strong> (Issue #1416 / PR #1415 follow-up). S114
+  re-verification (post-#1415) found 100 % of JP + 9 % of US switch
+  events picked <code>IV_fluid: NS 80-125 mL/h</code> as <code>substituted_with</code>
+  because the pre-#1416 <code>_find_replacement_agent</code> returned the first
+  non-DISCONTINUE MED order in the encounter — IV fluids emit before
+  the replacement antibiotic in <code>daily_loop</code>. Two related root causes:</li>
+<li><code>enrich_discontinue_flip</code> read <code>record.encounter</code> (singular);
+     production CIFPatientRecord uses <code>record.encounters</code> (list).
+     <code>encounter=None</code> in prod → <code>encounter_id=""</code> on skip_log entries
+     (broke the <code>_build_safety_skips</code> filter that keys entries to the
+     current encounter) AND <code>stop_day=None</code> (broke the START-D<day>-
+     match introduced below). Now reads <code>encounters[0]</code> as fallback.</li>
+<li><code>_find_replacement_agent</code> had no way to scope to the same
+     <code>treatment_modifications.day_N</code> block as the STOP marker. Now
+     matches by the <code>daily_loop</code>-authored order-id convention
+     (<code>-START-D&lt;day&gt;-</code>), returning <code>None</code> when the disease YAML has
+     no <code>start:</code> block (e.g. cerebral_infarction antithrombotic hold
+     for hemorrhagic transformation).
+  Verified against a JP p=2000 s=358 smoke: pre-fix 81 / 81 (100 %)
+  wrong replacement; post-fix 80 / 81 correct (Meropenem 1g IV q8h),
+  1 / 81 stop-only correctly returns None. 0 wrong IV_fluid
+  replacements.</li>
+<li>
+<p><strong>Template narrative <code>_render_safety_skips_line</code> event_type-aware
+  cadence</strong> (Issue #1416 sibling — S114 code-audit finding). The
+  template renderer for the progress_note / outpatient_soap plan
+  addendum rendered EVERY skip_log entry with pair-avoid phrasing
+  ("~ was avoided due to concurrent ~; ~ prescribed instead")
+  regardless of <code>event_type</code>. Post-#1403 skip_log entries carry five
+  event_type values (avoid / hold / substitute / switch / deescalate),
+  each with distinct clinical semantics. The template renderer now
+  dispatches per event_type — mirroring the LLM Rule 2 cadence in
+  <code>replacement_strategy._build_extra_context</code> — so hold / substitute
+  / switch / deescalate events narrate correctly in the deterministic
+  template output too, not only in LLM-driven narratives.</p>
+</li>
+<li>
+<p><strong><code>_build_newborn_workup</code> field-name mismatch on production CIF
   shape</strong> (Issue #1412 / PR #1409 follow-up). S114 verification of a
   US p=10000 s=357 cohort exposed that 6 of 8 neonatal signals
   (<code>bilirubin_peak</code>, <code>cchd_ru_spo2</code>, <code>cchd_le_spo2</code>, <code>has_aabr</code>,
   <code>has_metabolic</code>, <code>has_vitamin_k</code>, <code>has_ophthalmic</code>) were silently
   <code>None</code> / <code>False</code> on every real birth-admission record because the
-  projection read the wrong field names:</li>
+  projection read the wrong field names:</p>
+</li>
 <li>bilirubin: read <code>value_mg_dl</code> first (real shape from
     <code>newborn.engine.build_bilirubin_observations</code>), then fall through
     to legacy <code>total_bilirubin_mg_dl</code> / <code>value</code>.</li>
