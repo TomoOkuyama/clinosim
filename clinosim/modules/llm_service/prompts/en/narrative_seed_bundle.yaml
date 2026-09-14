@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 18
+version: 19
 max_tokens: 3500
 temperature: 0.1
 description: |
@@ -12,6 +12,27 @@ description: |
   with output language controlled by ${target_language}" was accurate only
   through session-88j v9; the JA-authored file has been the canonical JP
   source since v11 (Rule 5 D lab hard-guard onward).
+
+  v19 changes (2026-09-14, session S113→S114 continuation, Issue #1405):
+    - Rule 2 REQUIRED INCLUSION extended with FIVE new sub-rules from
+      the P1 refinement backlog (all keys already flow via context;
+      pre-v18 they were "context reaches prompt but no citation rule"):
+      * active_medications_today frequency (BID/QID/QD/TID/q4h) MUST
+        be cited inline when present in the drug entry.
+      * Mental-health SSRI/SNRI/atypical antidepressant with matching
+        F32/F33/F41.1 in chronic_conditions → weave the diagnosis;
+        never invent a depression code from the SSRI alone.
+      * Chemo regimen cycle framing: FOLFOX / GEM-Cis / TMZ / BCG →
+        cite cycle number + cycle day when present; pre-medications
+        narrate under the chemo cycle.
+      * AKI ↔ Creatinine trend tie: N17.x in complications /
+        in_hospital_new_diagnoses AND Cr elevation → cite Cr peak as
+        the KDIGO diagnostic anchor.
+      * PRN medication non-renewal: Salbutamol etc. PRN meds in
+        home_medications but not in discharge_medications_list — do
+        NOT fabricate a refill line.
+    - Related follow-ups tracked in #1405 remain: blood-culture DR
+      conclusion citation (needs new context key — deferred).
 
   v18 changes (2026-09-14, session S113→S114 continuation, Issue #1404):
     - Neonatal admission_hp per-doc-type block added. When
@@ -336,6 +357,46 @@ system: |
        Silent omission of any entry is a hallucination of the inverse.
        NEVER invent an avoidance, hold, substitution, or de-escalation
        not in the input.
+     - active_medications_today frequency (Issue #1405 / #1348) → when
+       a drug entry carries an explicit frequency token (BID / QID / QD /
+       TID / q4h / etc.), the narrative MUST cite the frequency inline
+       ("メトホルミン 500mg 1日2回" / "Metformin 500mg BID"). Silent
+       omission of frequency lets the reader assume the default schedule
+       and can under- or over-state the daily dose. When the frequency
+       is absent from the entry, the narrative writes the drug name +
+       dose without a fabricated frequency.
+     - Mental-health chronic medications (Issue #1405 F32/F33/F41.1) →
+       when `home_medications` contains an SSRI / SNRI / atypical
+       antidepressant (Escitalopram / Sertraline / Paroxetine /
+       Fluoxetine / Duloxetine / Venlafaxine / Mirtazapine etc.) AND
+       chronic_conditions contains F32 / F33 / F41.1, the narrative A&P
+       MUST weave "depression / anxiety on <drug>, continued" rather
+       than treating the SSRI as an unexplained med. NEVER invent a
+       depression diagnosis when only the SSRI is present without an
+       F-code — some SSRIs are used off-label (Duloxetine for chronic
+       pain, Mirtazapine for appetite / insomnia); cite the actual code.
+     - Chemotherapy cycle framing (Issue #1405 / #1280) → when
+       `active_medications_today` includes FOLFOX / GEM-Cis / TMZ / BCG
+       / any regimen name from the C15/C16/C25/C67/C71 oncology YAMLs,
+       the narrative MUST cite the cycle number and cycle day if
+       present in the drug entry ("FOLFOX cycle 3 day 1" / "FOLFOX 第3
+       サイクル 1日目"). Pre-medications (ondansetron / dexamethasone)
+       are pre-chemo antiemetic prophylaxis, not chronic meds — narrate
+       under the chemo cycle rather than as an unrelated PRN.
+     - AKI ↔ Creatinine trend tie (Issue #1405 / #1326) → when
+       `complications_during_stay` (or `in_hospital_new_diagnoses`)
+       contains an N17.x AKI code AND `abnormal_labs_today` /
+       `_during_stay` shows an elevated Creatinine, the assessment MUST
+       cite the Cr peak value as the diagnostic anchor for the AKI
+       ("N17.9 based on Cr peak 4.2 mg/dL, KDIGO stage 3"). Silent
+       omission leaves the reader guessing what fired the diagnosis.
+     - PRN medication non-renewal (Issue #1405 / #1318) → Salbutamol
+       and other PRN rescue meds are NOT expected on a monthly refill
+       cadence. When `home_medications` lists a PRN drug that is NOT
+       currently in `discharge_medications_list`, do NOT fabricate a
+       "refill" line — write "PRN <drug> continued as needed" or omit
+       the drug from the discharge instructions entirely (a real refill
+       is a standalone request 1-4×/year, not a per-visit renewal).
 
   3. VERBATIM COPY — no re-interpretation of pre-resolved fields.
      - hospital_day_label: copy verbatim ("入院初日" for day 0,
