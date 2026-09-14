@@ -28,11 +28,15 @@ from clinosim.types.config import SimulatorConfig
 from clinosim.types.encounter import EncounterType
 
 
-def _run_cohort(country: str = "JP") -> list:
-    """Deterministic small cohort. Size chosen to reliably produce both
-    inpatient (with discharge_rx) and outpatient encounters."""
+@pytest.fixture(scope="module")
+def _jp_cohort_records() -> list:
+    """Deterministic small cohort — one run_beta() shared by both tests
+    in this module (was two independent sims × ~78 s each pre-consolidation,
+    S115 slow-test fixture consolidation, #1420 follow-up). Size chosen
+    to reliably produce both inpatient (with discharge_rx) and
+    outpatient encounters."""
     config = SimulatorConfig(
-        country=country,
+        country="JP",
         population_size=200,
         random_seed=42,
         start_date="2025-01-01",
@@ -42,10 +46,10 @@ def _run_cohort(country: str = "JP") -> list:
 
 
 @pytest.mark.integration
-def test_inpatient_discharge_rx_issue_date_equals_discharge_datetime():
+def test_inpatient_discharge_rx_issue_date_equals_discharge_datetime(_jp_cohort_records):
     """Every completed inpatient encounter with a discharge_prescription
     must carry `issue_date == encounter.discharge_datetime`."""
-    records = _run_cohort()
+    records = _jp_cohort_records
 
     offenders = []
     checked = 0
@@ -78,11 +82,11 @@ def test_inpatient_discharge_rx_issue_date_equals_discharge_datetime():
 
 
 @pytest.mark.integration
-def test_outpatient_discharge_rx_issue_date_still_matches_visit_start():
+def test_outpatient_discharge_rx_issue_date_still_matches_visit_start(_jp_cohort_records):
     """The Issue #466 fix must NOT touch outpatient/ED behavior. Their
     `issue_date` is the visit start (== admission_datetime), because the
     backfill only fires on the completed-inpatient branch."""
-    records = _run_cohort()
+    records = _jp_cohort_records
 
     offenders = []
     checked = 0

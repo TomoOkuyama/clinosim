@@ -19,7 +19,6 @@ Note on CareTeam localization:
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -75,80 +74,84 @@ _LOINC_ADMISSION_NURSING_ASSESSMENT = "78390-2"
 _LOINC_NURSING_DISCHARGE_SUMMARY = "34745-0"
 
 
+@pytest.fixture(scope="module")
+def jp_export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """One-shot JP p=200 s=42 generation shared by every test in this
+    module. Was 5 × ~20 s independent sims pre-consolidation (S115
+    slow-test fixture consolidation, #1420 follow-up)."""
+    out = tmp_path_factory.mktemp("jp_alpha2_docs") / "out"
+    run_generate("JP", 200, 42, out)
+    return out
+
+
 @pytest.mark.integration
-def test_jp_nursing_composition_type_display_in_ja() -> None:
+def test_jp_nursing_composition_type_display_in_ja(jp_export_dir: Path) -> None:
     """JP cohort: ADMISSION_NURSING_ASSESSMENT Composition.type.coding[0].display must be JP.
 
     LOINC 78390-2 → display_ja="入院時看護アセスメント" (from document_type_specs.yaml).
     Also checks NURSING_DISCHARGE_SUMMARY LOINC 34745-0 → "退院時看護サマリ".
     """
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "out"
-        run_generate("JP", 200, 42, out)
-        comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
-        if not comps:
-            pytest.skip("No Composition resources emitted for JP cohort n=200")
+    comps = load_ndjson(find_ndjson(jp_export_dir, "Composition.ndjson"))
+    if not comps:
+        pytest.skip("No Composition resources emitted for JP cohort n=200")
 
-        # Filter to α-min-2 nursing composition types
-        nursing_loincs = {_LOINC_ADMISSION_NURSING_ASSESSMENT, _LOINC_NURSING_DISCHARGE_SUMMARY}
-        nursing_comps = [c for c in comps if _loinc_code_from_type(c) in nursing_loincs]
-        if not nursing_comps:
-            pytest.skip(
-                "No ADMISSION_NURSING_ASSESSMENT or NURSING_DISCHARGE_SUMMARY Compositions "
-                "in JP cohort n=200 — nursing enricher may not be firing for JP inpatient encounters"
-            )
-
-        non_jp: list[str] = []
-        for comp in nursing_comps:
-            comp_id = comp.get("id", "?")
-            display = _first_display_from_type(comp)
-            if display and not _has_jp_chars(display):
-                non_jp.append(
-                    f"Composition/{comp_id} (LOINC {_loinc_code_from_type(comp)}) type.display not JP: {display!r}"
-                )
-        assert not non_jp, f"{len(non_jp)} nursing Composition resource(s) have non-JP type.display:\n" + "\n".join(
-            non_jp[:5]
+    # Filter to α-min-2 nursing composition types
+    nursing_loincs = {_LOINC_ADMISSION_NURSING_ASSESSMENT, _LOINC_NURSING_DISCHARGE_SUMMARY}
+    nursing_comps = [c for c in comps if _loinc_code_from_type(c) in nursing_loincs]
+    if not nursing_comps:
+        pytest.skip(
+            "No ADMISSION_NURSING_ASSESSMENT or NURSING_DISCHARGE_SUMMARY Compositions "
+            "in JP cohort n=200 — nursing enricher may not be firing for JP inpatient encounters"
         )
+
+    non_jp: list[str] = []
+    for comp in nursing_comps:
+        comp_id = comp.get("id", "?")
+        display = _first_display_from_type(comp)
+        if display and not _has_jp_chars(display):
+            non_jp.append(
+                f"Composition/{comp_id} (LOINC {_loinc_code_from_type(comp)}) type.display not JP: {display!r}"
+            )
+    assert not non_jp, f"{len(non_jp)} nursing Composition resource(s) have non-JP type.display:\n" + "\n".join(
+        non_jp[:5]
+    )
 
 
 @pytest.mark.integration
-def test_jp_nursing_shift_note_type_display_in_ja() -> None:
+def test_jp_nursing_shift_note_type_display_in_ja(jp_export_dir: Path) -> None:
     """JP cohort: NURSING_SHIFT_NOTE DocumentReference.type.coding[0].display must be JP.
 
     LOINC 34746-8 → display_ja="看護経過記録" (from document_type_specs.yaml).
     """
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "out"
-        run_generate("JP", 200, 42, out)
-        drefs = load_ndjson(find_ndjson(out, "DocumentReference.ndjson"))
-        if not drefs:
-            pytest.skip("No DocumentReference resources emitted for JP cohort n=200")
+    drefs = load_ndjson(find_ndjson(jp_export_dir, "DocumentReference.ndjson"))
+    if not drefs:
+        pytest.skip("No DocumentReference resources emitted for JP cohort n=200")
 
-        nursing_shift_drefs = [d for d in drefs if _loinc_code_from_type(d) == _LOINC_NURSING_SHIFT_NOTE]
-        if not nursing_shift_drefs:
-            pytest.skip(
-                "No NURSING_SHIFT_NOTE DocumentReferences (LOINC 34746-8) "
-                "in JP cohort n=200 — nursing enricher not firing for JP inpatient"
-            )
-
-        non_jp: list[str] = []
-        for dr in nursing_shift_drefs:
-            dr_id = dr.get("id", "?")
-            # Issue #360 G5 (2026-07-22): read JP from type.text (walker-safe
-            # UI source of truth); coding[].display carries EN LOINC canonical
-            # (walker-safe on English-only CS) so pre-fix "display must be JP"
-            # assertion no longer holds on coding[].display.
-            display = _text_or_first_display_from_type(dr)
-            if display and not _has_jp_chars(display):
-                non_jp.append(f"DocumentReference/{dr_id} type UI-label not JP: {display!r}")
-        assert not non_jp, (
-            f"{len(non_jp)} NURSING_SHIFT_NOTE DocumentReference resource(s) "
-            "have non-JP type.display:\n" + "\n".join(non_jp[:5])
+    nursing_shift_drefs = [d for d in drefs if _loinc_code_from_type(d) == _LOINC_NURSING_SHIFT_NOTE]
+    if not nursing_shift_drefs:
+        pytest.skip(
+            "No NURSING_SHIFT_NOTE DocumentReferences (LOINC 34746-8) "
+            "in JP cohort n=200 — nursing enricher not firing for JP inpatient"
         )
+
+    non_jp: list[str] = []
+    for dr in nursing_shift_drefs:
+        dr_id = dr.get("id", "?")
+        # Issue #360 G5 (2026-07-22): read JP from type.text (walker-safe
+        # UI source of truth); coding[].display carries EN LOINC canonical
+        # (walker-safe on English-only CS) so pre-fix "display must be JP"
+        # assertion no longer holds on coding[].display.
+        display = _text_or_first_display_from_type(dr)
+        if display and not _has_jp_chars(display):
+            non_jp.append(f"DocumentReference/{dr_id} type UI-label not JP: {display!r}")
+    assert not non_jp, (
+        f"{len(non_jp)} NURSING_SHIFT_NOTE DocumentReference resource(s) "
+        "have non-JP type.display:\n" + "\n".join(non_jp[:5])
+    )
 
 
 @pytest.mark.integration
-def test_jp_care_team_structural_fields_present() -> None:
+def test_jp_care_team_structural_fields_present(jp_export_dir: Path) -> None:
     """JP cohort: CareTeam has required structural fields (ref integrity).
 
     Note: CareTeam.category.text is 'Clinical team' (English) in α-min-2 —
@@ -156,64 +159,58 @@ def test_jp_care_team_structural_fields_present() -> None:
     This test verifies that the JP cohort emits structurally valid CareTeam
     resources with correct subject and encounter references.
     """
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "out"
-        run_generate("JP", 200, 42, out)
-        care_teams = load_ndjson(find_ndjson(out, "CareTeam.ndjson"))
-        if not care_teams:
-            pytest.skip("No CareTeam resources emitted for JP cohort n=200")
-        for ct in care_teams:
-            ct_id = ct.get("id", "?")
-            assert ct.get("status"), f"CareTeam/{ct_id} missing status"
-            assert ct.get("subject", {}).get("reference", "").startswith("Patient/"), (
-                f"CareTeam/{ct_id} subject must start with 'Patient/'"
-            )
-            assert ct.get("encounter", {}).get("reference", "").startswith("Encounter/"), (
-                f"CareTeam/{ct_id} encounter must start with 'Encounter/'"
-            )
+    care_teams = load_ndjson(find_ndjson(jp_export_dir, "CareTeam.ndjson"))
+    if not care_teams:
+        pytest.skip("No CareTeam resources emitted for JP cohort n=200")
+    for ct in care_teams:
+        ct_id = ct.get("id", "?")
+        assert ct.get("status"), f"CareTeam/{ct_id} missing status"
+        assert ct.get("subject", {}).get("reference", "").startswith("Patient/"), (
+            f"CareTeam/{ct_id} subject must start with 'Patient/'"
+        )
+        assert ct.get("encounter", {}).get("reference", "").startswith("Encounter/"), (
+            f"CareTeam/{ct_id} encounter must start with 'Encounter/'"
+        )
 
 
 @pytest.mark.integration
-def test_jp_care_team_count_matches_encounter_count() -> None:
+def test_jp_care_team_count_matches_encounter_count(jp_export_dir: Path) -> None:
     """JP cohort: CareTeam count must equal Encounter count (1:1 invariant).
 
     Verifies the 1:1 invariant holds for the JP cohort (16,046 CareTeams for
     JP p=5k baseline). Regression guard: JP localization paths must not
     filter out any CareTeam resources.
     """
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "out"
-        run_generate("JP", 200, 42, out)
-        care_teams = load_ndjson(find_ndjson(out, "CareTeam.ndjson"))
-        encounters = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
-        assert care_teams, "CareTeam.ndjson empty for JP cohort — silent-no-op in JP path"
+    care_teams = load_ndjson(find_ndjson(jp_export_dir, "CareTeam.ndjson"))
+    encounters = load_ndjson(find_ndjson(jp_export_dir, "Encounter.ndjson"))
+    assert care_teams, "CareTeam.ndjson empty for JP cohort — silent-no-op in JP path"
 
-        # CY7-05 (structural, 2026-07-11): FHIR-emit-only synthetic ED
-        # encounters (structural key ends with "-ED", used for
-        # Encounter.partOf ED→IMP linkage) don't have CareTeam records
-        # because they don't exist in CIF. Exclude them from the 1:1
-        # count assertion. Issue #854 PR-encounter: `.id` is opaque so
-        # the structural key (on `.identifier[]`) is authoritative.
-        def _is_synth_ed(enc: dict) -> bool:
-            for ident in enc.get("identifier", []) or []:
-                if ident.get("system") == "urn:clinosim:identifier:encounter-key" and (
-                    ident.get("value") or ""
-                ).endswith("-ED"):
-                    return True
-            return False
+    # CY7-05 (structural, 2026-07-11): FHIR-emit-only synthetic ED
+    # encounters (structural key ends with "-ED", used for
+    # Encounter.partOf ED→IMP linkage) don't have CareTeam records
+    # because they don't exist in CIF. Exclude them from the 1:1
+    # count assertion. Issue #854 PR-encounter: `.id` is opaque so
+    # the structural key (on `.identifier[]`) is authoritative.
+    def _is_synth_ed(enc: dict) -> bool:
+        for ident in enc.get("identifier", []) or []:
+            if ident.get("system") == "urn:clinosim:identifier:encounter-key" and (ident.get("value") or "").endswith(
+                "-ED"
+            ):
+                return True
+        return False
 
-        real_encounter_count = sum(1 for e in encounters if not _is_synth_ed(e))
-        assert len(care_teams) == real_encounter_count, (
-            f"JP CareTeam count {len(care_teams)} != real Encounter count "
-            f"{real_encounter_count} (total encounters incl. synth ED: "
-            f"{len(encounters)}) — CareTeam 1:1-with-Encounter invariant "
-            "violated for JP cohort. Check if JP locale gating in "
-            "_fhir_care_team.py is filtering encounters."
-        )
+    real_encounter_count = sum(1 for e in encounters if not _is_synth_ed(e))
+    assert len(care_teams) == real_encounter_count, (
+        f"JP CareTeam count {len(care_teams)} != real Encounter count "
+        f"{real_encounter_count} (total encounters incl. synth ED: "
+        f"{len(encounters)}) — CareTeam 1:1-with-Encounter invariant "
+        "violated for JP cohort. Check if JP locale gating in "
+        "_fhir_care_team.py is filtering encounters."
+    )
 
 
 @pytest.mark.integration
-def test_jp_nursing_composition_section_text() -> None:
+def test_jp_nursing_composition_section_text(jp_export_dir: Path) -> None:
     """JP cohort: ADMISSION_NURSING_ASSESSMENT Composition sections must be non-empty.
 
     α-min-2 nursing Composition sections (nursing_history, adl_assessment,
@@ -225,34 +222,31 @@ def test_jp_nursing_composition_section_text() -> None:
     This test verifies that section content is non-empty (not silently dropped),
     not that all content is JP (language deferred to β-JP-1).
     """
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "out"
-        run_generate("JP", 200, 42, out)
-        comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
-        if not comps:
-            pytest.skip("No Composition resources emitted for JP cohort n=200")
+    comps = load_ndjson(find_ndjson(jp_export_dir, "Composition.ndjson"))
+    if not comps:
+        pytest.skip("No Composition resources emitted for JP cohort n=200")
 
-        nursing_comps = [c for c in comps if _loinc_code_from_type(c) == _LOINC_ADMISSION_NURSING_ASSESSMENT]
-        if not nursing_comps:
-            pytest.skip(
-                "No ADMISSION_NURSING_ASSESSMENT Compositions in JP cohort n=200 — "
-                "nursing enricher may not be firing for JP inpatient encounters"
-            )
-
-        empty_sections: list[str] = []
-        for comp in nursing_comps[:10]:  # Sample first 10 for speed
-            comp_id = comp.get("id", "?")
-            sections = comp.get("section", [])
-            if not sections:
-                empty_sections.append(f"Composition/{comp_id}: no section[] at all")
-                continue
-            for sec in sections:
-                title = sec.get("title", "?")
-                div = sec.get("text", {}).get("div", "")
-                if not div or div.strip() == "<div></div>":
-                    empty_sections.append(f"Composition/{comp_id} section {title!r}: empty div")
-
-        assert not empty_sections, (
-            f"{len(empty_sections)} empty section(s) in ADMISSION_NURSING_ASSESSMENT "
-            f"Composition (JP cohort):\n" + "\n".join(empty_sections[:5])
+    nursing_comps = [c for c in comps if _loinc_code_from_type(c) == _LOINC_ADMISSION_NURSING_ASSESSMENT]
+    if not nursing_comps:
+        pytest.skip(
+            "No ADMISSION_NURSING_ASSESSMENT Compositions in JP cohort n=200 — "
+            "nursing enricher may not be firing for JP inpatient encounters"
         )
+
+    empty_sections: list[str] = []
+    for comp in nursing_comps[:10]:  # Sample first 10 for speed
+        comp_id = comp.get("id", "?")
+        sections = comp.get("section", [])
+        if not sections:
+            empty_sections.append(f"Composition/{comp_id}: no section[] at all")
+            continue
+        for sec in sections:
+            title = sec.get("title", "?")
+            div = sec.get("text", {}).get("div", "")
+            if not div or div.strip() == "<div></div>":
+                empty_sections.append(f"Composition/{comp_id} section {title!r}: empty div")
+
+    assert not empty_sections, (
+        f"{len(empty_sections)} empty section(s) in ADMISSION_NURSING_ASSESSMENT "
+        f"Composition (JP cohort):\n" + "\n".join(empty_sections[:5])
+    )
