@@ -897,6 +897,21 @@ _EMPLOYMENT_LABELS: dict[str, tuple[str, str]] = {
     "homemaker": ("主婦・主夫", "homemaker"),
     "disabled": ("就労困難", "unable to work (disability)"),
 }
+_RACE_LABELS: dict[str, tuple[str, str]] = {
+    # US OMB race categories (PatientProfile.race, US-only per patient.py:211).
+    # Emitted for US locale patients only — JP records leave race="" so
+    # `_localize_token` returns "" and the line drops silently.
+    "white": ("白人", "white"),
+    "black": ("黒人", "Black or African American"),
+    "asian": ("アジア系", "Asian"),
+    "native_american": ("ネイティブアメリカン", "American Indian or Alaska Native"),
+    "pacific_islander": ("太平洋諸島系", "Native Hawaiian or Other Pacific Islander"),
+    "other": ("その他人種", "other race"),
+}
+_ETHNICITY_LABELS: dict[str, tuple[str, str]] = {
+    "hispanic": ("ヒスパニック", "Hispanic or Latino"),
+    "not_hispanic": ("非ヒスパニック", "not Hispanic or Latino"),
+}
 _INSURANCE_LABELS: dict[str, tuple[str, str]] = {
     # US
     "employer_group": ("雇用主提供保険", "employer-sponsored"),
@@ -1035,6 +1050,19 @@ def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None)
     ins = _localize_token(_get(patient, "insurance_type", ""), _INSURANCE_LABELS, lang)
     if ins:
         parts.append(ins)
+
+    # US Core demographics (Issue #1405 P1 refinement): race + ethnicity
+    # are US-only concepts on PatientProfile (US Core Patient must-support
+    # extensions #1344 wired them at FHIR emit time). Silently absent for
+    # JP records (race / ethnicity strings are empty). Emit them last so
+    # they read as the closing demographic anchor rather than intruding
+    # on the leading age/sex/social-history clause.
+    race = _localize_token(_get(patient, "race", ""), _RACE_LABELS, lang)
+    if race:
+        parts.append(race)
+    ethn = _localize_token(_get(patient, "ethnicity", ""), _ETHNICITY_LABELS, lang)
+    if ethn:
+        parts.append(ethn)
 
     if not parts:
         return ""
