@@ -2347,7 +2347,36 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   (<code>event_type: EventType = "avoid"</code> and <code>stopped_on_day: int | None = None</code>);
   legacy pair-conflict constructor sites (<code>activator._derive_home_medications</code>,
   <code>medication_pipeline._apply_gate_and_append</code>, <code>emergency._apply_ed_gate</code>,
-  etc.) require no callsite edits and keep their <code>avoid</code> semantics.</p>
+  etc.) require no callsite edits and keep their <code>avoid</code> semantics.
+- <strong>Neonatal admission_hp narrative wiring</strong> (Issue #1404). Pre-fix the
+  177 v0.6.1→HEAD commits added a full newborn-workup pipeline
+  (Apgar / AABR / tandem-MS / bilirubin / CCHD / Vitamin K / ophthalmic
+  prophylaxis under <code>clinosim.modules.newborn</code> — Issues #1252 N1-N7)
+  but the narrative bundle prompt had zero per-doc-type guidance for
+  neonatal admission_hp: Apgar / AABR / tandem-MS fell through generic
+  <code>key_procedures_performed</code> and adult A&amp;P headings ("Planned Length
+  of Stay") were emitted verbatim for newborns.
+  - New <code>NarrativeContext.newborn_workup: dict[str, Any]</code> field
+    populated by <code>context._build_newborn_workup</code> (reads
+    <code>record.extensions["newborn"]</code> + top-level Procedures / MARs).
+    Gated on <code>patient.occupation == "infant"</code> or <code>age == 0</code> — empty
+    dict for adult records.
+  - New context key <code>newborn_workup_summary</code> rendered by
+    <code>replacement_strategy._render_newborn_workup_summary</code> for
+    admission_hp when the workup projection is present. JA and EN
+    cadences: Apgar &#8533; min, AABR / tandem-MS submission flags,
+    bilirubin peak, CCHD SpO2 pre/post-ductal, Vitamin K + ophthalmic
+    prophylaxis flags. Missing elements drop silently (never
+    fabricated).
+  - Narrative bundle prompts v17 → v18 (JA/EN parallel): new
+    "NEONATAL VARIANT" per-doc-type block under <code>admission_hp</code> that
+    tells the LLM to shape HPI around delivery mode + GA + birth
+    biometrics + Apgar and A&amp;P around every workup element in
+    <code>newborn_workup_summary</code>, and to skip adult PMH / home-medications
+    sections that don't apply to newborns.
+  - 11 new unit tests in
+    <code>tests/unit/modules/document/narrative/test_newborn_workup_context.py</code>
+    (context projection + JA/EN render + doc-type gate).</p>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Narrative bundle prompts v16 → v17</strong> (S113→S114 narrative review;
