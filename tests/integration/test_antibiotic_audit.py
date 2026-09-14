@@ -782,6 +782,28 @@ def test_clinical_axis_empty_rate_gate_excludes_no_panel_organisms(tmp_path) -> 
     assert not fails, f"0% empty rate must PASS; got {fails!r}"
 
 
+def _prewarm_hai_organisms_cache() -> None:
+    """Pre-warm ``load_hai_organisms`` cache before a monkeypatched
+    ``yaml.safe_load`` reaches its downstream call.
+
+    ``load_hai_antibiogram`` transitively calls ``load_hai_organisms``
+    (via ``_organisms_by_hai_type``) during its validation. Both use
+    ``@lru_cache``. If ``load_hai_organisms`` is not already cached at
+    the moment ``yaml.safe_load`` is monkeypatched, the monkeypatched
+    loader returns the antibiogram-shaped test payload for the
+    organisms yaml too, poisoning validation with a mis-shaped
+    ``hai_organisms.yaml top-level empty`` ValueError that doesn't
+    match the test's expected antibiogram regex.
+
+    Only surfaces when pytest-split's shard reordering runs these two
+    tests before other tests have independently warmed the organisms
+    cache (S115 #1420, PR #1423 shard-6 breakage)."""
+    from clinosim.modules.hai import engine as hai_engine
+
+    hai_engine.load_hai_organisms.cache_clear()
+    hai_engine.load_hai_organisms()
+
+
 @pytest.mark.integration
 def test_load_hai_antibiogram_rejects_empty_top_level(monkeypatch) -> None:
     """I2 fix: empty antibiogram top-level must raise ValueError, not
@@ -790,6 +812,7 @@ def test_load_hai_antibiogram_rejects_empty_top_level(monkeypatch) -> None:
 
     import clinosim.modules.hai as hai_mod
 
+    _prewarm_hai_organisms_cache()
     monkeypatch.setattr(yaml, "safe_load", lambda f: {"hai_antibiogram": {}})
     hai_mod.load_hai_antibiogram.cache_clear()
     try:
@@ -808,6 +831,7 @@ def test_load_hai_antibiogram_rejects_empty_per_hai_type_bucket(monkeypatch) -> 
 
     import clinosim.modules.hai as hai_mod
 
+    _prewarm_hai_organisms_cache()
     monkeypatch.setattr(yaml, "safe_load", lambda f: {"hai_antibiogram": {"clabsi": {}}})
     hai_mod.load_hai_antibiogram.cache_clear()
     try:
