@@ -1,0 +1,83 @@
+# US Core narrow-gate compliance CI gate (Issue #1418 Phase 1).
+#
+# Enforces the invariant that every US Patient / Encounter / Condition
+# emitted by clinosim satisfies the narrow subset of US Core
+# AllPatients / Encounter / Condition must-support elements gated at
+# threshold=1.0 in `clinosim.eval.axes.us_core_compliance`.
+#
+# The gate runs a fresh US cohort (p=300, seed=300) → clinosim eval
+# on only the `us_core_compliance` axis → exit 1 if any check FAILs.
+# Runs in parallel with the JP-side gates on every PR.
+#
+# Unlike the JP-CLINS lab compliance gate, this gate has no external
+# pkg dependency — the check works from the FHIR NDJSON alone by
+# comparing extension URLs, valueCoding systems, and CodeSystem URIs
+# against constants defined in the axis. The full HL7 FHIR Validator
+# for US Core lives in a separate on-demand workflow (Phase 3,
+# `us-validate.yml`).
+
+name: US Core narrow compliance gate
+
+on:
+  push:
+    branches: [master]
+    # No paths filter on push: master should always carry the last-known
+    # green baseline so incoming PRs can compare against it.
+  pull_request:
+    branches: [master]
+    # Paths filter (session 82 CI review pattern): the gate is only
+    # meaningful when code, YAML, or tests that shape US FHIR output
+    # change. Docs-only / workflow / infra PRs don't affect the emitted
+    # data and don't need a full US cohort run.
+    paths:
+      - "clinosim/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - ".github/workflows/us-core-compliance-gate.yml"
+
+concurrency:
+  group: us-core-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: US p=300 seed=300 → eval only us_core_compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install clinosim
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Generate US cohort (p=300 seed=300)
+        run: |
+          set -euo pipefail
+          mkdir -p cohort
+          clinosim simulate \
+            --country US \
+            -p 300 \
+            -s 300 \
+            --format fhir-r4 \
+            -o cohort
+
+      - name: Run gate (clinosim eval --strict --only-axes us_core_compliance)
+        run: |
+          set -euo pipefail
+          # --strict promotes any FAIL check in the selected axis to exit
+          # code 1. --only-axes restricts scoring to the one axis whose
+          # checks all carry threshold=1.0. A drop below 100 % on any
+          # single check breaks the build.
+          clinosim eval \
+            -d cohort \
+            --country US \
+            --strict \
+            --only-axes us_core_compliance

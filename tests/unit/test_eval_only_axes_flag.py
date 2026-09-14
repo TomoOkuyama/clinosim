@@ -28,7 +28,7 @@ def test_default_runs_all_registered_axes(tmp_path: Path) -> None:
     _minimal_flat_cohort(tmp_path)
     report = EvalEngine(cohort_dir=tmp_path).run()
     axis_names = {a.axis for a in report.axes}
-    assert axis_names == {"structural", "clinical", "locale", "jp_clins_lab_compliance"}
+    assert axis_names == {"structural", "clinical", "locale", "jp_clins_lab_compliance", "us_core_compliance"}
 
 
 @pytest.mark.unit
