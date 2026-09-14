@@ -32,9 +32,31 @@ concurrency:
 
 jobs:
   unit:
-    name: Unit tests (Py 3.12)
+    name: Unit tests (Py 3.12 shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Historical:
+    #   * Single-worker serial (pre-S114):                    ~8-9 min
+    #   * S115 (2026-09-14) N=3 shards × xdist -n 2:          ~3-4 min per shard
+    #
+    # `pytest-split` splits `tests/unit` into 3 groups using
+    # `.test_durations` (shared with integration). Within each shard,
+    # `pytest-xdist -n 2 --dist=worksteal` fills both vCPUs. Combined
+    # parallelism = 3 × 2 = 6 concurrent workers.
+    #
+    # Coverage: each shard writes `.coverage.shard-N` (isolated via
+    # `COVERAGE_FILE` env var) and uploads it as an artifact. The
+    # `unit-coverage-combine` job (below) downloads all shard data,
+    # runs `coverage combine`, and produces the final XML — so the
+    # 80 % soft floor still reflects the full-suite exercised code.
+    #
+    # `.test_durations` is seeded once and refreshed alongside the
+    # integration regen described below when test-suite composition
+    # drifts noticeably.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -43,19 +65,52 @@ jobs:
           cache: pip
       - name: Install (with dev extras)
         run: pip install -e ".[dev]"
-      - name: Run unit tests with coverage
-        # Coverage report (XML + terminal summary) generated per run so the
-        # % moves in-sync with the code. `--cov-fail-under` acts as a soft
-        # floor: if coverage drops below 80%, the job still passes (soft
-        # gate so PRs don't get blocked on a 1-line drop) but the summary
-        # makes the regression visible in the CI log.
+      - name: Run unit tests with coverage (shard ${{ matrix.shard }}/3)
+        env:
+          COVERAGE_FILE: ".coverage.shard-${{ matrix.shard }}"
         run: >
           pytest tests/unit -q --tb=short
+          -n 2 --dist=worksteal
+          --splits 3 --group ${{ matrix.shard }}
+          --splitting-algorithm=least_duration
           --cov=clinosim
-          --cov-report=xml
-          --cov-report=term-missing:skip-covered
-          --cov-fail-under=80 || [ $? -eq 2 ]
-      - name: Upload coverage XML
+          --cov-report=
+      - name: Upload coverage data (shard ${{ matrix.shard }})
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-data-${{ matrix.shard }}
+          path: .coverage.shard-${{ matrix.shard }}
+          retention-days: 1
+          include-hidden-files: true
+
+  unit-coverage-combine:
+    name: Unit test coverage combine (informational)
+    runs-on: ubuntu-latest
+    needs: unit
+    timeout-minutes: 5
+    # Coverage combine is informational — a shard failure blocks merge
+    # via the `unit` job above, so this stage only exists to produce a
+    # single combined XML artifact + summary. The 80 % floor stays soft
+    # (`|| [ $? -eq 2 ]`) as before.
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install coverage
+        run: pip install "coverage[toml]"
+      - name: Download all shard coverage data
+        uses: actions/download-artifact@v7
+        with:
+          pattern: coverage-data-*
+          merge-multiple: true
+      - name: Combine + report
+        run: |
+          coverage combine
+          coverage xml -o coverage.xml
+          coverage report --fail-under=80 || [ $? -eq 2 ]
+      - name: Upload combined coverage XML
         uses: actions/upload-artifact@v7
         with:
           name: coverage-xml

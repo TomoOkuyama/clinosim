@@ -41,6 +41,21 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
+- **CI unit tests: N=3 shards + xdist -n 2 + coverage combine**
+  (S115, Issue #1420 Phase 1). Local bin-packing simulation on the
+  regenerated `.test_durations` (6086 unit entries, 119.2s
+  single-thread total) shows 3-way split at 39.7s per shard (0 %
+  imbalance). With xdist -n 2 inside each shard the per-shard wall
+  drops to ~20-25s + CI overhead (setup + install + artifact
+  upload) ≈ ~3 min per shard. Combined parallelism = 3 shards ×
+  xdist -n 2 = 6 concurrent workers on the unit stage (up from 2).
+  Coverage is preserved through a new `unit-coverage-combine` job
+  that downloads per-shard `.coverage.shard-N` data files (isolated
+  via `COVERAGE_FILE` env), runs `coverage combine`, and produces
+  the same combined `coverage.xml` artifact + 80 % soft floor as
+  the pre-#1420 single-run job. Critical path expected 18 min →
+  ~13 min (unit 3 min + integration 10 min, coverage combine
+  parallel to integration).
 - **CI integration tests: 3 → 5 shards** (S114 CI-throughput
   optimization). Bin-packing simulation on the current
   `.test_durations` (315 integration tests, 1465s single-worker
