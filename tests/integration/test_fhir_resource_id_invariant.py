@@ -106,14 +106,19 @@ def _summarize_violations(violations: list[tuple[str, str]]) -> str:
 
 
 @pytest.fixture(scope="module")
-def us_export_dir(tmp_path_factory: pytest.TempPathFactory) -> str:
-    """One-time US p=1000 generation → FHIR export directory.
+def _shared_cif_dir(tmp_path_factory: pytest.TempPathFactory) -> str:
+    """Single p=1000 sim result shared by both US and JP FHIR conversions.
 
-    Module-scoped so the cost is paid once even though multiple test cases
-    below walk the same NDJSON tree. p=1000 is a coverage-vs-runtime
-    compromise: exercises most builder branches (~200-400 patients, ~2k
-    encounters, some HAI cohort) while keeping the integration-suite
-    incremental cost around 1-2 min per country.
+    S115 slow-test fixture consolidation (#1420 follow-up): the pre-fix
+    ``us_export_dir`` and ``jp_export_dir`` each ran an independent
+    ``run_beta()`` with byte-identical `SimulatorConfig`, then converted
+    the resulting CIF to a locale-specific FHIR bundle. The sim itself
+    is the dominant cost (~50-60 s) and locale-neutral, so factor it out:
+    both `*_export_dir` fixtures now consume this shared CIF and only pay
+    the (much cheaper) FHIR conversion per locale.
+
+    p=1000 is a coverage-vs-runtime compromise: exercises most builder
+    branches (~200-400 patients, ~2k encounters, some HAI cohort).
     """
     config = SimulatorConfig(
         catchment_population=1_000,
@@ -121,33 +126,32 @@ def us_export_dir(tmp_path_factory: pytest.TempPathFactory) -> str:
         random_seed=42,
     )
     result = run_beta(config)
-    root = tmp_path_factory.mktemp("fhir_id_invariant_us")
+    root = tmp_path_factory.mktemp("fhir_id_invariant_cif")
     cif_dir = str(root / "cif")
-    fhir_dir = str(root / "fhir")
     write_cif(result, cif_dir)
-    convert_cif_to_fhir(cif_dir, fhir_dir, country="US")
+    return cif_dir
+
+
+@pytest.fixture(scope="module")
+def us_export_dir(tmp_path_factory: pytest.TempPathFactory, _shared_cif_dir: str) -> str:
+    """US FHIR export from the shared CIF."""
+    root = tmp_path_factory.mktemp("fhir_id_invariant_us")
+    fhir_dir = str(root / "fhir")
+    convert_cif_to_fhir(_shared_cif_dir, fhir_dir, country="US")
     return fhir_dir
 
 
 @pytest.fixture(scope="module")
-def jp_export_dir(tmp_path_factory: pytest.TempPathFactory) -> str:
-    """One-time JP p=1000 generation → FHIR export directory.
+def jp_export_dir(tmp_path_factory: pytest.TempPathFactory, _shared_cif_dir: str) -> str:
+    """JP FHIR export from the shared CIF.
 
     JP path exercises JP Core / JP-CLINS / JP-eCS profile builders whose
     id shapes may diverge from US builders (Composition, MedicationRequest
     identifier slices, JP Core Observation_LabResult profile, etc.).
     """
-    config = SimulatorConfig(
-        catchment_population=1_000,
-        time_range=("2024-04-01", "2025-03-31"),
-        random_seed=42,
-    )
-    result = run_beta(config)
     root = tmp_path_factory.mktemp("fhir_id_invariant_jp")
-    cif_dir = str(root / "cif")
     fhir_dir = str(root / "fhir")
-    write_cif(result, cif_dir)
-    convert_cif_to_fhir(cif_dir, fhir_dir, country="JP")
+    convert_cif_to_fhir(_shared_cif_dir, fhir_dir, country="JP")
     return fhir_dir
 
 
